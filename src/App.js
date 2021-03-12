@@ -83,11 +83,11 @@ function App() {
   return (
     <AppWrapper>
       {globalData &&
-      Object.keys(globalData).length > 0 &&
-      globalChartData &&
-      Object.keys(globalChartData).length > 0 &&
-      allTokens &&
-      Object.keys(allTokens).length > 0 ? (
+        Object.keys(globalData).length > 0 &&
+        globalChartData &&
+        Object.keys(globalChartData).length > 0 &&
+        allTokens &&
+        Object.keys(allTokens).length > 0 ? (
         <BrowserRouter>
           <Switch>
             <Route
@@ -116,6 +116,11 @@ function App() {
             <Route path="/protocols">
               <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
                 <AllTokensPage />
+              </LayoutWrapper>
+            </Route>
+            <Route path="/dexes">
+              <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                <AllTokensPage category="Dexes" />
               </LayoutWrapper>
             </Route>
             <Route path="/about">

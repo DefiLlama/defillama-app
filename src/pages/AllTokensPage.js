@@ -10,8 +10,19 @@ import { RowBetween } from '../components/Row'
 import Search from '../components/Search'
 import { useMedia } from 'react-use'
 
-function AllTokensPage() {
-  const allTokens = useAllTokenData()
+function AllTokensPage(props) {
+  const { category } = props
+  let allTokens = useAllTokenData()
+
+  if (category) {
+    allTokens = Object.entries(allTokens).filter(([key, token]) => token.category === category)
+      .reduce((acc, curr) => {
+        console.log(curr)
+        acc[curr[0]] = curr[1];
+        return acc
+      }, {});
+  }
+
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
