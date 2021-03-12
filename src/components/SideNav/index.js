@@ -148,6 +148,11 @@ function SideNav({ history }) {
                 Twitter
               </Link>
             </HeaderText>
+            <HeaderText>
+              <Link href="https://t.me/defillama_tg" target="_blank">
+                Telegram
+              </Link>
+            </HeaderText>
             <Toggle isActive={isDark} toggle={toggleDarkMode} />
           </AutoColumn>
           {!below1180 && (

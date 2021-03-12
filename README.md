@@ -1,4 +1,4 @@
-# SushiSwap History
+# DefiLlama History
 
 
 ![Tests](https://github.com/sushiswap/sushiswap-vision/workflows/Tests/badge.svg)
