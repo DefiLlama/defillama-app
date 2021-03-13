@@ -1,10 +1,10 @@
-import { BarChart, Feather } from 'react-feather'
+import { BarChart, Feather, Shield, RefreshCcw, Archive, PieChart } from 'react-feather'
 
 const categories = [
     {
         name: 'Dexes',
         sidebar: true,
-        icon: BarChart
+        icon: RefreshCcw
     },
     {
         name: 'Assets',
@@ -14,7 +14,7 @@ const categories = [
     {
         name: 'Lending',
         sidebar: true,
-        icon: BarChart
+        icon: PieChart
     },
     {
         name: 'Yield',
@@ -34,7 +34,7 @@ const categories = [
     {
         name: 'Insurance',
         sidebar: true,
-        icon: BarChart
+        icon: Shield
     },
     {
         name: 'Options',
@@ -44,7 +44,7 @@ const categories = [
     {
         name: 'Indexes',
         sidebar: true,
-        icon: BarChart
+        icon: Archive
     },
     {
         name: 'Staking',
