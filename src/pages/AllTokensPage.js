@@ -11,7 +11,7 @@ import Search from '../components/Search'
 import { useMedia } from 'react-use'
 
 function AllTokensPage(props) {
-  const { category } = props
+  const { category, categoryName } = props
   let allTokens = useAllTokenData()
 
   if (category) {
@@ -28,13 +28,17 @@ function AllTokensPage(props) {
   }, [])
 
   const below600 = useMedia('(max-width: 800px)')
-  document.title = `TVL Rankings - Defi Llama`;
+  let title = `TVL Rankings`
+  if (categoryName) {
+    title = `${categoryName} TVL Rankings`
+  }
+  document.title = `${title} - Defi Llama`;
 
   return (
     <PageWrapper>
       <FullWrapper>
         <RowBetween>
-          <TYPE.largeHeader>TVL Rankings</TYPE.largeHeader>
+          <TYPE.largeHeader>{title}</TYPE.largeHeader>
           {!below600 && <Search small={true} />}
         </RowBetween>
         <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>

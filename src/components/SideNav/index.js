@@ -11,6 +11,7 @@ import { TrendingUp, Disc, HelpCircle } from 'react-feather'
 import Link from '../Link'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
 import Toggle from '../Toggle'
+import categories from '../../constants/categories'
 
 const Wrapper = styled.div`
   height: ${({ isMobile }) => (isMobile ? 'initial' : '100vh')};
@@ -124,7 +125,7 @@ function SideNav({ history }) {
                 <BasicLink to="/protocols">
                   <Option
                     activeText={
-                      (history.location.pathname.split('/')[1] === 'protocols' ||
+                      ((history.location.pathname.split('/')[1] === 'protocols' && history.location.pathname.split('/')[2] === undefined) ||
                         history.location.pathname.split('/')[1] === 'protocol') ??
                       undefined
                     }
@@ -133,6 +134,22 @@ function SideNav({ history }) {
                     Protocols
                   </Option>
                 </BasicLink>
+                {Object.entries(categories)
+                  .filter(([key, data]) => data.sidebar)
+                  .map(([categoryName, categoryData]) =>
+                    <BasicLink to={`/protocols/${categoryName}`}>
+                      <Option
+                        activeText={
+                          (history.location.pathname.split('/')[1] === 'protocols' &&
+                            history.location.pathname.split('/')[2] === categoryName) ??
+                          undefined
+                        }
+                      >
+                        <categoryData.icon size={20} style={{ marginRight: '.75rem' }} />
+                        {categoryData.name}
+                      </Option>
+                    </BasicLink>
+                  )}
                 <BasicLink to="/about">
                   <Option activeText={history.location.pathname === '/about' ?? undefined}>
                     <HelpCircle size={20} style={{ marginRight: '.75rem' }} />

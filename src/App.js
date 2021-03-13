@@ -6,6 +6,7 @@ import TokenPage from './pages/TokenPage'
 import { useGlobalData, useGlobalChartData } from './contexts/GlobalData'
 import { useAllTokenData } from './contexts/TokenData'
 
+import categories from './constants/categories'
 import { isValidProtocol } from './utils'
 import AllTokensPage from './pages/AllTokensPage'
 import AboutPage from './pages/AboutPage'
@@ -103,6 +104,21 @@ function App() {
                   )
                 } else {
                   return <Redirect to="/home" />
+                }
+              }}
+            />
+            <Route
+              exacts
+              strict
+              path="/protocols/:protocol"
+              render={({ match }) => {
+                const category = categories[match.params.protocol]
+                if (category !== undefined) {
+                  return (<LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                    <AllTokensPage category={category.name} categoryName={category.name} />
+                  </LayoutWrapper>)
+                } else {
+                  return <Redirect to="/protocols" />
                 }
               }}
             />
