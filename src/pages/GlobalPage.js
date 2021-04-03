@@ -34,14 +34,14 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
-function GlobalPage() {
+function GlobalPage({ chain }) {
   // get data for lists and totals
   let allTokens = useAllTokenData()
   //const transactions = useGlobalTransactions()
   const globalData = useGlobalData()
   const [chainChartData, setChainChartData] = useState({});
   const [oldChain, setOldChain] = useState(undefined);
-  const [selectedChain, setSelectedChain] = useState(undefined);
+  const [selectedChain, setSelectedChain] = useState(chain);
 
   let { totalVolumeUSD, volumeChangeUSD } = globalData
 
