@@ -34,7 +34,7 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
-function GlobalPage({ chain }) {
+function GlobalPage() {
   // get data for lists and totals
   let allTokens = useAllTokenData()
   //const transactions = useGlobalTransactions()
@@ -45,17 +45,15 @@ function GlobalPage({ chain }) {
 
   let { totalVolumeUSD, volumeChangeUSD } = globalData
 
-  console.log(chain, chainChartData[chain])
-  console.log(chainChartData[chain] !== undefined)
-  if (chain !== undefined) {
-    if (oldChain !== chain && chainChartData[chain] === undefined) {
-      setOldChain(chain);
-      fetchAPI(`https://api.defillama.com/charts/${chain}`).then(chart => setChainChartData({
-        ...chainChartData,
-        [chain]: chart
+  if (selectedChain !== undefined) {
+    if (oldChain !== selectedChain && chainChartData[selectedChain] === undefined) {
+      setOldChain(selectedChain);
+      const chartName = selectedChain === 'Others' ? 'Multi-chain' : selectedChain
+      fetchAPI(`https://api.defillama.com/charts/${chartName}`).then(chart => setChainChartData({
+        [selectedChain]: chart
       }))
     }
-    const chartData = chainChartData[chain];
+    const chartData = chainChartData[selectedChain];
     if (chartData === undefined) {
       totalVolumeUSD = 0;
       volumeChangeUSD = 0;
@@ -65,8 +63,6 @@ function GlobalPage({ chain }) {
         chartData[chartData.length - 2].totalLiquidityUSD) *
         100
     }
-    allTokens = Object.fromEntries(Object.entries(allTokens).filter(token => chain === (token[1].chain || 'none').toLowerCase()))
-  } else if (selectedChain !== undefined) {
     allTokens = Object.fromEntries(Object.entries(allTokens).filter(token => {
       try {
         const chains = JSON.parse(token[1].chains)
@@ -101,10 +97,10 @@ function GlobalPage({ chain }) {
 
   document.title = `DefiLlama - DeFi Dashboard`;
 
-  const chart = chain === undefined ? <GlobalChart display="liquidity" /> :
-    chainChartData[chain] !== undefined ? <ProtocolChart
-      chartData={chainChartData[chain]}
-      protocol={chain}
+  const chart = selectedChain === undefined ? <GlobalChart display="liquidity" /> :
+    chainChartData[selectedChain] !== undefined ? <ProtocolChart
+      chartData={chainChartData[selectedChain]}
+      protocol={selectedChain}
     /> : <Loader />;
 
   return (
@@ -230,9 +226,9 @@ function GlobalPage({ chain }) {
               <RowFlat>
                 {['Ethereum', 'Binance', 'Others'].map((name, i) => {
                   if (selectedChain === name) {
-                    return <ButtonDark style={{ margin: '0.2rem' }}>{name}</ButtonDark>
+                    return <ButtonDark style={{ margin: '0.2rem' }} key={name} >{name}</ButtonDark>
                   } else {
-                    return <ButtonLight style={{ margin: '0.2rem' }} onClick={() => {
+                    return <ButtonLight style={{ margin: '0.2rem' }} key={name} onClick={() => {
                       setSelectedChain(name)
                     }}>{name}</ButtonLight>
                   }
