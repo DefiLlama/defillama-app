@@ -171,6 +171,16 @@ function SideNav({ history }) {
               </Link>
             </HeaderText>
             <HeaderText>
+              <Link href="https://docs.llama.fi/" target="_blank">
+                Docs
+              </Link>
+            </HeaderText>
+            <HeaderText>
+              <Link href="https://docs.llama.fi/list-your-project/submit-a-project" target="_blank">
+                List your project
+              </Link>
+            </HeaderText>
+            <HeaderText>
               <Link href="https://t.me/defillama_tg" target="_blank">
                 Telegram
               </Link>
