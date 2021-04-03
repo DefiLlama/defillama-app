@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { withRouter } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { AutoRow, RowBetween } from '../components/Row'
+import { AutoRow, RowBetween, RowFlat } from '../components/Row'
 import Loader from '../components/LocalLoader'
 import ProtocolChart from '../components/ProtocolChart'
 import { AutoColumn } from '../components/Column'
 import TopTokenList from '../components/TokenList'
 import GlobalChart from '../components/GlobalChart'
 import Search from '../components/Search'
+import { ButtonLight, ButtonDark } from '../components/ButtonStyled'
 
 import { useGlobalData } from '../contexts/GlobalData'
 import { useMedia } from 'react-use'
@@ -39,7 +40,8 @@ function GlobalPage({ chain }) {
   //const transactions = useGlobalTransactions()
   const globalData = useGlobalData()
   const [chainChartData, setChainChartData] = useState({});
-  const [oldChain, setOldChain] = useState(undefined)
+  const [oldChain, setOldChain] = useState(undefined);
+  const [selectedChain, setSelectedChain] = useState(undefined);
 
   let { totalVolumeUSD, volumeChangeUSD } = globalData
 
@@ -64,6 +66,18 @@ function GlobalPage({ chain }) {
         100
     }
     allTokens = Object.fromEntries(Object.entries(allTokens).filter(token => chain === (token[1].chain || 'none').toLowerCase()))
+  } else if (selectedChain !== undefined) {
+    allTokens = Object.fromEntries(Object.entries(allTokens).filter(token => {
+      try {
+        const chains = JSON.parse(token[1].chains)
+        if (selectedChain === 'Others') {
+          return chains.some(chain => chain !== 'Ethereum' && chain !== 'Binance')
+        }
+        return chains.includes(selectedChain);
+      } catch (e) {
+        return false
+      }
+    }));
   }
   const tokensList = Object.values(allTokens)
     .sort((token1, token2) => Number(token2.tvl) - Number(token1.tvl))
@@ -213,6 +227,17 @@ function GlobalPage({ chain }) {
           <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
             <RowBetween>
               <TYPE.main fontSize={'1.125rem'}>TVL Rankings</TYPE.main>
+              <RowFlat>
+                {['Ethereum', 'Binance', 'Others'].map((name, i) => {
+                  if (selectedChain === name) {
+                    return <ButtonDark style={{ margin: '0.2rem' }}>{name}</ButtonDark>
+                  } else {
+                    return <ButtonLight style={{ margin: '0.2rem' }} onClick={() => {
+                      setSelectedChain(name)
+                    }}>{name}</ButtonLight>
+                  }
+                })}
+              </RowFlat>
               <CustomLink to={'/protocols'}>See All</CustomLink>
             </RowBetween>
           </ListOptions>
