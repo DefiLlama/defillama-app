@@ -224,12 +224,12 @@ function GlobalPage({ chain }) {
             <RowBetween>
               <TYPE.main fontSize={'1.125rem'}>TVL Rankings</TYPE.main>
               <RowFlat>
-                {['Ethereum', 'Binance', 'Others'].map((name, i) => {
-                  if (selectedChain === name) {
+                {['All', 'Ethereum', 'Binance', 'Others'].map((name, i) => {
+                  if (selectedChain === name || (name === 'All' && selectedChain === undefined)) {
                     return <ButtonDark style={{ margin: '0.2rem' }} key={name} >{name}</ButtonDark>
                   } else {
                     return <ButtonLight style={{ margin: '0.2rem' }} key={name} onClick={() => {
-                      setSelectedChain(name)
+                      setSelectedChain(name === 'All' ? undefined : name)
                     }}>{name}</ButtonLight>
                   }
                 })}
