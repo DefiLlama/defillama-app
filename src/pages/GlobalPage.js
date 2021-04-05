@@ -22,6 +22,7 @@ import { CustomLink } from '../components/Link'
 
 import { PageWrapper, ContentWrapper } from '../components'
 import { fetchAPI } from '../contexts/API'
+import { CHART_API } from '../constants'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -49,7 +50,7 @@ function GlobalPage({ chain }) {
     if (oldChain !== selectedChain && chainChartData[selectedChain] === undefined) {
       setOldChain(selectedChain);
       const chartName = selectedChain === 'Others' ? 'Multi-chain' : selectedChain
-      fetchAPI(`https://api.defillama.com/charts/${chartName}`).then(chart => setChainChartData({
+      fetchAPI(`${CHART_API}/${chartName}`).then(chart => setChainChartData({
         [selectedChain]: chart
       }))
     }
