@@ -28,7 +28,10 @@ const ProtocolChart = ({ chartData, protocol }) => {
     )
   }, [chartData, utcStartTime])
 
-  var change = ((chartData[chartData.length - 1].totalLiquidityUSD - chartData[chartData.length - 2].totalLiquidityUSD) / chartData[chartData.length - 2].totalLiquidityUSD)* 100;
+  let change = 100;
+  if (chartData.length > 1) {
+    change = ((chartData[chartData.length - 1].totalLiquidityUSD - chartData[chartData.length - 2].totalLiquidityUSD) / chartData[chartData.length - 2].totalLiquidityUSD) * 100;
+  }
 
   // update the width on a window resize
   const ref = useRef()

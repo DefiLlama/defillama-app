@@ -31,9 +31,9 @@ export const FEE_WARNING_TOKENS = ['0xd46ba6d942050d489dbd938a2c909a5d5039a161']
 
 // API endpoints
 
-export const CHART_API = 'https://api.defillama.com/charts'
-export const PROTOCOLS_API = 'https://api.defillama.com/protocols'
-export const PROTOCOL_API = 'https://api.defillama.com/protocol'
+export const CHART_API = 'https://api.llama.fi/charts'
+export const PROTOCOLS_API = 'https://api.llama.fi/protocols'
+export const PROTOCOL_API = 'https://api.llama.fi/protocol'
 
 // GlobalData Constants
 export const UPDATE = 'UPDATE'

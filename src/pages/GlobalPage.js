@@ -66,7 +66,7 @@ function GlobalPage({ chain }) {
     }
     allTokens = Object.fromEntries(Object.entries(allTokens).filter(token => {
       try {
-        const chains = JSON.parse(token[1].chains)
+        const chains = token[1].chains
         if (selectedChain === 'Others') {
           return chains.some(chain => chain !== 'Ethereum' && chain !== 'Binance')
         }
