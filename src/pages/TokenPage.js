@@ -89,10 +89,20 @@ let backgroundColor = '#2172E5'
 
 function TokenPage({ protocol, history }) {
   const allTokens = useAllTokenData()
-  const address = getTokenAddressFromName(allTokens, protocol)
+  let address = getTokenAddressFromName(allTokens, protocol)
   const id = getTokenIdFromName(allTokens, protocol)
   const tokenData = useTokenData(id, protocol)
   const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData } = tokenData
+  let blockExplorerLink;
+  let blockExplorerName;
+  if (address.startsWith('bsc:')) {
+    address = address.slice('bsc:'.length)
+    blockExplorerLink = 'https://bscscan.com/address/' + address;
+    blockExplorerName = 'Bscscan'
+  } else {
+    blockExplorerLink = 'https://etherscan.io/address/' + address;
+    blockExplorerName = 'Etherscan'
+  }
 
   // price
   const price = priceUSD ? formattedNum(priceUSD, true) : ''
@@ -362,8 +372,8 @@ function TokenPage({ protocol, history }) {
                     </AutoRow>
                   </Column>
                   <ButtonLight color={backgroundColor}>
-                    <Link color={backgroundColor} external href={'https://etherscan.io/address/' + address}>
-                      View on Etherscan ↗
+                    <Link color={backgroundColor} external href={blockExplorerLink}>
+                      View on {blockExplorerName} ↗
                     </Link>
                   </ButtonLight>
                 </TokenDetailsLayout>
