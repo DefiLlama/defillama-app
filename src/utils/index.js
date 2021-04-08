@@ -403,7 +403,6 @@ export function rawPercent(percentRaw) {
 }
 
 export function formattedPercent(percent, useBrackets = false) {
-
   if (percent === null) {
     return <Text fontWeight={500}>-</Text>
   }
