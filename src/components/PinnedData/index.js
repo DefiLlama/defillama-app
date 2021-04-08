@@ -22,7 +22,6 @@ const RightColumn = styled.div`
   border-left: ${({ theme, open }) => '1px solid' + theme.bg3};
   background-color: ${({ theme }) => theme.bg1};
   z-index: 9999;
-  overflow: scroll;
   :hover {
     cursor: pointer;
   }
