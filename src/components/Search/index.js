@@ -47,9 +47,9 @@ const Wrapper = styled.div`
   @media screen and (max-width: 500px) {
     background: ${({ theme }) => transparentize(0.4, theme.bg1)};
     box-shadow: ${({ open }) =>
-      !open
-        ? '0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04) '
-        : 'none'};
+    !open
+      ? '0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04) '
+      : 'none'};
   }
 `
 const Input = styled.input`
@@ -105,7 +105,7 @@ const Menu = styled.div`
   width: 100%;
   top: 50px;
   max-height: 540px;
-  overflow: scroll;
+  overflow-y: auto;
   left: 0;
   padding-bottom: 20px;
   background: ${({ theme }) => theme.bg6};
@@ -150,7 +150,7 @@ export const Search = ({ small = false }) => {
   const [value, setValue] = useState('')
 
   // fetch new data on tokens and pairs if needed
-  useTokenData(value)
+  // useTokenData(value)
 
   const below700 = useMedia('(max-width: 700px)')
   const below470 = useMedia('(max-width: 470px)')
@@ -178,45 +178,25 @@ export const Search = ({ small = false }) => {
   const filteredTokenList = useMemo(() => {
     return allTokens
       ? allTokens
-          .sort((a, b) => {
-            if (OVERVIEW_TOKEN_BLACKLIST.includes(a.id)) {
-              return 1
+        .filter(token => {
+          if (OVERVIEW_TOKEN_BLACKLIST.includes(token.id)) {
+            return false
+          }
+          const regexMatches = Object.keys(token).map(tokenEntryKey => {
+            const isAddress = value.slice(0, 2) === '0x'
+            if (tokenEntryKey === 'id' && isAddress) {
+              return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
             }
-            if (OVERVIEW_TOKEN_BLACKLIST.includes(b.id)) {
-              return -1
+            if (tokenEntryKey === 'symbol' && !isAddress) {
+              return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
             }
-            const tokenA = allTokenData[a.id]
-            const tokenB = allTokenData[b.id]
-            if (tokenA?.oneDayVolumeUSD && tokenB?.oneDayVolumeUSD) {
-              return tokenA.oneDayVolumeUSD > tokenB.oneDayVolumeUSD ? -1 : 1
+            if (tokenEntryKey === 'name' && !isAddress) {
+              return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
             }
-            if (tokenA?.oneDayVolumeUSD && !tokenB?.oneDayVolumeUSD) {
-              return -1
-            }
-            if (!tokenA?.oneDayVolumeUSD && tokenB?.oneDayVolumeUSD) {
-              return tokenA?.totalLiquidity > tokenB?.totalLiquidity ? -1 : 1
-            }
-            return 1
+            return false
           })
-          .filter(token => {
-            if (OVERVIEW_TOKEN_BLACKLIST.includes(token.id)) {
-              return false
-            }
-            const regexMatches = Object.keys(token).map(tokenEntryKey => {
-              const isAddress = value.slice(0, 2) === '0x'
-              if (tokenEntryKey === 'id' && isAddress) {
-                return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
-              }
-              if (tokenEntryKey === 'symbol' && !isAddress) {
-                return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
-              }
-              if (tokenEntryKey === 'name' && !isAddress) {
-                return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
-              }
-              return false
-            })
-            return regexMatches.some(m => m)
-          })
+          return regexMatches.some(m => m)
+        })
       : []
   }, [allTokenData, allTokens, value])
 
@@ -260,12 +240,12 @@ export const Search = ({ small = false }) => {
             small
               ? ''
               : below410
-              ? 'Search...'
-              : below470
-              ? 'Search DeFi...'
-              : below700
-              ? 'Search protocols...'
-              : 'Search DeFi protocols...'
+                ? 'Search...'
+                : below470
+                  ? 'Search DeFi...'
+                  : below700
+                    ? 'Search protocols...'
+                    : 'Search DeFi protocols...'
           }
           value={value}
           onChange={e => {
