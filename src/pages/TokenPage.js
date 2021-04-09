@@ -99,6 +99,10 @@ function TokenPage({ protocol, history }) {
     address = address.slice('bsc:'.length)
     blockExplorerLink = 'https://bscscan.com/address/' + address;
     blockExplorerName = 'Bscscan'
+  } else if (address.startsWith('xdai:')) {
+    address = address.slice('xdai:'.length)
+    blockExplorerLink = 'https://blockscout.com/xdai/mainnet/address/' + address;
+    blockExplorerName = 'BlockScout'
   } else {
     blockExplorerLink = 'https://etherscan.io/address/' + address;
     blockExplorerName = 'Etherscan'
