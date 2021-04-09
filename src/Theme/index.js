@@ -16,7 +16,7 @@ const theme = (darkMode, color) => ({
 
   panelColor: darkMode ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0)',
   backgroundColor: darkMode ? '#212429' : '#445ed0',
- 
+
   uniswapPink: darkMode ? '#445ed0' : 'black',
 
   concreteGray: darkMode ? '#292C2F' : '#FAFAFA',
@@ -208,12 +208,6 @@ export const GlobalStyle = createGlobalStyle`
 	text-align: left;
 	z-index: 10;
   pointer-events: none;
-}
-
-@media screen and (max-width: 800px) {
-  .three-line-legend {
-    display: none !important;
-  }
 }
 
 .tv-lightweight-charts{
