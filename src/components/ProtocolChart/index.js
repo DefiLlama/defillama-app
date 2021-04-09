@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { ResponsiveContainer } from 'recharts'
 import { timeframeOptions } from '../../constants'
-import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
+import TokenChart from '../TokenChart'
 import { getTimeframe } from '../../utils'
 
 const ProtocolChart = ({ chartData, protocol }) => {
@@ -53,14 +53,14 @@ const ProtocolChart = ({ chartData, protocol }) => {
     <>
       {chartDataFiltered && (
         <ResponsiveContainer aspect={60 / 28} ref={ref}>
-          <TradingViewChart
+          <TokenChart
             data={chartData}
             base={chartData[chartData.length - 1].totalLiquidityUSD}
             baseChange={change}
             title={`${protocol} TVL`}
             field="totalLiquidityUSD"
             width={width}
-            type={CHART_TYPES.AREA}
+          //type={CHART_TYPES.AREA}
           />
         </ResponsiveContainer>
       )}

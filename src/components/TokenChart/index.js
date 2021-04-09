@@ -15,6 +15,7 @@ import LocalLoader from '../LocalLoader'
 import { AutoColumn } from '../Column'
 import { Activity } from 'react-feather'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
+import { fetchAPI } from '../../contexts/API'
 
 const ChartWrapper = styled.div`
   height: 100%;
@@ -42,50 +43,30 @@ const DATA_FREQUENCY = {
   LINE: 'LINE'
 }
 
-const TokenChart = ({ address, color, base }) => {
+const DENOMINATIONS = {
+  USD: 'USD',
+  ETH: 'ETH',
+  //BTC: 'BTC'
+}
+
+const TokenChart = ({ color, base, data }) => {
   // settings for the window and candle width
-  const [chartFilter, setChartFilter] = useState(CHART_VIEW.PRICE)
+  const [chartFilter, setChartFilter] = useState(CHART_VIEW.LIQUIDITY)
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
+  const [denomination, setDenomination] = useState(DENOMINATIONS.USD)
+  const [denominationPriceHistory, setDenominationPriceHistory] = useState(undefined)
 
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
 
-  // reset view on new address
-  const addressPrev = usePrevious(address)
-  useEffect(() => {
-    if (address !== addressPrev && addressPrev) {
-      setChartFilter(CHART_VIEW.LIQUIDITY)
-    }
-  }, [address, addressPrev])
+  let chartData = data
 
-  let chartData = useTokenChartData(address)
 
-  const [timeWindow, setTimeWindow] = useState(timeframeOptions.WEEK)
+  const [timeWindow, setTimeWindow] = useState(timeframeOptions.ALL_TIME)
   const prevWindow = usePrevious(timeWindow)
 
-  // hourly and daily price data based on the current time window
-  const hourlyWeek = useTokenPriceData(address, timeframeOptions.WEEK, 3600)
-  const hourlyMonth = useTokenPriceData(address, timeframeOptions.MONTH, 3600)
-  const hourlyAll = useTokenPriceData(address, timeframeOptions.ALL_TIME, 3600)
-  const dailyWeek = useTokenPriceData(address, timeframeOptions.WEEK, 86400)
-  const dailyMonth = useTokenPriceData(address, timeframeOptions.MONTH, 86400)
-  const dailyAll = useTokenPriceData(address, timeframeOptions.ALL_TIME, 86400)
 
-  const priceData =
-    timeWindow === timeframeOptions.MONTH
-      ? // monthly selected
-        frequency === DATA_FREQUENCY.DAY
-        ? dailyMonth
-        : hourlyMonth
-      : // weekly selected
-      timeWindow === timeframeOptions.WEEK
-      ? frequency === DATA_FREQUENCY.DAY
-        ? dailyWeek
-        : hourlyWeek
-      : // all time selected
-      frequency === DATA_FREQUENCY.DAY
-      ? dailyAll
-      : hourlyAll
+  const priceData = undefined
 
   // switch to hourly data when switched to week window
   useEffect(() => {
@@ -111,7 +92,38 @@ const TokenChart = ({ address, color, base }) => {
   const domain = [dataMin => (dataMin > utcStartTime ? dataMin : utcStartTime), 'dataMax']
   const aspect = below1080 ? 60 / 32 : below600 ? 60 / 42 : 60 / 22
 
+  useEffect(() => {
+    if (denomination !== DENOMINATIONS.USD && denominationPriceHistory === undefined) {
+      fetchAPI(`https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`).then(data => setDenominationPriceHistory({
+        asset: 'ETH',
+        prices: data.prices
+      }))
+    }
+  }, [denomination])
+
   chartData = chartData?.filter(entry => entry.date >= utcStartTime)
+  if (denomination !== DENOMINATIONS.USD) {
+    if (denominationPriceHistory !== undefined && denominationPriceHistory.asset === denomination) {
+      let priceIndex = 0;
+      let prevPriceDate = 0
+      const denominationPrices = denominationPriceHistory.prices;
+      for (let i = 0; i < chartData.length; i++) {
+        const date = chartData[i].date * 1000;
+        while (priceIndex < denominationPrices.length && Math.abs(date - prevPriceDate) > Math.abs(date - denominationPrices[priceIndex][0])) {
+          prevPriceDate = denominationPrices[priceIndex][0];
+          priceIndex++;
+        }
+        const price = denominationPrices[priceIndex - 1][1];
+        //console.log(join(new Date(date), a, '-'), price, chartData[i].totalLiquidityUSD, chartData[i].totalLiquidityUSD / price)
+        chartData[i] = {
+          date: chartData[i].date,
+          totalLiquidityUSD: chartData[i].totalLiquidityUSD / price
+        }
+      }
+    } else {
+      chartData = undefined
+    }
+  }
 
   // update the width on a window resize
   const ref = useRef()
@@ -128,19 +140,21 @@ const TokenChart = ({ address, color, base }) => {
     return () => window.removeEventListener('resize', handleResize)
   }, [isClient, width]) // Empty array ensures that effect is only run on mount and unmount
 
+  const moneySymbol = denomination === DENOMINATIONS.USD ? '$' : 'Ξ'
+
   return (
     <ChartWrapper>
       {below600 ? (
         <RowBetween mb={40}>
-          <DropdownSelect options={CHART_VIEW} active={chartFilter} setActive={setChartFilter} color={color} />
+          <DropdownSelect options={DENOMINATIONS} active={denomination} setActive={setDenomination} color={color} />
           <DropdownSelect options={timeframeOptions} active={timeWindow} setActive={setTimeWindow} color={color} />
         </RowBetween>
       ) : (
         <RowBetween
           mb={
             chartFilter === CHART_VIEW.LIQUIDITY ||
-            chartFilter === CHART_VIEW.VOLUME ||
-            (chartFilter === CHART_VIEW.PRICE && frequency === DATA_FREQUENCY.LINE)
+              chartFilter === CHART_VIEW.VOLUME ||
+              (chartFilter === CHART_VIEW.PRICE && frequency === DATA_FREQUENCY.LINE)
               ? 40
               : 0
           }
@@ -149,27 +163,29 @@ const TokenChart = ({ address, color, base }) => {
           <AutoColumn gap="8px">
             <RowFixed>
               <OptionButton
-                active={chartFilter === CHART_VIEW.LIQUIDITY}
-                onClick={() => setChartFilter(CHART_VIEW.LIQUIDITY)}
+                active={denomination === DENOMINATIONS.USD}
+                onClick={() => setDenomination(DENOMINATIONS.USD)}
                 style={{ marginRight: '6px' }}
               >
-                Liquidity
+                USD
               </OptionButton>
               <OptionButton
-                active={chartFilter === CHART_VIEW.VOLUME}
-                onClick={() => setChartFilter(CHART_VIEW.VOLUME)}
+                active={denomination === DENOMINATIONS.ETH}
+                onClick={() => setDenomination(DENOMINATIONS.ETH)}
                 style={{ marginRight: '6px' }}
               >
-                Volume
+                ETH
               </OptionButton>
+              {/*
               <OptionButton
-                active={chartFilter === CHART_VIEW.PRICE}
+                active={denomination === DENOMINATIONS.BTC}
                 onClick={() => {
-                  setChartFilter(CHART_VIEW.PRICE)
+                  setDenomination(DENOMINATIONS.BTC)
                 }}
               >
-                Price
+                BTC
               </OptionButton>
+            */}
             </RowFixed>
             {chartFilter === CHART_VIEW.PRICE && (
               <AutoRow gap="4px">
@@ -219,6 +235,7 @@ const TokenChart = ({ address, color, base }) => {
           </AutoRow>
         </RowBetween>
       )}
+      {chartData === undefined && <LocalLoader />}
       {chartFilter === CHART_VIEW.LIQUIDITY && chartData && (
         <ResponsiveContainer aspect={aspect}>
           <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={chartData}>
@@ -243,7 +260,7 @@ const TokenChart = ({ address, color, base }) => {
             <YAxis
               type="number"
               orientation="right"
-              tickFormatter={tick => '$' + toK(tick)}
+              tickFormatter={tick => moneySymbol + toK(tick)}
               axisLine={false}
               tickLine={false}
               interval="preserveEnd"
@@ -253,7 +270,7 @@ const TokenChart = ({ address, color, base }) => {
             />
             <Tooltip
               cursor={true}
-              formatter={val => formattedNum(val, true)}
+              formatter={val => formattedNum(val, moneySymbol === '$')}
               labelFormatter={label => toNiceDateYear(label)}
               labelStyle={{ paddingTop: 4 }}
               contentStyle={{
@@ -271,9 +288,9 @@ const TokenChart = ({ address, color, base }) => {
               strokeWidth={2}
               dot={false}
               type="monotone"
-              name={'Liquidity'}
+              name={'TVL'}
               yAxisId={0}
-              stroke={darken(0.12, color)}
+              stroke={color}
               fill="url(#colorUv)"
             />
           </AreaChart>
@@ -304,7 +321,7 @@ const TokenChart = ({ address, color, base }) => {
               <YAxis
                 type="number"
                 orientation="right"
-                tickFormatter={tick => '$' + toK(tick)}
+                tickFormatter={tick => moneySymbol + toK(tick)}
                 axisLine={false}
                 tickLine={false}
                 interval="preserveEnd"
@@ -366,7 +383,7 @@ const TokenChart = ({ address, color, base }) => {
               type="number"
               axisLine={false}
               tickMargin={16}
-              tickFormatter={tick => '$' + toK(tick)}
+              tickFormatter={tick => moneySymbol + toK(tick)}
               tickLine={false}
               orientation="right"
               interval="preserveEnd"
