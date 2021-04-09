@@ -103,6 +103,10 @@ function TokenPage({ protocol, history }) {
     address = address.slice('xdai:'.length)
     blockExplorerLink = 'https://blockscout.com/xdai/mainnet/address/' + address;
     blockExplorerName = 'BlockScout'
+  } else if (address.startsWith('avax:')) {
+    address = address.slice('avax:'.length)
+    blockExplorerLink = 'https://cchain.explorer.avax.network/address/' + address;
+    blockExplorerName = 'CChain Explorer'
   } else {
     blockExplorerLink = 'https://etherscan.io/address/' + address;
     blockExplorerName = 'Etherscan'
