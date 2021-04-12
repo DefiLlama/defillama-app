@@ -6,7 +6,6 @@ import TokenPage from './pages/TokenPage'
 import { useGlobalData, useGlobalChartData } from './contexts/GlobalData'
 import { useAllTokenData } from './contexts/TokenData'
 
-import categories from './constants/categories'
 import { isValidProtocol } from './utils'
 import AllTokensPage from './pages/AllTokensPage'
 import AboutPage from './pages/AboutPage'
@@ -110,12 +109,12 @@ function App() {
             <Route
               exacts
               strict
-              path="/protocols/:protocol"
+              path="/protocols/:category"
               render={({ match }) => {
-                const category = categories[match.params.protocol]
-                if (category !== undefined) {
+                const category = match.params.category
+                if (Object.values(allTokens).some(protocol => (protocol.category || '').toLowerCase() === category.toLowerCase())) {
                   return (<LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-                    <AllTokensPage category={category.name} categoryName={category.name} />
+                    <AllTokensPage category={category} categoryName={category} />
                   </LayoutWrapper>)
                 } else {
                   return <Redirect to="/protocols" />
