@@ -23,6 +23,7 @@ import { CustomLink } from '../components/Link'
 import { PageWrapper, ContentWrapper } from '../components'
 import { fetchAPI } from '../contexts/API'
 import { CHART_API } from '../constants'
+import DropdownSelect from '../components/DropdownSelect'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -35,6 +36,8 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
+const chainOptions = ['All', 'Ethereum', 'Binance', 'Others']
+
 function GlobalPage({ chain }) {
   // get data for lists and totals
   let allTokens = useAllTokenData()
@@ -42,7 +45,8 @@ function GlobalPage({ chain }) {
   const globalData = useGlobalData()
   const [chainChartData, setChainChartData] = useState({});
   const [oldChain, setOldChain] = useState(undefined);
-  const [selectedChain, setSelectedChain] = useState(chain);
+  const [selectedChain, setSelectedChainRaw] = useState(chain);
+  const setSelectedChain = (newSelectedChain) => setSelectedChainRaw(newSelectedChain === 'All' ? undefined : newSelectedChain)
 
   let { totalVolumeUSD, volumeChangeUSD } = globalData
 
@@ -225,15 +229,21 @@ function GlobalPage({ chain }) {
             <RowBetween>
               <TYPE.main fontSize={'1.125rem'}>TVL Rankings</TYPE.main>
               <RowFlat>
-                {['All', 'Ethereum', 'Binance', 'Others'].map((name, i) => {
-                  if (selectedChain === name || (name === 'All' && selectedChain === undefined)) {
-                    return <ButtonDark style={{ margin: '0.2rem' }} key={name} >{name}</ButtonDark>
-                  } else {
-                    return <ButtonLight style={{ margin: '0.2rem' }} key={name} onClick={() => {
-                      setSelectedChain(name === 'All' ? undefined : name)
-                    }}>{name}</ButtonLight>
-                  }
-                })}
+                {below800 ?
+                  <DropdownSelect options={chainOptions.reduce((acc, item) => ({
+                    ...acc,
+                    [item]: item
+                  }), {})} active={selectedChain || 'All'} setActive={setSelectedChain} />
+                  :
+                  chainOptions.map((name, i) => {
+                    if (selectedChain === name || (name === 'All' && selectedChain === undefined)) {
+                      return <ButtonDark style={{ margin: '0.2rem' }} key={name} >{name}</ButtonDark>
+                    } else {
+                      return <ButtonLight style={{ margin: '0.2rem' }} key={name} onClick={() => {
+                        setSelectedChain(name)
+                      }}>{name}</ButtonLight>
+                    }
+                  })}
               </RowFlat>
               <CustomLink to={'/protocols'}>See All</CustomLink>
             </RowBetween>
