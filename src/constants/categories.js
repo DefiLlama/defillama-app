@@ -1,4 +1,4 @@
-import { BarChart, Feather, Shield, RefreshCcw, Archive, PieChart, Activity } from 'react-feather'
+import { BarChart, Feather, Shield, RefreshCcw, Archive, PieChart, Activity, Server } from 'react-feather'
 
 const categories = [
     {
@@ -35,6 +35,11 @@ const categories = [
         name: 'Indexes',
         sidebar: true,
         icon: Archive
+    },
+    {
+        name: 'Staking',
+        sidebar: true,
+        icon: Server
     }
 ]
 
