@@ -36,7 +36,7 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
-const chainOptions = ['All', 'Ethereum', 'Binance', 'Others']
+const chainOptions = ['All', 'Ethereum', 'Binance', 'Avalanche', 'Solana', 'Others']
 
 function GlobalPage({ chain }) {
   // get data for lists and totals
@@ -72,7 +72,7 @@ function GlobalPage({ chain }) {
       try {
         const chains = token[1].chains
         if (selectedChain === 'Others') {
-          return chains.some(chain => chain !== 'Ethereum' && chain !== 'Binance')
+          return chains.some(chain => !chainOptions.includes(chain))
         }
         return chains.includes(selectedChain);
       } catch (e) {
