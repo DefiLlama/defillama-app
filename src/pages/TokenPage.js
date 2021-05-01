@@ -110,7 +110,7 @@ function TokenPage({ protocol, history }) {
   } else if (address.startsWith('wan:')) {
     address = address.slice('wan:'.length)
     blockExplorerLink = 'https://wanscan.org/token/' + address;
-    blockExplorerName = 'WanScan'
+    blockExplorerName = 'Wanscan'
   } else {
     blockExplorerLink = 'https://etherscan.io/address/' + address;
     blockExplorerName = 'Etherscan'
