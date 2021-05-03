@@ -16,6 +16,8 @@ import { AutoColumn } from '../Column'
 import { Activity } from 'react-feather'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
 import { fetchAPI } from '../../contexts/API'
+import Chart from "chart.js/auto"
+import 'chartjs-adapter-moment';
 
 const ChartWrapper = styled.div`
   height: 100%;
@@ -46,15 +48,21 @@ const DATA_FREQUENCY = {
 const DENOMINATIONS = {
   USD: 'USD',
   ETH: 'ETH',
+  Tokens: 'Tokens'
   //BTC: 'BTC'
 }
 
-const TokenChart = ({ color, base, data }) => {
+function random255() {
+  return Math.round(Math.random() * 255)
+}
+
+const TokenChart = ({ color, base, data, tokensInUsd }) => {
   // settings for the window and candle width
   const [chartFilter, setChartFilter] = useState(CHART_VIEW.LIQUIDITY)
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
   const [denomination, setDenomination] = useState(DENOMINATIONS.USD)
   const [denominationPriceHistory, setDenominationPriceHistory] = useState(undefined)
+  const [stackedChart, setStackedChart] = useState(undefined)
 
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
@@ -93,16 +101,74 @@ const TokenChart = ({ color, base, data }) => {
   const aspect = below1080 ? 60 / 32 : below600 ? 60 / 42 : 60 / 22
 
   useEffect(() => {
-    if (denomination !== DENOMINATIONS.USD && denominationPriceHistory === undefined) {
+    if (denomination === DENOMINATIONS.ETH && denominationPriceHistory === undefined) {
       fetchAPI(`https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`).then(data => setDenominationPriceHistory({
         asset: 'ETH',
         prices: data.prices
       }))
+    } else if (denomination === DENOMINATIONS.Tokens && stackedChart === undefined) {
+      const labels = []
+      const datasets = {}
+      tokensInUsd.forEach((snapshot, index) => {
+        labels.push(snapshot.date * 1000);
+        Object.entries(snapshot.tokens).forEach(([symbol, tvl]) => {
+          if (datasets[symbol] === undefined) {
+            const color = `rgb(${random255()}, ${random255()}, ${random255()})`
+            datasets[symbol] = {
+              label: symbol,
+              backgroundColor: color,
+              borderColor: color,
+              data: new Array(index).fill(0),
+              fill: true
+            }
+          }
+          datasets[symbol].data.push(tvl)
+        })
+      })
+      console.log(tokensInUsd)
+      const data = {
+        labels: labels,
+        datasets: Object.values(datasets)
+      };
+      const config = {
+        type: 'line',
+        data: data,
+        options: {
+          responsive: true,
+          plugins: {
+            tooltip: {
+              mode: 'index'
+            },
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          },
+          scales: {
+            x: {
+              type: 'time',
+            },
+            y: {
+              stacked: true,
+              title: {
+                display: true,
+                text: 'USD'
+              }
+            }
+          }
+        }
+      };
+      const chart = new Chart(
+        document.getElementById('stackedChart'),
+        config
+      );
+      setStackedChart(stackedChart)
     }
   }, [denomination])
 
   chartData = chartData?.filter(entry => entry.date >= utcStartTime)
-  if (denomination !== DENOMINATIONS.USD) {
+  if (denomination === DENOMINATIONS.ETH) {
     if (denominationPriceHistory !== undefined && denominationPriceHistory.asset === denomination) {
       let priceIndex = 0;
       let prevPriceDate = 0
@@ -140,13 +206,17 @@ const TokenChart = ({ color, base, data }) => {
     return () => window.removeEventListener('resize', handleResize)
   }, [isClient, width]) // Empty array ensures that effect is only run on mount and unmount
 
-  const moneySymbol = denomination === DENOMINATIONS.USD ? '$' : 'Ξ'
+  const moneySymbol = denomination === DENOMINATIONS.ETH ? 'Ξ' : '$'
 
+  const denominationsToDisplay = tokensInUsd === undefined || tokensInUsd.length === 0 || tokensInUsd.some(data => !data.tokens) ? {
+    USD: 'USD',
+    ETH: 'ETH',
+  } : DENOMINATIONS;
   return (
     <ChartWrapper>
       {below600 ? (
         <RowBetween mb={40}>
-          <DropdownSelect options={DENOMINATIONS} active={denomination} setActive={setDenomination} color={color} />
+          <DropdownSelect options={denominationsToDisplay} active={denomination} setActive={setDenomination} color={color} />
           <DropdownSelect options={timeframeOptions} active={timeWindow} setActive={setTimeWindow} color={color} />
         </RowBetween>
       ) : (
@@ -162,30 +232,15 @@ const TokenChart = ({ color, base, data }) => {
         >
           <AutoColumn gap="8px">
             <RowFixed>
-              <OptionButton
-                active={denomination === DENOMINATIONS.USD}
-                onClick={() => setDenomination(DENOMINATIONS.USD)}
+              {Object.values(denominationsToDisplay).map(option => <OptionButton
+                active={denomination === option}
+                onClick={() => setDenomination(option)}
                 style={{ marginRight: '6px' }}
+                key={option}
               >
-                USD
+                {option}
               </OptionButton>
-              <OptionButton
-                active={denomination === DENOMINATIONS.ETH}
-                onClick={() => setDenomination(DENOMINATIONS.ETH)}
-                style={{ marginRight: '6px' }}
-              >
-                ETH
-              </OptionButton>
-              {/*
-              <OptionButton
-                active={denomination === DENOMINATIONS.BTC}
-                onClick={() => {
-                  setDenomination(DENOMINATIONS.BTC)
-                }}
-              >
-                BTC
-              </OptionButton>
-            */}
+              )}
             </RowFixed>
             {chartFilter === CHART_VIEW.PRICE && (
               <AutoRow gap="4px">
@@ -238,65 +293,69 @@ const TokenChart = ({ color, base, data }) => {
       {chartData === undefined && <LocalLoader />}
       {chartFilter === CHART_VIEW.LIQUIDITY && chartData && (
         <ResponsiveContainer aspect={aspect}>
-          <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={chartData}>
-            <defs>
-              <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={color} stopOpacity={0.35} />
-                <stop offset="95%" stopColor={color} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <XAxis
-              tickLine={false}
-              axisLine={false}
-              interval="preserveEnd"
-              tickMargin={16}
-              minTickGap={120}
-              tickFormatter={tick => toNiceDate(tick)}
-              dataKey="date"
-              tick={{ fill: textColor }}
-              type={'number'}
-              domain={['dataMin', 'dataMax']}
-            />
-            <YAxis
-              type="number"
-              orientation="right"
-              tickFormatter={tick => moneySymbol + toK(tick)}
-              axisLine={false}
-              tickLine={false}
-              interval="preserveEnd"
-              minTickGap={80}
-              yAxisId={0}
-              tick={{ fill: textColor }}
-            />
-            <Tooltip
-              cursor={true}
-              formatter={val => formattedNum(val, moneySymbol === '$')}
-              labelFormatter={label => toNiceDateYear(label)}
-              labelStyle={{ paddingTop: 4 }}
-              contentStyle={{
-                padding: '10px 14px',
-                borderRadius: 10,
-                borderColor: color,
-                color: 'black'
-              }}
-              wrapperStyle={{ top: -70, left: -10 }}
-            />
-            <Area
-              key={'other'}
-              dataKey={'totalLiquidityUSD'}
-              stackId="2"
-              strokeWidth={2}
-              dot={false}
-              type="monotone"
-              name={'TVL'}
-              yAxisId={0}
-              stroke={color}
-              fill="url(#colorUv)"
-            />
-          </AreaChart>
+          {denomination === DENOMINATIONS.Tokens ? <canvas id="stackedChart"></canvas> :
+            <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={chartData}>
+              <defs>
+                <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={color} stopOpacity={0.35} />
+                  <stop offset="95%" stopColor={color} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                tickLine={false}
+                axisLine={false}
+                interval="preserveEnd"
+                tickMargin={16}
+                minTickGap={120}
+                tickFormatter={tick => toNiceDate(tick)}
+                dataKey="date"
+                tick={{ fill: textColor }}
+                type={'number'}
+                domain={['dataMin', 'dataMax']}
+              />
+              <YAxis
+                type="number"
+                orientation="right"
+                tickFormatter={tick => moneySymbol + toK(tick)}
+                axisLine={false}
+                tickLine={false}
+                interval="preserveEnd"
+                minTickGap={80}
+                yAxisId={0}
+                tick={{ fill: textColor }}
+              />
+              <Tooltip
+                cursor={true}
+                formatter={val => formattedNum(val, moneySymbol === '$')}
+                labelFormatter={label => toNiceDateYear(label)}
+                labelStyle={{ paddingTop: 4 }}
+                contentStyle={{
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  borderColor: color,
+                  color: 'black'
+                }}
+                wrapperStyle={{ top: -70, left: -10 }}
+              />
+              <Area
+                key={'other'}
+                dataKey={'totalLiquidityUSD'}
+                stackId="2"
+                strokeWidth={2}
+                dot={false}
+                type="monotone"
+                name={'TVL'}
+                yAxisId={0}
+                stroke={color}
+                fill="url(#colorUv)"
+              />
+            </AreaChart>
+          }
         </ResponsiveContainer>
-      )}
-      {chartFilter === CHART_VIEW.PRICE &&
+      )
+      }
+      {
+        chartFilter === CHART_VIEW.PRICE &&
         (frequency === DATA_FREQUENCY.LINE ? (
           <ResponsiveContainer aspect={below1080 ? 60 / 32 : 60 / 16}>
             <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={chartData}>
@@ -362,61 +421,64 @@ const TokenChart = ({ color, base, data }) => {
           </ResponsiveContainer>
         ) : (
           <LocalLoader />
-        ))}
+        ))
+      }
 
-      {chartFilter === CHART_VIEW.VOLUME && (
-        <ResponsiveContainer aspect={aspect}>
-          <BarChart margin={{ top: 0, right: 10, bottom: 6, left: 10 }} barCategoryGap={1} data={chartData}>
-            <XAxis
-              tickLine={false}
-              axisLine={false}
-              interval="preserveEnd"
-              minTickGap={80}
-              tickMargin={14}
-              tickFormatter={tick => toNiceDate(tick)}
-              dataKey="date"
-              tick={{ fill: textColor }}
-              type={'number'}
-              domain={['dataMin', 'dataMax']}
-            />
-            <YAxis
-              type="number"
-              axisLine={false}
-              tickMargin={16}
-              tickFormatter={tick => moneySymbol + toK(tick)}
-              tickLine={false}
-              orientation="right"
-              interval="preserveEnd"
-              minTickGap={80}
-              yAxisId={0}
-              tick={{ fill: textColor }}
-            />
-            <Tooltip
-              cursor={{ fill: color, opacity: 0.1 }}
-              formatter={val => formattedNum(val, true)}
-              labelFormatter={label => toNiceDateYear(label)}
-              labelStyle={{ paddingTop: 4 }}
-              contentStyle={{
-                padding: '10px 14px',
-                borderRadius: 10,
-                borderColor: color,
-                color: 'black'
-              }}
-              wrapperStyle={{ top: -70, left: -10 }}
-            />
-            <Bar
-              type="monotone"
-              name={'Volume'}
-              dataKey={'dailyVolumeUSD'}
-              fill={color}
-              opacity={'0.4'}
-              yAxisId={0}
-              stroke={color}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      )}
-    </ChartWrapper>
+      {
+        chartFilter === CHART_VIEW.VOLUME && (
+          <ResponsiveContainer aspect={aspect}>
+            <BarChart margin={{ top: 0, right: 10, bottom: 6, left: 10 }} barCategoryGap={1} data={chartData}>
+              <XAxis
+                tickLine={false}
+                axisLine={false}
+                interval="preserveEnd"
+                minTickGap={80}
+                tickMargin={14}
+                tickFormatter={tick => toNiceDate(tick)}
+                dataKey="date"
+                tick={{ fill: textColor }}
+                type={'number'}
+                domain={['dataMin', 'dataMax']}
+              />
+              <YAxis
+                type="number"
+                axisLine={false}
+                tickMargin={16}
+                tickFormatter={tick => moneySymbol + toK(tick)}
+                tickLine={false}
+                orientation="right"
+                interval="preserveEnd"
+                minTickGap={80}
+                yAxisId={0}
+                tick={{ fill: textColor }}
+              />
+              <Tooltip
+                cursor={{ fill: color, opacity: 0.1 }}
+                formatter={val => formattedNum(val, true)}
+                labelFormatter={label => toNiceDateYear(label)}
+                labelStyle={{ paddingTop: 4 }}
+                contentStyle={{
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  borderColor: color,
+                  color: 'black'
+                }}
+                wrapperStyle={{ top: -70, left: -10 }}
+              />
+              <Bar
+                type="monotone"
+                name={'Volume'}
+                dataKey={'dailyVolumeUSD'}
+                fill={color}
+                opacity={'0.4'}
+                yAxisId={0}
+                stroke={color}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        )
+      }
+    </ChartWrapper >
   )
 }
 

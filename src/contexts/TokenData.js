@@ -216,6 +216,7 @@ const getTokenData = async (address, protocol, ethPrice, ethPriceOld) => {
         url: tokenData?.url,
         tvl: tokenData?.tvl.length > 0 ? tokenData?.tvl[tokenData?.tvl.length - 1]?.totalLiquidityUSD : 0,
         tvlList: tokenData?.tvl.filter(item => item.date),
+        tokensInUsd: tokenData?.tokensInUsd,
         description: tokenData?.description
       }
       return data
@@ -263,11 +264,11 @@ export function useTokenData(tokenId, protocol = '') {
   return tokenData || {}
 }
 
-export function useTokenTransactions(tokenAddress) {}
+export function useTokenTransactions(tokenAddress) { }
 
-export function useTokenPairs(tokenAddress) {}
+export function useTokenPairs(tokenAddress) { }
 
-export function useTokenChartData(tokenAddress) {}
+export function useTokenChartData(tokenAddress) { }
 
 /**
  * get candlestick data for a token - saves in context based on the window and the
@@ -276,7 +277,7 @@ export function useTokenChartData(tokenAddress) {}
  * @param {*} timeWindow // a preset time window from constant - how far back to look
  * @param {*} interval  // the chunk size in seconds - default is 1 hour of 3600s
  */
-export function useTokenPriceData(tokenAddress, timeWindow, interval = 3600) {}
+export function useTokenPriceData(tokenAddress, timeWindow, interval = 3600) { }
 
 export function useAllTokenData() {
   const [state] = useTokenDataContext()

@@ -92,7 +92,7 @@ function TokenPage({ protocol, history }) {
   let address = getTokenAddressFromName(allTokens, protocol)
   const id = getTokenIdFromName(allTokens, protocol)
   const tokenData = useTokenData(id, protocol)
-  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData } = tokenData
+  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd } = tokenData
   let blockExplorerLink;
   let blockExplorerName;
   if (address.startsWith('bsc:')) {
@@ -308,6 +308,7 @@ function TokenPage({ protocol, history }) {
                     protocol={name}
                     address={address}
                     color={backgroundColor}
+                    tokensInUsd={tokensInUsd}
                     base={priceUSD}
                   />
                 )}
