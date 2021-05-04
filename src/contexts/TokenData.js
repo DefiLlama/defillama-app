@@ -217,6 +217,7 @@ const getTokenData = async (address, protocol, ethPrice, ethPriceOld) => {
         tvl: tokenData?.tvl.length > 0 ? tokenData?.tvl[tokenData?.tvl.length - 1]?.totalLiquidityUSD : 0,
         tvlList: tokenData?.tvl.filter(item => item.date),
         tokensInUsd: tokenData?.tokensInUsd,
+        tokens: tokenData?.tokens,
         description: tokenData?.description
       }
       return data

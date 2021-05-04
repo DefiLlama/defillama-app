@@ -48,7 +48,8 @@ const DATA_FREQUENCY = {
 const DENOMINATIONS = {
   USD: 'USD',
   ETH: 'ETH',
-  Tokens: 'Tokens'
+  TokensUSD: 'Tokens(USD)',
+  Tokens: 'Tokens',
   //BTC: 'BTC'
 }
 
@@ -56,7 +57,7 @@ function random255() {
   return Math.round(Math.random() * 255)
 }
 
-const TokenChart = ({ color, base, data, tokensInUsd }) => {
+const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
   // settings for the window and candle width
   const [chartFilter, setChartFilter] = useState(CHART_VIEW.LIQUIDITY)
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
@@ -106,10 +107,14 @@ const TokenChart = ({ color, base, data, tokensInUsd }) => {
         asset: 'ETH',
         prices: data.prices
       }))
-    } else if (denomination === DENOMINATIONS.Tokens && stackedChart === undefined) {
+    } else if (denomination === DENOMINATIONS.Tokens || denomination === DENOMINATIONS.TokensUSD) {
+      if (stackedChart !== undefined) {
+        stackedChart.destroy();
+      }
       const labels = []
       const datasets = {}
-      tokensInUsd.forEach((snapshot, index) => {
+      const tokenBalances = denomination === DENOMINATIONS.Tokens ? tokens : tokensInUsd;
+      tokenBalances.forEach((snapshot, index) => {
         labels.push(snapshot.date * 1000);
         Object.entries(snapshot.tokens).forEach(([symbol, tvl]) => {
           if (datasets[symbol] === undefined) {
@@ -125,7 +130,6 @@ const TokenChart = ({ color, base, data, tokensInUsd }) => {
           datasets[symbol].data.push(tvl)
         })
       })
-      console.log(tokensInUsd)
       const data = {
         labels: labels,
         datasets: Object.values(datasets)
@@ -153,7 +157,7 @@ const TokenChart = ({ color, base, data, tokensInUsd }) => {
               stacked: true,
               title: {
                 display: true,
-                text: 'USD'
+                text: denomination === DENOMINATIONS.Tokens ? 'Balance' : 'USD'
               }
             }
           }
@@ -163,7 +167,7 @@ const TokenChart = ({ color, base, data, tokensInUsd }) => {
         document.getElementById('stackedChart'),
         config
       );
-      setStackedChart(stackedChart)
+      setStackedChart(chart)
     }
   }, [denomination])
 
@@ -293,7 +297,7 @@ const TokenChart = ({ color, base, data, tokensInUsd }) => {
       {chartData === undefined && <LocalLoader />}
       {chartFilter === CHART_VIEW.LIQUIDITY && chartData && (
         <ResponsiveContainer aspect={aspect}>
-          {denomination === DENOMINATIONS.Tokens ? <canvas id="stackedChart"></canvas> :
+          {(denomination === DENOMINATIONS.Tokens || denomination === DENOMINATIONS.TokensUSD) ? <canvas id="stackedChart"></canvas> :
             <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={chartData}>
               <defs>
                 <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
