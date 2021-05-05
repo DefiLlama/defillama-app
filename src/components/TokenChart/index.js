@@ -48,6 +48,7 @@ const DATA_FREQUENCY = {
 const DENOMINATIONS = {
   USD: 'USD',
   ETH: 'ETH',
+  BNB: 'BNB',
   TokensUSD: 'Tokens(USD)',
   Tokens: 'Tokens',
   //BTC: 'BTC'
@@ -102,9 +103,9 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
   const aspect = below1080 ? 60 / 32 : below600 ? 60 / 42 : 60 / 22
 
   useEffect(() => {
-    if (denomination === DENOMINATIONS.ETH && denominationPriceHistory === undefined) {
-      fetchAPI(`https://api.coingecko.com/api/v3/coins/ethereum/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`).then(data => setDenominationPriceHistory({
-        asset: 'ETH',
+    if ((denomination === DENOMINATIONS.ETH || denomination === DENOMINATIONS.BNB) && (denominationPriceHistory === undefined || denominationPriceHistory.asset !== denomination)) {
+      fetchAPI(`https://api.coingecko.com/api/v3/coins/${denomination === DENOMINATIONS.ETH ? 'ethereum' : 'binancecoin'}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`).then(data => setDenominationPriceHistory({
+        asset: denomination,
         prices: data.prices
       }))
     } else if (denomination === DENOMINATIONS.Tokens || denomination === DENOMINATIONS.TokensUSD) {
@@ -172,7 +173,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
   }, [denomination])
 
   chartData = chartData?.filter(entry => entry.date >= utcStartTime)
-  if (denomination === DENOMINATIONS.ETH) {
+  if (denomination === DENOMINATIONS.ETH || denomination === DENOMINATIONS.BNB) {
     if (denominationPriceHistory !== undefined && denominationPriceHistory.asset === denomination) {
       let priceIndex = 0;
       let prevPriceDate = 0
@@ -210,11 +211,20 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
     return () => window.removeEventListener('resize', handleResize)
   }, [isClient, width]) // Empty array ensures that effect is only run on mount and unmount
 
-  const moneySymbol = denomination === DENOMINATIONS.ETH ? 'Ξ' : '$'
+  let moneySymbol = '$';
+  switch (denomination) {
+    case DENOMINATIONS.ETH:
+      moneySymbol = 'Ξ';
+      break;
+    case DENOMINATIONS.BNB:
+      moneySymbol = 'B';
+      break;
+  }
 
   const denominationsToDisplay = tokensInUsd === undefined || tokensInUsd.length === 0 || tokensInUsd.some(data => !data.tokens) ? {
     USD: 'USD',
     ETH: 'ETH',
+    BNB: 'BNB'
   } : DENOMINATIONS;
   return (
     <ChartWrapper>
