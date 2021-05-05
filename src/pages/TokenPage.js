@@ -107,6 +107,10 @@ function TokenPage({ protocol, history }) {
     address = address.slice('avax:'.length)
     blockExplorerLink = 'https://cchain.explorer.avax.network/address/' + address;
     blockExplorerName = 'CChain Explorer'
+  } else if (address.startsWith('fantom:')) {
+    address = address.slice('fantom:'.length)
+    blockExplorerLink = 'https://ftmscan.com/address/' + address;
+    blockExplorerName = 'FTMscan'
   } else if (address.startsWith('wan:')) {
     address = address.slice('wan:'.length)
     blockExplorerLink = 'https://wanscan.org/token/' + address;
