@@ -78,10 +78,6 @@ const GlobalChart = ({ display }) => {
 
   return chartDataFiltered ? (
     <>
-      {below800 && (
-        <DropdownSelect options={CHART_VIEW} active={chartView} setActive={setChartView} color={'#705240'} />
-      )}
-
       {chartDataFiltered && chartView === CHART_VIEW.LIQUIDITY && (
         <ResponsiveContainer aspect={60 / 28} ref={ref}>
           <TradingViewChart
@@ -99,7 +95,7 @@ const GlobalChart = ({ display }) => {
         <ResponsiveContainer aspect={60 / 28}>
           <TradingViewChart
             data={chartDataFiltered}
-            base={volumeWindow === VOLUME_WINDOW.WEEKLY ? oneWeekVolume  : oneDayVolumeUSD}
+            base={volumeWindow === VOLUME_WINDOW.WEEKLY ? oneWeekVolume : oneDayVolumeUSD}
             baseChange={volumeWindow === VOLUME_WINDOW.WEEKLY ? weeklyVolumeChange : volumeChangeUSD}
             title={volumeWindow === VOLUME_WINDOW.WEEKLY ? 'Change (7d)' : 'Change'}
             field={volumeWindow === VOLUME_WINDOW.WEEKLY ? 'weeklyVolumeUSD' : 'dailyVolumeUSD'}

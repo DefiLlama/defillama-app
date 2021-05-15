@@ -226,12 +226,13 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
     ETH: 'ETH',
     BNB: 'BNB'
   } : DENOMINATIONS;
+  const displayStackedChart = denomination === DENOMINATIONS.Tokens || denomination === DENOMINATIONS.TokensUSD
   return (
     <ChartWrapper>
       {below600 ? (
         <RowBetween mb={40}>
           <DropdownSelect options={denominationsToDisplay} active={denomination} setActive={setDenomination} color={color} />
-          <DropdownSelect options={timeframeOptions} active={timeWindow} setActive={setTimeWindow} color={color} />
+          {!displayStackedChart && <DropdownSelect options={timeframeOptions} active={timeWindow} setActive={setTimeWindow} color={color} />}
         </RowBetween>
       ) : (
         <RowBetween
@@ -282,32 +283,34 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
               </AutoRow>
             )}
           </AutoColumn>
-          <AutoRow justify="flex-end" gap="6px" align="flex-start">
-            <OptionButton
-              active={timeWindow === timeframeOptions.WEEK}
-              onClick={() => setTimeWindow(timeframeOptions.WEEK)}
-            >
-              1W
+          {!displayStackedChart &&
+            <AutoRow justify="flex-end" gap="6px" align="flex-start">
+              <OptionButton
+                active={timeWindow === timeframeOptions.WEEK}
+                onClick={() => setTimeWindow(timeframeOptions.WEEK)}
+              >
+                1W
             </OptionButton>
-            <OptionButton
-              active={timeWindow === timeframeOptions.MONTH}
-              onClick={() => setTimeWindow(timeframeOptions.MONTH)}
-            >
-              1M
+              <OptionButton
+                active={timeWindow === timeframeOptions.MONTH}
+                onClick={() => setTimeWindow(timeframeOptions.MONTH)}
+              >
+                1M
             </OptionButton>
-            <OptionButton
-              active={timeWindow === timeframeOptions.ALL_TIME}
-              onClick={() => setTimeWindow(timeframeOptions.ALL_TIME)}
-            >
-              All
+              <OptionButton
+                active={timeWindow === timeframeOptions.ALL_TIME}
+                onClick={() => setTimeWindow(timeframeOptions.ALL_TIME)}
+              >
+                All
             </OptionButton>
-          </AutoRow>
+            </AutoRow>
+          }
         </RowBetween>
       )}
       {chartData === undefined && <LocalLoader />}
       {chartFilter === CHART_VIEW.LIQUIDITY && chartData && (
         <ResponsiveContainer aspect={aspect}>
-          {(denomination === DENOMINATIONS.Tokens || denomination === DENOMINATIONS.TokensUSD) ? <canvas id="stackedChart"></canvas> :
+          {displayStackedChart ? <canvas id="stackedChart"></canvas> :
             <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={chartData}>
               <defs>
                 <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
