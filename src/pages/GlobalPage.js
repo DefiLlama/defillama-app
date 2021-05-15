@@ -50,6 +50,16 @@ function GlobalPage({ chain }) {
 
   let { totalVolumeUSD, volumeChangeUSD } = globalData
 
+  const allChains = []
+  Object.values(allTokens).forEach(token => {
+    token.chains.forEach(chain => {
+      if (!allChains.includes(chain)) {
+        allChains.push(chain)
+      }
+    })
+  })
+  const otherChains = allChains.filter(chain => !chainOptions.includes(chain))
+
   if (selectedChain !== undefined) {
     if (oldChain !== selectedChain && chainChartData[selectedChain] === undefined) {
       setOldChain(selectedChain);
@@ -78,12 +88,21 @@ function GlobalPage({ chain }) {
       } catch (e) {
         return false
       }
+    }).map(token => {
+      const chainTvl = token[1].chainTvls[selectedChain]
+      if (chainTvl !== undefined) {
+        return [token[0], {
+          ...token[1],
+          tvl: chainTvl
+        }]
+      }
+      return token
     }));
   }
   const tokensList = Object.values(allTokens)
     .sort((token1, token2) => Number(token2.tvl) - Number(token1.tvl))
 
-  const topToken = { name: 'Uniswap', tvl: '0' }
+  const topToken = { name: 'Uniswap', tvl: 0 }
   if (tokensList.length > 0) {
     topToken.name = tokensList[0]?.name
     topToken.tvl = tokensList[0]?.tvl
@@ -230,12 +249,18 @@ function GlobalPage({ chain }) {
               <TYPE.main fontSize={'1.125rem'}>TVL Rankings</TYPE.main>
               <RowFlat>
                 {below800 ?
-                  <DropdownSelect options={chainOptions.reduce((acc, item) => ({
+                  <DropdownSelect options={chainOptions.slice(0, -1).concat(otherChains).reduce((acc, item) => ({
                     ...acc,
                     [item]: item
                   }), {})} active={selectedChain || 'All'} setActive={setSelectedChain} />
                   :
                   chainOptions.map((name, i) => {
+                    if (name === "Others") {
+                      return <DropdownSelect options={otherChains.reduce((acc, item) => ({
+                        ...acc,
+                        [item]: item
+                      }), {})} active={(chainOptions.includes(selectedChain) || selectedChain === undefined) ? 'Other' : selectedChain} setActive={setSelectedChain} />
+                    }
                     if (selectedChain === name || (name === 'All' && selectedChain === undefined)) {
                       return <ButtonDark style={{ margin: '0.2rem' }} key={name} >{name}</ButtonDark>
                     } else {
