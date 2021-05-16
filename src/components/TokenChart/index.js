@@ -63,6 +63,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
   const [chartFilter, setChartFilter] = useState(CHART_VIEW.LIQUIDITY)
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
   const [denomination, setDenomination] = useState(DENOMINATIONS.USD)
+  const [balanceToken, setBalanceToken] = useState(undefined)
   const [denominationPriceHistory, setDenominationPriceHistory] = useState(undefined)
   const [stackedChart, setStackedChart] = useState(undefined)
 
@@ -108,13 +109,13 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
         asset: denomination,
         prices: data.prices
       }))
-    } else if (denomination === DENOMINATIONS.Tokens || denomination === DENOMINATIONS.TokensUSD) {
+    } else if (denomination === DENOMINATIONS.TokensUSD) {
       if (stackedChart !== undefined) {
         stackedChart.destroy();
       }
       const labels = []
       const datasets = {}
-      const tokenBalances = denomination === DENOMINATIONS.Tokens ? tokens : tokensInUsd;
+      const tokenBalances = tokensInUsd;
       tokenBalances.forEach((snapshot, index) => {
         labels.push(snapshot.date * 1000);
         Object.entries(snapshot.tokens).forEach(([symbol, tvl]) => {
@@ -195,6 +196,15 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
       chartData = undefined
     }
   }
+  if (denomination === DENOMINATIONS.Tokens) {
+    chartData = [];
+    tokens.forEach(tokenSnapshot => {
+      chartData.push({
+        date: tokenSnapshot.date,
+        totalLiquidityUSD: tokenSnapshot.tokens[balanceToken] ?? 0
+      })
+    })
+  }
 
   // update the width on a window resize
   const ref = useRef()
@@ -219,14 +229,22 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
     case DENOMINATIONS.BNB:
       moneySymbol = 'B';
       break;
+    case DENOMINATIONS.Tokens:
+      moneySymbol = '';
+      break;
   }
 
-  const denominationsToDisplay = tokensInUsd === undefined || tokensInUsd.length === 0 || tokensInUsd.some(data => !data.tokens) ? {
+  const tokensProvided = tokensInUsd !== undefined && tokensInUsd.length !== 0 && !tokensInUsd.some(data => !data.tokens)
+  const denominationsToDisplay = {
     USD: 'USD',
     ETH: 'ETH',
     BNB: 'BNB'
-  } : DENOMINATIONS;
-  const displayStackedChart = denomination === DENOMINATIONS.Tokens || denomination === DENOMINATIONS.TokensUSD
+  };
+  if (tokensProvided) {
+    denominationsToDisplay['TokensUSD'] = 'Tokens(USD)';
+  }
+  const displayStackedChart = denomination === DENOMINATIONS.TokensUSD
+  const tokenSymbols = tokensProvided ? Object.entries(tokensInUsd[tokens.length - 1].tokens).sort((a, b) => b[1] - a[1]).map(t => t[0]) : undefined
   return (
     <ChartWrapper>
       {below600 ? (
@@ -256,6 +274,10 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
                 {option}
               </OptionButton>
               )}
+              {tokenSymbols && <DropdownSelect options={tokenSymbols} active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'} setActive={(token) => {
+                setBalanceToken(token);
+                setDenomination(DENOMINATIONS.Tokens)
+              }} color={color} />}
             </RowFixed>
             {chartFilter === CHART_VIEW.PRICE && (
               <AutoRow gap="4px">
