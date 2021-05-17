@@ -305,7 +305,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
               </AutoRow>
             )}
           </AutoColumn>
-          {!displayStackedChart &&
+          {(denomination !== DENOMINATIONS.Tokens && denomination !== DENOMINATIONS.TokensUSD) &&
             <AutoRow justify="flex-end" gap="6px" align="flex-start">
               <OptionButton
                 active={timeWindow === timeframeOptions.WEEK}
