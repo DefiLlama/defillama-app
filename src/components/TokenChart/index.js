@@ -244,13 +244,14 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
     denominationsToDisplay['TokensUSD'] = 'Tokens(USD)';
   }
   const displayStackedChart = denomination === DENOMINATIONS.TokensUSD
+  const displayTimeFrameOptions = denomination !== DENOMINATIONS.Tokens && denomination !== DENOMINATIONS.TokensUSD
   const tokenSymbols = tokensProvided ? Object.entries(tokensInUsd[tokens.length - 1].tokens).sort((a, b) => b[1] - a[1]).map(t => t[0]) : undefined
   return (
     <ChartWrapper>
       {below600 ? (
         <RowBetween mb={40}>
           <DropdownSelect options={denominationsToDisplay} active={denomination} setActive={setDenomination} color={color} />
-          {!displayStackedChart && <DropdownSelect options={timeframeOptions} active={timeWindow} setActive={setTimeWindow} color={color} />}
+          {displayTimeFrameOptions && <DropdownSelect options={timeframeOptions} active={timeWindow} setActive={setTimeWindow} color={color} />}
         </RowBetween>
       ) : (
         <RowBetween
@@ -305,7 +306,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
               </AutoRow>
             )}
           </AutoColumn>
-          {(denomination !== DENOMINATIONS.Tokens && denomination !== DENOMINATIONS.TokensUSD) &&
+          {displayTimeFrameOptions &&
             <AutoRow justify="flex-end" gap="6px" align="flex-start">
               <OptionButton
                 active={timeWindow === timeframeOptions.WEEK}
