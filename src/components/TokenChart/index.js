@@ -245,7 +245,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
   }
   const displayStackedChart = denomination === DENOMINATIONS.TokensUSD
   const displayTimeFrameOptions = denomination !== DENOMINATIONS.Tokens && denomination !== DENOMINATIONS.TokensUSD
-  const tokenSymbols = tokensProvided ? Object.entries(tokensInUsd[tokens.length - 1].tokens).sort((a, b) => b[1] - a[1]).map(t => t[0]) : undefined
+  const tokenSymbols = tokensProvided ? Object.entries(tokensInUsd[tokensInUsd.length - 1].tokens).sort((a, b) => b[1] - a[1]).map(t => t[0]) : undefined
   return (
     <ChartWrapper>
       {below600 ? (
