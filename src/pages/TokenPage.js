@@ -391,7 +391,7 @@ function TokenPage({ protocol, history }) {
                   </Column>
                   <RowFixed>
                     <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                      <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}`}>
+                      <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
                         Download dataset ↗
                     </Link>
                     </ButtonLight>
