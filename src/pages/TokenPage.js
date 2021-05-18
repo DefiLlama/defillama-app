@@ -389,11 +389,18 @@ function TokenPage({ protocol, history }) {
                       <CopyHelper toCopy={address} />
                     </AutoRow>
                   </Column>
-                  <ButtonLight color={backgroundColor}>
-                    <Link color={backgroundColor} external href={blockExplorerLink}>
-                      View on {blockExplorerName} ↗
+                  <RowFixed>
+                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                      <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}`}>
+                        Download dataset ↗
                     </Link>
-                  </ButtonLight>
+                    </ButtonLight>
+                    <ButtonLight color={backgroundColor}>
+                      <Link color={backgroundColor} external href={blockExplorerLink}>
+                        View on {blockExplorerName} ↗
+                    </Link>
+                    </ButtonLight>
+                  </RowFixed>
                 </TokenDetailsLayout>
               </Panel>
             )}
