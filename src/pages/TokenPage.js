@@ -87,38 +87,30 @@ const TokenDetailsLayout = styled.div`
 `
 let backgroundColor = '#2172E5'
 
+const blockExplorers = {
+  'bsc': ['https://bscscan.com/address/', 'Bscscan'],
+  'xdai': ['https://blockscout.com/xdai/mainnet/address/', 'BlockScout'],
+  'avax': ['https://cchain.explorer.avax.network/address/', 'CChain Explorer'],
+  'fantom': ['https://ftmscan.com/address/', 'FTMscan'],
+  'wan': ['https://wanscan.org/token/', 'Wanscan']
+}
+
 function TokenPage({ protocol, history }) {
   const allTokens = useAllTokenData()
   let address = getTokenAddressFromName(allTokens, protocol)
   const id = getTokenIdFromName(allTokens, protocol)
   const tokenData = useTokenData(id, protocol)
-  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens } = tokenData
-  let blockExplorerLink;
-  let blockExplorerName;
-  if (address.startsWith('bsc:')) {
-    address = address.slice('bsc:'.length)
-    blockExplorerLink = 'https://bscscan.com/address/' + address;
-    blockExplorerName = 'Bscscan'
-  } else if (address.startsWith('xdai:')) {
-    address = address.slice('xdai:'.length)
-    blockExplorerLink = 'https://blockscout.com/xdai/mainnet/address/' + address;
-    blockExplorerName = 'BlockScout'
-  } else if (address.startsWith('avax:')) {
-    address = address.slice('avax:'.length)
-    blockExplorerLink = 'https://cchain.explorer.avax.network/address/' + address;
-    blockExplorerName = 'CChain Explorer'
-  } else if (address.startsWith('fantom:')) {
-    address = address.slice('fantom:'.length)
-    blockExplorerLink = 'https://ftmscan.com/address/' + address;
-    blockExplorerName = 'FTMscan'
-  } else if (address.startsWith('wan:')) {
-    address = address.slice('wan:'.length)
-    blockExplorerLink = 'https://wanscan.org/token/' + address;
-    blockExplorerName = 'Wanscan'
-  } else {
-    blockExplorerLink = 'https://etherscan.io/address/' + address;
-    blockExplorerName = 'Etherscan'
-  }
+  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter } = tokenData
+  let blockExplorerLink = 'https://etherscan.io/address/' + address;
+  let blockExplorerName = 'Etherscan';
+  Object.entries(blockExplorers).forEach(explorer => {
+    const chainId = explorer[0] + ':'
+    if (address.startsWith(chainId)) {
+      address = address.slice(chainId.length)
+      blockExplorerLink = explorer[1][0] + address;
+      blockExplorerName = explorer[1][1]
+    }
+  })
 
   // price
   const price = priceUSD ? formattedNum(priceUSD, true) : ''
@@ -390,6 +382,11 @@ function TokenPage({ protocol, history }) {
                     </AutoRow>
                   </Column>
                   <RowFixed>
+                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                      <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
+                        Twitter ↗
+                    </Link>
+                    </ButtonLight>
                     <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
                       <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
                         Download dataset ↗

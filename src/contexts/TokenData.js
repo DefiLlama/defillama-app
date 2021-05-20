@@ -218,7 +218,8 @@ const getTokenData = async (address, protocol, ethPrice, ethPriceOld) => {
         tvlList: tokenData?.tvl.filter(item => item.date),
         tokensInUsd: tokenData?.tokensInUsd,
         tokens: tokenData?.tokens,
-        description: tokenData?.description
+        description: tokenData?.description,
+        twitter: tokenData?.twitter
       }
       return data
     }
