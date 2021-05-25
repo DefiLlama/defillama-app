@@ -98,7 +98,7 @@ function App() {
                 if (isValidProtocol(allTokens, match.params.protocol.toLowerCase())) {
                   return (
                     <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-                      <TokenPage protocol={match.params.protocol.toLowerCase().replace('-', ' ')} />
+                      <TokenPage protocol={match.params.protocol.toLowerCase()} />
                     </LayoutWrapper>
                   )
                 } else {

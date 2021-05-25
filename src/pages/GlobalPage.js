@@ -256,7 +256,7 @@ function GlobalPage({ chain }) {
                   :
                   chainOptions.map((name, i) => {
                     if (name === "Others") {
-                      return <DropdownSelect options={otherChains.reduce((acc, item) => ({
+                      return <DropdownSelect key={name} options={otherChains.reduce((acc, item) => ({
                         ...acc,
                         [item]: item
                       }), {})} active={(chainOptions.includes(selectedChain) || selectedChain === undefined) ? 'Other' : selectedChain} setActive={setSelectedChain} />

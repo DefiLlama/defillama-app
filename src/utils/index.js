@@ -492,8 +492,8 @@ export function isEquivalent(a, b) {
 
 export function isValidProtocol(tokensObject, protocol) {
   try {
-    const tokens = Object.keys(tokensObject).map(token => tokensObject[token])
-    const isValid = !!tokens.find(token => token.name.toLowerCase().replace(' ', '') === protocol.replace('-', ''))
+    const tokens = Object.values(tokensObject)
+    const isValid = tokens.some(token => token.name.toLowerCase().split(' ').join('').split('-').join('') === protocol.split('-').join(''))
     return isValid
   } catch (error) {
     return false
@@ -502,8 +502,8 @@ export function isValidProtocol(tokensObject, protocol) {
 
 export function getTokenAddressFromName(tokensObject, protocol) {
   try {
-    const tokens = Object.keys(tokensObject).map(token => tokensObject[token])
-    const filteredToken = tokens.find(token => token.name.toLowerCase() === protocol)
+    const tokens = Object.values(tokensObject)
+    const filteredToken = tokens.find(token => token.slug === protocol)
     return filteredToken?.address || ''
   } catch (error) {
     return false
@@ -512,8 +512,8 @@ export function getTokenAddressFromName(tokensObject, protocol) {
 
 export function getTokenIdFromName(tokensObject, protocol) {
   try {
-    const tokens = Object.keys(tokensObject).map(token => tokensObject[token])
-    const filteredToken = tokens.find(token => token.name.toLowerCase() === protocol)
+    const tokens = Object.values(tokensObject)
+    const filteredToken = tokens.find(token => token.slug === protocol)
     return filteredToken?.id || ''
   } catch (error) {
     return false
@@ -522,8 +522,8 @@ export function getTokenIdFromName(tokensObject, protocol) {
 
 export function getTokenFromName(tokensObject, protocol) {
   try {
-    const tokens = Object.keys(tokensObject).map(token => tokensObject[token])
-    const filteredToken = tokens.find(token => token.name.toLowerCase() === protocol)
+    const tokens = Object.values(tokensObject)
+    const filteredToken = tokens.find(token => token.slug === protocol)
     return filteredToken
   } catch (error) {
     return false

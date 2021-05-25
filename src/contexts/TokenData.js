@@ -208,7 +208,7 @@ const getTokenByProtocol = async protocol => {
 const getTokenData = async (address, protocol, ethPrice, ethPriceOld) => {
   try {
     if (protocol) {
-      const tokenData = await getTokenByProtocol(protocol?.replace(' ', '-'))
+      const tokenData = await getTokenByProtocol(protocol?.split(' ').join('-'))
       const data = {
         id: tokenData?.id,
         name: tokenData?.name,
@@ -224,7 +224,7 @@ const getTokenData = async (address, protocol, ethPrice, ethPriceOld) => {
       return data
     }
   } catch (e) {
-    console.log(e)
+    console.log(protocol, e)
   }
   return {}
 }

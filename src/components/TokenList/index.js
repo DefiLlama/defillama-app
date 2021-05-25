@@ -188,7 +188,7 @@ function TopTokenList({ tokens, itemMax = 100 }) {
             <TokenLogo address={item.address} logo={item.logo} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              to={'/protocol/' + item.name?.toLowerCase().replace(' ', '-')}
+              to={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
             >
               <FormattedName
                 text={item.name}
@@ -211,13 +211,13 @@ function TopTokenList({ tokens, itemMax = 100 }) {
           <DataText area="1hchange" color="text" fontWeight="500">
             {formattedPercent(item.change_1h, true)}
           </DataText>
-        ) }
+        )}
         { !below1080 && (
           <DataText area="1dchange" color="text" fontWeight="500">
             {formattedPercent(item.change_1d, true)}
           </DataText>
-        ) }
-        <DataText area="7dchange">{item.change_7d !== 0 ? formattedPercent(item.change_7d, true): '-'}</DataText>
+        )}
+        <DataText area="7dchange">{item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'}</DataText>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
       </DashGrid>
     )
@@ -267,30 +267,30 @@ function TopTokenList({ tokens, itemMax = 100 }) {
           </Flex>
         )}
         {!below1080 && (
-        <Flex alignItems="center">
-          <ClickableText
-            area="1hchange"
-            onClick={e => {
-              setSortedColumn(SORT_FIELD.HOURONE)
-              setSortDirection(sortedColumn !== SORT_FIELD.HOURONE ? true : !sortDirection)
-            }}
-          >
-            1h Change {sortedColumn === SORT_FIELD.HOURONE ? (!sortDirection ? '↑' : '↓') : ''}
-          </ClickableText>
-        </Flex>
+          <Flex alignItems="center">
+            <ClickableText
+              area="1hchange"
+              onClick={e => {
+                setSortedColumn(SORT_FIELD.HOURONE)
+                setSortDirection(sortedColumn !== SORT_FIELD.HOURONE ? true : !sortDirection)
+              }}
+            >
+              1h Change {sortedColumn === SORT_FIELD.HOURONE ? (!sortDirection ? '↑' : '↓') : ''}
+            </ClickableText>
+          </Flex>
         )}
         {!below1080 && (
-        <Flex alignItems="center">
-          <ClickableText
-            area="1dchange"
-            onClick={e => {
-              setSortedColumn(SORT_FIELD.DAYONE)
-              setSortDirection(sortedColumn !== SORT_FIELD.DAYONE ? true : !sortDirection)
-            }}
-          >
-            1d Change {sortedColumn === SORT_FIELD.DAYONE ? (!sortDirection ? '↑' : '↓') : ''}
-          </ClickableText>
-        </Flex>
+          <Flex alignItems="center">
+            <ClickableText
+              area="1dchange"
+              onClick={e => {
+                setSortedColumn(SORT_FIELD.DAYONE)
+                setSortDirection(sortedColumn !== SORT_FIELD.DAYONE ? true : !sortDirection)
+              }}
+            >
+              1d Change {sortedColumn === SORT_FIELD.DAYONE ? (!sortDirection ? '↑' : '↓') : ''}
+            </ClickableText>
+          </Flex>
         )}
         <Flex alignItems="center">
           <ClickableText
