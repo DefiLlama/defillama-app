@@ -272,7 +272,7 @@ export const Search = ({ small = false }) => {
           {filteredTokenList.slice(0, tokensShown).map(token => {
             return (
               <BasicLink
-                to={'/protocol/' + token.name?.toLowerCase().replace(' ', '-')}
+                to={'/protocol/' + token.name?.toLowerCase().split(' ').join('-')}
                 key={token.id}
                 onClick={onDismiss}
               >
