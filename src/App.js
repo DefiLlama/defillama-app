@@ -126,13 +126,9 @@ function App() {
               strict
               path="/chain/:chain"
               render={({ match }) => {
-                if (['Ethereum', 'Binance', 'Others'].includes(match.params.chain)) {
-                  return <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-                    <GlobalPage chain={match.params.chain} />
-                  </LayoutWrapper>
-                } else {
-                  return <Redirect to="/home" />
-                }
+                return <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                  <GlobalPage chain={match.params.chain} />
+                </LayoutWrapper>
               }}
             />
 

@@ -24,6 +24,7 @@ import { PageWrapper, ContentWrapper } from '../components'
 import { fetchAPI } from '../contexts/API'
 import { CHART_API } from '../constants'
 import DropdownSelect from '../components/DropdownSelect'
+import { Redirect } from 'react-router-dom'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -47,6 +48,22 @@ function GlobalPage({ chain }) {
   const [oldChain, setOldChain] = useState(undefined);
   const [selectedChain, setSelectedChainRaw] = useState(chain);
   const setSelectedChain = (newSelectedChain) => setSelectedChainRaw(newSelectedChain === 'All' ? undefined : newSelectedChain)
+  // breakpoints
+  const below800 = useMedia('(max-width: 800px)')
+  // scrolling refs
+  useEffect(() => {
+    document.querySelector('body').scrollTo({
+      behavior: 'smooth',
+      top: 0
+    })
+  }, [])
+
+  if (selectedChain !== chain) {
+    if (selectedChain === undefined) {
+      return <Redirect to="/home" />
+    }
+    return <Redirect to={`/chain/${selectedChain}`} />
+  }
 
   let { totalVolumeUSD, volumeChangeUSD } = globalData
 
@@ -107,17 +124,6 @@ function GlobalPage({ chain }) {
     topToken.name = tokensList[0]?.name
     topToken.tvl = tokensList[0]?.tvl
   }
-
-  // breakpoints
-  const below800 = useMedia('(max-width: 800px)')
-
-  // scrolling refs
-  useEffect(() => {
-    document.querySelector('body').scrollTo({
-      behavior: 'smooth',
-      top: 0
-    })
-  }, [])
 
   document.title = `DefiLlama - DeFi Dashboard`;
 
