@@ -91,9 +91,13 @@ function GlobalPage({ chain }) {
       volumeChangeUSD = 0;
     } else {
       totalVolumeUSD = chartData[chartData.length - 1].totalLiquidityUSD
-      volumeChangeUSD = ((chartData[chartData.length - 1].totalLiquidityUSD - chartData[chartData.length - 2].totalLiquidityUSD) /
-        chartData[chartData.length - 2].totalLiquidityUSD) *
-        100
+      if (chartData.length > 1) {
+        volumeChangeUSD = ((chartData[chartData.length - 1].totalLiquidityUSD - chartData[chartData.length - 2].totalLiquidityUSD) /
+          chartData[chartData.length - 2].totalLiquidityUSD) *
+          100
+      } else {
+        volumeChangeUSD = 0
+      }
     }
     allTokens = Object.fromEntries(Object.entries(allTokens).filter(token => {
       try {
