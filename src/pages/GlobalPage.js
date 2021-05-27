@@ -120,13 +120,13 @@ function GlobalPage({ chain }) {
       return token
     }));
   }
-  const tokensList = Object.values(allTokens)
-    .sort((token1, token2) => Number(token2.tvl) - Number(token1.tvl))
+  const tokensList = Object.entries(allTokens).filter(token => token[1].category !== "Chain")
+    .sort((token1, token2) => Number(token2[1].tvl) - Number(token1[1].tvl))
 
   const topToken = { name: 'Uniswap', tvl: 0 }
   if (tokensList.length > 0) {
-    topToken.name = tokensList[0]?.name
-    topToken.tvl = tokensList[0]?.tvl
+    topToken.name = tokensList[0][1]?.name
+    topToken.tvl = tokensList[0][1]?.tvl
   }
 
   document.title = `DefiLlama - DeFi Dashboard`;
@@ -284,7 +284,7 @@ function GlobalPage({ chain }) {
             </RowBetween>
           </ListOptions>
           <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
-            <TopTokenList tokens={allTokens} />
+            <TopTokenList tokens={Object.fromEntries(tokensList)} />
           </Panel>
         </div>
       </ContentWrapper>
