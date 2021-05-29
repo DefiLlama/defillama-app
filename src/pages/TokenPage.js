@@ -93,7 +93,8 @@ const blockExplorers = {
   'avax': ['https://cchain.explorer.avax.network/address/', 'CChain Explorer'],
   'fantom': ['https://ftmscan.com/address/', 'FTMscan'],
   'heco': ['https://hecoinfo.com/address/', 'HecoInfo'],
-  'wan': ['https://wanscan.org/token/', 'Wanscan']
+  'wan': ['https://wanscan.org/token/', 'Wanscan'],
+  'rsk': ['https://explorer.rsk.co/address/', 'RSK Explorer']
 }
 
 function TokenPage({ protocol, history }) {
