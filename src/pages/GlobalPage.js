@@ -71,7 +71,9 @@ function GlobalPage({ chain }) {
   Object.values(allTokens).forEach(token => {
     token.chains.forEach(chain => {
       if (!allChains.includes(chain)) {
-        allChains.push(chain)
+        if (token.category !== "Chain") {
+          allChains.push(chain)
+        }
       }
     })
   })
