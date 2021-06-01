@@ -404,17 +404,17 @@ function TokenPage({ protocol, history }) {
                         Download dataset ↗
                     </Link>
                     </ButtonLight>
-                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                    {dexguguLink &&
+                      <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                        <Link color={backgroundColor} external href={dexguguLink}>
+                          View charts ↗
+                    </Link>
+                      </ButtonLight>}
+                    <ButtonLight color={backgroundColor}>
                       <Link color={backgroundColor} external href={blockExplorerLink}>
                         View on {blockExplorerName} ↗
                     </Link>
                     </ButtonLight>
-                    {dexguguLink &&
-                      <ButtonLight color={backgroundColor}>
-                        <Link color={backgroundColor} external href={dexguguLink}>
-                          View charts
-                    </Link>
-                      </ButtonLight>}
                   </RowFixed>
                 </TokenDetailsLayout>
               </Panel>
