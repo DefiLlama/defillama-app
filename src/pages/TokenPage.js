@@ -77,6 +77,10 @@ const TokenDetailsLayout = styled.div`
     > * {
       grid-column: 1 / 4;
       margin-bottom: 1rem;
+      display:table-row;
+      > * {
+        margin-bottom: 1rem;
+      }
     }
 
     &:last-child {
