@@ -77,6 +77,10 @@ const TokenDetailsLayout = styled.div`
     > * {
       grid-column: 1 / 4;
       margin-bottom: 1rem;
+      display:table-row;
+      > * {
+        margin-bottom: 1rem;
+      }
     }
 
     &:last-child {
@@ -102,8 +106,9 @@ function TokenPage({ protocol, history }) {
   let address = getTokenAddressFromName(allTokens, protocol)
   const id = getTokenIdFromName(allTokens, protocol)
   const tokenData = useTokenData(id, protocol)
-  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter } = tokenData
+  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain } = tokenData
   let blockExplorerLink = 'https://etherscan.io/address/' + address;
+  let dexguguLink = undefined
   let blockExplorerName = 'Etherscan';
   Object.entries(blockExplorers).forEach(explorer => {
     const chainId = explorer[0] + ':'
@@ -113,6 +118,16 @@ function TokenPage({ protocol, history }) {
       blockExplorerName = explorer[1][1]
     }
   })
+
+  if (chain === "Ethereum") {
+    dexguguLink = `https://dex.guru/token/${address}-eth`;
+  }
+  if (chain === "Binance") {
+    dexguguLink = `https://dex.guru/token/${address}-bsc`;
+  }
+  if (chain === "Polygon") {
+    dexguguLink = `https://dex.guru/token/${address}-polygon`;
+  }
 
   // price
   const price = priceUSD ? formattedNum(priceUSD, true) : ''
@@ -156,7 +171,6 @@ function TokenPage({ protocol, history }) {
       }
     }
   }
-
   useEffect(() => {
     if (window) {
       window.scrollTo({
@@ -394,6 +408,12 @@ function TokenPage({ protocol, history }) {
                         Download dataset ↗
                     </Link>
                     </ButtonLight>
+                    {dexguguLink &&
+                      <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                        <Link color={backgroundColor} external href={dexguguLink}>
+                          View charts ↗
+                    </Link>
+                      </ButtonLight>}
                     <ButtonLight color={backgroundColor}>
                       <Link color={backgroundColor} external href={blockExplorerLink}>
                         View on {blockExplorerName} ↗
