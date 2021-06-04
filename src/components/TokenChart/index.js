@@ -291,7 +291,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls }) => {
                 setBalanceToken(token);
                 setDenomination(DENOMINATIONS.Tokens)
               }} color={color} style={{ marginRight: '6px' }} />}
-              {chainTvls && <DropdownSelect options={[ALL_CHAINS].concat(Object.keys(chainTvls))} active={selectedChain} setActive={(chain) => {
+              {chainTvls && Object.keys(chainTvls).length > 1 && <DropdownSelect options={[ALL_CHAINS].concat(Object.keys(chainTvls))} active={selectedChain} setActive={(chain) => {
                 setSelectedChain(chain)
               }} color={color} />}
             </RowFixed>
