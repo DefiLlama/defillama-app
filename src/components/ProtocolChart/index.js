@@ -4,7 +4,7 @@ import { timeframeOptions } from '../../constants'
 import TokenChart from '../TokenChart'
 import { getTimeframe } from '../../utils'
 
-const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd }) => {
+const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls }) => {
   // global historical data
 
   // based on window, get starttim
@@ -62,6 +62,7 @@ const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd }) => {
             width={width}
             tokens={tokens}
             tokensInUsd={tokensInUsd}
+            chainTvls={chainTvls}
           //type={CHART_TYPES.AREA}
           />
         </ResponsiveContainer>

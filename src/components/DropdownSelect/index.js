@@ -49,11 +49,11 @@ const ArrowStyled = styled(Arrow)`
   margin-left: 6px;
 `
 
-const DropdownSelect = ({ options, active, setActive, color }) => {
+const DropdownSelect = ({ options, active, setActive, color, style }) => {
   const [showDropdown, toggleDropdown] = useState(false)
 
   return (
-    <Wrapper open={showDropdown} color={color}>
+    <Wrapper open={showDropdown} color={color} style={style}>
       <RowBetween onClick={() => toggleDropdown(!showDropdown)} justify="center">
         <TYPE.main>{active}</TYPE.main>
         <StyledIcon>

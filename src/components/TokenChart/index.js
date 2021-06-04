@@ -58,7 +58,8 @@ function random255() {
   return Math.round(Math.random() * 255)
 }
 
-const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
+const ALL_CHAINS = "All chains"
+const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls }) => {
   // settings for the window and candle width
   const [chartFilter, setChartFilter] = useState(CHART_VIEW.LIQUIDITY)
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
@@ -66,11 +67,22 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
   const [balanceToken, setBalanceToken] = useState(undefined)
   const [denominationPriceHistory, setDenominationPriceHistory] = useState(undefined)
   const [stackedChart, setStackedChart] = useState(undefined)
+  const [selectedChain, setSelectedChain] = useState(ALL_CHAINS)
 
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
 
-  let chartData = data
+  let chartData = data;
+  if (selectedChain !== ALL_CHAINS) {
+    chartData = chainTvls[selectedChain].tvl;
+    base = chartData[chartData.length - 1].totalLiquidityUSD;
+    tokens = chainTvls[selectedChain].tokens;
+    tokensInUsd = chainTvls[selectedChain].tokensInUsd
+  }
+  useEffect(() => {
+    setDenomination(DENOMINATIONS.USD)
+    setBalanceToken(undefined)
+  }, [selectedChain])
 
 
   const [timeWindow, setTimeWindow] = useState(timeframeOptions.ALL_TIME)
@@ -278,6 +290,9 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd }) => {
               {tokenSymbols && <DropdownSelect options={tokenSymbols} active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'} setActive={(token) => {
                 setBalanceToken(token);
                 setDenomination(DENOMINATIONS.Tokens)
+              }} color={color} style={{ marginRight: '6px' }} />}
+              {chainTvls && <DropdownSelect options={[ALL_CHAINS].concat(Object.keys(chainTvls))} active={selectedChain} setActive={(chain) => {
+                setSelectedChain(chain)
               }} color={color} />}
             </RowFixed>
             {chartFilter === CHART_VIEW.PRICE && (

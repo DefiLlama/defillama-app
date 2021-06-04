@@ -21,7 +21,9 @@ function AllTokensPage(props) {
         return acc
       }, {});
   }
-  allTokens = Object.fromEntries(Object.entries(allTokens).filter(([key, token]) => token.category !== "Chain"))
+  if (category?.toLowerCase() !== "chain") {
+    allTokens = Object.fromEntries(Object.entries(allTokens).filter(([key, token]) => token.category !== "Chain"))
+  }
 
   useEffect(() => {
     window.scrollTo(0, 0)

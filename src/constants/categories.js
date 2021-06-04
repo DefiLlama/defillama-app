@@ -1,4 +1,4 @@
-import { BarChart, Feather, Shield, RefreshCcw, Archive, PieChart, Activity, Server } from 'react-feather'
+import { BarChart, Feather, Shield, RefreshCcw, Archive, PieChart, Activity, Server, Link } from 'react-feather'
 
 const categories = [
     {
@@ -40,7 +40,12 @@ const categories = [
         name: 'Staking',
         sidebar: true,
         icon: Server
-    }
+    },
+    {
+        name: 'Chain',
+        sidebar: true,
+        icon: Link
+    },
 ]
 
 export default categories.reduce((acc, category) => {
