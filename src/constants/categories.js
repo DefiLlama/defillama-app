@@ -41,11 +41,13 @@ const categories = [
         sidebar: true,
         icon: Server
     },
+    /*
     {
         name: 'Chain',
         sidebar: true,
         icon: Link
     },
+    */
 ]
 
 export default categories.reduce((acc, category) => {
