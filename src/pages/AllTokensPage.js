@@ -44,7 +44,7 @@ function AllTokensPage(props) {
           {!below600 && <Search small={true} />}
         </RowBetween>
         <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>
-          <TopTokenList tokens={allTokens} itemMax={50} />
+          <TopTokenList tokens={allTokens} itemMax={500} />
         </Panel>
       </FullWrapper>
     </PageWrapper>

@@ -399,27 +399,27 @@ function TokenPage({ protocol, history }) {
                     </AutoRow>
                   </Column>
                   <RowFixed>
-                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                      <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
-                        Twitter ↗
-                    </Link>
-                    </ButtonLight>
-                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                      <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
-                        Download dataset ↗
-                    </Link>
-                    </ButtonLight>
-                    {dexguguLink &&
+                    <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
                       <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                        <Link color={backgroundColor} external href={dexguguLink}>
-                          View charts ↗
-                    </Link>
-                      </ButtonLight>}
-                    <ButtonLight color={backgroundColor}>
-                      <Link color={backgroundColor} external href={blockExplorerLink}>
-                        View on {blockExplorerName} ↗
-                    </Link>
+                        Twitter ↗
                     </ButtonLight>
+                    </Link>
+                    <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
+                      <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                        Download dataset ↗
+                    </ButtonLight>
+                    </Link>
+                    {dexguguLink &&
+                      <Link color={backgroundColor} external href={dexguguLink}>
+                        <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                          View charts ↗
+                      </ButtonLight>
+                      </Link>}
+                    <Link color={backgroundColor} external href={blockExplorerLink}>
+                      <ButtonLight color={backgroundColor}>
+                        View on {blockExplorerName} ↗
+                    </ButtonLight>
+                    </Link>
                   </RowFixed>
                 </TokenDetailsLayout>
               </Panel>
@@ -427,7 +427,7 @@ function TokenPage({ protocol, history }) {
           </>
         </DashboardWrapper>
       </ContentWrapper>
-    </PageWrapper>
+    </PageWrapper >
   )
 }
 

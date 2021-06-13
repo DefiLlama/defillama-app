@@ -286,7 +286,7 @@ function GlobalPage({ chain }) {
             </RowBetween>
           </ListOptions>
           <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
-            <TopTokenList tokens={Object.fromEntries(tokensList)} />
+            <TopTokenList tokens={Object.fromEntries(tokensList)} itemMax={500} />
           </Panel>
         </div>
       </ContentWrapper>
