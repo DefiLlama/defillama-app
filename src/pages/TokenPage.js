@@ -106,7 +106,7 @@ function TokenPage({ protocol, history }) {
   let address = getTokenAddressFromName(allTokens, protocol)
   const id = getTokenIdFromName(allTokens, protocol)
   const tokenData = useTokenData(id, protocol)
-  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chainTvls } = tokenData
+  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chainTvls, historicalChainTvls } = tokenData
   let blockExplorerLink = 'https://etherscan.io/address/' + address;
   let dexguguLink = undefined
   let blockExplorerName = 'Etherscan';
@@ -185,11 +185,6 @@ function TokenPage({ protocol, history }) {
   }, [address])
 
   document.title = `${name} Protocol: TVL and stats - DefiLlama`
-
-  let simpleChainTvls = chainTvls;
-  if (!Object.values(chainTvls).every(chainTvl => typeof chainTvl == 'number')) {
-    simpleChainTvls = Object.fromEntries(Object.entries(chainTvls).map(chainTvl => [chainTvl[0], chainTvl[1].tvl[chainTvl[1].tvl.length - 1].totalLiquidityUSD]))
-  }
 
   return (
     <PageWrapper>
@@ -294,10 +289,9 @@ function TokenPage({ protocol, history }) {
                   <RowBetween align="flex-end">
                     <TYPE.main fontSize={'1.5rem'} lineHeight={1} fontWeight={500}>
                       {formattedNum(tvl || '0', true)}
-
                     </TYPE.main>
                     <TYPE.main>
-                      <div>{Object.entries(simpleChainTvls).map(chainTvl => <div style={{ justifyContent: "space-between", display: "flex" }}><span>{chainTvl[0]}:&nbsp;</span> <span>{formattedNum(chainTvl[1] || '0', true)}</span></div>)}</div>
+                      <div>{Object.entries(chainTvls).map(chainTvl => <div key={chainTvl[0]} style={{ justifyContent: "space-between", display: "flex" }}><span>{chainTvl[0]}:&nbsp;</span> <span>{formattedNum(chainTvl[1] || '0', true)}</span></div>)}</div>
                     </TYPE.main>
                   </RowBetween>
                 </AutoColumn>
@@ -332,7 +326,7 @@ function TokenPage({ protocol, history }) {
                     tokens={tokens}
                     tokensInUsd={tokensInUsd}
                     base={priceUSD}
-                    chainTvls={chainTvls}
+                    chainTvls={historicalChainTvls}
                   />
                 )}
                 {!chartData && <Loader />}
