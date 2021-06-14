@@ -296,7 +296,7 @@ function TokenPage({ protocol, history }) {
                       {formattedNum(tvl || '0', true)}
 
                     </TYPE.main>
-                    {Object.entries(simpleChainTvls).map(chainTvl => <><br></br>{chainTvl[0]}: {formattedNum(chainTvl[1] || '0', true)}</>)}
+                    <div>{Object.entries(simpleChainTvls).map(chainTvl => <div style={{ justifyContent: "space-between", display: "flex" }}><span>{chainTvl[0]}:&nbsp;</span> <span>{formattedNum(chainTvl[1] || '0', true)}</span></div>)}</div>
                   </RowBetween>
                 </AutoColumn>
               </Panel>
