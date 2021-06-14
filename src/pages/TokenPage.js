@@ -186,6 +186,11 @@ function TokenPage({ protocol, history }) {
 
   document.title = `${name} Protocol: TVL and stats - DefiLlama`
 
+  let simpleChainTvls = chainTvls;
+  if (!Object.values(chainTvls).every(chainTvl => typeof chainTvl == 'number')) {
+    simpleChainTvls = Object.fromEntries(Object.entries(chainTvls).map(chainTvl => [chainTvl[0], chainTvl[1].tvl[chainTvl[1].tvl.length - 1].totalLiquidityUSD]))
+  }
+
   return (
     <PageWrapper>
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
@@ -289,7 +294,9 @@ function TokenPage({ protocol, history }) {
                   <RowBetween align="flex-end">
                     <TYPE.main fontSize={'1.5rem'} lineHeight={1} fontWeight={500}>
                       {formattedNum(tvl || '0', true)}
+
                     </TYPE.main>
+                    {Object.entries(simpleChainTvls).map(chainTvl => <><br></br>{chainTvl[0]}: {formattedNum(chainTvl[1] || '0', true)}</>)}
                   </RowBetween>
                 </AutoColumn>
               </Panel>
