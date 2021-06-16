@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import styled from 'styled-components'
 import { Tooltip } from '../QuestionHelper'
 import { HelpCircle } from 'react-feather'
+import Link from '../Link'
+import DropdownSelect from '../DropdownSelect'
 
 const TextWrapper = styled.div`
   position: relative;
@@ -17,10 +19,16 @@ const TextWrapper = styled.div`
     font-size: ${({ adjustSize }) => adjustSize && '12px'};
   }
 `
-
-const AuditInfo = ({ audits, maxCharacters, margin = false, adjustSize = false, fontSize, link, ...rest }) => {
+const AuditInfo = ({ audits, auditLinks = [], maxCharacters, margin = false, adjustSize = false, fontSize, link, ...rest }) => {
   const [showHover, setShowHover] = useState(false)
 
+  if (auditLinks.length > 0) {
+    return (
+      <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize}>
+        <DropdownSelect options={auditLinks} active="Yes" setActive={link => window.location.href = link}></DropdownSelect>
+      </TextWrapper>
+    )
+  }
   if (!audits) {
     return (
       <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize}>
@@ -30,7 +38,6 @@ const AuditInfo = ({ audits, maxCharacters, margin = false, adjustSize = false, 
   }
   if (audits === '1') {
     return (
-
       <Tooltip text="Part of this protocol may be unaudited" show={showHover}>
         <TextWrapper
           onMouseEnter={() => setShowHover(true)}
@@ -41,7 +48,7 @@ const AuditInfo = ({ audits, maxCharacters, margin = false, adjustSize = false, 
           fontSize={fontSize}
           {...rest}
         >
-           Yes
+          Yes
           <HelpCircle size={15} style={{ marginLeft: '.75rem' }} />
         </TextWrapper>
       </Tooltip>
@@ -68,7 +75,7 @@ const AuditInfo = ({ audits, maxCharacters, margin = false, adjustSize = false, 
           fontSize={fontSize}
           {...rest}
         >
-           Yes
+          Yes
           <HelpCircle size={15} style={{ marginLeft: '.75rem' }} />
         </TextWrapper>
       </Tooltip>

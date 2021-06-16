@@ -106,7 +106,7 @@ function TokenPage({ protocol, history }) {
   let address = getTokenAddressFromName(allTokens, protocol)
   const id = getTokenIdFromName(allTokens, protocol)
   const tokenData = useTokenData(id, protocol)
-  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chainTvls, historicalChainTvls } = tokenData
+  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chainTvls, historicalChainTvls, audit_links } = tokenData
   let blockExplorerLink = 'https://etherscan.io/address/' + address;
   let dexguguLink = undefined
   let blockExplorerName = 'Etherscan';
@@ -358,7 +358,7 @@ function TokenPage({ protocol, history }) {
                     <HeadHelp title="Audits" text="Audits are not a guarantee of security." />
                   </TYPE.main>
                   <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                    <AuditInfo audits={audits} />
+                    <AuditInfo audits={audits} auditLinks={audit_links} />
                   </TYPE.main>
                 </Column>
 
