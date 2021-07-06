@@ -142,17 +142,7 @@ function TopTokenList({ tokens, itemMax = 100 }) {
     setPage(1)
   }, [tokens])
 
-  const formattedTokens = useMemo(() => {
-    return (
-      tokens &&
-      Object.keys(tokens)
-        .filter(key => {
-          return !OVERVIEW_TOKEN_BLACKLIST.includes(key)
-        })
-        .map(key => tokens[key])
-    )
-  }, [tokens])
-
+  const formattedTokens = Object.values(tokens)
   useEffect(() => {
     if (tokens && formattedTokens) {
       let extraPages = 1
@@ -171,7 +161,7 @@ function TopTokenList({ tokens, itemMax = 100 }) {
           if (sortedColumn === SORT_FIELD.SYMBOL || sortedColumn === SORT_FIELD.NAME) {
             return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
           }
-          return parseFloat(a[sortedColumn]) > parseFloat(b[sortedColumn])
+          return parseFloat(a[sortedColumn] || 0) > parseFloat(b[sortedColumn] || 0)
             ? (sortDirection ? -1 : 1) * 1
             : (sortDirection ? -1 : 1) * -1
         })
@@ -207,12 +197,12 @@ function TopTokenList({ tokens, itemMax = 100 }) {
         {!below1080 && (
           <DataText area="chain">{item.chain}</DataText>
         )}
-        { !below1080 && (
+        {!below1080 && (
           <DataText area="1hchange" color="text" fontWeight="500">
             {formattedPercent(item.change_1h, true)}
           </DataText>
         )}
-        { !below1080 && (
+        {!below1080 && (
           <DataText area="1dchange" color="text" fontWeight="500">
             {formattedPercent(item.change_1d, true)}
           </DataText>
