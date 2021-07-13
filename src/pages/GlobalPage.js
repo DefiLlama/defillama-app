@@ -37,7 +37,7 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
-const chainOptions = ['All', 'Ethereum', 'Binance', 'Avalanche', 'Solana', 'Others']
+const chainOptions = ['All', 'Ethereum', 'Binance', 'Avalanche', 'Solana', 'Polygon', 'Others']
 
 function GlobalPage({ chain }) {
   // get data for lists and totals
