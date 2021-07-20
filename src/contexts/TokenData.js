@@ -220,7 +220,8 @@ const getTokenData = async (address, protocol, ethPrice, ethPriceOld) => {
         tokens: tokenData?.tokens,
         description: tokenData?.description,
         twitter: tokenData?.twitter,
-        historicalChainTvls: tokenData?.chainTvls
+        historicalChainTvls: tokenData?.chainTvls,
+        methodology: tokenData?.methodology,
       }
       return data
     }

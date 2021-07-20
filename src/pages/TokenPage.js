@@ -106,7 +106,7 @@ function TokenPage({ protocol, history }) {
   let address = getTokenAddressFromName(allTokens, protocol)
   const id = getTokenIdFromName(allTokens, protocol)
   const tokenData = useTokenData(id, protocol)
-  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chainTvls, historicalChainTvls, audit_links } = tokenData
+  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chainTvls, historicalChainTvls, audit_links, methodology } = tokenData
   let blockExplorerLink = 'https://etherscan.io/address/' + address;
   let dexguguLink = undefined
   let blockExplorerName = 'Etherscan';
@@ -361,10 +361,29 @@ function TokenPage({ protocol, history }) {
                     <AuditInfo audits={audits} auditLinks={audit_links} />
                   </TYPE.main>
                 </Column>
-
-
               </TokenDetailsLayout>
             </Panel>
+
+            {methodology && (
+              <>
+                <RowBetween style={{ marginTop: '3rem' }}>
+                  <TYPE.main fontSize={'1.125rem'}>Methodology</TYPE.main>{' '}
+                </RowBetween>
+                <Panel
+                  rounded
+                  style={{
+                    marginTop: '1.5rem'
+                  }}
+                  p={20}
+                >
+                  <TokenDetailsLayout>
+                    <TYPE.main style={{ textAlign: 'justify', wordBreak: 'break-word' }} fontSize={15} fontWeight="500">
+                      {methodology}
+                    </TYPE.main>
+                  </TokenDetailsLayout>
+                </Panel>
+              </>
+            )}
 
             {address && (
               <RowBetween style={{ marginTop: '3rem' }}>
@@ -405,23 +424,23 @@ function TokenPage({ protocol, history }) {
                     <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
                       <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
                         Twitter ↗
-                    </ButtonLight>
+                      </ButtonLight>
                     </Link>
                     <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
                       <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
                         Download dataset ↗
-                    </ButtonLight>
+                      </ButtonLight>
                     </Link>
                     {dexguguLink &&
                       <Link color={backgroundColor} external href={dexguguLink}>
                         <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
                           View charts ↗
-                      </ButtonLight>
+                        </ButtonLight>
                       </Link>}
                     <Link color={backgroundColor} external href={blockExplorerLink}>
                       <ButtonLight color={backgroundColor}>
                         View on {blockExplorerName} ↗
-                    </ButtonLight>
+                      </ButtonLight>
                     </Link>
                   </RowFixed>
                 </TokenDetailsLayout>
@@ -429,7 +448,7 @@ function TokenPage({ protocol, history }) {
             )}
           </>
         </DashboardWrapper>
-      </ContentWrapper>
+      </ContentWrapper >
     </PageWrapper >
   )
 }
