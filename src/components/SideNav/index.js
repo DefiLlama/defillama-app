@@ -11,6 +11,7 @@ import { TrendingUp, Disc, HelpCircle } from 'react-feather'
 import Link from '../Link'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
 import Toggle from '../Toggle'
+import { ButtonDark } from '../ButtonStyled'
 import categories from '../../constants/categories'
 
 const Wrapper = styled.div`
@@ -201,6 +202,7 @@ function SideNav({ history }) {
       ) : (
         <MobileWrapper>
           <Title />
+          <BasicLink to="/settings"><ButtonDark>⚙️</ButtonDark></BasicLink>
         </MobileWrapper>
       )}
     </Wrapper>

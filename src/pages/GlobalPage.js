@@ -25,6 +25,7 @@ import { fetchAPI } from '../contexts/API'
 import { CHART_API } from '../constants'
 import DropdownSelect from '../components/DropdownSelect'
 import { Redirect } from 'react-router-dom'
+import RightSettings from '../components/RightSettings'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -145,7 +146,10 @@ function GlobalPage({ chain }) {
       <ContentWrapper>
         <div>
           <AutoColumn gap="24px" style={{ paddingBottom: below800 ? '0' : '24px' }}>
-            <TYPE.largeHeader>Defi Dashboard</TYPE.largeHeader>
+            <RowBetween>
+              <TYPE.largeHeader>Defi Dashboard</TYPE.largeHeader>
+              {!below800 && <RightSettings />}
+            </RowBetween>
             <Search />
           </AutoColumn>
           {below800 && ( // mobile card

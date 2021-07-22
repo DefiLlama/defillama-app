@@ -28,7 +28,7 @@ import { isAddress } from '../utils'
 import CopyHelper from '../components/Copy'
 
 import { useAllTokenData } from '../contexts/TokenData'
-import { useSavedTokens } from '../contexts/LocalStorage'
+import { useSavedTokens, useStakingManager, usePool2Manager } from '../contexts/LocalStorage'
 import { Hover, PageWrapper, ContentWrapper, StyledIcon } from '../components'
 import FormattedName from '../components/FormattedName'
 import AuditInfo from '../components/AuditInfo'
@@ -106,7 +106,7 @@ function TokenPage({ protocol, history }) {
   let address = getTokenAddressFromName(allTokens, protocol)
   const id = getTokenIdFromName(allTokens, protocol)
   const tokenData = useTokenData(id, protocol)
-  const { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chainTvls, historicalChainTvls, audit_links, methodology } = tokenData
+  let { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chainTvls, historicalChainTvls, audit_links, methodology, staking, pool2 } = tokenData
   let blockExplorerLink = 'https://etherscan.io/address/' + address;
   let dexguguLink = undefined
   let blockExplorerName = 'Etherscan';
@@ -118,6 +118,20 @@ function TokenPage({ protocol, history }) {
       blockExplorerName = explorer[1][1]
     }
   })
+  const [stakingEnabled] = useStakingManager()
+  const [pool2Enabled] = usePool2Manager()
+  if (staking) {
+    chainTvls.staking = staking
+    if (stakingEnabled) {
+      tvl += staking
+    }
+  }
+  if (pool2) {
+    chainTvls.pool2 = pool2
+    if (pool2Enabled) {
+      tvl += pool2
+    }
+  }
 
   if (chain === "Ethereum") {
     dexguguLink = `https://dex.guru/token/${address}-eth`;

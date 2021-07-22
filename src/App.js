@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { Route, Switch, BrowserRouter, Redirect } from 'react-router-dom'
 import GlobalPage from './pages/GlobalPage'
 import TokenPage from './pages/TokenPage'
+import Settings from './pages/Settings'
 import { useGlobalData, useGlobalChartData } from './contexts/GlobalData'
 import { useAllTokenData } from './contexts/TokenData'
 
@@ -135,6 +136,12 @@ function App() {
             <Route path="/home">
               <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
                 <GlobalPage />
+              </LayoutWrapper>
+            </Route>
+
+            <Route path="/settings">
+              <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                <Settings />
               </LayoutWrapper>
             </Route>
 

@@ -13,6 +13,7 @@ import { OVERVIEW_TOKEN_BLACKLIST } from '../../constants'
 import { transparentize } from 'polished'
 import FormattedName from '../FormattedName'
 import { TYPE } from '../../Theme'
+import RightSettings from '../RightSettings'
 
 const Container = styled.div`
   height: 48px;
@@ -230,77 +231,83 @@ export const Search = ({ small = false }) => {
   })
 
   return (
-    <Container small={small}>
-      <Wrapper open={showMenu} shadow={true} small={small}>
-        <Input
-          large={!small}
-          type={'text'}
-          ref={wrapperRef}
-          placeholder={
-            small
-              ? ''
-              : below410
-                ? 'Search...'
-                : below470
-                  ? 'Search DeFi...'
-                  : below700
-                    ? 'Search protocols...'
-                    : 'Search DeFi protocols...'
-          }
-          value={value}
-          onChange={e => {
-            setValue(e.target.value)
-          }}
-          onFocus={() => {
-            if (!showMenu) {
-              toggleMenu(true)
+    <div style={small ? {
+      display: 'flex',
+      alignItems: 'center'
+    } : {}}>
+      <Container small={small}>
+        <Wrapper open={showMenu} shadow={true} small={small}>
+          <Input
+            large={!small}
+            type={'text'}
+            ref={wrapperRef}
+            placeholder={
+              small
+                ? ''
+                : below410
+                  ? 'Search...'
+                  : below470
+                    ? 'Search DeFi...'
+                    : below700
+                      ? 'Search protocols...'
+                      : 'Search DeFi protocols...'
             }
-          }}
-        />
-        {!showMenu ? <SearchIconLarge /> : <CloseIcon onClick={() => toggleMenu(false)} />}
-      </Wrapper>
-      <Menu hide={!showMenu} ref={menuRef}>
-        <Heading>
-          <Gray>Tokens</Gray>
-        </Heading>
-        <div>
-          {Object.keys(filteredTokenList).length === 0 && (
-            <MenuItem>
-              <TYPE.body>No results</TYPE.body>
-            </MenuItem>
-          )}
-          {filteredTokenList.slice(0, tokensShown).map(token => {
-            return (
-              <BasicLink
-                to={'/protocol/' + token.name?.toLowerCase().split(' ').join('-')}
-                key={token.id}
-                onClick={onDismiss}
-              >
-                <MenuItem>
-                  <RowFixed>
-                    <TokenLogo address={token.address} logo={token.logo} style={{ marginRight: '10px' }} />
-                    <FormattedName text={token.name} maxCharacters={20} style={{ marginRight: '6px' }} />
-                    (<FormattedName text={token.symbol} maxCharacters={6} />)
-                  </RowFixed>
-                </MenuItem>
-              </BasicLink>
-            )
-          })}
-
-          <Heading
-            hide={!(Object.keys(filteredTokenList).length > 3 && Object.keys(filteredTokenList).length >= tokensShown)}
-          >
-            <Blue
-              onClick={() => {
-                setTokensShown(tokensShown + 5)
-              }}
-            >
-              See more...
-            </Blue>
+            value={value}
+            onChange={e => {
+              setValue(e.target.value)
+            }}
+            onFocus={() => {
+              if (!showMenu) {
+                toggleMenu(true)
+              }
+            }}
+          />
+          {!showMenu ? <SearchIconLarge /> : <CloseIcon onClick={() => toggleMenu(false)} />}
+        </Wrapper>
+        <Menu hide={!showMenu} ref={menuRef}>
+          <Heading>
+            <Gray>Tokens</Gray>
           </Heading>
-        </div>
-      </Menu>
-    </Container>
+          <div>
+            {Object.keys(filteredTokenList).length === 0 && (
+              <MenuItem>
+                <TYPE.body>No results</TYPE.body>
+              </MenuItem>
+            )}
+            {filteredTokenList.slice(0, tokensShown).map(token => {
+              return (
+                <BasicLink
+                  to={'/protocol/' + token.name?.toLowerCase().split(' ').join('-')}
+                  key={token.id}
+                  onClick={onDismiss}
+                >
+                  <MenuItem>
+                    <RowFixed>
+                      <TokenLogo address={token.address} logo={token.logo} style={{ marginRight: '10px' }} />
+                      <FormattedName text={token.name} maxCharacters={20} style={{ marginRight: '6px' }} />
+                      (<FormattedName text={token.symbol} maxCharacters={6} />)
+                    </RowFixed>
+                  </MenuItem>
+                </BasicLink>
+              )
+            })}
+
+            <Heading
+              hide={!(Object.keys(filteredTokenList).length > 3 && Object.keys(filteredTokenList).length >= tokensShown)}
+            >
+              <Blue
+                onClick={() => {
+                  setTokensShown(tokensShown + 5)
+                }}
+              >
+                See more...
+              </Blue>
+            </Heading>
+          </div>
+        </Menu>
+      </Container>
+      {small && <RightSettings />}
+    </div>
   )
 }
 

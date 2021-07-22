@@ -17,6 +17,8 @@ import {
   TOKEN_PAIRS_KEY
 } from '../constants'
 
+import { useStakingManager, usePool2Manager } from './LocalStorage'
+
 dayjs.extend(utc)
 
 const TokenDataContext = createContext()
@@ -263,7 +265,7 @@ export function useTokenData(tokenId, protocol = '') {
       })
       setOldProtocol(protocol)
     }
-  }, [ethPrice, ethPriceOld, tokenId, tokenData, update, protocol, oldProtocol])
+  }, [tokenId, tokenData, update, protocol, oldProtocol])
 
   return tokenData || {}
 }
@@ -285,5 +287,16 @@ export function useTokenPriceData(tokenAddress, timeWindow, interval = 3600) { }
 
 export function useAllTokenData() {
   const [state] = useTokenDataContext()
+  const [stakingEnabled] = useStakingManager()
+  const [pool2Enabled] = usePool2Manager()
+  if (stakingEnabled || pool2Enabled) {
+    return Object.fromEntries(Object.entries(state).map(entry => [
+      entry[0],
+      {
+        ...entry[1],
+        tvl: entry[1].tvl + (stakingEnabled ? (entry[1].staking ?? 0) : 0) + (pool2Enabled ? (entry[1].pool2 ?? 0) : 0)
+      }
+    ]))
+  }
   return state
 }

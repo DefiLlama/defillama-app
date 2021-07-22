@@ -3,20 +3,40 @@ import { ResponsiveContainer } from 'recharts'
 import { timeframeOptions } from '../../constants'
 import TokenChart from '../TokenChart'
 import { getTimeframe } from '../../utils'
+import { usePool2Manager, useStakingManager } from '../../contexts/LocalStorage'
 
 const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls }) => {
   // global historical data
 
   // based on window, get starttim
   let utcStartTime = getTimeframe(timeframeOptions.ALL_TIME)
+  const [stakingEnabled] = useStakingManager()
+  const [pool2Enabled] = usePool2Manager()
 
   const chartDataFiltered = useMemo(() => {
+    let tvlDictionary = {}
+    if (stakingEnabled || pool2Enabled) {
+      for (const name of ['staking', 'pool2']) {
+        if (chainTvls[name]) {
+          tvlDictionary[name] = {}
+          chainTvls[name].tvl.forEach(dataPoint => {
+            tvlDictionary[name][dataPoint.date] = dataPoint.totalLiquidityUSD
+          })
+        }
+      }
+    }
     return (
       chartData &&
       Object.keys(chartData)
         ?.map(key => {
           let item = chartData[key]
           if (item.date > utcStartTime) {
+            if (stakingEnabled || pool2Enabled) {
+              return {
+                date: item.date,
+                totalLiquidityUSD: item.totalLiquidityUSD + (stakingEnabled ? (tvlDictionary.staking?.[item.date] ?? 0) : 0) + (pool2Enabled ? (tvlDictionary.pool2?.[item.date] ?? 0) : 0)
+              }
+            }
             return item
           } else {
             return
@@ -26,11 +46,11 @@ const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls }) 
           return !!item
         })
     )
-  }, [chartData, utcStartTime])
+  }, [chartData, utcStartTime, stakingEnabled, pool2Enabled])
 
   let change = 100;
-  if (chartData.length > 1) {
-    change = ((chartData[chartData.length - 1].totalLiquidityUSD - chartData[chartData.length - 2].totalLiquidityUSD) / chartData[chartData.length - 2].totalLiquidityUSD) * 100;
+  if (chartDataFiltered.length > 1) {
+    change = ((chartDataFiltered[chartDataFiltered.length - 1].totalLiquidityUSD - chartDataFiltered[chartDataFiltered.length - 2].totalLiquidityUSD) / chartDataFiltered[chartDataFiltered.length - 2].totalLiquidityUSD) * 100;
   }
 
   // update the width on a window resize
@@ -54,8 +74,8 @@ const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls }) 
       {chartDataFiltered && (
         <ResponsiveContainer aspect={60 / 28} ref={ref}>
           <TokenChart
-            data={chartData}
-            base={chartData[chartData.length - 1].totalLiquidityUSD}
+            data={chartDataFiltered}
+            base={chartDataFiltered[chartDataFiltered.length - 1].totalLiquidityUSD}
             baseChange={change}
             title={`${protocol} TVL`}
             field="totalLiquidityUSD"
