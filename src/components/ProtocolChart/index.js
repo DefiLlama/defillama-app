@@ -17,7 +17,7 @@ const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls }) 
     let tvlDictionary = {}
     if (stakingEnabled || pool2Enabled) {
       for (const name of ['staking', 'pool2']) {
-        if (chainTvls[name]) {
+        if (chainTvls?.[name]) {
           tvlDictionary[name] = {}
           chainTvls[name].tvl.forEach(dataPoint => {
             tvlDictionary[name][dataPoint.date] = dataPoint.totalLiquidityUSD

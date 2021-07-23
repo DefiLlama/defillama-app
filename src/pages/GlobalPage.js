@@ -114,7 +114,7 @@ function GlobalPage({ chain }) {
       }
     }).map(token => {
       const chainTvl = token[1].chainTvls[selectedChain]
-      if (chainTvl !== undefined) {
+      if (chainTvl !== undefined && token[1].chains.length > 1) {
         return [token[0], {
           ...token[1],
           tvl: chainTvl
