@@ -224,6 +224,11 @@ export const Search = ({ small = false }) => {
   }
 
   useEffect(() => {
+    document.addEventListener('keyup', e => {
+      if (e.key === '/') {
+        document.getElementById('searchbox').focus()
+      }
+    })
     document.addEventListener('click', handleClick)
     return () => {
       document.removeEventListener('click', handleClick)
@@ -240,6 +245,7 @@ export const Search = ({ small = false }) => {
           <Input
             large={!small}
             type={'text'}
+            id="searchbox"
             ref={wrapperRef}
             placeholder={
               small
