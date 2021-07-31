@@ -26,6 +26,7 @@ import { CHART_API } from '../constants'
 import DropdownSelect from '../components/DropdownSelect'
 import { Redirect } from 'react-router-dom'
 import RightSettings from '../components/RightSettings'
+import { useStakingManager, usePool2Manager } from '../contexts/LocalStorage'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -58,6 +59,8 @@ function GlobalPage({ chain }) {
       top: 0
     })
   }, [])
+  const [stakingEnabled] = useStakingManager()
+  const [pool2Enabled] = usePool2Manager()
 
   if (selectedChain !== chain) {
     if (selectedChain === undefined) {
@@ -123,8 +126,20 @@ function GlobalPage({ chain }) {
       return token
     }));
   }
+
   const tokensList = Object.entries(allTokens).filter(token => token[1].category !== "Chain")
     .sort((token1, token2) => Number(token2[1].tvl) - Number(token1[1].tvl))
+
+  if (chain === undefined && (stakingEnabled || pool2Enabled)) {
+    tokensList.forEach(token => {
+      if (token[1].staking && stakingEnabled) {
+        totalVolumeUSD += token[1].staking
+      }
+      if (token[1].pool2 && pool2Enabled) {
+        totalVolumeUSD += token[1].pool2
+      }
+    })
+  }
 
   const topToken = { name: 'Uniswap', tvl: 0 }
   if (tokensList.length > 0) {
