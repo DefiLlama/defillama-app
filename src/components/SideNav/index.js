@@ -172,8 +172,8 @@ function SideNav({ history }) {
               </Link>
             </HeaderText>
             <HeaderText>
-              <Link href="https://docs.llama.fi/" target="_blank">
-                Docs
+              <Link href="https://docs.llama.fi/api" target="_blank">
+                API Docs
               </Link>
             </HeaderText>
             <HeaderText>
