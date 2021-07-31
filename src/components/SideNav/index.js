@@ -11,8 +11,8 @@ import { TrendingUp, Disc, HelpCircle } from 'react-feather'
 import Link from '../Link'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
 import Toggle from '../Toggle'
-import { ButtonDark } from '../ButtonStyled'
 import categories from '../../constants/categories'
+import Menu from '../SettingsModal'
 
 const Wrapper = styled.div`
   height: ${({ isMobile }) => (isMobile ? 'initial' : '100vh')};
@@ -21,7 +21,7 @@ const Wrapper = styled.div`
   padding: 0.5rem 0.5rem 0.5rem 0.75rem;
   position: sticky;
   top: 0px;
-  z-index: 9999;
+  ${ /*z-index: 9999; disabled to get the settings modal working */ ""}
   box-sizing: border-box;
   /* background-color: #1b1c22; */
   background: linear-gradient(168deg,#344179 3.98%,#445ed0 100%);
@@ -202,7 +202,7 @@ function SideNav({ history }) {
       ) : (
         <MobileWrapper>
           <Title />
-          <BasicLink to="/settings"><ButtonDark>⚙️</ButtonDark></BasicLink>
+          <Menu />
         </MobileWrapper>
       )}
     </Wrapper>

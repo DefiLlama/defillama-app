@@ -1,6 +1,6 @@
 import React from 'react'
-import { BasicLink } from '../Link'
+import Menu from '../SettingsModal'
 
 export default function () {
-    return <BasicLink to="/settings">⚙️</BasicLink>
+    return <Menu />
 }
