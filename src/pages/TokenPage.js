@@ -106,7 +106,7 @@ function TokenPage({ protocol, history }) {
   let address = getTokenAddressFromName(allTokens, protocol)
   const id = getTokenIdFromName(allTokens, protocol)
   const tokenData = useTokenData(id, protocol)
-  let { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chainTvls, historicalChainTvls, audit_links, methodology, staking, pool2 } = tokenData
+  let { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chainTvls, historicalChainTvls, audit_links, methodology, staking, pool2, module: codeModule } = tokenData
   let blockExplorerLink = 'https://etherscan.io/address/' + address;
   let dexguguLink = undefined
   let blockExplorerName = 'Etherscan';
@@ -378,26 +378,32 @@ function TokenPage({ protocol, history }) {
               </TokenDetailsLayout>
             </Panel>
 
-            {methodology && (
-              <>
-                <RowBetween style={{ marginTop: '3rem' }}>
-                  <TYPE.main fontSize={'1.125rem'}>Methodology</TYPE.main>{' '}
-                </RowBetween>
-                <Panel
-                  rounded
-                  style={{
-                    marginTop: '1.5rem'
-                  }}
-                  p={20}
-                >
-                  <TokenDetailsLayout>
-                    <TYPE.main style={{ textAlign: 'justify', wordBreak: 'break-word' }} fontSize={15} fontWeight="500">
-                      {methodology}
-                    </TYPE.main>
-                  </TokenDetailsLayout>
-                </Panel>
-              </>
-            )}
+
+            <RowBetween style={{ marginTop: '3rem' }}>
+              <TYPE.main fontSize={'1.125rem'}>Methodology</TYPE.main>{' '}
+            </RowBetween>
+            <Panel
+              rounded
+              style={{
+                marginTop: '1.5rem'
+              }}
+              p={20}
+            >
+              {methodology && (
+                <TokenDetailsLayout style={{ marginBottom: '1em' }}>
+                  <TYPE.main style={{ textAlign: 'justify', wordBreak: 'break-word' }} fontSize={15} fontWeight="500">
+                    {methodology}
+                  </TYPE.main>
+                </TokenDetailsLayout>
+              )}
+              <RowFixed>
+                <Link color={backgroundColor} external href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}>
+                  <ButtonLight color={backgroundColor}>
+                    Check the code ↗
+                  </ButtonLight>
+                </Link>
+              </RowFixed>
+            </Panel>
 
             {address && (
               <RowBetween style={{ marginTop: '3rem' }}>
