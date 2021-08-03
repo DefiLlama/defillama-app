@@ -4,6 +4,7 @@ import { Route, Switch, BrowserRouter, Redirect } from 'react-router-dom'
 import GlobalPage from './pages/GlobalPage'
 import TokenPage from './pages/TokenPage'
 import Settings from './pages/Settings'
+import ChainsViewPage from './pages/ChainsViewPage'
 import { useGlobalData, useGlobalChartData } from './contexts/GlobalData'
 import { useAllTokenData } from './contexts/TokenData'
 
@@ -158,6 +159,11 @@ function App() {
             <Route path="/about">
               <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
                 <AboutPage />
+              </LayoutWrapper>
+            </Route>
+            <Route path="/chains-view">
+              <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                <ChainsViewPage />
               </LayoutWrapper>
             </Route>
 
