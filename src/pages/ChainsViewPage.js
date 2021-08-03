@@ -8,7 +8,7 @@ import { useAllTokenData } from '../contexts/TokenData'
 import { PageWrapper, FullWrapper, ContentWrapper } from '../components'
 import Row, { RowBetween } from '../components/Row'
 import { AutoColumn } from '../components/Column'
-import ChainsChart from '../components/ChainsChartt'
+import ChainsChart from '../components/ChainsChart'
 import LocalLoader from '../components/LocalLoader'
 
 
