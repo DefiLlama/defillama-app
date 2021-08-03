@@ -7,7 +7,7 @@ import { useMedia } from 'react-use'
 import { transparentize } from 'polished'
 import { TYPE } from '../../Theme'
 import { withRouter } from 'react-router-dom'
-import { TrendingUp, Disc, HelpCircle } from 'react-feather'
+import { TrendingUp, Disc, HelpCircle, Link as LinkLogo } from 'react-feather'
 import Link from '../Link'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
 import Toggle from '../Toggle'
@@ -133,6 +133,17 @@ function SideNav({ history }) {
                   >
                     <Disc size={20} style={{ marginRight: '.75rem' }} />
                     Protocols
+                  </Option>
+                </BasicLink>
+                <BasicLink to="/chains">
+                  <Option
+                    activeText={
+                      (history.location.pathname.split('/')[1] === 'chains') ??
+                      undefined
+                    }
+                  >
+                    <LinkLogo size={20} style={{ marginRight: '.75rem' }} />
+                    Chains
                   </Option>
                 </BasicLink>
                 {Object.entries(categories)

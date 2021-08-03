@@ -161,7 +161,7 @@ function App() {
                 <AboutPage />
               </LayoutWrapper>
             </Route>
-            <Route path="/chains-view">
+            <Route path="/chains">
               <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
                 <ChainsViewPage />
               </LayoutWrapper>

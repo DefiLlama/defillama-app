@@ -40,6 +40,7 @@
     "polished": "^3.4.4",
     "react": "^16.9.0",
     "react-apollo": "^3.1.1",
+    "react-chartjs-2": "^3.0.4",
     "react-device-detect": "^1.9.10",
     "react-dom": "^16.9.0",
     "react-feather": "^2.0.3",

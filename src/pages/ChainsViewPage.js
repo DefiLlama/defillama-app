@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import 'feather-icons'
-import axios from 'axios';
 
 import { TYPE } from '../Theme'
 import Panel from '../components/Panel'
 import { useAllTokenData } from '../contexts/TokenData'
 import { PageWrapper, FullWrapper, ContentWrapper } from '../components'
-import Row, { RowBetween } from '../components/Row'
+import { RowBetween } from '../components/Row'
 import { AutoColumn } from '../components/Column'
 import ChainsChart from '../components/ChainsChart'
 import LocalLoader from '../components/LocalLoader'
@@ -32,19 +31,11 @@ const ChainsView = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    axios.defaults.baseURL = 'https://api.llama.fi/charts/';
-
-    const chainsCalls = chainsUnique.map(elem => { return axios.get(elem) })
-
     useEffect(() => {
+        const chainsCalls = chainsUnique.map(elem => fetch(`https://api.llama.fi/charts/${elem}`).then(resp => resp.json()))
         Promise.all(chainsCalls).
             then(resp => {
-
-                const a = []
-                resp.map(elem => {
-                    a.push(elem.data)
-                });
-                setData([...data, a])
+                setData([...data, resp])
             }).catch((err) => {
                 console.log(err)
             }).
@@ -58,12 +49,13 @@ const ChainsView = () => {
         return <LocalLoader fill="true" />
     }
 
+    console.log(data)
     data[0].forEach(arr => {
         arr.forEach(elem => {
-            elem.date = new Date(Number(elem.date) * 1000).toLocaleDateString('en-us', {year:"numeric", month:"short", day:"numeric"})
+            elem.date = new Date(Number(elem.date) * 1000).toLocaleDateString('en-us', { year: "numeric", month: "short", day: "numeric" })
         })
     })
-    
+
     function getRandomColor() {
         var letters = '0123456789ABCDEF';
         var color = '#';
@@ -102,9 +94,9 @@ const ChainsView = () => {
 
                 <Panel style={{ padding: '18px 25px' }}>
                     <AutoColumn>
-                        <ChainsChart datasets={getDatasets(data, chainsUnique)} 
-                        xAxisKey={'date'}
-                        yAxisKey={'totalLiquidityUSD'}></ChainsChart>
+                        <ChainsChart datasets={getDatasets(data, chainsUnique)}
+                            xAxisKey={'date'}
+                            yAxisKey={'totalLiquidityUSD'}></ChainsChart>
                     </AutoColumn>
                 </Panel>
             </FullWrapper>
