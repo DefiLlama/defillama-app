@@ -42,6 +42,11 @@ const ChainsChart = (props) => {
                             axis: 'x',
                             intersect: false
                         },
+                        elements: {
+                            point: {
+                                radius: 0
+                            }
+                        }
                     }
                 }
             ></Line>

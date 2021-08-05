@@ -174,6 +174,11 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls }) => {
                 text: denomination === DENOMINATIONS.Tokens ? 'Balance' : 'USD'
               }
             }
+          },
+          elements: {
+            point: {
+              radius: 0
+            }
           }
         }
       };
@@ -328,19 +333,19 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls }) => {
                 onClick={() => setTimeWindow(timeframeOptions.WEEK)}
               >
                 1W
-            </OptionButton>
+              </OptionButton>
               <OptionButton
                 active={timeWindow === timeframeOptions.MONTH}
                 onClick={() => setTimeWindow(timeframeOptions.MONTH)}
               >
                 1M
-            </OptionButton>
+              </OptionButton>
               <OptionButton
                 active={timeWindow === timeframeOptions.ALL_TIME}
                 onClick={() => setTimeWindow(timeframeOptions.ALL_TIME)}
               >
                 All
-            </OptionButton>
+              </OptionButton>
             </AutoRow>
           }
         </RowBetween>
