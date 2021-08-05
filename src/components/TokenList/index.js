@@ -76,8 +76,8 @@ const DashGrid = styled.div`
   @media screen and (min-width: 1080px) {
     display: grid;
     grid-gap: 0.5em;
-    grid-template-columns: 1fr 0.6fr 1fr 0.8fr 0.6fr 0.6fr 0.6fr;
-    grid-template-areas: 'name symbol chain 1dchange 7dchange tvl';
+    grid-template-columns: 1fr 1fr 0.8fr 0.6fr 0.6fr 0.6fr;
+    grid-template-areas: 'name chain mcaptvl 1dchange 7dchange tvl';
   }
 `
 
@@ -120,7 +120,9 @@ const SORT_FIELD = {
   HOURONE: 'change_1h',
   DAYONE: 'change_1d',
   DAYSEVEN: 'change_7d',
-  CHANGE: 'priceChangeUSD'
+  CHANGE: 'priceChangeUSD',
+  MCAPTVL: "mcaptvl",
+  FDVTVL: "fdvtvl",
 }
 
 // @TODO rework into virtualized list
@@ -142,7 +144,11 @@ function TopTokenList({ tokens, itemMax = 100 }) {
     setPage(1)
   }, [tokens])
 
-  const formattedTokens = Object.values(tokens)
+  const formattedTokens = Object.values(tokens).map(protocol => ({
+    ...protocol,
+    mcaptvl: (protocol.tvl !== 0 && protocol.mcap) ? protocol.mcap / protocol.tvl : null,
+    fdvtvl: (protocol.tvl !== 0 && protocol.fdv) ? protocol.fdv / protocol.tvl : null,
+  }))
   useEffect(() => {
     if (tokens && formattedTokens) {
       let extraPages = 1
@@ -181,7 +187,7 @@ function TopTokenList({ tokens, itemMax = 100 }) {
               to={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
             >
               <FormattedName
-                text={item.name}
+                text={`${item.name} (${item.symbol})`}
                 maxCharacters={below600 ? 8 : 16}
                 adjustSize={true}
                 link={true}
@@ -189,19 +195,14 @@ function TopTokenList({ tokens, itemMax = 100 }) {
             </CustomLink>
           </Row>
         </DataText>
-        {!below680 && (
-          <DataText area="symbol" color="text" fontWeight="500">
-            <FormattedName text={item.symbol} maxCharacters={7} />
-          </DataText>
-        )}
         {!below1080 && (
-          <DataText area="chain">{item.chain}</DataText>
+          <DataText area="chain">{item.chains.map(chain => <TokenLogo key={chain} address={chain} logo={`https://icons.llama.fi/chains/rsz_${chain.toLowerCase()}.jpg`} />)}</DataText>
         )}
-        {!below1080 && (
-          <DataText area="1hchange" color="text" fontWeight="500">
-            {formattedPercent(item.change_1h, true)}
+        {/*!below1080 && (
+          <DataText area="fdvtvl" color="text" fontWeight="500">
+            {item.fdvtvl === null ? '-' : formattedNum(item.fdvtvl, false)}
           </DataText>
-        )}
+        )*/}
         {!below1080 && (
           <DataText area="1dchange" color="text" fontWeight="500">
             {formattedPercent(item.change_1d, true)}
@@ -209,6 +210,11 @@ function TopTokenList({ tokens, itemMax = 100 }) {
         )}
         <DataText area="7dchange">{item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'}</DataText>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
+        {!below680 && (
+          <DataText area="mcaptvl" color="text" fontWeight="500">
+            {item.mcaptvl === null ? '-' : formattedNum(item.mcaptvl, false)}
+          </DataText>
+        )}
       </DashGrid>
     )
   }
@@ -229,20 +235,6 @@ function TopTokenList({ tokens, itemMax = 100 }) {
             {below680 ? 'Symbol' : 'Name'} {sortedColumn === SORT_FIELD.NAME ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
-        {!below680 && (
-          <Flex alignItems="center">
-            <ClickableText
-              area="symbol"
-              onClick={e => {
-                setSortedColumn(SORT_FIELD.SYMBOL)
-                setSortDirection(sortedColumn !== SORT_FIELD.SYMBOL ? true : !sortDirection)
-              }}
-            >
-              Symbol {sortedColumn === SORT_FIELD.SYMBOL ? (!sortDirection ? '↑' : '↓') : ''}
-            </ClickableText>
-          </Flex>
-        )}
-
         {!below1080 && (
           <Flex alignItems="center">
             <ClickableText
@@ -256,19 +248,19 @@ function TopTokenList({ tokens, itemMax = 100 }) {
             </ClickableText>
           </Flex>
         )}
-        {!below1080 && (
+        {/*!below1080 && (
           <Flex alignItems="center">
             <ClickableText
-              area="1hchange"
+              area="fdvtvl"
               onClick={e => {
-                setSortedColumn(SORT_FIELD.HOURONE)
-                setSortDirection(sortedColumn !== SORT_FIELD.HOURONE ? true : !sortDirection)
+                setSortedColumn(SORT_FIELD.FDVTVL)
+                setSortDirection(sortedColumn !== SORT_FIELD.FDVTVL ? true : !sortDirection)
               }}
             >
-              1h Change {sortedColumn === SORT_FIELD.HOURONE ? (!sortDirection ? '↑' : '↓') : ''}
+              Category {sortedColumn === SORT_FIELD.FDVTVL ? (!sortDirection ? '↑' : '↓') : ''}
             </ClickableText>
           </Flex>
-        )}
+        )*/}
         {!below1080 && (
           <Flex alignItems="center">
             <ClickableText
@@ -305,6 +297,19 @@ function TopTokenList({ tokens, itemMax = 100 }) {
             TVL {sortedColumn === SORT_FIELD.TVL ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
+        {!below680 && (
+          <Flex alignItems="center">
+            <ClickableText
+              area="mcaptvl"
+              onClick={e => {
+                setSortedColumn(SORT_FIELD.MCAPTVL)
+                setSortDirection(sortedColumn !== SORT_FIELD.MCAPTVL ? true : !sortDirection)
+              }}
+            >
+              Mcap/TVL {sortedColumn === SORT_FIELD.MCAPTVL ? (!sortDirection ? '↑' : '↓') : ''}
+            </ClickableText>
+          </Flex>
+        )}
       </DashGrid>
       <Divider />
       <List p={0}>
