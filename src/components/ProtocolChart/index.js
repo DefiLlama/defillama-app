@@ -5,7 +5,7 @@ import TokenChart from '../TokenChart'
 import { getTimeframe } from '../../utils'
 import { usePool2Manager, useStakingManager } from '../../contexts/LocalStorage'
 
-const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls }) => {
+const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls, misrepresentedTokens }) => {
   // global historical data
 
   // based on window, get starttim
@@ -83,6 +83,7 @@ const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls }) 
             tokens={tokens}
             tokensInUsd={tokensInUsd}
             chainTvls={chainTvls}
+            misrepresentedTokens={misrepresentedTokens}
           //type={CHART_TYPES.AREA}
           />
         </ResponsiveContainer>

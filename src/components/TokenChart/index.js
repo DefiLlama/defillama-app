@@ -59,7 +59,7 @@ function random255() {
 }
 
 const ALL_CHAINS = "All chains"
-const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls }) => {
+const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens }) => {
   // settings for the window and candle width
   const [chartFilter, setChartFilter] = useState(CHART_VIEW.LIQUIDITY)
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
@@ -251,7 +251,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls }) => {
       break;
   }
 
-  const tokensProvided = tokensInUsd !== undefined && tokensInUsd.length !== 0 && !tokensInUsd.some(data => !data.tokens)
+  const tokensProvided = tokensInUsd !== undefined && tokensInUsd.length !== 0 && !tokensInUsd.some(data => !data.tokens) && misrepresentedTokens === undefined
   const denominationsToDisplay = {
     USD: 'USD',
     ETH: 'ETH',
