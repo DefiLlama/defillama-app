@@ -51,11 +51,25 @@ const DENOMINATIONS = {
   BNB: 'BNB',
   TokensUSD: 'Tokens(USD)',
   Tokens: 'Tokens',
-  Change: 'Change'
+  Change: 'Change',
+  ChangeSplit: 'ChangeSplit'
 }
 
 function random255() {
   return Math.round(Math.random() * 255)
+}
+
+function stringToColour(str) {
+  var hash = 0;
+  for (var i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  var colour = '#';
+  for (var i = 0; i < 3; i++) {
+    var value = (hash >> (i * 8)) & 0xFF;
+    colour += ('00' + value.toString(16)).substr(-2);
+  }
+  return colour;
 }
 
 const ALL_CHAINS = "All chains"
@@ -67,7 +81,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   const [denominationPriceHistory, setDenominationPriceHistory] = useState(undefined)
   const [stackedChart, setStackedChart] = useState(undefined)
   const [selectedChain, setSelectedChain] = useState(ALL_CHAINS)
-  const chartFilter = denomination === DENOMINATIONS.Change ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY
+  const chartFilter = (denomination === DENOMINATIONS.Change || denomination === DENOMINATIONS.ChangeSplit) ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY
 
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
@@ -225,21 +239,33 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
       })
     })
   }
-  if (denomination === DENOMINATIONS.Change) {
+  let tokenSet = new Set()
+  if (denomination === DENOMINATIONS.Change || denomination === DENOMINATIONS.ChangeSplit) {
     chartData = [];
     for (let i = 1; i < tokensInUsd.length; i++) {
       let dayDifference = 0;
+      let tokenDayDifference = {}
       for (const token in tokensInUsd[i].tokens) {
+        tokenSet.add(token);
         const price = tokensInUsd[i].tokens[token] / tokens[i].tokens[token];
         const diff = (tokens[i].tokens[token] ?? 0) - (tokens[i - 1].tokens[token] ?? 0);
-        if (price) {
-          dayDifference += price * diff
+        const diffUsd = price * diff
+        if (diffUsd) {
+          tokenDayDifference[token] = diffUsd
+          dayDifference += diffUsd
         }
       }
-      chartData.push({
-        date: tokensInUsd[i].date,
-        dailyVolumeUSD: dayDifference
-      })
+      if (denomination === DENOMINATIONS.Change) {
+        chartData.push({
+          date: tokensInUsd[i].date,
+          dailyVolumeUSD: dayDifference
+        })
+      } else {
+        chartData.push({
+          ...tokenDayDifference,
+          date: tokensInUsd[i].date,
+        })
+      }
     }
   }
 
@@ -281,6 +307,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   if (tokensProvided) {
     denominationsToDisplay['TokensUSD'] = 'Tokens(USD)';
     denominationsToDisplay['Change'] = 'Change'
+    denominationsToDisplay['ChangeSplit'] = 'ChangeSplit'
   }
   const displayStackedChart = denomination === DENOMINATIONS.TokensUSD
   const tokenSymbols = tokensProvided ? Object.entries(tokensInUsd[tokensInUsd.length - 1].tokens).sort((a, b) => b[1] - a[1]).map(t => t[0]) : undefined
@@ -431,46 +458,46 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
         </ResponsiveContainer>
       )
       }
-      {
-        denomination === DENOMINATIONS.Change && chartData && (
-          <ResponsiveContainer aspect={aspect}>
-            <BarChart margin={{ top: 0, right: 10, bottom: 6, left: 10 }} barCategoryGap={1} data={chartData}>
-              <XAxis
-                tickLine={false}
-                axisLine={false}
-                interval="preserveEnd"
-                minTickGap={80}
-                tickMargin={14}
-                tickFormatter={formatDate}
-                dataKey="date"
-                tick={{ fill: textColor }}
-                domain={['dataMin', 'dataMax']}
-              />
-              <YAxis
-                type="number"
-                axisLine={false}
-                tickMargin={16}
-                tickFormatter={tick => moneySymbol + toK(tick)}
-                tickLine={false}
-                orientation="right"
-                interval="preserveEnd"
-                minTickGap={80}
-                yAxisId={0}
-                tick={{ fill: textColor }}
-              />
-              <Tooltip
-                cursor={{ fill: color, opacity: 0.1 }}
-                formatter={val => formattedNum(val, true)}
-                labelFormatter={label => toNiceDateYear(label)}
-                labelStyle={{ paddingTop: 4 }}
-                contentStyle={{
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  borderColor: color,
-                  color: 'black'
-                }}
-                wrapperStyle={{ top: -70, left: -10 }}
-              />
+      {chartFilter === CHART_VIEW.VOLUME && chartData && (
+        <ResponsiveContainer aspect={aspect}>
+          <BarChart margin={{ top: 0, right: 10, bottom: 6, left: 10 }} barCategoryGap={1} data={chartData}>
+            <XAxis
+              tickLine={false}
+              axisLine={false}
+              interval="preserveEnd"
+              minTickGap={80}
+              tickMargin={14}
+              tickFormatter={formatDate}
+              dataKey="date"
+              tick={{ fill: textColor }}
+              domain={['dataMin', 'dataMax']}
+            />
+            <YAxis
+              type="number"
+              axisLine={false}
+              tickMargin={16}
+              tickFormatter={tick => moneySymbol + toK(tick)}
+              tickLine={false}
+              orientation="right"
+              interval="preserveEnd"
+              minTickGap={80}
+              yAxisId={0}
+              tick={{ fill: textColor }}
+            />
+            <Tooltip
+              cursor={{ fill: color, opacity: 0.1 }}
+              formatter={val => formattedNum(val, true)}
+              labelFormatter={label => toNiceDateYear(label)}
+              labelStyle={{ paddingTop: 4 }}
+              contentStyle={{
+                padding: '10px 14px',
+                borderRadius: 10,
+                borderColor: color,
+                color: 'black'
+              }}
+              wrapperStyle={{ top: -70, left: -10 }}
+            />
+            {denomination === DENOMINATIONS.Change ?
               <Bar
                 type="monotone"
                 name={'Daily Change'}
@@ -479,10 +506,19 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
                 opacity={'0.8'}
                 yAxisId={0}
                 stroke={color}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        )
+              /> : Array.from(tokenSet).map(token => <Bar
+                key={token}
+                type="monotone"
+                dataKey={token}
+                fill={stringToColour(token)}
+                opacity={'0.8'}
+                yAxisId={0}
+                stackId="stack"
+              />)
+            }
+          </BarChart>
+        </ResponsiveContainer>
+      )
       }
     </ChartWrapper >
   )
