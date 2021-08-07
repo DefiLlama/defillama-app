@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar } from 'recharts'
 import { AutoRow, RowBetween, RowFixed } from '../Row'
 
-import { toK, toNiceDate, toNiceDateYear, formattedNum, getTimeframe } from '../../utils'
+import { toK, toNiceDate, toNiceDateYear, formattedNum, getTimeframe, toNiceMonthlyDate } from '../../utils'
 import { OptionButton } from '../ButtonStyled'
 import { darken } from 'polished'
 import { useMedia, usePrevious } from 'react-use'
@@ -51,7 +51,7 @@ const DENOMINATIONS = {
   BNB: 'BNB',
   TokensUSD: 'Tokens(USD)',
   Tokens: 'Tokens',
-  //BTC: 'BTC'
+  Change: 'Change'
 }
 
 function random255() {
@@ -61,13 +61,13 @@ function random255() {
 const ALL_CHAINS = "All chains"
 const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens }) => {
   // settings for the window and candle width
-  const [chartFilter, setChartFilter] = useState(CHART_VIEW.LIQUIDITY)
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
   const [denomination, setDenomination] = useState(DENOMINATIONS.USD)
   const [balanceToken, setBalanceToken] = useState(undefined)
   const [denominationPriceHistory, setDenominationPriceHistory] = useState(undefined)
   const [stackedChart, setStackedChart] = useState(undefined)
   const [selectedChain, setSelectedChain] = useState(ALL_CHAINS)
+  const chartFilter = denomination === DENOMINATIONS.Change ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY
 
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
@@ -87,9 +87,6 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
 
   const [timeWindow, setTimeWindow] = useState(timeframeOptions.ALL_TIME)
   const prevWindow = usePrevious(timeWindow)
-
-
-  const priceData = undefined
 
   // switch to hourly data when switched to week window
   useEffect(() => {
@@ -111,7 +108,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   const below1080 = useMedia('(max-width: 1080px)')
   const below600 = useMedia('(max-width: 600px)')
 
-  let utcStartTime = getTimeframe(timeWindow)
+  let utcStartTime = timeWindow === timeframeOptions.ALL_TIME ? 0 : getTimeframe(timeWindow)
   const domain = [dataMin => (dataMin > utcStartTime ? dataMin : utcStartTime), 'dataMax']
   const aspect = below1080 ? 60 / 32 : below600 ? 60 / 42 : 60 / 22
 
@@ -222,6 +219,23 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
       })
     })
   }
+  if (denomination === DENOMINATIONS.Change) {
+    chartData = [];
+    for (let i = 1; i < tokensInUsd.length; i++) {
+      let dayDifference = 0;
+      for (const token in tokensInUsd[i].tokens) {
+        const price = tokensInUsd[i].tokens[token] / tokens[i].tokens[token];
+        const diff = (tokens[i].tokens[token] ?? 0) - (tokens[i - 1].tokens[token] ?? 0);
+        if (price) {
+          dayDifference += price * diff
+        }
+      }
+      chartData.push({
+        date: tokensInUsd[i].date,
+        dailyVolumeUSD: dayDifference
+      })
+    }
+  }
 
   // update the width on a window resize
   const ref = useRef()
@@ -251,6 +265,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
       break;
   }
 
+  const formatDate = tick => chartData.length > 120 ? toNiceMonthlyDate(tick) : toNiceDate(tick)
   const tokensProvided = tokensInUsd !== undefined && tokensInUsd.length !== 0 && !tokensInUsd.some(data => !data.tokens) && misrepresentedTokens === undefined
   const denominationsToDisplay = {
     USD: 'USD',
@@ -259,6 +274,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   };
   if (tokensProvided) {
     denominationsToDisplay['TokensUSD'] = 'Tokens(USD)';
+    denominationsToDisplay['Change'] = 'Change'
   }
   const displayStackedChart = denomination === DENOMINATIONS.TokensUSD
   const displayTimeFrameOptions = denomination !== DENOMINATIONS.Tokens && denomination !== DENOMINATIONS.TokensUSD
@@ -351,141 +367,69 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
         </RowBetween>
       )}
       {chartData === undefined && <LocalLoader />}
-      {chartFilter === CHART_VIEW.LIQUIDITY && chartData && (
+      {displayStackedChart && <canvas id="stackedChart"></canvas>}
+      {chartFilter === CHART_VIEW.LIQUIDITY && chartData && !displayStackedChart && (
         <ResponsiveContainer aspect={aspect}>
-          {displayStackedChart ? <canvas id="stackedChart"></canvas> :
-            <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={chartData}>
-              <defs>
-                <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={color} stopOpacity={0.35} />
-                  <stop offset="95%" stopColor={color} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis
-                tickLine={false}
-                axisLine={false}
-                interval="preserveEnd"
-                tickMargin={16}
-                minTickGap={120}
-                tickFormatter={tick => toNiceDate(tick)}
-                dataKey="date"
-                tick={{ fill: textColor }}
-                type={'number'}
-                domain={['dataMin', 'dataMax']}
-              />
-              <YAxis
-                type="number"
-                orientation="right"
-                tickFormatter={tick => moneySymbol + toK(tick)}
-                axisLine={false}
-                tickLine={false}
-                interval="preserveEnd"
-                minTickGap={80}
-                yAxisId={0}
-                tick={{ fill: textColor }}
-              />
-              <Tooltip
-                cursor={true}
-                formatter={val => formattedNum(val, moneySymbol === '$')}
-                labelFormatter={label => toNiceDateYear(label)}
-                labelStyle={{ paddingTop: 4 }}
-                contentStyle={{
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  borderColor: color,
-                  color: 'black'
-                }}
-                wrapperStyle={{ top: -70, left: -10 }}
-              />
-              <Area
-                key={'other'}
-                dataKey={'totalLiquidityUSD'}
-                stackId="2"
-                strokeWidth={2}
-                dot={false}
-                type="monotone"
-                name={'TVL'}
-                yAxisId={0}
-                stroke={color}
-                fill="url(#colorUv)"
-              />
-            </AreaChart>
-          }
+          <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={chartData}>
+            <defs>
+              <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={color} stopOpacity={0.35} />
+                <stop offset="95%" stopColor={color} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <XAxis
+              tickLine={false}
+              axisLine={false}
+              interval="preserveEnd"
+              tickMargin={16}
+              minTickGap={120}
+              tickFormatter={formatDate}
+              dataKey="date"
+              tick={{ fill: textColor }}
+              domain={['dataMin', 'dataMax']}
+            />
+            <YAxis
+              type="number"
+              orientation="right"
+              tickFormatter={tick => moneySymbol + toK(tick)}
+              axisLine={false}
+              tickLine={false}
+              interval="preserveEnd"
+              minTickGap={80}
+              yAxisId={0}
+              tick={{ fill: textColor }}
+            />
+            <Tooltip
+              cursor={true}
+              formatter={val => formattedNum(val, moneySymbol === '$')}
+              labelFormatter={label => toNiceDateYear(label)}
+              labelStyle={{ paddingTop: 4 }}
+              contentStyle={{
+                padding: '10px 14px',
+                borderRadius: 10,
+                borderColor: color,
+                color: 'black'
+              }}
+              wrapperStyle={{ top: -70, left: -10 }}
+            />
+            <Area
+              key={'other'}
+              dataKey={'totalLiquidityUSD'}
+              stackId="2"
+              strokeWidth={2}
+              dot={false}
+              type="monotone"
+              name={'TVL'}
+              yAxisId={0}
+              stroke={color}
+              fill="url(#colorUv)"
+            />
+          </AreaChart>
         </ResponsiveContainer>
       )
       }
       {
-        chartFilter === CHART_VIEW.PRICE &&
-        (frequency === DATA_FREQUENCY.LINE ? (
-          <ResponsiveContainer aspect={below1080 ? 60 / 32 : 60 / 16}>
-            <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={chartData}>
-              <defs>
-                <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={color} stopOpacity={0.35} />
-                  <stop offset="95%" stopColor={color} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis
-                tickLine={false}
-                axisLine={false}
-                interval="preserveEnd"
-                tickMargin={16}
-                minTickGap={120}
-                tickFormatter={tick => toNiceDate(tick)}
-                dataKey="date"
-                tick={{ fill: textColor }}
-                type={'number'}
-                domain={domain}
-              />
-              <YAxis
-                type="number"
-                orientation="right"
-                tickFormatter={tick => moneySymbol + toK(tick)}
-                axisLine={false}
-                tickLine={false}
-                interval="preserveEnd"
-                minTickGap={80}
-                yAxisId={0}
-                tick={{ fill: textColor }}
-              />
-              <Tooltip
-                cursor={true}
-                formatter={val => formattedNum(val, true)}
-                labelFormatter={label => toNiceDateYear(label)}
-                labelStyle={{ paddingTop: 4 }}
-                contentStyle={{
-                  padding: '10px 14px',
-                  borderRadius: 10,
-                  borderColor: color,
-                  color: 'black'
-                }}
-                wrapperStyle={{ top: -70, left: -10 }}
-              />
-              <Area
-                key={'other'}
-                dataKey={'priceUSD'}
-                stackId="2"
-                strokeWidth={2}
-                dot={false}
-                type="monotone"
-                name={'Price'}
-                yAxisId={0}
-                stroke={darken(0.12, color)}
-                fill="url(#colorUv)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        ) : priceData ? (
-          <ResponsiveContainer aspect={aspect} ref={ref}>
-            <CandleStickChart data={priceData} width={width} base={base} />
-          </ResponsiveContainer>
-        ) : (
-          <LocalLoader />
-        ))
-      }
-
-      {
-        chartFilter === CHART_VIEW.VOLUME && (
+        denomination === DENOMINATIONS.Change && chartData && (
           <ResponsiveContainer aspect={aspect}>
             <BarChart margin={{ top: 0, right: 10, bottom: 6, left: 10 }} barCategoryGap={1} data={chartData}>
               <XAxis
@@ -494,10 +438,9 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
                 interval="preserveEnd"
                 minTickGap={80}
                 tickMargin={14}
-                tickFormatter={tick => toNiceDate(tick)}
+                tickFormatter={formatDate}
                 dataKey="date"
                 tick={{ fill: textColor }}
-                type={'number'}
                 domain={['dataMin', 'dataMax']}
               />
               <YAxis
@@ -527,10 +470,10 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
               />
               <Bar
                 type="monotone"
-                name={'Volume'}
+                name={'Daily Change'}
                 dataKey={'dailyVolumeUSD'}
                 fill={color}
-                opacity={'0.4'}
+                opacity={'0.8'}
                 yAxisId={0}
                 stroke={color}
               />

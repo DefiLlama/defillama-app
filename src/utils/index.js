@@ -83,6 +83,11 @@ export function localNumber(val) {
   return Numeral(val).format('0,0')
 }
 
+export const toNiceMonthlyDate = date => {
+  let x = dayjs.utc(dayjs.unix(date)).format('MMM YYYY')
+  return x
+}
+
 export const toNiceDate = date => {
   let x = dayjs.utc(dayjs.unix(date)).format('MMM DD')
   return x
