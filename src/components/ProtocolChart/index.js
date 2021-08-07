@@ -1,15 +1,12 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { ResponsiveContainer } from 'recharts'
-import { timeframeOptions } from '../../constants'
 import TokenChart from '../TokenChart'
-import { getTimeframe } from '../../utils'
 import { usePool2Manager, useStakingManager } from '../../contexts/LocalStorage'
 
 const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls, misrepresentedTokens, color }) => {
   // global historical data
 
   // based on window, get starttim
-  let utcStartTime = getTimeframe(timeframeOptions.ALL_TIME)
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
 
@@ -30,23 +27,16 @@ const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls, mi
       Object.keys(chartData)
         ?.map(key => {
           let item = chartData[key]
-          if (item.date > utcStartTime) {
-            if (stakingEnabled || pool2Enabled) {
-              return {
-                date: item.date,
-                totalLiquidityUSD: item.totalLiquidityUSD + (stakingEnabled ? (tvlDictionary.staking?.[item.date] ?? 0) : 0) + (pool2Enabled ? (tvlDictionary.pool2?.[item.date] ?? 0) : 0)
-              }
+          if (stakingEnabled || pool2Enabled) {
+            return {
+              date: item.date,
+              totalLiquidityUSD: item.totalLiquidityUSD + (stakingEnabled ? (tvlDictionary.staking?.[item.date] ?? 0) : 0) + (pool2Enabled ? (tvlDictionary.pool2?.[item.date] ?? 0) : 0)
             }
-            return item
-          } else {
-            return
           }
-        })
-        .filter(item => {
-          return !!item
+          return item
         })
     )
-  }, [chartData, utcStartTime, stakingEnabled, pool2Enabled])
+  }, [chartData, stakingEnabled, pool2Enabled])
 
   let change = 100;
   if (chartDataFiltered.length > 1) {

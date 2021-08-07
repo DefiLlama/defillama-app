@@ -42,6 +42,13 @@ export function getTimeframe(timeWindow) {
           .endOf('day')
           .unix() - 1
       break
+    case timeframeOptions.YEAR:
+      utcStartTime =
+        utcEndTime
+          .subtract(1, 'year')
+          .endOf('day')
+          .unix() - 1
+      break
     default:
       utcStartTime =
         utcEndTime

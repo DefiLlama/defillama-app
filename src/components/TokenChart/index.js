@@ -108,7 +108,14 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   const below1080 = useMedia('(max-width: 1080px)')
   const below600 = useMedia('(max-width: 600px)')
 
-  let utcStartTime = timeWindow === timeframeOptions.ALL_TIME ? 0 : getTimeframe(timeWindow)
+  let utcStartTime = 0
+  if (timeWindow !== timeframeOptions.ALL_TIME) {
+    utcStartTime = getTimeframe(timeWindow)
+    chartData = chartData?.filter(entry => entry.date >= utcStartTime)
+    tokens = tokens?.filter(entry => entry.date >= utcStartTime);
+    tokensInUsd = tokensInUsd?.filter(entry => entry.date >= utcStartTime)
+  }
+
   const domain = [dataMin => (dataMin > utcStartTime ? dataMin : utcStartTime), 'dataMax']
   const aspect = below1080 ? 60 / 32 : below600 ? 60 / 42 : 60 / 22
 
@@ -187,7 +194,6 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
     }
   }, [denomination])
 
-  chartData = chartData?.filter(entry => entry.date >= utcStartTime)
   if (denomination === DENOMINATIONS.ETH || denomination === DENOMINATIONS.BNB) {
     if (denominationPriceHistory !== undefined && denominationPriceHistory.asset === denomination) {
       let priceIndex = 0;
@@ -277,14 +283,13 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
     denominationsToDisplay['Change'] = 'Change'
   }
   const displayStackedChart = denomination === DENOMINATIONS.TokensUSD
-  const displayTimeFrameOptions = denomination !== DENOMINATIONS.Tokens && denomination !== DENOMINATIONS.TokensUSD
   const tokenSymbols = tokensProvided ? Object.entries(tokensInUsd[tokensInUsd.length - 1].tokens).sort((a, b) => b[1] - a[1]).map(t => t[0]) : undefined
   return (
     <ChartWrapper>
       {below600 ? (
         <RowBetween mb={40}>
           <DropdownSelect options={denominationsToDisplay} active={denomination} setActive={setDenomination} color={color} />
-          {displayTimeFrameOptions && <DropdownSelect options={timeframeOptions} active={timeWindow} setActive={setTimeWindow} color={color} />}
+          <DropdownSelect options={timeframeOptions} active={timeWindow} setActive={setTimeWindow} color={color} />
         </RowBetween>
       ) : (
         <RowBetween
@@ -342,28 +347,26 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
               </AutoRow>
             )}
           </AutoColumn>
-          {displayTimeFrameOptions &&
-            <AutoRow justify="flex-end" gap="6px" align="flex-start">
-              <OptionButton
-                active={timeWindow === timeframeOptions.WEEK}
-                onClick={() => setTimeWindow(timeframeOptions.WEEK)}
-              >
-                1W
-              </OptionButton>
-              <OptionButton
-                active={timeWindow === timeframeOptions.MONTH}
-                onClick={() => setTimeWindow(timeframeOptions.MONTH)}
-              >
-                1M
-              </OptionButton>
-              <OptionButton
-                active={timeWindow === timeframeOptions.ALL_TIME}
-                onClick={() => setTimeWindow(timeframeOptions.ALL_TIME)}
-              >
-                All
-              </OptionButton>
-            </AutoRow>
-          }
+          <AutoRow justify="flex-end" gap="6px" align="flex-start">
+            <OptionButton
+              active={timeWindow === timeframeOptions.MONTH}
+              onClick={() => setTimeWindow(timeframeOptions.MONTH)}
+            >
+              1M
+            </OptionButton>
+            <OptionButton
+              active={timeWindow === timeframeOptions.YEAR}
+              onClick={() => setTimeWindow(timeframeOptions.YEAR)}
+            >
+              1Y
+            </OptionButton>
+            <OptionButton
+              active={timeWindow === timeframeOptions.ALL_TIME}
+              onClick={() => setTimeWindow(timeframeOptions.ALL_TIME)}
+            >
+              All
+            </OptionButton>
+          </AutoRow>
         </RowBetween>
       )}
       {chartData === undefined && <LocalLoader />}
