@@ -177,7 +177,7 @@ function TopTokenList({ tokens, itemMax = 100, defaultSortingField }) {
             <TokenLogo address={item.address} logo={item.logo} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              to={'/chain/' + item.name?.toLowerCase().split(' ').join('-')}
+              to={'/chain/' + item.name?.split(' ').join('-')}
             >
               <FormattedName
                 text={item.name}
