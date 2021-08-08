@@ -111,7 +111,7 @@ function GlobalPage({ chain }) {
         if (selectedChain === 'Others') {
           return chains.some(chain => !chainOptions.includes(chain))
         }
-        return chains.includes(selectedChain);
+        return chains.some(chain => chain.toLowerCase() === selectedChain.toLowerCase());
       } catch (e) {
         return false
       }

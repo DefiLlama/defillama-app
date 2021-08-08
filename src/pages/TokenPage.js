@@ -101,7 +101,7 @@ const blockExplorers = {
   'rsk': ['https://explorer.rsk.co/address/', 'RSK Explorer']
 }
 
-function TokenPage({ protocol, history }) {
+function TokenPage({ protocol, history, denomination, selectedChain }) {
   const allTokens = useAllTokenData()
   let address = getTokenAddressFromName(allTokens, protocol)
   const id = getTokenIdFromName(allTokens, protocol)
@@ -333,6 +333,7 @@ function TokenPage({ protocol, history }) {
               <Panel style={{ gridColumn: below1024 ? '1' : '2/4', gridRow: below1024 ? '' : '1/4' }}>
                 {chartData && (
                   <ProtocolChart
+                    denomination={denomination}
                     chartData={chartData}
                     misrepresentedTokens={misrepresentedTokens}
                     protocol={name}
@@ -341,6 +342,7 @@ function TokenPage({ protocol, history }) {
                     tokens={tokens}
                     tokensInUsd={tokensInUsd}
                     base={priceUSD}
+                    selectedChain={selectedChain}
                     chainTvls={historicalChainTvls}
                   />
                 )}

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import styled from 'styled-components'
 import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar } from 'recharts'
 import { AutoRow, RowBetween, RowFixed } from '../Row'
+import { useHistory, useLocation } from "react-router-dom";
 
 import { toK, toNiceDate, toNiceDateYear, formattedNum, getTimeframe, toNiceMonthlyDate } from '../../utils'
 import { OptionButton } from '../ButtonStyled'
@@ -72,32 +73,51 @@ function stringToColour(str) {
   return colour;
 }
 
-const ALL_CHAINS = "All chains"
-const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens }) => {
+const ALL_CHAINS = "All Chains"
+const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens, denomination: initialDenomination, selectedChain = "all" }) => {
   // settings for the window and candle width
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
-  const [denomination, setDenomination] = useState(DENOMINATIONS.USD)
-  const [balanceToken, setBalanceToken] = useState(undefined)
+  const denomination = Object.values(DENOMINATIONS).find(den => den.toLowerCase() === initialDenomination?.split('-')?.[0]) ?? DENOMINATIONS.USD
+  const balanceToken = initialDenomination?.split('-')?.[1]?.toUpperCase()
   const [denominationPriceHistory, setDenominationPriceHistory] = useState(undefined)
   const [stackedChart, setStackedChart] = useState(undefined)
-  const [selectedChain, setSelectedChain] = useState(ALL_CHAINS)
   const chartFilter = (denomination === DENOMINATIONS.Change || denomination === DENOMINATIONS.ChangeSplit) ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY
+
+  console.log(denomination, balanceToken, initialDenomination?.split('-')?.[0])
 
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
 
+  const history = useHistory();
+  const location = useLocation();
+  const buildUrl = () => {
+    const splitLocation = location.pathname.split('/')
+    if (splitLocation.length < 4) {
+      splitLocation.push(selectedChain)
+    }
+    if (splitLocation.length < 5) {
+      splitLocation.push(denomination)
+    }
+    return splitLocation
+  }
+  const setDenomination = (newDenomination) => {
+    const splitLocation = buildUrl()
+    splitLocation[4] = newDenomination
+    history.push(splitLocation.join('/'))
+  }
+  const setSelectedChain = newChain => {
+    const splitLocation = buildUrl()
+    splitLocation[3] = newChain === ALL_CHAINS ? 'all' : newChain
+    history.push(splitLocation.join('/'))
+  }
+
   let chartData = data;
-  if (selectedChain !== ALL_CHAINS) {
+  if (selectedChain !== "all") {
     chartData = chainTvls[selectedChain].tvl;
     base = chartData[chartData.length - 1].totalLiquidityUSD;
     tokens = chainTvls[selectedChain].tokens;
     tokensInUsd = chainTvls[selectedChain].tokensInUsd
   }
-  useEffect(() => {
-    setDenomination(DENOMINATIONS.USD)
-    setBalanceToken(undefined)
-  }, [selectedChain])
-
 
   const [timeWindow, setTimeWindow] = useState(timeframeOptions.ALL_TIME)
   const prevWindow = usePrevious(timeWindow)
@@ -341,10 +361,9 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
               </OptionButton>
               )}
               {tokenSymbols && <DropdownSelect options={tokenSymbols} active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'} setActive={(token) => {
-                setBalanceToken(token);
-                setDenomination(DENOMINATIONS.Tokens)
+                setDenomination(`${DENOMINATIONS.Tokens}-${token}`)
               }} color={color} style={{ marginRight: '6px' }} />}
-              {chainTvls && Object.keys(chainTvls).length > 1 && <DropdownSelect options={[ALL_CHAINS].concat(Object.keys(chainTvls))} active={selectedChain} setActive={(chain) => {
+              {chainTvls && Object.keys(chainTvls).length > 1 && <DropdownSelect options={[ALL_CHAINS].concat(Object.keys(chainTvls))} active={selectedChain === 'all' ? ALL_CHAINS : selectedChain} setActive={(chain) => {
                 setSelectedChain(chain)
               }} color={color} />}
             </RowFixed>

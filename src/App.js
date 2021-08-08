@@ -95,12 +95,16 @@ function App() {
             <Route
               exacts
               strict
-              path="/protocol/:protocol"
+              path="/protocol/:protocol/:chain?/:denomination?"
               render={({ match }) => {
                 if (isValidProtocol(allTokens, match.params.protocol.toLowerCase())) {
                   return (
                     <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-                      <TokenPage protocol={match.params.protocol.toLowerCase()} />
+                      <TokenPage
+                        protocol={match.params.protocol.toLowerCase()}
+                        denomination={match.params.denomination?.toLowerCase()}
+                        selectedChain={match.params.chain}
+                      />
                     </LayoutWrapper>
                   )
                 } else {
