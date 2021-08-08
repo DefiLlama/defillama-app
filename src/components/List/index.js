@@ -9,10 +9,9 @@ import { CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, formattedPercent, chainIconUrl } from '../../utils'
+import { formattedNum, formattedPercent } from '../../utils'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
-import { OVERVIEW_TOKEN_BLACKLIST } from '../../constants'
 import FormattedName from '../FormattedName'
 import { TYPE } from '../../Theme'
 
@@ -113,27 +112,22 @@ const DataText = styled(Flex)`
 
 const SORT_FIELD = {
   TVL: 'tvl',
-  VOL: 'oneDayVolumeUSD',
-  SYMBOL: 'symbol',
+  NUMPROTOCOLS: 'num_protocols',
   NAME: 'name',
-  PRICE: 'priceUSD',
-  HOURONE: 'change_1h',
   DAYONE: 'change_1d',
   DAYSEVEN: 'change_7d',
-  CHANGE: 'priceChangeUSD',
   MCAPTVL: "mcaptvl",
   FDVTVL: "fdvtvl",
 }
 
-// @TODO rework into virtualized list
-function TopTokenList({ tokens, itemMax = 100 }) {
+function TopTokenList({ tokens, itemMax = 100, defaultSortingField }) {
   // page state
   const [page, setPage] = useState(1)
   const [maxPage, setMaxPage] = useState(1)
 
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
-  const [sortedColumn, setSortedColumn] = useState(SORT_FIELD.TVL)
+  const [sortedColumn, setSortedColumn] = useState(defaultSortingField)
 
   const below1080 = useMedia('(max-width: 1080px)')
   const below680 = useMedia('(max-width: 680px)')
@@ -144,10 +138,9 @@ function TopTokenList({ tokens, itemMax = 100 }) {
     setPage(1)
   }, [tokens])
 
-  const formattedTokens = Object.values(tokens).map(protocol => ({
+  const formattedTokens = tokens.map(protocol => ({
     ...protocol,
     mcaptvl: (protocol.tvl !== 0 && protocol.mcap) ? protocol.mcap / protocol.tvl : null,
-    fdvtvl: (protocol.tvl !== 0 && protocol.fdv) ? protocol.fdv / protocol.tvl : null,
   }))
   useEffect(() => {
     if (tokens && formattedTokens) {
@@ -164,7 +157,7 @@ function TopTokenList({ tokens, itemMax = 100 }) {
       formattedTokens &&
       formattedTokens
         .sort((a, b) => {
-          if (sortedColumn === SORT_FIELD.SYMBOL || sortedColumn === SORT_FIELD.NAME) {
+          if (typeof a[sortedColumn] === "string") {
             return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
           }
           return parseFloat(a[sortedColumn] || 0) > parseFloat(b[sortedColumn] || 0)
@@ -184,10 +177,10 @@ function TopTokenList({ tokens, itemMax = 100 }) {
             <TokenLogo address={item.address} logo={item.logo} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              to={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
+              to={'/chain/' + item.name?.toLowerCase().split(' ').join('-')}
             >
               <FormattedName
-                text={`${item.name} (${item.symbol})`}
+                text={item.name}
                 maxCharacters={below600 ? 8 : 16}
                 adjustSize={true}
                 link={true}
@@ -196,13 +189,10 @@ function TopTokenList({ tokens, itemMax = 100 }) {
           </Row>
         </DataText>
         {!below1080 && (
-          <DataText area="chain">{item.chains.map(chain => <TokenLogo key={chain} address={chain} logo={chainIconUrl(chain)} />)}</DataText>
-        )}
-        {/*!below1080 && (
-          <DataText area="fdvtvl" color="text" fontWeight="500">
-            {item.fdvtvl === null ? '-' : formattedNum(item.fdvtvl, false)}
+          <DataText area="numprotocols" color="text" fontWeight="500">
+            {formattedNum(item.num_protocols, false)}
           </DataText>
-        )*/}
+        )}
         {!below1080 && (
           <DataText area="1dchange" color="text" fontWeight="500">
             {formattedPercent(item.change_1d, true)}
@@ -238,29 +228,16 @@ function TopTokenList({ tokens, itemMax = 100 }) {
         {!below1080 && (
           <Flex alignItems="center">
             <ClickableText
-              area="chain"
+              area="numprotocols"
               onClick={e => {
-                setSortedColumn(SORT_FIELD.PRICE)
-                setSortDirection(sortedColumn !== SORT_FIELD.PRICE ? true : !sortDirection)
+                setSortedColumn(SORT_FIELD.NUMPROTOCOLS)
+                setSortDirection(sortedColumn !== SORT_FIELD.NUMPROTOCOLS ? true : !sortDirection)
               }}
             >
-              Chain {sortedColumn === SORT_FIELD.PRICE ? (!sortDirection ? '↑' : '↓') : ''}
+              Protocols {sortedColumn === SORT_FIELD.NUMPROTOCOLS ? (!sortDirection ? '↑' : '↓') : ''}
             </ClickableText>
           </Flex>
         )}
-        {/*!below1080 && (
-          <Flex alignItems="center">
-            <ClickableText
-              area="fdvtvl"
-              onClick={e => {
-                setSortedColumn(SORT_FIELD.FDVTVL)
-                setSortDirection(sortedColumn !== SORT_FIELD.FDVTVL ? true : !sortDirection)
-              }}
-            >
-              Category {sortedColumn === SORT_FIELD.FDVTVL ? (!sortDirection ? '↑' : '↓') : ''}
-            </ClickableText>
-          </Flex>
-        )*/}
         {!below1080 && (
           <Flex alignItems="center">
             <ClickableText

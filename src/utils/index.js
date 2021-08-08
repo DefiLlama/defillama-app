@@ -414,6 +414,10 @@ export function rawPercent(percentRaw) {
   return percent.toFixed(0) + '%'
 }
 
+export function chainIconUrl(chain) {
+  return `https://icons.llama.fi/chains/rsz_${chain.toLowerCase()}.jpg`
+}
+
 export function formattedPercent(percent, useBrackets = false) {
   if (percent === null) {
     return <Text fontWeight={500}>-</Text>
