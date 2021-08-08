@@ -41,7 +41,7 @@ const ListOptions = styled(AutoRow)`
 
 const chainOptions = ['All', 'Ethereum', 'Binance', 'Avalanche', 'Solana', 'Polygon', 'Terra', 'Others']
 
-function GlobalPage({ chain }) {
+function GlobalPage({ chain, denomination }) {
   // get data for lists and totals
   let allTokens = useAllTokenData()
   //const transactions = useGlobalTransactions()
@@ -153,6 +153,7 @@ function GlobalPage({ chain }) {
     chainChartData[selectedChain] !== undefined ? <ProtocolChart
       chartData={chainChartData[selectedChain]}
       protocol={selectedChain}
+      denomination={denomination}
     /> : <Loader />;
 
   return (

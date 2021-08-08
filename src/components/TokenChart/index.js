@@ -77,7 +77,7 @@ const ALL_CHAINS = "All Chains"
 const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens, denomination: initialDenomination, selectedChain = "all" }) => {
   // settings for the window and candle width
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
-  const denomination = Object.values(DENOMINATIONS).find(den => den.toLowerCase() === initialDenomination?.split('-')?.[0]) ?? DENOMINATIONS.USD
+  const denomination = Object.values(DENOMINATIONS).find(den => den.toLowerCase() === initialDenomination?.split('-')?.[0].toLowerCase()) ?? DENOMINATIONS.USD
   const balanceToken = initialDenomination?.split('-')?.[1]?.toUpperCase()
   const [denominationPriceHistory, setDenominationPriceHistory] = useState(undefined)
   const [stackedChart, setStackedChart] = useState(undefined)

@@ -130,10 +130,10 @@ function App() {
             <Route
               exacts
               strict
-              path="/chain/:chain"
+              path="/chain/:chain/:useless?/:denomination?"
               render={({ match }) => {
                 return <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-                  <GlobalPage chain={match.params.chain} />
+                  <GlobalPage chain={match.params.chain} denomination={match.params.denomination} />
                 </LayoutWrapper>
               }}
             />
