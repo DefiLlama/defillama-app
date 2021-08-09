@@ -5,14 +5,13 @@ import utc from 'dayjs/plugin/utc'
 
 import { Box, Flex, Text } from 'rebass'
 import TokenLogo from '../TokenLogo'
-import { CustomLink } from '../Link'
+import { CustomLink, BasicLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
 import { formattedNum, formattedPercent, chainIconUrl } from '../../utils'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
-import { OVERVIEW_TOKEN_BLACKLIST } from '../../constants'
 import FormattedName from '../FormattedName'
 import { TYPE } from '../../Theme'
 
@@ -196,26 +195,30 @@ function TopTokenList({ tokens, itemMax = 100 }) {
           </Row>
         </DataText>
         {!below1080 && (
-          <DataText area="chain">{item.chains.map(chain => <TokenLogo key={chain} address={chain} logo={chainIconUrl(chain)} />)}</DataText>
+          <DataText area="chain">{item.chains.map(chain => <BasicLink key={chain} to={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)}</DataText>
         )}
         {/*!below1080 && (
           <DataText area="fdvtvl" color="text" fontWeight="500">
             {item.fdvtvl === null ? '-' : formattedNum(item.fdvtvl, false)}
           </DataText>
         )*/}
-        {!below1080 && (
-          <DataText area="1dchange" color="text" fontWeight="500">
-            {formattedPercent(item.change_1d, true)}
-          </DataText>
-        )}
+        {
+          !below1080 && (
+            <DataText area="1dchange" color="text" fontWeight="500">
+              {formattedPercent(item.change_1d, true)}
+            </DataText>
+          )
+        }
         <DataText area="7dchange">{item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'}</DataText>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
-        {!below680 && (
-          <DataText area="mcaptvl" color="text" fontWeight="500">
-            {item.mcaptvl === null ? '-' : formattedNum(item.mcaptvl, false)}
-          </DataText>
-        )}
-      </DashGrid>
+        {
+          !below680 && (
+            <DataText area="mcaptvl" color="text" fontWeight="500">
+              {item.mcaptvl === null ? '-' : formattedNum(item.mcaptvl, false)}
+            </DataText>
+          )
+        }
+      </DashGrid >
     )
   }
 

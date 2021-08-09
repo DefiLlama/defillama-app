@@ -18,7 +18,7 @@ import { useAllTokenData } from '../contexts/TokenData'
 import { formattedNum } from '../utils'
 import { TYPE, ThemedBackground } from '../Theme'
 import { transparentize } from 'polished'
-import { CustomLink } from '../components/Link'
+import { CustomLink, BasicLink } from '../components/Link'
 
 import { PageWrapper, ContentWrapper } from '../components'
 import { fetchAPI } from '../contexts/API'
@@ -41,15 +41,14 @@ const ListOptions = styled(AutoRow)`
 
 const chainOptions = ['All', 'Ethereum', 'Binance', 'Avalanche', 'Solana', 'Polygon', 'Terra', 'Others']
 
-function GlobalPage({ chain, denomination }) {
+function GlobalPage({ chain, denomination, history }) {
   // get data for lists and totals
   let allTokens = useAllTokenData()
   //const transactions = useGlobalTransactions()
   const globalData = useGlobalData()
   const [chainChartData, setChainChartData] = useState({});
-  const [oldChain, setOldChain] = useState(undefined);
-  const [selectedChain, setSelectedChainRaw] = useState(chain);
-  const setSelectedChain = (newSelectedChain) => setSelectedChainRaw(newSelectedChain === 'All' ? undefined : newSelectedChain)
+  const selectedChain = chain;
+  const setSelectedChain = (newSelectedChain) => history.push(newSelectedChain === 'All' ? '/home' : `/chain/${newSelectedChain}`)
   // breakpoints
   const below800 = useMedia('(max-width: 800px)')
   // scrolling refs
@@ -61,13 +60,6 @@ function GlobalPage({ chain, denomination }) {
   }, [])
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
-
-  if (selectedChain !== chain) {
-    if (selectedChain === undefined) {
-      return <Redirect to="/home" />
-    }
-    return <Redirect to={`/chain/${selectedChain}`} />
-  }
 
   let { totalVolumeUSD, volumeChangeUSD } = globalData
 
@@ -83,14 +75,14 @@ function GlobalPage({ chain, denomination }) {
   })
   const otherChains = allChains.filter(chain => !chainOptions.includes(chain))
 
-  if (selectedChain !== undefined) {
-    if (oldChain !== selectedChain && chainChartData[selectedChain] === undefined) {
-      setOldChain(selectedChain);
-      const chartName = selectedChain === 'Others' ? 'Multi-chain' : selectedChain
-      fetchAPI(`${CHART_API}/${chartName}`).then(chart => setChainChartData({
+  useEffect(() => {
+    if (chainChartData[selectedChain] === undefined) {
+      fetchAPI(`${CHART_API}/${selectedChain}`).then(chart => setChainChartData({
         [selectedChain]: chart
       }))
     }
+  }, [selectedChain])
+  if (selectedChain !== undefined) {
     const chartData = chainChartData[selectedChain];
     if (chartData === undefined) {
       totalVolumeUSD = 0;
@@ -296,9 +288,9 @@ function GlobalPage({ chain, denomination }) {
                     if (selectedChain === name || (name === 'All' && selectedChain === undefined)) {
                       return <ButtonDark style={{ margin: '0.2rem' }} key={name} >{name}</ButtonDark>
                     } else {
-                      return <ButtonLight style={{ margin: '0.2rem' }} key={name} onClick={() => {
-                        setSelectedChain(name)
-                      }}>{name}</ButtonLight>
+                      return <BasicLink to={name === "All" ? '/home' : `/chain/${name}`} key={name}>
+                        <ButtonLight style={{ margin: '0.2rem' }}>{name}</ButtonLight>
+                      </BasicLink>
                     }
                   })}
               </RowFlat>
@@ -313,7 +305,7 @@ function GlobalPage({ chain, denomination }) {
           <a href="https://defillama-datasets.s3.eu-central-1.amazonaws.com/all.csv"><ButtonDark>Download all data in .csv</ButtonDark></a>
         </div>
       </ContentWrapper>
-    </PageWrapper>
+    </PageWrapper >
   )
 }
 
