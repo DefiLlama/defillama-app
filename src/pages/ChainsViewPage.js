@@ -6,19 +6,18 @@ import Panel from '../components/Panel'
 import { useAllTokenData } from '../contexts/TokenData'
 import { PageWrapper, FullWrapper } from '../components'
 import { AutoRow, RowBetween } from '../components/Row'
-import { AutoColumn } from '../components/Column'
-import ChainsChart from '../components/ChainsChart'
 import LocalLoader from '../components/LocalLoader'
 import { chainIconUrl } from '../utils'
 import List from '../components/List'
-import { toK, toNiceDate, toNiceDateYear, formattedNum, getTimeframe, toNiceMonthlyDate } from '../utils'
+import { toK, toNiceCsvDate, toNiceDateYear, formattedNum, toNiceMonthlyDate } from '../utils'
+import { ButtonDark } from '../components/ButtonStyled'
+
 
 import {
     AreaChart,
     Area,
     XAxis,
     YAxis,
-    CartesianGrid,
     ResponsiveContainer,
     Tooltip
 } from "recharts";
@@ -74,6 +73,19 @@ const getPercent = (value, total) => {
 
     return toPercent(ratio, 2);
 };
+
+function download(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
 
 const ChainsView = () => {
     let allTokens = useAllTokenData();
@@ -136,6 +148,15 @@ const ChainsView = () => {
         }, {}))
         return [stacked, daySum]
     }, [data])
+
+    function downloadCsv() {
+        const rows = [["Timestamp", "Date", ...chainsUnique]];
+        stackedDataset.sort((a, b) => a.date - b.date).forEach(day => {
+            rows.push([day.date, toNiceCsvDate(day.date), ...chainsUnique.map(chain => day[chain] ?? '')])
+        })
+        console.log(rows)
+        download("chains.csv", rows.map(r => r.join(',')).join('\n'))
+    }
 
     if (loading) {
         return <LocalLoader fill="true" />
@@ -218,6 +239,9 @@ const ChainsView = () => {
                     </AutoRow>
                 </Panel>
                 <List tokens={chainTvls} defaultSortingField="tvl" />
+                <div style={{ margin: 'auto' }}>
+                    <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
+                </div>
             </FullWrapper>
         </PageWrapper>
     )

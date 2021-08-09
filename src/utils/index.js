@@ -100,6 +100,11 @@ export const toNiceDate = date => {
   return x
 }
 
+export const toNiceCsvDate = date => {
+  let x = dayjs.utc(dayjs.unix(date)).format('DD/MM/YYYY')
+  return x
+}
+
 export const toWeeklyDate = date => {
   const formatted = dayjs.utc(dayjs.unix(date))
   date = new Date(formatted)
