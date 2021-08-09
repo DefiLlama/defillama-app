@@ -11,6 +11,7 @@ import { chainIconUrl } from '../utils'
 import List from '../components/List'
 import { toK, toNiceCsvDate, toNiceDateYear, formattedNum, toNiceMonthlyDate } from '../utils'
 import { ButtonDark } from '../components/ButtonStyled'
+import { useMedia } from 'react-use'
 
 
 import {
@@ -21,6 +22,7 @@ import {
     ResponsiveContainer,
     Tooltip
 } from "recharts";
+import { AutoColumn } from '../components/Column'
 
 function getRandomColor() {
     var letters = '0123456789ABCDEF';
@@ -87,8 +89,47 @@ function download(filename, text) {
     document.body.removeChild(element);
 }
 
+const StackedChart = ({ stackOffset, yFormatter, formatPercent, stackedDataset, chainsUnique, chainColor, daySum, isMobile }) => <Panel
+    style={{ height: '100%', margin: '0.5em' }}>
+    <ResponsiveContainer aspect={isMobile ? 60 / 44 : 60 / 36}>
+        <AreaChart
+            data={stackedDataset}
+            stackOffset={stackOffset}
+            margin={{
+                top: 10,
+                right: 30,
+                left: 0,
+                bottom: 0
+            }}
+        >
+            <XAxis dataKey="date"
+                tickFormatter={toNiceMonthlyDate}
+            />
+            <YAxis
+                tickFormatter={tick => yFormatter(tick)}
+            />
+            <Tooltip
+                formatter={(val, chain, props) => formatPercent ? getPercent(val, daySum[props.payload.date]) : formattedNum(val)}
+                labelFormatter={label => toNiceDateYear(label)}
+                itemSorter={p => -p.value}
+            />
+            {chainsUnique.map(chainName => <Area
+                type="monotone"
+                dataKey={chainName}
+                key={chainName}
+                stackId="1"
+                fill={chainColor[chainName]}
+                stroke={chainColor[chainName]}
+            />
+            )}
+        </AreaChart>
+    </ResponsiveContainer>
+</Panel>
+
 const ChainsView = () => {
     let allTokens = useAllTokenData();
+    const below800 = useMedia('(max-width: 800px)')
+    const isMobile = useMedia('(max-width: 40em)')
 
     const chainsUniqueSet = new Set();
     const numProtocolsPerChain = {}
@@ -162,88 +203,45 @@ const ChainsView = () => {
         return <LocalLoader fill="true" />
     }
 
+    const stackedChart = <StackedChart
+        yFormatter={toK}
+        formatPercent={false}
+        stackedDataset={stackedDataset}
+        chainsUnique={chainsUnique}
+        chainColor={chainColor}
+        isMobile={isMobile}
+    />
+    const dominanceChart = <StackedChart
+        stackOffset="expand"
+        yFormatter={toPercent}
+        formatPercent={true}
+        stackedDataset={stackedDataset}
+        chainsUnique={chainsUnique}
+        chainColor={chainColor}
+        daySum={daySum}
+        isMobile={isMobile}
+    />
     return (
         <PageWrapper>
             <FullWrapper>
                 <RowBetween>
                     <TYPE.largeHeader>Total Value Locked All Chains</TYPE.largeHeader>
                 </RowBetween>
-
-                <Panel style={{ padding: '18px 25px' }}>
+                {below800 ? <AutoColumn>
+                    {stackedChart}
+                    {dominanceChart}
+                </AutoColumn> :
                     <AutoRow>
-                        <ResponsiveContainer>
-                            <AreaChart
-                                data={stackedDataset}
-                                margin={{
-                                    top: 10,
-                                    right: 30,
-                                    left: 0,
-                                    bottom: 0
-                                }}
-                            >
-                                <XAxis dataKey="date"
-                                    tickFormatter={toNiceMonthlyDate}
-                                />
-                                <YAxis
-                                    tickFormatter={tick => toK(tick)}
-                                />
-                                <Tooltip
-                                    formatter={val => formattedNum(val)}
-                                    labelFormatter={label => toNiceDateYear(label)}
-                                    itemSorter={p => -p.value}
-                                />
-                                {chainsUnique.map(chainName => <Area
-                                    type="monotone"
-                                    dataKey={chainName}
-                                    key={chainName}
-                                    stackId="1"
-                                    fill={chainColor[chainName]}
-                                    stroke={chainColor[chainName]}
-                                />
-                                )}
-                            </AreaChart>
-                        </ResponsiveContainer>
-
-                        <AreaChart
-                            width={500}
-                            height={400}
-                            data={stackedDataset}
-                            stackOffset="expand"
-                            margin={{
-                                top: 10,
-                                right: 30,
-                                left: 0,
-                                bottom: 0
-                            }}
-                        >
-                            <XAxis dataKey="date"
-                                tickFormatter={toNiceMonthlyDate}
-                            />
-                            <YAxis tickFormatter={num => toPercent(num)} />
-                            <Tooltip
-                                formatter={(val, chain, props) => getPercent(val, daySum[props.payload.date])}
-                                labelFormatter={label => toNiceDateYear(label)}
-                                itemSorter={p => -p.value}
-                            />
-                            {chainsUnique.map(chainName =>
-                                <Area
-                                    type="monotone"
-                                    dataKey={chainName}
-                                    key={chainName}
-                                    stackId="1"
-                                    fill={chainColor[chainName]}
-                                    stroke={chainColor[chainName]}
-                                />
-                            )}
-                        </AreaChart>
+                        {stackedChart}
+                        {dominanceChart}
                     </AutoRow>
-                </Panel>
+                }
                 <List tokens={chainTvls} defaultSortingField="tvl" />
                 <div style={{ margin: 'auto' }}>
                     <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
                 </div>
             </FullWrapper>
-        </PageWrapper>
+        </PageWrapper >
     )
 }
 
