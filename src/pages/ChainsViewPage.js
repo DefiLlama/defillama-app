@@ -67,7 +67,7 @@ function getPercentChange(previous, current) {
 }
 
 const toPercent = (decimal, fixed = 0) =>
-    `${(decimal * 100).toFixed(0)}%`;
+    `${(decimal * 100).toFixed(fixed)}%`;
 
 const getPercent = (value, total) => {
     const ratio = total > 0 ? value / total : 0;
@@ -198,7 +198,7 @@ const ChainsView = () => {
                             <XAxis dataKey="date"
                                 tickFormatter={toNiceMonthlyDate}
                             />
-                            <YAxis tickFormatter={toPercent} />
+                            <YAxis tickFormatter={num => toPercent(num)} />
                             <Tooltip
                                 formatter={(val, chain, props) => getPercent(val, daySum[props.payload.date])}
                                 labelFormatter={label => toNiceDateYear(label)}
