@@ -317,7 +317,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
       break;
   }
 
-  const formatDate = tick => chartData.length > 120 ? toNiceMonthlyDate(tick) : toNiceDate(tick)
+  const formatDate = chartData.length > 120 ? toNiceMonthlyDate : toNiceDate
   const tokensProvided = tokensInUsd !== undefined && tokensInUsd.length !== 0 && !tokensInUsd.some(data => !data.tokens) && misrepresentedTokens === undefined
   const denominationsToDisplay = {
     USD: 'USD',

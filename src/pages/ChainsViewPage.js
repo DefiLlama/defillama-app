@@ -1,16 +1,27 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import 'feather-icons'
 
 import { TYPE } from '../Theme'
 import Panel from '../components/Panel'
 import { useAllTokenData } from '../contexts/TokenData'
 import { PageWrapper, FullWrapper } from '../components'
-import { RowBetween } from '../components/Row'
+import { AutoRow, RowBetween } from '../components/Row'
 import { AutoColumn } from '../components/Column'
 import ChainsChart from '../components/ChainsChart'
 import LocalLoader from '../components/LocalLoader'
 import { chainIconUrl } from '../utils'
 import List from '../components/List'
+import { toK, toNiceDate, toNiceDateYear, formattedNum, getTimeframe, toNiceMonthlyDate } from '../utils'
+
+import {
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    ResponsiveContainer,
+    Tooltip
+} from "recharts";
 
 function getRandomColor() {
     var letters = '0123456789ABCDEF';
@@ -55,6 +66,14 @@ function getPercentChange(previous, current) {
     return (current / previous) * 100 - 100;
 }
 
+const toPercent = (decimal, fixed = 0) =>
+    `${(decimal * 100).toFixed(0)}%`;
+
+const getPercent = (value, total) => {
+    const ratio = total > 0 ? value / total : 0;
+
+    return toPercent(ratio, 2);
+};
 
 const ChainsView = () => {
     let allTokens = useAllTokenData();
@@ -85,34 +104,8 @@ const ChainsView = () => {
         fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(chainCoingeckoIds).join(',')}&vs_currencies=usd&include_market_cap=true`).then(res => res.json()).then(setChainMcaps)
     }, []);
 
-
-    if (loading) {
-        return <LocalLoader fill="true" />
-    }
-
-    data.forEach(arr => {
-        arr.forEach(elem => {
-            elem.date = new Date(Number(elem.date) * 1000).toLocaleDateString('en-us', { year: "numeric", month: "short", day: "numeric" })
-        })
-    })
-
-    //create a list for datasets for multiline chart 
-    const getDatasets = (data, chains) => {
-        const datasets = []
-        chains.forEach((element, i) => {
-            const clr = getRandomColor()
-            const dataset = {
-                label: element,
-                data: data[i],
-                borderColor: clr,
-                backgroundColor: clr,
-                fill: true,
-            };
-            datasets.push(dataset);
-        });
-        return datasets;
-    }
-    const chainTvls = chainsUnique.map((chainName, i) => {
+    const chainColor = useMemo(() => Object.fromEntries(chainsUnique.map(chain => [chain, getRandomColor()])), [chainsUnique])
+    const chainTvls = useMemo(() => (data.length > 0 ? chainsUnique : []).map((chainName, i) => {
         const prevTvl = (daysBefore) => data[i][data[i].length - 1 - daysBefore]?.totalLiquidityUSD
         const current = prevTvl(0)
         return {
@@ -124,7 +117,29 @@ const ChainsView = () => {
             change_1d: prevTvl(1) ? getPercentChange(prevTvl(1), current) : null,
             change_7d: prevTvl(7) ? getPercentChange(prevTvl(7), current) : null,
         }
-    })
+    }), [data, numProtocolsPerChain, chainMcaps, chainsUnique])
+
+    //const defaultPoint = Object.fromEntries(chainsUnique.map(chain => [chain, undefined]))
+    const [stackedDataset, daySum] = useMemo(() => {
+        const daySum = {};
+        const stacked = Object.values(data.reduce((total, chain, i) => {
+            const chainName = chainsUnique[i]
+            chain.forEach(dayTvl => {
+                if (dayTvl.date < 1596248105) return
+                if (total[dayTvl.date] === undefined) {
+                    total[dayTvl.date] = { date: dayTvl.date }
+                }
+                total[dayTvl.date][chainName] = dayTvl.totalLiquidityUSD
+                daySum[dayTvl.date] = (daySum[dayTvl.date] || 0) + dayTvl.totalLiquidityUSD
+            })
+            return total
+        }, {}))
+        return [stacked, daySum]
+    }, [data])
+
+    if (loading) {
+        return <LocalLoader fill="true" />
+    }
 
     return (
         <PageWrapper>
@@ -134,11 +149,73 @@ const ChainsView = () => {
                 </RowBetween>
 
                 <Panel style={{ padding: '18px 25px' }}>
-                    <AutoColumn>
-                        <ChainsChart datasets={getDatasets(data, chainsUnique)}
-                            xAxisKey={'date'}
-                            yAxisKey={'totalLiquidityUSD'}></ChainsChart>
-                    </AutoColumn>
+                    <AutoRow>
+                        <ResponsiveContainer>
+                            <AreaChart
+                                data={stackedDataset}
+                                margin={{
+                                    top: 10,
+                                    right: 30,
+                                    left: 0,
+                                    bottom: 0
+                                }}
+                            >
+                                <XAxis dataKey="date"
+                                    tickFormatter={toNiceMonthlyDate}
+                                />
+                                <YAxis
+                                    tickFormatter={tick => toK(tick)}
+                                />
+                                <Tooltip
+                                    formatter={val => formattedNum(val)}
+                                    labelFormatter={label => toNiceDateYear(label)}
+                                    itemSorter={p => -p.value}
+                                />
+                                {chainsUnique.map(chainName => <Area
+                                    type="monotone"
+                                    dataKey={chainName}
+                                    key={chainName}
+                                    stackId="1"
+                                    fill={chainColor[chainName]}
+                                    stroke={chainColor[chainName]}
+                                />
+                                )}
+                            </AreaChart>
+                        </ResponsiveContainer>
+
+                        <AreaChart
+                            width={500}
+                            height={400}
+                            data={stackedDataset}
+                            stackOffset="expand"
+                            margin={{
+                                top: 10,
+                                right: 30,
+                                left: 0,
+                                bottom: 0
+                            }}
+                        >
+                            <XAxis dataKey="date"
+                                tickFormatter={toNiceMonthlyDate}
+                            />
+                            <YAxis tickFormatter={toPercent} />
+                            <Tooltip
+                                formatter={(val, chain, props) => getPercent(val, daySum[props.payload.date])}
+                                labelFormatter={label => toNiceDateYear(label)}
+                                itemSorter={p => -p.value}
+                            />
+                            {chainsUnique.map(chainName =>
+                                <Area
+                                    type="monotone"
+                                    dataKey={chainName}
+                                    key={chainName}
+                                    stackId="1"
+                                    fill={chainColor[chainName]}
+                                    stroke={chainColor[chainName]}
+                                />
+                            )}
+                        </AreaChart>
+                    </AutoRow>
                 </Panel>
                 <List tokens={chainTvls} defaultSortingField="tvl" />
             </FullWrapper>
