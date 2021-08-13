@@ -233,6 +233,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
       let priceIndex = 0;
       let prevPriceDate = 0
       const denominationPrices = denominationPriceHistory.prices;
+      const newChartData = []
       for (let i = 0; i < chartData.length; i++) {
         const date = chartData[i].date * 1000;
         while (priceIndex < denominationPrices.length && Math.abs(date - prevPriceDate) > Math.abs(date - denominationPrices[priceIndex][0])) {
@@ -241,11 +242,12 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
         }
         const price = denominationPrices[priceIndex - 1][1];
         //console.log(join(new Date(date), a, '-'), price, chartData[i].totalLiquidityUSD, chartData[i].totalLiquidityUSD / price)
-        chartData[i] = {
+        newChartData.push({
           date: chartData[i].date,
           totalLiquidityUSD: chartData[i].totalLiquidityUSD / price
-        }
+        })
       }
+      chartData = newChartData;
     } else {
       chartData = undefined
     }
@@ -317,7 +319,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
       break;
   }
 
-  const formatDate = chartData.length > 120 ? toNiceMonthlyDate : toNiceDate
+  const formatDate = chartData?.length > 120 ? toNiceMonthlyDate : toNiceDate
   const tokensProvided = tokensInUsd !== undefined && tokensInUsd.length !== 0 && !tokensInUsd.some(data => !data.tokens) && misrepresentedTokens === undefined
   const denominationsToDisplay = {
     USD: 'USD',
