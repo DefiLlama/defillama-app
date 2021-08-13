@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import styled from 'styled-components'
 import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar } from 'recharts'
 import { AutoRow, RowBetween, RowFixed } from '../Row'
@@ -6,19 +6,14 @@ import { useHistory, useLocation } from "react-router-dom";
 
 import { toK, toNiceDate, toNiceDateYear, formattedNum, getTimeframe, toNiceMonthlyDate } from '../../utils'
 import { OptionButton } from '../ButtonStyled'
-import { darken } from 'polished'
 import { useMedia, usePrevious } from 'react-use'
 import { timeframeOptions } from '../../constants'
-import { useTokenChartData, useTokenPriceData } from '../../contexts/TokenData'
 import DropdownSelect from '../DropdownSelect'
-import CandleStickChart from '../CandleChart'
 import LocalLoader from '../LocalLoader'
 import { AutoColumn } from '../Column'
 import { Activity } from 'react-feather'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
 import { fetchAPI } from '../../contexts/API'
-import Chart from "chart.js/auto"
-import 'chartjs-adapter-moment';
 
 const ChartWrapper = styled.div`
   height: 100%;
@@ -153,78 +148,30 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   const domain = [dataMin => (dataMin > utcStartTime ? dataMin : utcStartTime), 'dataMax']
   const aspect = below1080 ? 60 / 32 : below600 ? 60 / 42 : 60 / 22
 
+  const [stackedDataset, tokensUnique] = useMemo(() => {
+    if (denomination !== DENOMINATIONS.TokensUSD) {
+      return [undefined, []]
+    }
+    const tokenSet = new Set();
+    const stacked = tokensInUsd.map(dayTokens => {
+      Object.keys(dayTokens.tokens).forEach(symbol => tokenSet.add(symbol))
+      return {
+        ...dayTokens.tokens,
+        date: dayTokens.date
+      }
+    })
+    return [stacked, Array.from(tokenSet)]
+  }, [tokensInUsd, denomination])
+  if (denomination === DENOMINATIONS.TokensUSD) {
+    chartData = stackedDataset
+  }
+
   useEffect(() => {
     if ((denomination === DENOMINATIONS.ETH || denomination === DENOMINATIONS.BNB) && (denominationPriceHistory === undefined || denominationPriceHistory.asset !== denomination)) {
       fetchAPI(`https://api.coingecko.com/api/v3/coins/${denomination === DENOMINATIONS.ETH ? 'ethereum' : 'binancecoin'}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`).then(data => setDenominationPriceHistory({
         asset: denomination,
         prices: data.prices
       }))
-    } else if (denomination === DENOMINATIONS.TokensUSD) {
-      if (stackedChart !== undefined) {
-        stackedChart.destroy();
-      }
-      const labels = []
-      const datasets = {}
-      const tokenBalances = tokensInUsd;
-      tokenBalances.forEach((snapshot, index) => {
-        labels.push(snapshot.date * 1000);
-        Object.entries(snapshot.tokens).forEach(([symbol, tvl]) => {
-          if (datasets[symbol] === undefined) {
-            const color = `rgb(${random255()}, ${random255()}, ${random255()})`
-            datasets[symbol] = {
-              label: symbol,
-              backgroundColor: color,
-              borderColor: color,
-              data: new Array(index).fill(0),
-              fill: true
-            }
-          }
-          datasets[symbol].data.push(tvl)
-        })
-      })
-      const data = {
-        labels: labels,
-        datasets: Object.values(datasets)
-      };
-      const config = {
-        type: 'line',
-        data: data,
-        options: {
-          responsive: true,
-          plugins: {
-            tooltip: {
-              mode: 'index'
-            },
-          },
-          interaction: {
-            mode: 'nearest',
-            axis: 'x',
-            intersect: false
-          },
-          scales: {
-            x: {
-              type: 'time',
-            },
-            y: {
-              stacked: true,
-              title: {
-                display: true,
-                text: denomination === DENOMINATIONS.Tokens ? 'Balance' : 'USD'
-              }
-            }
-          },
-          elements: {
-            point: {
-              radius: 0
-            }
-          }
-        }
-      };
-      const chart = new Chart(
-        document.getElementById('stackedChart'),
-        config
-      );
-      setStackedChart(chart)
     }
   }, [denomination])
 
@@ -418,8 +365,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
         </RowBetween>
       )}
       {chartData === undefined && <LocalLoader />}
-      {displayStackedChart && <canvas id="stackedChart"></canvas>}
-      {chartFilter === CHART_VIEW.LIQUIDITY && chartData && !displayStackedChart && (
+      {chartFilter === CHART_VIEW.LIQUIDITY && chartData && (
         <ResponsiveContainer aspect={aspect}>
           <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={chartData}>
             <defs>
@@ -463,18 +409,27 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
               }}
               wrapperStyle={{ top: -70, left: -10 }}
             />
-            <Area
-              key={'other'}
-              dataKey={'totalLiquidityUSD'}
-              stackId="2"
-              strokeWidth={2}
-              dot={false}
+            {tokensUnique.length > 0 ? tokensUnique.map(tokenSymbol => <Area
               type="monotone"
-              name={'TVL'}
-              yAxisId={0}
-              stroke={color}
-              fill="url(#colorUv)"
-            />
+              dataKey={tokenSymbol}
+              key={tokenSymbol}
+              stackId="1"
+              fill={stringToColour(tokenSymbol)}
+              stroke={stringToColour(tokenSymbol)}
+            />) :
+              <Area
+                key={'other'}
+                dataKey={'totalLiquidityUSD'}
+                stackId="2"
+                strokeWidth={2}
+                dot={false}
+                type="monotone"
+                name={'TVL'}
+                yAxisId={0}
+                stroke={color}
+                fill="url(#colorUv)"
+              />
+            }
           </AreaChart>
         </ResponsiveContainer>
       )

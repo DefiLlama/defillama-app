@@ -195,7 +195,6 @@ const ChainsView = () => {
         stackedDataset.sort((a, b) => a.date - b.date).forEach(day => {
             rows.push([day.date, toNiceCsvDate(day.date), ...chainsUnique.map(chain => day[chain] ?? '')])
         })
-        console.log(rows)
         download("chains.csv", rows.map(r => r.join(',')).join('\n'))
     }
 
