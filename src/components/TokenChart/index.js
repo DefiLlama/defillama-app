@@ -73,12 +73,9 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   // settings for the window and candle width
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
   const denomination = Object.values(DENOMINATIONS).find(den => den.toLowerCase() === initialDenomination?.split('-')?.[0].toLowerCase()) ?? DENOMINATIONS.USD
-  const balanceToken = initialDenomination?.split('-')?.[1]?.toUpperCase()
+  const balanceToken = initialDenomination?.substr(initialDenomination.indexOf('-') + 1)
   const [denominationPriceHistory, setDenominationPriceHistory] = useState(undefined)
-  const [stackedChart, setStackedChart] = useState(undefined)
   const chartFilter = (denomination === DENOMINATIONS.Change || denomination === DENOMINATIONS.ChangeSplit) ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY
-
-  console.log(denomination, balanceToken, initialDenomination?.split('-')?.[0])
 
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'

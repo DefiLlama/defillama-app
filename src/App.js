@@ -102,7 +102,7 @@ function App() {
                     <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
                       <TokenPage
                         protocol={match.params.protocol.toLowerCase()}
-                        denomination={match.params.denomination?.toLowerCase()}
+                        denomination={match.params.denomination}
                         selectedChain={match.params.chain}
                       />
                     </LayoutWrapper>
