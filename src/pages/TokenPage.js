@@ -98,6 +98,7 @@ const blockExplorers = {
   'fantom': ['https://ftmscan.com/address/', 'FTMscan'],
   'heco': ['https://hecoinfo.com/address/', 'HecoInfo'],
   'wan': ['https://wanscan.org/token/', 'Wanscan'],
+  'polygon': ['https://polygonscan.com/address/', 'PolygonScan'],
   'rsk': ['https://explorer.rsk.co/address/', 'RSK Explorer']
 }
 
