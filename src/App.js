@@ -85,11 +85,11 @@ function App() {
   return (
     <AppWrapper>
       {globalData &&
-        Object.keys(globalData).length > 0 &&
+        globalData.totalLiquidityUSD &&
         globalChartData &&
-        Object.keys(globalChartData).length > 0 &&
+        globalChartData[1] &&
         allTokens &&
-        Object.keys(allTokens).length > 0 ? (
+        allTokens[1] ? (
         <BrowserRouter>
           <Switch>
             <Route

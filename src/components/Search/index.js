@@ -169,39 +169,25 @@ export const Search = ({ small = false }) => {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
   }
 
-  const allTokens = Object.keys(allTokenData).map(token => {
-    return {
-      ...allTokenData[token],
-      totalLiquidity: allTokenData[token].tvl
-    }
-  })
+  const [tokensShown, setTokensShown] = useState(3)
 
   const filteredTokenList = useMemo(() => {
-    return allTokens
-      ? allTokens
+    if (!showMenu) {
+      return []
+    }
+    if (value === '') {
+      return Object.values(allTokenData).slice(0, tokensShown)
+    }
+    return allTokenData
+      ? Object.values(allTokenData)
         .filter(token => {
-          if (OVERVIEW_TOKEN_BLACKLIST.includes(token.id)) {
-            return false
-          }
-          const regexMatches = Object.keys(token).map(tokenEntryKey => {
-            const isAddress = value.slice(0, 2) === '0x'
-            if (tokenEntryKey === 'id' && isAddress) {
-              return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
-            }
-            if (tokenEntryKey === 'symbol' && !isAddress) {
-              return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
-            }
-            if (tokenEntryKey === 'name' && !isAddress) {
-              return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
-            }
-            return false
+          const regexMatches = ['symbol', 'name'].map(tokenEntryKey => {
+            return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
           })
           return regexMatches.some(m => m)
-        })
+        }).slice(0, tokensShown)
       : []
-  }, [allTokenData, allTokens, value])
-
-  const [tokensShown, setTokensShown] = useState(3)
+  }, [allTokenData, value, tokensShown, showMenu])
 
   function onDismiss() {
     setTokensShown(3)
@@ -226,14 +212,14 @@ export const Search = ({ small = false }) => {
   useEffect(() => {
     document.addEventListener('keyup', e => {
       if (e.key === '/') {
-        document.getElementById('searchbox').focus()
+        document.getElementsByClassName('searchbox')[0].focus()
       }
     })
     document.addEventListener('click', handleClick)
     return () => {
       document.removeEventListener('click', handleClick)
     }
-  })
+  }, [])
 
   return (
     <div style={small ? {
@@ -245,7 +231,8 @@ export const Search = ({ small = false }) => {
           <Input
             large={!small}
             type={'text'}
-            id="searchbox"
+            className="searchbox"
+            autocomplete="off"
             ref={wrapperRef}
             placeholder={
               small
@@ -271,16 +258,13 @@ export const Search = ({ small = false }) => {
           {!showMenu ? <SearchIconLarge /> : <CloseIcon onClick={() => toggleMenu(false)} />}
         </Wrapper>
         <Menu hide={!showMenu} ref={menuRef}>
-          <Heading>
-            <Gray>Tokens</Gray>
-          </Heading>
           <div>
-            {Object.keys(filteredTokenList).length === 0 && (
+            {filteredTokenList.length === 0 && (
               <MenuItem>
                 <TYPE.body>No results</TYPE.body>
               </MenuItem>
             )}
-            {filteredTokenList.slice(0, tokensShown).map(token => {
+            {filteredTokenList.map(token => {
               return (
                 <BasicLink
                   to={'/protocol/' + token.name?.toLowerCase().split(' ').join('-')}
@@ -298,9 +282,7 @@ export const Search = ({ small = false }) => {
               )
             })}
 
-            <Heading
-              hide={!(Object.keys(filteredTokenList).length > 3 && Object.keys(filteredTokenList).length >= tokensShown)}
-            >
+            <Heading>
               <Blue
                 onClick={() => {
                   setTokensShown(tokensShown + 5)

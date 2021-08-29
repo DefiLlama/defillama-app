@@ -291,6 +291,7 @@ export function useAllTokenData() {
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
   if (stakingEnabled || pool2Enabled) {
+    // TODO Optimize
     return Object.fromEntries(Object.entries(state).map(entry => [
       entry[0],
       {

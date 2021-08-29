@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { withRouter } from 'react-router-dom'
 import styled from 'styled-components'
 
@@ -43,7 +43,7 @@ const chainOptions = ['All', 'Ethereum', 'Binance', 'Avalanche', 'Solana', 'Poly
 
 function GlobalPage({ chain, denomination, history }) {
   // get data for lists and totals
-  let allTokens = useAllTokenData()
+  let allTokensOriginal = useAllTokenData()
   //const transactions = useGlobalTransactions()
   const globalData = useGlobalData()
   const [chainChartData, setChainChartData] = useState({});
@@ -63,25 +63,14 @@ function GlobalPage({ chain, denomination, history }) {
 
   let { totalVolumeUSD, volumeChangeUSD } = globalData
 
-  const allChains = []
-  Object.values(allTokens).forEach(token => {
-    token.chains.forEach(chain => {
-      if (!allChains.includes(chain)) {
-        if (token.category !== "Chain") {
-          allChains.push(chain)
-        }
-      }
-    })
-  })
-  const otherChains = allChains.filter(chain => !chainOptions.includes(chain))
-
   useEffect(() => {
-    if (chainChartData[selectedChain] === undefined) {
+    if (selectedChain !== undefined && chainChartData[selectedChain] === undefined) {
       fetchAPI(`${CHART_API}/${selectedChain}`).then(chart => setChainChartData({
         [selectedChain]: chart
       }))
     }
   }, [selectedChain])
+
   if (selectedChain !== undefined) {
     const chartData = chainChartData[selectedChain];
     if (chartData === undefined) {
@@ -97,46 +86,60 @@ function GlobalPage({ chain, denomination, history }) {
         volumeChangeUSD = 0
       }
     }
-    allTokens = Object.fromEntries(Object.entries(allTokens).filter(token => {
-      try {
-        const chains = token[1].chains
-        if (selectedChain === 'Others') {
-          return chains.some(chain => !chainOptions.includes(chain))
-        }
-        return chains.some(chain => chain.toLowerCase() === selectedChain.toLowerCase());
-      } catch (e) {
-        return false
-      }
-    }).map(token => {
-      const chainTvl = token[1].chainTvls[selectedChain]
-      if (chainTvl !== undefined && token[1].chains.length > 1) {
-        return [token[0], {
-          ...token[1],
-          tvl: chainTvl
-        }]
-      }
-      return token
-    }));
   }
+  const [tokensList, otherChains] = useMemo(() => {
+    const chainsSet = new Set([])
 
-  const tokensList = Object.entries(allTokens).filter(token => token[1].category !== "Chain")
-    .sort((token1, token2) => Number(token2[1].tvl) - Number(token1[1].tvl))
+    let filteredTokens = Object.values(allTokensOriginal).map(token => {
+      if (token.category === "Chain") {
+        return null
+      }
+      token.chains.forEach(chain => {
+        chainsSet.add(chain)
+      })
+      if (selectedChain !== undefined) {
+        if (token.chains.length === 1) {
+          if (token.chains[0].toLowerCase() !== selectedChain.toLowerCase()) {
+            return null
+          }
+        } else {
+          const chainTvl = token.chainTvls[selectedChain]
+          if (chainTvl === undefined) {
+            return null
+          }
+          return {
+            ...token,
+            tvl: chainTvl
+          }
+        }
+      }
+      return {
+        ...token,
+        mcaptvl: (token.tvl !== 0 && token.mcap) ? token.mcap / token.tvl : null,
+        fdvtvl: (token.tvl !== 0 && token.fdv) ? token.fdv / token.tvl : null,
+      }
+    }).filter(token => token !== null)
+
+    chainOptions.forEach(chain => chainsSet.delete(chain))
+    const otherChains = Array.from(chainsSet)
+    return [filteredTokens, otherChains]
+  }, [allTokensOriginal, selectedChain])
 
   if (chain === undefined && (stakingEnabled || pool2Enabled)) {
     tokensList.forEach(token => {
-      if (token[1].staking && stakingEnabled) {
-        totalVolumeUSD += token[1].staking
+      if (token.staking && stakingEnabled) {
+        totalVolumeUSD += token.staking
       }
-      if (token[1].pool2 && pool2Enabled) {
-        totalVolumeUSD += token[1].pool2
+      if (token.pool2 && pool2Enabled) {
+        totalVolumeUSD += token.pool2
       }
     })
   }
 
   const topToken = { name: 'Uniswap', tvl: 0 }
   if (tokensList.length > 0) {
-    topToken.name = tokensList[0][1]?.name
-    topToken.tvl = tokensList[0][1]?.tvl
+    topToken.name = tokensList[0]?.name
+    topToken.tvl = tokensList[0]?.tvl
   }
 
   document.title = `DefiLlama - DeFi Dashboard`;
@@ -298,7 +301,7 @@ function GlobalPage({ chain, denomination, history }) {
             </RowBetween>
           </ListOptions>
           <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
-            <TopTokenList tokens={Object.fromEntries(tokensList)} itemMax={500} />
+            <TopTokenList tokens={tokensList} itemMax={below800 ? 50 : 100} />
           </Panel>
         </div>
         <div style={{ margin: 'auto' }}>

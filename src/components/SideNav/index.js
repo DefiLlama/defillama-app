@@ -146,14 +146,13 @@ function SideNav({ history }) {
                     Chains
                   </Option>
                 </BasicLink>
-                {Object.entries(categories)
-                  .filter(([key, data]) => data.sidebar)
-                  .map(([categoryName, categoryData]) =>
-                    <BasicLink to={`/protocols/${categoryName}`} key={categoryName}>
+                {categories
+                  .map(categoryData =>
+                    <BasicLink to={`/protocols/${categoryData.name.toLowerCase()}`} key={categoryData.name}>
                       <Option
                         activeText={
                           (history.location.pathname.split('/')[1] === 'protocols' &&
-                            history.location.pathname.split('/')[2] === categoryName) ??
+                            history.location.pathname.split('/')[2] === categoryData.name) ??
                           undefined
                         }
                       >

@@ -143,25 +143,20 @@ function TopTokenList({ tokens, itemMax = 100 }) {
     setPage(1)
   }, [tokens])
 
-  const formattedTokens = Object.values(tokens).map(protocol => ({
-    ...protocol,
-    mcaptvl: (protocol.tvl !== 0 && protocol.mcap) ? protocol.mcap / protocol.tvl : null,
-    fdvtvl: (protocol.tvl !== 0 && protocol.fdv) ? protocol.fdv / protocol.tvl : null,
-  }))
   useEffect(() => {
-    if (tokens && formattedTokens) {
+    if (tokens) {
       let extraPages = 1
-      if (formattedTokens.length % itemMax === 0) {
+      if (tokens.length % itemMax === 0) {
         extraPages = 0
       }
-      setMaxPage(Math.floor(formattedTokens.length / itemMax) + extraPages)
+      setMaxPage(Math.floor(tokens.length / itemMax) + extraPages)
     }
-  }, [tokens, formattedTokens, itemMax])
+  }, [tokens, itemMax])
 
   const filteredList = useMemo(() => {
     return (
-      formattedTokens &&
-      formattedTokens
+      tokens &&
+      tokens
         .sort((a, b) => {
           if (sortedColumn === SORT_FIELD.SYMBOL || sortedColumn === SORT_FIELD.NAME) {
             return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
@@ -172,7 +167,7 @@ function TopTokenList({ tokens, itemMax = 100 }) {
         })
         .slice(itemMax * (page - 1), page * itemMax)
     )
-  }, [formattedTokens, itemMax, page, sortDirection, sortedColumn])
+  }, [tokens, itemMax, page, sortDirection, sortedColumn])
 
   const ListItem = ({ item, index }) => {
     return (
@@ -214,7 +209,7 @@ function TopTokenList({ tokens, itemMax = 100 }) {
         {
           !below680 && (
             <DataText area="mcaptvl" color="text" fontWeight="500">
-              {item.mcaptvl === null ? '-' : formattedNum(item.mcaptvl, false)}
+              {item.mcaptvl === null || item.mcaptvl === undefined ? '-' : formattedNum(item.mcaptvl, false)}
             </DataText>
           )
         }
