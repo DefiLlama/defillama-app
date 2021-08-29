@@ -12,6 +12,7 @@ import List from '../components/List'
 import { toK, toNiceCsvDate, toNiceDateYear, formattedNum, toNiceMonthlyDate } from '../utils'
 import { ButtonDark } from '../components/ButtonStyled'
 import { useMedia } from 'react-use'
+import { chainCoingeckoIds } from '../constants/chainTokens'
 
 
 import {
@@ -31,36 +32,6 @@ function getRandomColor() {
         color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
-}
-
-const chainCoingeckoIds = {
-    "Ethereum": "ethereum",
-    "Binance": "binancecoin",
-    "Avalanche": "avalanche-2",
-    "Solana": "solana",
-    "Polygon": "matic-network",
-    "Terra": "terra-luna",
-    "Fantom": "fantom",
-    "xDai": "xdai-stake",
-    "Heco": "huobi-token",
-    "Kava": "kava",
-    "OKExChain": "okexchain",
-    "Wanchain": "wanchain",
-    "DefiChain": "defichain",
-    "Ontology": "ontology",
-    "Bitcoin": "bitcoin",
-    "Energi": "energi",
-    "Secret": "secret",
-    "Zilliqa": "zilliqa",
-    "NEO": "neo",
-    "Harmony": "harmony",
-    "RSK": "rootstock",
-    "Sifchain": "sifchain",
-    "Algorand": "algorand",
-    "Osmosis": "osmosis",
-    "Thorchain": "thorchain",
-    "Tron": "tron",
-    "Icon": "icon",
 }
 
 function getPercentChange(previous, current) {
@@ -154,7 +125,7 @@ const ChainsView = () => {
             }).catch((err) => {
                 console.log(err)
             })
-        fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(chainCoingeckoIds).join(',')}&vs_currencies=usd&include_market_cap=true`).then(res => res.json()).then(setChainMcaps)
+        fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(chainCoingeckoIds).map(v => v.geckoId).join(',')}&vs_currencies=usd&include_market_cap=true`).then(res => res.json()).then(setChainMcaps)
     }, []);
 
     const chainColor = useMemo(() => Object.fromEntries(chainsUnique.map(chain => [chain, getRandomColor()])), [chainsUnique])
@@ -163,7 +134,7 @@ const ChainsView = () => {
         const current = prevTvl(0)
         return {
             tvl: current,
-            mcap: chainMcaps[chainCoingeckoIds[chainName]]?.usd_market_cap,
+            mcap: chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap,
             name: chainName,
             num_protocols: numProtocolsPerChain[chainName],
             logo: chainIconUrl(chainName),
