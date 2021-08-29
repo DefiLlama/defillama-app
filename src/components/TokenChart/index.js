@@ -69,12 +69,15 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   // settings for the window and candle width
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
 
-  const DENOMINATIONS = BASIC_DENOMINATIONS
+  let DENOMINATIONS = BASIC_DENOMINATIONS
   let chainDenomination;
   if (selectedChain !== 'all' || chains.length === 1) {
     chainDenomination = chainCoingeckoIds[selectedChain] ?? chainCoingeckoIds[chains[0]];
     if (chainDenomination !== undefined) {
-      DENOMINATIONS[chainDenomination.symbol] = chainDenomination.symbol
+      DENOMINATIONS = {
+        ...BASIC_DENOMINATIONS,
+        [chainDenomination.symbol]: chainDenomination.symbol
+      }
     }
   }
 
