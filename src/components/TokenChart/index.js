@@ -153,7 +153,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
     const stacked = tokensInUsd.map(dayTokens => {
       Object.keys(dayTokens.tokens).forEach(symbol => tokenSet.add(symbol))
       return {
-        ...dayTokens.tokens,
+        ...Object.fromEntries(Object.entries(dayTokens.tokens).filter(t => !(t[0].startsWith("UNKNOWN") && t[1] < 1))),
         date: dayTokens.date
       }
     })
@@ -172,68 +172,71 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
     }
   }, [denomination])
 
-  if (denomination === DENOMINATIONS.ETH || denomination === DENOMINATIONS.BNB) {
-    if (denominationPriceHistory !== undefined && denominationPriceHistory.asset === denomination) {
-      let priceIndex = 0;
-      let prevPriceDate = 0
-      const denominationPrices = denominationPriceHistory.prices;
-      const newChartData = []
-      for (let i = 0; i < chartData.length; i++) {
-        const date = chartData[i].date * 1000;
-        while (priceIndex < denominationPrices.length && Math.abs(date - prevPriceDate) > Math.abs(date - denominationPrices[priceIndex][0])) {
-          prevPriceDate = denominationPrices[priceIndex][0];
-          priceIndex++;
+  const [finalChartData, tokenSet] = useMemo(() => {
+    if (denomination === DENOMINATIONS.ETH || denomination === DENOMINATIONS.BNB) {
+      if (denominationPriceHistory !== undefined && denominationPriceHistory.asset === denomination) {
+        let priceIndex = 0;
+        let prevPriceDate = 0
+        const denominationPrices = denominationPriceHistory.prices;
+        const newChartData = []
+        for (let i = 0; i < chartData.length; i++) {
+          const date = chartData[i].date * 1000;
+          while (priceIndex < denominationPrices.length && Math.abs(date - prevPriceDate) > Math.abs(date - denominationPrices[priceIndex][0])) {
+            prevPriceDate = denominationPrices[priceIndex][0];
+            priceIndex++;
+          }
+          const price = denominationPrices[priceIndex - 1][1];
+          //console.log(join(new Date(date), a, '-'), price, chartData[i].totalLiquidityUSD, chartData[i].totalLiquidityUSD / price)
+          newChartData.push({
+            date: chartData[i].date,
+            totalLiquidityUSD: chartData[i].totalLiquidityUSD / price
+          })
         }
-        const price = denominationPrices[priceIndex - 1][1];
-        //console.log(join(new Date(date), a, '-'), price, chartData[i].totalLiquidityUSD, chartData[i].totalLiquidityUSD / price)
-        newChartData.push({
-          date: chartData[i].date,
-          totalLiquidityUSD: chartData[i].totalLiquidityUSD / price
-        })
-      }
-      chartData = newChartData;
-    } else {
-      chartData = undefined
-    }
-  }
-  if (denomination === DENOMINATIONS.Tokens) {
-    chartData = [];
-    tokens.forEach(tokenSnapshot => {
-      chartData.push({
-        date: tokenSnapshot.date,
-        totalLiquidityUSD: tokenSnapshot.tokens[balanceToken] ?? 0
-      })
-    })
-  }
-  let tokenSet = new Set()
-  if (denomination === DENOMINATIONS.Change || denomination === DENOMINATIONS.ChangeSplit) {
-    chartData = [];
-    for (let i = 1; i < tokensInUsd.length; i++) {
-      let dayDifference = 0;
-      let tokenDayDifference = {}
-      for (const token in tokensInUsd[i].tokens) {
-        tokenSet.add(token);
-        const price = tokensInUsd[i].tokens[token] / tokens[i].tokens[token];
-        const diff = (tokens[i].tokens[token] ?? 0) - (tokens[i - 1].tokens[token] ?? 0);
-        const diffUsd = price * diff
-        if (diffUsd) {
-          tokenDayDifference[token] = diffUsd
-          dayDifference += diffUsd
-        }
-      }
-      if (denomination === DENOMINATIONS.Change) {
-        chartData.push({
-          date: tokensInUsd[i].date,
-          dailyVolumeUSD: dayDifference
-        })
+        chartData = newChartData;
       } else {
-        chartData.push({
-          ...tokenDayDifference,
-          date: tokensInUsd[i].date,
-        })
+        chartData = undefined
       }
     }
-  }
+    if (denomination === DENOMINATIONS.Tokens) {
+      chartData = [];
+      tokens.forEach(tokenSnapshot => {
+        chartData.push({
+          date: tokenSnapshot.date,
+          totalLiquidityUSD: tokenSnapshot.tokens[balanceToken] ?? 0
+        })
+      })
+    }
+    let tokenSet = new Set()
+    if (denomination === DENOMINATIONS.Change || denomination === DENOMINATIONS.ChangeSplit) {
+      chartData = [];
+      for (let i = 1; i < tokensInUsd.length; i++) {
+        let dayDifference = 0;
+        let tokenDayDifference = {}
+        for (const token in tokensInUsd[i].tokens) {
+          tokenSet.add(token);
+          const price = tokensInUsd[i].tokens[token] / tokens[i].tokens[token];
+          const diff = (tokens[i].tokens[token] ?? 0) - (tokens[i - 1].tokens[token] ?? 0);
+          const diffUsd = price * diff
+          if (diffUsd) {
+            tokenDayDifference[token] = diffUsd
+            dayDifference += diffUsd
+          }
+        }
+        if (denomination === DENOMINATIONS.Change) {
+          chartData.push({
+            date: tokensInUsd[i].date,
+            dailyVolumeUSD: dayDifference
+          })
+        } else {
+          chartData.push({
+            ...tokenDayDifference,
+            date: tokensInUsd[i].date,
+          })
+        }
+      }
+    }
+    return [chartData, tokenSet]
+  }, [denomination, chartData, denominationPriceHistory, tokens, tokensInUsd]);
 
   // update the width on a window resize
   const ref = useRef()
@@ -263,7 +266,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
       break;
   }
 
-  const formatDate = chartData?.length > 120 ? toNiceMonthlyDate : toNiceDate
+  const formatDate = finalChartData?.length > 120 ? toNiceMonthlyDate : toNiceDate
   const tokensProvided = tokensInUsd !== undefined && tokensInUsd.length !== 0 && !tokensInUsd.some(data => !data.tokens) && misrepresentedTokens === undefined
   const denominationsToDisplay = {
     USD: 'USD',
@@ -275,8 +278,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
     denominationsToDisplay['Change'] = 'Change'
     denominationsToDisplay['ChangeSplit'] = 'ChangeSplit'
   }
-  const displayStackedChart = denomination === DENOMINATIONS.TokensUSD
-  const tokenSymbols = tokensProvided ? Object.entries(tokensInUsd[tokensInUsd.length - 1].tokens).sort((a, b) => b[1] - a[1]).map(t => t[0]) : undefined
+  const tokenSymbols = useMemo(() => tokensProvided ? Object.entries(tokensInUsd[tokensInUsd.length - 1].tokens).sort((a, b) => b[1] - a[1]).map(t => t[0]) : undefined)
   return (
     <ChartWrapper>
       {below600 ? (
@@ -361,10 +363,10 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
           </AutoRow>
         </RowBetween>
       )}
-      {chartData === undefined && <LocalLoader />}
-      {chartFilter === CHART_VIEW.LIQUIDITY && chartData && (
+      {finalChartData === undefined && <LocalLoader />}
+      {chartFilter === CHART_VIEW.LIQUIDITY && finalChartData && (
         <ResponsiveContainer aspect={aspect}>
-          <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={chartData}>
+          <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={finalChartData}>
             <defs>
               <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={color} stopOpacity={0.35} />
@@ -398,6 +400,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
               formatter={val => formattedNum(val, moneySymbol === '$')}
               labelFormatter={label => toNiceDateYear(label)}
               labelStyle={{ paddingTop: 4 }}
+              itemSorter={item => -item.value}
               contentStyle={{
                 padding: '10px 14px',
                 borderRadius: 10,
@@ -431,9 +434,9 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
         </ResponsiveContainer>
       )
       }
-      {chartFilter === CHART_VIEW.VOLUME && chartData && (
+      {chartFilter === CHART_VIEW.VOLUME && finalChartData && (
         <ResponsiveContainer aspect={aspect}>
-          <BarChart margin={{ top: 0, right: 10, bottom: 6, left: 10 }} barCategoryGap={1} data={chartData}>
+          <BarChart margin={{ top: 0, right: 10, bottom: 6, left: 10 }} barCategoryGap={1} data={finalChartData}>
             <XAxis
               tickLine={false}
               axisLine={false}
