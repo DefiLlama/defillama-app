@@ -107,7 +107,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
   let address = getTokenAddressFromName(allTokens, protocol)
   const id = getTokenIdFromName(allTokens, protocol)
   const tokenData = useTokenData(id, protocol)
-  let { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, misrepresentedTokens, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chainTvls, historicalChainTvls, audit_links, methodology, staking, pool2, module: codeModule } = tokenData
+  let { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, misrepresentedTokens, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chains, chainTvls, historicalChainTvls, audit_links, methodology, staking, pool2, module: codeModule } = tokenData
   let blockExplorerLink = 'https://etherscan.io/address/' + address;
   let dexguguLink = undefined
   let blockExplorerName = 'Etherscan';
@@ -345,6 +345,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                     base={priceUSD}
                     selectedChain={selectedChain}
                     chainTvls={historicalChainTvls}
+                    chains={chains}
                   />
                 )}
                 {!chartData && <Loader />}

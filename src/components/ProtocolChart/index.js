@@ -3,7 +3,7 @@ import { ResponsiveContainer } from 'recharts'
 import TokenChart from '../TokenChart'
 import { usePool2Manager, useStakingManager } from '../../contexts/LocalStorage'
 
-const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls, misrepresentedTokens, color, denomination, selectedChain }) => {
+const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls, misrepresentedTokens, color, denomination, selectedChain, chains }) => {
   // global historical data
 
   // based on window, get starttim
@@ -21,21 +21,12 @@ const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls, mi
           })
         }
       }
+      return chartData?.map(item => ({
+        date: item.date,
+        totalLiquidityUSD: item.totalLiquidityUSD + (stakingEnabled ? (tvlDictionary.staking?.[item.date] ?? 0) : 0) + (pool2Enabled ? (tvlDictionary.pool2?.[item.date] ?? 0) : 0)
+      }))
     }
-    return (
-      chartData &&
-      Object.keys(chartData)
-        ?.map(key => {
-          let item = chartData[key]
-          if (stakingEnabled || pool2Enabled) {
-            return {
-              date: item.date,
-              totalLiquidityUSD: item.totalLiquidityUSD + (stakingEnabled ? (tvlDictionary.staking?.[item.date] ?? 0) : 0) + (pool2Enabled ? (tvlDictionary.pool2?.[item.date] ?? 0) : 0)
-            }
-          }
-          return item
-        })
-    )
+    return chartData
   }, [chartData, stakingEnabled, pool2Enabled])
 
   let change = 100;
@@ -77,6 +68,7 @@ const ProtocolChart = ({ chartData, protocol, tokens, tokensInUsd, chainTvls, mi
             misrepresentedTokens={misrepresentedTokens}
             color={color}
             selectedChain={selectedChain}
+            chains={chains ?? [protocol]}
           //type={CHART_TYPES.AREA}
           />
         </ResponsiveContainer>

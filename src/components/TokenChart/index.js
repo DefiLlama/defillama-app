@@ -14,6 +14,7 @@ import { AutoColumn } from '../Column'
 import { Activity } from 'react-feather'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
 import { fetchAPI } from '../../contexts/API'
+import { chainCoingeckoIds } from '../../constants/chainTokens'
 
 const ChartWrapper = styled.div`
   height: 100%;
@@ -41,18 +42,13 @@ const DATA_FREQUENCY = {
   LINE: 'LINE'
 }
 
-const DENOMINATIONS = {
+const BASIC_DENOMINATIONS = {
   USD: 'USD',
   ETH: 'ETH',
-  BNB: 'BNB',
   TokensUSD: 'Tokens(USD)',
   Tokens: 'Tokens',
   Change: 'Change',
   ChangeSplit: 'ChangeSplit'
-}
-
-function random255() {
-  return Math.round(Math.random() * 255)
 }
 
 function stringToColour(str) {
@@ -69,9 +65,19 @@ function stringToColour(str) {
 }
 
 const ALL_CHAINS = "All Chains"
-const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens, denomination: initialDenomination, selectedChain = "all" }) => {
+const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens, denomination: initialDenomination, chains, selectedChain = "all" }) => {
   // settings for the window and candle width
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
+
+  const DENOMINATIONS = BASIC_DENOMINATIONS
+  let chainDenomination;
+  if (selectedChain !== 'all' || chains.length === 1) {
+    chainDenomination = chainCoingeckoIds[selectedChain] ?? chainCoingeckoIds[chains[0]];
+    if (chainDenomination !== undefined) {
+      DENOMINATIONS[chainDenomination.symbol] = chainDenomination.symbol
+    }
+  }
+
   const denomination = Object.values(DENOMINATIONS).find(den => den.toLowerCase() === initialDenomination?.split('-')?.[0].toLowerCase()) ?? DENOMINATIONS.USD
   const balanceToken = initialDenomination?.substr(initialDenomination.indexOf('-') + 1)
   const [denominationPriceHistory, setDenominationPriceHistory] = useState(undefined)
@@ -164,8 +170,8 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   }
 
   useEffect(() => {
-    if ((denomination === DENOMINATIONS.ETH || denomination === DENOMINATIONS.BNB) && (denominationPriceHistory === undefined || denominationPriceHistory.asset !== denomination)) {
-      fetchAPI(`https://api.coingecko.com/api/v3/coins/${denomination === DENOMINATIONS.ETH ? 'ethereum' : 'binancecoin'}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`).then(data => setDenominationPriceHistory({
+    if ((denomination === DENOMINATIONS.ETH || denomination === chainDenomination?.symbol) && (denominationPriceHistory === undefined || denominationPriceHistory.asset !== denomination)) {
+      fetchAPI(`https://api.coingecko.com/api/v3/coins/${denomination === DENOMINATIONS.ETH ? 'ethereum' : chainDenomination.geckoId}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`).then(data => setDenominationPriceHistory({
         asset: denomination,
         prices: data.prices
       }))
@@ -173,7 +179,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   }, [denomination])
 
   const [finalChartData, tokenSet] = useMemo(() => {
-    if (denomination === DENOMINATIONS.ETH || denomination === DENOMINATIONS.BNB) {
+    if (denomination === DENOMINATIONS.ETH || denomination === chainDenomination?.symbol) {
       if (denominationPriceHistory !== undefined && denominationPriceHistory.asset === denomination) {
         let priceIndex = 0;
         let prevPriceDate = 0
@@ -258,8 +264,8 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
     case DENOMINATIONS.ETH:
       moneySymbol = 'Ξ';
       break;
-    case DENOMINATIONS.BNB:
-      moneySymbol = 'B';
+    case chainDenomination?.symbol:
+      moneySymbol = chainDenomination.symbol.slice(0, 1);
       break;
     case DENOMINATIONS.Tokens:
       moneySymbol = '';
@@ -271,8 +277,10 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   const denominationsToDisplay = {
     USD: 'USD',
     ETH: 'ETH',
-    BNB: 'BNB'
   };
+  if (chainDenomination) {
+    denominationsToDisplay[chainDenomination.symbol] = chainDenomination.symbol
+  }
   if (tokensProvided) {
     denominationsToDisplay['TokensUSD'] = 'Tokens(USD)';
     denominationsToDisplay['Change'] = 'Change'
