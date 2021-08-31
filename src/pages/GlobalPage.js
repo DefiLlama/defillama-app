@@ -39,7 +39,7 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
-const chainOptions = ['All', 'Ethereum', 'Binance', 'Avalanche', 'Solana', 'Polygon', 'Terra', 'Others']
+const chainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Terra', 'Avalanche', 'Binance', 'Others']
 
 function GlobalPage({ chain, denomination, history }) {
   // get data for lists and totals
@@ -162,6 +162,13 @@ function GlobalPage({ chain, denomination, history }) {
               {!below800 && <RightSettings />}
             </RowBetween>
             <Search />
+            {selectedChain === "Fantom" &&
+              <Panel background={true} style={{ textAlign: 'center' }}>
+                <TYPE.main fontWeight={400}>
+                  Fantom just announced <a style={{ color: 'inherit', fontWeight: '700' }} href="https://fantom.foundation/blog/announcing-370m-ftm-incentive-program/">a 370m liquidity program that uses DefiLlama's data</a>
+                </TYPE.main>
+              </Panel>
+            }
           </AutoColumn>
           {below800 && ( // mobile card
             <AutoColumn
