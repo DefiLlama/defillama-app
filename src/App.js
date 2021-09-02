@@ -16,6 +16,7 @@ import PinnedData from './components/PinnedData'
 
 import SideNav from './components/SideNav'
 import LocalLoader from './components/LocalLoader'
+import AllNFTsPage from './pages/AllNftsPage'
 
 const AppWrapper = styled.div`
   position: relative;
@@ -137,6 +138,12 @@ function App() {
                 </LayoutWrapper>
               }}
             />
+
+            <Route path="/nfts">
+              <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                <AllNFTsPage />
+              </LayoutWrapper>
+            </Route>
 
             <Route path="/home">
               <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
