@@ -9,7 +9,6 @@ import { ethers } from 'ethers'
 
 const erc721Transfer = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 const erc1155Transfer = "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62"
-const APIKEY = "X1SNKFIQWKFCQMM7MRCS1YINUQ659Q2XJZ"
 
 const toEth = v => Number(v.toString()) / 1e18
 
@@ -50,7 +49,7 @@ export default function Jpegged(props) {
             alert("Metamask required")
         }
         const [address] = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const txs = await fetch(`http://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc&apiKey=${APIKEY}`).then(r => r.json())
+        const txs = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc`).then(r => r.json())
         console.log(txs.result)
         const provider = new ethers.providers.Web3Provider(window.ethereum)
         let mintOrBuy = 0
