@@ -4,6 +4,7 @@ import { Route, Switch, BrowserRouter, Redirect } from 'react-router-dom'
 import GlobalPage from './pages/GlobalPage'
 import TokenPage from './pages/TokenPage'
 import Settings from './pages/Settings'
+import Jpegged from './pages/Jpegged'
 import ChainsViewPage from './pages/ChainsViewPage'
 import { useGlobalData, useGlobalChartData } from './contexts/GlobalData'
 import { useAllTokenData } from './contexts/TokenData'
@@ -144,6 +145,12 @@ function App() {
                 <AllNFTsPage />
               </LayoutWrapper>
             </Route>
+            <Route path="/jpegged">
+              <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                <Jpegged />
+              </LayoutWrapper>
+            </Route>
+
 
             <Route path="/home">
               <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>

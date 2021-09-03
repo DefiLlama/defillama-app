@@ -27,7 +27,7 @@
     "dayjs": "^1.8.16",
     "decimal.js-light": "^2.5.0",
     "es-abstract": "^1.14.2",
-    "ethers": "^4.0.39",
+    "ethers": "^5.4.6",
     "export-to-csv": "^0.2.1",
     "feather-icons": "^4.24.1",
     "graphql": "^14.5.6",
