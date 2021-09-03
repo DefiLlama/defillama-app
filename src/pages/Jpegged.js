@@ -6,6 +6,7 @@ import { PageWrapper, FullWrapper } from '../components'
 import { RowBetween } from '../components/Row'
 import { useMedia } from 'react-use'
 import { ethers } from 'ethers'
+import { formattedNum } from '../utils'
 
 const erc721Transfer = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 const erc1155Transfer = "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62"
@@ -40,67 +41,74 @@ async function getLogs(contract, eventFilter, lastBlock) {
     return logs
 }
 
+function formatNumber(amount, ethPrice) {
+    return `${amount.toFixed(2)} ETH (${formattedNum(amount * ethPrice, true)})`
+}
+
 
 export default function Jpegged(props) {
-    const [totalSpent, setTotalSpent] = useState(undefined)
-    useEffect(async () => {
+    const [{ mintOrBuy, gas, foundationAuctions, ethPrice }, setTotalSpent] = useState({})
+    useEffect(() => {
         window.scrollTo(0, 0)
-        if (window.ethereum === undefined) {
-            alert("Metamask required")
-        }
-        const [address] = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const txs = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc`).then(r => r.json())
-        console.log(txs.result)
-        const provider = new ethers.providers.Web3Provider(window.ethereum)
-        let mintOrBuy = 0
-        let gas = 0
-        await Promise.all(txs.result.map(async tx => {
-            const { hash } = tx;
-            const receipt = await provider.getTransactionReceipt(hash);
-            const transferLog = receipt.logs?.find(log => log.topics[0] === erc721Transfer || log.topics[0] === erc1155Transfer)
-            if (transferLog !== undefined) {
-                const txData = await provider.getTransaction(hash)
-                if (transferLog.topics[0] === erc721Transfer) {
-                    // Verify that this is an ERC721 contract instead of ERC20
-                    const contract = new ethers.Contract(
-                        transferLog.address,
-                        [
-                            'function ownerOf(uint256 _tokenId) external view returns (address)',
-                            'function tokenURI(uint256 tokenId) external view returns (string memory)'
-                        ],
-                        provider
-                    )
-                    try {
-                        await contract.ownerOf(transferLog.topics[3])
-                    } catch (e) {
-                        console.log("rugged", hash)
-                        return
-                    }
-                }
-                const txGas = toEth(receipt.gasUsed.mul(txData.gasPrice))
-                const txValue = toEth(txData.value)
-                gas += txGas
-                console.log(txValue, txGas, hash)
-                mintOrBuy += txValue
+        const fetchData = async () => {
+            if (window.ethereum === undefined) {
+                alert("Metamask required")
             }
-        }))
-        let foundationAuctions = 0;
-        const foundation = new ethers.Contract(
-            "0xcDA72070E455bb31C7690a170224Ce43623d0B6f",
-            [
-                'event ReserveAuctionFinalized(uint256 indexed auctionId,address indexed seller,address indexed bidder,uint256 f8nFee,uint256 creatorFee,uint256 ownerRev)',
-            ],
-            provider
-        )
-        const eventFilter = foundation.filters.ReserveAuctionFinalized(null, null, address)
-        const lastBlock = await provider.getBlockNumber()
-        const events = await getLogs(foundation, eventFilter, lastBlock)
-        events.forEach(event => {
-            const totalPaid = event.args.creatorFee.add(event.args.f8nFee).add(event.args.ownerRev)
-            foundationAuctions += toEth(totalPaid)
-        })
-        console.log(mintOrBuy, gas, foundationAuctions)
-        setTotalSpent({ mintOrBuy, gas, foundationAuctions })
+            const [address] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const txs = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc`).then(r => r.json())
+            const ethPrice = (await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd').then(r => r.json())).ethereum.usd;
+            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            let mintOrBuy = 0
+            let gas = 0
+            await Promise.all(txs.result.map(async tx => {
+                const { hash } = tx;
+                const receipt = await provider.getTransactionReceipt(hash);
+                const transferLog = receipt.logs?.find(log => log.topics[0] === erc721Transfer || log.topics[0] === erc1155Transfer)
+                if (transferLog !== undefined) {
+                    const txData = await provider.getTransaction(hash)
+                    if (transferLog.topics[0] === erc721Transfer) {
+                        // Verify that this is an ERC721 contract instead of ERC20
+                        const contract = new ethers.Contract(
+                            transferLog.address,
+                            [
+                                'function ownerOf(uint256 _tokenId) external view returns (address)',
+                                'function tokenURI(uint256 tokenId) external view returns (string memory)'
+                            ],
+                            provider
+                        )
+                        try {
+                            await contract.ownerOf(transferLog.topics[3])
+                        } catch (e) {
+                            console.log("rugged", hash)
+                            return
+                        }
+                    }
+                    const txGas = toEth(receipt.gasUsed.mul(txData.gasPrice))
+                    const txValue = toEth(txData.value)
+                    gas += txGas
+                    console.log(txValue, txGas, hash)
+                    mintOrBuy += txValue
+                }
+            }))
+            let foundationAuctions = 0;
+            const foundation = new ethers.Contract(
+                "0xcDA72070E455bb31C7690a170224Ce43623d0B6f",
+                [
+                    'event ReserveAuctionFinalized(uint256 indexed auctionId,address indexed seller,address indexed bidder,uint256 f8nFee,uint256 creatorFee,uint256 ownerRev)',
+                ],
+                provider
+            )
+            const eventFilter = foundation.filters.ReserveAuctionFinalized(null, null, address)
+            const lastBlock = await provider.getBlockNumber()
+            const events = await getLogs(foundation, eventFilter, lastBlock)
+            events.forEach(event => {
+                const totalPaid = event.args.creatorFee.add(event.args.f8nFee).add(event.args.ownerRev)
+                foundationAuctions += toEth(totalPaid)
+            })
+            console.log(mintOrBuy, gas, foundationAuctions)
+            setTotalSpent({ mintOrBuy, gas, foundationAuctions, ethPrice })
+        };
+        fetchData();
     }, [])
 
     const below600 = useMedia('(max-width: 800px)')
@@ -109,6 +117,7 @@ export default function Jpegged(props) {
 
 
 
+    console.log(ethPrice)
     return (
         <PageWrapper>
             <FullWrapper>
@@ -117,10 +126,10 @@ export default function Jpegged(props) {
                 </RowBetween>
                 <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>
                     <TYPE.main fontWeight={400}>
-                        {totalSpent === undefined ? "Loading..." : <p>
-                            You've spent {Object.values(totalSpent).reduce((t, c) => t + c, 0).toFixed(2)} ETH on jpegs
-                            , {totalSpent.mintOrBuy.toFixed(2)} buying and minting
-                            , {totalSpent.foundationAuctions.toFixed(2)} on Foundation's Auctions and {totalSpent.gas.toFixed(2)} on gas
+                        {mintOrBuy === undefined ? "Loading..." : <p>
+                            You've spent {formatNumber(gas + mintOrBuy + foundationAuctions, ethPrice)} ETH on jpegs
+                            , {formatNumber(mintOrBuy, ethPrice)} buying and minting
+                            , {formatNumber(foundationAuctions, ethPrice)} on Foundation's Auctions and {formatNumber(gas, ethPrice)} on gas
                             <br /><br />
                             This doesn't include:<br />
                             - Purchases made with WETH<br />
