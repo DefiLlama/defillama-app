@@ -47,6 +47,7 @@ function formatNumber(amount, ethPrice) {
 
 
 export default function Jpegged(props) {
+    const [loading, setLoading] = useState(false)
     const [{ mintOrBuy, gas, foundationAuctions, ethPrice }, setTotalSpent] = useState({})
     useEffect(() => {
         window.scrollTo(0, 0)
@@ -54,6 +55,7 @@ export default function Jpegged(props) {
             if (window.ethereum === undefined) {
                 alert("Metamask required")
             }
+            setLoading(true)
             const [address] = await window.ethereum.request({ method: 'eth_requestAccounts' });
             const txs = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc`).then(r => r.json())
             const ethPrice = (await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd').then(r => r.json())).ethereum.usd;
@@ -126,7 +128,7 @@ export default function Jpegged(props) {
                 </RowBetween>
                 <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>
                     <TYPE.main fontWeight={400}>
-                        {mintOrBuy === undefined ? "Loading..." : <p>
+                        {mintOrBuy === undefined ? (loading ? "Loading, this may take a few minutes..." : "Connect metamask") : <p>
                             You've spent {formatNumber(gas + mintOrBuy + foundationAuctions, ethPrice)} ETH on jpegs
                             , {formatNumber(mintOrBuy, ethPrice)} buying and minting
                             , {formatNumber(foundationAuctions, ethPrice)} on Foundation's Auctions and {formatNumber(gas, ethPrice)} on gas
