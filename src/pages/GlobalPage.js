@@ -99,7 +99,7 @@ function GlobalPage({ chain, denomination, history }) {
       })
       if (selectedChain !== undefined) {
         if (token.chains.length === 1) {
-          if (token.chains[0].toLowerCase() !== selectedChain.toLowerCase()) {
+          if (token.chains[0] !== selectedChain) {
             return null
           }
         } else {
@@ -140,6 +140,8 @@ function GlobalPage({ chain, denomination, history }) {
   if (tokensList.length > 0) {
     topToken.name = tokensList[0]?.name
     topToken.tvl = tokensList[0]?.tvl
+  } else {
+    return <Redirect to="/home" />
   }
 
   document.title = `DefiLlama - DeFi Dashboard`;
