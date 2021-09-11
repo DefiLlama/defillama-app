@@ -141,6 +141,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   }, [prevWindow, timeWindow])
 
   const below1080 = useMedia('(max-width: 1080px)')
+  const below850 = useMedia('(max-width: 850px)')
   const below600 = useMedia('(max-width: 600px)')
 
   let utcStartTime = 0
@@ -286,8 +287,10 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   }
   if (tokensProvided) {
     denominationsToDisplay['TokensUSD'] = 'Tokens(USD)';
-    denominationsToDisplay['Change'] = 'Change'
-    denominationsToDisplay['ChangeSplit'] = 'ChangeSplit'
+    if (!below850) {
+      denominationsToDisplay['Change'] = 'Change'
+      denominationsToDisplay['ChangeSplit'] = 'ChangeSplit'
+    }
   }
   const tokenSymbols = useMemo(() => tokensProvided ? Object.entries(tokensInUsd[tokensInUsd.length - 1].tokens).sort((a, b) => b[1] - a[1]).map(t => t[0]) : undefined)
   return (
@@ -319,7 +322,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
                 {option}
               </OptionButton>
               )}
-              {tokenSymbols && <DropdownSelect options={tokenSymbols} active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'} setActive={(token) => {
+              {tokenSymbols && !below850 && <DropdownSelect options={tokenSymbols} active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'} setActive={(token) => {
                 setDenomination(`${DENOMINATIONS.Tokens}-${token}`)
               }} color={color} style={{ marginRight: '6px' }} />}
               {chainTvls && Object.keys(chainTvls).length > 1 && <DropdownSelect options={[ALL_CHAINS].concat(Object.keys(chainTvls))} active={selectedChain === 'all' ? ALL_CHAINS : selectedChain} setActive={(chain) => {
