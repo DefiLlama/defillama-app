@@ -246,7 +246,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
       }
     }
     return [chartData, tokenSet]
-  }, [denomination, chartData, denominationPriceHistory, tokens, tokensInUsd]);
+  }, [denomination, chartData, denominationPriceHistory, tokens, tokensInUsd, balanceToken]);
 
   // update the width on a window resize
   const ref = useRef()
@@ -292,6 +292,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
       denominationsToDisplay['ChangeSplit'] = 'ChangeSplit'
     }
   }
+  console.log(denominationsToDisplay)
   const tokenSymbols = useMemo(() => tokensProvided ? Object.entries(tokensInUsd[tokensInUsd.length - 1].tokens).sort((a, b) => b[1] - a[1]).map(t => t[0]) : undefined)
   return (
     <ChartWrapper>
@@ -316,7 +317,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
               {Object.values(denominationsToDisplay).map(option => <OptionButton
                 active={denomination === option}
                 onClick={() => setDenomination(option)}
-                style={{ marginRight: '6px' }}
+                style={{ marginRight: '6px', zIndex: '99' }}
                 key={option}
               >
                 {option}

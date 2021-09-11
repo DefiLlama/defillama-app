@@ -120,6 +120,10 @@ function GlobalPage({ chain, denomination, history }) {
       }
     }).filter(token => token !== null)
 
+    if (selectedChain !== undefined) {
+      filteredTokens = filteredTokens.sort((a, b) => b.tvl - a.tvl)
+    }
+
     chainOptions.forEach(chain => chainsSet.delete(chain))
     const otherChains = Array.from(chainsSet)
     return [filteredTokens, otherChains]
