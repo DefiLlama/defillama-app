@@ -42,10 +42,9 @@ function reducer(state, { type, payload }) {
     case UPDATE_TOP_TOKENS: {
       const { topTokens } = payload
       let added = {}
-      topTokens &&
-        topTokens.map(token => {
-          return (added[token.id] = token)
-        })
+      if (topTokens) {
+        added = topTokens
+      }
       return {
         ...state,
         ...added
@@ -255,14 +254,9 @@ export function useTokenData(tokenId, protocol = '') {
   const tokenData = state?.[tokenId]
 
   useEffect(() => {
-    if (!tokenData && ethPrice && ethPriceOld && tokenId) {
-      getTokenData(tokenId, protocol, ethPrice, ethPriceOld).then(data => {
-        update(data?.id, data)
-      })
-    }
     if (protocol && oldProtocol !== protocol) {
       getTokenData(tokenId, protocol, ethPrice, ethPriceOld).then(data => {
-        update(data?.id, data)
+        update(tokenId, data)
       })
       setOldProtocol(protocol)
     }

@@ -12,7 +12,11 @@ import { useMedia } from 'react-use'
 
 function AllTokensPage(props) {
   const { category, categoryName } = props
-  let allTokens = Object.values(useAllTokenData())
+  let allTokens = Object.values(useAllTokenData()).map(token => ({
+    ...token,
+    mcaptvl: (token.tvl !== 0 && token.mcap) ? token.mcap / token.tvl : null,
+    fdvtvl: (token.tvl !== 0 && token.fdv) ? token.fdv / token.tvl : null,
+  }))
 
   if (category) {
     allTokens = allTokens.filter((token) => (token.category || '').toLowerCase() === category.toLowerCase() && token.category !== "Chain")

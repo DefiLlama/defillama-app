@@ -534,8 +534,8 @@ export function getTokenAddressFromName(tokensObject, protocol) {
 export function getTokenIdFromName(tokensObject, protocol) {
   try {
     const tokens = Object.values(tokensObject)
-    const filteredToken = tokens.find(token => token.slug === protocol)
-    return filteredToken?.id || ''
+    const filteredToken = tokens.findIndex(token => token.slug === protocol)
+    return filteredToken
   } catch (error) {
     return false
   }
