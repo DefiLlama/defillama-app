@@ -99,7 +99,11 @@ const blockExplorers = {
   'heco': ['https://hecoinfo.com/address/', 'HecoInfo'],
   'wan': ['https://wanscan.org/token/', 'Wanscan'],
   'polygon': ['https://polygonscan.com/address/', 'PolygonScan'],
-  'rsk': ['https://explorer.rsk.co/address/', 'RSK Explorer']
+  'rsk': ['https://explorer.rsk.co/address/', 'RSK Explorer'],
+  'solana': ['https://solscan.io/', 'Solscan'],
+  'tezos': ['https://tzkt.io/', 'TzKT'],
+  'moonriver': ['https://blockscout.moonriver.moonbeam.network/', 'Blockscout'],
+  'arbitrum': ['https://arbiscan.io/', 'Arbiscan'],
 }
 
 function TokenPage({ protocol, history, denomination, selectedChain }) {
