@@ -103,7 +103,7 @@ const blockExplorers = {
   'solana': ['https://solscan.io/', 'Solscan'],
   'tezos': ['https://tzkt.io/', 'TzKT'],
   'moonriver': ['https://blockscout.moonriver.moonbeam.network/', 'Blockscout'],
-  'arbitrum': ['https://arbiscan.io/', 'Arbiscan'],
+  'arbitrum': ['https://arbiscan.io/address/', 'Arbiscan'],
 }
 
 function TokenPage({ protocol, history, denomination, selectedChain }) {
