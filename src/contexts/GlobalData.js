@@ -210,6 +210,7 @@ async function getGlobalData() {
 
   try {
     let chartData = await fetchAPI(CHART_API)
+    chartData = chartData.slice(0, chartData.length - 1)
 
     if (data && oneDayData && twoDayData) {
       const [oneDayTxns, txnChange] = get2DayPercentChange(
@@ -266,7 +267,7 @@ const getChartData = async oldestDateToFetch => {
 /**
  * Get and format transactions for global page
  */
-const getGlobalTransactions = async () => {}
+const getGlobalTransactions = async () => { }
 
 /**
  * Gets the current price  of ETH, 24 hour price, and % change between them
@@ -340,7 +341,7 @@ export function useGlobalChartData() {
     async function fetchData() {
       // historical stuff for chart
       let [newChartData, newWeeklyData] = await getChartData(oldestDateFetch)
-      updateChart(newChartData, newWeeklyData)
+      updateChart(newChartData.slice(0, newChartData.length - 1), newWeeklyData)
     }
     if (oldestDateFetch && !(chartDataDaily && chartDataWeekly)) {
       fetchData()
@@ -428,7 +429,7 @@ export function useTopLps() {
             if (results) {
               return results.liquidityPositions
             }
-          } catch (e) {}
+          } catch (e) { }
         })
       )
 
