@@ -104,6 +104,9 @@ const blockExplorers = {
   'tezos': ['https://tzkt.io/', 'TzKT'],
   'moonriver': ['https://blockscout.moonriver.moonbeam.network/address/', 'Blockscout'],
   'arbitrum': ['https://arbiscan.io/address/', 'Arbiscan'],
+  'terra': ['https://finder.terra.money/columbus-4/account/', 'Terra Finder'],
+  'okex': ['https://www.oklink.com/okexchain/tokenAddr/', 'Oklink'],
+  'celo': ['https://explorer.celo.org/tokens/', 'Celo'],
 }
 
 function TokenPage({ protocol, history, denomination, selectedChain }) {
