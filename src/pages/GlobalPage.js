@@ -39,7 +39,8 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
-const chainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Terra', 'Avalanche', 'Binance', 'Others']
+const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
+const extraChainOptions = ['Terra', 'Arbitrum', 'Binance', 'Celo', 'Harmony']
 
 function GlobalPage({ chain, denomination, history }) {
   // get data for lists and totals
@@ -51,6 +52,13 @@ function GlobalPage({ chain, denomination, history }) {
   const setSelectedChain = (newSelectedChain) => history.push(newSelectedChain === 'All' ? '/home' : `/chain/${newSelectedChain}`)
   // breakpoints
   const below800 = useMedia('(max-width: 800px)')
+  const below1400 = useMedia('(max-width: 1400px)')
+  let chainOptions = []
+  if (!below1400) {
+    chainOptions = [...basicChainOptions, ...extraChainOptions, 'Others']
+  } else {
+    chainOptions = [...basicChainOptions, 'Others']
+  }
   // scrolling refs
   useEffect(() => {
     document.querySelector('body').scrollTo({
@@ -171,7 +179,7 @@ function GlobalPage({ chain, denomination, history }) {
             {selectedChain === "Fantom" &&
               <Panel background={true} style={{ textAlign: 'center' }}>
                 <TYPE.main fontWeight={400}>
-                  Fantom just announced <a style={{ color: 'inherit', fontWeight: '700' }} href="https://fantom.foundation/blog/announcing-370m-ftm-incentive-program/">a 370m liquidity program that uses DefiLlama's data</a>
+                  Fantom announced <a style={{ color: 'inherit', fontWeight: '700' }} href="https://fantom.foundation/blog/announcing-370m-ftm-incentive-program/">a 370m liquidity program that uses DefiLlama's data</a>
                 </TYPE.main>
               </Panel>
             }

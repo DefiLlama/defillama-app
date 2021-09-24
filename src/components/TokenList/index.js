@@ -122,6 +122,7 @@ const SORT_FIELD = {
   CHANGE: 'priceChangeUSD',
   MCAPTVL: "mcaptvl",
   FDVTVL: "fdvtvl",
+  CHAINS: 'chains'
 }
 
 // @TODO rework into virtualized list
@@ -161,6 +162,9 @@ function TopTokenList({ tokens, itemMax = 100 }) {
     if (sortedColumn !== SORT_FIELD.TVL || sortDirection !== true || tokens[0].tvl === 0) {
       sortedTokens = tokens
         .sort((a, b) => {
+          if (sortedColumn === SORT_FIELD.CHAINS) {
+            return a[sortedColumn].length > b[sortedColumn].length ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
+          }
           if (sortedColumn === SORT_FIELD.SYMBOL || sortedColumn === SORT_FIELD.NAME) {
             return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
           }
@@ -241,11 +245,11 @@ function TopTokenList({ tokens, itemMax = 100 }) {
             <ClickableText
               area="chain"
               onClick={e => {
-                setSortedColumn(SORT_FIELD.PRICE)
-                setSortDirection(sortedColumn !== SORT_FIELD.PRICE ? true : !sortDirection)
+                setSortedColumn(SORT_FIELD.CHAINS)
+                setSortDirection(sortedColumn !== SORT_FIELD.CHAINS ? true : !sortDirection)
               }}
             >
-              Chain {sortedColumn === SORT_FIELD.PRICE ? (!sortDirection ? '↑' : '↓') : ''}
+              Chain {sortedColumn === SORT_FIELD.CHAINS ? (!sortDirection ? '↑' : '↓') : ''}
             </ClickableText>
           </Flex>
         )}
