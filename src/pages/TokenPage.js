@@ -107,6 +107,7 @@ const blockExplorers = {
   'terra': ['https://finder.terra.money/columbus-4/account/', 'Terra Finder'],
   'okex': ['https://www.oklink.com/okexchain/tokenAddr/', 'Oklink'],
   'celo': ['https://explorer.celo.org/tokens/', 'Celo'],
+  'waves': ['https://wavesexplorer.com/tx/', 'Waves Explorer'],
 }
 
 function TokenPage({ protocol, history, denomination, selectedChain }) {
