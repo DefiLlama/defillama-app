@@ -13,8 +13,9 @@ const SAVED_PAIRS = 'SAVED_PAIRS'
 const DARK_MODE = 'DARK_MODE'
 const POOL2 = "POOL2"
 const STAKING = "STAKING"
+const DISPLAY_USD = "DISPLAY_USD"
 
-const UPDATABLE_KEYS = [DARK_MODE, DISMISSED_PATHS, SAVED_ACCOUNTS, SAVED_PAIRS, SAVED_TOKENS, POOL2, STAKING]
+const UPDATABLE_KEYS = [DARK_MODE, DISMISSED_PATHS, SAVED_ACCOUNTS, SAVED_PAIRS, SAVED_TOKENS, POOL2, STAKING, DISPLAY_USD]
 
 const UPDATE_KEY = 'UPDATE_KEY'
 
@@ -49,6 +50,7 @@ function init() {
     [DARK_MODE]: true,
     [STAKING]: false,
     [POOL2]: false,
+    [DISPLAY_USD]: true,
     [DISMISSED_PATHS]: {},
     [SAVED_ACCOUNTS]: [],
     [SAVED_TOKENS]: {},
@@ -126,6 +128,18 @@ export function useStakingManager() {
     [updateKey, stakingEnabled]
   )
   return [stakingEnabled, toggleStaking]
+}
+
+export function useDisplayUsdManager() {
+  const [state, { updateKey }] = useLocalStorageContext()
+  let displayUsd = state[DISPLAY_USD]
+  const toggleDisplayUsd = useCallback(
+    value => {
+      updateKey(DISPLAY_USD, value === false || value === true ? value : !displayUsd)
+    },
+    [updateKey, displayUsd]
+  )
+  return [displayUsd, toggleDisplayUsd]
 }
 
 export function usePathDismissed(path) {
