@@ -16,7 +16,7 @@ function AllNFTsPage(props) {
         fetch('https://api.llama.fi/nft/collections').then(r => r.json()).then(r => setNfts(r.collections))
     }, [])
 
-    const below600 = useMedia('(max-width: 800px)')
+    const below800 = useMedia('(max-width: 800px)')
     let title = `NFT Rankings`
     document.title = `${title} - Defi Llama`;
 
@@ -27,8 +27,8 @@ function AllNFTsPage(props) {
                     <TYPE.largeHeader>{title}</TYPE.largeHeader>
                 </RowBetween>
                 {nfts !== undefined && (
-                    <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>
-                        <TopTokenList tokens={nfts} itemMax={below600 ? 50 : 100} />
+                    <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
+                        <TopTokenList tokens={nfts} itemMax={below800 ? 50 : 100} />
                     </Panel>
                 )}
             </FullWrapper>
