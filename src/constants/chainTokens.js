@@ -123,4 +123,47 @@ export const chainCoingeckoIds = {
         geckoId: "karura",
         symbol: "KAR"
     },
-}
+    "Moonriver": {
+        geckoId: "moonriver",
+        symbol: "MOVR"
+    },
+    "Waves": {
+        geckoId: "waves",
+        symbol: "WAVES"
+    },
+    "Klaytn": {
+        geckoId: "klay-token",
+        symbol: "KLAY"
+    },
+    "IoTeX": {
+        geckoId: "iotex",
+        symbol: "IOTX"
+    },
+    "Ultra": {
+        geckoId: "ultra",
+        symbol: "UOS"
+    },
+    "Kusama": {
+        geckoId: "kusama",
+        symbol: "KSM"
+    },
+    "Telos": {
+        geckoId: "telos",
+        symbol: "TLOS"
+    },
+    "ThunderCore": {
+        geckoId: "thunder-token",
+        symbol: "TT"
+    },
+    "Lamden": {
+        geckoId: "lamden",
+        symbol: "TAU"
+    },
+    "Near": {
+        geckoId: "near",
+        symbol: "NEAR"
+    },
+    "EOS": {
+        geckoId: "eos",
+        symbol: "EOS"
+    },
