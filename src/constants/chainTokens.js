@@ -167,3 +167,4 @@ export const chainCoingeckoIds = {
         geckoId: "eos",
         symbol: "EOS"
     },
+}
