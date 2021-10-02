@@ -65,7 +65,7 @@ function stringToColour(str) {
 }
 
 const ALL_CHAINS = "All Chains"
-const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens, denomination: initialDenomination, chains, selectedChain = "all" }) => {
+const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens, denomination: initialDenomination, chains, selectedChain = "all" }) => {
   // settings for the window and candle width
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
 
@@ -141,7 +141,6 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   }, [prevWindow, timeWindow])
 
   const below1080 = useMedia('(max-width: 1080px)')
-  const below850 = useMedia('(max-width: 850px)')
   const below600 = useMedia('(max-width: 600px)')
 
   let utcStartTime = 0
@@ -287,7 +286,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
   }
   if (tokensProvided) {
     denominationsToDisplay['TokensUSD'] = 'Tokens(USD)';
-    if (!below850) {
+    if (!small) {
       denominationsToDisplay['Change'] = 'Change'
       denominationsToDisplay['ChangeSplit'] = 'ChangeSplit'
     }
@@ -323,7 +322,7 @@ const TokenChart = ({ color, base, data, tokens, tokensInUsd, chainTvls, misrepr
                 {option}
               </OptionButton>
               )}
-              {tokenSymbols && !below850 && <DropdownSelect options={tokenSymbols} active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'} setActive={(token) => {
+              {tokenSymbols && !small && <DropdownSelect options={tokenSymbols} active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'} setActive={(token) => {
                 setDenomination(`${DENOMINATIONS.Tokens}-${token}`)
               }} color={color} style={{ marginRight: '6px' }} />}
               {chainTvls && Object.keys(chainTvls).length > 1 && <DropdownSelect options={[ALL_CHAINS].concat(Object.keys(chainTvls))} active={selectedChain === 'all' ? ALL_CHAINS : selectedChain} setActive={(chain) => {

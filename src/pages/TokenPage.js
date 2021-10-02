@@ -156,10 +156,12 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
   const price = priceUSD ? formattedNum(priceUSD, true) : ''
   const priceChange = priceChangeUSD ? formattedPercent(priceChangeUSD) : ''
 
+  const below1600 = useMedia('(max-width: 1600px)')
   const below1024 = useMedia('(max-width: 1024px)')
   const below800 = useMedia('(max-width: 800px)')
   const below600 = useMedia('(max-width: 600px)')
   const below500 = useMedia('(max-width: 500px)')
+  const below850 = useMedia('(max-width: 850px)')
 
   // format for long symbol
   const LENGTH = below1024 ? 10 : 16
@@ -343,6 +345,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                 {chartData && (
                   <ProtocolChart
                     denomination={denomination}
+                    small={below850 || (!below1024 && below1600)}
                     chartData={chartData}
                     misrepresentedTokens={misrepresentedTokens}
                     protocol={name}
@@ -388,6 +391,19 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                     <AuditInfo audits={audits} auditLinks={audit_links} />
                   </TYPE.main>
                 </Column>
+                <div></div>
+                <RowFixed>
+                  <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
+                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                      Twitter ↗
+                    </ButtonLight>
+                  </Link>
+                  <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
+                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                      Download dataset ↗
+                    </ButtonLight>
+                  </Link>
+                </RowFixed>
               </TokenDetailsLayout>
             </Panel>
 
@@ -454,22 +470,6 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                     </AutoRow>
                   </Column>
                   <RowFixed>
-                    <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
-                      <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                        Twitter ↗
-                      </ButtonLight>
-                    </Link>
-                    <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
-                      <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                        Download dataset ↗
-                      </ButtonLight>
-                    </Link>
-                    {dexguguLink &&
-                      <Link color={backgroundColor} external href={dexguguLink}>
-                        <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                          View charts ↗
-                        </ButtonLight>
-                      </Link>}
                     <Link color={backgroundColor} external href={blockExplorerLink}>
                       <ButtonLight color={backgroundColor}>
                         View on {blockExplorerName} ↗
