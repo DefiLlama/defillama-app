@@ -6,6 +6,7 @@ import TokenPage from './pages/TokenPage'
 import Settings from './pages/Settings'
 import Jpegged from './pages/Jpegged'
 import ChainsViewPage from './pages/ChainsViewPage'
+import NoTokenProtocols from './pages/NoTokenProtocols'
 import { useGlobalData, useGlobalChartData } from './contexts/GlobalData'
 import { useAllTokenData } from './contexts/TokenData'
 
@@ -167,6 +168,11 @@ function App() {
             <Route path="/protocols">
               <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
                 <AllTokensPage />
+              </LayoutWrapper>
+            </Route>
+            <Route path="/airdrops">
+              <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                <NoTokenProtocols />
               </LayoutWrapper>
             </Route>
             <Route path="/dexes">

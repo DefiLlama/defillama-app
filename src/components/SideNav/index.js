@@ -7,7 +7,7 @@ import { useMedia } from 'react-use'
 import { transparentize } from 'polished'
 import { TYPE } from '../../Theme'
 import { withRouter } from 'react-router-dom'
-import { TrendingUp, Disc, HelpCircle, Link as LinkLogo } from 'react-feather'
+import { TrendingUp, Disc, HelpCircle, Link as LinkLogo, CloudDrizzle } from 'react-feather'
 import Link from '../Link'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
 import Toggle from '../Toggle'
@@ -100,6 +100,20 @@ const PollingDot = styled.div`
   background-color: ${({ theme }) => theme.green1};
 `
 
+function entry(url, name, history, icon) {
+  return <BasicLink to={"/" + url}>
+    <Option
+      activeText={
+        (history.location.pathname.split('/')[1] === url) ??
+        undefined
+      }
+    >
+      <icon.icon size={20} style={{ marginRight: '.75rem' }} />
+      {name}
+    </Option>
+  </BasicLink>
+}
+
 function SideNav({ history }) {
   const below1080 = useMedia('(max-width: 1080px)')
 
@@ -135,17 +149,8 @@ function SideNav({ history }) {
                     Protocols
                   </Option>
                 </BasicLink>
-                <BasicLink to="/chains">
-                  <Option
-                    activeText={
-                      (history.location.pathname.split('/')[1] === 'chains') ??
-                      undefined
-                    }
-                  >
-                    <LinkLogo size={20} style={{ marginRight: '.75rem' }} />
-                    Chains
-                  </Option>
-                </BasicLink>
+                {entry("chains", "Chains", history, { icon: LinkLogo })}
+                {entry("airdrops", "Airdrops", history, { icon: CloudDrizzle })}
                 {categories
                   .map(categoryData =>
                     <BasicLink to={`/protocols/${categoryData.name.toLowerCase()}`} key={categoryData.name}>
