@@ -125,7 +125,7 @@ const SORT_FIELD = {
 }
 
 // @TODO rework into virtualized list
-function TopTokenList({ tokens, itemMax = 100 }) {
+function TopTokenList({ tokens, itemMax = 100, displayUsd = false }) {
   // page state
   const [page, setPage] = useState(1)
   const [maxPage, setMaxPage] = useState(1)
@@ -192,12 +192,12 @@ function TopTokenList({ tokens, itemMax = 100 }) {
         {
           !below1080 && (
             <DataText area="totalVolume" color="text" fontWeight="500">
-              {formattedNum(item.totalVolume, false)}
+              {formattedNum(item.totalVolume, displayUsd)}
             </DataText>
           )
         }
-        <DataText area="floor">{formattedNum(item.floor, false)}</DataText>
-        <DataText area="dailyVolume">{formattedNum(item.dailyVolume, false)}</DataText>
+        <DataText area="floor">{formattedNum(item.floor, displayUsd)}</DataText>
+        <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayUsd)}</DataText>
         {
           !below680 && (
             <DataText area="mcaptvl" color="text" fontWeight="500">

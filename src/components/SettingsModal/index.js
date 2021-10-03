@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { ReactComponent as MenuIcon } from './menu.svg'
-import { useDarkModeManager, useStakingManager, usePool2Manager } from '../../contexts/LocalStorage'
+import { useDarkModeManager, useStakingManager, usePool2Manager, useDisplayUsdManager } from '../../contexts/LocalStorage'
 import Switch from "react-switch";
 import HeadHelp from '../HeadHelp'
 
@@ -106,7 +106,7 @@ const OptionToggle = (props) =>
     {props.help ? <HeadHelp title={props.name} text={props.help} /> : props.name}
   </TYPE.body>
 
-export default function Menu() {
+export default function Menu({ type = 'defi' }) {
   const node = useRef()
   const [open, setOpen] = useState(false);
   const toggle = () => { setOpen(!open) }
@@ -130,6 +130,50 @@ export default function Menu() {
   const [isDark, toggleDarkMode] = useDarkModeManager()
   const [stakingEnabled, toggleStaking] = useStakingManager()
   const [pool2Enabled, togglePool2] = usePool2Manager()
+  const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
+
+  const toggleSettings = {
+    defi: [
+      {
+        name: "Staking",
+        toggle: toggleStaking,
+        enabled: stakingEnabled,
+        help: "Include governance tokens staked in the protocol",
+      },
+      {
+        name: "Pool2",
+        toggle: togglePool2,
+        enabled: pool2Enabled,
+        help: "Include staked lp tokens where one of the coins in the pair is the governance token",
+      }, 
+      {
+        name: "Dark mode",
+        toggle: toggleDarkMode,
+        enabled: isDark,
+      }
+    ],
+    nfts: [
+      {
+        name: "Display in USD",
+        toggle: toggleDisplayUsd,
+        enabled: displayUsd,
+        help: "Display Metrics in USD"
+      },
+      {
+        name: "Dark mode",
+        toggle: toggleDarkMode,
+        enabled: isDark,
+      }
+    ]
+  }
+
+  const renderSettingsToggles = () => {
+    return toggleSettings[type].map(toggleSetting => (
+      <MenuItem>
+        <OptionToggle {...toggleSetting} />
+      </MenuItem>
+    ))
+  }
 
   return (
     <StyledMenu ref={node}>
@@ -139,15 +183,7 @@ export default function Menu() {
 
       {open && (
         <MenuFlyout>
-          <MenuItem>
-            <OptionToggle name="Staking" toggle={toggleStaking} enabled={stakingEnabled} help="Include governance tokens staked in the protocol" />
-          </MenuItem>
-          <MenuItem>
-            <OptionToggle name="Pool2" toggle={togglePool2} enabled={pool2Enabled} help="Include staked LP tokens where one of the coins in the pair is the governance token" />
-          </MenuItem>
-          <MenuItem>
-            <OptionToggle name="Dark mode" toggle={toggleDarkMode} enabled={isDark} />
-          </MenuItem>
+          {renderSettingsToggles()}
         </MenuFlyout>
       )}
     </StyledMenu>
