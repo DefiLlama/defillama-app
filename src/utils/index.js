@@ -521,6 +521,11 @@ export function isValidProtocol(tokensObject, protocol) {
   }
 }
 
+export function isValidCollection(nftCollections, collection) {
+  const isValid = nftCollections.some(nftCollection => nftCollection.id === collection)
+  return isValid
+}
+
 export function getTokenAddressFromName(tokensObject, protocol) {
   try {
     const tokens = Object.values(tokensObject)

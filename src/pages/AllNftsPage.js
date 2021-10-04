@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useMedia } from 'react-use'
 import 'feather-icons'
 import { transparentize } from 'polished'
@@ -14,30 +14,19 @@ import { ButtonDark } from '../components/ButtonStyled'
 
 import { useDisplayUsdManager } from '../contexts/LocalStorage'
 import { formattedNum } from '../utils'
+import { useNFTCollectionsData } from '../contexts/NFTData'
 
 function AllNFTsPage(props) {
-  const [nfts, setNfts] = useState([])
-  const [displayUsd, _] = useDisplayUsdManager()
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    fetch('https://api.llama.fi/nft/collections')
-      .then(r => r.json())
-      .then(data => setNfts(data.collections.map(collection => ({
-          ...collection,
-          floor: displayUsd ? collection.floorUsd : collection.floor,
-          dailyVolume: displayUsd ? collection.dailyVolumeUsd : collection.dailyVolume,
-          totalVolume: displayUsd ? collection.totalVolumeUsd : collection.totalVolume,
-        })
-      )))
-  }, [displayUsd])
+  const nftCollections = useNFTCollectionsData()
+  const [displayUsd] = useDisplayUsdManager()
+  useEffect(() => window.scrollTo(0, 0))
 
   const below800 = useMedia('(max-width: 800px)')
-  let title = `NFT Rankings`
-  document.title = `${title} - Defi Llama`;
+  let title = `NFT Dashboard`
+  document.title = `${title} - Defi Llama`
 
-  const totalVolumeUsd = nfts.reduce((prevSum, collection) => prevSum + collection.totalVolumeUSD, 0)
-  const totalMarketCap = nfts.reduce((prevSum, collection) => prevSum + collection.marketCap, 0)
+  const totalVolumeUsd = nftCollections.reduce((prevSum, collection) => prevSum + collection.dailyVolumeUsd, 0)
+  const totalMarketCap = nftCollections.reduce((prevSum, collection) => prevSum + collection.marketCapUsd, 0)
 
   return (
     <PageWrapper>
@@ -62,23 +51,24 @@ function AllNFTsPage(props) {
               <Panel style={{ padding: '18px 25px' }}>
                 <AutoColumn gap="4px">
                   <RowBetween>
-                    <TYPE.heading>Total Volume (USD)</TYPE.heading>
-                  </RowBetween>
-                  <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                    <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-                      {formattedNum(totalVolumeUsd, true)}
-                    </TYPE.main>
-                  </RowBetween>
-                </AutoColumn>
-              </Panel>
-              <Panel style={{ padding: '18px 25px' }}>
-                <AutoColumn gap="4px">
-                  <RowBetween>
                     <TYPE.heading>Total Market Cap (USD)</TYPE.heading>
                   </RowBetween>
                   <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
                       {formattedNum(totalMarketCap, true)}
+                    </TYPE.main>
+                  </RowBetween>
+                </AutoColumn>
+              </Panel>
+
+              <Panel style={{ padding: '18px 25px' }}>
+                <AutoColumn gap="4px">
+                  <RowBetween>
+                    <TYPE.heading>Daily Volume (USD)</TYPE.heading>
+                  </RowBetween>
+                  <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+                    <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
+                      {formattedNum(totalVolumeUsd, true)}
                     </TYPE.main>
                   </RowBetween>
                 </AutoColumn>
@@ -99,18 +89,6 @@ function AllNFTsPage(props) {
                 <Panel style={{ padding: '18px 25px' }}>
                   <AutoColumn gap="4px">
                     <RowBetween>
-                      <TYPE.heading>Total Volume (USD)</TYPE.heading>
-                    </RowBetween>
-                    <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                      <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-                        {formattedNum(totalVolumeUsd, true)}
-                      </TYPE.main>
-                    </RowBetween>
-                  </AutoColumn>
-                </Panel>
-                <Panel style={{ padding: '18px 25px' }}>
-                  <AutoColumn gap="4px">
-                    <RowBetween>
                       <TYPE.heading>Total Market Cap (USD)</TYPE.heading>
                     </RowBetween>
                     <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
@@ -120,16 +98,30 @@ function AllNFTsPage(props) {
                     </RowBetween>
                   </AutoColumn>
                 </Panel>
+
+                <Panel style={{ padding: '18px 25px' }}>
+                  <AutoColumn gap="4px">
+                    <RowBetween>
+                      <TYPE.heading>Daily Volume (USD)</TYPE.heading>
+                    </RowBetween>
+                    <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+                      <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
+                        {formattedNum(totalVolumeUsd, true)}
+                      </TYPE.main>
+                    </RowBetween>
+                  </AutoColumn>
+                </Panel>
               </AutoColumn>
             </AutoRow>
           )}
 
-          {nfts !== undefined && (
+          {nftCollections && (
             <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
-              <TopTokenList tokens={nfts} itemMax={below800 ? 50 : 100} displayUsd={displayUsd} />
+              <TopTokenList tokens={nftCollections} itemMax={below800 ? 50 : 100} displayUsd={displayUsd} />
             </Panel>
           )}
         </div>
+
         <div style={{ margin: 'auto' }}>
           <a href="#"><ButtonDark>Download all data in .csv</ButtonDark></a>
         </div>

@@ -7,8 +7,9 @@ import GlobalDataContextProvider from './contexts/GlobalData'
 import PairDataContextProvider, { Updater as PairDataContextUpdater } from './contexts/PairData'
 import ApplicationContextProvider from './contexts/Application'
 import UserContextProvider from './contexts/User'
+import NFTDataContextProvider, { Updater as NFTDataContextUpdater } from './contexts/NFTData'
 import App from './App'
-
+import NFTApp from './NFTApp'
 
 function ContextProviders({ children }) {
   return (
@@ -26,6 +27,14 @@ function ContextProviders({ children }) {
   )
 }
 
+function NFTContextProviders({ children }) {
+  return (
+    <LocalStorageContextProvider>
+      <NFTDataContextProvider>{children}</NFTDataContextProvider>
+    </LocalStorageContextProvider>
+  )
+}
+
 function Updaters() {
   return (
     <>
@@ -36,15 +45,39 @@ function Updaters() {
   )
 }
 
-ReactDOM.render(
-  <ContextProviders>
-    <Updaters />
-    <ThemeProvider>
-      <>
-        <GlobalStyle />
-        <App />
-      </>
-    </ThemeProvider>
-  </ContextProviders>,
-  document.getElementById('root')
-)
+function NFTUpdaters() {
+  return (
+    <>
+      <LocalStorageContextUpdater />
+      <NFTDataContextUpdater />
+    </>
+  )
+}
+
+if (window.location.pathname.includes('/nfts')) {
+  ReactDOM.render(
+    <NFTContextProviders>
+      <NFTUpdaters />
+      <ThemeProvider>
+        <>
+          <GlobalStyle />
+          <NFTApp />
+        </>
+      </ThemeProvider>
+    </NFTContextProviders>,
+    document.getElementById('root')
+  )
+} else {
+  ReactDOM.render(
+    <ContextProviders>
+      <Updaters />
+      <ThemeProvider>
+        <>
+          <GlobalStyle />
+          <App />
+        </>
+      </ThemeProvider>
+    </ContextProviders>,
+    document.getElementById('root')
+  )
+}

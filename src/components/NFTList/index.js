@@ -178,10 +178,10 @@ function TopTokenList({ tokens, itemMax = 100, displayUsd = false }) {
             <TokenLogo address={item.address} logo={item.logo} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              to={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
+              to={'/nfts/collection/' + item.id}
             >
               <FormattedName
-                text={`${item.name} (${item.symbol})`}
+                text={`${item.name}`}
                 maxCharacters={below600 ? 8 : 16}
                 adjustSize={true}
                 link={true}
@@ -196,7 +196,7 @@ function TopTokenList({ tokens, itemMax = 100, displayUsd = false }) {
             </DataText>
           )
         }
-        <DataText area="floor">{formattedNum(item.floor, displayUsd)}</DataText>
+        <DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayUsd)}</DataText>
         <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayUsd)}</DataText>
         {
           !below680 && (
