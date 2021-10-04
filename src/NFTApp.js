@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Route, Switch, BrowserRouter, Redirect } from 'react-router-dom'
 
 import { AppWrapper, LayoutWrapper } from './layout'
-import AllNFTsPage from './pages/AllNftsPage'
+import NFTDashboard from './pages/NFTDashboard'
 import NFTPage from './pages/NFTPage'
 
 import { useNFTCollectionsData } from './contexts/NFTData'
@@ -42,7 +42,7 @@ function App() {
 
           <Route path="/nfts">
             <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-              <AllNFTsPage />
+              <NFTDashboard />
             </LayoutWrapper>
           </Route>
 

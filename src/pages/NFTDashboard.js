@@ -16,7 +16,7 @@ import { useDisplayUsdManager } from '../contexts/LocalStorage'
 import { formattedNum } from '../utils'
 import { useNFTCollectionsData } from '../contexts/NFTData'
 
-function AllNFTsPage(props) {
+const NFTDashboard = (props) => {
   const nftCollections = useNFTCollectionsData()
   const [displayUsd] = useDisplayUsdManager()
   useEffect(() => window.scrollTo(0, 0))
@@ -130,4 +130,4 @@ function AllNFTsPage(props) {
   )
 }
 
-export default AllNFTsPage
+export default NFTDashboard
