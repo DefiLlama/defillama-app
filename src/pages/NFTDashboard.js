@@ -3,14 +3,15 @@ import { useMedia } from 'react-use'
 import 'feather-icons'
 import { transparentize } from 'polished'
 
-import TopTokenList from '../components/NFTList'
-import { TYPE, ThemedBackground } from '../Theme'
-import Panel from '../components/Panel'
-import { PageWrapper, ContentWrapper } from '../components'
 import { AutoRow, RowBetween } from '../components/Row'
 import { AutoColumn } from '../components/Column'
-import RightSettings from '../components/RightSettings'
 import { ButtonDark } from '../components/ButtonStyled'
+import { PageWrapper, ContentWrapper } from '../components'
+import Panel from '../components/Panel'
+import RightSettings from '../components/RightSettings'
+import { NFTSearch } from '../components/Search'
+import TopTokenList from '../components/NFTList'
+import { TYPE, ThemedBackground } from '../Theme'
 
 import { useDisplayUsdManager } from '../contexts/LocalStorage'
 import { formattedNum } from '../utils'
@@ -33,11 +34,13 @@ const NFTDashboard = (props) => {
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
       <ContentWrapper>
         <div>
-          <RowBetween>
-            <TYPE.largeHeader>{title}</TYPE.largeHeader>
-            {!below800 && <RightSettings type='nfts' />}
-          </RowBetween>
-
+          <AutoColumn gap="24px" style={{ paddingBottom: below800 ? '0' : '24px' }}>
+            <RowBetween>
+              <TYPE.largeHeader>{title}</TYPE.largeHeader>
+              {!below800 && <RightSettings type='nfts' />}
+            </RowBetween>
+            <NFTSearch />
+          </AutoColumn>
           {below800 && ( // mobile card
             <AutoColumn
               style={{
