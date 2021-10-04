@@ -178,7 +178,7 @@ function TopTokenList({ tokens, itemMax = 100, displayUsd = false }) {
             <TokenLogo address={item.address} logo={item.logo} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              to={'/collection/' + item.id}
+              to={'/nfts/collection/' + item.id}
             >
               <FormattedName
                 text={`${item.name}`}
