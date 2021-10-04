@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useMedia } from 'react-use'
 import 'feather-icons'
 import { transparentize } from 'polished'
@@ -14,30 +14,19 @@ import { ButtonDark } from '../components/ButtonStyled'
 
 import { useDisplayUsdManager } from '../contexts/LocalStorage'
 import { formattedNum } from '../utils'
+import { useNFTCollectionsData } from '../contexts/NFTData'
 
 function AllNFTsPage(props) {
-  const [nfts, setNfts] = useState([])
-  const [displayUsd, _] = useDisplayUsdManager()
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    fetch('https://api.llama.fi/nft/collections')
-      .then(r => r.json())
-      .then(data => setNfts(data.collections.map(collection => ({
-          ...collection,
-          floor: displayUsd ? collection.floorUsd : collection.floor,
-          dailyVolume: displayUsd ? collection.dailyVolumeUsd : collection.dailyVolume,
-          totalVolume: displayUsd ? collection.totalVolumeUsd : collection.totalVolume,
-        })
-      )))
-  }, [displayUsd])
+  const nftCollections = useNFTCollectionsData()
+  const [displayUsd] = useDisplayUsdManager()
+  useEffect(() => window.scrollTo(0, 0))
 
   const below800 = useMedia('(max-width: 800px)')
-  let title = `NFT Rankings`
-  document.title = `${title} - Defi Llama`;
+  let title = `NFT Dashboard`
+  document.title = `${title} - Defi Llama`
 
-  const totalVolumeUsd = nfts.reduce((prevSum, collection) => prevSum + collection.dailyVolumeUsd, 0)
-  const totalMarketCap = nfts.reduce((prevSum, collection) => prevSum + collection.marketCapUsd, 0)
+  const totalVolumeUsd = nftCollections.reduce((prevSum, collection) => prevSum + collection.dailyVolumeUsd, 0)
+  const totalMarketCap = nftCollections.reduce((prevSum, collection) => prevSum + collection.marketCapUsd, 0)
 
   return (
     <PageWrapper>
@@ -126,9 +115,9 @@ function AllNFTsPage(props) {
             </AutoRow>
           )}
 
-          {nfts && (
+          {nftCollections && (
             <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
-              <TopTokenList tokens={nfts} itemMax={below800 ? 50 : 100} displayUsd={displayUsd} />
+              <TopTokenList tokens={nftCollections} itemMax={below800 ? 50 : 100} displayUsd={displayUsd} />
             </Panel>
           )}
         </div>
