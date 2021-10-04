@@ -36,8 +36,8 @@ function AllNFTsPage(props) {
   let title = `NFT Rankings`
   document.title = `${title} - Defi Llama`;
 
-  const totalVolumeUsd = nfts.reduce((prevSum, collection) => prevSum + collection.totalVolumeUSD, 0)
-  const totalMarketCap = nfts.reduce((prevSum, collection) => prevSum + collection.marketCap, 0)
+  const totalVolumeUsd = nfts.reduce((prevSum, collection) => prevSum + collection.dailyVolumeUsd, 0)
+  const totalMarketCap = nfts.reduce((prevSum, collection) => prevSum + collection.marketCapUsd, 0)
 
   return (
     <PageWrapper>
@@ -62,23 +62,24 @@ function AllNFTsPage(props) {
               <Panel style={{ padding: '18px 25px' }}>
                 <AutoColumn gap="4px">
                   <RowBetween>
-                    <TYPE.heading>Total Volume (USD)</TYPE.heading>
-                  </RowBetween>
-                  <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                    <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-                      {formattedNum(totalVolumeUsd, true)}
-                    </TYPE.main>
-                  </RowBetween>
-                </AutoColumn>
-              </Panel>
-              <Panel style={{ padding: '18px 25px' }}>
-                <AutoColumn gap="4px">
-                  <RowBetween>
                     <TYPE.heading>Total Market Cap (USD)</TYPE.heading>
                   </RowBetween>
                   <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
                       {formattedNum(totalMarketCap, true)}
+                    </TYPE.main>
+                  </RowBetween>
+                </AutoColumn>
+              </Panel>
+
+              <Panel style={{ padding: '18px 25px' }}>
+                <AutoColumn gap="4px">
+                  <RowBetween>
+                    <TYPE.heading>Daily Volume (USD)</TYPE.heading>
+                  </RowBetween>
+                  <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+                    <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
+                      {formattedNum(totalVolumeUsd, true)}
                     </TYPE.main>
                   </RowBetween>
                 </AutoColumn>
@@ -99,18 +100,6 @@ function AllNFTsPage(props) {
                 <Panel style={{ padding: '18px 25px' }}>
                   <AutoColumn gap="4px">
                     <RowBetween>
-                      <TYPE.heading>Total Volume (USD)</TYPE.heading>
-                    </RowBetween>
-                    <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                      <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-                        {formattedNum(totalVolumeUsd, true)}
-                      </TYPE.main>
-                    </RowBetween>
-                  </AutoColumn>
-                </Panel>
-                <Panel style={{ padding: '18px 25px' }}>
-                  <AutoColumn gap="4px">
-                    <RowBetween>
                       <TYPE.heading>Total Market Cap (USD)</TYPE.heading>
                     </RowBetween>
                     <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
@@ -120,16 +109,30 @@ function AllNFTsPage(props) {
                     </RowBetween>
                   </AutoColumn>
                 </Panel>
+
+                <Panel style={{ padding: '18px 25px' }}>
+                  <AutoColumn gap="4px">
+                    <RowBetween>
+                      <TYPE.heading>Daily Volume (USD)</TYPE.heading>
+                    </RowBetween>
+                    <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+                      <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
+                        {formattedNum(totalVolumeUsd, true)}
+                      </TYPE.main>
+                    </RowBetween>
+                  </AutoColumn>
+                </Panel>
               </AutoColumn>
             </AutoRow>
           )}
 
-          {nfts !== undefined && (
+          {nfts && (
             <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
               <TopTokenList tokens={nfts} itemMax={below800 ? 50 : 100} displayUsd={displayUsd} />
             </Panel>
           )}
         </div>
+
         <div style={{ margin: 'auto' }}>
           <a href="#"><ButtonDark>Download all data in .csv</ButtonDark></a>
         </div>
