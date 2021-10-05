@@ -34,6 +34,8 @@ export const FEE_WARNING_TOKENS = ['0xd46ba6d942050d489dbd938a2c909a5d5039a161']
 export const CHART_API = 'https://api.llama.fi/charts'
 export const PROTOCOLS_API = 'https://api.llama.fi/protocols'
 export const PROTOCOL_API = 'https://api.llama.fi/protocol'
+export const NFT_COLLECTIONS_API = 'https://api.llama.fi/nft/collections'
+export const NFT_CHARTS_API = process.env.NODE_ENV === 'development' ? 'http://localhost:8080/dev/nft/charts' : 'https://api.llama.fi/nft/charts'
 
 // GlobalData Constants
 export const UPDATE = 'UPDATE'
@@ -52,3 +54,7 @@ export const UPDATE_PRICE_DATA = 'UPDATE_PRICE_DATA'
 export const UPDATE_TOP_TOKENS = ' UPDATE_TOP_TOKENS'
 export const UPDATE_ALL_PAIRS = 'UPDATE_ALL_PAIRS'
 export const TOKEN_PAIRS_KEY = 'TOKEN_PAIRS_KEY'
+
+// NFTData Constants
+export const UPDATE_ALL_NFT_COLLECTIONS = 'UPDATE_ALL_NFT_COLLECTIONS'
+export const UPDATE_NFT_CHART = 'UPDATE_NFT_CHART'
