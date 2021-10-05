@@ -12,13 +12,13 @@ import DropdownSelect from '../components/DropdownSelect'
 import { PageWrapper, ContentWrapper } from '../components'
 import Panel from '../components/Panel'
 import RightSettings from '../components/RightSettings'
-import { NFTSearch } from '../components/Search'
+import Search from '../components/Search'
 import TopTokenList from '../components/NFTList'
 import { TYPE, ThemedBackground } from '../Theme'
 
 import { useDisplayUsdManager } from '../contexts/LocalStorage'
 import { formattedNum } from '../utils'
-import { useNFTChartData, useNFTCollectionsData, useNFTSummaryData } from '../contexts/NFTData'
+import { useNFTCollectionsData, useNFTSummaryData } from '../contexts/NFTData'
 import GlobalNFTChart from '../components/GlobalNFTChart'
 
 const ListOptions = styled(AutoRow)`
@@ -68,7 +68,7 @@ const NFTDashboard = ({ history }) => {
               <TYPE.largeHeader>{title}</TYPE.largeHeader>
               {!below800 && <RightSettings type='nfts' />}
             </RowBetween>
-            <NFTSearch />
+            <Search />
           </AutoColumn>
           {below800 && ( // mobile card
             <AutoColumn
