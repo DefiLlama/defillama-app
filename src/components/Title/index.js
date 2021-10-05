@@ -5,7 +5,8 @@ import styled from 'styled-components'
 import { Flex } from 'rebass'
 import Link from '../Link'
 import { RowFixed } from '../Row'
-import Logo from '../../assets/logo_white_long.svg'
+import DefiLogo from '../../assets/logo_white_long.svg'
+import NFTLogo from '../../assets/nft_logo_white_long.svg'
 
 const TitleWrapper = styled.div`
   text-decoration: none;
@@ -24,15 +25,15 @@ const UniIcon = styled(Link)`
   }
 `
 
-export default function Title() {
+export default function Title({ homePath = '/'}) {
   const history = useHistory()
 
   return (
-    <TitleWrapper onClick={() => history.push('/')}>
+    <TitleWrapper onClick={() => history.push(homePath)}>
       <Flex alignItems="center">
         <RowFixed>
-          <UniIcon id="link" onClick={() => history.push('/')}>
-            <img width={'160px'} src={Logo} alt="logo" />
+          <UniIcon id="link" onClick={() => history.push(homePath)}>
+            <img width={'160px'} src={homePath === '/' ? DefiLogo : NFTLogo} alt="logo" />
           </UniIcon>
         </RowFixed>
       </Flex>
