@@ -171,7 +171,7 @@ const NFTDashboard = ({ history }) => {
                 </Panel>
               </AutoColumn>
               <Panel style={{ height: '100%', minHeight: '300px' }}>
-                <GlobalNFTChart display="liquidity" />
+                <GlobalNFTChart />
               </Panel>
             </AutoRow>
           )}
@@ -179,7 +179,7 @@ const NFTDashboard = ({ history }) => {
           {below800 && (
             <AutoColumn style={{ marginTop: '6px' }} gap="24px">
               <Panel style={{ height: '100%', minHeight: '300px' }}>
-                <GlobalNFTChart display="liquidity" />
+                <GlobalNFTChart />
               </Panel>
             </AutoColumn>
           )}
