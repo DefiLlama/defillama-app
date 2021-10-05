@@ -18,7 +18,8 @@ import { TYPE, ThemedBackground } from '../Theme'
 
 import { useDisplayUsdManager } from '../contexts/LocalStorage'
 import { formattedNum } from '../utils'
-import { useNFTCollectionsData } from '../contexts/NFTData'
+import { useNFTChartData, useNFTCollectionsData, useNFTSummaryData } from '../contexts/NFTData'
+import GlobalNFTChart from '../components/GlobalNFTChart'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -36,6 +37,7 @@ const extraChainOptions = []
 
 const NFTDashboard = ({ history }) => {
   const nftCollections = useNFTCollectionsData()
+  const { totalMarketCap, marketCapChange, totalVolume } = useNFTSummaryData()
   const [displayUsd] = useDisplayUsdManager()
   useEffect(() => window.scrollTo(0, 0))
 
@@ -44,9 +46,6 @@ const NFTDashboard = ({ history }) => {
 
   let title = `NFT Dashboard`
   document.title = `${title} - Defi Llama`
-
-  const totalVolumeUsd = nftCollections.reduce((prevSum, collection) => prevSum + collection.dailyVolumeUsd, 0)
-  const totalMarketCap = nftCollections.reduce((prevSum, collection) => prevSum + collection.marketCapUsd, 0)
 
   let chainOptions = []
   if (!below1400) {
@@ -101,7 +100,7 @@ const NFTDashboard = ({ history }) => {
                   </RowBetween>
                   <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-                      {formattedNum(totalMarketCap, true)}
+                      {formattedNum(marketCapChange, true)}
                     </TYPE.main>
                   </RowBetween>
                 </AutoColumn>
@@ -114,7 +113,7 @@ const NFTDashboard = ({ history }) => {
                   </RowBetween>
                   <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-                      {formattedNum(totalVolumeUsd, true)}
+                      {formattedNum(totalVolume, true)}
                     </TYPE.main>
                   </RowBetween>
                 </AutoColumn>
@@ -152,7 +151,7 @@ const NFTDashboard = ({ history }) => {
                     </RowBetween>
                     <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                       <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-                        {formattedNum(totalMarketCap, true)}
+                        {marketCapChange}%
                       </TYPE.main>
                     </RowBetween>
                   </AutoColumn>
@@ -165,14 +164,14 @@ const NFTDashboard = ({ history }) => {
                     </RowBetween>
                     <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                       <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-                        {formattedNum(totalVolumeUsd, true)}
+                        {formattedNum(totalVolume, true)}
                       </TYPE.main>
                     </RowBetween>
                   </AutoColumn>
                 </Panel>
               </AutoColumn>
               <Panel style={{ height: '100%', minHeight: '300px' }}>
-                {/* {chart} */}
+                <GlobalNFTChart display="liquidity" />
               </Panel>
             </AutoRow>
           )}
@@ -180,7 +179,7 @@ const NFTDashboard = ({ history }) => {
           {below800 && (
             <AutoColumn style={{ marginTop: '6px' }} gap="24px">
               <Panel style={{ height: '100%', minHeight: '300px' }}>
-                {/* {chart} */}
+                <GlobalNFTChart display="liquidity" />
               </Panel>
             </AutoColumn>
           )}
