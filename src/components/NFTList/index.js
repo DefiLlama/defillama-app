@@ -111,21 +111,15 @@ const DataText = styled(Flex)`
 `
 
 const SORT_FIELD = {
-  TVL: 'tvl',
-  VOL: 'oneDayVolumeUSD',
-  SYMBOL: 'symbol',
   NAME: 'name',
-  PRICE: 'priceUSD',
-  HOURONE: 'change_1h',
-  DAYONE: 'totalVolume',
-  DAYSEVEN: 'change_7d',
-  CHANGE: 'priceChangeUSD',
-  MCAPTVL: "mcaptvl",
-  FDVTVL: "fdvtvl",
+  TOTAL_VOL: 'totalVolume',
+  FLOOR: 'floor',
+  VOL: 'dailyVolume',
+  OWNERS: 'owners'
 }
 
 // @TODO rework into virtualized list
-function TopTokenList({ tokens, itemMax = 100, displayUsd = false }) {
+function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
   // page state
   const [page, setPage] = useState(1)
   const [maxPage, setMaxPage] = useState(1)
@@ -158,7 +152,7 @@ function TopTokenList({ tokens, itemMax = 100, displayUsd = false }) {
       tokens &&
       tokens
         .sort((a, b) => {
-          if (sortedColumn === SORT_FIELD.SYMBOL || sortedColumn === SORT_FIELD.NAME) {
+          if (sortedColumn === SORT_FIELD.NAME) {
             return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
           }
           return parseFloat(a[sortedColumn] || 0) > parseFloat(b[sortedColumn] || 0)
@@ -200,7 +194,7 @@ function TopTokenList({ tokens, itemMax = 100, displayUsd = false }) {
         <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayUsd)}</DataText>
         {
           !below680 && (
-            <DataText area="mcaptvl" color="text" fontWeight="500">
+            <DataText area="owners" color="text" fontWeight="500">
               {formattedNum(item.owners, false)}
             </DataText>
           )
@@ -222,55 +216,55 @@ function TopTokenList({ tokens, itemMax = 100, displayUsd = false }) {
               setSortDirection(sortedColumn !== SORT_FIELD.NAME ? true : !sortDirection)
             }}
           >
-            {below680 ? 'Symbol' : 'Name'} {sortedColumn === SORT_FIELD.NAME ? (!sortDirection ? '↑' : '↓') : ''}
+            Name {sortedColumn === SORT_FIELD.NAME ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
         {!below1080 && (
           <Flex alignItems="center">
             <ClickableText
-              area="1dchange"
+              area="totalVol"
               onClick={e => {
-                setSortedColumn(SORT_FIELD.DAYONE)
-                setSortDirection(sortedColumn !== SORT_FIELD.DAYONE ? true : !sortDirection)
+                setSortedColumn(SORT_FIELD.TOTAL_VOL)
+                setSortDirection(sortedColumn !== SORT_FIELD.TOTAL_VOL ? true : !sortDirection)
               }}
             >
-              Total Volume {sortedColumn === SORT_FIELD.DAYONE ? (!sortDirection ? '↑' : '↓') : ''}
+              Total Volume {sortedColumn === SORT_FIELD.TOTAL_VOL ? (!sortDirection ? '↑' : '↓') : ''}
             </ClickableText>
           </Flex>
         )}
         <Flex alignItems="center">
           <ClickableText
-            area="7dchange"
+            area="floor"
             onClick={e => {
-              setSortedColumn(SORT_FIELD.DAYSEVEN)
-              setSortDirection(sortedColumn !== SORT_FIELD.DAYSEVEN ? true : !sortDirection)
+              setSortedColumn(SORT_FIELD.FLOOR)
+              setSortDirection(sortedColumn !== SORT_FIELD.FLOOR ? true : !sortDirection)
             }}
           >
-            Floor {sortedColumn === SORT_FIELD.DAYSEVEN ? (!sortDirection ? '↑' : '↓') : ''}
+            Floor {sortedColumn === SORT_FIELD.FLOOR ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
 
         <Flex alignItems="center">
           <ClickableText
-            area="tvl"
+            area="dailyVol"
             onClick={e => {
-              setSortedColumn(SORT_FIELD.TVL)
-              setSortDirection(sortedColumn !== SORT_FIELD.TVL ? true : !sortDirection)
+              setSortedColumn(SORT_FIELD.VOL)
+              setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
             }}
           >
-            Daily Volume {sortedColumn === SORT_FIELD.TVL ? (!sortDirection ? '↑' : '↓') : ''}
+            Daily Volume {sortedColumn === SORT_FIELD.VOL ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
         {!below680 && (
           <Flex alignItems="center">
             <ClickableText
-              area="mcaptvl"
+              area="owners"
               onClick={e => {
-                setSortedColumn(SORT_FIELD.MCAPTVL)
-                setSortDirection(sortedColumn !== SORT_FIELD.MCAPTVL ? true : !sortDirection)
+                setSortedColumn(SORT_FIELD.OWNERS)
+                setSortDirection(sortedColumn !== SORT_FIELD.OWNERS ? true : !sortDirection)
               }}
             >
-              Owners {sortedColumn === SORT_FIELD.MCAPTVL ? (!sortDirection ? '↑' : '↓') : ''}
+              Owners {sortedColumn === SORT_FIELD.OWNERS ? (!sortDirection ? '↑' : '↓') : ''}
             </ClickableText>
           </Flex>
         )}
@@ -300,4 +294,4 @@ function TopTokenList({ tokens, itemMax = 100, displayUsd = false }) {
   )
 }
 
-export default withRouter(TopTokenList)
+export default withRouter(NFTList)
