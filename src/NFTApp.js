@@ -2,18 +2,19 @@ import React, { useState } from 'react'
 import { Route, Switch, BrowserRouter, Redirect } from 'react-router-dom'
 
 import { AppWrapper, LayoutWrapper } from './layout'
-import AllNFTsPage from './pages/AllNftsPage'
+import NFTDashboard from './pages/NFTDashboard'
 import NFTPage from './pages/NFTPage'
 
-import { useNFTCollectionsData } from './contexts/NFTData'
+import { useNFTChartData, useNFTCollectionsData } from './contexts/NFTData'
 import { isValidCollection } from './utils'
 import LocalLoader from './components/LocalLoader'
 
 function App() {
   const [savedOpen, setSavedOpen] = useState(false)
   const nftCollections = useNFTCollectionsData()
+  const nftChartData = useNFTChartData()
 
-  if (nftCollections.length === 0) {
+  if (nftCollections.length === 0 || nftChartData === undefined) {
     return <AppWrapper><LocalLoader fill="true" /></AppWrapper>
   }
 
@@ -42,7 +43,7 @@ function App() {
 
           <Route path="/nfts">
             <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-              <AllNFTsPage />
+              <NFTDashboard />
             </LayoutWrapper>
           </Route>
 
