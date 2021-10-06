@@ -16,7 +16,7 @@ function App() {
   const nftChartData = useNFTChartData()
 
   if (nftCollections.length === 0 || nftChartData === undefined) {
-    return <AppWrapper><LocalLoader fill="true" /></AppWrapper>
+    return <AppWrapper><BrowserRouter><LocalLoader fill="true" /></BrowserRouter></AppWrapper>
   }
 
   return (
