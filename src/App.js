@@ -25,13 +25,13 @@ function App() {
 
   return (
     <AppWrapper>
+      <BrowserRouter>
       {globalData &&
         globalData.totalLiquidityUSD &&
         globalChartData &&
         globalChartData[1] &&
         allTokens &&
         allTokens[1] ? (
-        <BrowserRouter>
           <Switch>
             <Route
               exacts
@@ -126,10 +126,10 @@ function App() {
 
             <Redirect to="/home" />
           </Switch>
-        </BrowserRouter>
       ) : (
         <LocalLoader fill="true" />
       )}
+      </BrowserRouter>
     </AppWrapper>
   )
 }

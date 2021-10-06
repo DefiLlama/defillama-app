@@ -1,6 +1,6 @@
 import React from 'react'
 import styled, { css, keyframes } from 'styled-components'
-import { useDarkModeManager } from '../../contexts/LocalStorage'
+import { useNFTApp } from '../../hooks'
 
 const rotate = keyframes`
   0% { transform: scale(1); }
@@ -30,11 +30,12 @@ const Loader = styled.div`
 `
 
 const LocalLoader = ({ fill }) => {
-  const [darkMode] = useDarkModeManager()
+  const isNFTApp = useNFTApp()
+  const imgSrc = require(isNFTApp ? '../../assets/nft_logo_white.png' : '../../assets/logo_white.png')
 
   return (
     <Loader fill={fill}>
-      <img src={require(darkMode ? '../../assets/logo_white.png' : '../../assets/logo_white.png')} alt="loading-icon" />
+      <img src={imgSrc} alt="loading-icon" />
     </Loader>
   )
 }

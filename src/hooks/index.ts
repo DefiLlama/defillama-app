@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { shade } from 'polished'
 import Vibrant from 'node-vibrant'
 import { hex } from 'wcag-contrast'
@@ -95,4 +96,9 @@ export default function useInterval(callback: () => void, delay: null | number) 
     }
     return
   }, [delay])
+}
+
+export function useNFTApp() {
+  const location = useLocation()
+  return location.pathname.startsWith('/nfts')
 }
