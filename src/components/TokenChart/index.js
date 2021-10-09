@@ -48,7 +48,8 @@ const BASIC_DENOMINATIONS = {
   TokensUSD: 'Tokens(USD)',
   Tokens: 'Tokens',
   Change: 'Change',
-  ChangeSplit: 'ChangeSplit'
+  ChangeSplit: 'ChangeSplit',
+  Chains: 'Chains'
 }
 
 function stringToColour(str) {
@@ -151,24 +152,39 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
     tokensInUsd = tokensInUsd?.filter(entry => entry.date >= utcStartTime)
   }
 
-  const domain = [dataMin => (dataMin > utcStartTime ? dataMin : utcStartTime), 'dataMax']
+  //const domain = [dataMin => (dataMin > utcStartTime ? dataMin : utcStartTime), 'dataMax']
   const aspect = below1080 ? 60 / 32 : below600 ? 60 / 42 : 60 / 22
 
   const [stackedDataset, tokensUnique] = useMemo(() => {
-    if (denomination !== DENOMINATIONS.TokensUSD) {
-      return [undefined, []]
+    if (denomination === DENOMINATIONS.TokensUSD) {
+      const tokenSet = new Set();
+      const stacked = tokensInUsd.map(dayTokens => {
+        Object.keys(dayTokens.tokens).forEach(symbol => tokenSet.add(symbol))
+        return {
+          ...Object.fromEntries(Object.entries(dayTokens.tokens).filter(t => !(t[0].startsWith("UNKNOWN") && t[1] < 1))),
+          date: dayTokens.date
+        }
+      })
+      return [stacked, Array.from(tokenSet)]
+    } else if (denomination === DENOMINATIONS.Chains) {
+      const timeToTvl = {}
+      Object.entries(chainTvls).forEach(([chainToAdd, tvl]) => {
+        tvl.tvl.forEach(dayTvl => {
+          timeToTvl[dayTvl.date] = {
+            ...timeToTvl[dayTvl.date],
+            [chainToAdd]: dayTvl.totalLiquidityUSD
+          }
+        })
+      })
+      const stacked = Object.keys(timeToTvl).sort().map(dayDate => ({
+        ...timeToTvl[dayDate],
+        date: Number(dayDate),
+      }))
+      return [stacked, Object.keys(chainTvls)]
     }
-    const tokenSet = new Set();
-    const stacked = tokensInUsd.map(dayTokens => {
-      Object.keys(dayTokens.tokens).forEach(symbol => tokenSet.add(symbol))
-      return {
-        ...Object.fromEntries(Object.entries(dayTokens.tokens).filter(t => !(t[0].startsWith("UNKNOWN") && t[1] < 1))),
-        date: dayTokens.date
-      }
-    })
-    return [stacked, Array.from(tokenSet)]
+    return [undefined, []]
   }, [tokensInUsd, denomination])
-  if (denomination === DENOMINATIONS.TokensUSD) {
+  if (denomination === DENOMINATIONS.TokensUSD || denomination === DENOMINATIONS.Chains) {
     chartData = stackedDataset
   }
 
@@ -291,7 +307,9 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
       denominationsToDisplay['ChangeSplit'] = 'ChangeSplit'
     }
   }
-  console.log(denominationsToDisplay)
+  if (chainTvls) {
+    denominationsToDisplay['Chains'] = 'Chains'
+  }
   const tokenSymbols = useMemo(() => tokensProvided ? Object.entries(tokensInUsd[tokensInUsd.length - 1].tokens).sort((a, b) => b[1] - a[1]).map(t => t[0]) : undefined)
   return (
     <ChartWrapper>
@@ -395,6 +413,8 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               minTickGap={120}
               tickFormatter={formatDate}
               dataKey="date"
+              scale="time"
+              type="number"
               tick={{ fill: textColor }}
               domain={['dataMin', 'dataMax']}
             />
@@ -459,6 +479,8 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               tickMargin={14}
               tickFormatter={formatDate}
               dataKey="date"
+              scale="time"
+              type="number"
               tick={{ fill: textColor }}
               domain={['dataMin', 'dataMax']}
             />

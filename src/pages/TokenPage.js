@@ -157,12 +157,12 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
   const price = priceUSD ? formattedNum(priceUSD, true) : ''
   const priceChange = priceChangeUSD ? formattedPercent(priceChangeUSD) : ''
 
-  const below1600 = useMedia('(max-width: 1600px)')
+  const below1600 = useMedia('(max-width: 1650px)')
   const below1024 = useMedia('(max-width: 1024px)')
   const below800 = useMedia('(max-width: 800px)')
   const below600 = useMedia('(max-width: 600px)')
   const below500 = useMedia('(max-width: 500px)')
-  const below850 = useMedia('(max-width: 850px)')
+  const below900 = useMedia('(max-width: 900px)')
 
   // format for long symbol
   const LENGTH = below1024 ? 10 : 16
@@ -215,7 +215,6 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
   return (
     <PageWrapper>
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
-
       <ContentWrapper>
         <RowBetween style={{ flexWrap: 'wrap', alingItems: 'start' }}>
           <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
@@ -346,7 +345,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                 {chartData && (
                   <ProtocolChart
                     denomination={denomination}
-                    small={below850 || (!below1024 && below1600)}
+                    small={below900 || (!below1024 && below1600)}
                     chartData={chartData}
                     misrepresentedTokens={misrepresentedTokens}
                     protocol={name}
