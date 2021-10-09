@@ -13,7 +13,9 @@ import { useMedia } from 'react-use'
 const exclude = ["Mento", "Lightning Network", "Secret Bridge", "Karura Swap", "Karura Liquid-Staking", "Karura Dollar (kUSD)", "Tezos Liquidity Baking", "Notional", "Tinlake"]
 
 function AllTokensPage(props) {
-    let allTokens = Object.values(useAllTokenData()).filter(token => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name))
+    let allTokens = Object.values(useAllTokenData()).filter(token =>
+        token.name === "DeversiFi" || ((token.symbol === null || token.symbol === '-') && !exclude.includes(token.name))
+    )
 
     useEffect(() => {
         window.scrollTo(0, 0)
