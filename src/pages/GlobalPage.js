@@ -27,6 +27,7 @@ import DropdownSelect from '../components/DropdownSelect'
 import { Redirect } from 'react-router-dom'
 import RightSettings from '../components/RightSettings'
 import { useStakingManager, usePool2Manager } from '../contexts/LocalStorage'
+import { OptionToggle } from '../components/SettingsModal'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -66,8 +67,8 @@ function GlobalPage({ chain, denomination, history }) {
       top: 0
     })
   }, [])
-  const [stakingEnabled] = useStakingManager()
-  const [pool2Enabled] = usePool2Manager()
+  const [stakingEnabled, toggleStaking] = useStakingManager()
+  const [pool2Enabled, togglePool2] = usePool2Manager()
 
   let { totalVolumeUSD, volumeChangeUSD } = globalData
 
@@ -128,14 +129,14 @@ function GlobalPage({ chain, denomination, history }) {
       }
     }).filter(token => token !== null)
 
-    if (selectedChain !== undefined) {
+    if (selectedChain !== undefined || stakingEnabled || pool2Enabled) {
       filteredTokens = filteredTokens.sort((a, b) => b.tvl - a.tvl)
     }
 
     chainOptions.forEach(chain => chainsSet.delete(chain))
     const otherChains = Array.from(chainsSet)
     return [filteredTokens, otherChains]
-  }, [allTokensOriginal, selectedChain])
+  }, [allTokensOriginal, selectedChain, stakingEnabled, pool2Enabled])
 
   if (chain === undefined && (stakingEnabled || pool2Enabled)) {
     tokensList.forEach(token => {
@@ -152,6 +153,10 @@ function GlobalPage({ chain, denomination, history }) {
   if (tokensList.length > 0) {
     topToken.name = tokensList[0]?.name
     topToken.tvl = tokensList[0]?.tvl
+    if (topToken.name === "AnySwap") {
+      topToken.name = tokensList[1]?.name
+      topToken.tvl = tokensList[1]?.tvl
+    }
   } else {
     return <Redirect to="/home" />
   }
@@ -179,10 +184,24 @@ function GlobalPage({ chain, denomination, history }) {
             {selectedChain === "Fantom" &&
               <Panel background={true} style={{ textAlign: 'center' }}>
                 <TYPE.main fontWeight={400}>
-                  Fantom announced <a style={{ color: 'inherit', fontWeight: '700' }} href="https://fantom.foundation/blog/announcing-370m-ftm-incentive-program/">a 370m liquidity program that uses DefiLlama's data</a>
+                  AnySwap TVL has been excluded from the total TVL calculation. Click <a style={{ color: 'inherit', fontWeight: '700' }} href="https://twitter.com/0xngmi/status/1446691628043878404">here</a> for our explanation and reasoning
                 </TYPE.main>
               </Panel>
             }
+            <AutoRow gap="10px" justify="center" >
+              {[{
+                name: "Staking",
+                toggle: toggleStaking,
+                enabled: stakingEnabled,
+                help: "Include governance tokens staked in the protocol",
+              },
+              {
+                name: "Pool2",
+                toggle: togglePool2,
+                enabled: pool2Enabled,
+                help: "Include staked lp tokens where one of the coins in the pair is the governance token",
+              }].map(toggleSetting => (<OptionToggle {...toggleSetting} key={toggleSetting.name} />))}
+            </AutoRow>
           </AutoColumn>
           {below800 && ( // mobile card
             <AutoColumn

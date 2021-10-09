@@ -100,7 +100,7 @@ const MenuItem = styled(StyledLink)`
   }
 `
 
-const OptionToggle = (props) =>
+export const OptionToggle = (props) =>
   <TYPE.body style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
     <Switch onChange={props.toggle} checked={props.enabled} height={20} width={40} />&nbsp;
     {props.help ? <HeadHelp title={props.name} text={props.help} /> : props.name}
@@ -145,7 +145,7 @@ export default function Menu({ type = 'defi' }) {
         toggle: togglePool2,
         enabled: pool2Enabled,
         help: "Include staked lp tokens where one of the coins in the pair is the governance token",
-      }, 
+      },
       {
         name: "Dark mode",
         toggle: toggleDarkMode,
