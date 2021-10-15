@@ -109,6 +109,7 @@ const blockExplorers = {
   'celo': ['https://explorer.celo.org/tokens/', 'Celo'],
   'waves': ['https://wavesexplorer.com/assets/', 'Waves Explorer'],
   'eos': ['https://bloks.io/tokens/', 'bloks'],
+  'energyweb': ['https://explorer.energyweb.org/address/', 'EnergyWeb'],
 }
 
 function TokenPage({ protocol, history, denomination, selectedChain }) {
