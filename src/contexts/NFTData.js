@@ -67,7 +67,14 @@ export default function Provider({ children }) {
 const getCollections = async () => {
   try {
     let data = await fetchAPI(NFT_COLLECTIONS_API)
-    return data.collections
+    for (const collection of data) {
+      Object.entries(collection).forEach(([key, value]) => {
+        if (key.endsWith("USD")) {
+          collection[key] = parseInt(value);
+        }
+      })
+    }
+    return data
   } catch (e) {
     console.log(e)
   }
@@ -75,7 +82,8 @@ const getCollections = async () => {
 
 const getChartData = async () => {
   try {
-    let data = await fetchAPI(NFT_CHARTS_API)
+    // let data = await fetchAPI(NFT_CHARTS_API)
+    let data = [];
     return data
   } catch (e) {
     console.log(e)
@@ -109,9 +117,9 @@ export function useNFTCollectionsData() {
 
   return state.collections.map(collection => ({
     ...collection,
-    floor: displayUsd ? collection.floorUsd : collection.floor,
-    dailyVolume: displayUsd ? collection.dailyVolumeUsd : collection.dailyVolume,
-    totalVolume: displayUsd ? collection.totalVolumeUsd : collection.totalVolume,
+    floor: displayUsd ? collection.floorUSD: collection.floor,
+    dailyVolume: displayUsd ? collection.dailyVolumeUSD : collection.dailyVolume,
+    totalVolume: displayUsd ? collection.totalVolumeUSD : collection.totalVolume,
   }))
 }
 
@@ -122,13 +130,15 @@ export function useNFTChartData() {
 
 export function useNFTSummaryData() {
   const [state] = useNFTDataContext()
-  const { timeSeriesData } = state
+  // const { timeSeriesData } = state
 
-  const todayTotalMarketCap = timeSeriesData[timeSeriesData.length - 1].totalMarketCapUSD
-  const yesterdayTotalMarketCap = timeSeriesData[timeSeriesData.length - 2].totalMarketCapUSD
+  const todayTotalMarketCap = state.collections.reduce((prevSum, collection) => prevSum + collection.marketCapUSD, 0)
+  const yesterdayTotalMarketCap = todayTotalMarketCap
+  // const todayTotalMarketCap = timeSeriesData[timeSeriesData.length - 1].totalMarketCapUSD
+  // const yesterdayTotalMarketCap = timeSeriesData[timeSeriesData.length - 2].totalMarketCapUSD
   const marketCapChange = ((todayTotalMarketCap - yesterdayTotalMarketCap) / yesterdayTotalMarketCap * 100).toFixed(2)
 
-  const totalVolume = state.collections.reduce((prevSum, collection) => prevSum + collection.dailyVolumeUsd, 0)
+  const totalVolume = state.collections.reduce((prevSum, collection) => prevSum + collection.dailyVolumeUSD, 0)
 
   return {
     totalMarketCap: todayTotalMarketCap,
