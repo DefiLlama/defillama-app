@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 
 import { RowFixed } from '../Row'
 import TokenLogo from '../TokenLogo'
@@ -12,16 +12,15 @@ import RightSettings from '../RightSettings'
 
 import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconLarge, Wrapper } from './shared'
 
-import { useNFTCollectionsData } from '../../contexts/NFTData'
+import { fetchAPI } from '../../contexts/API'
+import { NFT_SEARCH_API } from '../../constants'
 
 export default ({ small = false }) => {
-  const searchKeys = ['id', 'name']
-  const linkPath = (collection) => `/nfts/collection/${collection.id}`
-
-  const allTokenData = useNFTCollectionsData()
+  const linkPath = (collection) => `/nfts/collection/${collection.slug}`
 
   const [showMenu, toggleMenu] = useState(false)
   const [value, setValue] = useState('')
+  const [searchResults, setSearchResults] = useState([])
 
   const below700 = useMedia('(max-width: 700px)')
   const below470 = useMedia('(max-width: 470px)')
@@ -35,29 +34,14 @@ export default ({ small = false }) => {
     }
   }, [value])
 
-  function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
-  }
-
   const [tokensShown, setTokensShown] = useState(3)
 
-  const filteredTokenList = useMemo(() => {
-    if (!showMenu) {
-      return []
-    }
-    if (value === '') {
-      return Object.values(allTokenData).slice(0, tokensShown)
-    }
-    return allTokenData
-      ? Object.values(allTokenData)
-        .filter(token => {
-          const regexMatches = searchKeys.map(tokenEntryKey => {
-            return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
-          })
-          return regexMatches.some(m => m)
-        }).slice(0, tokensShown)
-      : []
-  }, [allTokenData, value, tokensShown, showMenu, searchKeys])
+  const searchTokens = useCallback(async () => {
+    const url = `${NFT_SEARCH_API}?searchTerm=${value}`
+    const tokens = await fetchAPI(url)
+    setSearchResults(tokens)
+  }, [value]);
+
 
   function onDismiss() {
     setTokensShown(3)
@@ -118,6 +102,7 @@ export default ({ small = false }) => {
             value={value}
             onChange={e => {
               setValue(e.target.value)
+              searchTokens()
             }}
             onFocus={() => {
               if (!showMenu) {
@@ -129,12 +114,12 @@ export default ({ small = false }) => {
         </Wrapper>
         <Menu hide={!showMenu} ref={menuRef}>
           <div>
-            {filteredTokenList.length === 0 && (
+            {searchResults.length === 0 && (
               <MenuItem>
                 <TYPE.body>No results</TYPE.body>
               </MenuItem>
             )}
-            {filteredTokenList.map(token => {
+            {searchResults.slice(0, tokensShown).map(token => {
               return (
                 <BasicLink
                   to={linkPath(token)}
