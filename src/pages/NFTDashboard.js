@@ -38,6 +38,7 @@ const extraChainOptions = []
 const NFTDashboard = ({ history }) => {
   const nftCollections = useNFTCollectionsData()
   const { totalMarketCap, marketCapChange, totalVolume } = useNFTSummaryData()
+
   const [displayUsd] = useDisplayUsdManager()
   useEffect(() => window.scrollTo(0, 0))
 
@@ -171,7 +172,7 @@ const NFTDashboard = ({ history }) => {
                 </Panel>
               </AutoColumn>
               <Panel style={{ height: '100%', minHeight: '300px' }}>
-                <GlobalNFTChart />
+                {/* <GlobalNFTChart /> */}
               </Panel>
             </AutoRow>
           )}
@@ -179,7 +180,7 @@ const NFTDashboard = ({ history }) => {
           {below800 && (
             <AutoColumn style={{ marginTop: '6px' }} gap="24px">
               <Panel style={{ height: '100%', minHeight: '300px' }}>
-                <GlobalNFTChart />
+                {/* <GlobalNFTChart /> */}
               </Panel>
             </AutoColumn>
           )}
