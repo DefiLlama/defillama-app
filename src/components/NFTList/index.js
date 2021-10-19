@@ -183,6 +183,8 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
             </CustomLink>
           </Row>
         </DataText>
+
+        <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayUsd)}</DataText>
         {
           !below1080 && (
             <DataText area="totalVolume" color="text" fontWeight="500">
@@ -191,7 +193,6 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
           )
         }
         <DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayUsd)}</DataText>
-        <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayUsd)}</DataText>
         {
           !below680 && (
             <DataText area="owners" color="text" fontWeight="500">
@@ -219,6 +220,18 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
             Name {sortedColumn === SORT_FIELD.NAME ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
+        <Flex alignItems="center">
+          <ClickableText
+            area="dailyVol"
+            onClick={e => {
+              setSortedColumn(SORT_FIELD.VOL)
+              setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
+            }}
+          >
+            Daily Volume {sortedColumn === SORT_FIELD.VOL ? (!sortDirection ? '↑' : '↓') : ''}
+          </ClickableText>
+        </Flex>
+
         {!below1080 && (
           <Flex alignItems="center">
             <ClickableText
@@ -232,6 +245,7 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
             </ClickableText>
           </Flex>
         )}
+
         <Flex alignItems="center">
           <ClickableText
             area="floor"
@@ -244,17 +258,6 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
           </ClickableText>
         </Flex>
 
-        <Flex alignItems="center">
-          <ClickableText
-            area="dailyVol"
-            onClick={e => {
-              setSortedColumn(SORT_FIELD.VOL)
-              setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
-            }}
-          >
-            Daily Volume {sortedColumn === SORT_FIELD.VOL ? (!sortDirection ? '↑' : '↓') : ''}
-          </ClickableText>
-        </Flex>
         {!below680 && (
           <Flex alignItems="center">
             <ClickableText
