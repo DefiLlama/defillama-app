@@ -13,6 +13,7 @@ import { useAllTokenData } from './contexts/TokenData'
 import { isValidProtocol } from './utils'
 import AllTokensPage from './pages/AllTokensPage'
 import AboutPage from './pages/AboutPage'
+import ComparisonPage from './pages/ComparisonPage'
 
 import LocalLoader from './components/LocalLoader'
 
@@ -26,12 +27,12 @@ function App() {
   return (
     <AppWrapper>
       <BrowserRouter>
-      {globalData &&
-        globalData.totalLiquidityUSD &&
-        globalChartData &&
-        globalChartData[1] &&
-        allTokens &&
-        allTokens[1] ? (
+        {globalData &&
+          globalData.totalLiquidityUSD &&
+          globalChartData &&
+          globalChartData[1] &&
+          allTokens &&
+          allTokens[1] ? (
           <Switch>
             <Route
               exacts
@@ -123,12 +124,20 @@ function App() {
                 <ChainsViewPage />
               </LayoutWrapper>
             </Route>
-
+            <Route path="/comparison/:protocolA?/:protocolB?"
+              render={({ match }) =>
+                <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                  <ComparisonPage
+                    protocolA={match?.params?.protocolA?.toLowerCase()}
+                    protocolB={match?.params?.protocolB?.toLowerCase()}
+                  />
+                </LayoutWrapper>}
+            />
             <Redirect to="/home" />
           </Switch>
-      ) : (
-        <LocalLoader fill="true" />
-      )}
+        ) : (
+          <LocalLoader fill="true" />
+        )}
       </BrowserRouter>
     </AppWrapper>
   )

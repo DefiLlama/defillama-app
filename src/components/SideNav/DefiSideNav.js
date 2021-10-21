@@ -5,7 +5,7 @@ import Title from '../Title'
 import { BasicLink } from '../Link'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
-import { TrendingUp, Disc, HelpCircle, Link as LinkLogo, CloudDrizzle } from 'react-feather'
+import { TrendingUp, Disc, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2 } from 'react-feather'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
 import categories from '../../constants/categories'
 import Menu from '../SettingsModal'
@@ -63,6 +63,7 @@ function SideNav({ history }) {
                   </Option>
                 </BasicLink>
               )}
+            {entry("comparison", "Comparison", history, { icon: Minimize2 })}
             {entry("about", "About", history, { icon: HelpCircle })}
           </AutoColumn>
         </AutoColumn>
