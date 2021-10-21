@@ -15,7 +15,7 @@ export const Wrapper = styled.div`
   padding: 0.5rem 0.5rem 0.5rem 0.75rem;
   position: sticky;
   top: 0px;
-  ${ /*z-index: 9999; disabled to get the settings modal working */ ""}
+  z-index: 10000;
   box-sizing: border-box;
   /* background-color: #1b1c22; */
   background: linear-gradient(168deg,#344179 3.98%,#445ed0 100%);
