@@ -1,21 +1,21 @@
-import React from 'react'
-import styled from 'styled-components'
-import { transparentize } from 'polished'
+import React from "react"
+import styled from "styled-components"
+import { transparentize } from "polished"
 
-import { AutoColumn } from '../Column'
-import { BasicLink } from '../Link'
-import Link from '../Link'
-import Toggle from '../Toggle'
-import { TYPE } from '../../Theme'
+import { AutoColumn } from "../Column"
+import { BasicLink } from "../Link"
+import Link from "../Link"
+import Toggle from "../Toggle"
+import { TYPE } from "../../Theme"
 
 export const Wrapper = styled.div`
-  height: ${({ isMobile }) => (isMobile ? 'initial' : '100vh')};
+  height: ${({ isMobile }) => (isMobile ? "initial" : "100vh")};
   background-color: ${({ theme }) => transparentize(0.4, theme.bg1)};
   color: ${({ theme }) => theme.text1};
   padding: 0.5rem 0.5rem 0.5rem 0.75rem;
   position: sticky;
   top: 0px;
-  ${ /*z-index: 9999; disabled to get the settings modal working */ ""}
+  z-index: 10000;
   box-sizing: border-box;
   /* background-color: #1b1c22; */
   background: linear-gradient(168deg,#344179 3.98%,#445ed0 100%);
@@ -93,16 +93,20 @@ export const PollingDot = styled.div`
   border-radius: 50%;
   background-color: ${({ theme }) => theme.green1};
 `
+export const ButtonWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+`
 
 export function entry(url, name, history, icon) {
   return <BasicLink to={"/" + url}>
     <Option
       activeText={
-        (history.location.pathname.split('/')[1] === url) ??
+        (history.location.pathname.split("/")[1] === url) ??
         undefined
       }
     >
-      <icon.icon size={20} style={{ marginRight: '.75rem' }} />
+      <icon.icon size={20} style={{ marginRight: ".75rem" }} />
       {name}
     </Option>
   </BasicLink>
@@ -111,7 +115,7 @@ export function entry(url, name, history, icon) {
 export function footer(below1180, isDark, toggleDarkMode) {
   return (
     <>
-      <AutoColumn gap="0.5rem" style={{ marginLeft: '.75rem', marginBottom: '4rem' }}>
+      <AutoColumn gap="0.5rem" style={{ marginLeft: ".75rem", marginBottom: "4rem" }}>
         <HeaderText>
           <Link href="https://twitter.com/DefiLlama" target="_blank">
             Twitter
@@ -140,10 +144,10 @@ export function footer(below1180, isDark, toggleDarkMode) {
         <Toggle isActive={isDark} toggle={toggleDarkMode} />
       </AutoColumn>
       {!below1180 && (
-        <Polling style={{ marginLeft: '.5rem' }}>
+        <Polling style={{ marginLeft: ".5rem" }}>
           <PollingDot />
-          <a href="/" style={{ color: 'white' }}>
-            <TYPE.small color={'white'}>
+          <a href="/" style={{ color: "white" }}>
+            <TYPE.small color={"white"}>
               Updating <br />
             </TYPE.small>
           </a>
