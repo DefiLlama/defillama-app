@@ -14,9 +14,8 @@ import RightSettings from '../RightSettings'
 import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconLarge, Wrapper } from './shared'
 import { useAllTokenData } from '../../contexts/TokenData'
 
-export default ({ small = false }) => {
+export default ({ small = false, linkPath = (token) => '/protocol/' + token.name?.toLowerCase().split(' ').join('-'), customOnLinkClick = () => { } }) => {
   const searchKeys = ['symbol', 'name']
-  const linkPath = (token) => '/protocol/' + token.name?.toLowerCase().split(' ').join('-')
 
   const allTokenData = useAllTokenData()
 
@@ -59,10 +58,11 @@ export default ({ small = false }) => {
       : []
   }, [allTokenData, value, tokensShown, showMenu, searchKeys])
 
-  function onDismiss() {
+  const onDismiss = token => () => {
     setTokensShown(3)
     toggleMenu(false)
     setValue('')
+    customOnLinkClick(token)
   }
 
   // refs to detect clicks outside modal
@@ -139,7 +139,7 @@ export default ({ small = false }) => {
                 <BasicLink
                   to={linkPath(token)}
                   key={token.id}
-                  onClick={onDismiss}
+                  onClick={onDismiss(token)}
                 >
                   <MenuItem>
                     <RowFixed>
