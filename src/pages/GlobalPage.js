@@ -28,6 +28,7 @@ import { Redirect } from 'react-router-dom'
 import RightSettings from '../components/RightSettings'
 import { useStakingManager, usePool2Manager } from '../contexts/LocalStorage'
 import { OptionToggle } from '../components/SettingsModal'
+import FormattedName from '../components/FormattedName'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -161,6 +162,12 @@ function GlobalPage({ chain, denomination, history }) {
     return <Redirect to="/home" />
   }
 
+  const getLastFiveTokensAdded = () => {
+    const timestampedTokens = tokensList.filter(token => token.listedAt)
+    timestampedTokens.sort((tokenA, tokenB) => tokenA.listedAt - tokenB.listedAt)
+    return timestampedTokens.slice(Math.max(timestampedTokens.length - 5, 0)) 
+  }
+
   document.title = `DefiLlama - DeFi Dashboard`;
 
   const chart = selectedChain === undefined ? <GlobalChart display="liquidity" /> :
@@ -188,6 +195,23 @@ function GlobalPage({ chain, denomination, history }) {
                 </TYPE.main>
               </Panel>
             }
+            <AutoRow wrap="wrap" gap="10px" justify="start" >
+              <TYPE.heading>Last 5 additions : </TYPE.heading>
+              {getLastFiveTokensAdded().map(token => (
+                <TYPE.main fontSize={'16px'} >
+                  <CustomLink
+                    style={{ minWidth: '200px' }}
+                    to={'/protocol/' + token.name?.toLowerCase().split(' ').join('-')}
+                  >
+                    <FormattedName
+                      text={`${token.name}`}
+                      adjustSize={true}
+                      link={true}
+                    />
+                  </CustomLink>
+                </TYPE.main>
+              ))}
+            </AutoRow>
             <AutoRow gap="10px" justify="center" >
               {[{
                 name: "Staking",
