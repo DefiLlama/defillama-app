@@ -131,7 +131,7 @@ const TokenComparisonSearch = ({ protocolAorB, tokenValid, tokenSymbol, logo, ad
     {tokenValid ?
       <DisplayToken tokenSymbol={tokenSymbol} logo={logo} address={address} price={price} resetDisplay={customOnLinkClick(protocolAorB)} />
       :
-      <Search linkPath={handleLinkPath(protocolAorB)} customOnLinkClick={customOnLinkClick(protocolAorB)} />
+      <Search linkPath={handleLinkPath(protocolAorB)} customOnLinkClick={customOnLinkClick(protocolAorB)} includeChains={false} />
     }
   </Column>
 )

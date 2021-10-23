@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react'
 
 import { RowFixed } from '../Row'
@@ -13,11 +12,27 @@ import RightSettings from '../RightSettings'
 
 import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconLarge, Wrapper } from './shared'
 import { useAllTokenData } from '../../contexts/TokenData'
+import { getChainsFromAllTokenData } from '../../utils'
 
-export default ({ small = false, linkPath = (token) => '/protocol/' + token.name?.toLowerCase().split(' ').join('-'), customOnLinkClick = () => { } }) => {
+const defaultLinkPath = item => {
+  if (item.isChain) {
+    return '/chain/' + item.name
+  }
+  return (
+    `/protocol/` +
+    item.name
+      ?.toLowerCase()
+      .split(' ')
+      .join('-')
+  )
+}
+
+export default ({ small = false, includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => {} }) => {
   const searchKeys = ['symbol', 'name']
 
   const allTokenData = useAllTokenData()
+  const chainData = includeChains ? getChainsFromAllTokenData(allTokenData) : []
+  const searchData = [...chainData, ...Object.values(allTokenData)]
 
   const [showMenu, toggleMenu] = useState(false)
   const [value, setValue] = useState('')
@@ -45,18 +60,19 @@ export default ({ small = false, linkPath = (token) => '/protocol/' + token.name
       return []
     }
     if (value === '') {
-      return Object.values(allTokenData).slice(0, tokensShown)
+      return searchData.slice(0, tokensShown)
     }
-    return allTokenData
-      ? Object.values(allTokenData)
-        .filter(token => {
-          const regexMatches = searchKeys.map(tokenEntryKey => {
-            return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
+    return searchData
+      ? searchData
+          .filter(token => {
+            const regexMatches = searchKeys.map(tokenEntryKey => {
+              return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
+            })
+            return regexMatches.some(m => m)
           })
-          return regexMatches.some(m => m)
-        }).slice(0, tokensShown)
+          .slice(0, tokensShown)
       : []
-  }, [allTokenData, value, tokensShown, showMenu, searchKeys])
+  }, [searchData, value, tokensShown, showMenu, searchKeys])
 
   const onDismiss = token => () => {
     setTokensShown(3)
@@ -92,10 +108,16 @@ export default ({ small = false, linkPath = (token) => '/protocol/' + token.name
   }, [])
 
   return (
-    <div style={small ? {
-      display: 'flex',
-      alignItems: 'center'
-    } : {}}>
+    <div
+      style={
+        small
+          ? {
+              display: 'flex',
+              alignItems: 'center'
+            }
+          : {}
+      }
+    >
       <Container small={small}>
         <Wrapper open={showMenu} shadow={true} small={small}>
           <Input
@@ -108,12 +130,12 @@ export default ({ small = false, linkPath = (token) => '/protocol/' + token.name
               small
                 ? ''
                 : below410
-                  ? 'Search...'
-                  : below470
-                    ? 'Search DeFi...'
-                    : below700
-                      ? 'Search protocols...'
-                      : 'Search DeFi protocols...'
+                ? 'Search...'
+                : below470
+                ? 'Search DeFi...'
+                : below700
+                ? 'Search protocols...'
+                : 'Search DeFi protocols...'
             }
             value={value}
             onChange={e => {
@@ -136,16 +158,12 @@ export default ({ small = false, linkPath = (token) => '/protocol/' + token.name
             )}
             {filteredTokenList.map(token => {
               return (
-                <BasicLink
-                  to={linkPath(token)}
-                  key={token.id}
-                  onClick={onDismiss(token)}
-                >
+                <BasicLink to={linkPath(token)} key={token.id} onClick={onDismiss(token)}>
                   <MenuItem>
                     <RowFixed>
                       <TokenLogo address={token.address} logo={token.logo} style={{ marginRight: '10px' }} />
                       <FormattedName text={token.name} maxCharacters={20} style={{ marginRight: '6px' }} />
-                      (<FormattedName text={token.symbol} maxCharacters={6} />)
+                      <FormattedName text={token.symbol && `(${token.symbol})`} maxCharacters={6} />
                     </RowFixed>
                   </MenuItem>
                 </BasicLink>

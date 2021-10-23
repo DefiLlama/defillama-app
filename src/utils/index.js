@@ -419,6 +419,22 @@ export function rawPercent(percentRaw) {
   return percent.toFixed(0) + '%'
 }
 
+export function getChainsFromAllTokenData(data) {
+  const chainsUniqueSet = new Set()
+  Object.values(data).forEach(token => {
+    if (token.category === 'Chain') return
+    token.chains.forEach(chain => {
+      chainsUniqueSet.add(chain)
+    })
+  })
+  const chainsUnique = Array.from(chainsUniqueSet)
+  return chainsUnique.map(name => ({
+    logo: chainIconUrl(name),
+    isChain: true,
+    name
+  }))  
+}
+
 export function chainIconUrl(chain) {
   return `https://icons.llama.fi/chains/rsz_${chain.toLowerCase()}.jpg`
 }
