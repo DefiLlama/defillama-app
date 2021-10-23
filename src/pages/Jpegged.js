@@ -5,7 +5,9 @@ import Panel from '../components/Panel'
 import { PageWrapper, FullWrapper } from '../components'
 import { RowBetween } from '../components/Row'
 import { useMedia } from 'react-use'
-import { ethers } from 'ethers'
+import { Contract } from '@ethersproject/contracts'
+import { Web3Provider } from '@ethersproject/providers'
+
 import { formattedNum } from '../utils'
 
 const erc721Transfer = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
@@ -59,7 +61,7 @@ export default function Jpegged(props) {
             const [address] = await window.ethereum.request({ method: 'eth_requestAccounts' });
             const txs = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc`).then(r => r.json())
             const ethPrice = (await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd').then(r => r.json())).ethereum.usd;
-            const provider = new ethers.providers.Web3Provider(window.ethereum)
+            const provider = new Web3Provider(window.ethereum)
             let mintOrBuy = 0
             let gas = 0
             await Promise.all(txs.result.map(async tx => {
@@ -70,7 +72,7 @@ export default function Jpegged(props) {
                     const txData = await provider.getTransaction(hash)
                     if (transferLog.topics[0] === erc721Transfer) {
                         // Verify that this is an ERC721 contract instead of ERC20
-                        const contract = new ethers.Contract(
+                        const contract = new Contract(
                             transferLog.address,
                             [
                                 'function ownerOf(uint256 _tokenId) external view returns (address)',
@@ -93,7 +95,7 @@ export default function Jpegged(props) {
                 }
             }))
             let foundationAuctions = 0;
-            const foundation = new ethers.Contract(
+            const foundation = new Contract(
                 "0xcDA72070E455bb31C7690a170224Ce43623d0B6f",
                 [
                     'event ReserveAuctionFinalized(uint256 indexed auctionId,address indexed seller,address indexed bidder,uint256 f8nFee,uint256 creatorFee,uint256 ownerRev)',

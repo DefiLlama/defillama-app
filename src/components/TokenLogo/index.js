@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 
-import { isAddress } from '../../utils/index.js'
+import { getTokenLogoPathFromAddress } from '../../utils'
 import PlaceHolder from '../../assets/placeholder.png'
 import EthereumLogo from '../../assets/eth.png'
 
@@ -71,9 +71,7 @@ export default function TokenLogo({ address, logo = null, header = false, size =
   if (logo) {
     path = logo
   } else {
-    path = `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${isAddress(
-      address
-    )}/logo.png`
+    path = getTokenLogoPathFromAddress(address)
   }
 
   return (

@@ -34,7 +34,7 @@ function App() {
           globalChartData[1] &&
           allTokens &&
           allTokens[1] ? (
-          <Suspense fallback={<LocalLoader fill />}>
+          <Suspense fallback={<LocalLoader fill="true" />}>
             <Switch>
               <Route
                 exacts

@@ -3,15 +3,14 @@ import { useLocation } from 'react-router-dom'
 import { shade } from 'polished'
 import Vibrant from 'node-vibrant'
 import { hex } from 'wcag-contrast'
-import { isAddress } from '../utils'
+import { getTokenLogoPathFromAddress } from '../utils'
 import copy from 'copy-to-clipboard'
+
 
 export function useColor(tokenAddress, token) {
   const [color, setColor] = useState('#2172E5')
   if (tokenAddress) {
-    const path = `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${isAddress(
-      tokenAddress
-    )}/logo.png`
+    const path = getTokenLogoPathFromAddress(tokenAddress)
     if (path) {
       Vibrant.from(path).getPalette((err, palette) => {
         if (palette && palette.Vibrant) {
