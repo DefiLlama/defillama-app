@@ -35,7 +35,6 @@ function App() {
           allTokens &&
           allTokens[1] ? (
           <Suspense fallback={<LocalLoader fill />}>
-
             <Switch>
               <Route
                 exacts
