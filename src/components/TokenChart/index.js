@@ -334,7 +334,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               {Object.values(denominationsToDisplay).map(option => <OptionButton
                 active={denomination === option}
                 onClick={() => setDenomination(option)}
-                style={{ marginRight: '6px', zIndex: '99' }}
+                style={{ marginRight: '6px' }}
                 key={option}
               >
                 {option}
