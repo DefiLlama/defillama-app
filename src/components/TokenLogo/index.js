@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
-import { isAddress } from '../../utils/index.js'
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+
+import { getTokenLogoPathFromAddress } from '../../utils'
 import PlaceHolder from '../../assets/placeholder.png'
 import EthereumLogo from '../../assets/eth.png'
 
@@ -12,9 +14,7 @@ const Inline = styled.div`
   align-self: center;
 `
 
-const Image = styled.img`
-  width: ${({ size }) => size};
-  height: ${({ size }) => size};
+const Image = styled(LazyLoadImage)`
   background-color: white;
   border-radius: 50%;
   box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.075);
@@ -41,7 +41,7 @@ export default function TokenLogo({ address, logo = null, header = false, size =
   if (error || BAD_IMAGES[address]) {
     return (
       <Inline>
-        <Image {...rest} alt={''} src={PlaceHolder} size={size} />
+        <Image {...rest} alt={''} src={PlaceHolder} height={size} width={size} />
       </Inline>
     )
   }
@@ -71,9 +71,7 @@ export default function TokenLogo({ address, logo = null, header = false, size =
   if (logo) {
     path = logo
   } else {
-    path = `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${isAddress(
-      address
-    )}/logo.png`
+    path = getTokenLogoPathFromAddress(address)
   }
 
   return (
@@ -82,7 +80,8 @@ export default function TokenLogo({ address, logo = null, header = false, size =
         {...rest}
         alt={''}
         src={path}
-        size={size}
+        height={size}
+        width={size}
         onError={event => {
           BAD_IMAGES[address] = true
           setError(true)

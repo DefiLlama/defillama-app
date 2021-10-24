@@ -20,11 +20,10 @@ import Column, { AutoColumn } from '../components/Column'
 import { ButtonLight } from '../components/ButtonStyled'
 import { BasicLink } from '../components/Link'
 import Search from '../components/Search'
-import { formattedNum, formattedPercent, getTokenAddressFromName, getTokenIdFromName } from '../utils'
+import { formattedNum, formattedPercent, getTokenIdFromName, getTokenLogoPathFromAddress } from '../utils'
 import { useTokenData } from '../contexts/TokenData'
 import { TYPE, ThemedBackground } from '../Theme'
 import { transparentize } from 'polished'
-import { isAddress } from '../utils'
 import CopyHelper from '../components/Copy'
 
 import { useAllTokenData } from '../contexts/TokenData'
@@ -116,10 +115,12 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
   const allTokens = useAllTokenData()
   const id = getTokenIdFromName(allTokens, protocol)
   const tokenData = useTokenData(id, protocol)
+
   let address = tokenData.address || ''
   let { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, misrepresentedTokens, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chains, chainTvls, historicalChainTvls, audit_links, methodology, staking, pool2, module: codeModule } = tokenData
+
   let blockExplorerLink = 'https://etherscan.io/address/' + address;
-  let dexguguLink = undefined
+  let dexguguLink
   let blockExplorerName = 'Etherscan';
   Object.entries(blockExplorers).forEach(explorer => {
     const chainId = explorer[0] + ':'
@@ -174,10 +175,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
   const fetchColor = (tokenAddress) => {
 
     if (name) {
-      var path = `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${isAddress(
-        tokenAddress
-      )}/logo.png`
-
+      var path = getTokenLogoPathFromAddress(address)
       if (logo) {
         //replace twt image by actual logo
         path = logo

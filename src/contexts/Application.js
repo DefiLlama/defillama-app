@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
 import { timeframeOptions, SUPPORTED_LIST_URLS__NO_ENS } from '../constants'
-import Web3 from 'web3'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import getTokenList from '../utils/tokenLists'
@@ -115,15 +114,6 @@ export default function Provider({ children }) {
     })
   }, [])
 
-  const updateWeb3 = useCallback(web3 => {
-    dispatch({
-      type: UPDATE_WEB3,
-      payload: {
-        web3
-      }
-    })
-  }, [])
-
   const updateSupportedTokens = useCallback(supportedTokens => {
     dispatch({
       type: UPDATED_SUPPORTED_TOKENS,
@@ -147,9 +137,9 @@ export default function Provider({ children }) {
       value={useMemo(
         () => [
           state,
-          { update, updateSessionStart, updateTimeframe, updateWeb3, updateSupportedTokens, updateLatestBlock }
+          { update, updateSessionStart, updateTimeframe, updateSupportedTokens, updateLatestBlock }
         ],
-        [state, update, updateTimeframe, updateWeb3, updateSessionStart, updateSupportedTokens, updateLatestBlock]
+        [state, update, updateTimeframe, updateSessionStart, updateSupportedTokens, updateLatestBlock]
       )}
     >
       {children}
@@ -199,28 +189,10 @@ export function useTimeframe() {
   return [activeTimeframe, updateTimeframe]
 }
 
-export function useStartTimestamp() {}
+export function useStartTimestamp() { }
 
 // keep track of session length for refresh ticker
-export function useSessionStart() {}
-
-/**
- * @todo this isnt used now - if ever needed probably better to use
- * web3-react instead of this custom hook
- */
-export function useWeb3() {
-  const [state, { updateWeb3 }] = useApplicationContext()
-  const web3 = state?.[WEB3]
-
-  useEffect(() => {
-    if (!web3) {
-      const web3 = new Web3(new Web3.providers.HttpProvider(process.env.REACT_APP_NETWORK_URL))
-      updateWeb3(web3)
-    }
-  })
-
-  return web3
-}
+export function useSessionStart() { }
 
 export function useListedTokens() {
   const [state, { updateSupportedTokens }] = useApplicationContext()

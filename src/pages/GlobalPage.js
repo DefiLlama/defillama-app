@@ -1,13 +1,11 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, lazy, Suspense } from 'react'
 import { withRouter } from 'react-router-dom'
 import styled from 'styled-components'
 
 import { AutoRow, RowBetween, RowFlat } from '../components/Row'
 import Loader from '../components/LocalLoader'
-import ProtocolChart from '../components/ProtocolChart'
 import { AutoColumn } from '../components/Column'
 import TopTokenList from '../components/TokenList'
-import GlobalChart from '../components/GlobalChart'
 import Search from '../components/Search'
 import { ButtonLight, ButtonDark } from '../components/ButtonStyled'
 
@@ -28,6 +26,14 @@ import { Redirect } from 'react-router-dom'
 import RightSettings from '../components/RightSettings'
 import { useStakingManager, usePool2Manager } from '../contexts/LocalStorage'
 import { OptionToggle } from '../components/SettingsModal'
+
+
+// import ProtocolChart from '../components/ProtocolChart'
+// import GlobalChart from '../components/GlobalChart'
+
+const ProtocolChart = lazy(() => import('../components/ProtocolChart'));
+const GlobalChart = lazy(() => import('../components/GlobalChart'));
+
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -163,12 +169,14 @@ function GlobalPage({ chain, denomination, history }) {
 
   document.title = `DefiLlama - DeFi Dashboard`;
 
-  const chart = selectedChain === undefined ? <GlobalChart display="liquidity" /> :
-    chainChartData[selectedChain] !== undefined ? <ProtocolChart
-      chartData={chainChartData[selectedChain]}
-      protocol={selectedChain}
-      denomination={denomination}
-    /> : <Loader />;
+  const chart = <Suspense fallback={<Loader />}>
+    {selectedChain === undefined ? <GlobalChart display="liquidity" /> :
+      chainChartData[selectedChain] !== undefined ? <ProtocolChart
+        chartData={chainChartData[selectedChain]}
+        protocol={selectedChain}
+        denomination={denomination}
+      /> : <Loader />}
+  </Suspense>;
 
   return (
     <PageWrapper>

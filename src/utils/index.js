@@ -1,7 +1,7 @@
 import React from 'react'
 import { BigNumber } from 'bignumber.js'
 import dayjs from 'dayjs'
-import { ethers } from 'ethers'
+import { getAddress } from '@ethersproject/address'
 import utc from 'dayjs/plugin/utc'
 import { client, blockClient } from '../apollo/client'
 import { GET_BLOCK, GET_BLOCKS, SHARE_VALUE } from '../apollo/queries'
@@ -306,11 +306,13 @@ export const toNiceDateYear = date => dayjs.utc(dayjs.unix(date)).format('MMMM D
 
 export const isAddress = value => {
   try {
-    return ethers.utils.getAddress(value.toLowerCase())
+    return getAddress(value.toLowerCase())
   } catch {
     return false
   }
 }
+
+export const getTokenLogoPathFromAddress = (address) => `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${isAddress(address)}/logo.png`
 
 export const toK = num => {
   return Numeral(num).format('0.[00]a')
