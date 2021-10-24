@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react'
 import { useMedia } from 'react-use'
-import 'feather-icons'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 
