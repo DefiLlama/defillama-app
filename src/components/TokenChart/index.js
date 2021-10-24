@@ -82,7 +82,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
     }
   }
 
-  const denomination = Object.values(DENOMINATIONS).find(den => den.toLowerCase() === initialDenomination?.split('-')?.[0].toLowerCase()) ?? DENOMINATIONS.USD
+  const denomination = Object.values(DENOMINATIONS).find(den => den?.toLowerCase() === initialDenomination?.split('-')?.[0]?.toLowerCase()) ?? DENOMINATIONS.USD
   const balanceToken = initialDenomination?.substr(initialDenomination.indexOf('-') + 1)
   const [denominationPriceHistory, setDenominationPriceHistory] = useState(undefined)
   const chartFilter = (denomination === DENOMINATIONS.Change || denomination === DENOMINATIONS.ChangeSplit) ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY
