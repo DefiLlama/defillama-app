@@ -184,13 +184,6 @@ export const GlobalStyle = createGlobalStyle`
          url("font-files/Inter-SemiBold.woff?v=3.19") format("woff");
   }
 
-  @font-face {
-    font-family: 'Inter var';
-    font-style: normal;
-    font-weight: 100 900;
-    font-display: swap;
-    font-named-instance: 'Regular';
-  }
   html { font-family: 'Inter', sans-serif; }
   @supports (font-variation-settings: normal) {
     html { font-family: 'Inter var', sans-serif; }
