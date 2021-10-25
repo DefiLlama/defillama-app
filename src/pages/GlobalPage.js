@@ -56,7 +56,7 @@ function GlobalPage({ chain, denomination, history }) {
   const globalData = useGlobalData()
   const [chainChartData, setChainChartData] = useState({});
   const selectedChain = chain;
-  const setSelectedChain = (newSelectedChain) => history.push(newSelectedChain === 'All' ? '/home' : `/chain/${newSelectedChain}`)
+  const setSelectedChain = (newSelectedChain) => history.push(newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
   // breakpoints
   const below800 = useMedia('(max-width: 800px)')
   const below1400 = useMedia('(max-width: 1400px)')
@@ -164,7 +164,7 @@ function GlobalPage({ chain, denomination, history }) {
       topToken.tvl = tokensList[1]?.tvl
     }
   } else {
-    return <Redirect to="/home" />
+    return <Redirect to="/" />
   }
 
   document.title = `DefiLlama - DeFi Dashboard`;
@@ -339,7 +339,7 @@ function GlobalPage({ chain, denomination, history }) {
                     if (selectedChain === name || (name === 'All' && selectedChain === undefined)) {
                       return <ButtonDark style={{ margin: '0.2rem' }} key={name} >{name}</ButtonDark>
                     } else {
-                      return <BasicLink to={name === "All" ? '/home' : `/chain/${name}`} key={name}>
+                      return <BasicLink to={name === "All" ? '/' : `/chain/${name}`} key={name}>
                         <ButtonLight style={{ margin: '0.2rem' }}>{name}</ButtonLight>
                       </BasicLink>
                     }

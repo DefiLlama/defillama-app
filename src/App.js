@@ -52,7 +52,7 @@ function App() {
                       </LayoutWrapper>
                     )
                   } else {
-                    return <Redirect to="/home" />
+                    return <Redirect to="/" />
                   }
                 }}
               />
@@ -85,13 +85,6 @@ function App() {
               <Route path="/jpegged">
                 <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
                   <Jpegged />
-                </LayoutWrapper>
-              </Route>
-
-
-              <Route path="/home">
-                <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-                  <GlobalPage />
                 </LayoutWrapper>
               </Route>
 
@@ -135,7 +128,13 @@ function App() {
                     />
                   </LayoutWrapper>}
               />
-              <Redirect to="/home" />
+              <Route exact path="/">
+                <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                  <GlobalPage />
+                </LayoutWrapper>
+              </Route>
+
+              <Redirect to="/" />
             </Switch>
           </Suspense>
         ) : (

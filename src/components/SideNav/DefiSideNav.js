@@ -20,7 +20,7 @@ function SideNav({ history }) {
 
   const NavMenu = () => (
     <AutoColumn gap="1.25rem" style={{ marginTop: "1rem" }}>
-      {entry("home", "Overview", history, { icon: TrendingUp })}
+      {entry("", "Overview", history, { icon: TrendingUp })}
       <BasicLink to="/protocols">
         <Option
           activeText={
