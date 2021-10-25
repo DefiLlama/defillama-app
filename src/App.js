@@ -12,6 +12,7 @@ const AboutPage = lazy(() => import('./pages/AboutPage'));
 const AllTokensPage = lazy(() => import('./pages/AllTokensPage'));
 const ChainsViewPage = lazy(() => import('./pages/ChainsViewPage'));
 const ComparisonPage = lazy(() => import('./pages/ComparisonPage'));
+const RecentListingsPage = lazy(() => import('./pages/RecentListingsPage'));
 const GlobalPage = lazy(() => import('./pages/GlobalPage'));
 const Jpegged = lazy(() => import('./pages/Jpegged'));
 const NoTokenProtocols = lazy(() => import('./pages/NoTokenProtocols'));
@@ -112,6 +113,11 @@ function App() {
               <Route path="/about">
                 <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
                   <AboutPage />
+                </LayoutWrapper>
+              </Route>
+              <Route path="/recent">
+                <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                  <RecentListingsPage />
                 </LayoutWrapper>
               </Route>
               <Route path="/chains">

@@ -131,7 +131,8 @@ const SORT_FIELD = {
     CHANGE: 'priceChangeUSD',
     MCAPTVL: "mcaptvl",
     FDVTVL: "fdvtvl",
-    CHAINS: 'chains'
+    CHAINS: 'chains',
+    LISTED: 'listed'
 }
 
 // @TODO rework into virtualized list
@@ -141,8 +142,8 @@ function TopTokenList({ tokens, itemMax = 100 }) {
     const [maxPage, setMaxPage] = useState(1)
 
     // sorting
-    const [sortDirection, setSortDirection] = useState(true)
-    const [sortedColumn, setSortedColumn] = useState(SORT_FIELD.TVL)
+    const [sortDirection, setSortDirection] = useState(false)
+    const [sortedColumn, setSortedColumn] = useState(SORT_FIELD.LISTED)
 
     const below1080 = useMedia('(max-width: 1080px)')
     const below680 = useMedia('(max-width: 680px)')
@@ -220,7 +221,7 @@ function TopTokenList({ tokens, itemMax = 100 }) {
                         </DataText>
                     )
                 }
-                <DataText area="7dchange">{item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'}</DataText>
+                <DataText area="7dchange">{`${item.listed} days ago`}</DataText>
                 <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
                 {
                     !below680 && (
@@ -292,11 +293,11 @@ function TopTokenList({ tokens, itemMax = 100 }) {
                     <ClickableText
                         area="7dchange"
                         onClick={e => {
-                            setSortedColumn(SORT_FIELD.DAYSEVEN)
-                            setSortDirection(sortedColumn !== SORT_FIELD.DAYSEVEN ? true : !sortDirection)
+                            setSortedColumn(SORT_FIELD.LISTED)
+                            setSortDirection(sortedColumn !== SORT_FIELD.LISTED ? true : !sortDirection)
                         }}
                     >
-                        7d Change {sortedColumn === SORT_FIELD.DAYSEVEN ? (!sortDirection ? '↑' : '↓') : ''}
+                        Listed {sortedColumn === SORT_FIELD.LISTED ? (!sortDirection ? '↑' : '↓') : ''}
                     </ClickableText>
                 </Flex>
 

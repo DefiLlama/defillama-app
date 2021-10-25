@@ -5,7 +5,7 @@ import Title from "../Title"
 import { BasicLink } from "../Link"
 import { useMedia } from "react-use"
 import { withRouter } from "react-router-dom"
-import { TrendingUp, Disc, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2 } from "react-feather"
+import { TrendingUp, Disc, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock } from "react-feather"
 import { useDarkModeManager } from "../../contexts/LocalStorage"
 import categories from "../../constants/categories"
 import SettingsMenuButton from "../SettingsModal"
@@ -36,6 +36,8 @@ function SideNav({ history }) {
       </BasicLink>
       {entry("chains", "Chains", history, { icon: LinkLogo })}
       {entry("airdrops", "Airdrops", history, { icon: CloudDrizzle })}
+      {entry("comparison", "Comparison", history, { icon: Minimize2 })}
+      {entry("recent", "Recent", history, { icon: Clock })}
       {categories.map(categoryData => (
         <BasicLink to={`/protocols/${categoryData.name.toLowerCase()}`} key={categoryData.name}>
           <Option
@@ -50,7 +52,6 @@ function SideNav({ history }) {
           </Option>
         </BasicLink>
       ))}
-      {entry("comparison", "Comparison", history, { icon: Minimize2 })}
       {entry("about", "About", history, { icon: HelpCircle })}
     </AutoColumn>
   )
