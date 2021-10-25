@@ -16,7 +16,7 @@ function AllTokensPage(props) {
     let allTokens = Object.values(useAllTokenData()).filter(protocol => protocol.listedAt !== undefined).map(token => ({
         ...token,
         mcaptvl: (token.tvl !== 0 && token.mcap) ? token.mcap / token.tvl : null,
-        listed: ((currentTimestamp - token.listedAt) / secondsInDay).toFixed(2)
+        listed: ((currentTimestamp - token.listedAt) / secondsInDay)
     }))
 
     useEffect(() => {

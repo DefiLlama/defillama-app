@@ -221,7 +221,7 @@ function TopTokenList({ tokens, itemMax = 100 }) {
                         </DataText>
                     )
                 }
-                <DataText area="7dchange">{`${item.listed} days ago`}</DataText>
+                <DataText area="7dchange">{`${item.listed.toFixed(2)} days ago`}</DataText>
                 <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
                 {
                     !below680 && (
