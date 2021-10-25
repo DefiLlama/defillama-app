@@ -159,7 +159,38 @@ export const ThemedBackground = styled.div`
 `
 
 export const GlobalStyle = createGlobalStyle`
-  @import url('https://rsms.me/inter/inter.css');
+  @font-face {
+    font-family: 'Inter';
+    font-style:  normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("font-files/Inter-Regular.woff2?v=3.19") format("woff2"),
+         url("font-files/Inter-Regular.woff?v=3.19") format("woff");
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style:  normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("font-files/Inter-Medium.woff2?v=3.19") format("woff2"),
+         url("font-files/Inter-Medium.woff?v=3.19") format("woff");
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style:  normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("font-files/Inter-SemiBold.woff2?v=3.19") format("woff2"),
+         url("font-files/Inter-SemiBold.woff?v=3.19") format("woff");
+  }
+
+  @font-face {
+    font-family: 'Inter var';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    font-named-instance: 'Regular';
+  }
   html { font-family: 'Inter', sans-serif; }
   @supports (font-variation-settings: normal) {
     html { font-family: 'Inter var', sans-serif; }
