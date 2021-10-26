@@ -434,7 +434,7 @@ export function getChainsFromAllTokenData(data) {
     logo: chainIconUrl(name),
     isChain: true,
     name
-  }))  
+  }))
 }
 
 export function chainIconUrl(chain) {
@@ -532,7 +532,7 @@ export function isEquivalent(a, b) {
 export function isValidProtocol(tokensObject, protocol) {
   try {
     const tokens = Object.values(tokensObject)
-    const isValid = tokens.some(token => token.name.toLowerCase().split(' ').join('').split('-').join('') === protocol.split('-').join(''))
+    const isValid = tokens.some(token => (protocol.includes('-') && token.name.includes('-') && (token.name.toLowerCase().split(' ').join('').split('-').join('') === protocol.split('-').join(''))) || token.name.toLowerCase().split(' ').join('') === protocol)
     return isValid
   } catch (error) {
     return false
