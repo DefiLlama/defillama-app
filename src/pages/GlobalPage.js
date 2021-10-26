@@ -5,7 +5,6 @@ import styled from 'styled-components'
 import { AutoRow, RowBetween, RowFlat } from '../components/Row'
 import Loader from '../components/LocalLoader'
 import { AutoColumn } from '../components/Column'
-import TopTokenList from '../components/TokenList'
 import Search from '../components/Search'
 import { ButtonLight, ButtonDark } from '../components/ButtonStyled'
 
@@ -28,11 +27,9 @@ import { useStakingManager, usePool2Manager } from '../contexts/LocalStorage'
 import { OptionToggle } from '../components/SettingsModal'
 
 
-// import ProtocolChart from '../components/ProtocolChart'
-// import GlobalChart from '../components/GlobalChart'
-
 const ProtocolChart = lazy(() => import('../components/ProtocolChart'));
 const GlobalChart = lazy(() => import('../components/GlobalChart'));
+const TokenList = lazy(() => import('../components/TokenList'));
 
 
 const ListOptions = styled(AutoRow)`
@@ -349,7 +346,9 @@ function GlobalPage({ chain, denomination, history }) {
             </RowBetween>
           </ListOptions>
           <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
-            <TopTokenList tokens={tokensList} itemMax={below800 ? 50 : 100} />
+            <Suspense fallback={<Loader />}>
+              <TokenList tokens={tokensList} itemMax={below800 ? 50 : 100} />
+            </Suspense>
           </Panel>
         </div>
         <div style={{ margin: 'auto' }}>
