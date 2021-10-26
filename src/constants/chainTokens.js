@@ -279,4 +279,19 @@ export const chainCoingeckoIds = {
     symbol: "FSN",
     cmcId: "2530",
   },
+  "KardiaChain": {
+    geckoId: "kardiachain",
+    symbol: "KAI",
+    cmcId: "5453",
+  },
+  "Fuse": {
+    geckoId: "fuse-network-token",
+    symbol: "FUSE",
+    cmcId: "5634",
+  },
+  "Sora": {
+    geckoId: "sora",
+    symbol: "XOR",
+    cmcId: "5802",
+  },
 }
