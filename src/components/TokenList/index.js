@@ -2,6 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import { FixedSizeList } from 'react-window';
+import InfiniteLoader from "react-window-infinite-loader";
+import AutoSizer from "react-virtualized-auto-sizer";
+
 
 import { Box, Flex, Text } from 'rebass'
 import TokenLogo from '../TokenLogo'
@@ -125,6 +129,9 @@ const SORT_FIELD = {
   CHAINS: 'chains'
 }
 
+const rowHeight = 48
+const rowsInView = 15
+
 // @TODO rework into virtualized list
 function TopTokenList({ tokens, itemMax = 100 }) {
   // page state
@@ -176,51 +183,57 @@ function TopTokenList({ tokens, itemMax = 100 }) {
     return sortedTokens.slice(itemMax * (page - 1), page * itemMax)
   }, [tokens, itemMax, page, sortDirection, sortedColumn])
 
-  const ListItem = ({ item, index }) => {
+  const ListItem = ({ index, style }) => {
+    const item = filteredList[index]
+    const ranking = (page - 1) * itemMax + index + 1
+
     return (
-      <DashGrid style={{ height: '48px' }} focus={true}>
-        <DataText area="name" fontWeight="500">
-          <Row>
-            {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index}</div>}
-            <TokenLogo address={item.address} logo={item.logo} />
-            <CustomLink
-              style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              to={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
-            >
-              <FormattedName
-                text={`${item.name} (${item.symbol})`}
-                maxCharacters={below600 ? 8 : 16}
-                adjustSize={true}
-                link={true}
-              />
-            </CustomLink>
-          </Row>
-        </DataText>
-        {!below1080 && (
-          <DataText area="chain">{item.chains.map(chain => <BasicLink key={chain} to={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)}</DataText>
-        )}
-        {/*!below1080 && (
+      <div key={index} style={style}>
+        <DashGrid style={{ height: `${rowHeight}px` }} focus={true}>
+          <DataText area="name" fontWeight="500">
+            <Row>
+              {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{ranking}</div>}
+              <TokenLogo address={item.address} logo={item.logo} />
+              <CustomLink
+                style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
+                to={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
+              >
+                <FormattedName
+                  text={`${item.name} (${item.symbol})`}
+                  maxCharacters={below600 ? 8 : 16}
+                  adjustSize={true}
+                  link={true}
+                />
+              </CustomLink>
+            </Row>
+          </DataText>
+          {!below1080 && (
+            <DataText area="chain">{item.chains.map(chain => <BasicLink key={chain} to={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)}</DataText>
+          )}
+          {/*!below1080 && (
           <DataText area="fdvtvl" color="text" fontWeight="500">
             {item.fdvtvl === null ? '-' : formattedNum(item.fdvtvl, false)}
           </DataText>
         )*/}
-        {
-          !below1080 && (
-            <DataText area="1dchange" color="text" fontWeight="500">
-              {formattedPercent(item.change_1d, true)}
-            </DataText>
-          )
-        }
-        <DataText area="7dchange">{item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'}</DataText>
-        <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
-        {
-          !below680 && (
-            <DataText area="mcaptvl" color="text" fontWeight="500">
-              {item.mcaptvl === null || item.mcaptvl === undefined ? '-' : formattedNum(item.mcaptvl, false)}
-            </DataText>
-          )
-        }
-      </DashGrid >
+          {
+            !below1080 && (
+              <DataText area="1dchange" color="text" fontWeight="500">
+                {formattedPercent(item.change_1d, true)}
+              </DataText>
+            )
+          }
+          <DataText area="7dchange">{item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'}</DataText>
+          <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
+          {
+            !below680 && (
+              <DataText area="mcaptvl" color="text" fontWeight="500">
+                {item.mcaptvl === null || item.mcaptvl === undefined ? '-' : formattedNum(item.mcaptvl, false)}
+              </DataText>
+            )
+          }
+        </DashGrid >
+        <Divider />
+      </div>
     )
   }
 
@@ -317,16 +330,29 @@ function TopTokenList({ tokens, itemMax = 100 }) {
         )}
       </DashGrid>
       <Divider />
-      <List p={0}>
-        {filteredList &&
-          filteredList.map((item, index) => {
-            return (
-              <div key={index}>
-                <ListItem key={index} index={(page - 1) * itemMax + index + 1} item={item} />
-                <Divider />
-              </div>
-            )
-          })}
+      <List p={0} sx={{ height: rowHeight * rowsInView }}>
+        <AutoSizer>
+          {({ width }) => (
+            <InfiniteLoader
+              isItemLoaded={(index) => !!filteredList[index]}
+              itemCount={itemMax}
+              loadMoreItems={() => { }}
+            >
+              {({ onItemsRendered, ref }) => (
+                <FixedSizeList
+                  height={rowHeight * rowsInView}
+                  itemCount={itemMax}
+                  itemSize={rowHeight}
+                  onItemsRendered={onItemsRendered}
+                  ref={ref}
+                  width={width}
+                >
+                  {ListItem}
+                </FixedSizeList>
+              )}
+            </InfiniteLoader>
+          )}
+        </AutoSizer>
       </List>
       <PageButtons>
         <div onClick={() => setPage(page === 1 ? page : page - 1)}>
