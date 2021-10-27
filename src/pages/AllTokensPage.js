@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import 'feather-icons'
 
-import TopTokenList from '../components/TokenList'
+import TokenList from '../components/TokenList'
 import { TYPE } from '../Theme'
 import Panel from '../components/Panel'
 import { useAllTokenData } from '../contexts/TokenData'
@@ -43,7 +43,7 @@ function AllTokensPage(props) {
           {!below600 && <Search small={true} />}
         </RowBetween>
         <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>
-          <TopTokenList tokens={allTokens} itemMax={below600 ? 50 : 100} />
+          <TokenList tokens={allTokens} />
         </Panel>
       </FullWrapper>
     </PageWrapper>

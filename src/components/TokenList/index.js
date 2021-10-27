@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import InfiniteScroll from 'react-infinite-scroll-component'
+import { ChevronsUp } from 'react-feather'
 
-import { Box, Flex, Text } from 'rebass'
+import { Box, Flex, Text, Button } from 'rebass'
 import TokenLogo from '../TokenLogo'
 import { CustomLink, BasicLink } from '../Link'
 import Row from '../Row'
@@ -110,7 +111,11 @@ const SORT_FIELD = {
 const numInView = 25
 
 // @TODO rework into virtualized list
-function TopTokenList({ tokens, itemMax = 100 }) {
+function TokenList({ tokens }) {
+
+  const below1080 = useMedia('(max-width: 1080px)')
+  const below680 = useMedia('(max-width: 680px)')
+  const below600 = useMedia('(max-width: 600px)')
 
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
@@ -119,10 +124,26 @@ function TopTokenList({ tokens, itemMax = 100 }) {
   // infinite scroll
   const [rowsInView, setRowsInView] = useState(numInView)
   const [hasMore, setHasMore] = useState(true)
+  const [displayScrollToTopButton, setDisplayScrollToTopButton] = useState(false)
 
-  const below1080 = useMedia('(max-width: 1080px)')
-  const below680 = useMedia('(max-width: 680px)')
-  const below600 = useMedia('(max-width: 600px)')
+
+  useEffect(() => {
+    window.addEventListener("scroll", () => {
+      if (window.scrollY > 200) {
+        setDisplayScrollToTopButton(true);
+      } else {
+        setDisplayScrollToTopButton(false);
+      }
+    });
+
+  }, [])
+
+  const handleScrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
 
   const filteredList = useMemo(() => {
     if (!tokens) {
@@ -178,7 +199,7 @@ function TopTokenList({ tokens, itemMax = 100 }) {
           </Row>
         </DataText>
         {!below1080 && (
-          <DataText area="chain">{item.chains.map(chain => <BasicLink key={chain} to={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)}</DataText>
+          <DataText area="chain">{item.chains.map(chain => <BasicLink key={chain} to={`/ chain / ${chain} `}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)}</DataText>
         )}
         {/*!below1080 && (
           <DataText area="fdvtvl" color="text" fontWeight="500">
@@ -298,7 +319,7 @@ function TopTokenList({ tokens, itemMax = 100 }) {
         )}
       </DashGrid>
       <Divider />
-      <List p={0}>
+      <List p={0} >
         <InfiniteScroll
           dataLength={rowsInView}
           next={handleLoadMore}
@@ -315,9 +336,15 @@ function TopTokenList({ tokens, itemMax = 100 }) {
             })}
         </InfiniteScroll>
       </List>
-
+      <Button displayScrollToTopButton={displayScrollToTopButton} onClick={handleScrollToTop} sx={{
+        borderRadius: '50%', padding: 0, color: 'inherit', width: 36, height: 36, position: 'fixed',
+        zIndex: 1, left: '50%', transform: 'translateX(-50%)', bottom: '2rem', opacity: 0.2, cursor: 'Pointer',
+        display: displayScrollToTopButton ? "inline" : 'none',
+      }}>
+        <ChevronsUp />
+      </Button>
     </ListWrapper>
   )
 }
 
-export default withRouter(TopTokenList)
+export default withRouter(TokenList)
