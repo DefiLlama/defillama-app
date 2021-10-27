@@ -27,10 +27,6 @@ import RightSettings from '../components/RightSettings'
 import { useStakingManager, usePool2Manager } from '../contexts/LocalStorage'
 import { OptionToggle } from '../components/SettingsModal'
 
-
-// import ProtocolChart from '../components/ProtocolChart'
-// import GlobalChart from '../components/GlobalChart'
-
 const ProtocolChart = lazy(() => import('../components/ProtocolChart'));
 const GlobalChart = lazy(() => import('../components/GlobalChart'));
 

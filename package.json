@@ -50,6 +50,7 @@
     "react-feather": "^2.0.3",
     "react-ga": "^3.1.2",
     "react-iframe": "^1.8.0",
+    "react-infinite-scroll-component": "^6.1.0",
     "react-lazy-load-image-component": "^1.5.1",
     "react-parallax": "^2.2.4",
     "react-popper": "^2.2.3",

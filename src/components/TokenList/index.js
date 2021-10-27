@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import InfiniteScroll from 'react-infinite-scroll-component'
 
 import { Box, Flex, Text } from 'rebass'
 import TokenLogo from '../TokenLogo'
@@ -125,6 +126,8 @@ const SORT_FIELD = {
   CHAINS: 'chains'
 }
 
+const numInView = 25
+
 // @TODO rework into virtualized list
 function TopTokenList({ tokens, itemMax = 100 }) {
   // page state
@@ -134,6 +137,12 @@ function TopTokenList({ tokens, itemMax = 100 }) {
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
   const [sortedColumn, setSortedColumn] = useState(SORT_FIELD.TVL)
+
+  // infinite scroll
+  const [rowsInView, setRowsInView] = useState(numInView)
+  const [hasMore, setHasMore] = useState(true)
+
+
 
   const below1080 = useMedia('(max-width: 1080px)')
   const below680 = useMedia('(max-width: 680px)')
@@ -175,6 +184,17 @@ function TopTokenList({ tokens, itemMax = 100 }) {
     }
     return sortedTokens.slice(itemMax * (page - 1), page * itemMax)
   }, [tokens, itemMax, page, sortDirection, sortedColumn])
+
+  const handleLoadMore = () => {
+    const totalRows = rowsInView + numInView
+
+    if (totalRows >= filteredList.length) {
+      setRowsInView(filteredList.length)
+      setHasMore(false)
+    } else {
+      setRowsInView(totalRows)
+    }
+  }
 
   const ListItem = ({ item, index }) => {
     return (
@@ -318,15 +338,21 @@ function TopTokenList({ tokens, itemMax = 100 }) {
       </DashGrid>
       <Divider />
       <List p={0}>
-        {filteredList &&
-          filteredList.map((item, index) => {
-            return (
-              <div key={index}>
-                <ListItem key={index} index={(page - 1) * itemMax + index + 1} item={item} />
-                <Divider />
-              </div>
-            )
-          })}
+        <InfiniteScroll
+          dataLength={rowsInView}
+          next={handleLoadMore}
+          hasMore={hasMore}
+        >
+          {filteredList &&
+            filteredList.slice(0, rowsInView).map((item, index) => {
+              return (
+                <div key={index}>
+                  <ListItem key={index} index={(page - 1) * itemMax + index + 1} item={item} />
+                  <Divider />
+                </div>
+              )
+            })}
+        </InfiniteScroll>
       </List>
       <PageButtons>
         <div onClick={() => setPage(page === 1 ? page : page - 1)}>
