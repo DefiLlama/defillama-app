@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import 'feather-icons'
 
 import { TYPE } from '../Theme'
 import Panel from '../components/Panel'
@@ -119,8 +118,8 @@ const ChainsView = () => {
 
     useEffect(() => {
         const chainsCalls = chainsUnique.map(elem => fetch(`https://api.llama.fi/charts/${elem}`).then(resp => resp.json()))
-        Promise.all(chainsCalls).
-            then(resp => {
+        Promise.all(chainsCalls)
+            .then(resp => {
                 setData(resp)
             }).catch((err) => {
                 console.log(err)

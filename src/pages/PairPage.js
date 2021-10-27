@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { withRouter } from 'react-router-dom'
-import 'feather-icons'
 import styled from 'styled-components'
 import Panel from '../components/Panel'
 import { PageWrapper, ContentWrapperLarge, StyledIcon } from '../components/index'
@@ -132,8 +131,8 @@ function PairPage({ pairAddress, history }) {
   const liquidity = trackedReserveUSD
     ? formattedNum(trackedReserveUSD, true)
     : reserveUSD
-    ? formattedNum(reserveUSD, true)
-    : '-'
+      ? formattedNum(reserveUSD, true)
+      : '-'
   const liquidityChange = formattedPercent(liquidityChangeUSD)
 
   // mark if using untracked liquidity
@@ -147,8 +146,8 @@ function PairPage({ pairAddress, history }) {
     oneDayVolumeUSD || oneDayVolumeUSD === 0
       ? formattedNum(oneDayVolumeUSD === 0 ? oneDayVolumeUntracked : oneDayVolumeUSD, true)
       : oneDayVolumeUSD === 0
-      ? '$0'
-      : '-'
+        ? '$0'
+        : '-'
 
   // mark if using untracked volume
   const [usingUtVolume, setUsingUtVolume] = useState(false)
@@ -289,9 +288,8 @@ function PairPage({ pairAddress, history }) {
                   <TokenLogo address={token0?.id} size={'16px'} />
                   <TYPE.main fontSize={'16px'} lineHeight={1} fontWeight={500} ml={'4px'}>
                     {token0 && token1
-                      ? `1 ${formattedSymbol0} = ${token0Rate} ${formattedSymbol1} ${
-                          parseFloat(token0?.derivedETH) ? '(' + token0USD + ')' : ''
-                        }`
+                      ? `1 ${formattedSymbol0} = ${token0Rate} ${formattedSymbol1} ${parseFloat(token0?.derivedETH) ? '(' + token0USD + ')' : ''
+                      }`
                       : '-'}
                   </TYPE.main>
                 </RowFixed>
@@ -301,9 +299,8 @@ function PairPage({ pairAddress, history }) {
                   <TokenLogo address={token1?.id} size={'16px'} />
                   <TYPE.main fontSize={'16px'} lineHeight={1} fontWeight={500} ml={'4px'}>
                     {token0 && token1
-                      ? `1 ${formattedSymbol1} = ${token1Rate} ${formattedSymbol0}  ${
-                          parseFloat(token1?.derivedETH) ? '(' + token1USD + ')' : ''
-                        }`
+                      ? `1 ${formattedSymbol1} = ${token1Rate} ${formattedSymbol0}  ${parseFloat(token1?.derivedETH) ? '(' + token1USD + ')' : ''
+                      }`
                       : '-'}
                   </TYPE.main>
                 </RowFixed>

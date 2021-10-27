@@ -2,7 +2,6 @@ import React, { useEffect } from 'react'
 import { useMedia } from 'react-use'
 import { PlusCircle, Bookmark } from 'react-feather'
 
-import 'feather-icons'
 import { withRouter } from 'react-router-dom'
 import { Text } from 'rebass'
 import styled from 'styled-components'
