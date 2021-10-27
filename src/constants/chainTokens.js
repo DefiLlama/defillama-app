@@ -279,7 +279,7 @@ export const chainCoingeckoIds = {
     symbol: "FSN",
     cmcId: "2530",
   },
-  "KardiaChain": {
+  "Kardia": {
     geckoId: "kardiachain",
     symbol: "KAI",
     cmcId: "5453",
