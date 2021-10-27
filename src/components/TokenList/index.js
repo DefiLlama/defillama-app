@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -14,27 +14,8 @@ import { formattedNum, formattedPercent, chainIconUrl } from '../../utils'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
 import FormattedName from '../FormattedName'
-import { TYPE } from '../../Theme'
 
 dayjs.extend(utc)
-
-const PageButtons = styled.div`
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-top: 2em;
-  margin-bottom: 2em;
-`
-
-const Arrow = styled.div`
-  color: ${({ theme }) => theme.primary1};
-  opacity: ${props => (props.faded ? 0.3 : 1)};
-  padding: 0 20px;
-  user-select: none;
-  :hover {
-    cursor: pointer;
-  }
-`
 
 const List = styled(Box)`
   -webkit-overflow-scrolling: touch;
@@ -130,9 +111,6 @@ const numInView = 25
 
 // @TODO rework into virtualized list
 function TopTokenList({ tokens, itemMax = 100 }) {
-  // page state
-  const [page, setPage] = useState(1)
-  const [maxPage, setMaxPage] = useState(1)
 
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
@@ -142,26 +120,9 @@ function TopTokenList({ tokens, itemMax = 100 }) {
   const [rowsInView, setRowsInView] = useState(numInView)
   const [hasMore, setHasMore] = useState(true)
 
-
-
   const below1080 = useMedia('(max-width: 1080px)')
   const below680 = useMedia('(max-width: 680px)')
   const below600 = useMedia('(max-width: 600px)')
-
-  useEffect(() => {
-    setMaxPage(1) // edit this to do modular
-    setPage(1)
-  }, [tokens])
-
-  useEffect(() => {
-    if (tokens) {
-      let extraPages = 1
-      if (tokens.length % itemMax === 0) {
-        extraPages = 0
-      }
-      setMaxPage(Math.floor(tokens.length / itemMax) + extraPages)
-    }
-  }, [tokens, itemMax])
 
   const filteredList = useMemo(() => {
     if (!tokens) {
@@ -182,8 +143,8 @@ function TopTokenList({ tokens, itemMax = 100 }) {
             : (sortDirection ? -1 : 1) * -1
         })
     }
-    return sortedTokens.slice(itemMax * (page - 1), page * itemMax)
-  }, [tokens, itemMax, page, sortDirection, sortedColumn])
+    return sortedTokens
+  }, [tokens, sortDirection, sortedColumn])
 
   const handleLoadMore = () => {
     const totalRows = rowsInView + numInView
@@ -347,22 +308,14 @@ function TopTokenList({ tokens, itemMax = 100 }) {
             filteredList.slice(0, rowsInView).map((item, index) => {
               return (
                 <div key={index}>
-                  <ListItem key={index} index={(page - 1) * itemMax + index + 1} item={item} />
+                  <ListItem key={index} index={index} item={item} />
                   <Divider />
                 </div>
               )
             })}
         </InfiniteScroll>
       </List>
-      <PageButtons>
-        <div onClick={() => setPage(page === 1 ? page : page - 1)}>
-          <Arrow faded={page === 1 ? true : false}>←</Arrow>
-        </div>
-        <TYPE.body>{'Page ' + page + ' of ' + maxPage}</TYPE.body>
-        <div onClick={() => setPage(page === maxPage ? page : page + 1)}>
-          <Arrow faded={page === maxPage ? true : false}>→</Arrow>
-        </div>
-      </PageButtons>
+
     </ListWrapper>
   )
 }
