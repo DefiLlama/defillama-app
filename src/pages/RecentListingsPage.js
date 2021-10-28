@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react'
-import 'feather-icons'
 
 import TopTokenList from '../components/TokenList/listWithDates'
 import { TYPE } from '../Theme'
