@@ -25,7 +25,7 @@ import DropdownSelect from '../components/DropdownSelect'
 import { Redirect } from 'react-router-dom'
 import RightSettings from '../components/RightSettings'
 import { useStakingManager, usePool2Manager } from '../contexts/LocalStorage'
-import { OptionToggle } from '../components/SettingsModal'
+import { OptionToggle, CheckMarks } from '../components/SettingsModal'
 
 
 // import ProtocolChart from '../components/ProtocolChart'
@@ -196,20 +196,7 @@ function GlobalPage({ chain, denomination, history }) {
                 </TYPE.main>
               </Panel>
             }
-            <AutoRow gap="10px" justify="center" >
-              {[{
-                name: "Staking",
-                toggle: toggleStaking,
-                enabled: stakingEnabled,
-                help: "Include governance tokens staked in the protocol",
-              },
-              {
-                name: "Pool2",
-                toggle: togglePool2,
-                enabled: pool2Enabled,
-                help: "Include staked lp tokens where one of the coins in the pair is the governance token",
-              }].map(toggleSetting => (<OptionToggle {...toggleSetting} key={toggleSetting.name} />))}
-            </AutoRow>
+            <CheckMarks />
           </AutoColumn>
           {below800 && ( // mobile card
             <AutoColumn

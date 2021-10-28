@@ -31,6 +31,7 @@ import { Hover, PageWrapper, ContentWrapper, StyledIcon } from '../components'
 import FormattedName from '../components/FormattedName'
 import AuditInfo from '../components/AuditInfo'
 import HeadHelp from '../components/HeadHelp'
+import { CheckMarks } from '../components/SettingsModal'
 
 const DashboardWrapper = styled.div`
   width: 100%;
@@ -309,6 +310,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                   <RowBetween>
                     <TYPE.main>Total Value Locked </TYPE.main>
                   </RowBetween>
+                  <CheckMarks />
                   <RowBetween align="flex-end">
                     <TYPE.main fontSize={'1.5rem'} lineHeight={1} fontWeight={500}>
                       {formattedNum(tvl || '0', true)}

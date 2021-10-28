@@ -4,6 +4,7 @@ import { ReactComponent as MenuIcon } from './menu.svg'
 import { useDarkModeManager, useStakingManager, usePool2Manager, useDisplayUsdManager } from '../../contexts/LocalStorage'
 import Switch from "react-switch";
 import HeadHelp from '../HeadHelp'
+import { AutoRow } from '../Row'
 
 
 import { TYPE } from '../../Theme'
@@ -105,6 +106,25 @@ export const OptionToggle = (props) =>
     <Switch onChange={props.toggle} checked={props.enabled} height={20} width={40} />&nbsp;
     {props.help ? <HeadHelp title={props.name} text={props.help} /> : props.name}
   </TYPE.body>
+
+export function CheckMarks() {
+  const [stakingEnabled, toggleStaking] = useStakingManager()
+  const [pool2Enabled, togglePool2] = usePool2Manager()
+  return <AutoRow gap="10px" justify="center" >
+    {[{
+      name: "Staking",
+      toggle: toggleStaking,
+      enabled: stakingEnabled,
+      help: "Include governance tokens staked in the protocol",
+    },
+    {
+      name: "Pool2",
+      toggle: togglePool2,
+      enabled: pool2Enabled,
+      help: "Include staked lp tokens where one of the coins in the pair is the governance token",
+    }].map(toggleSetting => (<OptionToggle {...toggleSetting} key={toggleSetting.name} />))}
+  </AutoRow>
+}
 
 export default function Menu({ type = 'defi' }) {
   const node = useRef()
