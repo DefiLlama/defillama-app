@@ -289,7 +289,7 @@ export const chainCoingeckoIds = {
     symbol: "FUSE",
     cmcId: "5634",
   },
-  "Sora": {
+  "SORA": {
     geckoId: "sora",
     symbol: "XOR",
     cmcId: "5802",
