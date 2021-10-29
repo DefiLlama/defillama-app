@@ -1,39 +1,23 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import InfiniteScroll from 'react-infinite-scroll-component'
 
 import { Box, Flex, Text } from 'rebass'
 import TokenLogo from '../TokenLogo'
-import { CustomLink, BasicLink } from '../Link'
+import { CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, formattedPercent, chainIconUrl } from '../../utils'
+import { formattedNum, } from '../../utils'
+import { useInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
 import FormattedName from '../FormattedName'
-import { TYPE } from '../../Theme'
 
 dayjs.extend(utc)
 
-const PageButtons = styled.div`
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-top: 2em;
-  margin-bottom: 2em;
-`
-
-const Arrow = styled.div`
-  color: ${({ theme }) => theme.primary1};
-  opacity: ${props => (props.faded ? 0.3 : 1)};
-  padding: 0 20px;
-  user-select: none;
-  :hover {
-    cursor: pointer;
-  }
-`
 
 const List = styled(Box)`
   -webkit-overflow-scrolling: touch;
@@ -120,9 +104,6 @@ const SORT_FIELD = {
 
 // @TODO rework into virtualized list
 function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
-  // page state
-  const [page, setPage] = useState(1)
-  const [maxPage, setMaxPage] = useState(1)
 
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
@@ -132,20 +113,6 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
   const below680 = useMedia('(max-width: 680px)')
   const below600 = useMedia('(max-width: 600px)')
 
-  useEffect(() => {
-    setMaxPage(1) // edit this to do modular
-    setPage(1)
-  }, [tokens])
-
-  useEffect(() => {
-    if (tokens) {
-      let extraPages = 1
-      if (tokens.length % itemMax === 0) {
-        extraPages = 0
-      }
-      setMaxPage(Math.floor(tokens.length / itemMax) + extraPages)
-    }
-  }, [tokens, itemMax])
 
   const filteredList = useMemo(() => {
     return (
@@ -159,16 +126,15 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
             ? (sortDirection ? -1 : 1) * 1
             : (sortDirection ? -1 : 1) * -1
         })
-        .slice(itemMax * (page - 1), page * itemMax)
     )
-  }, [tokens, itemMax, page, sortDirection, sortedColumn])
+  }, [tokens, sortDirection, sortedColumn])
 
   const ListItem = ({ item, index }) => {
     return (
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
           <Row>
-            {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index}</div>}
+            {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index + 1}</div>}
             <TokenLogo address={item.address} logo={item.logo} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
@@ -203,6 +169,11 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
       </DashGrid >
     )
   }
+
+  const { LoadMoreButton,
+    dataLength,
+    hasMore,
+    next } = useInfiniteScroll({ list: filteredList });
 
   return (
     <ListWrapper>
@@ -274,25 +245,23 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
       </DashGrid>
       <Divider />
       <List p={0}>
-        {filteredList &&
-          filteredList.map((item, index) => {
-            return (
-              <div key={index}>
-                <ListItem key={index} index={(page - 1) * itemMax + index + 1} item={item} />
-                <Divider />
-              </div>
-            )
-          })}
+        <InfiniteScroll
+          dataLength={dataLength}
+          next={next}
+          hasMore={hasMore}
+        >
+          {filteredList &&
+            filteredList.map((item, index) => {
+              return (
+                <div key={index}>
+                  <ListItem key={index} index={index} item={item} />
+                  <Divider />
+                </div>
+              )
+            })}
+        </InfiniteScroll>
       </List>
-      <PageButtons>
-        <div onClick={() => setPage(page === 1 ? page : page - 1)}>
-          <Arrow faded={page === 1 ? true : false}>←</Arrow>
-        </div>
-        <TYPE.body>{'Page ' + page + ' of ' + maxPage}</TYPE.body>
-        <div onClick={() => setPage(page === maxPage ? page : page + 1)}>
-          <Arrow faded={page === maxPage ? true : false}>→</Arrow>
-        </div>
-      </PageButtons>
+      {LoadMoreButton}
     </ListWrapper>
   )
 }
