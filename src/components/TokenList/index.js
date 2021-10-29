@@ -154,7 +154,7 @@ function TokenList({ tokens }) {
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
           <Row>
-            {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index}</div>}
+            {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index + 1}</div>}
             <TokenLogo address={item.address} logo={item.logo} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}

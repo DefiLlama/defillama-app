@@ -5,7 +5,7 @@ import styled from 'styled-components'
 import { AutoRow, RowBetween, RowFlat } from '../components/Row'
 import Loader from '../components/LocalLoader'
 import { AutoColumn } from '../components/Column'
-import TopTokenList from '../components/TokenList'
+import TokenList from '../components/TokenList'
 import Search from '../components/Search'
 import { ButtonLight, ButtonDark } from '../components/ButtonStyled'
 
@@ -345,7 +345,7 @@ function GlobalPage({ chain, denomination, history }) {
             </RowBetween>
           </ListOptions>
           <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
-            <TopTokenList tokens={tokensList} itemMax={below800 ? 50 : 100} />
+            <TokenList tokens={tokensList} />
           </Panel>
         </div>
         <div style={{ margin: 'auto' }}>
