@@ -224,6 +224,10 @@ export const chainCoingeckoIds = {
     symbol: "KSM",
     cmcId: "5034",
   },
+  "Shiden": {
+        geckoId: "shiden",
+        symbol: "SDN"
+  },
   "Telos": {
     geckoId: "telos",
     symbol: "TLOS",
