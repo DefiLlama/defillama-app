@@ -103,6 +103,7 @@ const blockExplorers = {
   'tezos': ['https://tzkt.io/', 'TzKT'],
   'moonriver': ['https://blockscout.moonriver.moonbeam.network/address/', 'Blockscout'],
   'arbitrum': ['https://arbiscan.io/address/', 'Arbiscan'],
+  'shiden': ['https://blockscout.com/shiden/address/', 'Blockscout'],
   'terra': ['https://finder.terra.money/columbus-4/account/', 'Terra Finder'],
   'okex': ['https://www.oklink.com/okexchain/tokenAddr/', 'Oklink'],
   'celo': ['https://explorer.celo.org/tokens/', 'Celo'],
