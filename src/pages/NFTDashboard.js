@@ -217,7 +217,7 @@ const NFTDashboard = ({ history }) => {
 
           {nftCollections && (
             <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
-              <TopTokenList tokens={nftCollections} itemMax={below800 ? 50 : 100} displayUsd={displayUsd} />
+              <TopTokenList tokens={nftCollections} displayUsd={displayUsd} />
             </Panel>
           )}
         </div>
