@@ -1,17 +1,17 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo } from 'react'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import InfiniteScroll from 'react-infinite-scroll-component'
-import { ChevronsUp } from 'react-feather'
 
-import { Box, Flex, Text, Button } from 'rebass'
+import { Box, Flex, Text } from 'rebass'
 import TokenLogo from '../TokenLogo'
 import { CustomLink, BasicLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
 import { formattedNum, formattedPercent, chainIconUrl } from '../../utils'
+import { useInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
 import FormattedName from '../FormattedName'
@@ -108,7 +108,6 @@ const SORT_FIELD = {
   CHAINS: 'chains'
 }
 
-const numInView = 25
 
 // @TODO rework into virtualized list
 function TokenList({ tokens }) {
@@ -121,29 +120,6 @@ function TokenList({ tokens }) {
   const [sortDirection, setSortDirection] = useState(true)
   const [sortedColumn, setSortedColumn] = useState(SORT_FIELD.TVL)
 
-  // infinite scroll
-  const [rowsInView, setRowsInView] = useState(numInView)
-  const [hasMore, setHasMore] = useState(true)
-  const [displayScrollToTopButton, setDisplayScrollToTopButton] = useState(false)
-
-
-  useEffect(() => {
-    window.addEventListener("scroll", () => {
-      if (window.scrollY > 200) {
-        setDisplayScrollToTopButton(true);
-      } else {
-        setDisplayScrollToTopButton(false);
-      }
-    });
-
-  }, [])
-
-  const handleScrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  }
 
   const filteredList = useMemo(() => {
     if (!tokens) {
@@ -167,16 +143,11 @@ function TokenList({ tokens }) {
     return sortedTokens
   }, [tokens, sortDirection, sortedColumn])
 
-  const handleLoadMore = () => {
-    const totalRows = rowsInView + numInView
+  const { LoadMoreButton,
+    dataLength,
+    hasMore,
+    next } = useInfiniteScroll({ list: filteredList });
 
-    if (totalRows >= filteredList.length) {
-      setRowsInView(filteredList.length)
-      setHasMore(false)
-    } else {
-      setRowsInView(totalRows)
-    }
-  }
 
   const ListItem = ({ item, index }) => {
     return (
@@ -321,12 +292,12 @@ function TokenList({ tokens }) {
       <Divider />
       <List p={0} >
         <InfiniteScroll
-          dataLength={rowsInView}
-          next={handleLoadMore}
+          dataLength={dataLength}
+          next={next}
           hasMore={hasMore}
         >
           {filteredList &&
-            filteredList.slice(0, rowsInView).map((item, index) => {
+            filteredList.slice(0, dataLength).map((item, index) => {
               return (
                 <div key={index}>
                   <ListItem key={index} index={index} item={item} />
@@ -336,13 +307,7 @@ function TokenList({ tokens }) {
             })}
         </InfiniteScroll>
       </List>
-      <Button displayScrollToTopButton={displayScrollToTopButton} onClick={handleScrollToTop} sx={{
-        borderRadius: '50%', padding: 0, color: 'inherit', width: 36, height: 36, position: 'fixed',
-        zIndex: 1, left: '50%', transform: 'translateX(-50%)', bottom: '2rem', opacity: 0.2, cursor: 'Pointer',
-        display: displayScrollToTopButton ? "inline" : 'none',
-      }}>
-        <ChevronsUp />
-      </Button>
+      {LoadMoreButton}
     </ListWrapper>
   )
 }

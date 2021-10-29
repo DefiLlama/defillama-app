@@ -5,7 +5,7 @@ import Vibrant from 'node-vibrant'
 import { hex } from 'wcag-contrast'
 import { getTokenLogoPathFromAddress } from '../utils'
 import copy from 'copy-to-clipboard'
-
+export { default as useInfiniteScroll } from './useInfiniteScroll';
 
 export function useColor(tokenAddress, token) {
   const [color, setColor] = useState('#2172E5')
