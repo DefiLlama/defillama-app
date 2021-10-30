@@ -1,8 +1,10 @@
 import React from 'react'
 import { ThemeProvider as StyledComponentsThemeProvider, createGlobalStyle } from 'styled-components'
-import { useDarkModeManager } from '../contexts/LocalStorage'
 import styled from 'styled-components'
 import { Text } from 'rebass'
+import { transparentize } from 'polished'
+
+import { useDarkModeManager } from '../contexts/LocalStorage'
 
 export default function ThemeProvider({ children }) {
   const [darkMode] = useDarkModeManager()
@@ -148,8 +150,8 @@ export const ThemedBackground = styled.div`
   max-width: 100vw !important;
   height: 200vh;
   mix-blend-mode: color;
-  background: ${({ backgroundColor }) =>
-    `radial-gradient(50% 50% at 50% 50%, ${backgroundColor} 0%, rgba(255, 255, 255, 0) 100%)`};
+  background: ${({ backgroundColor, theme }) =>
+    `radial-gradient(50% 50% at 50% 50%, ${backgroundColor || transparentize(0.6, theme.primary1)} 0%, rgba(255, 255, 255, 0) 100%)`};
   position: absolute;
   top: 0px;
   left: 0px;
