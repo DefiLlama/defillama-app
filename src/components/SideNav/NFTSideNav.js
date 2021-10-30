@@ -27,9 +27,9 @@ function SideNav({ history }) {
   return (
     <Wrapper isMobile={false}>
       <DesktopWrapper>
-        <AutoColumn gap="1rem" style={{ marginLeft: '.75rem', marginTop: '1.5rem' }}>
+        <AutoColumn gap="1rem">
           <Title homePath={'/nfts'} />
-          <AutoColumn gap="1.25rem" style={{ marginTop: '1rem' }}>
+          <AutoColumn gap="1.25rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }}>
             <Entry url="nfts" name="Overview" history={history} Icon={TrendingUp} />
             <Entry url="nfts/chains" name="Chains" history={history} Icon={LinkLogo} />
             <Entry url="nfts/about" name="About" history={history} Icon={HelpCircle} />

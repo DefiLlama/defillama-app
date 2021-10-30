@@ -49,10 +49,6 @@ export const DesktopWrapper = styled.div`
   padding: 1.5rem 0.75rem; 
   justify-content: space-between;
   box-sizing: border-box;
-
-  div {
-    margin-bottom: auto;
-  }
 `
 
 export const MobileWrapper = styled.div`
@@ -97,7 +93,7 @@ export const Entry = ({ url, name, history, Icon }) => (
 
 export const Footer = ({ isDark, toggleDarkMode }) => (
   <>
-    <AutoColumn gap="0.5rem" >
+    <AutoColumn gap="0.5rem" style={{ paddingBottom: '1rem' }} >
       <HeaderText>
         <Link href="https://twitter.com/DefiLlama" target="_blank">
           Twitter

@@ -73,7 +73,7 @@ function SideNav({ history }) {
   return (
     <Wrapper isMobile={false}>
       <DesktopWrapper>
-        <AutoColumn gap="1rem" mb="auto" style={{ paddingBottom: '1rem' }} >
+        <AutoColumn gap="1rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }} >
           <Title />
           <NavMenu />
         </AutoColumn>
