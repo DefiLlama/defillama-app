@@ -44,9 +44,15 @@ export const Option = styled.div`
 
 export const DesktopWrapper = styled.div`
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  flex-direction: column;  
   height: 100vh;
+  padding: 1.5rem 0.75rem; 
+  justify-content: space-between;
+  box-sizing: border-box;
+
+  div {
+    margin-bottom: auto;
+  }
 `
 
 export const MobileWrapper = styled.div`
@@ -70,89 +76,59 @@ export const HeaderText = styled.div`
   }
 `
 
-export const Polling = styled.div`
-  position: fixed;
-  display: flex;
-  left: 0;
-  bottom: 0;
-  padding: 1rem;
-  color: white;
-  opacity: 0.4;
-  transition: opacity 0.25s ease;
-  :hover {
-    opacity: 1;
-  }
-`
-export const PollingDot = styled.div`
-  width: 8px;
-  height: 8px;
-  min-height: 8px;
-  min-width: 8px;
-  margin-right: 0.5rem;
-  margin-top: 3px;
-  border-radius: 50%;
-  background-color: ${({ theme }) => theme.green1};
-`
 export const ButtonWrapper = styled.div`
   display: flex;
   flex-direction: row;
 `
 
-export function entry(url, name, history, icon) {
-  return <BasicLink to={"/" + url}>
+export const Entry = ({ url, name, history, Icon }) => (
+  <BasicLink to={"/" + url}>
     <Option
       activeText={
         (history.location.pathname.split("/")[1] === url) ??
         undefined
       }
     >
-      <icon.icon size={20} style={{ marginRight: ".75rem" }} />
+      <Icon size={20} style={{ marginRight: ".75rem" }} />
       {name}
     </Option>
   </BasicLink>
-}
+)
 
-export function footer(below1180, isDark, toggleDarkMode) {
-  return (
-    <>
-      <AutoColumn gap="0.5rem" style={{ marginLeft: ".75rem", marginBottom: "4rem" }}>
-        <HeaderText>
-          <Link href="https://twitter.com/DefiLlama" target="_blank">
-            Twitter
-          </Link>
-        </HeaderText>
-        <HeaderText>
-          <Link href="https://discord.gg/buPFYXzDDd" target="_blank">
-            Discord
-          </Link>
-        </HeaderText>
-        <HeaderText>
-          <Link href="https://docs.llama.fi/api" target="_blank">
-            API Docs
-          </Link>
-        </HeaderText>
-        <HeaderText>
-          <Link href="https://docs.llama.fi/list-your-project/submit-a-project" target="_blank">
-            List your project
-          </Link>
-        </HeaderText>
-        <HeaderText>
-          <Link href="https://t.me/defillama_tg" target="_blank">
-            Telegram
-          </Link>
-        </HeaderText>
-        <Toggle isActive={isDark} toggle={toggleDarkMode} />
-      </AutoColumn>
-      {!below1180 && (
-        <Polling style={{ marginLeft: ".5rem" }}>
-          <PollingDot />
-          <a href="/" style={{ color: "white" }}>
-            <TYPE.small color={"white"}>
-              Updating <br />
-            </TYPE.small>
-          </a>
-        </Polling>
-      )}
-    </>
-  )
-}
+export const Footer = ({ isDark, toggleDarkMode }) => (
+  <>
+    <AutoColumn gap="0.5rem" >
+      <HeaderText>
+        <Link href="https://twitter.com/DefiLlama" target="_blank">
+          Twitter
+        </Link>
+      </HeaderText>
+      <HeaderText>
+        <Link href="https://discord.gg/buPFYXzDDd" target="_blank">
+          Discord
+        </Link>
+      </HeaderText>
+      <HeaderText>
+        <Link href="https://docs.llama.fi/api" target="_blank">
+          API Docs
+        </Link>
+      </HeaderText>
+      <HeaderText>
+        <Link href="https://docs.llama.fi/list-your-project/submit-a-project" target="_blank">
+          List Your Project
+        </Link>
+      </HeaderText>
+      <HeaderText>
+        <Link href="https://defillama-datasets.s3.eu-central-1.amazonaws.com/all.csv" target="_blank">
+          Download Data
+        </Link>
+      </HeaderText>
+      <HeaderText>
+        <Link href="https://t.me/defillama_tg" target="_blank">
+          Telegram
+        </Link>
+      </HeaderText>
+      <Toggle isActive={isDark} toggle={toggleDarkMode} />
+    </AutoColumn>
+  </>
+)
