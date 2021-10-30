@@ -23,8 +23,6 @@ const ErrorFallback = ({ error, theme }) => {
         }
     }, [error]);
 
-    console.log(theme)
-
     return (
         <LayoutWrapper>
             <ThemedBackground style={{ height: '100vh' }} />
