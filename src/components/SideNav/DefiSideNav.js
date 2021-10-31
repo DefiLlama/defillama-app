@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { DesktopWrapper, entry, MobileWrapper, Option, Wrapper, footer, ButtonWrapper } from "./shared"
+import { DesktopWrapper, Entry, MobileWrapper, Option, Wrapper, Footer, ButtonWrapper } from "./shared"
 import { AutoColumn } from "../Column"
 import Title from "../Title"
 import { BasicLink } from "../Link"
@@ -13,14 +13,13 @@ import NavMenuButton from "./NavMenuButton"
 
 function SideNav({ history }) {
   const below1080 = useMedia("(max-width: 1080px)")
-  const below1180 = useMedia("(max-width: 1080px)")
 
   const [showMobileNavMenu, setShowMobileNavMenu] = useState(false)
   const [isDark, toggleDarkMode] = useDarkModeManager()
 
   const NavMenu = () => (
     <AutoColumn gap="1.25rem" style={{ marginTop: "1rem" }}>
-      {entry("", "Overview", history, { icon: TrendingUp })}
+      <Entry url="" name="Overview" history={history} Icon={TrendingUp} />
       <BasicLink to="/protocols">
         <Option
           activeText={
@@ -34,10 +33,10 @@ function SideNav({ history }) {
           Protocols
         </Option>
       </BasicLink>
-      {entry("chains", "Chains", history, { icon: LinkLogo })}
-      {entry("airdrops", "Airdrops", history, { icon: CloudDrizzle })}
-      {entry("comparison", "Comparison", history, { icon: Minimize2 })}
-      {entry("recent", "Recent", history, { icon: Clock })}
+      <Entry url="chains" name="Chains" history={history} Icon={LinkLogo} />
+      <Entry url="airdrops" name="Airdrops" history={history} Icon={CloudDrizzle} />
+      <Entry url="comparison" name="Comparison" history={history} Icon={Minimize2} />
+      <Entry url="recent" name="Recent" history={history} Icon={Clock} />
       {categories.map(categoryData => (
         <BasicLink to={`/protocols/${categoryData.name.toLowerCase()}`} key={categoryData.name}>
           <Option
@@ -52,7 +51,7 @@ function SideNav({ history }) {
           </Option>
         </BasicLink>
       ))}
-      {entry("about", "About", history, { icon: HelpCircle })}
+      <Entry url="about" name="About" history={history} Icon={HelpCircle} />
     </AutoColumn>
   )
 
@@ -74,11 +73,11 @@ function SideNav({ history }) {
   return (
     <Wrapper isMobile={false}>
       <DesktopWrapper>
-        <AutoColumn gap="1rem" style={{ marginLeft: ".75rem", marginTop: "1.5rem" }}>
+        <AutoColumn gap="1rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }} >
           <Title />
           <NavMenu />
         </AutoColumn>
-        {footer(below1180, isDark, toggleDarkMode)}
+        <Footer isDark={isDark} toggleDarkMode={toggleDarkMode} />
       </DesktopWrapper>
     </Wrapper>
   )

@@ -335,9 +335,6 @@ function GlobalPage({ chain, denomination, history }) {
             <TokenList tokens={tokensList} />
           </Panel>
         </div>
-        <div style={{ margin: 'auto' }}>
-          <a href="https://defillama-datasets.s3.eu-central-1.amazonaws.com/all.csv"><ButtonDark>Download all data in .csv</ButtonDark></a>
-        </div>
       </ContentWrapper>
     </PageWrapper >
   )
