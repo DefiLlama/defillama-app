@@ -170,7 +170,7 @@ function TokenList({ tokens }) {
           </Row>
         </DataText>
         {!below1080 && (
-          <DataText area="chain">{item.chains.map(chain => <BasicLink key={chain} to={`/ chain / ${chain} `}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)}</DataText>
+          <DataText area="chain">{item.chains.map(chain => <BasicLink key={chain} to={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)}</DataText>
         )}
         {/*!below1080 && (
           <DataText area="fdvtvl" color="text" fontWeight="500">
