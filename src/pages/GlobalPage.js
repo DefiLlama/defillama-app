@@ -44,6 +44,7 @@ const ListOptions = styled(AutoRow)`
 
 const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
 const extraChainOptions = ['Terra', 'Arbitrum', 'Binance', 'Celo', 'Harmony']
+const firstChains = ["Tron", "Waves", "Heco", "Celo"]
 
 function GlobalPage({ chain, denomination, history }) {
   // get data for lists and totals
@@ -135,8 +136,8 @@ function GlobalPage({ chain, denomination, history }) {
       filteredTokens = filteredTokens.sort((a, b) => b.tvl - a.tvl)
     }
 
-    chainOptions.forEach(chain => chainsSet.delete(chain))
-    const otherChains = Array.from(chainsSet)
+    chainOptions.concat(firstChains).forEach(chain => chainsSet.delete(chain))
+    const otherChains = firstChains.concat(Array.from(chainsSet))
     return [filteredTokens, otherChains]
   }, [allTokensOriginal, selectedChain, stakingEnabled, pool2Enabled])
 
