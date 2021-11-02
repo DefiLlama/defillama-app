@@ -1,35 +1,34 @@
 import React, { useEffect, useState, useMemo, lazy, Suspense } from 'react'
-import { withRouter } from 'react-router-dom'
-import styled from 'styled-components'
-
-import { AutoRow, RowBetween, RowFlat } from '../components/Row'
-import Loader from '../components/LocalLoader'
-import { AutoColumn } from '../components/Column'
-import TokenList from '../components/TokenList'
-import Search from '../components/Search'
-import { ButtonLight, ButtonDark } from '../components/ButtonStyled'
-
-import { useGlobalData } from '../contexts/GlobalData'
+import { withRouter, Redirect } from 'react-router-dom'
 import { useMedia } from 'react-use'
-import Panel from '../components/Panel'
-import { useAllTokenData } from '../contexts/TokenData'
-import { formattedNum } from '../utils'
-import { TYPE, ThemedBackground } from '../Theme'
+import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { CustomLink, BasicLink } from '../components/Link'
 
-import { PageWrapper, ContentWrapper } from '../components'
-import { fetchAPI } from '../contexts/API'
-import { CHART_API } from '../constants'
-import DropdownSelect from '../components/DropdownSelect'
-import { Redirect } from 'react-router-dom'
-import RightSettings from '../components/RightSettings'
-import { useStakingManager, usePool2Manager } from '../contexts/LocalStorage'
-import { OptionToggle, CheckMarks } from '../components/SettingsModal'
+import { AutoRow, RowBetween, RowFlat } from 'components/Row'
+import Loader from 'components/LocalLoader'
+import { AutoColumn } from 'components/Column'
+import TokenList from 'components/TokenList'
+import Search from 'components/Search'
+import { ButtonLight, ButtonDark } from 'components/ButtonStyled'
+import Panel from 'components/Panel'
+import { CustomLink, BasicLink } from 'components/Link'
+import { PageWrapper, ContentWrapper } from 'components'
+import DropdownSelect from 'components/DropdownSelect'
+import RightSettings from 'components/RightSettings'
+import {  CheckMarks } from 'components/SettingsModal'
 
-const ProtocolChart = lazy(() => import('../components/ProtocolChart'));
-const GlobalChart = lazy(() => import('../components/GlobalChart'));
+import { TYPE, ThemedBackground } from 'Theme'
 
+import { useGlobalData } from 'contexts/GlobalData'
+import { useAllTokenData } from 'contexts/TokenData'
+import { useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
+import { fetchAPI } from 'contexts/API'
+import { CHART_API } from 'constants/index'
+import { basicChainOptions, extraChainOptions } from 'constants/chainTokens'
+import { formattedNum } from 'utils'
+
+const ProtocolChart = lazy(() => import('components/ProtocolChart'));
+const GlobalChart = lazy(() => import('components/GlobalChart'));
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -41,9 +40,6 @@ const ListOptions = styled(AutoRow)`
     font-size: 1rem;
   }
 `
-
-const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
-const extraChainOptions = ['Terra', 'Arbitrum', 'Binance', 'Celo', 'Harmony']
 
 function GlobalPage({ chain, denomination, history }) {
   // get data for lists and totals
