@@ -2,7 +2,7 @@ import React, { useState, useEffect, } from 'react'
 import { ChevronsUp } from 'react-feather'
 import { Button } from 'rebass'
 
-export default function useInfiniteScroll({ list = [], numInView = 25 }) {
+export default function useInfiniteScroll({ list = [], numInView = 25, filters = [] }) {
 
     const [dataLength, setDatalength] = useState(numInView)
     const [hasMore, setHasMore] = useState(true)
@@ -17,8 +17,14 @@ export default function useInfiniteScroll({ list = [], numInView = 25 }) {
                 setDisplayScrollToTopButton(false);
             }
         });
-
     }, [])
+
+    // Reset when category changes or else might be limited if one category is smaller than the other
+    const stringifyFilters = JSON.stringify(filters)
+    useEffect(() => {
+        setHasMore(true)
+        setDatalength(numInView)
+    }, [stringifyFilters, numInView])
 
     const handleScrollToTop = () => {
         window.scrollTo({

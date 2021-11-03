@@ -299,3 +299,7 @@ export const chainCoingeckoIds = {
     cmcId: "5802",
   },
 }
+
+export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
+export const extraChainOptions = ['Terra', 'Arbitrum', 'Binance', 'Celo', 'Harmony']
+export const priorityDropdownOptions = ["Tron", "Waves", "Heco"]

@@ -110,7 +110,7 @@ const SORT_FIELD = {
 
 
 // @TODO rework into virtualized list
-function TokenList({ tokens }) {
+function TokenList({ tokens, filters }) {
 
   const below1080 = useMedia('(max-width: 1080px)')
   const below680 = useMedia('(max-width: 680px)')
@@ -122,7 +122,7 @@ function TokenList({ tokens }) {
 
 
   const filteredList = useMemo(() => {
-    if (!tokens) {
+    if (!tokens || !tokens.length) {
       return tokens
     }
     let sortedTokens = tokens
@@ -146,7 +146,7 @@ function TokenList({ tokens }) {
   const { LoadMoreButton,
     dataLength,
     hasMore,
-    next } = useInfiniteScroll({ list: filteredList });
+    next } = useInfiniteScroll({ list: filteredList, filters });
 
 
   const ListItem = ({ item, index }) => {
