@@ -24,7 +24,7 @@ import { useAllTokenData } from 'contexts/TokenData'
 import { useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
 import { fetchAPI } from 'contexts/API'
 import { CHART_API } from 'constants/index'
-import { basicChainOptions, extraChainOptions } from 'constants/chainTokens'
+import { basicChainOptions, extraChainOptions, priorityDropdownOptions } from 'constants/chainTokens'
 import { formattedNum } from 'utils'
 
 const ProtocolChart = lazy(() => import('components/ProtocolChart'));
@@ -131,8 +131,8 @@ function GlobalPage({ chain, denomination, history }) {
       filteredTokens = filteredTokens.sort((a, b) => b.tvl - a.tvl)
     }
 
-    chainOptions.forEach(chain => chainsSet.delete(chain))
-    const otherChains = Array.from(chainsSet)
+    chainOptions.concat(priorityDropdownOptions).forEach(chain => chainsSet.delete(chain))
+    const otherChains = priorityDropdownOptions.concat(Array.from(chainsSet))
     return [filteredTokens, otherChains]
   }, [allTokensOriginal, selectedChain, stakingEnabled, pool2Enabled])
 
@@ -330,9 +330,6 @@ function GlobalPage({ chain, denomination, history }) {
           <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
             <TokenList tokens={tokensList} />
           </Panel>
-        </div>
-        <div style={{ margin: 'auto' }}>
-          <a href="https://defillama-datasets.s3.eu-central-1.amazonaws.com/all.csv"><ButtonDark>Download all data in .csv</ButtonDark></a>
         </div>
       </ContentWrapper>
     </PageWrapper >
