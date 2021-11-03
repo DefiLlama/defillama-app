@@ -1,4 +1,4 @@
-import React, { useEffect, } from 'react'
+import React, { useEffect } from 'react'
 import styled from 'styled-components'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
@@ -37,10 +37,10 @@ function AllTokensPage({ category, selectedChain = 'All', history }) {
     if (chain === 'All') return `/protocols/${category}`
     if (!category) {
       return `/chains/${chain}`
-    } 
+    }
     return `/protocols/${category}/${chain}`
   }
-  const setSelectedChain = (newSelectedChain) => history.push(handleRouting(newSelectedChain))
+  const setSelectedChain = newSelectedChain => history.push(handleRouting(newSelectedChain))
 
   const chainsSet = new Set([])
   let chainOptions = []
@@ -54,14 +54,17 @@ function AllTokensPage({ category, selectedChain = 'All', history }) {
 
   let allTokens = Object.values(useAllTokenData())
   if (category) {
-    allTokens = allTokens.filter((token) => (token.category || '').toLowerCase() === category.toLowerCase() && token.category !== "Chain")
+    allTokens = allTokens.filter(
+      token => (token.category || '').toLowerCase() === category.toLowerCase() && token.category !== 'Chain'
+    )
   } else {
-    allTokens = allTokens.filter((token) => token.category !== "Chain")
+    allTokens = allTokens.filter(token => token.category !== 'Chain')
   }
 
-  allTokens = allTokens.map(token => {
+  allTokens = allTokens
+    .map(token => {
       // Populate chain dropdown options
-     token.chains.forEach(chain => {
+      token.chains.forEach(chain => {
         chainsSet.add(chain)
       })
       if (selectedChain !== 'All') {
@@ -70,7 +73,7 @@ function AllTokensPage({ category, selectedChain = 'All', history }) {
         if (chainTvl === undefined) {
           return null
         }
-        
+
         if (token.chains.length > 1) {
           // do not return mcap/tvl for specific chain since tvl is spread accross chains
           return {
@@ -82,12 +85,13 @@ function AllTokensPage({ category, selectedChain = 'All', history }) {
       // if only chain return the full mcap/tvl or All selected
       return {
         ...token,
-        mcaptvl: (token.tvl !== 0 && token.mcap) ? token.mcap / token.tvl : null,
-        fdvtvl: (token.tvl !== 0 && token.fdv) ? token.fdv / token.tvl : null,
+        mcaptvl: token.tvl !== 0 && token.mcap ? token.mcap / token.tvl : null,
+        fdvtvl: token.tvl !== 0 && token.fdv ? token.fdv / token.tvl : null
       }
-  }).filter(token => token !== null)
+    })
+    .filter(token => token !== null)
 
-  // remove duplicate chains 
+  // remove duplicate chains
   chainOptions.concat(priorityDropdownOptions).forEach(chain => chainsSet.delete(chain))
   const otherChains = [...priorityDropdownOptions, ...Array.from(chainsSet)]
 
@@ -99,7 +103,7 @@ function AllTokensPage({ category, selectedChain = 'All', history }) {
   if (category) {
     title = `${category} TVL Rankings`
   }
-  document.title = `${title} - Defi Llama`;
+  document.title = `${title} - Defi Llama`
 
   return (
     <PageWrapper>
@@ -109,26 +113,44 @@ function AllTokensPage({ category, selectedChain = 'All', history }) {
           {!below600 && <Search small={true} />}
         </RowBetween>
         <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
-            <RowBetween>
-              <RowFlat>
-                  {chainOptions.map((chain, i) => {
-                    if (chain === "Others") {
-                      return <DropdownSelect key={chain} options={otherChains.reduce((acc, item) => ({
-                        ...acc,
-                        [item]: item
-                      }), {})} active={(chainOptions.includes(selectedChain) || selectedChain === undefined) ? 'Other' : selectedChain} setActive={setSelectedChain} />
-                    }
-                    if (selectedChain === chain) {
-                      return <ButtonDark style={{ margin: '0.2rem' }} key={chain}>{chain}</ButtonDark>
-                    } else {
-                      return <BasicLink to={handleRouting(chain)} key={chain}>
-                        <ButtonLight style={{ margin: '0.2rem' }}>{chain}</ButtonLight>
-                      </BasicLink>
-                    }
-                  })}
-              </RowFlat>
-            </RowBetween>
-          </ListOptions>
+          <RowBetween>
+            <RowFlat>
+              {chainOptions.map((chain, i) => {
+                if (chain === 'Others') {
+                  return (
+                    <DropdownSelect
+                      key={chain}
+                      options={otherChains.reduce(
+                        (acc, item) => ({
+                          ...acc,
+                          [item]: item
+                        }),
+                        {}
+                      )}
+                      active={
+                        chainOptions.includes(selectedChain) || selectedChain === undefined ? 'Other' : selectedChain
+                      }
+                      setActive={setSelectedChain}
+                    />
+                  )
+                }
+                if (selectedChain === chain) {
+                  return (
+                    <ButtonDark style={{ margin: '0.2rem' }} key={chain}>
+                      {chain}
+                    </ButtonDark>
+                  )
+                } else {
+                  return (
+                    <BasicLink to={handleRouting(chain)} key={chain}>
+                      <ButtonLight style={{ margin: '0.2rem' }}>{chain}</ButtonLight>
+                    </BasicLink>
+                  )
+                }
+              })}
+            </RowFlat>
+          </RowBetween>
+        </ListOptions>
         <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>
           <TokenList tokens={allTokens} filters={[category, selectedChain]} />
         </Panel>
