@@ -302,3 +302,4 @@ export const chainCoingeckoIds = {
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
 export const extraChainOptions = ['Terra', 'Arbitrum', 'Binance', 'Celo', 'Harmony']
+export const priorityDropdownOptions = ["Tron", "Waves", "Heco", "Celo"]

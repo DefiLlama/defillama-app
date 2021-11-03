@@ -64,12 +64,13 @@ function App() {
                 <Route
                   exacts
                   strict
-                  path="/protocols/:category"
+                  path="/protocols/:category/:chain?"
                   render={({ match }) => {
                     const category = match.params.category
+                    const chain = match.params.chain
                     if (Object.values(allTokens).some(protocol => (protocol.category || '').toLowerCase() === category.toLowerCase())) {
                       return (<LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-                        <AllTokensPage category={category} categoryName={category} />
+                      <AllTokensPage category={category} selectedChain={chain} />
                       </LayoutWrapper>)
                     } else {
                       return <Redirect to="/protocols" />
