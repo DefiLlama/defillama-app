@@ -298,6 +298,11 @@ export const chainCoingeckoIds = {
     symbol: "XOR",
     cmcId: "5802",
   },
+  "smartBCH": {
+    geckoId: "bitcoin-cash",
+    symbol: "BCH",
+    cmcId: "1831",
+  },
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
