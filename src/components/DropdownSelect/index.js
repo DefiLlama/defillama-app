@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
+import { ChevronDown as Arrow } from 'react-feather'
 import styled from 'styled-components'
 
-import Row, { RowBetween } from '../Row'
-import { AutoColumn } from '../Column'
-import { ChevronDown as Arrow } from 'react-feather'
-import { TYPE } from '../../Theme'
+import Row, { RowBetween } from 'components/Row'
+import { AutoColumn } from 'components/Column'
+import { TYPE } from 'Theme'
 import { StyledIcon } from '..'
 
 const Wrapper = styled.div`
@@ -63,8 +63,7 @@ const DropdownSelect = ({ options, active, setActive, color, style }) => {
       {showDropdown && (
         <Dropdown>
           <AutoColumn gap="20px">
-            {Object.keys(options).map((key, index) => {
-              let option = options[key]
+            {options.map((option, index) => {
               return (
                 option !== active && (
                   <Row
