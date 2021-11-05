@@ -4,11 +4,11 @@ import { PlusCircle, Bookmark } from 'react-feather'
 
 import { withRouter } from 'react-router-dom'
 import { Text } from 'rebass'
-import styled from 'styled-components'
 import { shade } from 'polished'
 import Vibrant from 'node-vibrant'
 import { hex } from 'wcag-contrast'
 
+import { DetailsLayout as TokenDetailsLayout, DashboardWrapper, PanelWrapper } from './shared'
 import Link from '../components/Link'
 import Panel from '../components/Panel'
 import TokenLogo from '../components/TokenLogo'
@@ -33,61 +33,6 @@ import AuditInfo from '../components/AuditInfo'
 import HeadHelp from '../components/HeadHelp'
 import { CheckMarks } from '../components/SettingsModal'
 
-const DashboardWrapper = styled.div`
-  width: 100%;
-`
-
-const PanelWrapper = styled.div`
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: max-content;
-  gap: 6px;
-  display: inline-grid;
-  width: 100%;
-  align-items: start;
-  @media screen and (max-width: 1024px) {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-    > * {
-      grid-column: 1 / 4;
-    }
-
-    > * {
-      &:first-child {
-        width: 100%;
-      }
-    }
-  }
-`
-
-const TokenDetailsLayout = styled.div`
-  display: inline-grid;
-  width: 100%;
-  grid-template-columns: auto auto auto 1fr;
-  column-gap: 30px;
-  align-items: start;
-
-  &:last-child {
-    align-items: center;
-    justify-items: end;
-  }
-  @media screen and (max-width: 1024px) {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-    > * {
-      grid-column: 1 / 4;
-      margin-bottom: 1rem;
-      display: table-row;
-      > * {
-        margin-bottom: 1rem;
-      }
-    }
-
-    &:last-child {
-      align-items: start;
-      justify-items: start;
-    }
-  }
-`
 let backgroundColor = '#2172E5'
 
 const blockExplorers = {
