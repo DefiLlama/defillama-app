@@ -80,7 +80,9 @@ const DashGrid = styled.div`
   }
 `
 
-const ListWrapper = styled.div``
+const ListWrapper = styled.div`
+  width: 100%;
+`
 
 const ClickableText = styled(Text)`
   text-align: end;

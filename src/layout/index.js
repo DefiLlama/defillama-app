@@ -7,6 +7,7 @@ import SideNav from '../components/SideNav'
 export const AppWrapper = styled.div`
   position: relative;
   width: 100%;
+  min-height: 100vh;
 `
 const ContentWrapper = styled.div`
   display: grid;
@@ -17,10 +18,12 @@ const ContentWrapper = styled.div`
   }
 
   @media screen and (max-width: 1080px) {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    width: 100%;    
     max-width: 100vw;
+    min-height: inherit;
     overflow: hidden;
-    grid-gap: 0;
   }
 `
 
@@ -39,6 +42,7 @@ const Right = styled.div`
 `
 
 const Center = styled.div`
+  flex: 1;
   height: 100%;
   z-index: 9999;
   transition: width 0.25s ease;

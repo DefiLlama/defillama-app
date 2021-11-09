@@ -123,8 +123,11 @@ export const ContentWrapper = styled.div`
   margin: 0 auto;
   padding: 0 2rem;
   box-sizing: border-box;
+
   @media screen and (max-width: 1180px) {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
     padding: 0 1rem;
   }
 `
@@ -160,7 +163,9 @@ export const FullWrapper = styled.div`
   box-sizing: border-box;
 
   @media screen and (max-width: 1180px) {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
     padding: 0 1rem;
   }
 `
