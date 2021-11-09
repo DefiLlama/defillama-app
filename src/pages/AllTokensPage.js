@@ -101,7 +101,7 @@ function AllTokensPage({ category, selectedChain = 'All', history }) {
 
   let title = `TVL Rankings`
   if (category) {
-    title = `${category} TVL Rankings`
+    title = `${category[0].toUpperCase()}${category.substring(1)} TVL Rankings`
   }
   document.title = `${title} - Defi Llama`
 
