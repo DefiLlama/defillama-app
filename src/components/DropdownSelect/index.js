@@ -63,17 +63,17 @@ const DropdownSelect = ({ options, active, setActive, color, style }) => {
       {showDropdown && (
         <Dropdown>
           <AutoColumn gap="20px">
-            {options.map((option, index) => {
+            {options.map(({ label }, index) => {
               return (
-                option !== active && (
+                label !== active && (
                   <Row
                     onClick={() => {
                       toggleDropdown(!showDropdown)
-                      setActive(option)
+                      setActive(label)
                     }}
                     key={index}
                   >
-                    <TYPE.body fontSize={14}>{option}</TYPE.body>
+                    <TYPE.body fontSize={14}>{label}</TYPE.body>
                   </Row>
                 )
               )

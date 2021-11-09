@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
 
@@ -18,11 +17,6 @@ const Filters = ({
   history,
   onFilterClick
 }) => {
-  const orderedFilterOptions = useMemo(
-    () => [...priorityFilters, ...filterOptions.filter(({ label }) => !priorityFilters.includes(label))],
-    [filterOptions, priorityFilters]
-  )
-
   const belowSmallTablet = useMedia(`(max-width: ${sm}px)`)
   const dropdownHandler = areLinks
     ? selectedLabel => {
@@ -33,10 +27,10 @@ const Filters = ({
   return (
     <Row>
       {belowSmallTablet ? (
-        <DropdownSelect options={orderedFilterOptions} active={activeLabel} setActive={dropdownHandler} />
+        <DropdownSelect options={filterOptions} active={activeLabel} setActive={dropdownHandler} />
       ) : (
         <FiltersAndDropdown
-          filterOptions={orderedFilterOptions}
+          filterOptions={filterOptions}
           areLinks={areLinks}
           setActive={dropdownHandler}
           onFilterClick={onFilterClick}
