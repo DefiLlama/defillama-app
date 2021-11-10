@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { Text } from 'rebass'
 import { transparentize } from 'polished'
 
-import * as breakpoints from 'constants/breakpoints'
+import { sm, med, lg, xl } from 'constants/breakpoints'
 import { useDarkModeManager } from '../contexts/LocalStorage'
 
 export default function ThemeProvider({ children }) {
@@ -76,7 +76,11 @@ const theme = (darkMode, color) => ({
   blue: '2f80ed',
   background: darkMode ? 'black' : `radial-gradient(50% 50% at 50% 50%, #445ed0 0%, #fff 0%)`,
 
-  breakpoints
+  // breakpoints
+  bpSm: `${sm}px`,
+  bpMed: `${med}px`,
+  bpLg: `${lg}px`,
+  bpXl: `${xl}px`
 })
 
 const TextWrapper = styled(Text)`

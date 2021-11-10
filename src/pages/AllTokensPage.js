@@ -99,8 +99,8 @@ function AllTokensPage({ category, selectedChain = 'All' }) {
         </RowBetween>
         <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
           <RowBetween>
-            <RowFlat>
-              <Filters filterOptions={chainOptions} setActive={setSelectedChain} />
+            <RowFlat style={{ width: '100%' }}>
+              <Filters filterOptions={chainOptions} setActive={setSelectedChain} activeLabel={selectedChain} />
             </RowFlat>
           </RowBetween>
         </ListOptions>

@@ -7,7 +7,8 @@ import Row from 'components/Row'
 
 import { useResize } from 'hooks'
 const letterPxLength = 8
-const marginPxLength = 3.2
+const marginPxLength = 6.4
+const paddingPxLenggth = 24
 
 // filter option to, and label,
 const FiltersAndDropdown = ({ filterOptions = [], activeLabel, setActive, areLinks, onFilterClick }) => {
@@ -17,21 +18,23 @@ const FiltersAndDropdown = ({ filterOptions = [], activeLabel, setActive, areLin
   const stringifyFilterOptions = JSON.stringify(filterOptions)
 
   useEffect(() => {
-    let remainingWidth = mainWrapWidth
+    let remainingWidth = mainWrapWidth - 120
     let lastIndexOfFilters = 0
+
     filterOptions.forEach(({ label }) => {
       if (remainingWidth < 0) return
-      remainingWidth -= marginPxLength + label.length * letterPxLength
+      remainingWidth -= marginPxLength + paddingPxLenggth + label.length * letterPxLength
       lastIndexOfFilters += 1
     })
     setVisibileFilterIndex(lastIndexOfFilters)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mainWrapWidth, stringifyFilterOptions])
 
-  const clickableFilters = filterOptions.slice(visibleFiltersIndex, filterOptions.length)
+  const clickableFilters = filterOptions.slice(0, visibleFiltersIndex)
+  const dropdownFilters = filterOptions.slice(visibleFiltersIndex, filterOptions.length)
 
   return (
-    <Row ref={mainWrapEl}>
+    <Row sx={{ maxWidth: '100%' }} ref={mainWrapEl}>
       {clickableFilters.map(({ label, to }) => {
         if (label === activeLabel) {
           return (
@@ -53,8 +56,8 @@ const FiltersAndDropdown = ({ filterOptions = [], activeLabel, setActive, areLin
       })}
       {visibleFiltersIndex !== filterOptions.length && (
         <DropdownSelect
-          options={filterOptions.slice(visibleFiltersIndex, filterOptions.length)}
-          active={clickableFilters.includes(activeLabel) ? activeLabel : 'Others'}
+          options={dropdownFilters}
+          active={dropdownFilters.some(({ label }) => label === activeLabel) ? activeLabel : 'Others'}
           setActive={setActive}
         />
       )}

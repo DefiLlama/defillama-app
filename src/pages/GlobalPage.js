@@ -15,7 +15,7 @@ import { CustomLink, BasicLink } from 'components/Link'
 import { PageWrapper, ContentWrapper } from 'components'
 import DropdownSelect from 'components/DropdownSelect'
 import RightSettings from 'components/RightSettings'
-import {  CheckMarks } from 'components/SettingsModal'
+import { CheckMarks } from 'components/SettingsModal'
 
 import { TYPE, ThemedBackground } from 'Theme'
 
@@ -27,8 +27,8 @@ import { CHART_API } from 'constants/index'
 import { basicChainOptions, extraChainOptions, priorityDropdownOptions } from 'constants/chainTokens'
 import { formattedNum } from 'utils'
 
-const ProtocolChart = lazy(() => import('components/ProtocolChart'));
-const GlobalChart = lazy(() => import('components/GlobalChart'));
+const ProtocolChart = lazy(() => import('components/ProtocolChart'))
+const GlobalChart = lazy(() => import('components/GlobalChart'))
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -46,9 +46,10 @@ function GlobalPage({ chain, denomination, history }) {
   let allTokensOriginal = useAllTokenData()
   //const transactions = useGlobalTransactions()
   const globalData = useGlobalData()
-  const [chainChartData, setChainChartData] = useState({});
-  const selectedChain = chain;
-  const setSelectedChain = (newSelectedChain) => history.push(newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
+  const [chainChartData, setChainChartData] = useState({})
+  const selectedChain = chain
+  const setSelectedChain = newSelectedChain =>
+    history.push(newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
   // breakpoints
   const below800 = useMedia('(max-width: 800px)')
   const below1400 = useMedia('(max-width: 1400px)')
@@ -65,29 +66,32 @@ function GlobalPage({ chain, denomination, history }) {
       top: 0
     })
   }, [])
-  const [stakingEnabled, toggleStaking] = useStakingManager()
-  const [pool2Enabled, togglePool2] = usePool2Manager()
+  const [stakingEnabled] = useStakingManager()
+  const [pool2Enabled] = usePool2Manager()
 
   let { totalVolumeUSD, volumeChangeUSD } = globalData
 
   useEffect(() => {
     if (selectedChain !== undefined && chainChartData[selectedChain] === undefined) {
-      fetchAPI(`${CHART_API}/${selectedChain}`).then(chart => setChainChartData({
-        [selectedChain]: chart
-      }))
+      fetchAPI(`${CHART_API}/${selectedChain}`).then(chart =>
+        setChainChartData({
+          [selectedChain]: chart
+        })
+      )
     }
   }, [selectedChain])
 
   if (selectedChain !== undefined) {
-    const chartData = chainChartData[selectedChain];
+    const chartData = chainChartData[selectedChain]
     if (chartData === undefined) {
-      totalVolumeUSD = 0;
-      volumeChangeUSD = 0;
+      totalVolumeUSD = 0
+      volumeChangeUSD = 0
     } else {
       totalVolumeUSD = chartData[chartData.length - 1].totalLiquidityUSD
       if (chartData.length > 1) {
-        volumeChangeUSD = ((chartData[chartData.length - 1].totalLiquidityUSD - chartData[chartData.length - 2].totalLiquidityUSD) /
-          chartData[chartData.length - 2].totalLiquidityUSD) *
+        volumeChangeUSD =
+          ((chartData[chartData.length - 1].totalLiquidityUSD - chartData[chartData.length - 2].totalLiquidityUSD) /
+            chartData[chartData.length - 2].totalLiquidityUSD) *
           100
       } else {
         volumeChangeUSD = 0
@@ -97,35 +101,37 @@ function GlobalPage({ chain, denomination, history }) {
   const [tokensList, otherChains] = useMemo(() => {
     const chainsSet = new Set([])
 
-    let filteredTokens = Object.values(allTokensOriginal).map(token => {
-      if (token.category === "Chain") {
-        return null
-      }
-      token.chains.forEach(chain => {
-        chainsSet.add(chain)
-      })
-      if (selectedChain !== undefined) {
-        if (token.chains.length === 1) {
-          if (token.chains[0] !== selectedChain) {
-            return null
-          }
-        } else {
-          const chainTvl = token.chainTvls[selectedChain]
-          if (chainTvl === undefined) {
-            return null
-          }
-          return {
-            ...token,
-            tvl: chainTvl
+    let filteredTokens = Object.values(allTokensOriginal)
+      .map(token => {
+        if (token.category === 'Chain') {
+          return null
+        }
+        token.chains.forEach(chain => {
+          chainsSet.add(chain)
+        })
+        if (selectedChain !== undefined) {
+          if (token.chains.length === 1) {
+            if (token.chains[0] !== selectedChain) {
+              return null
+            }
+          } else {
+            const chainTvl = token.chainTvls[selectedChain]
+            if (chainTvl === undefined) {
+              return null
+            }
+            return {
+              ...token,
+              tvl: chainTvl
+            }
           }
         }
-      }
-      return {
-        ...token,
-        mcaptvl: (token.tvl !== 0 && token.mcap) ? token.mcap / token.tvl : null,
-        fdvtvl: (token.tvl !== 0 && token.fdv) ? token.fdv / token.tvl : null,
-      }
-    }).filter(token => token !== null)
+        return {
+          ...token,
+          mcaptvl: token.tvl !== 0 && token.mcap ? token.mcap / token.tvl : null,
+          fdvtvl: token.tvl !== 0 && token.fdv ? token.fdv / token.tvl : null
+        }
+      })
+      .filter(token => token !== null)
 
     if (selectedChain !== undefined || stakingEnabled || pool2Enabled) {
       filteredTokens = filteredTokens.sort((a, b) => b.tvl - a.tvl)
@@ -151,7 +157,7 @@ function GlobalPage({ chain, denomination, history }) {
   if (tokensList.length > 0) {
     topToken.name = tokensList[0]?.name
     topToken.tvl = tokensList[0]?.tvl
-    if (topToken.name === "AnySwap") {
+    if (topToken.name === 'AnySwap') {
       topToken.name = tokensList[1]?.name
       topToken.tvl = tokensList[1]?.tvl
     }
@@ -159,16 +165,19 @@ function GlobalPage({ chain, denomination, history }) {
     return <Redirect to="/" />
   }
 
-  document.title = `DefiLlama - DeFi Dashboard`;
+  document.title = `DefiLlama - DeFi Dashboard`
 
-  const chart = <Suspense fallback={<Loader />}>
-    {selectedChain === undefined ? <GlobalChart display="liquidity" /> :
-      chainChartData[selectedChain] !== undefined ? <ProtocolChart
-        chartData={chainChartData[selectedChain]}
-        protocol={selectedChain}
-        denomination={denomination}
-      /> : <Loader />}
-  </Suspense>;
+  const chart = (
+    <Suspense fallback={<Loader />}>
+      {selectedChain === undefined ? (
+        <GlobalChart display="liquidity" />
+      ) : chainChartData[selectedChain] !== undefined ? (
+        <ProtocolChart chartData={chainChartData[selectedChain]} protocol={selectedChain} denomination={denomination} />
+      ) : (
+        <Loader />
+      )}
+    </Suspense>
+  )
 
   return (
     <PageWrapper>
@@ -181,13 +190,20 @@ function GlobalPage({ chain, denomination, history }) {
               {!below800 && <RightSettings />}
             </RowBetween>
             <Search />
-            {selectedChain === "Fantom" &&
+            {selectedChain === 'Fantom' && (
               <Panel background={true} style={{ textAlign: 'center' }}>
                 <TYPE.main fontWeight={400}>
-                  AnySwap TVL has been excluded from the total TVL calculation. Click <a style={{ color: 'inherit', fontWeight: '700' }} href="https://twitter.com/0xngmi/status/1446691628043878404">here</a> for our explanation and reasoning
+                  AnySwap TVL has been excluded from the total TVL calculation. Click{' '}
+                  <a
+                    style={{ color: 'inherit', fontWeight: '700' }}
+                    href="https://twitter.com/0xngmi/status/1446691628043878404"
+                  >
+                    here
+                  </a>{' '}
+                  for our explanation and reasoning
                 </TYPE.main>
               </Panel>
-            }
+            )}
             <CheckMarks />
           </AutoColumn>
           {below800 && ( // mobile card
@@ -286,43 +302,70 @@ function GlobalPage({ chain, denomination, history }) {
                   </AutoColumn>
                 </Panel>
               </AutoColumn>
-              <Panel style={{ height: '100%', minHeight: '300px' }}>
-                {chart}
-              </Panel>
+              <Panel style={{ height: '100%', minHeight: '300px' }}>{chart}</Panel>
             </AutoRow>
           )}
           {below800 && (
             <AutoColumn style={{ marginTop: '6px' }} gap="24px">
-              <Panel style={{ height: '100%', minHeight: '300px' }}>
-                {chart}
-              </Panel>
+              <Panel style={{ height: '100%', minHeight: '300px' }}>{chart}</Panel>
             </AutoColumn>
           )}
           <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
             <RowBetween>
               <TYPE.main fontSize={'1.125rem'}>TVL Rankings</TYPE.main>
               <RowFlat>
-                {below800 ?
-                  <DropdownSelect options={chainOptions.slice(0, -1).concat(otherChains).reduce((acc, item) => ({
-                    ...acc,
-                    [item]: item
-                  }), {})} active={selectedChain || 'All'} setActive={setSelectedChain} />
-                  :
+                {below800 ? (
+                  <DropdownSelect
+                    options={chainOptions
+                      .slice(0, -1)
+                      .concat(otherChains)
+                      .reduce(
+                        (acc, item) => ({
+                          ...acc,
+                          [item]: item
+                        }),
+                        {}
+                      )}
+                    active={selectedChain || 'All'}
+                    setActive={setSelectedChain}
+                  />
+                ) : (
                   chainOptions.map((name, i) => {
-                    if (name === "Others") {
-                      return <DropdownSelect key={name} options={otherChains.reduce((acc, item) => ({
-                        ...acc,
-                        [item]: item
-                      }), {})} active={(chainOptions.includes(selectedChain) || selectedChain === undefined) ? 'Other' : selectedChain} setActive={setSelectedChain} />
+                    if (name === 'Others') {
+                      return (
+                        <DropdownSelect
+                          key={name}
+                          options={otherChains.reduce(
+                            (acc, item) => ({
+                              ...acc,
+                              [item]: item
+                            }),
+                            {}
+                          )}
+                          active={
+                            chainOptions.includes(selectedChain) || selectedChain === undefined
+                              ? 'Other'
+                              : selectedChain
+                          }
+                          setActive={setSelectedChain}
+                        />
+                      )
                     }
                     if (selectedChain === name || (name === 'All' && selectedChain === undefined)) {
-                      return <ButtonDark style={{ margin: '0.2rem' }} key={name} >{name}</ButtonDark>
+                      return (
+                        <ButtonDark style={{ margin: '0.2rem' }} key={name}>
+                          {name}
+                        </ButtonDark>
+                      )
                     } else {
-                      return <BasicLink to={name === "All" ? '/' : `/chain/${name}`} key={name}>
-                        <ButtonLight style={{ margin: '0.2rem' }}>{name}</ButtonLight>
-                      </BasicLink>
+                      return (
+                        <BasicLink to={name === 'All' ? '/' : `/chain/${name}`} key={name}>
+                          <ButtonLight style={{ margin: '0.2rem' }}>{name}</ButtonLight>
+                        </BasicLink>
+                      )
                     }
-                  })}
+                  })
+                )}
               </RowFlat>
               <CustomLink to={'/protocols'}>See All</CustomLink>
             </RowBetween>
@@ -332,7 +375,7 @@ function GlobalPage({ chain, denomination, history }) {
           </Panel>
         </div>
       </ContentWrapper>
-    </PageWrapper >
+    </PageWrapper>
   )
 }
 
