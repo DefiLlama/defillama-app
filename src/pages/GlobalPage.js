@@ -316,7 +316,7 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
           </RowBetween>
         </ListOptions>
         <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
-          <TokenList tokens={tokensList} />
+          <TokenList tokens={tokensList} filters={[selectedChain]} />
         </Panel>
       </ContentWrapper>
     </PageWrapper>
