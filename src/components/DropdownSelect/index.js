@@ -37,9 +37,12 @@ const Dropdown = styled.div`
   font-weight: 500;
   font-size: 1rem;
   color: black;
-  overflow-y: scroll;
-  overflow-x: hidden;
   max-height: 600px;
+
+  overflow-y: auto;
+
+  ${({ overflowVisible }) => overflowVisible && 'overflow: visible'}
+
   :hover {
     cursor: pointer;
   }
@@ -55,7 +58,7 @@ const ArrowStyled = styled(Arrow)`
   margin-left: 6px;
 `
 
-const DropdownSelect = ({ options, active, setActive, color, style }) => {
+const DropdownSelect = ({ options, active, setActive, color, style, overflowVisible }) => {
   const [showDropdown, toggleDropdown] = useState(false)
   let optionsArr = options
   if (!Array.isArray(options)) {
@@ -71,7 +74,7 @@ const DropdownSelect = ({ options, active, setActive, color, style }) => {
         </StyledIcon>
       </RowBetween>
       {showDropdown && (
-        <Dropdown>
+        <Dropdown overflowVisible={overflowVisible}>
           <AutoColumn gap="20px">
             {optionsArr.map((label, index) => {
               return (
@@ -83,7 +86,9 @@ const DropdownSelect = ({ options, active, setActive, color, style }) => {
                     }}
                     key={index}
                   >
-                    <TYPE.body fontSize={14}>{label}</TYPE.body>
+                    <TYPE.body minWidth="initial" fontSize={14}>
+                      {label}
+                    </TYPE.body>
                   </Row>
                 )
               )

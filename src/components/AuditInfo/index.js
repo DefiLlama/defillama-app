@@ -37,6 +37,7 @@ const AuditInfo = ({
           options={auditLinks}
           active="Yes"
           setActive={link => (window.location.href = link)}
+          overflowVisible
         ></DropdownSelect>
       </TextWrapper>
     )
