@@ -15,7 +15,7 @@ import { CustomLink, BasicLink } from 'components/Link'
 import { PageWrapper, ContentWrapper } from 'components'
 import DropdownSelect from 'components/DropdownSelect'
 import RightSettings from 'components/RightSettings'
-import {  CheckMarks } from 'components/SettingsModal'
+import { CheckMarks } from 'components/SettingsModal'
 
 import { TYPE, ThemedBackground } from 'Theme'
 
@@ -174,8 +174,8 @@ function GlobalPage({ chain, denomination, history }) {
     <PageWrapper>
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
       <ContentWrapper>
-        <div>
-          <AutoColumn gap="24px" style={{ paddingBottom: below800 ? '0' : '24px' }}>
+        <>
+          <AutoColumn gap="24px" style={{ paddingBottom: below800 ? '0' : '24px', width: '100%' }}>
             <RowBetween>
               <TYPE.largeHeader>Defi Dashboard</TYPE.largeHeader>
               {!below800 && <RightSettings />}
@@ -330,7 +330,7 @@ function GlobalPage({ chain, denomination, history }) {
           <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
             <TokenList tokens={tokensList} />
           </Panel>
-        </div>
+        </>
       </ContentWrapper>
     </PageWrapper >
   )
