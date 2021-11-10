@@ -303,6 +303,21 @@ export const chainCoingeckoIds = {
     symbol: "BCH",
     cmcId: "1831",
   },
+  "Elastos": {
+    geckoId: "elastos",
+    symbol: "ELA",
+    cmcId: "2492",
+  },
+  "Hoo": {
+    geckoId: "hoo-token",
+    symbol: "HOO",
+    cmcId: "7543",
+  },
+  "Cronos": {
+    geckoId: "crypto-com-chain",
+    symbol: "CRO",
+    cmcId: "3635",
+  },
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
