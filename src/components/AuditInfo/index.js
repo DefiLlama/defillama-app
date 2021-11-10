@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import styled from 'styled-components'
 import { Tooltip } from '../QuestionHelper'
 import { HelpCircle } from 'react-feather'
-import Link from '../Link'
 import DropdownSelect from '../DropdownSelect'
 
 const TextWrapper = styled.div`
@@ -19,13 +18,27 @@ const TextWrapper = styled.div`
     font-size: ${({ adjustSize }) => adjustSize && '12px'};
   }
 `
-const AuditInfo = ({ audits, auditLinks = [], maxCharacters, margin = false, adjustSize = false, fontSize, link, ...rest }) => {
+const AuditInfo = ({
+  audits,
+  auditLinks = [],
+  maxCharacters,
+  margin = false,
+  adjustSize = false,
+  fontSize,
+  link,
+  ...rest
+}) => {
   const [showHover, setShowHover] = useState(false)
 
   if (auditLinks.length > 0) {
     return (
       <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize}>
-        <DropdownSelect options={auditLinks} active="Yes" setActive={link => window.location.href = link}></DropdownSelect>
+        <DropdownSelect
+          options={auditLinks}
+          active="Yes"
+          setActive={link => (window.location.href = link)}
+          overflowVisible
+        ></DropdownSelect>
       </TextWrapper>
     )
   }
@@ -64,7 +77,6 @@ const AuditInfo = ({ audits, auditLinks = [], maxCharacters, margin = false, adj
 
   if (audits === '3') {
     return (
-
       <Tooltip text="This protocol is a fork of an existing audited protocol" show={showHover}>
         <TextWrapper
           onMouseEnter={() => setShowHover(true)}

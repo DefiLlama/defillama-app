@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
+import { ChevronDown as Arrow } from 'react-feather'
 import styled from 'styled-components'
 
-import Row, { RowBetween } from '../Row'
-import { AutoColumn } from '../Column'
-import { ChevronDown as Arrow } from 'react-feather'
-import { TYPE } from '../../Theme'
+import Row, { RowBetween } from 'components/Row'
+import { AutoColumn } from 'components/Column'
+import { TYPE } from 'Theme'
 import { StyledIcon } from '..'
 
 const Wrapper = styled.div`
@@ -29,17 +29,26 @@ const Dropdown = styled.div`
   position: absolute;
   top: 34px;
   padding-top: 40px;
-  width: calc(100% - 40px);
   background-color: ${({ theme }) => theme.bg1};
   border: 1px solid rgba(0, 0, 0, 0.15);
   padding: 10px 10px;
   border-radius: 8px;
-  width: calc(100% - 20px);
+  width: 100%;
   font-weight: 500;
   font-size: 1rem;
   color: black;
+  max-height: 600px;
+
+  overflow-y: auto;
+
+  ${({ overflowVisible }) => overflowVisible && 'overflow: visible'}
+
   :hover {
     cursor: pointer;
+  }
+
+  @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
+    max-height: 300px;
   }
 `
 
@@ -49,8 +58,12 @@ const ArrowStyled = styled(Arrow)`
   margin-left: 6px;
 `
 
-const DropdownSelect = ({ options, active, setActive, color, style }) => {
+const DropdownSelect = ({ options, active, setActive, color, style, overflowVisible }) => {
   const [showDropdown, toggleDropdown] = useState(false)
+  let optionsArr = options
+  if (!Array.isArray(options)) {
+    optionsArr = Object.values(optionsArr)
+  }
 
   return (
     <Wrapper open={showDropdown} color={color} style={style}>
@@ -61,20 +74,21 @@ const DropdownSelect = ({ options, active, setActive, color, style }) => {
         </StyledIcon>
       </RowBetween>
       {showDropdown && (
-        <Dropdown>
+        <Dropdown overflowVisible={overflowVisible}>
           <AutoColumn gap="20px">
-            {Object.keys(options).map((key, index) => {
-              let option = options[key]
+            {optionsArr.map((label, index) => {
               return (
-                option !== active && (
+                label !== active && (
                   <Row
                     onClick={() => {
                       toggleDropdown(!showDropdown)
-                      setActive(option)
+                      setActive(label)
                     }}
                     key={index}
                   >
-                    <TYPE.body fontSize={14}>{option}</TYPE.body>
+                    <TYPE.body minWidth="initial" fontSize={14}>
+                      {label}
+                    </TYPE.body>
                   </Row>
                 )
               )

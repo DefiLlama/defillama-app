@@ -1,21 +1,18 @@
 import React, { useEffect } from 'react'
 import styled from 'styled-components'
 import { useMedia } from 'react-use'
-import { withRouter } from 'react-router-dom'
 
-import DropdownSelect from 'components/DropdownSelect'
 import TokenList from 'components/TokenList'
 import Panel from 'components/Panel'
 import { useAllTokenData } from 'contexts/TokenData'
 import { PageWrapper, FullWrapper } from 'components'
 import { AutoRow, RowBetween, RowFlat } from 'components/Row'
 import Search from 'components/Search'
-import { ButtonLight, ButtonDark } from 'components/ButtonStyled'
-import { BasicLink } from 'components/Link'
+import Filters from 'components/Filters'
 
 import { TYPE } from 'Theme'
 
-import { basicChainOptions, extraChainOptions, priorityDropdownOptions } from 'constants/chainTokens'
+import { priorityChainFilters } from 'constants/chainTokens'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -28,10 +25,8 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
-function AllTokensPage({ category, selectedChain = 'All', history }) {
+function AllTokensPage({ category, selectedChain = 'All' }) {
   const below600 = useMedia('(max-width: 600px)')
-  const below800 = useMedia('(max-width: 800px)')
-  const below1400 = useMedia('(max-width: 1400px)')
 
   const handleRouting = chain => {
     if (chain === 'All') return `/protocols/${category}`
@@ -40,17 +35,9 @@ function AllTokensPage({ category, selectedChain = 'All', history }) {
     }
     return `/protocols/${category}/${chain}`
   }
-  const setSelectedChain = newSelectedChain => history.push(handleRouting(newSelectedChain))
+  const setSelectedChain = newSelectedChain => handleRouting(newSelectedChain)
 
-  const chainsSet = new Set([])
-  let chainOptions = []
-  if (below800) {
-    chainOptions = [basicChainOptions[0], 'Others']
-  } else if (below1400) {
-    chainOptions = [...basicChainOptions, 'Others']
-  } else {
-    chainOptions = [...basicChainOptions, ...extraChainOptions, 'Others']
-  }
+  const chainsSet = new Set(priorityChainFilters)
 
   let allTokens = Object.values(useAllTokenData())
   if (category) {
@@ -91,9 +78,7 @@ function AllTokensPage({ category, selectedChain = 'All', history }) {
     })
     .filter(token => token !== null)
 
-  // remove duplicate chains
-  chainOptions.concat(priorityDropdownOptions).forEach(chain => chainsSet.delete(chain))
-  const otherChains = [...priorityDropdownOptions, ...Array.from(chainsSet)]
+  let chainOptions = [...chainsSet].map(label => ({ label, to: handleRouting(label) }))
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -114,40 +99,8 @@ function AllTokensPage({ category, selectedChain = 'All', history }) {
         </RowBetween>
         <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
           <RowBetween>
-            <RowFlat>
-              {chainOptions.map((chain, i) => {
-                if (chain === 'Others') {
-                  return (
-                    <DropdownSelect
-                      key={chain}
-                      options={otherChains.reduce(
-                        (acc, item) => ({
-                          ...acc,
-                          [item]: item
-                        }),
-                        {}
-                      )}
-                      active={
-                        chainOptions.includes(selectedChain) || selectedChain === undefined ? 'Other' : selectedChain
-                      }
-                      setActive={setSelectedChain}
-                    />
-                  )
-                }
-                if (selectedChain === chain) {
-                  return (
-                    <ButtonDark style={{ margin: '0.2rem' }} key={chain}>
-                      {chain}
-                    </ButtonDark>
-                  )
-                } else {
-                  return (
-                    <BasicLink to={handleRouting(chain)} key={chain}>
-                      <ButtonLight style={{ margin: '0.2rem' }}>{chain}</ButtonLight>
-                    </BasicLink>
-                  )
-                }
-              })}
+            <RowFlat style={{ width: '100%' }}>
+              <Filters filterOptions={chainOptions} setActive={setSelectedChain} activeLabel={selectedChain} />
             </RowFlat>
           </RowBetween>
         </ListOptions>
@@ -159,4 +112,4 @@ function AllTokensPage({ category, selectedChain = 'All', history }) {
   )
 }
 
-export default withRouter(AllTokensPage)
+export default AllTokensPage
