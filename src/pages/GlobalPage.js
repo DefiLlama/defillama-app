@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, lazy, Suspense } from 'react'
-import { withRouter, Redirect } from 'react-router-dom'
+import { Redirect } from 'react-router-dom'
 import { useMedia } from 'react-use'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
@@ -10,7 +10,6 @@ import { AutoColumn } from 'components/Column'
 import TokenList from 'components/TokenList'
 import Search from 'components/Search'
 import Panel from 'components/Panel'
-import { CustomLink } from 'components/Link'
 import { PageWrapper, ContentWrapper } from 'components'
 import Filters from 'components/Filters'
 import RightSettings from 'components/RightSettings'
@@ -175,43 +174,91 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
     <PageWrapper>
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
       <ContentWrapper>
-        <div>
-          <AutoColumn gap="24px" style={{ paddingBottom: below800 ? '0' : '24px' }}>
-            <RowBetween>
-              <TYPE.largeHeader>Defi Dashboard</TYPE.largeHeader>
-              {!below800 && <RightSettings />}
-            </RowBetween>
-            <Search />
-            {selectedChain === 'Fantom' && (
-              <Panel background={true} style={{ textAlign: 'center' }}>
-                <TYPE.main fontWeight={400}>
-                  AnySwap TVL has been excluded from the total TVL calculation. Click{' '}
-                  <a
-                    style={{ color: 'inherit', fontWeight: '700' }}
-                    href="https://twitter.com/0xngmi/status/1446691628043878404"
-                  >
-                    here
-                  </a>{' '}
-                  for our explanation and reasoning
-                </TYPE.main>
-              </Panel>
-            )}
-            <CheckMarks />
+        <AutoColumn gap="24px" style={{ paddingBottom: below800 ? '0' : '24px' }}>
+          <RowBetween>
+            <TYPE.largeHeader>Defi Dashboard</TYPE.largeHeader>
+            {!below800 && <RightSettings />}
+          </RowBetween>
+          <Search />
+          {selectedChain === 'Fantom' && (
+            <Panel background={true} style={{ textAlign: 'center' }}>
+              <TYPE.main fontWeight={400}>
+                AnySwap TVL has been excluded from the total TVL calculation. Click{' '}
+                <a
+                  style={{ color: 'inherit', fontWeight: '700' }}
+                  href="https://twitter.com/0xngmi/status/1446691628043878404"
+                >
+                  here
+                </a>{' '}
+                for our explanation and reasoning
+              </TYPE.main>
+            </Panel>
+          )}
+          <CheckMarks />
+        </AutoColumn>
+        {below800 && ( // mobile card
+          <AutoColumn
+            style={{
+              height: '100%',
+              width: '100%',
+              marginRight: '10px',
+              marginTop: '10px'
+            }}
+            gap="10px"
+          >
+            <Panel style={{ padding: '18px 25px' }}>
+              <AutoColumn gap="4px">
+                <RowBetween>
+                  <TYPE.heading>Total Value Locked(USD)</TYPE.heading>
+                </RowBetween>
+                <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+                  <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
+                    {formattedNum(totalVolumeUSD, true)}
+                  </TYPE.main>
+                </RowBetween>
+              </AutoColumn>
+            </Panel>
+            <Panel style={{ padding: '18px 25px' }}>
+              <AutoColumn gap="4px">
+                <RowBetween>
+                  <TYPE.heading>Change (24h)</TYPE.heading>
+                </RowBetween>
+                <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+                  <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
+                    {volumeChangeUSD?.toFixed(2)}%
+                  </TYPE.main>
+                </RowBetween>
+              </AutoColumn>
+            </Panel>
+            <Panel style={{ padding: '18px 25px' }}>
+              <AutoColumn gap="4px">
+                <RowBetween>
+                  <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
+                </RowBetween>
+                <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+                  <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
+                    {((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)}%
+                  </TYPE.main>
+                </RowBetween>
+              </AutoColumn>
+            </Panel>
           </AutoColumn>
-          {below800 && ( // mobile card
+        )}
+        {!below800 && (
+          <AutoRow>
             <AutoColumn
               style={{
                 height: '100%',
                 width: '100%',
-                marginRight: '10px',
-                marginTop: '10px'
+                maxWidth: '350px',
+                marginRight: '10px'
               }}
               gap="10px"
             >
               <Panel style={{ padding: '18px 25px' }}>
                 <AutoColumn gap="4px">
                   <RowBetween>
-                    <TYPE.heading>Total Value Locked(USD)</TYPE.heading>
+                    <TYPE.heading>Total Value Locked (USD)</TYPE.heading>
                   </RowBetween>
                   <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
@@ -227,7 +274,7 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
                   </RowBetween>
                   <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-                      {volumeChangeUSD?.toFixed(2)}%
+                      {volumeChangeUSD.toFixed(2)}%
                     </TYPE.main>
                   </RowBetween>
                 </AutoColumn>
@@ -245,80 +292,32 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
                 </AutoColumn>
               </Panel>
             </AutoColumn>
-          )}
-          {!below800 && (
-            <AutoRow>
-              <AutoColumn
-                style={{
-                  height: '100%',
-                  width: '100%',
-                  maxWidth: '350px',
-                  marginRight: '10px'
-                }}
-                gap="10px"
-              >
-                <Panel style={{ padding: '18px 25px' }}>
-                  <AutoColumn gap="4px">
-                    <RowBetween>
-                      <TYPE.heading>Total Value Locked (USD)</TYPE.heading>
-                    </RowBetween>
-                    <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                      <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-                        {formattedNum(totalVolumeUSD, true)}
-                      </TYPE.main>
-                    </RowBetween>
-                  </AutoColumn>
-                </Panel>
-                <Panel style={{ padding: '18px 25px' }}>
-                  <AutoColumn gap="4px">
-                    <RowBetween>
-                      <TYPE.heading>Change (24h)</TYPE.heading>
-                    </RowBetween>
-                    <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                      <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-                        {volumeChangeUSD.toFixed(2)}%
-                      </TYPE.main>
-                    </RowBetween>
-                  </AutoColumn>
-                </Panel>
-                <Panel style={{ padding: '18px 25px' }}>
-                  <AutoColumn gap="4px">
-                    <RowBetween>
-                      <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
-                    </RowBetween>
-                    <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                      <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-                        {((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)}%
-                      </TYPE.main>
-                    </RowBetween>
-                  </AutoColumn>
-                </Panel>
-              </AutoColumn>
-              <Panel style={{ height: '100%', minHeight: '300px' }}>{chart}</Panel>
-            </AutoRow>
-          )}
-          {below800 && (
-            <AutoColumn style={{ marginTop: '6px' }} gap="24px">
-              <Panel style={{ height: '100%', minHeight: '300px' }}>{chart}</Panel>
-            </AutoColumn>
-          )}
-          <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
-            <RowBetween>
-              <TYPE.main fontSize={'1.125rem'}>TVL Rankings</TYPE.main>
-              <RowFlat style={{ width: '100%' }}>
-                <Filters
-                  filterOptions={chainOptions}
-                  setActive={setSelectedChain}
-                  activeLabel={selectedChain}
-                  justify="end"
-                />
-              </RowFlat>
-            </RowBetween>
-          </ListOptions>
-          <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
-            <TokenList tokens={tokensList} />
-          </Panel>
-        </div>
+            <Panel style={{ height: '100%', minHeight: '300px' }}>{chart}</Panel>
+          </AutoRow>
+        )}
+        {below800 && (
+          <AutoColumn style={{ marginTop: '6px' }} gap="24px">
+            <Panel style={{ height: '100%', minHeight: '300px' }}>{chart}</Panel>
+          </AutoColumn>
+        )}
+        <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
+          <RowBetween>
+            <TYPE.main sx={{ minWidth: '90px' }} fontSize={'1.125rem'}>
+              TVL Rankings
+            </TYPE.main>
+            <RowFlat style={{ width: `calc(100% - 90px)` }}>
+              <Filters
+                filterOptions={chainOptions}
+                setActive={setSelectedChain}
+                activeLabel={selectedChain}
+                justify="end"
+              />
+            </RowFlat>
+          </RowBetween>
+        </ListOptions>
+        <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
+          <TokenList tokens={tokensList} />
+        </Panel>
       </ContentWrapper>
     </PageWrapper>
   )
