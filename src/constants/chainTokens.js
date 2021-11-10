@@ -302,12 +302,26 @@ export const chainCoingeckoIds = {
     geckoId: 'bitcoin-cash',
     symbol: 'BCH',
     cmcId: '1831'
+  },
+  Elastos: {
+    geckoId: 'elastos',
+    symbol: 'ELA',
+    cmcId: '2492'
+  },
+  Hoo: {
+    geckoId: 'hoo-token',
+    symbol: 'HOO',
+    cmcId: '7543'
+  },
+  Cronos: {
+    geckoId: 'crypto-com-chain',
+    symbol: 'CRO',
+    cmcId: '3635'
   }
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
 export const extraChainOptions = ['Terra', 'Arbitrum', 'Binance', 'Celo', 'Harmony']
-export const priorityDropdownOptions = ['Tron', 'Waves', 'Heco']
 
 export const priorityChainFilters = [
   'All',
