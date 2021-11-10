@@ -51,6 +51,10 @@ const ArrowStyled = styled(Arrow)`
 
 const DropdownSelect = ({ options, active, setActive, color, style }) => {
   const [showDropdown, toggleDropdown] = useState(false)
+  let optionsArr = options
+  if (!Array.isArray(options)) {
+    optionsArr = Object.values(optionsArr)
+  }
 
   return (
     <Wrapper open={showDropdown} color={color} style={style}>
@@ -63,7 +67,7 @@ const DropdownSelect = ({ options, active, setActive, color, style }) => {
       {showDropdown && (
         <Dropdown>
           <AutoColumn gap="20px">
-            {options.map(({ label }, index) => {
+            {optionsArr.map((label, index) => {
               return (
                 label !== active && (
                   <Row

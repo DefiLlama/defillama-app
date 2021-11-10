@@ -19,7 +19,11 @@ const Filters = ({ filterOptions = [], activeLabel, setActive, areLinks = true, 
   return (
     <Row>
       {belowSmallTablet ? (
-        <DropdownSelect options={filterOptions} active={activeLabel} setActive={dropdownHandler} />
+        <DropdownSelect
+          options={filterOptions.map(({ label }) => label)}
+          active={activeLabel}
+          setActive={dropdownHandler}
+        />
       ) : (
         <FiltersAndDropdown
           filterOptions={filterOptions}

@@ -56,7 +56,7 @@ const FiltersAndDropdown = ({ filterOptions = [], activeLabel, setActive, areLin
       })}
       {visibleFiltersIndex !== filterOptions.length && (
         <DropdownSelect
-          options={dropdownFilters}
+          options={dropdownFilters.map(({ label }) => label)}
           active={dropdownFilters.some(({ label }) => label === activeLabel) ? activeLabel : 'Others'}
           setActive={setActive}
         />
