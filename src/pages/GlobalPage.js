@@ -9,11 +9,10 @@ import Loader from 'components/LocalLoader'
 import { AutoColumn } from 'components/Column'
 import TokenList from 'components/TokenList'
 import Search from 'components/Search'
-import { ButtonLight, ButtonDark } from 'components/ButtonStyled'
 import Panel from 'components/Panel'
-import { CustomLink, BasicLink } from 'components/Link'
+import { CustomLink } from 'components/Link'
 import { PageWrapper, ContentWrapper } from 'components'
-import DropdownSelect from 'components/DropdownSelect'
+import Filters from 'components/Filters'
 import RightSettings from 'components/RightSettings'
 import { CheckMarks } from 'components/SettingsModal'
 
@@ -24,7 +23,7 @@ import { useAllTokenData } from 'contexts/TokenData'
 import { useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
 import { fetchAPI } from 'contexts/API'
 import { CHART_API } from 'constants/index'
-import { basicChainOptions, extraChainOptions, priorityDropdownOptions } from 'constants/chainTokens'
+import { priorityChainFilters } from 'constants/chainTokens'
 import { formattedNum } from 'utils'
 
 const ProtocolChart = lazy(() => import('components/ProtocolChart'))
@@ -41,24 +40,16 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
-function GlobalPage({ chain, denomination, history }) {
+function GlobalPage({ selectedChain = 'All', denomination }) {
+  const allChains = selectedChain === 'All'
   // get data for lists and totals
   let allTokensOriginal = useAllTokenData()
   //const transactions = useGlobalTransactions()
   const globalData = useGlobalData()
   const [chainChartData, setChainChartData] = useState({})
-  const selectedChain = chain
-  const setSelectedChain = newSelectedChain =>
-    history.push(newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
+  const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
   // breakpoints
   const below800 = useMedia('(max-width: 800px)')
-  const below1400 = useMedia('(max-width: 1400px)')
-  let chainOptions = []
-  if (!below1400) {
-    chainOptions = [...basicChainOptions, ...extraChainOptions, 'Others']
-  } else {
-    chainOptions = [...basicChainOptions, 'Others']
-  }
   // scrolling refs
   useEffect(() => {
     document.querySelector('body').scrollTo({
@@ -81,7 +72,7 @@ function GlobalPage({ chain, denomination, history }) {
     }
   }, [selectedChain])
 
-  if (selectedChain !== undefined) {
+  if (!allChains) {
     const chartData = chainChartData[selectedChain]
     if (chartData === undefined) {
       totalVolumeUSD = 0
@@ -98,8 +89,9 @@ function GlobalPage({ chain, denomination, history }) {
       }
     }
   }
-  const [tokensList, otherChains] = useMemo(() => {
-    const chainsSet = new Set([])
+
+  const [tokensList, chainsSet] = useMemo(() => {
+    const chainsSet = new Set(priorityChainFilters)
 
     let filteredTokens = Object.values(allTokensOriginal)
       .map(token => {
@@ -109,7 +101,7 @@ function GlobalPage({ chain, denomination, history }) {
         token.chains.forEach(chain => {
           chainsSet.add(chain)
         })
-        if (selectedChain !== undefined) {
+        if (!allChains) {
           if (token.chains.length === 1) {
             if (token.chains[0] !== selectedChain) {
               return null
@@ -133,16 +125,16 @@ function GlobalPage({ chain, denomination, history }) {
       })
       .filter(token => token !== null)
 
-    if (selectedChain !== undefined || stakingEnabled || pool2Enabled) {
+    if (selectedChain !== 'All' || stakingEnabled || pool2Enabled) {
       filteredTokens = filteredTokens.sort((a, b) => b.tvl - a.tvl)
     }
 
-    chainOptions.concat(priorityDropdownOptions).forEach(chain => chainsSet.delete(chain))
-    const otherChains = priorityDropdownOptions.concat(Array.from(chainsSet))
-    return [filteredTokens, otherChains]
+    return [filteredTokens, chainsSet]
   }, [allTokensOriginal, selectedChain, stakingEnabled, pool2Enabled])
 
-  if (chain === undefined && (stakingEnabled || pool2Enabled)) {
+  let chainOptions = [...chainsSet].map(label => ({ label, to: setSelectedChain(label) }))
+
+  if (allChains && (stakingEnabled || pool2Enabled)) {
     tokensList.forEach(token => {
       if (token.staking && stakingEnabled) {
         totalVolumeUSD += token.staking
@@ -169,7 +161,7 @@ function GlobalPage({ chain, denomination, history }) {
 
   const chart = (
     <Suspense fallback={<Loader />}>
-      {selectedChain === undefined ? (
+      {allChains ? (
         <GlobalChart display="liquidity" />
       ) : chainChartData[selectedChain] !== undefined ? (
         <ProtocolChart chartData={chainChartData[selectedChain]} protocol={selectedChain} denomination={denomination} />
@@ -313,61 +305,9 @@ function GlobalPage({ chain, denomination, history }) {
           <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
             <RowBetween>
               <TYPE.main fontSize={'1.125rem'}>TVL Rankings</TYPE.main>
-              <RowFlat>
-                {below800 ? (
-                  <DropdownSelect
-                    options={chainOptions
-                      .slice(0, -1)
-                      .concat(otherChains)
-                      .reduce(
-                        (acc, item) => ({
-                          ...acc,
-                          [item]: item
-                        }),
-                        {}
-                      )}
-                    active={selectedChain || 'All'}
-                    setActive={setSelectedChain}
-                  />
-                ) : (
-                  chainOptions.map((name, i) => {
-                    if (name === 'Others') {
-                      return (
-                        <DropdownSelect
-                          key={name}
-                          options={otherChains.reduce(
-                            (acc, item) => ({
-                              ...acc,
-                              [item]: item
-                            }),
-                            {}
-                          )}
-                          active={
-                            chainOptions.includes(selectedChain) || selectedChain === undefined
-                              ? 'Other'
-                              : selectedChain
-                          }
-                          setActive={setSelectedChain}
-                        />
-                      )
-                    }
-                    if (selectedChain === name || (name === 'All' && selectedChain === undefined)) {
-                      return (
-                        <ButtonDark style={{ margin: '0.2rem' }} key={name}>
-                          {name}
-                        </ButtonDark>
-                      )
-                    } else {
-                      return (
-                        <BasicLink to={name === 'All' ? '/' : `/chain/${name}`} key={name}>
-                          <ButtonLight style={{ margin: '0.2rem' }}>{name}</ButtonLight>
-                        </BasicLink>
-                      )
-                    }
-                  })
-                )}
+              <RowFlat style={{ width: '100%' }}>
+                <Filters filterOptions={chainOptions} setActive={setSelectedChain} activeLabel={selectedChain} />
               </RowFlat>
-              <CustomLink to={'/protocols'}>See All</CustomLink>
             </RowBetween>
           </ListOptions>
           <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
@@ -379,4 +319,4 @@ function GlobalPage({ chain, denomination, history }) {
   )
 }
 
-export default withRouter(GlobalPage)
+export default GlobalPage
