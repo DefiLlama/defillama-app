@@ -10,16 +10,16 @@ import ErrorPage from './pages/ErrorPage'
 import LocalLoader from './components/LocalLoader'
 import { AppWrapper, LayoutWrapper } from './layout'
 
-const AboutPage = lazy(() => import('./pages/AboutPage'));
-const AllTokensPage = lazy(() => import('./pages/AllTokensPage'));
-const ChainsViewPage = lazy(() => import('./pages/ChainsViewPage'));
-const ComparisonPage = lazy(() => import('./pages/ComparisonPage'));
-const RecentListingsPage = lazy(() => import('./pages/RecentListingsPage'));
-const GlobalPage = lazy(() => import('./pages/GlobalPage'));
-const Jpegged = lazy(() => import('./pages/Jpegged'));
-const NoTokenProtocols = lazy(() => import('./pages/NoTokenProtocols'));
-const Settings = lazy(() => import('./pages/Settings'));
-const TokenPage = lazy(() => import('./pages/TokenPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'))
+const AllTokensPage = lazy(() => import('./pages/AllTokensPage'))
+const ChainsViewPage = lazy(() => import('./pages/ChainsViewPage'))
+const ComparisonPage = lazy(() => import('./pages/ComparisonPage'))
+const RecentListingsPage = lazy(() => import('./pages/RecentListingsPage'))
+const GlobalPage = lazy(() => import('./pages/GlobalPage'))
+const Jpegged = lazy(() => import('./pages/Jpegged'))
+const NoTokenProtocols = lazy(() => import('./pages/NoTokenProtocols'))
+const Settings = lazy(() => import('./pages/Settings'))
+const TokenPage = lazy(() => import('./pages/TokenPage'))
 
 function App() {
   const [savedOpen, setSavedOpen] = useState(false)
@@ -32,13 +32,12 @@ function App() {
     <AppWrapper>
       <BrowserRouter>
         <ErrorBoundary FallbackComponent={ErrorPage}>
-
           {globalData &&
-            globalData.totalLiquidityUSD &&
-            globalChartData &&
-            globalChartData[1] &&
-            allTokens &&
-            allTokens[1] ? (
+          globalData.totalLiquidityUSD &&
+          globalChartData &&
+          globalChartData[1] &&
+          allTokens &&
+          allTokens[1] ? (
             <Suspense fallback={<LocalLoader fill="true" />}>
               <Switch>
                 <Route
@@ -68,10 +67,16 @@ function App() {
                   render={({ match }) => {
                     const category = match.params.category
                     const chain = match.params.chain
-                    if (Object.values(allTokens).some(protocol => (protocol.category || '').toLowerCase() === category.toLowerCase())) {
-                      return (<LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-                      <AllTokensPage category={category} selectedChain={chain} />
-                      </LayoutWrapper>)
+                    if (
+                      Object.values(allTokens).some(
+                        protocol => (protocol.category || '').toLowerCase() === category.toLowerCase()
+                      )
+                    ) {
+                      return (
+                        <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                          <AllTokensPage category={category} selectedChain={chain} />
+                        </LayoutWrapper>
+                      )
                     } else {
                       return <Redirect to="/protocols" />
                     }
@@ -80,11 +85,16 @@ function App() {
                 <Route
                   exacts
                   strict
-                  path="/chain/:chain/:useless?/:denomination?"
+                  path="/chain/:selectedChain/:useless?/:denomination?"
                   render={({ match }) => {
-                    return <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-                      <GlobalPage chain={match.params.chain} denomination={match.params.denomination} />
-                    </LayoutWrapper>
+                    return (
+                      <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                        <GlobalPage
+                          selectedChain={match.params.selectedChain}
+                          denomination={match.params.denomination}
+                        />
+                      </LayoutWrapper>
+                    )
                   }}
                 />
 
@@ -130,14 +140,16 @@ function App() {
                     <ChainsViewPage />
                   </LayoutWrapper>
                 </Route>
-                <Route path="/comparison/:protocolA?/:protocolB?"
-                  render={({ match }) =>
+                <Route
+                  path="/comparison/:protocolA?/:protocolB?"
+                  render={({ match }) => (
                     <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
                       <ComparisonPage
                         protocolA={match?.params?.protocolA?.toLowerCase()}
                         protocolB={match?.params?.protocolB?.toLowerCase()}
                       />
-                    </LayoutWrapper>}
+                    </LayoutWrapper>
+                  )}
                 />
                 <Route exact path="/">
                   <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>

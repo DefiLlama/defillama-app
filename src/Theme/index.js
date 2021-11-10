@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import { Text } from 'rebass'
 import { transparentize } from 'polished'
 
+import { sm, med, lg, xl } from 'constants/breakpoints'
 import { useDarkModeManager } from '../contexts/LocalStorage'
 
 export default function ThemeProvider({ children }) {
@@ -73,8 +74,13 @@ const theme = (darkMode, color) => ({
   yellow2: '#F3841E',
   link: '#2172E5',
   blue: '2f80ed',
+  background: darkMode ? 'black' : `radial-gradient(50% 50% at 50% 50%, #445ed0 0%, #fff 0%)`,
 
-  background: darkMode ? 'black' : `radial-gradient(50% 50% at 50% 50%, #445ed0 0%, #fff 0%)`
+  // breakpoints
+  bpSm: `${sm}px`,
+  bpMed: `${med}px`,
+  bpLg: `${lg}px`,
+  bpXl: `${xl}px`
 })
 
 const TextWrapper = styled(Text)`
@@ -151,7 +157,8 @@ export const ThemedBackground = styled.div`
   height: 200vh;
   mix-blend-mode: color;
   background: ${({ backgroundColor, theme }) =>
-    `radial-gradient(50% 50% at 50% 50%, ${backgroundColor || transparentize(0.6, theme.primary1)} 0%, rgba(255, 255, 255, 0) 100%)`};
+    `radial-gradient(50% 50% at 50% 50%, ${backgroundColor ||
+      transparentize(0.6, theme.primary1)} 0%, rgba(255, 255, 255, 0) 100%)`};
   position: absolute;
   top: 0px;
   left: 0px;
