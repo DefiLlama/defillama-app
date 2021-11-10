@@ -306,7 +306,12 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
             <RowBetween>
               <TYPE.main fontSize={'1.125rem'}>TVL Rankings</TYPE.main>
               <RowFlat style={{ width: '100%' }}>
-                <Filters filterOptions={chainOptions} setActive={setSelectedChain} activeLabel={selectedChain} />
+                <Filters
+                  filterOptions={chainOptions}
+                  setActive={setSelectedChain}
+                  activeLabel={selectedChain}
+                  justify="end"
+                />
               </RowFlat>
             </RowBetween>
           </ListOptions>

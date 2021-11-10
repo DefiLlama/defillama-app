@@ -31,7 +31,10 @@ const FiltersAndDropdown = ({ filterOptions = [], activeLabel, setActive, areLin
   }, [mainWrapWidth, stringifyFilterOptions])
 
   const clickableFilters = filterOptions.slice(0, visibleFiltersIndex)
-  const dropdownFilters = filterOptions.slice(visibleFiltersIndex, filterOptions.length)
+  const dropdownFilters = filterOptions
+    .slice(visibleFiltersIndex, filterOptions.length)
+    .map(({ label }) => label)
+    .sort((a, b) => a.localeCompare(b))
 
   return (
     <Row sx={{ maxWidth: '100%' }} ref={mainWrapEl}>
@@ -56,8 +59,8 @@ const FiltersAndDropdown = ({ filterOptions = [], activeLabel, setActive, areLin
       })}
       {visibleFiltersIndex !== filterOptions.length && (
         <DropdownSelect
-          options={dropdownFilters.map(({ label }) => label)}
-          active={dropdownFilters.some(({ label }) => label === activeLabel) ? activeLabel : 'Others'}
+          options={dropdownFilters}
+          active={dropdownFilters.some(label => label === activeLabel) ? activeLabel : 'Others'}
           setActive={setActive}
         />
       )}

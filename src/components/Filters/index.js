@@ -8,7 +8,7 @@ import Row from 'components/Row'
 import { sm } from 'constants/breakpoints'
 
 // filter option to, and label,
-const Filters = ({ filterOptions = [], activeLabel, setActive, areLinks = true, history, onFilterClick }) => {
+const Filters = ({ filterOptions = [], activeLabel, setActive, areLinks = true, history, onFilterClick, justify }) => {
   const belowSmallTablet = useMedia(`(max-width: ${sm}px)`)
   const dropdownHandler = areLinks
     ? selectedLabel => {
@@ -17,7 +17,7 @@ const Filters = ({ filterOptions = [], activeLabel, setActive, areLinks = true, 
     : setActive
 
   return (
-    <Row>
+    <Row justify={justify}>
       {belowSmallTablet ? (
         <DropdownSelect
           options={filterOptions.map(({ label }) => label)}

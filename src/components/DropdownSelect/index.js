@@ -29,17 +29,23 @@ const Dropdown = styled.div`
   position: absolute;
   top: 34px;
   padding-top: 40px;
-  width: calc(100% - 40px);
   background-color: ${({ theme }) => theme.bg1};
   border: 1px solid rgba(0, 0, 0, 0.15);
   padding: 10px 10px;
   border-radius: 8px;
-  width: calc(100% - 20px);
+  width: 100%;
   font-weight: 500;
   font-size: 1rem;
   color: black;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  max-height: 600px;
   :hover {
     cursor: pointer;
+  }
+
+  @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
+    max-height: 300px;
   }
 `
 
