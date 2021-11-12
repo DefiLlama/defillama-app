@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 
 import { useEthPrice } from './GlobalData'
+import { priorityChainFilters } from 'constants/chainTokens'
 
 import { fetchAPI } from './API'
 import {
@@ -266,11 +267,11 @@ export function useTokenData(tokenId, protocol = '') {
   return tokenData || {}
 }
 
-export function useTokenTransactions(tokenAddress) { }
+export function useTokenTransactions(tokenAddress) {}
 
-export function useTokenPairs(tokenAddress) { }
+export function useTokenPairs(tokenAddress) {}
 
-export function useTokenChartData(tokenAddress) { }
+export function useTokenChartData(tokenAddress) {}
 
 /**
  * get candlestick data for a token - saves in context based on the window and the
@@ -279,7 +280,7 @@ export function useTokenChartData(tokenAddress) { }
  * @param {*} timeWindow // a preset time window from constant - how far back to look
  * @param {*} interval  // the chunk size in seconds - default is 1 hour of 3600s
  */
-export function useTokenPriceData(tokenAddress, timeWindow, interval = 3600) { }
+export function useTokenPriceData(tokenAddress, timeWindow, interval = 3600) {}
 
 export function useAllTokenData() {
   const [state] = useTokenDataContext()
@@ -287,13 +288,101 @@ export function useAllTokenData() {
   const [pool2Enabled] = usePool2Manager()
   if (stakingEnabled || pool2Enabled) {
     // TODO Optimize
-    return Object.fromEntries(Object.entries(state).map(entry => [
-      entry[0],
-      {
-        ...entry[1],
-        tvl: entry[1].tvl + (stakingEnabled ? (entry[1].staking ?? 0) : 0) + (pool2Enabled ? (entry[1].pool2 ?? 0) : 0)
-      }
-    ]))
+    return Object.fromEntries(
+      Object.entries(state).map(entry => [
+        entry[0],
+        {
+          ...entry[1],
+          tvl: entry[1].tvl + (stakingEnabled ? entry[1].staking ?? 0 : 0) + (pool2Enabled ? entry[1].pool2 ?? 0 : 0)
+        }
+      ])
+    )
   }
   return state
+}
+
+export const useFilteredTokenData = ({ selectedChain = 'All', category = '' }) => {
+  const allChains = selectedChain === 'All'
+  const [allTokenData] = useTokenDataContext()
+
+  let totalStaking = 0
+  const [stakingEnabled] = useStakingManager()
+  let totalPool2 = 0
+  const [pool2Enabled] = usePool2Manager()
+
+  // All chains accumulated from priority list and from looping through tokens' specific chains
+  const chainsSet = new Set(priorityChainFilters)
+
+  let filteredTokens = Object.values(allTokenData).reduce((accTokenList, currTokenData) => {
+    // Skip all chain tokens and if there is a category, skip all tokens that are not in that category
+    if (
+      currTokenData.category === 'Chain' ||
+      (category && (currTokenData.category || '').toLowerCase() !== category.toLowerCase())
+    ) {
+      return accTokenList
+    }
+
+    // Accumulating unique chains from tokens
+    currTokenData.chains.forEach(chain => {
+      chainsSet.add(chain)
+    })
+
+    // Calculate the correct tvl
+
+    const updatedTokenData = { ...currTokenData }
+
+    if (!allChains) {
+      updatedTokenData.tvl = currTokenData.chainTvls[selectedChain]
+
+      if (typeof updatedTokenData.tvl !== 'number') {
+        return accTokenList
+      }
+    }
+
+    // Add staking and pool2 to tvl
+
+    if (stakingEnabled) {
+      let stakedAmount = 0
+      if (allChains) {
+        stakedAmount = updatedTokenData.staking ?? 0
+      } else {
+        stakedAmount = updatedTokenData?.chainTvls?.[`${selectedChain}-staking`] ?? 0
+      }
+      updatedTokenData.tvl += stakedAmount
+      totalStaking += stakedAmount
+    }
+
+    if (pool2Enabled) {
+      let pooledAmount = 0
+      if (allChains) {
+        pooledAmount = updatedTokenData?.pool2 ?? 0
+      } else {
+        pooledAmount = updatedTokenData?.chainTvls?.[`${selectedChain}-pool2`] ?? 0
+      }
+      updatedTokenData.tvl += pooledAmount
+      totalPool2 += pooledAmount
+    }
+
+    // When specific chain, do not return mcap/tvl for specific chain since tvl is spread accross chains
+    if (allChains || (!allChains && updatedTokenData?.chains?.length === 1)) {
+      updatedTokenData.mcaptvl =
+        updatedTokenData.tvl !== 0 && updatedTokenData.mcap ? updatedTokenData.mcap / updatedTokenData.tvl : null
+      updatedTokenData.fdvtvl =
+        updatedTokenData.tvl !== 0 && updatedTokenData.fdv ? updatedTokenData.fdv / updatedTokenData.tvl : null
+    }
+
+    accTokenList.push(updatedTokenData)
+    return accTokenList
+  }, [])
+
+  if (!allChains || stakingEnabled || pool2Enabled || category) {
+    filteredTokens = filteredTokens.sort((a, b) => b.tvl - a.tvl)
+  }
+
+  return {
+    filteredTokens,
+    chainsSet,
+    totalStaking,
+    totalPool2
+  }
 }

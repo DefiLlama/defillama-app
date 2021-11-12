@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, lazy, Suspense } from 'react'
+import React, { useEffect, useState, lazy, Suspense } from 'react'
 import { Redirect } from 'react-router-dom'
 import { useMedia } from 'react-use'
 import styled from 'styled-components'
@@ -18,11 +18,10 @@ import { CheckMarks } from 'components/SettingsModal'
 import { TYPE, ThemedBackground } from 'Theme'
 
 import { useGlobalData } from 'contexts/GlobalData'
-import { useAllTokenData } from 'contexts/TokenData'
+import { useFilteredTokenData } from 'contexts/TokenData'
 import { useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
 import { fetchAPI } from 'contexts/API'
 import { CHART_API } from 'constants/index'
-import { priorityChainFilters } from 'constants/chainTokens'
 import { formattedNum } from 'utils'
 
 const ProtocolChart = lazy(() => import('components/ProtocolChart'))
@@ -42,7 +41,7 @@ const ListOptions = styled(AutoRow)`
 function GlobalPage({ selectedChain = 'All', denomination }) {
   const allChains = selectedChain === 'All'
   // get data for lists and totals
-  let allTokensOriginal = useAllTokenData()
+  const { chainsSet, filteredTokens, totalStaking, totalPool2 } = useFilteredTokenData({ selectedChain })
   //const transactions = useGlobalTransactions()
   const globalData = useGlobalData()
   const [chainChartData, setChainChartData] = useState({})
@@ -62,14 +61,14 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
   let { totalVolumeUSD, volumeChangeUSD } = globalData
 
   useEffect(() => {
-    if (selectedChain !== undefined && chainChartData[selectedChain] === undefined) {
+    if (!allChains && chainChartData[selectedChain] === undefined) {
       fetchAPI(`${CHART_API}/${selectedChain}`).then(chart =>
         setChainChartData({
           [selectedChain]: chart
         })
       )
     }
-  }, [selectedChain])
+  }, [allChains, selectedChain])
 
   if (!allChains) {
     const chartData = chainChartData[selectedChain]
@@ -89,68 +88,22 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
     }
   }
 
-  const [tokensList, chainsSet] = useMemo(() => {
-    const chainsSet = new Set(priorityChainFilters)
-
-    let filteredTokens = Object.values(allTokensOriginal)
-      .map(token => {
-        if (token.category === 'Chain') {
-          return null
-        }
-        token.chains.forEach(chain => {
-          chainsSet.add(chain)
-        })
-        if (!allChains) {
-          if (token.chains.length === 1) {
-            if (token.chains[0] !== selectedChain) {
-              return null
-            }
-          } else {
-            const chainTvl = token.chainTvls[selectedChain]
-            if (chainTvl === undefined) {
-              return null
-            }
-            return {
-              ...token,
-              tvl: chainTvl
-            }
-          }
-        }
-        return {
-          ...token,
-          mcaptvl: token.tvl !== 0 && token.mcap ? token.mcap / token.tvl : null,
-          fdvtvl: token.tvl !== 0 && token.fdv ? token.fdv / token.tvl : null
-        }
-      })
-      .filter(token => token !== null)
-
-    if (selectedChain !== 'All' || stakingEnabled || pool2Enabled) {
-      filteredTokens = filteredTokens.sort((a, b) => b.tvl - a.tvl)
-    }
-
-    return [filteredTokens, chainsSet]
-  }, [allTokensOriginal, selectedChain, stakingEnabled, pool2Enabled])
+  if (stakingEnabled) {
+    totalVolumeUSD += totalStaking
+  }
+  if (pool2Enabled) {
+    totalVolumeUSD += totalPool2
+  }
 
   let chainOptions = [...chainsSet].map(label => ({ label, to: setSelectedChain(label) }))
 
-  if (allChains && (stakingEnabled || pool2Enabled)) {
-    tokensList.forEach(token => {
-      if (token.staking && stakingEnabled) {
-        totalVolumeUSD += token.staking
-      }
-      if (token.pool2 && pool2Enabled) {
-        totalVolumeUSD += token.pool2
-      }
-    })
-  }
-
   const topToken = { name: 'Uniswap', tvl: 0 }
-  if (tokensList.length > 0) {
-    topToken.name = tokensList[0]?.name
-    topToken.tvl = tokensList[0]?.tvl
+  if (filteredTokens.length > 0) {
+    topToken.name = filteredTokens[0]?.name
+    topToken.tvl = filteredTokens[0]?.tvl
     if (topToken.name === 'AnySwap') {
-      topToken.name = tokensList[1]?.name
-      topToken.tvl = tokensList[1]?.tvl
+      topToken.name = filteredTokens[1]?.name
+      topToken.tvl = filteredTokens[1]?.tvl
     }
   } else {
     return <Redirect to="/" />
@@ -316,7 +269,7 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
           </RowBetween>
         </ListOptions>
         <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
-          <TokenList tokens={tokensList} filters={[selectedChain]} />
+          <TokenList tokens={filteredTokens} filters={[selectedChain]} />
         </Panel>
       </ContentWrapper>
     </PageWrapper>

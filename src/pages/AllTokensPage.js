@@ -4,15 +4,13 @@ import { useMedia } from 'react-use'
 
 import TokenList from 'components/TokenList'
 import Panel from 'components/Panel'
-import { useAllTokenData } from 'contexts/TokenData'
+import { useFilteredTokenData } from 'contexts/TokenData'
 import { PageWrapper, FullWrapper } from 'components'
 import { AutoRow, RowBetween, RowFlat } from 'components/Row'
 import Search from 'components/Search'
 import Filters from 'components/Filters'
 
 import { TYPE } from 'Theme'
-
-import { priorityChainFilters } from 'constants/chainTokens'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -37,46 +35,7 @@ function AllTokensPage({ category, selectedChain = 'All' }) {
   }
   const setSelectedChain = newSelectedChain => handleRouting(newSelectedChain)
 
-  const chainsSet = new Set(priorityChainFilters)
-
-  let allTokens = Object.values(useAllTokenData())
-  if (category) {
-    allTokens = allTokens.filter(
-      token => (token.category || '').toLowerCase() === category.toLowerCase() && token.category !== 'Chain'
-    )
-  } else {
-    allTokens = allTokens.filter(token => token.category !== 'Chain')
-  }
-
-  allTokens = allTokens
-    .map(token => {
-      // Populate chain dropdown options
-      token.chains.forEach(chain => {
-        chainsSet.add(chain)
-      })
-      if (selectedChain !== 'All') {
-        const chainTvl = token.chainTvls[selectedChain]
-
-        if (chainTvl === undefined) {
-          return null
-        }
-
-        if (token.chains.length > 1) {
-          // do not return mcap/tvl for specific chain since tvl is spread accross chains
-          return {
-            ...token,
-            tvl: chainTvl
-          }
-        }
-      }
-      // if only chain return the full mcap/tvl or All selected
-      return {
-        ...token,
-        mcaptvl: token.tvl !== 0 && token.mcap ? token.mcap / token.tvl : null,
-        fdvtvl: token.tvl !== 0 && token.fdv ? token.fdv / token.tvl : null
-      }
-    })
-    .filter(token => token !== null)
+  const { chainsSet, filteredTokens } = useFilteredTokenData({ category, selectedChain })
 
   let chainOptions = [...chainsSet].map(label => ({ label, to: handleRouting(label) }))
 
@@ -105,7 +64,7 @@ function AllTokensPage({ category, selectedChain = 'All' }) {
           </RowBetween>
         </ListOptions>
         <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>
-          <TokenList tokens={allTokens} filters={[category, selectedChain]} />
+          <TokenList tokens={filteredTokens} filters={[category, selectedChain]} />
         </Panel>
       </FullWrapper>
     </PageWrapper>

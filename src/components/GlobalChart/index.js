@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { ResponsiveContainer } from 'recharts'
 import { timeframeOptions } from '../../constants'
 import { useGlobalChartData, useGlobalData } from '../../contexts/GlobalData'
-import { useMedia } from 'react-use'
 import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
 import { RowFixed } from '../Row'
 import { OptionButton } from '../ButtonStyled'
@@ -58,7 +57,6 @@ const GlobalChart = ({ display }) => {
         })
     )
   }, [dailyData, utcStartTime, volumeWindow, weeklyData])
-  const below800 = useMedia('(max-width: 800px)')
 
   // update the width on a window resize
   const ref = useRef()
