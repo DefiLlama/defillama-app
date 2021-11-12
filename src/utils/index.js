@@ -438,7 +438,11 @@ export function getChainsFromAllTokenData(data) {
 }
 
 export function chainIconUrl(chain) {
-  return `https://icons.llama.fi/chains/rsz_${chain.toLowerCase()}.jpg`
+  return `/chain-icons/rsz_${chain.toLowerCase()}.jpg`
+}
+
+export function tokenIconUrl(item) {
+  return `/icons/${item.name.toLowerCase().replace(" ", "-")}.jpg`
 }
 
 export function formattedPercent(percent, useBrackets = false) {
@@ -557,7 +561,7 @@ export function getTokenAddressFromName(tokensObject, protocol) {
 export function getTokenIdFromName(tokensObject, protocol) {
   try {
     const tokens = Object.values(tokensObject)
-    const filteredToken = tokens.findIndex(token => token.slug === protocol)
+    const filteredToken = tokens.findIndex(token => token.name.toLowerCase().replace(" ", "-") === protocol)
     return filteredToken
   } catch (error) {
     return false

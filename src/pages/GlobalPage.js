@@ -245,7 +245,7 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
                 </AutoColumn>
               </Panel>
             </AutoColumn>
-            <Panel style={{ height: '100%', minHeight: '300px' }}>{chart}</Panel>
+            <Panel style={{ height: '100%', minHeight: allChains ? '342px' : '470px' }}>{chart}</Panel>
           </AutoRow>
         )}
         {below800 && (

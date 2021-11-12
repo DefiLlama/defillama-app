@@ -12,7 +12,7 @@ import RightSettings from '../RightSettings'
 
 import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconLarge, Wrapper } from './shared'
 import { useAllTokenData } from '../../contexts/TokenData'
-import { getChainsFromAllTokenData } from '../../utils'
+import { getChainsFromAllTokenData, tokenIconUrl } from '../../utils'
 
 const defaultLinkPath = item => {
   if (item.isChain) {
@@ -33,7 +33,7 @@ export default ({ small = false, includeChains = true, linkPath = defaultLinkPat
   const allTokenData = useAllTokenData()
   const searchData = useMemo(() => {
     const chainData = includeChains ? getChainsFromAllTokenData(allTokenData) : []
-    return [...chainData, ...Object.values(allTokenData).filter(token => token.category !== "Chain")]
+    return [...chainData, ...Object.values(allTokenData).filter(token => token.category !== "Chain").map(token => ({ ...token, logo: tokenIconUrl(token) }))]
   }, [allTokenData])
 
   const [showMenu, toggleMenu] = useState(false)
