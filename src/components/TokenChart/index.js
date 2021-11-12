@@ -52,7 +52,7 @@ const BASIC_DENOMINATIONS = {
   Chains: 'Chains'
 }
 
-function stringToColour(str) {
+function stringToColour() {
   return '#' + (Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0');
 }
 
@@ -438,7 +438,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               <ReferenceLine x={hallmark[0]} stroke={textColor} label={{ value: hallmark[1], fill: textColor, position: "insideTop", offset: (i * 50) % 300 + 50 }} />
             )}
             {tokensUnique.length > 0 ? tokensUnique.map(tokenSymbol => {
-              const randomColor = stringToColour(tokenSymbol);
+              const randomColor = stringToColour();
               return <Area
                 type="monotone"
                 dataKey={tokenSymbol}
