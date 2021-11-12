@@ -241,7 +241,6 @@ export function Updater() {
     async function getData() {
       // get top pairs for overview list
       const topTokens = await getTopTokens()
-      console.log(topTokens, 'toptokens')
       topTokens && updateTopTokens(topTokens)
     }
     getData()
@@ -302,15 +301,18 @@ export function useAllTokenData() {
 }
 
 export const useFilteredTokenData = ({ selectedChain = 'All', category = '' }) => {
-  const [allTokenData] = useTokenDataContext()
-  const [stakingEnabled] = useStakingManager()
-  const [pool2Enabled] = usePool2Manager()
   const allChains = selectedChain === 'All'
+  const [allTokenData] = useTokenDataContext()
+
+  let totalStaking = 0
+  const [stakingEnabled] = useStakingManager()
+  let totalPool2 = 0
+  const [pool2Enabled] = usePool2Manager()
 
   // All chains accumulated from priority list and from looping through tokens' specific chains
   const chainsSet = new Set(priorityChainFilters)
 
-  const filteredTokens = Object.values(allTokenData).reduce((accTokenList, currTokenData) => {
+  let filteredTokens = Object.values(allTokenData).reduce((accTokenList, currTokenData) => {
     // Skip all chain tokens and if there is a category, skip all tokens that are not in that category
     if (
       currTokenData.category === 'Chain' ||
@@ -339,23 +341,29 @@ export const useFilteredTokenData = ({ selectedChain = 'All', category = '' }) =
     // Add staking and pool2 to tvl
 
     if (stakingEnabled) {
+      let stakedAmount = 0
       if (allChains) {
-        updatedTokenData.tvl += updatedTokenData.staking ?? 0
+        stakedAmount = updatedTokenData.staking ?? 0
       } else {
-        updatedTokenData.tvl += updatedTokenData?.chainTvls?.[`${selectedChain}-staking`] ?? 0
+        stakedAmount = updatedTokenData?.chainTvls?.[`${selectedChain}-staking`] ?? 0
       }
+      updatedTokenData.tvl += stakedAmount
+      totalStaking += stakedAmount
     }
 
     if (pool2Enabled) {
+      let pooledAmount = 0
       if (allChains) {
-        updatedTokenData.tvl += updatedTokenData?.pool2 ?? 0
+        pooledAmount = updatedTokenData?.pool2 ?? 0
       } else {
-        updatedTokenData.tvl += updatedTokenData?.chainTvls?.[`${selectedChain}-pool2`] ?? 0
+        pooledAmount = updatedTokenData?.chainTvls?.[`${selectedChain}-pool2`] ?? 0
       }
+      updatedTokenData.tvl += pooledAmount
+      totalPool2 += pooledAmount
     }
 
     // When specific chain, do not return mcap/tvl for specific chain since tvl is spread accross chains
-    if (allChains || (!allChains && updatedTokenData?.chains?.length > 1)) {
+    if (allChains || (!allChains && updatedTokenData?.chains?.length === 1)) {
       updatedTokenData.mcaptvl =
         updatedTokenData.tvl !== 0 && updatedTokenData.mcap ? updatedTokenData.mcap / updatedTokenData.tvl : null
       updatedTokenData.fdvtvl =
@@ -366,8 +374,14 @@ export const useFilteredTokenData = ({ selectedChain = 'All', category = '' }) =
     return accTokenList
   }, [])
 
+  if (!allChains || stakingEnabled || pool2Enabled || category) {
+    filteredTokens = filteredTokens.sort((a, b) => b.tvl - a.tvl)
+  }
+
   return {
     filteredTokens,
-    chainsSet
+    chainsSet,
+    totalStaking,
+    totalPool2
   }
 }
