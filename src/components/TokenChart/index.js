@@ -447,7 +447,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               }}
               wrapperStyle={{ top: -70, left: -10 }}
             />
-            {(tokenData.hallmarks ?? []).map((hallmark, i) =>
+            {(tokenData?.hallmarks ?? []).map((hallmark, i) =>
               <ReferenceLine x={hallmark[0]} stroke={textColor} label={{ value: hallmark[1], fill: textColor, position: "insideTop", offset: (i * 50) % 300 + 50 }} />
             )}
             {tokensUnique.length > 0 ? tokensUnique.map(tokenSymbol => <Area
@@ -503,7 +503,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               yAxisId={0}
               tick={{ fill: textColor }}
             />
-            {(tokenData.hallmarks ?? []).map(hallmark =>
+            {(tokenData?.hallmarks ?? []).map(hallmark =>
               <ReferenceLine x={hallmark[0]} stroke="red" label={hallmark[1]} />
             )}
             <Tooltip
