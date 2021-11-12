@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import styled from 'styled-components'
-import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar } from 'recharts'
+import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar, ReferenceLine, Label } from 'recharts'
 import { AutoRow, RowBetween, RowFixed } from '../Row'
 import { useHistory, useLocation } from "react-router-dom";
 
@@ -65,8 +65,12 @@ function stringToColour(str) {
   return colour;
 }
 
+function labelPosition(index) {
+  return ["center", "insideTop", "insideBottom"][index % 3];
+}
+
 const ALL_CHAINS = "All Chains"
-const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens, denomination: initialDenomination, chains, selectedChain = "all" }) => {
+const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens, denomination: initialDenomination, chains, selectedChain = "all", tokenData }) => {
   // settings for the window and candle width
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
 
@@ -443,6 +447,9 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               }}
               wrapperStyle={{ top: -70, left: -10 }}
             />
+            {(tokenData.hallmarks ?? []).map((hallmark, i) =>
+              <ReferenceLine x={hallmark[0]} stroke={textColor} label={{ value: hallmark[1], fill: textColor, position: "insideTop", offset: (i * 50) % 300 + 50 }} />
+            )}
             {tokensUnique.length > 0 ? tokensUnique.map(tokenSymbol => <Area
               type="monotone"
               dataKey={tokenSymbol}
@@ -496,6 +503,9 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               yAxisId={0}
               tick={{ fill: textColor }}
             />
+            {(tokenData.hallmarks ?? []).map(hallmark =>
+              <ReferenceLine x={hallmark[0]} stroke="red" label={hallmark[1]} />
+            )}
             <Tooltip
               cursor={{ fill: color, opacity: 0.1 }}
               formatter={val => formattedNum(val, true)}

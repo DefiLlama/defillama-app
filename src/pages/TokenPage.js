@@ -358,6 +358,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                     selectedChain={selectedChain}
                     chainTvls={historicalChainTvls}
                     chains={chains}
+                    tokenData={tokenData}
                   />
                 )}
                 {!chartData && <Loader />}
