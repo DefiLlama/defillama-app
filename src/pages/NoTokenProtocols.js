@@ -27,7 +27,7 @@ function AllTokensPage(props) {
         <PageWrapper>
             <FullWrapper>
                 <RowBetween>
-                    <TYPE.largeHeader>Pret-a-farmer airdrops 🧑‍🌾</TYPE.largeHeader>
+                    <TYPE.largeHeader>Tokenless protocols that may airdrop 🧑‍🌾</TYPE.largeHeader>
                     {!below600 && <Search small={true} />}
                 </RowBetween>
                 <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>
