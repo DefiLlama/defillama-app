@@ -367,11 +367,8 @@ export const useFilteredTokenData = ({ selectedChain = 'All', category = '' }) =
     }
 
     // When specific chain, do not return mcap/tvl for specific chain since tvl is spread accross chains
-    if (allChains || (!allChains && updatedTokenData?.chains?.length === 1)) {
-      updatedTokenData.mcaptvl =
-        updatedTokenData.tvl !== 0 && updatedTokenData.mcap ? updatedTokenData.mcap / updatedTokenData.tvl : null
-      updatedTokenData.fdvtvl =
-        updatedTokenData.tvl !== 0 && updatedTokenData.fdv ? updatedTokenData.fdv / updatedTokenData.tvl : null
+    if (!allChains && updatedTokenData?.chains?.length > 1) {
+      updatedTokenData.mcaptvl = null
     }
 
     accTokenList.push(updatedTokenData)
