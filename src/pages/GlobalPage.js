@@ -62,14 +62,14 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
   let { totalVolumeUSD, volumeChangeUSD } = globalData
 
   useEffect(() => {
-    if (selectedChain !== undefined && chainChartData[selectedChain] === undefined) {
+    if (!allChains && chainChartData[selectedChain] === undefined) {
       fetchAPI(`${CHART_API}/${selectedChain}`).then(chart =>
         setChainChartData({
           [selectedChain]: chart
         })
       )
     }
-  }, [selectedChain])
+  }, [allChains, selectedChain])
 
   if (!allChains) {
     const chartData = chainChartData[selectedChain]
@@ -124,13 +124,14 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
       })
       .filter(token => token !== null)
 
-    if (selectedChain !== 'All' || stakingEnabled || pool2Enabled) {
+    if (!allChains || stakingEnabled || pool2Enabled) {
       filteredTokens = filteredTokens.sort((a, b) => b.tvl - a.tvl)
     }
 
     return [filteredTokens, chainsSet]
   }, [allTokensOriginal, selectedChain, stakingEnabled, pool2Enabled])
 
+  console.log(tokensList, 'tokensList')
   let chainOptions = [...chainsSet].map(label => ({ label, to: setSelectedChain(label) }))
 
   if (allChains && (stakingEnabled || pool2Enabled)) {
