@@ -128,10 +128,6 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
       <ContentWrapper>
         <AutoColumn gap="24px" style={{ paddingBottom: below800 ? '0' : '24px' }}>
-          <RowBetween>
-            <TYPE.largeHeader>Defi Dashboard</TYPE.largeHeader>
-            {!below800 && <RightSettings />}
-          </RowBetween>
           <Search />
           {selectedChain === 'Fantom' && (
             <Panel background={true} style={{ textAlign: 'center' }}>
