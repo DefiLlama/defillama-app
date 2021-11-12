@@ -76,7 +76,7 @@ const TokenDetailsLayout = styled.div`
     > * {
       grid-column: 1 / 4;
       margin-bottom: 1rem;
-      display:table-row;
+      display: table-row;
       > * {
         margin-bottom: 1rem;
       }
@@ -91,25 +91,25 @@ const TokenDetailsLayout = styled.div`
 let backgroundColor = '#2172E5'
 
 const blockExplorers = {
-  'bsc': ['https://bscscan.com/address/', 'Bscscan'],
-  'xdai': ['https://blockscout.com/xdai/mainnet/address/', 'BlockScout'],
-  'avax': ['https://cchain.explorer.avax.network/address/', 'CChain Explorer'],
-  'fantom': ['https://ftmscan.com/address/', 'FTMscan'],
-  'heco': ['https://hecoinfo.com/address/', 'HecoInfo'],
-  'wan': ['https://wanscan.org/token/', 'Wanscan'],
-  'polygon': ['https://polygonscan.com/address/', 'PolygonScan'],
-  'rsk': ['https://explorer.rsk.co/address/', 'RSK Explorer'],
-  'solana': ['https://solscan.io/token/', 'Solscan'],
-  'tezos': ['https://tzkt.io/', 'TzKT'],
-  'moonriver': ['https://blockscout.moonriver.moonbeam.network/address/', 'Blockscout'],
-  'arbitrum': ['https://arbiscan.io/address/', 'Arbiscan'],
-  'shiden': ['https://blockscout.com/shiden/address/', 'Blockscout'],
-  'terra': ['https://finder.terra.money/columbus-4/account/', 'Terra Finder'],
-  'okex': ['https://www.oklink.com/okexchain/tokenAddr/', 'Oklink'],
-  'celo': ['https://explorer.celo.org/tokens/', 'Celo'],
-  'waves': ['https://wavesexplorer.com/assets/', 'Waves Explorer'],
-  'eos': ['https://bloks.io/tokens/', 'bloks'],
-  'energyweb': ['https://explorer.energyweb.org/address/', 'EnergyWeb'],
+  bsc: ['https://bscscan.com/address/', 'Bscscan'],
+  xdai: ['https://blockscout.com/xdai/mainnet/address/', 'BlockScout'],
+  avax: ['https://cchain.explorer.avax.network/address/', 'CChain Explorer'],
+  fantom: ['https://ftmscan.com/address/', 'FTMscan'],
+  heco: ['https://hecoinfo.com/address/', 'HecoInfo'],
+  wan: ['https://wanscan.org/token/', 'Wanscan'],
+  polygon: ['https://polygonscan.com/address/', 'PolygonScan'],
+  rsk: ['https://explorer.rsk.co/address/', 'RSK Explorer'],
+  solana: ['https://solscan.io/token/', 'Solscan'],
+  tezos: ['https://tzkt.io/', 'TzKT'],
+  moonriver: ['https://blockscout.moonriver.moonbeam.network/address/', 'Blockscout'],
+  arbitrum: ['https://arbiscan.io/address/', 'Arbiscan'],
+  shiden: ['https://blockscout.com/shiden/address/', 'Blockscout'],
+  terra: ['https://finder.terra.money/columbus-4/account/', 'Terra Finder'],
+  okex: ['https://www.oklink.com/okexchain/tokenAddr/', 'Oklink'],
+  celo: ['https://explorer.celo.org/tokens/', 'Celo'],
+  waves: ['https://wavesexplorer.com/assets/', 'Waves Explorer'],
+  eos: ['https://bloks.io/tokens/', 'bloks'],
+  energyweb: ['https://explorer.energyweb.org/address/', 'EnergyWeb']
 }
 
 function TokenPage({ protocol, history, denomination, selectedChain }) {
@@ -118,7 +118,32 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
   const tokenData = useTokenData(id, protocol)
 
   let address = tokenData.address || ''
-  let { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, misrepresentedTokens, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chains, chainTvls, historicalChainTvls, audit_links, methodology, staking, pool2, module: codeModule } = tokenData
+  let {
+    name,
+    symbol,
+    url,
+    description,
+    tvl,
+    priceUSD,
+    priceChangeUSD,
+    misrepresentedTokens,
+    logo,
+    audits,
+    category,
+    tvlList: chartData,
+    tokensInUsd,
+    tokens,
+    twitter,
+    chain,
+    chains,
+    chainTvls,
+    historicalChainTvls,
+    audit_links,
+    methodology,
+    staking,
+    pool2,
+    module: codeModule
+  } = tokenData
 
   let blockExplorerLink = 'https://etherscan.io/address/' + address;
   let blockExplorerName = 'Etherscan';
@@ -126,7 +151,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
     const chainId = explorer[0] + ':'
     if (address.startsWith(chainId)) {
       address = address.slice(chainId.length)
-      blockExplorerLink = explorer[1][0] + address;
+      blockExplorerLink = explorer[1][0] + address
       blockExplorerName = explorer[1][1]
     }
   })
@@ -162,7 +187,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
 
   const [savedTokens, addToken] = useSavedTokens()
 
-  const fetchColor = (tokenAddress) => {
+  const fetchColor = tokenAddress => {
     if (name) {
       var path = getTokenLogoPathFromAddress(address)
       if (logo) {
@@ -305,7 +330,13 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                       {formattedNum(tvl || '0', true)}
                     </TYPE.main>
                     <TYPE.main>
-                      <div>{Object.entries(chainTvls).map(chainTvl => <div key={chainTvl[0]} style={{ justifyContent: "space-between", display: "flex" }}><span>{chainTvl[0]}:&nbsp;</span> <span>{formattedNum(chainTvl[1] || '0', true)}</span></div>)}</div>
+                      <div>
+                        {Object.entries(chainTvls).map(chainTvl => (
+                          <div key={chainTvl[0]} style={{ justifyContent: 'space-between', display: 'flex' }}>
+                            <span>{chainTvl[0]}:&nbsp;</span> <span>{formattedNum(chainTvl[1] || '0', true)}</span>
+                          </div>
+                        ))}
+                      </div>
                     </TYPE.main>
                   </RowBetween>
                 </AutoColumn>
@@ -365,14 +396,18 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
               p={20}
             >
               <TokenDetailsLayout>
-                {typeof category === 'string' ?
+                {typeof category === 'string' ? (
                   <Column>
                     <TYPE.main>Category</TYPE.main>
                     <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                      <BasicLink to={`/protocols/${category.toLowerCase()}`}><FormattedName text={category} maxCharacters={16} /></BasicLink>
+                      <BasicLink to={`/protocols/${category.toLowerCase()}`}>
+                        <FormattedName text={category} maxCharacters={16} />
+                      </BasicLink>
                     </TYPE.main>
-                  </Column> :
-                  <></>}
+                  </Column>
+                ) : (
+                  <></>
+                )}
                 <Column>
                   <TYPE.main>
                     <HeadHelp title="Audits" text="Audits are not a guarantee of security." />
@@ -397,7 +432,6 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
               </TokenDetailsLayout>
             </Panel>
 
-
             <RowBetween style={{ marginTop: '3rem' }}>
               <TYPE.main fontSize={'1.125rem'}>Methodology</TYPE.main>{' '}
             </RowBetween>
@@ -416,10 +450,12 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                 </TokenDetailsLayout>
               )}
               <RowFixed>
-                <Link color={backgroundColor} external href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}>
-                  <ButtonLight color={backgroundColor}>
-                    Check the code ↗
-                  </ButtonLight>
+                <Link
+                  color={backgroundColor}
+                  external
+                  href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
+                >
+                  <ButtonLight color={backgroundColor}>Check the code ↗</ButtonLight>
                 </Link>
               </RowFixed>
             </Panel>
@@ -461,9 +497,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                   </Column>
                   <RowFixed>
                     <Link color={backgroundColor} external href={blockExplorerLink}>
-                      <ButtonLight color={backgroundColor}>
-                        View on {blockExplorerName} ↗
-                      </ButtonLight>
+                      <ButtonLight color={backgroundColor}>View on {blockExplorerName} ↗</ButtonLight>
                     </Link>
                   </RowFixed>
                 </TokenDetailsLayout>
@@ -471,8 +505,8 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
             )}
           </>
         </DashboardWrapper>
-      </ContentWrapper >
-    </PageWrapper >
+      </ContentWrapper>
+    </PageWrapper>
   )
 }
 
