@@ -19,7 +19,7 @@ import Column, { AutoColumn } from '../components/Column'
 import { ButtonLight } from '../components/ButtonStyled'
 import { BasicLink } from '../components/Link'
 import Search from '../components/Search'
-import { formattedNum, formattedPercent, getTokenIdFromName, getTokenLogoPathFromAddress } from '../utils'
+import { formattedNum, formattedPercent, getTokenIdFromName, getTokenLogoPathFromAddress, tokenIconUrl } from '../utils'
 import { useTokenData } from '../contexts/TokenData'
 import { TYPE, ThemedBackground } from '../Theme'
 import { transparentize } from 'polished'
@@ -134,14 +134,11 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
     tokensInUsd,
     tokens,
     twitter,
-    chain,
     chains,
     chainTvls,
     historicalChainTvls,
     audit_links,
     methodology,
-    staking,
-    pool2,
     module: codeModule
   } = tokenData
 
@@ -157,17 +154,11 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
   })
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
-  if (staking) {
-    chainTvls.staking = staking
-    if (stakingEnabled) {
-      tvl += staking
-    }
+  if (chainTvls.staking && stakingEnabled) {
+    tvl += chainTvls.staking
   }
-  if (pool2) {
-    chainTvls.pool2 = pool2
-    if (pool2Enabled) {
-      tvl += pool2
-    }
+  if (chainTvls.pool2 && pool2Enabled) {
+    tvl += chainTvls.pool2
   }
 
   // price
@@ -187,9 +178,9 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
 
   const [savedTokens, addToken] = useSavedTokens()
 
-  const fetchColor = tokenAddress => {
+  const fetchColor = () => {
     if (name) {
-      var path = getTokenLogoPathFromAddress(address)
+      var path = tokenIconUrl({ name })
       if (logo) {
         //replace twt image by actual logo
         path = logo
@@ -220,8 +211,8 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
   }, [])
 
   useEffect(() => {
-    fetchColor(address)
-  }, [address])
+    fetchColor()
+  }, [name, logo])
 
   document.title = `${name} Protocol: TVL and stats - DefiLlama`
 
@@ -331,7 +322,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                     </TYPE.main>
                     <TYPE.main>
                       <div>
-                        {Object.entries(chainTvls).map(chainTvl => (
+                        {Object.entries(chainTvls).map(chainTvl => chainTvl[0].includes('-') ? null : (
                           <div key={chainTvl[0]} style={{ justifyContent: 'space-between', display: 'flex' }}>
                             <span>{chainTvl[0]}:&nbsp;</span> <span>{formattedNum(chainTvl[1] || '0', true)}</span>
                           </div>

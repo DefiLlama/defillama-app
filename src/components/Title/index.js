@@ -25,7 +25,7 @@ const UniIcon = styled(Link)`
   }
 `
 
-export default function Title({ homePath = '/'}) {
+export default function Title({ homePath = '/' }) {
   const history = useHistory()
 
   return (
@@ -33,7 +33,7 @@ export default function Title({ homePath = '/'}) {
       <Flex alignItems="center">
         <RowFixed>
           <UniIcon id="link" onClick={() => history.push(homePath)}>
-            <img width={'160px'} src={homePath === '/' ? DefiLogo : NFTLogo} alt="logo" />
+            <img width={'160px'} height="54px" src={homePath === '/' ? DefiLogo : NFTLogo} alt="logo" />
           </UniIcon>
         </RowFixed>
       </Flex>
