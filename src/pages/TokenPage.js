@@ -121,7 +121,6 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
   let { name, symbol, url, description, tvl, priceUSD, priceChangeUSD, misrepresentedTokens, logo, audits, category, tvlList: chartData, tokensInUsd, tokens, twitter, chain, chains, chainTvls, historicalChainTvls, audit_links, methodology, staking, pool2, module: codeModule } = tokenData
 
   let blockExplorerLink = 'https://etherscan.io/address/' + address;
-  let dexguguLink
   let blockExplorerName = 'Etherscan';
   Object.entries(blockExplorers).forEach(explorer => {
     const chainId = explorer[0] + ':'
@@ -146,16 +145,6 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
     }
   }
 
-  if (chain === "Ethereum") {
-    dexguguLink = `https://dex.guru/token/${address}-eth`;
-  }
-  if (chain === "Binance") {
-    dexguguLink = `https://dex.guru/token/${address}-bsc`;
-  }
-  if (chain === "Polygon") {
-    dexguguLink = `https://dex.guru/token/${address}-polygon`;
-  }
-
   // price
   const price = priceUSD ? formattedNum(priceUSD, true) : ''
   const priceChange = priceChangeUSD ? formattedPercent(priceChangeUSD) : ''
@@ -174,7 +163,6 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
   const [savedTokens, addToken] = useSavedTokens()
 
   const fetchColor = (tokenAddress) => {
-
     if (name) {
       var path = getTokenLogoPathFromAddress(address)
       if (logo) {

@@ -224,7 +224,8 @@ const getTokenData = async (address, protocol, ethPrice, ethPriceOld) => {
         historicalChainTvls: tokenData?.chainTvls,
         methodology: tokenData?.methodology,
         misrepresentedTokens: tokenData?.misrepresentedTokens,
-        hallmarks: tokenData?.hallmarks
+        hallmarks: tokenData?.hallmarks,
+        logo: tokenData?.logo,
       }
       return data
     }

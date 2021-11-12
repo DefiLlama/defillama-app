@@ -53,20 +53,7 @@ const BASIC_DENOMINATIONS = {
 }
 
 function stringToColour(str) {
-  var hash = 0;
-  for (var i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  var colour = '#';
-  for (var i = 0; i < 3; i++) {
-    var value = (hash >> (i * 8)) & 0xFF;
-    colour += ('00' + value.toString(16)).substr(-2);
-  }
-  return colour;
-}
-
-function labelPosition(index) {
-  return ["center", "insideTop", "insideBottom"][index % 3];
+  return '#' + (Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0');
 }
 
 const ALL_CHAINS = "All Chains"
@@ -450,14 +437,17 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
             {(tokenData?.hallmarks ?? []).map((hallmark, i) =>
               <ReferenceLine x={hallmark[0]} stroke={textColor} label={{ value: hallmark[1], fill: textColor, position: "insideTop", offset: (i * 50) % 300 + 50 }} />
             )}
-            {tokensUnique.length > 0 ? tokensUnique.map(tokenSymbol => <Area
-              type="monotone"
-              dataKey={tokenSymbol}
-              key={tokenSymbol}
-              stackId="1"
-              fill={stringToColour(tokenSymbol)}
-              stroke={stringToColour(tokenSymbol)}
-            />) :
+            {tokensUnique.length > 0 ? tokensUnique.map(tokenSymbol => {
+              const randomColor = stringToColour(tokenSymbol);
+              return <Area
+                type="monotone"
+                dataKey={tokenSymbol}
+                key={tokenSymbol}
+                stackId="1"
+                fill={randomColor}
+                stroke={randomColor}
+              />
+            }) :
               <Area
                 key={'other'}
                 dataKey={'totalLiquidityUSD'}

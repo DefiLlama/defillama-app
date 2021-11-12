@@ -116,11 +116,7 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
             }
           }
         }
-        return {
-          ...token,
-          mcaptvl: token.tvl !== 0 && token.mcap ? token.mcap / token.tvl : null,
-          fdvtvl: token.tvl !== 0 && token.fdv ? token.fdv / token.tvl : null
-        }
+        return token
       })
       .filter(token => token !== null)
 
@@ -292,7 +288,7 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
                 </AutoColumn>
               </Panel>
             </AutoColumn>
-            <Panel style={{ height: '100%', minHeight: '300px' }}>{chart}</Panel>
+            <Panel style={{ height: '100%', minHeight: allChains ? '300px' : '470px' }}>{chart}</Panel>
           </AutoRow>
         )}
         {below800 && (
