@@ -109,7 +109,12 @@ const blockExplorers = {
   celo: ['https://explorer.celo.org/tokens/', 'Celo'],
   waves: ['https://wavesexplorer.com/assets/', 'Waves Explorer'],
   eos: ['https://bloks.io/tokens/', 'bloks'],
-  energyweb: ['https://explorer.energyweb.org/address/', 'EnergyWeb']
+  energyweb: ['https://explorer.energyweb.org/address/', 'EnergyWeb'],
+  cronos: ['https://cronos.crypto.org/explorer/address/', 'Cronos Explorer'],
+  harmony: ['https://explorer.harmony.one/address/', 'Harmony Explorer'],
+  tron: ['https://tronscan.org/#/', 'Tronscan'],
+  kucoin: ['https://explorer.kcc.io/en/address/', 'KCC Explorer'],
+  iotex: ['https://iotexscan.io/address/', 'IoTeX Explorer'],
 }
 
 function TokenPage({ protocol, history, denomination, selectedChain }) {
