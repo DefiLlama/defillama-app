@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
 import styled from 'styled-components'
-import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar } from 'recharts'
+import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar, ReferenceLine, Label } from 'recharts'
 import { AutoRow, RowBetween, RowFixed } from '../Row'
 import { useHistory, useLocation } from "react-router-dom";
 
@@ -52,21 +52,12 @@ const BASIC_DENOMINATIONS = {
   Chains: 'Chains'
 }
 
-function stringToColour(str) {
-  var hash = 0;
-  for (var i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  var colour = '#';
-  for (var i = 0; i < 3; i++) {
-    var value = (hash >> (i * 8)) & 0xFF;
-    colour += ('00' + value.toString(16)).substr(-2);
-  }
-  return colour;
+function stringToColour() {
+  return '#' + (Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0');
 }
 
 const ALL_CHAINS = "All Chains"
-const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens, denomination: initialDenomination, chains, selectedChain = "all" }) => {
+const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens, denomination: initialDenomination, chains, selectedChain = "all", tokenData }) => {
   // settings for the window and candle width
   const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
 
@@ -443,14 +434,20 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               }}
               wrapperStyle={{ top: -70, left: -10 }}
             />
-            {tokensUnique.length > 0 ? tokensUnique.map(tokenSymbol => <Area
-              type="monotone"
-              dataKey={tokenSymbol}
-              key={tokenSymbol}
-              stackId="1"
-              fill={stringToColour(tokenSymbol)}
-              stroke={stringToColour(tokenSymbol)}
-            />) :
+            {(tokenData?.hallmarks ?? []).map((hallmark, i) =>
+              <ReferenceLine x={hallmark[0]} stroke={textColor} label={{ value: hallmark[1], fill: textColor, position: "insideTop", offset: (i * 50) % 300 + 50 }} />
+            )}
+            {tokensUnique.length > 0 ? tokensUnique.map(tokenSymbol => {
+              const randomColor = stringToColour();
+              return <Area
+                type="monotone"
+                dataKey={tokenSymbol}
+                key={tokenSymbol}
+                stackId="1"
+                fill={randomColor}
+                stroke={randomColor}
+              />
+            }) :
               <Area
                 key={'other'}
                 dataKey={'totalLiquidityUSD'}
@@ -496,6 +493,9 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               yAxisId={0}
               tick={{ fill: textColor }}
             />
+            {(tokenData?.hallmarks ?? []).map(hallmark =>
+              <ReferenceLine x={hallmark[0]} stroke="red" label={hallmark[1]} />
+            )}
             <Tooltip
               cursor={{ fill: color, opacity: 0.1 }}
               formatter={val => formattedNum(val, true)}

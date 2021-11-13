@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 
 import { useEthPrice } from './GlobalData'
+import { priorityChainFilters } from 'constants/chainTokens'
 
 import { fetchAPI } from './API'
 import {
@@ -224,6 +225,10 @@ const getTokenData = async (address, protocol, ethPrice, ethPriceOld) => {
         historicalChainTvls: tokenData?.chainTvls,
         methodology: tokenData?.methodology,
         misrepresentedTokens: tokenData?.misrepresentedTokens,
+        hallmarks: tokenData?.hallmarks,
+        logo: tokenData?.logo,
+        audits: tokenData?.audits,
+        audit_links: tokenData?.["audit_links"],
       }
       return data
     }
@@ -286,13 +291,98 @@ export function useAllTokenData() {
   const [pool2Enabled] = usePool2Manager()
   if (stakingEnabled || pool2Enabled) {
     // TODO Optimize
-    return Object.fromEntries(Object.entries(state).map(entry => [
-      entry[0],
-      {
-        ...entry[1],
-        tvl: entry[1].tvl + (stakingEnabled ? (entry[1].staking ?? 0) : 0) + (pool2Enabled ? (entry[1].pool2 ?? 0) : 0)
-      }
-    ]))
+    return Object.fromEntries(
+      Object.entries(state).map(entry => [
+        entry[0],
+        {
+          ...entry[1],
+          tvl: entry[1].tvl + (stakingEnabled ? entry[1].chainTvls.staking ?? 0 : 0) + (pool2Enabled ? entry[1].chainTvls.pool2 ?? 0 : 0)
+        }
+      ])
+    )
   }
   return state
+}
+
+export const useFilteredTokenData = ({ selectedChain = 'All', category = '' }) => {
+  const allChains = selectedChain === 'All'
+  const [allTokenData] = useTokenDataContext()
+
+  let totalStaking = 0
+  const [stakingEnabled] = useStakingManager()
+  let totalPool2 = 0
+  const [pool2Enabled] = usePool2Manager()
+
+  // All chains accumulated from priority list and from looping through tokens' specific chains
+  const chainsSet = new Set(priorityChainFilters)
+
+  let filteredTokens = Object.values(allTokenData).reduce((accTokenList, currTokenData) => {
+    // Skip all chain tokens and if there is a category, skip all tokens that are not in that category
+    if (
+      currTokenData.category === 'Chain' ||
+      (category && (currTokenData.category || '').toLowerCase() !== category.toLowerCase())
+    ) {
+      return accTokenList
+    }
+
+    // Accumulating unique chains from tokens
+    currTokenData.chains.forEach(chain => {
+      chainsSet.add(chain)
+    })
+
+    // Calculate the correct tvl
+
+    const updatedTokenData = { ...currTokenData }
+
+    if (!allChains) {
+      updatedTokenData.tvl = currTokenData.chainTvls[selectedChain]
+
+      if (typeof updatedTokenData.tvl !== 'number') {
+        return accTokenList
+      }
+    }
+
+    // Add staking and pool2 to tvl
+
+    if (stakingEnabled) {
+      let stakedAmount = 0
+      if (allChains) {
+        stakedAmount = updatedTokenData.chainTvls.staking ?? 0
+      } else {
+        stakedAmount = updatedTokenData?.chainTvls?.[`${selectedChain}-staking`] ?? 0
+      }
+      updatedTokenData.tvl += stakedAmount
+      totalStaking += stakedAmount
+    }
+
+    if (pool2Enabled) {
+      let pooledAmount = 0
+      if (allChains) {
+        pooledAmount = updatedTokenData?.chainTvls.pool2 ?? 0
+      } else {
+        pooledAmount = updatedTokenData?.chainTvls?.[`${selectedChain}-pool2`] ?? 0
+      }
+      updatedTokenData.tvl += pooledAmount
+      totalPool2 += pooledAmount
+    }
+
+    // When specific chain, do not return mcap/tvl for specific chain since tvl is spread accross chains
+    if (!allChains && updatedTokenData?.chains?.length > 1) {
+      updatedTokenData.mcaptvl = null
+    }
+
+    accTokenList.push(updatedTokenData)
+    return accTokenList
+  }, [])
+
+  if (!allChains || stakingEnabled || pool2Enabled || category) {
+    filteredTokens = filteredTokens.sort((a, b) => b.tvl - a.tvl)
+  }
+
+  return {
+    filteredTokens,
+    chainsSet,
+    totalStaking,
+    totalPool2
+  }
 }

@@ -3,7 +3,7 @@ import { ResponsiveContainer } from 'recharts'
 import TokenChart from '../TokenChart'
 import { usePool2Manager, useStakingManager } from '../../contexts/LocalStorage'
 
-const ProtocolChart = ({ chartData, protocol, small, tokens, tokensInUsd, chainTvls, misrepresentedTokens, color, denomination, selectedChain, chains }) => {
+const ProtocolChart = ({ chartData, protocol, small, tokens, tokensInUsd, chainTvls, misrepresentedTokens, color, denomination, selectedChain, chains, tokenData }) => {
   // global historical data
 
   // based on window, get starttim
@@ -70,6 +70,7 @@ const ProtocolChart = ({ chartData, protocol, small, tokens, tokensInUsd, chainT
             color={color}
             selectedChain={selectedChain}
             chains={chains ?? [protocol]}
+            tokenData={tokenData}
           //type={CHART_TYPES.AREA}
           />
         </ResponsiveContainer>

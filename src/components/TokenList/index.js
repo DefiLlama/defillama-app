@@ -10,7 +10,7 @@ import { CustomLink, BasicLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, formattedPercent, chainIconUrl } from '../../utils'
+import { formattedNum, formattedPercent, chainIconUrl, tokenIconUrl } from '../../utils'
 import { useInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
@@ -120,7 +120,6 @@ function TokenList({ tokens, filters }) {
   const [sortDirection, setSortDirection] = useState(true)
   const [sortedColumn, setSortedColumn] = useState(SORT_FIELD.TVL)
 
-
   const filteredList = useMemo(() => {
     if (!tokens || !tokens.length) {
       return tokens
@@ -155,7 +154,7 @@ function TokenList({ tokens, filters }) {
         <DataText area="name" fontWeight="500">
           <Row>
             {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index + 1}</div>}
-            <TokenLogo address={item.address} logo={item.logo} />
+            <TokenLogo logo={tokenIconUrl(item)} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
               to={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
@@ -172,11 +171,6 @@ function TokenList({ tokens, filters }) {
         {!below1080 && (
           <DataText area="chain">{item.chains.map(chain => <BasicLink key={chain} to={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)}</DataText>
         )}
-        {/*!below1080 && (
-          <DataText area="fdvtvl" color="text" fontWeight="500">
-            {item.fdvtvl === null ? '-' : formattedNum(item.fdvtvl, false)}
-          </DataText>
-        )*/}
         {
           !below1080 && (
             <DataText area="1dchange" color="text" fontWeight="500">
@@ -226,19 +220,6 @@ function TokenList({ tokens, filters }) {
             </ClickableText>
           </Flex>
         )}
-        {/*!below1080 && (
-          <Flex alignItems="center">
-            <ClickableText
-              area="fdvtvl"
-              onClick={e => {
-                setSortedColumn(SORT_FIELD.FDVTVL)
-                setSortDirection(sortedColumn !== SORT_FIELD.FDVTVL ? true : !sortDirection)
-              }}
-            >
-              Category {sortedColumn === SORT_FIELD.FDVTVL ? (!sortDirection ? '↑' : '↓') : ''}
-            </ClickableText>
-          </Flex>
-        )*/}
         {!below1080 && (
           <Flex alignItems="center">
             <ClickableText

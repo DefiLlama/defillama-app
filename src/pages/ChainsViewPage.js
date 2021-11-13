@@ -117,7 +117,7 @@ const ChainsView = () => {
     const loading = data.length === 0;
 
     useEffect(() => {
-        const chainsCalls = chainsUnique.map(elem => fetch(`https://api.llama.fi/charts/${elem}`).then(resp => resp.json()))
+        const chainsCalls = chainsUnique.map(elem => fetch(`https://api.llama.fi/lite/charts/${elem}`).then(resp => resp.json()))
         Promise.all(chainsCalls)
             .then(resp => {
                 setData(resp)
