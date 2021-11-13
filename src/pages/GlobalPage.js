@@ -1,4 +1,4 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { Redirect } from 'react-router-dom'
 import { useMedia } from 'react-use'
 import styled from 'styled-components'
@@ -24,8 +24,8 @@ import { fetchAPI } from 'contexts/API'
 import { CHART_API } from 'constants/index'
 import { formattedNum } from 'utils'
 
-const ProtocolChart = lazy(() => import('components/ProtocolChart'))
-const GlobalChart = lazy(() => import('components/GlobalChart'))
+import ProtocolChart from 'components/ProtocolChart'
+import GlobalChart from 'components/GlobalChart'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -223,7 +223,7 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
                   </RowBetween>
                   <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-                      {volumeChangeUSD.toFixed(2)}%
+                      {volumeChangeUSD?.toFixed(2)}%
                     </TYPE.main>
                   </RowBetween>
                 </AutoColumn>
