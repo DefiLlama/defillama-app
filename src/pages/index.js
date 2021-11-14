@@ -7,7 +7,7 @@ import Head from 'next/head'
 
 export async function getStaticProps({ params }) {
     const [chart, protocols] = await Promise.all(
-        [CHART_API, 'https://api.llama.fi/lite/protocols2'].map(url => fetch(url).then(r => r.json()))
+        [CHART_API, PROTOCOLS_API + '2'].map(url => fetch(url).then(r => r.json()))
     )
 
     return {
