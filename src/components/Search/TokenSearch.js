@@ -160,7 +160,7 @@ export default ({ small = false, includeChains = true, linkPath = defaultLinkPat
             )}
             {filteredTokenList.map(token => {
               return (
-                <BasicLink to={linkPath(token)} key={token.id} onClick={onDismiss(token)}>
+                <BasicLink href={linkPath(token)} key={token.id} onClick={onDismiss(token)}>
                   <MenuItem>
                     <RowFixed>
                       <TokenLogo address={token.address} logo={token.logo} style={{ marginRight: '10px' }} />
