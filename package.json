@@ -108,6 +108,7 @@
   },
   "license": "GPL-3.0-or-later",
   "devDependencies": {
+    "babel-plugin-styled-components": "^1.13.3",
     "prettier": "^1.18.2",
     "webpack-bundle-analyzer": "^4.5.0"
   }
