@@ -229,6 +229,7 @@ const getTokenData = async (address, protocol, ethPrice, ethPriceOld) => {
         logo: tokenData?.logo,
         audits: tokenData?.audits,
         audit_links: tokenData?.["audit_links"],
+        module: tokenData?.module,
       }
       return data
     }
