@@ -4,11 +4,11 @@ import styled from 'styled-components'
 import { Text } from 'rebass'
 import { transparentize } from 'polished'
 
-import { sm, med, lg, xl } from 'constants/breakpoints'
+import { sm, med, lg, xl } from '../constants/breakpoints'
 import { useDarkModeManager } from '../contexts/LocalStorage'
 
 export default function ThemeProvider({ children }) {
-  const [darkMode] = useDarkModeManager()
+  const [darkMode] = [false]//useDarkModeManager()
 
   return <StyledComponentsThemeProvider theme={theme(darkMode)}>{children}</StyledComponentsThemeProvider>
 }
@@ -158,7 +158,7 @@ export const ThemedBackground = styled.div`
   mix-blend-mode: color;
   background: ${({ backgroundColor, theme }) =>
     `radial-gradient(50% 50% at 50% 50%, ${backgroundColor ||
-      transparentize(0.6, theme.primary1)} 0%, rgba(255, 255, 255, 0) 100%)`};
+    transparentize(0.6, theme.primary1)} 0%, rgba(255, 255, 255, 0) 100%)`};
   position: absolute;
   top: 0px;
   left: 0px;

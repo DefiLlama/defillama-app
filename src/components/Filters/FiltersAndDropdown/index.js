@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 
-import { ButtonLight, ButtonDark } from 'components/ButtonStyled'
-import { BasicLink } from 'components/Link'
-import DropdownSelect from 'components/DropdownSelect'
-import Row from 'components/Row'
+import { ButtonLight, ButtonDark } from '../../ButtonStyled'
+import { BasicLink } from '../../Link'
+import DropdownSelect from '../../DropdownSelect'
+import Row from '../../Row'
 
-import { useResize } from 'hooks'
+import { useResize } from '../../../hooks'
 const letterPxLength = 8
 const marginPxLength = 6.4
 const paddingPxLenggth = 24
@@ -47,7 +47,7 @@ const FiltersAndDropdown = ({ filterOptions = [], activeLabel, setActive, areLin
           )
         } else {
           return areLinks ? (
-            <BasicLink to={to} key={label}>
+            <BasicLink href={to} key={label}>
               <ButtonLight style={{ margin: '0.2rem' }}>{label}</ButtonLight>
             </BasicLink>
           ) : (

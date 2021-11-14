@@ -10,9 +10,6 @@ export const timeframeOptions = {
   ALL_TIME: 'All time'
 }
 
-// token list urls to fetch tokens from - use for warnings on tokens and pairs
-export const SUPPORTED_LIST_URLS__NO_ENS = [`${window.location.protocol}//${window.location.host}/tokens.json`]
-
 // hide from overview list
 export const OVERVIEW_TOKEN_BLACKLIST = [
   '0x495c7f3a713870f68f8b418b355c085dfdc412c3',

@@ -1,9 +1,9 @@
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
 
-import DropdownSelect from 'components/DropdownSelect'
-import FiltersAndDropdown from 'components/Filters/FiltersAndDropdown'
-import Row from 'components/Row'
+import DropdownSelect from '../DropdownSelect'
+import FiltersAndDropdown from '../Filters/FiltersAndDropdown'
+import Row from '../Row'
 
 import { sm } from 'constants/breakpoints'
 
@@ -12,8 +12,8 @@ const Filters = ({ filterOptions = [], activeLabel, setActive, areLinks = true, 
   const belowSmallTablet = useMedia(`(max-width: ${sm}px)`)
   const dropdownHandler = areLinks
     ? selectedLabel => {
-        history.push(setActive(selectedLabel))
-      }
+      history.push(setActive(selectedLabel))
+    }
     : setActive
 
   return (
@@ -36,4 +36,4 @@ const Filters = ({ filterOptions = [], activeLabel, setActive, areLinks = true, 
     </Row>
   )
 }
-export default withRouter(Filters)
+export default Filters

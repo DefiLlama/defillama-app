@@ -78,7 +78,7 @@ export const ButtonWrapper = styled.div`
 `
 
 export const Entry = ({ url, name, history, Icon }) => (
-  <BasicLink to={"/" + url}>
+  <BasicLink href={"/" + url}>
     <Option
       activeText={
         (history.location.pathname.split("/")[1] === url) ??

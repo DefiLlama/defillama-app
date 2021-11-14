@@ -17,7 +17,7 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react",
+    "jsx": "preserve",
     "downlevelIteration": true,
     "allowSyntheticDefaultImports": true,
     "types": [

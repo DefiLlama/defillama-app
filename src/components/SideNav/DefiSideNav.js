@@ -11,7 +11,8 @@ import categories from "../../constants/categories"
 import SettingsMenuButton from "../SettingsModal"
 import NavMenuButton from "./NavMenuButton"
 
-function SideNav({ history }) {
+function SideNav() {
+  const history = { location: { pathname: '' } }
   const below1080 = useMedia("(max-width: 1080px)")
 
   const [showMobileNavMenu, setShowMobileNavMenu] = useState(false)
@@ -20,7 +21,7 @@ function SideNav({ history }) {
   const NavMenu = () => (
     <AutoColumn gap="1.25rem" style={{ marginTop: "1rem" }}>
       <Entry url="" name="Overview" history={history} Icon={TrendingUp} />
-      <BasicLink to="/protocols">
+      <BasicLink href="/protocols">
         <Option
           activeText={
             ((history.location.pathname.split("/")[1] === "protocols" &&
@@ -38,7 +39,7 @@ function SideNav({ history }) {
       <Entry url="comparison" name="Comparison" history={history} Icon={Minimize2} />
       <Entry url="recent" name="Recent" history={history} Icon={Clock} />
       {categories.map(categoryData => (
-        <BasicLink to={`/protocols/${categoryData.name.toLowerCase()}`} key={categoryData.name}>
+        <BasicLink href={`/protocols/${categoryData.name.toLowerCase()}`} key={categoryData.name}>
           <Option
             activeText={
               (history.location.pathname.split("/")[1] === "protocols" &&
@@ -83,4 +84,4 @@ function SideNav({ history }) {
   )
 }
 
-export default withRouter(SideNav)
+export default SideNav

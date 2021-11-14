@@ -1,8 +1,9 @@
 import React, { useRef, useEffect } from "react"
 import styled from "styled-components"
-import { ReactComponent as MenuIcon } from "./menu.svg"
+import MenuIcon from "./menu.svg"
+import Image from 'next/image'
 
-const StyledMenuIcon = styled(MenuIcon)`
+const StyledMenuIcon = styled(props => <Image src={MenuIcon} {...props} />)`
   path {
     stroke: ${({ theme }) => theme.text1};
   }

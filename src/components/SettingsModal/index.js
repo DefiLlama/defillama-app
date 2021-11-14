@@ -1,15 +1,15 @@
 import React, { useRef, useState, useEffect } from 'react'
 import styled from 'styled-components'
-import { ReactComponent as MenuIcon } from './menu.svg'
+import MenuIcon from './menu.svg'
 import { useDarkModeManager, useStakingManager, usePool2Manager, useDisplayUsdManager } from '../../contexts/LocalStorage'
 import Switch from "react-switch";
 import HeadHelp from '../HeadHelp'
 import { AutoRow } from '../Row'
-
+import Image from 'next/image'
 
 import { TYPE } from '../../Theme'
 
-const StyledMenuIcon = styled(MenuIcon)`
+const StyledMenuIcon = styled(props => <Image src={MenuIcon} {...props} />)`
   path {
     stroke: ${({ theme }) => theme.text1};
   }

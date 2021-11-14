@@ -81,27 +81,9 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
 
-  const history = useHistory();
-  const location = useLocation();
-  const buildUrl = () => {
-    const splitLocation = location.pathname.split('/')
-    if (splitLocation.length < 4) {
-      splitLocation.push(selectedChain)
-    }
-    if (splitLocation.length < 5) {
-      splitLocation.push(denomination)
-    }
-    return splitLocation
-  }
   const setDenomination = (newDenomination) => {
-    const splitLocation = buildUrl()
-    splitLocation[4] = newDenomination
-    history.push(splitLocation.join('/'))
   }
   const setSelectedChain = newChain => {
-    const splitLocation = buildUrl()
-    splitLocation[3] = newChain === ALL_CHAINS ? 'all' : newChain
-    history.push(splitLocation.join('/'))
   }
 
   let chartData = data;

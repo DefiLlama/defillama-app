@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link as RebassLink } from 'rebass'
-import { Link as RouterLink } from 'react-router-dom'
+import RouterLink from 'next/link'
 import PropTypes from 'prop-types'
 import styled from 'styled-components'
 import { lighten, darken } from 'polished'

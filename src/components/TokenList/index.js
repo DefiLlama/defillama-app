@@ -157,19 +157,19 @@ function TokenList({ tokens, filters }) {
             <TokenLogo logo={tokenIconUrl(item)} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              to={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
+              href={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
             >
-              <FormattedName
+              <a><FormattedName
                 text={`${item.name} (${item.symbol})`}
                 maxCharacters={below600 ? 8 : 16}
                 adjustSize={true}
                 link={true}
-              />
+              /></a>
             </CustomLink>
           </Row>
         </DataText>
         {!below1080 && (
-          <DataText area="chain">{item.chains.map(chain => <BasicLink key={chain} to={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)}</DataText>
+          <DataText area="chain">{item.chains.map(chain => <BasicLink key={chain} href={`/chain/${chain}`}><a><TokenLogo address={chain} logo={chainIconUrl(chain)} /></a></BasicLink>)}</DataText>
         )}
         {
           !below1080 && (
@@ -293,4 +293,4 @@ function TokenList({ tokens, filters }) {
   )
 }
 
-export default withRouter(TokenList)
+export default TokenList

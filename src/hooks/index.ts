@@ -99,6 +99,7 @@ export default function useInterval(callback: () => void, delay: null | number) 
 }
 
 export function useNFTApp() {
+  return false
   const location = useLocation()
   return location.pathname.startsWith('/nfts')
 }

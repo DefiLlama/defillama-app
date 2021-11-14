@@ -27,10 +27,10 @@ const defaultLinkPath = item => {
   )
 }
 
-export default ({ small = false, includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { } }) => {
+export default ({ small = false, includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { }, protocols }) => {
   const searchKeys = ['symbol', 'name']
 
-  const allTokenData = useAllTokenData()
+  const allTokenData = protocols
   const searchData = useMemo(() => {
     const chainData = includeChains ? getChainsFromAllTokenData(allTokenData) : []
     return [...chainData, ...Object.values(allTokenData).filter(token => token.category !== "Chain").map(token => ({ ...token, logo: tokenIconUrl(token) }))]

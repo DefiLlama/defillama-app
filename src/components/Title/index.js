@@ -7,6 +7,7 @@ import Link from '../Link'
 import { RowFixed } from '../Row'
 import DefiLogo from '../../assets/logo_white_long.svg'
 import NFTLogo from '../../assets/nft_logo_white_long.svg'
+import Image from "next/image"
 
 const TitleWrapper = styled.div`
   text-decoration: none;
@@ -33,7 +34,7 @@ export default function Title({ homePath = '/' }) {
       <Flex alignItems="center">
         <RowFixed>
           <UniIcon id="link" onClick={() => history.push(homePath)}>
-            <img width={'160px'} height="54px" src={homePath === '/' ? DefiLogo : NFTLogo} alt="logo" />
+            <Image width={'160px'} height="54px" src={homePath === '/' ? DefiLogo : NFTLogo} alt="logo" />
           </UniIcon>
         </RowFixed>
       </Flex>

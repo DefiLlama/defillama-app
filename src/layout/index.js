@@ -50,14 +50,12 @@ const Center = styled.div`
  */
 export const LayoutWrapper = ({ children, savedOpen, setSavedOpen }) => {
   return (
-    <>
-      <ContentWrapper open={savedOpen}>
-        <SideNav />
-        <Center id="center">{children}</Center>
-        <Right open={savedOpen}>
-          <PinnedData open={savedOpen} setSavedOpen={setSavedOpen} />
-        </Right>
-      </ContentWrapper>
-    </>
+    <ContentWrapper open={savedOpen} id="rug">
+      <SideNav />
+      <Center id="center">{children}</Center>
+      <Right open={savedOpen}>
+        <PinnedData open={savedOpen} setSavedOpen={setSavedOpen} />
+      </Right>
+    </ContentWrapper>
   )
 }
