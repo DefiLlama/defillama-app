@@ -3,17 +3,27 @@ import { DesktopWrapper, Entry, MobileWrapper, Option, Wrapper, Footer, ButtonWr
 import { AutoColumn } from "../Column"
 import Title from "../Title"
 import { BasicLink } from "../Link"
-import { useMedia } from "react-use"
-import { withRouter } from "react-router-dom"
 import { TrendingUp, Disc, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock } from "react-feather"
 import { useDarkModeManager } from "../../contexts/LocalStorage"
 import categories from "../../constants/categories"
 import SettingsMenuButton from "../SettingsModal"
 import NavMenuButton from "./NavMenuButton"
+import styled from "styled-components"
+
+const Mobile = styled.div`
+@media (min-width: 1080px) {
+  display:none
+}
+`
+
+const Desktop = styled.div`
+@media (max-width: 1080px) {
+  display:none
+}
+`
 
 function SideNav() {
   const history = { location: { pathname: '' } }
-  const below1080 = useMedia("(max-width: 1080px)")
 
   const [showMobileNavMenu, setShowMobileNavMenu] = useState(false)
   const [isDark, toggleDarkMode] = useDarkModeManager()
@@ -56,31 +66,32 @@ function SideNav() {
     </AutoColumn>
   )
 
-  if (below1080) {
-    return (
-      <Wrapper isMobile={true}>
-        <MobileWrapper>
-          <Title />
-          <ButtonWrapper>
-            <SettingsMenuButton />
-            <NavMenuButton setShow={setShowMobileNavMenu} show={showMobileNavMenu} />
-          </ButtonWrapper>
-        </MobileWrapper>
-        {showMobileNavMenu && <NavMenu />}
-      </Wrapper>
-    )
-  }
-
   return (
-    <Wrapper isMobile={false}>
-      <DesktopWrapper>
-        <AutoColumn gap="1rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }} >
-          <Title />
-          <NavMenu />
-        </AutoColumn>
-        <Footer isDark={isDark} toggleDarkMode={toggleDarkMode} />
-      </DesktopWrapper>
-    </Wrapper>
+    <>
+      <Mobile>
+        <Wrapper isMobile={true}>
+          <MobileWrapper>
+            <Title />
+            <ButtonWrapper>
+              <SettingsMenuButton />
+              <NavMenuButton setShow={setShowMobileNavMenu} show={showMobileNavMenu} />
+            </ButtonWrapper>
+          </MobileWrapper>
+          {showMobileNavMenu && <NavMenu />}
+        </Wrapper>
+      </Mobile>
+      <Desktop>
+        <Wrapper isMobile={false}>
+          <DesktopWrapper>
+            <AutoColumn gap="1rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }} >
+              <Title />
+              <NavMenu />
+            </AutoColumn>
+            <Footer isDark={isDark} toggleDarkMode={toggleDarkMode} />
+          </DesktopWrapper>
+        </Wrapper>
+      </Desktop>
+    </>
   )
 }
 
