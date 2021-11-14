@@ -34,7 +34,7 @@ export default function Title({ homePath = '/' }) {
       <Flex alignItems="center">
         <RowFixed>
           <UniIcon id="link" onClick={() => history.push(homePath)}>
-            <Image width={'160px'} height="54px" src={homePath === '/' ? DefiLogo : NFTLogo} alt="logo" />
+            <Image width='160px' height="54px" src={homePath === '/' ? DefiLogo : NFTLogo} alt="logo" priority={true} />
           </UniIcon>
         </RowFixed>
       </Flex>
