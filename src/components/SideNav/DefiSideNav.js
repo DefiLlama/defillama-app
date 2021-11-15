@@ -9,6 +9,7 @@ import categories from "../../constants/categories"
 import SettingsMenuButton from "../SettingsModal"
 import NavMenuButton from "./NavMenuButton"
 import styled from "styled-components"
+import { useRouter } from 'next/router'
 
 const Mobile = styled.div`
 @media (min-width: 1080px) {
@@ -23,10 +24,10 @@ const Desktop = styled.div`
 `
 
 function SideNav() {
-  const history = { location: { pathname: '' } }
-
   const [showMobileNavMenu, setShowMobileNavMenu] = useState(false)
   const [isDark, toggleDarkMode] = useDarkModeManager()
+  const router = useRouter()
+  const history = { location: { pathname: router.pathname } }
 
   const NavMenu = () => (
     <AutoColumn gap="1.25rem" style={{ marginTop: "1rem" }}>

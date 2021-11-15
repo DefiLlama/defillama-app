@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react'
 import styled from 'styled-components'
 import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar, ReferenceLine, Label } from 'recharts'
 import { AutoRow, RowBetween, RowFixed } from '../Row'
-import { useHistory, useLocation } from "react-router-dom";
+import { useRouter } from 'next/router'
 
 import { toK, toNiceDate, toNiceDateYear, formattedNum, getTimeframe, toNiceMonthlyDate } from '../../utils'
 import { OptionButton } from '../ButtonStyled'
@@ -81,9 +81,26 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
 
+  const router = useRouter()
+  const buildUrl = () => {
+    const splitLocation = router.pathname.split('/')
+    if (splitLocation.length < 4) {
+      splitLocation.push(selectedChain)
+    }
+    if (splitLocation.length < 5) {
+      splitLocation.push(denomination)
+    }
+    return splitLocation
+  }
   const setDenomination = (newDenomination) => {
+    const splitLocation = buildUrl()
+    splitLocation[4] = newDenomination
+    router.push(splitLocation.join('/'))
   }
   const setSelectedChain = newChain => {
+    const splitLocation = buildUrl()
+    splitLocation[3] = newChain === ALL_CHAINS ? 'all' : newChain
+    router.push(splitLocation.join('/'))
   }
 
   let chartData = data;

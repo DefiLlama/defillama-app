@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { withRouter } from 'react-router-dom'
 import styled from 'styled-components'
 import { ButtonLight } from '../ButtonStyled'
 import { AutoRow } from '../Row'
@@ -83,4 +82,4 @@ function AccountSearch({ history, small }) {
   )
 }
 
-export default withRouter(AccountSearch)
+export default AccountSearch
