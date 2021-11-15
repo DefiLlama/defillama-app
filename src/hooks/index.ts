@@ -3,35 +3,9 @@ import { useLocation } from 'react-router-dom'
 import { shade } from 'polished'
 import Vibrant from 'node-vibrant'
 import { hex } from 'wcag-contrast'
-import { getTokenLogoPathFromAddress } from '../utils'
 import copy from 'copy-to-clipboard'
 export { default as useInfiniteScroll } from './useInfiniteScroll'
 export { default as useResize } from './useResize'
-
-export function useColor(tokenAddress, token) {
-  const [color, setColor] = useState('#2172E5')
-  if (tokenAddress) {
-    const path = getTokenLogoPathFromAddress(tokenAddress)
-    if (path) {
-      Vibrant.from(path).getPalette((err, palette) => {
-        if (palette && palette.Vibrant) {
-          let detectedHex = palette.Vibrant.hex
-          let AAscore = hex(detectedHex, '#FFF')
-          while (AAscore < 3) {
-            detectedHex = shade(0.005, detectedHex)
-            AAscore = hex(detectedHex, '#FFF')
-          }
-          if (token === 'DAI') {
-            setColor('#FAAB14')
-          } else {
-            setColor(detectedHex)
-          }
-        }
-      })
-    }
-  }
-  return color
-}
 
 export function useCopyClipboard(timeout = 500) {
   const [isCopied, setIsCopied] = useState(false)

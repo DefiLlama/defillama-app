@@ -11,8 +11,7 @@ import { TYPE } from '../../Theme'
 import RightSettings from '../RightSettings'
 
 import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconLarge, Wrapper } from './shared'
-import { useAllTokenData } from '../../contexts/TokenData'
-import { getChainsFromAllTokenData, tokenIconUrl } from '../../utils'
+import { tokenIconUrl, chainIconUrl } from '../../utils'
 
 const defaultLinkPath = item => {
   if (item.isChain) {
@@ -27,14 +26,17 @@ const defaultLinkPath = item => {
   )
 }
 
-export default ({ small = false, includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { }, protocols }) => {
+export default ({ small = false, includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { }, protocols, chainsSet }) => {
   const searchKeys = ['symbol', 'name']
 
-  const allTokenData = protocols
   const searchData = useMemo(() => {
-    const chainData = includeChains ? getChainsFromAllTokenData(allTokenData) : []
-    return [...chainData, ...Object.values(allTokenData).filter(token => token.category !== "Chain").map(token => ({ ...token, logo: tokenIconUrl(token) }))]
-  }, [allTokenData])
+    const chainData = includeChains ? chainsSet.map(name => ({
+      logo: chainIconUrl(name),
+      isChain: true,
+      name,
+    })) : []
+    return [...chainData, ...protocols.map(token => ({ ...token, logo: tokenIconUrl(token) }))]
+  }, [protocols, chainsSet])
 
   const [showMenu, toggleMenu] = useState(false)
   const [value, setValue] = useState('')

@@ -28,7 +28,7 @@ export async function getStaticPaths() {
     return { paths, fallback: 'blocking' }
 }
 
-export default ({ chain, ...props }) => {
+export default function Chain({ chain, ...props }) {
     return (
         <GeneralLayout title={`${chain} TVL - DefiLlama`}>
             <ChainPage {...props} selectedChain={chain} />

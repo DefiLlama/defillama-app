@@ -8,7 +8,8 @@ export async function getChainData(filterFunction, chain, mapFunction = undefine
     let [chartData, protocols] = await Promise.all(
         [CHART_API + (chain ? "/" + chain : ''), PROTOCOLS_API].map(url => fetch(url).then(r => r.json()))
     )
-    protocols.protocols = protocols.protocols.filter(p => p.category !== "Chain" && filterFunction(p))
+    const protocolNames = protocols.protocols.map(p => ({ name: p.name, symbol: p.symbol }));
+    protocols.protocols = protocols.protocols.filter(p => filterFunction(p))
     if (mapFunction !== undefined) {
         protocols.protocols = protocols.protocols.map(mapFunction)
     }
@@ -29,6 +30,7 @@ export async function getChainData(filterFunction, chain, mapFunction = undefine
     return {
         props: {
             ...(chain && { chain }),
+            protocolNames,
             chainsSet: protocols.chains,
             filteredTokens: protocols.protocols,
             chart: chartData,

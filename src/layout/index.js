@@ -71,7 +71,7 @@ export function GeneralLayout({ title, children }) {
       <Head>
         <title>{title}</title>
         <script src="https://cdn.usefathom.com/script.js" data-site="OANJVQNZ" defer></script>
-        <link rel="preload" href="/font-files/Inter-roman.var.woff2" as="font" type="font/woff2" crossorigin="anonymous"></link>
+        <link rel="preload" href="/font-files/Inter-roman.var.woff2" as="font" type="font/woff2" crossOrigin="anonymous"></link>
       </Head>
       <ThemeProvider>
         <LocalStorageContextProvider>

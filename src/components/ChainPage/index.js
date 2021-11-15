@@ -1,11 +1,9 @@
-import React, { useEffect, useState, Suspense } from 'react'
-import { Redirect } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
 import { useMedia } from 'react-use'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 
 import { AutoRow, RowBetween, RowFlat } from '../Row'
-import Loader from '../LocalLoader'
 import { AutoColumn } from '../Column'
 import TokenList from '../TokenList'
 import Search from '../Search'
@@ -17,8 +15,6 @@ import { CheckMarks } from '../SettingsModal'
 import { TYPE, ThemedBackground } from '../../Theme'
 
 import { useStakingManager, usePool2Manager } from '../../contexts/LocalStorage'
-import { fetchAPI } from '../../contexts/API'
-import { CHART_API } from '../../constants/index'
 import { formattedNum } from '../../utils'
 
 import ProtocolChart from '../ProtocolChart'
@@ -49,9 +45,7 @@ const FiltersRow = styled(RowFlat)`
 }
 `
 
-function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, denomination, chainsSet, filteredTokens, chart: globalChart, totalStaking, totalPool2 }) {
-  const allChains = selectedChain === 'All'
-  const [chainChartData, setChainChartData] = useState({})
+function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, denomination, chainsSet, filteredTokens, chart: globalChart, totalStaking, protocolNames, totalPool2 }) {
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
   // breakpoints
   const below800 = useMedia('(max-width: 800px)')
@@ -64,16 +58,6 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
   }, [])
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
-
-  useEffect(() => {
-    if (!allChains && chainChartData[selectedChain] === undefined) {
-      fetchAPI(`${CHART_API}/${selectedChain}`).then(chart =>
-        setChainChartData({
-          [selectedChain]: chart
-        })
-      )
-    }
-  }, [allChains, selectedChain])
 
   if (stakingEnabled) {
     totalVolumeUSD += totalStaking
@@ -139,7 +123,7 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
       <ContentWrapper>
         <AutoColumn gap="24px" style={{ paddingBottom: below800 ? '0' : '24px' }}>
-          <Search protocols={filteredTokens} />
+          <Search protocols={protocolNames} chainsSet={chainsSet} />
           {selectedChain === 'Fantom' && (
             <Panel background={true} style={{ textAlign: 'center' }}>
               <TYPE.main fontWeight={400}>
