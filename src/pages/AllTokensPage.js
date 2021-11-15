@@ -35,9 +35,9 @@ function AllTokensPage({ category, selectedChain = 'All' }) {
   }
   const setSelectedChain = newSelectedChain => handleRouting(newSelectedChain)
 
-  const { chainsSet, filteredTokens } = useFilteredTokenData({ category, selectedChain })
+  const { chains, filteredTokens } = useFilteredTokenData({ category, selectedChain })
 
-  let chainOptions = [...chainsSet].map(label => ({ label, to: handleRouting(label) }))
+  let chainOptions = chains.map(label => ({ label, to: handleRouting(label) }))
 
   useEffect(() => {
     window.scrollTo(0, 0)

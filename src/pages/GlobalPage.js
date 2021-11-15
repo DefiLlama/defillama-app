@@ -12,7 +12,6 @@ import Search from 'components/Search'
 import Panel from 'components/Panel'
 import { PageWrapper, ContentWrapper } from 'components'
 import Filters from 'components/Filters'
-import RightSettings from 'components/RightSettings'
 import { CheckMarks } from 'components/SettingsModal'
 
 import { TYPE, ThemedBackground } from 'Theme'
@@ -41,7 +40,7 @@ const ListOptions = styled(AutoRow)`
 function GlobalPage({ selectedChain = 'All', denomination }) {
   const allChains = selectedChain === 'All'
   // get data for lists and totals
-  const { chainsSet, filteredTokens, totalStaking, totalPool2 } = useFilteredTokenData({ selectedChain })
+  const { chains, filteredTokens, totalStaking, totalPool2 } = useFilteredTokenData({ selectedChain })
   //const transactions = useGlobalTransactions()
   const globalData = useGlobalData()
   const [chainChartData, setChainChartData] = useState({})
@@ -95,7 +94,7 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
     totalVolumeUSD += totalPool2
   }
 
-  let chainOptions = [...chainsSet].map(label => ({ label, to: setSelectedChain(label) }))
+  let chainOptions = chains.map(label => ({ label, to: setSelectedChain(label) }))
 
   const topToken = { name: 'Uniswap', tvl: 0 }
   if (filteredTokens.length > 0) {
