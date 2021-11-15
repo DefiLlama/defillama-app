@@ -66,7 +66,7 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
     totalVolumeUSD += totalPool2
   }
 
-  let chainOptions = chainsSet.map(label => ({ label, to: setSelectedChain(label) }))
+  let chainOptions = ["All"].concat(chainsSet).map(label => ({ label, to: setSelectedChain(label) }))
 
   const topToken = { name: 'Uniswap', tvl: 0 }
   if (filteredTokens.length > 0) {
