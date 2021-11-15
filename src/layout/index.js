@@ -3,6 +3,10 @@ import styled from 'styled-components'
 
 import PinnedData from '../components/PinnedData'
 import SideNav from '../components/SideNav'
+import { useState } from 'react'
+import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from '../contexts/LocalStorage'
+import Head from 'next/head'
+import ThemeProvider, { GlobalStyle } from '../Theme'
 
 export const AppWrapper = styled.div`
   position: relative;
@@ -57,5 +61,31 @@ export const LayoutWrapper = ({ children, savedOpen, setSavedOpen }) => {
         <PinnedData open={savedOpen} setSavedOpen={setSavedOpen} />
       </Right>
     </ContentWrapper>
+  )
+}
+
+export function GeneralLayout({ title, children }) {
+  const [savedOpen, setSavedOpen] = useState(false)
+  return (
+    <>
+      <Head>
+        <title>{title}</title>
+        <script src="https://cdn.usefathom.com/script.js" data-site="OANJVQNZ" defer></script>
+        <link rel="preload" href="/font-files/Inter-roman.var.woff2" as="font" type="font/woff2" crossorigin="anonymous"></link>
+      </Head>
+      <ThemeProvider>
+        <LocalStorageContextProvider>
+          <LocalStorageContextUpdater />
+          <>
+            <GlobalStyle />
+            <AppWrapper>
+              <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                {children}
+              </LayoutWrapper>
+            </AppWrapper>
+          </>
+        </LocalStorageContextProvider>
+      </ThemeProvider>
+    </>
   )
 }

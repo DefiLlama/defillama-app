@@ -2,7 +2,6 @@ import React, { createContext, useContext, useReducer, useCallback, useEffect, u
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 
-import { useEthPrice } from './GlobalData'
 import { priorityChainFilters } from 'constants/chainTokens'
 
 import { fetchAPI } from './API'
@@ -207,7 +206,7 @@ const getTokenByProtocol = async protocol => {
   }
 }
 
-const getTokenData = async (address, protocol, ethPrice, ethPriceOld) => {
+const getTokenData = async (protocol) => {
   try {
     if (protocol) {
       const tokenData = await getTokenByProtocol(protocol?.split(' ').join('-'))
@@ -240,7 +239,6 @@ const getTokenData = async (address, protocol, ethPrice, ethPriceOld) => {
 
 export function Updater() {
   const [, { updateTopTokens }] = useTokenDataContext()
-  //const [ethPrice, ethPriceOld] = useEthPrice()
   useEffect(() => {
     async function getData() {
       // get top pairs for overview list
@@ -254,13 +252,12 @@ export function Updater() {
 
 export function useTokenData(tokenId, protocol = '') {
   const [state, { update }] = useTokenDataContext()
-  const [ethPrice, ethPriceOld] = useEthPrice()
   const [oldProtocol, setOldProtocol] = useState()
   const tokenData = state?.[tokenId]
 
   useEffect(() => {
     if (protocol && oldProtocol !== protocol) {
-      getTokenData(tokenId, protocol, ethPrice, ethPriceOld).then(data => {
+      getTokenData(protocol).then(data => {
         update(tokenId, data)
       })
       setOldProtocol(protocol)

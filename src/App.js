@@ -2,12 +2,9 @@ import React, { useState, lazy, Suspense } from 'react'
 import { Route, Switch, BrowserRouter, Redirect } from 'react-router-dom'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import { useGlobalData, useGlobalChartData } from './contexts/GlobalData'
 import { useAllTokenData } from './contexts/TokenData'
-import { isValidProtocol } from './utils'
 import ErrorPage from './pages/ErrorPage'
 
-import LocalLoader from './components/LocalLoader'
 import { AppWrapper, LayoutWrapper } from './layout'
 import GlobalPage from './pages/GlobalPage'
 

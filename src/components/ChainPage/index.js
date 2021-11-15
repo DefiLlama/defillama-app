@@ -94,14 +94,7 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
     }
   }
 
-  const chart = (allChains ? (
-    <ProtocolChart chartData={globalChart} protocol="" denomination={denomination} />
-  ) : chainChartData[selectedChain] !== undefined ? (
-    <ProtocolChart chartData={chainChartData[selectedChain]} protocol={selectedChain} denomination={denomination} />
-  ) : (
-    <Loader />
-  )
-  )
+  const chart = <ProtocolChart chartData={globalChart} protocol="" denomination={denomination} protocol={selectedChain} />
 
   const panels = <><Panel style={{ padding: '18px 25px' }}>
     <AutoColumn gap="4px">
