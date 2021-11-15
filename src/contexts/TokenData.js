@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react'
 
-import { priorityChainFilters } from 'constants/chainTokens'
 import { standardizeTokenName } from 'utils'
 
 import { fetchAPI } from './API'

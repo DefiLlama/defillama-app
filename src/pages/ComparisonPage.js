@@ -10,13 +10,12 @@ import { AutoRow, RowBetween, RowFixed } from '../components/Row'
 import Column from '../components/Column'
 import { BasicLink } from '../components/Link'
 import Search from '../components/Search'
-import { formattedNum, getTokenIdFromName, standardizeTokenName } from '../utils'
+import { formattedNum, standardizeTokenName } from '../utils'
 import { useTokenData } from '../contexts/TokenData'
 import { TYPE, ThemedBackground } from '../Theme'
 import { transparentize } from 'polished'
 import { Wrapper, CloseIcon } from '../components/Search/shared'
 
-import { useAllTokenData } from '../contexts/TokenData'
 import { PageWrapper, ContentWrapper } from '../components'
 
 const ComparisonDetailsLayout = styled.div`
@@ -84,9 +83,7 @@ const TokenInfoHook = protocol => {
   const [tokenPrice, setTokenPrice] = useState(0)
   // Ability to change currency in future?
   const [defaultCurrency] = useState('usd')
-  const allTokens = useAllTokenData()
-  const tokenId = getTokenIdFromName(allTokens, protocol)
-  const tokenData = useTokenData(tokenId, protocol)
+  const tokenData = useTokenData(protocol)
 
   useEffect(() => {
     if (tokenData.gecko_id) {
@@ -101,7 +98,7 @@ const TokenInfoHook = protocol => {
           console.log(e)
         })
     }
-  }, [tokenId, defaultCurrency, tokenData.gecko_id])
+  }, [defaultCurrency, tokenData.gecko_id])
 
   return {
     ...tokenData,

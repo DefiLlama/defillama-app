@@ -548,16 +548,6 @@ export function getTokenAddressFromName(tokensObject, protocol) {
   }
 }
 
-export function getTokenIdFromName(tokensObject, protocol) {
-  try {
-    const tokens = Object.values(tokensObject)
-    const filteredToken = tokens.findIndex(token => token.name.toLowerCase().replace(' ', '-') === protocol)
-    return filteredToken
-  } catch (error) {
-    return false
-  }
-}
-
 export function getTokenFromName(tokensObject, protocol) {
   try {
     const tokens = Object.values(tokensObject)

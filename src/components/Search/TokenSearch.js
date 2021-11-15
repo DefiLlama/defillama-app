@@ -30,7 +30,10 @@ const TokenSearch = ({
   const { chains, tokenArr } = useAllTokenData()
   const searchData = useMemo(() => {
     const chainData = includeChains ? formatChainsForSearch(chains) : []
-    return [...chainData, ...tokenArr.map(token => ({ ...token, logo: tokenIconUrl(token) }))]
+    return [
+      ...chainData,
+      ...tokenArr.filter(token => token.category !== 'Chain').map(token => ({ ...token, logo: tokenIconUrl(token) }))
+    ]
   }, [tokenArr, chains, includeChains])
 
   const [showMenu, toggleMenu] = useState(false)
