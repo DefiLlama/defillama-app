@@ -12,7 +12,7 @@ import RightSettings from '../RightSettings'
 
 import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconLarge, Wrapper } from './shared'
 import { useAllTokenData } from '../../contexts/TokenData'
-import { getChainsFromAllTokenData, tokenIconUrl, standardizeTokenName } from 'utils'
+import { formatChainsForSearch, tokenIconUrl, standardizeTokenName } from 'utils'
 
 const defaultLinkPath = item => {
   if (item.isChain) {
@@ -21,19 +21,17 @@ const defaultLinkPath = item => {
   return `/protocol/` + standardizeTokenName(item.name)
 }
 
-export default ({ small = false, includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => {} }) => {
-  const searchKeys = ['symbol', 'name']
-
-  const allTokenData = useAllTokenData()
+const TokenSearch = ({
+  small = false,
+  includeChains = true,
+  linkPath = defaultLinkPath,
+  customOnLinkClick = () => {}
+}) => {
+  const { chains, tokenArr } = useAllTokenData()
   const searchData = useMemo(() => {
-    const chainData = includeChains ? getChainsFromAllTokenData(allTokenData) : []
-    return [
-      ...chainData,
-      ...Object.values(allTokenData)
-        .filter(token => token.category !== 'Chain')
-        .map(token => ({ ...token, logo: tokenIconUrl(token) }))
-    ]
-  }, [allTokenData])
+    const chainData = includeChains ? formatChainsForSearch(chains) : []
+    return [...chainData, ...tokenArr.map(token => ({ ...token, logo: tokenIconUrl(token) }))]
+  }, [tokenArr, chains, includeChains])
 
   const [showMenu, toggleMenu] = useState(false)
   const [value, setValue] = useState('')
@@ -57,6 +55,8 @@ export default ({ small = false, includeChains = true, linkPath = defaultLinkPat
   const [tokensShown, setTokensShown] = useState(3)
 
   const filteredTokenList = useMemo(() => {
+    const searchKeys = ['symbol', 'name']
+
     if (!showMenu) {
       return []
     }
@@ -73,7 +73,7 @@ export default ({ small = false, includeChains = true, linkPath = defaultLinkPat
           })
           .slice(0, tokensShown)
       : []
-  }, [searchData, value, tokensShown, showMenu, searchKeys])
+  }, [searchData, value, tokensShown, showMenu])
 
   const onDismiss = token => () => {
     setTokensShown(3)
@@ -187,3 +187,5 @@ export default ({ small = false, includeChains = true, linkPath = defaultLinkPat
     </div>
   )
 }
+
+export default TokenSearch

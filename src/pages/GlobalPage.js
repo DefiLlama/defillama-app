@@ -94,7 +94,7 @@ function GlobalPage({ selectedChain = 'All', denomination }) {
     totalVolumeUSD += totalPool2
   }
 
-  let chainOptions = chains.map(label => ({ label, to: setSelectedChain(label) }))
+  let chainOptions = ['All', ...chains].map(label => ({ label, to: setSelectedChain(label) }))
 
   const topToken = { name: 'Uniswap', tvl: 0 }
   if (filteredTokens.length > 0) {

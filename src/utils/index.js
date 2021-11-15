@@ -426,21 +426,12 @@ export function rawPercent(percentRaw) {
   return percent.toFixed(0) + '%'
 }
 
-export function getChainsFromAllTokenData(data) {
-  const chainsUniqueSet = new Set()
-  Object.values(data).forEach(token => {
-    if (token.category === 'Chain') return
-    token.chains.forEach(chain => {
-      chainsUniqueSet.add(chain)
-    })
-  })
-  const chainsUnique = Array.from(chainsUniqueSet)
-  return chainsUnique.map(name => ({
+export const formatChainsForSearch = chains =>
+  chains.map(name => ({
     logo: chainIconUrl(name),
     isChain: true,
     name
   }))
-}
 
 export function chainIconUrl(chain) {
   return `/chain-icons/rsz_${chain.toLowerCase()}.jpg`
@@ -539,24 +530,7 @@ export function isEquivalent(a, b) {
 }
 
 export function isValidProtocol(tokensObject, protocol) {
-  try {
-    const tokens = Object.values(tokensObject)
-    const isValid = tokens.some(
-      token =>
-        (protocol.includes('-') &&
-          token.name
-            .toLowerCase()
-            .split(' ')
-            .join('-') === protocol) ||
-        token.name
-          .toLowerCase()
-          .split(' ')
-          .join('') === protocol
-    )
-    return isValid
-  } catch (error) {
-    return false
-  }
+  return !!tokensObject[protocol]
 }
 
 export function isValidCollection(nftCollections, collection) {
