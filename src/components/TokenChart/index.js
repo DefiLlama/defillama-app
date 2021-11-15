@@ -433,6 +433,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               <Area
                 key={'other'}
                 dataKey={'totalLiquidityUSD'}
+                isAnimationActive={false}
                 stackId="2"
                 strokeWidth={2}
                 dot={false}

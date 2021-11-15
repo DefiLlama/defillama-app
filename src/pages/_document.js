@@ -20,6 +20,18 @@ export default class MyDocument extends Document {
                     <>
                         {initialProps.styles}
                         {sheet.getStyleElement()}
+                        <style
+                            id="stitches"
+                            dangerouslySetInnerHTML={{
+                                __html: `@font-face {
+                                font-family: 'Inter var';
+                                font-style: normal;
+                                font-weight: 100 900;
+                                font-display: swap;
+                                src: url('/font-files/Inter-roman.var.woff2') format('woff2');
+                                font-named-instance: 'Regular';
+                              }` }}
+                        />
                     </>
                 ),
             }

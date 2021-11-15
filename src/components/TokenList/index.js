@@ -156,15 +156,15 @@ function TokenList({ tokens, filters }) {
             {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index + 1}</div>}
             <TokenLogo logo={tokenIconUrl(item)} />
             <CustomLink
-              style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
               href={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
             >
-              <a><FormattedName
+              <FormattedName
                 text={`${item.name} (${item.symbol})`}
                 maxCharacters={below600 ? 8 : 16}
                 adjustSize={true}
+                style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
                 link={true}
-              /></a>
+              />
             </CustomLink>
           </Row>
         </DataText>

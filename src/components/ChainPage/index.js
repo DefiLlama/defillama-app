@@ -34,7 +34,7 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
-function GlobalPage({ selectedChain = 'All', denomination, chainsSet, filteredTokens, chart: globalChart, totalStaking, totalPool2 }) {
+function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, denomination, chainsSet, filteredTokens, chart: globalChart, totalStaking, totalPool2 }) {
   const allChains = selectedChain === 'All'
   const [chainChartData, setChainChartData] = useState({})
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
@@ -47,10 +47,8 @@ function GlobalPage({ selectedChain = 'All', denomination, chainsSet, filteredTo
       top: 0
     })
   }, [])
-  const [stakingEnabled] = [false] //useStakingManager()
-  const [pool2Enabled] = [false]//usePool2Manager()
-
-  let totalVolumeUSD = 0, volumeChangeUSD = 0;
+  const [stakingEnabled] = useStakingManager()
+  const [pool2Enabled] = usePool2Manager()
 
   useEffect(() => {
     if (!allChains && chainChartData[selectedChain] === undefined) {
@@ -62,24 +60,6 @@ function GlobalPage({ selectedChain = 'All', denomination, chainsSet, filteredTo
     }
   }, [allChains, selectedChain])
 
-  if (!allChains) {
-    const chartData = chainChartData[selectedChain]
-    if (chartData === undefined) {
-      totalVolumeUSD = 0
-      volumeChangeUSD = 0
-    } else {
-      totalVolumeUSD = chartData[chartData.length - 1].totalLiquidityUSD
-      if (chartData.length > 1) {
-        volumeChangeUSD =
-          ((chartData[chartData.length - 1].totalLiquidityUSD - chartData[chartData.length - 2].totalLiquidityUSD) /
-            chartData[chartData.length - 2].totalLiquidityUSD) *
-          100
-      } else {
-        volumeChangeUSD = 0
-      }
-    }
-  }
-
   if (stakingEnabled) {
     totalVolumeUSD += totalStaking
   }
@@ -87,7 +67,7 @@ function GlobalPage({ selectedChain = 'All', denomination, chainsSet, filteredTo
     totalVolumeUSD += totalPool2
   }
 
-  let chainOptions = [...chainsSet].map(label => ({ label, to: setSelectedChain(label) }))
+  let chainOptions = chainsSet.map(label => ({ label, to: setSelectedChain(label) }))
 
   const topToken = { name: 'Uniswap', tvl: 0 }
   if (filteredTokens.length > 0) {

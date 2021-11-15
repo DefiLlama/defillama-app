@@ -5,7 +5,7 @@ import NFTSideNav from './NFTSideNav'
 
 import { useNFTApp } from '../../hooks'
 
-export default function SideNav({ history }) {
+export default function SideNav() {
   const isNFTApp = useNFTApp()
   if (isNFTApp) {
     return <NFTSideNav />

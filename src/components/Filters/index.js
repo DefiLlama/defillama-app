@@ -1,5 +1,5 @@
 import { useMedia } from 'react-use'
-import { withRouter } from 'react-router-dom'
+import { useRouter } from 'next/router'
 
 import DropdownSelect from '../DropdownSelect'
 import FiltersAndDropdown from '../Filters/FiltersAndDropdown'
@@ -9,10 +9,11 @@ import { sm } from 'constants/breakpoints'
 
 // filter option to, and label,
 const Filters = ({ filterOptions = [], activeLabel, setActive, areLinks = true, history, onFilterClick, justify }) => {
+  const router = useRouter()
   const belowSmallTablet = useMedia(`(max-width: ${sm}px)`)
   const dropdownHandler = areLinks
     ? selectedLabel => {
-      history.push(setActive(selectedLabel))
+      router.push(setActive(selectedLabel))
     }
     : setActive
 
