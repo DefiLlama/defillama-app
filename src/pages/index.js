@@ -39,7 +39,7 @@ export async function getStaticProps({ params }) {
     }
 }
 
-function BlogPost(props) {
+export default function HomePage(props) {
     const [savedOpen, setSavedOpen] = useState(false)
     return (
         <>
@@ -64,5 +64,3 @@ function BlogPost(props) {
         </>
     )
 }
-
-export default BlogPost

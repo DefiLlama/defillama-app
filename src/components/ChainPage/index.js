@@ -34,6 +34,15 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
+const BreakpointPanels = styled.div`
+  @media screen and (min-width: 800px) {
+    width: 100%;
+    display: flex;
+    padding: 0;
+    align-items: center;
+  }
+`
+
 function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, denomination, chainsSet, filteredTokens, chart: globalChart, totalStaking, totalPool2 }) {
   const allChains = selectedChain === 'All'
   const [chainChartData, setChainChartData] = useState({})
@@ -78,9 +87,6 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
       topToken.tvl = filteredTokens[1]?.tvl
     }
   }
-  /*else {
-    return <Redirect to="/" />
-  }*/
 
   const chart = (allChains ? (
     <ProtocolChart chartData={globalChart} protocol="" denomination={denomination} />
@@ -90,6 +96,44 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
     <Loader />
   )
   )
+
+  const panels = <><Panel style={{ padding: '18px 25px' }}>
+    <AutoColumn gap="4px">
+      <RowBetween>
+        <TYPE.heading>Total Value Locked (USD)</TYPE.heading>
+      </RowBetween>
+      <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+        <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
+          {formattedNum(totalVolumeUSD, true)}
+        </TYPE.main>
+      </RowBetween>
+    </AutoColumn>
+  </Panel>
+    <Panel style={{ padding: '18px 25px' }}>
+      <AutoColumn gap="4px">
+        <RowBetween>
+          <TYPE.heading>Change (24h)</TYPE.heading>
+        </RowBetween>
+        <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+          <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
+            {volumeChangeUSD?.toFixed(2)}%
+          </TYPE.main>
+        </RowBetween>
+      </AutoColumn>
+    </Panel>
+    <Panel style={{ padding: '18px 25px' }}>
+      <AutoColumn gap="4px">
+        <RowBetween>
+          <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
+        </RowBetween>
+        <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+          <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
+            {((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)}%
+          </TYPE.main>
+        </RowBetween>
+      </AutoColumn>
+    </Panel>
+  </>
 
   return (
     <PageWrapper>
@@ -113,110 +157,21 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
           )}
           <CheckMarks />
         </AutoColumn>
-        {below800 && ( // mobile card
+        <BreakpointPanels>
           <AutoColumn
             style={{
               height: '100%',
               width: '100%',
               marginRight: '10px',
+              maxWidth: '350px',
               marginTop: '10px'
             }}
             gap="10px"
           >
-            <Panel style={{ padding: '18px 25px' }}>
-              <AutoColumn gap="4px">
-                <RowBetween>
-                  <TYPE.heading>Total Value Locked(USD)</TYPE.heading>
-                </RowBetween>
-                <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                  <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-                    {formattedNum(totalVolumeUSD, true)}
-                  </TYPE.main>
-                </RowBetween>
-              </AutoColumn>
-            </Panel>
-            <Panel style={{ padding: '18px 25px' }}>
-              <AutoColumn gap="4px">
-                <RowBetween>
-                  <TYPE.heading>Change (24h)</TYPE.heading>
-                </RowBetween>
-                <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                  <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-                    {volumeChangeUSD?.toFixed(2)}%
-                  </TYPE.main>
-                </RowBetween>
-              </AutoColumn>
-            </Panel>
-            <Panel style={{ padding: '18px 25px' }}>
-              <AutoColumn gap="4px">
-                <RowBetween>
-                  <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
-                </RowBetween>
-                <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                  <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-                    {((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)}%
-                  </TYPE.main>
-                </RowBetween>
-              </AutoColumn>
-            </Panel>
+            {panels}
           </AutoColumn>
-        )}
-        {!below800 && (
-          <AutoRow>
-            <AutoColumn
-              style={{
-                height: '100%',
-                width: '100%',
-                maxWidth: '350px',
-                marginRight: '10px'
-              }}
-              gap="10px"
-            >
-              <Panel style={{ padding: '18px 25px' }}>
-                <AutoColumn gap="4px">
-                  <RowBetween>
-                    <TYPE.heading>Total Value Locked (USD)</TYPE.heading>
-                  </RowBetween>
-                  <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                    <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-                      {formattedNum(totalVolumeUSD, true)}
-                    </TYPE.main>
-                  </RowBetween>
-                </AutoColumn>
-              </Panel>
-              <Panel style={{ padding: '18px 25px' }}>
-                <AutoColumn gap="4px">
-                  <RowBetween>
-                    <TYPE.heading>Change (24h)</TYPE.heading>
-                  </RowBetween>
-                  <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                    <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-                      {volumeChangeUSD?.toFixed(2)}%
-                    </TYPE.main>
-                  </RowBetween>
-                </AutoColumn>
-              </Panel>
-              <Panel style={{ padding: '18px 25px' }}>
-                <AutoColumn gap="4px">
-                  <RowBetween>
-                    <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
-                  </RowBetween>
-                  <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                    <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-                      {((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)}%
-                    </TYPE.main>
-                  </RowBetween>
-                </AutoColumn>
-              </Panel>
-            </AutoColumn>
-            <Panel style={{ height: '100%', minHeight: '470px' }}>{chart}</Panel>
-          </AutoRow>
-        )}
-        {below800 && (
-          <AutoColumn style={{ marginTop: '6px' }} gap="24px">
-            <Panel style={{ height: '100%', minHeight: '300px' }}>{chart}</Panel>
-          </AutoColumn>
-        )}
+          <Panel style={{ height: '100%', minHeight: '300px' }}>{chart}</Panel>
+        </BreakpointPanels>
         <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
           <RowBetween>
             <TYPE.main sx={{ minWidth: '90px' }} fontSize={'1.125rem'}>
