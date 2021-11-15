@@ -108,6 +108,25 @@ const SORT_FIELD = {
   CHAINS: 'chains'
 }
 
+const ProtocolButtonElement = styled(FormattedName)`
+margin-left: 16px;
+white-space: nowrap; 
+min-width: 200px;
+`
+
+const ProtocolButton = React.forwardRef(({ item, below600, onClick, href }, ref) => {
+  return (
+    <a href={href} onClick={onClick} ref={ref}>
+      <ProtocolButtonElement
+        text={`${item.name} (${item.symbol})`}
+        maxCharacters={below600 ? 8 : 16}
+        adjustSize={true}
+        link={true}
+      />
+    </a>
+  )
+})
+
 
 // @TODO rework into virtualized list
 function TokenList({ tokens, filters }) {
@@ -157,14 +176,9 @@ function TokenList({ tokens, filters }) {
             <TokenLogo logo={tokenIconUrl(item)} />
             <CustomLink
               href={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
+              passHref
             >
-              <FormattedName
-                text={`${item.name} (${item.symbol})`}
-                maxCharacters={below600 ? 8 : 16}
-                adjustSize={true}
-                style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-                link={true}
-              />
+              <ProtocolButton item={item} below600={below600} />
             </CustomLink>
           </Row>
         </DataText>

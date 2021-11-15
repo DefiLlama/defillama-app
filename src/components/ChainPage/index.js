@@ -45,7 +45,7 @@ const BreakpointPanels = styled.div`
 
 const FiltersRow = styled(RowFlat)`
 @media screen and (min-width: 800px) {
-  width: calc(100% - 100px)
+  width: calc(100% - 90px)
 }
 `
 
