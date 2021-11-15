@@ -1,6 +1,6 @@
-import ProtocolList from '../../components/ProtocolList'
-import { PROTOCOLS_API } from '../../constants/index'
-import { GeneralLayout } from '../../layout'
+import ProtocolList from '../components/ProtocolList'
+import { PROTOCOLS_API } from '../constants/index'
+import { GeneralLayout } from '../layout'
 
 export async function getStaticProps({ params }) {
     const res = await fetch(PROTOCOLS_API).then(r => r.json())
