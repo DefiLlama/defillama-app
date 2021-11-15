@@ -117,7 +117,6 @@ export const ContentWrapper = styled.div`
   justify-content: start;
   align-items: start;
   grid-template-columns: 1fr;
-  grid-gap: 24px;
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;

@@ -43,6 +43,12 @@ const BreakpointPanels = styled.div`
   }
 `
 
+const FiltersRow = styled(RowFlat)`
+@media screen and (min-width: 800px) {
+  width: calc(100% - 100px)
+}
+`
+
 function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, denomination, chainsSet, filteredTokens, chart: globalChart, totalStaking, totalPool2 }) {
   const allChains = selectedChain === 'All'
   const [chainChartData, setChainChartData] = useState({})
@@ -177,14 +183,14 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
             <TYPE.main sx={{ minWidth: '90px' }} fontSize={'1.125rem'}>
               TVL Rankings
             </TYPE.main>
-            <RowFlat style={{ width: `calc(100% - 90px)` }}>
+            <FiltersRow>
               <Filters
                 filterOptions={chainOptions}
                 setActive={setSelectedChain}
                 activeLabel={selectedChain}
                 justify="end"
               />
-            </RowFlat>
+            </FiltersRow>
           </RowBetween>
         </ListOptions>
         <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>

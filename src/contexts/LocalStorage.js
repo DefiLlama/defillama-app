@@ -95,6 +95,7 @@ export function Updater() {
 }
 
 export function useDarkModeManager() {
+  return [true, () => { }]
   const storageContext = useLocalStorageContext()
   if (storageContext === undefined) {
     return [true, () => { }]
