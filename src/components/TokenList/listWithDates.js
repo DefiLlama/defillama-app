@@ -19,7 +19,7 @@ import { CustomLink, BasicLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, formattedPercent, chainIconUrl, standardizeTokenName } from '../../utils'
+import { formattedNum, formattedPercent, chainIconUrl, standardizeTokenName, tokenIconUrl } from 'utils'
 import { useInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
@@ -159,7 +159,7 @@ function TopTokenList({ tokens }) {
         <DataText area="name" fontWeight="500">
           <Row>
             {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index + 1}</div>}
-            <TokenLogo address={item.address} logo={item.logo} />
+            <TokenLogo address={item.address} logo={tokenIconUrl(item)} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
               to={'/protocol/' + standardizeTokenName(item.name)}

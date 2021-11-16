@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react'
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo } from 'react'
 
 import { standardizeTokenName } from 'utils'
 
@@ -170,68 +170,76 @@ export const useFilteredTokenData = ({ selectedChain = 'All', category = '' }) =
   const allChains = selectedChain === 'All'
   const [{ chains, tokenArr }] = useTokenDataContext()
 
-  let totalStaking = 0
   const [stakingEnabled] = useStakingManager()
-  let totalPool2 = 0
   const [pool2Enabled] = usePool2Manager()
 
-  // TODO USEMEMO
-  let filteredTokens = tokenArr.reduce((accTokenList, currTokenData) => {
-    // Skip all chain tokens and if there is a category, skip all tokens that are not in that category
-    if (
-      currTokenData.category === 'Chain' ||
-      (category && (currTokenData.category || '').toLowerCase() !== category.toLowerCase())
-    ) {
-      return accTokenList
-    }
+  const { filteredTokens, totalPool2, totalStaking } = useMemo(() => {
+    let totalStaking = 0
+    let totalPool2 = 0
 
-    // Calculate the correct tvl
-
-    const updatedTokenData = { ...currTokenData }
-
-    if (!allChains) {
-      updatedTokenData.tvl = currTokenData.chainTvls[selectedChain]
-
-      if (typeof updatedTokenData.tvl !== 'number') {
+    const filteredTokens = tokenArr.reduce((accTokenList, currTokenData) => {
+      // Skip all chain tokens and if there is a category, skip all tokens that are not in that category
+      if (
+        currTokenData.category === 'Chain' ||
+        (category && (currTokenData.category || '').toLowerCase() !== category.toLowerCase())
+      ) {
         return accTokenList
       }
-    }
 
-    // Add staking and pool2 to tvl
+      // Calculate the correct tvl
 
-    if (stakingEnabled) {
-      let stakedAmount = 0
-      if (allChains) {
-        stakedAmount = updatedTokenData.chainTvls.staking ?? 0
-      } else {
-        stakedAmount = updatedTokenData?.chainTvls?.[`${selectedChain}-staking`] ?? 0
+      const updatedTokenData = { ...currTokenData }
+
+      if (!allChains) {
+        updatedTokenData.tvl = currTokenData.chainTvls[selectedChain]
+
+        if (typeof updatedTokenData.tvl !== 'number') {
+          return accTokenList
+        }
       }
-      updatedTokenData.tvl += stakedAmount
-      totalStaking += stakedAmount
-    }
 
-    if (pool2Enabled) {
-      let pooledAmount = 0
-      if (allChains) {
-        pooledAmount = updatedTokenData?.chainTvls.pool2 ?? 0
-      } else {
-        pooledAmount = updatedTokenData?.chainTvls?.[`${selectedChain}-pool2`] ?? 0
+      // Add staking and pool2 to tvl
+
+      if (stakingEnabled) {
+        let stakedAmount = 0
+        if (allChains) {
+          stakedAmount = updatedTokenData.chainTvls.staking ?? 0
+        } else {
+          stakedAmount = updatedTokenData?.chainTvls?.[`${selectedChain}-staking`] ?? 0
+        }
+        updatedTokenData.tvl += stakedAmount
+        totalStaking += stakedAmount
       }
-      updatedTokenData.tvl += pooledAmount
-      totalPool2 += pooledAmount
-    }
 
-    // When specific chain, do not return mcap/tvl for specific chain since tvl is spread accross chains
-    if (!allChains && updatedTokenData?.chains?.length > 1) {
-      updatedTokenData.mcaptvl = null
-    }
+      if (pool2Enabled) {
+        let pooledAmount = 0
+        if (allChains) {
+          pooledAmount = updatedTokenData?.chainTvls.pool2 ?? 0
+        } else {
+          pooledAmount = updatedTokenData?.chainTvls?.[`${selectedChain}-pool2`] ?? 0
+        }
+        updatedTokenData.tvl += pooledAmount
+        totalPool2 += pooledAmount
+      }
 
-    accTokenList.push(updatedTokenData)
-    return accTokenList
-  }, [])
+      // When specific chain, do not return mcap/tvl for specific chain since tvl is spread accross chains
+      if (!allChains && updatedTokenData?.chains?.length > 1) {
+        updatedTokenData.mcaptvl = null
+      }
+
+      accTokenList.push(updatedTokenData)
+      return accTokenList
+    }, [])
+
+    return {
+      filteredTokens,
+      totalPool2,
+      totalStaking
+    }
+  }, [pool2Enabled, stakingEnabled, selectedChain, allChains, category, tokenArr])
 
   if (!allChains || stakingEnabled || pool2Enabled || category) {
-    filteredTokens = filteredTokens.sort((a, b) => b.tvl - a.tvl)
+    filteredTokens.sort((a, b) => b.tvl - a.tvl)
   }
 
   return {
