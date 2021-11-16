@@ -11,7 +11,7 @@ import Column from '../components/Column'
 import { BasicLink } from '../components/Link'
 import Search from '../components/Search'
 import { formattedNum, standardizeTokenName } from '../utils'
-import { useTokenData } from '../contexts/TokenData'
+import { useTokenData, useAllTokenData } from '../contexts/TokenData'
 import { TYPE, ThemedBackground } from '../Theme'
 import { transparentize } from 'polished'
 import { Wrapper, CloseIcon } from '../components/Search/shared'
@@ -199,7 +199,7 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
     // If doesn't have two protocols stay on same page
     if ((protocolAorB === 'A' && !tokenBValid) || (protocolAorB === 'B' && !tokenAValid)) return '#'
 
-    const protocolName = standardizeTokenName(clickedProtocol)
+    const protocolName = standardizeTokenName(clickedProtocol.name)
     if (protocolAorB === 'A') return `${comparisonRoute}/${protocolName}/${protocolB}`
     return `${comparisonRoute}/${protocolA}/${protocolName}`
   }
@@ -222,8 +222,8 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
   }, [protocolA, protocolARouteParam, protocolB, protocolBRouteParam, tokenAValid, tokenBValid])
 
   const customOnLinkClick = protocolAorB => token => {
-    if (protocolAorB === 'A') return setProtocolA(standardizeTokenName(token))
-    return setProtocolB(standardizeTokenName(token))
+    if (protocolAorB === 'A') return setProtocolA(standardizeTokenName(token?.name))
+    return setProtocolB(standardizeTokenName(token?.name))
   }
 
   return (

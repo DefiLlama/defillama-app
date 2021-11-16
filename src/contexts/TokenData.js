@@ -19,9 +19,12 @@ function reducer(state, { type, payload }) {
       const { tokenName, data } = payload
       return {
         ...state,
-        [tokenName]: {
-          ...state?.[tokenName],
-          ...data
+        tokenDict: {
+          ...state.tokenDict,
+          [tokenName]: {
+            ...(state.tokenDict?.[tokenName] || {}),
+            ...data
+          }
         }
       }
     }
@@ -47,7 +50,12 @@ function reducer(state, { type, payload }) {
 }
 
 export default function Provider({ children }) {
-  const [state, dispatch] = useReducer(reducer, {})
+  const [state, dispatch] = useReducer(reducer, {
+    tokenDict: {},
+    tokenArr: [],
+    chains: [],
+    categories: []
+  })
 
   const updateToken = useCallback((tokenName, data) => {
     dispatch({
@@ -105,9 +113,11 @@ const getTokenData = async tokenName => {
   try {
     if (tokenName) {
       const tokenData = await getTokenByProtocol(tokenName)
-      const historicalChainTvls = [...(tokenData?.chainTvls || [])]
+      // check what token chainTvls was object or array br
+      const historicalChainTvls = { ...(tokenData?.chainTvls ?? {}) }
       // Don't overwrite topTokens' chainTvls response
       delete tokenData.chainTvls
+
       return {
         ...tokenData,
         tvl: tokenData?.tvl.length > 0 ? tokenData?.tvl[tokenData?.tvl.length - 1]?.totalLiquidityUSD : 0,
@@ -138,9 +148,10 @@ export function Updater() {
 
 export function useTokenData(tokenName) {
   const [{ tokenDict }, { updateToken }] = useTokenDataContext()
-  const hasTokenData = !tokenDict?.[tokenName]?.detailed
+  const hasTokenData = tokenDict?.[tokenName]?.detailed
+
   useEffect(() => {
-    if (!hasTokenData) {
+    if (!hasTokenData && tokenName) {
       getTokenData(tokenName).then(data => {
         updateToken(tokenName, data)
       })
