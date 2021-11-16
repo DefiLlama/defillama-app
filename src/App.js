@@ -26,7 +26,7 @@ function App() {
 
   const globalData = useGlobalData()
   const globalChartData = useGlobalChartData()
-  const { tokenArr = [], tokenDict } = useAllTokenData()
+  const { tokenArr = [], tokenDict, categories } = useAllTokenData()
 
   return (
     <AppWrapper>
@@ -67,7 +67,7 @@ function App() {
                   render={({ match }) => {
                     const category = match.params.category?.toLowerCase()
                     const chain = match.params.chain
-                    if (tokenDict.categories.some(protocolCategory => protocolCategory.toLowerCase() === category)) {
+                    if (categories.some(protocolCategory => protocolCategory.toLowerCase() === category)) {
                       return (
                         <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
                           <AllTokensPage category={category} selectedChain={chain} />
