@@ -494,7 +494,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                   </Column>
                   <RowFixed>
                     <Link color={backgroundColor} style={{ marginRight: '.5rem' }} external href={`https://www.coingecko.com/en/coins/${tokenData.gecko_id}`}>
-                      <ButtonLight color={backgroundColor}>View on coingecko ↗</ButtonLight>
+                      <ButtonLight color={backgroundColor}>View on CoinGecko ↗</ButtonLight>
                     </Link>
                     <Link color={backgroundColor} external href={blockExplorerLink}>
                       <ButtonLight color={backgroundColor}>View on {blockExplorerName} ↗</ButtonLight>
