@@ -121,6 +121,7 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
   const tokenData = useTokenData(protocol)
 
   let address = tokenData.address || ''
+  console.log(tokenData)
   let {
     name,
     symbol,
@@ -492,6 +493,9 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                     </AutoRow>
                   </Column>
                   <RowFixed>
+                    <Link color={backgroundColor} style={{ marginRight: '.5rem' }} external href={`https://www.coingecko.com/en/coins/${tokenData.gecko_id}`}>
+                      <ButtonLight color={backgroundColor}>View on coingecko ↗</ButtonLight>
+                    </Link>
                     <Link color={backgroundColor} external href={blockExplorerLink}>
                       <ButtonLight color={backgroundColor}>View on {blockExplorerName} ↗</ButtonLight>
                     </Link>
