@@ -320,22 +320,6 @@ export const chainCoingeckoIds = {
   }
 }
 
+// TODO remove these from nft and use chains from token context
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
 export const extraChainOptions = ['Terra', 'Arbitrum', 'Binance', 'Celo', 'Harmony']
-
-export const priorityChainFilters = [
-  'All',
-  'Ethereum',
-  'Solana',
-  'Polygon',
-  'Fantom',
-  'Avalanche',
-  'Terra',
-  'Arbitrum',
-  'Binance',
-  'Celo',
-  'Harmony',
-  'Tron',
-  'Waves',
-  'Heco'
-]

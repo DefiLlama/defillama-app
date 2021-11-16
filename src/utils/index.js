@@ -71,7 +71,8 @@ export function getPoolLink(token0Address, token1Address = null, remove = false)
     return (
       `https://exchange.sushiswapclassic.org/#/` +
       (remove ? `remove` : `add`) +
-      `/${token0Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token0Address}/${token1Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token1Address
+      `/${token0Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token0Address}/${
+        token1Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token1Address
       }`
     )
   }
@@ -81,8 +82,9 @@ export function getSwapLink(token0Address, token1Address = null) {
   if (!token1Address) {
     return `https://exchange.sushiswapclassic.org/#/swap?inputCurrency=${token0Address}`
   } else {
-    return `https://exchange.sushiswapclassic.org/#/swap?inputCurrency=${token0Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token0Address
-      }&outputCurrency=${token1Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token1Address}`
+    return `https://exchange.sushiswapclassic.org/#/swap?inputCurrency=${
+      token0Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token0Address
+    }&outputCurrency=${token1Address === '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2' ? 'ETH' : token1Address}`
   }
 }
 
@@ -312,7 +314,10 @@ export const isAddress = value => {
   }
 }
 
-export const getTokenLogoPathFromAddress = (address) => `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${isAddress(address)}/logo.png`
+export const getTokenLogoPathFromAddress = address =>
+  `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${isAddress(
+    address
+  )}/logo.png`
 
 export const toK = num => {
   return Numeral(num).format('0.[00]a')
@@ -421,28 +426,19 @@ export function rawPercent(percentRaw) {
   return percent.toFixed(0) + '%'
 }
 
-export function getChainsFromAllTokenData(data) {
-  const chainsUniqueSet = new Set()
-  Object.values(data).forEach(token => {
-    if (token.category === 'Chain') return
-    token.chains.forEach(chain => {
-      chainsUniqueSet.add(chain)
-    })
-  })
-  const chainsUnique = Array.from(chainsUniqueSet)
-  return chainsUnique.map(name => ({
+export const formatChainsForSearch = chains =>
+  chains.map(name => ({
     logo: chainIconUrl(name),
     isChain: true,
     name
   }))
-}
 
 export function chainIconUrl(chain) {
   return `/chain-icons/rsz_${chain.toLowerCase()}.jpg`
 }
 
 export function tokenIconUrl(item) {
-  return `/icons/${item.name.toLowerCase().replace(" ", "-")}.jpg`
+  return `/icons/${item.name.toLowerCase().replace(' ', '-')}.jpg`
 }
 
 export function formattedPercent(percent, useBrackets = false) {
@@ -534,13 +530,7 @@ export function isEquivalent(a, b) {
 }
 
 export function isValidProtocol(tokensObject, protocol) {
-  try {
-    const tokens = Object.values(tokensObject)
-    const isValid = tokens.some(token => (protocol.includes('-') && (token.name.toLowerCase().split(' ').join('-') === protocol)) || token.name.toLowerCase().split(' ').join('') === protocol)
-    return isValid
-  } catch (error) {
-    return false
-  }
+  return !!tokensObject[protocol]
 }
 
 export function isValidCollection(nftCollections, collection) {
@@ -558,16 +548,6 @@ export function getTokenAddressFromName(tokensObject, protocol) {
   }
 }
 
-export function getTokenIdFromName(tokensObject, protocol) {
-  try {
-    const tokens = Object.values(tokensObject)
-    const filteredToken = tokens.findIndex(token => token.name.toLowerCase().replace(" ", "-") === protocol)
-    return filteredToken
-  } catch (error) {
-    return false
-  }
-}
-
 export function getTokenFromName(tokensObject, protocol) {
   try {
     const tokens = Object.values(tokensObject)
@@ -577,3 +557,9 @@ export function getTokenFromName(tokensObject, protocol) {
     return false
   }
 }
+
+export const standardizeTokenName = (tokenName = '') =>
+  tokenName
+    .toLowerCase()
+    .split(' ')
+    .join('-')

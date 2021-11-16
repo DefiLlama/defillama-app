@@ -12,29 +12,29 @@ import RightSettings from '../RightSettings'
 
 import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconLarge, Wrapper } from './shared'
 import { useAllTokenData } from '../../contexts/TokenData'
-import { getChainsFromAllTokenData, tokenIconUrl } from '../../utils'
+import { formatChainsForSearch, tokenIconUrl, standardizeTokenName } from 'utils'
 
 const defaultLinkPath = item => {
   if (item.isChain) {
     return '/chain/' + item.name
   }
-  return (
-    `/protocol/` +
-    item.name
-      ?.toLowerCase()
-      .split(' ')
-      .join('-')
-  )
+  return `/protocol/` + standardizeTokenName(item.name)
 }
 
-export default ({ small = false, includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { } }) => {
-  const searchKeys = ['symbol', 'name']
-
-  const allTokenData = useAllTokenData()
+const TokenSearch = ({
+  small = false,
+  includeChains = true,
+  linkPath = defaultLinkPath,
+  customOnLinkClick = () => {}
+}) => {
+  const { chains, tokenArr } = useAllTokenData()
   const searchData = useMemo(() => {
-    const chainData = includeChains ? getChainsFromAllTokenData(allTokenData) : []
-    return [...chainData, ...Object.values(allTokenData).filter(token => token.category !== "Chain").map(token => ({ ...token, logo: tokenIconUrl(token) }))]
-  }, [allTokenData])
+    const chainData = includeChains ? formatChainsForSearch(chains) : []
+    return [
+      ...chainData,
+      ...tokenArr.filter(token => token.category !== 'Chain').map(token => ({ ...token, logo: tokenIconUrl(token) }))
+    ]
+  }, [tokenArr, chains, includeChains])
 
   const [showMenu, toggleMenu] = useState(false)
   const [value, setValue] = useState('')
@@ -58,6 +58,8 @@ export default ({ small = false, includeChains = true, linkPath = defaultLinkPat
   const [tokensShown, setTokensShown] = useState(3)
 
   const filteredTokenList = useMemo(() => {
+    const searchKeys = ['symbol', 'name']
+
     if (!showMenu) {
       return []
     }
@@ -66,15 +68,15 @@ export default ({ small = false, includeChains = true, linkPath = defaultLinkPat
     }
     return searchData
       ? searchData
-        .filter(token => {
-          const regexMatches = searchKeys.map(tokenEntryKey => {
-            return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
+          .filter(token => {
+            const regexMatches = searchKeys.map(tokenEntryKey => {
+              return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
+            })
+            return regexMatches.some(m => m)
           })
-          return regexMatches.some(m => m)
-        })
-        .slice(0, tokensShown)
+          .slice(0, tokensShown)
       : []
-  }, [searchData, value, tokensShown, showMenu, searchKeys])
+  }, [searchData, value, tokensShown, showMenu])
 
   const onDismiss = token => () => {
     setTokensShown(3)
@@ -114,9 +116,9 @@ export default ({ small = false, includeChains = true, linkPath = defaultLinkPat
       style={
         small
           ? {
-            display: 'flex',
-            alignItems: 'center'
-          }
+              display: 'flex',
+              alignItems: 'center'
+            }
           : {}
       }
     >
@@ -132,12 +134,12 @@ export default ({ small = false, includeChains = true, linkPath = defaultLinkPat
               small
                 ? ''
                 : below410
-                  ? 'Search...'
-                  : below470
-                    ? 'Search DeFi...'
-                    : below700
-                      ? 'Search protocols...'
-                      : 'Search DeFi protocols...'
+                ? 'Search...'
+                : below470
+                ? 'Search DeFi...'
+                : below700
+                ? 'Search protocols...'
+                : 'Search DeFi protocols...'
             }
             value={value}
             onChange={e => {
@@ -188,3 +190,5 @@ export default ({ small = false, includeChains = true, linkPath = defaultLinkPat
     </div>
   )
 }
+
+export default TokenSearch

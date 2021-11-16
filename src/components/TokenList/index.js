@@ -10,7 +10,7 @@ import { CustomLink, BasicLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, formattedPercent, chainIconUrl, tokenIconUrl } from '../../utils'
+import { formattedNum, formattedPercent, chainIconUrl, tokenIconUrl, standardizeTokenName } from '../../utils'
 import { useInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
@@ -103,15 +103,13 @@ const SORT_FIELD = {
   DAYONE: 'change_1d',
   DAYSEVEN: 'change_7d',
   CHANGE: 'priceChangeUSD',
-  MCAPTVL: "mcaptvl",
-  FDVTVL: "fdvtvl",
+  MCAPTVL: 'mcaptvl',
+  FDVTVL: 'fdvtvl',
   CHAINS: 'chains'
 }
 
-
 // @TODO rework into virtualized list
 function TokenList({ tokens, filters }) {
-
   const below1080 = useMedia('(max-width: 1080px)')
   const below680 = useMedia('(max-width: 680px)')
   const below600 = useMedia('(max-width: 600px)')
@@ -126,27 +124,24 @@ function TokenList({ tokens, filters }) {
     }
     let sortedTokens = tokens
     if (sortedColumn !== SORT_FIELD.TVL || sortDirection !== true || tokens[0].tvl === 0) {
-      sortedTokens = tokens
-        .sort((a, b) => {
-          if (sortedColumn === SORT_FIELD.CHAINS) {
-            return a[sortedColumn].length > b[sortedColumn].length ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
-          }
-          if (sortedColumn === SORT_FIELD.SYMBOL || sortedColumn === SORT_FIELD.NAME) {
-            return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
-          }
-          return parseFloat(a[sortedColumn] || 0) > parseFloat(b[sortedColumn] || 0)
+      sortedTokens = tokens.sort((a, b) => {
+        if (sortedColumn === SORT_FIELD.CHAINS) {
+          return a[sortedColumn].length > b[sortedColumn].length
             ? (sortDirection ? -1 : 1) * 1
             : (sortDirection ? -1 : 1) * -1
-        })
+        }
+        if (sortedColumn === SORT_FIELD.SYMBOL || sortedColumn === SORT_FIELD.NAME) {
+          return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
+        }
+        return parseFloat(a[sortedColumn] || 0) > parseFloat(b[sortedColumn] || 0)
+          ? (sortDirection ? -1 : 1) * 1
+          : (sortDirection ? -1 : 1) * -1
+      })
     }
     return sortedTokens
   }, [tokens, sortDirection, sortedColumn])
 
-  const { LoadMoreButton,
-    dataLength,
-    hasMore,
-    next } = useInfiniteScroll({ list: filteredList, filters });
-
+  const { LoadMoreButton, dataLength, hasMore, next } = useInfiniteScroll({ list: filteredList, filters })
 
   const ListItem = ({ item, index }) => {
     return (
@@ -157,7 +152,7 @@ function TokenList({ tokens, filters }) {
             <TokenLogo logo={tokenIconUrl(item)} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              to={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
+              to={'/protocol/' + standardizeTokenName(item.name)}
             >
               <FormattedName
                 text={`${item.name} (${item.symbol})`}
@@ -169,25 +164,27 @@ function TokenList({ tokens, filters }) {
           </Row>
         </DataText>
         {!below1080 && (
-          <DataText area="chain">{item.chains.map(chain => <BasicLink key={chain} to={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)}</DataText>
+          <DataText area="chain">
+            {item.chains.map(chain => (
+              <BasicLink key={chain} to={`/chain/${chain}`}>
+                <TokenLogo address={chain} logo={chainIconUrl(chain)} />
+              </BasicLink>
+            ))}
+          </DataText>
         )}
-        {
-          !below1080 && (
-            <DataText area="1dchange" color="text" fontWeight="500">
-              {formattedPercent(item.change_1d, true)}
-            </DataText>
-          )
-        }
+        {!below1080 && (
+          <DataText area="1dchange" color="text" fontWeight="500">
+            {formattedPercent(item.change_1d, true)}
+          </DataText>
+        )}
         <DataText area="7dchange">{item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'}</DataText>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
-        {
-          !below680 && (
-            <DataText area="mcaptvl" color="text" fontWeight="500">
-              {item.mcaptvl === null || item.mcaptvl === undefined ? '-' : formattedNum(item.mcaptvl, false)}
-            </DataText>
-          )
-        }
-      </DashGrid >
+        {!below680 && (
+          <DataText area="mcaptvl" color="text" fontWeight="500">
+            {item.mcaptvl === null || item.mcaptvl === undefined ? '-' : formattedNum(item.mcaptvl, false)}
+          </DataText>
+        )}
+      </DashGrid>
     )
   }
 
@@ -271,12 +268,8 @@ function TokenList({ tokens, filters }) {
         )}
       </DashGrid>
       <Divider />
-      <List p={0} >
-        <InfiniteScroll
-          dataLength={dataLength}
-          next={next}
-          hasMore={hasMore}
-        >
+      <List p={0}>
+        <InfiniteScroll dataLength={dataLength} next={next} hasMore={hasMore}>
           {filteredList &&
             filteredList.slice(0, dataLength).map((item, index) => {
               return (

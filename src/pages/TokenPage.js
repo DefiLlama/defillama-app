@@ -19,7 +19,7 @@ import Column, { AutoColumn } from '../components/Column'
 import { ButtonLight } from '../components/ButtonStyled'
 import { BasicLink } from '../components/Link'
 import Search from '../components/Search'
-import { formattedNum, formattedPercent, getTokenIdFromName, getTokenLogoPathFromAddress, tokenIconUrl } from '../utils'
+import { formattedNum, formattedPercent, getTokenIdFromName, tokenIconUrl } from '../utils'
 import { useTokenData } from '../contexts/TokenData'
 import { TYPE, ThemedBackground } from '../Theme'
 import { transparentize } from 'polished'
@@ -114,13 +114,11 @@ const blockExplorers = {
   harmony: ['https://explorer.harmony.one/address/', 'Harmony Explorer'],
   tron: ['https://tronscan.org/#/', 'Tronscan'],
   kucoin: ['https://explorer.kcc.io/en/address/', 'KCC Explorer'],
-  iotex: ['https://iotexscan.io/address/', 'IoTeX Explorer'],
+  iotex: ['https://iotexscan.io/address/', 'IoTeX Explorer']
 }
 
 function TokenPage({ protocol, history, denomination, selectedChain }) {
-  const allTokens = useAllTokenData()
-  const id = getTokenIdFromName(allTokens, protocol)
-  const tokenData = useTokenData(id, protocol)
+  const tokenData = useTokenData(protocol)
 
   let address = tokenData.address || ''
   let {
@@ -147,8 +145,8 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
     module: codeModule
   } = tokenData
 
-  let blockExplorerLink = 'https://etherscan.io/address/' + address;
-  let blockExplorerName = 'Etherscan';
+  let blockExplorerLink = 'https://etherscan.io/address/' + address
+  let blockExplorerName = 'Etherscan'
   Object.entries(blockExplorers).forEach(explorer => {
     const chainId = explorer[0] + ':'
     if (address.startsWith(chainId)) {
@@ -327,11 +325,13 @@ function TokenPage({ protocol, history, denomination, selectedChain }) {
                     </TYPE.main>
                     <TYPE.main>
                       <div>
-                        {Object.entries(chainTvls).map(chainTvl => chainTvl[0].includes('-') ? null : (
-                          <div key={chainTvl[0]} style={{ justifyContent: 'space-between', display: 'flex' }}>
-                            <span>{chainTvl[0]}:&nbsp;</span> <span>{formattedNum(chainTvl[1] || '0', true)}</span>
-                          </div>
-                        ))}
+                        {Object.entries(chainTvls).map(chainTvl =>
+                          chainTvl[0].includes('-') ? null : (
+                            <div key={chainTvl[0]} style={{ justifyContent: 'space-between', display: 'flex' }}>
+                              <span>{chainTvl[0]}:&nbsp;</span> <span>{formattedNum(chainTvl[1] || '0', true)}</span>
+                            </div>
+                          )
+                        )}
                       </div>
                     </TYPE.main>
                   </RowBetween>

@@ -26,7 +26,7 @@ function App() {
 
   const globalData = useGlobalData()
   const globalChartData = useGlobalChartData()
-  const allTokens = useAllTokenData()
+  const { tokenArr = [], tokenDict, categories } = useAllTokenData()
 
   return (
     <AppWrapper>
@@ -36,8 +36,8 @@ function App() {
           globalData.totalLiquidityUSD &&
           globalChartData &&
           globalChartData[1] &&
-          allTokens &&
-          allTokens[1] ? (
+          tokenArr &&
+          tokenArr.length ? (
             <Suspense fallback={<LocalLoader fill="true" />}>
               <Switch>
                 <Route
@@ -45,7 +45,7 @@ function App() {
                   strict
                   path="/protocol/:protocol/:chain?/:denomination?"
                   render={({ match }) => {
-                    if (isValidProtocol(allTokens, match.params.protocol.toLowerCase())) {
+                    if (isValidProtocol(tokenDict, match.params.protocol?.toLowerCase())) {
                       return (
                         <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
                           <TokenPage
@@ -65,13 +65,9 @@ function App() {
                   strict
                   path="/protocols/:category/:chain?"
                   render={({ match }) => {
-                    const category = match.params.category
+                    const category = match.params.category?.toLowerCase()
                     const chain = match.params.chain
-                    if (
-                      Object.values(allTokens).some(
-                        protocol => (protocol.category || '').toLowerCase() === category.toLowerCase()
-                      )
-                    ) {
+                    if (categories.some(protocolCategory => protocolCategory.toLowerCase() === category)) {
                       return (
                         <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
                           <AllTokensPage category={category} selectedChain={chain} />
