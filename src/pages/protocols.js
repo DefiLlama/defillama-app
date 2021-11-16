@@ -16,7 +16,7 @@ export async function getStaticProps({ params }) {
 export default function Protocols({ chainsSet, protocols }) {
     return (
         <GeneralLayout title={`TVL Rankings - DefiLlama`}>
-            <ProtocolList chainsSet={chainsSet} filteredTokens={protocols} />
+            <ProtocolList chainsSet={chainsSet} filteredTokens={protocols} showChainList={false} />
         </GeneralLayout>
     )
 }

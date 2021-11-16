@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 
 import { TYPE } from '../Theme'
 import Panel from '../components/Panel'
 import { PageWrapper, FullWrapper } from '../components'
 import { RowBetween } from '../components/Row'
-import { useMedia } from 'react-use'
 import styled from 'styled-components'
 import { Divider } from '../components'
 import Link from '../components/Link'
@@ -12,11 +11,6 @@ import { GeneralLayout } from '../layout'
 
 
 function AboutPage() {
-    useEffect(() => {
-        window.scrollTo(0, 0)
-    }, [])
-
-    const below600 = useMedia('(max-width: 800px)')
     const DashGrid = styled.div`
     display: grid;
     grid-gap: 1em;
@@ -35,7 +29,7 @@ function AboutPage() {
                     <RowBetween>
                         <TYPE.largeHeader>About</TYPE.largeHeader>
                     </RowBetween>
-                    <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>
+                    <Panel style={{ marginTop: '6px' }}>
                         <DashGrid center={true} style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
                             <TYPE.main area="account">Why DefiLlama? <span role="img" aria-label="heart emoji">❤️</span></TYPE.main>
                             <Divider />

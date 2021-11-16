@@ -32,19 +32,6 @@ function SideNav() {
   const NavMenu = () => (
     <AutoColumn gap="1.25rem" style={{ marginTop: "1rem" }}>
       <Entry url="" name="Overview" history={history} Icon={TrendingUp} />
-      <BasicLink href="/protocols">
-        <Option
-          activeText={
-            ((history.location.pathname.split("/")[1] === "protocols" &&
-              history.location.pathname.split("/")[2] === undefined) ||
-              history.location.pathname.split("/")[1] === "protocol") ??
-            undefined
-          }
-        >
-          <Disc size={20} style={{ marginRight: ".75rem" }} />
-          Protocols
-        </Option>
-      </BasicLink>
       <Entry url="chains" name="Chains" history={history} Icon={LinkLogo} />
       <Entry url="airdrops" name="Airdrops" history={history} Icon={CloudDrizzle} />
       <Entry url="comparison" name="Comparison" history={history} Icon={Minimize2} />

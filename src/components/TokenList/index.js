@@ -10,7 +10,7 @@ import { CustomLink, BasicLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, formattedPercent, chainIconUrl, tokenIconUrl } from '../../utils'
+import { formattedNum, formattedPercent, chainIconUrl, tokenIconUrl, slug } from '../../utils'
 import { useInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
@@ -175,7 +175,7 @@ function TokenList({ tokens, filters }) {
             {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index + 1}</div>}
             <TokenLogo logo={tokenIconUrl(item)} />
             <CustomLink
-              href={'/protocol/' + item.name?.toLowerCase().split(' ').join('-')}
+              href={'/protocol/' + slug(item.name)}
               passHref
             >
               <ProtocolButton item={item} below600={below600} />
