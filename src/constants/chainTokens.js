@@ -317,7 +317,17 @@ export const chainCoingeckoIds = {
     geckoId: 'crypto-com-chain',
     symbol: 'CRO',
     cmcId: '3635'
-  }
+  },
+  Polis: {
+    geckoId: "polis",
+    symbol: "POLIS",
+    cmcId: "2359",
+  },
+  ZYX: {
+    geckoId: "zyx",
+    symbol: "ZYX",
+    cmcId: "6131",
+  },
 }
 
 // TODO remove these from nft and use chains from token context
