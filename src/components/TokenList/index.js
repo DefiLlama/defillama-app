@@ -95,30 +95,25 @@ const DataText = styled(Flex)`
 
 const SORT_FIELD = {
   TVL: 'tvl',
-  VOL: 'oneDayVolumeUSD',
-  SYMBOL: 'symbol',
   NAME: 'name',
-  PRICE: 'priceUSD',
   HOURONE: 'change_1h',
   DAYONE: 'change_1d',
   DAYSEVEN: 'change_7d',
-  CHANGE: 'priceChangeUSD',
   MCAPTVL: "mcaptvl",
-  FDVTVL: "fdvtvl",
   CHAINS: 'chains'
 }
 
 const ProtocolButtonElement = styled(FormattedName)`
-margin-left: 16px;
-white-space: nowrap; 
-min-width: 200px;
+  margin-left: 16px;
+  white-space: nowrap; 
+  min-width: 200px;
 `
 
 const ProtocolButton = React.forwardRef(({ item, below600, onClick, href }, ref) => {
   return (
     <a href={href} onClick={onClick} ref={ref}>
       <ProtocolButtonElement
-        text={`${item.name} (${item.symbol})`}
+        text={item.symbol === "-" ? item.name : `${item.name} (${item.symbol})`}
         maxCharacters={below600 ? 8 : 16}
         adjustSize={true}
         link={true}
@@ -127,24 +122,51 @@ const ProtocolButton = React.forwardRef(({ item, below600, onClick, href }, ref)
   )
 })
 
+const Index = styled.div`
+  margin-right: 1rem;
+  width: 10px;
+  @media (max-width: 680px) {
+    display: none;
+  }
+`
+
+const DataTextHideBelow680 = styled(DataText)`
+  @media (max-width: 680px) {
+    display: none !important;
+  }
+`
+
+const DataTextHideBelow1080 = styled(DataText)`
+  @media (max-width: 1080px) {
+    display: none !important;
+  }
+`
+
+const FlexHideBelow680 = styled(Flex)`
+  @media (max-width: 680px) {
+    display: none !important;
+  }
+`
+
+const FlexHideBelow1080 = styled(Flex)`
+  @media (max-width: 1080px) {
+    display: none !important;
+  }
+`
+
 
 // @TODO rework into virtualized list
-function TokenList({ tokens, filters }) {
+function TokenList({ tokens, filters, iconUrl = tokenIconUrl, generateLink = name => `/protocol/${slug(name)}`, columns = [undefined, SORT_FIELD.CHAINS] }) {
 
-  const below1080 = useMedia('(max-width: 1080px)')
-  const below680 = useMedia('(max-width: 680px)')
   const below600 = useMedia('(max-width: 600px)')
 
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
-  const [sortedColumn, setSortedColumn] = useState(SORT_FIELD.TVL)
+  const [sortedColumn, setSortedColumn] = useState(undefined)
 
   const filteredList = useMemo(() => {
-    if (!tokens || !tokens.length) {
-      return tokens
-    }
     let sortedTokens = tokens
-    if (sortedColumn !== SORT_FIELD.TVL || sortDirection !== true || tokens[0].tvl === 0) {
+    if (sortedColumn !== undefined) {
       sortedTokens = tokens
         .sort((a, b) => {
           if (sortedColumn === SORT_FIELD.CHAINS) {
@@ -172,35 +194,25 @@ function TokenList({ tokens, filters }) {
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
           <Row>
-            {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index + 1}</div>}
-            <TokenLogo logo={tokenIconUrl(item)} />
+            <Index>{index + 1}</Index>
+            <TokenLogo logo={iconUrl(item.name)} />
             <CustomLink
-              href={'/protocol/' + slug(item.name)}
+              href={generateLink(item.name)}
               passHref
             >
               <ProtocolButton item={item} below600={below600} />
             </CustomLink>
           </Row>
         </DataText>
-        {!below1080 && (
-          <DataText area="chain">{item.chains.map(chain => <BasicLink key={chain} href={`/chain/${chain}`}><a><TokenLogo address={chain} logo={chainIconUrl(chain)} /></a></BasicLink>)}</DataText>
-        )}
-        {
-          !below1080 && (
-            <DataText area="1dchange" color="text" fontWeight="500">
-              {formattedPercent(item.change_1d, true)}
-            </DataText>
-          )
-        }
+        <DataTextHideBelow1080 area="chain">{item.chains.map(chain => <BasicLink key={chain} href={`/chain/${chain}`}><a><TokenLogo address={chain} logo={chainIconUrl(chain)} /></a></BasicLink>)}</DataTextHideBelow1080>
+        <DataTextHideBelow1080 area="1dchange" color="text" fontWeight="500">
+          {formattedPercent(item.change_1d, true)}
+        </DataTextHideBelow1080>
         <DataText area="7dchange">{item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'}</DataText>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
-        {
-          !below680 && (
-            <DataText area="mcaptvl" color="text" fontWeight="500">
-              {item.mcaptvl === null || item.mcaptvl === undefined ? '-' : formattedNum(item.mcaptvl, false)}
-            </DataText>
-          )
-        }
+        <DataTextHideBelow680 area="mcaptvl" color="text" fontWeight="500">
+          {item.mcaptvl === null || item.mcaptvl === undefined ? '-' : formattedNum(item.mcaptvl, false)}
+        </DataTextHideBelow680>
       </DashGrid >
     )
   }
@@ -218,35 +230,31 @@ function TokenList({ tokens, filters }) {
               setSortDirection(sortedColumn !== SORT_FIELD.NAME ? true : !sortDirection)
             }}
           >
-            {below680 ? 'Symbol' : 'Name'} {sortedColumn === SORT_FIELD.NAME ? (!sortDirection ? '↑' : '↓') : ''}
+            Name {sortedColumn === SORT_FIELD.NAME ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
-        {!below1080 && (
-          <Flex alignItems="center">
-            <ClickableText
-              area="chain"
-              onClick={e => {
-                setSortedColumn(SORT_FIELD.CHAINS)
-                setSortDirection(sortedColumn !== SORT_FIELD.CHAINS ? true : !sortDirection)
-              }}
-            >
-              Chain {sortedColumn === SORT_FIELD.CHAINS ? (!sortDirection ? '↑' : '↓') : ''}
-            </ClickableText>
-          </Flex>
-        )}
-        {!below1080 && (
-          <Flex alignItems="center">
-            <ClickableText
-              area="1dchange"
-              onClick={e => {
-                setSortedColumn(SORT_FIELD.DAYONE)
-                setSortDirection(sortedColumn !== SORT_FIELD.DAYONE ? true : !sortDirection)
-              }}
-            >
-              1d Change {sortedColumn === SORT_FIELD.DAYONE ? (!sortDirection ? '↑' : '↓') : ''}
-            </ClickableText>
-          </Flex>
-        )}
+        <FlexHideBelow1080 alignItems="center">
+          <ClickableText
+            area="chain"
+            onClick={e => {
+              setSortedColumn(SORT_FIELD.CHAINS)
+              setSortDirection(sortedColumn !== SORT_FIELD.CHAINS ? true : !sortDirection)
+            }}
+          >
+            Chain {sortedColumn === SORT_FIELD.CHAINS ? (!sortDirection ? '↑' : '↓') : ''}
+          </ClickableText>
+        </FlexHideBelow1080>
+        <FlexHideBelow1080 alignItems="center">
+          <ClickableText
+            area="1dchange"
+            onClick={e => {
+              setSortedColumn(SORT_FIELD.DAYONE)
+              setSortDirection(sortedColumn !== SORT_FIELD.DAYONE ? true : !sortDirection)
+            }}
+          >
+            1d Change {sortedColumn === SORT_FIELD.DAYONE ? (!sortDirection ? '↑' : '↓') : ''}
+          </ClickableText>
+        </FlexHideBelow1080>
         <Flex alignItems="center">
           <ClickableText
             area="7dchange"
@@ -264,25 +272,23 @@ function TokenList({ tokens, filters }) {
             area="tvl"
             onClick={e => {
               setSortedColumn(SORT_FIELD.TVL)
-              setSortDirection(sortedColumn !== SORT_FIELD.TVL ? true : !sortDirection)
+              setSortDirection(sortedColumn === undefined ? false : sortedColumn !== SORT_FIELD.TVL ? true : !sortDirection)
             }}
           >
-            TVL {sortedColumn === SORT_FIELD.TVL ? (!sortDirection ? '↑' : '↓') : ''}
+            TVL {sortedColumn === SORT_FIELD.TVL || sortedColumn === undefined ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
-        {!below680 && (
-          <Flex alignItems="center">
-            <ClickableText
-              area="mcaptvl"
-              onClick={e => {
-                setSortedColumn(SORT_FIELD.MCAPTVL)
-                setSortDirection(sortedColumn !== SORT_FIELD.MCAPTVL ? true : !sortDirection)
-              }}
-            >
-              Mcap/TVL {sortedColumn === SORT_FIELD.MCAPTVL ? (!sortDirection ? '↑' : '↓') : ''}
-            </ClickableText>
-          </Flex>
-        )}
+        <FlexHideBelow680 alignItems="center">
+          <ClickableText
+            area="mcaptvl"
+            onClick={e => {
+              setSortedColumn(SORT_FIELD.MCAPTVL)
+              setSortDirection(sortedColumn !== SORT_FIELD.MCAPTVL ? true : !sortDirection)
+            }}
+          >
+            Mcap/TVL {sortedColumn === SORT_FIELD.MCAPTVL ? (!sortDirection ? '↑' : '↓') : ''}
+          </ClickableText>
+        </FlexHideBelow680>
       </DashGrid>
       <Divider />
       <List p={0} >

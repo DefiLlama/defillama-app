@@ -35,7 +35,7 @@ export default ({ small = false, includeChains = true, linkPath = defaultLinkPat
       isChain: true,
       name,
     })) : []
-    return [...chainData, ...protocols.map(token => ({ ...token, logo: tokenIconUrl(token) }))]
+    return [...chainData, ...protocols.map(token => ({ ...token, logo: tokenIconUrl(token.name) }))]
   }, [protocols, chainsSet])
 
   const [showMenu, toggleMenu] = useState(false)

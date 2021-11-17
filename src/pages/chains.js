@@ -143,7 +143,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
                             {dominanceChart}
                         </AutoRow>
                 }
-                <TokenList tokens={chainTvls} defaultSortingField="tvl" />
+                <TokenList tokens={chainTvls} iconUrl={chainIconUrl} generateLink={name => `/chain/${name}`} />
                 <div style={{ margin: 'auto' }}>
                     <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
                 </div>
@@ -163,7 +163,7 @@ export async function getStaticProps() {
         numProtocolsPerChain[chain] = (numProtocolsPerChain[chain] || 0) + 1
     }))
     const data = await chainCalls;
-    const chainMcaps = await chainMcapsPromise
+    const chainMcaps = await chainMcapsPromise;
 
     const chainTvls = chainsUnique.map((chainName, i) => {
         const prevTvl = (daysBefore) => data[i][data[i].length - 1 - daysBefore]?.totalLiquidityUSD
@@ -173,8 +173,9 @@ export async function getStaticProps() {
             tvl: current,
             mcaptvl: mcap ? mcap / current : null,
             name: chainName,
+            chains: [],
+            symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
             num_protocols: numProtocolsPerChain[chainName],
-            logo: chainIconUrl(chainName),
             change_1d: prevTvl(1) ? getPercentChange(prevTvl(1), current) : null,
             change_7d: prevTvl(7) ? getPercentChange(prevTvl(7), current) : null,
         }

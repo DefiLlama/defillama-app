@@ -243,8 +243,8 @@ export function chainIconUrl(chain) {
   return `/chain-icons/rsz_${chain.toLowerCase()}.jpg`
 }
 
-export function tokenIconUrl(item) {
-  return `/icons/${item.name.toLowerCase().replace(" ", "-")}.jpg`
+export function tokenIconUrl(name) {
+  return `/icons/${name.toLowerCase().replace(" ", "-")}.jpg`
 }
 
 export function formattedPercent(percent, useBrackets = false) {
