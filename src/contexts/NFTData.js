@@ -2,7 +2,15 @@ import React, { createContext, useContext, useReducer, useCallback, useEffect } 
 
 import { useDisplayUsdManager } from './LocalStorage'
 import { fetchAPI } from './API'
-import { NFT_CHARTS_API, NFT_COLLECTIONS_API, UPDATE_ALL_NFT_COLLECTIONS, UPDATE_NFT_CHART } from '../constants'
+import {
+  NFT_COLLECTIONS_API,
+  NFT_COLLECTION_API,
+  NFT_STATISTICS_API,
+  NFT_TIMESERIES_API,
+  UPDATE_ALL_NFT_COLLECTIONS,
+  UPDATE_NFT_CHART,
+  UPDATE_NFT_STATISTICS,
+} from '../constants'
 
 const NFTDataContext = createContext()
 
@@ -24,6 +32,13 @@ function reducer(state, { type, payload }) {
       return {
         ...state,
         timeSeriesData,
+      }
+    }
+    case UPDATE_NFT_STATISTICS: {
+      const { statistics } = payload
+      return {
+        ...state,
+        statistics,
       }
     }
     default: {
@@ -49,6 +64,13 @@ export default function Provider({ children }) {
     })
   }, [])
 
+  const updateStatistics = useCallback(statistics => {
+    dispatch({
+      type: UPDATE_NFT_STATISTICS,
+      payload: { statistics },
+    })
+  }, [])
+
   return (
     <NFTDataContext.Provider
       value={[
@@ -56,6 +78,7 @@ export default function Provider({ children }) {
         {
           updateCollections,
           updateChart,
+          updateStatistics,
         }
       ]}
     >
@@ -80,10 +103,27 @@ const getCollections = async () => {
   }
 }
 
-const getChartData = async () => {
+export const getCollection = async (slug) => {
   try {
-    // let data = await fetchAPI(NFT_CHARTS_API)
-    let data = [];
+    const data = await fetchAPI(`${NFT_COLLECTION_API}/${slug}`)
+    return data
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+const getChartData = async (slug = "total", statistic = "dailyVolume") => {
+  try {
+    const data = await fetchAPI(`${NFT_TIMESERIES_API}/${slug}/${statistic}`)
+    return data
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+const getStatisticsData = async () => {
+  try {
+    const data = await fetchAPI(NFT_STATISTICS_API)
     return data
   } catch (e) {
     console.log(e)
@@ -91,7 +131,7 @@ const getChartData = async () => {
 }
 
 export function Updater() {
-  const [, { updateCollections, updateChart }] = useNFTDataContext()
+  const [, { updateCollections, updateChart, updateStatistics }] = useNFTDataContext()
   useEffect(() => {
     async function getData() {
       const collections = await getCollections()
@@ -107,6 +147,14 @@ export function Updater() {
     }
     fetchData()
   }, [updateChart])
+
+  useEffect(() => {
+    async function fetchStatistics() {
+      const statisticsData = await getStatisticsData()
+      updateStatistics(statisticsData)
+    }
+    fetchStatistics()
+  }, [updateStatistics])
 
   return null
 }
@@ -128,21 +176,7 @@ export function useNFTChartData() {
   return state.timeSeriesData
 }
 
-export function useNFTSummaryData() {
+export function useNFTStatisticsData() {
   const [state] = useNFTDataContext()
-  // const { timeSeriesData } = state
-
-  const todayTotalMarketCap = state.collections.reduce((prevSum, collection) => prevSum + collection.marketCapUSD, 0)
-  const yesterdayTotalMarketCap = todayTotalMarketCap
-  // const todayTotalMarketCap = timeSeriesData[timeSeriesData.length - 1].totalMarketCapUSD
-  // const yesterdayTotalMarketCap = timeSeriesData[timeSeriesData.length - 2].totalMarketCapUSD
-  const marketCapChange = ((todayTotalMarketCap - yesterdayTotalMarketCap) / yesterdayTotalMarketCap * 100).toFixed(2)
-
-  const totalVolume = state.collections.reduce((prevSum, collection) => prevSum + collection.dailyVolumeUSD, 0)
-
-  return {
-    totalMarketCap: todayTotalMarketCap,
-    marketCapChange,
-    totalVolume,
-  }
+  return state.statistics
 }
