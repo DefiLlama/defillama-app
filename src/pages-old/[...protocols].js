@@ -1,6 +1,6 @@
-import ProtocolList from '../../components/ProtocolList'
-import { PROTOCOLS_API } from '../../constants/index'
-import { GeneralLayout } from '../../layout'
+import ProtocolList from '../components/ProtocolList'
+import { PROTOCOLS_API } from '../constants/index'
+import { GeneralLayout } from '../layout'
 
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);

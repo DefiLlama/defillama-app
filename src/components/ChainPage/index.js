@@ -45,6 +45,16 @@ const FiltersRow = styled(RowFlat)`
 }
 `
 
+const PlaceholderChartPanel = styled(Panel)`
+  padding-bottom: 33%;
+  @media (max-width: 1080px) {
+    padding-bottom: 40%;
+  }
+  @media (max-width: 800px) {
+    padding-bottom: 67%;
+  }
+`
+
 function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, denomination, chainsSet, filteredTokens, chart: globalChart, totalStaking, protocolNames, totalPool2 }) {
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
   // breakpoints
@@ -153,7 +163,10 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
           >
             {panels}
           </AutoColumn>
-          <Panel style={{ height: '100%', minHeight: '300px' }}>{chart}</Panel>
+          <PlaceholderChartPanel style={{ height: '100%' }}><div style={{
+            position: 'absolute',
+            top: 20, bottom: 20, left: 20, right: 20,
+          }}>{chart}</div></PlaceholderChartPanel>
         </BreakpointPanels>
         <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
           <RowBetween>

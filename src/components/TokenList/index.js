@@ -105,8 +105,7 @@ const SORT_FIELD = {
 
 const ProtocolButtonElement = styled(FormattedName)`
   margin-left: 16px;
-  white-space: nowrap; 
-  min-width: 200px;
+  white-space: nowrap;
 `
 
 const ProtocolButton = React.forwardRef(({ item, below600, onClick, href }, ref) => {

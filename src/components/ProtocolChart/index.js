@@ -50,35 +50,24 @@ const ProtocolChart = ({ chartData, protocol, small, tokens, tokensInUsd, chainT
     return () => window.removeEventListener('resize', handleResize)
   }, [isClient, width]) // Empty array ensures that effect is only run on mount and unmount
 
-  return chartDataFiltered ? (
-    <>
-      {chartDataFiltered && (
-        <ResponsiveContainer aspect={60 / 28} ref={ref}>
-          <TokenChart
-            small={small}
-            data={chartDataFiltered}
-            base={chartDataFiltered[chartDataFiltered.length - 1].totalLiquidityUSD}
-            baseChange={change}
-            denomination={denomination}
-            title={`${protocol} TVL`}
-            field="totalLiquidityUSD"
-            width={width}
-            tokens={tokens}
-            tokensInUsd={tokensInUsd}
-            chainTvls={chainTvls}
-            misrepresentedTokens={misrepresentedTokens}
-            color={color}
-            selectedChain={selectedChain}
-            chains={chains ?? [protocol]}
-            tokenData={tokenData}
-          //type={CHART_TYPES.AREA}
-          />
-        </ResponsiveContainer>
-      )}
-    </>
-  ) : (
-    ''
-  )
+  return (<TokenChart
+    small={small}
+    data={chartDataFiltered}
+    base={chartDataFiltered[chartDataFiltered.length - 1].totalLiquidityUSD}
+    baseChange={change}
+    denomination={denomination}
+    title={`${protocol} TVL`}
+    field="totalLiquidityUSD"
+    width={width}
+    tokens={tokens}
+    tokensInUsd={tokensInUsd}
+    chainTvls={chainTvls}
+    misrepresentedTokens={misrepresentedTokens}
+    color={color}
+    selectedChain={selectedChain}
+    chains={chains ?? [protocol]}
+    tokenData={tokenData}
+  />)
 }
 
 export default ProtocolChart
