@@ -7,7 +7,6 @@ import NFTPage from './pages/NFTPage'
 import AboutPage from './pages/AboutPage'
 
 import { useNFTChartData, useNFTCollectionsData, useNFTStatisticsData } from './contexts/NFTData'
-import { isValidCollection } from './utils'
 import LocalLoader from './components/LocalLoader'
 
 function App() {
@@ -27,20 +26,14 @@ function App() {
           <Route
             exacts
             strict
-            path="/nfts/collection/:collection"
-            render={({ match }) => {
-              if (isValidCollection(nftCollections, match.params.collection)) {
-                return (
-                  <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-                    <NFTPage
-                      collection={match.params.collection}
-                    />
-                  </LayoutWrapper>
-                )
-              } else {
-                return <Redirect to="/nfts" />
-              }
-            }}
+            path="/nfts/collection/:slug"
+            render={({ match }) => (
+              <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                <NFTPage
+                  slug={match.params.slug}
+                />
+              </LayoutWrapper>
+            )}
           />
 
           <Route path="/nfts/about">
