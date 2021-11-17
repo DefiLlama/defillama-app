@@ -7,7 +7,7 @@ import { useNFTChartData } from '../../contexts/NFTData'
 
 const GlobalNFTChart = () => {
   // time window and window size for chart
-  const timeWindow = timeframeOptions.ALL_TIME
+  const timeWindow = timeframeOptions.YEAR
 
   // global historical data
   const data = useNFTChartData()
@@ -52,12 +52,13 @@ const GlobalNFTChart = () => {
   return chartDataFiltered ? (
     <ResponsiveContainer aspect={60 / 28} ref={ref}>
       <TradingViewChart
-        data={data}
-        base={data[data.length - 1].totalMarketCapUSD}
-        title="Total Market Cap"
-        field="totalMarketCapUSD"
+        data={chartDataFiltered}
+        base={data[data.length - 1].dailyVolume}
+        title="Daily Volume ETH"
+        field="dailyVolume"
         width={width}
         type={CHART_TYPES.AREA}
+        units="Ξ"
       />
     </ResponsiveContainer>
   ) : (
