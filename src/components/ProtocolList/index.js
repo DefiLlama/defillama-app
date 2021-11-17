@@ -26,8 +26,8 @@ function AllTokensPage({ title, category, selectedChain = 'All', chainsSet, filt
     const below600 = useMedia('(max-width: 600px)')
 
     const handleRouting = chain => {
-        if (chain === 'All') return `/protocols/${category.toLowerCase()}`
-        return `/protocols/${category.toLowerCase()}/${chain}`
+        if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
+        return `/protocols/${category?.toLowerCase()}/${chain}`
     }
     const setSelectedChain = newSelectedChain => handleRouting(newSelectedChain)
     const chainOptions = ["All", ...chainsSet].map(label => ({ label, to: handleRouting(label) }))

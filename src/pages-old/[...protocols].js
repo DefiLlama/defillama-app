@@ -12,7 +12,8 @@ export async function getStaticProps({ params: { protocols: [protocol1, protocol
     return {
         props: {
             protocols: res.protocols,
-            params
+            protocol1,
+            protocol2
         }
     }
 }
@@ -24,7 +25,6 @@ export async function getStaticPaths() {
 export default function Protocols({ category, chainsSet, protocols, chain }) {
     return (
         <GeneralLayout title={`${capitalizeFirstLetter(category)} TVL Rankings - DefiLlama`}>
-            <ProtocolList category={capitalizeFirstLetter(category)} chainsSet={chainsSet} selectedChain={chain} filteredTokens={protocols} />
         </GeneralLayout>
     )
 }
