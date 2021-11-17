@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react'
 
 import { useDisplayUsdManager } from './LocalStorage'
 import { fetchAPI } from './API'
@@ -104,12 +111,8 @@ const getCollections = async () => {
 }
 
 export const getCollection = async (slug) => {
-  try {
-    const data = await fetchAPI(`${NFT_COLLECTION_API}/${slug}`)
-    return data
-  } catch (e) {
-    console.log(e)
-  }
+  const data = await fetchAPI(`${NFT_COLLECTION_API}/${slug}`)
+  return data
 }
 
 const getChartData = async (slug = "total", statistic = "dailyVolume") => {
@@ -169,6 +172,30 @@ export function useNFTCollectionsData() {
     dailyVolume: displayUsd ? collection.dailyVolumeUSD : collection.dailyVolume,
     totalVolume: displayUsd ? collection.totalVolumeUSD : collection.totalVolume,
   }))
+}
+
+export function useNFTCollection(slug) {
+  const [collection, setCollection] = useState(undefined)
+  const [error, setError] = useState(undefined)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const collection = await getCollection(slug);
+        if (collection.error) {
+          setError(collection.error);
+        } else {
+          setCollection(collection);
+        }
+      } catch (e) {
+        console.log(e)
+        setError(e)
+      }
+    }
+    fetchData();
+  }, [slug])
+
+  return { collection, error };
 }
 
 export function useNFTChartData() {
