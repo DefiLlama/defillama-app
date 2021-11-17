@@ -6,7 +6,7 @@ import NFTDashboard from './pages/NFTDashboard'
 import NFTPage from './pages/NFTPage'
 import AboutPage from './pages/AboutPage'
 
-import { useNFTChartData, useNFTCollectionsData } from './contexts/NFTData'
+import { useNFTChartData, useNFTCollectionsData, useNFTStatisticsData } from './contexts/NFTData'
 import { isValidCollection } from './utils'
 import LocalLoader from './components/LocalLoader'
 
@@ -14,8 +14,9 @@ function App() {
   const [savedOpen, setSavedOpen] = useState(false)
   const nftCollections = useNFTCollectionsData()
   const nftChartData = useNFTChartData()
+  const nftStatistics = useNFTStatisticsData()
 
-  if (nftCollections.length === 0 || nftChartData === undefined) {
+  if (nftCollections.length === 0 || nftChartData === undefined || nftStatistics === undefined) {
     return <AppWrapper><BrowserRouter><LocalLoader fill="true" /></BrowserRouter></AppWrapper>
   }
 
