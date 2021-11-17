@@ -328,6 +328,11 @@ export const chainCoingeckoIds = {
     symbol: "ZYX",
     cmcId: "6131",
   },
+  Elrond: {
+    geckoId: "elrond-erd-2",
+    symbol: "EGLD",
+    cmcId: "6892",
+  },
 }
 
 // TODO remove these from nft and use chains from token context
