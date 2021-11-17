@@ -41,8 +41,10 @@ export const NFT_COLLECTIONS_API =
   process.env.NODE_ENV === 'development' ? 'http://localhost:3001/collections' : 'https://nft.api.llama.fi/collections'
 export const NFT_SEARCH_API =
   process.env.NODE_ENV === 'development' ? 'http://localhost:3001/search' : 'https://nft.api.llama.fi/search'
-export const NFT_CHARTS_API =
-  process.env.NODE_ENV === 'development' ? 'http://localhost:8080/dev/nft/charts' : 'https://api.llama.fi/nft/charts'
+export const NFT_TIMESERIES_API =
+  process.env.NODE_ENV === 'development' ? 'http://localhost:3001/historical-statistic' : 'https://nft.api.llama.fi/historical-statistic'
+export const NFT_STATISTICS_API =
+  process.env.NODE_ENV === 'development' ? 'http://localhost:3001/statistics' : 'https://nft.api.llama.fi/statistics'
 
 // GlobalData Constants
 export const UPDATE = 'UPDATE'
@@ -65,3 +67,4 @@ export const TOKEN_PAIRS_KEY = 'TOKEN_PAIRS_KEY'
 // NFTData Constants
 export const UPDATE_ALL_NFT_COLLECTIONS = 'UPDATE_ALL_NFT_COLLECTIONS'
 export const UPDATE_NFT_CHART = 'UPDATE_NFT_CHART'
+export const UPDATE_NFT_STATISTICS = 'UPDATE_NFT_STATISTICS'
