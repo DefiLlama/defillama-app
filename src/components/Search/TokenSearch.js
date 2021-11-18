@@ -1,48 +1,31 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
-
-import { RowFixed } from '../Row'
-import TokenLogo from '../TokenLogo'
-import { BasicLink } from '../Link'
+import React, { useState, useEffect, useRef } from 'react'
 
 import { useMedia } from 'react-use'
-
-import FormattedName from '../FormattedName'
-import { TYPE } from '../../Theme'
 import RightSettings from '../RightSettings'
 
-import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconLarge, Wrapper } from './shared'
+import { CloseIcon, Container, Input, SearchIconLarge, Wrapper } from './shared'
 import { useProtocolData } from 'contexts/ProtocolData'
-import { formatChainsForSearch, tokenIconUrl, standardizeTokenName } from 'utils'
+import { standardizeProtocolName } from 'utils'
+import dynamic from 'next/dynamic'
 
 const defaultLinkPath = item => {
   if (item.isChain) {
     return '/chain/' + item.name
   }
-  return `/protocol/` + standardizeTokenName(item.name)
+  return `/protocol/` + standardizeProtocolName(item.name)
 }
 
-const TokenSearch = ({
-  small = false,
-  includeChains = true,
-  linkPath = defaultLinkPath,
-  customOnLinkClick = () => { }
-}) => {
-  const { chains, protocols } = useProtocolData()
-  console.log(chains, protocols)
-  const searchData = useMemo(() => {
-    const chainData = includeChains ? formatChainsForSearch(chains) : []
-    return [
-      ...chainData,
-      ...protocols.filter(token => token.category !== 'Chain').map(token => ({ ...token, logo: tokenIconUrl(token) }))
-    ]
-  }, [protocols, chains, includeChains])
+const OpenSearch = dynamic(() => import('./OpenTokenSearch'))
 
+const TokenSearch = ({ small = false, includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { }, protocols, chainsSet }) => {
   const [showMenu, toggleMenu] = useState(false)
   const [value, setValue] = useState('')
 
   const below700 = useMedia('(max-width: 700px)')
   const below470 = useMedia('(max-width: 470px)')
   const below410 = useMedia('(max-width: 410px)')
+
+  const wrapperRef = useRef()
 
   useEffect(() => {
     if (value !== '') {
@@ -51,66 +34,6 @@ const TokenSearch = ({
       toggleMenu(false)
     }
   }, [value])
-
-  function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
-  }
-
-  const [tokensShown, setTokensShown] = useState(3)
-
-  const filteredTokenList = useMemo(() => {
-    const searchKeys = ['symbol', 'name']
-
-    if (!showMenu) {
-      return []
-    }
-    if (value === '') {
-      return searchData.slice(0, tokensShown)
-    }
-    return searchData
-      ? searchData
-        .filter(token => {
-          const regexMatches = searchKeys.map(tokenEntryKey => {
-            return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
-          })
-          return regexMatches.some(m => m)
-        })
-        .slice(0, tokensShown)
-      : []
-  }, [searchData, value, tokensShown, showMenu])
-
-  const onDismiss = token => () => {
-    setTokensShown(3)
-    toggleMenu(false)
-    setValue('')
-    customOnLinkClick(token)
-  }
-
-  // refs to detect clicks outside modal
-  const wrapperRef = useRef()
-  const menuRef = useRef()
-
-  const handleClick = e => {
-    if (
-      !(menuRef.current && menuRef.current.contains(e.target)) &&
-      !(wrapperRef.current && wrapperRef.current.contains(e.target))
-    ) {
-      setTokensShown(3)
-      toggleMenu(false)
-    }
-  }
-
-  useEffect(() => {
-    document.addEventListener('keyup', e => {
-      if (e.key === '/') {
-        document.getElementsByClassName('searchbox')[0].focus()
-      }
-    })
-    document.addEventListener('click', handleClick)
-    return () => {
-      document.removeEventListener('click', handleClick)
-    }
-  }, [])
 
   return (
     <div
@@ -154,38 +77,7 @@ const TokenSearch = ({
           />
           {!showMenu ? <SearchIconLarge /> : <CloseIcon onClick={() => toggleMenu(false)} />}
         </Wrapper>
-        <Menu hide={!showMenu} ref={menuRef}>
-          <div>
-            {filteredTokenList.length === 0 && (
-              <MenuItem>
-                <TYPE.body>No results</TYPE.body>
-              </MenuItem>
-            )}
-            {filteredTokenList.map(token => {
-              return (
-                <BasicLink to={linkPath(token)} key={token.id} onClick={onDismiss(token)}>
-                  <MenuItem>
-                    <RowFixed>
-                      <TokenLogo address={token.address} logo={token.logo} style={{ marginRight: '10px' }} />
-                      <FormattedName text={token.name} maxCharacters={20} style={{ marginRight: '6px' }} />
-                      <FormattedName text={token.symbol && `(${token.symbol})`} maxCharacters={6} />
-                    </RowFixed>
-                  </MenuItem>
-                </BasicLink>
-              )
-            })}
-
-            <Heading>
-              <Blue
-                onClick={() => {
-                  setTokensShown(tokensShown + 5)
-                }}
-              >
-                See more...
-              </Blue>
-            </Heading>
-          </div>
-        </Menu>
+        {showMenu && <OpenSearch {...{ includeChains, linkPath, customOnLinkClick, protocols, chainsSet, wrapperRef, value, toggleMenu, }} />}
       </Container>
       {small && <RightSettings />}
     </div>
