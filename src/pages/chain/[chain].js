@@ -5,7 +5,7 @@ import { getChainData } from '../../utils/dataApi'
 
 function addSection(protocol, section, chain) {
     if (protocol.chainTvls[`${chain}-${section}`] !== undefined) {
-        protocol.section = protocol.chainTvls[`${chain}-${section}`]
+        protocol[section] = protocol.chainTvls[`${chain}-${section}`]
     }
 }
 

@@ -76,7 +76,7 @@ const TokenSearch = ({ small = false, includeChains = true, linkPath = defaultLi
           />
           {!showMenu ? <SearchIconLarge /> : <CloseIcon onClick={() => toggleMenu(false)} />}
         </Wrapper>
-        {showMenu && <OpenSearch {...{ includeChains, linkPath, customOnLinkClick, wrapperRef, value, toggleMenu, }} />}
+        {showMenu && <OpenSearch {...{ includeChains, linkPath, customOnLinkClick, wrapperRef, value, toggleMenu, setValue }} />}
       </Container>
       {small && <RightSettings />}
     </div>

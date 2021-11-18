@@ -82,7 +82,6 @@ const TokenDetailsLayout = styled.div`
 `
 function ProtocolContainer({ protocolData, protocol, denomination, selectedChain }) {
   useScrollToTop()
-  console.log(protocolData, 'protocolData')
   let {
     address = '',
     name,
@@ -108,7 +107,9 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
     module: codeModule
   } = protocolData
   const backgroundColor = useProtocolColor({ protocol, logo })
-  const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
+  if (address) {
+    const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
+  }
 
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()

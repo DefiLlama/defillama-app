@@ -9,14 +9,14 @@ import { TYPE } from '../../Theme'
 
 import { Blue, Heading, Menu, MenuItem } from './shared'
 import { useSearchData } from '../../contexts/SearchData'
-import { chainIconUrl, tokenIconUrl, standardizeTokenName } from '../../utils'
+import { chainIconUrl, tokenIconUrl, standardizeProtocolName } from '../../utils'
 import { PROTOCOLS_API } from 'constants'
 
 const defaultLinkPath = item => {
   if (item.isChain) {
     return '/chain/' + item.name
   }
-  return `/protocol/` + standardizeTokenName(item.name)
+  return `/protocol/` + standardizeProtocolName(item.name)
 }
 
 function escapeRegExp(string) {
@@ -25,7 +25,7 @@ function escapeRegExp(string) {
 
 const searchKeys = ['symbol', 'name']
 
-const TokenSearch = ({ includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { }, wrapperRef, value, toggleMenu }) => {
+const TokenSearch = ({ includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { }, wrapperRef, value, toggleMenu, setValue }) => {
   const [searcheableData, setSearcheableData] = useState(useSearchData())
   const { protocolNames, chainsSet } = searcheableData;
 
