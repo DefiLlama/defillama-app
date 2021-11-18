@@ -59,13 +59,6 @@ export function getTimeframe(timeWindow) {
   return utcStartTime
 }
 
-export function slug(name) {
-  return name
-    .toLowerCase()
-    .split(' ')
-    .join('-')
-}
-
 export function localNumber(val) {
   return Numeral(val).format('0,0')
 }
@@ -403,3 +396,5 @@ export const standardizeProtocolName = (tokenName = '') =>
     .toLowerCase()
     .split(' ')
     .join('-')
+
+export const slug = standardizeProtocolName
