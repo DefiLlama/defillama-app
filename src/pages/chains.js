@@ -184,7 +184,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
         setActiveIndex(index)
     };
 
-    const chainColor = useMemo(() => Object.fromEntries(chainsUnique.map(chain => [chain, getRandomColor()])), [chainsUnique])
+    const chainColor = useMemo(() => Object.fromEntries([...chainsUnique, "Other"].map(chain => [chain, getRandomColor()])), [chainsUnique])
 
     function downloadCsv() {
         const rows = [["Timestamp", "Date", ...chainsUnique]];
@@ -280,8 +280,13 @@ export async function getStaticProps() {
         return total
     }, {}))
 
-    const currentData = Object.entries(stackedDataset[stackedDataset.length - 1]).filter(entry => entry[0] !== "date").map(entry => ({ name: entry[0], value: entry[1] }))
+    const lastData = Object.entries(stackedDataset[stackedDataset.length - 1])
+        .sort((a, b) => b[1] - a[1])
 
+    const otherTvl = lastData.slice(10).reduce((total, entry) => {
+        return entry[0] === "date" ? total : total + entry[1]
+    }, 0)
+    const currentData = lastData.slice(0, 10).concat([["Other", otherTvl]]).map(entry => ({ name: entry[0], value: entry[1] }))
     return {
         props: {
             chainsUnique,
