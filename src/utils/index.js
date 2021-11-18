@@ -5,8 +5,10 @@ import utc from 'dayjs/plugin/utc'
 import { Text } from 'rebass'
 import _Decimal from 'decimal.js-light'
 import toFormat from 'toformat'
-import { timeframeOptions } from '../constants'
 import Numeral from 'numeral'
+
+import { timeframeOptions } from '../constants'
+export * from './blockExplorers'
 
 // format libraries
 const Decimal = toFormat(_Decimal)
@@ -394,7 +396,9 @@ export function getTokenFromName(tokensObject, protocol) {
   }
 }
 
-export const standardizeTokenName = (tokenName = '') =>
+export const capitalizeFirstLetter = word => word.charAt(0).toUpperCase() + word.slice(1)
+
+export const standardizeProtocolName = (tokenName = '') =>
   tokenName
     .toLowerCase()
     .split(' ')
