@@ -1,10 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
-import { shade } from 'polished'
-import Vibrant from 'node-vibrant'
-import { hex } from 'wcag-contrast'
 import copy from 'copy-to-clipboard'
 export { default as useInfiniteScroll } from './useInfiniteScroll'
+export { default as useProtocolColor } from './useProtocolColor'
 export { default as useResize } from './useResize'
 
 export function useCopyClipboard(timeout = 500) {
@@ -76,4 +74,15 @@ export function useNFTApp() {
   return false
   const location = useLocation()
   return location.pathname.startsWith('/nfts')
+}
+
+export const useScrollToTop = () => {
+  useEffect(() => {
+    if (window) {
+      window.scrollTo({
+        behavior: 'smooth',
+        top: 0
+      })
+    }
+  }, [])
 }

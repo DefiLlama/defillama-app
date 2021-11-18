@@ -5,8 +5,10 @@ import utc from 'dayjs/plugin/utc'
 import { Text } from 'rebass'
 import _Decimal from 'decimal.js-light'
 import toFormat from 'toformat'
-import { timeframeOptions } from '../constants'
 import Numeral from 'numeral'
+
+import { timeframeOptions } from '../constants'
+export * from './blockExplorers'
 
 // format libraries
 const Decimal = toFormat(_Decimal)
@@ -58,7 +60,10 @@ export function getTimeframe(timeWindow) {
 }
 
 export function slug(name) {
-  return name.toLowerCase().split(' ').join('-')
+  return name
+    .toLowerCase()
+    .split(' ')
+    .join('-')
 }
 
 export function localNumber(val) {
@@ -244,7 +249,7 @@ export function chainIconUrl(chain) {
 }
 
 export function tokenIconUrl(name) {
-  return `/icons/${name.toLowerCase().replace(" ", "-")}.jpg`
+  return `/icons/${name.toLowerCase().replace(' ', '-')}.jpg`
 }
 
 export function formattedPercent(percent, useBrackets = false) {
@@ -338,7 +343,18 @@ export function isEquivalent(a, b) {
 export function isValidProtocol(tokensObject, protocol) {
   try {
     const tokens = Object.values(tokensObject)
-    const isValid = tokens.some(token => (protocol.includes('-') && (token.name.toLowerCase().split(' ').join('-') === protocol)) || token.name.toLowerCase().split(' ').join('') === protocol)
+    const isValid = tokens.some(
+      token =>
+        (protocol.includes('-') &&
+          token.name
+            .toLowerCase()
+            .split(' ')
+            .join('-') === protocol) ||
+        token.name
+          .toLowerCase()
+          .split(' ')
+          .join('') === protocol
+    )
     return isValid
   } catch (error) {
     return false
@@ -363,7 +379,7 @@ export function getTokenAddressFromName(tokensObject, protocol) {
 export function getTokenIdFromName(tokensObject, protocol) {
   try {
     const tokens = Object.values(tokensObject)
-    const filteredToken = tokens.findIndex(token => token.name.toLowerCase().replace(" ", "-") === protocol)
+    const filteredToken = tokens.findIndex(token => token.name.toLowerCase().replace(' ', '-') === protocol)
     return filteredToken
   } catch (error) {
     return false
@@ -379,3 +395,11 @@ export function getTokenFromName(tokensObject, protocol) {
     return false
   }
 }
+
+export const capitalizeFirstLetter = word => word.charAt(0).toUpperCase() + word.slice(1)
+
+export const standardizeProtocolName = (tokenName = '') =>
+  tokenName
+    .toLowerCase()
+    .split(' ')
+    .join('-')

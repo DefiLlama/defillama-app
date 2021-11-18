@@ -11,182 +11,186 @@ import { TYPE } from '../../Theme'
 import RightSettings from '../RightSettings'
 
 import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconLarge, Wrapper } from './shared'
-import { tokenIconUrl, chainIconUrl } from '../../utils'
+import { useProtocolData } from 'contexts/ProtocolData'
+import { formatChainsForSearch, tokenIconUrl, standardizeTokenName } from 'utils'
 
 const defaultLinkPath = item => {
   if (item.isChain) {
     return '/chain/' + item.name
   }
-  return (
-    `/protocol/` +
-    item.name
-      ?.toLowerCase()
-      .split(' ')
-      .join('-')
-  )
+  return `/protocol/` + standardizeTokenName(item.name)
 }
 
-export default ({ small = false, includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { }, protocols, chainsSet }) => {
-  const searchKeys = ['symbol', 'name']
+const TokenSearch = ({
+  small = false,
+  includeChains = true,
+  linkPath = defaultLinkPath,
+  customOnLinkClick = () => {}
+}) => {
+  const { chains, protocols } = useProtocolData()
+  console.log(chains, protocols)
+  return null
+  // const searchData = useMemo(() => {
+  //   const chainData = includeChains ? formatChainsForSearch(chains) : []
+  //   return [
+  //     ...chainData,
+  //     ...protocols.filter(token => token.category !== 'Chain').map(token => ({ ...token, logo: tokenIconUrl(token) }))
+  //   ]
+  // }, [protocols, chains, includeChains])
 
-  const searchData = useMemo(() => {
-    const chainData = includeChains ? chainsSet.map(name => ({
-      logo: chainIconUrl(name),
-      isChain: true,
-      name,
-    })) : []
-    return [...chainData, ...protocols.map(token => ({ ...token, logo: tokenIconUrl(token.name) }))]
-  }, [protocols, chainsSet])
+  // const [showMenu, toggleMenu] = useState(false)
+  // const [value, setValue] = useState('')
 
-  const [showMenu, toggleMenu] = useState(false)
-  const [value, setValue] = useState('')
+  // const below700 = useMedia('(max-width: 700px)')
+  // const below470 = useMedia('(max-width: 470px)')
+  // const below410 = useMedia('(max-width: 410px)')
 
-  const below700 = useMedia('(max-width: 700px)')
-  const below470 = useMedia('(max-width: 470px)')
-  const below410 = useMedia('(max-width: 410px)')
+  // useEffect(() => {
+  //   if (value !== '') {
+  //     toggleMenu(true)
+  //   } else {
+  //     toggleMenu(false)
+  //   }
+  // }, [value])
 
-  useEffect(() => {
-    if (value !== '') {
-      toggleMenu(true)
-    } else {
-      toggleMenu(false)
-    }
-  }, [value])
+  // function escapeRegExp(string) {
+  //   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
+  // }
 
-  function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
-  }
+  // const [tokensShown, setTokensShown] = useState(3)
 
-  const [tokensShown, setTokensShown] = useState(3)
+  // const filteredTokenList = useMemo(() => {
+  //   const searchKeys = ['symbol', 'name']
 
-  const filteredTokenList = useMemo(() => {
-    if (!showMenu) {
-      return []
-    }
-    if (value === '') {
-      return searchData.slice(0, tokensShown)
-    }
-    return searchData
-      ? searchData
-        .filter(token => {
-          const regexMatches = searchKeys.map(tokenEntryKey => {
-            return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
-          })
-          return regexMatches.some(m => m)
-        })
-        .slice(0, tokensShown)
-      : []
-  }, [searchData, value, tokensShown, showMenu, searchKeys])
+  //   if (!showMenu) {
+  //     return []
+  //   }
+  //   if (value === '') {
+  //     return searchData.slice(0, tokensShown)
+  //   }
+  //   return searchData
+  //     ? searchData
+  //         .filter(token => {
+  //           const regexMatches = searchKeys.map(tokenEntryKey => {
+  //             return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
+  //           })
+  //           return regexMatches.some(m => m)
+  //         })
+  //         .slice(0, tokensShown)
+  //     : []
+  // }, [searchData, value, tokensShown, showMenu])
 
-  const onDismiss = token => () => {
-    setTokensShown(3)
-    toggleMenu(false)
-    setValue('')
-    customOnLinkClick(token)
-  }
+  // const onDismiss = token => () => {
+  //   setTokensShown(3)
+  //   toggleMenu(false)
+  //   setValue('')
+  //   customOnLinkClick(token)
+  // }
 
-  // refs to detect clicks outside modal
-  const wrapperRef = useRef()
-  const menuRef = useRef()
+  // // refs to detect clicks outside modal
+  // const wrapperRef = useRef()
+  // const menuRef = useRef()
 
-  const handleClick = e => {
-    if (
-      !(menuRef.current && menuRef.current.contains(e.target)) &&
-      !(wrapperRef.current && wrapperRef.current.contains(e.target))
-    ) {
-      setTokensShown(3)
-      toggleMenu(false)
-    }
-  }
+  // const handleClick = e => {
+  //   if (
+  //     !(menuRef.current && menuRef.current.contains(e.target)) &&
+  //     !(wrapperRef.current && wrapperRef.current.contains(e.target))
+  //   ) {
+  //     setTokensShown(3)
+  //     toggleMenu(false)
+  //   }
+  // }
 
-  useEffect(() => {
-    document.addEventListener('keyup', e => {
-      if (e.key === '/') {
-        document.getElementsByClassName('searchbox')[0].focus()
-      }
-    })
-    document.addEventListener('click', handleClick)
-    return () => {
-      document.removeEventListener('click', handleClick)
-    }
-  }, [])
+  // useEffect(() => {
+  //   document.addEventListener('keyup', e => {
+  //     if (e.key === '/') {
+  //       document.getElementsByClassName('searchbox')[0].focus()
+  //     }
+  //   })
+  //   document.addEventListener('click', handleClick)
+  //   return () => {
+  //     document.removeEventListener('click', handleClick)
+  //   }
+  // }, [])
 
-  return (
-    <div
-      style={
-        small
-          ? {
-            display: 'flex',
-            alignItems: 'center'
-          }
-          : {}
-      }
-    >
-      <Container small={small}>
-        <Wrapper open={showMenu} shadow={true} small={small}>
-          <Input
-            large={!small}
-            type={'text'}
-            className="searchbox"
-            autocomplete="off"
-            ref={wrapperRef}
-            placeholder={
-              small
-                ? ''
-                : below410
-                  ? 'Search...'
-                  : below470
-                    ? 'Search DeFi...'
-                    : below700
-                      ? 'Search protocols...'
-                      : 'Search DeFi protocols...'
-            }
-            value={value}
-            onChange={e => {
-              setValue(e.target.value)
-            }}
-            onFocus={() => {
-              if (!showMenu) {
-                toggleMenu(true)
-              }
-            }}
-          />
-          {!showMenu ? <SearchIconLarge /> : <CloseIcon onClick={() => toggleMenu(false)} />}
-        </Wrapper>
-        <Menu hide={!showMenu} ref={menuRef}>
-          <div>
-            {filteredTokenList.length === 0 && (
-              <MenuItem>
-                <TYPE.body>No results</TYPE.body>
-              </MenuItem>
-            )}
-            {filteredTokenList.map(token => {
-              return (
-                <BasicLink href={linkPath(token)} key={token.id} onClick={onDismiss(token)}>
-                  <MenuItem>
-                    <RowFixed>
-                      <TokenLogo address={token.address} logo={token.logo} style={{ marginRight: '10px' }} />
-                      <FormattedName text={token.name} maxCharacters={20} style={{ marginRight: '6px' }} />
-                      <FormattedName text={token.symbol && `(${token.symbol})`} maxCharacters={6} />
-                    </RowFixed>
-                  </MenuItem>
-                </BasicLink>
-              )
-            })}
+  // return (
+  //   <div
+  //     style={
+  //       small
+  //         ? {
+  //             display: 'flex',
+  //             alignItems: 'center'
+  //           }
+  //         : {}
+  //     }
+  //   >
+  //     <Container small={small}>
+  //       <Wrapper open={showMenu} shadow={true} small={small}>
+  //         <Input
+  //           large={!small}
+  //           type={'text'}
+  //           className="searchbox"
+  //           autocomplete="off"
+  //           ref={wrapperRef}
+  //           placeholder={
+  //             small
+  //               ? ''
+  //               : below410
+  //               ? 'Search...'
+  //               : below470
+  //               ? 'Search DeFi...'
+  //               : below700
+  //               ? 'Search protocols...'
+  //               : 'Search DeFi protocols...'
+  //           }
+  //           value={value}
+  //           onChange={e => {
+  //             setValue(e.target.value)
+  //           }}
+  //           onFocus={() => {
+  //             if (!showMenu) {
+  //               toggleMenu(true)
+  //             }
+  //           }}
+  //         />
+  //         {!showMenu ? <SearchIconLarge /> : <CloseIcon onClick={() => toggleMenu(false)} />}
+  //       </Wrapper>
+  //       <Menu hide={!showMenu} ref={menuRef}>
+  //         <div>
+  //           {filteredTokenList.length === 0 && (
+  //             <MenuItem>
+  //               <TYPE.body>No results</TYPE.body>
+  //             </MenuItem>
+  //           )}
+  //           {filteredTokenList.map(token => {
+  //             return (
+  //               <BasicLink to={linkPath(token)} key={token.id} onClick={onDismiss(token)}>
+  //                 <MenuItem>
+  //                   <RowFixed>
+  //                     <TokenLogo address={token.address} logo={token.logo} style={{ marginRight: '10px' }} />
+  //                     <FormattedName text={token.name} maxCharacters={20} style={{ marginRight: '6px' }} />
+  //                     <FormattedName text={token.symbol && `(${token.symbol})`} maxCharacters={6} />
+  //                   </RowFixed>
+  //                 </MenuItem>
+  //               </BasicLink>
+  //             )
+  //           })}
 
-            <Heading>
-              <Blue
-                onClick={() => {
-                  setTokensShown(tokensShown + 5)
-                }}
-              >
-                See more...
-              </Blue>
-            </Heading>
-          </div>
-        </Menu>
-      </Container>
-      {small && <RightSettings />}
-    </div>
-  )
+  //           <Heading>
+  //             <Blue
+  //               onClick={() => {
+  //                 setTokensShown(tokensShown + 5)
+  //               }}
+  //             >
+  //               See more...
+  //             </Blue>
+  //           </Heading>
+  //         </div>
+  //       </Menu>
+  //     </Container>
+  //     {small && <RightSettings />}
+  //   </div>
+  // )
 }
+
+export default TokenSearch
