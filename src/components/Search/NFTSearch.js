@@ -15,7 +15,7 @@ import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconL
 import { fetchAPI } from '../../contexts/API'
 import { NFT_SEARCH_API } from '../../constants'
 
-export default ({ small = false }) => {
+const NFTSearch = ({ small = false }) => {
   const linkPath = (collection) => `/nfts/collection/${collection.slug}`
 
   const [showMenu, toggleMenu] = useState(false)
@@ -152,4 +152,6 @@ export default ({ small = false }) => {
       {small && <RightSettings />}
     </div>
   )
-}
+};
+
+export default NFTSearch;
