@@ -26,7 +26,7 @@ const Link = styled(WrappedLink)`
 
 export default Link
 
-export const CustomLink = styled(RouterLink)`
+export const CustomLinkStyle = styled.a`
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -44,7 +44,16 @@ export const CustomLink = styled(RouterLink)`
   }
 `
 
-export const BasicLink = styled(RouterLink)`
+export const CustomLink = ({ href, children }) => {
+  // Must add passHref to Link
+  return (
+    <RouterLink href={href} passHref>
+      <CustomLinkStyle>{children}</CustomLinkStyle>
+    </RouterLink>
+  )
+}
+
+export const BasicLinkStyle = styled.a`
   text-decoration: none;
   color: inherit;
   &:hover {
@@ -53,3 +62,8 @@ export const BasicLink = styled(RouterLink)`
     underline: none;
   }
 `
+
+export const BasicLink = ({ href, children }) =>
+  <RouterLink href={href} passHref>
+    <BasicLinkStyle>{children}</BasicLinkStyle>
+  </RouterLink>

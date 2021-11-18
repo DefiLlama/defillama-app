@@ -44,7 +44,7 @@ function AllTokensPage({ title, category, selectedChain = 'All', chainsSet, filt
             <FullWrapper>
                 <RowBetween>
                     <TYPE.largeHeader>{title}</TYPE.largeHeader>
-                    {!below600 && <Search small={true} protocols={filteredTokens} chainsSet={chainsSet} />}
+                    {!below600 && <Search small={true} />}
                 </RowBetween>
                 {showChainList &&
                     <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>

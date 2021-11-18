@@ -108,18 +108,16 @@ const ProtocolButtonElement = styled(FormattedName)`
   white-space: nowrap;
 `
 
-const ProtocolButton = React.forwardRef(({ item, below600, onClick, href }, ref) => {
+const ProtocolButton = ({ item, below600 }) => {
   return (
-    <a href={href} onClick={onClick} ref={ref}>
-      <ProtocolButtonElement
-        text={item.symbol === "-" ? item.name : `${item.name} (${item.symbol})`}
-        maxCharacters={below600 ? 8 : 16}
-        adjustSize={true}
-        link={true}
-      />
-    </a>
+    <ProtocolButtonElement
+      text={item.symbol === "-" ? item.name : `${item.name} (${item.symbol})`}
+      maxCharacters={below600 ? 8 : 16}
+      adjustSize={true}
+      link={true}
+    />
   )
-})
+}
 
 const Index = styled.div`
   margin-right: 1rem;
@@ -197,7 +195,6 @@ function TokenList({ tokens, filters, iconUrl = tokenIconUrl, generateLink = nam
             <TokenLogo logo={iconUrl(item.name)} />
             <CustomLink
               href={generateLink(item.name)}
-              passHref
             >
               <ProtocolButton item={item} below600={below600} />
             </CustomLink>
