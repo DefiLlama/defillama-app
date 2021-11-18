@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 
+import { PieChart, Pie, Sector, Cell } from 'recharts';
 import { TYPE } from '../Theme'
 import Panel from '../components/Panel'
 import { AutoRow, RowBetween } from '../components/Row'
@@ -58,46 +59,130 @@ function download(filename, text) {
     document.body.removeChild(element);
 }
 
-const StackedChart = ({ stackOffset, yFormatter, formatPercent, stackedDataset, chainsUnique, chainColor, daySum, isMobile }) => <Panel
+
+
+const renderActiveShape = (props) => {
+    const RADIAN = Math.PI / 180;
+    const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, payload, percent, value } = props;
+    const fill = payload.color;
+    const sin = Math.sin(-RADIAN * midAngle);
+    const cos = Math.cos(-RADIAN * midAngle);
+    const sx = cx + (outerRadius + 10) * cos;
+    const sy = cy + (outerRadius + 10) * sin;
+    const mx = cx + (outerRadius + 30) * cos;
+    const my = cy + (outerRadius + 30) * sin;
+    const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+    const ey = my;
+    const textAnchor = cos >= 0 ? 'start' : 'end';
+
+    return (
+        <g>
+            <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
+                {payload.name}
+            </text>
+            <Sector
+                cx={cx}
+                cy={cy}
+                innerRadius={innerRadius}
+                outerRadius={outerRadius}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                fill={fill}
+            />
+            <Sector
+                cx={cx}
+                cy={cy}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                innerRadius={outerRadius + 6}
+                outerRadius={outerRadius + 10}
+                fill={fill}
+            />
+            <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
+            <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+            <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#777">{`TVL ${toK(value)}`}</text>
+            <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">
+                {`(Rate ${(percent * 100).toFixed(2)}%)`}
+            </text>
+        </g>
+    );
+};
+const ChainPieChart = ({ data, onPieEnter, activeIndex, isMobile, chainColor }) => {
+    const coloredData = data.map(c => ({ ...c, color: chainColor[c.name] }));
+    return <ChartWrapper isMobile={isMobile}>
+        <PieChart>
+            <Pie
+                activeIndex={activeIndex}
+                activeShape={renderActiveShape}
+                data={coloredData}
+                cx="50%"
+                cy="50%"
+                innerRadius={110}
+                outerRadius={140}
+                fill="#8884d8"
+                dataKey="value"
+                onMouseEnter={onPieEnter}
+            >
+                {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={coloredData[index].color} />
+                ))}
+            </Pie>
+        </PieChart>
+    </ChartWrapper>
+}
+
+
+
+
+const ChartWrapper = ({ children, isMobile }) => <Panel
     style={{ height: '100%', margin: '0.5em' }}>
     <ResponsiveContainer aspect={isMobile ? 60 / 44 : 60 / 36}>
-        <AreaChart
-            data={stackedDataset}
-            stackOffset={stackOffset}
-            margin={{
-                top: 10,
-                right: 30,
-                left: 0,
-                bottom: 0
-            }}
-        >
-            <XAxis dataKey="date"
-                tickFormatter={toNiceMonthlyDate}
-            />
-            <YAxis
-                tickFormatter={tick => yFormatter(tick)}
-            />
-            <Tooltip
-                formatter={(val, chain, props) => formatPercent ? getPercent(val, daySum[props.payload.date]) : formattedNum(val)}
-                labelFormatter={label => toNiceDateYear(label)}
-                itemSorter={p => -p.value}
-            />
-            {chainsUnique.map(chainName => <Area
-                type="monotone"
-                dataKey={chainName}
-                key={chainName}
-                stackId="1"
-                fill={chainColor[chainName]}
-                stroke={chainColor[chainName]}
-            />
-            )}
-        </AreaChart>
+        {children}
     </ResponsiveContainer>
 </Panel>
 
-const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
+const StackedChart = ({ stackOffset, yFormatter, formatPercent, stackedDataset, chainsUnique, chainColor, daySum, isMobile }) => <ChartWrapper isMobile={isMobile}>
+    <AreaChart
+        data={stackedDataset}
+        stackOffset={stackOffset}
+        margin={{
+            top: 10,
+            right: 30,
+            left: 0,
+            bottom: 0
+        }}
+    >
+        <XAxis dataKey="date"
+            tickFormatter={toNiceMonthlyDate}
+        />
+        <YAxis
+            tickFormatter={tick => yFormatter(tick)}
+        />
+        <Tooltip
+            formatter={(val, chain, props) => formatPercent ? getPercent(val, daySum[props.payload.date]) : formattedNum(val)}
+            labelFormatter={label => toNiceDateYear(label)}
+            itemSorter={p => -p.value}
+        />
+        {chainsUnique.map(chainName => <Area
+            type="monotone"
+            dataKey={chainName}
+            key={chainName}
+            stackId="1"
+            fill={chainColor[chainName]}
+            stroke={chainColor[chainName]}
+        />
+        )}
+    </AreaChart>
+</ChartWrapper>
+
+const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentData }) => {
     const below800 = useMedia('(max-width: 800px)')
     const isMobile = useMedia('(max-width: 40em)')
+    const [activeIndex, setActiveIndex] = useState(0)
+
+    const onPieEnter = (_, index) => {
+        setActiveIndex(index)
+    };
 
     const chainColor = useMemo(() => Object.fromEntries(chainsUnique.map(chain => [chain, getRandomColor()])), [chainsUnique])
 
@@ -109,11 +194,11 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
         download("chains.csv", rows.map(r => r.join(',')).join('\n'))
     }
 
-    const stackedChart = <StackedChart
+    const stackedChart = <ChainPieChart
         yFormatter={toK}
-        formatPercent={false}
-        stackedDataset={stackedDataset}
-        chainsUnique={chainsUnique}
+        data={currentData}
+        onPieEnter={onPieEnter}
+        activeIndex={activeIndex}
         chainColor={chainColor}
         isMobile={isMobile}
     />
@@ -195,12 +280,15 @@ export async function getStaticProps() {
         return total
     }, {}))
 
+    const currentData = Object.entries(stackedDataset[stackedDataset.length - 1]).filter(entry => entry[0] !== "date").map(entry => ({ name: entry[0], value: entry[1] }))
+
     return {
         props: {
             chainsUnique,
             chainTvls,
             stackedDataset,
             daySum,
+            currentData
         }
     }
 }
