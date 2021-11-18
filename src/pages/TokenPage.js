@@ -114,7 +114,8 @@ const blockExplorers = {
   harmony: ['https://explorer.harmony.one/address/', 'Harmony Explorer'],
   tron: ['https://tronscan.org/#/', 'Tronscan'],
   kucoin: ['https://explorer.kcc.io/en/address/', 'KCC Explorer'],
-  iotex: ['https://iotexscan.io/address/', 'IoTeX Explorer']
+  iotex: ['https://iotexscan.io/address/', 'IoTeX Explorer'],
+  elrond: ['https://explorer.elrond.com/tokens/', 'Elrond Explorer'],
 }
 
 function TokenPage({ protocol, history, denomination, selectedChain }) {
