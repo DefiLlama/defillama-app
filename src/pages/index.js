@@ -4,12 +4,12 @@ import { getChainData } from '../utils/dataApi'
 import SearchDataProvider from 'contexts/SearchData'
 
 export async function getStaticProps({ params }) {
-    return getChainData(p => true)
+    return getChainData(() => true);
 }
 
 export default function HomePage(props) {
     return (
-        <SearchDataProvider protocolsAndChains={{ protocols: props.protocols, chains: props.chains }}>
+        <SearchDataProvider protocolsAndChains={{ protocolNames: props.filteredTokens, chainsSet: props.chainsSet }}>
             <GeneralLayout title="DefiLlama - DeFi Dashboard">
                 <ChainPage {...props} />
             </GeneralLayout>

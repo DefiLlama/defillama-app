@@ -106,7 +106,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
   let chartData = data;
   if (selectedChain !== "all") {
     chartData = chainTvls[selectedChain].tvl;
-    base = chartData[chartData.length - 1].totalLiquidityUSD;
+    base = chartData[chartData.length - 1][1];
     tokens = chainTvls[selectedChain].tokens;
     tokensInUsd = chainTvls[selectedChain].tokensInUsd
   }
@@ -137,9 +137,9 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
   let utcStartTime = 0
   if (timeWindow !== timeframeOptions.ALL_TIME) {
     utcStartTime = getTimeframe(timeWindow)
-    chartData = chartData?.filter(entry => entry.date >= utcStartTime)
-    tokens = tokens?.filter(entry => entry.date >= utcStartTime);
-    tokensInUsd = tokensInUsd?.filter(entry => entry.date >= utcStartTime)
+    chartData = chartData?.filter(entry => entry[0] >= utcStartTime)
+    tokens = tokens?.filter(entry => entry[0] >= utcStartTime);
+    tokensInUsd = tokensInUsd?.filter(entry => entry[0] >= utcStartTime)
   }
 
   //const domain = [dataMin => (dataMin > utcStartTime ? dataMin : utcStartTime), 'dataMax']
@@ -161,8 +161,8 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
       Object.entries(chainTvls).forEach(([chainToAdd, tvl]) => {
         tvl.tvl.forEach(dayTvl => {
           timeToTvl[dayTvl.date] = {
-            ...timeToTvl[dayTvl.date],
-            [chainToAdd]: dayTvl.totalLiquidityUSD
+            ...timeToTvl[dayTvl[0]],
+            [chainToAdd]: dayTvl[1]
           }
         })
       })
@@ -201,11 +201,10 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
             priceIndex++;
           }
           const price = denominationPrices[priceIndex - 1][1];
-          //console.log(join(new Date(date), a, '-'), price, chartData[i].totalLiquidityUSD, chartData[i].totalLiquidityUSD / price)
-          newChartData.push({
-            date: chartData[i].date,
-            totalLiquidityUSD: chartData[i].totalLiquidityUSD / price
-          })
+          newChartData.push([
+            chartData[i][0],
+            chartData[i][1] / price
+          ])
         }
         chartData = newChartData;
       } else {
@@ -215,10 +214,10 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
     if (denomination === DENOMINATIONS.Tokens) {
       chartData = [];
       tokens.forEach(tokenSnapshot => {
-        chartData.push({
-          date: tokenSnapshot.date,
-          totalLiquidityUSD: tokenSnapshot.tokens[balanceToken] ?? 0
-        })
+        chartData.push([
+          tokenSnapshot.date,
+          tokenSnapshot.tokens[balanceToken] ?? 0
+        ])
       })
     }
     let tokenSet = new Set()
@@ -402,7 +401,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               tickMargin={16}
               minTickGap={120}
               tickFormatter={formatDate}
-              dataKey="date"
+              dataKey="0"
               scale="time"
               type="number"
               tick={{ fill: textColor }}
@@ -449,7 +448,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
             }) :
               <Area
                 key={'other'}
-                dataKey={'totalLiquidityUSD'}
+                dataKey='1'
                 isAnimationActive={false}
                 stackId="2"
                 strokeWidth={2}
@@ -475,7 +474,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               minTickGap={80}
               tickMargin={14}
               tickFormatter={formatDate}
-              dataKey="date"
+              dataKey="0"
               scale="time"
               type="number"
               tick={{ fill: textColor }}

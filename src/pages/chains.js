@@ -107,7 +107,12 @@ const renderActiveShape = (props) => {
         </g>
     );
 };
-const ChainPieChart = ({ data, onPieEnter, activeIndex, isMobile, chainColor }) => {
+const ChainPieChart = ({ data, isMobile, chainColor }) => {
+    const [activeIndex, setActiveIndex] = useState(0)
+
+    const onPieEnter = (_, index) => {
+        setActiveIndex(index)
+    };
     const coloredData = data.map(c => ({ ...c, color: chainColor[c.name] }));
     return <ChartWrapper isMobile={isMobile}>
         <PieChart>
@@ -178,11 +183,6 @@ const StackedChart = ({ stackOffset, yFormatter, formatPercent, stackedDataset, 
 const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentData }) => {
     const below800 = useMedia('(max-width: 800px)')
     const isMobile = useMedia('(max-width: 40em)')
-    const [activeIndex, setActiveIndex] = useState(0)
-
-    const onPieEnter = (_, index) => {
-        setActiveIndex(index)
-    };
 
     const chainColor = useMemo(() => Object.fromEntries([...chainsUnique, "Other"].map(chain => [chain, getRandomColor()])), [chainsUnique])
 
@@ -197,8 +197,6 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
     const stackedChart = <ChainPieChart
         yFormatter={toK}
         data={currentData}
-        onPieEnter={onPieEnter}
-        activeIndex={activeIndex}
         chainColor={chainColor}
         isMobile={isMobile}
     />

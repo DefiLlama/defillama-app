@@ -4,11 +4,14 @@ function sumSection(protocols, sectionName) {
     return protocols.reduce((total, p) => total + (p[sectionName] ?? 0), 0)
 }
 
+export function getProtocolNames(protocols) {
+    return protocols.map(p => ({ name: p.name, symbol: p.symbol }));
+}
+
 export async function getChainData(filterFunction, chain, mapFunction = undefined, sortProtocols = false) {
     let [chartData, protocols] = await Promise.all(
         [CHART_API + (chain ? "/" + chain : ''), PROTOCOLS_API].map(url => fetch(url).then(r => r.json()))
     )
-    const protocolNames = protocols.protocols.map(p => ({ name: p.name, symbol: p.symbol }));
     protocols.protocols = protocols.protocols.filter(p => filterFunction(p))
     if (mapFunction !== undefined) {
         protocols.protocols = protocols.protocols.map(mapFunction)
@@ -16,26 +19,23 @@ export async function getChainData(filterFunction, chain, mapFunction = undefine
     if (sortProtocols) {
         protocols.protocols = protocols.protocols.sort((a, b) => b.tvl - a.tvl)
     }
-    const totalVolumeUSD = chartData[chartData.length - 1].totalLiquidityUSD
-    let volumeChangeUSD = 0;
+    const currentTvl = chartData[chartData.length - 1].totalLiquidityUSD
+    let tvlChange = 0;
     if (chartData.length > 1) {
-        volumeChangeUSD =
+        tvlChange =
             ((chartData[chartData.length - 1].totalLiquidityUSD - chartData[chartData.length - 2].totalLiquidityUSD) /
                 chartData[chartData.length - 2].totalLiquidityUSD) *
             100
-    } else {
-        volumeChangeUSD = 0
     }
 
     return {
         props: {
             ...(chain && { chain }),
-            protocolNames,
             chainsSet: protocols.chains,
             filteredTokens: protocols.protocols,
-            chart: chartData,
-            totalVolumeUSD,
-            volumeChangeUSD,
+            chart: chartData.map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
+            totalVolumeUSD: currentTvl,
+            volumeChangeUSD: tvlChange,
             totalStaking: sumSection(protocols.protocols, "staking"),
             totalPool2: sumSection(protocols.protocols, "pool2")
         }

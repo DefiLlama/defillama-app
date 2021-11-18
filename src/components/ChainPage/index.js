@@ -55,7 +55,7 @@ const PlaceholderChartPanel = styled(Panel)`
   }
 `
 
-function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, denomination, chainsSet, filteredTokens, chart: globalChart, totalStaking, protocolNames, totalPool2 }) {
+function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, denomination, chainsSet, filteredTokens, chart: globalChart, totalStaking, totalPool2 }) {
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
   // breakpoints
   const below800 = useMedia('(max-width: 800px)')
@@ -133,7 +133,7 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
       <ContentWrapper>
         <AutoColumn gap="24px" style={{ paddingBottom: below800 ? '0' : '24px' }}>
-          <Search protocols={protocolNames} chainsSet={chainsSet} />
+          <Search />
           {selectedChain === 'Fantom' && (
             <Panel background={true} style={{ textAlign: 'center' }}>
               <TYPE.main fontWeight={400}>

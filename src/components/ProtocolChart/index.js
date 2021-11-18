@@ -4,9 +4,6 @@ import TokenChart from '../TokenChart'
 import { usePool2Manager, useStakingManager } from '../../contexts/LocalStorage'
 
 const ProtocolChart = ({ chartData, protocol, small, tokens, tokensInUsd, chainTvls, misrepresentedTokens, color, denomination, selectedChain, chains, tokenData }) => {
-  // global historical data
-
-  // based on window, get starttim
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
 
@@ -21,44 +18,18 @@ const ProtocolChart = ({ chartData, protocol, small, tokens, tokensInUsd, chainT
           })
         }
       }
-      return chartData?.map(item => ({
-        date: item.date,
-        totalLiquidityUSD: item.totalLiquidityUSD + (stakingEnabled ? (tvlDictionary.staking?.[item.date] ?? 0) : 0) + (pool2Enabled ? (tvlDictionary.pool2?.[item.date] ?? 0) : 0)
-      }))
+      return chartData?.map(item => [
+        item[0],
+        item[1] + (stakingEnabled ? (tvlDictionary.staking?.[item[0]] ?? 0) : 0) + (pool2Enabled ? (tvlDictionary.pool2?.[item[0]] ?? 0) : 0)
+      ])
     }
     return chartData
   }, [chartData, stakingEnabled, pool2Enabled])
 
-  let change = 100;
-  if (chartDataFiltered.length > 1) {
-    change = ((chartDataFiltered[chartDataFiltered.length - 1].totalLiquidityUSD - chartDataFiltered[chartDataFiltered.length - 2].totalLiquidityUSD) / chartDataFiltered[chartDataFiltered.length - 2].totalLiquidityUSD) * 100;
-  }
-
-  // update the width on a window resize
-  const ref = useRef()
-  const isClient = typeof window === 'object'
-  const [width, setWidth] = useState(ref?.current?.container?.clientWidth)
-
-  useEffect(() => {
-    if (!isClient) {
-      return false
-    }
-    function handleResize() {
-      setWidth(ref?.current?.container?.clientWidth ?? width)
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [isClient, width]) // Empty array ensures that effect is only run on mount and unmount
-
   return (<TokenChart
     small={small}
     data={chartDataFiltered}
-    base={chartDataFiltered[chartDataFiltered.length - 1].totalLiquidityUSD}
-    baseChange={change}
     denomination={denomination}
-    title={`${protocol} TVL`}
-    field="totalLiquidityUSD"
-    width={width}
     tokens={tokens}
     tokensInUsd={tokensInUsd}
     chainTvls={chainTvls}

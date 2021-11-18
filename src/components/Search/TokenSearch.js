@@ -4,7 +4,6 @@ import { useMedia } from 'react-use'
 import RightSettings from '../RightSettings'
 
 import { CloseIcon, Container, Input, SearchIconLarge, Wrapper } from './shared'
-import { useProtocolData } from 'contexts/ProtocolData'
 import { standardizeProtocolName } from 'utils'
 import dynamic from 'next/dynamic'
 
@@ -17,7 +16,7 @@ const defaultLinkPath = item => {
 
 const OpenSearch = dynamic(() => import('./OpenTokenSearch'))
 
-const TokenSearch = ({ small = false, includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { }, protocols, chainsSet }) => {
+const TokenSearch = ({ small = false, includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { } }) => {
   const [showMenu, toggleMenu] = useState(false)
   const [value, setValue] = useState('')
 
@@ -77,7 +76,7 @@ const TokenSearch = ({ small = false, includeChains = true, linkPath = defaultLi
           />
           {!showMenu ? <SearchIconLarge /> : <CloseIcon onClick={() => toggleMenu(false)} />}
         </Wrapper>
-        {showMenu && <OpenSearch {...{ includeChains, linkPath, customOnLinkClick, protocols, chainsSet, wrapperRef, value, toggleMenu, }} />}
+        {showMenu && <OpenSearch {...{ includeChains, linkPath, customOnLinkClick, wrapperRef, value, toggleMenu, }} />}
       </Container>
       {small && <RightSettings />}
     </div>

@@ -10,6 +10,7 @@ import { TYPE } from '../../Theme'
 import { Blue, Heading, Menu, MenuItem } from './shared'
 import { useSearchData } from '../../contexts/SearchData'
 import { chainIconUrl, tokenIconUrl, standardizeTokenName } from '../../utils'
+import { PROTOCOLS_API } from 'constants'
 
 const defaultLinkPath = item => {
   if (item.isChain) {
@@ -24,9 +25,20 @@ function escapeRegExp(string) {
 
 const searchKeys = ['symbol', 'name']
 
-const TokenSearch = ({ includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { }, protocols, chainsSet, wrapperRef, value, toggleMenu }) => {
-  const data = useSearchData()
-  console.log(data)
+const TokenSearch = ({ includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { }, wrapperRef, value, toggleMenu }) => {
+  const [searcheableData, setSearcheableData] = useState(useSearchData())
+  const { protocolNames, chainsSet } = searcheableData;
+
+  useEffect(() => {
+    if (searcheableData.protocolNames.length <= 3) {
+      fetch(PROTOCOLS_API).then(res => res.json()).then(res => {
+        setSearcheableData({
+          protocolNames: res.protocols,
+          chainsSet: res.chains,
+        })
+      })
+    }
+  }, [searcheableData])
 
   const searchData = useMemo(() => {
     const chainData = includeChains ? chainsSet.map(name => ({
@@ -34,8 +46,8 @@ const TokenSearch = ({ includeChains = true, linkPath = defaultLinkPath, customO
       isChain: true,
       name,
     })) : []
-    return [...chainData, ...protocols.map(token => ({ ...token, logo: tokenIconUrl(token.name) }))]
-  }, [protocols, chainsSet])
+    return [...chainData, ...protocolNames.map(token => ({ ...token, logo: tokenIconUrl(token.name) }))]
+  }, [protocolNames, chainsSet])
 
   const [tokensShown, setTokensShown] = useState(3)
 
