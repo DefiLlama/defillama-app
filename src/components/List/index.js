@@ -116,8 +116,8 @@ const SORT_FIELD = {
   NAME: 'name',
   DAYONE: 'change_1d',
   DAYSEVEN: 'change_7d',
-  MCAPTVL: "mcaptvl",
-  FDVTVL: "fdvtvl",
+  MCAPTVL: 'mcaptvl',
+  FDVTVL: 'fdvtvl'
 }
 
 function TopTokenList({ tokens, itemMax = 100, defaultSortingField }) {
@@ -140,7 +140,7 @@ function TopTokenList({ tokens, itemMax = 100, defaultSortingField }) {
 
   const formattedTokens = tokens.map(protocol => ({
     ...protocol,
-    mcaptvl: (protocol.tvl !== 0 && protocol.mcap) ? protocol.mcap / protocol.tvl : null,
+    mcaptvl: protocol.tvl !== 0 && protocol.mcap ? protocol.mcap / protocol.tvl : null
   }))
   useEffect(() => {
     if (tokens && formattedTokens) {
@@ -157,7 +157,7 @@ function TopTokenList({ tokens, itemMax = 100, defaultSortingField }) {
       formattedTokens &&
       formattedTokens
         .sort((a, b) => {
-          if (typeof a[sortedColumn] === "string") {
+          if (typeof a[sortedColumn] === 'string') {
             return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
           }
           return parseFloat(a[sortedColumn] || 0) > parseFloat(b[sortedColumn] || 0)
@@ -179,29 +179,24 @@ function TopTokenList({ tokens, itemMax = 100, defaultSortingField }) {
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
               to={'/chain/' + item.name?.split(' ').join('-')}
             >
-              <FormattedName
-                text={item.name}
-                maxCharacters={below600 ? 8 : 16}
-                adjustSize={true}
-                link={true}
-              />
+              <FormattedName text={item.name} maxCharacters={below600 ? 8 : 16} adjustSize={true} link={true} />
             </CustomLink>
           </Row>
         </DataText>
         {!below1080 && (
-          <DataText area="numprotocols" color="text" fontWeight="500">
+          <DataText area="numprotocols" fontWeight="500">
             {formattedNum(item.num_protocols, false)}
           </DataText>
         )}
         {!below1080 && (
-          <DataText area="1dchange" color="text" fontWeight="500">
+          <DataText area="1dchange" fontWeight="500">
             {formattedPercent(item.change_1d, true)}
           </DataText>
         )}
         <DataText area="7dchange">{item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'}</DataText>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
         {!below680 && (
-          <DataText area="mcaptvl" color="text" fontWeight="500">
+          <DataText area="mcaptvl" fontWeight="500">
             {item.mcaptvl === null ? '-' : formattedNum(item.mcaptvl, false)}
           </DataText>
         )}
@@ -214,7 +209,6 @@ function TopTokenList({ tokens, itemMax = 100, defaultSortingField }) {
       <DashGrid center={true} style={{ height: 'fit-content', padding: '0 1.125rem 1rem 1.125rem' }}>
         <Flex alignItems="center" justifyContent="flexStart">
           <ClickableText
-            color="text"
             area="name"
             fontWeight="500"
             onClick={e => {
@@ -300,7 +294,7 @@ function TopTokenList({ tokens, itemMax = 100, defaultSortingField }) {
             )
           })}
       </List>
-      {maxPage > 1 &&
+      {maxPage > 1 && (
         <PageButtons>
           <div onClick={() => setPage(page === 1 ? page : page - 1)}>
             <Arrow faded={page === 1 ? true : false}>←</Arrow>
@@ -310,7 +304,7 @@ function TopTokenList({ tokens, itemMax = 100, defaultSortingField }) {
             <Arrow faded={page === maxPage ? true : false}>→</Arrow>
           </div>
         </PageButtons>
-      }
+      )}
     </ListWrapper>
   )
 }
