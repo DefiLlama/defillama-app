@@ -173,7 +173,7 @@ function TokenList({ tokens, filters }) {
           </DataText>
         )}
         {!below1080 && (
-          <DataText area="1dchange" color="text" fontWeight="500">
+          <DataText area="1dchange" fontWeight="500">
             {formattedPercent(item.change_1d, true)}
           </DataText>
         )}
