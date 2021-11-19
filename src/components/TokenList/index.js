@@ -180,7 +180,7 @@ function TokenList({ tokens, filters }) {
         <DataText area="7dchange">{item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'}</DataText>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
         {!below680 && (
-          <DataText area="mcaptvl" color="text" fontWeight="500">
+          <DataText area="mcaptvl" fontWeight="500">
             {item.mcaptvl === null || item.mcaptvl === undefined ? '-' : formattedNum(item.mcaptvl, false)}
           </DataText>
         )}
@@ -193,7 +193,6 @@ function TokenList({ tokens, filters }) {
       <DashGrid center={true} style={{ height: 'fit-content', padding: '0 1.125rem 1rem 1.125rem' }}>
         <Flex alignItems="center" justifyContent="flexStart">
           <ClickableText
-            color="text"
             area="name"
             fontWeight="500"
             onClick={e => {
