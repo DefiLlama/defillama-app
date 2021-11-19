@@ -183,19 +183,19 @@ function TopTokenList({ tokens }) {
           </DataText>
         )}
         {/*!below1080 && (
-          <DataText area="fdvtvl" color="text" fontWeight="500">
+          <DataText area="fdvtvl" fontWeight="500">
             {item.fdvtvl === null ? '-' : formattedNum(item.fdvtvl, false)}
           </DataText>
         )*/}
         {!below1080 && (
-          <DataText area="1dchange" color="text" fontWeight="500">
+          <DataText area="1dchange" fontWeight="500">
             {formattedPercent(item.change_1d, true)}
           </DataText>
         )}
         <DataText area="7dchange">{`${item.listed.toFixed(2)} days ago`}</DataText>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
         {!below680 && (
-          <DataText area="mcaptvl" color="text" fontWeight="500">
+          <DataText area="mcaptvl" fontWeight="500">
             {item.mcaptvl === null || item.mcaptvl === undefined ? '-' : formattedNum(item.mcaptvl, false)}
           </DataText>
         )}
@@ -208,7 +208,6 @@ function TopTokenList({ tokens }) {
       <DashGrid center={true} style={{ height: 'fit-content', padding: '0 1.125rem 1rem 1.125rem' }}>
         <Flex alignItems="center" justifyContent="flexStart">
           <ClickableText
-            color="text"
             area="name"
             fontWeight="500"
             onClick={e => {
