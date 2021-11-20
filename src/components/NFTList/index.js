@@ -113,6 +113,7 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
   const below680 = useMedia('(max-width: 680px)')
   const below600 = useMedia('(max-width: 600px)')
 
+  const displayCurrency = displayUsd ? "$" : "Ξ"
 
   const filteredList = useMemo(() => {
     return (
@@ -138,7 +139,7 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
             <TokenLogo address={item.address} logo={item.logo} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              to={'/nfts/collection/' + item.id}
+              to={'/nfts/collection/' + item.slug}
             >
               <FormattedName
                 text={`${item.name}`}
@@ -150,15 +151,15 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
           </Row>
         </DataText>
 
-        <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayUsd)}</DataText>
+        <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayCurrency)}</DataText>
         {
           !below1080 && (
             <DataText area="totalVolume" color="text" fontWeight="500">
-              {formattedNum(item.totalVolume, displayUsd)}
+              {formattedNum(item.totalVolume, displayCurrency)}
             </DataText>
           )
         }
-        <DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayUsd)}</DataText>
+        <DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayCurrency)}</DataText>
         {
           !below680 && (
             <DataText area="owners" color="text" fontWeight="500">

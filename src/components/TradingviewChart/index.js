@@ -31,6 +31,7 @@ const TradingViewChart = ({
   field,
   title,
   width,
+  units = "$",
   useWeekly = false
 }) => {
   // reference for DOM element to create with chart
@@ -125,7 +126,7 @@ const TradingViewChart = ({
           }
         },
         localization: {
-          priceFormatter: val => formattedNum(val, true)
+          priceFormatter: val => formattedNum(val, units)
         }
       })
 
@@ -173,7 +174,7 @@ const TradingViewChart = ({
             type === CHART_TYPES.BAR && !useWeekly ? '(24hr)' : ''
           }</div>` +
           `<div style="font-size: 22px; margin: 4px 0px; color:${textColor}" >` +
-          formattedNum(base ?? 0, true) +
+          formattedNum(base ?? 0, units) +
           (baseChange
             ? `<span style="margin-left: 10px; font-size: 16px; color: ${color};">${formattedPercentChange}</span>`
             : '') +
@@ -207,7 +208,7 @@ const TradingViewChart = ({
           toolTip.innerHTML =
             `<div style="font-size: 16px; margin: 4px 0px; color: ${textColor};">${title}</div>` +
             `<div style="font-size: 22px; margin: 4px 0px; color: ${textColor}">` +
-            formattedNum(price, true) +
+            formattedNum(price, units) +
             '</div>' +
             '<div>' +
             dateStr +

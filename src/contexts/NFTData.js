@@ -1,8 +1,23 @@
-import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react'
 
 import { useDisplayUsdManager } from './LocalStorage'
 import { fetchAPI } from './API'
-import { NFT_CHARTS_API, NFT_COLLECTIONS_API, UPDATE_ALL_NFT_COLLECTIONS, UPDATE_NFT_CHART } from '../constants'
+import {
+  NFT_COLLECTIONS_API,
+  NFT_COLLECTION_API,
+  NFT_STATISTICS_API,
+  NFT_TIMESERIES_API,
+  UPDATE_ALL_NFT_COLLECTIONS,
+  UPDATE_NFT_CHART,
+  UPDATE_NFT_STATISTICS,
+} from '../constants'
 
 const NFTDataContext = createContext()
 
@@ -24,6 +39,13 @@ function reducer(state, { type, payload }) {
       return {
         ...state,
         timeSeriesData,
+      }
+    }
+    case UPDATE_NFT_STATISTICS: {
+      const { statistics } = payload
+      return {
+        ...state,
+        statistics,
       }
     }
     default: {
@@ -49,6 +71,13 @@ export default function Provider({ children }) {
     })
   }, [])
 
+  const updateStatistics = useCallback(statistics => {
+    dispatch({
+      type: UPDATE_NFT_STATISTICS,
+      payload: { statistics },
+    })
+  }, [])
+
   return (
     <NFTDataContext.Provider
       value={[
@@ -56,6 +85,7 @@ export default function Provider({ children }) {
         {
           updateCollections,
           updateChart,
+          updateStatistics,
         }
       ]}
     >
@@ -80,10 +110,23 @@ const getCollections = async () => {
   }
 }
 
-const getChartData = async () => {
+export const getCollection = async (slug) => {
+  const data = await fetchAPI(`${NFT_COLLECTION_API}/${slug}`)
+  return data
+}
+
+const getChartData = async (slug = "all", statistic = "dailyVolume") => {
   try {
-    // let data = await fetchAPI(NFT_CHARTS_API)
-    let data = [];
+    const data = await fetchAPI(`${NFT_TIMESERIES_API}/${slug}/${statistic}`)
+    return data
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+const getStatisticsData = async () => {
+  try {
+    const data = await fetchAPI(NFT_STATISTICS_API)
     return data
   } catch (e) {
     console.log(e)
@@ -91,7 +134,7 @@ const getChartData = async () => {
 }
 
 export function Updater() {
-  const [, { updateCollections, updateChart }] = useNFTDataContext()
+  const [, { updateCollections, updateChart, updateStatistics }] = useNFTDataContext()
   useEffect(() => {
     async function getData() {
       const collections = await getCollections()
@@ -108,6 +151,14 @@ export function Updater() {
     fetchData()
   }, [updateChart])
 
+  useEffect(() => {
+    async function fetchStatistics() {
+      const statisticsData = await getStatisticsData()
+      updateStatistics(statisticsData)
+    }
+    fetchStatistics()
+  }, [updateStatistics])
+
   return null
 }
 
@@ -123,26 +174,48 @@ export function useNFTCollectionsData() {
   }))
 }
 
+export function useNFTCollection(slug) {
+  const [collection, setCollection] = useState(undefined)
+  const [error, setError] = useState(undefined)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const collection = await getCollection(slug);
+        if (collection.error) {
+          setError(collection.error);
+        } else {
+          setCollection(collection);
+        }
+      } catch (e) {
+        console.log(e)
+        setError(e)
+      }
+    }
+    fetchData();
+  }, [slug])
+
+  return { collection, error };
+}
+
 export function useNFTChartData() {
   const [state] = useNFTDataContext()
   return state.timeSeriesData
 }
 
-export function useNFTSummaryData() {
+export function useCollectionChartData(slug) {
+  const [chartData, setChartData] = useState(undefined)
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getChartData(slug)
+      setChartData(data)
+    }
+    fetchData()
+  }, [setChartData, slug])
+  return chartData
+}
+
+export function useNFTStatisticsData() {
   const [state] = useNFTDataContext()
-  // const { timeSeriesData } = state
-
-  const todayTotalMarketCap = state.collections.reduce((prevSum, collection) => prevSum + collection.marketCapUSD, 0)
-  const yesterdayTotalMarketCap = todayTotalMarketCap
-  // const todayTotalMarketCap = timeSeriesData[timeSeriesData.length - 1].totalMarketCapUSD
-  // const yesterdayTotalMarketCap = timeSeriesData[timeSeriesData.length - 2].totalMarketCapUSD
-  const marketCapChange = ((todayTotalMarketCap - yesterdayTotalMarketCap) / yesterdayTotalMarketCap * 100).toFixed(2)
-
-  const totalVolume = state.collections.reduce((prevSum, collection) => prevSum + collection.dailyVolumeUSD, 0)
-
-  return {
-    totalMarketCap: todayTotalMarketCap,
-    marketCapChange,
-    totalVolume,
-  }
+  return state.statistics
 }

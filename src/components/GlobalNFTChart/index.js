@@ -5,12 +5,13 @@ import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
 import { getTimeframe } from '../../utils'
 import { useNFTChartData } from '../../contexts/NFTData'
 
-const GlobalNFTChart = () => {
+const GlobalNFTChart = ({ collectionData }) => {
   // time window and window size for chart
-  const timeWindow = timeframeOptions.ALL_TIME
+  const timeWindow = timeframeOptions.YEAR
 
   // global historical data
-  const data = useNFTChartData()
+  const globalData = useNFTChartData()
+  const data = collectionData || globalData
   
   // based on window, get starttim
   let utcStartTime = getTimeframe(timeWindow)
@@ -34,6 +35,11 @@ const GlobalNFTChart = () => {
     )
   }, [utcStartTime, data])
 
+  let baseData = "0"
+  if (chartDataFiltered.length > 0) {
+    baseData = chartDataFiltered[chartDataFiltered.length - 1].dailyVolume
+  }
+
   // update the width on a window resize
   const ref = useRef()
   const isClient = typeof window === 'object'
@@ -52,12 +58,13 @@ const GlobalNFTChart = () => {
   return chartDataFiltered ? (
     <ResponsiveContainer aspect={60 / 28} ref={ref}>
       <TradingViewChart
-        data={data}
-        base={data[data.length - 1].totalMarketCapUSD}
-        title="Total Market Cap"
-        field="totalMarketCapUSD"
+        data={chartDataFiltered}
+        base={baseData}
+        title="Daily Volume ETH"
+        field="dailyVolume"
         width={width}
         type={CHART_TYPES.AREA}
+        units="Ξ"
       />
     </ResponsiveContainer>
   ) : (

@@ -17,7 +17,7 @@ import { TYPE, ThemedBackground } from '../Theme'
 
 import { useDisplayUsdManager } from '../contexts/LocalStorage'
 import { formattedNum } from '../utils'
-import { useNFTCollectionsData, useNFTSummaryData } from '../contexts/NFTData'
+import { useNFTCollectionsData, useNFTStatisticsData } from '../contexts/NFTData'
 import GlobalNFTChart from '../components/GlobalNFTChart'
 
 const ListOptions = styled(AutoRow)`
@@ -36,7 +36,7 @@ const extraChainOptions = []
 
 const NFTDashboard = ({ history }) => {
   const nftCollections = useNFTCollectionsData()
-  const { totalMarketCap, marketCapChange, totalVolume } = useNFTSummaryData()
+  const { totalVolumeUSD, dailyVolumeUSD, dailyChange } = useNFTStatisticsData()
 
   const [displayUsd] = useDisplayUsdManager()
   useEffect(() => window.scrollTo(0, 0))
@@ -83,11 +83,24 @@ const NFTDashboard = ({ history }) => {
               <Panel style={{ padding: '18px 25px' }}>
                 <AutoColumn gap="4px">
                   <RowBetween>
-                    <TYPE.heading>Total Market Cap (USD)</TYPE.heading>
+                    <TYPE.heading>Total Volume</TYPE.heading>
                   </RowBetween>
                   <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-                      {formattedNum(totalMarketCap, true)}
+                      {formattedNum(totalVolumeUSD, true)}
+                    </TYPE.main>
+                  </RowBetween>
+                </AutoColumn>
+              </Panel>
+
+              <Panel style={{ padding: '18px 25px' }}>
+                <AutoColumn gap="4px">
+                  <RowBetween>
+                    <TYPE.heading>Daily Volume</TYPE.heading>
+                  </RowBetween>
+                  <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+                    <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
+                      {formattedNum(dailyVolumeUSD, true)}
                     </TYPE.main>
                   </RowBetween>
                 </AutoColumn>
@@ -99,21 +112,8 @@ const NFTDashboard = ({ history }) => {
                     <TYPE.heading>Change (24h)</TYPE.heading>
                   </RowBetween>
                   <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                    <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-                      {formattedNum(marketCapChange, true)}
-                    </TYPE.main>
-                  </RowBetween>
-                </AutoColumn>
-              </Panel>
-
-              <Panel style={{ padding: '18px 25px' }}>
-                <AutoColumn gap="4px">
-                  <RowBetween>
-                    <TYPE.heading>Daily Volume (USD)</TYPE.heading>
-                  </RowBetween>
-                  <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-                      {formattedNum(totalVolume, true)}
+                      {dailyChange.toFixed(2)}%
                     </TYPE.main>
                   </RowBetween>
                 </AutoColumn>
@@ -134,11 +134,24 @@ const NFTDashboard = ({ history }) => {
                 <Panel style={{ padding: '18px 25px' }}>
                   <AutoColumn gap="4px">
                     <RowBetween>
-                      <TYPE.heading>Total Market Cap (USD)</TYPE.heading>
+                      <TYPE.heading>Total Volume</TYPE.heading>
                     </RowBetween>
                     <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                       <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-                        {formattedNum(totalMarketCap, true)}
+                        {formattedNum(totalVolumeUSD, true)}
+                      </TYPE.main>
+                    </RowBetween>
+                  </AutoColumn>
+                </Panel>
+
+                <Panel style={{ padding: '18px 25px' }}>
+                  <AutoColumn gap="4px">
+                    <RowBetween>
+                      <TYPE.heading>Daily Volume</TYPE.heading>
+                    </RowBetween>
+                    <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+                      <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
+                        {formattedNum(dailyVolumeUSD, true)}
                       </TYPE.main>
                     </RowBetween>
                   </AutoColumn>
@@ -150,28 +163,15 @@ const NFTDashboard = ({ history }) => {
                       <TYPE.heading>Change (24h)</TYPE.heading>
                     </RowBetween>
                     <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                      <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-                        {marketCapChange}%
-                      </TYPE.main>
-                    </RowBetween>
-                  </AutoColumn>
-                </Panel>
-
-                <Panel style={{ padding: '18px 25px' }}>
-                  <AutoColumn gap="4px">
-                    <RowBetween>
-                      <TYPE.heading>Daily Volume (USD)</TYPE.heading>
-                    </RowBetween>
-                    <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
                       <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-                        {formattedNum(totalVolume, true)}
+                        {dailyChange.toFixed(2)}%
                       </TYPE.main>
                     </RowBetween>
                   </AutoColumn>
                 </Panel>
               </AutoColumn>
               <Panel style={{ height: '100%', minHeight: '300px' }}>
-                {/* <GlobalNFTChart /> */}
+                <GlobalNFTChart />
               </Panel>
             </AutoRow>
           )}
@@ -179,7 +179,7 @@ const NFTDashboard = ({ history }) => {
           {below800 && (
             <AutoColumn style={{ marginTop: '6px' }} gap="24px">
               <Panel style={{ height: '100%', minHeight: '300px' }}>
-                {/* <GlobalNFTChart /> */}
+                <GlobalNFTChart />
               </Panel>
             </AutoColumn>
           )}

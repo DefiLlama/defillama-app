@@ -6,16 +6,16 @@ import NFTDashboard from './pages/NFTDashboard'
 import NFTPage from './pages/NFTPage'
 import AboutPage from './pages/AboutPage'
 
-import { useNFTChartData, useNFTCollectionsData } from './contexts/NFTData'
-import { isValidCollection } from './utils'
+import { useNFTChartData, useNFTCollectionsData, useNFTStatisticsData } from './contexts/NFTData'
 import LocalLoader from './components/LocalLoader'
 
 function App() {
   const [savedOpen, setSavedOpen] = useState(false)
   const nftCollections = useNFTCollectionsData()
   const nftChartData = useNFTChartData()
+  const nftStatistics = useNFTStatisticsData()
 
-  if (nftCollections.length === 0 || nftChartData === undefined) {
+  if (nftCollections.length === 0 || nftChartData === undefined || nftStatistics === undefined) {
     return <AppWrapper><BrowserRouter><LocalLoader fill="true" /></BrowserRouter></AppWrapper>
   }
 
@@ -26,20 +26,14 @@ function App() {
           <Route
             exacts
             strict
-            path="/nfts/collection/:collection"
-            render={({ match }) => {
-              if (isValidCollection(nftCollections, match.params.collection)) {
-                return (
-                  <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-                    <NFTPage
-                      collection={match.params.collection}
-                    />
-                  </LayoutWrapper>
-                )
-              } else {
-                return <Redirect to="/nfts" />
-              }
-            }}
+            path="/nfts/collection/:slug"
+            render={({ match }) => (
+              <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+                <NFTPage
+                  slug={match.params.slug}
+                />
+              </LayoutWrapper>
+            )}
           />
 
           <Route path="/nfts/about">
