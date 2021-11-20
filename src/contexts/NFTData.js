@@ -115,7 +115,7 @@ export const getCollection = async (slug) => {
   return data
 }
 
-const getChartData = async (slug = "total", statistic = "dailyVolume") => {
+const getChartData = async (slug = "all", statistic = "dailyVolume") => {
   try {
     const data = await fetchAPI(`${NFT_TIMESERIES_API}/${slug}/${statistic}`)
     return data
@@ -201,6 +201,18 @@ export function useNFTCollection(slug) {
 export function useNFTChartData() {
   const [state] = useNFTDataContext()
   return state.timeSeriesData
+}
+
+export function useCollectionChartData(slug) {
+  const [chartData, setChartData] = useState(undefined)
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getChartData(slug)
+      setChartData(data)
+    }
+    fetchData()
+  }, [setChartData, slug])
+  return chartData
 }
 
 export function useNFTStatisticsData() {

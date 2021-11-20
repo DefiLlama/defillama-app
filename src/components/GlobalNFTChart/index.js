@@ -5,12 +5,13 @@ import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
 import { getTimeframe } from '../../utils'
 import { useNFTChartData } from '../../contexts/NFTData'
 
-const GlobalNFTChart = () => {
+const GlobalNFTChart = ({ collectionData }) => {
   // time window and window size for chart
   const timeWindow = timeframeOptions.YEAR
 
   // global historical data
-  const data = useNFTChartData()
+  const globalData = useNFTChartData()
+  const data = collectionData || globalData
   
   // based on window, get starttim
   let utcStartTime = getTimeframe(timeWindow)
