@@ -8,10 +8,10 @@ import copy from 'copy-to-clipboard'
 export { default as useInfiniteScroll } from './useInfiniteScroll'
 export { default as useResize } from './useResize'
 
-export function useColor(tokenAddress, token) {
+export function useColor(tokenAddress, token, _path = undefined) {
   const [color, setColor] = useState('#2172E5')
-  if (tokenAddress) {
-    const path = getTokenLogoPathFromAddress(tokenAddress)
+  if (tokenAddress || _path) {
+    const path = _path || getTokenLogoPathFromAddress(tokenAddress)
     if (path) {
       Vibrant.from(path).getPalette((err, palette) => {
         if (palette && palette.Vibrant) {

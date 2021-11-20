@@ -15,9 +15,9 @@ import Panel from '../../components/Panel'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { useNFTCollection } from 'contexts/NFTData'
 import LocalLoader from 'components/LocalLoader'
+import { useColor } from 'hooks'
 
 export default function NFTPage({ slug }) {
-  const backgroundColor = '#2172E5'
   const below1600 = useMedia('(max-width: 1600px)')
   const below1024 = useMedia('(max-width: 1024px)')
   const below800 = useMedia('(max-width: 800px)')
@@ -26,6 +26,8 @@ export default function NFTPage({ slug }) {
   const below850 = useMedia('(max-width: 850px)')
 
   const { collection, error } = useNFTCollection(slug)
+  const { address, description, logo, name } = collection || {}
+  const backgroundColor = useColor(null, null, logo)
 
   if (error) {
     return <Redirect to="/nfts" />
@@ -34,8 +36,6 @@ export default function NFTPage({ slug }) {
   if (!collection) {
     return(<LocalLoader fill="true" />)
   }
-
-  const { address, description, logo, name } = collection
 
   return(
     <PageWrapper>
