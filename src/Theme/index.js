@@ -80,7 +80,9 @@ const theme = (darkMode, color) => ({
   bpSm: `${sm}px`,
   bpMed: `${med}px`,
   bpLg: `${lg}px`,
-  bpXl: `${xl}px`
+  bpXl: `${xl}px`,
+
+  breakpoints: [`${sm}px`, `${med}px`, `${lg}px`, `${xl}px`]
 })
 
 const TextWrapper = styled(Text)`
@@ -158,7 +160,7 @@ export const ThemedBackground = styled.div`
   mix-blend-mode: color;
   background: ${({ backgroundColor, theme }) =>
     `radial-gradient(50% 50% at 50% 50%, ${backgroundColor ||
-    transparentize(0.6, theme.primary1)} 0%, rgba(255, 255, 255, 0) 100%)`};
+      transparentize(0.6, theme.primary1)} 0%, rgba(255, 255, 255, 0) 100%)`};
   position: absolute;
   top: 0px;
   left: 0px;

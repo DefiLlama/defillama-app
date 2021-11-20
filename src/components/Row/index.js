@@ -17,7 +17,7 @@ export const RowBetween = styled(Row)`
   justify-content: space-between;
 `
 
-export const RowFlat = styled.div`
+export const RowFlat = styled(Box)`
   display: flex;
   align-items: flex-end;
 `
