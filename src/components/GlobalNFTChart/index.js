@@ -35,6 +35,11 @@ const GlobalNFTChart = ({ collectionData }) => {
     )
   }, [utcStartTime, data])
 
+  let baseData = "0"
+  if (chartDataFiltered.length > 0) {
+    baseData = chartDataFiltered[chartDataFiltered.length - 1].dailyVolume
+  }
+
   // update the width on a window resize
   const ref = useRef()
   const isClient = typeof window === 'object'
@@ -54,7 +59,7 @@ const GlobalNFTChart = ({ collectionData }) => {
     <ResponsiveContainer aspect={60 / 28} ref={ref}>
       <TradingViewChart
         data={chartDataFiltered}
-        base={data[data.length - 1].dailyVolume}
+        base={baseData}
         title="Daily Volume ETH"
         field="dailyVolume"
         width={width}
