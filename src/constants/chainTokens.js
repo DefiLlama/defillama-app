@@ -333,6 +333,11 @@ export const chainCoingeckoIds = {
     symbol: "EGLD",
     cmcId: "6892",
   },
+  Stellar: {
+    geckoId: "stellar",
+    symbol: "XLM",
+    cmcId: "512",
+  },
 }
 
 // TODO remove these from nft and use chains from token context
