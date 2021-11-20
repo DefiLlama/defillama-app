@@ -1,4 +1,5 @@
 import React from 'react'
+import { Redirect } from 'react-router-dom'
 import { transparentize } from 'polished'
 import { useMedia } from 'react-use'
 
@@ -12,8 +13,10 @@ import FormattedName from '../../components/FormattedName'
 import { Hover, PageWrapper, ContentWrapper, StyledIcon } from '../../components'
 import Panel from '../../components/Panel'
 import { TYPE, ThemedBackground } from '../../Theme'
+import { useNFTCollection } from 'contexts/NFTData'
+import LocalLoader from 'components/LocalLoader'
 
-export default function NFTPage({ collection }) {
+export default function NFTPage({ slug }) {
   const backgroundColor = '#2172E5'
   const below1600 = useMedia('(max-width: 1600px)')
   const below1024 = useMedia('(max-width: 1024px)')
@@ -22,10 +25,17 @@ export default function NFTPage({ collection }) {
   const below500 = useMedia('(max-width: 500px)')
   const below850 = useMedia('(max-width: 850px)')
 
-  const address = '0x'
-  const logo = 'placeholder'
-  const name = 'placeholder'
-  const description = 'placeholder'
+  const { collection, error } = useNFTCollection(slug)
+
+  if (error) {
+    return <Redirect to="/nfts" />
+  }
+
+  if (!collection) {
+    return(<LocalLoader fill="true" />)
+  }
+
+  const { address, description, logo, name } = collection
 
   return(
     <PageWrapper>
