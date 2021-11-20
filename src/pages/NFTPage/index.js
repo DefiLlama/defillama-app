@@ -5,6 +5,7 @@ import { useMedia } from 'react-use'
 
 import Header from './Header'
 import Section from './Section'
+import Links from './Links'
 
 import { AutoRow, RowBetween, RowFixed } from '../../components/Row'
 import Chart from '../../components/Chart'
@@ -26,7 +27,22 @@ export default function NFTPage({ slug }) {
   const below850 = useMedia('(max-width: 850px)')
 
   const { collection, error } = useNFTCollection(slug)
-  const { address, description, logo, name } = collection || {}
+  const {
+    address,
+    description,
+    logo,
+    name,
+    website,
+    twitterUsername,
+    discordUrl,
+    telegramUrl
+  } = collection || {}
+  const links = {
+    website,
+    discord: discordUrl,
+    telegram: telegramUrl,
+    twitter: twitterUsername ? `https://twitter.com/${twitterUsername}` : "",
+  }
   const backgroundColor = useColor(null, null, logo)
 
   if (error) {
@@ -46,7 +62,7 @@ export default function NFTPage({ slug }) {
           <PanelWrapper>
             <Section title="Description" content={description} />
             <Section title="Market Cap" content={description} />
-            <Section title="Links" content={description} />
+            <Section title="Links" content={<Links logo={logo} links={links} />} />
 
             <Panel style={{ gridColumn: below1024 ? '1' : '2/4', gridRow: below1024 ? '' : '1/4' }}>
               <Chart />
