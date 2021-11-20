@@ -435,7 +435,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               wrapperStyle={{ top: -70, left: -10 }}
             />
             {(tokenData?.hallmarks ?? []).map((hallmark, i) =>
-              <ReferenceLine x={hallmark[0]} stroke={textColor} label={{ value: hallmark[1], fill: textColor, position: "insideTop", offset: (i * 50) % 300 + 50 }} />
+              <ReferenceLine x={hallmark[0]} stroke={textColor} label={{ value: hallmark[1], fill: textColor, position: "insideTop", offset: (i * 50) % 200 + 50 }} />
             )}
             {tokensUnique.length > 0 ? tokensUnique.map(tokenSymbol => {
               const randomColor = stringToColour();
