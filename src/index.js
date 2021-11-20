@@ -12,19 +12,22 @@ import App from './App'
 import NFTApp from './NFTApp'
 import * as Sentry from "@sentry/react";
 import { Integrations } from "@sentry/tracing";
-Sentry.init({
-  dsn: "https://6275aede5b894e458928c7995635dd1d@o555782.ingest.sentry.io/6034860",
-  integrations: [new Integrations.BrowserTracing()],
-  ignoreErrors: [
-    "ResizeObserver loop limit exceeded",
-    "ResizeObserver loop completed with undelivered notifications."
-  ],
 
-  // Set tracesSampleRate to 1.0 to capture 100%
-  // of transactions for performance monitoring.
-  // We recommend adjusting this value in production
-  tracesSampleRate: 1.0,
-});
+if (process.env.NODE_ENV === 'production') {
+  Sentry.init({
+    dsn: "https://6275aede5b894e458928c7995635dd1d@o555782.ingest.sentry.io/6034860",
+    integrations: [new Integrations.BrowserTracing()],
+    ignoreErrors: [
+      "ResizeObserver loop limit exceeded",
+      "ResizeObserver loop completed with undelivered notifications."
+    ],
+
+    // Set tracesSampleRate to 1.0 to capture 100%
+    // of transactions for performance monitoring.
+    // We recommend adjusting this value in production
+    tracesSampleRate: 1.0,
+  });
+}
 
 function ContextProviders({ children }) {
   return (
