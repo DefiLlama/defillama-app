@@ -1,25 +1,26 @@
-import React from "react"
-import styled from "styled-components"
-import { transparentize } from "polished"
+import React from 'react'
+import styled from 'styled-components'
+import { transparentize } from 'polished'
 
-import { AutoColumn } from "../Column"
-import { BasicLink } from "../Link"
-import Link from "../Link"
-import Toggle from "../Toggle"
-import { TYPE } from "../../Theme"
+import { AutoColumn } from '../Column'
+import { BasicLink } from '../Link'
+import Link from '../Link'
+import Toggle from '../Toggle'
+import { TYPE } from '../../Theme'
 
 export const Wrapper = styled.div`
-  height: ${({ isMobile }) => (isMobile ? "initial" : "100vh")};
+  position: sticky;
+  height: ${({ isMobile }) => (isMobile ? 'initial' : '100vh')};
   background-color: ${({ theme }) => transparentize(0.4, theme.bg1)};
   color: ${({ theme }) => theme.text1};
   padding: 0.5rem 0.5rem 0.5rem 0.75rem;
-  position: sticky;
   top: 0px;
   z-index: 10000;
   box-sizing: border-box;
   /* background-color: #1b1c22; */
-  background: linear-gradient(168deg,#344179 3.98%,#445ed0 100%);
+  background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
   color: ${({ theme }) => theme.bg2};
+  min-width: 220px;
 
   @media screen and (max-width: 800px) {
     grid-template-columns: 1fr;
@@ -44,9 +45,9 @@ export const Option = styled.div`
 
 export const DesktopWrapper = styled.div`
   display: flex;
-  flex-direction: column;  
+  flex-direction: column;
   height: 100vh;
-  padding: 1.5rem 0.75rem; 
+  padding: 1.5rem 0.75rem;
   justify-content: space-between;
   box-sizing: border-box;
 `
@@ -78,14 +79,9 @@ export const ButtonWrapper = styled.div`
 `
 
 export const Entry = ({ url, name, history, Icon }) => (
-  <BasicLink href={"/" + url}>
-    <Option
-      activeText={
-        (history.location.pathname.split("/")[1] === url) ??
-        undefined
-      }
-    >
-      <Icon size={20} style={{ marginRight: ".75rem" }} />
+  <BasicLink href={'/' + url}>
+    <Option activeText={history.location.pathname.split('/')[1] === url ?? undefined}>
+      <Icon size={20} style={{ marginRight: '.75rem' }} />
       {name}
     </Option>
   </BasicLink>
@@ -93,7 +89,7 @@ export const Entry = ({ url, name, history, Icon }) => (
 
 export const Footer = ({ isDark, toggleDarkMode }) => (
   <>
-    <AutoColumn gap="0.5rem" style={{ paddingBottom: '1rem' }} >
+    <AutoColumn gap="0.5rem" style={{ paddingBottom: '1rem' }}>
       <HeaderText>
         <Link href="https://twitter.com/DefiLlama" target="_blank">
           Twitter

@@ -24,6 +24,10 @@ const RightColumn = styled.div`
   :hover {
     cursor: pointer;
   }
+
+  @media screen and (max-width: ${({ theme }) => theme.bpLg}) {
+    display: none;
+  }
 `
 
 const SavedButton = styled(RowBetween)`
@@ -38,7 +42,6 @@ const SavedButton = styled(RowBetween)`
 
 const ScrollableDiv = styled(AutoColumn)`
   overflow: auto;
-  padding-bottom: 60px;
 `
 
 const StyledIcon = styled.div`
