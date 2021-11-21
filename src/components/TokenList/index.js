@@ -13,7 +13,6 @@ import { Divider } from '..'
 import { formattedNum, formattedPercent, chainIconUrl, tokenIconUrl, slug } from '../../utils'
 import { useInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
-import { withRouter } from 'react-router-dom'
 import FormattedName from '../FormattedName'
 
 dayjs.extend(utc)
@@ -293,7 +292,7 @@ function TokenList({ tokens, filters, iconUrl = tokenIconUrl, generateLink = nam
           next={next}
           hasMore={hasMore}
         >
-          {filteredList &&
+          {
             filteredList.slice(0, dataLength).map((item, index) => {
               return (
                 <div key={index}>
