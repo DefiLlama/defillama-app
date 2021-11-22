@@ -40,9 +40,9 @@ const BreakpointPanels = styled.div`
 `
 
 const FiltersRow = styled(RowFlat)`
-@media screen and (min-width: 800px) {
-  width: calc(100% - 90px)
-}
+  @media screen and (min-width: 800px) {
+    width: calc(100% - 90px);
+  }
 `
 
 const PlaceholderChartPanel = styled(Panel)`
@@ -55,7 +55,17 @@ const PlaceholderChartPanel = styled(Panel)`
   }
 `
 
-function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, denomination, chainsSet, filteredTokens, chart: globalChart, totalStaking, totalPool2 }) {
+function GlobalPage({
+  selectedChain = 'All',
+  volumeChangeUSD,
+  totalVolumeUSD,
+  denomination,
+  chainsSet,
+  filteredTokens,
+  chart: globalChart,
+  totalStaking,
+  totalPool2
+}) {
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
   // breakpoints
   const below800 = useMedia('(max-width: 800px)')
@@ -76,7 +86,7 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
     totalVolumeUSD += totalPool2
   }
 
-  let chainOptions = ["All"].concat(chainsSet).map(label => ({ label, to: setSelectedChain(label) }))
+  let chainOptions = ['All'].concat(chainsSet).map(label => ({ label, to: setSelectedChain(label) }))
 
   const topToken = { name: 'Uniswap', tvl: 0 }
   if (filteredTokens.length > 0) {
@@ -88,45 +98,49 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
     }
   }
 
-  const chart = <ProtocolChart chartData={globalChart} protocol="" denomination={denomination} protocol={selectedChain} />
+  console.log(globalChart)
+  const chart = <ProtocolChart chartData={globalChart} denomination={denomination} protocol={selectedChain} />
 
-  const panels = <><Panel style={{ padding: '18px 25px' }}>
-    <AutoColumn gap="4px">
-      <RowBetween>
-        <TYPE.heading>Total Value Locked (USD)</TYPE.heading>
-      </RowBetween>
-      <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-        <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-          {formattedNum(totalVolumeUSD, true)}
-        </TYPE.main>
-      </RowBetween>
-    </AutoColumn>
-  </Panel>
-    <Panel style={{ padding: '18px 25px' }}>
-      <AutoColumn gap="4px">
-        <RowBetween>
-          <TYPE.heading>Change (24h)</TYPE.heading>
-        </RowBetween>
-        <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-          <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-            {volumeChangeUSD?.toFixed(2)}%
-          </TYPE.main>
-        </RowBetween>
-      </AutoColumn>
-    </Panel>
-    <Panel style={{ padding: '18px 25px' }}>
-      <AutoColumn gap="4px">
-        <RowBetween>
-          <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
-        </RowBetween>
-        <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-          <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-            {((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)}%
-          </TYPE.main>
-        </RowBetween>
-      </AutoColumn>
-    </Panel>
-  </>
+  const panels = (
+    <>
+      <Panel style={{ padding: '18px 25px' }}>
+        <AutoColumn gap="4px">
+          <RowBetween>
+            <TYPE.heading>Total Value Locked (USD)</TYPE.heading>
+          </RowBetween>
+          <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
+              {formattedNum(totalVolumeUSD, true)}
+            </TYPE.main>
+          </RowBetween>
+        </AutoColumn>
+      </Panel>
+      <Panel style={{ padding: '18px 25px' }}>
+        <AutoColumn gap="4px">
+          <RowBetween>
+            <TYPE.heading>Change (24h)</TYPE.heading>
+          </RowBetween>
+          <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
+              {volumeChangeUSD?.toFixed(2)}%
+            </TYPE.main>
+          </RowBetween>
+        </AutoColumn>
+      </Panel>
+      <Panel style={{ padding: '18px 25px' }}>
+        <AutoColumn gap="4px">
+          <RowBetween>
+            <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
+          </RowBetween>
+          <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
+              {((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)}%
+            </TYPE.main>
+          </RowBetween>
+        </AutoColumn>
+      </Panel>
+    </>
+  )
 
   return (
     <PageWrapper>
@@ -163,10 +177,19 @@ function GlobalPage({ selectedChain = 'All', volumeChangeUSD, totalVolumeUSD, de
           >
             {panels}
           </AutoColumn>
-          <PlaceholderChartPanel style={{ height: '100%' }}><div style={{
-            position: 'absolute',
-            top: 20, bottom: 20, left: 20, right: 20,
-          }}>{chart}</div></PlaceholderChartPanel>
+          <PlaceholderChartPanel style={{ height: '100%' }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: 20,
+                bottom: 20,
+                left: 20,
+                right: 20
+              }}
+            >
+              {chart}
+            </div>
+          </PlaceholderChartPanel>
         </BreakpointPanels>
         <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
           <RowBetween>

@@ -7,11 +7,14 @@ import { ProtocolDataProvider } from 'contexts'
 
 export async function getStaticProps({
   params: {
-    protocol: [protocol, selectedChain = null, denomination = null]
+    protocol: [protocol, selectedChain = 'all', denomination = null]
   }
 }) {
   const { protocolsDict } = await getProtocols()
   const protocolData = await getProtocol(protocol)
+  const historicalChainTvls = { ...(protocolData?.chainTvls ?? {}) }
+  // Don't overwrite topTokens' chainTvls response
+  delete protocolData.chainTvls
 
   return {
     props: {
@@ -20,7 +23,12 @@ export async function getStaticProps({
       denomination,
       protocolData: {
         ...(protocolsDict[protocol] || {}),
-        ...protocolData
+        ...protocolData,
+        tvl: protocolData?.tvl.length > 0 ? protocolData?.tvl[protocolData?.tvl.length - 1]?.totalLiquidityUSD : 0,
+        tvlList: protocolData?.tvl
+          .filter(item => item.date)
+          .map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
+        historicalChainTvls
       }
     }
   }
@@ -37,13 +45,16 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols({ denomination, selectedChain, protocol, protocolData }) {
+  console.log(selectedChain, 'selectedChain')
+  console.log(denomination, 'denomination')
+
   return (
     <ProtocolDataProvider protocolData={protocolData}>
       <GeneralLayout title={`${capitalizeFirstLetter(protocol)} Protocol: TVL and stats - DefiLlama`}>
         <ProtocolContainer
           protocol={protocol}
           protocolData={protocolData}
-          denomination={denomination}
+          denomination={denomination ?? undefined}
           selectedChain={selectedChain}
         />
       </GeneralLayout>
