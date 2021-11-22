@@ -13,7 +13,6 @@ import CopyHelper from 'components/Copy'
 import FormattedName from 'components/FormattedName'
 import HeadHelp from 'components/HeadHelp'
 import Link, { BasicLink } from 'components/Link'
-import Loader from 'components/LocalLoader'
 import Panel from 'components/Panel'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import Search from 'components/Search'
@@ -264,24 +263,21 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   gridRow: ['', '', '', '1/4']
                 }}
               >
-                {chartData && (
-                  <ProtocolChart
-                    denomination={denomination}
-                    chartData={chartData}
-                    misrepresentedTokens={misrepresentedTokens}
-                    protocol={name}
-                    address={address}
-                    color={backgroundColor}
-                    tokens={tokens}
-                    tokensInUsd={tokensInUsd}
-                    base={priceUSD}
-                    selectedChain={selectedChain}
-                    chainTvls={historicalChainTvls}
-                    chains={chains}
-                    protocolData={protocolData}
-                  />
-                )}
-                {!chartData && <Loader />}
+                <ProtocolChart
+                  denomination={denomination}
+                  chartData={chartData}
+                  misrepresentedTokens={misrepresentedTokens}
+                  protocol={name}
+                  address={address}
+                  color={backgroundColor}
+                  tokens={tokens}
+                  tokensInUsd={tokensInUsd}
+                  base={priceUSD}
+                  selectedChain={selectedChain}
+                  chainTvls={historicalChainTvls}
+                  chains={chains}
+                  protocolData={protocolData}
+                />
               </Panel>
             </PanelWrapper>
           </>
