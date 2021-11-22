@@ -30,7 +30,7 @@ export const getBlockExplorer = (address = '') => {
   let blockExplorerName = 'Etherscan'
   Object.entries(blockExplorers).forEach(explorer => {
     const chainId = explorer[0] + ':'
-    if (address.startsWith(chainId)) {
+    if (address?.startsWith(chainId)) {
       address = address.slice(chainId.length)
       blockExplorerLink = explorer[1][0] + address
       blockExplorerName = explorer[1][1]
