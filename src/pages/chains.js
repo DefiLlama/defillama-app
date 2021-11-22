@@ -13,6 +13,8 @@ import { useMedia } from 'react-use'
 import { chainCoingeckoIds } from '../constants/chainTokens'
 import { PROTOCOLS_API, CHART_API } from '../constants/index'
 import { GeneralLayout } from '../layout'
+import styled from 'styled-components'
+import { Box } from 'rebass/styled-components'
 
 import {
     AreaChart,
@@ -180,8 +182,19 @@ const StackedChart = ({ stackOffset, yFormatter, formatPercent, stackedDataset, 
     </AreaChart>
 </ChartWrapper>
 
+const ChartBreakPoints = styled(Box)`
+display: flex;
+flex-wrap: nowrap;
+width: 100%;
+padding: 0;
+align-items: center;
+@media (max-width: 800px) {
+  display: grid;
+  grid-auto-rows: auto;
+}
+`
+
 const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentData }) => {
-    const below800 = useMedia('(max-width: 800px)')
     const isMobile = useMedia('(max-width: 40em)')
 
     const chainColor = useMemo(() => Object.fromEntries([...chainsUnique, "Other"].map(chain => [chain, getRandomColor()])), [chainsUnique])
@@ -216,17 +229,12 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
                 <RowBetween>
                     <TYPE.largeHeader>Total Value Locked All Chains</TYPE.largeHeader>
                 </RowBetween>
-                {
-                    below800 ? <AutoColumn>
-                        {stackedChart}
-                        {dominanceChart}
-                    </AutoColumn> :
-                        <AutoRow>
-                            {stackedChart}
-                            {dominanceChart}
-                        </AutoRow>
-                }
-                <TokenList tokens={chainTvls} iconUrl={chainIconUrl} generateLink={name => `/chain/${name}`} />
+
+                <ChartBreakPoints>
+                    {stackedChart}
+                    {dominanceChart}
+                </ChartBreakPoints>
+                <TokenList tokens={chainTvls} iconUrl={chainIconUrl} generateLink={name => `/chain/${name}`} columns={[undefined, "protocols", "change_1d", "change_7d"]} />
                 <div style={{ margin: 'auto' }}>
                     <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
                 </div>
@@ -256,9 +264,8 @@ export async function getStaticProps() {
             tvl: current,
             mcaptvl: mcap ? mcap / current : null,
             name: chainName,
-            chains: [],
             symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
-            num_protocols: numProtocolsPerChain[chainName],
+            protocols: numProtocolsPerChain[chainName],
             change_1d: prevTvl(1) ? getPercentChange(prevTvl(1), current) : null,
             change_7d: prevTvl(7) ? getPercentChange(prevTvl(7), current) : null,
         }

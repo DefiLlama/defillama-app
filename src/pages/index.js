@@ -4,7 +4,7 @@ import { getChainData } from '../utils/dataApi'
 import SearchDataProvider from 'contexts/SearchData'
 
 export async function getStaticProps({ params }) {
-    return getChainData(() => true);
+    return getChainData();
 }
 
 export default function HomePage(props) {

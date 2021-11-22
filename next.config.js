@@ -6,6 +6,11 @@ module.exports = {
                 destination: '/chain/BSC',
                 permanent: true,
             },
+            {
+                source: '/home',
+                destination: '/',
+                permanent: true,
+            },
         ]
     },
 }

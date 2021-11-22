@@ -1,23 +1,16 @@
 import ProtocolList from '../../components/ProtocolList'
 import { PROTOCOLS_API } from '../../constants/index'
 import { GeneralLayout } from '../../layout'
+import { keepNeededProperties } from '../../utils/dataApi'
 
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-const propertiesToKeep = ["tvl", "name", "symbol", "chains", "change_7d", "change_1d", "mcaptvl"]
-function keepProperties(protocol) {
-    return propertiesToKeep.reduce((obj, prop) => {
-        obj[prop] = protocol[prop] ?? null
-        return obj
-    }, {})
-}
-
 export async function getStaticProps({ params: { category: [category, chain] } }) {
-    const res = await fetch(PROTOCOLS_API).then(r => r.json())
+    let { protocols } = await fetch(PROTOCOLS_API).then(r => r.json())
     const chainsSet = new Set()
-    let protocols = res.protocols.filter(p => {
+    protocols = protocols.filter(p => {
         if (p.category?.toLowerCase() !== category) {
             return false
         }
@@ -30,7 +23,7 @@ export async function getStaticProps({ params: { category: [category, chain] } }
             p.tvl = chainTvl
         }
         return true
-    }).map(keepProperties)
+    }).map(p => keepNeededProperties(p))
     if (chain) {
         protocols = protocols.sort((a, b) => b.tvl - a.tvl)
     }
