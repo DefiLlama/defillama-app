@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { LazyLoadImage } from 'react-lazy-load-image-component';
-
-import { getTokenLogoPathFromAddress } from '../../utils'
 import PlaceHolder from '../../assets/placeholder.png'
-import EthereumLogo from '../../assets/eth.png'
 
 const BAD_IMAGES = {}
 
@@ -19,18 +16,7 @@ const Image = styled(LazyLoadImage)`
   border-radius: 50%;
   box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.075);
 `
-
-const StyledEthereumLogo = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  > img {
-    width: ${({ size }) => size};
-    height: ${({ size }) => size};
-  }
-`
-
+// next/image won't work, idk why
 export default function TokenLogo({ logo = null, header = false, size = '24px', ...rest }) {
   const [error, setError] = useState(false)
 
