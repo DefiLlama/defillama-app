@@ -144,6 +144,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
   // TODO check if we still need to format long symbols?
 
   const [savedTokens, addToken] = useSavedTokens()
+  const hasToken = address !== null && address !== "-"
 
   return (
     <PageWrapper>
@@ -360,12 +361,12 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
               </RowFixed>
             </Panel>
 
-            {address && (
+            {hasToken && (
               <RowBetween style={{ marginTop: '3rem' }}>
                 <TYPE.main fontSize={'1.125rem'}>Token Information</TYPE.main>{' '}
               </RowBetween>
             )}
-            {address && (
+            {hasToken && (
               <Panel
                 rounded
                 style={{

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import styled from 'styled-components'
 import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar, ReferenceLine } from 'recharts'
 import { useRouter } from 'next/router'
+import { BasicLink } from 'components/Link'
 
 import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from 'components/Column'
@@ -99,15 +100,21 @@ const TokenChart = ({
     }
     return splitLocation
   }
-  const setDenomination = newDenomination => {
+  const buildDenomUrl = denom => {
     const splitLocation = buildUrl()
-    splitLocation[4] = newDenomination
-    router.push(splitLocation.join('/'))
+    splitLocation[4] = denom
+    return splitLocation.join('/')
   }
-  const setSelectedChain = newChain => {
+  const buildChainUrl = newChain => {
     const splitLocation = buildUrl()
     splitLocation[3] = newChain === ALL_CHAINS ? 'all' : newChain
-    router.push(splitLocation.join('/'))
+    return splitLocation.join('/')
+  }
+  const setDenomination = newDenomination => {
+    router.push(buildDenomUrl(newDenomination))
+  }
+  const setSelectedChain = newChain => {
+    router.push(buildChainUrl(newChain))
   }
 
   let chartData = data
@@ -179,8 +186,7 @@ const TokenChart = ({
       (denominationPriceHistory === undefined || denominationPriceHistory.asset !== denomination)
     ) {
       fetchAPI(
-        `https://api.coingecko.com/api/v3/coins/${
-          denomination === DENOMINATIONS.ETH ? 'ethereum' : chainDenomination.geckoId
+        `https://api.coingecko.com/api/v3/coins/${denomination === DENOMINATIONS.ETH ? 'ethereum' : chainDenomination.geckoId
         }/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`
       ).then(data =>
         setDenominationPriceHistory({
@@ -315,14 +321,14 @@ const TokenChart = ({
           <AutoColumn gap="8px">
             <RowFixed>
               {Object.values(denominationsToDisplay).map(option => (
-                <OptionButton
-                  active={denomination === option}
-                  onClick={() => setDenomination(option)}
-                  style={{ marginRight: '6px' }}
-                  key={option}
-                >
-                  {option}
-                </OptionButton>
+                <BasicLink href={buildDenomUrl(option)} key={option}>
+                  <OptionButton
+                    active={denomination === option}
+                    style={{ marginRight: '6px' }}
+                  >
+                    {option}
+                  </OptionButton>
+                </BasicLink>
               ))}
               {tokenSymbols && !small && (
                 <DropdownSelect
