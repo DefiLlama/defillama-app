@@ -199,7 +199,7 @@ function TokenList({ tokens, filters, iconUrl = tokenIconUrl, generateLink = nam
             </CustomLink>
           </Row>
         </DataText>
-        <DataTextHideBelow1080 area="chain">{item.chains.map(chain => <BasicLink key={chain} href={`/chain/${chain}`}><a><TokenLogo address={chain} logo={chainIconUrl(chain)} /></a></BasicLink>)}</DataTextHideBelow1080>
+        <DataTextHideBelow1080 area="chain">{item.chains.map(chain => <BasicLink key={chain} href={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)}</DataTextHideBelow1080>
         <DataTextHideBelow1080 area="1dchange" color="text" fontWeight="500">
           {formattedPercent(item.change_1d, true)}
         </DataTextHideBelow1080>
