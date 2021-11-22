@@ -11,7 +11,7 @@ import Row from '../Row'
 import { Divider } from '..'
 
 import { formattedNum, } from '../../utils'
-import { useInfiniteScroll } from '../../hooks'
+import { useFetchedInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
 import FormattedName from '../FormattedName'
@@ -106,6 +106,8 @@ const SORT_FIELD = {
 function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
 
   // sorting
+  const [page, setPage] = useState(0)
+  const [collections, setCollections] = useState(tokens)
   const [sortDirection, setSortDirection] = useState(true)
   const [sortedColumn, setSortedColumn] = useState("dailyVolume")
 
@@ -117,8 +119,8 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
 
   const filteredList = useMemo(() => {
     return (
-      tokens &&
-      tokens
+      collections &&
+      collections
         .sort((a, b) => {
           if (sortedColumn === SORT_FIELD.NAME) {
             return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
@@ -128,7 +130,7 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
             : (sortDirection ? -1 : 1) * -1
         })
     )
-  }, [tokens, sortDirection, sortedColumn])
+  }, [collections, sortDirection, sortedColumn])
 
   const ListItem = ({ item, index }) => {
     return (
@@ -174,7 +176,7 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
   const { LoadMoreButton,
     dataLength,
     hasMore,
-    next } = useInfiniteScroll({ list: filteredList });
+    next } = useFetchedInfiniteScroll({ list: filteredList, page, setPage, setCollections });
 
   return (
     <ListWrapper>

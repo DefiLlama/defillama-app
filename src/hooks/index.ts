@@ -6,6 +6,7 @@ import { hex } from 'wcag-contrast'
 import { getTokenLogoPathFromAddress } from '../utils'
 import copy from 'copy-to-clipboard'
 export { default as useInfiniteScroll } from './useInfiniteScroll'
+export { default as useFetchedInfiniteScroll } from './useFetchedInfiniteScroll'
 export { default as useResize } from './useResize'
 
 export function useColor(tokenAddress, token, _path = undefined) {
