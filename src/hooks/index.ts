@@ -4,6 +4,7 @@ import copy from 'copy-to-clipboard'
 export { default as useInfiniteScroll } from './useInfiniteScroll'
 export { default as useProtocolColor } from './useProtocolColor'
 export { default as useResize } from './useResize'
+export * from './useBreakpoints'
 
 export function useCopyClipboard(timeout = 500) {
   const [isCopied, setIsCopied] = useState(false)
