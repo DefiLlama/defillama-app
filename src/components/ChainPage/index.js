@@ -98,7 +98,6 @@ function GlobalPage({
     }
   }
 
-  console.log(globalChart)
   const chart = <ProtocolChart chartData={globalChart} denomination={denomination} protocol={selectedChain} />
 
   const panels = (

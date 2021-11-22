@@ -97,7 +97,7 @@ const TokenDetailsLayout = styled.div`
 
 const TotalValueLockedWrap = styled(RowBetween)`
   @media only screen and (max-width: ${({ theme: { bpXl } }) => bpXl}) and (min-width: ${({ theme: { bpLg } }) =>
-      bpLg}) {
+    bpLg}) {
     flex-direction: column-reverse;
   }
 `
@@ -134,7 +134,6 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
 
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
-  console.log(chainTvls, 'chainTvls')
   if (chainTvls.staking && stakingEnabled) {
     tvl += chainTvls.staking
   }

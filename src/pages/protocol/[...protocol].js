@@ -45,8 +45,6 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols({ denomination, selectedChain, protocol, protocolData }) {
-  console.log(selectedChain, 'selectedChain')
-  console.log(denomination, 'denomination')
 
   return (
     <ProtocolDataProvider protocolData={protocolData}>
