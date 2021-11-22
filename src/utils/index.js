@@ -396,5 +396,7 @@ export const standardizeProtocolName = (tokenName = '') =>
     .toLowerCase()
     .split(' ')
     .join('-')
+    .split("'")
+    .join('')
 
 export const slug = standardizeProtocolName
