@@ -26,7 +26,7 @@ export default function Protocols({ chainsSet, protocols }) {
                     ...p,
                     listedAt: ((currentTimestamp - p.listedAt) / secondsInDay).toFixed(2)
                 }))}
-                showChainList={false} columns={[undefined, "chains", "1d_change", "listedAt"]} defaultSortingColumn="listedAt" />
+                showChainList={false} columns={[undefined, "chains", "change_1d", "listedAt"]} defaultSortingColumn="listedAt" />
         </GeneralLayout>
     )
 }
