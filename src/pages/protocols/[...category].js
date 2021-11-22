@@ -23,7 +23,7 @@ export async function getStaticProps({ params: { category: [category, chain] } }
             p.tvl = chainTvl
         }
         return true
-    }).map(keepNeededProperties)
+    }).map(p => keepNeededProperties(p))
     if (chain) {
         protocols = protocols.sort((a, b) => b.tvl - a.tvl)
     }

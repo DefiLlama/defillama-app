@@ -226,7 +226,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
                             {dominanceChart}
                         </AutoRow>
                 }
-                <TokenList tokens={chainTvls} iconUrl={chainIconUrl} generateLink={name => `/chain/${name}`} />
+                <TokenList tokens={chainTvls} iconUrl={chainIconUrl} generateLink={name => `/chain/${name}`} columns={[undefined, "protocols", "change_1d", "change_7d"]} />
                 <div style={{ margin: 'auto' }}>
                     <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
                 </div>
@@ -256,9 +256,8 @@ export async function getStaticProps() {
             tvl: current,
             mcaptvl: mcap ? mcap / current : null,
             name: chainName,
-            chains: [],
             symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
-            num_protocols: numProtocolsPerChain[chainName],
+            protocols: numProtocolsPerChain[chainName],
             change_1d: prevTvl(1) ? getPercentChange(prevTvl(1), current) : null,
             change_7d: prevTvl(7) ? getPercentChange(prevTvl(7), current) : null,
         }

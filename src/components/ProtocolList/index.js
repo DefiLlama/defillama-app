@@ -22,14 +22,13 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
-function AllTokensPage({ title, category, selectedChain = 'All', chainsSet, filteredTokens, showChainList = true }) {
+function AllTokensPage({ title, category, selectedChain = 'All', chainsSet = [], filteredTokens, showChainList = true, columns, defaultSortingColumn }) {
     const below600 = useMedia('(max-width: 600px)')
 
     const handleRouting = chain => {
         if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
         return `/protocols/${category?.toLowerCase()}/${chain}`
     }
-    const setSelectedChain = newSelectedChain => handleRouting(newSelectedChain)
     const chainOptions = ["All", ...chainsSet].map(label => ({ label, to: handleRouting(label) }))
 
     if (!title) {
@@ -50,13 +49,13 @@ function AllTokensPage({ title, category, selectedChain = 'All', chainsSet, filt
                     <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
                         <RowBetween>
                             <RowFlat style={{ width: '100%' }}>
-                                <Filters filterOptions={chainOptions} setActive={setSelectedChain} activeLabel={selectedChain} />
+                                <Filters filterOptions={chainOptions} setActive={handleRouting} activeLabel={selectedChain} />
                             </RowFlat>
                         </RowBetween>
                     </ListOptions>
                 }
                 <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>
-                    <TokenList tokens={filteredTokens} filters={[category, selectedChain]} />
+                    <TokenList tokens={filteredTokens} filters={[category, selectedChain]} columns={columns} defaultSortingColumn={defaultSortingColumn} />
                 </Panel>
             </FullWrapper>
         </PageWrapper>

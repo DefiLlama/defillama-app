@@ -15,9 +15,9 @@ function addSection(protocol: any, section: string, chain: string | undefined) {
     }
 }
 
-const propertiesToKeep = ["tvl", "name", "symbol", "chains", "change_7d", "change_1d", "mcaptvl"]
-export function keepNeededProperties(protocol: any, extraProperties: string[] = []) {
-    return propertiesToKeep.concat(extraProperties).reduce((obj, prop) => {
+export const basicPropertiesToKeep = ["tvl", "name", "symbol", "chains", "change_7d", "change_1d", "mcaptvl"]
+export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
+    return propertiesToKeep.reduce((obj, prop) => {
         if (protocol[prop] !== undefined) {
             obj[prop] = protocol[prop]
         }
@@ -45,7 +45,7 @@ export async function getChainData(chain) {
         }
         addSection(protocol, "staking", chain);
         addSection(protocol, "pool2", chain);
-        return keepNeededProperties(protocol, ["staking", "pool2"])
+        return keepNeededProperties(protocol, [...basicPropertiesToKeep, "staking", "pool2"])
     })
     if (chain !== undefined) {
         protocols = protocols.sort((a, b) => b.tvl - a.tvl)

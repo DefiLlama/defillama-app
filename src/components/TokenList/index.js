@@ -102,6 +102,15 @@ const SORT_FIELD = {
   CHAINS: 'chains'
 }
 
+const COLUMN_NAMES = {
+  chains: "Chains",
+  protocols: "Protocols",
+  name: "Name",
+  "change_7d": "7d Change",
+  "change_1d": "1d Change",
+  listedAt: "Listed",
+}
+
 const ProtocolButtonElement = styled(FormattedName)`
   margin-left: 16px;
   white-space: nowrap;
@@ -152,17 +161,27 @@ const FlexHideBelow1080 = styled(Flex)`
 
 
 // @TODO rework into virtualized list
-function TokenList({ tokens, filters, iconUrl = tokenIconUrl, generateLink = name => `/protocol/${slug(name)}`, columns = [undefined, SORT_FIELD.CHAINS] }) {
+function TokenList({ tokens, filters,
+  iconUrl = tokenIconUrl,
+  generateLink = name => `/protocol/${slug(name)}`,
+  columns = [undefined, SORT_FIELD.CHAINS, SORT_FIELD.DAYONE, SORT_FIELD.DAYSEVEN],
+  defaultSortingColumn = "tvl"
+}) {
 
   const below600 = useMedia('(max-width: 600px)')
 
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
-  const [sortedColumn, setSortedColumn] = useState(undefined)
+  const [sortedColumn, setSortedColumnRaw] = useState(defaultSortingColumn)
+  const [alreadySorted, setAlreadySorted] = useState(true)
+  const setSortedColumn = (newColumn) => {
+    setAlreadySorted(false);
+    setSortedColumnRaw(newColumn)
+  }
 
   const filteredList = useMemo(() => {
     let sortedTokens = tokens
-    if (sortedColumn !== undefined) {
+    if (!alreadySorted) {
       sortedTokens = tokens
         .sort((a, b) => {
           if (sortedColumn === SORT_FIELD.CHAINS) {
@@ -177,7 +196,7 @@ function TokenList({ tokens, filters, iconUrl = tokenIconUrl, generateLink = nam
         })
     }
     return sortedTokens
-  }, [tokens, sortDirection, sortedColumn])
+  }, [tokens, sortDirection, sortedColumn, alreadySorted])
 
   const { LoadMoreButton,
     dataLength,
@@ -199,11 +218,19 @@ function TokenList({ tokens, filters, iconUrl = tokenIconUrl, generateLink = nam
             </CustomLink>
           </Row>
         </DataText>
-        <DataTextHideBelow1080 area="chain">{item.chains.map(chain => <BasicLink key={chain} href={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)}</DataTextHideBelow1080>
+        <DataTextHideBelow1080 area="chain">{
+          columns[1] === SORT_FIELD.CHAINS ?
+            item.chains.map(chain => <BasicLink key={chain} href={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)
+            : formattedNum(item[columns[1]], false)
+        }</DataTextHideBelow1080>
         <DataTextHideBelow1080 area="1dchange" color="text" fontWeight="500">
           {formattedPercent(item.change_1d, true)}
         </DataTextHideBelow1080>
-        <DataText area="7dchange">{item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'}</DataText>
+        <DataText area="7dchange">{
+          columns[3] === SORT_FIELD.DAYSEVEN ?
+            item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'
+            : `${item.listedAt} days ago`
+        }</DataText>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
         <DataTextHideBelow680 area="mcaptvl" color="text" fontWeight="500">
           {item.mcaptvl === null || item.mcaptvl === undefined ? '-' : formattedNum(item.mcaptvl, false)}
@@ -232,11 +259,11 @@ function TokenList({ tokens, filters, iconUrl = tokenIconUrl, generateLink = nam
           <ClickableText
             area="chain"
             onClick={e => {
-              setSortedColumn(SORT_FIELD.CHAINS)
-              setSortDirection(sortedColumn !== SORT_FIELD.CHAINS ? true : !sortDirection)
+              setSortedColumn(columns[1])
+              setSortDirection(sortedColumn !== columns[1] ? true : !sortDirection)
             }}
           >
-            Chain {sortedColumn === SORT_FIELD.CHAINS ? (!sortDirection ? '↑' : '↓') : ''}
+            {COLUMN_NAMES[columns[1]]} {sortedColumn === columns[1] ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </FlexHideBelow1080>
         <FlexHideBelow1080 alignItems="center">
@@ -254,23 +281,22 @@ function TokenList({ tokens, filters, iconUrl = tokenIconUrl, generateLink = nam
           <ClickableText
             area="7dchange"
             onClick={e => {
-              setSortedColumn(SORT_FIELD.DAYSEVEN)
-              setSortDirection(sortedColumn !== SORT_FIELD.DAYSEVEN ? true : !sortDirection)
+              setSortedColumn(columns[3])
+              setSortDirection(sortedColumn !== columns[3] ? true : !sortDirection)
             }}
           >
-            7d Change {sortedColumn === SORT_FIELD.DAYSEVEN ? (!sortDirection ? '↑' : '↓') : ''}
+            {COLUMN_NAMES[columns[3]]} {sortedColumn === columns[3] ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
-
         <Flex alignItems="center">
           <ClickableText
             area="tvl"
             onClick={e => {
               setSortedColumn(SORT_FIELD.TVL)
-              setSortDirection(sortedColumn === undefined ? false : sortedColumn !== SORT_FIELD.TVL ? true : !sortDirection)
+              setSortDirection(sortedColumn !== SORT_FIELD.TVL ? true : !sortDirection)
             }}
           >
-            TVL {sortedColumn === SORT_FIELD.TVL || sortedColumn === undefined ? (!sortDirection ? '↑' : '↓') : ''}
+            TVL {sortedColumn === SORT_FIELD.TVL ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
         <FlexHideBelow680 alignItems="center">
