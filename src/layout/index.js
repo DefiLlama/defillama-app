@@ -16,11 +16,11 @@ const ContentWrapper = styled.div`
   display: grid;
   grid-template-columns: ${({ open }) => (open ? '220px 1fr 200px' : '220px 1fr 64px')};
 
-  @media screen and (max-width: 1400px) {
+  ${({ theme: { maxLg } }) => maxLg} {
     grid-template-columns: 220px 1fr;
   }
 
-  @media screen and (max-width: 1080px) {
+  ${({ theme: { maxLg } }) => maxLg} {
     grid-template-columns: 1fr;
     max-width: 100vw;
     overflow: hidden;
@@ -28,21 +28,8 @@ const ContentWrapper = styled.div`
   }
 `
 
-const Right = styled.div`
-  position: fixed;
-  right: 0;
-  bottom: 0rem;
-  z-index: 99;
-  width: ${({ open }) => (open ? '220px' : '64px')};
-  height: ${({ open }) => (open ? 'fit-content' : '64px')};
-  overflow: scroll;
-  background-color: ${({ theme }) => theme.bg1};
-  @media screen and (max-width: 1400px) {
-    display: none;
-  }
-`
-
 const Center = styled.div`
+  min-height: 100vh;
   height: 100%;
   z-index: 9999;
   transition: width 0.25s ease;
@@ -57,9 +44,7 @@ export const LayoutWrapper = ({ children, savedOpen, setSavedOpen }) => {
     <ContentWrapper open={savedOpen}>
       <SideNav />
       <Center id="center">{children}</Center>
-      <Right open={savedOpen}>
-        <PinnedData open={savedOpen} setSavedOpen={setSavedOpen} />
-      </Right>
+      <PinnedData open={savedOpen} setSavedOpen={setSavedOpen} />
     </ContentWrapper>
   )
 }
@@ -71,7 +56,13 @@ export function GeneralLayout({ title, children }) {
       <Head>
         <title>{title}</title>
         <script src="https://cdn.usefathom.com/script.js" data-site="OANJVQNZ" defer></script>
-        <link rel="preload" href="/font-files/Inter-roman.var.woff2" as="font" type="font/woff2" crossOrigin="anonymous"></link>
+        <link
+          rel="preload"
+          href="/font-files/Inter-roman.var.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        ></link>
       </Head>
       <ThemeProvider>
         <LocalStorageContextProvider>

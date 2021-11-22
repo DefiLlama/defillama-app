@@ -1,20 +1,20 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import styled from 'styled-components'
-import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar, ReferenceLine, Label } from 'recharts'
-import { AutoRow, RowBetween, RowFixed } from '../Row'
+import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar, ReferenceLine } from 'recharts'
 import { useRouter } from 'next/router'
 
-import { toK, toNiceDate, toNiceDateYear, formattedNum, getTimeframe, toNiceMonthlyDate } from '../../utils'
-import { OptionButton } from '../ButtonStyled'
-import { useMedia, usePrevious } from 'react-use'
-import { timeframeOptions } from '../../constants'
-import DropdownSelect from '../DropdownSelect'
-import LocalLoader from '../LocalLoader'
-import { AutoColumn } from '../Column'
-import { Activity } from 'react-feather'
-import { useDarkModeManager } from '../../contexts/LocalStorage'
-import { fetchAPI } from '../../contexts/API'
-import { chainCoingeckoIds } from '../../constants/chainTokens'
+import { OptionButton } from 'components/ButtonStyled'
+import { AutoColumn } from 'components/Column'
+import DropdownSelect from 'components/DropdownSelect'
+import LocalLoader from 'components/LocalLoader'
+import { AutoRow, RowBetween, RowFixed } from 'components/Row'
+
+import { timeframeOptions } from 'constants/index'
+import { chainCoingeckoIds } from 'constants/chainTokens'
+import { useDarkModeManager } from 'contexts/LocalStorage'
+import { fetchAPI } from 'contexts/API'
+import { useXl, useLg, useMed } from 'hooks'
+import { toK, toNiceDate, toNiceDateYear, formattedNum, getTimeframe, toNiceMonthlyDate } from 'utils'
 
 const ChartWrapper = styled.div`
   height: 100%;
@@ -25,21 +25,11 @@ const ChartWrapper = styled.div`
   }
 `
 
-const PriceOption = styled(OptionButton)`
-  border-radius: 2px;
-`
-
 const CHART_VIEW = {
   VOLUME: 'Volume',
   LIQUIDITY: 'Liquidity',
   PRICE: 'Price',
   LINE_PRICE: 'Price (Line)'
-}
-
-const DATA_FREQUENCY = {
-  DAY: 'DAY',
-  HOUR: 'HOUR',
-  LINE: 'LINE'
 }
 
 const BASIC_DENOMINATIONS = {
@@ -53,18 +43,27 @@ const BASIC_DENOMINATIONS = {
 }
 
 function stringToColour() {
-  return '#' + (Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0');
+  return '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0')
 }
 
-const ALL_CHAINS = "All Chains"
-const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, chainTvls, misrepresentedTokens, denomination: initialDenomination, chains, selectedChain = "all", tokenData }) => {
-  // settings for the window and candle width
-  const [frequency, setFrequency] = useState(DATA_FREQUENCY.HOUR)
-
+const ALL_CHAINS = 'All Chains'
+const TokenChart = ({
+  small = false,
+  color,
+  data,
+  tokens,
+  tokensInUsd,
+  chainTvls,
+  misrepresentedTokens,
+  denomination: initialDenomination,
+  chains,
+  selectedChain = 'all',
+  hallmarks = []
+}) => {
   let DENOMINATIONS = BASIC_DENOMINATIONS
-  let chainDenomination;
+  let chainDenomination
   if (selectedChain !== 'all' || chains.length === 1) {
-    chainDenomination = chainCoingeckoIds[selectedChain] ?? chainCoingeckoIds[chains[0]];
+    chainDenomination = chainCoingeckoIds[selectedChain] ?? chainCoingeckoIds[chains[0]]
     if (chainDenomination !== undefined) {
       DENOMINATIONS = {
         ...BASIC_DENOMINATIONS,
@@ -73,17 +72,25 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
     }
   }
 
-  const denomination = Object.values(DENOMINATIONS).find(den => den?.toLowerCase() === initialDenomination?.split('-')?.[0]?.toLowerCase()) ?? DENOMINATIONS.USD
+  const denomination =
+    Object.values(DENOMINATIONS).find(
+      den => den?.toLowerCase() === initialDenomination?.split('-')?.[0]?.toLowerCase()
+    ) ?? DENOMINATIONS.USD
+
   const balanceToken = initialDenomination?.substr(initialDenomination.indexOf('-') + 1)
+
   const [denominationPriceHistory, setDenominationPriceHistory] = useState(undefined)
-  const chartFilter = (denomination === DENOMINATIONS.Change || denomination === DENOMINATIONS.ChangeSplit) ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY
+  const chartFilter =
+    denomination === DENOMINATIONS.Change || denomination === DENOMINATIONS.ChangeSplit
+      ? CHART_VIEW.VOLUME
+      : CHART_VIEW.LIQUIDITY
 
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
 
   const router = useRouter()
   const buildUrl = () => {
-    const splitLocation = router.pathname.split('/')
+    const splitLocation = router.asPath.split('/')
     if (splitLocation.length < 4) {
       splitLocation.push(selectedChain)
     }
@@ -92,7 +99,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
     }
     return splitLocation
   }
-  const setDenomination = (newDenomination) => {
+  const setDenomination = newDenomination => {
     const splitLocation = buildUrl()
     splitLocation[4] = newDenomination
     router.push(splitLocation.join('/'))
@@ -103,73 +110,61 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
     router.push(splitLocation.join('/'))
   }
 
-  let chartData = data;
-  if (selectedChain !== "all") {
-    chartData = chainTvls[selectedChain].tvl;
-    base = chartData[chartData.length - 1][1];
-    tokens = chainTvls[selectedChain].tokens;
+  let chartData = data
+  if (selectedChain !== 'all') {
+    chartData = chainTvls[selectedChain].tvl.map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
+    tokens = chainTvls[selectedChain].tokens
     tokensInUsd = chainTvls[selectedChain].tokensInUsd
   }
 
   const [timeWindow, setTimeWindow] = useState(timeframeOptions.ALL_TIME)
-  const prevWindow = usePrevious(timeWindow)
-
-  // switch to hourly data when switched to week window
-  useEffect(() => {
-    if (timeWindow === timeframeOptions.WEEK && prevWindow && prevWindow !== timeframeOptions.WEEK) {
-      setFrequency(DATA_FREQUENCY.HOUR)
-    }
-  }, [prevWindow, timeWindow])
-
-  // switch to daily data if switche to month or all time view
-  useEffect(() => {
-    if (timeWindow === timeframeOptions.MONTH && prevWindow && prevWindow !== timeframeOptions.MONTH) {
-      setFrequency(DATA_FREQUENCY.DAY)
-    }
-    if (timeWindow === timeframeOptions.ALL_TIME && prevWindow && prevWindow !== timeframeOptions.ALL_TIME) {
-      setFrequency(DATA_FREQUENCY.DAY)
-    }
-  }, [prevWindow, timeWindow])
-
-  const below1080 = useMedia('(max-width: 1080px)')
-  const below600 = useMedia('(max-width: 600px)')
 
   let utcStartTime = 0
   if (timeWindow !== timeframeOptions.ALL_TIME) {
     utcStartTime = getTimeframe(timeWindow)
     chartData = chartData?.filter(entry => entry[0] >= utcStartTime)
-    tokens = tokens?.filter(entry => entry[0] >= utcStartTime);
+    tokens = tokens?.filter(entry => entry[0] >= utcStartTime)
     tokensInUsd = tokensInUsd?.filter(entry => entry[0] >= utcStartTime)
   }
 
   //const domain = [dataMin => (dataMin > utcStartTime ? dataMin : utcStartTime), 'dataMax']
-  const aspect = below1080 ? 60 / 32 : below600 ? 60 / 42 : 60 / 22
+  const belowXl = useXl()
+  const belowLg = useLg()
+  const belowMed = useMed()
+  const aspect = belowXl ? (!belowLg ? 60 / 42 : 60 / 22) : 60 / 22
 
   const [stackedDataset, tokensUnique] = useMemo(() => {
     if (denomination === DENOMINATIONS.TokensUSD) {
-      const tokenSet = new Set();
+      const tokenSet = new Set()
       const stacked = tokensInUsd.map(dayTokens => {
         Object.keys(dayTokens.tokens).forEach(symbol => tokenSet.add(symbol))
         return {
-          ...Object.fromEntries(Object.entries(dayTokens.tokens).filter(t => !(t[0].startsWith("UNKNOWN") && t[1] < 1))),
+          ...Object.fromEntries(
+            Object.entries(dayTokens.tokens).filter(t => !(t[0].startsWith('UNKNOWN') && t[1] < 1))
+          ),
           date: dayTokens.date
         }
       })
       return [stacked, Array.from(tokenSet)]
     } else if (denomination === DENOMINATIONS.Chains) {
       const timeToTvl = {}
+
       Object.entries(chainTvls).forEach(([chainToAdd, tvl]) => {
         tvl.tvl.forEach(dayTvl => {
           timeToTvl[dayTvl.date] = {
-            ...timeToTvl[dayTvl[0]],
-            [chainToAdd]: dayTvl[1]
+            ...timeToTvl[dayTvl.date],
+            [chainToAdd]: dayTvl.totalLiquidityUSD
           }
         })
       })
-      const stacked = Object.keys(timeToTvl).sort().map(dayDate => ({
-        ...timeToTvl[dayDate],
-        date: Number(dayDate),
-      }))
+
+      const stacked = Object.keys(timeToTvl)
+        .sort((a, b) => Number(a) - Number(b))
+        .map(dayDate => ({
+          ...timeToTvl[dayDate],
+          // kinda scuffed but gotta fix the datakey for chart again
+          0: Number(dayDate)
+        }))
       return [stacked, Object.keys(chainTvls)]
     }
     return [undefined, []]
@@ -179,57 +174,63 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
   }
 
   useEffect(() => {
-    if ((denomination === DENOMINATIONS.ETH || denomination === chainDenomination?.symbol) && (denominationPriceHistory === undefined || denominationPriceHistory.asset !== denomination)) {
-      fetchAPI(`https://api.coingecko.com/api/v3/coins/${denomination === DENOMINATIONS.ETH ? 'ethereum' : chainDenomination.geckoId}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`).then(data => setDenominationPriceHistory({
-        asset: denomination,
-        prices: data.prices
-      }))
+    if (
+      (denomination === DENOMINATIONS.ETH || denomination === chainDenomination?.symbol) &&
+      (denominationPriceHistory === undefined || denominationPriceHistory.asset !== denomination)
+    ) {
+      fetchAPI(
+        `https://api.coingecko.com/api/v3/coins/${
+          denomination === DENOMINATIONS.ETH ? 'ethereum' : chainDenomination.geckoId
+        }/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`
+      ).then(data =>
+        setDenominationPriceHistory({
+          asset: denomination,
+          prices: data.prices
+        })
+      )
     }
   }, [denomination])
 
   const [finalChartData, tokenSet] = useMemo(() => {
     if (denomination === DENOMINATIONS.ETH || denomination === chainDenomination?.symbol) {
       if (denominationPriceHistory !== undefined && denominationPriceHistory.asset === denomination) {
-        let priceIndex = 0;
+        let priceIndex = 0
         let prevPriceDate = 0
-        const denominationPrices = denominationPriceHistory.prices;
+        const denominationPrices = denominationPriceHistory.prices
         const newChartData = []
         for (let i = 0; i < chartData.length; i++) {
-          const date = chartData[i].date * 1000;
-          while (priceIndex < denominationPrices.length && Math.abs(date - prevPriceDate) > Math.abs(date - denominationPrices[priceIndex][0])) {
-            prevPriceDate = denominationPrices[priceIndex][0];
-            priceIndex++;
+          const date = chartData[i][0] * 1000
+          while (
+            priceIndex < denominationPrices.length &&
+            Math.abs(date - prevPriceDate) > Math.abs(date - denominationPrices[priceIndex][0])
+          ) {
+            prevPriceDate = denominationPrices[priceIndex][0]
+            priceIndex++
           }
-          const price = denominationPrices[priceIndex - 1][1];
-          newChartData.push([
-            chartData[i][0],
-            chartData[i][1] / price
-          ])
+          const price = denominationPrices[priceIndex - 1][1]
+          newChartData.push([chartData[i][0], chartData[i][1] / price])
         }
-        chartData = newChartData;
+        chartData = newChartData
       } else {
         chartData = undefined
       }
     }
     if (denomination === DENOMINATIONS.Tokens) {
-      chartData = [];
+      chartData = []
       tokens.forEach(tokenSnapshot => {
-        chartData.push([
-          tokenSnapshot.date,
-          tokenSnapshot.tokens[balanceToken] ?? 0
-        ])
+        chartData.push([tokenSnapshot.date, tokenSnapshot.tokens[balanceToken] ?? 0])
       })
     }
     let tokenSet = new Set()
     if (denomination === DENOMINATIONS.Change || denomination === DENOMINATIONS.ChangeSplit) {
-      chartData = [];
+      chartData = []
       for (let i = 1; i < tokensInUsd.length; i++) {
-        let dayDifference = 0;
+        let dayDifference = 0
         let tokenDayDifference = {}
         for (const token in tokensInUsd[i].tokens) {
-          tokenSet.add(token);
-          const price = tokensInUsd[i].tokens[token] / tokens[i].tokens[token];
-          const diff = (tokens[i].tokens[token] ?? 0) - (tokens[i - 1].tokens[token] ?? 0);
+          tokenSet.add(token)
+          const price = tokensInUsd[i].tokens[token] / tokens[i].tokens[token]
+          const diff = (tokens[i].tokens[token] ?? 0) - (tokens[i - 1].tokens[token] ?? 0)
           const diffUsd = price * diff
           if (diffUsd) {
             tokenDayDifference[token] = diffUsd
@@ -244,53 +245,44 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
         } else {
           chartData.push({
             ...tokenDayDifference,
-            date: tokensInUsd[i].date,
+            date: tokensInUsd[i].date
           })
         }
       }
     }
     return [chartData, tokenSet]
-  }, [denomination, chartData, denominationPriceHistory, tokens, tokensInUsd, balanceToken]);
+  }, [denomination, chartData, denominationPriceHistory, tokens, tokensInUsd, balanceToken])
 
-  // update the width on a window resize
-  const ref = useRef()
-  const isClient = typeof window === 'object'
-  const [width, setWidth] = useState(ref?.current?.container?.clientWidth)
-  useEffect(() => {
-    if (!isClient) {
-      return false
-    }
-    function handleResize() {
-      setWidth(ref?.current?.container?.clientWidth ?? width)
-    }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [isClient, width]) // Empty array ensures that effect is only run on mount and unmount
-
-  let moneySymbol = '$';
+  let moneySymbol = '$'
   switch (denomination) {
     case DENOMINATIONS.ETH:
-      moneySymbol = 'Ξ';
-      break;
+      moneySymbol = 'Ξ'
+      break
     case chainDenomination?.symbol:
-      moneySymbol = chainDenomination.symbol.slice(0, 1);
-      break;
+      moneySymbol = chainDenomination.symbol.slice(0, 1)
+      break
     case DENOMINATIONS.Tokens:
-      moneySymbol = '';
-      break;
+      moneySymbol = ''
+      break
+    default:
+      moneySymbol = '$'
   }
 
   const formatDate = finalChartData?.length > 120 ? toNiceMonthlyDate : toNiceDate
-  const tokensProvided = tokensInUsd !== undefined && tokensInUsd.length !== 0 && !tokensInUsd.some(data => !data.tokens) && misrepresentedTokens === undefined
+  const tokensProvided =
+    tokensInUsd &&
+    tokensInUsd.length !== 0 &&
+    !tokensInUsd.some(data => !data.tokens) &&
+    misrepresentedTokens === undefined
   const denominationsToDisplay = {
     USD: 'USD',
-    ETH: 'ETH',
-  };
+    ETH: 'ETH'
+  }
   if (chainDenomination) {
     denominationsToDisplay[chainDenomination.symbol] = chainDenomination.symbol
   }
   if (tokensProvided) {
-    denominationsToDisplay['TokensUSD'] = 'Tokens(USD)';
+    denominationsToDisplay['TokensUSD'] = 'Tokens(USD)'
     if (!small) {
       denominationsToDisplay['Change'] = 'Change'
       denominationsToDisplay['ChangeSplit'] = 'ChangeSplit'
@@ -299,70 +291,63 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
   if (chainTvls) {
     denominationsToDisplay['Chains'] = 'Chains'
   }
-  const tokenSymbols = useMemo(() => tokensProvided ? Object.entries(tokensInUsd[tokensInUsd.length - 1].tokens).sort((a, b) => b[1] - a[1]).map(t => t[0]) : undefined)
+  const tokenSymbols = tokensProvided
+    ? Object.keys(tokensInUsd[tokensInUsd.length - 1]?.tokens).sort((a, b) => a.localeCompare(b))
+    : undefined
+
   return (
     <ChartWrapper>
-      {below600 ? (
+      {belowMed ? (
         <RowBetween mb={40}>
-          <DropdownSelect options={denominationsToDisplay} active={denomination} setActive={setDenomination} color={color} />
+          <DropdownSelect
+            options={denominationsToDisplay}
+            active={denomination}
+            setActive={setDenomination}
+            color={color}
+          />
           <DropdownSelect options={timeframeOptions} active={timeWindow} setActive={setTimeWindow} color={color} />
         </RowBetween>
       ) : (
         <RowBetween
-          mb={
-            chartFilter === CHART_VIEW.LIQUIDITY ||
-              chartFilter === CHART_VIEW.VOLUME ||
-              (chartFilter === CHART_VIEW.PRICE && frequency === DATA_FREQUENCY.LINE)
-              ? 40
-              : 0
-          }
+          mb={chartFilter === CHART_VIEW.LIQUIDITY || chartFilter === CHART_VIEW.VOLUME ? 40 : 0}
           align="flex-start"
         >
           <AutoColumn gap="8px">
             <RowFixed>
-              {Object.values(denominationsToDisplay).map(option => <OptionButton
-                active={denomination === option}
-                onClick={() => setDenomination(option)}
-                style={{ marginRight: '6px' }}
-                key={option}
-              >
-                {option}
-              </OptionButton>
-              )}
-              {tokenSymbols && !small && <DropdownSelect options={tokenSymbols} active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'} setActive={(token) => {
-                setDenomination(`${DENOMINATIONS.Tokens}-${token}`)
-              }} color={color} style={{ marginRight: '6px' }} />}
-              {chainTvls && Object.keys(chainTvls).length > 1 && <DropdownSelect options={[ALL_CHAINS].concat(Object.keys(chainTvls))} active={selectedChain === 'all' ? ALL_CHAINS : selectedChain} setActive={(chain) => {
-                setSelectedChain(chain)
-              }} color={color} />}
-            </RowFixed>
-            {chartFilter === CHART_VIEW.PRICE && (
-              <AutoRow gap="4px">
-                <PriceOption
-                  active={frequency === DATA_FREQUENCY.DAY}
-                  onClick={() => {
-                    setTimeWindow(timeframeOptions.MONTH)
-                    setFrequency(DATA_FREQUENCY.DAY)
+              {Object.values(denominationsToDisplay).map(option => (
+                <OptionButton
+                  active={denomination === option}
+                  onClick={() => setDenomination(option)}
+                  style={{ marginRight: '6px' }}
+                  key={option}
+                >
+                  {option}
+                </OptionButton>
+              ))}
+              {tokenSymbols && !small && (
+                <DropdownSelect
+                  options={tokenSymbols}
+                  active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'}
+                  setActive={token => {
+                    setDenomination(`${DENOMINATIONS.Tokens}-${token}`)
                   }}
-                >
-                  D
-                </PriceOption>
-                <PriceOption
-                  active={frequency === DATA_FREQUENCY.HOUR}
-                  onClick={() => setFrequency(DATA_FREQUENCY.HOUR)}
-                >
-                  H
-                </PriceOption>
-                <PriceOption
-                  active={frequency === DATA_FREQUENCY.LINE}
-                  onClick={() => setFrequency(DATA_FREQUENCY.LINE)}
-                >
-                  <Activity size={14} />
-                </PriceOption>
-              </AutoRow>
-            )}
+                  color={color}
+                  style={{ marginRight: '6px' }}
+                />
+              )}
+              {chainTvls && Object.keys(chainTvls).length > 1 && (
+                <DropdownSelect
+                  options={[ALL_CHAINS].concat(Object.keys(chainTvls))}
+                  active={selectedChain === 'all' ? ALL_CHAINS : selectedChain}
+                  setActive={chain => {
+                    setSelectedChain(chain)
+                  }}
+                  color={color}
+                />
+              )}
+            </RowFixed>
           </AutoColumn>
-          <AutoRow justify="flex-end" gap="6px" align="flex-start">
+          <AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
             <OptionButton
               active={timeWindow === timeframeOptions.MONTH}
               onClick={() => setTimeWindow(timeframeOptions.MONTH)}
@@ -432,23 +417,31 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               }}
               wrapperStyle={{ top: -70, left: -10 }}
             />
-            {(tokenData?.hallmarks ?? []).map((hallmark, i) =>
-              <ReferenceLine x={hallmark[0]} stroke={textColor} label={{ value: hallmark[1], fill: textColor, position: "insideTop", offset: (i * 50) % 300 + 50 }} />
-            )}
-            {tokensUnique.length > 0 ? tokensUnique.map(tokenSymbol => {
-              const randomColor = stringToColour();
-              return <Area
-                type="monotone"
-                dataKey={tokenSymbol}
-                key={tokenSymbol}
-                stackId="1"
-                fill={randomColor}
-                stroke={randomColor}
+            {hallmarks.map((hallmark, i) => (
+              <ReferenceLine
+                x={hallmark[0]}
+                stroke={textColor}
+                label={{ value: hallmark[1], fill: textColor, position: 'insideTop', offset: ((i * 50) % 300) + 50 }}
               />
-            }) :
+            ))}
+            {tokensUnique.length > 0 ? (
+              tokensUnique.map(tokenSymbol => {
+                const randomColor = stringToColour()
+                return (
+                  <Area
+                    type="monotone"
+                    dataKey={tokenSymbol}
+                    key={tokenSymbol}
+                    stackId="1"
+                    fill={randomColor}
+                    stroke={randomColor}
+                  />
+                )
+              })
+            ) : (
               <Area
                 key={'other'}
-                dataKey='1'
+                dataKey="1"
                 isAnimationActive={false}
                 stackId="2"
                 strokeWidth={2}
@@ -459,11 +452,10 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
                 stroke={color}
                 fill="url(#colorUv)"
               />
-            }
+            )}
           </AreaChart>
         </ResponsiveContainer>
-      )
-      }
+      )}
       {chartFilter === CHART_VIEW.VOLUME && finalChartData && (
         <ResponsiveContainer aspect={aspect}>
           <BarChart margin={{ top: 0, right: 10, bottom: 6, left: 10 }} barCategoryGap={1} data={finalChartData}>
@@ -474,7 +466,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               minTickGap={80}
               tickMargin={14}
               tickFormatter={formatDate}
-              dataKey="0"
+              dataKey="date"
               scale="time"
               type="number"
               tick={{ fill: textColor }}
@@ -492,9 +484,9 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               yAxisId={0}
               tick={{ fill: textColor }}
             />
-            {(tokenData?.hallmarks ?? []).map(hallmark =>
+            {hallmarks.map(hallmark => (
               <ReferenceLine x={hallmark[0]} stroke="red" label={hallmark[1]} />
-            )}
+            ))}
             <Tooltip
               cursor={{ fill: color, opacity: 0.1 }}
               formatter={val => formattedNum(val, true)}
@@ -508,7 +500,7 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
               }}
               wrapperStyle={{ top: -70, left: -10 }}
             />
-            {denomination === DENOMINATIONS.Change ?
+            {denomination === DENOMINATIONS.Change ? (
               <Bar
                 type="monotone"
                 name={'Daily Change'}
@@ -517,21 +509,24 @@ const TokenChart = ({ small = false, color, base, data, tokens, tokensInUsd, cha
                 opacity={'0.8'}
                 yAxisId={0}
                 stroke={color}
-              /> : Array.from(tokenSet).map(token => <Bar
-                key={token}
-                type="monotone"
-                dataKey={token}
-                fill={stringToColour(token)}
-                opacity={'0.8'}
-                yAxisId={0}
-                stackId="stack"
-              />)
-            }
+              />
+            ) : (
+              Array.from(tokenSet).map(token => (
+                <Bar
+                  key={token}
+                  type="monotone"
+                  dataKey={token}
+                  fill={stringToColour(token)}
+                  opacity={'0.8'}
+                  yAxisId={0}
+                  stackId="stack"
+                />
+              ))
+            )}
           </BarChart>
         </ResponsiveContainer>
-      )
-      }
-    </ChartWrapper >
+      )}
+    </ChartWrapper>
   )
 }
 

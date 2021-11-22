@@ -39,9 +39,7 @@ const Dropdown = styled.div`
   color: black;
   max-height: 600px;
 
-  overflow-y: auto;
-
-  ${({ overflowVisible }) => overflowVisible && 'overflow: visible'}
+  ${({ overflowVisible }) => (overflowVisible ? 'overflow: visible' : 'overflow-y: auto;')}
 
   :hover {
     cursor: pointer;

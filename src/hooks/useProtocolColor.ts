@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import Vibrant from 'node-vibrant'
-import { shade, transparentize } from 'polished'
+import { shade } from 'polished'
 import { hex } from 'wcag-contrast'
 
 import { primaryColor } from 'constants/colors'
 import { tokenIconUrl } from 'utils'
 
-const useProtocolColor = ({ protocol = '', logo = '', color = primaryColor, transparent = true }) => {
+const useProtocolColor = ({ protocol = '', logo = '', color = primaryColor }) => {
   const [protocolColor, setProtocolColor] = useState(color)
   useEffect(() => {
     const fetchColor = () => {
@@ -35,7 +35,7 @@ const useProtocolColor = ({ protocol = '', logo = '', color = primaryColor, tran
     fetchColor()
   }, [protocol, logo])
 
-  return transparent ? transparentize(0.6, protocolColor) : protocolColor
+  return protocolColor
 }
 
 export default useProtocolColor

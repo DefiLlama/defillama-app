@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react'
-import { useMedia } from 'react-use'
+import React from 'react'
+import dynamic from 'next/dynamic'
 import { PlusCircle, Bookmark } from 'react-feather'
-import { Text } from 'rebass'
+import { Text, Box } from 'rebass'
 import styled from 'styled-components'
+import { transparentize } from 'polished'
 
 import { Hover, PageWrapper, ContentWrapper, StyledIcon } from 'components'
 import AuditInfo from 'components/AuditInfo'
@@ -14,7 +15,6 @@ import HeadHelp from 'components/HeadHelp'
 import Link, { BasicLink } from 'components/Link'
 import Loader from 'components/LocalLoader'
 import Panel from 'components/Panel'
-import ProtocolChart from 'components/ProtocolChart'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import Search from 'components/Search'
 import { CheckMarks } from 'components/SettingsModal'
@@ -23,13 +23,27 @@ import TokenLogo from 'components/TokenLogo'
 import { useSavedTokens, useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
 import { useScrollToTop, useProtocolColor } from 'hooks'
 import { TYPE, ThemedBackground } from 'Theme'
-import { formattedNum, formattedPercent, getBlockExplorer } from 'utils'
+import { formattedNum, getBlockExplorer } from 'utils'
 
-const DashboardWrapper = styled.div`
+const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
+
+const DashboardWrapper = styled(Box)`
   width: 100%;
 `
 
-const PanelWrapper = styled.div`
+const HiddenSearch = styled.span`
+  @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
+    display: none;
+  }
+`
+
+const HiddenBookmark = styled.span`
+  @media screen and (max-width: ${({ theme }) => theme.bpLg}) {
+    display: none;
+  }
+`
+
+const PanelWrapper = styled(Box)`
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: max-content;
   gap: 6px;
@@ -80,8 +94,18 @@ const TokenDetailsLayout = styled.div`
     }
   }
 `
+
+const TotalValueLockedWrap = styled(RowBetween)`
+  @media only screen and (max-width: ${({ theme: { bpXl } }) => bpXl}) and (min-width: ${({ theme: { bpLg } }) =>
+      bpLg}) {
+    flex-direction: column-reverse;
+  }
+`
+
 function ProtocolContainer({ protocolData, protocol, denomination, selectedChain }) {
   useScrollToTop()
+
+  // console.log(protocolData, 'protocolData')
   let {
     address = '',
     name,
@@ -90,7 +114,6 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
     description,
     tvl,
     priceUSD,
-    priceChangeUSD,
     misrepresentedTokens,
     logo,
     audits,
@@ -100,19 +123,18 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
     tokens,
     twitter,
     chains,
-    chainTvls,
+    chainTvls = {},
     historicalChainTvls,
     audit_links,
     methodology,
     module: codeModule
   } = protocolData
-  const backgroundColor = useProtocolColor({ protocol, logo })
-  if (address) {
-    const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
-  }
+  const backgroundColor = useProtocolColor({ protocol, logo, transparent: false })
+  const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
+  console.log(chainTvls, 'chainTvls')
   if (chainTvls.staking && stakingEnabled) {
     tvl += chainTvls.staking
   }
@@ -120,26 +142,15 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
     tvl += chainTvls.pool2
   }
 
-  // price
-  const price = priceUSD ? formattedNum(priceUSD, true) : ''
-  const priceChange = priceChangeUSD ? formattedPercent(priceChangeUSD) : ''
-
-  const below1600 = useMedia('(max-width: 1650px)')
-  const below1024 = useMedia('(max-width: 1024px)')
-  const below800 = useMedia('(max-width: 800px)')
-  const below600 = useMedia('(max-width: 600px)')
-  const below500 = useMedia('(max-width: 500px)')
-  const below900 = useMedia('(max-width: 900px)')
-
   // TODO check if we still need to format long symbols?
 
   const [savedTokens, addToken] = useSavedTokens()
 
   return (
     <PageWrapper>
-      <ThemedBackground backgroundColor={backgroundColor} />
+      <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
       <ContentWrapper>
-        <RowBetween style={{ flexWrap: 'wrap', alingItems: 'start' }}>
+        <RowBetween flexWrap="wrap">
           <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
             <TYPE.body>
               <BasicLink href="/protocols">{'Protocols '}</BasicLink>→{' '}
@@ -155,68 +166,42 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
               </Text>
             </Link>
           </AutoRow>
-          {!below600 && <Search small={true} />}
+          <HiddenSearch>
+            <Search small={true} />
+          </HiddenSearch>
         </RowBetween>
 
-        <DashboardWrapper style={{ marginTop: below1024 ? '0' : '1rem' }}>
+        <DashboardWrapper mt={[0, 0, '1rem']}>
           <RowBetween style={{ flexWrap: 'wrap', marginBottom: '2rem', alignItems: 'flex-start' }}>
             <RowFixed style={{ flexWrap: 'wrap' }}>
               <RowFixed style={{ alignItems: 'baseline' }}>
                 <TokenLogo address={address} logo={logo} size="32px" style={{ alignSelf: 'center' }} />
-                <TYPE.main fontSize={below1024 ? '1.5rem' : '2rem'} fontWeight={500} style={{ margin: '0 1rem' }}>
+                <TYPE.main fontSize={['1.5rem', '1.5rem', '2rem']} fontWeight={500} style={{ margin: '0 1rem' }}>
                   <RowFixed gap="6px">
                     <FormattedName text={name ? name + ' ' : ''} maxCharacters={16} style={{ marginRight: '6px' }} />{' '}
                     {symbol}
                   </RowFixed>
                 </TYPE.main>{' '}
-                {!below1024 && (
-                  <>
-                    <TYPE.main fontSize={'1.5rem'} fontWeight={500} style={{ marginRight: '1rem' }}>
-                      {price}
-                    </TYPE.main>
-                    {priceChange}
-                  </>
-                )}
               </RowFixed>
             </RowFixed>
-            <span>
-              <RowFixed ml={below500 ? '0' : '2.5rem'} mt={below500 ? '1rem' : '0'}>
-                {!savedTokens[address] && !below800 ? (
+            <HiddenBookmark>
+              <RowFixed ml={[0, '2.5rem']} mt={['1rem', '0']}>
+                {!savedTokens[address] ? (
                   <Hover onClick={() => addToken(address, name)}>
                     <StyledIcon>
                       <PlusCircle style={{ marginRight: '0.5rem' }} />
                     </StyledIcon>
                   </Hover>
-                ) : !below1024 ? (
+                ) : (
                   <StyledIcon>
                     <Bookmark style={{ marginRight: '0.5rem', opacity: 0.4 }} />
                   </StyledIcon>
-                ) : (
-                  <></>
                 )}
               </RowFixed>
-            </span>
+            </HiddenBookmark>
           </RowBetween>
-
           <>
-            {/* <PanelWrapper style={{ marginTop: below1024 ? '0' : '1rem', gridTemplateRows: 'auto' }}>
-              {below1024 && price && (
-                <Panel>
-                  <AutoColumn gap="20px">
-                    <RowBetween>
-                      <TYPE.main>Price</TYPE.main>
-                      <div />
-                    </RowBetween>
-                    <RowBetween align="flex-end">
-                      {' '}
-                      <TYPE.main fontSize={'1.5rem'} lineHeight={1} fontWeight={500}>
-                        {price}
-                      </TYPE.main>
-                      <TYPE.main>{priceChange}</TYPE.main>
-                    </RowBetween>
-                  </AutoColumn>
-                </Panel>
-              )}
+            <PanelWrapper mt={[0, 0, '1rem']} style={{ gridTemplateRows: 'auto' }}>
               <Panel>
                 <AutoColumn gap="20px">
                   <RowBetween>
@@ -235,7 +220,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                     <TYPE.main>Total Value Locked </TYPE.main>
                   </RowBetween>
                   <CheckMarks />
-                  <RowBetween align="flex-end">
+                  <TotalValueLockedWrap align="flex-end">
                     <TYPE.main fontSize={'1.5rem'} lineHeight={1} fontWeight={500}>
                       {formattedNum(tvl || '0', true)}
                     </TYPE.main>
@@ -250,7 +235,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                         )}
                       </div>
                     </TYPE.main>
-                  </RowBetween>
+                  </TotalValueLockedWrap>
                 </AutoColumn>
               </Panel>
               <Panel>
@@ -273,11 +258,15 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   </RowBetween>
                 </AutoColumn>
               </Panel>
-              <Panel style={{ gridColumn: below1024 ? '1' : '2/4', gridRow: below1024 ? '' : '1/4' }}>
+              <Panel
+                sx={{
+                  gridColumn: ['1', '1', '1', '2/4'],
+                  gridRow: ['', '', '', '1/4']
+                }}
+              >
                 {chartData && (
                   <ProtocolChart
                     denomination={denomination}
-                    small={below900 || (!below1024 && below1600)}
                     chartData={chartData}
                     misrepresentedTokens={misrepresentedTokens}
                     protocol={name}
@@ -294,10 +283,10 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 )}
                 {!chartData && <Loader />}
               </Panel>
-            </PanelWrapper> */}
+            </PanelWrapper>
           </>
           <>
-            {/* <RowBetween style={{ marginTop: '3rem' }}>
+            <RowBetween style={{ marginTop: '3rem' }}>
               <TYPE.main fontSize={'1.125rem'}>Protocol Information</TYPE.main>{' '}
             </RowBetween>
             <Panel
@@ -312,7 +301,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   <Column>
                     <TYPE.main>Category</TYPE.main>
                     <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                      <BasicLink to={`/protocols/${category.toLowerCase()}`}>
+                      <BasicLink href={`/protocols/${category.toLowerCase()}`}>
                         <FormattedName text={category} maxCharacters={16} />
                       </BasicLink>
                     </TYPE.main>
@@ -342,9 +331,9 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   </Link>
                 </RowFixed>
               </TokenDetailsLayout>
-            </Panel> */}
+            </Panel>
 
-            {/* <RowBetween style={{ marginTop: '3rem' }}>
+            <RowBetween style={{ marginTop: '3rem' }}>
               <TYPE.main fontSize={'1.125rem'}>Methodology</TYPE.main>{' '}
             </RowBetween>
             <Panel
@@ -370,14 +359,14 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   <ButtonLight color={backgroundColor}>Check the code ↗</ButtonLight>
                 </Link>
               </RowFixed>
-            </Panel> */}
+            </Panel>
 
-            {/* {address && (
+            {address && (
               <RowBetween style={{ marginTop: '3rem' }}>
                 <TYPE.main fontSize={'1.125rem'}>Token Information</TYPE.main>{' '}
               </RowBetween>
-            )} */}
-            {/* {address && (
+            )}
+            {address && (
               <Panel
                 rounded
                 style={{
@@ -422,7 +411,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   </RowFixed>
                 </TokenDetailsLayout>
               </Panel>
-            )} */}
+            )}
           </>
         </DashboardWrapper>
       </ContentWrapper>
