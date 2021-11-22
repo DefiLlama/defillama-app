@@ -72,14 +72,10 @@ const TokenChart = ({
     }
   }
 
-  console.log(initialDenomination, 'initialDenomination')
-
   const denomination =
     Object.values(DENOMINATIONS).find(
       den => den?.toLowerCase() === initialDenomination?.split('-')?.[0]?.toLowerCase()
     ) ?? DENOMINATIONS.USD
-
-  console.log(denomination, 'denomination')
 
   const balanceToken = initialDenomination?.substr(initialDenomination.indexOf('-') + 1)
 
@@ -115,10 +111,8 @@ const TokenChart = ({
   }
 
   let chartData = data
-  console.log(selectedChain, 'selectedChain')
-  console.log(chainTvls, 'chainTvls')
   if (selectedChain !== 'all') {
-    chartData = chainTvls[selectedChain].tvl
+    chartData = chainTvls[selectedChain].tvl.map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
     tokens = chainTvls[selectedChain].tokens
     tokensInUsd = chainTvls[selectedChain].tokensInUsd
   }
@@ -155,8 +149,6 @@ const TokenChart = ({
     } else if (denomination === DENOMINATIONS.Chains) {
       const timeToTvl = {}
 
-      console.log(Object.entries(chainTvls), 'Object.entries(chainTvls)')
-
       Object.entries(chainTvls).forEach(([chainToAdd, tvl]) => {
         tvl.tvl.forEach(dayTvl => {
           timeToTvl[dayTvl.date] = {
@@ -166,12 +158,12 @@ const TokenChart = ({
         })
       })
 
-      console.log(timeToTvl, 'timeToTvl')
       const stacked = Object.keys(timeToTvl)
         .sort((a, b) => Number(a) - Number(b))
         .map(dayDate => ({
           ...timeToTvl[dayDate],
-          date: Number(dayDate)
+          // kinda scuffed but gotta fix the datakey for chart again
+          0: Number(dayDate)
         }))
       return [stacked, Object.keys(chainTvls)]
     }
@@ -303,7 +295,6 @@ const TokenChart = ({
     ? Object.keys(tokensInUsd[tokensInUsd.length - 1]?.tokens).sort((a, b) => a.localeCompare(b))
     : undefined
 
-  console.log(finalChartData, 'finalChartData')
   return (
     <ChartWrapper>
       {belowMed ? (
@@ -475,7 +466,7 @@ const TokenChart = ({
               minTickGap={80}
               tickMargin={14}
               tickFormatter={formatDate}
-              dataKey="0"
+              dataKey="date"
               scale="time"
               type="number"
               tick={{ fill: textColor }}
