@@ -1,10 +1,17 @@
 import React, { useState, useEffect, } from 'react'
 import { ChevronsUp } from 'react-feather'
 import { Button } from 'rebass'
-import { fetchAPI } from 'contexts/API'
-import { NFT_COLLECTIONS_API } from '../constants'
 
-export default function useFetchedInfiniteScroll({ list = [], page = 0, limit = 100, setPage = () => { }, setCollections = () => {}, filters = [] }) {
+export default function useFetchedInfiniteScroll({
+    list = [],
+    page = 0,
+    limit = 100,
+    setPage = () => { },
+    setList = () => { },
+    fetch = () => { },
+    fetchEndpoint = "",
+    filters = [] 
+}) {
 
     const [dataLength, setDatalength] = useState(limit)
     const [hasMore, setHasMore] = useState(true)
@@ -36,10 +43,10 @@ export default function useFetchedInfiniteScroll({ list = [], page = 0, limit = 
 
     const next = async () => {
         const totalRows = dataLength + limit
-        const collections = await fetchAPI(`${NFT_COLLECTIONS_API}?page=${page + 1}&limit=${limit}`)
-        setCollections([...list, ...collections])
+        const data = await fetch(`${fetchEndpoint}?page=${page + 1}&limit=${limit}`)
+        setList([...list, ...data])
 
-        if (collections.length < limit) {
+        if (data.length < limit) {
             setDatalength(list.length)
             setHasMore(false)
         } else {

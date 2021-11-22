@@ -15,6 +15,8 @@ import { useFetchedInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 import { withRouter } from 'react-router-dom'
 import FormattedName from '../FormattedName'
+import { fetchAPI } from 'contexts/API'
+import { NFT_COLLECTIONS_API } from '../../constants'
 
 dayjs.extend(utc)
 
@@ -176,7 +178,14 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
   const { LoadMoreButton,
     dataLength,
     hasMore,
-    next } = useFetchedInfiniteScroll({ list: filteredList, page, setPage, setCollections });
+    next } = useFetchedInfiniteScroll({
+      list: filteredList,
+      page,
+      setPage,
+      setList: setCollections,
+      fetch: fetchAPI,
+      fetchEndpoint: NFT_COLLECTIONS_API
+    });
 
   return (
     <ListWrapper>
