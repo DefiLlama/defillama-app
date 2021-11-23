@@ -170,7 +170,7 @@ const TokenChart = ({
         .map(dayDate => ({
           ...timeToTvl[dayDate],
           // kinda scuffed but gotta fix the datakey for chart again
-          0: Number(dayDate)
+          date: Number(dayDate)
         }))
       return [stacked, Object.keys(chainTvls)]
     }
@@ -392,7 +392,7 @@ const TokenChart = ({
               tickMargin={16}
               minTickGap={120}
               tickFormatter={formatDate}
-              dataKey="0"
+              dataKey={tokensUnique.length > 0 ? "date" : "0"}
               scale="time"
               type="number"
               tick={{ fill: textColor }}
