@@ -102,6 +102,9 @@ export const fuseProtocolData = (protocolsDict, protocolData, protocol) => {
   const historicalChainTvls = { ...(protocolData?.chainTvls ?? {}) }
   // Don't overwrite topTokens' chainTvls response
   delete protocolData.chainTvls
+  const chainTvls = Object.fromEntries(
+    Object.entries(protocolsDict[protocol].chainTvls).sort((a: any[], b: any[]) => b[1] - a[1])
+  )
 
   return {
     ...(protocolsDict[protocol] || {}),
@@ -110,7 +113,8 @@ export const fuseProtocolData = (protocolsDict, protocolData, protocol) => {
     tvlList: protocolData?.tvl
       .filter(item => item.date)
       .map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
-    historicalChainTvls
+    historicalChainTvls,
+    chainTvls
   }
 }
 

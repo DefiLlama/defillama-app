@@ -18,6 +18,7 @@ import { useStakingManager, usePool2Manager } from '../../contexts/LocalStorage'
 import { formattedNum } from '../../utils'
 
 import ProtocolChart from '../ProtocolChart'
+import dynamic from 'next/dynamic'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -45,15 +46,20 @@ const FiltersRow = styled(RowFlat)`
   }
 `
 
-const PlaceholderChartPanel = styled(Panel)`
-  padding-bottom: 33%;
-  @media (max-width: 1080px) {
-    padding-bottom: 40%;
-  }
+const BreakpointPanelsColumn = styled(AutoColumn)`
+  height: 100%;
+  width: 100%;
+  margin-right: 10px;
+  max-width: 350px;
   @media (max-width: 800px) {
-    padding-bottom: 67%;
+    max-width: initial;
+    margin-bottom: 10px;
   }
 `
+
+const Chart = dynamic(() => import('components/GlobalChart'), {
+  ssr: false
+})
 
 function GlobalPage({
   selectedChain = 'All',
@@ -67,15 +73,7 @@ function GlobalPage({
   totalPool2
 }) {
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
-  // breakpoints
-  const below800 = useMedia('(max-width: 800px)')
-  // scrolling refs
-  useEffect(() => {
-    document.querySelector('body').scrollTo({
-      behavior: 'smooth',
-      top: 0
-    })
-  }, [])
+
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
 
@@ -97,8 +95,6 @@ function GlobalPage({
       topToken.tvl = filteredTokens[1]?.tvl
     }
   }
-
-  const chart = <ProtocolChart chartData={globalChart} denomination={denomination} protocol={selectedChain} />
 
   const panels = (
     <>
@@ -145,7 +141,7 @@ function GlobalPage({
     <PageWrapper>
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
       <ContentWrapper>
-        <AutoColumn gap="24px" style={{ paddingBottom: below800 ? '0' : '24px' }}>
+        <AutoColumn gap="24px">
           <Search />
           {selectedChain === 'Fantom' && (
             <Panel background={true} style={{ textAlign: 'center' }}>
@@ -164,31 +160,14 @@ function GlobalPage({
           <CheckMarks />
         </AutoColumn>
         <BreakpointPanels>
-          <AutoColumn
-            style={{
-              height: '100%',
-              width: '100%',
-              marginRight: '10px',
-              maxWidth: '350px',
-              marginTop: '10px'
-            }}
+          <BreakpointPanelsColumn
             gap="10px"
           >
             {panels}
-          </AutoColumn>
-          <PlaceholderChartPanel style={{ height: '100%' }}>
-            <div
-              style={{
-                position: 'absolute',
-                top: 20,
-                bottom: 20,
-                left: 20,
-                right: 20
-              }}
-            >
-              {chart}
-            </div>
-          </PlaceholderChartPanel>
+          </BreakpointPanelsColumn>
+          <Panel style={{ height: '100%', minHeight: '347px' }}>
+            <Chart display="liquidity" dailyData={globalChart} totalLiquidityUSD={totalVolumeUSD} liquidityChangeUSD={volumeChangeUSD} />
+          </Panel>
         </BreakpointPanels>
         <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
           <RowBetween>

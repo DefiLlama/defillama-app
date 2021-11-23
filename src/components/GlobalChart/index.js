@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { ResponsiveContainer } from 'recharts'
 import { timeframeOptions } from '../../constants'
-import { useGlobalChartData, useGlobalData } from '../../contexts/GlobalData'
 import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
 import { RowFixed } from '../Row'
 import { OptionButton } from '../ButtonStyled'
@@ -17,7 +16,7 @@ const VOLUME_WINDOW = {
   WEEKLY: 'WEEKLY',
   DAYS: 'DAYS'
 }
-const GlobalChart = ({ display }) => {
+const GlobalChart = ({ display, dailyData, totalLiquidityUSD, liquidityChangeUSD }) => {
   // chart options
   const [chartView] = useState(display === 'volume' ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY)
 
@@ -26,15 +25,11 @@ const GlobalChart = ({ display }) => {
   const [volumeWindow, setVolumeWindow] = useState(VOLUME_WINDOW.DAYS)
 
   // global historical data
-  const [dailyData, weeklyData] = useGlobalChartData()
-  const {
-    totalLiquidityUSD,
+  let weeklyData,
     oneDayVolumeUSD,
     volumeChangeUSD,
-    liquidityChangeUSD,
     oneWeekVolume,
     weeklyVolumeChange
-  } = useGlobalData()
 
   // based on window, get starttim
   let utcStartTime = getTimeframe(timeWindow)
@@ -82,7 +77,7 @@ const GlobalChart = ({ display }) => {
             base={totalLiquidityUSD}
             baseChange={liquidityChangeUSD}
             title="Total TVL"
-            field="totalLiquidityUSD"
+            field="1"
             width={width}
             type={CHART_TYPES.AREA}
           />

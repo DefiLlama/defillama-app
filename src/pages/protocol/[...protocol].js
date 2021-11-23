@@ -13,12 +13,28 @@ export async function getStaticProps({
   const protocolRes = await getProtocol(protocol)
   const protocolData = fuseProtocolData(protocolsDict, protocolRes, protocol)
 
+  const chainTvls = Object.fromEntries(Object.entries(protocolsDict[protocol].chainTvls).sort((a, b) => b[1] - a[1]))
+
   return {
     props: {
       protocol,
       protocolData,
       selectedChain,
+<<<<<<< HEAD
       denomination
+=======
+      denomination,
+      protocolData: {
+        ...(protocolsDict[protocol] || {}),
+        ...protocolData,
+        tvl: protocolData?.tvl.length > 0 ? protocolData?.tvl[protocolData?.tvl.length - 1]?.totalLiquidityUSD : 0,
+        tvlList: protocolData?.tvl
+          .filter(item => item.date)
+          .map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
+        historicalChainTvls,
+        chainTvls
+      }
+>>>>>>> 38ba74f70771db9ca6b26d259fc5dc6e6dea3c2c
     },
     revalidate: revalidate()
   }
