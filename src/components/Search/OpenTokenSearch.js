@@ -25,27 +25,39 @@ function escapeRegExp(string) {
 
 const searchKeys = ['symbol', 'name']
 
-const TokenSearch = ({ includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { }, wrapperRef, value, toggleMenu, setValue }) => {
+const TokenSearch = ({
+  includeChains = true,
+  linkPath = defaultLinkPath,
+  customOnLinkClick = () => {},
+  wrapperRef,
+  value,
+  toggleMenu,
+  setValue
+}) => {
   const [searcheableData, setSearcheableData] = useState(useSearchData())
-  const { protocolNames, chainsSet } = searcheableData;
+  const { protocolNames, chainsSet } = searcheableData
 
   useEffect(() => {
     if (searcheableData.protocolNames.length <= 3) {
-      fetch(PROTOCOLS_API).then(res => res.json()).then(res => {
-        setSearcheableData({
-          protocolNames: res.protocols,
-          chainsSet: res.chains,
+      fetch(PROTOCOLS_API)
+        .then(res => res.json())
+        .then(res => {
+          setSearcheableData({
+            protocolNames: res.protocols,
+            chainsSet: res.chains
+          })
         })
-      })
     }
   }, [searcheableData])
 
   const searchData = useMemo(() => {
-    const chainData = includeChains ? chainsSet.map(name => ({
-      logo: chainIconUrl(name),
-      isChain: true,
-      name,
-    })) : []
+    const chainData = includeChains
+      ? chainsSet.map(name => ({
+          logo: chainIconUrl(name),
+          isChain: true,
+          name
+        }))
+      : []
     return [...chainData, ...protocolNames.map(token => ({ ...token, logo: tokenIconUrl(token.name) }))]
   }, [protocolNames, chainsSet])
 
@@ -57,13 +69,13 @@ const TokenSearch = ({ includeChains = true, linkPath = defaultLinkPath, customO
     }
     return searchData
       ? searchData
-        .filter(token => {
-          const regexMatches = searchKeys.map(tokenEntryKey => {
-            return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
+          .filter(token => {
+            const regexMatches = searchKeys.map(tokenEntryKey => {
+              return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
+            })
+            return regexMatches.some(m => m)
           })
-          return regexMatches.some(m => m)
-        })
-        .slice(0, tokensShown)
+          .slice(0, tokensShown)
       : []
   }, [searchData, value, tokensShown, searchKeys])
 
@@ -71,6 +83,7 @@ const TokenSearch = ({ includeChains = true, linkPath = defaultLinkPath, customO
     setTokensShown(3)
     toggleMenu(false)
     setValue('')
+    console.log(token, 'token')
     customOnLinkClick(token)
   }
 
