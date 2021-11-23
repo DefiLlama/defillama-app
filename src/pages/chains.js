@@ -68,6 +68,39 @@ const renderActiveShape = (props) => {
     const RADIAN = Math.PI / 180;
     const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, payload, percent, value } = props;
     const fill = payload.color;
+    const sector1 = <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+    />
+    const sector2 = <Sector
+        cx={cx}
+        cy={cy}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        innerRadius={outerRadius + 6}
+        outerRadius={outerRadius + 10}
+        fill={fill}
+    />
+    if (outerRadius < 110) {
+        return <>
+            {sector1}
+            {sector2}
+            <text x={cx} y={cy} dy={-8} textAnchor="middle" fill={"white"}>
+                {payload.name}
+            </text>
+            <text x={cx} y={cy} dy={-8 + 18} textAnchor="middle" fill={"white"}>
+                {`${toK(value)}`}
+            </text>
+            <text x={cx} y={cy} dy={-8 + 18 * 2} textAnchor="middle" fill={"white"}>
+                {`(${(percent * 100).toFixed(2)}%)`}
+            </text>
+        </>
+    }
     const sin = Math.sin(-RADIAN * midAngle);
     const cos = Math.cos(-RADIAN * midAngle);
     const sx = cx + (outerRadius + 10) * cos;
@@ -80,27 +113,11 @@ const renderActiveShape = (props) => {
 
     return (
         <g>
-            <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
+            <text x={cx} y={cy} dy={8} textAnchor="middle" fill={"white"}>
                 {payload.name}
             </text>
-            <Sector
-                cx={cx}
-                cy={cy}
-                innerRadius={innerRadius}
-                outerRadius={outerRadius}
-                startAngle={startAngle}
-                endAngle={endAngle}
-                fill={fill}
-            />
-            <Sector
-                cx={cx}
-                cy={cy}
-                startAngle={startAngle}
-                endAngle={endAngle}
-                innerRadius={outerRadius + 6}
-                outerRadius={outerRadius + 10}
-                fill={fill}
-            />
+            {sector1}
+            {sector2}
             <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
             <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
             <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#777">{`TVL ${toK(value)}`}</text>
@@ -124,7 +141,7 @@ const ChainPieChart = ({ data, isMobile, chainColor }) => {
                 activeShape={renderActiveShape}
                 data={coloredData}
                 cx="50%"
-                cy="50%"
+                cy="47%"
                 innerRadius={"60%"}
                 dataKey="value"
                 onMouseEnter={onPieEnter}
