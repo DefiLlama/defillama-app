@@ -7,7 +7,7 @@ export async function getStaticProps({ params }) {
     const res = await fetch(PROTOCOLS_API).then(r => r.json())
     const protocols = res.protocols
         .filter(p => p.listedAt)
-        .map(p => keepNeededProperties(p, ["tvl", "name", "symbol", "chains", "change_7d", "mcaptvl", "listedAt"]))
+        .map(p => keepNeededProperties(p, ["tvl", "name", "symbol", "chains", "change_1d", "mcaptvl", "listedAt"]))
         .sort((a, b) => b.listedAt - a.listedAt)
     return {
         props: {
