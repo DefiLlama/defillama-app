@@ -138,7 +138,8 @@ const TokenChart = ({
   const belowXl = useXl()
   const belowLg = useLg()
   const belowMed = useMed()
-  const aspect = belowXl ? (!belowLg ? 60 / 42 : 60 / 22) : 60 / 22
+  // Use chainTvls to determine if this is a chain page
+  const aspect = chainTvls === undefined ? 60 / 22 : (belowXl ? (!belowLg ? 60 / 42 : 60 / 22) : 60 / 22)
 
   const [stackedDataset, tokensUnique] = useMemo(() => {
     if (denomination === DENOMINATIONS.TokensUSD) {
