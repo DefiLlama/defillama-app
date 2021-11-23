@@ -223,7 +223,7 @@ function TokenList({ tokens, filters,
             item.chains.map(chain => <BasicLink key={chain} href={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)
             : formattedNum(item[columns[1]], false)
         }</DataTextHideBelow1080>
-        <DataTextHideBelow1080 area="1dchange" color="text" fontWeight="500">
+        <DataTextHideBelow1080 area="1dchange" fontWeight="500">
           {formattedPercent(item.change_1d, true)}
         </DataTextHideBelow1080>
         <DataText area="7dchange">{
@@ -232,7 +232,7 @@ function TokenList({ tokens, filters,
             : `${item.listedAt} days ago`
         }</DataText>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
-        <DataTextHideBelow680 area="mcaptvl" color="text" fontWeight="500">
+        <DataTextHideBelow680 area="mcaptvl" fontWeight="500">
           {item.mcaptvl === null || item.mcaptvl === undefined ? '-' : formattedNum(item.mcaptvl, false)}
         </DataTextHideBelow680>
       </DashGrid >
@@ -244,7 +244,6 @@ function TokenList({ tokens, filters,
       <DashGrid center={true} style={{ height: 'fit-content', padding: '0 1.125rem 1rem 1.125rem' }}>
         <Flex alignItems="center" justifyContent="flexStart">
           <ClickableText
-            color="text"
             area="name"
             fontWeight="500"
             onClick={e => {
