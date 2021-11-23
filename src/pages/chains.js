@@ -124,9 +124,8 @@ const ChainPieChart = ({ data, isMobile, chainColor }) => {
                 data={coloredData}
                 cx="50%"
                 cy="50%"
-                innerRadius={110}
-                outerRadius={140}
-                fill="#8884d8"
+                innerRadius={"60%"}
+                //outerRadius={140}
                 dataKey="value"
                 onMouseEnter={onPieEnter}
             >
