@@ -1,5 +1,5 @@
 import { PROTOCOLS_API } from '../constants/index'
-import { slug } from '../utils'
+import { standardizeProtocolName } from '../utils'
 
 const baseUrl = `https://defillama.com`
 const singleUrls = ["protocols", "comparison", "about", "airdrops", "chains", "recent"]
@@ -36,7 +36,7 @@ function SiteMap() {
 
 export async function getServerSideProps({ res }) {
     const { protocols, chains, protocolCategories } = await fetch(PROTOCOLS_API).then(r => r.json())
-    const sitemap = generateSiteMap(protocols.map(({ name }) => slug(name)), chains, protocolCategories)
+    const sitemap = generateSiteMap(protocols.map(({ name }) => standardizeProtocolName(name)), chains, protocolCategories)
 
     res.setHeader('Content-Type', 'text/xml')
     // we send the XML to the browser
