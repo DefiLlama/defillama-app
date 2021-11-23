@@ -17,6 +17,8 @@ export async function getStaticProps({
   // Don't overwrite topTokens' chainTvls response
   delete protocolData.chainTvls
 
+  const chainTvls = Object.fromEntries(Object.entries(protocolsDict[protocol].chainTvls).sort((a, b) => b[1] - a[1]))
+
   return {
     props: {
       protocol,
@@ -29,7 +31,8 @@ export async function getStaticProps({
         tvlList: protocolData?.tvl
           .filter(item => item.date)
           .map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
-        historicalChainTvls
+        historicalChainTvls,
+        chainTvls
       }
     },
     revalidate: revalidate()
