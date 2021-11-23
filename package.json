@@ -68,6 +68,7 @@
     "rebass": "^4.0.7",
     "recharts": "^2.0.10",
     "styled-components": "^4.3.2",
+    "swr": "^1.0.1",
     "toformat": "^2.0.0",
     "typeface-inter": "^3.10.0",
     "typescript": "^3.9.5",

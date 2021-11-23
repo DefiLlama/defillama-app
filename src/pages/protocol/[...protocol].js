@@ -1,10 +1,8 @@
-import { GeneralLayout } from '../../layout'
+import { GeneralLayout } from 'layout'
 import ProtocolContainer from 'containers/ProtocolContainer'
 
-import { getProtocols, getProtocol } from 'api'
 import { standardizeProtocolName, capitalizeFirstLetter } from 'utils'
-import { ProtocolDataProvider } from 'contexts'
-import { revalidate } from '../../utils/dataApi'
+import { getProtocols, getProtocol, fuseProtocolData, revalidate } from 'utils/dataApi'
 
 export async function getStaticProps({
   params: {
@@ -12,28 +10,15 @@ export async function getStaticProps({
   }
 }) {
   const { protocolsDict } = await getProtocols()
-  const protocolData = await getProtocol(protocol)
-  const historicalChainTvls = { ...(protocolData?.chainTvls ?? {}) }
-  // Don't overwrite topTokens' chainTvls response
-  delete protocolData.chainTvls
-
-  const chainTvls = Object.fromEntries(Object.entries(protocolsDict[protocol].chainTvls).sort((a, b) => b[1] - a[1]))
+  const protocolRes = await getProtocol(protocol)
+  const protocolData = fuseProtocolData(protocolsDict, protocolRes, protocol)
 
   return {
     props: {
       protocol,
+      protocolData,
       selectedChain,
-      denomination,
-      protocolData: {
-        ...(protocolsDict[protocol] || {}),
-        ...protocolData,
-        tvl: protocolData?.tvl.length > 0 ? protocolData?.tvl[protocolData?.tvl.length - 1]?.totalLiquidityUSD : 0,
-        tvlList: protocolData?.tvl
-          .filter(item => item.date)
-          .map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
-        historicalChainTvls,
-        chainTvls
-      }
+      denomination
     },
     revalidate: revalidate()
   }
@@ -50,17 +35,14 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols({ denomination, selectedChain, protocol, protocolData }) {
-
   return (
-    <ProtocolDataProvider protocolData={protocolData}>
-      <GeneralLayout title={`${capitalizeFirstLetter(protocol)} Protocol: TVL and stats - DefiLlama`}>
-        <ProtocolContainer
-          protocol={protocol}
-          protocolData={protocolData}
-          denomination={denomination ?? undefined}
-          selectedChain={selectedChain}
-        />
-      </GeneralLayout>
-    </ProtocolDataProvider>
+    <GeneralLayout title={`${capitalizeFirstLetter(protocol)} Protocol: TVL and stats - DefiLlama`}>
+      <ProtocolContainer
+        protocol={protocol}
+        protocolData={protocolData}
+        denomination={denomination ?? undefined}
+        selectedChain={selectedChain}
+      />
+    </GeneralLayout>
   )
 }

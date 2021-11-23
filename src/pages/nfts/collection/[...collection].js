@@ -1,7 +1,6 @@
-import { getNFTCollection, getNFTCollections, getNFTCollectionChartData } from 'api'
 import NFTCollectionPage from '../../../components/NFTCollectionPage'
 import { GeneralLayout } from '../../../layout'
-import { revalidate } from '../../../utils/dataApi'
+import { getNFTCollection, getNFTCollections, getNFTCollectionChartData, revalidate } from '../../../utils/dataApi'
 
 export async function getStaticProps({
   params: {
