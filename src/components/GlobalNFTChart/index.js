@@ -5,7 +5,7 @@ import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
 import { getTimeframe } from '../../utils'
 //import { useNFTChartData } from '../../contexts/NFTData'
 
-const GlobalNFTChart = ({ chart: data}) => {
+const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange }) => {
   // time window and window size for chart
   const timeWindow = timeframeOptions.ALL_TIME
 
@@ -24,11 +24,14 @@ const GlobalNFTChart = ({ chart: data}) => {
     return () => window.removeEventListener('resize', handleResize)
   }, [isClient, width]) // Empty array ensures that effect is only run on mount and unmount
 
-  return data ? (
+  const filteredChartData = chartData.map(({ date, dailyVolume }) => [date, dailyVolume])
+
+  return filteredChartData ? (
     <ResponsiveContainer aspect={60 / 28} ref={ref}>
       <TradingViewChart
-        data={data}
-        base={data[data.length - 1][1]}
+        data={filteredChartData}
+        base={dailyVolume}
+        baseChange={dailyVolumeChange}
         title="Daily Volume ETH"
         field="1"
         width={width}

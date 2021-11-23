@@ -95,7 +95,7 @@ export async function getNFTData(collection) {
 
     return {
         props: {
-            chart: chartData.map(({ date, dailyVolume }) => [date, dailyVolume]),
+            chart: chartData,
             collections,
             totalVolumeUSD,
             dailyVolumeUSD,

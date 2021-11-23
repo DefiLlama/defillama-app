@@ -122,7 +122,7 @@ function NFTCollectionPage({ collection, chartData }) {
           <Section title="Links" content={<Links logo={logo} links={links} />} />
 
           <Panel style={{ gridColumn: below1024 ? '1' : '2/4', gridRow: below1024 ? '' : '1/4' }}>
-            <GlobalNFTChart chart={chartData.map(({ date, dailyVolume }) => [date, dailyVolume])} />
+            <GlobalNFTChart chartData={chartData} />
           </Panel>
         </PanelWrapper>
         <>

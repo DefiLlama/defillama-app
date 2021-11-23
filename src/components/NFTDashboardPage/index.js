@@ -166,13 +166,17 @@ const NFTDashboard = ({ history, title, totalVolumeUSD, dailyVolumeUSD, dailyCha
                 </Panel>
               </AutoColumn>
 
-              <Panel style={{ height: '100%', minHeight: '300px' }}>{<GlobalNFTChart chart={chart} />}</Panel>
+              <Panel style={{ height: '100%', minHeight: '300px' }}>
+                {<GlobalNFTChart chartData={chart} dailyVolume={dailyVolumeUSD} dailyVolumeChange={dailyChange} />}
+              </Panel>
             </AutoRow>
           )}
 
           {below800 && (
             <AutoColumn style={{ marginTop: '6px' }} gap="24px">
-              <Panel style={{ height: '100%', minHeight: '300px' }}>{<GlobalNFTChart chart={chart} />}</Panel>
+              <Panel style={{ height: '100%', minHeight: '300px' }}>
+                {<GlobalNFTChart chartData={chart} dailyVolume={dailyVolumeUSD} dailyVolumeChange={dailyChange} />}
+              </Panel>
             </AutoColumn>
           )}
 
