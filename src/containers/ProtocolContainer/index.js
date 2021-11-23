@@ -22,7 +22,7 @@ import TokenLogo from 'components/TokenLogo'
 import { useSavedTokens, useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
 import { useScrollToTop, useProtocolColor } from 'hooks'
 import { TYPE, ThemedBackground } from 'Theme'
-import { formattedNum, getBlockExplorer } from 'utils'
+import { formattedNum, getBlockExplorer, toK } from 'utils'
 
 const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
 
@@ -228,7 +228,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                         {Object.entries(chainTvls).map(chainTvl =>
                           chainTvl[0].includes('-') ? null : (
                             <div key={chainTvl[0]} style={{ justifyContent: 'space-between', display: 'flex' }}>
-                              <span>{chainTvl[0]}:&nbsp;</span> <span>{formattedNum(chainTvl[1] || '0', true)}</span>
+                              <span>{chainTvl[0]}:&nbsp;</span> <span>{toK(chainTvl[1] || 0)}</span>
                             </div>
                           )
                         )}
