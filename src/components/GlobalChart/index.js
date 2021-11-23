@@ -16,7 +16,7 @@ const VOLUME_WINDOW = {
   WEEKLY: 'WEEKLY',
   DAYS: 'DAYS'
 }
-const GlobalChart = ({ display, dailyData, totalLiquidityUSD = 0, liquidityChangeUSD = 0 }) => {
+const GlobalChart = ({ display, dailyData, totalLiquidityUSD, liquidityChangeUSD }) => {
   // chart options
   const [chartView] = useState(display === 'volume' ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY)
 

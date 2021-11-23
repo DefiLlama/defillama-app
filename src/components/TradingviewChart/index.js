@@ -42,7 +42,7 @@ const TradingViewChart = ({
   const dataPrev = usePrevious(data)
 
   useEffect(() => {
-    if (data !== dataPrev && chartCreated && type === CHART_TYPES.BAR) {
+    if (data !== dataPrev && chartCreated) {
       // remove the tooltip element
       let tooltip = document.getElementById('tooltip-id' + type)
       let node = document.getElementById('test-id' + type)
