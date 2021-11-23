@@ -20,6 +20,7 @@ export const Wrapper = styled.div`
   /* background-color: #1b1c22; */
   background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
   color: ${({ theme }) => theme.bg2};
+  overflow-y: scroll;
   min-width: 220px;
 
   @media screen and (max-width: 800px) {
@@ -29,6 +30,10 @@ export const Wrapper = styled.div`
 
   @media screen and (max-width: 600px) {
     padding: 1rem;
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
   }
 `
 
