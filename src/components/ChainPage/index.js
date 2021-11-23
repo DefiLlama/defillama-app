@@ -46,13 +46,14 @@ const FiltersRow = styled(RowFlat)`
   }
 `
 
-const PlaceholderChartPanel = styled(Panel)`
-  padding-bottom: 33%;
-  @media (max-width: 1080px) {
-    padding-bottom: 40%;
-  }
+const BreakpointPanelsColumn = styled(AutoColumn)`
+  height: 100%;
+  width: 100%;
+  margin-right: 10px;
+  max-width: 350px;
   @media (max-width: 800px) {
-    padding-bottom: 67%;
+    max-width: initial;
+    margin-bottom: 10px;
   }
 `
 
@@ -72,15 +73,7 @@ function GlobalPage({
   totalPool2
 }) {
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
-  // breakpoints
-  const below800 = useMedia('(max-width: 800px)')
-  // scrolling refs
-  useEffect(() => {
-    document.querySelector('body').scrollTo({
-      behavior: 'smooth',
-      top: 0
-    })
-  }, [])
+
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
 
@@ -167,17 +160,11 @@ function GlobalPage({
           <CheckMarks />
         </AutoColumn>
         <BreakpointPanels>
-          <AutoColumn
-            style={{
-              height: '100%',
-              width: '100%',
-              marginRight: '10px',
-              maxWidth: '350px',
-            }}
+          <BreakpointPanelsColumn
             gap="10px"
           >
             {panels}
-          </AutoColumn>
+          </BreakpointPanelsColumn>
           <Panel style={{ height: '100%', minHeight: '347px' }}>
             <Chart display="liquidity" dailyData={globalChart} totalLiquidityUSD={totalVolumeUSD} liquidityChangeUSD={volumeChangeUSD} />
           </Panel>
