@@ -63,7 +63,8 @@ export const BasicLinkStyle = styled.a`
   }
 `
 
-export const BasicLink = ({ href, children }) =>
+export const BasicLink = ({ href, children, ...props }) => (
   <RouterLink href={href} passHref>
-    <BasicLinkStyle>{children}</BasicLinkStyle>
+    <BasicLinkStyle {...props}>{children}</BasicLinkStyle>
   </RouterLink>
+)

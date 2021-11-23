@@ -119,16 +119,16 @@ export const fuseProtocolData = (protocolsDict, protocolData, protocol) => {
 const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then(res => res.json())
 
 export const useFetchProtocol = protocolName => {
-  const { data } = useSWR(protocolName ? `${PROTOCOL_API}/${protocolName}` : null, fetcher)
-  return data
+  const { data, error } = useSWR(protocolName ? `${PROTOCOL_API}/${protocolName}` : null, fetcher)
+  return { data, error, loading: protocolName && !data && !error }
 }
 
 export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
-  const { data } = useSWR(
+  const { data, error } = useSWR(
     gecko_id ? `https://api.coingecko.com/api/v3/simple/price?ids=${gecko_id}&vs_currencies=${defaultCurrency}` : null,
     fetcher
   )
-  return data
+  return { data, error, loading: gecko_id && !data && !error }
 }
 
 //:00 -> adapters start running, they take up to 15mins
