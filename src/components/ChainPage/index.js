@@ -18,6 +18,7 @@ import { useStakingManager, usePool2Manager } from '../../contexts/LocalStorage'
 import { formattedNum } from '../../utils'
 
 import ProtocolChart from '../ProtocolChart'
+import dynamic from 'next/dynamic'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -54,6 +55,10 @@ const PlaceholderChartPanel = styled(Panel)`
     padding-bottom: 67%;
   }
 `
+
+const Chart = dynamic(() => import('components/GlobalChart'), {
+  ssr: false
+})
 
 function GlobalPage({
   selectedChain = 'All',
@@ -97,8 +102,6 @@ function GlobalPage({
       topToken.tvl = filteredTokens[1]?.tvl
     }
   }
-
-  const chart = <ProtocolChart chartData={globalChart} denomination={denomination} protocol={selectedChain} />
 
   const panels = (
     <>
@@ -170,25 +173,14 @@ function GlobalPage({
               width: '100%',
               marginRight: '10px',
               maxWidth: '350px',
-              marginTop: '10px'
             }}
             gap="10px"
           >
             {panels}
           </AutoColumn>
-          <PlaceholderChartPanel style={{ height: '100%' }}>
-            <div
-              style={{
-                position: 'absolute',
-                top: 20,
-                bottom: 20,
-                left: 20,
-                right: 20
-              }}
-            >
-              {chart}
-            </div>
-          </PlaceholderChartPanel>
+          <Panel style={{ height: '100%', minHeight: '347px' }}>
+            <Chart display="liquidity" dailyData={globalChart} totalLiquidityUSD={totalVolumeUSD} liquidityChangeUSD={volumeChangeUSD} />
+          </Panel>
         </BreakpointPanels>
         <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
           <RowBetween>
