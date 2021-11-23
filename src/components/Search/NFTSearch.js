@@ -122,7 +122,7 @@ const NFTSearch = ({ small = false }) => {
             {searchResults.slice(0, tokensShown).map(token => {
               return (
                 <BasicLink
-                  to={linkPath(token)}
+                  href={linkPath(token)}
                   key={token.id}
                   onClick={onDismiss}
                 >

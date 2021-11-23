@@ -10,14 +10,13 @@ import { CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, } from '../../utils'
+import { formattedNum } from '../../utils'
 import { useInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
-import { withRouter } from 'react-router-dom'
+
 import FormattedName from '../FormattedName'
 
 dayjs.extend(utc)
-
 
 const List = styled(Box)`
   -webkit-overflow-scrolling: touch;
@@ -107,25 +106,23 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
 
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
-  const [sortedColumn, setSortedColumn] = useState("dailyVolume")
+  const [sortedColumn, setSortedColumn] = useState('dailyVolume')
 
   const below1080 = useMedia('(max-width: 1080px)')
   const below680 = useMedia('(max-width: 680px)')
   const below600 = useMedia('(max-width: 600px)')
 
-
   const filteredList = useMemo(() => {
     return (
       tokens &&
-      tokens
-        .sort((a, b) => {
-          if (sortedColumn === SORT_FIELD.NAME) {
-            return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
-          }
-          return parseFloat(a[sortedColumn] || 0) > parseFloat(b[sortedColumn] || 0)
-            ? (sortDirection ? -1 : 1) * 1
-            : (sortDirection ? -1 : 1) * -1
-        })
+      tokens.sort((a, b) => {
+        if (sortedColumn === SORT_FIELD.NAME) {
+          return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
+        }
+        return parseFloat(a[sortedColumn] || 0) > parseFloat(b[sortedColumn] || 0)
+          ? (sortDirection ? -1 : 1) * 1
+          : (sortDirection ? -1 : 1) * -1
+      })
     )
   }, [tokens, sortDirection, sortedColumn])
 
@@ -138,42 +135,30 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
             <TokenLogo address={item.address} logo={item.logo} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              to={'/nfts/collection/' + item.id}
+              href={'/nfts/collection/' + item.slug}
             >
-              <FormattedName
-                text={`${item.name}`}
-                maxCharacters={below600 ? 8 : 16}
-                adjustSize={true}
-                link={true}
-              />
+              <FormattedName text={`${item.name}`} maxCharacters={below600 ? 8 : 16} adjustSize={true} link={true} />
             </CustomLink>
           </Row>
         </DataText>
 
         <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayUsd)}</DataText>
-        {
-          !below1080 && (
-            <DataText area="totalVolume" color="text" fontWeight="500">
-              {formattedNum(item.totalVolume, displayUsd)}
-            </DataText>
-          )
-        }
+        {!below1080 && (
+          <DataText area="totalVolume" color="text" fontWeight="500">
+            {formattedNum(item.totalVolume, displayUsd)}
+          </DataText>
+        )}
         <DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayUsd)}</DataText>
-        {
-          !below680 && (
-            <DataText area="owners" color="text" fontWeight="500">
-              {formattedNum(item.owners, false)}
-            </DataText>
-          )
-        }
-      </DashGrid >
+        {!below680 && (
+          <DataText area="owners" color="text" fontWeight="500">
+            {formattedNum(item.owners, false)}
+          </DataText>
+        )}
+      </DashGrid>
     )
   }
 
-  const { LoadMoreButton,
-    dataLength,
-    hasMore,
-    next } = useInfiniteScroll({ list: filteredList });
+  const { LoadMoreButton, dataLength, hasMore, next } = useInfiniteScroll({ list: filteredList })
 
   return (
     <ListWrapper>
@@ -245,11 +230,7 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
       </DashGrid>
       <Divider />
       <List p={0}>
-        <InfiniteScroll
-          dataLength={dataLength}
-          next={next}
-          hasMore={hasMore}
-        >
+        <InfiniteScroll dataLength={dataLength} next={next} hasMore={hasMore}>
           {filteredList &&
             filteredList.map((item, index) => {
               return (
@@ -266,4 +247,4 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
   )
 }
 
-export default withRouter(NFTList)
+export default NFTList

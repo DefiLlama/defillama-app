@@ -1,4 +1,4 @@
-import { CHART_API, PROTOCOLS_API } from '../constants/index'
+import { CHART_API, PROTOCOLS_API, NFT_COLLECTIONS_API, NFT_CHARTS_API, NFT_STATISTICS_API } from '../constants/index'
 
 function sumSection(protocols, sectionName) {
     return protocols.reduce((total, p) => total + (p[sectionName] ?? 0), 0)
@@ -69,6 +69,37 @@ export async function getChainData(chain) {
             volumeChangeUSD: tvlChange,
             totalStaking: sumSection(protocols, "staking"),
             totalPool2: sumSection(protocols, "pool2")
+        }
+    }
+}
+
+export async function getNFTData(collection) {
+    let chartData, collections, statistics;
+
+    try {
+        [chartData, collections, statistics] = await Promise.all(
+            [`${NFT_CHARTS_API}/all/dailyVolume`, NFT_COLLECTIONS_API, NFT_STATISTICS_API].map(url => fetch(url).then(r => r.json()))
+        )
+    } catch (e) {
+        console.log(e)
+        return {
+            notFound: true
+        }
+    }
+
+    const {
+        totalVolumeUSD,
+        dailyVolumeUSD,
+        dailyChange
+    } = statistics;
+
+    return {
+        props: {
+            chart: chartData.map(({ date, dailyVolume }) => [date, dailyVolume]),
+            collections,
+            totalVolumeUSD,
+            dailyVolumeUSD,
+            dailyChange
         }
     }
 }
