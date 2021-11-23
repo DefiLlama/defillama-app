@@ -1,6 +1,7 @@
 import ProtocolList from '../components/ProtocolList'
 import { PROTOCOLS_API } from '../constants/index'
 import { GeneralLayout } from '../layout'
+import { revalidate } from '../utils/dataApi'
 
 const exclude = ["Mento", "Lightning Network", "Secret Bridge", "Karura Swap", "Karura Liquid-Staking", "Karura Dollar (kUSD)", "Tezos Liquidity Baking", "Notional", "Tinlake"]
 
@@ -12,7 +13,8 @@ export async function getStaticProps({ params }) {
     return {
         props: {
             protocols,
-        }
+        },
+        revalidate: revalidate()
     }
 }
 

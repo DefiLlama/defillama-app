@@ -1,7 +1,7 @@
 import ProtocolList from '../components/ProtocolList'
 import { PROTOCOLS_API } from '../constants/index'
 import { GeneralLayout } from '../layout'
-import { keepNeededProperties } from '../utils/dataApi'
+import { keepNeededProperties, revalidate } from '../utils/dataApi'
 
 export async function getStaticProps({ params }) {
     const res = await fetch(PROTOCOLS_API).then(r => r.json())
@@ -10,7 +10,8 @@ export async function getStaticProps({ params }) {
         props: {
             protocols,
             chainsSet: res.chains,
-        }
+        },
+        revalidate: revalidate(),
     }
 }
 

@@ -1,7 +1,7 @@
 import ProtocolList from '../../components/ProtocolList'
 import { PROTOCOLS_API } from '../../constants/index'
 import { GeneralLayout } from '../../layout'
-import { keepNeededProperties } from '../../utils/dataApi'
+import { keepNeededProperties, revalidate } from '../../utils/dataApi'
 
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -38,7 +38,8 @@ export async function getStaticProps({ params: { category: [category, chain] } }
             chainsSet: Array.from(chainsSet),
             category,
             ...(chain && { chain })
-        }
+        },
+        revalidate: revalidate()
     }
 }
 

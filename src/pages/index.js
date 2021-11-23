@@ -1,10 +1,14 @@
 import ChainPage from '../components/ChainPage'
 import { GeneralLayout } from '../layout'
-import { getChainData } from '../utils/dataApi'
+import { getChainData, revalidate } from '../utils/dataApi'
 import SearchDataProvider from 'contexts/SearchData'
 
 export async function getStaticProps({ params }) {
-    return getChainData();
+    const data = await getChainData();
+    return {
+        ...data,
+        revalidate: revalidate()
+    }
 }
 
 export default function HomePage(props) {

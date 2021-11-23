@@ -71,5 +71,19 @@ export async function getChainData(chain) {
             totalPool2: sumSection(protocols, "pool2")
         }
     }
+}
 
+//:00 -> adapters start running, they take up to 15mins
+//:20 -> storeProtocols starts running, sets cache expiry to :21 of next hour
+//:22 -> we rebuild all pages
+function next22Minutedate() {
+    const dt = new Date()
+    dt.setHours(dt.getHours() + 1);
+    dt.setMinutes(22)
+    return dt
+}
+
+export function revalidate() {
+    const current = Date.now()
+    return Math.ceil((next22Minutedate().getTime() - current) / 1000)
 }

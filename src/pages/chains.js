@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react'
 import { PieChart, Pie, Sector, Cell } from 'recharts';
 import { TYPE } from '../Theme'
 import Panel from '../components/Panel'
-import { AutoRow, RowBetween } from '../components/Row'
+import { RowBetween } from '../components/Row'
 import { PageWrapper, FullWrapper } from '../components'
 import { chainIconUrl } from '../utils'
 import TokenList from '../components/TokenList'
@@ -15,6 +15,7 @@ import { PROTOCOLS_API, CHART_API } from '../constants/index'
 import { GeneralLayout } from '../layout'
 import styled from 'styled-components'
 import { Box } from 'rebass/styled-components'
+import { revalidate } from '../utils/dataApi'
 
 import {
     AreaChart,
@@ -125,7 +126,6 @@ const ChainPieChart = ({ data, isMobile, chainColor }) => {
                 cx="50%"
                 cy="50%"
                 innerRadius={"60%"}
-                //outerRadius={140}
                 dataKey="value"
                 onMouseEnter={onPieEnter}
             >
@@ -298,7 +298,8 @@ export async function getStaticProps() {
             stackedDataset,
             daySum,
             currentData
-        }
+        },
+        revalidate: revalidate(),
     }
 }
 

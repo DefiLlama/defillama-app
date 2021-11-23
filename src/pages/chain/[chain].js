@@ -1,11 +1,15 @@
 import ChainPage from '../../components/ChainPage'
 import { PROTOCOLS_API } from '../../constants/index'
 import { GeneralLayout } from '../../layout'
-import { getChainData } from '../../utils/dataApi'
+import { getChainData, revalidate } from '../../utils/dataApi'
 
 export async function getStaticProps({ params }) {
     const chain = params.chain
-    return getChainData(chain)
+    const data = await getChainData(chain)
+    return {
+        ...data,
+        revalidate: revalidate()
+    }
 }
 export async function getStaticPaths() {
     const res = await fetch(PROTOCOLS_API)

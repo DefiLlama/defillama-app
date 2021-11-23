@@ -4,6 +4,7 @@ import ProtocolContainer from 'containers/ProtocolContainer'
 import { getProtocols, getProtocol } from 'api'
 import { standardizeProtocolName, capitalizeFirstLetter } from 'utils'
 import { ProtocolDataProvider } from 'contexts'
+import { revalidate } from '../../utils/dataApi'
 
 export async function getStaticProps({
   params: {
@@ -30,7 +31,8 @@ export async function getStaticProps({
           .map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
         historicalChainTvls
       }
-    }
+    },
+    revalidate: revalidate()
   }
 }
 
