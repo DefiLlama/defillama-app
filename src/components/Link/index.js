@@ -44,11 +44,11 @@ export const CustomLinkStyle = styled.a`
   }
 `
 
-export const CustomLink = ({ href, children }) => {
+export const CustomLink = ({ href, children, style }) => {
   // Must add passHref to Link
   return (
     <RouterLink href={href} passHref>
-      <CustomLinkStyle>{children}</CustomLinkStyle>
+      <CustomLinkStyle style={style}>{children}</CustomLinkStyle>
     </RouterLink>
   )
 }

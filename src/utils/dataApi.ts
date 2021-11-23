@@ -1,6 +1,13 @@
 import useSWR from 'swr'
-
-import { CHART_API, PROTOCOLS_API, PROTOCOL_API } from 'constants/index'
+import {
+  CHART_API,
+  PROTOCOLS_API,
+  PROTOCOL_API,
+  NFT_COLLECTIONS_API,
+  NFT_COLLECTION_API,
+  NFT_CHARTS_API,
+  NFT_STATISTICS_API
+} from '../constants/index'
 import { standardizeProtocolName } from 'utils'
 
 function sumSection(protocols, sectionName) {
@@ -133,6 +140,53 @@ export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
     fetcher
   )
   return { data, error, loading: gecko_id && !data && !error }
+}
+
+export async function getNFTData(collection) {
+  let chartData, collections, statistics
+
+  try {
+    ;[chartData, collections, statistics] = await Promise.all(
+      [`${NFT_CHARTS_API}/all/dailyVolume`, NFT_COLLECTIONS_API, NFT_STATISTICS_API].map(url =>
+        fetch(url).then(r => r.json())
+      )
+    )
+  } catch (e) {
+    console.log(e)
+    return {
+      notFound: true
+    }
+  }
+
+  const { totalVolumeUSD, dailyVolumeUSD, dailyChange } = statistics
+
+  return {
+    props: {
+      chart: chartData,
+      collections,
+      totalVolumeUSD,
+      dailyVolumeUSD,
+      dailyChange
+    }
+  }
+}
+
+export const getNFTCollections = () => fetch(NFT_COLLECTIONS_API).then(r => r.json())
+
+export const getNFTCollection = slug => {
+  try {
+    return fetch(`${NFT_COLLECTION_API}/${slug}`).then(r => r.json())
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const getNFTCollectionChartData = slug => {
+  try {
+    return fetch(`${NFT_CHARTS_API}/${slug}/dailyVolume`).then(r => r.json())
+  } catch (e) {
+    console.log(e)
+  }
 }
 
 //:00 -> adapters start running, they take up to 15mins

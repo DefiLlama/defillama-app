@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useRouter } from 'next/router'
 import copy from 'copy-to-clipboard'
 export { default as useInfiniteScroll } from './useInfiniteScroll'
 export { default as useProtocolColor } from './useProtocolColor'
@@ -72,9 +73,8 @@ export default function useInterval(callback: () => void, delay: null | number) 
 }
 
 export function useNFTApp() {
-  return false
-  const location = useLocation()
-  return location.pathname.startsWith('/nfts')
+  const router = useRouter()
+  return router.pathname.startsWith('/nfts')
 }
 
 export const useScrollToTop = () => {

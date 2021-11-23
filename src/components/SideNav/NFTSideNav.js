@@ -3,15 +3,16 @@ import { DesktopWrapper, Entry, MobileWrapper, Wrapper, Footer } from './shared'
 import { AutoColumn } from '../Column'
 import Title from '../Title'
 import { useMedia } from 'react-use'
-import { withRouter } from 'react-router-dom'
 import { TrendingUp, HelpCircle, Link as LinkLogo } from 'react-feather'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
 import Menu from '../SettingsModal'
+import { useRouter } from 'next/router'
 
-function SideNav({ history }) {
+function SideNav() {
   const below1080 = useMedia('(max-width: 1080px)')
-
   const [isDark, toggleDarkMode] = useDarkModeManager()
+  const router = useRouter()
+  const history = { location: { pathname: router.pathname } }
 
   if (below1080) {
     return (
@@ -41,4 +42,4 @@ function SideNav({ history }) {
   )
 }
 
-export default withRouter(SideNav)
+export default SideNav
