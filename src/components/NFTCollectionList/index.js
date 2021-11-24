@@ -10,7 +10,7 @@ import { CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, capitalizeFirstLetter } from '../../utils'
+import { formattedNum, filterCollectionsByCurrency } from '../../utils'
 import { useInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 
@@ -102,15 +102,7 @@ const SORT_FIELD = {
 }
 
 // @TODO rework into virtualized list
-// @TODO generalize to merge with NFTCollectionList
-function NFTList({
-  data,
-  filters,
-  iconUrl = tokenIconUrl,
-  generateLink = () => '',
-  columns = [],
-  defaultSortingColumn = 'totalVolume'
-}) {
+function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
   const [sortedColumn, setSortedColumn] = useState('dailyVolume')
@@ -119,10 +111,17 @@ function NFTList({
   const below680 = useMedia('(max-width: 680px)')
   const below600 = useMedia('(max-width: 600px)')
 
+  const displayCurrency = displayUsd ? '$' : 'Ξ'
+
+  const filteredListByCurrency = useMemo(() => filterCollectionsByCurrency(collections, displayUsd), [
+    collections,
+    displayUsd
+  ])
+
   const filteredList = useMemo(() => {
     return (
-      data &&
-      data.sort((a, b) => {
+      filteredListByCurrency &&
+      filteredListByCurrency.sort((a, b) => {
         if (sortedColumn === SORT_FIELD.NAME) {
           return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
         }
@@ -131,7 +130,7 @@ function NFTList({
           : (sortDirection ? -1 : 1) * -1
       })
     )
-  }, [data, sortDirection, sortedColumn])
+  }, [filteredListByCurrency, sortDirection, sortedColumn])
 
   const ListItem = ({ item, index }) => {
     return (
@@ -139,25 +138,27 @@ function NFTList({
         <DataText area="name" fontWeight="500">
           <Row>
             {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index + 1}</div>}
-            <TokenLogo logo={iconUrl(item.chain)} />
+            <TokenLogo address={item.address} logo={item.logo} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              href={'/nfts/chain' + item.chain}
+              href={'/nfts/collection/' + item.slug}
             >
-              <FormattedName
-                text={capitalizeFirstLetter(item.chain)}
-                maxCharacters={below600 ? 8 : 16}
-                adjustSize={true}
-                link={true}
-              />
+              <FormattedName text={`${item.name}`} maxCharacters={below600 ? 8 : 16} adjustSize={true} link={true} />
             </CustomLink>
           </Row>
         </DataText>
-        {!below680 && <DataText area="collections">{item.collections}</DataText>}
-        {!below1080 && <DataText area="dailyVolume">{formattedNum(item.dailyVolume, true)}</DataText>}
-        <DataText area="totalVolume" color="text" fontWeight="500">
-          {formattedNum(item.totalVolume, true)}
-        </DataText>
+        <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayCurrency)}</DataText>
+        {!below1080 && (
+          <DataText area="totalVolume" color="text" fontWeight="500">
+            {formattedNum(item.totalVolume, displayCurrency)}
+          </DataText>
+        )}
+        <DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayCurrency)}</DataText>
+        {!below680 && (
+          <DataText area="owners" color="text" fontWeight="500">
+            {formattedNum(item.owners, false)}
+          </DataText>
+        )}
       </DashGrid>
     )
   }
@@ -170,7 +171,7 @@ function NFTList({
         <Flex alignItems="center" justifyContent="flexStart">
           <ClickableText
             color="text"
-            area="chain"
+            area="name"
             fontWeight="500"
             onClick={e => {
               setSortedColumn(SORT_FIELD.NAME)
@@ -180,43 +181,57 @@ function NFTList({
             Name {sortedColumn === SORT_FIELD.NAME ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
-        {!below680 && (
-          <Flex alignItems="center">
-            <ClickableText
-              area="collections"
-              onClick={e => {
-                setSortedColumn(SORT_FIELD.VOL)
-                setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
-              }}
-            >
-              Collections {sortedColumn === SORT_FIELD.VOL ? (!sortDirection ? '↑' : '↓') : ''}
-            </ClickableText>
-          </Flex>
-        )}
+        <Flex alignItems="center">
+          <ClickableText
+            area="dailyVol"
+            onClick={e => {
+              setSortedColumn(SORT_FIELD.VOL)
+              setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
+            }}
+          >
+            Daily Volume {sortedColumn === SORT_FIELD.VOL ? (!sortDirection ? '↑' : '↓') : ''}
+          </ClickableText>
+        </Flex>
+
         {!below1080 && (
           <Flex alignItems="center">
             <ClickableText
-              area="dailyVolume"
+              area="totalVol"
               onClick={e => {
                 setSortedColumn(SORT_FIELD.TOTAL_VOL)
                 setSortDirection(sortedColumn !== SORT_FIELD.TOTAL_VOL ? true : !sortDirection)
               }}
             >
-              Daily Volume {sortedColumn === SORT_FIELD.TOTAL_VOL ? (!sortDirection ? '↑' : '↓') : ''}
+              Total Volume {sortedColumn === SORT_FIELD.TOTAL_VOL ? (!sortDirection ? '↑' : '↓') : ''}
             </ClickableText>
           </Flex>
         )}
+
         <Flex alignItems="center">
           <ClickableText
-            area="totalVolume"
+            area="floor"
             onClick={e => {
               setSortedColumn(SORT_FIELD.FLOOR)
               setSortDirection(sortedColumn !== SORT_FIELD.FLOOR ? true : !sortDirection)
             }}
           >
-            Total Volume {sortedColumn === SORT_FIELD.FLOOR ? (!sortDirection ? '↑' : '↓') : ''}
+            Floor {sortedColumn === SORT_FIELD.FLOOR ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
+
+        {!below680 && (
+          <Flex alignItems="center">
+            <ClickableText
+              area="owners"
+              onClick={e => {
+                setSortedColumn(SORT_FIELD.OWNERS)
+                setSortDirection(sortedColumn !== SORT_FIELD.OWNERS ? true : !sortDirection)
+              }}
+            >
+              Owners {sortedColumn === SORT_FIELD.OWNERS ? (!sortDirection ? '↑' : '↓') : ''}
+            </ClickableText>
+          </Flex>
+        )}
       </DashGrid>
       <Divider />
       <List p={0}>
@@ -237,4 +252,4 @@ function NFTList({
   )
 }
 
-export default NFTList
+export default NFTCollectionList

@@ -13,7 +13,7 @@ import { CheckMarks } from '../SettingsModal'
 import { PageWrapper, ContentWrapper } from '..'
 import Panel from '../Panel'
 import Search from '../Search'
-import NFTList from '../NFTList'
+import NFTCollectionList from '../NFTCollectionList'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { formattedNum } from '../../utils'
 
@@ -144,7 +144,7 @@ const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections
           </RowBetween>
         </ListOptions>
         <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
-          <NFTList collections={collections} displayUsd={displayUsd} />
+          <NFTCollectionList collections={collections} displayUsd={displayUsd} />
         </Panel>
         <div style={{ margin: 'auto' }}>
           <a href="#">
