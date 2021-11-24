@@ -20,8 +20,8 @@ export async function getStaticProps() {
     return {
       chain,
       collections: collections.filter(c => c.chain === chain).length,
-      dailyVolume: collections.reduce((a, b) => parseInt(b.dailyVolumeUSD) + a, 0),
-      totalVolume: collections.reduce((a, b) => parseInt(b.totalVolumeUSD) + a, 0)
+      dailyVolume: collections.reduce((a, b) => (b.chain === chain ? parseInt(b.dailyVolumeUSD) : 0) + a, 0),
+      totalVolume: collections.reduce((a, b) => (b.chain === chain ? parseInt(b.totalVolumeUSD) : 0) + a, 0)
     }
   })
 

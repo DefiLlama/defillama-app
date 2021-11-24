@@ -15,8 +15,6 @@ function SideNav() {
   const router = useRouter()
   const history = { location: { pathname: router.pathname } }
 
-  console.log(history)
-
   const NavMenu = () => (
     <AutoColumn gap="1.25rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }}>
       <Entry url="nfts" name="Overview" history={history} Icon={TrendingUp} />

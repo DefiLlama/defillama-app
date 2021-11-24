@@ -6,6 +6,8 @@ import {
   NFT_COLLECTIONS_API,
   NFT_COLLECTION_API,
   NFT_CHARTS_API,
+  NFT_COLLECTIONS_CHARTS_API,
+  NFT_CHAINS_CHARTS_API,
   NFT_STATISTICS_API
 } from '../constants/index'
 import { standardizeProtocolName } from 'utils'
@@ -162,7 +164,15 @@ export const getNFTCollection = async slug => {
 
 export const getNFTCollectionChartData = async slug => {
   try {
-    return fetch(`${NFT_CHARTS_API}/${slug}/dailyVolume`).then(r => r.json())
+    return fetch(`${NFT_COLLECTIONS_CHARTS_API}/${slug}/dailyVolume`).then(r => r.json())
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const getNFTChainChartData = async chain => {
+  try {
+    return fetch(`${NFT_CHAINS_CHARTS_API}/${chain}/dailyVolume`).then(r => r.json())
   } catch (e) {
     console.log(e)
   }

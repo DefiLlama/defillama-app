@@ -158,10 +158,12 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
             {formattedNum(item.totalVolume, displayCurrency)}
           </DataText>
         )}
-        {!below1080 && (<DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayCurrency)}</DataText>)}
+        {!below1080 && (
+          <DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayCurrency)}</DataText>
+        )}
         {!below1080 && (
           <DataText area="owners" color="text" fontWeight="500">
-            {formattedNum(item.owners, false)}
+            {item.owners === 0 ? '--' : formattedNum(item.owners, false)}
           </DataText>
         )}
       </DashGrid>
