@@ -16,6 +16,7 @@ import Search from '../Search'
 import NFTCollectionList from '../NFTCollectionList'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { formattedNum, capitalizeFirstLetter } from '../../utils'
+import { chainCoingeckoIds } from '../../constants/chainTokens'
 
 const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
   ssr: false
@@ -66,12 +67,18 @@ const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections
 
   const [displayUsd] = useDisplayUsdManager()
   const below800 = useMedia('(max-width: 800px)')
-  
+
   const selectedChain = capitalizeFirstLetter(chain)
   const setSelectedChain = newSelectedChain =>
-  newSelectedChain === 'all' ? '/nfts' : `/nfts/chain/${newSelectedChain}`
-  
-  let chainOptions = [...basicChainOptions, ...extraChainOptions].map(label => ({ label, to: setSelectedChain(label.toLowerCase()) }))
+    newSelectedChain === 'all' ? '/nfts' : `/nfts/chain/${newSelectedChain}`
+
+  let chainOptions = [...basicChainOptions, ...extraChainOptions].map(label => ({
+    label,
+    to: setSelectedChain(label.toLowerCase())
+  }))
+
+  const symbol = selectedChain === 'All' ? 'ETH' : chainCoingeckoIds[selectedChain].symbol //TODO Replace with USD chart for 'all'
+  const dailyVolume = chart.length ? chart[chart.length - 1].dailyVolume : 0 //TODO Return from backend
 
   const panels = (
     <>
@@ -125,7 +132,12 @@ const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
           <Panel style={{ height: '100%', minHeight: '347px' }}>
-            <GlobalNFTChart chartData={chart} dailyVolume={dailyVolumeUSD} dailyVolumeChange={dailyChange} />
+            <GlobalNFTChart
+              chartData={chart}
+              dailyVolume={dailyVolume}
+              dailyVolumeChange={dailyChange}
+              symbol={symbol}
+            />
           </Panel>
         </BreakpointPanels>
         <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>

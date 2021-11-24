@@ -111,7 +111,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
   const below680 = useMedia('(max-width: 680px)')
   const below600 = useMedia('(max-width: 600px)')
 
-  const displayCurrency = displayUsd ? '$' : 'Ξ'
+  const displayCurrency = displayUsd ? '$' : '' // TODO show non-USD currency symbols
 
   const filteredListByCurrency = useMemo(() => filterCollectionsByCurrency(collections, displayUsd), [
     collections,
