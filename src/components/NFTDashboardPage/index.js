@@ -15,7 +15,7 @@ import Panel from '../Panel'
 import Search from '../Search'
 import NFTCollectionList from '../NFTCollectionList'
 import { TYPE, ThemedBackground } from '../../Theme'
-import { formattedNum } from '../../utils'
+import { formattedNum, capitalizeFirstLetter } from '../../utils'
 
 const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
   ssr: false
@@ -58,22 +58,20 @@ const FiltersRow = styled(RowFlat)`
   }
 `
 
-const basicChainOptions = ['All', 'Ethereum']
+const basicChainOptions = ['All', 'Ethereum', 'Solana']
 const extraChainOptions = []
 
-const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections, chart }) => {
+const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections, chart, chain = 'All' }) => {
   useEffect(() => window.scrollTo(0, 0))
 
   const [displayUsd] = useDisplayUsdManager()
   const below800 = useMedia('(max-width: 800px)')
-  const below1400 = useMedia('(max-width: 1400px)')
   
+  const selectedChain = capitalizeFirstLetter(chain)
   const setSelectedChain = newSelectedChain =>
-  newSelectedChain === 'All' ? '/nfts' : `/nfts/chain/${newSelectedChain}`
-  const selectedChain = 'All'
-  //const otherChains = chainOptions.filter(chain => chain !== selectedChain)
+  newSelectedChain === 'all' ? '/nfts' : `/nfts/chain/${newSelectedChain}`
   
-  let chainOptions = [...basicChainOptions, ...extraChainOptions].map(label => ({ label, to: setSelectedChain(label) }))
+  let chainOptions = [...basicChainOptions, ...extraChainOptions].map(label => ({ label, to: setSelectedChain(label.toLowerCase()) }))
 
   const panels = (
     <>

@@ -48,7 +48,7 @@ export async function getStaticPaths() {
 export default function Chain({ chain, ...props }) {
   return (
     <GeneralLayout title={`${capitalizeFirstLetter(chain)} Total Volume - DefiLlama`}>
-      <NFTDashboardPage {...props} />
+      <NFTDashboardPage chain={chain} {...props} />
     </GeneralLayout>
   )
 }
