@@ -9,19 +9,27 @@ export async function getStaticProps({
   }
 }) {
   const collections = await getNFTCollections()
-  const chart = await getNFTChainChartData(chainName)
+  const chartData = await getNFTChainChartData(chainName)
   const filteredCollections = collections.filter(c => c.chain === chainName)
   const totalVolumeUSD = collections.reduce((a, b) => (b.chain === chainName ? parseInt(b.totalVolumeUSD) : 0) + a, 0)
   const dailyVolumeUSD = collections.reduce((a, b) => (b.chain === chainName ? parseInt(b.dailyVolumeUSD) : 0) + a, 0)
+
+  let dailyChange = 0
+  if (chartData.length > 1) {
+    dailyChange =
+      ((chartData[chartData.length - 1].dailyVolume - chartData[chartData.length - 2].dailyVolume) /
+        chartData[chartData.length - 2].dailyVolume) *
+      100
+  }
 
   return {
     props: {
       chain: chainName,
       totalVolumeUSD,
       dailyVolumeUSD,
-      dailyChange: 0,
+      dailyChange,
       collections: filteredCollections,
-      chart
+      chart: chartData
     },
     revalidate: revalidate()
   }
