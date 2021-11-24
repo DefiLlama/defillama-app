@@ -8,7 +8,7 @@ import { useDisplayUsdManager } from '../../contexts/LocalStorage'
 import { AutoRow, RowBetween, RowFlat } from '../Row'
 import { AutoColumn } from '../Column'
 import { ButtonDark } from '../ButtonStyled'
-import DropdownSelect from '../DropdownSelect'
+import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
 import { PageWrapper, ContentWrapper } from '..'
 import Panel from '../Panel'
@@ -31,6 +31,33 @@ const ListOptions = styled(AutoRow)`
     font-size: 1rem;
   }
 `
+
+const BreakpointPanels = styled.div`
+  @media screen and (min-width: 800px) {
+    width: 100%;
+    display: flex;
+    padding: 0;
+    align-items: center;
+  }
+`
+
+const BreakpointPanelsColumn = styled(AutoColumn)`
+  height: 100%;
+  width: 100%;
+  margin-right: 10px;
+  max-width: 350px;
+  @media (max-width: 800px) {
+    max-width: initial;
+    margin-bottom: 10px;
+  }
+`
+
+const FiltersRow = styled(RowFlat)`
+  @media screen and (min-width: 800px) {
+    width: calc(100% - 90px);
+  }
+`
+
 const basicChainOptions = ['All', 'Ethereum']
 const extraChainOptions = []
 
@@ -40,204 +67,85 @@ const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections
   const [displayUsd] = useDisplayUsdManager()
   const below800 = useMedia('(max-width: 800px)')
   const below1400 = useMedia('(max-width: 1400px)')
-
-  let chainOptions = []
-  if (!below1400) {
-    chainOptions = [...basicChainOptions, ...extraChainOptions, 'Others']
-  } else {
-    chainOptions = [...basicChainOptions, 'Others']
-  }
-
-  const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/nfts' : `/nfts/chain/${newSelectedChain}`)
+  
+  const setSelectedChain = newSelectedChain =>
+  newSelectedChain === 'All' ? '/nfts' : `/nfts/chain/${newSelectedChain}`
   const selectedChain = 'All'
-  const otherChains = chainOptions.filter(chain => chain !== selectedChain)
+  //const otherChains = chainOptions.filter(chain => chain !== selectedChain)
+  
+  let chainOptions = [...basicChainOptions, ...extraChainOptions].map(label => ({ label, to: setSelectedChain(label) }))
+
+  const panels = (
+    <>
+      <Panel style={{ padding: '18px 25px' }}>
+        <AutoColumn gap="4px">
+          <RowBetween>
+            <TYPE.heading>Total Volume</TYPE.heading>
+          </RowBetween>
+          <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
+              {formattedNum(totalVolumeUSD, true)}
+            </TYPE.main>
+          </RowBetween>
+        </AutoColumn>
+      </Panel>
+      <Panel style={{ padding: '18px 25px' }}>
+        <AutoColumn gap="4px">
+          <RowBetween>
+            <TYPE.heading>Daily Volume</TYPE.heading>
+          </RowBetween>
+          <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
+              {formattedNum(dailyVolumeUSD, true)}
+            </TYPE.main>
+          </RowBetween>
+        </AutoColumn>
+      </Panel>
+      <Panel style={{ padding: '18px 25px' }}>
+        <AutoColumn gap="4px">
+          <RowBetween>
+            <TYPE.heading>Change (24h)</TYPE.heading>
+          </RowBetween>
+          <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
+              {dailyChange.toFixed(2)}%
+            </TYPE.main>
+          </RowBetween>
+        </AutoColumn>
+      </Panel>
+    </>
+  )
 
   return (
     <PageWrapper>
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
       <ContentWrapper>
-        <div>
-          <AutoColumn gap="24px" style={{ paddingBottom: '24px' }}>
-            <Search />
-            <CheckMarks type='nfts' />
-          </AutoColumn>
-          {below800 && ( // mobile card
-            <AutoColumn
-              style={{
-                height: '100%',
-                width: '100%',
-                marginRight: '10px',
-                marginTop: '10px'
-              }}
-              gap="10px"
-            >
-              <Panel style={{ padding: '18px 25px' }}>
-                <AutoColumn gap="4px">
-                  <RowBetween>
-                    <TYPE.heading>Total Volume</TYPE.heading>
-                  </RowBetween>
-                  <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                    <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-                      {formattedNum(totalVolumeUSD, true)}
-                    </TYPE.main>
-                  </RowBetween>
-                </AutoColumn>
-              </Panel>
-
-              <Panel style={{ padding: '18px 25px' }}>
-                <AutoColumn gap="4px">
-                  <RowBetween>
-                    <TYPE.heading>Daily Volume</TYPE.heading>
-                  </RowBetween>
-                  <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                    <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-                      {formattedNum(dailyVolumeUSD, true)}
-                    </TYPE.main>
-                  </RowBetween>
-                </AutoColumn>
-              </Panel>
-
-              <Panel style={{ padding: '18px 25px' }}>
-                <AutoColumn gap="4px">
-                  <RowBetween>
-                    <TYPE.heading>Change (24h)</TYPE.heading>
-                  </RowBetween>
-                  <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                    <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-                      {dailyChange.toFixed(2)}%
-                    </TYPE.main>
-                  </RowBetween>
-                </AutoColumn>
-              </Panel>
-            </AutoColumn>
-          )}
-          {!below800 && (
-            <AutoRow>
-              <AutoColumn
-                style={{
-                  height: '100%',
-                  width: '100%',
-                  maxWidth: '350px',
-                  marginRight: '10px'
-                }}
-                gap="10px"
-              >
-                <Panel style={{ padding: '18px 25px' }}>
-                  <AutoColumn gap="4px">
-                    <RowBetween>
-                      <TYPE.heading>Total Volume</TYPE.heading>
-                    </RowBetween>
-                    <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                      <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-                        {formattedNum(totalVolumeUSD, true)}
-                      </TYPE.main>
-                    </RowBetween>
-                  </AutoColumn>
-                </Panel>
-
-                <Panel style={{ padding: '18px 25px' }}>
-                  <AutoColumn gap="4px">
-                    <RowBetween>
-                      <TYPE.heading>Daily Volume</TYPE.heading>
-                    </RowBetween>
-                    <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                      <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-                        {formattedNum(dailyVolumeUSD, true)}
-                      </TYPE.main>
-                    </RowBetween>
-                  </AutoColumn>
-                </Panel>
-
-                <Panel style={{ padding: '18px 25px' }}>
-                  <AutoColumn gap="4px">
-                    <RowBetween>
-                      <TYPE.heading>Change (24h)</TYPE.heading>
-                    </RowBetween>
-                    <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-                      <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-                        {dailyChange.toFixed(2)}%
-                      </TYPE.main>
-                    </RowBetween>
-                  </AutoColumn>
-                </Panel>
-              </AutoColumn>
-
-              <Panel style={{ height: '100%', minHeight: '300px' }}>
-                {<GlobalNFTChart chartData={chart} dailyVolume={dailyVolumeUSD} dailyVolumeChange={dailyChange} />}
-              </Panel>
-            </AutoRow>
-          )}
-
-          {below800 && (
-            <AutoColumn style={{ marginTop: '6px' }} gap="24px">
-              <Panel style={{ height: '100%', minHeight: '300px' }}>
-                {<GlobalNFTChart chartData={chart} dailyVolume={dailyVolumeUSD} dailyVolumeChange={dailyChange} />}
-              </Panel>
-            </AutoColumn>
-          )}
-
-          <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
-            <RowBetween>
-              <TYPE.main fontSize={'1.125rem'}>NFT Rankings</TYPE.main>
-              <RowFlat>
-                {below800 ? (
-                  <DropdownSelect
-                    options={chainOptions
-                      .slice(0, -1)
-                      .concat(otherChains)
-                      .reduce(
-                        (acc, item) => ({
-                          ...acc,
-                          [item]: item
-                        }),
-                        {}
-                      )}
-                    active={selectedChain || 'All'}
-                    setActive={setSelectedChain}
-                  />
-                ) : (
-                  chainOptions.map((name, i) => {
-                    if (name === 'Others') {
-                      return (
-                        <DropdownSelect
-                          key={name}
-                          options={otherChains.reduce(
-                            (acc, item) => ({
-                              ...acc,
-                              [item]: item
-                            }),
-                            {}
-                          )}
-                          active={
-                            chainOptions.includes(selectedChain) || selectedChain === undefined
-                              ? 'Other'
-                              : selectedChain
-                          }
-                          setActive={setSelectedChain}
-                        />
-                      )
-                    }
-                    if (selectedChain === name || (name === 'All' && selectedChain === undefined)) {
-                      return (
-                        <ButtonDark style={{ margin: '0.2rem' }} key={name}>
-                          {name}
-                        </ButtonDark>
-                      )
-                    } else {
-                    }
-                  })
-                )}
-              </RowFlat>
-            </RowBetween>
-          </ListOptions>
-
-          {collections && (
-            <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
-              <NFTList collections={collections} displayUsd={displayUsd} />
-            </Panel>
-          )}
-        </div>
-
+        <AutoColumn gap="24px" style={{ paddingBottom: '24px' }}>
+          <Search />
+          <CheckMarks type="nfts" />
+        </AutoColumn>
+        <BreakpointPanels>
+          <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
+          <Panel style={{ height: '100%', minHeight: '347px' }}>
+            <GlobalNFTChart chartData={chart} dailyVolume={dailyVolumeUSD} dailyVolumeChange={dailyChange} />
+          </Panel>
+        </BreakpointPanels>
+        <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
+          <RowBetween>
+            <TYPE.main fontSize={'1.125rem'}>NFT Rankings</TYPE.main>
+            <FiltersRow>
+              <Filters
+                filterOptions={chainOptions}
+                setActive={setSelectedChain}
+                activeLabel={selectedChain}
+                justify="end"
+              />
+            </FiltersRow>
+          </RowBetween>
+        </ListOptions>
+        <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
+          <NFTList collections={collections} displayUsd={displayUsd} />
+        </Panel>
         <div style={{ margin: 'auto' }}>
           <a href="#">
             <ButtonDark>Download all data in .csv</ButtonDark>

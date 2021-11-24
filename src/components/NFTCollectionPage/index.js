@@ -1,6 +1,5 @@
 import React from 'react'
 import styled from 'styled-components'
-import { Redirect } from 'react-router-dom'
 import { transparentize } from 'polished'
 import { useMedia } from 'react-use'
 import { Box } from 'rebass'
@@ -19,6 +18,10 @@ import { TYPE, ThemedBackground } from '../../Theme'
 import { useCollectionChartData, useNFTCollection } from 'contexts/NFTData'
 import LocalLoader from 'components/LocalLoader'
 import { useProtocolColor } from 'hooks'
+
+const DashboardWrapper = styled(Box)`
+  width: 100%;
+`
 
 export const DetailsLayout = styled.div`
   display: inline-grid;
@@ -115,34 +118,40 @@ function NFTCollectionPage({ collection, chartData }) {
     <PageWrapper>
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
       <ContentWrapper>
-        <Header address={address} below1024={below1024} logo={logo} name={name} />
-        <PanelWrapper>
-          <Section title="Market Cap" content={marketCapUSD} />
-          <Section title="Total Volume" content={totalVolumeUSD} />
-          <Section title="Links" content={<Links logo={logo} links={links} />} />
-
-          <Panel style={{ gridColumn: below1024 ? '1' : '2/4', gridRow: below1024 ? '' : '1/4' }}>
-            <GlobalNFTChart chartData={chartData} />
-          </Panel>
-        </PanelWrapper>
-        <>
-          <RowBetween style={{ marginTop: '3rem' }}>
-            <TYPE.main fontSize={'1.125rem'}>Description</TYPE.main>{' '}
-          </RowBetween>
-          <Panel
-            rounded
-            style={{
-              marginTop: '1.5rem'
-            }}
-            p={20}
-          >
-            <DetailsLayout>
-              <TYPE.main fontSize={'15px'} lineHeight={1.25} fontWeight={500}>
-                {description}
-              </TYPE.main>
-            </DetailsLayout>
-          </Panel>
-        </>
+        <DashboardWrapper>
+          <Header address={address} below1024={below1024} logo={logo} name={name} />
+          <PanelWrapper>
+            <Section title="Market Cap" content={marketCapUSD} />
+            <Section title="Total Volume" content={totalVolumeUSD} />
+            <Section title="Links" content={<Links logo={logo} links={links} />} />
+            <Panel
+              sx={{
+                gridColumn: ['1', '1', '1', '2/4'],
+                gridRow: ['', '', '', '1/4']
+              }}
+            >
+              <GlobalNFTChart chartData={chartData} />
+            </Panel>
+          </PanelWrapper>
+          <>
+            <RowBetween style={{ marginTop: '3rem' }}>
+              <TYPE.main fontSize={'1.125rem'}>Description</TYPE.main>{' '}
+            </RowBetween>
+            <Panel
+              rounded
+              style={{
+                marginTop: '1.5rem'
+              }}
+              p={20}
+            >
+              <DetailsLayout>
+                <TYPE.main fontSize={'15px'} lineHeight={1.25} fontWeight={500}>
+                  {description}
+                </TYPE.main>
+              </DetailsLayout>
+            </Panel>
+          </>
+        </DashboardWrapper>
       </ContentWrapper>
     </PageWrapper>
   )
