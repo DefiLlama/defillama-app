@@ -141,15 +141,11 @@ export const getNFTData = async () => {
     }
   }
 
-  const { totalVolumeUSD, dailyVolumeUSD, dailyChange } = statistics
-
   return {
     props: {
       chart: chartData,
       collections,
-      totalVolumeUSD,
-      dailyVolumeUSD,
-      dailyChange
+      ...statistics,
     }
   }
 }

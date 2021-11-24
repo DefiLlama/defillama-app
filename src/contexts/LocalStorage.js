@@ -11,11 +11,20 @@ const SAVED_TOKENS = 'SAVED_TOKENS'
 const SAVED_PAIRS = 'SAVED_PAIRS'
 
 const DARK_MODE = 'DARK_MODE'
-const POOL2 = "POOL2"
-const STAKING = "STAKING"
-const DISPLAY_USD = "DISPLAY_USD"
+const POOL2 = 'POOL2'
+const STAKING = 'STAKING'
+const DISPLAY_USD = 'DISPLAY_USD'
 
-const UPDATABLE_KEYS = [DARK_MODE, DISMISSED_PATHS, SAVED_ACCOUNTS, SAVED_PAIRS, SAVED_TOKENS, POOL2, STAKING, DISPLAY_USD]
+const UPDATABLE_KEYS = [
+  DARK_MODE,
+  DISMISSED_PATHS,
+  SAVED_ACCOUNTS,
+  SAVED_PAIRS,
+  SAVED_TOKENS,
+  POOL2,
+  STAKING,
+  DISPLAY_USD
+]
 
 const UPDATE_KEY = 'UPDATE_KEY'
 
@@ -50,7 +59,7 @@ function init() {
     [DARK_MODE]: true,
     [STAKING]: false,
     [POOL2]: false,
-    [DISPLAY_USD]: true,
+    [DISPLAY_USD]: false,
     [DISMISSED_PATHS]: {},
     [SAVED_ACCOUNTS]: [],
     [SAVED_TOKENS]: {},
@@ -95,10 +104,10 @@ export function Updater() {
 }
 
 export function useDarkModeManager() {
-  return [true, () => { }]
+  return [true, () => {}]
   const storageContext = useLocalStorageContext()
   if (storageContext === undefined) {
-    return [true, () => { }]
+    return [true, () => {}]
   }
   const [state, { updateKey }] = useLocalStorageContext()
   let isDarkMode = state[DARK_MODE]
@@ -112,8 +121,7 @@ export function useDarkModeManager() {
 }
 
 export function usePool2Manager() {
-
-  return [false, () => { }]
+  return [false, () => {}]
   const [state, { updateKey }] = useLocalStorageContext()
   let pool2Enabled = state[POOL2]
   const togglePool2 = useCallback(
@@ -126,7 +134,7 @@ export function usePool2Manager() {
 }
 
 export function useStakingManager() {
-  return [false, () => { }]
+  return [false, () => {}]
   const [state, { updateKey }] = useLocalStorageContext()
   let stakingEnabled = state[STAKING]
   const toggleStaking = useCallback(
@@ -139,15 +147,13 @@ export function useStakingManager() {
 }
 
 export function useDisplayUsdManager() {
-  return [true]
   const [state, { updateKey }] = useLocalStorageContext()
-  let displayUsd = state[DISPLAY_USD]
-  const toggleDisplayUsd = useCallback(
-    value => {
-      updateKey(DISPLAY_USD, value === false || value === true ? value : !displayUsd)
-    },
-    [updateKey, displayUsd]
-  )
+  const displayUsd = state[DISPLAY_USD]
+
+  const toggleDisplayUsd = () => {
+    updateKey(DISPLAY_USD, !displayUsd)
+  }
+
   return [displayUsd, toggleDisplayUsd]
 }
 

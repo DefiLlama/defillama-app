@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 
+import { useDisplayUsdManager } from '../../contexts/LocalStorage'
 import { AutoRow, RowBetween, RowFlat } from '../Row'
 import { AutoColumn } from '../Column'
 import { ButtonDark } from '../ButtonStyled'
@@ -12,7 +13,7 @@ import { CheckMarks } from '../SettingsModal'
 import { PageWrapper, ContentWrapper } from '..'
 import Panel from '../Panel'
 import Search from '../Search'
-import TopTokenList from '../NFTList'
+import NFTList from '../NFTList'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { formattedNum } from '../../utils'
 
@@ -36,6 +37,7 @@ const extraChainOptions = []
 const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections, chart }) => {
   useEffect(() => window.scrollTo(0, 0))
 
+  const [displayUsd] = useDisplayUsdManager()
   const below800 = useMedia('(max-width: 800px)')
   const below1400 = useMedia('(max-width: 1400px)')
 
@@ -46,8 +48,7 @@ const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections
     chainOptions = [...basicChainOptions, 'Others']
   }
 
-  const setSelectedChain = newSelectedChain =>
-    history.push(newSelectedChain === 'All' ? '/nfts' : `/nfts/chain/${newSelectedChain}`)
+  const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/nfts' : `/nfts/chain/${newSelectedChain}`)
   const selectedChain = 'All'
   const otherChains = chainOptions.filter(chain => chain !== selectedChain)
 
@@ -232,7 +233,7 @@ const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections
 
           {collections && (
             <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
-              <TopTokenList tokens={collections} displayUsd={true} />
+              <NFTList collections={collections} displayUsd={displayUsd} />
             </Panel>
           )}
         </div>

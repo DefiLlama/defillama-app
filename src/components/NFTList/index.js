@@ -10,7 +10,7 @@ import { CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum } from '../../utils'
+import { formattedNum, filterCollectionsByCurrency } from '../../utils'
 import { useInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 
@@ -102,8 +102,7 @@ const SORT_FIELD = {
 }
 
 // @TODO rework into virtualized list
-function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
-
+function NFTList({ collections, itemMax = 100, displayUsd = false }) {
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
   const [sortedColumn, setSortedColumn] = useState('dailyVolume')
@@ -112,10 +111,17 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
   const below680 = useMedia('(max-width: 680px)')
   const below600 = useMedia('(max-width: 600px)')
 
+  const displayCurrency = displayUsd ? '$' : 'Ξ'
+
+  const filteredListByCurrency = useMemo(() => filterCollectionsByCurrency(collections, displayUsd), [
+    collections,
+    displayUsd
+  ])
+
   const filteredList = useMemo(() => {
     return (
-      tokens &&
-      tokens.sort((a, b) => {
+      filteredListByCurrency &&
+      filteredListByCurrency.sort((a, b) => {
         if (sortedColumn === SORT_FIELD.NAME) {
           return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
         }
@@ -124,7 +130,7 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
           : (sortDirection ? -1 : 1) * -1
       })
     )
-  }, [tokens, sortDirection, sortedColumn])
+  }, [filteredListByCurrency, sortDirection, sortedColumn])
 
   const ListItem = ({ item, index }) => {
     return (
@@ -141,14 +147,13 @@ function NFTList({ tokens, itemMax = 100, displayUsd = false }) {
             </CustomLink>
           </Row>
         </DataText>
-
-        <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayUsd)}</DataText>
+        <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayCurrency)}</DataText>
         {!below1080 && (
           <DataText area="totalVolume" color="text" fontWeight="500">
-            {formattedNum(item.totalVolume, displayUsd)}
+            {formattedNum(item.totalVolume, displayCurrency)}
           </DataText>
         )}
-        <DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayUsd)}</DataText>
+        <DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayCurrency)}</DataText>
         {!below680 && (
           <DataText area="owners" color="text" fontWeight="500">
             {formattedNum(item.owners, false)}
