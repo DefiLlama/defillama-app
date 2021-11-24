@@ -158,8 +158,8 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
             {formattedNum(item.totalVolume, displayCurrency)}
           </DataText>
         )}
-        <DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayCurrency)}</DataText>
-        {!below680 && (
+        {!below1080 && (<DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayCurrency)}</DataText>)}
+        {!below1080 && (
           <DataText area="owners" color="text" fontWeight="500">
             {formattedNum(item.owners, false)}
           </DataText>
@@ -188,11 +188,8 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
         </Flex>
 
         <Flex alignItems="center">
-          <ClickableText
-            area="chain"
-            onClick={e => {}}
-          >
-            Chain 
+          <ClickableText area="chain" onClick={e => {}}>
+            Chain
           </ClickableText>
         </Flex>
 
@@ -222,19 +219,21 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
           </Flex>
         )}
 
-        <Flex alignItems="center">
-          <ClickableText
-            area="floor"
-            onClick={e => {
-              setSortedColumn(SORT_FIELD.FLOOR)
-              setSortDirection(sortedColumn !== SORT_FIELD.FLOOR ? true : !sortDirection)
-            }}
-          >
-            Floor {sortedColumn === SORT_FIELD.FLOOR ? (!sortDirection ? '↑' : '↓') : ''}
-          </ClickableText>
-        </Flex>
+        {!below1080 && (
+          <Flex alignItems="center">
+            <ClickableText
+              area="floor"
+              onClick={e => {
+                setSortedColumn(SORT_FIELD.FLOOR)
+                setSortDirection(sortedColumn !== SORT_FIELD.FLOOR ? true : !sortDirection)
+              }}
+            >
+              Floor {sortedColumn === SORT_FIELD.FLOOR ? (!sortDirection ? '↑' : '↓') : ''}
+            </ClickableText>
+          </Flex>
+        )}
 
-        {!below680 && (
+        {!below1080 && (
           <Flex alignItems="center">
             <ClickableText
               area="owners"
