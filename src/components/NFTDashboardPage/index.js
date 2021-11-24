@@ -1,5 +1,6 @@
-import React, { useEffect, lazy, Suspense } from 'react'
+import React, { useEffect } from 'react'
 import { useMedia } from 'react-use'
+import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 
@@ -7,15 +8,13 @@ import { AutoRow, RowBetween, RowFlat } from '../Row'
 import { AutoColumn } from '../Column'
 import { ButtonDark } from '../ButtonStyled'
 import DropdownSelect from '../DropdownSelect'
+import { CheckMarks } from '../SettingsModal'
 import { PageWrapper, ContentWrapper } from '..'
 import Panel from '../Panel'
-import RightSettings from '../RightSettings'
 import Search from '../Search'
 import TopTokenList from '../NFTList'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { formattedNum } from '../../utils'
-
-import dynamic from 'next/dynamic'
 
 const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
   ssr: false
@@ -31,11 +30,10 @@ const ListOptions = styled(AutoRow)`
     font-size: 1rem;
   }
 `
-
 const basicChainOptions = ['All', 'Ethereum']
 const extraChainOptions = []
 
-const NFTDashboard = ({ history, title, totalVolumeUSD, dailyVolumeUSD, dailyChange, collections, chart }) => {
+const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections, chart }) => {
   useEffect(() => window.scrollTo(0, 0))
 
   const below800 = useMedia('(max-width: 800px)')
@@ -58,12 +56,9 @@ const NFTDashboard = ({ history, title, totalVolumeUSD, dailyVolumeUSD, dailyCha
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
       <ContentWrapper>
         <div>
-          <AutoColumn gap="24px" style={{ paddingBottom: below800 ? '0' : '24px' }}>
-            <RowBetween>
-              <TYPE.largeHeader>{title}</TYPE.largeHeader>
-              {!below800 && <RightSettings type="nfts" />}
-            </RowBetween>
+          <AutoColumn gap="24px" style={{ paddingBottom: '24px' }}>
             <Search />
+            <CheckMarks type='nfts' />
           </AutoColumn>
           {below800 && ( // mobile card
             <AutoColumn

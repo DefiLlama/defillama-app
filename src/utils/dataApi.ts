@@ -125,24 +125,7 @@ export const fuseProtocolData = (protocolsDict, protocolData, protocol) => {
   }
 }
 
-// Client Side
-
-const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then(res => res.json())
-
-export const useFetchProtocol = protocolName => {
-  const { data, error } = useSWR(protocolName ? `${PROTOCOL_API}/${protocolName}` : null, fetcher)
-  return { data, error, loading: protocolName && !data && !error }
-}
-
-export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
-  const { data, error } = useSWR(
-    gecko_id ? `https://api.coingecko.com/api/v3/simple/price?ids=${gecko_id}&vs_currencies=${defaultCurrency}` : null,
-    fetcher
-  )
-  return { data, error, loading: gecko_id && !data && !error }
-}
-
-export async function getNFTData(collection) {
+export const getNFTData = async () => {
   let chartData, collections, statistics
 
   try {
@@ -171,9 +154,9 @@ export async function getNFTData(collection) {
   }
 }
 
-export const getNFTCollections = () => fetch(NFT_COLLECTIONS_API).then(r => r.json())
+export const getNFTCollections = async () => fetch(NFT_COLLECTIONS_API).then(r => r.json())
 
-export const getNFTCollection = slug => {
+export const getNFTCollection = async slug => {
   try {
     return fetch(`${NFT_COLLECTION_API}/${slug}`).then(r => r.json())
   } catch (e) {
@@ -181,12 +164,29 @@ export const getNFTCollection = slug => {
   }
 }
 
-export const getNFTCollectionChartData = slug => {
+export const getNFTCollectionChartData = async slug => {
   try {
     return fetch(`${NFT_CHARTS_API}/${slug}/dailyVolume`).then(r => r.json())
   } catch (e) {
     console.log(e)
   }
+}
+
+// Client Side
+
+const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then(res => res.json())
+
+export const useFetchProtocol = protocolName => {
+  const { data, error } = useSWR(protocolName ? `${PROTOCOL_API}/${protocolName}` : null, fetcher)
+  return { data, error, loading: protocolName && !data && !error }
+}
+
+export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
+  const { data, error } = useSWR(
+    gecko_id ? `https://api.coingecko.com/api/v3/simple/price?ids=${gecko_id}&vs_currencies=${defaultCurrency}` : null,
+    fetcher
+  )
+  return { data, error, loading: gecko_id && !data && !error }
 }
 
 //:00 -> adapters start running, they take up to 15mins
