@@ -32,7 +32,6 @@ export async function getStaticProps() {
 }
 
 const ChainsView = ({ chainData }) => {
-  console.log(chainData)
   return (
     <PageWrapper>
       <FullWrapper>

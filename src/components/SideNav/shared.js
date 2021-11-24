@@ -96,7 +96,7 @@ export const Desktop = styled.div`
 
 export const Entry = ({ url, name, history, Icon }) => (
   <BasicLink href={'/' + url}>
-    <Option activeText={history.location.pathname.split('/')[1] === url ?? undefined}>
+    <Option activeText={history.location.pathname === '/' + url ?? undefined}>
       <Icon size={20} style={{ marginRight: '.75rem' }} />
       {name}
     </Option>
