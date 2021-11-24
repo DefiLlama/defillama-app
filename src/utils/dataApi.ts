@@ -131,8 +131,8 @@ export const getNFTData = async () => {
   let chartData, collections, statistics
 
   try {
-    ;[chartData, collections, statistics] = await Promise.all(
-      [`${NFT_CHARTS_API}/all/dailyVolume`, NFT_COLLECTIONS_API, NFT_STATISTICS_API].map(url =>
+    [chartData, collections, statistics] = await Promise.all(
+      [`${NFT_CHARTS_API}/dailyVolume`, NFT_COLLECTIONS_API, NFT_STATISTICS_API].map(url =>
         fetch(url).then(r => r.json())
       )
     )
@@ -147,7 +147,7 @@ export const getNFTData = async () => {
     props: {
       chart: chartData,
       collections,
-      ...statistics,
+      ...statistics
     }
   }
 }
