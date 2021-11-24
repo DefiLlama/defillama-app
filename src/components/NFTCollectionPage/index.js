@@ -9,15 +9,13 @@ import Header from './Header'
 import Section from './Section'
 import Links from './Links'
 
-import { formattedNum } from '../../utils'
-
+import { formattedNum, capitalizeFirstLetter } from '../../utils'
 import { RowBetween } from '../../components/Row'
 import { PageWrapper, ContentWrapper } from '../../components'
 import Panel from '../../components/Panel'
 import { TYPE, ThemedBackground } from '../../Theme'
-import { useCollectionChartData, useNFTCollection } from 'contexts/NFTData'
-import LocalLoader from 'components/LocalLoader'
 import { useProtocolColor } from 'hooks'
+import { chainCoingeckoIds } from '../../constants/chainTokens'
 
 const DashboardWrapper = styled(Box)`
   width: 100%;
@@ -87,9 +85,13 @@ function NFTCollectionPage({ collection, chartData }) {
   const below500 = useMedia('(max-width: 500px)')
   const below850 = useMedia('(max-width: 850px)')
 
-  const { address, description, logo, name, slug, website, twitterUsername, discordUrl, telegramUrl } = collection || {}
+  const { chain, address, description, logo, name, slug, website, twitterUsername, discordUrl, telegramUrl } =
+    collection || {}
 
   const backgroundColor = useProtocolColor({ protocol: slug, logo, transparent: false })
+
+  const symbol = chainCoingeckoIds[capitalizeFirstLetter(chain)]?.symbol
+  const dailyVolume = chartData.length ? chartData[chartData.length - 1].dailyVolume : 0 //TODO Return from backend
 
   const links = {
     website,
@@ -130,7 +132,7 @@ function NFTCollectionPage({ collection, chartData }) {
                 gridRow: ['', '', '', '1/4']
               }}
             >
-              <GlobalNFTChart chartData={chartData} />
+              <GlobalNFTChart chartData={chartData} dailyVolume={dailyVolume} symbol={symbol} />
             </Panel>
           </PanelWrapper>
           <>

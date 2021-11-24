@@ -77,7 +77,8 @@ const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections
     to: setSelectedChain(label.toLowerCase())
   }))
 
-  const symbol = selectedChain === 'All' ? 'ETH' : chainCoingeckoIds[selectedChain].symbol //TODO Replace with USD chart for 'all'
+  const symbol = selectedChain === 'All' ? 'USD' : chainCoingeckoIds[selectedChain].symbol //TODO Replace 
+  const unit = selectedChain === 'All' ? '$' : ''
   const dailyVolume = chart.length ? chart[chart.length - 1].dailyVolume : 0 //TODO Return from backend
 
   const panels = (
@@ -137,6 +138,7 @@ const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections
               dailyVolume={dailyVolume}
               dailyVolumeChange={dailyChange}
               symbol={symbol}
+              unit={unit}
             />
           </Panel>
         </BreakpointPanels>
