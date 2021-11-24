@@ -142,7 +142,7 @@ function NFTList({
             <TokenLogo logo={iconUrl(item.chain)} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              href={'/nfts/chain' + item.chain}
+              href={'/nfts/chain/' + item.chain}
             >
               <FormattedName
                 text={capitalizeFirstLetter(item.chain)}

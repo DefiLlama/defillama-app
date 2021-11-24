@@ -6,11 +6,11 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 
 import { Box, Flex, Text } from 'rebass'
 import TokenLogo from '../TokenLogo'
-import { CustomLink } from '../Link'
+import { BasicLink, CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, filterCollectionsByCurrency } from '../../utils'
+import { formattedNum, filterCollectionsByCurrency, chainIconUrl } from '../../utils'
 import { useInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 
@@ -147,6 +147,11 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
             </CustomLink>
           </Row>
         </DataText>
+        <DataText>
+          <BasicLink key={item.chain} href={`/nfts/chain/${item.chain}`}>
+            <TokenLogo address={item.chain} logo={chainIconUrl(item.chain)} />
+          </BasicLink>
+        </DataText>
         <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayCurrency)}</DataText>
         {!below1080 && (
           <DataText area="totalVolume" color="text" fontWeight="500">
@@ -181,6 +186,16 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
             Name {sortedColumn === SORT_FIELD.NAME ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
+
+        <Flex alignItems="center">
+          <ClickableText
+            area="chain"
+            onClick={e => {}}
+          >
+            Chain 
+          </ClickableText>
+        </Flex>
+
         <Flex alignItems="center">
           <ClickableText
             area="dailyVol"
