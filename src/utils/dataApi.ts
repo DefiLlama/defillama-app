@@ -25,7 +25,7 @@ function addSection(protocol: any, section: string, chain: string | undefined) {
   }
 }
 
-export const basicPropertiesToKeep = ['tvl', 'name', 'symbol', 'chains', 'change_7d', 'change_1d', 'mcaptvl']
+export const basicPropertiesToKeep = ['tvl', 'name', 'symbol', 'chains', 'change_7d', 'change_1d', 'mcap']
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
     if (protocol[prop] !== undefined) {

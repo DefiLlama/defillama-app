@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
 import { useRouter } from 'next/router'
 import copy from 'copy-to-clipboard'
 export { default as useInfiniteScroll } from './useInfiniteScroll'

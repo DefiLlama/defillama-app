@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import { useMedia } from 'react-use'
+import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 
@@ -17,7 +16,6 @@ import { TYPE, ThemedBackground } from '../../Theme'
 import { useStakingManager, usePool2Manager } from '../../contexts/LocalStorage'
 import { formattedNum } from '../../utils'
 
-import ProtocolChart from '../ProtocolChart'
 import dynamic from 'next/dynamic'
 
 const ListOptions = styled(AutoRow)`
@@ -65,7 +63,6 @@ function GlobalPage({
   selectedChain = 'All',
   volumeChangeUSD,
   totalVolumeUSD,
-  denomination,
   chainsSet,
   filteredTokens,
   chart: globalChart,
@@ -84,15 +81,40 @@ function GlobalPage({
     totalVolumeUSD += totalPool2
   }
 
+  const protocolTotals = useMemo(() => {
+    if (!stakingEnabled && !pool2Enabled) {
+      return filteredTokens
+    }
+
+    return filteredTokens
+      .map(({ tvl, pool2 = 0, staking = 0, ...props }) => {
+        let finalTvl = tvl
+
+        if (stakingEnabled) {
+          finalTvl += staking
+        }
+
+        if (pool2Enabled) {
+          finalTvl += pool2
+        }
+
+        return {
+          ...props,
+          tvl: finalTvl
+        }
+      })
+      .sort((a, b) => b.tvl - a.tvl)
+  }, [filteredTokens, stakingEnabled, pool2Enabled])
+
   let chainOptions = ['All'].concat(chainsSet).map(label => ({ label, to: setSelectedChain(label) }))
 
   const topToken = { name: 'Uniswap', tvl: 0 }
-  if (filteredTokens.length > 0) {
-    topToken.name = filteredTokens[0]?.name
-    topToken.tvl = filteredTokens[0]?.tvl
+  if (protocolTotals.length > 0) {
+    topToken.name = protocolTotals[0]?.name
+    topToken.tvl = protocolTotals[0]?.tvl
     if (topToken.name === 'AnySwap') {
-      topToken.name = filteredTokens[1]?.name
-      topToken.tvl = filteredTokens[1]?.tvl
+      topToken.name = protocolTotals[1]?.name
+      topToken.tvl = protocolTotals[1]?.tvl
     }
   }
 
@@ -160,13 +182,14 @@ function GlobalPage({
           <CheckMarks />
         </AutoColumn>
         <BreakpointPanels>
-          <BreakpointPanelsColumn
-            gap="10px"
-          >
-            {panels}
-          </BreakpointPanelsColumn>
+          <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
           <Panel style={{ height: '100%', minHeight: '347px' }}>
-            <Chart display="liquidity" dailyData={globalChart} totalLiquidityUSD={totalVolumeUSD} liquidityChangeUSD={volumeChangeUSD} />
+            <Chart
+              display="liquidity"
+              dailyData={globalChart}
+              totalLiquidityUSD={totalVolumeUSD}
+              liquidityChangeUSD={volumeChangeUSD}
+            />
           </Panel>
         </BreakpointPanels>
         <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
@@ -185,7 +208,7 @@ function GlobalPage({
           </RowBetween>
         </ListOptions>
         <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
-          <TokenList tokens={filteredTokens} filters={[selectedChain]} />
+          <TokenList tokens={protocolTotals} filters={[selectedChain]} />
         </Panel>
       </ContentWrapper>
     </PageWrapper>
