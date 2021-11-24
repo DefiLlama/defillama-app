@@ -1,5 +1,5 @@
 import React from 'react'
-import { useHistory } from 'react-router-dom'
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
 
 import { Flex } from 'rebass'
@@ -27,13 +27,13 @@ const UniIcon = styled(Link)`
 `
 
 export default function Title({ homePath = '/' }) {
-  const history = useHistory()
+  const router = useRouter()
 
   return (
-    <TitleWrapper onClick={() => history.push(homePath)}>
+    <TitleWrapper onClick={() => router.push(homePath)}>
       <Flex alignItems="center">
         <RowFixed>
-          <UniIcon id="link" onClick={() => history.push(homePath)}>
+          <UniIcon id="link" onClick={() => router.push(homePath)}>
             <Image width='160px' height="54px" src={homePath === '/' ? DefiLogo : NFTLogo} alt="logo" priority={true} />
           </UniIcon>
         </RowFixed>

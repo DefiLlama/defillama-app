@@ -6,7 +6,6 @@ import { AutoColumn } from '../Column'
 import { BasicLink } from '../Link'
 import Link from '../Link'
 import Toggle from '../Toggle'
-import { TYPE } from '../../Theme'
 
 export const Wrapper = styled.div`
   position: sticky;
@@ -81,6 +80,18 @@ export const HeaderText = styled.div`
 export const ButtonWrapper = styled.div`
   display: flex;
   flex-direction: row;
+`
+
+export const Mobile = styled.div`
+  @media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+    display: none;
+  }
+`
+
+export const Desktop = styled.div`
+  ${({ theme: { maxLg } }) => maxLg} {
+    display: none;
+  }
 `
 
 export const Entry = ({ url, name, history, Icon }) => (
