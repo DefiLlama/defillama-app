@@ -64,7 +64,7 @@ function GlobalPage({
   volumeChangeUSD,
   totalVolumeUSD,
   chainsSet,
-  filteredTokens,
+  filteredProtocols,
   chart: globalChart,
   totalStaking,
   totalPool2
@@ -83,10 +83,10 @@ function GlobalPage({
 
   const protocolTotals = useMemo(() => {
     if (!stakingEnabled && !pool2Enabled) {
-      return filteredTokens
+      return filteredProtocols
     }
 
-    return filteredTokens
+    return filteredProtocols
       .map(({ tvl, pool2 = 0, staking = 0, ...props }) => {
         let finalTvl = tvl
 
@@ -104,7 +104,7 @@ function GlobalPage({
         }
       })
       .sort((a, b) => b.tvl - a.tvl)
-  }, [filteredTokens, stakingEnabled, pool2Enabled])
+  }, [filteredProtocols, stakingEnabled, pool2Enabled])
 
   let chainOptions = ['All'].concat(chainsSet).map(label => ({ label, to: setSelectedChain(label) }))
 

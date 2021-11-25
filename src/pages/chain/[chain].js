@@ -1,30 +1,30 @@
 import ChainPage from '../../components/ChainPage'
 import { PROTOCOLS_API } from '../../constants/index'
 import { GeneralLayout } from '../../layout'
-import { getChainData, revalidate } from '../../utils/dataApi'
+import { getChainPageData, revalidate } from '../../utils/dataApi'
 
 export async function getStaticProps({ params }) {
-    const chain = params.chain
-    const data = await getChainData(chain)
-    return {
-        ...data,
-        revalidate: revalidate()
-    }
+  const chain = params.chain
+  const data = await getChainPageData(chain)
+  return {
+    ...data,
+    revalidate: revalidate()
+  }
 }
 export async function getStaticPaths() {
-    const res = await fetch(PROTOCOLS_API)
+  const res = await fetch(PROTOCOLS_API)
 
-    const paths = (await res.json()).chains.map((chain) => ({
-        params: { chain },
-    }))
+  const paths = (await res.json()).chains.map(chain => ({
+    params: { chain }
+  }))
 
-    return { paths, fallback: 'blocking' }
+  return { paths, fallback: 'blocking' }
 }
 
 export default function Chain({ chain, ...props }) {
-    return (
-        <GeneralLayout title={`${chain} TVL - DefiLlama`}>
-            <ChainPage {...props} selectedChain={chain} />
-        </GeneralLayout>
-    )
+  return (
+    <GeneralLayout title={`${chain} TVL - DefiLlama`}>
+      <ChainPage {...props} selectedChain={chain} />
+    </GeneralLayout>
+  )
 }
