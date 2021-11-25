@@ -59,7 +59,7 @@ function init() {
     [DARK_MODE]: true,
     [STAKING]: false,
     [POOL2]: false,
-    [DISPLAY_USD]: true,
+    [DISPLAY_USD]: false,
     [DISMISSED_PATHS]: {},
     [SAVED_ACCOUNTS]: [],
     [SAVED_TOKENS]: {},
@@ -145,15 +145,13 @@ export function useStakingManager() {
 }
 
 export function useDisplayUsdManager() {
-  return [true]
   const [state, { updateKey }] = useLocalStorageContext()
-  let displayUsd = state[DISPLAY_USD]
-  const toggleDisplayUsd = useCallback(
-    value => {
-      updateKey(DISPLAY_USD, value === false || value === true ? value : !displayUsd)
-    },
-    [updateKey, displayUsd]
-  )
+  const displayUsd = state[DISPLAY_USD]
+
+  const toggleDisplayUsd = () => {
+    updateKey(DISPLAY_USD, !displayUsd)
+  }
+
   return [displayUsd, toggleDisplayUsd]
 }
 

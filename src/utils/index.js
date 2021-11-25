@@ -166,49 +166,63 @@ export const toSignificant = (number, significantDigits) => {
   return updated.toFormat(updated.decimalPlaces(), { groupSeparator: '' })
 }
 
-export const formattedNum = (number, usd = false, acceptNegatives = false) => {
+export const formattedNum = (number, symbol = false, acceptNegatives = false) => {
+  let currencySymbol
+  if (symbol === true) {
+    currencySymbol = '$'
+  } else if (symbol === false) {
+    currencySymbol = ''
+  } else {
+    currencySymbol = symbol
+  }
   if (isNaN(number) || number === '' || number === undefined) {
-    return usd ? '$0' : 0
+    return symbol ? `${currencySymbol}0` : 0
   }
   let num = parseFloat(number)
   const isNegative = num < 0
   num = Math.abs(num)
 
-  const usdMark = isNegative ? '$-' : '$'
+  const currencyMark = isNegative ? `${currencySymbol}-` : currencySymbol
   const normalMark = isNegative ? '-' : ''
 
   if (num > 100000000) {
-    return (usd ? usdMark : normalMark) + toK(num.toFixed(0), true)
+    return (symbol ? currencyMark : normalMark) + toK(num.toFixed(0), true)
   }
 
   if (num === 0) {
-    if (usd) {
-      return '$0'
-    }
-    return 0
+    return symbol ? `${currencySymbol}0` : 0
   }
 
   if (num < 0.0001 && num > 0) {
-    return usd ? '< $0.0001' : '< 0.0001'
+    return symbol ? `< ${currencySymbol}0.0001` : '< 0.0001'
   }
 
   if (num > 1000) {
-    return usd
-      ? usdMark + Number(parseFloat(num).toFixed(0)).toLocaleString()
+    return symbol
+      ? currencyMark + Number(parseFloat(num).toFixed(0)).toLocaleString()
       : normalMark + Number(parseFloat(num).toFixed(0)).toLocaleString()
   }
 
-  if (usd) {
+  if (symbol) {
     if (num < 0.1) {
-      return usdMark + Number(parseFloat(num).toFixed(4))
+      return currencyMark + Number(parseFloat(num).toFixed(4))
     } else {
       let usdString = priceFormatter.format(num)
-      return usdMark + usdString.slice(1, usdString.length)
+      return currencyMark + usdString.slice(1, usdString.length)
     }
   }
 
   return Number(parseFloat(num).toFixed(5))
 }
+
+export const filterCollectionsByCurrency = (collections, displayUsd) =>
+  collections &&
+  collections.map(collection => ({
+    ...collection,
+    floor: displayUsd ? collection.floorUSD : collection.floor,
+    dailyVolume: displayUsd ? collection.dailyVolumeUSD : collection.dailyVolume,
+    totalVolume: displayUsd ? collection.totalVolumeUSD : collection.totalVolume
+  }))
 
 export function rawPercent(percentRaw) {
   let percent = parseFloat(percentRaw * 100)

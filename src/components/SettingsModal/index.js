@@ -115,27 +115,40 @@ export const OptionToggle = props => (
   </TYPE.body>
 )
 
-export function CheckMarks() {
+export function CheckMarks({ type = 'defi' }) {
   const [stakingEnabled, toggleStaking] = useStakingManager()
   const [pool2Enabled, togglePool2] = usePool2Manager()
+  const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
   const isClient = useIsClient()
+
+  const toggleSettings = {
+    defi: [
+      {
+        name: 'Staking',
+        toggle: toggleStaking,
+        enabled: stakingEnabled && isClient,
+        help: 'Include governance tokens staked in the protocol'
+      },
+      {
+        name: 'Pool2',
+        toggle: togglePool2,
+        enabled: pool2Enabled && isClient,
+        help: 'Include staked lp tokens where one of the coins in the pair is the governance token'
+      }
+    ],
+    nfts: [
+      {
+        name: 'Display in USD',
+        toggle: toggleDisplayUsd,
+        enabled: displayUsd && isClient,
+        help: 'Display Metrics in USD'
+      }
+    ]
+  }
 
   return (
     <AutoRow gap="10px" justify="center">
-      {[
-        {
-          name: 'Staking',
-          toggle: toggleStaking,
-          enabled: stakingEnabled && isClient,
-          help: 'Include governance tokens staked in the protocol'
-        },
-        {
-          name: 'Pool2',
-          toggle: togglePool2,
-          enabled: pool2Enabled && isClient,
-          help: 'Include staked lp tokens where one of the coins in the pair is the governance token'
-        }
-      ].map(toggleSetting => (
+      {toggleSettings[type].map(toggleSetting => (
         <OptionToggle {...toggleSetting} key={toggleSetting.name} />
       ))}
     </AutoRow>

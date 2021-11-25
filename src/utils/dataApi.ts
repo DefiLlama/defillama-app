@@ -6,6 +6,8 @@ import {
   NFT_COLLECTIONS_API,
   NFT_COLLECTION_API,
   NFT_CHARTS_API,
+  NFT_COLLECTIONS_CHARTS_API,
+  NFT_CHAINS_CHARTS_API,
   NFT_STATISTICS_API
 } from '../constants/index'
 import { standardizeProtocolName } from 'utils'
@@ -167,6 +169,62 @@ export const fuseProtocolData = (protocolsDict, protocolData, protocol) => {
   }
 }
 
+export const getNFTData = async () => {
+  let chartData, collections, statistics
+
+  try {
+    [chartData, collections, statistics] = await Promise.all(
+      [`${NFT_CHARTS_API}/dailyVolumeUSD`, NFT_COLLECTIONS_API, NFT_STATISTICS_API].map(url =>
+        fetch(url).then(r => r.json())
+      )
+    )
+  } catch (e) {
+    console.log(e)
+    return {
+      notFound: true
+    }
+  }
+
+  const chart = chartData.map(data => ({
+    dailyVolume: data.dailyVolumeUSD,
+    ...data
+  }))
+
+  return {
+    props: {
+      chart,
+      collections,
+      ...statistics
+    }
+  }
+}
+
+export const getNFTCollections = async () => fetch(NFT_COLLECTIONS_API).then(r => r.json())
+
+export const getNFTCollection = async slug => {
+  try {
+    return fetch(`${NFT_COLLECTION_API}/${slug}`).then(r => r.json())
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const getNFTCollectionChartData = async slug => {
+  try {
+    return fetch(`${NFT_COLLECTIONS_CHARTS_API}/${slug}/dailyVolume`).then(r => r.json())
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const getNFTChainChartData = async chain => {
+  try {
+    return fetch(`${NFT_CHAINS_CHARTS_API}/${chain}/dailyVolume`).then(r => r.json())
+  } catch (e) {
+    console.log(e)
+  }
+}
+
 // Client Side
 
 const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then(res => res.json())
@@ -182,53 +240,6 @@ export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
     fetcher
   )
   return { data, error, loading: gecko_id && !data && !error }
-}
-
-export async function getNFTData(collection) {
-  let chartData, collections, statistics
-
-  try {
-    ;[chartData, collections, statistics] = await Promise.all(
-      [`${NFT_CHARTS_API}/all/dailyVolume`, NFT_COLLECTIONS_API, NFT_STATISTICS_API].map(url =>
-        fetch(url).then(r => r.json())
-      )
-    )
-  } catch (e) {
-    console.log(e)
-    return {
-      notFound: true
-    }
-  }
-
-  const { totalVolumeUSD, dailyVolumeUSD, dailyChange } = statistics
-
-  return {
-    props: {
-      chart: chartData,
-      collections,
-      totalVolumeUSD,
-      dailyVolumeUSD,
-      dailyChange
-    }
-  }
-}
-
-export const getNFTCollections = () => fetch(NFT_COLLECTIONS_API).then(r => r.json())
-
-export const getNFTCollection = slug => {
-  try {
-    return fetch(`${NFT_COLLECTION_API}/${slug}`).then(r => r.json())
-  } catch (e) {
-    console.log(e)
-  }
-}
-
-export const getNFTCollectionChartData = slug => {
-  try {
-    return fetch(`${NFT_CHARTS_API}/${slug}/dailyVolume`).then(r => r.json())
-  } catch (e) {
-    console.log(e)
-  }
 }
 
 //:00 -> adapters start running, they take up to 15mins

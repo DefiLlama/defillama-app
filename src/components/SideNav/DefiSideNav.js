@@ -1,27 +1,15 @@
 import React, { useState } from 'react'
-import { DesktopWrapper, Entry, MobileWrapper, Option, Wrapper, Footer, ButtonWrapper } from './shared'
+import { useRouter } from 'next/router'
+import { TrendingUp, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock } from 'react-feather'
+
+import { DesktopWrapper, Entry, MobileWrapper, Option, Wrapper, Footer, ButtonWrapper, Desktop, Mobile } from './shared'
 import { AutoColumn } from '../Column'
 import Title from '../Title'
 import { BasicLink } from '../Link'
-import { TrendingUp, Disc, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock } from 'react-feather'
-import { useDarkModeManager } from '../../contexts/LocalStorage'
-import categories from '../../constants/categories'
 import SettingsMenuButton from '../SettingsModal'
 import NavMenuButton from './NavMenuButton'
-import styled from 'styled-components'
-import { useRouter } from 'next/router'
-
-const Mobile = styled.div`
-  @media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-    display: none;
-  }
-`
-
-const Desktop = styled.div`
-  ${({ theme: { maxLg } }) => maxLg} {
-    display: none;
-  }
-`
+import { useDarkModeManager } from '../../contexts/LocalStorage'
+import categories from '../../constants/categories'
 
 function SideNav() {
   const [showMobileNavMenu, setShowMobileNavMenu] = useState(false)
