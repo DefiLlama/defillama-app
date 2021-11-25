@@ -16,6 +16,7 @@ import Panel from '../../components/Panel'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { useProtocolColor } from 'hooks'
 import { chainCoingeckoIds } from '../../constants/chainTokens'
+import LocalLoader from 'components/LocalLoader'
 
 const DashboardWrapper = styled(Box)`
   width: 100%;

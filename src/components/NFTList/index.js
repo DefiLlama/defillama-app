@@ -106,7 +106,7 @@ const SORT_FIELD = {
 function NFTList({
   data,
   filters,
-  iconUrl = tokenIconUrl,
+  iconUrl,
   generateLink = () => '',
   columns = [],
   defaultSortingColumn = 'totalVolume'
