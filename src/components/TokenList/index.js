@@ -98,17 +98,17 @@ const SORT_FIELD = {
   HOURONE: 'change_1h',
   DAYONE: 'change_1d',
   DAYSEVEN: 'change_7d',
-  MCAPTVL: "mcaptvl",
+  MCAPTVL: 'mcaptvl',
   CHAINS: 'chains'
 }
 
 const COLUMN_NAMES = {
-  chains: "Chains",
-  protocols: "Protocols",
-  name: "Name",
-  "change_7d": "7d Change",
-  "change_1d": "1d Change",
-  listedAt: "Listed",
+  chains: 'Chains',
+  protocols: 'Protocols',
+  name: 'Name',
+  change_7d: '7d Change',
+  change_1d: '1d Change',
+  listedAt: 'Listed'
 }
 
 const ProtocolButtonElement = styled(FormattedName)`
@@ -119,7 +119,7 @@ const ProtocolButtonElement = styled(FormattedName)`
 const ProtocolButton = ({ item, below600 }) => {
   return (
     <ProtocolButtonElement
-      text={item.symbol === "-" ? item.name : `${item.name} (${item.symbol})`}
+      text={item.symbol === '-' ? item.name : `${item.name} (${item.symbol})`}
       maxCharacters={below600 ? 8 : 16}
       adjustSize={true}
       link={true}
@@ -159,50 +159,47 @@ const FlexHideBelow1080 = styled(Flex)`
   }
 `
 
-
 // @TODO rework into virtualized list
-function TokenList({ tokens, filters,
+function TokenList({
+  tokens,
+  filters,
   iconUrl = tokenIconUrl,
   generateLink = name => `/protocol/${slug(name)}`,
   columns = [undefined, SORT_FIELD.CHAINS, SORT_FIELD.DAYONE, SORT_FIELD.DAYSEVEN],
-  defaultSortingColumn = "tvl"
+  defaultSortingColumn = 'tvl'
 }) {
-
   const below600 = useMedia('(max-width: 600px)')
 
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
   const [sortedColumn, setSortedColumnRaw] = useState(defaultSortingColumn)
   const [alreadySorted, setAlreadySorted] = useState(true)
-  const setSortedColumn = (newColumn) => {
-    setAlreadySorted(false);
+  const setSortedColumn = newColumn => {
+    setAlreadySorted(false)
     setSortedColumnRaw(newColumn)
   }
 
   const filteredList = useMemo(() => {
     let sortedTokens = tokens
     if (!alreadySorted) {
-      sortedTokens = tokens
-        .sort((a, b) => {
-          if (sortedColumn === SORT_FIELD.CHAINS) {
-            return a[sortedColumn].length > b[sortedColumn].length ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
-          }
-          if (sortedColumn === SORT_FIELD.SYMBOL || sortedColumn === SORT_FIELD.NAME) {
-            return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
-          }
-          return parseFloat(a[sortedColumn] || 0) > parseFloat(b[sortedColumn] || 0)
+      sortedTokens = tokens.sort((a, b) => {
+        if (sortedColumn === SORT_FIELD.CHAINS) {
+          return a[sortedColumn].length > b[sortedColumn].length
             ? (sortDirection ? -1 : 1) * 1
             : (sortDirection ? -1 : 1) * -1
-        })
+        }
+        if (sortedColumn === SORT_FIELD.SYMBOL || sortedColumn === SORT_FIELD.NAME) {
+          return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
+        }
+        return parseFloat(a[sortedColumn] || 0) > parseFloat(b[sortedColumn] || 0)
+          ? (sortDirection ? -1 : 1) * 1
+          : (sortDirection ? -1 : 1) * -1
+      })
     }
     return sortedTokens
   }, [tokens, sortDirection, sortedColumn, alreadySorted])
 
-  const { LoadMoreButton,
-    dataLength,
-    hasMore,
-    next } = useInfiniteScroll({ list: filteredList, filters });
-
+  const { LoadMoreButton, dataLength, hasMore, next } = useInfiniteScroll({ list: filteredList, filters })
 
   const ListItem = ({ item, index }) => {
     return (
@@ -211,31 +208,39 @@ function TokenList({ tokens, filters,
           <Row>
             <Index>{index + 1}</Index>
             <TokenLogo logo={iconUrl(item.name)} />
-            <CustomLink
-              href={generateLink(item.name)}
-            >
+            <CustomLink href={generateLink(item.name)}>
               <ProtocolButton item={item} below600={below600} />
             </CustomLink>
           </Row>
         </DataText>
-        <DataTextHideBelow1080 area="chain">{
-          columns[1] === SORT_FIELD.CHAINS ?
-            item.chains.map(chain => <BasicLink key={chain} href={`/chain/${chain}`}><TokenLogo address={chain} logo={chainIconUrl(chain)} /></BasicLink>)
-            : formattedNum(item[columns[1]], false)
-        }</DataTextHideBelow1080>
+        <DataTextHideBelow1080 area="chain">
+          {columns[1] === SORT_FIELD.CHAINS
+            ? item.chains.map(chain => (
+                <BasicLink key={chain} href={`/chain/${chain}`}>
+                  <TokenLogo address={chain} logo={chainIconUrl(chain)} />
+                </BasicLink>
+              ))
+            : formattedNum(item[columns[1]], false)}
+        </DataTextHideBelow1080>
         <DataTextHideBelow1080 area="1dchange" fontWeight="500">
           {formattedPercent(item.change_1d, true)}
         </DataTextHideBelow1080>
-        <DataText area="7dchange">{
-          columns[3] === SORT_FIELD.DAYSEVEN ?
-            item.change_7d !== 0 ? formattedPercent(item.change_7d, true) : '-'
-            : `${item.listedAt} days ago`
-        }</DataText>
+        <DataText area="7dchange">
+          {columns[3] === SORT_FIELD.DAYSEVEN
+            ? item.change_7d !== 0
+              ? formattedPercent(item.change_7d, true)
+              : '-'
+            : `${item.listedAt} days ago`}
+        </DataText>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
         <DataTextHideBelow680 area="mcaptvl" fontWeight="500">
-          {item.mcaptvl === null || item.mcaptvl === undefined ? '-' : formattedNum(item.mcaptvl, false)}
+          {item.mcaptvl === null || item.mcaptvl === undefined
+            ? item.mcap && item.tvl
+              ? formattedNum(item.mcap / item.tvl)
+              : '-'
+            : formattedNum(item.mcaptvl, false)}
         </DataTextHideBelow680>
-      </DashGrid >
+      </DashGrid>
     )
   }
 
@@ -311,21 +316,16 @@ function TokenList({ tokens, filters,
         </FlexHideBelow680>
       </DashGrid>
       <Divider />
-      <List p={0} >
-        <InfiniteScroll
-          dataLength={dataLength}
-          next={next}
-          hasMore={hasMore}
-        >
-          {
-            filteredList.slice(0, dataLength).map((item, index) => {
-              return (
-                <div key={index}>
-                  <ListItem key={index} index={index} item={item} />
-                  <Divider />
-                </div>
-              )
-            })}
+      <List p={0}>
+        <InfiniteScroll dataLength={dataLength} next={next} hasMore={hasMore}>
+          {filteredList.slice(0, dataLength).map((item, index) => {
+            return (
+              <div key={index}>
+                <ListItem key={index} index={index} item={item} />
+                <Divider />
+              </div>
+            )
+          })}
         </InfiniteScroll>
       </List>
       {LoadMoreButton}

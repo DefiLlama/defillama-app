@@ -1,62 +1,49 @@
 import ProtocolList from '../../components/ProtocolList'
 import { PROTOCOLS_API } from '../../constants/index'
 import { GeneralLayout } from '../../layout'
-import { keepNeededProperties, revalidate } from '../../utils/dataApi'
+import { getProtocolsPageData, revalidate } from '../../utils/dataApi'
 
 function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  return string.charAt(0).toUpperCase() + string.slice(1)
 }
 
-export async function getStaticProps({ params: { category: [category, chain] } }) {
-    let { protocols } = await fetch(PROTOCOLS_API).then(r => r.json())
-    const chainsSet = new Set()
-    protocols = protocols.filter(p => {
-        if (p.category?.toLowerCase() !== category) {
-            return false
-        }
-        p.chains.forEach(c => chainsSet.add(c))
-        if (chain !== undefined) {
-            const chainTvl = p.chainTvls[chain];
-            if (chainTvl === undefined) {
-                return false
-            }
-            p.tvl = chainTvl
-        }
-        return true
-    }).map(p => keepNeededProperties(p))
-    if (chain) {
-        protocols = protocols.sort((a, b) => b.tvl - a.tvl)
-    }
-    if (protocols.length === 0) {
-        return {
-            notFound: true,
-        }
-    }
+export async function getStaticProps({
+  params: {
+    category: [category, chain]
+  }
+}) {
+  const props = await getProtocolsPageData(category, chain)
+
+  if (props.filteredProtocols.length === 0) {
     return {
-        props: {
-            protocols,
-            chainsSet: Array.from(chainsSet),
-            category,
-            ...(chain && { chain })
-        },
-        revalidate: revalidate()
+      notFound: true
     }
+  }
+  return {
+    props,
+    revalidate: revalidate()
+  }
 }
 
 export async function getStaticPaths() {
-    const res = await fetch(PROTOCOLS_API)
+  const res = await fetch(PROTOCOLS_API)
 
-    const paths = (await res.json()).protocolCategories.map((category) => ({
-        params: { category: [category.toLowerCase()] },
-    }))
+  const paths = (await res.json()).protocolCategories.map(category => ({
+    params: { category: [category.toLowerCase()] }
+  }))
 
-    return { paths, fallback: "blocking" }
+  return { paths, fallback: 'blocking' }
 }
 
-export default function Protocols({ category, chainsSet, protocols, chain }) {
-    return (
-        <GeneralLayout title={`${capitalizeFirstLetter(category)} TVL Rankings - DefiLlama`}>
-            <ProtocolList category={capitalizeFirstLetter(category)} chainsSet={chainsSet} selectedChain={chain} filteredTokens={protocols} />
-        </GeneralLayout>
-    )
+export default function Protocols({ category, chains, filteredProtocols, chain }) {
+  return (
+    <GeneralLayout title={`${capitalizeFirstLetter(category)} TVL Rankings - DefiLlama`}>
+      <ProtocolList
+        category={capitalizeFirstLetter(category)}
+        chains={chains}
+        selectedChain={chain}
+        filteredProtocols={filteredProtocols}
+      />
+    </GeneralLayout>
+  )
 }

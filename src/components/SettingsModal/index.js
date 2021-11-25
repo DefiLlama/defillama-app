@@ -11,6 +11,7 @@ import Switch from 'react-switch'
 import HeadHelp from '../HeadHelp'
 import { AutoRow } from '../Row'
 import Image from 'next/image'
+import { useIsClient } from 'hooks'
 
 import { TYPE } from '../../Theme'
 
@@ -118,19 +119,20 @@ export function CheckMarks({ type = 'defi' }) {
   const [stakingEnabled, toggleStaking] = useStakingManager()
   const [pool2Enabled, togglePool2] = usePool2Manager()
   const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
+  const isClient = useIsClient()
 
   const toggleSettings = {
     defi: [
       {
         name: 'Staking',
         toggle: toggleStaking,
-        enabled: stakingEnabled,
+        enabled: stakingEnabled && isClient,
         help: 'Include governance tokens staked in the protocol'
       },
       {
         name: 'Pool2',
         toggle: togglePool2,
-        enabled: pool2Enabled,
+        enabled: pool2Enabled && isClient,
         help: 'Include staked lp tokens where one of the coins in the pair is the governance token'
       }
     ],
@@ -138,7 +140,7 @@ export function CheckMarks({ type = 'defi' }) {
       {
         name: 'Display in USD',
         toggle: toggleDisplayUsd,
-        enabled: displayUsd,
+        enabled: displayUsd && isClient,
         help: 'Display Metrics in USD'
       }
     ]

@@ -20,14 +20,14 @@ export function getProtocolNames(protocols) {
   return protocols.map(p => ({ name: p.name, symbol: p.symbol }))
 }
 
-function addSection(protocol: any, section: string, chain: string | undefined) {
-  const chainSectionName = chain === undefined ? section : `${chain}-${section}`
+function addSectionTvl(protocol: any, section: string, chain: string | undefined) {
+  const chainSectionName = chain ? `${chain}-${section}` : section
   if (protocol.chainTvls[chainSectionName] !== undefined) {
     protocol[section] = protocol.chainTvls[chainSectionName]
   }
 }
 
-export const basicPropertiesToKeep = ['tvl', 'name', 'symbol', 'chains', 'change_7d', 'change_1d', 'mcaptvl']
+export const basicPropertiesToKeep = ['tvl', 'name', 'symbol', 'chains', 'change_7d', 'change_1d', 'mcap']
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
     if (protocol[prop] !== undefined) {
@@ -37,7 +37,60 @@ export function keepNeededProperties(protocol: any, propertiesToKeep: string[] =
   }, {})
 }
 
-export async function getChainData(chain) {
+export const formatProtocolsData = ({
+  chain = '',
+  category = '',
+  protocols = [],
+  protocolProps = [...basicPropertiesToKeep, 'staking', 'pool2']
+}) => {
+  let filteredProtocols = [...protocols]
+
+  if (chain) {
+    filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
+  }
+
+  if (category) {
+    filteredProtocols = filteredProtocols.filter(
+      ({ category: protocolCategory = '' }) =>
+        category.toLowerCase() === (protocolCategory ? protocolCategory.toLowerCase() : '')
+    )
+  }
+
+  filteredProtocols = filteredProtocols.map(protocol => {
+    if (chain) {
+      protocol.tvl = protocol.chainTvls[chain]
+    }
+    addSectionTvl(protocol, 'staking', chain)
+    addSectionTvl(protocol, 'pool2', chain)
+    return keepNeededProperties(protocol, protocolProps)
+  })
+
+  if (chain) {
+    filteredProtocols = filteredProtocols.sort((a, b) => b.tvl - a.tvl)
+  }
+
+  return filteredProtocols
+}
+
+export async function getProtocolsPageData(category, chain) {
+  const { protocols, chains } = await getProtocols()
+
+  const filteredProtocols = formatProtocolsData({ chain, category, protocols })
+
+  const chainsSet = new Set()
+
+  filteredProtocols.forEach(({ chains }) => {
+    chains.forEach(chain => chainsSet.add(chain))
+  })
+  return {
+    filteredProtocols,
+    chain: chain ?? 'All',
+    category,
+    chains: chains.filter(chain => chainsSet.has(chain))
+  }
+}
+
+export async function getChainPageData(chain) {
   let chartData, protocols, chains
   try {
     ;[chartData, { protocols, chains }] = await Promise.all(
@@ -48,20 +101,9 @@ export async function getChainData(chain) {
       notFound: true
     }
   }
-  if (chain !== undefined) {
-    protocols = protocols.filter(p => p.chains.includes(chain))
-  }
-  protocols = protocols.map(protocol => {
-    if (chain !== undefined) {
-      protocol.tvl = protocol.chainTvls[chain]
-    }
-    addSection(protocol, 'staking', chain)
-    addSection(protocol, 'pool2', chain)
-    return keepNeededProperties(protocol, [...basicPropertiesToKeep, 'staking', 'pool2'])
-  })
-  if (chain !== undefined) {
-    protocols = protocols.sort((a, b) => b.tvl - a.tvl)
-  }
+
+  protocols = formatProtocolsData({ chain, protocols })
+
   const currentTvl = chartData[chartData.length - 1].totalLiquidityUSD
   let tvlChange = 0
   if (chartData.length > 1) {
@@ -75,7 +117,7 @@ export async function getChainData(chain) {
     props: {
       ...(chain && { chain }),
       chainsSet: chains,
-      filteredTokens: protocols,
+      filteredProtocols: protocols,
       chart: chartData.map(({ date, totalLiquidityUSD }) => [date, Math.trunc(totalLiquidityUSD)]),
       totalVolumeUSD: currentTvl,
       volumeChangeUSD: tvlChange,

@@ -121,7 +121,6 @@ export function useDarkModeManager() {
 }
 
 export function usePool2Manager() {
-  return [false, () => {}]
   const [state, { updateKey }] = useLocalStorageContext()
   let pool2Enabled = state[POOL2]
   const togglePool2 = useCallback(
@@ -134,7 +133,6 @@ export function usePool2Manager() {
 }
 
 export function useStakingManager() {
-  return [false, () => {}]
   const [state, { updateKey }] = useLocalStorageContext()
   let stakingEnabled = state[STAKING]
   const toggleStaking = useCallback(
@@ -217,7 +215,6 @@ export function useSavedPairs() {
 }
 
 export function useSavedTokens() {
-  return [[]]
   const [state, { updateKey }] = useLocalStorageContext()
   const savedTokens = state?.[SAVED_TOKENS]
 
