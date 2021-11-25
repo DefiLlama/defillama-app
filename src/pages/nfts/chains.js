@@ -27,7 +27,7 @@ const ChainsView = ({ chainData }) => {
           data={chainData}
           iconUrl={chainIconUrl}
           generateLink={name => `/nfts/chain/${name}`}
-          columns={['chain', 'collections', 'dailyVolume', 'totalVolume']}
+          columns={['chain', 'collections', 'dailyVolumeUSD', 'totalVolumeUSD']}
         />
         <div style={{ margin: 'auto' }}>
           <ButtonDark onClick={() => {}}>Download all data in .csv</ButtonDark>
