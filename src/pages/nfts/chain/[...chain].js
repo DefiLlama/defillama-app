@@ -4,7 +4,6 @@ import { capitalizeFirstLetter } from '../../../utils'
 import {
   getNFTChainChartData,
   getNFTChainsData,
-  getNFTCollections,
   getNFTCollectionsByChain,
   revalidate
 } from '../../../utils/dataApi'
@@ -17,7 +16,10 @@ export async function getStaticProps({
   const collections = await getNFTCollectionsByChain(chainName)
   const chartData = await getNFTChainChartData(chainName)
   const chainData = await getNFTChainsData()
-  const { totalVolumeUSD, dailyVolumeUSD } = chainData.find(c => c.chain === chainName)
+  const { totalVolumeUSD, dailyVolumeUSD } = chainData.find(c => c.chain === chainName) || {
+    totalVolumeUSD: 0,
+    dailyVolumeUSD: 0
+  }
 
   let dailyChange = 0
   if (chartData.length > 1) {
@@ -41,9 +43,9 @@ export async function getStaticProps({
 }
 
 export async function getStaticPaths() {
-  const collections = await getNFTCollections() //TODO Replace with an endpoint for paths
+  const chainData = await getNFTChainsData()
 
-  const paths = collections.map(({ chain: chainName }) => ({
+  const paths = chainData.map(({ chain: chainName }) => ({
     params: { chain: [chainName] }
   }))
 
