@@ -5,25 +5,10 @@ import { RowBetween } from '../../components/Row'
 import { ButtonDark } from '../../components/ButtonStyled'
 import { TYPE } from '../../Theme'
 import { chainIconUrl } from '../../utils'
-import { getNFTCollections, revalidate } from '../../utils/dataApi'
+import { getNFTChainsData, revalidate } from '../../utils/dataApi'
 
 export async function getStaticProps() {
-  const collections = await getNFTCollections()
-  const chains = collections.reduce((a, b) => {
-    if (!a.includes(b.chain)) {
-      a.push(b.chain)
-    }
-    return a
-  }, [])
-
-  const chainData = chains.map((chain, i) => {
-    return {
-      chain,
-      collections: collections.filter(c => c.chain === chain).length,
-      dailyVolume: collections.reduce((a, b) => (b.chain === chain ? parseInt(b.dailyVolumeUSD) : 0) + a, 0),
-      totalVolume: collections.reduce((a, b) => (b.chain === chain ? parseInt(b.totalVolumeUSD) : 0) + a, 0)
-    }
-  })
+  const chainData = await getNFTChainsData();
 
   return {
     props: { chainData },
