@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react'
+import React from 'react'
+import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 
@@ -11,12 +12,10 @@ import { PageWrapper, ContentWrapper } from '..'
 import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
 
-import { TYPE, ThemedBackground } from '../../Theme'
-
-import { useStakingManager, usePool2Manager } from '../../contexts/LocalStorage'
-import { formattedNum } from '../../utils'
-
-import dynamic from 'next/dynamic'
+import { useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
+import { TYPE, ThemedBackground } from 'Theme'
+import { formattedNum } from 'utils'
+import { useCalcStakePool2Tvl } from 'hooks/data'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -81,32 +80,9 @@ function GlobalPage({
     totalVolumeUSD += totalPool2
   }
 
-  const protocolTotals = useMemo(() => {
-    if (!stakingEnabled && !pool2Enabled) {
-      return filteredProtocols
-    }
-
-    return filteredProtocols
-      .map(({ tvl, pool2 = 0, staking = 0, ...props }) => {
-        let finalTvl = tvl
-
-        if (stakingEnabled) {
-          finalTvl += staking
-        }
-
-        if (pool2Enabled) {
-          finalTvl += pool2
-        }
-
-        return {
-          ...props,
-          tvl: finalTvl
-        }
-      })
-      .sort((a, b) => b.tvl - a.tvl)
-  }, [filteredProtocols, stakingEnabled, pool2Enabled])
-
   let chainOptions = ['All'].concat(chainsSet).map(label => ({ label, to: setSelectedChain(label) }))
+
+  const protocolTotals = useCalcStakePool2Tvl(filteredProtocols)
 
   const topToken = { name: 'Uniswap', tvl: 0 }
   if (protocolTotals.length > 0) {

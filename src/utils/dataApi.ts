@@ -19,7 +19,7 @@ export function getProtocolNames(protocols) {
 }
 
 function addSectionTvl(protocol: any, section: string, chain: string | undefined) {
-  const chainSectionName = chain === undefined ? section : `${chain}-${section}`
+  const chainSectionName = chain ? `${chain}-${section}` : section
   if (protocol.chainTvls[chainSectionName] !== undefined) {
     protocol[section] = protocol.chainTvls[chainSectionName]
   }
@@ -46,7 +46,6 @@ export const formatProtocolsData = ({
   if (chain) {
     filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
   }
-  console.log(category, 'category')
 
   if (category) {
     filteredProtocols = filteredProtocols.filter(

@@ -9,6 +9,7 @@ import { AutoRow, RowBetween, RowFlat } from 'components/Row'
 import Search from 'components/Search'
 import Filters from 'components/Filters'
 
+import { useCalcStakePool2Tvl } from 'hooks/data'
 import { TYPE } from 'Theme'
 
 const ListOptions = styled(AutoRow)`
@@ -40,6 +41,8 @@ function AllTokensPage({
   }
   const chainOptions = ['All', ...chains].map(label => ({ label, to: handleRouting(label) }))
 
+  const protocolTotals = useCalcStakePool2Tvl(filteredProtocols)
+
   if (!title) {
     title = `TVL Rankings`
     if (category) {
@@ -65,7 +68,7 @@ function AllTokensPage({
         )}
         <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>
           <TokenList
-            tokens={filteredProtocols}
+            tokens={protocolTotals}
             filters={[category, selectedChain]}
             columns={columns}
             defaultSortingColumn={defaultSortingColumn}
