@@ -104,11 +104,6 @@ export function Updater() {
 }
 
 export function useDarkModeManager() {
-  return [true, () => {}]
-  const storageContext = useLocalStorageContext()
-  if (storageContext === undefined) {
-    return [true, () => {}]
-  }
   const [state, { updateKey }] = useLocalStorageContext()
   let isDarkMode = state[DARK_MODE]
   const toggleDarkMode = useCallback(

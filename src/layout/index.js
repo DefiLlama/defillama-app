@@ -64,19 +64,17 @@ export function GeneralLayout({ title, children }) {
           crossOrigin="anonymous"
         ></link>
       </Head>
-      <ThemeProvider>
-        <LocalStorageContextProvider>
-          <LocalStorageContextUpdater />
-          <>
-            <GlobalStyle />
-            <AppWrapper>
-              <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-                {children}
-              </LayoutWrapper>
-            </AppWrapper>
-          </>
-        </LocalStorageContextProvider>
-      </ThemeProvider>
+      <LocalStorageContextProvider>
+        <LocalStorageContextUpdater />
+        <ThemeProvider>
+          <GlobalStyle />
+          <AppWrapper>
+            <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
+              {children}
+            </LayoutWrapper>
+          </AppWrapper>
+        </ThemeProvider>
+      </LocalStorageContextProvider>
     </>
   )
 }
