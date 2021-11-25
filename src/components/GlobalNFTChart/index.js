@@ -5,7 +5,7 @@ import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
 import { getTimeframe } from '../../utils'
 //import { useNFTChartData } from '../../contexts/NFTData'
 
-const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange }) => {
+const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = "", symbol = "" }) => {
   // time window and window size for chart
   const timeWindow = timeframeOptions.ALL_TIME
 
@@ -32,11 +32,11 @@ const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange }) => {
         data={filteredChartData}
         base={dailyVolume}
         baseChange={dailyVolumeChange}
-        title="Daily Volume ETH"
+        title={`Daily Volume ${symbol}`}
         field="1"
         width={width}
         type={CHART_TYPES.AREA}
-        units="Ξ"
+        units={unit}
       />
     </ResponsiveContainer>
   ) : (
