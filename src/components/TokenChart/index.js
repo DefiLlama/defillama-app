@@ -308,7 +308,7 @@ const TokenChart = ({
             active={denomination}
             color={color}
           />
-          <DropdownSelect options={timeframeOptions.map(t => ({ label: t }))} active={timeWindow} setActive={setTimeWindow} color={color} />
+          <DropdownSelect options={Object.values(timeframeOptions).map(t => ({ label: t }))} active={timeWindow} setActive={setTimeWindow} color={color} />
         </RowBetween>
       ) : (
         <RowBetween
