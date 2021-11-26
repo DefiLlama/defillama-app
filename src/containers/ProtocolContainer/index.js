@@ -244,29 +244,13 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   </RowBetween>
                   <RowBetween align="flex-end">
                     <AutoColumn style={{ width: '100%' }}>
-                      <Link style={{ width: '100%' }} color={backgroundColor} external href={url}>
-                        <Text
-                          style={{ fontSize: '1rem', textOverflow: 'ellipsis', overflow: 'hidden' }}
-                          fontSize={'14px'}
-                          fontWeight={400}
-                        >
-                          {url}
-                        </Text>
+                      <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
+                        <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                          Download dataset ↗
+                        </ButtonLight>
                       </Link>
                     </AutoColumn>
                   </RowBetween>
-                  <RowFixed>
-                    <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
-                      <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                        Twitter ↗
-                      </ButtonLight>
-                    </Link>
-                    <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
-                      <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                        Download dataset ↗
-                      </ButtonLight>
-                    </Link>
-                  </RowFixed>
                 </AutoColumn>
               </Panel>
               <Panel
@@ -305,7 +289,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
               p={20}
             >
               <TokenDetailsLayout>
-                {typeof category === 'string' ? (
+                {typeof category === 'string' && (
                   <Column>
                     <TYPE.main>Category</TYPE.main>
                     <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
@@ -314,8 +298,6 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                       </BasicLink>
                     </TYPE.main>
                   </Column>
-                ) : (
-                  <></>
                 )}
                 <Column>
                   <TYPE.main>
@@ -326,6 +308,18 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   </TYPE.main>
                 </Column>
                 <div></div>
+                <RowFixed>
+                  <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
+                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                      Twitter ↗
+                    </ButtonLight>
+                  </Link>
+                  <Link color={backgroundColor} external href={url}>
+                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                      Website ↗
+                    </ButtonLight>
+                  </Link>
+                </RowFixed>
               </TokenDetailsLayout>
             </Panel>
 
