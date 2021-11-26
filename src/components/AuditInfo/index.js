@@ -34,7 +34,7 @@ const AuditInfo = ({
     return (
       <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize}>
         <DropdownSelect
-          options={auditLinks}
+          options={auditLinks.map(audit => ({ label: audit }))}
           active="Yes"
           setActive={link => (window.location.href = link)}
           overflowVisible
