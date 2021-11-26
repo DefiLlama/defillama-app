@@ -1,18 +1,25 @@
 import NFTDashboardPage from '../../../components/NFTDashboardPage'
 import { GeneralLayout } from '../../../layout'
 import { capitalizeFirstLetter } from '../../../utils'
-import { getNFTChainChartData, getNFTCollections, revalidate } from '../../../utils/dataApi'
+import {
+  getNFTChainChartData,
+  getNFTChainsData,
+  getNFTCollectionsByChain,
+  revalidate
+} from '../../../utils/dataApi'
 
 export async function getStaticProps({
   params: {
     chain: [chainName]
   }
 }) {
-  const collections = await getNFTCollections()
+  const collections = await getNFTCollectionsByChain(chainName)
   const chartData = await getNFTChainChartData(chainName)
-  const filteredCollections = collections.filter(c => c.chain === chainName)
-  const totalVolumeUSD = collections.reduce((a, b) => (b.chain === chainName ? parseInt(b.totalVolumeUSD) : 0) + a, 0)
-  const dailyVolumeUSD = collections.reduce((a, b) => (b.chain === chainName ? parseInt(b.dailyVolumeUSD) : 0) + a, 0)
+  const chainData = await getNFTChainsData()
+  const { totalVolumeUSD, dailyVolumeUSD } = chainData.find(c => c.chain === chainName) || {
+    totalVolumeUSD: 0,
+    dailyVolumeUSD: 0
+  }
 
   let dailyChange = 0
   if (chartData.length > 1) {
@@ -28,7 +35,7 @@ export async function getStaticProps({
       totalVolumeUSD,
       dailyVolumeUSD,
       dailyChange,
-      collections: filteredCollections,
+      collections,
       chart: chartData
     },
     revalidate: revalidate()
@@ -36,9 +43,9 @@ export async function getStaticProps({
 }
 
 export async function getStaticPaths() {
-  const collections = await getNFTCollections()
+  const chainData = await getNFTChainsData()
 
-  const paths = collections.map(({ chain: chainName }) => ({
+  const paths = chainData.map(({ chain: chainName }) => ({
     params: { chain: [chainName] }
   }))
 

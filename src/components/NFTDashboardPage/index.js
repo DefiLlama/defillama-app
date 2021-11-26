@@ -59,25 +59,24 @@ const FiltersRow = styled(RowFlat)`
   }
 `
 
-const basicChainOptions = ['All', 'Ethereum', 'Solana']
-const extraChainOptions = []
+const basicChainOptions = { all: 'All', ethereum: 'Ethereum', solana: 'Solana', immutablex: 'ImmutableX' } //TODO Replace with non hardcoded values
 
-const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections, chart, chain = 'All' }) => {
+const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections, chart, chain = 'all' }) => {
   useEffect(() => window.scrollTo(0, 0))
 
   const [displayUsd] = useDisplayUsdManager()
   const below800 = useMedia('(max-width: 800px)')
 
-  const selectedChain = capitalizeFirstLetter(chain)
+  const selectedChain = basicChainOptions[chain]
   const setSelectedChain = newSelectedChain =>
     newSelectedChain === 'all' ? '/nfts' : `/nfts/chain/${newSelectedChain}`
 
-  let chainOptions = [...basicChainOptions, ...extraChainOptions].map(label => ({
+  let chainOptions = Object.values(basicChainOptions).map(label => ({
     label,
     to: setSelectedChain(label.toLowerCase())
   }))
 
-  const symbol = selectedChain === 'All' ? 'USD' : chainCoingeckoIds[selectedChain].symbol //TODO Replace 
+  const symbol = selectedChain === 'All' ? 'USD' : chainCoingeckoIds[selectedChain]?.symbol //TODO Replace
   const unit = selectedChain === 'All' ? '$' : ''
   const dailyVolume = chart.length ? chart[chart.length - 1].dailyVolume : 0 //TODO Return from backend
 

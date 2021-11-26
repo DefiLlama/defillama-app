@@ -317,6 +317,11 @@ export const chainCoingeckoIds = {
     geckoId: 'crypto-com-chain',
     symbol: 'CRO',
     cmcId: '3635'
+  },
+  ImmutableX: {
+    geckoId: "",
+    symbol: "ETH",
+    cmcId: ""
   }
 }
 

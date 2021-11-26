@@ -39,6 +39,7 @@ export const NFT_CHARTS_API = 'https://nft.api.llama.fi/historical-statistic/all
 export const NFT_COLLECTIONS_CHARTS_API = 'https://nft.api.llama.fi/historical-statistic/collections'
 export const NFT_CHAINS_CHARTS_API = 'https://nft.api.llama.fi/historical-statistic/chains'
 export const NFT_STATISTICS_API = 'https://nft.api.llama.fi/statistics'
+export const NFT_CHAINS_STATISTICS_API = 'https://nft.api.llama.fi/statistics/chains'
 
 // GlobalData Constants
 export const UPDATE = 'UPDATE'

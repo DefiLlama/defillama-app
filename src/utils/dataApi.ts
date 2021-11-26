@@ -8,7 +8,8 @@ import {
   NFT_CHARTS_API,
   NFT_COLLECTIONS_CHARTS_API,
   NFT_CHAINS_CHARTS_API,
-  NFT_STATISTICS_API
+  NFT_STATISTICS_API,
+  NFT_CHAINS_STATISTICS_API
 } from '../constants/index'
 import { standardizeProtocolName } from 'utils'
 
@@ -173,7 +174,7 @@ export const getNFTData = async () => {
   let chartData, collections, statistics
 
   try {
-    [chartData, collections, statistics] = await Promise.all(
+    ;[chartData, collections, statistics] = await Promise.all(
       [`${NFT_CHARTS_API}/dailyVolumeUSD`, NFT_COLLECTIONS_API, NFT_STATISTICS_API].map(url =>
         fetch(url).then(r => r.json())
       )
@@ -199,7 +200,21 @@ export const getNFTData = async () => {
   }
 }
 
-export const getNFTCollections = async () => fetch(NFT_COLLECTIONS_API).then(r => r.json())
+export const getNFTCollections = async () => {
+  try {
+    return fetch(NFT_COLLECTIONS_API).then(r => r.json())
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const getNFTCollectionsByChain = async (chain: string) => {
+  try {
+    return fetch(`${NFT_COLLECTIONS_API}/chain/${chain}`).then(r => r.json())
+  } catch (e) {
+    console.log(e)
+  }
+}
 
 export const getNFTCollection = async slug => {
   try {
@@ -212,6 +227,14 @@ export const getNFTCollection = async slug => {
 export const getNFTCollectionChartData = async slug => {
   try {
     return fetch(`${NFT_COLLECTIONS_CHARTS_API}/${slug}/dailyVolume`).then(r => r.json())
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const getNFTChainsData = async () => {
+  try {
+    return fetch(NFT_CHAINS_STATISTICS_API).then(r => r.json())
   } catch (e) {
     console.log(e)
   }
