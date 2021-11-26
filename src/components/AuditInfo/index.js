@@ -30,6 +30,10 @@ const AuditInfo = ({
 }) => {
   const [showHover, setShowHover] = useState(false)
 
+  if (typeof auditLinks === "string") {
+    auditLinks = [auditLinks];
+  }
+
   if (auditLinks.length > 0) {
     return (
       <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize}>
