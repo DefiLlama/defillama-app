@@ -200,10 +200,21 @@ export const getNFTData = async () => {
   }
 }
 
-export const getNFTCollections = async () => fetch(NFT_COLLECTIONS_API).then(r => r.json())
+export const getNFTCollections = async () => {
+  try {
+    return fetch(NFT_COLLECTIONS_API).then(r => r.json())
+  } catch (e) {
+    console.log(e)
+  }
+}
 
-export const getNFTCollectionsByChain = async (chain: string) =>
-  fetch(`${NFT_COLLECTIONS_API}/chain/${chain}`).then(r => r.json())
+export const getNFTCollectionsByChain = async (chain: string) => {
+  try {
+    return fetch(`${NFT_COLLECTIONS_API}/chain/${chain}`).then(r => r.json())
+  } catch (e) {
+    console.log(e)
+  }
+}
 
 export const getNFTCollection = async slug => {
   try {
