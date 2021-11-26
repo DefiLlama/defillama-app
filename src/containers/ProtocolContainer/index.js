@@ -255,6 +255,18 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                       </Link>
                     </AutoColumn>
                   </RowBetween>
+                  <RowFixed>
+                    <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
+                      <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                        Twitter ↗
+                      </ButtonLight>
+                    </Link>
+                    <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
+                      <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                        Download dataset ↗
+                      </ButtonLight>
+                    </Link>
+                  </RowFixed>
                 </AutoColumn>
               </Panel>
               <Panel
@@ -314,18 +326,6 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   </TYPE.main>
                 </Column>
                 <div></div>
-                <RowFixed>
-                  <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
-                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                      Twitter ↗
-                    </ButtonLight>
-                  </Link>
-                  <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
-                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                      Download dataset ↗
-                    </ButtonLight>
-                  </Link>
-                </RowFixed>
               </TokenDetailsLayout>
             </Panel>
 
