@@ -353,7 +353,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 <div></div>
                 <Column>
                   <TYPE.main>
-                    <HeadHelp title="Dataset" text="Download dataset to csv." />
+                    <HeadHelp title="Dataset" text="Download to csv." />
                   </TYPE.main>
                   <RowFixed>
                     <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
