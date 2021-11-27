@@ -19,8 +19,8 @@ export const Wrapper = styled.div`
   /* background-color: #1b1c22; */
   background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
   color: ${({ theme }) => theme.bg2};
-  overflow-y: scroll;
   min-width: 220px;
+  overflow-y: scroll;
 
   @media screen and (max-width: 800px) {
     grid-template-columns: 1fr;
@@ -29,6 +29,10 @@ export const Wrapper = styled.div`
 
   @media screen and (max-width: 600px) {
     padding: 1rem;
+  }
+
+  ${({ theme: { maxLg } }) => maxLg} {
+    overflow-y: visible;
   }
 
   ::-webkit-scrollbar {
@@ -83,7 +87,7 @@ export const ButtonWrapper = styled.div`
 `
 
 export const Mobile = styled.div`
-  @media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+  @media (min-width: ${({ theme: { bpLg } }) => `calc(${bpLg} + 1px)`}) {
     display: none;
   }
 `
