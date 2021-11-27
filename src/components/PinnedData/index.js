@@ -1,5 +1,4 @@
 import React from 'react'
-import { withRouter } from 'react-router-dom'
 import styled from 'styled-components'
 import { RowBetween, RowFixed } from '../Row'
 import { AutoColumn } from '../Column'
@@ -91,7 +90,7 @@ function PinnedData({ history, open, setSavedOpen }) {
                       onClick={() => history.push('/protocol/' + token.protocol.toLowerCase().replace(' ', '-'))}
                     >
                       <RowFixed>
-                        <TokenLogo address={address} size={'14px'} />
+                        <TokenLogo address={address} size={14} />
                         <TYPE.header ml={'6px'}>
                           <FormattedName text={token.protocol} maxCharacters={12} fontSize={'12px'} />
                         </TYPE.header>

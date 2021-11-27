@@ -96,7 +96,7 @@ const TokenDetailsLayout = styled.div`
 
 const TotalValueLockedWrap = styled(RowBetween)`
   @media only screen and (max-width: ${({ theme: { bpXl } }) => bpXl}) and (min-width: ${({ theme: { bpLg } }) =>
-    bpLg}) {
+      bpLg}) {
     flex-direction: column-reverse;
   }
 `
@@ -143,7 +143,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
   // TODO check if we still need to format long symbols?
 
   const [savedTokens, addToken] = useSavedTokens()
-  const hasToken = address !== null && address !== "-"
+  const hasToken = address !== null && address !== '-'
 
   return (
     <PageWrapper>
@@ -174,7 +174,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
           <RowBetween style={{ flexWrap: 'wrap', marginBottom: '2rem', alignItems: 'flex-start' }}>
             <RowFixed style={{ flexWrap: 'wrap' }}>
               <RowFixed style={{ alignItems: 'baseline' }}>
-                <TokenLogo address={address} logo={logo} size="32px" style={{ alignSelf: 'center' }} />
+                <TokenLogo address={address} logo={logo} size={32} style={{ alignSelf: 'center' }} />
                 <TYPE.main fontSize={['1.5rem', '1.5rem', '2rem']} fontWeight={500} style={{ margin: '0 1rem' }}>
                   <RowFixed gap="6px">
                     <FormattedName text={name ? name + ' ' : ''} maxCharacters={16} style={{ marginRight: '6px' }} />{' '}

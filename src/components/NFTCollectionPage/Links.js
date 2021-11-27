@@ -26,13 +26,15 @@ const IconWrapper = styled.div`
 
 export default function Links({ logo, links }) {
   const filteredLinks = Object.keys(links)
-    .filter((k) => links[k] !== "")
+    .filter(k => links[k] !== '')
     .reduce((a, k) => ({ ...a, [k]: links[k] }), {})
 
-  const size = "2.25em"
-  const color = "#fff"
   const icons = {
-    website: <IconWrapper><TokenLogo logo={logo} size="32px" style={{ alignSelf: 'center' }} /></IconWrapper>,
+    website: (
+      <IconWrapper>
+        <TokenLogo logo={logo} size={32} style={{ alignSelf: 'center' }} />
+      </IconWrapper>
+    )
     //discord: <IconWrapper><Discord size={size} color={color} /></IconWrapper>,
     //telegram: <IconWrapper><Telegram size={size} color={color} /></IconWrapper>,
     //twitter: <IconWrapper><Twitter size={size} color={color} /></IconWrapper>,
@@ -45,7 +47,6 @@ export default function Links({ logo, links }) {
       </a>
     </span>
   ))
-
 
   return <StyledToggle>{linkComponents}</StyledToggle>
 }
