@@ -220,7 +220,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   </RowBetween>
                   <CheckMarks />
                   <TotalValueLockedWrap align="flex-end">
-                    <TYPE.main fontSize={'1.5rem'} lineHeight={1} fontWeight={500}>
+                    <TYPE.main style={{ marginTop: '1rem' }} fontSize={'2rem'} lineHeight={1} fontWeight="500">
                       {formattedNum(tvl || '0', true)}
                     </TYPE.main>
                     <TYPE.main>
@@ -243,13 +243,16 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                     <TYPE.main>Links</TYPE.main>
                   </RowBetween>
                   <RowBetween align="flex-end">
-                    <AutoColumn style={{ width: '100%' }}>
-                      <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
-                        <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                          Download dataset ↗
-                        </ButtonLight>
-                      </Link>
-                    </AutoColumn>
+                    <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
+                      <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                        Twitter ↗
+                      </ButtonLight>
+                    </Link>
+                    <Link color={backgroundColor} external href={url}>
+                      <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                        Website ↗
+                      </ButtonLight>
+                    </Link>
                   </RowBetween>
                 </AutoColumn>
               </Panel>
@@ -291,12 +294,16 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
               <TokenDetailsLayout>
                 {typeof category === 'string' && (
                   <Column>
-                    <TYPE.main>Category</TYPE.main>
-                    <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                      <BasicLink href={`/protocols/${category.toLowerCase()}`}>
-                        <FormattedName text={category} maxCharacters={16} />
-                      </BasicLink>
+                    <TYPE.main>
+                      <TYPE.main>Category</TYPE.main>
                     </TYPE.main>
+                    <RowFixed>
+                      <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
+                        <BasicLink href={`/protocols/${category.toLowerCase()}`}>
+                          <FormattedName text={category} maxCharacters={16} />
+                        </BasicLink>
+                      </TYPE.main>
+                    </RowFixed>
                   </Column>
                 )}
                 <Column>
@@ -308,18 +315,6 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   </TYPE.main>
                 </Column>
                 <div></div>
-                <RowFixed>
-                  <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
-                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                      Twitter ↗
-                    </ButtonLight>
-                  </Link>
-                  <Link color={backgroundColor} external href={url}>
-                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
-                      Website ↗
-                    </ButtonLight>
-                  </Link>
-                </RowFixed>
               </TokenDetailsLayout>
             </Panel>
 
@@ -333,22 +328,44 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
               }}
               p={20}
             >
-              {methodology && (
-                <TokenDetailsLayout style={{ marginBottom: '1em' }}>
-                  <TYPE.main style={{ textAlign: 'justify', wordBreak: 'break-word' }} fontSize={15} fontWeight="500">
+              <TokenDetailsLayout style={{ marginBottom: '1em' }}>
+                {methodology && (
+                  <TYPE.main style={{ textAlign: 'justify', wordBreak: 'break-word' }} fontSize={24} fontWeight="500">
                     {methodology}
                   </TYPE.main>
-                </TokenDetailsLayout>
-              )}
-              <RowFixed>
-                <Link
-                  color={backgroundColor}
-                  external
-                  href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
-                >
-                  <ButtonLight color={backgroundColor}>Check the code ↗</ButtonLight>
-                </Link>
-              </RowFixed>
+                )}
+                <Column>
+                  <TYPE.main>
+                    <TYPE.main>Code</TYPE.main>
+                  </TYPE.main>
+                  <RowFixed>
+                    <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
+                      <Link
+                        color={backgroundColor}
+                        external
+                        href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
+                      >
+                        <ButtonLight color={backgroundColor}>Check the code ↗</ButtonLight>
+                      </Link>
+                    </TYPE.main>
+                  </RowFixed>
+                </Column>
+                <div></div>
+                <Column>
+                  <TYPE.main>
+                    <HeadHelp title="Dataset" text="Download dataset to csv." />
+                  </TYPE.main>
+                  <RowFixed>
+                    <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
+                      <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
+                        <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                          Download dataset ↗
+                        </ButtonLight>
+                      </Link>
+                    </TYPE.main>
+                  </RowFixed>
+                </Column>
+              </TokenDetailsLayout>
             </Panel>
 
             {hasToken && (
