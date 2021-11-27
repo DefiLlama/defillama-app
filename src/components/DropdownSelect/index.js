@@ -6,6 +6,7 @@ import Row, { RowBetween } from '../Row'
 import { AutoColumn } from '../Column'
 import { TYPE } from '../../Theme'
 import { StyledIcon } from '..'
+import { BasicLink } from '../Link'
 
 const Wrapper = styled.div`
   z-index: 20;
@@ -74,19 +75,23 @@ const DropdownSelect = ({ options, active, setActive, color, style, overflowVisi
       {showDropdown && (
         <Dropdown overflowVisible={overflowVisible}>
           <AutoColumn gap="20px">
-            {optionsArr.map((label, index) => {
+            {optionsArr.map(({ label, to }, index) => {
               return (
                 label !== active && (
                   <Row
                     onClick={() => {
                       toggleDropdown(!showDropdown)
-                      setActive(label)
+                      if (setActive) {
+                        setActive(label)
+                      }
                     }}
                     key={index}
                   >
-                    <TYPE.body minWidth="initial" fontSize={14}>
-                      {label}
-                    </TYPE.body>
+                    <BasicLink href={to ?? "#"} key={label}>
+                      <TYPE.body minWidth="initial" fontSize={14}>
+                        {label}
+                      </TYPE.body>
+                    </BasicLink>
                   </Row>
                 )
               )

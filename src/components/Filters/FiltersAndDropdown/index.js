@@ -11,7 +11,7 @@ const marginPxLength = 6.4
 const paddingPxLenggth = 24
 
 // filter option to, and label,
-const FiltersAndDropdown = ({ filterOptions = [], activeLabel, setActive, areLinks, onFilterClick }) => {
+const FiltersAndDropdown = ({ filterOptions = [], activeLabel, areLinks, onFilterClick }) => {
   const [visibleFiltersIndex, setVisibileFilterIndex] = useState(0)
   const mainWrapEl = useRef(null)
   const { width: mainWrapWidth } = useResize(mainWrapEl)
@@ -33,8 +33,6 @@ const FiltersAndDropdown = ({ filterOptions = [], activeLabel, setActive, areLin
   const clickableFilters = filterOptions.slice(0, visibleFiltersIndex)
   const dropdownFilters = filterOptions
     .slice(visibleFiltersIndex, filterOptions.length)
-    .map(({ label }) => label)
-    .sort((a, b) => a.localeCompare(b))
 
   return (
     <Row sx={{ maxWidth: '100%' }} ref={mainWrapEl}>
@@ -60,8 +58,7 @@ const FiltersAndDropdown = ({ filterOptions = [], activeLabel, setActive, areLin
       {visibleFiltersIndex !== filterOptions.length && (
         <DropdownSelect
           options={dropdownFilters}
-          active={dropdownFilters.some(label => label === activeLabel) ? activeLabel : 'Others'}
-          setActive={setActive}
+          active={dropdownFilters.some(label => label.label === activeLabel) ? activeLabel : 'Others'}
         />
       )}
     </Row>

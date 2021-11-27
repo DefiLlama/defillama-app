@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
 
-export const useCalcStakePool2Tvl = filteredProtocols => {
+export const useCalcStakePool2Tvl = (filteredProtocols, defaultSortingColumn) => {
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
 
@@ -10,7 +10,7 @@ export const useCalcStakePool2Tvl = filteredProtocols => {
       return filteredProtocols
     }
 
-    return filteredProtocols
+    const updatedProtocols = filteredProtocols
       .map(({ tvl, pool2 = 0, staking = 0, ...props }) => {
         let finalTvl = tvl
 
@@ -27,8 +27,12 @@ export const useCalcStakePool2Tvl = filteredProtocols => {
           tvl: finalTvl
         }
       })
-      .sort((a, b) => b.tvl - a.tvl)
-  }, [filteredProtocols, stakingEnabled, pool2Enabled])
+    if (defaultSortingColumn === undefined) {
+      return updatedProtocols.sort((a, b) => b.tvl - a.tvl)
+    } else {
+      return updatedProtocols
+    }
+  }, [filteredProtocols, stakingEnabled, pool2Enabled, defaultSortingColumn])
 
   return protocolTotals
 }

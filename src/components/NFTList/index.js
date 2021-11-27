@@ -154,9 +154,9 @@ function NFTList({
           </Row>
         </DataText>
         {!below680 && <DataText area="collections">{item.collections}</DataText>}
-        {!below1080 && <DataText area="dailyVolume">{formattedNum(item.dailyVolume, true)}</DataText>}
+        {!below1080 && <DataText area="dailyVolume">{formattedNum(item.dailyVolumeUSD, true)}</DataText>}
         <DataText area="totalVolume" color="text" fontWeight="500">
-          {formattedNum(item.totalVolume, true)}
+          {formattedNum(item.totalVolumeUSD, true)}
         </DataText>
       </DashGrid>
     )

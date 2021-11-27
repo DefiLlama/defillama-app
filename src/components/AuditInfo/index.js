@@ -30,11 +30,15 @@ const AuditInfo = ({
 }) => {
   const [showHover, setShowHover] = useState(false)
 
+  if (typeof auditLinks === "string") {
+    auditLinks = [auditLinks];
+  }
+
   if (auditLinks.length > 0) {
     return (
       <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize}>
         <DropdownSelect
-          options={auditLinks}
+          options={auditLinks.map(audit => ({ label: audit }))}
           active="Yes"
           setActive={link => (window.location.href = link)}
           overflowVisible

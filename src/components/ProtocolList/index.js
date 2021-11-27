@@ -41,7 +41,7 @@ function AllTokensPage({
   }
   const chainOptions = ['All', ...chains].map(label => ({ label, to: handleRouting(label) }))
 
-  const protocolTotals = useCalcStakePool2Tvl(filteredProtocols)
+  const protocolTotals = useCalcStakePool2Tvl(filteredProtocols, defaultSortingColumn)
 
   if (!title) {
     title = `TVL Rankings`

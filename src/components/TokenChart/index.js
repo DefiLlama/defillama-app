@@ -110,12 +110,6 @@ const TokenChart = ({
     splitLocation[3] = newChain === ALL_CHAINS ? 'all' : newChain
     return splitLocation.join('/')
   }
-  const setDenomination = newDenomination => {
-    router.push(buildDenomUrl(newDenomination))
-  }
-  const setSelectedChain = newChain => {
-    router.push(buildChainUrl(newChain))
-  }
 
   let chartData = data
   if (selectedChain !== 'all') {
@@ -307,12 +301,14 @@ const TokenChart = ({
       {belowMed ? (
         <RowBetween mb={40}>
           <DropdownSelect
-            options={denominationsToDisplay}
+            options={Object.values(denominationsToDisplay).map(d => ({
+              label: d,
+              to: buildDenomUrl(d)
+            }))}
             active={denomination}
-            setActive={setDenomination}
             color={color}
           />
-          <DropdownSelect options={timeframeOptions} active={timeWindow} setActive={setTimeWindow} color={color} />
+          <DropdownSelect options={Object.values(timeframeOptions).map(t => ({ label: t }))} active={timeWindow} setActive={setTimeWindow} color={color} />
         </RowBetween>
       ) : (
         <RowBetween
@@ -333,22 +329,22 @@ const TokenChart = ({
               ))}
               {tokenSymbols && !small && (
                 <DropdownSelect
-                  options={tokenSymbols}
+                  options={tokenSymbols.map(symbol => ({
+                    label: symbol,
+                    to: buildDenomUrl(`${DENOMINATIONS.Tokens}-${symbol}`)
+                  }))}
                   active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'}
-                  setActive={token => {
-                    setDenomination(`${DENOMINATIONS.Tokens}-${token}`)
-                  }}
                   color={color}
                   style={{ marginRight: '6px' }}
                 />
               )}
               {chainTvls && Object.keys(chainTvls).length > 1 && (
                 <DropdownSelect
-                  options={[ALL_CHAINS].concat(Object.keys(chainTvls))}
+                  options={[ALL_CHAINS].concat(Object.keys(chainTvls)).map(chain => ({
+                    label: chain,
+                    to: buildChainUrl(chain)
+                  }))}
                   active={selectedChain === 'all' ? ALL_CHAINS : selectedChain}
-                  setActive={chain => {
-                    setSelectedChain(chain)
-                  }}
                   color={color}
                 />
               )}

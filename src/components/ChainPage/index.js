@@ -176,7 +176,6 @@ function GlobalPage({
             <FiltersRow>
               <Filters
                 filterOptions={chainOptions}
-                setActive={setSelectedChain}
                 activeLabel={selectedChain}
                 justify="end"
               />
