@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useRef } from 'react'
 
 import { PieChart, Pie, Sector, Cell } from 'recharts';
 import { TYPE, Header } from '../Theme'
@@ -25,7 +25,6 @@ import {
     ResponsiveContainer,
     Tooltip
 } from "recharts";
-import { AutoColumn } from '../components/Column'
 
 function getRandomColor() {
     var letters = '0123456789ABCDEF';
@@ -154,15 +153,33 @@ const ChainPieChart = ({ data, isMobile, chainColor }) => {
     </ChartWrapper>
 }
 
+const PlaceholderChartPanel = styled(Panel)`
+  padding-bottom: 28%;
+  height: 100%;
+  @media (max-width: 800px) {
+    padding-bottom: 69%;
+  }
+`
 
-
-
-const ChartWrapper = ({ children, isMobile }) => <Panel
-    style={{ height: '100%', margin: '0.5em' }}>
-    <ResponsiveContainer aspect={isMobile ? 60 / 44 : 60 / 36}>
-        {children}
-    </ResponsiveContainer>
-</Panel>
+const ChartWrapper = ({ children, isMobile }) => {
+    const ref = useRef()
+    return < PlaceholderChartPanel
+        style={{
+            margin: !isMobile && '0.3em'
+        }
+        }>
+        <div
+            style={{
+                position: 'absolute',
+                inset: 10
+            }}
+        >
+            <ResponsiveContainer width={ref?.current?.container?.clientWidth} height={ref?.current?.container?.clientHeight}>
+                {children}
+            </ResponsiveContainer>
+        </div>
+    </PlaceholderChartPanel >
+}
 
 const StackedChart = ({ stackOffset, yFormatter, formatPercent, stackedDataset, chainsUnique, chainColor, daySum, isMobile }) => <ChartWrapper isMobile={isMobile}>
     <AreaChart
@@ -211,7 +228,7 @@ align-items: center;
 `
 
 const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentData }) => {
-    const isMobile = useMedia('(max-width: 40em)')
+    const isMobile = useMedia('(max-width: 800px)')
 
     const chainColor = useMemo(() => Object.fromEntries([...chainsUnique, "Other"].map(chain => [chain, getRandomColor()])), [chainsUnique])
 
