@@ -128,6 +128,13 @@ export const TYPE = {
   }
 }
 
+export const Header = styled.h1`
+  color: ${({ theme }) => theme["text1"]};
+  font-size: 24px;
+  font-weight: 500;
+  margin: 0px;
+`
+
 export const Hover = styled.div`
   :hover {
     cursor: pointer;
@@ -165,7 +172,7 @@ export const ThemedBackground = styled.div`
   mix-blend-mode: color;
   background: ${({ backgroundColor, theme }) =>
     `radial-gradient(50% 50% at 50% 50%, ${backgroundColor ||
-      transparentize(0.6, theme.primary1)} 0%, rgba(255, 255, 255, 0) 100%)`};
+    transparentize(0.6, theme.primary1)} 0%, rgba(255, 255, 255, 0) 100%)`};
   position: absolute;
   top: 0px;
   left: 0px;

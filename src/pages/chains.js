@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 
 import { PieChart, Pie, Sector, Cell } from 'recharts';
-import { TYPE } from '../Theme'
+import { TYPE, Header } from '../Theme'
 import Panel from '../components/Panel'
 import { RowBetween } from '../components/Row'
 import { PageWrapper, FullWrapper } from '../components'
@@ -243,7 +243,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
         <PageWrapper>
             <FullWrapper>
                 <RowBetween>
-                    <TYPE.largeHeader>Total Value Locked All Chains</TYPE.largeHeader>
+                    <Header>Total Value Locked All Chains</Header>
                 </RowBetween>
 
                 <ChartBreakPoints>
