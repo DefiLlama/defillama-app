@@ -87,7 +87,6 @@ function PinnedData({ open, setSavedOpen }) {
               })
               .map(address => {
                 const token = savedTokens[address]
-                console.log(token, 'token')
                 return (
                   <RowBetween key={address}>
                     <ButtonFaded
