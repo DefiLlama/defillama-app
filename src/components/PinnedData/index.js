@@ -1,15 +1,17 @@
-import React from 'react'
-import { withRouter } from 'react-router-dom'
-import styled from 'styled-components'
-import { RowBetween, RowFixed } from '../Row'
-import { AutoColumn } from '../Column'
-import { TYPE } from '../../Theme'
-import { useSavedTokens } from '../../contexts/LocalStorage'
-import { Hover } from '..'
-import TokenLogo from '../TokenLogo'
+import { useRouter } from 'next/router'
 import { Bookmark, ChevronRight, X } from 'react-feather'
-import { ButtonFaded } from '../ButtonStyled'
-import FormattedName from '../FormattedName'
+import styled from 'styled-components'
+
+import { Hover } from 'components'
+import { ButtonFaded } from 'components/ButtonStyled'
+import { AutoColumn } from 'components/Column'
+import FormattedName from 'components/FormattedName'
+import { RowBetween, RowFixed } from 'components/Row'
+import TokenLogo from 'components/TokenLogo'
+
+import { useSavedTokens } from 'contexts/LocalStorage'
+import { TYPE } from 'Theme'
+import { tokenIconUrl } from 'utils'
 
 const RightColumn = styled.div`
   position: fixed;
@@ -48,9 +50,9 @@ const StyledIcon = styled.div`
   color: ${({ theme }) => theme.text2};
 `
 
-function PinnedData({ history, open, setSavedOpen }) {
-  //const [savedPairs, , removePair] = useSavedPairs()
-  const [savedTokens, , removeToken] = useSavedTokens()
+function PinnedData({ open, setSavedOpen }) {
+  const router = useRouter()
+  const { savedTokens, removeToken } = useSavedTokens()
 
   return !open ? (
     <RightColumn open={open} onClick={() => setSavedOpen(true)}>
@@ -85,13 +87,14 @@ function PinnedData({ history, open, setSavedOpen }) {
               })
               .map(address => {
                 const token = savedTokens[address]
+                console.log(token, 'token')
                 return (
                   <RowBetween key={address}>
                     <ButtonFaded
-                      onClick={() => history.push('/protocol/' + token.protocol.toLowerCase().replace(' ', '-'))}
+                      onClick={() => router.push('/protocol/' + token.protocol.toLowerCase().replace(' ', '-'))}
                     >
                       <RowFixed>
-                        <TokenLogo address={address} size={'14px'} />
+                        <TokenLogo logo={tokenIconUrl(token?.protocol)} size={'14px'} />
                         <TYPE.header ml={'6px'}>
                           <FormattedName text={token.protocol} maxCharacters={12} fontSize={'12px'} />
                         </TYPE.header>

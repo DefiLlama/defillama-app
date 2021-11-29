@@ -43,6 +43,7 @@ const HiddenBookmark = styled.span`
 `
 
 const StyledBookmark = styled(Bookmark)`
+  cursor: pointer;
   fill: ${({ theme: { text1 }, isSaved }) => (isSaved ? text1 : 'none')};
 
   path {
@@ -112,7 +113,6 @@ const TotalValueLockedWrap = styled(RowBetween)`
 function ProtocolContainer({ protocolData, protocol, denomination, selectedChain }) {
   useScrollToTop()
 
-  // console.log(protocolData, 'protocolData')
   let {
     address = '',
     name,
@@ -150,11 +150,10 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
 
   // TODO check if we still need to format long symbols?
 
-  const [savedTokens, addToken] = useSavedTokens()
+  const { savedTokens, addToken, removeToken } = useSavedTokens()
   const hasToken = address !== null && address !== '-'
 
   const isSaved = savedTokens[address]
-  console.log(savedTokens)
 
   return (
     <PageWrapper>
@@ -199,7 +198,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 <StyledIcon>
                   <StyledBookmark
                     isSaved={isSaved}
-                    onClick={isSaved ? () => {} : addToken(address, name)}
+                    onClick={isSaved ? () => removeToken(address) : () => addToken(address, name)}
                     style={{ marginRight: '0.5rem', opacity: 0.4 }}
                   />
                 </StyledIcon>
