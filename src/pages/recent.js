@@ -17,13 +17,12 @@ export async function getStaticProps({ params }) {
   }
 }
 
-export default function Protocols({ chainsSet, protocols }) {
+export default function Protocols({ protocols }) {
   const currentTimestamp = Date.now() / 1000
   const secondsInDay = 3600 * 24
   return (
     <GeneralLayout title={`TVL Rankings - DefiLlama`}>
       <ProtocolList
-        chainsSet={chainsSet}
         filteredProtocols={protocols.map(p => ({
           ...p,
           listedAt: ((currentTimestamp - p.listedAt) / secondsInDay).toFixed(2)
