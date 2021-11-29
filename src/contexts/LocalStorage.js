@@ -227,5 +227,5 @@ export function useSavedTokens() {
     updateKey(SAVED_TOKENS, newList)
   }
 
-  return [savedTokens, addToken, removeToken]
+  return { savedTokens, addToken, removeToken }
 }

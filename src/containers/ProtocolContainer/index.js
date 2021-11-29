@@ -42,6 +42,15 @@ const HiddenBookmark = styled.span`
   }
 `
 
+const StyledBookmark = styled(Bookmark)`
+  cursor: pointer;
+  fill: ${({ theme: { text1 }, isSaved }) => (isSaved ? text1 : 'none')};
+
+  path {
+    stroke: ${({ theme: { text1 } }) => text1};
+  }
+`
+
 const PanelWrapper = styled(Box)`
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: max-content;
@@ -96,7 +105,7 @@ const TokenDetailsLayout = styled.div`
 
 const TotalValueLockedWrap = styled(RowBetween)`
   @media only screen and (max-width: ${({ theme: { bpXl } }) => bpXl}) and (min-width: ${({ theme: { bpLg } }) =>
-    bpLg}) {
+      bpLg}) {
     flex-direction: column-reverse;
   }
 `
@@ -104,7 +113,6 @@ const TotalValueLockedWrap = styled(RowBetween)`
 function ProtocolContainer({ protocolData, protocol, denomination, selectedChain }) {
   useScrollToTop()
 
-  // console.log(protocolData, 'protocolData')
   let {
     address = '',
     name,
@@ -142,8 +150,10 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
 
   // TODO check if we still need to format long symbols?
 
-  const [savedTokens, addToken] = useSavedTokens()
-  const hasToken = address !== null && address !== "-"
+  const { savedTokens, addToken, removeToken } = useSavedTokens()
+  const hasToken = address !== null && address !== '-'
+
+  const isSaved = savedTokens[address]
 
   return (
     <PageWrapper>
@@ -185,17 +195,13 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
             </RowFixed>
             <HiddenBookmark>
               <RowFixed ml={[0, '2.5rem']} mt={['1rem', '0']}>
-                {!savedTokens[address] ? (
-                  <Hover onClick={() => addToken(address, name)}>
-                    <StyledIcon>
-                      <PlusCircle style={{ marginRight: '0.5rem' }} />
-                    </StyledIcon>
-                  </Hover>
-                ) : (
-                  <StyledIcon>
-                    <Bookmark style={{ marginRight: '0.5rem', opacity: 0.4 }} />
-                  </StyledIcon>
-                )}
+                <StyledIcon>
+                  <StyledBookmark
+                    isSaved={isSaved}
+                    onClick={isSaved ? () => removeToken(address) : () => addToken(address, name)}
+                    style={{ marginRight: '0.5rem', opacity: 0.4 }}
+                  />
+                </StyledIcon>
               </RowFixed>
             </HiddenBookmark>
           </RowBetween>
