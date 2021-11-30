@@ -29,8 +29,6 @@ export default function Links({ logo, links }) {
     .filter((k) => links[k] !== "")
     .reduce((a, k) => ({ ...a, [k]: links[k] }), {})
 
-  const size = "2.25em"
-  const color = "#fff"
   const icons = {
     website: <IconWrapper><TokenLogo logo={logo} size="32px" style={{ alignSelf: 'center' }} /></IconWrapper>,
     //discord: <IconWrapper><Discord size={size} color={color} /></IconWrapper>,

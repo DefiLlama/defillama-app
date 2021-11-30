@@ -5,7 +5,7 @@ import Panel from '../../components/Panel'
 import { RowBetween } from '../../components/Row'
 import { TYPE } from '../../Theme'
 
-export default ({ title, content }) => (
+const Section = ({ title, content }) => (
   <Panel>
     <AutoColumn gap="20px">
       <RowBetween>
@@ -19,3 +19,5 @@ export default ({ title, content }) => (
     </AutoColumn>
   </Panel>
 )
+
+export default Section

@@ -1,6 +1,5 @@
 import NFTDashboardPage from '../../../components/NFTDashboardPage'
 import { GeneralLayout } from '../../../layout'
-import { capitalizeFirstLetter } from '../../../utils'
 import { getNFTChainChartData, getNFTChainsData, getNFTCollectionsByChain, revalidate } from '../../../utils/dataApi'
 
 export async function getStaticProps({

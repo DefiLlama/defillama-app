@@ -15,7 +15,7 @@ import Panel from '../Panel'
 import Search from '../Search'
 import NFTCollectionList from '../NFTCollectionList'
 import { TYPE, ThemedBackground } from '../../Theme'
-import { formattedNum, capitalizeFirstLetter } from '../../utils'
+import { formattedNum } from '../../utils'
 import { chainCoingeckoIds } from '../../constants/chainTokens'
 
 const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
