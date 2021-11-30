@@ -13,7 +13,8 @@ export async function getStaticProps({
   return {
     props: {
       collection,
-      chartData
+      chartData,
+      title: collection ? `${collection.name} - DefiLlama` : `DefiLlama - NFT Dashboard`
     },
     revalidate: revalidate()
   }
@@ -30,7 +31,7 @@ export async function getStaticPaths() {
 
 export default function Collection(props) {
   return (
-    <GeneralLayout title="DefiLlama - NFT Dashboard">
+    <GeneralLayout title={props.title}>
       <NFTCollectionPage {...props} />
     </GeneralLayout>
   )

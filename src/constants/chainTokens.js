@@ -332,6 +332,7 @@ export const chainCoingeckoIds = {
     geckoId: "ubiq",
     symbol: "UBQ",
     cmcId: "588",
+  }
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
