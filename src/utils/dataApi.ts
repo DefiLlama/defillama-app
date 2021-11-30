@@ -192,11 +192,9 @@ export const getNFTData = async () => {
   }))
 
   return {
-    props: {
-      chart,
-      collections,
-      ...statistics
-    }
+    chart,
+    collections,
+    ...statistics
   }
 }
 
