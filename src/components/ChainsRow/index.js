@@ -52,7 +52,7 @@ const ChainsRow = ({ chains }) => {
   return (
     <Row sx={{ maxWidth: '100%', justifyContent: 'flex-end' }} ref={mainWrapEl}>
       {visibleChains.map(chain => (
-        <ChainLogo chain={chain} />
+        <ChainLogo key={chain} chain={chain} />
       ))}
       {!!hoverChains.length && (
         <Popover
@@ -60,7 +60,7 @@ const ChainsRow = ({ chains }) => {
           content={
             <Row padding="6px">
               {hoverChains.map(chain => (
-                <ChainLogo chain={chain} />
+                <ChainLogo key={chain} chain={chain} />
               ))}
             </Row>
           }
