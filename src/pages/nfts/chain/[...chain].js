@@ -1,12 +1,7 @@
 import NFTDashboardPage from '../../../components/NFTDashboardPage'
 import { GeneralLayout } from '../../../layout'
 import { capitalizeFirstLetter } from '../../../utils'
-import {
-  getNFTChainChartData,
-  getNFTChainsData,
-  getNFTCollectionsByChain,
-  revalidate
-} from '../../../utils/dataApi'
+import { getNFTChainChartData, getNFTChainsData, getNFTCollectionsByChain, revalidate } from '../../../utils/dataApi'
 
 export async function getStaticProps({
   params: {
@@ -16,9 +11,10 @@ export async function getStaticProps({
   const collections = await getNFTCollectionsByChain(chainName)
   const chartData = await getNFTChainChartData(chainName)
   const chainData = await getNFTChainsData()
-  const { totalVolumeUSD, dailyVolumeUSD } = chainData.find(c => c.chain === chainName) || {
+  const { totalVolumeUSD, dailyVolumeUSD, displayName } = chainData.find(c => c.chain === chainName) || {
     totalVolumeUSD: 0,
-    dailyVolumeUSD: 0
+    dailyVolumeUSD: 0,
+    displayName: ''
   }
 
   let dailyChange = 0
@@ -31,7 +27,8 @@ export async function getStaticProps({
 
   return {
     props: {
-      chain: chainName,
+      chainData,
+      displayName,
       totalVolumeUSD,
       dailyVolumeUSD,
       dailyChange,
@@ -52,10 +49,10 @@ export async function getStaticPaths() {
   return { paths, fallback: 'blocking' }
 }
 
-export default function Chain({ chain, ...props }) {
+export default function Chain({ displayName, ...props }) {
   return (
-    <GeneralLayout title={`${capitalizeFirstLetter(chain)} Total Volume - DefiLlama`}>
-      <NFTDashboardPage chain={chain} {...props} />
+    <GeneralLayout title={`${displayName} Total Volume - DefiLlama`}>
+      <NFTDashboardPage displayName={displayName} {...props} />
     </GeneralLayout>
   )
 }
