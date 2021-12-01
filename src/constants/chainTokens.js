@@ -338,10 +338,10 @@ export const chainCoingeckoIds = {
     symbol: "XIN",
     cmcId: "2349",
   },
-  Ton: {
-    geckoId: "wrapped-ton-crystal",
-    symbol: "TON",
-    cmcId: null,
+  Everscale: {
+    geckoId: "ton-crystal",
+    symbol: "EVER",
+    cmcId: "7505",
   },
 }
 
