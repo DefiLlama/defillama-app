@@ -332,7 +332,17 @@ export const chainCoingeckoIds = {
     geckoId: "ubiq",
     symbol: "UBQ",
     cmcId: "588",
-  }
+  },
+  Mixin: {
+    geckoId: "mixin",
+    symbol: "XIN",
+    cmcId: "2349",
+  },
+  Ton: {
+    geckoId: "wrapped-ton-crystal",
+    symbol: "TON",
+    cmcId: null,
+  },
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
