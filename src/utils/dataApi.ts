@@ -149,17 +149,11 @@ export const getProtocol = protocolName => {
   }
 }
 
-// TODO Fix lambda function so we don't have to do this on front end
-export const fuseProtocolData = (protocolsDict, protocolData, protocol) => {
-  const historicalChainTvls = { ...(protocolData?.chainTvls ?? {}) }
-  // Don't overwrite topTokens' chainTvls response
-  delete protocolData.chainTvls
-  const chainTvls = Object.fromEntries(
-    Object.entries(protocolsDict[protocol].chainTvls).sort((a: any[], b: any[]) => b[1] - a[1])
-  )
+export const fuseProtocolData = (protocolData, protocol) => {
+  const historicalChainTvls = protocolData?.chainTvls ?? {}
+  const chainTvls = protocolData.currentChainTvls ?? {}
 
   return {
-    ...(protocolsDict[protocol] || {}),
     ...protocolData,
     tvl: protocolData?.tvl.length > 0 ? protocolData?.tvl[protocolData?.tvl.length - 1]?.totalLiquidityUSD : 0,
     tvlList: protocolData?.tvl
