@@ -93,7 +93,7 @@ function PinnedData({ open, setSavedOpen }) {
                       onClick={() => router.push('/protocol/' + token.protocol.toLowerCase().replace(' ', '-'))}
                     >
                       <RowFixed>
-                        <TokenLogo logo={tokenIconUrl(token?.protocol)} size={'14px'} />
+                        <TokenLogo logo={tokenIconUrl(token?.protocol)} size={14} />
                         <TYPE.header ml={'6px'}>
                           <FormattedName text={token.protocol} maxCharacters={12} fontSize={'12px'} />
                         </TYPE.header>
