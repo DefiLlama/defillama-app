@@ -1,9 +1,7 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { ResponsiveContainer } from 'recharts'
 import { timeframeOptions } from '../../constants'
 import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
-import { getTimeframe } from '../../utils'
-//import { useNFTChartData } from '../../contexts/NFTData'
 
 const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = "", symbol = "" }) => {
   // time window and window size for chart

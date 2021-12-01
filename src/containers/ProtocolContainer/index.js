@@ -1,11 +1,11 @@
 import React from 'react'
 import dynamic from 'next/dynamic'
-import { PlusCircle, Bookmark } from 'react-feather'
+import { Bookmark } from 'react-feather'
 import { Text, Box } from 'rebass'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 
-import { Hover, PageWrapper, ContentWrapper, StyledIcon } from 'components'
+import { PageWrapper, ContentWrapper, StyledIcon } from 'components'
 import AuditInfo from 'components/AuditInfo'
 import { ButtonLight } from 'components/ButtonStyled'
 import Column, { AutoColumn } from 'components/Column'
@@ -39,6 +39,15 @@ const HiddenSearch = styled.span`
 const HiddenBookmark = styled.span`
   @media screen and (max-width: ${({ theme }) => theme.bpLg}) {
     display: none;
+  }
+`
+
+const StyledBookmark = styled(Bookmark)`
+  cursor: pointer;
+  fill: ${({ theme: { text1 }, isSaved }) => (isSaved ? text1 : 'none')};
+
+  path {
+    stroke: ${({ theme: { text1 } }) => text1};
   }
 `
 
@@ -104,7 +113,6 @@ const TotalValueLockedWrap = styled(RowBetween)`
 function ProtocolContainer({ protocolData, protocol, denomination, selectedChain }) {
   useScrollToTop()
 
-  // console.log(protocolData, 'protocolData')
   let {
     address = '',
     name,
@@ -142,8 +150,10 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
 
   // TODO check if we still need to format long symbols?
 
-  const [savedTokens, addToken] = useSavedTokens()
+  const { savedTokens, addToken, removeToken } = useSavedTokens()
   const hasToken = address !== null && address !== '-'
+
+  const isSaved = savedTokens[address]
 
   return (
     <PageWrapper>
@@ -185,17 +195,13 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
             </RowFixed>
             <HiddenBookmark>
               <RowFixed ml={[0, '2.5rem']} mt={['1rem', '0']}>
-                {!savedTokens[address] ? (
-                  <Hover onClick={() => addToken(address, name)}>
-                    <StyledIcon>
-                      <PlusCircle style={{ marginRight: '0.5rem' }} />
-                    </StyledIcon>
-                  </Hover>
-                ) : (
-                  <StyledIcon>
-                    <Bookmark style={{ marginRight: '0.5rem', opacity: 0.4 }} />
-                  </StyledIcon>
-                )}
+                <StyledIcon>
+                  <StyledBookmark
+                    isSaved={isSaved}
+                    onClick={isSaved ? () => removeToken(address) : () => addToken(address, name)}
+                    style={{ marginRight: '0.5rem', opacity: 0.4 }}
+                  />
+                </StyledIcon>
               </RowFixed>
             </HiddenBookmark>
           </RowBetween>

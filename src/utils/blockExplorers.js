@@ -1,7 +1,7 @@
 const blockExplorers = {
   bsc: ['https://bscscan.com/address/', 'Bscscan'],
   xdai: ['https://blockscout.com/xdai/mainnet/address/', 'BlockScout'],
-  avax: ['https://cchain.explorer.avax.network/address/', 'CChain Explorer'],
+  avax: ['https://snowtrace.io/address/', 'Snowtrace'],
   fantom: ['https://ftmscan.com/address/', 'FTMscan'],
   heco: ['https://hecoinfo.com/address/', 'HecoInfo'],
   wan: ['https://wanscan.org/token/', 'Wanscan'],

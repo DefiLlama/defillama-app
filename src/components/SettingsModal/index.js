@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react'
 import styled from 'styled-components'
-import MenuIcon from './menu.svg'
+import MenuIcon from './MenuSvg'
 import {
   useDarkModeManager,
   useStakingManager,
@@ -10,14 +10,15 @@ import {
 import Switch from 'react-switch'
 import HeadHelp from '../HeadHelp'
 import { AutoRow } from '../Row'
-import Image from 'next/image'
 import { useIsClient } from 'hooks'
 
 import { TYPE } from '../../Theme'
 
-const StyledMenuIcon = styled(props => <Image src={MenuIcon} {...props} />)`
-  path {
-    stroke: ${({ theme }) => theme.text1};
+const StyledMenuIcon = styled(MenuIcon)`
+  svg {
+    path {
+      stroke: ${({ theme }) => theme.text1};
+    }
   }
 `
 
@@ -40,6 +41,9 @@ const StyledMenuButton = styled.button`
   }
   svg {
     margin-top: 2px;
+    path {
+      stroke: ${({ theme }) => theme.text1};
+    }
   }
 `
 

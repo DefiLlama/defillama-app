@@ -1,9 +1,8 @@
-import React, { useRef, useEffect } from "react"
-import styled from "styled-components"
-import MenuIcon from "./menu.svg"
-import Image from 'next/image'
+import React, { useRef, useEffect } from 'react'
+import styled from 'styled-components'
+import MenuIcon from './MenuSvg'
 
-const StyledMenuIcon = styled(props => <Image src={MenuIcon} {...props} />)`
+const StyledMenuIcon = styled(MenuIcon)`
   path {
     stroke: ${({ theme }) => theme.text1};
   }
@@ -54,9 +53,9 @@ export default function NavMenuButton({ setShow, show }) {
   }
 
   useEffect(() => {
-    document.addEventListener("click", handleClick)
+    document.addEventListener('click', handleClick)
     return () => {
-      document.removeEventListener("click", handleClick)
+      document.removeEventListener('click', handleClick)
     }
   }, [])
 

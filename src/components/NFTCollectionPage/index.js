@@ -79,12 +79,7 @@ const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
 })
 
 function NFTCollectionPage({ collection, chartData }) {
-  const below1600 = useMedia('(max-width: 1600px)')
   const below1024 = useMedia('(max-width: 1024px)')
-  const below800 = useMedia('(max-width: 800px)')
-  const below600 = useMedia('(max-width: 600px)')
-  const below500 = useMedia('(max-width: 500px)')
-  const below850 = useMedia('(max-width: 850px)')
 
   const { chain, address, description, logo, name, slug, website, twitterUsername, discordUrl, telegramUrl } =
     collection || {}
