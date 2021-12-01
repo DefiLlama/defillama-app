@@ -1,21 +1,18 @@
-import React, { useState, useMemo } from 'react'
-import styled from 'styled-components'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
+import { useState, useMemo } from 'react'
 import InfiniteScroll from 'react-infinite-scroll-component'
-
 import { Box, Flex, Text } from 'rebass'
-import TokenLogo from '../TokenLogo'
-import { CustomLink, BasicLink } from '../Link'
-import Row from '../Row'
-import { Divider } from '..'
+import styled from 'styled-components'
 
-import { formattedNum, formattedPercent, chainIconUrl, tokenIconUrl, slug } from '../../utils'
-import { useInfiniteScroll } from '../../hooks'
-import { useMedia } from 'react-use'
-import FormattedName from '../FormattedName'
+import { Divider } from 'components'
+import ChainsRow from 'components/ChainsRow'
+import FormattedName from 'components/FormattedName'
+import HeadHelp from 'components/HeadHelp'
+import { CustomLink } from 'components/Link'
+import Row from 'components/Row'
+import TokenLogo from 'components/TokenLogo'
 
-dayjs.extend(utc)
+import { useInfiniteScroll } from 'hooks'
+import { formattedNum, formattedPercent, tokenIconUrl, slug } from 'utils'
 
 const List = styled(Box)`
   -webkit-overflow-scrolling: touch;
@@ -34,7 +31,6 @@ const DashGrid = styled.div`
     &:first-child {
       justify-content: flex-start;
       text-align: left;
-      width: 100px;
     }
   }
 
@@ -111,16 +107,23 @@ const COLUMN_NAMES = {
   listedAt: 'Listed'
 }
 
+const COLUMN_HELP = {
+  chains: "Chains are ordered by protocol's highest TVL on each chain"
+}
+
 const ProtocolButtonElement = styled(FormattedName)`
-  margin-left: 16px;
-  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  ${({ theme: { maxMed } }) => maxMed} {
+    max-width: 110px;
+  }
 `
 
-const ProtocolButton = ({ item, below600 }) => {
+const ProtocolButton = ({ item }) => {
   return (
     <ProtocolButtonElement
       text={item.symbol === '-' ? item.name : `${item.name} (${item.symbol})`}
-      maxCharacters={below600 ? 8 : 16}
       adjustSize={true}
       link={true}
     />
@@ -128,8 +131,6 @@ const ProtocolButton = ({ item, below600 }) => {
 }
 
 const Index = styled.div`
-  margin-right: 1rem;
-  width: 10px;
   @media (max-width: 680px) {
     display: none;
   }
@@ -168,8 +169,6 @@ function TokenList({
   columns = [undefined, SORT_FIELD.CHAINS, SORT_FIELD.DAYONE, SORT_FIELD.DAYSEVEN],
   defaultSortingColumn = 'tvl'
 }) {
-  const below600 = useMedia('(max-width: 600px)')
-
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
   const [sortedColumn, setSortedColumnRaw] = useState(defaultSortingColumn)
@@ -205,22 +204,20 @@ function TokenList({
     return (
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
-          <Row>
+          <Row style={{ gap: '1rem', minWidth: '100%' }}>
             <Index>{index + 1}</Index>
             <TokenLogo logo={iconUrl(item.name)} />
             <CustomLink href={generateLink(item.name)}>
-              <ProtocolButton item={item} below600={below600} />
+              <ProtocolButton item={item} />
             </CustomLink>
           </Row>
         </DataText>
         <DataTextHideBelow1080 area="chain">
-          {columns[1] === SORT_FIELD.CHAINS
-            ? item.chains.map(chain => (
-                <BasicLink key={chain} href={`/chain/${chain}`}>
-                  <TokenLogo address={chain} logo={chainIconUrl(chain)} />
-                </BasicLink>
-              ))
-            : formattedNum(item[columns[1]], false)}
+          {columns[1] === SORT_FIELD.CHAINS ? (
+            <ChainsRow chains={item.chains} />
+          ) : (
+            formattedNum(item[columns[1]], false)
+          )}
         </DataTextHideBelow1080>
         <DataTextHideBelow1080 area="1dchange" fontWeight="500">
           {formattedPercent(item.change_1d, true)}
@@ -267,7 +264,9 @@ function TokenList({
               setSortDirection(sortedColumn !== columns[1] ? true : !sortDirection)
             }}
           >
-            {COLUMN_NAMES[columns[1]]} {sortedColumn === columns[1] ? (!sortDirection ? '↑' : '↓') : ''}
+            {COLUMN_NAMES[columns[1]]}
+            {COLUMN_NAMES[columns[1]] === COLUMN_NAMES.chains && <HeadHelp text={COLUMN_HELP.chains} />}
+            {sortedColumn === columns[1] ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </FlexHideBelow1080>
         <FlexHideBelow1080 alignItems="center">

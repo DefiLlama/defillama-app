@@ -1,6 +1,6 @@
 import { Placement } from '@popperjs/core'
 import { transparentize } from 'polished'
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { usePopper } from 'react-popper'
 import styled from 'styled-components'
 import Portal from '@reach/portal'
@@ -94,6 +94,7 @@ export default function Popover({ content, show, children, placement = 'auto' }:
       { name: 'arrow', options: { element: arrowElement } }
     ]
   })
+  const [mouseInContainer, setMouseInContainer] = useState(false)
 
   useInterval(update, show ? 100 : null)
 
@@ -101,7 +102,14 @@ export default function Popover({ content, show, children, placement = 'auto' }:
     <>
       <ReferenceElement ref={setReferenceElement}>{children}</ReferenceElement>
       <Portal>
-        <PopoverContainer show={show} ref={setPopperElement} style={styles.popper} {...attributes.popper}>
+        <PopoverContainer
+          show={show || mouseInContainer}
+          ref={setPopperElement}
+          style={styles.popper}
+          {...attributes.popper}
+          onMouseEnter={() => setMouseInContainer(true)}
+          onMouseLeave={() => setMouseInContainer(false)}
+        >
           {content}
           <Arrow
             className={`arrow-${attributes.popper?.['data-popper-placement'] ?? ''}`}
