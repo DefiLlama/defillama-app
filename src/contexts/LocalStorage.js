@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
 
+import { standardizeProtocolName } from 'utils'
+
 const UNISWAP = 'UNISWAP'
 
 const VERSION = 'VERSION'
@@ -96,8 +98,19 @@ export default function Provider({ children }) {
 export function Updater() {
   const [state] = useLocalStorageContext()
 
+  // Change format from save addresses to save protocol names
+  const savedTokens = state[SAVED_TOKENS]
+  const newSavedTokens = Object.fromEntries(
+    Object.entries(savedTokens).map(([key, value]) =>
+      value?.protocol ? [standardizeProtocolName(value?.protocol), true] : value ? [key, value] : []
+    )
+  )
+
   useEffect(() => {
-    window.localStorage.setItem(UNISWAP, JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000) }))
+    window.localStorage.setItem(
+      UNISWAP,
+      JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000), [SAVED_TOKENS]: newSavedTokens })
+    )
   })
 
   return null
@@ -209,21 +222,20 @@ export function useSavedPairs() {
   return [savedPairs, addPair, removePair]
 }
 
+// Since we are only using protocol name as the unique identifier for the /protcol/:name route, change keys to be unique by name for now.
 export function useSavedTokens() {
   const [state, { updateKey }] = useLocalStorageContext()
   const savedTokens = state?.[SAVED_TOKENS]
 
-  function addToken(address, protocol) {
+  function addToken(readableProtocolName) {
     let newList = state?.[SAVED_TOKENS]
-    newList[address] = {
-      protocol
-    }
+    newList[standardizeProtocolName(readableProtocolName)] = readableProtocolName
     updateKey(SAVED_TOKENS, newList)
   }
 
-  function removeToken(address) {
+  function removeToken(protocol) {
     let newList = state?.[SAVED_TOKENS]
-    newList[address] = null
+    delete newList[standardizeProtocolName(protocol)]
     updateKey(SAVED_TOKENS, newList)
   }
 

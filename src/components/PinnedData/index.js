@@ -78,35 +78,27 @@ function PinnedData({ open, setSavedOpen }) {
       <AutoColumn gap="40px" style={{ marginTop: '2rem' }}>
         <ScrollableDiv gap={'12px'}>
           <TYPE.main>Pinned Protocols</TYPE.main>
-          {Object.keys(savedTokens).filter(key => {
-            return !!savedTokens[key]
-          }).length > 0 ? (
-            Object.keys(savedTokens)
-              .filter(address => {
-                return !!savedTokens[address]
-              })
-              .map(address => {
-                const token = savedTokens[address]
-                return (
-                  <RowBetween key={address}>
-                    <ButtonFaded
-                      onClick={() => router.push('/protocol/' + token.protocol.toLowerCase().replace(' ', '-'))}
-                    >
-                      <RowFixed>
-                        <TokenLogo logo={tokenIconUrl(token?.protocol)} size={14} />
-                        <TYPE.header ml={'6px'}>
-                          <FormattedName text={token.protocol} maxCharacters={12} fontSize={'12px'} />
-                        </TYPE.header>
-                      </RowFixed>
-                    </ButtonFaded>
-                    <Hover onClick={() => removeToken(address)}>
-                      <StyledIcon>
-                        <X size={16} />
-                      </StyledIcon>
-                    </Hover>
-                  </RowBetween>
-                )
-              })
+          {Object.keys(savedTokens).length > 0 ? (
+            Object.keys(savedTokens).map(protocol => {
+              const readableProtocolName = savedTokens[protocol]
+              return (
+                <RowBetween key={protocol}>
+                  <ButtonFaded onClick={() => router.push('/protocol/' + protocol.toLowerCase().replace(' ', '-'))}>
+                    <RowFixed>
+                      <TokenLogo logo={tokenIconUrl(protocol)} size={14} />
+                      <TYPE.header ml={'6px'}>
+                        <FormattedName text={readableProtocolName} maxCharacters={12} fontSize={'12px'} />
+                      </TYPE.header>
+                    </RowFixed>
+                  </ButtonFaded>
+                  <Hover onClick={() => removeToken(protocol)}>
+                    <StyledIcon>
+                      <X size={16} />
+                    </StyledIcon>
+                  </Hover>
+                </RowBetween>
+              )
+            })
           ) : (
             <TYPE.light>Pinned protocols will appear here.</TYPE.light>
           )}
