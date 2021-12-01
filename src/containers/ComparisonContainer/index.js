@@ -105,7 +105,7 @@ const TokenInfoHook = (protocol, protocolsMcapTvl) => {
 const DisplayToken = ({ tokenSymbol, logo, address, price, resetDisplay }) => (
   <Wrapper style={{ justifyContent: 'space-between' }}>
     <RowFixed style={{ display: 'flex', gap: '7.5px', justifyContent: 'flex-start' }}>
-      <TokenLogo address={address} logo={logo} size="32px" style={{ alignSelf: 'center' }} />
+      <TokenLogo address={address} logo={logo} size={32} style={{ alignSelf: 'center' }} />
       <TYPE.main>{tokenSymbol}</TYPE.main>
       <TYPE.main>{formattedNum(price, true)}</TYPE.main>
     </RowFixed>
@@ -267,7 +267,7 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
                 {tokenAFormattedSymbol} price with the Mcap/TVL of {tokenBFormattedSymbol}
               </TYPE.main>
               <AutoRow style={{ justifyContent: 'center', gap: '7.5px' }}>
-                <TokenLogo address={tokenAAddress} logo={tokenALogo} size="32px" style={{ alignSelf: 'center' }} />
+                <TokenLogo address={tokenAAddress} logo={tokenALogo} size={32} style={{ alignSelf: 'center' }} />
                 <TYPE.largeHeader fontSize={32}>{formattedNum(tokenAPriceWithTokenBMcapTvl, true)}</TYPE.largeHeader>
                 <TYPE.main style={{ marginTop: '7.5px' }}>
                   <PriceChange priceChange={tokenAPriceChange}>({formattedNum(tokenAPriceChange)}x)</PriceChange>
