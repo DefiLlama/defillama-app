@@ -322,6 +322,16 @@ export const chainCoingeckoIds = {
     geckoId: "",
     symbol: "ETH",
     cmcId: ""
+  },
+  Metis: {
+    geckoId: "metis-token",
+    symbol: "METIS",
+    cmcId: "9640",
+  },
+  Ubiq: {
+    geckoId: "ubiq",
+    symbol: "UBQ",
+    cmcId: "588",
   }
 }
 

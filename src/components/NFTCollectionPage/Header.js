@@ -5,7 +5,7 @@ import { RowBetween, RowFixed } from '../../components/Row'
 import TokenLogo from '../../components/TokenLogo'
 import { TYPE } from '../../Theme'
 
-export default ({ address, name, logo, below1024 }) => (
+const Header = ({ address, name, logo, below1024 }) => (
   <RowBetween style={{ flexWrap: 'wrap', marginBottom: '2rem', alignItems: 'flex-start' }}>
     <RowFixed style={{ flexWrap: 'wrap' }}>
       <RowFixed style={{ alignItems: 'baseline' }}>
@@ -19,3 +19,5 @@ export default ({ address, name, logo, below1024 }) => (
     </RowFixed>
   </RowBetween>
 )
+
+export default Header

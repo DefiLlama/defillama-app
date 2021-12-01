@@ -15,7 +15,7 @@ import Panel from '../Panel'
 import Search from '../Search'
 import NFTCollectionList from '../NFTCollectionList'
 import { TYPE, ThemedBackground } from '../../Theme'
-import { formattedNum, capitalizeFirstLetter } from '../../utils'
+import { formattedNum } from '../../utils'
 import { chainCoingeckoIds } from '../../constants/chainTokens'
 
 const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
@@ -58,23 +58,35 @@ const FiltersRow = styled(RowFlat)`
     width: calc(100% - 90px);
   }
 `
+const defaultChainOption = {
+  label: 'All',
+  to: '/nfts'
+}
 
-const basicChainOptions = { all: 'All', ethereum: 'Ethereum', solana: 'Solana', immutablex: 'ImmutableX' } //TODO Replace with non hardcoded values
-
-const NFTDashboard = ({ totalVolumeUSD, dailyVolumeUSD, dailyChange, collections, chart, chain = 'all' }) => {
+const NFTDashboard = ({
+  totalVolumeUSD,
+  dailyVolumeUSD,
+  dailyChange,
+  collections,
+  chart,
+  chainData,
+  displayName = 'All'
+}) => {
   useEffect(() => window.scrollTo(0, 0))
 
   const [displayUsd] = useDisplayUsdManager()
   const below800 = useMedia('(max-width: 800px)')
 
-  const selectedChain = basicChainOptions[chain]
-  const setSelectedChain = newSelectedChain =>
-    newSelectedChain === 'all' ? '/nfts' : `/nfts/chain/${newSelectedChain}`
+  const selectedChain = displayName
+  const setSelectedChain = newSelectedChain => `/nfts/chain/${newSelectedChain}`
 
-  let chainOptions = Object.values(basicChainOptions).map(label => ({
-    label,
-    to: setSelectedChain(label.toLowerCase())
-  }))
+  let chainOptions = [
+    defaultChainOption,
+    ...chainData?.map(chain => ({
+      label: chain.displayName,
+      to: setSelectedChain(chain.chain)
+    }))
+  ]
 
   const symbol = selectedChain === 'All' ? 'USD' : chainCoingeckoIds[selectedChain]?.symbol //TODO Replace
   const unit = selectedChain === 'All' ? '$' : ''
