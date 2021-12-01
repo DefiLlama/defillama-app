@@ -87,6 +87,11 @@ const theme = (darkMode, color) => ({
   maxLg: `@media screen and (max-width: ${lg}px)`,
   maxXl: `@media screen and (max-width: ${xl}px)`,
 
+  minSm: `@media screen and (min-width: ${sm}px)`,
+  minMed: `@media screen and (min-width: ${med}px)`,
+  minLg: `@media screen and (min-width: ${lg}px)`,
+  minXl: `@media screen and (min-width: ${xl}px)`,
+
   breakpoints: [`${sm}px`, `${med}px`, `${lg}px`, `${xl}px`]
 })
 
@@ -129,7 +134,7 @@ export const TYPE = {
 }
 
 export const Header = styled.h1`
-  color: ${({ theme }) => theme["text1"]};
+  color: ${({ theme }) => theme['text1']};
   font-size: 24px;
   font-weight: 500;
   margin: 0px;
@@ -172,7 +177,7 @@ export const ThemedBackground = styled.div`
   mix-blend-mode: color;
   background: ${({ backgroundColor, theme }) =>
     `radial-gradient(50% 50% at 50% 50%, ${backgroundColor ||
-    transparentize(0.6, theme.primary1)} 0%, rgba(255, 255, 255, 0) 100%)`};
+      transparentize(0.6, theme.primary1)} 0%, rgba(255, 255, 255, 0) 100%)`};
   position: absolute;
   top: 0px;
   left: 0px;

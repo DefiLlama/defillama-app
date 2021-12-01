@@ -4,6 +4,7 @@ import { Box, Flex, Text } from 'rebass'
 import styled from 'styled-components'
 
 import { Divider } from 'components'
+import Bookmark from 'components/Bookmark'
 import ChainsRow from 'components/ChainsRow'
 import FormattedName from 'components/FormattedName'
 import HeadHelp from 'components/HeadHelp'
@@ -50,10 +51,10 @@ const DashGrid = styled.div`
     }
   }
 
-  @media screen and (min-width: 1080px) {
+  ${({ theme: { minLg } }) => minLg} {
     display: grid;
     grid-gap: 0.5em;
-    grid-template-columns: 1fr 1fr 0.8fr 0.6fr 0.6fr 0.6fr;
+    grid-template-columns: 1.2fr 1fr 0.4fr 0.4fr 0.4fr 0.4fr;
     grid-template-areas: 'name chain mcaptvl 1dchange 7dchange tvl';
   }
 `
@@ -142,8 +143,8 @@ const DataTextHideBelow680 = styled(DataText)`
   }
 `
 
-const DataTextHideBelow1080 = styled(DataText)`
-  @media (max-width: 1080px) {
+const DataTextHideBelowLg = styled(DataText)`
+  ${({ theme: { maxLg } }) => maxLg} {
     display: none !important;
   }
 `
@@ -154,8 +155,8 @@ const FlexHideBelow680 = styled(Flex)`
   }
 `
 
-const FlexHideBelow1080 = styled(Flex)`
-  @media (max-width: 1080px) {
+const FlexHideBelowLg = styled(Flex)`
+  ${({ theme: { maxLg } }) => maxLg} {
     display: none !important;
   }
 `
@@ -167,7 +168,8 @@ function TokenList({
   iconUrl = tokenIconUrl,
   generateLink = name => `/protocol/${slug(name)}`,
   columns = [undefined, SORT_FIELD.CHAINS, SORT_FIELD.DAYONE, SORT_FIELD.DAYSEVEN],
-  defaultSortingColumn = 'tvl'
+  defaultSortingColumn = 'tvl',
+  canBookmark = true
 }) {
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
@@ -205,6 +207,12 @@ function TokenList({
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
           <Row style={{ gap: '1rem', minWidth: '100%' }}>
+            {canBookmark && (
+              <Bookmark
+                readableProtocolName={item.name}
+                style={{ width: '16px', height: '16px', cursor: 'pointer', overflow: 'visible' }}
+              />
+            )}
             <Index>{index + 1}</Index>
             <TokenLogo logo={iconUrl(item.name)} />
             <CustomLink href={generateLink(item.name)}>
@@ -212,16 +220,16 @@ function TokenList({
             </CustomLink>
           </Row>
         </DataText>
-        <DataTextHideBelow1080 area="chain">
+        <DataTextHideBelowLg area="chain">
           {columns[1] === SORT_FIELD.CHAINS ? (
             <ChainsRow chains={item.chains} />
           ) : (
             formattedNum(item[columns[1]], false)
           )}
-        </DataTextHideBelow1080>
-        <DataTextHideBelow1080 area="1dchange" fontWeight="500">
+        </DataTextHideBelowLg>
+        <DataTextHideBelowLg area="1dchange" fontWeight="500">
           {formattedPercent(item.change_1d, true)}
-        </DataTextHideBelow1080>
+        </DataTextHideBelowLg>
         <DataText area="7dchange">
           {columns[3] === SORT_FIELD.DAYSEVEN
             ? item.change_7d !== 0
@@ -256,7 +264,7 @@ function TokenList({
             Name {sortedColumn === SORT_FIELD.NAME ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
-        <FlexHideBelow1080 alignItems="center">
+        <FlexHideBelowLg alignItems="center">
           <ClickableText
             area="chain"
             onClick={e => {
@@ -268,8 +276,8 @@ function TokenList({
             {COLUMN_NAMES[columns[1]] === COLUMN_NAMES.chains && <HeadHelp text={COLUMN_HELP.chains} />}
             {sortedColumn === columns[1] ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
-        </FlexHideBelow1080>
-        <FlexHideBelow1080 alignItems="center">
+        </FlexHideBelowLg>
+        <FlexHideBelowLg alignItems="center">
           <ClickableText
             area="1dchange"
             onClick={e => {
@@ -279,7 +287,7 @@ function TokenList({
           >
             1d Change {sortedColumn === SORT_FIELD.DAYONE ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
-        </FlexHideBelow1080>
+        </FlexHideBelowLg>
         <Flex alignItems="center">
           <ClickableText
             area="7dchange"
