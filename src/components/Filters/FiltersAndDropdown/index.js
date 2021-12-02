@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 
-import { ButtonLight, ButtonDark } from '../../ButtonStyled'
-import { BasicLink } from '../../Link'
-import DropdownSelect from '../../DropdownSelect'
-import Row from '../../Row'
+import { ButtonLight, ButtonDark } from 'components/ButtonStyled'
+import { BasicLink } from 'components/Link'
+import DropdownSelect from 'components/DropdownSelect'
+import Row from 'components/Row'
 
-import { useResize } from '../../../hooks'
+import { useResize } from 'hooks'
 const letterPxLength = 8
 const marginPxLength = 6.4
 const paddingPxLenggth = 24
@@ -31,8 +31,7 @@ const FiltersAndDropdown = ({ filterOptions = [], activeLabel, areLinks, onFilte
   }, [mainWrapWidth, stringifyFilterOptions])
 
   const clickableFilters = filterOptions.slice(0, visibleFiltersIndex)
-  const dropdownFilters = filterOptions
-    .slice(visibleFiltersIndex, filterOptions.length)
+  const dropdownFilters = filterOptions.slice(visibleFiltersIndex, filterOptions.length)
 
   return (
     <Row sx={{ maxWidth: '100%' }} ref={mainWrapEl}>
