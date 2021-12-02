@@ -27,6 +27,7 @@ const Wrapper = styled.div`
 `
 
 const Dropdown = styled.div`
+  min-width: 100px;
   position: absolute;
   z-index: 20;
   top: 34px;
@@ -75,7 +76,7 @@ const DropdownSelect = ({ options, active, setActive, color, style, overflowVisi
           </StyledIcon>
         </RowBetween>
       </Wrapper>
-      {showDropdown && (
+      {showDropdown && !!optionsArr.length && (
         <Dropdown overflowVisible={overflowVisible}>
           <Column style={{ gap: '20px' }}>
             {optionsArr.map(({ label, to }, index) => {

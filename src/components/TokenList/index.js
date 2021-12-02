@@ -116,8 +116,8 @@ const ProtocolButtonElement = styled(FormattedName)`
   overflow: hidden;
   text-overflow: ellipsis;
 
-  ${({ theme: { maxMed } }) => maxMed} {
-    max-width: 110px;
+  ${({ theme: { maxSm } }) => maxSm} {
+    max-width: 70px;
   }
 `
 

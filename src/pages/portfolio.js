@@ -1,8 +1,7 @@
-import ProtocolList from 'components/ProtocolList'
+import PortfolioContainer from 'containers/PortfolioContainer'
 import { GeneralLayout } from 'layout'
 
 import { getProtocols, revalidate } from 'utils/dataApi'
-import { useSavedTokens } from 'contexts/LocalStorage'
 
 export async function getStaticProps() {
   const { protocolsDict } = await getProtocols()
@@ -13,10 +12,10 @@ export async function getStaticProps() {
   }
 }
 
-export default function Protocols({ protocolsDict }) {
+export default function Portfolio({ protocolsDict }) {
   return (
     <GeneralLayout title={`Saved TVL Rankings - DefiLlama`}>
-      <ProtocolList filteredProtocols={filteredProtocols} showChainList={false} />
+      <PortfolioContainer protocolsDict={protocolsDict} />
     </GeneralLayout>
   )
 }

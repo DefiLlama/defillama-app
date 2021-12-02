@@ -19,7 +19,7 @@ import Search from 'components/Search'
 import { CheckMarks } from 'components/SettingsModal'
 import TokenLogo from 'components/TokenLogo'
 
-import { useSavedTokens, useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
+import { useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
 import { useScrollToTop, useProtocolColor } from 'hooks'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum, getBlockExplorer, toK } from 'utils'
@@ -141,10 +141,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
 
   // TODO check if we still need to format long symbols?
 
-  const { savedTokens, addToken, removeToken } = useSavedTokens()
   const hasToken = address !== null && address !== '-'
-
-  const isSaved = savedTokens[protocol]
 
   return (
     <PageWrapper>
