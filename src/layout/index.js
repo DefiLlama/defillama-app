@@ -1,9 +1,7 @@
-import React from 'react'
 import styled from 'styled-components'
 
 import PinnedData from '../components/PinnedData'
 import SideNav from '../components/SideNav'
-import { useState } from 'react'
 import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from '../contexts/LocalStorage'
 import Head from 'next/head'
 import ThemeProvider, { GlobalStyle } from '../Theme'
@@ -39,18 +37,17 @@ const Center = styled.div`
 /**
  * Wrap the component with the header and sidebar pinned tab
  */
-export const LayoutWrapper = ({ children, savedOpen, setSavedOpen }) => {
+export const LayoutWrapper = ({ children, savedOpen }) => {
   return (
     <ContentWrapper open={savedOpen}>
       <SideNav />
       <Center id="center">{children}</Center>
-      <PinnedData open={savedOpen} setSavedOpen={setSavedOpen} />
+      <PinnedData />
     </ContentWrapper>
   )
 }
 
 export function GeneralLayout({ title, children }) {
-  const [savedOpen, setSavedOpen] = useState(false)
   return (
     <>
       <Head>
@@ -69,9 +66,7 @@ export function GeneralLayout({ title, children }) {
         <ThemeProvider>
           <GlobalStyle />
           <AppWrapper>
-            <LayoutWrapper savedOpen={savedOpen} setSavedOpen={setSavedOpen}>
-              {children}
-            </LayoutWrapper>
+            <LayoutWrapper>{children}</LayoutWrapper>
           </AppWrapper>
         </ThemeProvider>
       </LocalStorageContextProvider>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
+import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useState } from 'react'
 
 import { standardizeProtocolName } from 'utils'
 
@@ -233,6 +233,7 @@ export function useSavedPairs() {
 
 // Since we are only using protocol name as the unique identifier for the /protcol/:name route, change keys to be unique by name for now.
 export function useSavedProtocols() {
+  const [pinnedOpen, setPinnedOpen] = useState(false)
   const [state, { updateKey }] = useLocalStorageContext()
   const savedProtocols = state?.[SAVED_TOKENS]
 
@@ -263,5 +264,5 @@ export function useSavedProtocols() {
     updateKey(SAVED_TOKENS, newList)
   }
 
-  return { savedProtocols, addProtocol, removeProtocol, addPortfolio, removePortfolio }
+  return { savedProtocols, addProtocol, removeProtocol, addPortfolio, removePortfolio, pinnedOpen, setPinnedOpen }
 }

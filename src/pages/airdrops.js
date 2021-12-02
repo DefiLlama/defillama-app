@@ -35,7 +35,6 @@ export default function Protocols({ protocols }) {
       <ProtocolList
         title="Tokenless protocols that may airdrop 🧑‍🌾"
         category=""
-        chainsSet={[]}
         filteredProtocols={protocols}
         showChainList={false}
       />

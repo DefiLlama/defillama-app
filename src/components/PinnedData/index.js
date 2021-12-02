@@ -50,26 +50,26 @@ const StyledIcon = styled.div`
   color: ${({ theme }) => theme.text2};
 `
 
-function PinnedData({ open, setSavedOpen }) {
+function PinnedData() {
   const router = useRouter()
-  const { savedProtocols, removeProtocol } = useSavedProtocols()
+  const { savedProtocols, removeProtocol, pinnedOpen, setPinnedOpen } = useSavedProtocols()
 
   const allProtocols = Object.keys(savedProtocols).reduce((acc, protocol) => {
     acc.push(...(Object.entries(savedProtocols[protocol]) || []))
     return acc
   }, [])
 
-  return !open ? (
-    <RightColumn open={open} onClick={() => setSavedOpen(true)}>
-      <SavedButton open={open}>
+  return !pinnedOpen ? (
+    <RightColumn open={pinnedOpen} onClick={() => setPinnedOpen(true)}>
+      <SavedButton open={pinnedOpen}>
         <StyledIcon>
           <Bookmark size={20} />
         </StyledIcon>
       </SavedButton>
     </RightColumn>
   ) : (
-    <RightColumn gap="1rem" open={open}>
-      <SavedButton onClick={() => setSavedOpen(false)} open={open}>
+    <RightColumn gap="1rem" open={pinnedOpen}>
+      <SavedButton onClick={() => setPinnedOpen(false)} open={pinnedOpen}>
         <RowFixed>
           <StyledIcon>
             <Bookmark size={16} />
