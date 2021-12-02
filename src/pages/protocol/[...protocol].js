@@ -9,9 +9,8 @@ export async function getStaticProps({
     protocol: [protocol, selectedChain = 'all', denomination = null]
   }
 }) {
-  const { protocolsDict } = await getProtocols()
   const protocolRes = await getProtocol(protocol)
-  const protocolData = fuseProtocolData(protocolsDict, protocolRes, protocol)
+  const protocolData = fuseProtocolData(protocolRes, protocol)
 
   return {
     props: {

@@ -17,12 +17,34 @@ const Image = styled(NextImage)`
   box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.075);
 `
 // next/image won't work, idk why
-export default function TokenLogo({ logo = null, header = false, size = 24, style, ...rest }) {
+export default function TokenLogo({
+  logo = null,
+  header = false,
+  external = false /* TODO: temporary fix */,
+  size = 24,
+  style,
+  ...rest
+}) {
   const [error, setError] = useState(false)
 
   useEffect(() => {
     setError(false)
   }, [logo])
+
+  if (external) {
+    return (
+      <Inline>
+        <Image
+          {...rest}
+          alt={''}
+          src={`/api/image?url=${encodeURIComponent(logo)}`}
+          height={size}
+          width={size}
+          layout="fixed"
+        />
+      </Inline>
+    )
+  }
 
   if (error || BAD_IMAGES[logo]) {
     return (

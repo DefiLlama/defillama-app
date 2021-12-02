@@ -6,7 +6,7 @@ export const chainCoingeckoIds = {
   },
   Arbitrum: {
     geckoId: null,
-    symbol: null,
+    symbol: 'ETH',
     cmcId: '11841'
   },
   Palm: {
@@ -319,20 +319,35 @@ export const chainCoingeckoIds = {
     cmcId: '3635'
   },
   ImmutableX: {
-    geckoId: "",
-    symbol: "ETH",
-    cmcId: ""
+    geckoId: '',
+    symbol: 'ETH',
+    cmcId: ''
   },
   Metis: {
-    geckoId: "metis-token",
-    symbol: "METIS",
-    cmcId: "9640",
+    geckoId: 'metis-token',
+    symbol: 'METIS',
+    cmcId: '9640'
   },
   Ubiq: {
-    geckoId: "ubiq",
-    symbol: "UBQ",
-    cmcId: "588",
-  }
+    geckoId: 'ubiq',
+    symbol: 'UBQ',
+    cmcId: '588'
+  },
+  Mixin: {
+    geckoId: 'mixin',
+    symbol: 'XIN',
+    cmcId: '2349'
+  },
+  Everscale: {
+    geckoId: 'ton-crystal',
+    symbol: 'EVER',
+    cmcId: '7505'
+  },
+  VeChain: {
+    geckoId: "vechain",
+    symbol: "VET",
+    cmcId: "3077",
+  },
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
