@@ -342,7 +342,12 @@ export const chainCoingeckoIds = {
     geckoId: 'ton-crystal',
     symbol: 'EVER',
     cmcId: '7505'
-  }
+  },
+  VeChain: {
+    geckoId: "vechain",
+    symbol: "VET",
+    cmcId: "3077",
+  },
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
