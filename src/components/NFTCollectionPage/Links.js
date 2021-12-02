@@ -32,9 +32,10 @@ export default function Links({ logo, links }) {
   const icons = {
     website: (
       <IconWrapper>
-        <TokenLogo logo={logo} size={32} style={{ alignSelf: 'center' }} />
+        <TokenLogo logo={logo} size={32} style={{ alignSelf: 'center' }} external />
       </IconWrapper>
     )
+    // TODO add icons
     //discord: <IconWrapper><Discord size={size} color={color} /></IconWrapper>,
     //telegram: <IconWrapper><Telegram size={size} color={color} /></IconWrapper>,
     //twitter: <IconWrapper><Twitter size={size} color={color} /></IconWrapper>,
