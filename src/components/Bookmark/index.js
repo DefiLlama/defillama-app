@@ -1,7 +1,8 @@
 import { Bookmark as BookmarkIcon } from 'react-feather'
 import styled from 'styled-components'
 
-import { useSavedTokens } from 'contexts/LocalStorage'
+import { useSavedProtocols } from 'contexts/LocalStorage'
+import { useIsClient } from 'hooks'
 import { standardizeProtocolName } from 'utils'
 
 const StyledBookmark = styled(BookmarkIcon)`
@@ -14,15 +15,16 @@ const StyledBookmark = styled(BookmarkIcon)`
 `
 // readableProtocolName has proper caps and spaces
 function Bookmark({ readableProtocolName, style }) {
-  const { savedTokens, addToken, removeToken } = useSavedTokens()
+  const { savedProtocols, addProtocol, removeProtocol } = useSavedProtocols()
+  const isClient = useIsClient()
 
-  const isSaved = savedTokens[standardizeProtocolName(readableProtocolName)]
-  console.log(isSaved, 'issaved')
+  // isClient for local storage
+  const isSaved = savedProtocols[standardizeProtocolName(readableProtocolName)] && isClient
 
   return (
     <StyledBookmark
       isSaved={isSaved}
-      onClick={isSaved ? () => removeToken(readableProtocolName) : () => addToken(readableProtocolName)}
+      onClick={isSaved ? () => removeProtocol(readableProtocolName) : () => addProtocol(readableProtocolName)}
       style={style}
     />
   )

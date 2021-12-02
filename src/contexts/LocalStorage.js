@@ -64,7 +64,7 @@ function init() {
     [DISPLAY_USD]: false,
     [DISMISSED_PATHS]: {},
     [SAVED_ACCOUNTS]: [],
-    [SAVED_TOKENS]: {},
+    [SAVED_TOKENS]: { main: {} },
     [SAVED_PAIRS]: {}
   }
 
@@ -98,18 +98,27 @@ export default function Provider({ children }) {
 export function Updater() {
   const [state] = useLocalStorageContext()
 
-  // Change format from save addresses to save protocol names
-  const savedTokens = state[SAVED_TOKENS]
-  const newSavedTokens = Object.fromEntries(
-    Object.entries(savedTokens).map(([key, value]) =>
-      value?.protocol ? [standardizeProtocolName(value?.protocol), true] : value ? [key, value] : []
-    )
-  )
+  // Change format from save addresses to save protocol names, so backwards compatible
+
+  const savedProtocols = state[SAVED_TOKENS]
+  // const savedProtocols = { '0xD533a949740bb3306d119CC777fa900bA034cd52': { protocol: 'Curve' } }
+
+  const hasNullSaved = Object.entries(savedProtocols).some(([, value]) => value?.protocol === null)
+
+  const oldAddresses = Object.entries(savedProtocols)
+    .map(([, value]) => (value?.protocol ? [standardizeProtocolName(value?.protocol), value?.protocol] : []))
+    .filter(validPairs => validPairs.length)
+
+  const newSavedProtocols = oldAddresses.length
+    ? { main: Object.fromEntries(oldAddresses) }
+    : hasNullSaved
+    ? { main: {} }
+    : savedProtocols
 
   useEffect(() => {
     window.localStorage.setItem(
       UNISWAP,
-      JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000), [SAVED_TOKENS]: newSavedTokens })
+      JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000), [SAVED_TOKENS]: newSavedProtocols })
     )
   })
 
@@ -223,21 +232,36 @@ export function useSavedPairs() {
 }
 
 // Since we are only using protocol name as the unique identifier for the /protcol/:name route, change keys to be unique by name for now.
-export function useSavedTokens() {
+export function useSavedProtocols() {
   const [state, { updateKey }] = useLocalStorageContext()
-  const savedTokens = state?.[SAVED_TOKENS]
+  const savedProtocols = state?.[SAVED_TOKENS]
 
-  function addToken(readableProtocolName) {
-    let newList = state?.[SAVED_TOKENS]
-    newList[standardizeProtocolName(readableProtocolName)] = readableProtocolName
+  function addPortfolio(portfolio) {
+    const newList = state?.[SAVED_TOKENS]
+    newList[portfolio] = {}
     updateKey(SAVED_TOKENS, newList)
   }
 
-  function removeToken(protocol) {
-    let newList = state?.[SAVED_TOKENS]
-    delete newList[standardizeProtocolName(protocol)]
+  function removePortfolio(portfolio) {
+    const newList = state?.[SAVED_TOKENS]
+    delete newList?.[portfolio]
     updateKey(SAVED_TOKENS, newList)
   }
 
-  return { savedTokens, addToken, removeToken }
+  function addProtocol(readableProtocolName, portfolio = 'main') {
+    let newList = state?.[SAVED_TOKENS]
+    newList[portfolio] = {
+      ...(newList[portfolio] || {}),
+      [standardizeProtocolName(readableProtocolName)]: readableProtocolName
+    }
+    updateKey(SAVED_TOKENS, newList)
+  }
+
+  function removeProtocol(protocol, portfolio = 'main') {
+    let newList = state?.[SAVED_TOKENS]
+    delete newList?.[portfolio]?.[standardizeProtocolName(protocol)]
+    updateKey(SAVED_TOKENS, newList)
+  }
+
+  return { savedProtocols, addProtocol, removeProtocol, addPortfolio, removePortfolio }
 }

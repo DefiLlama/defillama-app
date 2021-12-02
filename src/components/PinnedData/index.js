@@ -9,7 +9,7 @@ import FormattedName from 'components/FormattedName'
 import { RowBetween, RowFixed } from 'components/Row'
 import TokenLogo from 'components/TokenLogo'
 
-import { useSavedTokens } from 'contexts/LocalStorage'
+import { useSavedProtocols } from 'contexts/LocalStorage'
 import { TYPE } from 'Theme'
 import { tokenIconUrl } from 'utils'
 
@@ -52,7 +52,12 @@ const StyledIcon = styled.div`
 
 function PinnedData({ open, setSavedOpen }) {
   const router = useRouter()
-  const { savedTokens, removeToken } = useSavedTokens()
+  const { savedProtocols, removeProtocol } = useSavedProtocols()
+
+  const allProtocols = Object.keys(savedProtocols).reduce((acc, protocol) => {
+    acc.push(...(Object.entries(savedProtocols[protocol]) || []))
+    return acc
+  }, [])
 
   return !open ? (
     <RightColumn open={open} onClick={() => setSavedOpen(true)}>
@@ -78,12 +83,11 @@ function PinnedData({ open, setSavedOpen }) {
       <AutoColumn gap="40px" style={{ marginTop: '2rem' }}>
         <ScrollableDiv gap={'12px'}>
           <TYPE.main>Pinned Protocols</TYPE.main>
-          {Object.keys(savedTokens).length > 0 ? (
-            Object.keys(savedTokens).map(protocol => {
-              const readableProtocolName = savedTokens[protocol]
+          {allProtocols.length > 0 ? (
+            allProtocols.map(([protocol, readableProtocolName]) => {
               return (
                 <RowBetween key={protocol}>
-                  <ButtonFaded onClick={() => router.push('/protocol/' + protocol.toLowerCase().replace(' ', '-'))}>
+                  <ButtonFaded onClick={() => router.push('/protocol/' + protocol)}>
                     <RowFixed>
                       <TokenLogo logo={tokenIconUrl(protocol)} size={14} />
                       <TYPE.header ml={'6px'}>
@@ -91,7 +95,7 @@ function PinnedData({ open, setSavedOpen }) {
                       </TYPE.header>
                     </RowFixed>
                   </ButtonFaded>
-                  <Hover onClick={() => removeToken(protocol)}>
+                  <Hover onClick={() => removeProtocol(protocol)}>
                     <StyledIcon>
                       <X size={16} />
                     </StyledIcon>
