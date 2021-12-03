@@ -44,6 +44,7 @@ const BlueCheck = styled(Check)`
 const PortfolioMenu = ({
   portfolios,
   protocolName,
+  readableProtocolName,
   savedProtocols,
   addProtocol,
   removeProtocol,
@@ -55,9 +56,9 @@ const PortfolioMenu = ({
         const protocolAdded = savedProtocols[portfolio][protocolName]
         const onClick = () => {
           if (protocolAdded) {
-            removeProtocol(protocolName, portfolio)
+            removeProtocol(readableProtocolName, portfolio)
           } else {
-            addProtocol(protocolName, portfolio)
+            addProtocol(readableProtocolName, portfolio)
           }
           setOpenPortfolioMenu(false)
         }
@@ -102,8 +103,8 @@ function Bookmark({ readableProtocolName, style }) {
   const onClick =
     portfolios.length === 1
       ? isSaved
-        ? () => removeProtocol(protocolName)
-        : () => addProtocol(protocolName)
+        ? () => removeProtocol(readableProtocolName)
+        : () => addProtocol(readableProtocolName)
       : () => setOpenPortfolioMenu(true)
 
   return (
@@ -112,11 +113,12 @@ function Bookmark({ readableProtocolName, style }) {
       show={openPortfolioMenu && hasManyPortfolios}
       content={
         <PortfolioMenu
+          addProtocol={addProtocol}
           portfolios={portfolios}
           protocolName={protocolName}
-          savedProtocols={savedProtocols}
-          addProtocol={addProtocol}
+          readableProtocolName={readableProtocolName}
           removeProtocol={removeProtocol}
+          savedProtocols={savedProtocols}
           setOpenPortfolioMenu={setOpenPortfolioMenu}
         />
       }
