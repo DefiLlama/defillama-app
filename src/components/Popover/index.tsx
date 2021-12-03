@@ -1,6 +1,6 @@
 import { Placement } from '@popperjs/core'
 import { transparentize } from 'polished'
-import React, { useState, forwardRef } from 'react'
+import React, { useState } from 'react'
 import { usePopper } from 'react-popper'
 import styled from 'styled-components'
 import Portal from '@reach/portal'
@@ -83,10 +83,7 @@ export interface PopoverProps {
   arrow?: boolean
 }
 
-export default forwardRef<any>(function Popover(
-  { content, show, children, placement = 'auto', arrow = true }: PopoverProps,
-  ref
-) {
+export default function Popover({ content, show, children, placement = 'auto', arrow = true }: PopoverProps) {
   const [referenceElement, setReferenceElement] = useState<HTMLDivElement>(null)
   const [popperElement, setPopperElement] = useState<HTMLDivElement>(null)
   const [arrowElement, setArrowElement] = useState<HTMLDivElement>(null)
@@ -114,19 +111,17 @@ export default forwardRef<any>(function Popover(
           onMouseEnter={() => setMouseInContainer(true)}
           onMouseLeave={() => setMouseInContainer(false)}
         >
-          <span ref={ref}>
-            {content}
-            {arrow && (
-              <Arrow
-                className={`arrow-${attributes.popper?.['data-popper-placement'] ?? ''}`}
-                ref={setArrowElement}
-                style={styles.arrow}
-                {...attributes.arrow}
-              />
-            )}
-          </span>
+          {content}
+          {arrow && (
+            <Arrow
+              className={`arrow-${attributes.popper?.['data-popper-placement'] ?? ''}`}
+              ref={setArrowElement}
+              style={styles.arrow}
+              {...attributes.arrow}
+            />
+          )}
         </PopoverContainer>
       </Portal>
     </>
   )
-})
+}
