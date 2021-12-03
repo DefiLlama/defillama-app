@@ -152,13 +152,12 @@ export const getProtocol = protocolName => {
 export const fuseProtocolData = (protocolData, protocol) => {
   const historicalChainTvls = protocolData?.chainTvls ?? {}
   const chainTvls = protocolData.currentChainTvls ?? {}
+  const tvl = protocolData?.tvl ?? []
 
   return {
     ...protocolData,
-    tvl: protocolData?.tvl.length > 0 ? protocolData?.tvl[protocolData?.tvl.length - 1]?.totalLiquidityUSD : 0,
-    tvlList: protocolData?.tvl
-      .filter(item => item.date)
-      .map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
+    tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
+    tvlList: tvl.filter(item => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
     historicalChainTvls,
     chainTvls
   }
