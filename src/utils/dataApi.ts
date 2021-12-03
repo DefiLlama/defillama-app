@@ -6,8 +6,8 @@ import {
   NFT_COLLECTIONS_API,
   NFT_COLLECTION_API,
   NFT_CHARTS_API,
-  NFT_COLLECTIONS_CHARTS_API,
-  NFT_CHAINS_CHARTS_API,
+  NFT_COLLECTION_CHARTS_API,
+  NFT_CHAIN_CHARTS_API,
   NFT_STATISTICS_API,
   NFT_CHAINS_STATISTICS_API
 } from '../constants/index'
@@ -152,13 +152,12 @@ export const getProtocol = protocolName => {
 export const fuseProtocolData = (protocolData, protocol) => {
   const historicalChainTvls = protocolData?.chainTvls ?? {}
   const chainTvls = protocolData.currentChainTvls ?? {}
+  const tvl = protocolData?.tvl ?? []
 
   return {
     ...protocolData,
-    tvl: protocolData?.tvl.length > 0 ? protocolData?.tvl[protocolData?.tvl.length - 1]?.totalLiquidityUSD : 0,
-    tvlList: protocolData?.tvl
-      .filter(item => item.date)
-      .map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
+    tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
+    tvlList: tvl.filter(item => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
     historicalChainTvls,
     chainTvls
   }
@@ -218,7 +217,7 @@ export const getNFTCollection = async slug => {
 
 export const getNFTCollectionChartData = async slug => {
   try {
-    const chartData = await fetch(`${NFT_COLLECTIONS_CHARTS_API}/${slug}/dailyVolumeBase`).then(r => r.json())
+    const chartData = await fetch(`${NFT_COLLECTION_CHARTS_API}/${slug}/dailyVolumeBase`).then(r => r.json())
     return chartData.map(data => ({
       dailyVolume: data.dailyVolumeBase,
       ...data
@@ -238,7 +237,7 @@ export const getNFTChainsData = async () => {
 
 export const getNFTChainChartData = async chain => {
   try {
-    const chartData = await fetch(`${NFT_CHAINS_CHARTS_API}/${chain}/dailyVolumeBase`).then(r => r.json())
+    const chartData = await fetch(`${NFT_CHAIN_CHARTS_API}/${chain}/dailyVolumeBase`).then(r => r.json())
     return chartData.map(data => ({
       dailyVolume: data.dailyVolumeBase,
       ...data
