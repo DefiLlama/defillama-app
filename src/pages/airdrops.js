@@ -15,11 +15,10 @@ const exclude = [
   'Tinlake'
 ]
 
-export async function getStaticProps({ params }) {
+export async function getStaticProps() {
   const res = await fetch(PROTOCOLS_API).then(r => r.json())
   const protocols = res.protocols.filter(
-    token =>
-      token.name === 'DeversiFi' || ((token.symbol === null || token.symbol === '-') && !exclude.includes(token.name))
+    token => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name)
   )
   return {
     props: {
