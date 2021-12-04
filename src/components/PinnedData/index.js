@@ -18,12 +18,17 @@ const RightColumn = styled.div`
   position: fixed;
   right: 0;
   top: 0px;
-  height: 100vh;
+  height: calc(100vh - 2.5rem);
   width: ${({ open }) => (open ? '160px' : '23px')};
   padding: 1.25rem;
   border-left: ${({ theme, open }) => '1px solid' + theme.bg3};
   background-color: ${({ theme }) => theme.bg1};
   z-index: 9999;
+  overflow: scroll;
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
 
   @media screen and (max-width: ${({ theme }) => theme.bpLg}) {
     display: none;
@@ -69,7 +74,7 @@ const PortfolioDropdown = ({ portfolio, removeProtocol, router, savedProtocols }
   const togglePortfolio = () => (openPortfolio ? setOpenPortfolio(false) : setOpenPortfolio(true))
 
   return (
-    <ColumnCenter>
+    <ColumnCenter style={{ marginBottom: '1rem' }}>
       <PortfolioHeader onClick={togglePortfolio}>
         <TYPE.main>{portfolio}</TYPE.main>
         {openPortfolio ? <StyledChevronUp /> : <StyledChevronDown />}
@@ -127,7 +132,7 @@ function PinnedData() {
           <ChevronRight />
         </StyledIcon>
       </SavedButton>
-      <AutoColumn gap="40px" style={{ marginTop: '2rem' }}>
+      <AutoColumn gap="40px">
         <ScrollableDiv gap={'12px'}>
           {hasSaved ? (
             portfolios.map(portfolio => (
