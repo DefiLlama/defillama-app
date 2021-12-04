@@ -125,7 +125,7 @@ const NFTDashboard = ({
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-              {dailyChange.toFixed(2)}%
+              {dailyChange?.toFixed(2)}%
             </TYPE.main>
           </RowBetween>
         </AutoColumn>

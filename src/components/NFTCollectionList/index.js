@@ -138,7 +138,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
         <DataText area="name" fontWeight="500">
           <Row>
             {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index + 1}</div>}
-            <TokenLogo address={item.address} logo={item.logo} />
+            <TokenLogo address={item.address} logo={item.logo} external />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
               href={'/nfts/collection/' + item.slug}

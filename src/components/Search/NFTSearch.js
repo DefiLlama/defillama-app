@@ -16,7 +16,7 @@ import { fetchAPI } from '../../contexts/API'
 import { NFT_SEARCH_API } from '../../constants'
 
 const NFTSearch = ({ small = false }) => {
-  const linkPath = (collection) => `/nfts/collection/${collection.slug}`
+  const linkPath = collection => `/nfts/collection/${collection.slug}`
 
   const [showMenu, toggleMenu] = useState(false)
   const [value, setValue] = useState('')
@@ -40,8 +40,7 @@ const NFTSearch = ({ small = false }) => {
     const url = `${NFT_SEARCH_API}?searchTerm=${value}`
     const tokens = await fetchAPI(url)
     setSearchResults(tokens)
-  }, [value]);
-
+  }, [value])
 
   function onDismiss() {
     setTokensShown(3)
@@ -76,10 +75,16 @@ const NFTSearch = ({ small = false }) => {
   }, [])
 
   return (
-    <div style={small ? {
-      display: 'flex',
-      alignItems: 'center'
-    } : {}}>
+    <div
+      style={
+        small
+          ? {
+              display: 'flex',
+              alignItems: 'center'
+            }
+          : {}
+      }
+    >
       <Container small={small}>
         <Wrapper open={showMenu} shadow={true} small={small}>
           <Input
@@ -92,12 +97,12 @@ const NFTSearch = ({ small = false }) => {
               small
                 ? ''
                 : below410
-                  ? 'Search...'
-                  : below470
-                    ? 'Search NFTs...'
-                    : below700
-                      ? 'Search collections...'
-                      : 'Search NFT collections...'
+                ? 'Search...'
+                : below470
+                ? 'Search NFTs...'
+                : below700
+                ? 'Search collections...'
+                : 'Search NFT collections...'
             }
             value={value}
             onChange={e => {
@@ -121,14 +126,10 @@ const NFTSearch = ({ small = false }) => {
             )}
             {searchResults.slice(0, tokensShown).map(token => {
               return (
-                <BasicLink
-                  href={linkPath(token)}
-                  key={token.id}
-                  onClick={onDismiss}
-                >
+                <BasicLink href={linkPath(token)} key={token.id} onClick={onDismiss}>
                   <MenuItem>
                     <RowFixed>
-                      <TokenLogo address={token.address} logo={token.logo} style={{ marginRight: '10px' }} />
+                      <TokenLogo address={token.address} logo={token.logo} style={{ marginRight: '10px' }} external />
                       <FormattedName text={token.name} maxCharacters={20} style={{ marginRight: '6px' }} />
                       (<FormattedName text={token.symbol} maxCharacters={6} />)
                     </RowFixed>
@@ -152,6 +153,6 @@ const NFTSearch = ({ small = false }) => {
       {small && <RightSettings />}
     </div>
   )
-};
+}
 
-export default NFTSearch;
+export default NFTSearch
