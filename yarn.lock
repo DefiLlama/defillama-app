@@ -6354,6 +6354,11 @@ fastq@^1.6.0:
   dependencies:
     reusify "^1.0.4"
 
+fathom-client@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/fathom-client/-/fathom-client-3.2.0.tgz#781c0b11db90e0ffc5061709dc890a1d2b94ef62"
+  integrity sha512-WF/qA5wXYSuA5K8uiIhGNbErOcTAmfLEWrBxWP2px2dEc9waH9zxjdh9k0F907VCBhdJrv+f7V3HT/Pmro40zA==
+
 faye-websocket@^0.11.3:
   version "0.11.4"
   resolved "https://registry.yarnpkg.com/faye-websocket/-/faye-websocket-0.11.4.tgz#7f0d9275cfdd86a1c963dc8b65fcc451edcbb1da"
@@ -11070,14 +11075,6 @@ react-is@^16.10.2, react-is@^16.6.0, react-is@^16.7.0, react-is@^16.8.1:
   version "16.13.1"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
   integrity sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==
-
-react-lazy-load-image-component@^1.5.1:
-  version "1.5.1"
-  resolved "https://registry.yarnpkg.com/react-lazy-load-image-component/-/react-lazy-load-image-component-1.5.1.tgz#59cc92326ba5604e9c4a86805a2cf1667fafbc71"
-  integrity sha512-grTEZzURLHPkq7JoipcBBQU44ijdF4fH3Cb+eSD5eSAaMsjugbXqTaVWm5ruPUNLduoNR9KKQF6bOR9h2WphEg==
-  dependencies:
-    lodash.debounce "^4.0.8"
-    lodash.throttle "^4.1.1"
 
 react-lifecycles-compat@^3.0.4:
   version "3.0.4"
