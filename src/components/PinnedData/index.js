@@ -24,9 +24,6 @@ const RightColumn = styled.div`
   border-left: ${({ theme, open }) => '1px solid' + theme.bg3};
   background-color: ${({ theme }) => theme.bg1};
   z-index: 9999;
-  :hover {
-    cursor: pointer;
-  }
 
   @media screen and (max-width: ${({ theme }) => theme.bpLg}) {
     display: none;
@@ -63,20 +60,19 @@ const PortfolioHeader = styled(RowBetween)`
   border-bottom: ${({ theme }) => '1px solid' + theme.bg3};
   padding: 1rem 0;
   margin-bottom: 1rem;
+  cursor: pointer;
 `
 
 const PortfolioDropdown = ({ portfolio, removeProtocol, router, savedProtocols }) => {
   const [openPortfolio, setOpenPortfolio] = useState(portfolio === 'main')
 
+  const togglePortfolio = () => (openPortfolio ? setOpenPortfolio(false) : setOpenPortfolio(true))
+
   return (
     <ColumnCenter>
-      <PortfolioHeader>
+      <PortfolioHeader onClick={togglePortfolio}>
         <TYPE.main>{portfolio}</TYPE.main>
-        {openPortfolio ? (
-          <StyledChevronUp onClick={() => setOpenPortfolio(false)} />
-        ) : (
-          <StyledChevronDown onClick={() => setOpenPortfolio(true)} />
-        )}
+        {openPortfolio ? <StyledChevronUp /> : <StyledChevronDown />}
       </PortfolioHeader>
       {openPortfolio && (
         <ColumnCenter style={{ gap: '12px' }}>
