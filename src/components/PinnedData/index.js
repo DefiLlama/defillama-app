@@ -1,10 +1,11 @@
 import { useRouter } from 'next/router'
-import { Bookmark, ChevronRight, X } from 'react-feather'
+import { useState } from 'react'
+import { Bookmark, ChevronRight, X, ChevronUp, ChevronDown } from 'react-feather'
 import styled from 'styled-components'
 
 import { Hover } from 'components'
 import { ButtonFaded } from 'components/ButtonStyled'
-import { AutoColumn } from 'components/Column'
+import { ColumnCenter, AutoColumn } from 'components/Column'
 import FormattedName from 'components/FormattedName'
 import { RowBetween, RowFixed } from 'components/Row'
 import TokenLogo from 'components/TokenLogo'
@@ -46,18 +47,68 @@ const ScrollableDiv = styled(AutoColumn)`
   overflow: auto;
 `
 
+const StyledChevronUp = styled(ChevronUp)`
+  stroke: ${({ theme }) => theme.text1};
+`
+
+const StyledChevronDown = styled(ChevronDown)`
+  stroke: ${({ theme }) => theme.text1};
+`
+
 const StyledIcon = styled.div`
   color: ${({ theme }) => theme.text2};
 `
 
+const PortfolioHeader = styled(RowBetween)`
+  border-bottom: ${({ theme }) => '1px solid' + theme.bg3};
+  padding: 1rem 0;
+  margin-bottom: 1rem;
+`
+
+const PortfolioDropdown = ({ portfolio, removeProtocol, router, savedProtocols }) => {
+  const [openPortfolio, setOpenPortfolio] = useState(portfolio === 'main')
+
+  return (
+    <ColumnCenter>
+      <PortfolioHeader>
+        <TYPE.main>{portfolio}</TYPE.main>
+        {openPortfolio ? (
+          <StyledChevronUp onClick={() => setOpenPortfolio(false)} />
+        ) : (
+          <StyledChevronDown onClick={() => setOpenPortfolio(true)} />
+        )}
+      </PortfolioHeader>
+      {openPortfolio && (
+        <ColumnCenter style={{ gap: '12px' }}>
+          {Object.entries(savedProtocols[portfolio]).map(([protocol, readableProtocolName]) => (
+            <RowBetween key={protocol}>
+              <ButtonFaded onClick={() => router.push('/protocol/' + protocol)}>
+                <RowFixed>
+                  <TokenLogo logo={tokenIconUrl(protocol)} size={14} />
+                  <TYPE.header ml={'6px'}>
+                    <FormattedName text={readableProtocolName} maxCharacters={12} fontSize={'12px'} />
+                  </TYPE.header>
+                </RowFixed>
+              </ButtonFaded>
+              <Hover onClick={() => removeProtocol(protocol, portfolio)}>
+                <StyledIcon>
+                  <X size={16} />
+                </StyledIcon>
+              </Hover>
+            </RowBetween>
+          ))}
+        </ColumnCenter>
+      )}
+    </ColumnCenter>
+  )
+}
 function PinnedData() {
   const router = useRouter()
   const { savedProtocols, removeProtocol, pinnedOpen, setPinnedOpen } = useSavedProtocols()
 
-  const allProtocols = Object.keys(savedProtocols).reduce((acc, protocol) => {
-    acc.push(...(Object.entries(savedProtocols[protocol]) || []))
-    return acc
-  }, [])
+  const portfolios = Object.keys(savedProtocols)
+
+  const hasSaved = portfolios.some(portfolio => Object.keys(savedProtocols[portfolio]).length)
 
   return !pinnedOpen ? (
     <RightColumn open={pinnedOpen} onClick={() => setPinnedOpen(true)}>
@@ -82,29 +133,17 @@ function PinnedData() {
       </SavedButton>
       <AutoColumn gap="40px" style={{ marginTop: '2rem' }}>
         <ScrollableDiv gap={'12px'}>
-          <TYPE.main>Pinned Protocols</TYPE.main>
-          {allProtocols.length > 0 ? (
-            allProtocols.map(([protocol, readableProtocolName]) => {
-              return (
-                <RowBetween key={protocol}>
-                  <ButtonFaded onClick={() => router.push('/protocol/' + protocol)}>
-                    <RowFixed>
-                      <TokenLogo logo={tokenIconUrl(protocol)} size={14} />
-                      <TYPE.header ml={'6px'}>
-                        <FormattedName text={readableProtocolName} maxCharacters={12} fontSize={'12px'} />
-                      </TYPE.header>
-                    </RowFixed>
-                  </ButtonFaded>
-                  <Hover onClick={() => removeProtocol(protocol)}>
-                    <StyledIcon>
-                      <X size={16} />
-                    </StyledIcon>
-                  </Hover>
-                </RowBetween>
-              )
-            })
+          {hasSaved ? (
+            portfolios.map(portfolio => (
+              <PortfolioDropdown
+                removeProtocol={removeProtocol}
+                router={router}
+                savedProtocols={savedProtocols}
+                portfolio={portfolio}
+              />
+            ))
           ) : (
-            <TYPE.light>Pinned protocols will appear here.</TYPE.light>
+            <TYPE.light>Saved protocols will appear here.</TYPE.light>
           )}
         </ScrollableDiv>
       </AutoColumn>
