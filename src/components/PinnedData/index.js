@@ -133,7 +133,7 @@ function PinnedData() {
         </StyledIcon>
       </SavedButton>
       <AutoColumn gap="40px">
-        <ScrollableDiv gap={'12px'}>
+        <ScrollableDiv>
           {hasSaved ? (
             portfolios.map(portfolio => (
               <PortfolioDropdown
