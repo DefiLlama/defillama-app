@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/router'
-import { TrendingUp, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock } from 'react-feather'
+import { TrendingUp, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock, Bookmark } from 'react-feather'
 
 import { DesktopWrapper, Entry, MobileWrapper, Option, Wrapper, Footer, ButtonWrapper, Desktop, Mobile } from './shared'
 import { AutoColumn } from '../Column'
@@ -11,16 +11,15 @@ import NavMenuButton from './NavMenuButton'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
 import categories from '../../constants/categories'
 
-function SideNav() {
-  const [showMobileNavMenu, setShowMobileNavMenu] = useState(false)
-  const [isDark, toggleDarkMode] = useDarkModeManager()
+const NavMenu = ({ isMobile }) => {
   const router = useRouter()
   const history = { location: { pathname: router.pathname } }
 
-  const NavMenu = () => (
+  return (
     <AutoColumn gap="1.25rem" style={{ marginTop: '1rem' }}>
       <Entry url="" name="Overview" history={history} Icon={TrendingUp} />
       <Entry url="chains" name="Chains" history={history} Icon={LinkLogo} />
+      {!isMobile && <Entry url="portfolio" name="Portfolio" history={history} Icon={Bookmark} />}
       <Entry url="airdrops" name="Airdrops" history={history} Icon={CloudDrizzle} />
       <Entry url="comparison" name="Comparison" history={history} Icon={Minimize2} />
       <Entry url="recent" name="Recent" history={history} Icon={Clock} />
@@ -41,6 +40,11 @@ function SideNav() {
       <Entry url="about" name="About" history={history} Icon={HelpCircle} />
     </AutoColumn>
   )
+}
+
+function SideNav() {
+  const [showMobileNavMenu, setShowMobileNavMenu] = useState(false)
+  const [isDark, toggleDarkMode] = useDarkModeManager()
 
   return (
     <>
@@ -53,7 +57,7 @@ function SideNav() {
               <NavMenuButton setShow={setShowMobileNavMenu} show={showMobileNavMenu} />
             </ButtonWrapper>
           </MobileWrapper>
-          {showMobileNavMenu && <NavMenu />}
+          {showMobileNavMenu && <NavMenu isMobile />}
         </Wrapper>
       </Mobile>
       <Desktop>
@@ -61,7 +65,7 @@ function SideNav() {
           <DesktopWrapper>
             <AutoColumn gap="1rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }}>
               <Title />
-              <NavMenu />
+              <NavMenu isMobile={false} />
             </AutoColumn>
             <Footer isDark={isDark} toggleDarkMode={toggleDarkMode} />
           </DesktopWrapper>

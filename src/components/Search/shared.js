@@ -28,7 +28,6 @@ export const Wrapper = styled.div`
   border-bottom-left-radius: ${({ open }) => (open ? '0px' : '12px')};
   z-index: 9999;
   width: 100%;
-  min-width: 300px;
   box-sizing: border-box;
   box-shadow: ${({ open, small }) =>
     !open && !small
@@ -37,9 +36,9 @@ export const Wrapper = styled.div`
   @media screen and (max-width: 500px) {
     background: ${({ theme }) => transparentize(0.4, theme.bg1)};
     box-shadow: ${({ open }) =>
-    !open
-      ? '0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04) '
-      : 'none'};
+      !open
+        ? '0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04) '
+        : 'none'};
   }
 `
 export const Input = styled.input`

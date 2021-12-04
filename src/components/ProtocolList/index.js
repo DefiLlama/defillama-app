@@ -55,7 +55,7 @@ function AllTokensPage({
       <FullWrapper>
         <RowBetween>
           <TYPE.largeHeader>{title}</TYPE.largeHeader>
-          {!below600 && <Search small={true} />}
+          <Search />
         </RowBetween>
         {showChainList && (
           <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>

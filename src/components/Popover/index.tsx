@@ -1,6 +1,6 @@
 import { Placement } from '@popperjs/core'
 import { transparentize } from 'polished'
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import { usePopper } from 'react-popper'
 import styled from 'styled-components'
 import Portal from '@reach/portal'
@@ -80,9 +80,10 @@ export interface PopoverProps {
   show: boolean
   children: React.ReactNode
   placement?: Placement
+  arrow?: boolean
 }
 
-export default function Popover({ content, show, children, placement = 'auto' }: PopoverProps) {
+export default function Popover({ content, show, children, placement = 'auto', arrow = true }: PopoverProps) {
   const [referenceElement, setReferenceElement] = useState<HTMLDivElement>(null)
   const [popperElement, setPopperElement] = useState<HTMLDivElement>(null)
   const [arrowElement, setArrowElement] = useState<HTMLDivElement>(null)
@@ -111,12 +112,14 @@ export default function Popover({ content, show, children, placement = 'auto' }:
           onMouseLeave={() => setMouseInContainer(false)}
         >
           {content}
-          <Arrow
-            className={`arrow-${attributes.popper?.['data-popper-placement'] ?? ''}`}
-            ref={setArrowElement}
-            style={styles.arrow}
-            {...attributes.arrow}
-          />
+          {arrow && (
+            <Arrow
+              className={`arrow-${attributes.popper?.['data-popper-placement'] ?? ''}`}
+              ref={setArrowElement}
+              style={styles.arrow}
+              {...attributes.arrow}
+            />
+          )}
         </PopoverContainer>
       </Portal>
     </>

@@ -1,12 +1,12 @@
 import React from 'react'
 import dynamic from 'next/dynamic'
-import { Bookmark } from 'react-feather'
 import { Text, Box } from 'rebass'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 
-import { PageWrapper, ContentWrapper, StyledIcon } from 'components'
+import { PageWrapper, ContentWrapper } from 'components'
 import AuditInfo from 'components/AuditInfo'
+import Bookmark from 'components/Bookmark'
 import { ButtonLight } from 'components/ButtonStyled'
 import Column, { AutoColumn } from 'components/Column'
 import CopyHelper from 'components/Copy'
@@ -19,7 +19,7 @@ import Search from 'components/Search'
 import { CheckMarks } from 'components/SettingsModal'
 import TokenLogo from 'components/TokenLogo'
 
-import { useSavedTokens, useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
+import { useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
 import { useScrollToTop, useProtocolColor } from 'hooks'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum, getBlockExplorer, toK } from 'utils'
@@ -39,15 +39,6 @@ const HiddenSearch = styled.span`
 const HiddenBookmark = styled.span`
   @media screen and (max-width: ${({ theme }) => theme.bpLg}) {
     display: none;
-  }
-`
-
-const StyledBookmark = styled(Bookmark)`
-  cursor: pointer;
-  fill: ${({ theme: { text1 }, isSaved }) => (isSaved ? text1 : 'none')};
-
-  path {
-    stroke: ${({ theme: { text1 } }) => text1};
   }
 `
 
@@ -150,10 +141,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
 
   // TODO check if we still need to format long symbols?
 
-  const { savedTokens, addToken, removeToken } = useSavedTokens()
   const hasToken = address !== null && address !== '-'
-
-  const isSaved = savedTokens[address]
 
   return (
     <PageWrapper>
@@ -195,13 +183,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
             </RowFixed>
             <HiddenBookmark>
               <RowFixed ml={[0, '2.5rem']} mt={['1rem', '0']}>
-                <StyledIcon>
-                  <StyledBookmark
-                    isSaved={isSaved}
-                    onClick={isSaved ? () => removeToken(address) : () => addToken(address, name)}
-                    style={{ marginRight: '0.5rem', opacity: 0.4 }}
-                  />
-                </StyledIcon>
+                <Bookmark readableProtocolName={name} />
               </RowFixed>
             </HiddenBookmark>
           </RowBetween>
