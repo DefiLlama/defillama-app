@@ -88,8 +88,28 @@ export default function Provider({ children }) {
     dispatch({ type: UPDATE_KEY, payload: { key, value } })
   }, [])
 
+  // Change format from save addresses to save protocol names, so backwards compatible
+
+  const savedProtocols = state[SAVED_TOKENS]
+
+  let newSavedProtocols = savedProtocols
+
+  if (!newSavedProtocols?.main) {
+    const oldAddresses = Object.entries(savedProtocols)
+      .map(([, value]) => (value?.protocol ? [standardizeProtocolName(value?.protocol), value?.protocol] : []))
+      .filter(validPairs => validPairs.length)
+
+    newSavedProtocols = oldAddresses.length ? { main: Object.fromEntries(oldAddresses) } : { main: {} }
+  }
+
   return (
-    <LocalStorageContext.Provider value={useMemo(() => [state, { updateKey }], [state, updateKey])}>
+    <LocalStorageContext.Provider
+      value={useMemo(() => [{ ...state, [SAVED_TOKENS]: newSavedProtocols }, { updateKey }], [
+        state,
+        updateKey,
+        newSavedProtocols
+      ])}
+    >
       {children}
     </LocalStorageContext.Provider>
   )
@@ -98,28 +118,8 @@ export default function Provider({ children }) {
 export function Updater() {
   const [state] = useLocalStorageContext()
 
-  // Change format from save addresses to save protocol names, so backwards compatible
-
-  const savedProtocols = state[SAVED_TOKENS]
-  // const savedProtocols = { '0xD533a949740bb3306d119CC777fa900bA034cd52': { protocol: 'Curve' } }
-
-  const hasNullSaved = Object.entries(savedProtocols).some(([, value]) => value?.protocol === null)
-
-  const oldAddresses = Object.entries(savedProtocols)
-    .map(([, value]) => (value?.protocol ? [standardizeProtocolName(value?.protocol), value?.protocol] : []))
-    .filter(validPairs => validPairs.length)
-
-  const newSavedProtocols = oldAddresses.length
-    ? { main: Object.fromEntries(oldAddresses) }
-    : hasNullSaved
-    ? { main: {} }
-    : savedProtocols
-
   useEffect(() => {
-    window.localStorage.setItem(
-      UNISWAP,
-      JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000), [SAVED_TOKENS]: newSavedProtocols })
-    )
+    window.localStorage.setItem(UNISWAP, JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000) }))
   })
 
   return null
