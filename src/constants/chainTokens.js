@@ -353,6 +353,11 @@ export const chainCoingeckoIds = {
     symbol: "XDC",
     cmcId: "2634",
   },
+  Velas: {
+    geckoId: "velas",
+    symbol: "VLX",
+    cmcId: "4747",
+  },
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
