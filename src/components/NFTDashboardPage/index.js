@@ -17,10 +17,6 @@ import { TYPE, ThemedBackground } from '../../Theme'
 import { formattedNum } from '../../utils'
 import { chainCoingeckoIds } from '../../constants/chainTokens'
 
-const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
-  ssr: false
-})
-
 const ListOptions = styled(AutoRow)`
   height: 40px;
   width: 100%;
@@ -61,6 +57,10 @@ const defaultChainOption = {
   label: 'All',
   to: '/nfts'
 }
+
+const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
+  ssr: false
+})
 
 const NFTDashboard = ({
   totalVolumeUSD,

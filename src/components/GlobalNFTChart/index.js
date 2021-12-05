@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { ResponsiveContainer } from 'recharts'
-import { timeframeOptions } from '../../constants'
 import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
 
-const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = "", symbol = "" }) => {
-  // time window and window size for chart
-  const timeWindow = timeframeOptions.ALL_TIME
+const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = '', symbol = '' }) => {
+  const filteredChartData = useMemo(() => {
+    return chartData.map(({ date, dailyVolume }) => [date, dailyVolume])
+  }, [chartData])
 
   // update the width on a window resize
   const ref = useRef()
@@ -21,8 +21,6 @@ const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = "", 
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [isClient, width]) // Empty array ensures that effect is only run on mount and unmount
-
-  const filteredChartData = chartData.map(({ date, dailyVolume }) => [date, dailyVolume])
 
   return filteredChartData ? (
     <ResponsiveContainer aspect={60 / 28} ref={ref}>
