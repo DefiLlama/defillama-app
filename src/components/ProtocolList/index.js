@@ -1,6 +1,5 @@
 import React from 'react'
 import styled from 'styled-components'
-import { useMedia } from 'react-use'
 
 import TokenList from 'components/TokenList'
 import Panel from 'components/Panel'
@@ -10,6 +9,7 @@ import Search from 'components/Search'
 import Filters from 'components/Filters'
 
 import { useCalcStakePool2Tvl } from 'hooks/data'
+import { useLg } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
 
 const ListOptions = styled(AutoRow)`
@@ -33,8 +33,7 @@ function AllTokensPage({
   columns,
   defaultSortingColumn
 }) {
-  const below600 = useMedia('(max-width: 600px)')
-
+  const isLg = useLg()
   const handleRouting = chain => {
     if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
     return `/protocols/${category?.toLowerCase()}/${chain}`
@@ -55,7 +54,7 @@ function AllTokensPage({
       <FullWrapper>
         <RowBetween>
           <TYPE.largeHeader>{title}</TYPE.largeHeader>
-          <Search />
+          <Search small={!isLg} />
         </RowBetween>
         {showChainList && (
           <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
@@ -66,7 +65,7 @@ function AllTokensPage({
             </RowBetween>
           </ListOptions>
         )}
-        <Panel style={{ marginTop: '6px', padding: below600 && '1rem 0 0 0 ' }}>
+        <Panel style={{ marginTop: '6px' }} sx={{ padding: ['1rem 0 0 0', '1.25rem'] }}>
           <TokenList
             tokens={protocolTotals}
             filters={[category, selectedChain]}
