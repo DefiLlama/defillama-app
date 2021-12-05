@@ -2,7 +2,6 @@ import { GeneralLayout } from '../../layout'
 import { PageWrapper, FullWrapper } from '../../components'
 import NFTList from '../../components/NFTList'
 import { RowBetween } from '../../components/Row'
-import { ButtonDark } from '../../components/ButtonStyled'
 import { TYPE } from '../../Theme'
 import { chainIconUrl } from '../../utils'
 import { getNFTChainsData, revalidate } from '../../utils/dataApi'
@@ -29,9 +28,6 @@ const ChainsView = ({ chainData }) => {
           generateLink={name => `/nfts/chain/${name}`}
           columns={['chain', 'collections', 'dailyVolumeUSD', 'totalVolumeUSD']}
         />
-        <div style={{ margin: 'auto' }}>
-          <ButtonDark onClick={() => {}}>Download all data in .csv</ButtonDark>
-        </div>
       </FullWrapper>
     </PageWrapper>
   )

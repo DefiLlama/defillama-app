@@ -7,7 +7,6 @@ import styled from 'styled-components'
 import { useDisplayUsdManager } from '../../contexts/LocalStorage'
 import { AutoRow, RowBetween, RowFlat } from '../Row'
 import { AutoColumn } from '../Column'
-import { ButtonDark } from '../ButtonStyled'
 import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
 import { PageWrapper, ContentWrapper } from '..'
@@ -17,10 +16,6 @@ import NFTCollectionList from '../NFTCollectionList'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { formattedNum } from '../../utils'
 import { chainCoingeckoIds } from '../../constants/chainTokens'
-
-const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
-  ssr: false
-})
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -62,6 +57,10 @@ const defaultChainOption = {
   label: 'All',
   to: '/nfts'
 }
+
+const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
+  ssr: false
+})
 
 const NFTDashboard = ({
   totalVolumeUSD,
@@ -169,11 +168,6 @@ const NFTDashboard = ({
         <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
           <NFTCollectionList collections={collections} displayUsd={displayUsd} />
         </Panel>
-        <div style={{ margin: 'auto' }}>
-          <a href="#">
-            <ButtonDark>Download all data in .csv</ButtonDark>
-          </a>
-        </div>
       </ContentWrapper>
     </PageWrapper>
   )
