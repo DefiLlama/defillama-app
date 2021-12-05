@@ -207,12 +207,6 @@ export default function Menu({ type = 'defi' }) {
     ],
     nfts: [
       {
-        name: 'Display in USD',
-        toggle: toggleDisplayUsd,
-        enabled: displayUsd,
-        help: 'Display Metrics in USD'
-      },
-      {
         name: 'Dark mode',
         toggle: toggleDarkMode,
         enabled: isDark

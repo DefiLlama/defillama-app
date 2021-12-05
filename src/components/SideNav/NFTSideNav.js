@@ -30,7 +30,7 @@ function SideNav() {
           <MobileWrapper>
             <Title homePath={'/nfts'} />
             <ButtonWrapper>
-              <SettingsMenuButton />
+              <SettingsMenuButton type="nfts" />
               <NavMenuButton setShow={setShowMobileNavMenu} show={showMobileNavMenu} />
             </ButtonWrapper>
           </MobileWrapper>
