@@ -7,7 +7,6 @@ import styled from 'styled-components'
 import { useDisplayUsdManager } from '../../contexts/LocalStorage'
 import { AutoRow, RowBetween, RowFlat } from '../Row'
 import { AutoColumn } from '../Column'
-import { ButtonDark } from '../ButtonStyled'
 import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
 import { PageWrapper, ContentWrapper } from '..'
@@ -169,11 +168,6 @@ const NFTDashboard = ({
         <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
           <NFTCollectionList collections={collections} displayUsd={displayUsd} />
         </Panel>
-        <div style={{ margin: 'auto' }}>
-          <a href="#">
-            <ButtonDark>Download all data in .csv</ButtonDark>
-          </a>
-        </div>
       </ContentWrapper>
     </PageWrapper>
   )
