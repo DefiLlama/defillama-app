@@ -141,20 +141,24 @@ function GlobalPage({
       <ContentWrapper>
         <AutoColumn gap="24px">
           <Search />
-          {selectedChain === 'Fantom' && (
-            <Panel background={true} style={{ textAlign: 'center' }}>
-              <TYPE.main fontWeight={400}>
-                AnySwap TVL has been excluded from the total TVL calculation. Click{' '}
-                <a
-                  style={{ color: 'inherit', fontWeight: '700' }}
-                  href="https://twitter.com/0xngmi/status/1446691628043878404"
-                >
-                  here
-                </a>{' '}
-                for our explanation and reasoning
-              </TYPE.main>
-            </Panel>
-          )}
+          <Panel background={true} style={{ textAlign: 'center' }}>
+            <TYPE.main fontWeight={400}>
+              We just launched a cross-chain {' '}
+              <a
+                style={{ color: 'inherit', fontWeight: '700' }}
+                href="https://defillama.com/nfts"
+              >
+                NFT dashboard
+              </a>
+              . Check it out {' '}
+              <a
+                style={{ color: 'inherit', fontWeight: '700' }}
+                href="https://defillama.com/nfts"
+              >
+                here
+              </a>!
+            </TYPE.main>
+          </Panel>
           <CheckMarks />
         </AutoColumn>
         <BreakpointPanels>
