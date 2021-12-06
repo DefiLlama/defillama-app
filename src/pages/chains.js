@@ -329,7 +329,7 @@ export async function getStaticProps() {
       change_1d: prevTvl(1) ? getPercentChange(prevTvl(1), current) : null,
       change_7d: prevTvl(7) ? getPercentChange(prevTvl(7), current) : null
     }
-  })
+  }).sort((a, b) => b.tvl - a.tvl)
 
   const daySum = {}
   const stackedDataset = Object.values(
