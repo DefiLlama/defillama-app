@@ -1,23 +1,23 @@
 import React, { useMemo, useState, useRef } from 'react'
-
-import { PieChart, Pie, Sector, Cell } from 'recharts'
-import { TYPE, Header } from '../Theme'
-import Panel from '../components/Panel'
-import { RowBetween } from '../components/Row'
-import { PageWrapper, FullWrapper } from '../components'
-import { chainIconUrl } from '../utils'
-import TokenList from '../components/TokenList'
-import { toK, toNiceCsvDate, toNiceDateYear, formattedNum, toNiceMonthlyDate } from '../utils'
-import { ButtonDark } from '../components/ButtonStyled'
-import { useMedia } from 'react-use'
-import { chainCoingeckoIds } from '../constants/chainTokens'
-import { PROTOCOLS_API, CHART_API } from '../constants/index'
-import { GeneralLayout } from '../layout'
-import styled from 'styled-components'
 import { Box } from 'rebass/styled-components'
-import { revalidate } from '../utils/dataApi'
+import { PieChart, Pie, Sector, Cell, AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
+import styled from 'styled-components'
 
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
+import { PageWrapper, FullWrapper } from 'components'
+import { ButtonDark } from 'components/ButtonStyled'
+import Panel from 'components/Panel'
+import { RowBetween } from 'components/Row'
+import Search from 'components/Search'
+import TokenList from 'components/TokenList'
+import { GeneralLayout } from 'layout'
+import { Header } from 'Theme'
+
+import { chainCoingeckoIds } from 'constants/chainTokens'
+import { PROTOCOLS_API, CHART_API } from 'constants/index'
+import { useCalcStakePool2Tvl } from 'hooks/data'
+import { useLg, useMed } from 'hooks/useBreakpoints'
+import { toK, toNiceCsvDate, toNiceDateYear, formattedNum, toNiceMonthlyDate, chainIconUrl } from 'utils'
+import { revalidate } from 'utils/dataApi'
 
 function getRandomColor() {
   var letters = '0123456789ABCDEF'
@@ -241,7 +241,8 @@ const ChartBreakPoints = styled(Box)`
 `
 
 const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentData }) => {
-  const isMobile = useMedia('(max-width: 800px)')
+  const isMobile = useMed()
+  const isLg = useLg()
 
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Other'].map(chain => [chain, getRandomColor()])),
@@ -257,6 +258,8 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
       })
     download('chains.csv', rows.map(r => r.join(',')).join('\n'))
   }
+
+  const protocolTotals = useCalcStakePool2Tvl(chainTvls)
 
   const stackedChart = <ChainPieChart yFormatter={toK} data={currentData} chainColor={chainColor} isMobile={isMobile} />
   const dominanceChart = (
@@ -276,6 +279,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
       <FullWrapper>
         <RowBetween>
           <Header>Total Value Locked All Chains</Header>
+          <Search small={!isLg} />
         </RowBetween>
 
         <ChartBreakPoints>
@@ -284,7 +288,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
         </ChartBreakPoints>
         <TokenList
           canBookmark={false}
-          tokens={chainTvls}
+          tokens={protocolTotals}
           iconUrl={chainIconUrl}
           generateLink={name => `/chain/${name}`}
           columns={[undefined, 'protocols', 'change_1d', 'change_7d']}
@@ -308,11 +312,23 @@ export async function getStaticProps() {
       .join(',')}&vs_currencies=usd&include_market_cap=true`
   ).then(res => res.json())
   const numProtocolsPerChain = {}
-  res.protocols.forEach(protocol =>
+  const stakingPerChain = {}
+  const pool2PerChain = {}
+
+  res.protocols.forEach(protocol => {
     protocol.chains.forEach(chain => {
       numProtocolsPerChain[chain] = (numProtocolsPerChain[chain] || 0) + 1
     })
-  )
+    Object.entries(protocol.chainTvls).forEach(([tvlKey, tvlValue]) => {
+      if (tvlKey.includes('-staking')) {
+        const chain = tvlKey.split('-')[0]
+        stakingPerChain[chain] = (stakingPerChain[chain] || 0) + tvlValue
+      } else if (tvlKey.includes('-pool2')) {
+        const chain = tvlKey.split('-')[0]
+        pool2PerChain[chain] = (pool2PerChain[chain] || 0) + tvlValue
+      }
+    })
+  })
   const data = await chainCalls
   const chainMcaps = await chainMcapsPromise
 
@@ -326,6 +342,8 @@ export async function getStaticProps() {
       name: chainName,
       symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
       protocols: numProtocolsPerChain[chainName],
+      pool2: pool2PerChain[chainName] || 0,
+      staking: stakingPerChain[chainName] || 0,
       change_1d: prevTvl(1) ? getPercentChange(prevTvl(1), current) : null,
       change_7d: prevTvl(7) ? getPercentChange(prevTvl(7), current) : null
     }
