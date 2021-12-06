@@ -73,9 +73,7 @@ const NFTDashboard = ({
 }) => {
   useEffect(() => window.scrollTo(0, 0))
 
-  const [displayUsd] = useDisplayUsdManager()
   const below800 = useMedia('(max-width: 800px)')
-
   const selectedChain = displayName
   const setSelectedChain = newSelectedChain => `/nfts/chain/${newSelectedChain}`
 
@@ -87,9 +85,17 @@ const NFTDashboard = ({
     }))
   ]
 
-  const symbol = selectedChain === 'All' ? 'USD' : chainCoingeckoIds[selectedChain]?.symbol //TODO Replace
-  const unit = selectedChain === 'All' ? '$' : ''
+  const isHomePage = selectedChain === 'All'
   const dailyVolume = chart.length ? chart[chart.length - 1].dailyVolume : 0 //TODO Return from backend
+  let [displayUsd] = useDisplayUsdManager()
+  let symbol = chainCoingeckoIds[selectedChain]?.symbol
+  let unit = ''
+
+  if (isHomePage) {
+    displayUsd = true
+    symbol = 'USD'
+    unit = '$'
+  }
 
   const panels = (
     <>
@@ -138,7 +144,7 @@ const NFTDashboard = ({
       <ContentWrapper>
         <AutoColumn gap="24px" style={{ paddingBottom: '24px' }}>
           <Search />
-          <CheckMarks type="nfts" />
+          {!isHomePage && <CheckMarks type="nfts" />}
         </AutoColumn>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
