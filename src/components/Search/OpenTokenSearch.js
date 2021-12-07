@@ -9,7 +9,7 @@ import { TYPE } from '../../Theme'
 
 import { useSearchData } from 'contexts/SearchData'
 import { Blue, Heading, Menu, MenuItem } from './shared'
-import { chainIconUrl, tokenIconUrl, standardizeProtocolName } from '/utils'
+import { chainIconUrl, tokenIconUrl, standardizeProtocolName } from 'utils'
 import { PROTOCOLS_API } from 'constants'
 
 const defaultLinkPath = item => {
