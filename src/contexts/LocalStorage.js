@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useState } from 'react'
+import { trackGoal } from 'fathom-client'
 
 import { standardizeProtocolName } from 'utils'
 
@@ -251,16 +252,20 @@ export function useSavedProtocols() {
 
   function addProtocol(readableProtocolName, portfolio = 'main') {
     let newList = state?.[SAVED_TOKENS]
+    const standardProtocol = standardizeProtocolName(readableProtocolName)
     newList[portfolio] = {
       ...(newList[portfolio] || {}),
-      [standardizeProtocolName(readableProtocolName)]: readableProtocolName
+      [standardProtocol]: readableProtocolName
     }
+    trackGoal('VQ0TO7CU', standardProtocol);
     updateKey(SAVED_TOKENS, newList)
   }
 
   function removeProtocol(protocol, portfolio = 'main') {
     let newList = state?.[SAVED_TOKENS]
-    delete newList?.[portfolio]?.[standardizeProtocolName(protocol)]
+    const standardProtocol = standardizeProtocolName(protocol)
+    delete newList?.[portfolio]?.[standardProtocol]
+    trackGoal('6SL0NZYJ', standardProtocol)
     updateKey(SAVED_TOKENS, newList)
   }
 

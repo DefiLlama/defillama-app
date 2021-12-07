@@ -52,7 +52,6 @@ export function GeneralLayout({ title, children }) {
     <>
       <Head>
         <title>{title}</title>
-        <script src="https://cdn.usefathom.com/script.js" data-site="OANJVQNZ" defer></script>
         <link
           rel="preload"
           href="/font-files/Inter-roman.var.woff2"
