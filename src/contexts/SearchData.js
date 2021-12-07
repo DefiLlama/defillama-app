@@ -7,12 +7,6 @@ const SearchDataContext = createContext({
 
 export const useSearchData = () => {
   const contextData = useContext(SearchDataContext)
-  if (contextData.protocolNames.length === 0) {
-    return {
-      protocolNames: [],
-      chainsSet: []
-    }
-  }
   return contextData
 }
 
