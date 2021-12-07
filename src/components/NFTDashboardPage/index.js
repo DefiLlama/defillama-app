@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 
-import { useDisplayUsdManager } from '../../contexts/LocalStorage'
+import { useDisplayUsdManager, useHideLastDayManager } from '../../contexts/LocalStorage'
 import { AutoRow, RowBetween, RowFlat } from '../Row'
 import { AutoColumn } from '../Column'
 import Filters from '../Filters'
@@ -73,6 +73,7 @@ const NFTDashboard = ({
 }) => {
   useEffect(() => window.scrollTo(0, 0))
 
+  const [hideLastDay] = useHideLastDayManager()
   const below800 = useMedia('(max-width: 800px)')
   const selectedChain = displayName
   const setSelectedChain = newSelectedChain => `/nfts/chain/${newSelectedChain}`
@@ -86,7 +87,7 @@ const NFTDashboard = ({
   ]
 
   const isHomePage = selectedChain === 'All'
-  const dailyVolume = chart.length ? chart[chart.length - 1].dailyVolume : 0 //TODO Return from backend
+  let dailyVolume = chart.length ? chart[chart.length - 1].dailyVolume : 0 //TODO Return from backend
   let [displayUsd] = useDisplayUsdManager()
   let symbol = chainCoingeckoIds[selectedChain]?.symbol
   let unit = ''
@@ -95,6 +96,14 @@ const NFTDashboard = ({
     displayUsd = true
     symbol = 'USD'
     unit = '$'
+  }
+
+  if (hideLastDay) {
+    chart = chart.slice(0, -1)
+    if (chart.length > 1) {
+      dailyVolume = chart[chart.length - 1].dailyVolume
+      dailyChange = ((dailyVolume - chart[chart.length - 2].dailyVolume) / chart[chart.length - 2].dailyVolume) * 100
+    }
   }
 
   const panels = (
@@ -144,7 +153,7 @@ const NFTDashboard = ({
       <ContentWrapper>
         <AutoColumn gap="24px" style={{ paddingBottom: '24px' }}>
           <Search />
-          {!isHomePage && <CheckMarks type="nfts" />}
+          <CheckMarks type="nfts" />
         </AutoColumn>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
