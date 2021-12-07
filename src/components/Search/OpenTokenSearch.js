@@ -7,8 +7,9 @@ import { BasicLink } from '../Link'
 import FormattedName from '../FormattedName'
 import { TYPE } from '../../Theme'
 
+import { useSearchData } from 'contexts/SearchData'
 import { Blue, Heading, Menu, MenuItem } from './shared'
-import { chainIconUrl, tokenIconUrl, standardizeProtocolName } from '../../utils'
+import { chainIconUrl, tokenIconUrl, standardizeProtocolName } from 'utils'
 import { PROTOCOLS_API } from 'constants'
 
 const defaultLinkPath = item => {
@@ -33,7 +34,7 @@ const TokenSearch = ({
   toggleMenu,
   setValue
 }) => {
-  const [searcheableData, setSearcheableData] = useState({ protocolNames: [], chainsSet: [] })
+  const [searcheableData, setSearcheableData] = useState(useSearchData())
   const [loading, setIsLoading] = useState(false)
   const { protocolNames, chainsSet } = searcheableData
 
