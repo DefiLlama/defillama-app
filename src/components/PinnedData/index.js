@@ -112,7 +112,7 @@ function PinnedData() {
   const hasSaved = portfolios.some(portfolio => Object.keys(savedProtocols[portfolio]).length)
 
   return !pinnedOpen ? (
-    <RightColumn open={pinnedOpen} onClick={() => setPinnedOpen(true)}>
+    <RightColumn style={{ cursor: 'pointer' }} open={pinnedOpen} onClick={() => setPinnedOpen(true)}>
       <SavedButton open={pinnedOpen}>
         <StyledIcon>
           <Bookmark size={20} />

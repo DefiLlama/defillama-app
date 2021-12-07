@@ -8,7 +8,6 @@ import FormattedName from '../FormattedName'
 import { TYPE } from '../../Theme'
 
 import { Blue, Heading, Menu, MenuItem } from './shared'
-import { useSearchData } from '../../contexts/SearchData'
 import { chainIconUrl, tokenIconUrl, standardizeProtocolName } from '../../utils'
 import { PROTOCOLS_API } from 'constants'
 
@@ -34,14 +33,17 @@ const TokenSearch = ({
   toggleMenu,
   setValue
 }) => {
-  const [searcheableData, setSearcheableData] = useState(useSearchData())
+  const [searcheableData, setSearcheableData] = useState({ protocolNames: [], chainsSet: [] })
+  const [loading, setIsLoading] = useState(false)
   const { protocolNames, chainsSet } = searcheableData
 
   useEffect(() => {
-    if (searcheableData.protocolNames.length <= 3) {
+    if (!searcheableData.protocolNames.length) {
+      setIsLoading(true)
       fetch(PROTOCOLS_API)
         .then(res => res.json())
         .then(res => {
+          setIsLoading(false)
           setSearcheableData({
             protocolNames: res.protocols,
             chainsSet: res.chains
@@ -115,7 +117,12 @@ const TokenSearch = ({
   return (
     <Menu ref={menuRef}>
       <div>
-        {filteredTokenList.length === 0 && (
+        {loading && (
+          <MenuItem>
+            <TYPE.body>Loading protocols...</TYPE.body>
+          </MenuItem>
+        )}
+        {filteredTokenList.length === 0 && !loading && (
           <MenuItem>
             <TYPE.body>No results</TYPE.body>
           </MenuItem>
