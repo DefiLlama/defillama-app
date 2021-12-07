@@ -49,6 +49,11 @@ export const chainCoingeckoIds = {
     symbol: 'BNB',
     cmcId: '1839'
   },
+  BSC: {
+    geckoId: 'binancecoin',
+    symbol: 'BNB',
+    cmcId: '1839'
+  },
   Avalanche: {
     geckoId: 'avalanche-2',
     symbol: 'AVAX',

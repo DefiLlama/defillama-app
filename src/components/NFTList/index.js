@@ -145,7 +145,7 @@ function NFTList({
               href={'/nfts/chain/' + item.chain}
             >
               <FormattedName
-                text={capitalizeFirstLetter(item.chain)}
+                text={item.displayName}
                 maxCharacters={below600 ? 8 : 16}
                 adjustSize={true}
                 link={true}
