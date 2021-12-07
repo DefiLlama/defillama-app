@@ -210,7 +210,7 @@ function TokenList({
             {canBookmark && (
               <Bookmark
                 readableProtocolName={item.name}
-                style={{ width: '16px', height: '16px', cursor: 'pointer', overflow: 'visible' }}
+                style={{ width: '16px', height: '16px', cursor: 'pointer', overflow: 'visible', marginTop: '4px' }}
               />
             )}
             <Index>{index + 1}</Index>
