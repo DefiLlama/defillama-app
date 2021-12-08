@@ -80,10 +80,12 @@ const NFTDashboard = ({
 
   let chainOptions = [
     defaultChainOption,
-    ...chainData?.map(chain => ({
-      label: chain.displayName,
-      to: setSelectedChain(chain.chain)
-    }))
+    ...chainData
+      ?.sort((a, b) => parseInt(b.totalVolumeUSD) - parseInt(a.totalVolumeUSD))
+      ?.map(chain => ({
+        label: chain.displayName,
+        to: setSelectedChain(chain.chain)
+      }))
   ]
 
   const isHomePage = selectedChain === 'All'
