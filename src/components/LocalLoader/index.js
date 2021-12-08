@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 import styled, { css, keyframes } from 'styled-components'
 import { useNFTApp } from '../../hooks'
 import DefiLogo from 'assets/logo_white.webp'
@@ -30,12 +31,12 @@ const Loader = styled.div`
         `}
 `
 
-const LocalLoader = ({ fill }) => {
+const LocalLoader = ({ fill, ...props }) => {
   const isNFTApp = useNFTApp()
 
   return (
-    <Loader fill={fill}>
-      <img src={isNFTApp ? NFTLogo : DefiLogo} alt="loading-icon" />
+    <Loader fill={fill} {...props}>
+      <Image src={isNFTApp ? NFTLogo : DefiLogo} alt="loading-icon" />
     </Loader>
   )
 }
