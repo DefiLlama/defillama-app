@@ -2,21 +2,24 @@ import React from 'react'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { useMedia } from 'react-use'
-import { Box } from 'rebass'
+import { Text, Box } from 'rebass'
 import dynamic from 'next/dynamic'
 
 import Header from './Header'
 import Section from './Section'
 import Links from './Links'
 
+import Link, { BasicLink } from 'components/Link'
+import Search from 'components/Search'
 import { formattedNum, capitalizeFirstLetter } from '../../utils'
-import { RowBetween } from '../../components/Row'
+import { AutoRow, RowBetween } from '../../components/Row'
 import { PageWrapper, ContentWrapper } from '../../components'
 import Panel from '../../components/Panel'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { useProtocolColor } from 'hooks'
 import { chainCoingeckoIds } from '../../constants/chainTokens'
 import LocalLoader from 'components/LocalLoader'
+import { useHideLastDayManager } from '../../contexts/LocalStorage'
 
 const DashboardWrapper = styled(Box)`
   width: 100%;
@@ -74,11 +77,18 @@ const PanelWrapper = styled(Box)`
   }
 `
 
+const HiddenSearch = styled.span`
+  @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
+    display: none;
+  }
+`
+
 const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
   ssr: false
 })
 
 function NFTCollectionPage({ collection, chartData }) {
+  const [hideLastDay] = useHideLastDayManager()
   const below1024 = useMedia('(max-width: 1024px)')
 
   const { chain, address, description, logo, name, slug, website, twitterUsername, discordUrl, telegramUrl } =
@@ -87,7 +97,7 @@ function NFTCollectionPage({ collection, chartData }) {
   const backgroundColor = useProtocolColor({ protocol: slug, logo, transparent: false })
 
   const symbol = chainCoingeckoIds[capitalizeFirstLetter(chain)]?.symbol
-  const dailyVolume = chartData.length ? chartData[chartData.length - 1].dailyVolume : 0 //TODO Return from backend
+  let dailyVolume = chartData.length ? chartData[chartData.length - 1].dailyVolume : 0 //TODO Return from backend
 
   const links = {
     website,
@@ -98,6 +108,13 @@ function NFTCollectionPage({ collection, chartData }) {
 
   if (!collection || !chartData) {
     return <LocalLoader fill="true" />
+  }
+
+  if (hideLastDay) {
+    chartData = chartData.slice(0, -1)
+    if (chartData.length > 1) {
+      dailyVolume = chartData[chartData.length - 1].dailyVolume
+    }
   }
 
   const marketCapUSD = (
@@ -116,6 +133,21 @@ function NFTCollectionPage({ collection, chartData }) {
     <PageWrapper>
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
       <ContentWrapper>
+        <RowBetween flexWrap="wrap">
+          <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
+            <TYPE.body>
+              <BasicLink href="/nfts">{'Collections '}</BasicLink>→{' '}
+            </TYPE.body>
+            <Link style={{ width: 'fit-content' }} color={backgroundColor} external href="#">
+              <Text style={{ marginLeft: '.15rem' }} fontSize={'14px'} fontWeight={400}>
+                {name}
+              </Text>
+            </Link>
+          </AutoRow>
+          <HiddenSearch>
+            <Search small={true} />
+          </HiddenSearch>
+        </RowBetween>
         <DashboardWrapper>
           <Header address={address} below1024={below1024} logo={logo} name={name} />
           <PanelWrapper>

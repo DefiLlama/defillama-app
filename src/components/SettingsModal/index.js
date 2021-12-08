@@ -197,6 +197,7 @@ export default function Menu({ type = 'defi' }) {
   const [stakingEnabled, toggleStaking] = useStakingManager()
   const [pool2Enabled, togglePool2] = usePool2Manager()
   const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
+  const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
 
   const toggleSettings = {
     defi: [
@@ -219,6 +220,12 @@ export default function Menu({ type = 'defi' }) {
       }
     ],
     nfts: [
+      {
+        name: 'Hide last day',
+        toggle: toggleHideLastDay,
+        enabled: hideLastDay,
+        help: 'Hide the last day of data'
+      },
       {
         name: 'Dark mode',
         toggle: toggleDarkMode,
