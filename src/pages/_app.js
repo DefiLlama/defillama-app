@@ -7,7 +7,8 @@ function App({ Component, pageProps }) {
 
     useEffect(() => {
         Fathom.load('OANJVQNZ', {
-            includedDomains: ['defillama.com', 'www.defillama.com']
+            includedDomains: ['defillama.com', 'www.defillama.com'],
+            url: "https://gold-six.llama.fi/script.js"
         })
 
         function onRouteChangeComplete() {
