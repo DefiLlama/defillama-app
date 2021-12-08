@@ -1,11 +1,13 @@
 import React, { useRef, useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import MenuIcon from './MenuSvg'
 import {
   useDarkModeManager,
   useStakingManager,
   usePool2Manager,
-  useDisplayUsdManager
+  useDisplayUsdManager,
+  useHideLastDayManager
 } from '../../contexts/LocalStorage'
 import Switch from 'react-switch'
 import HeadHelp from '../HeadHelp'
@@ -123,6 +125,8 @@ export function CheckMarks({ type = 'defi' }) {
   const [stakingEnabled, toggleStaking] = useStakingManager()
   const [pool2Enabled, togglePool2] = usePool2Manager()
   const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
+  const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
+  const router = useRouter()
   const isClient = useIsClient()
 
   const toggleSettings = {
@@ -141,20 +145,29 @@ export function CheckMarks({ type = 'defi' }) {
       }
     ],
     nfts: [
-      {
+      router.pathname !== '/nfts' && {
         name: 'Display in USD',
         toggle: toggleDisplayUsd,
         enabled: displayUsd && isClient,
-        help: 'Display Metrics in USD'
+        help: 'Display metrics in USD'
+      },
+      {
+        name: 'Hide last day',
+        toggle: toggleHideLastDay,
+        enabled: hideLastDay && isClient,
+        help: 'Hide the last day of data'
       }
     ]
   }
 
   return (
     <AutoRow gap="10px" justify="center">
-      {toggleSettings[type].map(toggleSetting => (
-        <OptionToggle {...toggleSetting} key={toggleSetting.name} />
-      ))}
+      {toggleSettings[type].map(toggleSetting => {
+        if (toggleSetting) {
+          return <OptionToggle {...toggleSetting} key={toggleSetting.name} />
+        }
+        return <></>
+      })}
     </AutoRow>
   )
 }
@@ -184,6 +197,7 @@ export default function Menu({ type = 'defi' }) {
   const [stakingEnabled, toggleStaking] = useStakingManager()
   const [pool2Enabled, togglePool2] = usePool2Manager()
   const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
+  const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
 
   const toggleSettings = {
     defi: [
@@ -206,6 +220,12 @@ export default function Menu({ type = 'defi' }) {
       }
     ],
     nfts: [
+      {
+        name: 'Hide last day',
+        toggle: toggleHideLastDay,
+        enabled: hideLastDay,
+        help: 'Hide the last day of data'
+      },
       {
         name: 'Dark mode',
         toggle: toggleDarkMode,

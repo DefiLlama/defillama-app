@@ -17,6 +17,7 @@ const DARK_MODE = 'DARK_MODE'
 const POOL2 = 'POOL2'
 const STAKING = 'STAKING'
 const DISPLAY_USD = 'DISPLAY_USD'
+const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
 
 const UPDATABLE_KEYS = [
   DARK_MODE,
@@ -26,7 +27,8 @@ const UPDATABLE_KEYS = [
   SAVED_TOKENS,
   POOL2,
   STAKING,
-  DISPLAY_USD
+  DISPLAY_USD,
+  HIDE_LAST_DAY
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -63,6 +65,7 @@ function init() {
     [STAKING]: false,
     [POOL2]: false,
     [DISPLAY_USD]: false,
+    [HIDE_LAST_DAY]: false,
     [DISMISSED_PATHS]: {},
     [SAVED_ACCOUNTS]: [],
     [SAVED_TOKENS]: { main: {} },
@@ -171,6 +174,17 @@ export function useDisplayUsdManager() {
   }
 
   return [displayUsd, toggleDisplayUsd]
+}
+
+export function useHideLastDayManager() {
+  const [state, { updateKey }] = useLocalStorageContext()
+  const hideLastDay = state[HIDE_LAST_DAY]
+
+  const toggleHideLastDay = () => {
+    updateKey(HIDE_LAST_DAY, !hideLastDay)
+  }
+
+  return [hideLastDay, toggleHideLastDay]
 }
 
 export function usePathDismissed(path) {
