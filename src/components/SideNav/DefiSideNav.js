@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/router'
-import { TrendingUp, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock, Bookmark } from 'react-feather'
+import { TrendingUp, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock, Bookmark, Award } from 'react-feather'
 
 import { DesktopWrapper, Entry, MobileWrapper, Option, Wrapper, Footer, ButtonWrapper, Desktop, Mobile } from './shared'
 import { AutoColumn } from '../Column'
@@ -17,6 +17,7 @@ const NavMenu = ({ isMobile }) => {
 
   return (
     <AutoColumn gap="1.25rem" style={{ marginTop: '1rem' }}>
+      <Entry url="nfts" name="NFTs" history={history} Icon={Award} />
       <Entry url="" name="Overview" history={history} Icon={TrendingUp} />
       <Entry url="chains" name="Chains" history={history} Icon={LinkLogo} />
       {!isMobile && <Entry url="portfolio" name="Portfolio" history={history} Icon={Bookmark} />}
