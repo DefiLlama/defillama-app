@@ -31,6 +31,7 @@ export const FEE_WARNING_TOKENS = ['0xd46ba6d942050d489dbd938a2c909a5d5039a161']
 export const CHART_API = 'https://api.llama.fi/lite/charts'
 export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2'
 export const PROTOCOL_API = 'https://api.llama.fi/updatedProtocol'
+export const CONFIG_API = 'https://api.llama.fi/config'
 
 export const NFT_COLLECTION_API = 'https://nft.api.llama.fi/collection'
 export const NFT_COLLECTIONS_API = 'https://nft.api.llama.fi/collections'
