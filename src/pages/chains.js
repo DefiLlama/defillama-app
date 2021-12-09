@@ -12,8 +12,7 @@ import TokenList from 'components/TokenList'
 import { GeneralLayout } from 'layout'
 import { Header } from 'Theme'
 
-import { chainCoingeckoIds } from 'constants/chainTokens'
-import { PROTOCOLS_API, CHART_API } from 'constants/index'
+import { PROTOCOLS_API, CHART_API, CONFIG_API } from 'constants/index'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useLg, useMed } from 'hooks/useBreakpoints'
 import { toK, toNiceCsvDate, toNiceDateYear, formattedNum, toNiceMonthlyDate, chainIconUrl } from 'utils'
@@ -302,7 +301,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
 }
 
 export async function getStaticProps() {
-  const res = await fetch(PROTOCOLS_API).then(r => r.json())
+  const [res, { chainCoingeckoIds }] = await Promise.all([PROTOCOLS_API, CONFIG_API].map(apiEndpoint => fetch(apiEndpoint).then(r => r.json())))
   const chainsUnique = res.chains
 
   const chainCalls = Promise.all(chainsUnique.map(elem => fetch(`${CHART_API}/${elem}`).then(resp => resp.json())))
