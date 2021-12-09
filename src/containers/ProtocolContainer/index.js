@@ -96,7 +96,7 @@ const TokenDetailsLayout = styled.div`
 
 const TotalValueLockedWrap = styled(RowBetween)`
   @media only screen and (max-width: ${({ theme: { bpXl } }) => bpXl}) and (min-width: ${({ theme: { bpLg } }) =>
-      bpLg}) {
+    bpLg}) {
     flex-direction: column-reverse;
   }
 `
@@ -152,16 +152,9 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
             <TYPE.body>
               <BasicLink href="/protocols">{'Protocols '}</BasicLink>→{' '}
             </TYPE.body>
-            <Link
-              style={{ width: 'fit-content' }}
-              color={backgroundColor}
-              external
-              href={'https://etherscan.io/address/' + address}
-            >
-              <Text style={{ marginLeft: '.15rem' }} fontSize={'14px'} fontWeight={400}>
-                {name}
-              </Text>
-            </Link>
+            <Text style={{ marginLeft: '.15rem' }} fontSize={'14px'} fontWeight={400} color={backgroundColor}>
+              {name}
+            </Text>
           </AutoRow>
           <HiddenSearch>
             <Search small={true} />
