@@ -12,7 +12,7 @@ import { PageWrapper, ContentWrapper } from '..'
 import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
 
-import { useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
+import { useStakingManager, usePool2Manager, useBorrowedManager } from 'contexts/LocalStorage'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum } from 'utils'
 import { useCalcStakePool2Tvl } from 'hooks/data'
@@ -66,18 +66,23 @@ function GlobalPage({
   filteredProtocols,
   chart: globalChart,
   totalStaking,
-  totalPool2
+  totalPool2,
+  totalBorrowed
 }) {
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
+  const [borrowedEnabled] = useBorrowedManager()
 
   if (stakingEnabled) {
     totalVolumeUSD += totalStaking
   }
   if (pool2Enabled) {
     totalVolumeUSD += totalPool2
+  }
+  if (borrowedEnabled) {
+    totalVolumeUSD += totalBorrowed
   }
 
   let chainOptions = ['All'].concat(chainsSet).map(label => ({ label, to: setSelectedChain(label) }))

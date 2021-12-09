@@ -302,7 +302,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
 
 export async function getStaticProps() {
   const [res, { chainCoingeckoIds }] = await Promise.all([PROTOCOLS_API, CONFIG_API].map(apiEndpoint => fetch(apiEndpoint).then(r => r.json())))
-  const chainsUnique = res.chains
+  const chainsUnique = res.chains.filter(c => c !== "EthereumClassic") // TODO remove filter
 
   const chainCalls = Promise.all(chainsUnique.map(elem => fetch(`${CHART_API}/${elem}`).then(resp => resp.json())))
   const chainMcapsPromise = fetch(
@@ -313,6 +313,7 @@ export async function getStaticProps() {
   const numProtocolsPerChain = {}
   const stakingPerChain = {}
   const pool2PerChain = {}
+  const borrowedPerChain = {}
 
   res.protocols.forEach(protocol => {
     protocol.chains.forEach(chain => {
@@ -325,9 +326,13 @@ export async function getStaticProps() {
       } else if (tvlKey.includes('-pool2')) {
         const chain = tvlKey.split('-')[0]
         pool2PerChain[chain] = (pool2PerChain[chain] || 0) + tvlValue
+      } else if (tvlKey.includes('-borrowed')) {
+        const chain = tvlKey.split('-')[0]
+        borrowedPerChain[chain] = (borrowedPerChain[chain] || 0) + tvlValue
       }
     })
   })
+
   const data = await chainCalls
   const chainMcaps = await chainMcapsPromise
 
@@ -342,6 +347,7 @@ export async function getStaticProps() {
       symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
       protocols: numProtocolsPerChain[chainName],
       pool2: pool2PerChain[chainName] || 0,
+      borrowed: borrowedPerChain[chainName] || 0,
       staking: stakingPerChain[chainName] || 0,
       change_1d: prevTvl(1) ? getPercentChange(prevTvl(1), current) : null,
       change_7d: prevTvl(7) ? getPercentChange(prevTvl(7), current) : null

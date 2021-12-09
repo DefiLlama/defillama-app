@@ -7,6 +7,7 @@ import {
   useStakingManager,
   usePool2Manager,
   useDisplayUsdManager,
+  useBorrowedManager,
   useHideLastDayManager
 } from '../../contexts/LocalStorage'
 import Switch from 'react-switch'
@@ -124,6 +125,7 @@ export const OptionToggle = props => (
 export function CheckMarks({ type = 'defi' }) {
   const [stakingEnabled, toggleStaking] = useStakingManager()
   const [pool2Enabled, togglePool2] = usePool2Manager()
+  const [borrowedEnabled, toggleBorrowed] = useBorrowedManager()
   const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
   const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
   const router = useRouter()
@@ -137,11 +139,19 @@ export function CheckMarks({ type = 'defi' }) {
         enabled: stakingEnabled && isClient,
         help: 'Include governance tokens staked in the protocol'
       },
+      /*
       {
         name: 'Pool2',
         toggle: togglePool2,
         enabled: pool2Enabled && isClient,
         help: 'Include staked lp tokens where one of the coins in the pair is the governance token'
+      },
+      */
+      {
+        name: 'Borrows',
+        toggle: toggleBorrowed,
+        enabled: borrowedEnabled && isClient,
+        help: 'Include borrowed coins in lending protocols'
       }
     ],
     nfts: [
@@ -196,6 +206,7 @@ export default function Menu({ type = 'defi' }) {
   const [isDark, toggleDarkMode] = useDarkModeManager()
   const [stakingEnabled, toggleStaking] = useStakingManager()
   const [pool2Enabled, togglePool2] = usePool2Manager()
+  const [borrowedEnabled, toggleBorrowed] = useBorrowedManager()
   const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
   const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
 
@@ -212,6 +223,12 @@ export default function Menu({ type = 'defi' }) {
         toggle: togglePool2,
         enabled: pool2Enabled,
         help: 'Include staked lp tokens where one of the coins in the pair is the governance token'
+      },
+      {
+        name: 'Borrows',
+        toggle: toggleBorrowed,
+        enabled: borrowedEnabled,
+        help: 'Include borrowed coins in lending protocols'
       },
       {
         name: 'Dark mode',

@@ -1,17 +1,18 @@
 import { useMemo } from 'react'
-import { useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
+import { useStakingManager, usePool2Manager, useBorrowedManager } from 'contexts/LocalStorage'
 
 export const useCalcStakePool2Tvl = (filteredProtocols, defaultSortingColumn) => {
   const [stakingEnabled] = useStakingManager()
   const [pool2Enabled] = usePool2Manager()
+  const [borrowedEnabled] = useBorrowedManager()
 
   const protocolTotals = useMemo(() => {
-    if (!stakingEnabled && !pool2Enabled) {
+    if (!stakingEnabled && !pool2Enabled && !borrowedEnabled) {
       return filteredProtocols
     }
 
     const updatedProtocols = filteredProtocols
-      .map(({ tvl, pool2 = 0, staking = 0, ...props }) => {
+      .map(({ tvl, pool2 = 0, staking = 0, borrowed = 0, ...props }) => {
         let finalTvl = tvl
 
         if (stakingEnabled) {
@@ -20,6 +21,9 @@ export const useCalcStakePool2Tvl = (filteredProtocols, defaultSortingColumn) =>
 
         if (pool2Enabled) {
           finalTvl += pool2
+        }
+        if (borrowedEnabled) {
+          finalTvl += borrowed
         }
 
         return {
@@ -32,7 +36,7 @@ export const useCalcStakePool2Tvl = (filteredProtocols, defaultSortingColumn) =>
     } else {
       return updatedProtocols
     }
-  }, [filteredProtocols, stakingEnabled, pool2Enabled, defaultSortingColumn])
+  }, [filteredProtocols, stakingEnabled, pool2Enabled, borrowedEnabled, defaultSortingColumn])
 
   return protocolTotals
 }
