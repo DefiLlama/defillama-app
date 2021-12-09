@@ -1,5 +1,4 @@
 import React from 'react'
-import { useRouter } from 'next/router'
 import styled from 'styled-components'
 
 import { Flex } from 'rebass'
@@ -7,7 +6,7 @@ import Link from '../Link'
 import { RowFixed } from '../Row'
 import DefiLogo from '../../assets/logo_white_long.svg'
 import NFTLogo from '../../assets/nft_logo_white_long.svg'
-import Image from "next/image"
+import Image from 'next/image'
 
 const TitleWrapper = styled.div`
   text-decoration: none;
@@ -27,14 +26,12 @@ const UniIcon = styled(Link)`
 `
 
 export default function Title({ homePath = '/' }) {
-  const router = useRouter()
-
   return (
-    <TitleWrapper onClick={() => router.push(homePath)}>
+    <TitleWrapper>
       <Flex alignItems="center">
         <RowFixed>
-          <UniIcon id="link" onClick={() => router.push(homePath)}>
-            <Image width='160px' height="54px" src={homePath === '/' ? DefiLogo : NFTLogo} alt="logo" priority={true} />
+          <UniIcon id="link" href={homePath}>
+            <Image width="160px" height="54px" src={homePath === '/' ? DefiLogo : NFTLogo} alt="logo" priority={true} />
           </UniIcon>
         </RowFixed>
       </Flex>
