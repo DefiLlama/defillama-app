@@ -1,10 +1,13 @@
 import styled from 'styled-components'
 
+import Link from 'components/Link'
+import Row, { RowFixed } from 'components/Row'
+import Title from 'components/Title'
 import PinnedData from '../components/PinnedData'
 import SideNav from '../components/SideNav'
 import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from '../contexts/LocalStorage'
 import Head from 'next/head'
-import ThemeProvider, { GlobalStyle } from '../Theme'
+import ThemeProvider, { GlobalStyle, TYPE } from '../Theme'
 
 export const AppWrapper = styled.div`
   position: relative;
@@ -26,7 +29,7 @@ const ContentWrapper = styled.div`
   }
 `
 
-const Center = styled.div`
+export const Center = styled.div`
   min-height: 100vh;
   height: 100%;
   z-index: 9999;
@@ -66,6 +69,42 @@ export function GeneralLayout({ title, children }) {
           <GlobalStyle />
           <AppWrapper>
             <LayoutWrapper>{children}</LayoutWrapper>
+          </AppWrapper>
+        </ThemeProvider>
+      </LocalStorageContextProvider>
+    </>
+  )
+}
+
+export function VisualisationLayout({ title, children }) {
+  return (
+    <>
+      <Head>
+        <title>{title}</title>
+        <link
+          rel="preload"
+          href="/font-files/Inter-roman.var.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        ></link>
+      </Head>
+      <LocalStorageContextProvider>
+        <LocalStorageContextUpdater />
+        <ThemeProvider>
+          <GlobalStyle />
+          <AppWrapper>
+            <Center>
+              <Row>
+                <Link href="/">
+                  <RowFixed style={{ padding: '1rem', gap: '1rem' }}>
+                    <TYPE.main> Return to</TYPE.main>
+                    <Title />
+                  </RowFixed>
+                </Link>
+              </Row>
+              {children}
+            </Center>
           </AppWrapper>
         </ThemeProvider>
       </LocalStorageContextProvider>
