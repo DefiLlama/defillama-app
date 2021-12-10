@@ -364,6 +364,11 @@ export const chainCoingeckoIds = {
     symbol: "VLX",
     cmcId: "4747",
   },
+  Godwoken: {
+    geckoId: null,
+    symbol: null,
+    cmcId: null,
+  },
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
