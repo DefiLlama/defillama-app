@@ -225,7 +225,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   </RowBetween>
                   <RowBetween align="flex-end">
                     <AutoColumn style={{ width: '100%' }}>
-                      <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
+                      <Link color={backgroundColor} external href={`https://api.llama.fi/dataset/${protocol}.csv`}>
                         <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
                           Download dataset ↗
                         </ButtonLight>
