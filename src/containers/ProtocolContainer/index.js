@@ -226,7 +226,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   <RowBetween align="flex-end">
                     <AutoColumn style={{ width: '100%' }}>
                       <Link color={backgroundColor} external href={`http://api.llama.fi/dataset/${protocol}.csv`}>
-                        <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                        <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
                           Download dataset ↗
                         </ButtonLight>
                       </Link>
@@ -291,12 +291,12 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 <div></div>
                 <RowFixed>
                   <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
-                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                    <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
                       Twitter ↗
                     </ButtonLight>
                   </Link>
                   <Link color={backgroundColor} external href={url}>
-                    <ButtonLight color={backgroundColor} style={{ marginRight: '1rem' }}>
+                    <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
                       Website ↗
                     </ButtonLight>
                   </Link>
@@ -327,7 +327,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   external
                   href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
                 >
-                  <ButtonLight color={backgroundColor}>Check the code ↗</ButtonLight>
+                  <ButtonLight useTextColor={true} color={backgroundColor}>Check the code ↗</ButtonLight>
                 </Link>
               </RowFixed>
             </Panel>
@@ -374,10 +374,10 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                       external
                       href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`}
                     >
-                      <ButtonLight color={backgroundColor}>View on CoinGecko ↗</ButtonLight>
+                      <ButtonLight useTextColor={true} color={backgroundColor}>View on CoinGecko ↗</ButtonLight>
                     </Link>
                     <Link color={backgroundColor} external href={blockExplorerLink}>
-                      <ButtonLight color={backgroundColor}>View on {blockExplorerName} ↗</ButtonLight>
+                      <ButtonLight useTextColor={true} color={backgroundColor}>View on {blockExplorerName} ↗</ButtonLight>
                     </Link>
                   </RowFixed>
                 </TokenDetailsLayout>
