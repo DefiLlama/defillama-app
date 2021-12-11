@@ -259,7 +259,11 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
             />
           </ComparisonDetailsLayout>
         </RowBetween>
-        {(loadingA || loadingB) && <Loader />}
+        {(loadingA || loadingB) && (
+          <AutoRow style={{ gap: '1rem', justifyContent: 'center' }}>
+            <Loader style={{ width: 'fit-content' }} />{' '}
+          </AutoRow>
+        )}
         {tokenAValid && tokenBValid && (
           <PriceResultPanel margin="auto" rounded p={20}>
             <Column style={{ gap: '1rem' }}>

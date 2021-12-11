@@ -38,11 +38,12 @@ export function keepNeededProperties(protocol: any, propertiesToKeep: string[] =
   }, {})
 }
 
+const extraSections = ['staking', 'pool2', 'borrowed']
 export const formatProtocolsData = ({
   chain = '',
   category = '',
   protocols = [],
-  protocolProps = [...basicPropertiesToKeep, 'staking', 'pool2']
+  protocolProps = [...basicPropertiesToKeep, ...extraSections]
 }) => {
   let filteredProtocols = [...protocols]
 
@@ -61,8 +62,7 @@ export const formatProtocolsData = ({
     if (chain) {
       protocol.tvl = protocol.chainTvls[chain]
     }
-    addSectionTvl(protocol, 'staking', chain)
-    addSectionTvl(protocol, 'pool2', chain)
+    extraSections.forEach(section => addSectionTvl(protocol, section, chain))
     return keepNeededProperties(protocol, protocolProps)
   })
 
@@ -123,7 +123,8 @@ export async function getChainPageData(chain) {
       totalVolumeUSD: currentTvl,
       volumeChangeUSD: tvlChange,
       totalStaking: sumSection(protocols, 'staking'),
-      totalPool2: sumSection(protocols, 'pool2')
+      totalPool2: sumSection(protocols, 'pool2'),
+      totalBorrowed: sumSection(protocols, 'borrowed'),
     }
   }
 }

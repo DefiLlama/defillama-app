@@ -1,3 +1,4 @@
+// TODO Replace this by a call to api.llama.fi/config (that way we only need to keep the server version up to date, now we have the data replicated)
 export const chainCoingeckoIds = {
   Ethereum: {
     geckoId: 'ethereum',
@@ -362,6 +363,11 @@ export const chainCoingeckoIds = {
     geckoId: "velas",
     symbol: "VLX",
     cmcId: "4747",
+  },
+  Godwoken: {
+    geckoId: null,
+    symbol: null,
+    cmcId: null,
   },
 }
 

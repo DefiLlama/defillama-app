@@ -16,6 +16,7 @@ const SAVED_PAIRS = 'SAVED_PAIRS'
 const DARK_MODE = 'DARK_MODE'
 const POOL2 = 'POOL2'
 const STAKING = 'STAKING'
+const BORROWED = 'BORROWED'
 const DISPLAY_USD = 'DISPLAY_USD'
 const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
 
@@ -26,6 +27,7 @@ const UPDATABLE_KEYS = [
   SAVED_PAIRS,
   SAVED_TOKENS,
   POOL2,
+  BORROWED,
   STAKING,
   DISPLAY_USD,
   HIDE_LAST_DAY
@@ -64,6 +66,7 @@ function init() {
     [DARK_MODE]: true,
     [STAKING]: false,
     [POOL2]: false,
+    [BORROWED]: false,
     [DISPLAY_USD]: false,
     [HIDE_LAST_DAY]: false,
     [DISMISSED_PATHS]: {},
@@ -163,6 +166,18 @@ export function useStakingManager() {
     [updateKey, stakingEnabled]
   )
   return [stakingEnabled, toggleStaking]
+}
+
+export function useBorrowedManager() {
+  const [state, { updateKey }] = useLocalStorageContext()
+  let borrowedEnabled = state[BORROWED]
+  const toggleBorrowed = useCallback(
+    value => {
+      updateKey(BORROWED, value === false || value === true ? value : !borrowedEnabled)
+    },
+    [updateKey, borrowedEnabled]
+  )
+  return [borrowedEnabled, toggleBorrowed]
 }
 
 export function useDisplayUsdManager() {
