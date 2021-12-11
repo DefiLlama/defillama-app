@@ -183,13 +183,14 @@ function TokenList({
     let sortedTokens = tokens
     if (!alreadySorted) {
       sortedTokens = tokens.sort((a, b) => {
+        const aColumn = a[sortedColumn]
+        const bColumn = b[sortedColumn]
+
         if (sortedColumn === SORT_FIELD.CHAINS) {
-          return a[sortedColumn].length > b[sortedColumn].length
-            ? (sortDirection ? -1 : 1) * 1
-            : (sortDirection ? -1 : 1) * -1
+          return aColumn.length > bColumn.length ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
         }
         if (sortedColumn === SORT_FIELD.SYMBOL || sortedColumn === SORT_FIELD.NAME) {
-          return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
+          return aColumn > bColumn ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
         }
         if (sortedColumn === SORT_FIELD.MCAPTVL && !a.mcaptvl && !b.mcaptvl) {
           const aMcapTvl = a.mcap / a.tvl
@@ -206,7 +207,19 @@ function TokenList({
             ? (sortDirection ? -1 : 1) * 1
             : (sortDirection ? -1 : 1) * -1
         }
-        return parseFloat(a[sortedColumn] || 0) > parseFloat(b[sortedColumn] || 0)
+
+        // move all invalid fields to the bottom unless TVL which gets displayed as 0
+        if (SORT_FIELD.TVL !== sortedColumn) {
+          if (!aColumn || aColumn === Infinity) {
+            return 1
+          }
+
+          if (!bColumn || bColumn === Infinity) {
+            return -1
+          }
+        }
+
+        return parseFloat(aColumn || 0) > parseFloat(bColumn || 0)
           ? (sortDirection ? -1 : 1) * 1
           : (sortDirection ? -1 : 1) * -1
       })
