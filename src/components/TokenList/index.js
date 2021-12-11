@@ -179,7 +179,6 @@ function TokenList({
     setAlreadySorted(false)
     setSortedColumnRaw(newColumn)
   }
-
   const filteredList = useMemo(() => {
     let sortedTokens = tokens
     if (!alreadySorted) {
@@ -191,6 +190,21 @@ function TokenList({
         }
         if (sortedColumn === SORT_FIELD.SYMBOL || sortedColumn === SORT_FIELD.NAME) {
           return a[sortedColumn] > b[sortedColumn] ? (sortDirection ? -1 : 1) * 1 : (sortDirection ? -1 : 1) * -1
+        }
+        if (sortedColumn === SORT_FIELD.MCAPTVL && !a.mcaptvl && !b.mcaptvl) {
+          const aMcapTvl = a.mcap / a.tvl
+          if (!aMcapTvl || aMcapTvl === Infinity) {
+            return 1
+          }
+          const bMcapTvl = b.mcap / b.tvl
+
+          if (!bMcapTvl || bMcapTvl === Infinity) {
+            return -1
+          }
+
+          return parseFloat(aMcapTvl) > parseFloat(bMcapTvl)
+            ? (sortDirection ? -1 : 1) * 1
+            : (sortDirection ? -1 : 1) * -1
         }
         return parseFloat(a[sortedColumn] || 0) > parseFloat(b[sortedColumn] || 0)
           ? (sortDirection ? -1 : 1) * 1
