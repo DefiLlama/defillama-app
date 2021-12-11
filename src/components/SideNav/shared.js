@@ -21,6 +21,7 @@ export const Wrapper = styled.div`
   color: ${({ theme }) => theme.bg2};
   min-width: 220px;
   overflow-y: scroll;
+  scrollbar-width: none;
 
   @media screen and (max-width: 800px) {
     grid-template-columns: 1fr;
