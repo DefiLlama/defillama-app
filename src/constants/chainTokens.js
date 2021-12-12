@@ -369,6 +369,11 @@ export const chainCoingeckoIds = {
     symbol: null,
     cmcId: null,
   },
+  Callisto: {
+    geckoId: "callisto",
+    symbol: "CLO",
+    cmcId: "2757",
+  },
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
