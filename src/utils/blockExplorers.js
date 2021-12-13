@@ -22,7 +22,11 @@ const blockExplorers = {
   harmony: ['https://explorer.harmony.one/address/', 'Harmony Explorer'],
   tron: ['https://tronscan.org/#/', 'Tronscan'],
   kucoin: ['https://explorer.kcc.io/en/address/', 'KCC Explorer'],
-  iotex: ['https://iotexscan.io/address/', 'IoTeX Explorer']
+  iotex: ['https://iotexscan.io/address/', 'IoTeX Explorer'],
+  callisto: ['https://explorer.callisto.network/address/', 'Callisto Explorer'],
+  aurora: ['https://explorer.mainnet.aurora.dev/address/', 'Aurora Explorer'],
+  boba: ['https://blockexplorer.boba.network/tokens/', 'Boba Explorer'],
+  elrond: ['https://elrondscan.com/token/', 'Elrondscan'],
 }
 
 export const getBlockExplorer = (address = '') => {
