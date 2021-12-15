@@ -26,29 +26,30 @@ function SideNav() {
 
   return (
     <>
-      <Mobile>
-        <Wrapper isMobile={true}>
-          <MobileWrapper>
+      <Wrapper>
+        <MobileWrapper>
+          <div>
             <Title homePath={'/nfts'} />
+            <Desktop>
+              <AutoColumn gap="1rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }}>
+                <NavMenu isMobile={false} />
+              </AutoColumn>
+            </Desktop>
+          </div>
+          <Desktop>
+            <Footer isDark={isDark} toggleDarkMode={toggleDarkMode} />
+          </Desktop>
+          <Mobile>
             <ButtonWrapper>
               <SettingsMenuButton type="nfts" />
               <NavMenuButton setShow={setShowMobileNavMenu} show={showMobileNavMenu} />
             </ButtonWrapper>
-          </MobileWrapper>
-          {showMobileNavMenu && <NavMenu />}
-        </Wrapper>
-      </Mobile>
-      <Desktop>
-        <Wrapper isMobile={false}>
-          <DesktopWrapper>
-            <AutoColumn gap="1rem">
-              <Title homePath={'/nfts'} />
-              <NavMenu />
-            </AutoColumn>
-            <Footer isDark={isDark} toggleDarkMode={toggleDarkMode} />
-          </DesktopWrapper>
-        </Wrapper>
-      </Desktop>
+          </Mobile>
+        </MobileWrapper>
+        <Mobile>
+          {showMobileNavMenu && <NavMenu isMobile />}
+        </Mobile>
+      </Wrapper>
     </>
   )
 }
