@@ -49,29 +49,30 @@ function SideNav() {
 
   return (
     <>
-      <Mobile>
-        <Wrapper isMobile={true}>
-          <MobileWrapper>
+      <Wrapper>
+        <MobileWrapper>
+          <div>
             <Title />
+            <Desktop>
+              <AutoColumn gap="1rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }}>
+                <NavMenu isMobile={false} />
+              </AutoColumn>
+            </Desktop>
+          </div>
+          <Desktop>
+            <Footer isDark={isDark} toggleDarkMode={toggleDarkMode} />
+          </Desktop>
+          <Mobile>
             <ButtonWrapper>
               <SettingsMenuButton />
               <NavMenuButton setShow={setShowMobileNavMenu} show={showMobileNavMenu} />
             </ButtonWrapper>
-          </MobileWrapper>
+          </Mobile>
+        </MobileWrapper>
+        <Mobile>
           {showMobileNavMenu && <NavMenu isMobile />}
-        </Wrapper>
-      </Mobile>
-      <Desktop>
-        <Wrapper isMobile={false}>
-          <DesktopWrapper>
-            <AutoColumn gap="1rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }}>
-              <Title />
-              <NavMenu isMobile={false} />
-            </AutoColumn>
-            <Footer isDark={isDark} toggleDarkMode={toggleDarkMode} />
-          </DesktopWrapper>
-        </Wrapper>
-      </Desktop>
+        </Mobile>
+      </Wrapper>
     </>
   )
 }

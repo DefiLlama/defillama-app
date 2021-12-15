@@ -9,7 +9,12 @@ import Toggle from '../Toggle'
 
 export const Wrapper = styled.div`
   position: sticky;
-  height: ${({ isMobile }) => (isMobile ? 'initial' : '100vh')};
+  ${({ theme: { maxLg } }) => maxLg} {
+    height: initial;
+  }
+  @media (min-width: ${({ theme: { bpLg } }) => `calc(${bpLg} + 1px)`}) {
+    height: 100vh;
+  }
   background-color: ${({ theme }) => transparentize(0.4, theme.bg1)};
   color: ${({ theme }) => theme.text1};
   padding: 0.5rem 0.5rem 0.5rem 0.75rem;
@@ -52,19 +57,18 @@ export const Option = styled.div`
   }
 `
 
-export const DesktopWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  padding: 1.5rem 0.75rem;
-  justify-content: space-between;
-  box-sizing: border-box;
-`
-
 export const MobileWrapper = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  ${({ theme: { maxLg } }) => maxLg} {
+    align-items: center;
+  }
+  @media (min-width: ${({ theme: { bpLg } }) => `calc(${bpLg} + 1px)`}) {
+    flex-direction: column;
+    height: 100vh;
+    padding: 1.5rem 0.75rem;
+    box-sizing: border-box;
+  }
 `
 
 export const HeaderText = styled.div`
