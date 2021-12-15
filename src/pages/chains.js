@@ -302,7 +302,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
 
 export async function getStaticProps() {
   const [res, { chainCoingeckoIds }] = await Promise.all([PROTOCOLS_API, CONFIG_API].map(apiEndpoint => fetch(apiEndpoint).then(r => r.json())))
-  const chainsUnique = res.chains.filter(c => c !== "EthereumClassic") // TODO remove filter
+  const chainsUnique = res.chains
 
   const chainCalls = Promise.all(chainsUnique.map(elem => fetch(`${CHART_API}/${elem}`).then(resp => resp.json())))
   const chainMcapsPromise = fetch(
