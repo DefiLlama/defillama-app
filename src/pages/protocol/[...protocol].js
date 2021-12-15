@@ -10,6 +10,11 @@ export async function getStaticProps({
   }
 }) {
   const protocolRes = await getProtocol(protocol)
+  if (protocolRes.statusCode === 400) {
+    return {
+      notFound: true
+    }
+  }
   const protocolData = fuseProtocolData(protocolRes, protocol)
 
   return {
