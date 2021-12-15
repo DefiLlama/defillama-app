@@ -96,6 +96,12 @@ export async function getProtocolsPageData(category, chain) {
   }
 }
 
+export async function getSimpleProtocolsPageData(propsToKeep) {
+  const { protocols, chains } = await getProtocols()
+  const filteredProtocols = formatProtocolsData({ protocols, protocolProps: propsToKeep })
+  return { protocols: filteredProtocols, chains }
+}
+
 export async function getChainPageData(chain) {
   let chartData, protocols, chains
   try {

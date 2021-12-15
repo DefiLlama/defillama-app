@@ -1,7 +1,7 @@
 import ProtocolList from '../components/ProtocolList'
 import { PROTOCOLS_API } from '../constants/index'
 import { GeneralLayout } from '../layout'
-import { revalidate } from '../utils/dataApi'
+import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
 
 const exclude = [
   'Mento',
@@ -16,8 +16,7 @@ const exclude = [
 ]
 
 export async function getStaticProps() {
-  const res = await fetch(PROTOCOLS_API).then(r => r.json())
-  const protocols = res.protocols.filter(
+  const protocols = (await getSimpleProtocolsPageData()).protocols.filter(
     token => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name)
   )
   return {

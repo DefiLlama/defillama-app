@@ -1,15 +1,13 @@
 import ProtocolList from '../components/ProtocolList'
-import { PROTOCOLS_API } from '../constants/index'
 import { GeneralLayout } from '../layout'
-import { keepNeededProperties, revalidate } from '../utils/dataApi'
+import { getSimpleProtocolsPageData, revalidate } from '../utils/dataApi'
 
 export async function getStaticProps({ params }) {
-  const res = await fetch(PROTOCOLS_API).then(r => r.json())
-  const protocols = res.protocols.map(p => keepNeededProperties(p))
+  const { protocols, chains } = await getSimpleProtocolsPageData()
   return {
     props: {
       protocols,
-      chainsSet: res.chains
+      chainsSet: chains
     },
     revalidate: revalidate()
   }

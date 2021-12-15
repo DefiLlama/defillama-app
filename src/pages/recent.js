@@ -1,13 +1,11 @@
 import ProtocolList from '../components/ProtocolList'
-import { PROTOCOLS_API } from '../constants/index'
 import { GeneralLayout } from '../layout'
-import { keepNeededProperties, revalidate } from '../utils/dataApi'
+import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
 
 export async function getStaticProps({ params }) {
-  const res = await fetch(PROTOCOLS_API).then(r => r.json())
-  const protocols = res.protocols
+  const protocolsRaw = await getSimpleProtocolsPageData(['tvl', 'name', 'symbol', 'chains', 'change_1d', 'mcaptvl', 'listedAt', 'extraTvl'])
+  const protocols = protocolsRaw.protocols
     .filter(p => p.listedAt)
-    .map(p => keepNeededProperties(p, ['tvl', 'name', 'symbol', 'chains', 'change_1d', 'mcaptvl', 'listedAt']))
     .sort((a, b) => b.listedAt - a.listedAt)
   return {
     props: {
