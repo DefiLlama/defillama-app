@@ -13,12 +13,16 @@ const SAVED_ACCOUNTS = 'SAVED_ACCOUNTS'
 const SAVED_TOKENS = 'SAVED_TOKENS'
 const SAVED_PAIRS = 'SAVED_PAIRS'
 
-const DARK_MODE = 'DARK_MODE'
-const POOL2 = 'POOL2'
-const STAKING = 'STAKING'
-const BORROWED = 'BORROWED'
-const DISPLAY_USD = 'DISPLAY_USD'
-const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
+export const DARK_MODE = 'DARK_MODE'
+export const POOL2 = 'POOL2'
+export const STAKING = 'STAKING'
+export const BORROWED = 'BORROWED'
+export const OFFERS = 'OFFERS'
+export const TREASURY = 'TREASURY'
+export const DISPLAY_USD = 'DISPLAY_USD'
+export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
+
+const extraTvlProps = [POOL2, STAKING, BORROWED, OFFERS, TREASURY]
 
 const UPDATABLE_KEYS = [
   DARK_MODE,
@@ -26,9 +30,7 @@ const UPDATABLE_KEYS = [
   SAVED_ACCOUNTS,
   SAVED_PAIRS,
   SAVED_TOKENS,
-  POOL2,
-  BORROWED,
-  STAKING,
+  ...extraTvlProps,
   DISPLAY_USD,
   HIDE_LAST_DAY
 ]
@@ -64,9 +66,7 @@ function init() {
   const defaultLocalStorage = {
     [VERSION]: CURRENT_VERSION,
     [DARK_MODE]: true,
-    [STAKING]: false,
-    [POOL2]: false,
-    [BORROWED]: false,
+    ...extraTvlProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
     [DISPLAY_USD]: false,
     [HIDE_LAST_DAY]: false,
     [DISMISSED_PATHS]: {},
@@ -144,16 +144,21 @@ export function useDarkModeManager() {
   return [isDarkMode, toggleDarkMode]
 }
 
-export function usePool2Manager() {
+export function getExtraTvlEnabled() {
+  const [state] = useLocalStorageContext()
+  return state || {}
+  /*
+  return extraTvlProps.reduce((all, prop) => {
+    all[prop] = state[prop] || false
+  }, {})
+  */
+}
+
+export function useTvlToggles() {
   const [state, { updateKey }] = useLocalStorageContext()
-  let pool2Enabled = state[POOL2]
-  const togglePool2 = useCallback(
-    value => {
-      updateKey(POOL2, value === false || value === true ? value : !pool2Enabled)
-    },
-    [updateKey, pool2Enabled]
-  )
-  return [pool2Enabled, togglePool2]
+  return (key) => () => {
+    updateKey(key, !state[key])
+  }
 }
 
 export function useStakingManager() {

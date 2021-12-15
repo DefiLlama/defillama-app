@@ -12,20 +12,10 @@ import {
   NFT_CHAINS_STATISTICS_API
 } from '../constants/index'
 import { standardizeProtocolName } from 'utils'
-
-function sumSection(protocols, sectionName) {
-  return protocols.reduce((total, p) => total + (p[sectionName] ?? 0), 0)
-}
+import Section from 'components/NFTCollectionPage/Section'
 
 export function getProtocolNames(protocols) {
   return protocols.map(p => ({ name: p.name, symbol: p.symbol }))
-}
-
-function addSectionTvl(protocol: any, section: string, chain: string | undefined) {
-  const chainSectionName = chain ? `${chain}-${section}` : section
-  if (protocol.chainTvls[chainSectionName] !== undefined) {
-    protocol[section] = protocol.chainTvls[chainSectionName]
-  }
 }
 
 export const basicPropertiesToKeep = ['tvl', 'name', 'symbol', 'chains', 'change_7d', 'change_1d', 'mcap']
@@ -38,12 +28,12 @@ export function keepNeededProperties(protocol: any, propertiesToKeep: string[] =
   }, {})
 }
 
-const extraSections = ['staking', 'pool2', 'borrowed']
-export const formatProtocolsData = ({
+const formatProtocolsData = ({
   chain = '',
   category = '',
   protocols = [],
-  protocolProps = [...basicPropertiesToKeep, ...extraSections]
+  protocolProps = [...basicPropertiesToKeep, "extraTvl"],
+  totalExtraTvls = {}
 }) => {
   let filteredProtocols = [...protocols]
 
@@ -62,7 +52,22 @@ export const formatProtocolsData = ({
     if (chain) {
       protocol.tvl = protocol.chainTvls[chain]
     }
-    extraSections.forEach(section => addSectionTvl(protocol, section, chain))
+    protocol.extraTvl = {}
+    Object.entries(protocol.chainTvls).forEach(([sectionName, sectionTvl]) => {
+      if (chain) {
+        if (sectionName.startsWith(`${chain}-`)) {
+          const sectionToAdd = sectionName.split('-')[1]
+          protocol.extraTvl[sectionToAdd] = sectionTvl;
+          totalExtraTvls[sectionToAdd] = (totalExtraTvls[sectionToAdd] || 0) + sectionTvl;
+        }
+      } else {
+        const firstChar = sectionName[0]
+        if (firstChar == firstChar.toLowerCase()) {
+          protocol.extraTvl[sectionName] = sectionTvl;
+          totalExtraTvls[sectionName] = (totalExtraTvls[sectionName] || 0) + sectionTvl;
+        }
+      }
+    })
     return keepNeededProperties(protocol, protocolProps)
   })
 
@@ -103,7 +108,8 @@ export async function getChainPageData(chain) {
     }
   }
 
-  protocols = formatProtocolsData({ chain, protocols })
+  const totalExtraTvls = {}
+  protocols = formatProtocolsData({ chain, protocols, totalExtraTvls })
 
   const currentTvl = chartData[chartData.length - 1].totalLiquidityUSD
   let tvlChange = 0
@@ -122,9 +128,7 @@ export async function getChainPageData(chain) {
       chart: chartData.map(({ date, totalLiquidityUSD }) => [date, Math.trunc(totalLiquidityUSD)]),
       totalVolumeUSD: currentTvl,
       volumeChangeUSD: tvlChange,
-      totalStaking: sumSection(protocols, 'staking'),
-      totalPool2: sumSection(protocols, 'pool2'),
-      totalBorrowed: sumSection(protocols, 'borrowed'),
+      totalExtraTvls
     }
   }
 }

@@ -8,7 +8,10 @@ import {
   usePool2Manager,
   useDisplayUsdManager,
   useBorrowedManager,
-  useHideLastDayManager
+  useHideLastDayManager,
+  useTvlToggles,
+  getExtraTvlEnabled,
+  STAKING, POOL2, BORROWED, OFFERS, TREASURY, DARK_MODE, HIDE_LAST_DAY, DISPLAY_USD
 } from '../../contexts/LocalStorage'
 import Switch from 'react-switch'
 import HeadHelp from '../HeadHelp'
@@ -124,7 +127,6 @@ export const OptionToggle = props => (
 
 export function CheckMarks({ type = 'defi' }) {
   const [stakingEnabled, toggleStaking] = useStakingManager()
-  const [pool2Enabled, togglePool2] = usePool2Manager()
   const [borrowedEnabled, toggleBorrowed] = useBorrowedManager()
   const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
   const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
@@ -139,14 +141,6 @@ export function CheckMarks({ type = 'defi' }) {
         enabled: stakingEnabled && isClient,
         help: 'Include governance tokens staked in the protocol'
       },
-      /*
-      {
-        name: 'Pool2',
-        toggle: togglePool2,
-        enabled: pool2Enabled && isClient,
-        help: 'Include staked lp tokens where one of the coins in the pair is the governance token'
-      },
-      */
       {
         name: 'Borrows',
         toggle: toggleBorrowed,
@@ -182,6 +176,34 @@ export function CheckMarks({ type = 'defi' }) {
   )
 }
 
+const extraTvlOptions = [
+  {
+    name: 'Staking',
+    key: STAKING,
+    help: 'Include governance tokens staked in the protocol'
+  },
+  {
+    name: 'Pool2',
+    key: POOL2,
+    help: 'Include staked lp tokens where one of the coins in the pair is the governance token'
+  },
+  {
+    name: 'Borrows',
+    key: BORROWED,
+    help: 'Include borrowed coins in lending protocols'
+  },
+  {
+    name: 'Offers',
+    key: OFFERS,
+    help: 'Coins that are approved but not locked'
+  },
+  {
+    name: 'Treasury',
+    key: TREASURY,
+    help: 'Protocol treasury'
+  },
+]
+
 export default function Menu({ type = 'defi' }) {
   const node = useRef()
   const [open, setOpen] = useState(false)
@@ -201,52 +223,27 @@ export default function Menu({ type = 'defi' }) {
       document.removeEventListener('click', handleClick)
     }
   }, [])
-  //useOnClickOutside(node, open ? toggle : undefined)
 
-  const [isDark, toggleDarkMode] = useDarkModeManager()
-  const [stakingEnabled, toggleStaking] = useStakingManager()
-  const [pool2Enabled, togglePool2] = usePool2Manager()
-  const [borrowedEnabled, toggleBorrowed] = useBorrowedManager()
-  const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
-  const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
+  const tvlToggles = useTvlToggles()
+  const extraTvlEnabled = getExtraTvlEnabled()
 
   const toggleSettings = {
     defi: [
-      {
-        name: 'Staking',
-        toggle: toggleStaking,
-        enabled: stakingEnabled,
-        help: 'Include governance tokens staked in the protocol'
-      },
-      {
-        name: 'Pool2',
-        toggle: togglePool2,
-        enabled: pool2Enabled,
-        help: 'Include staked lp tokens where one of the coins in the pair is the governance token'
-      },
-      {
-        name: 'Borrows',
-        toggle: toggleBorrowed,
-        enabled: borrowedEnabled,
-        help: 'Include borrowed coins in lending protocols'
-      },
+      ...extraTvlOptions,
       {
         name: 'Dark mode',
-        toggle: toggleDarkMode,
-        enabled: isDark
+        key: DARK_MODE
       }
     ],
     nfts: [
       {
         name: 'Hide last day',
-        toggle: toggleHideLastDay,
-        enabled: hideLastDay,
+        key: HIDE_LAST_DAY,
         help: 'Hide the last day of data'
       },
       {
         name: 'Dark mode',
-        toggle: toggleDarkMode,
-        enabled: isDark
+        key: DARK_MODE
       }
     ]
   }
@@ -254,7 +251,7 @@ export default function Menu({ type = 'defi' }) {
   const renderSettingsToggles = () => {
     return toggleSettings[type].map(toggleSetting => (
       <MenuItem>
-        <OptionToggle {...toggleSetting} />
+        <OptionToggle {...toggleSetting} toggle={tvlToggles(toggleSetting.key)} enabled={extraTvlEnabled[toggleSetting.key]} />
       </MenuItem>
     ))
   }

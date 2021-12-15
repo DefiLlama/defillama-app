@@ -12,7 +12,7 @@ import { PageWrapper, ContentWrapper } from '..'
 import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
 
-import { useStakingManager, usePool2Manager, useBorrowedManager } from 'contexts/LocalStorage'
+import { getExtraTvlEnabled } from 'contexts/LocalStorage'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum } from 'utils'
 import { useCalcStakePool2Tvl } from 'hooks/data'
@@ -65,25 +65,17 @@ function GlobalPage({
   chainsSet,
   filteredProtocols,
   chart: globalChart,
-  totalStaking,
-  totalPool2,
-  totalBorrowed
+  totalExtraTvls
 }) {
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
-  const [stakingEnabled] = useStakingManager()
-  const [pool2Enabled] = usePool2Manager()
-  const [borrowedEnabled] = useBorrowedManager()
+  const extraTvlsEnabled = getExtraTvlEnabled()
 
-  if (stakingEnabled) {
-    totalVolumeUSD += totalStaking
-  }
-  if (pool2Enabled) {
-    totalVolumeUSD += totalPool2
-  }
-  if (borrowedEnabled) {
-    totalVolumeUSD += totalBorrowed
-  }
+  Object.entries(totalExtraTvls).forEach(([name, extraTvl]) => {
+    if (extraTvlsEnabled[name.toUpperCase()]) {
+      totalVolumeUSD += extraTvl
+    }
+  })
 
   let chainOptions = ['All'].concat(chainsSet).map(label => ({ label, to: setSelectedChain(label) }))
 

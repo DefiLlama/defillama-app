@@ -19,7 +19,7 @@ import Search from 'components/Search'
 import { CheckMarks } from 'components/SettingsModal'
 import TokenLogo from 'components/TokenLogo'
 
-import { useStakingManager, usePool2Manager } from 'contexts/LocalStorage'
+import { useCalcSingleExtraTvl } from '../../hooks/data'
 import { useScrollToTop, useProtocolColor } from 'hooks'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum, getBlockExplorer, toK } from 'utils'
@@ -130,14 +130,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
   const backgroundColor = useProtocolColor({ protocol, logo, transparent: false })
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
-  const [stakingEnabled] = useStakingManager()
-  const [pool2Enabled] = usePool2Manager()
-  if (chainTvls.staking && stakingEnabled) {
-    tvl += chainTvls.staking
-  }
-  if (chainTvls.pool2 && pool2Enabled) {
-    tvl += chainTvls.pool2
-  }
+  tvl = useCalcSingleExtraTvl(chainTvls, tvl)
 
   // TODO check if we still need to format long symbols?
 

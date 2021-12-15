@@ -311,24 +311,20 @@ export async function getStaticProps() {
       .join(',')}&vs_currencies=usd&include_market_cap=true`
   ).then(res => res.json())
   const numProtocolsPerChain = {}
-  const stakingPerChain = {}
-  const pool2PerChain = {}
-  const borrowedPerChain = {}
+  const extraPropPerChain = {}
 
   res.protocols.forEach(protocol => {
     protocol.chains.forEach(chain => {
       numProtocolsPerChain[chain] = (numProtocolsPerChain[chain] || 0) + 1
     })
     Object.entries(protocol.chainTvls).forEach(([tvlKey, tvlValue]) => {
-      if (tvlKey.includes('-staking')) {
+      if (tvlKey.includes('-')) {
+        const prop = tvlKey.split('-')[1]
         const chain = tvlKey.split('-')[0]
-        stakingPerChain[chain] = (stakingPerChain[chain] || 0) + tvlValue
-      } else if (tvlKey.includes('-pool2')) {
-        const chain = tvlKey.split('-')[0]
-        pool2PerChain[chain] = (pool2PerChain[chain] || 0) + tvlValue
-      } else if (tvlKey.includes('-borrowed')) {
-        const chain = tvlKey.split('-')[0]
-        borrowedPerChain[chain] = (borrowedPerChain[chain] || 0) + tvlValue
+        if (extraPropPerChain[chain] === undefined) {
+          extraPropPerChain[chain] = {};
+        }
+        extraPropPerChain[chain][prop] = (extraPropPerChain[chain][prop] || 0) + tvlValue;
       }
     })
   })
@@ -346,9 +342,7 @@ export async function getStaticProps() {
       name: chainName,
       symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
       protocols: numProtocolsPerChain[chainName],
-      pool2: pool2PerChain[chainName] || 0,
-      borrowed: borrowedPerChain[chainName] || 0,
-      staking: stakingPerChain[chainName] || 0,
+      extraTvl: extraPropPerChain[chainName] || {},
       change_1d: prevTvl(1) ? getPercentChange(prevTvl(1), current) : null,
       change_7d: prevTvl(7) ? getPercentChange(prevTvl(7), current) : null
     }

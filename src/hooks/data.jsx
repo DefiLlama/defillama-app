@@ -1,30 +1,23 @@
 import { useMemo } from 'react'
-import { useStakingManager, usePool2Manager, useBorrowedManager } from 'contexts/LocalStorage'
+import { getExtraTvlEnabled } from 'contexts/LocalStorage'
 
 export const useCalcStakePool2Tvl = (filteredProtocols, defaultSortingColumn) => {
-  const [stakingEnabled] = useStakingManager()
-  const [pool2Enabled] = usePool2Manager()
-  const [borrowedEnabled] = useBorrowedManager()
+  const extraTvlsEnabled = getExtraTvlEnabled()
 
   const protocolTotals = useMemo(() => {
-    if (!stakingEnabled && !pool2Enabled && !borrowedEnabled) {
+    if (Object.values(extraTvlsEnabled).every(t => !t)) {
       return filteredProtocols
     }
 
     const updatedProtocols = filteredProtocols
-      .map(({ tvl, pool2 = 0, staking = 0, borrowed = 0, ...props }) => {
+      .map(({ tvl, extraTvl, ...props }) => {
         let finalTvl = tvl
 
-        if (stakingEnabled) {
-          finalTvl += staking
-        }
-
-        if (pool2Enabled) {
-          finalTvl += pool2
-        }
-        if (borrowedEnabled) {
-          finalTvl += borrowed
-        }
+        Object.entries(extraTvl).map(([prop, propTvl]) => {
+          if (extraTvlsEnabled[prop.toUpperCase()]) {
+            finalTvl += propTvl;
+          }
+        })
 
         return {
           ...props,
@@ -36,7 +29,21 @@ export const useCalcStakePool2Tvl = (filteredProtocols, defaultSortingColumn) =>
     } else {
       return updatedProtocols
     }
-  }, [filteredProtocols, stakingEnabled, pool2Enabled, borrowedEnabled, defaultSortingColumn])
+  }, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn])
 
   return protocolTotals
+}
+
+export const useCalcSingleExtraTvl = (chainTvls, simpleTvl) => {
+  const extraTvlsEnabled = getExtraTvlEnabled()
+
+  const protocolTvl = useMemo(() => {
+    Object.entries(chainTvls).map(([section, sectionTvl]) => {
+      if (extraTvlsEnabled[section.toUpperCase()])
+        simpleTvl += sectionTvl
+    })
+    return simpleTvl
+  }, [extraTvlsEnabled, simpleTvl])
+
+  return protocolTvl
 }
