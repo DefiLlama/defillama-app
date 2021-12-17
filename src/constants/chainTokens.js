@@ -374,6 +374,11 @@ export const chainCoingeckoIds = {
     symbol: "CLO",
     cmcId: "2757",
   },
+  CSC: {
+    geckoId: "coinex-token",
+    symbol: "CET",
+    cmcId: "2941",
+  },
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
