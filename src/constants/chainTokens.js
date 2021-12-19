@@ -379,6 +379,11 @@ export const chainCoingeckoIds = {
     symbol: "CET",
     cmcId: "2941",
   },
+  XDC: {
+    geckoId: "xdce-crowd-sale",
+    symbol: "XDC",
+    cmcId: "2634",
+  },
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
