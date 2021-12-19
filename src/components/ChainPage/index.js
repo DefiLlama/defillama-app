@@ -16,6 +16,8 @@ import { getExtraTvlEnabled } from 'contexts/LocalStorage'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum } from 'utils'
 import { useCalcStakePool2Tvl } from 'hooks/data'
+import { DownloadCloud } from "react-feather"
+import { BasicLink } from 'components/Link'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -52,6 +54,10 @@ const BreakpointPanelsColumn = styled(AutoColumn)`
     max-width: initial;
     margin-bottom: 10px;
   }
+`
+
+const DownloadIcon = styled(DownloadCloud)`
+  color: ${({ theme }) => theme.white};
 `
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
@@ -126,6 +132,7 @@ function GlobalPage({
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
               {((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)}%
             </TYPE.main>
+            <BasicLink href={`https://api.llama.fi/simpleChainDataset/${selectedChain}`} ><DownloadIcon /></BasicLink>
           </RowBetween>
         </AutoColumn>
       </Panel>
