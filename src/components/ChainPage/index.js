@@ -78,7 +78,7 @@ function GlobalPage({
   const extraTvlsEnabled = getExtraTvlEnabled()
 
   Object.entries(totalExtraTvls).forEach(([name, extraTvl]) => {
-    if (extraTvlsEnabled[name.toUpperCase()]) {
+    if (extraTvlsEnabled[name]) {
       totalVolumeUSD += extraTvl
     }
   })
@@ -132,7 +132,9 @@ function GlobalPage({
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
               {((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)}%
             </TYPE.main>
-            <BasicLink href={`https://api.llama.fi/simpleChainDataset/${selectedChain}`} ><DownloadIcon /></BasicLink>
+            <BasicLink href={
+              `https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled).filter(t => t[1] === true).map(t => `${t[0]}=true`).join('&')}`
+            } ><DownloadIcon /></BasicLink>
           </RowBetween>
         </AutoColumn>
       </Panel>

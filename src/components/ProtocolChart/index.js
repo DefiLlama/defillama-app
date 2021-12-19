@@ -26,7 +26,7 @@ const ProtocolChart = ({
 
   const chartDataFiltered = useMemo(() => {
     const tvlDictionary = {}
-    const sections = Object.keys(chainTvls).filter(sect => sect[0].toLowerCase() === sect[0] && extraTvlEnabled[sect.toUpperCase()] === true)
+    const sections = Object.keys(chainTvls).filter(sect => sect[0].toLowerCase() === sect[0] && extraTvlEnabled[sect] === true)
     if (sections.length > 0) {
       for (const name of sections) {
         tvlDictionary[name] = {}

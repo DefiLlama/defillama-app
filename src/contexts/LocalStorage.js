@@ -14,11 +14,11 @@ const SAVED_TOKENS = 'SAVED_TOKENS'
 const SAVED_PAIRS = 'SAVED_PAIRS'
 
 export const DARK_MODE = 'DARK_MODE'
-export const POOL2 = 'POOL2'
-export const STAKING = 'STAKING'
-export const BORROWED = 'BORROWED'
-export const OFFERS = 'OFFERS'
-export const TREASURY = 'TREASURY'
+export const POOL2 = 'pool2'
+export const STAKING = 'staking'
+export const BORROWED = 'borrowed'
+export const OFFERS = 'offers'
+export const TREASURY = 'treasury'
 export const DISPLAY_USD = 'DISPLAY_USD'
 export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
 
@@ -146,12 +146,10 @@ export function useDarkModeManager() {
 
 export function getExtraTvlEnabled() {
   const [state] = useLocalStorageContext()
-  return state || {}
-  /*
   return extraTvlProps.reduce((all, prop) => {
     all[prop] = state[prop] || false
+    return all
   }, {})
-  */
 }
 
 export function useTvlToggles() {
