@@ -28,6 +28,7 @@ const blockExplorers = {
   boba: ['https://blockexplorer.boba.network/tokens/', 'Boba Explorer'],
   elrond: ['https://elrondscan.com/token/', 'Elrondscan'],
   xdc: ['https://explorer.xinfin.network/token/', 'XDC Explorer'],
+  csc: ['https://www.coinex.net/address/', 'CSC Explorer'],
 }
 
 export const getBlockExplorer = (address = '') => {
