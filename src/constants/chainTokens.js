@@ -379,10 +379,10 @@ export const chainCoingeckoIds = {
     symbol: "CET",
     cmcId: "2941",
   },
-  XDC: {
-    geckoId: "xdce-crowd-sale",
-    symbol: "XDC",
-    cmcId: "2634",
+  Ergo: {
+    geckoId: "ergo",
+    symbol: "ERG",
+    cmcId: "1555",
   },
 }
 
