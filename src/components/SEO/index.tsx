@@ -11,12 +11,12 @@ interface SEOProps {
   nftPage?: boolean
 }
 
+let cardURL = new URL(`https://og-llama.vercel.app/`)
+
+let fileType: 'png' | 'jpeg' = 'png'
+
 const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false }: SEOProps) => {
   const windowURL = typeof window !== 'undefined' && window.location.href ? window.location.href : ''
-
-  let cardURL = new URL(`https://og-llama.vercel.app/`)
-
-  let fileType = 'png'
 
   // If text is default, the image will only have the logo in the center, without any tvl numbers, chain or token name etc
   let text: string = cardName ? (cardName === 'All' ? 'Overall' : cardName) : 'default'
