@@ -10,6 +10,7 @@ export async function getStaticProps({
   const collections = await getNFTCollectionsByChain(chainName)
   const chartData = await getNFTChainChartData(chainName)
   const chainData = await getNFTChainsData()
+
   const { totalVolumeUSD, dailyVolumeUSD, displayName } = chainData.find(c => c.chain === chainName) || {
     totalVolumeUSD: 0,
     dailyVolumeUSD: 0,

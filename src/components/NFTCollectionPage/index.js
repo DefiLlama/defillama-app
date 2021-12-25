@@ -91,12 +91,12 @@ function NFTCollectionPage({ collection, chartData }) {
   const [hideLastDay] = useHideLastDayManager()
   const below1024 = useMedia('(max-width: 1024px)')
 
-  const { chain, address, description, logo, name, slug, website, twitterUsername, discordUrl, telegramUrl } =
+  const { chains, address, description, logo, name, slug, website, twitterUsername, discordUrl, telegramUrl } =
     collection || {}
 
   const backgroundColor = useProtocolColor({ protocol: slug, logo, transparent: false })
 
-  const symbol = chainCoingeckoIds[capitalizeFirstLetter(chain)]?.symbol
+  const symbol = chainCoingeckoIds[capitalizeFirstLetter(chains?.length && chains[0])]?.symbol
   let dailyVolume = chartData.length ? chartData[chartData.length - 1].dailyVolume : 0 //TODO Return from backend
 
   const links = {
@@ -119,13 +119,13 @@ function NFTCollectionPage({ collection, chartData }) {
 
   const marketCapUSD = (
     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-      {formattedNum(collection.statistic.marketCapUSD, '$')}
+      {formattedNum(collection.marketCapUSD, '$')}
     </TYPE.main>
   )
 
   const totalVolumeUSD = (
     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-      {formattedNum(collection.statistic.totalVolumeUSD, '$')}
+      {formattedNum(collection.totalVolumeUSD, '$')}
     </TYPE.main>
   )
 

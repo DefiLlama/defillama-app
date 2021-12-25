@@ -35,12 +35,10 @@ export const CONFIG_API = 'https://api.llama.fi/config'
 
 export const NFT_COLLECTION_API = 'https://nft.api.llama.fi/collection'
 export const NFT_COLLECTIONS_API = 'https://nft.api.llama.fi/collections'
+export const NFT_CHART_API = 'https://nft.api.llama.fi/chart'
+export const NFT_CHAINS_API = 'https://nft.api.llama.fi/chains'
+export const NFT_MARKETPLACES_API = 'https://nft.api.llama.fi/chains'
 export const NFT_SEARCH_API = 'https://nft.api.llama.fi/search'
-export const NFT_CHARTS_API = 'https://nft.api.llama.fi/historical-statistic/all'
-export const NFT_COLLECTION_CHARTS_API = 'https://nft.api.llama.fi/historical-statistic/collection'
-export const NFT_CHAIN_CHARTS_API = 'https://nft.api.llama.fi/historical-statistic/chain'
-export const NFT_STATISTICS_API = 'https://nft.api.llama.fi/statistics'
-export const NFT_CHAINS_STATISTICS_API = 'https://nft.api.llama.fi/statistics/chains'
 
 // GlobalData Constants
 export const UPDATE = 'UPDATE'

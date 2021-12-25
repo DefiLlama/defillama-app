@@ -149,7 +149,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
         </DataText>
         <DataText>
           <BasicLink key={item.chain} href={`/nfts/chain/${item.chain}`}>
-            <TokenLogo address={item.chain} logo={chainIconUrl(item.chain)} />
+            <TokenLogo address={item.chain} logo={chainIconUrl(item.chains[0])} /> {/* TODO handle displaying multiple chains */}
           </BasicLink>
         </DataText>
         <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayCurrency)}</DataText>
