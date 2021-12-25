@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import { useMemo } from 'react'
 import { chainIconUrl, tokenIconUrl } from 'utils'
 
 interface SEOProps {
@@ -11,45 +12,47 @@ interface SEOProps {
   nftPage?: boolean
 }
 
-let cardURL = new URL(`https://og-llama.vercel.app/`)
-
-let fileType: 'png' | 'jpeg' = 'png'
-
 const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false }: SEOProps) => {
   const windowURL = typeof window !== 'undefined' && window.location.href ? window.location.href : ''
 
-  // If text is default, the image will only have the logo in the center, without any tvl numbers, chain or token name etc
-  let text: string = cardName ? (cardName === 'All' ? 'Overall' : cardName) : 'default'
+  const cardURL = useMemo(() => {
+    let cardSrc = new URL(`https://og-llama.vercel.app/`)
 
-  cardURL.pathname = `${encodeURIComponent(text)}.${fileType}`
+    // If text is default, the image will only have the logo in the center, without any tvl numbers, chain or token name etc
+    let text: string = cardName ? (cardName === 'All' ? 'Overall' : cardName) : 'default'
 
-  cardURL.searchParams.append('theme', 'dark')
+    cardSrc.pathname = `${encodeURIComponent(text)}.png`
 
-  tvl && cardURL.searchParams.append('tvl', tvl)
+    cardSrc.searchParams.append('theme', 'dark')
 
-  volumeChange && cardURL.searchParams.append('volumeChange', volumeChange)
+    tvl && cardSrc.searchParams.append('tvl', tvl)
 
-  cardURL.searchParams.append('footerURL', encodeURIComponent(windowURL))
+    volumeChange && cardSrc.searchParams.append('volumeChange', volumeChange)
 
-  // First url in images should always be the logo of defillama
-  let images = nftPage
-    ? [`https://defillama.com/logos/defillama-nft.svg`]
-    : [`https://defillama.com/logos/defillama.svg`]
+    cardSrc.searchParams.append('footerURL', encodeURIComponent(windowURL))
 
-  // chain and token props are used to get logo, if the logo url isn't available in the data of that page
-  if (logo) {
-    images = [...images, logo]
-  } else if (chain) {
-    images = [...images, `https://defillama.com${chainIconUrl(chain)}`]
-  } else {
-    if (token) {
-      images = [...images, `https://defillama.com${tokenIconUrl(token)}`]
+    // First url in images should always be the logo of defillama
+    let images = nftPage
+      ? [`https://raw.githubusercontent.com/DefiLlama/defillama-press-kit/master/SVG/defillama-nft.svg`]
+      : [`https://raw.githubusercontent.com/DefiLlama/defillama-press-kit/master/SVG/defillama.svg`]
+
+    // chain and token props are used to get logo, if the logo url isn't available in the data of that page
+    if (logo) {
+      images = [...images, logo]
+    } else if (chain && chain !== 'All') {
+      images = [...images, `https://defillama.com${chainIconUrl(chain)}`]
+    } else {
+      if (token && token !== 'All') {
+        images = [...images, `https://defillama.com${tokenIconUrl(token)}`]
+      }
     }
-  }
 
-  for (let image of images) {
-    cardURL.searchParams.append('images', image)
-  }
+    for (let image of images) {
+      cardSrc.searchParams.append('images', image)
+    }
+
+    return cardSrc.toString()
+  }, [cardName, chain, token, tvl, volumeChange, logo, nftPage, windowURL])
 
   return (
     <Head>
@@ -67,7 +70,7 @@ const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false 
         property="og:description"
         content="DefiLlama is a DeFi TVL aggregator. It is committed to providing accurate data without ads or sponsored content, as well as transparency."
       />
-      <meta property="og:image" content={cardURL.toString()} />
+      <meta property="og:image" content={cardURL} />
     </Head>
   )
 }
