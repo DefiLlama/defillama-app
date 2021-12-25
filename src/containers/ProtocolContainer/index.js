@@ -139,7 +139,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
 
   return (
     <PageWrapper>
-      <SEO cardName={name} token={name} logo={logo} tvl={tvl} />
+      <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(tvl, true)} />
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
       <ContentWrapper>
         <RowBetween flexWrap="wrap">
