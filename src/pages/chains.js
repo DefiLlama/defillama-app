@@ -301,7 +301,9 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
 }
 
 export async function getStaticProps() {
-  const [res, { chainCoingeckoIds }] = await Promise.all([PROTOCOLS_API, CONFIG_API].map(apiEndpoint => fetch(apiEndpoint).then(r => r.json())))
+  const [res, { chainCoingeckoIds }] = await Promise.all(
+    [PROTOCOLS_API, CONFIG_API].map(apiEndpoint => fetch(apiEndpoint).then(r => r.json()))
+  )
   const chainsUnique = res.chains
 
   const chainCalls = Promise.all(chainsUnique.map(elem => fetch(`${CHART_API}/${elem}`).then(resp => resp.json())))
@@ -322,9 +324,9 @@ export async function getStaticProps() {
         const prop = tvlKey.split('-')[1]
         const chain = tvlKey.split('-')[0]
         if (extraPropPerChain[chain] === undefined) {
-          extraPropPerChain[chain] = {};
+          extraPropPerChain[chain] = {}
         }
-        extraPropPerChain[chain][prop] = (extraPropPerChain[chain][prop] || 0) + tvlValue;
+        extraPropPerChain[chain][prop] = (extraPropPerChain[chain][prop] || 0) + tvlValue
       }
     })
   })
@@ -332,21 +334,23 @@ export async function getStaticProps() {
   const data = await chainCalls
   const chainMcaps = await chainMcapsPromise
 
-  const chainTvls = chainsUnique.map((chainName, i) => {
-    const prevTvl = daysBefore => data[i][data[i].length - 1 - daysBefore]?.totalLiquidityUSD
-    const current = prevTvl(0)
-    const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
-    return {
-      tvl: current,
-      mcaptvl: mcap ? mcap / current : null,
-      name: chainName,
-      symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
-      protocols: numProtocolsPerChain[chainName],
-      extraTvl: extraPropPerChain[chainName] || {},
-      change_1d: prevTvl(1) ? getPercentChange(prevTvl(1), current) : null,
-      change_7d: prevTvl(7) ? getPercentChange(prevTvl(7), current) : null
-    }
-  }).sort((a, b) => b.tvl - a.tvl)
+  const chainTvls = chainsUnique
+    .map((chainName, i) => {
+      const prevTvl = daysBefore => data[i][data[i].length - 1 - daysBefore]?.totalLiquidityUSD
+      const current = prevTvl(0)
+      const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
+      return {
+        tvl: current,
+        mcaptvl: mcap ? mcap / current : null,
+        name: chainName,
+        symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
+        protocols: numProtocolsPerChain[chainName],
+        extraTvl: extraPropPerChain[chainName] || {},
+        change_1d: prevTvl(1) ? getPercentChange(prevTvl(1), current) : null,
+        change_7d: prevTvl(7) ? getPercentChange(prevTvl(7), current) : null
+      }
+    })
+    .sort((a, b) => b.tvl - a.tvl)
 
   const daySum = {}
   const stackedDataset = Object.values(
@@ -387,7 +391,7 @@ export async function getStaticProps() {
 
 export default function Chains(props) {
   return (
-    <GeneralLayout title={`Chain TVL - DefiLlama`}>
+    <GeneralLayout title={`Chain TVL - DefiLlama`} defaultSEO>
       <ChainsView {...props} />
     </GeneralLayout>
   )
