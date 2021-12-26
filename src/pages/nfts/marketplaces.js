@@ -3,7 +3,7 @@ import { PageWrapper, FullWrapper } from '../../components'
 import NFTList from '../../components/NFTList'
 import { RowBetween } from '../../components/Row'
 import { TYPE } from '../../Theme'
-import { chainIconUrl } from '../../utils'
+import { tokenIconUrl } from '../../utils'
 import { getNFTMarketplacesData, revalidate } from '../../utils/dataApi'
 
 export async function getStaticProps() {
@@ -24,7 +24,7 @@ const MarketplacesView = ({ marketplaceData }) => {
         </RowBetween>
         <NFTList
           data={marketplaceData}
-          iconUrl={chainIconUrl}
+          iconUrl={tokenIconUrl}
           generateLink={name => `/nfts/marketplace/${name}`}
           columns={['marketplace', 'collections', 'dailyVolumeUSD', 'totalVolumeUSD']}
           type='marketplaces'
