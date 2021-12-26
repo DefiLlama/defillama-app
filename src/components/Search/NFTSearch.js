@@ -12,7 +12,7 @@ import RightSettings from '../RightSettings'
 
 import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconLarge, Wrapper } from './shared'
 
-import { fetchAPI } from '../../contexts/API'
+import { getNFTSearchResults } from '../../utils/dataApi'
 import { NFT_SEARCH_API } from '../../constants'
 
 const NFTSearch = ({ small = false }) => {
@@ -37,9 +37,8 @@ const NFTSearch = ({ small = false }) => {
   const [tokensShown, setTokensShown] = useState(3)
 
   const searchTokens = useCallback(async () => {
-    const url = `${NFT_SEARCH_API}?searchTerm=${value}`
-    const tokens = await fetchAPI(url)
-    setSearchResults(tokens)
+    const results = await getNFTSearchResults(value)
+    setSearchResults(results)
   }, [value])
 
   function onDismiss() {

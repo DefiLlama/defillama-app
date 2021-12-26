@@ -301,6 +301,15 @@ export const getNFTMarketplacesData = async () => {
   }
 }
 
+export const getNFTSearchResults = async (query: string) => {
+  try {
+    const { hits }: { hits: any } = await fetch(`${NFT_SEARCH_API}?query=${query}`).then(r => r.json())
+    return hits.map(hit => hit._source)
+  } catch (e) {
+    console.log(e)
+  }
+}
+
 // Client Side
 
 const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then(res => res.json())
