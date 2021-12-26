@@ -38,7 +38,6 @@ const NFTSearch = ({ small = false }) => {
 
   useDebounce(
     async () => {
-      console.log("doing search", value)
       const results = await getNFTSearchResults(value)
       setSearchResults(results)
     },
