@@ -109,7 +109,8 @@ function NFTList({
   iconUrl,
   generateLink = () => '',
   columns = [],
-  defaultSortingColumn = 'totalVolume'
+  defaultSortingColumn = 'totalVolume',
+  type = 'chains'
 }) {
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
@@ -133,23 +134,20 @@ function NFTList({
     )
   }, [data, sortDirection, sortedColumn])
 
+  console.log(type)
   const ListItem = ({ item, index }) => {
+    console.log(item)
     return (
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
           <Row>
             {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index + 1}</div>}
-            <TokenLogo logo={iconUrl(item.chain)} />
+            <TokenLogo logo={iconUrl(type === 'chains' ? item.chain : item.marketplace)} />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
-              href={'/nfts/chain/' + item.chain}
+              href={type === 'chains' ? '/nfts/chain/' + item.chain : '/nfts/marketplace/' + item.marketplace}
             >
-              <FormattedName
-                text={item.displayName}
-                maxCharacters={below600 ? 8 : 16}
-                adjustSize={true}
-                link={true}
-              />
+              <FormattedName text={item.displayName} maxCharacters={below600 ? 8 : 16} adjustSize={true} link={true} />
             </CustomLink>
           </Row>
         </DataText>
