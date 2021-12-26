@@ -25,6 +25,8 @@ const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false 
 
     cardSrc.searchParams.append('theme', 'dark')
 
+    cardSrc.searchParams.append('valueHeader', nftPage ? 'Total Volume' : 'Total Value Locked')
+
     tvl && cardSrc.searchParams.append('tvl', tvl)
 
     volumeChange && cardSrc.searchParams.append('volumeChange', volumeChange)
