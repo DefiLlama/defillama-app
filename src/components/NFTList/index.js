@@ -134,9 +134,7 @@ function NFTList({
     )
   }, [data, sortDirection, sortedColumn])
 
-  console.log(type)
   const ListItem = ({ item, index }) => {
-    console.log(item)
     return (
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
