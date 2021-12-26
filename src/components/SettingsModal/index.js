@@ -11,7 +11,14 @@ import {
   useHideLastDayManager,
   useTvlToggles,
   getExtraTvlEnabled,
-  STAKING, POOL2, BORROWED, OFFERS, TREASURY, DARK_MODE, HIDE_LAST_DAY, DISPLAY_USD
+  STAKING,
+  POOL2,
+  BORROWED,
+  OFFERS,
+  TREASURY,
+  DARK_MODE,
+  HIDE_LAST_DAY,
+  DISPLAY_USD
 } from '../../contexts/LocalStorage'
 import Switch from 'react-switch'
 import HeadHelp from '../HeadHelp'
@@ -165,7 +172,7 @@ export function CheckMarks({ type = 'defi' }) {
   }
 
   return (
-    <AutoRow gap="10px" justify="center">
+    <AutoRow gap="10px" justify="center" key="settings">
       {toggleSettings[type].map(toggleSetting => {
         if (toggleSetting) {
           return <OptionToggle {...toggleSetting} key={toggleSetting.name} />
@@ -201,7 +208,7 @@ const extraTvlOptions = [
     name: 'Treasury',
     key: TREASURY,
     help: 'Protocol treasury'
-  },
+  }
 ]
 
 export default function Menu({ type = 'defi' }) {
@@ -237,6 +244,11 @@ export default function Menu({ type = 'defi' }) {
     ],
     nfts: [
       {
+        name: 'Display in USD',
+        key: DISPLAY_USD,
+        help: 'Display metrics in USD'
+      },
+      {
         name: 'Hide last day',
         key: HIDE_LAST_DAY,
         help: 'Hide the last day of data'
@@ -251,7 +263,11 @@ export default function Menu({ type = 'defi' }) {
   const renderSettingsToggles = () => {
     return toggleSettings[type].map(toggleSetting => (
       <MenuItem>
-        <OptionToggle {...toggleSetting} toggle={tvlToggles(toggleSetting.key)} enabled={extraTvlEnabled[toggleSetting.key]} />
+        <OptionToggle
+          {...toggleSetting}
+          toggle={tvlToggles(toggleSetting.key)}
+          enabled={extraTvlEnabled[toggleSetting.key]}
+        />
       </MenuItem>
     ))
   }
