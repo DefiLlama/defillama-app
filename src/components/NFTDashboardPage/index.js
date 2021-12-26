@@ -62,17 +62,10 @@ const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
   ssr: false
 })
 
-const NFTDashboard = ({
-  totalVolumeUSD,
-  dailyVolumeUSD,
-  dailyChange,
-  collections,
-  chart,
-  chainData,
-  displayName = 'All'
-}) => {
+const NFTDashboard = ({ statistics, collections, chart, chainData, displayName = 'All' }) => {
   useEffect(() => window.scrollTo(0, 0))
 
+  const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics
   const [hideLastDay] = useHideLastDayManager()
   const below800 = useMedia('(max-width: 800px)')
   const selectedChain = displayName
@@ -88,23 +81,45 @@ const NFTDashboard = ({
       }))
   ]
 
-  const isHomePage = selectedChain === 'All'
-  let dailyVolume = chart.length ? chart[chart.length - 1].dailyVolume : 0 //TODO Return from backend
+  let shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit
   let [displayUsd] = useDisplayUsdManager()
-  let symbol = chainCoingeckoIds[selectedChain]?.symbol
-  let unit = ''
 
-  if (isHomePage) {
+  const isHomePage = selectedChain === 'All'
+  if (isHomePage || displayUsd) {
+    ;[shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit] = [
+      totalVolumeUSD,
+      dailyVolumeUSD,
+      dailyChange,
+      'USD',
+      '$'
+    ]
     displayUsd = true
-    symbol = 'USD'
-    unit = '$'
+  } else {
+    ;[shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit] = [
+      totalVolume,
+      dailyVolume,
+      dailyChange,
+      chainCoingeckoIds[selectedChain]?.symbol,
+      ''
+    ]
   }
 
   if (hideLastDay) {
-    chart = chart.slice(0, -1)
-    if (chart.length > 1) {
-      dailyVolume = chart[chart.length - 1].dailyVolume
-      dailyChange = ((dailyVolume - chart[chart.length - 2].dailyVolume) / chart[chart.length - 2].dailyVolume) * 100
+    if (chart.length >= 3 && displayUsd) {
+      ;[shownTotalVolume, shownDailyVolume, shownDailyChange] = [
+        totalVolumeUSD - chart[chart.length - 1].volumeUSD,
+        chart[chart.length - 2].volumeUSD,
+        ((chart[chart.length - 2].volumeUSD - chart[chart.length - 3].volumeUSD) / chart[chart.length - 3].volumeUSD) *
+          100
+      ]
+      chart = chart.slice(0, -1)
+    } else if (chart.length >= 3) {
+      ;[shownTotalVolume, shownDailyVolume, shownDailyChange] = [
+        totalVolume - chart[chart.length - 1].volume,
+        chart[chart.length - 2].volume,
+        ((chart[chart.length - 2].volume - chart[chart.length - 3].volume) / chart[chart.length - 3].volume) * 100
+      ]
+      chart = chart.slice(0, -1)
     }
   }
 
@@ -117,7 +132,7 @@ const NFTDashboard = ({
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-              {formattedNum(totalVolumeUSD, true)}
+              {formattedNum(shownTotalVolume, displayUsd)}
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
@@ -129,7 +144,7 @@ const NFTDashboard = ({
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-              {formattedNum(dailyVolumeUSD, true)}
+              {formattedNum(shownDailyVolume, displayUsd)}
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
@@ -141,7 +156,7 @@ const NFTDashboard = ({
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-              {dailyChange?.toFixed(2)}%
+              {shownDailyChange?.toFixed(2)}%
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
@@ -162,10 +177,11 @@ const NFTDashboard = ({
           <Panel style={{ height: '100%', minHeight: '347px' }}>
             <GlobalNFTChart
               chartData={chart}
-              dailyVolume={dailyVolume}
-              dailyVolumeChange={dailyChange}
+              dailyVolume={shownDailyVolume}
+              dailyVolumeChange={shownDailyChange}
               symbol={symbol}
               unit={unit}
+              displayUsd={displayUsd}
             />
           </Panel>
         </BreakpointPanels>
