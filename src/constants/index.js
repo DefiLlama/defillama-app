@@ -37,7 +37,7 @@ export const NFT_COLLECTION_API = 'https://nft.api.llama.fi/collection'
 export const NFT_COLLECTIONS_API = 'https://nft.api.llama.fi/collections'
 export const NFT_CHART_API = 'https://nft.api.llama.fi/chart'
 export const NFT_CHAINS_API = 'https://nft.api.llama.fi/chains'
-export const NFT_MARKETPLACES_API = 'https://nft.api.llama.fi/chains'
+export const NFT_MARKETPLACES_API = 'https://nft.api.llama.fi/marketplaces'
 export const NFT_SEARCH_API = 'https://nft.api.llama.fi/search'
 
 // GlobalData Constants
