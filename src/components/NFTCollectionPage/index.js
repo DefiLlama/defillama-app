@@ -19,7 +19,7 @@ import { TYPE, ThemedBackground } from '../../Theme'
 import { useProtocolColor } from 'hooks'
 import { chainCoingeckoIds } from '../../constants/chainTokens'
 import LocalLoader from 'components/LocalLoader'
-import { useHideLastDayManager } from '../../contexts/LocalStorage'
+import { useHideLastDayManager, useDisplayUsdManager } from '../../contexts/LocalStorage'
 
 const DashboardWrapper = styled(Box)`
   width: 100%;
@@ -87,17 +87,29 @@ const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
   ssr: false
 })
 
-function NFTCollectionPage({ collection, chartData }) {
+function NFTCollectionPage({ collection, chart, statistics }) {
   const [hideLastDay] = useHideLastDayManager()
+  const [displayUsd] = useDisplayUsdManager()
   const below1024 = useMedia('(max-width: 1024px)')
 
-  const { chains, address, description, logo, name, slug, website, twitterUsername, discordUrl, telegramUrl } =
-    collection || {}
+  const {
+    chains,
+    address,
+    description,
+    logo,
+    name,
+    slug,
+    website,
+    twitterUsername,
+    discordUrl,
+    telegramUrl,
+    marketCap,
+    marketCapUSD
+  } = collection || {}
+
+  const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics || {}
 
   const backgroundColor = useProtocolColor({ protocol: slug, logo, transparent: false })
-
-  const symbol = chainCoingeckoIds[capitalizeFirstLetter(chains?.length && chains[0])]?.symbol
-  let dailyVolume = chartData.length ? chartData[chartData.length - 1].dailyVolume : 0 //TODO Return from backend
 
   const links = {
     website,
@@ -106,26 +118,58 @@ function NFTCollectionPage({ collection, chartData }) {
     twitter: twitterUsername ? `https://twitter.com/${twitterUsername}` : ''
   }
 
-  if (!collection || !chartData) {
+  if (!collection || !chart) {
     return <LocalLoader fill="true" />
   }
 
+  let shownMarketCap, shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit
+
+  if (displayUsd) {
+    ;[shownMarketCap, shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit] = [
+      marketCapUSD,
+      totalVolumeUSD,
+      dailyVolumeUSD,
+      dailyChange,
+      'USD',
+      '$'
+    ]
+  } else {
+    ;[shownMarketCap, shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit] = [
+      marketCap,
+      totalVolume,
+      dailyVolume,
+      dailyChange,
+      chainCoingeckoIds[capitalizeFirstLetter(chains?.length && chains[0])]?.symbol,
+      ''
+    ]
+  }
+
   if (hideLastDay) {
-    chartData = chartData.slice(0, -1)
-    if (chartData.length > 1) {
-      dailyVolume = chartData[chartData.length - 1].dailyVolume
+    if (chart.length >= 2 && displayUsd) {
+      shownTotalVolume = totalVolumeUSD - chart[chart.length - 1].volumeUSD
+      shownDailyVolume = chart[chart.length - 2].volumeUSD
+      shownDailyChange =
+        ((chart[chart.length - 2].volumeUSD - chart[chart.length - 3].volumeUSD) / chart[chart.length - 3].volumeUSD) *
+        100
+      chart = chart.slice(0, -1)
+    } else if (chart.length >= 2) {
+      shownTotalVolume = totalVolume - chart[chart.length - 1].volume
+      shownDailyVolume = chart[chart.length - 2].volume
+      shownDailyChange =
+        ((chart[chart.length - 2].volume - chart[chart.length - 3].volume) / chart[chart.length - 3].volume) * 100
+      chart = chart.slice(0, -1)
     }
   }
 
-  const marketCapUSD = (
+  const marketCapSection = (
     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-      {formattedNum(collection.marketCapUSD, '$')}
+      {formattedNum(shownMarketCap, displayUsd)}
     </TYPE.main>
   )
 
-  const totalVolumeUSD = (
+  const totalVolumeSection = (
     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-      {formattedNum(collection.totalVolumeUSD, '$')}
+      {formattedNum(shownTotalVolume, displayUsd)}
     </TYPE.main>
   )
 
@@ -151,8 +195,8 @@ function NFTCollectionPage({ collection, chartData }) {
         <DashboardWrapper>
           <Header address={address} below1024={below1024} logo={logo} name={name} />
           <PanelWrapper>
-            <Section title="Market Cap" content={marketCapUSD} />
-            <Section title="Total Volume" content={totalVolumeUSD} />
+            <Section title="Market Cap" content={marketCapSection} />
+            <Section title="Total Volume" content={totalVolumeSection} />
             <Section title="Links" content={<Links logo={logo} links={links} />} />
             <Panel
               sx={{
@@ -160,7 +204,14 @@ function NFTCollectionPage({ collection, chartData }) {
                 gridRow: ['', '', '', '1/4']
               }}
             >
-              <GlobalNFTChart chartData={chartData} dailyVolume={dailyVolume} symbol={symbol} />
+              <GlobalNFTChart
+                chartData={chart}
+                dailyVolume={shownDailyVolume}
+                dailyVolumeChange={shownDailyChange}
+                symbol={symbol}
+                unit={unit}
+                displayUsd={displayUsd}
+              />
             </Panel>
           </PanelWrapper>
           <>
