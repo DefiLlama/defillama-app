@@ -173,57 +173,62 @@ export const fuseProtocolData = (protocolData, protocol) => {
   }
 }
 
-export const getNFTData = async () => {
-  let chartData, collections
+export const getNFTStatistics = chart => {
+  const { totalVolume, totalVolumeUSD } = (chart.length &&
+    chart.reduce((volumes, data) => {
+      if (volumes.totalVolumeUSD >= 0 && volumes.totalVolume >= 0) {
+        volumes.totalVolumeUSD += data.volumeUSD ?? 0
+        volumes.totalVolume += data.volume ?? 0
+      } else {
+        volumes.totalVolumeUSD = data.volumeUSD ?? 0
+        volumes.totalVolume = data.volume ?? 0
+      }
+      return volumes
+    }, {})) || {
+    totalVolume: 0,
+    totalVolumeUSD: 0
+  }
 
+  const dailyVolume = chart.length ? chart[chart.length - 1]?.volume || 0 : 0
+  const dailyVolumeUSD = chart.length ? chart[chart.length - 1]?.volumeUSD || 0 : 0
+  const dailyChange = chart.length
+    ? ((dailyVolumeUSD - chart[chart.length - 2]?.volumeUSD) / chart[chart.length - 2]?.volumeUSD) * 100
+    : 0
+
+  return {
+    totalVolumeUSD,
+    totalVolume,
+    dailyVolumeUSD,
+    dailyVolume,
+    dailyChange
+  }
+}
+
+export const getNFTData = async () => {
   try {
-    ;[chartData, { data: collections }] = await Promise.all(
-      [`${NFT_CHART_API}`, NFT_COLLECTIONS_API].map(url => fetch(url).then(r => r.json()))
-    )
+    const chart = await fetch(NFT_CHART_API).then(r => r.json())
+    const { data: collections } = await fetch(NFT_COLLECTIONS_API).then(r => r.json())
+    const statistics = getNFTStatistics(chart)
+
+    return {
+      chart,
+      collections,
+      statistics
+    }
   } catch (e) {
     console.log(e)
     return {
-      notFound: true
+      chart: [],
+      collections: [],
+      statistics: {}
     }
-  }
-
-  collections = collections.map(collection => ({
-    ...collection,
-    slug: collection.PK.split("#")[1]
-  }))
-
-  const chart = chartData.map(data => ({
-    ...data,
-    dailyVolume: data.volumeUSD,
-    date: Math.floor(data.timestamp / 1000)
-  }))
-
-  const totalVolumeUSD = chart.reduce((volume, data) => volume + data.dailyVolume, 0)
-  const dailyVolumeUSD = chart.length ? chart[chart.length - 1]?.dailyVolume || 0 : 0
-  const dailyChange = chart.length
-    ? (dailyVolumeUSD - chart[chart.length - 2]?.dailyVolume / chart[chart.length - 2]?.dailyVolume) * 100
-    : 0
-
-  const statistics = {
-    totalVolumeUSD,
-    dailyVolumeUSD,
-    dailyChange
-  }
-
-  return {
-    chart,
-    collections,
-    ...statistics
   }
 }
 
 export const getNFTCollections = async (chain: string) => {
   try {
     const { data: collections } = await fetch(NFT_COLLECTIONS_API).then(r => r.json())
-    return collections.map(collection => ({
-      ...collection,
-      slug: collection.PK.split('#')[1]
-    }))
+    return collections
   } catch (e) {
     console.log(e)
   }
@@ -232,10 +237,7 @@ export const getNFTCollections = async (chain: string) => {
 export const getNFTCollectionsByChain = async (chain: string) => {
   try {
     const { data: collections } = await fetch(`${NFT_COLLECTIONS_API}/chain/${chain}`).then(r => r.json())
-    return collections.map(collection => ({
-      ...collection,
-      slug: collection.PK.split('#')[1]
-    }))
+    return collections
   } catch (e) {
     console.log(e)
   }
@@ -244,10 +246,7 @@ export const getNFTCollectionsByChain = async (chain: string) => {
 export const getNFTCollectionsByMarketplace = async (marketplace: string) => {
   try {
     const { data: collections } = await fetch(`${NFT_COLLECTIONS_API}/marketplace/${marketplace}`).then(r => r.json())
-    return collections.map(collection => ({
-      ...collection,
-      slug: collection.PK.split('#')[1]
-    }))
+    return collections
   } catch (e) {
     console.log(e)
   }
@@ -264,14 +263,7 @@ export const getNFTCollection = async slug => {
 
 export const getNFTChainChartData = async chain => {
   try {
-    const chartData = await fetch(`${NFT_CHART_API}/chain/${chain}`).then(r => r.json())
-    return chartData
-      .map(data => ({
-        ...data,
-        dailyVolume: data.volume,
-        date: Math.floor(data.timestamp / 1000)
-      }))
-      .filter(data => data.dailyVolume)
+    return fetch(`${NFT_CHART_API}/chain/${chain}`).then(r => r.json())
   } catch (e) {
     console.log(e)
   }
@@ -279,14 +271,7 @@ export const getNFTChainChartData = async chain => {
 
 export const getNFTMarketplaceChartData = async marketplace => {
   try {
-    const chartData = await fetch(`${NFT_CHART_API}/marketplace/${marketplace}`).then(r => r.json())
-    return chartData
-      .map(data => ({
-        ...data,
-        dailyVolume: data.volume,
-        date: Math.floor(data.timestamp / 1000)
-      }))
-      .filter(data => data.dailyVolume)
+    return fetch(`${NFT_CHART_API}/marketplace/${marketplace}`).then(r => r.json())
   } catch (e) {
     console.log(e)
   }
@@ -294,14 +279,7 @@ export const getNFTMarketplaceChartData = async marketplace => {
 
 export const getNFTCollectionChartData = async slug => {
   try {
-    const chartData = await fetch(`${NFT_CHART_API}/collection/${slug}`).then(r => r.json())
-    return chartData
-      .map(data => ({
-        ...data,
-        dailyVolume: data.volume,
-        date: Math.floor(data.timestamp / 1000)
-      }))
-      .filter(data => data.dailyVolume)
+    return fetch(`${NFT_CHART_API}/collection/${slug}`).then(r => r.json())
   } catch (e) {
     console.log(e)
   }
