@@ -1,0 +1,176 @@
+openapi: 3.0.0
+info:
+  description: |
+    Docs for defillama's open API
+  version: 1.0.0-oas3
+  title: DefiLlama API
+tags:
+  - name: TVL
+    description: Retrieve TVL data
+  - name: coins
+    description: General blockchain data used by defillama and open-sourced
+servers:
+  - url: https://api.llama.fi
+paths:
+  /protocols:
+    get:
+      tags:
+        - TVL
+      summary: List all protocols on defillama along with their tvl
+      responses:
+        '200':
+          description: successful operation
+  /protocol/{protocol}:
+    get:
+      tags:
+        - TVL
+      summary: Get historical TVL of a protocol and breakdowns by token and chain
+      parameters:
+        - name: protocol
+          in: path
+          description: protocol slug
+          required: true
+          schema:
+            type: string
+            example: aave
+      responses:
+        '200':
+          description: successful operation
+  /charts:
+    get:
+      tags:
+        - TVL
+      summary: Get historical TVL of DeFi on all chains
+      responses:
+        '200':
+          description: successful operation
+  /charts/{chain}:
+    get:
+      tags:
+        - TVL
+      summary: Get historical TVL of a chain
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          description: chain slug, you can get these from /chains or the chains property on /protocols
+          schema:
+            type: string
+            example: Ethereum
+      responses:
+        '200':
+          description: successful operation
+  /tvl/{protocol}:
+    get:
+      tags:
+        - TVL
+      summary: Simplified endpoint to get current TVL of a protocol
+      description: Simplified endpoint that only returns a number, the current TVL of a protocol
+      parameters:
+        - name: protocol
+          in: path
+          required: true
+          description: protocol slug
+          schema:
+            type: string
+            example: uniswap
+      responses:
+        '200':
+          description: successful operation
+  /chains:
+    get:
+      tags:
+        - TVL
+      summary: Get current TVL of all chains
+      responses:
+        '200':
+          description: successful operation
+  /block/{chain}/{timestamp}:
+    get:
+      tags:
+        - coins
+      summary: Get the closest block to a timestamp
+      description: |
+        Runs binary search over a blockchain's blocks to get the closest one to a timestamp.
+        
+        Every time this is run we add new data to our database, so each query permanently speeds up future queries.
+      servers:
+        - url: https://coins.llama.fi
+      parameters:
+        - name: chain
+          in: path
+          description: Chain which you want to get the block from
+          required: true
+          schema:
+            type: string
+        - name: timestamp
+          in: path
+          description: UNIX timestamp of the block you are searching for
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: successful operation
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  height:
+                    type: integer
+                    format: uint
+                    example: 11150916
+                  timestamp:
+                    type: integer
+                    format: uint
+                    example: 1603964988
+        '400':
+          description: Invalid chain or timestamp provided
+  /prices:
+    post:
+      tags:
+        - coins
+      summary: Get current or historical prices of tokens by contract address
+      description: TODO
+      servers:
+        - url: https://coins.llama.fi
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - coins
+              properties:
+                coins:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+                    - "avax:0xd586e7f844cea2f87f50152665bcbc2c279d8d70"
+                timestamp:
+                  type: integer
+                  format: uint
+                  example: 1603964988
+        description: If timestamp is not provided we just return the latest data
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  height:
+                    type: integer
+                    format: uint
+                    example: 11150916
+                  timestamp:
+                    type: integer
+                    format: uint
+                    example: 1603964988
+        '502':
+          description: Internal error
