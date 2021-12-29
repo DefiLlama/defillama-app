@@ -126,7 +126,7 @@ export const Footer = ({ isDark, toggleDarkMode }) => (
         </Link>
       </HeaderText>
       <HeaderText>
-        <Link href="https://docs.llama.fi/api" target="_blank">
+        <Link href="/docs/api">
           API Docs
         </Link>
       </HeaderText>
