@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 
-export const DarkSwagger = styled.div`
+const DarkSwagger = styled.div`
 a { color: #8c8cfa; }
 
 ::-webkit-scrollbar-track-piece { background-color: rgba(255, 255, 255, .2) !important; }
@@ -831,3 +831,5 @@ font, html { color: #bfbfbf; }
     background-color: #b6b6b6;
 }
 `
+
+export default DarkSwagger

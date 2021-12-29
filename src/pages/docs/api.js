@@ -2,7 +2,7 @@ import SwaggerUI from "swagger-ui-react"
 import "swagger-ui-react/swagger-ui.css"
 import yamlApiSpec from "./resolvedSpec.json"
 import { GeneralLayout } from '../../layout'
-import { DarkSwagger } from "./swaggerDark"
+import DarkSwagger from "./swaggerDark"
 import { useDarkModeManager } from "../../contexts/LocalStorage"
 import styled from 'styled-components'
 
