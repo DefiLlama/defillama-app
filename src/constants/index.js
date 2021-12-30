@@ -33,12 +33,12 @@ export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2'
 export const PROTOCOL_API = 'https://api.llama.fi/updatedProtocol'
 export const CONFIG_API = 'https://api.llama.fi/config'
 
-export const NFT_COLLECTION_API = 'https://nft.api.llama.fi/collection'
-export const NFT_COLLECTIONS_API = 'https://nft.api.llama.fi/collections'
-export const NFT_CHART_API = 'https://nft.api.llama.fi/chart'
-export const NFT_CHAINS_API = 'https://nft.api.llama.fi/chains'
-export const NFT_MARKETPLACES_API = 'https://nft.api.llama.fi/marketplaces'
-export const NFT_SEARCH_API = 'https://nft.api.llama.fi/search'
+export const NFT_COLLECTION_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collection'
+export const NFT_COLLECTIONS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collections'
+export const NFT_CHART_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/chart'
+export const NFT_CHAINS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/chains'
+export const NFT_MARKETPLACES_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/marketplaces'
+export const NFT_SEARCH_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/search'
 
 // GlobalData Constants
 export const UPDATE = 'UPDATE'
