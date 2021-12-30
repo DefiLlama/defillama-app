@@ -88,7 +88,7 @@ function PressPage() {
             <DashGrid center={true} style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
               <TYPE.heading>Press</TYPE.heading>
               <Divider />
-              <TYPE.main>If you are working on a story with our data or need to get in touch, contact: <Link href="mailto:defillama@protonmail.com">llamapress@protonmail.com</Link></TYPE.main>
+              <TYPE.main>If you are working on a story using our data or need to get in touch, contact: <Link href="mailto:defillama@protonmail.com">llamapress@protonmail.com</Link></TYPE.main>
               <Divider />
               <TYPE.main>DeFiLlama is used across a large number of media organisations and financial institutions.</TYPE.main>
               <PanelWrapper mt={[0, 0, '1rem']} style={{ gridTemplateRows: 'auto' }}>
