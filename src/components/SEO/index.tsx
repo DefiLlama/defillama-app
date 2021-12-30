@@ -16,7 +16,7 @@ const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false 
   const windowURL = typeof window !== 'undefined' && window.location.href ? window.location.href : ''
 
   const cardURL = useMemo(() => {
-    let cardSrc = new URL(`https://og-llama.vercel.app/`)
+    let cardSrc = new URL(`https://og-cards-chi.vercel.app/`)
 
     // If text is default, the image will only have the logo in the center, without any tvl numbers, chain or token name etc
     let text: string = cardName ? (cardName === 'All' ? 'Overall' : cardName) : 'default'
@@ -35,8 +35,8 @@ const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false 
 
     // First url in images should always be the logo of defillama
     let images = nftPage
-      ? [`https://raw.githubusercontent.com/DefiLlama/defillama-press-kit/master/SVG/defillama-nft.svg`]
-      : [`https://raw.githubusercontent.com/DefiLlama/defillama-press-kit/master/SVG/defillama.svg`]
+      ? [`https://defillama.com/defillama-press-kit/nft/SVG/defillama-nft.svg`]
+      : [`https://defillama.com/defillama-press-kit/defi/SVG/defillama.svg`]
 
     // chain and token props are used to get logo, if the logo url isn't available in the data of that page
     if (logo) {
