@@ -15,6 +15,12 @@ interface SEOProps {
 const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false }: SEOProps) => {
   const windowURL = typeof window !== 'undefined' && window.location.href ? window.location.href : ''
 
+  const isTvlValid = tvl && tvl !== '$0'
+
+  const isVolumeChangeValid = volumeChange && volumeChange !== 'NaN%' && volumeChange !== 'undefined%'
+
+  console.log({ tvl, volumeChange })
+
   const cardURL = useMemo(() => {
     let cardSrc = new URL(`https://og-cards-chi.vercel.app/`)
 
@@ -27,9 +33,9 @@ const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false 
 
     cardSrc.searchParams.append('valueHeader', nftPage ? 'Total Volume' : 'Total Value Locked')
 
-    tvl && cardSrc.searchParams.append('tvl', tvl)
+    isTvlValid && cardSrc.searchParams.append('tvl', tvl)
 
-    volumeChange && cardSrc.searchParams.append('volumeChange', volumeChange)
+    isVolumeChangeValid && cardSrc.searchParams.append('volumeChange', volumeChange)
 
     cardSrc.searchParams.append('footerURL', encodeURIComponent(windowURL))
 
@@ -54,25 +60,36 @@ const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false 
     }
 
     return cardSrc.toString()
-  }, [cardName, chain, token, tvl, volumeChange, logo, nftPage, windowURL])
+  }, [cardName, chain, token, tvl, volumeChange, logo, nftPage, windowURL, isTvlValid, isVolumeChangeValid])
 
   return (
     <Head>
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content="@DefiLlama" />
-      <meta property="og:site_name" content="DefiLlama" />
-      <meta property="og:type" content="website" />
-      <meta property="og:title" content="DefiLlama" />
-      <meta property="og:url" content={windowURL} />
       <meta
         name="description"
         content="DefiLlama is a DeFi TVL aggregator. It is committed to providing accurate data without ads or sponsored content, as well as transparency."
       />
+
+      <meta property="og:title" content="DefiLlama" />
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={windowURL} />
+      <meta property="og:site_name" content="DefiLlama" />
       <meta
         property="og:description"
         content="DefiLlama is a DeFi TVL aggregator. It is committed to providing accurate data without ads or sponsored content, as well as transparency."
       />
       <meta property="og:image" content={cardURL} />
+
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta property="twitter:domain" content="defillama.com" />
+      <meta property="twitter:url" content={windowURL} />
+      <meta name="twitter:title" content="DefiLlama" />
+      <meta name="twitter:site" content="@DefiLlama" />
+      <meta name="twitter:creator" content="@DefiLlama" />
+      <meta
+        name="twitter:description"
+        content="DefiLlama is a DeFi TVL aggregator. It is committed to providing accurate data without ads or sponsored content, as well as transparency."
+      />
+      <meta name="twitter:image" content={cardURL} />
     </Head>
   )
 }
