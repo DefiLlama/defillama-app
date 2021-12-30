@@ -20,6 +20,7 @@ import { useProtocolColor } from 'hooks'
 import { chainCoingeckoIds } from '../../constants/chainTokens'
 import LocalLoader from 'components/LocalLoader'
 import { useHideLastDayManager } from '../../contexts/LocalStorage'
+import SEO from 'components/SEO'
 
 const DashboardWrapper = styled(Box)`
   width: 100%;
@@ -131,6 +132,7 @@ function NFTCollectionPage({ collection, chartData }) {
 
   return (
     <PageWrapper>
+      <SEO cardName={name} logo={logo} nftPage />
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
       <ContentWrapper>
         <RowBetween flexWrap="wrap">

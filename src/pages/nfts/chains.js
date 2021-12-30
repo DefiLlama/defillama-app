@@ -5,9 +5,10 @@ import { RowBetween } from '../../components/Row'
 import { TYPE } from '../../Theme'
 import { chainIconUrl } from '../../utils'
 import { getNFTChainsData, revalidate } from '../../utils/dataApi'
+import SEO from 'components/SEO'
 
 export async function getStaticProps() {
-  const chainData = await getNFTChainsData();
+  const chainData = await getNFTChainsData()
 
   return {
     props: { chainData },
@@ -36,6 +37,7 @@ const ChainsView = ({ chainData }) => {
 function Chains(props) {
   return (
     <GeneralLayout title="DefiLlama - NFT Dashboard">
+      <SEO nftPage />
       <ChainsView {...props} />
     </GeneralLayout>
   )

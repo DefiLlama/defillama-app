@@ -16,6 +16,7 @@ import NFTCollectionList from '../NFTCollectionList'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { formattedNum } from '../../utils'
 import { chainCoingeckoIds } from '../../constants/chainTokens'
+import SEO from 'components/SEO'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -149,8 +150,11 @@ const NFTDashboard = ({
     </>
   )
 
+  const tvl = formattedNum(totalVolumeUSD, true)
+
   return (
     <PageWrapper>
+      <SEO cardName={displayName} chain={displayName} tvl={tvl} nftPage />
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
       <ContentWrapper>
         <AutoColumn gap="24px" style={{ paddingBottom: '24px' }}>

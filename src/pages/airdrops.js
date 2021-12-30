@@ -1,5 +1,4 @@
 import ProtocolList from '../components/ProtocolList'
-import { PROTOCOLS_API } from '../constants/index'
 import { GeneralLayout } from '../layout'
 import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
 
@@ -29,7 +28,7 @@ export async function getStaticProps() {
 
 export default function Protocols({ protocols }) {
   return (
-    <GeneralLayout title={`Airdroppable protocols - Defi Llama`}>
+    <GeneralLayout title={`Airdroppable protocols - Defi Llama`} defaultSEO>
       <ProtocolList
         title="Tokenless protocols that may airdrop 🧑‍🌾"
         category=""

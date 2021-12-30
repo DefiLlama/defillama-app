@@ -33,7 +33,7 @@ export async function getStaticPaths() {
 
 export default function Protocols({ protocolA, protocolB, protocolsMcapTvl }) {
   return (
-    <GeneralLayout title="Protocol Price Comparison - DefiLlama">
+    <GeneralLayout title="Protocol Price Comparison - DefiLlama" defaultSEO>
       <ComparisonContainer protocolsMcapTvl={protocolsMcapTvl} protocolA={protocolA} protocolB={protocolB} />
     </GeneralLayout>
   )

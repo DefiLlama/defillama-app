@@ -9,9 +9,8 @@ import { Divider } from '../components'
 import Link from '../components/Link'
 import { GeneralLayout } from '../layout'
 
-
 function AboutPage() {
-    const DashGrid = styled.div`
+  const DashGrid = styled.div`
     display: grid;
     grid-gap: 1em;
     grid-template-columns: 1fr;
@@ -22,6 +21,7 @@ function AboutPage() {
       justify-content: flex-end;
     }
   `
+  
     return (
         <GeneralLayout title="DefiLlama - DeFi Dashboard">
             <PageWrapper>
