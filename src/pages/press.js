@@ -90,7 +90,7 @@ function PressPage() {
               <Divider />
               <TYPE.main>If you are working on a story with our data or need to get in touch, contact: <Link href="mailto:defillama@protonmail.com">llamapress@protonmail.com</Link></TYPE.main>
               <Divider />
-              <TYPE.main>DeFiLlama is used across a large number of media organisations and financial instituions.</TYPE.main>
+              <TYPE.main>DeFiLlama is used across a large number of media organisations and financial institutions.</TYPE.main>
               <PanelWrapper mt={[0, 0, '1rem']} style={{ gridTemplateRows: 'auto' }}>
                 {pressList.map(imageFilename => <PressPanel imageFilename={imageFilename} />)}
               </PanelWrapper>
