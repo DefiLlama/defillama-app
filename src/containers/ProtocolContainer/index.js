@@ -23,6 +23,7 @@ import { useCalcSingleExtraTvl } from '../../hooks/data'
 import { useScrollToTop, useProtocolColor } from 'hooks'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum, getBlockExplorer, toK } from 'utils'
+import SEO from 'components/SEO'
 
 const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
 
@@ -96,7 +97,7 @@ const TokenDetailsLayout = styled.div`
 
 const TotalValueLockedWrap = styled(RowBetween)`
   @media only screen and (max-width: ${({ theme: { bpXl } }) => bpXl}) and (min-width: ${({ theme: { bpLg } }) =>
-    bpLg}) {
+      bpLg}) {
     flex-direction: column-reverse;
   }
 `
@@ -138,6 +139,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
 
   return (
     <PageWrapper>
+      <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(tvl, true)} />
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
       <ContentWrapper>
         <RowBetween flexWrap="wrap">
@@ -320,7 +322,9 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   external
                   href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
                 >
-                  <ButtonLight useTextColor={true} color={backgroundColor}>Check the code ↗</ButtonLight>
+                  <ButtonLight useTextColor={true} color={backgroundColor}>
+                    Check the code ↗
+                  </ButtonLight>
                 </Link>
               </RowFixed>
             </Panel>
@@ -367,10 +371,14 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                       external
                       href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`}
                     >
-                      <ButtonLight useTextColor={true} color={backgroundColor}>View on CoinGecko ↗</ButtonLight>
+                      <ButtonLight useTextColor={true} color={backgroundColor}>
+                        View on CoinGecko ↗
+                      </ButtonLight>
                     </Link>
                     <Link color={backgroundColor} external href={blockExplorerLink}>
-                      <ButtonLight useTextColor={true} color={backgroundColor}>View on {blockExplorerName} ↗</ButtonLight>
+                      <ButtonLight useTextColor={true} color={backgroundColor}>
+                        View on {blockExplorerName} ↗
+                      </ButtonLight>
                     </Link>
                   </RowFixed>
                 </TokenDetailsLayout>

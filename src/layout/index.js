@@ -8,6 +8,7 @@ import SideNav from '../components/SideNav'
 import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from '../contexts/LocalStorage'
 import Head from 'next/head'
 import ThemeProvider, { GlobalStyle, TYPE } from '../Theme'
+import SEO from 'components/SEO'
 
 export const AppWrapper = styled.div`
   position: relative;
@@ -50,7 +51,7 @@ export const LayoutWrapper = ({ children, savedOpen }) => {
   )
 }
 
-export function GeneralLayout({ title, children }) {
+export function GeneralLayout({ title, children, defaultSEO = false }) {
   return (
     <>
       <Head>
@@ -63,6 +64,7 @@ export function GeneralLayout({ title, children }) {
           crossOrigin="anonymous"
         ></link>
       </Head>
+      {defaultSEO && <SEO />}
       <LocalStorageContextProvider>
         <LocalStorageContextUpdater />
         <ThemeProvider>

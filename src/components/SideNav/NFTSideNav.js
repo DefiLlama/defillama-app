@@ -17,11 +17,11 @@ function SideNav() {
 
   const NavMenu = () => (
     <AutoColumn gap="1.25rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }}>
+      <Entry url="" name="DeFi" history={history} Icon={BarChart2} />
       <Entry url="nfts" name="Overview" history={history} Icon={TrendingUp} />
       <Entry url="nfts/chains" name="Chains" history={history} Icon={LinkLogo} />
       <Entry url="nfts/marketplaces" name="Marketplaces" history={history} Icon={ShoppingCart} />
       <Entry url="nfts/about" name="About" history={history} Icon={HelpCircle} />
-      <Entry url="" name="DeFi" history={history} Icon={BarChart2} />
     </AutoColumn>
   )
 
