@@ -19,8 +19,6 @@ const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false 
 
   const isVolumeChangeValid = volumeChange && volumeChange !== 'NaN%' && volumeChange !== 'undefined%'
 
-  console.log({ tvl, volumeChange })
-
   const cardURL = useMemo(() => {
     let cardSrc = new URL(`https://og-cards-chi.vercel.app/`)
 
