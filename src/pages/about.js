@@ -23,7 +23,7 @@ function AboutPage() {
   `
   
     return (
-        <GeneralLayout title="DefiLlama - DeFi Dashboard">
+        <GeneralLayout title="DefiLlama - DeFi Dashboard" defaultSEO>
             <PageWrapper>
                 <FullWrapper>
                     <RowBetween>
