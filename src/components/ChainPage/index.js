@@ -120,8 +120,10 @@ function GlobalPage({
     let chainGeckoId = null
     if (selectedChain !== 'All') {
       let chainDenomination = chainCoingeckoIds[selectedChain] ?? null
-      if (chainDenomination) {
-        chainGeckoId = chainDenomination?.geckoId ?? null
+
+      chainGeckoId = chainDenomination?.geckoId ?? null
+
+      if (chainGeckoId && chainDenomination.symbol) {
         DENOMINATIONS = [...BASIC_DENOMINATIONS, chainDenomination.symbol]
       }
     }

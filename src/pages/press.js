@@ -69,7 +69,7 @@ const PanelWrapper = styled(Box)`
 
 function PressPage() {
   return (
-    <GeneralLayout title="DefiLlama - DeFi Dashboard">
+    <GeneralLayout title="DefiLlama - DeFi Dashboard" defaultSEO>
       <PageWrapper>
         <FullWrapper>
           <RowBetween>

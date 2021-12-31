@@ -25,7 +25,7 @@ const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false 
     // If text is default, the image will only have the logo in the center, without any tvl numbers, chain or token name etc
     let text: string = cardName ? (cardName === 'All' ? 'Overall' : cardName) : 'default'
 
-    cardSrc.pathname = `${encodeURIComponent(text)}.png`
+    cardSrc.pathname = `${encodeURIComponent(text)}.jpeg`
 
     cardSrc.searchParams.append('theme', 'dark')
 
