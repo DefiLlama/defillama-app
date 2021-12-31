@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 
-import { AutoRow, RowBetween, RowFlat } from '../Row'
+import { AutoRow, RowBetween, RowFlat, RowFixed } from '../Row'
 import { AutoColumn } from '../Column'
 import TokenList from '../TokenList'
 import Search from '../Search'
@@ -18,7 +18,13 @@ import { formattedNum } from 'utils'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { DownloadCloud } from 'react-feather'
 import { BasicLink } from '../Link'
+
+import { chainCoingeckoIds } from 'constants/chainTokens'
+import { useDenominationPriceHistory } from 'utils/dataApi'
 import SEO from '../SEO'
+import { OptionButton } from 'components/ButtonStyled'
+import { useRouter } from 'next/router'
+import LocalLoader from 'components/LocalLoader'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -36,7 +42,7 @@ const BreakpointPanels = styled.div`
     width: 100%;
     display: flex;
     padding: 0;
-    align-items: center;
+    align-items: stretch;
   }
 `
 
@@ -47,7 +53,6 @@ const FiltersRow = styled(RowFlat)`
 `
 
 const BreakpointPanelsColumn = styled(AutoColumn)`
-  height: 100%;
   width: 100%;
   margin-right: 10px;
   max-width: 350px;
@@ -65,6 +70,8 @@ const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false
 })
 
+const BASIC_DENOMINATIONS = ['USD']
+
 function GlobalPage({
   selectedChain = 'All',
   volumeChangeUSD,
@@ -77,6 +84,10 @@ function GlobalPage({
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
   const extraTvlsEnabled = getExtraTvlEnabled()
+
+  const router = useRouter()
+
+  const denomination = router.query?.currency ?? 'USD'
 
   Object.entries(totalExtraTvls).forEach(([name, extraTvl]) => {
     if (extraTvlsEnabled[name]) {
@@ -99,41 +110,94 @@ function GlobalPage({
   }
 
   const tvl = formattedNum(totalVolumeUSD, true)
+
   const percentChange = volumeChangeUSD?.toFixed(2)
+
   const volumeChange = (percentChange > 0 ? '+' : '') + percentChange + '%'
+
+  const [DENOMINATIONS, chainGeckoId] = useMemo(() => {
+    let DENOMINATIONS = []
+    let chainGeckoId = null
+    if (selectedChain !== 'All') {
+      let chainDenomination = chainCoingeckoIds[selectedChain] ?? null
+      if (chainDenomination) {
+        chainGeckoId = chainDenomination?.geckoId ?? null
+        DENOMINATIONS = [...BASIC_DENOMINATIONS, chainDenomination.symbol]
+      }
+    }
+    return [DENOMINATIONS, chainGeckoId]
+  }, [selectedChain])
+
+  const { data: denominationPriceHistory, loading } = useDenominationPriceHistory(chainGeckoId, 0)
+
+  const [finalChartData, chainPriceInUSD] = useMemo(() => {
+    if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {
+      let priceIndex = 0
+      let prevPriceDate = 0
+      const denominationPrices = denominationPriceHistory.prices
+      const newChartData = []
+      let priceInUSD = 1
+      for (let i = 0; i < globalChart.length; i++) {
+        const date = globalChart[i][0] * 1000
+        while (
+          priceIndex < denominationPrices.length &&
+          Math.abs(date - prevPriceDate) > Math.abs(date - denominationPrices[priceIndex][0])
+        ) {
+          prevPriceDate = denominationPrices[priceIndex][0]
+          priceIndex++
+        }
+        priceInUSD = denominationPrices[priceIndex - 1][1]
+        newChartData.push([globalChart[i][0], globalChart[i][1] / priceInUSD])
+      }
+      return [newChartData, priceInUSD]
+    } else return [globalChart, 1]
+  }, [chainGeckoId, globalChart, denominationPriceHistory, denomination])
+
+  const updateRoute = unit => {
+    router.push({
+      query: {
+        ...router.query,
+        currency: unit
+      }
+    })
+  }
+
+  const totalVolume = totalVolumeUSD / chainPriceInUSD
+
+  const isLoading = denomination !== 'USD' && loading
 
   const panels = (
     <>
-      <Panel style={{ padding: '18px 25px' }}>
+      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
         <AutoColumn gap="4px">
           <RowBetween>
             <TYPE.heading>Total Value Locked (USD)</TYPE.heading>
           </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+          <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
               {tvl}
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
       </Panel>
-      <Panel style={{ padding: '18px 25px' }}>
+      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
         <AutoColumn gap="4px">
           <RowBetween>
             <TYPE.heading>Change (24h)</TYPE.heading>
           </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+          <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
               {percentChange}%
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
       </Panel>
-      <Panel style={{ padding: '18px 25px' }}>
+      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
         <AutoColumn gap="4px">
           <RowBetween>
             <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
           </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
+          <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
               {((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)}%
             </TYPE.main>
@@ -176,12 +240,29 @@ function GlobalPage({
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
           <Panel style={{ height: '100%', minHeight: '347px' }}>
-            <Chart
-              display="liquidity"
-              dailyData={globalChart}
-              totalLiquidityUSD={totalVolumeUSD}
-              liquidityChangeUSD={volumeChangeUSD}
-            />
+            <RowFixed>
+              {DENOMINATIONS.map(option => (
+                <OptionButton
+                  active={denomination === option}
+                  onClick={() => updateRoute(option)}
+                  style={{ margin: '0 8px 8px 0' }}
+                  key={option}
+                >
+                  {option}
+                </OptionButton>
+              ))}
+            </RowFixed>
+            {isLoading ? (
+              <LocalLoader style={{ margin: 'auto' }} />
+            ) : (
+              <Chart
+                display="liquidity"
+                dailyData={finalChartData}
+                unit={denomination}
+                totalLiquidity={totalVolume}
+                liquidityChange={volumeChangeUSD}
+              />
+            )}
           </Panel>
         </BreakpointPanels>
         <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
