@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { useDebounce } from 'react-use'
 
 import { RowFixed } from '../Row'
 import TokenLogo from '../TokenLogo'
@@ -12,8 +13,7 @@ import RightSettings from '../RightSettings'
 
 import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconLarge, Wrapper } from './shared'
 
-import { fetchAPI } from '../../contexts/API'
-import { NFT_SEARCH_API } from '../../constants'
+import { getNFTSearchResults } from '../../utils/dataApi'
 
 const NFTSearch = ({ small = false }) => {
   const linkPath = collection => `/nfts/collection/${collection.slug}`
@@ -36,11 +36,14 @@ const NFTSearch = ({ small = false }) => {
 
   const [tokensShown, setTokensShown] = useState(3)
 
-  const searchTokens = useCallback(async () => {
-    const url = `${NFT_SEARCH_API}?searchTerm=${value}`
-    const tokens = await fetchAPI(url)
-    setSearchResults(tokens)
-  }, [value])
+  useDebounce(
+    async () => {
+      const results = await getNFTSearchResults(value)
+      setSearchResults(results)
+    },
+    500,
+    [value]
+  )
 
   function onDismiss() {
     setTokensShown(3)
@@ -107,7 +110,6 @@ const NFTSearch = ({ small = false }) => {
             value={value}
             onChange={e => {
               setValue(e.target.value)
-              searchTokens()
             }}
             onFocus={() => {
               if (!showMenu) {

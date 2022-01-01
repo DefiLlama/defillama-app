@@ -133,6 +133,8 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
   }, [filteredListByCurrency, sortDirection, sortedColumn])
 
   const ListItem = ({ item, index }) => {
+    /* TODO handle displaying multiple chains */
+    const chain = item.chains?.length ? item.chains[0] : item.SK.split('#')[1]
     return (
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
@@ -148,8 +150,8 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
           </Row>
         </DataText>
         <DataText>
-          <BasicLink key={item.chain} href={`/nfts/chain/${item.chain}`}>
-            <TokenLogo address={item.chain} logo={chainIconUrl(item.chain)} />
+          <BasicLink key={chain} href={`/nfts/chain/${chain}`}>
+            <TokenLogo address={chain} logo={chainIconUrl(chain)} />{' '}
           </BasicLink>
         </DataText>
         <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayCurrency)}</DataText>

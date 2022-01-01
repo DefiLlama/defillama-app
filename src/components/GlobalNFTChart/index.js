@@ -2,10 +2,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { ResponsiveContainer } from 'recharts'
 import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
 
-const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = '', symbol = '' }) => {
+const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = '', symbol = '', displayUsd = false }) => {
   const filteredChartData = useMemo(() => {
-    return chartData.map(({ date, dailyVolume }) => [date, dailyVolume])
-  }, [chartData])
+    if (displayUsd) {
+      return chartData.map(({ timestamp, volumeUSD }) => [timestamp, volumeUSD])
+    }
+    return chartData.map(({ timestamp, volume }) => [timestamp, volume])
+  }, [chartData, displayUsd])
 
   // update the width on a window resize
   const ref = useRef()
