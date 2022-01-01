@@ -350,55 +350,65 @@ export const chainCoingeckoIds = {
     cmcId: '7505'
   },
   VeChain: {
-    geckoId: "vechain",
-    symbol: "VET",
-    cmcId: "3077",
+    geckoId: 'vechain',
+    symbol: 'VET',
+    cmcId: '3077'
   },
   XDC: {
-    geckoId: "xdce-crowd-sale",
-    symbol: "XDC",
-    cmcId: "2634",
+    geckoId: 'xdce-crowd-sale',
+    symbol: 'XDC',
+    cmcId: '2634'
   },
   Velas: {
-    geckoId: "velas",
-    symbol: "VLX",
-    cmcId: "4747",
+    geckoId: 'velas',
+    symbol: 'VLX',
+    cmcId: '4747'
   },
   Godwoken: {
     geckoId: null,
     symbol: null,
-    cmcId: null,
+    cmcId: null
   },
   Callisto: {
-    geckoId: "callisto",
-    symbol: "CLO",
-    cmcId: "2757",
+    geckoId: 'callisto',
+    symbol: 'CLO',
+    cmcId: '2757'
   },
   CSC: {
-    geckoId: "coinex-token",
-    symbol: "CET",
-    cmcId: "2941",
+    geckoId: 'coinex-token',
+    symbol: 'CET',
+    cmcId: '2941'
   },
   Ergo: {
-    geckoId: "ergo",
-    symbol: "ERG",
-    cmcId: "1555",
+    geckoId: 'ergo',
+    symbol: 'ERG',
+    cmcId: '1555'
   },
   Cardano: {
-    geckoId: "cardano",
-    symbol: "ADA",
-    cmcId: "2010",
+    geckoId: 'cardano',
+    symbol: 'ADA',
+    cmcId: '2010'
   },
   Liquidchain: {
-    geckoId: "liquidchain",
-    symbol: "XLC",
-    cmcId: null,
+    geckoId: 'liquidchain',
+    symbol: 'XLC',
+    cmcId: null
   },
   Nahmii: {
-    geckoId: "nahmii",
-    symbol: "NII",
-    cmcId: "4865",
-  },
+    geckoId: 'nahmii',
+    symbol: 'NII',
+    cmcId: '4865'
+  }
+}
+
+export const chainMarketplaceMappings = {
+  opensea: 'Ethereum',
+  pancakeswap: 'BSC',
+  immutablex: 'ImmutableX',
+  treasure: 'Arbitrum',
+  magiceden: 'Solana',
+  randomearth: 'Terra',
+  jpgstore: 'Cardano'
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']

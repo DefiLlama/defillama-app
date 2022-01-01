@@ -15,7 +15,7 @@ import Search from '../Search'
 import NFTCollectionList from '../NFTCollectionList'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { formattedNum } from '../../utils'
-import { chainCoingeckoIds } from '../../constants/chainTokens'
+import { chainCoingeckoIds, chainMarketplaceMappings } from '../../constants/chainTokens'
 import SEO from 'components/SEO'
 
 const ListOptions = styled(AutoRow)`
@@ -54,7 +54,7 @@ const FiltersRow = styled(RowFlat)`
     width: calc(100% - 90px);
   }
 `
-const defaultChainOption = {
+const defaultTab = {
   label: 'All',
   to: '/nfts'
 }
@@ -63,49 +63,69 @@ const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
   ssr: false
 })
 
-const NFTDashboard = ({
-  totalVolumeUSD,
-  dailyVolumeUSD,
-  dailyChange,
-  collections,
-  chart,
-  chainData,
-  displayName = 'All'
-}) => {
+const NFTDashboard = ({ statistics, collections, chart, chainData, marketplaceData, displayName = 'All' }) => {
   useEffect(() => window.scrollTo(0, 0))
 
+  const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics
   const [hideLastDay] = useHideLastDayManager()
   const below800 = useMedia('(max-width: 800px)')
-  const selectedChain = displayName
-  const setSelectedChain = newSelectedChain => `/nfts/chain/${newSelectedChain}`
 
-  let chainOptions = [
-    defaultChainOption,
-    ...chainData
+  const isChain = chainData ? true : false
+  const selectedTab = displayName
+  const setSelectedTab = newSelectedTab =>
+    isChain ? `/nfts/chain/${newSelectedTab}` : `/nfts/marketplace/${newSelectedTab}`
+
+  let tabOptions = [
+    defaultTab,
+    ...(chainData || marketplaceData)
       ?.sort((a, b) => parseInt(b.totalVolumeUSD) - parseInt(a.totalVolumeUSD))
-      ?.map(chain => ({
-        label: chain.displayName,
-        to: setSelectedChain(chain.chain)
+      ?.map(option => ({
+        label: option.displayName,
+        to: isChain ? setSelectedTab(option.chain) : setSelectedTab(option.marketplace)
       }))
   ]
 
-  const isHomePage = selectedChain === 'All'
-  let dailyVolume = chart.length ? chart[chart.length - 1].dailyVolume : 0 //TODO Return from backend
+  let shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit
   let [displayUsd] = useDisplayUsdManager()
-  let symbol = chainCoingeckoIds[selectedChain]?.symbol
-  let unit = ''
 
-  if (isHomePage) {
+  const isHomePage = selectedTab === 'All'
+  if (isHomePage || displayUsd) {
+    ;[shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit] = [
+      totalVolumeUSD,
+      dailyVolumeUSD,
+      dailyChange,
+      'USD',
+      '$'
+    ]
     displayUsd = true
-    symbol = 'USD'
-    unit = '$'
+  } else {
+    ;[shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit] = [
+      totalVolume,
+      dailyVolume,
+      dailyChange,
+      isChain
+        ? chainCoingeckoIds[selectedTab]?.symbol
+        : chainCoingeckoIds[chainMarketplaceMappings[selectedTab]]?.symbol,
+      ''
+    ]
   }
 
   if (hideLastDay) {
-    chart = chart.slice(0, -1)
-    if (chart.length > 1) {
-      dailyVolume = chart[chart.length - 1].dailyVolume
-      dailyChange = ((dailyVolume - chart[chart.length - 2].dailyVolume) / chart[chart.length - 2].dailyVolume) * 100
+    if (chart.length >= 3 && displayUsd) {
+      ;[shownTotalVolume, shownDailyVolume, shownDailyChange] = [
+        totalVolumeUSD - chart[chart.length - 1].volumeUSD,
+        chart[chart.length - 2].volumeUSD,
+        ((chart[chart.length - 2].volumeUSD - chart[chart.length - 3].volumeUSD) / chart[chart.length - 3].volumeUSD) *
+          100
+      ]
+      chart = chart.slice(0, -1)
+    } else if (chart.length >= 3) {
+      ;[shownTotalVolume, shownDailyVolume, shownDailyChange] = [
+        totalVolume - chart[chart.length - 1].volume,
+        chart[chart.length - 2].volume,
+        ((chart[chart.length - 2].volume - chart[chart.length - 3].volume) / chart[chart.length - 3].volume) * 100
+      ]
+      chart = chart.slice(0, -1)
     }
   }
 
@@ -118,7 +138,7 @@ const NFTDashboard = ({
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-              {formattedNum(totalVolumeUSD, true)}
+              {formattedNum(shownTotalVolume, displayUsd)}
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
@@ -130,7 +150,7 @@ const NFTDashboard = ({
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-              {formattedNum(dailyVolumeUSD, true)}
+              {formattedNum(shownDailyVolume, displayUsd)}
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
@@ -142,7 +162,7 @@ const NFTDashboard = ({
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-              {dailyChange?.toFixed(2)}%
+              {shownDailyChange?.toFixed(2)}%
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
@@ -166,10 +186,11 @@ const NFTDashboard = ({
           <Panel style={{ height: '100%', minHeight: '347px' }}>
             <GlobalNFTChart
               chartData={chart}
-              dailyVolume={dailyVolume}
-              dailyVolumeChange={dailyChange}
+              dailyVolume={shownDailyVolume}
+              dailyVolumeChange={shownDailyChange}
               symbol={symbol}
               unit={unit}
+              displayUsd={displayUsd}
             />
           </Panel>
         </BreakpointPanels>
@@ -177,12 +198,7 @@ const NFTDashboard = ({
           <RowBetween>
             <TYPE.main fontSize={'1.125rem'}>NFT Rankings</TYPE.main>
             <FiltersRow>
-              <Filters
-                filterOptions={chainOptions}
-                setActive={setSelectedChain}
-                activeLabel={selectedChain}
-                justify="end"
-              />
+              <Filters filterOptions={tabOptions} setActive={setSelectedTab} activeLabel={selectedTab} justify="end" />
             </FiltersRow>
           </RowBetween>
         </ListOptions>

@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/router'
-import { TrendingUp, HelpCircle, Link as LinkLogo, BarChart2 } from 'react-feather'
+import { TrendingUp, HelpCircle, Link as LinkLogo, BarChart2, ShoppingCart } from 'react-feather'
 
-import { DesktopWrapper, Entry, MobileWrapper, Wrapper, ButtonWrapper, Footer, Mobile, Desktop } from './shared'
+import { Entry, MobileWrapper, Wrapper, ButtonWrapper, Footer, Mobile, Desktop } from './shared'
 import { AutoColumn } from '../Column'
 import Title from '../Title'
 import SettingsMenuButton from '../SettingsModal'
@@ -20,6 +20,7 @@ function SideNav() {
       <Entry url="" name="DeFi" history={history} Icon={BarChart2} />
       <Entry url="nfts" name="Overview" history={history} Icon={TrendingUp} />
       <Entry url="nfts/chains" name="Chains" history={history} Icon={LinkLogo} />
+      <Entry url="nfts/marketplaces" name="Marketplaces" history={history} Icon={ShoppingCart} />
       <Entry url="nfts/about" name="About" history={history} Icon={HelpCircle} />
     </AutoColumn>
   )
