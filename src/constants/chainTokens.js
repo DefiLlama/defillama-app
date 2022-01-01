@@ -384,6 +384,11 @@ export const chainCoingeckoIds = {
     symbol: "ERG",
     cmcId: "1555",
   },
+  Cardano: {
+    geckoId: "cardano",
+    symbol: "ADA",
+    cmcId: "2010",
+  },
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
