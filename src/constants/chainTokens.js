@@ -385,20 +385,20 @@ export const chainCoingeckoIds = {
     cmcId: '1555'
   },
   Cardano: {
-    geckoId: "cardano",
-    symbol: "ADA",
-    cmcId: "2010",
+    geckoId: 'cardano',
+    symbol: 'ADA',
+    cmcId: '2010'
   },
   Liquidchain: {
-    geckoId: "liquidchain",
-    symbol: "XLC",
-    cmcId: null,
+    geckoId: 'liquidchain',
+    symbol: 'XLC',
+    cmcId: null
   },
   Nahmii: {
-    geckoId: "nahmii",
-    symbol: "NII",
-    cmcId: "4865",
-  },
+    geckoId: 'nahmii',
+    symbol: 'NII',
+    cmcId: '4865'
+  }
 }
 
 export const chainMarketplaceMappings = {
@@ -407,7 +407,8 @@ export const chainMarketplaceMappings = {
   immutablex: 'ImmutableX',
   treasure: 'Arbitrum',
   magiceden: 'Solana',
-  randomearth: 'Terra'
+  randomearth: 'Terra',
+  jpgstore: 'Cardano'
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
