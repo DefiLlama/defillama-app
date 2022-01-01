@@ -170,7 +170,8 @@ const TokenChart = ({
       return [stacked, Object.keys(chainTvls)]
     }
     return [undefined, []]
-  }, [tokensInUsd, denomination])
+  }, [tokensInUsd, denomination, chainTvls, DENOMINATIONS])
+
   if (denomination === DENOMINATIONS.TokensUSD || denomination === DENOMINATIONS.Chains) {
     chartData = stackedDataset
   }
@@ -181,7 +182,8 @@ const TokenChart = ({
       (denominationPriceHistory === undefined || denominationPriceHistory.asset !== denomination)
     ) {
       fetchAPI(
-        `https://api.coingecko.com/api/v3/coins/${denomination === DENOMINATIONS.ETH ? 'ethereum' : chainDenomination.geckoId
+        `https://api.coingecko.com/api/v3/coins/${
+          denomination === DENOMINATIONS.ETH ? 'ethereum' : chainDenomination.geckoId
         }/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`
       ).then(data =>
         setDenominationPriceHistory({
@@ -190,7 +192,7 @@ const TokenChart = ({
         })
       )
     }
-  }, [denomination])
+  }, [denomination, chainDenomination, utcStartTime, DENOMINATIONS, denominationPriceHistory])
 
   const [finalChartData, tokenSet] = useMemo(() => {
     if (denomination === DENOMINATIONS.ETH || denomination === chainDenomination?.symbol) {
@@ -308,21 +310,23 @@ const TokenChart = ({
             active={denomination}
             color={color}
           />
-          <DropdownSelect options={Object.values(timeframeOptions).map(t => ({ label: t }))} active={timeWindow} setActive={setTimeWindow} color={color} />
+          <DropdownSelect
+            options={Object.values(timeframeOptions).map(t => ({ label: t }))}
+            active={timeWindow}
+            setActive={setTimeWindow}
+            color={color}
+          />
         </RowBetween>
       ) : (
         <RowBetween
           mb={chartFilter === CHART_VIEW.LIQUIDITY || chartFilter === CHART_VIEW.VOLUME ? 40 : 0}
           align="flex-start"
         >
-          <AutoColumn gap="8px">
+          <AutoColumn gap="0px">
             <RowFixed>
               {Object.values(denominationsToDisplay).map(option => (
                 <BasicLink href={buildDenomUrl(option)} key={option}>
-                  <OptionButton
-                    active={denomination === option}
-                    style={{ marginRight: '6px' }}
-                  >
+                  <OptionButton active={denomination === option} style={{ marginRight: '6px' }}>
                     {option}
                   </OptionButton>
                 </BasicLink>
@@ -389,7 +393,7 @@ const TokenChart = ({
               tickMargin={16}
               minTickGap={120}
               tickFormatter={formatDate}
-              dataKey={tokensUnique.length > 0 ? "date" : "0"}
+              dataKey={tokensUnique.length > 0 ? 'date' : '0'}
               scale="time"
               type="number"
               tick={{ fill: textColor }}

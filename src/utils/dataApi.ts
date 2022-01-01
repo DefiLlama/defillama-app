@@ -11,7 +11,6 @@ import {
   NFT_SEARCH_API
 } from '../constants/index'
 import { standardizeProtocolName } from 'utils'
-import Section from 'components/NFTCollectionPage/Section'
 
 export function getProtocolNames(protocols) {
   return protocols.map(p => ({ name: p.name, symbol: p.symbol }))
@@ -61,7 +60,7 @@ const formatProtocolsData = ({
         }
       } else {
         const firstChar = sectionName[0]
-        if (firstChar == firstChar.toLowerCase()) {
+        if (firstChar === firstChar.toLowerCase()) {
           protocol.extraTvl[sectionName] = sectionTvl
           totalExtraTvls[sectionName] = (totalExtraTvls[sectionName] || 0) + sectionTvl
         }
@@ -327,6 +326,16 @@ export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
     gecko_id ? `https://api.coingecko.com/api/v3/simple/price?ids=${gecko_id}&vs_currencies=${defaultCurrency}` : null,
     fetcher
   )
+  return { data, error, loading: gecko_id && !data && !error }
+}
+
+export const useDenominationPriceHistory = (gecko_id: string, utcStartTime: string) => {
+  let url = `https://api.coingecko.com/api/v3/coins/${gecko_id}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(
+    Date.now() / 1000
+  )}`
+
+  const { data, error } = useSWR(gecko_id ? url : null, fetcher)
+
   return { data, error, loading: gecko_id && !data && !error }
 }
 

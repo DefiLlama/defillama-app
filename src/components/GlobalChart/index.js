@@ -16,7 +16,8 @@ const VOLUME_WINDOW = {
   WEEKLY: 'WEEKLY',
   DAYS: 'DAYS'
 }
-const GlobalChart = ({ display, dailyData, totalLiquidityUSD, liquidityChangeUSD }) => {
+
+const GlobalChart = ({ display, dailyData, unit = 'USD', totalLiquidity, liquidityChange }) => {
   // chart options
   const [chartView] = useState(display === 'volume' ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY)
 
@@ -25,11 +26,7 @@ const GlobalChart = ({ display, dailyData, totalLiquidityUSD, liquidityChangeUSD
   const [volumeWindow, setVolumeWindow] = useState(VOLUME_WINDOW.DAYS)
 
   // global historical data
-  let weeklyData,
-    oneDayVolumeUSD,
-    volumeChangeUSD,
-    oneWeekVolume,
-    weeklyVolumeChange
+  let weeklyData, oneDayVolumeUSD, volumeChangeUSD, oneWeekVolume, weeklyVolumeChange
 
   // based on window, get starttim
   let utcStartTime = getTimeframe(timeWindow)
@@ -44,7 +41,7 @@ const GlobalChart = ({ display, dailyData, totalLiquidityUSD, liquidityChangeUSD
           if (item.date > utcStartTime) {
             return item
           } else {
-            return
+            return null
           }
         })
         .filter(item => {
@@ -57,6 +54,7 @@ const GlobalChart = ({ display, dailyData, totalLiquidityUSD, liquidityChangeUSD
   const ref = useRef()
   const isClient = typeof window === 'object'
   const [width, setWidth] = useState(ref?.current?.container?.clientWidth)
+
   useEffect(() => {
     if (!isClient) {
       return false
@@ -68,18 +66,32 @@ const GlobalChart = ({ display, dailyData, totalLiquidityUSD, liquidityChangeUSD
     return () => window.removeEventListener('resize', handleResize)
   }, [isClient, width]) // Empty array ensures that effect is only run on mount and unmount
 
+  let moneySymbol = '$'
+
+  switch (unit) {
+    case 'ETH':
+      moneySymbol = 'Ξ'
+      break
+    case 'USD':
+      moneySymbol = '$'
+      break
+    default:
+      moneySymbol = unit ? unit.slice(0, 1) : '$'
+  }
+
   return chartDataFiltered ? (
     <>
       {chartDataFiltered && chartView === CHART_VIEW.LIQUIDITY && (
         <ResponsiveContainer aspect={60 / 28} ref={ref}>
           <TradingViewChart
             data={dailyData}
-            base={totalLiquidityUSD}
-            baseChange={liquidityChangeUSD}
+            base={totalLiquidity}
+            baseChange={liquidityChange}
             title="Total TVL"
             field="1"
             width={width}
             type={CHART_TYPES.AREA}
+            units={moneySymbol}
           />
         </ResponsiveContainer>
       )}

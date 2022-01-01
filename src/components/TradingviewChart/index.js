@@ -31,7 +31,7 @@ const TradingViewChart = ({
   field,
   title,
   width,
-  units = "$",
+  units = '$',
   useWeekly = false
 }) => {
   // reference for DOM element to create with chart
@@ -133,23 +133,23 @@ const TradingViewChart = ({
       var series =
         type === CHART_TYPES.BAR
           ? chart.addHistogramSeries({
-            color: '#394990',
-            priceFormat: {
-              type: 'volume'
-            },
-            scaleMargins: {
-              top: 0.32,
-              bottom: 0
-            },
-            lineColor: '#394990',
-            lineWidth: 3
-          })
+              color: '#394990',
+              priceFormat: {
+                type: 'volume'
+              },
+              scaleMargins: {
+                top: 0.32,
+                bottom: 0
+              },
+              lineColor: '#394990',
+              lineWidth: 3
+            })
           : chart.addAreaSeries({
-            topColor: '#394990',
-            bottomColor: 'rgba(112, 82, 64, 0)',
-            lineColor: '#394990',
-            lineWidth: 3
-          })
+              topColor: '#394990',
+              bottomColor: 'rgba(112, 82, 64, 0)',
+              lineColor: '#394990',
+              lineWidth: 3
+            })
 
       series.setData(formattedData)
       var toolTip = document.createElement('div')
@@ -170,7 +170,8 @@ const TradingViewChart = ({
       // get the title of the chart
       function setLastBarText() {
         toolTip.innerHTML =
-          `<div style="font-size: 16px; margin: 4px 0px; color: ${textColor};">${title} ${type === CHART_TYPES.BAR && !useWeekly ? '(24hr)' : ''
+          `<div style="font-size: 16px; margin: 4px 0px; color: ${textColor};">${title} ${
+            type === CHART_TYPES.BAR && !useWeekly ? '(24hr)' : ''
           }</div>` +
           `<div style="font-size: 22px; margin: 4px 0px; color:${textColor}" >` +
           formattedNum(base ?? 0, units) +
@@ -182,7 +183,7 @@ const TradingViewChart = ({
       setLastBarText()
 
       // update the title when hovering on the chart
-      chart.subscribeCrosshairMove(function (param) {
+      chart.subscribeCrosshairMove(function(param) {
         if (
           param === undefined ||
           param.time === undefined ||
@@ -195,13 +196,14 @@ const TradingViewChart = ({
         } else {
           let dateStr = useWeekly
             ? dayjs(param.time.year + '-' + param.time.month + '-' + param.time.day)
-              .startOf('week')
-              .format('MMMM D, YYYY') +
-            '-' +
-            dayjs(param.time.year + '-' + param.time.month + '-' + param.time.day)
-              .endOf('week')
-              .format('MMMM D, YYYY')
+                .startOf('week')
+                .format('MMMM D, YYYY') +
+              '-' +
+              dayjs(param.time.year + '-' + param.time.month + '-' + param.time.day)
+                .endOf('week')
+                .format('MMMM D, YYYY')
             : dayjs(param.time.year + '-' + param.time.month + '-' + param.time.day).format('MMMM D, YYYY')
+
           var price = param.seriesPrices.get(series)
 
           toolTip.innerHTML =
@@ -231,7 +233,8 @@ const TradingViewChart = ({
     topScale,
     type,
     useWeekly,
-    width
+    width,
+    units
   ])
 
   // responsiveness
