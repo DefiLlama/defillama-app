@@ -1,42 +1,24 @@
-import React, { useMemo, useState, useRef } from 'react'
+import React, { useMemo } from 'react'
 import { Box } from 'rebass/styled-components'
-import { PieChart, Pie, Sector, Cell, AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import styled from 'styled-components'
 
 import { PageWrapper, FullWrapper } from 'components'
 import { ButtonDark } from 'components/ButtonStyled'
-import Panel from 'components/Panel'
 import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 import TokenList from 'components/TokenList'
+import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
 import { GeneralLayout } from 'layout'
 import { Header } from 'Theme'
 
 import { PROTOCOLS_API, CHART_API, CONFIG_API } from 'constants/index'
 import { useCalcStakePool2Tvl } from 'hooks/data'
-import { useLg, useMed } from 'hooks/useBreakpoints'
-import { toK, toNiceCsvDate, toNiceDateYear, formattedNum, toNiceMonthlyDate, chainIconUrl } from 'utils'
+import { useLg } from 'hooks/useBreakpoints'
+import { toNiceCsvDate, chainIconUrl, getRandomColor } from 'utils'
 import { revalidate } from 'utils/dataApi'
-
-function getRandomColor() {
-  var letters = '0123456789ABCDEF'
-  var color = '#'
-  for (var i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)]
-  }
-  return color
-}
 
 function getPercentChange(previous, current) {
   return (current / previous) * 100 - 100
-}
-
-const toPercent = (decimal, fixed = 0) => `${(decimal * 100).toFixed(fixed)}%`
-
-const getPercent = (value, total) => {
-  const ratio = total > 0 ? value / total : 0
-
-  return toPercent(ratio, 2)
 }
 
 function download(filename, text) {
@@ -52,182 +34,7 @@ function download(filename, text) {
   document.body.removeChild(element)
 }
 
-const renderActiveShape = props => {
-  const RADIAN = Math.PI / 180
-  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, payload, percent, value } = props
-  const fill = payload.color
-  const sector1 = (
-    <Sector
-      cx={cx}
-      cy={cy}
-      innerRadius={innerRadius}
-      outerRadius={outerRadius}
-      startAngle={startAngle}
-      endAngle={endAngle}
-      fill={fill}
-    />
-  )
-  const sector2 = (
-    <Sector
-      cx={cx}
-      cy={cy}
-      startAngle={startAngle}
-      endAngle={endAngle}
-      innerRadius={outerRadius + 6}
-      outerRadius={outerRadius + 10}
-      fill={fill}
-    />
-  )
-  if (outerRadius < 110) {
-    return (
-      <>
-        {sector1}
-        {sector2}
-        <text x={cx} y={cy} dy={-8} textAnchor="middle" fill={'white'}>
-          {payload.name}
-        </text>
-        <text x={cx} y={cy} dy={-8 + 18} textAnchor="middle" fill={'white'}>
-          {`${toK(value)}`}
-        </text>
-        <text x={cx} y={cy} dy={-8 + 18 * 2} textAnchor="middle" fill={'white'}>
-          {`(${(percent * 100).toFixed(2)}%)`}
-        </text>
-      </>
-    )
-  }
-  const sin = Math.sin(-RADIAN * midAngle)
-  const cos = Math.cos(-RADIAN * midAngle)
-  const sx = cx + (outerRadius + 10) * cos
-  const sy = cy + (outerRadius + 10) * sin
-  const mx = cx + (outerRadius + 30) * cos
-  const my = cy + (outerRadius + 30) * sin
-  const ex = mx + (cos >= 0 ? 1 : -1) * 22
-  const ey = my
-  const textAnchor = cos >= 0 ? 'start' : 'end'
-
-  return (
-    <g>
-      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={'white'}>
-        {payload.name}
-      </text>
-      {sector1}
-      {sector2}
-      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
-      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#777">{`TVL ${toK(value)}`}</text>
-      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">
-        {`(Rate ${(percent * 100).toFixed(2)}%)`}
-      </text>
-    </g>
-  )
-}
-const ChainPieChart = ({ data, isMobile, chainColor }) => {
-  const [activeIndex, setActiveIndex] = useState(0)
-
-  const onPieEnter = (_, index) => {
-    setActiveIndex(index)
-  }
-  const coloredData = data.map(c => ({ ...c, color: chainColor[c.name] }))
-  return (
-    <ChartWrapper isMobile={isMobile}>
-      <PieChart>
-        <Pie
-          activeIndex={activeIndex}
-          activeShape={renderActiveShape}
-          data={coloredData}
-          cx="50%"
-          cy="47%"
-          innerRadius={'60%'}
-          dataKey="value"
-          onMouseEnter={onPieEnter}
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={coloredData[index].color} />
-          ))}
-        </Pie>
-      </PieChart>
-    </ChartWrapper>
-  )
-}
-
-const PlaceholderChartPanel = styled(Panel)`
-  padding-bottom: 28%;
-  height: 100%;
-  @media (max-width: 800px) {
-    padding-bottom: 69%;
-  }
-`
-
-const ChartWrapper = ({ children, isMobile }) => {
-  const ref = useRef()
-  return (
-    <PlaceholderChartPanel
-      style={{
-        margin: !isMobile && '0.3em'
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute',
-          inset: 10
-        }}
-      >
-        <ResponsiveContainer
-          width={ref?.current?.container?.clientWidth}
-          height={ref?.current?.container?.clientHeight}
-        >
-          {children}
-        </ResponsiveContainer>
-      </div>
-    </PlaceholderChartPanel>
-  )
-}
-
-const StackedChart = ({
-  stackOffset,
-  yFormatter,
-  formatPercent,
-  stackedDataset,
-  chainsUnique,
-  chainColor,
-  daySum,
-  isMobile
-}) => (
-  <ChartWrapper isMobile={isMobile}>
-    <AreaChart
-      data={stackedDataset}
-      stackOffset={stackOffset}
-      margin={{
-        top: 10,
-        right: 30,
-        left: 0,
-        bottom: 0
-      }}
-    >
-      <XAxis dataKey="date" tickFormatter={toNiceMonthlyDate} />
-      <YAxis tickFormatter={tick => yFormatter(tick)} />
-      <Tooltip
-        formatter={(val, chain, props) =>
-          formatPercent ? getPercent(val, daySum[props.payload.date]) : formattedNum(val)
-        }
-        labelFormatter={label => toNiceDateYear(label)}
-        itemSorter={p => -p.value}
-      />
-      {chainsUnique.map(chainName => (
-        <Area
-          type="monotone"
-          dataKey={chainName}
-          key={chainName}
-          stackId="1"
-          fill={chainColor[chainName]}
-          stroke={chainColor[chainName]}
-        />
-      ))}
-    </AreaChart>
-  </ChartWrapper>
-)
-
-const ChartBreakPoints = styled(Box)`
+const ChartsWrapper = styled(Box)`
   display: flex;
   flex-wrap: nowrap;
   width: 100%;
@@ -239,8 +46,7 @@ const ChartBreakPoints = styled(Box)`
   }
 `
 
-const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentData }) => {
-  const isMobile = useMed()
+const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentData, data }) => {
   const isLg = useLg()
 
   const chainColor = useMemo(
@@ -260,19 +66,6 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
 
   const protocolTotals = useCalcStakePool2Tvl(chainTvls)
 
-  const stackedChart = <ChainPieChart yFormatter={toK} data={currentData} chainColor={chainColor} isMobile={isMobile} />
-  const dominanceChart = (
-    <StackedChart
-      stackOffset="expand"
-      yFormatter={toPercent}
-      formatPercent={true}
-      stackedDataset={stackedDataset}
-      chainsUnique={chainsUnique}
-      chainColor={chainColor}
-      daySum={daySum}
-      isMobile={isMobile}
-    />
-  )
   return (
     <PageWrapper>
       <FullWrapper>
@@ -281,10 +74,17 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
           <Search small={!isLg} />
         </RowBetween>
 
-        <ChartBreakPoints>
-          {stackedChart}
-          {dominanceChart}
-        </ChartBreakPoints>
+        <ChartsWrapper>
+          <ChainPieChart data={currentData} chainColor={chainColor} />
+          <ChainDominanceChart
+            stackOffset="expand"
+            formatPercent={true}
+            stackedDataset={stackedDataset}
+            chainsUnique={chainsUnique}
+            chainColor={chainColor}
+            daySum={daySum}
+          />
+        </ChartsWrapper>
         <TokenList
           canBookmark={false}
           tokens={protocolTotals}
@@ -307,6 +107,7 @@ export async function getStaticProps() {
   const chainsUnique = res.chains
 
   const chainCalls = Promise.all(chainsUnique.map(elem => fetch(`${CHART_API}/${elem}`).then(resp => resp.json())))
+
   const chainMcapsPromise = fetch(
     `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(chainCoingeckoIds)
       .map(v => v.geckoId)
@@ -383,7 +184,8 @@ export async function getStaticProps() {
       chainTvls,
       stackedDataset,
       daySum,
-      currentData
+      currentData,
+      data
     },
     revalidate: revalidate()
   }
