@@ -144,7 +144,7 @@ export function useDarkModeManager() {
   return [isDarkMode, toggleDarkMode]
 }
 
-export function getExtraTvlEnabled() {
+export function useGetExtraTvlEnabled() {
   const [state] = useLocalStorageContext()
   return extraTvlProps.reduce((all, prop) => {
     all[prop] = state[prop] || false
@@ -154,7 +154,7 @@ export function getExtraTvlEnabled() {
 
 export function useTvlToggles() {
   const [state, { updateKey }] = useLocalStorageContext()
-  return (key) => () => {
+  return key => () => {
     updateKey(key, !state[key])
   }
 }
@@ -289,7 +289,7 @@ export function useSavedProtocols() {
       ...(newList[portfolio] || {}),
       [standardProtocol]: readableProtocolName
     }
-    trackGoal('VQ0TO7CU', standardProtocol);
+    trackGoal('VQ0TO7CU', standardProtocol)
     updateKey(SAVED_TOKENS, newList)
   }
 

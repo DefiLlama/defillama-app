@@ -12,7 +12,7 @@ import { PageWrapper, ContentWrapper } from '..'
 import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
 
-import { getExtraTvlEnabled } from 'contexts/LocalStorage'
+import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum } from 'utils'
 import { useCalcStakePool2Tvl } from 'hooks/data'
@@ -83,7 +83,7 @@ function GlobalPage({
 }) {
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
-  const extraTvlsEnabled = getExtraTvlEnabled()
+  const extraTvlsEnabled = useGetExtraTvlEnabled()
 
   const router = useRouter()
 
