@@ -78,13 +78,13 @@ const renderActiveShape = props => {
       <>
         {sector1}
         {sector2}
-        <text x={cx} y={cy} dy={-8} textAnchor="middle" fill={'white'}>
+        <text x={cx} y={cy} dy={-8} textAnchor="middle" fill={'currentColor'}>
           {payload.name}
         </text>
-        <text x={cx} y={cy} dy={-8 + 18} textAnchor="middle" fill={'white'}>
+        <text x={cx} y={cy} dy={-8 + 18} textAnchor="middle" fill={'currentColor'}>
           {`${toK(value)}`}
         </text>
-        <text x={cx} y={cy} dy={-8 + 18 * 2} textAnchor="middle" fill={'white'}>
+        <text x={cx} y={cy} dy={-8 + 18 * 2} textAnchor="middle" fill={'currentColor'}>
           {`(${(percent * 100).toFixed(2)}%)`}
         </text>
       </>
@@ -102,7 +102,7 @@ const renderActiveShape = props => {
 
   return (
     <g>
-      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={'white'}>
+      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={'currentColor'}>
         {payload.name}
       </text>
       {sector1}

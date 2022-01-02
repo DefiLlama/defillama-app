@@ -58,6 +58,7 @@ export const ChainDominanceChart = ({
         }
         labelFormatter={label => toNiceDateYear(label)}
         itemSorter={p => -p.value}
+        labelStyle={{ color: 'black', fontWeight: '500' }}
       />
       {chainsUnique.map(chainName => (
         <Area

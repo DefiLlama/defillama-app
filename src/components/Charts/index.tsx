@@ -3,6 +3,7 @@ import { ResponsiveContainer } from 'recharts'
 import styled from 'styled-components'
 import Panel from '../Panel'
 import { useMed } from 'hooks/useBreakpoints'
+import { useDarkModeManager } from 'contexts/LocalStorage'
 
 interface IChartWrapperProps {
   children: React.ReactNode
@@ -11,11 +12,13 @@ interface IChartWrapperProps {
 export const ChartWrapper = ({ children }: IChartWrapperProps) => {
   const ref = useRef(null)
   const isMobile = useMed()
+  const [isDark] = useDarkModeManager()
 
   return (
     <PlaceholderChartPanel
       style={{
-        margin: !isMobile && '0.3em'
+        margin: !isMobile && '0.3em',
+        '--color': isDark ? 'white' : 'black'
       }}
     >
       <div
@@ -38,6 +41,7 @@ export const ChartWrapper = ({ children }: IChartWrapperProps) => {
 const PlaceholderChartPanel = styled(Panel)`
   padding-bottom: 28%;
   height: 100%;
+  color: var(--color);
   @media (max-width: 800px) {
     padding-bottom: 69%;
   }
