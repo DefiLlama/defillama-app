@@ -3,14 +3,12 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import MenuIcon from './MenuSvg'
 import {
-  useDarkModeManager,
   useStakingManager,
-  usePool2Manager,
   useDisplayUsdManager,
   useBorrowedManager,
   useHideLastDayManager,
   useTvlToggles,
-  getExtraTvlEnabled,
+  useGetExtraTvlEnabled,
   STAKING,
   POOL2,
   BORROWED,
@@ -176,8 +174,7 @@ export function CheckMarks({ type = 'defi' }) {
       {toggleSettings[type].map(toggleSetting => {
         if (toggleSetting) {
           return <OptionToggle {...toggleSetting} key={toggleSetting.name} />
-        }
-        return <></>
+        } else return null
       })}
     </AutoRow>
   )
@@ -232,7 +229,7 @@ export default function Menu({ type = 'defi' }) {
   }, [])
 
   const tvlToggles = useTvlToggles()
-  const extraTvlEnabled = getExtraTvlEnabled()
+  const extraTvlEnabled = useGetExtraTvlEnabled()
 
   const toggleSettings = {
     defi: [
@@ -262,7 +259,7 @@ export default function Menu({ type = 'defi' }) {
 
   const renderSettingsToggles = () => {
     return toggleSettings[type].map(toggleSetting => (
-      <MenuItem>
+      <MenuItem key={toggleSetting.name}>
         <OptionToggle
           {...toggleSetting}
           toggle={tvlToggles(toggleSetting.key)}

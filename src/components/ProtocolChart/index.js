@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { useMedia } from 'react-use'
 import TokenChart from '../TokenChart'
-import { getExtraTvlEnabled } from '../../contexts/LocalStorage'
+import { useGetExtraTvlEnabled } from '../../contexts/LocalStorage'
 
 const ProtocolChart = ({
   chartData,
@@ -16,7 +16,7 @@ const ProtocolChart = ({
   chains,
   hallmarks
 }) => {
-  const extraTvlEnabled = getExtraTvlEnabled()
+  const extraTvlEnabled = useGetExtraTvlEnabled()
 
   // Refactor later
   const below1600 = useMedia('(max-width: 1650px)')
