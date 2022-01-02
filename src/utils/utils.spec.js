@@ -1,4 +1,4 @@
-import { isValidProtocol } from './index'
+import { isValidProtocol, tokenIconUrl } from './index'
 
 describe('utils/index', () => {
     describe('isValidProtocol', () => {
@@ -15,6 +15,14 @@ describe('utils/index', () => {
             expect(isValidProtocol(tokensObject, 'defiprotocol')).toBe(false)
             expect(isValidProtocol(tokensObject, 'uni-swap')).toBe(false)
             expect(isValidProtocol(tokensObject, 'llama')).toBe(false)
+        })
+    })
+
+    describe('tokenIconUrl', () => {
+        it('basic tests', () => {
+            expect(tokenIconUrl("Maker")).toBe(`/icons/maker.jpg`)
+            expect(tokenIconUrl("Maker DAO")).toBe(`/icons/maker-dao.jpg`)
+            expect(tokenIconUrl("Maker DAO 1")).toBe(`/icons/maker-dao-1.jpg`)
         })
     })
 })

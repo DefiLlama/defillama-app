@@ -256,7 +256,7 @@ export function chainIconUrl(chain) {
 }
 
 export function tokenIconUrl(name) {
-  return `/icons/${name.toLowerCase().replace(' ', '-')}.jpg`
+  return `/icons/${name.toLowerCase().split(' ').join('-')}.jpg`
 }
 
 export function formattedPercent(percent, useBrackets = false) {
