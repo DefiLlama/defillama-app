@@ -111,16 +111,17 @@ export async function getChainPageData(chain) {
       notFound: true
     }
   }
+  chartData = chartData.tvl;
 
   const totalExtraTvls = {}
   protocols = formatProtocolsData({ chain, protocols, totalExtraTvls })
 
-  const currentTvl = chartData[chartData.length - 1].totalLiquidityUSD
+  const currentTvl = chartData[chartData.length - 1][1]
   let tvlChange = 0
   if (chartData.length > 1) {
     tvlChange =
-      ((chartData[chartData.length - 1].totalLiquidityUSD - chartData[chartData.length - 2].totalLiquidityUSD) /
-        chartData[chartData.length - 2].totalLiquidityUSD) *
+      ((chartData[chartData.length - 1][1] - chartData[chartData.length - 2][1]) /
+        chartData[chartData.length - 2][1]) *
       100
   }
 
@@ -129,7 +130,7 @@ export async function getChainPageData(chain) {
       ...(chain && { chain }),
       chainsSet: chains,
       filteredProtocols: protocols,
-      chart: chartData.map(({ date, totalLiquidityUSD }) => [date, Math.trunc(totalLiquidityUSD)]),
+      chart: chartData.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
       totalVolumeUSD: currentTvl,
       volumeChangeUSD: tvlChange,
       totalExtraTvls

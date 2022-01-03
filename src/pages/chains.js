@@ -132,12 +132,12 @@ export async function getStaticProps() {
     })
   })
 
-  const data = await chainCalls
+  const data = (await chainCalls).map(c => c.tvl)
   const chainMcaps = await chainMcapsPromise
 
   const chainTvls = chainsUnique
     .map((chainName, i) => {
-      const prevTvl = daysBefore => data[i][data[i].length - 1 - daysBefore]?.totalLiquidityUSD
+      const prevTvl = daysBefore => data[i][data[i].length - 1 - daysBefore]?.[1]
       const current = prevTvl(0)
       const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
       return {
@@ -158,12 +158,12 @@ export async function getStaticProps() {
     data.reduce((total, chain, i) => {
       const chainName = chainsUnique[i]
       chain.forEach(dayTvl => {
-        if (dayTvl.date < 1596248105) return
-        if (total[dayTvl.date] === undefined) {
-          total[dayTvl.date] = { date: dayTvl.date }
+        if (dayTvl[0] < 1596248105) return
+        if (total[dayTvl[0]] === undefined) {
+          total[dayTvl[0]] = { date: dayTvl[0] }
         }
-        total[dayTvl.date][chainName] = dayTvl.totalLiquidityUSD
-        daySum[dayTvl.date] = (daySum[dayTvl.date] || 0) + dayTvl.totalLiquidityUSD
+        total[dayTvl[0]][chainName] = dayTvl[1]
+        daySum[dayTvl[0]] = (daySum[dayTvl[0]] || 0) + dayTvl[1]
       })
       return total
     }, {})
