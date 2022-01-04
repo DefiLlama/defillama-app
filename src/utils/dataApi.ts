@@ -30,10 +30,10 @@ const formatProtocolsData = ({
   chain = '',
   category = '',
   protocols = [],
-  protocolProps = [...basicPropertiesToKeep, 'extraTvl'],
-  totalExtraTvls = {}
+  protocolProps = [...basicPropertiesToKeep, 'extraTvl']
 }) => {
   let filteredProtocols = [...protocols]
+  let totalExtraTvls = {}
 
   if (chain) {
     filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
@@ -73,13 +73,13 @@ const formatProtocolsData = ({
     filteredProtocols = filteredProtocols.sort((a, b) => b.tvl - a.tvl)
   }
 
-  return filteredProtocols
+  return { filteredProtocols, totalExtraTvls }
 }
 
 export async function getProtocolsPageData(category, chain) {
   const { protocols, chains } = await getProtocols()
 
-  const filteredProtocols = formatProtocolsData({ chain, category, protocols })
+  const { filteredProtocols } = formatProtocolsData({ chain, category, protocols })
 
   const chainsSet = new Set()
 
@@ -96,7 +96,7 @@ export async function getProtocolsPageData(category, chain) {
 
 export async function getSimpleProtocolsPageData(propsToKeep) {
   const { protocols, chains } = await getProtocols()
-  const filteredProtocols = formatProtocolsData({ protocols, protocolProps: propsToKeep })
+  const { filteredProtocols } = formatProtocolsData({ protocols, protocolProps: propsToKeep })
   return { protocols: filteredProtocols, chains }
 }
 
@@ -111,29 +111,50 @@ export async function getChainPageData(chain) {
       notFound: true
     }
   }
-  chartData = chartData.tvl;
 
-  const totalExtraTvls = {}
-  protocols = formatProtocolsData({ chain, protocols, totalExtraTvls })
+  const { tvl = [], staking = [], borrowed = [] } = chartData || {}
 
-  const currentTvl = chartData[chartData.length - 1][1]
+  const { filteredProtocols, totalExtraTvls } = formatProtocolsData({ chain, protocols })
+
+  let currentTvl = 0
   let tvlChange = 0
-  if (chartData.length > 1) {
-    tvlChange =
-      ((chartData[chartData.length - 1][1] - chartData[chartData.length - 2][1]) /
-        chartData[chartData.length - 2][1]) *
-      100
+  let borrowedTvl = 0
+  let borrowedTvlChange = 0
+  let stakingTvl = 0
+  let stakingTvlChange = 0
+
+  if (tvl.length > 1) {
+    currentTvl = tvl[tvl.length - 1][1]
+    tvlChange = ((tvl[tvl.length - 1][1] - tvl[tvl.length - 2][1]) / tvl[tvl.length - 2][1]) * 100
+  }
+
+  if (staking.length > 1) {
+    stakingTvl = staking[staking.length - 1][1]
+    stakingTvlChange =
+      ((staking[staking.length - 1][1] - staking[staking.length - 2][1]) / staking[staking.length - 2][1]) * 100
+  }
+
+  if (borrowed.length > 1) {
+    borrowedTvl = borrowed[borrowed.length - 1][1]
+    borrowedTvlChange =
+      ((borrowed[borrowed.length - 1][1] - borrowed[borrowed.length - 2][1]) / borrowed[borrowed.length - 2][1]) * 100
   }
 
   return {
     props: {
       ...(chain && { chain }),
       chainsSet: chains,
-      filteredProtocols: protocols,
-      chart: chartData.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+      filteredProtocols,
+      chart: tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
       totalVolumeUSD: currentTvl,
       volumeChangeUSD: tvlChange,
-      totalExtraTvls
+      totalExtraTvls,
+      borrowedTvl,
+      borrowedTvlChange,
+      borrowedVolumeChart: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+      stakingTvl,
+      stakingTvlChange,
+      stakingVolumeChart: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
     }
   }
 }
