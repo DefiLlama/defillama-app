@@ -1,6 +1,16 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/router'
-import { TrendingUp, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock, Bookmark, Award } from 'react-feather'
+import {
+  TrendingUp,
+  HelpCircle,
+  Link as LinkLogo,
+  CloudDrizzle,
+  Minimize2,
+  Clock,
+  Bookmark,
+  Award,
+  Share2
+} from 'react-feather'
 
 import { DesktopWrapper, Entry, MobileWrapper, Option, Wrapper, Footer, ButtonWrapper, Desktop, Mobile } from './shared'
 import { AutoColumn } from '../Column'
@@ -38,6 +48,7 @@ const NavMenu = ({ isMobile }) => {
           </Option>
         </BasicLink>
       ))}
+      <Entry url="defi-in-3D" name="Defi-in-3D" history={history} Icon={Share2} />
       <Entry url="about" name="About" history={history} Icon={HelpCircle} />
     </AutoColumn>
   )
@@ -69,9 +80,7 @@ function SideNav() {
             </ButtonWrapper>
           </Mobile>
         </MobileWrapper>
-        <Mobile>
-          {showMobileNavMenu && <NavMenu isMobile />}
-        </Mobile>
+        <Mobile>{showMobileNavMenu && <NavMenu isMobile />}</Mobile>
       </Wrapper>
     </>
   )
