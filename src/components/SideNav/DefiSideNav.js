@@ -48,7 +48,12 @@ const NavMenu = ({ isMobile }) => {
           </Option>
         </BasicLink>
       ))}
-      <Entry url="defi3d" name="Defi-in-3D" history={history} Icon={Share2} />
+      <BasicLink href={'https://007vasy.github.io/'}>
+        <Option>
+          <Share2 size={20} style={{ marginRight: '.75rem' }} />
+          {'3Defi'}
+        </Option>
+      </BasicLink>
       <Entry url="about" name="About" history={history} Icon={HelpCircle} />
     </AutoColumn>
   )
