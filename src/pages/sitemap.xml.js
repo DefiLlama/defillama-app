@@ -2,7 +2,7 @@ import { PROTOCOLS_API } from '../constants/index'
 import { standardizeProtocolName } from '../utils'
 
 const baseUrl = `https://defillama.com`
-const singleUrls = ['protocols', 'comparison', 'about', 'airdrops', 'chains', 'recent', 'nfts', 'nfts/chains', 'defi3d']
+const singleUrls = ['protocols', 'comparison', 'about', 'airdrops', 'chains', 'recent', 'nfts', 'nfts/chains', '3defi']
 
 function url(urlToAdd) {
   return `
