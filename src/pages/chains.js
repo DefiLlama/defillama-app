@@ -46,7 +46,7 @@ const ChartsWrapper = styled(Box)`
   }
 `
 
-const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentData, data }) => {
+const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentData }) => {
   const isLg = useLg()
 
   const chainColor = useMemo(
@@ -184,8 +184,7 @@ export async function getStaticProps() {
       chainTvls,
       stackedDataset,
       daySum,
-      currentData,
-      data
+      currentData
     },
     revalidate: revalidate()
   }
