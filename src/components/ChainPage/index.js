@@ -74,12 +74,17 @@ const BASIC_DENOMINATIONS = ['USD']
 
 function GlobalPage({
   selectedChain = 'All',
-  volumeChangeUSD,
-  totalVolumeUSD,
+  volumeChangeUSD: tvlChangeUSD,
+  totalVolumeUSD: tvlUSD,
   chainsSet,
   filteredProtocols,
-  chart: globalChart,
-  totalExtraTvls
+  chart,
+  borrowedTvl,
+  borrowedTvlChange,
+  borrowedVolumeChart,
+  stakingTvl,
+  stakingTvlChange,
+  stakingVolumeChart
 }) {
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
@@ -89,11 +94,47 @@ function GlobalPage({
 
   const denomination = router.query?.currency ?? 'USD'
 
-  Object.entries(totalExtraTvls).forEach(([name, extraTvl]) => {
-    if (extraTvlsEnabled[name]) {
-      totalVolumeUSD += extraTvl
+  const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
+    let totalVolumeUSD = tvlUSD
+    let volumeChangeUSD = tvlChangeUSD
+    let globalChart = [...chart]
+
+    if (extraTvlsEnabled.staking) {
+      totalVolumeUSD += stakingTvl
+      volumeChangeUSD += stakingTvlChange
+      globalChart = globalChart.map(data => {
+        const stakedData = stakingVolumeChart.find(x => x[0] === data[0])
+        if (stakedData) {
+          return [data[0], data[1] + stakedData[1]]
+        } else return data
+      })
     }
-  })
+
+    if (extraTvlsEnabled.borrowed) {
+      totalVolumeUSD += borrowedTvl
+      volumeChangeUSD += borrowedTvlChange
+      globalChart = globalChart.map(data => {
+        const borrowedData = borrowedVolumeChart.find(x => x[0] === data[0])
+        if (borrowedData) {
+          return [data[0], data[1] + borrowedData[1]]
+        } else return data
+      })
+    }
+
+    return { totalVolumeUSD, volumeChangeUSD, globalChart }
+  }, [
+    borrowedTvl,
+    borrowedTvlChange,
+    borrowedVolumeChart,
+    chart,
+    extraTvlsEnabled.borrowed,
+    extraTvlsEnabled.staking,
+    stakingTvl,
+    stakingTvlChange,
+    stakingVolumeChart,
+    tvlChangeUSD,
+    tvlUSD
+  ])
 
   let chainOptions = ['All'].concat(chainsSet).map(label => ({ label, to: setSelectedChain(label) }))
 
