@@ -1,0 +1,162 @@
+<head>
+    <style> body { margin: 0; } </style>
+    <script src="//unpkg.com/three"></script>
+    <script src="https://unpkg.com/3d-force-graph"></script>
+    <script src="//unpkg.com/three/examples/js/renderers/CSS2DRenderer.js"></script>
+  <!--  <script src="../../dist/3d-force-graph.js"></script>-->
+  </head>
+  
+  <body>
+  
+    <div id="3d-graph"></div>
+  
+    <script>
+      const url = 'https://api.llama.fi/protocols'
+      
+      async function getData(url) {
+        let resp = await fetch(url);
+        let info_json = await resp.json();
+        
+        let converted_info_json = {
+          nodes: [],
+          links: [],
+        };
+
+        
+
+        info_json.forEach(protocol => {
+          // Creating Protocol Nodes
+          converted_info_json.nodes.push(
+            {
+              id: protocol.id,
+              slug: protocol.slug,
+              name: protocol.name,
+              tvl: protocol.tvl,
+              logo: protocol.logo,
+              type: "Protocol",
+              color: "cyan"
+            }
+          )
+          
+          if(protocol.hasOwnProperty('oracles')){
+            protocol.oracles.forEach(oracle => {
+              // Creating Oracle Nodes
+              converted_info_json.nodes.push(
+                {
+                  id: oracle,
+                  name: oracle,
+                  type: "Oracle",
+                  color: "red"
+                }
+              )
+          
+              // Creating Protocol - Oracle edges
+              converted_info_json.links.push(
+                {
+                  source: oracle,
+                  target: protocol.id,
+                  type: "Oracle2Protocol",
+                  particles: 2
+                }
+              )
+          
+              })
+          }
+
+          if(protocol.hasOwnProperty('chains')){
+            protocol.chains.forEach(chain => {
+              // Creating Chain Nodes
+              converted_info_json.nodes.push(
+                {
+                  id: chain,
+                  name: chain,
+                  type: "Chain",
+                  color: "orange"
+                }
+              )
+              // Creating Protocol - Chain edges
+              converted_info_json.links.push(
+                {
+                  source: protocol.id,
+                  target: chain,
+                  type: "Protocol2Chain",
+                  particles: 0
+                }
+              )
+
+          
+              })
+          }
+
+        })
+
+        function uniqByKeepFirst(a, key) {
+          let seen = new Set();
+          return a.filter((item) => {
+            let k = key(item);
+            return seen.has(k) ? false : seen.add(k);
+          });
+        }
+
+        converted_info_json.nodes = uniqByKeepFirst(
+          converted_info_json.nodes,
+          (item) => item.id
+        );
+
+        converted_info_json.nodes.forEach((node) => {
+          let source = node.name
+          let count = 0
+
+          if(node.type === "Protocol"){
+            source = node.id
+          }
+          converted_info_json.links.forEach(link => {
+            if (link.source == source){
+              count += 1;
+            };
+
+            if (node.type === "Chain" && link.target == source){
+              count += 1;
+            }
+            
+          })
+          
+          node.count = count
+          
+        })
+
+        return converted_info_json
+
+      }
+
+
+      async function render() {
+        const networkData = await getData(url);
+
+
+        const elem = document.getElementById('3d-graph');
+    
+        const Graph = ForceGraph3D(
+            {
+          extraRenderers: [new THREE.CSS2DRenderer()]
+        }
+        )(elem)
+          .graphData(networkData)
+          .nodeLabel(node => `${node.type}: ${node.name}, ${node.count}`)
+          .linkOpacity(0.2)
+          .linkAutoColorBy('type')
+          .linkDirectionalParticles('particles')
+          .onNodeClick(node => window.open("https://api.llama.fi/protocol/" + node.slug, '_blank'))
+          .nodeThreeObject(node => {
+            const nodeEl = document.createElement('div');
+            nodeEl.style.color = node.color;
+            nodeEl.className = 'node-label';
+            
+            return new THREE.CSS2DObject(nodeEl);
+          })
+          .nodeThreeObjectExtend(true);
+      }
+      render().then()
+
+    </script>
+  </body>
