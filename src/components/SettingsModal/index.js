@@ -18,12 +18,10 @@ import {
   HIDE_LAST_DAY,
   DISPLAY_USD
 } from '../../contexts/LocalStorage'
-import Switch from 'react-switch'
-import HeadHelp from '../HeadHelp'
+
 import { AutoRow } from '../Row'
 import { useIsClient } from 'hooks'
-
-import { TYPE } from '../../Theme'
+import OptionToggle from 'components/OptionToggle'
 
 const StyledMenuIcon = styled(MenuIcon)`
   svg {
@@ -121,14 +119,6 @@ const MenuItem = styled(StyledLink)`
     margin-right: 8px;
   }
 `
-
-export const OptionToggle = props => (
-  <TYPE.body style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-    <Switch onChange={props.toggle} checked={props.enabled} height={20} width={40} />
-    &nbsp;
-    {props.help ? <HeadHelp title={props.name} text={props.help} /> : props.name}
-  </TYPE.body>
-)
 
 export function CheckMarks({ type = 'defi' }) {
   const [stakingEnabled, toggleStaking] = useStakingManager()
