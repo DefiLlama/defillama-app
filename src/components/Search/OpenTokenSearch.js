@@ -62,7 +62,7 @@ const TokenSearch = ({
         }))
       : []
     return [...chainData, ...protocolNames.map(token => ({ ...token, logo: tokenIconUrl(token.name) }))]
-  }, [protocolNames, chainsSet])
+  }, [protocolNames, chainsSet, includeChains])
 
   const [tokensShown, setTokensShown] = useState(3)
 
@@ -80,13 +80,12 @@ const TokenSearch = ({
           })
           .slice(0, tokensShown)
       : []
-  }, [searchData, value, tokensShown, searchKeys])
+  }, [searchData, value, tokensShown])
 
   const onDismiss = token => () => {
     setTokensShown(3)
     toggleMenu(false)
     setValue('')
-    console.log(token, 'token')
     customOnLinkClick(token)
   }
 

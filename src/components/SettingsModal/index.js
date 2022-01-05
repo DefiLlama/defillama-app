@@ -18,12 +18,11 @@ import {
   HIDE_LAST_DAY,
   DISPLAY_USD
 } from '../../contexts/LocalStorage'
-import Switch from 'react-switch'
-import HeadHelp from '../HeadHelp'
+
 import { AutoRow } from '../Row'
 import { useIsClient } from 'hooks'
-
-import { TYPE } from '../../Theme'
+import OptionToggle from 'components/OptionToggle'
+import * as ScrollArea from '@radix-ui/react-scroll-area'
 
 const StyledMenuIcon = styled(MenuIcon)`
   svg {
@@ -122,13 +121,66 @@ const MenuItem = styled(StyledLink)`
   }
 `
 
-export const OptionToggle = props => (
-  <TYPE.body style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-    <Switch onChange={props.toggle} checked={props.enabled} height={20} width={40} />
-    &nbsp;
-    {props.help ? <HeadHelp title={props.name} text={props.help} /> : props.name}
-  </TYPE.body>
-)
+const ScrollAreaRoot = styled(ScrollArea.Root)`
+  width: 100%;
+  overflow: hidden;
+  color: white;
+`
+
+const ScrollAreaViewport = styled(ScrollArea.Viewport)`
+  width: 100%;
+  height: 100%;
+`
+
+const ScrollAreaScrollbar = styled(ScrollArea.Scrollbar)`
+  display: flex;
+  user-select: none;
+  touch-action: none;
+  padding: 2px;
+  background: rgba(229, 231, 235);
+  transition: background 160ms ease-out;
+  &[data-orientation='vertical'] {
+    width: 10px;
+  }
+  &[data-orientation='horizontal'] {
+    flex-direction: column;
+    height: 10px;
+  }
+`
+
+const ScrollAreaThumb = styled(ScrollArea.Thumb)`
+  flex: 1;
+  background: rgba(163, 163, 163);
+  border-radius: 10px;
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    min-width: 44px;
+    min-height: 44px;
+  }
+`
+
+const ScrollAreaCorner = styled(ScrollArea.Corner)`
+  background: (163, 163, 163);
+`
+
+const ListWrapper = styled.ul`
+  display: flex;
+  margin: var(--margin);
+  padding: 0;
+  list-style: none;
+`
+const ListItem = styled.li`
+  &:not(:first-child) {
+    margin-left: 12px;
+  }
+`
 
 export function CheckMarks({ type = 'defi' }) {
   const [stakingEnabled, toggleStaking] = useStakingManager()
@@ -277,5 +329,27 @@ export default function Menu({ type = 'defi' }) {
 
       {open && <MenuFlyout>{renderSettingsToggles()}</MenuFlyout>}
     </StyledMenu>
+  )
+}
+
+export const AllTvlOptions = ({ margin }) => {
+  const tvlToggles = useTvlToggles()
+  const extraTvlEnabled = useGetExtraTvlEnabled()
+  return (
+    <ScrollAreaRoot>
+      <ScrollAreaViewport>
+        <ListWrapper style={{ '--margin': margin || '24px 0' }}>
+          {extraTvlOptions.map(option => (
+            <ListItem key={option.key}>
+              <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
+            </ListItem>
+          ))}
+        </ListWrapper>
+      </ScrollAreaViewport>
+      <ScrollAreaScrollbar orientation="horizontal">
+        <ScrollAreaThumb />
+      </ScrollAreaScrollbar>
+      <ScrollAreaCorner />
+    </ScrollAreaRoot>
   )
 }

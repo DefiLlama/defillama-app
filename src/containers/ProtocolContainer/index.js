@@ -16,7 +16,7 @@ import Link, { BasicLink } from 'components/Link'
 import Panel from 'components/Panel'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import Search from 'components/Search'
-import { CheckMarks } from 'components/SettingsModal'
+import { AllTvlOptions } from 'components/SettingsModal'
 import TokenLogo from 'components/TokenLogo'
 
 import { useCalcSingleExtraTvl } from '../../hooks/data'
@@ -95,10 +95,13 @@ const TokenDetailsLayout = styled.div`
   }
 `
 
-const TotalValueLockedWrap = styled(RowBetween)`
-  @media only screen and (max-width: ${({ theme: { bpXl } }) => bpXl}) and (min-width: ${({ theme: { bpLg } }) =>
-      bpLg}) {
-    flex-direction: column-reverse;
+const TableHead = styled.th`
+  text-align: start;
+  font-weight: 400;
+  display: flex;
+  justify-content: space-between;
+  & > span:last-child {
+    margin: 0 4px;
   }
 `
 
@@ -136,6 +139,8 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
   // TODO check if we still need to format long symbols?
 
   const hasToken = address !== null && address !== '-'
+
+  const tvlByChain = Object.entries(chainTvls || {})
 
   return (
     <PageWrapper>
@@ -189,29 +194,33 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   </RowBetween>
                 </AutoColumn>
               </Panel>
-              <Panel>
-                <AutoColumn gap="20px">
-                  <RowBetween>
-                    <TYPE.main>Total Value Locked </TYPE.main>
-                  </RowBetween>
-                  <CheckMarks />
-                  <TotalValueLockedWrap align="flex-end">
-                    <TYPE.main fontSize={'1.5rem'} lineHeight={1} fontWeight={500}>
-                      {formattedNum(tvl || '0', true)}
-                    </TYPE.main>
-                    <TYPE.main>
-                      <div>
-                        {Object.entries(chainTvls).map(chainTvl =>
+              <Panel style={{ paddingBottom: 0 }}>
+                <AutoColumn gap="md">
+                  <TYPE.main>Total Value Locked </TYPE.main>
+                  <TYPE.main fontSize={'1.5rem'} lineHeight={1} fontWeight={500}>
+                    {formattedNum(tvl || '0', true)}
+                  </TYPE.main>
+                </AutoColumn>
+                <AllTvlOptions />
+                {tvlByChain.length > 0 && (
+                  <TYPE.main>
+                    <table style={{ marginBottom: '20px' }}>
+                      <tbody>
+                        {tvlByChain.map(chainTvl =>
                           chainTvl[0].includes('-') ? null : (
-                            <div key={chainTvl[0]} style={{ justifyContent: 'space-between', display: 'flex' }}>
-                              <span>{chainTvl[0]}:&nbsp;</span> <span>{toK(chainTvl[1] || 0)}</span>
-                            </div>
+                            <tr key={chainTvl[0]}>
+                              <TableHead>
+                                <span>{chainTvl[0]}</span>
+                                <span>:</span>
+                              </TableHead>
+                              <td>${toK(chainTvl[1] || 0)}</td>
+                            </tr>
                           )
                         )}
-                      </div>
-                    </TYPE.main>
-                  </TotalValueLockedWrap>
-                </AutoColumn>
+                      </tbody>
+                    </table>
+                  </TYPE.main>
+                )}
               </Panel>
               <Panel>
                 <AutoColumn gap="20px">
