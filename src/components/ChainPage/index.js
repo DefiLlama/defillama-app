@@ -10,7 +10,7 @@ import Search from '../Search'
 import Panel from '../Panel'
 import { PageWrapper, ContentWrapper } from '..'
 import Filters from '../Filters'
-import { CheckMarks } from '../SettingsModal'
+import { AllTvlOptions } from '../SettingsModal'
 
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { TYPE, ThemedBackground } from 'Theme'
@@ -278,7 +278,6 @@ function GlobalPage({
               !
             </TYPE.main>
           </Panel>
-          <CheckMarks />
         </AutoColumn>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
@@ -308,7 +307,9 @@ function GlobalPage({
             )}
           </Panel>
         </BreakpointPanels>
-        <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
+
+        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+        <ListOptions gap="10px" style={{ marginBottom: '.5rem' }}>
           <RowBetween>
             <TYPE.main sx={{ minWidth: '90px' }} fontSize={'1.125rem'}>
               TVL Rankings

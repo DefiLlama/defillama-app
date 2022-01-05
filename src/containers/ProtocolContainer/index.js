@@ -194,17 +194,16 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   </RowBetween>
                 </AutoColumn>
               </Panel>
-              <Panel style={{ paddingBottom: 0 }}>
+              <Panel>
                 <AutoColumn gap="md">
                   <TYPE.main>Total Value Locked </TYPE.main>
                   <TYPE.main fontSize={'1.5rem'} lineHeight={1} fontWeight={500}>
                     {formattedNum(tvl || '0', true)}
                   </TYPE.main>
                 </AutoColumn>
-                <AllTvlOptions />
                 {tvlByChain.length > 0 && (
                   <TYPE.main>
-                    <table style={{ marginBottom: '20px' }}>
+                    <table style={{ margin: '1.25rem 0 0' }}>
                       <tbody>
                         {tvlByChain.map(chainTvl =>
                           chainTvl[0].includes('-') ? null : (
@@ -262,8 +261,11 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
               </Panel>
             </PanelWrapper>
           </>
+
+          <AllTvlOptions style={{ display: 'flex', justifyContent: 'center', margin: '3rem 0' }} />
+
           <>
-            <RowBetween style={{ marginTop: '3rem' }}>
+            <RowBetween>
               <TYPE.main fontSize={'1.125rem'}>Protocol Information</TYPE.main>{' '}
             </RowBetween>
             <Panel
