@@ -172,7 +172,7 @@ const ScrollAreaCorner = styled(ScrollArea.Corner)`
 
 const ListWrapper = styled.ul`
   display: flex;
-  margin: var(--margin);
+  margin: 24px 0;
   padding: 0;
   list-style: none;
 `
@@ -332,13 +332,13 @@ export default function Menu({ type = 'defi' }) {
   )
 }
 
-export const AllTvlOptions = ({ margin }) => {
+export const AllTvlOptions = ({ style }) => {
   const tvlToggles = useTvlToggles()
   const extraTvlEnabled = useGetExtraTvlEnabled()
   return (
     <ScrollAreaRoot>
       <ScrollAreaViewport>
-        <ListWrapper style={{ '--margin': margin || '24px 0' }}>
+        <ListWrapper style={{ ...style }}>
           {extraTvlOptions.map(option => (
             <ListItem key={option.key}>
               <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
