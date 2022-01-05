@@ -11,7 +11,7 @@ interface IProps {
   name: string
 }
 
-const OptionToggle = ({ toggle, enabled = false, help, name }: IProps) => {
+const OptionToggle = ({ toggle, enabled = false, help, name, ...rest }: IProps) => {
   return (
     <TYPE.body style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
       <Switch
@@ -31,6 +31,7 @@ const OptionToggle = ({ toggle, enabled = false, help, name }: IProps) => {
             <Check size={14} />
           </IconWrapper>
         }
+        {...rest}
       />
       &nbsp;
       {help ? <HeadHelp title={name} text={help} /> : name}

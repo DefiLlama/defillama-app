@@ -43,9 +43,8 @@ const HeadHelp = ({
         fontSize={fontSize}
         {...rest}
       >
-        {title}
-
-        <HelpCircle size={15} style={{ marginLeft: '.3rem', marginBottom: '-3px' }} />
+        <span>{title}</span>
+        <HelpCircle size={15} style={{ marginLeft: '.3rem' }} />
       </TextWrapper>
     </Tooltip>
   )
@@ -56,7 +55,8 @@ const TextWrapper = styled.div<ITextProps>`
   margin-left: ${({ margin }) => margin && '4px'};
   color: ${({ theme, link }) => (link ? theme.blue : theme.text1)};
   font-size: ${({ fontSize }) => fontSize ?? 'inherit'};
-
+  display: flex;
+  align-items: center;
   :hover {
     cursor: pointer;
   }
