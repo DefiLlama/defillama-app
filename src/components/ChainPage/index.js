@@ -79,12 +79,9 @@ function GlobalPage({
   chainsSet,
   filteredProtocols,
   chart,
-  borrowedTvl,
-  borrowedTvlChange,
-  borrowedVolumeChart,
-  stakingTvl,
-  stakingTvlChange,
-  stakingVolumeChart
+  extraTvls = {},
+  extraTvlsChange = {},
+  extraVolumesCharts = {}
 }) {
   const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
@@ -97,44 +94,33 @@ function GlobalPage({
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
     let totalVolumeUSD = tvlUSD
     let volumeChangeUSD = tvlChangeUSD
-    let globalChart = [...chart]
+    let globalChart = chart
 
-    if (extraTvlsEnabled.staking) {
-      totalVolumeUSD += stakingTvl
-      volumeChangeUSD += stakingTvlChange
-      globalChart = globalChart.map(data => {
-        const stakedData = stakingVolumeChart.find(x => x[0] === data[0])
-        if (stakedData) {
-          return [data[0], data[1] + stakedData[1]]
-        } else return data
-      })
-    }
+    Object.entries(extraTvls).forEach(([prop, propTvl]) => {
+      if (extraTvlsEnabled[prop]) {
+        totalVolumeUSD += propTvl
+      }
+    })
 
-    if (extraTvlsEnabled.borrowed) {
-      totalVolumeUSD += borrowedTvl
-      volumeChangeUSD += borrowedTvlChange
-      globalChart = globalChart.map(data => {
-        const borrowedData = borrowedVolumeChart.find(x => x[0] === data[0])
-        if (borrowedData) {
-          return [data[0], data[1] + borrowedData[1]]
-        } else return data
-      })
-    }
+    Object.entries(extraTvlsChange).forEach(([prop, propTvlChange]) => {
+      if (extraTvlsEnabled[prop]) {
+        volumeChangeUSD += propTvlChange
+      }
+    })
+
+    Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
+      if (extraTvlsEnabled[prop]) {
+        globalChart = chart.map(data => {
+          const stakedData = propCharts.find(x => x[0] === data[0])
+          if (stakedData) {
+            return [data[0], data[1] + stakedData[1]]
+          } else return data
+        })
+      }
+    })
 
     return { totalVolumeUSD, volumeChangeUSD, globalChart }
-  }, [
-    borrowedTvl,
-    borrowedTvlChange,
-    borrowedVolumeChart,
-    chart,
-    extraTvlsEnabled.borrowed,
-    extraTvlsEnabled.staking,
-    stakingTvl,
-    stakingTvlChange,
-    stakingVolumeChart,
-    tvlChangeUSD,
-    tvlUSD
-  ])
+  }, [chart, extraTvlsEnabled, tvlChangeUSD, tvlUSD, extraTvls, extraTvlsChange, extraVolumesCharts])
 
   let chainOptions = ['All'].concat(chainsSet).map(label => ({ label, to: setSelectedChain(label) }))
 
