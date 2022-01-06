@@ -94,7 +94,7 @@ function GlobalPage({
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
     let totalVolumeUSD = tvlUSD
     let volumeChangeUSD = tvlChangeUSD
-    let globalChart = []
+    let globalChart = chart
 
     Object.entries(extraTvls).forEach(([prop, propTvl]) => {
       if (extraTvlsEnabled[prop]) {
