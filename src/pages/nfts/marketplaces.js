@@ -9,6 +9,7 @@ import { RowBetween } from '../../components/Row'
 import { TYPE } from '../../Theme'
 import { tokenIconUrl, getRandomColor } from '../../utils'
 import { getNFTMarketplacesData, getNFTMarketplaceChartData, revalidate } from '../../utils/dataApi'
+import SEO from 'components/SEO'
 import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
 
 export async function getStaticProps() {
@@ -100,12 +101,13 @@ const MarketplacesView = ({ marketplaceData, currentData, marketplacesUnique, st
   )
 }
 
-function Chains(props) {
+function Marketplaces(props) {
   return (
     <GeneralLayout title="DefiLlama - NFT Dashboard">
+      <SEO nftPage />
       <MarketplacesView {...props} />
     </GeneralLayout>
   )
 }
 
-export default Chains
+export default Marketplaces
