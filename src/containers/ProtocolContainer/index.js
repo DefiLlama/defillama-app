@@ -134,7 +134,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
   const backgroundColor = useProtocolColor({ protocol, logo, transparent: false })
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
-  tvl = useCalcSingleExtraTvl(chainTvls, tvl)
+  const totalVolume = useCalcSingleExtraTvl(chainTvls, tvl)
 
   // TODO check if we still need to format long symbols?
 
@@ -144,7 +144,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
 
   return (
     <PageWrapper>
-      <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(tvl, true)} />
+      <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
       <ContentWrapper>
         <RowBetween flexWrap="wrap">
@@ -198,7 +198,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 <AutoColumn gap="md">
                   <TYPE.main>Total Value Locked </TYPE.main>
                   <TYPE.main fontSize={'1.5rem'} lineHeight={1} fontWeight={500}>
-                    {formattedNum(tvl || '0', true)}
+                    {formattedNum(totalVolume || '0', true)}
                   </TYPE.main>
                 </AutoColumn>
                 {tvlByChain.length > 0 && (

@@ -4,11 +4,11 @@ import TokenChart from '../TokenChart'
 import { useGetExtraTvlEnabled } from '../../contexts/LocalStorage'
 
 const ProtocolChart = ({
-  chartData,
+  chartData = [],
   protocol,
   tokens,
   tokensInUsd,
-  chainTvls,
+  chainTvls = {},
   misrepresentedTokens,
   color,
   denomination,
@@ -23,13 +23,9 @@ const ProtocolChart = ({
   const below1024 = useMedia('(max-width: 1024px)')
   const below900 = useMedia('(max-width: 900px)')
   const small = below900 || (!below1024 && below1600)
-
+  const sections = Object.keys(chainTvls).filter(sect => extraTvlEnabled[sect.toLowerCase()])
   const chartDataFiltered = useMemo(() => {
     const tvlDictionary = {}
-    const sections = Object.keys(chainTvls).filter(
-      sect => sect[0].toLowerCase() === sect[0] && extraTvlEnabled[sect] === true
-    )
-
     if (sections.length > 0) {
       for (const name of sections) {
         tvlDictionary[name] = {}
@@ -37,13 +33,12 @@ const ProtocolChart = ({
           tvlDictionary[name][dataPoint.date] = dataPoint.totalLiquidityUSD
         })
       }
-      return chartData?.map(item => [
-        item[0],
-        sections.reduce((total, sect) => total + (tvlDictionary[sect]?.[item[0]] ?? 0), item[1])
-      ])
-    }
-    return chartData
-  }, [chartData, extraTvlEnabled, chainTvls])
+      return chartData?.map(item => {
+        const sum = sections.reduce((total, sect) => total + (tvlDictionary[sect]?.[item[0]] ?? 0), item[1])
+        return [item[0], sum]
+      })
+    } else return chartData
+  }, [chartData, chainTvls, sections])
 
   return (
     <TokenChart
