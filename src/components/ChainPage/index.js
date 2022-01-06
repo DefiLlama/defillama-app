@@ -207,6 +207,8 @@ function GlobalPage({
 
   const totalVolume = totalVolumeUSD / chainPriceInUSD
 
+  const dominance = topToken.tvl && totalVolumeUSD && ((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)
+
   const isLoading = denomination !== 'USD' && loading
 
   const panels = (
@@ -230,7 +232,7 @@ function GlobalPage({
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-              {percentChange}%
+              {percentChange || 0}%
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
@@ -242,7 +244,7 @@ function GlobalPage({
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-              {((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)}%
+              {dominance}%
             </TYPE.main>
             <BasicLink
               href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)

@@ -13,7 +13,8 @@ export const useCalcStakePool2Tvl = (filteredProtocols, defaultSortingColumn) =>
       let finalTvl = tvl
 
       Object.entries(extraTvl).forEach(([prop, propTvl]) => {
-        if (extraTvlsEnabled[prop]) {
+        // convert to lowercase as server response is not consistent in extra-tvl names
+        if (extraTvlsEnabled[prop.toLowerCase()]) {
           finalTvl += propTvl
         }
       })
@@ -39,7 +40,8 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl) => {
   const protocolTvl = useMemo(() => {
     let tvl = simpleTvl
     Object.entries(chainTvls).forEach(([section, sectionTvl]) => {
-      if (extraTvlsEnabled[section]) tvl += sectionTvl
+      // convert to lowercase as server response is not consistent in extra-tvl names
+      if (extraTvlsEnabled[section.toLowerCase()]) tvl += sectionTvl
     })
     return tvl
   }, [extraTvlsEnabled, simpleTvl, chainTvls])
