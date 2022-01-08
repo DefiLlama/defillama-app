@@ -266,11 +266,11 @@ function TokenList({
         </DataText>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
         <DataTextHideBelow680 area="mcaptvl" fontWeight="500">
-          {item.mcaptvl === null || item.mcaptvl === undefined
-            ? item.mcap && item.tvl
-              ? formattedNum(item.mcap / item.tvl)
-              : '-'
-            : formattedNum(item.mcaptvl, false)}
+          {item.mcaptvl
+            ? formattedNum(item.mcaptvl, false)
+            : item.mcap && item.tvl
+            ? formattedNum(item.mcap / item.tvl)
+            : '-'}
         </DataTextHideBelow680>
       </DashGrid>
     )

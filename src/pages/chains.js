@@ -16,6 +16,7 @@ import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useLg } from 'hooks/useBreakpoints'
 import { toNiceCsvDate, chainIconUrl, getRandomColor } from 'utils'
 import { revalidate } from 'utils/dataApi'
+import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 
 function getPercentChange(previous, current) {
   return (current / previous) * 100 - 100
@@ -46,11 +47,11 @@ const ChartsWrapper = styled(Box)`
   }
 `
 
-const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentData }) => {
+const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
   const isLg = useLg()
 
   const chainColor = useMemo(
-    () => Object.fromEntries([...chainsUnique, 'Other'].map(chain => [chain, getRandomColor()])),
+    () => Object.fromEntries([...chainsUnique, 'Others'].map(chain => [chain, getRandomColor()])),
     [chainsUnique]
   )
 
@@ -66,6 +67,27 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
 
   const protocolTotals = useCalcStakePool2Tvl(chainTvls)
 
+  const extraTvlsEnabled = useGetExtraTvlEnabled()
+
+  const chainsTvlValues = useMemo(() => {
+    const data = chainTvls.reduce((acc, curr) => {
+      let tvl = curr.tvl || 0
+      Object.entries(curr.extraTvl || {}).forEach(([section, sectionTvl]) => {
+        if (extraTvlsEnabled[section.toLowerCase()]) tvl += sectionTvl
+      })
+      const data = { name: curr.name, value: tvl }
+      return (acc = [...acc, data])
+    }, [])
+
+    const otherTvl = data.slice(10).reduce((total, entry) => {
+      return (total += entry.value)
+    }, 0)
+    return data
+      .slice(0, 10)
+      .sort((a, b) => b.value - a.value)
+      .concat({ name: 'Others', value: otherTvl })
+  }, [chainTvls, extraTvlsEnabled])
+
   return (
     <PageWrapper>
       <FullWrapper>
@@ -75,7 +97,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum, currentDa
         </RowBetween>
 
         <ChartsWrapper>
-          <ChainPieChart data={currentData} chainColor={chainColor} />
+          <ChainPieChart data={chainsTvlValues} chainColor={chainColor} />
           <ChainDominanceChart
             stackOffset="expand"
             formatPercent={true}
@@ -122,7 +144,7 @@ export async function getStaticProps() {
     })
     Object.entries(protocol.chainTvls).forEach(([tvlKey, tvlValue]) => {
       if (tvlKey.includes('-')) {
-        const prop = tvlKey.split('-')[1]
+        const prop = tvlKey.split('-')[1].toLowerCase()
         const chain = tvlKey.split('-')[0]
         if (extraPropPerChain[chain] === undefined) {
           extraPropPerChain[chain] = {}
@@ -142,7 +164,7 @@ export async function getStaticProps() {
       const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
       return {
         tvl: current,
-        mcaptvl: mcap ? mcap / current : null,
+        mcap: mcap || null,
         name: chainName,
         symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
         protocols: numProtocolsPerChain[chainName],
@@ -169,22 +191,12 @@ export async function getStaticProps() {
     }, {})
   )
 
-  const lastData = Object.entries(stackedDataset[stackedDataset.length - 1]).sort((a, b) => b[1] - a[1])
-
-  const otherTvl = lastData.slice(10).reduce((total, entry) => {
-    return entry[0] === 'date' ? total : total + entry[1]
-  }, 0)
-  const currentData = lastData
-    .slice(0, 10)
-    .concat([['Other', otherTvl]])
-    .map(entry => ({ name: entry[0], value: entry[1] }))
   return {
     props: {
       chainsUnique,
       chainTvls,
       stackedDataset,
-      daySum,
-      currentData
+      daySum
     },
     revalidate: revalidate()
   }
