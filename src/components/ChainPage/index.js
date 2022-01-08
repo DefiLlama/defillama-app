@@ -110,7 +110,7 @@ function GlobalPage({
 
     Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
       if (extraTvlsEnabled[prop]) {
-        globalChart = chart.map(data => {
+        globalChart = globalChart.map(data => {
           const stakedData = propCharts.find(x => x[0] === data[0])
           if (stakedData) {
             return [data[0], data[1] + stakedData[1]]

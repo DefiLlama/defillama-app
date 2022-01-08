@@ -58,7 +58,7 @@ const formatProtocolsData = ({
         }
       } else {
         const firstChar = sectionName[0]
-        if (firstChar === firstChar.toLowerCase()) {
+        if (firstChar === firstChar.toLowerCase() || sectionName === 'Offers' || sectionName === 'Treasury') {
           protocol.extraTvl[sectionName] = sectionTvl
         }
       }
