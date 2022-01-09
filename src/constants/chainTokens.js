@@ -403,7 +403,12 @@ export const chainCoingeckoIds = {
     geckoId: 'nahmii',
     symbol: 'NII',
     cmcId: '4865'
-  }
+  },
+  Parallel: {
+    geckoId: null,
+    symbol: "PARA",
+    cmcId: null,
+  },
 }
 
 export const chainMarketplaceMappings = {
