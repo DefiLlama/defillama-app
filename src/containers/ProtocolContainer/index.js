@@ -162,7 +162,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
         </RowBetween>
 
         <DashboardWrapper mt={[0, 0, '1rem']}>
-          <RowBetween style={{ flexWrap: 'wrap', marginBottom: '2rem', alignItems: 'flex-start' }}>
+          <RowBetween style={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
             <RowFixed style={{ flexWrap: 'wrap' }}>
               <RowFixed style={{ alignItems: 'baseline' }}>
                 <TokenLogo address={address} logo={logo} size={32} style={{ alignSelf: 'center' }} />
@@ -180,8 +180,9 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
               </RowFixed>
             </HiddenBookmark>
           </RowBetween>
+          <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
           <>
-            <PanelWrapper mt={[0, 0, '1rem']} style={{ gridTemplateRows: 'auto' }}>
+            <PanelWrapper style={{ gridTemplateRows: 'auto', margin: '0 0 3rem 0' }}>
               <Panel>
                 <AutoColumn gap="20px">
                   <RowBetween>
@@ -261,8 +262,6 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
               </Panel>
             </PanelWrapper>
           </>
-
-          <AllTvlOptions style={{ display: 'flex', justifyContent: 'center', margin: '3rem 0' }} />
 
           <>
             <RowBetween>
