@@ -375,21 +375,25 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                     </AutoRow>
                   </Column>
                   <RowFixed>
-                    <Link
-                      color={backgroundColor}
-                      style={{ marginRight: '.5rem' }}
-                      external
-                      href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`}
-                    >
-                      <ButtonLight useTextColor={true} color={backgroundColor}>
-                        View on CoinGecko ↗
-                      </ButtonLight>
-                    </Link>
-                    <Link color={backgroundColor} external href={blockExplorerLink}>
-                      <ButtonLight useTextColor={true} color={backgroundColor}>
-                        View on {blockExplorerName} ↗
-                      </ButtonLight>
-                    </Link>
+                    {protocolData.gecko_id !== null &&
+                      <Link
+                        color={backgroundColor}
+                        style={{ marginRight: '.5rem' }}
+                        external
+                        href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`}
+                      >
+                        <ButtonLight useTextColor={true} color={backgroundColor}>
+                          View on CoinGecko ↗
+                        </ButtonLight>
+                      </Link>
+                    }
+                    {blockExplorerLink !== undefined &&
+                      <Link color={backgroundColor} external href={blockExplorerLink}>
+                        <ButtonLight useTextColor={true} color={backgroundColor}>
+                          View on {blockExplorerName} ↗
+                        </ButtonLight>
+                      </Link>
+                    }
                   </RowFixed>
                 </TokenDetailsLayout>
               </Panel>

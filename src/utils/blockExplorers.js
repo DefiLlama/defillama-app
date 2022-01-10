@@ -32,16 +32,18 @@ const blockExplorers = {
 }
 
 export const getBlockExplorer = (address = '') => {
-  let blockExplorerLink = 'https://etherscan.io/address/' + address
-  let blockExplorerName = 'Etherscan'
-  Object.entries(blockExplorers).forEach(explorer => {
-    const chainId = explorer[0] + ':'
-    if (address?.startsWith(chainId)) {
-      address = address.slice(chainId.length)
-      blockExplorerLink = explorer[1][0] + address
-      blockExplorerName = explorer[1][1]
+  let blockExplorerLink, blockExplorerName;
+  if (address.includes(':')) {
+    const [chain, chainAddress] = address.split(':')
+    const explorer = blockExplorers[chain]
+    if (explorer !== undefined) {
+      blockExplorerLink = explorer[0] + chainAddress;
+      blockExplorerName = explorer[1];
     }
-  })
+  } else {
+    blockExplorerLink = 'https://etherscan.io/address/' + address
+    blockExplorerName = 'Etherscan'
+  }
 
   return {
     blockExplorerLink,
