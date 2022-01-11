@@ -33,14 +33,14 @@ const blockExplorers = {
 
 export const getBlockExplorer = (address = '') => {
   let blockExplorerLink, blockExplorerName;
-  if (address.includes(':')) {
+  if (address?.includes(':')) {
     const [chain, chainAddress] = address.split(':')
     const explorer = blockExplorers[chain]
     if (explorer !== undefined) {
       blockExplorerLink = explorer[0] + chainAddress;
       blockExplorerName = explorer[1];
     }
-  } else {
+  } else if (typeof address === "string") {
     blockExplorerLink = 'https://etherscan.io/address/' + address
     blockExplorerName = 'Etherscan'
   }
