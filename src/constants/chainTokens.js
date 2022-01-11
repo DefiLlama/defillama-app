@@ -409,6 +409,26 @@ export const chainCoingeckoIds = {
     symbol: "PARA",
     cmcId: null,
   },
+  Meter: {
+    geckoId: "meter",
+    symbol: "MTRG",
+    cmcId: "5919",
+  },
+  Emerald: {
+    geckoId: "oasis-network",
+    symbol: "ROSE",
+    cmcId: "7653",
+  },
+  Theta: {
+    geckoId: "theta-token",
+    symbol: "THETA",
+    cmcId: "2416",
+  },
+  Syscoin: {
+    geckoId: "syscoin",
+    symbol: "SYS",
+    cmcId: "541",
+  },
 }
 
 export const chainMarketplaceMappings = {
