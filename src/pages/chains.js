@@ -107,6 +107,9 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
             daySum={daySum}
           />
         </ChartsWrapper>
+        <div style={{ margin: 'auto' }}>
+          <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
+        </div>
         <TokenList
           canBookmark={false}
           tokens={protocolTotals}
@@ -114,9 +117,6 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
           generateLink={name => `/chain/${name}`}
           columns={[undefined, 'protocols', 'change_1d', 'change_7d']}
         />
-        <div style={{ margin: 'auto' }}>
-          <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
-        </div>
       </FullWrapper>
     </PageWrapper>
   )
