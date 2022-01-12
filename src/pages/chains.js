@@ -126,7 +126,7 @@ export async function getStaticProps() {
   const [res, { chainCoingeckoIds }] = await Promise.all(
     [PROTOCOLS_API, CONFIG_API].map(apiEndpoint => fetch(apiEndpoint).then(r => r.json()))
   )
-  const chainsUnique = res.chains
+  const chainsUnique = res.chains.filter(t => t !== "Syscoin")
 
   const chainCalls = Promise.all(chainsUnique.map(elem => fetch(`${CHART_API}/${elem}`).then(resp => resp.json())))
 
