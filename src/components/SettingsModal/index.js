@@ -262,6 +262,8 @@ const extraTvlOptions = [
 
 export default function Menu({ type = 'defi' }) {
   const node = useRef()
+  const isClient = useIsClient()
+
   const [open, setOpen] = useState(false)
   const toggle = () => {
     setOpen(!open)
@@ -315,7 +317,7 @@ export default function Menu({ type = 'defi' }) {
         <OptionToggle
           {...toggleSetting}
           toggle={tvlToggles(toggleSetting.key)}
-          enabled={extraTvlEnabled[toggleSetting.key]}
+          enabled={extraTvlEnabled[toggleSetting.key] && isClient}
         />
       </MenuItem>
     ))
@@ -335,6 +337,8 @@ export default function Menu({ type = 'defi' }) {
 export const AllTvlOptions = ({ style }) => {
   const tvlToggles = useTvlToggles()
   const extraTvlEnabled = useGetExtraTvlEnabled()
+  const isClient = useIsClient()
+
   return (
     <>
       <ScrollAreaRoot>
@@ -342,7 +346,11 @@ export const AllTvlOptions = ({ style }) => {
           <ListWrapper style={{ ...style }}>
             {extraTvlOptions.map(option => (
               <ListItem key={option.key}>
-                <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
+                <OptionToggle
+                  {...option}
+                  toggle={tvlToggles(option.key)}
+                  enabled={extraTvlEnabled[option.key] && isClient}
+                />
               </ListItem>
             ))}
           </ListWrapper>
