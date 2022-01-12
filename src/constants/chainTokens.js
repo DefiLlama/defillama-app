@@ -414,7 +414,7 @@ export const chainCoingeckoIds = {
     symbol: "MTRG",
     cmcId: "5919",
   },
-  Emerald: {
+  Oasis: {
     geckoId: "oasis-network",
     symbol: "ROSE",
     cmcId: "7653",
