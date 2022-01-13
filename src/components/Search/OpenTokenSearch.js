@@ -12,7 +12,7 @@ import { Blue, Heading, Menu, MenuItem } from './shared'
 import { chainIconUrl, tokenIconUrl, standardizeProtocolName } from 'utils'
 import { PROTOCOLS_API } from 'constants'
 
-const defaultLinkPath = item => {
+const defaultLinkPath = (item) => {
   if (item.isChain) {
     return '/chain/' + item.name
   }
@@ -32,7 +32,7 @@ const TokenSearch = ({
   wrapperRef,
   value,
   toggleMenu,
-  setValue
+  setValue,
 }) => {
   const [searcheableData, setSearcheableData] = useState(useSearchData())
   const [loading, setIsLoading] = useState(false)
@@ -42,12 +42,12 @@ const TokenSearch = ({
     if (!searcheableData.protocolNames.length) {
       setIsLoading(true)
       fetch(PROTOCOLS_API)
-        .then(res => res.json())
-        .then(res => {
+        .then((res) => res.json())
+        .then((res) => {
           setIsLoading(false)
           setSearcheableData({
             protocolNames: res.protocols,
-            chainsSet: res.chains
+            chainsSet: res.chains,
           })
         })
     }
@@ -55,13 +55,13 @@ const TokenSearch = ({
 
   const searchData = useMemo(() => {
     const chainData = includeChains
-      ? chainsSet.map(name => ({
+      ? chainsSet.map((name) => ({
           logo: chainIconUrl(name),
           isChain: true,
-          name
+          name,
         }))
       : []
-    return [...chainData, ...protocolNames.map(token => ({ ...token, logo: tokenIconUrl(token.name) }))]
+    return [...chainData, ...protocolNames.map((token) => ({ ...token, logo: tokenIconUrl(token.name) }))]
   }, [protocolNames, chainsSet, includeChains])
 
   const [tokensShown, setTokensShown] = useState(3)
@@ -72,17 +72,17 @@ const TokenSearch = ({
     }
     return searchData
       ? searchData
-          .filter(token => {
-            const regexMatches = searchKeys.map(tokenEntryKey => {
+          .filter((token) => {
+            const regexMatches = searchKeys.map((tokenEntryKey) => {
               return token[tokenEntryKey]?.match(new RegExp(escapeRegExp(value), 'i'))
             })
-            return regexMatches.some(m => m)
+            return regexMatches.some((m) => m)
           })
           .slice(0, tokensShown)
       : []
   }, [searchData, value, tokensShown])
 
-  const onDismiss = token => () => {
+  const onDismiss = (token) => () => {
     setTokensShown(3)
     toggleMenu(false)
     setValue('')
@@ -92,7 +92,7 @@ const TokenSearch = ({
   // refs to detect clicks outside modal
   const menuRef = useRef()
 
-  const handleClick = e => {
+  const handleClick = (e) => {
     if (
       !(menuRef.current && menuRef.current.contains(e.target)) &&
       !(wrapperRef.current && wrapperRef.current.contains(e.target))
@@ -103,7 +103,7 @@ const TokenSearch = ({
   }
 
   useEffect(() => {
-    document.addEventListener('keyup', e => {
+    document.addEventListener('keyup', (e) => {
       if (e.key === '/') {
         document.getElementsByClassName('searchbox')[0].focus()
       }
@@ -112,7 +112,7 @@ const TokenSearch = ({
     return () => {
       document.removeEventListener('click', handleClick)
     }
-  }, [])
+  })
 
   return (
     <Menu ref={menuRef}>

@@ -30,7 +30,7 @@ const CHART_VIEW = {
   VOLUME: 'Volume',
   LIQUIDITY: 'Liquidity',
   PRICE: 'Price',
-  LINE_PRICE: 'Price (Line)'
+  LINE_PRICE: 'Price (Line)',
 }
 
 const BASIC_DENOMINATIONS = {
@@ -40,7 +40,7 @@ const BASIC_DENOMINATIONS = {
   Tokens: 'Tokens',
   Change: 'Change',
   ChangeSplit: 'ChangeSplit',
-  Chains: 'Chains'
+  Chains: 'Chains',
 }
 
 function stringToColour() {
@@ -59,7 +59,7 @@ const TokenChart = ({
   denomination: initialDenomination,
   chains,
   selectedChain = 'all',
-  hallmarks = []
+  hallmarks = [],
 }) => {
   let DENOMINATIONS = BASIC_DENOMINATIONS
   let chainDenomination
@@ -68,14 +68,14 @@ const TokenChart = ({
     if (chainDenomination !== undefined) {
       DENOMINATIONS = {
         ...BASIC_DENOMINATIONS,
-        [chainDenomination.symbol]: chainDenomination.symbol
+        [chainDenomination.symbol]: chainDenomination.symbol,
       }
     }
   }
 
   const denomination =
     Object.values(DENOMINATIONS).find(
-      den => den?.toLowerCase() === initialDenomination?.split('-')?.[0]?.toLowerCase()
+      (den) => den?.toLowerCase() === initialDenomination?.split('-')?.[0]?.toLowerCase()
     ) ?? DENOMINATIONS.USD
 
   const balanceToken = initialDenomination?.substr(initialDenomination.indexOf('-') + 1)
@@ -100,12 +100,12 @@ const TokenChart = ({
     }
     return splitLocation
   }
-  const buildDenomUrl = denom => {
+  const buildDenomUrl = (denom) => {
     const splitLocation = buildUrl()
     splitLocation[4] = denom
     return splitLocation.join('/')
   }
-  const buildChainUrl = newChain => {
+  const buildChainUrl = (newChain) => {
     const splitLocation = buildUrl()
     splitLocation[3] = newChain === ALL_CHAINS ? 'all' : newChain
     return splitLocation.join('/')
@@ -123,9 +123,9 @@ const TokenChart = ({
   let utcStartTime = 0
   if (timeWindow !== timeframeOptions.ALL_TIME) {
     utcStartTime = getTimeframe(timeWindow)
-    chartData = chartData?.filter(entry => entry[0] >= utcStartTime)
-    tokens = tokens?.filter(entry => entry[0] >= utcStartTime)
-    tokensInUsd = tokensInUsd?.filter(entry => entry[0] >= utcStartTime)
+    chartData = chartData?.filter((entry) => entry[0] >= utcStartTime)
+    tokens = tokens?.filter((entry) => entry[0] >= utcStartTime)
+    tokensInUsd = tokensInUsd?.filter((entry) => entry[0] >= utcStartTime)
   }
 
   //const domain = [dataMin => (dataMin > utcStartTime ? dataMin : utcStartTime), 'dataMax']
@@ -138,13 +138,13 @@ const TokenChart = ({
   const [stackedDataset, tokensUnique] = useMemo(() => {
     if (denomination === DENOMINATIONS.TokensUSD) {
       const tokenSet = new Set()
-      const stacked = tokensInUsd.map(dayTokens => {
-        Object.keys(dayTokens.tokens).forEach(symbol => tokenSet.add(symbol))
+      const stacked = tokensInUsd.map((dayTokens) => {
+        Object.keys(dayTokens.tokens).forEach((symbol) => tokenSet.add(symbol))
         return {
           ...Object.fromEntries(
-            Object.entries(dayTokens.tokens).filter(t => !(t[0].startsWith('UNKNOWN') && t[1] < 1))
+            Object.entries(dayTokens.tokens).filter((t) => !(t[0].startsWith('UNKNOWN') && t[1] < 1))
           ),
-          date: dayTokens.date
+          date: dayTokens.date,
         }
       })
       return [stacked, Array.from(tokenSet)]
@@ -152,20 +152,20 @@ const TokenChart = ({
       const timeToTvl = {}
 
       Object.entries(chainTvls).forEach(([chainToAdd, tvl]) => {
-        tvl.tvl.forEach(dayTvl => {
+        tvl.tvl.forEach((dayTvl) => {
           timeToTvl[dayTvl.date] = {
             ...timeToTvl[dayTvl.date],
-            [chainToAdd]: dayTvl.totalLiquidityUSD
+            [chainToAdd]: dayTvl.totalLiquidityUSD,
           }
         })
       })
 
       const stacked = Object.keys(timeToTvl)
         .sort((a, b) => Number(a) - Number(b))
-        .map(dayDate => ({
+        .map((dayDate) => ({
           ...timeToTvl[dayDate],
           // kinda scuffed but gotta fix the datakey for chart again
-          date: Number(dayDate)
+          date: Number(dayDate),
         }))
       return [stacked, Object.keys(chainTvls)]
     }
@@ -185,10 +185,10 @@ const TokenChart = ({
         `https://api.coingecko.com/api/v3/coins/${
           denomination === DENOMINATIONS.ETH ? 'ethereum' : chainDenomination.geckoId
         }/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`
-      ).then(data =>
+      ).then((data) =>
         setDenominationPriceHistory({
           asset: denomination,
-          prices: data.prices
+          prices: data.prices,
         })
       )
     }
@@ -220,7 +220,7 @@ const TokenChart = ({
     }
     if (denomination === DENOMINATIONS.Tokens) {
       chartData = []
-      tokens.forEach(tokenSnapshot => {
+      tokens.forEach((tokenSnapshot) => {
         chartData.push([tokenSnapshot.date, tokenSnapshot.tokens[balanceToken] ?? 0])
       })
     }
@@ -243,12 +243,12 @@ const TokenChart = ({
         if (denomination === DENOMINATIONS.Change) {
           chartData.push({
             date: tokensInUsd[i].date,
-            dailyVolumeUSD: dayDifference
+            dailyVolumeUSD: dayDifference,
           })
         } else {
           chartData.push({
             ...tokenDayDifference,
-            date: tokensInUsd[i].date
+            date: tokensInUsd[i].date,
           })
         }
       }
@@ -275,11 +275,11 @@ const TokenChart = ({
   const tokensProvided =
     tokensInUsd &&
     tokensInUsd.length !== 0 &&
-    !tokensInUsd.some(data => !data.tokens) &&
+    !tokensInUsd.some((data) => !data.tokens) &&
     misrepresentedTokens === undefined
   const denominationsToDisplay = {
     USD: 'USD',
-    ETH: 'ETH'
+    ETH: 'ETH',
   }
   if (chainDenomination) {
     denominationsToDisplay[chainDenomination.symbol] = chainDenomination.symbol
@@ -303,15 +303,15 @@ const TokenChart = ({
       {belowMed ? (
         <RowBetween mb={40}>
           <DropdownSelect
-            options={Object.values(denominationsToDisplay).map(d => ({
+            options={Object.values(denominationsToDisplay).map((d) => ({
               label: d,
-              to: buildDenomUrl(d)
+              to: buildDenomUrl(d),
             }))}
             active={denomination}
             color={color}
           />
           <DropdownSelect
-            options={Object.values(timeframeOptions).map(t => ({ label: t }))}
+            options={Object.values(timeframeOptions).map((t) => ({ label: t }))}
             active={timeWindow}
             setActive={setTimeWindow}
             color={color}
@@ -324,7 +324,7 @@ const TokenChart = ({
         >
           <AutoColumn gap="0px">
             <RowFixed>
-              {Object.values(denominationsToDisplay).map(option => (
+              {Object.values(denominationsToDisplay).map((option) => (
                 <BasicLink href={buildDenomUrl(option)} key={option}>
                   <OptionButton active={denomination === option} style={{ marginRight: '6px' }}>
                     {option}
@@ -333,9 +333,9 @@ const TokenChart = ({
               ))}
               {tokenSymbols && !small && (
                 <DropdownSelect
-                  options={tokenSymbols.map(symbol => ({
+                  options={tokenSymbols.map((symbol) => ({
                     label: symbol,
-                    to: buildDenomUrl(`${DENOMINATIONS.Tokens}-${symbol}`)
+                    to: buildDenomUrl(`${DENOMINATIONS.Tokens}-${symbol}`),
                   }))}
                   active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'}
                   color={color}
@@ -344,9 +344,9 @@ const TokenChart = ({
               )}
               {chainTvls && Object.keys(chainTvls).length > 1 && (
                 <DropdownSelect
-                  options={[ALL_CHAINS].concat(Object.keys(chainTvls)).map(chain => ({
+                  options={[ALL_CHAINS].concat(Object.keys(chainTvls)).map((chain) => ({
                     label: chain,
-                    to: buildChainUrl(chain)
+                    to: buildChainUrl(chain),
                   }))}
                   active={selectedChain === 'all' ? ALL_CHAINS : selectedChain}
                   color={color}
@@ -402,7 +402,7 @@ const TokenChart = ({
             <YAxis
               type="number"
               orientation="right"
-              tickFormatter={tick => moneySymbol + toK(tick)}
+              tickFormatter={(tick) => moneySymbol + toK(tick)}
               axisLine={false}
               tickLine={false}
               interval="preserveEnd"
@@ -412,15 +412,15 @@ const TokenChart = ({
             />
             <Tooltip
               cursor={true}
-              formatter={val => formattedNum(val, moneySymbol === '$')}
-              labelFormatter={label => toNiceDateYear(label)}
+              formatter={(val) => formattedNum(val, moneySymbol === '$')}
+              labelFormatter={(label) => toNiceDateYear(label)}
               labelStyle={{ paddingTop: 4 }}
-              itemSorter={item => -item.value}
+              itemSorter={(item) => -item.value}
               contentStyle={{
                 padding: '10px 14px',
                 borderRadius: 10,
                 borderColor: color,
-                color: 'black'
+                color: 'black',
               }}
               wrapperStyle={{ top: -70, left: -10 }}
             />
@@ -429,10 +429,11 @@ const TokenChart = ({
                 x={hallmark[0]}
                 stroke={textColor}
                 label={{ value: hallmark[1], fill: textColor, position: 'insideTop', offset: ((i * 50) % 300) + 50 }}
+                key={'hall1' + i}
               />
             ))}
             {tokensUnique.length > 0 ? (
-              tokensUnique.map(tokenSymbol => {
+              tokensUnique.map((tokenSymbol) => {
                 const randomColor = stringToColour()
                 return (
                   <Area
@@ -483,7 +484,7 @@ const TokenChart = ({
               type="number"
               axisLine={false}
               tickMargin={16}
-              tickFormatter={tick => moneySymbol + toK(tick)}
+              tickFormatter={(tick) => moneySymbol + toK(tick)}
               tickLine={false}
               orientation="right"
               interval="preserveEnd"
@@ -491,19 +492,19 @@ const TokenChart = ({
               yAxisId={0}
               tick={{ fill: textColor }}
             />
-            {hallmarks.map(hallmark => (
-              <ReferenceLine x={hallmark[0]} stroke="red" label={hallmark[1]} />
+            {hallmarks.map((hallmark, i) => (
+              <ReferenceLine x={hallmark[0]} stroke="red" label={hallmark[1]} key={'hall2' + i} />
             ))}
             <Tooltip
               cursor={{ fill: color, opacity: 0.1 }}
-              formatter={val => formattedNum(val, true)}
-              labelFormatter={label => toNiceDateYear(label)}
+              formatter={(val) => formattedNum(val, true)}
+              labelFormatter={(label) => toNiceDateYear(label)}
               labelStyle={{ paddingTop: 4 }}
               contentStyle={{
                 padding: '10px 14px',
                 borderRadius: 10,
                 borderColor: color,
-                color: 'black'
+                color: 'black',
               }}
               wrapperStyle={{ top: -70, left: -10 }}
             />
@@ -518,7 +519,7 @@ const TokenChart = ({
                 stroke={color}
               />
             ) : (
-              Array.from(tokenSet).map(token => (
+              Array.from(tokenSet).map((token) => (
                 <Bar
                   key={token}
                   type="monotone"

@@ -1,0 +1,7 @@
+{
+  "extends": ["next", "prettier"],
+  "rules": {
+    "no-undef": "warn",
+    "no-unused-vars": "warn"
+  }
+}

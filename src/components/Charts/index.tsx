@@ -5,11 +5,7 @@ import Panel from '../Panel'
 import { useMed } from 'hooks/useBreakpoints'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 
-interface IChartWrapperProps {
-  children: React.ReactNode
-}
-
-export const ChartWrapper = ({ children }: IChartWrapperProps) => {
+export const ChartWrapper = ({ children }) => {
   const ref = useRef(null)
   const isMobile = useMed()
   const [isDark] = useDarkModeManager()
@@ -18,13 +14,13 @@ export const ChartWrapper = ({ children }: IChartWrapperProps) => {
     <PlaceholderChartPanel
       style={{
         margin: !isMobile && '0.3em',
-        '--color': isDark ? 'white' : 'black'
+        '--color': isDark ? 'white' : 'black',
       }}
     >
       <div
         style={{
           position: 'absolute',
-          inset: 10
+          inset: 10,
         }}
       >
         <ResponsiveContainer
