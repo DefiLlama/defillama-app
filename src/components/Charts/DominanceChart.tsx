@@ -2,10 +2,6 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts'
 import { ChartWrapper } from '.'
 import { toNiceDateYear, formattedNum, toNiceMonthlyDate } from 'utils'
 
-interface IStackedDataset {
-  [key: string]: number
-}
-
 interface IChainColor {
   [key: string]: string
 }
@@ -17,15 +13,15 @@ interface IDaySum {
 interface IProps {
   stackOffset?: 'expand'
   formatPercent: boolean
-  stackedDataset: IStackedDataset
+  stackedDataset
   chainsUnique: string[]
   chainColor: IChainColor
   daySum: IDaySum
 }
 
-const toPercent = (decimal, fixed = 0) => `${(decimal * 100).toFixed(fixed)}%`
+const toPercent = (decimal: number, fixed = 0) => `${(decimal * 100).toFixed(fixed)}%`
 
-const getPercent = (value, total) => {
+const getPercent = (value: number, total: number) => {
   const ratio = total > 0 ? value / total : 0
 
   return toPercent(ratio, 2)
@@ -37,7 +33,7 @@ export const ChainDominanceChart = ({
   stackedDataset,
   chainsUnique,
   chainColor,
-  daySum
+  daySum,
 }: IProps) => (
   <ChartWrapper>
     <AreaChart
@@ -47,20 +43,20 @@ export const ChainDominanceChart = ({
         top: 10,
         right: 30,
         left: 0,
-        bottom: 0
+        bottom: 0,
       }}
     >
       <XAxis dataKey="date" tickFormatter={toNiceMonthlyDate} />
-      <YAxis tickFormatter={tick => toPercent(tick)} />
+      <YAxis tickFormatter={(tick) => toPercent(tick)} />
       <Tooltip
         formatter={(val, chain, props) =>
           formatPercent ? getPercent(val, daySum[props.payload.date]) : formattedNum(val)
         }
-        labelFormatter={label => toNiceDateYear(label)}
-        itemSorter={p => -p.value}
+        labelFormatter={(label) => toNiceDateYear(label)}
+        itemSorter={(p) => -p.value}
         labelStyle={{ color: 'black', fontWeight: '500' }}
       />
-      {chainsUnique.map(chainName => (
+      {chainsUnique.map((chainName) => (
         <Area
           type="monotone"
           dataKey={chainName}

@@ -5,7 +5,7 @@ retrieved from a known DefiLlama domain.
 https://www.akmittal.dev/posts/nextjs-image-use-any-domain/
 */
 
-export default async (req, res) => {
+export default async function getImage(req, res) {
   try {
     const url = decodeURIComponent(req.query.url)
     const result = await fetch(url)

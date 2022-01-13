@@ -3,27 +3,27 @@ import { useRouter } from 'next/router'
 import * as Fathom from 'fathom-client'
 
 function App({ Component, pageProps }) {
-    const router = useRouter()
+  const router = useRouter()
 
-    useEffect(() => {
-        Fathom.load('OANJVQNZ', {
-            includedDomains: ['defillama.com', 'www.defillama.com'],
-            url: "https://gold-six.llama.fi/script.js"
-        })
+  useEffect(() => {
+    Fathom.load('OANJVQNZ', {
+      includedDomains: ['defillama.com', 'www.defillama.com'],
+      url: 'https://gold-six.llama.fi/script.js',
+    })
 
-        function onRouteChangeComplete() {
-            Fathom.trackPageview()
-        }
-        // Record a pageview when route changes
-        router.events.on('routeChangeComplete', onRouteChangeComplete)
+    function onRouteChangeComplete() {
+      Fathom.trackPageview()
+    }
+    // Record a pageview when route changes
+    router.events.on('routeChangeComplete', onRouteChangeComplete)
 
-        // Unassign event listener
-        return () => {
-            router.events.off('routeChangeComplete', onRouteChangeComplete)
-        }
-    }, [])
+    // Unassign event listener
+    return () => {
+      router.events.off('routeChangeComplete', onRouteChangeComplete)
+    }
+  }, [router.events])
 
-    return <Component {...pageProps} />
+  return <Component {...pageProps} />
 }
 
 export default App

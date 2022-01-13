@@ -109,7 +109,7 @@ function PinnedData() {
 
   const portfolios = Object.keys(savedProtocols)
 
-  const hasSaved = portfolios.some(portfolio => Object.keys(savedProtocols[portfolio]).length)
+  const hasSaved = portfolios.some((portfolio) => Object.keys(savedProtocols[portfolio]).length)
 
   return !pinnedOpen ? (
     <RightColumn style={{ cursor: 'pointer' }} open={pinnedOpen} onClick={() => setPinnedOpen(true)}>
@@ -135,12 +135,13 @@ function PinnedData() {
       <AutoColumn gap="40px">
         <ScrollableDiv>
           {hasSaved ? (
-            portfolios.map(portfolio => (
+            portfolios.map((portfolio) => (
               <PortfolioDropdown
                 removeProtocol={removeProtocol}
                 router={router}
                 savedProtocols={savedProtocols}
                 portfolio={portfolio}
+                key={portfolio}
               />
             ))
           ) : (

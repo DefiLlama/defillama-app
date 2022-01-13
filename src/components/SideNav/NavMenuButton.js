@@ -46,7 +46,7 @@ export default function NavMenuButton({ setShow, show }) {
     setShow(!show)
   }
 
-  const handleClick = e => {
+  const handleClick = (e) => {
     if (!(node.current && node.current.contains(e.target))) {
       setShow(false)
     }
@@ -57,7 +57,7 @@ export default function NavMenuButton({ setShow, show }) {
     return () => {
       document.removeEventListener('click', handleClick)
     }
-  }, [])
+  })
 
   return (
     <StyledMenu ref={node}>

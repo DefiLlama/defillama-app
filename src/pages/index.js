@@ -7,7 +7,7 @@ export async function getStaticProps({ params }) {
   const data = await getChainPageData()
   return {
     ...data,
-    revalidate: revalidate()
+    revalidate: revalidate(),
   }
 }
 
