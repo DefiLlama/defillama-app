@@ -429,6 +429,11 @@ export const chainCoingeckoIds = {
     symbol: "SYS",
     cmcId: "541",
   },
+  Moonbeam: {
+    geckoId: "moonbeam",
+    symbol: "GLMR",
+    cmcId: "6836",
+  },
 }
 
 export const chainMarketplaceMappings = {
