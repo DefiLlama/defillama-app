@@ -47,7 +47,7 @@ const formatProtocolsData = ({
 
   filteredProtocols = filteredProtocols.map(protocol => {
     if (chain) {
-      protocol.tvl = protocol.chainTvls[chain]
+      protocol.tvl = protocol.chainTvls[chain] ?? 0
     }
     protocol.extraTvl = {}
     Object.entries(protocol.chainTvls).forEach(([sectionName, sectionTvl]) => {
