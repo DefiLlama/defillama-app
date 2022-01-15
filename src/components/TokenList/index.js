@@ -61,7 +61,7 @@ const DashGrid = styled.div`
 
 const ListWrapper = styled.div``
 
-const ClickableText = styled(Text)`
+export const ClickableText = styled(Text)`
   text-align: end;
   &:hover {
     cursor: pointer;
@@ -75,7 +75,7 @@ const ClickableText = styled(Text)`
   }
 `
 
-const DataText = styled(Flex)`
+export const DataText = styled(Flex)`
   align-items: center;
   text-align: center;
   color: ${({ theme }) => theme.text1};
