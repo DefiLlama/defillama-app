@@ -8,15 +8,15 @@ import {
   NFT_CHART_API,
   NFT_CHAINS_API,
   NFT_MARKETPLACES_API,
-  NFT_SEARCH_API
+  NFT_SEARCH_API,
 } from '../constants/index'
 import { standardizeProtocolName } from 'utils'
 
 export function getProtocolNames(protocols) {
-  return protocols.map(p => ({ name: p.name, symbol: p.symbol }))
+  return protocols.map((p) => ({ name: p.name, symbol: p.symbol }))
 }
 
-export const basicPropertiesToKeep = ['tvl', 'name', 'symbol', 'chains', 'change_7d', 'change_1d', 'mcap']
+export const basicPropertiesToKeep = ['tvl', 'name', 'symbol', 'chains', 'change_1d', 'change_7d', 'change_1m', 'mcap']
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
     if (protocol[prop] !== undefined) {
@@ -30,7 +30,7 @@ const formatProtocolsData = ({
   chain = '',
   category = '',
   protocols = [],
-  protocolProps = [...basicPropertiesToKeep, 'extraTvl']
+  protocolProps = [...basicPropertiesToKeep, 'extraTvl', 'extraTvlsChange'],
 }) => {
   let filteredProtocols = [...protocols]
 
@@ -45,11 +45,12 @@ const formatProtocolsData = ({
     )
   }
 
-  filteredProtocols = filteredProtocols.map(protocol => {
+  filteredProtocols = filteredProtocols.map((protocol) => {
     if (chain) {
       protocol.tvl = protocol.chainTvls[chain] ?? 0
     }
     protocol.extraTvl = {}
+    protocol.extraTvlsChange = {}
     Object.entries(protocol.chainTvls).forEach(([sectionName, sectionTvl]) => {
       if (chain) {
         if (sectionName.startsWith(`${chain}-`)) {
@@ -60,6 +61,20 @@ const formatProtocolsData = ({
         const firstChar = sectionName[0]
         if (firstChar === firstChar.toLowerCase() || sectionName === 'Offers' || sectionName === 'Treasury') {
           protocol.extraTvl[sectionName] = sectionTvl
+        }
+      }
+    })
+
+    Object.entries(protocol.chainTvlsChange || {}).forEach(([sectionName, sectionTvl]) => {
+      if (chain) {
+        if (sectionName.startsWith(`${chain}-`)) {
+          const sectionToAdd = sectionName.split('-')[1]
+          protocol.extraTvlsChange[sectionToAdd] = sectionTvl
+        }
+      } else {
+        const firstChar = sectionName[0]
+        if (firstChar === firstChar.toLowerCase() || sectionName === 'Offers' || sectionName === 'Treasury') {
+          protocol.extraTvlsChange[sectionName] = sectionTvl
         }
       }
     })
@@ -81,13 +96,13 @@ export async function getProtocolsPageData(category, chain) {
   const chainsSet = new Set()
 
   filteredProtocols.forEach(({ chains }) => {
-    chains.forEach(chain => chainsSet.add(chain))
+    chains.forEach((chain) => chainsSet.add(chain))
   })
   return {
     filteredProtocols,
     chain: chain ?? 'All',
     category,
-    chains: chains.filter(chain => chainsSet.has(chain))
+    chains: chains.filter((chain) => chainsSet.has(chain)),
   }
 }
 
@@ -101,11 +116,11 @@ export async function getChainPageData(chain) {
   let chartData, protocols, chains
   try {
     ;[chartData, { protocols, chains }] = await Promise.all(
-      [CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map(url => fetch(url).then(r => r.json()))
+      [CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
     )
   } catch (e) {
     return {
-      notFound: true
+      notFound: true,
     }
   }
 
@@ -163,7 +178,7 @@ export async function getChainPageData(chain) {
     borrowed: borrowedTvl,
     pool2: pool2Tvl,
     offers: offersTvl,
-    treasury: treasuryTvl
+    treasury: treasuryTvl,
   }
 
   const extraTvlsChange = {
@@ -171,7 +186,7 @@ export async function getChainPageData(chain) {
     borrowed: borrowedTvlChange,
     pool2: pool2TvlChange,
     offers: offersTvlChange,
-    treasury: treasuryTvlChange
+    treasury: treasuryTvlChange,
   }
 
   const extraVolumesCharts = {
@@ -179,7 +194,7 @@ export async function getChainPageData(chain) {
     borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-    treasury: treasury.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
+    treasury: treasury.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
   }
 
   return {
@@ -192,14 +207,14 @@ export async function getChainPageData(chain) {
       volumeChangeUSD: tvlChange,
       extraTvls,
       extraTvlsChange,
-      extraVolumesCharts
-    }
+      extraVolumesCharts,
+    },
   }
 }
 
 export const getProtocols = () =>
   fetch(PROTOCOLS_API)
-    .then(r => r.json())
+    .then((r) => r.json())
     .then(({ protocols, chains, protocolCategories }) => ({
       protocolsDict: protocols.reduce((acc, curr) => {
         acc[standardizeProtocolName(curr.name)] = curr
@@ -207,12 +222,12 @@ export const getProtocols = () =>
       }, {}),
       protocols,
       chains,
-      categories: protocolCategories
+      categories: protocolCategories,
     }))
 
-export const getProtocol = protocolName => {
+export const getProtocol = (protocolName) => {
   try {
-    return fetch(`${PROTOCOL_API}/${protocolName}`).then(r => r.json())
+    return fetch(`${PROTOCOL_API}/${protocolName}`).then((r) => r.json())
   } catch (e) {
     console.log(e)
   }
@@ -226,13 +241,13 @@ export const fuseProtocolData = (protocolData, protocol) => {
   return {
     ...protocolData,
     tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
-    tvlList: tvl.filter(item => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
+    tvlList: tvl.filter((item) => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
     historicalChainTvls,
-    chainTvls
+    chainTvls,
   }
 }
 
-export const getNFTStatistics = chart => {
+export const getNFTStatistics = (chart) => {
   const { totalVolume, totalVolumeUSD } = (chart.length &&
     chart.reduce((volumes, data) => {
       if (volumes.totalVolumeUSD >= 0 && volumes.totalVolume >= 0) {
@@ -245,7 +260,7 @@ export const getNFTStatistics = chart => {
       return volumes
     }, {})) || {
     totalVolume: 0,
-    totalVolumeUSD: 0
+    totalVolumeUSD: 0,
   }
 
   const dailyVolume = chart.length ? chart[chart.length - 1]?.volume || 0 : 0
@@ -259,34 +274,34 @@ export const getNFTStatistics = chart => {
     totalVolume,
     dailyVolumeUSD,
     dailyVolume,
-    dailyChange
+    dailyChange,
   }
 }
 
 export const getNFTData = async () => {
   try {
-    const chart = await fetch(NFT_CHART_API).then(r => r.json())
-    const { data: collections } = await fetch(NFT_COLLECTIONS_API).then(r => r.json())
+    const chart = await fetch(NFT_CHART_API).then((r) => r.json())
+    const { data: collections } = await fetch(NFT_COLLECTIONS_API).then((r) => r.json())
     const statistics = getNFTStatistics(chart)
 
     return {
       chart,
       collections,
-      statistics
+      statistics,
     }
   } catch (e) {
     console.log(e)
     return {
       chart: [],
       collections: [],
-      statistics: {}
+      statistics: {},
     }
   }
 }
 
 export const getNFTCollections = async (chain: string) => {
   try {
-    const { data: collections } = await fetch(NFT_COLLECTIONS_API).then(r => r.json())
+    const { data: collections } = await fetch(NFT_COLLECTIONS_API).then((r) => r.json())
     return collections
   } catch (e) {
     console.log(e)
@@ -295,7 +310,7 @@ export const getNFTCollections = async (chain: string) => {
 
 export const getNFTCollectionsByChain = async (chain: string) => {
   try {
-    const { data: collections } = await fetch(`${NFT_COLLECTIONS_API}/chain/${chain}`).then(r => r.json())
+    const { data: collections } = await fetch(`${NFT_COLLECTIONS_API}/chain/${chain}`).then((r) => r.json())
     return collections
   } catch (e) {
     console.log(e)
@@ -304,41 +319,41 @@ export const getNFTCollectionsByChain = async (chain: string) => {
 
 export const getNFTCollectionsByMarketplace = async (marketplace: string) => {
   try {
-    const { data: collections } = await fetch(`${NFT_COLLECTIONS_API}/marketplace/${marketplace}`).then(r => r.json())
+    const { data: collections } = await fetch(`${NFT_COLLECTIONS_API}/marketplace/${marketplace}`).then((r) => r.json())
     return collections
   } catch (e) {
     console.log(e)
   }
 }
 
-export const getNFTCollection = async slug => {
+export const getNFTCollection = async (slug) => {
   try {
-    const data = await fetch(`${NFT_COLLECTION_API}/${slug}`).then(r => r.json())
-    return data.find(data => data.SK === 'overview')
+    const data = await fetch(`${NFT_COLLECTION_API}/${slug}`).then((r) => r.json())
+    return data.find((data) => data.SK === 'overview')
   } catch (e) {
     console.log(e)
   }
 }
 
-export const getNFTChainChartData = async chain => {
+export const getNFTChainChartData = async (chain) => {
   try {
-    return fetch(`${NFT_CHART_API}/chain/${chain}`).then(r => r.json())
+    return fetch(`${NFT_CHART_API}/chain/${chain}`).then((r) => r.json())
   } catch (e) {
     console.log(e)
   }
 }
 
-export const getNFTMarketplaceChartData = async marketplace => {
+export const getNFTMarketplaceChartData = async (marketplace) => {
   try {
-    return fetch(`${NFT_CHART_API}/marketplace/${marketplace}`).then(r => r.json())
+    return fetch(`${NFT_CHART_API}/marketplace/${marketplace}`).then((r) => r.json())
   } catch (e) {
     console.log(e)
   }
 }
 
-export const getNFTCollectionChartData = async slug => {
+export const getNFTCollectionChartData = async (slug) => {
   try {
-    return fetch(`${NFT_CHART_API}/collection/${slug}`).then(r => r.json())
+    return fetch(`${NFT_CHART_API}/collection/${slug}`).then((r) => r.json())
   } catch (e) {
     console.log(e)
   }
@@ -346,7 +361,7 @@ export const getNFTCollectionChartData = async slug => {
 
 export const getNFTChainsData = async () => {
   try {
-    return fetch(NFT_CHAINS_API).then(r => r.json())
+    return fetch(NFT_CHAINS_API).then((r) => r.json())
   } catch (e) {
     console.log(e)
   }
@@ -354,7 +369,7 @@ export const getNFTChainsData = async () => {
 
 export const getNFTMarketplacesData = async () => {
   try {
-    return fetch(NFT_MARKETPLACES_API).then(r => r.json())
+    return fetch(NFT_MARKETPLACES_API).then((r) => r.json())
   } catch (e) {
     console.log(e)
   }
@@ -363,8 +378,8 @@ export const getNFTMarketplacesData = async () => {
 export const getNFTSearchResults = async (query: string) => {
   try {
     if (query) {
-      const { hits }: { hits: any } = await fetch(`${NFT_SEARCH_API}?query=${query}`).then(r => r.json())
-      return hits.map(hit => hit._source)
+      const { hits }: { hits: any } = await fetch(`${NFT_SEARCH_API}?query=${query}`).then((r) => r.json())
+      return hits.map((hit) => hit._source)
     }
     return []
   } catch (e) {
@@ -374,9 +389,9 @@ export const getNFTSearchResults = async (query: string) => {
 
 // Client Side
 
-const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then(res => res.json())
+const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then((res) => res.json())
 
-export const useFetchProtocol = protocolName => {
+export const useFetchProtocol = (protocolName) => {
   const { data, error } = useSWR(protocolName ? `${PROTOCOL_API}/${protocolName}` : null, fetcher)
   return { data, error, loading: protocolName && !data && !error }
 }

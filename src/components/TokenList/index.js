@@ -54,7 +54,7 @@ const DashGrid = styled.div`
   ${({ theme: { minLg } }) => minLg} {
     display: grid;
     grid-gap: 0.5em;
-    grid-template-columns: 1.2fr 1fr 0.4fr 0.4fr 0.4fr 0.4fr;
+    grid-template-columns: 1.2fr 1fr 0.4fr 0.4fr 0.4fr 0.4fr 0.4fr;
     grid-template-areas: 'name chain mcaptvl 1dchange 7dchange tvl';
   }
 `
@@ -95,21 +95,23 @@ const SORT_FIELD = {
   HOURONE: 'change_1h',
   DAYONE: 'change_1d',
   DAYSEVEN: 'change_7d',
+  MONTHONE: 'change_1m',
   MCAPTVL: 'mcaptvl',
-  CHAINS: 'chains'
+  CHAINS: 'chains',
 }
 
 const COLUMN_NAMES = {
   chains: 'Chains',
   protocols: 'Protocols',
   name: 'Name',
-  change_7d: '7d Change',
   change_1d: '1d Change',
-  listedAt: 'Listed'
+  change_7d: '7d Change',
+  change_1m: '1m Change',
+  listedAt: 'Listed',
 }
 
 const COLUMN_HELP = {
-  chains: "Chains are ordered by protocol's highest TVL on each chain"
+  chains: "Chains are ordered by protocol's highest TVL on each chain",
 }
 
 const ProtocolButtonElement = styled(FormattedName)`
@@ -166,16 +168,16 @@ function TokenList({
   tokens,
   filters,
   iconUrl = tokenIconUrl,
-  generateLink = name => `/protocol/${slug(name)}`,
-  columns = [undefined, SORT_FIELD.CHAINS, SORT_FIELD.DAYONE, SORT_FIELD.DAYSEVEN],
+  generateLink = (name) => `/protocol/${slug(name)}`,
+  columns = [undefined, SORT_FIELD.CHAINS, SORT_FIELD.DAYONE, SORT_FIELD.DAYSEVEN, SORT_FIELD.MONTHONE],
   defaultSortingColumn = 'tvl',
-  canBookmark = true
+  canBookmark = true,
 }) {
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
   const [sortedColumn, setSortedColumnRaw] = useState(defaultSortingColumn)
   const [alreadySorted, setAlreadySorted] = useState(true)
-  const setSortedColumn = newColumn => {
+  const setSortedColumn = (newColumn) => {
     setAlreadySorted(false)
     setSortedColumnRaw(newColumn)
   }
@@ -264,6 +266,9 @@ function TokenList({
               : '-'
             : `${item.listedAt} days ago`}
         </DataText>
+        <DataTextHideBelowLg area="1mchange" fontWeight="500">
+          {item.change_1m || item.change_1m === 0 ? formattedPercent(item.change_1m, true) : '-'}
+        </DataTextHideBelowLg>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
         <DataTextHideBelow680 area="mcaptvl" fontWeight="500">
           {item.mcaptvl
@@ -283,7 +288,7 @@ function TokenList({
           <ClickableText
             area="name"
             fontWeight="500"
-            onClick={e => {
+            onClick={(e) => {
               setSortedColumn(SORT_FIELD.NAME)
               setSortDirection(sortedColumn !== SORT_FIELD.NAME ? true : !sortDirection)
             }}
@@ -294,7 +299,7 @@ function TokenList({
         <FlexHideBelowLg alignItems="center">
           <ClickableText
             area="chain"
-            onClick={e => {
+            onClick={(e) => {
               setSortedColumn(columns[1])
               setSortDirection(sortedColumn !== columns[1] ? true : !sortDirection)
             }}
@@ -307,7 +312,7 @@ function TokenList({
         <FlexHideBelowLg alignItems="center">
           <ClickableText
             area="1dchange"
-            onClick={e => {
+            onClick={(e) => {
               setSortedColumn(SORT_FIELD.DAYONE)
               setSortDirection(sortedColumn !== SORT_FIELD.DAYONE ? true : !sortDirection)
             }}
@@ -318,7 +323,7 @@ function TokenList({
         <Flex alignItems="center">
           <ClickableText
             area="7dchange"
-            onClick={e => {
+            onClick={(e) => {
               setSortedColumn(columns[3])
               setSortDirection(sortedColumn !== columns[3] ? true : !sortDirection)
             }}
@@ -326,10 +331,21 @@ function TokenList({
             {COLUMN_NAMES[columns[3]]} {sortedColumn === columns[3] ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
+        <FlexHideBelowLg alignItems="center">
+          <ClickableText
+            area="1dchange"
+            onClick={(e) => {
+              setSortedColumn(SORT_FIELD.MONTHONE)
+              setSortDirection(sortedColumn !== SORT_FIELD.MONTHONE ? true : !sortDirection)
+            }}
+          >
+            1m Change {sortedColumn === SORT_FIELD.MONTHONE ? (!sortDirection ? '↑' : '↓') : ''}
+          </ClickableText>
+        </FlexHideBelowLg>
         <Flex alignItems="center">
           <ClickableText
             area="tvl"
-            onClick={e => {
+            onClick={(e) => {
               setSortedColumn(SORT_FIELD.TVL)
               setSortDirection(sortedColumn !== SORT_FIELD.TVL ? true : !sortDirection)
             }}
@@ -340,7 +356,7 @@ function TokenList({
         <FlexHideBelow680 alignItems="center">
           <ClickableText
             area="mcaptvl"
-            onClick={e => {
+            onClick={(e) => {
               setSortedColumn(SORT_FIELD.MCAPTVL)
               setSortDirection(sortedColumn !== SORT_FIELD.MCAPTVL ? true : !sortDirection)
             }}
