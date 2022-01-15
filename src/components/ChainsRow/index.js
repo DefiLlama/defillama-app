@@ -19,7 +19,7 @@ const TokenCounter = styled(Row)`
   justify-content: center;
 `
 
-const ChainLogo = ({ chain }) => (
+export const ChainLogo = ({ chain }) => (
   <BasicLink key={chain} href={`/chain/${chain}`}>
     <TokenLogo address={chain} logo={chainIconUrl(chain)} />
   </BasicLink>
