@@ -55,7 +55,7 @@ const ListItem = ({ item, index }) => {
             </CustomLink>
           </Row>
         </DataText>
-        {categories.map(category=><DataText>{item.categories[category]?.[0]}</DataText>)}
+        {categories.map(category=><DataText key={category}>{item.categories[category]?.[0]}</DataText>)}
         </DashGrid>
     )
 }
@@ -74,7 +74,7 @@ export default function Chains({ chains }) {
       <FullWrapper>
       <Panel style={{ marginTop: '6px' }} sx={{ padding: ['1rem 0 0 0', '1.25rem'] }}>
       <DashGrid center={true} style={{ height: 'fit-content', padding: '0 1.125rem 1rem 1.125rem' }}>
-          {["Chain", ...categories].map(column=><Flex alignItems="center" justifyContent="flexStart">
+          {["Chain", ...categories].map(column=><Flex key={column} alignItems="center" justifyContent="flexStart">
           <ClickableText
             area="name"
             fontWeight="500"
@@ -85,7 +85,7 @@ export default function Chains({ chains }) {
         </DashGrid>
         <Divider />
         <Box>
-            {chains.map((chain, index)=><ListItem index={index} item={chain} />)}
+            {chains.map((chain, index)=><ListItem key={index} index={index} item={chain} />)}
         </Box>
         </Panel>
         </FullWrapper>
