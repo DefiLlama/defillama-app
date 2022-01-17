@@ -29,7 +29,7 @@ export const FEE_WARNING_TOKENS = ['0xd46ba6d942050d489dbd938a2c909a5d5039a161']
 // API endpoints
 
 export const CHART_API = 'https://api.llama.fi/lite/charts'
-export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols3'
+export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2'
 export const PROTOCOL_API = 'https://api.llama.fi/updatedProtocol'
 export const CONFIG_API = 'https://api.llama.fi/config'
 
