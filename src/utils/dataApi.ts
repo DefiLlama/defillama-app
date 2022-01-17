@@ -60,7 +60,10 @@ const formatProtocolsData = ({
 
   filteredProtocols = filteredProtocols.map((protocol) => {
     if (chain) {
-      protocol.tvl = protocol.chainTvls[chain] ?? 0
+      protocol.tvl = protocol.chainTvls[chain]?.tvl ?? 0
+      protocol.tvlPrevDay = protocol.chainTvls[chain]?.tvlPrevDay ?? null
+      protocol.tvlPrevWeek = protocol.chainTvls[chain]?.tvlPrevWeek ?? null
+      protocol.tvlPrevMonth = protocol.chainTvls[chain]?.tvlPrevMonth ?? null
     }
     protocol.extraTvl = {}
     protocol.change_1d = getPercentChange(protocol.tvlPrevDay, protocol.tvl)

@@ -7,7 +7,7 @@ export const timeframeOptions = {
   MONTH: '1 month',
   // THREE_MONTHS: '3 months',
   YEAR: '1 year',
-  ALL_TIME: 'All time'
+  ALL_TIME: 'All time',
 }
 
 // hide from overview list
@@ -15,7 +15,7 @@ export const OVERVIEW_TOKEN_BLACKLIST = [
   '0x495c7f3a713870f68f8b418b355c085dfdc412c3',
   '0xc3761eb917cd790b30dad99f6cc5b4ff93c4f9ea',
   '0xe31debd7abff90b06bca21010dd860d8701fd901',
-  '0xfc989fbb6b3024de5ca0144dc23c18a063942ac1'
+  '0xfc989fbb6b3024de5ca0144dc23c18a063942ac1',
 ]
 
 // pair blacklist
@@ -29,7 +29,7 @@ export const FEE_WARNING_TOKENS = ['0xd46ba6d942050d489dbd938a2c909a5d5039a161']
 // API endpoints
 
 export const CHART_API = 'https://api.llama.fi/lite/charts'
-export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2'
+export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols3'
 export const PROTOCOL_API = 'https://api.llama.fi/updatedProtocol'
 export const CONFIG_API = 'https://api.llama.fi/config'
 
