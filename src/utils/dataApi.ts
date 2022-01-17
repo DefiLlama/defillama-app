@@ -11,12 +11,25 @@ import {
   NFT_SEARCH_API,
 } from '../constants/index'
 import { standardizeProtocolName } from 'utils'
+import { getPercentChange } from 'hooks/data'
 
 export function getProtocolNames(protocols) {
   return protocols.map((p) => ({ name: p.name, symbol: p.symbol }))
 }
 
-export const basicPropertiesToKeep = ['tvl', 'name', 'symbol', 'chains', 'change_1d', 'change_7d', 'change_1m', 'mcap']
+export const basicPropertiesToKeep = [
+  'tvl',
+  'name',
+  'symbol',
+  'chains',
+  'change_1d',
+  'change_7d',
+  'change_1m',
+  'tvlPrevDay',
+  'tvlPrevWeek',
+  'tvlPrevMonth',
+  'mcap',
+]
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
     if (protocol[prop] !== undefined) {
@@ -30,7 +43,7 @@ const formatProtocolsData = ({
   chain = '',
   category = '',
   protocols = [],
-  protocolProps = [...basicPropertiesToKeep, 'extraTvl', 'extraTvlsChange'],
+  protocolProps = [...basicPropertiesToKeep, 'extraTvl'],
 }) => {
   let filteredProtocols = [...protocols]
 
@@ -50,8 +63,11 @@ const formatProtocolsData = ({
       protocol.tvl = protocol.chainTvls[chain] ?? 0
     }
     protocol.extraTvl = {}
-    protocol.extraTvlsChange = {}
-    Object.entries(protocol.chainTvls).forEach(([sectionName, sectionTvl]) => {
+    protocol.change_1d = getPercentChange(protocol.tvlPrevDay, protocol.tvl)
+    protocol.change_7d = getPercentChange(protocol.tvlPrevWeek, protocol.tvl)
+    protocol.change_1m = getPercentChange(protocol.tvlPrevMonth, protocol.tvl)
+
+    Object.entries(protocol.chainTvls2).forEach(([sectionName, sectionTvl]) => {
       if (chain) {
         if (sectionName.startsWith(`${chain}-`)) {
           const sectionToAdd = sectionName.split('-')[1]
@@ -61,20 +77,6 @@ const formatProtocolsData = ({
         const firstChar = sectionName[0]
         if (firstChar === firstChar.toLowerCase() || sectionName === 'Offers' || sectionName === 'Treasury') {
           protocol.extraTvl[sectionName] = sectionTvl
-        }
-      }
-    })
-
-    Object.entries(protocol.chainTvlsChange || {}).forEach(([sectionName, sectionTvl]) => {
-      if (chain) {
-        if (sectionName.startsWith(`${chain}-`)) {
-          const sectionToAdd = sectionName.split('-')[1]
-          protocol.extraTvlsChange[sectionToAdd] = sectionTvl
-        }
-      } else {
-        const firstChar = sectionName[0]
-        if (firstChar === firstChar.toLowerCase() || sectionName === 'Offers' || sectionName === 'Treasury') {
-          protocol.extraTvlsChange[sectionName] = sectionTvl
         }
       }
     })
