@@ -54,7 +54,7 @@ const DashGrid = styled.div`
   ${({ theme: { minLg } }) => minLg} {
     display: grid;
     grid-gap: 0.5em;
-    grid-template-columns: 1.2fr 1fr 0.4fr 0.4fr 0.4fr 0.4fr;
+    grid-template-columns: 1.2fr 1fr 0.4fr 0.4fr 0.4fr 0.4fr 0.4fr;
     grid-template-areas: 'name chain mcaptvl 1dchange 7dchange tvl';
   }
 `
@@ -95,6 +95,7 @@ const SORT_FIELD = {
   HOURONE: 'change_1h',
   DAYONE: 'change_1d',
   DAYSEVEN: 'change_7d',
+  MONTHONE: 'change_1m',
   MCAPTVL: 'mcaptvl',
   CHAINS: 'chains',
 }
@@ -105,6 +106,7 @@ const COLUMN_NAMES = {
   name: 'Name',
   change_1d: '1d Change',
   change_7d: '7d Change',
+  change_1m: '1m Change',
   listedAt: 'Listed',
 }
 
@@ -264,9 +266,9 @@ function TokenList({
               : '-'
             : `${item.listedAt} days ago`}
         </DataText>
-        {/* <DataTextHideBelowLg area="1mchange" fontWeight="500">
+        <DataTextHideBelowLg area="1mchange" fontWeight="500">
           {item.change_1m || item.change_1m === 0 ? formattedPercent(item.change_1m, true) : '-'}
-        </DataTextHideBelowLg> */}
+        </DataTextHideBelowLg>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
         <DataTextHideBelow680 area="mcaptvl" fontWeight="500">
           {item.mcaptvl
@@ -329,7 +331,7 @@ function TokenList({
             {COLUMN_NAMES[columns[3]]} {sortedColumn === columns[3] ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
-        {/* <FlexHideBelowLg alignItems="center">
+        <FlexHideBelowLg alignItems="center">
           <ClickableText
             area="1dchange"
             onClick={(e) => {
@@ -339,7 +341,7 @@ function TokenList({
           >
             1m Change {sortedColumn === SORT_FIELD.MONTHONE ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
-        </FlexHideBelowLg> */}
+        </FlexHideBelowLg>
         <Flex alignItems="center">
           <ClickableText
             area="tvl"
