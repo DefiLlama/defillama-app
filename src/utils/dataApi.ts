@@ -63,9 +63,9 @@ const formatProtocolsData = ({
       protocol.tvl = protocol.chainTvls[chain] ?? 0
     }
     protocol.extraTvl = {}
-    // protocol.change_1d = getPercentChange(protocol.tvlPrevDay, protocol.tvl)
-    // protocol.change_7d = getPercentChange(protocol.tvlPrevWeek, protocol.tvl)
-    // protocol.change_1m = getPercentChange(protocol.tvlPrevMonth, protocol.tvl)
+    protocol.change_1d = getPercentChange(protocol.tvlPrevDay, protocol.tvl)
+    protocol.change_7d = getPercentChange(protocol.tvlPrevWeek, protocol.tvl)
+    protocol.change_1m = getPercentChange(protocol.tvlPrevMonth, protocol.tvl)
 
     Object.entries(protocol.chainTvls).forEach(([sectionName, sectionTvl]) => {
       if (chain) {
