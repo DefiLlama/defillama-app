@@ -12,15 +12,11 @@ import { GeneralLayout } from 'layout'
 import { Header } from 'Theme'
 
 import { PROTOCOLS_API, CHART_API, CONFIG_API } from 'constants/index'
-import { useCalcStakePool2Tvl } from 'hooks/data'
-import { useLg } from 'hooks/useBreakpoints'
+import { getPercentChange, useCalcStakePool2Tvl } from 'hooks/data'
 import { toNiceCsvDate, chainIconUrl, getRandomColor } from 'utils'
 import { revalidate } from 'utils/dataApi'
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
-
-function getPercentChange(previous, current) {
-  return (current / previous) * 100 - 100
-}
+import { AllTvlOptions } from 'components/SettingsModal'
 
 function download(filename, text) {
   var element = document.createElement('a')
@@ -47,11 +43,16 @@ const ChartsWrapper = styled(Box)`
   }
 `
 
-const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
-  const isLg = useLg()
+const RowWrapper = styled(RowBetween)`
+  flex-wrap: wrap;
+  @media (max-width: 600px) {
+    gap: 16px;
+  }
+`
 
+const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
   const chainColor = useMemo(
-    () => Object.fromEntries([...chainsUnique, 'Others'].map(chain => [chain, getRandomColor()])),
+    () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
     [chainsUnique]
   )
 
@@ -59,10 +60,10 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
     const rows = [['Timestamp', 'Date', ...chainsUnique]]
     stackedDataset
       .sort((a, b) => a.date - b.date)
-      .forEach(day => {
-        rows.push([day.date, toNiceCsvDate(day.date), ...chainsUnique.map(chain => day[chain] ?? '')])
+      .forEach((day) => {
+        rows.push([day.date, toNiceCsvDate(day.date), ...chainsUnique.map((chain) => day[chain] ?? '')])
       })
-    download('chains.csv', rows.map(r => r.join(',')).join('\n'))
+    download('chains.csv', rows.map((r) => r.join(',')).join('\n'))
   }
 
   const protocolTotals = useCalcStakePool2Tvl(chainTvls)
@@ -73,7 +74,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
     const data = chainTvls.reduce((acc, curr) => {
       let tvl = curr.tvl || 0
       Object.entries(curr.extraTvl || {}).forEach(([section, sectionTvl]) => {
-        if (extraTvlsEnabled[section.toLowerCase()]) tvl += sectionTvl
+        if (extraTvlsEnabled[section.toLowerCase()]) tvl = tvl + (sectionTvl.tvl || 0)
       })
       const data = { name: curr.name, value: tvl }
       return (acc = [...acc, data])
@@ -91,11 +92,12 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
   return (
     <PageWrapper>
       <FullWrapper>
-        <RowBetween>
+        <Search />
+        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+        <RowWrapper>
           <Header>Total Value Locked All Chains</Header>
-          <Search small={!isLg} />
-        </RowBetween>
-
+          <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
+        </RowWrapper>
         <ChartsWrapper>
           <ChainPieChart data={chainsTvlValues} chainColor={chainColor} />
           <ChainDominanceChart
@@ -107,15 +109,12 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
             daySum={daySum}
           />
         </ChartsWrapper>
-        <div style={{ margin: 'auto' }}>
-          <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
-        </div>
         <TokenList
           canBookmark={false}
           tokens={protocolTotals}
           iconUrl={chainIconUrl}
-          generateLink={name => `/chain/${name}`}
-          columns={[undefined, 'protocols', 'change_1d', 'change_7d']}
+          generateLink={(name) => `/chain/${name}`}
+          columns={[undefined, 'protocols', 'change_1d', 'change_7d', 'change_1m']}
         />
       </FullWrapper>
     </PageWrapper>
@@ -124,53 +123,65 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
 
 export async function getStaticProps() {
   const [res, { chainCoingeckoIds }] = await Promise.all(
-    [PROTOCOLS_API, CONFIG_API].map(apiEndpoint => fetch(apiEndpoint).then(r => r.json()))
+    [PROTOCOLS_API, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
   )
-  const chainsUnique = res.chains.filter(t => t !== "Syscoin")
+  const chainsUnique = res.chains.filter((t) => t !== 'Syscoin')
 
-  const chainCalls = Promise.all(chainsUnique.map(elem => fetch(`${CHART_API}/${elem}`).then(resp => resp.json())))
+  const chainCalls = Promise.all(chainsUnique.map((elem) => fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())))
 
   const chainMcapsPromise = fetch(
     `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(chainCoingeckoIds)
-      .map(v => v.geckoId)
+      .map((v) => v.geckoId)
       .join(',')}&vs_currencies=usd&include_market_cap=true`
-  ).then(res => res.json())
+  ).then((res) => res.json())
   const numProtocolsPerChain = {}
   const extraPropPerChain = {}
 
-  res.protocols.forEach(protocol => {
-    protocol.chains.forEach(chain => {
+  res.protocols.forEach((protocol) => {
+    protocol.chains.forEach((chain) => {
       numProtocolsPerChain[chain] = (numProtocolsPerChain[chain] || 0) + 1
     })
-    Object.entries(protocol.chainTvls).forEach(([tvlKey, tvlValue]) => {
-      if (tvlKey.includes('-')) {
-        const prop = tvlKey.split('-')[1].toLowerCase()
-        const chain = tvlKey.split('-')[0]
+    Object.entries(protocol.chainTvls).forEach(([propKey, propValue]) => {
+      if (propKey.includes('-')) {
+        const prop = propKey.split('-')[1].toLowerCase()
+        const chain = propKey.split('-')[0]
         if (extraPropPerChain[chain] === undefined) {
           extraPropPerChain[chain] = {}
         }
-        extraPropPerChain[chain][prop] = (extraPropPerChain[chain][prop] || 0) + tvlValue
+        extraPropPerChain[chain][prop] = {
+          tvl: propValue.tvl + (extraPropPerChain[chain][prop]?.tvl ?? 0),
+          tvlPrevDay: (propValue.tvlPrevDay || 0) + (extraPropPerChain[chain][prop]?.tvlPrevDay ?? 0),
+          tvlPrevWeek: (propValue.tvlPrevWeek || 0) + (extraPropPerChain[chain][prop]?.tvlPrevWeek ?? 0),
+          tvlPrevMonth: (propValue.tvlPrevMonth || 0) + (extraPropPerChain[chain][prop]?.tvlPrevMonth ?? 0),
+        }
       }
     })
   })
 
-  const data = (await chainCalls).map(c => c.tvl)
+  const data = (await chainCalls).map((c) => c.tvl)
   const chainMcaps = await chainMcapsPromise
 
   const chainTvls = chainsUnique
     .map((chainName, i) => {
-      const prevTvl = daysBefore => data[i][data[i].length - 1 - daysBefore]?.[1]
-      const current = prevTvl(0)
+      const prevTvl = (daysBefore) => data[i][data[i].length - 1 - daysBefore]?.[1]
+      const tvl = prevTvl(0) || null
+      const tvlPrevDay = prevTvl(1) || null
+      const tvlPrevWeek = prevTvl(7) || null
+      const tvlPrevMonth = prevTvl(30) || null
       const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
       return {
-        tvl: current,
+        tvl,
+        tvlPrevDay,
+        tvlPrevWeek,
+        tvlPrevMonth,
         mcap: mcap || null,
         name: chainName,
         symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
         protocols: numProtocolsPerChain[chainName],
         extraTvl: extraPropPerChain[chainName] || {},
-        change_1d: prevTvl(1) ? getPercentChange(prevTvl(1), current) : null,
-        change_7d: prevTvl(7) ? getPercentChange(prevTvl(7), current) : null
+        change_1d: getPercentChange(tvlPrevDay, tvl),
+        change_7d: getPercentChange(tvlPrevWeek, tvl),
+        change_1m: getPercentChange(tvlPrevMonth, tvl),
       }
     })
     .sort((a, b) => b.tvl - a.tvl)
@@ -179,7 +190,7 @@ export async function getStaticProps() {
   const stackedDataset = Object.values(
     data.reduce((total, chain, i) => {
       const chainName = chainsUnique[i]
-      chain.forEach(dayTvl => {
+      chain.forEach((dayTvl) => {
         if (dayTvl[0] < 1596248105) return
         if (total[dayTvl[0]] === undefined) {
           total[dayTvl[0]] = { date: dayTvl[0] }
@@ -196,9 +207,9 @@ export async function getStaticProps() {
       chainsUnique,
       chainTvls,
       stackedDataset,
-      daySum
+      daySum,
     },
-    revalidate: revalidate()
+    revalidate: revalidate(),
   }
 }
 
