@@ -105,6 +105,19 @@ const TableHead = styled.th`
   }
 `
 
+function ToggleAlert({ chainTvls }) {
+  const isLowerCase = letter=>letter===letter.toLowerCase()
+  const extraTvls = Object.keys(chainTvls).filter(section=>isLowerCase(section[0]))
+  if(extraTvls.length === 0){
+    return null
+  }
+  return <Panel background={true} style={{ textAlign: 'center', marginBottom:'1rem', marginTop:'-1rem' }}>
+            <TYPE.main fontWeight={400}>
+              This protocol has some TVL that's classified as {extraTvls.join('/')}, enable the toggles to see it
+            </TYPE.main>
+          </Panel>
+}
+
 function ProtocolContainer({ protocolData, protocol, denomination, selectedChain }) {
   useScrollToTop()
 
@@ -162,6 +175,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
         </RowBetween>
 
         <DashboardWrapper mt={[0, 0, '1rem']}>
+          <ToggleAlert chainTvls={chainTvls} />
           <RowBetween style={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
             <RowFixed style={{ flexWrap: 'wrap' }}>
               <RowFixed style={{ alignItems: 'baseline' }}>
