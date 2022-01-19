@@ -256,7 +256,7 @@ function GlobalPage({
           {selectedChain === "Fantom" && 
           <Panel background={true} style={{ textAlign: 'center' }}>
             <TYPE.main fontWeight={400}>
-              Tomb Finance's TVL is classified as staking/pool2, to see it on the rankings you need to toggle them
+              Tomb Finance&apos;s TVL is classified as staking/pool2, to see it on the rankings you need to toggle them
             </TYPE.main>
           </Panel>
           }
