@@ -50,25 +50,47 @@ const RowWrapper = styled(RowBetween)`
   }
 `
 
-const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
+const ChainsView = ({ chainsUnique, chainTvls, stackedDataset }) => {
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
     [chainsUnique]
   )
 
-  function downloadCsv() {
+  const extraTvlsEnabled = useGetExtraTvlEnabled()
+
+  const protocolTotals = useCalcStakePool2Tvl(chainTvls)
+
+  const [stackedData, daySum] = useMemo(() => {
+    const daySum = {}
+    const stackedData = stackedDataset.map(([date, value]) => {
+      let totalDaySum = 0
+      const tvls = {}
+      Object.entries(value).forEach(([name, chainTvls]) => {
+        let sum = chainTvls.tvl
+        totalDaySum += chainTvls.tvl || 0
+        for (const c in chainTvls) {
+          if (extraTvlsEnabled[c.toLowerCase()]) {
+            sum += chainTvls[c]
+            totalDaySum += chainTvls[c]
+          }
+        }
+        tvls[name] = sum
+      })
+      daySum[date] = totalDaySum
+      return { date, ...tvls }
+    })
+    return [stackedData, daySum]
+  }, [stackedDataset, extraTvlsEnabled])
+
+  const downloadCsv = () => {
     const rows = [['Timestamp', 'Date', ...chainsUnique]]
-    stackedDataset
+    stackedData
       .sort((a, b) => a.date - b.date)
       .forEach((day) => {
         rows.push([day.date, toNiceCsvDate(day.date), ...chainsUnique.map((chain) => day[chain] ?? '')])
       })
     download('chains.csv', rows.map((r) => r.join(',')).join('\n'))
   }
-
-  const protocolTotals = useCalcStakePool2Tvl(chainTvls)
-
-  const extraTvlsEnabled = useGetExtraTvlEnabled()
 
   const chainsTvlValues = useMemo(() => {
     const data = chainTvls.reduce((acc, curr) => {
@@ -103,7 +125,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, daySum }) => {
           <ChainDominanceChart
             stackOffset="expand"
             formatPercent={true}
-            stackedDataset={stackedDataset}
+            stackedDataset={stackedData}
             chainsUnique={chainsUnique}
             chainColor={chainColor}
             daySum={daySum}
@@ -149,7 +171,7 @@ export async function getStaticProps() {
           extraPropPerChain[chain] = {}
         }
         extraPropPerChain[chain][prop] = {
-          tvl: propValue.tvl + (extraPropPerChain[chain][prop]?.tvl ?? 0),
+          tvl: (propValue.tvl || 0) + (extraPropPerChain[chain][prop]?.tvl ?? 0),
           tvlPrevDay: (propValue.tvlPrevDay || 0) + (extraPropPerChain[chain][prop]?.tvlPrevDay ?? 0),
           tvlPrevWeek: (propValue.tvlPrevWeek || 0) + (extraPropPerChain[chain][prop]?.tvlPrevWeek ?? 0),
           tvlPrevMonth: (propValue.tvlPrevMonth || 0) + (extraPropPerChain[chain][prop]?.tvlPrevMonth ?? 0),
@@ -158,16 +180,16 @@ export async function getStaticProps() {
     })
   })
 
-  const data = (await chainCalls).map((c) => c.tvl)
+  const data = await chainCalls
   const chainMcaps = await chainMcapsPromise
-
+  const tvlData = data.map((d) => d.tvl)
   const chainTvls = chainsUnique
     .map((chainName, i) => {
-      const prevTvl = (daysBefore) => data[i][data[i].length - 1 - daysBefore]?.[1]
-      const tvl = prevTvl(0) || null
-      const tvlPrevDay = prevTvl(1) || null
-      const tvlPrevWeek = prevTvl(7) || null
-      const tvlPrevMonth = prevTvl(30) || null
+      const prevTvl = (daysBefore) => tvlData[i][tvlData[i].length - 1 - daysBefore]?.[1] ?? null
+      const tvl = prevTvl(0)
+      const tvlPrevDay = prevTvl(1)
+      const tvlPrevWeek = prevTvl(7)
+      const tvlPrevMonth = prevTvl(30)
       const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
       return {
         tvl,
@@ -186,17 +208,18 @@ export async function getStaticProps() {
     })
     .sort((a, b) => b.tvl - a.tvl)
 
-  const daySum = {}
-  const stackedDataset = Object.values(
-    data.reduce((total, chain, i) => {
+  const stackedDataset = Object.entries(
+    data.reduce((total, chains, i) => {
       const chainName = chainsUnique[i]
-      chain.forEach((dayTvl) => {
-        if (dayTvl[0] < 1596248105) return
-        if (total[dayTvl[0]] === undefined) {
-          total[dayTvl[0]] = { date: dayTvl[0] }
-        }
-        total[dayTvl[0]][chainName] = dayTvl[1]
-        daySum[dayTvl[0]] = (daySum[dayTvl[0]] || 0) + dayTvl[1]
+      Object.entries(chains).forEach(([tvlType, values]) => {
+        values.forEach((value) => {
+          if (value[0] < 1596248105) return
+          if (total[value[0]] === undefined) {
+            total[value[0]] = {}
+          }
+          const b = total[value[0]][chainName]
+          total[value[0]][chainName] = { ...b, [tvlType]: value[1] }
+        })
       })
       return total
     }, {})
@@ -207,7 +230,6 @@ export async function getStaticProps() {
       chainsUnique,
       chainTvls,
       stackedDataset,
-      daySum,
     },
     revalidate: revalidate(),
   }
