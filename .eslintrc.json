@@ -3,5 +3,8 @@
   "rules": {
     "no-undef": "warn",
     "no-unused-vars": "warn"
+  },
+  "env": {
+    "es6": true
   }
 }
