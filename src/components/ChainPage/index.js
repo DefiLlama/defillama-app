@@ -253,19 +253,13 @@ function GlobalPage({
       <ContentWrapper>
         <AutoColumn gap="24px">
           <Search />
+          {selectedChain === "Fantom" && 
           <Panel background={true} style={{ textAlign: 'center' }}>
             <TYPE.main fontWeight={400}>
-              We just launched a cross-chain{' '}
-              <a style={{ color: 'inherit', fontWeight: '700' }} href="https://defillama.com/nfts">
-                NFT dashboard
-              </a>
-              . Check it out{' '}
-              <a style={{ color: 'inherit', fontWeight: '700' }} href="https://defillama.com/nfts">
-                here
-              </a>
-              !
+              Tomb Finance's TVL is classified as staking/pool2, to see it on the rankings you need to toggle them
             </TYPE.main>
           </Panel>
+          }
         </AutoColumn>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
