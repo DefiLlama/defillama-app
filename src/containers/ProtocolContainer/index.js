@@ -183,7 +183,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 <TYPE.main fontSize={['1.5rem', '1.5rem', '2rem']} fontWeight={500} style={{ margin: '0 1rem' }}>
                   <RowFixed gap="6px">
                     <FormattedName text={name ? name + ' ' : ''} maxCharacters={16} style={{ marginRight: '6px' }} />{' '}
-                    {"$" + symbol}
+                    {symbol !== "-" ? "$" + symbol: ''}
                   </RowFixed>
                 </TYPE.main>{' '}
               </RowFixed>
