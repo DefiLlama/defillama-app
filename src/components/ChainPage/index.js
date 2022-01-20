@@ -25,6 +25,7 @@ import SEO from '../SEO'
 import { OptionButton } from 'components/ButtonStyled'
 import { useRouter } from 'next/router'
 import LocalLoader from 'components/LocalLoader'
+import { getPercentChange } from 'hooks/data'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -72,17 +73,7 @@ const Chart = dynamic(() => import('components/GlobalChart'), {
 
 const BASIC_DENOMINATIONS = ['USD']
 
-function GlobalPage({
-  selectedChain = 'All',
-  volumeChangeUSD: tvlChangeUSD,
-  totalVolumeUSD: tvlUSD,
-  chainsSet,
-  filteredProtocols,
-  chart,
-  extraTvls = {},
-  extraTvlsChange = {},
-  extraVolumesCharts = {},
-}) {
+function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart, extraVolumesCharts = {} }) {
   const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
   const extraTvlsEnabled = useGetExtraTvlEnabled()
@@ -92,29 +83,7 @@ function GlobalPage({
   const denomination = router.query?.currency ?? 'USD'
 
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
-    let totalVolumeUSD = tvlUSD
-    let volumeChangeUSD = tvlChangeUSD
     let globalChart = chart
-
-    Object.entries(extraTvls).forEach(([prop, propTvl]) => {
-      if (extraTvlsEnabled[prop]) {
-        if (prop === 'masterchef') {
-          totalVolumeUSD -= propTvl
-        } else {
-          totalVolumeUSD += propTvl
-        }
-      }
-    })
-
-    Object.entries(extraTvlsChange).forEach(([prop, propTvlChange]) => {
-      if (extraTvlsEnabled[prop]) {
-        if (prop === 'masterchef') {
-          volumeChangeUSD -= propTvlChange
-        } else {
-          volumeChangeUSD += propTvlChange
-        }
-      }
-    })
 
     Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
       if (extraTvlsEnabled[prop]) {
@@ -131,8 +100,13 @@ function GlobalPage({
       }
     })
 
-    return { totalVolumeUSD, volumeChangeUSD, globalChart }
-  }, [chart, extraTvlsEnabled, tvlChangeUSD, tvlUSD, extraTvls, extraTvlsChange, extraVolumesCharts])
+    const prevTvl = (daysBefore) => globalChart[globalChart.length - 1 - daysBefore]?.[1] ?? null
+    const tvl = prevTvl(0)
+    const tvlPrevDay = prevTvl(1)
+    const volumeChangeUSD = getPercentChange(tvlPrevDay, tvl)
+
+    return { totalVolumeUSD: tvl, volumeChangeUSD, globalChart }
+  }, [chart, extraTvlsEnabled, extraVolumesCharts])
 
   let chainOptions = ['All'].concat(chainsSet).map((label) => ({ label, to: setSelectedChain(label) }))
 
