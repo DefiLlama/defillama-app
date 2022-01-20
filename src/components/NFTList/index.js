@@ -114,7 +114,7 @@ function NFTList({
 }) {
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
-  const [sortedColumn, setSortedColumn] = useState('dailyVolume')
+  const [sortedColumn, setSortedColumn] = useState('totalVolumeUSD')
 
   const below1080 = useMedia('(max-width: 1080px)')
   const below680 = useMedia('(max-width: 680px)')
