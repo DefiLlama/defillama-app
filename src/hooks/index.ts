@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import copy from 'copy-to-clipboard'
 export { default as useInfiniteScroll } from './useInfiniteScroll'
+export { default as useFetchInfiniteScroll } from './useFetchInfiniteScroll'
 export { default as useProtocolColor } from './useProtocolColor'
 export { default as useResize } from './useResize'
 export * from './useBreakpoints'
@@ -9,7 +10,7 @@ export * from './useBreakpoints'
 export function useCopyClipboard(timeout = 500) {
   const [isCopied, setIsCopied] = useState(false)
 
-  const staticCopy = useCallback(text => {
+  const staticCopy = useCallback((text) => {
     const didCopy = copy(text)
     setIsCopied(didCopy)
   }, [])
@@ -30,7 +31,7 @@ export function useCopyClipboard(timeout = 500) {
 }
 
 export const useOutsideClick = (ref, ref2, callback) => {
-  const handleClick = e => {
+  const handleClick = (e) => {
     if (ref.current && ref.current && !ref2.current) {
       callback(true)
     } else if (ref.current && !ref.current.contains(e.target) && ref2.current && !ref2.current.contains(e.target)) {
@@ -81,7 +82,7 @@ export const useScrollToTop = () => {
     if (window) {
       window.scrollTo({
         behavior: 'smooth',
-        top: 0
+        top: 0,
       })
     }
   }, [])
