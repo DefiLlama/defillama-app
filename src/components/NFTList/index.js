@@ -94,11 +94,10 @@ const DataText = styled(Flex)`
 `
 
 const SORT_FIELD = {
-  NAME: 'name',
-  TOTAL_VOL: 'totalVolume',
-  FLOOR: 'floor',
-  VOL: 'dailyVolume',
-  OWNERS: 'owners'
+  NAME: 'displayName',
+  COLLECTIONS: 'collections',
+  VOL: 'dailyVolumeUSD',
+  TOTAL_VOL: 'totalVolumeUSD',
 }
 
 // @TODO rework into virtualized list
@@ -114,7 +113,7 @@ function NFTList({
 }) {
   // sorting
   const [sortDirection, setSortDirection] = useState(true)
-  const [sortedColumn, setSortedColumn] = useState('dailyVolume')
+  const [sortedColumn, setSortedColumn] = useState('totalVolumeUSD')
 
   const below1080 = useMedia('(max-width: 1080px)')
   const below680 = useMedia('(max-width: 680px)')
@@ -181,11 +180,11 @@ function NFTList({
             <ClickableText
               area="collections"
               onClick={e => {
-                setSortedColumn(SORT_FIELD.VOL)
-                setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
+                setSortedColumn(SORT_FIELD.COLLECTIONS)
+                setSortDirection(sortedColumn !== SORT_FIELD.COLLECTIONS ? true : !sortDirection)
               }}
             >
-              Collections {sortedColumn === SORT_FIELD.VOL ? (!sortDirection ? '↑' : '↓') : ''}
+              Collections {sortedColumn === SORT_FIELD.COLLECTIONS ? (!sortDirection ? '↑' : '↓') : ''}
             </ClickableText>
           </Flex>
         )}
@@ -194,11 +193,11 @@ function NFTList({
             <ClickableText
               area="dailyVolume"
               onClick={e => {
-                setSortedColumn(SORT_FIELD.TOTAL_VOL)
-                setSortDirection(sortedColumn !== SORT_FIELD.TOTAL_VOL ? true : !sortDirection)
+                setSortedColumn(SORT_FIELD.VOL)
+                setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
               }}
             >
-              Daily Volume {sortedColumn === SORT_FIELD.TOTAL_VOL ? (!sortDirection ? '↑' : '↓') : ''}
+              Daily Volume {sortedColumn === SORT_FIELD.VOL ? (!sortDirection ? '↑' : '↓') : ''}
             </ClickableText>
           </Flex>
         )}
@@ -206,8 +205,8 @@ function NFTList({
           <ClickableText
             area="totalVolume"
             onClick={e => {
-              setSortedColumn(SORT_FIELD.FLOOR)
-              setSortDirection(sortedColumn !== SORT_FIELD.FLOOR ? true : !sortDirection)
+              setSortedColumn(SORT_FIELD.TOTAL_VOL)
+              setSortDirection(sortedColumn !== SORT_FIELD.TOTAL_VOL ? true : !sortDirection)
             }}
           >
             Total Volume {sortedColumn === SORT_FIELD.FLOOR ? (!sortDirection ? '↑' : '↓') : ''}

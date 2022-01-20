@@ -54,8 +54,12 @@ const DashGrid = styled.div`
   ${({ theme: { minLg } }) => minLg} {
     display: grid;
     grid-gap: 0.5em;
-    grid-template-columns: 1.2fr 1fr 0.4fr 0.4fr 0.4fr 0.4fr 0.4fr;
+    grid-template-columns: 1.2fr 1fr 0.4fr 0.4fr 0.4fr;
     grid-template-areas: 'name chain mcaptvl 1dchange 7dchange tvl';
+  }
+
+  ${({ theme: { minXl } }) => minXl} {
+    grid-template-columns: 1.2fr 1fr 0.4fr 0.4fr 0.4fr 0.4fr 0.4fr;
   }
 `
 
@@ -150,6 +154,11 @@ const DataTextHideBelowLg = styled(DataText)`
     display: none !important;
   }
 `
+const DataTextHideBelowXl = styled(DataText)`
+  ${({ theme: { maxXl } }) => maxXl} {
+    display: none !important;
+  }
+`
 
 const FlexHideBelow680 = styled(Flex)`
   @media (max-width: 680px) {
@@ -159,6 +168,11 @@ const FlexHideBelow680 = styled(Flex)`
 
 const FlexHideBelowLg = styled(Flex)`
   ${({ theme: { maxLg } }) => maxLg} {
+    display: none !important;
+  }
+`
+const FlexHideBelowXl = styled(Flex)`
+  ${({ theme: { maxXl } }) => maxXl} {
     display: none !important;
   }
 `
@@ -256,26 +270,26 @@ function TokenList({
             formattedNum(item[columns[1]], false)
           )}
         </DataTextHideBelowLg>
-        <DataTextHideBelowLg area="1dchange" fontWeight="500">
+        <DataTextHideBelowXl area="1dchange" fontWeight="500">
           {formattedPercent(item.change_1d, true)}
-        </DataTextHideBelowLg>
+        </DataTextHideBelowXl>
         <DataText area="7dchange">
           {columns[3] === SORT_FIELD.DAYSEVEN
             ? item.change_7d !== 0
               ? formattedPercent(item.change_7d, true)
-              : '-'
+              : ''
             : `${item.listedAt} days ago`}
         </DataText>
-        <DataTextHideBelowLg area="1mchange" fontWeight="500">
-          {item.change_1m || item.change_1m === 0 ? formattedPercent(item.change_1m, true) : '-'}
-        </DataTextHideBelowLg>
+        <DataTextHideBelowXl area="1mchange" fontWeight="500">
+          {item.change_1m || item.change_1m === 0 ? formattedPercent(item.change_1m, true) : ''}
+        </DataTextHideBelowXl>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
         <DataTextHideBelow680 area="mcaptvl" fontWeight="500">
           {item.mcaptvl
             ? formattedNum(item.mcaptvl, false)
             : item.mcap && item.tvl
             ? formattedNum(item.mcap / item.tvl)
-            : '-'}
+            : ''}
         </DataTextHideBelow680>
       </DashGrid>
     )
@@ -309,7 +323,7 @@ function TokenList({
             {sortedColumn === columns[1] ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </FlexHideBelowLg>
-        <FlexHideBelowLg alignItems="center">
+        <FlexHideBelowXl alignItems="center">
           <ClickableText
             area="1dchange"
             onClick={(e) => {
@@ -319,7 +333,7 @@ function TokenList({
           >
             1d Change {sortedColumn === SORT_FIELD.DAYONE ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
-        </FlexHideBelowLg>
+        </FlexHideBelowXl>
         <Flex alignItems="center">
           <ClickableText
             area="7dchange"
@@ -331,7 +345,7 @@ function TokenList({
             {COLUMN_NAMES[columns[3]]} {sortedColumn === columns[3] ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
-        <FlexHideBelowLg alignItems="center">
+        <FlexHideBelowXl alignItems="center">
           <ClickableText
             area="1dchange"
             onClick={(e) => {
@@ -341,7 +355,7 @@ function TokenList({
           >
             1m Change {sortedColumn === SORT_FIELD.MONTHONE ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
-        </FlexHideBelowLg>
+        </FlexHideBelowXl>
         <Flex alignItems="center">
           <ClickableText
             area="tvl"

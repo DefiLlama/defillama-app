@@ -216,13 +216,13 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
 }
 
 export const filterCollectionsByCurrency = (collections, displayUsd) =>
-  collections &&
+  collections && collections.length &&
   collections.map(collection => ({
     ...collection,
-    floor: displayUsd ? collection.floorUSD : collection.floor,
-    dailyVolume: displayUsd ? collection.dailyVolumeUSD : collection.dailyVolume,
-    totalVolume: displayUsd ? collection.totalVolumeUSD : collection.totalVolume
-  }))
+    floor: displayUsd ? collection?.floorUSD : collection?.floor,
+    dailyVolume: displayUsd ? collection?.dailyVolumeUSD : collection?.dailyVolume,
+    totalVolume: displayUsd ? collection?.totalVolumeUSD : collection?.totalVolume
+  })) || []
 
 export function rawPercent(percentRaw) {
   let percent = parseFloat(percentRaw * 100)
@@ -261,7 +261,7 @@ export function tokenIconUrl(name) {
 
 export function formattedPercent(percent, useBrackets = false) {
   if (percent === null) {
-    return <Text fontWeight={500}>-</Text>
+    return null
   }
   percent = parseFloat(percent)
   if (!percent || percent === 0) {

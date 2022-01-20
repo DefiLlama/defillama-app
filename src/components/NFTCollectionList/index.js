@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import InfiniteScroll from 'react-infinite-scroll-component'
+import { List as VirtualizedList, AutoSizer, InfiniteLoader, WindowScroller } from 'react-virtualized'
 
 import { Box, Flex, Text } from 'rebass'
 import TokenLogo from '../TokenLogo'
@@ -11,7 +11,7 @@ import Row from '../Row'
 import { Divider } from '..'
 
 import { formattedNum, filterCollectionsByCurrency, chainIconUrl } from '../../utils'
-import { useInfiniteScroll } from '../../hooks'
+import { useFetchInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 
 import FormattedName from '../FormattedName'
@@ -20,6 +20,7 @@ dayjs.extend(utc)
 
 const List = styled(Box)`
   -webkit-overflow-scrolling: touch;
+  min-height: 1000px;
 `
 
 const DashGrid = styled.div`
@@ -98,14 +99,15 @@ const SORT_FIELD = {
   TOTAL_VOL: 'totalVolume',
   FLOOR: 'floor',
   VOL: 'dailyVolume',
-  OWNERS: 'owners'
+  OWNERS: 'owners',
 }
 
-// @TODO rework into virtualized list
 function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
   // sorting
+  const [collectionsList, setCollectionsList] = useState([])
+  const [cursor, setCursor] = useState(null)
   const [sortDirection, setSortDirection] = useState(true)
-  const [sortedColumn, setSortedColumn] = useState('dailyVolume')
+  const [sortedColumn, setSortedColumn] = useState('totalVolume')
 
   const below1080 = useMedia('(max-width: 1080px)')
   const below680 = useMedia('(max-width: 680px)')
@@ -113,10 +115,14 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
 
   const displayCurrency = displayUsd ? '$' : '' // TODO show non-USD currency symbols
 
-  const filteredListByCurrency = useMemo(() => filterCollectionsByCurrency(collections, displayUsd), [
-    collections,
-    displayUsd
-  ])
+  useEffect(() => {
+    setCollectionsList(collections)
+  }, [collections])
+
+  const filteredListByCurrency = useMemo(
+    () => filterCollectionsByCurrency(collectionsList, displayUsd),
+    [collectionsList, displayUsd]
+  )
 
   const filteredList = useMemo(() => {
     return (
@@ -139,7 +145,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
           <Row>
-            {!below680 && <div style={{ marginRight: '1rem', width: '10px' }}>{index + 1}</div>}
+            {!below680 && <div style={{ marginRight: '3rem', width: '10px' }}>{index + 1}</div>}
             <TokenLogo address={item.address} logo={item.logo} external />
             <CustomLink
               style={{ marginLeft: '16px', whiteSpace: 'nowrap', minWidth: '200px' }}
@@ -154,12 +160,10 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
             <TokenLogo address={chain} logo={chainIconUrl(chain)} />{' '}
           </BasicLink>
         </DataText>
-        <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayCurrency)}</DataText>
-        {!below1080 && (
-          <DataText area="totalVolume" color="text" fontWeight="500">
-            {formattedNum(item.totalVolume, displayCurrency)}
-          </DataText>
-        )}
+        {!below1080 && <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayCurrency)}</DataText>}
+        <DataText area="totalVolume" color="text" fontWeight="500">
+          {formattedNum(item.totalVolume, displayCurrency)}
+        </DataText>
         {!below1080 && (
           <DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayCurrency)}</DataText>
         )}
@@ -172,7 +176,35 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
     )
   }
 
-  const { LoadMoreButton, dataLength, hasMore, next } = useInfiniteScroll({ list: filteredList })
+  const { LoadMoreButton, dataLength, hasMore, isLoading, next } = useFetchInfiniteScroll({
+    list: filteredList,
+    cursor: cursor || collections.slice(-1)[0],
+    setCursor,
+    setFetchedData: setCollectionsList,
+  })
+
+  const isRowLoaded = ({ index }) => {
+    return !hasMore
+  }
+
+  const loadMoreRows = () => {
+    if (!isLoading) {
+      next()
+    }
+  }
+
+  const renderRow = ({ index, key, style }) => {
+    if (!filteredList[index]) {
+      return <></>
+    }
+
+    return (
+      <div key={key} style={style}>
+        <ListItem key={key} index={index} item={filteredList[index]} />
+        <Divider />
+      </div>
+    )
+  }
 
   return (
     <ListWrapper>
@@ -182,7 +214,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
             color="text"
             area="name"
             fontWeight="500"
-            onClick={e => {
+            onClick={(e) => {
               setSortedColumn(SORT_FIELD.NAME)
               setSortDirection(sortedColumn !== SORT_FIELD.NAME ? true : !sortDirection)
             }}
@@ -192,42 +224,42 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
         </Flex>
 
         <Flex alignItems="center">
-          <ClickableText area="chain" onClick={e => {}}>
+          <ClickableText area="chain" onClick={(e) => {}}>
             Chain
-          </ClickableText>
-        </Flex>
-
-        <Flex alignItems="center">
-          <ClickableText
-            area="dailyVol"
-            onClick={e => {
-              setSortedColumn(SORT_FIELD.VOL)
-              setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
-            }}
-          >
-            Daily Volume {sortedColumn === SORT_FIELD.VOL ? (!sortDirection ? '↑' : '↓') : ''}
           </ClickableText>
         </Flex>
 
         {!below1080 && (
           <Flex alignItems="center">
             <ClickableText
-              area="totalVol"
-              onClick={e => {
-                setSortedColumn(SORT_FIELD.TOTAL_VOL)
-                setSortDirection(sortedColumn !== SORT_FIELD.TOTAL_VOL ? true : !sortDirection)
+              area="dailyVol"
+              onClick={(e) => {
+                setSortedColumn(SORT_FIELD.VOL)
+                setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
               }}
             >
-              Total Volume {sortedColumn === SORT_FIELD.TOTAL_VOL ? (!sortDirection ? '↑' : '↓') : ''}
+              Daily Volume {sortedColumn === SORT_FIELD.VOL ? (!sortDirection ? '↑' : '↓') : ''}
             </ClickableText>
           </Flex>
         )}
+
+        <Flex alignItems="center">
+          <ClickableText
+            area="totalVol"
+            onClick={(e) => {
+              setSortedColumn(SORT_FIELD.TOTAL_VOL)
+              setSortDirection(sortedColumn !== SORT_FIELD.TOTAL_VOL ? true : !sortDirection)
+            }}
+          >
+            Total Volume {sortedColumn === SORT_FIELD.TOTAL_VOL ? (!sortDirection ? '↑' : '↓') : ''}
+          </ClickableText>
+        </Flex>
 
         {!below1080 && (
           <Flex alignItems="center">
             <ClickableText
               area="floor"
-              onClick={e => {
+              onClick={(e) => {
                 setSortedColumn(SORT_FIELD.FLOOR)
                 setSortDirection(sortedColumn !== SORT_FIELD.FLOOR ? true : !sortDirection)
               }}
@@ -241,7 +273,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
           <Flex alignItems="center">
             <ClickableText
               area="owners"
-              onClick={e => {
+              onClick={(e) => {
                 setSortedColumn(SORT_FIELD.OWNERS)
                 setSortDirection(sortedColumn !== SORT_FIELD.OWNERS ? true : !sortDirection)
               }}
@@ -253,17 +285,36 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
       </DashGrid>
       <Divider />
       <List p={0}>
-        <InfiniteScroll dataLength={dataLength} next={next} hasMore={hasMore}>
-          {filteredList &&
-            filteredList.map((item, index) => {
-              return (
-                <div key={index}>
-                  <ListItem key={index} index={index} item={item} />
-                  <Divider />
-                </div>
-              )
-            })}
-        </InfiniteScroll>
+        <InfiniteLoader
+          isRowLoaded={isRowLoaded}
+          loadMoreRows={loadMoreRows}
+          rowCount={dataLength}
+          minimumBatchSize={100}
+          threshold={50}
+        >
+          {({ onRowsRendered, registerChild }) => (
+            <WindowScroller>
+              {({ height, scrollTop }) => (
+                <AutoSizer disableHeight>
+                  {({ width }) => (
+                    <VirtualizedList
+                      onRowsRendered={onRowsRendered}
+                      ref={registerChild}
+                      width={width}
+                      height={height}
+                      autoHeight
+                      rowHeight={50}
+                      rowRenderer={renderRow}
+                      rowCount={dataLength}
+                      overscanRowCount={25}
+                      scrollTop={scrollTop}
+                    />
+                  )}
+                </AutoSizer>
+              )}
+            </WindowScroller>
+          )}
+        </InfiniteLoader>
       </List>
       {LoadMoreButton}
     </ListWrapper>
