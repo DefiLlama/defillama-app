@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { List as VirtualizedList, AutoSizer, InfiniteLoader } from 'react-virtualized'
+import { List as VirtualizedList, AutoSizer, InfiniteLoader, WindowScroller } from 'react-virtualized'
 
 import { Box, Flex, Text } from 'rebass'
 import TokenLogo from '../TokenLogo'
@@ -208,7 +208,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
       </div>
     )
   }
-  
+
   return (
     <ListWrapper>
       <DashGrid center={true} style={{ height: 'fit-content', padding: '0 1.125rem 1rem 1.125rem' }}>
@@ -296,20 +296,26 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
           threshold={50}
         >
           {({ onRowsRendered, registerChild }) => (
-            <AutoSizer>
-              {({ width, height }) => (
-                <VirtualizedList
-                  onRowsRendered={onRowsRendered}
-                  ref={registerChild}
-                  width={width}
-                  height={height}
-                  rowHeight={50}
-                  rowRenderer={renderRow}
-                  rowCount={dataLength}
-                  overscanRowCount={10}
-                />
+            <WindowScroller>
+              {({ height, scrollTop }) => (
+                <AutoSizer disableHeight>
+                  {({ width }) => (
+                    <VirtualizedList
+                      onRowsRendered={onRowsRendered}
+                      ref={registerChild}
+                      width={width}
+                      height={height}
+                      autoHeight
+                      rowHeight={50}
+                      rowRenderer={renderRow}
+                      rowCount={dataLength}
+                      overscanRowCount={25}
+                      scrollTop={scrollTop}
+                    />
+                  )}
+                </AutoSizer>
               )}
-            </AutoSizer>
+            </WindowScroller>
           )}
         </InfiniteLoader>
       </List>
