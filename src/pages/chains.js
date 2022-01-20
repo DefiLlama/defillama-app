@@ -58,7 +58,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset }) => {
 
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
-  const protocolTotals = useCalcStakePool2Tvl(chainTvls)
+  const chainTvlTotals = useCalcStakePool2Tvl(chainTvls)
 
   const [stackedData, daySum] = useMemo(() => {
     const daySum = {}
@@ -69,9 +69,15 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset }) => {
         let sum = chainTvls.tvl
         totalDaySum += chainTvls.tvl || 0
         for (const c in chainTvls) {
-          if (extraTvlsEnabled[c.toLowerCase()]) {
-            sum += chainTvls[c]
-            totalDaySum += chainTvls[c]
+          const option = c.toLowerCase()
+          if (extraTvlsEnabled[option]) {
+            if (option === 'masterchef') {
+              sum -= chainTvls[c]
+              totalDaySum -= chainTvls[c]
+            } else {
+              sum += chainTvls[c]
+              totalDaySum += chainTvls[c]
+            }
           }
         }
         tvls[name] = sum
@@ -96,7 +102,14 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset }) => {
     const data = chainTvls.reduce((acc, curr) => {
       let tvl = curr.tvl || 0
       Object.entries(curr.extraTvl || {}).forEach(([section, sectionTvl]) => {
-        if (extraTvlsEnabled[section.toLowerCase()]) tvl = tvl + (sectionTvl.tvl || 0)
+        const option = section.toLowerCase()
+        if (extraTvlsEnabled[option]) {
+          if (option === 'masterchef') {
+            tvl = tvl - (sectionTvl.tvl || 0)
+          } else {
+            tvl = tvl + (sectionTvl.tvl || 0)
+          }
+        }
       })
       const data = { name: curr.name, value: tvl }
       return (acc = [...acc, data])
@@ -133,7 +146,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset }) => {
         </ChartsWrapper>
         <TokenList
           canBookmark={false}
-          tokens={protocolTotals}
+          tokens={chainTvlTotals}
           iconUrl={chainIconUrl}
           generateLink={(name) => `/chain/${name}`}
           columns={[undefined, 'protocols', 'change_1d', 'change_7d', 'change_1m']}

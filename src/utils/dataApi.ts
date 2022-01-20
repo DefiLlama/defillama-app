@@ -129,7 +129,15 @@ export async function getChainPageData(chain) {
     }
   }
 
-  const { tvl = [], staking = [], borrowed = [], pool2 = [], offers = [], treasury = [] } = chartData || {}
+  const {
+    tvl = [],
+    staking = [],
+    borrowed = [],
+    pool2 = [],
+    offers = [],
+    treasury = [],
+    masterchef = [],
+  } = chartData || {}
 
   const filteredProtocols = formatProtocolsData({ chain, protocols })
 
@@ -145,6 +153,8 @@ export async function getChainPageData(chain) {
   let offersTvlChange = 0
   let treasuryTvl = 0
   let treasuryTvlChange = 0
+  let masterchefTvl = 0
+  let masterchefTvlChange = 0
 
   if (tvl.length > 1) {
     currentTvl = tvl[tvl.length - 1][1]
@@ -176,6 +186,13 @@ export async function getChainPageData(chain) {
     treasuryTvlChange =
       ((treasury[treasury.length - 1][1] - treasury[treasury.length - 2][1]) / treasury[treasury.length - 2][1]) * 100
   }
+  if (masterchef.length > 1) {
+    treasuryTvl = masterchef[masterchef.length - 1][1]
+    treasuryTvlChange =
+      ((masterchef[masterchef.length - 1][1] - masterchef[masterchef.length - 2][1]) /
+        masterchef[masterchef.length - 2][1]) *
+      100
+  }
 
   // TODO refactor and put all options into a single object with totalVolue, volumeChange, volumeCharts keys respectively
   const extraTvls = {
@@ -184,6 +201,7 @@ export async function getChainPageData(chain) {
     pool2: pool2Tvl,
     offers: offersTvl,
     treasury: treasuryTvl,
+    masterchef: masterchefTvl,
   }
 
   const extraTvlsChange = {
@@ -192,6 +210,7 @@ export async function getChainPageData(chain) {
     pool2: pool2TvlChange,
     offers: offersTvlChange,
     treasury: treasuryTvlChange,
+    masterchef: masterchefTvlChange,
   }
 
   const extraVolumesCharts = {
@@ -200,6 +219,7 @@ export async function getChainPageData(chain) {
     pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     treasury: treasury.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+    masterchef: masterchef.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
   }
 
   return {

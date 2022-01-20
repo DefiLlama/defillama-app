@@ -67,7 +67,7 @@ const DownloadIcon = styled(DownloadCloud)`
 `
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
-  ssr: false
+  ssr: false,
 })
 
 const BASIC_DENOMINATIONS = ['USD']
@@ -81,9 +81,9 @@ function GlobalPage({
   chart,
   extraTvls = {},
   extraTvlsChange = {},
-  extraVolumesCharts = {}
+  extraVolumesCharts = {},
 }) {
-  const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
+  const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
@@ -98,22 +98,34 @@ function GlobalPage({
 
     Object.entries(extraTvls).forEach(([prop, propTvl]) => {
       if (extraTvlsEnabled[prop]) {
-        totalVolumeUSD += propTvl
+        if (prop === 'masterchef') {
+          totalVolumeUSD -= propTvl
+        } else {
+          totalVolumeUSD += propTvl
+        }
       }
     })
 
     Object.entries(extraTvlsChange).forEach(([prop, propTvlChange]) => {
       if (extraTvlsEnabled[prop]) {
-        volumeChangeUSD += propTvlChange
+        if (prop === 'masterchef') {
+          volumeChangeUSD -= propTvlChange
+        } else {
+          volumeChangeUSD += propTvlChange
+        }
       }
     })
 
     Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
       if (extraTvlsEnabled[prop]) {
-        globalChart = globalChart.map(data => {
-          const stakedData = propCharts.find(x => x[0] === data[0])
+        globalChart = globalChart.map((data) => {
+          const stakedData = propCharts.find((x) => x[0] === data[0])
           if (stakedData) {
-            return [data[0], data[1] + stakedData[1]]
+            if (prop === 'masterchef') {
+              return [data[0], data[1] - stakedData[1]]
+            } else {
+              return [data[0], data[1] + stakedData[1]]
+            }
           } else return data
         })
       }
@@ -122,7 +134,7 @@ function GlobalPage({
     return { totalVolumeUSD, volumeChangeUSD, globalChart }
   }, [chart, extraTvlsEnabled, tvlChangeUSD, tvlUSD, extraTvls, extraTvlsChange, extraVolumesCharts])
 
-  let chainOptions = ['All'].concat(chainsSet).map(label => ({ label, to: setSelectedChain(label) }))
+  let chainOptions = ['All'].concat(chainsSet).map((label) => ({ label, to: setSelectedChain(label) }))
 
   const protocolTotals = useCalcStakePool2Tvl(filteredProtocols)
 
@@ -182,12 +194,12 @@ function GlobalPage({
     } else return [globalChart, 1]
   }, [chainGeckoId, globalChart, denominationPriceHistory, denomination])
 
-  const updateRoute = unit => {
+  const updateRoute = (unit) => {
     router.push({
       query: {
         ...router.query,
-        currency: unit
-      }
+        currency: unit,
+      },
     })
   }
 
@@ -234,8 +246,8 @@ function GlobalPage({
             </TYPE.main>
             <BasicLink
               href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
-                .filter(t => t[1] === true)
-                .map(t => `${t[0]}=true`)
+                .filter((t) => t[1] === true)
+                .map((t) => `${t[0]}=true`)
                 .join('&')}`}
             >
               <DownloadIcon />
@@ -253,19 +265,20 @@ function GlobalPage({
       <ContentWrapper>
         <AutoColumn gap="24px">
           <Search />
-          {selectedChain === "Fantom" && 
-          <Panel background={true} style={{ textAlign: 'center' }}>
-            <TYPE.main fontWeight={400}>
-              Tomb Finance&apos;s TVL is classified as staking/pool2, to see it on the rankings you need to toggle them
-            </TYPE.main>
-          </Panel>
-          }
+          {selectedChain === 'Fantom' && (
+            <Panel background={true} style={{ textAlign: 'center' }}>
+              <TYPE.main fontWeight={400}>
+                Tomb Finance&apos;s TVL is classified as staking/pool2, to see it on the rankings you need to toggle
+                them
+              </TYPE.main>
+            </Panel>
+          )}
         </AutoColumn>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
           <Panel style={{ height: '100%', minHeight: '347px' }}>
             <RowFixed>
-              {DENOMINATIONS.map(option => (
+              {DENOMINATIONS.map((option) => (
                 <OptionButton
                   active={denomination === option}
                   onClick={() => updateRoute(option)}
