@@ -7,7 +7,6 @@ import { NFT_COLLECTIONS_API } from 'constants'
 export default function useFetchInfiniteScroll({
   list = [],
   cursor = null,
-  numInView = 25,
   filters = [],
   setFetchedData,
   setCursor,
@@ -15,7 +14,8 @@ export default function useFetchInfiniteScroll({
   const { asPath } = useRouter()
   const path = asPath.split('/').slice(2).join('/') ?? ''
 
-  const [dataLength, setDatalength] = useState(numInView)
+  const [dataLength, setDatalength] = useState(0)
+  const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [displayScrollToTopButton, setDisplayScrollToTopButton] = useState(false)
 
@@ -33,8 +33,8 @@ export default function useFetchInfiniteScroll({
   const stringifyFilters = JSON.stringify(filters)
   useEffect(() => {
     setHasMore(true)
-    setDatalength(numInView)
-  }, [stringifyFilters, numInView])
+    setDatalength(list.length)
+  }, [stringifyFilters, list])
 
   const handleScrollToTop = () => {
     window.scrollTo({
@@ -44,6 +44,7 @@ export default function useFetchInfiniteScroll({
   }
 
   const next = async () => {
+    setIsLoading(true)
     const { PK, SK, totalVolumeUSD, category } = cursor || {}
 
     const nextCursor = encodeURIComponent(
@@ -61,12 +62,10 @@ export default function useFetchInfiniteScroll({
 
     setFetchedData(list.concat(data))
     setCursor(newCursor)
+    setIsLoading(false)
 
     if (!newCursor) {
-      setDatalength(list.length)
       setHasMore(false)
-    } else {
-      setDatalength(dataLength + numInView)
     }
   }
 
@@ -96,8 +95,9 @@ export default function useFetchInfiniteScroll({
 
   return {
     dataLength,
-    hasMore,
     LoadMoreButton,
+    hasMore,
+    isLoading,
     next,
   }
 }

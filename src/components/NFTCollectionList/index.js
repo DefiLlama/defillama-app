@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import InfiniteScroll from 'react-infinite-scroll-component'
+import { List as VirtualizedList, AutoSizer, InfiniteLoader } from 'react-virtualized'
 
 import { Box, Flex, Text } from 'rebass'
 import TokenLogo from '../TokenLogo'
@@ -20,6 +20,7 @@ dayjs.extend(utc)
 
 const List = styled(Box)`
   -webkit-overflow-scrolling: touch;
+  min-height: 1000px;
 `
 
 const DashGrid = styled.div`
@@ -178,13 +179,36 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
     )
   }
 
-  const { LoadMoreButton, dataLength, hasMore, next } = useFetchInfiniteScroll({
+  const { LoadMoreButton, dataLength, hasMore, isLoading, next } = useFetchInfiniteScroll({
     list: filteredList,
     cursor: cursor || collections.slice(-1)[0],
     setCursor,
     setFetchedData: setCollectionsList,
   })
 
+  const isRowLoaded = ({ index }) => {
+    return !hasMore
+  }
+
+  const loadMoreRows = () => {
+    if (!isLoading) {
+      next()
+    }
+  }
+
+  const renderRow = ({ index, key, style }) => {
+    if (!filteredList[index]) {
+      return <></>
+    }
+
+    return (
+      <div key={key} style={style}>
+        <ListItem key={key} index={index} item={filteredList[index]} />
+        <Divider />
+      </div>
+    )
+  }
+  
   return (
     <ListWrapper>
       <DashGrid center={true} style={{ height: 'fit-content', padding: '0 1.125rem 1rem 1.125rem' }}>
@@ -264,17 +288,30 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
       </DashGrid>
       <Divider />
       <List p={0}>
-        <InfiniteScroll dataLength={dataLength} next={next} hasMore={hasMore}>
-          {filteredList &&
-            filteredList.map((item, index) => {
-              return (
-                <div key={index}>
-                  <ListItem key={index} index={index} item={item} />
-                  <Divider />
-                </div>
-              )
-            })}
-        </InfiniteScroll>
+        <InfiniteLoader
+          isRowLoaded={isRowLoaded}
+          loadMoreRows={loadMoreRows}
+          rowCount={dataLength}
+          minimumBatchSize={0}
+          threshold={50}
+        >
+          {({ onRowsRendered, registerChild }) => (
+            <AutoSizer>
+              {({ width, height }) => (
+                <VirtualizedList
+                  onRowsRendered={onRowsRendered}
+                  ref={registerChild}
+                  width={width}
+                  height={height}
+                  rowHeight={50}
+                  rowRenderer={renderRow}
+                  rowCount={dataLength}
+                  overscanRowCount={10}
+                />
+              )}
+            </AutoSizer>
+          )}
+        </InfiniteLoader>
       </List>
       {LoadMoreButton}
     </ListWrapper>
