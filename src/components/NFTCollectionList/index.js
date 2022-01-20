@@ -102,7 +102,6 @@ const SORT_FIELD = {
   OWNERS: 'owners',
 }
 
-// @TODO rework into virtualized list
 function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
   // sorting
   const [collectionsList, setCollectionsList] = useState([])
