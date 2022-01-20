@@ -261,7 +261,7 @@ export function tokenIconUrl(name) {
 
 export function formattedPercent(percent, useBrackets = false) {
   if (percent === null) {
-    return <Text fontWeight={500}>-</Text>
+    return null
   }
   percent = parseFloat(percent)
   if (!percent || percent === 0) {

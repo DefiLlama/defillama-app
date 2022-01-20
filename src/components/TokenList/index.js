@@ -263,11 +263,11 @@ function TokenList({
           {columns[3] === SORT_FIELD.DAYSEVEN
             ? item.change_7d !== 0
               ? formattedPercent(item.change_7d, true)
-              : '-'
+              : ''
             : `${item.listedAt} days ago`}
         </DataText>
         <DataTextHideBelowLg area="1mchange" fontWeight="500">
-          {item.change_1m || item.change_1m === 0 ? formattedPercent(item.change_1m, true) : '-'}
+          {item.change_1m || item.change_1m === 0 ? formattedPercent(item.change_1m, true) : ''}
         </DataTextHideBelowLg>
         <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
         <DataTextHideBelow680 area="mcaptvl" fontWeight="500">
@@ -275,7 +275,7 @@ function TokenList({
             ? formattedNum(item.mcaptvl, false)
             : item.mcap && item.tvl
             ? formattedNum(item.mcap / item.tvl)
-            : '-'}
+            : ''}
         </DataTextHideBelow680>
       </DashGrid>
     )
