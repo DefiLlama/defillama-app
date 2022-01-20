@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -104,7 +104,7 @@ const SORT_FIELD = {
 // @TODO rework into virtualized list
 function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
   // sorting
-  const [collectionsList, setCollectionsList] = useState(collections)
+  const [collectionsList, setCollectionsList] = useState([])
   const [cursor, setCursor] = useState(null)
   const [sortDirection, setSortDirection] = useState(true)
   const [sortedColumn, setSortedColumn] = useState('totalVolume')
@@ -114,6 +114,10 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
   const below600 = useMedia('(max-width: 600px)')
 
   const displayCurrency = displayUsd ? '$' : '' // TODO show non-USD currency symbols
+
+  useEffect(() => {
+    setCollectionsList(collections)
+  }, [collections])
 
   const filteredListByCurrency = useMemo(
     () => filterCollectionsByCurrency(collectionsList, displayUsd),
