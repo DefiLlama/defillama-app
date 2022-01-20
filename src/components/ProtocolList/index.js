@@ -31,14 +31,14 @@ function AllTokensPage({
   filteredProtocols,
   showChainList = true,
   columns,
-  defaultSortingColumn
+  defaultSortingColumn,
 }) {
   const isLg = useLg()
-  const handleRouting = chain => {
+  const handleRouting = (chain) => {
     if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
     return `/protocols/${category?.toLowerCase()}/${chain}`
   }
-  const chainOptions = ['All', ...chains].map(label => ({ label, to: handleRouting(label) }))
+  const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
 
   const protocolTotals = useCalcStakePool2Tvl(filteredProtocols, defaultSortingColumn)
 
