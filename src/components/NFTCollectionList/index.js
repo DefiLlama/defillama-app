@@ -11,7 +11,7 @@ import Row from '../Row'
 import { Divider } from '..'
 
 import { formattedNum, filterCollectionsByCurrency, chainIconUrl } from '../../utils'
-import { useInfiniteScroll } from '../../hooks'
+import { useFetchInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 
 import FormattedName from '../FormattedName'
@@ -98,12 +98,14 @@ const SORT_FIELD = {
   TOTAL_VOL: 'totalVolume',
   FLOOR: 'floor',
   VOL: 'dailyVolume',
-  OWNERS: 'owners'
+  OWNERS: 'owners',
 }
 
 // @TODO rework into virtualized list
 function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
   // sorting
+  const [collectionsList, setCollectionsList] = useState(collections)
+  const [cursor, setCursor] = useState(null)
   const [sortDirection, setSortDirection] = useState(true)
   const [sortedColumn, setSortedColumn] = useState('totalVolume')
 
@@ -113,10 +115,10 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
 
   const displayCurrency = displayUsd ? '$' : '' // TODO show non-USD currency symbols
 
-  const filteredListByCurrency = useMemo(() => filterCollectionsByCurrency(collections, displayUsd), [
-    collections,
-    displayUsd
-  ])
+  const filteredListByCurrency = useMemo(
+    () => filterCollectionsByCurrency(collectionsList, displayUsd),
+    [collectionsList, displayUsd]
+  )
 
   const filteredList = useMemo(() => {
     return (
@@ -172,7 +174,12 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
     )
   }
 
-  const { LoadMoreButton, dataLength, hasMore, next } = useInfiniteScroll({ list: filteredList })
+  const { LoadMoreButton, dataLength, hasMore, next } = useFetchInfiniteScroll({
+    list: filteredList,
+    cursor,
+    setCursor,
+    setFetchedData: setCollectionsList,
+  })
 
   return (
     <ListWrapper>
@@ -182,7 +189,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
             color="text"
             area="name"
             fontWeight="500"
-            onClick={e => {
+            onClick={(e) => {
               setSortedColumn(SORT_FIELD.NAME)
               setSortDirection(sortedColumn !== SORT_FIELD.NAME ? true : !sortDirection)
             }}
@@ -192,7 +199,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
         </Flex>
 
         <Flex alignItems="center">
-          <ClickableText area="chain" onClick={e => {}}>
+          <ClickableText area="chain" onClick={(e) => {}}>
             Chain
           </ClickableText>
         </Flex>
@@ -200,7 +207,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
         <Flex alignItems="center">
           <ClickableText
             area="dailyVol"
-            onClick={e => {
+            onClick={(e) => {
               setSortedColumn(SORT_FIELD.VOL)
               setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
             }}
@@ -213,7 +220,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
           <Flex alignItems="center">
             <ClickableText
               area="totalVol"
-              onClick={e => {
+              onClick={(e) => {
                 setSortedColumn(SORT_FIELD.TOTAL_VOL)
                 setSortDirection(sortedColumn !== SORT_FIELD.TOTAL_VOL ? true : !sortDirection)
               }}
@@ -227,7 +234,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
           <Flex alignItems="center">
             <ClickableText
               area="floor"
-              onClick={e => {
+              onClick={(e) => {
                 setSortedColumn(SORT_FIELD.FLOOR)
                 setSortDirection(sortedColumn !== SORT_FIELD.FLOOR ? true : !sortDirection)
               }}
@@ -241,7 +248,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
           <Flex alignItems="center">
             <ClickableText
               area="owners"
-              onClick={e => {
+              onClick={(e) => {
                 setSortedColumn(SORT_FIELD.OWNERS)
                 setSortDirection(sortedColumn !== SORT_FIELD.OWNERS ? true : !sortDirection)
               }}
