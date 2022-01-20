@@ -176,7 +176,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
 
   const { LoadMoreButton, dataLength, hasMore, next } = useFetchInfiniteScroll({
     list: filteredList,
-    cursor,
+    cursor: cursor || collections.slice(-1)[0],
     setCursor,
     setFetchedData: setCollectionsList,
   })

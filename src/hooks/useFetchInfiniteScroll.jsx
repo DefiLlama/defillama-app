@@ -44,18 +44,16 @@ export default function useFetchInfiniteScroll({
   }
 
   const next = async () => {
-    const { PK, SK, totalVolumeUSD, category } = list.slice(-1)[0]
+    const { PK, SK, totalVolumeUSD, category } = cursor || {}
 
-    const nextCursor = cursor
-      ? encodeURIComponent(JSON.stringify(cursor))
-      : encodeURIComponent(
-          JSON.stringify({
-            PK,
-            SK,
-            totalVolumeUSD,
-            category,
-          })
-        )
+    const nextCursor = encodeURIComponent(
+      JSON.stringify({
+        PK,
+        SK,
+        totalVolumeUSD,
+        category,
+      })
+    )
 
     const url = `${NFT_COLLECTIONS_API}${path ? `/${path}` : ''}?cursor=${nextCursor}`
 
