@@ -292,7 +292,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
           isRowLoaded={isRowLoaded}
           loadMoreRows={loadMoreRows}
           rowCount={dataLength}
-          minimumBatchSize={0}
+          minimumBatchSize={100}
           threshold={50}
         >
           {({ onRowsRendered, registerChild }) => (
