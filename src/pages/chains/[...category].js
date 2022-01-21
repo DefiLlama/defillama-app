@@ -19,7 +19,7 @@ export async function getStaticProps({
 export async function getStaticPaths() {
   const { chainCoingeckoIds = {} } = await fetch(CONFIG_API).then((res) => res.json())
 
-  const categories = []
+  const categories = ['All', 'Non-EVM']
   for (const chain in chainCoingeckoIds) {
     chainCoingeckoIds[chain].categories?.forEach((category) => {
       if (!categories.includes(category)) {
@@ -29,7 +29,7 @@ export async function getStaticPaths() {
   }
 
   const paths = categories.map((category) => ({
-    params: { category: [category.toLowerCase()] },
+    params: { category: [category] },
   }))
 
   return { paths, fallback: 'blocking' }

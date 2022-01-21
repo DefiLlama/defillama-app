@@ -236,21 +236,29 @@ export const getChainsPageData = async (category: string) => {
       })
     }
 
-    const categoryExists = categories.includes(category) || category === 'All'
+    const categoryExists = categories.includes(category) || category === 'All' || category === 'Non-EVM'
 
     if (!categoryExists) {
       return {
         notFound: true,
       }
     } else {
-      categories = categories.map((category) => ({ label: category, to: `/chains/${category}` }))
-      categories.unshift({ label: 'All', to: '/chains' })
+      categories = [
+        { label: 'All', to: '/chains' },
+        { label: 'Non-EVM', to: '/chains/Non-EVM' },
+      ].concat(categories.map((category) => ({ label: category, to: `/chains/${category}` })))
     }
 
     const chainsUnique = res.chains.filter((t: string) => {
       if (t !== 'Syscoin') {
         const chainCategories = chainCoingeckoIds[t]?.categories ?? []
-        if (chainCategories.includes(category) || category === 'All') return true
+        if (category === 'All') {
+          return true
+        } else if (category === 'Non-EVM') {
+          return !chainCategories.includes('EVM')
+        } else {
+          return chainCategories.includes(category)
+        }
       }
     })
 
