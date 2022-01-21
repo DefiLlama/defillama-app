@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
+import { getPercentChange } from 'utils'
 
 interface IProtocol {
   tvl: number | null
@@ -43,9 +44,9 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
           }
         })
 
-        let change1d: number | null = getPercentChange(finalTvlPrevDay, finalTvl)
-        let change7d: number | null = getPercentChange(finalTvlPrevWeek, finalTvl)
-        let change1m: number | null = getPercentChange(finalTvlPrevMonth, finalTvl)
+        let change1d: number | null = getPercentChange(finalTvl, finalTvlPrevDay)
+        let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
+        let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
         return {
           ...props,
@@ -79,12 +80,4 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl) => {
   }, [extraTvlsEnabled, simpleTvl, chainTvls])
 
   return protocolTvl
-}
-
-export function getPercentChange(v1, v2): number | null {
-  const change = ((v2 - v1) / v1) * 100
-
-  if (!Number.isNaN(change) && Number.isFinite(change)) {
-    return change
-  } else return null
 }

@@ -14,7 +14,7 @@ import { AllTvlOptions } from '../SettingsModal'
 
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { TYPE, ThemedBackground } from 'Theme'
-import { formattedNum } from 'utils'
+import { formattedNum, getPercentChange, getPrevTvlFromChart } from 'utils'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { DownloadCloud } from 'react-feather'
 import { BasicLink } from '../Link'
@@ -31,7 +31,6 @@ const ListOptions = styled(AutoRow)`
   width: 100%;
   font-size: 1.25rem;
   font-weight: 600;
-
   @media screen and (max-width: 640px) {
     font-size: 1rem;
   }
@@ -67,23 +66,13 @@ const DownloadIcon = styled(DownloadCloud)`
 `
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
-  ssr: false
+  ssr: false,
 })
 
 const BASIC_DENOMINATIONS = ['USD']
 
-function GlobalPage({
-  selectedChain = 'All',
-  volumeChangeUSD: tvlChangeUSD,
-  totalVolumeUSD: tvlUSD,
-  chainsSet,
-  filteredProtocols,
-  chart,
-  extraTvls = {},
-  extraTvlsChange = {},
-  extraVolumesCharts = {}
-}) {
-  const setSelectedChain = newSelectedChain => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
+function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart, extraVolumesCharts = {} }) {
+  const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
@@ -92,26 +81,12 @@ function GlobalPage({
   const denomination = router.query?.currency ?? 'USD'
 
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
-    let totalVolumeUSD = tvlUSD
-    let volumeChangeUSD = tvlChangeUSD
     let globalChart = chart
 
-    Object.entries(extraTvls).forEach(([prop, propTvl]) => {
-      if (extraTvlsEnabled[prop]) {
-        totalVolumeUSD += propTvl
-      }
-    })
-
-    Object.entries(extraTvlsChange).forEach(([prop, propTvlChange]) => {
-      if (extraTvlsEnabled[prop]) {
-        volumeChangeUSD += propTvlChange
-      }
-    })
-
     Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
-      if (extraTvlsEnabled[prop]) {
-        globalChart = globalChart.map(data => {
-          const stakedData = propCharts.find(x => x[0] === data[0])
+      if (extraTvlsEnabled[prop.toLowerCase()]) {
+        globalChart = globalChart.map((data) => {
+          const stakedData = propCharts.find((x) => x[0] === data[0])
           if (stakedData) {
             return [data[0], data[1] + stakedData[1]]
           } else return data
@@ -119,10 +94,14 @@ function GlobalPage({
       }
     })
 
-    return { totalVolumeUSD, volumeChangeUSD, globalChart }
-  }, [chart, extraTvlsEnabled, tvlChangeUSD, tvlUSD, extraTvls, extraTvlsChange, extraVolumesCharts])
+    const tvl = getPrevTvlFromChart(globalChart, 0)
+    const tvlPrevDay = getPrevTvlFromChart(globalChart, 1)
+    const volumeChangeUSD = getPercentChange(tvl, tvlPrevDay)
 
-  let chainOptions = ['All'].concat(chainsSet).map(label => ({ label, to: setSelectedChain(label) }))
+    return { totalVolumeUSD: tvl, volumeChangeUSD, globalChart }
+  }, [chart, extraTvlsEnabled, extraVolumesCharts])
+
+  let chainOptions = ['All'].concat(chainsSet).map((label) => ({ label, to: setSelectedChain(label) }))
 
   const protocolTotals = useCalcStakePool2Tvl(filteredProtocols)
 
@@ -182,12 +161,12 @@ function GlobalPage({
     } else return [globalChart, 1]
   }, [chainGeckoId, globalChart, denominationPriceHistory, denomination])
 
-  const updateRoute = unit => {
+  const updateRoute = (unit) => {
     router.push({
       query: {
         ...router.query,
-        currency: unit
-      }
+        currency: unit,
+      },
     })
   }
 
@@ -234,8 +213,8 @@ function GlobalPage({
             </TYPE.main>
             <BasicLink
               href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
-                .filter(t => t[1] === true)
-                .map(t => `${t[0]}=true`)
+                .filter((t) => t[1] === true)
+                .map((t) => `${t[0]}=true`)
                 .join('&')}`}
             >
               <DownloadIcon />
@@ -253,19 +232,20 @@ function GlobalPage({
       <ContentWrapper>
         <AutoColumn gap="24px">
           <Search />
-          {selectedChain === "Fantom" && 
-          <Panel background={true} style={{ textAlign: 'center' }}>
-            <TYPE.main fontWeight={400}>
-              Tomb Finance&apos;s TVL is classified as staking/pool2, to see it on the rankings you need to toggle them
-            </TYPE.main>
-          </Panel>
-          }
+          {selectedChain === 'Fantom' && (
+            <Panel background={true} style={{ textAlign: 'center' }}>
+              <TYPE.main fontWeight={400}>
+                Tomb Finance&apos;s TVL is classified as staking/pool2, to see it on the rankings you need to toggle
+                them
+              </TYPE.main>
+            </Panel>
+          )}
         </AutoColumn>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
           <Panel style={{ height: '100%', minHeight: '347px' }}>
             <RowFixed>
-              {DENOMINATIONS.map(option => (
+              {DENOMINATIONS.map((option) => (
                 <OptionButton
                   active={denomination === option}
                   onClick={() => updateRoute(option)}

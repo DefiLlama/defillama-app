@@ -21,39 +21,19 @@ export function getTimeframe(timeWindow) {
   let utcStartTime
   switch (timeWindow) {
     case timeframeOptions.WEEK:
-      utcStartTime =
-        utcEndTime
-          .subtract(1, 'week')
-          .endOf('day')
-          .unix() - 1
+      utcStartTime = utcEndTime.subtract(1, 'week').endOf('day').unix() - 1
       break
     case timeframeOptions.MONTH:
-      utcStartTime =
-        utcEndTime
-          .subtract(1, 'month')
-          .endOf('day')
-          .unix() - 1
+      utcStartTime = utcEndTime.subtract(1, 'month').endOf('day').unix() - 1
       break
     case timeframeOptions.ALL_TIME:
-      utcStartTime =
-        utcEndTime
-          .subtract(1, 'year')
-          .endOf('day')
-          .unix() - 1
+      utcStartTime = utcEndTime.subtract(1, 'year').endOf('day').unix() - 1
       break
     case timeframeOptions.YEAR:
-      utcStartTime =
-        utcEndTime
-          .subtract(1, 'year')
-          .endOf('day')
-          .unix() - 1
+      utcStartTime = utcEndTime.subtract(1, 'year').endOf('day').unix() - 1
       break
     default:
-      utcStartTime =
-        utcEndTime
-          .subtract(1, 'year')
-          .startOf('year')
-          .unix() - 1
+      utcStartTime = utcEndTime.subtract(1, 'year').startOf('year').unix() - 1
       break
   }
   return utcStartTime
@@ -63,22 +43,22 @@ export function localNumber(val) {
   return Numeral(val).format('0,0')
 }
 
-export const toNiceMonthlyDate = date => {
+export const toNiceMonthlyDate = (date) => {
   let x = dayjs.utc(dayjs.unix(date)).format('MMM YYYY')
   return x
 }
 
-export const toNiceDate = date => {
+export const toNiceDate = (date) => {
   let x = dayjs.utc(dayjs.unix(date)).format('MMM DD')
   return x
 }
 
-export const toNiceCsvDate = date => {
+export const toNiceCsvDate = (date) => {
   let x = dayjs.utc(dayjs.unix(date)).format('DD/MM/YYYY')
   return x
 }
 
-export const toWeeklyDate = date => {
+export const toWeeklyDate = (date) => {
   const formatted = dayjs.utc(dayjs.unix(date))
   date = new Date(formatted)
   const day = new Date(formatted).getDay()
@@ -90,18 +70,9 @@ export const toWeeklyDate = date => {
 
 export function getTimestampsForChanges() {
   const utcCurrentTime = dayjs()
-  const t1 = utcCurrentTime
-    .subtract(1, 'day')
-    .startOf('minute')
-    .unix()
-  const t2 = utcCurrentTime
-    .subtract(2, 'day')
-    .startOf('minute')
-    .unix()
-  const tWeek = utcCurrentTime
-    .subtract(1, 'week')
-    .startOf('minute')
-    .unix()
+  const t1 = utcCurrentTime.subtract(1, 'day').startOf('minute').unix()
+  const t2 = utcCurrentTime.subtract(2, 'day').startOf('minute').unix()
+  const tWeek = utcCurrentTime.subtract(1, 'week').startOf('minute').unix()
   return [t1, t2, tWeek]
 }
 
@@ -120,16 +91,16 @@ export function getTimestampRange(timestamp_from, period_length, periods) {
   return timestamps
 }
 
-export const toNiceDateYear = date => dayjs.utc(dayjs.unix(date)).format('MMMM DD, YYYY')
-export const toK = num => {
+export const toNiceDateYear = (date) => dayjs.utc(dayjs.unix(date)).format('MMMM DD, YYYY')
+export const toK = (num) => {
   return Numeral(num).format('0.[00]a')
 }
 
-export const setThemeColor = theme => document.documentElement.style.setProperty('--c-token', theme || '#333333')
+export const setThemeColor = (theme) => document.documentElement.style.setProperty('--c-token', theme || '#333333')
 
-export const Big = number => new BigNumber(number)
+export const Big = (number) => new BigNumber(number)
 
-export const formatTime = unix => {
+export const formatTime = (unix) => {
   const now = dayjs()
   const timestamp = dayjs.unix(unix)
 
@@ -149,7 +120,7 @@ export const formatTime = unix => {
   }
 }
 
-export const formatNumber = num => {
+export const formatNumber = (num) => {
   return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 }
 
@@ -157,7 +128,7 @@ export const formatNumber = num => {
 var priceFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
-  minimumFractionDigits: 2
+  minimumFractionDigits: 2,
 })
 
 export const toSignificant = (number, significantDigits) => {
@@ -216,13 +187,15 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
 }
 
 export const filterCollectionsByCurrency = (collections, displayUsd) =>
-  collections && collections.length &&
-  collections.map(collection => ({
-    ...collection,
-    floor: displayUsd ? collection?.floorUSD : collection?.floor,
-    dailyVolume: displayUsd ? collection?.dailyVolumeUSD : collection?.dailyVolume,
-    totalVolume: displayUsd ? collection?.totalVolumeUSD : collection?.totalVolume
-  })) || []
+  (collections &&
+    collections.length &&
+    collections.map((collection) => ({
+      ...collection,
+      floor: displayUsd ? collection?.floorUSD : collection?.floor,
+      dailyVolume: displayUsd ? collection?.dailyVolumeUSD : collection?.dailyVolume,
+      totalVolume: displayUsd ? collection?.totalVolumeUSD : collection?.totalVolume,
+    }))) ||
+  []
 
 export function rawPercent(percentRaw) {
   let percent = parseFloat(percentRaw * 100)
@@ -237,17 +210,17 @@ export function rawPercent(percentRaw) {
 
 export function getChainsFromAllTokenData(data) {
   const chainsUniqueSet = new Set()
-  Object.values(data).forEach(token => {
+  Object.values(data).forEach((token) => {
     if (token.category === 'Chain') return
-    token.chains.forEach(chain => {
+    token.chains.forEach((chain) => {
       chainsUniqueSet.add(chain)
     })
   })
   const chainsUnique = Array.from(chainsUniqueSet)
-  return chainsUnique.map(name => ({
+  return chainsUnique.map((name) => ({
     logo: chainIconUrl(name),
     isChain: true,
-    name
+    name,
   }))
 }
 
@@ -351,16 +324,9 @@ export function isValidProtocol(tokensObject, protocol) {
   try {
     const tokens = Object.values(tokensObject)
     const isValid = tokens.some(
-      token =>
-        (protocol.includes('-') &&
-          token.name
-            .toLowerCase()
-            .split(' ')
-            .join('-') === protocol) ||
-        token.name
-          .toLowerCase()
-          .split(' ')
-          .join('') === protocol
+      (token) =>
+        (protocol.includes('-') && token.name.toLowerCase().split(' ').join('-') === protocol) ||
+        token.name.toLowerCase().split(' ').join('') === protocol
     )
     return isValid
   } catch (error) {
@@ -369,14 +335,14 @@ export function isValidProtocol(tokensObject, protocol) {
 }
 
 export function isValidCollection(nftCollections, collection) {
-  const isValid = nftCollections.some(nftCollection => nftCollection.id === collection)
+  const isValid = nftCollections.some((nftCollection) => nftCollection.id === collection)
   return isValid
 }
 
 export function getTokenAddressFromName(tokensObject, protocol) {
   try {
     const tokens = Object.values(tokensObject)
-    const filteredToken = tokens.find(token => token.slug === protocol)
+    const filteredToken = tokens.find((token) => token.slug === protocol)
     return filteredToken?.address || ''
   } catch (error) {
     return false
@@ -386,7 +352,7 @@ export function getTokenAddressFromName(tokensObject, protocol) {
 export function getTokenIdFromName(tokensObject, protocol) {
   try {
     const tokens = Object.values(tokensObject)
-    const filteredToken = tokens.findIndex(token => token.name.toLowerCase().replace(' ', '-') === protocol)
+    const filteredToken = tokens.findIndex((token) => token.name.toLowerCase().replace(' ', '-') === protocol)
     return filteredToken
   } catch (error) {
     return false
@@ -396,22 +362,17 @@ export function getTokenIdFromName(tokensObject, protocol) {
 export function getTokenFromName(tokensObject, protocol) {
   try {
     const tokens = Object.values(tokensObject)
-    const filteredToken = tokens.find(token => token.slug === protocol)
+    const filteredToken = tokens.find((token) => token.slug === protocol)
     return filteredToken
   } catch (error) {
     return false
   }
 }
 
-export const capitalizeFirstLetter = word => word.charAt(0).toUpperCase() + word.slice(1)
+export const capitalizeFirstLetter = (word) => word.charAt(0).toUpperCase() + word.slice(1)
 
 export const standardizeProtocolName = (tokenName = '') =>
-  tokenName
-    .toLowerCase()
-    .split(' ')
-    .join('-')
-    .split("'")
-    .join('')
+  tokenName.toLowerCase().split(' ').join('-').split("'").join('')
 
 export const slug = standardizeProtocolName
 
@@ -422,4 +383,13 @@ export function getRandomColor() {
     color += letters[Math.floor(Math.random() * 16)]
   }
   return color
+}
+
+/**
+ * get tvl of specified day before last day using chart data
+ * @param {*} chartData
+ * @param {*} daysBefore
+ */
+export const getPrevTvlFromChart = (chart, daysBefore) => {
+  return chart[chart.length - 1 - daysBefore]?.[1] ?? null
 }
