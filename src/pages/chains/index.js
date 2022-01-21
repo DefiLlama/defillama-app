@@ -11,12 +11,12 @@ import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
 import { GeneralLayout } from 'layout'
 import { Header } from 'Theme'
 
-import { PROTOCOLS_API, CHART_API, CONFIG_API } from 'constants/index'
-import { getPercentChange, useCalcStakePool2Tvl } from 'hooks/data'
+import { useCalcStakePool2Tvl } from 'hooks/data'
 import { toNiceCsvDate, chainIconUrl, getRandomColor } from 'utils'
-import { revalidate } from 'utils/dataApi'
+import { getChainsPageData, revalidate } from 'utils/dataApi'
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { AllTvlOptions } from 'components/SettingsModal'
+import Filters from 'components/Filters'
 
 function download(filename, text) {
   var element = document.createElement('a')
@@ -50,7 +50,7 @@ const RowWrapper = styled(RowBetween)`
   }
 `
 
-const ChainsView = ({ chainsUnique, chainTvls, stackedDataset }) => {
+export const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categories }) => {
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
     [chainsUnique]
@@ -131,6 +131,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset }) => {
             daySum={daySum}
           />
         </ChartsWrapper>
+        <Filters filterOptions={categories} activeLabel={category} />
         <TokenList
           canBookmark={false}
           tokens={protocolTotals}
@@ -144,93 +145,9 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset }) => {
 }
 
 export async function getStaticProps() {
-  const [res, { chainCoingeckoIds }] = await Promise.all(
-    [PROTOCOLS_API, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
-  )
-  const chainsUnique = res.chains.filter((t) => t !== 'Syscoin')
-
-  const chainCalls = Promise.all(chainsUnique.map((elem) => fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())))
-
-  const chainMcapsPromise = fetch(
-    `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(chainCoingeckoIds)
-      .map((v) => v.geckoId)
-      .join(',')}&vs_currencies=usd&include_market_cap=true`
-  ).then((res) => res.json())
-  const numProtocolsPerChain = {}
-  const extraPropPerChain = {}
-
-  res.protocols.forEach((protocol) => {
-    protocol.chains.forEach((chain) => {
-      numProtocolsPerChain[chain] = (numProtocolsPerChain[chain] || 0) + 1
-    })
-    Object.entries(protocol.chainTvls).forEach(([propKey, propValue]) => {
-      if (propKey.includes('-')) {
-        const prop = propKey.split('-')[1].toLowerCase()
-        const chain = propKey.split('-')[0]
-        if (extraPropPerChain[chain] === undefined) {
-          extraPropPerChain[chain] = {}
-        }
-        extraPropPerChain[chain][prop] = {
-          tvl: (propValue.tvl || 0) + (extraPropPerChain[chain][prop]?.tvl ?? 0),
-          tvlPrevDay: (propValue.tvlPrevDay || 0) + (extraPropPerChain[chain][prop]?.tvlPrevDay ?? 0),
-          tvlPrevWeek: (propValue.tvlPrevWeek || 0) + (extraPropPerChain[chain][prop]?.tvlPrevWeek ?? 0),
-          tvlPrevMonth: (propValue.tvlPrevMonth || 0) + (extraPropPerChain[chain][prop]?.tvlPrevMonth ?? 0),
-        }
-      }
-    })
-  })
-
-  const data = await chainCalls
-  const chainMcaps = await chainMcapsPromise
-  const tvlData = data.map((d) => d.tvl)
-  const chainTvls = chainsUnique
-    .map((chainName, i) => {
-      const prevTvl = (daysBefore) => tvlData[i][tvlData[i].length - 1 - daysBefore]?.[1] ?? null
-      const tvl = prevTvl(0)
-      const tvlPrevDay = prevTvl(1)
-      const tvlPrevWeek = prevTvl(7)
-      const tvlPrevMonth = prevTvl(30)
-      const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
-      return {
-        tvl,
-        tvlPrevDay,
-        tvlPrevWeek,
-        tvlPrevMonth,
-        mcap: mcap || null,
-        name: chainName,
-        symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
-        protocols: numProtocolsPerChain[chainName],
-        extraTvl: extraPropPerChain[chainName] || {},
-        change_1d: getPercentChange(tvlPrevDay, tvl),
-        change_7d: getPercentChange(tvlPrevWeek, tvl),
-        change_1m: getPercentChange(tvlPrevMonth, tvl),
-      }
-    })
-    .sort((a, b) => b.tvl - a.tvl)
-
-  const stackedDataset = Object.entries(
-    data.reduce((total, chains, i) => {
-      const chainName = chainsUnique[i]
-      Object.entries(chains).forEach(([tvlType, values]) => {
-        values.forEach((value) => {
-          if (value[0] < 1596248105) return
-          if (total[value[0]] === undefined) {
-            total[value[0]] = {}
-          }
-          const b = total[value[0]][chainName]
-          total[value[0]][chainName] = { ...b, [tvlType]: value[1] }
-        })
-      })
-      return total
-    }, {})
-  )
-
+  const data = await getChainsPageData('All')
   return {
-    props: {
-      chainsUnique,
-      chainTvls,
-      stackedDataset,
-    },
+    ...data,
     revalidate: revalidate(),
   }
 }
