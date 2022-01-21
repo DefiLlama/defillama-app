@@ -106,16 +106,18 @@ const TableHead = styled.th`
 `
 
 function ToggleAlert({ chainTvls }) {
-  const isLowerCase = letter=>letter===letter.toLowerCase()
-  const extraTvls = Object.keys(chainTvls).filter(section=>isLowerCase(section[0]))
-  if(extraTvls.length === 0){
+  const isLowerCase = (letter) => letter === letter.toLowerCase()
+  const extraTvls = Object.keys(chainTvls).filter((section) => isLowerCase(section[0]))
+  if (extraTvls.length === 0) {
     return null
   }
-  return <Panel background={true} style={{ textAlign: 'center', marginBottom:'1rem', marginTop:'-1rem' }}>
-            <TYPE.main fontWeight={400}>
-              This protocol has some TVL that's classified as {extraTvls.join('/')}, enable the toggles to see it
-            </TYPE.main>
-          </Panel>
+  return (
+    <Panel background={true} style={{ textAlign: 'center', marginBottom: '1rem', marginTop: '-1rem' }}>
+      <TYPE.main fontWeight={400}>
+        This protocol has some TVL that's classified as {extraTvls.join('/')}, enable the toggles to see it
+      </TYPE.main>
+    </Panel>
+  )
 }
 
 function ProtocolContainer({ protocolData, protocol, denomination, selectedChain }) {
@@ -142,7 +144,8 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
     historicalChainTvls,
     audit_links,
     methodology,
-    module: codeModule
+    module: codeModule,
+    isHourlyChart,
   } = protocolData
   const backgroundColor = useProtocolColor({ protocol, logo, transparent: false })
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
@@ -183,7 +186,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 <TYPE.main fontSize={['1.5rem', '1.5rem', '2rem']} fontWeight={500} style={{ margin: '0 1rem' }}>
                   <RowFixed gap="6px">
                     <FormattedName text={name ? name + ' ' : ''} maxCharacters={16} style={{ marginRight: '6px' }} />{' '}
-                    {symbol !== "-" ? "$" + symbol: ''}
+                    {symbol !== '-' ? '$' + symbol : ''}
                   </RowFixed>
                 </TYPE.main>{' '}
               </RowFixed>
@@ -220,7 +223,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   <TYPE.main>
                     <table style={{ margin: '1.25rem 0 0' }}>
                       <tbody>
-                        {tvlByChain.map(chainTvl =>
+                        {tvlByChain.map((chainTvl) =>
                           chainTvl[0].includes('-') ? null : (
                             <tr key={chainTvl[0]}>
                               <TableHead>
@@ -255,7 +258,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
               <Panel
                 sx={{
                   gridColumn: ['1', '1', '1', '2/4'],
-                  gridRow: ['', '', '', '1/4']
+                  gridRow: ['', '', '', '1/4'],
                 }}
               >
                 <ProtocolChart
@@ -272,6 +275,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   chainTvls={historicalChainTvls}
                   chains={chains}
                   protocolData={protocolData}
+                  isHourlyChart={isHourlyChart}
                 />
               </Panel>
             </PanelWrapper>
@@ -284,7 +288,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
             <Panel
               rounded
               style={{
-                marginTop: '1.5rem'
+                marginTop: '1.5rem',
               }}
               p={20}
             >
@@ -329,7 +333,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
             <Panel
               rounded
               style={{
-                marginTop: '1.5rem'
+                marginTop: '1.5rem',
               }}
               p={20}
             >
@@ -362,7 +366,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
               <Panel
                 rounded
                 style={{
-                  marginTop: '1.5rem'
+                  marginTop: '1.5rem',
                 }}
                 p={20}
               >
@@ -389,7 +393,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                     </AutoRow>
                   </Column>
                   <RowFixed>
-                    {protocolData.gecko_id !== null &&
+                    {protocolData.gecko_id !== null && (
                       <Link
                         color={backgroundColor}
                         style={{ marginRight: '.5rem' }}
@@ -400,14 +404,14 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                           View on CoinGecko ↗
                         </ButtonLight>
                       </Link>
-                    }
-                    {blockExplorerLink !== undefined &&
+                    )}
+                    {blockExplorerLink !== undefined && (
                       <Link color={backgroundColor} external href={blockExplorerLink}>
                         <ButtonLight useTextColor={true} color={backgroundColor}>
                           View on {blockExplorerName} ↗
                         </ButtonLight>
                       </Link>
-                    }
+                    )}
                   </RowFixed>
                 </TokenDetailsLayout>
               </Panel>

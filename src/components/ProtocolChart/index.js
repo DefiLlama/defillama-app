@@ -14,7 +14,8 @@ const ProtocolChart = ({
   denomination,
   selectedChain,
   chains,
-  hallmarks
+  hallmarks,
+  isHourlyChart,
 }) => {
   const extraTvlEnabled = useGetExtraTvlEnabled()
 
@@ -23,17 +24,17 @@ const ProtocolChart = ({
   const below1024 = useMedia('(max-width: 1024px)')
   const below900 = useMedia('(max-width: 900px)')
   const small = below900 || (!below1024 && below1600)
-  const sections = Object.keys(chainTvls).filter(sect => extraTvlEnabled[sect.toLowerCase()])
+  const sections = Object.keys(chainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
   const chartDataFiltered = useMemo(() => {
     const tvlDictionary = {}
     if (sections.length > 0) {
       for (const name of sections) {
         tvlDictionary[name] = {}
-        chainTvls[name].tvl.forEach(dataPoint => {
+        chainTvls[name].tvl.forEach((dataPoint) => {
           tvlDictionary[name][dataPoint.date] = dataPoint.totalLiquidityUSD
         })
       }
-      return chartData?.map(item => {
+      return chartData?.map((item) => {
         const sum = sections.reduce((total, sect) => total + (tvlDictionary[sect]?.[item[0]] ?? 0), item[1])
         return [item[0], sum]
       })
@@ -53,6 +54,7 @@ const ProtocolChart = ({
       selectedChain={selectedChain}
       chains={chains ?? [protocol]}
       hallmarks={hallmarks}
+      isHourlyChart={isHourlyChart}
     />
   )
 }

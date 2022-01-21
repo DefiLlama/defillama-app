@@ -209,7 +209,7 @@ export const getProtocol = async (protocolName: string) => {
     const tvl = data?.tvl ?? []
     if (tvl.length < 7) {
       const hourlyData = await fetch(`${HOURLY_PROTOCOL_API}/${protocolName}`).then((r) => r.json())
-      return hourlyData
+      return { ...hourlyData, isHourlyChart: true }
     } else return data
   } catch (e) {
     console.log(e)
