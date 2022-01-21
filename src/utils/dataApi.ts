@@ -129,17 +129,70 @@ export async function getChainPageData(chain) {
     }
   }
 
-  const {
-    tvl = [],
-    staking = [],
-    borrowed = [],
-    pool2 = [],
-    offers = [],
-    treasury = [],
-    masterchef = [],
-  } = chartData || {}
+  const { tvl = [], staking = [], borrowed = [], pool2 = [], offers = [], treasury = [] } = chartData || {}
 
   const filteredProtocols = formatProtocolsData({ chain, protocols })
+
+  let currentTvl = 0
+  let tvlChange = 0
+  let borrowedTvl = 0
+  let borrowedTvlChange = 0
+  let stakingTvl = 0
+  let stakingTvlChange = 0
+  let pool2Tvl = 0
+  let pool2TvlChange = 0
+  let offersTvl = 0
+  let offersTvlChange = 0
+  let treasuryTvl = 0
+  let treasuryTvlChange = 0
+
+  if (tvl.length > 1) {
+    currentTvl = tvl[tvl.length - 1][1]
+    tvlChange = ((tvl[tvl.length - 1][1] - tvl[tvl.length - 2][1]) / tvl[tvl.length - 2][1]) * 100
+  }
+
+  if (staking.length > 1) {
+    stakingTvl = staking[staking.length - 1][1]
+    stakingTvlChange =
+      ((staking[staking.length - 1][1] - staking[staking.length - 2][1]) / staking[staking.length - 2][1]) * 100
+  }
+
+  if (borrowed.length > 1) {
+    borrowedTvl = borrowed[borrowed.length - 1][1]
+    borrowedTvlChange =
+      ((borrowed[borrowed.length - 1][1] - borrowed[borrowed.length - 2][1]) / borrowed[borrowed.length - 2][1]) * 100
+  }
+  if (pool2.length > 1) {
+    pool2Tvl = pool2[pool2.length - 1][1]
+    pool2TvlChange = ((pool2[pool2.length - 1][1] - pool2[pool2.length - 2][1]) / pool2[pool2.length - 2][1]) * 100
+  }
+  if (offers.length > 1) {
+    offersTvl = offers[offers.length - 1][1]
+    offersTvlChange =
+      ((offers[offers.length - 1][1] - offers[offers.length - 2][1]) / offers[offers.length - 2][1]) * 100
+  }
+  if (treasury.length > 1) {
+    treasuryTvl = treasury[treasury.length - 1][1]
+    treasuryTvlChange =
+      ((treasury[treasury.length - 1][1] - treasury[treasury.length - 2][1]) / treasury[treasury.length - 2][1]) * 100
+  }
+
+  // TODO refactor and put all options into a single object with totalVolue, volumeChange, volumeCharts keys respectively
+  const extraTvls = {
+    staking: stakingTvl,
+    borrowed: borrowedTvl,
+    pool2: pool2Tvl,
+    offers: offersTvl,
+    treasury: treasuryTvl,
+  }
+
+  const extraTvlsChange = {
+    staking: stakingTvlChange,
+    borrowed: borrowedTvlChange,
+    pool2: pool2TvlChange,
+    offers: offersTvlChange,
+    treasury: treasuryTvlChange,
+  }
 
   const extraVolumesCharts = {
     staking: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
@@ -147,7 +200,6 @@ export async function getChainPageData(chain) {
     pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     treasury: treasury.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-    masterchef: masterchef.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
   }
 
   return {
@@ -156,6 +208,10 @@ export async function getChainPageData(chain) {
       chainsSet: chains,
       filteredProtocols,
       chart: tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+      totalVolumeUSD: currentTvl,
+      volumeChangeUSD: tvlChange,
+      extraTvls,
+      extraTvlsChange,
       extraVolumesCharts,
     },
   }

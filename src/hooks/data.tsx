@@ -16,10 +16,6 @@ interface IProtocol {
   }
 }
 
-interface IChainTvls {
-  [key: string]: number
-}
-
 export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn) => {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
@@ -34,22 +30,16 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
         let finalTvlPrevDay: number | null = tvlPrevDay
         let finalTvlPrevWeek: number | null = tvlPrevWeek
         let finalTvlPrevMonth: number | null = tvlPrevMonth
+
         Object.entries(extraTvl).forEach(([prop, propValues]) => {
           const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
           // convert to lowercase as server response is not consistent in extra-tvl names
-          const option = prop.toLowerCase()
-          if (extraTvlsEnabled[option]) {
-            if (option === 'masterchef') {
-              tvl && (finalTvl = (finalTvl || 0) - tvl)
-              tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
-              tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
-              tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
-            } else {
-              tvl && (finalTvl = (finalTvl || 0) + tvl)
-              tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
-              tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
-              tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
-            }
+          if (extraTvlsEnabled[prop.toLowerCase()]) {
+            // check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
+            tvl && (finalTvl = (finalTvl || 0) + tvl)
+            tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
+            tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
+            tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
           }
         })
 
@@ -76,20 +66,14 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
   return protocolTotals
 }
 
-export const useCalcSingleExtraTvl = (chainTvls: IChainTvls, simpleTvl) => {
+export const useCalcSingleExtraTvl = (chainTvls, simpleTvl) => {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
+
   const protocolTvl = useMemo(() => {
     let tvl = simpleTvl
     Object.entries(chainTvls).forEach(([section, sectionTvl]) => {
       // convert to lowercase as server response is not consistent in extra-tvl names
-      const option = section.toLowerCase()
-      if (extraTvlsEnabled[option]) {
-        if (option === 'masterchef') {
-          tvl -= sectionTvl
-        } else {
-          tvl += sectionTvl
-        }
-      }
+      if (extraTvlsEnabled[section.toLowerCase()]) tvl += sectionTvl
     })
     return tvl
   }, [extraTvlsEnabled, simpleTvl, chainTvls])
