@@ -1,4 +1,4 @@
-import FiltersAndDropdown from '../Filters/FiltersAndDropdown'
+import FiltersAndDropdown from './FiltersAndDropdown'
 import Row from '../Row'
 
 // filter option to, and label,
