@@ -43,6 +43,15 @@ export function localNumber(val) {
   return Numeral(val).format('0,0')
 }
 
+export const toNiceDayAndHour = (date) => {
+  let x = dayjs.utc(dayjs.unix(date)).format('D MMM, HH:mm')
+  return x
+}
+export const toNiceHour = (date) => {
+  let x = dayjs.utc(dayjs.unix(date)).format('HH:mm')
+  return x
+}
+
 export const toNiceMonthlyDate = (date) => {
   let x = dayjs.utc(dayjs.unix(date)).format('MMM YYYY')
   return x

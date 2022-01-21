@@ -15,7 +15,16 @@ import { chainCoingeckoIds } from 'constants/chainTokens'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { fetchAPI } from 'contexts/API'
 import { useXl, useLg, useMed } from 'hooks'
-import { toK, toNiceDate, toNiceDateYear, formattedNum, getTimeframe, toNiceMonthlyDate } from 'utils'
+import {
+  toK,
+  toNiceDate,
+  toNiceDateYear,
+  formattedNum,
+  getTimeframe,
+  toNiceMonthlyDate,
+  toNiceHour,
+  toNiceDayAndHour,
+} from 'utils'
 
 const ChartWrapper = styled.div`
   height: 100%;
@@ -60,6 +69,7 @@ const TokenChart = ({
   chains,
   selectedChain = 'all',
   hallmarks = [],
+  isHourlyChart,
 }) => {
   let DENOMINATIONS = BASIC_DENOMINATIONS
   let chainDenomination
@@ -271,7 +281,14 @@ const TokenChart = ({
       moneySymbol = '$'
   }
 
-  const formatDate = finalChartData?.length > 120 ? toNiceMonthlyDate : toNiceDate
+  let formatDate = (date) => {
+    if (isHourlyChart) {
+      return finalChartData?.length > 24 ? toNiceDayAndHour(date) : toNiceHour(date)
+    } else {
+      return finalChartData?.length > 120 ? toNiceMonthlyDate(date) : toNiceDate(date)
+    }
+  }
+
   const tokensProvided =
     tokensInUsd &&
     tokensInUsd.length !== 0 &&
