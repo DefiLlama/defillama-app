@@ -2,8 +2,7 @@
   "extends": ["next", "prettier"],
   "rules": {
     "no-undef": "warn",
-    "no-unused-vars": "warn",
-    "react/no-unescaped-entities": "off"
+    "no-unused-vars": "warn"
   },
   "env": {
     "es6": true
