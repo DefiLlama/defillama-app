@@ -11,8 +11,7 @@ import {
   NFT_SEARCH_API,
   CONFIG_API,
 } from '../constants/index'
-import { standardizeProtocolName } from 'utils'
-import { getPercentChange } from 'hooks/data'
+import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
 
 interface IProtocol {
   name: string
@@ -100,9 +99,9 @@ const formatProtocolsData = ({
       protocol.tvlPrevMonth = protocol.chainTvls[chain]?.tvlPrevMonth ?? null
     }
     protocol.extraTvl = {}
-    protocol.change_1d = getPercentChange(protocol.tvlPrevDay, protocol.tvl)
-    protocol.change_7d = getPercentChange(protocol.tvlPrevWeek, protocol.tvl)
-    protocol.change_1m = getPercentChange(protocol.tvlPrevMonth, protocol.tvl)
+    protocol.change_1d = getPercentChange(protocol.tvl, protocol.tvlPrevDay)
+    protocol.change_7d = getPercentChange(protocol.tvl, protocol.tvlPrevWeek)
+    protocol.change_1m = getPercentChange(protocol.tvl, protocol.tvlPrevMonth)
 
     Object.entries(protocol.chainTvls).forEach(([sectionName, sectionTvl]) => {
       if (chain) {
@@ -298,11 +297,10 @@ export const getChainsPageData = async (category: string) => {
     const tvlData = chainsData.map((d) => d.tvl)
     const chainTvls = chainsUnique
       .map((chainName, i) => {
-        const prevTvl = (daysBefore) => tvlData[i][tvlData[i].length - 1 - daysBefore]?.[1] ?? null
-        const tvl = prevTvl(0)
-        const tvlPrevDay = prevTvl(1)
-        const tvlPrevWeek = prevTvl(7)
-        const tvlPrevMonth = prevTvl(30)
+        const tvl = getPrevTvlFromChart(tvlData[i], 0)
+        const tvlPrevDay = getPrevTvlFromChart(tvlData[i], 1)
+        const tvlPrevWeek = getPrevTvlFromChart(tvlData[i], 7)
+        const tvlPrevMonth = getPrevTvlFromChart(tvlData[i], 30)
         const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
         return {
           tvl,
@@ -314,9 +312,9 @@ export const getChainsPageData = async (category: string) => {
           symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
           protocols: numProtocolsPerChain[chainName],
           extraTvl: extraPropPerChain[chainName] || {},
-          change_1d: getPercentChange(tvlPrevDay, tvl),
-          change_7d: getPercentChange(tvlPrevWeek, tvl),
-          change_1m: getPercentChange(tvlPrevMonth, tvl),
+          change_1d: getPercentChange(tvl, tvlPrevDay),
+          change_7d: getPercentChange(tvl, tvlPrevWeek),
+          change_1m: getPercentChange(tvl, tvlPrevMonth),
         }
       })
       .sort((a, b) => b.tvl - a.tvl)

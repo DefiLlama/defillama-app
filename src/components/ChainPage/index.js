@@ -14,8 +14,8 @@ import { AllTvlOptions } from '../SettingsModal'
 
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { TYPE, ThemedBackground } from 'Theme'
-import { formattedNum } from 'utils'
-import { getPercentChange, useCalcStakePool2Tvl } from 'hooks/data'
+import { formattedNum, getPercentChange, getPrevTvlFromChart } from 'utils'
+import { useCalcStakePool2Tvl } from 'hooks/data'
 import { DownloadCloud } from 'react-feather'
 import { BasicLink } from '../Link'
 
@@ -95,10 +95,9 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
       }
     })
 
-    const prevTvl = (daysBefore) => globalChart[globalChart.length - 1 - daysBefore]?.[1] ?? null
-    const tvl = prevTvl(0)
-    const tvlPrevDay = prevTvl(1)
-    const volumeChangeUSD = getPercentChange(tvlPrevDay, tvl)
+    const tvl = getPrevTvlFromChart(globalChart, 0)
+    const tvlPrevDay = getPrevTvlFromChart(globalChart, 1)
+    const volumeChangeUSD = getPercentChange(tvl, tvlPrevDay)
 
     return { totalVolumeUSD: tvl, volumeChangeUSD, globalChart }
   }, [chart, extraTvlsEnabled, extraVolumesCharts])
