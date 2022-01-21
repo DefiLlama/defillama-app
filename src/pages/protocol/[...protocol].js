@@ -6,13 +6,13 @@ import { getProtocols, getProtocol, fuseProtocolData, revalidate } from 'utils/d
 
 export async function getStaticProps({
   params: {
-    protocol: [protocol, selectedChain = 'all', denomination = null]
-  }
+    protocol: [protocol, selectedChain = 'all', denomination = null],
+  },
 }) {
   const protocolRes = await getProtocol(protocol)
   if (protocolRes.statusCode === 400) {
     return {
-      notFound: true
+      notFound: true,
     }
   }
   const protocolData = fuseProtocolData(protocolRes, protocol)
@@ -22,9 +22,9 @@ export async function getStaticProps({
       protocol,
       protocolData,
       selectedChain,
-      denomination
+      denomination,
     },
-    revalidate: revalidate()
+    revalidate: revalidate(),
   }
 }
 
@@ -32,7 +32,7 @@ export async function getStaticPaths() {
   const res = await getProtocols()
 
   const paths = res.protocols.map(({ name }) => ({
-    params: { protocol: [standardizeProtocolName(name)] }
+    params: { protocol: [standardizeProtocolName(name)] },
   }))
 
   return { paths, fallback: 'blocking' }

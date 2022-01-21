@@ -10,6 +10,7 @@ import {
   NFT_MARKETPLACES_API,
   NFT_SEARCH_API,
   CONFIG_API,
+  HOURLY_PROTOCOL_API,
 } from '../constants/index'
 import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
 
@@ -25,6 +26,10 @@ interface IProtocol {
       tvlPrevMonth: number
     }
   }
+  tvl: {
+    date: number
+    totalLiquidityUSD: number
+  }[]
 }
 
 interface IChainGeckoId {
@@ -198,9 +203,14 @@ export const getProtocols = () =>
       categories: protocolCategories,
     }))
 
-export const getProtocol = (protocolName) => {
+export const getProtocol = async (protocolName: string) => {
   try {
-    return fetch(`${PROTOCOL_API}/${protocolName}`).then((r) => r.json())
+    const data: IProtocol = await fetch(`${PROTOCOL_API}/${protocolName}`).then((r) => r.json())
+    const tvl = data?.tvl ?? []
+    if (tvl.length < 7) {
+      const hourlyData = await fetch(`${HOURLY_PROTOCOL_API}/${protocolName}`).then((r) => r.json())
+      return hourlyData
+    } else return data
   } catch (e) {
     console.log(e)
   }

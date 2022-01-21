@@ -32,6 +32,7 @@ export const CHART_API = 'https://api.llama.fi/lite/charts'
 export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2'
 export const PROTOCOL_API = 'https://api.llama.fi/updatedProtocol'
 export const CONFIG_API = 'https://api.llama.fi/config'
+export const HOURLY_PROTOCOL_API = 'https://api.llama.fi/hourly'
 
 export const NFT_COLLECTION_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collection'
 export const NFT_COLLECTIONS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collections'
