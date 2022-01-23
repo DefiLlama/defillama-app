@@ -17,6 +17,12 @@ interface IProtocol {
   }
 }
 
+interface IChainTvl {
+  [key: string]: number
+}
+
+type ChainTvlsByDay = [string, IChainTvl]
+
 export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn) => {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
@@ -80,4 +86,34 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl) => {
   }, [extraTvlsEnabled, simpleTvl, chainTvls])
 
   return protocolTvl
+}
+
+export const useCalcChainsTvlsByDay = (chains) => {
+  const extraTvlsEnabled = useGetExtraTvlEnabled()
+
+  const { data, daySum } = useMemo(() => {
+    const daySum = {}
+    const data = chains.map(([date, values]) => {
+      const tvls: IChainTvl = {}
+      let totalDaySum = 0
+
+      Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
+        let sum = chainTvls.tvl
+        totalDaySum += chainTvls.tvl || 0
+
+        for (const c in chainTvls) {
+          if (extraTvlsEnabled[c.toLowerCase()]) {
+            sum += chainTvls[c]
+            totalDaySum += chainTvls[c]
+          }
+        }
+        tvls[name] = sum
+      })
+      daySum[date] = totalDaySum
+      return { date, ...tvls }
+    })
+    return { data, daySum }
+  }, [chains, extraTvlsEnabled])
+
+  return { data, daySum }
 }
