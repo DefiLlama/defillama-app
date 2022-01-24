@@ -1,4 +1,5 @@
 const blockExplorers = {
+  astar: ['https://blockscout.com/astar/address/', 'Blockscout'],
   bsc: ['https://bscscan.com/address/', 'Bscscan'],
   xdai: ['https://blockscout.com/xdai/mainnet/address/', 'BlockScout'],
   avax: ['https://snowtrace.io/address/', 'Snowtrace'],
