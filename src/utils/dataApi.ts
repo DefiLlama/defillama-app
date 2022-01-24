@@ -258,7 +258,7 @@ export const getChainsPageData = async (category: string) => {
       ].concat(categories.map((category) => ({ label: category, to: `/chains/${category}` })))
     }
 
-    const chainsUnique = res.chains.filter((t: string) => {
+    const chainsUnique: string[] = res.chains.filter((t: string) => {
       if (t !== 'Syscoin') {
         const chainCategories = chainCoingeckoIds[t]?.categories ?? []
         if (category === 'All') {
@@ -268,6 +268,17 @@ export const getChainsPageData = async (category: string) => {
         } else {
           return chainCategories.includes(category)
         }
+      }
+    })
+
+    let chainsGroupbyParent = {}
+    chainsUnique.forEach((chain) => {
+      const parent = chainCoingeckoIds[chain].parent
+      if (parent) {
+        if (!chainsGroupbyParent[parent]) {
+          chainsGroupbyParent[parent] = {}
+        }
+        chainsGroupbyParent[parent][chain] = {}
       }
     })
 
@@ -353,6 +364,7 @@ export const getChainsPageData = async (category: string) => {
         stackedDataset,
         category,
         categories,
+        chainsGroupbyParent,
       },
     }
   } catch (error) {

@@ -23,6 +23,22 @@ interface IChainTvl {
 
 type ChainTvlsByDay = [string, IChainTvl]
 
+type DataValue = number | null
+
+interface IGroupData {
+  [key: string]: {}
+}
+
+interface IChain {
+  tvl: number
+  tvlPrevDay: number
+  tvlPrevWeek: number
+  tvlPrevMonth: number
+  mcap: number
+  name: string
+  protocols: number
+}
+
 export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn) => {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
@@ -57,6 +73,9 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
         return {
           ...props,
           tvl: finalTvl,
+          tvlPrevDay: finalTvlPrevDay,
+          tvlPrevWeek: finalTvlPrevWeek,
+          tvlPrevMonth: finalTvlPrevMonth,
           change_1d: change1d,
           change_7d: change7d,
           change_1m: change1m,
@@ -116,4 +135,73 @@ export const useCalcChainsTvlsByDay = (chains) => {
   }, [chains, extraTvlsEnabled])
 
   return { data, daySum }
+}
+
+export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData) => {
+  const data = useMemo(() => {
+    const finalData = {}
+    const addedChains = []
+    for (const parent in groupData) {
+      const parentName = parent + '-overall'
+      let tvl: DataValue = null
+      let tvlPrevDay: DataValue = null
+      let tvlPrevWeek: DataValue = null
+      let tvlPrevMonth: DataValue = null
+      let mcap: DataValue = null
+      let protocols: DataValue = null
+
+      finalData[parentName] = {}
+
+      const parentData = chains.find((item) => item.name === parent)
+      if (parentData) {
+        tvl = parentData.tvl || null
+        tvlPrevDay = parentData.tvlPrevDay || null
+        tvlPrevWeek = parentData.tvlPrevWeek || null
+        tvlPrevMonth = parentData.tvlPrevMonth || null
+        mcap = parentData.mcap || null
+        protocols = parentData.protocols || null
+        finalData[parentName] = {
+          tvl,
+          tvlPrevDay,
+          tvlPrevWeek,
+          tvlPrevMonth,
+          mcap,
+          protocols,
+          childChains: [parentData],
+        }
+        addedChains.push(parent)
+      }
+      for (const child in groupData[parent]) {
+        const childData = chains.find((item) => item.name === child)
+        if (childData) {
+          tvl += childData.tvl
+          tvlPrevDay += childData.tvlPrevDay
+          tvlPrevWeek += childData.tvlPrevWeek
+          tvlPrevMonth += childData.tvlPrevMonth
+          mcap += childData.mcap
+          protocols += childData.protocols
+          const childChains = finalData[parentName].childChains || []
+          finalData[parentName] = {
+            ...parentData,
+            tvl,
+            tvlPrevDay,
+            tvlPrevWeek,
+            tvlPrevMonth,
+            mcap,
+            protocols,
+            childChains: [...childChains, childData],
+          }
+          addedChains.push(child)
+        }
+      }
+    }
+    chains.forEach((item) => {
+      if (!addedChains.includes(item.name)) {
+        finalData[item.name] = item
+      }
+    })
+    return finalData
+  }, [chains, groupData])
+
+  return data
 }
