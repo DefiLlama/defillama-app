@@ -10,10 +10,11 @@ import TokenList from '../TokenList'
 import { ChainPieChart, ChainDominanceChart } from '../Charts'
 import { Header } from 'Theme'
 
-import { useCalcChainsTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
+import { useCalcChainsTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
 import { toNiceCsvDate, chainIconUrl, getRandomColor } from 'utils'
 import { AllTvlOptions } from '../SettingsModal'
 import Filters from '../Filters'
+import Panel from 'components/Panel'
 
 function download(filename, text) {
   var element = document.createElement('a')
@@ -47,7 +48,7 @@ const RowWrapper = styled(RowBetween)`
   }
 `
 
-const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categories }) => {
+const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categories, chainsGroupbyParent }) => {
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
     [chainsUnique]
@@ -80,6 +81,8 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categor
     download('chains.csv', rows.map((r) => r.join(',')).join('\n'))
   }
 
+  const groupedChains = useGroupChainsByParent(chainTotals, chainsGroupbyParent)
+
   return (
     <PageWrapper>
       <FullWrapper>
@@ -101,13 +104,15 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categor
           />
         </ChartsWrapper>
         <Filters filterOptions={categories} activeLabel={category} />
-        <TokenList
-          canBookmark={false}
-          tokens={chainTotals}
-          iconUrl={chainIconUrl}
-          generateLink={(name) => `/chain/${name}`}
-          columns={[undefined, 'protocols', 'change_1d', 'change_7d', 'change_1m']}
-        />
+        <Panel>
+          <TokenList
+            canBookmark={false}
+            tokens={groupedChains}
+            iconUrl={chainIconUrl}
+            generateLink={(name) => `/chain/${name}`}
+            columns={[undefined, 'protocols', 'change_1d', 'change_7d', 'change_1m']}
+          />
+        </Panel>
       </FullWrapper>
     </PageWrapper>
   )
