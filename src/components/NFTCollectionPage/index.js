@@ -164,7 +164,7 @@ function NFTCollectionPage({ collection, chart, statistics }) {
 
   const marketCapSection = (
     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-      {formattedNum(shownMarketCap, displayUsd)}
+      {shownMarketCap ? formattedNum(shownMarketCap, displayUsd) : "-"}
     </TYPE.main>
   )
 
