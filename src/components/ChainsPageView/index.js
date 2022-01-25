@@ -41,9 +41,15 @@ const ChartsWrapper = styled(Box)`
   }
 `
 
+const TableWrapper = styled(Panel)`
+  @media (max-width: 680px) {
+    padding: 1rem 0.5rem;
+  }
+`
+
 const RowWrapper = styled(RowBetween)`
   flex-wrap: wrap;
-  @media (max-width: 600px) {
+  @media (max-width: 680px) {
     gap: 16px;
   }
 `
@@ -104,7 +110,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categor
           />
         </ChartsWrapper>
         <Filters filterOptions={categories} activeLabel={category} />
-        <Panel>
+        <TableWrapper>
           <TokenList
             canBookmark={false}
             tokens={groupedChains}
@@ -112,7 +118,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categor
             generateLink={(name) => `/chain/${name}`}
             columns={[undefined, 'protocols', 'change_1d', 'change_7d', 'change_1m']}
           />
-        </Panel>
+        </TableWrapper>
       </FullWrapper>
     </PageWrapper>
   )

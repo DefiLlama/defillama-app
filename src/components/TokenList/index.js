@@ -23,23 +23,22 @@ const List = styled(Box)`
 const DashGrid = styled.div`
   display: grid;
   grid-gap: 1em;
-  grid-template-columns: 100px 1fr 1fr;
-  grid-template-areas: 'symbol 7dchange vol';
+  grid-template-columns: 16px 1fr 1fr 1fr;
+  grid-template-areas: 'toggle name 7dchange tvl';
 
   > * {
     justify-content: flex-end;
 
     &:first-child {
       justify-content: flex-start;
-      text-align: left;
     }
   }
 
   @media screen and (min-width: 680px) {
     display: grid;
     grid-gap: 1em;
-    grid-template-columns: 180px 1fr 1fr 1fr;
-    grid-template-areas: 'name symbol 7dchange vol';
+    grid-template-columns: 16px 28px 180px 1fr 1fr 1fr;
+    grid-template-areas: 'toggle index name 7dchange tvl mcaptvl';
 
     > * {
       justify-content: flex-end;
@@ -54,12 +53,13 @@ const DashGrid = styled.div`
   ${({ theme: { minLg } }) => minLg} {
     display: grid;
     grid-gap: 0.5em;
-    grid-template-columns: 1.2fr 1fr 0.4fr 0.4fr 0.4fr;
-    grid-template-areas: 'name chain mcaptvl 1dchange 7dchange tvl';
+    grid-template-columns: 16px 28px 1.2fr 1fr 0.4fr 0.4fr 0.4fr;
+    grid-template-areas: 'toggle index name chain 7dchange tvl mcaptvl';
   }
 
   ${({ theme: { minXl } }) => minXl} {
-    grid-template-columns: 1.2fr 1fr 0.4fr 0.4fr 0.4fr 0.4fr 0.4fr;
+    grid-template-columns: 16px 28px 1.2fr 1fr 0.4fr 0.4fr 0.4fr 0.4fr 0.4fr;
+    grid-template-areas: 'toggle index name chain 1dchange 7dchange 1mchange tvl mcaptvl';
   }
 `
 
@@ -74,7 +74,7 @@ export const ClickableText = styled(Text)`
   user-select: none;
   color: ${({ theme }) => theme.text1};
 
-  @media screen and (max-width: 640px) {
+  @media screen and (max-width: 680px) {
     font-size: 0.85rem;
   }
 `
@@ -88,7 +88,7 @@ export const DataText = styled(Flex)`
     font-size: 14px;
   }
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: 680px) {
     font-size: 12px;
   }
 `
@@ -137,12 +137,6 @@ const ProtocolButton = ({ item }) => {
   )
 }
 
-const Index = styled.div`
-  @media (max-width: 680px) {
-    display: none;
-  }
-`
-
 const DataTextHideBelow680 = styled(DataText)`
   @media (max-width: 680px) {
     display: none !important;
@@ -175,6 +169,21 @@ const FlexHideBelowXl = styled(Flex)`
   ${({ theme: { maxXl } }) => maxXl} {
     display: none !important;
   }
+`
+
+const ToggleButton = styled(DataText)`
+  margin-top: 4px;
+  cursor: pointer;
+  overflow: visible;
+
+  & svg {
+    width: 16px;
+    height: 16px;
+  }
+`
+
+const Index = styled(DataTextHideBelow680)`
+  justify-content: center;
 `
 
 // @TODO rework into virtualized list
@@ -248,10 +257,13 @@ function TokenList({
   return (
     <ListWrapper>
       <DashGrid center={true} style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
-        <Flex alignItems="center" justifyContent="flexStart">
+        <div area="toggle"></div>
+        <Index area="index"></Index>
+        <Flex alignItems="center" justifyContent="flex-start">
           <ClickableText
             area="name"
             fontWeight="500"
+            style={{ textAlign: 'start' }}
             onClick={(e) => {
               setSortedColumn(SORT_FIELD.NAME)
               setSortDirection(sortedColumn !== SORT_FIELD.NAME ? true : !sortDirection)
@@ -370,18 +382,12 @@ const ListItem = ({ item, index, canBookmark, iconUrl, columns, generateLink }) 
   return (
     <>
       <DashGrid style={{ height: '48px' }} focus={true}>
+        <ToggleButton area="toggle">{canBookmark && <Bookmark readableProtocolName={item.name} />}</ToggleButton>
+        <Index area="index">{index !== null ? index + 1 : '-'}</Index>
         <DataText area="name" fontWeight="500">
           <Row style={{ gap: '1rem', minWidth: '100%' }}>
-            {canBookmark && (
-              <Bookmark
-                readableProtocolName={item.name}
-                style={{ width: '16px', height: '16px', cursor: 'pointer', overflow: 'visible', marginTop: '4px' }}
-              />
-            )}
-
-            <Index>{index !== null ? index + 1 : '-'}</Index>
             <TokenLogo logo={iconUrl(item.name)} />
-            <CustomLink href={generateLink(item.name)}>
+            <CustomLink href={generateLink(item.name)} style={{ textAlign: 'start' }}>
               <ProtocolButton item={item} />
             </CustomLink>
           </Row>
@@ -414,10 +420,12 @@ const ListHeaderItem = ({ item, index, columns, iconUrl, canBookmark, generateLi
         focus={true}
         onClick={handleDisplay}
       >
+        <ToggleButton area="toggle">
+          {displayChains ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </ToggleButton>
+        <Index area="index">{index + 1}</Index>
         <DataText area="name" fontWeight="500">
           <Row style={{ gap: '1rem', minWidth: '100%' }}>
-            {/* <ToggleIcon>{displayChains ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</ToggleIcon> */}
-            <Index>{index + 1}</Index>
             <TokenLogo logo={iconUrl(item.name)} />
             <p>{item.name}</p>
           </Row>
