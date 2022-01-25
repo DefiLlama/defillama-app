@@ -11,7 +11,8 @@ const exclude = [
   'Karura Dollar (kUSD)',
   'Tezos Liquidity Baking',
   'Notional',
-  'Tinlake'
+  'Tinlake',
+  'Kuu Finance'
 ]
 
 export async function getStaticProps() {
