@@ -281,7 +281,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             </FiltersRow>
           </RowBetween>
         </ListOptions>
-        <Panel style={{ marginTop: '6px', padding: '1.125rem 0 ' }}>
+        <Panel style={{ marginTop: '6px' }}>
           <TokenList tokens={protocolTotals} filters={[selectedChain]} />
         </Panel>
       </ContentWrapper>

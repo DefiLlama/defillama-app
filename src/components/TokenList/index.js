@@ -25,7 +25,6 @@ const DashGrid = styled.div`
   grid-gap: 1em;
   grid-template-columns: 100px 1fr 1fr;
   grid-template-areas: 'symbol 7dchange vol';
-  padding: 0 1.125rem;
 
   > * {
     justify-content: flex-end;
@@ -178,16 +177,6 @@ const FlexHideBelowXl = styled(Flex)`
   }
 `
 
-const ToggleIcon = styled.div`
-  position: absolute;
-  left: -4px;
-  top: 16px;
-  & > svg {
-    width: 16px;
-    height: 16px;
-  }
-`
-
 // @TODO rework into virtualized list
 function TokenList({
   tokens,
@@ -258,7 +247,7 @@ function TokenList({
 
   return (
     <ListWrapper>
-      <DashGrid center={true} style={{ height: 'fit-content', padding: '0 1.125rem 1rem 1.125rem' }}>
+      <DashGrid center={true} style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
         <Flex alignItems="center" justifyContent="flexStart">
           <ClickableText
             area="name"
@@ -345,7 +334,7 @@ function TokenList({
         <InfiniteScroll dataLength={dataLength} next={next} hasMore={hasMore}>
           {filteredList.slice(0, dataLength).map((item, index) => {
             return (
-              <span key={item.name + index}>
+              <div key={item.name + index}>
                 {item.childChains ? (
                   <ListHeaderItem
                     item={item}
@@ -356,19 +345,16 @@ function TokenList({
                     generateLink={generateLink}
                   />
                 ) : (
-                  <>
-                    <ListItem
-                      index={index}
-                      item={item}
-                      iconUrl={iconUrl}
-                      columns={columns}
-                      canBookmark={canBookmark}
-                      generateLink={generateLink}
-                    />
-                    <Divider />
-                  </>
+                  <ListItem
+                    index={index}
+                    item={item}
+                    iconUrl={iconUrl}
+                    columns={columns}
+                    canBookmark={canBookmark}
+                    generateLink={generateLink}
+                  />
                 )}
-              </span>
+              </div>
             )
           })}
         </InfiniteScroll>
@@ -382,47 +368,35 @@ export default TokenList
 
 const ListItem = ({ item, index, canBookmark, iconUrl, columns, generateLink }) => {
   return (
-    <DashGrid style={{ height: '48px' }} focus={true}>
-      <DataText area="name" fontWeight="500">
-        <Row style={{ gap: '1rem', minWidth: '100%' }}>
-          {canBookmark && (
-            <Bookmark
-              readableProtocolName={item.name}
-              style={{ width: '16px', height: '16px', cursor: 'pointer', overflow: 'visible', marginTop: '4px' }}
-            />
+    <>
+      <DashGrid style={{ height: '48px' }} focus={true}>
+        <DataText area="name" fontWeight="500">
+          <Row style={{ gap: '1rem', minWidth: '100%' }}>
+            {canBookmark && (
+              <Bookmark
+                readableProtocolName={item.name}
+                style={{ width: '16px', height: '16px', cursor: 'pointer', overflow: 'visible', marginTop: '4px' }}
+              />
+            )}
+
+            <Index>{index !== null ? index + 1 : '-'}</Index>
+            <TokenLogo logo={iconUrl(item.name)} />
+            <CustomLink href={generateLink(item.name)}>
+              <ProtocolButton item={item} />
+            </CustomLink>
+          </Row>
+        </DataText>
+        <DataTextHideBelowLg area="chain">
+          {columns[1] === SORT_FIELD.CHAINS ? (
+            <ChainsRow chains={item.chains} />
+          ) : (
+            formattedNum(item[columns[1]], false)
           )}
-          <Index>{index !== null ? index + 1 : '~'}</Index>
-          <TokenLogo logo={iconUrl(item.name)} />
-          <CustomLink href={generateLink(item.name)}>
-            <ProtocolButton item={item} />
-          </CustomLink>
-        </Row>
-      </DataText>
-      <DataTextHideBelowLg area="chain">
-        {columns[1] === SORT_FIELD.CHAINS ? <ChainsRow chains={item.chains} /> : formattedNum(item[columns[1]], false)}
-      </DataTextHideBelowLg>
-      <DataTextHideBelowXl area="1dchange" fontWeight="500">
-        {formattedPercent(item.change_1d, true)}
-      </DataTextHideBelowXl>
-      <DataText area="7dchange">
-        {columns[3] === SORT_FIELD.DAYSEVEN
-          ? item.change_7d !== 0
-            ? formattedPercent(item.change_7d, true)
-            : ''
-          : `${item.listedAt} days ago`}
-      </DataText>
-      <DataTextHideBelowXl area="1mchange" fontWeight="500">
-        {item.change_1m || item.change_1m === 0 ? formattedPercent(item.change_1m, true) : ''}
-      </DataTextHideBelowXl>
-      <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
-      <DataTextHideBelow680 area="mcaptvl" fontWeight="500">
-        {item.mcaptvl
-          ? formattedNum(item.mcaptvl, false)
-          : item.mcap && item.tvl
-          ? formattedNum(item.mcap / item.tvl)
-          : ''}
-      </DataTextHideBelow680>
-    </DashGrid>
+        </DataTextHideBelowLg>
+        <VolumeColumns item={item} columns={columns} />
+      </DashGrid>
+      <Divider />
+    </>
   )
 }
 
@@ -432,6 +406,44 @@ const ListHeaderItem = ({ item, index, columns, iconUrl, canBookmark, generateLi
     setDisplayChains(!displayChains)
   }
 
+  const children = item.childChains
+  return (
+    <>
+      <DashGrid
+        style={{ height: '48px', position: 'relative', cursor: 'pointer' }}
+        focus={true}
+        onClick={handleDisplay}
+      >
+        <DataText area="name" fontWeight="500">
+          <Row style={{ gap: '1rem', minWidth: '100%' }}>
+            {/* <ToggleIcon>{displayChains ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</ToggleIcon> */}
+            <Index>{index + 1}</Index>
+            <TokenLogo logo={iconUrl(item.name)} />
+            <p>{item.name}</p>
+          </Row>
+        </DataText>
+        <DataTextHideBelowLg area="chain">{item.protocols}</DataTextHideBelowLg>
+        <VolumeColumns item={item} columns={columns} />
+      </DashGrid>
+      <Divider />
+      {displayChains &&
+        children &&
+        children.map((child, index) => (
+          <ListItem
+            index={null}
+            item={child}
+            iconUrl={iconUrl}
+            columns={columns}
+            canBookmark={canBookmark}
+            generateLink={generateLink}
+            key={child.name + 'child' + index}
+          />
+        ))}
+    </>
+  )
+}
+
+const VolumeColumns = ({ item, columns }) => {
   const { change1d, change7d, change1m, mcapTvl } = useMemo(() => {
     const change1d = formattedPercent(getPercentChange(item.tvl, item.tvlPrevDay))
     const change7d = formattedPercent(getPercentChange(item.tvl, item.tvlPrevWeek))
@@ -439,49 +451,21 @@ const ListHeaderItem = ({ item, index, columns, iconUrl, canBookmark, generateLi
     const mcapTvl = item.mcap && item.tvl && formattedNum(item.mcap / item.tvl)
     return { change1d, change7d, change1m, mcapTvl }
   }, [item])
-  const children = item.childChains
   return (
     <>
-      <DashGrid style={{ height: '48px', position: 'relative' }} focus={true}>
-        <DataText area="name" fontWeight="500" onClick={handleDisplay}>
-          <Row style={{ gap: '1rem', minWidth: '100%', cursor: 'pointer' }}>
-            <ToggleIcon>{displayChains ? <ChevronDown /> : <ChevronRight />}</ToggleIcon>
-            <Index>{index + 1}</Index>
-            <TokenLogo logo={iconUrl(item.name)} />
-            <p>{item.name}</p>
-          </Row>
-        </DataText>
-        <DataTextHideBelowLg area="chain">{item.protocols}</DataTextHideBelowLg>
-        <DataTextHideBelowXl area="1dchange" fontWeight="500">
-          {change1d}
-        </DataTextHideBelowXl>
-        <DataText area="7dchange">
-          {columns[3] === SORT_FIELD.DAYSEVEN ? (item.change_7d !== 0 ? change7d : '') : `${item.listedAt} days ago`}
-        </DataText>
-        <DataTextHideBelowXl area="1mchange" fontWeight="500">
-          {item.change_1m || item.change_1m === 0 ? change1m : ''}
-        </DataTextHideBelowXl>
-        <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
-        <DataTextHideBelow680 area="mcaptvl" fontWeight="500">
-          {mcapTvl}
-        </DataTextHideBelow680>
-      </DashGrid>
-      <Divider />
-      {displayChains &&
-        children &&
-        children.map((child) => (
-          <>
-            <ListItem
-              index={null}
-              item={child}
-              iconUrl={iconUrl}
-              columns={columns}
-              canBookmark={canBookmark}
-              generateLink={generateLink}
-            />
-            <Divider />
-          </>
-        ))}
+      <DataTextHideBelowXl area="1dchange" fontWeight="500">
+        {change1d}
+      </DataTextHideBelowXl>
+      <DataText area="7dchange">
+        {columns[3] === SORT_FIELD.DAYSEVEN ? (item.change_7d !== 0 ? change7d : '') : `${item.listedAt} days ago`}
+      </DataText>
+      <DataTextHideBelowXl area="1mchange" fontWeight="500">
+        {item.change_1m || item.change_1m === 0 ? change1m : ''}
+      </DataTextHideBelowXl>
+      <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
+      <DataTextHideBelow680 area="mcaptvl" fontWeight="500">
+        {mcapTvl}
+      </DataTextHideBelow680>
     </>
   )
 }
