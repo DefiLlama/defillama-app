@@ -14,7 +14,6 @@ import TokenLogo from 'components/TokenLogo'
 
 import { useInfiniteScroll } from 'hooks'
 import { formattedNum, formattedPercent, tokenIconUrl, slug, getPercentChange } from 'utils'
-import { ChevronDown, ChevronRight } from 'react-feather'
 
 const List = styled(Box)`
   -webkit-overflow-scrolling: touch;
@@ -23,7 +22,7 @@ const List = styled(Box)`
 const DashGrid = styled.div`
   display: grid;
   grid-gap: 1em;
-  grid-template-columns: 16px 1fr 1fr 1fr;
+  grid-template-columns: 16px 1fr 0.7fr 0.7fr;
   grid-template-areas: 'toggle name 7dchange tvl';
 
   > * {
@@ -186,6 +185,10 @@ const Index = styled(DataTextHideBelow680)`
   justify-content: center;
 `
 
+const ListHeaderName = styled(DataText)`
+  margin-left: var(--ident-left) !important;
+`
+
 // @TODO rework into virtualized list
 function TokenList({
   tokens,
@@ -256,7 +259,10 @@ function TokenList({
 
   return (
     <ListWrapper>
-      <DashGrid center={true} style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
+      <DashGrid
+        center={true}
+        style={{ height: 'fit-content', padding: '0 0 1rem 0', marginLeft: !canBookmark ? '-28px' : 0 }}
+      >
         <div area="toggle"></div>
         <Index area="index"></Index>
         <Flex alignItems="center" justifyContent="flex-start">
@@ -378,20 +384,22 @@ function TokenList({
 
 export default TokenList
 
-const ListItem = ({ item, index, canBookmark, iconUrl, columns, generateLink }) => {
+const ListItem = ({ item, index, canBookmark, iconUrl, columns, generateLink, isChildList }) => {
   return (
     <>
-      <DashGrid style={{ height: '48px' }} focus={true}>
+      <DashGrid style={{ height: '48px', marginLeft: !canBookmark ? '-28px' : 0 }} focus={true}>
         <ToggleButton area="toggle">{canBookmark && <Bookmark readableProtocolName={item.name} />}</ToggleButton>
-        <Index area="index">{index !== null ? index + 1 : '-'}</Index>
-        <DataText area="name" fontWeight="500">
+
+        <Index area="index">{index !== null ? index + 1 : ''}</Index>
+        <ListHeaderName area="name" fontWeight="500" style={{ '--ident-left': isChildList ? '30px' : 0 }}>
+          {isChildList && <div style={{ marginRight: '1rem' }}>-</div>}
           <Row style={{ gap: '1rem', minWidth: '100%' }}>
             <TokenLogo logo={iconUrl(item.name)} />
             <CustomLink href={generateLink(item.name)} style={{ textAlign: 'start' }}>
               <ProtocolButton item={item} />
             </CustomLink>
           </Row>
-        </DataText>
+        </ListHeaderName>
         <DataTextHideBelowLg area="chain">
           {columns[1] === SORT_FIELD.CHAINS ? (
             <ChainsRow chains={item.chains} />
@@ -407,22 +415,11 @@ const ListItem = ({ item, index, canBookmark, iconUrl, columns, generateLink }) 
 }
 
 const ListHeaderItem = ({ item, index, columns, iconUrl, canBookmark, generateLink }) => {
-  const [displayChains, setDisplayChains] = useState(false)
-  const handleDisplay = () => {
-    setDisplayChains(!displayChains)
-  }
-
   const children = item.childChains
   return (
     <>
-      <DashGrid
-        style={{ height: '48px', position: 'relative', cursor: 'pointer' }}
-        focus={true}
-        onClick={handleDisplay}
-      >
-        <ToggleButton area="toggle">
-          {displayChains ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-        </ToggleButton>
+      <DashGrid style={{ height: '48px', position: 'relative', marginLeft: !canBookmark ? '-28px' : 0 }} focus={true}>
+        <div area="toggle"></div>
         <Index area="index">{index + 1}</Index>
         <DataText area="name" fontWeight="500">
           <Row style={{ gap: '1rem', minWidth: '100%' }}>
@@ -434,8 +431,7 @@ const ListHeaderItem = ({ item, index, columns, iconUrl, canBookmark, generateLi
         <VolumeColumns item={item} columns={columns} />
       </DashGrid>
       <Divider />
-      {displayChains &&
-        children &&
+      {children &&
         children.map((child, index) => (
           <ListItem
             index={null}
@@ -445,6 +441,7 @@ const ListHeaderItem = ({ item, index, columns, iconUrl, canBookmark, generateLi
             canBookmark={canBookmark}
             generateLink={generateLink}
             key={child.name + 'child' + index}
+            isChildList={true}
           />
         ))}
     </>
