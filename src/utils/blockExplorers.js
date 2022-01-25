@@ -29,6 +29,7 @@ const blockExplorers = {
   elrond: ['https://elrondscan.com/token/', 'Elrondscan'],
   xdc: ['https://explorer.xinfin.network/token/', 'XDC Explorer'],
   csc: ['https://www.coinex.net/address/', 'CSC Explorer'],
+  cardano: ['https://cardanoscan.io/token/', 'Cardanoscan'],
 }
 
 export const getBlockExplorer = (address = '') => {
