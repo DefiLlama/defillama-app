@@ -165,7 +165,7 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
   const currencyMark = isNegative ? `${currencySymbol}-` : currencySymbol
   const normalMark = isNegative ? '-' : ''
 
-  if (num > 100000000) {
+  if (num > 10000000) {
     return (symbol ? currencyMark : normalMark) + toK(num.toFixed(0), true)
   }
 
