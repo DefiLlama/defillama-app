@@ -203,10 +203,12 @@ function TokenList({
   const [sortDirection, setSortDirection] = useState(true)
   const [sortedColumn, setSortedColumnRaw] = useState(defaultSortingColumn)
   const [alreadySorted, setAlreadySorted] = useState(true)
+
   const setSortedColumn = (newColumn) => {
     setAlreadySorted(false)
     setSortedColumnRaw(newColumn)
   }
+
   const filteredList = useMemo(() => {
     let sortedTokens = tokens
     if (!alreadySorted) {
@@ -286,9 +288,11 @@ function TokenList({
               setSortDirection(sortedColumn !== columns[1] ? true : !sortDirection)
             }}
           >
-            {COLUMN_NAMES[columns[1]]}
-            {COLUMN_NAMES[columns[1]] === COLUMN_NAMES.chains && <HeadHelp text={COLUMN_HELP.chains} />}
-            {sortedColumn === columns[1] ? (!sortDirection ? '↑' : '↓') : ''}
+            <Flex alignItems="center">
+              {COLUMN_NAMES[columns[1]]}
+              {COLUMN_NAMES[columns[1]] === COLUMN_NAMES.chains && <HeadHelp text={COLUMN_HELP.chains} />}
+              {sortedColumn === columns[1] ? (!sortDirection ? '↑' : '↓') : ''}
+            </Flex>
           </ClickableText>
         </FlexHideBelowLg>
         <FlexHideBelowXl alignItems="center">

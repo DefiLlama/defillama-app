@@ -13,7 +13,7 @@ interface IDaySum {
 interface IProps {
   stackOffset?: 'expand'
   formatPercent: boolean
-  stackedDataset
+  stackedDataset: any[]
   chainsUnique: string[]
   chainColor: IChainColor
   daySum: IDaySum

@@ -35,6 +35,7 @@ const ChartsWrapper = styled(Box)`
   width: 100%;
   padding: 0;
   align-items: center;
+  z-index: 1;
   @media (max-width: 800px) {
     display: grid;
     grid-auto-rows: auto;
