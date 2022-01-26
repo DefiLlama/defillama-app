@@ -13,7 +13,7 @@ import Row from 'components/Row'
 import TokenLogo from 'components/TokenLogo'
 
 import { useInfiniteScroll } from 'hooks'
-import { formattedNum, formattedPercent, tokenIconUrl, slug } from 'utils'
+import { formattedNum, formattedPercent, tokenIconUrl, slug, getPercentChange } from 'utils'
 
 const List = styled(Box)`
   -webkit-overflow-scrolling: touch;
@@ -22,24 +22,22 @@ const List = styled(Box)`
 const DashGrid = styled.div`
   display: grid;
   grid-gap: 1em;
-  grid-template-columns: 100px 1fr 1fr;
-  grid-template-areas: 'symbol 7dchange vol';
-  padding: 0 1.125rem;
+  grid-template-columns: 16px 1fr 0.7fr 0.7fr;
+  grid-template-areas: 'toggle name 7dchange tvl';
 
   > * {
     justify-content: flex-end;
 
     &:first-child {
       justify-content: flex-start;
-      text-align: left;
     }
   }
 
   @media screen and (min-width: 680px) {
     display: grid;
     grid-gap: 1em;
-    grid-template-columns: 180px 1fr 1fr 1fr;
-    grid-template-areas: 'name symbol 7dchange vol';
+    grid-template-columns: 16px 28px 180px 1fr 1fr 1fr;
+    grid-template-areas: 'toggle index name 7dchange tvl mcaptvl';
 
     > * {
       justify-content: flex-end;
@@ -54,12 +52,13 @@ const DashGrid = styled.div`
   ${({ theme: { minLg } }) => minLg} {
     display: grid;
     grid-gap: 0.5em;
-    grid-template-columns: 1.2fr 1fr 0.4fr 0.4fr 0.4fr;
-    grid-template-areas: 'name chain mcaptvl 1dchange 7dchange tvl';
+    grid-template-columns: 16px 28px 1.2fr 1fr 0.4fr 0.4fr 0.4fr;
+    grid-template-areas: 'toggle index name chain 7dchange tvl mcaptvl';
   }
 
   ${({ theme: { minXl } }) => minXl} {
-    grid-template-columns: 1.2fr 1fr 0.4fr 0.4fr 0.4fr 0.4fr 0.4fr;
+    grid-template-columns: 16px 28px 1.2fr 1fr 0.4fr 0.4fr 0.4fr 0.4fr 0.4fr;
+    grid-template-areas: 'toggle index name chain 1dchange 7dchange 1mchange tvl mcaptvl';
   }
 `
 
@@ -74,7 +73,7 @@ export const ClickableText = styled(Text)`
   user-select: none;
   color: ${({ theme }) => theme.text1};
 
-  @media screen and (max-width: 640px) {
+  @media screen and (max-width: 680px) {
     font-size: 0.85rem;
   }
 `
@@ -88,7 +87,7 @@ export const DataText = styled(Flex)`
     font-size: 14px;
   }
 
-  @media screen and (max-width: 600px) {
+  @media screen and (max-width: 680px) {
     font-size: 12px;
   }
 `
@@ -137,12 +136,6 @@ const ProtocolButton = ({ item }) => {
   )
 }
 
-const Index = styled.div`
-  @media (max-width: 680px) {
-    display: none;
-  }
-`
-
 const DataTextHideBelow680 = styled(DataText)`
   @media (max-width: 680px) {
     display: none !important;
@@ -175,6 +168,25 @@ const FlexHideBelowXl = styled(Flex)`
   ${({ theme: { maxXl } }) => maxXl} {
     display: none !important;
   }
+`
+
+const ToggleButton = styled(DataText)`
+  margin-top: 4px;
+  cursor: pointer;
+  overflow: visible;
+
+  & svg {
+    width: 16px;
+    height: 16px;
+  }
+`
+
+const Index = styled(DataTextHideBelow680)`
+  justify-content: center;
+`
+
+const ListHeaderName = styled(DataText)`
+  margin-left: var(--ident-left) !important;
 `
 
 // @TODO rework into virtualized list
@@ -245,63 +257,19 @@ function TokenList({
 
   const { LoadMoreButton, dataLength, hasMore, next } = useInfiniteScroll({ list: filteredList, filters })
 
-  const ListItem = ({ item, index }) => {
-    return (
-      <DashGrid style={{ height: '48px' }} focus={true}>
-        <DataText area="name" fontWeight="500">
-          <Row style={{ gap: '1rem', minWidth: '100%' }}>
-            {canBookmark && (
-              <Bookmark
-                readableProtocolName={item.name}
-                style={{ width: '16px', height: '16px', cursor: 'pointer', overflow: 'visible', marginTop: '4px' }}
-              />
-            )}
-            <Index>{index + 1}</Index>
-            <TokenLogo logo={iconUrl(item.name)} />
-            <CustomLink href={generateLink(item.name)}>
-              <ProtocolButton item={item} />
-            </CustomLink>
-          </Row>
-        </DataText>
-        <DataTextHideBelowLg area="chain">
-          {columns[1] === SORT_FIELD.CHAINS ? (
-            <ChainsRow chains={item.chains} />
-          ) : (
-            formattedNum(item[columns[1]], false)
-          )}
-        </DataTextHideBelowLg>
-        <DataTextHideBelowXl area="1dchange" fontWeight="500">
-          {formattedPercent(item.change_1d, true)}
-        </DataTextHideBelowXl>
-        <DataText area="7dchange">
-          {columns[3] === SORT_FIELD.DAYSEVEN
-            ? item.change_7d !== 0
-              ? formattedPercent(item.change_7d, true)
-              : ''
-            : `${item.listedAt} days ago`}
-        </DataText>
-        <DataTextHideBelowXl area="1mchange" fontWeight="500">
-          {item.change_1m || item.change_1m === 0 ? formattedPercent(item.change_1m, true) : ''}
-        </DataTextHideBelowXl>
-        <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
-        <DataTextHideBelow680 area="mcaptvl" fontWeight="500">
-          {item.mcaptvl
-            ? formattedNum(item.mcaptvl, false)
-            : item.mcap && item.tvl
-            ? formattedNum(item.mcap / item.tvl)
-            : ''}
-        </DataTextHideBelow680>
-      </DashGrid>
-    )
-  }
-
   return (
     <ListWrapper>
-      <DashGrid center={true} style={{ height: 'fit-content', padding: '0 1.125rem 1rem 1.125rem' }}>
-        <Flex alignItems="center" justifyContent="flexStart">
+      <DashGrid
+        center={true}
+        style={{ height: 'fit-content', padding: '0 0 1rem 0', marginLeft: !canBookmark ? '-28px' : 0 }}
+      >
+        <div area="toggle"></div>
+        <Index area="index"></Index>
+        <Flex alignItems="center" justifyContent="flex-start">
           <ClickableText
             area="name"
             fontWeight="500"
+            style={{ textAlign: 'start' }}
             onClick={(e) => {
               setSortedColumn(SORT_FIELD.NAME)
               setSortDirection(sortedColumn !== SORT_FIELD.NAME ? true : !sortDirection)
@@ -384,9 +352,26 @@ function TokenList({
         <InfiniteScroll dataLength={dataLength} next={next} hasMore={hasMore}>
           {filteredList.slice(0, dataLength).map((item, index) => {
             return (
-              <div key={index}>
-                <ListItem key={index} index={index} item={item} />
-                <Divider />
+              <div key={item.name + index}>
+                {item.childChains ? (
+                  <ListHeaderItem
+                    item={item}
+                    index={index}
+                    columns={columns}
+                    iconUrl={iconUrl}
+                    canBookmark={canBookmark}
+                    generateLink={generateLink}
+                  />
+                ) : (
+                  <ListItem
+                    index={index}
+                    item={item}
+                    iconUrl={iconUrl}
+                    columns={columns}
+                    canBookmark={canBookmark}
+                    generateLink={generateLink}
+                  />
+                )}
               </div>
             )
           })}
@@ -398,3 +383,94 @@ function TokenList({
 }
 
 export default TokenList
+
+const ListItem = ({ item, index, canBookmark, iconUrl, columns, generateLink, isChildList }) => {
+  return (
+    <>
+      <DashGrid style={{ height: '48px', marginLeft: !canBookmark ? '-28px' : 0 }} focus={true}>
+        <ToggleButton area="toggle">{canBookmark && <Bookmark readableProtocolName={item.name} />}</ToggleButton>
+
+        <Index area="index">{index !== null ? index + 1 : ''}</Index>
+        <ListHeaderName area="name" fontWeight="500" style={{ '--ident-left': isChildList ? '30px' : 0 }}>
+          {isChildList && <div style={{ marginRight: '1rem' }}>-</div>}
+          <Row style={{ gap: '1rem', minWidth: '100%' }}>
+            <TokenLogo logo={iconUrl(item.name)} />
+            <CustomLink href={generateLink(item.name)} style={{ textAlign: 'start' }}>
+              <ProtocolButton item={item} />
+            </CustomLink>
+          </Row>
+        </ListHeaderName>
+        <DataTextHideBelowLg area="chain">
+          {columns[1] === SORT_FIELD.CHAINS ? (
+            <ChainsRow chains={item.chains} />
+          ) : (
+            formattedNum(item[columns[1]], false)
+          )}
+        </DataTextHideBelowLg>
+        <VolumeColumns item={item} columns={columns} />
+      </DashGrid>
+      <Divider />
+    </>
+  )
+}
+
+const ListHeaderItem = ({ item, index, columns, iconUrl, canBookmark, generateLink }) => {
+  const children = item.childChains
+  return (
+    <>
+      <DashGrid style={{ height: '48px', position: 'relative', marginLeft: !canBookmark ? '-28px' : 0 }} focus={true}>
+        <div area="toggle"></div>
+        <Index area="index">{index + 1}</Index>
+        <DataText area="name" fontWeight="500">
+          <Row style={{ gap: '1rem', minWidth: '100%' }}>
+            <TokenLogo logo={iconUrl(item.name)} />
+            <p>{item.name}</p>
+          </Row>
+        </DataText>
+        <DataTextHideBelowLg area="chain">{item.protocols}</DataTextHideBelowLg>
+        <VolumeColumns item={item} columns={columns} />
+      </DashGrid>
+      <Divider />
+      {children &&
+        children.map((child, index) => (
+          <ListItem
+            index={null}
+            item={child}
+            iconUrl={iconUrl}
+            columns={columns}
+            canBookmark={canBookmark}
+            generateLink={generateLink}
+            key={child.name + 'child' + index}
+            isChildList={true}
+          />
+        ))}
+    </>
+  )
+}
+
+const VolumeColumns = ({ item, columns }) => {
+  const { change1d, change7d, change1m, mcapTvl } = useMemo(() => {
+    const change1d = formattedPercent(getPercentChange(item.tvl, item.tvlPrevDay))
+    const change7d = formattedPercent(getPercentChange(item.tvl, item.tvlPrevWeek))
+    const change1m = formattedPercent(getPercentChange(item.tvl, item.tvlPrevMonth))
+    const mcapTvl = item.mcap && item.tvl && formattedNum(item.mcap / item.tvl)
+    return { change1d, change7d, change1m, mcapTvl }
+  }, [item])
+  return (
+    <>
+      <DataTextHideBelowXl area="1dchange" fontWeight="500">
+        {change1d}
+      </DataTextHideBelowXl>
+      <DataText area="7dchange">
+        {columns[3] === SORT_FIELD.DAYSEVEN ? (item.change_7d !== 0 ? change7d : '') : `${item.listedAt} days ago`}
+      </DataText>
+      <DataTextHideBelowXl area="1mchange" fontWeight="500">
+        {item.change_1m || item.change_1m === 0 ? change1m : ''}
+      </DataTextHideBelowXl>
+      <DataText area="tvl">{formattedNum(item.tvl, true)}</DataText>
+      <DataTextHideBelow680 area="mcaptvl" fontWeight="500">
+        {mcapTvl}
+      </DataTextHideBelow680>
+    </>
+  )
+}

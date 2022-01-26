@@ -10,11 +10,11 @@ import TokenList from '../TokenList'
 import { ChainPieChart, ChainDominanceChart } from '../Charts'
 import { Header } from 'Theme'
 
-import { useCalcStakePool2Tvl } from 'hooks/data'
+import { useCalcChainsTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
 import { toNiceCsvDate, chainIconUrl, getRandomColor } from 'utils'
-import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { AllTvlOptions } from '../SettingsModal'
 import Filters from '../Filters'
+import Panel from 'components/Panel'
 
 function download(filename, text) {
   var element = document.createElement('a')
@@ -41,44 +41,41 @@ const ChartsWrapper = styled(Box)`
   }
 `
 
+const TableWrapper = styled(Panel)`
+  @media (max-width: 680px) {
+    padding: 1rem 0.5rem;
+  }
+`
+
 const RowWrapper = styled(RowBetween)`
   flex-wrap: wrap;
-  @media (max-width: 600px) {
+  @media (max-width: 680px) {
     gap: 16px;
   }
 `
 
-const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categories }) => {
+const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categories, chainsGroupbyParent }) => {
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
     [chainsUnique]
   )
 
-  const extraTvlsEnabled = useGetExtraTvlEnabled()
+  const chainTotals = useCalcStakePool2Tvl(chainTvls)
 
-  const protocolTotals = useCalcStakePool2Tvl(chainTvls)
+  const chainsTvlValues = useMemo(() => {
+    const data = chainTotals.map((chain) => ({ name: chain.name, value: chain.tvl }))
 
-  const [stackedData, daySum] = useMemo(() => {
-    const daySum = {}
-    const stackedData = stackedDataset.map(([date, value]) => {
-      let totalDaySum = 0
-      const tvls = {}
-      Object.entries(value).forEach(([name, chainTvls]) => {
-        let sum = chainTvls.tvl
-        totalDaySum += chainTvls.tvl || 0
-        for (const c in chainTvls) {
-          if (extraTvlsEnabled[c.toLowerCase()]) {
-            sum += chainTvls[c]
-            totalDaySum += chainTvls[c]
-          }
-        }
-        tvls[name] = sum
-      })
-      daySum[date] = totalDaySum
-      return { date, ...tvls }
-    })
-    return [stackedData, daySum]
-  }, [stackedDataset, extraTvlsEnabled])
+    const otherTvl = data.slice(10).reduce((total, entry) => {
+      return (total += entry.value)
+    }, 0)
+
+    return data
+      .slice(0, 10)
+      .sort((a, b) => b.value - a.value)
+      .concat({ name: 'Others', value: otherTvl })
+  }, [chainTotals])
+
+  const { data: stackedData, daySum } = useCalcChainsTvlsByDay(stackedDataset)
 
   const downloadCsv = () => {
     const rows = [['Timestamp', 'Date', ...chainsUnique]]
@@ -90,24 +87,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categor
     download('chains.csv', rows.map((r) => r.join(',')).join('\n'))
   }
 
-  const chainsTvlValues = useMemo(() => {
-    const data = chainTvls.reduce((acc, curr) => {
-      let tvl = curr.tvl || 0
-      Object.entries(curr.extraTvl || {}).forEach(([section, sectionTvl]) => {
-        if (extraTvlsEnabled[section.toLowerCase()]) tvl = tvl + (sectionTvl.tvl || 0)
-      })
-      const data = { name: curr.name, value: tvl }
-      return (acc = [...acc, data])
-    }, [])
-
-    const otherTvl = data.slice(10).reduce((total, entry) => {
-      return (total += entry.value)
-    }, 0)
-    return data
-      .slice(0, 10)
-      .sort((a, b) => b.value - a.value)
-      .concat({ name: 'Others', value: otherTvl })
-  }, [chainTvls, extraTvlsEnabled])
+  const groupedChains = useGroupChainsByParent(chainTotals, chainsGroupbyParent)
 
   return (
     <PageWrapper>
@@ -130,13 +110,15 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categor
           />
         </ChartsWrapper>
         <Filters filterOptions={categories} activeLabel={category} />
-        <TokenList
-          canBookmark={false}
-          tokens={protocolTotals}
-          iconUrl={chainIconUrl}
-          generateLink={(name) => `/chain/${name}`}
-          columns={[undefined, 'protocols', 'change_1d', 'change_7d', 'change_1m']}
-        />
+        <TableWrapper>
+          <TokenList
+            canBookmark={false}
+            tokens={groupedChains}
+            iconUrl={chainIconUrl}
+            generateLink={(name) => `/chain/${name}`}
+            columns={[undefined, 'protocols', 'change_1d', 'change_7d', 'change_1m']}
+          />
+        </TableWrapper>
       </FullWrapper>
     </PageWrapper>
   )
