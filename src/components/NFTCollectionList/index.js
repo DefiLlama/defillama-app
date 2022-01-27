@@ -160,9 +160,13 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
             <TokenLogo address={chain} logo={chainIconUrl(chain)} />{' '}
           </BasicLink>
         </DataText>
-        {!below1080 && <DataText area="dailyVolume">{formattedNum(item.dailyVolume, displayCurrency)}</DataText>}
+        {!below1080 && (
+          <DataText area="dailyVolume">
+            {item.dailyVolume <= 0 ? '--' : formattedNum(item.dailyVolume, displayCurrency)}
+          </DataText>
+        )}
         <DataText area="totalVolume" color="text" fontWeight="500">
-          {formattedNum(item.totalVolume, displayCurrency)}
+          {item.totalVolume <= 0 ? '--' : formattedNum(item.totalVolume, displayCurrency)}
         </DataText>
         {!below1080 && (
           <DataText area="floor">{item.floor === 0 ? '--' : formattedNum(item.floor, displayCurrency)}</DataText>
