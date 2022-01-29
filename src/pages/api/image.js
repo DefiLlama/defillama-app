@@ -12,6 +12,6 @@ export default async function getImage(req, res) {
     const body = await result.body
     body.pipe(res)
   } catch (e) {
-    return null
+    res.end()
   }
 }

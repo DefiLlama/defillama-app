@@ -2,6 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 
 import TokenLogo from '../../components/TokenLogo'
+import { tokenIconUrl } from 'utils'
 
 const StyledToggle = styled.div`
   display: flex;
@@ -26,7 +27,7 @@ const IconWrapper = styled.div`
 
 export default function Links({ logo, links }) {
   const filteredLinks = Object.keys(links)
-    .filter(k => links[k] !== '')
+    .filter((k) => links[k] !== '')
     .reduce((a, k) => ({ ...a, [k]: links[k] }), {})
 
   const icons = {
@@ -34,11 +35,27 @@ export default function Links({ logo, links }) {
       <IconWrapper>
         <TokenLogo logo={logo} size={32} style={{ alignSelf: 'center' }} external />
       </IconWrapper>
-    )
-    // TODO add icons
-    //discord: <IconWrapper><Discord size={size} color={color} /></IconWrapper>,
-    //telegram: <IconWrapper><Telegram size={size} color={color} /></IconWrapper>,
-    //twitter: <IconWrapper><Twitter size={size} color={color} /></IconWrapper>,
+    ),
+    discord: (
+      <IconWrapper>
+        <TokenLogo logo={tokenIconUrl('discord')} size={32} style={{ alignSelf: 'center' }} />
+      </IconWrapper>
+    ),
+    telegram: (
+      <IconWrapper>
+        <TokenLogo logo={tokenIconUrl('telegram')} size={32} style={{ alignSelf: 'center' }} />
+      </IconWrapper>
+    ),
+    medium: (
+      <IconWrapper>
+        <TokenLogo logo={tokenIconUrl('medium')} size={32} style={{ alignSelf: 'center' }} />
+      </IconWrapper>
+    ),
+    twitter: (
+      <IconWrapper>
+        <TokenLogo logo={tokenIconUrl('twitter')} size={32} style={{ alignSelf: 'center' }} />
+      </IconWrapper>
+    ),
   }
 
   const linkComponents = Object.keys(filteredLinks).map((linkName, i) => (
