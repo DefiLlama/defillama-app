@@ -434,6 +434,11 @@ export const chainCoingeckoIds = {
     symbol: "GLMR",
     cmcId: "6836",
   },
+  Astar: {
+    geckoId: "astar",
+    symbol: "ASTR",
+    cmcId: "12885",
+  },
 }
 
 export const chainMarketplaceMappings = {
