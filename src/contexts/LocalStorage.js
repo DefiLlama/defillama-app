@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useMemo, useCallback, use
 import { trackGoal } from 'fathom-client'
 
 import { standardizeProtocolName } from 'utils'
+import { useIsClient } from 'hooks'
 
 const UNISWAP = 'UNISWAP'
 
@@ -32,7 +33,7 @@ const UPDATABLE_KEYS = [
   SAVED_TOKENS,
   ...extraTvlProps,
   DISPLAY_USD,
-  HIDE_LAST_DAY
+  HIDE_LAST_DAY,
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -47,12 +48,12 @@ function reducer(state, { type, payload }) {
   switch (type) {
     case UPDATE_KEY: {
       const { key, value } = payload
-      if (!UPDATABLE_KEYS.some(k => k === key)) {
+      if (!UPDATABLE_KEYS.some((k) => k === key)) {
         throw Error(`Unexpected key in LocalStorageContext reducer: '${key}'.`)
       } else {
         return {
           ...state,
-          [key]: value
+          [key]: value,
         }
       }
     }
@@ -72,7 +73,7 @@ function init() {
     [DISMISSED_PATHS]: {},
     [SAVED_ACCOUNTS]: [],
     [SAVED_TOKENS]: { main: {} },
-    [SAVED_PAIRS]: {}
+    [SAVED_PAIRS]: {},
   }
 
   try {
@@ -104,18 +105,17 @@ export default function Provider({ children }) {
   if (!newSavedProtocols?.main) {
     const oldAddresses = Object.entries(savedProtocols)
       .map(([, value]) => (value?.protocol ? [standardizeProtocolName(value?.protocol), value?.protocol] : []))
-      .filter(validPairs => validPairs.length)
+      .filter((validPairs) => validPairs.length)
 
     newSavedProtocols = oldAddresses.length ? { main: Object.fromEntries(oldAddresses) } : { main: {} }
   }
 
   return (
     <LocalStorageContext.Provider
-      value={useMemo(() => [{ ...state, [SAVED_TOKENS]: newSavedProtocols }, { updateKey }], [
-        state,
-        updateKey,
-        newSavedProtocols
-      ])}
+      value={useMemo(
+        () => [{ ...state, [SAVED_TOKENS]: newSavedProtocols }, { updateKey }],
+        [state, updateKey, newSavedProtocols]
+      )}
     >
       {children}
     </LocalStorageContext.Provider>
@@ -134,9 +134,11 @@ export function Updater() {
 
 export function useDarkModeManager() {
   const [state, { updateKey }] = useLocalStorageContext()
-  let isDarkMode = state[DARK_MODE]
+  const isClient = useIsClient()
+  let darkMode = state[DARK_MODE]
+  let isDarkMode = isClient && darkMode
   const toggleDarkMode = useCallback(
-    value => {
+    (value) => {
       updateKey(DARK_MODE, value === false || value === true ? value : !isDarkMode)
     },
     [updateKey, isDarkMode]
@@ -154,7 +156,7 @@ export function useGetExtraTvlEnabled() {
 
 export function useTvlToggles() {
   const [state, { updateKey }] = useLocalStorageContext()
-  return key => () => {
+  return (key) => () => {
     updateKey(key, !state[key])
   }
 }
@@ -163,7 +165,7 @@ export function useStakingManager() {
   const [state, { updateKey }] = useLocalStorageContext()
   let stakingEnabled = state[STAKING]
   const toggleStaking = useCallback(
-    value => {
+    (value) => {
       updateKey(STAKING, value === false || value === true ? value : !stakingEnabled)
     },
     [updateKey, stakingEnabled]
@@ -175,7 +177,7 @@ export function useBorrowedManager() {
   const [state, { updateKey }] = useLocalStorageContext()
   let borrowedEnabled = state[BORROWED]
   const toggleBorrowed = useCallback(
-    value => {
+    (value) => {
       updateKey(BORROWED, value === false || value === true ? value : !borrowedEnabled)
     },
     [updateKey, borrowedEnabled]
@@ -250,7 +252,7 @@ export function useSavedPairs() {
       token0Address,
       token1Address,
       token0Symbol,
-      token1Symbol
+      token1Symbol,
     }
     updateKey(SAVED_PAIRS, newList)
   }
@@ -287,7 +289,7 @@ export function useSavedProtocols() {
     const standardProtocol = standardizeProtocolName(readableProtocolName)
     newList[portfolio] = {
       ...(newList[portfolio] || {}),
-      [standardProtocol]: readableProtocolName
+      [standardProtocol]: readableProtocolName,
     }
     trackGoal('VQ0TO7CU', standardProtocol)
     updateKey(SAVED_TOKENS, newList)
