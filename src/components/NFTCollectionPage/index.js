@@ -14,6 +14,7 @@ import Search from 'components/Search'
 import { formattedNum, capitalizeFirstLetter } from '../../utils'
 import { AutoRow, RowBetween } from '../../components/Row'
 import Column from '../../components/Column'
+import HeadHelp from '../../components/HeadHelp'
 import CopyHelper from '../../components/Copy'
 import { PageWrapper, ContentWrapper } from '../../components'
 import Panel from '../../components/Panel'
@@ -251,7 +252,12 @@ function NFTCollectionPage({ collection, chart, statistics }) {
           >
             <AutoRow align="flex-end">
               <Column>
-                <TYPE.main>Address</TYPE.main>
+                <TYPE.main>
+                  <HeadHelp
+                    title="Address"
+                    text="The majority of collection addresses are fetched automatically from marketplace APIs and may be inaccurate. Always verify that the collection address is correct."
+                  />
+                </TYPE.main>
                 <AutoRow align="flex-end">
                   <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
                     {address ? address.slice(0, 8) + '...' + address?.slice(36, 42) : '-'}
