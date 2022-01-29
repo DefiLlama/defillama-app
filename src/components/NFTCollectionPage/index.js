@@ -109,6 +109,7 @@ function NFTCollectionPage({ collection, chart, statistics }) {
     medium_username,
     marketCap,
     marketCapUSD,
+    updatedAt,
   } = collection || {}
 
   const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics || {}
@@ -248,15 +249,25 @@ function NFTCollectionPage({ collection, chart, statistics }) {
             }}
             p={20}
           >
-            <Column>
-              <TYPE.main>Address</TYPE.main>
-              <AutoRow align="flex-end">
-                <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                  {address ? address.slice(0, 8) + '...' + address?.slice(36, 42) : '-'}
-                </TYPE.main>
-                <CopyHelper toCopy={address || '-'} />
-              </AutoRow>
-            </Column>
+            <AutoRow align="flex-end">
+              <Column>
+                <TYPE.main>Address</TYPE.main>
+                <AutoRow align="flex-end">
+                  <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
+                    {address ? address.slice(0, 8) + '...' + address?.slice(36, 42) : '-'}
+                  </TYPE.main>
+                  <CopyHelper toCopy={address || '-'} />
+                </AutoRow>
+              </Column>
+              <Column>
+                <TYPE.main>Last fetched</TYPE.main>
+                <AutoRow align="flex-end">
+                  <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
+                    {updatedAt ? new Date(updatedAt).toDateString() : '-'}
+                  </TYPE.main>
+                </AutoRow>
+              </Column>
+            </AutoRow>
           </Panel>
         </DashboardWrapper>
       </ContentWrapper>
