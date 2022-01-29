@@ -13,6 +13,8 @@ import Link, { BasicLink } from 'components/Link'
 import Search from 'components/Search'
 import { formattedNum, capitalizeFirstLetter } from '../../utils'
 import { AutoRow, RowBetween } from '../../components/Row'
+import Column from '../../components/Column'
+import CopyHelper from '../../components/Copy'
 import { PageWrapper, ContentWrapper } from '../../components'
 import Panel from '../../components/Panel'
 import { TYPE, ThemedBackground } from '../../Theme'
@@ -236,6 +238,26 @@ function NFTCollectionPage({ collection, chart, statistics }) {
               </DetailsLayout>
             </Panel>
           </>
+          <RowBetween style={{ marginTop: '3rem' }}>
+            <TYPE.main fontSize={'1.125rem'}>Collection Information</TYPE.main>{' '}
+          </RowBetween>
+          <Panel
+            rounded
+            style={{
+              marginTop: '1.5rem',
+            }}
+            p={20}
+          >
+            <Column>
+              <TYPE.main>Address</TYPE.main>
+              <AutoRow align="flex-end">
+                <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
+                  {address ? address.slice(0, 8) + '...' + address?.slice(36, 42) : '-'}
+                </TYPE.main>
+                <CopyHelper toCopy={address || '-'} />
+              </AutoRow>
+            </Column>
+          </Panel>
         </DashboardWrapper>
       </ContentWrapper>
     </PageWrapper>
