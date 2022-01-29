@@ -11,7 +11,8 @@ export default async function getImage(req, res) {
     const result = await fetch(url)
     const body = await result.body
     body.pipe(res)
+    res.end()
   } catch (e) {
-    return null
+    res.end()
   }
 }
