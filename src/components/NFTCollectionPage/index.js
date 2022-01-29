@@ -85,7 +85,7 @@ const HiddenSearch = styled.span`
 `
 
 const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
-  ssr: false
+  ssr: false,
 })
 
 function NFTCollectionPage({ collection, chart, statistics }) {
@@ -101,11 +101,12 @@ function NFTCollectionPage({ collection, chart, statistics }) {
     name,
     slug,
     website,
-    twitterUsername,
-    discordUrl,
-    telegramUrl,
+    discord_url,
+    telegram_url,
+    twitter_username,
+    medium_username,
     marketCap,
-    marketCapUSD
+    marketCapUSD,
   } = collection || {}
 
   const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics || {}
@@ -113,10 +114,11 @@ function NFTCollectionPage({ collection, chart, statistics }) {
   const backgroundColor = useProtocolColor({ protocol: slug, logo, transparent: false })
 
   const links = {
-    website,
-    discord: discordUrl,
-    telegram: telegramUrl,
-    twitter: twitterUsername ? `https://twitter.com/${twitterUsername}` : ''
+    website: website || '',
+    discord: discord_url || '',
+    telegram: telegram_url || '',
+    medium: medium_username ? `https://medium.com/${medium_username}` : '',
+    twitter: twitter_username ? `https://twitter.com/${twitter_username}` : '',
   }
 
   if (!collection || !chart) {
@@ -132,7 +134,7 @@ function NFTCollectionPage({ collection, chart, statistics }) {
       dailyVolumeUSD,
       dailyChange,
       'USD',
-      '$'
+      '$',
     ]
   } else {
     ;[shownMarketCap, shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit] = [
@@ -141,7 +143,7 @@ function NFTCollectionPage({ collection, chart, statistics }) {
       dailyVolume,
       dailyChange,
       chainCoingeckoIds[capitalizeFirstLetter(chains?.length && chains[0])]?.symbol,
-      ''
+      '',
     ]
   }
 
@@ -164,7 +166,7 @@ function NFTCollectionPage({ collection, chart, statistics }) {
 
   const marketCapSection = (
     <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-      {shownMarketCap ? formattedNum(shownMarketCap, displayUsd) : "-"}
+      {shownMarketCap ? formattedNum(shownMarketCap, displayUsd) : '-'}
     </TYPE.main>
   )
 
@@ -203,7 +205,7 @@ function NFTCollectionPage({ collection, chart, statistics }) {
             <Panel
               sx={{
                 gridColumn: ['1', '1', '1', '2/4'],
-                gridRow: ['', '', '', '1/4']
+                gridRow: ['', '', '', '1/4'],
               }}
             >
               <GlobalNFTChart
@@ -223,7 +225,7 @@ function NFTCollectionPage({ collection, chart, statistics }) {
             <Panel
               rounded
               style={{
-                marginTop: '1.5rem'
+                marginTop: '1.5rem',
               }}
               p={20}
             >
