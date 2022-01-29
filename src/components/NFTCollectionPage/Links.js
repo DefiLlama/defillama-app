@@ -38,22 +38,22 @@ export default function Links({ logo, links }) {
     ),
     discord: (
       <IconWrapper>
-        <TokenLogo logo={tokenIconUrl('discord')} size={32} style={{ alignSelf: 'center' }} external />
+        <TokenLogo logo={tokenIconUrl('discord')} size={32} style={{ alignSelf: 'center' }} />
       </IconWrapper>
     ),
     telegram: (
       <IconWrapper>
-        <TokenLogo logo={tokenIconUrl('telegram')} size={32} style={{ alignSelf: 'center' }} external />
+        <TokenLogo logo={tokenIconUrl('telegram')} size={32} style={{ alignSelf: 'center' }} />
       </IconWrapper>
     ),
     medium: (
       <IconWrapper>
-        <TokenLogo logo={tokenIconUrl('medium')} size={32} style={{ alignSelf: 'center' }} external />
+        <TokenLogo logo={tokenIconUrl('medium')} size={32} style={{ alignSelf: 'center' }} />
       </IconWrapper>
     ),
     twitter: (
       <IconWrapper>
-        <TokenLogo logo={tokenIconUrl('twitter')} size={32} style={{ alignSelf: 'center' }} external />
+        <TokenLogo logo={tokenIconUrl('twitter')} size={32} style={{ alignSelf: 'center' }} />
       </IconWrapper>
     ),
   }
