@@ -237,7 +237,6 @@ export const fuseProtocolData = (protocolData, protocol) => {
 }
 
 export const getChainsPageData = async (category: string) => {
-  try {
     const [res, { chainCoingeckoIds }] = await Promise.all(
       [PROTOCOLS_API, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
     )
@@ -373,11 +372,6 @@ export const getChainsPageData = async (category: string) => {
         chainsGroupbyParent,
       },
     }
-  } catch (error) {
-    return {
-      notFound: true,
-    }
-  }
 }
 
 export const getNFTStatistics = (chart) => {
