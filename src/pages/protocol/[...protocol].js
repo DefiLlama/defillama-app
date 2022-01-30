@@ -1,7 +1,7 @@
 import { GeneralLayout } from 'layout'
 import ProtocolContainer from 'containers/ProtocolContainer'
 
-import { standardizeProtocolName, capitalizeFirstLetter } from 'utils'
+import { standardizeProtocolName } from 'utils'
 import { getProtocols, getProtocol, fuseProtocolData, revalidate } from 'utils/dataApi'
 
 export async function getStaticProps({
@@ -40,7 +40,7 @@ export async function getStaticPaths() {
 
 export default function Protocols({ denomination, selectedChain, protocol, protocolData }) {
   return (
-    <GeneralLayout title={`${capitalizeFirstLetter(protocol)} Protocol: TVL and stats - DefiLlama`}>
+    <GeneralLayout title={`${protocolData.name}: TVL and stats - DefiLlama`}>
       <ProtocolContainer
         protocol={protocol}
         protocolData={protocolData}
