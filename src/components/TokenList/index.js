@@ -14,6 +14,7 @@ import TokenLogo from 'components/TokenLogo'
 
 import { useInfiniteScroll } from 'hooks'
 import { formattedNum, formattedPercent, tokenIconUrl, slug, getPercentChange } from 'utils'
+import { ChevronDown, ChevronRight } from 'react-feather'
 
 const List = styled(Box)`
   -webkit-overflow-scrolling: touch;
@@ -391,9 +392,8 @@ export default TokenList
 const ListItem = ({ item, index, canBookmark, iconUrl, columns, generateLink, isChildList }) => {
   return (
     <>
-      <DashGrid style={{ height: '48px', marginLeft: !canBookmark ? '-28px' : 0 }} focus={true}>
+      <DashGrid style={{ height: '48px' }} focus={true}>
         <ToggleButton area="toggle">{canBookmark && <Bookmark readableProtocolName={item.name} />}</ToggleButton>
-
         <Index area="index">{index !== null ? index + 1 : ''}</Index>
         <ListHeaderName area="name" fontWeight="500" style={{ '--ident-left': isChildList ? '30px' : 0 }}>
           {isChildList && <div style={{ marginRight: '1rem' }}>-</div>}
@@ -419,11 +419,18 @@ const ListItem = ({ item, index, canBookmark, iconUrl, columns, generateLink, is
 }
 
 const ListHeaderItem = ({ item, index, columns, iconUrl, canBookmark, generateLink }) => {
+  const [showChildren, setShowChildren] = useState(false)
   const children = item.childChains
+  const handleClick = () => {
+    setShowChildren(!showChildren)
+  }
+  console.log(children)
   return (
     <>
-      <DashGrid style={{ height: '48px', position: 'relative', marginLeft: !canBookmark ? '-28px' : 0 }} focus={true}>
-        <div area="toggle"></div>
+      <DashGrid style={{ height: '48px', position: 'relative', cursor: 'pointer' }} focus={true} onClick={handleClick}>
+        <ToggleButton area="toggle">
+          {showChildren ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </ToggleButton>
         <Index area="index">{index + 1}</Index>
         <DataText area="name" fontWeight="500">
           <Row style={{ gap: '1rem', minWidth: '100%' }}>
@@ -435,7 +442,7 @@ const ListHeaderItem = ({ item, index, columns, iconUrl, canBookmark, generateLi
         <VolumeColumns item={item} columns={columns} />
       </DashGrid>
       <Divider />
-      {children &&
+      {showChildren &&
         children.map((child, index) => (
           <ListItem
             index={null}
