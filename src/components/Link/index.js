@@ -47,7 +47,7 @@ export const CustomLinkStyle = styled.a`
 export const CustomLink = ({ href, children, style }) => {
   // Must add passHref to Link
   return (
-    <RouterLink href={href} passHref>
+    <RouterLink href={href} passHref prefetch={false}>
       <CustomLinkStyle style={style}>{children}</CustomLinkStyle>
     </RouterLink>
   )
@@ -64,7 +64,7 @@ export const BasicLinkStyle = styled.a`
 `
 
 export const BasicLink = ({ href, children, ...props }) => (
-  <RouterLink href={href} passHref>
+  <RouterLink href={href} passHref prefetch={false}>
     <BasicLinkStyle {...props}>{children}</BasicLinkStyle>
   </RouterLink>
 )
