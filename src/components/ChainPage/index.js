@@ -71,9 +71,9 @@ const Chart = dynamic(() => import('components/GlobalChart'), {
 
 const BASIC_DENOMINATIONS = ['USD']
 
-function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart, extraVolumesCharts = {} }) {
-  const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
+const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
+function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart, extraVolumesCharts = {} }) {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
   const router = useRouter()
@@ -81,17 +81,17 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
   const denomination = router.query?.currency ?? 'USD'
 
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
-    let globalChart = chart
-
-    Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
-      if (extraTvlsEnabled[prop.toLowerCase()]) {
-        globalChart = globalChart.map((data) => {
+    const globalChart = chart.map((data) => {
+      let sum = data[1]
+      Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
+        if (extraTvlsEnabled[prop.toLowerCase()]) {
           const stakedData = propCharts.find((x) => x[0] === data[0])
           if (stakedData) {
-            return [data[0], data[1] + stakedData[1]]
-          } else return data
-        })
-      }
+            sum += stakedData[1]
+          }
+        }
+      })
+      return [data[0], sum]
     })
 
     const tvl = getPrevTvlFromChart(globalChart, 0)
