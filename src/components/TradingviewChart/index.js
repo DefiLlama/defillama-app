@@ -54,7 +54,7 @@ const TradingViewChart = ({
   const topScale = type === CHART_TYPES.AREA ? 0.32 : 0.2
 
   const [darkMode] = useDarkModeManager()
-  const textColor = darkMode ? 'white' : 'black'
+
   const previousTheme = usePrevious(darkMode)
 
   useEffect(() => {
@@ -63,13 +63,14 @@ const TradingViewChart = ({
       let tooltip = document.getElementById('tooltip-id' + type)
       let node = document.getElementById('test-id' + type)
       node.removeChild(tooltip)
-      // chartCreated.resize(0, 0)
       setChartCreated(false)
     }
   }, [chartCreated, previousTheme, darkMode, type])
 
-  // if no chart created yet, create one with options and add to DOM manually
   useEffect(() => {
+    const textColor = darkMode ? 'white' : 'black'
+    const crossHairColor = darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(32, 38, 46, 0.1)'
+
     const chart = createChart(ref.current, {
       width: width,
       height: HEIGHT,
@@ -106,7 +107,7 @@ const TradingViewChart = ({
           visible: true,
           style: 0,
           width: 2,
-          color: 'rgba(32, 38, 46, 0.1)',
+          color: crossHairColor,
           labelVisible: false,
         },
       },
@@ -220,7 +221,7 @@ const TradingViewChart = ({
       setChartCreated(false)
       chart.remove()
     }
-  }, [base, baseChange, darkMode, textColor, title, topScale, type, useWeekly, width, units, formattedData])
+  }, [base, baseChange, title, topScale, type, useWeekly, width, units, formattedData, darkMode])
 
   // responsiveness
   useEffect(() => {

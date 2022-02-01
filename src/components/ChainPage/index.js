@@ -62,7 +62,7 @@ const BreakpointPanelsColumn = styled(AutoColumn)`
 `
 
 const DownloadIcon = styled(DownloadCloud)`
-  color: ${({ theme }) => theme.white};
+  color: ${({ theme }) => theme.text1};
 `
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
