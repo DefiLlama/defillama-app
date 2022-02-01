@@ -4,7 +4,6 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { formattedNum } from '../../utils'
 import styled from 'styled-components'
-import { usePrevious } from 'react-use'
 import { Play } from 'react-feather'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
 import { IconWrapper } from '..'
@@ -54,18 +53,6 @@ const TradingViewChart = ({
   const topScale = type === CHART_TYPES.AREA ? 0.32 : 0.2
 
   const [darkMode] = useDarkModeManager()
-
-  const previousTheme = usePrevious(darkMode)
-
-  useEffect(() => {
-    if (chartCreated && previousTheme !== darkMode) {
-      // remove the tooltip element
-      let tooltip = document.getElementById('tooltip-id' + type)
-      let node = document.getElementById('test-id' + type)
-      node.removeChild(tooltip)
-      setChartCreated(false)
-    }
-  }, [chartCreated, previousTheme, darkMode, type])
 
   useEffect(() => {
     const textColor = darkMode ? 'white' : 'black'

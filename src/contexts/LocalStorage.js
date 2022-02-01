@@ -146,12 +146,16 @@ export function useDarkModeManager() {
   return [isDarkMode, toggleDarkMode]
 }
 
-export function useGetExtraTvlEnabled() {
+export const useGetExtraTvlEnabled = () => {
   const [state] = useLocalStorageContext()
-  return extraTvlProps.reduce((all, prop) => {
-    all[prop] = state[prop] || false
-    return all
-  }, {})
+  return useMemo(
+    () =>
+      extraTvlProps.reduce((all, prop) => {
+        all[prop] = state[prop] || false
+        return all
+      }, {}),
+    [state]
+  )
 }
 
 export function useTvlToggles() {
