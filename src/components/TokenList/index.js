@@ -424,7 +424,7 @@ const ListHeaderItem = ({ item, index, columns, iconUrl, canBookmark, generateLi
   const handleClick = () => {
     setShowChildren(!showChildren)
   }
-  console.log(children)
+
   return (
     <>
       <DashGrid style={{ height: '48px', position: 'relative', cursor: 'pointer' }} focus={true} onClick={handleClick}>
