@@ -23,7 +23,7 @@ export const ChainPieChart = ({ data, chainColor }: IChainPieChartProps) => {
   const onPieEnter = (_, index) => {
     setActiveIndex(index)
   }
-  const coloredData = data.map(c => ({ ...c, color: chainColor[c.name] }))
+  const coloredData = data.map((c) => ({ ...c, color: chainColor[c.name] }))
 
   return (
     <ChartWrapper>
@@ -47,7 +47,7 @@ export const ChainPieChart = ({ data, chainColor }: IChainPieChartProps) => {
   )
 }
 
-const renderActiveShape = props => {
+const renderActiveShape = (props) => {
   const RADIAN = Math.PI / 180
   const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, payload, percent, value } = props
   const fill = payload.color
@@ -73,7 +73,7 @@ const renderActiveShape = props => {
       fill={fill}
     />
   )
-  if (outerRadius < 110) {
+  if (outerRadius < 180) {
     return (
       <>
         {sector1}
