@@ -210,14 +210,6 @@ const TradingViewChart = ({
     }
   }, [base, baseChange, title, topScale, type, useWeekly, width, units, formattedData, darkMode])
 
-  // responsiveness
-  useEffect(() => {
-    if (width) {
-      chartCreated && chartCreated.resize(width, HEIGHT)
-      chartCreated && chartCreated.timeScale().scrollToPosition(0)
-    }
-  }, [chartCreated, width])
-
   return (
     <Wrapper>
       <div ref={ref} id={'test-id' + type} />

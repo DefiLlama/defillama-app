@@ -3,7 +3,7 @@ import { GeneralLayout } from '../layout'
 import { getChainPageData, revalidate } from '../utils/dataApi'
 import SearchDataProvider from 'contexts/SearchData'
 
-export async function getStaticProps({ params }) {
+export async function getStaticProps() {
   const data = await getChainPageData()
   return {
     ...data,

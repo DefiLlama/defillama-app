@@ -162,37 +162,37 @@ export async function getSimpleProtocolsPageData(propsToKeep) {
 }
 
 export async function getChainPageData(chain) {
-  let chartData, protocols, chains
   try {
-    ;[chartData, { protocols, chains }] = await Promise.all(
+    const [chartData, { protocols, chains }] = await Promise.all(
       [CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
     )
+
+    const { tvl = [], staking = [], borrowed = [], pool2 = [], offers = [], treasury = [] } = chartData || {}
+
+    const filteredProtocols = formatProtocolsData({ chain, protocols })
+
+    const extraVolumesCharts = {
+      staking: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+      borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+      pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+      offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+      treasury: treasury.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+    }
+
+    return {
+      props: {
+        ...(chain && { chain }),
+        chainsSet: chains,
+        filteredProtocols,
+        chart: tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+        extraVolumesCharts,
+      },
+    }
   } catch (e) {
+    console.log(e)
     return {
       notFound: true,
     }
-  }
-
-  const { tvl = [], staking = [], borrowed = [], pool2 = [], offers = [], treasury = [] } = chartData || {}
-
-  const filteredProtocols = formatProtocolsData({ chain, protocols })
-
-  const extraVolumesCharts = {
-    staking: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-    borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-    pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-    offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-    treasury: treasury.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-  }
-
-  return {
-    props: {
-      ...(chain && { chain }),
-      chainsSet: chains,
-      filteredProtocols,
-      chart: tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-      extraVolumesCharts,
-    },
   }
 }
 
@@ -237,141 +237,141 @@ export const fuseProtocolData = (protocolData, protocol) => {
 }
 
 export const getChainsPageData = async (category: string) => {
-    const [res, { chainCoingeckoIds }] = await Promise.all(
-      [PROTOCOLS_API, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
-    )
+  const [res, { chainCoingeckoIds }] = await Promise.all(
+    [PROTOCOLS_API, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
+  )
 
-    let categories = []
-    for (const chain in chainCoingeckoIds) {
-      chainCoingeckoIds[chain].categories?.forEach((category) => {
-        if (!categories.includes(category)) {
-          categories.push(category)
-        }
-      })
-    }
-
-    const categoryExists = categories.includes(category) || category === 'All' || category === 'Non-EVM'
-
-    if (!categoryExists) {
-      return {
-        notFound: true,
-      }
-    } else {
-      categories = [
-        { label: 'All', to: '/chains' },
-        { label: 'Non-EVM', to: '/chains/Non-EVM' },
-      ].concat(categories.map((category) => ({ label: category, to: `/chains/${category}` })))
-    }
-
-    const chainsUnique: string[] = res.chains.filter((t: string) => {
-      if (t !== 'Syscoin') {
-        const chainCategories = chainCoingeckoIds[t]?.categories ?? []
-        if (category === 'All') {
-          return true
-        } else if (category === 'Non-EVM') {
-          return !chainCategories.includes('EVM')
-        } else {
-          return chainCategories.includes(category)
-        }
+  let categories = []
+  for (const chain in chainCoingeckoIds) {
+    chainCoingeckoIds[chain].categories?.forEach((category) => {
+      if (!categories.includes(category)) {
+        categories.push(category)
       }
     })
+  }
 
-    let chainsGroupbyParent = {}
-    chainsUnique.forEach((chain) => {
-      const parent = chainCoingeckoIds[chain].parent
-      if (parent) {
-        if (!chainsGroupbyParent[parent]) {
-          chainsGroupbyParent[parent] = {}
-        }
-        chainsGroupbyParent[parent][chain] = {}
-      }
-    })
+  const categoryExists = categories.includes(category) || category === 'All' || category === 'Non-EVM'
 
-    const chainsData: IChainData[] = await Promise.all(
-      chainsUnique.map((elem: string) => fetch(`${CHART_API}/${elem}`).then((resp) => resp.json()))
-    )
-
-    const chainMcaps = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(chainCoingeckoIds)
-        .map((v: IChainGeckoId) => v.geckoId)
-        .join(',')}&vs_currencies=usd&include_market_cap=true`
-    ).then((res) => res.json())
-    const numProtocolsPerChain = {}
-    const extraPropPerChain = {}
-
-    res.protocols.forEach((protocol: IProtocol) => {
-      protocol.chains.forEach((chain) => {
-        numProtocolsPerChain[chain] = (numProtocolsPerChain[chain] || 0) + 1
-      })
-      Object.entries(protocol.chainTvls).forEach(([propKey, propValue]) => {
-        if (propKey.includes('-')) {
-          const prop = propKey.split('-')[1].toLowerCase()
-          const chain = propKey.split('-')[0]
-          if (extraPropPerChain[chain] === undefined) {
-            extraPropPerChain[chain] = {}
-          }
-          extraPropPerChain[chain][prop] = {
-            tvl: (propValue.tvl || 0) + (extraPropPerChain[chain][prop]?.tvl ?? 0),
-            tvlPrevDay: (propValue.tvlPrevDay || 0) + (extraPropPerChain[chain][prop]?.tvlPrevDay ?? 0),
-            tvlPrevWeek: (propValue.tvlPrevWeek || 0) + (extraPropPerChain[chain][prop]?.tvlPrevWeek ?? 0),
-            tvlPrevMonth: (propValue.tvlPrevMonth || 0) + (extraPropPerChain[chain][prop]?.tvlPrevMonth ?? 0),
-          }
-        }
-      })
-    })
-
-    const tvlData = chainsData.map((d) => d.tvl)
-    const chainTvls = chainsUnique
-      .map((chainName, i) => {
-        const tvl = getPrevTvlFromChart(tvlData[i], 0)
-        const tvlPrevDay = getPrevTvlFromChart(tvlData[i], 1)
-        const tvlPrevWeek = getPrevTvlFromChart(tvlData[i], 7)
-        const tvlPrevMonth = getPrevTvlFromChart(tvlData[i], 30)
-        const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
-        return {
-          tvl,
-          tvlPrevDay,
-          tvlPrevWeek,
-          tvlPrevMonth,
-          mcap: mcap || null,
-          name: chainName,
-          symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
-          protocols: numProtocolsPerChain[chainName],
-          extraTvl: extraPropPerChain[chainName] || {},
-          change_1d: getPercentChange(tvl, tvlPrevDay),
-          change_7d: getPercentChange(tvl, tvlPrevWeek),
-          change_1m: getPercentChange(tvl, tvlPrevMonth),
-        }
-      })
-      .sort((a, b) => b.tvl - a.tvl)
-
-    const stackedDataset = Object.entries(
-      chainsData.reduce((total: IStackedDataset, chains, i) => {
-        const chainName = chainsUnique[i]
-        Object.entries(chains).forEach(([tvlType, values]) => {
-          values.forEach((value) => {
-            if (value[0] < 1596248105) return
-            if (total[value[0]] === undefined) {
-              total[value[0]] = {}
-            }
-            const b = total[value[0]][chainName]
-            total[value[0]][chainName] = { ...b, [tvlType]: value[1] }
-          })
-        })
-        return total
-      }, {})
-    )
-
+  if (!categoryExists) {
     return {
-      props: {
-        chainsUnique,
-        chainTvls,
-        stackedDataset,
-        category,
-        categories,
-        chainsGroupbyParent,
-      },
+      notFound: true,
     }
+  } else {
+    categories = [
+      { label: 'All', to: '/chains' },
+      { label: 'Non-EVM', to: '/chains/Non-EVM' },
+    ].concat(categories.map((category) => ({ label: category, to: `/chains/${category}` })))
+  }
+
+  const chainsUnique: string[] = res.chains.filter((t: string) => {
+    if (t !== 'Syscoin') {
+      const chainCategories = chainCoingeckoIds[t]?.categories ?? []
+      if (category === 'All') {
+        return true
+      } else if (category === 'Non-EVM') {
+        return !chainCategories.includes('EVM')
+      } else {
+        return chainCategories.includes(category)
+      }
+    }
+  })
+
+  let chainsGroupbyParent = {}
+  chainsUnique.forEach((chain) => {
+    const parent = chainCoingeckoIds[chain].parent
+    if (parent) {
+      if (!chainsGroupbyParent[parent]) {
+        chainsGroupbyParent[parent] = {}
+      }
+      chainsGroupbyParent[parent][chain] = {}
+    }
+  })
+
+  const chainsData: IChainData[] = await Promise.all(
+    chainsUnique.map((elem: string) => fetch(`${CHART_API}/${elem}`).then((resp) => resp.json()))
+  )
+
+  const chainMcaps = await fetch(
+    `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(chainCoingeckoIds)
+      .map((v: IChainGeckoId) => v.geckoId)
+      .join(',')}&vs_currencies=usd&include_market_cap=true`
+  ).then((res) => res.json())
+  const numProtocolsPerChain = {}
+  const extraPropPerChain = {}
+
+  res.protocols.forEach((protocol: IProtocol) => {
+    protocol.chains.forEach((chain) => {
+      numProtocolsPerChain[chain] = (numProtocolsPerChain[chain] || 0) + 1
+    })
+    Object.entries(protocol.chainTvls).forEach(([propKey, propValue]) => {
+      if (propKey.includes('-')) {
+        const prop = propKey.split('-')[1].toLowerCase()
+        const chain = propKey.split('-')[0]
+        if (extraPropPerChain[chain] === undefined) {
+          extraPropPerChain[chain] = {}
+        }
+        extraPropPerChain[chain][prop] = {
+          tvl: (propValue.tvl || 0) + (extraPropPerChain[chain][prop]?.tvl ?? 0),
+          tvlPrevDay: (propValue.tvlPrevDay || 0) + (extraPropPerChain[chain][prop]?.tvlPrevDay ?? 0),
+          tvlPrevWeek: (propValue.tvlPrevWeek || 0) + (extraPropPerChain[chain][prop]?.tvlPrevWeek ?? 0),
+          tvlPrevMonth: (propValue.tvlPrevMonth || 0) + (extraPropPerChain[chain][prop]?.tvlPrevMonth ?? 0),
+        }
+      }
+    })
+  })
+
+  const tvlData = chainsData.map((d) => d.tvl)
+  const chainTvls = chainsUnique
+    .map((chainName, i) => {
+      const tvl = getPrevTvlFromChart(tvlData[i], 0)
+      const tvlPrevDay = getPrevTvlFromChart(tvlData[i], 1)
+      const tvlPrevWeek = getPrevTvlFromChart(tvlData[i], 7)
+      const tvlPrevMonth = getPrevTvlFromChart(tvlData[i], 30)
+      const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
+      return {
+        tvl,
+        tvlPrevDay,
+        tvlPrevWeek,
+        tvlPrevMonth,
+        mcap: mcap || null,
+        name: chainName,
+        symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
+        protocols: numProtocolsPerChain[chainName],
+        extraTvl: extraPropPerChain[chainName] || {},
+        change_1d: getPercentChange(tvl, tvlPrevDay),
+        change_7d: getPercentChange(tvl, tvlPrevWeek),
+        change_1m: getPercentChange(tvl, tvlPrevMonth),
+      }
+    })
+    .sort((a, b) => b.tvl - a.tvl)
+
+  const stackedDataset = Object.entries(
+    chainsData.reduce((total: IStackedDataset, chains, i) => {
+      const chainName = chainsUnique[i]
+      Object.entries(chains).forEach(([tvlType, values]) => {
+        values.forEach((value) => {
+          if (value[0] < 1596248105) return
+          if (total[value[0]] === undefined) {
+            total[value[0]] = {}
+          }
+          const b = total[value[0]][chainName]
+          total[value[0]][chainName] = { ...b, [tvlType]: value[1] }
+        })
+      })
+      return total
+    }, {})
+  )
+
+  return {
+    props: {
+      chainsUnique,
+      chainTvls,
+      stackedDataset,
+      category,
+      categories,
+      chainsGroupbyParent,
+    },
+  }
 }
 
 export const getNFTStatistics = (chart) => {
