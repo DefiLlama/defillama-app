@@ -10,7 +10,8 @@ export async function getStaticProps({
   },
 }) {
   const protocolRes = await getProtocol(protocol)
-  if (protocolRes.statusCode === 400) {
+
+  if (!protocolRes || protocolRes.statusCode === 400) {
     return {
       notFound: true,
     }
