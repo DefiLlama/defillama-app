@@ -259,6 +259,11 @@ export const chainCoingeckoIds = {
     symbol: 'NEAR',
     cmcId: '6535'
   },
+  Aurora: {
+    geckoId: null,
+    symbol: null,
+    cmcId: null
+  },
   EOS: {
     geckoId: 'eos',
     symbol: 'EOS',
