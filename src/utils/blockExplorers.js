@@ -30,6 +30,7 @@ const blockExplorers = {
   xdc: ['https://explorer.xinfin.network/token/', 'XDC Explorer'],
   csc: ['https://www.coinex.net/address/', 'CSC Explorer'],
   cardano: ['https://cardanoscan.io/token/', 'Cardanoscan'],
+  astar: ['https://blockscout.com/astar/address/', 'Blockscout'],
 }
 
 export const getBlockExplorer = (address = '') => {
