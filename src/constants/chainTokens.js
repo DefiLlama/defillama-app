@@ -439,6 +439,11 @@ export const chainCoingeckoIds = {
     symbol: "ASTR",
     cmcId: "12885",
   },
+  Curio: {
+    geckoId: null,
+    symbol: null,
+    cmcId: null,
+  },
 }
 
 export const chainMarketplaceMappings = {
