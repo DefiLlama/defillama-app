@@ -156,7 +156,7 @@ export async function getProtocolsPageData(category, chain) {
 }
 
 export async function getSimpleProtocolsPageData(propsToKeep) {
-  const { protocols, chains } = await getProtocols()
+  const { protocols, chains } = await getProtocolsRaw()
   const filteredProtocols = formatProtocolsData({ protocols, protocolProps: propsToKeep })
   return { protocols: filteredProtocols, chains }
 }
@@ -195,6 +195,10 @@ export async function getChainPageData(chain) {
     }
   }
 }
+
+export const getProtocolsRaw = () =>
+  fetch(PROTOCOLS_API)
+    .then((r) => r.json())
 
 export const getProtocols = () =>
   fetch(PROTOCOLS_API)

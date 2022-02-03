@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/router'
-import { TrendingUp, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock, Bookmark, Award } from 'react-feather'
+import { TrendingUp, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock, Bookmark, Award, RefreshCcw } from 'react-feather'
 
 import { DesktopWrapper, Entry, MobileWrapper, Option, Wrapper, Footer, ButtonWrapper, Desktop, Mobile } from './shared'
 import { AutoColumn } from '../Column'
@@ -9,7 +9,6 @@ import { BasicLink } from '../Link'
 import SettingsMenuButton from '../SettingsModal'
 import NavMenuButton from './NavMenuButton'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
-import categories from '../../constants/categories'
 
 const NavMenu = ({ isMobile }) => {
   const router = useRouter()
@@ -22,22 +21,9 @@ const NavMenu = ({ isMobile }) => {
       <Entry url="chains" name="Chains" history={history} Icon={LinkLogo} />
       {!isMobile && <Entry url="portfolio" name="Portfolio" history={history} Icon={Bookmark} />}
       <Entry url="airdrops" name="Airdrops" history={history} Icon={CloudDrizzle} />
-      <Entry url="comparison" name="Comparison" history={history} Icon={Minimize2} />
+      <Entry url="categories" name="Categories" history={history} Icon={RefreshCcw} />
       <Entry url="recent" name="Recent" history={history} Icon={Clock} />
-      {categories.map(categoryData => (
-        <BasicLink href={`/protocols/${categoryData.name.toLowerCase()}`} key={categoryData.name}>
-          <Option
-            activeText={
-              (history.location.pathname.split('/')[1] === 'protocols' &&
-                history.location.pathname.split('/')[2] === categoryData.name) ??
-              undefined
-            }
-          >
-            <categoryData.icon size={20} style={{ marginRight: '.75rem' }} />
-            {categoryData.name}
-          </Option>
-        </BasicLink>
-      ))}
+      <Entry url="comparison" name="Comparison" history={history} Icon={Minimize2} />
       <Entry url="about" name="About" history={history} Icon={HelpCircle} />
     </AutoColumn>
   )
