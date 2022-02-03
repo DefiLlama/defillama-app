@@ -57,7 +57,7 @@ export default function Protocols({ categories }) {
         <Box>
             {
             categories.map(([category, categoryData])=>
-            <DashGrid style={{ height: '48px' }} focus={true}>
+            <DashGrid style={{ height: '48px' }} focus={true} key={category}>
             <DataText area="name" fontWeight="500">
             <CustomLink href={`/protocols/${category}`}>{category}</CustomLink>
             </DataText>
