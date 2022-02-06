@@ -2,26 +2,30 @@ import { FullWrapper, PageWrapper } from '../components'
 import { GeneralLayout } from '../layout'
 import Panel from 'components/Panel'
 import { LANGS_API } from '../constants'
-import { toNiceMonthlyDate } from '../utils'
+import { toNiceMonthlyDate, getRandomColor } from '../utils'
 import { revalidate } from '../utils/dataApi'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
+import { ChainDominanceChart } from 'components/Charts'
 
 export async function getStaticProps() {
   const langs = await fetch(LANGS_API).then(r=>r.json())
   const langsUnique = new Set()
+  const daySum = {}
   const formattedLangs = Object.entries(langs).map(lang=>{
     Object.keys(lang[1]).map(l=>langsUnique.add(l))
+    daySum[lang[0]]=Object.values(lang[1]).reduce((t,a)=>t+a)
     return {
       ...lang[1],
       date: lang[0],
     }
-  }).sort((a,b)=>b.date-a.date);
+  }).sort((a,b)=>a.date-b.date);
 
   return {
     props: {
       langs: formattedLangs,
-      langsUnique: Array.from(langsUnique)
+      langsUnique: Array.from(langsUnique),
+      daySum
     },
     revalidate: revalidate()
   }
@@ -43,13 +47,21 @@ function Chart({langs, langsUnique}){
 </Panel>
 }
 
-export default function Protocols({ langs, langsUnique }) {
-  
+export default function Protocols({ langs, langsUnique, daySum }) {
+  const colors = {}
+  langsUnique.forEach(l=>{colors[l]=getRandomColor()})
   return (
     <GeneralLayout title={`Languages - DefiLlama`} defaultSEO>
       <PageWrapper>
       <FullWrapper>
         <Chart {...({langs, langsUnique})} />
+        <ChainDominanceChart
+            stackOffset="expand"
+            formatPercent={true}
+            stackedDataset={langs}
+            chainsUnique={langsUnique}
+            chainColor={colors}
+            daySum={daySum} />
       </FullWrapper>
       </PageWrapper>
     </GeneralLayout>
