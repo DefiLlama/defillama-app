@@ -24,18 +24,37 @@ export async function getStaticProps() {
 
   return {
     props: {
-        categories: Object.entries(categories).sort((a,b)=>b.tvl-a.tvl)
+        categories: Object.entries(categories).sort((a,b)=>b[1].tvl-a[1].tvl)
     },
     revalidate: revalidate()
   }
 }
 
 const DashGrid = styled.div`
-  grid-template-columns: 0.4fr 0.4fr 0.4fr;
+  grid-template-columns: 0.4fr 0.3fr 0.3fr 1.2fr;
   display: grid;
   grid-gap: 0.5em;
   padding: 0 1.125rem;
 `
+
+const descriptions = {
+  "Dexes": "Protocols where you can swap/trade cryptocurrency",
+  "Algo-Stable": 'From algorithmic coins to stables coins, including protocols where you provide an asset in order to mint some "stablecoin"',
+  "Yield": "Protocols that pay you a reward for your staking/LP on their platform",
+  "Lending": "Protocols that allow users to borrow and lend assets" ,
+  "Cross Chain": "Protocols that add interoperability between different blockchains" ,
+  "Staking": "Rewards/Liquidity for staked assets (cryptocurrency)" ,
+  "Services": "Protocols that provide a service to the user" ,
+  "Yield Aggregator": "Protocols that aggregated yield from diverse protocols" ,
+  "Minting": "NFT Related (in work)" , 
+  "Assets": "(will be removed)" ,
+  "Derivatives": "Smart contracts that gets its value, risk, and basic term structure from an underlying asset" ,
+  "Payments": "Offer the ability to pay/send/receive cryptocurrency" ,
+  "Privacy": "Protocols that have the intention of hiding information about transactions" ,
+  "Insurance": "Protocols that are designed to provide monetary protections" ,
+  "Indexes": "Protocols that have a way to track/created the performance of a group of related assets",
+  "Synthetics": "Protocol that created a tokenized derivative that mimics the value of another asset." ,
+}
 
 export default function Protocols({ categories }) {
   return (
@@ -44,7 +63,7 @@ export default function Protocols({ categories }) {
       <FullWrapper>
       <Panel style={{ marginTop: '6px' }} sx={{ padding: ['1rem 0 0 0', '1.25rem'] }}>
       <DashGrid center={true} style={{ height: 'fit-content', padding: '0 1.125rem 1rem 1.125rem' }}>
-          {["Category", "Protocols", "Combined TVL"].map(column=><Flex key={column} alignItems="center" justifyContent="flexStart">
+          {["Category", "Protocols", "Combined TVL", "Description"].map(column=><Flex key={column} alignItems="center" justifyContent="flexStart">
           <ClickableText
             area="name"
             fontWeight="500"
@@ -63,6 +82,9 @@ export default function Protocols({ categories }) {
             </DataText>
             <DataText>{categoryData.protocols}</DataText>
             <DataText>{toK(categoryData.tvl)}</DataText>
+            <DataText style={{
+              textAlign: "left"
+            }}>{descriptions[category] ?? ""}</DataText>
             </DashGrid>
             )}
         </Box>
