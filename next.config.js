@@ -11,6 +11,11 @@ module.exports = {
         source: '/chain/Binance',
         destination: '/chain/BSC',
         permanent: true
+      },
+      {
+        source: '/langs',
+        destination: '/languages',
+        permanent: true
       }
     ]
   },

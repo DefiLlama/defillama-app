@@ -9,7 +9,8 @@ import { GeneralAreaChart } from 'components/TokenChart'
 import { ChainDominanceChart } from 'components/Charts'
 
 export async function getStaticProps() {
-  const langs = await fetch(LANGS_API).then(r=>r.json())
+  const data = await fetch(LANGS_API).then(r=>r.json())
+  const langs = data.chart
   const langsUnique = new Set()
   const daySum = {}
   const formattedLangs = Object.entries(langs).map(lang=>{

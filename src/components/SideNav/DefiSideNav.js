@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/router'
-import { TrendingUp, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock, Bookmark, Award, RefreshCcw } from 'react-feather'
+import { TrendingUp, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock, Bookmark, Award, RefreshCcw, Code } from 'react-feather'
 
 import { DesktopWrapper, Entry, MobileWrapper, Option, Wrapper, Footer, ButtonWrapper, Desktop, Mobile } from './shared'
 import { AutoColumn } from '../Column'
@@ -24,6 +24,7 @@ const NavMenu = ({ isMobile }) => {
       <Entry url="categories" name="Categories" history={history} Icon={RefreshCcw} />
       <Entry url="recent" name="Recent" history={history} Icon={Clock} />
       <Entry url="comparison" name="Comparison" history={history} Icon={Minimize2} />
+      <Entry url="languages" name="Languages" history={history} Icon={Code} />
       <Entry url="about" name="About" history={history} Icon={HelpCircle} />
     </AutoColumn>
   )
