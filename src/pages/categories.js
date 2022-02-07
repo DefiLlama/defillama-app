@@ -39,7 +39,6 @@ const DashGrid = styled.div`
 
 const descriptions = {
   "Dexes": "Protocols where you can swap/trade cryptocurrency",
-  "Algo-Stable": 'From algorithmic coins to stables coins, including protocols where you provide an asset in order to mint some "stablecoin"',
   "Yield": "Protocols that pay you a reward for your staking/LP on their platform",
   "Lending": "Protocols that allow users to borrow and lend assets" ,
   "Cross Chain": "Protocols that add interoperability between different blockchains" ,
@@ -54,6 +53,14 @@ const descriptions = {
   "Insurance": "Protocols that are designed to provide monetary protections" ,
   "Indexes": "Protocols that have a way to track/created the performance of a group of related assets",
   "Synthetics": "Protocol that created a tokenized derivative that mimics the value of another asset." ,
+  "CDP": "Protocols that mint its own stablecoin using some collateral" ,
+  "Bridge": "Protocols that bridge token from one network to another" ,
+  "Reserve Currency": "Ohm fork: A protocol that uses a reserve of valuable assets acquired through bonding and staking to issue and back its native token" ,
+  "Options": "Protocols that give you the right to buy an asset at a fixed price",
+  "Launchpad": "Protocols that launch new projects and coins",
+  "Gaming": "Protocols that have gaming components" ,
+  "Prediction Market": "Protocols that allow you to wager/bet/buy in future results" ,
+  "Algo-Stables": "From algorithmic coins to stablecoins",
 }
 
 export default function Protocols({ categories }) {
