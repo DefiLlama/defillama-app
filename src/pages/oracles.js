@@ -121,7 +121,7 @@ export default function Oracles({ daySum, oracles, chartData = [], oracleLinks, 
                   <Index></Index>
                   <TableHeader>Name</TableHeader>
                   <TableHeader>Protocols Secured</TableHeader>
-                  <TableHeader>TVL Secured</TableHeader>
+                  <TableHeader>Total Volume Secured</TableHeader>
                 </TableRow>
               </thead>
               <tbody>

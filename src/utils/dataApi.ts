@@ -252,6 +252,10 @@ export async function getOraclePageData(oracle = null) {
 
     chartData.sort((a, b) => a.date - b.date)
 
+    const latestTvls: any = Object.entries(chartData[chartData.length - 1]).filter((data) => data[0] !== 'date')
+
+    const oraclesUnique = latestTvls.sort((a, b) => b[1] - a[1]).map((orc) => orc[0])
+
     if (oracle) {
       let data = []
       chartData?.forEach((item) => {
@@ -268,10 +272,6 @@ export async function getOraclePageData(oracle = null) {
     for (const orc in oracles) {
       oraclesProtocols[orc] = oracles[orc]?.length
     }
-
-    const oraclesUnique = Object.entries(oraclesProtocols)
-      .sort((a, b) => b[1] - a[1])
-      .map((oracle) => oracle[0])
 
     let oracleLinks = [{ label: 'All', to: `/oracles` }].concat(
       oraclesUnique.map((o: string) => ({ label: o, to: `/oracles/${o}` }))

@@ -14,7 +14,7 @@ import { AllTvlOptions } from '../SettingsModal'
 
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { TYPE, ThemedBackground } from 'Theme'
-import { formattedNum, getPercentChange, getPrevTvlFromChart } from 'utils'
+import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { DownloadCloud } from 'react-feather'
 import { BasicLink } from '../Link'
@@ -172,7 +172,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const totalVolume = totalVolumeUSD / chainPriceInUSD
 
-  const dominance = topToken.tvl && totalVolumeUSD && ((topToken.tvl / totalVolumeUSD) * 100.0).toFixed(2)
+  const dominance = getTokenDominance(topToken, totalVolume)
 
   const isLoading = denomination !== 'USD' && loading
 

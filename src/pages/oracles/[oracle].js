@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { GeneralLayout } from 'layout'
 import { getOraclePageData, getProtocolsRaw, revalidate } from 'utils/dataApi'
-import { formattedNum, getPercentChange, getPrevTvlFromChart } from 'utils'
+import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
 import Filters from 'components/Filters'
 import Search from 'components/Search'
 import { FullWrapper, PageWrapper } from 'components'
@@ -47,13 +47,15 @@ export default function Oracles({ chartData, oracleLinks, oracle, filteredProtoc
     return { finalChartData, totalVolume, volumeChangeUSD }
   }, [chartData])
 
-  const topToken = { name: 'Uniswap', tvl: 0 }
+  const topToken = {}
   if (filteredProtocols.length > 0) {
     topToken.name = filteredProtocols[0]?.name
     topToken.tvl = filteredProtocols[0]?.tvl
   }
 
   const tvl = formattedNum(totalVolume, true)
+
+  const dominance = getTokenDominance(topToken, totalVolume)
 
   const percentChange = volumeChangeUSD?.toFixed(2)
 
@@ -86,9 +88,8 @@ export default function Oracles({ chartData, oracleLinks, oracle, filteredProtoc
       <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
         <AutoColumn gap="4px">
           <RowBetween>
-            <TYPE.heading>Protocols secured</TYPE.heading>
+            <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
           </RowBetween>
-
           <TYPE.main
             fontSize={'33px'}
             lineHeight={'39px'}
@@ -96,7 +97,7 @@ export default function Oracles({ chartData, oracleLinks, oracle, filteredProtoc
             color={'#46acb7'}
             style={{ marginTop: '4px', marginBottom: '-6px' }}
           >
-            {filteredProtocols?.length ?? ''}
+            {dominance}%
           </TYPE.main>
         </AutoColumn>
       </Panel>
