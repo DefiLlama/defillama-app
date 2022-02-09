@@ -12,6 +12,7 @@ import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
 import Filters from 'components/Filters'
 import Panel from 'components/Panel'
 import { CustomLink } from 'components/Link'
+import { Header } from 'Theme'
 
 const ChartsWrapper = styled(Box)`
   display: flex;
@@ -102,6 +103,7 @@ export default function Oracles({ daySum, oracles, chartData = [], oracleLinks, 
         <FullWrapper>
           <Search />
           {/* <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} /> */}
+          <Header>Total Volume Secured All Oracles</Header>
           <ChartsWrapper>
             <ChainPieChart data={oracleTvls} chainColor={oracleColors} />
             <ChainDominanceChart
@@ -114,7 +116,7 @@ export default function Oracles({ daySum, oracles, chartData = [], oracleLinks, 
             />
           </ChartsWrapper>
           <Filters filterOptions={oracleLinks} activeLabel="All" />
-          <Panel style={{ marginTop: '6px', overflowX: 'auto', padding: ' 12px 20px' }}>
+          <Panel style={{ overflowX: 'auto', padding: ' 12px 20px' }}>
             <Table>
               <thead>
                 <TableRow>

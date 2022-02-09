@@ -124,7 +124,7 @@ export default function Oracles({ chartData, oracleLinks, oracle, filteredProtoc
           </BreakpointPanels>
 
           <Filters filterOptions={oracleLinks} activeLabel={oracle} />
-          <Panel style={{ marginTop: '6px' }}>
+          <Panel>
             <TokenList tokens={filteredProtocols} />
           </Panel>
         </FullWrapper>
