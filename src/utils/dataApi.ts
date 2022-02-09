@@ -11,6 +11,7 @@ import {
   NFT_SEARCH_API,
   CONFIG_API,
   HOURLY_PROTOCOL_API,
+  ORACLE_API,
 } from '../constants/index'
 import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
 
@@ -51,6 +52,16 @@ interface IStackedDataset {
   }
 }
 
+type DaySum = {
+  [key: number]: number
+}
+
+interface IOracleProtocols {
+  [key: string]: number
+}
+
+type Charts = [string, { [key: string]: number }]
+
 export function getProtocolNames(protocols) {
   return protocols.map((p) => ({ name: p.name, symbol: p.symbol }))
 }
@@ -79,6 +90,7 @@ export function keepNeededProperties(protocol: any, propertiesToKeep: string[] =
 
 const formatProtocolsData = ({
   chain = '',
+  oracle = null,
   category = '',
   protocols = [],
   protocolProps = [...basicPropertiesToKeep, 'extraTvl'],
@@ -87,6 +99,10 @@ const formatProtocolsData = ({
 
   if (chain) {
     filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
+  }
+
+  if (oracle) {
+    filteredProtocols = filteredProtocols.filter(({ oracles = [] }) => oracles.includes(oracle))
   }
 
   if (category) {
@@ -161,31 +177,41 @@ export async function getSimpleProtocolsPageData(propsToKeep) {
   return { protocols: filteredProtocols, chains }
 }
 
+export const getVolumeCharts = (data) => {
+  const { tvl = [], staking = [], borrowed = [], pool2 = [], offers = [], treasury = [] } = data || {}
+
+  const chart = tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
+
+  const extraVolumesCharts = {
+    staking: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+    borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+    pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+    offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+    treasury: treasury.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+  }
+
+  return {
+    chart,
+    extraVolumesCharts,
+  }
+}
+
 export async function getChainPageData(chain) {
   try {
     const [chartData, { protocols, chains }] = await Promise.all(
       [CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
     )
 
-    const { tvl = [], staking = [], borrowed = [], pool2 = [], offers = [], treasury = [] } = chartData || {}
-
     const filteredProtocols = formatProtocolsData({ chain, protocols })
 
-    const extraVolumesCharts = {
-      staking: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-      borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-      pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-      offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-      treasury: treasury.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-    }
+    const charts = getVolumeCharts(chartData)
 
     return {
       props: {
         ...(chain && { chain }),
         chainsSet: chains,
         filteredProtocols,
-        chart: tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-        extraVolumesCharts,
+        ...charts,
       },
     }
   } catch (e) {
@@ -196,9 +222,81 @@ export async function getChainPageData(chain) {
   }
 }
 
-export const getProtocolsRaw = () =>
-  fetch(PROTOCOLS_API)
-    .then((r) => r.json())
+export async function getOraclePageData(oracle = null) {
+  try {
+    const [{ chart = {}, oracles = {} }, { protocols }] = await Promise.all(
+      [ORACLE_API, PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
+    )
+
+    const oracleExists = !oracle || oracles[oracle]
+
+    if (!oracleExists) {
+      return {
+        notFound: true,
+      }
+    }
+
+    const filteredProtocols = formatProtocolsData({ oracle, protocols })
+
+    const daySum: DaySum = {}
+
+    const charts: Charts[] = Object.entries(chart)
+
+    let chartData: any = charts.map((oracle) => {
+      daySum[oracle[0]] = Object.values(oracle[1]).reduce((t, a) => t + a)
+      return {
+        ...oracle[1],
+        date: oracle[0],
+      }
+    })
+
+    chartData.sort((a, b) => a.date - b.date)
+
+    if (oracle) {
+      let data = []
+      chartData?.forEach((item) => {
+        const value = item[oracle]
+        if (value) {
+          data.push([item.date, value])
+        }
+      })
+      chartData = data
+    }
+
+    const oraclesProtocols: IOracleProtocols = {}
+
+    for (const orc in oracles) {
+      oraclesProtocols[orc] = oracles[orc]?.length
+    }
+
+    const oraclesUnique = Object.entries(oraclesProtocols)
+      .sort((a, b) => b[1] - a[1])
+      .map((oracle) => oracle[0])
+
+    let oracleLinks = [{ label: 'All', to: `/oracles` }].concat(
+      oraclesUnique.map((o: string) => ({ label: o, to: `/oracles/${o}` }))
+    )
+
+    return {
+      props: {
+        oracles: oraclesUnique,
+        daySum,
+        oracleLinks,
+        oracle,
+        chartData,
+        filteredProtocols,
+        oraclesProtocols,
+      },
+    }
+  } catch (e) {
+    console.log(e)
+    return {
+      notFound: true,
+    }
+  }
+}
+
+export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
 export const getProtocols = () =>
   fetch(PROTOCOLS_API)
@@ -293,10 +391,10 @@ export const getChainsPageData = async (category: string) => {
 
   const chainsData: IChainData[] = await Promise.all(
     chainsUnique.map(async (elem: string) => {
-      for(let i=0; i<5; i++){
-        try{
+      for (let i = 0; i < 5; i++) {
+        try {
           return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-        } catch(e){}
+        } catch (e) {}
       }
       throw new Error(`${CHART_API}/${elem} is broken`)
     })

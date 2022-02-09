@@ -36,7 +36,7 @@ const ListOptions = styled(AutoRow)`
   }
 `
 
-const BreakpointPanels = styled.div`
+export const BreakpointPanels = styled.div`
   @media screen and (min-width: 800px) {
     width: 100%;
     display: flex;
@@ -51,7 +51,7 @@ const FiltersRow = styled(RowFlat)`
   }
 `
 
-const BreakpointPanelsColumn = styled(AutoColumn)`
+export const BreakpointPanelsColumn = styled(AutoColumn)`
   width: 100%;
   margin-right: 10px;
   max-width: 350px;

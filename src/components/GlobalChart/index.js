@@ -9,15 +9,15 @@ import { TYPE } from '../../Theme'
 
 const CHART_VIEW = {
   VOLUME: 'Volume',
-  LIQUIDITY: 'Liquidity'
+  LIQUIDITY: 'Liquidity',
 }
 
 const VOLUME_WINDOW = {
   WEEKLY: 'WEEKLY',
-  DAYS: 'DAYS'
+  DAYS: 'DAYS',
 }
 
-const GlobalChart = ({ display, dailyData, unit = 'USD', totalLiquidity, liquidityChange }) => {
+const GlobalChart = ({ display, dailyData, unit = 'USD', totalLiquidity, liquidityChange, title = 'Total TVL' }) => {
   // chart options
   const [chartView] = useState(display === 'volume' ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY)
 
@@ -36,7 +36,7 @@ const GlobalChart = ({ display, dailyData, unit = 'USD', totalLiquidity, liquidi
     return (
       currentData &&
       Object.keys(currentData)
-        ?.map(key => {
+        ?.map((key) => {
           let item = currentData[key]
           if (item.date > utcStartTime) {
             return item
@@ -44,7 +44,7 @@ const GlobalChart = ({ display, dailyData, unit = 'USD', totalLiquidity, liquidi
             return null
           }
         })
-        .filter(item => {
+        .filter((item) => {
           return !!item
         })
     )
@@ -87,7 +87,7 @@ const GlobalChart = ({ display, dailyData, unit = 'USD', totalLiquidity, liquidi
             data={dailyData}
             base={totalLiquidity}
             baseChange={liquidityChange}
-            title="Total TVL"
+            title={title}
             field="1"
             width={width}
             type={CHART_TYPES.AREA}
