@@ -129,7 +129,7 @@ export default function Oracles({ daySum, oracles, chartData = [], oracleLinks, 
               <tbody>
                 {oraclesList.map((oracle, index) => (
                   <TableRow key={oracle.name}>
-                    <Index>{index}</Index>
+                    <Index>{index + 1}</Index>
                     <TableHeader>
                       <CustomLink href={`/oracles/${oracle.name}`}>{oracle.name}</CustomLink>
                     </TableHeader>
