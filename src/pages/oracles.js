@@ -13,6 +13,8 @@ import Filters from 'components/Filters'
 import Panel from 'components/Panel'
 import { CustomLink } from 'components/Link'
 import { Header } from 'Theme'
+import { AllTvlOptions } from 'components/SettingsModal'
+import { useCalcChainsTvlsByDay } from 'hooks/data'
 
 const ChartsWrapper = styled(Box)`
   display: flex;
@@ -73,75 +75,84 @@ export async function getStaticProps() {
   }
 }
 
-export default function Oracles({ daySum, oracles, chartData = [], oracleLinks, oraclesProtocols }) {
+function OraclesView({ oracles, oracleLinks, chartData, oraclesProtocols }) {
   const oracleColors = useMemo(
     () => Object.fromEntries([...oracles, 'Others'].map((oracle) => [oracle, getRandomColor()])),
     [oracles]
   )
+
+  const { data: stackedData, daySum } = useCalcChainsTvlsByDay(chartData)
+
   const { oracleTvls, oraclesList } = useMemo(() => {
-    const tvls = Object.entries(chartData[chartData.length - 1])
-      .filter((oracle) => oracle[0] !== 'date')
+    const tvls = Object.entries(stackedData[stackedData.length - 1])
+      .filter((item) => item[0] !== 'date')
       .map((oracle) => ({ name: oracle[0], value: oracle[1] }))
       .sort((a, b) => b.value - a.value)
 
-    const otherTvl = tvls.slice(10).reduce((total, entry) => {
+    const otherTvl = tvls.slice(5).reduce((total, entry) => {
       return (total += entry.value)
     }, 0)
 
-    const oracleTvls = tvls.slice(0, 10).concat({ name: 'Others', value: otherTvl })
+    const oracleTvls = tvls.slice(0, 5).concat({ name: 'Others', value: otherTvl })
 
     const oraclesList = tvls.map(({ name, value }) => {
       return { name, protocolsSecured: oraclesProtocols[name], tvlSecured: value }
     })
 
     return { oracleTvls, oraclesList }
-  }, [chartData, oraclesProtocols])
+  }, [stackedData, oraclesProtocols])
 
   return (
-    <GeneralLayout title={`Oracles - DefiLlama`} defaultSEO>
-      <PageWrapper>
-        <FullWrapper>
-          <Search />
-          {/* <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} /> */}
-          <Header>Total Volume Secured All Oracles</Header>
-          <ChartsWrapper>
-            <ChainPieChart data={oracleTvls} chainColor={oracleColors} />
-            <ChainDominanceChart
-              stackOffset="expand"
-              formatPercent={true}
-              stackedDataset={chartData}
-              chainsUnique={oracles}
-              chainColor={oracleColors}
-              daySum={daySum}
-            />
-          </ChartsWrapper>
-          <Filters filterOptions={oracleLinks} activeLabel="All" />
-          <Panel style={{ overflowX: 'auto', padding: ' 12px 20px' }}>
-            <Table>
-              <thead>
-                <TableRow>
-                  <Index></Index>
-                  <TableHeader>Name</TableHeader>
-                  <TableHeader>Protocols Secured</TableHeader>
-                  <TableHeader>Total Volume Secured</TableHeader>
+    <PageWrapper>
+      <FullWrapper>
+        <Search />
+        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+        <Header>Total Volume Secured All Oracles</Header>
+        <ChartsWrapper>
+          <ChainPieChart data={oracleTvls} chainColor={oracleColors} />
+          <ChainDominanceChart
+            stackOffset="expand"
+            formatPercent={true}
+            stackedDataset={stackedData}
+            chainsUnique={oracles}
+            chainColor={oracleColors}
+            daySum={daySum}
+          />
+        </ChartsWrapper>
+        <Filters filterOptions={oracleLinks} activeLabel="All" />
+        <Panel style={{ overflowX: 'auto', padding: ' 12px 20px' }}>
+          <Table>
+            <thead>
+              <TableRow>
+                <Index></Index>
+                <TableHeader>Name</TableHeader>
+                <TableHeader>Protocols Secured</TableHeader>
+                <TableHeader>Total Volume Secured</TableHeader>
+              </TableRow>
+            </thead>
+            <tbody>
+              {oraclesList.map((oracle, index) => (
+                <TableRow key={oracle.name}>
+                  <Index>{index + 1}</Index>
+                  <TableHeader>
+                    <CustomLink href={`/oracles/${oracle.name}`}>{oracle.name}</CustomLink>
+                  </TableHeader>
+                  <TableDesc>{oracle.protocolsSecured}</TableDesc>
+                  <TableDesc>{'$' + toK(oracle.tvlSecured)}</TableDesc>
                 </TableRow>
-              </thead>
-              <tbody>
-                {oraclesList.map((oracle, index) => (
-                  <TableRow key={oracle.name}>
-                    <Index>{index + 1}</Index>
-                    <TableHeader>
-                      <CustomLink href={`/oracles/${oracle.name}`}>{oracle.name}</CustomLink>
-                    </TableHeader>
-                    <TableDesc>{oracle.protocolsSecured}</TableDesc>
-                    <TableDesc>{'$' + toK(oracle.tvlSecured)}</TableDesc>
-                  </TableRow>
-                ))}
-              </tbody>
-            </Table>
-          </Panel>
-        </FullWrapper>
-      </PageWrapper>
+              ))}
+            </tbody>
+          </Table>
+        </Panel>
+      </FullWrapper>
+    </PageWrapper>
+  )
+}
+
+export default function Oracles(props) {
+  return (
+    <GeneralLayout title={`Oracles - DefiLlama`} defaultSEO>
+      <OraclesView {...props} />
     </GeneralLayout>
   )
 }

@@ -395,7 +395,11 @@ export function getRandomColor() {
 }
 
 export const getTokenDominance = (topToken, totalVolume) => {
-  return topToken.tvl && totalVolume && ((topToken.tvl / totalVolume) * 100.0).toFixed(2)
+  const dominance = topToken.tvl && totalVolume && (topToken.tvl / totalVolume) * 100.0
+
+  if (dominance < 100) {
+    return dominance.toFixed(2)
+  } else return 100
 }
 
 /**

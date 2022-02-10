@@ -238,30 +238,18 @@ export async function getOraclePageData(oracle = null) {
 
     const filteredProtocols = formatProtocolsData({ oracle, protocols })
 
-    const daySum: DaySum = {}
+    let chartData = Object.entries(chart)
 
-    const charts: Charts[] = Object.entries(chart)
-
-    let chartData: any = charts.map((oracle) => {
-      daySum[oracle[0]] = Object.values(oracle[1]).reduce((t, a) => t + a)
-      return {
-        ...oracle[1],
-        date: oracle[0],
-      }
-    })
-
-    chartData.sort((a, b) => a.date - b.date)
-
-    const latestTvls: any = Object.entries(chartData[chartData.length - 1]).filter((data) => data[0] !== 'date')
-
-    const oraclesUnique = latestTvls.sort((a, b) => b[1] - a[1]).map((orc) => orc[0])
+    const oraclesUnique = Object.entries(chartData[chartData.length - 1][1])
+      .sort((a, b) => b[1].tvl - a[1].tvl)
+      .map((orc) => orc[0])
 
     if (oracle) {
       let data = []
-      chartData?.forEach((item) => {
-        const value = item[oracle]
+      chartData.forEach(([date, oracles]) => {
+        const value = oracles[oracle]
         if (value) {
-          data.push([item.date, value])
+          data.push([date, value])
         }
       })
       chartData = data
@@ -280,12 +268,11 @@ export async function getOraclePageData(oracle = null) {
     return {
       props: {
         oracles: oraclesUnique,
-        daySum,
         oracleLinks,
         oracle,
-        chartData,
-        filteredProtocols,
         oraclesProtocols,
+        filteredProtocols,
+        chartData,
       },
     }
   } catch (e) {

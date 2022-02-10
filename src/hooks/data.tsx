@@ -43,6 +43,7 @@ interface GroupChain extends IChain {
   childChains: IChain[]
 }
 
+// PROTOCOLS
 export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn) => {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
@@ -96,6 +97,7 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
   return protocolTotals
 }
 
+// CHAINS, ORACLES
 export const useCalcSingleExtraTvl = (chainTvls, simpleTvl) => {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
@@ -214,4 +216,20 @@ export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData):
   }, [chains, groupData])
 
   return data.sort((a, b) => b.tvl - a.tvl)
+}
+
+export const useCalcExtraTvlsByDay = (data) => {
+  const extraTvlsEnabled = useGetExtraTvlEnabled()
+
+  return data.map(([date, values]) => {
+    let sum = values.tvl || 0
+
+    for (const value in values) {
+      if (extraTvlsEnabled[value.toLowerCase()]) {
+        sum += values[value]
+      }
+    }
+
+    return [date, sum]
+  })
 }

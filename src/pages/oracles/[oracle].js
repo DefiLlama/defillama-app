@@ -12,6 +12,8 @@ import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
 import { AutoColumn } from 'components/Column'
 import { RowBetween } from 'components/Row'
 import { TYPE } from 'Theme'
+import { AllTvlOptions } from 'components/SettingsModal'
+import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
@@ -38,19 +40,23 @@ export async function getStaticPaths() {
   return { paths, fallback: 'blocking' }
 }
 
-export default function Oracles({ chartData, oracleLinks, oracle, filteredProtocols }) {
-  const { finalChartData, totalVolume, volumeChangeUSD } = useMemo(() => {
-    const finalChartData = chartData
-    const totalVolume = getPrevTvlFromChart(chartData, 0)
-    const tvlPrevDay = getPrevTvlFromChart(chartData, 1)
+function OraclesView({ chartData, oracleLinks, oracle, filteredProtocols }) {
+  const protocolsData = useCalcStakePool2Tvl(filteredProtocols)
+
+  const finalChartData = useCalcExtraTvlsByDay(chartData)
+
+  const { totalVolume, volumeChangeUSD } = useMemo(() => {
+    const totalVolume = getPrevTvlFromChart(finalChartData, 0)
+    const tvlPrevDay = getPrevTvlFromChart(finalChartData, 1)
     const volumeChangeUSD = getPercentChange(totalVolume, tvlPrevDay)
-    return { finalChartData, totalVolume, volumeChangeUSD }
-  }, [chartData])
+    return { totalVolume, volumeChangeUSD }
+  }, [finalChartData])
 
   const topToken = {}
-  if (filteredProtocols.length > 0) {
-    topToken.name = filteredProtocols[0]?.name
-    topToken.tvl = filteredProtocols[0]?.tvl
+
+  if (protocolsData.length > 0) {
+    topToken.name = protocolsData[0]?.name
+    topToken.tvl = protocolsData[0]?.tvl
   }
 
   const tvl = formattedNum(totalVolume, true)
@@ -105,30 +111,36 @@ export default function Oracles({ chartData, oracleLinks, oracle, filteredProtoc
   )
 
   return (
-    <GeneralLayout title={`Oracles - DefiLlama`} defaultSEO>
-      <PageWrapper>
-        <FullWrapper>
-          <Search />
-          {/* <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} /> */}
-          <BreakpointPanels>
-            <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-            <Panel style={{ height: '100%', minHeight: '347px' }}>
-              <Chart
-                display="liquidity"
-                dailyData={finalChartData}
-                totalLiquidity={totalVolume}
-                liquidityChange={volumeChangeUSD}
-                title={'Total Volume Secured'}
-              />
-            </Panel>
-          </BreakpointPanels>
-
-          <Filters filterOptions={oracleLinks} activeLabel={oracle} />
-          <Panel>
-            <TokenList tokens={filteredProtocols} />
+    <PageWrapper>
+      <FullWrapper>
+        <Search />
+        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+        <BreakpointPanels>
+          <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
+          <Panel style={{ height: '100%', minHeight: '347px' }}>
+            <Chart
+              display="liquidity"
+              dailyData={finalChartData}
+              totalLiquidity={totalVolume}
+              liquidityChange={volumeChangeUSD}
+              title={'Total Volume Secured'}
+            />
           </Panel>
-        </FullWrapper>
-      </PageWrapper>
+        </BreakpointPanels>
+
+        <Filters filterOptions={oracleLinks} activeLabel={oracle} />
+        <Panel>
+          <TokenList tokens={protocolsData} />
+        </Panel>
+      </FullWrapper>
+    </PageWrapper>
+  )
+}
+
+export default function Oracles(props) {
+  return (
+    <GeneralLayout title={`Oracles - DefiLlama`} defaultSEO>
+      <OraclesView {...props} />
     </GeneralLayout>
   )
 }
