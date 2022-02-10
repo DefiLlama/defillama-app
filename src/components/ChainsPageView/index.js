@@ -10,7 +10,7 @@ import TokenList from '../TokenList'
 import { ChainPieChart, ChainDominanceChart } from '../Charts'
 import { Header } from 'Theme'
 
-import { useCalcChainsTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
+import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
 import { toNiceCsvDate, chainIconUrl, getRandomColor } from 'utils'
 import { AllTvlOptions } from '../SettingsModal'
 import Filters from '../Filters'
@@ -76,7 +76,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categor
       .concat({ name: 'Others', value: otherTvl })
   }, [chainTotals])
 
-  const { data: stackedData, daySum } = useCalcChainsTvlsByDay(stackedDataset)
+  const { data: stackedData, daySum } = useCalcGroupExtraTvlsByDay(stackedDataset)
 
   const downloadCsv = () => {
     const rows = [['Timestamp', 'Date', ...chainsUnique]]

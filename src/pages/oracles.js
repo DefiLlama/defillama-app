@@ -14,7 +14,7 @@ import Panel from 'components/Panel'
 import { CustomLink } from 'components/Link'
 import { Header } from 'Theme'
 import { AllTvlOptions } from 'components/SettingsModal'
-import { useCalcChainsTvlsByDay } from 'hooks/data'
+import { useCalcGroupExtraTvlsByDay } from 'hooks/data'
 
 const ChartsWrapper = styled(Box)`
   display: flex;
@@ -81,7 +81,7 @@ function OraclesView({ oracles, oracleLinks, chartData, oraclesProtocols }) {
     [oracles]
   )
 
-  const { data: stackedData, daySum } = useCalcChainsTvlsByDay(chartData)
+  const { data: stackedData, daySum } = useCalcGroupExtraTvlsByDay(chartData)
 
   const { oracleTvls, oraclesList } = useMemo(() => {
     const tvls = Object.entries(stackedData[stackedData.length - 1])
