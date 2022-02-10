@@ -1,11 +1,22 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/router'
-import { TrendingUp, HelpCircle, Link as LinkLogo, CloudDrizzle, Minimize2, Clock, Bookmark, Award, RefreshCcw, Code } from 'react-feather'
+import {
+  TrendingUp,
+  HelpCircle,
+  Link as LinkLogo,
+  CloudDrizzle,
+  Minimize2,
+  Clock,
+  Bookmark,
+  Award,
+  RefreshCcw,
+  Code,
+  Shield,
+} from 'react-feather'
 
-import { DesktopWrapper, Entry, MobileWrapper, Option, Wrapper, Footer, ButtonWrapper, Desktop, Mobile } from './shared'
+import { Entry, MobileWrapper, Wrapper, Footer, ButtonWrapper, Desktop, Mobile } from './shared'
 import { AutoColumn } from '../Column'
 import Title from '../Title'
-import { BasicLink } from '../Link'
 import SettingsMenuButton from '../SettingsModal'
 import NavMenuButton from './NavMenuButton'
 import { useDarkModeManager } from '../../contexts/LocalStorage'
@@ -19,6 +30,7 @@ const NavMenu = ({ isMobile }) => {
       <Entry url="nfts" name="NFTs" history={history} Icon={Award} />
       <Entry url="" name="Overview" history={history} Icon={TrendingUp} />
       <Entry url="chains" name="Chains" history={history} Icon={LinkLogo} />
+      <Entry url="oracles" name="Oracles" history={history} Icon={Shield} />
       {!isMobile && <Entry url="portfolio" name="Portfolio" history={history} Icon={Bookmark} />}
       <Entry url="airdrops" name="Airdrops" history={history} Icon={CloudDrizzle} />
       <Entry url="categories" name="Categories" history={history} Icon={RefreshCcw} />
@@ -56,9 +68,7 @@ function SideNav() {
             </ButtonWrapper>
           </Mobile>
         </MobileWrapper>
-        <Mobile>
-          {showMobileNavMenu && <NavMenu isMobile />}
-        </Mobile>
+        <Mobile>{showMobileNavMenu && <NavMenu isMobile />}</Mobile>
       </Wrapper>
     </>
   )

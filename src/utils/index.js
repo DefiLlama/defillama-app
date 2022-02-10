@@ -394,6 +394,14 @@ export function getRandomColor() {
   return color
 }
 
+export const getTokenDominance = (topToken, totalVolume) => {
+  const dominance = topToken.tvl && totalVolume && (topToken.tvl / totalVolume) * 100.0
+
+  if (dominance < 100) {
+    return dominance.toFixed(2)
+  } else return 100
+}
+
 /**
  * get tvl of specified day before last day using chart data
  * @param {*} chartData

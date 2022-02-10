@@ -43,6 +43,7 @@ interface GroupChain extends IChain {
   childChains: IChain[]
 }
 
+// PROTOCOLS
 export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn) => {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
@@ -96,7 +97,7 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
   return protocolTotals
 }
 
-export const useCalcSingleExtraTvl = (chainTvls, simpleTvl) => {
+export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
   const protocolTvl = useMemo(() => {
@@ -109,36 +110,6 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl) => {
   }, [extraTvlsEnabled, simpleTvl, chainTvls])
 
   return protocolTvl
-}
-
-export const useCalcChainsTvlsByDay = (chains) => {
-  const extraTvlsEnabled = useGetExtraTvlEnabled()
-
-  const { data, daySum } = useMemo(() => {
-    const daySum = {}
-    const data = chains.map(([date, values]) => {
-      const tvls: IChainTvl = {}
-      let totalDaySum = 0
-
-      Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
-        let sum = chainTvls.tvl
-        totalDaySum += chainTvls.tvl || 0
-
-        for (const c in chainTvls) {
-          if (extraTvlsEnabled[c.toLowerCase()]) {
-            sum += chainTvls[c]
-            totalDaySum += chainTvls[c]
-          }
-        }
-        tvls[name] = sum
-      })
-      daySum[date] = totalDaySum
-      return { date, ...tvls }
-    })
-    return { data, daySum }
-  }, [chains, extraTvlsEnabled])
-
-  return { data, daySum }
 }
 
 export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData): GroupChain[] => {
@@ -214,4 +185,54 @@ export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData):
   }, [chains, groupData])
 
   return data.sort((a, b) => b.tvl - a.tvl)
+}
+
+// returns tvl by day for a group of tokens
+export const useCalcGroupExtraTvlsByDay = (chains) => {
+  const extraTvlsEnabled = useGetExtraTvlEnabled()
+
+  const { data, daySum } = useMemo(() => {
+    const daySum = {}
+    const data = chains.map(([date, values]) => {
+      const tvls: IChainTvl = {}
+      let totalDaySum = 0
+
+      Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
+        let sum = chainTvls.tvl
+        totalDaySum += chainTvls.tvl || 0
+
+        for (const c in chainTvls) {
+          if (extraTvlsEnabled[c.toLowerCase()]) {
+            sum += chainTvls[c]
+            totalDaySum += chainTvls[c]
+          }
+        }
+        tvls[name] = sum
+      })
+      daySum[date] = totalDaySum
+      return { date, ...tvls }
+    })
+    return { data, daySum }
+  }, [chains, extraTvlsEnabled])
+
+  return { data, daySum }
+}
+
+// returns tvl by day for a single token
+export const useCalcExtraTvlsByDay = (data) => {
+  const extraTvlsEnabled = useGetExtraTvlEnabled()
+
+  return useMemo(() => {
+    return data.map(([date, values]) => {
+      let sum = values.tvl || 0
+
+      for (const value in values) {
+        if (extraTvlsEnabled[value.toLowerCase()]) {
+          sum += values[value]
+        }
+      }
+
+      return [date, sum]
+    })
+  }, [data, extraTvlsEnabled])
 }
