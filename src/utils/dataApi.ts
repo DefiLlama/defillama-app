@@ -12,6 +12,7 @@ import {
   CONFIG_API,
   HOURLY_PROTOCOL_API,
   ORACLE_API,
+  FORK_API,
 } from '../constants/index'
 import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
 
@@ -52,15 +53,9 @@ interface IStackedDataset {
   }
 }
 
-type DaySum = {
-  [key: number]: number
-}
-
 interface IOracleProtocols {
   [key: string]: number
 }
-
-type Charts = [string, { [key: string]: number }]
 
 export function getProtocolNames(protocols) {
   return protocols.map((p) => ({ name: p.name, symbol: p.symbol }))
@@ -91,6 +86,7 @@ export function keepNeededProperties(protocol: any, propertiesToKeep: string[] =
 const formatProtocolsData = ({
   chain = '',
   oracle = null,
+  fork = null,
   category = '',
   protocols = [],
   protocolProps = [...basicPropertiesToKeep, 'extraTvl'],
@@ -103,6 +99,10 @@ const formatProtocolsData = ({
 
   if (oracle) {
     filteredProtocols = filteredProtocols.filter(({ oracles = [] }) => oracles.includes(oracle))
+  }
+
+  if (fork) {
+    filteredProtocols = filteredProtocols.filter(({ forkedFrom = [] }) => forkedFrom.includes(fork))
   }
 
   if (category) {
@@ -246,8 +246,8 @@ export async function getOraclePageData(oracle = null) {
 
     if (oracle) {
       let data = []
-      chartData.forEach(([date, oracles]) => {
-        const value = oracles[oracle]
+      chartData.forEach(([date, tokens]) => {
+        const value = tokens[oracle]
         if (value) {
           data.push([date, value])
         }
@@ -267,10 +267,71 @@ export async function getOraclePageData(oracle = null) {
 
     return {
       props: {
-        oracles: oraclesUnique,
-        oracleLinks,
-        oracle,
-        oraclesProtocols,
+        tokens: oraclesUnique,
+        tokenLinks: oracleLinks,
+        token: oracle,
+        tokensProtocols: oraclesProtocols,
+        filteredProtocols,
+        chartData,
+      },
+    }
+  } catch (e) {
+    console.log(e)
+    return {
+      notFound: true,
+    }
+  }
+}
+
+export async function getForkPageData(fork = null) {
+  try {
+    const [{ chart = {}, forks = {} }, { protocols }] = await Promise.all(
+      [FORK_API, PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
+    )
+
+    const forkExists = !fork || forks[fork]
+
+    if (!forkExists) {
+      return {
+        notFound: true,
+      }
+    }
+
+    const filteredProtocols = formatProtocolsData({ fork, protocols })
+
+    let chartData = Object.entries(chart)
+
+    const forksUnique = Object.entries(chartData[chartData.length - 1][1])
+      .sort((a, b) => b[1].tvl - a[1].tvl)
+      .map((fr) => fr[0])
+
+    if (fork) {
+      let data = []
+      chartData.forEach(([date, tokens]) => {
+        const value = tokens[fork]
+        if (value) {
+          data.push([date, value])
+        }
+      })
+      chartData = data
+    }
+
+    const forksProtocols = {}
+
+    for (const frk in forks) {
+      forksProtocols[frk] = forks[frk]?.length
+    }
+
+    let forkLinks = [{ label: 'All', to: `/forks` }].concat(
+      forksUnique.map((o: string) => ({ label: o, to: `/forks/${o}` }))
+    )
+
+    return {
+      props: {
+        tokens: forksUnique,
+        tokenLinks: forkLinks,
+        token: fork,
+        tokensProtocols: forksProtocols,
         filteredProtocols,
         chartData,
       },

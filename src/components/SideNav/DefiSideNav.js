@@ -12,6 +12,7 @@ import {
   RefreshCcw,
   Code,
   Shield,
+  Share2,
 } from 'react-feather'
 
 import { Entry, MobileWrapper, Wrapper, Footer, ButtonWrapper, Desktop, Mobile } from './shared'
@@ -31,6 +32,7 @@ const NavMenu = ({ isMobile }) => {
       <Entry url="" name="Overview" history={history} Icon={TrendingUp} />
       <Entry url="chains" name="Chains" history={history} Icon={LinkLogo} />
       <Entry url="oracles" name="Oracles" history={history} Icon={Shield} />
+      <Entry url="forks" name="Forks" history={history} Icon={Share2} />
       {!isMobile && <Entry url="portfolio" name="Portfolio" history={history} Icon={Bookmark} />}
       <Entry url="airdrops" name="Airdrops" history={history} Icon={CloudDrizzle} />
       <Entry url="categories" name="Categories" history={history} Icon={RefreshCcw} />
