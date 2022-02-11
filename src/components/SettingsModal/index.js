@@ -16,7 +16,8 @@ import {
   TREASURY,
   DARK_MODE,
   HIDE_LAST_DAY,
-  DISPLAY_USD
+  DISPLAY_USD,
+  useDarkModeManager,
 } from '../../contexts/LocalStorage'
 
 import { AutoRow } from '../Row'
@@ -196,34 +197,34 @@ export function CheckMarks({ type = 'defi' }) {
         name: 'Staking',
         toggle: toggleStaking,
         enabled: stakingEnabled && isClient,
-        help: 'Include governance tokens staked in the protocol'
+        help: 'Include governance tokens staked in the protocol',
       },
       {
         name: 'Borrows',
         toggle: toggleBorrowed,
         enabled: borrowedEnabled && isClient,
-        help: 'Include borrowed coins in lending protocols'
-      }
+        help: 'Include borrowed coins in lending protocols',
+      },
     ],
     nfts: [
       router.pathname !== '/nfts' && {
         name: 'Display in USD',
         toggle: toggleDisplayUsd,
         enabled: displayUsd && isClient,
-        help: 'Display metrics in USD'
+        help: 'Display metrics in USD',
       },
       {
         name: 'Hide last day',
         toggle: toggleHideLastDay,
         enabled: hideLastDay && isClient,
-        help: 'Hide the last day of data'
-      }
-    ]
+        help: 'Hide the last day of data',
+      },
+    ],
   }
 
   return (
     <AutoRow gap="10px" justify="center" key="settings">
-      {toggleSettings[type].map(toggleSetting => {
+      {toggleSettings[type].map((toggleSetting) => {
         if (toggleSetting) {
           return <OptionToggle {...toggleSetting} key={toggleSetting.name} />
         } else return null
@@ -236,40 +237,39 @@ const extraTvlOptions = [
   {
     name: 'Staking',
     key: STAKING,
-    help: 'Include governance tokens staked in the protocol'
+    help: 'Include governance tokens staked in the protocol',
   },
   {
     name: 'Pool2',
     key: POOL2,
-    help: 'Include staked lp tokens where one of the coins in the pair is the governance token'
+    help: 'Include staked lp tokens where one of the coins in the pair is the governance token',
   },
   {
     name: 'Borrows',
     key: BORROWED,
-    help: 'Include borrowed coins in lending protocols'
+    help: 'Include borrowed coins in lending protocols',
   },
   {
     name: 'Offers',
     key: OFFERS,
-    help: 'Coins that are approved but not locked'
+    help: 'Coins that are approved but not locked',
   },
   {
     name: 'Treasury',
     key: TREASURY,
-    help: 'Protocol treasury'
-  }
+    help: 'Protocol treasury',
+  },
 ]
 
 export default function Menu({ type = 'defi' }) {
   const node = useRef()
-  const isClient = useIsClient()
 
   const [open, setOpen] = useState(false)
   const toggle = () => {
     setOpen(!open)
   }
 
-  const handleClick = e => {
+  const handleClick = (e) => {
     if (!(node.current && node.current.contains(e.target))) {
       setOpen(false)
     }
@@ -284,40 +284,43 @@ export default function Menu({ type = 'defi' }) {
 
   const tvlToggles = useTvlToggles()
   const extraTvlEnabled = useGetExtraTvlEnabled()
+  const [darkMode] = useDarkModeManager()
+
+  const togglesEnabled = { ...extraTvlEnabled, DARK_MODE: darkMode }
 
   const toggleSettings = {
     defi: [
       ...extraTvlOptions,
       {
         name: 'Dark mode',
-        key: DARK_MODE
-      }
+        key: DARK_MODE,
+      },
     ],
     nfts: [
       {
         name: 'Display in USD',
         key: DISPLAY_USD,
-        help: 'Display metrics in USD'
+        help: 'Display metrics in USD',
       },
       {
         name: 'Hide last day',
         key: HIDE_LAST_DAY,
-        help: 'Hide the last day of data'
+        help: 'Hide the last day of data',
       },
       {
         name: 'Dark mode',
-        key: DARK_MODE
-      }
-    ]
+        key: DARK_MODE,
+      },
+    ],
   }
 
   const renderSettingsToggles = () => {
-    return toggleSettings[type].map(toggleSetting => (
+    return toggleSettings[type].map((toggleSetting) => (
       <MenuItem key={toggleSetting.name}>
         <OptionToggle
           {...toggleSetting}
           toggle={tvlToggles(toggleSetting.key)}
-          enabled={extraTvlEnabled[toggleSetting.key] && isClient}
+          enabled={togglesEnabled[toggleSetting.key]}
         />
       </MenuItem>
     ))
@@ -337,20 +340,15 @@ export default function Menu({ type = 'defi' }) {
 export const AllTvlOptions = ({ style }) => {
   const tvlToggles = useTvlToggles()
   const extraTvlEnabled = useGetExtraTvlEnabled()
-  const isClient = useIsClient()
 
   return (
     <>
       <ScrollAreaRoot>
         <ScrollAreaViewport>
           <ListWrapper style={{ ...style }}>
-            {extraTvlOptions.map(option => (
+            {extraTvlOptions.map((option) => (
               <ListItem key={option.key}>
-                <OptionToggle
-                  {...option}
-                  toggle={tvlToggles(option.key)}
-                  enabled={extraTvlEnabled[option.key] && isClient}
-                />
+                <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
               </ListItem>
             ))}
           </ListWrapper>
