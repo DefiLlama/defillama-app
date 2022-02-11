@@ -449,6 +449,11 @@ export const chainCoingeckoIds = {
     symbol: null,
     cmcId: null,
   },
+  Bittorrent: {
+    geckoId: "bittorrent",
+    symbol: "BTT",
+    cmcId: "16086",
+  },
 }
 
 export const chainMarketplaceMappings = {
