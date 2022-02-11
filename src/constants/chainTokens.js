@@ -355,7 +355,7 @@ export const chainCoingeckoIds = {
     cmcId: '2349'
   },
   Everscale: {
-    geckoId: 'ton-crystal',
+    geckoId: 'everscale',
     symbol: 'EVER',
     cmcId: '7505'
   },
@@ -448,6 +448,11 @@ export const chainCoingeckoIds = {
     geckoId: null,
     symbol: null,
     cmcId: null,
+  },
+  Bittorrent: {
+    geckoId: "bittorrent",
+    symbol: "BTT",
+    cmcId: "16086",
   },
 }
 
