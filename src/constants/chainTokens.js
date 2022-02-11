@@ -355,7 +355,7 @@ export const chainCoingeckoIds = {
     cmcId: '2349'
   },
   Everscale: {
-    geckoId: 'ton-crystal',
+    geckoId: 'everscale',
     symbol: 'EVER',
     cmcId: '7505'
   },
