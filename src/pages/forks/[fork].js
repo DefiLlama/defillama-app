@@ -29,7 +29,7 @@ export async function getStaticPaths() {
 export default function Forks(props) {
   return (
     <GeneralLayout title={`Forks - DefiLlama`} defaultSEO>
-      <ParentTokenView header="Total Volume Locked" {...props} />
+      <ParentTokenView header="Total Value Locked" {...props} />
     </GeneralLayout>
   )
 }
