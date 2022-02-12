@@ -100,7 +100,7 @@ export default function ParentTokenView({ chartData, tokenLinks, token, filtered
               dailyData={finalChartData}
               totalLiquidity={totalVolume}
               liquidityChange={volumeChangeUSD}
-              title={'Total Volume Secured'}
+              title={header}
             />
           </Panel>
         </BreakpointPanels>
