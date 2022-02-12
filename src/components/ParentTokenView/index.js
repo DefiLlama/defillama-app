@@ -107,7 +107,7 @@ export default function ParentTokenView({ chartData, tokenLinks, token, filtered
 
         <Filters filterOptions={tokenLinks} activeLabel={token} />
         <Panel>
-          <TokenList tokens={protocolsData} />
+          <TokenList tokens={protocolsData} filters={[token]} />
         </Panel>
       </FullWrapper>
     </PageWrapper>
