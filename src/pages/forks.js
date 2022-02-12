@@ -13,7 +13,7 @@ export async function getStaticProps() {
   }
 }
 
-const columnHeaders = ['Name', 'Forked Protocols', 'Total Volume Locked']
+const columnHeaders = ['Name', 'Forked Protocols', 'Total Value Locked']
 
 export default function Forks(props) {
   return (

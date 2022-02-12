@@ -29,7 +29,7 @@ export async function getStaticPaths() {
 export default function Oracles(props) {
   return (
     <GeneralLayout title={`Oracles - DefiLlama`} defaultSEO>
-      <ParentTokenView header="Total Volume Secured (USD)" {...props} />
+      <ParentTokenView header="Total Value Secured (USD)" {...props} />
     </GeneralLayout>
   )
 }
