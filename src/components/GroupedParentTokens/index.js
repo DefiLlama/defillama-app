@@ -64,7 +64,15 @@ const Index = styled.td`
   }
 `
 
-export default function GroupedTokens({ tokens, tokenLinks, chartData, tokensProtocols, tokenUrlPrefix, header }) {
+export default function GroupedTokens({
+  tokens,
+  tokenLinks,
+  chartData,
+  tokensProtocols,
+  tokenUrlPrefix,
+  header,
+  columnHeaders = [],
+}) {
   const tokenColors = useMemo(
     () => Object.fromEntries([...tokens, 'Others'].map((token) => [token, getRandomColor()])),
     [tokens]
@@ -114,9 +122,9 @@ export default function GroupedTokens({ tokens, tokenLinks, chartData, tokensPro
             <thead>
               <TableRow>
                 <Index></Index>
-                <TableHeader>Name</TableHeader>
-                <TableHeader>Protocols Secured</TableHeader>
-                <TableHeader>Total Volume Secured</TableHeader>
+                {columnHeaders.map((header) => (
+                  <TableHeader key={header}>{header}</TableHeader>
+                ))}
               </TableRow>
             </thead>
             <tbody>

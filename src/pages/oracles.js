@@ -13,10 +13,17 @@ export async function getStaticProps() {
   }
 }
 
+const columnHeaders = ['Name', 'Protocols Secured', 'Total Volume Secured']
+
 export default function Oracles(props) {
   return (
     <GeneralLayout title={`Oracles - DefiLlama`} defaultSEO>
-      <GroupedTokens header="Total Volume Secured All Oracles" tokenUrlPrefix="oracles" {...props} />
+      <GroupedTokens
+        header="Total Volume Secured All Oracles"
+        columnHeaders={columnHeaders}
+        tokenUrlPrefix="oracles"
+        {...props}
+      />
     </GeneralLayout>
   )
 }

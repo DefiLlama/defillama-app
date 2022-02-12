@@ -13,10 +13,17 @@ export async function getStaticProps() {
   }
 }
 
+const columnHeaders = ['Name', 'Forked Protocols', 'Total Volume Locked']
+
 export default function Forks(props) {
   return (
     <GeneralLayout title={`Forks - DefiLlama`} defaultSEO>
-      <GroupedTokens header="Total Volume Locked All Forks" tokenUrlPrefix="forks" {...props} />
+      <GroupedTokens
+        header="Total Volume Locked All Forks"
+        columnHeaders={columnHeaders}
+        tokenUrlPrefix="forks"
+        {...props}
+      />
     </GeneralLayout>
   )
 }
