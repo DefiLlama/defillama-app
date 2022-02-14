@@ -31,8 +31,8 @@ const NavMenu = ({ isMobile }) => {
       <Entry url="nfts" name="NFTs" history={history} Icon={Award} />
       <Entry url="" name="Overview" history={history} Icon={TrendingUp} />
       <Entry url="chains" name="Chains" history={history} Icon={LinkLogo} />
-      <Entry url="oracles" name="Oracles" history={history} Icon={Shield} />
-      <Entry url="forks" name="Forks" history={history} Icon={Share2} />
+      <Entry url="oracles" name="Oracles" history={history} Icon={Shield} newTag />
+      <Entry url="forks" name="Forks" history={history} Icon={Share2} newTag />
       {!isMobile && <Entry url="portfolio" name="Portfolio" history={history} Icon={Bookmark} />}
       <Entry url="airdrops" name="Airdrops" history={history} Icon={CloudDrizzle} />
       <Entry url="categories" name="Categories" history={history} Icon={RefreshCcw} />
