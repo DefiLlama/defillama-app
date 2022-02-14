@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 
 import { AutoRow, RowBetween, RowFlat, RowFixed } from '../Row'
-import { AutoColumn } from '../Column'
+import Column, { AutoColumn } from '../Column'
 import TokenList from '../TokenList'
 import Search from '../Search'
 import Panel from '../Panel'
@@ -12,7 +12,7 @@ import { PageWrapper, ContentWrapper } from '..'
 import Filters from '../Filters'
 import { AllTvlOptions } from '../SettingsModal'
 
-import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
+import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
 import { useCalcStakePool2Tvl } from 'hooks/data'
@@ -25,6 +25,8 @@ import SEO from '../SEO'
 import { OptionButton } from 'components/ButtonStyled'
 import { useRouter } from 'next/router'
 import LocalLoader from 'components/LocalLoader'
+import llamaLogo from "../../assets/peeking-llama.png"
+import Image from 'next/image'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -69,6 +71,8 @@ const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
 })
 
+const Game = dynamic(() => import('game'))
+
 const BASIC_DENOMINATIONS = ['USD']
 
 const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
@@ -79,6 +83,15 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
   const router = useRouter()
 
   const denomination = router.query?.currency ?? 'USD'
+
+  const [easterEgg, setEasterEgg] = useState(true);
+  const [darkMode, toggleDarkMode] = useDarkModeManager()
+  const activateEasterEgg = ()=>{
+    if(darkMode){
+      toggleDarkMode();
+    }
+    setEasterEgg(true);
+  }
 
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
     const globalChart = chart.map((data) => {
@@ -233,9 +246,10 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
         <AutoColumn gap="24px">
           <Search />
         </AutoColumn>
+        <div>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-          <Panel style={{ height: '100%', minHeight: '347px' }}>
+          <Panel style={{ height: '100%', minHeight: '347px', width:"100%" }}>
             <RowFixed>
               {DENOMINATIONS.map((option) => (
                 <OptionButton
@@ -248,7 +262,9 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
                 </OptionButton>
               ))}
             </RowFixed>
-            {isLoading ? (
+            {easterEgg?
+              <Game />:
+            (isLoading ? (
               <LocalLoader style={{ margin: 'auto' }} />
             ) : (
               <Chart
@@ -258,9 +274,20 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
                 totalLiquidity={totalVolume}
                 liquidityChange={volumeChangeUSD}
               />
-            )}
+            ))}
           </Panel>
         </BreakpointPanels>
+        <div style={{
+           marginTop: "0px",
+           marginBottom: '-34px'
+        }}>
+        <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} style={{
+            position:"relative",
+            minWidth: 'initial',
+            width: 'initial',
+          }} />
+        </div>
+        </div>
 
         <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
         <ListOptions gap="10px" style={{ marginBottom: '.5rem' }}>
