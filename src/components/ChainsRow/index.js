@@ -32,7 +32,7 @@ const ChainsRow = ({ chains }) => {
   const [showHover, setShowHover] = useState(false)
 
   useEffect(() => {
-    let remainingWidth = mainWrapWidth - CHAIN_ICON_WIDTH
+    let remainingWidth = (mainWrapWidth > 280 ? 280 : mainWrapWidth) - CHAIN_ICON_WIDTH
     let lastIndexOfFilters = 0
 
     chains.forEach(() => {
@@ -50,8 +50,8 @@ const ChainsRow = ({ chains }) => {
   const hoverChains = tooManyChainsIndex !== visibleChainIndex ? chains.slice(tooManyChainsIndex, chains.length) : []
 
   return (
-    <Row sx={{ maxWidth: '100%', justifyContent: 'flex-end' }} ref={mainWrapEl}>
-      {visibleChains.map(chain => (
+    <Row sx={{ width: '100%', justifyContent: 'flex-end' }} ref={mainWrapEl}>
+      {visibleChains.map((chain) => (
         <ChainLogo key={chain} chain={chain} />
       ))}
       {!!hoverChains.length && (
@@ -59,7 +59,7 @@ const ChainsRow = ({ chains }) => {
           show={showHover}
           content={
             <Row padding="6px">
-              {hoverChains.map(chain => (
+              {hoverChains.map((chain) => (
                 <ChainLogo key={chain} chain={chain} />
               ))}
             </Row>
