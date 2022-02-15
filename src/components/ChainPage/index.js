@@ -84,7 +84,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const denomination = router.query?.currency ?? 'USD'
 
-  const [easterEgg, setEasterEgg] = useState(true);
+  const [easterEgg, setEasterEgg] = useState(false);
   const [darkMode, toggleDarkMode] = useDarkModeManager()
   const activateEasterEgg = ()=>{
     if(easterEgg){
