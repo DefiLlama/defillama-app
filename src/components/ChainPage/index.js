@@ -87,10 +87,17 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
   const [easterEgg, setEasterEgg] = useState(true);
   const [darkMode, toggleDarkMode] = useDarkModeManager()
   const activateEasterEgg = ()=>{
-    if(darkMode){
-      toggleDarkMode();
+    if(easterEgg){
+      if(!darkMode){
+        toggleDarkMode();
+      }
+      window.location.reload();
+    } else {
+      if(darkMode){
+        toggleDarkMode();
+      }
+      setEasterEgg(true);
     }
-    setEasterEgg(true);
   }
 
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
