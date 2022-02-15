@@ -131,11 +131,12 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
         accessor: 'name',
         Cell: ({ value, row, flatRows }) => {
           const index = flatRows.indexOf(row)
+          const name = row.original.symbol === '-' ? value : `${value} (${row.original.symbol})`
           return (
             <Index>
               <span>{index + 1}</span>
               <TokenLogo logo={tokenIconUrl(value)} />
-              <CustomLink href={`/protocol/${slug(value)}`}>{value}</CustomLink>
+              <CustomLink href={`/protocol/${slug(value)}`}>{name}</CustomLink>
             </Index>
           )
         },
