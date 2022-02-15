@@ -145,7 +145,6 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
         Header: 'Chains',
         accessor: 'chains',
         disableSortBy: true,
-        maxWidth: '100px',
         Cell: ({ value }) => {
           return <ChainsRow chains={value} />
         },

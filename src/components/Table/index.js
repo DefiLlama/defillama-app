@@ -12,6 +12,7 @@ const Wrapper = styled(Panel)`
 
   table {
     border-spacing: 0;
+    border-collapse: collapse;
 
     tr {
       :last-child {
@@ -30,12 +31,17 @@ const Wrapper = styled(Panel)`
       margin: 0;
       border-bottom: 1px solid;
       border-color: ${({ theme }) => theme.divider};
-      text-align: end;
+      text-align: var(--text-align);
       font-size: 14px;
-      padding-left: 12px;
+      padding-left: var(--gap);
+
+      @media screen and (max-width: 640px) {
+        padding-left: 16px;
+      }
 
       :first-child {
         text-align: start;
+        padding-left: 6px;
       }
 
       :last-child {
@@ -61,7 +67,7 @@ export const Index = styled.div`
   gap: 1em;
 `
 
-function Table({ columns, data }) {
+function Table({ columns, data, align, gap }) {
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable(
     {
       columns,
@@ -74,7 +80,7 @@ function Table({ columns, data }) {
 
   return (
     <Wrapper>
-      <table {...getTableProps()}>
+      <table {...getTableProps()} style={{ '--text-align': align || 'end', '--gap': gap || '16px' }}>
         <thead>
           {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()} key={uuid()}>
