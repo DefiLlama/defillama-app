@@ -13,7 +13,10 @@ export async function getStaticProps() {
   }
 }
 
-const columnHeaders = ['Name', 'Protocols Secured', 'Total Value Secured']
+const columnHeaders = ['Name', 'Protocols Secured', {
+  header: 'Total Value Secured',
+  help: 'Excludes CeFi'
+}]
 
 export default function Oracles(props) {
   return (

@@ -13,6 +13,7 @@ import { CustomLink } from 'components/Link'
 import { Header } from 'Theme'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { useCalcGroupExtraTvlsByDay } from 'hooks/data'
+import HeadHelp from 'components/HeadHelp'
 
 const ChartsWrapper = styled(Box)`
   display: flex;
@@ -123,7 +124,8 @@ export default function GroupedTokens({
               <TableRow>
                 <Index></Index>
                 {columnHeaders.map((header) => (
-                  <TableHeader key={header}>{header}</TableHeader>
+                  typeof header==="string"? <TableHeader key={header}>{header}</TableHeader>:
+                    <TableHeader key={header.header}> <HeadHelp title={header.header} text={header.help} /></TableHeader>
                 ))}
               </TableRow>
             </thead>
