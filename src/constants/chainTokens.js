@@ -454,6 +454,11 @@ export const chainCoingeckoIds = {
     symbol: "BTT",
     cmcId: "16086",
   },
+  Genshiro: {
+    geckoId: "genshiro",
+    symbol: "GENS",
+    cmcId: "10278",
+  },
 }
 
 export const chainMarketplaceMappings = {
