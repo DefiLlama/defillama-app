@@ -3,6 +3,14 @@ import styled from 'styled-components'
 import NextImage from 'next/image'
 import PlaceHolder from '../../assets/placeholder.png'
 
+interface TokenLogoProps {
+  logo?: string | null
+  header?: boolean
+  external?: boolean
+  size?: number
+  style?: React.CSSProperties
+}
+
 const BAD_IMAGES = {}
 
 const Inline = styled.div`
@@ -24,7 +32,7 @@ export default function TokenLogo({
   size = 24,
   style,
   ...rest
-}) {
+}: TokenLogoProps) {
   const [error, setError] = useState(false)
 
   useEffect(() => {
@@ -63,7 +71,7 @@ export default function TokenLogo({
         height={size}
         width={size}
         layout="fixed"
-        onError={event => {
+        onError={(event) => {
           BAD_IMAGES[logo] = true
           setError(true)
           event.preventDefault()

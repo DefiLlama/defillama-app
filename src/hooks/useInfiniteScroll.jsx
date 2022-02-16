@@ -1,64 +1,75 @@
-import React, { useState, useEffect, } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ChevronsUp } from 'react-feather'
 import { Button } from 'rebass'
 
 export default function useInfiniteScroll({ list = [], numInView = 25, filters = [] }) {
+  const [dataLength, setDatalength] = useState(numInView)
+  const [hasMore, setHasMore] = useState(true)
+  const [displayScrollToTopButton, setDisplayScrollToTopButton] = useState(false)
 
-    const [dataLength, setDatalength] = useState(numInView)
-    const [hasMore, setHasMore] = useState(true)
-    const [displayScrollToTopButton, setDisplayScrollToTopButton] = useState(false)
+  useEffect(() => {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 200) {
+        setDisplayScrollToTopButton(true)
+      } else {
+        setDisplayScrollToTopButton(false)
+      }
+    })
+  }, [])
 
+  // Reset when category changes or else might be limited if one category is smaller than the other
+  const stringifyFilters = JSON.stringify(filters)
+  useEffect(() => {
+    setHasMore(true)
+    setDatalength(numInView)
+  }, [stringifyFilters, numInView])
 
-    useEffect(() => {
-        window.addEventListener("scroll", () => {
-            if (window.scrollY > 200) {
-                setDisplayScrollToTopButton(true);
-            } else {
-                setDisplayScrollToTopButton(false);
-            }
-        });
-    }, [])
+  const handleScrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    })
+  }
 
-    // Reset when category changes or else might be limited if one category is smaller than the other
-    const stringifyFilters = JSON.stringify(filters)
-    useEffect(() => {
-        setHasMore(true)
-        setDatalength(numInView)
-    }, [stringifyFilters, numInView])
+  const next = () => {
+    const totalRows = dataLength + numInView
 
-    const handleScrollToTop = () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+    if (totalRows >= list.length) {
+      setDatalength(list.length)
+      setHasMore(false)
+    } else {
+      setDatalength(totalRows)
     }
+  }
 
-    const next = () => {
-        const totalRows = dataLength + numInView
+  const LoadMoreButton = (
+    <Button
+      displayScrollToTopButton={displayScrollToTopButton}
+      onClick={handleScrollToTop}
+      sx={{
+        borderRadius: '50%',
+        padding: 0,
+        color: 'inherit',
+        width: 36,
+        height: 36,
+        position: 'fixed',
+        zIndex: 1,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        bottom: '2rem',
+        opacity: 0.2,
+        cursor: 'Pointer',
+        display: displayScrollToTopButton ? 'inline' : 'none',
+      }}
+    >
+      <ChevronsUp color="black" />
+    </Button>
+  )
 
-        if (totalRows >= list.length) {
-            setDatalength(list.length)
-            setHasMore(false)
-        } else {
-            setDatalength(totalRows)
-        }
-    }
-
-    const LoadMoreButton = (
-        <Button displayScrollToTopButton={displayScrollToTopButton} onClick={handleScrollToTop} sx={{
-            borderRadius: '50%', padding: 0, color: 'inherit', width: 36, height: 36, position: 'fixed',
-            zIndex: 1, left: '50%', transform: 'translateX(-50%)', bottom: '2rem', opacity: 0.2, cursor: 'Pointer',
-            display: displayScrollToTopButton ? "inline" : 'none',
-        }
-        }>
-            <ChevronsUp />
-        </Button>
-    )
-
-    return {
-        dataLength,
-        hasMore,
-        LoadMoreButton,
-        next
-    }
+  return {
+    dataLength,
+    hasMore,
+    LoadMoreButton,
+    next,
+  }
 }

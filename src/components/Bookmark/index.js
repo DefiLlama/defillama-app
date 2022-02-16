@@ -107,25 +107,27 @@ function Bookmark({ readableProtocolName, ...props }) {
         : () => addProtocol(readableProtocolName)
       : () => setOpenPortfolioMenu(true)
 
-  return (
-    <Popover
-      arrow={false}
-      show={openPortfolioMenu && hasManyPortfolios}
-      content={
-        <PortfolioMenu
-          addProtocol={addProtocol}
-          portfolios={portfolios}
-          protocolName={protocolName}
-          readableProtocolName={readableProtocolName}
-          removeProtocol={removeProtocol}
-          savedProtocols={savedProtocols}
-          setOpenPortfolioMenu={setOpenPortfolioMenu}
-        />
-      }
-    >
-      <StyledBookmark ref={bookmarkRef} saved={`${isSaved}`} onClick={onClick} {...props} />
-    </Popover>
-  )
+  // return (
+  //   <Popover
+  //     arrow={false}
+  //     show={openPortfolioMenu && hasManyPortfolios}
+  //     content={
+  //       <PortfolioMenu
+  //         addProtocol={addProtocol}
+  //         portfolios={portfolios}
+  //         protocolName={protocolName}
+  //         readableProtocolName={readableProtocolName}
+  //         removeProtocol={removeProtocol}
+  //         savedProtocols={savedProtocols}
+  //         setOpenPortfolioMenu={setOpenPortfolioMenu}
+  //       />
+  //     }
+  //   >
+  //     <StyledBookmark ref={bookmarkRef} saved={`${isSaved}`} onClick={onClick} {...props} />
+  //   </Popover>
+  // )
+
+  return <StyledBookmark ref={bookmarkRef} saved={`${isSaved}`} onClick={onClick} {...props} />
 }
 
 export default Bookmark

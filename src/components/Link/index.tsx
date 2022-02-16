@@ -5,6 +5,15 @@ import PropTypes from 'prop-types'
 import styled from 'styled-components'
 import { lighten, darken } from 'polished'
 
+interface BasicLinkProps {
+  href: string
+  children: React.ReactNode
+}
+
+interface CustomLinkProps extends BasicLinkProps {
+  style?: React.CSSProperties
+}
+
 const WrappedLink = ({ external, children, ...rest }) => (
   <RebassLink
     target={external ? '_blank' : null}
@@ -17,7 +26,7 @@ const WrappedLink = ({ external, children, ...rest }) => (
 )
 
 WrappedLink.propTypes = {
-  external: PropTypes.bool
+  external: PropTypes.bool,
 }
 
 const Link = styled(WrappedLink)`
@@ -44,7 +53,7 @@ export const CustomLinkStyle = styled.a`
   }
 `
 
-export const CustomLink = ({ href, children, style }) => {
+export const CustomLink = ({ href, children, style }: CustomLinkProps) => {
   // Must add passHref to Link
   return (
     <RouterLink href={href} passHref prefetch={false}>
@@ -63,7 +72,7 @@ export const BasicLinkStyle = styled.a`
   }
 `
 
-export const BasicLink = ({ href, children, ...props }) => (
+export const BasicLink = ({ href, children, ...props }: BasicLinkProps) => (
   <RouterLink href={href} passHref prefetch={false}>
     <BasicLinkStyle {...props}>{children}</BasicLinkStyle>
   </RouterLink>

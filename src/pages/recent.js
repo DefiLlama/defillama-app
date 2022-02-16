@@ -1,12 +1,8 @@
 import { FullWrapper, PageWrapper } from 'components'
 import ChainsRow from 'components/ChainsRow'
-import { CustomLink } from 'components/Link'
-import Table, { Index } from 'components/Table'
-import TokenLogo from 'components/TokenLogo'
+import Table, { chainHelperText, ProtocolName } from 'components/Table'
 import { useMemo } from 'react'
-import Bookmark from 'components/Bookmark'
-import styled from 'styled-components'
-import { formattedPercent, slug, toK, tokenIconUrl } from 'utils'
+import { formattedPercent, toK } from 'utils'
 import { GeneralLayout } from '../layout'
 import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
 
@@ -31,14 +27,6 @@ export async function getStaticProps() {
   }
 }
 
-const SaveButton = styled(Bookmark)`
-  position: relative;
-  top: 2px;
-  cursor: pointer;
-  width: 16px;
-  height: 16px;
-`
-
 export default function Protocols({ protocols }) {
   const data = useMemo(() => {
     const currentTimestamp = Date.now() / 1000
@@ -52,59 +40,43 @@ export default function Protocols({ protocols }) {
   const columns = useMemo(
     () => [
       {
-        Header: 'Name',
+        header: 'Name',
         accessor: 'name',
-        Cell: ({ value, row, flatRows }) => {
-          const index = flatRows.indexOf(row)
-          const name = row.original.symbol === '-' ? value : `${value} (${row.original.symbol})`
-          return (
-            <Index>
-              <SaveButton readableProtocolName={value} />
-              <span>{index + 1}</span>
-              <TokenLogo logo={tokenIconUrl(value)} />
-              <CustomLink href={`/protocol/${slug(value)}`}>{name}</CustomLink>
-            </Index>
-          )
-        },
+        disableSortBy: true,
+        Cell: ({ value, rowValues, rowIndex }) => (
+          <ProtocolName value={value} symbol={rowValues.symbol} index={rowIndex + 1} bookmark />
+        ),
       },
+      ,
       {
-        Header: 'Chains',
+        header: 'Chains',
         accessor: 'chains',
         disableSortBy: true,
-        Cell: ({ value }) => {
-          return <ChainsRow chains={value} />
-        },
+        helperText: chainHelperText,
+        Cell: ({ value }) => <ChainsRow chains={value} />,
       },
       {
-        Header: 'Listed',
+        header: 'Listed',
         accessor: 'listedAt',
-        Cell: ({ value }) => {
-          return <span style={{ whiteSpace: 'nowrap' }}>{value} days ago</span>
-        },
+        Cell: ({ value }) => <span style={{ whiteSpace: 'nowrap' }}>{value} days ago</span>,
       },
       {
-        Header: '1d Change',
+        header: '1d Change',
         accessor: 'change_1d',
-        Cell: ({ value }) => {
-          return <>{formattedPercent(value)}</>
-        },
+        Cell: ({ value }) => <>{formattedPercent(value)}</>,
       },
       {
-        Header: '7d Change',
+        header: '7d Change',
         accessor: 'change_7d',
-        Cell: ({ value }) => {
-          return <>{formattedPercent(value)}</>
-        },
+        Cell: ({ value }) => <>{formattedPercent(value)}</>,
       },
       {
-        Header: '1m Change',
+        header: '1m Change',
         accessor: 'change_1m',
-        Cell: ({ value }) => {
-          return <>{formattedPercent(value)}</>
-        },
+        Cell: ({ value }) => <>{formattedPercent(value)}</>,
       },
       {
-        Header: 'TVL',
+        header: 'TVL',
         accessor: 'tvl',
         Cell: ({ value }) => {
           return <span>{'$' + toK(value)}</span>
