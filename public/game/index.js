@@ -2390,7 +2390,7 @@
      * @enum {number}
      */
     HorizonLine.dimensions = {
-        WIDTH: 600,
+        WIDTH: 1200,
         HEIGHT: 12,
         YPOS: 127
     };
