@@ -48,11 +48,11 @@ const PortfolioMenu = ({
   savedProtocols,
   addProtocol,
   removeProtocol,
-  setOpenPortfolioMenu
+  setOpenPortfolioMenu,
 }) => {
   return (
     <PortfolioMenuWrapper>
-      {portfolios.map(portfolio => {
+      {portfolios.map((portfolio) => {
         const protocolAdded = savedProtocols[portfolio][protocolName]
         const onClick = () => {
           if (protocolAdded) {
@@ -74,7 +74,7 @@ const PortfolioMenu = ({
 }
 
 // readableProtocolName has proper caps and spaces
-function Bookmark({ readableProtocolName, style }) {
+function Bookmark({ readableProtocolName, ...props }) {
   const bookmarkRef = useRef(null)
   const [openPortfolioMenu, setOpenPortfolioMenu] = useState(false)
   const { savedProtocols, addProtocol, removeProtocol } = useSavedProtocols()
@@ -82,7 +82,7 @@ function Bookmark({ readableProtocolName, style }) {
   const isClient = useIsClient()
 
   useEffect(() => {
-    const handleClick = e => {
+    const handleClick = (e) => {
       if (!e.target.contains(bookmarkRef.current) && !e.target.contains(bookmarkRef.current.firstChild)) {
         setOpenPortfolioMenu(false)
       }
@@ -96,7 +96,7 @@ function Bookmark({ readableProtocolName, style }) {
   const portfolios = Object.keys(savedProtocols)
   const protocolName = standardizeProtocolName(readableProtocolName)
 
-  const isSaved = portfolios.some(portfolio => savedProtocols[portfolio][protocolName]) && isClient
+  const isSaved = portfolios.some((portfolio) => savedProtocols[portfolio][protocolName]) && isClient
 
   const hasManyPortfolios = portfolios.length > 1
 
@@ -123,7 +123,7 @@ function Bookmark({ readableProtocolName, style }) {
         />
       }
     >
-      <StyledBookmark ref={bookmarkRef} saved={`${isSaved}`} onClick={onClick} style={style} />
+      <StyledBookmark ref={bookmarkRef} saved={`${isSaved}`} onClick={onClick} {...props} />
     </Popover>
   )
 }
