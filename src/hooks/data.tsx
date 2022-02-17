@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
-import { formattedNum, getPercentChange } from 'utils'
+import { getPercentChange } from 'utils'
 
 interface IProtocol {
   tvl: number | null
@@ -76,7 +76,7 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
         let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
         let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
-        const mcaptvl = mcap && finalTvl && formattedNum(mcap / finalTvl)
+        const mcaptvl = mcap && finalTvl && mcap / finalTvl
 
         return {
           ...props,

@@ -7,7 +7,7 @@ import HeadHelp from 'components/HeadHelp'
 import { CustomLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
 import Bookmark from 'components/Bookmark'
-import { formattedPercent, slug, toK, tokenIconUrl } from 'utils'
+import { formattedNum, formattedPercent, slug, toK, tokenIconUrl } from 'utils'
 import { useInfiniteScroll } from 'hooks'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
@@ -258,6 +258,7 @@ const allColumns: IColumns = {
   mcaptvl: {
     header: 'Mcap/TVL',
     accessor: 'mcaptvl',
+    Cell: ({ value }) => <>{formattedNum(value)}</>,
   },
   listedAt: {
     header: 'Listed',
