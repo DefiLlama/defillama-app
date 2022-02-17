@@ -3,16 +3,7 @@ import dynamic from 'next/dynamic'
 import { getForkPageData, revalidate } from 'utils/dataApi'
 import { GeneralLayout } from 'layout'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
-import {
-  formattedNum,
-  formattedPercent,
-  getPercentChange,
-  getPrevTvlFromChart,
-  getTokenDominance,
-  slug,
-  toK,
-  tokenIconUrl,
-} from 'utils'
+import { formattedNum, formattedPercent, getPercentChange, getPrevTvlFromChart, getTokenDominance, toK } from 'utils'
 import Panel from 'components/Panel'
 import { AutoColumn } from 'components/Column'
 import { RowBetween } from 'components/Row'
@@ -22,10 +13,9 @@ import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
 import Filters from 'components/Filters'
-import Table, { Index } from 'components/Table'
-import { CustomLink } from 'components/Link'
-import TokenLogo from 'components/TokenLogo'
+import Table from 'components/Table'
 import ChainsRow from 'components/ChainsRow'
+import { ProtocolName } from 'components/Table'
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
@@ -127,64 +117,41 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
   const columns = useMemo(
     () => [
       {
-        Header: 'Name',
+        header: 'Name',
         accessor: 'name',
-        Cell: ({ value, row, flatRows }) => {
-          const index = flatRows.indexOf(row)
-          const name = row.original.symbol === '-' ? value : `${value} (${row.original.symbol})`
-          return (
-            <Index>
-              <span>{index + 1}</span>
-              <TokenLogo logo={tokenIconUrl(value)} />
-              <CustomLink href={`/protocol/${slug(value)}`}>{name}</CustomLink>
-            </Index>
-          )
-        },
+        Cell: ({ value, rowValues, rowIndex }) => (
+          <ProtocolName value={value} symbol={rowValues.symbol} index={rowIndex + 1} />
+        ),
       },
       {
-        Header: 'Chains',
+        header: 'Chains',
         accessor: 'chains',
         disableSortBy: true,
-        Cell: ({ value }) => {
-          return <ChainsRow chains={value} />
-        },
+        Cell: ({ value }) => <ChainsRow chains={value} />,
       },
       {
-        Header: '1d Change',
+        header: '1d Change',
         accessor: 'change_1d',
-        Cell: ({ value }) => {
-          return <>{formattedPercent(value)}</>
-        },
+        Cell: ({ value }) => <>{formattedPercent(value)}</>,
       },
       {
-        Header: '7d Change',
+        header: '7d Change',
         accessor: 'change_7d',
-        Cell: ({ value }) => {
-          return <>{formattedPercent(value)}</>
-        },
+        Cell: ({ value }) => <>{formattedPercent(value)}</>,
       },
       {
-        Header: '1m Change',
+        header: '1m Change',
         accessor: 'change_1m',
-        Cell: ({ value }) => {
-          return <>{formattedPercent(value)}</>
-        },
+        Cell: ({ value }) => <>{formattedPercent(value)}</>,
       },
       {
-        Header: 'TVL',
+        header: 'TVL',
         accessor: 'tvl',
-        Cell: ({ value }) => {
-          return <span>{'$' + toK(value)}</span>
-        },
+        Cell: ({ value }) => <span>{'$' + toK(value)}</span>,
       },
       {
-        Header: 'Mcap/TVL',
-        accessor: 'mcap',
-        Cell: ({ value, row }) => {
-          const tvl = row.values?.tvl ?? null
-          const ratio = value && tvl && formattedNum(value / tvl)
-          return <>{ratio}</>
-        },
+        header: 'Mcap/TVL',
+        accessor: 'mcaptvl',
       },
     ],
     []

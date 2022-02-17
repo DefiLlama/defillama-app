@@ -4,7 +4,6 @@ import { GeneralLayout } from '../layout'
 import { getProtocolsRaw, revalidate } from '../utils/dataApi'
 import { toK } from 'utils'
 import Table, { Index } from 'components/Table'
-import { useMemo } from 'react'
 
 export async function getStaticProps() {
   const protocols = await getProtocolsRaw()
@@ -62,31 +61,31 @@ const descriptions = {
 
 const columns = [
   {
-    Header: 'Category',
+    header: 'Category',
     accessor: 'name',
-    Cell: ({ value, row, flatRows }) => {
-      const index = flatRows.indexOf(row)
+    disableSortBy: true,
+    Cell: ({ value, rowIndex }) => {
       return (
         <Index>
-          <span>{index + 1}</span>
+          <span>{rowIndex + 1}</span>
           <CustomLink href={`/protocols/${value}`}>{value}</CustomLink>
         </Index>
       )
     },
   },
   {
-    Header: 'Protocols',
+    header: 'Protocols',
     accessor: 'protocols',
   },
   {
-    Header: 'Combined TVL',
+    header: 'Combined TVL',
     accessor: 'tvl',
     Cell: ({ value }) => {
       return <span>{'$' + toK(value)}</span>
     },
   },
   {
-    Header: 'Description',
+    header: 'Description',
     accessor: 'description',
     disableSortBy: true,
   },

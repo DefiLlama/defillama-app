@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react'
 import { getForkPageData, revalidate } from '../utils/dataApi'
-
 import { GeneralLayout } from '../layout'
 import Table, { Index } from 'components/Table'
 import { useCalcGroupExtraTvlsByDay } from 'hooks/data'
@@ -67,24 +66,23 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
   const columns = useMemo(
     () => [
       {
-        Header: 'Name',
+        header: 'Name',
         accessor: 'name',
-        Cell: ({ value, row, flatRows }) => {
-          const index = flatRows.indexOf(row)
+        Cell: ({ value, rowIndex }) => {
           return (
             <Index>
-              <span>{index + 1}</span>
+              <span>{rowIndex + 1}</span>
               <CustomLink href={`/forks/${value}`}>{value}</CustomLink>
             </Index>
           )
         },
       },
       {
-        Header: 'Forked Protocols',
+        header: 'Forked Protocols',
         accessor: 'forkedProtocols',
       },
       {
-        Header: 'TVL',
+        header: 'TVL',
         accessor: 'tvl',
         Cell: ({ value }) => {
           return <span>{'$' + toK(value)}</span>

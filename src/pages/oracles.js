@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react'
 import { getOraclePageData, revalidate } from '../utils/dataApi'
-
 import { GeneralLayout } from '../layout'
 import styled from 'styled-components'
 import { Box } from 'rebass'
@@ -67,24 +66,23 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
   const columns = useMemo(
     () => [
       {
-        Header: 'Name',
+        header: 'Name',
         accessor: 'name',
-        Cell: ({ value, row, flatRows }) => {
-          const index = flatRows.indexOf(row)
+        Cell: ({ value, rowIndex }) => {
           return (
             <Index>
-              <span>{index + 1}</span>
+              <span>{rowIndex + 1}</span>
               <CustomLink href={`/oracles/${value}`}>{value}</CustomLink>
             </Index>
           )
         },
       },
       {
-        Header: 'Protocols Secured',
+        header: 'Protocols Secured',
         accessor: 'protocolsSecured',
       },
       {
-        Header: 'TVS',
+        header: 'TVS',
         accessor: 'tvs',
         Cell: ({ value }) => {
           return <span>{'$' + toK(value)}</span>

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { v4 as uuid } from 'uuid'
 import Panel from 'components/Panel'
@@ -86,13 +86,14 @@ const HeaderButton = styled.button`
   background: none;
   border: none;
   text-align: inherit;
+  padding: 0;
+  font-size: inherit;
+  font-weight: 500;
 `
 
 function Table({ columns = [], data = [], align, gap }) {
   const [columnToSort, setColumnToSort] = useState<string | null>(null)
   const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
-
-  const id = useRef(uuid()).current
 
   const handleClick = (name: string) => {
     if (sortDirection === 0 || name !== columnToSort) {
@@ -115,7 +116,7 @@ function Table({ columns = [], data = [], align, gap }) {
     } else return data
   }, [data, sortDirection, columnToSort])
 
-  const { LoadMoreButton, dataLength, hasMore, next } = useInfiniteScroll({ list: sortedData, filters: id })
+  const { LoadMoreButton, dataLength, hasMore, next } = useInfiniteScroll({ list: sortedData })
 
   return (
     <Wrapper style={{ '--text-align': align || 'end', '--gap': gap || '24px' }}>

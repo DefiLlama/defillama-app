@@ -37,7 +37,7 @@ export async function getStaticProps() {
     }
     data.push({ chain, ...values })
   })
-  const columns = Array.from(uniqueCategories).map((item) => ({ Header: item, accessor: item, disableSortBy: true }))
+  const columns = Array.from(uniqueCategories).map((item) => ({ header: item, accessor: item, disableSortBy: true }))
   return {
     props: {
       data,
@@ -53,6 +53,7 @@ const TableWrapper = styled(FullWrapper)`
     white-space: nowrap;
     padding-right: 16px !important;
     border-right: 1px solid;
+    border-color: ${({ theme }) => theme.divider};
 
     &:last-child {
       border-right: none !important;
@@ -68,14 +69,13 @@ export default function Chains({ data, columns }) {
   const allColumns = useMemo(
     () => [
       {
-        Header: 'Chain',
+        header: 'Chain',
         accessor: 'chain',
         disableSortBy: true,
-        Cell: ({ value, row, flatRows }) => {
-          const index = flatRows.indexOf(row)
+        Cell: ({ value, rowIndex }) => {
           return (
             <Index>
-              <span>{index + 1}</span>
+              <span>{rowIndex + 1}</span>
               <TokenLogo logo={chainIconUrl(value)} />
               <CustomLink href={`/chain/${value}`}>{value}</CustomLink>
             </Index>

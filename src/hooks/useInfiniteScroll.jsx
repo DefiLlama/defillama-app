@@ -1,11 +1,14 @@
+import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import { ChevronsUp } from 'react-feather'
 import { Button } from 'rebass'
 
-export default function useInfiniteScroll({ list = [], numInView = 25, filters = [] }) {
+export default function useInfiniteScroll({ list = [], numInView = 25 }) {
   const [dataLength, setDatalength] = useState(numInView)
   const [hasMore, setHasMore] = useState(true)
   const [displayScrollToTopButton, setDisplayScrollToTopButton] = useState(false)
+
+  const { pathname } = useRouter()
 
   useEffect(() => {
     window.addEventListener('scroll', () => {
@@ -17,12 +20,10 @@ export default function useInfiniteScroll({ list = [], numInView = 25, filters =
     })
   }, [])
 
-  // Reset when category changes or else might be limited if one category is smaller than the other
-  const stringifyFilters = JSON.stringify(filters)
   useEffect(() => {
     setHasMore(true)
     setDatalength(numInView)
-  }, [stringifyFilters, numInView])
+  }, [pathname, numInView])
 
   const handleScrollToTop = () => {
     window.scrollTo({

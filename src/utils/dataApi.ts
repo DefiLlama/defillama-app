@@ -14,7 +14,7 @@ import {
   ORACLE_API,
   FORK_API,
 } from '../constants/index'
-import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
+import { formattedNum, getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
 
 interface IProtocol {
   name: string
@@ -73,6 +73,7 @@ export const basicPropertiesToKeep = [
   'tvlPrevWeek',
   'tvlPrevMonth',
   'mcap',
+  'mcaptvl',
 ]
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
@@ -123,6 +124,7 @@ const formatProtocolsData = ({
     protocol.change_1d = getPercentChange(protocol.tvl, protocol.tvlPrevDay)
     protocol.change_7d = getPercentChange(protocol.tvl, protocol.tvlPrevWeek)
     protocol.change_1m = getPercentChange(protocol.tvl, protocol.tvlPrevMonth)
+    protocol.mcaptvl = protocol.mcap && protocol.tvl && formattedNum(protocol.mcap / protocol.tvl)
 
     Object.entries(protocol.chainTvls).forEach(([sectionName, sectionTvl]) => {
       if (chain) {

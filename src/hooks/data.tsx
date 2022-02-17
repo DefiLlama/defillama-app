@@ -1,12 +1,13 @@
 import { useMemo } from 'react'
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
-import { getPercentChange } from 'utils'
+import { formattedNum, getPercentChange } from 'utils'
 
 interface IProtocol {
   tvl: number | null
   tvlPrevDay: number | null
   tvlPrevWeek: number | null
   tvlPrevMonth: number | null
+  mcap: number | null
   extraTvl: {
     [key: string]: {
       tvl: number | null
@@ -53,7 +54,7 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
     }
 
     const updatedProtocols = filteredProtocols.map(
-      ({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, ...props }) => {
+      ({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, ...props }) => {
         let finalTvl: number | null = tvl
         let finalTvlPrevDay: number | null = tvlPrevDay
         let finalTvlPrevWeek: number | null = tvlPrevWeek
@@ -75,6 +76,8 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
         let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
         let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
+        const mcaptvl = mcap && finalTvl && formattedNum(mcap / finalTvl)
+
         return {
           ...props,
           tvl: finalTvl,
@@ -84,6 +87,7 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
           change_1d: change1d,
           change_7d: change7d,
           change_1m: change1m,
+          mcaptvl,
         }
       }
     )
