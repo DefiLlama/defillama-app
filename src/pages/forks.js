@@ -68,6 +68,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
       {
         header: 'Name',
         accessor: 'name',
+        disableSortBy: true,
         Cell: ({ value, rowIndex }) => {
           return (
             <Index>

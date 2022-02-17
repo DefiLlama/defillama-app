@@ -119,6 +119,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
       {
         header: 'Name',
         accessor: 'name',
+        disableSortBy: true,
         Cell: ({ value, rowValues, rowIndex }) => (
           <ProtocolName value={value} symbol={rowValues.symbol} index={rowIndex + 1} />
         ),
