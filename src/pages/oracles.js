@@ -85,6 +85,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
       {
         header: 'TVS',
         accessor: 'tvs',
+        helperText: 'Excludes CeFi',
         Cell: ({ value }) => {
           return <span>{'$' + toK(value)}</span>
         },

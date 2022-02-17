@@ -7,10 +7,11 @@ import HeadHelp from 'components/HeadHelp'
 import { CustomLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
 import Bookmark from 'components/Bookmark'
-import { slug, tokenIconUrl } from 'utils'
+import { formattedPercent, slug, toK, tokenIconUrl } from 'utils'
 import { useInfiniteScroll } from 'hooks'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
+import ChainsRow from 'components/ChainsRow'
 
 const Wrapper = styled(Panel)`
   padding-top: 6px;
@@ -50,19 +51,24 @@ const Header = styled.th`
   font-weight: 400;
   white-space: nowrap;
 
-  & > div {
-    display: flex;
-  }
-
   svg {
     width: 14px;
     height: 14px;
-    position: relative;
-    top: 1px;
   }
 
   & > * {
     justify-content: var(--text-align);
+  }
+`
+
+const SortedHeader = styled.div`
+  display: flex;
+  gap: 4px;
+  white-space: nowrap;
+
+  & > svg {
+    position: relative;
+    top: 1px;
   }
 `
 
@@ -104,7 +110,7 @@ function splitArrayByFalsyValues(data, column) {
   )
 }
 
-function Table({ columns = [], data = [], align, gap }) {
+function Table({ columns = [], data = [], align, gap, ...props }) {
   const [columnToSort, setColumnToSort] = useState<string | null>(null)
   const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
 
@@ -131,7 +137,7 @@ function Table({ columns = [], data = [], align, gap }) {
   const { LoadMoreButton, dataLength, hasMore, next } = useInfiniteScroll({ list: sortedData })
 
   return (
-    <Wrapper style={{ '--text-align': align || 'end', '--gap': gap || '24px' }}>
+    <Wrapper style={{ '--text-align': align || 'end', '--gap': gap || '24px' }} {...props}>
       <InfiniteScroll
         dataLength={dataLength}
         next={next}
@@ -148,10 +154,10 @@ function Table({ columns = [], data = [], align, gap }) {
                 return (
                   <Header key={uuid()}>
                     {!disableSortBy ? (
-                      <div>
+                      <SortedHeader>
                         <HeaderButton onClick={() => handleClick(col.accessor)}>{text}</HeaderButton>{' '}
                         {sortingColumn && (sortDirection === -1 ? <ArrowUp /> : <ArrowDown />)}
-                      </div>
+                      </SortedHeader>
                     ) : (
                       text
                     )}
@@ -201,6 +207,69 @@ export function ProtocolName({ value, symbol = '', index, bookmark }: ProtocolNa
   )
 }
 
-export const chainHelperText = "Chains are ordered by protocol's highest TVL on each chain"
+// TODO update to better type defs
+interface IColumns {
+  protocolName: {}
+  chains: {}
+  '1dChange': {}
+  '7dChange': {}
+  '1mChange': {}
+  tvl: {}
+  mcaptvl: {}
+  listedAt: {}
+}
+
+const allColumns: IColumns = {
+  protocolName: {
+    header: 'Name',
+    accessor: 'name',
+    disableSortBy: true,
+    Cell: ({ value, rowValues, rowIndex }) => (
+      <ProtocolName value={value} symbol={rowValues.symbol} index={rowIndex + 1} bookmark />
+    ),
+  },
+  chains: {
+    header: 'Chains',
+    accessor: 'chains',
+    disableSortBy: true,
+    helperText: "Chains are ordered by protocol's highest TVL on each chain",
+    Cell: ({ value }) => <ChainsRow chains={value} />,
+  },
+  '1dChange': {
+    header: '1d Change',
+    accessor: 'change_1d',
+    Cell: ({ value }) => <>{formattedPercent(value)}</>,
+  },
+  '7dChange': {
+    header: '7d Change',
+    accessor: 'change_7d',
+    Cell: ({ value }) => <>{formattedPercent(value)}</>,
+  },
+  '1mChange': {
+    header: '1m Change',
+    accessor: 'change_1m',
+    Cell: ({ value }) => <>{formattedPercent(value)}</>,
+  },
+  tvl: {
+    header: 'TVL',
+    accessor: 'tvl',
+    Cell: ({ value }) => <span>{'$' + toK(value)}</span>,
+  },
+  mcaptvl: {
+    header: 'Mcap/TVL',
+    accessor: 'mcaptvl',
+  },
+  listedAt: {
+    header: 'Listed',
+    accessor: 'listedAt',
+    Cell: ({ value }) => <span style={{ whiteSpace: 'nowrap' }}>{value} days ago</span>,
+  },
+}
+
+type columnsName = keyof IColumns
+
+export function columnsToShow(...names: columnsName[]) {
+  return names.map((item) => allColumns[item])
+}
 
 export default Table

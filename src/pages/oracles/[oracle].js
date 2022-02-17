@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic'
 import { getOraclePageData, revalidate } from 'utils/dataApi'
 import { GeneralLayout } from 'layout'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
-import { formattedNum, formattedPercent, getPercentChange, getPrevTvlFromChart, getTokenDominance, toK } from 'utils'
+import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
 import Panel from 'components/Panel'
 import { AutoColumn } from 'components/Column'
 import { RowBetween } from 'components/Row'
@@ -13,9 +13,7 @@ import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
 import Filters from 'components/Filters'
-import Table from 'components/Table'
-import ChainsRow from 'components/ChainsRow'
-import { ProtocolName } from 'components/Table'
+import Table, { columnsToShow } from 'components/Table'
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
@@ -43,6 +41,8 @@ export async function getStaticPaths() {
 
   return { paths, fallback: 'blocking' }
 }
+
+const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
   const protocolsData = useCalcStakePool2Tvl(filteredProtocols)
@@ -112,50 +112,6 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
         </AutoColumn>
       </Panel>
     </>
-  )
-
-  const columns = useMemo(
-    () => [
-      {
-        header: 'Name',
-        accessor: 'name',
-        disableSortBy: true,
-        Cell: ({ value, rowValues, rowIndex }) => (
-          <ProtocolName value={value} symbol={rowValues.symbol} index={rowIndex + 1} />
-        ),
-      },
-      {
-        header: 'Chains',
-        accessor: 'chains',
-        disableSortBy: true,
-        Cell: ({ value }) => <ChainsRow chains={value} />,
-      },
-      {
-        header: '1d Change',
-        accessor: 'change_1d',
-        Cell: ({ value }) => <>{formattedPercent(value)}</>,
-      },
-      {
-        header: '7d Change',
-        accessor: 'change_7d',
-        Cell: ({ value }) => <>{formattedPercent(value)}</>,
-      },
-      {
-        header: '1m Change',
-        accessor: 'change_1m',
-        Cell: ({ value }) => <>{formattedPercent(value)}</>,
-      },
-      {
-        header: 'TVL',
-        accessor: 'tvl',
-        Cell: ({ value }) => <span>{'$' + toK(value)}</span>,
-      },
-      {
-        header: 'Mcap/TVL',
-        accessor: 'mcaptvl',
-      },
-    ],
-    []
   )
 
   return (

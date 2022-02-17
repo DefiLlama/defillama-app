@@ -1,4 +1,6 @@
-import ProtocolList from '../components/ProtocolList'
+import { FullWrapper, PageWrapper } from 'components'
+import PageHeader from 'components/PageHeader'
+import Table, { columnsToShow } from 'components/Table'
 import { GeneralLayout } from '../layout'
 import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
 
@@ -12,30 +14,32 @@ const exclude = [
   'Tezos Liquidity Baking',
   'Notional',
   'Tinlake',
-  'Kuu Finance'
+  'Kuu Finance',
 ]
 
 export async function getStaticProps() {
   const protocols = (await getSimpleProtocolsPageData()).protocols.filter(
-    token => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name)
+    (token) => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name)
   )
   return {
     props: {
-      protocols
+      protocols,
     },
-    revalidate: revalidate()
+    revalidate: revalidate(),
   }
 }
+
+const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl')
 
 export default function Protocols({ protocols }) {
   return (
     <GeneralLayout title={`Airdroppable protocols - Defi Llama`} defaultSEO>
-      <ProtocolList
-        title="Tokenless protocols that may airdrop 🧑‍🌾"
-        category=""
-        filteredProtocols={protocols}
-        showChainList={false}
-      />
+      <PageWrapper>
+        <FullWrapper>
+          <PageHeader title="Tokenless protocols that may airdrop 🧑‍🌾" />
+          <Table data={protocols} columns={columns} />
+        </FullWrapper>
+      </PageWrapper>
     </GeneralLayout>
   )
 }

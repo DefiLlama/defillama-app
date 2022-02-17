@@ -1,8 +1,7 @@
 import { FullWrapper, PageWrapper } from 'components'
-import ChainsRow from 'components/ChainsRow'
-import Table, { chainHelperText, ProtocolName } from 'components/Table'
+import PageHeader from 'components/PageHeader'
+import Table, { columnsToShow } from 'components/Table'
 import { useMemo } from 'react'
-import { formattedPercent, toK } from 'utils'
 import { GeneralLayout } from '../layout'
 import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
 
@@ -27,6 +26,8 @@ export async function getStaticProps() {
   }
 }
 
+const columns = columnsToShow('protocolName', 'chains', 'listedAt', '1dChange', '7dChange', '1mChange', 'tvl')
+
 export default function Protocols({ protocols }) {
   const data = useMemo(() => {
     const currentTimestamp = Date.now() / 1000
@@ -37,59 +38,11 @@ export default function Protocols({ protocols }) {
     }))
   }, [protocols])
 
-  const columns = useMemo(
-    () => [
-      {
-        header: 'Name',
-        accessor: 'name',
-        disableSortBy: true,
-        Cell: ({ value, rowValues, rowIndex }) => (
-          <ProtocolName value={value} symbol={rowValues.symbol} index={rowIndex + 1} bookmark />
-        ),
-      },
-      ,
-      {
-        header: 'Chains',
-        accessor: 'chains',
-        disableSortBy: true,
-        helperText: chainHelperText,
-        Cell: ({ value }) => <ChainsRow chains={value} />,
-      },
-      {
-        header: 'Listed',
-        accessor: 'listedAt',
-        Cell: ({ value }) => <span style={{ whiteSpace: 'nowrap' }}>{value} days ago</span>,
-      },
-      {
-        header: '1d Change',
-        accessor: 'change_1d',
-        Cell: ({ value }) => <>{formattedPercent(value)}</>,
-      },
-      {
-        header: '7d Change',
-        accessor: 'change_7d',
-        Cell: ({ value }) => <>{formattedPercent(value)}</>,
-      },
-      {
-        header: '1m Change',
-        accessor: 'change_1m',
-        Cell: ({ value }) => <>{formattedPercent(value)}</>,
-      },
-      {
-        header: 'TVL',
-        accessor: 'tvl',
-        Cell: ({ value }) => {
-          return <span>{'$' + toK(value)}</span>
-        },
-      },
-    ],
-    []
-  )
-
   return (
     <GeneralLayout title={`TVL Rankings - DefiLlama`} defaultSEO>
       <PageWrapper>
         <FullWrapper>
+          <PageHeader title="Recently Listed Protocols" />
           <Table data={data} columns={columns} />
         </FullWrapper>
       </PageWrapper>
