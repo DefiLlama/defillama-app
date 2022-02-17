@@ -10,6 +10,7 @@ import Bookmark from 'components/Bookmark'
 import { slug, tokenIconUrl } from 'utils'
 import { useInfiniteScroll } from 'hooks'
 import InfiniteScroll from 'react-infinite-scroll-component'
+import orderBy from 'lodash.orderby'
 
 const Wrapper = styled(Panel)`
   padding-top: 6px;
@@ -91,6 +92,18 @@ const HeaderButton = styled.button`
   font-weight: 500;
 `
 
+function splitArrayByFalsyValues(data, column) {
+  return data.reduce(
+    (acc, curr) => {
+      if (!curr[column] && curr[column] !== 0) {
+        acc[1].push(curr)
+      } else acc[0].push(curr)
+      return acc
+    },
+    [[], []]
+  )
+}
+
 function Table({ columns = [], data = [], align, gap }) {
   const [columnToSort, setColumnToSort] = useState<string | null>(null)
   const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
@@ -108,11 +121,10 @@ function Table({ columns = [], data = [], align, gap }) {
 
   const sortedData = useMemo(() => {
     if (sortDirection && columnToSort) {
-      return data.sort((a, b) => {
-        if (sortDirection === 1) {
-          return b[columnToSort] - a[columnToSort]
-        } else return a[columnToSort] - b[columnToSort]
-      })
+      const values = splitArrayByFalsyValues(data, columnToSort)
+      if (sortDirection === 1) {
+        return orderBy(values[0], [columnToSort], ['desc']).concat(values[1])
+      } else return orderBy(values[0], [columnToSort], ['asc']).concat(values[1])
     } else return data
   }, [data, sortDirection, columnToSort])
 
