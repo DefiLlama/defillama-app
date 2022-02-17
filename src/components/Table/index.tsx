@@ -132,7 +132,12 @@ function Table({ columns = [], data = [], align, gap }) {
 
   return (
     <Wrapper style={{ '--text-align': align || 'end', '--gap': gap || '24px' }}>
-      <InfiniteScroll dataLength={dataLength} next={next} hasMore={hasMore} loader="...">
+      <InfiniteScroll
+        dataLength={dataLength}
+        next={next}
+        hasMore={hasMore}
+        loader={hasMore && <span style={{ marginLeft: '8px' }}>...</span>}
+      >
         <TableWrapper>
           <thead>
             <Row>

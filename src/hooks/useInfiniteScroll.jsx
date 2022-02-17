@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router'
 import React, { useState, useEffect } from 'react'
 import { ChevronsUp } from 'react-feather'
 import { Button } from 'rebass'
@@ -7,8 +6,6 @@ export default function useInfiniteScroll({ list = [], numInView = 25 }) {
   const [dataLength, setDatalength] = useState(numInView)
   const [hasMore, setHasMore] = useState(true)
   const [displayScrollToTopButton, setDisplayScrollToTopButton] = useState(false)
-
-  const { pathname } = useRouter()
 
   useEffect(() => {
     window.addEventListener('scroll', () => {
@@ -27,14 +24,14 @@ export default function useInfiniteScroll({ list = [], numInView = 25 }) {
   }, [])
 
   useEffect(() => {
-    setHasMore(true)
+    setHasMore(list.length > numInView)
     setDatalength(numInView)
 
     return () => {
       setHasMore(true)
       setDatalength(25)
     }
-  }, [pathname, numInView])
+  }, [numInView, list])
 
   const handleScrollToTop = () => {
     window.scrollTo({
