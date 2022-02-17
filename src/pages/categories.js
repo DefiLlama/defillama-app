@@ -4,6 +4,7 @@ import { GeneralLayout } from '../layout'
 import { getProtocolsRaw, revalidate } from '../utils/dataApi'
 import { toK } from 'utils'
 import Table, { Index } from 'components/Table'
+import PageHeader from 'components/PageHeader'
 
 export async function getStaticProps() {
   const protocols = await getProtocolsRaw()
@@ -96,6 +97,7 @@ export default function Protocols({ categories }) {
     <GeneralLayout title={`Categories - DefiLlama`} defaultSEO>
       <PageWrapper>
         <FullWrapper>
+          <PageHeader title="Protocol Categories" />
           <Table data={categories} columns={columns} align="start" gap="40px" />
         </FullWrapper>
       </PageWrapper>

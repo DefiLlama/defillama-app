@@ -1,8 +1,5 @@
 import React from 'react'
 import styled from 'styled-components'
-
-import TokenList from 'components/TokenList'
-import Panel from 'components/Panel'
 import { PageWrapper, FullWrapper } from 'components'
 import { AutoRow, RowBetween, RowFlat } from 'components/Row'
 import Search from 'components/Search'

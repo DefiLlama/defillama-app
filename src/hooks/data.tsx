@@ -45,7 +45,7 @@ interface GroupChain extends IChain {
 }
 
 // PROTOCOLS
-export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn) => {
+export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn: string, dir: 'asc') => {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
   const protocolTotals = useMemo(() => {
@@ -94,9 +94,13 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
     if (defaultSortingColumn === undefined) {
       return updatedProtocols.sort((a, b) => b.tvl - a.tvl)
     } else {
-      return updatedProtocols
+      return updatedProtocols.sort((a, b) => {
+        if (dir === 'asc') {
+          return a[defaultSortingColumn] - b[defaultSortingColumn]
+        } else return b[defaultSortingColumn] - a[defaultSortingColumn]
+      })
     }
-  }, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn])
+  }, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn, dir])
 
   return protocolTotals
 }

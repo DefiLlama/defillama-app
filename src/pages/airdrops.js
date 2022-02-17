@@ -1,6 +1,7 @@
 import { FullWrapper, PageWrapper } from 'components'
 import PageHeader from 'components/PageHeader'
 import Table, { columnsToShow } from 'components/Table'
+import { useCalcStakePool2Tvl } from 'hooks/data'
 import { GeneralLayout } from '../layout'
 import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
 
@@ -32,12 +33,13 @@ export async function getStaticProps() {
 const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl')
 
 export default function Protocols({ protocols }) {
+  const data = useCalcStakePool2Tvl(protocols)
   return (
     <GeneralLayout title={`Airdroppable protocols - Defi Llama`} defaultSEO>
       <PageWrapper>
         <FullWrapper>
           <PageHeader title="Tokenless protocols that may airdrop 🧑‍🌾" />
-          <Table data={protocols} columns={columns} />
+          <Table data={data} columns={columns} />
         </FullWrapper>
       </PageWrapper>
     </GeneralLayout>
