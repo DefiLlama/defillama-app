@@ -7,6 +7,8 @@ import { revalidate } from '../utils/dataApi'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
 import { ChainDominanceChart } from 'components/Charts'
+import Search from 'components/Search'
+import { Header } from 'Theme'
 
 export async function getStaticProps() {
   const data = await fetch(LANGS_API).then(r=>r.json())
@@ -55,6 +57,8 @@ export default function Protocols({ langs, langsUnique, daySum }) {
     <GeneralLayout title={`Languages - DefiLlama`} defaultSEO>
       <PageWrapper>
       <FullWrapper>
+        <Search />
+        <Header>TVL breakdown by Smart Contract Language</Header>
         <Chart {...({langs, langsUnique})} />
         <ChainDominanceChart
             stackOffset="expand"

@@ -103,11 +103,22 @@ export const Desktop = styled.div`
   }
 `
 
-export const Entry = ({ url, name, history, Icon }) => (
+export const Entry = ({ url, name, history, Icon, newTag }) => (
   <BasicLink href={'/' + url}>
     <Option activeText={history.location.pathname === '/' + url ?? undefined}>
       <Icon size={20} style={{ marginRight: '.75rem' }} />
       {name}
+      {(newTag === true) &&
+        <span style={{
+          background: "#ebebeb",
+          padding: "3px",
+          marginLeft: "5px",
+          marginTop: "0px",
+          borderRadius: "4px",
+          color: "black",
+          fontSize: "11px",
+        }}>NEW</span>
+      }
     </Option>
   </BasicLink>
 )
