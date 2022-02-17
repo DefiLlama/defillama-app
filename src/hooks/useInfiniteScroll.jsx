@@ -18,11 +18,22 @@ export default function useInfiniteScroll({ list = [], numInView = 25 }) {
         setDisplayScrollToTopButton(false)
       }
     })
+
+    return () => {
+      window.removeEventListener('scroll', () => {
+        setDisplayScrollToTopButton(false)
+      })
+    }
   }, [])
 
   useEffect(() => {
     setHasMore(true)
     setDatalength(numInView)
+
+    return () => {
+      setHasMore(true)
+      setDatalength(25)
+    }
   }, [pathname, numInView])
 
   const handleScrollToTop = () => {
