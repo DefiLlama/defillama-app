@@ -429,7 +429,6 @@ export const getChainsPageData = async (category: string) => {
   }
 
   const chainsUnique: string[] = res.chains.filter((t: string) => {
-    if (t !== 'Syscoin') {
       const chainCategories = chainCoingeckoIds[t]?.categories ?? []
       if (category === 'All') {
         return true
@@ -438,7 +437,6 @@ export const getChainsPageData = async (category: string) => {
       } else {
         return chainCategories.includes(category)
       }
-    }
   })
 
   let chainsGroupbyParent = {}
