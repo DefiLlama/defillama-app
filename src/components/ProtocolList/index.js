@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { PageWrapper, FullWrapper } from 'components'
 import { AutoRow, RowBetween, RowFlat } from 'components/Row'
@@ -20,7 +20,6 @@ const ListOptions = styled(AutoRow)`
     font-size: 1rem;
   }
 `
-const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
 function AllTokensPage({
   title,
@@ -38,7 +37,17 @@ function AllTokensPage({
   }
   const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
 
-  const protocolTotals = useCalcStakePool2Tvl(filteredProtocols, defaultSortingColumn)
+  const protocols = useMemo(() => {
+    if (category === 'Lending') {
+      return filteredProtocols.map((p) => {
+        const bTvl = p.extraTvl?.borrowed?.tvl ?? null
+        const msizetvl = bTvl ? (bTvl + p.tvl) / p.tvl : null
+        return { ...p, msizetvl }
+      })
+    } else return filteredProtocols
+  }, [filteredProtocols, category])
+
+  const protocolTotals = useCalcStakePool2Tvl(protocols, defaultSortingColumn)
 
   if (!title) {
     title = `TVL Rankings`
@@ -46,6 +55,12 @@ function AllTokensPage({
       title = `${category} TVL Rankings`
     }
   }
+
+  const columns = useMemo(() => {
+    if (category === 'Lending') {
+      return columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl', 'msizetvl')
+    } else return columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
+  }, [category])
 
   return (
     <PageWrapper>

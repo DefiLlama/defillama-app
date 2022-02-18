@@ -221,6 +221,7 @@ interface IColumns {
   tvl: {}
   mcaptvl: {}
   listedAt: {}
+  msizetvl: {}
 }
 
 const allColumns: IColumns = {
@@ -262,6 +263,11 @@ const allColumns: IColumns = {
   mcaptvl: {
     header: 'Mcap/TVL',
     accessor: 'mcaptvl',
+    Cell: ({ value }) => <>{value && formattedNum(value)}</>,
+  },
+  msizetvl: {
+    header: 'Msize/TVL',
+    accessor: 'msizetvl',
     Cell: ({ value }) => <>{value && formattedNum(value)}</>,
   },
   listedAt: {
