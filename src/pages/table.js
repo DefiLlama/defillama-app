@@ -48,6 +48,12 @@ export async function getStaticProps() {
 }
 
 const TableWrapper = styled(FullWrapper)`
+  position: relative;
+
+  & > div {
+    padding: 0 !important;
+  }
+
   td,
   th {
     white-space: nowrap;
@@ -57,6 +63,17 @@ const TableWrapper = styled(FullWrapper)`
 
     &:last-child {
       border-right: none !important;
+    }
+
+    ${({ theme: { minLg } }) => minLg} {
+      &:first-child {
+        position: sticky;
+        left: 0;
+        background: ${({ theme }) => theme.bg1};
+        z-index: 1;
+        padding-left: 24px;
+        min-width: 200px;
+      }
     }
   }
 
