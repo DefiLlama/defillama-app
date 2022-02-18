@@ -100,6 +100,9 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     }
   }
 
+  const hour = (new Date()).getHours()
+  const isDegen = hour >=1 && hour<=6;
+
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
     const globalChart = chart.map((data) => {
       let sum = data[1]
@@ -284,16 +287,18 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             ))}
           </Panel>
         </BreakpointPanels>
-        <div style={{
-           marginTop: "0px",
-           marginBottom: '-34px'
-        }}>
-        <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} style={{
-            position:"relative",
-            minWidth: 'initial',
-            width: 'initial',
-          }} />
-        </div>
+        {isDegen && (
+          <div style={{
+            marginTop: "0px",
+            marginBottom: '-34px'
+          }}>
+            <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} style={{
+                position:"relative",
+                minWidth: 'initial',
+                width: 'initial',
+              }} />
+          </div>
+        )}
         </div>
 
         <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
