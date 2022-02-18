@@ -5,21 +5,24 @@ module.exports = {
       {
         source: '/home',
         destination: '/',
-        permanent: true
+        permanent: true,
       },
       {
         source: '/chain/Binance',
         destination: '/chain/BSC',
-        permanent: true
+        permanent: true,
       },
       {
         source: '/langs',
         destination: '/languages',
-        permanent: true
-      }
+        permanent: true,
+      },
     ]
   },
   images: {
-    domains: ['icons.llama.fi']
-  }
+    domains: ['icons.llama.fi'],
+  },
+  compiler: {
+    styledComponents: true,
+  },
 }
