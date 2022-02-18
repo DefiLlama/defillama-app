@@ -149,7 +149,9 @@ const Game = React.memo(props => {
             </div>
             <div id="main-frame-error" className="interstitial-wrapper">
                 <div id="main-content">
-                    <div className="icon icon-offline" alt=""></div>
+                    <div className="icon icon-offline" alt="" style={{
+                      display: "none"
+                    }}></div>
                 </div>
                 <div id="offline-resources">
                     <img id="offline-resources-1x" src="/game/default_100_percent/100-offline-sprite.png" />
