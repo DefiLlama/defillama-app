@@ -96,6 +96,10 @@ const HeaderButton = styled.button`
   padding: 0;
   font-size: inherit;
   font-weight: 500;
+
+  &:hover {
+    opacity: 0.6;
+  }
 `
 
 function splitArrayByFalsyValues(data, column) {
@@ -258,7 +262,7 @@ const allColumns: IColumns = {
   mcaptvl: {
     header: 'Mcap/TVL',
     accessor: 'mcaptvl',
-    Cell: ({ value }) => <>{formattedNum(value)}</>,
+    Cell: ({ value }) => <>{value && formattedNum(value)}</>,
   },
   listedAt: {
     header: 'Listed',
