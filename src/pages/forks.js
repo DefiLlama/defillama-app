@@ -2,8 +2,8 @@ import React, { useMemo } from 'react'
 import { getForkPageData, revalidate } from '../utils/dataApi'
 import { GeneralLayout } from '../layout'
 import Table, { Index } from 'components/Table'
-import { useCalcGroupExtraTvlsByDay } from 'hooks/data'
-import { getRandomColor, toK } from 'utils'
+import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
+import { formattedNum, getRandomColor, toK } from 'utils'
 import { FullWrapper, PageWrapper } from 'components'
 import { CustomLink } from 'components/Link'
 import styled from 'styled-components'
@@ -36,11 +36,13 @@ const ChartsWrapper = styled(Box)`
   }
 `
 
-const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
+const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens }) => {
   const tokenColors = useMemo(
     () => Object.fromEntries([...tokens, 'Others'].map((token) => [token, getRandomColor()])),
     [tokens]
   )
+
+  const forkedTokensData = useCalcStakePool2Tvl(parentTokens)
 
   const { data: stackedData, daySum } = useCalcGroupExtraTvlsByDay(chartData)
 
@@ -57,11 +59,14 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
     const tokenTvls = tvls.slice(0, 5).concat({ name: 'Others', value: otherTvl })
 
     const tokensList = tvls.map(({ name, value }) => {
-      return { name, forkedProtocols: tokensProtocols[name], tvl: value }
+      const tokenTvl = forkedTokensData.find((p) => p.name.toLowerCase() === name.toLowerCase())?.tvl ?? null
+      const ftot = tokenTvl ? (value / tokenTvl) * 100 : null
+
+      return { name, forkedProtocols: tokensProtocols[name], tvl: value, ftot: ftot }
     })
 
     return { tokenTvls, tokensList }
-  }, [stackedData, tokensProtocols])
+  }, [stackedData, tokensProtocols, forkedTokensData])
 
   const columns = useMemo(
     () => [
@@ -85,9 +90,12 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
       {
         header: 'TVL',
         accessor: 'tvl',
-        Cell: ({ value }) => {
-          return <span>{'$' + toK(value)}</span>
-        },
+        Cell: ({ value }) => <>{'$' + toK(value)}</>,
+      },
+      {
+        header: 'Forks TVL / Original TVL',
+        accessor: 'ftot',
+        Cell: ({ value }) => <>{value && value.toFixed(2) + '%'}</>,
       },
     ],
     []

@@ -124,7 +124,7 @@ const formatProtocolsData = ({
     protocol.change_1d = getPercentChange(protocol.tvl, protocol.tvlPrevDay)
     protocol.change_7d = getPercentChange(protocol.tvl, protocol.tvlPrevWeek)
     protocol.change_1m = getPercentChange(protocol.tvl, protocol.tvlPrevMonth)
-    protocol.mcaptvl = protocol.mcap && protocol.tvl && protocol.mcap / protocol.tvl
+    protocol.mcaptvl = protocol.mcap && protocol.tvl ? protocol.mcap / protocol.tvl : null
 
     Object.entries(protocol.chainTvls).forEach(([sectionName, sectionTvl]) => {
       if (chain) {
@@ -299,13 +299,15 @@ export async function getForkPageData(fork = null) {
       }
     }
 
-    const filteredProtocols = formatProtocolsData({ fork, protocols })
-
     let chartData = Object.entries(chart)
 
     const forksUnique = Object.entries(chartData[chartData.length - 1][1])
       .sort((a, b) => b[1].tvl - a[1].tvl)
       .map((fr) => fr[0])
+
+    const protocolsData = formatProtocolsData({ protocols })
+
+    let parentTokens = []
 
     if (fork) {
       let data = []
@@ -316,6 +318,14 @@ export async function getForkPageData(fork = null) {
         }
       })
       chartData = data
+      parentTokens = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase()) || null
+    } else {
+      forksUnique.forEach((fork) => {
+        const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
+        if (protocol) {
+          parentTokens.push(protocol)
+        }
+      })
     }
 
     const forksProtocols = {}
@@ -328,6 +338,8 @@ export async function getForkPageData(fork = null) {
       forksUnique.map((o: string) => ({ label: o, to: `/forks/${o}` }))
     )
 
+    const filteredProtocols = formatProtocolsData({ fork, protocols })
+
     return {
       props: {
         tokens: forksUnique,
@@ -336,6 +348,7 @@ export async function getForkPageData(fork = null) {
         tokensProtocols: forksProtocols,
         filteredProtocols,
         chartData,
+        parentTokens,
       },
     }
   } catch (e) {
