@@ -1,8 +1,5 @@
 import React from 'react'
 import styled from 'styled-components'
-
-import TokenList from 'components/TokenList'
-import Panel from 'components/Panel'
 import { PageWrapper, FullWrapper } from 'components'
 import { AutoRow, RowBetween, RowFlat } from 'components/Row'
 import Search from 'components/Search'
@@ -11,6 +8,7 @@ import Filters from 'components/Filters'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useLg } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
+import Table, { columnsToShow } from 'components/Table'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -22,6 +20,7 @@ const ListOptions = styled(AutoRow)`
     font-size: 1rem;
   }
 `
+const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
 function AllTokensPage({
   title,
@@ -30,7 +29,6 @@ function AllTokensPage({
   chains = [],
   filteredProtocols,
   showChainList = true,
-  columns,
   defaultSortingColumn,
 }) {
   const isLg = useLg()
@@ -65,14 +63,7 @@ function AllTokensPage({
             </RowBetween>
           </ListOptions>
         )}
-        <Panel style={{ marginTop: '6px' }}>
-          <TokenList
-            tokens={protocolTotals}
-            filters={[category, selectedChain]}
-            columns={columns}
-            defaultSortingColumn={defaultSortingColumn}
-          />
-        </Panel>
+        <Table data={protocolTotals} columns={columns} />
       </FullWrapper>
     </PageWrapper>
   )

@@ -2,7 +2,6 @@ import React, { createContext, useContext, useReducer, useMemo, useCallback, use
 import { timeframeOptions } from '../constants'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import getTokenList from '../utils/tokenLists'
 dayjs.extend(utc)
 
 const UPDATE = 'UPDATE'
@@ -31,28 +30,28 @@ function reducer(state, { type, payload }) {
       const { currency } = payload
       return {
         ...state,
-        [CURRENCY]: currency
+        [CURRENCY]: currency,
       }
     }
     case UPDATE_TIMEFRAME: {
       const { newTimeFrame } = payload
       return {
         ...state,
-        [TIME_KEY]: newTimeFrame
+        [TIME_KEY]: newTimeFrame,
       }
     }
     case UPDATE_SESSION_START: {
       const { timestamp } = payload
       return {
         ...state,
-        [SESSION_START]: timestamp
+        [SESSION_START]: timestamp,
       }
     }
     case UPDATE_WEB3: {
       const { web3 } = payload
       return {
         ...state,
-        [WEB3]: web3
+        [WEB3]: web3,
       }
     }
 
@@ -60,7 +59,7 @@ function reducer(state, { type, payload }) {
       const { block } = payload
       return {
         ...state,
-        [LATEST_BLOCK]: block
+        [LATEST_BLOCK]: block,
       }
     }
 
@@ -68,7 +67,7 @@ function reducer(state, { type, payload }) {
       const { supportedTokens } = payload
       return {
         ...state,
-        [SUPPORTED_TOKENS]: supportedTokens
+        [SUPPORTED_TOKENS]: supportedTokens,
       }
     }
 
@@ -80,65 +79,62 @@ function reducer(state, { type, payload }) {
 
 const INITIAL_STATE = {
   CURRENCY: 'USD',
-  TIME_KEY: timeframeOptions.ALL_TIME
+  TIME_KEY: timeframeOptions.ALL_TIME,
 }
 
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE)
-  const update = useCallback(currency => {
+  const update = useCallback((currency) => {
     dispatch({
       type: UPDATE,
       payload: {
-        currency
-      }
+        currency,
+      },
     })
   }, [])
 
   // global time window for charts - see timeframe options in constants
-  const updateTimeframe = useCallback(newTimeFrame => {
+  const updateTimeframe = useCallback((newTimeFrame) => {
     dispatch({
       type: UPDATE_TIMEFRAME,
       payload: {
-        newTimeFrame
-      }
+        newTimeFrame,
+      },
     })
   }, [])
 
   // used for refresh button
-  const updateSessionStart = useCallback(timestamp => {
+  const updateSessionStart = useCallback((timestamp) => {
     dispatch({
       type: UPDATE_SESSION_START,
       payload: {
-        timestamp
-      }
+        timestamp,
+      },
     })
   }, [])
 
-  const updateSupportedTokens = useCallback(supportedTokens => {
+  const updateSupportedTokens = useCallback((supportedTokens) => {
     dispatch({
       type: UPDATED_SUPPORTED_TOKENS,
       payload: {
-        supportedTokens
-      }
+        supportedTokens,
+      },
     })
   }, [])
 
-  const updateLatestBlock = useCallback(block => {
+  const updateLatestBlock = useCallback((block) => {
     dispatch({
       type: UPDATE_LATEST_BLOCK,
       payload: {
-        block
-      }
+        block,
+      },
     })
   }, [])
 
   return (
     <ApplicationContext.Provider
       value={useMemo(
-        () => [
-          state,
-          { update, updateSessionStart, updateTimeframe, updateSupportedTokens, updateLatestBlock }
-        ],
+        () => [state, { update, updateSessionStart, updateTimeframe, updateSupportedTokens, updateLatestBlock }],
         [state, update, updateTimeframe, updateSessionStart, updateSupportedTokens, updateLatestBlock]
       )}
     >
@@ -189,10 +185,10 @@ export function useTimeframe() {
   return [activeTimeframe, updateTimeframe]
 }
 
-export function useStartTimestamp() { }
+export function useStartTimestamp() {}
 
 // keep track of session length for refresh ticker
-export function useSessionStart() { }
+export function useSessionStart() {}
 
 export function useListedTokens() {
   const [state, { updateSupportedTokens }] = useApplicationContext()

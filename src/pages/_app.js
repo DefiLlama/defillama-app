@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import * as Fathom from 'fathom-client'
+import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from '../contexts/LocalStorage'
 
 function App({ Component, pageProps }) {
   const router = useRouter()
@@ -23,7 +24,12 @@ function App({ Component, pageProps }) {
     }
   }, [router.events])
 
-  return <Component {...pageProps} />
+  return (
+    <LocalStorageContextProvider>
+      <LocalStorageContextUpdater />
+      <Component {...pageProps} />
+    </LocalStorageContextProvider>
+  )
 }
 
 export default App
