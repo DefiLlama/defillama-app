@@ -4,8 +4,7 @@ import styled from 'styled-components'
 import { transparentize } from 'polished'
 
 import { AutoRow, RowBetween, RowFlat, RowFixed } from '../Row'
-import Column, { AutoColumn } from '../Column'
-import TokenList from '../TokenList'
+import { AutoColumn } from '../Column'
 import Search from '../Search'
 import Panel from '../Panel'
 import { PageWrapper, ContentWrapper } from '..'
@@ -27,6 +26,7 @@ import { useRouter } from 'next/router'
 import LocalLoader from 'components/LocalLoader'
 import llamaLogo from "../../assets/peeking-llama.png"
 import Image from 'next/image'
+import Table, { columnsToShow } from 'components/Table'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -76,6 +76,8 @@ const Game = dynamic(() => import('game'))
 const BASIC_DENOMINATIONS = ['USD']
 
 const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
+
+const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
 function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart, extraVolumesCharts = {} }) {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
@@ -312,9 +314,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             </FiltersRow>
           </RowBetween>
         </ListOptions>
-        <Panel style={{ marginTop: '6px' }}>
-          <TokenList tokens={protocolTotals} filters={[selectedChain]} />
-        </Panel>
+        <Table data={protocolTotals} columns={columns} />
       </ContentWrapper>
     </PageWrapper>
   )

@@ -7,6 +7,7 @@ interface IProtocol {
   tvlPrevDay: number | null
   tvlPrevWeek: number | null
   tvlPrevMonth: number | null
+  mcap: number | null
   extraTvl: {
     [key: string]: {
       tvl: number | null
@@ -44,7 +45,7 @@ interface GroupChain extends IChain {
 }
 
 // PROTOCOLS
-export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn) => {
+export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn: string, dir: 'asc') => {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
   const protocolTotals = useMemo(() => {
@@ -53,7 +54,7 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
     }
 
     const updatedProtocols = filteredProtocols.map(
-      ({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, ...props }) => {
+      ({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, ...props }) => {
         let finalTvl: number | null = tvl
         let finalTvlPrevDay: number | null = tvlPrevDay
         let finalTvlPrevWeek: number | null = tvlPrevWeek
@@ -75,6 +76,8 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
         let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
         let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
+        const mcaptvl = mcap && finalTvl && mcap / finalTvl
+
         return {
           ...props,
           tvl: finalTvl,
@@ -84,15 +87,20 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
           change_1d: change1d,
           change_7d: change7d,
           change_1m: change1m,
+          mcaptvl,
         }
       }
     )
     if (defaultSortingColumn === undefined) {
       return updatedProtocols.sort((a, b) => b.tvl - a.tvl)
     } else {
-      return updatedProtocols
+      return updatedProtocols.sort((a, b) => {
+        if (dir === 'asc') {
+          return a[defaultSortingColumn] - b[defaultSortingColumn]
+        } else return b[defaultSortingColumn] - a[defaultSortingColumn]
+      })
     }
-  }, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn])
+  }, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn, dir])
 
   return protocolTotals
 }

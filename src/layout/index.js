@@ -5,7 +5,6 @@ import Row, { RowFixed } from 'components/Row'
 import Title from 'components/Title'
 import PinnedData from '../components/PinnedData'
 import SideNav from '../components/SideNav'
-import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from '../contexts/LocalStorage'
 import Head from 'next/head'
 import ThemeProvider, { GlobalStyle, TYPE } from '../Theme'
 import SEO from 'components/SEO'
@@ -65,15 +64,13 @@ export function GeneralLayout({ title, children, defaultSEO = false }) {
         ></link>
       </Head>
       {defaultSEO && <SEO />}
-      <LocalStorageContextProvider>
-        <LocalStorageContextUpdater />
-        <ThemeProvider>
-          <GlobalStyle />
-          <AppWrapper>
-            <LayoutWrapper>{children}</LayoutWrapper>
-          </AppWrapper>
-        </ThemeProvider>
-      </LocalStorageContextProvider>
+
+      <ThemeProvider>
+        <GlobalStyle />
+        <AppWrapper>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </AppWrapper>
+      </ThemeProvider>
     </>
   )
 }
@@ -91,25 +88,23 @@ export function VisualisationLayout({ title, children }) {
           crossOrigin="anonymous"
         ></link>
       </Head>
-      <LocalStorageContextProvider>
-        <LocalStorageContextUpdater />
-        <ThemeProvider>
-          <GlobalStyle />
-          <AppWrapper>
-            <Center>
-              <Row>
-                <Link href="/">
-                  <RowFixed style={{ padding: '1rem', gap: '1rem' }}>
-                    <TYPE.main> Return to</TYPE.main>
-                    <Title />
-                  </RowFixed>
-                </Link>
-              </Row>
-              {children}
-            </Center>
-          </AppWrapper>
-        </ThemeProvider>
-      </LocalStorageContextProvider>
+
+      <ThemeProvider>
+        <GlobalStyle />
+        <AppWrapper>
+          <Center>
+            <Row>
+              <Link href="/">
+                <RowFixed style={{ padding: '1rem', gap: '1rem' }}>
+                  <TYPE.main> Return to</TYPE.main>
+                  <Title />
+                </RowFixed>
+              </Link>
+            </Row>
+            {children}
+          </Center>
+        </AppWrapper>
+      </ThemeProvider>
     </>
   )
 }
