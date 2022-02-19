@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
 import { BasicLink } from 'components/Link'
@@ -6,17 +6,15 @@ import { BasicLink } from 'components/Link'
 import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from 'components/Column'
 import DropdownSelect from 'components/DropdownSelect'
-import LocalLoader from 'components/LocalLoader'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 
 import { timeframeOptions } from 'constants/index'
 import { useDarkModeManager } from 'contexts/LocalStorage'
-import { useMed } from 'hooks'
+import { useMed, useXl, useLg } from 'hooks'
 import {
   getTimeframe,
 } from 'utils'
-import { GeneralAreaChart, GeneralBarChart } from './charts'
-import { getAspectRatio } from './aspect'
+import { GeneralAreaChart } from './charts'
 
 const ChartWrapper = styled.div`
   height: 100%;
@@ -26,13 +24,6 @@ const ChartWrapper = styled.div`
     min-height: 200px;
   }
 `
-
-const CHART_VIEW = {
-  VOLUME: 'Volume',
-  LIQUIDITY: 'Liquidity',
-  PRICE: 'Price',
-  LINE_PRICE: 'Price (Line)',
-}
 
 const BASIC_DENOMINATIONS = {
   USD: 'USD',
@@ -44,7 +35,7 @@ const ALL_CHAINS = 'All Chains'
 const TokenChart = ({
   small = false,
   color,
-  data,
+  data: chartData,
   tokens,
   chainsList,
   tokensUnique,
@@ -95,8 +86,6 @@ const TokenChart = ({
     return splitLocation.join('/')
   }
 
-  let chartData = data
-
   const [timeWindow, setTimeWindow] = useState(timeframeOptions.ALL_TIME)
 
   let utcStartTime = 0
@@ -107,7 +96,9 @@ const TokenChart = ({
   }
 
   const belowMed = useMed()
-  const aspect = getAspectRatio()
+  const belowXl = useXl()
+  const belowLg = useLg()
+  const aspect = belowXl ? (!belowLg ? 60 / 42 : 60 / 22) : 60 / 22
 
   const finalChartData = useMemo(() => {
     if (denomination === DENOMINATIONS.ETH || denomination === chainDenomination?.symbol) {

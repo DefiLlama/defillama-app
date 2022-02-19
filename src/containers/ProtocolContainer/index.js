@@ -20,12 +20,11 @@ import { AllTvlOptions } from 'components/SettingsModal'
 import TokenLogo from 'components/TokenLogo'
 
 import { useCalcSingleExtraTvl } from '../../hooks/data'
-import { useScrollToTop, useProtocolColor } from 'hooks'
+import { useScrollToTop, useProtocolColor, useXl, useLg } from 'hooks'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
 import { GeneralAreaChart, GeneralBarChart } from 'components/TokenChart/charts'
-import { getAspectRatio } from 'components/TokenChart/aspect'
 import {
   toNiceDate,
   toNiceMonthlyDate,
@@ -186,7 +185,9 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
 
   const tvlByChain = Object.entries(chainTvls || {})
 
-  const aspect = getAspectRatio()
+  const belowXl = useXl()
+  const belowLg = useLg()
+  const aspect = belowXl ? (!belowLg ? 60 / 42 : 60 / 22) : 60 / 22
   const formatDate = (date) => {
     if (isHourlyChart) {
       return chartData?.length > 24 ? toNiceDayAndHour(date) : toNiceHour(date)
