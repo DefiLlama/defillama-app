@@ -7,6 +7,7 @@ import TokenLogo from 'components/TokenLogo'
 import { chainIconUrl } from 'utils'
 import { useMemo } from 'react'
 import styled from 'styled-components'
+import { TYPE } from 'Theme'
 
 export async function getStaticProps() {
   const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
@@ -50,13 +51,12 @@ const TableWrapper = styled(FullWrapper)`
 
   & > div {
     padding: 0 !important;
-    height: 85vh;
   }
 
   td,
   th {
     white-space: nowrap;
-    padding-right: 16px !important;
+    padding: 12px !important;
     border-right: 1px solid;
     border-color: ${({ theme }) => theme.divider};
 
@@ -70,7 +70,7 @@ const TableWrapper = styled(FullWrapper)`
         left: 0;
         background: ${({ theme }) => theme.bg1};
         z-index: 1;
-        padding-left: 24px;
+
         min-width: 200px;
       }
     }
@@ -105,9 +105,10 @@ export default function Chains({ data, columns }) {
 
   return (
     <GeneralLayout title={`TVL Rankings - DefiLlama`} defaultSEO>
-      <PageWrapper>
+      <PageWrapper style={{ paddingBottom: '0 !important' }}>
         <TableWrapper>
-          <FullTable data={data} columns={allColumns} align="start" gap="12px" />
+          <TYPE.largeHeader>Top Protocols</TYPE.largeHeader>
+          <FullTable data={data} columns={allColumns} align="start" gap="12px" style={{ height: '85vh' }} />
         </TableWrapper>
       </PageWrapper>
     </GeneralLayout>
