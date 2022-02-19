@@ -387,20 +387,6 @@ export const getProtocol = async (protocolName: string) => {
   }
 }
 
-export const fuseProtocolData = (protocolData, protocol) => {
-  const historicalChainTvls = protocolData?.chainTvls ?? {}
-  const chainTvls = protocolData.currentChainTvls ?? {}
-  const tvl = protocolData?.tvl ?? []
-
-  return {
-    ...protocolData,
-    tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
-    tvlList: tvl.filter((item) => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
-    historicalChainTvls,
-    chainTvls,
-  }
-}
-
 export const getChainsPageData = async (category: string) => {
   const [res, { chainCoingeckoIds }] = await Promise.all(
     [PROTOCOLS_API, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
@@ -429,14 +415,14 @@ export const getChainsPageData = async (category: string) => {
   }
 
   const chainsUnique: string[] = res.chains.filter((t: string) => {
-      const chainCategories = chainCoingeckoIds[t]?.categories ?? []
-      if (category === 'All') {
-        return true
-      } else if (category === 'Non-EVM') {
-        return !chainCategories.includes('EVM')
-      } else {
-        return chainCategories.includes(category)
-      }
+    const chainCategories = chainCoingeckoIds[t]?.categories ?? []
+    if (category === 'All') {
+      return true
+    } else if (category === 'Non-EVM') {
+      return !chainCategories.includes('EVM')
+    } else {
+      return chainCategories.includes(category)
+    }
   })
 
   let chainsGroupbyParent = {}
@@ -455,7 +441,7 @@ export const getChainsPageData = async (category: string) => {
       for (let i = 0; i < 5; i++) {
         try {
           return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-        } catch (e) {}
+        } catch (e) { }
       }
       throw new Error(`${CHART_API}/${elem} is broken`)
     })

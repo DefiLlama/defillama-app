@@ -4,25 +4,24 @@ import Panel from 'components/Panel'
 import { LANGS_API } from '../constants'
 import { toNiceMonthlyDate, getRandomColor } from '../utils'
 import { revalidate } from '../utils/dataApi'
-import { useDarkModeManager } from 'contexts/LocalStorage'
-import { GeneralAreaChart } from 'components/TokenChart'
+import { GeneralAreaChart } from 'components/TokenChart/charts'
 import { ChainDominanceChart } from 'components/Charts'
 import Search from 'components/Search'
 import { Header } from 'Theme'
 
 export async function getStaticProps() {
-  const data = await fetch(LANGS_API).then(r=>r.json())
+  const data = await fetch(LANGS_API).then(r => r.json())
   const langs = data.chart
   const langsUnique = new Set()
   const daySum = {}
-  const formattedLangs = Object.entries(langs).map(lang=>{
-    Object.keys(lang[1]).map(l=>langsUnique.add(l))
-    daySum[lang[0]]=Object.values(lang[1]).reduce((t,a)=>t+a)
+  const formattedLangs = Object.entries(langs).map(lang => {
+    Object.keys(lang[1]).map(l => langsUnique.add(l))
+    daySum[lang[0]] = Object.values(lang[1]).reduce((t, a) => t + a)
     return {
       ...lang[1],
       date: lang[0],
     }
-  }).sort((a,b)=>a.date-b.date);
+  }).sort((a, b) => a.date - b.date);
 
   return {
     props: {
@@ -34,40 +33,37 @@ export async function getStaticProps() {
   }
 }
 
-function Chart({langs, langsUnique}){
-  const [darkMode] = useDarkModeManager()
-  const textColor = darkMode ? 'white' : 'black'
+function Chart({ langs, langsUnique }) {
   return <Panel style={{ marginTop: '6px' }} sx={{ padding: ['1rem 0 0 0', '1.25rem'] }}>
-  <GeneralAreaChart 
-      aspect={60 / 22} 
-      finalChartData={langs} 
+    <GeneralAreaChart
+      aspect={60 / 22}
+      finalChartData={langs}
       tokensUnique={langsUnique}
-      textColor={textColor} 
       color={"blue"}
       moneySymbol="$"
       formatDate={toNiceMonthlyDate}
       hallmarks={[]} />
-</Panel>
+  </Panel>
 }
 
 export default function Protocols({ langs, langsUnique, daySum }) {
   const colors = {}
-  langsUnique.forEach(l=>{colors[l]=getRandomColor()})
+  langsUnique.forEach(l => { colors[l] = getRandomColor() })
   return (
     <GeneralLayout title={`Languages - DefiLlama`} defaultSEO>
       <PageWrapper>
-      <FullWrapper>
-        <Search />
-        <Header>TVL breakdown by Smart Contract Language</Header>
-        <Chart {...({langs, langsUnique})} />
-        <ChainDominanceChart
+        <FullWrapper>
+          <Search />
+          <Header>TVL breakdown by Smart Contract Language</Header>
+          <Chart {...({ langs, langsUnique })} />
+          <ChainDominanceChart
             stackOffset="expand"
             formatPercent={true}
             stackedDataset={langs}
             chainsUnique={langsUnique}
             chainColor={colors}
             daySum={daySum} />
-      </FullWrapper>
+        </FullWrapper>
       </PageWrapper>
     </GeneralLayout>
   )

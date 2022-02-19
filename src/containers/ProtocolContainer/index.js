@@ -24,6 +24,14 @@ import { useScrollToTop, useProtocolColor } from 'hooks'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
+import { GeneralAreaChart, GeneralBarChart } from 'components/TokenChart/charts'
+import { getAspectRatio } from 'components/TokenChart/aspect'
+import {
+  toNiceDate,
+  toNiceMonthlyDate,
+  toNiceHour,
+  toNiceDayAndHour,
+} from 'utils'
 
 const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
 
@@ -120,6 +128,23 @@ function ToggleAlert({ chainTvls }) {
   )
 }
 
+function SectionPanel({ children, topMargin = true, title }) {
+  return <>
+    <RowBetween style={topMargin ? { marginTop: '3rem' } : {}}>
+      <TYPE.main fontSize={'1.125rem'}>{title}</TYPE.main>{' '}
+    </RowBetween>
+    <Panel
+      rounded
+      style={{
+        marginTop: '1.5rem',
+      }}
+      p={20}
+    >
+      {children}
+    </Panel>
+  </>
+}
+
 function ProtocolContainer({ protocolData, protocol, denomination, selectedChain }) {
   useScrollToTop()
 
@@ -130,22 +155,25 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
     url,
     description,
     tvl,
-    priceUSD,
-    misrepresentedTokens,
     logo,
     audits,
     category,
     tvlList: chartData,
-    tokensInUsd,
-    tokens,
     twitter,
-    chains,
-    chainTvls = {},
-    historicalChainTvls,
+    currentChainTvls: chainTvls = {},
+    chainTvls: historicalChainTvls,
     audit_links,
     methodology,
     module: codeModule,
     isHourlyChart,
+    chainsStacked,
+    chainsList,
+    chains,
+    tokenBreakdown,
+    tokensUnique,
+    usdInflows,
+    tokenInflows,
+    ...protocolParams,
   } = protocolData
   const backgroundColor = useProtocolColor({ protocol, logo, transparent: false })
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
@@ -157,6 +185,15 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
   const hasToken = address !== null && address !== '-'
 
   const tvlByChain = Object.entries(chainTvls || {})
+
+  const aspect = getAspectRatio()
+  const formatDate = (date) => {
+    if (isHourlyChart) {
+      return chartData?.length > 24 ? toNiceDayAndHour(date) : toNiceHour(date)
+    } else {
+      return chartData?.length > 120 ? toNiceMonthlyDate(date) : toNiceDate(date)
+    }
+  }
 
   return (
     <PageWrapper>
@@ -264,34 +301,62 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 <ProtocolChart
                   denomination={denomination}
                   chartData={chartData}
-                  misrepresentedTokens={misrepresentedTokens}
                   protocol={name}
                   address={address}
                   color={backgroundColor}
-                  tokens={tokens}
-                  tokensInUsd={tokensInUsd}
-                  base={priceUSD}
                   selectedChain={selectedChain}
                   chainTvls={historicalChainTvls}
-                  chains={chains}
                   protocolData={protocolData}
-                  isHourlyChart={isHourlyChart}
+                  formatDate={formatDate}
+                  chainsList={chainsList}
+                  tokensUnique={tokensUnique}
+                  {...protocolParams}
                 />
               </Panel>
             </PanelWrapper>
           </>
 
           <>
-            <RowBetween>
-              <TYPE.main fontSize={'1.125rem'}>Protocol Information</TYPE.main>{' '}
-            </RowBetween>
-            <Panel
-              rounded
-              style={{
-                marginTop: '1.5rem',
-              }}
-              p={20}
-            >
+            <SectionPanel title="Charts" topMargin={false}>
+              <AutoRow>
+                <GeneralAreaChart finalChartData={chainsStacked} aspect={aspect} formatDate={formatDate} color={backgroundColor}
+                  tokensUnique={chains}
+                />
+                {tokenBreakdown && <GeneralAreaChart finalChartData={tokenBreakdown} aspect={aspect} formatDate={formatDate} color={backgroundColor}
+                  tokensUnique={tokensUnique}
+                />}
+              </AutoRow>
+              {usdInflows && <AutoRow>
+                <GeneralBarChart finalChartData={usdInflows} aspect={aspect} formatDate={formatDate} color={backgroundColor}
+                  tokensUnique={[]}
+                />
+                <GeneralBarChart finalChartData={tokenInflows} aspect={aspect} formatDate={formatDate} color={backgroundColor}
+                  tokensUnique={tokensUnique}
+                />
+              </AutoRow>}
+            </SectionPanel>
+            <SectionPanel title="Methodology">
+              {methodology && (
+                <TokenDetailsLayout style={{ marginBottom: '1em' }}>
+                  <TYPE.main style={{ textAlign: 'justify', wordBreak: 'break-word' }} fontSize={15} fontWeight="500">
+                    {methodology}
+                  </TYPE.main>
+                </TokenDetailsLayout>
+              )}
+              <RowFixed>
+                <Link
+                  color={backgroundColor}
+                  external
+                  href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
+                >
+                  <ButtonLight useTextColor={true} color={backgroundColor}>
+                    Check the code ↗
+                  </ButtonLight>
+                </Link>
+              </RowFixed>
+            </SectionPanel>
+
+            <SectionPanel title="Protocol Information">
               <TokenDetailsLayout>
                 {typeof category === 'string' && (
                   <Column>
@@ -325,51 +390,10 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   </Link>
                 </RowFixed>
               </TokenDetailsLayout>
-            </Panel>
-
-            <RowBetween style={{ marginTop: '3rem' }}>
-              <TYPE.main fontSize={'1.125rem'}>Methodology</TYPE.main>{' '}
-            </RowBetween>
-            <Panel
-              rounded
-              style={{
-                marginTop: '1.5rem',
-              }}
-              p={20}
-            >
-              {methodology && (
-                <TokenDetailsLayout style={{ marginBottom: '1em' }}>
-                  <TYPE.main style={{ textAlign: 'justify', wordBreak: 'break-word' }} fontSize={15} fontWeight="500">
-                    {methodology}
-                  </TYPE.main>
-                </TokenDetailsLayout>
-              )}
-              <RowFixed>
-                <Link
-                  color={backgroundColor}
-                  external
-                  href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
-                >
-                  <ButtonLight useTextColor={true} color={backgroundColor}>
-                    Check the code ↗
-                  </ButtonLight>
-                </Link>
-              </RowFixed>
-            </Panel>
+            </SectionPanel>
 
             {hasToken && (
-              <RowBetween style={{ marginTop: '3rem' }}>
-                <TYPE.main fontSize={'1.125rem'}>Token Information</TYPE.main>{' '}
-              </RowBetween>
-            )}
-            {hasToken && (
-              <Panel
-                rounded
-                style={{
-                  marginTop: '1.5rem',
-                }}
-                p={20}
-              >
+              <SectionPanel title="Token Information">
                 <TokenDetailsLayout>
                   <Column>
                     <TYPE.main>Symbol</TYPE.main>
@@ -414,7 +438,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                     )}
                   </RowFixed>
                 </TokenDetailsLayout>
-              </Panel>
+              </SectionPanel>
             )}
           </>
         </DashboardWrapper>

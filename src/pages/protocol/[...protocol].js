@@ -2,7 +2,8 @@ import { GeneralLayout } from 'layout'
 import ProtocolContainer from 'containers/ProtocolContainer'
 
 import { standardizeProtocolName } from 'utils'
-import { getProtocols, getProtocol, fuseProtocolData, revalidate } from 'utils/dataApi'
+import { getProtocols, getProtocol, revalidate } from 'utils/dataApi'
+import { buildProtocolData } from 'utils/protocolData'
 
 export async function getStaticProps({
   params: {
@@ -16,7 +17,7 @@ export async function getStaticProps({
       notFound: true,
     }
   }
-  const protocolData = fuseProtocolData(protocolRes, protocol)
+  const protocolData = await buildProtocolData(protocolRes, selectedChain, denomination)
 
   return {
     props: {
