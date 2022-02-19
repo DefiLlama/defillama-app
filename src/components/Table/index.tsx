@@ -192,6 +192,74 @@ function Table({ columns = [], data = [], align, gap, ...props }) {
   )
 }
 
+export function FullTable({ columns = [], data = [], align, gap, ...props }) {
+  const [columnToSort, setColumnToSort] = useState<string | null>(null)
+  const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
+
+  const handleClick = (name: string) => {
+    if (sortDirection === 0 || name !== columnToSort) {
+      setColumnToSort(name)
+      setDirection(1)
+    } else if (sortDirection === 1) {
+      setDirection(-1)
+    } else {
+      setDirection(1)
+    }
+  }
+
+  const sortedData = useMemo(() => {
+    if (sortDirection && columnToSort) {
+      const values = splitArrayByFalsyValues(data, columnToSort)
+      if (sortDirection === 1) {
+        return orderBy(values[0], [columnToSort], ['desc']).concat(values[1])
+      } else return orderBy(values[0], [columnToSort], ['asc']).concat(values[1])
+    } else return data
+  }, [data, sortDirection, columnToSort])
+
+  return (
+    <Wrapper style={{ '--text-align': align || 'end', '--gap': gap || '24px' }} {...props}>
+      <TableWrapper>
+        <thead>
+          <Row>
+            {columns.map((col) => {
+              const text = col.helperText ? <HeadHelp title={col.header} text={col.helperText} /> : col.header
+              const disableSortBy = col.disableSortBy || false
+              const sortingColumn = columnToSort === col.accessor && sortDirection !== 0
+              return (
+                <Header key={uuid()}>
+                  {!disableSortBy ? (
+                    <SortedHeader>
+                      <HeaderButton onClick={() => handleClick(col.accessor)}>{text}</HeaderButton>{' '}
+                      {sortingColumn && (sortDirection === -1 ? <ArrowUp /> : <ArrowDown />)}
+                    </SortedHeader>
+                  ) : (
+                    text
+                  )}
+                </Header>
+              )
+            })}
+          </Row>
+        </thead>
+        <tbody>
+          {sortedData.map((item, index) => (
+            <Row key={uuid()}>
+              {columns.map((col) => (
+                <Cell key={uuid()}>
+                  {col.Cell ? (
+                    <col.Cell value={item[col.accessor]} rowValues={item} rowIndex={index} />
+                  ) : (
+                    item[col.accessor]
+                  )}
+                </Cell>
+              ))}
+            </Row>
+          ))}
+        </tbody>
+      </TableWrapper>
+    </Wrapper>
+  )
+}
+
 interface ProtocolNameProps {
   value: string
   symbol?: string

@@ -2,13 +2,11 @@ import { GeneralLayout } from '../layout'
 import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
 import { CustomLink } from 'components/Link'
 import { PageWrapper, FullWrapper } from 'components'
-import Table, { Index } from 'components/Table'
+import { FullTable, Index } from 'components/Table'
 import TokenLogo from 'components/TokenLogo'
 import { chainIconUrl } from 'utils'
 import { useMemo } from 'react'
 import styled from 'styled-components'
-
-const categories = ['Dexes', 'Lending', 'Yield', 'Staking', 'Minting', 'Options', 'Derivatives'] // bridge, stablecoins, nft exchange
 
 export async function getStaticProps() {
   const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
@@ -52,6 +50,7 @@ const TableWrapper = styled(FullWrapper)`
 
   & > div {
     padding: 0 !important;
+    height: 85vh;
   }
 
   td,
@@ -108,7 +107,7 @@ export default function Chains({ data, columns }) {
     <GeneralLayout title={`TVL Rankings - DefiLlama`} defaultSEO>
       <PageWrapper>
         <TableWrapper>
-          <Table data={data} columns={allColumns} align="start" gap="12px" />
+          <FullTable data={data} columns={allColumns} align="start" gap="12px" />
         </TableWrapper>
       </PageWrapper>
     </GeneralLayout>
