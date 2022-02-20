@@ -118,7 +118,7 @@ export const buildProtocolData = async (protocolData, selectedChain, denominatio
     if (typeof denomination !== "string" || !denomination.startsWith("Tokens")) {
         data.tokens = null
     }
-    delete protocolData.tokensInUsd
+    delete data.tokensInUsd
 
     return data
 }
