@@ -82,7 +82,7 @@ export const buildProtocolData = async (protocolData, selectedChain, denominatio
     const chains = protocolData.chains ?? [protocolData.name]
     let chainDenomination = null;
     if (selectedChain !== 'all' || chains.length === 1) {
-        chainDenomination = chainCoingeckoIds[selectedChain] ?? chainCoingeckoIds[chains[0]]
+        chainDenomination = (chainCoingeckoIds[selectedChain] ?? chainCoingeckoIds[chains[0]]) ?? null
     }
     let denominationPrices = null;
     if (denomination === "ETH" || denomination === chainDenomination?.symbol) {
@@ -102,7 +102,7 @@ export const buildProtocolData = async (protocolData, selectedChain, denominatio
         chainDenomination,
         denominationPrices,
     }
-    if (protocolData.misrepresentedTokens !== true) {
+    if (protocolData.misrepresentedTokens !== true && tokensInUsd !== undefined) {
         const [tokenBreakdown, tokensUnique] = buildTokensBreakdown(tokensInUsd)
         const { usdInflows, tokenInflows } = buildInflows(tokensInUsd, tokens)
         data = {
