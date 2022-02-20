@@ -101,14 +101,18 @@ export const buildProtocolData = async (protocolData, selectedChain, denominatio
         ).then(r => r.json())).prices;
     }
     if (protocolData.misrepresentedTokens !== true && tokensInUsd !== undefined) {
-        const [tokenBreakdown, tokensUnique] = buildTokensBreakdown(tokensInUsd)
-        const { usdInflows, tokenInflows } = buildInflows(tokensInUsd, tokens)
-        data = {
-            ...data,
-            tokenBreakdown,
-            tokensUnique,
-            usdInflows,
-            tokenInflows,
+        try {
+            const [tokenBreakdown, tokensUnique] = buildTokensBreakdown(tokensInUsd)
+            const { usdInflows, tokenInflows } = buildInflows(tokensInUsd, tokens)
+            data = {
+                ...data,
+                tokenBreakdown,
+                tokensUnique,
+                usdInflows,
+                tokenInflows,
+            }
+        } catch (e) {
+            console.log("buildTokens", e)
         }
     }
     if (typeof denomination !== "string" || !denomination.startsWith("Tokens")) {
