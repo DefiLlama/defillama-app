@@ -84,13 +84,6 @@ export const buildProtocolData = async (protocolData, selectedChain, denominatio
     if (selectedChain !== 'all' || chains.length === 1) {
         chainDenomination = (chainCoingeckoIds[selectedChain] ?? chainCoingeckoIds[chains[0]]) ?? null
     }
-    let denominationPrices = null;
-    if (denomination === "ETH" || denomination === chainDenomination?.symbol) {
-        denominationPrices = (await fetch(
-            `https://api.coingecko.com/api/v3/coins/${denomination === ETH_DENOMINATION ? 'ethereum' : chainDenomination.geckoId
-            }/market_chart/range?vs_currency=usd&from=${chartData[0][0]}&to=${Math.floor(Date.now() / 1000)}`
-        ).then(r => r.json())).prices;
-    }
 
     let data = {
         ...protocolData,
@@ -100,7 +93,12 @@ export const buildProtocolData = async (protocolData, selectedChain, denominatio
         tokens,
         chainsList: Object.keys(chainTvls),
         chainDenomination,
-        denominationPrices,
+    }
+    if (denomination !== null && (denomination === "ETH" || denomination === chainDenomination?.symbol)) {
+        data.denominationPrices = (await fetch(
+            `https://api.coingecko.com/api/v3/coins/${denomination === ETH_DENOMINATION ? 'ethereum' : chainDenomination.geckoId
+            }/market_chart/range?vs_currency=usd&from=${chartData[0][0]}&to=${Math.floor(Date.now() / 1000)}`
+        ).then(r => r.json())).prices;
     }
     if (protocolData.misrepresentedTokens !== true && tokensInUsd !== undefined) {
         const [tokenBreakdown, tokensUnique] = buildTokensBreakdown(tokensInUsd)
@@ -116,6 +114,7 @@ export const buildProtocolData = async (protocolData, selectedChain, denominatio
     if (typeof denomination !== "string" || !denomination.startsWith("Tokens")) {
         data.tokens = null
     }
+    delete protocolData.tokensInUsd
 
     return data
 }
