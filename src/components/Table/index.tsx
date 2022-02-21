@@ -14,7 +14,7 @@ import orderBy from 'lodash.orderby'
 import ChainsRow from 'components/ChainsRow'
 
 const Wrapper = styled(Panel)`
-  padding-top: 6px;
+  padding: 6px 0;
   color: ${({ theme }) => theme.text1};
   overflow-x: auto;
 `
@@ -39,8 +39,16 @@ const Row = styled.tr`
   & > :first-child {
     white-space: nowrap;
     text-align: start;
-    padding-left: 6px;
+    padding-left: 20px;
   }
+
+  & > :last-child {
+    padding-right: 20px;
+  }
+`
+
+const PinnedRow = styled(Row)`
+  background: ${({ theme }) => theme.bg1};
 `
 
 const Cell = styled.td`
@@ -75,6 +83,7 @@ const SortedHeader = styled.div`
 export const Index = styled.div`
   display: flex;
   gap: 1em;
+  align-items: center;
 `
 
 const SaveButton = styled(Bookmark)`
@@ -114,7 +123,7 @@ function splitArrayByFalsyValues(data, column) {
   )
 }
 
-function Table({ columns = [], data = [], align, gap, ...props }) {
+function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }) {
   const [columnToSort, setColumnToSort] = useState<string | null>(null)
   const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
 
@@ -146,7 +155,7 @@ function Table({ columns = [], data = [], align, gap, ...props }) {
         dataLength={dataLength}
         next={next}
         hasMore={hasMore}
-        loader={hasMore && <span style={{ marginLeft: '8px' }}>...</span>}
+        loader={hasMore && <span style={{ marginLeft: '22px' }}>...</span>}
       >
         <TableWrapper>
           <thead>
@@ -171,6 +180,19 @@ function Table({ columns = [], data = [], align, gap, ...props }) {
             </Row>
           </thead>
           <tbody>
+            {pinnedRow && (
+              <PinnedRow key={uuid()}>
+                {columns.map((col) => (
+                  <Cell key={uuid()}>
+                    {col.Cell ? (
+                      <col.Cell value={pinnedRow[col.accessor]} rowValues={pinnedRow} pinnedRow />
+                    ) : (
+                      pinnedRow[col.accessor]
+                    )}
+                  </Cell>
+                ))}
+              </PinnedRow>
+            )}
             {sortedData.slice(0, dataLength).map((item, index) => (
               <Row key={uuid()}>
                 {columns.map((col) => (
@@ -265,14 +287,16 @@ interface ProtocolNameProps {
   symbol?: string
   index?: number
   bookmark?: boolean
+  pinnedRow?: boolean
 }
 
-export function ProtocolName({ value, symbol = '', index, bookmark }: ProtocolNameProps) {
+export function ProtocolName({ value, symbol = '', index, bookmark, pinnedRow, ...props }: ProtocolNameProps) {
   const name = symbol === '-' ? value : `${value} (${symbol})`
+
   return (
-    <Index>
-      {bookmark && <SaveButton readableProtocolName={value} />}
-      {index && <span>{index}</span>}
+    <Index {...props}>
+      {bookmark && <SaveButton readableProtocolName={value} style={{ paddingRight: pinnedRow ? '22px' : 0 }} />}
+      {!pinnedRow && index && <span>{index}</span>}
       <TokenLogo logo={tokenIconUrl(value)} />
       <CustomLink href={`/protocol/${slug(value)}`}>{name}</CustomLink>
     </Index>
@@ -297,8 +321,8 @@ const allColumns: IColumns = {
     header: 'Name',
     accessor: 'name',
     disableSortBy: true,
-    Cell: ({ value, rowValues, rowIndex }) => (
-      <ProtocolName value={value} symbol={rowValues.symbol} index={rowIndex + 1} bookmark />
+    Cell: ({ value, rowValues, rowIndex, pinnedRow }) => (
+      <ProtocolName value={value} symbol={rowValues.symbol} index={rowIndex + 1} bookmark pinnedRow={pinnedRow} />
     ),
   },
   chains: {

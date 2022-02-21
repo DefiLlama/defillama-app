@@ -318,7 +318,10 @@ export async function getForkPageData(fork = null) {
         }
       })
       chartData = data
-      parentTokens = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase()) || null
+      const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
+      if (protocol) {
+        parentTokens.push(protocol)
+      }
     } else {
       forksUnique.forEach((fork) => {
         const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
@@ -429,14 +432,14 @@ export const getChainsPageData = async (category: string) => {
   }
 
   const chainsUnique: string[] = res.chains.filter((t: string) => {
-      const chainCategories = chainCoingeckoIds[t]?.categories ?? []
-      if (category === 'All') {
-        return true
-      } else if (category === 'Non-EVM') {
-        return !chainCategories.includes('EVM')
-      } else {
-        return chainCategories.includes(category)
-      }
+    const chainCategories = chainCoingeckoIds[t]?.categories ?? []
+    if (category === 'All') {
+      return true
+    } else if (category === 'Non-EVM') {
+      return !chainCategories.includes('EVM')
+    } else {
+      return chainCategories.includes(category)
+    }
   })
 
   let chainsGroupbyParent = {}
