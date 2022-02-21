@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { getForkPageData, revalidate } from 'utils/dataApi'
 import { GeneralLayout } from 'layout'
-import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
+import { useCalcExtraTvlsByDay, useCalcSingleExtraTvl, useCalcStakePool2Tvl } from 'hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
 import Panel from 'components/Panel'
 import { AutoColumn } from 'components/Column'
@@ -44,8 +44,9 @@ export async function getStaticPaths() {
 
 const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
-const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
+const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {
   const protocolsData = useCalcStakePool2Tvl(filteredProtocols)
+  const parentForks = useCalcStakePool2Tvl(parentTokens)
 
   const finalChartData = useCalcExtraTvlsByDay(chartData)
 
@@ -133,7 +134,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
         </BreakpointPanels>
 
         <Filters filterOptions={tokenLinks} activeLabel={token} />
-        <Table columns={columns} data={protocolsData} />
+        <Table columns={columns} data={protocolsData} pinnedRow={parentForks[0]} />
       </FullWrapper>
     </PageWrapper>
   )
