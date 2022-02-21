@@ -22,7 +22,7 @@ const NavMenu = ({ isMobile }) => {
   const history = { location: { pathname: router.pathname } }
 
   return (
-    <AutoColumn gap="1.25rem" style={{ marginTop: '1rem' }}>
+    <AutoColumn gap="1.25rem">
       <Entry url="" name="Overview" history={history} Icon={TrendingUp} />
       <Entry url="chains" name="Chains" history={history} Icon={LinkLogo} />
       <Entry url="oracles" name="Oracles" history={history} Icon={Shield} newTag />
