@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useRouter } from 'next/router'
 import {
   TrendingUp,
@@ -8,19 +8,14 @@ import {
   Minimize2,
   Clock,
   Bookmark,
-  Award,
   RefreshCcw,
   Code,
   Shield,
   Share2,
 } from 'react-feather'
 
-import { Entry, MobileWrapper, Wrapper, Footer, ButtonWrapper, Desktop, Mobile } from './shared'
+import { Entry } from './shared'
 import { AutoColumn } from '../Column'
-import Title from '../Title'
-import SettingsMenuButton from '../SettingsModal'
-import NavMenuButton from './NavMenuButton'
-import { useDarkModeManager } from '../../contexts/LocalStorage'
 
 const NavMenu = ({ isMobile }) => {
   const router = useRouter()
@@ -28,7 +23,6 @@ const NavMenu = ({ isMobile }) => {
 
   return (
     <AutoColumn gap="1.25rem" style={{ marginTop: '1rem' }}>
-      <Entry url="nfts" name="NFTs" history={history} Icon={Award} />
       <Entry url="" name="Overview" history={history} Icon={TrendingUp} />
       <Entry url="chains" name="Chains" history={history} Icon={LinkLogo} />
       <Entry url="oracles" name="Oracles" history={history} Icon={Shield} newTag />
@@ -44,36 +38,4 @@ const NavMenu = ({ isMobile }) => {
   )
 }
 
-function SideNav() {
-  const [showMobileNavMenu, setShowMobileNavMenu] = useState(false)
-  const [isDark, toggleDarkMode] = useDarkModeManager()
-
-  return (
-    <>
-      <Wrapper>
-        <MobileWrapper>
-          <div>
-            <Title />
-            <Desktop>
-              <AutoColumn gap="1rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }}>
-                <NavMenu isMobile={false} />
-              </AutoColumn>
-            </Desktop>
-          </div>
-          <Desktop>
-            <Footer isDark={isDark} toggleDarkMode={toggleDarkMode} />
-          </Desktop>
-          <Mobile>
-            <ButtonWrapper>
-              <SettingsMenuButton />
-              <NavMenuButton setShow={setShowMobileNavMenu} show={showMobileNavMenu} />
-            </ButtonWrapper>
-          </Mobile>
-        </MobileWrapper>
-        <Mobile>{showMobileNavMenu && <NavMenu isMobile />}</Mobile>
-      </Wrapper>
-    </>
-  )
-}
-
-export default SideNav
+export default NavMenu
