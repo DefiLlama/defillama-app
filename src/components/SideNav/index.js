@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-
 import DefiSideNav from './DefiSideNav'
 import NFTSideNav from './NFTSideNav'
 import { useNFTApp } from '../../hooks'
@@ -11,12 +10,13 @@ import { AutoColumn } from '../Column'
 import Title from '../Title'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 
-const NavMenu = () => {
+const NavMenu = ({ isMobile }) => {
   const isNFTApp = useNFTApp()
+
   return (
     <>
-      <AppSwitch />
-      {isNFTApp ? <NFTSideNav /> : <DefiSideNav />}
+      {!isMobile && <AppSwitch />}
+      {isNFTApp ? <NFTSideNav isMobile={isMobile} /> : <DefiSideNav isMobile={isMobile} />}
     </>
   )
 }
