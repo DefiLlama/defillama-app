@@ -6,7 +6,7 @@ import { List as VirtualizedList, AutoSizer, InfiniteLoader, WindowScroller } fr
 
 import { Box, Flex, Text } from 'rebass'
 import TokenLogo from '../TokenLogo'
-import { BasicLink, CustomLink } from '../Link'
+import { CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
@@ -15,6 +15,8 @@ import { useFetchInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 
 import FormattedName from '../FormattedName'
+import ChainsRow from 'components/ChainsRow'
+import TokensRow from 'components/TokensRow'
 
 dayjs.extend(utc)
 
@@ -59,7 +61,7 @@ const DashGrid = styled.div`
   @media screen and (min-width: 1080px) {
     display: grid;
     grid-gap: 0.5em;
-    grid-template-columns: 1fr 1fr 0.8fr 0.6fr 0.6fr 0.6fr;
+    grid-template-columns: 1fr 1fr 1fr 0.8fr 0.6fr 0.6fr 0.6fr;
     grid-template-areas: 'name chain mcaptvl 1dchange 7dchange tvl';
   }
 `
@@ -139,8 +141,9 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
   }, [filteredListByCurrency, sortDirection, sortedColumn])
 
   const ListItem = ({ item, index }) => {
-    /* TODO handle displaying multiple chains */
-    const chain = item.chains?.length ? item.chains[0] : item.SK.split('#')[1]
+    const marketplaces = item.marketplaces?.length ? item.marketplaces : []
+    const chains = item.chains?.length ? item.chains : []
+
     return (
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
@@ -155,11 +158,14 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
             </CustomLink>
           </Row>
         </DataText>
-        <DataText>
-          <BasicLink key={chain} href={`/nfts/chain/${chain}`}>
-            <TokenLogo address={chain} logo={chainIconUrl(chain)} />{' '}
-          </BasicLink>
+        <DataText area="chains">
+          <ChainsRow chains={chains} />
         </DataText>
+        {!below1080 && (
+          <DataText area="marketplaces">
+            <TokensRow tokens={marketplaces} />
+          </DataText>
+        )}
         {!below1080 && (
           <DataText area="dailyVolume">
             {item.dailyVolume <= 0 ? '--' : formattedNum(item.dailyVolume, displayCurrency)}
@@ -228,10 +234,18 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
         </Flex>
 
         <Flex alignItems="center">
-          <ClickableText area="chain" onClick={(e) => {}}>
-            Chain
+          <ClickableText area="chains" onClick={(e) => {}}>
+            Chains
           </ClickableText>
         </Flex>
+
+        {!below1080 && (
+          <Flex alignItems="center">
+            <ClickableText area="marketplaces" onClick={(e) => {}}>
+              Marketplaces
+            </ClickableText>
+          </Flex>
+        )}
 
         {!below1080 && (
           <Flex alignItems="center">
