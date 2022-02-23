@@ -38,6 +38,7 @@ interface IChain {
   mcap: number
   name: string
   protocols: number
+  mcaptvl: number
 }
 
 interface GroupChain extends IChain {
@@ -87,6 +88,7 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
           change_1d: change1d,
           change_7d: change7d,
           change_1m: change1m,
+          mcap,
           mcaptvl,
         }
       }
@@ -142,7 +144,6 @@ export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData):
         tvlPrevMonth = parentData.tvlPrevMonth || null
         mcap = parentData.mcap || null
         protocols = parentData.protocols || null
-
         finalData[parentName] = {
           ...parentData,
           subRows: [parentData],
@@ -158,6 +159,7 @@ export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData):
 
       for (const child in groupData[parentName]) {
         const childData = chains.find((item) => item.name === child)
+
         if (childData) {
           tvl += childData.tvl
           tvlPrevDay += childData.tvlPrevDay
@@ -166,7 +168,7 @@ export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData):
           mcap += childData.mcap
           protocols += childData.protocols
           const subChains = finalData[parentName].subRows || []
-          const mcaptvl = mcap && tvl && mcap / tvl
+          let mcaptvl = mcap && tvl && mcap / tvl
 
           finalData[parentName] = {
             ...finalData[parentName],
@@ -175,7 +177,7 @@ export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData):
             tvlPrevWeek,
             tvlPrevMonth,
             mcap,
-            mcaptvl: mcaptvl,
+            mcaptvl,
             protocols,
             name: parentName,
             subRows: [...subChains, childData],
