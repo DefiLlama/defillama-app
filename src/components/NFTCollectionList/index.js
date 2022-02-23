@@ -15,6 +15,7 @@ import { useFetchInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 
 import FormattedName from '../FormattedName'
+import ChainsRow from 'components/ChainsRow'
 
 dayjs.extend(utc)
 
@@ -139,8 +140,8 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
   }, [filteredListByCurrency, sortDirection, sortedColumn])
 
   const ListItem = ({ item, index }) => {
-    /* TODO handle displaying multiple chains */
-    const chain = item.chains?.length ? item.chains[0] : item.SK.split('#')[1]
+    const chains = item.chains?.length ? item.chains : [item.SK.split('#')[1]]
+
     return (
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
@@ -156,9 +157,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
           </Row>
         </DataText>
         <DataText>
-          <BasicLink key={chain} href={`/nfts/chain/${chain}`}>
-            <TokenLogo address={chain} logo={chainIconUrl(chain)} />{' '}
-          </BasicLink>
+          <ChainsRow chains={chains} />
         </DataText>
         {!below1080 && (
           <DataText area="dailyVolume">
