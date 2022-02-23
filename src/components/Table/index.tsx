@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { v4 as uuid } from 'uuid'
 import Panel from 'components/Panel'
-import { ArrowDown, ArrowUp } from 'react-feather'
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight } from 'react-feather'
 import HeadHelp from 'components/HeadHelp'
 import { CustomLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
@@ -108,7 +108,8 @@ export const Index = styled.div`
   display: flex;
   gap: 1em;
   align-items: center;
-  min-width: 300px;
+  min-width: 280px;
+  position: relative;
 `
 
 const SaveButton = styled(Bookmark)`
@@ -180,7 +181,17 @@ function RowWithExtras({ columns, item, index }: RowProps) {
       <RowWrapper style={{ cursor: 'pointer' }} onClick={() => setDisplay(!displayRows)}>
         {columns.map((col) => (
           <Cell key={uuid()}>
-            {col.Cell ? <col.Cell value={item[col.accessor]} rowValues={item} rowIndex={index} /> : item[col.accessor]}
+            {col.Cell ? (
+              <col.Cell
+                value={item[col.accessor]}
+                rowValues={item}
+                rowIndex={index}
+                rowType="accordion"
+                showRows={displayRows}
+              />
+            ) : (
+              item[col.accessor]
+            )}
           </Cell>
         ))}
       </RowWrapper>
@@ -283,7 +294,7 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
   )
 }
 
-export function FullTable({ columns = [], data = [], align, gap, ...props }: TableProps) {
+export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
   const [columnToSort, setColumnToSort] = useState<string | null>(null)
   const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
 
@@ -332,6 +343,19 @@ export function FullTable({ columns = [], data = [], align, gap, ...props }: Tab
           </RowWrapper>
         </thead>
         <tbody>
+          {pinnedRow && (
+            <PinnedRow>
+              {columns.map((col) => (
+                <Cell key={uuid()}>
+                  {col.Cell ? (
+                    <col.Cell value={pinnedRow[col.accessor]} rowValues={pinnedRow} rowType="pinned" />
+                  ) : (
+                    pinnedRow[col.accessor]
+                  )}
+                </Cell>
+              ))}
+            </PinnedRow>
+          )}
           {sortedData.map((item, index) => (
             <Row key={uuid()} item={item} index={index} columns={columns} />
           ))}
@@ -347,10 +371,20 @@ interface NameProps {
   symbol?: string
   index?: number
   bookmark?: boolean
-  rowType?: 'pinned' | 'accordion' | 'child'
+  rowType?: 'pinned' | 'accordion' | 'child' | 'default'
+  showRows?: boolean
 }
 
-export function Name({ type, value, symbol = '', index, bookmark, rowType, ...props }: NameProps) {
+export function Name({
+  type,
+  value,
+  symbol = '',
+  index,
+  bookmark,
+  rowType = 'default',
+  showRows,
+  ...props
+}: NameProps) {
   const name = symbol === '-' ? value : `${value} (${symbol})`
 
   const iconUrl = useMemo(() => {
@@ -359,14 +393,25 @@ export function Name({ type, value, symbol = '', index, bookmark, rowType, ...pr
     } else return tokenIconUrl(value)
   }, [type, value])
 
+  let leftSpace: number | string = 0
+
+  if (rowType === 'accordion') {
+    leftSpace = '-30px'
+  }
+
+  if (rowType === 'child') {
+    leftSpace = '30px'
+  }
+
   return (
-    <Index {...props}>
+    <Index {...props} style={{ left: leftSpace }}>
       {bookmark && (
         <SaveButton readableProtocolName={value} style={{ paddingRight: rowType === 'pinned' ? '22px' : 0 }} />
       )}
+      {rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
       {rowType !== 'pinned' && index && <span>{index}</span>}
       <TokenLogo logo={iconUrl} />
-      <CustomLink href={`/${type}/${slug(value)}`}>{name}</CustomLink>
+      {rowType === 'accordion' ? <span>{name}</span> : <CustomLink href={`/${type}/${slug(value)}`}>{name}</CustomLink>}
     </Index>
   )
 }
@@ -406,13 +451,14 @@ const allColumns: AllColumns = {
     header: 'Name',
     accessor: 'name',
     disableSortBy: true,
-    Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+    Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
       <Name
         type="chain"
         value={value}
         symbol={rowValues.symbol}
         index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
         rowType={rowType}
+        showRows={showRows}
       />
     ),
   },

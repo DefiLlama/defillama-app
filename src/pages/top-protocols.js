@@ -70,8 +70,6 @@ const TableWrapper = styled(FullWrapper)`
         left: 0;
         background: ${({ theme }) => theme.bg1};
         z-index: 1;
-
-        min-width: 200px;
       }
     }
   }
