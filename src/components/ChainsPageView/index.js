@@ -6,15 +6,14 @@ import { PageWrapper, FullWrapper } from 'components'
 import { ButtonDark } from '../ButtonStyled'
 import { RowBetween } from '../Row'
 import Search from '../Search'
-import TokenList from '../TokenList'
 import { ChainPieChart, ChainDominanceChart } from '../Charts'
 import { Header } from 'Theme'
 
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
-import { toNiceCsvDate, chainIconUrl, getRandomColor } from 'utils'
+import { toNiceCsvDate, getRandomColor } from 'utils'
 import { AllTvlOptions } from '../SettingsModal'
 import Filters from '../Filters'
-import Panel from 'components/Panel'
+import Table, { columnsToShow } from 'components/Table'
 
 function download(filename, text) {
   var element = document.createElement('a')
@@ -42,18 +41,14 @@ const ChartsWrapper = styled(Box)`
   }
 `
 
-const TableWrapper = styled(Panel)`
-  @media (max-width: 680px) {
-    padding: 1rem 0.5rem;
-  }
-`
-
 const RowWrapper = styled(RowBetween)`
   flex-wrap: wrap;
   @media (max-width: 680px) {
     gap: 16px;
   }
 `
+
+const columns = columnsToShow('chainName', 'protocols', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
 const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categories, chainsGroupbyParent }) => {
   const chainColor = useMemo(
@@ -99,7 +94,7 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categor
           <Header>Total Value Locked All Chains</Header>
           <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
         </RowWrapper>
-        <ChartsWrapper>
+        {/* <ChartsWrapper>
           <ChainPieChart data={chainsTvlValues} chainColor={chainColor} />
           <ChainDominanceChart
             stackOffset="expand"
@@ -109,17 +104,9 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categor
             chainColor={chainColor}
             daySum={daySum}
           />
-        </ChartsWrapper>
+        </ChartsWrapper> */}
         <Filters filterOptions={categories} activeLabel={category} />
-        <TableWrapper>
-          <TokenList
-            canBookmark={false}
-            tokens={groupedChains}
-            iconUrl={chainIconUrl}
-            generateLink={(name) => `/chain/${name}`}
-            columns={[undefined, 'protocols', 'change_1d', 'change_7d', 'change_1m']}
-          />
-        </TableWrapper>
+        <Table data={groupedChains} columns={columns} />
       </FullWrapper>
     </PageWrapper>
   )
