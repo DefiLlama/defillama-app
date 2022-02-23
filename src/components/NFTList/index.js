@@ -7,11 +7,12 @@ import utc from 'dayjs/plugin/utc'
 import InfiniteScroll from 'react-infinite-scroll-component'
 
 import TokenLogo from '../TokenLogo'
+import ChainsRow from '../ChainsRow'
 import { BasicLink, CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, chainIconUrl, tokenIconUrl } from '../../utils'
+import { formattedNum, tokenIconUrl } from '../../utils'
 import { useInfiniteScroll } from '../../hooks'
 
 import FormattedName from '../FormattedName'
@@ -136,7 +137,7 @@ function NFTList({
   const ListItem = ({ item, index }) => {
     /* TODO handle displaying multiple chains and marketplaces*/
     const marketplace = item.marketplaces && item.marketplaces[0]
-    const chain = item.chains && item.chains[0]
+    const chains = item.chains?.length && item.chains
     return (
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
@@ -158,13 +159,7 @@ function NFTList({
             </BasicLink>
           </DataText>
         )}
-        {chain && (
-          <DataText>
-            <BasicLink key={chain} href={`/nfts/chain/${chain}`}>
-              <TokenLogo address={chain} logo={chainIconUrl(chain)} />{' '}
-            </BasicLink>
-          </DataText>
-        )}
+        {chains && <ChainsRow chains={chains} />}
         {!below680 && <DataText area="collections">{item.collections}</DataText>}
         {!below1080 && <DataText area="dailyVolume">{formattedNum(item.dailyVolumeUSD, true)}</DataText>}
         <DataText area="totalVolume" color="text" fontWeight="500">
