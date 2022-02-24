@@ -2,31 +2,27 @@ import React, { useMemo } from 'react'
 import { Box } from 'rebass/styled-components'
 import styled from 'styled-components'
 
-import { PageWrapper, FullWrapper } from 'components'
-import { ButtonDark } from '../ButtonStyled'
-import { RowBetween } from '../Row'
-import Search from '../Search'
-import TokenList from '../TokenList'
-import { ChainPieChart, ChainDominanceChart } from '../Charts'
 import { Header } from 'Theme'
+import { PageWrapper, FullWrapper } from 'components'
+import { ButtonDark } from 'components/ButtonStyled'
+import { RowBetween } from 'components/Row'
+import Search from 'components/Search'
+import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
+import { AllTvlOptions } from 'components/SettingsModal'
+import Filters from 'components/Filters'
+import Table, { columnsToShow } from 'components/Table'
+
+import { toNiceCsvDate, getRandomColor, download } from 'utils'
+import { getChainsPageData, revalidate } from 'utils/dataApi'
 
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
-import { toNiceCsvDate, chainIconUrl, getRandomColor } from 'utils'
-import { AllTvlOptions } from '../SettingsModal'
-import Filters from '../Filters'
-import Panel from 'components/Panel'
 
-function download(filename, text) {
-  var element = document.createElement('a')
-  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))
-  element.setAttribute('download', filename)
-
-  element.style.display = 'none'
-  document.body.appendChild(element)
-
-  element.click()
-
-  document.body.removeChild(element)
+export async function getStaticProps() {
+  const data = await getChainsPageData('All')
+  return {
+    ...data,
+    revalidate: revalidate(),
+  }
 }
 
 const ChartsWrapper = styled(Box)`
@@ -42,12 +38,6 @@ const ChartsWrapper = styled(Box)`
   }
 `
 
-const TableWrapper = styled(Panel)`
-  @media (max-width: 680px) {
-    padding: 1rem 0.5rem;
-  }
-`
-
 const RowWrapper = styled(RowBetween)`
   flex-wrap: wrap;
   @media (max-width: 680px) {
@@ -55,7 +45,22 @@ const RowWrapper = styled(RowBetween)`
   }
 `
 
-const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categories, chainsGroupbyParent }) => {
+const StyledTable = styled(Table)`
+  tr > :first-child {
+    padding-left: 40px;
+  }
+`
+
+const columns = columnsToShow('chainName', 'protocols', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
+
+export default function ChainsPageView({
+  chainsUnique,
+  chainTvls,
+  stackedDataset,
+  category,
+  categories,
+  chainsGroupbyParent,
+}) {
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
     [chainsUnique]
@@ -89,7 +94,6 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categor
   }
 
   const groupedChains = useGroupChainsByParent(chainTotals, chainsGroupbyParent)
-
   return (
     <PageWrapper>
       <FullWrapper>
@@ -111,18 +115,8 @@ const ChainsView = ({ chainsUnique, chainTvls, stackedDataset, category, categor
           />
         </ChartsWrapper>
         <Filters filterOptions={categories} activeLabel={category} />
-        <TableWrapper>
-          <TokenList
-            canBookmark={false}
-            tokens={groupedChains}
-            iconUrl={chainIconUrl}
-            generateLink={(name) => `/chain/${name}`}
-            columns={[undefined, 'protocols', 'change_1d', 'change_7d', 'change_1m']}
-          />
-        </TableWrapper>
+        <StyledTable data={groupedChains} columns={columns} />
       </FullWrapper>
     </PageWrapper>
   )
 }
-
-export default ChainsView

@@ -1,8 +1,7 @@
 import React from 'react'
 import { GeneralLayout } from 'layout'
-import ChainsPageView from 'components/ChainsPageView'
-
 import { getChainsPageData, revalidate } from 'utils/dataApi'
+import ChainsPageView from 'components/ChainsPageView'
 
 export async function getStaticProps() {
   const data = await getChainsPageData('All')

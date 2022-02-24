@@ -501,12 +501,15 @@ export const getChainsPageData = async (category: string) => {
       const tvlPrevWeek = getPrevTvlFromChart(tvlData[i], 7)
       const tvlPrevMonth = getPrevTvlFromChart(tvlData[i], 30)
       const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
+      const mcaptvl = mcap && tvl && mcap / tvl
+
       return {
         tvl,
         tvlPrevDay,
         tvlPrevWeek,
         tvlPrevMonth,
         mcap: mcap || null,
+        mcaptvl: mcaptvl || null,
         name: chainName,
         symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
         protocols: numProtocolsPerChain[chainName],
