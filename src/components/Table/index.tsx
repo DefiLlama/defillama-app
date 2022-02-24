@@ -387,10 +387,16 @@ export function Name({
 }: NameProps) {
   const name = symbol === '-' ? value : `${value} (${symbol})`
 
-  const iconUrl = useMemo(() => {
+  const { iconUrl, tokenUrl } = useMemo(() => {
+    let iconUrl, tokenUrl
     if (type === 'chain') {
-      return chainIconUrl(value)
-    } else return tokenIconUrl(value)
+      tokenUrl = `/${type}/${value}`
+      iconUrl = chainIconUrl(value)
+    } else {
+      tokenUrl = `/${type}/${slug(value)}`
+      iconUrl = tokenIconUrl(value)
+    }
+    return { iconUrl, tokenUrl }
   }, [type, value])
 
   let leftSpace: number | string = 0
@@ -411,7 +417,7 @@ export function Name({
       {rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
       {rowType !== 'pinned' && index && <span>{index}</span>}
       <TokenLogo logo={iconUrl} />
-      {rowType === 'accordion' ? <span>{name}</span> : <CustomLink href={`/${type}/${slug(value)}`}>{name}</CustomLink>}
+      {rowType === 'accordion' ? <span>{name}</span> : <CustomLink href={tokenUrl}>{name}</CustomLink>}
     </Index>
   )
 }
