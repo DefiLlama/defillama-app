@@ -31,6 +31,7 @@ const blockExplorers = {
   csc: ['https://www.coinex.net/address/', 'CSC Explorer'],
   cardano: ['https://cardanoscan.io/token/', 'Cardanoscan'],
   astar: ['https://blockscout.com/astar/address/', 'Blockscout'],
+  algorand: ['https://algoexplorer.io/asset/', 'Algoexplorer'],
 }
 
 export const getBlockExplorer = (address = '') => {

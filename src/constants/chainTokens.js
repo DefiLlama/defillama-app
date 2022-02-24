@@ -459,6 +459,10 @@ export const chainCoingeckoIds = {
     symbol: "GENS",
     cmcId: "10278",
   },
+  Wax: {
+    geckoId: "wax",
+    symbol: "WAKP",
+    cmcId: "2300",
 }
 
 export const chainMarketplaceMappings = {
