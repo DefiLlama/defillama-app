@@ -53,6 +53,13 @@ const TableWrapper = styled(FullWrapper)`
     padding: 0 !important;
   }
 
+  tr:first-child > th {
+    position: sticky;
+    top: 0;
+    background: ${({ theme }) => theme.bg1};
+    z-index: 1;
+  }
+
   td,
   th {
     white-space: nowrap;
@@ -63,19 +70,14 @@ const TableWrapper = styled(FullWrapper)`
     &:last-child {
       border-right: none !important;
     }
-
-    ${({ theme: { minLg } }) => minLg} {
-      &:first-child {
-        position: sticky;
-        left: 0;
-        background: ${({ theme }) => theme.bg1};
-        z-index: 1;
-      }
-    }
   }
 
   th {
     font-weight: 500 !important;
+  }
+
+  tr:hover {
+    background: ${({ theme }) => theme.bg1};
   }
 `
 

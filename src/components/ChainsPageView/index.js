@@ -10,7 +10,7 @@ import Search from 'components/Search'
 import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
 import { AllTvlOptions } from 'components/SettingsModal'
 import Filters from 'components/Filters'
-import Table, { columnsToShow } from 'components/Table'
+import { columnsToShow, FullTable } from 'components/Table'
 
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
 import { getChainsPageData, revalidate } from 'utils/dataApi'
@@ -45,7 +45,7 @@ const RowWrapper = styled(RowBetween)`
   }
 `
 
-const StyledTable = styled(Table)`
+const StyledTable = styled(FullTable)`
   tr > :first-child {
     padding-left: 40px;
   }

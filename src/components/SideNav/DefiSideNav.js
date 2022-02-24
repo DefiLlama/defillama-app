@@ -13,7 +13,7 @@ import {
   Shield,
   Share2,
   Award,
-  Map
+  Map,
 } from 'react-feather'
 
 import { Entry } from './shared'
@@ -36,7 +36,7 @@ const NavMenu = ({ isMobile }) => {
       <Entry url="recent" name="Recent" history={history} Icon={Clock} />
       <Entry url="comparison" name="Comparison" history={history} Icon={Minimize2} />
       <Entry url="languages" name="Languages" history={history} Icon={Code} />
-      <Entry url="top-protocols" name="Top protocols" history={history} Icon={Map} newTag />
+      <Entry url="top-protocols" name="Top Protocols" history={history} Icon={Map} newTag />
       <Entry url="about" name="About" history={history} Icon={HelpCircle} />
     </AutoColumn>
   )
