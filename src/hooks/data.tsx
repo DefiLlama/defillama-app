@@ -3,11 +3,14 @@ import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { getPercentChange } from 'utils'
 
 interface IProtocol {
+  name: string
+  protocols: number
   tvl: number | null
   tvlPrevDay: number | null
   tvlPrevWeek: number | null
   tvlPrevMonth: number | null
   mcap: number | null
+  mcaptvl: number | null
   extraTvl: {
     [key: string]: {
       tvl: number | null
@@ -46,7 +49,7 @@ interface GroupChain extends IChain {
 }
 
 // PROTOCOLS
-export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn: string, dir: 'asc') => {
+export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn?: string, dir?: 'asc') => {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
   const protocolTotals = useMemo(() => {
