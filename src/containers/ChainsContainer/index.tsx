@@ -42,9 +42,13 @@ const RowWrapper = styled(RowBetween)`
   }
 `
 
-const StyledTable = styled(FullTable)`
+interface ITable {
+  showByGroup?: boolean
+}
+
+const StyledTable = styled(FullTable)<ITable>`
   tr > :first-child {
-    padding-left: 40px;
+    padding-left: ${({ showByGroup }) => (showByGroup ? '40px' : '20px')};
   }
 `
 
@@ -90,7 +94,9 @@ export default function ChainsContainer({
     download('chains.csv', rows.map((r) => r.join(',')).join('\n'))
   }
 
-  const groupedChains = useGroupChainsByParent(chainTotals, chainsGroupbyParent)
+  const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
+
+  const groupedChains = useGroupChainsByParent(chainTotals, showByGroup ? chainsGroupbyParent : {})
 
   return (
     <PageWrapper>
@@ -113,7 +119,7 @@ export default function ChainsContainer({
           />
         </ChartsWrapper>
         <Filters filterOptions={categories} activeLabel={category} />
-        <StyledTable data={groupedChains} columns={columns} />
+        <StyledTable data={groupedChains} columns={columns} showByGroup={showByGroup} />
       </FullWrapper>
     </PageWrapper>
   )
