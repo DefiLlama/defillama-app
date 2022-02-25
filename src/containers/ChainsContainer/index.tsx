@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react'
 import { Box } from 'rebass/styled-components'
 import styled from 'styled-components'
-
 import { Header } from 'Theme'
 import { PageWrapper, FullWrapper } from 'components'
 import { ButtonDark } from 'components/ButtonStyled'
@@ -11,10 +10,8 @@ import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
 import { AllTvlOptions } from 'components/SettingsModal'
 import Filters from 'components/Filters'
 import { columnsToShow, FullTable } from 'components/Table'
-
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
 import { getChainsPageData, revalidate } from 'utils/dataApi'
-
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
 
 export async function getStaticProps() {
@@ -53,7 +50,7 @@ const StyledTable = styled(FullTable)`
 
 const columns = columnsToShow('chainName', 'protocols', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
-export default function ChainsPageView({
+export default function ChainsContainer({
   chainsUnique,
   chainTvls,
   stackedDataset,
@@ -94,6 +91,7 @@ export default function ChainsPageView({
   }
 
   const groupedChains = useGroupChainsByParent(chainTotals, chainsGroupbyParent)
+
   return (
     <PageWrapper>
       <FullWrapper>

@@ -1,7 +1,7 @@
 import React from 'react'
 import { GeneralLayout } from 'layout'
 import { getChainsPageData, revalidate } from 'utils/dataApi'
-import ChainsPageView from 'components/ChainsPageView'
+import ChainsContainer from 'containers/ChainsContainer'
 
 export async function getStaticProps() {
   const data = await getChainsPageData('All')
@@ -14,7 +14,7 @@ export async function getStaticProps() {
 export default function Chains(props) {
   return (
     <GeneralLayout title={`Chain TVL - DefiLlama`} defaultSEO>
-      <ChainsPageView {...props} />
+      <ChainsContainer {...props} />
     </GeneralLayout>
   )
 }
