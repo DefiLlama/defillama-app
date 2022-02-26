@@ -17,6 +17,7 @@ import {
   DARK_MODE,
   HIDE_LAST_DAY,
   DISPLAY_USD,
+  DOUBLE_COUNT,
   useDarkModeManager,
 } from '../../contexts/LocalStorage'
 
@@ -258,6 +259,11 @@ const extraTvlOptions = [
     name: 'Treasury',
     key: TREASURY,
     help: 'Protocol treasury',
+  },
+  {
+    name: 'Double Count',
+    key: DOUBLE_COUNT,
+    help: 'Double count TVL of certain protocols',
   },
 ]
 
