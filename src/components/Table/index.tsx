@@ -137,7 +137,7 @@ const HeaderButton = styled.button`
   }
 `
 
-function splitArrayByFalsyValues(data, column) {
+export function splitArrayByFalsyValues(data, column) {
   return data.reduce(
     (acc, curr) => {
       if (!curr[column] && curr[column] !== 0) {
