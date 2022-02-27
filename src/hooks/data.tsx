@@ -11,6 +11,7 @@ interface IProtocol {
   tvlPrevMonth: number | null
   mcap: number | null
   mcaptvl: number | null
+  category: string
   extraTvl: {
     [key: string]: {
       tvl: number | null
@@ -68,11 +69,18 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
           const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
           // convert to lowercase as server response is not consistent in extra-tvl names
           if (extraTvlsEnabled[prop.toLowerCase()]) {
-            // check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
-            tvl && (finalTvl = (finalTvl || 0) + tvl)
-            tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
-            tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
-            tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
+            if (prop === 'doublecounted') {
+              tvl && (finalTvl = (finalTvl || 0) - tvl)
+              tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
+              tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
+              tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
+            } else {
+              // check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
+              tvl && (finalTvl = (finalTvl || 0) + tvl)
+              tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
+              tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
+              tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
+            }
           }
         })
 

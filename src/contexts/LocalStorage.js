@@ -20,7 +20,7 @@ export const STAKING = 'staking'
 export const BORROWED = 'borrowed'
 export const OFFERS = 'offers'
 export const TREASURY = 'treasury'
-export const DOUBLE_COUNT = 'DOUBLE_COUNT'
+export const DOUBLE_COUNT = 'doublecounted'
 export const DISPLAY_USD = 'DISPLAY_USD'
 export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
 

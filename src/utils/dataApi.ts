@@ -74,6 +74,7 @@ export const basicPropertiesToKeep = [
   'tvlPrevMonth',
   'mcap',
   'mcaptvl',
+  'category',
 ]
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
