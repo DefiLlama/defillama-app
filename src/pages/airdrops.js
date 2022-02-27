@@ -19,7 +19,7 @@ const exclude = [
 ]
 
 export async function getStaticProps() {
-  const protocols = (await getProtocolsPageData()).protocols.filter(
+  const protocols = (await getProtocolsPageData()).filteredProtocols.filter(
     (token) => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name)
   )
   return {
