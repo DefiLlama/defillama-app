@@ -3,7 +3,7 @@ import PageHeader from 'components/PageHeader'
 import Table, { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { GeneralLayout } from '../layout'
-import { revalidate, ProtocolsPageData } from '../utils/dataApi'
+import { revalidate, getProtocolsPageData } from '../utils/dataApi'
 
 const exclude = [
   'Mento',
@@ -19,7 +19,7 @@ const exclude = [
 ]
 
 export async function getStaticProps() {
-  const protocols = (await ProtocolsPageData()).protocols.filter(
+  const protocols = (await getProtocolsPageData()).protocols.filter(
     (token) => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name)
   )
   return {
