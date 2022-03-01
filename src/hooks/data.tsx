@@ -49,12 +49,21 @@ interface GroupChain extends IChain {
   subChains: IChain[]
 }
 
+// TODO update types in localstorage file and refer them here
+type ExtraTvls = { [key: string]: boolean }
+
 // PROTOCOLS
-export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn?: string, dir?: 'asc') => {
-  const extraTvlsEnabled = useGetExtraTvlEnabled()
+export const useCalcStakePool2Tvl = (
+  filteredProtocols: Readonly<IProtocol[]>,
+  defaultSortingColumn?: string,
+  dir?: 'asc'
+) => {
+  const extraTvlsEnabled: ExtraTvls = useGetExtraTvlEnabled()
 
   const protocolTotals = useMemo(() => {
-    if (Object.values(extraTvlsEnabled).every((t) => !t)) {
+    const checkExtras = { ...extraTvlsEnabled, doublecounted: !extraTvlsEnabled.doublecounted }
+
+    if (Object.values(checkExtras).every((t) => !t)) {
       return filteredProtocols
     }
 
@@ -67,20 +76,20 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
 
         Object.entries(extraTvl).forEach(([prop, propValues]) => {
           const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
+
+          if (prop === 'doublecounted') {
+            tvl && (finalTvl = (finalTvl || 0) - tvl)
+            tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
+            tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
+            tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
+          }
           // convert to lowercase as server response is not consistent in extra-tvl names
           if (extraTvlsEnabled[prop.toLowerCase()]) {
-            if (prop === 'doublecounted') {
-              tvl && (finalTvl = (finalTvl || 0) - tvl)
-              tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
-              tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
-              tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
-            } else {
-              // check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
-              tvl && (finalTvl = (finalTvl || 0) + tvl)
-              tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
-              tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
-              tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
-            }
+            // check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
+            tvl && (finalTvl = (finalTvl || 0) + tvl)
+            tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
+            tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
+            tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
           }
         })
 
@@ -104,6 +113,7 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
         }
       }
     )
+
     if (defaultSortingColumn === undefined) {
       return updatedProtocols.sort((a, b) => b.tvl - a.tvl)
     } else {
