@@ -156,8 +156,10 @@ export async function getProtocolsPageData(category, chain) {
 
   protocols.forEach(({ chains, category: pCategory }) => {
     chains.forEach((chain) => {
-      if (pCategory.toLowerCase() === category.toLowerCase()) {
-        if (!chain || chains.includes(chain)) {
+      if (!category || !chain) {
+        chainsSet.add(chain)
+      } else {
+        if (pCategory?.toLowerCase() === category?.toLowerCase() && chains.includes(chain)) {
           chainsSet.add(chain)
         }
       }
