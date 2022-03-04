@@ -109,9 +109,13 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     const globalChart = chart.map((data) => {
       let sum = data[1]
       Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
-        if (extraTvlsEnabled[prop.toLowerCase()]) {
-          const stakedData = propCharts.find((x) => x[0] === data[0])
-          if (stakedData) {
+        const stakedData = propCharts.find((x) => x[0] === data[0])
+        if (stakedData) {
+          if (prop === 'doublecounted') {
+            sum -= stakedData[1]
+          }
+
+          if (extraTvlsEnabled[prop.toLowerCase()]) {
             sum += stakedData[1]
           }
         }

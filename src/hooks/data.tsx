@@ -143,7 +143,7 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
   return protocolTvl
 }
 
-export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData): GroupChain[] => {
+export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IGroupData): GroupChain[] => {
   const data: GroupChain[] = useMemo(() => {
     const finalData = {}
     const addedChains = []
