@@ -32,6 +32,7 @@ const blockExplorers = {
   cardano: ['https://cardanoscan.io/token/', 'Cardanoscan'],
   astar: ['https://blockscout.com/astar/address/', 'Blockscout'],
   algorand: ['https://algoexplorer.io/asset/', 'Algoexplorer'],
+  evmos: ['https://evm.evmos.org/address/', 'Evmos Explorer'],
 }
 
 export const getBlockExplorer = (address = '') => {
