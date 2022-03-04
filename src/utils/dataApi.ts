@@ -153,18 +153,21 @@ const formatProtocolsData = ({
 export async function getProtocolsPageData(category, chain) {
   const { protocols, chains } = await getProtocols()
 
-  let filteredProtocols = formatProtocolsData({ category, protocols })
-
   const chainsSet = new Set()
 
-  filteredProtocols.forEach(({ chains }) => {
-    chains.forEach((chain) => chainsSet.add(chain))
+  protocols.forEach(({ chains, category: pCategory }) => {
+    chains.forEach((chain) => {
+      if (!category || !chain) {
+        chainsSet.add(chain)
+      } else {
+        if (pCategory?.toLowerCase() === category?.toLowerCase() && chains.includes(chain)) {
+          chainsSet.add(chain)
+        }
+      }
+    })
   })
 
-  // filter protocols by chain after we have data of all the chains of protocols in a category
-  if (chain) {
-    filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
-  }
+  let filteredProtocols = formatProtocolsData({ category, protocols, chain })
 
   return {
     filteredProtocols,

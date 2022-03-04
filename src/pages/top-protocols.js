@@ -12,20 +12,25 @@ import { TYPE } from 'Theme'
 export async function getStaticProps() {
   const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
   const topProtocolPerChainAndCategory = Object.fromEntries(chains.map((c) => [c, {}]))
+
   protocols.forEach((p) => {
     const { chainTvls, category, name } = p
-    Object.entries(chainTvls).forEach(([chain, tvl]) => {
+    Object.entries(chainTvls).forEach(([chain, { tvl }]) => {
       if (topProtocolPerChainAndCategory[chain] === undefined) {
         return
       }
+
       const currentTopProtocol = topProtocolPerChainAndCategory[chain][category]
+
       if (currentTopProtocol === undefined || tvl > currentTopProtocol[1]) {
         topProtocolPerChainAndCategory[chain][category] = [name, tvl]
       }
     })
   })
+
   const data = []
   const uniqueCategories = new Set()
+
   chains.forEach((chain) => {
     const categories = topProtocolPerChainAndCategory[chain]
     const values = {}
@@ -36,7 +41,9 @@ export async function getStaticProps() {
     }
     data.push({ chain, ...values })
   })
+
   const columns = Array.from(uniqueCategories).map((item) => ({ header: item, accessor: item, disableSortBy: true }))
+
   return {
     props: {
       data,
