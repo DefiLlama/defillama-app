@@ -464,6 +464,11 @@ export const chainCoingeckoIds = {
     symbol: 'WAXP',
     cmcId: '2300',
   },
+  Evmos: {
+    geckoId: "evmos",
+    symbol: "EVMOS",
+    cmcId: null,
+  },
 }
 
 export const chainMarketplaceMappings = {
