@@ -97,7 +97,7 @@ export const useCalcStakePool2Tvl = (
         let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
         let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
-        const mcaptvl = mcap && finalTvl && mcap / finalTvl
+        const mcaptvl = mcap && finalTvl ? mcap / finalTvl : null
 
         return {
           ...props,
