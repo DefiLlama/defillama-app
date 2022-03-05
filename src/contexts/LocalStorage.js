@@ -20,10 +20,11 @@ export const STAKING = 'staking'
 export const BORROWED = 'borrowed'
 export const OFFERS = 'offers'
 export const TREASURY = 'treasury'
+export const DOUBLE_COUNT = 'doublecounted'
 export const DISPLAY_USD = 'DISPLAY_USD'
 export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
 
-const extraTvlProps = [POOL2, STAKING, BORROWED, OFFERS, TREASURY]
+const extraTvlProps = [POOL2, STAKING, BORROWED, OFFERS, TREASURY, DOUBLE_COUNT]
 
 const UPDATABLE_KEYS = [
   DARK_MODE,
@@ -68,6 +69,7 @@ function init() {
     [VERSION]: CURRENT_VERSION,
     [DARK_MODE]: true,
     ...extraTvlProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+    [DOUBLE_COUNT]: true,
     [DISPLAY_USD]: false,
     [HIDE_LAST_DAY]: false,
     [DISMISSED_PATHS]: {},

@@ -74,6 +74,7 @@ export const basicPropertiesToKeep = [
   'tvlPrevMonth',
   'mcap',
   'mcaptvl',
+  'category',
 ]
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
@@ -178,12 +179,23 @@ export async function getProtocolsPageData(category, chain) {
 
 export async function getSimpleProtocolsPageData(propsToKeep) {
   const { protocols, chains } = await getProtocolsRaw()
-  const filteredProtocols = formatProtocolsData({ protocols, protocolProps: propsToKeep })
+  const filteredProtocols = formatProtocolsData({
+    protocols,
+    protocolProps: [...basicPropertiesToKeep, 'extraTvl', ...propsToKeep],
+  })
   return { protocols: filteredProtocols, chains }
 }
 
 export const getVolumeCharts = (data) => {
-  const { tvl = [], staking = [], borrowed = [], pool2 = [], offers = [], treasury = [] } = data || {}
+  const {
+    tvl = [],
+    staking = [],
+    borrowed = [],
+    pool2 = [],
+    offers = [],
+    treasury = [],
+    doublecounted = [],
+  } = data || {}
 
   const chart = tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
 
@@ -193,6 +205,7 @@ export const getVolumeCharts = (data) => {
     pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     treasury: treasury.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+    doublecounted: doublecounted.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
   }
 
   return {
