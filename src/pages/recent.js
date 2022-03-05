@@ -4,10 +4,10 @@ import Table, { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useMemo } from 'react'
 import { GeneralLayout } from '../layout'
-import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
+import { revalidate, getSimpleProtocolsPageData, basicPropertiesToKeep } from '../utils/dataApi'
 
 export async function getStaticProps() {
-  const protocolsRaw = await getSimpleProtocolsPageData(['listedAt'])
+  const protocolsRaw = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt'])
   const protocols = protocolsRaw.protocols.filter((p) => p.listedAt).sort((a, b) => b.listedAt - a.listedAt)
   return {
     props: {
