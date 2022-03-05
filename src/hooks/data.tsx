@@ -133,7 +133,10 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
 
   const protocolTvl = useMemo(() => {
     let tvl = simpleTvl
-    Object.entries(chainTvls).forEach(([section, sectionTvl]) => {
+    Object.entries(chainTvls).forEach(([section, sectionTvl]: any) => {
+      if (section === 'doublecounted') {
+        tvl -= sectionTvl
+      }
       // convert to lowercase as server response is not consistent in extra-tvl names
       if (extraTvlsEnabled[section.toLowerCase()]) tvl += sectionTvl
     })
@@ -234,6 +237,10 @@ export const useCalcGroupExtraTvlsByDay = (chains) => {
         totalDaySum += chainTvls.tvl || 0
 
         for (const c in chainTvls) {
+          if (c === 'doublecounted') {
+            sum -= chainTvls[c]
+            totalDaySum -= chainTvls[c]
+          }
           if (extraTvlsEnabled[c.toLowerCase()]) {
             sum += chainTvls[c]
             totalDaySum += chainTvls[c]
@@ -259,6 +266,9 @@ export const useCalcExtraTvlsByDay = (data) => {
       let sum = values.tvl || 0
 
       for (const value in values) {
+        if (value === 'doublecounted') {
+          sum -= values[value]
+        }
         if (extraTvlsEnabled[value.toLowerCase()]) {
           sum += values[value]
         }
