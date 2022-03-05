@@ -172,7 +172,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
     tokensUnique,
     usdInflows,
     tokenInflows,
-    ...protocolParams,
+    ...protocolParams
   } = protocolData
   const backgroundColor = useProtocolColor({ protocol, logo, transparent: false })
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
@@ -299,7 +299,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   gridRow: ['', '', '', '1/4'],
                 }}
               >
-                <ProtocolChart
+                {/* <ProtocolChart
                   denomination={denomination}
                   chartData={chartData}
                   protocol={name}
@@ -312,14 +312,14 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   chainsList={chainsList}
                   tokensUnique={tokensUnique}
                   {...protocolParams}
-                />
+                /> */}
               </Panel>
             </PanelWrapper>
           </>
 
           <>
             <SectionPanel title="Charts" topMargin={false}>
-              <AutoRow>
+              {/* <AutoRow>
                 <GeneralAreaChart finalChartData={chainsStacked} aspect={aspect} formatDate={formatDate} color={backgroundColor}
                   tokensUnique={chains}
                 />
@@ -334,7 +334,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 <GeneralBarChart finalChartData={tokenInflows} aspect={aspect} formatDate={formatDate} color={backgroundColor}
                   tokensUnique={tokensUnique}
                 />
-              </AutoRow>}
+              </AutoRow>} */}
             </SectionPanel>
             <SectionPanel title="Methodology">
               {methodology && (
