@@ -2,19 +2,42 @@ import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { v4 as uuid } from 'uuid'
 import Panel from 'components/Panel'
-import { ArrowDown, ArrowUp } from 'react-feather'
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight } from 'react-feather'
 import HeadHelp from 'components/HeadHelp'
 import { CustomLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
 import Bookmark from 'components/Bookmark'
-import { formattedNum, formattedPercent, slug, toK, tokenIconUrl } from 'utils'
+import { chainIconUrl, formattedNum, formattedPercent, slug, toK, tokenIconUrl } from 'utils'
 import { useInfiniteScroll } from 'hooks'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
 import ChainsRow from 'components/ChainsRow'
 
+interface ColumnProps {
+  header: string
+  accessor: string
+  disableSortBy?: boolean
+  helperText?: string
+  Cell?: React.ElementType
+}
+
+interface RowProps {
+  columns: ColumnProps[]
+  item: { [key: string]: any }
+  index?: number
+  subRow?: boolean
+}
+
+interface TableProps {
+  columns: ColumnProps[]
+  data: unknown
+  align?: string
+  gap?: string
+  pinnedRow?: unknown
+}
+
 const Wrapper = styled(Panel)`
-  padding-top: 6px;
+  padding: 6px 0;
   color: ${({ theme }) => theme.text1};
   overflow-x: auto;
 `
@@ -26,9 +49,10 @@ const TableWrapper = styled.table`
   position: relative;
 `
 
-const Row = styled.tr`
+const RowWrapper = styled.tr`
   border-bottom: 1px solid;
   border-color: ${({ theme }) => theme.divider};
+  --padding-left: 20px;
 
   & > * {
     padding: 12px 0;
@@ -39,8 +63,16 @@ const Row = styled.tr`
   & > :first-child {
     white-space: nowrap;
     text-align: start;
-    padding-left: 6px;
+    padding-left: var(--padding-left);
   }
+
+  & > :last-child {
+    padding-right: 20px;
+  }
+`
+
+const PinnedRow = styled(RowWrapper)`
+  background: ${({ theme }) => theme.bg1};
 `
 
 const Cell = styled.td`
@@ -75,6 +107,9 @@ const SortedHeader = styled.div`
 export const Index = styled.div`
   display: flex;
   gap: 1em;
+  align-items: center;
+  min-width: 280px;
+  position: relative;
 `
 
 const SaveButton = styled(Bookmark)`
@@ -102,7 +137,7 @@ const HeaderButton = styled.button`
   }
 `
 
-function splitArrayByFalsyValues(data, column) {
+export function splitArrayByFalsyValues(data, column) {
   return data.reduce(
     (acc, curr) => {
       if (!curr[column] && curr[column] !== 0) {
@@ -114,7 +149,71 @@ function splitArrayByFalsyValues(data, column) {
   )
 }
 
-function Table({ columns = [], data = [], align, gap, ...props }) {
+function Row(props: RowProps) {
+  const { columns, item, index } = props
+
+  return (
+    <>
+      {item.subRows ? (
+        <RowWithExtras {...props} />
+      ) : (
+        <RowWrapper>
+          {columns.map((col) => (
+            <Cell key={uuid()}>
+              {col.Cell ? (
+                <col.Cell value={item[col.accessor]} rowValues={item} rowIndex={index} />
+              ) : (
+                item[col.accessor]
+              )}
+            </Cell>
+          ))}
+        </RowWrapper>
+      )}
+    </>
+  )
+}
+
+function RowWithExtras({ columns, item, index }: RowProps) {
+  const [displayRows, setDisplay] = useState(false)
+
+  return (
+    <>
+      <RowWrapper style={{ cursor: 'pointer' }} onClick={() => setDisplay(!displayRows)}>
+        {columns.map((col) => (
+          <Cell key={uuid()}>
+            {col.Cell ? (
+              <col.Cell
+                value={item[col.accessor]}
+                rowValues={item}
+                rowIndex={index}
+                rowType="accordion"
+                showRows={displayRows}
+              />
+            ) : (
+              item[col.accessor]
+            )}
+          </Cell>
+        ))}
+      </RowWrapper>
+      {displayRows &&
+        item.subRows.map((subRow) => (
+          <RowWrapper key={uuid()}>
+            {columns.map((col) => (
+              <Cell key={uuid()}>
+                {col.Cell ? (
+                  <col.Cell value={subRow[col.accessor]} rowValues={subRow} rowType="child" />
+                ) : (
+                  subRow[col.accessor]
+                )}
+              </Cell>
+            ))}
+          </RowWrapper>
+        ))}
+    </>
+  )
+}
+
+function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
   const [columnToSort, setColumnToSort] = useState<string | null>(null)
   const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
 
@@ -146,11 +245,11 @@ function Table({ columns = [], data = [], align, gap, ...props }) {
         dataLength={dataLength}
         next={next}
         hasMore={hasMore}
-        loader={hasMore && <span style={{ marginLeft: '8px' }}>...</span>}
+        loader={hasMore && <span style={{ marginLeft: '22px' }}>...</span>}
       >
         <TableWrapper>
           <thead>
-            <Row>
+            <RowWrapper>
               {columns.map((col) => {
                 const text = col.helperText ? <HeadHelp title={col.header} text={col.helperText} /> : col.header
                 const disableSortBy = col.disableSortBy || false
@@ -168,21 +267,24 @@ function Table({ columns = [], data = [], align, gap, ...props }) {
                   </Header>
                 )
               })}
-            </Row>
+            </RowWrapper>
           </thead>
           <tbody>
-            {sortedData.slice(0, dataLength).map((item, index) => (
-              <Row key={uuid()}>
+            {pinnedRow && (
+              <PinnedRow>
                 {columns.map((col) => (
                   <Cell key={uuid()}>
                     {col.Cell ? (
-                      <col.Cell value={item[col.accessor]} rowValues={item} rowIndex={index} />
+                      <col.Cell value={pinnedRow[col.accessor]} rowValues={pinnedRow} rowType="pinned" />
                     ) : (
-                      item[col.accessor]
+                      pinnedRow[col.accessor]
                     )}
                   </Cell>
                 ))}
-              </Row>
+              </PinnedRow>
+            )}
+            {sortedData.slice(0, dataLength).map((item, index) => (
+              <Row key={uuid()} item={item} index={index} columns={columns} />
             ))}
           </tbody>
         </TableWrapper>
@@ -192,45 +294,178 @@ function Table({ columns = [], data = [], align, gap, ...props }) {
   )
 }
 
-interface ProtocolNameProps {
+export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
+  const [columnToSort, setColumnToSort] = useState<string | null>(null)
+  const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
+
+  const handleClick = (name: string) => {
+    if (sortDirection === 0 || name !== columnToSort) {
+      setColumnToSort(name)
+      setDirection(1)
+    } else if (sortDirection === 1) {
+      setDirection(-1)
+    } else {
+      setDirection(1)
+    }
+  }
+
+  const sortedData = useMemo(() => {
+    if (sortDirection && columnToSort) {
+      const values = splitArrayByFalsyValues(data, columnToSort)
+      if (sortDirection === 1) {
+        return orderBy(values[0], [columnToSort], ['desc']).concat(values[1])
+      } else return orderBy(values[0], [columnToSort], ['asc']).concat(values[1])
+    } else return data
+  }, [data, sortDirection, columnToSort])
+
+  return (
+    <Wrapper style={{ '--text-align': align || 'end', '--gap': gap || '24px' }} {...props}>
+      <TableWrapper>
+        <thead>
+          <RowWrapper>
+            {columns.map((col) => {
+              const text = col.helperText ? <HeadHelp title={col.header} text={col.helperText} /> : col.header
+              const disableSortBy = col.disableSortBy || false
+              const sortingColumn = columnToSort === col.accessor && sortDirection !== 0
+              return (
+                <Header key={uuid()}>
+                  {!disableSortBy ? (
+                    <SortedHeader>
+                      <HeaderButton onClick={() => handleClick(col.accessor)}>{text}</HeaderButton>{' '}
+                      {sortingColumn && (sortDirection === -1 ? <ArrowUp /> : <ArrowDown />)}
+                    </SortedHeader>
+                  ) : (
+                    text
+                  )}
+                </Header>
+              )
+            })}
+          </RowWrapper>
+        </thead>
+        <tbody>
+          {pinnedRow && (
+            <PinnedRow>
+              {columns.map((col) => (
+                <Cell key={uuid()}>
+                  {col.Cell ? (
+                    <col.Cell value={pinnedRow[col.accessor]} rowValues={pinnedRow} rowType="pinned" />
+                  ) : (
+                    pinnedRow[col.accessor]
+                  )}
+                </Cell>
+              ))}
+            </PinnedRow>
+          )}
+          {sortedData.map((item, index) => (
+            <Row key={uuid()} item={item} index={index} columns={columns} />
+          ))}
+        </tbody>
+      </TableWrapper>
+    </Wrapper>
+  )
+}
+
+interface NameProps {
+  type: 'chain' | 'protocol'
   value: string
   symbol?: string
   index?: number
   bookmark?: boolean
+  rowType?: 'pinned' | 'accordion' | 'child' | 'default'
+  showRows?: boolean
 }
 
-export function ProtocolName({ value, symbol = '', index, bookmark }: ProtocolNameProps) {
+export function Name({
+  type,
+  value,
+  symbol = '',
+  index,
+  bookmark,
+  rowType = 'default',
+  showRows,
+  ...props
+}: NameProps) {
   const name = symbol === '-' ? value : `${value} (${symbol})`
+
+  const { iconUrl, tokenUrl } = useMemo(() => {
+    let iconUrl, tokenUrl
+    if (type === 'chain') {
+      tokenUrl = `/${type}/${value}`
+      iconUrl = chainIconUrl(value)
+    } else {
+      tokenUrl = `/${type}/${slug(value)}`
+      iconUrl = tokenIconUrl(value)
+    }
+    return { iconUrl, tokenUrl }
+  }, [type, value])
+
+  let leftSpace: number | string = 0
+
+  if (rowType === 'accordion') {
+    leftSpace = '-30px'
+  }
+
+  if (rowType === 'child') {
+    leftSpace = '30px'
+  }
+
   return (
-    <Index>
-      {bookmark && <SaveButton readableProtocolName={value} />}
-      {index && <span>{index}</span>}
-      <TokenLogo logo={tokenIconUrl(value)} />
-      <CustomLink href={`/protocol/${slug(value)}`}>{name}</CustomLink>
+    <Index {...props} style={{ left: leftSpace }}>
+      {bookmark && (
+        <SaveButton readableProtocolName={value} style={{ paddingRight: rowType === 'pinned' ? '22px' : 0 }} />
+      )}
+      {rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
+      {rowType !== 'pinned' && index && <span>{index}</span>}
+      <TokenLogo logo={iconUrl} />
+      {rowType === 'accordion' ? <span>{name}</span> : <CustomLink href={tokenUrl}>{name}</CustomLink>}
     </Index>
   )
 }
 
-// TODO update to better type defs
-interface IColumns {
-  protocolName: {}
-  chains: {}
-  '1dChange': {}
-  '7dChange': {}
-  '1mChange': {}
-  tvl: {}
-  mcaptvl: {}
-  listedAt: {}
-  msizetvl: {}
-}
+type Columns =
+  | 'protocolName'
+  | 'chainName'
+  | 'chains'
+  | '1dChange'
+  | '7dChange'
+  | '1mChange'
+  | 'tvl'
+  | 'mcaptvl'
+  | 'listedAt'
+  | 'msizetvl'
+  | 'protocols'
 
-const allColumns: IColumns = {
+type AllColumns = Record<Columns, ColumnProps>
+
+const allColumns: AllColumns = {
   protocolName: {
     header: 'Name',
     accessor: 'name',
     disableSortBy: true,
-    Cell: ({ value, rowValues, rowIndex }) => (
-      <ProtocolName value={value} symbol={rowValues.symbol} index={rowIndex + 1} bookmark />
+    Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+      <Name
+        type="protocol"
+        value={value}
+        symbol={rowValues.symbol}
+        index={rowIndex !== null && rowIndex + 1}
+        bookmark
+        rowType={rowType}
+      />
+    ),
+  },
+  chainName: {
+    header: 'Name',
+    accessor: 'name',
+    disableSortBy: true,
+    Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
+      <Name
+        type="chain"
+        value={value}
+        symbol={rowValues.symbol}
+        index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
+        rowType={rowType}
+        showRows={showRows}
+      />
     ),
   },
   chains: {
@@ -275,11 +510,13 @@ const allColumns: IColumns = {
     accessor: 'listedAt',
     Cell: ({ value }) => <span style={{ whiteSpace: 'nowrap' }}>{value} days ago</span>,
   },
+  protocols: {
+    header: 'Protocols',
+    accessor: 'protocols',
+  },
 }
 
-type columnsName = keyof IColumns
-
-export function columnsToShow(...names: columnsName[]) {
+export function columnsToShow(...names: Columns[]) {
   return names.map((item) => allColumns[item])
 }
 

@@ -103,22 +103,26 @@ export const Desktop = styled.div`
   }
 `
 
-export const Entry = ({ url, name, history, Icon, newTag }) => (
-  <BasicLink href={'/' + url}>
+export const Entry = ({ url, name, history, Icon, newTag, ...props }) => (
+  <BasicLink href={'/' + url} {...props}>
     <Option activeText={history.location.pathname === '/' + url ?? undefined}>
       <Icon size={20} style={{ marginRight: '.75rem' }} />
       {name}
-      {(newTag === true) &&
-        <span style={{
-          background: "#ebebeb",
-          padding: "3px",
-          marginLeft: "5px",
-          marginTop: "0px",
-          borderRadius: "4px",
-          color: "black",
-          fontSize: "11px",
-        }}>NEW</span>
-      }
+      {newTag === true && (
+        <span
+          style={{
+            background: '#ebebeb',
+            padding: '3px',
+            marginLeft: '5px',
+            marginTop: '0px',
+            borderRadius: '4px',
+            color: 'black',
+            fontSize: '11px',
+          }}
+        >
+          NEW
+        </span>
+      )}
     </Option>
   </BasicLink>
 )
@@ -137,14 +141,10 @@ export const Footer = ({ isDark, toggleDarkMode }) => (
         </Link>
       </HeaderText>
       <HeaderText>
-        <Link href="/press">
-          Press / Media
-        </Link>
+        <Link href="/press">Press / Media</Link>
       </HeaderText>
       <HeaderText>
-        <Link href="/docs/api">
-          API Docs
-        </Link>
+        <Link href="/docs/api">API Docs</Link>
       </HeaderText>
       <HeaderText>
         <Link href="https://docs.llama.fi/list-your-project/submit-a-project" target="_blank">

@@ -2,31 +2,35 @@ import { GeneralLayout } from '../layout'
 import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
 import { CustomLink } from 'components/Link'
 import { PageWrapper, FullWrapper } from 'components'
-import Table, { Index } from 'components/Table'
+import { FullTable, Index } from 'components/Table'
 import TokenLogo from 'components/TokenLogo'
 import { chainIconUrl } from 'utils'
 import { useMemo } from 'react'
 import styled from 'styled-components'
-
-const categories = ['Dexes', 'Lending', 'Yield', 'Staking', 'Minting', 'Options', 'Derivatives'] // bridge, stablecoins, nft exchange
+import { TYPE } from 'Theme'
 
 export async function getStaticProps() {
   const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
   const topProtocolPerChainAndCategory = Object.fromEntries(chains.map((c) => [c, {}]))
+
   protocols.forEach((p) => {
     const { chainTvls, category, name } = p
-    Object.entries(chainTvls).forEach(([chain, tvl]) => {
+    Object.entries(chainTvls).forEach(([chain, { tvl }]) => {
       if (topProtocolPerChainAndCategory[chain] === undefined) {
         return
       }
+
       const currentTopProtocol = topProtocolPerChainAndCategory[chain][category]
+
       if (currentTopProtocol === undefined || tvl > currentTopProtocol[1]) {
         topProtocolPerChainAndCategory[chain][category] = [name, tvl]
       }
     })
   })
+
   const data = []
   const uniqueCategories = new Set()
+
   chains.forEach((chain) => {
     const categories = topProtocolPerChainAndCategory[chain]
     const values = {}
@@ -37,7 +41,9 @@ export async function getStaticProps() {
     }
     data.push({ chain, ...values })
   })
+
   const columns = Array.from(uniqueCategories).map((item) => ({ header: item, accessor: item, disableSortBy: true }))
+
   return {
     props: {
       data,
@@ -54,31 +60,31 @@ const TableWrapper = styled(FullWrapper)`
     padding: 0 !important;
   }
 
+  tr:first-child > th {
+    position: sticky;
+    top: 0;
+    background: ${({ theme }) => theme.bg1};
+    z-index: 1;
+  }
+
   td,
   th {
     white-space: nowrap;
-    padding-right: 16px !important;
+    padding: 12px !important;
     border-right: 1px solid;
     border-color: ${({ theme }) => theme.divider};
 
     &:last-child {
       border-right: none !important;
     }
-
-    ${({ theme: { minLg } }) => minLg} {
-      &:first-child {
-        position: sticky;
-        left: 0;
-        background: ${({ theme }) => theme.bg1};
-        z-index: 1;
-        padding-left: 24px;
-        min-width: 200px;
-      }
-    }
   }
 
   th {
     font-weight: 500 !important;
+  }
+
+  tr:hover {
+    background: ${({ theme }) => theme.bg1};
   }
 `
 
@@ -106,9 +112,10 @@ export default function Chains({ data, columns }) {
 
   return (
     <GeneralLayout title={`TVL Rankings - DefiLlama`} defaultSEO>
-      <PageWrapper>
+      <PageWrapper style={{ paddingBottom: '0 !important' }}>
         <TableWrapper>
-          <Table data={data} columns={allColumns} align="start" gap="12px" />
+          <TYPE.largeHeader>Top Protocols</TYPE.largeHeader>
+          <FullTable data={data} columns={allColumns} align="start" gap="12px" style={{ height: '85vh' }} />
         </TableWrapper>
       </PageWrapper>
     </GeneralLayout>

@@ -3,11 +3,15 @@ import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { getPercentChange } from 'utils'
 
 interface IProtocol {
+  name: string
+  protocols: number
   tvl: number | null
   tvlPrevDay: number | null
   tvlPrevWeek: number | null
   tvlPrevMonth: number | null
   mcap: number | null
+  mcaptvl: number | null
+  category: string
   extraTvl: {
     [key: string]: {
       tvl: number | null
@@ -38,18 +42,28 @@ interface IChain {
   mcap: number
   name: string
   protocols: number
+  mcaptvl: number
 }
 
 interface GroupChain extends IChain {
-  childChains: IChain[]
+  subChains: IChain[]
 }
 
+// TODO update types in localstorage file and refer them here
+type ExtraTvls = { [key: string]: boolean }
+
 // PROTOCOLS
-export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn: string, dir: 'asc') => {
-  const extraTvlsEnabled = useGetExtraTvlEnabled()
+export const useCalcStakePool2Tvl = (
+  filteredProtocols: Readonly<IProtocol[]>,
+  defaultSortingColumn?: string,
+  dir?: 'asc'
+) => {
+  const extraTvlsEnabled: ExtraTvls = useGetExtraTvlEnabled()
 
   const protocolTotals = useMemo(() => {
-    if (Object.values(extraTvlsEnabled).every((t) => !t)) {
+    const checkExtras = { ...extraTvlsEnabled, doublecounted: !extraTvlsEnabled.doublecounted }
+
+    if (Object.values(checkExtras).every((t) => !t)) {
       return filteredProtocols
     }
 
@@ -62,6 +76,13 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
 
         Object.entries(extraTvl).forEach(([prop, propValues]) => {
           const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
+
+          if (prop === 'doublecounted') {
+            tvl && (finalTvl = (finalTvl || 0) - tvl)
+            tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
+            tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
+            tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
+          }
           // convert to lowercase as server response is not consistent in extra-tvl names
           if (extraTvlsEnabled[prop.toLowerCase()]) {
             // check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
@@ -76,7 +97,7 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
         let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
         let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
-        const mcaptvl = mcap && finalTvl && mcap / finalTvl
+        const mcaptvl = mcap && finalTvl ? mcap / finalTvl : null
 
         return {
           ...props,
@@ -87,10 +108,12 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
           change_1d: change1d,
           change_7d: change7d,
           change_1m: change1m,
+          mcap,
           mcaptvl,
         }
       }
     )
+
     if (defaultSortingColumn === undefined) {
       return updatedProtocols.sort((a, b) => b.tvl - a.tvl)
     } else {
@@ -110,7 +133,10 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
 
   const protocolTvl = useMemo(() => {
     let tvl = simpleTvl
-    Object.entries(chainTvls).forEach(([section, sectionTvl]) => {
+    Object.entries(chainTvls).forEach(([section, sectionTvl]: any) => {
+      if (section === 'doublecounted') {
+        tvl -= sectionTvl
+      }
       // convert to lowercase as server response is not consistent in extra-tvl names
       if (extraTvlsEnabled[section.toLowerCase()]) tvl += sectionTvl
     })
@@ -120,12 +146,11 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
   return protocolTvl
 }
 
-export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData): GroupChain[] => {
+export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IGroupData): GroupChain[] => {
   const data: GroupChain[] = useMemo(() => {
     const finalData = {}
     const addedChains = []
-    for (const parent in groupData) {
-      const parentName = parent
+    for (const parentName in groupData) {
       let tvl: DataValue = null
       let tvlPrevDay: DataValue = null
       let tvlPrevWeek: DataValue = null
@@ -135,7 +160,7 @@ export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData):
 
       finalData[parentName] = {}
 
-      const parentData = chains.find((item) => item.name === parent)
+      const parentData = chains.find((item) => item.name === parentName)
       if (parentData) {
         tvl = parentData.tvl || null
         tvlPrevDay = parentData.tvlPrevDay || null
@@ -145,22 +170,20 @@ export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData):
         protocols = parentData.protocols || null
         finalData[parentName] = {
           ...parentData,
-          tvl,
-          tvlPrevDay,
-          tvlPrevWeek,
-          tvlPrevMonth,
-          mcap,
-          protocols,
-          childChains: [parentData],
+          subRows: [parentData],
+          symbol: '-',
         }
-        addedChains.push(parent)
+
+        addedChains.push(parentName)
       } else {
         finalData[parentName] = {
           symbol: '-',
         }
       }
-      for (const child in groupData[parent]) {
+
+      for (const child in groupData[parentName]) {
         const childData = chains.find((item) => item.name === child)
+
         if (childData) {
           tvl += childData.tvl
           tvlPrevDay += childData.tvlPrevDay
@@ -168,7 +191,9 @@ export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData):
           tvlPrevMonth += childData.tvlPrevMonth
           mcap += childData.mcap
           protocols += childData.protocols
-          const childChains = finalData[parentName].childChains || []
+          const subChains = finalData[parentName].subRows || []
+          let mcaptvl = mcap && tvl && mcap / tvl
+
           finalData[parentName] = {
             ...finalData[parentName],
             tvl,
@@ -176,14 +201,16 @@ export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData):
             tvlPrevWeek,
             tvlPrevMonth,
             mcap,
+            mcaptvl,
             protocols,
             name: parentName,
-            childChains: [...childChains, childData],
+            subRows: [...subChains, childData],
           }
           addedChains.push(child)
         }
       }
     }
+
     chains.forEach((item) => {
       if (!addedChains.includes(item.name)) {
         finalData[item.name] = item
@@ -210,6 +237,10 @@ export const useCalcGroupExtraTvlsByDay = (chains) => {
         totalDaySum += chainTvls.tvl || 0
 
         for (const c in chainTvls) {
+          if (c === 'doublecounted') {
+            sum -= chainTvls[c]
+            totalDaySum -= chainTvls[c]
+          }
           if (extraTvlsEnabled[c.toLowerCase()]) {
             sum += chainTvls[c]
             totalDaySum += chainTvls[c]
@@ -235,6 +266,9 @@ export const useCalcExtraTvlsByDay = (data) => {
       let sum = values.tvl || 0
 
       for (const value in values) {
+        if (value === 'doublecounted') {
+          sum -= values[value]
+        }
         if (extraTvlsEnabled[value.toLowerCase()]) {
           sum += values[value]
         }

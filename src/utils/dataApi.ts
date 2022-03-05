@@ -74,6 +74,7 @@ export const basicPropertiesToKeep = [
   'tvlPrevMonth',
   'mcap',
   'mcaptvl',
+  'category',
 ]
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
@@ -152,18 +153,21 @@ const formatProtocolsData = ({
 export async function getProtocolsPageData(category, chain) {
   const { protocols, chains } = await getProtocols()
 
-  let filteredProtocols = formatProtocolsData({ category, protocols })
-
   const chainsSet = new Set()
 
-  filteredProtocols.forEach(({ chains }) => {
-    chains.forEach((chain) => chainsSet.add(chain))
+  protocols.forEach(({ chains, category: pCategory }) => {
+    chains.forEach((chain) => {
+      if (!category || !chain) {
+        chainsSet.add(chain)
+      } else {
+        if (pCategory?.toLowerCase() === category?.toLowerCase() && chains.includes(chain)) {
+          chainsSet.add(chain)
+        }
+      }
+    })
   })
 
-  // filter protocols by chain after we have data of all the chains of protocols in a category
-  if (chain) {
-    filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
-  }
+  let filteredProtocols = formatProtocolsData({ category, protocols, chain })
 
   return {
     filteredProtocols,
@@ -175,12 +179,23 @@ export async function getProtocolsPageData(category, chain) {
 
 export async function getSimpleProtocolsPageData(propsToKeep) {
   const { protocols, chains } = await getProtocolsRaw()
-  const filteredProtocols = formatProtocolsData({ protocols, protocolProps: propsToKeep })
+  const filteredProtocols = formatProtocolsData({
+    protocols,
+    protocolProps: propsToKeep,
+  })
   return { protocols: filteredProtocols, chains }
 }
 
 export const getVolumeCharts = (data) => {
-  const { tvl = [], staking = [], borrowed = [], pool2 = [], offers = [], treasury = [] } = data || {}
+  const {
+    tvl = [],
+    staking = [],
+    borrowed = [],
+    pool2 = [],
+    offers = [],
+    treasury = [],
+    doublecounted = [],
+  } = data || {}
 
   const chart = tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
 
@@ -190,6 +205,7 @@ export const getVolumeCharts = (data) => {
     pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     treasury: treasury.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+    doublecounted: doublecounted.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
   }
 
   return {
@@ -318,7 +334,10 @@ export async function getForkPageData(fork = null) {
         }
       })
       chartData = data
-      parentTokens = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase()) || null
+      const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
+      if (protocol) {
+        parentTokens.push(protocol)
+      }
     } else {
       forksUnique.forEach((fork) => {
         const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
@@ -484,12 +503,15 @@ export const getChainsPageData = async (category: string) => {
       const tvlPrevWeek = getPrevTvlFromChart(tvlData[i], 7)
       const tvlPrevMonth = getPrevTvlFromChart(tvlData[i], 30)
       const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
+      const mcaptvl = mcap && tvl && mcap / tvl
+
       return {
         tvl,
         tvlPrevDay,
         tvlPrevWeek,
         tvlPrevMonth,
         mcap: mcap || null,
+        mcaptvl: mcaptvl || null,
         name: chainName,
         symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
         protocols: numProtocolsPerChain[chainName],
