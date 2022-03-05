@@ -7,17 +7,7 @@ import { GeneralLayout } from '../layout'
 import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
 
 export async function getStaticProps() {
-  const protocolsRaw = await getSimpleProtocolsPageData([
-    'tvl',
-    'name',
-    'symbol',
-    'chains',
-    'change_1d',
-    'change_7d',
-    'change_1m',
-    'listedAt',
-    'extraTvl',
-  ])
+  const protocolsRaw = await getSimpleProtocolsPageData(['listedAt'])
   const protocols = protocolsRaw.protocols.filter((p) => p.listedAt).sort((a, b) => b.listedAt - a.listedAt)
   return {
     props: {

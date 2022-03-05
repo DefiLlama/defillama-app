@@ -179,7 +179,10 @@ export async function getProtocolsPageData(category, chain) {
 
 export async function getSimpleProtocolsPageData(propsToKeep) {
   const { protocols, chains } = await getProtocolsRaw()
-  const filteredProtocols = formatProtocolsData({ protocols, protocolProps: propsToKeep })
+  const filteredProtocols = formatProtocolsData({
+    protocols,
+    protocolProps: [...basicPropertiesToKeep, 'extraTvl', ...propsToKeep],
+  })
   return { protocols: filteredProtocols, chains }
 }
 
