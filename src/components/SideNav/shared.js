@@ -103,8 +103,8 @@ export const Desktop = styled.div`
   }
 `
 
-export const Entry = ({ url, name, history, Icon, newTag, ...props }) => (
-  <BasicLink href={'/' + url} {...props}>
+export const Entry = ({ url, external=false, name, history, Icon, newTag, ...props }) => (
+  <BasicLink href={external?url : '/' + url} {...props}>
     <Option activeText={history.location.pathname === '/' + url ?? undefined}>
       <Icon size={20} style={{ marginRight: '.75rem' }} />
       {name}

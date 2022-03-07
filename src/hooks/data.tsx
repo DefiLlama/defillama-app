@@ -11,6 +11,7 @@ interface IProtocol {
   tvlPrevMonth: number | null
   mcap: number | null
   mcaptvl: number | null
+  category: string
   extraTvl: {
     [key: string]: {
       tvl: number | null
@@ -48,12 +49,21 @@ interface GroupChain extends IChain {
   subChains: IChain[]
 }
 
+// TODO update types in localstorage file and refer them here
+type ExtraTvls = { [key: string]: boolean }
+
 // PROTOCOLS
-export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSortingColumn?: string, dir?: 'asc') => {
-  const extraTvlsEnabled = useGetExtraTvlEnabled()
+export const useCalcStakePool2Tvl = (
+  filteredProtocols: Readonly<IProtocol[]>,
+  defaultSortingColumn?: string,
+  dir?: 'asc'
+) => {
+  const extraTvlsEnabled: ExtraTvls = useGetExtraTvlEnabled()
 
   const protocolTotals = useMemo(() => {
-    if (Object.values(extraTvlsEnabled).every((t) => !t)) {
+    const checkExtras = { ...extraTvlsEnabled, doublecounted: !extraTvlsEnabled.doublecounted }
+
+    if (Object.values(checkExtras).every((t) => !t)) {
       return filteredProtocols
     }
 
@@ -66,6 +76,13 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
 
         Object.entries(extraTvl).forEach(([prop, propValues]) => {
           const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
+
+          if (prop === 'doublecounted') {
+            tvl && (finalTvl = (finalTvl || 0) - tvl)
+            tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
+            tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
+            tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
+          }
           // convert to lowercase as server response is not consistent in extra-tvl names
           if (extraTvlsEnabled[prop.toLowerCase()]) {
             // check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
@@ -80,7 +97,7 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
         let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
         let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
-        const mcaptvl = mcap && finalTvl && mcap / finalTvl
+        const mcaptvl = mcap && finalTvl ? mcap / finalTvl : null
 
         return {
           ...props,
@@ -96,6 +113,7 @@ export const useCalcStakePool2Tvl = (filteredProtocols: IProtocol[], defaultSort
         }
       }
     )
+
     if (defaultSortingColumn === undefined) {
       return updatedProtocols.sort((a, b) => b.tvl - a.tvl)
     } else {
@@ -115,7 +133,10 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
 
   const protocolTvl = useMemo(() => {
     let tvl = simpleTvl
-    Object.entries(chainTvls).forEach(([section, sectionTvl]) => {
+    Object.entries(chainTvls).forEach(([section, sectionTvl]: any) => {
+      if (section === 'doublecounted') {
+        tvl -= sectionTvl
+      }
       // convert to lowercase as server response is not consistent in extra-tvl names
       if (extraTvlsEnabled[section.toLowerCase()]) tvl += sectionTvl
     })
@@ -125,7 +146,7 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
   return protocolTvl
 }
 
-export const useGroupChainsByParent = (chains: IChain[], groupData: IGroupData): GroupChain[] => {
+export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IGroupData): GroupChain[] => {
   const data: GroupChain[] = useMemo(() => {
     const finalData = {}
     const addedChains = []
@@ -216,6 +237,10 @@ export const useCalcGroupExtraTvlsByDay = (chains) => {
         totalDaySum += chainTvls.tvl || 0
 
         for (const c in chainTvls) {
+          if (c === 'doublecounted') {
+            sum -= chainTvls[c]
+            totalDaySum -= chainTvls[c]
+          }
           if (extraTvlsEnabled[c.toLowerCase()]) {
             sum += chainTvls[c]
             totalDaySum += chainTvls[c]
@@ -241,6 +266,9 @@ export const useCalcExtraTvlsByDay = (data) => {
       let sum = values.tvl || 0
 
       for (const value in values) {
+        if (value === 'doublecounted') {
+          sum -= values[value]
+        }
         if (extraTvlsEnabled[value.toLowerCase()]) {
           sum += values[value]
         }

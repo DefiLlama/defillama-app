@@ -24,7 +24,7 @@ import SEO from '../SEO'
 import { OptionButton } from 'components/ButtonStyled'
 import { useRouter } from 'next/router'
 import LocalLoader from 'components/LocalLoader'
-import llamaLogo from "../../assets/peeking-llama.png"
+import llamaLogo from '../../assets/peeking-llama.png'
 import Image from 'next/image'
 import Table, { columnsToShow } from 'components/Table'
 
@@ -86,32 +86,36 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const denomination = router.query?.currency ?? 'USD'
 
-  const [easterEgg, setEasterEgg] = useState(false);
+  const [easterEgg, setEasterEgg] = useState(false)
   const [darkMode, toggleDarkMode] = useDarkModeManager()
-  const activateEasterEgg = ()=>{
-    if(easterEgg){
-      if(!darkMode){
-        toggleDarkMode();
+  const activateEasterEgg = () => {
+    if (easterEgg) {
+      if (!darkMode) {
+        toggleDarkMode()
       }
-      window.location.reload();
+      window.location.reload()
     } else {
-      if(darkMode){
-        toggleDarkMode();
+      if (darkMode) {
+        toggleDarkMode()
       }
-      setEasterEgg(true);
+      setEasterEgg(true)
     }
   }
 
-  const hour = (new Date()).getHours()
-  const isDegen = hour >=1 && hour<=6;
+  const hour = new Date().getHours()
+  const isDegen = hour >= 1 && hour <= 6
 
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
     const globalChart = chart.map((data) => {
       let sum = data[1]
       Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
-        if (extraTvlsEnabled[prop.toLowerCase()]) {
-          const stakedData = propCharts.find((x) => x[0] === data[0])
-          if (stakedData) {
+        const stakedData = propCharts.find((x) => x[0] === data[0])
+        if (stakedData) {
+          if (prop === 'doublecounted') {
+            sum -= stakedData[1]
+          }
+
+          if (extraTvlsEnabled[prop.toLowerCase()]) {
             sum += stakedData[1]
           }
         }
@@ -259,48 +263,46 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
           <Search />
         </AutoColumn>
         <div>
-        <BreakpointPanels>
-          <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-          <Panel style={{ height: '100%', minHeight: '347px', width:"100%" }}>
-            <RowFixed>
-              {DENOMINATIONS.map((option) => (
-                <OptionButton
-                  active={denomination === option}
-                  onClick={() => updateRoute(option)}
-                  style={{ margin: '0 8px 8px 0' }}
-                  key={option}
-                >
-                  {option}
-                </OptionButton>
-              ))}
-            </RowFixed>
-            {easterEgg?
-              <Game />:
-            (isLoading ? (
-              <LocalLoader style={{ margin: 'auto' }} />
-            ) : (
-              <Chart
-                display="liquidity"
-                dailyData={finalChartData}
-                unit={denomination}
-                totalLiquidity={totalVolume}
-                liquidityChange={volumeChangeUSD}
-              />
-            ))}
-          </Panel>
-        </BreakpointPanels>
-        {isDegen && (
-          <div style={{
-            marginTop: "0px",
-            marginBottom: '-34px'
-          }}>
-            <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} style={{
-                position:"relative",
-                minWidth: 'initial',
-                width: 'initial',
-              }} />
-          </div>
-        )}
+          <BreakpointPanels>
+            <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
+            <Panel style={{ height: '100%', minHeight: '347px', width: '100%' }}>
+              <RowFixed>
+                {DENOMINATIONS.map((option) => (
+                  <OptionButton
+                    active={denomination === option}
+                    onClick={() => updateRoute(option)}
+                    style={{ margin: '0 8px 8px 0' }}
+                    key={option}
+                  >
+                    {option}
+                  </OptionButton>
+                ))}
+              </RowFixed>
+              {easterEgg ? (
+                <Game />
+              ) : isLoading ? (
+                <LocalLoader style={{ margin: 'auto' }} />
+              ) : (
+                <Chart
+                  display="liquidity"
+                  dailyData={finalChartData}
+                  unit={denomination}
+                  totalLiquidity={totalVolume}
+                  liquidityChange={volumeChangeUSD}
+                />
+              )}
+            </Panel>
+          </BreakpointPanels>
+          {isDegen && (
+            <div
+              style={{
+                marginTop: '0px',
+                marginBottom: '-34px',
+              }}
+            >
+              <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} alt="" />
+            </div>
+          )}
         </div>
 
         <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
