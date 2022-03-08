@@ -33,6 +33,7 @@ const blockExplorers = {
   astar: ['https://blockscout.com/astar/address/', 'Blockscout'],
   algorand: ['https://algoexplorer.io/asset/', 'Algoexplorer'],
   evmos: ['https://evm.evmos.org/address/', 'Evmos Explorer'],
+  klaytn: ['https://scope.klaytn.com/token/','Klaytn Scope'],
 }
 
 export const getBlockExplorer = (address = '') => {
