@@ -34,6 +34,7 @@ const blockExplorers = {
   algorand: ['https://algoexplorer.io/asset/', 'Algoexplorer'],
   evmos: ['https://evm.evmos.org/address/', 'Evmos Explorer'],
   klaytn: ['https://scope.klaytn.com/token/','Klaytn Scope'],
+  proton: ['https://www.protonscan.io/tokens/','Protonscan'],
 }
 
 export const getBlockExplorer = (address = '') => {
