@@ -469,6 +469,10 @@ export const chainCoingeckoIds = {
     symbol: "EVMOS",
     cmcId: null,
   },
+  Proton: {
+    geckoId: "proton",
+    symbol: "XPR",
+    cmcId: "5350",
 }
 
 export const chainMarketplaceMappings = {
