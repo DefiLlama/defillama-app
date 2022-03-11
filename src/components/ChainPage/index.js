@@ -216,6 +216,14 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
               {tvl}
             </TYPE.main>
+            <BasicLink
+              href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
+                .filter((t) => t[1] === true)
+                .map((t) => `${t[0]}=true`)
+                .join('&')}`}
+            >
+              <DownloadIcon />
+            </BasicLink>
           </RowBetween>
         </AutoColumn>
       </Panel>
@@ -240,14 +248,6 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
               {dominance}%
             </TYPE.main>
-            <BasicLink
-              href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
-                .filter((t) => t[1] === true)
-                .map((t) => `${t[0]}=true`)
-                .join('&')}`}
-            >
-              <DownloadIcon />
-            </BasicLink>
           </RowBetween>
         </AutoColumn>
       </Panel>
