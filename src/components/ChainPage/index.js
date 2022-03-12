@@ -63,8 +63,21 @@ export const BreakpointPanelsColumn = styled(AutoColumn)`
   }
 `
 
+const DownloadButton = styled(BasicLink)`
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: ${({ theme }) => theme.bg3};
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+`
+
 const DownloadIcon = styled(DownloadCloud)`
   color: ${({ theme }) => theme.text1};
+  position: relative;
+  top: 2px;
+  width: 20px;
+  height: 20px;
 `
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
@@ -216,14 +229,14 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
               {tvl}
             </TYPE.main>
-            <BasicLink
+            <DownloadButton
               href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
                 .filter((t) => t[1] === true)
                 .map((t) => `${t[0]}=true`)
                 .join('&')}`}
             >
               <DownloadIcon />
-            </BasicLink>
+            </DownloadButton>
           </RowBetween>
         </AutoColumn>
       </Panel>

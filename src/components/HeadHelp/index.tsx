@@ -57,6 +57,7 @@ const TextWrapper = styled.div<ITextProps>`
   font-size: ${({ fontSize }) => fontSize ?? 'inherit'};
   display: flex;
   align-items: center;
+  white-space: nowrap;
   :hover {
     cursor: pointer;
   }
