@@ -473,6 +473,7 @@ export const chainCoingeckoIds = {
     geckoId: "proton",
     symbol: "XPR",
     cmcId: "5350",
+  },
 }
 
 export const chainMarketplaceMappings = {
