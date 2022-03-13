@@ -179,6 +179,11 @@ const NFTDashboard = ({ statistics, collections, chart, chainData, marketplaceDa
       <ContentWrapper>
         <AutoColumn gap="24px" style={{ paddingBottom: '24px' }}>
           <Search />
+          <Panel background={true} style={{ textAlign: 'center', marginBottom: '1rem', marginTop: '-1rem' }}>
+      <TYPE.main fontWeight={400}>
+        Data is currently incorrect and we are fixing it, please don't use it
+      </TYPE.main>
+          </Panel>
           <CheckMarks type="nfts" />
         </AutoColumn>
         <BreakpointPanels>
