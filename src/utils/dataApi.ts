@@ -215,7 +215,6 @@ export const getVolumeCharts = (data) => {
 }
 
 export async function getChainPageData(chain) {
-  try {
     const [chartData, { protocols, chains }] = await Promise.all(
       [CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
     )
@@ -232,12 +231,6 @@ export async function getChainPageData(chain) {
         ...charts,
       },
     }
-  } catch (e) {
-    console.log(e)
-    return {
-      notFound: true,
-    }
-  }
 }
 
 export async function getOraclePageData(oracle = null) {
