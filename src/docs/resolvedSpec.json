@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "DefiLlama API",
-        "description": "Docs for defillama's open API\n",
+        "description": "Docs for defillama's open API.\nAPI is completely free to use.\n",
         "version": "1.0.0-oas3"
     },
     "servers": [
