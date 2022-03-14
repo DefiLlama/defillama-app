@@ -93,7 +93,7 @@ const formatProtocolsData = ({
   protocols = [],
   protocolProps = [...basicPropertiesToKeep, 'extraTvl'],
 }) => {
-  let filteredProtocols = [...protocols]
+  let filteredProtocols = [...protocols].filter(({ category }) => category !== "Bridge")
 
   if (chain) {
     filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
