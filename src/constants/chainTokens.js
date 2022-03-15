@@ -474,6 +474,11 @@ export const chainCoingeckoIds = {
     symbol: "XPR",
     cmcId: "5350",
   },
+  Kadena: {
+    geckoId: "kadena",
+    symbol: "KDA",
+    cmcId: "5647",
+  },
 }
 
 export const chainMarketplaceMappings = {
