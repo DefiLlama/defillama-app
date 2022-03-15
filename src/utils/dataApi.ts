@@ -92,8 +92,13 @@ const formatProtocolsData = ({
   category = '',
   protocols = [],
   protocolProps = [...basicPropertiesToKeep, 'extraTvl'],
+  removeBridges = false
 }) => {
-  let filteredProtocols = [...protocols].filter(({ category }) => category !== "Bridge")
+  let filteredProtocols = [...protocols]
+
+  if(removeBridges){
+    filteredProtocols = filteredProtocols.filter(({ category }) => category !== "Bridge")
+  }
 
   if (chain) {
     filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
@@ -219,7 +224,7 @@ export async function getChainPageData(chain) {
       [CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
     )
 
-    const filteredProtocols = formatProtocolsData({ chain, protocols })
+    const filteredProtocols = formatProtocolsData({ chain, protocols, removeBridges: true })
 
     const charts = getVolumeCharts(chartData)
 
