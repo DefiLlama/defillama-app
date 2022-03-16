@@ -6,6 +6,8 @@ import { GeneralLayout } from '../layout'
 import { revalidate, getProtocolsPageData } from '../utils/dataApi'
 
 const exclude = [
+  'MochiFi'
+  'StakeHound'
   'Mento',
   'Lightning Network',
   'Secret Bridge',
