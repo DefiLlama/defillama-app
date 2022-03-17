@@ -6,6 +6,12 @@ import { GeneralLayout } from '../layout'
 import { revalidate, getProtocolsPageData } from '../utils/dataApi'
 
 const exclude = [
+  'DeerFi',
+  'FireDAO',
+  'Robo-Advisor for Yield',
+  'SenpaiSwap',
+  'Zunami Protocol',
+  'NowSwap',
   'NeoBurger',
   'MochiFi',
   'StakeHound',
