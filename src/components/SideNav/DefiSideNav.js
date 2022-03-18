@@ -38,7 +38,7 @@ const NavMenu = ({ isMobile }) => {
       <Entry url="comparison" name="Comparison" history={history} Icon={Minimize2} />
       <Entry url="languages" name="Languages" history={history} Icon={Code} />
       <Entry url="top-protocols" name="Top Protocols" history={history} Icon={Map} />
-      <Entry url="https://chainlist.defillama.com/" name="Chainlist" history={history} Icon={List} external newTag />
+      <Entry url="https://chainlist.org/" name="Chainlist" history={history} Icon={List} external newTag />
       <Entry url="about" name="About" history={history} Icon={HelpCircle} />
     </AutoColumn>
   )
