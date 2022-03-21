@@ -92,12 +92,12 @@ const formatProtocolsData = ({
   category = '',
   protocols = [],
   protocolProps = [...basicPropertiesToKeep, 'extraTvl'],
-  removeBridges = false
+  removeBridges = false,
 }) => {
   let filteredProtocols = [...protocols]
 
-  if(removeBridges){
-    filteredProtocols = filteredProtocols.filter(({ category }) => category !== "Bridge")
+  if (removeBridges) {
+    filteredProtocols = filteredProtocols.filter(({ category }) => category !== 'Bridge')
   }
 
   if (chain) {
@@ -140,7 +140,7 @@ const formatProtocolsData = ({
         }
       } else {
         const firstChar = sectionName[0]
-        if (firstChar === firstChar.toLowerCase() || sectionName === 'Offers' || sectionName === 'Treasury') {
+        if (firstChar === firstChar.toLowerCase()) {
           protocol.extraTvl[sectionName] = sectionTvl
         }
       }
@@ -192,15 +192,7 @@ export async function getSimpleProtocolsPageData(propsToKeep) {
 }
 
 export const getVolumeCharts = (data) => {
-  const {
-    tvl = [],
-    staking = [],
-    borrowed = [],
-    pool2 = [],
-    offers = [],
-    treasury = [],
-    doublecounted = [],
-  } = data || {}
+  const { tvl = [], staking = [], borrowed = [], pool2 = [], doublecounted = [] } = data || {}
 
   const chart = tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
 
@@ -208,8 +200,6 @@ export const getVolumeCharts = (data) => {
     staking: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-    offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-    treasury: treasury.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     doublecounted: doublecounted.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
   }
 
@@ -220,22 +210,22 @@ export const getVolumeCharts = (data) => {
 }
 
 export async function getChainPageData(chain) {
-    const [chartData, { protocols, chains }] = await Promise.all(
-      [CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
-    )
+  const [chartData, { protocols, chains }] = await Promise.all(
+    [CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
+  )
 
-    const filteredProtocols = formatProtocolsData({ chain, protocols, removeBridges: true })
+  const filteredProtocols = formatProtocolsData({ chain, protocols, removeBridges: true })
 
-    const charts = getVolumeCharts(chartData)
+  const charts = getVolumeCharts(chartData)
 
-    return {
-      props: {
-        ...(chain && { chain }),
-        chainsSet: chains,
-        filteredProtocols,
-        ...charts,
-      },
-    }
+  return {
+    props: {
+      ...(chain && { chain }),
+      chainsSet: chains,
+      filteredProtocols,
+      ...charts,
+    },
+  }
 }
 
 export async function getOraclePageData(oracle = null) {
