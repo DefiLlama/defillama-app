@@ -38,7 +38,7 @@ const descriptions = {
   Yield: 'Protocols that pay you a reward for your staking/LP on their platform',
   Lending: 'Protocols that allow users to borrow and lend assets',
   'Cross Chain': 'Protocols that add interoperability between different blockchains',
-  Staking: 'Rewards/Liquidity for staked assets (cryptocurrency)',
+  Staking: 'Protocols that allow you to stake assets in exchange of a reward',
   Services: 'Protocols that provide a service to the user',
   'Yield Aggregator': 'Protocols that aggregated yield from diverse protocols',
   Minting: 'NFT Related (in work)',
@@ -58,6 +58,11 @@ const descriptions = {
   Gaming: 'Protocols that have gaming components',
   'Prediction Market': 'Protocols that allow you to wager/bet/buy in future results',
   'Algo-Stables': 'From algorithmic coins to stablecoins',
+  'NFT Marketplace": "Protocols where users can buy/sell/rent NFTs' ,
+  'NFT Lending": "Protocols that allow you too colletarize your NFT for a loan' ,
+  'Farm": "Lock money in exchange for their token' ,
+  'Liquid Staking": "Rewards/Liquidity for staked assets' ,
+  'Oracle" : "Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)' ,
 }
 
 const columns = [
