@@ -493,7 +493,18 @@ const allColumns: AllColumns = {
   tvl: {
     header: 'TVL',
     accessor: 'tvl',
-    Cell: ({ value }) => <span>{'$' + toK(value)}</span>,
+    Cell: ({ value, rowValues }) => {
+      return (
+        <span
+          style={{
+            textDecoration: rowValues.strikeTvl ? 'line-through' : 'none',
+            color: rowValues.strikeTvl ? 'gray' : 'inherit',
+          }}
+        >
+          {'$' + toK(value)}
+        </span>
+      )
+    },
   },
   mcaptvl: {
     header: 'Mcap/TVL',

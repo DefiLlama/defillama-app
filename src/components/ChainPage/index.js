@@ -14,7 +14,7 @@ import { AllTvlOptions } from '../SettingsModal'
 import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
-import { useCalcStakePool2Tvl } from 'hooks/data'
+import { useCalcProtocolsTvls } from 'hooks/data'
 import { DownloadCloud } from 'react-feather'
 import { BasicLink } from '../Link'
 
@@ -145,7 +145,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   let chainOptions = ['All'].concat(chainsSet).map((label) => ({ label, to: setSelectedChain(label) }))
 
-  const protocolTotals = useCalcStakePool2Tvl(filteredProtocols)
+  const protocolTotals = useCalcProtocolsTvls(filteredProtocols)
 
   const topToken = { name: 'Uniswap', tvl: 0 }
   if (protocolTotals.length > 0) {

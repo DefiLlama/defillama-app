@@ -128,6 +128,81 @@ export const useCalcStakePool2Tvl = (
   return protocolTotals
 }
 
+export const useCalcProtocolsTvls = (
+  filteredProtocols: Readonly<IProtocol[]>,
+  defaultSortingColumn?: string,
+  dir?: 'asc'
+) => {
+  const extraTvlsEnabled: ExtraTvls = useGetExtraTvlEnabled()
+
+  const protocolTotals = useMemo(() => {
+    const checkExtras = { ...extraTvlsEnabled, doublecounted: !extraTvlsEnabled.doublecounted }
+
+    if (Object.values(checkExtras).every((t) => !t)) {
+      return filteredProtocols
+    }
+
+    const updatedProtocols = filteredProtocols.map(
+      ({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, ...props }) => {
+        let finalTvl: number | null = tvl
+        let finalTvlPrevDay: number | null = tvlPrevDay
+        let finalTvlPrevWeek: number | null = tvlPrevWeek
+        let finalTvlPrevMonth: number | null = tvlPrevMonth
+        let strikeTvl = false
+
+        Object.entries(extraTvl).forEach(([prop, propValues]) => {
+          const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
+
+          if (prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
+            strikeTvl = true
+          } else {
+            // convert to lowercase as server response is not consistent in extra-tvl names
+            if (extraTvlsEnabled[prop.toLowerCase()]) {
+              // check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
+              tvl && (finalTvl = (finalTvl || 0) + tvl)
+              tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
+              tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
+              tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
+            }
+          }
+        })
+
+        let change1d: number | null = getPercentChange(finalTvl, finalTvlPrevDay)
+        let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
+        let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
+
+        const mcaptvl = mcap && finalTvl ? mcap / finalTvl : null
+
+        return {
+          ...props,
+          tvl: finalTvl,
+          tvlPrevDay: finalTvlPrevDay,
+          tvlPrevWeek: finalTvlPrevWeek,
+          tvlPrevMonth: finalTvlPrevMonth,
+          change_1d: change1d,
+          change_7d: change7d,
+          change_1m: change1m,
+          mcap,
+          mcaptvl,
+          strikeTvl,
+        }
+      }
+    )
+
+    if (defaultSortingColumn === undefined) {
+      return updatedProtocols.sort((a, b) => b.tvl - a.tvl)
+    } else {
+      return updatedProtocols.sort((a, b) => {
+        if (dir === 'asc') {
+          return a[defaultSortingColumn] - b[defaultSortingColumn]
+        } else return b[defaultSortingColumn] - a[defaultSortingColumn]
+      })
+    }
+  }, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn, dir])
+
+  return protocolTotals
+}
+
 export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
