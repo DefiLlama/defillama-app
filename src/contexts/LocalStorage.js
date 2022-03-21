@@ -18,13 +18,11 @@ export const DARK_MODE = 'DARK_MODE'
 export const POOL2 = 'pool2'
 export const STAKING = 'staking'
 export const BORROWED = 'borrowed'
-export const OFFERS = 'offers'
-export const TREASURY = 'treasury'
 export const DOUBLE_COUNT = 'doublecounted'
 export const DISPLAY_USD = 'DISPLAY_USD'
 export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
 
-const extraTvlProps = [POOL2, STAKING, BORROWED, OFFERS, TREASURY, DOUBLE_COUNT]
+const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
 
 const UPDATABLE_KEYS = [
   DARK_MODE,
@@ -155,7 +153,7 @@ export const useGetExtraTvlEnabled = () => {
   return useMemo(
     () =>
       extraTvlProps.reduce((all, prop) => {
-        all[prop] = isClient ? state[prop] : (prop === "doublecounted")
+        all[prop] = isClient ? state[prop] : prop === 'doublecounted'
         return all
       }, {}),
     [state, isClient]
