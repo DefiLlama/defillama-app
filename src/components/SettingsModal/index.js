@@ -12,8 +12,6 @@ import {
   STAKING,
   POOL2,
   BORROWED,
-  OFFERS,
-  TREASURY,
   DARK_MODE,
   HIDE_LAST_DAY,
   DISPLAY_USD,
@@ -249,16 +247,6 @@ const extraTvlOptions = [
     name: 'Borrows',
     key: BORROWED,
     help: 'Include borrowed coins in lending protocols',
-  },
-  {
-    name: 'Offers',
-    key: OFFERS,
-    help: 'Coins that are approved but not locked',
-  },
-  {
-    name: 'Treasury',
-    key: TREASURY,
-    help: 'Protocol treasury',
   },
   {
     name: 'Double Count',
