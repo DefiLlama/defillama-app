@@ -479,6 +479,11 @@ export const chainCoingeckoIds = {
     symbol: "KDA",
     cmcId: "5647",
   },
+  Vite: {
+    geckoId: "vite",
+    symbol: "VITE",
+    cmcId: "2937",
+  },
 }
 
 export const chainMarketplaceMappings = {
