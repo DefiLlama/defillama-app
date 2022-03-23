@@ -35,6 +35,7 @@ const blockExplorers = {
   evmos: ['https://evm.evmos.org/address/', 'Evmos Explorer'],
   klaytn: ['https://scope.klaytn.com/token/','Klaytn Scope'],
   proton: ['https://www.protonscan.io/tokens/','Protonscan'],
+  vite: ['https://vitescan.io/address/','Vitescan'],
 }
 
 export const getBlockExplorer = (address = '') => {
