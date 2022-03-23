@@ -157,7 +157,7 @@ export const useCalcProtocolsTvls = (
             strikeTvl = true
           } else {
             // convert to lowercase as server response is not consistent in extra-tvl names
-            if (extraTvlsEnabled[prop.toLowerCase()]) {
+            if (extraTvlsEnabled[prop.toLowerCase()] && prop.toLowerCase() !== 'doublecounted') {
               // check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
               tvl && (finalTvl = (finalTvl || 0) + tvl)
               tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
