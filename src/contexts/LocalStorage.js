@@ -13,6 +13,7 @@ const DISMISSED_PATHS = 'DISMISSED_PATHS'
 const SAVED_ACCOUNTS = 'SAVED_ACCOUNTS'
 const SAVED_TOKENS = 'SAVED_TOKENS'
 const SAVED_PAIRS = 'SAVED_PAIRS'
+const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
 
 export const DARK_MODE = 'DARK_MODE'
 export const POOL2 = 'pool2'
@@ -21,6 +22,7 @@ export const BORROWED = 'borrowed'
 export const DOUBLE_COUNT = 'doublecounted'
 export const DISPLAY_USD = 'DISPLAY_USD'
 export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
+export const DEFAULT_PORTFOLIO = 'main'
 
 const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
 
@@ -33,6 +35,7 @@ const UPDATABLE_KEYS = [
   ...extraTvlProps,
   DISPLAY_USD,
   HIDE_LAST_DAY,
+  SELECTED_PORTFOLIO,
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -74,6 +77,7 @@ function init() {
     [SAVED_ACCOUNTS]: [],
     [SAVED_TOKENS]: { main: {} },
     [SAVED_PAIRS]: {},
+    [SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO,
   }
 
   try {
@@ -277,6 +281,7 @@ export function useSavedProtocols() {
   const [pinnedOpen, setPinnedOpen] = useState(false)
   const [state, { updateKey }] = useLocalStorageContext()
   const savedProtocols = state?.[SAVED_TOKENS]
+  const selectedPortfolio = state?.[SELECTED_PORTFOLIO]
 
   function addPortfolio(portfolio) {
     const newList = state?.[SAVED_TOKENS]
@@ -290,24 +295,38 @@ export function useSavedProtocols() {
     updateKey(SAVED_TOKENS, newList)
   }
 
-  function addProtocol(readableProtocolName, portfolio = 'main') {
+  function addProtocol(readableProtocolName) {
     let newList = state?.[SAVED_TOKENS]
     const standardProtocol = standardizeProtocolName(readableProtocolName)
-    newList[portfolio] = {
-      ...(newList[portfolio] || {}),
+    newList[selectedPortfolio] = {
+      ...(newList[selectedPortfolio] || {}),
       [standardProtocol]: readableProtocolName,
     }
     trackGoal('VQ0TO7CU', standardProtocol)
     updateKey(SAVED_TOKENS, newList)
   }
 
-  function removeProtocol(protocol, portfolio = 'main') {
+  function removeProtocol(protocol) {
     let newList = state?.[SAVED_TOKENS]
     const standardProtocol = standardizeProtocolName(protocol)
-    delete newList?.[portfolio]?.[standardProtocol]
+    delete newList?.[selectedPortfolio]?.[standardProtocol]
     trackGoal('6SL0NZYJ', standardProtocol)
     updateKey(SAVED_TOKENS, newList)
   }
 
-  return { savedProtocols, addProtocol, removeProtocol, addPortfolio, removePortfolio, pinnedOpen, setPinnedOpen }
+  function setSelectedPortfolio(name) {
+    updateKey(SELECTED_PORTFOLIO, name)
+  }
+
+  return {
+    savedProtocols,
+    addProtocol,
+    removeProtocol,
+    addPortfolio,
+    removePortfolio,
+    pinnedOpen,
+    setPinnedOpen,
+    selectedPortfolio,
+    setSelectedPortfolio,
+  }
 }
