@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
 
@@ -63,12 +63,13 @@ function PortfolioContainer({ protocolsDict }) {
     }
   }
 
-  const filteredProtocols =
-    isClient && selectedPortfolioProtocols
-      ? Object.keys(selectedPortfolioProtocols)
-          .map((protocol) => protocolsDict[protocol])
-          .sort((a, b) => b?.tvl - a?.tvl)
-      : []
+  const portfolio = Object.values(selectedPortfolioProtocols)
+
+  const filteredProtocols = useMemo(() => {
+    if (isClient) {
+      return protocolsDict.filter((p) => portfolio.includes(p.name))
+    } else return []
+  }, [isClient, portfolio, protocolsDict])
 
   return (
     <PageWrapper>
