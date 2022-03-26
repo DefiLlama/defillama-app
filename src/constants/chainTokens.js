@@ -484,7 +484,7 @@ export const chainCoingeckoIds = {
     symbol: "VITE",
     cmcId: "2937",
   },
-  EthClassic: {
+  EthereumClassic: {
     geckoId: "ethereum-classic",
     symbol: "ETC",
     cmcId: "1321",
