@@ -36,6 +36,7 @@ const blockExplorers = {
   klaytn: ['https://scope.klaytn.com/token/','Klaytn Scope'],
   proton: ['https://www.protonscan.io/tokens/','Protonscan'],
   vite: ['https://vitescan.io/token/','Vitescan'],
+  ethereumclassic: ['https://blockscout.com/etc/mainnet/address/','ETC Blockscout'],
 }
 
 export const getBlockExplorer = (address = '') => {
