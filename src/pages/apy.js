@@ -1,11 +1,8 @@
 import { GeneralLayout } from '../layout'
 import { revalidate } from '../utils/dataApi'
 import { PageWrapper, FullWrapper } from 'components'
-import { AutoRow, RowBetween, RowFlat } from 'components/Row'
 import Search from 'components/Search'
 import { AutoColumn } from 'components/Column'
-
-import { TYPE } from 'Theme'
 import Table, { columnsToShow } from 'components/Table'
 import { formattedPercent } from 'utils'
 
