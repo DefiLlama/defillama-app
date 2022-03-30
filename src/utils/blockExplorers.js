@@ -37,6 +37,7 @@ const blockExplorers = {
   proton: ['https://www.protonscan.io/tokens/','Protonscan'],
   vite: ['https://vitescan.io/token/','Vitescan'],
   ethereumclassic: ['https://blockscout.com/etc/mainnet/address/','ETC Blockscout'],
+  milkomeda: ['https://rpc.c1.milkomeda.com:4000/address/','C1 Blockscout'],
 }
 
 export const getBlockExplorer = (address = '') => {
