@@ -10,9 +10,7 @@ import { ChainDominanceChart } from 'components/Charts'
 import Search from 'components/Search'
 import { Header } from 'Theme'
 
-export async function getStaticProps() {
-  const data = await fetch(LANGS_API).then(r=>r.json())
-  const langs = data.chart
+function formatDataForChart(langs){
   const langsUnique = new Set()
   const daySum = {}
   const formattedLangs = Object.entries(langs).map(lang=>{
@@ -23,12 +21,26 @@ export async function getStaticProps() {
       date: lang[0],
     }
   }).sort((a,b)=>a.date-b.date);
+  return {
+    formatted: formattedLangs,
+    unique: Array.from(langsUnique),
+    daySum
+  }
+}
+
+export async function getStaticProps() {
+  const data = await fetch(LANGS_API).then(r=>r.json())
+  const {unique: langsUnique, formatted: formattedLangs, daySum: langsDaySum} = formatDataForChart(data.chart)
+  const {unique: osUnique, formatted: osLangs, daySum: osDaySum} = formatDataForChart(data.sumDailySolanaOpenSourceTvls)
 
   return {
     props: {
       langs: formattedLangs,
-      langsUnique: Array.from(langsUnique),
-      daySum
+      langsUnique,
+      langsDaySum,
+      osUnique,
+      osLangs,
+      osDaySum
     },
     revalidate: revalidate()
   }
@@ -50,9 +62,13 @@ function Chart({langs, langsUnique}){
 </Panel>
 }
 
-export default function Protocols({ langs, langsUnique, daySum }) {
+export default function Protocols({ langs, langsUnique, langsDaySum,
+  osUnique,
+  osLangs,
+  osDaySum }) {
   const colors = {}
   langsUnique.forEach(l=>{colors[l]=getRandomColor()})
+  console.log(colors)
   return (
     <GeneralLayout title={`Languages - DefiLlama`} defaultSEO>
       <PageWrapper>
@@ -66,7 +82,19 @@ export default function Protocols({ langs, langsUnique, daySum }) {
             stackedDataset={langs}
             chainsUnique={langsUnique}
             chainColor={colors}
-            daySum={daySum} />
+            daySum={langsDaySum} />
+        <br />
+        <Header>Open/Closed Source breakdown of solana protocols</Header>
+        <ChainDominanceChart
+            stackOffset="expand"
+            formatPercent={true}
+            stackedDataset={osLangs}
+            chainsUnique={osUnique}
+            chainColor={{
+              opensource: "green",
+              closedsource: "red"
+            }}
+            daySum={osDaySum} />
       </FullWrapper>
       </PageWrapper>
     </GeneralLayout>

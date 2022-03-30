@@ -260,9 +260,9 @@ export const chainCoingeckoIds = {
     cmcId: '6535',
   },
   Aurora: {
-    geckoId: null,
-    symbol: null,
-    cmcId: null,
+    geckoId: "aurora-near",
+    symbol: "AURORA",
+    cmcId: "14803",
   },
   EOS: {
     geckoId: 'eos',
@@ -483,6 +483,11 @@ export const chainCoingeckoIds = {
     geckoId: "vite",
     symbol: "VITE",
     cmcId: "2937",
+  },
+  EthereumClassic: {
+    geckoId: "ethereum-classic",
+    symbol: "ETC",
+    cmcId: "1321",
   },
 }
 

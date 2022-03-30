@@ -115,8 +115,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     }
   }
 
-  const hour = new Date().getHours()
-  const isDegen = hour >= 1 && hour <= 6
+  const isDegen = typeof window !== "undefined" && window.ethereum !== undefined
 
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
     const globalChart = chart.map((data) => {
