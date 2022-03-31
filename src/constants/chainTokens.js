@@ -494,7 +494,7 @@ export const chainCoingeckoIds = {
     symbol: "ADA",
     cmcId: "2010",
   },
-  Dfk: {
+  DFK: {
     geckoId: "defi-kingdoms",
     symbol: "JEWEL",
     cmcId: "12319",
