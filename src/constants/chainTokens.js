@@ -489,6 +489,11 @@ export const chainCoingeckoIds = {
     symbol: "ETC",
     cmcId: "1321",
   },
+  Milkomeda: {
+    geckoId: "cardano",
+    symbol: "ADA",
+    cmcId: "2010",
+  },
 }
 
 export const chainMarketplaceMappings = {
