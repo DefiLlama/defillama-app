@@ -494,6 +494,11 @@ export const chainCoingeckoIds = {
     symbol: "ADA",
     cmcId: "2010",
   },
+  Dfk: {
+    geckoId: "defi-kingdoms",
+    symbol: "JEWEL",
+    cmcId: "12319",
+  },
 }
 
 export const chainMarketplaceMappings = {
