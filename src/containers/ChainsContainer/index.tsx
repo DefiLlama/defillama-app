@@ -67,7 +67,7 @@ export default function ChainsContainer({
     [chainsUnique]
   )
 
-  const chainTotals = useCalcStakePool2Tvl(chainTvls)
+  const chainTotals = useCalcStakePool2Tvl(chainTvls, undefined, undefined, true)
 
   const chainsTvlValues = useMemo(() => {
     const data = chainTotals.map((chain) => ({ name: chain.name, value: chain.tvl }))
