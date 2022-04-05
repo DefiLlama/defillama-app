@@ -17,6 +17,8 @@ import {
   DISPLAY_USD,
   DOUBLE_COUNT,
   useDarkModeManager,
+  useGroupEnabled,
+  groupSettings
 } from '../../contexts/LocalStorage'
 
 import { AutoRow } from '../Row'
@@ -341,6 +343,31 @@ export const AllTvlOptions = ({ style }) => {
         <ScrollAreaViewport>
           <ListWrapper style={{ ...style }}>
             {extraTvlOptions.map((option) => (
+              <ListItem key={option.key}>
+                <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
+              </ListItem>
+            ))}
+          </ListWrapper>
+        </ScrollAreaViewport>
+        <ScrollAreaScrollbar orientation="horizontal">
+          <ScrollAreaThumb />
+        </ScrollAreaScrollbar>
+        <ScrollAreaCorner />
+      </ScrollAreaRoot>
+    </>
+  )
+}
+
+export const AllGroupOptions = ({ style }) => {
+  const tvlToggles = useTvlToggles()
+  const extraTvlEnabled = useGroupEnabled()
+
+  return (
+    <>
+      <ScrollAreaRoot>
+        <ScrollAreaViewport>
+          <ListWrapper style={{ ...style }}>
+            {groupSettings.map((option) => (
               <ListItem key={option.key}>
                 <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
               </ListItem>

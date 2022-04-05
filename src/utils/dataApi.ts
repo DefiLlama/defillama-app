@@ -448,12 +448,17 @@ export const getChainsPageData = async (category: string) => {
 
   let chainsGroupbyParent = {}
   chainsUnique.forEach((chain) => {
-    const parent = chainCoingeckoIds[chain]?.parent?.chain
+    const parent = chainCoingeckoIds[chain]?.parent
     if (parent) {
-      if (!chainsGroupbyParent[parent]) {
-        chainsGroupbyParent[parent] = {}
+      if (!chainsGroupbyParent[parent.chain]) {
+        chainsGroupbyParent[parent.chain] = {}
       }
-      chainsGroupbyParent[parent][chain] = {}
+      for(const type of parent.types){
+        if (!chainsGroupbyParent[parent.chain][type]) {
+          chainsGroupbyParent[parent.chain][type] = []
+        }
+        chainsGroupbyParent[parent.chain][type].push(chain)
+      }
     }
   })
 

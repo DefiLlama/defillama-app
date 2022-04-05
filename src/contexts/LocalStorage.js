@@ -26,6 +26,32 @@ export const DEFAULT_PORTFOLIO = 'main'
 
 const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
 
+export const groupSettings = [
+  {
+    name: 'L2',
+    key: 'L2',
+  },
+  {
+    name: 'Emulators',
+    key: 'emulator',
+  },
+  {
+    name: 'Same token',
+    key: 'gas',
+  },
+  {
+    name: 'Parachains',
+    key: 'parachain',
+  },
+  {
+    name: 'Subnets',
+    key: 'subnet',
+  },
+  // skale
+]
+
+const groupKeys = groupSettings.map(g=>g.key)
+
 const UPDATABLE_KEYS = [
   DARK_MODE,
   DISMISSED_PATHS,
@@ -36,6 +62,7 @@ const UPDATABLE_KEYS = [
   DISPLAY_USD,
   HIDE_LAST_DAY,
   SELECTED_PORTFOLIO,
+  ...groupKeys,
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -158,6 +185,21 @@ export const useGetExtraTvlEnabled = () => {
     () =>
       extraTvlProps.reduce((all, prop) => {
         all[prop] = isClient ? state[prop] : prop === 'doublecounted'
+        return all
+      }, {}),
+    [state, isClient]
+  )
+}
+
+// TODO: Remove code duplication with useGetExtraTvlEnabled
+export const useGroupEnabled = () => {
+  const [state] = useLocalStorageContext()
+  const isClient = useIsClient()
+
+  return useMemo(
+    () =>
+      groupKeys.reduce((all, prop) => {
+        all[prop] = isClient ? state[prop] : prop === 'emulator'
         return all
       }, {}),
     [state, isClient]

@@ -7,7 +7,7 @@ import { ButtonDark } from 'components/ButtonStyled'
 import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
-import { AllTvlOptions } from 'components/SettingsModal'
+import { AllTvlOptions, AllGroupOptions } from 'components/SettingsModal'
 import Filters from 'components/Filters'
 import { columnsToShow, FullTable } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
@@ -103,6 +103,7 @@ export default function ChainsContainer({
       <FullWrapper>
         <Search />
         <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+        <AllGroupOptions style={{display: 'flex', justifyContent: 'center' }} />
         <RowWrapper>
           <Header>Total Value Locked All Chains</Header>
           <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
+import { useGetExtraTvlEnabled, useGroupEnabled } from 'contexts/LocalStorage'
 import { getPercentChange } from 'utils'
 
 interface IProtocol {
@@ -223,6 +223,7 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
 }
 
 export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IGroupData): GroupChain[] => {
+  const groupsEnabled = useGroupEnabled();
   const data: GroupChain[] = useMemo(() => {
     const finalData = {}
     const addedChains = []
@@ -257,7 +258,10 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
         }
       }
 
-      for (const child in groupData[parentName]) {
+      let addedChildren = false
+      for (const type in groupData[parentName]) {
+        if(groupsEnabled[type] === true){
+        for(const child of groupData[parentName][type]){
         const childData = chains.find((item) => item.name === child)
 
         if (childData) {
@@ -283,6 +287,15 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
             subRows: [...subChains, childData],
           }
           addedChains.push(child)
+          addedChildren = true
+        }
+      }
+      }
+      }
+      if(!addedChildren){
+        delete finalData[parentName].subRows
+        if(finalData[parentName].tvl === undefined){
+          delete finalData[parentName]
         }
       }
     }
@@ -292,10 +305,10 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
         finalData[item.name] = item
       }
     })
-    return Object.values(finalData)
+    return (Object.values(finalData) as GroupChain[]).sort((a, b) => b.tvl - a.tvl)
   }, [chains, groupData])
 
-  return data.sort((a, b) => b.tvl - a.tvl)
+  return data
 }
 
 // returns tvl by day for a group of tokens
