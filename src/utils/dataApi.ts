@@ -448,7 +448,7 @@ export const getChainsPageData = async (category: string) => {
 
   let chainsGroupbyParent = {}
   chainsUnique.forEach((chain) => {
-    const parent = chainCoingeckoIds[chain].parent
+    const parent = chainCoingeckoIds[chain]?.parent?.chain
     if (parent) {
       if (!chainsGroupbyParent[parent]) {
         chainsGroupbyParent[parent] = {}
