@@ -293,9 +293,10 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
       }
       }
       if(!addedChildren){
-        delete finalData[parentName].subRows
         if(finalData[parentName].tvl === undefined){
           delete finalData[parentName]
+        } else {
+          finalData[parentName] = parentData
         }
       }
     }
