@@ -375,9 +375,9 @@ export const chainCoingeckoIds = {
     cmcId: '4747',
   },
   Godwoken: {
-    geckoId: null,
-    symbol: null,
-    cmcId: null,
+    geckoId: 'nervos-network',
+    symbol: 'CKB',
+    cmcId: '4948',
   },
   Callisto: {
     geckoId: 'callisto',
@@ -445,9 +445,9 @@ export const chainCoingeckoIds = {
     cmcId: '12885',
   },
   Curio: {
-    geckoId: null,
-    symbol: null,
-    cmcId: null,
+    geckoId: 'skale',
+    symbol: 'SKL',
+    cmcId: '5691',
   },
   Bittorrent: {
     geckoId: 'bittorrent',
@@ -504,6 +504,11 @@ export const chainCoingeckoIds = {
     symbol: "CLV",
     cmcId: "8384",
     },
+  REI: {
+    geckoId: null,
+    symbol: null,
+    cmcId: null,
+  },
     
 }
 
