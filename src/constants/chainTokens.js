@@ -499,6 +499,12 @@ export const chainCoingeckoIds = {
     symbol: "JEWEL",
     cmcId: "12319",
   },
+  Clover: {
+    geckoId: "clover-finance",
+    symbol: "CLV",
+    cmcId: "8384",
+    },
+    
 }
 
 export const chainMarketplaceMappings = {
