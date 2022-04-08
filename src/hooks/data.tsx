@@ -264,7 +264,9 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
         for(const child of groupData[parentName][type]){
         const childData = chains.find((item) => item.name === child)
 
-        if (childData) {
+        const alreadyAdded = (finalData[parentName].subRows ?? []).find(p=>p.name === child)
+
+        if (childData && alreadyAdded === undefined) {
           tvl += childData.tvl
           tvlPrevDay += childData.tvlPrevDay
           tvlPrevWeek += childData.tvlPrevWeek
