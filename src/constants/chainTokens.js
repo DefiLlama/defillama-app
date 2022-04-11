@@ -509,6 +509,11 @@ export const chainCoingeckoIds = {
     symbol: null,
     cmcId: null,
   },
+  Crab: {
+    geckoId: "darwinia-crab-network",
+    symbol: "CRAB",
+    cmcId: "9243",
+  },
     
 }
 
