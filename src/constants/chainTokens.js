@@ -514,6 +514,11 @@ export const chainCoingeckoIds = {
     symbol: "CRAB",
     cmcId: "9243",
   },
+  Hbar: {
+    geckoId: "hedera-hashgraph",
+    symbol: "HBAR",
+    cmcId: "4642",
+  },
     
 }
 
