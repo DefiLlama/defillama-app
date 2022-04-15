@@ -48,7 +48,10 @@ interface IPeggedAsset {
   logo: string
   gecko_id: string
   cmcID: string
-  category: string
+  categories: {
+    category: string
+    asset: string
+  }[]
   chains: string[]
   module: string
   twitter: string
@@ -411,6 +414,18 @@ export const getProtocols = () =>
       categories: protocolCategories,
     }))
 
+export const getPeggedAssets = () =>
+  fetch(PEGGEDS_API + '?includeChains=true')
+    .then((r) => r.json())
+    .then(({ peggedAssets, chains }) => ({
+      protocolsDict: peggedAssets.reduce((acc, curr) => {
+        acc[standardizeProtocolName(curr.name)] = curr
+        return acc
+      }, {}),
+      peggedAssets,
+      chains,
+    }))
+
 export const getProtocol = async (protocolName: string) => {
   try {
     const data: IProtocol = await fetch(`${PROTOCOL_API}/${protocolName}`).then((r) => r.json())
@@ -438,9 +453,9 @@ export const fuseProtocolData = (protocolData, protocol) => {
   }
 }
 
-export const getPeggedChainsPageData = async (category: string) => {
+export const getPeggedChainsPageData = async (category: string, peggedasset: string) => {
   const [res, { chainCoingeckoIds }] = await Promise.all(
-    [PEGGEDS_API + '?includeChains=true', CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
+    [`${PEGGED_API}/${peggedasset}`, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
   )
 
   let categories = []
@@ -482,10 +497,10 @@ export const getPeggedChainsPageData = async (category: string) => {
     chainsUnique.map(async (elem: string) => {
       for (let i = 0; i < 5; i++) {
         try {
-          return await fetch(`${PEGGEDCHART_API}/${elem}`).then((resp) => resp.json())
+          return await fetch(`${PEGGEDCHART_API}/${elem}?peggedAsset=${peggedasset}`).then((resp) => resp.json())
         } catch (e) {}
       }
-      throw new Error(`${PEGGEDCHART_API}/${elem} is broken`)
+      throw new Error(`${PEGGEDCHART_API}/${elem}?peggedAsset=${peggedasset} is broken`)
     })
   )
 
@@ -493,7 +508,6 @@ export const getPeggedChainsPageData = async (category: string) => {
     return chart[0] ?? { totalCirculating: {} }
   })
 
-  console.log(fixedData)
   const chainTvls = chainsUnique.map((chainName, i) => {
     const circulating = fixedData[i]['totalCirculating'] // used to use getPrevTvlFromChart here, don't really understand
 

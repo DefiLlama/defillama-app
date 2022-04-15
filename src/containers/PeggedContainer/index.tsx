@@ -14,11 +14,23 @@ import { toNiceCsvDate, getRandomColor, download } from 'utils'
 import { getPeggedChainsPageData, revalidate } from 'utils/peggedDataApi'
 import { useCalcGroupExtraTvlsByDay, useCalcCirculating } from 'hooks/peggedData'
 
-export async function getStaticProps() {
+export async function getStaticProps({
+  params: {
+    peggedasset: [peggedasset],
+  },
+}) {
   const data = await getPeggedChainsPageData('All')
+  let {chainsUnique, chainTvls, category, categories} = data.props
   return {
-    ...data,
+    props: {
+    chainsUnique,
+    chainTvls,
+    category,
+    categories,
+    peggedasset,
+    },
     revalidate: revalidate(),
+    
   }
 }
 
@@ -59,15 +71,15 @@ export default function PeggedContainer({
   chainTvls,
   category,
   categories,
+  peggedasset,
 }) {
-  const [asset, setAsset] = useState("tether");
 
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
     [chainsUnique]
   )
 
-  const chainTotals = useCalcCirculating(chainTvls, asset)
+  const chainTotals = useCalcCirculating(chainTvls, peggedasset)
 
   const chainsTvlValues = useMemo(() => {
     const data = chainTotals.map((chain) => ({ name: chain.name, value: chain.circulating }))
@@ -101,7 +113,7 @@ export default function PeggedContainer({
             stackOffset="expand"
             formatPercent={true}
             stackedDataset={stackedData}
-            asset={asset}
+            asset={peggedasset}
             chainsUnique={chainsUnique}
             chainColor={chainColor}
             daySum={daySum}
