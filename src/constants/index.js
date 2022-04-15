@@ -44,6 +44,10 @@ export const NFT_CHAINS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaw
 export const NFT_MARKETPLACES_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/marketplaces'
 export const NFT_SEARCH_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/search'
 
+export const PEGGEDS_API = 'https://uemu821wp6.execute-api.us-east-1.amazonaws.com/dev/peggeds'
+export const PEGGED_API = 'https://uemu821wp6.execute-api.us-east-1.amazonaws.com/dev/pegged'
+export const PEGGEDCHART_API = 'https://uemu821wp6.execute-api.us-east-1.amazonaws.com/dev/peggedcharts'
+
 // GlobalData Constants
 export const UPDATE = 'UPDATE'
 export const UPDATE_TXNS = 'UPDATE_TXNS'
