@@ -273,6 +273,11 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
       <ContentWrapper>
         <AutoColumn gap="24px">
           <Search />
+          <Panel background={true} style={{ textAlign: 'center' }}>
+            <TYPE.main fontWeight={400}>
+              We've launched a channel for daily crypto recaps. Subscribe <BasicLink style={{textDecoration:"underline"}} href="https://t.me/defillama_tg">here</BasicLink> to stay up to date!
+            </TYPE.main>
+          </Panel>
         </AutoColumn>
         <div>
           <BreakpointPanels>
