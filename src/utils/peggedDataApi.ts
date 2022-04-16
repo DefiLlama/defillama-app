@@ -75,7 +75,7 @@ interface IChainGeckoId {
 }
 
 interface IChainData {
-  [key: string]: number | object
+  [key: string]: [number, number][]
 }
 
 interface IStackedDataset {
@@ -475,14 +475,12 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
     }
   } else {
     categories = [
-      { label: 'All', to: '/chains' },
-      { label: 'Non-EVM', to: '/chains/Non-EVM' },
-    ].concat(categories.map((category) => ({ label: category, to: `/chains/${category}` })))
+      { label: 'All', to: `/peggedasset/${peggedasset}` },
+      { label: 'Non-EVM', to: `/peggedasset/${peggedasset}/Non-EVM` },
+    ].concat(categories.map((category) => ({ label: category, to: `/peggedasset/${peggedasset}/${category}` })))
   }
 
-  let chainNames = res.chains.map((chain) => chain.name)
-
-  const chainsUnique: string[] = chainNames.filter((t: string) => {
+  const chainsUnique: string[] = res.chains.filter((t: string) => {
     const chainCategories = chainCoingeckoIds[t]?.categories ?? []
     if (category === 'All') {
       return true
@@ -493,7 +491,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
     }
   })
 
-  const chainsData: IChainData[] = await Promise.all(
+  const chainsData: any[] = await Promise.all(
     chainsUnique.map(async (elem: string) => {
       for (let i = 0; i < 5; i++) {
         try {
@@ -505,11 +503,11 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
   )
 
   const fixedData = chainsData.map((chart) => {
-    return chart[0] ?? { totalCirculating: {} }
+    return chart[0] ?? { totalCirculating: { [peggedasset]: 0 } }
   })
 
   const chainTvls = chainsUnique.map((chainName, i) => {
-    const circulating = fixedData[i]['totalCirculating'] // used to use getPrevTvlFromChart here, don't really understand
+    const circulating: number = fixedData[i]['totalCirculating'][peggedasset] // used to use getPrevTvlFromChart here, don't really understand
 
     return {
       circulating,
@@ -518,26 +516,20 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
     }
   }) // REMOVED SORT
 
-  {
-    /*
   const stackedDataset = Object.entries(
     chainsData.reduce((total: IStackedDataset, chains, i) => {
       const chainName = chainsUnique[i]
-      Object.entries(chains).forEach(([tvlType, values]) => {
-        values.forEach((value) => {
-          if (value[0] < 1596248105) return
-          if (total[value[0]] === undefined) {
-            total[value[0]] = {}
-          }
-          const b = total[value[0]][chainName]
-          total[value[0]][chainName] = { ...b, [tvlType]: value[1] }
-        })
+      chains.forEach((circulating) => {
+        if (circulating.date < 1596248105) return
+        if (total[circulating.date] === undefined) {
+          total[circulating.date] = {}
+        }
+        const b = total[circulating.date][chainName]
+        total[circulating.date][chainName] = { ...b, totalCirculating: circulating.totalCirculating[peggedasset] }
       })
       return total
     }, {})
   )
-  */
-  }
 
   return {
     props: {
@@ -545,6 +537,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       chainTvls,
       category,
       categories,
+      stackedDataset,
     },
   }
 }

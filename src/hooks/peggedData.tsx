@@ -22,31 +22,10 @@ interface IProtocol {
   }
 }
 
-interface IPeggedAsset {
-  id: string
+interface IPegged {
+  circulating: number
   name: string
-  address: string
   symbol: string
-  url: string
-  description: string
-  chain: string
-  logo: string
-  gecko_id: string
-  cmcID: string
-  category: string
-  chains: string[]
-  module: string
-  twitter: string
-  slug: string
-  mcap: number
-  circulating: {
-    [token: string]: number
-  }
-  chainCirculating: {
-    [cahin: string]: {
-      [token: string]: number
-    }
-  }[]
 }
 
 interface IChainTvl {
@@ -81,7 +60,7 @@ type ExtraTvls = { [key: string]: boolean }
 
 // PEGGED ASSETS
 export const useCalcCirculating = (
-  filteredProtocols: Readonly<IPeggedAsset[]>,
+  filteredProtocols: IPegged[],
   asset: string,
   defaultSortingColumn?: string,
   dir?: 'asc'
@@ -89,20 +68,7 @@ export const useCalcCirculating = (
 
   const protocolTotals = useMemo(() => {
 
-    const updatedProtocols = filteredProtocols.map(
-      ({ circulating, ...props }) => {
-        let finalCirculating: number;
-        if (circulating[asset]) {
-         finalCirculating = circulating[asset];
-        } else {
-          finalCirculating = 0;
-        }
-        return {
-          ...props,
-          circulating: finalCirculating,
-        }
-      }
-    )
+    const updatedProtocols = filteredProtocols;
 
     if (defaultSortingColumn === undefined) {
       return updatedProtocols.sort((a, b) => b.circulating - a.circulating)
@@ -289,7 +255,6 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
 
 // returns tvl by day for a group of tokens
 export const useCalcGroupExtraTvlsByDay = (chains) => {
-  const extraTvlsEnabled = useGetExtraTvlEnabled()
 
   const { data, daySum } = useMemo(() => {
     const daySum = {}
@@ -298,26 +263,16 @@ export const useCalcGroupExtraTvlsByDay = (chains) => {
       let totalDaySum = 0
 
       Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
-        let sum = chainTvls.tvl
-        totalDaySum += chainTvls.tvl || 0
+        let sum = chainTvls.totalCirculating
+        totalDaySum += chainTvls.totalCirculating || 0
 
-        for (const c in chainTvls) {
-          if (c === 'doublecounted') {
-            sum -= chainTvls[c]
-            totalDaySum -= chainTvls[c]
-          }
-          if (extraTvlsEnabled[c.toLowerCase()]) {
-            sum += chainTvls[c]
-            totalDaySum += chainTvls[c]
-          }
-        }
         tvls[name] = sum
       })
       daySum[date] = totalDaySum
       return { date, ...tvls }
     })
     return { data, daySum }
-  }, [chains, extraTvlsEnabled])
+  }, [chains])
 
   return { data, daySum }
 }

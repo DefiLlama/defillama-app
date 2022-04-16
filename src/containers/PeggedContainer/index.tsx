@@ -14,26 +14,6 @@ import { toNiceCsvDate, getRandomColor, download } from 'utils'
 import { getPeggedChainsPageData, revalidate } from 'utils/peggedDataApi'
 import { useCalcGroupExtraTvlsByDay, useCalcCirculating } from 'hooks/peggedData'
 
-export async function getStaticProps({
-  params: {
-    peggedasset: [peggedasset],
-  },
-}) {
-  const data = await getPeggedChainsPageData('All')
-  let {chainsUnique, chainTvls, category, categories} = data.props
-  return {
-    props: {
-    chainsUnique,
-    chainTvls,
-    category,
-    categories,
-    peggedasset,
-    },
-    revalidate: revalidate(),
-    
-  }
-}
-
 const ChartsWrapper = styled(Box)`
   display: flex;
   flex-wrap: nowrap;
@@ -64,16 +44,20 @@ const StyledTable = styled(FullTable)<ITable>`
   }
 `
 
-const columns = columnsToShow('chainName', 'circulating')
+const Capitalize = (str) => {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+const columns = columnsToShow('chainName', 'issuance')
 
 export default function PeggedContainer({
   chainsUnique,
   chainTvls,
   category,
   categories,
+  stackedDataset,
   peggedasset,
 }) {
-
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
     [chainsUnique]
@@ -94,7 +78,7 @@ export default function PeggedContainer({
       .concat({ name: 'Others', value: otherTvl })
   }, [chainTotals])
 
-  {/* const { data: stackedData, daySum } = useCalcGroupExtraTvlsByDay(stackedDataset) */}
+  const { data: stackedData, daySum } = useCalcGroupExtraTvlsByDay(stackedDataset)
 
   const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
 
@@ -102,13 +86,11 @@ export default function PeggedContainer({
     <PageWrapper>
       <FullWrapper>
         <Search />
-        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
         <RowWrapper>
-          <Header>Total Value Locked All Chains</Header>
+          <Header>{Capitalize(peggedasset)} Total Issuance All Chains</Header>
         </RowWrapper>
         <ChartsWrapper>
           <PeggedChainPieChart data={chainsTvlValues} chainColor={chainColor} />
-          {/*
           <PeggedChainDominanceChart
             stackOffset="expand"
             formatPercent={true}
@@ -118,7 +100,6 @@ export default function PeggedContainer({
             chainColor={chainColor}
             daySum={daySum}
           />
-          */}
         </ChartsWrapper>
         <Filters filterOptions={categories} activeLabel={category} />
         <StyledTable data={chainTotals} columns={columns} showByGroup={showByGroup} />

@@ -6,17 +6,19 @@ import { standardizeProtocolName } from 'utils'
 
 export async function getStaticProps({
   params: {
-    peggedasset: [peggedasset],
+    peggedasset: [peggedasset, cat = 'All'],
   },
 }) {
-  const data = await getPeggedChainsPageData('All')
-  let {chainsUnique, chainTvls, category, categories} = data.props
+
+  const data = await getPeggedChainsPageData(cat, peggedasset)
+  let {chainsUnique, chainTvls, category, categories, stackedDataset} = data.props
   return {
     props: {
     chainsUnique,
     chainTvls,
     category,
     categories,
+    stackedDataset,
     peggedasset,
     },
     revalidate: revalidate(),

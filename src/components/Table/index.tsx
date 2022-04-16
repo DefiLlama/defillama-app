@@ -434,7 +434,7 @@ type Columns =
   | 'listedAt'
   | 'msizetvl'
   | 'protocols'
-  | 'circulating'
+  | 'issuance'
 
 type AllColumns = Record<Columns, ColumnProps>
 
@@ -526,8 +526,8 @@ const allColumns: AllColumns = {
     header: 'Protocols',
     accessor: 'protocols',
   },
-  circulating: {
-    header: 'Total Circulating',
+  issuance: {
+    header: 'Total Issuance',
     accessor: 'circulating',
     Cell: ({ value }) => <>{value && formattedNum(value)}</>,
   },
