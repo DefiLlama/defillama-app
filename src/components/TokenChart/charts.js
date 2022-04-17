@@ -1,3 +1,4 @@
+import React from 'react'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar, ReferenceLine } from 'recharts'
 import {
@@ -101,7 +102,7 @@ export function GeneralAreaChart({ aspect, finalChartData, tokensUnique, color, 
 }
 
 
-export function GeneralBarChart({ aspect, finalChartData, tokensUnique, color, formatDate, moneySymbol = "$", hallmarks = [] }) {
+const GeneralBarChart = React.memo(function GeneralBarChart({ aspect, finalChartData, tokensUnique, color, formatDate, moneySymbol = "$", hallmarks = [] }) {
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
   const tokenBreakdown = tokensUnique.length > 0
@@ -173,4 +174,6 @@ export function GeneralBarChart({ aspect, finalChartData, tokensUnique, color, f
       )}
     </BarChart>
   </ResponsiveContainer>
-}
+})
+
+export default GeneralBarChart
