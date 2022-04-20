@@ -425,6 +425,7 @@ export function Name({
 type Columns =
   | 'protocolName'
   | 'chainName'
+  | 'peggedName'
   | 'chains'
   | '1dChange'
   | '7dChange'
@@ -434,7 +435,7 @@ type Columns =
   | 'listedAt'
   | 'msizetvl'
   | 'protocols'
-  | 'issuance'
+  | 'circulating'
 
 type AllColumns = Record<Columns, ColumnProps>
 
@@ -455,6 +456,21 @@ const allColumns: AllColumns = {
     ),
   },
   chainName: {
+    header: 'Name',
+    accessor: 'name',
+    disableSortBy: true,
+    Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
+      <Name
+        type="chain"
+        value={value}
+        symbol={rowValues.symbol}
+        index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
+        rowType={rowType}
+        showRows={showRows}
+      />
+    ),
+  },
+  peggedName: {
     header: 'Name',
     accessor: 'name',
     disableSortBy: true,
@@ -526,8 +542,8 @@ const allColumns: AllColumns = {
     header: 'Protocols',
     accessor: 'protocols',
   },
-  issuance: {
-    header: 'Total Issuance',
+  circulating: {
+    header: 'Total Circulating',
     accessor: 'circulating',
     Cell: ({ value }) => <>{value && formattedNum(value)}</>,
   },

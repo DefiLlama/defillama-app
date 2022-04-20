@@ -9,6 +9,8 @@ import {
   useHideLastDayManager,
   useTvlToggles,
   useGetExtraTvlEnabled,
+  usePeggedToggles,
+  useGetExtraPeggedEnabled,
   STAKING,
   POOL2,
   BORROWED,
@@ -17,6 +19,7 @@ import {
   DISPLAY_USD,
   DOUBLE_COUNT,
   useDarkModeManager,
+  UNRELEASED,
 } from '../../contexts/LocalStorage'
 
 import { AutoRow } from '../Row'
@@ -255,6 +258,14 @@ const extraTvlOptions = [
   },
 ]
 
+const extraPeggedOptions = [
+  {
+    name: 'Unreleased',
+    key: UNRELEASED,
+    help: 'Include tokens that were minted but have never been circulating.',
+  },
+]
+
 export default function Menu({ type = 'defi' }) {
   const node = useRef()
 
@@ -343,6 +354,31 @@ export const AllTvlOptions = ({ style }) => {
             {extraTvlOptions.map((option) => (
               <ListItem key={option.key}>
                 <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
+              </ListItem>
+            ))}
+          </ListWrapper>
+        </ScrollAreaViewport>
+        <ScrollAreaScrollbar orientation="horizontal">
+          <ScrollAreaThumb />
+        </ScrollAreaScrollbar>
+        <ScrollAreaCorner />
+      </ScrollAreaRoot>
+    </>
+  )
+}
+
+export const AllPeggedOptions = ({ style }) => {
+  const peggedToggles = usePeggedToggles()
+  const extraPeggedEnabled = useGetExtraPeggedEnabled()
+
+  return (
+    <>
+      <ScrollAreaRoot>
+        <ScrollAreaViewport>
+          <ListWrapper style={{ ...style }}>
+            {extraPeggedOptions.map((option) => (
+              <ListItem key={option.key}>
+                <OptionToggle {...option} toggle={peggedToggles(option.key)} enabled={extraPeggedEnabled[option.key]} />
               </ListItem>
             ))}
           </ListWrapper>

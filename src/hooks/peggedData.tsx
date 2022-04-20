@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
+import { useGetExtraTvlEnabled, useGetExtraPeggedEnabled } from 'contexts/LocalStorage'
 import { getPercentChange } from 'utils'
 
 interface IProtocol {
@@ -24,6 +24,7 @@ interface IProtocol {
 
 interface IPegged {
   circulating: number
+  unreleased: number
   name: string
   symbol: string
 }
@@ -65,10 +66,19 @@ export const useCalcCirculating = (
   defaultSortingColumn?: string,
   dir?: 'asc'
 ) => {
+  const extraPeggedEnabled: ExtraTvls = useGetExtraPeggedEnabled()
 
   const protocolTotals = useMemo(() => {
-
-    const updatedProtocols = filteredProtocols;
+    const updatedProtocols = filteredProtocols.map(({ circulating, unreleased, ...props }) => {
+      if (extraPeggedEnabled['unreleased']) {
+        circulating += unreleased
+      }
+      return {
+        circulating,
+        unreleased,
+        ...props,
+      }
+    })
 
     if (defaultSortingColumn === undefined) {
       return updatedProtocols.sort((a, b) => b.circulating - a.circulating)
@@ -79,7 +89,7 @@ export const useCalcCirculating = (
         } else return b[defaultSortingColumn] - a[defaultSortingColumn]
       })
     }
-  }, [filteredProtocols, defaultSortingColumn, dir])
+  }, [filteredProtocols, extraPeggedEnabled, defaultSortingColumn, dir])
 
   return protocolTotals
 }
@@ -255,6 +265,7 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
 
 // returns tvl by day for a group of tokens
 export const useCalcGroupExtraTvlsByDay = (chains) => {
+  const extraPeggedEnabled = useGetExtraPeggedEnabled()
 
   const { data, daySum } = useMemo(() => {
     const daySum = {}
@@ -264,7 +275,11 @@ export const useCalcGroupExtraTvlsByDay = (chains) => {
 
       Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
         let sum = chainTvls.totalCirculating
-        totalDaySum += chainTvls.totalCirculating || 0
+        totalDaySum += chainTvls.totalCirculating
+        if (extraPeggedEnabled['unreleased']) {
+          sum += chainTvls.unreleased
+          totalDaySum += chainTvls.unreleased
+        }
 
         tvls[name] = sum
       })
@@ -272,7 +287,7 @@ export const useCalcGroupExtraTvlsByDay = (chains) => {
       return { date, ...tvls }
     })
     return { data, daySum }
-  }, [chains])
+  }, [chains, extraPeggedEnabled])
 
   return { data, daySum }
 }

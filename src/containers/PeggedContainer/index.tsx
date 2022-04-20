@@ -7,7 +7,7 @@ import { ButtonDark } from 'components/ButtonStyled'
 import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
-import { AllTvlOptions } from 'components/SettingsModal'
+import { AllPeggedOptions } from 'components/SettingsModal'
 import Filters from 'components/Filters'
 import { columnsToShow, FullTable } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
@@ -48,7 +48,7 @@ const Capitalize = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-const columns = columnsToShow('chainName', 'issuance')
+const columns = columnsToShow('chainName', 'circulating')
 
 export default function PeggedContainer({
   chainsUnique,
@@ -82,12 +82,15 @@ export default function PeggedContainer({
 
   const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
 
+  //add usegroupedchainsbyparent
+
   return (
     <PageWrapper>
       <FullWrapper>
         <Search />
+        <AllPeggedOptions style={{ display: 'flex', justifyContent: 'center' }} />
         <RowWrapper>
-          <Header>{Capitalize(peggedasset)} Total Issuance All Chains</Header>
+          <Header>{Capitalize(peggedasset)} Total Circulating All Chains</Header>
         </RowWrapper>
         <ChartsWrapper>
           <PeggedChainPieChart data={chainsTvlValues} chainColor={chainColor} />

@@ -48,10 +48,8 @@ interface IPeggedAsset {
   logo: string
   gecko_id: string
   cmcID: string
-  categories: {
-    category: string
-    asset: string
-  }[]
+  category: string
+  defaultAsset: string
   chains: string[]
   module: string
   twitter: string
@@ -109,6 +107,9 @@ export const basicPropertiesToKeep = [
   'mcaptvl',
   'category',
 ]
+
+export const peggedPropertiesToKeep = ['circulating', 'unreleased', 'name', 'symbol', 'chains']
+
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
     if (protocol[prop] !== undefined) {
@@ -116,6 +117,53 @@ export function keepNeededProperties(protocol: any, propertiesToKeep: string[] =
     }
     return obj
   }, {})
+}
+
+export function keepNeededPeggedProperties(protocol: any, propertiesToKeep: string[] = peggedPropertiesToKeep) {
+  return propertiesToKeep.reduce((obj, prop) => {
+    if (protocol[prop] !== undefined) {
+      obj[prop] = protocol[prop]
+    }
+    return obj
+  }, {})
+}
+
+const formatPeggedAssetsData = ({
+  chain = '',
+  category = '',
+  peggedAssets = [],
+  protocolProps = [...peggedPropertiesToKeep],
+}) => {
+  let filteredProtocols = [...peggedAssets]
+  
+  if (chain) {
+    filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
+  }
+
+  if (category) {
+    filteredProtocols = filteredProtocols.filter(
+      ({ category: peggedCategory = '' }) =>
+        category.toLowerCase() === (peggedCategory ? peggedCategory.toLowerCase() : '')
+    )
+  }
+
+  filteredProtocols = filteredProtocols.map((protocol) => {
+    let defaultAsset = protocol.defaultAsset
+    if (chain) {
+      protocol.circulating = protocol.chainCirculating[chain][defaultAsset] ?? 0
+    } else {
+      protocol.circulating = protocol.circulating[defaultAsset]
+    }
+    protocol.unreleased = 0 // removing/refactoring this
+
+    return keepNeededPeggedProperties(protocol, protocolProps)
+  })
+
+  if (chain) {
+    filteredProtocols = filteredProtocols.sort((a, b) => b.circulating - a.circulating)
+  }
+
+  return filteredProtocols
 }
 
 const formatProtocolsData = ({
@@ -188,6 +236,33 @@ const formatProtocolsData = ({
   return filteredProtocols
 }
 
+export async function getPeggedsPageData(category, chain) {
+  const { peggedAssets, chains } = await getPeggedAssets()
+
+  const chainsSet = new Set()
+
+  peggedAssets.forEach(({ chains, category: pCategory }) => {
+    chains.forEach((chain) => {
+      if (!category || !chain) {
+        chainsSet.add(chain)
+      } else {
+        if (pCategory?.toLowerCase() === category?.toLowerCase() && chains.includes(chain)) {
+          chainsSet.add(chain)
+        }
+      }
+    })
+  })
+
+  let filteredProtocols = formatPeggedAssetsData({ category, peggedAssets, chain })
+
+  return {
+    filteredProtocols,
+    chain: chain ?? 'All',
+    peggedcategory: category,
+    chains: chains.filter((chain) => chainsSet.has(chain)),
+  }
+}
+
 export async function getProtocolsPageData(category, chain) {
   const { protocols, chains } = await getProtocols()
 
@@ -213,6 +288,16 @@ export async function getProtocolsPageData(category, chain) {
     category,
     chains: chains.filter((chain) => chainsSet.has(chain)),
   }
+}
+
+export async function getSimplePeggedAssetsPageData(propsToKeep) {
+  const { peggedAssets, chains } = await getPeggedAssetsRaw()
+  const filteredProtocols = formatPeggedAssetsData({
+    peggedAssets,
+    protocolProps: propsToKeep,
+  })
+
+  return { peggedAssets: filteredProtocols, chains }
 }
 
 export async function getSimpleProtocolsPageData(propsToKeep) {
@@ -401,6 +486,8 @@ export async function getForkPageData(fork = null) {
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
+export const getPeggedAssetsRaw = () => fetch(PEGGEDS_API).then((r) => r.json())
+
 export const getProtocols = () =>
   fetch(PROTOCOLS_API)
     .then((r) => r.json())
@@ -503,14 +590,21 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
   )
 
   const fixedData = chainsData.map((chart) => {
-    return chart[0] ?? { totalCirculating: { [peggedasset]: 0 } }
+    return (
+      chart[0] ?? {
+        totalCirculating: { [peggedasset]: 0 },
+        unreleased: { [peggedasset]: 0 },
+      }
+    )
   })
 
   const chainTvls = chainsUnique.map((chainName, i) => {
-    const circulating: number = fixedData[i]['totalCirculating'][peggedasset] // used to use getPrevTvlFromChart here, don't really understand
+    const circulating: number = fixedData[i]['totalCirculating'] ? fixedData[i]['totalCirculating'][peggedasset] : 0 // used to use getPrevTvlFromChart here, don't really understand
+    const unreleased: number = fixedData[i]['unreleased'] ? fixedData[i]['unreleased'][peggedasset] : 0
 
     return {
       circulating,
+      unreleased,
       name: chainName,
       symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
     }
@@ -525,7 +619,11 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
           total[circulating.date] = {}
         }
         const b = total[circulating.date][chainName]
-        total[circulating.date][chainName] = { ...b, totalCirculating: circulating.totalCirculating[peggedasset] }
+        total[circulating.date][chainName] = {
+          ...b,
+          totalCirculating: circulating.totalCirculating ? circulating.totalCirculating[peggedasset] ?? 0 : 0,
+          unreleased: circulating.unreleased ? circulating.unreleased[peggedasset] ?? 0 : 0,
+        }
       })
       return total
     }, {})

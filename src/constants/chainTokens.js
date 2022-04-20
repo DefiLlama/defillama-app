@@ -499,6 +499,11 @@ export const chainCoingeckoIds = {
     symbol: "JEWEL",
     cmcId: "12319",
   },
+  Omni: {
+    geckoId: 'omni',
+    symbol: 'OMNI',
+    cmcId: '83',
+  },
 }
 
 export const chainMarketplaceMappings = {
