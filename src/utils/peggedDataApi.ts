@@ -623,6 +623,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       category,
       categories,
       stackedDataset,
+      pegType,
     },
   }
 }

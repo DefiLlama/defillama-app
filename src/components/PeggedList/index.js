@@ -10,7 +10,7 @@ import { getRandomColor } from 'utils'
 import { useCalcCirculating } from 'hooks/peggedData'
 import { useLg } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
-import Table, { columnsToShow } from 'components/Table'
+import Table, { columnsToShow, isOfTypeColumns } from 'components/Table'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 
 const ListOptions = styled(AutoRow)`
@@ -45,6 +45,12 @@ function AllPeggedsPage({
   showChainList = true,
   defaultSortingColumn,
 }) {
+  let columns = columnsToShow('protocolName', 'chains', 'circulating')
+  const peggedColumn = `${category}`.toLowerCase()
+  if (isOfTypeColumns(peggedColumn)) {
+    columns = columnsToShow(peggedColumn, 'chains', 'circulating')
+  }
+
   const isLg = useLg()
   const handleRouting = (chain) => {
     if (chain === 'All') return `/peggedassets/${category?.toLowerCase()}`
@@ -78,8 +84,6 @@ function AllPeggedsPage({
       title = `${category} Circulating`
     }
   }
-
-  const columns = columnsToShow('peggedName', "chains", 'circulating')
 
   return (
     <PageWrapper>

@@ -11,7 +11,7 @@ export async function getStaticProps({
 }) {
 
   const data = await getPeggedChainsPageData(cat, peggedasset)
-  const {chainsUnique, chainTvls, category, categories, stackedDataset} = data.props
+  const {chainsUnique, chainTvls, category, categories, stackedDataset, pegType} = data.props
   return {
     props: {
     chainsUnique,
@@ -20,6 +20,7 @@ export async function getStaticProps({
     categories,
     stackedDataset,
     peggedasset,
+    pegType,
     },
     revalidate: revalidate(),
     

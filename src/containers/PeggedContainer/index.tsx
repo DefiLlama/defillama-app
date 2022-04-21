@@ -9,7 +9,7 @@ import Search from 'components/Search'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 import { AllPeggedOptions } from 'components/SettingsModal'
 import Filters from 'components/Filters'
-import { columnsToShow, FullTable } from 'components/Table'
+import { columnsToShow, FullTable, isOfTypeColumns } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
 import { getPeggedChainsPageData, revalidate } from 'utils/peggedDataApi'
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating } from 'hooks/peggedData'
@@ -48,8 +48,6 @@ const Capitalize = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-const columns = columnsToShow('chainName', 'circulating')
-
 export default function PeggedContainer({
   chainsUnique,
   chainTvls,
@@ -57,7 +55,14 @@ export default function PeggedContainer({
   categories,
   stackedDataset,
   peggedasset,
+  pegType,
 }) {
+  let columns = columnsToShow('chainName', 'circulating')
+  const peggedColumn = `${pegType}`
+  if (isOfTypeColumns(peggedColumn)) {
+    columns = columnsToShow(peggedColumn, 'circulating')
+  }
+
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
     [chainsUnique]

@@ -366,7 +366,7 @@ export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...p
 }
 
 interface NameProps {
-  type: 'chain' | 'protocol'
+  type: 'chain' | 'protocol' | 'peggedUSD' | 'stablecoins'
   value: string
   symbol?: string
   index?: number
@@ -392,6 +392,12 @@ export function Name({
     if (type === 'chain') {
       tokenUrl = `/${type}/${value}`
       iconUrl = chainIconUrl(value)
+    } else if (type === "peggedUSD") {
+      tokenUrl = `/peggedassets/${type}/${value}`
+      iconUrl = chainIconUrl(value)
+    } else if (type === "stablecoins") {
+      tokenUrl = `/peggedasset/${slug(value)}`
+      iconUrl = tokenIconUrl(value)
     } else {
       tokenUrl = `/${type}/${slug(value)}`
       iconUrl = tokenIconUrl(value)
@@ -425,7 +431,8 @@ export function Name({
 type Columns =
   | 'protocolName'
   | 'chainName'
-  | 'peggedName'
+  | 'peggedUSD'
+  | 'stablecoins'
   | 'chains'
   | '1dChange'
   | '7dChange'
@@ -438,6 +445,25 @@ type Columns =
   | 'circulating'
 
 type AllColumns = Record<Columns, ColumnProps>
+
+export function isOfTypeColumns(column: string): column is Columns {
+  return [
+    'protocolName',
+    'chainName',
+    'peggedUSD',
+    'stablecoins',
+    'chains',
+    '1dChange',
+    '7dChange',
+    '1mChange',
+    'tvl',
+    'mcaptvl',
+    'listedAt',
+    'msizetvl',
+    'protocols',
+    'circulating',
+  ].includes(column)
+}
 
 const allColumns: AllColumns = {
   protocolName: {
@@ -470,13 +496,28 @@ const allColumns: AllColumns = {
       />
     ),
   },
-  peggedName: {
+  stablecoins: {
+    header: 'Name',
+    accessor: 'name',
+    disableSortBy: true,
+    Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+      <Name
+        type="stablecoins"
+        value={value}
+        symbol={rowValues.symbol}
+        index={rowIndex !== null && rowIndex + 1}
+        bookmark
+        rowType={rowType}
+      />
+    ),
+  },
+  peggedUSD: {
     header: 'Name',
     accessor: 'name',
     disableSortBy: true,
     Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
       <Name
-        type="chain"
+        type="peggedUSD"
         value={value}
         symbol={rowValues.symbol}
         index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
