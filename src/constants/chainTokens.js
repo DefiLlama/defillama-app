@@ -524,7 +524,11 @@ export const chainCoingeckoIds = {
     symbol: "FRA",
     cmcId: "4249",
   },
-    
+  Hydra: {
+    geckoId: "hydra",
+    symbol: "HYDRA",
+    cmcId: "8245",
+  },
 }
 
 export const chainMarketplaceMappings = {
