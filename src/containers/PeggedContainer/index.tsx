@@ -12,7 +12,7 @@ import Filters from 'components/Filters'
 import { columnsToShow, FullTable } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
 import { getPeggedChainsPageData, revalidate } from 'utils/peggedDataApi'
-import { useCalcGroupExtraTvlsByDay, useCalcCirculating } from 'hooks/peggedData'
+import { useCalcGroupExtraPeggedByDay, useCalcCirculating } from 'hooks/peggedData'
 
 const ChartsWrapper = styled(Box)`
   display: flex;
@@ -78,7 +78,7 @@ export default function PeggedContainer({
       .concat({ name: 'Others', value: otherTvl })
   }, [chainTotals])
 
-  const { data: stackedData, daySum } = useCalcGroupExtraTvlsByDay(stackedDataset)
+  const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
   const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
 

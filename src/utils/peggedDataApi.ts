@@ -17,7 +17,7 @@ import {
   PEGGEDS_API,
   PEGGEDCHART_API,
 } from '../constants/index'
-import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
+import { getPercentChange, getPrevCirculatingFromChart, standardizeProtocolName } from 'utils'
 
 interface IProtocol {
   name: string
@@ -135,7 +135,7 @@ const formatPeggedAssetsData = ({
   protocolProps = [...peggedPropertiesToKeep],
 }) => {
   let filteredProtocols = [...peggedAssets]
-  
+
   if (chain) {
     filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
   }
@@ -148,13 +148,13 @@ const formatPeggedAssetsData = ({
   }
 
   filteredProtocols = filteredProtocols.map((protocol) => {
-    let defaultAsset = protocol.defaultAsset
+    let pegType = protocol.pegType
     if (chain) {
-      protocol.circulating = protocol.chainCirculating[chain][defaultAsset] ?? 0
+      protocol.circulating = protocol.chainCirculating[chain][pegType] ?? 0
     } else {
-      protocol.circulating = protocol.circulating[defaultAsset]
+      protocol.circulating = protocol.circulating[pegType]
     }
-    protocol.unreleased = 0 // removing/refactoring this
+    protocol.unreleased = 0 // still need to add this
 
     return keepNeededPeggedProperties(protocol, protocolProps)
   })
@@ -580,27 +580,14 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
 
   const chainsData: any[] = await Promise.all(
     chainsUnique.map(async (elem: string) => {
-      for (let i = 0; i < 5; i++) {
-        try {
-          return await fetch(`${PEGGEDCHART_API}/${elem}?peggedAsset=${peggedasset}`).then((resp) => resp.json())
-        } catch (e) {}
-      }
-      throw new Error(`${PEGGEDCHART_API}/${elem}?peggedAsset=${peggedasset} is broken`)
+      return res.chainBalances[elem].tokens
     })
   )
 
-  const fixedData = chainsData.map((chart) => {
-    return (
-      chart[0] ?? {
-        totalCirculating: { [peggedasset]: 0 },
-        unreleased: { [peggedasset]: 0 },
-      }
-    )
-  })
-
+  const pegType = res.pegType
   const chainTvls = chainsUnique.map((chainName, i) => {
-    const circulating: number = fixedData[i]['totalCirculating'] ? fixedData[i]['totalCirculating'][peggedasset] : 0 // used to use getPrevTvlFromChart here, don't really understand
-    const unreleased: number = fixedData[i]['unreleased'] ? fixedData[i]['unreleased'][peggedasset] : 0
+    const circulating: number = getPrevCirculatingFromChart(chainsData[i], 0, "circulating")[pegType] 
+    const unreleased: number = getPrevCirculatingFromChart(chainsData[i], 0, "unreleased")[pegType]
 
     return {
       circulating,
@@ -609,7 +596,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
     }
   }) // REMOVED SORT
-
+  
   const stackedDataset = Object.entries(
     chainsData.reduce((total: IStackedDataset, chains, i) => {
       const chainName = chainsUnique[i]
@@ -621,8 +608,8 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
         const b = total[circulating.date][chainName]
         total[circulating.date][chainName] = {
           ...b,
-          totalCirculating: circulating.totalCirculating ? circulating.totalCirculating[peggedasset] ?? 0 : 0,
-          unreleased: circulating.unreleased ? circulating.unreleased[peggedasset] ?? 0 : 0,
+          circulating: circulating.circulating ? circulating.circulating[pegType] ?? 0 : 0,
+          unreleased: circulating.unreleased ? circulating.unreleased[pegType] ?? 0 : 0,
         }
       })
       return total

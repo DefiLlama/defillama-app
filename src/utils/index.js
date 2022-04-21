@@ -411,6 +411,10 @@ export const getPrevTvlFromChart = (chart, daysBefore) => {
   return chart[chart.length - 1 - daysBefore]?.[1] ?? null
 }
 
+export const getPrevCirculatingFromChart = (chart, daysBefore, type) => {
+  return chart[chart.length - 1 - daysBefore]?.[type] ?? null
+}
+
 export function download(filename, text) {
   var element = document.createElement('a')
   element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))

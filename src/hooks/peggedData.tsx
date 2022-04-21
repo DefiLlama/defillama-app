@@ -264,18 +264,18 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
 }
 
 // returns tvl by day for a group of tokens
-export const useCalcGroupExtraTvlsByDay = (chains) => {
+export const useCalcGroupExtraPeggedByDay = (chains) => {
   const extraPeggedEnabled = useGetExtraPeggedEnabled()
 
   const { data, daySum } = useMemo(() => {
     const daySum = {}
+    
     const data = chains.map(([date, values]) => {
       const tvls: IChainTvl = {}
       let totalDaySum = 0
-
       Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
-        let sum = chainTvls.totalCirculating
-        totalDaySum += chainTvls.totalCirculating
+        let sum = chainTvls.circulating
+        totalDaySum += chainTvls.circulating
         if (extraPeggedEnabled['unreleased']) {
           sum += chainTvls.unreleased
           totalDaySum += chainTvls.unreleased
