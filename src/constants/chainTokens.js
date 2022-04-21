@@ -519,6 +519,11 @@ export const chainCoingeckoIds = {
     symbol: "HBAR",
     cmcId: "4642",
   },
+  Findora: {
+    geckoId: "findora",
+    symbol: "FRA",
+    cmcId: "4249",
+  },
     
 }
 
