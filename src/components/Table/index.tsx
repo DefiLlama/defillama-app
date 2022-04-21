@@ -393,7 +393,7 @@ export function Name({
       tokenUrl = `/${type}/${value}`
       iconUrl = chainIconUrl(value)
     } else if (type === "peggedUSD") {
-      tokenUrl = `/peggedassets/${type}/${value}`
+      tokenUrl = `/peggedassets/stablecoins/${value}`
       iconUrl = chainIconUrl(value)
     } else if (type === "stablecoins") {
       tokenUrl = `/peggedasset/${slug(value)}`

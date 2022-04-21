@@ -84,6 +84,7 @@ function AllPeggedsPage({
       title = `${category} Circulating`
     }
   }
+  
 
   return (
     <PageWrapper>
@@ -94,16 +95,6 @@ function AllPeggedsPage({
         </RowBetween>
         <ChartsWrapper>
           <PeggedChainPieChart data={chainsTvlValues} chainColor={chainColor} />
-          {/*
-          <PeggedChainDominanceChart
-            stackOffset="expand"
-            formatPercent={true}
-            stackedDataset={stackedData}
-            asset={peggedasset}
-            chainsUnique={chainsUnique}
-            chainColor={chainColor}
-            daySum={daySum}
-  />*/}
         </ChartsWrapper>
         {showChainList && (
           <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>

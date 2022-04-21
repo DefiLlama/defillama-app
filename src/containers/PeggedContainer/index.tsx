@@ -85,6 +85,16 @@ export default function PeggedContainer({
 
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
+  const downloadCsv = () => {
+    const rows = [['Timestamp', 'Date', ...chainsUnique]]
+    stackedData
+      .sort((a, b) => a.date - b.date)
+      .forEach((day) => {
+        rows.push([day.date, toNiceCsvDate(day.date), ...chainsUnique.map((chain) => day[chain] ?? '')])
+      })
+    download('chains.csv', rows.map((r) => r.join(',')).join('\n'))
+  }
+
   const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
 
   //add usegroupedchainsbyparent
@@ -96,6 +106,7 @@ export default function PeggedContainer({
         <AllPeggedOptions style={{ display: 'flex', justifyContent: 'center' }} />
         <RowWrapper>
           <Header>{Capitalize(peggedasset)} Total Circulating All Chains</Header>
+          <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
         </RowWrapper>
         <ChartsWrapper>
           <PeggedChainPieChart data={chainsTvlValues} chainColor={chainColor} />
