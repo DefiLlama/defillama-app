@@ -232,7 +232,10 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
                 .map((t) => `${t[0]}=true`)
                 .join('&')}`}
             >
+              <RowBetween>
               <DownloadIcon />
+              <TYPE.main>&nbsp;&nbsp;.csv</TYPE.main>
+              </RowBetween>
             </DownloadButton>
           </RowBetween>
         </AutoColumn>
