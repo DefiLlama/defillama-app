@@ -529,6 +529,11 @@ export const chainCoingeckoIds = {
     symbol: "HYDRA",
     cmcId: "8245",
   },
+  Boba: {
+    geckoId: "boba-network  ",
+    symbol: "BOBA",
+    cmcId: "14556",
+  },
 }
 
 export const chainMarketplaceMappings = {
