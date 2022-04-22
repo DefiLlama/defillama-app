@@ -115,8 +115,6 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     }
   }
 
-  const isDegen = typeof window !== "undefined" && window.ethereum !== undefined
-
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
     const globalChart = chart.map((data) => {
       let sum = data[1]
@@ -310,7 +308,6 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
               )}
             </Panel>
           </BreakpointPanels>
-          {isDegen && (
             <div
               style={{
                 marginTop: '0px',
@@ -319,7 +316,6 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             >
               <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} alt="" />
             </div>
-          )}
         </div>
 
         <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
