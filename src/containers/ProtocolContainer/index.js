@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { Text, Box } from 'rebass'
 import styled from 'styled-components'
@@ -13,6 +13,7 @@ import CopyHelper from 'components/Copy'
 import FormattedName from 'components/FormattedName'
 import HeadHelp from 'components/HeadHelp'
 import Link, { BasicLink } from 'components/Link'
+import OptionToggle from 'components/OptionToggle'
 import Panel from 'components/Panel'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import Search from 'components/Search'
@@ -24,7 +25,7 @@ import { useScrollToTop, useProtocolColor, useXl, useLg } from 'hooks'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
-import { GeneralAreaChart, GeneralBarChart } from 'components/TokenChart/charts'
+import { GeneralAreaChart } from 'components/TokenChart/charts'
 import {
   toNiceDate,
   toNiceMonthlyDate,
@@ -33,6 +34,7 @@ import {
 } from 'utils'
 
 const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
+const GeneralBarChart = dynamic(() => import('components/TokenChart/charts'))
 
 const DashboardWrapper = styled(Box)`
   width: 100%;
@@ -47,6 +49,19 @@ const HiddenSearch = styled.span`
 const HiddenBookmark = styled.span`
   @media screen and (max-width: ${({ theme }) => theme.bpLg}) {
     display: none;
+  }
+`
+
+const ListWrapper = styled.ul`
+  display: flex;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+`
+
+const ListItem = styled.li`
+  &:not(:first-child) {
+    margin-left: 12px;
   }
 `
 
@@ -111,6 +126,12 @@ const TableHead = styled.th`
     margin: 0 4px;
   }
 `
+
+const toggleOption = {
+  name: 'Flows',
+  key: 'Flows',
+  help: 'Show stacked inflows and outflows of each token',
+}
 
 function ToggleAlert({ chainTvls }) {
   const isLowerCase = (letter) => letter === letter.toLowerCase()
@@ -195,6 +216,57 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
       return chartData?.length > 120 ? toNiceMonthlyDate(date) : toNiceDate(date)
     }
   }
+  
+  const datasetLink = 
+    <Link color={backgroundColor} external href={`https://api.llama.fi/dataset/${protocol}.csv`}>
+      <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
+        Download dataset ↗
+      </ButtonLight>
+    </Link>
+  const checkCodeLink = 
+    <Link
+      color={backgroundColor}
+      external
+      href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
+    >
+      <ButtonLight useTextColor={true} color={backgroundColor}>
+        Check the code ↗
+      </ButtonLight>
+    </Link>
+  const websiteLink = 
+    <Link color={backgroundColor} external href={url}>
+      <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
+        Website ↗
+      </ButtonLight>
+    </Link>
+  const twitterLink = 
+    <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
+      <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
+        Twitter ↗
+      </ButtonLight>
+    </Link>
+  const coingeckoLink = 
+    protocolData.gecko_id !== null && (
+      <Link
+        color={backgroundColor}
+        style={{ marginRight: '.5rem' }}
+        external
+        href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`}
+      >
+        <ButtonLight useTextColor={true} color={backgroundColor}>
+          CoinGecko ↗
+        </ButtonLight>
+      </Link>
+    )
+  const explorerLink = 
+    blockExplorerLink !== undefined && (
+      <Link color={backgroundColor} external href={blockExplorerLink}>
+        <ButtonLight useTextColor={true} color={backgroundColor}>
+          {blockExplorerName} ↗
+        </ButtonLight>
+      </Link>
+    )
+  const [showFlowCharts, setFlowToggle] = useState(false)
 
   return (
     <PageWrapper>
@@ -282,15 +354,20 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   <RowBetween>
                     <TYPE.main>Links</TYPE.main>
                   </RowBetween>
-                  <RowBetween align="flex-end">
-                    <AutoColumn style={{ width: '100%' }}>
-                      <Link color={backgroundColor} external href={`https://api.llama.fi/dataset/${protocol}.csv`}>
-                        <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
-                          Download dataset ↗
-                        </ButtonLight>
-                      </Link>
+                  <AutoRow>
+                    <AutoColumn gap="7px">
+                      {datasetLink}
+                      {checkCodeLink}
                     </AutoColumn>
-                  </RowBetween>
+                    <AutoColumn gap="7px">
+                      {websiteLink}
+                      {twitterLink}
+                    </AutoColumn>
+                    {hasToken && <AutoColumn gap="7px">
+                      {coingeckoLink}
+                      {explorerLink}
+                    </AutoColumn>}
+                  </AutoRow>
                 </AutoColumn>
               </Panel>
               <Panel
@@ -320,6 +397,13 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
           <>
             <SectionPanel title="Charts" topMargin={false}>
               <AutoRow>
+                <ListWrapper>
+                  <ListItem>
+                    <OptionToggle {...toggleOption} toggle={() => setFlowToggle(!showFlowCharts)} enabled={showFlowCharts} />
+                  </ListItem>
+                </ListWrapper>
+              </AutoRow>
+              <AutoRow>
                 <GeneralAreaChart finalChartData={chainsStacked} aspect={aspect} formatDate={formatDate} color={backgroundColor}
                   tokensUnique={chains}
                 />
@@ -327,7 +411,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   tokensUnique={tokensUnique}
                 />}
               </AutoRow>
-              {usdInflows && <AutoRow>
+              {usdInflows && showFlowCharts && <AutoRow>
                 <GeneralBarChart finalChartData={usdInflows} aspect={aspect} formatDate={formatDate} color={backgroundColor}
                   tokensUnique={[]}
                 />
@@ -345,15 +429,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 </TokenDetailsLayout>
               )}
               <RowFixed>
-                <Link
-                  color={backgroundColor}
-                  external
-                  href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
-                >
-                  <ButtonLight useTextColor={true} color={backgroundColor}>
-                    Check the code ↗
-                  </ButtonLight>
-                </Link>
+                {checkCodeLink}
               </RowFixed>
             </SectionPanel>
 
@@ -379,16 +455,8 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 </Column>
                 <div></div>
                 <RowFixed>
-                  <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
-                    <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
-                      Twitter ↗
-                    </ButtonLight>
-                  </Link>
-                  <Link color={backgroundColor} external href={url}>
-                    <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
-                      Website ↗
-                    </ButtonLight>
-                  </Link>
+                  {twitterLink}
+                  {websiteLink}
                 </RowFixed>
               </TokenDetailsLayout>
             </SectionPanel>
@@ -418,25 +486,8 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                     </AutoRow>
                   </Column>
                   <RowFixed>
-                    {protocolData.gecko_id !== null && (
-                      <Link
-                        color={backgroundColor}
-                        style={{ marginRight: '.5rem' }}
-                        external
-                        href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`}
-                      >
-                        <ButtonLight useTextColor={true} color={backgroundColor}>
-                          View on CoinGecko ↗
-                        </ButtonLight>
-                      </Link>
-                    )}
-                    {blockExplorerLink !== undefined && (
-                      <Link color={backgroundColor} external href={blockExplorerLink}>
-                        <ButtonLight useTextColor={true} color={backgroundColor}>
-                          View on {blockExplorerName} ↗
-                        </ButtonLight>
-                      </Link>
-                    )}
+                    {coingeckoLink}
+                    {explorerLink}
                   </RowFixed>
                 </TokenDetailsLayout>
               </SectionPanel>
