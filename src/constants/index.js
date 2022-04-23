@@ -44,6 +44,9 @@ export const NFT_CHAINS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaw
 export const NFT_MARKETPLACES_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/marketplaces'
 export const NFT_SEARCH_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/search'
 
+export const YIELD_POOLS_API = 'https://1rwmj4tky9.execute-api.eu-central-1.amazonaws.com/poolsEnriched'
+export const YIELD_CHART_API = 'https://1rwmj4tky9.execute-api.eu-central-1.amazonaws.com/chart'
+
 // GlobalData Constants
 export const UPDATE = 'UPDATE'
 export const UPDATE_TXNS = 'UPDATE_TXNS'

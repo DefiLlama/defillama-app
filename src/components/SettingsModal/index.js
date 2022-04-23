@@ -7,6 +7,10 @@ import {
   useDisplayUsdManager,
   useBorrowedManager,
   useHideLastDayManager,
+  useStablecoinsManager,
+  useSingleExposureManager,
+  useNoILManager,
+  useMillionDollarManager,
   useTvlToggles,
   useGetExtraTvlEnabled,
   STAKING,
@@ -18,7 +22,7 @@ import {
   DOUBLE_COUNT,
   useDarkModeManager,
   useGroupEnabled,
-  groupSettings
+  groupSettings,
 } from '../../contexts/LocalStorage'
 
 import { AutoRow } from '../Row'
@@ -189,6 +193,10 @@ export function CheckMarks({ type = 'defi' }) {
   const [borrowedEnabled, toggleBorrowed] = useBorrowedManager()
   const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
   const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
+  const [stablecoins, toggleStablecoins] = useStablecoinsManager()
+  const [singleExposure, toggleSingleExposure] = useSingleExposureManager()
+  const [noIL, toggleNoIL] = useNoILManager()
+  const [millionDollar, toggleMillionDollar] = useMillionDollarManager()
   const router = useRouter()
   const isClient = useIsClient()
 
@@ -219,6 +227,32 @@ export function CheckMarks({ type = 'defi' }) {
         toggle: toggleHideLastDay,
         enabled: hideLastDay && isClient,
         help: 'Hide the last day of data',
+      },
+    ],
+    yields: [
+      {
+        name: 'Stablecoins',
+        toggle: toggleStablecoins,
+        enabled: stablecoins && isClient,
+        help: 'Select pools consisting of stablecoins only',
+      },
+      {
+        name: 'Single Exposure',
+        toggle: toggleSingleExposure,
+        enabled: singleExposure && isClient,
+        help: 'Select pools with single token exposure only',
+      },
+      {
+        name: 'No IL',
+        toggle: toggleNoIL,
+        enabled: noIL && isClient,
+        help: 'Select pools with no impermanent loss',
+      },
+      {
+        name: 'Million Dollar',
+        toggle: toggleMillionDollar,
+        enabled: millionDollar && isClient,
+        help: 'Select pools with at least one million dollar in TVL',
       },
     ],
   }

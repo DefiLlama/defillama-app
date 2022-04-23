@@ -13,6 +13,8 @@ import {
   HOURLY_PROTOCOL_API,
   ORACLE_API,
   FORK_API,
+  YIELD_POOLS_API,
+  YIELD_CHART_API,
 } from '../constants/index'
 import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
 
@@ -453,7 +455,7 @@ export const getChainsPageData = async (category: string) => {
       if (!chainsGroupbyParent[parent.chain]) {
         chainsGroupbyParent[parent.chain] = {}
       }
-      for(const type of parent.types){
+      for (const type of parent.types) {
         if (!chainsGroupbyParent[parent.chain][type]) {
           chainsGroupbyParent[parent.chain][type] = []
         }
@@ -696,6 +698,62 @@ export const getNFTSearchResults = async (query: string) => {
     return []
   } catch (e) {
     console.log(e)
+  }
+}
+
+export async function getYieldPageData(query = null) {
+  try {
+    // note(!) the api supports direct queries of chain or projectName
+    // however, i have no clue yet how to make sure that the chainList is complete for the
+    // filter section on the PageViews. so to get around this for now i just always load the full
+    // batch of data and filter on the next.js server side.
+    // this only affects /chain/[chain] and /project/[project]. for /pool/[pool] we are filtering
+    // on the db level (see `getYieldPoolData`)
+    let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
+
+    const chainList = [...new Set(pools.map((p) => p.chain))]
+    const projectList = [...new Set(pools.map((p) => p.projectName))]
+    console.log(pools.filter((el) => el.projectName === undefined))
+
+    if (query !== null) {
+      const queryKey = Object.keys(query)[0]
+      const queryVal = Object.values(query)[0]
+      pools = pools.filter((p) => p[queryKey] === queryVal)
+    }
+
+    return {
+      props: {
+        pools,
+        chainList,
+        projectList,
+      },
+    }
+  } catch (e) {
+    console.log(e)
+    return {
+      notFound: true,
+    }
+  }
+}
+
+export async function getYieldPoolData(poolId) {
+  try {
+    // pools endpoint contains the enriched dataset (which includes the predictions) for a particular pool
+    const pool = (await fetch(`${YIELD_POOLS_API}?pool=${poolId}`).then((r) => r.json())).data[0]
+    // chart endpoint is giving the full history of apy and tvl for that particular pool
+    const chart = (await fetch(`${YIELD_CHART_API}/${poolId}`).then((r) => r.json())).data
+
+    return {
+      props: {
+        pool,
+        chart,
+      },
+    }
+  } catch (e) {
+    console.log(e)
+    return {
+      notFound: true,
+    }
   }
 }
 
