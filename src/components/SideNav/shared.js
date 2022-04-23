@@ -166,6 +166,11 @@ export const Footer = ({ isDark, toggleDarkMode }) => (
           Download Data
         </Link>
       </HeaderText>
+      <HeaderText>
+        <Link href="https://wiki.defillama.com/wiki/Main_Page" target="_blank">
+          Wiki
+        </Link>
+      </HeaderText>
       <Toggle isActive={isDark} toggle={toggleDarkMode} />
     </AutoColumn>
   </>
