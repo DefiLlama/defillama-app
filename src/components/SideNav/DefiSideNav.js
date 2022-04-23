@@ -16,6 +16,7 @@ import {
   Map,
   List,
   Percent,
+  Book,
 } from 'react-feather'
 
 import { Entry } from './shared'
@@ -41,6 +42,7 @@ const NavMenu = ({ isMobile }) => {
       <Entry url="languages" name="Languages" history={history} Icon={Code} />
       <Entry url="top-protocols" name="Top Protocols" history={history} Icon={Map} />
       <Entry url="https://chainlist.org/" name="Chainlist" history={history} Icon={List} external newTag />
+      <Entry url="https://wiki.defillama.com/wiki/Main_Page" name="Wiki" history={history} Icon={Book} external newTag />
       <Entry url="about" name="About" history={history} Icon={HelpCircle} />
     </AutoColumn>
   )
