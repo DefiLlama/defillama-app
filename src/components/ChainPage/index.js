@@ -276,7 +276,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
           <Search />
           <Panel background={true} style={{ textAlign: 'center' }}>
             <TYPE.main fontWeight={400}>
-              We've launched a channel for daily crypto recaps. Subscribe <BasicLink style={{textDecoration:"underline"}} href="https://t.me/defillama_tg">here</BasicLink> to stay up to date!
+              We've launched a neutral wiki for DeFi and crypto. Check it out <BasicLink style={{textDecoration:"underline"}} href="https://wiki.defillama.com/wiki/Main_Page">here</BasicLink>!
             </TYPE.main>
           </Panel>
         </AutoColumn>
