@@ -17,7 +17,15 @@ const VOLUME_WINDOW = {
   DAYS: 'DAYS',
 }
 
-const GlobalChart = ({ display, dailyData, unit = 'USD', totalLiquidity, liquidityChange, title = 'Total TVL' }) => {
+const GlobalChart = ({
+  display,
+  dailyData,
+  unit = 'USD',
+  totalLiquidity,
+  liquidityChange,
+  title = 'Total TVL',
+  dualAxis = false,
+}) => {
   // chart options
   const [chartView] = useState(display === 'volume' ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY)
 
@@ -92,6 +100,7 @@ const GlobalChart = ({ display, dailyData, unit = 'USD', totalLiquidity, liquidi
             width={width}
             type={CHART_TYPES.AREA}
             units={moneySymbol}
+            dualAxis={dualAxis}
           />
         </ResponsiveContainer>
       )}

@@ -14,7 +14,8 @@ import {
   Share2,
   Award,
   Map,
-  List
+  List,
+  Percent,
 } from 'react-feather'
 
 import { Entry } from './shared'
@@ -31,6 +32,7 @@ const NavMenu = ({ isMobile }) => {
       <Entry url="chains" name="Chains" history={history} Icon={LinkLogo} />
       <Entry url="oracles" name="Oracles" history={history} Icon={Shield} />
       <Entry url="forks" name="Forks" history={history} Icon={Share2} />
+      <Entry url="yields" name="Yields" history={history} Icon={Percent} newTag />
       {!isMobile && <Entry url="portfolio" name="Portfolio" history={history} Icon={Bookmark} />}
       <Entry url="airdrops" name="Airdrops" history={history} Icon={CloudDrizzle} />
       <Entry url="categories" name="Categories" history={history} Icon={RefreshCcw} />

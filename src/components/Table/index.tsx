@@ -422,6 +422,19 @@ export function Name({
   )
 }
 
+export function NameYield({ value, rowType, ...props }: NameProps) {
+  const { iconUrl, tokenUrl } = useMemo(() => {
+    return { iconUrl: tokenIconUrl(value), tokenUrl: `/yields/project/${value}` }
+  }, [value])
+
+  return (
+    <Index {...props}>
+      <TokenLogo logo={iconUrl} />
+      {rowType === 'accordion' ? <span>{value}</span> : <CustomLink href={tokenUrl}>{value}</CustomLink>}
+    </Index>
+  )
+}
+
 type Columns =
   | 'protocolName'
   | 'chainName'
