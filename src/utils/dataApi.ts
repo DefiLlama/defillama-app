@@ -15,6 +15,7 @@ import {
   FORK_API,
   YIELD_POOLS_API,
   YIELD_CHART_API,
+  CG_TOKEN_API,
 } from '../constants/index'
 import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
 
@@ -758,6 +759,32 @@ export async function getYieldPoolData(poolId) {
       notFound: true,
     }
   }
+}
+
+export async function fetchCGMarketsData() {
+  const urls = []
+  const maxPage = 10
+  for (let page = 1; page <= maxPage; page++) {
+    urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', `${page}`)}`)
+  }
+
+  const promises = urls.map((url) => fetch(url).then((resp) => resp.json()))
+  return await Promise.all(promises)
+}
+
+export async function retryCoingeckoRequest(func, retries) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const resp = await func()
+      return resp
+    } catch (e) {
+      if ((i + 1) % 3 === 0 && retries > 3) {
+        await new Promise((resolve) => setTimeout(resolve, 10e3))
+      }
+      continue
+    }
+  }
+  return {}
 }
 
 // Client Side

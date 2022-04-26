@@ -8,8 +8,7 @@ import { TYPE } from '../../Theme'
 
 import { useSearchData } from 'contexts/SearchData'
 import { Blue, Heading, Menu, MenuItem } from './shared'
-
-import { CG_TOKEN_API } from 'constants/index'
+import { fetchCGMarketsData, retryCoingeckoRequest } from 'utils/dataApi'
 
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
@@ -31,18 +30,12 @@ const TokenSearch = ({
   const { protocolNames } = searcheableData
 
   useEffect(() => {
-    const fetchProtocols = () => {
-      const urls = []
-      const maxPage = 10
-      for (let page = 1; page <= maxPage; page++) {
-        urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', page)}`)
-      }
-      Promise.all(urls.map((url) => fetch(url).then((resp) => resp.json()))).then((res) => {
-        setIsLoading(false)
-        setDataFetched(true)
-        setSearcheableData({
-          protocolNames: res.flat(),
-        })
+    const fetchProtocols = async () => {
+      const res = await retryCoingeckoRequest(fetchCGMarketsData, 3)
+      setIsLoading(false)
+      setDataFetched(true)
+      setSearcheableData({
+        protocolNames: res.flat(),
       })
     }
     if (!searcheableData.protocolNames.length) {
@@ -51,7 +44,7 @@ const TokenSearch = ({
     } else if (dataFetched === false) {
       fetchProtocols()
     }
-  }, [searcheableData, dataFetched])
+  }, [searcheableData])
 
   const searchData = useMemo(() => {
     return protocolNames.map((el) => ({ name: el.name, symbol: el.symbol.toUpperCase() }))
