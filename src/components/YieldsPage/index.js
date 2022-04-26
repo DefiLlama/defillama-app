@@ -138,6 +138,7 @@ const YieldPage = ({ pools, chainList }) => {
             outlook: t.predictions.predictedClass === 0 ? 'Down' : 'Stable/Up',
             probability: t.predictions.predictedProbability,
           }))}
+          secondColumnAlign="start"
           columns={columns}
         />
       </FullWrapper>
