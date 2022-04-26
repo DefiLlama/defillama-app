@@ -16,7 +16,6 @@ import {
   useStablecoinsManager,
   useMillionDollarManager,
 } from 'contexts/LocalStorage'
-import { BasicLink } from 'components/Link'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -50,8 +49,12 @@ const YieldPage = ({ pools, chainList }) => {
       header: 'Project',
       accessor: 'project',
       disableSortBy: true,
-      Cell: ({ value }) =>
-        projectsUnique.length > 1 ? <NameYield value={value} /> : <NameYield value={value} rowType={'accordion'} />,
+      Cell: ({ value, rowValues }) =>
+        projectsUnique.length > 1 ? (
+          <NameYield value={(value, rowValues)} />
+        ) : (
+          <NameYield value={(value, rowValues)} rowType={'accordion'} />
+        ),
     },
     ...columnsToShow('chains', 'tvl'),
     {
@@ -75,12 +78,13 @@ const YieldPage = ({ pools, chainList }) => {
       accessor: 'outlook',
       helperText:
         'The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY.',
+      Cell: ({ value, rowValues }) => <>{rowValues.apy === 0 ? null : value}</>,
     },
     {
       header: 'Probability',
       accessor: 'probability',
       helperText: 'Predicted probability of outlook',
-      Cell: ({ value }) => <>{value.toFixed(2) + '%'}</>,
+      Cell: ({ value, rowValues }) => <>{rowValues.apy === 0 ? null : value.toFixed(2) + '%'}</>,
     },
   ]
 
@@ -94,8 +98,6 @@ const YieldPage = ({ pools, chainList }) => {
     ...chainList.map((el) => ({ label: el, to: `/yields/chain/${el}` })),
   ]
 
-  const projectName = [...new Set(pools.map((el) => el.projectName))]
-
   // toggles
   const [stablecoins] = useStablecoinsManager()
   const [noIL] = useNoILManager()
@@ -107,27 +109,9 @@ const YieldPage = ({ pools, chainList }) => {
   pools = singleExposure === true ? pools.filter((el) => el.exposure === 'single') : pools
   pools = millionDollar === true ? pools.filter((el) => el.tvlUsd >= 1e6) : pools
 
-  // this will only be used on /yields/project/[project]
-  const ProjectPointer = () => {
-    if (projectName.length < 2) {
-      return (
-        <RowBetween flexWrap="wrap">
-          <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
-            <TYPE.body>
-              <BasicLink href="/yields">{'Project '}</BasicLink>→ {projectName}
-            </TYPE.body>
-          </AutoRow>
-        </RowBetween>
-      )
-    } else {
-      return null
-    }
-  }
-
   return (
     <PageWrapper>
       <FullWrapper>
-        <ProjectPointer />
         <AutoColumn gap="24px">
           <Search />
         </AutoColumn>
@@ -144,6 +128,7 @@ const YieldPage = ({ pools, chainList }) => {
           data={pools.map((t) => ({
             id: t.pool,
             pool: t.symbol,
+            projectslug: t.project,
             project: t.projectName,
             chains: [t.chain],
             tvl: t.tvlUsd,

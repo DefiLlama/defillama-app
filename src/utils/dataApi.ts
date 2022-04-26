@@ -712,13 +712,16 @@ export async function getYieldPageData(query = null) {
     let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
 
     const chainList = [...new Set(pools.map((p) => p.chain))]
-    const projectList = [...new Set(pools.map((p) => p.projectName))]
-    console.log(pools.filter((el) => el.projectName === undefined))
+    const projectList = [...new Set(pools.map((p) => p.project))]
 
-    if (query !== null) {
+    // for chain, project and pool queries
+    if (query !== null && Object.keys(query)[0] !== 'token') {
       const queryKey = Object.keys(query)[0]
       const queryVal = Object.values(query)[0]
       pools = pools.filter((p) => p[queryKey] === queryVal)
+      // for token queries
+    } else if (query !== null && Object.keys(query)[0] === 'token') {
+      pools = pools.filter((p) => p.symbol.toLowerCase().includes(query['token'].toLowerCase()))
     }
 
     return {
