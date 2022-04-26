@@ -7,11 +7,12 @@ import HeadHelp from 'components/HeadHelp'
 import { CustomLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
 import Bookmark from 'components/Bookmark'
-import { chainIconUrl, formattedNum, formattedPercent, slug, toK, tokenIconUrl } from 'utils'
+import { chainIconUrl, formattedNum, formattedPegggedPrice, formattedPercent, slug, toK, tokenIconUrl } from 'utils'
 import { useInfiniteScroll } from 'hooks'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
 import ChainsRow from 'components/ChainsRow'
+import PeggedChainsRow from 'components/PeggedChainsRow'
 
 interface ColumnProps {
   header: string
@@ -392,10 +393,10 @@ export function Name({
     if (type === 'chain') {
       tokenUrl = `/${type}/${value}`
       iconUrl = chainIconUrl(value)
-    } else if (type === "peggedUSD") {
+    } else if (type === 'peggedUSD') {
       tokenUrl = `/peggedassets/stablecoins/${value}`
       iconUrl = chainIconUrl(value)
-    } else if (type === "stablecoins") {
+    } else if (type === 'stablecoins') {
       tokenUrl = `/peggedasset/${slug(value)}`
       iconUrl = tokenIconUrl(value)
     } else {
@@ -443,6 +444,10 @@ type Columns =
   | 'msizetvl'
   | 'protocols'
   | 'circulating'
+  | 'bridgedAmount'
+  | 'bridgeInfo'
+  | 'peggedChains'
+  | 'price'
 
 type AllColumns = Record<Columns, ColumnProps>
 
@@ -462,6 +467,10 @@ export function isOfTypeColumns(column: string): column is Columns {
     'msizetvl',
     'protocols',
     'circulating',
+    'bridgedAmount',
+    'bridgeInfo',
+    'peggedChains',
+    'price',
   ].includes(column)
 }
 
@@ -587,6 +596,32 @@ const allColumns: AllColumns = {
     header: 'Total Circulating',
     accessor: 'circulating',
     Cell: ({ value }) => <>{value && formattedNum(value)}</>,
+  },
+  bridgedAmount: {
+    header: 'Bridged Amount',
+    accessor: 'bridgedAmount',
+    disableSortBy: true,
+    Cell: ({ value }) => <>{typeof value === 'string' ? value : formattedNum(value)}</>,
+  },
+  bridgeInfo: {
+    header: 'Primary Bridge',
+    accessor: 'bridgeInfo',
+    disableSortBy: true,
+    Cell: ({ value }) => {
+      return value.link ? <CustomLink href={value.link}>{value.bridge}</CustomLink> : <span>{value.bridge}</span>
+    },
+  },
+  peggedChains: {
+    header: 'Chains',
+    accessor: 'chains',
+    disableSortBy: true,
+    helperText: "Chains are ordered by protocol's highest TVL on each chain",
+    Cell: ({ value }) => <PeggedChainsRow chains={value} />,
+  },
+  price: {
+    header: 'Price',
+    accessor: 'price',
+    Cell: ({ value }) => <>{formattedPegggedPrice(value, true)}</>,
   },
 }
 

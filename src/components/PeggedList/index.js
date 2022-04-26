@@ -45,10 +45,10 @@ function AllPeggedsPage({
   showChainList = true,
   defaultSortingColumn,
 }) {
-  let columns = columnsToShow('protocolName', 'chains', 'circulating')
+  let columns = columnsToShow('protocolName', 'price', 'peggedChains', 'circulating')
   const peggedColumn = `${category}`.toLowerCase()
   if (isOfTypeColumns(peggedColumn)) {
-    columns = columnsToShow(peggedColumn, 'chains', 'circulating')
+    columns = columnsToShow(peggedColumn, 'price', 'peggedChains', 'circulating')
   }
 
   const isLg = useLg()
@@ -84,7 +84,6 @@ function AllPeggedsPage({
       title = `${category} Circulating`
     }
   }
-  
 
   return (
     <PageWrapper>

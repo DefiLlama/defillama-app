@@ -25,6 +25,7 @@ interface IProtocol {
 interface IPegged {
   circulating: number
   unreleased: number
+  bridgedAmount: number | string
   name: string
   symbol: string
 }
@@ -62,7 +63,6 @@ type ExtraTvls = { [key: string]: boolean }
 // PEGGED ASSETS
 export const useCalcCirculating = (
   filteredProtocols: IPegged[],
-  asset: string,
   defaultSortingColumn?: string,
   dir?: 'asc'
 ) => {

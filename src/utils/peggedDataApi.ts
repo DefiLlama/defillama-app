@@ -108,7 +108,7 @@ export const basicPropertiesToKeep = [
   'category',
 ]
 
-export const peggedPropertiesToKeep = ['circulating', 'unreleased', 'name', 'symbol', 'chains']
+export const peggedPropertiesToKeep = ['circulating', 'minted', 'unreleased', 'name', 'symbol', 'chains', 'price']
 
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
@@ -135,7 +135,6 @@ const formatPeggedAssetsData = ({
   protocolProps = [...peggedPropertiesToKeep],
 }) => {
   let filteredProtocols = [...peggedAssets]
-
   if (chain) {
     filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
   }
@@ -291,7 +290,8 @@ export async function getProtocolsPageData(category, chain) {
 }
 
 export async function getSimplePeggedAssetsPageData(propsToKeep) {
-  const { peggedAssets, chainsList } = await getPeggedAssetsRaw()
+  const { peggedAssets, chains } = await getPeggedAssets()
+  const chainsList = chains.map((chain) => chain.name)
   const filteredProtocols = formatPeggedAssetsData({
     peggedAssets,
     protocolProps: propsToKeep,
@@ -486,8 +486,6 @@ export async function getForkPageData(fork = null) {
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
-export const getPeggedAssetsRaw = () => fetch(PEGGEDS_API).then((r) => r.json())
-
 export const getProtocols = () =>
   fetch(PROTOCOLS_API)
     .then((r) => r.json())
@@ -502,7 +500,7 @@ export const getProtocols = () =>
     }))
 
 export const getPeggedAssets = () =>
-  fetch(PEGGEDS_API + '?includeChains=true')
+  fetch(PEGGEDS_API + '?includeChains=true' + '&includePrices=true')
     .then((r) => r.json())
     .then(({ peggedAssets, chains }) => ({
       protocolsDict: peggedAssets.reduce((acc, curr) => {
@@ -510,7 +508,7 @@ export const getPeggedAssets = () =>
         return acc
       }, {}),
       peggedAssets,
-      chains,
+      chains: chains.map((chain) => chain.name),
     }))
 
 export const getProtocol = async (protocolName: string) => {
@@ -586,17 +584,35 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
 
   const pegType = res.pegType
   const chainTvls = chainsUnique.map((chainName, i) => {
-    const circulating: number = getPrevCirculatingFromChart(chainsData[i], 0, "circulating")[pegType] 
-    const unreleased: number = getPrevCirculatingFromChart(chainsData[i], 0, "unreleased")[pegType]
+    const circulating: number = getPrevCirculatingFromChart(chainsData[i], 0, 'circulating')[pegType]
+    const unreleased: number = getPrevCirculatingFromChart(chainsData[i], 0, 'unreleased')[pegType]
+    const minted: number = getPrevCirculatingFromChart(chainsData[i], 0, 'minted')[pegType]
+
+    let bridgedAmount: string | number = circulating - minted + unreleased
+    if (bridgedAmount <= 0) {
+      bridgedAmount = '-'
+    } else if (bridgedAmount === circulating) {
+      bridgedAmount = 'all'
+    }
+
+    let bridgeInfo: { bridge: string; link?: string } = res.bridges[chainName]
+
+    if (!bridgeInfo) {
+      bridgeInfo = {
+        bridge: '-',
+      }
+    }
 
     return {
       circulating,
       unreleased,
+      bridgeInfo,
+      bridgedAmount,
       name: chainName,
       symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
     }
-  }) // REMOVED SORT
-  
+  }).sort((a, b) => b.circulating - a.circulating)
+
   const stackedDataset = Object.entries(
     chainsData.reduce((total: IStackedDataset, chains, i) => {
       const chainName = chainsUnique[i]
