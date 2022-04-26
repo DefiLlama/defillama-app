@@ -291,13 +291,12 @@ export async function getProtocolsPageData(category, chain) {
 
 export async function getSimplePeggedAssetsPageData(propsToKeep) {
   const { peggedAssets, chains } = await getPeggedAssets()
-  const chainsList = chains.map((chain) => chain.name)
   const filteredProtocols = formatPeggedAssetsData({
     peggedAssets,
     protocolProps: propsToKeep,
   })
 
-  return { peggedAssets: filteredProtocols, chains: chainsList }
+  return { peggedAssets: filteredProtocols, chains }
 }
 
 export async function getSimpleProtocolsPageData(propsToKeep) {
