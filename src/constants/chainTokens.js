@@ -41,9 +41,9 @@ export const chainCoingeckoIds = {
     cmcId: '2092',
   },
   Witnet: {
-    geckoId: null,
-    symbol: null,
-    cmcId: null,
+    geckoId: 'witnet',
+    symbol: 'WIT',
+    cmcId: '14925',
   },
   Binance: {
     geckoId: 'binancecoin',
