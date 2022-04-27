@@ -15,6 +15,7 @@ import {
   FORK_API,
   YIELD_POOLS_API,
   YIELD_CHART_API,
+  CG_TOKEN_API,
 } from '../constants/index'
 import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
 
@@ -712,13 +713,16 @@ export async function getYieldPageData(query = null) {
     let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
 
     const chainList = [...new Set(pools.map((p) => p.chain))]
-    const projectList = [...new Set(pools.map((p) => p.projectName))]
-    console.log(pools.filter((el) => el.projectName === undefined))
+    const projectList = [...new Set(pools.map((p) => p.project))]
 
-    if (query !== null) {
+    // for chain, project and pool queries
+    if (query !== null && Object.keys(query)[0] !== 'token') {
       const queryKey = Object.keys(query)[0]
       const queryVal = Object.values(query)[0]
       pools = pools.filter((p) => p[queryKey] === queryVal)
+      // for token queries
+    } else if (query !== null && Object.keys(query)[0] === 'token') {
+      pools = pools.filter((p) => p.symbol.toLowerCase().includes(query['token'].toLowerCase()))
     }
 
     return {
@@ -755,6 +759,32 @@ export async function getYieldPoolData(poolId) {
       notFound: true,
     }
   }
+}
+
+export async function fetchCGMarketsData() {
+  const urls = []
+  const maxPage = 10
+  for (let page = 1; page <= maxPage; page++) {
+    urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', `${page}`)}`)
+  }
+
+  const promises = urls.map((url) => fetch(url).then((resp) => resp.json()))
+  return await Promise.all(promises)
+}
+
+export async function retryCoingeckoRequest(func, retries) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const resp = await func()
+      return resp
+    } catch (e) {
+      if ((i + 1) % 3 === 0 && retries > 3) {
+        await new Promise((resolve) => setTimeout(resolve, 10e3))
+      }
+      continue
+    }
+  }
+  return {}
 }
 
 // Client Side

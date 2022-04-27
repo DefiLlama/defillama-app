@@ -7,7 +7,7 @@ import { useNFTApp } from '../../hooks'
 export default function Search({ ...props }) {
   const isNFTApp = useNFTApp()
   if (isNFTApp) {
-    return <NFTSearch {...props}/>
+    return <NFTSearch {...props} />
   }
   return <TokenSearch {...props} />
 }

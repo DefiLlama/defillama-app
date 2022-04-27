@@ -11,7 +11,7 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps({ params: { project } }) {
-  const data = await getYieldPageData({ projectName: project })
+  const data = await getYieldPageData({ project: project })
 
   return {
     ...data,

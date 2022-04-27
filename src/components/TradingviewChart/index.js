@@ -124,6 +124,14 @@ const TradingViewChart = ({
         borderVisible: false,
         visible: true,
       }
+      // overwrite localization (with symbol defaulting to false)
+      // this is not ideal, but I've not found a simple way of getting 2 separate axis
+      // symbols (% and $) unless I use some logic (which might break)
+      // [like: number < 1e5 ? number + '%' : number + '$']. would be too restrictive as some pools
+      // can have higher apys. so for now i swith off labels alltogether
+      chartParams['localization'] = {
+        priceFormatter: (val) => formattedNum(val),
+      }
     }
 
     const chart = createChart(ref.current, chartParams)

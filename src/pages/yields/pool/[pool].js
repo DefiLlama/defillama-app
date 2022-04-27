@@ -35,7 +35,8 @@ const PageView = ({ pool, chart }) => {
   const finalChartData = chart.map((el) => [
     String(Math.floor(new Date(el.timestamp).getTime() / 1000)),
     el.tvlUsd,
-    el.apy,
+    // i format here for the plot in `TradingViewChart`
+    el.apy.toFixed(2),
   ])
 
   const apy = pool.apy.toFixed(2)
@@ -84,8 +85,9 @@ const PageView = ({ pool, chart }) => {
             color={'#46acb7'}
             style={{ marginTop: '4px', marginBottom: '-6px' }}
           >
-            The algorithm predicts the current APY of {apy}% to {predictedDirection} fall below {apyDelta20pct}% within
-            the next 4 weeks. Probability: {probability}%.
+            {apy > 0
+              ? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Probability: ${probability}%.`
+              : 'No outlook available'}
           </TYPE.main>
         </AutoColumn>
       </Panel>
