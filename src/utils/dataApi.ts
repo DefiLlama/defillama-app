@@ -720,9 +720,6 @@ export async function getYieldPageData(query = null) {
       const queryKey = Object.keys(query)[0]
       const queryVal = Object.values(query)[0]
       pools = pools.filter((p) => p[queryKey] === queryVal)
-      // for token queries
-    } else if (query !== null && Object.keys(query)[0] === 'token') {
-      pools = pools.filter((p) => p.symbol.toLowerCase().includes(query['token'].toLowerCase()))
     }
 
     return {
@@ -730,27 +727,6 @@ export async function getYieldPageData(query = null) {
         pools,
         chainList,
         projectList,
-      },
-    }
-  } catch (e) {
-    console.log(e)
-    return {
-      notFound: true,
-    }
-  }
-}
-
-export async function getYieldPoolData(poolId) {
-  try {
-    // pools endpoint contains the enriched dataset (which includes the predictions) for a particular pool
-    const pool = (await fetch(`${YIELD_POOLS_API}?pool=${poolId}`).then((r) => r.json())).data[0]
-    // chart endpoint is giving the full history of apy and tvl for that particular pool
-    const chart = (await fetch(`${YIELD_CHART_API}/${poolId}`).then((r) => r.json())).data
-
-    return {
-      props: {
-        pool,
-        chart,
       },
     }
   } catch (e) {
@@ -810,8 +786,26 @@ export const useDenominationPriceHistory = (gecko_id: string, utcStartTime: stri
   )}`
 
   const { data, error } = useSWR(gecko_id ? url : null, fetcher)
-
   return { data, error, loading: gecko_id && !data && !error }
+}
+
+// all unique pools
+export const useYieldPoolsData = () => {
+  const { data, error } = useSWR(YIELD_POOLS_API, fetcher)
+  return { data, error, loading: !data && !error }
+}
+// single pool
+export const useYieldPoolData = (poolId) => {
+  const url = `${YIELD_POOLS_API}?pool=${poolId}`
+  const { data, error } = useSWR(poolId ? url : null, fetcher)
+  return { data, error, loading: !data && !error }
+}
+
+// single pool chart data
+export const useYieldChartData = (poolId) => {
+  const url = `${YIELD_CHART_API}/${poolId}`
+  const { data, error } = useSWR(poolId ? url : null, fetcher)
+  return { data, error, loading: !data && !error }
 }
 
 //:00 -> adapters start running, they take up to 15mins

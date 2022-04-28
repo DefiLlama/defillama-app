@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic'
-import { getYieldPoolData } from 'utils/dataApi'
+import { useYieldPoolData, useYieldChartData } from 'utils/dataApi'
 import { GeneralLayout } from 'layout'
 import { PageWrapper, FullWrapper } from 'components'
 import { AutoColumn } from 'components/Column'
@@ -12,6 +12,7 @@ import Search from 'components/Search'
 import { BasicLink } from 'components/Link'
 import styled from 'styled-components'
 import { useMedia } from 'react-use'
+import { useRouter } from 'next/router'
 
 const HiddenSearch = styled.span`
   @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
@@ -23,27 +24,29 @@ const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
 })
 
-export async function getServerSideProps({ params: { pool } }) {
-  const data = await getYieldPoolData(pool)
+const PageView = () => {
+  const { query } = useRouter()
 
-  return {
-    ...data,
-  }
-}
+  let { data: pool } = useYieldPoolData(query.pool)
+  let { data: chart } = useYieldChartData(query.pool)
 
-const PageView = ({ pool, chart }) => {
-  const finalChartData = chart.map((el) => [
+  const finalChartData = chart?.data.map((el) => [
     String(Math.floor(new Date(el.timestamp).getTime() / 1000)),
     el.tvlUsd,
     // i format here for the plot in `TradingViewChart`
-    el.apy.toFixed(2),
+    el.apy?.toFixed(2) ?? 0,
   ])
 
-  const apy = pool.apy.toFixed(2)
+  const poolData = pool?.data ? pool.data[0] : {}
+
+  const apy = poolData.apy?.toFixed(2) ?? 0
+
   const apyDelta20pct = (apy * 0.8).toFixed(2)
-  const tvlUsd = toK(pool.tvlUsd)
-  const probability = pool.predictions.predictedProbability.toFixed(2)
-  const predictedDirection = pool.predictions.predictedClass === 0 ? '' : 'not'
+
+  const tvlUsd = toK(poolData.tvlUsd ?? 0)
+
+  const probability = poolData.predictions?.predictedProbability.toFixed(2) ?? 0
+  const predictedDirection = poolData.predictions?.predictedClass === 0 ? '' : 'not'
 
   const below1024 = useMedia('(max-width: 1024px)')
 
@@ -100,7 +103,7 @@ const PageView = ({ pool, chart }) => {
         <RowBetween flexWrap="wrap">
           <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
             <TYPE.body>
-              <BasicLink href="/yields">{'Pool '}</BasicLink>→ {pool.symbol}
+              <BasicLink href="/yields">{'Pool '}</BasicLink>→ {poolData.symbol}
             </TYPE.body>
           </AutoRow>
           <HiddenSearch>
@@ -111,10 +114,10 @@ const PageView = ({ pool, chart }) => {
           <RowFixed style={{ flexWrap: 'wrap' }}>
             <RowFixed style={{ justifyContent: 'center' }}>
               <TYPE.body fontSize={below1024 ? '1.5rem' : '2rem'} fontWeight={500} style={{ margin: '0 1rem' }}>
-                <RowFixed gap="6px">{pool.symbol}</RowFixed>
+                <RowFixed gap="6px">{poolData.symbol}</RowFixed>
               </TYPE.body>
               <TYPE.main fontSize={'1rem'}>
-                ({pool.projectName} - {pool.chain})
+                ({poolData.projectName} - {poolData.chain})
               </TYPE.main>
             </RowFixed>
           </RowFixed>
@@ -125,8 +128,8 @@ const PageView = ({ pool, chart }) => {
             <Chart
               display="liquidity"
               dailyData={finalChartData}
-              totalLiquidity={pool.tvlUsd}
-              liquidityChange={pool.apy}
+              totalLiquidity={poolData.tvlUsd}
+              liquidityChange={poolData.apy}
               title="APY & TVL"
               dualAxis={true}
             />
