@@ -742,10 +742,10 @@ export async function getYieldPageData(query = null) {
 
 export async function getYieldPoolData(poolId) {
   try {
-    // pools endpoint contains the enriched dataset (which includes the predictions) for a particular pool
-    const pool = (await fetch(`${YIELD_POOLS_API}?pool=${poolId}`).then((r) => r.json())).data[0]
-    // chart endpoint is giving the full history of apy and tvl for that particular pool
-    const chart = (await fetch(`${YIELD_CHART_API}/${poolId}`).then((r) => r.json())).data
+    const urls = [`${YIELD_POOLS_API}?pool=${poolId}`, `${YIELD_CHART_API}/${poolId}`]
+    let [pool, chart] = await Promise.all(urls.map((url) => fetch(url).then((r) => r.json())))
+    pool = pool.data[0]
+    chart = chart.data.filter((t) => t.apy !== null)
 
     return {
       props: {
@@ -810,8 +810,19 @@ export const useDenominationPriceHistory = (gecko_id: string, utcStartTime: stri
   )}`
 
   const { data, error } = useSWR(gecko_id ? url : null, fetcher)
-
   return { data, error, loading: gecko_id && !data && !error }
+}
+
+export const useYieldPoolData = (poolId) => {
+  const url = `${YIELD_POOLS_API}?pool=${poolId}`
+  const { data, error } = useSWR(poolId ? url : null, fetcher)
+  return { data, error, loading: !data && !error }
+}
+
+export const useChartPoolData = (poolId) => {
+  const url = `${YIELD_CHART_API}/${poolId}`
+  const { data, error } = useSWR(poolId ? url : null, fetcher)
+  return { data, error, loading: !data && !error }
 }
 
 //:00 -> adapters start running, they take up to 15mins
