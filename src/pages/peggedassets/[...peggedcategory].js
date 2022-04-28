@@ -2,10 +2,7 @@ import PeggedsList from '../../components/PeggedList'
 import { PEGGEDS_API } from '../../constants/index'
 import { GeneralLayout } from '../../layout'
 import { getPeggedsPageData, revalidate } from '../../utils/peggedDataApi'
-
-function capitalizeFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1)
-}
+import { capitalizeFirstLetter } from 'utils'
 
 export async function getStaticProps({
   params: {
@@ -35,14 +32,15 @@ export async function getStaticPaths() {
   return { paths, fallback: 'blocking' }
 }
 
-export default function PeggedAssets({ peggedcategory, chains, filteredProtocols, chain }) {
+export default function PeggedAssets({ peggedcategory, chains, filteredProtocols, chartData, chain }) {
   return (
     <GeneralLayout title={`${capitalizeFirstLetter(peggedcategory)} Circulating - DefiLlama`} defaultSEO>
       <PeggedsList
-        category={capitalizeFirstLetter(peggedcategory)}
+        category={peggedcategory}
         chains={chains}
         selectedChain={chain}
         filteredProtocols={filteredProtocols}
+        chartData={chartData}
       />
     </GeneralLayout>
   )

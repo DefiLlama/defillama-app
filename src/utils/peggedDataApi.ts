@@ -92,6 +92,10 @@ export function getProtocolNames(protocols) {
   return protocols.map((p) => ({ name: p.name, symbol: p.symbol }))
 }
 
+export const categoryToPegType = {
+  stablecoins: 'peggedUSD',
+}
+
 export const basicPropertiesToKeep = [
   'tvl',
   'name',
@@ -108,7 +112,7 @@ export const basicPropertiesToKeep = [
   'category',
 ]
 
-export const peggedPropertiesToKeep = ['circulating', 'minted', 'unreleased', 'name', 'symbol', 'chains', 'price']
+export const peggedPropertiesToKeep = ['circulating', 'minted', 'unreleased', 'name', 'symbol', 'chains', 'price', 'change_1d', 'change_7d', 'change_1m']
 
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
@@ -150,10 +154,24 @@ const formatPeggedAssetsData = ({
     let pegType = protocol.pegType
     if (chain) {
       protocol.circulating = protocol.chainCirculating[chain][pegType] ?? 0
+      {/*
+      protocol.circulatingPrevDay = protocol.chainCirculating[chain]?.circulatingPrevDay[pegType] ?? null
+      protocol.circulatingPrevWeek = protocol.chainCirculating[chain]?.circulatingPrevWeek[pegType] ?? null
+      protocol.circulatingPrevMonth = protocol.chainCirculating[chain]?.circulatingPrevMonth[pegType] ?? null
+      */}
     } else {
-      protocol.circulating = protocol.circulating[pegType]
+      protocol.circulating = protocol.circulating[pegType] ?? 0
+      {/*
+      protocol.circulatingPrevDay = protocol.circulatingPrevDay[pegType] ?? null
+      protocol.circulatingPrevWeek = protocol.circulatingPrevWeek[pegType] ?? null
+      protocol.circulatingPrevMonth = protocol.circulatingPrevMonth[pegType] ?? null
+      */}
     }
-    protocol.unreleased = 0 // still need to add this
+    {/*
+    protocol.change_1d = getPercentChange(protocol.circulating, protocol.circulatingPrevDay)
+    protocol.change_7d = getPercentChange(protocol.circulating, protocol.circulatingPrevWeek)
+    protocol.change_1m = getPercentChange(protocol.circulating, protocol.circulatingPrevMonth)
+    */}
 
     return keepNeededPeggedProperties(protocol, protocolProps)
   })
@@ -237,7 +255,11 @@ const formatProtocolsData = ({
 
 export async function getPeggedsPageData(category, chain) {
   const { peggedAssets, chains } = await getPeggedAssets()
+  const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '')).then((r) => r.json())
 
+  const chainList = await chains
+    .sort((a, b) => b.circulating[categoryToPegType[category]] - a.circulating[categoryToPegType[category]])
+    .map((chain) => chain.name)
   const chainsSet = new Set()
 
   peggedAssets.forEach(({ chains, category: pCategory }) => {
@@ -245,7 +267,7 @@ export async function getPeggedsPageData(category, chain) {
       if (!category || !chain) {
         chainsSet.add(chain)
       } else {
-        if (pCategory?.toLowerCase() === category?.toLowerCase() && chains.includes(chain)) {
+        if (pCategory?.toLowerCase() === category?.toLowerCase() && chainList.includes(chain)) {
           chainsSet.add(chain)
         }
       }
@@ -255,10 +277,11 @@ export async function getPeggedsPageData(category, chain) {
   let filteredProtocols = formatPeggedAssetsData({ category, peggedAssets, chain })
 
   return {
-    filteredProtocols,
-    chain: chain ?? 'All',
     peggedcategory: category,
-    chains: chains.filter((chain) => chainsSet.has(chain)),
+    chains: chainList.filter((chain) => chainsSet.has(chain)),
+    filteredProtocols,
+    chartData,
+    chain: chain ?? 'All',
   }
 }
 
@@ -507,7 +530,7 @@ export const getPeggedAssets = () =>
         return acc
       }, {}),
       peggedAssets,
-      chains: chains.map((chain) => chain.name),
+      chains,
     }))
 
 export const getProtocol = async (protocolName: string) => {
@@ -582,35 +605,37 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
   )
 
   const pegType = res.pegType
-  const chainTvls = chainsUnique.map((chainName, i) => {
-    const circulating: number = getPrevCirculatingFromChart(chainsData[i], 0, 'circulating')[pegType]
-    const unreleased: number = getPrevCirculatingFromChart(chainsData[i], 0, 'unreleased')[pegType]
-    const minted: number = getPrevCirculatingFromChart(chainsData[i], 0, 'minted')[pegType]
+  const chainTvls = chainsUnique
+    .map((chainName, i) => {
+      const circulating: number = getPrevCirculatingFromChart(chainsData[i], 0, 'circulating', pegType)
+      const unreleased: number = getPrevCirculatingFromChart(chainsData[i], 0, 'unreleased', pegType)
+      const minted: number = getPrevCirculatingFromChart(chainsData[i], 0, 'minted', pegType)
 
-    let bridgedAmount: string | number = circulating - minted + unreleased
-    if (bridgedAmount <= 0) {
-      bridgedAmount = '-'
-    } else if (bridgedAmount === circulating) {
-      bridgedAmount = 'all'
-    }
-
-    let bridgeInfo: { bridge: string; link?: string } = res.bridges[chainName]
-
-    if (!bridgeInfo) {
-      bridgeInfo = {
-        bridge: '-',
+      let bridgedAmount: string | number = circulating - minted + unreleased
+      if (bridgedAmount <= 1) {   
+        bridgedAmount = '-'
+      } else if (bridgedAmount === circulating) {
+        bridgedAmount = 'all'
       }
-    }
 
-    return {
-      circulating,
-      unreleased,
-      bridgeInfo,
-      bridgedAmount,
-      name: chainName,
-      symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
-    }
-  }).sort((a, b) => b.circulating - a.circulating)
+      let bridgeInfo: { bridge: string; link?: string } = res.bridges[chainName]
+
+      if (!bridgeInfo) {
+        bridgeInfo = {
+          bridge: '-',
+        }
+      }
+
+      return {
+        circulating,
+        unreleased,
+        bridgeInfo,
+        bridgedAmount,
+        name: chainName,
+        symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
+      }
+    })
+    .sort((a, b) => b.circulating - a.circulating)
 
   const stackedDataset = Object.entries(
     chainsData.reduce((total: IStackedDataset, chains, i) => {

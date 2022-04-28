@@ -233,7 +233,7 @@ export const formattedPegggedPrice = (number, symbol = false, acceptNegatives = 
   }
 
   if (symbol) {
-      return currencyMark + (parseFloat(num).toFixed(5))    // this is all pegged is using, should merge with above
+      return currencyMark + (parseFloat(num).toFixed(6))    // this is all pegged is using, should merge with above
   }
 
   return Number(parseFloat(num).toFixed(5))
@@ -446,6 +446,14 @@ export const getTokenDominance = (topToken, totalVolume) => {
   } else return 100
 }
 
+export const getPeggedDominance = (topToken, totalCirculating) => {
+  const dominance = topToken.circulating && totalCirculating && (topToken.circulating / totalCirculating) * 100.0
+
+  if (dominance < 100) {
+    return dominance.toFixed(2)
+  } else return 100
+}
+
 /**
  * get tvl of specified day before last day using chart data
  * @param {*} chartData
@@ -455,8 +463,8 @@ export const getPrevTvlFromChart = (chart, daysBefore) => {
   return chart[chart.length - 1 - daysBefore]?.[1] ?? null
 }
 
-export const getPrevCirculatingFromChart = (chart, daysBefore, type) => {
-  return chart[chart.length - 1 - daysBefore]?.[type] ?? null
+export const getPrevCirculatingFromChart = (chart, daysBefore, issuanceType, pegType) => {
+  return chart[chart.length - 1 - daysBefore]?.[issuanceType]?.[pegType] ?? null
 }
 
 export function download(filename, text) {
