@@ -720,9 +720,6 @@ export async function getYieldPageData(query = null) {
       const queryKey = Object.keys(query)[0]
       const queryVal = Object.values(query)[0]
       pools = pools.filter((p) => p[queryKey] === queryVal)
-      // for token queries
-    } else if (query !== null && Object.keys(query)[0] === 'token') {
-      pools = pools.filter((p) => p.symbol.toLowerCase().includes(query['token'].toLowerCase()))
     }
 
     return {
@@ -730,27 +727,6 @@ export async function getYieldPageData(query = null) {
         pools,
         chainList,
         projectList,
-      },
-    }
-  } catch (e) {
-    console.log(e)
-    return {
-      notFound: true,
-    }
-  }
-}
-
-export async function getYieldPoolData(poolId) {
-  try {
-    const urls = [`${YIELD_POOLS_API}?pool=${poolId}`, `${YIELD_CHART_API}/${poolId}`]
-    let [pool, chart] = await Promise.all(urls.map((url) => fetch(url).then((r) => r.json())))
-    pool = pool.data[0]
-    chart = chart.data.filter((t) => t.apy !== null)
-
-    return {
-      props: {
-        pool,
-        chart,
       },
     }
   } catch (e) {
@@ -813,13 +789,20 @@ export const useDenominationPriceHistory = (gecko_id: string, utcStartTime: stri
   return { data, error, loading: gecko_id && !data && !error }
 }
 
+// all unique pools
+export const useYieldPoolsData = () => {
+  const { data, error } = useSWR(YIELD_POOLS_API, fetcher)
+  return { data, error, loading: !data && !error }
+}
+// single pool
 export const useYieldPoolData = (poolId) => {
   const url = `${YIELD_POOLS_API}?pool=${poolId}`
   const { data, error } = useSWR(poolId ? url : null, fetcher)
   return { data, error, loading: !data && !error }
 }
 
-export const useChartPoolData = (poolId) => {
+// single pool chart data
+export const useYieldChartData = (poolId) => {
   const url = `${YIELD_CHART_API}/${poolId}`
   const { data, error } = useSWR(poolId ? url : null, fetcher)
   return { data, error, loading: !data && !error }

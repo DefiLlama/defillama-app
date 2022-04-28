@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic'
-import { getYieldPoolData, useYieldPoolData, useChartPoolData } from 'utils/dataApi'
+import { useYieldPoolData, useYieldChartData } from 'utils/dataApi'
 import { GeneralLayout } from 'layout'
 import { PageWrapper, FullWrapper } from 'components'
 import { AutoColumn } from 'components/Column'
@@ -12,6 +12,7 @@ import Search from 'components/Search'
 import { BasicLink } from 'components/Link'
 import styled from 'styled-components'
 import { useMedia } from 'react-use'
+import { useRouter } from 'next/router'
 
 const HiddenSearch = styled.span`
   @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
@@ -23,24 +24,14 @@ const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
 })
 
-// export async function getServerSideProps({ params: { pool } }) {
-//   const data = await getYieldPoolData(pool)
-
-//   return {
-//     ...data,
-//   }
-// }
-
-// const PageView = ({ pool, chart }) => {
 const PageView = () => {
-  const pId = '0xa87b2ff0759f5b82c7ec86444a70f25c6bffccbf'
+  const { query } = useRouter()
 
-  let { data: pool } = useYieldPoolData(pId)
-  let { data: chart } = useChartPoolData(pId)
+  let { data: pool } = useYieldPoolData(query.pool)
+  let { data: chart } = useYieldChartData(query.pool)
 
   const finalChartData = chart?.data.map((el) => [
     String(Math.floor(new Date(el.timestamp).getTime() / 1000)),
-
     el.tvlUsd,
     // i format here for the plot in `TradingViewChart`
     el.apy?.toFixed(2) ?? 0,
