@@ -28,7 +28,7 @@ const NavMenu = ({ isMobile }) => {
 
   return (
     <AutoColumn gap="1.25rem">
-      {isMobile && <Entry url="nfts" name="NFTs" history={history} Icon={Award} style={{ marginTop: '20px' }} />}
+      {/*isMobile && <Entry url="nfts" name="NFTs" history={history} Icon={Award} style={{ marginTop: '20px' }} />*/}
       <Entry url="" name="Overview" history={history} Icon={TrendingUp} />
       <Entry url="chains" name="Chains" history={history} Icon={LinkLogo} />
       <Entry url="https://wiki.defillama.com/wiki/Main_Page" name="Wiki" history={history} Icon={Book} external newTag />
