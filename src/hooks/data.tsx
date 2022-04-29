@@ -309,7 +309,7 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
       }
     })
     return (Object.values(finalData) as GroupChain[]).sort((a, b) => b.tvl - a.tvl)
-  }, [chains, groupData])
+  }, [chains, groupData, groupsEnabled])
 
   return data
 }
