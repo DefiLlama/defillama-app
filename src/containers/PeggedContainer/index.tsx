@@ -57,10 +57,26 @@ export default function PeggedContainer({
   peggedasset,
   pegType,
 }) {
-  let columns = columnsToShow('chainName', 'bridgeInfo', 'bridgedAmount', 'circulating')
+  let columns = columnsToShow(
+    'chainName',
+    'bridgeInfo',
+    'bridgedAmount',
+    '1dChange',
+    '7dChange',
+    '1mChange',
+    'circulating'
+  )
   const peggedColumn = `${pegType}`
   if (isOfTypeColumns(peggedColumn)) {
-    columns = columnsToShow(peggedColumn, 'bridgeInfo', 'bridgedAmount', 'circulating')
+    columns = columnsToShow(
+      peggedColumn,
+      'bridgeInfo',
+      'bridgedAmount',
+      '1dChange',
+      '7dChange',
+      '1mChange',
+      'circulating'
+    )
   }
 
   const chainColor = useMemo(

@@ -74,10 +74,18 @@ function AllPeggedsPage({
   showChainList = true,
   defaultSortingColumn,
 }) {
-  let columns = columnsToShow('protocolName', 'price', 'peggedChains', 'circulating')
+  let columns = columnsToShow(
+    'protocolName',
+    'peggedChains',
+    'price',
+    '1dChange',
+    '7dChange',
+    '1mChange',
+    'circulating'
+  )
   const peggedColumn = `${category}`
   if (isOfTypeColumns(peggedColumn)) {
-    columns = columnsToShow(peggedColumn, 'price', 'peggedChains', 'circulating')
+    columns = columnsToShow(peggedColumn, 'price', 'peggedChains', '1dChange', '7dChange', '1mChange', 'circulating')
   }
 
   const isLg = useLg()
@@ -111,6 +119,9 @@ function AllPeggedsPage({
     title = `Circulating`
     if (category) {
       title = `${capitalizeFirstLetter(category)} Circulating`
+    }
+    if (selectedChain !== "All") {
+      title = `${capitalizeFirstLetter(selectedChain)} ${capitalizeFirstLetter(category)} Circulating`
     }
   }
 

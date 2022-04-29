@@ -18,6 +18,7 @@ import {
   PEGGEDCHART_API,
 } from '../constants/index'
 import { getPercentChange, getPrevCirculatingFromChart, standardizeProtocolName } from 'utils'
+import ComparisonPage from 'containers/ComparisonContainer'
 
 interface IProtocol {
   name: string
@@ -153,25 +154,19 @@ const formatPeggedAssetsData = ({
   filteredProtocols = filteredProtocols.map((protocol) => {
     let pegType = protocol.pegType
     if (chain) {
-      protocol.circulating = protocol.chainCirculating[chain][pegType] ?? 0
-      {/*
+      protocol.circulating = protocol.chainCirculating[chain].current[pegType] ?? 0
       protocol.circulatingPrevDay = protocol.chainCirculating[chain]?.circulatingPrevDay[pegType] ?? null
       protocol.circulatingPrevWeek = protocol.chainCirculating[chain]?.circulatingPrevWeek[pegType] ?? null
       protocol.circulatingPrevMonth = protocol.chainCirculating[chain]?.circulatingPrevMonth[pegType] ?? null
-      */}
     } else {
       protocol.circulating = protocol.circulating[pegType] ?? 0
-      {/*
       protocol.circulatingPrevDay = protocol.circulatingPrevDay[pegType] ?? null
       protocol.circulatingPrevWeek = protocol.circulatingPrevWeek[pegType] ?? null
       protocol.circulatingPrevMonth = protocol.circulatingPrevMonth[pegType] ?? null
-      */}
     }
-    {/*
     protocol.change_1d = getPercentChange(protocol.circulating, protocol.circulatingPrevDay)
     protocol.change_7d = getPercentChange(protocol.circulating, protocol.circulatingPrevWeek)
     protocol.change_1m = getPercentChange(protocol.circulating, protocol.circulatingPrevMonth)
-    */}
 
     return keepNeededPeggedProperties(protocol, protocolProps)
   })
@@ -275,6 +270,8 @@ export async function getPeggedsPageData(category, chain) {
   })
 
   let filteredProtocols = formatPeggedAssetsData({ category, peggedAssets, chain })
+
+  console.log(JSON.stringify(filteredProtocols))
 
   return {
     peggedcategory: category,
@@ -610,6 +607,12 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       const circulating: number = getPrevCirculatingFromChart(chainsData[i], 0, 'circulating', pegType)
       const unreleased: number = getPrevCirculatingFromChart(chainsData[i], 0, 'unreleased', pegType)
       const minted: number = getPrevCirculatingFromChart(chainsData[i], 0, 'minted', pegType)
+      const circulatingPrevDay: number = getPrevCirculatingFromChart(chainsData[i], 1, 'circulating', pegType)
+      const circulatingPrevWeek: number = getPrevCirculatingFromChart(chainsData[i], 7, 'circulating', pegType)
+      const circulatingPrevMonth: number = getPrevCirculatingFromChart(chainsData[i], 30, 'circulating', pegType)
+      const change_1d = getPercentChange(circulating, circulatingPrevDay)
+      const change_7d = getPercentChange(circulating, circulatingPrevWeek)
+      const change_1m = getPercentChange(circulating, circulatingPrevMonth)
 
       let bridgedAmount: string | number = circulating - minted + unreleased
       if (bridgedAmount <= 1) {   
@@ -629,6 +632,9 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       return {
         circulating,
         unreleased,
+        change_1d,
+        change_7d,
+        change_1m,
         bridgeInfo,
         bridgedAmount,
         name: chainName,
