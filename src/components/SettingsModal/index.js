@@ -406,15 +406,15 @@ export const AllTvlOptions = ({ style }) => {
 export const AllPeggedOptions = ({ style }) => {
   const peggedToggles = usePeggedToggles()
   const extraPeggedEnabled = useGetExtraPeggedEnabled()
-    return (
+  return (
     <>
       <ScrollAreaRoot>
         <ScrollAreaViewport>
           <ListWrapper style={{ ...style }}>
-              {extraPeggedOptions.map((option) => (
+            {extraPeggedOptions.map((option) => (
               <ListItem key={option.key}>
                 <OptionToggle {...option} toggle={peggedToggles(option.key)} enabled={extraPeggedEnabled[option.key]} />
-				              </ListItem>
+              </ListItem>
             ))}
           </ListWrapper>
         </ScrollAreaViewport>
@@ -435,7 +435,6 @@ export const AllGroupOptions = ({ style }) => {
       <ScrollAreaRoot>
         <ScrollAreaViewport>
           <ListWrapper style={{ ...style }}>
-
             {groupSettings.map((option) => (
               <ListItem key={option.key}>
                 <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />

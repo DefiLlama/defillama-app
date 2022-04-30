@@ -642,7 +642,7 @@ const allColumns: AllColumns = {
   },
   peggedChains: {
     header: 'Chains',
-    accessor: 'chains',   // should change this
+    accessor: 'chains', // should change this
     disableSortBy: true,
     helperText: "Chains are ordered by pegged asset's highest issuance on each chain",
     Cell: ({ value }) => <PeggedChainsRow chains={value} />,

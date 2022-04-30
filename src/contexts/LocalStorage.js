@@ -108,7 +108,7 @@ function init() {
     [VERSION]: CURRENT_VERSION,
     [DARK_MODE]: true,
     ...extraTvlProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-	...extraPeggedProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+    ...extraPeggedProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
     [DOUBLE_COUNT]: true,
     [DISPLAY_USD]: false,
     [HIDE_LAST_DAY]: false,
