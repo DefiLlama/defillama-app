@@ -6,7 +6,7 @@ import Popover from 'components/Popover'
 import Row from 'components/Row'
 import TokenLogo from 'components/TokenLogo'
 
-import { useResize, useNFTApp } from 'hooks'
+import { useResize, useNFTApp, useYieldApp } from 'hooks'
 import { chainIconUrl } from 'utils'
 
 const CHAIN_ICON_WIDTH = 24
@@ -19,8 +19,11 @@ const TokenCounter = styled(Row)`
   justify-content: center;
 `
 
-export const ChainLogo = ({ chain, isNFTApp }) => (
-  <BasicLink key={chain} href={isNFTApp ? `/nfts/chain/${chain}` : `/chain/${chain}`}>
+export const ChainLogo = ({ chain, isNFTApp, isYieldApp }) => (
+  <BasicLink
+    key={chain}
+    href={isNFTApp ? `/nfts/chain/${chain}` : isYieldApp ? `/yields/chain/${chain}` : `/chain/${chain}`}
+  >
     <TokenLogo address={chain} logo={chainIconUrl(chain)} />
   </BasicLink>
 )
@@ -31,6 +34,7 @@ const ChainsRow = ({ chains }) => {
   const { width: mainWrapWidth } = useResize(mainWrapEl)
   const [showHover, setShowHover] = useState(false)
   const isNFTApp = useNFTApp()
+  const isYieldApp = useYieldApp()
 
   useEffect(() => {
     let remainingWidth = (mainWrapWidth > 280 ? 280 : mainWrapWidth) - CHAIN_ICON_WIDTH
@@ -53,7 +57,7 @@ const ChainsRow = ({ chains }) => {
   return (
     <Row sx={{ width: '100%', justifyContent: 'flex-end' }} ref={mainWrapEl}>
       {visibleChains.map((chain) => (
-        <ChainLogo key={chain} chain={chain} isNFTApp={isNFTApp} />
+        <ChainLogo key={chain} chain={chain} isNFTApp={isNFTApp} isYieldApp={isYieldApp} />
       ))}
       {!!hoverChains.length && (
         <Popover
@@ -61,7 +65,7 @@ const ChainsRow = ({ chains }) => {
           content={
             <Row padding="6px">
               {hoverChains.map((chain) => (
-                <ChainLogo key={chain} chain={chain} isNFTApp={isNFTApp} />
+                <ChainLogo key={chain} chain={chain} isNFTApp={isNFTApp} isYieldApp={isYieldApp} />
               ))}
             </Row>
           }

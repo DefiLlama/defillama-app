@@ -33,6 +33,7 @@ interface TableProps {
   columns: ColumnProps[]
   data: unknown
   align?: string
+  secondColumnAlign?: string
   gap?: string
   pinnedRow?: unknown
 }
@@ -65,6 +66,10 @@ const RowWrapper = styled.tr`
     white-space: nowrap;
     text-align: start;
     padding-left: var(--padding-left);
+  }
+
+  & > :nth-child(2) {
+    text-align: var(--second-column-align) !important;
   }
 
   & > :last-child {
@@ -214,7 +219,7 @@ function RowWithExtras({ columns, item, index }: RowProps) {
   )
 }
 
-function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
+function Table({ columns = [], data = [], align, secondColumnAlign, gap, pinnedRow, ...props }: TableProps) {
   const [columnToSort, setColumnToSort] = useState<string | null>(null)
   const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
 
@@ -241,7 +246,14 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
   const { LoadMoreButton, dataLength, hasMore, next } = useInfiniteScroll({ list: sortedData })
 
   return (
-    <Wrapper style={{ '--text-align': align || 'end', '--gap': gap || '24px' }} {...props}>
+    <Wrapper
+      style={{
+        '--text-align': align || 'end',
+        '--second-column-align': secondColumnAlign || 'end',
+        '--gap': gap || '24px',
+      }}
+      {...props}
+    >
       <InfiniteScroll
         dataLength={dataLength}
         next={next}
@@ -429,6 +441,23 @@ export function Name({
   )
 }
 
+export function NameYield({ value, rowType, ...props }: NameProps) {
+  const { iconUrl, tokenUrl } = useMemo(() => {
+    return { iconUrl: tokenIconUrl(value['project']), tokenUrl: `/yields/project/${value['projectslug']}` }
+  }, [value])
+
+  return (
+    <Index {...props}>
+      <TokenLogo logo={iconUrl} />
+      {rowType === 'accordion' ? (
+        <span>{value['project']}</span>
+      ) : (
+        <CustomLink href={tokenUrl}>{value['project']}</CustomLink>
+      )}
+    </Index>
+  )
+}
+
 type Columns =
   | 'protocolName'
   | 'chainName'
@@ -568,7 +597,7 @@ const allColumns: AllColumns = {
             color: rowValues.strikeTvl ? 'gray' : 'inherit',
           }}
         >
-          {'$' + toK(value)}
+          {'$' + formattedNum(value)}
         </span>
       )
     },

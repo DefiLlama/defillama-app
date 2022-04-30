@@ -7,6 +7,10 @@ import {
   useDisplayUsdManager,
   useBorrowedManager,
   useHideLastDayManager,
+  useStablecoinsManager,
+  useSingleExposureManager,
+  useNoILManager,
+  useMillionDollarManager,
   useTvlToggles,
   useGetExtraTvlEnabled,
   usePeggedToggles,
@@ -20,6 +24,8 @@ import {
   DOUBLE_COUNT,
   useDarkModeManager,
   UNRELEASED,
+  useGroupEnabled,
+  groupSettings,
 } from '../../contexts/LocalStorage'
 
 import { AutoRow } from '../Row'
@@ -190,6 +196,10 @@ export function CheckMarks({ type = 'defi' }) {
   const [borrowedEnabled, toggleBorrowed] = useBorrowedManager()
   const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
   const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
+  const [stablecoins, toggleStablecoins] = useStablecoinsManager()
+  const [singleExposure, toggleSingleExposure] = useSingleExposureManager()
+  const [noIL, toggleNoIL] = useNoILManager()
+  const [millionDollar, toggleMillionDollar] = useMillionDollarManager()
   const router = useRouter()
   const isClient = useIsClient()
 
@@ -220,6 +230,32 @@ export function CheckMarks({ type = 'defi' }) {
         toggle: toggleHideLastDay,
         enabled: hideLastDay && isClient,
         help: 'Hide the last day of data',
+      },
+    ],
+    yields: [
+      {
+        name: 'Stablecoins',
+        toggle: toggleStablecoins,
+        enabled: stablecoins && isClient,
+        help: 'Select pools consisting of stablecoins only',
+      },
+      {
+        name: 'Single Exposure',
+        toggle: toggleSingleExposure,
+        enabled: singleExposure && isClient,
+        help: 'Select pools with single token exposure only',
+      },
+      {
+        name: 'No IL',
+        toggle: toggleNoIL,
+        enabled: noIL && isClient,
+        help: 'Select pools with no impermanent loss',
+      },
+      {
+        name: 'Million Dollar',
+        toggle: toggleMillionDollar,
+        enabled: millionDollar && isClient,
+        help: 'Select pools with at least one million dollar in TVL',
       },
     ],
   }
@@ -370,15 +406,39 @@ export const AllTvlOptions = ({ style }) => {
 export const AllPeggedOptions = ({ style }) => {
   const peggedToggles = usePeggedToggles()
   const extraPeggedEnabled = useGetExtraPeggedEnabled()
+    return (
+    <>
+      <ScrollAreaRoot>
+        <ScrollAreaViewport>
+          <ListWrapper style={{ ...style }}>
+              {extraPeggedOptions.map((option) => (
+              <ListItem key={option.key}>
+                <OptionToggle {...option} toggle={peggedToggles(option.key)} enabled={extraPeggedEnabled[option.key]} />
+				              </ListItem>
+            ))}
+          </ListWrapper>
+        </ScrollAreaViewport>
+        <ScrollAreaScrollbar orientation="horizontal">
+          <ScrollAreaThumb />
+        </ScrollAreaScrollbar>
+        <ScrollAreaCorner />
+      </ScrollAreaRoot>
+    </>
+  )
+}
 
+export const AllGroupOptions = ({ style }) => {
+  const tvlToggles = useTvlToggles()
+  const extraTvlEnabled = useGroupEnabled()
   return (
     <>
       <ScrollAreaRoot>
         <ScrollAreaViewport>
           <ListWrapper style={{ ...style }}>
-            {extraPeggedOptions.map((option) => (
+
+            {groupSettings.map((option) => (
               <ListItem key={option.key}>
-                <OptionToggle {...option} toggle={peggedToggles(option.key)} enabled={extraPeggedEnabled[option.key]} />
+                <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
               </ListItem>
             ))}
           </ListWrapper>

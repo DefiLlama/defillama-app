@@ -39,6 +39,7 @@ const blockExplorers = {
   ethereumclassic: ['https://blockscout.com/etc/mainnet/address/','ETC Blockscout'],
   milkomeda: ['https://rpc.c1.milkomeda.com:4000/address/','C1 Blockscout'],
   dfk: ['https://subnets.avax.network/defi-kingdoms/dfk-chain/explorer/token/','DFK Chain Explorer'],
+  findora: ['https://evm.findorascan.io/token/','Findorascan'],
 }
 
 export const getBlockExplorer = (address = '') => {
@@ -51,7 +52,7 @@ export const getBlockExplorer = (address = '') => {
       blockExplorerName = explorer[1];
     }
   } else if (typeof address === "string") {
-    blockExplorerLink = 'https://etherscan.io/address/' + address
+    blockExplorerLink = 'https://etherscan.io/token/' + address
     blockExplorerName = 'Etherscan'
   }
 

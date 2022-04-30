@@ -141,6 +141,16 @@ export const Footer = ({ isDark, toggleDarkMode }) => (
         </Link>
       </HeaderText>
       <HeaderText>
+        <Link href="https://t.me/defillama_tg" target="_blank">
+          Daily news
+        </Link>
+      </HeaderText>
+      <HeaderText>
+        <Link href="https://etherscan.io/address/0x08a3c2A819E3de7ACa384c798269B3Ce1CD0e437" target="_blank">
+          Donate
+        </Link>
+      </HeaderText>
+      <HeaderText>
         <Link href="/press">Press / Media</Link>
       </HeaderText>
       <HeaderText>

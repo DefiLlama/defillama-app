@@ -24,9 +24,39 @@ export const DISPLAY_USD = 'DISPLAY_USD'
 export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
 export const DEFAULT_PORTFOLIO = 'main'
 export const UNRELEASED = 'unreleased'
+export const STABLECOINS = 'STABLECOINS'
+export const SINGLE_EXPOSURE = 'SINGLE_EXPOSURE'
+export const NO_IL = 'NO_IL'
+export const MILLION_DOLLAR = 'MILLION_DOLLAR'
 
 const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
 const extraPeggedProps = [UNRELEASED]
+
+export const groupSettings = [
+  {
+    name: 'L2',
+    key: 'L2',
+  },
+  {
+    name: 'Emulators',
+    key: 'emulator',
+  },
+  {
+    name: 'Same token',
+    key: 'gas',
+  },
+  {
+    name: 'Parachains',
+    key: 'parachain',
+  },
+  {
+    name: 'Subnets',
+    key: 'subnet',
+  },
+  // skale
+]
+
+const groupKeys = groupSettings.map((g) => g.key)
 
 const UPDATABLE_KEYS = [
   DARK_MODE,
@@ -39,6 +69,11 @@ const UPDATABLE_KEYS = [
   DISPLAY_USD,
   HIDE_LAST_DAY,
   SELECTED_PORTFOLIO,
+  ...groupKeys,
+  STABLECOINS,
+  SINGLE_EXPOSURE,
+  NO_IL,
+  MILLION_DOLLAR,
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -77,6 +112,10 @@ function init() {
     [DOUBLE_COUNT]: true,
     [DISPLAY_USD]: false,
     [HIDE_LAST_DAY]: false,
+    [STABLECOINS]: false,
+    [SINGLE_EXPOSURE]: false,
+    [NO_IL]: false,
+    [MILLION_DOLLAR]: false,
     [DISMISSED_PATHS]: {},
     [SAVED_ACCOUNTS]: [],
     [SAVED_TOKENS]: { main: {} },
@@ -168,6 +207,21 @@ export const useGetExtraTvlEnabled = () => {
   )
 }
 
+// TODO: Remove code duplication with useGetExtraTvlEnabled
+export const useGroupEnabled = () => {
+  const [state] = useLocalStorageContext()
+  const isClient = useIsClient()
+
+  return useMemo(
+    () =>
+      groupKeys.reduce((all, prop) => {
+        all[prop] = isClient ? state[prop] : prop === 'emulator'
+        return all
+      }, {}),
+    [state, isClient]
+  )
+}
+
 export function useTvlToggles() {
   const [state, { updateKey }] = useLocalStorageContext()
   return (key) => () => {
@@ -240,6 +294,50 @@ export function useHideLastDayManager() {
   }
 
   return [hideLastDay, toggleHideLastDay]
+}
+
+export function useStablecoinsManager() {
+  const [state, { updateKey }] = useLocalStorageContext()
+  const stablecoins = state[STABLECOINS]
+
+  const toggleStablecoins = () => {
+    updateKey(STABLECOINS, !stablecoins)
+  }
+
+  return [stablecoins, toggleStablecoins]
+}
+
+export function useSingleExposureManager() {
+  const [state, { updateKey }] = useLocalStorageContext()
+  const singleExposure = state[SINGLE_EXPOSURE]
+
+  const toggleSingleExposure = () => {
+    updateKey(SINGLE_EXPOSURE, !singleExposure)
+  }
+
+  return [singleExposure, toggleSingleExposure]
+}
+
+export function useNoILManager() {
+  const [state, { updateKey }] = useLocalStorageContext()
+  const noIL = state[NO_IL]
+
+  const toggleNoIL = () => {
+    updateKey(NO_IL, !noIL)
+  }
+
+  return [noIL, toggleNoIL]
+}
+
+export function useMillionDollarManager() {
+  const [state, { updateKey }] = useLocalStorageContext()
+  const millionDollar = state[MILLION_DOLLAR]
+
+  const toggleMillionDollar = () => {
+    updateKey(MILLION_DOLLAR, !millionDollar)
+  }
+
+  return [millionDollar, toggleMillionDollar]
 }
 
 export function usePathDismissed(path) {

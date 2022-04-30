@@ -41,9 +41,9 @@ export const chainCoingeckoIds = {
     cmcId: '2092',
   },
   Witnet: {
-    geckoId: null,
-    symbol: null,
-    cmcId: null,
+    geckoId: 'witnet',
+    symbol: 'WIT',
+    cmcId: '14925',
   },
   Binance: {
     geckoId: 'binancecoin',
@@ -375,9 +375,9 @@ export const chainCoingeckoIds = {
     cmcId: '4747',
   },
   Godwoken: {
-    geckoId: null,
-    symbol: null,
-    cmcId: null,
+    geckoId: 'nervos-network',
+    symbol: 'CKB',
+    cmcId: '4948',
   },
   Callisto: {
     geckoId: 'callisto',
@@ -445,9 +445,9 @@ export const chainCoingeckoIds = {
     cmcId: '12885',
   },
   Curio: {
-    geckoId: null,
-    symbol: null,
-    cmcId: null,
+    geckoId: 'skale',
+    symbol: 'SKL',
+    cmcId: '5691',
   },
   Bittorrent: {
     geckoId: 'bittorrent',
@@ -503,6 +503,41 @@ export const chainCoingeckoIds = {
     geckoId: 'omni',
     symbol: 'OMNI',
     cmcId: '83',
+  },
+  Clover: {
+    geckoId: "clover-finance",
+    symbol: "CLV",
+    cmcId: "8384",
+    },
+  REI: {
+    geckoId: null,
+    symbol: null,
+    cmcId: null,
+  },
+  Crab: {
+    geckoId: "darwinia-crab-network",
+    symbol: "CRAB",
+    cmcId: "9243",
+  },
+  Hedera: {
+    geckoId: "hedera-hashgraph",
+    symbol: "HBAR",
+    cmcId: "4642",
+  },
+  Findora: {
+    geckoId: "findora",
+    symbol: "FRA",
+    cmcId: "4249",
+  },
+  Hydra: {
+    geckoId: "hydra",
+    symbol: "HYDRA",
+    cmcId: "8245",
+  },
+  Boba: {
+    geckoId: "boba-network  ",
+    symbol: "BOBA",
+    cmcId: "14556",
   },
 }
 

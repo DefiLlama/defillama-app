@@ -285,10 +285,18 @@ export function tokenIconUrl(name) {
   return `/icons/${name.toLowerCase().split(' ').join('-')}.jpg`
 }
 
-export function formattedPercent(percent, useBrackets = false) {
+export function formattedPercent(percent, noSign = false) {
   if (percent === null) {
     return null
   }
+
+  let up = 'green'
+  let down = 'red'
+
+  if (noSign) {
+    up = down = ''
+  }
+
   percent = parseFloat(percent)
   if (!percent || percent === 0) {
     return <Text fontWeight={500}>0%</Text>
@@ -296,7 +304,7 @@ export function formattedPercent(percent, useBrackets = false) {
 
   if (percent < 0.0001 && percent > 0) {
     return (
-      <Text fontWeight={500} color="green">
+      <Text fontWeight={500} color={up}>
         {'< 0.0001%'}
       </Text>
     )
@@ -304,7 +312,7 @@ export function formattedPercent(percent, useBrackets = false) {
 
   if (percent < 0 && percent > -0.0001) {
     return (
-      <Text fontWeight={500} color="red">
+      <Text fontWeight={500} color={down}>
         {'< 0.0001%'}
       </Text>
     )
@@ -314,14 +322,15 @@ export function formattedPercent(percent, useBrackets = false) {
   if (fixedPercent === '0.00') {
     return '0%'
   }
+  const prefix = noSign ? '' : '+'
   if (fixedPercent > 0) {
     if (fixedPercent > 100) {
-      return <Text fontWeight={500} color="green">{`+${percent?.toFixed(0).toLocaleString()}%`}</Text>
+      return <Text fontWeight={500} color={up}>{`${prefix}${percent?.toFixed(0).toLocaleString()}%`}</Text>
     } else {
-      return <Text fontWeight={500} color="green">{`+${fixedPercent}%`}</Text>
+      return <Text fontWeight={500} color={up}>{`${prefix}${fixedPercent}%`}</Text>
     }
   } else {
-    return <Text fontWeight={500} color="red">{`${fixedPercent}%`}</Text>
+    return <Text fontWeight={500} color={down}>{`${fixedPercent}%`}</Text>
   }
 }
 

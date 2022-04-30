@@ -13,6 +13,9 @@ import {
   HOURLY_PROTOCOL_API,
   ORACLE_API,
   FORK_API,
+  YIELD_POOLS_API,
+  YIELD_CHART_API,
+  CG_TOKEN_API,
 } from '../constants/index'
 import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
 
@@ -448,12 +451,17 @@ export const getChainsPageData = async (category: string) => {
 
   let chainsGroupbyParent = {}
   chainsUnique.forEach((chain) => {
-    const parent = chainCoingeckoIds[chain].parent
+    const parent = chainCoingeckoIds[chain]?.parent
     if (parent) {
-      if (!chainsGroupbyParent[parent]) {
-        chainsGroupbyParent[parent] = {}
+      if (!chainsGroupbyParent[parent.chain]) {
+        chainsGroupbyParent[parent.chain] = {}
       }
-      chainsGroupbyParent[parent][chain] = {}
+      for (const type of parent.types) {
+        if (!chainsGroupbyParent[parent.chain][type]) {
+          chainsGroupbyParent[parent.chain][type] = []
+        }
+        chainsGroupbyParent[parent.chain][type].push(chain)
+      }
     }
   })
 
@@ -694,6 +702,67 @@ export const getNFTSearchResults = async (query: string) => {
   }
 }
 
+export async function getYieldPageData(query = null) {
+  try {
+    // note(!) the api supports direct queries of chain or projectName
+    // however, i have no clue yet how to make sure that the chainList is complete for the
+    // filter section on the PageViews. so to get around this for now i just always load the full
+    // batch of data and filter on the next.js server side.
+    // this only affects /chain/[chain] and /project/[project]. for /pool/[pool] we are filtering
+    // on the db level (see `getYieldPoolData`)
+    let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
+
+    const chainList = [...new Set(pools.map((p) => p.chain))]
+    const projectList = [...new Set(pools.map((p) => p.project))]
+
+    // for chain, project and pool queries
+    if (query !== null && Object.keys(query)[0] !== 'token') {
+      const queryKey = Object.keys(query)[0]
+      const queryVal = Object.values(query)[0]
+      pools = pools.filter((p) => p[queryKey] === queryVal)
+    }
+
+    return {
+      props: {
+        pools,
+        chainList,
+        projectList,
+      },
+    }
+  } catch (e) {
+    console.log(e)
+    return {
+      notFound: true,
+    }
+  }
+}
+
+export async function fetchCGMarketsData() {
+  const urls = []
+  const maxPage = 10
+  for (let page = 1; page <= maxPage; page++) {
+    urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', `${page}`)}`)
+  }
+
+  const promises = urls.map((url) => fetch(url).then((resp) => resp.json()))
+  return await Promise.all(promises)
+}
+
+export async function retryCoingeckoRequest(func, retries) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const resp = await func()
+      return resp
+    } catch (e) {
+      if ((i + 1) % 3 === 0 && retries > 3) {
+        await new Promise((resolve) => setTimeout(resolve, 10e3))
+      }
+      continue
+    }
+  }
+  return {}
+}
+
 // Client Side
 
 const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then((res) => res.json())
@@ -717,8 +786,26 @@ export const useDenominationPriceHistory = (gecko_id: string, utcStartTime: stri
   )}`
 
   const { data, error } = useSWR(gecko_id ? url : null, fetcher)
-
   return { data, error, loading: gecko_id && !data && !error }
+}
+
+// all unique pools
+export const useYieldPoolsData = () => {
+  const { data, error } = useSWR(YIELD_POOLS_API, fetcher)
+  return { data, error, loading: !data && !error }
+}
+// single pool
+export const useYieldPoolData = (poolId) => {
+  const url = `${YIELD_POOLS_API}?pool=${poolId}`
+  const { data, error } = useSWR(poolId ? url : null, fetcher)
+  return { data, error, loading: !data && !error }
+}
+
+// single pool chart data
+export const useYieldChartData = (poolId) => {
+  const url = `${YIELD_CHART_API}/${poolId}`
+  const { data, error } = useSWR(poolId ? url : null, fetcher)
+  return { data, error, loading: !data && !error }
 }
 
 //:00 -> adapters start running, they take up to 15mins

@@ -32,6 +32,7 @@ const TradingViewChart = ({
   width,
   units = '$',
   useWeekly = false,
+  dualAxis = false,
 }) => {
   // reference for DOM element to create with chart
   const ref = useRef()
@@ -49,6 +50,16 @@ const TradingViewChart = ({
     })
   }, [data, field])
 
+  // only used if dualAxis=true
+  const formattedData2 = useMemo(() => {
+    return data.map((entry) => {
+      return {
+        time: dayjs.unix(entry[0]).utc().format('YYYY-MM-DD'),
+        value: parseFloat(entry[Number(field) + 1]),
+      }
+    })
+  }, [data, field])
+
   // adjust the scale based on the type of chart
   const topScale = type === CHART_TYPES.AREA ? 0.32 : 0.2
 
@@ -58,7 +69,7 @@ const TradingViewChart = ({
     const textColor = darkMode ? 'white' : 'black'
     const crossHairColor = darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(32, 38, 46, 0.1)'
 
-    const chart = createChart(ref.current, {
+    const chartParams = {
       width: width,
       height: HEIGHT,
       layout: {
@@ -101,7 +112,29 @@ const TradingViewChart = ({
       localization: {
         priceFormatter: (val) => formattedNum(val, units),
       },
-    })
+    }
+
+    // adding the left scale for the dualaxis chart
+    if (dualAxis) {
+      chartParams['leftPriceScale'] = {
+        scaleMargins: {
+          top: topScale,
+          bottom: 0,
+        },
+        borderVisible: false,
+        visible: true,
+      }
+      // overwrite localization (with symbol defaulting to false)
+      // this is not ideal, but I've not found a simple way of getting 2 separate axis
+      // symbols (% and $) unless I use some logic (which might break)
+      // [like: number < 1e5 ? number + '%' : number + '$']. would be too restrictive as some pools
+      // can have higher apys. so for now i swith off labels alltogether
+      chartParams['localization'] = {
+        priceFormatter: (val) => formattedNum(val),
+      }
+    }
+
+    const chart = createChart(ref.current, chartParams)
 
     const series =
       type === CHART_TYPES.BAR
@@ -126,6 +159,19 @@ const TradingViewChart = ({
 
     series.setData(formattedData)
 
+    let series2
+    if (dualAxis) {
+      series2 = chart.addAreaSeries({
+        topColor: '#913662',
+        bottomColor: 'rgba(112, 82, 64, 0)',
+        lineColor: '#913662',
+        lineWidth: 2,
+        priceScaleId: 'left',
+      })
+
+      series2.setData(formattedData2)
+    }
+
     const prevTooltip = document.getElementById('tooltip-id' + type)
     const node = document.getElementById('test-id' + type)
 
@@ -141,13 +187,13 @@ const TradingViewChart = ({
 
     toolTip.style.display = 'block'
     toolTip.style.fontWeight = '500'
-    toolTip.style.left = -4 + 'px'
+    toolTip.style.left = dualAxis ? 50 + 'px' : -4 + 'px'
     toolTip.style.top = '-' + 8 + 'px'
     toolTip.style.backgroundColor = 'transparent'
 
     // format numbers
     let percentChange = baseChange?.toFixed(2)
-    let formattedPercentChange = (percentChange > 0 ? '+' : '') + percentChange + '%'
+    let formattedPercentChange = (percentChange > 0 && !dualAxis ? '+' : '') + percentChange + '%'
     let color = percentChange >= 0 ? 'green' : 'red'
 
     // get the title of the chart
@@ -159,11 +205,33 @@ const TradingViewChart = ({
         `<div style="font-size: 22px; margin: 4px 0px; color:${textColor}" >` +
         formattedNum(base ?? 0, units) +
         (baseChange
-          ? `<span style="margin-left: 10px; font-size: 16px; color: ${color};">${formattedPercentChange}</span>`
+          ? `<span style="margin-left: 10px; font-size: 16px; color: ${
+              dualAxis === true ? textColor : color
+            };">${formattedPercentChange}</span>`
           : '') +
         '</div>'
     }
-    setLastBarText()
+
+    function setLastBarTextYieldVersion() {
+      toolTip.innerHTML =
+        `<div style="font-size: 16px; margin: 4px 0px; color: ${textColor};">${title} ${
+          type === CHART_TYPES.BAR && !useWeekly ? '(24hr)' : ''
+        }</div>` +
+        `<div style="font-size: 22px; margin: 4px 0px; color:${textColor}" >` +
+        formattedPercentChange +
+        (baseChange
+          ? `<span style="margin-left: 10px; font-size: 16px; color: ${
+              dualAxis === true ? textColor : color
+            };">${formattedNum(base ?? 0, units)}</span>`
+          : '') +
+        '</div>'
+    }
+
+    if (!dualAxis) {
+      setLastBarText()
+    } else {
+      setLastBarTextYieldVersion()
+    }
 
     // update the title when hovering on the chart
     chart.subscribeCrosshairMove(function (param) {
@@ -175,7 +243,11 @@ const TradingViewChart = ({
         param.point.y < 0 ||
         param.point.y > HEIGHT
       ) {
-        setLastBarText()
+        if (!dualAxis) {
+          setLastBarText()
+        } else {
+          setLastBarTextYieldVersion()
+        }
       } else {
         let dateStr = useWeekly
           ? dayjs(param.time.year + '-' + param.time.month + '-' + param.time.day)
@@ -189,14 +261,25 @@ const TradingViewChart = ({
 
         const price = param.seriesPrices.get(series)
 
-        toolTip.innerHTML =
-          `<div style="font-size: 16px; margin: 4px 0px; color: ${textColor};">${title}</div>` +
-          `<div style="font-size: 22px; margin: 4px 0px; color: ${textColor}">` +
-          formattedNum(price, units) +
-          '</div>' +
-          '<div>' +
-          dateStr +
-          '</div>'
+        toolTip.innerHTML = !dualAxis
+          ? `<div style="font-size: 16px; margin: 4px 0px; color: ${textColor};">${title}</div>` +
+            `<div style="font-size: 22px; margin: 4px 0px; color: ${textColor}">` +
+            formattedNum(price, units) +
+            '</div>' +
+            '<div>' +
+            dateStr +
+            '</div>'
+          : `<div style="font-size: 16px; margin: 4px 0px; color: ${textColor};">${title}</div>` +
+            `<div style="font-size: 22px; margin: 4px 0px; color: ${textColor}">` +
+            `${param.seriesPrices.get(series2).toFixed(2)}%` +
+            `<span style="margin-left: 10px; font-size: 16px; color: ${textColor};">${formattedNum(
+              price,
+              units
+            )}</span>` +
+            '</div>' +
+            '<div>' +
+            dateStr +
+            '</div>'
       }
     })
 
@@ -208,7 +291,20 @@ const TradingViewChart = ({
       setChartCreated(false)
       chart.remove()
     }
-  }, [base, baseChange, title, topScale, type, useWeekly, width, units, formattedData, darkMode])
+  }, [
+    base,
+    baseChange,
+    title,
+    topScale,
+    type,
+    useWeekly,
+    width,
+    units,
+    formattedData,
+    formattedData2,
+    darkMode,
+    dualAxis,
+  ])
 
   return (
     <Wrapper>

@@ -115,8 +115,6 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     }
   }
 
-  const isDegen = typeof window !== "undefined" && window.ethereum !== undefined
-
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
     const globalChart = chart.map((data) => {
       let sum = data[1]
@@ -234,7 +232,10 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
                 .map((t) => `${t[0]}=true`)
                 .join('&')}`}
             >
+              <RowBetween>
               <DownloadIcon />
+              <TYPE.main>&nbsp;&nbsp;.csv</TYPE.main>
+              </RowBetween>
             </DownloadButton>
           </RowBetween>
         </AutoColumn>
@@ -273,6 +274,11 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
       <ContentWrapper>
         <AutoColumn gap="24px">
           <Search />
+          <Panel background={true} style={{ textAlign: 'center' }}>
+            <TYPE.main fontWeight={400}>
+              We've launched a neutral wiki for DeFi and crypto. Check it out <BasicLink style={{textDecoration:"underline"}} href="https://wiki.defillama.com/wiki/Main_Page">here</BasicLink>!
+            </TYPE.main>
+          </Panel>
         </AutoColumn>
         <div>
           <BreakpointPanels>
@@ -305,7 +311,6 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
               )}
             </Panel>
           </BreakpointPanels>
-          {isDegen && (
             <div
               style={{
                 marginTop: '0px',
@@ -314,7 +319,6 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             >
               <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} alt="" />
             </div>
-          )}
         </div>
 
         <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />

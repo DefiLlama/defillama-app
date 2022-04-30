@@ -77,6 +77,11 @@ export function useNFTApp() {
   return router.pathname.startsWith('/nfts')
 }
 
+export function useYieldApp() {
+  const router = useRouter()
+  return router.pathname.startsWith('/yields')
+}
+
 export const useScrollToTop = () => {
   useEffect(() => {
     if (window) {

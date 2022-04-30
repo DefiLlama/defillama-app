@@ -15,7 +15,7 @@ const NavMenu = ({ isMobile }) => {
 
   return (
     <>
-      {!isMobile && <AppSwitch />}
+      {/*!isMobile && <AppSwitch />*/}
       {isNFTApp ? <NFTSideNav isMobile={isMobile} /> : <DefiSideNav isMobile={isMobile} />}
     </>
   )
