@@ -12,6 +12,7 @@ import { useInfiniteScroll } from 'hooks'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
 import ChainsRow from 'components/ChainsRow'
+import Tooltip from 'components/Tooltip'
 
 interface ColumnProps {
   header: string
@@ -524,14 +525,15 @@ const allColumns: AllColumns = {
     accessor: 'tvl',
     Cell: ({ value, rowValues }) => {
       return (
-        <span
-          style={{
-            textDecoration: rowValues.strikeTvl ? 'line-through' : 'none',
-            color: rowValues.strikeTvl ? 'gray' : 'inherit',
-          }}
-        >
-          {'$' + formattedNum(value)}
-        </span>
+        <Tooltip content={rowValues.strikeTvl ? 'Double Counted' : null} id={uuid()}>
+          <span
+            style={{
+              color: rowValues.strikeTvl ? 'gray' : 'inherit',
+            }}
+          >
+            {'$' + formattedNum(value)}
+          </span>
+        </Tooltip>
       )
     },
   },
