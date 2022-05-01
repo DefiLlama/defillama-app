@@ -309,7 +309,7 @@ const extraTvlOptions = [
   {
     name: 'Double Count',
     key: DOUBLE_COUNT,
-    help: 'Double count TVL of certain protocols',
+    help: 'Include TVL of protocols which TVL feeds into another protocol',
   },
 ]
 
