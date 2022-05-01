@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React from 'react'
 import styled from 'styled-components'
-import { Tooltip } from '../QuestionHelper'
 import { HelpCircle } from 'react-feather'
+import Tooltip from 'components/Tooltip'
 
 interface IHeadHelpProps {
   title: string
@@ -20,29 +20,10 @@ interface ITextProps {
   fontSize: string
 }
 
-const HeadHelp = ({
-  title,
-  text,
-  maxCharacters,
-  margin = false,
-  adjustSize = false,
-  fontSize,
-  link,
-  ...rest
-}: IHeadHelpProps) => {
-  const [showHover, setShowHover] = useState(false)
-
+const HeadHelp = ({ title, text, margin = false, adjustSize = false, fontSize, link, ...rest }: IHeadHelpProps) => {
   return (
-    <Tooltip text={text} show={showHover}>
-      <TextWrapper
-        onMouseEnter={() => setShowHover(true)}
-        onMouseLeave={() => setShowHover(false)}
-        margin={margin}
-        adjustSize={adjustSize}
-        link={link}
-        fontSize={fontSize}
-        {...rest}
-      >
+    <Tooltip content={text}>
+      <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize} {...rest}>
         <span>{title}</span>
         <HelpCircle size={15} style={{ marginLeft: '.3rem' }} />
       </TextWrapper>

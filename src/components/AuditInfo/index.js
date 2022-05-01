@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 import styled from 'styled-components'
-import { Tooltip } from '../QuestionHelper'
 import { HelpCircle } from 'react-feather'
 import DropdownSelect from '../DropdownSelect'
+import Tooltip from 'components/Tooltip'
 
 const TextWrapper = styled.div`
   position: relative;
@@ -18,29 +18,18 @@ const TextWrapper = styled.div`
     font-size: ${({ adjustSize }) => adjustSize && '12px'};
   }
 `
-const AuditInfo = ({
-  audits,
-  auditLinks = [],
-  maxCharacters,
-  margin = false,
-  adjustSize = false,
-  fontSize,
-  link,
-  ...rest
-}) => {
-  const [showHover, setShowHover] = useState(false)
-
-  if (typeof auditLinks === "string") {
-    auditLinks = [auditLinks];
+const AuditInfo = ({ audits, auditLinks = [], margin = false, adjustSize = false, fontSize, link, ...rest }) => {
+  if (typeof auditLinks === 'string') {
+    auditLinks = [auditLinks]
   }
 
   if (auditLinks.length > 0) {
     return (
       <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize}>
         <DropdownSelect
-          options={auditLinks.map(audit => ({ label: audit }))}
+          options={auditLinks.map((audit) => ({ label: audit }))}
           active="Yes"
-          setActive={link => (window.location.href = link)}
+          setActive={(link) => (window.location.href = link)}
           overflowVisible
         ></DropdownSelect>
       </TextWrapper>
@@ -55,16 +44,8 @@ const AuditInfo = ({
   }
   if (audits === '1') {
     return (
-      <Tooltip text="Part of this protocol may be unaudited" show={showHover}>
-        <TextWrapper
-          onMouseEnter={() => setShowHover(true)}
-          onMouseLeave={() => setShowHover(false)}
-          margin={margin}
-          adjustSize={adjustSize}
-          link={link}
-          fontSize={fontSize}
-          {...rest}
-        >
+      <Tooltip content="Part of this protocol may be unaudited">
+        <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize} {...rest}>
           Yes
           <HelpCircle size={15} style={{ marginLeft: '.75rem' }} />
         </TextWrapper>
@@ -81,16 +62,8 @@ const AuditInfo = ({
 
   if (audits === '3') {
     return (
-      <Tooltip text="This protocol is a fork of an existing audited protocol" show={showHover}>
-        <TextWrapper
-          onMouseEnter={() => setShowHover(true)}
-          onMouseLeave={() => setShowHover(false)}
-          margin={margin}
-          adjustSize={adjustSize}
-          link={link}
-          fontSize={fontSize}
-          {...rest}
-        >
+      <Tooltip content="This protocol is a fork of an existing audited protocol">
+        <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize} {...rest}>
           Yes
           <HelpCircle size={15} style={{ marginLeft: '.75rem' }} />
         </TextWrapper>

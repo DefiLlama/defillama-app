@@ -525,7 +525,7 @@ const allColumns: AllColumns = {
     accessor: 'tvl',
     Cell: ({ value, rowValues }) => {
       return (
-        <Tooltip content={rowValues.strikeTvl ? 'Double Counted' : null} id={uuid()}>
+        <Tooltip content={rowValues.strikeTvl ? 'Double Counted' : null}>
           <span
             style={{
               color: rowValues.strikeTvl ? 'gray' : 'inherit',

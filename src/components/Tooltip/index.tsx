@@ -16,6 +16,7 @@ const TooltipContent = styled(TooltipPrimitive.Content)`
   box-shadow: 0 4px 8px 0 ${({ theme }) => transparentize(0.9, theme.shadow1)};
   color: ${({ theme }) => theme.text2};
   border-radius: 8px;
+  max-width: 228px;
 `
 
 const TooltipTrigger = styled(TooltipPrimitive.Trigger)`
@@ -33,6 +34,7 @@ export const TooltipRoot = TooltipPrimitive.Root
 
 export default function Tooltip({ content, children }: ITooltip) {
   if (!content || content === '') return <>{children}</>
+
   return (
     <TooltipRoot>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
