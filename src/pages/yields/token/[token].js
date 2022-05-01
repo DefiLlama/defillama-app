@@ -118,8 +118,8 @@ const YieldPage = () => {
         <AutoColumn gap="24px">
           <Search />
         </AutoColumn>
-        <CheckMarks type="yields" />
-        <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
+        <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
+        <ListOptions gap="10px" style={{ marginBottom: '.5rem' }}>
           <RowBetween>
             <TYPE.main fontSize={'1.125rem'}>Yield Rankings</TYPE.main>
             <FiltersRow>

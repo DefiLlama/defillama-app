@@ -13,10 +13,44 @@ import { BasicLink } from 'components/Link'
 import styled from 'styled-components'
 import { useMedia } from 'react-use'
 import { useRouter } from 'next/router'
+import FormattedName from 'components/FormattedName'
+import HeadHelp from 'components/HeadHelp'
+import AuditInfo from 'components/AuditInfo'
+import { ButtonLight } from 'components/ButtonStyled'
 
 const HiddenSearch = styled.span`
   @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
     display: none;
+  }
+`
+
+const TokenDetailsLayout = styled.div`
+  display: inline-grid;
+  width: 100%;
+  grid-template-columns: auto auto auto 1fr;
+  column-gap: 30px;
+  align-items: start;
+
+  &:last-child {
+    align-items: center;
+    justify-items: end;
+  }
+  @media screen and (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    > * {
+      grid-column: 1 / 4;
+      margin-bottom: 1rem;
+      display: table-row;
+      > * {
+        margin-bottom: 1rem;
+      }
+    }
+
+    &:last-child {
+      align-items: start;
+      justify-items: start;
+    }
   }
 `
 
@@ -48,6 +82,13 @@ const PageView = () => {
   const probability = poolData.predictions?.predictedProbability.toFixed(2) ?? 0
   const predictedDirection = poolData.predictions?.predictedClass === 0 ? '' : 'not'
 
+  const audits = poolData.audits ?? ''
+  const audit_links = poolData.audit_links ?? []
+  const url = poolData.url ?? ''
+  const twitter = poolData.twitter ?? ''
+  const category = poolData.category ?? ''
+
+  const backgroundColor = '#696969'
   const below1024 = useMedia('(max-width: 1024px)')
 
   const panels = (
@@ -110,7 +151,7 @@ const PageView = () => {
             <Search small={true} />
           </HiddenSearch>
         </RowBetween>
-        <RowBetween style={{ flexWrap: 'wrap', marginBottom: '2rem', alignItems: 'flex-start' }}>
+        <RowBetween style={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <RowFixed style={{ flexWrap: 'wrap' }}>
             <RowFixed style={{ justifyContent: 'center' }}>
               <TYPE.body fontSize={below1024 ? '1.5rem' : '2rem'} fontWeight={500} style={{ margin: '0 1rem' }}>
@@ -135,6 +176,45 @@ const PageView = () => {
             />
           </Panel>
         </BreakpointPanels>
+
+        <RowBetween style={{ marginTop: '1rem' }}>
+          <TYPE.main fontSize={'1.125rem'}>Protocol Information</TYPE.main>{' '}
+        </RowBetween>
+        <Panel rounded p={20}>
+          <TokenDetailsLayout>
+            {typeof category === 'string' && (
+              <AutoColumn>
+                <TYPE.main>Category</TYPE.main>
+                <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
+                  <BasicLink href={`/protocols/${category.toLowerCase()}`}>
+                    <FormattedName text={category} maxCharacters={16} />
+                  </BasicLink>
+                </TYPE.main>
+              </AutoColumn>
+            )}
+            <AutoColumn>
+              <TYPE.main>
+                <HeadHelp title="Audits" text="Audits are not a guarantee of security." />
+              </TYPE.main>
+              <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
+                <AuditInfo audits={audits} auditLinks={audit_links} />
+              </TYPE.main>
+            </AutoColumn>
+            <div></div>
+            <RowFixed>
+              <BasicLink color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
+                <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
+                  Twitter ↗
+                </ButtonLight>
+              </BasicLink>
+              <BasicLink color={backgroundColor} external href={url}>
+                <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
+                  Website ↗
+                </ButtonLight>
+              </BasicLink>
+            </RowFixed>{' '}
+          </TokenDetailsLayout>
+        </Panel>
       </FullWrapper>
     </PageWrapper>
   )
