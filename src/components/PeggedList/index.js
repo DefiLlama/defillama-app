@@ -16,7 +16,7 @@ import {
   getPrevCirculatingFromChart,
   getPeggedDominance,
 } from 'utils'
-import { useCalcCirculating } from 'hooks/peggedData'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/peggedData'
 import { useLg } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
 import Table, { columnsToShow, isOfTypeColumns } from 'components/Table'
@@ -71,6 +71,7 @@ function AllPeggedsPage({
   chains = [],
   filteredProtocols,
   chartData,
+  stackedDataset,
   showChainList = true,
   defaultSortingColumn,
 }) {
@@ -111,16 +112,20 @@ function AllPeggedsPage({
   }, [peggedTotals])
 
   const chainColor = useMemo(
-    () => Object.fromEntries([...peggedTotals, 'Others'].map((chain) => [chain.name, getRandomColor()])),
+    () => Object.fromEntries([...peggedTotals, 'Others'].map((peggedAsset) => [peggedAsset.name, getRandomColor()])),
     [filteredProtocols]
   )
+
+  const peggedAssetNames = useMemo(() => peggedTotals.map((peggedAsset) => peggedAsset.name), [filteredProtocols])
+  
+  const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
   if (!title) {
     title = `Circulating`
     if (category) {
       title = `${capitalizeFirstLetter(category)} Circulating`
     }
-    if (selectedChain !== "All") {
+    if (selectedChain !== 'All') {
       title = `${capitalizeFirstLetter(selectedChain)} ${capitalizeFirstLetter(category)} Circulating`
     }
   }
@@ -130,7 +135,6 @@ function AllPeggedsPage({
     const tvl = getPrevCirculatingFromChart(chartData, 0, 'totalCirculating', categoryToPegType[category])
     const tvlPrevDay = getPrevCirculatingFromChart(chartData, 1, 'totalCirculating', categoryToPegType[category])
     const percentChange = getPercentChange(tvl, tvlPrevDay)?.toFixed(2)
-
     return { tvl, percentChange }
   }, [chartData])
 
@@ -195,7 +199,19 @@ function AllPeggedsPage({
         <div>
           <BreakpointPanels>
             <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-            <PeggedChainPieChart data={chainsTvlValues} chainColor={chainColor} />
+            {stackedDataset.length === 0 ? (
+              <PeggedChainPieChart data={chainsTvlValues} chainColor={chainColor} />
+            ) : (
+              <PeggedChainDominanceChart
+                stackOffset="expand"
+                formatPercent={true}
+                stackedDataset={stackedData}
+                asset={title}
+                chainsUnique={peggedAssetNames}
+                chainColor={chainColor}
+                daySum={daySum}
+              />
+            )}
           </BreakpointPanels>
         </div>
         {showChainList && (

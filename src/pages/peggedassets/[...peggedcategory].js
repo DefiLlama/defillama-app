@@ -32,7 +32,7 @@ export async function getStaticPaths() {
   return { paths, fallback: 'blocking' }
 }
 
-export default function PeggedAssets({ peggedcategory, chains, filteredProtocols, chartData, chain }) {
+export default function PeggedAssets({ peggedcategory, chains, filteredProtocols, chartData, stackedDataset, chain }) {
   return (
     <GeneralLayout title={`${capitalizeFirstLetter(peggedcategory)} Circulating - DefiLlama`} defaultSEO>
       <PeggedsList
@@ -41,6 +41,7 @@ export default function PeggedAssets({ peggedcategory, chains, filteredProtocols
         selectedChain={chain}
         filteredProtocols={filteredProtocols}
         chartData={chartData}
+        stackedDataset={stackedDataset}
       />
     </GeneralLayout>
   )

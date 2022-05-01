@@ -70,7 +70,7 @@ export const useCalcCirculating = (
 
   const protocolTotals = useMemo(() => {
     const updatedProtocols = filteredProtocols.map(({ circulating, unreleased, ...props }) => {
-      if (extraPeggedEnabled['unreleased']) {
+      if (extraPeggedEnabled['unreleased'] && unreleased) { // need to fix this, unreleased is not always present in filteredprotocols
         circulating += unreleased
       }
       return {
@@ -276,7 +276,7 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
       Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
         let sum = chainTvls.circulating
         totalDaySum += chainTvls.circulating
-        if (extraPeggedEnabled['unreleased']) {
+        if (extraPeggedEnabled['unreleased'] ** chainTvls.unreleased) {
           sum += chainTvls.unreleased
           totalDaySum += chainTvls.unreleased
         }

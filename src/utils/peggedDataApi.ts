@@ -113,7 +113,18 @@ export const basicPropertiesToKeep = [
   'category',
 ]
 
-export const peggedPropertiesToKeep = ['circulating', 'minted', 'unreleased', 'name', 'symbol', 'chains', 'price', 'change_1d', 'change_7d', 'change_1m']
+export const peggedPropertiesToKeep = [
+  'circulating',
+  'minted',
+  'unreleased',
+  'name',
+  'symbol',
+  'chains',
+  'price',
+  'change_1d',
+  'change_7d',
+  'change_1m',
+]
 
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
@@ -252,6 +263,41 @@ export async function getPeggedsPageData(category, chain) {
   const { peggedAssets, chains } = await getPeggedAssets()
   const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '')).then((r) => r.json())
 
+  const pegType = peggedAssets[0].pegType;  //fix, can't assume this exists and use in stackeddataset
+
+  let chartDataByPeggedAsset = []
+  let peggedAssetNames: string[] = []
+  if (!chain) {
+    chartDataByPeggedAsset = await Promise.all(
+      peggedAssets.map(async (elem) => {
+        peggedAssetNames.push(elem.name)
+        for (let i = 0; i < 5; i++) {
+          try {
+            return await fetch(`${PEGGEDCHART_API}/?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
+          } catch (e) {}
+        }
+        throw new Error(`${CHART_API}/${elem} is broken`)
+      })
+    )
+  }
+  // fix variable names of this and other stackeddataset
+  const stackedDataset = Object.entries(
+    chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
+      charts.forEach((chart) => {
+      const peggedName = peggedAssetNames[i]
+      const circulating = chart.totalCirculating[pegType]
+      const value = chart.date
+      if (value < 1596248105) return
+      if (total[value] === undefined) {
+        total[value] = {}
+      }
+      const b = total[value][peggedName]
+      total[value][peggedName] = { ...b, circulating: circulating ?? 0 }
+    })
+      return total
+    }, {})
+  )
+
   const chainList = await chains
     .sort((a, b) => b.circulating[categoryToPegType[category]] - a.circulating[categoryToPegType[category]])
     .map((chain) => chain.name)
@@ -271,13 +317,12 @@ export async function getPeggedsPageData(category, chain) {
 
   let filteredProtocols = formatPeggedAssetsData({ category, peggedAssets, chain })
 
-  console.log(JSON.stringify(filteredProtocols))
-
   return {
     peggedcategory: category,
     chains: chainList.filter((chain) => chainsSet.has(chain)),
     filteredProtocols,
     chartData,
+    stackedDataset,
     chain: chain ?? 'All',
   }
 }
@@ -606,7 +651,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
     .map((chainName, i) => {
       const circulating: number = getPrevCirculatingFromChart(chainsData[i], 0, 'circulating', pegType)
       const unreleased: number = getPrevCirculatingFromChart(chainsData[i], 0, 'unreleased', pegType)
-      const minted: number = getPrevCirculatingFromChart(chainsData[i], 0, 'minted', pegType)
+      let bridgedTo: number | string = getPrevCirculatingFromChart(chainsData[i], 0, 'bridgedTo', pegType)
       const circulatingPrevDay: number = getPrevCirculatingFromChart(chainsData[i], 1, 'circulating', pegType)
       const circulatingPrevWeek: number = getPrevCirculatingFromChart(chainsData[i], 7, 'circulating', pegType)
       const circulatingPrevMonth: number = getPrevCirculatingFromChart(chainsData[i], 30, 'circulating', pegType)
@@ -614,11 +659,10 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       const change_7d = getPercentChange(circulating, circulatingPrevWeek)
       const change_1m = getPercentChange(circulating, circulatingPrevMonth)
 
-      let bridgedAmount: string | number = circulating - minted + unreleased
-      if (bridgedAmount <= 1) {   
-        bridgedAmount = '-'
-      } else if (bridgedAmount === circulating) {
-        bridgedAmount = 'all'
+      if (bridgedTo <= 0) {
+        bridgedTo = '-'
+      } else if (bridgedTo >= circulating) {
+        bridgedTo = 'all'
       }
 
       let bridgeInfo: { bridge: string; link?: string } = res.bridges[chainName]
@@ -636,7 +680,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
         change_7d,
         change_1m,
         bridgeInfo,
-        bridgedAmount,
+        bridgedAmount: bridgedTo,
         name: chainName,
         symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
       }
