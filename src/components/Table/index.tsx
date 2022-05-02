@@ -12,7 +12,8 @@ import { useInfiniteScroll } from 'hooks'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
 import ChainsRow from 'components/ChainsRow'
-import Tooltip from 'components/Tooltip'
+import QuestionHelper from 'components/QuestionHelper'
+import { AutoRow } from 'components/Row'
 
 interface ColumnProps {
   header: string
@@ -525,7 +526,10 @@ const allColumns: AllColumns = {
     accessor: 'tvl',
     Cell: ({ value, rowValues }) => {
       return (
-        <Tooltip content={rowValues.strikeTvl ? 'Double Counted' : null}>
+        <AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
+          {rowValues.strikeTvl?<QuestionHelper
+            text='This protocol deposits into another protocol and will be removed from total TVL because "Double Count" toggle is off'
+          />:null}
           <span
             style={{
               color: rowValues.strikeTvl ? 'gray' : 'inherit',
@@ -533,7 +537,7 @@ const allColumns: AllColumns = {
           >
             {'$' + formattedNum(value)}
           </span>
-        </Tooltip>
+        </AutoRow>
       )
     },
   },
