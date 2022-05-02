@@ -138,6 +138,8 @@ const HeaderButton = styled.button`
   padding: 0;
   font-size: inherit;
   font-weight: 500;
+  display: flex;
+  justify-content: flex-end;
 
   &:hover {
     opacity: 0.6;
@@ -527,9 +529,9 @@ const allColumns: AllColumns = {
     Cell: ({ value, rowValues }) => {
       return (
         <AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
-          {rowValues.strikeTvl?<QuestionHelper
-            text='This protocol deposits into another protocol and will be removed from total TVL because "Double Count" toggle is off'
-          />:null}
+          {rowValues.strikeTvl ? (
+            <QuestionHelper text='This protocol deposits into another protocol and will be removed from total TVL because "Double Count" toggle is off' />
+          ) : null}
           <span
             style={{
               color: rowValues.strikeTvl ? 'gray' : 'inherit',
