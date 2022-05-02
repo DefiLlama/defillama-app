@@ -534,6 +534,12 @@ export const chainCoingeckoIds = {
     symbol: "BOBA",
     cmcId: "14556",
   },
+  Candle: {
+    geckoId: "candle",
+    symbol: "CNDL",
+    cmcId: "18227",
+
+  },
 }
 
 export const chainMarketplaceMappings = {
