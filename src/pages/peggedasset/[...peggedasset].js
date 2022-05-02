@@ -37,7 +37,7 @@ export async function getStaticPaths() {
   return { paths, fallback: 'blocking' }
 }
 
-export default function Chains(props) {
+export default function PeggedAsset(props) {
   return (
     <GeneralLayout title={`All Chains Pegged Asset - DefiLlama`} defaultSEO>
       <PeggedContainer {...props} />

@@ -8,10 +8,12 @@ import { standardizeProtocolName } from 'utils'
 import dynamic from 'next/dynamic'
 
 import { useYieldApp } from '../../hooks'
+import { usePeggedApp } from '../../hooks'
 
 // importing both
 const OpenTokenSearch = dynamic(() => import('./OpenTokenSearch'))
 const OpenYieldSearch = dynamic(() => import('./OpenYieldSearch'))
+const OpenPeggedSearch = dynamic(() => import('./OpenPeggedSearch'))
 
 const TokenSearch = ({ small = false, includeChains = true, customOnLinkClick = () => {} }) => {
   let linkPath, OpenSearch, htmlPlaceholder
@@ -19,7 +21,11 @@ const TokenSearch = ({ small = false, includeChains = true, customOnLinkClick = 
     OpenSearch = OpenYieldSearch
     htmlPlaceholder = ['pool', 'token']
     linkPath = (token) => `/yields/token/${token}`
-  } else {
+  } else if (usePeggedApp()) {
+      OpenSearch = OpenPeggedSearch
+      htmlPlaceholder = ['Defi', 'pegged assets']
+      linkPath = (item) => `/peggedasset/${item.gecko_id}`
+    } else {
     OpenSearch = OpenTokenSearch
     htmlPlaceholder = ['Defi', 'protocols']
     linkPath = (item) => {
@@ -93,7 +99,7 @@ const TokenSearch = ({ small = false, includeChains = true, customOnLinkClick = 
           <OpenSearch {...{ includeChains, linkPath, customOnLinkClick, wrapperRef, value, toggleMenu, setValue }} />
         )}
       </Container>
-      {small && <RightSettings />}
+      {small && !(useYieldApp()) && !(usePeggedApp()) && <RightSettings />}
     </div>
   )
 }
