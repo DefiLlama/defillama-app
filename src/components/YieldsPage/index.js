@@ -16,6 +16,7 @@ import {
   useStablecoinsManager,
   useMillionDollarManager,
 } from 'contexts/LocalStorage'
+import QuestionHelper from 'components/QuestionHelper'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -61,7 +62,16 @@ const YieldPage = ({ pools, chainList }) => {
       header: 'APY',
       accessor: 'apy',
       helperText: 'Annualised percentage yield',
-      Cell: ({ value }) => <>{formattedPercent(value, true)}</>,
+      Cell: ({ value, rowValues }) => {
+        return (
+          <AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
+            {rowValues.project === 'Osmosis' ? (
+              <QuestionHelper text={`${rowValues.id.split('-').slice(-1)} lock`} />
+            ) : null}
+            {formattedPercent(value, true)}
+          </AutoRow>
+        )
+      },
     },
     {
       header: '1d change',
