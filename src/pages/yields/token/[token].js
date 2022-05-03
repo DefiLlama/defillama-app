@@ -138,7 +138,7 @@ const YieldPage = () => {
             apy: t.apy,
             change1d: t.apyPct1D,
             change7d: t.apyPct7D,
-            outlook: t.predictions.predictedClass === 0 ? 'Down' : 'Stable/Up',
+            outlook: t.predictions.predictedClass,
             probability: t.predictions.predictedProbability,
           }))}
           secondColumnAlign="start"
