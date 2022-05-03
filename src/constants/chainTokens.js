@@ -534,6 +534,11 @@ export const chainCoingeckoIds = {
     symbol: "BOBA",
     cmcId: "14556",
   },
+  BitGert: {
+    geckoId: "bitrise-token",
+    symbol: "BRISE",
+    cmcId: "11079",
+  },
 }
 
 export const chainMarketplaceMappings = {
