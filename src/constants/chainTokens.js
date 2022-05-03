@@ -539,6 +539,11 @@ export const chainCoingeckoIds = {
     symbol: "BRISE",
     cmcId: "11079",
   },
+  Reef: {
+    geckoId: "reef-finance",
+    symbol: "REEF",
+    cmcId: "6951",
+    },
 }
 
 export const chainMarketplaceMappings = {
