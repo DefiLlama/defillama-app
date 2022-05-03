@@ -78,13 +78,13 @@ const YieldPage = ({ pools, chainList }) => {
       accessor: 'outlook',
       helperText:
         'The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY.',
-      Cell: ({ value, rowValues }) => <>{rowValues.apy <= 0 ? null : value}</>,
+      Cell: ({ value }) => <>{value}</>,
     },
     {
       header: 'Probability',
       accessor: 'probability',
       helperText: 'Predicted probability of outlook',
-      Cell: ({ value, rowValues }) => <>{rowValues.apy <= 0 ? null : value.toFixed(2) + '%'}</>,
+      Cell: ({ value }) => <>{value === null ? null : value.toFixed(2) + '%'}</>,
     },
   ]
 
@@ -135,7 +135,7 @@ const YieldPage = ({ pools, chainList }) => {
             apy: t.apy,
             change1d: t.apyPct1D,
             change7d: t.apyPct7D,
-            outlook: t.predictions.predictedClass === 0 ? 'Down' : 'Stable/Up',
+            outlook: t.predictions.predictedClass,
             probability: t.predictions.predictedProbability,
           }))}
           secondColumnAlign="start"

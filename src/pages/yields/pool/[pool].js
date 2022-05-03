@@ -79,8 +79,8 @@ const PageView = () => {
 
   const tvlUsd = toK(poolData.tvlUsd ?? 0)
 
-  const probability = poolData.predictions?.predictedProbability.toFixed(2) ?? 0
-  const predictedDirection = poolData.predictions?.predictedClass === 0 ? '' : 'not'
+  const probability = poolData.predictions?.predictedProbability ?? null
+  const predictedDirection = poolData.predictions?.predictedClass === 'Down' ? '' : 'not'
 
   const audits = poolData.audits ?? ''
   const audit_links = poolData.audit_links ?? []
@@ -129,8 +129,10 @@ const PageView = () => {
             color={'#46acb7'}
             style={{ marginTop: '4px', marginBottom: '-6px' }}
           >
-            {apy > 0
-              ? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Probability: ${probability}%.`
+            {probability !== null
+              ? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Probability: ${probability.toFixed(
+                  2
+                )}%.`
               : 'No outlook available'}
           </TYPE.main>
         </AutoColumn>
