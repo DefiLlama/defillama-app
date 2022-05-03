@@ -17,15 +17,17 @@ const OpenPeggedSearch = dynamic(() => import('./OpenPeggedSearch'))
 
 const TokenSearch = ({ small = false, includeChains = true, customOnLinkClick = () => {} }) => {
   let linkPath, OpenSearch, htmlPlaceholder
-  if (useYieldApp()) {
+  const useYield = useYieldApp()
+  const usePegged = usePeggedApp()
+  if (useYield) {
     OpenSearch = OpenYieldSearch
     htmlPlaceholder = ['pool', 'token']
     linkPath = (token) => `/yields/token/${token}`
-  } else if (usePeggedApp()) {
-      OpenSearch = OpenPeggedSearch
-      htmlPlaceholder = ['Defi', 'pegged assets']
-      linkPath = (item) => `/peggedasset/${item.gecko_id}`
-    } else {
+  } else if (usePegged) {
+    OpenSearch = OpenPeggedSearch
+    htmlPlaceholder = ['Defi', 'pegged assets']
+    linkPath = (item) => `/peggedasset/${item.gecko_id}`
+  } else {
     OpenSearch = OpenTokenSearch
     htmlPlaceholder = ['Defi', 'protocols']
     linkPath = (item) => {
@@ -99,7 +101,7 @@ const TokenSearch = ({ small = false, includeChains = true, customOnLinkClick = 
           <OpenSearch {...{ includeChains, linkPath, customOnLinkClick, wrapperRef, value, toggleMenu, setValue }} />
         )}
       </Container>
-      {small && !(useYieldApp()) && !(usePeggedApp()) && <RightSettings />}
+      {small && !useYield && !usePegged && <RightSettings />}
     </div>
   )
 }
