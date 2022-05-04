@@ -530,7 +530,7 @@ const allColumns: AllColumns = {
       return (
         <AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
           {rowValues.strikeTvl ? (
-            <QuestionHelper text='This protocol deposits into another protocol and will be removed from total TVL because "Double Count" toggle is off' />
+            <QuestionHelper text='This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off' />
           ) : null}
           <span
             style={{
