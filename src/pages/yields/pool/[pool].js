@@ -157,7 +157,12 @@ const PageView = () => {
           <RowFixed style={{ flexWrap: 'wrap' }}>
             <RowFixed style={{ justifyContent: 'center' }}>
               <TYPE.body fontSize={below1024 ? '1.5rem' : '2rem'} fontWeight={500} style={{ margin: '0 1rem' }}>
-                <RowFixed gap="6px">{poolData.symbol}</RowFixed>
+                <RowFixed gap="6px">
+                  {' '}
+                  {poolData.projectName === 'Osmosis'
+                    ? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
+                    : poolData.symbol}
+                </RowFixed>
               </TYPE.body>
               <TYPE.main fontSize={'1rem'}>
                 ({poolData.projectName} - {poolData.chain})

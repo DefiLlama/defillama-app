@@ -44,7 +44,11 @@ const YieldPage = ({ pools, chainList }) => {
       header: 'Pool',
       accessor: 'pool',
       disableSortBy: true,
-      Cell: ({ value, rowValues }) => <CustomLink href={`/yields/pool/${rowValues.id}`}>{value}</CustomLink>,
+      Cell: ({ value, rowValues }) => (
+        <CustomLink href={`/yields/pool/${rowValues.id}`}>
+          {rowValues.project === 'Osmosis' ? `${value} ${rowValues.id.split('-').slice(-1)}` : value}
+        </CustomLink>
+      ),
     },
     {
       header: 'Project',
