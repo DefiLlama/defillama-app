@@ -161,7 +161,7 @@ const PageView = () => {
                   {' '}
                   {poolData.projectName === 'Osmosis'
                     ? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
-                    : poolData.symbol}
+                    : poolData.symbol ?? 'Loading'}
                 </RowFixed>
               </TYPE.body>
               <TYPE.main fontSize={'1rem'}>
