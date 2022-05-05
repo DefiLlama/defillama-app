@@ -6,7 +6,7 @@ import Popover from 'components/Popover'
 import Row from 'components/Row'
 import TokenLogo from 'components/TokenLogo'
 
-import { useResize, useNFTApp } from 'hooks'
+import { useResize } from 'hooks'
 import { chainIconUrl } from 'utils'
 
 const CHAIN_ICON_WIDTH = 24

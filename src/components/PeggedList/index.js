@@ -229,7 +229,6 @@ function AllPeggedsPage({
                 stackOffset="expand"
                 formatPercent={true}
                 stackedDataset={stackedData}
-                asset={title}
                 chainsUnique={peggedAssetNames}
                 chainColor={chainColor}
                 daySum={daySum}

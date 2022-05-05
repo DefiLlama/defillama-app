@@ -7,7 +7,7 @@ import HeadHelp from 'components/HeadHelp'
 import { CustomLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
 import Bookmark from 'components/Bookmark'
-import { chainIconUrl, formattedNum, formattedPercent, slug, toK, tokenIconUrl } from 'utils'
+import { chainIconUrl, peggedAssetIconUrl, formattedNum, formattedPercent, slug, toK, tokenIconUrl } from 'utils'
 import { useInfiniteScroll } from 'hooks'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
@@ -435,7 +435,7 @@ export function Name({
 }
 
 interface PeggedNameProps {
-  type: 'chain' | 'peggedUSD' | 'stablecoins'
+  type: 'peggedUSD' | 'stablecoins'
   value: string
   symbol?: string
   index?: number
@@ -457,15 +457,12 @@ export function NamePegged({
   const name = symbol === '-' ? value : `${value} (${symbol})`
   const { iconUrl, tokenUrl } = useMemo(() => {
     let iconUrl, tokenUrl
-    if (type === 'chain') {
-      tokenUrl = `/${type}/${value}`
-      iconUrl = chainIconUrl(value)
-    } else if (type === 'peggedUSD') {
+    if (type === 'peggedUSD') {
       tokenUrl = `/peggedassets/stablecoins/${value}`
       iconUrl = chainIconUrl(value)
     } else {
       tokenUrl = `/peggedasset/${slug(value)}`
-      iconUrl = tokenIconUrl(value)
+      iconUrl = peggedAssetIconUrl(value)
     }
     return { iconUrl, tokenUrl }
   }, [type, value])

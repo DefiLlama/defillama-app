@@ -9,7 +9,7 @@ import { TYPE } from '../../Theme'
 
 import { useSearchData } from 'contexts/SearchData'
 import { Blue, Heading, Menu, MenuItem } from './shared'
-import { tokenIconUrl } from 'utils'
+import { peggedAssetIconUrl } from 'utils'
 import { PEGGEDS_API } from 'constants'
 
 const defaultLinkPath = (item) => `/peggedasset/${item.gecko_id}`
@@ -53,7 +53,7 @@ const TokenSearch = ({
   }, [searcheableData])
 
   const searchData = useMemo(() => {
-    return protocolNames.map((token) => ({ ...token, logo: tokenIconUrl(token.name) }))
+    return protocolNames.map((token) => ({ ...token, logo: peggedAssetIconUrl(token.name) }))
   }, [protocolNames])
 
   const [tokensShown, setTokensShown] = useState(3)
