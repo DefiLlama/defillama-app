@@ -496,9 +496,9 @@ export function NameYield({ value, rowType, ...props }: NameProps) {
   )
 }
 
-type PeggedCategores = 'stablecoins' | 'peggedUSD'
+type PeggedCategories = 'stablecoins' | 'peggedUSD'
 
-export function isOfTypePeggedCategory(peggedCategory: string): peggedCategory is PeggedCategores {
+export function isOfTypePeggedCategory(peggedCategory: string): peggedCategory is PeggedCategories {
   return ['stablecoins', 'peggedUSD'].includes(peggedCategory)
 }
 
