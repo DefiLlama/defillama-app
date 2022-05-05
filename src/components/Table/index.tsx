@@ -7,12 +7,11 @@ import HeadHelp from 'components/HeadHelp'
 import { CustomLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
 import Bookmark from 'components/Bookmark'
-import { chainIconUrl, formattedNum, formattedPegggedPrice, formattedPercent, slug, toK, tokenIconUrl } from 'utils'
+import { chainIconUrl, formattedNum, formattedPercent, slug, toK, tokenIconUrl } from 'utils'
 import { useInfiniteScroll } from 'hooks'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
 import ChainsRow from 'components/ChainsRow'
-import PeggedChainsRow from 'components/PeggedChainsRow'
 
 interface ColumnProps {
   header: string
@@ -379,7 +378,7 @@ export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...p
 }
 
 interface NameProps {
-  type: 'chain' | 'protocol' | 'peggedUSD' | 'stablecoins'
+  type: 'chain' | 'protocol'
   value: string
   symbol?: string
   index?: number
@@ -405,12 +404,6 @@ export function Name({
     if (type === 'chain') {
       tokenUrl = `/${type}/${value}`
       iconUrl = chainIconUrl(value)
-    } else if (type === 'peggedUSD') {
-      tokenUrl = `/peggedassets/stablecoins/${value}`
-      iconUrl = chainIconUrl(value)
-    } else if (type === 'stablecoins') {
-      tokenUrl = `/peggedasset/${slug(value)}`
-      iconUrl = tokenIconUrl(value)
     } else {
       tokenUrl = `/${type}/${slug(value)}`
       iconUrl = tokenIconUrl(value)
@@ -441,6 +434,50 @@ export function Name({
   )
 }
 
+interface PeggedNameProps {
+  type: 'chain' | 'peggedUSD' | 'stablecoins'
+  value: string
+  symbol?: string
+  index?: number
+  bookmark?: boolean
+  rowType?: 'pinned' | 'accordion' | 'child' | 'default'
+  showRows?: boolean
+}
+
+export function NamePegged({
+  type,
+  value,
+  symbol = '',
+  index,
+  bookmark,
+  rowType = 'default',
+  showRows,
+  ...props
+}: PeggedNameProps) {
+  const name = symbol === '-' ? value : `${value} (${symbol})`
+  const { iconUrl, tokenUrl } = useMemo(() => {
+    let iconUrl, tokenUrl
+    if (type === 'chain') {
+      tokenUrl = `/${type}/${value}`
+      iconUrl = chainIconUrl(value)
+    } else if (type === 'peggedUSD') {
+      tokenUrl = `/peggedassets/stablecoins/${value}`
+      iconUrl = chainIconUrl(value)
+    } else {
+      tokenUrl = `/peggedasset/${slug(value)}`
+      iconUrl = tokenIconUrl(value)
+    }
+    return { iconUrl, tokenUrl }
+  }, [type, value])
+
+  return (
+    <Index {...props}>
+      <TokenLogo logo={iconUrl} />
+      {rowType === 'accordion' ? <span>{name}</span> : <CustomLink href={tokenUrl}>{name}</CustomLink>}
+    </Index>
+  )
+}
+
 export function NameYield({ value, rowType, ...props }: NameProps) {
   const { iconUrl, tokenUrl } = useMemo(() => {
     return { iconUrl: tokenIconUrl(value['project']), tokenUrl: `/yields/project/${value['projectslug']}` }
@@ -458,11 +495,15 @@ export function NameYield({ value, rowType, ...props }: NameProps) {
   )
 }
 
+type PeggedCategores = 'stablecoins' | 'peggedUSD'
+
+export function isOfTypePeggedCategory(peggedCategory: string): peggedCategory is PeggedCategores {
+  return ['stablecoins', 'peggedUSD'].includes(peggedCategory)
+}
+
 type Columns =
   | 'protocolName'
   | 'chainName'
-  | 'peggedUSD'
-  | 'stablecoins'
   | 'chains'
   | '1dChange'
   | '7dChange'
@@ -472,36 +513,8 @@ type Columns =
   | 'listedAt'
   | 'msizetvl'
   | 'protocols'
-  | 'circulating'
-  | 'bridgedAmount'
-  | 'bridgeInfo'
-  | 'peggedChains'
-  | 'price'
 
 type AllColumns = Record<Columns, ColumnProps>
-
-export function isOfTypeColumns(column: string): column is Columns {
-  return [
-    'protocolName',
-    'chainName',
-    'peggedUSD',
-    'stablecoins',
-    'chains',
-    '1dChange',
-    '7dChange',
-    '1mChange',
-    'tvl',
-    'mcaptvl',
-    'listedAt',
-    'msizetvl',
-    'protocols',
-    'circulating',
-    'bridgedAmount',
-    'bridgeInfo',
-    'peggedChains',
-    'price',
-  ].includes(column)
-}
 
 const allColumns: AllColumns = {
   protocolName: {
@@ -526,36 +539,6 @@ const allColumns: AllColumns = {
     Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
       <Name
         type="chain"
-        value={value}
-        symbol={rowValues.symbol}
-        index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
-        rowType={rowType}
-        showRows={showRows}
-      />
-    ),
-  },
-  stablecoins: {
-    header: 'Name',
-    accessor: 'name',
-    disableSortBy: true,
-    Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
-      <Name
-        type="stablecoins"
-        value={value}
-        symbol={rowValues.symbol}
-        index={rowIndex !== null && rowIndex + 1}
-        bookmark
-        rowType={rowType}
-      />
-    ),
-  },
-  peggedUSD: {
-    header: 'Name',
-    accessor: 'name',
-    disableSortBy: true,
-    Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
-      <Name
-        type="peggedUSD"
         value={value}
         symbol={rowValues.symbol}
         index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
@@ -620,37 +603,6 @@ const allColumns: AllColumns = {
   protocols: {
     header: 'Protocols',
     accessor: 'protocols',
-  },
-  circulating: {
-    header: 'Total Circulating',
-    accessor: 'circulating',
-    Cell: ({ value }) => <>{value && formattedNum(value)}</>,
-  },
-  bridgedAmount: {
-    header: 'Bridged Amount',
-    accessor: 'bridgedAmount',
-    disableSortBy: true,
-    Cell: ({ value }) => <>{typeof value === 'string' ? value : formattedNum(value)}</>,
-  },
-  bridgeInfo: {
-    header: 'Primary Bridge',
-    accessor: 'bridgeInfo',
-    disableSortBy: true,
-    Cell: ({ value }) => {
-      return value.link ? <CustomLink href={value.link}>{value.bridge}</CustomLink> : <span>{value.bridge}</span>
-    },
-  },
-  peggedChains: {
-    header: 'Chains',
-    accessor: 'chains', // should change this
-    disableSortBy: true,
-    helperText: "Chains are ordered by pegged asset's highest issuance on each chain",
-    Cell: ({ value }) => <PeggedChainsRow chains={value} />,
-  },
-  price: {
-    header: 'Price',
-    accessor: 'price',
-    Cell: ({ value }) => <>{formattedPegggedPrice(value, true)}</>,
   },
 }
 

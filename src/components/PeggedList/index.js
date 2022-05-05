@@ -1,27 +1,28 @@
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
-import { Box } from 'rebass/styled-components'
 import Panel from '../Panel'
 import { AutoColumn } from '../Column'
 import { PageWrapper, FullWrapper } from 'components'
 import { AutoRow, RowBetween, RowFlat } from 'components/Row'
 import Search from 'components/Search'
 import Filters from 'components/Filters'
-import { AllPeggedOptions } from 'components/SettingsModal'
+import { NamePegged } from 'components/Table/index'
+import PeggedChainsRow from 'components/PeggedChainsRow'
 import {
   getRandomColor,
   capitalizeFirstLetter,
   formattedNum,
+  formattedPegggedPrice,
   getPercentChange,
   getPrevCirculatingFromChart,
   getPeggedDominance,
 } from 'utils'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/peggedData'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/data'
 import { useLg } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
-import Table, { columnsToShow, isOfTypeColumns } from 'components/Table'
+import Table, { columnsToShow, isOfTypePeggedCategory } from 'components/Table'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
-import { categoryToPegType } from 'utils/peggedDataApi'
+import { categoryToPegType } from 'utils/dataApi'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -31,18 +32,6 @@ const ListOptions = styled(AutoRow)`
 
   @media screen and (max-width: 640px) {
     font-size: 1rem;
-  }
-`
-const ChartsWrapper = styled(Box)`
-  display: flex;
-  flex-wrap: nowrap;
-  width: 100%;
-  padding: 0;
-  align-items: center;
-  z-index: 1;
-  @media (max-width: 800px) {
-    display: grid;
-    grid-auto-rows: auto;
   }
 `
 
@@ -75,19 +64,48 @@ function AllPeggedsPage({
   showChainList = true,
   defaultSortingColumn,
 }) {
-  let columns = columnsToShow(
-    'protocolName',
-    'peggedChains',
-    'price',
-    '1dChange',
-    '7dChange',
-    '1mChange',
-    'circulating'
-  )
+  let firstColumn = columnsToShow('protocolName')[0]
+
   const peggedColumn = `${category}`
-  if (isOfTypeColumns(peggedColumn)) {
-    columns = columnsToShow(peggedColumn, 'price', 'peggedChains', '1dChange', '7dChange', '1mChange', 'circulating')
+  if (isOfTypePeggedCategory(peggedColumn)) {
+    firstColumn = {
+      header: 'Name',
+      accessor: 'name',
+      disableSortBy: true,
+      Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+        <NamePegged
+          type="stablecoins"
+          value={value}
+          symbol={rowValues.symbol}
+          index={rowIndex !== null && rowIndex + 1}
+          bookmark
+          rowType={rowType}
+        />
+      ),
+    }
   }
+
+  const columns = [
+      firstColumn,
+    {
+      header: 'Chains',
+      accessor: 'chains', // should change this
+      disableSortBy: true,
+      helperText: "Chains are ordered by pegged asset's highest issuance on each chain",
+      Cell: ({ value }) => <PeggedChainsRow chains={value} />,
+    },
+    {
+      header: 'Price',
+      accessor: 'price',
+      Cell: ({ value }) => <>{formattedPegggedPrice(value, true)}</>,
+    },
+    ...columnsToShow('1dChange', '7dChange', '1mChange'),
+    {
+      header: 'Total Circulating',
+      accessor: 'circulating',
+      Cell: ({ value }) => <>{value && formattedNum(value)}</>,
+    },
+  ]
 
   const isLg = useLg()
   const handleRouting = (chain) => {
@@ -117,7 +135,7 @@ function AllPeggedsPage({
   )
 
   const peggedAssetNames = useMemo(() => peggedTotals.map((peggedAsset) => peggedAsset.name), [filteredProtocols])
-  
+
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
   if (!title) {

@@ -1,7 +1,7 @@
-import PeggedsList from '../../components/PeggedList'
-import { PEGGEDS_API } from '../../constants/index'
-import { GeneralLayout } from '../../layout'
-import { getPeggedsPageData, revalidate } from '../../utils/peggedDataApi'
+import PeggedsList from 'components/PeggedList'
+import { PEGGEDS_API } from 'constants/index'
+import { GeneralLayout } from 'layout'
+import { getPeggedsPageData, revalidate } from 'utils/dataApi'
 import { capitalizeFirstLetter } from 'utils'
 
 export async function getStaticProps({

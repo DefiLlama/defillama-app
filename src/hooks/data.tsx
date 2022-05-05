@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useGetExtraTvlEnabled, useGroupEnabled } from 'contexts/LocalStorage'
+import { useGetExtraTvlEnabled, useGroupEnabled, useGetExtraPeggedEnabled } from 'contexts/LocalStorage'
 import { getPercentChange } from 'utils'
 
 interface IProtocol {
@@ -47,6 +47,21 @@ interface IChain {
 
 interface GroupChain extends IChain {
   subChains: IChain[]
+}
+
+interface IPegged {
+  circulating: number
+  unreleased: number
+  change_1d: number | null
+  change_7d: number | null
+  change_1m: number | null
+  bridgeInfo: {
+    bridge: string,
+    link: string,
+  }
+  bridgedAmount: number | string
+  name: string
+  symbol: string
 }
 
 // TODO update types in localstorage file and refer them here
@@ -369,4 +384,67 @@ export const useCalcExtraTvlsByDay = (data) => {
       return [date, sum]
     })
   }, [data, extraTvlsEnabled])
+}
+
+// PEGGED ASSETS
+export const useCalcCirculating = (
+  filteredProtocols: IPegged[],
+  defaultSortingColumn?: string,
+  dir?: 'asc'
+) => {
+  const extraPeggedEnabled: ExtraTvls = useGetExtraPeggedEnabled()
+  console.log(filteredProtocols)
+  const protocolTotals = useMemo(() => {
+    const updatedProtocols = filteredProtocols.map(({ circulating, unreleased, ...props }) => {
+      if (extraPeggedEnabled['unreleased'] && unreleased) { // need to fix this, unreleased is not always present in filteredprotocols
+        circulating += unreleased
+      }
+      return {
+        circulating,
+        unreleased,
+        ...props,
+      }
+    })
+
+    if (defaultSortingColumn === undefined) {
+      return updatedProtocols.sort((a, b) => b.circulating - a.circulating)
+    } else {
+      return updatedProtocols.sort((a, b) => {
+        if (dir === 'asc') {
+          return a[defaultSortingColumn] - b[defaultSortingColumn]
+        } else return b[defaultSortingColumn] - a[defaultSortingColumn]
+      })
+    }
+  }, [filteredProtocols, extraPeggedEnabled, defaultSortingColumn, dir])
+
+  return protocolTotals
+}
+
+// returns circulating by day for a group of tokens
+export const useCalcGroupExtraPeggedByDay = (chains) => {
+  const extraPeggedEnabled = useGetExtraPeggedEnabled()
+
+  const { data, daySum } = useMemo(() => {
+    const daySum = {}
+    
+    const data = chains.map(([date, values]) => {
+      const tvls: IChainTvl = {}
+      let totalDaySum = 0
+      Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
+        let sum = chainTvls.circulating
+        totalDaySum += chainTvls.circulating
+        if (extraPeggedEnabled['unreleased'] ** chainTvls.unreleased) {
+          sum += chainTvls.unreleased
+          totalDaySum += chainTvls.unreleased
+        }
+
+        tvls[name] = sum
+      })
+      daySum[date] = totalDaySum
+      return { date, ...tvls }
+    })
+    return { data, daySum }
+  }, [chains, extraPeggedEnabled])
+
+  return { data, daySum }
 }

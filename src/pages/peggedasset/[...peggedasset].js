@@ -1,6 +1,6 @@
 import React from 'react'
 import { GeneralLayout } from 'layout'
-import { getPeggedChainsPageData, revalidate, getPeggedAssets } from 'utils/peggedDataApi'
+import { getPeggedChainsPageData, revalidate, getPeggedAssets } from 'utils/dataApi'
 import PeggedContainer from 'containers/PeggedContainer'
 import { standardizeProtocolName } from 'utils'
 
@@ -23,7 +23,6 @@ export async function getStaticProps({
     pegType,
     },
     revalidate: revalidate(),
-    
   }
 }
 

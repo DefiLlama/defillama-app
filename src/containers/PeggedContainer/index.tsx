@@ -9,10 +9,10 @@ import Search from 'components/Search'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 import { AllPeggedOptions } from 'components/SettingsModal'
 import Filters from 'components/Filters'
-import { columnsToShow, FullTable, isOfTypeColumns } from 'components/Table'
-import { toNiceCsvDate, getRandomColor, download } from 'utils'
-import { getPeggedChainsPageData, revalidate } from 'utils/peggedDataApi'
-import { useCalcGroupExtraPeggedByDay, useCalcCirculating } from 'hooks/peggedData'
+import { CustomLink } from 'components/Link'
+import { columnsToShow, FullTable, NamePegged, isOfTypePeggedCategory } from 'components/Table'
+import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
+import { useCalcGroupExtraPeggedByDay, useCalcCirculating } from 'hooks/data'
 
 const ChartsWrapper = styled(Box)`
   display: flex;
@@ -57,27 +57,50 @@ export default function PeggedContainer({
   peggedasset,
   pegType,
 }) {
-  let columns = columnsToShow(
-    'chainName',
-    'bridgeInfo',
-    'bridgedAmount',
-    '1dChange',
-    '7dChange',
-    '1mChange',
-    'circulating'
-  )
+  let firstColumn = columnsToShow('chainName')[0]
+
   const peggedColumn = `${pegType}`
-  if (isOfTypeColumns(peggedColumn)) {
-    columns = columnsToShow(
-      peggedColumn,
-      'bridgeInfo',
-      'bridgedAmount',
-      '1dChange',
-      '7dChange',
-      '1mChange',
-      'circulating'
-    )
+  if (isOfTypePeggedCategory(peggedColumn)) {
+    firstColumn = {
+      header: 'Name',
+      accessor: 'name',
+      disableSortBy: true,
+      Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
+        <NamePegged
+          type="peggedUSD"
+          value={value}
+          symbol={rowValues.symbol}
+          index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
+          rowType={rowType}
+          showRows={showRows}
+        />
+      ),
+    }
   }
+
+  const columns = [
+    firstColumn,
+    {
+      header: 'Primary Bridge',
+      accessor: 'bridgeInfo',
+      disableSortBy: true,
+      Cell: ({ value }) => {
+        return value.link ? <CustomLink href={value.link}>{value.bridge}</CustomLink> : <span>{value.bridge}</span>
+      },
+    },
+    {
+      header: 'Bridged Amount',
+      accessor: 'bridgedAmount',
+      disableSortBy: true,
+      Cell: ({ value }) => <>{typeof value === 'string' ? value : formattedNum(value)}</>,
+    },
+    ...columnsToShow('1dChange', '7dChange', '1mChange'),
+    {
+      header: 'Total Circulating',
+      accessor: 'circulating',
+      Cell: ({ value }) => <>{value && formattedNum(value)}</>,
+    },
+  ]
 
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
@@ -113,7 +136,7 @@ export default function PeggedContainer({
 
   const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
 
-  //add usegroupedchainsbyparent
+  //add usegroupedchainsbyparent?
 
   return (
     <PageWrapper>
