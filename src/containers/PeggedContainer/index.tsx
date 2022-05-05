@@ -50,7 +50,7 @@ const Capitalize = (str) => {
 
 export default function PeggedContainer({
   chainsUnique,
-  chainTvls,
+  chainCirculatings,
   category,
   categories,
   stackedDataset,
@@ -107,19 +107,19 @@ export default function PeggedContainer({
     [chainsUnique]
   )
 
-  const chainTotals = useCalcCirculating(chainTvls, peggedasset)
+  const chainTotals = useCalcCirculating(chainCirculatings, peggedasset)
 
-  const chainsTvlValues = useMemo(() => {
+  const chainsCirculatingValues = useMemo(() => {
     const data = chainTotals.map((chain) => ({ name: chain.name, value: chain.circulating }))
 
-    const otherTvl = data.slice(10).reduce((total, entry) => {
+    const otherCirculating = data.slice(10).reduce((total, entry) => {
       return (total += entry.value)
     }, 0)
 
     return data
       .slice(0, 10)
       .sort((a, b) => b.value - a.value)
-      .concat({ name: 'Others', value: otherTvl })
+      .concat({ name: 'Others', value: otherCirculating })
   }, [chainTotals])
 
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
@@ -148,7 +148,7 @@ export default function PeggedContainer({
           <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
         </RowWrapper>
         <ChartsWrapper>
-          <PeggedChainPieChart data={chainsTvlValues} chainColor={chainColor} />
+          <PeggedChainPieChart data={chainsCirculatingValues} chainColor={chainColor} />
           <PeggedChainDominanceChart
             stackOffset="expand"
             formatPercent={true}

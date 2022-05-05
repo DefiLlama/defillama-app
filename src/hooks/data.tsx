@@ -56,8 +56,8 @@ interface IPegged {
   change_7d: number | null
   change_1m: number | null
   bridgeInfo: {
-    bridge: string,
-    link: string,
+    bridge: string
+    link?: string
   }
   bridgedAmount: number | string
   name: string
@@ -100,7 +100,7 @@ export const useCalcStakePool2Tvl = (
             tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
           }
           // convert to lowercase as server response is not consistent in extra-tvl names
-          if (extraTvlsEnabled[prop.toLowerCase()] && (prop.toLowerCase() !== "doublecounted" || applyDoublecounted)) {
+          if (extraTvlsEnabled[prop.toLowerCase()] && (prop.toLowerCase() !== 'doublecounted' || applyDoublecounted)) {
             // check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
             tvl && (finalTvl = (finalTvl || 0) + tvl)
             tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
@@ -238,7 +238,7 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
 }
 
 export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IGroupData): GroupChain[] => {
-  const groupsEnabled = useGroupEnabled();
+  const groupsEnabled = useGroupEnabled()
   const data: GroupChain[] = useMemo(() => {
     const finalData = {}
     const addedChains = []
@@ -275,42 +275,42 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
 
       let addedChildren = false
       for (const type in groupData[parentName]) {
-        if(groupsEnabled[type] === true){
-        for(const child of groupData[parentName][type]){
-        const childData = chains.find((item) => item.name === child)
+        if (groupsEnabled[type] === true) {
+          for (const child of groupData[parentName][type]) {
+            const childData = chains.find((item) => item.name === child)
 
-        const alreadyAdded = (finalData[parentName].subRows ?? []).find(p=>p.name === child)
+            const alreadyAdded = (finalData[parentName].subRows ?? []).find((p) => p.name === child)
 
-        if (childData && alreadyAdded === undefined) {
-          tvl += childData.tvl
-          tvlPrevDay += childData.tvlPrevDay
-          tvlPrevWeek += childData.tvlPrevWeek
-          tvlPrevMonth += childData.tvlPrevMonth
-          mcap += childData.mcap
-          protocols += childData.protocols
-          const subChains = finalData[parentName].subRows || []
-          let mcaptvl = mcap && tvl && mcap / tvl
+            if (childData && alreadyAdded === undefined) {
+              tvl += childData.tvl
+              tvlPrevDay += childData.tvlPrevDay
+              tvlPrevWeek += childData.tvlPrevWeek
+              tvlPrevMonth += childData.tvlPrevMonth
+              mcap += childData.mcap
+              protocols += childData.protocols
+              const subChains = finalData[parentName].subRows || []
+              let mcaptvl = mcap && tvl && mcap / tvl
 
-          finalData[parentName] = {
-            ...finalData[parentName],
-            tvl,
-            tvlPrevDay,
-            tvlPrevWeek,
-            tvlPrevMonth,
-            mcap,
-            mcaptvl,
-            protocols,
-            name: parentName,
-            subRows: [...subChains, childData],
+              finalData[parentName] = {
+                ...finalData[parentName],
+                tvl,
+                tvlPrevDay,
+                tvlPrevWeek,
+                tvlPrevMonth,
+                mcap,
+                mcaptvl,
+                protocols,
+                name: parentName,
+                subRows: [...subChains, childData],
+              }
+              addedChains.push(child)
+              addedChildren = true
+            }
           }
-          addedChains.push(child)
-          addedChildren = true
         }
       }
-      }
-      }
-      if(!addedChildren){
-        if(finalData[parentName].tvl === undefined){
+      if (!addedChildren) {
+        if (finalData[parentName].tvl === undefined) {
           delete finalData[parentName]
         } else {
           finalData[parentName] = parentData
@@ -387,16 +387,12 @@ export const useCalcExtraTvlsByDay = (data) => {
 }
 
 // PEGGED ASSETS
-export const useCalcCirculating = (
-  filteredProtocols: IPegged[],
-  defaultSortingColumn?: string,
-  dir?: 'asc'
-) => {
+export const useCalcCirculating = (filteredPeggedAssets: IPegged[], defaultSortingColumn?: string, dir?: 'asc') => {
   const extraPeggedEnabled: ExtraTvls = useGetExtraPeggedEnabled()
-  console.log(filteredProtocols)
-  const protocolTotals = useMemo(() => {
-    const updatedProtocols = filteredProtocols.map(({ circulating, unreleased, ...props }) => {
-      if (extraPeggedEnabled['unreleased'] && unreleased) { // need to fix this, unreleased is not always present in filteredprotocols
+
+  const peggedAssetTotals = useMemo(() => {
+    const updatedPeggedAssets = filteredPeggedAssets.map(({ circulating, unreleased, ...props }) => {
+      if (extraPeggedEnabled['unreleased'] && unreleased) {
         circulating += unreleased
       }
       return {
@@ -407,17 +403,17 @@ export const useCalcCirculating = (
     })
 
     if (defaultSortingColumn === undefined) {
-      return updatedProtocols.sort((a, b) => b.circulating - a.circulating)
+      return updatedPeggedAssets.sort((a, b) => b.circulating - a.circulating)
     } else {
-      return updatedProtocols.sort((a, b) => {
+      return updatedPeggedAssets.sort((a, b) => {
         if (dir === 'asc') {
           return a[defaultSortingColumn] - b[defaultSortingColumn]
         } else return b[defaultSortingColumn] - a[defaultSortingColumn]
       })
     }
-  }, [filteredProtocols, extraPeggedEnabled, defaultSortingColumn, dir])
+  }, [filteredPeggedAssets, extraPeggedEnabled, defaultSortingColumn, dir])
 
-  return protocolTotals
+  return peggedAssetTotals
 }
 
 // returns circulating by day for a group of tokens
@@ -426,22 +422,22 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 
   const { data, daySum } = useMemo(() => {
     const daySum = {}
-    
+
     const data = chains.map(([date, values]) => {
-      const tvls: IChainTvl = {}
+      const circulatings: IChainTvl = {}
       let totalDaySum = 0
-      Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
-        let sum = chainTvls.circulating
-        totalDaySum += chainTvls.circulating
-        if (extraPeggedEnabled['unreleased'] ** chainTvls.unreleased) {
-          sum += chainTvls.unreleased
-          totalDaySum += chainTvls.unreleased
+      Object.entries(values).forEach(([name, chainCirculating]: ChainTvlsByDay) => {
+        let sum = chainCirculating.circulating
+        totalDaySum += chainCirculating.circulating
+        if (extraPeggedEnabled['unreleased'] && chainCirculating.unreleased) {
+          sum += chainCirculating.unreleased
+          totalDaySum += chainCirculating.unreleased
         }
 
-        tvls[name] = sum
+        circulatings[name] = sum
       })
       daySum[date] = totalDaySum
-      return { date, ...tvls }
+      return { date, ...circulatings }
     })
     return { data, daySum }
   }, [chains, extraPeggedEnabled])

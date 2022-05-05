@@ -11,7 +11,7 @@ export async function getStaticProps({
 }) {
   const props = await getPeggedsPageData(peggedcategory, chain)
 
-  if (props.filteredProtocols.length === 0) {
+  if (props.filteredPeggedAssets.length === 0) {
     return {
       notFound: true
     }
@@ -32,14 +32,14 @@ export async function getStaticPaths() {
   return { paths, fallback: 'blocking' }
 }
 
-export default function PeggedAssets({ peggedcategory, chains, filteredProtocols, chartData, stackedDataset, chain }) {
+export default function PeggedAssets({ peggedcategory, chains, filteredPeggedAssets, chartData, stackedDataset, chain }) {
   return (
     <GeneralLayout title={`${capitalizeFirstLetter(peggedcategory)} Circulating - DefiLlama`} defaultSEO>
       <PeggedsList
         category={peggedcategory}
         chains={chains}
         selectedChain={chain}
-        filteredProtocols={filteredProtocols}
+        filteredPeggedAssets={filteredPeggedAssets}
         chartData={chartData}
         stackedDataset={stackedDataset}
       />

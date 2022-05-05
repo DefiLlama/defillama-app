@@ -19,8 +19,8 @@ const TokenCounter = styled(Row)`
   justify-content: center;
 `
 
-export const ChainLogo = ({ chain, isNFTApp }) => (
-  <BasicLink key={chain} href={`/peggedassets/stablecoins/${chain}`}> {/*Need to add hook here for stablecoins*/}
+export const ChainLogo = ({ chain }) => (
+  <BasicLink key={chain} href={`/peggedassets/stablecoins/${chain}`}> {/*Need to add hook here for category*/}
     <TokenLogo address={chain} logo={chainIconUrl(chain)} />
   </BasicLink>
 )
@@ -30,7 +30,6 @@ const ChainsRow = ({ chains }) => {
   const mainWrapEl = useRef(null)
   const { width: mainWrapWidth } = useResize(mainWrapEl)
   const [showHover, setShowHover] = useState(false)
-  const isNFTApp = useNFTApp()
 
   useEffect(() => {
     let remainingWidth = (mainWrapWidth > 280 ? 280 : mainWrapWidth) - CHAIN_ICON_WIDTH
@@ -53,7 +52,7 @@ const ChainsRow = ({ chains }) => {
   return (
     <Row sx={{ width: '100%', justifyContent: 'flex-end' }} ref={mainWrapEl}>
       {visibleChains.map((chain) => (
-        <ChainLogo key={chain} chain={chain} isNFTApp={isNFTApp} />
+        <ChainLogo key={chain} chain={chain} />
       ))}
       {!!hoverChains.length && (
         <Popover
@@ -61,7 +60,7 @@ const ChainsRow = ({ chains }) => {
           content={
             <Row padding="6px">
               {hoverChains.map((chain) => (
-                <ChainLogo key={chain} chain={chain} isNFTApp={isNFTApp} />
+                <ChainLogo key={chain} chain={chain} />
               ))}
             </Row>
           }

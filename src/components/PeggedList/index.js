@@ -58,7 +58,7 @@ function AllPeggedsPage({
   category,
   selectedChain = 'All',
   chains = [],
-  filteredProtocols,
+  filteredPeggedAssets,
   chartData,
   stackedDataset,
   showChainList = true,
@@ -86,7 +86,7 @@ function AllPeggedsPage({
   }
 
   const columns = [
-      firstColumn,
+    firstColumn,
     {
       header: 'Chains',
       accessor: 'chains', // should change this
@@ -108,33 +108,34 @@ function AllPeggedsPage({
   ]
 
   const isLg = useLg()
+
   const handleRouting = (chain) => {
     if (chain === 'All') return `/peggedassets/${category}`
     return `/peggedassets/${category}/${chain}`
   }
   const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
 
-  const peggedTotals = useCalcCirculating(filteredProtocols, defaultSortingColumn)
+  const peggedTotals = useCalcCirculating(filteredPeggedAssets, defaultSortingColumn)
 
-  const chainsTvlValues = useMemo(() => {
+  const chainsCirculatingValues = useMemo(() => {
     const data = peggedTotals.map((chain) => ({ name: chain.name, value: chain.circulating }))
 
-    const otherTvl = data.slice(10).reduce((total, entry) => {
+    const otherCirculating = data.slice(10).reduce((total, entry) => {
       return (total += entry.value)
     }, 0)
 
     return data
       .slice(0, 10)
       .sort((a, b) => b.value - a.value)
-      .concat({ name: 'Others', value: otherTvl })
+      .concat({ name: 'Others', value: otherCirculating })
   }, [peggedTotals])
 
   const chainColor = useMemo(
     () => Object.fromEntries([...peggedTotals, 'Others'].map((peggedAsset) => [peggedAsset.name, getRandomColor()])),
-    [filteredProtocols]
+    [peggedTotals]
   )
 
-  const peggedAssetNames = useMemo(() => peggedTotals.map((peggedAsset) => peggedAsset.name), [filteredProtocols])
+  const peggedAssetNames = useMemo(() => peggedTotals.map((peggedAsset) => peggedAsset.name), [peggedTotals])
 
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
@@ -148,15 +149,19 @@ function AllPeggedsPage({
     }
   }
 
-  // can add uncirculating hook here
-  const { tvl, percentChange } = useMemo(() => {
-    const tvl = getPrevCirculatingFromChart(chartData, 0, 'totalCirculating', categoryToPegType[category])
-    const tvlPrevDay = getPrevCirculatingFromChart(chartData, 1, 'totalCirculating', categoryToPegType[category])
-    const percentChange = getPercentChange(tvl, tvlPrevDay)?.toFixed(2)
-    return { tvl, percentChange }
-  }, [chartData])
+  const { circulating, percentChange } = useMemo(() => {
+    const circulating = getPrevCirculatingFromChart(chartData, 0, 'totalCirculating', categoryToPegType[category])
+    const circulatingPrevDay = getPrevCirculatingFromChart(
+      chartData,
+      1,
+      'totalCirculating',
+      categoryToPegType[category]
+    )
+    const percentChange = getPercentChange(circulating, circulatingPrevDay)?.toFixed(2)
+    return { circulating, percentChange }
+  }, [chartData, category])
 
-  const tvlToDisplay = formattedNum(tvl, true)
+  const circulatingToDisplay = formattedNum(circulating, true)
 
   const topToken = { name: 'Tether', circulating: 0 }
   if (peggedTotals.length > 0) {
@@ -164,7 +169,7 @@ function AllPeggedsPage({
     topToken.circulating = peggedTotals[0]?.circulating
   }
 
-  const dominance = getPeggedDominance(topToken, tvl)
+  const dominance = getPeggedDominance(topToken, circulating)
 
   const panels = (
     <>
@@ -175,7 +180,7 @@ function AllPeggedsPage({
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-              {tvlToDisplay}
+              {circulatingToDisplay}
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
@@ -218,7 +223,7 @@ function AllPeggedsPage({
           <BreakpointPanels>
             <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
             {stackedDataset.length === 0 ? (
-              <PeggedChainPieChart data={chainsTvlValues} chainColor={chainColor} />
+              <PeggedChainPieChart data={chainsCirculatingValues} chainColor={chainColor} />
             ) : (
               <PeggedChainDominanceChart
                 stackOffset="expand"

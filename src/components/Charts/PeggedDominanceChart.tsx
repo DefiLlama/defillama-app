@@ -35,7 +35,6 @@ export const PeggedChainDominanceChart = ({
   chainsUnique,
   chainColor,
   daySum,
-  asset,
 }: IProps) => (
   <ChartWrapper>
     <AreaChart

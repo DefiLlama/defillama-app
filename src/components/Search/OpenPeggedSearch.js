@@ -19,9 +19,8 @@ function escapeRegExp(string) {
 }
 
 const searchKeys = ['symbol', 'name']
-
+// includeChains = true, not using this for now, until there is more than 1 pegged category
 const TokenSearch = ({
-  includeChains = true, // not using this for now, until there is more than 1 pegged category
   linkPath = defaultLinkPath,
   customOnLinkClick = () => {},
   wrapperRef,
