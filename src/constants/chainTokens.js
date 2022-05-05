@@ -544,6 +544,11 @@ export const chainCoingeckoIds = {
     symbol: "REEF",
     cmcId: "6951",
     },
+  Omni: {
+    geckoId: 'omni',
+    symbol: 'OMNI',
+    cmcId: '83',
+  },
 }
 
 export const chainMarketplaceMappings = {

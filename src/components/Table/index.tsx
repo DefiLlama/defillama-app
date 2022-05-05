@@ -7,7 +7,7 @@ import HeadHelp from 'components/HeadHelp'
 import { CustomLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
 import Bookmark from 'components/Bookmark'
-import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from 'utils'
+import { chainIconUrl, peggedAssetIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from 'utils'
 import { useInfiniteScroll } from 'hooks'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
@@ -438,6 +438,47 @@ export function Name({
   )
 }
 
+interface PeggedNameProps {
+  type: 'peggedUSD' | 'stablecoins'
+  value: string
+  symbol?: string
+  index?: number
+  bookmark?: boolean
+  rowType?: 'pinned' | 'accordion' | 'child' | 'default'
+  showRows?: boolean
+}
+
+export function NamePegged({
+  type,
+  value,
+  symbol = '',
+  index,
+  bookmark,
+  rowType = 'default',
+  showRows,
+  ...props
+}: PeggedNameProps) {
+  const name = symbol === '-' ? value : `${value} (${symbol})`
+  const { iconUrl, tokenUrl } = useMemo(() => {
+    let iconUrl, tokenUrl
+    if (type === 'peggedUSD') {
+      tokenUrl = `/peggedassets/stablecoins/${value}`
+      iconUrl = chainIconUrl(value)
+    } else {
+      tokenUrl = `/peggedasset/${slug(value)}`
+      iconUrl = peggedAssetIconUrl(value)
+    }
+    return { iconUrl, tokenUrl }
+  }, [type, value])
+
+  return (
+    <Index {...props}>
+      <TokenLogo logo={iconUrl} />
+      {rowType === 'accordion' ? <span>{name}</span> : <CustomLink href={tokenUrl}>{name}</CustomLink>}
+    </Index>
+  )
+}
+
 export function NameYield({ value, rowType, ...props }: NameProps) {
   const { iconUrl, tokenUrl } = useMemo(() => {
     return { iconUrl: tokenIconUrl(value['project']), tokenUrl: `/yields/project/${value['projectslug']}` }
@@ -453,6 +494,12 @@ export function NameYield({ value, rowType, ...props }: NameProps) {
       )}
     </Index>
   )
+}
+
+type PeggedCategories = 'stablecoins' | 'peggedUSD'
+
+export function isOfTypePeggedCategory(peggedCategory: string): peggedCategory is PeggedCategories {
+  return ['stablecoins', 'peggedUSD'].includes(peggedCategory)
 }
 
 type Columns =

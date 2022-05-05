@@ -23,12 +23,14 @@ export const DOUBLE_COUNT = 'doublecounted'
 export const DISPLAY_USD = 'DISPLAY_USD'
 export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
 export const DEFAULT_PORTFOLIO = 'main'
+export const UNRELEASED = 'unreleased'
 export const STABLECOINS = 'STABLECOINS'
 export const SINGLE_EXPOSURE = 'SINGLE_EXPOSURE'
 export const NO_IL = 'NO_IL'
 export const MILLION_DOLLAR = 'MILLION_DOLLAR'
 
 const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
+const extraPeggedProps = [UNRELEASED]
 
 export const groupSettings = [
   {
@@ -63,6 +65,7 @@ const UPDATABLE_KEYS = [
   SAVED_PAIRS,
   SAVED_TOKENS,
   ...extraTvlProps,
+  ...extraPeggedProps,
   DISPLAY_USD,
   HIDE_LAST_DAY,
   SELECTED_PORTFOLIO,
@@ -105,6 +108,7 @@ function init() {
     [VERSION]: CURRENT_VERSION,
     [DARK_MODE]: true,
     ...extraTvlProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+    ...extraPeggedProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
     [DOUBLE_COUNT]: true,
     [DISPLAY_USD]: false,
     [HIDE_LAST_DAY]: false,
@@ -219,6 +223,27 @@ export const useGroupEnabled = () => {
 }
 
 export function useTvlToggles() {
+  const [state, { updateKey }] = useLocalStorageContext()
+  return (key) => () => {
+    updateKey(key, !state[key])
+  }
+}
+
+export const useGetExtraPeggedEnabled = () => {
+  const [state] = useLocalStorageContext()
+  const isClient = useIsClient()
+
+  return useMemo(
+    () =>
+      extraPeggedProps.reduce((all, prop) => {
+        all[prop] = isClient ? state[prop] : prop === 'unreleased'
+        return all
+      }, {}),
+    [state, isClient]
+  )
+}
+
+export function usePeggedToggles() {
   const [state, { updateKey }] = useLocalStorageContext()
   return (key) => () => {
     updateKey(key, !state[key])

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useGetExtraTvlEnabled, useGroupEnabled } from 'contexts/LocalStorage'
+import { useGetExtraTvlEnabled, useGroupEnabled, useGetExtraPeggedEnabled } from 'contexts/LocalStorage'
 import { getPercentChange } from 'utils'
 
 interface IProtocol {
@@ -47,6 +47,21 @@ interface IChain {
 
 interface GroupChain extends IChain {
   subChains: IChain[]
+}
+
+interface IPegged {
+  circulating: number
+  unreleased: number
+  change_1d: number | null
+  change_7d: number | null
+  change_1m: number | null
+  bridgeInfo: {
+    bridge: string
+    link?: string
+  }
+  bridgedAmount: number | string
+  name: string
+  symbol: string
 }
 
 // TODO update types in localstorage file and refer them here
@@ -223,7 +238,7 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
 }
 
 export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IGroupData): GroupChain[] => {
-  const groupsEnabled = useGroupEnabled();
+  const groupsEnabled = useGroupEnabled()
   const data: GroupChain[] = useMemo(() => {
     const finalData = {}
     const addedChains = []
@@ -260,42 +275,42 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
 
       let addedChildren = false
       for (const type in groupData[parentName]) {
-        if(groupsEnabled[type] === true){
-        for(const child of groupData[parentName][type]){
-        const childData = chains.find((item) => item.name === child)
+        if (groupsEnabled[type] === true) {
+          for (const child of groupData[parentName][type]) {
+            const childData = chains.find((item) => item.name === child)
 
-        const alreadyAdded = (finalData[parentName].subRows ?? []).find(p=>p.name === child)
+            const alreadyAdded = (finalData[parentName].subRows ?? []).find((p) => p.name === child)
 
-        if (childData && alreadyAdded === undefined) {
-          tvl += childData.tvl
-          tvlPrevDay += childData.tvlPrevDay
-          tvlPrevWeek += childData.tvlPrevWeek
-          tvlPrevMonth += childData.tvlPrevMonth
-          mcap += childData.mcap
-          protocols += childData.protocols
-          const subChains = finalData[parentName].subRows || []
-          let mcaptvl = mcap && tvl && mcap / tvl
+            if (childData && alreadyAdded === undefined) {
+              tvl += childData.tvl
+              tvlPrevDay += childData.tvlPrevDay
+              tvlPrevWeek += childData.tvlPrevWeek
+              tvlPrevMonth += childData.tvlPrevMonth
+              mcap += childData.mcap
+              protocols += childData.protocols
+              const subChains = finalData[parentName].subRows || []
+              let mcaptvl = mcap && tvl && mcap / tvl
 
-          finalData[parentName] = {
-            ...finalData[parentName],
-            tvl,
-            tvlPrevDay,
-            tvlPrevWeek,
-            tvlPrevMonth,
-            mcap,
-            mcaptvl,
-            protocols,
-            name: parentName,
-            subRows: [...subChains, childData],
+              finalData[parentName] = {
+                ...finalData[parentName],
+                tvl,
+                tvlPrevDay,
+                tvlPrevWeek,
+                tvlPrevMonth,
+                mcap,
+                mcaptvl,
+                protocols,
+                name: parentName,
+                subRows: [...subChains, childData],
+              }
+              addedChains.push(child)
+              addedChildren = true
+            }
           }
-          addedChains.push(child)
-          addedChildren = true
         }
       }
-      }
-      }
-      if(!addedChildren){
-        if(finalData[parentName].tvl === undefined){
+      if (!addedChildren) {
+        if (finalData[parentName].tvl === undefined) {
           delete finalData[parentName]
         } else {
           finalData[parentName] = parentData
@@ -369,4 +384,63 @@ export const useCalcExtraTvlsByDay = (data) => {
       return [date, sum]
     })
   }, [data, extraTvlsEnabled])
+}
+
+// PEGGED ASSETS
+export const useCalcCirculating = (filteredPeggedAssets: IPegged[], defaultSortingColumn?: string, dir?: 'asc') => {
+  const extraPeggedEnabled: ExtraTvls = useGetExtraPeggedEnabled()
+
+  const peggedAssetTotals = useMemo(() => {
+    const updatedPeggedAssets = filteredPeggedAssets.map(({ circulating, unreleased, ...props }) => {
+      if (extraPeggedEnabled['unreleased'] && unreleased) {
+        circulating += unreleased
+      }
+      return {
+        circulating,
+        unreleased,
+        ...props,
+      }
+    })
+
+    if (defaultSortingColumn === undefined) {
+      return updatedPeggedAssets.sort((a, b) => b.circulating - a.circulating)
+    } else {
+      return updatedPeggedAssets.sort((a, b) => {
+        if (dir === 'asc') {
+          return a[defaultSortingColumn] - b[defaultSortingColumn]
+        } else return b[defaultSortingColumn] - a[defaultSortingColumn]
+      })
+    }
+  }, [filteredPeggedAssets, extraPeggedEnabled, defaultSortingColumn, dir])
+
+  return peggedAssetTotals
+}
+
+// returns circulating by day for a group of tokens
+export const useCalcGroupExtraPeggedByDay = (chains) => {
+  const extraPeggedEnabled = useGetExtraPeggedEnabled()
+
+  const { data, daySum } = useMemo(() => {
+    const daySum = {}
+
+    const data = chains.map(([date, values]) => {
+      const circulatings: IChainTvl = {}
+      let totalDaySum = 0
+      Object.entries(values).forEach(([name, chainCirculating]: ChainTvlsByDay) => {
+        let sum = chainCirculating.circulating
+        totalDaySum += chainCirculating.circulating
+        if (extraPeggedEnabled['unreleased'] && chainCirculating.unreleased) {
+          sum += chainCirculating.unreleased
+          totalDaySum += chainCirculating.unreleased
+        }
+
+        circulatings[name] = sum
+      })
+      daySum[date] = totalDaySum
+      return { date, ...circulatings }
+    })
+    return { data, daySum }
+  }, [chains, extraPeggedEnabled])
+
+  return { data, daySum }
 }
