@@ -191,7 +191,7 @@ const ListItem = styled.li`
   }
 `
 
-export function CheckMarks({ type = 'defi' }) {
+export function CheckMarks({ type = 'defi', style = null }) {
   const [stakingEnabled, toggleStaking] = useStakingManager()
   const [borrowedEnabled, toggleBorrowed] = useBorrowedManager()
   const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
@@ -260,15 +260,37 @@ export function CheckMarks({ type = 'defi' }) {
     ],
   }
 
-  return (
-    <AutoRow gap="10px" justify="center" key="settings">
-      {toggleSettings[type].map((toggleSetting) => {
-        if (toggleSetting) {
-          return <OptionToggle {...toggleSetting} key={toggleSetting.name} />
-        } else return null
-      })}
-    </AutoRow>
-  )
+  if (type !== 'yields') {
+    return (
+      <AutoRow gap="10px" justify="center" key="settings">
+        {toggleSettings[type].map((toggleSetting) => {
+          if (toggleSetting) {
+            return <OptionToggle {...toggleSetting} key={toggleSetting.name} />
+          } else return null
+        })}
+      </AutoRow>
+    )
+  } else {
+    return (
+      <>
+        <ScrollAreaRoot>
+          <ScrollAreaViewport>
+            <ListWrapper style={{ ...style }}>
+              {toggleSettings[type].map((toggleSetting) => (
+                <ListItem key={toggleSetting.name}>
+                  <OptionToggle {...toggleSetting} />
+                </ListItem>
+              ))}
+            </ListWrapper>
+          </ScrollAreaViewport>
+          <ScrollAreaScrollbar orientation="horizontal">
+            <ScrollAreaThumb />
+          </ScrollAreaScrollbar>
+          <ScrollAreaCorner />
+        </ScrollAreaRoot>
+      </>
+    )
+  }
 }
 
 const extraTvlOptions = [
@@ -290,7 +312,7 @@ const extraTvlOptions = [
   {
     name: 'Double Count',
     key: DOUBLE_COUNT,
-    help: 'Double count TVL of certain protocols',
+    help: 'Include TVL of protocols which TVL feeds into another protocol',
   },
 ]
 

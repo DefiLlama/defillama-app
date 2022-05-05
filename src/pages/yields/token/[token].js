@@ -1,3 +1,4 @@
+import { GeneralLayout } from 'layout'
 import { PageWrapper, FullWrapper } from 'components'
 import Search from 'components/Search'
 import { AutoColumn } from 'components/Column'
@@ -16,6 +17,8 @@ import {
   useStablecoinsManager,
   useMillionDollarManager,
 } from 'contexts/LocalStorage'
+import { useYieldPoolsData } from 'utils/dataApi'
+import { useRouter } from 'next/router'
 import QuestionHelper from 'components/QuestionHelper'
 
 const ListOptions = styled(AutoRow)`
@@ -35,9 +38,15 @@ const FiltersRow = styled(RowFlat)`
   }
 `
 
-const YieldPage = ({ pools, chainList }) => {
-  // for /yields/project/[project] I don't want to use href on Project column
-  const projectsUnique = [...new Set(pools.map((el) => el.project))]
+const YieldPage = () => {
+  // load the full data once
+  const { data: poolData } = useYieldPoolsData()
+  let pools = poolData?.data ? poolData.data : []
+  const chainList = [...new Set(pools.map((p) => p.chain))]
+
+  const { query } = useRouter()
+  // filter to requested token
+  pools = pools.filter((p) => p.symbol.toLowerCase().includes(query.token.toLowerCase()))
 
   const columns = [
     {
@@ -54,12 +63,7 @@ const YieldPage = ({ pools, chainList }) => {
       header: 'Project',
       accessor: 'project',
       disableSortBy: true,
-      Cell: ({ value, rowValues }) =>
-        projectsUnique.length > 1 ? (
-          <NameYield value={(value, rowValues)} />
-        ) : (
-          <NameYield value={(value, rowValues)} rowType={'accordion'} />
-        ),
+      Cell: ({ value, rowValues }) => <NameYield value={(value, rowValues)} />,
     },
     ...columnsToShow('chains', 'tvl'),
     {
@@ -102,8 +106,7 @@ const YieldPage = ({ pools, chainList }) => {
     },
   ]
 
-  const chain = [...new Set(pools.map((el) => el.chain))]
-  const selectedTab = chain.length > 1 ? 'All' : chain[0]
+  const selectedTab = 'All'
   const tabOptions = [
     {
       label: 'All',
@@ -160,4 +163,10 @@ const YieldPage = ({ pools, chainList }) => {
   )
 }
 
-export default YieldPage
+export default function YieldPoolPage(props) {
+  return (
+    <GeneralLayout title={`Yield Chart - DefiLlama`} defaultSEO>
+      <YieldPage {...props} />
+    </GeneralLayout>
+  )
+}
