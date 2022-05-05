@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import DefiSideNav from './DefiSideNav'
-import NFTSideNav from './NFTSideNav'
-import { useNFTApp } from '../../hooks'
+import YieldSideNav from './YieldSideNav'
+import { useYieldApp } from '../../hooks'
 import AppSwitch from 'components/AppSwitch'
 import { MobileWrapper, Wrapper, Footer, ButtonWrapper, Desktop, Mobile } from './shared'
 import SettingsMenuButton from '../SettingsModal'
@@ -11,12 +11,12 @@ import Title from '../Title'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 
 const NavMenu = ({ isMobile }) => {
-  const isNFTApp = useNFTApp()
+  const isYieldApp = useYieldApp()
 
   return (
     <>
-      {/*!isMobile && <AppSwitch />*/}
-      {isNFTApp ? <NFTSideNav isMobile={isMobile} /> : <DefiSideNav isMobile={isMobile} />}
+      {!isMobile && <AppSwitch />}
+      {isYieldApp ? <YieldSideNav isMobile={isMobile} /> : <DefiSideNav isMobile={isMobile} />}
     </>
   )
 }
@@ -24,13 +24,13 @@ const NavMenu = ({ isMobile }) => {
 export default function SideNav() {
   const [showMobileNavMenu, setShowMobileNavMenu] = useState(false)
   const [isDark, toggleDarkMode] = useDarkModeManager()
-  const isNFTApp = useNFTApp()
+  const isYieldApp = useYieldApp()
 
   return (
     <Wrapper>
       <MobileWrapper>
         <div>
-          <Title homePath={isNFTApp ? '/nfts' : '/'} />
+          <Title homePath={isYieldApp ? '/yields' : '/'} />
           <Desktop>
             <AutoColumn gap="1rem" style={{ paddingBottom: '1rem', marginBottom: 'auto' }}>
               <NavMenu isMobile={false} />
