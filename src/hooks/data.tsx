@@ -100,7 +100,7 @@ export const useCalcStakePool2Tvl = (
             tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
           }
           // convert to lowercase as server response is not consistent in extra-tvl names
-          if (extraTvlsEnabled[prop.toLowerCase()] && (prop.toLowerCase() !== 'doublecounted' || applyDoublecounted)) {
+          if (extraTvlsEnabled[prop.toLowerCase()] && (prop.toLowerCase() !== "doublecounted" || applyDoublecounted)) {
             // check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
             tvl && (finalTvl = (finalTvl || 0) + tvl)
             tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)

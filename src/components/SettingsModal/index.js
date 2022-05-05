@@ -452,6 +452,7 @@ export const AllPeggedOptions = ({ style }) => {
 export const AllGroupOptions = ({ style }) => {
   const tvlToggles = useTvlToggles()
   const extraTvlEnabled = useGroupEnabled()
+  
   return (
     <>
       <ScrollAreaRoot>
