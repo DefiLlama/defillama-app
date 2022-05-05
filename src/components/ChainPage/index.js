@@ -276,7 +276,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
           <Search />
           <Panel background={true} style={{ textAlign: 'center' }}>
             <TYPE.main fontWeight={400}>
-              We've launched a neutral wiki for DeFi and crypto. Check it out <BasicLink style={{textDecoration:"underline"}} href="https://wiki.defillama.com/wiki/Main_Page">here</BasicLink>!
+              We've launched a multichain APY dashboard. Check it out <BasicLink style={{textDecoration:"underline"}} href="https://defillama.com/yields">here</BasicLink>!
             </TYPE.main>
           </Panel>
         </AutoColumn>
