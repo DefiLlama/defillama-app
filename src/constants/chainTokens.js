@@ -549,6 +549,11 @@ export const chainCoingeckoIds = {
     symbol: 'OMNI',
     cmcId: '83',
   },
+  Candle: {
+    geckoId: "candle",
+    symbol: "CNDL",
+    cmcId: "18327",
+  },
 }
 
 export const chainMarketplaceMappings = {
