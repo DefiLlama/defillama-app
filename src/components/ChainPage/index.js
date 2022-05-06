@@ -143,7 +143,6 @@ const TableWrapper = styled(Table)`
     & > div {
       text-align: right;
       margin-left: auto;
-      width: 120px;
       white-space: nowrap;
       overflow: hidden;
     }
@@ -152,10 +151,11 @@ const TableWrapper = styled(Table)`
   // MCAPTVL
   tr > *:nth-child(7) {
     display: none;
+  }
 
+  tr > th:nth-child(7) {
     & > div {
-      width: 100%;
-      justify-content: flex-end;
+      margin-left: auto;
     }
   }
 
