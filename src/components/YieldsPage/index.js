@@ -36,12 +36,32 @@ const FiltersRow = styled(RowFlat)`
 `
 
 const TableWrapper = styled(Table)`
+  tr > *:nth-child(1) {
+    & > a {
+      width: 200px;
+      overflow: hidden;
+      white-space: nowrap;
+      display: block;
+    }
+  }
+
   tr > *:nth-child(2) {
     display: none;
+    text-align: start;
+
+    & > div {
+      width: 200px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
   }
 
   tr > *:nth-child(3) {
     display: none;
+    text-align: start;
+    & > * {
+      justify-content: flex-start;
+    }
   }
 
   tr > *:nth-child(4) {
@@ -233,7 +253,6 @@ const YieldPage = ({ pools, chainList }) => {
             outlook: t.predictions.predictedClass,
             probability: t.predictions.predictedProbability,
           }))}
-          secondColumnAlign="start"
           columns={columns}
         />
       </FullWrapper>

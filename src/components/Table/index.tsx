@@ -34,7 +34,6 @@ interface TableProps {
   columns: ColumnProps[]
   data: unknown
   align?: string
-  secondColumnAlign?: string
   gap?: string
   pinnedRow?: unknown
 }
@@ -67,10 +66,6 @@ const RowWrapper = styled.tr`
     white-space: nowrap;
     text-align: start;
     padding-left: var(--padding-left);
-  }
-
-  & > :nth-child(2) {
-    text-align: var(--second-column-align) !important;
   }
 
   & > :last-child {
@@ -115,7 +110,6 @@ export const Index = styled.div`
   display: flex;
   gap: 1em;
   align-items: center;
-  min-width: 280px;
   position: relative;
 `
 
@@ -123,8 +117,6 @@ const SaveButton = styled(Bookmark)`
   position: relative;
   top: 2px;
   cursor: pointer;
-  width: 16px;
-  height: 16px;
 `
 
 const HeaderButton = styled.button`
@@ -222,7 +214,7 @@ function RowWithExtras({ columns, item, index }: RowProps) {
   )
 }
 
-function Table({ columns = [], data = [], align, secondColumnAlign, gap, pinnedRow, ...props }: TableProps) {
+function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
   const [columnToSort, setColumnToSort] = useState<string | null>(null)
   const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
 
@@ -252,7 +244,6 @@ function Table({ columns = [], data = [], align, secondColumnAlign, gap, pinnedR
     <Wrapper
       style={{
         '--text-align': align || 'end',
-        '--second-column-align': secondColumnAlign || 'end',
         '--gap': gap || '24px',
       }}
       {...props}
@@ -401,8 +392,15 @@ export function Name({
   showRows,
   ...props
 }: NameProps) {
-  const name = symbol === '-' ? value : `${value} (${symbol})`
-
+  const name =
+    symbol === '-' ? (
+      value
+    ) : (
+      <>
+        <span>{value}</span>
+        <span>{` (${symbol})`}</span>
+      </>
+    )
   const { iconUrl, tokenUrl } = useMemo(() => {
     let iconUrl, tokenUrl
     if (type === 'chain') {

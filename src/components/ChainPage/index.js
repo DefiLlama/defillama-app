@@ -79,40 +79,112 @@ const DownloadIcon = styled(DownloadCloud)`
   width: 20px;
   height: 20px;
 `
-
+// width: 380px;
 const TableWrapper = styled(Table)`
+  tr > * {
+    & > div {
+      width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
+
+  tr > *:nth-child(1) {
+    & > div {
+      width: 120px;
+      overflow: hidden;
+      white-space: nowrap;
+
+      & > *:nth-child(3) {
+        display: none;
+      }
+
+      & > *:nth-child(4) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        & > *:nth-child(2) {
+          display: none;
+        }
+      }
+    }
+  }
+
   tr > *:nth-child(2) {
     display: none;
+    & > div {
+      width: 200px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
   }
+
   tr > *:nth-child(3) {
     display: none;
   }
+
   tr > *:nth-child(4) {
     display: none;
   }
+
   tr > *:nth-child(5) {
     display: none;
   }
+
   tr > *:nth-child(6) {
     padding-right: 20px;
-  }
-  tr > *:nth-child(7) {
-    display: none;
+    & > div {
+      text-align: right;
+      margin-left: auto;
+      width: 120px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
   }
 
-  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+  tr > *:nth-child(7) {
+    display: none;
+
+    & > div {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+    tr > *:nth-child(1) {
+      & > div {
+        width: 200px;
+
+        & > *:nth-child(3) {
+          display: revert;
+        }
+
+        & > *:nth-child(4) {
+          & > *:nth-child(2) {
+            display: revert;
+          }
+        }
+      }
+    }
+
     tr > *:nth-child(4) {
       display: revert;
     }
   }
 
-  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+    tr > *:nth-child(1) {
+      & > div {
+        width: 300px;
+      }
+    }
+
     tr > *:nth-child(5) {
       display: revert;
     }
   }
 
-  @media screen and (min-width: ${({ theme }) => theme.bpXl}) {
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
     tr > *:nth-child(7) {
       display: revert;
     }
@@ -122,8 +194,14 @@ const TableWrapper = styled(Table)`
     }
   }
 
-  @media screen and (min-width: 1536px) {
+  @media screen and (min-width: ${({ theme }) => theme.bpXl}) {
     tr > *:nth-child(2) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: 1536px) {
+    tr > *:nth-child(3) {
       display: revert;
     }
   }
