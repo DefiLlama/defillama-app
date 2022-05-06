@@ -36,6 +36,15 @@ const FiltersRow = styled(RowFlat)`
 `
 
 const TableWrapper = styled(Table)`
+  tr > * {
+    & > div {
+      width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
+
+  // POOL
   tr > *:nth-child(1) {
     & > a {
       width: 200px;
@@ -45,6 +54,7 @@ const TableWrapper = styled(Table)`
     }
   }
 
+  // PROJECT
   tr > *:nth-child(2) {
     display: none;
     text-align: start;
@@ -53,9 +63,11 @@ const TableWrapper = styled(Table)`
       width: 200px;
       overflow: hidden;
       white-space: nowrap;
+      text-overflow: ellipsis;
     }
   }
 
+  // CHAINS
   tr > *:nth-child(3) {
     display: none;
     text-align: start;
@@ -64,35 +76,57 @@ const TableWrapper = styled(Table)`
     }
   }
 
+  // TVL
   tr > *:nth-child(4) {
     display: none;
   }
 
+  // APY
   tr > *:nth-child(5) {
     padding-right: 20px;
   }
 
+  // 1D CHANGE
   tr > *:nth-child(6) {
     display: none;
   }
 
+  // 7D CHANGE
   tr > *:nth-child(7) {
     display: none;
   }
 
+  // OUTLOOK
   tr > *:nth-child(8) {
     display: none;
   }
 
+  // PROBABILITY
   tr > *:nth-child(9) {
     display: none;
   }
 
+  // OUTLOOK
+  tr > th:nth-child(8) {
+    & > div {
+      margin-left: auto;
+    }
+  }
+
+  // PROBABILITY
+  tr > th:nth-child(9) {
+    & > div {
+      margin-left: auto;
+    }
+  }
+
   @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+    // APY
     tr > *:nth-child(5) {
       padding-right: 0px;
     }
 
+    // OUTLOOK
     tr > *:nth-child(8) {
       display: revert;
       padding-right: 20px;
@@ -100,36 +134,45 @@ const TableWrapper = styled(Table)`
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+    // OUTLOOK
     tr > *:nth-child(8) {
       padding-right: 0px;
     }
 
+    // PROBABILITY
     tr > *:nth-child(9) {
       display: revert;
     }
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    // TVL
     tr > *:nth-child(4) {
       display: revert;
     }
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpXl}) {
+    // 7D CHANGE
     tr > *:nth-child(7) {
       display: revert;
     }
 
+    // 1D CHANGE
     tr > *:nth-child(6) {
       display: revert;
     }
   }
 
+  // PROJECT
   @media screen and (min-width: 1536px) {
     tr > *:nth-child(2) {
       display: revert;
     }
+  }
 
+  // CHAINS
+  @media screen and (min-width: 1680px) {
     tr > *:nth-child(3) {
       display: revert;
     }
