@@ -473,6 +473,7 @@ export function NamePegged({
 
   return (
     <Index {...props}>
+      {rowType !== 'pinned' && index && <span>{index}</span>}
       <TokenLogo logo={iconUrl} />
       {rowType === 'accordion' ? <span>{name}</span> : <CustomLink href={tokenUrl}>{name}</CustomLink>}
     </Index>
