@@ -80,6 +80,55 @@ const DownloadIcon = styled(DownloadCloud)`
   height: 20px;
 `
 
+const TableWrapper = styled(Table)`
+  tr > *:nth-child(2) {
+    display: none;
+  }
+  tr > *:nth-child(3) {
+    display: none;
+  }
+  tr > *:nth-child(4) {
+    display: none;
+  }
+  tr > *:nth-child(5) {
+    display: none;
+  }
+  tr > *:nth-child(6) {
+    padding-right: 20px;
+  }
+  tr > *:nth-child(7) {
+    display: none;
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+    tr > *:nth-child(4) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    tr > *:nth-child(5) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpXl}) {
+    tr > *:nth-child(7) {
+      display: revert;
+    }
+
+    tr > *:nth-child(6) {
+      padding-right: 0px;
+    }
+  }
+
+  @media screen and (min-width: 1536px) {
+    tr > *:nth-child(2) {
+      display: revert;
+    }
+  }
+`
+
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
 })
@@ -233,8 +282,8 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
                 .join('&')}`}
             >
               <RowBetween>
-              <DownloadIcon />
-              <TYPE.main>&nbsp;&nbsp;.csv</TYPE.main>
+                <DownloadIcon />
+                <TYPE.main>&nbsp;&nbsp;.csv</TYPE.main>
               </RowBetween>
             </DownloadButton>
           </RowBetween>
@@ -276,7 +325,11 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
           <Search />
           <Panel background={true} style={{ textAlign: 'center' }}>
             <TYPE.main fontWeight={400}>
-              We've launched a multichain APY dashboard. Check it out <BasicLink style={{textDecoration:"underline"}} href="https://defillama.com/yields">here</BasicLink>!
+              We've launched a multichain APY dashboard. Check it out{' '}
+              <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
+                here
+              </BasicLink>
+              !
             </TYPE.main>
           </Panel>
         </AutoColumn>
@@ -311,14 +364,14 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
               )}
             </Panel>
           </BreakpointPanels>
-            <div
-              style={{
-                marginTop: '0px',
-                marginBottom: '-34px',
-              }}
-            >
-              <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} alt="" />
-            </div>
+          <div
+            style={{
+              marginTop: '0px',
+              marginBottom: '-34px',
+            }}
+          >
+            <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} alt="" />
+          </div>
         </div>
 
         <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
@@ -332,7 +385,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             </FiltersRow>
           </RowBetween>
         </ListOptions>
-        <Table data={protocolTotals} columns={columns} />
+        <TableWrapper data={protocolTotals} columns={columns} />
       </ContentWrapper>
     </PageWrapper>
   )
