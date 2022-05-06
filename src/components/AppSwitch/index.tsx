@@ -1,35 +1,35 @@
-import { useNFTApp } from 'hooks'
+import { useYieldApp } from 'hooks'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
-import { Award, BarChart2 } from 'react-feather'
+import { Percent, BarChart2 } from 'react-feather'
 import Switch from 'react-switch'
 import styled from 'styled-components'
 
 export default function AppSwitch() {
   const router = useRouter()
-  const isNFTApp = useNFTApp()
+  const isYieldApp = useYieldApp()
 
   useEffect(() => {
-    if (isNFTApp) {
+    if (isYieldApp) {
       router.prefetch('/')
     } else {
-      router.prefetch('/nfts')
+      router.prefetch('/yields')
     }
-  }, [router, isNFTApp])
+  }, [router, isYieldApp])
 
   const handleChange = () => {
-    if (isNFTApp) {
+    if (isYieldApp) {
       router.push('/')
     } else {
-      router.push('/nfts')
+      router.push('/yields')
     }
   }
 
   return (
-    <Wrapper htmlFor="small-radius-switch" checked={isNFTApp}>
-      <Label>{`Navigate to ${isNFTApp ? 'DeFi' : 'NFT'} rankings`}</Label>
+    <Wrapper htmlFor="small-radius-switch" checked={isYieldApp}>
+      <Label>{`Navigate to ${isYieldApp ? 'DeFi' : 'Yield'} rankings`}</Label>
       <Switch
-        checked={isNFTApp}
+        checked={isYieldApp}
         onChange={handleChange}
         handleDiameter={28}
         offColor="#000"
@@ -42,8 +42,8 @@ export default function AppSwitch() {
         activeBoxShadow="0px 0px 1px 2px #fffc35"
         uncheckedIcon={
           <IconWrapper style={{ width: '100%', right: '12px' }}>
-            <Award size={14} />
-            NFTs
+            <Percent size={14} />
+            Yields
           </IconWrapper>
         }
         checkedIcon={
@@ -60,8 +60,8 @@ export default function AppSwitch() {
         }
         checkedHandleIcon={
           <IconWrapper>
-            <Award size={14} />
-            NFTs
+            <Percent size={14} />
+            Yields
           </IconWrapper>
         }
         id="small-radius-switch"

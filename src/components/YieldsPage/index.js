@@ -35,6 +35,87 @@ const FiltersRow = styled(RowFlat)`
   }
 `
 
+const TableWrapper = styled(Table)`
+  tr > *:nth-child(2) {
+    display: none;
+  }
+
+  tr > *:nth-child(3) {
+    display: none;
+  }
+
+  tr > *:nth-child(4) {
+    display: none;
+  }
+
+  tr > *:nth-child(5) {
+    padding-right: 20px;
+  }
+
+  tr > *:nth-child(6) {
+    display: none;
+  }
+
+  tr > *:nth-child(7) {
+    display: none;
+  }
+
+  tr > *:nth-child(8) {
+    display: none;
+  }
+
+  tr > *:nth-child(9) {
+    display: none;
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+    tr > *:nth-child(5) {
+      padding-right: 0px;
+    }
+
+    tr > *:nth-child(8) {
+      display: revert;
+      padding-right: 20px;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+    tr > *:nth-child(8) {
+      padding-right: 0px;
+    }
+
+    tr > *:nth-child(9) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    tr > *:nth-child(4) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpXl}) {
+    tr > *:nth-child(7) {
+      display: revert;
+    }
+
+    tr > *:nth-child(6) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: 1536px) {
+    tr > *:nth-child(2) {
+      display: revert;
+    }
+
+    tr > *:nth-child(3) {
+      display: revert;
+    }
+  }
+`
+
 const YieldPage = ({ pools, chainList }) => {
   // for /yields/project/[project] I don't want to use href on Project column
   const projectsUnique = [...new Set(pools.map((el) => el.project))]
@@ -138,7 +219,7 @@ const YieldPage = ({ pools, chainList }) => {
             </FiltersRow>
           </RowBetween>
         </ListOptions>
-        <Table
+        <TableWrapper
           data={pools.map((t) => ({
             id: t.pool,
             pool: t.symbol,
