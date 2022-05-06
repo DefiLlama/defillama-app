@@ -153,17 +153,7 @@ const TableWrapper = styled(Table)`
   @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
     tr > *:nth-child(1) {
       & > div {
-        width: 200px;
-
-        & > *:nth-child(3) {
-          display: revert;
-        }
-
-        & > *:nth-child(4) {
-          & > *:nth-child(2) {
-            display: revert;
-          }
-        }
+        width: 160px;
       }
     }
 
@@ -172,10 +162,26 @@ const TableWrapper = styled(Table)`
     }
   }
 
-  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+  @media screen and (min-width: 640px) {
     tr > *:nth-child(1) {
       & > div {
         width: 300px;
+
+        & > *:nth-child(3) {
+          display: revert;
+        }
+      }
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+    tr > *:nth-child(1) {
+      & > div {
+        & > *:nth-child(4) {
+          & > *:nth-child(2) {
+            display: revert;
+          }
+        }
       }
     }
 
@@ -184,7 +190,21 @@ const TableWrapper = styled(Table)`
     }
   }
 
+  @media screen and (min-width: 900px) {
+    tr > *:nth-child(3) {
+      display: revert;
+    }
+  }
+
   @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    tr > *:nth-child(3) {
+      display: none !important;
+    }
+
+    tr > *:nth-child(5) {
+      display: none !important;
+    }
+
     tr > *:nth-child(7) {
       display: revert;
     }
@@ -194,14 +214,20 @@ const TableWrapper = styled(Table)`
     }
   }
 
-  @media screen and (min-width: ${({ theme }) => theme.bpXl}) {
-    tr > *:nth-child(2) {
-      display: revert;
+  @media screen and (min-width: 1200px) {
+    tr > *:nth-child(5) {
+      display: revert !important;
+    }
+  }
+
+  @media screen and (min-width: 1300px) {
+    tr > *:nth-child(3) {
+      display: revert !important;
     }
   }
 
   @media screen and (min-width: 1536px) {
-    tr > *:nth-child(3) {
+    tr > *:nth-child(2) {
       display: revert;
     }
   }
