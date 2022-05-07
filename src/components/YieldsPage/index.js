@@ -83,7 +83,7 @@ const TableWrapper = styled(Table)`
 
   // APY
   tr > *:nth-child(5) {
-    padding-right: 20px;
+    padding-left: 0px;
   }
 
   // 1D CHANGE
@@ -120,23 +120,10 @@ const TableWrapper = styled(Table)`
     }
   }
 
-  @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-    // APY
-    tr > *:nth-child(5) {
-      padding-right: 0px;
-    }
-
+  @media screen and (min-width: 1536px) {
     // OUTLOOK
     tr > *:nth-child(8) {
       display: revert;
-      padding-right: 20px;
-    }
-  }
-
-  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-    // OUTLOOK
-    tr > *:nth-child(8) {
-      padding-right: 0px;
     }
 
     // PROBABILITY
@@ -145,7 +132,7 @@ const TableWrapper = styled(Table)`
     }
   }
 
-  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+  @media screen and (min-width: 525px) {
     // TVL
     tr > *:nth-child(4) {
       display: revert;
@@ -165,7 +152,7 @@ const TableWrapper = styled(Table)`
   }
 
   // PROJECT
-  @media screen and (min-width: 1536px) {
+  @media screen and (min-width: 730px) {
     tr > *:nth-child(2) {
       display: revert;
     }
