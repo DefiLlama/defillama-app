@@ -1,4 +1,4 @@
-import PeggedsList from 'components/PeggedList'
+import PeggedList from 'components/PeggedList'
 import { PEGGEDS_API } from 'constants/index'
 import { GeneralLayout } from 'layout'
 import { getPeggedsPageData, revalidate } from 'utils/dataApi'
@@ -35,7 +35,7 @@ export async function getStaticPaths() {
 export default function PeggedAssets({ peggedcategory, chains, filteredPeggedAssets, chartData, stackedDataset, chain }) {
   return (
     <GeneralLayout title={`${capitalizeFirstLetter(peggedcategory)} Circulating - DefiLlama`} defaultSEO>
-      <PeggedsList
+      <PeggedList
         category={peggedcategory}
         chains={chains}
         selectedChain={chain}
