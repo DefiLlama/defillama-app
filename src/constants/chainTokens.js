@@ -554,6 +554,11 @@ export const chainCoingeckoIds = {
     symbol: "CNDL",
     cmcId: "18327",
   },
+  Bifrost: {
+    geckoId: "bifrost-native-coin",
+    symbol: "BNC",
+    cmcId: "8705",
+  },
 }
 
 export const chainMarketplaceMappings = {
