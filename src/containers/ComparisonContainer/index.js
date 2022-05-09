@@ -77,7 +77,7 @@ const protocolBColor = '#fd3c99'
 const backgroundColor = '#2172E5'
 
 // assuming price is 0 is not valid
-const validTokenData = tokenData => !!tokenData?.price && !!tokenData?.name
+const validTokenData = (tokenData) => !!tokenData?.price && !!tokenData?.name
 
 const TokenInfoHook = (protocol, protocolsMcapTvl) => {
   // 0 price for unable to query gecko properly
@@ -98,7 +98,7 @@ const TokenInfoHook = (protocol, protocolsMcapTvl) => {
     tvl: protocolsMcapTvl[protocol]?.tvl,
     mcap: protocolsMcapTvl[protocol]?.mcap,
     price: tokenPrice,
-    loading: protocolLoading || geckoLoading
+    loading: protocolLoading || geckoLoading,
   }
 }
 
@@ -121,7 +121,7 @@ const TokenComparisonSearch = ({
   address,
   price,
   handleLinkPath,
-  customOnLinkClick
+  customOnLinkClick,
 }) => (
   <Column>
     <ProtocolTitle mb="1rem">
@@ -152,6 +152,7 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
   const [protocolB, setProtocolB] = useState(protocolBRouteParam)
 
   const tokenAData = TokenInfoHook(protocolA, protocolsMcapTvl)
+
   const {
     address: tokenAAddress,
     logo: tokenALogo,
@@ -159,7 +160,7 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
     price: tokenAPrice,
     mcap: tokenAMcap,
     tvl: tokenATvl,
-    loading: loadingA
+    loading: loadingA,
   } = tokenAData
   const tokenBData = TokenInfoHook(protocolB, protocolsMcapTvl)
   const {
@@ -169,7 +170,7 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
     price: tokenBPrice,
     mcap: tokenBMcap,
     tvl: tokenBTvl,
-    loading: loadingB
+    loading: loadingB,
   } = tokenBData
 
   const tokenBMcapTvl = tokenBMcap / tokenBTvl
@@ -187,14 +188,14 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
   const tokenAValid = validTokenData(tokenAData)
   const tokenBValid = validTokenData(tokenBData)
 
-  const handleLinkPath = protocolAorB => clickedProtocol => {
-    const comparisonRoute = '/comparison'
-    // If doesn't have two protocols stay on same page
-    if ((protocolAorB === 'A' && !tokenBValid) || (protocolAorB === 'B' && !tokenAValid)) return '/comparison/curve'
+  const handleLinkPath = (protocolAorB) => (clickedProtocol) => {
+    const protocolName = standardizeProtocolName(clickedProtocol)
 
-    const protocolName = standardizeProtocolName(clickedProtocol.name)
-    if (protocolAorB === 'A') return `${comparisonRoute}/${protocolName}/${protocolB}`
-    return `${comparisonRoute}/${protocolA}/${protocolName}`
+    if (protocolAorB === 'A') {
+      return `/comparison?protocolA=${protocolName}&protocolB=${protocolB || ''}`
+    } else {
+      return `/comparison?protocolA=${protocolA || ''}&protocolB=${protocolName}`
+    }
   }
 
   const handleSwapLinkPath = () => {
@@ -214,7 +215,7 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
     }
   }, [protocolA, protocolARouteParam, protocolB, protocolBRouteParam, tokenAValid, tokenBValid])
 
-  const customOnLinkClick = protocolAorB => token => {
+  const customOnLinkClick = (protocolAorB) => (token) => {
     if (protocolAorB === 'A') return setProtocolA(standardizeProtocolName(token?.name))
     return setProtocolB(standardizeProtocolName(token?.name))
   }
