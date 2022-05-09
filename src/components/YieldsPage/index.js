@@ -47,8 +47,9 @@ const TableWrapper = styled(Table)`
   // POOL
   tr > *:nth-child(1) {
     & > a {
-      width: 200px;
+      width: 120px;
       overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
       display: block;
     }
@@ -60,7 +61,6 @@ const TableWrapper = styled(Table)`
     text-align: start;
 
     & > div {
-      width: 200px;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
@@ -120,23 +120,67 @@ const TableWrapper = styled(Table)`
     }
   }
 
+  @media screen and (min-width: 320px) {
+    tr > *:nth-child(1) {
+      & > a {
+        width: 140px;
+      }
+    }
+  }
+
+  @media screen and (min-width: 360px) {
+    tr > *:nth-child(1) {
+      & > a {
+        width: 180px;
+      }
+    }
+  }
+
   @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+    // PROJECT
+    tr > *:nth-child(2) {
+      display: revert;
+      & > div {
+        width: 100px;
+        overflow: hidden;
+        white-space: nowrap;
+
+        // HIDE LOGO
+        & > div {
+          display: none;
+        }
+
+        & > a {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
     // APY
     tr > *:nth-child(5) {
       padding-right: 0px;
     }
 
-    // OUTLOOK
-    tr > *:nth-child(8) {
+    // TVL
+    tr > *:nth-child(4) {
       display: revert;
-      padding-right: 20px;
     }
   }
 
-  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    // 7D CHANGE
+    tr > *:nth-child(7) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpXl}) {
     // OUTLOOK
     tr > *:nth-child(8) {
-      padding-right: 0px;
+      display: revert;
     }
 
     // PROBABILITY
@@ -145,29 +189,21 @@ const TableWrapper = styled(Table)`
     }
   }
 
-  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-    // TVL
-    tr > *:nth-child(4) {
-      display: revert;
-    }
-  }
-
-  @media screen and (min-width: ${({ theme }) => theme.bpXl}) {
-    // 7D CHANGE
-    tr > *:nth-child(7) {
-      display: revert;
-    }
-
+  @media screen and (min-width: 1536px) {
     // 1D CHANGE
     tr > *:nth-child(6) {
       display: revert;
     }
-  }
 
-  // PROJECT
-  @media screen and (min-width: 1536px) {
     tr > *:nth-child(2) {
-      display: revert;
+      & > div {
+        width: 200px;
+
+        // HIDE LOGO
+        & > div {
+          display: revert;
+        }
+      }
     }
   }
 
