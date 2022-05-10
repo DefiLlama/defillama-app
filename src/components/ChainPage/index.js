@@ -7,7 +7,7 @@ import { AutoRow, RowBetween, RowFlat, RowFixed } from '../Row'
 import { AutoColumn } from '../Column'
 import Search from '../Search'
 import Panel from '../Panel'
-import { PageWrapper, ContentWrapper } from '..'
+import { PageWrapper, ContentWrapper, ProtocolsTable } from '..'
 import Filters from '../Filters'
 import { AllTvlOptions } from '../SettingsModal'
 
@@ -26,7 +26,7 @@ import { useRouter } from 'next/router'
 import LocalLoader from 'components/LocalLoader'
 import llamaLogo from '../../assets/peeking-llama.png'
 import Image from 'next/image'
-import Table, { columnsToShow } from 'components/Table'
+import { columnsToShow } from 'components/Table'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -78,192 +78,6 @@ const DownloadIcon = styled(DownloadCloud)`
   top: 2px;
   width: 20px;
   height: 20px;
-`
-// width: 380px;
-const TableWrapper = styled(Table)`
-  tr > * {
-    & > div {
-      width: 100px;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-  }
-
-  // PROTOCOL NAME
-  tr > *:nth-child(1) {
-    & > div {
-      width: 120px;
-      overflow: hidden;
-      white-space: nowrap;
-
-      // HIDE LOGO
-      & > *:nth-child(3) {
-        display: none;
-      }
-
-      & > *:nth-child(4) {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        // HIDE SYMBOL
-        & > *:nth-child(2) {
-          display: none;
-        }
-      }
-    }
-  }
-
-  // CHAINS
-  tr > *:nth-child(2) {
-    display: none;
-    & > div {
-      width: 200px;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-  }
-
-  // 1D CHANGE
-  tr > *:nth-child(3) {
-    display: none;
-  }
-
-  // 7D CHANGE
-  tr > *:nth-child(4) {
-    display: none;
-  }
-
-  // 1M CHANGE
-  tr > *:nth-child(5) {
-    display: none;
-  }
-
-  // TVL
-  tr > *:nth-child(6) {
-    padding-right: 20px;
-    & > div {
-      text-align: right;
-      margin-left: auto;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-  }
-
-  // MCAPTVL
-  tr > *:nth-child(7) {
-    display: none;
-  }
-
-  tr > th:nth-child(7) {
-    & > div {
-      margin-left: auto;
-    }
-  }
-
-  @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-    // PROTOCOL NAME
-    tr > *:nth-child(1) {
-      & > div {
-        width: 160px;
-      }
-    }
-
-    // 7D CHANGE
-    tr > *:nth-child(4) {
-      display: revert;
-    }
-  }
-
-  @media screen and (min-width: 640px) {
-    // PROTOCOL NAME
-    tr > *:nth-child(1) {
-      & > div {
-        width: 300px;
-        // SHOW LOGO
-        & > *:nth-child(3) {
-          display: revert;
-        }
-      }
-    }
-  }
-
-  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-    // PROTOCOL NAME
-    tr > *:nth-child(1) {
-      & > div {
-        & > *:nth-child(4) {
-          // SHOW SYMBOL
-          & > *:nth-child(2) {
-            display: revert;
-          }
-        }
-      }
-    }
-
-    // 1M CHANGE
-    tr > *:nth-child(5) {
-      display: revert;
-    }
-  }
-
-  @media screen and (min-width: 900px) {
-    // TVL
-    tr > *:nth-child(6) {
-      padding-right: 0px;
-    }
-
-    // MCAPTVL
-    tr > *:nth-child(7) {
-      display: revert;
-    }
-  }
-
-  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-    // 1D CHANGE
-    tr > *:nth-child(3) {
-      display: none !important;
-    }
-
-    // TVL
-    tr > *:nth-child(6) {
-      padding-right: 20px;
-    }
-
-    // MCAPTVL
-    tr > *:nth-child(7) {
-      display: none !important;
-    }
-  }
-
-  @media screen and (min-width: 1200px) {
-    // 1M CHANGE
-    tr > *:nth-child(5) {
-      display: revert !important;
-    }
-  }
-
-  @media screen and (min-width: 1300px) {
-    // 1D CHANGE
-    tr > *:nth-child(3) {
-      display: revert !important;
-    }
-
-    // TVL
-    tr > *:nth-child(6) {
-      padding-right: 0px;
-    }
-
-    // MCAPTVL
-    tr > *:nth-child(7) {
-      display: revert !important;
-    }
-  }
-
-  @media screen and (min-width: 1536px) {
-    // CHAINS
-    tr > *:nth-child(2) {
-      display: revert;
-    }
-  }
 `
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
@@ -522,7 +336,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             </FiltersRow>
           </RowBetween>
         </ListOptions>
-        <TableWrapper data={protocolTotals} columns={columns} />
+        <ProtocolsTable data={protocolTotals} columns={columns} />
       </ContentWrapper>
     </PageWrapper>
   )

@@ -1,6 +1,6 @@
-import { FullWrapper, PageWrapper } from 'components'
+import { FullWrapper, PageWrapper, ProtocolsTable } from 'components'
 import PageHeader from 'components/PageHeader'
-import Table, { columnsToShow } from 'components/Table'
+import { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { GeneralLayout } from '../layout'
 import { revalidate, getProtocolsPageData } from '../utils/dataApi'
@@ -48,7 +48,7 @@ export default function Protocols({ protocols }) {
       <PageWrapper>
         <FullWrapper>
           <PageHeader title="Tokenless protocols that may airdrop 🧑‍🌾" />
-          <Table data={data} columns={columns} />
+          <ProtocolsTable data={data} columns={columns} />
         </FullWrapper>
       </PageWrapper>
     </GeneralLayout>
