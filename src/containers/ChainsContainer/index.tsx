@@ -267,7 +267,7 @@ export default function ChainsContainer({
           <Header>Total Value Locked All Chains</Header>
           <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
         </RowWrapper>
-        {/* <ChartsWrapper>
+        <ChartsWrapper>
           <ChainPieChart data={chainsTvlValues} chainColor={chainColor} />
           <ChainDominanceChart
             stackOffset="expand"
@@ -277,7 +277,7 @@ export default function ChainsContainer({
             chainColor={chainColor}
             daySum={daySum}
           />
-        </ChartsWrapper> */}
+        </ChartsWrapper>
         <Filters filterOptions={categories} activeLabel={category} />
         <StyledTable data={groupedChains} columns={columns} showByGroup={showByGroup} />
       </FullWrapper>
