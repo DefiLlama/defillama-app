@@ -202,7 +202,7 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
     const comparisonRoute = '/comparison'
     // If doesn't have two protocols stay on same page
     if (!tokenAValid || !tokenBValid) return ''
-    return `${comparisonRoute}/${protocolB}/${protocolA}`
+    return `${comparisonRoute}?protocolA=${protocolB}&protocolB=${protocolA}`
   }
 
   // Update protocol to correct order based off of pathname from user clicking switch button
