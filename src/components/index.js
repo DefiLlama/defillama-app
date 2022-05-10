@@ -165,12 +165,13 @@ export const FixedMenu = styled.div`
 `
 
 export const ProtocolsTable = styled(Table)`
-  tr > * {
+  tr > *:not(:first-child) {
     & > div {
       width: 100px;
       white-space: nowrap;
       overflow: hidden;
       font-weight: 400;
+      margin-left: auto;
     }
   }
 
@@ -262,12 +263,19 @@ export const ProtocolsTable = styled(Table)`
     // PROTOCOL NAME
     tr > *:nth-child(1) {
       & > div {
-        width: 300px;
+        width: 280px;
         // SHOW LOGO
         & > *:nth-child(3) {
           display: revert;
         }
       }
+    }
+  }
+
+  @media screen and (min-width: 720px) {
+    // 1M CHANGE
+    tr > *:nth-child(5) {
+      display: revert;
     }
   }
 
@@ -282,11 +290,6 @@ export const ProtocolsTable = styled(Table)`
           }
         }
       }
-    }
-
-    // 1M CHANGE
-    tr > *:nth-child(5) {
-      display: revert;
     }
   }
 
@@ -344,6 +347,13 @@ export const ProtocolsTable = styled(Table)`
   }
 
   @media screen and (min-width: 1536px) {
+    // PROTOCOL NAME
+    tr > *:nth-child(1) {
+      & > div {
+        width: 300px;
+      }
+    }
+
     // CHAINS
     tr > *:nth-child(2) {
       display: revert;
