@@ -81,6 +81,9 @@ export const peggedPropertiesToKeep = [
   'change_1d',
   'change_7d',
   'change_1m',
+  'circulatingPrevDay',
+  'circulatingPrevWeek',
+  'circulatingPrevMonth',
 ]
 export const basicPropertiesToKeep = [
   'tvl',
@@ -743,6 +746,22 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
     }
   })
 
+  let chainsGroupbyParent = {}
+  chainsUnique.forEach((chain) => {
+    const parent = chainCoingeckoIds[chain]?.parent
+    if (parent) {
+      if (!chainsGroupbyParent[parent.chain]) {
+        chainsGroupbyParent[parent.chain] = {}
+      }
+      for (const type of parent.types) {
+        if (!chainsGroupbyParent[parent.chain][type]) {
+          chainsGroupbyParent[parent.chain][type] = []
+        }
+        chainsGroupbyParent[parent.chain][type].push(chain)
+      }
+    }
+  })
+
   const chainsData: any[] = await Promise.all(
     chainsUnique.map(async (elem: string) => {
       return res.chainBalances[elem].tokens
@@ -768,6 +787,10 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
         bridgedTo = 'all'
       }
 
+      if (chainName === 'ethereum' || chainName === 'Ethereum') {
+        console.log(circulating, circulatingPrevDay, change_1d)
+      }
+
       let bridgeInfo: { bridge: string; link?: string } = res.bridges[chainName]
 
       if (!bridgeInfo) {
@@ -782,6 +805,9 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
         change_1d,
         change_7d,
         change_1m,
+        circulatingPrevDay,
+        circulatingPrevWeek,
+        circulatingPrevMonth,
         bridgeInfo,
         bridgedAmount: bridgedTo,
         name: chainName,
@@ -818,6 +844,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       categories,
       stackedDataset,
       pegType,
+      chainsGroupbyParent,
     },
   }
 }
