@@ -1,8 +1,7 @@
-import { ButtonLight } from 'components/ButtonStyled'
-import DropdownSelect from 'components/DropdownSelect'
-import { BasicLink } from 'components/Link'
+import { ButtonDark, ButtonLight } from 'components/ButtonStyled'
 import { useResize } from 'hooks'
-import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import styled from 'styled-components'
 
 interface IFilterOption {
@@ -12,6 +11,7 @@ interface IFilterOption {
 
 interface FiltersProps {
   filterOptions: IFilterOption[]
+  activeLabel?: string
 }
 
 const Wrapper = styled.ul`
@@ -19,7 +19,7 @@ const Wrapper = styled.ul`
   overflow: hidden;
   gap: 6px;
   margin: 0;
-  padding: 0;
+  padding: 4px;
   white-space: nowrap;
   & > li {
     list-style: none;
@@ -31,23 +31,34 @@ const Wrapper = styled.ul`
   }
 `
 
-const Filters = ({ filterOptions = [], ...props }: FiltersProps) => {
+const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) => {
   const ref = useRef<HTMLUListElement>(null)
 
   const { width: parentElWidth } = useResize(ref)
 
-  const filtersWidth = useRef(0)
+  const [filtersWidth, setFiltersWidth] = useState([])
+
+  const removeFilters =
+    filtersWidth.length === filterOptions.length && parentElWidth && filtersWidth.find((f) => f.width >= parentElWidth)
+
+  const indexToSliceFrom = removeFilters ? removeFilters.index : null
+
+  const filters = useMemo(() => {
+    if (indexToSliceFrom) {
+      return indexToSliceFrom ? filterOptions.slice(0, indexToSliceFrom) : filterOptions
+    } else return filterOptions
+  }, [filterOptions, indexToSliceFrom])
 
   return (
     <>
       <Wrapper {...props} ref={ref}>
-        {filterOptions.map((option, index) => (
+        {filters.map((option, index) => (
           <Filter
-            option={option}
             key={option.label}
-            filtersWidth={filtersWidth}
-            parentElWidth={parentElWidth}
+            option={option}
+            setFiltersWidth={setFiltersWidth}
             filterIndex={index}
+            activeLabel={activeLabel}
           />
         ))}
       </Wrapper>
@@ -63,34 +74,34 @@ const Filters = ({ filterOptions = [], ...props }: FiltersProps) => {
   )
 }
 
-const Filter = ({ option, filtersWidth, parentElWidth, filterIndex }) => {
+const Filter = ({ option, activeLabel, setFiltersWidth, filterIndex }) => {
   const ref = useRef<HTMLLIElement>(null)
 
-  const [display, setDisplay] = useState(true)
-
-  if (filterIndex === 0) {
-    filtersWidth.current = 0
-  }
-
   useEffect(() => {
-    if (parentElWidth && filtersWidth.current > parentElWidth) {
-      setDisplay(false)
-    } else {
-      setDisplay(true)
-    }
-
     if (ref.current) {
-      filtersWidth.current += ref.current.offsetWidth
-    }
-  }, [filtersWidth, parentElWidth])
+      setFiltersWidth((prev) => {
+        const latestFilter = filterIndex !== 0 && prev[prev.length - 1]
 
-  if (!display) return null
+        return [
+          ...prev,
+          {
+            index: filterIndex,
+            width: latestFilter ? latestFilter.width + ref.current.offsetWidth : ref.current.offsetWidth,
+          },
+        ]
+      })
+    }
+  }, [filterIndex, setFiltersWidth])
 
   return (
     <li ref={ref}>
-      <BasicLink href={option.to}>
-        <ButtonLight>{option.label}</ButtonLight>
-      </BasicLink>
+      <Link href={option.to} prefetch={false} passHref>
+        {option.label === activeLabel ? (
+          <ButtonDark role="link">{option.label}</ButtonDark>
+        ) : (
+          <ButtonLight role="link">{option.label}</ButtonLight>
+        )}
+      </Link>
     </li>
   )
 }
