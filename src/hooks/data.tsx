@@ -459,8 +459,8 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
       let circulatingPrevDay: DataValue = null
       let circulatingPrevWeek: DataValue = null
       let circulatingPrevMonth: DataValue = null
-      let bridgedAmount: DataValue = null
-      let bridgeInfo: DataValue = null
+      let bridgedAmount: number | string | null = null
+      let bridgeInfo: { bridge: string; link?: string } | null = null
       let unreleased: DataValue = null
 
       finalData[parentName] = {}
@@ -505,8 +505,13 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
               circulatingPrevMonth += childData.circulatingPrevMonth
               unreleased += childData.unreleased
               const subChains = finalData[parentName].subRows || []
-              if (childData.bridgedAmount === 'all') {
-                bridgedAmount += childData.circulating
+              bridgedAmount === '-' ? (bridgedAmount = 0) : true
+              if (typeof childData.bridgedAmount === 'number') {
+                bridgedAmount += childData.bridgedAmount
+              } else {
+                if (childData.bridgedAmount === 'all') {
+                  bridgedAmount += childData.circulating
+                }
               }
 
               finalData[parentName] = {
@@ -535,7 +540,7 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
       }
       if (
         addedChildren &&
-        finalData[parentName].bridgedAmount &&
+        finalData[parentName] &&
         finalData[parentName].bridgedAmount === finalData[parentName].circulating
       ) {
         finalData[parentName].bridgedAmount = 'all'
