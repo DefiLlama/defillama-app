@@ -7,12 +7,12 @@ import { ButtonDark } from 'components/ButtonStyled'
 import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
-import { AllPeggedOptions } from 'components/SettingsModal'
+import { AllPeggedOptions, AllGroupOptions } from 'components/SettingsModal'
 import Filters from 'components/Filters'
 import { CustomLink } from 'components/Link'
 import { columnsToShow, FullTable, NamePegged, isOfTypePeggedCategory } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
-import { useCalcGroupExtraPeggedByDay, useCalcCirculating } from 'hooks/data'
+import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupChainsPegged } from 'hooks/data'
 
 const ChartsWrapper = styled(Box)`
   display: flex;
@@ -56,6 +56,7 @@ export default function PeggedContainer({
   stackedDataset,
   peggedasset,
   pegType,
+  chainsGroupbyParent,
 }) {
   let firstColumn = columnsToShow('chainName')[0]
 
@@ -136,6 +137,8 @@ export default function PeggedContainer({
 
   const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
 
+  const groupedChains = useGroupChainsPegged(chainTotals, showByGroup ? chainsGroupbyParent : {})
+
   //add usegroupedchainsbyparent?
 
   return (
@@ -143,6 +146,7 @@ export default function PeggedContainer({
       <FullWrapper>
         <Search />
         <AllPeggedOptions style={{ display: 'flex', justifyContent: 'center' }} />
+        <AllGroupOptions style={{display: 'flex', justifyContent: 'center' }} />
         <RowWrapper>
           <Header>{Capitalize(peggedasset)} Total Circulating All Chains</Header>
           <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
@@ -160,7 +164,7 @@ export default function PeggedContainer({
           />
         </ChartsWrapper>
         <Filters filterOptions={categories} activeLabel={category} />
-        <StyledTable data={chainTotals} columns={columns} showByGroup={showByGroup} />
+        <StyledTable data={groupedChains} columns={columns} showByGroup={showByGroup} />
       </FullWrapper>
     </PageWrapper>
   )

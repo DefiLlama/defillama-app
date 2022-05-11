@@ -49,6 +49,10 @@ interface GroupChain extends IChain {
   subChains: IChain[]
 }
 
+interface GroupChainPegged extends IPegged {
+  subChains: IPegged[]
+}
+
 interface IPegged {
   circulating: number
   unreleased: number
@@ -100,7 +104,7 @@ export const useCalcStakePool2Tvl = (
             tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
           }
           // convert to lowercase as server response is not consistent in extra-tvl names
-          if (extraTvlsEnabled[prop.toLowerCase()] && (prop.toLowerCase() !== "doublecounted" || applyDoublecounted)) {
+          if (extraTvlsEnabled[prop.toLowerCase()] && (prop.toLowerCase() !== 'doublecounted' || applyDoublecounted)) {
             // check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
             tvl && (finalTvl = (finalTvl || 0) + tvl)
             tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
@@ -443,4 +447,108 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
   }, [chains, extraPeggedEnabled])
 
   return { data, daySum }
+}
+
+export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainPegged[] => {
+  const groupsEnabled = useGroupEnabled()
+  const data: GroupChainPegged[] = useMemo(() => {
+    const finalData = {}
+    const addedChains = []
+    for (const parentName in groupData) {
+      let circulating: DataValue = null
+      let circulatingPrevDay: DataValue = null
+      let circulatingPrevWeek: DataValue = null
+      let circulatingPrevMonth: DataValue = null
+      let bridgedAmount: DataValue = null
+      let bridgeInfo: DataValue = null
+      let unreleased: DataValue = null
+
+      finalData[parentName] = {}
+
+      const parentData = chains.find((item) => item.name === parentName)
+      if (parentData) {
+        circulating = parentData.circulating || null
+        circulatingPrevDay = parentData.circulatingPrevDay || null
+        circulatingPrevWeek = parentData.circulatingPrevWeek || null
+        circulatingPrevMonth = parentData.circulatingPrevMonth || null
+        bridgedAmount = parentData.bridgedAmount || 0
+        bridgeInfo = parentData.bridgeInfo || null
+        unreleased = parentData.unreleased || null
+        finalData[parentName] = {
+          ...parentData,
+          subRows: [parentData],
+          symbol: '-',
+        }
+
+        addedChains.push(parentName)
+      } else {
+        finalData[parentName] = {
+          symbol: '-',
+          bridgeInfo: {
+            bridge: '',
+          },
+        }
+      }
+
+      let addedChildren = false
+      for (const type in groupData[parentName]) {
+        if (groupsEnabled[type] === true) {
+          for (const child of groupData[parentName][type]) {
+            const childData = chains.find((item) => item.name === child)
+
+            const alreadyAdded = (finalData[parentName].subRows ?? []).find((p) => p.name === child)
+
+            if (childData && alreadyAdded === undefined) {
+              circulating += childData.circulating
+              circulatingPrevDay += childData.circulatingPrevDay
+              circulatingPrevWeek += childData.circulatingPrevWeek
+              circulatingPrevMonth += childData.circulatingPrevMonth
+              unreleased += childData.unreleased
+              const subChains = finalData[parentName].subRows || []
+              if (childData.bridgedAmount === 'all') {
+                bridgedAmount += childData.circulating
+              }
+
+              finalData[parentName] = {
+                ...finalData[parentName],
+                circulating,
+                circulatingPrevDay,
+                circulatingPrevWeek,
+                circulatingPrevMonth,
+                bridgedAmount,
+                unreleased,
+                name: parentName,
+                subRows: [...subChains, childData],
+              }
+              addedChains.push(child)
+              addedChildren = true
+            }
+          }
+        }
+      }
+      if (!addedChildren) {
+        if (finalData[parentName].circulating === undefined) {
+          delete finalData[parentName]
+        } else {
+          finalData[parentName] = parentData
+        }
+      }
+      if (
+        addedChildren &&
+        finalData[parentName].bridgedAmount &&
+        finalData[parentName].bridgedAmount === finalData[parentName].circulating
+      ) {
+        finalData[parentName].bridgedAmount = 'all'
+      }
+    }
+
+    chains.forEach((item) => {
+      if (!addedChains.includes(item.name)) {
+        finalData[item.name] = item
+      }
+    })
+    return (Object.values(finalData) as GroupChainPegged[]).sort((a, b) => b.circulating - a.circulating)
+  }, [chains, groupData, groupsEnabled])
+
+  return data
 }
