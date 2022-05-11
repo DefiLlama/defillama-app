@@ -787,10 +787,6 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
         bridgedTo = 'all'
       }
 
-      if (chainName === 'ethereum' || chainName === 'Ethereum') {
-        console.log(circulating, circulatingPrevDay, change_1d)
-      }
-
       let bridgeInfo: { bridge: string; link?: string } = res.bridges[chainName]
 
       if (!bridgeInfo) {
