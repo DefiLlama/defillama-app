@@ -20,6 +20,7 @@ import {
 import { useYieldPoolsData } from 'utils/dataApi'
 import { useRouter } from 'next/router'
 import QuestionHelper from 'components/QuestionHelper'
+import LocalLoader from 'components/LocalLoader'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -141,6 +142,7 @@ const YieldPage = () => {
             </FiltersRow>
           </RowBetween>
         </ListOptions>
+        {poolData === undefined?<LocalLoader />:
         <Table
           data={pools.map((t) => ({
             id: t.pool,
@@ -158,6 +160,7 @@ const YieldPage = () => {
           secondColumnAlign="start"
           columns={columns}
         />
+        }
       </FullWrapper>
     </PageWrapper>
   )

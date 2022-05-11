@@ -15,7 +15,7 @@ const OpenTokenSearch = dynamic(() => import('./OpenTokenSearch'))
 const OpenYieldSearch = dynamic(() => import('./OpenYieldSearch'))
 const OpenPeggedSearch = dynamic(() => import('./OpenPeggedSearch'))
 
-const TokenSearch = ({ small = false, includeChains = true, customOnLinkClick = () => {} }) => {
+const TokenSearch = ({ small = false, includeChains = true, linkPath: customPath, customOnLinkClick = () => {} }) => {
   let linkPath, OpenSearch, htmlPlaceholder
   const useYield = useYieldApp()
   const usePegged = usePeggedApp()
@@ -31,9 +31,12 @@ const TokenSearch = ({ small = false, includeChains = true, customOnLinkClick = 
     OpenSearch = OpenTokenSearch
     htmlPlaceholder = ['Defi', 'protocols']
     linkPath = (item) => {
+      if (customPath) return customPath(item.name)
+
       if (item.isChain) {
         return '/chain/' + item.name
       }
+
       return `/protocol/` + standardizeProtocolName(item.name)
     }
   }

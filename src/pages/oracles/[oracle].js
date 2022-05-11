@@ -8,12 +8,12 @@ import Panel from 'components/Panel'
 import { AutoColumn } from 'components/Column'
 import { RowBetween } from 'components/Row'
 import { TYPE } from 'Theme'
-import { FullWrapper, PageWrapper } from 'components'
+import { FullWrapper, PageWrapper, ProtocolsTable } from 'components'
 import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
 import Filters from 'components/Filters'
-import Table, { columnsToShow } from 'components/Table'
+import { columnsToShow } from 'components/Table'
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
@@ -133,7 +133,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
         </BreakpointPanels>
 
         <Filters filterOptions={tokenLinks} activeLabel={token} />
-        <Table columns={columns} data={protocolsData} />
+        <ProtocolsTable columns={columns} data={protocolsData} />
       </FullWrapper>
     </PageWrapper>
   )

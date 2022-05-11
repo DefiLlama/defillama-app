@@ -6,12 +6,19 @@ import { useSavedProtocols } from 'contexts/LocalStorage'
 import { useIsClient } from 'hooks'
 import { standardizeProtocolName } from 'utils'
 
-const StyledBookmark = styled(BookmarkIcon)`
-  cursor: pointer;
-  fill: ${({ theme: { text1 }, saved }) => (saved === 'true' ? text1 : 'none')};
+const Wrapper = styled.button`
+  background: none;
+  padding: 0;
+  border: none;
+  margin: 0;
 
-  path {
-    stroke: ${({ theme: { text1 } }) => text1};
+  & > svg {
+    cursor: pointer;
+    fill: ${({ theme: { text1 }, saved }) => (saved === 'true' ? text1 : 'none')};
+
+    path {
+      stroke: ${({ theme: { text1 } }) => text1};
+    }
   }
 `
 
@@ -29,7 +36,11 @@ function Bookmark({ readableProtocolName, ...props }) {
 
   const onClick = isSaved ? () => removeProtocol(readableProtocolName) : () => addProtocol(readableProtocolName)
 
-  return <StyledBookmark ref={bookmarkRef} saved={`${isSaved}`} onClick={onClick} {...props} />
+  return (
+    <Wrapper ref={bookmarkRef} onClick={onClick} saved={`${isSaved}`} {...props}>
+      <BookmarkIcon saved={`${isSaved}`} width={16} height={16} />
+    </Wrapper>
+  )
 }
 
 export default Bookmark
