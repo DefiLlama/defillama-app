@@ -36,11 +36,12 @@ const FiltersRow = styled(RowFlat)`
 `
 
 const TableWrapper = styled(Table)`
-  tr > * {
+  tr > *:not(:first-child) {
     & > div {
       width: 100px;
       white-space: nowrap;
       overflow: hidden;
+      font-weight: 400;
     }
   }
 
