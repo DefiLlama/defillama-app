@@ -47,8 +47,167 @@ interface ITable {
 }
 
 const StyledTable = styled(FullTable)<ITable>`
-  tr > :first-child {
+  tr > *:not(:first-child) {
+    & > div {
+      width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-left: auto;
+      font-weight: 400;
+    }
+  }
+
+  // CHAIN
+  tr > :nth-child(1) {
     padding-left: ${({ showByGroup }) => (showByGroup ? '40px' : '20px')};
+
+    & > div {
+      // LOGO
+      & > div {
+        display: none;
+      }
+
+      & > a {
+        width: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+
+        // SYMBOL
+        & > *:nth-child(2) {
+          display: none;
+        }
+      }
+    }
+  }
+
+  // PROTOCOLS
+  tr > :nth-child(2) {
+    width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: none;
+  }
+
+  // 1D CHANGE
+  tr > :nth-child(3) {
+    display: none;
+  }
+
+  // 7D CHANGE
+  tr > :nth-child(4) {
+    display: none;
+  }
+
+  // 1M CHANGE
+  tr > :nth-child(5) {
+    display: none;
+  }
+
+  // TVL
+  tr > :nth-child(6) {
+    & > div {
+      padding-right: 20px;
+    }
+  }
+
+  // MCAPTVL
+  tr > :nth-child(7) {
+    width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: none;
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+    // CHAIN
+    tr > *:nth-child(1) {
+      & > div {
+        & > a {
+          width: 100px;
+        }
+      }
+    }
+
+    // 7D CHANGE
+    tr > *:nth-child(4) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: 640px) {
+    // CHAIN
+    tr > *:nth-child(1) {
+      & > div {
+        // LOGO
+        & > div {
+          display: revert;
+        }
+      }
+    }
+
+    // PROTOCOLS
+    tr > :nth-child(2) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+    // CHAIN
+    tr > *:nth-child(1) {
+      & > div {
+        & > a {
+          width: 140px;
+
+          // SYMBOL
+          & > *:nth-child(2) {
+            display: revert;
+          }
+        }
+      }
+    }
+
+    // 1M CHANGE
+    tr > *:nth-child(5) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    // 1M CHANGE
+    tr > *:nth-child(5) {
+      display: none;
+    }
+  }
+
+  @media screen and (min-width: 1260px) {
+    // CHAIN
+    tr > *:nth-child(1) {
+      & > div {
+        & > a {
+          width: 200px;
+        }
+      }
+    }
+
+    // 1M CHANGE
+    tr > *:nth-child(5) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: 1360px) {
+    // 1D CHANGE
+    tr > *:nth-child(3) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: 1400px) {
+    // MCAPTVL
+    tr > *:nth-child(7) {
+      display: revert;
+    }
   }
 `
 
@@ -103,7 +262,7 @@ export default function ChainsContainer({
       <FullWrapper>
         <Search />
         <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
-        <AllGroupOptions style={{display: 'flex', justifyContent: 'center' }} />
+        <AllGroupOptions style={{ display: 'flex', justifyContent: 'center' }} />
         <RowWrapper>
           <Header>Total Value Locked All Chains</Header>
           <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>

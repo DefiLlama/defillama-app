@@ -549,6 +549,16 @@ export const chainCoingeckoIds = {
     symbol: 'OMNI',
     cmcId: '83',
   },
+  Candle: {
+    geckoId: "candle",
+    symbol: "CNDL",
+    cmcId: "18327",
+  },
+  Bifrost: {
+    geckoId: "bifrost-native-coin",
+    symbol: "BNC",
+    cmcId: "8705",
+  },
 }
 
 export const chainMarketplaceMappings = {

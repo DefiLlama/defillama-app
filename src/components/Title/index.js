@@ -34,9 +34,12 @@ export default function Title({ homePath = '/' }) {
       <Flex alignItems="center">
         <RowFixed>
           <UniIcon id="link" href={homePath}>
-            {homePath === '/' ? <DefiLogo style={{ width: "160px", height: "54px" }} /> :
-              <Image width="160px" height="54px" src={NFTLogo} alt="logo" priority={true} />
-            }
+            {homePath === '/' ? (
+              <DefiLogo style={{ width: '160px', height: '54px' }} />
+            ) : (
+              <DefiLogo style={{ width: '160px', height: '54px' }} />
+              // <Image width="160px" height="54px" src={NFTLogo} alt="logo" priority={true} />
+            )}
           </UniIcon>
         </RowFixed>
       </Flex>

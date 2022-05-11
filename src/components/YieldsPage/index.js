@@ -35,6 +35,186 @@ const FiltersRow = styled(RowFlat)`
   }
 `
 
+const TableWrapper = styled(Table)`
+  tr > * {
+    & > div {
+      width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
+
+  // POOL
+  tr > *:nth-child(1) {
+    & > a {
+      width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+    }
+  }
+
+  // PROJECT
+  tr > *:nth-child(2) {
+    display: none;
+    text-align: start;
+
+    & > div {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+
+  // CHAINS
+  tr > *:nth-child(3) {
+    display: none;
+    text-align: start;
+    & > * {
+      justify-content: flex-start;
+    }
+  }
+
+  // TVL
+  tr > *:nth-child(4) {
+    display: none;
+  }
+
+  // APY
+  tr > *:nth-child(5) {
+    padding-right: 20px;
+  }
+
+  // 1D CHANGE
+  tr > *:nth-child(6) {
+    display: none;
+  }
+
+  // 7D CHANGE
+  tr > *:nth-child(7) {
+    display: none;
+  }
+
+  // OUTLOOK
+  tr > *:nth-child(8) {
+    display: none;
+  }
+
+  // PROBABILITY
+  tr > *:nth-child(9) {
+    display: none;
+  }
+
+  // OUTLOOK
+  tr > th:nth-child(8) {
+    & > div {
+      margin-left: auto;
+    }
+  }
+
+  // PROBABILITY
+  tr > th:nth-child(9) {
+    & > div {
+      margin-left: auto;
+    }
+  }
+
+  @media screen and (min-width: 320px) {
+    tr > *:nth-child(1) {
+      & > a {
+        width: 140px;
+      }
+    }
+  }
+
+  @media screen and (min-width: 360px) {
+    tr > *:nth-child(1) {
+      & > a {
+        width: 180px;
+      }
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+    // PROJECT
+    tr > *:nth-child(2) {
+      display: revert;
+      & > div {
+        width: 100px;
+        overflow: hidden;
+        white-space: nowrap;
+
+        // HIDE LOGO
+        & > div {
+          display: none;
+        }
+
+        & > a {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+    // APY
+    tr > *:nth-child(5) {
+      padding-right: 0px;
+    }
+
+    // TVL
+    tr > *:nth-child(4) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    // 7D CHANGE
+    tr > *:nth-child(7) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpXl}) {
+    // OUTLOOK
+    tr > *:nth-child(8) {
+      display: revert;
+    }
+
+    // PROBABILITY
+    tr > *:nth-child(9) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: 1536px) {
+    // 1D CHANGE
+    tr > *:nth-child(6) {
+      display: revert;
+    }
+
+    tr > *:nth-child(2) {
+      & > div {
+        width: 200px;
+
+        // HIDE LOGO
+        & > div {
+          display: revert;
+        }
+      }
+    }
+  }
+
+  // CHAINS
+  @media screen and (min-width: 1680px) {
+    tr > *:nth-child(3) {
+      display: revert;
+    }
+  }
+`
+
 const YieldPage = ({ pools, chainList }) => {
   // for /yields/project/[project] I don't want to use href on Project column
   const projectsUnique = [...new Set(pools.map((el) => el.project))]
@@ -138,7 +318,7 @@ const YieldPage = ({ pools, chainList }) => {
             </FiltersRow>
           </RowBetween>
         </ListOptions>
-        <Table
+        <TableWrapper
           data={pools.map((t) => ({
             id: t.pool,
             pool: t.symbol,
@@ -152,7 +332,6 @@ const YieldPage = ({ pools, chainList }) => {
             outlook: t.predictions.predictedClass,
             probability: t.predictions.predictedProbability,
           }))}
-          secondColumnAlign="start"
           columns={columns}
         />
       </FullWrapper>
