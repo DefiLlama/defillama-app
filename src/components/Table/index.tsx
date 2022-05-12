@@ -469,8 +469,20 @@ export function NamePegged({
     return { iconUrl, tokenUrl }
   }, [type, value])
 
+  let leftSpace: number | string = 0
+
+  if (rowType === 'accordion') {
+    leftSpace = '-30px'
+  }
+
+  if (rowType === 'child') {
+    leftSpace = '30px'
+  }
+
   return (
-    <Index {...props}>
+    <Index {...props} style={{ left: leftSpace }}>
+      {rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
+      {rowType !== 'pinned' && index && <span>{index}</span>}
       <TokenLogo logo={iconUrl} />
       {rowType === 'accordion' ? <span>{name}</span> : <CustomLink href={tokenUrl}>{name}</CustomLink>}
     </Index>
