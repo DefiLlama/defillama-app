@@ -11,7 +11,7 @@ import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { Header } from 'Theme'
 import { ChainDominanceChart, ChainPieChart } from 'components/Charts'
-import Filters from 'components/Filters'
+import Filters, { FiltersWrapper } from 'components/Filters/New'
 import Table, { Index } from 'components/Table'
 
 export async function getStaticProps() {
@@ -111,7 +111,11 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
             daySum={daySum}
           />
         </ChartsWrapper>
-        <Filters filterOptions={tokenLinks} activeLabel="All" />
+
+        <FiltersWrapper>
+          <Filters filterOptions={tokenLinks} activeLabel="All" />
+        </FiltersWrapper>
+
         <Table columns={columns} data={tokensList} />
       </FullWrapper>
     </PageWrapper>

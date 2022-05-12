@@ -28,14 +28,14 @@ import llamaLogo from '../../assets/peeking-llama.png'
 import Image from 'next/image'
 import { columnsToShow } from 'components/Table'
 
-const ListOptions = styled.nav`
+export const ListOptions = styled.nav`
   display: flex;
   align-items: center;
   gap: 10px;
   overflow: hidden;
 `
 
-const ListHeader = styled.h1`
+export const ListHeader = styled.h1`
   font-size: 1.125rem;
   color: ${({ theme }) => theme.text1};
   font-weight: 500;
@@ -287,7 +287,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             </TYPE.main>
           </Panel>
         </AutoColumn>
-        {/* <div>
+        <div>
           <BreakpointPanels>
             <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
             <Panel style={{ height: '100%', minHeight: '347px', width: '100%' }}>
@@ -328,13 +328,14 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
           </div>
         </div>
 
-        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} /> */}
+        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
 
         <ListOptions>
           <ListHeader>TVL Rankings</ListHeader>
           <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
         </ListOptions>
-        {/* <ProtocolsTable data={protocolTotals} columns={columns} /> */}
+
+        <ProtocolsTable data={protocolTotals} columns={columns} />
       </ContentWrapper>
     </PageWrapper>
   )

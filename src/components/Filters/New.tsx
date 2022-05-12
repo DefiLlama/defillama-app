@@ -1,7 +1,16 @@
 import { ButtonDark, ButtonLight } from 'components/ButtonStyled'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from 'components/DropdownMenu'
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
+import { ChevronDown } from 'react-feather'
+import { useRouter } from 'next/router'
 
 interface IFilterOption {
   label: string
@@ -22,6 +31,7 @@ const Wrapper = styled.ul`
   margin: 0;
   padding: 4px;
   white-space: nowrap;
+
   & > li {
     list-style: none;
     display: inline-block;
@@ -32,8 +42,17 @@ const Wrapper = styled.ul`
   }
 `
 
+export const FiltersWrapper = styled.nav`
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  overflow: hidden;
+`
+
 const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) => {
   const [lastIndexToRender, setLastIndexToRender] = useState(filterOptions.length)
+
+  const router = useRouter()
 
   const calcFiltersToRender = useCallback(() => {
     if (typeof document !== 'undefined') {
@@ -44,6 +63,7 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
 
       let stopIndex = null
 
+      // loop over all the filters and add widths, if total width > parent container width, stop and return that elements index
       filterOptions.forEach((_, index) => {
         if (!listSize || stopIndex) return null
 
@@ -87,9 +107,9 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
   }, [calcFiltersToRender])
 
   const { filters, menuFilters } = useMemo(() => {
-    const filters = lastIndexToRender > 0 ? filterOptions.slice(0, lastIndexToRender - 1) : filterOptions
+    const filters = lastIndexToRender ? filterOptions.slice(0, lastIndexToRender) : filterOptions
 
-    const menuFilters = lastIndexToRender > 0 ? filterOptions.slice(filters.length - 1) : null
+    const menuFilters = lastIndexToRender ? filterOptions.slice(filters.length) : null
 
     return { filters, menuFilters }
   }, [filterOptions, lastIndexToRender])
@@ -102,14 +122,20 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
         ))}
       </Wrapper>
       {menuFilters && (
-        <select>
-          <option>Others</option>
-          {menuFilters.map((o) => (
-            <option value={o.to} key={o.to}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+        <DropdownMenu>
+          <DropdownMenuTrigger style={{ minWidth: '8rem' }}>
+            <span>{menuFilters.find((label) => label.label === activeLabel) ? activeLabel : 'Others'}</span>
+            <ChevronDown size={16} />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent sideOffset={5}>
+            <DropdownMenuLabel>Others</DropdownMenuLabel>
+            {menuFilters.map((o) => (
+              <DropdownMenuItem key={o.to} onSelect={() => router.push(o.to)} role="link">
+                {o.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
     </>
   )
