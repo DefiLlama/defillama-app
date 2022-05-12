@@ -3,12 +3,12 @@ import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 
-import { AutoRow, RowBetween, RowFlat, RowFixed } from '../Row'
+import { RowBetween, RowFixed } from '../Row'
 import { AutoColumn } from '../Column'
 import Search from '../Search'
 import Panel from '../Panel'
 import { PageWrapper, ContentWrapper, ProtocolsTable } from '..'
-import Filters from '../Filters'
+import Filters from '../Filters/New'
 import { AllTvlOptions } from '../SettingsModal'
 
 import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
@@ -28,11 +28,20 @@ import llamaLogo from '../../assets/peeking-llama.png'
 import Image from 'next/image'
 import { columnsToShow } from 'components/Table'
 
-const ListOptions = styled(AutoRow)`
-  height: 40px;
-  width: 100%;
-  font-size: 1.25rem;
-  font-weight: 600;
+export const ListOptions = styled.nav`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+`
+
+export const ListHeader = styled.h1`
+  font-size: 1.125rem;
+  color: ${({ theme }) => theme.text1};
+  font-weight: 500;
+  white-space: nowrap;
+  margin: 0;
+
   @media screen and (max-width: 640px) {
     font-size: 1rem;
   }
@@ -44,12 +53,6 @@ export const BreakpointPanels = styled.div`
     display: flex;
     padding: 0;
     align-items: stretch;
-  }
-`
-
-const FiltersRow = styled(RowFlat)`
-  @media screen and (min-width: 800px) {
-    width: calc(100% - 90px);
   }
 `
 
@@ -326,16 +329,12 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
         </div>
 
         <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
-        <ListOptions gap="10px" style={{ marginBottom: '.5rem' }}>
-          <RowBetween>
-            <TYPE.main sx={{ minWidth: '90px' }} fontSize={'1.125rem'}>
-              TVL Rankings
-            </TYPE.main>
-            <FiltersRow>
-              <Filters filterOptions={chainOptions} activeLabel={selectedChain} justify="end" />
-            </FiltersRow>
-          </RowBetween>
+
+        <ListOptions>
+          <ListHeader>TVL Rankings</ListHeader>
+          <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
         </ListOptions>
+
         <ProtocolsTable data={protocolTotals} columns={columns} />
       </ContentWrapper>
     </PageWrapper>

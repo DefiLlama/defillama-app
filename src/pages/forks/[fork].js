@@ -12,8 +12,8 @@ import { FullWrapper, PageWrapper, ProtocolsTable } from 'components'
 import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
-import Filters from 'components/Filters'
 import { columnsToShow } from 'components/Table'
+import Filters, { FiltersWrapper } from 'components/Filters/New'
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
@@ -133,7 +133,10 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentToken
           </Panel>
         </BreakpointPanels>
 
-        <Filters filterOptions={tokenLinks} activeLabel={token} />
+        <FiltersWrapper>
+          <Filters filterOptions={tokenLinks} activeLabel={token} />
+        </FiltersWrapper>
+
         <ProtocolsTable columns={columns} data={protocolsData} pinnedRow={parentForks[0]} />
       </FullWrapper>
     </PageWrapper>

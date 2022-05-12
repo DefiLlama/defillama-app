@@ -8,11 +8,11 @@ import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
 import { AllTvlOptions, AllGroupOptions } from 'components/SettingsModal'
-import Filters from 'components/Filters'
 import { columnsToShow, FullTable } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
 import { getChainsPageData, revalidate } from 'utils/dataApi'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
+import Filters, { FiltersWrapper } from 'components/Filters/New'
 
 export async function getStaticProps() {
   const data = await getChainsPageData('All')
@@ -278,7 +278,11 @@ export default function ChainsContainer({
             daySum={daySum}
           />
         </ChartsWrapper>
-        <Filters filterOptions={categories} activeLabel={category} />
+
+        <FiltersWrapper>
+          <Filters filterOptions={categories} activeLabel={category} />
+        </FiltersWrapper>
+
         <StyledTable data={groupedChains} columns={columns} showByGroup={showByGroup} />
       </FullWrapper>
     </PageWrapper>
