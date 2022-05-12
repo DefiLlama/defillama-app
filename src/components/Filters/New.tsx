@@ -1,7 +1,6 @@
 import { ButtonDark, ButtonLight } from 'components/ButtonStyled'
-import { useResize } from 'hooks'
 import Link from 'next/link'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 
 interface IFilterOption {
@@ -14,10 +13,12 @@ interface FiltersProps {
   activeLabel?: string
 }
 
+const GAP = 6
+
 const Wrapper = styled.ul`
   flex: 1;
   overflow: hidden;
-  gap: 6px;
+  gap: ${GAP}px;
   margin: 0;
   padding: 4px;
   white-space: nowrap;
@@ -32,69 +33,91 @@ const Wrapper = styled.ul`
 `
 
 const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) => {
-  const ref = useRef<HTMLUListElement>(null)
+  const [lastIndexToRender, setLastIndexToRender] = useState(filterOptions.length)
 
-  const { width: parentElWidth } = useResize(ref)
+  const calcFiltersToRender = useCallback(() => {
+    if (typeof document !== 'undefined') {
+      // wrapper element of filters
+      const listSize = document.querySelector('#priority-nav')?.getBoundingClientRect()
 
-  const [filtersWidth, setFiltersWidth] = useState([])
+      let width = 0
 
-  const removeFilters =
-    filtersWidth.length === filterOptions.length && parentElWidth && filtersWidth.find((f) => f.width >= parentElWidth)
+      let stopIndex = null
 
-  const indexToSliceFrom = removeFilters ? removeFilters.index : null
+      filterOptions.forEach((_, index) => {
+        if (!listSize || stopIndex) return null
 
-  const filters = useMemo(() => {
-    if (indexToSliceFrom) {
-      return indexToSliceFrom ? filterOptions.slice(0, indexToSliceFrom) : filterOptions
-    } else return filterOptions
-  }, [filterOptions, indexToSliceFrom])
+        const el = document.querySelector(`#priority-nav-el-${index}`)?.getBoundingClientRect()
+
+        if (el) {
+          if (width + el.width > listSize.width && stopIndex === null) {
+            stopIndex = index
+          }
+          width += el.width + GAP
+        }
+      })
+
+      return stopIndex
+    }
+  }, [filterOptions])
+
+  useEffect(() => {
+    const setIndexToFilterFrom = () => {
+      const index = calcFiltersToRender()
+
+      if (index !== null) {
+        setLastIndexToRender(index)
+      }
+    }
+
+    // set index to filter from on initial render
+    setIndexToFilterFrom()
+
+    // listen to window resize events and reset index to filter from
+    window.addEventListener('resize', () => {
+      setLastIndexToRender(null)
+      setIndexToFilterFrom()
+    })
+
+    return () =>
+      window.removeEventListener('resize', () => {
+        setLastIndexToRender(null)
+        setIndexToFilterFrom()
+      })
+  }, [calcFiltersToRender])
+
+  const { filters, menuFilters } = useMemo(() => {
+    const filters = lastIndexToRender > 0 ? filterOptions.slice(0, lastIndexToRender - 1) : filterOptions
+
+    const menuFilters = lastIndexToRender > 0 ? filterOptions.slice(filters.length - 1) : null
+
+    return { filters, menuFilters }
+  }, [filterOptions, lastIndexToRender])
 
   return (
     <>
-      <Wrapper {...props} ref={ref}>
+      <Wrapper id="priority-nav" {...props}>
         {filters.map((option, index) => (
-          <Filter
-            key={option.label}
-            option={option}
-            setFiltersWidth={setFiltersWidth}
-            filterIndex={index}
-            activeLabel={activeLabel}
-          />
+          <Filter key={option.label} option={option} activeLabel={activeLabel} id={`priority-nav-el-${index}`} />
         ))}
       </Wrapper>
-      <select>
-        <option>Others</option>
-        {filterOptions.map((o) => (
-          <option value={o.to} key={o.to}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+      {menuFilters && (
+        <select>
+          <option>Others</option>
+          {menuFilters.map((o) => (
+            <option value={o.to} key={o.to}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      )}
     </>
   )
 }
 
-const Filter = ({ option, activeLabel, setFiltersWidth, filterIndex }) => {
-  const ref = useRef<HTMLLIElement>(null)
-
-  useEffect(() => {
-    if (ref.current) {
-      setFiltersWidth((prev) => {
-        const latestFilter = filterIndex !== 0 && prev[prev.length - 1]
-
-        return [
-          ...prev,
-          {
-            index: filterIndex,
-            width: latestFilter ? latestFilter.width + ref.current.offsetWidth : ref.current.offsetWidth,
-          },
-        ]
-      })
-    }
-  }, [filterIndex, setFiltersWidth])
-
+const Filter = ({ option, activeLabel, ...props }) => {
   return (
-    <li ref={ref}>
+    <li {...props}>
       <Link href={option.to} prefetch={false} passHref>
         {option.label === activeLabel ? (
           <ButtonDark role="link">{option.label}</ButtonDark>
