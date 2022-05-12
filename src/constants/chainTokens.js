@@ -569,6 +569,11 @@ export const chainCoingeckoIds = {
     symbol: "LA",
     cmcId: "2090",
   },
+  Coti: {
+    geckoId: "coti",
+    symbol: "COTI",
+    cmcId: "3992",
+  },
 }
 
 export const chainMarketplaceMappings = {
