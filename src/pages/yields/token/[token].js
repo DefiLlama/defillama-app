@@ -23,7 +23,7 @@ import { ListHeader, ListOptions } from 'components/ChainPage'
 
 const YieldPage = () => {
   // load the full data once
-  const { data: poolData } = useYieldPoolsData()
+  const { data: poolData, loading } = useYieldPoolsData()
   let pools = poolData?.data ? poolData.data : []
   const chainList = [...new Set(pools.map((p) => p.chain))]
 
@@ -119,7 +119,7 @@ const YieldPage = () => {
 
         <ListOptions>
           <ListHeader>Yield Rankings</ListHeader>
-          <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
+          {!loading && <Filters filterOptions={tabOptions} activeLabel={selectedTab} />}
         </ListOptions>
 
         {poolData === undefined ? (
