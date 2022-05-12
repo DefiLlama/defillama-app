@@ -27,18 +27,16 @@ const GAP = 6
 const Wrapper = styled.ul`
   flex: 1;
   overflow: hidden;
-  gap: ${GAP}px;
   margin: 0;
   padding: 4px;
-  white-space: nowrap;
+  display: flex;
+  flex-wrap: wrap;
+  gap: ${GAP}px;
+  max-height: calc(1.8rem + 4px);
 
   & > li {
     list-style: none;
     display: inline-block;
-  }
-
-  & > li + li {
-    margin-left: 8px;
   }
 `
 
@@ -50,44 +48,39 @@ export const FiltersWrapper = styled.nav`
 `
 
 const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) => {
-  const [lastIndexToRender, setLastIndexToRender] = useState(filterOptions.length)
+  const [lastIndexToRender, setLastIndexToRender] = useState(null)
 
   const router = useRouter()
 
   const calcFiltersToRender = useCallback(() => {
     if (typeof document !== 'undefined') {
       // wrapper element of filters
-      const listSize = document.querySelector('#priority-nav')?.getBoundingClientRect()
+      const wrapper = document.querySelector('#priority-nav')
+      const wrapperSize = wrapper.getBoundingClientRect()
 
-      let width = 0
+      let indexToCutFrom = null
 
-      let stopIndex = null
+      wrapper.hasChildNodes &&
+        wrapper.childNodes.forEach((_, index) => {
+          if (indexToCutFrom !== null) return
 
-      // loop over all the filters and add widths, if total width > parent container width, stop and return that elements index
-      filterOptions.forEach((_, index) => {
-        if (!listSize || stopIndex) return null
+          const child = document.querySelector(`#priority-nav-el-${index}`)
+          const sizes = child.getBoundingClientRect()
 
-        const el = document.querySelector(`#priority-nav-el-${index}`)?.getBoundingClientRect()
-
-        if (el) {
-          if (width + el.width > listSize.width && stopIndex === null) {
-            stopIndex = index
+          if (sizes.top - wrapperSize.top > wrapperSize.height) {
+            indexToCutFrom = index
           }
-          width += el.width + GAP
-        }
-      })
+        })
 
-      return stopIndex
+      return indexToCutFrom
     }
-  }, [filterOptions])
+  }, [])
 
   useEffect(() => {
     const setIndexToFilterFrom = () => {
       const index = calcFiltersToRender()
 
-      if (index !== null) {
-        setLastIndexToRender(index)
-      }
+      setLastIndexToRender(index)
     }
 
     // set index to filter from on initial render
@@ -107,9 +100,9 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
   }, [calcFiltersToRender])
 
   const { filters, menuFilters } = useMemo(() => {
-    const filters = lastIndexToRender ? filterOptions.slice(0, lastIndexToRender) : filterOptions
+    const filters = lastIndexToRender ? filterOptions.slice(0, lastIndexToRender - 1) : filterOptions
 
-    const menuFilters = lastIndexToRender ? filterOptions.slice(filters.length) : null
+    const menuFilters = lastIndexToRender ? filterOptions.slice(filters.length - 1) : null
 
     return { filters, menuFilters }
   }, [filterOptions, lastIndexToRender])
@@ -123,7 +116,7 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
       </Wrapper>
       {menuFilters && (
         <DropdownMenu>
-          <DropdownMenuTrigger style={{ minWidth: '8rem' }}>
+          <DropdownMenuTrigger style={{ minWidth: '8rem', margin: '4px' }}>
             <span>{menuFilters.find((label) => label.label === activeLabel) ? activeLabel : 'Others'}</span>
             <ChevronDown size={16} />
           </DropdownMenuTrigger>
