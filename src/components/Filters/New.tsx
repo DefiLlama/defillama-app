@@ -48,7 +48,7 @@ export const FiltersWrapper = styled.nav`
 `
 
 const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) => {
-  const [lastIndexToRender, setLastIndexToRender] = useState(null)
+  const [lastIndexToRender, setLastIndexToRender] = useState<number | null | 'renderMenu'>(null)
 
   const router = useRouter()
 
@@ -56,9 +56,11 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
     if (typeof document !== 'undefined') {
       // wrapper element of filters
       const wrapper = document.querySelector('#priority-nav')
-      const wrapperSize = wrapper.getBoundingClientRect()
+      const wrapperSize = wrapper?.getBoundingClientRect()
 
       let indexToCutFrom = null
+
+      if (!wrapper) return null
 
       wrapper.hasChildNodes &&
         wrapper.childNodes.forEach((_, index) => {
@@ -71,6 +73,10 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
             indexToCutFrom = index
           }
         })
+
+      if (indexToCutFrom < 5 && wrapperSize?.width <= 600) {
+        return 'renderMenu'
+      }
 
       return indexToCutFrom
     }
@@ -100,6 +106,10 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
   }, [calcFiltersToRender])
 
   const { filters, menuFilters } = useMemo(() => {
+    if (lastIndexToRender === 'renderMenu') {
+      return { filters: null, menuFilters: filterOptions }
+    }
+
     const filters = lastIndexToRender ? filterOptions.slice(0, lastIndexToRender - 1) : filterOptions
 
     const menuFilters = lastIndexToRender ? filterOptions.slice(filters.length - 1) : null
@@ -109,14 +119,16 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
 
   return (
     <>
-      <Wrapper id="priority-nav" {...props}>
-        {filters.map((option, index) => (
-          <Filter key={option.label} option={option} activeLabel={activeLabel} id={`priority-nav-el-${index}`} />
-        ))}
-      </Wrapper>
+      {filters && (
+        <Wrapper id="priority-nav" {...props}>
+          {filters.map((option, index) => (
+            <Filter key={option.label} option={option} activeLabel={activeLabel} id={`priority-nav-el-${index}`} />
+          ))}
+        </Wrapper>
+      )}
       {menuFilters && (
         <DropdownMenu>
-          <DropdownMenuTrigger style={{ minWidth: '8rem', margin: '4px' }}>
+          <DropdownMenuTrigger style={{ minWidth: '8rem', margin: '4px', marginLeft: !filters ? 'auto' : '4px' }}>
             <span>{menuFilters.find((label) => label.label === activeLabel) ? activeLabel : 'Others'}</span>
             <ChevronDown size={16} />
           </DropdownMenuTrigger>

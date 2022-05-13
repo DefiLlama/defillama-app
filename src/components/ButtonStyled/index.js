@@ -116,7 +116,7 @@ export const ButtonDark = styled(Base)`
     background-color: ${({ color, theme }) => (color ? darken(0.1, color) : darken(0.1, theme.primary1))};
   }
 
-  :focus {
+  :focus-visible {
     outline: 1px solid red;
     outline-offset: 2px;
     outline-color: ${({ color, theme }) => (color ? transparentize(0.1, color) : transparentize(0.1, theme.primary1))};
