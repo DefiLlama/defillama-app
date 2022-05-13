@@ -6,10 +6,7 @@ import Table, { columnsToShow } from 'components/Table'
 import { formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
 import { CustomLink } from 'components/Link'
-import styled from 'styled-components'
-import { AutoRow, RowBetween, RowFlat } from 'components/Row'
-import { TYPE } from 'Theme'
-import Filters from 'components/Filters'
+import { AutoRow } from 'components/Row'
 import { NameYield } from 'components/Table/index'
 import {
   useNoILManager,
@@ -21,27 +18,12 @@ import { useYieldPoolsData } from 'utils/dataApi'
 import { useRouter } from 'next/router'
 import QuestionHelper from 'components/QuestionHelper'
 import LocalLoader from 'components/LocalLoader'
-
-const ListOptions = styled(AutoRow)`
-  height: 40px;
-  width: 100%;
-  font-size: 1.25rem;
-  font-weight: 600;
-
-  @media screen and (max-width: 640px) {
-    font-size: 1rem;
-  }
-`
-
-const FiltersRow = styled(RowFlat)`
-  @media screen and (min-width: 800px) {
-    width: calc(100% - 90px);
-  }
-`
+import Filters from 'components/Filters/New'
+import { ListHeader, ListOptions } from 'components/ChainPage'
 
 const YieldPage = () => {
   // load the full data once
-  const { data: poolData } = useYieldPoolsData()
+  const { data: poolData, loading } = useYieldPoolsData()
   let pools = poolData?.data ? poolData.data : []
   const chainList = [...new Set(pools.map((p) => p.chain))]
 
@@ -134,33 +116,33 @@ const YieldPage = () => {
           <Search />
         </AutoColumn>
         <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
-        <ListOptions gap="10px" style={{ marginBottom: '.5rem' }}>
-          <RowBetween>
-            <TYPE.main fontSize={'1.125rem'}>Yield Rankings</TYPE.main>
-            <FiltersRow>
-              <Filters filterOptions={tabOptions} activeLabel={selectedTab} justify="end" />
-            </FiltersRow>
-          </RowBetween>
+
+        <ListOptions>
+          <ListHeader>Yield Rankings</ListHeader>
+          {!loading && <Filters filterOptions={tabOptions} activeLabel={selectedTab} />}
         </ListOptions>
-        {poolData === undefined?<LocalLoader />:
-        <Table
-          data={pools.map((t) => ({
-            id: t.pool,
-            pool: t.symbol,
-            projectslug: t.project,
-            project: t.projectName,
-            chains: [t.chain],
-            tvl: t.tvlUsd,
-            apy: t.apy,
-            change1d: t.apyPct1D,
-            change7d: t.apyPct7D,
-            outlook: t.predictions.predictedClass,
-            probability: t.predictions.predictedProbability,
-          }))}
-          secondColumnAlign="start"
-          columns={columns}
-        />
-        }
+
+        {poolData === undefined ? (
+          <LocalLoader />
+        ) : (
+          <Table
+            data={pools.map((t) => ({
+              id: t.pool,
+              pool: t.symbol,
+              projectslug: t.project,
+              project: t.projectName,
+              chains: [t.chain],
+              tvl: t.tvlUsd,
+              apy: t.apy,
+              change1d: t.apyPct1D,
+              change7d: t.apyPct7D,
+              outlook: t.predictions.predictedClass,
+              probability: t.predictions.predictedProbability,
+            }))}
+            secondColumnAlign="start"
+            columns={columns}
+          />
+        )}
       </FullWrapper>
     </PageWrapper>
   )

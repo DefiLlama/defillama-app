@@ -6,9 +6,7 @@ import { formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
 import { CustomLink } from 'components/Link'
 import styled from 'styled-components'
-import { AutoRow, RowBetween, RowFlat } from 'components/Row'
-import { TYPE } from 'Theme'
-import Filters from 'components/Filters'
+import { AutoRow } from 'components/Row'
 import { NameYield } from 'components/Table/index'
 import {
   useNoILManager,
@@ -17,30 +15,16 @@ import {
   useMillionDollarManager,
 } from 'contexts/LocalStorage'
 import QuestionHelper from 'components/QuestionHelper'
-
-const ListOptions = styled(AutoRow)`
-  height: 40px;
-  width: 100%;
-  font-size: 1.25rem;
-  font-weight: 600;
-
-  @media screen and (max-width: 640px) {
-    font-size: 1rem;
-  }
-`
-
-const FiltersRow = styled(RowFlat)`
-  @media screen and (min-width: 800px) {
-    width: calc(100% - 90px);
-  }
-`
+import Filters from 'components/Filters/New'
+import { ListHeader, ListOptions } from 'components/ChainPage'
 
 const TableWrapper = styled(Table)`
-  tr > * {
+  tr > *:not(:first-child) {
     & > div {
       width: 100px;
       white-space: nowrap;
       overflow: hidden;
+      font-weight: 400;
     }
   }
 
@@ -310,14 +294,12 @@ const YieldPage = ({ pools, chainList }) => {
           <Search />
         </AutoColumn>
         <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
-        <ListOptions gap="10px" style={{ marginBottom: '.5rem' }}>
-          <RowBetween>
-            <TYPE.main fontSize={'1.125rem'}>Yield Rankings</TYPE.main>
-            <FiltersRow>
-              <Filters filterOptions={tabOptions} activeLabel={selectedTab} justify="end" />
-            </FiltersRow>
-          </RowBetween>
+
+        <ListOptions>
+          <ListHeader>Yield Rankings</ListHeader>
+          <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
         </ListOptions>
+
         <TableWrapper
           data={pools.map((t) => ({
             id: t.pool,
