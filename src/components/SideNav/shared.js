@@ -162,7 +162,17 @@ export const Footer = ({ isDark, toggleDarkMode }) => (
         </Link>
       </HeaderText>
       <HeaderText>
-        <Link href="https://defillama-datasets.s3.eu-central-1.amazonaws.com/all.csv" target="_blank">
+        <Link style={{cursor: "pointer"}} onClick={
+          ()=>{
+            window.confirm(
+`You are trying to download our full data export, which has a lot of data and is only useful to sophisticated devs.
+If you are just looking for the data that you see on the dashboard, we suggest that you use one of our multiple csv downloads that you'll find across defillama pages.
+These can be identified by buttons that have "csv" in the text, and provide defillama metrics in a way thats much more accessible.
+
+Do you wish to download the full dataset anyway?`)
+            window.location.replace("https://defillama-datasets.s3.eu-central-1.amazonaws.com/all.csv")
+          }
+        }  target="_blank">
           Download Data
         </Link>
       </HeaderText>
