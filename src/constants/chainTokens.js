@@ -559,6 +559,21 @@ export const chainCoingeckoIds = {
     symbol: "BNC",
     cmcId: "8705",
   },
+  Stafi: {
+    geckoId: "stafi",
+    symbol: "FIS",
+    cmcId: "5882",
+  },
+  LAChain: {
+    geckoId: "latoken",
+    symbol: "LA",
+    cmcId: "2090",
+  },
+  Coti: {
+    geckoId: "coti",
+    symbol: "COTI",
+    cmcId: "3992",
+  },
 }
 
 export const chainMarketplaceMappings = {
