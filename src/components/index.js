@@ -245,14 +245,16 @@ export const ProtocolsTable = styled(Table)`
     }
   }
 
-  @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+  @media screen and (min-width: 360px) {
     // PROTOCOL NAME
     tr > *:nth-child(1) {
       & > div {
         width: 160px;
       }
     }
+  }
 
+  @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
     // 7D CHANGE
     tr > *:nth-child(4) {
       display: revert;
