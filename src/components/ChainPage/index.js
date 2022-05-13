@@ -8,7 +8,7 @@ import { AutoColumn } from '../Column'
 import Search from '../Search'
 import Panel from '../Panel'
 import { PageWrapper, ContentWrapper, ProtocolsTable } from '..'
-import Filters from '../Filters/New'
+import Filters from '../Filters'
 import { AllTvlOptions } from '../SettingsModal'
 
 import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'

@@ -11,7 +11,7 @@ import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { Header } from 'Theme'
 import { ChainDominanceChart, ChainPieChart } from 'components/Charts'
-import Filters, { FiltersWrapper } from 'components/Filters/New'
+import Filters, { FiltersWrapper } from 'components/Filters'
 import { Box } from 'rebass'
 
 export async function getStaticProps() {

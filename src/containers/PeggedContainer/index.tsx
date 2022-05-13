@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo } from 'react'
 import { Box } from 'rebass/styled-components'
 import styled from 'styled-components'
 import { Header } from 'Theme'
@@ -8,11 +8,11 @@ import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 import { AllPeggedOptions, AllGroupOptions } from 'components/SettingsModal'
-import Filters from 'components/Filters'
 import { CustomLink } from 'components/Link'
 import { columnsToShow, FullTable, NamePegged, isOfTypePeggedCategory } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupChainsPegged } from 'hooks/data'
+import Filters, { FiltersWrapper } from 'components/Filters'
 
 const ChartsWrapper = styled(Box)`
   display: flex;
@@ -146,7 +146,7 @@ export default function PeggedContainer({
       <FullWrapper>
         <Search />
         <AllPeggedOptions style={{ display: 'flex', justifyContent: 'center' }} />
-        <AllGroupOptions style={{display: 'flex', justifyContent: 'center' }} />
+        <AllGroupOptions style={{ display: 'flex', justifyContent: 'center' }} />
         <RowWrapper>
           <Header>{Capitalize(peggedasset)} Total Circulating All Chains</Header>
           <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
@@ -163,7 +163,11 @@ export default function PeggedContainer({
             daySum={daySum}
           />
         </ChartsWrapper>
-        <Filters filterOptions={categories} activeLabel={category} />
+
+        <FiltersWrapper>
+          <Filters filterOptions={categories} activeLabel={category} />
+        </FiltersWrapper>
+
         <StyledTable data={groupedChains} columns={columns} showByGroup={showByGroup} />
       </FullWrapper>
     </PageWrapper>

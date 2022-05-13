@@ -15,7 +15,7 @@ import {
   useMillionDollarManager,
 } from 'contexts/LocalStorage'
 import QuestionHelper from 'components/QuestionHelper'
-import Filters from 'components/Filters/New'
+import Filters from 'components/Filters'
 import { ListHeader, ListOptions } from 'components/ChainPage'
 
 const TableWrapper = styled(Table)`

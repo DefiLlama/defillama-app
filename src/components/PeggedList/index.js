@@ -3,9 +3,8 @@ import styled from 'styled-components'
 import Panel from '../Panel'
 import { AutoColumn } from '../Column'
 import { PageWrapper, FullWrapper } from 'components'
-import { AutoRow, RowBetween, RowFlat } from 'components/Row'
+import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
-import Filters from 'components/Filters'
 import { NamePegged } from 'components/Table/index'
 import PeggedChainsRow from 'components/PeggedChainsRow'
 import {
@@ -23,17 +22,7 @@ import { TYPE } from 'Theme'
 import Table, { columnsToShow, isOfTypePeggedCategory } from 'components/Table'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 import { categoryToPegType } from 'utils/dataApi'
-
-const ListOptions = styled(AutoRow)`
-  height: 40px;
-  width: 100%;
-  font-size: 1.25rem;
-  font-weight: 600;
-
-  @media screen and (max-width: 640px) {
-    font-size: 1rem;
-  }
-`
+import Filters, { FiltersWrapper } from 'components/Filters'
 
 export const BreakpointPanels = styled.div`
   @media screen and (min-width: 800px) {
@@ -236,15 +225,13 @@ function AllPeggedsPage({
             )}
           </BreakpointPanels>
         </div>
+
         {showChainList && (
-          <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
-            <RowBetween>
-              <RowFlat style={{ width: '100%' }}>
-                <Filters filterOptions={chainOptions} setActive={handleRouting} activeLabel={selectedChain} />
-              </RowFlat>
-            </RowBetween>
-          </ListOptions>
+          <FiltersWrapper>
+            <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
+          </FiltersWrapper>
         )}
+
         <Table data={peggedTotals} columns={columns} />
       </FullWrapper>
     </PageWrapper>

@@ -13,7 +13,7 @@ import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
 import { columnsToShow } from 'components/Table'
-import Filters, { FiltersWrapper } from 'components/Filters/New'
+import Filters, { FiltersWrapper } from 'components/Filters'
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,

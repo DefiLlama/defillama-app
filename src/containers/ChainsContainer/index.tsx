@@ -12,7 +12,7 @@ import { columnsToShow, FullTable } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
 import { getChainsPageData, revalidate } from 'utils/dataApi'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
-import Filters, { FiltersWrapper } from 'components/Filters/New'
+import Filters, { FiltersWrapper } from 'components/Filters'
 
 export async function getStaticProps() {
   const data = await getChainsPageData('All')

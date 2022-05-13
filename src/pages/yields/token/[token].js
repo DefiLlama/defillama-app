@@ -18,7 +18,7 @@ import { useYieldPoolsData } from 'utils/dataApi'
 import { useRouter } from 'next/router'
 import QuestionHelper from 'components/QuestionHelper'
 import LocalLoader from 'components/LocalLoader'
-import Filters from 'components/Filters/New'
+import Filters from 'components/Filters'
 import { ListHeader, ListOptions } from 'components/ChainPage'
 
 const YieldPage = () => {
