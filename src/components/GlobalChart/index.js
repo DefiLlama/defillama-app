@@ -6,6 +6,7 @@ import { RowFixed } from '../Row'
 import { OptionButton } from '../ButtonStyled'
 import { getTimeframe } from '../../utils'
 import { TYPE } from '../../Theme'
+import { useIsClient } from 'hooks'
 
 const CHART_VIEW = {
   VOLUME: 'Volume',
@@ -60,7 +61,7 @@ const GlobalChart = ({
 
   // update the width on a window resize
   const ref = useRef()
-  const isClient = typeof window === 'object'
+  const isClient = useIsClient()
   const [width, setWidth] = useState(ref?.current?.container?.clientWidth)
 
   useEffect(() => {
