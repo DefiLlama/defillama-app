@@ -267,19 +267,20 @@ export async function getPeggedsPageData(category, chain) {
 
   let chartDataByPeggedAsset = []
   let peggedAssetNames: string[] = []
-  if (!chain) {
-    chartDataByPeggedAsset = await Promise.all(
-      peggedAssets.map(async (elem) => {
-        peggedAssetNames.push(elem.name)
-        for (let i = 0; i < 5; i++) {
-          try {
+  chartDataByPeggedAsset = await Promise.all(
+    peggedAssets.map(async (elem) => {
+      peggedAssetNames.push(elem.name)
+      for (let i = 0; i < 5; i++) {
+        try {
+          if (!chain) {
             return await fetch(`${PEGGEDCHART_API}/?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
-          } catch (e) {}
-        }
-        throw new Error(`${CHART_API}/${elem} is broken`)
-      })
-    )
-  }
+          }
+          return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
+        } catch (e) {}
+      }
+      throw new Error(`${CHART_API}/${elem} is broken`)
+    })
+  )
 
   const secondsInYear = 3.154 * 10 ** 7
   const pegType = categoryToPegType[category]
@@ -290,12 +291,14 @@ export async function getPeggedsPageData(category, chain) {
         const circulating = chart.totalCirculating[pegType]
         const date = chart.date
         if (date < 1596248105) return
-        if (date < Date.now() / 1000 - secondsInYear / 2) return // only show data for previous 6 months
-        if (total[date] === undefined) {
-          total[date] = {}
+        if ((Date.now() / 1000 - secondsInYear / 2 < date) && !(circulating == null)) {
+          // only show data from previous 6 months
+          if (total[date] == undefined) {
+            total[date] = {}
+          }
+          const b = total[date][peggedName]
+          total[date][peggedName] = { ...b, circulating: circulating ?? 0 }
         }
-        const b = total[date][peggedName]
-        total[date][peggedName] = { ...b, circulating: circulating ?? 0 }
       })
       return total
     }, {})
