@@ -767,7 +767,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       return res.chainBalances[elem].tokens
     })
   )
-
+  const peggedName = res.name;
   const pegType = res.pegType
   const chainCirculatings = chainsUnique
     .map((chainName, i) => {
@@ -839,6 +839,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       category,
       categories,
       stackedDataset,
+      peggedName,
       pegType,
       chainsGroupbyParent,
     },
