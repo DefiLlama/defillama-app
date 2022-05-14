@@ -5,8 +5,8 @@ import { Flex } from 'rebass'
 import Link from '../Link'
 import { RowFixed } from '../Row'
 import DefiLogo from './DefiLogo'
-import NFTLogo from '../../assets/nft_logo_white_long.svg'
-import Image from 'next/image'
+// import NFTLogo from '../../assets/nft_logo_white_long.svg'
+// import Image from 'next/image'
 
 const TitleWrapper = styled.div`
   text-decoration: none;

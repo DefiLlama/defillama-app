@@ -134,9 +134,9 @@ export const ButtonFaded = styled(Base)`
   }
 `
 
-export function ButtonPlusDull({ disabled, children, ...rest }) {
+export function ButtonPlusDull({ disabled = false, children, ...rest }) {
   return (
-    <Dull {...rest}>
+    <Dull disabled={disabled} {...rest}>
       <ContentWrapper>
         <Plus size={16} />
         <div style={{ display: 'flex', alignItems: 'center' }}>{children}</div>
