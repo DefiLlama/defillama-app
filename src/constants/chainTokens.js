@@ -538,7 +538,6 @@ export const chainCoingeckoIds = {
     geckoId: "candle",
     symbol: "CNDL",
     cmcId: "18227",
-
   },
 }
 
@@ -553,7 +552,7 @@ export const chainMarketplaceMappings = {
 }
 
 export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
-export const extraChainOptions = ['Terra', 'Arbitrum', 'Binance', 'Celo', 'Harmony']
+export const extraChainOptions = ['Terra', 'Arbitrum', 'Binance', 'Celo', 'Harmony', 'Candle']
 
 export const priorityChainFilters = [
   'All',
@@ -570,4 +569,5 @@ export const priorityChainFilters = [
   'Tron',
   'Waves',
   'Heco',
+  'Candle',
 ]
