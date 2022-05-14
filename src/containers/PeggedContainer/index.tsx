@@ -54,7 +54,7 @@ export default function PeggedContainer({
   category,
   categories,
   stackedDataset,
-  peggedasset,
+  peggedName,
   pegType,
   chainsGroupbyParent,
 }) {
@@ -108,7 +108,7 @@ export default function PeggedContainer({
     [chainsUnique]
   )
 
-  const chainTotals = useCalcCirculating(chainCirculatings, peggedasset)
+  const chainTotals = useCalcCirculating(chainCirculatings)
 
   const chainsCirculatingValues = useMemo(() => {
     const data = chainTotals.map((chain) => ({ name: chain.name, value: chain.circulating }))
@@ -139,8 +139,6 @@ export default function PeggedContainer({
 
   const groupedChains = useGroupChainsPegged(chainTotals, showByGroup ? chainsGroupbyParent : {})
 
-  //add usegroupedchainsbyparent?
-
   return (
     <PageWrapper>
       <FullWrapper>
@@ -148,7 +146,7 @@ export default function PeggedContainer({
         <AllPeggedOptions style={{ display: 'flex', justifyContent: 'center' }} />
         <AllGroupOptions style={{ display: 'flex', justifyContent: 'center' }} />
         <RowWrapper>
-          <Header>{Capitalize(peggedasset)} Total Circulating All Chains</Header>
+          <Header>{Capitalize(peggedName)} Total Circulating All Chains</Header>
           <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
         </RowWrapper>
         <ChartsWrapper>
@@ -157,7 +155,7 @@ export default function PeggedContainer({
             stackOffset="expand"
             formatPercent={true}
             stackedDataset={stackedData}
-            asset={peggedasset}
+            asset={peggedName}
             chainsUnique={chainsUnique}
             chainColor={chainColor}
             daySum={daySum}
