@@ -6,10 +6,7 @@ import Table, { columnsToShow } from 'components/Table'
 import { formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
 import { CustomLink } from 'components/Link'
-import styled from 'styled-components'
-import { AutoRow, RowBetween, RowFlat } from 'components/Row'
-import { TYPE } from 'Theme'
-import Filters from 'components/Filters'
+import { AutoRow } from 'components/Row'
 import { NameYield } from 'components/Table/index'
 import {
   useNoILManager,
@@ -19,27 +16,14 @@ import {
 } from 'contexts/LocalStorage'
 import { useYieldPoolsData } from 'utils/dataApi'
 import { useRouter } from 'next/router'
-
-const ListOptions = styled(AutoRow)`
-  height: 40px;
-  width: 100%;
-  font-size: 1.25rem;
-  font-weight: 600;
-
-  @media screen and (max-width: 640px) {
-    font-size: 1rem;
-  }
-`
-
-const FiltersRow = styled(RowFlat)`
-  @media screen and (min-width: 800px) {
-    width: calc(100% - 90px);
-  }
-`
+import QuestionHelper from 'components/QuestionHelper'
+import LocalLoader from 'components/LocalLoader'
+import Filters from 'components/Filters'
+import { ListHeader, ListOptions } from 'components/ChainPage'
 
 const YieldPage = () => {
   // load the full data once
-  const { data: poolData } = useYieldPoolsData()
+  const { data: poolData, loading } = useYieldPoolsData()
   let pools = poolData?.data ? poolData.data : []
   const chainList = [...new Set(pools.map((p) => p.chain))]
 
@@ -52,7 +36,11 @@ const YieldPage = () => {
       header: 'Pool',
       accessor: 'pool',
       disableSortBy: true,
-      Cell: ({ value, rowValues }) => <CustomLink href={`/yields/pool/${rowValues.id}`}>{value}</CustomLink>,
+      Cell: ({ value, rowValues }) => (
+        <CustomLink href={`/yields/pool/${rowValues.id}`}>
+          {rowValues.project === 'Osmosis' ? `${value} ${rowValues.id.split('-').slice(-1)}` : value}
+        </CustomLink>
+      ),
     },
     {
       header: 'Project',
@@ -65,7 +53,16 @@ const YieldPage = () => {
       header: 'APY',
       accessor: 'apy',
       helperText: 'Annualised percentage yield',
-      Cell: ({ value }) => <>{formattedPercent(value, true)}</>,
+      Cell: ({ value, rowValues }) => {
+        return (
+          <AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
+            {rowValues.project === 'Osmosis' ? (
+              <QuestionHelper text={`${rowValues.id.split('-').slice(-1)} lock`} />
+            ) : null}
+            {formattedPercent(value, true)}
+          </AutoRow>
+        )
+      },
     },
     {
       header: '1d change',
@@ -82,13 +79,13 @@ const YieldPage = () => {
       accessor: 'outlook',
       helperText:
         'The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY.',
-      Cell: ({ value, rowValues }) => <>{rowValues.apy <= 0 ? null : value}</>,
+      Cell: ({ value }) => <>{value}</>,
     },
     {
       header: 'Probability',
       accessor: 'probability',
       helperText: 'Predicted probability of outlook',
-      Cell: ({ value, rowValues }) => <>{rowValues.apy <= 0 ? null : value.toFixed(2) + '%'}</>,
+      Cell: ({ value }) => <>{value === null ? null : value.toFixed(2) + '%'}</>,
     },
   ]
 
@@ -119,31 +116,33 @@ const YieldPage = () => {
           <Search />
         </AutoColumn>
         <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
-        <ListOptions gap="10px" style={{ marginBottom: '.5rem' }}>
-          <RowBetween>
-            <TYPE.main fontSize={'1.125rem'}>Yield Rankings</TYPE.main>
-            <FiltersRow>
-              <Filters filterOptions={tabOptions} activeLabel={selectedTab} justify="end" />
-            </FiltersRow>
-          </RowBetween>
+
+        <ListOptions>
+          <ListHeader>Yield Rankings</ListHeader>
+          {!loading && <Filters filterOptions={tabOptions} activeLabel={selectedTab} />}
         </ListOptions>
-        <Table
-          data={pools.map((t) => ({
-            id: t.pool,
-            pool: t.symbol,
-            projectslug: t.project,
-            project: t.projectName,
-            chains: [t.chain],
-            tvl: t.tvlUsd,
-            apy: t.apy,
-            change1d: t.apyPct1D,
-            change7d: t.apyPct7D,
-            outlook: t.predictions.predictedClass === 0 ? 'Down' : 'Stable/Up',
-            probability: t.predictions.predictedProbability,
-          }))}
-          secondColumnAlign="start"
-          columns={columns}
-        />
+
+        {poolData === undefined ? (
+          <LocalLoader />
+        ) : (
+          <Table
+            data={pools.map((t) => ({
+              id: t.pool,
+              pool: t.symbol,
+              projectslug: t.project,
+              project: t.projectName,
+              chains: [t.chain],
+              tvl: t.tvlUsd,
+              apy: t.apy,
+              change1d: t.apyPct1D,
+              change7d: t.apyPct7D,
+              outlook: t.predictions.predictedClass,
+              probability: t.predictions.predictedProbability,
+            }))}
+            secondColumnAlign="start"
+            columns={columns}
+          />
+        )}
       </FullWrapper>
     </PageWrapper>
   )

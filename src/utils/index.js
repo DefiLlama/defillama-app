@@ -195,6 +195,50 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
   return Number(parseFloat(num).toFixed(5))
 }
 
+export const formattedPegggedPrice = (number, symbol = false, acceptNegatives = false) => {
+  let currencySymbol
+  if (symbol === true) {
+    currencySymbol = '$'
+  } else if (symbol === false) {
+    currencySymbol = ''
+  } else {
+    currencySymbol = symbol
+  }
+  if (isNaN(number) || number === '' || number === undefined) {
+    return symbol ? `${currencySymbol}0` : 0
+  }
+  let num = parseFloat(number)
+  const isNegative = num < 0
+  num = Math.abs(num)
+
+  const currencyMark = isNegative ? `${currencySymbol}-` : currencySymbol
+  const normalMark = isNegative ? '-' : ''
+
+  if (num > 10000000) {
+    return (symbol ? currencyMark : normalMark) + toK(num.toFixed(0), true)
+  }
+
+  if (num === 0) {
+    return symbol ? `${currencySymbol}0` : 0
+  }
+
+  if (num < 0.0001 && num > 0) {
+    return symbol ? `< ${currencySymbol}0.0001` : '< 0.0001'
+  }
+
+  if (num > 1000) {
+    return symbol
+      ? currencyMark + Number(parseFloat(num).toFixed(0)).toLocaleString()
+      : normalMark + Number(parseFloat(num).toFixed(0)).toLocaleString()
+  }
+
+  if (symbol) {
+      return currencyMark + (parseFloat(num).toFixed(6))    // this is all pegged is using, should merge with above
+  }
+
+  return Number(parseFloat(num).toFixed(5))
+}
+
 export const filterCollectionsByCurrency = (collections, displayUsd) =>
   (collections &&
     collections.length &&
@@ -239,6 +283,10 @@ export function chainIconUrl(chain) {
 
 export function tokenIconUrl(name) {
   return `/icons/${name.toLowerCase().split(' ').join('-')}.jpg`
+}
+
+export function peggedAssetIconUrl(name) {
+  return `/pegged-icons/${name.toLowerCase().split(' ').join('-')}.jpg`
 }
 
 export function formattedPercent(percent, noSign = false) {
@@ -411,6 +459,14 @@ export const getTokenDominance = (topToken, totalVolume) => {
   } else return 100
 }
 
+export const getPeggedDominance = (topToken, totalCirculating) => {
+  const dominance = topToken.circulating && totalCirculating && (topToken.circulating / totalCirculating) * 100.0
+
+  if (dominance < 100) {
+    return dominance.toFixed(2)
+  } else return 100
+}
+
 /**
  * get tvl of specified day before last day using chart data
  * @param {*} chartData
@@ -418,6 +474,10 @@ export const getTokenDominance = (topToken, totalVolume) => {
  */
 export const getPrevTvlFromChart = (chart, daysBefore) => {
   return chart[chart.length - 1 - daysBefore]?.[1] ?? null
+}
+
+export const getPrevCirculatingFromChart = (chart, daysBefore, issuanceType, pegType) => {
+  return chart[chart.length - 1 - daysBefore]?.[issuanceType]?.[pegType] ?? null
 }
 
 export function download(filename, text) {

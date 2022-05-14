@@ -534,10 +534,45 @@ export const chainCoingeckoIds = {
     symbol: "BOBA",
     cmcId: "14556",
   },
+  BitGert: {
+    geckoId: "bitrise-token",
+    symbol: "BRISE",
+    cmcId: "11079",
+  },
+  Reef: {
+    geckoId: "reef-finance",
+    symbol: "REEF",
+    cmcId: "6951",
+    },
+  Omni: {
+    geckoId: 'omni',
+    symbol: 'OMNI',
+    cmcId: '83',
+  },
   Candle: {
     geckoId: "candle",
     symbol: "CNDL",
-    cmcId: "18227",
+    cmcId: "18327",
+  },
+  Bifrost: {
+    geckoId: "bifrost-native-coin",
+    symbol: "BNC",
+    cmcId: "8705",
+  },
+  Stafi: {
+    geckoId: "stafi",
+    symbol: "FIS",
+    cmcId: "5882",
+  },
+  LAChain: {
+    geckoId: "latoken",
+    symbol: "LA",
+    cmcId: "2090",
+  },
+  Coti: {
+    geckoId: "coti",
+    symbol: "COTI",
+    cmcId: "3992",
   },
 }
 

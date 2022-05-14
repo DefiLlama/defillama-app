@@ -1,25 +1,12 @@
 import React, { useMemo } from 'react'
-import styled from 'styled-components'
-import { PageWrapper, FullWrapper } from 'components'
-import { AutoRow, RowBetween, RowFlat } from 'components/Row'
-import Search from 'components/Search'
-import Filters from 'components/Filters'
-
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useLg } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
+import { PageWrapper, FullWrapper } from 'components'
+import { RowBetween } from 'components/Row'
+import Search from 'components/Search'
 import Table, { columnsToShow } from 'components/Table'
-
-const ListOptions = styled(AutoRow)`
-  height: 40px;
-  width: 100%;
-  font-size: 1.25rem;
-  font-weight: 600;
-
-  @media screen and (max-width: 640px) {
-    font-size: 1rem;
-  }
-`
+import Filters, { FiltersWrapper } from 'components/Filters'
 
 function AllTokensPage({
   title,
@@ -69,15 +56,13 @@ function AllTokensPage({
           <TYPE.largeHeader>{title}</TYPE.largeHeader>
           <Search small={!isLg} />
         </RowBetween>
+
         {showChainList && (
-          <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
-            <RowBetween>
-              <RowFlat style={{ width: '100%' }}>
-                <Filters filterOptions={chainOptions} setActive={handleRouting} activeLabel={selectedChain} />
-              </RowFlat>
-            </RowBetween>
-          </ListOptions>
+          <FiltersWrapper>
+            <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
+          </FiltersWrapper>
         )}
+
         <Table data={protocolTotals} columns={columns} />
       </FullWrapper>
     </PageWrapper>

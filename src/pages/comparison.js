@@ -4,15 +4,15 @@ import ComparisonContainer from 'containers/ComparisonContainer'
 import { PROTOCOLS_API } from 'constants/index'
 import { standardizeProtocolName } from 'utils'
 import { revalidate } from 'utils/dataApi'
+import { useRouter } from 'next/router'
 
-export async function getStaticProps({ params = {} }) {
-  const [protocolA = '', protocolB = ''] = params?.protocol || []
-  const res = await fetch(PROTOCOLS_API).then(res => res.json())
+export async function getStaticProps() {
+  const res = await fetch(PROTOCOLS_API).then((res) => res.json())
 
   const protocolsMcapTvl = res.protocols.reduce((acc, { name, mcap = null, tvl = null }) => {
     acc[standardizeProtocolName(name)] = {
       mcap: mcap,
-      tvl
+      tvl,
     }
     return acc
   }, {})
@@ -20,18 +20,16 @@ export async function getStaticProps({ params = {} }) {
   return {
     props: {
       protocolsMcapTvl,
-      protocolA: standardizeProtocolName(protocolA),
-      protocolB: standardizeProtocolName(protocolB)
     },
-    revalidate: revalidate()
+    revalidate: revalidate(),
   }
 }
 
-export async function getStaticPaths() {
-  return { paths: [{ params: { protocol: false } }], fallback: 'blocking' }
-}
+export default function Protocols({ protocolsMcapTvl }) {
+  const router = useRouter()
 
-export default function Protocols({ protocolA, protocolB, protocolsMcapTvl }) {
+  const { protocolA, protocolB } = router.query
+
   return (
     <GeneralLayout title="Protocol Price Comparison - DefiLlama" defaultSEO>
       <ComparisonContainer protocolsMcapTvl={protocolsMcapTvl} protocolA={protocolA} protocolB={protocolB} />

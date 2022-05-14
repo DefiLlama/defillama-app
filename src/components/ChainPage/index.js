@@ -3,11 +3,11 @@ import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 
-import { AutoRow, RowBetween, RowFlat, RowFixed } from '../Row'
+import { RowBetween, RowFixed } from '../Row'
 import { AutoColumn } from '../Column'
 import Search from '../Search'
 import Panel from '../Panel'
-import { PageWrapper, ContentWrapper } from '..'
+import { PageWrapper, ContentWrapper, ProtocolsTable } from '..'
 import Filters from '../Filters'
 import { AllTvlOptions } from '../SettingsModal'
 
@@ -26,13 +26,22 @@ import { useRouter } from 'next/router'
 import LocalLoader from 'components/LocalLoader'
 import llamaLogo from '../../assets/peeking-llama.png'
 import Image from 'next/image'
-import Table, { columnsToShow } from 'components/Table'
+import { columnsToShow } from 'components/Table'
 
-const ListOptions = styled(AutoRow)`
-  height: 40px;
-  width: 100%;
-  font-size: 1.25rem;
-  font-weight: 600;
+export const ListOptions = styled.nav`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+`
+
+export const ListHeader = styled.h1`
+  font-size: 1.125rem;
+  color: ${({ theme }) => theme.text1};
+  font-weight: 500;
+  white-space: nowrap;
+  margin: 0;
+
   @media screen and (max-width: 640px) {
     font-size: 1rem;
   }
@@ -44,12 +53,6 @@ export const BreakpointPanels = styled.div`
     display: flex;
     padding: 0;
     align-items: stretch;
-  }
-`
-
-const FiltersRow = styled(RowFlat)`
-  @media screen and (min-width: 800px) {
-    width: calc(100% - 90px);
   }
 `
 
@@ -233,8 +236,8 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
                 .join('&')}`}
             >
               <RowBetween>
-              <DownloadIcon />
-              <TYPE.main>&nbsp;&nbsp;.csv</TYPE.main>
+                <DownloadIcon />
+                <TYPE.main>&nbsp;&nbsp;.csv</TYPE.main>
               </RowBetween>
             </DownloadButton>
           </RowBetween>
@@ -276,7 +279,11 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
           <Search />
           <Panel background={true} style={{ textAlign: 'center' }}>
             <TYPE.main fontWeight={400}>
-              We've launched a neutral wiki for DeFi and crypto. Check it out <BasicLink style={{textDecoration:"underline"}} href="https://wiki.defillama.com/wiki/Main_Page">here</BasicLink>!
+              We've launched a multichain APY dashboard. Check it out{' '}
+              <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
+                here
+              </BasicLink>
+              !
             </TYPE.main>
           </Panel>
         </AutoColumn>
@@ -311,28 +318,24 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
               )}
             </Panel>
           </BreakpointPanels>
-            <div
-              style={{
-                marginTop: '0px',
-                marginBottom: '-34px',
-              }}
-            >
-              <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} alt="" />
-            </div>
+          <div
+            style={{
+              marginTop: '0px',
+              marginBottom: '-34px',
+            }}
+          >
+            <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} alt="" />
+          </div>
         </div>
 
         <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
-        <ListOptions gap="10px" style={{ marginBottom: '.5rem' }}>
-          <RowBetween>
-            <TYPE.main sx={{ minWidth: '90px' }} fontSize={'1.125rem'}>
-              TVL Rankings
-            </TYPE.main>
-            <FiltersRow>
-              <Filters filterOptions={chainOptions} activeLabel={selectedChain} justify="end" />
-            </FiltersRow>
-          </RowBetween>
+
+        <ListOptions>
+          <ListHeader>TVL Rankings</ListHeader>
+          <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
         </ListOptions>
-        <Table data={protocolTotals} columns={columns} />
+
+        <ProtocolsTable data={protocolTotals} columns={columns} />
       </ContentWrapper>
     </PageWrapper>
   )

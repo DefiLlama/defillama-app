@@ -7,7 +7,7 @@ import HeadHelp from 'components/HeadHelp'
 import { CustomLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
 import Bookmark from 'components/Bookmark'
-import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from 'utils'
+import { chainIconUrl, peggedAssetIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from 'utils'
 import { useInfiniteScroll } from 'hooks'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
@@ -34,7 +34,6 @@ interface TableProps {
   columns: ColumnProps[]
   data: unknown
   align?: string
-  secondColumnAlign?: string
   gap?: string
   pinnedRow?: unknown
 }
@@ -67,10 +66,6 @@ const RowWrapper = styled.tr`
     white-space: nowrap;
     text-align: start;
     padding-left: var(--padding-left);
-  }
-
-  & > :nth-child(2) {
-    text-align: var(--second-column-align) !important;
   }
 
   & > :last-child {
@@ -115,7 +110,6 @@ export const Index = styled.div`
   display: flex;
   gap: 1em;
   align-items: center;
-  min-width: 280px;
   position: relative;
 `
 
@@ -123,8 +117,6 @@ const SaveButton = styled(Bookmark)`
   position: relative;
   top: 2px;
   cursor: pointer;
-  width: 16px;
-  height: 16px;
 `
 
 const HeaderButton = styled.button`
@@ -138,6 +130,8 @@ const HeaderButton = styled.button`
   padding: 0;
   font-size: inherit;
   font-weight: 500;
+  display: flex;
+  justify-content: flex-end;
 
   &:hover {
     opacity: 0.6;
@@ -220,7 +214,7 @@ function RowWithExtras({ columns, item, index }: RowProps) {
   )
 }
 
-function Table({ columns = [], data = [], align, secondColumnAlign, gap, pinnedRow, ...props }: TableProps) {
+function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
   const [columnToSort, setColumnToSort] = useState<string | null>(null)
   const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
 
@@ -250,7 +244,6 @@ function Table({ columns = [], data = [], align, secondColumnAlign, gap, pinnedR
     <Wrapper
       style={{
         '--text-align': align || 'end',
-        '--second-column-align': secondColumnAlign || 'end',
         '--gap': gap || '24px',
       }}
       {...props}
@@ -399,8 +392,15 @@ export function Name({
   showRows,
   ...props
 }: NameProps) {
-  const name = symbol === '-' ? value : `${value} (${symbol})`
-
+  const name =
+    symbol === '-' ? (
+      value
+    ) : (
+      <>
+        <span>{value}</span>
+        <span>{` (${symbol})`}</span>
+      </>
+    )
   const { iconUrl, tokenUrl } = useMemo(() => {
     let iconUrl, tokenUrl
     if (type === 'chain') {
@@ -436,6 +436,59 @@ export function Name({
   )
 }
 
+interface PeggedNameProps {
+  type: 'peggedUSD' | 'stablecoins'
+  value: string
+  symbol?: string
+  index?: number
+  bookmark?: boolean
+  rowType?: 'pinned' | 'accordion' | 'child' | 'default'
+  showRows?: boolean
+}
+
+export function NamePegged({
+  type,
+  value,
+  symbol = '',
+  index,
+  bookmark,
+  rowType = 'default',
+  showRows,
+  ...props
+}: PeggedNameProps) {
+  const name = symbol === '-' ? value : `${value} (${symbol})`
+  const { iconUrl, tokenUrl } = useMemo(() => {
+    let iconUrl, tokenUrl
+    if (type === 'peggedUSD') {
+      tokenUrl = `/peggedassets/stablecoins/${value}`
+      iconUrl = chainIconUrl(value)
+    } else {
+      tokenUrl = `/peggedasset/${slug(value)}`
+      iconUrl = peggedAssetIconUrl(value)
+    }
+    return { iconUrl, tokenUrl }
+  }, [type, value])
+
+  let leftSpace: number | string = 0
+
+  if (rowType === 'accordion') {
+    leftSpace = '-30px'
+  }
+
+  if (rowType === 'child') {
+    leftSpace = '30px'
+  }
+
+  return (
+    <Index {...props} style={{ left: leftSpace }}>
+      {rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
+      {rowType !== 'pinned' && index && <span>{index}</span>}
+      <TokenLogo logo={iconUrl} />
+      {rowType === 'accordion' ? <span>{name}</span> : <CustomLink href={tokenUrl}>{name}</CustomLink>}
+    </Index>
+  )
+}
+
 export function NameYield({ value, rowType, ...props }: NameProps) {
   const { iconUrl, tokenUrl } = useMemo(() => {
     return { iconUrl: tokenIconUrl(value['project']), tokenUrl: `/yields/project/${value['projectslug']}` }
@@ -451,6 +504,12 @@ export function NameYield({ value, rowType, ...props }: NameProps) {
       )}
     </Index>
   )
+}
+
+type PeggedCategories = 'stablecoins' | 'peggedUSD'
+
+export function isOfTypePeggedCategory(peggedCategory: string): peggedCategory is PeggedCategories {
+  return ['stablecoins', 'peggedUSD'].includes(peggedCategory)
 }
 
 type Columns =
@@ -527,9 +586,9 @@ const allColumns: AllColumns = {
     Cell: ({ value, rowValues }) => {
       return (
         <AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
-          {rowValues.strikeTvl?<QuestionHelper
-            text='This protocol deposits into another protocol and will be removed from total TVL because "Double Count" toggle is off'
-          />:null}
+          {rowValues.strikeTvl ? (
+            <QuestionHelper text='This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off' />
+          ) : null}
           <span
             style={{
               color: rowValues.strikeTvl ? 'gray' : 'inherit',

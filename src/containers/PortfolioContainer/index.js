@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
 
-import { PageWrapper, FullWrapper } from 'components'
+import { PageWrapper, FullWrapper, ProtocolsTable } from 'components'
 import DropdownSelect from 'components/DropdownSelect'
 import Panel from 'components/Panel'
 import Row, { RowBetween } from 'components/Row'
@@ -11,7 +11,7 @@ import Search from 'components/Search'
 import { useIsClient } from 'hooks'
 import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
 import { TYPE } from 'Theme'
-import Table, { columnsToShow } from 'components/Table'
+import { columnsToShow } from 'components/Table'
 
 const StyledFolderPlus = styled(FolderPlus)`
   cursor: pointer;
@@ -83,7 +83,7 @@ function PortfolioContainer({ protocolsDict }) {
         </Row>
 
         {filteredProtocols.length ? (
-          <Table data={filteredProtocols} columns={columns} />
+          <ProtocolsTable data={filteredProtocols} columns={columns} />
         ) : (
           <Panel style={{ marginTop: '6px', padding: '1rem 0 0 0 ' }}>
             <TYPE.main sx={{ textAlign: 'center', padding: '1rem' }}>You have not saved any protocols.</TYPE.main>

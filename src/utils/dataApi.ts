@@ -16,8 +16,11 @@ import {
   YIELD_POOLS_API,
   YIELD_CHART_API,
   CG_TOKEN_API,
+  PEGGED_API,
+  PEGGEDS_API,
+  PEGGEDCHART_API,
 } from '../constants/index'
-import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
+import { getPercentChange, getPrevTvlFromChart, getPrevCirculatingFromChart, standardizeProtocolName } from 'utils'
 
 interface IProtocol {
   name: string
@@ -64,6 +67,24 @@ export function getProtocolNames(protocols) {
   return protocols.map((p) => ({ name: p.name, symbol: p.symbol }))
 }
 
+export const categoryToPegType = {
+  stablecoins: 'peggedUSD',
+}
+export const peggedPropertiesToKeep = [
+  'circulating',
+  'minted',
+  'unreleased',
+  'name',
+  'symbol',
+  'chains',
+  'price',
+  'change_1d',
+  'change_7d',
+  'change_1m',
+  'circulatingPrevDay',
+  'circulatingPrevWeek',
+  'circulatingPrevMonth',
+]
 export const basicPropertiesToKeep = [
   'tvl',
   'name',
@@ -158,6 +179,52 @@ const formatProtocolsData = ({
   return filteredProtocols
 }
 
+const formatPeggedAssetsData = ({
+  chain = '',
+  category = '',
+  peggedAssets = [],
+  peggedAssetProps = [...peggedPropertiesToKeep],
+}) => {
+  let filteredPeggedAssets = [...peggedAssets]
+  if (chain) {
+    filteredPeggedAssets = filteredPeggedAssets.filter(({ chains = [] }) => chains.includes(chain))
+  }
+
+  if (category) {
+    filteredPeggedAssets = filteredPeggedAssets.filter(
+      ({ category: peggedCategory = '' }) =>
+        category.toLowerCase() === (peggedCategory ? peggedCategory.toLowerCase() : '')
+    )
+  }
+
+  filteredPeggedAssets = filteredPeggedAssets.map((pegged) => {
+    let pegType = pegged.pegType
+    if (chain) {
+      const chainCirculating = pegged.chainCirculating[chain]
+      pegged.circulating = chainCirculating ? chainCirculating.current[pegType] ?? 0 : 0
+      pegged.circulatingPrevDay = chainCirculating ? chainCirculating.circulatingPrevDay[pegType] ?? null : null
+      pegged.circulatingPrevWeek = chainCirculating ? chainCirculating.circulatingPrevWeek[pegType] ?? null : null
+      pegged.circulatingPrevMonth = chainCirculating ? chainCirculating.circulatingPrevMonth[pegType] ?? null : null
+    } else {
+      pegged.circulating = pegged.circulating[pegType] ?? 0
+      pegged.circulatingPrevDay = pegged.circulatingPrevDay[pegType] ?? null
+      pegged.circulatingPrevWeek = pegged.circulatingPrevWeek[pegType] ?? null
+      pegged.circulatingPrevMonth = pegged.circulatingPrevMonth[pegType] ?? null
+    }
+    pegged.change_1d = getPercentChange(pegged.circulating, pegged.circulatingPrevDay)
+    pegged.change_7d = getPercentChange(pegged.circulating, pegged.circulatingPrevWeek)
+    pegged.change_1m = getPercentChange(pegged.circulating, pegged.circulatingPrevMonth)
+
+    return keepNeededProperties(pegged, peggedAssetProps)
+  })
+
+  if (chain) {
+    filteredPeggedAssets = filteredPeggedAssets.sort((a, b) => b.circulating - a.circulating)
+  }
+
+  return filteredPeggedAssets
+}
+
 export async function getProtocolsPageData(category, chain) {
   const { protocols, chains } = await getProtocols()
 
@@ -192,6 +259,78 @@ export async function getSimpleProtocolsPageData(propsToKeep) {
     protocolProps: propsToKeep,
   })
   return { protocols: filteredProtocols, chains }
+}
+
+export async function getPeggedsPageData(category, chain) {
+  const { peggedAssets, chains } = await getPeggedAssets()
+  const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '')).then((r) => r.json())
+
+  let chartDataByPeggedAsset = []
+  let peggedAssetNames: string[] = []
+  chartDataByPeggedAsset = await Promise.all(
+    peggedAssets.map(async (elem) => {
+      peggedAssetNames.push(elem.name)
+      for (let i = 0; i < 5; i++) {
+        try {
+          if (!chain) {
+            return await fetch(`${PEGGEDCHART_API}/?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
+          }
+          return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
+        } catch (e) {}
+      }
+      throw new Error(`${CHART_API}/${elem} is broken`)
+    })
+  )
+
+  const secondsInYear = 3.154 * 10 ** 7
+  const pegType = categoryToPegType[category]
+  const stackedDataset = Object.entries(
+    chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
+      charts.forEach((chart) => {
+        const peggedName = peggedAssetNames[i]
+        const circulating = chart.totalCirculating[pegType]
+        const date = chart.date
+        if (date < 1596248105) return
+        if ((Date.now() / 1000 - secondsInYear / 2 < date) && !(circulating == null)) {
+          // only show data from previous 6 months
+          if (total[date] == undefined) {
+            total[date] = {}
+          }
+          const b = total[date][peggedName]
+          total[date][peggedName] = { ...b, circulating: circulating ?? 0 }
+        }
+      })
+      return total
+    }, {})
+  )
+
+  const chainList = await chains
+    .sort((a, b) => b.circulating[pegType] - a.circulating[pegType])
+    .map((chain) => chain.name)
+  const chainsSet = new Set()
+
+  peggedAssets.forEach(({ chains, category: pCategory }) => {
+    chains.forEach((chain) => {
+      if (!category || !chain) {
+        chainsSet.add(chain)
+      } else {
+        if (pCategory?.toLowerCase() === category?.toLowerCase() && chainList.includes(chain)) {
+          chainsSet.add(chain)
+        }
+      }
+    })
+  })
+
+  let filteredPeggedAssets = formatPeggedAssetsData({ category, peggedAssets, chain })
+
+  return {
+    peggedcategory: category,
+    chains: chainList.filter((chain) => chainsSet.has(chain)),
+    filteredPeggedAssets,
+    chartData,
+    stackedDataset,
+    chain: chain ?? 'All',
+  }
 }
 
 export const getVolumeCharts = (data) => {
@@ -411,6 +550,18 @@ export const fuseProtocolData = (protocolData, protocol) => {
   }
 }
 
+export const getPeggedAssets = () =>
+  fetch(PEGGEDS_API + '?includeChains=true' + '&includePrices=true')
+    .then((r) => r.json())
+    .then(({ peggedAssets, chains }) => ({
+      protocolsDict: peggedAssets.reduce((acc, curr) => {
+        acc[standardizeProtocolName(curr.name)] = curr
+        return acc
+      }, {}),
+      peggedAssets,
+      chains,
+    }))
+
 export const getChainsPageData = async (category: string) => {
   const [res, { chainCoingeckoIds }] = await Promise.all(
     [PROTOCOLS_API, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
@@ -557,6 +708,144 @@ export const getChainsPageData = async (category: string) => {
       stackedDataset,
       category,
       categories,
+      chainsGroupbyParent,
+    },
+  }
+}
+
+export const getPeggedChainsPageData = async (category: string, peggedasset: string) => {
+  const [res, { chainCoingeckoIds }] = await Promise.all(
+    [`${PEGGED_API}/${peggedasset}`, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
+  )
+
+  let categories = []
+  for (const chain in chainCoingeckoIds) {
+    chainCoingeckoIds[chain].categories?.forEach((category) => {
+      if (!categories.includes(category)) {
+        categories.push(category)
+      }
+    })
+  }
+
+  const categoryExists = categories.includes(category) || category === 'All' || category === 'Non-EVM'
+
+  if (!categoryExists) {
+    return {
+      notFound: true,
+    }
+  } else {
+    categories = [
+      { label: 'All', to: `/peggedasset/${peggedasset}` },
+      { label: 'Non-EVM', to: `/peggedasset/${peggedasset}/Non-EVM` },
+    ].concat(categories.map((category) => ({ label: category, to: `/peggedasset/${peggedasset}/${category}` })))
+  }
+
+  const chainsUnique: string[] = res.chains.filter((t: string) => {
+    const chainCategories = chainCoingeckoIds[t]?.categories ?? []
+    if (category === 'All') {
+      return true
+    } else if (category === 'Non-EVM') {
+      return !chainCategories.includes('EVM')
+    } else {
+      return chainCategories.includes(category)
+    }
+  })
+
+  let chainsGroupbyParent = {}
+  chainsUnique.forEach((chain) => {
+    const parent = chainCoingeckoIds[chain]?.parent
+    if (parent) {
+      if (!chainsGroupbyParent[parent.chain]) {
+        chainsGroupbyParent[parent.chain] = {}
+      }
+      for (const type of parent.types) {
+        if (!chainsGroupbyParent[parent.chain][type]) {
+          chainsGroupbyParent[parent.chain][type] = []
+        }
+        chainsGroupbyParent[parent.chain][type].push(chain)
+      }
+    }
+  })
+
+  const chainsData: any[] = await Promise.all(
+    chainsUnique.map(async (elem: string) => {
+      return res.chainBalances[elem].tokens
+    })
+  )
+  const peggedName = res.name
+  const pegType = res.pegType
+  const chainCirculatings = chainsUnique
+    .map((chainName, i) => {
+      const circulating: number = getPrevCirculatingFromChart(chainsData[i], 0, 'circulating', pegType)
+      const unreleased: number = getPrevCirculatingFromChart(chainsData[i], 0, 'unreleased', pegType)
+      let bridgedTo: number | string = getPrevCirculatingFromChart(chainsData[i], 0, 'bridgedTo', pegType)
+      const circulatingPrevDay: number = getPrevCirculatingFromChart(chainsData[i], 1, 'circulating', pegType)
+      const circulatingPrevWeek: number = getPrevCirculatingFromChart(chainsData[i], 7, 'circulating', pegType)
+      const circulatingPrevMonth: number = getPrevCirculatingFromChart(chainsData[i], 30, 'circulating', pegType)
+      const change_1d = getPercentChange(circulating, circulatingPrevDay)
+      const change_7d = getPercentChange(circulating, circulatingPrevWeek)
+      const change_1m = getPercentChange(circulating, circulatingPrevMonth)
+
+      if (bridgedTo <= 0) {
+        bridgedTo = '-'
+      } else if (bridgedTo >= circulating) {
+        bridgedTo = 'all'
+      }
+
+      let bridgeInfo: { bridge: string; link?: string } = res.bridges[chainName]
+
+      if (!bridgeInfo) {
+        bridgeInfo = {
+          bridge: '-',
+        }
+      }
+
+      return {
+        circulating,
+        unreleased,
+        change_1d,
+        change_7d,
+        change_1m,
+        circulatingPrevDay,
+        circulatingPrevWeek,
+        circulatingPrevMonth,
+        bridgeInfo,
+        bridgedAmount: bridgedTo,
+        name: chainName,
+        symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
+      }
+    })
+    .sort((a, b) => b.circulating - a.circulating)
+
+  const stackedDataset = Object.entries(
+    chainsData.reduce((total: IStackedDataset, chains, i) => {
+      const chainName = chainsUnique[i]
+      chains.forEach((circulating) => {
+        const date = circulating.date
+        if (date < 1596248105) return
+        if (total[date] === undefined) {
+          total[date] = {}
+        }
+        const b = total[date][chainName]
+        total[date][chainName] = {
+          ...b,
+          circulating: circulating.circulating ? circulating.circulating[pegType] ?? 0 : 0,
+          unreleased: circulating.unreleased ? circulating.unreleased[pegType] ?? 0 : 0,
+        }
+      })
+      return total
+    }, {})
+  )
+
+  return {
+    props: {
+      chainsUnique,
+      chainCirculatings,
+      category,
+      categories,
+      stackedDataset,
+      peggedName,
+      pegType,
       chainsGroupbyParent,
     },
   }

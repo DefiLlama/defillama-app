@@ -82,6 +82,11 @@ export function useYieldApp() {
   return router.pathname.startsWith('/yields')
 }
 
+export function usePeggedApp() {
+  const router = useRouter()
+  return router.pathname.startsWith('/peggedasset') || router.pathname.startsWith('/peggedassets')
+}
+
 export const useScrollToTop = () => {
   useEffect(() => {
     if (window) {

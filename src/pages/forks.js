@@ -11,7 +11,7 @@ import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { Header } from 'Theme'
 import { ChainDominanceChart, ChainPieChart } from 'components/Charts'
-import Filters from 'components/Filters'
+import Filters, { FiltersWrapper } from 'components/Filters'
 import { Box } from 'rebass'
 
 export async function getStaticProps() {
@@ -118,7 +118,11 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
             daySum={daySum}
           />
         </ChartsWrapper>
-        <Filters filterOptions={tokenLinks} activeLabel="All" />
+
+        <FiltersWrapper>
+          <Filters filterOptions={tokenLinks} activeLabel="All" />
+        </FiltersWrapper>
+
         <Table columns={columns} data={tokensList} />
       </FullWrapper>
     </PageWrapper>
