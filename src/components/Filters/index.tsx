@@ -69,7 +69,7 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
           const child = document.querySelector(`#priority-nav-el-${index}`)
           const sizes = child.getBoundingClientRect()
 
-          if (sizes.top - wrapperSize.top > wrapperSize.height) {
+          if (sizes.top - wrapperSize.top > wrapperSize.height || sizes.left > wrapperSize.width + 130) {
             indexToCutFrom = index
           }
         })
@@ -128,9 +128,11 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
       )}
       {menuFilters && (
         <DropdownMenu>
-          <DropdownMenuTrigger style={{ minWidth: '8rem', margin: '4px', marginLeft: !filters ? 'auto' : '4px' }}>
-            <span>{menuFilters.find((label) => label.label === activeLabel) ? activeLabel : 'Others'}</span>
-            <ChevronDown size={16} />
+          <DropdownMenuTrigger style={{ width: '8rem', margin: '4px', marginLeft: !filters ? 'auto' : '4px' }}>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {menuFilters.find((label) => label.label === activeLabel) ? activeLabel : 'Others'}
+            </span>
+            <ChevronDown size={16} style={{ flexShrink: '0' }} />
           </DropdownMenuTrigger>
           <DropdownMenuContent sideOffset={5}>
             <DropdownMenuLabel>Others</DropdownMenuLabel>

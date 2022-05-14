@@ -77,12 +77,6 @@ export const ButtonLight = styled(Base)`
     background-color: ${({ color, theme }) =>
       color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1)};
   }
-
-  :focus {
-    outline: 1px solid red;
-    outline-offset: 2px;
-    outline-color: ${({ color, theme }) => (color ? transparentize(0.1, color) : transparentize(0.1, theme.primary1))};
-  }
 `
 
 export function ButtonDropdown({ disabled = false, children, open, ...rest }) {
@@ -114,12 +108,6 @@ export const ButtonDark = styled(Base)`
   :hover,
   :focus {
     background-color: ${({ color, theme }) => (color ? darken(0.1, color) : darken(0.1, theme.primary1))};
-  }
-
-  :focus-visible {
-    outline: 1px solid red;
-    outline-offset: 2px;
-    outline-color: ${({ color, theme }) => (color ? transparentize(0.1, color) : transparentize(0.1, theme.primary1))};
   }
 `
 
