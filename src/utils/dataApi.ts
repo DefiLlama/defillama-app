@@ -200,11 +200,11 @@ const formatPeggedAssetsData = ({
   filteredPeggedAssets = filteredPeggedAssets.map((pegged) => {
     let pegType = pegged.pegType
     if (chain) {
-      const chainCirculating = pegged.chainCirculating[chain];
-      pegged.circulating = chainCirculating ? (chainCirculating.current[pegType] ?? 0) : 0
-      pegged.circulatingPrevDay = chainCirculating ? (chainCirculating.circulatingPrevDay[pegType] ?? null) : null
-      pegged.circulatingPrevWeek = chainCirculating ? (chainCirculating.circulatingPrevWeek[pegType] ?? null) : null
-      pegged.circulatingPrevMonth = chainCirculating ? (chainCirculating.circulatingPrevMonth[pegType] ?? null) : null
+      const chainCirculating = pegged.chainCirculating[chain]
+      pegged.circulating = chainCirculating ? chainCirculating.current[pegType] ?? 0 : 0
+      pegged.circulatingPrevDay = chainCirculating ? chainCirculating.circulatingPrevDay[pegType] ?? null : null
+      pegged.circulatingPrevWeek = chainCirculating ? chainCirculating.circulatingPrevWeek[pegType] ?? null : null
+      pegged.circulatingPrevMonth = chainCirculating ? chainCirculating.circulatingPrevMonth[pegType] ?? null : null
     } else {
       pegged.circulating = pegged.circulating[pegType] ?? 0
       pegged.circulatingPrevDay = pegged.circulatingPrevDay[pegType] ?? null
@@ -267,20 +267,22 @@ export async function getPeggedsPageData(category, chain) {
 
   let chartDataByPeggedAsset = []
   let peggedAssetNames: string[] = []
-  if (!chain) {
-    chartDataByPeggedAsset = await Promise.all(
-      peggedAssets.map(async (elem) => {
-        peggedAssetNames.push(elem.name)
-        for (let i = 0; i < 5; i++) {
-          try {
+  chartDataByPeggedAsset = await Promise.all(
+    peggedAssets.map(async (elem) => {
+      peggedAssetNames.push(elem.name)
+      for (let i = 0; i < 5; i++) {
+        try {
+          if (!chain) {
             return await fetch(`${PEGGEDCHART_API}/?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
-          } catch (e) {}
-        }
-        throw new Error(`${CHART_API}/${elem} is broken`)
-      })
-    )
-  }
+          }
+          return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
+        } catch (e) {}
+      }
+      throw new Error(`${CHART_API}/${elem} is broken`)
+    })
+  )
 
+  const secondsInYear = 3.154 * 10 ** 7
   const pegType = categoryToPegType[category]
   const stackedDataset = Object.entries(
     chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
@@ -289,11 +291,14 @@ export async function getPeggedsPageData(category, chain) {
         const circulating = chart.totalCirculating[pegType]
         const date = chart.date
         if (date < 1596248105) return
-        if (total[date] === undefined) {
-          total[date] = {}
+        if ((Date.now() / 1000 - secondsInYear / 2 < date) && !(circulating == null)) {
+          // only show data from previous 6 months
+          if (total[date] == undefined) {
+            total[date] = {}
+          }
+          const b = total[date][peggedName]
+          total[date][peggedName] = { ...b, circulating: circulating ?? 0 }
         }
-        const b = total[date][peggedName]
-        total[date][peggedName] = { ...b, circulating: circulating ?? 0 }
       })
       return total
     }, {})
@@ -767,7 +772,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       return res.chainBalances[elem].tokens
     })
   )
-  const peggedName = res.name;
+  const peggedName = res.name
   const pegType = res.pegType
   const chainCirculatings = chainsUnique
     .map((chainName, i) => {
