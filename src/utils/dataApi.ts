@@ -200,11 +200,11 @@ const formatPeggedAssetsData = ({
   filteredPeggedAssets = filteredPeggedAssets.map((pegged) => {
     let pegType = pegged.pegType
     if (chain) {
-      const chainCirculating = pegged.chainCirculating[chain];
-      pegged.circulating = chainCirculating ? (chainCirculating.current[pegType] ?? 0) : 0
-      pegged.circulatingPrevDay = chainCirculating ? (chainCirculating.circulatingPrevDay[pegType] ?? null) : null
-      pegged.circulatingPrevWeek = chainCirculating ? (chainCirculating.circulatingPrevWeek[pegType] ?? null) : null
-      pegged.circulatingPrevMonth = chainCirculating ? (chainCirculating.circulatingPrevMonth[pegType] ?? null) : null
+      const chainCirculating = pegged.chainCirculating[chain]
+      pegged.circulating = chainCirculating ? chainCirculating.current[pegType] ?? 0 : 0
+      pegged.circulatingPrevDay = chainCirculating ? chainCirculating.circulatingPrevDay[pegType] ?? null : null
+      pegged.circulatingPrevWeek = chainCirculating ? chainCirculating.circulatingPrevWeek[pegType] ?? null : null
+      pegged.circulatingPrevMonth = chainCirculating ? chainCirculating.circulatingPrevMonth[pegType] ?? null : null
     } else {
       pegged.circulating = pegged.circulating[pegType] ?? 0
       pegged.circulatingPrevDay = pegged.circulatingPrevDay[pegType] ?? null
@@ -281,6 +281,7 @@ export async function getPeggedsPageData(category, chain) {
     )
   }
 
+  const secondsInYear = 3.154 * 10 ** 7
   const pegType = categoryToPegType[category]
   const stackedDataset = Object.entries(
     chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
@@ -289,6 +290,7 @@ export async function getPeggedsPageData(category, chain) {
         const circulating = chart.totalCirculating[pegType]
         const date = chart.date
         if (date < 1596248105) return
+        if (date < Date.now() / 1000 - secondsInYear / 2) return // only show data for previous 6 months
         if (total[date] === undefined) {
           total[date] = {}
         }
@@ -767,7 +769,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       return res.chainBalances[elem].tokens
     })
   )
-  const peggedName = res.name;
+  const peggedName = res.name
   const pegType = res.pegType
   const chainCirculatings = chainsUnique
     .map((chainName, i) => {
