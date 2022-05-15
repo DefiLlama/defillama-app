@@ -1,7 +1,7 @@
 import { FullWrapper, PageWrapper } from 'components'
 import { CustomLink } from 'components/Link'
 import { GeneralLayout } from '../layout'
-import { getPeggedAssets, revalidate } from '../utils/dataApi'
+import { getPeggedAssets, revalidate, getPeggedPrices } from '../utils/dataApi'
 import { toK } from 'utils'
 import Table, { Index } from 'components/Table'
 import PageHeader from 'components/PageHeader'
@@ -9,16 +9,21 @@ import { capitalizeFirstLetter } from 'utils'
 
 export async function getStaticProps() {
   const peggedAssets = await getPeggedAssets()
-
+  const prices = await getPeggedPrices()
   let categories = {}
   peggedAssets.peggedAssets.forEach((p) => {
     const pegType = p.pegType
+    const price = prices[p.gecko_id]
     const cat = p.category
     if (categories[cat] === undefined) {
       categories[cat] = { peggedAssets: 0, mcap: 0 }
     }
     categories[cat].peggedAssets++
-    categories[cat].mcap += p.circulating[pegType]  // this should be replaced by mcap
+    if (price) {
+      categories[cat].mcap += p.circulating[pegType] * price
+    } else {
+      categories[cat].mcap += p.circulating[pegType]
+    }
   })
 
   categories = Object.entries(categories).map(([name, details]) => ({

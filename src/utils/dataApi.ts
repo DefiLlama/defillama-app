@@ -19,6 +19,7 @@ import {
   PEGGED_API,
   PEGGEDS_API,
   PEGGEDCHART_API,
+  PEGGEDPRICES_API,
 } from '../constants/index'
 import { getPercentChange, getPrevTvlFromChart, getPrevCirculatingFromChart, standardizeProtocolName } from 'utils'
 
@@ -283,6 +284,7 @@ export async function getPeggedsPageData(category, chain) {
   )
 
   const secondsInYear = 3.154 * 10 ** 7
+  const currentTimestamp = Date.now() / 1000
   const pegType = categoryToPegType[category]
   const stackedDataset = Object.entries(
     chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
@@ -291,7 +293,7 @@ export async function getPeggedsPageData(category, chain) {
         const circulating = chart.totalCirculating[pegType]
         const date = chart.date
         if (date < 1596248105) return
-        if ((Date.now() / 1000 - secondsInYear / 2 < date) && !(circulating == null)) {
+        if ((currentTimestamp - secondsInYear / 2 < date) && !(circulating == null)) {
           // only show data from previous 6 months
           if (total[date] == undefined) {
             total[date] = {}
@@ -561,6 +563,8 @@ export const getPeggedAssets = () =>
       peggedAssets,
       chains,
     }))
+
+export const getPeggedPrices = () => fetch(PEGGEDPRICES_API).then((r) => r.json())
 
 export const getChainsPageData = async (category: string) => {
   const [res, { chainCoingeckoIds }] = await Promise.all(
