@@ -21,7 +21,7 @@ import { useLg } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
 import Table, { columnsToShow, isOfTypePeggedCategory } from 'components/Table'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
-import { categoryToPegType } from 'utils/dataApi'
+import { categoryToPegType, getPeggedPrices } from 'utils/dataApi'
 import Filters, { FiltersWrapper } from 'components/Filters'
 
 export const BreakpointPanels = styled.div`
@@ -150,7 +150,7 @@ function AllPeggedsPage({
     return { circulating, percentChange }
   }, [chartData, category])
 
-  const circulatingToDisplay = formattedNum(circulating, true)
+  const circulatingToDisplay = formattedNum(circulating, false)
 
   const topToken = { name: 'Tether', circulating: 0 }
   if (peggedTotals.length > 0) {
