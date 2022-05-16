@@ -574,6 +574,21 @@ export const chainCoingeckoIds = {
     symbol: "COTI",
     cmcId: "3992",
   },
+  Bitcoincash: {
+    geckoId: "bitcoin-cash",
+    symbol: "BCH",
+    cmcId: "1831",
+  },
+  Litecoin: {
+    geckoId: "coti",
+    symbol: "LTC",
+    cmcId: "2",
+  },
+  Doge: {
+    geckoId: "coti",
+    symbol: "DOGE",
+    cmcId: "74",
+  },
 }
 
 export const chainMarketplaceMappings = {
