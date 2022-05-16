@@ -92,7 +92,7 @@ const theme = (darkMode, color) => ({
   minLg: `@media screen and (min-width: ${lg}px)`,
   minXl: `@media screen and (min-width: ${xl}px)`,
 
-  breakpoints: [`${sm}px`, `${med}px`, `${lg}px`, `${xl}px`]
+  breakpoints: [`${sm}px`, `${med}px`, `${lg}px`, `${xl}px`],
 })
 
 const TextWrapper = styled(Text)`
@@ -130,7 +130,7 @@ export const TYPE = {
 
   pink(props) {
     return <TextWrapper fontWeight={props.faded ? 400 : 600} color={props.faded ? 'text1' : 'text1'} {...props} />
-  }
+  },
 }
 
 export const Header = styled.h1`
@@ -148,7 +148,7 @@ export const Hover = styled.div`
 
 export const Link = styled.a.attrs({
   target: '_blank',
-  rel: 'noopener noreferrer'
+  rel: 'noopener noreferrer',
 })`
   text-decoration: none;
   cursor: pointer;
@@ -176,8 +176,9 @@ export const ThemedBackground = styled.div`
   height: 200vh;
   mix-blend-mode: color;
   background: ${({ backgroundColor, theme }) =>
-    `radial-gradient(50% 50% at 50% 50%, ${backgroundColor ||
-      transparentize(0.6, theme.primary1)} 0%, rgba(255, 255, 255, 0) 100%)`};
+    `radial-gradient(50% 50% at 50% 50%, ${
+      backgroundColor || transparentize(0.6, theme.primary1)
+    } 0%, rgba(255, 255, 255, 0) 100%)`};
   position: absolute;
   top: 0px;
   left: 0px;
@@ -223,8 +224,6 @@ export const GlobalStyle = createGlobalStyle`
     padding: 0;
     width: 100%;
     height: 100%;
-    font-size: 14px;
-    background-color: ${({ theme }) => theme.bg6};
   }
 
   a {
@@ -236,40 +235,40 @@ export const GlobalStyle = createGlobalStyle`
   }
 
 
-.three-line-legend {
-	width: 100%;
-	height: 70px;
-	position: absolute;
-	padding: 8px;
-	font-size: 12px;
-	color: #20262E;
-	background-color: rgba(255, 255, 255, 0.23);
-	text-align: left;
-	z-index: 10;
-  pointer-events: none;
-}
-
-.three-line-legend-dark {
-	width: 100%;
-	height: 70px;
-	position: absolute;
-	padding: 8px;
-	font-size: 12px;
-	color: white;
-	background-color: rgba(255, 255, 255, 0.23);
-	text-align: left;
-	z-index: 10;
-  pointer-events: none;
-}
-
-.tv-lightweight-charts{
-  width: 100% !important;
-
-
-  & > * {
-    width: 100% !important;
+  .three-line-legend {
+    width: 100%;
+    height: 70px;
+    position: absolute;
+    padding: 8px;
+    font-size: 12px;
+    color: #20262E;
+    background-color: rgba(255, 255, 255, 0.23);
+    text-align: left;
+    z-index: 10;
+    pointer-events: none;
   }
-}
+
+  .three-line-legend-dark {
+    width: 100%;
+    height: 70px;
+    position: absolute;
+    padding: 8px;
+    font-size: 12px;
+    color: white;
+    background-color: rgba(255, 255, 255, 0.23);
+    text-align: left;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .tv-lightweight-charts{
+    width: 100% !important;
+
+
+    & > * {
+      width: 100% !important;
+    }
+  }
 
 
   html {
@@ -279,6 +278,19 @@ export const GlobalStyle = createGlobalStyle`
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-    height: 100%;
+  }
+
+
+  #__next {
+    font-size: 14px;
+    background-color: ${({ theme }) => theme.bg6};
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+
+    ${({ theme: { minLg } }) => minLg} {
+      flex-direction: row
+    }
   }
 `
