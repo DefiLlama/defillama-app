@@ -1,5 +1,4 @@
 import { FullWrapper, PageWrapper } from 'components'
-import { CustomLink } from 'components/Link'
 import { GeneralLayout } from '../../layout'
 import { getYieldPageData, revalidate } from '../../utils/dataApi'
 import { toK } from 'utils'

@@ -9,11 +9,11 @@ import InfiniteScroll from 'react-infinite-scroll-component'
 import TokenLogo from '../TokenLogo'
 import ChainsRow from '../ChainsRow'
 import TokensRow from '../TokensRow'
-import { BasicLink, CustomLink } from '../Link'
+import { CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, tokenIconUrl } from '../../utils'
+import { formattedNum } from '../../utils'
 import { useInfiniteScroll } from '../../hooks'
 
 import FormattedName from '../FormattedName'
@@ -106,11 +106,11 @@ const SORT_FIELD = {
 // @TODO generalize to merge with NFTCollectionList
 function NFTList({
   data,
-  filters,
+  // filters,
   iconUrl,
-  generateLink = () => '',
-  columns = [],
-  defaultSortingColumn = 'totalVolume',
+  // generateLink = () => '',
+  // columns = [],
+  // defaultSortingColumn = 'totalVolume',
   type = 'chains',
 }) {
   // sorting
@@ -174,7 +174,7 @@ function NFTList({
             color="text"
             area="chain"
             fontWeight="500"
-            onClick={(e) => {
+            onClick={() => {
               setSortedColumn(SORT_FIELD.NAME)
               setSortDirection(sortedColumn !== SORT_FIELD.NAME ? true : !sortDirection)
             }}
@@ -191,7 +191,7 @@ function NFTList({
           <Flex alignItems="center">
             <ClickableText
               area="collections"
-              onClick={(e) => {
+              onClick={() => {
                 setSortedColumn(SORT_FIELD.COLLECTIONS)
                 setSortDirection(sortedColumn !== SORT_FIELD.COLLECTIONS ? true : !sortDirection)
               }}
@@ -204,7 +204,7 @@ function NFTList({
           <Flex alignItems="center">
             <ClickableText
               area="dailyVolume"
-              onClick={(e) => {
+              onClick={() => {
                 setSortedColumn(SORT_FIELD.VOL)
                 setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
               }}
@@ -216,7 +216,7 @@ function NFTList({
         <Flex alignItems="center">
           <ClickableText
             area="totalVolume"
-            onClick={(e) => {
+            onClick={() => {
               setSortedColumn(SORT_FIELD.TOTAL_VOL)
               setSortDirection(sortedColumn !== SORT_FIELD.TOTAL_VOL ? true : !sortDirection)
             }}

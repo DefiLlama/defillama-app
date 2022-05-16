@@ -2,7 +2,7 @@ import ProtocolList from '../components/ProtocolList'
 import { GeneralLayout } from '../layout'
 import { getSimpleProtocolsPageData, revalidate } from '../utils/dataApi'
 
-export async function getStaticProps({ params }) {
+export async function getStaticProps() {
   const { protocols, chains } = await getSimpleProtocolsPageData()
   return {
     props: {

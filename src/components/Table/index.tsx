@@ -451,7 +451,6 @@ export function NamePegged({
   value,
   symbol = '',
   index,
-  bookmark,
   rowType = 'default',
   showRows,
   ...props
