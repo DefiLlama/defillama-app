@@ -147,13 +147,11 @@ function AllPeggedsPage({
 
   const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
-  let topToken = { name: 'Tether', mcap: 0 }
+  let topToken = { symbol: 'USDT', mcap: 0 }
   if (peggedTotals.length > 0) {
     const topTokenData = peggedTotals[0]
     topToken.symbol = topTokenData.symbol
-    const topCirculating = peggedTotals[0].circulating
-    const topPrice = topTokenData.price
-    topToken.mcap = topPrice * topCirculating
+    topToken.mcap = topTokenData.mcap
   }
 
   const dominance = getPeggedDominance(topToken, totalMcapCurrent)
