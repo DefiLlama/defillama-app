@@ -16,6 +16,7 @@ import {
   List,
   Percent,
   Book,
+  Pocket,
 } from 'react-feather'
 
 import { Entry } from './shared'
@@ -41,6 +42,7 @@ const NavMenu = ({ isMobile }) => {
       <Entry url="airdrops" name="Airdrops" history={history} Icon={CloudDrizzle} />
       <Entry url="oracles" name="Oracles" history={history} Icon={Shield} />
       <Entry url="forks" name="Forks" history={history} Icon={Share2} />
+      <Entry url="peggedassets/stablecoins" name="Stablecoins" history={history} Icon={Pocket} newTag />
       {!isMobile && <Entry url="portfolio" name="Portfolio" history={history} Icon={Bookmark} />}
       <Entry url="top-protocols" name="Top Protocols" history={history} Icon={Map} />
       <Entry url="categories" name="Categories" history={history} Icon={RefreshCcw} />

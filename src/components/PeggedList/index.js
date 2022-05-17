@@ -105,7 +105,7 @@ function AllPeggedsPage({
   const peggedTotals = useCalcCirculating(filteredPeggedAssets, defaultSortingColumn)
 
   const chainsCirculatingValues = useMemo(() => {
-    const data = peggedTotals.map((chain) => ({ name: chain.name, value: chain.circulating }))
+    const data = peggedTotals.map((chain) => ({ name: chain.symbol, value: chain.circulating }))
 
     const otherCirculating = data.slice(10).reduce((total, entry) => {
       return (total += entry.value)
@@ -118,11 +118,11 @@ function AllPeggedsPage({
   }, [peggedTotals])
 
   const chainColor = useMemo(
-    () => Object.fromEntries([...peggedTotals, 'Others'].map((peggedAsset) => [peggedAsset.name, getRandomColor()])),
+    () => Object.fromEntries([...peggedTotals, 'Others'].map((peggedAsset) => [peggedAsset.symbol, getRandomColor()])),
     [peggedTotals]
   )
 
-  const peggedAssetNames = useMemo(() => peggedTotals.map((peggedAsset) => peggedAsset.name), [peggedTotals])
+  const peggedAssetNames = useMemo(() => peggedTotals.map((peggedAsset) => peggedAsset.symbol), [peggedTotals])
 
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
@@ -150,7 +150,7 @@ function AllPeggedsPage({
   let topToken = { name: 'Tether', mcap: 0 }
   if (peggedTotals.length > 0) {
     const topTokenData = peggedTotals[0]
-    topToken.name = topTokenData.name
+    topToken.symbol = topTokenData.symbol
     const topCirculating = peggedTotals[0].circulating
     const topPrice = topTokenData.price
     topToken.mcap = topPrice * topCirculating
@@ -187,7 +187,7 @@ function AllPeggedsPage({
       <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
         <AutoColumn gap="4px">
           <RowBetween>
-            <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
+            <TYPE.heading>{topToken.symbol} Dominance</TYPE.heading>
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
@@ -209,7 +209,7 @@ function AllPeggedsPage({
         <div>
           <BreakpointPanels>
             <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-            {stackedDataset.length === 0 ? (
+            {stackedDataset.length < 30 ? (
               <PeggedChainPieChart data={chainsCirculatingValues} chainColor={chainColor} />
             ) : (
               <PeggedChainDominanceChart

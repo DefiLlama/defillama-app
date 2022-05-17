@@ -16,7 +16,7 @@ export async function getStaticProps({
     category,
     categories,
     stackedDataset,
-    peggedName,
+    peggedSymbol,
     pegType,
     chainsGroupbyParent,
   } = data.props
@@ -27,7 +27,7 @@ export async function getStaticProps({
       category,
       categories,
       stackedDataset,
-      peggedName,
+      peggedSymbol,
       pegType,
       chainsGroupbyParent,
     },

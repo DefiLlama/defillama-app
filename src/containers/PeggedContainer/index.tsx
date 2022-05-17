@@ -54,7 +54,7 @@ export default function PeggedContainer({
   category,
   categories,
   stackedDataset,
-  peggedName,
+  peggedSymbol,
   pegType,
   chainsGroupbyParent,
 }) {
@@ -146,7 +146,7 @@ export default function PeggedContainer({
         <AllPeggedOptions style={{ display: 'flex', justifyContent: 'center' }} />
         <AllGroupOptions style={{ display: 'flex', justifyContent: 'center' }} />
         <RowWrapper>
-          <Header>{Capitalize(peggedName)} Total Circulating All Chains</Header>
+          <Header>{Capitalize(peggedSymbol)} Total Circulating All Chains</Header>
           <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
         </RowWrapper>
         <ChartsWrapper>
@@ -155,7 +155,7 @@ export default function PeggedContainer({
             stackOffset="expand"
             formatPercent={true}
             stackedDataset={stackedData}
-            asset={peggedName}
+            asset={peggedSymbol}
             chainsUnique={chainsUnique}
             chainColor={chainColor}
             daySum={daySum}
