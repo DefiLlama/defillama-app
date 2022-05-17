@@ -90,9 +90,9 @@ function AllPeggedsPage({
     },
     ...columnsToShow('1dChange', '7dChange', '1mChange'),
     {
-      header: 'Total Circulating',
-      accessor: 'circulating',
-      Cell: ({ value }) => <>{value && formattedNum(value)}</>,
+      header: 'Market Cap',
+      accessor: 'mcap',
+      Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
     },
   ]
 
@@ -129,36 +129,36 @@ function AllPeggedsPage({
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
   if (!title) {
-    title = `Circulating`
+    title = `Market Cap`
     if (category) {
-      title = `${capitalizeFirstLetter(category)} Circulating`
+      title = `${capitalizeFirstLetter(category)} Market Cap`
     }
     if (selectedChain !== 'All') {
-      title = `${capitalizeFirstLetter(selectedChain)} ${capitalizeFirstLetter(category)} Circulating`
+      title = `${capitalizeFirstLetter(selectedChain)} ${capitalizeFirstLetter(category)} Market Cap`
     }
   }
 
-  const { circulating, percentChange } = useMemo(() => {
-    const circulating = getPrevCirculatingFromChart(chartData, 0, 'totalCirculating', categoryToPegType[category])
-    const circulatingPrevDay = getPrevCirculatingFromChart(
-      chartData,
-      1,
-      'totalCirculating',
-      categoryToPegType[category]
-    )
-    const percentChange = getPercentChange(circulating, circulatingPrevDay)?.toFixed(2)
-    return { circulating, percentChange }
-  }, [chartData, category])
+  const { percentChange, totalMcapCurrent } = useMemo(() => {
+    const chartCurrent = chartData[chartData.length - 1] ?? null
+    const chartPrevDay = chartData[chartData.length - 2] ?? null
+    const totalMcapCurrent = chartCurrent.mcap ?? 0
+    const totalMcapPrevDay = chartPrevDay.mcap ?? 0
+    const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
+    return { percentChange, totalMcapCurrent }
+  }, [chartData])
 
-  const circulatingToDisplay = formattedNum(circulating, false)
+  const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
-  const topToken = { name: 'Tether', circulating: 0 }
+  let topToken = { name: 'Tether', mcap: 0 }
   if (peggedTotals.length > 0) {
-    topToken.name = peggedTotals[0]?.name
-    topToken.circulating = peggedTotals[0]?.circulating
+    const topTokenData = peggedTotals[0]
+    topToken.name = topTokenData?.name
+    const topCirculating = peggedTotals[0]?.circulating
+    const topPrice = topTokenData?.price
+    topToken.mcap = topPrice * topCirculating
   }
 
-  const dominance = getPeggedDominance(topToken, circulating)
+  const dominance = getPeggedDominance(topToken, totalMcapCurrent)
 
   const panels = (
     <>
@@ -169,7 +169,7 @@ function AllPeggedsPage({
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-              {circulatingToDisplay}
+              {mcapToDisplay}
             </TYPE.main>
           </RowBetween>
         </AutoColumn>

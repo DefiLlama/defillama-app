@@ -9,11 +9,12 @@ import { capitalizeFirstLetter } from 'utils'
 
 export async function getStaticProps() {
   const peggedAssets = await getPeggedAssets()
-  const prices = await getPeggedPrices()
+  const priceChart = await getPeggedPrices()
+  const currentPrices = priceChart[priceChart.length - 1] ?? null
   let categories = {}
   peggedAssets.peggedAssets.forEach((p) => {
     const pegType = p.pegType
-    const price = prices[p.gecko_id]
+    const price = currentPrices.prices[p.gecko_id]
     const cat = p.category
     if (categories[cat] === undefined) {
       categories[cat] = { peggedAssets: 0, mcap: 0 }
