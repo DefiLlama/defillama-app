@@ -13,7 +13,6 @@ import {
   formattedNum,
   formattedPegggedPrice,
   getPercentChange,
-  getPrevCirculatingFromChart,
   getPeggedDominance,
 } from 'utils'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/data'
@@ -21,7 +20,6 @@ import { useLg } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
 import Table, { columnsToShow, isOfTypePeggedCategory } from 'components/Table'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
-import { categoryToPegType, getPeggedPrices } from 'utils/dataApi'
 import Filters, { FiltersWrapper } from 'components/Filters'
 
 export const BreakpointPanels = styled.div`
