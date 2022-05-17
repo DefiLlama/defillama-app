@@ -13,7 +13,6 @@ import {
   useMillionDollarManager,
   useTvlToggles,
   useGetExtraTvlEnabled,
-  usePeggedToggles,
   useGetExtraPeggedEnabled,
   STAKING,
   POOL2,
@@ -316,7 +315,7 @@ export const extraTvlOptions = [
   },
 ]
 
-const extraPeggedOptions = [
+export const extraPeggedOptions = [
   {
     name: 'Unreleased',
     key: UNRELEASED,
@@ -426,7 +425,7 @@ export const AllTvlOptions = ({ style }) => {
 }
 
 export const AllPeggedOptions = ({ style }) => {
-  const peggedToggles = usePeggedToggles()
+  const peggedToggles = useTvlToggles()
   const extraPeggedEnabled = useGetExtraPeggedEnabled()
   return (
     <>

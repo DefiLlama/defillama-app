@@ -85,3 +85,4 @@ const Select = ({ options, ...props }: Props) => (
 export default Select
 
 export { default as ChainsTvlSelect } from './ChainsTvlOptions'
+export { default as PeggedAssetOptions } from './PeggedAssetOptions'

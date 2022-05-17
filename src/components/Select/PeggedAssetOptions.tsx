@@ -1,30 +1,24 @@
-import { extraTvlOptions } from 'components/SettingsModal'
-import { groupSettings, useGetExtraTvlEnabled, useGroupEnabled, useTvlToggles } from 'contexts/LocalStorage'
+import { groupSettings, useGroupEnabled, useTvlToggles } from 'contexts/LocalStorage'
 import { ActionMeta, components, GroupProps } from 'react-select'
 import Select from '.'
 
 const chainAggr = groupSettings.map((g) => ({ label: g.name, value: g.key }))
-const extraTvls = extraTvlOptions.map((g) => ({ label: g.name, value: g.key }))
-const tvlOptions = [...chainAggr, ...extraTvls]
+
+const tvlOptions = [...chainAggr]
 
 const groupOptions = [
   {
     label: 'Aggregate Chains',
     options: chainAggr,
   },
-  {
-    label: 'Include TVLs',
-    options: extraTvls,
-  },
 ]
 
-export default function ChainsTvlSelect({ label }: { label?: string }) {
+export default function PeggedAssetOptions({ label }: { label?: string }) {
   const tvlToggles = useTvlToggles()
 
   const groupTvls = useGroupEnabled()
-  const extraTvls = useGetExtraTvlEnabled()
 
-  const fitlers = { ...groupTvls, ...extraTvls }
+  const fitlers = { ...groupTvls }
 
   const selectedOptions = Object.keys(fitlers)
     .filter((key) => fitlers[key])

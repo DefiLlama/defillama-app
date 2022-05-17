@@ -243,13 +243,6 @@ export const useGetExtraPeggedEnabled = () => {
   )
 }
 
-export function usePeggedToggles() {
-  const [state, { updateKey }] = useLocalStorageContext()
-  return (key) => () => {
-    updateKey(key, !state[key])
-  }
-}
-
 export function useStakingManager() {
   const [state, { updateKey }] = useLocalStorageContext()
   let stakingEnabled = state[STAKING]

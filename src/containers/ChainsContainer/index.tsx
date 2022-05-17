@@ -215,7 +215,7 @@ const StyledTable = styled(FullTable)<ITable>`
 const ChainTvlsFilter = styled.div`
   margin: 12px 0 16px;
   & > h2 {
-    margin: 0 0 8px;
+    margin: 0 2px 8px;
     font-weight: 600;
     font-size: 0.825rem;
     color: ${({ theme }) => theme.text1};
