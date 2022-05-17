@@ -75,8 +75,10 @@ export const peggedPropertiesToKeep = [
   'circulating',
   'minted',
   'unreleased',
+  'mcap',
   'name',
   'symbol',
+  'gecko_id',
   'chains',
   'price',
   'change_1d',
@@ -216,11 +218,13 @@ const formatPeggedAssetsData = ({
     pegged.change_7d = getPercentChange(pegged.circulating, pegged.circulatingPrevWeek)
     pegged.change_1m = getPercentChange(pegged.circulating, pegged.circulatingPrevMonth)
 
+    pegged.mcap = pegged.price * pegged.circulating
+
     return keepNeededProperties(pegged, peggedAssetProps)
   })
 
   if (chain) {
-    filteredPeggedAssets = filteredPeggedAssets.sort((a, b) => b.circulating - a.circulating)
+    filteredPeggedAssets = filteredPeggedAssets.sort((a, b) => b.mcap - a.mcap)
   }
 
   return filteredPeggedAssets
@@ -290,10 +294,10 @@ export async function getPeggedsPageData(category, chain) {
     chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
       charts.forEach((chart) => {
         const peggedName = peggedAssetNames[i]
-        const circulating = chart.totalCirculating[pegType]
+        const circulating = chart.mcap  // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
         const date = chart.date
         if (date < 1596248105) return
-        if ((currentTimestamp - secondsInYear / 2 < date) && !(circulating == null)) {
+        if (currentTimestamp - secondsInYear / 2 < date && !(circulating == null)) {
           // only show data from previous 6 months
           if (total[date] == undefined) {
             total[date] = {}
@@ -323,7 +327,7 @@ export async function getPeggedsPageData(category, chain) {
     })
   })
 
-  let filteredPeggedAssets = formatPeggedAssetsData({ category, peggedAssets, chain })
+  const filteredPeggedAssets = formatPeggedAssetsData({ category, peggedAssets, chain })
 
   return {
     peggedcategory: category,
