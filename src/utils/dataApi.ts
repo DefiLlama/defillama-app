@@ -186,6 +186,8 @@ const formatPeggedAssetsData = ({
   chain = '',
   category = '',
   peggedAssets = [],
+  chartDataByPeggedAsset = [],
+  peggedNameToIndexObj = {},
   peggedAssetProps = [...peggedPropertiesToKeep],
 }) => {
   let filteredPeggedAssets = [...peggedAssets]
@@ -214,11 +216,16 @@ const formatPeggedAssetsData = ({
       pegged.circulatingPrevWeek = pegged.circulatingPrevWeek[pegType] ?? null
       pegged.circulatingPrevMonth = pegged.circulatingPrevMonth[pegType] ?? null
     }
-    pegged.change_1d = getPercentChange(pegged.circulating, pegged.circulatingPrevDay)
-    pegged.change_7d = getPercentChange(pegged.circulating, pegged.circulatingPrevWeek)
-    pegged.change_1m = getPercentChange(pegged.circulating, pegged.circulatingPrevMonth)
+    const chartIndex = peggedNameToIndexObj[pegged.name]
+    const chart = chartDataByPeggedAsset[chartIndex] ?? null
 
-    pegged.mcap = pegged.price * pegged.circulating
+    pegged.mcap = chart?.[chart.length - 1]?.mcap ?? null
+    const mcapPrevDay = chart?.[chart.length - 1 - 1]?.mcap ?? null
+    const mcapPrevWeek = chart?.[chart.length - 1 - 7]?.mcap ?? null
+    const mcapPrevMonth = chart?.[chart.length - 1 - 30]?.mcap ?? null
+    pegged.change_1d = getPercentChange(pegged.mcap, mcapPrevDay)
+    pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
+    pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
 
     return keepNeededProperties(pegged, peggedAssetProps)
   })
@@ -272,9 +279,11 @@ export async function getPeggedsPageData(category, chain) {
 
   let chartDataByPeggedAsset = []
   let peggedAssetNames: string[] = []
+  let peggedNameToIndexObj: object = {}
   chartDataByPeggedAsset = await Promise.all(
-    peggedAssets.map(async (elem) => {
+    peggedAssets.map(async (elem, i) => {
       peggedAssetNames.push(elem.name)
+      peggedNameToIndexObj[elem.name] = i
       for (let i = 0; i < 5; i++) {
         try {
           if (!chain) {
@@ -294,7 +303,7 @@ export async function getPeggedsPageData(category, chain) {
     chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
       charts.forEach((chart) => {
         const peggedName = peggedAssetNames[i]
-        const circulating = chart.mcap  // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
+        const circulating = chart.mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
         const date = chart.date
         if (date < 1596248105) return
         if (currentTimestamp - secondsInYear / 2 < date && !(circulating == null)) {
@@ -327,7 +336,13 @@ export async function getPeggedsPageData(category, chain) {
     })
   })
 
-  const filteredPeggedAssets = formatPeggedAssetsData({ category, peggedAssets, chain })
+  const filteredPeggedAssets = formatPeggedAssetsData({
+    category,
+    peggedAssets,
+    chartDataByPeggedAsset,
+    peggedNameToIndexObj,
+    chain,
+  })
 
   return {
     peggedcategory: category,
