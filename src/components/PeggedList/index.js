@@ -209,7 +209,7 @@ function AllPeggedsPage({
         <div>
           <BreakpointPanels>
             <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-            {stackedDataset.length === 0 ? (
+            {stackedDataset.length < 30 ? (
               <PeggedChainPieChart data={chainsCirculatingValues} chainColor={chainColor} />
             ) : (
               <PeggedChainDominanceChart

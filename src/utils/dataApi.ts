@@ -296,8 +296,6 @@ export async function getPeggedsPageData(category, chain) {
     })
   )
 
-  const secondsInYear = 3.154 * 10 ** 7
-  const currentTimestamp = Date.now() / 1000
   const pegType = categoryToPegType[category]
   const stackedDataset = Object.entries(
     chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
@@ -306,8 +304,7 @@ export async function getPeggedsPageData(category, chain) {
         const circulating = chart.mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
         const date = chart.date
         if (date < 1596248105) return
-        if (currentTimestamp - secondsInYear / 2 < date && !(circulating == null)) {
-          // only show data from previous 6 months
+        if (circulating !== null) {
           if (total[date] == undefined) {
             total[date] = {}
           }
@@ -795,7 +792,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       return res.chainBalances[elem].tokens
     })
   )
-  const peggedName = res.name
+  const peggedSymbol = res.symbol
   const pegType = res.pegType
   const chainCirculatings = chainsUnique
     .map((chainName, i) => {
@@ -867,7 +864,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       category,
       categories,
       stackedDataset,
-      peggedName,
+      peggedSymbol,
       pegType,
       chainsGroupbyParent,
     },
