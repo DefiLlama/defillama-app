@@ -293,7 +293,7 @@ export function CheckMarks({ type = 'defi', style = null }) {
   }
 }
 
-const extraTvlOptions = [
+export const extraTvlOptions = [
   {
     name: 'Staking',
     key: STAKING,
