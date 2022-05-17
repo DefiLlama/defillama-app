@@ -139,8 +139,8 @@ function AllPeggedsPage({
   const { percentChange, totalMcapCurrent } = useMemo(() => {
     const chartCurrent = chartData[chartData.length - 1] ?? null
     const chartPrevDay = chartData[chartData.length - 2] ?? null
-    const totalMcapCurrent = chartCurrent.mcap ?? 0
-    const totalMcapPrevDay = chartPrevDay.mcap ?? 0
+    const totalMcapCurrent = chartCurrent?.mcap
+    const totalMcapPrevDay = chartPrevDay?.mcap
     const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
     return { percentChange, totalMcapCurrent }
   }, [chartData])
@@ -150,9 +150,9 @@ function AllPeggedsPage({
   let topToken = { name: 'Tether', mcap: 0 }
   if (peggedTotals.length > 0) {
     const topTokenData = peggedTotals[0]
-    topToken.name = topTokenData?.name
-    const topCirculating = peggedTotals[0]?.circulating
-    const topPrice = topTokenData?.price
+    topToken.name = topTokenData.name
+    const topCirculating = peggedTotals[0].circulating
+    const topPrice = topTokenData.price
     topToken.mcap = topPrice * topCirculating
   }
 
