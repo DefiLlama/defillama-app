@@ -29,6 +29,7 @@ const ChartsWrapper = styled(Box)`
   padding: 0;
   align-items: center;
   z-index: 1;
+
   @media (max-width: 800px) {
     display: grid;
     grid-auto-rows: auto;
@@ -37,6 +38,7 @@ const ChartsWrapper = styled(Box)`
 
 const RowWrapper = styled(RowBetween)`
   flex-wrap: wrap;
+  margin-top: 16px;
   @media (max-width: 680px) {
     gap: 16px;
   }
@@ -210,11 +212,14 @@ const StyledTable = styled(FullTable)<ITable>`
     }
   }
 `
-const FiltersLabel = styled.h2`
-  margin: 0 4px 8px;
-  font-weight: 600;
-  font-size: 0.825rem;
-  color: ${({ theme }) => theme.text1};
+const ChainTvlsFilter = styled.div`
+  margin: 12px 0 16px;
+  & > h2 {
+    margin: 0 0 8px;
+    font-weight: 600;
+    font-size: 0.825rem;
+    color: ${({ theme }) => theme.text1};
+  }
 `
 
 const columns = columnsToShow('chainName', 'protocols', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
@@ -285,10 +290,10 @@ export default function ChainsContainer({
           />
         </ChartsWrapper>
 
-        <div>
-          <FiltersLabel>Filters</FiltersLabel>
+        <ChainTvlsFilter>
+          <h2>Filters</h2>
           <ChainsTvlSelect label="Filters" />
-        </div>
+        </ChainTvlsFilter>
 
         <FiltersWrapper>
           <Filters filterOptions={categories} activeLabel={category} />

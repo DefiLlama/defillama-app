@@ -14,7 +14,7 @@ const Wrapper = styled.span`
   & > * > * {
     box-shadow: 0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04),
       0px 0px 1px rgba(0, 0, 0, 0.04);
-    borderradius: '12px';
+    border-radius: 12px;
   }
 `
 
@@ -26,6 +26,9 @@ const customStyles = {
     borderRadius: '12px',
     border: 'none',
     color: 'var(--color)',
+    boxShadow:
+      '0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04)',
+    margin: 0,
   }),
   menu: (provided) => ({
     ...provided,
