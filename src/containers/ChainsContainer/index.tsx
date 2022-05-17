@@ -7,12 +7,12 @@ import { ButtonDark } from 'components/ButtonStyled'
 import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
-import { AllTvlOptions, AllGroupOptions } from 'components/SettingsModal'
 import { columnsToShow, FullTable } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
 import { getChainsPageData, revalidate } from 'utils/dataApi'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
 import Filters, { FiltersWrapper } from 'components/Filters'
+import { ChainsTvlSelect } from 'components/Select'
 
 export async function getStaticProps() {
   const data = await getChainsPageData('All')
@@ -210,6 +210,12 @@ const StyledTable = styled(FullTable)<ITable>`
     }
   }
 `
+const FiltersLabel = styled.h2`
+  margin: 0 4px 8px;
+  font-weight: 600;
+  font-size: 0.825rem;
+  color: ${({ theme }) => theme.text1};
+`
 
 const columns = columnsToShow('chainName', 'protocols', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
@@ -261,12 +267,12 @@ export default function ChainsContainer({
     <PageWrapper>
       <FullWrapper>
         <Search />
-        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
-        <AllGroupOptions style={{ display: 'flex', justifyContent: 'center' }} />
+
         <RowWrapper>
           <Header>Total Value Locked All Chains</Header>
           <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
         </RowWrapper>
+
         <ChartsWrapper>
           <ChainPieChart data={chainsTvlValues} chainColor={chainColor} />
           <ChainDominanceChart
@@ -278,6 +284,11 @@ export default function ChainsContainer({
             daySum={daySum}
           />
         </ChartsWrapper>
+
+        <div>
+          <FiltersLabel>Filters</FiltersLabel>
+          <ChainsTvlSelect label="Filters" />
+        </div>
 
         <FiltersWrapper>
           <Filters filterOptions={categories} activeLabel={category} />
