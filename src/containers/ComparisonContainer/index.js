@@ -4,7 +4,7 @@ import { Repeat } from 'react-feather'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 
-import { PageWrapper, ContentWrapper } from 'components'
+import { PageWrapper, FullWrapper } from 'components'
 import Column from 'components/Column'
 import { BasicLink } from 'components/Link'
 import Loader from 'components/LocalLoader'
@@ -223,7 +223,7 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
   return (
     <PageWrapper>
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
-      <ContentWrapper>
+      <FullWrapper>
         <RowBetween>
           <TYPE.largeHeader fontSize={below400 ? 16 : 24} style={{ width: '100%', textAlign: 'center' }}>
             Calculate the price of <TokenColoredText color={protocolAColor}>Protocol A</TokenColoredText>
@@ -281,7 +281,7 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
             </Column>
           </PriceResultPanel>
         )}
-      </ContentWrapper>
+      </FullWrapper>
     </PageWrapper>
   )
 }

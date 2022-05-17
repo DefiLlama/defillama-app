@@ -7,7 +7,7 @@ import { RowBetween, RowFixed } from '../Row'
 import { AutoColumn } from '../Column'
 import Search from '../Search'
 import Panel from '../Panel'
-import { PageWrapper, ContentWrapper, ProtocolsTable } from '..'
+import { PageWrapper, FullWrapper, ProtocolsTable } from '..'
 import Filters from '../Filters'
 import { AllTvlOptions } from '../SettingsModal'
 
@@ -274,18 +274,20 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     <PageWrapper>
       <SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
-      <ContentWrapper>
+      <FullWrapper>
         <AutoColumn gap="24px">
           <Search />
-          <Panel background={true} style={{ textAlign: 'center' }}>
-            <TYPE.main fontWeight={400}>
-              We've launched a multichain APY dashboard. Check it out{' '}
-              <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
-                here
-              </BasicLink>
-              !
-            </TYPE.main>
-          </Panel>
+          <div>
+            <Panel background={true} style={{ textAlign: 'center' }}>
+              <TYPE.main fontWeight={400}>
+                We've launched a multichain APY dashboard. Check it out{' '}
+                <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
+                  here
+                </BasicLink>
+                !
+              </TYPE.main>
+            </Panel>
+          </div>
         </AutoColumn>
         <div>
           <BreakpointPanels>
@@ -336,7 +338,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
         </ListOptions>
 
         <ProtocolsTable data={protocolTotals} columns={columns} />
-      </ContentWrapper>
+      </FullWrapper>
     </PageWrapper>
   )
 }
