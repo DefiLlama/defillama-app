@@ -105,7 +105,7 @@ function AllPeggedsPage({
   const peggedTotals = useCalcCirculating(filteredPeggedAssets, defaultSortingColumn)
 
   const chainsCirculatingValues = useMemo(() => {
-    const data = peggedTotals.map((chain) => ({ name: chain.symbol, value: chain.circulating }))
+    const data = peggedTotals.map((chain) => ({ name: chain.symbol, value: chain.mcap }))
 
     const otherCirculating = data.slice(10).reduce((total, entry) => {
       return (total += entry.value)
