@@ -33,7 +33,7 @@ export async function getStaticPaths() {
 
   const forksList = Object.keys(forks)
 
-  const paths = forksList.map((fork) => {
+  const paths = forksList.slice(0, 10).map((fork) => {
     return {
       params: { fork },
     }

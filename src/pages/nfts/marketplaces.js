@@ -30,13 +30,13 @@ export async function getStaticProps() {
     return acc
   }, [])
 
-  const chartData = await Promise.all(marketplacesUnique.map(marketplace => getNFTMarketplaceChartData(marketplace)))
+  const chartData = await Promise.all(marketplacesUnique.map((marketplace) => getNFTMarketplaceChartData(marketplace)))
 
   const daySum = {}
   const stackedDataset = Object.values(
     chartData.reduce((total, marketplace, i) => {
       const marketplaceName = marketplacesUnique[i]
-      marketplace.forEach(data => {
+      marketplace.forEach((data) => {
         if (data.timestamp < 1596248105) return
         if (total[data.timestamp] === undefined) {
           total[data.timestamp] = { date: data.timestamp }
@@ -49,8 +49,14 @@ export async function getStaticProps() {
   )
 
   return {
-    props: { marketplaceData, currentData, marketplacesUnique, stackedDataset, daySum },
-    revalidate: revalidate()
+    props: {
+      marketplaceData: marketplaceData || null,
+      currentData: currentData || null,
+      marketplacesUnique: marketplacesUnique || null,
+      stackedDataset: stackedDataset || null,
+      daySum: daySum || null,
+    },
+    revalidate: revalidate(),
   }
 }
 
@@ -68,7 +74,7 @@ const ChartsWrapper = styled(Box)`
 
 const MarketplacesView = ({ marketplaceData, currentData, marketplacesUnique, stackedDataset, daySum }) => {
   const marketplaceColor = useMemo(
-    () => Object.fromEntries([...marketplacesUnique, 'Other'].map(marketplace => [marketplace, getRandomColor()])),
+    () => Object.fromEntries([...marketplacesUnique, 'Other'].map((marketplace) => [marketplace, getRandomColor()])),
     [marketplacesUnique]
   )
 
@@ -92,7 +98,7 @@ const MarketplacesView = ({ marketplaceData, currentData, marketplacesUnique, st
         <NFTList
           data={marketplaceData}
           iconUrl={tokenIconUrl}
-          generateLink={name => `/nfts/marketplace/${name}`}
+          generateLink={(name) => `/nfts/marketplace/${name}`}
           columns={['marketplace', 'collections', 'dailyVolumeUSD', 'totalVolumeUSD']}
           type="marketplaces"
         />
