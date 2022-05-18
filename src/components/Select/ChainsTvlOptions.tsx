@@ -13,7 +13,7 @@ const groupOptions = [
     options: chainAggr,
   },
   {
-    label: 'Include TVLs',
+    label: 'Include In TVL',
     options: extraTvls,
   },
 ]

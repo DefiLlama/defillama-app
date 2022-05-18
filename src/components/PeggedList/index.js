@@ -2,7 +2,6 @@ import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import Panel from '../Panel'
 import { AutoColumn } from '../Column'
-import { PageWrapper, FullWrapper } from 'components'
 import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 import { NamePegged } from 'components/Table/index'
@@ -198,39 +197,37 @@ function AllPeggedsPage({
   )
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <RowBetween>
-          <TYPE.largeHeader>{title}</TYPE.largeHeader>
-          <Search small={!isLg} />
-        </RowBetween>
-        <div>
-          <BreakpointPanels>
-            <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-            {stackedDataset.length < 30 ? (
-              <PeggedChainPieChart data={chainsCirculatingValues} chainColor={chainColor} />
-            ) : (
-              <PeggedChainDominanceChart
-                stackOffset="expand"
-                formatPercent={true}
-                stackedDataset={stackedData}
-                chainsUnique={peggedAssetNames}
-                chainColor={chainColor}
-                daySum={daySum}
-              />
-            )}
-          </BreakpointPanels>
-        </div>
+    <>
+      <RowBetween>
+        <TYPE.largeHeader>{title}</TYPE.largeHeader>
+        <Search small={!isLg} />
+      </RowBetween>
+      <div>
+        <BreakpointPanels>
+          <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
+          {stackedDataset.length < 30 ? (
+            <PeggedChainPieChart data={chainsCirculatingValues} chainColor={chainColor} />
+          ) : (
+            <PeggedChainDominanceChart
+              stackOffset="expand"
+              formatPercent={true}
+              stackedDataset={stackedData}
+              chainsUnique={peggedAssetNames}
+              chainColor={chainColor}
+              daySum={daySum}
+            />
+          )}
+        </BreakpointPanels>
+      </div>
 
-        {showChainList && (
-          <FiltersWrapper>
-            <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
-          </FiltersWrapper>
-        )}
+      {showChainList && (
+        <FiltersWrapper>
+          <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
+        </FiltersWrapper>
+      )}
 
-        <Table data={peggedTotals} columns={columns} />
-      </FullWrapper>
-    </PageWrapper>
+      <Table data={peggedTotals} columns={columns} />
+    </>
   )
 }
 

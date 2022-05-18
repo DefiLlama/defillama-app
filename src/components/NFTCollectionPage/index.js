@@ -16,7 +16,6 @@ import { AutoRow, RowBetween } from '../../components/Row'
 import Column from '../../components/Column'
 import HeadHelp from '../../components/HeadHelp'
 import CopyHelper from '../../components/Copy'
-import { PageWrapper, FullWrapper } from '../../components'
 import Panel from '../../components/Panel'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { useProtocolColor } from 'hooks'
@@ -181,67 +180,50 @@ function NFTCollectionPage({ collection, chart, statistics }) {
   )
 
   return (
-    <PageWrapper>
+    <>
       <SEO cardName={name} logo={logo} nftPage />
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
-      <FullWrapper>
-        <RowBetween flexWrap="wrap">
-          <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
-            <TYPE.body>
-              <BasicLink href="/nfts">{'Collections '}</BasicLink>→{' '}
-            </TYPE.body>
-            <Link style={{ width: 'fit-content' }} color={backgroundColor} external href="#">
-              <Text style={{ marginLeft: '.15rem' }} fontSize={'14px'} fontWeight={400}>
-                {name}
-              </Text>
-            </Link>
-          </AutoRow>
-          <HiddenSearch>
-            <Search small={true} />
-          </HiddenSearch>
-        </RowBetween>
-        <DashboardWrapper>
-          <Header address={address} below1024={below1024} logo={logo} name={name} />
-          <PanelWrapper>
-            <Section title="Market Cap" content={marketCapSection} />
-            <Section title="Total Volume" content={totalVolumeSection} />
-            <Section title="Links" content={<Links logo={logo} links={links} />} />
-            <Panel
-              sx={{
-                gridColumn: ['1', '1', '1', '2/4'],
-                gridRow: ['', '', '', '1/4'],
-              }}
-            >
-              <GlobalNFTChart
-                chartData={chart}
-                dailyVolume={shownDailyVolume}
-                dailyVolumeChange={shownDailyChange}
-                symbol={symbol}
-                unit={unit}
-                displayUsd={displayUsd}
-              />
-            </Panel>
-          </PanelWrapper>
-          <>
-            <RowBetween style={{ marginTop: '3rem' }}>
-              <TYPE.main fontSize={'1.125rem'}>Description</TYPE.main>{' '}
-            </RowBetween>
-            <Panel
-              rounded
-              style={{
-                marginTop: '1.5rem',
-              }}
-              p={20}
-            >
-              <DetailsLayout>
-                <TYPE.main fontSize={'15px'} lineHeight={1.25} fontWeight={500}>
-                  {description}
-                </TYPE.main>
-              </DetailsLayout>
-            </Panel>
-          </>
+
+      <RowBetween flexWrap="wrap">
+        <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
+          <TYPE.body>
+            <BasicLink href="/nfts">{'Collections '}</BasicLink>→{' '}
+          </TYPE.body>
+          <Link style={{ width: 'fit-content' }} color={backgroundColor} external href="#">
+            <Text style={{ marginLeft: '.15rem' }} fontSize={'14px'} fontWeight={400}>
+              {name}
+            </Text>
+          </Link>
+        </AutoRow>
+        <HiddenSearch>
+          <Search small={true} />
+        </HiddenSearch>
+      </RowBetween>
+      <DashboardWrapper>
+        <Header address={address} below1024={below1024} logo={logo} name={name} />
+        <PanelWrapper>
+          <Section title="Market Cap" content={marketCapSection} />
+          <Section title="Total Volume" content={totalVolumeSection} />
+          <Section title="Links" content={<Links logo={logo} links={links} />} />
+          <Panel
+            sx={{
+              gridColumn: ['1', '1', '1', '2/4'],
+              gridRow: ['', '', '', '1/4'],
+            }}
+          >
+            <GlobalNFTChart
+              chartData={chart}
+              dailyVolume={shownDailyVolume}
+              dailyVolumeChange={shownDailyChange}
+              symbol={symbol}
+              unit={unit}
+              displayUsd={displayUsd}
+            />
+          </Panel>
+        </PanelWrapper>
+        <>
           <RowBetween style={{ marginTop: '3rem' }}>
-            <TYPE.main fontSize={'1.125rem'}>Collection Information</TYPE.main>{' '}
+            <TYPE.main fontSize={'1.125rem'}>Description</TYPE.main>{' '}
           </RowBetween>
           <Panel
             rounded
@@ -250,34 +232,51 @@ function NFTCollectionPage({ collection, chart, statistics }) {
             }}
             p={20}
           >
-            <AutoRow align="flex-end">
-              <Column>
-                <TYPE.main>
-                  <HeadHelp
-                    title="Address"
-                    text="The majority of collection addresses are fetched automatically from marketplace APIs and may be inaccurate. Always verify that the collection address is correct."
-                  />
-                </TYPE.main>
-                <AutoRow align="flex-end">
-                  <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                    {address ? address.slice(0, 8) + '...' + address?.slice(36, 42) : '-'}
-                  </TYPE.main>
-                  <CopyHelper toCopy={address || '-'} />
-                </AutoRow>
-              </Column>
-              <Column>
-                <TYPE.main>Last fetched</TYPE.main>
-                <AutoRow align="flex-end">
-                  <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                    {updatedAt ? new Date(updatedAt).toDateString() : '-'}
-                  </TYPE.main>
-                </AutoRow>
-              </Column>
-            </AutoRow>
+            <DetailsLayout>
+              <TYPE.main fontSize={'15px'} lineHeight={1.25} fontWeight={500}>
+                {description}
+              </TYPE.main>
+            </DetailsLayout>
           </Panel>
-        </DashboardWrapper>
-      </FullWrapper>
-    </PageWrapper>
+        </>
+        <RowBetween style={{ marginTop: '3rem' }}>
+          <TYPE.main fontSize={'1.125rem'}>Collection Information</TYPE.main>{' '}
+        </RowBetween>
+        <Panel
+          rounded
+          style={{
+            marginTop: '1.5rem',
+          }}
+          p={20}
+        >
+          <AutoRow align="flex-end">
+            <Column>
+              <TYPE.main>
+                <HeadHelp
+                  title="Address"
+                  text="The majority of collection addresses are fetched automatically from marketplace APIs and may be inaccurate. Always verify that the collection address is correct."
+                />
+              </TYPE.main>
+              <AutoRow align="flex-end">
+                <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
+                  {address ? address.slice(0, 8) + '...' + address?.slice(36, 42) : '-'}
+                </TYPE.main>
+                <CopyHelper toCopy={address || '-'} />
+              </AutoRow>
+            </Column>
+            <Column>
+              <TYPE.main>Last fetched</TYPE.main>
+              <AutoRow align="flex-end">
+                <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
+                  {updatedAt ? new Date(updatedAt).toDateString() : '-'}
+                </TYPE.main>
+              </AutoRow>
+            </Column>
+          </AutoRow>
+        </Panel>
+      </DashboardWrapper>
+
+    </>
   )
 }
 

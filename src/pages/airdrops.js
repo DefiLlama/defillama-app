@@ -1,4 +1,4 @@
-import { FullWrapper, PageWrapper, ProtocolsTable } from 'components'
+import { ProtocolsTable } from 'components'
 import PageHeader from 'components/PageHeader'
 import { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
@@ -52,12 +52,8 @@ export default function Protocols({ protocols }) {
   const data = useCalcStakePool2Tvl(protocols)
   return (
     <GeneralLayout title={`Airdroppable protocols - Defi Llama`} defaultSEO>
-      <PageWrapper>
-        <FullWrapper>
-          <PageHeader title="Tokenless protocols that may airdrop 🧑‍🌾" />
-          <TableWrapper data={data} columns={columns} />
-        </FullWrapper>
-      </PageWrapper>
+      <PageHeader title="Tokenless protocols that may airdrop 🧑‍🌾" />
+      <TableWrapper data={data} columns={columns} />
     </GeneralLayout>
   )
 }

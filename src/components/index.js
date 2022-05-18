@@ -84,30 +84,6 @@ export const SubNavEl = styled.li`
   }
 `
 
-export const PageWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding-top: 36px;
-  padding-bottom: 80px;
-
-  @media screen and (max-width: 600px) {
-    & > * {
-      padding: 0 12px;
-    }
-  }
-`
-
-export const FullWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 1440px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 2rem;
-  box-sizing: border-box;
-`
-
 export const FixedMenu = styled.div`
   z-index: 99;
   width: 100%;

@@ -5,11 +5,31 @@ import Head from 'next/head'
 import ThemeProvider, { GlobalStyle } from '../Theme'
 import SEO from 'components/SEO'
 
-export const Center = styled.main`
+const Center = styled.main`
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 2rem;
+  box-sizing: border-box;
+`
+
+const PageWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding-top: 36px;
+  padding-bottom: 80px;
   flex: 1;
   z-index: 9999;
   transition: width 0.25s ease;
   background-color: ${({ theme }) => theme.onlyLight};
+  @media screen and (max-width: 600px) {
+    & > * {
+      padding: 0 12px;
+    }
+  }
 `
 
 export function GeneralLayout({ title, children, defaultSEO = false }) {
@@ -31,7 +51,7 @@ export function GeneralLayout({ title, children, defaultSEO = false }) {
       <ThemeProvider>
         <GlobalStyle />
         <SideNav />
-        <Center>{children}</Center>
+        <PageWrapper><Center>{children}</Center></PageWrapper>
         <PinnedData />
       </ThemeProvider>
     </>

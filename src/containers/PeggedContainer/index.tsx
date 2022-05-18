@@ -2,7 +2,6 @@ import React, { useMemo } from 'react'
 import { Box } from 'rebass/styled-components'
 import styled from 'styled-components'
 import { Header } from 'Theme'
-import { PageWrapper, FullWrapper } from 'components'
 import { ButtonDark } from 'components/ButtonStyled'
 import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
@@ -151,41 +150,39 @@ export default function PeggedContainer({
   const groupedChains = useGroupChainsPegged(chainTotals, showByGroup ? chainsGroupbyParent : {})
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <Search />
+    <>
+      <Search />
 
-        <AllPeggedOptions style={{ display: 'flex', justifyContent: 'center' }} />
+      <AllPeggedOptions style={{ display: 'flex', justifyContent: 'center' }} />
 
-        <RowWrapper>
-          <Header>{Capitalize(peggedSymbol)} Total Circulating All Chains</Header>
-          <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
-        </RowWrapper>
+      <RowWrapper>
+        <Header>{Capitalize(peggedSymbol)} Total Circulating All Chains</Header>
+        <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
+      </RowWrapper>
 
-        <ChartsWrapper>
-          <PeggedChainPieChart data={chainsCirculatingValues} chainColor={chainColor} />
-          <PeggedChainDominanceChart
-            stackOffset="expand"
-            formatPercent={true}
-            stackedDataset={stackedData}
-            asset={peggedSymbol}
-            chainsUnique={chainsUnique}
-            chainColor={chainColor}
-            daySum={daySum}
-          />
-        </ChartsWrapper>
+      <ChartsWrapper>
+        <PeggedChainPieChart data={chainsCirculatingValues} chainColor={chainColor} />
+        <PeggedChainDominanceChart
+          stackOffset="expand"
+          formatPercent={true}
+          stackedDataset={stackedData}
+          asset={peggedSymbol}
+          chainsUnique={chainsUnique}
+          chainColor={chainColor}
+          daySum={daySum}
+        />
+      </ChartsWrapper>
 
-        <AssetFilters>
-          <h2>Filters</h2>
-          <PeggedAssetOptions label="Filters" />
-        </AssetFilters>
+      <AssetFilters>
+        <h2>Filters</h2>
+        <PeggedAssetOptions label="Filters" />
+      </AssetFilters>
 
-        <FiltersWrapper>
-          <Filters filterOptions={categories} activeLabel={category} />
-        </FiltersWrapper>
+      <FiltersWrapper>
+        <Filters filterOptions={categories} activeLabel={category} />
+      </FiltersWrapper>
 
-        <StyledTable data={groupedChains} columns={columns} showByGroup={showByGroup} />
-      </FullWrapper>
-    </PageWrapper>
+      <StyledTable data={groupedChains} columns={columns} showByGroup={showByGroup} />
+    </>
   )
 }

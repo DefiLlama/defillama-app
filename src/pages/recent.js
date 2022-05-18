@@ -1,4 +1,3 @@
-import { FullWrapper, PageWrapper } from 'components'
 import PageHeader from 'components/PageHeader'
 import Table, { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
@@ -182,12 +181,8 @@ export default function Protocols({ protocols }) {
 
   return (
     <GeneralLayout title={`TVL Rankings - DefiLlama`} defaultSEO>
-      <PageWrapper>
-        <FullWrapper>
-          <PageHeader title="Recently Listed Protocols" />
-          <TableWrapper data={protocolsData} columns={columns} />
-        </FullWrapper>
-      </PageWrapper>
+      <PageHeader title="Recently Listed Protocols" />
+      <TableWrapper data={protocolsData} columns={columns} />
     </GeneralLayout>
   )
 }

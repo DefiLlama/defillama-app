@@ -9,7 +9,6 @@ import { AutoRow, RowBetween, RowFlat } from '../Row'
 import { AutoColumn } from '../Column'
 import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
-import { PageWrapper, FullWrapper } from '..'
 import Panel from '../Panel'
 import Search from '../Search'
 import NFTCollectionList from '../NFTCollectionList'
@@ -116,7 +115,7 @@ const NFTDashboard = ({ statistics, collections, chart, chainData, marketplaceDa
         totalVolumeUSD - chart[chart.length - 1].volumeUSD,
         chart[chart.length - 2].volumeUSD,
         ((chart[chart.length - 2].volumeUSD - chart[chart.length - 3].volumeUSD) / chart[chart.length - 3].volumeUSD) *
-          100,
+        100,
       ]
       chart = chart.slice(0, -1)
     } else if (chart.length >= 3) {
@@ -173,45 +172,45 @@ const NFTDashboard = ({ statistics, collections, chart, chainData, marketplaceDa
   const tvl = formattedNum(totalVolumeUSD, true)
 
   return (
-    <PageWrapper>
+    <>
       <SEO cardName={displayName} chain={displayName} tvl={tvl} nftPage />
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
-      <FullWrapper>
-        <AutoColumn gap="24px" style={{ paddingBottom: '24px' }}>
-          <Search />
-          <Panel background={true} style={{ textAlign: 'center', marginBottom: '1rem', marginTop: '-1rem' }}>
-            <TYPE.main fontWeight={400}>
-              Data is currently incorrect and we are fixing it, please don't use it
-            </TYPE.main>
-          </Panel>
-          <CheckMarks type="nfts" />
-        </AutoColumn>
-        <BreakpointPanels>
-          <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-          <Panel style={{ height: '100%', minHeight: '347px' }}>
-            <GlobalNFTChart
-              chartData={chart}
-              dailyVolume={shownDailyVolume}
-              dailyVolumeChange={shownDailyChange}
-              symbol={symbol}
-              unit={unit}
-              displayUsd={displayUsd}
-            />
-          </Panel>
-        </BreakpointPanels>
-        <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
-          <RowBetween>
-            <TYPE.main fontSize={'1.125rem'}>NFT Rankings</TYPE.main>
-            <FiltersRow>
-              <Filters filterOptions={tabOptions} setActive={setSelectedTab} activeLabel={selectedTab} justify="end" />
-            </FiltersRow>
-          </RowBetween>
-        </ListOptions>
-        <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
-          <NFTCollectionList collections={collections} displayUsd={displayUsd} />
+
+      <AutoColumn gap="24px" style={{ paddingBottom: '24px' }}>
+        <Search />
+        <Panel background={true} style={{ textAlign: 'center', marginBottom: '1rem', marginTop: '-1rem' }}>
+          <TYPE.main fontWeight={400}>
+            Data is currently incorrect and we are fixing it, please don't use it
+          </TYPE.main>
         </Panel>
-      </FullWrapper>
-    </PageWrapper>
+        <CheckMarks type="nfts" />
+      </AutoColumn>
+      <BreakpointPanels>
+        <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
+        <Panel style={{ height: '100%', minHeight: '347px' }}>
+          <GlobalNFTChart
+            chartData={chart}
+            dailyVolume={shownDailyVolume}
+            dailyVolumeChange={shownDailyChange}
+            symbol={symbol}
+            unit={unit}
+            displayUsd={displayUsd}
+          />
+        </Panel>
+      </BreakpointPanels>
+      <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
+        <RowBetween>
+          <TYPE.main fontSize={'1.125rem'}>NFT Rankings</TYPE.main>
+          <FiltersRow>
+            <Filters filterOptions={tabOptions} setActive={setSelectedTab} activeLabel={selectedTab} justify="end" />
+          </FiltersRow>
+        </RowBetween>
+      </ListOptions>
+      <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
+        <NFTCollectionList collections={collections} displayUsd={displayUsd} />
+      </Panel>
+
+    </>
   )
 }
 

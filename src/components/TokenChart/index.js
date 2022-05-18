@@ -2,18 +2,14 @@ import React, { useState, useMemo } from 'react'
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
 import { BasicLink } from 'components/Link'
-
 import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from 'components/Column'
 import DropdownSelect from 'components/DropdownSelect'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
-
 import { timeframeOptions } from 'constants/index'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { useMed, useXl, useLg } from 'hooks'
-import {
-  getTimeframe,
-} from 'utils'
+import { getTimeframe } from 'utils'
 import { GeneralAreaChart } from './charts'
 
 const ChartWrapper = styled.div`

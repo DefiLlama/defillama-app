@@ -1,4 +1,3 @@
-import { FullWrapper, PageWrapper } from 'components'
 import { CustomLink } from 'components/Link'
 import { GeneralLayout } from '../layout'
 import { getProtocolsRaw, revalidate } from '../utils/dataApi'
@@ -100,12 +99,8 @@ const columns = [
 export default function Protocols({ categories }) {
   return (
     <GeneralLayout title={`Categories - DefiLlama`} defaultSEO>
-      <PageWrapper>
-        <FullWrapper>
-          <PageHeader title="Protocol Categories" />
-          <Table data={categories} columns={columns} align="start" gap="40px" />
-        </FullWrapper>
-      </PageWrapper>
+      <PageHeader title="Protocol Categories" />
+      <Table data={categories} columns={columns} align="start" gap="40px" />
     </GeneralLayout>
   )
 }

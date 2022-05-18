@@ -7,7 +7,7 @@ import { RowBetween, RowFixed } from '../Row'
 import { AutoColumn } from '../Column'
 import Search from '../Search'
 import Panel from '../Panel'
-import { PageWrapper, FullWrapper, ProtocolsTable } from '..'
+import { ProtocolsTable } from '..'
 import Filters from '../Filters'
 import { AllTvlOptions } from '../SettingsModal'
 
@@ -271,75 +271,75 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
   )
 
   return (
-    <PageWrapper>
+    <>
       <SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
-      <FullWrapper>
-        <AutoColumn gap="24px">
-          <Search />
-          <div>
-            <Panel background={true} style={{ textAlign: 'center' }}>
-              <TYPE.main fontWeight={400}>
-                We've launched a multichain APY dashboard. Check it out{' '}
-                <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
-                  here
-                </BasicLink>
-                !
-              </TYPE.main>
-            </Panel>
-          </div>
-        </AutoColumn>
+
+      <AutoColumn gap="24px">
+        <Search />
         <div>
-          <BreakpointPanels>
-            <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-            <Panel style={{ height: '100%', minHeight: '347px', width: '100%' }}>
-              <RowFixed>
-                {DENOMINATIONS.map((option) => (
-                  <OptionButton
-                    active={denomination === option}
-                    onClick={() => updateRoute(option)}
-                    style={{ margin: '0 8px 8px 0' }}
-                    key={option}
-                  >
-                    {option}
-                  </OptionButton>
-                ))}
-              </RowFixed>
-              {easterEgg ? (
-                <Game />
-              ) : isLoading ? (
-                <LocalLoader style={{ margin: 'auto' }} />
-              ) : (
-                <Chart
-                  display="liquidity"
-                  dailyData={finalChartData}
-                  unit={denomination}
-                  totalLiquidity={totalVolume}
-                  liquidityChange={volumeChangeUSD}
-                />
-              )}
-            </Panel>
-          </BreakpointPanels>
-          <div
-            style={{
-              marginTop: '0px',
-              marginBottom: '-34px',
-            }}
-          >
-            <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} alt="" />
-          </div>
+          <Panel background={true} style={{ textAlign: 'center' }}>
+            <TYPE.main fontWeight={400}>
+              We've launched a multichain APY dashboard. Check it out{' '}
+              <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
+                here
+              </BasicLink>
+              !
+            </TYPE.main>
+          </Panel>
         </div>
+      </AutoColumn>
+      <div>
+        <BreakpointPanels>
+          <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
+          <Panel style={{ height: '100%', minHeight: '347px', width: '100%' }}>
+            <RowFixed>
+              {DENOMINATIONS.map((option) => (
+                <OptionButton
+                  active={denomination === option}
+                  onClick={() => updateRoute(option)}
+                  style={{ margin: '0 8px 8px 0' }}
+                  key={option}
+                >
+                  {option}
+                </OptionButton>
+              ))}
+            </RowFixed>
+            {easterEgg ? (
+              <Game />
+            ) : isLoading ? (
+              <LocalLoader style={{ margin: 'auto' }} />
+            ) : (
+              <Chart
+                display="liquidity"
+                dailyData={finalChartData}
+                unit={denomination}
+                totalLiquidity={totalVolume}
+                liquidityChange={volumeChangeUSD}
+              />
+            )}
+          </Panel>
+        </BreakpointPanels>
+        <div
+          style={{
+            marginTop: '0px',
+            marginBottom: '-34px',
+          }}
+        >
+          <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} alt="" />
+        </div>
+      </div>
 
-        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+      <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
 
-        <ListOptions>
-          <ListHeader>TVL Rankings</ListHeader>
-          <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
-        </ListOptions>
+      <ListOptions>
+        <ListHeader>TVL Rankings</ListHeader>
+        <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
+      </ListOptions>
 
-        <ProtocolsTable data={protocolTotals} columns={columns} />
-      </FullWrapper>
-    </PageWrapper>
+      <ProtocolsTable data={protocolTotals} columns={columns} />
+
+    </>
   )
 }
 

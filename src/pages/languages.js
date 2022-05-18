@@ -1,4 +1,3 @@
-import { FullWrapper, PageWrapper } from '../components'
 import { GeneralLayout } from '../layout'
 import Panel from 'components/Panel'
 import { LANGS_API } from '../constants'
@@ -66,32 +65,28 @@ export default function Protocols({ langs, langsUnique, langsDaySum,
   langsUnique.forEach(l => { colors[l] = getRandomColor() })
   return (
     <GeneralLayout title={`Languages - DefiLlama`} defaultSEO>
-      <PageWrapper>
-        <FullWrapper>
-          <Search />
-          <Header>TVL breakdown by Smart Contract Language</Header>
-          <Chart {...({ langs, langsUnique })} />
-          <ChainDominanceChart
-            stackOffset="expand"
-            formatPercent={true}
-            stackedDataset={langs}
-            chainsUnique={langsUnique}
-            chainColor={colors}
-            daySum={langsDaySum} />
-          <br />
-          <Header>Open/Closed Source breakdown of solana protocols</Header>
-          <ChainDominanceChart
-            stackOffset="expand"
-            formatPercent={true}
-            stackedDataset={osLangs}
-            chainsUnique={osUnique}
-            chainColor={{
-              opensource: "green",
-              closedsource: "red"
-            }}
-            daySum={osDaySum} />
-        </FullWrapper>
-      </PageWrapper>
+      <Search />
+      <Header>TVL breakdown by Smart Contract Language</Header>
+      <Chart {...({ langs, langsUnique })} />
+      <ChainDominanceChart
+        stackOffset="expand"
+        formatPercent={true}
+        stackedDataset={langs}
+        chainsUnique={langsUnique}
+        chainColor={colors}
+        daySum={langsDaySum} />
+      <br />
+      <Header>Open/Closed Source breakdown of solana protocols</Header>
+      <ChainDominanceChart
+        stackOffset="expand"
+        formatPercent={true}
+        stackedDataset={osLangs}
+        chainsUnique={osUnique}
+        chainColor={{
+          opensource: "green",
+          closedsource: "red"
+        }}
+        daySum={osDaySum} />
     </GeneralLayout>
   )
 }

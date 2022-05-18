@@ -1,4 +1,3 @@
-import { FullWrapper, PageWrapper } from 'components'
 import Table, { columnsToShow, splitArrayByFalsyValues } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useMemo } from 'react'
@@ -34,15 +33,10 @@ export default function TopGainersLosers({ protocols }) {
 
   return (
     <GeneralLayout title={`Top Gainers and Losers - DefiLlama`} defaultSEO>
-      <PageWrapper>
-        <FullWrapper>
-          {/* <PageHeader title="Top Gainers and Losers" /> */}
-          <Header>Top Gainers</Header>
-          <Table data={topGainers} columns={columns} />
-          <Header>Top Losers</Header>
-          <Table data={topLosers} columns={columns} />
-        </FullWrapper>
-      </PageWrapper>
+      <Header>Top Gainers</Header>
+      <Table data={topGainers} columns={columns} />
+      <Header>Top Losers</Header>
+      <Table data={topLosers} columns={columns} />
     </GeneralLayout>
   )
 }

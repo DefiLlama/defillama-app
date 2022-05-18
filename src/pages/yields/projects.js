@@ -1,4 +1,3 @@
-import { FullWrapper, PageWrapper } from 'components'
 import { GeneralLayout } from '../../layout'
 import { getYieldPageData, revalidate } from '../../utils/dataApi'
 import { toK } from 'utils'
@@ -6,7 +5,7 @@ import Table, { Index, NameYield } from 'components/Table'
 import PageHeader from 'components/PageHeader'
 
 export async function getStaticProps() {
-    const data = await getYieldPageData()
+  const data = await getYieldPageData()
 
   const projects = {}
   data.props.pools.forEach((p) => {
@@ -40,7 +39,7 @@ const columns = [
       return (
         <Index>
           <span>{rowIndex + 1}</span>
-          <NameYield value={{project:value, projectslug:rowValues.slug}} />
+          <NameYield value={{ project: value, projectslug: rowValues.slug }} />
         </Index>
       )
     },
@@ -61,12 +60,8 @@ const columns = [
 export default function Protocols({ projects }) {
   return (
     <GeneralLayout title={`Projects - DefiLlama Yield`} defaultSEO>
-      <PageWrapper>
-        <FullWrapper>
-          <PageHeader title="Projects" />
-          <Table data={projects} columns={columns} gap="40px" />
-        </FullWrapper>
-      </PageWrapper>
+      <PageHeader title="Projects" />
+      <Table data={projects} columns={columns} gap="40px" />
     </GeneralLayout>
   )
 }

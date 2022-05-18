@@ -1,7 +1,6 @@
 import { GeneralLayout } from '../layout'
 import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
 import { CustomLink } from 'components/Link'
-import { PageWrapper, FullWrapper } from 'components'
 import { FullTable, Index } from 'components/Table'
 import TokenLogo from 'components/TokenLogo'
 import { chainIconUrl } from 'utils'
@@ -53,7 +52,7 @@ export async function getStaticProps() {
   }
 }
 
-const TableWrapper = styled(FullWrapper)`
+const TableWrapper = styled.div`
   position: relative;
 
   & > div {
@@ -112,12 +111,10 @@ export default function Chains({ data, columns }) {
 
   return (
     <GeneralLayout title={`TVL Rankings - DefiLlama`} defaultSEO>
-      <PageWrapper style={{ paddingBottom: '0 !important' }}>
-        <TableWrapper>
-          <TYPE.largeHeader>Top Protocols</TYPE.largeHeader>
-          <FullTable data={data} columns={allColumns} align="start" gap="12px" style={{ height: '85vh' }} />
-        </TableWrapper>
-      </PageWrapper>
+      <TableWrapper>
+        <TYPE.largeHeader>Top Protocols</TYPE.largeHeader>
+        <FullTable data={data} columns={allColumns} align="start" gap="12px" style={{ height: '85vh' }} />
+      </TableWrapper>
     </GeneralLayout>
   )
 }

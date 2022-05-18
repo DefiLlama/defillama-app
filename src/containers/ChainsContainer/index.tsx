@@ -2,7 +2,6 @@ import React, { useMemo } from 'react'
 import { Box } from 'rebass/styled-components'
 import styled from 'styled-components'
 import { Header } from 'Theme'
-import { PageWrapper, FullWrapper } from 'components'
 import { ButtonDark } from 'components/ButtonStyled'
 import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
@@ -269,38 +268,36 @@ export default function ChainsContainer({
   const groupedChains = useGroupChainsByParent(chainTotals, showByGroup ? chainsGroupbyParent : {})
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <Search />
+    <>
+      <Search />
 
-        <RowWrapper>
-          <Header>Total Value Locked All Chains</Header>
-          <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
-        </RowWrapper>
+      <RowWrapper>
+        <Header>Total Value Locked All Chains</Header>
+        <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
+      </RowWrapper>
 
-        <ChartsWrapper>
-          <ChainPieChart data={chainsTvlValues} chainColor={chainColor} />
-          <ChainDominanceChart
-            stackOffset="expand"
-            formatPercent={true}
-            stackedDataset={stackedData}
-            chainsUnique={chainsUnique}
-            chainColor={chainColor}
-            daySum={daySum}
-          />
-        </ChartsWrapper>
+      <ChartsWrapper>
+        <ChainPieChart data={chainsTvlValues} chainColor={chainColor} />
+        <ChainDominanceChart
+          stackOffset="expand"
+          formatPercent={true}
+          stackedDataset={stackedData}
+          chainsUnique={chainsUnique}
+          chainColor={chainColor}
+          daySum={daySum}
+        />
+      </ChartsWrapper>
 
-        <ChainTvlsFilter>
-          <h2>Filters</h2>
-          <ChainsTvlSelect label="Filters" />
-        </ChainTvlsFilter>
+      <ChainTvlsFilter>
+        <h2>Filters</h2>
+        <ChainsTvlSelect label="Filters" />
+      </ChainTvlsFilter>
 
-        <FiltersWrapper>
-          <Filters filterOptions={categories} activeLabel={category} />
-        </FiltersWrapper>
+      <FiltersWrapper>
+        <Filters filterOptions={categories} activeLabel={category} />
+      </FiltersWrapper>
 
-        <StyledTable data={groupedChains} columns={columns} showByGroup={showByGroup} />
-      </FullWrapper>
-    </PageWrapper>
+      <StyledTable data={groupedChains} columns={columns} showByGroup={showByGroup} />
+    </>
   )
 }

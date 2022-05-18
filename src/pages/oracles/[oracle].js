@@ -8,7 +8,7 @@ import Panel from 'components/Panel'
 import { AutoColumn } from 'components/Column'
 import { RowBetween } from 'components/Row'
 import { TYPE } from 'Theme'
-import { FullWrapper, PageWrapper, ProtocolsTable } from 'components'
+import { ProtocolsTable } from 'components'
 import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
@@ -115,30 +115,28 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
   )
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <Search />
-        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
-        <BreakpointPanels>
-          <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-          <Panel style={{ height: '100%', minHeight: '347px' }}>
-            <Chart
-              display="liquidity"
-              dailyData={finalChartData}
-              totalLiquidity={totalVolume}
-              liquidityChange={volumeChangeUSD}
-              title="TVS"
-            />
-          </Panel>
-        </BreakpointPanels>
+    <>
+      <Search />
+      <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+      <BreakpointPanels>
+        <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
+        <Panel style={{ height: '100%', minHeight: '347px' }}>
+          <Chart
+            display="liquidity"
+            dailyData={finalChartData}
+            totalLiquidity={totalVolume}
+            liquidityChange={volumeChangeUSD}
+            title="TVS"
+          />
+        </Panel>
+      </BreakpointPanels>
 
-        <FiltersWrapper>
-          <Filters filterOptions={tokenLinks} activeLabel={token} />
-        </FiltersWrapper>
+      <FiltersWrapper>
+        <Filters filterOptions={tokenLinks} activeLabel={token} />
+      </FiltersWrapper>
 
-        <ProtocolsTable columns={columns} data={protocolsData} />
-      </FullWrapper>
-    </PageWrapper>
+      <ProtocolsTable columns={columns} data={protocolsData} />
+    </>
   )
 }
 

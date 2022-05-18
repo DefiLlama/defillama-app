@@ -1,4 +1,3 @@
-import { PageWrapper, FullWrapper } from 'components'
 import Search from 'components/Search'
 import { AutoColumn } from 'components/Column'
 import Table, { columnsToShow } from 'components/Table'
@@ -288,36 +287,34 @@ const YieldPage = ({ pools, chainList }) => {
   pools = millionDollar === true ? pools.filter((el) => el.tvlUsd >= 1e6) : pools
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <AutoColumn gap="24px">
-          <Search />
-        </AutoColumn>
-        <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
+    <>
+      <AutoColumn gap="24px">
+        <Search />
+      </AutoColumn>
+      <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
 
-        <ListOptions>
-          <ListHeader>Yield Rankings</ListHeader>
-          <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
-        </ListOptions>
+      <ListOptions>
+        <ListHeader>Yield Rankings</ListHeader>
+        <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
+      </ListOptions>
 
-        <TableWrapper
-          data={pools.map((t) => ({
-            id: t.pool,
-            pool: t.symbol,
-            projectslug: t.project,
-            project: t.projectName,
-            chains: [t.chain],
-            tvl: t.tvlUsd,
-            apy: t.apy,
-            change1d: t.apyPct1D,
-            change7d: t.apyPct7D,
-            outlook: t.predictions.predictedClass,
-            probability: t.predictions.predictedProbability,
-          }))}
-          columns={columns}
-        />
-      </FullWrapper>
-    </PageWrapper>
+      <TableWrapper
+        data={pools.map((t) => ({
+          id: t.pool,
+          pool: t.symbol,
+          projectslug: t.project,
+          project: t.projectName,
+          chains: [t.chain],
+          tvl: t.tvlUsd,
+          apy: t.apy,
+          change1d: t.apyPct1D,
+          change7d: t.apyPct7D,
+          outlook: t.predictions.predictedClass,
+          probability: t.predictions.predictedProbability,
+        }))}
+        columns={columns}
+      />
+    </>
   )
 }
 

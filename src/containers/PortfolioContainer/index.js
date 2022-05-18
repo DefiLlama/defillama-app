@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
 
-import { PageWrapper, FullWrapper, ProtocolsTable } from 'components'
+import { ProtocolsTable } from 'components'
 import DropdownSelect from 'components/DropdownSelect'
 import Panel from 'components/Panel'
 import Row, { RowBetween } from 'components/Row'
@@ -69,28 +69,28 @@ function PortfolioContainer({ protocolsDict }) {
   }, [isClient, portfolio, protocolsDict])
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <RowBetween>
-          <TYPE.largeHeader>Saved Protocols</TYPE.largeHeader>
-          <Search />
-        </RowBetween>
-        <Row sx={{ gap: '1rem' }}>
-          <TYPE.main>Current portfolio:</TYPE.main>
-          <DropdownSelect setActive={setSelectedPortfolio} active={selectedPortfolio} options={portfolios} />
-          <StyledFolderPlus onClick={onFolderClick} />
-          {selectedPortfolio !== DEFAULT_PORTFOLIO && <StyledTrash onClick={onTrashClick} />}
-        </Row>
+    <>
 
-        {filteredProtocols.length ? (
-          <ProtocolsTable data={filteredProtocols} columns={columns} />
-        ) : (
-          <Panel style={{ marginTop: '6px', padding: '1rem 0 0 0 ' }}>
-            <TYPE.main sx={{ textAlign: 'center', padding: '1rem' }}>You have not saved any protocols.</TYPE.main>
-          </Panel>
-        )}
-      </FullWrapper>
-    </PageWrapper>
+      <RowBetween>
+        <TYPE.largeHeader>Saved Protocols</TYPE.largeHeader>
+        <Search />
+      </RowBetween>
+      <Row sx={{ gap: '1rem' }}>
+        <TYPE.main>Current portfolio:</TYPE.main>
+        <DropdownSelect setActive={setSelectedPortfolio} active={selectedPortfolio} options={portfolios} />
+        <StyledFolderPlus onClick={onFolderClick} />
+        {selectedPortfolio !== DEFAULT_PORTFOLIO && <StyledTrash onClick={onTrashClick} />}
+      </Row>
+
+      {filteredProtocols.length ? (
+        <ProtocolsTable data={filteredProtocols} columns={columns} />
+      ) : (
+        <Panel style={{ marginTop: '6px', padding: '1rem 0 0 0 ' }}>
+          <TYPE.main sx={{ textAlign: 'center', padding: '1rem' }}>You have not saved any protocols.</TYPE.main>
+        </Panel>
+      )}
+
+    </>
   )
 }
 

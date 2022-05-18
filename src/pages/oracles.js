@@ -6,7 +6,6 @@ import { Box } from 'rebass'
 import { CustomLink } from 'components/Link'
 import { getRandomColor, toK } from 'utils'
 import { useCalcGroupExtraTvlsByDay } from 'hooks/data'
-import { FullWrapper, PageWrapper } from 'components'
 import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { Header } from 'Theme'
@@ -95,30 +94,28 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
   )
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <Search />
-        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
-        <Header>Total Value Secured All Oracles</Header>
-        <ChartsWrapper>
-          <ChainPieChart data={tokenTvls} chainColor={tokenColors} />
-          <ChainDominanceChart
-            stackOffset="expand"
-            formatPercent={true}
-            stackedDataset={stackedData}
-            chainsUnique={tokens}
-            chainColor={tokenColors}
-            daySum={daySum}
-          />
-        </ChartsWrapper>
+    <>
+      <Search />
+      <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+      <Header>Total Value Secured All Oracles</Header>
+      <ChartsWrapper>
+        <ChainPieChart data={tokenTvls} chainColor={tokenColors} />
+        <ChainDominanceChart
+          stackOffset="expand"
+          formatPercent={true}
+          stackedDataset={stackedData}
+          chainsUnique={tokens}
+          chainColor={tokenColors}
+          daySum={daySum}
+        />
+      </ChartsWrapper>
 
-        <FiltersWrapper>
-          <Filters filterOptions={tokenLinks} activeLabel="All" />
-        </FiltersWrapper>
+      <FiltersWrapper>
+        <Filters filterOptions={tokenLinks} activeLabel="All" />
+      </FiltersWrapper>
 
-        <Table columns={columns} data={tokensList} />
-      </FullWrapper>
-    </PageWrapper>
+      <Table columns={columns} data={tokensList} />
+    </>
   )
 }
 

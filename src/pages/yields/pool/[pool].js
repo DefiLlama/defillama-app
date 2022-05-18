@@ -1,7 +1,6 @@
 import dynamic from 'next/dynamic'
 import { useYieldPoolData, useYieldChartData } from 'utils/dataApi'
 import { GeneralLayout } from 'layout'
-import { PageWrapper, FullWrapper } from 'components'
 import { AutoColumn } from 'components/Column'
 import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
 import Panel from 'components/Panel'
@@ -131,8 +130,8 @@ const PageView = () => {
           >
             {probability !== null
               ? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Probability: ${probability.toFixed(
-                  2
-                )}%.`
+                2
+              )}%.`
               : 'No outlook available'}
           </TYPE.main>
         </AutoColumn>
@@ -141,89 +140,87 @@ const PageView = () => {
   )
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <RowBetween flexWrap="wrap">
-          <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
-            <TYPE.body>
-              <BasicLink href="/yields">{'Pool '}</BasicLink>→ {poolData.symbol}
+    <>
+      <RowBetween flexWrap="wrap">
+        <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
+          <TYPE.body>
+            <BasicLink href="/yields">{'Pool '}</BasicLink>→ {poolData.symbol}
+          </TYPE.body>
+        </AutoRow>
+        <HiddenSearch>
+          <Search small={true} />
+        </HiddenSearch>
+      </RowBetween>
+      <RowBetween style={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <RowFixed style={{ flexWrap: 'wrap' }}>
+          <RowFixed style={{ justifyContent: 'center', minHeight: '39px' }}>
+            <TYPE.body fontSize={below1024 ? '1.5rem' : '2rem'} fontWeight={500} style={{ margin: '0 1rem' }}>
+              <RowFixed gap="6px">
+                {' '}
+                {poolData.projectName === 'Osmosis'
+                  ? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
+                  : poolData.symbol ?? 'Loading'}
+              </RowFixed>
             </TYPE.body>
-          </AutoRow>
-          <HiddenSearch>
-            <Search small={true} />
-          </HiddenSearch>
-        </RowBetween>
-        <RowBetween style={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
-          <RowFixed style={{ flexWrap: 'wrap' }}>
-            <RowFixed style={{ justifyContent: 'center', minHeight: '39px'}}>
-              <TYPE.body fontSize={below1024 ? '1.5rem' : '2rem'} fontWeight={500} style={{ margin: '0 1rem' }}>
-                <RowFixed gap="6px">
-                  {' '}
-                  {poolData.projectName === 'Osmosis'
-                    ? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
-                    : poolData.symbol ?? 'Loading'}
-                </RowFixed>
-              </TYPE.body>
-              <TYPE.main fontSize={'1rem'}>
-                ({poolData.projectName} - {poolData.chain})
-              </TYPE.main>
-            </RowFixed>
+            <TYPE.main fontSize={'1rem'}>
+              ({poolData.projectName} - {poolData.chain})
+            </TYPE.main>
           </RowFixed>
-        </RowBetween>
-        <BreakpointPanels>
-          <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-          <Panel style={{ height: '100%', minHeight: '347px' }}>
-            <Chart
-              display="liquidity"
-              dailyData={finalChartData}
-              totalLiquidity={poolData.tvlUsd}
-              liquidityChange={poolData.apy}
-              title="APY & TVL"
-              dualAxis={true}
-            />
-          </Panel>
-        </BreakpointPanels>
+        </RowFixed>
+      </RowBetween>
+      <BreakpointPanels>
+        <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
+        <Panel style={{ height: '100%', minHeight: '347px' }}>
+          <Chart
+            display="liquidity"
+            dailyData={finalChartData}
+            totalLiquidity={poolData.tvlUsd}
+            liquidityChange={poolData.apy}
+            title="APY & TVL"
+            dualAxis={true}
+          />
+        </Panel>
+      </BreakpointPanels>
 
-        <RowBetween style={{ marginTop: '1rem' }}>
-          <TYPE.main fontSize={'1.125rem'}>Protocol Information</TYPE.main>{' '}
-        </RowBetween>
-        <Panel rounded p={20}>
-          <TokenDetailsLayout>
-            {typeof category === 'string' && (
-              <AutoColumn>
-                <TYPE.main>Category</TYPE.main>
-                <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                  <BasicLink href={`/protocols/${category.toLowerCase()}`}>
-                    <FormattedName text={category} maxCharacters={16} />
-                  </BasicLink>
-                </TYPE.main>
-              </AutoColumn>
-            )}
+      <RowBetween style={{ marginTop: '1rem' }}>
+        <TYPE.main fontSize={'1.125rem'}>Protocol Information</TYPE.main>{' '}
+      </RowBetween>
+      <Panel rounded p={20}>
+        <TokenDetailsLayout>
+          {typeof category === 'string' && (
             <AutoColumn>
-              <TYPE.main>
-                <HeadHelp title="Audits" text="Audits are not a guarantee of security." />
-              </TYPE.main>
+              <TYPE.main>Category</TYPE.main>
               <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                <AuditInfo audits={audits} auditLinks={audit_links} />
+                <BasicLink href={`/protocols/${category.toLowerCase()}`}>
+                  <FormattedName text={category} maxCharacters={16} />
+                </BasicLink>
               </TYPE.main>
             </AutoColumn>
-            <div></div>
-            <RowFixed>
-              <BasicLink color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
-                <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
-                  Twitter ↗
-                </ButtonLight>
-              </BasicLink>
-              <BasicLink color={backgroundColor} external href={url}>
-                <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
-                  Website ↗
-                </ButtonLight>
-              </BasicLink>
-            </RowFixed>{' '}
-          </TokenDetailsLayout>
-        </Panel>
-      </FullWrapper>
-    </PageWrapper>
+          )}
+          <AutoColumn>
+            <TYPE.main>
+              <HeadHelp title="Audits" text="Audits are not a guarantee of security." />
+            </TYPE.main>
+            <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
+              <AuditInfo audits={audits} auditLinks={audit_links} />
+            </TYPE.main>
+          </AutoColumn>
+          <div></div>
+          <RowFixed>
+            <BasicLink color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
+              <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
+                Twitter ↗
+              </ButtonLight>
+            </BasicLink>
+            <BasicLink color={backgroundColor} external href={url}>
+              <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
+                Website ↗
+              </ButtonLight>
+            </BasicLink>
+          </RowFixed>
+        </TokenDetailsLayout>
+      </Panel>
+    </>
   )
 }
 

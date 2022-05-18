@@ -2,7 +2,6 @@ import React, { useMemo } from 'react'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useLg } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
-import { PageWrapper, FullWrapper } from 'components'
 import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 import Table, { columnsToShow } from 'components/Table'
@@ -50,22 +49,20 @@ function AllTokensPage({
   }, [category])
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <RowBetween>
-          <TYPE.largeHeader>{title}</TYPE.largeHeader>
-          <Search small={!isLg} />
-        </RowBetween>
+    <>
+      <RowBetween>
+        <TYPE.largeHeader>{title}</TYPE.largeHeader>
+        <Search small={!isLg} />
+      </RowBetween>
 
-        {showChainList && (
-          <FiltersWrapper>
-            <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
-          </FiltersWrapper>
-        )}
+      {showChainList && (
+        <FiltersWrapper>
+          <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
+        </FiltersWrapper>
+      )}
 
-        <Table data={protocolTotals} columns={columns} />
-      </FullWrapper>
-    </PageWrapper>
+      <Table data={protocolTotals} columns={columns} />
+    </>
   )
 }
 
