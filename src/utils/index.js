@@ -195,6 +195,50 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
   return Number(parseFloat(num).toFixed(5))
 }
 
+export const formattedPegggedPrice = (number, symbol = false, acceptNegatives = false) => {
+  let currencySymbol
+  if (symbol === true) {
+    currencySymbol = '$'
+  } else if (symbol === false) {
+    currencySymbol = ''
+  } else {
+    currencySymbol = symbol
+  }
+  if (isNaN(number) || number === '' || number === undefined) {
+    return symbol ? `${currencySymbol}0` : 0
+  }
+  let num = parseFloat(number)
+  const isNegative = num < 0
+  num = Math.abs(num)
+
+  const currencyMark = isNegative ? `${currencySymbol}-` : currencySymbol
+  const normalMark = isNegative ? '-' : ''
+
+  if (num > 10000000) {
+    return (symbol ? currencyMark : normalMark) + toK(num.toFixed(0), true)
+  }
+
+  if (num === 0) {
+    return symbol ? `${currencySymbol}0` : 0
+  }
+
+  if (num < 0.0001 && num > 0) {
+    return symbol ? `< ${currencySymbol}0.0001` : '< 0.0001'
+  }
+
+  if (num > 1000) {
+    return symbol
+      ? currencyMark + Number(parseFloat(num).toFixed(0)).toLocaleString()
+      : normalMark + Number(parseFloat(num).toFixed(0)).toLocaleString()
+  }
+
+  if (symbol) {
+      return currencyMark + (parseFloat(num).toFixed(6))    // this is all pegged is using, should merge with above
+  }
+
+  return Number(parseFloat(num).toFixed(5))
+}
+
 export const filterCollectionsByCurrency = (collections, displayUsd) =>
   (collections &&
     collections.length &&
@@ -241,10 +285,22 @@ export function tokenIconUrl(name) {
   return `/icons/${name.toLowerCase().split(' ').join('-')}.jpg`
 }
 
-export function formattedPercent(percent, useBrackets = false) {
+export function peggedAssetIconUrl(name) {
+  return `/pegged-icons/${name.toLowerCase().split(' ').join('-')}.jpg`
+}
+
+export function formattedPercent(percent, noSign = false) {
   if (percent === null) {
     return null
   }
+
+  let up = 'green'
+  let down = 'red'
+
+  if (noSign) {
+    up = down = ''
+  }
+
   percent = parseFloat(percent)
   if (!percent || percent === 0) {
     return <Text fontWeight={500}>0%</Text>
@@ -252,7 +308,7 @@ export function formattedPercent(percent, useBrackets = false) {
 
   if (percent < 0.0001 && percent > 0) {
     return (
-      <Text fontWeight={500} color="green">
+      <Text fontWeight={500} color={up}>
         {'< 0.0001%'}
       </Text>
     )
@@ -260,7 +316,7 @@ export function formattedPercent(percent, useBrackets = false) {
 
   if (percent < 0 && percent > -0.0001) {
     return (
-      <Text fontWeight={500} color="red">
+      <Text fontWeight={500} color={down}>
         {'< 0.0001%'}
       </Text>
     )
@@ -270,14 +326,15 @@ export function formattedPercent(percent, useBrackets = false) {
   if (fixedPercent === '0.00') {
     return '0%'
   }
+  const prefix = noSign ? '' : '+'
   if (fixedPercent > 0) {
     if (fixedPercent > 100) {
-      return <Text fontWeight={500} color="green">{`+${percent?.toFixed(0).toLocaleString()}%`}</Text>
+      return <Text fontWeight={500} color={up}>{`${prefix}${percent?.toFixed(0).toLocaleString()}%`}</Text>
     } else {
-      return <Text fontWeight={500} color="green">{`+${fixedPercent}%`}</Text>
+      return <Text fontWeight={500} color={up}>{`${prefix}${fixedPercent}%`}</Text>
     }
   } else {
-    return <Text fontWeight={500} color="red">{`${fixedPercent}%`}</Text>
+    return <Text fontWeight={500} color={down}>{`${fixedPercent}%`}</Text>
   }
 }
 
@@ -402,6 +459,14 @@ export const getTokenDominance = (topToken, totalVolume) => {
   } else return 100
 }
 
+export const getPeggedDominance = (topToken, totalMcap) => {
+  const dominance = topToken.mcap && totalMcap && (topToken.mcap / totalMcap) * 100.0
+
+  if (dominance < 100) {
+    return dominance.toFixed(2)
+  } else return 100
+}
+
 /**
  * get tvl of specified day before last day using chart data
  * @param {*} chartData
@@ -409,4 +474,21 @@ export const getTokenDominance = (topToken, totalVolume) => {
  */
 export const getPrevTvlFromChart = (chart, daysBefore) => {
   return chart[chart.length - 1 - daysBefore]?.[1] ?? null
+}
+
+export const getPrevCirculatingFromChart = (chart, daysBefore, issuanceType, pegType) => {
+  return chart[chart.length - 1 - daysBefore]?.[issuanceType]?.[pegType] ?? null
+}
+
+export function download(filename, text) {
+  var element = document.createElement('a')
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))
+  element.setAttribute('download', filename)
+
+  element.style.display = 'none'
+  document.body.appendChild(element)
+
+  element.click()
+
+  document.body.removeChild(element)
 }

@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import { useMemo } from 'react'
 import { chainIconUrl, tokenIconUrl } from 'utils'
+import { useIsClient } from 'hooks'
 
 interface SEOProps {
   cardName?: string
@@ -13,7 +14,9 @@ interface SEOProps {
 }
 
 const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false }: SEOProps) => {
-  const windowURL = typeof window !== 'undefined' && window.location.href ? window.location.href : ''
+  const isClient = useIsClient()
+
+  const windowURL = isClient && window.location.href ? window.location.href : ''
 
   const isTvlValid = tvl && tvl !== '$0'
 

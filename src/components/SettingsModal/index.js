@@ -7,17 +7,24 @@ import {
   useDisplayUsdManager,
   useBorrowedManager,
   useHideLastDayManager,
+  useStablecoinsManager,
+  useSingleExposureManager,
+  useNoILManager,
+  useMillionDollarManager,
   useTvlToggles,
   useGetExtraTvlEnabled,
+  useGetExtraPeggedEnabled,
   STAKING,
   POOL2,
   BORROWED,
-  OFFERS,
-  TREASURY,
   DARK_MODE,
   HIDE_LAST_DAY,
   DISPLAY_USD,
+  DOUBLE_COUNT,
   useDarkModeManager,
+  UNRELEASED,
+  useGroupEnabled,
+  groupSettings,
 } from '../../contexts/LocalStorage'
 
 import { AutoRow } from '../Row'
@@ -183,11 +190,15 @@ const ListItem = styled.li`
   }
 `
 
-export function CheckMarks({ type = 'defi' }) {
+export function CheckMarks({ type = 'defi', style = null }) {
   const [stakingEnabled, toggleStaking] = useStakingManager()
   const [borrowedEnabled, toggleBorrowed] = useBorrowedManager()
   const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
   const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
+  const [stablecoins, toggleStablecoins] = useStablecoinsManager()
+  const [singleExposure, toggleSingleExposure] = useSingleExposureManager()
+  const [noIL, toggleNoIL] = useNoILManager()
+  const [millionDollar, toggleMillionDollar] = useMillionDollarManager()
   const router = useRouter()
   const isClient = useIsClient()
 
@@ -220,20 +231,68 @@ export function CheckMarks({ type = 'defi' }) {
         help: 'Hide the last day of data',
       },
     ],
+    yields: [
+      {
+        name: 'Stablecoins',
+        toggle: toggleStablecoins,
+        enabled: stablecoins && isClient,
+        help: 'Select pools consisting of stablecoins only',
+      },
+      {
+        name: 'Single Exposure',
+        toggle: toggleSingleExposure,
+        enabled: singleExposure && isClient,
+        help: 'Select pools with single token exposure only',
+      },
+      {
+        name: 'No IL',
+        toggle: toggleNoIL,
+        enabled: noIL && isClient,
+        help: 'Select pools with no impermanent loss',
+      },
+      {
+        name: 'Million Dollar',
+        toggle: toggleMillionDollar,
+        enabled: millionDollar && isClient,
+        help: 'Select pools with at least one million dollar in TVL',
+      },
+    ],
   }
 
-  return (
-    <AutoRow gap="10px" justify="center" key="settings">
-      {toggleSettings[type].map((toggleSetting) => {
-        if (toggleSetting) {
-          return <OptionToggle {...toggleSetting} key={toggleSetting.name} />
-        } else return null
-      })}
-    </AutoRow>
-  )
+  if (type !== 'yields') {
+    return (
+      <AutoRow gap="10px" justify="center" key="settings">
+        {toggleSettings[type].map((toggleSetting) => {
+          if (toggleSetting) {
+            return <OptionToggle {...toggleSetting} key={toggleSetting.name} />
+          } else return null
+        })}
+      </AutoRow>
+    )
+  } else {
+    return (
+      <>
+        <ScrollAreaRoot>
+          <ScrollAreaViewport>
+            <ListWrapper style={{ ...style }}>
+              {toggleSettings[type].map((toggleSetting) => (
+                <ListItem key={toggleSetting.name}>
+                  <OptionToggle {...toggleSetting} />
+                </ListItem>
+              ))}
+            </ListWrapper>
+          </ScrollAreaViewport>
+          <ScrollAreaScrollbar orientation="horizontal">
+            <ScrollAreaThumb />
+          </ScrollAreaScrollbar>
+          <ScrollAreaCorner />
+        </ScrollAreaRoot>
+      </>
+    )
+  }
 }
 
-const extraTvlOptions = [
+export const extraTvlOptions = [
   {
     name: 'Staking',
     key: STAKING,
@@ -250,14 +309,17 @@ const extraTvlOptions = [
     help: 'Include borrowed coins in lending protocols',
   },
   {
-    name: 'Offers',
-    key: OFFERS,
-    help: 'Coins that are approved but not locked',
+    name: 'Double Count',
+    key: DOUBLE_COUNT,
+    help: 'Include TVL of protocols which TVL feeds into another protocol',
   },
+]
+
+export const extraPeggedOptions = [
   {
-    name: 'Treasury',
-    key: TREASURY,
-    help: 'Protocol treasury',
+    name: 'Unreleased',
+    key: UNRELEASED,
+    help: 'Include tokens that were minted but have never been circulating.',
   },
 ]
 
@@ -347,6 +409,55 @@ export const AllTvlOptions = ({ style }) => {
         <ScrollAreaViewport>
           <ListWrapper style={{ ...style }}>
             {extraTvlOptions.map((option) => (
+              <ListItem key={option.key}>
+                <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
+              </ListItem>
+            ))}
+          </ListWrapper>
+        </ScrollAreaViewport>
+        <ScrollAreaScrollbar orientation="horizontal">
+          <ScrollAreaThumb />
+        </ScrollAreaScrollbar>
+        <ScrollAreaCorner />
+      </ScrollAreaRoot>
+    </>
+  )
+}
+
+export const AllPeggedOptions = ({ style }) => {
+  const peggedToggles = useTvlToggles()
+  const extraPeggedEnabled = useGetExtraPeggedEnabled()
+  return (
+    <>
+      <ScrollAreaRoot>
+        <ScrollAreaViewport>
+          <ListWrapper style={{ ...style }}>
+            {extraPeggedOptions.map((option) => (
+              <ListItem key={option.key}>
+                <OptionToggle {...option} toggle={peggedToggles(option.key)} enabled={extraPeggedEnabled[option.key]} />
+              </ListItem>
+            ))}
+          </ListWrapper>
+        </ScrollAreaViewport>
+        <ScrollAreaScrollbar orientation="horizontal">
+          <ScrollAreaThumb />
+        </ScrollAreaScrollbar>
+        <ScrollAreaCorner />
+      </ScrollAreaRoot>
+    </>
+  )
+}
+
+export const AllGroupOptions = ({ style }) => {
+  const tvlToggles = useTvlToggles()
+  const extraTvlEnabled = useGroupEnabled()
+
+  return (
+    <>
+      <ScrollAreaRoot>
+        <ScrollAreaViewport>
+          <ListWrapper style={{ ...style }}>
+            {groupSettings.map((option) => (
               <ListItem key={option.key}>
                 <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
               </ListItem>

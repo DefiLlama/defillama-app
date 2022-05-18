@@ -7,11 +7,13 @@ import utc from 'dayjs/plugin/utc'
 import InfiniteScroll from 'react-infinite-scroll-component'
 
 import TokenLogo from '../TokenLogo'
-import { BasicLink, CustomLink } from '../Link'
+import ChainsRow from '../ChainsRow'
+import TokensRow from '../TokensRow'
+import { CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, chainIconUrl, tokenIconUrl } from '../../utils'
+import { formattedNum } from '../../utils'
 import { useInfiniteScroll } from '../../hooks'
 
 import FormattedName from '../FormattedName'
@@ -104,11 +106,11 @@ const SORT_FIELD = {
 // @TODO generalize to merge with NFTCollectionList
 function NFTList({
   data,
-  filters,
+  // filters,
   iconUrl,
-  generateLink = () => '',
-  columns = [],
-  defaultSortingColumn = 'totalVolume',
+  // generateLink = () => '',
+  // columns = [],
+  // defaultSortingColumn = 'totalVolume',
   type = 'chains',
 }) {
   // sorting
@@ -134,9 +136,9 @@ function NFTList({
   }, [data, sortDirection, sortedColumn])
 
   const ListItem = ({ item, index }) => {
-    /* TODO handle displaying multiple chains and marketplaces*/
-    const marketplace = item.marketplaces && item.marketplaces[0]
-    const chain = item.chains && item.chains[0]
+    const marketplaces = item.marketplaces?.length && item.marketplaces
+    const chains = item.chains?.length && item.chains
+
     return (
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
@@ -151,20 +153,8 @@ function NFTList({
             </CustomLink>
           </Row>
         </DataText>
-        {marketplace && (
-          <DataText>
-            <BasicLink key={marketplace} href={`/nfts/marketplace/${marketplace}`}>
-              <TokenLogo address={marketplace} logo={tokenIconUrl(marketplace)} />{' '}
-            </BasicLink>
-          </DataText>
-        )}
-        {chain && (
-          <DataText>
-            <BasicLink key={chain} href={`/nfts/chain/${chain}`}>
-              <TokenLogo address={chain} logo={chainIconUrl(chain)} />{' '}
-            </BasicLink>
-          </DataText>
-        )}
+        {marketplaces && <TokensRow tokens={marketplaces} />}
+        {chains && <ChainsRow chains={chains} />}
         {!below680 && <DataText area="collections">{item.collections}</DataText>}
         {!below1080 && <DataText area="dailyVolume">{formattedNum(item.dailyVolumeUSD, true)}</DataText>}
         <DataText area="totalVolume" color="text" fontWeight="500">
@@ -184,7 +174,7 @@ function NFTList({
             color="text"
             area="chain"
             fontWeight="500"
-            onClick={(e) => {
+            onClick={() => {
               setSortedColumn(SORT_FIELD.NAME)
               setSortDirection(sortedColumn !== SORT_FIELD.NAME ? true : !sortDirection)
             }}
@@ -201,7 +191,7 @@ function NFTList({
           <Flex alignItems="center">
             <ClickableText
               area="collections"
-              onClick={(e) => {
+              onClick={() => {
                 setSortedColumn(SORT_FIELD.COLLECTIONS)
                 setSortDirection(sortedColumn !== SORT_FIELD.COLLECTIONS ? true : !sortDirection)
               }}
@@ -214,7 +204,7 @@ function NFTList({
           <Flex alignItems="center">
             <ClickableText
               area="dailyVolume"
-              onClick={(e) => {
+              onClick={() => {
                 setSortedColumn(SORT_FIELD.VOL)
                 setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
               }}
@@ -226,7 +216,7 @@ function NFTList({
         <Flex alignItems="center">
           <ClickableText
             area="totalVolume"
-            onClick={(e) => {
+            onClick={() => {
               setSortedColumn(SORT_FIELD.TOTAL_VOL)
               setSortDirection(sortedColumn !== SORT_FIELD.TOTAL_VOL ? true : !sortDirection)
             }}

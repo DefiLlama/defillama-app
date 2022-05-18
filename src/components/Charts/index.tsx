@@ -45,3 +45,5 @@ const PlaceholderChartPanel = styled(Panel)`
 
 export { ChainPieChart } from './PieChart'
 export { ChainDominanceChart } from './DominanceChart'
+export { PeggedChainPieChart } from './PeggedPieChart'
+export { PeggedChainDominanceChart } from './PeggedDominanceChart'

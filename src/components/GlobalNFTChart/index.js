@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { ResponsiveContainer } from 'recharts'
 import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
+import { useIsClient } from 'hooks'
 
 const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = '', symbol = '', displayUsd = false }) => {
   const filteredChartData = useMemo(() => {
@@ -12,7 +13,7 @@ const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = '', 
 
   // update the width on a window resize
   const ref = useRef()
-  const isClient = typeof window === 'object'
+  const isClient = useIsClient()
   const [width, setWidth] = useState(ref?.current?.container?.clientWidth)
   useEffect(() => {
     if (!isClient) {

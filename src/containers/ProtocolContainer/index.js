@@ -4,7 +4,7 @@ import { Text, Box } from 'rebass'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 
-import { PageWrapper, ContentWrapper } from 'components'
+import { PageWrapper, FullWrapper } from 'components'
 import AuditInfo from 'components/AuditInfo'
 import Bookmark from 'components/Bookmark'
 import { ButtonLight } from 'components/ButtonStyled'
@@ -272,7 +272,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
     <PageWrapper>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
-      <ContentWrapper>
+      <FullWrapper>
         <RowBetween flexWrap="wrap">
           <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
             <TYPE.body>
@@ -494,7 +494,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
             )}
           </>
         </DashboardWrapper>
-      </ContentWrapper>
+      </FullWrapper>
     </PageWrapper>
   )
 }

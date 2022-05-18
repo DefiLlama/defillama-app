@@ -1,17 +1,17 @@
-import { useState } from 'react'
+import { useMemo } from 'react'
 import { FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
 
-import { PageWrapper, FullWrapper } from 'components'
+import { PageWrapper, FullWrapper, ProtocolsTable } from 'components'
 import DropdownSelect from 'components/DropdownSelect'
 import Panel from 'components/Panel'
 import Row, { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 
 import { useIsClient } from 'hooks'
-import { useSavedProtocols } from 'contexts/LocalStorage'
+import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
 import { TYPE } from 'Theme'
-import Table, { columnsToShow } from 'components/Table'
+import { columnsToShow } from 'components/Table'
 
 const StyledFolderPlus = styled(FolderPlus)`
   cursor: pointer;
@@ -33,15 +33,12 @@ const StyledTrash = styled(Trash2)`
   }
 `
 
-const DEFAULT_PORTFOLIO = 'main'
-
 const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
 function PortfolioContainer({ protocolsDict }) {
-  const [selectedPortfolio, setSelectedPortfolio] = useState(DEFAULT_PORTFOLIO)
   const isClient = useIsClient()
 
-  const { addPortfolio, removePortfolio, savedProtocols } = useSavedProtocols()
+  const { addPortfolio, removePortfolio, savedProtocols, selectedPortfolio, setSelectedPortfolio } = useSavedProtocols()
   const portfolios = Object.keys(savedProtocols)
     .filter((portfolio) => portfolio !== selectedPortfolio)
     .map((portfolio) => ({ label: portfolio }))
@@ -63,12 +60,13 @@ function PortfolioContainer({ protocolsDict }) {
     }
   }
 
-  const filteredProtocols =
-    isClient && selectedPortfolioProtocols
-      ? Object.keys(selectedPortfolioProtocols)
-          .map((protocol) => protocolsDict[protocol])
-          .sort((a, b) => b?.tvl - a?.tvl)
-      : []
+  const portfolio = Object.values(selectedPortfolioProtocols)
+
+  const filteredProtocols = useMemo(() => {
+    if (isClient) {
+      return protocolsDict.filter((p) => portfolio.includes(p.name))
+    } else return []
+  }, [isClient, portfolio, protocolsDict])
 
   return (
     <PageWrapper>
@@ -85,7 +83,7 @@ function PortfolioContainer({ protocolsDict }) {
         </Row>
 
         {filteredProtocols.length ? (
-          <Table data={filteredProtocols} columns={columns} />
+          <ProtocolsTable data={filteredProtocols} columns={columns} />
         ) : (
           <Panel style={{ marginTop: '6px', padding: '1rem 0 0 0 ' }}>
             <TYPE.main sx={{ textAlign: 'center', padding: '1rem' }}>You have not saved any protocols.</TYPE.main>

@@ -6,6 +6,7 @@ import { RowFixed } from '../Row'
 import { OptionButton } from '../ButtonStyled'
 import { getTimeframe } from '../../utils'
 import { TYPE } from '../../Theme'
+import { useIsClient } from 'hooks'
 
 const CHART_VIEW = {
   VOLUME: 'Volume',
@@ -17,7 +18,15 @@ const VOLUME_WINDOW = {
   DAYS: 'DAYS',
 }
 
-const GlobalChart = ({ display, dailyData, unit = 'USD', totalLiquidity, liquidityChange, title = 'Total TVL' }) => {
+const GlobalChart = ({
+  display,
+  dailyData,
+  unit = 'USD',
+  totalLiquidity,
+  liquidityChange,
+  title = 'Total TVL',
+  dualAxis = false,
+}) => {
   // chart options
   const [chartView] = useState(display === 'volume' ? CHART_VIEW.VOLUME : CHART_VIEW.LIQUIDITY)
 
@@ -52,7 +61,7 @@ const GlobalChart = ({ display, dailyData, unit = 'USD', totalLiquidity, liquidi
 
   // update the width on a window resize
   const ref = useRef()
-  const isClient = typeof window === 'object'
+  const isClient = useIsClient()
   const [width, setWidth] = useState(ref?.current?.container?.clientWidth)
 
   useEffect(() => {
@@ -92,6 +101,7 @@ const GlobalChart = ({ display, dailyData, unit = 'USD', totalLiquidity, liquidi
             width={width}
             type={CHART_TYPES.AREA}
             units={moneySymbol}
+            dualAxis={dualAxis}
           />
         </ResponsiveContainer>
       )}

@@ -3,7 +3,7 @@ import { getForkPageData, revalidate } from '../utils/dataApi'
 import { GeneralLayout } from '../layout'
 import Table, { Index } from 'components/Table'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
-import { formattedNum, getRandomColor, toK } from 'utils'
+import { getRandomColor, toK } from 'utils'
 import { FullWrapper, PageWrapper } from 'components'
 import { CustomLink } from 'components/Link'
 import styled from 'styled-components'
@@ -11,7 +11,7 @@ import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { Header } from 'Theme'
 import { ChainDominanceChart, ChainPieChart } from 'components/Charts'
-import Filters from 'components/Filters'
+import Filters, { FiltersWrapper } from 'components/Filters'
 import { Box } from 'rebass'
 
 export async function getStaticProps() {
@@ -118,7 +118,11 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
             daySum={daySum}
           />
         </ChartsWrapper>
-        <Filters filterOptions={tokenLinks} activeLabel="All" />
+
+        <FiltersWrapper>
+          <Filters filterOptions={tokenLinks} activeLabel="All" />
+        </FiltersWrapper>
+
         <Table columns={columns} data={tokensList} />
       </FullWrapper>
     </PageWrapper>

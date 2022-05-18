@@ -8,14 +8,15 @@ export async function getStaticProps({ params }) {
   const data = await getChainPageData(chain)
   return {
     ...data,
-    revalidate: revalidate()
+    revalidate: revalidate(),
   }
 }
+
 export async function getStaticPaths() {
   const res = await fetch(PROTOCOLS_API)
 
-  const paths = (await res.json()).chains.map(chain => ({
-    params: { chain }
+  const paths = (await res.json()).chains.slice(0, 20).map((chain) => ({
+    params: { chain },
   }))
 
   return { paths, fallback: 'blocking' }

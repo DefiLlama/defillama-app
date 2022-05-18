@@ -7,16 +7,40 @@ import { CloseIcon, Container, Input, SearchIconLarge, Wrapper } from './shared'
 import { standardizeProtocolName } from 'utils'
 import dynamic from 'next/dynamic'
 
-const defaultLinkPath = item => {
-  if (item.isChain) {
-    return '/chain/' + item.name
+import { useYieldApp } from '../../hooks'
+import { usePeggedApp } from '../../hooks'
+
+// importing both
+const OpenTokenSearch = dynamic(() => import('./OpenTokenSearch'))
+const OpenYieldSearch = dynamic(() => import('./OpenYieldSearch'))
+const OpenPeggedSearch = dynamic(() => import('./OpenPeggedSearch'))
+
+const TokenSearch = ({ small = false, includeChains = true, linkPath: customPath, customOnLinkClick = () => {} }) => {
+  let linkPath, OpenSearch, htmlPlaceholder
+  const useYield = useYieldApp()
+  const usePegged = usePeggedApp()
+  if (useYield) {
+    OpenSearch = OpenYieldSearch
+    htmlPlaceholder = ['pool', 'token']
+    linkPath = (token) => `/yields/token/${token}`
+  } else if (usePegged) {
+    OpenSearch = OpenPeggedSearch
+    htmlPlaceholder = ['Defi', 'pegged assets']
+    linkPath = (item) => `/peggedasset/${item.gecko_id}`
+  } else {
+    OpenSearch = OpenTokenSearch
+    htmlPlaceholder = ['Defi', 'protocols']
+    linkPath = (item) => {
+      if (customPath) return customPath(item.name)
+
+      if (item.isChain) {
+        return '/chain/' + item.name
+      }
+
+      return `/protocol/` + standardizeProtocolName(item.name)
+    }
   }
-  return `/protocol/` + standardizeProtocolName(item.name)
-}
 
-const OpenSearch = dynamic(() => import('./OpenTokenSearch'))
-
-const TokenSearch = ({ small = false, includeChains = true, linkPath = defaultLinkPath, customOnLinkClick = () => { } }) => {
   const [showMenu, toggleMenu] = useState(false)
   const [value, setValue] = useState('')
 
@@ -39,9 +63,9 @@ const TokenSearch = ({ small = false, includeChains = true, linkPath = defaultLi
       style={
         small
           ? {
-            display: 'flex',
-            alignItems: 'center'
-          }
+              display: 'flex',
+              alignItems: 'center',
+            }
           : {}
       }
     >
@@ -57,15 +81,15 @@ const TokenSearch = ({ small = false, includeChains = true, linkPath = defaultLi
               small
                 ? ''
                 : below410
-                  ? 'Search...'
-                  : below470
-                    ? 'Search DeFi...'
-                    : below700
-                      ? 'Search protocols...'
-                      : 'Search DeFi protocols...'
+                ? 'Search...'
+                : below470
+                ? `Search ${htmlPlaceholder[0]}...`
+                : below700
+                ? `Search ${htmlPlaceholder[1]}...`
+                : `Search ${htmlPlaceholder[0]} ${htmlPlaceholder[1]}...`
             }
             value={value}
-            onChange={e => {
+            onChange={(e) => {
               setValue(e.target.value)
             }}
             onFocus={() => {
@@ -76,9 +100,11 @@ const TokenSearch = ({ small = false, includeChains = true, linkPath = defaultLi
           />
           {!showMenu ? <SearchIconLarge /> : <CloseIcon onClick={() => toggleMenu(false)} />}
         </Wrapper>
-        {showMenu && <OpenSearch {...{ includeChains, linkPath, customOnLinkClick, wrapperRef, value, toggleMenu, setValue }} />}
+        {showMenu && (
+          <OpenSearch {...{ includeChains, linkPath, customOnLinkClick, wrapperRef, value, toggleMenu, setValue }} />
+        )}
       </Container>
-      {small && <RightSettings />}
+      {small && !useYield && !usePegged && <RightSettings />}
     </div>
   )
 }

@@ -36,20 +36,25 @@ const TokenSearch = ({
 }) => {
   const [searcheableData, setSearcheableData] = useState(useSearchData())
   const [loading, setIsLoading] = useState(false)
+  const [dataFetched, setDataFetched] = useState(false)
   const { protocolNames, chainsSet } = searcheableData
 
   useEffect(() => {
+    const fetchProtocols = ()=> fetch(PROTOCOLS_API)
+      .then((res) => res.json())
+      .then((res) => {
+        setIsLoading(false)
+        setDataFetched(true)
+        setSearcheableData({
+          protocolNames: res.protocols,
+          chainsSet: res.chains,
+        })
+      })
     if (!searcheableData.protocolNames.length) {
       setIsLoading(true)
-      fetch(PROTOCOLS_API)
-        .then((res) => res.json())
-        .then((res) => {
-          setIsLoading(false)
-          setSearcheableData({
-            protocolNames: res.protocols,
-            chainsSet: res.chains,
-          })
-        })
+      fetchProtocols()
+    } else if(dataFetched === false){
+      fetchProtocols()
     }
   }, [searcheableData])
 

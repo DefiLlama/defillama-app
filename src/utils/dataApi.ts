@@ -13,8 +13,15 @@ import {
   HOURLY_PROTOCOL_API,
   ORACLE_API,
   FORK_API,
+  YIELD_POOLS_API,
+  YIELD_CHART_API,
+  CG_TOKEN_API,
+  PEGGED_API,
+  PEGGEDS_API,
+  PEGGEDCHART_API,
+  PEGGEDPRICES_API,
 } from '../constants/index'
-import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from 'utils'
+import { getPercentChange, getPrevTvlFromChart, getPrevCirculatingFromChart, standardizeProtocolName } from 'utils'
 
 interface IProtocol {
   name: string
@@ -61,6 +68,26 @@ export function getProtocolNames(protocols) {
   return protocols.map((p) => ({ name: p.name, symbol: p.symbol }))
 }
 
+export const categoryToPegType = {
+  stablecoins: 'peggedUSD',
+}
+export const peggedPropertiesToKeep = [
+  'circulating',
+  'minted',
+  'unreleased',
+  'mcap',
+  'name',
+  'symbol',
+  'gecko_id',
+  'chains',
+  'price',
+  'change_1d',
+  'change_7d',
+  'change_1m',
+  'circulatingPrevDay',
+  'circulatingPrevWeek',
+  'circulatingPrevMonth',
+]
 export const basicPropertiesToKeep = [
   'tvl',
   'name',
@@ -74,6 +101,7 @@ export const basicPropertiesToKeep = [
   'tvlPrevMonth',
   'mcap',
   'mcaptvl',
+  'category',
 ]
 export function keepNeededProperties(protocol: any, propertiesToKeep: string[] = basicPropertiesToKeep) {
   return propertiesToKeep.reduce((obj, prop) => {
@@ -91,8 +119,13 @@ const formatProtocolsData = ({
   category = '',
   protocols = [],
   protocolProps = [...basicPropertiesToKeep, 'extraTvl'],
+  removeBridges = false,
 }) => {
   let filteredProtocols = [...protocols]
+
+  if (removeBridges) {
+    filteredProtocols = filteredProtocols.filter(({ category }) => category !== 'Bridge')
+  }
 
   if (chain) {
     filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
@@ -134,7 +167,7 @@ const formatProtocolsData = ({
         }
       } else {
         const firstChar = sectionName[0]
-        if (firstChar === firstChar.toLowerCase() || sectionName === 'Offers' || sectionName === 'Treasury') {
+        if (firstChar === firstChar.toLowerCase()) {
           protocol.extraTvl[sectionName] = sectionTvl
         }
       }
@@ -149,21 +182,79 @@ const formatProtocolsData = ({
   return filteredProtocols
 }
 
+const formatPeggedAssetsData = ({
+  chain = '',
+  category = '',
+  peggedAssets = [],
+  chartDataByPeggedAsset = [],
+  peggedNameToIndexObj = {},
+  peggedAssetProps = [...peggedPropertiesToKeep],
+}) => {
+  let filteredPeggedAssets = [...peggedAssets]
+  if (chain) {
+    filteredPeggedAssets = filteredPeggedAssets.filter(({ chains = [] }) => chains.includes(chain))
+  }
+
+  if (category) {
+    filteredPeggedAssets = filteredPeggedAssets.filter(
+      ({ category: peggedCategory = '' }) =>
+        category.toLowerCase() === (peggedCategory ? peggedCategory.toLowerCase() : '')
+    )
+  }
+
+  filteredPeggedAssets = filteredPeggedAssets.map((pegged) => {
+    let pegType = pegged.pegType
+    if (chain) {
+      const chainCirculating = pegged.chainCirculating[chain]
+      pegged.circulating = chainCirculating ? chainCirculating.current[pegType] ?? 0 : 0
+      pegged.circulatingPrevDay = chainCirculating ? chainCirculating.circulatingPrevDay[pegType] ?? null : null
+      pegged.circulatingPrevWeek = chainCirculating ? chainCirculating.circulatingPrevWeek[pegType] ?? null : null
+      pegged.circulatingPrevMonth = chainCirculating ? chainCirculating.circulatingPrevMonth[pegType] ?? null : null
+    } else {
+      pegged.circulating = pegged.circulating[pegType] ?? 0
+      pegged.circulatingPrevDay = pegged.circulatingPrevDay[pegType] ?? null
+      pegged.circulatingPrevWeek = pegged.circulatingPrevWeek[pegType] ?? null
+      pegged.circulatingPrevMonth = pegged.circulatingPrevMonth[pegType] ?? null
+    }
+    const chartIndex = peggedNameToIndexObj[pegged.symbol]
+    const chart = chartDataByPeggedAsset[chartIndex] ?? null
+
+    pegged.mcap = chart?.[chart.length - 1]?.mcap ?? null
+    const mcapPrevDay = chart?.[chart.length - 1 - 1]?.mcap ?? null
+    const mcapPrevWeek = chart?.[chart.length - 1 - 7]?.mcap ?? null
+    const mcapPrevMonth = chart?.[chart.length - 1 - 30]?.mcap ?? null
+    pegged.change_1d = getPercentChange(pegged.mcap, mcapPrevDay)
+    pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
+    pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
+
+    return keepNeededProperties(pegged, peggedAssetProps)
+  })
+
+  if (chain) {
+    filteredPeggedAssets = filteredPeggedAssets.sort((a, b) => b.mcap - a.mcap)
+  }
+
+  return filteredPeggedAssets
+}
+
 export async function getProtocolsPageData(category, chain) {
   const { protocols, chains } = await getProtocols()
 
-  let filteredProtocols = formatProtocolsData({ category, protocols })
-
   const chainsSet = new Set()
 
-  filteredProtocols.forEach(({ chains }) => {
-    chains.forEach((chain) => chainsSet.add(chain))
+  protocols.forEach(({ chains, category: pCategory }) => {
+    chains.forEach((chain) => {
+      if (!category || !chain) {
+        chainsSet.add(chain)
+      } else {
+        if (pCategory?.toLowerCase() === category?.toLowerCase() && chains.includes(chain)) {
+          chainsSet.add(chain)
+        }
+      }
+    })
   })
 
-  // filter protocols by chain after we have data of all the chains of protocols in a category
-  if (chain) {
-    filteredProtocols = filteredProtocols.filter(({ chains = [] }) => chains.includes(chain))
-  }
+  let filteredProtocols = formatProtocolsData({ category, protocols, chain })
 
   return {
     filteredProtocols,
@@ -175,12 +266,93 @@ export async function getProtocolsPageData(category, chain) {
 
 export async function getSimpleProtocolsPageData(propsToKeep) {
   const { protocols, chains } = await getProtocolsRaw()
-  const filteredProtocols = formatProtocolsData({ protocols, protocolProps: propsToKeep })
+  const filteredProtocols = formatProtocolsData({
+    protocols,
+    protocolProps: propsToKeep,
+  })
   return { protocols: filteredProtocols, chains }
 }
 
+export async function getPeggedsPageData(category, chain) {
+  const { peggedAssets, chains } = await getPeggedAssets()
+  const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '')).then((r) => r.json())
+
+  let chartDataByPeggedAsset = []
+  let peggedAssetNames: string[] = []
+  let peggedNameToIndexObj: object = {}
+  chartDataByPeggedAsset = await Promise.all(
+    peggedAssets.map(async (elem, i) => {
+      peggedAssetNames.push(elem.symbol)  // fix
+      peggedNameToIndexObj[elem.symbol] = i
+      for (let i = 0; i < 5; i++) {
+        try {
+          if (!chain) {
+            return await fetch(`${PEGGEDCHART_API}/?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
+          }
+          return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
+        } catch (e) { }
+      }
+      throw new Error(`${CHART_API}/${elem} is broken`)
+    })
+  )
+
+  const pegType = categoryToPegType[category]
+  const stackedDataset = Object.entries(
+    chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
+      charts.forEach((chart) => {
+        const peggedName = peggedAssetNames[i]
+        const circulating = chart.mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
+        const date = chart.date
+        if (date < 1596248105) return
+        if (circulating !== null) {
+          if (total[date] == undefined) {
+            total[date] = {}
+          }
+          const b = total[date][peggedName]
+          total[date][peggedName] = { ...b, circulating: circulating ?? 0 }
+        }
+      })
+      return total
+    }, {})
+  )
+
+  const chainList = await chains
+    .sort((a, b) => b.circulating[pegType] - a.circulating[pegType])
+    .map((chain) => chain.name)
+  const chainsSet = new Set()
+
+  peggedAssets.forEach(({ chains, category: pCategory }) => {
+    chains.forEach((chain) => {
+      if (!category || !chain) {
+        chainsSet.add(chain)
+      } else {
+        if (pCategory?.toLowerCase() === category?.toLowerCase() && chainList.includes(chain)) {
+          chainsSet.add(chain)
+        }
+      }
+    })
+  })
+
+  const filteredPeggedAssets = formatPeggedAssetsData({
+    category,
+    peggedAssets,
+    chartDataByPeggedAsset,
+    peggedNameToIndexObj,
+    chain,
+  })
+
+  return {
+    peggedcategory: category,
+    chains: chainList.filter((chain) => chainsSet.has(chain)),
+    filteredPeggedAssets,
+    chartData,
+    stackedDataset,
+    chain: chain ?? 'All',
+  }
+}
+
 export const getVolumeCharts = (data) => {
-  const { tvl = [], staking = [], borrowed = [], pool2 = [], offers = [], treasury = [] } = data || {}
+  const { tvl = [], staking = [], borrowed = [], pool2 = [], doublecounted = [] } = data || {}
 
   const chart = tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
 
@@ -188,8 +360,7 @@ export const getVolumeCharts = (data) => {
     staking: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
     pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-    offers: offers.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-    treasury: treasury.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+    doublecounted: doublecounted.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
   }
 
   return {
@@ -199,28 +370,21 @@ export const getVolumeCharts = (data) => {
 }
 
 export async function getChainPageData(chain) {
-  try {
-    const [chartData, { protocols, chains }] = await Promise.all(
-      [CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
-    )
+  const [chartData, { protocols, chains }] = await Promise.all(
+    [CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
+  )
 
-    const filteredProtocols = formatProtocolsData({ chain, protocols })
+  const filteredProtocols = formatProtocolsData({ chain, protocols, removeBridges: true })
 
-    const charts = getVolumeCharts(chartData)
+  const charts = getVolumeCharts(chartData)
 
-    return {
-      props: {
-        ...(chain && { chain }),
-        chainsSet: chains,
-        filteredProtocols,
-        ...charts,
-      },
-    }
-  } catch (e) {
-    console.log(e)
-    return {
-      notFound: true,
-    }
+  return {
+    props: {
+      ...(chain && { chain }),
+      chainsSet: chains,
+      filteredProtocols,
+      ...charts,
+    },
   }
 }
 
@@ -318,7 +482,10 @@ export async function getForkPageData(fork = null) {
         }
       })
       chartData = data
-      parentTokens = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase()) || null
+      const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
+      if (protocol) {
+        parentTokens.push(protocol)
+      }
     } else {
       forksUnique.forEach((fork) => {
         const protocol = protocolsData.find((p) => p.name.toLowerCase() === fork.toLowerCase())
@@ -387,6 +554,34 @@ export const getProtocol = async (protocolName: string) => {
   }
 }
 
+export const fuseProtocolData = (protocolData, protocol) => {
+  const historicalChainTvls = protocolData?.chainTvls ?? {}
+  const chainTvls = protocolData.currentChainTvls ?? {}
+  const tvl = protocolData?.tvl ?? []
+
+  return {
+    ...protocolData,
+    tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
+    tvlList: tvl.filter((item) => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
+    historicalChainTvls,
+    chainTvls,
+  }
+}
+
+export const getPeggedAssets = () =>
+  fetch(PEGGEDS_API + '?includeChains=true' + '&includePrices=true')
+    .then((r) => r.json())
+    .then(({ peggedAssets, chains }) => ({
+      protocolsDict: peggedAssets.reduce((acc, curr) => {
+        acc[standardizeProtocolName(curr.name)] = curr
+        return acc
+      }, {}),
+      peggedAssets,
+      chains,
+    }))
+
+export const getPeggedPrices = () => fetch(PEGGEDPRICES_API).then((r) => r.json())
+
 export const getChainsPageData = async (category: string) => {
   const [res, { chainCoingeckoIds }] = await Promise.all(
     [PROTOCOLS_API, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
@@ -427,12 +622,17 @@ export const getChainsPageData = async (category: string) => {
 
   let chainsGroupbyParent = {}
   chainsUnique.forEach((chain) => {
-    const parent = chainCoingeckoIds[chain].parent
+    const parent = chainCoingeckoIds[chain]?.parent
     if (parent) {
-      if (!chainsGroupbyParent[parent]) {
-        chainsGroupbyParent[parent] = {}
+      if (!chainsGroupbyParent[parent.chain]) {
+        chainsGroupbyParent[parent.chain] = {}
       }
-      chainsGroupbyParent[parent][chain] = {}
+      for (const type of parent.types) {
+        if (!chainsGroupbyParent[parent.chain][type]) {
+          chainsGroupbyParent[parent.chain][type] = []
+        }
+        chainsGroupbyParent[parent.chain][type].push(chain)
+      }
     }
   })
 
@@ -484,12 +684,15 @@ export const getChainsPageData = async (category: string) => {
       const tvlPrevWeek = getPrevTvlFromChart(tvlData[i], 7)
       const tvlPrevMonth = getPrevTvlFromChart(tvlData[i], 30)
       const mcap = chainMcaps[chainCoingeckoIds[chainName]?.geckoId]?.usd_market_cap
+      const mcaptvl = mcap && tvl && mcap / tvl
+
       return {
         tvl,
         tvlPrevDay,
         tvlPrevWeek,
         tvlPrevMonth,
         mcap: mcap || null,
+        mcaptvl: mcaptvl || null,
         name: chainName,
         symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
         protocols: numProtocolsPerChain[chainName],
@@ -525,6 +728,144 @@ export const getChainsPageData = async (category: string) => {
       stackedDataset,
       category,
       categories,
+      chainsGroupbyParent,
+    },
+  }
+}
+
+export const getPeggedChainsPageData = async (category: string, peggedasset: string) => {
+  const [res, { chainCoingeckoIds }] = await Promise.all(
+    [`${PEGGED_API}/${peggedasset}`, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
+  )
+
+  let categories = []
+  for (const chain in chainCoingeckoIds) {
+    chainCoingeckoIds[chain].categories?.forEach((category) => {
+      if (!categories.includes(category)) {
+        categories.push(category)
+      }
+    })
+  }
+
+  const categoryExists = categories.includes(category) || category === 'All' || category === 'Non-EVM'
+
+  if (!categoryExists) {
+    return {
+      notFound: true,
+    }
+  } else {
+    categories = [
+      { label: 'All', to: `/peggedasset/${peggedasset}` },
+      { label: 'Non-EVM', to: `/peggedasset/${peggedasset}/Non-EVM` },
+    ].concat(categories.map((category) => ({ label: category, to: `/peggedasset/${peggedasset}/${category}` })))
+  }
+
+  const chainsUnique: string[] = res.chains.filter((t: string) => {
+    const chainCategories = chainCoingeckoIds[t]?.categories ?? []
+    if (category === 'All') {
+      return true
+    } else if (category === 'Non-EVM') {
+      return !chainCategories.includes('EVM')
+    } else {
+      return chainCategories.includes(category)
+    }
+  })
+
+  let chainsGroupbyParent = {}
+  chainsUnique.forEach((chain) => {
+    const parent = chainCoingeckoIds[chain]?.parent
+    if (parent) {
+      if (!chainsGroupbyParent[parent.chain]) {
+        chainsGroupbyParent[parent.chain] = {}
+      }
+      for (const type of parent.types) {
+        if (!chainsGroupbyParent[parent.chain][type]) {
+          chainsGroupbyParent[parent.chain][type] = []
+        }
+        chainsGroupbyParent[parent.chain][type].push(chain)
+      }
+    }
+  })
+
+  const chainsData: any[] = await Promise.all(
+    chainsUnique.map(async (elem: string) => {
+      return res.chainBalances[elem].tokens
+    })
+  )
+  const peggedSymbol = res.symbol
+  const pegType = res.pegType
+  const chainCirculatings = chainsUnique
+    .map((chainName, i) => {
+      const circulating: number = getPrevCirculatingFromChart(chainsData[i], 0, 'circulating', pegType)
+      const unreleased: number = getPrevCirculatingFromChart(chainsData[i], 0, 'unreleased', pegType)
+      let bridgedTo: number | string = getPrevCirculatingFromChart(chainsData[i], 0, 'bridgedTo', pegType)
+      const circulatingPrevDay: number = getPrevCirculatingFromChart(chainsData[i], 1, 'circulating', pegType)
+      const circulatingPrevWeek: number = getPrevCirculatingFromChart(chainsData[i], 7, 'circulating', pegType)
+      const circulatingPrevMonth: number = getPrevCirculatingFromChart(chainsData[i], 30, 'circulating', pegType)
+      const change_1d = getPercentChange(circulating, circulatingPrevDay)
+      const change_7d = getPercentChange(circulating, circulatingPrevWeek)
+      const change_1m = getPercentChange(circulating, circulatingPrevMonth)
+
+      if (bridgedTo <= 0) {
+        bridgedTo = '-'
+      } else if (bridgedTo >= circulating) {
+        bridgedTo = 'all'
+      }
+
+      let bridgeInfo: { bridge: string; link?: string } = res.bridges[chainName]
+
+      if (!bridgeInfo) {
+        bridgeInfo = {
+          bridge: '-',
+        }
+      }
+
+      return {
+        circulating,
+        unreleased,
+        change_1d,
+        change_7d,
+        change_1m,
+        circulatingPrevDay,
+        circulatingPrevWeek,
+        circulatingPrevMonth,
+        bridgeInfo,
+        bridgedAmount: bridgedTo,
+        name: chainName,
+        symbol: chainCoingeckoIds[chainName]?.symbol ?? '-',
+      }
+    })
+    .sort((a, b) => b.circulating - a.circulating)
+
+  const stackedDataset = Object.entries(
+    chainsData.reduce((total: IStackedDataset, chains, i) => {
+      const chainName = chainsUnique[i]
+      chains.forEach((circulating) => {
+        const date = circulating.date
+        if (date < 1596248105) return
+        if (total[date] === undefined) {
+          total[date] = {}
+        }
+        const b = total[date][chainName]
+        total[date][chainName] = {
+          ...b,
+          circulating: circulating.circulating ? circulating.circulating[pegType] ?? 0 : 0,
+          unreleased: circulating.unreleased ? circulating.unreleased[pegType] ?? 0 : 0,
+        }
+      })
+      return total
+    }, {})
+  )
+
+  return {
+    props: {
+      chainsUnique,
+      chainCirculatings,
+      category,
+      categories,
+      stackedDataset,
+      peggedSymbol,
+      pegType,
       chainsGroupbyParent,
     },
   }
@@ -670,6 +1011,67 @@ export const getNFTSearchResults = async (query: string) => {
   }
 }
 
+export async function getYieldPageData(query = null) {
+  try {
+    // note(!) the api supports direct queries of chain or projectName
+    // however, i have no clue yet how to make sure that the chainList is complete for the
+    // filter section on the PageViews. so to get around this for now i just always load the full
+    // batch of data and filter on the next.js server side.
+    // this only affects /chain/[chain] and /project/[project]. for /pool/[pool] we are filtering
+    // on the db level (see `getYieldPoolData`)
+    let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
+
+    const chainList = [...new Set(pools.map((p) => p.chain))]
+    const projectList = [...new Set(pools.map((p) => p.project))]
+
+    // for chain, project and pool queries
+    if (query !== null && Object.keys(query)[0] !== 'token') {
+      const queryKey = Object.keys(query)[0]
+      const queryVal = Object.values(query)[0]
+      pools = pools.filter((p) => p[queryKey] === queryVal)
+    }
+
+    return {
+      props: {
+        pools,
+        chainList,
+        projectList,
+      },
+    }
+  } catch (e) {
+    console.log(e)
+    return {
+      notFound: true,
+    }
+  }
+}
+
+export async function fetchCGMarketsData() {
+  const urls = []
+  const maxPage = 10
+  for (let page = 1; page <= maxPage; page++) {
+    urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', `${page}`)}`)
+  }
+
+  const promises = urls.map((url) => fetch(url).then((resp) => resp.json()))
+  return await Promise.all(promises)
+}
+
+export async function retryCoingeckoRequest(func, retries) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const resp = await func()
+      return resp
+    } catch (e) {
+      if ((i + 1) % 3 === 0 && retries > 3) {
+        await new Promise((resolve) => setTimeout(resolve, 10e3))
+      }
+      continue
+    }
+  }
+  return {}
+}
+
 // Client Side
 
 const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then((res) => res.json())
@@ -693,8 +1095,26 @@ export const useDenominationPriceHistory = (gecko_id: string, utcStartTime: stri
   )}`
 
   const { data, error } = useSWR(gecko_id ? url : null, fetcher)
-
   return { data, error, loading: gecko_id && !data && !error }
+}
+
+// all unique pools
+export const useYieldPoolsData = () => {
+  const { data, error } = useSWR(YIELD_POOLS_API, fetcher)
+  return { data, error, loading: !data && !error }
+}
+// single pool
+export const useYieldPoolData = (poolId) => {
+  const url = `${YIELD_POOLS_API}?pool=${poolId}`
+  const { data, error } = useSWR(poolId ? url : null, fetcher)
+  return { data, error, loading: !data && !error }
+}
+
+// single pool chart data
+export const useYieldChartData = (poolId) => {
+  const url = `${YIELD_CHART_API}/${poolId}`
+  const { data, error } = useSWR(poolId ? url : null, fetcher)
+  return { data, error, loading: !data && !error }
 }
 
 //:00 -> adapters start running, they take up to 15mins

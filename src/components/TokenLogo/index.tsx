@@ -27,7 +27,6 @@ const Image = styled(NextImage)`
 // next/image won't work, idk why
 export default function TokenLogo({
   logo = null,
-  header = false,
   external = false /* TODO: temporary fix */,
   size = 24,
   style,

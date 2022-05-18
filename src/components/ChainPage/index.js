@@ -3,18 +3,18 @@ import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 
-import { AutoRow, RowBetween, RowFlat, RowFixed } from '../Row'
+import { RowBetween, RowFixed } from '../Row'
 import { AutoColumn } from '../Column'
 import Search from '../Search'
 import Panel from '../Panel'
-import { PageWrapper, ContentWrapper } from '..'
+import { PageWrapper, FullWrapper, ProtocolsTable } from '..'
 import Filters from '../Filters'
 import { AllTvlOptions } from '../SettingsModal'
 
 import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
-import { useCalcStakePool2Tvl } from 'hooks/data'
+import { useCalcProtocolsTvls } from 'hooks/data'
 import { DownloadCloud } from 'react-feather'
 import { BasicLink } from '../Link'
 
@@ -24,15 +24,24 @@ import SEO from '../SEO'
 import { OptionButton } from 'components/ButtonStyled'
 import { useRouter } from 'next/router'
 import LocalLoader from 'components/LocalLoader'
-import llamaLogo from "../../assets/peeking-llama.png"
+import llamaLogo from '../../assets/peeking-llama.png'
 import Image from 'next/image'
-import Table, { columnsToShow } from 'components/Table'
+import { columnsToShow } from 'components/Table'
 
-const ListOptions = styled(AutoRow)`
-  height: 40px;
-  width: 100%;
-  font-size: 1.25rem;
-  font-weight: 600;
+export const ListOptions = styled.nav`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+`
+
+export const ListHeader = styled.h1`
+  font-size: 1.125rem;
+  color: ${({ theme }) => theme.text1};
+  font-weight: 500;
+  white-space: nowrap;
+  margin: 0;
+
   @media screen and (max-width: 640px) {
     font-size: 1rem;
   }
@@ -47,12 +56,6 @@ export const BreakpointPanels = styled.div`
   }
 `
 
-const FiltersRow = styled(RowFlat)`
-  @media screen and (min-width: 800px) {
-    width: calc(100% - 90px);
-  }
-`
-
 export const BreakpointPanelsColumn = styled(AutoColumn)`
   width: 100%;
   margin-right: 10px;
@@ -63,8 +66,21 @@ export const BreakpointPanelsColumn = styled(AutoColumn)`
   }
 `
 
+const DownloadButton = styled(BasicLink)`
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: ${({ theme }) => theme.bg3};
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+`
+
 const DownloadIcon = styled(DownloadCloud)`
   color: ${({ theme }) => theme.text1};
+  position: relative;
+  top: 2px;
+  width: 20px;
+  height: 20px;
 `
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
@@ -86,32 +102,33 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const denomination = router.query?.currency ?? 'USD'
 
-  const [easterEgg, setEasterEgg] = useState(false);
+  const [easterEgg, setEasterEgg] = useState(false)
   const [darkMode, toggleDarkMode] = useDarkModeManager()
-  const activateEasterEgg = ()=>{
-    if(easterEgg){
-      if(!darkMode){
-        toggleDarkMode();
+  const activateEasterEgg = () => {
+    if (easterEgg) {
+      if (!darkMode) {
+        toggleDarkMode()
       }
-      window.location.reload();
+      window.location.reload()
     } else {
-      if(darkMode){
-        toggleDarkMode();
+      if (darkMode) {
+        toggleDarkMode()
       }
-      setEasterEgg(true);
+      setEasterEgg(true)
     }
   }
-
-  const hour = (new Date()).getHours()
-  const isDegen = hour >=1 && hour<=6;
 
   const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
     const globalChart = chart.map((data) => {
       let sum = data[1]
       Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
-        if (extraTvlsEnabled[prop.toLowerCase()]) {
-          const stakedData = propCharts.find((x) => x[0] === data[0])
-          if (stakedData) {
+        const stakedData = propCharts.find((x) => x[0] === data[0])
+        if (stakedData) {
+          if (prop === 'doublecounted') {
+            sum -= stakedData[1]
+          }
+
+          if (extraTvlsEnabled[prop.toLowerCase()]) {
             sum += stakedData[1]
           }
         }
@@ -128,7 +145,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   let chainOptions = ['All'].concat(chainsSet).map((label) => ({ label, to: setSelectedChain(label) }))
 
-  const protocolTotals = useCalcStakePool2Tvl(filteredProtocols)
+  const protocolTotals = useCalcProtocolsTvls(filteredProtocols)
 
   const topToken = { name: 'Uniswap', tvl: 0 }
   if (protocolTotals.length > 0) {
@@ -212,6 +229,17 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
               {tvl}
             </TYPE.main>
+            <DownloadButton
+              href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
+                .filter((t) => t[1] === true)
+                .map((t) => `${t[0]}=true`)
+                .join('&')}`}
+            >
+              <RowBetween>
+                <DownloadIcon />
+                <TYPE.main>&nbsp;&nbsp;.csv</TYPE.main>
+              </RowBetween>
+            </DownloadButton>
           </RowBetween>
         </AutoColumn>
       </Panel>
@@ -236,14 +264,6 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
               {dominance}%
             </TYPE.main>
-            <BasicLink
-              href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
-                .filter((t) => t[1] === true)
-                .map((t) => `${t[0]}=true`)
-                .join('&')}`}
-            >
-              <DownloadIcon />
-            </BasicLink>
           </RowBetween>
         </AutoColumn>
       </Panel>
@@ -254,68 +274,71 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     <PageWrapper>
       <SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
-      <ContentWrapper>
+      <FullWrapper>
         <AutoColumn gap="24px">
           <Search />
+          <div>
+            <Panel background={true} style={{ textAlign: 'center' }}>
+              <TYPE.main fontWeight={400}>
+                We've launched a multichain APY dashboard. Check it out{' '}
+                <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
+                  here
+                </BasicLink>
+                !
+              </TYPE.main>
+            </Panel>
+          </div>
         </AutoColumn>
         <div>
-        <BreakpointPanels>
-          <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-          <Panel style={{ height: '100%', minHeight: '347px', width:"100%" }}>
-            <RowFixed>
-              {DENOMINATIONS.map((option) => (
-                <OptionButton
-                  active={denomination === option}
-                  onClick={() => updateRoute(option)}
-                  style={{ margin: '0 8px 8px 0' }}
-                  key={option}
-                >
-                  {option}
-                </OptionButton>
-              ))}
-            </RowFixed>
-            {easterEgg?
-              <Game />:
-            (isLoading ? (
-              <LocalLoader style={{ margin: 'auto' }} />
-            ) : (
-              <Chart
-                display="liquidity"
-                dailyData={finalChartData}
-                unit={denomination}
-                totalLiquidity={totalVolume}
-                liquidityChange={volumeChangeUSD}
-              />
-            ))}
-          </Panel>
-        </BreakpointPanels>
-        {isDegen && (
-          <div style={{
-            marginTop: "0px",
-            marginBottom: '-34px'
-          }}>
-            <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} style={{
-                position:"relative",
-                minWidth: 'initial',
-                width: 'initial',
-              }} />
+          <BreakpointPanels>
+            <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
+            <Panel style={{ height: '100%', minHeight: '347px', width: '100%' }}>
+              <RowFixed>
+                {DENOMINATIONS.map((option) => (
+                  <OptionButton
+                    active={denomination === option}
+                    onClick={() => updateRoute(option)}
+                    style={{ margin: '0 8px 8px 0' }}
+                    key={option}
+                  >
+                    {option}
+                  </OptionButton>
+                ))}
+              </RowFixed>
+              {easterEgg ? (
+                <Game />
+              ) : isLoading ? (
+                <LocalLoader style={{ margin: 'auto' }} />
+              ) : (
+                <Chart
+                  display="liquidity"
+                  dailyData={finalChartData}
+                  unit={denomination}
+                  totalLiquidity={totalVolume}
+                  liquidityChange={volumeChangeUSD}
+                />
+              )}
+            </Panel>
+          </BreakpointPanels>
+          <div
+            style={{
+              marginTop: '0px',
+              marginBottom: '-34px',
+            }}
+          >
+            <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} alt="" />
           </div>
-        )}
         </div>
 
         <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
-        <ListOptions gap="10px" style={{ marginBottom: '.5rem' }}>
-          <RowBetween>
-            <TYPE.main sx={{ minWidth: '90px' }} fontSize={'1.125rem'}>
-              TVL Rankings
-            </TYPE.main>
-            <FiltersRow>
-              <Filters filterOptions={chainOptions} activeLabel={selectedChain} justify="end" />
-            </FiltersRow>
-          </RowBetween>
+
+        <ListOptions>
+          <ListHeader>TVL Rankings</ListHeader>
+          <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
         </ListOptions>
-        <Table data={protocolTotals} columns={columns} />
-      </ContentWrapper>
+
+        <ProtocolsTable data={protocolTotals} columns={columns} />
+      </FullWrapper>
     </PageWrapper>
   )
 }

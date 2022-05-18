@@ -6,15 +6,17 @@ import { List as VirtualizedList, AutoSizer, InfiniteLoader, WindowScroller } fr
 
 import { Box, Flex, Text } from 'rebass'
 import TokenLogo from '../TokenLogo'
-import { BasicLink, CustomLink } from '../Link'
+import { CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, filterCollectionsByCurrency, chainIconUrl } from '../../utils'
+import { formattedNum, filterCollectionsByCurrency } from '../../utils'
 import { useFetchInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 
 import FormattedName from '../FormattedName'
+import ChainsRow from 'components/ChainsRow'
+import TokensRow from 'components/TokensRow'
 
 dayjs.extend(utc)
 
@@ -59,7 +61,7 @@ const DashGrid = styled.div`
   @media screen and (min-width: 1080px) {
     display: grid;
     grid-gap: 0.5em;
-    grid-template-columns: 1fr 1fr 0.8fr 0.6fr 0.6fr 0.6fr;
+    grid-template-columns: 1fr 1fr 1fr 0.8fr 0.6fr 0.6fr 0.6fr;
     grid-template-areas: 'name chain mcaptvl 1dchange 7dchange tvl';
   }
 `
@@ -102,7 +104,11 @@ const SORT_FIELD = {
   OWNERS: 'owners',
 }
 
-function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
+function NFTCollectionList({
+  collections,
+  // itemMax = 100,
+  displayUsd = false
+}) {
   // sorting
   const [collectionsList, setCollectionsList] = useState([])
   const [cursor, setCursor] = useState(null)
@@ -139,8 +145,9 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
   }, [filteredListByCurrency, sortDirection, sortedColumn])
 
   const ListItem = ({ item, index }) => {
-    /* TODO handle displaying multiple chains */
-    const chain = item.chains?.length ? item.chains[0] : item.SK.split('#')[1]
+    const marketplaces = item.marketplaces?.length ? item.marketplaces : []
+    const chains = item.chains?.length ? item.chains : []
+
     return (
       <DashGrid style={{ height: '48px' }} focus={true}>
         <DataText area="name" fontWeight="500">
@@ -155,11 +162,14 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
             </CustomLink>
           </Row>
         </DataText>
-        <DataText>
-          <BasicLink key={chain} href={`/nfts/chain/${chain}`}>
-            <TokenLogo address={chain} logo={chainIconUrl(chain)} />{' '}
-          </BasicLink>
+        <DataText area="chains">
+          <ChainsRow chains={chains} />
         </DataText>
+        {!below1080 && (
+          <DataText area="marketplaces">
+            <TokensRow tokens={marketplaces} />
+          </DataText>
+        )}
         {!below1080 && (
           <DataText area="dailyVolume">
             {item.dailyVolume <= 0 ? '--' : formattedNum(item.dailyVolume, displayCurrency)}
@@ -187,7 +197,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
     setFetchedData: setCollectionsList,
   })
 
-  const isRowLoaded = ({ index }) => {
+  const isRowLoaded = () => {
     return !hasMore
   }
 
@@ -218,7 +228,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
             color="text"
             area="name"
             fontWeight="500"
-            onClick={(e) => {
+            onClick={() => {
               setSortedColumn(SORT_FIELD.NAME)
               setSortDirection(sortedColumn !== SORT_FIELD.NAME ? true : !sortDirection)
             }}
@@ -228,16 +238,24 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
         </Flex>
 
         <Flex alignItems="center">
-          <ClickableText area="chain" onClick={(e) => {}}>
-            Chain
+          <ClickableText area="chains" onClick={() => {}}>
+            Chains
           </ClickableText>
         </Flex>
 
         {!below1080 && (
           <Flex alignItems="center">
+            <ClickableText area="marketplaces" onClick={() => {}}>
+              Marketplaces
+            </ClickableText>
+          </Flex>
+        )}
+
+        {!below1080 && (
+          <Flex alignItems="center">
             <ClickableText
               area="dailyVol"
-              onClick={(e) => {
+              onClick={() => {
                 setSortedColumn(SORT_FIELD.VOL)
                 setSortDirection(sortedColumn !== SORT_FIELD.VOL ? true : !sortDirection)
               }}
@@ -250,7 +268,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
         <Flex alignItems="center">
           <ClickableText
             area="totalVol"
-            onClick={(e) => {
+            onClick={() => {
               setSortedColumn(SORT_FIELD.TOTAL_VOL)
               setSortDirection(sortedColumn !== SORT_FIELD.TOTAL_VOL ? true : !sortDirection)
             }}
@@ -263,7 +281,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
           <Flex alignItems="center">
             <ClickableText
               area="floor"
-              onClick={(e) => {
+              onClick={() => {
                 setSortedColumn(SORT_FIELD.FLOOR)
                 setSortDirection(sortedColumn !== SORT_FIELD.FLOOR ? true : !sortDirection)
               }}
@@ -277,7 +295,7 @@ function NFTCollectionList({ collections, itemMax = 100, displayUsd = false }) {
           <Flex alignItems="center">
             <ClickableText
               area="owners"
-              onClick={(e) => {
+              onClick={() => {
                 setSortedColumn(SORT_FIELD.OWNERS)
                 setSortDirection(sortedColumn !== SORT_FIELD.OWNERS ? true : !sortDirection)
               }}

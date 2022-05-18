@@ -16,7 +16,7 @@ import { AutoRow, RowBetween } from '../../components/Row'
 import Column from '../../components/Column'
 import HeadHelp from '../../components/HeadHelp'
 import CopyHelper from '../../components/Copy'
-import { PageWrapper, ContentWrapper } from '../../components'
+import { PageWrapper, FullWrapper } from '../../components'
 import Panel from '../../components/Panel'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { useProtocolColor } from 'hooks'
@@ -184,7 +184,7 @@ function NFTCollectionPage({ collection, chart, statistics }) {
     <PageWrapper>
       <SEO cardName={name} logo={logo} nftPage />
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
-      <ContentWrapper>
+      <FullWrapper>
         <RowBetween flexWrap="wrap">
           <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
             <TYPE.body>
@@ -276,7 +276,7 @@ function NFTCollectionPage({ collection, chart, statistics }) {
             </AutoRow>
           </Panel>
         </DashboardWrapper>
-      </ContentWrapper>
+      </FullWrapper>
     </PageWrapper>
   )
 }

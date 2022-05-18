@@ -2,7 +2,7 @@ import NFTDashboardPage from '../components/NFTDashboardPage'
 import { getNFTChainsData, getNFTData, revalidate } from '../utils/dataApi'
 import { GeneralLayout } from '../layout'
 
-export async function getStaticProps({ params }) {
+export async function getStaticProps() {
   const data = await getNFTData()
   const chainData = await getNFTChainsData()
 

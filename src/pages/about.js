@@ -1,5 +1,4 @@
 import React from 'react'
-
 import { TYPE } from '../Theme'
 import Panel from '../components/Panel'
 import { PageWrapper, FullWrapper } from '../components'
@@ -8,20 +7,49 @@ import styled from 'styled-components'
 import { Divider } from '../components'
 import Link from '../components/Link'
 import { GeneralLayout } from '../layout'
+import { getChainPageData, revalidate } from 'utils/dataApi'
 
-function AboutPage() {
-  const DashGrid = styled.div`
-    display: grid;
-    grid-gap: 1em;
-    grid-template-columns: 1fr;
-    grid-template-areas: 'account';
-    padding: 0 4px;
+const DashGrid = styled.div`
+  display: grid;
+  grid-gap: 1em;
+  grid-template-columns: 1fr;
+  grid-template-areas: 'account';
+  padding: 0 4px;
 
-    > * {
-      justify-content: flex-end;
-    }
-  `
+  > * {
+    justify-content: flex-end;
+  }
+`
 
+const Metrics = styled.table`
+  color: ${({ theme }) => theme.text1};
+  border: 1px solid ${({ theme }) => theme.bg3};
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
+  background-color: ${({ theme }) => theme.advancedBG};
+  border-radius: 8px;
+  border-spacing: 0;
+
+  th,
+  td {
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 16px;
+    border-bottom: 1px solid ${({ theme }) => theme.divider};
+  }
+
+  td {
+    font-weight: 400;
+    text-align: center;
+    border-bottom: 0;
+  }
+
+  td:first-child,
+  th:first-child {
+    border-right: 1px solid ${({ theme }) => theme.divider};
+  }
+`
+
+function AboutPage({ chains, protocols }) {
   return (
     <GeneralLayout title="DefiLlama - DeFi Dashboard" defaultSEO>
       <PageWrapper>
@@ -29,6 +57,20 @@ function AboutPage() {
           <RowBetween>
             <TYPE.largeHeader>About</TYPE.largeHeader>
           </RowBetween>
+          <Metrics>
+            <thead>
+              <tr>
+                <th>Total Chains Listed</th>
+                <th>Total Protocols Listed</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{chains}</td>
+                <td>{protocols}</td>
+              </tr>
+            </tbody>
+          </Metrics>
           <Panel style={{ marginTop: '6px' }}>
             <DashGrid center={true} style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
               <TYPE.main area="account">Mission</TYPE.main>
@@ -66,6 +108,21 @@ function AboutPage() {
       </PageWrapper>
     </GeneralLayout>
   )
+}
+
+export async function getStaticProps() {
+  const data = await getChainPageData()
+
+  const chains = data?.props?.chainsSet?.length ?? null
+  const protocols = data?.props?.filteredProtocols?.length ?? null
+
+  return {
+    props: {
+      chains,
+      protocols,
+    },
+    revalidate: revalidate(),
+  }
 }
 
 export default AboutPage

@@ -8,12 +8,12 @@ import Panel from 'components/Panel'
 import { AutoColumn } from 'components/Column'
 import { RowBetween } from 'components/Row'
 import { TYPE } from 'Theme'
-import { FullWrapper, PageWrapper } from 'components'
+import { FullWrapper, PageWrapper, ProtocolsTable } from 'components'
 import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
-import Filters from 'components/Filters'
-import Table, { columnsToShow } from 'components/Table'
+import { columnsToShow } from 'components/Table'
+import Filters, { FiltersWrapper } from 'components/Filters'
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
@@ -33,7 +33,7 @@ export async function getStaticPaths() {
 
   const forksList = Object.keys(forks)
 
-  const paths = forksList.map((fork) => {
+  const paths = forksList.slice(0, 10).map((fork) => {
     return {
       params: { fork },
     }
@@ -44,8 +44,9 @@ export async function getStaticPaths() {
 
 const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
-const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
+const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {
   const protocolsData = useCalcStakePool2Tvl(filteredProtocols)
+  const parentForks = useCalcStakePool2Tvl(parentTokens)
 
   const finalChartData = useCalcExtraTvlsByDay(chartData)
 
@@ -132,8 +133,11 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
           </Panel>
         </BreakpointPanels>
 
-        <Filters filterOptions={tokenLinks} activeLabel={token} />
-        <Table columns={columns} data={protocolsData} />
+        <FiltersWrapper>
+          <Filters filterOptions={tokenLinks} activeLabel={token} />
+        </FiltersWrapper>
+
+        <ProtocolsTable columns={columns} data={protocolsData} pinnedRow={parentForks[0]} />
       </FullWrapper>
     </PageWrapper>
   )
