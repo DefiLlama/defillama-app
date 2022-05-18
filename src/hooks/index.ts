@@ -1,34 +1,10 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
-import copy from 'copy-to-clipboard'
 export { default as useInfiniteScroll } from './useInfiniteScroll'
 export { default as useFetchInfiniteScroll } from './useFetchInfiniteScroll'
 export { default as useProtocolColor } from './useProtocolColor'
 export { default as useResize } from './useResize'
 export * from './useBreakpoints'
-
-export function useCopyClipboard(timeout = 500) {
-  const [isCopied, setIsCopied] = useState(false)
-
-  const staticCopy = useCallback((text) => {
-    const didCopy = copy(text)
-    setIsCopied(didCopy)
-  }, [])
-
-  useEffect(() => {
-    if (isCopied) {
-      const hide = setTimeout(() => {
-        setIsCopied(false)
-      }, timeout)
-
-      return () => {
-        clearTimeout(hide)
-      }
-    }
-  }, [isCopied, setIsCopied, timeout])
-
-  return [isCopied, staticCopy]
-}
 
 export const useOutsideClick = (ref, ref2, callback) => {
   const handleClick = (e) => {
