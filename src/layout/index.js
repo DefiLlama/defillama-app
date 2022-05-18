@@ -17,8 +17,6 @@ const Center = styled.main`
 `
 
 const PageWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
   padding-top: 36px;
   padding-bottom: 80px;
   flex: 1;

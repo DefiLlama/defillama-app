@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
-import Panel from '../Panel'
 import { AutoColumn } from '../Column'
 import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
@@ -20,6 +19,7 @@ import { TYPE } from 'Theme'
 import Table, { columnsToShow, isOfTypePeggedCategory } from 'components/Table'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 import Filters, { FiltersWrapper } from 'components/Filters'
+import { Panel } from 'components'
 
 export const BreakpointPanels = styled.div`
   @media screen and (min-width: 800px) {

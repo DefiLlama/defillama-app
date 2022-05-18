@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { v4 as uuid } from 'uuid'
-import Panel from 'components/Panel'
 import { ArrowDown, ArrowUp, ChevronDown, ChevronRight } from 'react-feather'
 import HeadHelp from 'components/HeadHelp'
 import { CustomLink } from 'components/Link'
@@ -38,7 +37,15 @@ interface TableProps {
   pinnedRow?: unknown
 }
 
-const Wrapper = styled(Panel)`
+const Wrapper = styled.section`
+  position: relative;
+  background-color: ${({ theme }) => theme.advancedBG};
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.bg3};
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
   padding: 6px 0;
   color: ${({ theme }) => theme.text1};
   overflow-x: auto;
@@ -240,14 +247,13 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
 
   const { LoadMoreButton, dataLength, hasMore, next } = useInfiniteScroll({ list: sortedData })
 
+  const style = {
+    '--text-align': align || 'end',
+    '--gap': gap || '24px',
+  } as React.CSSProperties
+
   return (
-    <Wrapper
-      style={{
-        '--text-align': align || 'end',
-        '--gap': gap || '24px',
-      }}
-      {...props}
-    >
+    <Wrapper style={style} {...props}>
       <InfiniteScroll
         dataLength={dataLength}
         next={next}
@@ -325,8 +331,10 @@ export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...p
     } else return data
   }, [data, sortDirection, columnToSort])
 
+  const style = { '--text-align': align || 'end', '--gap': gap || '24px' } as React.CSSProperties
+
   return (
-    <Wrapper style={{ '--text-align': align || 'end', '--gap': gap || '24px' }} {...props}>
+    <Wrapper style={style} {...props}>
       <TableWrapper>
         <thead>
           <RowWrapper>

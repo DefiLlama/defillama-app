@@ -1,22 +1,22 @@
 import React, { useRef } from 'react'
 import { ResponsiveContainer } from 'recharts'
 import styled from 'styled-components'
-import Panel from '../Panel'
 import { useMed } from 'hooks/useBreakpoints'
 import { useDarkModeManager } from 'contexts/LocalStorage'
+import { Panel } from 'components'
 
 export const ChartWrapper = ({ children }) => {
   const ref = useRef(null)
   const isMobile = useMed()
   const [isDark] = useDarkModeManager()
 
+  const style = {
+    margin: !isMobile && '0.3em',
+    '--color': isDark ? 'white' : 'black',
+  } as React.CSSProperties
+
   return (
-    <PlaceholderChartPanel
-      style={{
-        margin: !isMobile && '0.3em',
-        '--color': isDark ? 'white' : 'black',
-      }}
-    >
+    <PlaceholderChartPanel style={style}>
       <div
         style={{
           position: 'absolute',
@@ -36,6 +36,7 @@ export const ChartWrapper = ({ children }) => {
 
 const PlaceholderChartPanel = styled(Panel)`
   padding-bottom: 28%;
+  width: 100%;
   height: 100%;
   color: var(--color);
   @media (max-width: 800px) {

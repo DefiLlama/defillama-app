@@ -3,6 +3,18 @@ import styled from 'styled-components'
 import { Text, Box } from 'rebass'
 import Table from './Table'
 
+export const Panel = styled.section`
+  position: relative;
+  background-color: ${({ theme }) => theme.advancedBG};
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.bg3};
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
+`
+
 const Divider = styled(Box)`
   height: 1px;
   background-color: ${({ theme }) => theme.divider};

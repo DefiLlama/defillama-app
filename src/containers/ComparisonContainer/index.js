@@ -6,7 +6,6 @@ import styled from 'styled-components'
 import Column from 'components/Column'
 import { BasicLink } from 'components/Link'
 import Loader from 'components/LocalLoader'
-import Panel from 'components/Panel'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import Search from 'components/Search'
 import { Wrapper, CloseIcon } from 'components/Search/shared'
@@ -16,6 +15,7 @@ import { TYPE, ThemedBackground } from 'Theme'
 
 import { formattedNum, standardizeProtocolName } from 'utils'
 import { useFetchProtocol, useGeckoProtocol } from 'utils/dataApi'
+import { Panel } from 'components'
 
 const ComparisonDetailsLayout = styled.div`
   display: inline-grid;

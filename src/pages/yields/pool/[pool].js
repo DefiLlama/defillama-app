@@ -3,7 +3,6 @@ import { useYieldPoolData, useYieldChartData } from 'utils/dataApi'
 import { GeneralLayout } from 'layout'
 import { AutoColumn } from 'components/Column'
 import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
-import Panel from 'components/Panel'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import { TYPE } from 'Theme'
 import { toK } from 'utils'
@@ -16,6 +15,7 @@ import FormattedName from 'components/FormattedName'
 import HeadHelp from 'components/HeadHelp'
 import AuditInfo from 'components/AuditInfo'
 import { ButtonLight } from 'components/ButtonStyled'
+import { Panel } from 'components'
 
 const HiddenSearch = styled.span`
   @media screen and (max-width: ${({ theme }) => theme.bpSm}) {

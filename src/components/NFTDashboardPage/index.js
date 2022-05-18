@@ -9,13 +9,13 @@ import { AutoRow, RowBetween, RowFlat } from '../Row'
 import { AutoColumn } from '../Column'
 import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
-import Panel from '../Panel'
 import Search from '../Search'
 import NFTCollectionList from '../NFTCollectionList'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { formattedNum } from '../../utils'
 import { chainCoingeckoIds, chainMarketplaceMappings } from '../../constants/chainTokens'
 import SEO from 'components/SEO'
+import { Panel } from 'components'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;

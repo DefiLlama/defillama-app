@@ -16,13 +16,13 @@ import { AutoRow, RowBetween } from '../../components/Row'
 import Column from '../../components/Column'
 import HeadHelp from '../../components/HeadHelp'
 import CopyHelper from '../../components/Copy'
-import Panel from '../../components/Panel'
 import { TYPE, ThemedBackground } from '../../Theme'
 import { useProtocolColor } from 'hooks'
 import { chainCoingeckoIds } from '../../constants/chainTokens'
 import LocalLoader from 'components/LocalLoader'
 import { useHideLastDayManager, useDisplayUsdManager } from '../../contexts/LocalStorage'
 import SEO from 'components/SEO'
+import { Panel } from 'components'
 
 const DashboardWrapper = styled(Box)`
   width: 100%;

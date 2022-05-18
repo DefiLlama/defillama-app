@@ -1,5 +1,4 @@
 import { GeneralLayout } from '../layout'
-import Panel from 'components/Panel'
 import { LANGS_API } from '../constants'
 import { toNiceMonthlyDate, getRandomColor } from '../utils'
 import { revalidate } from '../utils/dataApi'
@@ -7,6 +6,7 @@ import { GeneralAreaChart } from 'components/TokenChart/charts'
 import { ChainDominanceChart } from 'components/Charts'
 import Search from 'components/Search'
 import { Header } from 'Theme'
+import { Panel } from 'components'
 
 function formatDataForChart(langs) {
   const langsUnique = new Set()

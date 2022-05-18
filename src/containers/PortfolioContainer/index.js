@@ -1,10 +1,8 @@
 import { useMemo } from 'react'
 import { FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
-
-import { ProtocolsTable } from 'components'
+import { Panel, ProtocolsTable } from 'components'
 import DropdownSelect from 'components/DropdownSelect'
-import Panel from 'components/Panel'
 import Row, { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 
