@@ -282,7 +282,7 @@ export async function getPeggedsPageData(category, chain) {
   let peggedNameToIndexObj: object = {}
   chartDataByPeggedAsset = await Promise.all(
     peggedAssets.map(async (elem, i) => {
-      peggedAssetNames.push(elem.symbol)  // fix
+      peggedAssetNames.push(elem.symbol) // fix
       peggedNameToIndexObj[elem.symbol] = i
       for (let i = 0; i < 5; i++) {
         try {
@@ -303,7 +303,7 @@ export async function getPeggedsPageData(category, chain) {
         const peggedName = peggedAssetNames[i]
         const circulating = chart.mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
         const date = chart.date
-        if (date < 1596248105) return
+        if (date < 1589151600) return
         if (circulating !== null) {
           if (total[date] == undefined) {
             total[date] = {}
@@ -842,7 +842,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       const chainName = chainsUnique[i]
       chains.forEach((circulating) => {
         const date = circulating.date
-        if (date < 1596248105) return
+        if (date < 1589151600) return
         if (total[date] === undefined) {
           total[date] = {}
         }
