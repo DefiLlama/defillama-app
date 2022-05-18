@@ -38,7 +38,7 @@ export async function getStaticProps({
 export async function getStaticPaths() {
   const res = await getPeggedAssets()
 
-  const paths = res.peggedAssets.map(({ name }) => ({
+  const paths = res.peggedAssets.slice(0, 10).map(({ name }) => ({
     params: { peggedasset: [standardizeProtocolName(name)] },
   }))
 

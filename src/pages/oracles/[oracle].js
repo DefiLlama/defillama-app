@@ -33,7 +33,7 @@ export async function getStaticPaths() {
 
   const oraclesList = Object.keys(oracles)
 
-  const paths = oraclesList.map((oracle) => {
+  const paths = oraclesList.slice(0, 10).map((oracle) => {
     return {
       params: { oracle },
     }

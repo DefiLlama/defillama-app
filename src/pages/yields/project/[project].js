@@ -5,7 +5,7 @@ import { revalidate, getYieldPageData } from 'utils/dataApi'
 export async function getStaticPaths() {
   const data = await getYieldPageData()
 
-  const paths = data.props.projectList.map((project) => ({ params: { project } }))
+  const paths = data.props.projectList.slice(0, 20).map((project) => ({ params: { project } }))
 
   return { paths, fallback: 'blocking' }
 }
