@@ -25,7 +25,7 @@ export async function getStaticProps({
 export async function getStaticPaths() {
   const res = await fetch(PEGGEDS_API)
 
-  const paths = (await res.json()).peggedCategories.slice(0, 10).map((category) => ({
+  const paths = (await res.json()).peggedCategories.slice(0, 20).map((category) => ({
     params: { peggedcategory: [category.toLowerCase()] },
   }))
 

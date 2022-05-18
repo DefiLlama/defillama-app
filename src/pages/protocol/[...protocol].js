@@ -32,7 +32,7 @@ export async function getStaticProps({
 export async function getStaticPaths() {
   const res = await getProtocols()
 
-  const paths = res.protocols.slice(0, 20).map(({ name }) => ({
+  const paths = res.protocols.slice(0, 30).map(({ name }) => ({
     params: { protocol: [standardizeProtocolName(name)] },
   }))
 
