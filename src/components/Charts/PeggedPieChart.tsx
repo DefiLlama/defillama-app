@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { PieChart, Pie, Cell, Sector } from 'recharts'
+import { PieChart, Pie, Cell, Sector, ResponsiveContainer } from 'recharts'
 import { ChartWrapper } from '.'
 import { toK } from 'utils'
+import { useDarkModeManager } from 'contexts/LocalStorage'
 
 interface IChainData {
   name: string
@@ -17,8 +18,15 @@ interface IChainPieChartProps {
   chainColor: IChainColor
 }
 
+interface IChainResponsivePieProps {
+  data: IChainData[]
+  chainColor: IChainColor
+  aspect: number
+}
+
 export const PeggedChainPieChart = ({ data, chainColor }: IChainPieChartProps) => {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [isDark] = useDarkModeManager()
 
   const onPieEnter = (_, index) => {
     setActiveIndex(index)
@@ -37,6 +45,7 @@ export const PeggedChainPieChart = ({ data, chainColor }: IChainPieChartProps) =
           innerRadius={'60%'}
           dataKey="value"
           onMouseEnter={onPieEnter}
+          stroke={isDark ? 'white' : 'black'}
         >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={coloredData[index].color} />
@@ -44,6 +53,41 @@ export const PeggedChainPieChart = ({ data, chainColor }: IChainPieChartProps) =
         </Pie>
       </PieChart>
     </ChartWrapper>
+  )
+}
+
+export const PeggedChainResponsivePie = ({ data, chainColor, aspect }: IChainResponsivePieProps) => {
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [isDark] = useDarkModeManager()
+
+  const onPieEnter = (_, index) => {
+    setActiveIndex(index)
+  }
+  const coloredData = data.map((c) => ({ ...c, color: chainColor[c.name] }))
+
+  return (
+    <ResponsiveContainer aspect={aspect}>
+      <PieChart
+        style={{
+          color: isDark ? 'white' : 'black',
+        }}
+      >
+        <Pie
+          activeIndex={activeIndex}
+          activeShape={renderActiveShape}
+          data={coloredData}
+          cx="50%"
+          cy="47%"
+          innerRadius={'60%'}
+          dataKey="value"
+          onMouseEnter={onPieEnter}
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={coloredData[index].color} />
+          ))}
+        </Pie>
+      </PieChart>
+    </ResponsiveContainer>
   )
 }
 

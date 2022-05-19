@@ -37,7 +37,9 @@ export default function PeggedAssets({
   chains,
   filteredPeggedAssets,
   chartData,
+  formattedPeggedAreaChart,
   stackedDataset,
+  peggedChartType,
   chain,
 }) {
   return (
@@ -48,7 +50,9 @@ export default function PeggedAssets({
         selectedChain={chain}
         filteredPeggedAssets={filteredPeggedAssets}
         chartData={chartData}
+        formattedPeggedAreaChart={formattedPeggedAreaChart}
         stackedDataset={stackedDataset}
+        peggedChartType={peggedChartType}
       />
     </GeneralLayout>
   )
