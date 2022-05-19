@@ -296,6 +296,23 @@ export async function getPeggedsPageData(category, chain) {
     })
   )
 
+  const peggedAreaChartData = chartDataByPeggedAsset.reduce((total, charts, i) => {
+    charts.forEach((chart) => {
+      if ((chart.date > 1596248105) && (chart.mcap)) {
+        total[chart.date] = total[chart.date] || {}
+        total[chart.date][peggedAssetNames[i]] = chart.mcap
+      }
+    })
+    return total
+  }, {})
+
+  const formattedPeggedAreaChart = Object.keys(peggedAreaChartData).map((date) => {
+    return {
+      date: date,
+      ...peggedAreaChartData[date],
+    }
+  })
+
   const pegType = categoryToPegType[category]
   const stackedDataset = Object.entries(
     chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
@@ -303,7 +320,7 @@ export async function getPeggedsPageData(category, chain) {
         const peggedName = peggedAssetNames[i]
         const circulating = chart.mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
         const date = chart.date
-        if (date < 1589151600) return
+        if (date < 1596248105) return
         if (circulating !== null) {
           if (total[date] == undefined) {
             total[date] = {}
@@ -341,12 +358,16 @@ export async function getPeggedsPageData(category, chain) {
     chain,
   })
 
+  const peggedChartType = stackedDataset.length > 30 ? "Area" : "Pie"
+
   return {
     peggedcategory: category,
     chains: chainList.filter((chain) => chainsSet.has(chain)),
     filteredPeggedAssets,
     chartData,
+    formattedPeggedAreaChart,
     stackedDataset,
+    peggedChartType,
     chain: chain ?? 'All',
   }
 }
@@ -842,7 +863,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       const chainName = chainsUnique[i]
       chains.forEach((circulating) => {
         const date = circulating.date
-        if (date < 1589151600) return
+        if (date < 1596248105) return
         if (total[date] === undefined) {
           total[date] = {}
         }

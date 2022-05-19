@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { PieChart, Pie, Cell, Sector } from 'recharts'
+import { PieChart, Pie, Cell, Sector, ResponsiveContainer } from 'recharts'
 import { ChartWrapper } from '.'
 import { toK } from 'utils'
 
@@ -15,6 +15,7 @@ interface IChainColor {
 interface IChainPieChartProps {
   data: IChainData[]
   chainColor: IChainColor
+  aspect: number
 }
 
 export const PeggedChainPieChart = ({ data, chainColor }: IChainPieChartProps) => {
@@ -44,6 +45,36 @@ export const PeggedChainPieChart = ({ data, chainColor }: IChainPieChartProps) =
         </Pie>
       </PieChart>
     </ChartWrapper>
+  )
+}
+
+export const PeggedChainResponsivePie = ({ data, chainColor, aspect }: IChainPieChartProps) => {
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  const onPieEnter = (_, index) => {
+    setActiveIndex(index)
+  }
+  const coloredData = data.map((c) => ({ ...c, color: chainColor[c.name] }))
+
+  return (
+    <ResponsiveContainer aspect={aspect}>
+      <PieChart>
+        <Pie
+          activeIndex={activeIndex}
+          activeShape={renderActiveShape}
+          data={coloredData}
+          cx="50%"
+          cy="47%"
+          innerRadius={'60%'}
+          dataKey="value"
+          onMouseEnter={onPieEnter}
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={coloredData[index].color} />
+          ))}
+        </Pie>
+      </PieChart>
+    </ResponsiveContainer>
   )
 }
 

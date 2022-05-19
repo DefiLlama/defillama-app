@@ -1,4 +1,4 @@
-import { AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { ChartWrapper } from '.'
 import { toNiceDateYear, formattedNum, toNiceMonthlyDate } from 'utils'
 
@@ -18,6 +18,7 @@ interface IProps {
   chainColor: IChainColor
   daySum: IDaySum
   asset: string
+  aspect: number
 }
 
 const toPercent = (decimal: number, fixed = 0) => `${(decimal * 100).toFixed(fixed)}%`
@@ -69,4 +70,48 @@ export const PeggedChainDominanceChart = ({
       ))}
     </AreaChart>
   </ChartWrapper>
+)
+
+export const PeggedChainResponsiveDominance = ({
+  stackOffset,
+  formatPercent,
+  stackedDataset,
+  chainsUnique,
+  chainColor,
+  daySum,
+  aspect,
+}: IProps) => (
+  <ResponsiveContainer aspect={aspect}>
+    <AreaChart
+      data={stackedDataset}
+      stackOffset={stackOffset}
+      margin={{
+        top: 10,
+        right: 30,
+        left: 0,
+        bottom: 0,
+      }}
+    >
+      <XAxis dataKey="date" tickFormatter={toNiceMonthlyDate} />
+      <YAxis tickFormatter={(tick) => toPercent(tick)} />
+      <Tooltip
+        formatter={(val, chain, props) =>
+          formatPercent ? getPercent(val, daySum[props.payload.date]) : formattedNum(val)
+        }
+        labelFormatter={(label) => toNiceDateYear(label)}
+        itemSorter={(p) => -p.value}
+        labelStyle={{ color: 'black', fontWeight: '500' }}
+      />
+      {chainsUnique.map((chainName) => (
+        <Area
+          type="monotone"
+          dataKey={chainName}
+          key={chainName}
+          stackId="1"
+          fill={chainColor[chainName]}
+          stroke={chainColor[chainName]}
+        />
+      ))}
+    </AreaChart>
+  </ResponsiveContainer>
 )
