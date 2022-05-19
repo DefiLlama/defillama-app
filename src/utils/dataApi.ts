@@ -282,7 +282,7 @@ export async function getPeggedsPageData(category, chain) {
   let peggedNameToIndexObj: object = {}
   chartDataByPeggedAsset = await Promise.all(
     peggedAssets.map(async (elem, i) => {
-      peggedAssetNames.push(elem.symbol)  // fix
+      peggedAssetNames.push(elem.symbol) // fix
       peggedNameToIndexObj[elem.symbol] = i
       for (let i = 0; i < 5; i++) {
         try {
@@ -295,6 +295,23 @@ export async function getPeggedsPageData(category, chain) {
       throw new Error(`${CHART_API}/${elem} is broken`)
     })
   )
+
+  const peggedAreaChartData = chartDataByPeggedAsset.reduce((total, charts, i) => {
+    charts.forEach((chart) => {
+      if ((chart.date > 1596248105) && (chart.mcap)) {
+        total[chart.date] = total[chart.date] || {}
+        total[chart.date][peggedAssetNames[i]] = chart.mcap
+      }
+    })
+    return total
+  }, {})
+
+  const formattedPeggedAreaChart = Object.keys(peggedAreaChartData).map((date) => {
+    return {
+      date: date,
+      ...peggedAreaChartData[date],
+    }
+  })
 
   const pegType = categoryToPegType[category]
   const stackedDataset = Object.entries(
@@ -341,12 +358,16 @@ export async function getPeggedsPageData(category, chain) {
     chain,
   })
 
+  const peggedChartType = stackedDataset.length > 30 ? "Area" : "Pie"
+
   return {
     peggedcategory: category,
     chains: chainList.filter((chain) => chainsSet.has(chain)),
     filteredPeggedAssets,
     chartData,
+    formattedPeggedAreaChart,
     stackedDataset,
+    peggedChartType,
     chain: chain ?? 'All',
   }
 }

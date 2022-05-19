@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import Panel from '../Panel'
+import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from '../Column'
 import { PageWrapper, FullWrapper } from 'components'
-import { RowBetween } from 'components/Row'
+import { RowBetween, AutoRow } from 'components/Row'
 import Search from 'components/Search'
 import { NamePegged } from 'components/Table/index'
 import PeggedChainsRow from 'components/PeggedChainsRow'
@@ -14,13 +15,16 @@ import {
   formattedPegggedPrice,
   getPercentChange,
   getPeggedDominance,
+  toNiceMonthlyDate,
 } from 'utils'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/data'
-import { useLg } from 'hooks/useBreakpoints'
+import { useLg, useXl, useMed } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
 import Table, { columnsToShow, isOfTypePeggedCategory } from 'components/Table'
-import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
+import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
 import Filters, { FiltersWrapper } from 'components/Filters'
+import { useDarkModeManager } from 'contexts/LocalStorage'
+import { GeneralAreaChart } from 'components/TokenChart'
 
 export const BreakpointPanels = styled.div`
   @media screen and (min-width: 800px) {
@@ -40,6 +44,23 @@ export const BreakpointPanelsColumn = styled(AutoColumn)`
   }
 `
 
+function Chart({ formattedPeggedAreaChart, peggedAssetNames, aspect }) {
+  const [darkMode] = useDarkModeManager()
+  const textColor = darkMode ? 'white' : 'black'
+  return (
+    <GeneralAreaChart
+      aspect={aspect}
+      finalChartData={formattedPeggedAreaChart}
+      tokensUnique={peggedAssetNames}
+      textColor={textColor}
+      color={'blue'}
+      moneySymbol="$"
+      formatDate={toNiceMonthlyDate}
+      hallmarks={[]}
+    />
+  )
+}
+
 function AllPeggedsPage({
   title,
   category,
@@ -47,7 +68,9 @@ function AllPeggedsPage({
   chains = [],
   filteredPeggedAssets,
   chartData,
+  formattedPeggedAreaChart,
   stackedDataset,
+  peggedChartType,
   showChainList = true,
   defaultSortingColumn,
 }) {
@@ -94,7 +117,12 @@ function AllPeggedsPage({
     },
   ]
 
-  const isLg = useLg()
+  const [chartType, setChartType] = useState(peggedChartType)
+
+  const belowMed = useMed()
+  const belowLg = useLg()
+  const belowXl = useXl()
+  const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
   const handleRouting = (chain) => {
     if (chain === 'All') return `/peggedassets/${category}`
@@ -202,23 +230,42 @@ function AllPeggedsPage({
       <FullWrapper>
         <RowBetween>
           <TYPE.largeHeader>{title}</TYPE.largeHeader>
-          <Search small={!isLg} />
+          <Search small={!belowLg} />
         </RowBetween>
         <div>
           <BreakpointPanels>
             <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-            {stackedDataset.length < 30 ? (
-              <PeggedChainPieChart data={chainsCirculatingValues} chainColor={chainColor} />
-            ) : (
-              <PeggedChainDominanceChart
-                stackOffset="expand"
-                formatPercent={true}
-                stackedDataset={stackedData}
-                chainsUnique={peggedAssetNames}
-                chainColor={chainColor}
-                daySum={daySum}
-              />
-            )}
+            <Panel style={{ height: '100%', minHeight: '347px', width: '100%' }}>
+            <RowBetween
+          mb={useMed ? 40 : 0}
+          align="flex-start"
+        >
+              <AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
+                <OptionButton active={chartType === 'Area'} onClick={() => setChartType('Area')}>
+                  Area
+                </OptionButton>
+                <OptionButton active={chartType === 'Dominance'} onClick={() => setChartType('Dominance')}>
+                  Dominance
+                </OptionButton>
+                <OptionButton active={chartType === 'Pie'} onClick={() => setChartType('Pie')}>
+                  Pie
+                </OptionButton>
+              </AutoRow>
+              </RowBetween>
+              {chartType === 'Area' && <Chart {...{ formattedPeggedAreaChart, peggedAssetNames, aspect }} />}
+              {chartType === 'Dominance' && (
+                <PeggedChainResponsiveDominance
+                  stackOffset="expand"
+                  formatPercent={true}
+                  stackedDataset={stackedData}
+                  chainsUnique={peggedAssetNames}
+                  chainColor={chainColor}
+                  daySum={daySum}
+                  aspect={aspect}
+                />
+              )}
+              {chartType === 'Pie' && <PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />}
+            </Panel>
           </BreakpointPanels>
         </div>
 
