@@ -18,7 +18,7 @@ interface IChainPieChartProps {
   aspect: number
 }
 
-export const PeggedChainPieChart = ({ data, chainColor }: IChainPieChartProps) => {
+export const PeggedChainPieChart = ({ data, chainColor, aspect }: IChainPieChartProps) => {
   const [activeIndex, setActiveIndex] = useState(0)
 
   const onPieEnter = (_, index) => {
