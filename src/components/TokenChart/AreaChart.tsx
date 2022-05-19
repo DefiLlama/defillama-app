@@ -2,13 +2,11 @@ import * as echarts from 'echarts'
 import { useEffect, useMemo } from 'react'
 import { formattedNum } from 'utils'
 import { v4 as uuid } from 'uuid'
-
-function stringToColour() {
-  return '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0')
-}
+import { stringToColour } from './utils'
 
 export default function AreaChart({ finalChartData, tokensUnique, formatDate, moneySymbol = '$', title }) {
   const id = useMemo(() => uuid(), [])
+
   const { dates, series } = useMemo(() => {
     const dates = []
     const series = tokensUnique.map((token) => {
@@ -16,8 +14,11 @@ export default function AreaChart({ finalChartData, tokensUnique, formatDate, mo
       return {
         name: token,
         type: 'line',
+        stack: 'Total',
+        emphasis: {
+          focus: 'series',
+        },
         symbol: 'none',
-        sampling: 'lttb',
         itemStyle: {
           color,
         },
@@ -37,10 +38,19 @@ export default function AreaChart({ finalChartData, tokensUnique, formatDate, mo
   }, [finalChartData, tokensUnique])
 
   useEffect(() => {
-    const myChart = echarts.init(document.getElementById(id))
-    myChart.setOption({
+    // skip chart init when a instance already exists
+    if (echarts.getInstanceByDom(document.getElementById(id))) return
+
+    const chartInstance = echarts.init(document.getElementById(id))
+    chartInstance.setOption({
       tooltip: {
         trigger: 'axis',
+        axisPointer: {
+          type: 'cross',
+          label: {
+            backgroundColor: '#6a7985',
+          },
+        },
         valueFormatter: (value) => moneySymbol + formattedNum(value),
       },
       title: {
@@ -64,16 +74,19 @@ export default function AreaChart({ finalChartData, tokensUnique, formatDate, mo
         axisLabel: {
           formatter: (value) => moneySymbol + formattedNum(value),
         },
+        splitLine: {
+          show: false,
+        },
       },
       series: series,
     })
 
-    window.addEventListener('resize', () => myChart.resize())
+    window.addEventListener('resize', () => chartInstance.resize())
 
     return () =>
       window.removeEventListener('resize', () => {
-        myChart.resize()
-        myChart.dispose()
+        chartInstance.resize()
+        chartInstance.dispose()
       })
   }, [id, dates, series, formatDate, moneySymbol, title])
 
@@ -83,3 +96,5 @@ export default function AreaChart({ finalChartData, tokensUnique, formatDate, mo
     </div>
   )
 }
+
+// valueFormatter: (value) => moneySymbol + formattedNum(value),

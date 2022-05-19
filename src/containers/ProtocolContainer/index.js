@@ -13,11 +13,10 @@ import {
   toNiceDayAndHour,
 } from 'utils'
 import styled from "styled-components"
-import { GeneralAreaChart } from 'components/TokenChart/charts'
 
 const ProtocolChart = dynamic(() => import('components/TokenChart/ProtocolChart'), { ssr: false })
 const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false })
-const BarChart = dynamic(() => import('components/TokenChart/BarChart'))
+const BarChart = dynamic(() => import('components/TokenChart/BarChart'), { ssr: false })
 
 const ChartsWrapper = styled.section`
   display: grid;
@@ -101,18 +100,20 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
           title="Tokens"
         />}
 
-        {/* 
+
         {usdInflows &&
-          <BarChart finalChartData={usdInflows} aspect={aspect} formatDate={formatDate} color={backgroundColor}
+          <BarChart finalChartData={usdInflows} formatDate={formatDate} color={backgroundColor}
             tokensUnique={[]}
+            title="USD Flows"
           />
         }
 
         {tokenInflows &&
-          <BarChart finalChartData={tokenInflows} aspect={aspect} formatDate={formatDate} color={backgroundColor}
+          <BarChart finalChartData={tokenInflows} formatDate={formatDate} color={backgroundColor}
             tokensUnique={tokensUnique}
+            title="Token Flows"
           />
-        } */}
+        }
       </ChartsWrapper>
     </>
   )
