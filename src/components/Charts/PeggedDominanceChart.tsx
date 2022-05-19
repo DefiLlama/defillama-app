@@ -18,6 +18,16 @@ interface IProps {
   chainColor: IChainColor
   daySum: IDaySum
   asset: string
+}
+
+interface IResponsiveProps {
+  stackOffset?: 'expand'
+  formatPercent: boolean
+  stackedDataset: any[]
+  chainsUnique: string[]
+  chainColor: IChainColor
+  daySum: IDaySum
+  asset: string
   aspect: number
 }
 
@@ -36,7 +46,6 @@ export const PeggedChainDominanceChart = ({
   chainsUnique,
   chainColor,
   daySum,
-  aspect,
 }: IProps) => (
   <ChartWrapper>
     <AreaChart
@@ -81,7 +90,7 @@ export const PeggedChainResponsiveDominance = ({
   chainColor,
   daySum,
   aspect,
-}: IProps) => (
+}: IResponsiveProps) => (
   <ResponsiveContainer aspect={aspect}>
     <AreaChart
       data={stackedDataset}

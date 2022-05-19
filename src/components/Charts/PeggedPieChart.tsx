@@ -15,10 +15,15 @@ interface IChainColor {
 interface IChainPieChartProps {
   data: IChainData[]
   chainColor: IChainColor
+}
+
+interface IChainResponsivePieProps {
+  data: IChainData[]
+  chainColor: IChainColor
   aspect: number
 }
 
-export const PeggedChainPieChart = ({ data, chainColor, aspect }: IChainPieChartProps) => {
+export const PeggedChainPieChart = ({ data, chainColor }: IChainPieChartProps) => {
   const [activeIndex, setActiveIndex] = useState(0)
 
   const onPieEnter = (_, index) => {
@@ -48,7 +53,7 @@ export const PeggedChainPieChart = ({ data, chainColor, aspect }: IChainPieChart
   )
 }
 
-export const PeggedChainResponsivePie = ({ data, chainColor, aspect }: IChainPieChartProps) => {
+export const PeggedChainResponsivePie = ({ data, chainColor, aspect }: IChainResponsivePieProps) => {
   const [activeIndex, setActiveIndex] = useState(0)
 
   const onPieEnter = (_, index) => {
