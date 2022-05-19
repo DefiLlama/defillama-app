@@ -122,7 +122,7 @@ function AllPeggedsPage({
   const belowMed = useMed()
   const belowLg = useLg()
   const belowXl = useXl()
-  const aspect = belowXl ? (belowMed ? 60 / 62 : 60 / 42) : 60 / 22
+  const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
   const handleRouting = (chain) => {
     if (chain === 'All') return `/peggedassets/${category}`
@@ -236,6 +236,10 @@ function AllPeggedsPage({
           <BreakpointPanels>
             <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
             <Panel style={{ height: '100%', minHeight: '347px', width: '100%' }}>
+            <RowBetween
+          mb={useMed ? 40 : 0}
+          align="flex-start"
+        >
               <AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
                 <OptionButton active={chartType === 'Area'} onClick={() => setChartType('Area')}>
                   Area
@@ -247,6 +251,7 @@ function AllPeggedsPage({
                   Pie
                 </OptionButton>
               </AutoRow>
+              </RowBetween>
               {chartType === 'Area' && <Chart {...{ formattedPeggedAreaChart, peggedAssetNames, aspect }} />}
               {chartType === 'Dominance' && (
                 <PeggedChainResponsiveDominance
