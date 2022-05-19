@@ -5,19 +5,19 @@ import {
   getNFTMarketplacesData,
   getNFTCollectionsByMarketplace,
   getNFTStatistics,
-  revalidate
+  revalidate,
 } from '../../../utils/dataApi'
 
 export async function getStaticProps({
   params: {
-    marketplace: [marketplaceName]
-  }
+    marketplace: [marketplaceName],
+  },
 }) {
   const collections = await getNFTCollectionsByMarketplace(marketplaceName)
   const chartData = await getNFTMarketplaceChartData(marketplaceName)
   const marketplaceData = await getNFTMarketplacesData()
   const statistics = await getNFTStatistics(chartData)
-  const { displayName } = marketplaceData.find(c => c.marketplace === marketplaceName) || { displayName: '' }
+  const { displayName } = marketplaceData.find((c) => c.marketplace === marketplaceName) || { displayName: '' }
 
   return {
     props: {
@@ -25,17 +25,17 @@ export async function getStaticProps({
       collections,
       statistics,
       marketplaceData,
-      displayName
+      displayName,
     },
-    revalidate: revalidate()
+    revalidate: revalidate(),
   }
 }
 
 export async function getStaticPaths() {
   const marketplaceData = await getNFTMarketplacesData()
 
-  const paths = marketplaceData.map(({ marketplace: marketplaceName }) => ({
-    params: { marketplace: [marketplaceName] }
+  const paths = marketplaceData.slice(0, 5).map(({ marketplace: marketplaceName }) => ({
+    params: { marketplace: [marketplaceName] },
   }))
 
   return { paths, fallback: 'blocking' }

@@ -1,6 +1,5 @@
 import React from 'react'
-
-import ThemeProvider, { TYPE } from '../Theme'
+import { TYPE } from '../Theme'
 import Panel from '../components/Panel'
 import { PageWrapper, FullWrapper } from '../components'
 import { RowBetween } from '../components/Row'

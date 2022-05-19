@@ -5,13 +5,13 @@ import {
   getNFTCollections,
   getNFTCollectionChartData,
   revalidate,
-  getNFTStatistics
+  getNFTStatistics,
 } from '../../../utils/dataApi'
 
 export async function getStaticProps({
   params: {
-    collection: [slug]
-  }
+    collection: [slug],
+  },
 }) {
   const collection = await getNFTCollection(slug)
   const chart = await getNFTCollectionChartData(slug)
@@ -22,16 +22,16 @@ export async function getStaticProps({
       collection,
       chart,
       statistics,
-      title: collection ? `${collection.name} - DefiLlama` : `DefiLlama - NFT Dashboard`
+      title: collection ? `${collection.name} - DefiLlama` : `DefiLlama - NFT Dashboard`,
     },
-    revalidate: revalidate()
+    revalidate: revalidate(),
   }
 }
 
 export async function getStaticPaths() {
   const collections = await getNFTCollections()
-  const paths = collections.map(({ slug }) => ({
-    params: { collection: [slug] }
+  const paths = collections.slice(0, 20).map(({ slug }) => ({
+    params: { collection: [slug] },
   }))
 
   return { paths, fallback: 'blocking' }
