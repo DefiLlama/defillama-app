@@ -3,7 +3,7 @@ import ProtocolContainer from 'containers/ProtocolContainer'
 
 import { standardizeProtocolName } from 'utils'
 import { getProtocols, getProtocol, revalidate, fuseProtocolData } from 'utils/dataApi'
-import { buildProtocolData } from 'utils/protocolData'
+
 
 export async function getStaticProps({
   params: {
