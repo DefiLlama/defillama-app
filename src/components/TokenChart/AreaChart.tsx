@@ -1,104 +1,85 @@
-import { useDarkModeManager } from 'contexts/LocalStorage'
-import { Area, AreaChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { toK, toNiceDateYear, formattedNum } from 'utils'
-import { stringToColour } from './utils'
+import * as echarts from 'echarts'
+import { useEffect, useMemo } from 'react'
+import { formattedNum } from 'utils'
+import { v4 as uuid } from 'uuid'
 
-export default function GeneralAreaChart({
-  aspect,
-  finalChartData,
-  tokensUnique,
-  color,
-  formatDate,
-  moneySymbol = '$',
-  hallmarks = [],
-}) {
-  const [darkMode] = useDarkModeManager()
-  const textColor = darkMode ? 'white' : 'black'
+function stringToColour() {
+  return '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0')
+}
+
+export default function AreaChart({ finalChartData, tokensUnique, formatDate, moneySymbol = '$', title }) {
+  const id = useMemo(() => uuid(), [])
+  const { dates, series } = useMemo(() => {
+    const dates = []
+    const series = tokensUnique.map((token) => {
+      const color = stringToColour()
+      return {
+        name: token,
+        type: 'line',
+        symbol: 'none',
+        sampling: 'lttb',
+        itemStyle: {
+          color,
+        },
+        areaStyle: {
+          color,
+        },
+        data: [],
+      }
+    })
+
+    finalChartData.forEach(({ date, ...item }) => {
+      dates.push(date)
+      tokensUnique.forEach((token) => series.find((t) => t.name === token)?.data.push(item[token] || 0))
+    })
+
+    return { dates, series }
+  }, [finalChartData, tokensUnique])
+
+  useEffect(() => {
+    const myChart = echarts.init(document.getElementById(id))
+    myChart.setOption({
+      tooltip: {
+        trigger: 'axis',
+        valueFormatter: (value) => moneySymbol + formattedNum(value),
+      },
+      title: {
+        text: title,
+      },
+      toolbox: {
+        feature: {
+          saveAsImage: {},
+        },
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: dates,
+        axisLabel: {
+          formatter: (value) => formatDate(value),
+        },
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          formatter: (value) => moneySymbol + formattedNum(value),
+        },
+      },
+      series: series,
+    })
+
+    window.addEventListener('resize', () => myChart.resize())
+
+    return () =>
+      window.removeEventListener('resize', () => {
+        myChart.resize()
+        myChart.dispose()
+      })
+  }, [id, dates, series, formatDate, moneySymbol, title])
+
   return (
-    <ResponsiveContainer aspect={aspect}>
-      <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={finalChartData}>
-        <defs>
-          <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={color} stopOpacity={0.35} />
-            <stop offset="95%" stopColor={color} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <XAxis
-          tickLine={false}
-          axisLine={false}
-          interval="preserveEnd"
-          tickMargin={16}
-          minTickGap={120}
-          tickFormatter={formatDate}
-          dataKey={tokensUnique.length > 0 ? 'date' : '0'}
-          scale="time"
-          type="number"
-          tick={{ fill: textColor }}
-          domain={['dataMin', 'dataMax']}
-        />
-        <YAxis
-          type="number"
-          orientation="right"
-          tickFormatter={(tick) => moneySymbol + toK(tick)}
-          axisLine={false}
-          tickLine={false}
-          interval="preserveEnd"
-          minTickGap={80}
-          yAxisId={0}
-          tick={{ fill: textColor }}
-        />
-        <Tooltip
-          cursor={true}
-          formatter={(val) => formattedNum(val, moneySymbol === '$')}
-          labelFormatter={(label) => toNiceDateYear(label)}
-          labelStyle={{ paddingTop: 4 }}
-          itemSorter={(item) => -item.value}
-          contentStyle={{
-            padding: '10px 14px',
-            borderRadius: 10,
-            borderColor: color,
-            color: 'black',
-          }}
-          wrapperStyle={{ top: -70, left: -10 }}
-        />
-        {hallmarks.map((hallmark, i) => (
-          <ReferenceLine
-            x={hallmark[0]}
-            stroke={textColor}
-            label={{ value: hallmark[1], fill: textColor, position: 'insideTop', offset: ((i * 50) % 300) + 50 }}
-            key={'hall1' + i}
-          />
-        ))}
-        {tokensUnique.length > 0 ? (
-          tokensUnique.map((tokenSymbol) => {
-            const randomColor = stringToColour()
-            return (
-              <Area
-                type="monotone"
-                dataKey={tokenSymbol}
-                key={tokenSymbol}
-                stackId="1"
-                fill={randomColor}
-                stroke={randomColor}
-              />
-            )
-          })
-        ) : (
-          <Area
-            key={'other'}
-            dataKey="1"
-            isAnimationActive={false}
-            stackId="2"
-            strokeWidth={2}
-            dot={false}
-            type="monotone"
-            name={'TVL'}
-            yAxisId={0}
-            stroke={color}
-            fill="url(#colorUv)"
-          />
-        )}
-      </AreaChart>
-    </ResponsiveContainer>
+    <div>
+      <div id={id} style={{ height: '300px' }}></div>
+    </div>
   )
 }
