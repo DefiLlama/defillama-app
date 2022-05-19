@@ -14,9 +14,9 @@ import {
 } from 'utils'
 import styled from "styled-components"
 
-const ProtocolChart = dynamic(() => import('components/TokenChart/ProtocolChart'), { ssr: false })
-const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false })
-const BarChart = dynamic(() => import('components/TokenChart/BarChart'), { ssr: false })
+// const ProtocolChart = dynamic(() => import('components/TokenChart/ProtocolChart'), { ssr: false })
+// const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false })
+// const BarChart = dynamic(() => import('components/TokenChart/BarChart'), { ssr: false })
 
 const ChartsWrapper = styled.section`
   display: grid;
@@ -88,7 +88,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
     <>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
       {/* <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} /> */}
-
+      {/* 
       <ChartsWrapper>
         {chainsStacked && <AreaChart finalChartData={chainsStacked} formatDate={formatDate} color={backgroundColor}
           tokensUnique={chains}
@@ -114,7 +114,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
             title="Token Flows"
           />
         }
-      </ChartsWrapper>
+      </ChartsWrapper> */}
     </>
   )
 }

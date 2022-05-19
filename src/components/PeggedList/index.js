@@ -1,9 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
-import Panel from '../Panel'
 import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from '../Column'
-import { PageWrapper, FullWrapper } from 'components'
 import { RowBetween, AutoRow } from 'components/Row'
 import Search from 'components/Search'
 import { NamePegged } from 'components/Table/index'
@@ -25,6 +23,7 @@ import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'compon
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
+import { Panel } from 'components'
 
 export const BreakpointPanels = styled.div`
   @media screen and (min-width: 800px) {

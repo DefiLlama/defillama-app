@@ -1,9 +1,7 @@
 import { GeneralLayout } from 'layout'
 import ProtocolContainer from 'containers/ProtocolContainer'
-
 import { standardizeProtocolName } from 'utils'
 import { getProtocols, getProtocol, revalidate, fuseProtocolData } from 'utils/dataApi'
-
 
 export async function getStaticProps({
   params: {
@@ -28,7 +26,7 @@ export async function getStaticProps({
     })
   }
 
-  const protocolData = fuseProtocolData(protocolRes, protocol)
+  const protocolData = await fuseProtocolData(protocolRes, protocol)
 
   return {
     props: {
