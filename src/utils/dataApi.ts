@@ -334,7 +334,7 @@ export async function getPeggedsPageData(category, chain) {
   )
 
   const chainList = await chains
-    .sort((a, b) => b.circulating[pegType] - a.circulating[pegType])
+    .sort((a, b) => b.mcap - a.mcap)
     .map((chain) => chain.name)
   const chainsSet = new Set()
 
