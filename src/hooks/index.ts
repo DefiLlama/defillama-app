@@ -6,6 +6,7 @@ export { default as useFetchInfiniteScroll } from './useFetchInfiniteScroll'
 export { default as useProtocolColor } from './useProtocolColor'
 export { default as useResize } from './useResize'
 export * from './useBreakpoints'
+export * from './useAnalytics'
 
 export function useCopyClipboard(timeout = 500) {
   const [isCopied, setIsCopied] = useState(false)
