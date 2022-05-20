@@ -111,7 +111,7 @@ export default function Chains({ data, columns }) {
   )
 
   return (
-    <GeneralLayout title={`TVL Rankings - DefiLlama`} defaultSEO>
+    <GeneralLayout title={`Top Protocols - DefiLlama`} defaultSEO>
       <PageWrapper style={{ paddingBottom: '0 !important' }}>
         <TableWrapper>
           <TYPE.largeHeader>Top Protocols</TYPE.largeHeader>
