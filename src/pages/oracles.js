@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { getOraclePageData, revalidate } from '../utils/dataApi'
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 import styled from 'styled-components'
 import { Box } from 'rebass'
 import { CustomLink } from 'components/Link'
@@ -121,8 +121,8 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
 
 export default function Oracles(props) {
   return (
-    <GeneralLayout title={`Oracles - DefiLlama`} defaultSEO>
+    <Layout title={`Oracles - DefiLlama`} defaultSEO>
       <PageView {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }

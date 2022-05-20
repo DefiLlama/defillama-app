@@ -1,4 +1,4 @@
-import { GeneralLayout } from 'layout'
+import Layout from 'layout'
 import Search from 'components/Search'
 import { AutoColumn } from 'components/Column'
 import Table, { columnsToShow } from 'components/Table'
@@ -147,8 +147,8 @@ const YieldPage = () => {
 
 export default function YieldPoolPage(props) {
   return (
-    <GeneralLayout title={`Yield Chart - DefiLlama`} defaultSEO>
+    <Layout title={`Yield Chart - DefiLlama`} defaultSEO>
       <YieldPage {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }

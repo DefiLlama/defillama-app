@@ -1,6 +1,6 @@
 import NFTDashboardPage from '../components/NFTDashboardPage'
 import { getNFTChainsData, getNFTData, revalidate } from '../utils/dataApi'
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 
 export async function getStaticProps() {
   const data = await getNFTData()
@@ -17,8 +17,8 @@ export async function getStaticProps() {
 
 export default function NFTHomePage(props) {
   return (
-    <GeneralLayout title="DefiLlama - NFT Dashboard">
+    <Layout title="DefiLlama - NFT Dashboard">
       <NFTDashboardPage {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }

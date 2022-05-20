@@ -1,16 +1,15 @@
 import React, { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { getForkPageData, revalidate } from 'utils/dataApi'
-import { GeneralLayout } from 'layout'
+import Layout from 'layout'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
 import { AutoColumn } from 'components/Column'
 import { RowBetween } from 'components/Row'
 import { TYPE } from 'Theme'
-import { Panel, ProtocolsTable } from 'components'
+import { BreakpointPanels, BreakpointPanelsColumn, Panel, ProtocolsTable } from 'components'
 import Search from 'components/Search'
 import { AllTvlOptions } from 'components/SettingsModal'
-import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
 import { columnsToShow } from 'components/Table'
 import Filters, { FiltersWrapper } from 'components/Filters'
 
@@ -120,7 +119,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentToken
       <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
       <BreakpointPanels>
         <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-        <Panel style={{ height: '100%', minHeight: '347px' }}>
+        <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
           <Chart
             display="liquidity"
             dailyData={finalChartData}
@@ -142,8 +141,8 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentToken
 
 export default function Forks(props) {
   return (
-    <GeneralLayout title={`Forks - DefiLlama`} defaultSEO>
+    <Layout title={`Forks - DefiLlama`} defaultSEO>
       <PageView {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }

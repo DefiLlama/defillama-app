@@ -2,6 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import { Text, Box } from 'rebass'
 import Table from './Table'
+import { AutoColumn } from './Column'
 
 export const Panel = styled.section`
   position: relative;
@@ -13,6 +14,25 @@ export const Panel = styled.section`
   border-radius: 8px;
   border: 1px solid ${({ theme }) => theme.bg3};
   box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
+`
+
+export const BreakpointPanels = styled.div`
+  @media screen and (min-width: 800px) {
+    width: 100%;
+    display: flex;
+    padding: 0;
+    align-items: stretch;
+  }
+`
+
+export const BreakpointPanelsColumn = styled(AutoColumn)`
+  width: 100%;
+  margin-right: 10px;
+  max-width: 350px;
+  @media (max-width: 800px) {
+    max-width: initial;
+    margin-bottom: 10px;
+  }
 `
 
 const Divider = styled(Box)`

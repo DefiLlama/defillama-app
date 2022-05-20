@@ -291,6 +291,7 @@ const YieldPage = ({ pools, chainList }) => {
       <AutoColumn gap="24px">
         <Search />
       </AutoColumn>
+
       <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
 
       <ListOptions>

@@ -6,7 +6,7 @@ import { transparentize } from 'polished'
 import { RowBetween, RowFixed } from '../Row'
 import { AutoColumn } from '../Column'
 import Search from '../Search'
-import { ProtocolsTable, Panel } from '..'
+import { ProtocolsTable, Panel, BreakpointPanels, BreakpointPanelsColumn } from '..'
 import Filters from '../Filters'
 import { AllTvlOptions } from '../SettingsModal'
 
@@ -43,25 +43,6 @@ export const ListHeader = styled.h1`
 
   @media screen and (max-width: 640px) {
     font-size: 1rem;
-  }
-`
-
-export const BreakpointPanels = styled.div`
-  @media screen and (min-width: 800px) {
-    width: 100%;
-    display: flex;
-    padding: 0;
-    align-items: stretch;
-  }
-`
-
-export const BreakpointPanelsColumn = styled(AutoColumn)`
-  width: 100%;
-  margin-right: 10px;
-  max-width: 350px;
-  @media (max-width: 800px) {
-    max-width: initial;
-    margin-bottom: 10px;
   }
 `
 

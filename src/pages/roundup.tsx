@@ -1,5 +1,4 @@
-import { GeneralLayout } from '../layout'
-import { PageWrapper, FullWrapper } from 'components'
+import Layout from '../layout'
 import { transparentize } from 'polished'
 import { ThemedBackground } from 'Theme'
 import styled from 'styled-components'
@@ -19,20 +18,10 @@ const Header = styled.h1`
 
 export default function Chains() {
   return (
-    <GeneralLayout title={`Daily Roundup - DefiLlama`} defaultSEO>
-      <PageWrapper>
-        <Background backgroundColor={transparentize(0.8, '#445ed0')} />
-        <FullWrapper>
-          <Header>Daily news round-up with the 🦙 </Header>
-          <script
-            async
-            src="https://telegram.org/js/telegram-widget.js?19"
-            data-telegram-post="defillama_tg/268"
-            data-width="100%"
-          ></script>
-        </FullWrapper>
-      </PageWrapper>
-    </GeneralLayout>
+    <Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
+      <Background backgroundColor={transparentize(0.8, '#445ed0')} />
+      <Header>Daily news round-up with the 🦙 </Header>
+    </Layout>
   )
 }
 

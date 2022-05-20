@@ -15,7 +15,7 @@ import { TYPE, ThemedBackground } from '../../Theme'
 import { formattedNum } from '../../utils'
 import { chainCoingeckoIds, chainMarketplaceMappings } from '../../constants/chainTokens'
 import SEO from 'components/SEO'
-import { Panel } from 'components'
+import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
 
 const ListOptions = styled(AutoRow)`
   height: 40px;
@@ -25,26 +25,6 @@ const ListOptions = styled(AutoRow)`
 
   @media screen and (max-width: 640px) {
     font-size: 1rem;
-  }
-`
-
-const BreakpointPanels = styled.div`
-  @media screen and (min-width: 800px) {
-    width: 100%;
-    display: flex;
-    padding: 0;
-    align-items: center;
-  }
-`
-
-const BreakpointPanelsColumn = styled(AutoColumn)`
-  height: 100%;
-  width: 100%;
-  margin-right: 10px;
-  max-width: 350px;
-  @media (max-width: 800px) {
-    max-width: initial;
-    margin-bottom: 10px;
   }
 `
 
@@ -187,7 +167,7 @@ const NFTDashboard = ({ statistics, collections, chart, chainData, marketplaceDa
       </AutoColumn>
       <BreakpointPanels>
         <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-        <Panel style={{ height: '100%', minHeight: '347px' }}>
+        <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
           <GlobalNFTChart
             chartData={chart}
             dailyVolume={shownDailyVolume}

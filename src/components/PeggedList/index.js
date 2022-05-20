@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react'
-import styled from 'styled-components'
 import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from '../Column'
 import { RowBetween, AutoRow } from 'components/Row'
@@ -23,25 +22,7 @@ import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'compon
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
-import { Panel } from 'components'
-
-export const BreakpointPanels = styled.div`
-  @media screen and (min-width: 800px) {
-    width: 100%;
-    display: flex;
-    padding: 0;
-    align-items: stretch;
-  }
-`
-export const BreakpointPanelsColumn = styled(AutoColumn)`
-  width: 100%;
-  margin-right: 10px;
-  max-width: 350px;
-  @media (max-width: 800px) {
-    max-width: initial;
-    margin-bottom: 10px;
-  }
-`
+import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
 
 function Chart({ formattedPeggedAreaChart, peggedAssetNames, aspect }) {
   const [darkMode] = useDarkModeManager()
@@ -233,7 +214,7 @@ function AllPeggedsPage({
       <div>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-          <Panel style={{ height: '100%', minHeight: '347px', width: '100%' }}>
+          <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
             <RowBetween
               mb={useMed ? 40 : 0}
               align="flex-start"

@@ -1,6 +1,6 @@
 import PeggedList from 'components/PeggedList'
 import { PEGGEDS_API } from 'constants/index'
-import { GeneralLayout } from 'layout'
+import Layout from 'layout'
 import { getPeggedsPageData, revalidate } from 'utils/dataApi'
 import { capitalizeFirstLetter } from 'utils'
 
@@ -43,7 +43,7 @@ export default function PeggedAssets({
   chain,
 }) {
   return (
-    <GeneralLayout title={`${capitalizeFirstLetter(peggedcategory)} Circulating - DefiLlama`} defaultSEO>
+    <Layout title={`${capitalizeFirstLetter(peggedcategory)} Circulating - DefiLlama`} defaultSEO>
       <PeggedList
         category={peggedcategory}
         chains={chains}
@@ -54,6 +54,6 @@ export default function PeggedAssets({
         stackedDataset={stackedDataset}
         peggedChartType={peggedChartType}
       />
-    </GeneralLayout>
+    </Layout>
   )
 }

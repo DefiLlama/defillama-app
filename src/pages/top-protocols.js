@@ -1,4 +1,4 @@
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
 import { CustomLink } from 'components/Link'
 import { FullTable, Index } from 'components/Table'
@@ -55,7 +55,11 @@ export async function getStaticProps() {
 const TableWrapper = styled.div`
   position: relative;
 
-  & > div {
+  & > *:first-child {
+    margin-bottom: 16px;
+  }
+
+  & > * {
     padding: 0 !important;
   }
 
@@ -110,11 +114,11 @@ export default function Chains({ data, columns }) {
   )
 
   return (
-    <GeneralLayout title={`TVL Rankings - DefiLlama`} defaultSEO>
+    <Layout title="TVL Rankings - DefiLlama" defaultSEO>
       <TableWrapper>
         <TYPE.largeHeader>Top Protocols</TYPE.largeHeader>
         <FullTable data={data} columns={allColumns} align="start" gap="12px" style={{ height: '85vh' }} />
       </TableWrapper>
-    </GeneralLayout>
+    </Layout>
   )
 }

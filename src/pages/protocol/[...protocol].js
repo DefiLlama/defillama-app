@@ -1,4 +1,4 @@
-import { GeneralLayout } from 'layout'
+import Layout from 'layout'
 import ProtocolContainer from 'containers/ProtocolContainer'
 import { standardizeProtocolName } from 'utils'
 import { getProtocols, getProtocol, fuseProtocolData, revalidate } from 'utils/dataApi'
@@ -51,13 +51,13 @@ export async function getStaticPaths() {
 
 export default function Protocols({ denomination, selectedChain, protocol, protocolData }) {
   return (
-    <GeneralLayout title={`${protocolData.name}: TVL and stats - DefiLlama`}>
+    <Layout title={`${protocolData.name}: TVL and stats - DefiLlama`}>
       <ProtocolContainer
         protocol={protocol}
         protocolData={protocolData}
         denomination={denomination ?? undefined}
         selectedChain={selectedChain}
       />
-    </GeneralLayout>
+    </Layout>
   )
 }

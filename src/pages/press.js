@@ -7,7 +7,7 @@ import Link from '../components/Link'
 import PressLogo from '../components/PressLogo'
 import { AutoColumn } from '../components/Column'
 import { Box } from 'rebass'
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 
 const PressPanel = ({ imageFilename }) => (
   <Panel style={{ padding: '18px 25px' }}>
@@ -67,7 +67,7 @@ const PanelWrapper = styled(Box)`
 
 function PressPage() {
   return (
-    <GeneralLayout title="DefiLlama - DeFi Dashboard" defaultSEO>
+    <Layout title="DefiLlama - DeFi Dashboard" defaultSEO>
       <RowBetween>
         <TYPE.largeHeader>Press & Media</TYPE.largeHeader>
       </RowBetween>
@@ -111,7 +111,7 @@ function PressPage() {
           </TYPE.main>
         </DashGrid>
       </Panel>
-    </GeneralLayout>
+    </Layout>
   )
 }
 

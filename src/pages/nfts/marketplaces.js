@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import styled from 'styled-components'
 import { Box } from 'rebass/styled-components'
-
-import { GeneralLayout } from '../../layout'
+import Layout from '../../layout'
 import NFTList from '../../components/NFTList'
 import { RowBetween } from '../../components/Row'
 import { TYPE } from '../../Theme'
@@ -106,10 +105,10 @@ const MarketplacesView = ({ marketplaceData, currentData, marketplacesUnique, st
 
 function Marketplaces(props) {
   return (
-    <GeneralLayout title="DefiLlama - NFT Dashboard">
+    <Layout title="DefiLlama - NFT Dashboard">
       <SEO nftPage />
       <MarketplacesView {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }
 

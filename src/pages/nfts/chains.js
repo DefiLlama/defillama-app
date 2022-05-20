@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { GeneralLayout } from 'layout'
+import Layout from 'layout'
 import { Box } from 'rebass/styled-components'
 import styled from 'styled-components'
 import NFTList from 'components/NFTList'
@@ -104,10 +104,10 @@ const ChainsView = ({ chainData, currentData, chainsUnique, stackedDataset, dayS
 
 function Chains(props) {
   return (
-    <GeneralLayout title="DefiLlama - NFT Dashboard">
+    <Layout title="DefiLlama - NFT Dashboard">
       <SEO nftPage />
       <ChainsView {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }
 

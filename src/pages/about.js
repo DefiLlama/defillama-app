@@ -4,7 +4,7 @@ import { RowBetween } from '../components/Row'
 import styled from 'styled-components'
 import { Divider, Panel } from '../components'
 import Link from '../components/Link'
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 import { getChainPageData, revalidate } from 'utils/dataApi'
 
 const DashGrid = styled.div`
@@ -49,9 +49,7 @@ const Metrics = styled.table`
 
 function AboutPage({ chains, protocols }) {
   return (
-    <GeneralLayout title="DefiLlama - DeFi Dashboard" defaultSEO>
-
-
+    <Layout title="DefiLlama - DeFi Dashboard" defaultSEO>
       <RowBetween>
         <TYPE.largeHeader>About</TYPE.largeHeader>
       </RowBetween>
@@ -102,9 +100,7 @@ function AboutPage({ chains, protocols }) {
           </TYPE.main>
         </DashGrid>
       </Panel>
-
-
-    </GeneralLayout>
+    </Layout>
   )
 }
 

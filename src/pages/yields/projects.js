@@ -1,4 +1,4 @@
-import { GeneralLayout } from '../../layout'
+import Layout from '../../layout'
 import { getYieldPageData, revalidate } from '../../utils/dataApi'
 import { toK } from 'utils'
 import Table, { Index, NameYield } from 'components/Table'
@@ -59,9 +59,9 @@ const columns = [
 
 export default function Protocols({ projects }) {
   return (
-    <GeneralLayout title={`Projects - DefiLlama Yield`} defaultSEO>
+    <Layout title={`Projects - DefiLlama Yield`} defaultSEO>
       <PageHeader title="Projects" />
       <Table data={projects} columns={columns} gap="40px" />
-    </GeneralLayout>
+    </Layout>
   )
 }

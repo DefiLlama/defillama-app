@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { getForkPageData, revalidate } from '../utils/dataApi'
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 import Table, { Index } from 'components/Table'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
 import { getRandomColor, toK } from 'utils'
@@ -128,8 +128,8 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 
 export default function Forks(props) {
   return (
-    <GeneralLayout title={`Forks - DefiLlama`} defaultSEO>
+    <Layout title={`Forks - DefiLlama`} defaultSEO>
       <PageView {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }

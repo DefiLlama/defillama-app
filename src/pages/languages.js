@@ -1,4 +1,4 @@
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 import { LANGS_API } from '../constants'
 import { toNiceMonthlyDate, getRandomColor } from '../utils'
 import { revalidate } from '../utils/dataApi'
@@ -64,7 +64,7 @@ export default function Protocols({ langs, langsUnique, langsDaySum,
   const colors = {}
   langsUnique.forEach(l => { colors[l] = getRandomColor() })
   return (
-    <GeneralLayout title={`Languages - DefiLlama`} defaultSEO>
+    <Layout title={`Languages - DefiLlama`} defaultSEO>
       <Search />
       <Header>TVL breakdown by Smart Contract Language</Header>
       <Chart {...({ langs, langsUnique })} />
@@ -87,6 +87,6 @@ export default function Protocols({ langs, langsUnique, langsDaySum,
           closedsource: "red"
         }}
         daySum={osDaySum} />
-    </GeneralLayout>
+    </Layout>
   )
 }

@@ -1,7 +1,7 @@
 import React from 'react'
 import dynamic from 'next/dynamic'
 import { Text, Box } from 'rebass'
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 import { transparentize } from 'polished'
 import AuditInfo from 'components/AuditInfo'
 import Bookmark from 'components/Bookmark'
@@ -21,8 +21,7 @@ import { useScrollToTop, useProtocolColor } from 'hooks'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
-import { Panel } from 'components'
-import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
+import { Box as RebassBox } from 'rebass'
 
 const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
 
@@ -42,6 +41,84 @@ const HiddenBookmark = styled.span`
   }
 `
 
+const panelPseudo = css`
+  :after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 10px;
+  }
+  @media only screen and (min-width: 40em) {
+    :after {
+      content: unset;
+    }
+  }
+`
+
+const Panel = styled(RebassBox)`
+  position: relative;
+  background-color: ${({ theme }) => theme.advancedBG};
+  padding: 1.25rem;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.bg3};
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);  /* box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 4px 8px rgba(0, 0, 0, 0.01), 0px 16px 24px rgba(0, 0, 0, 0.01), 0px 24px 32px rgba(0, 0, 0, 0.01); */
+  :hover {
+      cursor: ${({ hover }) => hover && 'pointer'};
+      border: ${({ hover, theme }) => hover && '1px solid' + theme.bg5};
+    }
+  ${props => props.background && `background-color: ${props.theme.advancedBG};`}
+  ${props => (props.area ? `grid-area: ${props.area};` : null)}
+  ${props =>
+    props.grouped &&
+    css`
+      @media only screen and (min-width: 40em) {
+        &:first-of-type {
+          border-radius: 20px 20px 0 0;
+        }
+        &:last-of-type {
+          border-radius: 0 0 20px 20px;
+        }
+      }
+    `}
+  ${props =>
+    props.rounded &&
+    css`
+      border-radius: 8px;
+      @media only screen and (min-width: 40em) {
+        border-radius: 10px;
+      }
+    `};
+  ${props => !props.last && panelPseudo}
+`
+
+const PanelWrapper = styled(Box)`
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: max-content;
+  gap: 6px;
+  display: inline-grid;
+  width: 100%;
+  align-items: start;
+  @media screen and (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    > * {
+      grid-column: 1 / 4;
+    }
+
+    > * {
+      &:first-child {
+        width: 100%;
+      }
+    }
+  }
+`
+
 const TokenDetailsLayout = styled.div`
   display: inline-grid;
   width: 100%;
@@ -53,7 +130,6 @@ const TokenDetailsLayout = styled.div`
     align-items: center;
     justify-items: end;
   }
-
   @media screen and (max-width: 1024px) {
     grid-template-columns: 1fr;
     align-items: stretch;
@@ -176,9 +252,8 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
           </HiddenBookmark>
         </RowBetween>
         <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
-
-        <BreakpointPanels style={{ margin: '0 0 3rem 0' }}>
-          <BreakpointPanelsColumn gap="10px">
+        <>
+          <PanelWrapper style={{ gridTemplateRows: 'auto', margin: '0 0 3rem 0' }}>
             <Panel>
               <AutoColumn gap="20px">
                 <RowBetween>
@@ -191,7 +266,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 </RowBetween>
               </AutoColumn>
             </Panel>
-            <Panel style={{ gridRow: "2 / 3" }}>
+            <Panel>
               <AutoColumn gap="md">
                 <TYPE.main>Total Value Locked </TYPE.main>
                 <TYPE.main fontSize={'1.5rem'} lineHeight={1} fontWeight={500}>
@@ -218,7 +293,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 </TYPE.main>
               )}
             </Panel>
-            <Panel style={{ gridRow: "3 / 4" }}>
+            <Panel>
               <AutoColumn gap="20px">
                 <RowBetween>
                   <TYPE.main>Links</TYPE.main>
@@ -234,34 +309,43 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                 </RowBetween>
               </AutoColumn>
             </Panel>
-          </BreakpointPanelsColumn>
-
-          <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
-            <ProtocolChart
-              denomination={denomination}
-              chartData={chartData}
-              misrepresentedTokens={misrepresentedTokens}
-              protocol={name}
-              address={address}
-              color={backgroundColor}
-              tokens={tokens}
-              tokensInUsd={tokensInUsd}
-              base={priceUSD}
-              selectedChain={selectedChain}
-              chainTvls={historicalChainTvls}
-              chains={chains}
-              protocolData={protocolData}
-              isHourlyChart={isHourlyChart}
-            />
-          </Panel>
-
-        </BreakpointPanels>
+            <Panel
+              sx={{
+                gridColumn: ['1', '1', '1', '2/4'],
+                gridRow: ['', '', '', '1/4'],
+              }}
+            >
+              <ProtocolChart
+                denomination={denomination}
+                chartData={chartData}
+                misrepresentedTokens={misrepresentedTokens}
+                protocol={name}
+                address={address}
+                color={backgroundColor}
+                tokens={tokens}
+                tokensInUsd={tokensInUsd}
+                base={priceUSD}
+                selectedChain={selectedChain}
+                chainTvls={historicalChainTvls}
+                chains={chains}
+                protocolData={protocolData}
+                isHourlyChart={isHourlyChart}
+              />
+            </Panel>
+          </PanelWrapper>
+        </>
 
         <>
           <RowBetween>
             <TYPE.main fontSize={'1.125rem'}>Protocol Information</TYPE.main>{' '}
           </RowBetween>
-          <Panel style={{ marginTop: '1.5rem' }}>
+          <Panel
+            rounded
+            style={{
+              marginTop: '1.5rem',
+            }}
+            p={20}
+          >
             <TokenDetailsLayout>
               {typeof category === 'string' && (
                 <Column>
@@ -281,7 +365,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
                   <AuditInfo audits={audits} auditLinks={audit_links} />
                 </TYPE.main>
               </Column>
-
+              <div></div>
               <RowFixed>
                 <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
                   <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
@@ -300,7 +384,13 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
           <RowBetween style={{ marginTop: '3rem' }}>
             <TYPE.main fontSize={'1.125rem'}>Methodology</TYPE.main>{' '}
           </RowBetween>
-          <Panel style={{ marginTop: '1.5rem', }}>
+          <Panel
+            rounded
+            style={{
+              marginTop: '1.5rem',
+            }}
+            p={20}
+          >
             {methodology && (
               <TokenDetailsLayout style={{ marginBottom: '1em' }}>
                 <TYPE.main style={{ textAlign: 'justify', wordBreak: 'break-word' }} fontSize={15} fontWeight="500">
@@ -326,9 +416,14 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
               <TYPE.main fontSize={'1.125rem'}>Token Information</TYPE.main>{' '}
             </RowBetween>
           )}
-
           {hasToken && (
-            <Panel style={{ marginTop: '1.5rem' }}>
+            <Panel
+              rounded
+              style={{
+                marginTop: '1.5rem',
+              }}
+              p={20}
+            >
               <TokenDetailsLayout>
                 <Column>
                   <TYPE.main>Symbol</TYPE.main>

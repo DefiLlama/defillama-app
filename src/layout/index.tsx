@@ -30,7 +30,7 @@ const PageWrapper = styled.div`
   }
 `
 
-export function GeneralLayout({ title, children, defaultSEO = false }) {
+export default function Layout({ title, children, defaultSEO = false }) {
   return (
     <>
       <Head>

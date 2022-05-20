@@ -1,8 +1,7 @@
 import dynamic from 'next/dynamic'
 import { useYieldPoolData, useYieldChartData } from 'utils/dataApi'
-import { GeneralLayout } from 'layout'
+import Layout from 'layout'
 import { AutoColumn } from 'components/Column'
-import { BreakpointPanels, BreakpointPanelsColumn } from 'components/ChainPage'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import { TYPE } from 'Theme'
 import { toK } from 'utils'
@@ -15,7 +14,7 @@ import FormattedName from 'components/FormattedName'
 import HeadHelp from 'components/HeadHelp'
 import AuditInfo from 'components/AuditInfo'
 import { ButtonLight } from 'components/ButtonStyled'
-import { Panel } from 'components'
+import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
 
 const HiddenSearch = styled.span`
   @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
@@ -170,7 +169,7 @@ const PageView = () => {
       </RowBetween>
       <BreakpointPanels>
         <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-        <Panel style={{ height: '100%', minHeight: '347px' }}>
+        <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
           <Chart
             display="liquidity"
             dailyData={finalChartData}
@@ -185,7 +184,7 @@ const PageView = () => {
       <RowBetween style={{ marginTop: '1rem' }}>
         <TYPE.main fontSize={'1.125rem'}>Protocol Information</TYPE.main>{' '}
       </RowBetween>
-      <Panel rounded p={20}>
+      <Panel>
         <TokenDetailsLayout>
           {typeof category === 'string' && (
             <AutoColumn>
@@ -226,8 +225,8 @@ const PageView = () => {
 
 export default function YieldPoolPage(props) {
   return (
-    <GeneralLayout title={`Yield Chart - DefiLlama`} defaultSEO>
+    <Layout title={`Yield Chart - DefiLlama`} defaultSEO>
       <PageView {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }
