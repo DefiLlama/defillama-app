@@ -22,7 +22,7 @@ import { chainCoingeckoIds } from '../../constants/chainTokens'
 import LocalLoader from 'components/LocalLoader'
 import { useHideLastDayManager, useDisplayUsdManager } from '../../contexts/LocalStorage'
 import SEO from 'components/SEO'
-import { Panel } from 'components'
+import { Panel } from 'containers/ProtocolContainer'
 
 const DashboardWrapper = styled(Box)`
   width: 100%;
@@ -275,7 +275,6 @@ function NFTCollectionPage({ collection, chart, statistics }) {
           </AutoRow>
         </Panel>
       </DashboardWrapper>
-
     </>
   )
 }

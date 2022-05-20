@@ -2,10 +2,8 @@ import React, { useEffect } from 'react'
 import { useMedia } from 'react-use'
 import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
-import styled from 'styled-components'
-
 import { useDisplayUsdManager, useHideLastDayManager } from '../../contexts/LocalStorage'
-import { AutoRow, RowBetween, RowFlat } from '../Row'
+import { RowBetween } from '../Row'
 import { AutoColumn } from '../Column'
 import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
@@ -16,23 +14,9 @@ import { formattedNum } from '../../utils'
 import { chainCoingeckoIds, chainMarketplaceMappings } from '../../constants/chainTokens'
 import SEO from 'components/SEO'
 import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
+import { ListHeader, ListOptions } from 'components/ChainPage'
 
-const ListOptions = styled(AutoRow)`
-  height: 40px;
-  width: 100%;
-  font-size: 1.25rem;
-  font-weight: 600;
 
-  @media screen and (max-width: 640px) {
-    font-size: 1rem;
-  }
-`
-
-const FiltersRow = styled(RowFlat)`
-  @media screen and (min-width: 800px) {
-    width: calc(100% - 90px);
-  }
-`
 const defaultTab = {
   label: 'All',
   to: '/nfts',
@@ -165,6 +149,7 @@ const NFTDashboard = ({ statistics, collections, chart, chainData, marketplaceDa
         </Panel>
         <CheckMarks type="nfts" />
       </AutoColumn>
+
       <BreakpointPanels>
         <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
         <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
@@ -178,14 +163,12 @@ const NFTDashboard = ({ statistics, collections, chart, chainData, marketplaceDa
           />
         </Panel>
       </BreakpointPanels>
-      <ListOptions gap="10px" style={{ marginTop: '2rem', marginBottom: '.5rem' }}>
-        <RowBetween>
-          <TYPE.main fontSize={'1.125rem'}>NFT Rankings</TYPE.main>
-          <FiltersRow>
-            <Filters filterOptions={tabOptions} setActive={setSelectedTab} activeLabel={selectedTab} justify="end" />
-          </FiltersRow>
-        </RowBetween>
+
+      <ListOptions>
+        <ListHeader>NFT Rankings</ListHeader>
+        <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
       </ListOptions>
+
       <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
         <NFTCollectionList collections={collections} displayUsd={displayUsd} />
       </Panel>
