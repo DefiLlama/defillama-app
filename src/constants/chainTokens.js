@@ -503,7 +503,7 @@ export const chainCoingeckoIds = {
     geckoId: "clover-finance",
     symbol: "CLV",
     cmcId: "8384",
-    },
+  },
   REI: {
     geckoId: null,
     symbol: null,
@@ -543,7 +543,7 @@ export const chainCoingeckoIds = {
     geckoId: "reef-finance",
     symbol: "REEF",
     cmcId: "6951",
-    },
+  },
   Omni: {
     geckoId: 'omni',
     symbol: 'OMNI',
@@ -601,22 +601,3 @@ export const chainMarketplaceMappings = {
   jpgstore: 'Cardano',
 }
 
-export const basicChainOptions = ['All', 'Ethereum', 'Solana', 'Polygon', 'Fantom', 'Avalanche']
-export const extraChainOptions = ['Terra', 'Arbitrum', 'Binance', 'Celo', 'Harmony']
-
-export const priorityChainFilters = [
-  'All',
-  'Ethereum',
-  'Solana',
-  'Polygon',
-  'Fantom',
-  'Avalanche',
-  'Terra',
-  'Arbitrum',
-  'Binance',
-  'Celo',
-  'Harmony',
-  'Tron',
-  'Waves',
-  'Heco',
-]
