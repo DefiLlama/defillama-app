@@ -45,7 +45,6 @@ export const PeggedChainPieChart = ({ data, chainColor }: IChainPieChartProps) =
           innerRadius={'60%'}
           dataKey="value"
           onMouseEnter={onPieEnter}
-          stroke={isDark ? 'white' : 'black'}
         >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={coloredData[index].color} />
