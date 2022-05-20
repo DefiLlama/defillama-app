@@ -291,7 +291,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
       <div>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-          <Panel style={{ height: '100%', minHeight: '347px', width: '100%' }}>
+          <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
             <RowFixed>
               {DENOMINATIONS.map((option) => (
                 <OptionButton
