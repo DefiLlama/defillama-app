@@ -26,7 +26,6 @@ interface IChainResponsivePieProps {
 
 export const PeggedChainPieChart = ({ data, chainColor }: IChainPieChartProps) => {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [isDark] = useDarkModeManager()
 
   const onPieEnter = (_, index) => {
     setActiveIndex(index)
@@ -45,7 +44,6 @@ export const PeggedChainPieChart = ({ data, chainColor }: IChainPieChartProps) =
           innerRadius={'60%'}
           dataKey="value"
           onMouseEnter={onPieEnter}
-          stroke={isDark ? 'white' : 'black'}
         >
           {data.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={coloredData[index].color} />
