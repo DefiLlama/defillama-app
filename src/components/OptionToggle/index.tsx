@@ -1,6 +1,4 @@
-import { Check, X } from 'react-feather'
 import Switch from 'react-switch'
-import styled from 'styled-components'
 import { TYPE } from '../../Theme'
 import HeadHelp from '../HeadHelp'
 
@@ -17,34 +15,16 @@ const OptionToggle = ({ toggle, enabled = false, help, name }: IProps) => {
       <Switch
         onChange={toggle}
         checked={enabled}
+        onColor="#0A71F1"
         height={20}
         width={40}
         uncheckedIcon={false}
         checkedIcon={false}
-        uncheckedHandleIcon={
-          <IconWrapper>
-            <X size={14} />
-          </IconWrapper>
-        }
-        checkedHandleIcon={
-          <IconWrapper>
-            <Check size={14} />
-          </IconWrapper>
-        }
       />
       &nbsp;
       {help ? <HeadHelp title={name} text={help} /> : name}
     </TYPE.body>
   )
 }
-
-const IconWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: black;
-  height: 100%;
-  fontsize: 12px;
-`
 
 export default OptionToggle
