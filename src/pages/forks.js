@@ -1,10 +1,9 @@
 import React, { useMemo } from 'react'
 import { getForkPageData, revalidate } from '../utils/dataApi'
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 import Table, { Index } from 'components/Table'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
 import { getRandomColor, toK } from 'utils'
-import { FullWrapper, PageWrapper } from 'components'
 import { CustomLink } from 'components/Link'
 import styled from 'styled-components'
 import Search from 'components/Search'
@@ -102,37 +101,35 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
   )
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <Search />
-        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
-        <Header>Total Value Locked All Forks</Header>
-        <ChartsWrapper>
-          <ChainPieChart data={tokenTvls} chainColor={tokenColors} />
-          <ChainDominanceChart
-            stackOffset="expand"
-            formatPercent={true}
-            stackedDataset={stackedData}
-            chainsUnique={tokens}
-            chainColor={tokenColors}
-            daySum={daySum}
-          />
-        </ChartsWrapper>
+    <>
+      <Search />
+      <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+      <Header>Total Value Locked All Forks</Header>
+      <ChartsWrapper>
+        <ChainPieChart data={tokenTvls} chainColor={tokenColors} />
+        <ChainDominanceChart
+          stackOffset="expand"
+          formatPercent={true}
+          stackedDataset={stackedData}
+          chainsUnique={tokens}
+          chainColor={tokenColors}
+          daySum={daySum}
+        />
+      </ChartsWrapper>
 
-        <FiltersWrapper>
-          <Filters filterOptions={tokenLinks} activeLabel="All" />
-        </FiltersWrapper>
+      <FiltersWrapper>
+        <Filters filterOptions={tokenLinks} activeLabel="All" />
+      </FiltersWrapper>
 
-        <Table columns={columns} data={tokensList} />
-      </FullWrapper>
-    </PageWrapper>
+      <Table columns={columns} data={tokensList} />
+    </>
   )
 }
 
 export default function Forks(props) {
   return (
-    <GeneralLayout title={`Forks - DefiLlama`} defaultSEO>
+    <Layout title={`Forks - DefiLlama`} defaultSEO>
       <PageView {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }

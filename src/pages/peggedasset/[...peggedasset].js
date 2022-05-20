@@ -1,5 +1,5 @@
 import React from 'react'
-import { GeneralLayout } from 'layout'
+import Layout from 'layout'
 import { getPeggedChainsPageData, revalidate, getPeggedAssets } from 'utils/dataApi'
 import PeggedContainer from 'containers/PeggedContainer'
 import { standardizeProtocolName } from 'utils'
@@ -47,8 +47,8 @@ export async function getStaticPaths() {
 
 export default function PeggedAsset(props) {
   return (
-    <GeneralLayout title={`All Chains Pegged Asset - DefiLlama`} defaultSEO>
+    <Layout title={`All Chains Pegged Asset - DefiLlama`} defaultSEO>
       <PeggedContainer {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }

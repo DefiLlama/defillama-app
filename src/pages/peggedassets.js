@@ -1,6 +1,5 @@
-import { FullWrapper, PageWrapper } from 'components'
 import { CustomLink } from 'components/Link'
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 import { getPeggedAssets, revalidate, getPeggedPrices } from '../utils/dataApi'
 import { toK } from 'utils'
 import Table, { Index } from 'components/Table'
@@ -79,13 +78,9 @@ const columns = [
 
 export default function PeggedAssets({ categories }) {
   return (
-    <GeneralLayout title={`Categories - DefiLlama`} defaultSEO>
-      <PageWrapper>
-        <FullWrapper>
-          <PageHeader title="Pegged Asset Categories" />
-          <Table data={categories} columns={columns} align="start" gap="40px" />
-        </FullWrapper>
-      </PageWrapper>
-    </GeneralLayout>
+    <Layout title={`Categories - DefiLlama`} defaultSEO>
+      <PageHeader title="Pegged Asset Categories" />
+      <Table data={categories} columns={columns} align="start" gap="40px" />
+    </Layout>
   )
 }

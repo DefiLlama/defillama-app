@@ -1,10 +1,9 @@
-import { FullWrapper, PageWrapper } from 'components'
 import PageHeader from 'components/PageHeader'
 import Table, { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useMemo } from 'react'
 import styled from 'styled-components'
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 import { revalidate, getSimpleProtocolsPageData, basicPropertiesToKeep } from '../utils/dataApi'
 
 export async function getStaticProps() {
@@ -181,13 +180,9 @@ export default function Protocols({ protocols }) {
   const protocolsData = useCalcStakePool2Tvl(data, 'listedAt', 'asc')
 
   return (
-    <GeneralLayout title={`TVL Rankings - DefiLlama`} defaultSEO>
-      <PageWrapper>
-        <FullWrapper>
-          <PageHeader title="Recently Listed Protocols" />
-          <TableWrapper data={protocolsData} columns={columns} />
-        </FullWrapper>
-      </PageWrapper>
-    </GeneralLayout>
+    <Layout title={`TVL Rankings - DefiLlama`} defaultSEO>
+      <PageHeader title="Recently Listed Protocols" />
+      <TableWrapper data={protocolsData} columns={columns} />
+    </Layout>
   )
 }

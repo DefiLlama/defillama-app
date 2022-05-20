@@ -3,12 +3,9 @@ import { useMedia } from 'react-use'
 import { Repeat } from 'react-feather'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
-
-import { PageWrapper, FullWrapper } from 'components'
 import Column from 'components/Column'
 import { BasicLink } from 'components/Link'
 import Loader from 'components/LocalLoader'
-import Panel from 'components/Panel'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import Search from 'components/Search'
 import { Wrapper, CloseIcon } from 'components/Search/shared'
@@ -18,6 +15,7 @@ import { TYPE, ThemedBackground } from 'Theme'
 
 import { formattedNum, standardizeProtocolName } from 'utils'
 import { useFetchProtocol, useGeckoProtocol } from 'utils/dataApi'
+import { Panel } from 'components'
 
 const ComparisonDetailsLayout = styled.div`
   display: inline-grid;
@@ -221,68 +219,68 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
   }
 
   return (
-    <PageWrapper>
+    <>
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
-      <FullWrapper>
-        <RowBetween>
-          <TYPE.largeHeader fontSize={below400 ? 16 : 24} style={{ width: '100%', textAlign: 'center' }}>
-            Calculate the price of <TokenColoredText color={protocolAColor}>Protocol A</TokenColoredText>
-            <br />
-            with the Mcap/TVL of <TokenColoredText color={protocolBColor}>Protocol B</TokenColoredText>
-          </TYPE.largeHeader>
-        </RowBetween>
-        <RowBetween style={{ flexWrap: 'wrap', alingItems: 'start' }}>
-          <ComparisonDetailsLayout>
-            <TokenComparisonSearch
-              protocolAorB="A"
-              tokenValid={tokenAValid}
-              tokenSymbol={tokenAFormattedSymbol}
-              logo={tokenALogo}
-              address={tokenAAddress}
-              price={tokenAPrice}
-              handleLinkPath={handleLinkPath}
-              customOnLinkClick={customOnLinkClick}
-            />
-            <Column>
-              <BasicLink style={{ margin: '2rem auto 0' }} href={handleSwapLinkPath()}>
-                <SwapProtocolsIcon onClick={handleSwapLinkPath} />
-              </BasicLink>
-            </Column>
-            <TokenComparisonSearch
-              protocolAorB="B"
-              tokenValid={tokenBValid}
-              tokenSymbol={tokenBFormattedSymbol}
-              logo={tokenBLogo}
-              address={tokenBAddress}
-              price={tokenBPrice}
-              handleLinkPath={handleLinkPath}
-              customOnLinkClick={customOnLinkClick}
-            />
-          </ComparisonDetailsLayout>
-        </RowBetween>
-        {(loadingA || loadingB) && (
-          <AutoRow style={{ gap: '1rem', justifyContent: 'center' }}>
-            <Loader style={{ width: 'fit-content' }} />{' '}
-          </AutoRow>
-        )}
-        {tokenAValid && tokenBValid && (
-          <PriceResultPanel margin="auto" rounded p={20}>
-            <Column style={{ gap: '1rem' }}>
-              <TYPE.main>
-                {tokenAFormattedSymbol} price with the Mcap/TVL of {tokenBFormattedSymbol}
+
+      <RowBetween>
+        <TYPE.largeHeader fontSize={below400 ? 16 : 24} style={{ width: '100%', textAlign: 'center' }}>
+          Calculate the price of <TokenColoredText color={protocolAColor}>Protocol A</TokenColoredText>
+          <br />
+          with the Mcap/TVL of <TokenColoredText color={protocolBColor}>Protocol B</TokenColoredText>
+        </TYPE.largeHeader>
+      </RowBetween>
+      <RowBetween style={{ flexWrap: 'wrap', alingItems: 'start' }}>
+        <ComparisonDetailsLayout>
+          <TokenComparisonSearch
+            protocolAorB="A"
+            tokenValid={tokenAValid}
+            tokenSymbol={tokenAFormattedSymbol}
+            logo={tokenALogo}
+            address={tokenAAddress}
+            price={tokenAPrice}
+            handleLinkPath={handleLinkPath}
+            customOnLinkClick={customOnLinkClick}
+          />
+          <Column>
+            <BasicLink style={{ margin: '2rem auto 0' }} href={handleSwapLinkPath()}>
+              <SwapProtocolsIcon onClick={handleSwapLinkPath} />
+            </BasicLink>
+          </Column>
+          <TokenComparisonSearch
+            protocolAorB="B"
+            tokenValid={tokenBValid}
+            tokenSymbol={tokenBFormattedSymbol}
+            logo={tokenBLogo}
+            address={tokenBAddress}
+            price={tokenBPrice}
+            handleLinkPath={handleLinkPath}
+            customOnLinkClick={customOnLinkClick}
+          />
+        </ComparisonDetailsLayout>
+      </RowBetween>
+      {(loadingA || loadingB) && (
+        <AutoRow style={{ gap: '1rem', justifyContent: 'center' }}>
+          <Loader style={{ width: 'fit-content' }} />{' '}
+        </AutoRow>
+      )}
+      {tokenAValid && tokenBValid && (
+        <PriceResultPanel margin="auto" rounded p={20}>
+          <Column style={{ gap: '1rem' }}>
+            <TYPE.main>
+              {tokenAFormattedSymbol} price with the Mcap/TVL of {tokenBFormattedSymbol}
+            </TYPE.main>
+            <AutoRow style={{ justifyContent: 'center', gap: '7.5px' }}>
+              <TokenLogo address={tokenAAddress} logo={tokenALogo} size={32} style={{ alignSelf: 'center' }} />
+              <TYPE.largeHeader fontSize={32}>{formattedNum(tokenAPriceWithTokenBMcapTvl, true)}</TYPE.largeHeader>
+              <TYPE.main style={{ marginTop: '7.5px' }}>
+                <PriceChange priceChange={tokenAPriceChange}>({formattedNum(tokenAPriceChange)}x)</PriceChange>
               </TYPE.main>
-              <AutoRow style={{ justifyContent: 'center', gap: '7.5px' }}>
-                <TokenLogo address={tokenAAddress} logo={tokenALogo} size={32} style={{ alignSelf: 'center' }} />
-                <TYPE.largeHeader fontSize={32}>{formattedNum(tokenAPriceWithTokenBMcapTvl, true)}</TYPE.largeHeader>
-                <TYPE.main style={{ marginTop: '7.5px' }}>
-                  <PriceChange priceChange={tokenAPriceChange}>({formattedNum(tokenAPriceChange)}x)</PriceChange>
-                </TYPE.main>
-              </AutoRow>
-            </Column>
-          </PriceResultPanel>
-        )}
-      </FullWrapper>
-    </PageWrapper>
+            </AutoRow>
+          </Column>
+        </PriceResultPanel>
+      )}
+
+    </>
   )
 }
 

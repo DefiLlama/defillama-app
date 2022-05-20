@@ -1,6 +1,6 @@
 import ProtocolList from '../../components/ProtocolList'
 import { PROTOCOLS_API } from '../../constants/index'
-import { GeneralLayout } from '../../layout'
+import Layout from '../../layout'
 import { getProtocolsPageData, revalidate } from '../../utils/dataApi'
 
 function capitalizeFirstLetter(string) {
@@ -37,13 +37,13 @@ export async function getStaticPaths() {
 
 export default function Protocols({ category, chains, filteredProtocols, chain }) {
   return (
-    <GeneralLayout title={`${capitalizeFirstLetter(category)} TVL Rankings - DefiLlama`} defaultSEO>
+    <Layout title={`${capitalizeFirstLetter(category)} TVL Rankings - DefiLlama`} defaultSEO>
       <ProtocolList
         category={capitalizeFirstLetter(category)}
         chains={chains}
         selectedChain={chain}
         filteredProtocols={filteredProtocols}
       />
-    </GeneralLayout>
+    </Layout>
   )
 }

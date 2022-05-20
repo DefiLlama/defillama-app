@@ -1,5 +1,5 @@
 import React from 'react'
-import { GeneralLayout } from 'layout'
+import Layout from 'layout'
 import { getChainsPageData, revalidate } from 'utils/dataApi'
 import { CONFIG_API } from 'constants/index'
 import ChainsContainer from 'containers/ChainsContainer'
@@ -38,8 +38,8 @@ export async function getStaticPaths() {
 export default function Chains(props) {
   const { category } = props
   return (
-    <GeneralLayout title={`${category} TVL - DefiLlama`} defaultSEO>
+    <Layout title={`${category} TVL - DefiLlama`} defaultSEO>
       <ChainsContainer {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }

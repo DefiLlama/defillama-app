@@ -1,8 +1,7 @@
-import { FullWrapper, PageWrapper } from 'components'
 import Table, { columnsToShow, splitArrayByFalsyValues } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useMemo } from 'react'
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 import { revalidate, getSimpleProtocolsPageData, basicPropertiesToKeep } from '../utils/dataApi'
 import orderBy from 'lodash.orderby'
 import { TYPE } from 'Theme'
@@ -33,17 +32,12 @@ export default function TopGainersLosers({ protocols }) {
   }, [data])
 
   return (
-    <GeneralLayout title={`Top Gainers and Losers - DefiLlama`} defaultSEO>
-      <PageWrapper>
-        <FullWrapper>
-          {/* <PageHeader title="Top Gainers and Losers" /> */}
-          <Header>Top Gainers</Header>
-          <Table data={topGainers} columns={columns} />
-          <Header>Top Losers</Header>
-          <Table data={topLosers} columns={columns} />
-        </FullWrapper>
-      </PageWrapper>
-    </GeneralLayout>
+    <Layout title={`Top Gainers and Losers - DefiLlama`} defaultSEO>
+      <Header>Top Gainers</Header>
+      <Table data={topGainers} columns={columns} />
+      <Header>Top Losers</Header>
+      <Table data={topLosers} columns={columns} />
+    </Layout>
   )
 }
 

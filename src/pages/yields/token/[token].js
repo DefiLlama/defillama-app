@@ -1,5 +1,4 @@
-import { GeneralLayout } from 'layout'
-import { PageWrapper, FullWrapper } from 'components'
+import Layout from 'layout'
 import Search from 'components/Search'
 import { AutoColumn } from 'components/Column'
 import Table, { columnsToShow } from 'components/Table'
@@ -110,48 +109,46 @@ const YieldPage = () => {
   pools = millionDollar === true ? pools.filter((el) => el.tvlUsd >= 1e6) : pools
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <AutoColumn gap="24px">
-          <Search />
-        </AutoColumn>
-        <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
+    <>
+      <AutoColumn gap="24px">
+        <Search />
+      </AutoColumn>
+      <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
 
-        <ListOptions>
-          <ListHeader>Yield Rankings</ListHeader>
-          {!loading && <Filters filterOptions={tabOptions} activeLabel={selectedTab} />}
-        </ListOptions>
+      <ListOptions>
+        <ListHeader>Yield Rankings</ListHeader>
+        {!loading && <Filters filterOptions={tabOptions} activeLabel={selectedTab} />}
+      </ListOptions>
 
-        {poolData === undefined ? (
-          <LocalLoader />
-        ) : (
-          <Table
-            data={pools.map((t) => ({
-              id: t.pool,
-              pool: t.symbol,
-              projectslug: t.project,
-              project: t.projectName,
-              chains: [t.chain],
-              tvl: t.tvlUsd,
-              apy: t.apy,
-              change1d: t.apyPct1D,
-              change7d: t.apyPct7D,
-              outlook: t.predictions.predictedClass,
-              probability: t.predictions.predictedProbability,
-            }))}
-            secondColumnAlign="start"
-            columns={columns}
-          />
-        )}
-      </FullWrapper>
-    </PageWrapper>
+      {poolData === undefined ? (
+        <LocalLoader />
+      ) : (
+        <Table
+          data={pools.map((t) => ({
+            id: t.pool,
+            pool: t.symbol,
+            projectslug: t.project,
+            project: t.projectName,
+            chains: [t.chain],
+            tvl: t.tvlUsd,
+            apy: t.apy,
+            change1d: t.apyPct1D,
+            change7d: t.apyPct7D,
+            outlook: t.predictions.predictedClass,
+            probability: t.predictions.predictedProbability,
+          }))}
+          secondColumnAlign="start"
+          columns={columns}
+        />
+      )}
+    </>
   )
 }
 
 export default function YieldPoolPage(props) {
   return (
-    <GeneralLayout title={`Yield Chart - DefiLlama`} defaultSEO>
+    <Layout title={`Yield Chart - DefiLlama`} defaultSEO>
       <YieldPage {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }

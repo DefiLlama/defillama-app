@@ -5,25 +5,16 @@ import { useGetExtraTvlEnabled } from '../../contexts/LocalStorage'
 
 const ProtocolChart = ({
   chartData = [],
-  protocol,
-  tokens,
-  tokensInUsd,
-  chainTvls = {},
-  misrepresentedTokens,
-  color,
-  denomination,
-  selectedChain,
-  chains,
-  hallmarks,
-  isHourlyChart,
+  chainTvls,
+  ...extraParams
 }) => {
-  const extraTvlEnabled = useGetExtraTvlEnabled()
-
   // Refactor later
   const below1600 = useMedia('(max-width: 1650px)')
   const below1024 = useMedia('(max-width: 1024px)')
   const below900 = useMedia('(max-width: 900px)')
   const small = below900 || (!below1024 && below1600)
+  /*
+  const extraTvlEnabled = useGetExtraTvlEnabled()
   const sections = Object.keys(chainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
   const chartDataFiltered = useMemo(() => {
     const tvlDictionary = {}
@@ -40,21 +31,13 @@ const ProtocolChart = ({
       })
     } else return chartData
   }, [chartData, chainTvls, sections])
+  */
 
   return (
     <TokenChart
       small={small}
-      data={chartDataFiltered}
-      denomination={denomination}
-      tokens={tokens}
-      tokensInUsd={tokensInUsd}
-      chainTvls={chainTvls}
-      misrepresentedTokens={misrepresentedTokens}
-      color={color}
-      selectedChain={selectedChain}
-      chains={chains ?? [protocol]}
-      hallmarks={hallmarks}
-      isHourlyChart={isHourlyChart}
+      data={chartData}
+      {...extraParams}
     />
   )
 }

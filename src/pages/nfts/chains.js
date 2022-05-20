@@ -1,9 +1,7 @@
 import { useMemo } from 'react'
-import { GeneralLayout } from 'layout'
+import Layout from 'layout'
 import { Box } from 'rebass/styled-components'
 import styled from 'styled-components'
-
-import { PageWrapper, FullWrapper } from 'components'
 import NFTList from 'components/NFTList'
 import { RowBetween } from 'components/Row'
 import { TYPE } from 'Theme'
@@ -79,39 +77,37 @@ const ChainsView = ({ chainData, currentData, chainsUnique, stackedDataset, dayS
   )
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <RowBetween>
-          <TYPE.largeHeader>Total Volume All Chains</TYPE.largeHeader>
-        </RowBetween>
-        <ChartsWrapper>
-          <ChainPieChart data={currentData} chainColor={chainColor} />
-          <ChainDominanceChart
-            stackOffset="expand"
-            formatPercent={true}
-            stackedDataset={stackedDataset}
-            chainsUnique={chainsUnique}
-            chainColor={chainColor}
-            daySum={daySum}
-          />
-        </ChartsWrapper>
-        <NFTList
-          data={chainData}
-          iconUrl={chainIconUrl}
-          generateLink={(name) => `/nfts/chain/${name}`}
-          columns={['chain', 'collections', 'dailyVolumeUSD', 'totalVolumeUSD']}
+    <>
+      <RowBetween>
+        <TYPE.largeHeader>Total Volume All Chains</TYPE.largeHeader>
+      </RowBetween>
+      <ChartsWrapper>
+        <ChainPieChart data={currentData} chainColor={chainColor} />
+        <ChainDominanceChart
+          stackOffset="expand"
+          formatPercent={true}
+          stackedDataset={stackedDataset}
+          chainsUnique={chainsUnique}
+          chainColor={chainColor}
+          daySum={daySum}
         />
-      </FullWrapper>
-    </PageWrapper>
+      </ChartsWrapper>
+      <NFTList
+        data={chainData}
+        iconUrl={chainIconUrl}
+        generateLink={(name) => `/nfts/chain/${name}`}
+        columns={['chain', 'collections', 'dailyVolumeUSD', 'totalVolumeUSD']}
+      />
+    </>
   )
 }
 
 function Chains(props) {
   return (
-    <GeneralLayout title="DefiLlama - NFT Dashboard">
+    <Layout title="DefiLlama - NFT Dashboard">
       <SEO nftPage />
       <ChainsView {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }
 

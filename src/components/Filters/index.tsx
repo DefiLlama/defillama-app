@@ -37,6 +37,10 @@ const Wrapper = styled.ul`
   & > li {
     list-style: none;
     display: inline-block;
+
+    & > * {
+      display: inline-block;
+    }
   }
 `
 
@@ -156,9 +160,9 @@ const Filter = ({ option, activeLabel, ...props }) => {
     <li {...props}>
       <Link href={option.to} prefetch={false} passHref>
         {option.label === activeLabel ? (
-          <ButtonDark role="link">{option.label}</ButtonDark>
+          <ButtonDark as="a">{option.label}</ButtonDark>
         ) : (
-          <ButtonLight role="link">{option.label}</ButtonLight>
+          <ButtonLight as="a">{option.label}</ButtonLight>
         )}
       </Link>
     </li>

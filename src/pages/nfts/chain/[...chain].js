@@ -1,5 +1,5 @@
 import NFTDashboardPage from '../../../components/NFTDashboardPage'
-import { GeneralLayout } from '../../../layout'
+import Layout from '../../../layout'
 import {
   getNFTChainChartData,
   getNFTChainsData,
@@ -43,8 +43,8 @@ export async function getStaticPaths() {
 
 export default function Chain({ displayName, ...props }) {
   return (
-    <GeneralLayout title={`${displayName} Total Volume - DefiLlama`}>
+    <Layout title={`${displayName} Total Volume - DefiLlama`}>
       <NFTDashboardPage displayName={displayName} {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }

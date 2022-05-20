@@ -1,9 +1,9 @@
-import { FullWrapper, PageWrapper, ProtocolsTable } from 'components'
+import { ProtocolsTable } from 'components'
 import PageHeader from 'components/PageHeader'
 import { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import styled from 'styled-components'
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 import { revalidate, getProtocolsPageData } from '../utils/dataApi'
 
 const exclude = [
@@ -51,13 +51,9 @@ const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', 
 export default function Protocols({ protocols }) {
   const data = useCalcStakePool2Tvl(protocols)
   return (
-    <GeneralLayout title={`Airdroppable protocols - Defi Llama`} defaultSEO>
-      <PageWrapper>
-        <FullWrapper>
-          <PageHeader title="Tokenless protocols that may airdrop 🧑‍🌾" />
-          <TableWrapper data={data} columns={columns} />
-        </FullWrapper>
-      </PageWrapper>
-    </GeneralLayout>
+    <Layout title={`Airdroppable protocols - Defi Llama`} defaultSEO>
+      <PageHeader title="Tokenless protocols that may airdrop 🧑‍🌾" />
+      <TableWrapper data={data} columns={columns} />
+    </Layout>
   )
 }

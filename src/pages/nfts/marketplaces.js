@@ -1,9 +1,7 @@
 import { useMemo } from 'react'
 import styled from 'styled-components'
 import { Box } from 'rebass/styled-components'
-
-import { GeneralLayout } from '../../layout'
-import { PageWrapper, FullWrapper } from '../../components'
+import Layout from '../../layout'
 import NFTList from '../../components/NFTList'
 import { RowBetween } from '../../components/Row'
 import { TYPE } from '../../Theme'
@@ -79,40 +77,38 @@ const MarketplacesView = ({ marketplaceData, currentData, marketplacesUnique, st
   )
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <RowBetween>
-          <TYPE.largeHeader>Total Volume All Marketplaces</TYPE.largeHeader>
-        </RowBetween>
-        <ChartsWrapper>
-          <ChainPieChart data={currentData} chainColor={marketplaceColor} />
-          <ChainDominanceChart
-            stackOffset="expand"
-            formatPercent={true}
-            stackedDataset={stackedDataset}
-            chainsUnique={marketplacesUnique}
-            chainColor={marketplaceColor}
-            daySum={daySum}
-          />
-        </ChartsWrapper>
-        <NFTList
-          data={marketplaceData}
-          iconUrl={tokenIconUrl}
-          generateLink={(name) => `/nfts/marketplace/${name}`}
-          columns={['marketplace', 'collections', 'dailyVolumeUSD', 'totalVolumeUSD']}
-          type="marketplaces"
+    <>
+      <RowBetween>
+        <TYPE.largeHeader>Total Volume All Marketplaces</TYPE.largeHeader>
+      </RowBetween>
+      <ChartsWrapper>
+        <ChainPieChart data={currentData} chainColor={marketplaceColor} />
+        <ChainDominanceChart
+          stackOffset="expand"
+          formatPercent={true}
+          stackedDataset={stackedDataset}
+          chainsUnique={marketplacesUnique}
+          chainColor={marketplaceColor}
+          daySum={daySum}
         />
-      </FullWrapper>
-    </PageWrapper>
+      </ChartsWrapper>
+      <NFTList
+        data={marketplaceData}
+        iconUrl={tokenIconUrl}
+        generateLink={(name) => `/nfts/marketplace/${name}`}
+        columns={['marketplace', 'collections', 'dailyVolumeUSD', 'totalVolumeUSD']}
+        type="marketplaces"
+      />
+    </>
   )
 }
 
 function Marketplaces(props) {
   return (
-    <GeneralLayout title="DefiLlama - NFT Dashboard">
+    <Layout title="DefiLlama - NFT Dashboard">
       <SEO nftPage />
       <MarketplacesView {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }
 

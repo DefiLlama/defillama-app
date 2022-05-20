@@ -1,9 +1,6 @@
 import React, { useMemo, useState } from 'react'
-import styled from 'styled-components'
-import Panel from '../Panel'
 import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from '../Column'
-import { PageWrapper, FullWrapper } from 'components'
 import { RowBetween, AutoRow } from 'components/Row'
 import Search from 'components/Search'
 import { NamePegged } from 'components/Table/index'
@@ -25,24 +22,7 @@ import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'compon
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
-
-export const BreakpointPanels = styled.div`
-  @media screen and (min-width: 800px) {
-    width: 100%;
-    display: flex;
-    padding: 0;
-    align-items: stretch;
-  }
-`
-export const BreakpointPanelsColumn = styled(AutoColumn)`
-  width: 100%;
-  margin-right: 10px;
-  max-width: 350px;
-  @media (max-width: 800px) {
-    max-width: initial;
-    margin-bottom: 10px;
-  }
-`
+import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
 
 function Chart({ formattedPeggedAreaChart, peggedAssetNames, aspect }) {
   const [darkMode] = useDarkModeManager()
@@ -226,20 +206,19 @@ function AllPeggedsPage({
   )
 
   return (
-    <PageWrapper>
-      <FullWrapper>
-        <RowBetween>
-          <TYPE.largeHeader>{title}</TYPE.largeHeader>
-          <Search small={!belowLg} />
-        </RowBetween>
-        <div>
-          <BreakpointPanels>
-            <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-            <Panel style={{ height: '100%', minHeight: '347px', width: '100%' }}>
+    <>
+      <RowBetween>
+        <TYPE.largeHeader>{title}</TYPE.largeHeader>
+        <Search small={!belowLg} />
+      </RowBetween>
+      <div>
+        <BreakpointPanels>
+          <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
+          <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
             <RowBetween
-          mb={useMed ? 40 : 0}
-          align="flex-start"
-        >
+              mb={useMed ? 40 : 0}
+              align="flex-start"
+            >
               <AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
                 <OptionButton active={chartType === 'Area'} onClick={() => setChartType('Area')}>
                   Area
@@ -251,33 +230,32 @@ function AllPeggedsPage({
                   Pie
                 </OptionButton>
               </AutoRow>
-              </RowBetween>
-              {chartType === 'Area' && <Chart {...{ formattedPeggedAreaChart, peggedAssetNames, aspect }} />}
-              {chartType === 'Dominance' && (
-                <PeggedChainResponsiveDominance
-                  stackOffset="expand"
-                  formatPercent={true}
-                  stackedDataset={stackedData}
-                  chainsUnique={peggedAssetNames}
-                  chainColor={chainColor}
-                  daySum={daySum}
-                  aspect={aspect}
-                />
-              )}
-              {chartType === 'Pie' && <PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />}
-            </Panel>
-          </BreakpointPanels>
-        </div>
+            </RowBetween>
+            {chartType === 'Area' && <Chart {...{ formattedPeggedAreaChart, peggedAssetNames, aspect }} />}
+            {chartType === 'Dominance' && (
+              <PeggedChainResponsiveDominance
+                stackOffset="expand"
+                formatPercent={true}
+                stackedDataset={stackedData}
+                chainsUnique={peggedAssetNames}
+                chainColor={chainColor}
+                daySum={daySum}
+                aspect={aspect}
+              />
+            )}
+            {chartType === 'Pie' && <PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />}
+          </Panel>
+        </BreakpointPanels>
+      </div>
 
-        {showChainList && (
-          <FiltersWrapper>
-            <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
-          </FiltersWrapper>
-        )}
+      {showChainList && (
+        <FiltersWrapper>
+          <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
+        </FiltersWrapper>
+      )}
 
-        <Table data={peggedTotals} columns={columns} />
-      </FullWrapper>
-    </PageWrapper>
+      <Table data={peggedTotals} columns={columns} />
+    </>
   )
 }
 

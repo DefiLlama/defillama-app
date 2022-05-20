@@ -1,6 +1,6 @@
 import ChainPage from '../../components/ChainPage'
 import { PROTOCOLS_API } from '../../constants/index'
-import { GeneralLayout } from '../../layout'
+import Layout from '../../layout'
 import { getChainPageData, revalidate } from '../../utils/dataApi'
 
 export async function getStaticProps({ params }) {
@@ -24,8 +24,8 @@ export async function getStaticPaths() {
 
 export default function Chain({ chain, ...props }) {
   return (
-    <GeneralLayout title={`${chain} TVL - DefiLlama`}>
+    <Layout title={`${chain} TVL - DefiLlama`}>
       <ChainPage {...props} selectedChain={chain} />
-    </GeneralLayout>
+    </Layout>
   )
 }

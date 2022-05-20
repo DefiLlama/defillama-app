@@ -1,5 +1,5 @@
 import PortfolioContainer from 'containers/PortfolioContainer'
-import { GeneralLayout } from 'layout'
+import Layout from 'layout'
 
 import { basicPropertiesToKeep, getSimpleProtocolsPageData, revalidate } from 'utils/dataApi'
 
@@ -14,8 +14,8 @@ export async function getStaticProps() {
 
 export default function Portfolio({ protocols }) {
   return (
-    <GeneralLayout title={`Saved TVL Rankings - DefiLlama`} defaultSEO>
+    <Layout title={`Saved TVL Rankings - DefiLlama`} defaultSEO>
       <PortfolioContainer protocolsDict={protocols} />
-    </GeneralLayout>
+    </Layout>
   )
 }

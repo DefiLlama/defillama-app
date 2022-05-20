@@ -1,16 +1,16 @@
 import SwaggerUI from "swagger-ui-react"
 import "swagger-ui-react/swagger-ui.css"
 import yamlApiSpec from "../../docs/resolvedSpec.json"
-import { GeneralLayout } from '../../layout'
+import Layout from '../../layout'
 import DarkSwagger from "../../docs/swaggerDark"
 import { useDarkModeManager } from "../../contexts/LocalStorage"
 import styled from 'styled-components'
 
 export default function ApiDocs() {
     return (
-        <GeneralLayout title={`API Docs - DefiLlama`}>
+        <Layout title={`API Docs - DefiLlama`}>
             <DarkModeWrapper />
-        </GeneralLayout>
+        </Layout>
     )
 }
 

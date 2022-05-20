@@ -1,5 +1,5 @@
 import React from 'react'
-import { GeneralLayout } from 'layout'
+import Layout from 'layout'
 import { getChainsPageData, revalidate } from 'utils/dataApi'
 import ChainsContainer from 'containers/ChainsContainer'
 
@@ -13,8 +13,8 @@ export async function getStaticProps() {
 
 export default function Chains(props) {
   return (
-    <GeneralLayout title={`All Chains TVL - DefiLlama`} defaultSEO>
+    <Layout title={`All Chains TVL - DefiLlama`} defaultSEO>
       <ChainsContainer {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }

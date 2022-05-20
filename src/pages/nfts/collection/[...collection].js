@@ -1,5 +1,5 @@
 import NFTCollectionPage from '../../../components/NFTCollectionPage'
-import { GeneralLayout } from '../../../layout'
+import Layout from '../../../layout'
 import {
   getNFTCollection,
   getNFTCollections,
@@ -39,8 +39,8 @@ export async function getStaticPaths() {
 
 export default function Collection(props) {
   return (
-    <GeneralLayout title={props.title}>
+    <Layout title={props.title}>
       <NFTCollectionPage {...props} />
-    </GeneralLayout>
+    </Layout>
   )
 }

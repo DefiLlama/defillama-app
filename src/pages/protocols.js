@@ -1,5 +1,5 @@
 import ProtocolList from '../components/ProtocolList'
-import { GeneralLayout } from '../layout'
+import Layout from '../layout'
 import { getSimpleProtocolsPageData, revalidate } from '../utils/dataApi'
 
 export async function getStaticProps() {
@@ -15,8 +15,8 @@ export async function getStaticProps() {
 
 export default function Protocols({ chainsSet, protocols }) {
   return (
-    <GeneralLayout title={`TVL Rankings - DefiLlama`} defaultSEO>
+    <Layout title={`TVL Rankings - DefiLlama`} defaultSEO>
       <ProtocolList chainsSet={chainsSet} filteredProtocols={protocols} showChainList={false} />
-    </GeneralLayout>
+    </Layout>
   )
 }

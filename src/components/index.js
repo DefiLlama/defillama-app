@@ -2,6 +2,38 @@ import React from 'react'
 import styled from 'styled-components'
 import { Text, Box } from 'rebass'
 import Table from './Table'
+import { AutoColumn } from './Column'
+
+export const Panel = styled.section`
+  position: relative;
+  background-color: ${({ theme }) => theme.advancedBG};
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.bg3};
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
+`
+
+export const BreakpointPanels = styled.div`
+  @media screen and (min-width: 800px) {
+    width: 100%;
+    display: flex;
+    padding: 0;
+    align-items: stretch;
+  }
+`
+
+export const BreakpointPanelsColumn = styled(AutoColumn)`
+  width: 100%;
+  margin-right: 10px;
+  max-width: 350px;
+  @media (max-width: 800px) {
+    max-width: initial;
+    margin-bottom: 10px;
+  }
+`
 
 const Divider = styled(Box)`
   height: 1px;
@@ -82,30 +114,6 @@ export const SubNavEl = styled.li`
     cursor: pointer;
     border-bottom: 1px solid ${({ theme }) => theme.bg3};
   }
-`
-
-export const PageWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding-top: 36px;
-  padding-bottom: 80px;
-
-  @media screen and (max-width: 600px) {
-    & > * {
-      padding: 0 12px;
-    }
-  }
-`
-
-export const FullWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 1440px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 2rem;
-  box-sizing: border-box;
 `
 
 export const FixedMenu = styled.div`
