@@ -26,7 +26,6 @@ interface IChainResponsivePieProps {
 
 export const PeggedChainPieChart = ({ data, chainColor }: IChainPieChartProps) => {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [isDark] = useDarkModeManager()
 
   const onPieEnter = (_, index) => {
     setActiveIndex(index)
