@@ -589,6 +589,11 @@ export const chainCoingeckoIds = {
     symbol: "DOGE",
     cmcId: "74",
   },
+  Obyte: {
+    geckoId: "byteball",
+    symbol: "GBYTE",
+    cmcId: "1492",
+  },
 }
 
 export const chainMarketplaceMappings = {
