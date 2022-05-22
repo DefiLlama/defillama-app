@@ -12,29 +12,22 @@ import FormattedName from 'components/FormattedName'
 import HeadHelp from 'components/HeadHelp'
 import Link, { BasicLink } from 'components/Link'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
-import Search from 'components/Search'
-import { AllTvlOptions } from 'components/SettingsModal'
 import TokenLogo from 'components/TokenLogo'
-
 import { useCalcSingleExtraTvl } from '../../hooks/data'
 import { useScrollToTop, useProtocolColor } from 'hooks'
 import { TYPE, ThemedBackground } from 'Theme'
 import { formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
 import { Box as RebassBox } from 'rebass'
+import Search from 'components/Search/New'
+import { useFetchProtocolsList } from 'utils/dataApi'
+
 
 const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
 
 const DashboardWrapper = styled(Box)`
   width: 100%;
 `
-
-const HiddenSearch = styled.span`
-  @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
-    display: none;
-  }
-`
-
 const HiddenBookmark = styled.span`
   @media screen and (max-width: ${({ theme }) => theme.bpLg}) {
     display: none;
@@ -206,52 +199,41 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
 
   const totalVolume = useCalcSingleExtraTvl(chainTvls, tvl)
 
-  // TODO check if we still need to format long symbols?
-
   const hasToken = address !== null && address !== '-'
 
   const tvlByChain = Object.entries(chainTvls || {})
 
+  const { data, loading } = useFetchProtocolsList()
+
   return (
     <>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
+
       <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
 
-      <RowBetween flexWrap="wrap">
-        <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
-          <TYPE.body>
-            <BasicLink href="/protocols">{'Protocols '}</BasicLink>→{' '}
-          </TYPE.body>
-          <Text style={{ marginLeft: '.15rem' }} fontSize={'14px'} fontWeight={400} color={backgroundColor}>
-            {name}
-          </Text>
-        </AutoRow>
-        <HiddenSearch>
-          <Search small={true} />
-        </HiddenSearch>
-      </RowBetween>
+      <Search data={data} loading={loading} step={{ category: 'Protocols', name, color: backgroundColor }} />
 
       <DashboardWrapper mt={[0, 0, '1rem']}>
         <ToggleAlert chainTvls={chainTvls} />
-        <RowBetween style={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
-          <RowFixed style={{ flexWrap: 'wrap' }}>
-            <RowFixed style={{ alignItems: 'baseline' }}>
-              <TokenLogo address={address} logo={logo} size={32} style={{ alignSelf: 'center' }} />
-              <TYPE.main fontSize={['1.5rem', '1.5rem', '2rem']} fontWeight={500} style={{ margin: '0 1rem' }}>
-                <RowFixed gap="6px">
-                  <FormattedName text={name ? name + ' ' : ''} maxCharacters={16} style={{ marginRight: '6px' }} />{' '}
-                  {symbol !== '-' ? '$' + symbol : ''}
-                </RowFixed>
-              </TYPE.main>{' '}
-            </RowFixed>
+
+        <RowBetween style={{ flexWrap: 'wrap', alignItems: 'center' }}>
+
+          <RowFixed style={{ alignItems: 'baseline', margin: '2rem 0' }}>
+            <TokenLogo address={address} logo={logo} size={32} style={{ alignSelf: 'center' }} />
+            <TYPE.main fontSize={['1.5rem', '1.5rem', '2rem']} fontWeight={500} style={{ margin: '0 1rem' }}>
+              <RowFixed gap="6px">
+                <FormattedName text={name ? name + ' ' : ''} maxCharacters={16} style={{ marginRight: '6px' }} />{' '}
+                {symbol !== '-' ? '$' + symbol : ''}
+              </RowFixed>
+            </TYPE.main>{' '}
           </RowFixed>
+
           <HiddenBookmark>
             <RowFixed ml={[0, '2.5rem']} mt={['1rem', '0']}>
               <Bookmark readableProtocolName={name} />
             </RowFixed>
           </HiddenBookmark>
         </RowBetween>
-        <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
         <>
           <PanelWrapper style={{ gridTemplateRows: 'auto', margin: '0 0 3rem 0' }}>
             <Panel>
