@@ -176,8 +176,7 @@ export const ThemedBackground = styled.div`
   height: 200vh;
   mix-blend-mode: color;
   background: ${({ backgroundColor, theme }) =>
-    `radial-gradient(50% 50% at 50% 50%, ${
-      backgroundColor || transparentize(0.6, theme.primary1)
+    `radial-gradient(50% 50% at 50% 50%, ${backgroundColor || transparentize(0.6, theme.primary1)
     } 0%, rgba(255, 255, 255, 0) 100%)`};
   position: absolute;
   top: 0px;
@@ -278,6 +277,15 @@ export const GlobalStyle = createGlobalStyle`
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+
+  *, *:before, *:after {
+    -webkit-box-sizing: inherit;
+    -moz-box-sizing: inherit;
+    box-sizing: inherit;
   }
 
 

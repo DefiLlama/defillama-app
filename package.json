@@ -17,6 +17,7 @@
     "@radix-ui/react-scroll-area": "^0.1.3",
     "@radix-ui/react-tooltip": "^0.1.7",
     "@reach/portal": "^0.10.3",
+    "ariakit": "^2.0.0-next.27",
     "bignumber.js": "^9.0.0",
     "dayjs": "^1.8.16",
     "decimal.js-light": "^2.5.0",

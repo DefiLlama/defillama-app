@@ -5,7 +5,7 @@ import { transparentize } from 'polished'
 
 import { RowBetween, RowFixed } from '../Row'
 import { AutoColumn } from '../Column'
-import Search from '../Search'
+import Search from '../Search/New'
 import { ProtocolsTable, Panel, BreakpointPanels, BreakpointPanelsColumn } from '..'
 import Filters from '../Filters'
 import { AllTvlOptions } from '../SettingsModal'
