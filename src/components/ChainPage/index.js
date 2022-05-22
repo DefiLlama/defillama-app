@@ -256,7 +256,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
       <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
 
       <AutoColumn gap="24px">
-        <Search />
+        <Search data={{ chains: chainsSet, protocols: filteredProtocols }} />
         <div>
           <Panel background={true} style={{ textAlign: 'center' }}>
             <TYPE.main fontWeight={400}>

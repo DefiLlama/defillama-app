@@ -1,18 +1,19 @@
 import { Combobox, ComboboxItem, ComboboxPopover, useComboboxState } from 'ariakit/combobox'
+import TokenLogo from 'components/TokenLogo'
+import { useRouter } from 'next/router'
 import { transparentize } from 'polished'
 import { useMemo } from 'react'
 import styled from 'styled-components'
 import { chainIconUrl, tokenIconUrl } from 'utils'
-import { useFetchProtocolsList } from 'utils/dataApi'
 
 const Box = styled(Combobox)`
-  padding: 12px 14px;
+  padding: 16px;
   background: ${({ theme }) => transparentize(0.4, theme.bg6)};
   border: none;
   border-radius: 12px;
   outline: none;
   color: ${({ theme }) => theme.text1};
-  font-size: 1.25rem;
+  font-size: 1rem;
   box-shadow: 0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04),
     0px 0px 1px rgba(0, 0, 0, 0.04);
 
@@ -30,7 +31,6 @@ const Box = styled(Combobox)`
 const Popover = styled(ComboboxPopover)`
   max-height: 320px;
   overflow-y: auto;
-  padding-bottom: 20px;
   background: ${({ theme }) => theme.bg6};
   z-index: 100;
   border-radius: 12px;
@@ -42,6 +42,9 @@ const Item = styled(ComboboxItem)`
   padding: 12px 14px;
   font-size: 0.85rem;
   color: ${({ theme }) => theme.text1};
+  display: flex;
+  align-items: center;
+  gap: 4px;
 
   & > * {
     margin-right: 6px;
@@ -59,7 +62,7 @@ const Item = styled(ComboboxItem)`
 
 const Empty = styled.div`
   text-align: center;
-  padding: 24px 12px 4px;
+  padding: 24px 12px;
   color: ${({ theme }) => theme.text1};
 `
 
@@ -69,8 +72,8 @@ interface IList {
   name: string
 }
 
-export default function Search() {
-  const { data, loading } = useFetchProtocolsList()
+export default function Search({ data }) {
+  const router = useRouter()
 
   const searchData: IList[] = useMemo(() => {
     const chainData: IList[] =
@@ -90,10 +93,25 @@ export default function Search() {
       <Box state={combobox} placeholder="Search for DeFi Protocols..." />
 
       <Popover state={combobox}>
-        {loading || !combobox.mounted ? (
-          <Empty>Loading...</Empty>
-        ) : combobox.matches.length ? (
-          combobox.matches.map((value) => <Item key={value} value={value} />)
+        {combobox.matches.length ? (
+          combobox.matches.map((value) => {
+            const item = searchData.find((x) => x.name === value)
+            const to = item.isChain ? `/chain/${value}` : `/protocol/${value}`
+
+            return (
+              <Item
+                key={value}
+                value={value}
+                onClick={() => {
+                  combobox.setValue('')
+                  router.push(to)
+                }}
+              >
+                <TokenLogo logo={item.logo} />
+                <span>{value}</span>
+              </Item>
+            )
+          })
         ) : (
           <Empty>No results found</Empty>
         )}
