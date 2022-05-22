@@ -187,116 +187,11 @@ export const ThemedBackground = styled.div`
 `
 
 export const GlobalStyle = createGlobalStyle`
-  @font-face {
-    font-family: 'Inter';
-    font-style:  normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url("font-files/Inter-Regular.woff2?v=3.19") format("woff2"),
-         url("font-files/Inter-Regular.woff?v=3.19") format("woff");
-  }
-  @font-face {
-    font-family: 'Inter';
-    font-style:  normal;
-    font-weight: 500;
-    font-display: swap;
-    src: url("font-files/Inter-Medium.woff2?v=3.19") format("woff2"),
-         url("font-files/Inter-Medium.woff?v=3.19") format("woff");
-  }
-  @font-face {
-    font-family: 'Inter';
-    font-style:  normal;
-    font-weight: 600;
-    font-display: swap;
-    src: url("font-files/Inter-SemiBold.woff2?v=3.19") format("woff2"),
-         url("font-files/Inter-SemiBold.woff?v=3.19") format("woff");
-  }
 
-  html { font-family: 'Inter', sans-serif; }
-  @supports (font-variation-settings: normal) {
-    html { font-family: 'Inter var', sans-serif; }
-  }
-
-  html,
-  body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  a {
-    text-decoration: none;
-
-    :hover {
-      text-decoration: none
-    }
-  }
-
-
-  .three-line-legend {
-    width: 100%;
-    height: 70px;
-    position: absolute;
-    padding: 8px;
-    font-size: 12px;
-    color: #20262E;
-    background-color: rgba(255, 255, 255, 0.23);
-    text-align: left;
-    z-index: 10;
-    pointer-events: none;
-  }
-
-  .three-line-legend-dark {
-    width: 100%;
-    height: 70px;
-    position: absolute;
-    padding: 8px;
-    font-size: 12px;
-    color: white;
-    background-color: rgba(255, 255, 255, 0.23);
-    text-align: left;
-    z-index: 10;
-    pointer-events: none;
-  }
-
-  .tv-lightweight-charts{
-    width: 100% !important;
-
-
-    & > * {
-      width: 100% !important;
-    }
-  }
-
-
-  html {
-    font-size: 1rem;
-    font-variant: none;
-    color: 'black';
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-  }
-
-  *, *:before, *:after {
-    -webkit-box-sizing: inherit;
-    -moz-box-sizing: inherit;
-    box-sizing: inherit;
-  }
 
 
   #__next {
-    font-size: 14px;
     background-color: ${({ theme }) => theme.bg6};
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    width: 100%;
-
     ${({ theme: { minLg } }) => minLg} {
       flex-direction: row
     }

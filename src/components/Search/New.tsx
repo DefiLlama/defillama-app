@@ -19,8 +19,7 @@ const Box = styled(Combobox)`
   padding-top: 16px;
   background: ${({ theme }) => theme.bg6};
   border: none;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
+  border-radius: 12px;
   outline: none;
   color: ${({ theme }) => theme.text1};
   font-size: 1rem;
@@ -129,7 +128,11 @@ export default function Search({ data, loading = false, step }: ISearchProps) {
 
   return (
     <Wrapper>
-      <Box state={combobox} placeholder="Search for DeFi Protocols..." />
+      <Box
+        state={combobox}
+        placeholder="Search for DeFi Protocols..."
+        style={step && { borderBottomLeftRadius: '0', borderBottomRightRadius: 0 }}
+      />
       {step && <Options step={step} />}
 
       <Popover state={combobox}>
