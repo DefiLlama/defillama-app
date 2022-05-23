@@ -1,4 +1,4 @@
-import Switch from 'react-switch'
+import ReactSwitch from 'react-switch'
 import { TYPE } from '../../Theme'
 import HeadHelp from '../HeadHelp'
 
@@ -8,6 +8,8 @@ interface IProps {
   help: string
   name: string
 }
+
+const Switch = ReactSwitch as any
 
 const OptionToggle = ({ toggle, enabled = false, help, name }: IProps) => {
   return (
