@@ -51,7 +51,7 @@ export function DeFiTvlOptions(props) {
   return (
     <Wrapper {...props}>
       <Label state={select}>INCLUDE IN TVL</Label>
-      <SelectMenu state={select} onChange={(value) => console.log(value)}>
+      <SelectMenu state={select}>
         <span>{renderValue(select.value)}</span>
         <SelectArrow />
       </SelectMenu>
