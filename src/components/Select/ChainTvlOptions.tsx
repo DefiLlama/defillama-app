@@ -18,7 +18,7 @@ const groupOptions = [
   },
 ]
 
-export default function ChainsTvlSelect({ label }: { label?: string }) {
+export function ChainTvlOptions({ label }: { label?: string }) {
   const tvlToggles = useTvlToggles()
 
   const groupTvls = useGroupEnabled()

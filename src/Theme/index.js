@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { Text } from 'rebass'
 import { transparentize } from 'polished'
 
-import { sm, med, lg, xl } from '../constants/breakpoints'
+import { sm, med, lg, xl, twoXl } from '../constants/breakpoints'
 import { useDarkModeManager } from '../contexts/LocalStorage'
 
 export default function ThemeProvider({ children }) {
@@ -91,6 +91,7 @@ const theme = (darkMode, color) => ({
   minMed: `@media screen and (min-width: ${med}px)`,
   minLg: `@media screen and (min-width: ${lg}px)`,
   minXl: `@media screen and (min-width: ${xl}px)`,
+  min2Xl: `@media screen and (min-width: ${twoXl}px)`,
 
   breakpoints: [`${sm}px`, `${med}px`, `${lg}px`, `${xl}px`],
 })
