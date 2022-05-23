@@ -94,15 +94,21 @@ export async function getStaticProps() {
   const headers = new Headers()
   headers.append('Authorization', `Bot ${process.env.ROUND_UP_BOT_TOKEN}`)
 
+  let data = []
+
   const response = await fetch('https://discordapp.com/api/channels/965023197365960734/messages', {
     method: 'GET',
     headers: headers,
     redirect: 'follow',
-  }).then((res) => res.json())
+  })
 
-  const index = response?.findIndex((r) => r.content.startsWith('Daily news round-up with the')) ?? null
+  if (response.ok) {
+    data = await response.json()
+  }
 
-  const raw = Number.isNaN(index) ? [] : response.slice(0, index + 1)
+  const index = data?.findIndex((d) => d.content.startsWith('Daily news round-up with the')) ?? null
+
+  const raw = Number.isNaN(index) ? [] : data.slice(0, index + 1)
 
   const messages = raw
     .reverse()
