@@ -11,7 +11,7 @@ import { toNiceCsvDate, getRandomColor, download } from 'utils'
 import { getChainsPageData, revalidate } from 'utils/dataApi'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
 import Filters, { FiltersWrapper } from 'components/Filters'
-import { ChainsTvlSelect } from 'components/Select'
+import { ChainTvlOptions } from 'components/Select'
 
 export async function getStaticProps() {
   const data = await getChainsPageData('All')
@@ -290,7 +290,7 @@ export default function ChainsContainer({
 
       <ChainTvlsFilter>
         <h2>Filters</h2>
-        <ChainsTvlSelect label="Filters" />
+        <ChainTvlOptions label="Filters" />
       </ChainTvlsFilter>
 
       <FiltersWrapper>

@@ -337,6 +337,18 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
+"@floating-ui/core@^0.7.0":
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/@floating-ui/core/-/core-0.7.1.tgz#022710066a8facd4613b86a1b2b78ac2bc79b77d"
+  integrity sha512-grcqEmI8DTIolufpxhJagVeJmvloxBXE6xxSrVnSXz/Wz1uUIsC85ad+UNBqAoBOvzLxE42wvDj3YkmSGqWRxA==
+
+"@floating-ui/dom@0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@floating-ui/dom/-/dom-0.5.0.tgz#e4efd9e609ff3ee6778fbe4273930d6d1c220f2e"
+  integrity sha512-PS75dnMg4GdWjDFOiOs15cDzYJpukRNHqQn0ugrBlsrpk2n+y8bwZ24XrsdLSL7kxshmxxr2nTNycLnmRIvV7g==
+  dependencies:
+    "@floating-ui/core" "^0.7.0"
+
 "@humanwhocodes/config-array@^0.9.2":
   version "0.9.5"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.9.5.tgz#2cbaf9a89460da24b5ca6531b8bbfc23e1df50c7"
@@ -1138,7 +1150,7 @@
     "@types/react" "*"
     csstype "^3.0.2"
 
-"@types/swagger-ui-react@^4.1.1":
+"@types/swagger-ui-react@^4.11.0":
   version "4.11.0"
   resolved "https://registry.yarnpkg.com/@types/swagger-ui-react/-/swagger-ui-react-4.11.0.tgz#3ac84bc8e2f6e57b9ff4533ec31934f697e1a2c4"
   integrity sha512-WPMR+GWbLd7zvY/uOTGzGzP44zK2rIZSnU00+pDR2YANnEV6/qj0kqYfdSY1Vk6qdvI7dR0Tx8JEMgUUrUQDjw==
@@ -1279,6 +1291,19 @@ aria-query@^4.2.2:
   dependencies:
     "@babel/runtime" "^7.10.2"
     "@babel/runtime-corejs3" "^7.10.2"
+
+ariakit-utils@0.17.0-next.18:
+  version "0.17.0-next.18"
+  resolved "https://registry.yarnpkg.com/ariakit-utils/-/ariakit-utils-0.17.0-next.18.tgz#5bf9a3be399b30c1f9b8573dbd24b06f552cc5fd"
+  integrity sha512-uDPWUW850ootTSIeYWkDU83bjJeM+QB3WAurw0RUoqOsUbJOFqxG5opVikDhvelRMR8+gV52MC2v2iy10wxb7Q==
+
+ariakit@^2.0.0-next.27:
+  version "2.0.0-next.27"
+  resolved "https://registry.yarnpkg.com/ariakit/-/ariakit-2.0.0-next.27.tgz#a04a68ce31398a190c6d91a5275c35d2a747d862"
+  integrity sha512-PvZxNDARg6N/fKG1WW7L3UoOoXTBIeKYYTn6fUoBANbRS+K4u73wwkCVme8oWUzniUbNdx+w/pfvqZ8/cQyaUA==
+  dependencies:
+    "@floating-ui/dom" "0.5.0"
+    ariakit-utils "0.17.0-next.18"
 
 array-includes@^3.1.4, array-includes@^3.1.5:
   version "3.1.5"
@@ -2702,11 +2727,6 @@ is-window@^1.0.2:
   resolved "https://registry.yarnpkg.com/is-window/-/is-window-1.0.2.tgz#2c896ca53db97de45d3c33133a65d8c9f563480d"
   integrity sha1-LIlspT25feRdPDMTOmXYyfVjSA0=
 
-isarray@^2.0.5:
-  version "2.0.5"
-  resolved "https://registry.yarnpkg.com/isarray/-/isarray-2.0.5.tgz#8af1e4c1221244cc62459faf38940d4e644a5723"
-  integrity sha512-xHjhDr3cNBK0BzdUJSPXZntQUx/mwMS5Rw4A7lPJ90XGAO6ISP/ePDNuo0vhqOZU+UD5JoodwCAAoZQd3FeAKw==
-
 isexe@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/isexe/-/isexe-2.0.0.tgz#e8fbf374dc556ff8947a10dcb0572d633f2cfa10"
@@ -2875,7 +2895,7 @@ mdn-data@2.0.14:
   resolved "https://registry.yarnpkg.com/mdn-data/-/mdn-data-2.0.14.tgz#7113fc4281917d63ce29b43446f701e68c25ba50"
   integrity sha512-dn6wd0uw5GsdswPFfsgMp5NSB0/aDe6fK94YJV/AJDYXL6HVLWBsxeq7js7Ad+mU2K9LAlwpk6kN2D5mwCPVow==
 
-memoize-one@^5.0.0:
+"memoize-one@>=3.1.1 <6", memoize-one@^5.0.0:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-5.2.1.tgz#8337aa3c4335581839ec01c3d594090cebe8f00e"
   integrity sha512-zYiwtZUcYyXKo/np96AGZAckk+FWWsUdJ3cHGGmld7+AhvcWmQyGCYUh1hc4Q/pkOhb65dQR/pqCyK0cOaHz4Q==
@@ -3385,13 +3405,6 @@ react-debounce-input@=3.2.4:
     lodash.debounce "^4"
     prop-types "^15.7.2"
 
-react-device-detect@^1.9.10:
-  version "1.17.0"
-  resolved "https://registry.yarnpkg.com/react-device-detect/-/react-device-detect-1.17.0.tgz#a00b4fd6880cebfab3fd8a42a79dc0290cdddca9"
-  integrity sha512-bBblIStwpHmoS281JFIVqeimcN3LhpoP5YKDWzxQdBIUP8S2xPvHDgizLDhUq2ScguLfVPmwfF5y268EEQR60w==
-  dependencies:
-    ua-parser-js "^0.7.24"
-
 react-dom@^17.0.2:
   version "17.0.2"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-17.0.2.tgz#ecffb6845e3ad8dbfcdc498f0d0a939736502c23"
@@ -3611,6 +3624,14 @@ react-wait@^0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/react-wait/-/react-wait-0.3.0.tgz#0cdd4d919012451a5bc3ab0a16d00c6fd9a8c10b"
   integrity sha512-kB5x/kMKWcn0uVr9gBdNz21/oGbQwEQnF3P9p6E9yLfJ9DRcKS0fagbgYMFI0YFOoyKDj+2q6Rwax0kTYJF37g==
+
+react-window@^1.8.7:
+  version "1.8.7"
+  resolved "https://registry.yarnpkg.com/react-window/-/react-window-1.8.7.tgz#5e9fd0d23f48f432d7022cdb327219353a15f0d4"
+  integrity sha512-JHEZbPXBpKMmoNO1bNhoXOOLg/ujhL/BU4IqVU9r8eQPcy5KQnGHIHDRkJ0ns9IM5+Aq5LNwt3j8t3tIrePQzA==
+  dependencies:
+    "@babel/runtime" "^7.0.0"
+    memoize-one ">=3.1.1 <6"
 
 react@^17.0.2:
   version "17.0.2"
@@ -4099,7 +4120,7 @@ swagger-client@^3.18.5:
     traverse "~0.6.6"
     url "~0.11.0"
 
-swagger-ui-react@^4.1.3:
+swagger-ui-react@^4.11.1:
   version "4.11.1"
   resolved "https://registry.yarnpkg.com/swagger-ui-react/-/swagger-ui-react-4.11.1.tgz#1de7feea2f99aa292d52cfa3d31edf665eaa6181"
   integrity sha512-w7WkrEL7uw1EofILX9hNKQXqy5EQhxTU3u+Ob8YcLqeAEUjECewtyTvsQ+79Xypj9yXbqSvgdPkpho1n5Bo2NQ==
@@ -4253,11 +4274,6 @@ typescript@4.5.4:
   version "4.5.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.4.tgz#a17d3a0263bf5c8723b9c52f43c5084edf13c2e8"
   integrity sha512-VgYs2A2QIRuGphtzFV7aQJduJ2gyfTljngLzjpfW9FoYZF6xuw1W0vW9ghCKLfcWrCFxK81CSGRAvS1pn4fIUg==
-
-ua-parser-js@^0.7.24:
-  version "0.7.31"
-  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.31.tgz#649a656b191dffab4f21d5e053e27ca17cbff5c6"
-  integrity sha512-qLK/Xe9E2uzmYI3qLeOmI0tEOt+TBBQyUIAh4aAgU05FVYzeZrKUdkAZfBNVGRaHVgV0TDkdEngJSw/SyQchkQ==
 
 unbox-primitive@^1.0.2:
   version "1.0.2"

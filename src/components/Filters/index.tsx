@@ -32,7 +32,7 @@ const Wrapper = styled.ul`
   display: flex;
   flex-wrap: wrap;
   gap: ${GAP}px;
-  max-height: calc(1.8rem + 4px);
+  max-height: calc(1.8rem + 14px);
 
   & > li {
     list-style: none;

@@ -1,5 +1,6 @@
 import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from 'contexts/LocalStorage'
-import { useAnalytics } from 'hooks'
+import { useAnalytics } from "hooks";
+import "../Theme/globals.css"
 
 function App({ Component, pageProps }) {
   useAnalytics()

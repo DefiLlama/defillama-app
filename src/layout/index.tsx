@@ -13,7 +13,6 @@ const Center = styled.main`
   width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
-  box-sizing: border-box;
 `
 
 const PageWrapper = styled.div`
@@ -49,7 +48,9 @@ export default function Layout({ title, children, defaultSEO = false }) {
       <ThemeProvider>
         <GlobalStyle />
         <SideNav />
-        <PageWrapper><Center>{children}</Center></PageWrapper>
+        <PageWrapper>
+          <Center>{children}</Center>
+        </PageWrapper>
         <PinnedData />
       </ThemeProvider>
     </>

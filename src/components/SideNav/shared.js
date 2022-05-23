@@ -20,7 +20,6 @@ export const Wrapper = styled.div`
   padding: 0.5rem 0.5rem 0.5rem 0.75rem;
   top: 0px;
   z-index: 10000;
-  box-sizing: border-box;
   /* background-color: #1b1c22; */
   background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
   color: ${({ theme }) => theme.bg2};
@@ -67,7 +66,6 @@ export const MobileWrapper = styled.div`
     flex-direction: column;
     height: 100vh;
     padding: 1.5rem 0.75rem;
-    box-sizing: border-box;
   }
 `
 
@@ -103,8 +101,8 @@ export const Desktop = styled.div`
   }
 `
 
-export const Entry = ({ url, external=false, name, history, Icon, newTag, ...props }) => (
-  <BasicLink href={external?url : '/' + url} {...props}>
+export const Entry = ({ url, external = false, name, history, Icon, newTag, ...props }) => (
+  <BasicLink href={external ? url : '/' + url} {...props}>
     <Option activeText={history.location.pathname === '/' + url ?? undefined}>
       <Icon size={20} style={{ marginRight: '.75rem' }} />
       {name}

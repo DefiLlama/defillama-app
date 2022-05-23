@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { Text } from 'rebass'
 import { transparentize } from 'polished'
 
-import { sm, med, lg, xl } from '../constants/breakpoints'
+import { sm, med, lg, xl, twoXl } from '../constants/breakpoints'
 import { useDarkModeManager } from '../contexts/LocalStorage'
 
 export default function ThemeProvider({ children }) {
@@ -91,6 +91,7 @@ const theme = (darkMode, color) => ({
   minMed: `@media screen and (min-width: ${med}px)`,
   minLg: `@media screen and (min-width: ${lg}px)`,
   minXl: `@media screen and (min-width: ${xl}px)`,
+  min2Xl: `@media screen and (min-width: ${twoXl}px)`,
 
   breakpoints: [`${sm}px`, `${med}px`, `${lg}px`, `${xl}px`],
 })
@@ -176,8 +177,7 @@ export const ThemedBackground = styled.div`
   height: 200vh;
   mix-blend-mode: color;
   background: ${({ backgroundColor, theme }) =>
-    `radial-gradient(50% 50% at 50% 50%, ${
-      backgroundColor || transparentize(0.6, theme.primary1)
+    `radial-gradient(50% 50% at 50% 50%, ${backgroundColor || transparentize(0.6, theme.primary1)
     } 0%, rgba(255, 255, 255, 0) 100%)`};
   position: absolute;
   top: 0px;
@@ -188,107 +188,11 @@ export const ThemedBackground = styled.div`
 `
 
 export const GlobalStyle = createGlobalStyle`
-  @font-face {
-    font-family: 'Inter';
-    font-style:  normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url("font-files/Inter-Regular.woff2?v=3.19") format("woff2"),
-         url("font-files/Inter-Regular.woff?v=3.19") format("woff");
-  }
-  @font-face {
-    font-family: 'Inter';
-    font-style:  normal;
-    font-weight: 500;
-    font-display: swap;
-    src: url("font-files/Inter-Medium.woff2?v=3.19") format("woff2"),
-         url("font-files/Inter-Medium.woff?v=3.19") format("woff");
-  }
-  @font-face {
-    font-family: 'Inter';
-    font-style:  normal;
-    font-weight: 600;
-    font-display: swap;
-    src: url("font-files/Inter-SemiBold.woff2?v=3.19") format("woff2"),
-         url("font-files/Inter-SemiBold.woff?v=3.19") format("woff");
-  }
 
-  html { font-family: 'Inter', sans-serif; }
-  @supports (font-variation-settings: normal) {
-    html { font-family: 'Inter var', sans-serif; }
-  }
-
-  html,
-  body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  a {
-    text-decoration: none;
-
-    :hover {
-      text-decoration: none
-    }
-  }
-
-
-  .three-line-legend {
-    width: 100%;
-    height: 70px;
-    position: absolute;
-    padding: 8px;
-    font-size: 12px;
-    color: #20262E;
-    background-color: rgba(255, 255, 255, 0.23);
-    text-align: left;
-    z-index: 10;
-    pointer-events: none;
-  }
-
-  .three-line-legend-dark {
-    width: 100%;
-    height: 70px;
-    position: absolute;
-    padding: 8px;
-    font-size: 12px;
-    color: white;
-    background-color: rgba(255, 255, 255, 0.23);
-    text-align: left;
-    z-index: 10;
-    pointer-events: none;
-  }
-
-  .tv-lightweight-charts{
-    width: 100% !important;
-
-
-    & > * {
-      width: 100% !important;
-    }
-  }
-
-
-  html {
-    font-size: 1rem;
-    font-variant: none;
-    color: 'black';
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-  }
 
 
   #__next {
-    font-size: 14px;
     background-color: ${({ theme }) => theme.bg6};
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    width: 100%;
-
     ${({ theme: { minLg } }) => minLg} {
       flex-direction: row
     }
