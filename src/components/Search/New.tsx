@@ -4,14 +4,16 @@ import { useRouter } from 'next/router'
 import { transparentize } from 'polished'
 import { useMemo } from 'react'
 import styled from 'styled-components'
-import { chainIconUrl, tokenIconUrl } from 'utils'
+import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from 'utils'
 import Link from 'next/link'
 import { AllTvlOptions } from 'components/SettingsModal'
+import { Search as SearchIcon, X as XIcon } from 'react-feather'
 
 const Wrapper = styled.nav`
   flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
 `
 
 const Box = styled(Combobox)`
@@ -38,13 +40,17 @@ const Box = styled(Combobox)`
 `
 
 const Popover = styled(ComboboxPopover)`
-  max-height: 320px;
+  max-height: 240px;
   overflow-y: auto;
   background: ${({ theme }) => theme.bg6};
   z-index: 100;
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
   box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04),
     0px 24px 32px rgba(0, 0, 0, 0.04);
+
+  ${({ theme: { minLg } }) => minLg} {
+    max-height: 320px;
+  }
 `
 
 const Item = styled(ComboboxItem)`
@@ -98,6 +104,17 @@ const OptionsWrapper = styled.div`
   }
 `
 
+const IconWrapper = styled.div`
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  & > svg {
+    color: ${({ theme }) => theme.text3};
+    height: 20px;
+    width: 20px;
+  }
+`
+
 interface IList {
   isChain: boolean
   logo: string
@@ -124,15 +141,23 @@ export default function Search({ data, loading = false, step }: ISearchProps) {
     return [...(data?.protocols?.map((token) => ({ ...token, logo: tokenIconUrl(token.name) })) ?? []), ...chainData]
   }, [data])
 
-  const combobox = useComboboxState({ gutter: 8, sameWidth: true, list: searchData.map((x) => x.name) })
+  const combobox = useComboboxState({ gutter: 8, sameWidth: true, list: searchData.map((x) => x.name).slice(0, 10) })
+
+  // Resets combobox value when popover is collapsed
+  if (!combobox.mounted && combobox.value) {
+    combobox.setValue('')
+  }
 
   return (
     <Wrapper>
       <Box
         state={combobox}
-        placeholder="Search for DeFi Protocols..."
+        placeholder="Search..."
         style={step && { borderBottomLeftRadius: '0', borderBottomRightRadius: 0 }}
       />
+
+      <IconWrapper>{combobox.mounted ? <XIcon /> : <SearchIcon />}</IconWrapper>
+
       {step && <Options step={step} />}
 
       <Popover state={combobox}>
@@ -141,17 +166,10 @@ export default function Search({ data, loading = false, step }: ISearchProps) {
         ) : combobox.matches.length ? (
           combobox.matches.map((value) => {
             const item = searchData.find((x) => x.name === value)
-            const to = item.isChain ? `/chain/${value}` : `/protocol/${value}`
+            const to = item.isChain ? `/chain/${value}` : `/protocol/${standardizeProtocolName(value)}`
 
             return (
-              <Item
-                key={value}
-                value={value}
-                onClick={() => {
-                  combobox.setValue('')
-                  router.push(to)
-                }}
-              >
+              <Item key={value} value={value} onClick={() => router.push(to)}>
                 <TokenLogo logo={item.logo} />
                 <span>{value}</span>
               </Item>
