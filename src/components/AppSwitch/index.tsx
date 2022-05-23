@@ -2,8 +2,10 @@ import { useYieldApp } from 'hooks'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { Percent, BarChart2 } from 'react-feather'
-import Switch from 'react-switch'
+import ReactSwitch from 'react-switch'
 import styled from 'styled-components'
+
+const Switch = ReactSwitch as any
 
 export default function AppSwitch() {
   const router = useRouter()
@@ -70,7 +72,11 @@ export default function AppSwitch() {
   )
 }
 
-const Wrapper = styled.label<{ checked: boolean }>`
+interface ILabel {
+  checked: Boolean
+}
+
+const Wrapper = styled.label<ILabel>`
   margin: 8px 0;
 
   .react-switch-handle {
