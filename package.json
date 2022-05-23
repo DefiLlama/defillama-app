@@ -39,6 +39,7 @@
     "react-switch": "^6.0.0",
     "react-use": "^12.2.0",
     "react-virtualized": "^9.22.3",
+    "react-window": "^1.8.7",
     "rebass": "^4.0.7",
     "recharts": "^2.0.10",
     "styled-components": "^5.3.3",

@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { DeFiTvlOptions } from 'components/Select'
+import { FixedSizeList } from 'react-window'
 
 const Wrapper = styled.nav`
   flex: 1;
@@ -41,11 +42,13 @@ const Box = styled(Combobox)`
 `
 
 const Popover = styled(ComboboxPopover)`
+  height: 100%;
   max-height: 240px;
   overflow-y: auto;
   background: ${({ theme }) => theme.bg6};
   z-index: 100;
-  border-radius: 12px;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
   box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04),
     0px 24px 32px rgba(0, 0, 0, 0.04);
 
@@ -158,8 +161,6 @@ interface ISearchProps {
 }
 
 export default function Search({ data, loading = false, step }: ISearchProps) {
-  const router = useRouter()
-
   const searchData: IList[] = useMemo(() => {
     const chainData: IList[] =
       data?.chains?.map((name) => ({
@@ -171,7 +172,7 @@ export default function Search({ data, loading = false, step }: ISearchProps) {
     return [...(data?.protocols?.map((token) => ({ ...token, logo: tokenIconUrl(token.name) })) ?? []), ...chainData]
   }, [data])
 
-  const combobox = useComboboxState({ gutter: 8, sameWidth: true, list: searchData.map((x) => x.name).slice(0, 10) })
+  const combobox = useComboboxState({ gutter: 8, sameWidth: true, list: searchData.map((x) => x.name) })
 
   // Resets combobox value when popover is collapsed
   if (!combobox.mounted && combobox.value) {
@@ -190,26 +191,44 @@ export default function Search({ data, loading = false, step }: ISearchProps) {
 
       {step && <Options step={step} />}
 
+      {/* TODO make auto resizing work */}
       <Popover state={combobox}>
         {loading || !combobox.mounted ? (
           <Empty>Loading...</Empty>
         ) : combobox.matches.length ? (
-          combobox.matches.map((value) => {
-            const item = searchData.find((x) => x.name === value)
-            const to = item.isChain ? `/chain/${value}` : `/protocol/${standardizeProtocolName(value)}`
-
-            return (
-              <Item key={value} value={value} onClick={() => router.push(to)}>
-                <TokenLogo logo={item.logo} />
-                <span>{value}</span>
-              </Item>
-            )
-          })
+          <FixedSizeList
+            height={240}
+            width="100%"
+            itemCount={combobox.matches.length}
+            itemSize={50}
+            itemData={{ searchData, options: combobox.matches }}
+          >
+            {Row}
+          </FixedSizeList>
         ) : (
           <Empty>No results found</Empty>
         )}
       </Popover>
     </Wrapper>
+  )
+}
+
+// Virtualized Row
+const Row = ({ index, style, data }) => {
+  const { searchData, options } = data
+
+  const value = options[index]
+
+  const item = searchData.find((x) => x.name === value)
+
+  const router = useRouter()
+  const to = item.isChain ? `/chain/${value}` : `/protocol/${standardizeProtocolName(value)}`
+
+  return (
+    <Item key={value} value={value} onClick={() => router.push(to)} style={style}>
+      <TokenLogo logo={item.logo} />
+      <span>{value}</span>
+    </Item>
   )
 }
 
