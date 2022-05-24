@@ -10,6 +10,7 @@ import { AllTvlOptions } from 'components/SettingsModal'
 import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { DeFiTvlOptions } from 'components/Select'
 import { FixedSizeList } from 'react-window'
+import { useFetchProtocolsList } from 'utils/dataApi'
 
 const Wrapper = styled.nav`
   display: flex;
@@ -119,7 +120,7 @@ const IconWrapper = styled.div`
   }
 `
 
-const Label = styled.label`
+const Filters = styled.section`
   color: ${({ theme }) => theme.text1};
   font-weight: 400;
   font-size: 0.75rem;
@@ -169,7 +170,16 @@ interface ISearchProps {
   step?: IStep
 }
 
-export default function Search({ data, loading = false, step }: ISearchProps) {
+// TODO Fetch based on routes
+export default function Search({ step }: { step: IStep }) {
+  const { data, loading } = useFetchProtocolsList()
+
+  return <SearchDefault data={data} loading={loading} step={step} />
+}
+
+const SearchDefault = ({ data, loading = false, step }: ISearchProps) => {
+  const { pathname } = useRouter()
+
   const searchData: IList[] = useMemo(() => {
     const chainData: IList[] =
       data?.chains?.map((name) => ({
@@ -178,8 +188,10 @@ export default function Search({ data, loading = false, step }: ISearchProps) {
         name,
       })) ?? []
 
-    return [...(data?.protocols?.map((token) => ({ ...token, logo: tokenIconUrl(token.name) })) ?? []), ...chainData]
-  }, [data])
+    const protocolData = data?.protocols?.map((token) => ({ ...token, logo: tokenIconUrl(token.name) })) ?? []
+
+    return pathname.startsWith('/protocol') ? [...protocolData, ...chainData] : [...chainData, ...protocolData]
+  }, [data, pathname])
 
   const combobox = useComboboxState({ gutter: 8, sameWidth: true, list: searchData.map((x) => x.name) })
 
@@ -255,10 +267,10 @@ const Options = ({ step }: { step: IStep }) => {
         <>
           <DropdownOptions />
 
-          <Label>
-            <span>INCLUDE IN TVL</span>
+          <Filters>
+            <label>INCLUDE IN TVL</label>
             <AllTvlOptions style={{ display: 'flex', justifyContent: 'flex-end', margin: 0, fontSize: '0.875rem' }} />
-          </Label>
+          </Filters>
         </>
       )}
     </OptionsWrapper>

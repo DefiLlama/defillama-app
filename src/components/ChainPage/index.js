@@ -61,20 +61,6 @@ const DownloadIcon = styled(DownloadCloud)`
   height: 20px;
 `
 
-const Announcement = styled.p`
-  text-align: center;
-  background-color: ${({ theme }) => theme.advancedBG};
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.bg3};
-  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
-  margin: 8px 0;
-
-  a {
-    text-decoration: underline;
-  }
-`
-
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
 })
@@ -266,15 +252,17 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     <>
       <SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
-      <Search data={{ chains: chainsSet, protocols: filteredProtocols }} step={{ category: "Home", name: selectedChain === 'All' ? "All Protocols" : selectedChain }} />
+      <Search step={{ category: "Home", name: selectedChain === 'All' ? "All Protocols" : selectedChain }} />
 
-      <Announcement>
-        We've launched a multichain APY dashboard. Check it out{' '}
-        <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
-          here
-        </BasicLink>
-        !
-      </Announcement>
+      <Panel>
+        <p style={{ textAlign: 'center', margin: "0" }}>
+          We've launched a multichain APY dashboard. Check it out{' '}
+          <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
+            here
+          </BasicLink>
+          !
+        </p>
+      </Panel>
 
       <div>
         <BreakpointPanels>
