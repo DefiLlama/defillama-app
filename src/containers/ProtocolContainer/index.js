@@ -19,6 +19,7 @@ import { ArrowUpRight, ChevronDown } from 'react-feather'
 import { DropdownMenu } from '@radix-ui/react-dropdown-menu'
 import { DefaultMenuButton, DefaultMenuItem, DropdownMenuContent } from 'components/DropdownMenu'
 import HeadHelp from 'components/HeadHelp'
+import AuditInfo from 'components/AuditInfo'
 
 const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
 
@@ -27,7 +28,7 @@ const Stats = styled.section`
   flex-direction: column;
   border-radius: 12px;
   background: ${({ theme }) => theme.bg6};
-  border: ${({ theme }) => "1px solid " + theme.divider};
+  border: ${({ theme }) => '1px solid ' + theme.divider};
 
   & > *:last-child {
     padding: 22px;
@@ -49,7 +50,6 @@ const ProtocolDetails = styled.div`
   border-radius: 12px;
   background: ${({ theme }) => theme.bg7};
   min-height: 360px;
-
 
   ${({ theme: { minLg } }) => minLg} {
     min-width: 380px;
@@ -83,7 +83,7 @@ const Table = styled.table`
     font-size: 0.75rem;
     text-align: left;
     padding: 0 0 4px 0;
-    color: ${({ isDark }) => isDark ? '#818585' : '#969b9b'}
+    color: ${({ isDark }) => (isDark ? '#818585' : '#969b9b')};
   }
 
   th {
@@ -122,9 +122,9 @@ const SectionHeader = styled.h2`
 `
 
 const InfoWrapper = styled.div`
-  padding: 24px;  
+  padding: 24px;
   background: ${({ theme }) => theme.bg7};
-  border: ${({ theme }) => "1px solid " + theme.divider};
+  border: ${({ theme }) => '1px solid ' + theme.divider};
   border-radius: 12px;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -150,7 +150,7 @@ const Section = styled.section`
   }
 
   &:not(:first-of-type) {
-    border-top: ${({ theme }) => "1px solid " + theme.text5};
+    border-top: ${({ theme }) => '1px solid ' + theme.text5};
   }
 
   &:first-of-type {
@@ -170,7 +170,7 @@ const Section = styled.section`
     h3:not(:first-of-type) {
       margin-top: 24px;
     }
-    
+
     &:nth-child(1) {
       grid-column: 1 / 2;
     }
@@ -184,7 +184,7 @@ const Section = styled.section`
       grid-row: 1 / -1;
       grid-column: 2 / 3;
       border-top: 0;
-      border-left: ${({ theme }) => "1px solid " + theme.text5};
+      border-left: ${({ theme }) => '1px solid ' + theme.text5};
       padding: 0 0 0 24px;
       margin-left: 24px;
     }
@@ -220,7 +220,6 @@ const Audits = styled.label`
   gap: 8px;
 `
 
-
 function ToggleAlert({ chainTvls }) {
   const isLowerCase = (letter) => letter === letter.toLowerCase()
   const extraTvls = Object.keys(chainTvls).filter((section) => isLowerCase(section[0]))
@@ -228,8 +227,8 @@ function ToggleAlert({ chainTvls }) {
     return null
   }
   return (
-    <Panel background={true} style={{ textAlign: 'center' }}>
-      <p style={{ margin: "0" }}>
+    <Panel>
+      <p style={{ margin: '0', textAlign: 'center' }}>
         This protocol has some TVL that's classified as {extraTvls.join('/')}, enable the toggles to see it
       </p>
     </Panel>
@@ -274,7 +273,7 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
   const { data, loading } = useFetchProtocolsList()
 
   return (
-    <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: "48px" }}>
+    <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
 
       <Search data={data} loading={loading} step={{ category: 'Protocols', name }} />
@@ -289,9 +288,7 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
             <Symbol>{symbol !== '-' ? `(${symbol})` : ''}</Symbol>
           </ProtocolName>
 
-          <Tvl>
-            {formattedNum(totalVolume || '0', true)}
-          </Tvl>
+          <Tvl>{formattedNum(totalVolume || '0', true)}</Tvl>
 
           {tvlByChain.length > 0 && (
             <Table>
@@ -300,9 +297,7 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
                 {tvlByChain.map((chainTvl) =>
                   chainTvl[0].includes('-') ? null : (
                     <tr key={chainTvl[0]}>
-                      <th>
-                        {capitalizeFirstLetter(chainTvl[0])}
-                      </th>
+                      <th>{capitalizeFirstLetter(chainTvl[0])}</th>
                       <td>${toK(chainTvl[1] || 0)}</td>
                     </tr>
                   )
@@ -316,11 +311,11 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
             <tbody>
               <tr>
                 <th>
-                  {category &&
+                  {category && (
                     <BasicLink href={`/protocols/${category.toLowerCase()}`}>
                       <FormattedName text={category} maxCharacters={16} />
                     </BasicLink>
-                  }
+                  )}
                 </th>
                 <td>
                   <Link color={backgroundColor} external href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
@@ -360,22 +355,7 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
           <Section>
             <h3>Protocol Information</h3>
             <p>{description}</p>
-            <Audits>
-              <HeadHelp title="Audits" text="Audits are not a guarantee of security." />{" : "}
-              <DropdownMenu>
-                <DefaultMenuButton disabled={audits <= 0}>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{audits > 0 ? "Yes" : "No"}</span>
-                  <ChevronDown size={16} style={{ flexShrink: '0' }} />
-                </DefaultMenuButton>
-                <DropdownMenuContent sideOffset={5} style={{ maxWidth: "300px" }}>
-                  {audit_links?.map((d) => (
-                    <DefaultMenuItem key={d}>
-                      <a href={d} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>{d}</a>
-                    </DefaultMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </Audits>
+            <AuditInfo audits={audits} auditLinks={audit_links} />
             <LinksWrapper>
               <Link external href={url} passHref>
                 <Button useTextColor={true} color={backgroundColor}>
@@ -391,14 +371,13 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
           </Section>
           <Section>
             <h3>Token Information</h3>
-            <Address><span>Address: {address ? address.slice(0, 8) + '...' + address?.slice(36, 42) : "-"}</span> <CopyHelper toCopy={address} disabled={!address} /></Address>
+            <Address>
+              <span>Address: {address ? address.slice(0, 8) + '...' + address?.slice(36, 42) : '-'}</span>{' '}
+              <CopyHelper toCopy={address} disabled={!address} />
+            </Address>
             <LinksWrapper>
               {protocolData.gecko_id !== null && (
-                <Link
-                  external
-                  href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`}
-                  passHref
-                >
+                <Link external href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
                   <Button useTextColor={true} color={backgroundColor}>
                     <span>View on CoinGecko</span> <ArrowUpRight size={14} />
                   </Button>
@@ -417,12 +396,10 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
             <h3>Methodology</h3>
             <p>{methodology}</p>
             <LinksWrapper>
-              <Link
-                external
-                href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
-              >
+              <Link external href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}>
                 <Button useTextColor={true} color={backgroundColor}>
-                  <span>Check the code</span><ArrowUpRight size={14} />
+                  <span>Check the code</span>
+                  <ArrowUpRight size={14} />
                 </Button>
               </Link>
             </LinksWrapper>
