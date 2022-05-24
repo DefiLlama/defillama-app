@@ -4,14 +4,14 @@ import styled from 'styled-components'
 import { Header } from 'Theme'
 import { ButtonDark } from 'components/ButtonStyled'
 import { RowBetween } from 'components/Row'
-import Search from 'components/Search'
+import Search from 'components/Search/New'
 import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
 import { columnsToShow, FullTable } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
-import { getChainsPageData, revalidate } from 'utils/dataApi'
+import { getChainsPageData, revalidate, useFetchProtocolsList } from 'utils/dataApi'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
 import Filters, { FiltersWrapper } from 'components/Filters'
-import { ChainsTvlSelect } from 'components/Select'
+import { ChainTvlOptions } from 'components/Select'
 
 export async function getStaticProps() {
   const data = await getChainsPageData('All')
@@ -267,9 +267,20 @@ export default function ChainsContainer({
 
   const groupedChains = useGroupChainsByParent(chainTotals, showByGroup ? chainsGroupbyParent : {})
 
+  const { data, loading } = useFetchProtocolsList()
+
   return (
     <>
-      <Search />
+      <Search
+        data={data}
+        loading={loading}
+        // step={{
+        //   category: 'Home',
+        //   name: category === 'All' ? 'All Chains' : category,
+        //   route: '/chains',
+        //   hideOptions: true,
+        // }}
+      />
 
       <RowWrapper>
         <Header>Total Value Locked All Chains</Header>
@@ -290,7 +301,7 @@ export default function ChainsContainer({
 
       <ChainTvlsFilter>
         <h2>Filters</h2>
-        <ChainsTvlSelect label="Filters" />
+        <ChainTvlOptions label="Filters" />
       </ChainTvlsFilter>
 
       <FiltersWrapper>

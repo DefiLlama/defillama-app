@@ -19,7 +19,7 @@ interface ColumnProps {
   accessor: string
   disableSortBy?: boolean
   helperText?: string
-  Cell?: React.ElementType
+  Cell?: any
 }
 
 interface RowProps {

@@ -1,4 +1,3 @@
-import Layout from 'layout'
 import ComparisonContainer from 'containers/ComparisonContainer'
 
 import { PROTOCOLS_API } from 'constants/index'
@@ -30,9 +29,5 @@ export default function Protocols({ protocolsMcapTvl }) {
 
   const { protocolA, protocolB } = router.query
 
-  return (
-    <Layout title="Protocol Price Comparison - DefiLlama" defaultSEO>
-      <ComparisonContainer protocolsMcapTvl={protocolsMcapTvl} protocolA={protocolA} protocolB={protocolB} />
-    </Layout>
-  )
+  return <ComparisonContainer title="Protocol Price Comparison - DefiLlama" protocolsMcapTvl={protocolsMcapTvl} protocolA={protocolA} protocolB={protocolB} />
 }

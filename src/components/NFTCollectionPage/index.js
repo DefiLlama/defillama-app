@@ -16,13 +16,14 @@ import { AutoRow, RowBetween } from '../../components/Row'
 import Column from '../../components/Column'
 import HeadHelp from '../../components/HeadHelp'
 import CopyHelper from '../../components/Copy'
-import { TYPE, ThemedBackground } from '../../Theme'
+import { TYPE } from '../../Theme'
 import { useProtocolColor } from 'hooks'
 import { chainCoingeckoIds } from '../../constants/chainTokens'
 import LocalLoader from 'components/LocalLoader'
 import { useHideLastDayManager, useDisplayUsdManager } from '../../contexts/LocalStorage'
 import SEO from 'components/SEO'
 import { Panel } from 'containers/ProtocolContainer'
+import Layout from 'layout'
 
 const DashboardWrapper = styled(Box)`
   width: 100%;
@@ -90,7 +91,7 @@ const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
   ssr: false,
 })
 
-function NFTCollectionPage({ collection, chart, statistics }) {
+function NFTCollectionPage({ collection, chart, statistics, title }) {
   const [hideLastDay] = useHideLastDayManager()
   const [displayUsd] = useDisplayUsdManager()
   const below1024 = useMedia('(max-width: 1024px)')
@@ -180,9 +181,8 @@ function NFTCollectionPage({ collection, chart, statistics }) {
   )
 
   return (
-    <>
+    <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)}>
       <SEO cardName={name} logo={logo} nftPage />
-      <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
 
       <RowBetween flexWrap="wrap">
         <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
@@ -275,7 +275,7 @@ function NFTCollectionPage({ collection, chart, statistics }) {
           </AutoRow>
         </Panel>
       </DashboardWrapper>
-    </>
+    </Layout>
   )
 }
 

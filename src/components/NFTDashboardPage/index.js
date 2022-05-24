@@ -9,12 +9,13 @@ import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
 import Search from '../Search'
 import NFTCollectionList from '../NFTCollectionList'
-import { TYPE, ThemedBackground } from '../../Theme'
+import { TYPE } from '../../Theme'
 import { formattedNum } from '../../utils'
 import { chainCoingeckoIds, chainMarketplaceMappings } from '../../constants/chainTokens'
 import SEO from 'components/SEO'
 import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
 import { ListHeader, ListOptions } from 'components/ChainPage'
+import Layout from 'layout'
 
 
 const defaultTab = {
@@ -26,7 +27,7 @@ const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
   ssr: false,
 })
 
-const NFTDashboard = ({ statistics, collections, chart, chainData, marketplaceData, displayName = 'All' }) => {
+const NFTDashboard = ({ title, statistics, collections, chart, chainData, marketplaceData, displayName = 'All' }) => {
   useEffect(() => window.scrollTo(0, 0))
 
   const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics
@@ -136,9 +137,8 @@ const NFTDashboard = ({ statistics, collections, chart, chainData, marketplaceDa
   const tvl = formattedNum(totalVolumeUSD, true)
 
   return (
-    <>
+    <Layout title={title} backgroundColor={transparentize(0.8, '#445ed0')}>
       <SEO cardName={displayName} chain={displayName} tvl={tvl} nftPage />
-      <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
 
       <AutoColumn gap="24px" style={{ paddingBottom: '24px' }}>
         <Search />
@@ -173,7 +173,7 @@ const NFTDashboard = ({ statistics, collections, chart, chainData, marketplaceDa
         <NFTCollectionList collections={collections} displayUsd={displayUsd} />
       </Panel>
 
-    </>
+    </Layout>
   )
 }
 

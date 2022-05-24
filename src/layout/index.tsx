@@ -1,9 +1,11 @@
+import React from 'react'
 import styled from 'styled-components'
 import PinnedData from '../components/PinnedData'
 import SideNav from '../components/SideNav'
 import Head from 'next/head'
-import ThemeProvider, { GlobalStyle } from '../Theme'
+import ThemeProvider, { GlobalStyle, ThemedBackground } from '../Theme'
 import SEO from 'components/SEO'
+import { transparentize } from 'polished'
 
 const Center = styled.main`
   display: flex;
@@ -13,7 +15,6 @@ const Center = styled.main`
   width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
-  box-sizing: border-box;
 `
 
 const PageWrapper = styled.div`
@@ -30,7 +31,20 @@ const PageWrapper = styled.div`
   }
 `
 
-export default function Layout({ title, children, defaultSEO = false }) {
+interface ILayoutProps {
+  title: string
+  children: React.ReactNode
+  defaultSEO?: boolean
+  backgroundColor?: string
+}
+
+interface IBackground {
+  backgroundColor?: string
+}
+
+const Background = styled(ThemedBackground)<IBackground>``
+
+export default function Layout({ title, children, defaultSEO = false, backgroundColor }: ILayoutProps) {
   return (
     <>
       <Head>
@@ -49,7 +63,10 @@ export default function Layout({ title, children, defaultSEO = false }) {
       <ThemeProvider>
         <GlobalStyle />
         <SideNav />
-        <PageWrapper><Center>{children}</Center></PageWrapper>
+        <PageWrapper>
+          <Background backgroundColor={backgroundColor || transparentize(0.8, '#445ed0')} />
+          <Center>{children}</Center>
+        </PageWrapper>
         <PinnedData />
       </ThemeProvider>
     </>

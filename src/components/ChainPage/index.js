@@ -1,17 +1,15 @@
 import React, { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import { transparentize } from 'polished'
 
 import { RowBetween, RowFixed } from '../Row'
 import { AutoColumn } from '../Column'
-import Search from '../Search'
+import Search from '../Search/New'
 import { ProtocolsTable, Panel, BreakpointPanels, BreakpointPanelsColumn } from '..'
 import Filters from '../Filters'
-import { AllTvlOptions } from '../SettingsModal'
 
 import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
-import { TYPE, ThemedBackground } from 'Theme'
+import { TYPE } from 'Theme'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
 import { useCalcProtocolsTvls } from 'hooks/data'
 import { DownloadCloud } from 'react-feather'
@@ -253,10 +251,9 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
   return (
     <>
       <SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
-      <ThemedBackground backgroundColor={transparentize(0.8, '#445ed0')} />
 
       <AutoColumn gap="24px">
-        <Search />
+        <Search data={{ chains: chainsSet, protocols: filteredProtocols }} step={{ category: "Home", name: selectedChain === 'All' ? "All Protocols" : selectedChain }} />
         <div>
           <Panel background={true} style={{ textAlign: 'center' }}>
             <TYPE.main fontWeight={400}>
@@ -310,9 +307,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
         </div>
       </div>
 
-      <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
-
-      <ListOptions>
+      <ListOptions style={{ marginTop: '24px' }}>
         <ListHeader>TVL Rankings</ListHeader>
         <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
       </ListOptions>

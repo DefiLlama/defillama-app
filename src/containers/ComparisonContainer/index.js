@@ -10,12 +10,11 @@ import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import Search from 'components/Search'
 import { Wrapper, CloseIcon } from 'components/Search/shared'
 import TokenLogo from 'components/TokenLogo'
-
-import { TYPE, ThemedBackground } from 'Theme'
-
+import { TYPE } from 'Theme'
 import { formattedNum, standardizeProtocolName } from 'utils'
 import { useFetchProtocol, useGeckoProtocol } from 'utils/dataApi'
 import { Panel } from 'components'
+import Layout from 'layout'
 
 const ComparisonDetailsLayout = styled.div`
   display: inline-grid;
@@ -145,7 +144,7 @@ const TokenComparisonSearch = ({
   </Column>
 )
 
-function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRouteParam, protocolsMcapTvl }) {
+function ComparisonPage({ title, protocolA: protocolARouteParam, protocolB: protocolBRouteParam, protocolsMcapTvl }) {
   const [protocolA, setProtocolA] = useState(protocolARouteParam)
   const [protocolB, setProtocolB] = useState(protocolBRouteParam)
 
@@ -219,9 +218,7 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
   }
 
   return (
-    <>
-      <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
-
+    <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)}>
       <RowBetween>
         <TYPE.largeHeader fontSize={below400 ? 16 : 24} style={{ width: '100%', textAlign: 'center' }}>
           Calculate the price of <TokenColoredText color={protocolAColor}>Protocol A</TokenColoredText>
@@ -279,8 +276,7 @@ function ComparisonPage({ protocolA: protocolARouteParam, protocolB: protocolBRo
           </Column>
         </PriceResultPanel>
       )}
-
-    </>
+    </Layout>
   )
 }
 

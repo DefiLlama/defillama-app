@@ -1097,6 +1097,11 @@ export async function retryCoingeckoRequest(func, retries) {
 
 const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then((res) => res.json())
 
+export const useFetchProtocolsList = () => {
+  const { data, error } = useSWR(PROTOCOLS_API, fetcher)
+  return { data, error, loading: !data && !error }
+}
+
 export const useFetchProtocol = (protocolName) => {
   const { data, error } = useSWR(protocolName ? `${PROTOCOL_API}/${protocolName}` : null, fetcher)
   return { data, error, loading: protocolName && !data && !error }
