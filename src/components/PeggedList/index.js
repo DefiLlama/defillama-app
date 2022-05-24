@@ -87,7 +87,7 @@ function AllPeggedsPage({
     {
       header: 'Price',
       accessor: 'price',
-      Cell: ({ value }) => <>{formattedPegggedPrice(value, true)}</>,
+      Cell: ({ value }) => <>{value ? formattedPegggedPrice(value, true) : '-'}</>,
     },
     ...columnsToShow('1dChange', '7dChange', '1mChange'),
     {
