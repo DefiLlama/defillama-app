@@ -12,7 +12,6 @@ import { DeFiTvlOptions } from 'components/Select'
 import { FixedSizeList } from 'react-window'
 
 const Wrapper = styled.nav`
-  flex: 1;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -35,8 +34,7 @@ const Box = styled(Combobox)`
     font-size: 1rem;
   }
 
-  :focus-visible,
-  [data-focus-visible] {
+  &[data-focus-visible] {
     outline: ${({ theme }) => '1px solid ' + theme.text4};
   }
 `

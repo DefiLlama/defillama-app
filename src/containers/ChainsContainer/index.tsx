@@ -1,9 +1,6 @@
 import React, { useMemo } from 'react'
-import { Box } from 'rebass/styled-components'
 import styled from 'styled-components'
-import { Header } from 'Theme'
 import { ButtonDark } from 'components/ButtonStyled'
-import { RowBetween } from 'components/Row'
 import Search from 'components/Search/New'
 import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
 import { columnsToShow, FullTable } from 'components/Table'
@@ -12,6 +9,7 @@ import { getChainsPageData, revalidate, useFetchProtocolsList } from 'utils/data
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { ChainTvlOptions } from 'components/Select'
+import { Header } from 'Theme'
 
 export async function getStaticProps() {
   const data = await getChainsPageData('All')
@@ -21,7 +19,7 @@ export async function getStaticProps() {
   }
 }
 
-const ChartsWrapper = styled(Box)`
+const ChartsWrapper = styled.section`
   display: flex;
   flex-wrap: nowrap;
   width: 100%;
@@ -30,22 +28,20 @@ const ChartsWrapper = styled(Box)`
   z-index: 1;
 
   @media (max-width: 800px) {
-    display: grid;
-    grid-auto-rows: auto;
-  }
-`
-
-const RowWrapper = styled(RowBetween)`
-  flex-wrap: wrap;
-  margin-top: 16px;
-  @media (max-width: 680px) {
-    gap: 16px;
+    flex-drection: column;
   }
 `
 
 interface ITable {
   showByGroup?: boolean
 }
+
+const HeaderWrapper = styled(Header)`
+  margin-top: 48px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+`
 
 const StyledTable = styled(FullTable)<ITable>`
   tr > *:not(:first-child) {
@@ -211,8 +207,7 @@ const StyledTable = styled(FullTable)<ITable>`
     }
   }
 `
-const ChainTvlsFilter = styled.div`
-  margin: 12px 0 16px;
+const ChainTvlsFilter = styled.form`
   & > h2 {
     margin: 0 2px 8px;
     font-weight: 600;
@@ -271,21 +266,12 @@ export default function ChainsContainer({
 
   return (
     <>
-      <Search
-        data={data}
-        loading={loading}
-        // step={{
-        //   category: 'Home',
-        //   name: category === 'All' ? 'All Chains' : category,
-        //   route: '/chains',
-        //   hideOptions: true,
-        // }}
-      />
+      <Search data={data} loading={loading} />
 
-      <RowWrapper>
-        <Header>Total Value Locked All Chains</Header>
+      <HeaderWrapper>
+        <span>Total Value Locked All Chains</span>
         <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
-      </RowWrapper>
+      </HeaderWrapper>
 
       <ChartsWrapper>
         <ChainPieChart data={chainsTvlValues} chainColor={chainColor} />

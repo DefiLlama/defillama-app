@@ -6,7 +6,6 @@ import { BasicLink } from 'components/Link'
 
 import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from 'components/Column'
-import DropdownSelect from 'components/DropdownSelect'
 import LocalLoader from 'components/LocalLoader'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 
@@ -25,6 +24,8 @@ import {
   toNiceHour,
   toNiceDayAndHour,
 } from 'utils'
+import { DefaultMenuButton, DefaultMenuItem, DropdownMenu, DropdownMenuContent } from 'components/DropdownMenu'
+import { ChevronDown } from 'react-feather'
 
 const ChartWrapper = styled.div`
   height: 100%;
@@ -32,6 +33,21 @@ const ChartWrapper = styled.div`
 
   @media screen and (max-width: 600px) {
     min-height: 200px;
+  }
+`
+
+const MenuButton = styled(DefaultMenuButton)`
+  width: fit-content;
+  white-space: nowrap;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid ${({ theme }) => theme.bg4};
+  background: none;
+  color: ${({ theme }) => theme.text1};
+
+  & > * {
+    font-family: inherit;
+    font-weight: 500;
   }
 `
 
@@ -406,20 +422,33 @@ const TokenChart = ({
     <ChartWrapper>
       {belowMed ? (
         <RowBetween mb={40}>
-          <DropdownSelect
-            options={Object.values(denominationsToDisplay).map((d) => ({
-              label: d,
-              to: buildDenomUrl(d),
-            }))}
-            active={denomination}
-            color={color}
-          />
-          <DropdownSelect
-            options={Object.values(timeframeOptions).map((t) => ({ label: t }))}
-            active={timeWindow}
-            setActive={setTimeWindow}
-            color={color}
-          />
+          <DropdownMenu>
+            <MenuButton>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{denomination}</span>
+              <ChevronDown size={16} style={{ flexShrink: '0' }} />
+            </MenuButton>
+            <DropdownMenuContent sideOffset={5}>
+              {Object.values(denominationsToDisplay).map((d) => (
+                <DefaultMenuItem key={d} onSelect={() => router.push(buildDenomUrl(d))}>
+                  {d}
+                </DefaultMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <MenuButton>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{timeWindow}</span>
+              <ChevronDown size={16} style={{ flexShrink: '0' }} />
+            </MenuButton>
+            <DropdownMenuContent sideOffset={5}>
+              {Object.values(timeframeOptions).map((t) => (
+                <DefaultMenuItem key={t} onSelect={() => setTimeWindow(t)}>
+                  {t}
+                </DefaultMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </RowBetween>
       ) : (
         <RowBetween
@@ -436,25 +465,34 @@ const TokenChart = ({
                 </BasicLink>
               ))}
               {tokenSymbols && !small && (
-                <DropdownSelect
-                  options={tokenSymbols.map((symbol) => ({
-                    label: symbol,
-                    to: buildDenomUrl(`${DENOMINATIONS.Tokens}-${symbol}`),
-                  }))}
-                  active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'}
-                  color={color}
-                  style={{ marginRight: '6px' }}
-                />
+                <DropdownMenu>
+                  <MenuButton>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'}</span>
+                    <ChevronDown size={16} style={{ flexShrink: '0' }} />
+                  </MenuButton>
+                  <DropdownMenuContent sideOffset={5}>
+                    {tokenSymbols.map((symbol) => (
+                      <DefaultMenuItem key={symbol} onSelect={() => setTimeWindow(router.push(buildDenomUrl(`${DENOMINATIONS.Tokens}-${symbol}`)))}>
+                        {symbol}
+                      </DefaultMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               {chainTvls && Object.keys(chainTvls).length > 1 && (
-                <DropdownSelect
-                  options={[ALL_CHAINS].concat(Object.keys(chainTvls)).map((chain) => ({
-                    label: chain,
-                    to: buildChainUrl(chain),
-                  }))}
-                  active={selectedChain === 'all' ? ALL_CHAINS : selectedChain}
-                  color={color}
-                />
+                <DropdownMenu>
+                  <MenuButton>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedChain === 'all' ? ALL_CHAINS : selectedChain}</span>
+                    <ChevronDown size={16} style={{ flexShrink: '0' }} />
+                  </MenuButton>
+                  <DropdownMenuContent sideOffset={5}>
+                    {[ALL_CHAINS].concat(Object.keys(chainTvls)).map((chain) => (
+                      <DefaultMenuItem key={chain} onSelect={() => setTimeWindow(router.push(buildChainUrl(chain)))}>
+                        {chain}
+                      </DefaultMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </RowFixed>
           </AutoColumn>

@@ -1,156 +1,229 @@
 import React from 'react'
 import dynamic from 'next/dynamic'
-import { Text, Box } from 'rebass'
-import styled, { css } from 'styled-components'
+import styled from 'styled-components'
 import { transparentize } from 'polished'
 import AuditInfo from 'components/AuditInfo'
 import Bookmark from 'components/Bookmark'
 import { ButtonLight } from 'components/ButtonStyled'
-import Column, { AutoColumn } from 'components/Column'
 import CopyHelper from 'components/Copy'
 import FormattedName from 'components/FormattedName'
-import HeadHelp from 'components/HeadHelp'
 import Link, { BasicLink } from 'components/Link'
-import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import TokenLogo from 'components/TokenLogo'
 import { useCalcSingleExtraTvl } from '../../hooks/data'
 import { useScrollToTop, useProtocolColor } from 'hooks'
-import { TYPE } from 'Theme'
 import { formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
-import { Box as RebassBox } from 'rebass'
 import Search from 'components/Search/New'
 import { useFetchProtocolsList } from 'utils/dataApi'
 import Layout from 'layout'
+import { Panel } from 'components'
+import { ArrowUpRight, ChevronDown } from 'react-feather'
+import { DropdownMenu } from '@radix-ui/react-dropdown-menu'
+import { DefaultMenuButton, DefaultMenuItem, DropdownMenuContent } from 'components/DropdownMenu'
+import HeadHelp from 'components/HeadHelp'
 
 const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
 
-const DashboardWrapper = styled(Box)`
-  width: 100%;
-`
-const HiddenBookmark = styled.span`
-  @media screen and (max-width: ${({ theme }) => theme.bpLg}) {
-    display: none;
-  }
-`
-
-const panelPseudo = css`
-  :after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 10px;
-  }
-  @media only screen and (min-width: 40em) {
-    :after {
-      content: unset;
-    }
-  }
-`
-
-export const Panel = styled(RebassBox)`
-  position: relative;
-  background-color: ${({ theme }) => theme.advancedBG};
-  padding: 1.25rem;
-  width: 100%;
-  height: 100%;
+const Stats = styled.section`
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  border-radius: 8px;
-  border: 1px solid ${({ theme }) => theme.bg3};
-  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);  /* box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 4px 8px rgba(0, 0, 0, 0.01), 0px 16px 24px rgba(0, 0, 0, 0.01), 0px 24px 32px rgba(0, 0, 0, 0.01); */
-  :hover {
-      cursor: ${({ hover }) => hover && 'pointer'};
-      border: ${({ hover, theme }) => hover && '1px solid' + theme.bg5};
-    }
-  ${props => props.background && `background-color: ${props.theme.advancedBG};`}
-  ${props => (props.area ? `grid-area: ${props.area};` : null)}
-  ${props =>
-    props.grouped &&
-    css`
-      @media only screen and (min-width: 40em) {
-        &:first-of-type {
-          border-radius: 20px 20px 0 0;
-        }
-        &:last-of-type {
-          border-radius: 0 0 20px 20px;
-        }
-      }
-    `}
-  ${props =>
-    props.rounded &&
-    css`
-      border-radius: 8px;
-      @media only screen and (min-width: 40em) {
-        border-radius: 10px;
-      }
-    `};
-  ${props => !props.last && panelPseudo}
-`
+  border-radius: 12px;
+  background: ${({ theme }) => theme.bg6};
+  border: ${({ theme }) => "1px solid " + theme.divider};
 
-const PanelWrapper = styled(Box)`
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: max-content;
-  gap: 6px;
-  display: inline-grid;
-  width: 100%;
-  align-items: start;
-  @media screen and (max-width: 1024px) {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-    > * {
-      grid-column: 1 / 4;
-    }
+  & > *:last-child {
+    flex: 1;
+    padding: 22px;
+    min-height: 360px;
+    max-width: 100%;
+  }
 
-    > * {
-      &:first-child {
-        width: 100%;
-      }
-    }
+  @media screen and (min-width: 75.5rem) {
+    flex-direction: row;
   }
 `
 
-const TokenDetailsLayout = styled.div`
-  display: inline-grid;
-  width: 100%;
-  grid-template-columns: auto auto auto 1fr;
-  column-gap: 30px;
-  align-items: start;
-
-  &:last-child {
-    align-items: center;
-    justify-items: end;
-  }
-  @media screen and (max-width: 1024px) {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-    > * {
-      grid-column: 1 / 4;
-      margin-bottom: 1rem;
-      display: table-row;
-      > * {
-        margin-bottom: 1rem;
-      }
-    }
-
-    &:last-child {
-      align-items: start;
-      justify-items: start;
-    }
-  }
-`
-
-const TableHead = styled.th`
-  text-align: start;
-  font-weight: 400;
+const ProtocolDetails = styled.div`
   display: flex;
-  justify-content: space-between;
-  & > span:last-child {
-    margin: 0 4px;
+  flex-direction: column;
+  gap: 36px;
+  padding: 24px;
+  color: ${({ theme }) => theme.text1};
+  border-radius: 12px;
+  background: ${({ theme }) => theme.bg7};
+
+
+  ${({ theme: { minLg } }) => minLg} {
+    min-width: 380px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
   }
 `
+
+const ProtocolName = styled.h1`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.25rem;
+  margin: 0;
+  padding: 0;
+`
+
+const Name = styled(FormattedName)`
+  font-weight: 700;
+`
+
+const Symbol = styled.span`
+  font-weight: 400;
+`
+
+const Table = styled.table`
+  border-collapse: collapse;
+
+  caption {
+    font-weight: 400;
+    font-size: 0.75rem;
+    text-align: left;
+    padding: 0 0 4px 0;
+    color: ${({ isDark }) => isDark ? '#818585' : '#565959'}
+  }
+
+  th {
+    font-weight: 600;
+    font-size: 1rem;
+    text-align: start;
+    padding: 4px 0 0 0;
+  }
+
+  td {
+    font-weight: 400;
+    font-size: 0.875rem;
+    text-align: right;
+    padding: 4px 0 0 0;
+
+     button {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 8px 12px;
+      font-weight: 400;
+      margin-left: auto;
+      border: none;
+    }
+  }
+`
+
+const Tvl = styled.p`
+  font-weight: 700;
+  font-size: 2rem;
+  padding: 0;
+  margin: -28px 0 0;
+`
+
+const SectionHeader = styled.h2`
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin: 0 0 24px;
+`
+
+const InfoWrapper = styled.div`
+  padding: 24px;  
+  background: ${({ theme }) => theme.bg7};
+  border: ${({ theme }) => "1px solid " + theme.divider};
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(3, auto);
+
+  ${({ theme: { minLg } }) => minLg} {
+    grid-template-rows: repeat(2, auto);
+  }
+`
+
+const Section = styled.section`
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 0;
+
+  h3 {
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  &:not(:first-of-type) {
+    border-top: ${({ theme }) => "1px solid " + theme.text5};
+  }
+
+  &:first-of-type {
+    padding-top: 0;
+  }
+
+  &:last-of-type {
+    padding-bottom: 0;
+  }
+
+  p {
+    margin: 0
+  }
+
+  ${({ theme: { minLg } }) => minLg} {
+    h3:not(:first-of-type) {
+      margin-top: 24px;
+    }
+    
+    &:nth-child(1) {
+      grid-column: 1 / 2;
+    }
+
+    &:nth-child(2) {
+      grid-column: 1 / 2;
+      padding-bottom: 0;
+    }
+
+    &:nth-child(3) {
+      grid-row: 1 / -1;
+      grid-column: 2 / 3;
+      border-top: 0;
+      border-left: ${({ theme }) => "1px solid " + theme.text5};
+      padding: 0 0 0 24px;
+      margin-left: 24px;
+    }
+  }
+`
+
+const LinksWrapper = styled.section`
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  button {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 8px 12px;
+    font-weight: 400;
+    border: none;
+    white-space: nowrap;
+  }
+`
+
+const Address = styled.p`
+  display: flex;
+  align-items: center;
+  margin: 0;
+  gap: 8px;
+`
+
+const Audits = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`
+
 
 function ToggleAlert({ chainTvls }) {
   const isLowerCase = (letter) => letter === letter.toLowerCase()
@@ -160,9 +233,9 @@ function ToggleAlert({ chainTvls }) {
   }
   return (
     <Panel background={true} style={{ textAlign: 'center', marginBottom: '1rem', marginTop: '-1rem' }}>
-      <TYPE.main fontWeight={400}>
+      <p>
         This protocol has some TVL that's classified as {extraTvls.join('/')}, enable the toggles to see it
-      </TYPE.main>
+      </p>
     </Panel>
   )
 }
@@ -199,259 +272,165 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
 
   const totalVolume = useCalcSingleExtraTvl(chainTvls, tvl)
 
-  const hasToken = address !== null && address !== '-'
-
   const tvlByChain = Object.entries(chainTvls || {})
 
   const { data, loading } = useFetchProtocolsList()
 
   return (
-    <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)}>
+    <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: "48px" }}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
 
       <Search data={data} loading={loading} step={{ category: 'Protocols', name, color: backgroundColor }} />
 
-      <DashboardWrapper mt={[0, 0, '1rem']}>
-        <ToggleAlert chainTvls={chainTvls} />
+      <ToggleAlert chainTvls={chainTvls} />
 
-        <RowBetween style={{ flexWrap: 'wrap', alignItems: 'center' }}>
+      <Stats>
+        <ProtocolDetails>
+          <ProtocolName>
+            <TokenLogo address={address} logo={logo} size={24} />
+            <Name text={name ? name + ' ' : ''} maxCharacters={16} />
+            <Symbol>{symbol !== '-' ? `(${symbol})` : ''}</Symbol>
+          </ProtocolName>
 
-          <RowFixed style={{ alignItems: 'baseline', margin: '2rem 0' }}>
-            <TokenLogo address={address} logo={logo} size={32} style={{ alignSelf: 'center' }} />
-            <TYPE.main fontSize={['1.5rem', '1.5rem', '2rem']} fontWeight={500} style={{ margin: '0 1rem' }}>
-              <RowFixed gap="6px">
-                <FormattedName text={name ? name + ' ' : ''} maxCharacters={16} style={{ marginRight: '6px' }} />{' '}
-                {symbol !== '-' ? '$' + symbol : ''}
-              </RowFixed>
-            </TYPE.main>{' '}
-          </RowFixed>
+          <Tvl>
+            {formattedNum(totalVolume || '0', true)}
+          </Tvl>
 
-          <HiddenBookmark>
-            <RowFixed ml={[0, '2.5rem']} mt={['1rem', '0']}>
-              <Bookmark readableProtocolName={name} />
-            </RowFixed>
-          </HiddenBookmark>
-        </RowBetween>
-        <>
-          <PanelWrapper style={{ gridTemplateRows: 'auto', margin: '0 0 3rem 0' }}>
-            <Panel>
-              <AutoColumn gap="20px">
-                <RowBetween>
-                  <TYPE.main>Description</TYPE.main>
-                </RowBetween>
-                <RowBetween align="flex-end">
-                  <TYPE.main fontSize={'13px'} lineHeight={1} fontWeight={500}>
-                    {description}
-                  </TYPE.main>
-                </RowBetween>
-              </AutoColumn>
-            </Panel>
-            <Panel>
-              <AutoColumn gap="md">
-                <TYPE.main>Total Value Locked </TYPE.main>
-                <TYPE.main fontSize={'1.5rem'} lineHeight={1} fontWeight={500}>
-                  {formattedNum(totalVolume || '0', true)}
-                </TYPE.main>
-              </AutoColumn>
-              {tvlByChain.length > 0 && (
-                <TYPE.main>
-                  <table style={{ margin: '1.25rem 0 0' }}>
-                    <tbody>
-                      {tvlByChain.map((chainTvl) =>
-                        chainTvl[0].includes('-') ? null : (
-                          <tr key={chainTvl[0]}>
-                            <TableHead>
-                              <span>{chainTvl[0]}</span>
-                              <span>:</span>
-                            </TableHead>
-                            <td>${toK(chainTvl[1] || 0)}</td>
-                          </tr>
-                        )
-                      )}
-                    </tbody>
-                  </table>
-                </TYPE.main>
-              )}
-            </Panel>
-            <Panel>
-              <AutoColumn gap="20px">
-                <RowBetween>
-                  <TYPE.main>Links</TYPE.main>
-                </RowBetween>
-                <RowBetween align="flex-end">
-                  <AutoColumn style={{ width: '100%' }}>
-                    <Link color={backgroundColor} external href={`https://api.llama.fi/dataset/${protocol}.csv`}>
-                      <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
-                        Download dataset ↗
-                      </ButtonLight>
-                    </Link>
-                  </AutoColumn>
-                </RowBetween>
-              </AutoColumn>
-            </Panel>
-            <Panel
-              sx={{
-                gridColumn: ['1', '1', '1', '2/4'],
-                gridRow: ['', '', '', '1/4'],
-              }}
-            >
-              <ProtocolChart
-                denomination={denomination}
-                chartData={chartData}
-                misrepresentedTokens={misrepresentedTokens}
-                protocol={name}
-                address={address}
-                color={backgroundColor}
-                tokens={tokens}
-                tokensInUsd={tokensInUsd}
-                base={priceUSD}
-                selectedChain={selectedChain}
-                chainTvls={historicalChainTvls}
-                chains={chains}
-                protocolData={protocolData}
-                isHourlyChart={isHourlyChart}
-              />
-            </Panel>
-          </PanelWrapper>
-        </>
+          {tvlByChain.length > 0 && (
+            <Table>
+              <caption>Breakdown</caption>
+              <tbody>
+                {tvlByChain.map((chainTvl) =>
+                  chainTvl[0].includes('-') ? null : (
+                    <tr key={chainTvl[0]}>
+                      <th>
+                        {chainTvl[0]}
+                      </th>
+                      <td>${toK(chainTvl[1] || 0)}</td>
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </Table>
+          )}
 
-        <>
-          <RowBetween>
-            <TYPE.main fontSize={'1.125rem'}>Protocol Information</TYPE.main>{' '}
-          </RowBetween>
-          <Panel
-            rounded
-            style={{
-              marginTop: '1.5rem',
-            }}
-            p={20}
-          >
-            <TokenDetailsLayout>
-              {typeof category === 'string' && (
-                <Column>
-                  <TYPE.main>Category</TYPE.main>
-                  <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
+          <Table>
+            <caption>{category && 'Category'}</caption>
+            <tbody>
+              <tr>
+                <th>
+                  {category &&
                     <BasicLink href={`/protocols/${category.toLowerCase()}`}>
                       <FormattedName text={category} maxCharacters={16} />
                     </BasicLink>
-                  </TYPE.main>
-                </Column>
-              )}
-              <Column>
-                <TYPE.main>
-                  <HeadHelp title="Audits" text="Audits are not a guarantee of security." />
-                </TYPE.main>
-                <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                  <AuditInfo audits={audits} auditLinks={audit_links} />
-                </TYPE.main>
-              </Column>
-              <div></div>
-              <RowFixed>
-                <Link color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
-                  <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
-                    Twitter ↗
-                  </ButtonLight>
-                </Link>
-                <Link color={backgroundColor} external href={url}>
-                  <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
-                    Website ↗
-                  </ButtonLight>
-                </Link>
-              </RowFixed>
-            </TokenDetailsLayout>
-          </Panel>
+                  }
+                </th>
+                <td>
+                  <Link color={backgroundColor} external href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+                    <ButtonLight useTextColor={true} color={backgroundColor}>
+                      <span>Download Dataset</span>
+                      <ArrowUpRight size={14} />
+                    </ButtonLight>
+                  </Link>
+                </td>
+              </tr>
+            </tbody>
+          </Table>
+        </ProtocolDetails>
+        <div>
+          <ProtocolChart
+            denomination={denomination}
+            chartData={chartData}
+            misrepresentedTokens={misrepresentedTokens}
+            protocol={name}
+            address={address}
+            color={backgroundColor}
+            tokens={tokens}
+            tokensInUsd={tokensInUsd}
+            base={priceUSD}
+            selectedChain={selectedChain}
+            chainTvls={historicalChainTvls}
+            chains={chains}
+            protocolData={protocolData}
+            isHourlyChart={isHourlyChart}
+          /></div>
+      </Stats>
 
-          <RowBetween style={{ marginTop: '3rem' }}>
-            <TYPE.main fontSize={'1.125rem'}>Methodology</TYPE.main>{' '}
-          </RowBetween>
-          <Panel
-            rounded
-            style={{
-              marginTop: '1.5rem',
-            }}
-            p={20}
-          >
-            {methodology && (
-              <TokenDetailsLayout style={{ marginBottom: '1em' }}>
-                <TYPE.main style={{ textAlign: 'justify', wordBreak: 'break-word' }} fontSize={15} fontWeight="500">
-                  {methodology}
-                </TYPE.main>
-              </TokenDetailsLayout>
-            )}
-            <RowFixed>
+      <section>
+        <SectionHeader>Information</SectionHeader>
+        <InfoWrapper>
+          <Section>
+            <h3>Protocol Information</h3>
+            <p>{description}</p>
+            <Audits>
+              <HeadHelp title="Audits" text="Audits are not a guarantee of security." />{" : "}
+              <DropdownMenu>
+                <DefaultMenuButton>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{audits ? "Yes" : "No"}</span>
+                  <ChevronDown size={16} style={{ flexShrink: '0' }} />
+                </DefaultMenuButton>
+                <DropdownMenuContent sideOffset={5}>
+                  {audit_links.map((d) => (
+                    <DefaultMenuItem key={d}>
+                      <a href={d} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>{d}</a>
+                    </DefaultMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </Audits>
+            <LinksWrapper>
+              <Link external href={url} passHref>
+                <ButtonLight useTextColor={true} color={backgroundColor}>
+                  <span>Website</span> <ArrowUpRight size={14} />
+                </ButtonLight>
+              </Link>
+              <Link external href={`https://twitter.com/${twitter}`} passHref>
+                <ButtonLight useTextColor={true} color={backgroundColor}>
+                  <span>Twitter</span> <ArrowUpRight size={14} />
+                </ButtonLight>
+              </Link>
+            </LinksWrapper>
+          </Section>
+          <Section>
+            <h3>Token Information</h3>
+            <Address><span>Address: {address ? address.slice(0, 8) + '...' + address?.slice(36, 42) : "-"}</span> <CopyHelper toCopy={address} disabled={!address} /></Address>
+            <LinksWrapper>
+              {protocolData.gecko_id !== null && (
+                <Link
+                  external
+                  href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`}
+                  passHref
+                >
+                  <ButtonLight useTextColor={true} color={backgroundColor}>
+                    <span>View on CoinGecko</span> <ArrowUpRight size={14} />
+                  </ButtonLight>
+                </Link>
+              )}
+              {blockExplorerLink !== undefined && (
+                <Link external href={blockExplorerLink} passHref>
+                  <ButtonLight useTextColor={true} color={backgroundColor}>
+                    <span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
+                  </ButtonLight>
+                </Link>
+              )}
+            </LinksWrapper>
+          </Section>
+          <Section>
+            <h3>Methodology</h3>
+            <p>{methodology}</p>
+            <LinksWrapper>
               <Link
-                color={backgroundColor}
                 external
                 href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
               >
                 <ButtonLight useTextColor={true} color={backgroundColor}>
-                  Check the code ↗
+                  <span>Check the code</span><ArrowUpRight size={14} />
                 </ButtonLight>
               </Link>
-            </RowFixed>
-          </Panel>
-
-          {hasToken && (
-            <RowBetween style={{ marginTop: '3rem' }}>
-              <TYPE.main fontSize={'1.125rem'}>Token Information</TYPE.main>{' '}
-            </RowBetween>
-          )}
-          {hasToken && (
-            <Panel
-              rounded
-              style={{
-                marginTop: '1.5rem',
-              }}
-              p={20}
-            >
-              <TokenDetailsLayout>
-                <Column>
-                  <TYPE.main>Symbol</TYPE.main>
-                  <Text style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                    <FormattedName text={symbol} maxCharacters={12} />
-                  </Text>
-                </Column>
-                <Column>
-                  <TYPE.main>Name</TYPE.main>
-                  <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                    <FormattedName text={name} maxCharacters={16} />
-                  </TYPE.main>
-                </Column>
-                <Column>
-                  <TYPE.main>Address</TYPE.main>
-                  <AutoRow align="flex-end">
-                    <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-                      {address && address.slice(0, 8) + '...' + address?.slice(36, 42)}
-                    </TYPE.main>
-                    <CopyHelper toCopy={address} />
-                  </AutoRow>
-                </Column>
-                <RowFixed>
-                  {protocolData.gecko_id !== null && (
-                    <Link
-                      color={backgroundColor}
-                      style={{ marginRight: '.5rem' }}
-                      external
-                      href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`}
-                    >
-                      <ButtonLight useTextColor={true} color={backgroundColor}>
-                        View on CoinGecko ↗
-                      </ButtonLight>
-                    </Link>
-                  )}
-                  {blockExplorerLink !== undefined && (
-                    <Link color={backgroundColor} external href={blockExplorerLink}>
-                      <ButtonLight useTextColor={true} color={backgroundColor}>
-                        View on {blockExplorerName} ↗
-                      </ButtonLight>
-                    </Link>
-                  )}
-                </RowFixed>
-              </TokenDetailsLayout>
-            </Panel>
-          )}
-        </>
-      </DashboardWrapper>
+            </LinksWrapper>
+          </Section>
+        </InfoWrapper>
+      </section>
     </Layout>
   )
 }

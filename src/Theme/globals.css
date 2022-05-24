@@ -86,4 +86,12 @@ html {
   flex-direction: column;
   gap: 0;
   width: 100%;
+  min-height: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
 }

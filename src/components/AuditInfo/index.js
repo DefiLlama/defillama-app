@@ -1,8 +1,8 @@
 import React from 'react'
 import styled from 'styled-components'
 import { HelpCircle } from 'react-feather'
-import DropdownSelect from '../DropdownSelect'
 import Tooltip from 'components/Tooltip'
+import Select from 'components/Select'
 
 const TextWrapper = styled.div`
   position: relative;
@@ -26,12 +26,7 @@ const AuditInfo = ({ audits, auditLinks = [], margin = false, adjustSize = false
   if (auditLinks.length > 0) {
     return (
       <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize}>
-        <DropdownSelect
-          options={auditLinks.map((audit) => ({ label: audit }))}
-          active="Yes"
-          setActive={(link) => (window.location.href = link)}
-          overflowVisible
-        ></DropdownSelect>
+        <Select options={auditLinks} />
       </TextWrapper>
     )
   }

@@ -3,8 +3,7 @@ import Layout from 'layout'
 import { Box } from 'rebass/styled-components'
 import styled from 'styled-components'
 import NFTList from 'components/NFTList'
-import { RowBetween } from 'components/Row'
-import { TYPE } from 'Theme'
+import { Header } from 'Theme'
 import { chainIconUrl, getRandomColor } from 'utils'
 import { getNFTChainChartData, getNFTChainsData, revalidate } from 'utils/dataApi'
 import SEO from 'components/SEO'
@@ -78,9 +77,8 @@ const ChainsView = ({ chainData, currentData, chainsUnique, stackedDataset, dayS
 
   return (
     <>
-      <RowBetween>
-        <TYPE.largeHeader>Total Volume All Chains</TYPE.largeHeader>
-      </RowBetween>
+      <Header>Total Volume All Chains</Header>
+
       <ChartsWrapper>
         <ChainPieChart data={currentData} chainColor={chainColor} />
         <ChainDominanceChart

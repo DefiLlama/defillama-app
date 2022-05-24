@@ -36,8 +36,8 @@ export const ChartWrapper = ({ children }) => {
 
 const PlaceholderChartPanel = styled(Panel)`
   padding-bottom: 28%;
-  width: 100%;
-  height: 100%;
+  flex: 1;
+  flex-shrink: 0;
   color: var(--color);
   @media (max-width: 800px) {
     padding-bottom: 69%;

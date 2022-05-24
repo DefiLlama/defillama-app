@@ -64,6 +64,23 @@ const StyledMenuTrigger = styled(DropdownMenuPrimitive.Trigger)`
   }
 `
 
+export const DefaultMenuButton = styled(StyledMenuTrigger)`
+  background-color: ${({ theme }) => theme.bg1};
+  border: 1px solid rgba(0, 0, 0, 0.15);
+
+  :hover,
+  :focus {
+    background-color: ${({ theme }) => theme.bg3};
+  }
+`
+
+export const DefaultMenuItem = styled(StyledItem)`
+  :hover,
+  :focus {
+    background-color: ${({ theme }) => theme.bg3};
+  }
+`
+
 export const DropdownMenu = DropdownMenuPrimitive.Root
 export const DropdownMenuTrigger = StyledMenuTrigger
 export const DropdownMenuContent = StyledContent

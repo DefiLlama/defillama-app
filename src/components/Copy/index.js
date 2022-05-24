@@ -2,14 +2,17 @@ import React from 'react'
 import styled from 'styled-components'
 import { CheckCircle, Copy } from 'react-feather'
 import { useCopyToClipboard } from 'react-use'
-import { StyledIcon } from '..'
 
-const CopyIcon = styled.div`
-  color: #aeaeae;
+const CopyIcon = styled.button`
   flex-shrink: 0;
-  margin-right: 1rem;
-  margin-left: 0.5rem;
   text-decoration: none;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  padding: 2px 0;
+  margin: 0;
+
   :hover,
   :active,
   :focus {
@@ -18,30 +21,16 @@ const CopyIcon = styled.div`
     cursor: pointer;
   }
 `
-const TransactionStatusText = styled.span`
-  margin-left: 0.25rem;
-  ${({ theme }) => theme.flexRowNoWrap};
-  align-items: center;
-  color: black;
-`
 
-export default function CopyHelper({ toCopy }) {
+export default function CopyHelper({ toCopy, ...props }) {
   const [{ value }, setCopied] = useCopyToClipboard()
 
   return (
-    <CopyIcon onClick={() => setCopied(toCopy)}>
+    <CopyIcon onClick={() => setCopied(toCopy)} aria-label="Copy" {...props}>
       {value ? (
-        <TransactionStatusText>
-          <StyledIcon>
-            <CheckCircle size={'14'} />
-          </StyledIcon>
-        </TransactionStatusText>
+        <CheckCircle size={14} />
       ) : (
-        <TransactionStatusText>
-          <StyledIcon>
-            <Copy size={'14'} />
-          </StyledIcon>
-        </TransactionStatusText>
+        <Copy size={14} />
       )}
     </CopyIcon>
   )

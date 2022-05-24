@@ -44,6 +44,7 @@ const theme = (darkMode, color) => ({
   bg4: darkMode ? '#565A69' : '#CED0D9',
   bg5: darkMode ? '#565A69' : '#888D9B',
   bg6: darkMode ? '#000' : '#FFFFFF',
+  bg7: darkMode ? "rgba(7,14,15,0.7)" : 'rgba(252,252,251,1)',
 
   //specialty colors
   modalBG: darkMode ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.6)',
@@ -180,11 +181,7 @@ export const ThemedBackground = styled.div`
   background: ${({ backgroundColor, theme }) =>
     `radial-gradient(50% 50% at 50% 50%, ${backgroundColor || transparentize(0.6, theme.primary1)
     } 0%, rgba(255, 255, 255, 0) 100%)`};
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  z-index: 9999;
-
+  z-index: -100;
   transform: translateY(-110vh);
 `
 
