@@ -253,7 +253,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
       <SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
       <AutoColumn gap="24px">
-        <Search data={{ chains: chainsSet, protocols: filteredProtocols }} step={{ category: "Home", name: selectedChain === 'All' ? "All Protocols" : selectedChain }} />
+        <Search step={{ category: "Home", name: selectedChain === 'All' ? "All Protocols" : selectedChain }} />
         <div>
           <Panel background={true} style={{ textAlign: 'center' }}>
             <TYPE.main fontWeight={400}>

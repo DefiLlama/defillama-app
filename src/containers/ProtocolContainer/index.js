@@ -20,7 +20,6 @@ import { formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
 import { Box as RebassBox } from 'rebass'
 import Search from 'components/Search/New'
-import { useFetchProtocolsList } from 'utils/dataApi'
 import Layout from 'layout'
 
 const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
@@ -203,13 +202,11 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
 
   const tvlByChain = Object.entries(chainTvls || {})
 
-  const { data, loading } = useFetchProtocolsList()
-
   return (
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
 
-      <Search data={data} loading={loading} step={{ category: 'Protocols', name, color: backgroundColor }} />
+      <Search step={{ category: 'Protocols', name, color: backgroundColor }} />
 
       <DashboardWrapper mt={[0, 0, '1rem']}>
         <ToggleAlert chainTvls={chainTvls} />

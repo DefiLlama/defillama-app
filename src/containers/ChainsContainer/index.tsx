@@ -8,7 +8,7 @@ import Search from 'components/Search/New'
 import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
 import { columnsToShow, FullTable } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
-import { getChainsPageData, revalidate, useFetchProtocolsList } from 'utils/dataApi'
+import { getChainsPageData, revalidate } from 'utils/dataApi'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { ChainTvlOptions } from 'components/Select'
@@ -267,19 +267,15 @@ export default function ChainsContainer({
 
   const groupedChains = useGroupChainsByParent(chainTotals, showByGroup ? chainsGroupbyParent : {})
 
-  const { data, loading } = useFetchProtocolsList()
-
   return (
     <>
       <Search
-        data={data}
-        loading={loading}
-        // step={{
-        //   category: 'Home',
-        //   name: category === 'All' ? 'All Chains' : category,
-        //   route: '/chains',
-        //   hideOptions: true,
-        // }}
+        step={{
+          category: 'Chains',
+          name: category === 'All' ? 'All Chains' : category,
+          route: '/chains',
+          hideOptions: true,
+        }}
       />
 
       <RowWrapper>
