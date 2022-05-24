@@ -1,15 +1,8 @@
 import Layout from '../layout'
 import { transparentize } from 'polished'
-import { ThemedBackground } from 'Theme'
 import styled from 'styled-components'
 import { revalidate } from 'utils/dataApi'
 import { Panel } from 'components'
-
-interface IBackground {
-  backgroundColor?: string
-}
-
-const Background = styled(ThemedBackground)<IBackground>``
 
 const Header = styled.h1`
   color: ${({ theme }) => theme.text1};
@@ -81,8 +74,7 @@ const Message = ({ text }) => {
 
 export default function Chains({ messages }) {
   return (
-    <Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
-      <Background backgroundColor={transparentize(0.8, '#445ed0')} />
+    <Layout title={`Daily Roundup - DefiLlama`} backgroundColor={transparentize(0.8, '#445ed0')} defaultSEO>
       {messages.map((m, i) => (
         <Message key={'roundup' + i} text={m} />
       ))}

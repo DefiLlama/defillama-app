@@ -16,6 +16,7 @@ export default function ThemeProvider({ children }) {
 const theme = (darkMode, color) => ({
   customColor: color,
   textColor: darkMode ? color : 'black',
+  mode: darkMode ? "dark" : "light",
 
   panelColor: darkMode ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0)',
   backgroundColor: darkMode ? '#212429' : '#445ed0',
@@ -188,9 +189,6 @@ export const ThemedBackground = styled.div`
 `
 
 export const GlobalStyle = createGlobalStyle`
-
-
-
   #__next {
     background-color: ${({ theme }) => theme.bg6};
     ${({ theme: { minLg } }) => minLg} {

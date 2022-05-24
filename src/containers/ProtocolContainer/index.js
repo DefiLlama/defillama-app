@@ -15,13 +15,13 @@ import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import TokenLogo from 'components/TokenLogo'
 import { useCalcSingleExtraTvl } from '../../hooks/data'
 import { useScrollToTop, useProtocolColor } from 'hooks'
-import { TYPE, ThemedBackground } from 'Theme'
+import { TYPE } from 'Theme'
 import { formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
 import { Box as RebassBox } from 'rebass'
 import Search from 'components/Search/New'
 import { useFetchProtocolsList } from 'utils/dataApi'
-
+import Layout from 'layout'
 
 const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
 
@@ -167,7 +167,7 @@ function ToggleAlert({ chainTvls }) {
   )
 }
 
-function ProtocolContainer({ protocolData, protocol, denomination, selectedChain }) {
+function ProtocolContainer({ title, protocolData, protocol, denomination, selectedChain }) {
   useScrollToTop()
 
   let {
@@ -206,10 +206,8 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
   const { data, loading } = useFetchProtocolsList()
 
   return (
-    <>
+    <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
-
-      <ThemedBackground backgroundColor={transparentize(0.6, backgroundColor)} />
 
       <Search data={data} loading={loading} step={{ category: 'Protocols', name, color: backgroundColor }} />
 
@@ -454,8 +452,7 @@ function ProtocolContainer({ protocolData, protocol, denomination, selectedChain
           )}
         </>
       </DashboardWrapper>
-
-    </>
+    </Layout>
   )
 }
 

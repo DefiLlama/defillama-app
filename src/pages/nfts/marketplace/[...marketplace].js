@@ -1,5 +1,4 @@
 import NFTDashboardPage from '../../../components/NFTDashboardPage'
-import Layout from '../../../layout'
 import {
   getNFTMarketplaceChartData,
   getNFTMarketplacesData,
@@ -42,9 +41,5 @@ export async function getStaticPaths() {
 }
 
 export default function Marketplace({ displayName, ...props }) {
-  return (
-    <Layout title={`${displayName} Total Volume - DefiLlama`}>
-      <NFTDashboardPage displayName={displayName} {...props} />
-    </Layout>
-  )
+  return <NFTDashboardPage title={`${displayName} Total Volume - DefiLlama`} displayName={displayName} {...props} />
 }

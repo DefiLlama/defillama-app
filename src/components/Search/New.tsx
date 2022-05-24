@@ -91,7 +91,10 @@ const OptionsWrapper = styled.div`
   gap: 8px;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
+  box-shadow: 0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04),
+    0px 0px 1px rgba(0, 0, 0, 0.04);
   background: ${({ theme }) => transparentize(0.4, theme.bg6)};
+  --step-color: ${({ theme }) => (theme.mode === 'dark' ? '#7e96ff' : '#475590')};
 
   & > p {
     display: flex;
@@ -154,10 +157,18 @@ interface IList {
   name: string
 }
 
+interface IStep {
+  category: string
+  name: string
+  route?: string
+  color?: string
+  hideOptions?: boolean
+}
+
 interface ISearchProps {
   data: any
   loading?: boolean
-  step?: { category: string; name: string }
+  step?: IStep
 }
 
 export default function Search({ data, loading = false, step }: ISearchProps) {
@@ -232,22 +243,26 @@ const Row = ({ index, style, data }) => {
   )
 }
 
-const Options = ({ step }) => {
+const Options = ({ step }: { step: IStep }) => {
   return (
     <OptionsWrapper>
       <p>
-        <Link href={`/${step.category.toLowerCase()}`}>{step.category}</Link>
+        <Link href={`/${step.route || step.category.toLowerCase()}`}>{step.category}</Link>
         <ArrowRight size={16} />
-        <span style={{ color: step.color }}>{step.name}</span>
+        <span style={{ color: step.color ?? 'var(--step-color)' }}>{step.name}</span>
       </p>
 
       {/* below components will render base on breakpoint */}
-      <DropdownOptions />
+      {!step.hideOptions && (
+        <>
+          <DropdownOptions />
 
-      <Label>
-        <span>INCLUDE IN TVL</span>
-        <AllTvlOptions style={{ display: 'flex', justifyContent: 'flex-end', margin: 0, fontSize: '0.875rem' }} />
-      </Label>
+          <Label>
+            <span>INCLUDE IN TVL</span>
+            <AllTvlOptions style={{ display: 'flex', justifyContent: 'flex-end', margin: 0, fontSize: '0.875rem' }} />
+          </Label>
+        </>
+      )}
     </OptionsWrapper>
   )
 }
