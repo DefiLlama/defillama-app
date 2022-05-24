@@ -23,6 +23,7 @@ import {
   toNiceMonthlyDate,
   toNiceHour,
   toNiceDayAndHour,
+  capitalizeFirstLetter,
 } from 'utils'
 import { DefaultMenuButton, DefaultMenuItem, DropdownMenu, DropdownMenuContent } from 'components/DropdownMenu'
 import { ChevronDown } from 'react-feather'
@@ -488,7 +489,7 @@ const TokenChart = ({
                   <DropdownMenuContent sideOffset={5}>
                     {[ALL_CHAINS].concat(Object.keys(chainTvls)).map((chain) => (
                       <DefaultMenuItem key={chain} onSelect={() => setTimeWindow(router.push(buildChainUrl(chain)))}>
-                        {chain}
+                        {capitalizeFirstLetter(chain)}
                       </DefaultMenuItem>
                     ))}
                   </DropdownMenuContent>

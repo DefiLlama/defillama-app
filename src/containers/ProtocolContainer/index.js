@@ -2,8 +2,6 @@ import React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import AuditInfo from 'components/AuditInfo'
-import Bookmark from 'components/Bookmark'
 import { ButtonLight } from 'components/ButtonStyled'
 import CopyHelper from 'components/Copy'
 import FormattedName from 'components/FormattedName'
@@ -11,7 +9,7 @@ import Link, { BasicLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
 import { useCalcSingleExtraTvl } from '../../hooks/data'
 import { useScrollToTop, useProtocolColor } from 'hooks'
-import { formattedNum, getBlockExplorer, toK } from 'utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
 import Search from 'components/Search/New'
 import { useFetchProtocolsList } from 'utils/dataApi'
@@ -32,10 +30,9 @@ const Stats = styled.section`
   border: ${({ theme }) => "1px solid " + theme.divider};
 
   & > *:last-child {
-    flex: 1;
     padding: 22px;
-    min-height: 360px;
-    max-width: 100%;
+    display: flex;
+    width: 100%;
   }
 
   @media screen and (min-width: 75.5rem) {
@@ -51,6 +48,7 @@ const ProtocolDetails = styled.div`
   color: ${({ theme }) => theme.text1};
   border-radius: 12px;
   background: ${({ theme }) => theme.bg7};
+  min-height: 360px;
 
 
   ${({ theme: { minLg } }) => minLg} {
@@ -85,7 +83,7 @@ const Table = styled.table`
     font-size: 0.75rem;
     text-align: left;
     padding: 0 0 4px 0;
-    color: ${({ isDark }) => isDark ? '#818585' : '#565959'}
+    color: ${({ isDark }) => isDark ? '#818585' : '#969b9b'}
   }
 
   th {
@@ -100,15 +98,11 @@ const Table = styled.table`
     font-size: 0.875rem;
     text-align: right;
     padding: 4px 0 0 0;
+    font-family: 'JetBrains Mono', monospace;
 
-     button {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-      padding: 8px 12px;
-      font-weight: 400;
+    button {
       margin-left: auto;
-      border: none;
+      font-family: 'Inter var', sans-serif;
     }
   }
 `
@@ -124,6 +118,7 @@ const SectionHeader = styled.h2`
   font-weight: 700;
   font-size: 1.25rem;
   margin: 0 0 24px;
+  border: 1px solid transparent;
 `
 
 const InfoWrapper = styled.div`
@@ -167,7 +162,8 @@ const Section = styled.section`
   }
 
   p {
-    margin: 0
+    margin: 0;
+    line-height: 1.5rem;
   }
 
   ${({ theme: { minLg } }) => minLg} {
@@ -199,16 +195,16 @@ const LinksWrapper = styled.section`
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+`
 
-  button {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-    padding: 8px 12px;
-    font-weight: 400;
-    border: none;
-    white-space: nowrap;
-  }
+const Button = styled(ButtonLight)`
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 8px 12px;
+  font-weight: 400;
+  border: none;
+  white-space: nowrap;
 `
 
 const Address = styled.p`
@@ -232,14 +228,15 @@ function ToggleAlert({ chainTvls }) {
     return null
   }
   return (
-    <Panel background={true} style={{ textAlign: 'center', marginBottom: '1rem', marginTop: '-1rem' }}>
-      <p>
+    <Panel background={true} style={{ textAlign: 'center' }}>
+      <p style={{ margin: "0" }}>
         This protocol has some TVL that's classified as {extraTvls.join('/')}, enable the toggles to see it
       </p>
     </Panel>
   )
 }
 
+// TODO bookmakrt and percent change
 function ProtocolContainer({ title, protocolData, protocol, denomination, selectedChain }) {
   useScrollToTop()
 
@@ -280,7 +277,7 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: "48px" }}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
 
-      <Search data={data} loading={loading} step={{ category: 'Protocols', name, color: backgroundColor }} />
+      <Search data={data} loading={loading} step={{ category: 'Protocols', name }} />
 
       <ToggleAlert chainTvls={chainTvls} />
 
@@ -304,7 +301,7 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
                   chainTvl[0].includes('-') ? null : (
                     <tr key={chainTvl[0]}>
                       <th>
-                        {chainTvl[0]}
+                        {capitalizeFirstLetter(chainTvl[0])}
                       </th>
                       <td>${toK(chainTvl[1] || 0)}</td>
                     </tr>
@@ -327,10 +324,10 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
                 </th>
                 <td>
                   <Link color={backgroundColor} external href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-                    <ButtonLight useTextColor={true} color={backgroundColor}>
+                    <Button useTextColor={true} color={backgroundColor}>
                       <span>Download Dataset</span>
                       <ArrowUpRight size={14} />
-                    </ButtonLight>
+                    </Button>
                   </Link>
                 </td>
               </tr>
@@ -353,7 +350,8 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
             chains={chains}
             protocolData={protocolData}
             isHourlyChart={isHourlyChart}
-          /></div>
+          />
+        </div>
       </Stats>
 
       <section>
@@ -365,12 +363,12 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
             <Audits>
               <HeadHelp title="Audits" text="Audits are not a guarantee of security." />{" : "}
               <DropdownMenu>
-                <DefaultMenuButton>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{audits ? "Yes" : "No"}</span>
+                <DefaultMenuButton disabled={audits <= 0}>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{audits > 0 ? "Yes" : "No"}</span>
                   <ChevronDown size={16} style={{ flexShrink: '0' }} />
                 </DefaultMenuButton>
-                <DropdownMenuContent sideOffset={5}>
-                  {audit_links.map((d) => (
+                <DropdownMenuContent sideOffset={5} style={{ maxWidth: "300px" }}>
+                  {audit_links?.map((d) => (
                     <DefaultMenuItem key={d}>
                       <a href={d} target="_blank" rel="noopener noreferrer" style={{ color: "inherit" }}>{d}</a>
                     </DefaultMenuItem>
@@ -380,14 +378,14 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
             </Audits>
             <LinksWrapper>
               <Link external href={url} passHref>
-                <ButtonLight useTextColor={true} color={backgroundColor}>
+                <Button useTextColor={true} color={backgroundColor}>
                   <span>Website</span> <ArrowUpRight size={14} />
-                </ButtonLight>
+                </Button>
               </Link>
               <Link external href={`https://twitter.com/${twitter}`} passHref>
-                <ButtonLight useTextColor={true} color={backgroundColor}>
+                <Button useTextColor={true} color={backgroundColor}>
                   <span>Twitter</span> <ArrowUpRight size={14} />
-                </ButtonLight>
+                </Button>
               </Link>
             </LinksWrapper>
           </Section>
@@ -401,16 +399,16 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
                   href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`}
                   passHref
                 >
-                  <ButtonLight useTextColor={true} color={backgroundColor}>
+                  <Button useTextColor={true} color={backgroundColor}>
                     <span>View on CoinGecko</span> <ArrowUpRight size={14} />
-                  </ButtonLight>
+                  </Button>
                 </Link>
               )}
               {blockExplorerLink !== undefined && (
                 <Link external href={blockExplorerLink} passHref>
-                  <ButtonLight useTextColor={true} color={backgroundColor}>
+                  <Button useTextColor={true} color={backgroundColor}>
                     <span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
-                  </ButtonLight>
+                  </Button>
                 </Link>
               )}
             </LinksWrapper>
@@ -423,9 +421,9 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
                 external
                 href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
               >
-                <ButtonLight useTextColor={true} color={backgroundColor}>
+                <Button useTextColor={true} color={backgroundColor}>
                   <span>Check the code</span><ArrowUpRight size={14} />
-                </ButtonLight>
+                </Button>
               </Link>
             </LinksWrapper>
           </Section>

@@ -575,7 +575,7 @@ export const getProtocol = async (protocolName: string) => {
   }
 }
 
-export const fuseProtocolData = (protocolData, protocol) => {
+export const fuseProtocolData = (protocolData) => {
   const historicalChainTvls = protocolData?.chainTvls ?? {}
   const chainTvls = protocolData.currentChainTvls ?? {}
   const tvl = protocolData?.tvl ?? []

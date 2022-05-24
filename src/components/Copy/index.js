@@ -20,6 +20,10 @@ const CopyIcon = styled.button`
     opacity: 0.8;
     cursor: pointer;
   }
+
+  & > svg {
+    color: ${({ theme }) => theme.text1}
+  }
 `
 
 export default function CopyHelper({ toCopy, ...props }) {

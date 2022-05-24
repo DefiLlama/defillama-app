@@ -2,6 +2,7 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 
+// TODO replace this component with ariakit
 const StyledContent = styled(DropdownMenuPrimitive.Content)`
   max-height: 400px;
   overflow-y: auto;

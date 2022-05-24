@@ -3,6 +3,8 @@ import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 
+// TODO replace this component with ariakit tooltip
+
 interface ITooltip {
   content: string | null
   children: React.ReactNode
