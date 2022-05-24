@@ -1,83 +1,29 @@
 import Layout from '../layout'
-import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { revalidate } from 'utils/dataApi'
-import { Panel } from 'components'
 
 const Header = styled.h1`
   color: ${({ theme }) => theme.text1};
   font-weight: 600;
-  margin: 0 0 2rem;
+  margin: 0;
   text-align: center;
   font-size: revert !important;
-`
-
-const SubHeader = styled.h2`
-  color: ${({ theme }) => theme.text1};
-  font-weight: 600;
-  margin: 0;
-  font-size: 1rem;
-`
-
-const Section = styled(Panel)`
-  color: ${({ theme }) => theme.text1};
-  white-space: pre-line;
-  width: fit-content;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-
-  & > * {
-    color: ${({ theme }) => theme.text1};
-    font-weight: 500;
-    font-size: 1rem;
-    margin: 0;
-  }
 `
 
 const Text = styled.p`
   color: ${({ theme }) => theme.text1};
   white-space: pre-line;
+  line-height: 1.5rem;
+  font-size: 1rem;
+  margin: 0 auto;
+  word-break: break-all;
 `
-
-const Message = ({ text }) => {
-  if (text.includes('Daily news round-up with the')) {
-    return <Header>{text}</Header>
-  }
-
-  const textParts = text.split('\n')
-
-  if (textParts) {
-    if (textParts.length === 1) {
-      return <SubHeader>{textParts[0].split('**').join(' ')}</SubHeader>
-    }
-
-    return (
-      <Section>
-        {textParts.map((t) =>
-          t.includes('https://') ? (
-            <a href={t} target="_blank" rel="noreferrer noopener">
-              {t}
-            </a>
-          ) : t.includes('**') ? (
-            <SubHeader>{t.split('**').join(' ')}</SubHeader>
-          ) : (
-            <Text>{t}</Text>
-          )
-        )}
-      </Section>
-    )
-  }
-
-  return <Text>{text}</Text>
-}
 
 export default function Chains({ messages }) {
   return (
-    <Layout title={`Daily Roundup - DefiLlama`} backgroundColor={transparentize(0.8, '#445ed0')} defaultSEO>
-      {messages.map((m, i) => (
-        <Message key={'roundup' + i} text={m} />
-      ))}
+    <Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
+      <Header>Daily news round-up with the 🦙</Header>
+      <Text>{messages}</Text>
     </Layout>
   )
 }
@@ -106,11 +52,12 @@ export async function getStaticProps() {
     .reverse()
     .map((m) => m.content)
     .join('')
-    .split('\n\n')
+
+  const splitLlama = messages.split('🦙')
 
   return {
     props: {
-      messages,
+      messages: splitLlama[1],
     },
     revalidate: revalidate(),
   }
