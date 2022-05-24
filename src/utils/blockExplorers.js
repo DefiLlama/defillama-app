@@ -20,7 +20,7 @@ const blockExplorers = {
   energyweb: ['https://explorer.energyweb.org/address/', 'EnergyWeb'],
   cronos: ['https://cronos.crypto.org/explorer/address/', 'Cronos Explorer'],
   harmony: ['https://explorer.harmony.one/address/', 'Harmony Explorer'],
-  tron: ['https://tronscan.org/#/', 'Tronscan'],
+  tron: ['https://tronscan.org/#/contract/', 'Tronscan'],
   kucoin: ['https://explorer.kcc.io/en/address/', 'KCC Explorer'],
   iotex: ['https://iotexscan.io/address/', 'IoTeX Explorer'],
   callisto: ['https://explorer.callisto.network/address/', 'Callisto Explorer'],
