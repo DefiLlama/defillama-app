@@ -270,7 +270,7 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
 
-      <Search step={{ category: 'Protocols', name, color: backgroundColor }} />
+      <Search step={{ category: 'Protocols', name }} />
 
       <ToggleAlert chainTvls={chainTvls} />
 
@@ -366,8 +366,8 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
           <Section>
             <h3>Token Information</h3>
             <Address>
-              <span>Address: {address ? address.slice(0, 8) + '...' + address?.slice(36, 42) : '-'}</span>{' '}
-              <CopyHelper toCopy={address} disabled={!address} />
+              <span>Address : {address ? address.slice(0, 8) + '...' + address?.slice(36, 42) : ''}</span>{' '}
+              {address && <CopyHelper toCopy={address} disabled={!address} />}
             </Address>
             <LinksWrapper>
               {protocolData.gecko_id !== null && (

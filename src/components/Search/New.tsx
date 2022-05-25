@@ -160,7 +160,6 @@ interface IStep {
   category: string
   name: string
   route?: string
-  color?: string
   hideOptions?: boolean
 }
 
@@ -259,7 +258,7 @@ const Options = ({ step }: { step: IStep }) => {
       <p>
         <Link href={`/${step.route || step.category.toLowerCase()}`}>{step.category}</Link>
         <ArrowRight size={16} />
-        <span style={{ color: step.color ?? 'var(--step-color)' }}>{step.name}</span>
+        <span style={{ color: 'var(--step-color)' }}>{step.name}</span>
       </p>
 
       {/* below components will render base on breakpoint */}
