@@ -107,6 +107,12 @@ const OptionsWrapper = styled.div`
       font-size: 0.875rem;
     }
   }
+
+  a {
+    :focus-visible {
+      outline: ${({ theme }) => '1px solid ' + theme.text4};
+    }
+  }
 `
 
 const IconWrapper = styled.div`

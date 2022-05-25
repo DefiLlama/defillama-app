@@ -1,5 +1,16 @@
 @import url('https://rsms.me/inter/inter.css');
 
+:root {
+  --font-jetbrains: 'JetBrains Mono', monospace;
+  --font-inter: 'Inter var', sans-serif;
+}
+
+@supports (font-variation-settings: normal) {
+  :root {
+    --font-inter: 'Inter var', sans-serif;
+  }
+}
+
 html,
 body {
   margin: 0;
@@ -9,13 +20,7 @@ body {
 }
 
 html {
-  font-family: 'Inter', sans-serif;
-}
-
-@supports (font-variation-settings: normal) {
-  html {
-    font-family: 'Inter var', sans-serif;
-  }
+  font-family: var(--font-inter);
 }
 
 a {

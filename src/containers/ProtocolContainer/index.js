@@ -5,7 +5,6 @@ import { transparentize } from 'polished'
 import { ButtonLight } from 'components/ButtonStyled'
 import CopyHelper from 'components/Copy'
 import FormattedName from 'components/FormattedName'
-import Link, { BasicLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
 import { useCalcSingleExtraTvl } from '../../hooks/data'
 import { useScrollToTop, useProtocolColor } from 'hooks'
@@ -16,6 +15,7 @@ import Layout from 'layout'
 import { Panel } from 'components'
 import { ArrowUpRight } from 'react-feather'
 import AuditInfo from 'components/AuditInfo'
+import Link from "next/link"
 
 const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
 
@@ -94,13 +94,19 @@ const Table = styled.table`
     font-size: 0.875rem;
     text-align: right;
     padding: 4px 0 0 0;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-jetbrains);
 
-    button {
+    button, a {
       margin-left: auto;
-      font-family: 'Inter var', sans-serif;
+      width: min-content;
     }
   }
+
+  a {
+    color: ${({ theme }) => theme.text1};
+    :focus-visible {
+      outline: ${({ theme }) => '1px solid ' + theme.text4};
+    }
 `
 
 const Tvl = styled.p`
@@ -201,18 +207,17 @@ const Button = styled(ButtonLight)`
   font-weight: 400;
   border: none;
   white-space: nowrap;
+  font-family: var(--font-inter);
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+  }
 `
 
 const Address = styled.p`
   display: flex;
   align-items: center;
   margin: 0;
-  gap: 8px;
-`
-
-const Audits = styled.label`
-  display: flex;
-  align-items: center;
   gap: 8px;
 `
 
@@ -306,14 +311,14 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
               <tr>
                 <th>
                   {category && (
-                    <BasicLink href={`/protocols/${category.toLowerCase()}`}>
-                      <FormattedName text={category} maxCharacters={16} />
-                    </BasicLink>
+                    <Link href={`/protocols/${category.toLowerCase()}`}>
+                      {category}
+                    </Link>
                   )}
                 </th>
                 <td>
-                  <Link color={backgroundColor} external href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-                    <Button useTextColor={true} color={backgroundColor}>
+                  <Link external href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+                    <Button as="a" useTextColor={true} color={backgroundColor}>
                       <span>Download Dataset</span>
                       <ArrowUpRight size={14} />
                     </Button>
@@ -352,12 +357,12 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
             <AuditInfo audits={audits} auditLinks={audit_links} />
             <LinksWrapper>
               <Link external href={url} passHref>
-                <Button useTextColor={true} color={backgroundColor}>
+                <Button as="a" useTextColor={true} color={backgroundColor}>
                   <span>Website</span> <ArrowUpRight size={14} />
                 </Button>
               </Link>
               <Link external href={`https://twitter.com/${twitter}`} passHref>
-                <Button useTextColor={true} color={backgroundColor}>
+                <Button as="a" useTextColor={true} color={backgroundColor}>
                   <span>Twitter</span> <ArrowUpRight size={14} />
                 </Button>
               </Link>
@@ -366,20 +371,23 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
           <Section>
             <h3>Token Information</h3>
             <Address>
-              <span>Address : {address ? address.slice(0, 8) + '...' + address?.slice(36, 42) : ''}</span>{' '}
-              {address && <CopyHelper toCopy={address} disabled={!address} />}
+              {address ?
+                <>
+                  <span>Address : {address.slice(0, 8) + '...' + address?.slice(36, 42)}</span>
+                  <CopyHelper toCopy={address} disabled={!address} />
+                </> : "No Token"}
             </Address>
             <LinksWrapper>
               {protocolData.gecko_id !== null && (
                 <Link external href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
-                  <Button useTextColor={true} color={backgroundColor}>
+                  <Button as="a" useTextColor={true} color={backgroundColor}>
                     <span>View on CoinGecko</span> <ArrowUpRight size={14} />
                   </Button>
                 </Link>
               )}
               {blockExplorerLink !== undefined && (
                 <Link external href={blockExplorerLink} passHref>
-                  <Button useTextColor={true} color={backgroundColor}>
+                  <Button as="a" useTextColor={true} color={backgroundColor}>
                     <span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
                   </Button>
                 </Link>
@@ -388,10 +396,10 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
           </Section>
           <Section>
             <h3>Methodology</h3>
-            <p>{methodology}</p>
+            {methodology && <p>{methodology}</p>}
             <LinksWrapper>
-              <Link external href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}>
-                <Button useTextColor={true} color={backgroundColor}>
+              <Link external href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
+                <Button as="a" useTextColor={true} color={backgroundColor}>
                   <span>Check the code</span>
                   <ArrowUpRight size={14} />
                 </Button>
