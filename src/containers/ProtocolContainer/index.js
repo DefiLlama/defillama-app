@@ -43,15 +43,17 @@ const ProtocolDetails = styled.div`
   gap: 36px;
   padding: 24px;
   color: ${({ theme }) => theme.text1};
-  border-radius: 12px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
   background: ${({ theme }) => theme.bg7};
   min-height: 360px;
   overflow: auto;
 
-  ${({ theme: { minLg } }) => minLg} {
+  @media (min-width: 80rem) {
     min-width: 380px;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
+    border-bottom-left-radius: 12px;
   }
 `
 
@@ -140,7 +142,7 @@ const InfoWrapper = styled.div`
   grid-template-rows: repeat(3, auto);
   box-shadow: ${({ theme }) => theme.shadowSm};
 
-  ${({ theme: { minLg } }) => minLg} {
+  @media (min-width: 80rem) {
     grid-template-rows: repeat(2, auto);
   }
 `
@@ -176,7 +178,7 @@ const Section = styled.section`
     line-height: 1.5rem;
   }
 
-  ${({ theme: { minLg } }) => minLg} {
+  @media (min-width: 80rem) {
     h3:not(:first-of-type) {
       margin-top: 24px;
     }
