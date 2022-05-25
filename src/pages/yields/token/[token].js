@@ -19,6 +19,7 @@ import QuestionHelper from 'components/QuestionHelper'
 import LocalLoader from 'components/LocalLoader'
 import Filters from 'components/Filters'
 import { ListHeader, ListOptions } from 'components/ChainPage'
+import { TableWrapper } from 'components/YieldsPage'
 
 const YieldPage = () => {
   // load the full data once
@@ -123,7 +124,7 @@ const YieldPage = () => {
       {poolData === undefined ? (
         <LocalLoader />
       ) : (
-        <Table
+        <TableWrapper
           data={pools.map((t) => ({
             id: t.pool,
             pool: t.symbol,
