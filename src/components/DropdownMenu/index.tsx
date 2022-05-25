@@ -3,7 +3,7 @@ import { transparentize } from 'polished'
 import styled from 'styled-components'
 
 interface IMenuTrigger {
-  backgroundColor?: string
+  color?: string
 }
 
 // TODO replace this component with ariakit
@@ -70,8 +70,7 @@ const StyledMenuTrigger = styled(DropdownMenuPrimitive.Trigger)`
 `
 
 export const DefaultMenuButton = styled(StyledMenuTrigger)<IMenuTrigger>`
-  background-color: ${({ theme, backgroundColor }) =>
-    backgroundColor ? transparentize(0.9, backgroundColor) : theme.bg1};
+  background-color: ${({ theme, color }) => (color ? transparentize(0.9, color) : theme.bg1)};
   border: none;
   border-radius: 12px;
   font-weight: 400;
@@ -81,8 +80,7 @@ export const DefaultMenuButton = styled(StyledMenuTrigger)<IMenuTrigger>`
 
   :hover,
   :focus-visible {
-    background-color: ${({ theme, backgroundColor }) =>
-      backgroundColor ? transparentize(0.8, backgroundColor) : theme.bg3};
+    background-color: ${({ theme, color }) => (color ? transparentize(0.8, color) : theme.bg3)};
   }
 
   :focus-visible {

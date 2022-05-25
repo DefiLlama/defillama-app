@@ -11,7 +11,6 @@ import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { DeFiTvlOptions } from 'components/Select'
 import { FixedSizeList } from 'react-window'
 import { useFetchProtocolsList } from 'utils/dataApi'
-import { useMinLg, useMinTwoXl } from 'hooks'
 
 const Wrapper = styled.nav`
   display: flex;
@@ -259,9 +258,6 @@ const Row = ({ index, style, data }) => {
 }
 
 const Options = ({ step }: { step: IStep }) => {
-  const isLg = useMinLg()
-  const is2Xl = useMinTwoXl()
-
   return (
     <OptionsWrapper>
       <p>
@@ -271,16 +267,14 @@ const Options = ({ step }: { step: IStep }) => {
       </p>
 
       {/* below components will render base on breakpoint */}
-      {!step.hideOptions && isLg && (
+      {!step.hideOptions && (
         <>
-          {is2Xl ? (
-            <Filters>
-              <label>INCLUDE IN TVL</label>
-              <AllTvlOptions style={{ display: 'flex', justifyContent: 'flex-end', margin: 0, fontSize: '0.875rem' }} />
-            </Filters>
-          ) : (
-            <DropdownOptions />
-          )}
+          <Filters>
+            <label>INCLUDE IN TVL</label>
+            <AllTvlOptions style={{ display: 'flex', justifyContent: 'flex-end', margin: 0, fontSize: '0.875rem' }} />
+          </Filters>
+
+          <DropdownOptions />
         </>
       )}
     </OptionsWrapper>

@@ -1,6 +1,6 @@
+import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import React, { useMemo } from 'react'
-import TokenChart from '../TokenChart'
-import { useGetExtraTvlEnabled } from '../../contexts/LocalStorage'
+import TokenChart from '.'
 
 const ProtocolChart = ({
   chartData = [],
@@ -35,9 +35,7 @@ const ProtocolChart = ({
     } else return chartData
   }, [chartData, chainTvls, sections])
 
-  return (
-    <div></div>
-  )
+  return <div></div>
 }
 
 export default ProtocolChart

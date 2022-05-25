@@ -17,7 +17,7 @@ import { ArrowUpRight } from 'react-feather'
 import AuditInfo from 'components/AuditInfo'
 import Link from "next/link"
 
-const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
+const ProtocolChart = dynamic(() => import('components/TokenChart/ProtocolChart'), { ssr: false })
 
 const Stats = styled.section`
   display: flex;
@@ -29,11 +29,10 @@ const Stats = styled.section`
 
   & > *:last-child {
     padding: 22px;
-    display: flex;
-    width: 100%;
+    flex: 1;
   }
 
-  @media screen and (min-width: 75.5rem) {
+  @media (min-width: 80rem) {
     flex-direction: row;
   }
 `
@@ -47,6 +46,7 @@ const ProtocolDetails = styled.div`
   border-radius: 12px;
   background: ${({ theme }) => theme.bg7};
   min-height: 360px;
+  overflow: auto;
 
   ${({ theme: { minLg } }) => minLg} {
     min-width: 380px;
@@ -87,34 +87,40 @@ const Table = styled.table`
     font-weight: 600;
     font-size: 1rem;
     text-align: start;
-    padding: 4px 0 0 0;
+    padding: 4px 4px 0 0;
   }
 
   td {
     font-weight: 400;
     font-size: 0.875rem;
     text-align: right;
-    padding: 4px 0 0 0;
+    padding: 4px 0 0 4px;
     font-family: var(--font-jetbrains);
-
-    button, a {
-      margin-left: auto;
-      width: min-content;
-    }
   }
 
   a {
-    color: ${({ theme }) => theme.text1};
+    color: inherit;
+
     :focus-visible {
       outline: ${({ theme }) => '1px solid ' + theme.text4};
     }
+  }
 `
+
 
 const Tvl = styled.p`
   font-weight: 700;
   font-size: 2rem;
   padding: 0;
   margin: -28px 0 0;
+`
+
+const Category = styled.section`
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(36px - 0.4375rem);
+  align-items: flex-end;
+  justify-content: space-between;
 `
 
 const SectionHeader = styled.h2`
@@ -217,6 +223,11 @@ const Button = styled(ButtonLight)`
   }
 `
 
+const DownloadButton = styled(Button)`
+  position: relative;
+  top: 0.4375rem;
+`
+
 const Address = styled.p`
   display: flex;
   align-items: center;
@@ -308,29 +319,29 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
             </Table>
           )}
 
-          <Table>
-            <caption>{category && 'Category'}</caption>
-            <tbody>
-              <tr>
-                <th>
-                  {category && (
+          <Category>
+            {category && <Table>
+              <caption>Category</caption>
+              <tbody>
+                <tr>
+                  <th>
                     <Link href={`/protocols/${category.toLowerCase()}`}>
                       {category}
                     </Link>
-                  )}
-                </th>
-                <td>
-                  <Link external href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-                    <Button as="a" useTextColor={true} color={backgroundColor}>
-                      <span>Download Dataset</span>
-                      <ArrowUpRight size={14} />
-                    </Button>
-                  </Link>
-                </td>
-              </tr>
-            </tbody>
-          </Table>
+                  </th>
+                </tr>
+              </tbody>
+            </Table>}
+
+            <Link external href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+              <DownloadButton as="a" useTextColor={true} color={backgroundColor}>
+                <span>Download Dataset</span>
+                <ArrowUpRight size={14} />
+              </DownloadButton>
+            </Link>
+          </Category>
         </ProtocolDetails>
+
         <div>
           <ProtocolChart
             denomination={denomination}
@@ -357,7 +368,7 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
           <Section>
             <h3>Protocol Information</h3>
             <p>{description}</p>
-            <AuditInfo audits={audits} auditLinks={audit_links} backgroundColor={backgroundColor} />
+            <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />
             <LinksWrapper>
               <Link external href={url} passHref>
                 <Button as="a" useTextColor={true} color={backgroundColor}>
@@ -376,7 +387,7 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
             <Address>
               {address ?
                 <>
-                  <span>Address : {address.slice(0, 8) + '...' + address?.slice(36, 42)}</span>
+                  <span>Address</span><span>:</span><span>{address.slice(0, 8) + '...' + address?.slice(36, 42)}</span>
                   <CopyHelper toCopy={address} disabled={!address} />
                 </> : "No Token"}
             </Address>
