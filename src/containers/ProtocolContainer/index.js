@@ -206,7 +206,7 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
 
-      <Search step={{ category: 'Protocols', name, color: backgroundColor }} />
+      <Search step={{ category: 'Protocols', name }} />
 
       <DashboardWrapper mt={[0, 0, '1rem']}>
         <ToggleAlert chainTvls={chainTvls} />
