@@ -81,10 +81,10 @@ const YieldPage = () => {
       Cell: ({ value }) => <>{value}</>,
     },
     {
-      header: 'Probability',
-      accessor: 'probability',
-      helperText: 'Predicted probability of outlook',
-      Cell: ({ value }) => <>{value === null ? null : value.toFixed(2) + '%'}</>,
+      header: 'Confidence',
+      accessor: 'confidence',
+      helperText: 'Predicted confidence of outlook: 1 = Low, 2 = Medium, 3 = High',
+      Cell: ({ value }) => <>{value === null ? null : value}</>,
     },
   ]
 
@@ -135,7 +135,7 @@ const YieldPage = () => {
             change1d: t.apyPct1D,
             change7d: t.apyPct7D,
             outlook: t.predictions.predictedClass,
-            probability: t.predictions.predictedProbability,
+            confidence: t.predictions.binnedConfidence,
           }))}
           secondColumnAlign="start"
           columns={columns}
