@@ -36,8 +36,6 @@ export const SelectMenu = styled(AriaSelect)`
   padding: 12px;
   border-radius: 12px;
   border: none;
-  box-shadow: 0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04),
-    0px 0px 1px rgba(0, 0, 0, 0.04);
   margin: 0;
   width: 200px;
 
@@ -57,15 +55,10 @@ export const Popover = styled(SelectPopover)`
   color: ${({ theme }) => theme.text1};
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
-  box-shadow: 0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04),
-    0px 0px 1px rgba(0, 0, 0, 0.04);
+  box-shadow: ${({ theme }) => theme.shadowLg};
   margin: 0;
   z-index: 100;
-
-  :focus-visible,
-  &[data-focus-visible] {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
+  outline: ${({ theme }) => '1px solid ' + theme.text5};
 `
 export const Item = styled(SelectItem)`
   padding: 12px 4px;
@@ -77,6 +70,11 @@ export const Item = styled(SelectItem)`
   &[data-focus-visible] {
     outline: none;
     background: ${({ theme }) => theme.bg3};
+  }
+
+  &:last-of-type {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
   }
 `
 
@@ -114,7 +112,7 @@ export function DeFiTvlOptions(props) {
     setValue: onChange,
     defaultValue: selectedOptions,
     sameWidth: true,
-    gutter: 8,
+    gutter: 6,
   })
 
   return (

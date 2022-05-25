@@ -13,18 +13,19 @@ const Audits = styled.section`
 interface IProps {
   audits: number
   auditLinks: string[]
+  backgroundColor?: string
 }
 
-const AuditInfo = ({ audits, auditLinks = [], ...props }: IProps) => {
+const AuditInfo = ({ audits, auditLinks = [], backgroundColor, ...props }: IProps) => {
   return (
     <Audits {...props}>
       <HeadHelp title="Audits" text="Audits are not a guarantee of security." />
       {' : '}
       {audits > 0 ? (
         <DropdownMenu>
-          <DefaultMenuButton>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>Yes</span>
-            <ChevronDown size={16} style={{ flexShrink: '0' }} />
+          <DefaultMenuButton backgroundColor={backgroundColor}>
+            <span>Yes</span>
+            <ChevronDown size={14} />
           </DefaultMenuButton>
           <DropdownMenuContent sideOffset={5} style={{ maxWidth: '300px' }}>
             {auditLinks?.map((d) => (

@@ -67,8 +67,6 @@ const theme = (darkMode, color) => ({
   secondary2: darkMode ? '#17000b26' : '#F6DDE8',
   secondary3: darkMode ? '#17000b26' : '#FDEAF1',
 
-  shadow1: darkMode ? '#000' : '#2F80ED',
-
   // other
   red1: '#FF6871',
   green1: '#27AE60',
@@ -77,6 +75,13 @@ const theme = (darkMode, color) => ({
   link: '#2172E5',
   blue: '#2f80ed',
   background: darkMode ? 'black' : `radial-gradient(50% 50% at 50% 50%, #445ed0 0%, #fff 0%)`,
+
+  //shadow
+  shadow1: darkMode ? '#000' : '#2F80ED',
+  shadowSm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+  shadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+  shadowMd: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+  shadowLg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
 
   // breakpoints
   bpSm: `${sm}px`,

@@ -2,6 +2,10 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 
+interface IMenuTrigger {
+  backgroundColor?: string
+}
+
 // TODO replace this component with ariakit
 const StyledContent = styled(DropdownMenuPrimitive.Content)`
   max-height: 400px;
@@ -53,7 +57,7 @@ const StyledMenuTrigger = styled(DropdownMenuPrimitive.Trigger)`
   white-space: nowrap;
 
   :hover,
-  :focus {
+  :focus-visible {
     cursor: pointer;
     background-color: ${({ theme }) => transparentize(0.8, theme.primary1)};
   }
@@ -65,19 +69,33 @@ const StyledMenuTrigger = styled(DropdownMenuPrimitive.Trigger)`
   }
 `
 
-export const DefaultMenuButton = styled(StyledMenuTrigger)`
-  background-color: ${({ theme }) => theme.bg1};
-  border: 1px solid rgba(0, 0, 0, 0.15);
+export const DefaultMenuButton = styled(StyledMenuTrigger)<IMenuTrigger>`
+  background-color: ${({ theme, backgroundColor }) =>
+    backgroundColor ? transparentize(0.9, backgroundColor) : theme.bg1};
+  border: none;
+  border-radius: 12px;
+  font-weight: 400;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
 
   :hover,
-  :focus {
-    background-color: ${({ theme }) => theme.bg3};
+  :focus-visible {
+    background-color: ${({ theme, backgroundColor }) =>
+      backgroundColor ? transparentize(0.8, backgroundColor) : theme.bg3};
+  }
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
   }
 `
 
 export const DefaultMenuItem = styled(StyledItem)`
+  font-weight: 400;
+  font-size: 0.875rem;
+
   :hover,
-  :focus {
+  :focus-visible {
     background-color: ${({ theme }) => theme.bg3};
   }
 `

@@ -11,6 +11,7 @@ import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { DeFiTvlOptions } from 'components/Select'
 import { FixedSizeList } from 'react-window'
 import { useFetchProtocolsList } from 'utils/dataApi'
+import { useMinLg, useMinTwoXl } from 'hooks'
 
 const Wrapper = styled.nav`
   display: flex;
@@ -27,8 +28,6 @@ const Box = styled(Combobox)`
   outline: none;
   color: ${({ theme }) => theme.text1};
   font-size: 1rem;
-  box-shadow: 0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04),
-    0px 0px 1px rgba(0, 0, 0, 0.04);
   margin: 0;
 
   ::placeholder {
@@ -49,8 +48,9 @@ const Popover = styled(ComboboxPopover)`
   z-index: 100;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
-  box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04),
-    0px 24px 32px rgba(0, 0, 0, 0.04);
+  outline: ${({ theme }) => '1px solid ' + theme.text5};
+  box-shadow: ${({ theme }) => theme.shadowLg};
+  margin: 0;
 
   ${({ theme: { minLg } }) => minLg} {
     max-height: 320px;
@@ -91,8 +91,7 @@ const OptionsWrapper = styled.div`
   gap: 8px;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
-  box-shadow: 0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04),
-    0px 0px 1px rgba(0, 0, 0, 0.04);
+  box-shadow: ${({ theme }) => theme.shadowSm};
   background: ${({ theme }) => transparentize(0.4, theme.bg6)};
   --step-color: ${({ theme }) => (theme.mode === 'dark' ? '#7e96ff' : '#475590')};
 
@@ -199,7 +198,7 @@ const SearchDefault = ({ data, loading = false, step }: ISearchProps) => {
     return pathname.startsWith('/protocol') ? [...protocolData, ...chainData] : [...chainData, ...protocolData]
   }, [data, pathname])
 
-  const combobox = useComboboxState({ gutter: 8, sameWidth: true, list: searchData.map((x) => x.name) })
+  const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: searchData.map((x) => x.name) })
 
   // Resets combobox value when popover is collapsed
   if (!combobox.mounted && combobox.value) {
@@ -260,6 +259,9 @@ const Row = ({ index, style, data }) => {
 }
 
 const Options = ({ step }: { step: IStep }) => {
+  const isLg = useMinLg()
+  const is2Xl = useMinTwoXl()
+
   return (
     <OptionsWrapper>
       <p>
@@ -269,14 +271,16 @@ const Options = ({ step }: { step: IStep }) => {
       </p>
 
       {/* below components will render base on breakpoint */}
-      {!step.hideOptions && (
+      {!step.hideOptions && isLg && (
         <>
-          <DropdownOptions />
-
-          <Filters>
-            <label>INCLUDE IN TVL</label>
-            <AllTvlOptions style={{ display: 'flex', justifyContent: 'flex-end', margin: 0, fontSize: '0.875rem' }} />
-          </Filters>
+          {is2Xl ? (
+            <Filters>
+              <label>INCLUDE IN TVL</label>
+              <AllTvlOptions style={{ display: 'flex', justifyContent: 'flex-end', margin: 0, fontSize: '0.875rem' }} />
+            </Filters>
+          ) : (
+            <DropdownOptions />
+          )}
         </>
       )}
     </OptionsWrapper>

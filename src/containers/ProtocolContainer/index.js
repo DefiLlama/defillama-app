@@ -25,6 +25,7 @@ const Stats = styled.section`
   border-radius: 12px;
   background: ${({ theme }) => theme.bg6};
   border: ${({ theme }) => '1px solid ' + theme.divider};
+  box-shadow: ${({ theme }) => theme.shadowSm};
 
   & > *:last-child {
     padding: 22px;
@@ -131,6 +132,7 @@ const InfoWrapper = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: repeat(3, auto);
+  box-shadow: ${({ theme }) => theme.shadowSm};
 
   ${({ theme: { minLg } }) => minLg} {
     grid-template-rows: repeat(2, auto);
@@ -204,6 +206,7 @@ const Button = styled(ButtonLight)`
   gap: 4px;
   align-items: center;
   padding: 8px 12px;
+  font-size: 0.875rem;
   font-weight: 400;
   border: none;
   white-space: nowrap;
@@ -354,7 +357,7 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
           <Section>
             <h3>Protocol Information</h3>
             <p>{description}</p>
-            <AuditInfo audits={audits} auditLinks={audit_links} />
+            <AuditInfo audits={audits} auditLinks={audit_links} backgroundColor={backgroundColor} />
             <LinksWrapper>
               <Link external href={url} passHref>
                 <Button as="a" useTextColor={true} color={backgroundColor}>

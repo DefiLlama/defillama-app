@@ -15,10 +15,14 @@ const CopyIcon = styled.button`
 
   :hover,
   :active,
-  :focus {
+  :focus-visible {
     text-decoration: none;
     opacity: 0.8;
     cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
   }
 
   & > svg {
