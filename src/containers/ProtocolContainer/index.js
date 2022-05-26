@@ -7,7 +7,7 @@ import CopyHelper from 'components/Copy'
 import FormattedName from 'components/FormattedName'
 import TokenLogo from 'components/TokenLogo'
 import { useCalcSingleExtraTvl } from '../../hooks/data'
-import { useScrollToTop, useProtocolColor } from 'hooks'
+import { useScrollToTop } from 'hooks'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
 import Search from 'components/Search/New'
@@ -253,7 +253,7 @@ function ToggleAlert({ chainTvls }) {
 }
 
 // TODO bookmakrt and percent change
-function ProtocolContainer({ title, protocolData, protocol, denomination, selectedChain }) {
+function ProtocolContainer({ title, protocolData, protocol, denomination, selectedChain, backgroundColor }) {
   useScrollToTop()
 
   let {
@@ -280,7 +280,7 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
     module: codeModule,
     isHourlyChart,
   } = protocolData
-  const backgroundColor = useProtocolColor({ protocol, logo, transparent: false })
+
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
   const totalVolume = useCalcSingleExtraTvl(chainTvls, tvl)

@@ -1,6 +1,7 @@
 import ProtocolContainer from 'containers/ProtocolContainer'
 import { standardizeProtocolName } from 'utils'
 import { getProtocols, getProtocol, fuseProtocolData, revalidate } from 'utils/dataApi'
+import getColor from 'utils/getColor'
 
 export async function getStaticProps({
   params: {
@@ -27,12 +28,15 @@ export async function getStaticProps({
 
   const protocolData = fuseProtocolData(protocolRes, protocol)
 
+  const backgroundColor = await getColor({ protocol, logo: protocolData.logo })
+
   return {
     props: {
       protocol,
       protocolData,
       selectedChain,
       denomination,
+      backgroundColor
     },
     revalidate: revalidate(),
   }
@@ -48,14 +52,13 @@ export async function getStaticPaths() {
   return { paths, fallback: 'blocking' }
 }
 
-export default function Protocols({ denomination, selectedChain, protocol, protocolData }) {
+export default function Protocols({ denomination, protocolData, ...props }) {
   return (
     <ProtocolContainer
       title={`${protocolData.name}: TVL and stats - DefiLlama`}
-      protocol={protocol}
       protocolData={protocolData}
       denomination={denomination ?? undefined}
-      selectedChain={selectedChain}
+      {...props}
     />
   )
 }

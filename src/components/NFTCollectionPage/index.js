@@ -17,7 +17,6 @@ import Column from '../../components/Column'
 import HeadHelp from '../../components/HeadHelp'
 import CopyHelper from '../../components/Copy'
 import { TYPE } from '../../Theme'
-import { useProtocolColor } from 'hooks'
 import { chainCoingeckoIds } from '../../constants/chainTokens'
 import LocalLoader from 'components/LocalLoader'
 import { useHideLastDayManager, useDisplayUsdManager } from '../../contexts/LocalStorage'
@@ -147,7 +146,7 @@ const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
   ssr: false,
 })
 
-function NFTCollectionPage({ collection, chart, statistics, title }) {
+function NFTCollectionPage({ collection, chart, statistics, title, backgroundColor }) {
   const [hideLastDay] = useHideLastDayManager()
   const [displayUsd] = useDisplayUsdManager()
   const below1024 = useMedia('(max-width: 1024px)')
@@ -158,7 +157,6 @@ function NFTCollectionPage({ collection, chart, statistics, title }) {
     description,
     logo,
     name,
-    slug,
     website,
     discord_url,
     telegram_url,
@@ -170,8 +168,6 @@ function NFTCollectionPage({ collection, chart, statistics, title }) {
   } = collection || {}
 
   const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics || {}
-
-  const backgroundColor = useProtocolColor({ protocol: slug, logo, transparent: false })
 
   const links = {
     website: website || '',
