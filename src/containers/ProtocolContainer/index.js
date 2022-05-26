@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
@@ -8,16 +8,16 @@ import FormattedName from 'components/FormattedName'
 import TokenLogo from 'components/TokenLogo'
 import { useCalcSingleExtraTvl } from '../../hooks/data'
 import { useScrollToTop } from 'hooks'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from 'utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK, toNiceDate, toNiceMonthlyDate } from 'utils'
 import SEO from 'components/SEO'
 import Search from 'components/Search/New'
 import Layout from 'layout'
 import { Panel } from 'components'
 import { ArrowUpRight } from 'react-feather'
 import AuditInfo from 'components/AuditInfo'
-import Link from "next/link"
+import Link from 'next/link'
 
-const ProtocolChart = dynamic(() => import('components/TokenChart/ProtocolChart'), { ssr: false })
+const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false })
 
 const Stats = styled.section`
   display: flex;
@@ -28,8 +28,7 @@ const Stats = styled.section`
   box-shadow: ${({ theme }) => theme.shadowSm};
 
   & > *:last-child {
-    padding: 22px;
-    flex: 1;
+    min-height: 300px;
   }
 
   @media (min-width: 80rem) {
@@ -42,15 +41,16 @@ const ProtocolDetails = styled.div`
   flex-direction: column;
   gap: 36px;
   padding: 24px;
+  padding-bottom: calc(24px + 0.4375rem);
   color: ${({ theme }) => theme.text1};
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
   background: ${({ theme }) => theme.bg7};
-  min-height: 360px;
   overflow: auto;
 
   @media (min-width: 80rem) {
     min-width: 380px;
+    min-height: 400px;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 12px;
@@ -109,7 +109,6 @@ const Table = styled.table`
   }
 `
 
-
 const Tvl = styled.p`
   font-weight: 700;
   font-size: 2rem;
@@ -153,6 +152,7 @@ const Section = styled.section`
   flex-direction: column;
   gap: 16px;
   padding: 24px 0;
+  border-bottom: 1px solid transparent;
 
   h3 {
     font-weight: 600;
@@ -171,6 +171,7 @@ const Section = styled.section`
 
   &:last-of-type {
     padding-bottom: 0;
+    border-bottom: none;
   }
 
   p {
@@ -185,11 +186,14 @@ const Section = styled.section`
 
     &:nth-child(1) {
       grid-column: 1 / 2;
+      border-right: 1px solid transparent;
     }
 
     &:nth-child(2) {
       grid-column: 1 / 2;
       padding-bottom: 0;
+      border-right: 1px solid transparent;
+      border-bottom: none;
     }
 
     &:nth-child(3) {
@@ -237,14 +241,14 @@ const Address = styled.p`
   gap: 8px;
 `
 
-function ToggleAlert({ chainTvls }) {
+function ToggleAlert({ tvlBreakdowns }) {
   const isLowerCase = (letter) => letter === letter.toLowerCase()
-  const extraTvls = Object.keys(chainTvls).filter((section) => isLowerCase(section[0]))
+  const extraTvls = Object.keys(tvlBreakdowns).filter((section) => isLowerCase(section[0]))
   if (extraTvls.length === 0) {
     return null
   }
   return (
-    <Panel style={{ margin: "-22px 1px" }}>
+    <Panel style={{ margin: '-22px 1px' }}>
       <p style={{ margin: '0', textAlign: 'center' }}>
         This protocol has some TVL that's classified as {extraTvls.join('/')}, enable the toggles to see it
       </p>
@@ -252,8 +256,8 @@ function ToggleAlert({ chainTvls }) {
   )
 }
 
-// TODO bookmakrt and percent change
-function ProtocolContainer({ title, protocolData, protocol, denomination, selectedChain, backgroundColor }) {
+// TODO bookmark and percent change
+function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
   useScrollToTop()
 
   let {
@@ -263,29 +267,26 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
     url,
     description,
     tvl,
-    priceUSD,
-    misrepresentedTokens,
     logo,
     audits,
     category,
-    tvlList: chartData,
-    tokensInUsd,
-    tokens,
     twitter,
-    chains,
-    chainTvls = {},
-    historicalChainTvls,
+    tvlBreakdowns = {},
+    tvlChartData,
     audit_links,
     methodology,
     module: codeModule,
-    isHourlyChart,
   } = protocolData
 
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
-  const totalVolume = useCalcSingleExtraTvl(chainTvls, tvl)
+  const totalVolume = useCalcSingleExtraTvl(tvlBreakdowns, tvl)
 
-  const tvlByChain = Object.entries(chainTvls || {})
+  const tvlByChain = Object.entries(tvlBreakdowns || {})
+
+  const formatDate = (date) => (tvlChartData?.length > 120 ? toNiceMonthlyDate(date) : toNiceDate(date))
+
+  const statsContainer = useRef(null)
 
   return (
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
@@ -293,9 +294,9 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
 
       <Search step={{ category: 'Protocols', name }} />
 
-      <ToggleAlert chainTvls={chainTvls} />
+      <ToggleAlert tvlBreakdowns={tvlBreakdowns} />
 
-      <Stats>
+      <Stats ref={statsContainer}>
         <ProtocolDetails>
           <ProtocolName>
             <TokenLogo address={address} logo={logo} size={24} />
@@ -322,18 +323,18 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
           )}
 
           <Category>
-            {category && <Table>
-              <caption>Category</caption>
-              <tbody>
-                <tr>
-                  <th>
-                    <Link href={`/protocols/${category.toLowerCase()}`}>
-                      {category}
-                    </Link>
-                  </th>
-                </tr>
-              </tbody>
-            </Table>}
+            {category && (
+              <Table>
+                <caption>Category</caption>
+                <tbody>
+                  <tr>
+                    <th>
+                      <Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+                    </th>
+                  </tr>
+                </tbody>
+              </Table>
+            )}
 
             <Link external href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
               <DownloadButton as="a" useTextColor={true} color={backgroundColor}>
@@ -344,22 +345,14 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
           </Category>
         </ProtocolDetails>
 
-        <div>
-          <ProtocolChart
-            denomination={denomination}
-            chartData={chartData}
-            misrepresentedTokens={misrepresentedTokens}
-            protocol={name}
-            address={address}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <AreaChart
+            finalChartData={tvlChartData}
+            formatDate={formatDate}
             color={backgroundColor}
-            tokens={tokens}
-            tokensInUsd={tokensInUsd}
-            base={priceUSD}
-            selectedChain={selectedChain}
-            chainTvls={historicalChainTvls}
-            chains={chains}
-            protocolData={protocolData}
-            isHourlyChart={isHourlyChart}
+            tokensUnique={[]}
+            title=""
+            height={statsContainer.current?.offsetHeight}
           />
         </div>
       </Stats>
@@ -387,11 +380,16 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
           <Section>
             <h3>Token Information</h3>
             <Address>
-              {address ?
+              {address ? (
                 <>
-                  <span>Address</span><span>:</span><span>{address.slice(0, 8) + '...' + address?.slice(36, 42)}</span>
+                  <span>Address</span>
+                  <span>:</span>
+                  <span>{address.slice(0, 8) + '...' + address?.slice(36, 42)}</span>
                   <CopyHelper toCopy={address} disabled={!address} />
-                </> : "No Token"}
+                </>
+              ) : (
+                'No Token'
+              )}
             </Address>
             <LinksWrapper>
               {protocolData.gecko_id !== null && (
@@ -414,7 +412,11 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
             <h3>Methodology</h3>
             {methodology && <p>{methodology}</p>}
             <LinksWrapper>
-              <Link external href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
+              <Link
+                external
+                href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
+                passHref
+              >
                 <Button as="a" useTextColor={true} color={backgroundColor}>
                   <span>Check the code</span>
                   <ArrowUpRight size={14} />
