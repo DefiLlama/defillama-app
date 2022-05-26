@@ -20,6 +20,7 @@ import { formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
 import { Box as RebassBox } from 'rebass'
 import Search from 'components/Search/New'
+import YieldsCard from 'components/YieldsCard'
 import Layout from 'layout'
 
 const ProtocolChart = dynamic(() => import('components/ProtocolChart'), { ssr: false })
@@ -166,7 +167,7 @@ function ToggleAlert({ chainTvls }) {
   )
 }
 
-function ProtocolContainer({ title, protocolData, protocol, denomination, selectedChain }) {
+function ProtocolContainer({ title, protocolData, protocol, denomination, selectedChain, pools, chainList }) {
   useScrollToTop()
 
   let {
@@ -448,8 +449,17 @@ function ProtocolContainer({ title, protocolData, protocol, denomination, select
             </Panel>
           )}
         </>
+        {pools !== undefined && (
+          <RowBetween style={{ marginTop: '3rem' }}>
+            <TYPE.main fontSize={'1.125rem'}>Yields</TYPE.main>{' '}
+          </RowBetween>
+        )}
+        {pools !== undefined && (
+          <YieldsCard pools={pools} chainList={chainList}>
+          </YieldsCard>
+        )}
       </DashboardWrapper>
-    </Layout>
+    </Layout >
   )
 }
 

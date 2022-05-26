@@ -1,12 +1,19 @@
 import ProtocolContainer from 'containers/ProtocolContainer'
 import { standardizeProtocolName } from 'utils'
-import { getProtocols, getProtocol, fuseProtocolData, revalidate } from 'utils/dataApi'
+import { getProtocols, getProtocol, fuseProtocolData, getYieldPageData, revalidate } from 'utils/dataApi'
 
 export async function getStaticProps({
   params: {
     protocol: [protocol, selectedChain = 'all', denomination = null],
   },
 }) {
+
+  const data = await getYieldPageData({ project: protocol })
+
+  const pools = data.props.pools
+  const chainList = data.props.chainList
+  const projectList = data.props.projectList
+
   const protocolRes = await getProtocol(protocol)
 
   if (!protocolRes || protocolRes.statusCode === 400) {
@@ -33,6 +40,9 @@ export async function getStaticProps({
       protocolData,
       selectedChain,
       denomination,
+      pools,
+      projectList,
+      chainList,
     },
     revalidate: revalidate(),
   }
@@ -48,7 +58,7 @@ export async function getStaticPaths() {
   return { paths, fallback: 'blocking' }
 }
 
-export default function Protocols({ denomination, selectedChain, protocol, protocolData }) {
+export default function Protocols({ denomination, selectedChain, protocol, protocolData, pools, projectList, chainList }) {
   return (
     <ProtocolContainer
       title={`${protocolData.name}: TVL and stats - DefiLlama`}
@@ -56,6 +66,9 @@ export default function Protocols({ denomination, selectedChain, protocol, proto
       protocolData={protocolData}
       denomination={denomination ?? undefined}
       selectedChain={selectedChain}
+      pools={pools}
+      projectList={projectList}
+      chainList={chainList}
     />
   )
 }
