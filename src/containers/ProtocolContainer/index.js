@@ -129,7 +129,7 @@ const SectionHeader = styled.h2`
   font-weight: 700;
   font-size: 1.25rem;
   margin: 0 0 24px;
-  border: 1px solid transparent;
+  border-left: 1px solid transparent;
 `
 
 const InfoWrapper = styled.div`
@@ -244,7 +244,7 @@ function ToggleAlert({ chainTvls }) {
     return null
   }
   return (
-    <Panel>
+    <Panel style={{ margin: "-22px 1px" }}>
       <p style={{ margin: '0', textAlign: 'center' }}>
         This protocol has some TVL that's classified as {extraTvls.join('/')}, enable the toggles to see it
       </p>
