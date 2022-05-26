@@ -564,7 +564,7 @@ export const chainCoingeckoIds = {
     symbol: "FIS",
     cmcId: "5882",
   },
-  LAChain: {
+  Lachain: {
     geckoId: "latoken",
     symbol: "LA",
     cmcId: "2090",
