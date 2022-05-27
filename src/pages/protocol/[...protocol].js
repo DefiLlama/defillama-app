@@ -19,11 +19,6 @@ export async function getStaticProps({
   delete protocolRes.tokensInUsd
   delete protocolRes.tokens
 
-  Object.keys(protocolRes.chainTvls).forEach((chain) => {
-    delete protocolRes.chainTvls[chain].tokensInUsd
-    delete protocolRes.chainTvls[chain].tokens
-  })
-
   const protocolData = fuseProtocolData(protocolRes, protocol)
 
   const backgroundColor = await getColor({ protocol, logo: protocolData.logo })

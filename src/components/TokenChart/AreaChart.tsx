@@ -1,10 +1,15 @@
-import * as echarts from 'echarts'
+import * as echarts from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { LineChart } from 'echarts/charts'
+import { TooltipComponent, TitleComponent, GridComponent, DataZoomComponent } from 'echarts/components'
 import { useRouter } from 'next/router'
 import { useEffect, useMemo, useRef } from 'react'
 import { useMedia } from 'react-use'
 import { formattedNum } from 'utils'
 import { v4 as uuid } from 'uuid'
 import { stringToColour } from './utils'
+
+echarts.use([CanvasRenderer, LineChart, TooltipComponent, TitleComponent, GridComponent, DataZoomComponent])
 
 export default function AreaChart({
   finalChartData,
@@ -88,7 +93,10 @@ export default function AreaChart({
         instance.dispose()
       } else return
     }
+
+    // create instance
     const chartInstance = echarts.init(document.getElementById(id))
+
     chartInstance.setOption({
       tooltip: {
         trigger: 'axis',
@@ -96,6 +104,13 @@ export default function AreaChart({
       },
       title: {
         text: title,
+      },
+      grid: {
+        left: 20,
+        containLabel: true,
+        bottom: 20,
+        top: 20,
+        right: 20,
       },
       xAxis: {
         type: 'category',
@@ -109,6 +124,7 @@ export default function AreaChart({
           fontSize: 14,
           fontWeight: 400,
         },
+        splitNumber: 4,
       },
       yAxis: {
         type: 'value',
@@ -120,10 +136,20 @@ export default function AreaChart({
           fontSize: 14,
           fontWeight: 400,
         },
+        splitNumber: 4,
         splitLine: {
-          show: false,
+          lineStyle: {
+            opacity: 0.3,
+          },
         },
       },
+      dataZoom: [
+        {
+          type: 'inside',
+          start: 0,
+          end: 100,
+        },
+      ],
       series: series,
     })
     window.addEventListener('resize', () => chartInstance.resize())
