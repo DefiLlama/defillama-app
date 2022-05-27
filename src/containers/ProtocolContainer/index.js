@@ -27,10 +27,6 @@ const Stats = styled.section`
   border: ${({ theme }) => '1px solid ' + theme.divider};
   box-shadow: ${({ theme }) => theme.shadowSm};
 
-  & > *:last-child {
-    min-height: 300px;
-  }
-
   @media (min-width: 80rem) {
     flex-direction: row;
   }
@@ -50,7 +46,6 @@ const ProtocolDetails = styled.div`
 
   @media (min-width: 80rem) {
     min-width: 380px;
-    min-height: 400px;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     border-bottom-left-radius: 12px;
@@ -286,8 +281,6 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
 
   const formatDate = (date) => (tvlChartData?.length > 120 ? toNiceMonthlyDate(date) : toNiceDate(date))
 
-  const statsContainer = useRef(null)
-
   return (
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
@@ -296,7 +289,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
 
       <ToggleAlert tvlBreakdowns={tvlBreakdowns} />
 
-      <Stats ref={statsContainer}>
+      <Stats>
         <ProtocolDetails>
           <ProtocolName>
             <TokenLogo address={address} logo={logo} size={24} />
@@ -345,14 +338,22 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
           </Category>
         </ProtocolDetails>
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            padding: '24px 0',
+            minHeight: '448px',
+          }}
+        >
           <AreaChart
             finalChartData={tvlChartData}
             formatDate={formatDate}
             color={backgroundColor}
             tokensUnique={[]}
             title=""
-            height={statsContainer.current?.offsetHeight}
           />
         </div>
       </Stats>

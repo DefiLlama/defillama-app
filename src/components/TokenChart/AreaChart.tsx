@@ -1,34 +1,47 @@
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart } from 'echarts/charts'
-import { TooltipComponent, TitleComponent, GridComponent, DataZoomComponent } from 'echarts/components'
+import {
+  TooltipComponent,
+  TitleComponent,
+  GridComponent,
+  DataZoomComponent,
+  GraphicComponent,
+} from 'echarts/components'
 import { useRouter } from 'next/router'
 import { useEffect, useMemo, useRef } from 'react'
-import { useMedia } from 'react-use'
-import { formattedNum } from 'utils'
+import { toK } from 'utils'
 import { v4 as uuid } from 'uuid'
 import { stringToColour } from './utils'
+import styled from 'styled-components'
+import { useDarkModeManager } from 'contexts/LocalStorage'
+import logoLight from '../../../public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
+import logoDark from '../../../public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 
-echarts.use([CanvasRenderer, LineChart, TooltipComponent, TitleComponent, GridComponent, DataZoomComponent])
+echarts.use([
+  CanvasRenderer,
+  LineChart,
+  TooltipComponent,
+  TitleComponent,
+  GridComponent,
+  DataZoomComponent,
+  GraphicComponent,
+])
 
-export default function AreaChart({
-  finalChartData,
-  tokensUnique,
-  formatDate,
-  moneySymbol = '$',
-  title,
-  color,
-  height = 340,
-}) {
+const Wrapper = styled.div`
+  --gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
+`
+
+export default function AreaChart({ finalChartData, tokensUnique, formatDate, moneySymbol = '$', title, color }) {
   const { pathname } = useRouter()
 
   const id = useMemo(() => uuid(), [])
 
+  const [isDark] = useDarkModeManager()
+
   const prevPathname = useRef(pathname)
 
-  const { dates, series } = useMemo(() => {
-    const dates = []
-
+  const series = useMemo(() => {
     const chartColor = color || stringToColour()
 
     if (tokensUnique?.length === 0) {
@@ -41,20 +54,28 @@ export default function AreaChart({
         },
         symbol: 'none',
         itemStyle: {
-          color,
+          color: chartColor,
         },
         areaStyle: {
-          color: chartColor,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            {
+              offset: 0,
+              color: chartColor,
+            },
+            {
+              offset: 1,
+              color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)',
+            },
+          ]),
         },
         data: [],
       }
 
       finalChartData.forEach(([date, value]) => {
-        dates.push(date)
-        series.data.push(value)
+        series.data.push([new Date(date * 1000), value])
       })
 
-      return { dates, series }
+      return series
     }
 
     const series = tokensUnique.map((token) => {
@@ -79,12 +100,13 @@ export default function AreaChart({
     })
 
     finalChartData.forEach(({ date, ...item }) => {
-      dates.push(date)
-      tokensUnique.forEach((token) => series.find((t) => t.name === token)?.data.push(item[token] || 0))
+      tokensUnique.forEach((token) =>
+        series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
+      )
     })
 
-    return { dates, series }
-  }, [finalChartData, tokensUnique, color])
+    return series
+  }, [finalChartData, tokensUnique, color, isDark])
 
   useEffect(() => {
     const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -98,9 +120,20 @@ export default function AreaChart({
     const chartInstance = echarts.init(document.getElementById(id))
 
     chartInstance.setOption({
+      graphic: {
+        type: 'image',
+        z: 0,
+        style: {
+          image: isDark ? logoLight.src : logoDark.src,
+          height: 28,
+          y: 160,
+          opacity: 0.3,
+        },
+        left: '45%',
+      },
       tooltip: {
         trigger: 'axis',
-        valueFormatter: (value) => moneySymbol + formattedNum(value),
+        valueFormatter: (value) => moneySymbol + toK(value),
       },
       title: {
         text: title,
@@ -108,38 +141,47 @@ export default function AreaChart({
       grid: {
         left: 20,
         containLabel: true,
-        bottom: 20,
+        bottom: 60,
         top: 20,
         right: 20,
       },
       xAxis: {
-        type: 'category',
+        type: 'time',
         boundaryGap: false,
-        data: dates,
-        axisLabel: {
-          formatter: (value) => formatDate(value),
-        },
         nameTextStyle: {
           fontFamily: 'var(--font-inter)',
           fontSize: 14,
           fontWeight: 400,
         },
-        splitNumber: 4,
+        axisLine: {
+          lineStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+            opacity: 0.2,
+          },
+        },
       },
       yAxis: {
         type: 'value',
         axisLabel: {
-          formatter: (value) => moneySymbol + formattedNum(value),
+          formatter: (value) => moneySymbol + toK(value),
         },
+        axisLine: {
+          lineStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+            opacity: 0.1,
+          },
+        },
+        boundaryGap: false,
         nameTextStyle: {
           fontFamily: 'var(--font-inter)',
           fontSize: 14,
           fontWeight: 400,
+          color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
         },
-        splitNumber: 4,
         splitLine: {
           lineStyle: {
-            opacity: 0.3,
+            color: '#a1a1aa',
+            opacity: 0.1,
           },
         },
       },
@@ -149,19 +191,53 @@ export default function AreaChart({
           start: 0,
           end: 100,
         },
+        {
+          start: 0,
+          end: 100,
+          textStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+          },
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
+          handleStyle: {
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+            color: isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)',
+          },
+          moveHandleStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
+          },
+          selectedDataBackground: {
+            lineStyle: {
+              color,
+            },
+            areaStyle: {
+              color,
+            },
+          },
+          emphasis: {
+            handleStyle: {
+              borderColor: isDark ? 'rgba(255, 255, 255, 1)' : '#000',
+              color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+            },
+            moveHandleStyle: {
+              borderColor: isDark ? 'rgba(255, 255, 255, 1)' : '#000',
+              color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
+            },
+          },
+          fillerColor: isDark ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)',
+        },
       ],
       series: series,
     })
+
     window.addEventListener('resize', () => chartInstance.resize())
+
     return () => {
       window.removeEventListener('resize', () => {
         chartInstance.resize()
       })
       chartInstance.dispose()
     }
-  }, [id, dates, series, formatDate, moneySymbol, title, pathname])
+  }, [id, series, formatDate, moneySymbol, title, pathname, isDark, color])
 
-  const isTwoXl = useMedia('(min-width: 80rem)')
-
-  return <div id={id} style={{ height: isTwoXl ? height + 'px' : '340px', flex: 1 }}></div>
+  return <Wrapper id={id} style={{ height: '400px' }}></Wrapper>
 }
