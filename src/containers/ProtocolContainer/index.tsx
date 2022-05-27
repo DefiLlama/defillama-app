@@ -13,7 +13,7 @@ import SEO from 'components/SEO'
 import Search from 'components/Search/New'
 import Layout from 'layout'
 import { Panel } from 'components'
-import { ArrowDown, ArrowUp, ArrowUpRight } from 'react-feather'
+import { ArrowUpRight } from 'react-feather'
 import AuditInfo from 'components/AuditInfo'
 import Link from 'next/link'
 
@@ -73,7 +73,7 @@ const Table = styled.table`
     font-size: 0.75rem;
     text-align: left;
     padding: 0 0 4px 0;
-    color: ${({ theme }) => (theme.mode === 'dark' ? '#818585' : '#969b9b')};
+    color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
   }
 
   th {
@@ -100,39 +100,19 @@ const Table = styled.table`
   }
 `
 
-interface ITvl {
-  positive: boolean
-}
-
-const Tvl = styled.p<ITvl>`
-  padding: 0;
-  margin: -28px 0 0;
+const Tvl = styled.p`
+  font-weight: 700;
+  font-size: 2rem;
+  margin: 0;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
 
   & > *:first-child {
-    font-weight: 700;
-    font-size: 2rem;
-  }
-
-  & > *:last-child {
-    padding: 4px 6px;
-    font-weight: 700;
+    font-weight: 400;
     font-size: 0.75rem;
-    border-radius: 6px;
-    background: ${({ positive }) => (positive ? 'rgba(117, 252, 175, 0.15)' : 'rgba(255, 112, 166, 0.15)')};
-    display: flex;
-    line-height: 16px;
-    align-items: center;
-    justify-content: center;
-    color: ${({ positive }) => (positive ? '#75FCAF' : '#FF70A6')};
-    gap: 4px;
-    font-family: var(--font-jetbrains);
-    & > * {
-      position: relative;
-      top: 1px;
-    }
+    text-align: left;
+    color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
   }
 `
 
@@ -296,7 +276,6 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
     audit_links,
     methodology,
     module: codeModule,
-    change1d,
   } = protocolData
 
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
@@ -323,14 +302,9 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
             <Symbol>{symbol !== '-' ? `(${symbol})` : ''}</Symbol>
           </ProtocolName>
 
-          <Tvl positive={change1d >= 0}>
+          <Tvl>
+            <span>Total Volume Locked</span>
             <span>{formattedNum(totalVolume || '0', true)}</span>
-            {change1d && (
-              <span>
-                {change1d >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
-                <span>{change1d?.toFixed(2) + '%'}</span>
-              </span>
-            )}
           </Tvl>
 
           {tvlByChain.length > 0 && (

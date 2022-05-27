@@ -22,10 +22,8 @@ import {
   PEGGEDPRICES_API,
 } from '../constants/index'
 import { getPercentChange, getPrevTvlFromChart, getPrevCirculatingFromChart, standardizeProtocolName } from 'utils'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
 
-dayjs.extend(utc)
+
 
 interface IProtocol {
   name: string
@@ -583,20 +581,10 @@ export const fuseProtocolData = (protocolData) => {
   const tvlBreakdowns = protocolData.currentChainTvls ?? {}
   const tvl = protocolData?.tvl ?? []
   const tvlChartData = tvl.filter((item) => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
-
-  const tvlNow = tvlChartData[tvlChartData.length - 1]
-
-  const dateNow = dayjs.unix(tvlNow[0])
-
-  const tvlPrevDay = [...tvlChartData].reverse().find(t => dateNow.diff(dayjs.unix(t[0]), "day"))
-
-  const change1d = tvlChartData.length >= 2 && tvlPrevDay && getPercentChange(tvlNow[1], tvlPrevDay[1])
-
   return {
     ...protocolData,
     tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
     tvlChartData,
-    change1d,
     tvlBreakdowns,
   }
 }
