@@ -37,6 +37,7 @@ interface ILayoutProps {
   children: React.ReactNode
   defaultSEO?: boolean
   backgroundColor?: string
+  style?: React.CSSProperties
 }
 
 interface IBackground {

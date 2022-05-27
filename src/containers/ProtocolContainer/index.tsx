@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
@@ -13,11 +13,11 @@ import SEO from 'components/SEO'
 import Search from 'components/Search/New'
 import Layout from 'layout'
 import { Panel } from 'components'
-import { ArrowUpRight } from 'react-feather'
+import { ArrowDown, ArrowUp, ArrowUpRight } from 'react-feather'
 import AuditInfo from 'components/AuditInfo'
 import Link from 'next/link'
 
-const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false })
+const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false }) as any
 
 const Stats = styled.section`
   display: flex;
@@ -61,10 +61,6 @@ const ProtocolName = styled.h1`
   padding: 0;
 `
 
-const Name = styled(FormattedName)`
-  font-weight: 700;
-`
-
 const Symbol = styled.span`
   font-weight: 400;
 `
@@ -77,7 +73,7 @@ const Table = styled.table`
     font-size: 0.75rem;
     text-align: left;
     padding: 0 0 4px 0;
-    color: ${({ isDark }) => (isDark ? '#818585' : '#969b9b')};
+    color: ${({ theme }) => (theme.mode === 'dark' ? '#818585' : '#969b9b')};
   }
 
   th {
@@ -104,11 +100,40 @@ const Table = styled.table`
   }
 `
 
-const Tvl = styled.p`
-  font-weight: 700;
-  font-size: 2rem;
+interface ITvl {
+  positive: boolean
+}
+
+const Tvl = styled.p<ITvl>`
   padding: 0;
   margin: -28px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  & > *:first-child {
+    font-weight: 700;
+    font-size: 2rem;
+  }
+
+  & > *:last-child {
+    padding: 4px 6px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    background: ${({ positive }) => (positive ? 'rgba(117, 252, 175, 0.15)' : 'rgba(255, 112, 166, 0.15)')};
+    display: flex;
+    line-height: 16px;
+    align-items: center;
+    justify-content: center;
+    color: ${({ positive }) => (positive ? '#75FCAF' : '#FF70A6')};
+    gap: 4px;
+    font-family: var(--font-jetbrains);
+    & > * {
+      position: relative;
+      top: 1px;
+    }
+  }
 `
 
 const Category = styled.section`
@@ -271,6 +296,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
     audit_links,
     methodology,
     module: codeModule,
+    change1d,
   } = protocolData
 
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
@@ -283,7 +309,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
 
   return (
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
-      <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)} />
+      <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
 
       <Search step={{ category: 'Protocols', name }} />
 
@@ -292,12 +318,20 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
       <Stats>
         <ProtocolDetails>
           <ProtocolName>
-            <TokenLogo address={address} logo={logo} size={24} />
-            <Name text={name ? name + ' ' : ''} maxCharacters={16} />
+            <TokenLogo logo={logo} size={24} />
+            <FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
             <Symbol>{symbol !== '-' ? `(${symbol})` : ''}</Symbol>
           </ProtocolName>
 
-          <Tvl>{formattedNum(totalVolume || '0', true)}</Tvl>
+          <Tvl positive={change1d >= 0}>
+            <span>{formattedNum(totalVolume || '0', true)}</span>
+            {change1d && (
+              <span>
+                {change1d >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                <span>{change1d?.toFixed(2) + '%'}</span>
+              </span>
+            )}
+          </Tvl>
 
           {tvlByChain.length > 0 && (
             <Table>
@@ -329,7 +363,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
               </Table>
             )}
 
-            <Link external href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+            <Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
               <DownloadButton as="a" useTextColor={true} color={backgroundColor}>
                 <span>Download Dataset</span>
                 <ArrowUpRight size={14} />
@@ -366,12 +400,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
             <p>{description}</p>
             <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />
             <LinksWrapper>
-              <Link external href={url} passHref>
+              <Link href={url} passHref>
                 <Button as="a" useTextColor={true} color={backgroundColor}>
                   <span>Website</span> <ArrowUpRight size={14} />
                 </Button>
               </Link>
-              <Link external href={`https://twitter.com/${twitter}`} passHref>
+              <Link href={`https://twitter.com/${twitter}`} passHref>
                 <Button as="a" useTextColor={true} color={backgroundColor}>
                   <span>Twitter</span> <ArrowUpRight size={14} />
                 </Button>
@@ -394,14 +428,14 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
             </Address>
             <LinksWrapper>
               {protocolData.gecko_id !== null && (
-                <Link external href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
+                <Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
                   <Button as="a" useTextColor={true} color={backgroundColor}>
                     <span>View on CoinGecko</span> <ArrowUpRight size={14} />
                   </Button>
                 </Link>
               )}
               {blockExplorerLink !== undefined && (
-                <Link external href={blockExplorerLink} passHref>
+                <Link href={blockExplorerLink} passHref>
                   <Button as="a" useTextColor={true} color={backgroundColor}>
                     <span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
                   </Button>
@@ -413,11 +447,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
             <h3>Methodology</h3>
             {methodology && <p>{methodology}</p>}
             <LinksWrapper>
-              <Link
-                external
-                href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
-                passHref
-              >
+              <Link href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
                 <Button as="a" useTextColor={true} color={backgroundColor}>
                   <span>Check the code</span>
                   <ArrowUpRight size={14} />

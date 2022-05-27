@@ -3,10 +3,16 @@ import React from 'react'
 import styled from 'styled-components'
 
 interface WrapperProps {
-  margin: string | boolean
-  link: boolean
-  adjustSize: boolean
-  fontSize: string | number
+  margin?: string | boolean
+  link?: boolean
+  adjustSize?: boolean
+  fontSize?: string | number
+  fontWeight?: number
+  maxCharacters?: number
+}
+
+interface IFormattedNameProps extends WrapperProps {
+  text: string
 }
 
 const TextWrapper = styled.div<WrapperProps>`
@@ -14,6 +20,7 @@ const TextWrapper = styled.div<WrapperProps>`
   margin-left: ${({ margin }) => margin && '4px'};
   color: ${({ theme, link }) => (link ? theme.blue : theme.text1)};
   font-size: ${({ fontSize }) => fontSize ?? 'inherit'};
+  font-weight: ${({ fontWeight }) => fontWeight};
 
   :hover {
     cursor: pointer;
@@ -24,9 +31,18 @@ const TextWrapper = styled.div<WrapperProps>`
   }
 `
 
-const FormattedName = ({ text, maxCharacters, margin = false, adjustSize = false, fontSize, link, ...rest }) => {
+const FormattedName = ({
+  text,
+  maxCharacters,
+  margin = false,
+  adjustSize = false,
+  fontSize,
+  fontWeight = 400,
+  link,
+  ...rest
+}: IFormattedNameProps) => {
   if (!text) {
-    return ''
+    return null
   }
 
   if (text.length > maxCharacters) {
@@ -40,7 +56,14 @@ const FormattedName = ({ text, maxCharacters, margin = false, adjustSize = false
   }
 
   return (
-    <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize} {...rest}>
+    <TextWrapper
+      margin={margin}
+      adjustSize={adjustSize}
+      link={link}
+      fontSize={fontSize}
+      fontWeight={fontWeight}
+      {...rest}
+    >
       {text}
     </TextWrapper>
   )

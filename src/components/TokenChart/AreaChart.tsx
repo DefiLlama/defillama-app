@@ -17,6 +17,7 @@ import styled from 'styled-components'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import logoLight from '../../../public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '../../../public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
+import { useMedia } from 'react-use'
 
 echarts.use([
   CanvasRenderer,
@@ -28,11 +29,27 @@ echarts.use([
   GraphicComponent,
 ])
 
+interface IChartProps {
+  finalChartData: any
+  tokensUnique: string[]
+  formatDate: (date: any) => string
+  moneySymbol?: string
+  title: string
+  color: string
+}
+
 const Wrapper = styled.div`
   --gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
 `
 
-export default function AreaChart({ finalChartData, tokensUnique, formatDate, moneySymbol = '$', title, color }) {
+export default function AreaChart({
+  finalChartData,
+  tokensUnique,
+  formatDate,
+  moneySymbol = '$',
+  title,
+  color,
+}: IChartProps) {
   const { pathname } = useRouter()
 
   const id = useMemo(() => uuid(), [])
@@ -108,6 +125,8 @@ export default function AreaChart({ finalChartData, tokensUnique, formatDate, mo
     return series
   }, [finalChartData, tokensUnique, color, isDark])
 
+  const isSmall = useMedia(`(max-width: 600px)`)
+
   useEffect(() => {
     const instance = echarts.getInstanceByDom(document.getElementById(id))
     if (instance) {
@@ -129,11 +148,31 @@ export default function AreaChart({ finalChartData, tokensUnique, formatDate, mo
           y: 160,
           opacity: 0.3,
         },
-        left: '45%',
+        left: isSmall ? '40%' : '45%',
       },
       tooltip: {
         trigger: 'axis',
-        valueFormatter: (value) => moneySymbol + toK(value),
+        formatter: function (params) {
+          const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })
+
+          const vals = params.reduce(
+            (prev, curr) =>
+              prev +
+              '<li style="list-style:none">' +
+              curr.marker +
+              curr.seriesName +
+              '&nbsp;&nbsp;' +
+              moneySymbol +
+              toK(curr.value[1]) +
+              '</li>',
+            ''
+          )
+          return chartdate + vals
+        },
       },
       title: {
         text: title,
@@ -224,6 +263,10 @@ export default function AreaChart({ finalChartData, tokensUnique, formatDate, mo
             },
           },
           fillerColor: isDark ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)',
+          labelFormatter: (val) => {
+            const date = new Date(val)
+            return date.toLocaleDateString()
+          },
         },
       ],
       series: series,
@@ -237,7 +280,7 @@ export default function AreaChart({ finalChartData, tokensUnique, formatDate, mo
       })
       chartInstance.dispose()
     }
-  }, [id, series, formatDate, moneySymbol, title, pathname, isDark, color])
+  }, [id, series, formatDate, moneySymbol, title, pathname, isDark, color, isSmall])
 
   return <Wrapper id={id} style={{ height: '400px' }}></Wrapper>
 }
