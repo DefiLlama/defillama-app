@@ -341,7 +341,7 @@ const TokenChart = ({
     let tokenSet = new Set()
     if (denomination === DENOMINATIONS.Change || denomination === DENOMINATIONS.ChangeSplit) {
       chartData = []
-      for (let i = 1; i < tokensInUsd.length; i++) {
+      for (let i = 1; i < tokensInUsd?.length; i++) {
         let dayDifference = 0
         let tokenDayDifference = {}
         for (const token in tokensInUsd[i].tokens) {

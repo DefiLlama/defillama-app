@@ -17,7 +17,7 @@ import QuestionHelper from 'components/QuestionHelper'
 import Filters from 'components/Filters'
 import { ListHeader, ListOptions } from 'components/ChainPage'
 
-const TableWrapper = styled(Table)`
+export const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
     & > div {
       width: 100px;
