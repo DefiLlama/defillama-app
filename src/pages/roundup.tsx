@@ -44,7 +44,7 @@ export async function getStaticProps() {
     data = await response.json()
   }
 
-  const index = data?.findIndex((d) => d.content.startsWith('Daily news round-up with the')) ?? null
+  const index = data.findIndex((d) => d.content.startsWith('Daily news round-up with the')) ?? null
 
   const raw = Number.isNaN(index) ? [] : data.slice(0, index + 1)
 
@@ -57,7 +57,7 @@ export async function getStaticProps() {
 
   return {
     props: {
-      messages: splitLlama[1],
+      messages: splitLlama[1] || null,
     },
     revalidate: revalidate(),
   }

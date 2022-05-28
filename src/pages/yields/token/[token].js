@@ -1,7 +1,7 @@
 import Layout from 'layout'
 import Search from 'components/Search'
 import { AutoColumn } from 'components/Column'
-import Table, { columnsToShow } from 'components/Table'
+import { columnsToShow } from 'components/Table'
 import { formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
 import { CustomLink } from 'components/Link'

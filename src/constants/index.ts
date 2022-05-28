@@ -3,7 +3,7 @@ export const FACTORY_ADDRESS = '0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac'
 export const BUNDLE_ID = '1'
 
 export const timeframeOptions = {
-  //WEEK: '1 week',
+  // WEEK: '1 week',
   MONTH: '1 month',
   // THREE_MONTHS: '3 months',
   YEAR: '1 year',
@@ -27,7 +27,6 @@ export const PAIR_BLACKLIST = ['0xb6a741f37d6e455ebcc9f17e2c16d0586c3f57a5']
 export const FEE_WARNING_TOKENS = ['0xd46ba6d942050d489dbd938a2c909a5d5039a161']
 
 // API endpoints
-
 export const CHART_API = 'https://api.llama.fi/lite/charts'
 export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2'
 export const PROTOCOL_API = 'https://api.llama.fi/updatedProtocol'
@@ -64,7 +63,7 @@ export const UPDATE_ALL_PAIRS_IN_UNISWAP = 'UPDAUPDATE_ALL_PAIRS_IN_UNISWAPTE_TO
 export const UPDATE_ALL_TOKENS_IN_UNISWAP = 'UPDATE_ALL_TOKENS_IN_UNISWAP'
 export const UPDATE_TOP_LPS = 'UPDATE_TOP_LPS'
 
-//TokenData Constants
+// TokenData Constants
 export const UPDATE_TOKEN_TXNS = 'UPDATE_TOKEN_TXNS'
 export const UPDATE_CHART_DATA = 'UPDATE_CHART_DATA'
 export const UPDATE_PRICE_DATA = 'UPDATE_PRICE_DATA'
