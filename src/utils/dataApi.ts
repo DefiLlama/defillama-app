@@ -579,13 +579,19 @@ export const getProtocol = async (protocolName: string) => {
 
 export const fuseProtocolData = (protocolData) => {
   const tvlBreakdowns = protocolData.currentChainTvls ?? {}
+
   const tvl = protocolData?.tvl ?? []
+
   const tvlChartData = tvl.filter((item) => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
+
+  const historicalChainTvls = protocolData?.chainTvls ?? {}
+
   return {
     ...protocolData,
     tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
     tvlChartData,
     tvlBreakdowns,
+    historicalChainTvls
   }
 }
 

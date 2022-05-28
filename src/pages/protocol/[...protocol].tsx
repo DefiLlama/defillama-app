@@ -2,12 +2,19 @@ import ProtocolContainer from 'containers/ProtocolContainer'
 import { standardizeProtocolName } from 'utils'
 import { getProtocols, getProtocol, fuseProtocolData, revalidate } from 'utils/dataApi'
 import getColor from 'utils/getColor'
+import { InferGetStaticPropsType, GetStaticProps } from 'next'
 
-export async function getStaticProps({
+type PageParams = {
+  protocol: string
+  protocolData: any
+  backgroundColor: string
+}
+
+export const getStaticProps: GetStaticProps<PageParams> = async ({
   params: {
     protocol: [protocol],
   },
-}) {
+}) => {
   const protocolRes = await getProtocol(protocol)
 
   if (!protocolRes || protocolRes.statusCode === 400) {
@@ -19,7 +26,12 @@ export async function getStaticProps({
   delete protocolRes.tokensInUsd
   delete protocolRes.tokens
 
-  const protocolData = fuseProtocolData(protocolRes, protocol)
+  Object.keys(protocolRes.chainTvls).forEach((chain) => {
+    delete protocolRes.chainTvls[chain].tokensInUsd
+    delete protocolRes.chainTvls[chain].tokens
+  })
+
+  const protocolData = fuseProtocolData(protocolRes)
 
   const backgroundColor = await getColor({ protocol, logo: protocolData.logo })
 
@@ -36,14 +48,14 @@ export async function getStaticProps({
 export async function getStaticPaths() {
   const res = await getProtocols()
 
-  const paths = res.protocols.slice(0, 30).map(({ name }) => ({
+  const paths: string[] = res.protocols.slice(0, 30).map(({ name }) => ({
     params: { protocol: [standardizeProtocolName(name)] },
   }))
 
   return { paths, fallback: 'blocking' }
 }
 
-export default function Protocols({ protocolData, ...props }) {
+export default function Protocols({ protocolData, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {
   return (
     <ProtocolContainer
       title={`${protocolData.name}: TVL and stats - DefiLlama`}

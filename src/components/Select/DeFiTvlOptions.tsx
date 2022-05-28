@@ -10,6 +10,7 @@ import {
   SelectArrow,
   SelectItemCheck,
 } from 'ariakit/select'
+import { useRouter } from 'next/router'
 
 export const WrapperWithLabel = styled.div`
   display: flex;
@@ -89,11 +90,17 @@ function renderValue(value: string[]) {
 export function DeFiTvlOptions(props) {
   const tvlToggles = useTvlToggles()
 
+  const router = useRouter()
+
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
   const fitlers = { ...extraTvlsEnabled }
 
-  const options = extraTvls.map((e) => e.value)
+  let options = extraTvls.map((e) => e.value)
+
+  if (router.pathname?.includes('/protocol/')) {
+    options = options.filter((o) => o !== 'doublecounted')
+  }
 
   const selectedOptions = Object.keys(fitlers).filter((key) => fitlers[key])
 

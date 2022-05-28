@@ -151,7 +151,7 @@ const DropdownOptions = styled(DeFiTvlOptions)`
   }
 
   ${({ theme: { min2Xl } }) => min2Xl} {
-    display: none;
+    display: none !important;
   }
 `
 

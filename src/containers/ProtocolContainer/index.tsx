@@ -1,5 +1,4 @@
 import React from 'react'
-import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { ButtonLight } from 'components/ButtonStyled'
@@ -16,8 +15,7 @@ import { Panel } from 'components'
 import { ArrowUpRight } from 'react-feather'
 import AuditInfo from 'components/AuditInfo'
 import Link from 'next/link'
-
-const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false }) as any
+import ProtocolChart from 'components/TokenChart/ProtocolChart'
 
 const Stats = styled.section`
   display: flex;
@@ -241,6 +239,13 @@ const Address = styled.p`
   gap: 8px;
 `
 
+interface IProtocolContainerProps {
+  title: string
+  protocol: string
+  protocolData: any
+  backgroundColor: string
+}
+
 function ToggleAlert({ tvlBreakdowns }) {
   const isLowerCase = (letter) => letter === letter.toLowerCase()
   const extraTvls = Object.keys(tvlBreakdowns).filter((section) => isLowerCase(section[0]))
@@ -257,7 +262,7 @@ function ToggleAlert({ tvlBreakdowns }) {
 }
 
 // TODO bookmark and percent change
-function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
+function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: IProtocolContainerProps) {
   useScrollToTop()
 
   let {
@@ -276,6 +281,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
     audit_links,
     methodology,
     module: codeModule,
+    historicalChainTvls,
   } = protocolData
 
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
@@ -307,7 +313,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
             <span>{formattedNum(totalVolume || '0', true)}</span>
           </Tvl>
 
-          {tvlByChain.length > 0 && (
+          {tvlByChain.length > 1 && (
             <Table>
               <caption>Breakdown</caption>
               <tbody>
@@ -346,24 +352,13 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }) {
           </Category>
         </ProtocolDetails>
 
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            padding: '24px 0',
-            minHeight: '448px',
-          }}
-        >
-          <AreaChart
-            finalChartData={tvlChartData}
-            formatDate={formatDate}
-            color={backgroundColor}
-            tokensUnique={[]}
-            title=""
-          />
-        </div>
+        <ProtocolChart
+          protocol={protocol}
+          tvlChartData={tvlChartData}
+          formatDate={formatDate}
+          color={backgroundColor}
+          historicalChainTvls={historicalChainTvls}
+        />
       </Stats>
 
       <section>

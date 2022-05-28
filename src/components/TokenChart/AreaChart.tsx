@@ -30,7 +30,7 @@ echarts.use([
 ])
 
 interface IChartProps {
-  finalChartData: any
+  chartData: any
   tokensUnique: string[]
   formatDate: (date: any) => string
   moneySymbol?: string
@@ -43,7 +43,7 @@ const Wrapper = styled.div`
 `
 
 export default function AreaChart({
-  finalChartData,
+  chartData,
   tokensUnique,
   formatDate,
   moneySymbol = '$',
@@ -88,7 +88,7 @@ export default function AreaChart({
         data: [],
       }
 
-      finalChartData.forEach(([date, value]) => {
+      chartData.forEach(([date, value]) => {
         series.data.push([new Date(date * 1000), value])
       })
 
@@ -116,14 +116,14 @@ export default function AreaChart({
       }
     })
 
-    finalChartData.forEach(({ date, ...item }) => {
+    chartData.forEach(({ date, ...item }) => {
       tokensUnique.forEach((token) =>
         series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
       )
     })
 
     return series
-  }, [finalChartData, tokensUnique, color, isDark])
+  }, [chartData, tokensUnique, color, isDark])
 
   const isSmall = useMedia(`(max-width: 600px)`)
 
@@ -144,11 +144,11 @@ export default function AreaChart({
         z: 0,
         style: {
           image: isDark ? logoLight.src : logoDark.src,
-          height: 28,
-          y: 160,
+          height: 40,
           opacity: 0.3,
         },
         left: isSmall ? '40%' : '45%',
+        top: '130px',
       },
       tooltip: {
         trigger: 'axis',
@@ -282,5 +282,5 @@ export default function AreaChart({
     }
   }, [id, series, formatDate, moneySymbol, title, pathname, isDark, color, isSmall])
 
-  return <Wrapper id={id} style={{ height: '400px' }}></Wrapper>
+  return <Wrapper id={id} style={{ height: '360px', margin: 'auto 0' }}></Wrapper>
 }
