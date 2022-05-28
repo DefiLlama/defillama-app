@@ -61,6 +61,12 @@ const DownloadIcon = styled(DownloadCloud)`
   height: 20px;
 `
 
+const PanelHiddenMobile = styled(Panel)`
+@media screen and (max-width: 800px) {
+  display: none;
+}
+`
+
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
 })
@@ -221,7 +227,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
           </RowBetween>
         </AutoColumn>
       </Panel>
-      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
+      <PanelHiddenMobile style={{ padding: '18px 25px', justifyContent: 'center' }}>
         <AutoColumn gap="4px">
           <RowBetween>
             <TYPE.heading>Change (24h)</TYPE.heading>
@@ -232,8 +238,8 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
-      </Panel>
-      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
+      </PanelHiddenMobile>
+      <PanelHiddenMobile style={{ padding: '18px 25px', justifyContent: 'center' }}>
         <AutoColumn gap="4px">
           <RowBetween>
             <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
@@ -244,7 +250,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
-      </Panel>
+      </PanelHiddenMobile>
     </>
   )
 
