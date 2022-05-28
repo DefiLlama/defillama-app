@@ -241,6 +241,15 @@ const Address = styled.p`
   gap: 8px;
 `
 
+const Bobo = styled.button`
+  margin-top: 0px;
+  margin-bottom: -34px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  display: flex;
+`
+
 interface IProtocolContainerProps {
   title: string
   protocol: string
@@ -363,15 +372,9 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
           chains={chains}
           bobo={bobo}
         />
-        <div
-          style={{
-            marginTop: '0px',
-            marginBottom: '-34px',
-            cursor: 'pointer',
-          }}
-        >
-          <Image src={boboLogo} width={34} height={34} alt="" onClick={() => setBobo(true)} />
-        </div>
+        <Bobo onClick={() => setBobo(!bobo)}>
+          <Image src={boboLogo} width={34} height={34} alt="" />
+        </Bobo>
       </Stats>
 
       <section>

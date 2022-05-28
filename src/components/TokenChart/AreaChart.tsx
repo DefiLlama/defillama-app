@@ -8,8 +8,7 @@ import {
   DataZoomComponent,
   GraphicComponent,
 } from 'echarts/components'
-import { useRouter } from 'next/router'
-import { useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { toK } from 'utils'
 import { v4 as uuid } from 'uuid'
 import { stringToColour } from './utils'
@@ -29,9 +28,9 @@ echarts.use([
   GraphicComponent,
 ])
 
-interface IChartProps {
+export interface IChartProps {
   chartData: any
-  tokensUnique: string[]
+  tokensUnique?: string[]
   moneySymbol?: string
   title: string
   color: string
@@ -42,18 +41,14 @@ const Wrapper = styled.div`
 `
 
 export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', title, color }: IChartProps) {
-  const { pathname } = useRouter()
-
   const id = useMemo(() => uuid(), [])
 
   const [isDark] = useDarkModeManager()
 
-  const prevPathname = useRef(pathname)
-
   const series = useMemo(() => {
     const chartColor = color || stringToColour()
 
-    if (tokensUnique?.length === 0) {
+    if (!tokensUnique || tokensUnique?.length === 0) {
       const series = {
         name: '',
         type: 'line',
@@ -85,50 +80,49 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
       })
 
       return series
+    } else {
+      const series = tokensUnique.map((token) => {
+        const color = stringToColour()
+
+        return {
+          name: token,
+          type: 'line',
+          stack: 'Total',
+          emphasis: {
+            focus: 'series',
+          },
+          symbol: 'none',
+          itemStyle: {
+            color,
+          },
+          areaStyle: {
+            color,
+          },
+          data: [],
+        }
+      })
+
+      chartData.forEach(({ date, ...item }) => {
+        tokensUnique.forEach((token) =>
+          series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
+        )
+      })
+
+      return series
     }
-
-    const series = tokensUnique.map((token) => {
-      const color = stringToColour()
-
-      return {
-        name: token,
-        type: 'line',
-        stack: 'Total',
-        emphasis: {
-          focus: 'series',
-        },
-        symbol: 'none',
-        itemStyle: {
-          color,
-        },
-        areaStyle: {
-          color,
-        },
-        data: [],
-      }
-    })
-
-    chartData.forEach(({ date, ...item }) => {
-      tokensUnique.forEach((token) =>
-        series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
-      )
-    })
-
-    return series
   }, [chartData, tokensUnique, color, isDark])
 
   const isSmall = useMedia(`(max-width: 600px)`)
 
-  useEffect(() => {
+  const createInstance = useCallback(() => {
     const instance = echarts.getInstanceByDom(document.getElementById(id))
-    if (instance) {
-      if (prevPathname.current !== pathname) {
-        instance.dispose()
-      } else return
-    }
 
+    return instance || echarts.init(document.getElementById(id))
+  }, [id])
+
+  useEffect(() => {
     // create instance
-    const chartInstance = echarts.init(document.getElementById(id))
+    const chartInstance = createInstance()
 
     chartInstance.setOption({
       graphic: {
@@ -272,7 +266,7 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
       })
       chartInstance.dispose()
     }
-  }, [color, id, isDark, isSmall, moneySymbol, pathname, series, title])
+  }, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance])
 
   return <Wrapper id={id} style={{ height: '360px', margin: 'auto 0' }}></Wrapper>
 }

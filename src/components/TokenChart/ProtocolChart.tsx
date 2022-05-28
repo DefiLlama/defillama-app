@@ -7,8 +7,9 @@ import Link from 'next/link'
 import { useDenominationPriceHistory } from 'utils/dataApi'
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { chainCoingeckoIds } from 'constants/chainTokens'
+import { IChartProps } from './AreaChart'
 
-const AreaChart = dynamic(() => import('./AreaChart'), { ssr: false }) as any
+const AreaChart = dynamic(() => import('./AreaChart'), { ssr: false }) as React.FC<IChartProps>
 
 interface IProps {
   protocol: string
@@ -120,7 +121,7 @@ export default function ({ protocol, tvlChartData, color, historicalChainTvls, c
           </Link>
         ))}
       </Denominations>
-      <AreaChart chartData={finalChartData} color={color} tokensUnique={[]} title="" moneySymbol={moneySymbol} />
+      <AreaChart chartData={finalChartData} color={color} tokensUnique={null} title="" moneySymbol={moneySymbol} />
     </div>
   )
 }
