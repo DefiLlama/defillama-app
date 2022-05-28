@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { ButtonLight } from 'components/ButtonStyled'
@@ -24,6 +24,7 @@ const Stats = styled.section`
   background: ${({ theme }) => theme.bg6};
   border: ${({ theme }) => '1px solid ' + theme.divider};
   box-shadow: ${({ theme }) => theme.shadowSm};
+  position: relative;
 
   @media (min-width: 80rem) {
     flex-direction: row;
@@ -239,6 +240,19 @@ const Address = styled.p`
   gap: 8px;
 `
 
+const Goblin = styled.button`
+  background: none;
+  border: none;
+  position: absolute;
+  bottom: -36px;
+  left: 0;
+  display: inline-block;
+  :hover {
+    cursor: pointer;
+  }
+  font-size: 2rem;
+`
+
 interface IProtocolContainerProps {
   title: string
   protocol: string
@@ -283,6 +297,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
     module: codeModule,
     historicalChainTvls,
   } = protocolData
+
+  const [goblinMode, setGoblinMode] = useState(false)
 
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
@@ -358,7 +374,11 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
           formatDate={formatDate}
           color={backgroundColor}
           historicalChainTvls={historicalChainTvls}
+          goblinMode={goblinMode}
         />
+        <Goblin style={{ opacity: goblinMode ? '0.4' : '1' }} onClick={() => setGoblinMode(!goblinMode)}>
+          👺
+        </Goblin>
       </Stats>
 
       <section>

@@ -276,101 +276,110 @@ export async function getSimpleProtocolsPageData(propsToKeep) {
 }
 
 export async function getPeggedsPageData(category, chain) {
-  const { peggedAssets, chains } = await getPeggedAssets()
-  const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '')).then((r) => r.json())
 
-  let chartDataByPeggedAsset = []
-  let peggedAssetNames: string[] = []
-  let peggedNameToIndexObj: object = {}
-  chartDataByPeggedAsset = await Promise.all(
-    peggedAssets.map(async (elem, i) => {
-      peggedAssetNames.push(elem.symbol) // fix
-      peggedNameToIndexObj[elem.symbol] = i
-      for (let i = 0; i < 5; i++) {
-        try {
-          if (!chain) {
-            return await fetch(`${PEGGEDCHART_API}/?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
-          }
-          return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
-        } catch (e) { }
-      }
-      throw new Error(`${CHART_API}/${elem} is broken`)
-    })
-  )
+  try {
+    const { peggedAssets, chains } = await getPeggedAssets()
+    const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '')).then((r) => r.json())
 
-  const peggedAreaChartData = chartDataByPeggedAsset.reduce((total, charts, i) => {
-    charts.forEach((chart) => {
-      if ((chart.date > 1596248105) && (chart.mcap)) {
-        total[chart.date] = total[chart.date] || {}
-        total[chart.date][peggedAssetNames[i]] = chart.mcap
-      }
-    })
-    return total
-  }, {})
+    let chartDataByPeggedAsset = []
+    let peggedAssetNames: string[] = []
+    let peggedNameToIndexObj: object = {}
+    chartDataByPeggedAsset = await Promise.all(
+      peggedAssets.map(async (elem, i) => {
+        peggedAssetNames.push(elem.symbol) // fix
+        peggedNameToIndexObj[elem.symbol] = i
+        for (let i = 0; i < 5; i++) {
+          try {
+            if (!chain) {
+              return await fetch(`${PEGGEDCHART_API}/?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
+            }
+            return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
+          } catch (e) { }
+        }
+        throw new Error(`${CHART_API}/${elem} is broken`)
+      })
+    )
 
-  const formattedPeggedAreaChart = Object.keys(peggedAreaChartData).map((date) => {
-    return {
-      date: date,
-      ...peggedAreaChartData[date],
-    }
-  })
-
-  const pegType = categoryToPegType[category]
-  const stackedDataset = Object.entries(
-    chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
+    const peggedAreaChartData = chartDataByPeggedAsset.reduce((total, charts, i) => {
       charts.forEach((chart) => {
-        const peggedName = peggedAssetNames[i]
-        const circulating = chart.mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
-        const date = chart.date
-        if (date < 1596248105) return
-        if (circulating !== null) {
-          if (total[date] == undefined) {
-            total[date] = {}
-          }
-          const b = total[date][peggedName]
-          total[date][peggedName] = { ...b, circulating: circulating ?? 0 }
+        if ((chart.date > 1596248105) && (chart.mcap)) {
+          total[chart.date] = total[chart.date] || {}
+          total[chart.date][peggedAssetNames[i]] = chart.mcap
         }
       })
       return total
     }, {})
-  )
 
-  const chainList = await chains
-    .sort((a, b) => b.mcap - a.mcap)
-    .map((chain) => chain.name)
-  const chainsSet = new Set()
-
-  peggedAssets.forEach(({ chains, category: pCategory }) => {
-    chains.forEach((chain) => {
-      if (!category || !chain) {
-        chainsSet.add(chain)
-      } else {
-        if (pCategory?.toLowerCase() === category?.toLowerCase() && chainList.includes(chain)) {
-          chainsSet.add(chain)
-        }
+    const formattedPeggedAreaChart = Object.keys(peggedAreaChartData).map((date) => {
+      return {
+        date: date,
+        ...peggedAreaChartData[date],
       }
     })
-  })
 
-  const filteredPeggedAssets = formatPeggedAssetsData({
-    category,
-    peggedAssets,
-    chartDataByPeggedAsset,
-    peggedNameToIndexObj,
-    chain,
-  })
+    const pegType = categoryToPegType[category]
+    const stackedDataset = Object.entries(
+      chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
+        charts.forEach((chart) => {
+          const peggedName = peggedAssetNames[i]
+          const circulating = chart.mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
+          const date = chart.date
+          if (date < 1596248105) return
+          if (circulating !== null) {
+            if (total[date] == undefined) {
+              total[date] = {}
+            }
+            const b = total[date][peggedName]
+            total[date][peggedName] = { ...b, circulating: circulating ?? 0 }
+          }
+        })
+        return total
+      }, {})
+    )
 
-  const peggedChartType = stackedDataset.length > 30 ? "Area" : "Pie"
+    const chainList = await chains
+      .sort((a, b) => b.mcap - a.mcap)
+      .map((chain) => chain.name)
+    const chainsSet = new Set()
 
-  return {
-    peggedcategory: category,
-    chains: chainList.filter((chain) => chainsSet.has(chain)),
-    filteredPeggedAssets,
-    chartData,
-    formattedPeggedAreaChart,
-    stackedDataset,
-    peggedChartType,
-    chain: chain ?? 'All',
+    peggedAssets.forEach(({ chains, category: pCategory }) => {
+      chains.forEach((chain) => {
+        if (!category || !chain) {
+          chainsSet.add(chain)
+        } else {
+          if (pCategory?.toLowerCase() === category?.toLowerCase() && chainList.includes(chain)) {
+            chainsSet.add(chain)
+          }
+        }
+      })
+    })
+
+    const filteredPeggedAssets = formatPeggedAssetsData({
+      category,
+      peggedAssets,
+      chartDataByPeggedAsset,
+      peggedNameToIndexObj,
+      chain,
+    })
+
+    const peggedChartType = stackedDataset.length > 30 ? "Area" : "Pie"
+
+    return {
+      peggedcategory: category,
+      chains: chainList.filter((chain) => chainsSet.has(chain)),
+      filteredPeggedAssets,
+      chartData,
+      formattedPeggedAreaChart,
+      stackedDataset,
+      peggedChartType,
+      chain: chain ?? 'All',
+    }
+  }
+  catch (e) {
+    console.log(e)
+    return {
+      notFound: true,
+    }
   }
 }
 
