@@ -48,6 +48,11 @@ const Button = styled.button`
   :hover {
     cursor: pointer;
   }
+
+  :focus-visible {
+    background: ${({ theme }) => theme.bg3};
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+  }
 `
 
 const ScrollableDiv = styled.div`
@@ -86,6 +91,11 @@ const PortfolioList = styled.ul`
       justify-content: center;
       flex: 1;
       gap: 4px;
+
+      :focus-visible {
+        background: ${({ theme }) => theme.bg3};
+        outline: ${({ theme }) => '1px solid ' + theme.text4};
+      }
 
       & > *:first-child {
         flex-shrink: 0;

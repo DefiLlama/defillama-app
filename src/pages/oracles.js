@@ -97,7 +97,9 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
     <>
       <Search />
       <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+
       <Header>Total Value Secured All Oracles</Header>
+
       <ChartsWrapper>
         <ChainPieChart data={tokenTvls} chainColor={tokenColors} />
         <ChainDominanceChart

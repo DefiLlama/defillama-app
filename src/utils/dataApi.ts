@@ -23,6 +23,8 @@ import {
 } from '../constants/index'
 import { getPercentChange, getPrevTvlFromChart, getPrevCirculatingFromChart, standardizeProtocolName } from 'utils'
 
+
+
 interface IProtocol {
   name: string
   symbol: string
@@ -575,17 +577,29 @@ export const getProtocol = async (protocolName: string) => {
   }
 }
 
-export const fuseProtocolData = (protocolData, protocol) => {
-  const historicalChainTvls = protocolData?.chainTvls ?? {}
-  const chainTvls = protocolData.currentChainTvls ?? {}
+export const fuseProtocolData = (protocolData) => {
+  const tvlBreakdowns = protocolData?.currentChainTvls ?? {}
+
   const tvl = protocolData?.tvl ?? []
+
+  const tvlChartData = tvl.filter((item) => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
+
+  const historicalChainTvls = protocolData?.chainTvls ?? {}
+
+  const tvlByChain = Object.entries(protocolData?.currentChainTvls ?? {})?.sort(
+    (a: [string, number], b: [string, number]) => b[1] - a[1]
+  ) ?? []
+
+  const chains = tvlByChain?.flatMap((c) => protocolData?.chains?.find((x) => x === c[0]) || []) ?? []
 
   return {
     ...protocolData,
     tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
-    tvlList: tvl.filter((item) => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD]),
-    historicalChainTvls,
-    chainTvls,
+    tvlChartData,
+    tvlBreakdowns,
+    tvlByChain,
+    chains,
+    historicalChainTvls
   }
 }
 
@@ -1115,13 +1129,15 @@ export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
   return { data, error, loading: gecko_id && !data && !error }
 }
 
-export const useDenominationPriceHistory = (gecko_id: string, utcStartTime: string) => {
-  let url = `https://api.coingecko.com/api/v3/coins/${gecko_id}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(
-    Date.now() / 1000
-  )}`
+export const useDenominationPriceHistory = ({ geckoId, utcStartTime }: { geckoId?: string, utcStartTime: number }) => {
+  let url = `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=`
 
-  const { data, error } = useSWR(gecko_id ? url : null, fetcher)
-  return { data, error, loading: gecko_id && !data && !error }
+  // append end time to fetcher params to keep query key consistent b/w renders and avoid over fetching
+  const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Math.floor(
+    Date.now() / 1000
+  )))
+
+  return { data, error, loading: geckoId && !data && !error }
 }
 
 // all unique pools

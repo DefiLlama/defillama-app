@@ -1,3 +1,4 @@
+import getColor from 'utils/getColor'
 import NFTCollectionPage from '../../../components/NFTCollectionPage'
 import {
   getNFTCollection,
@@ -15,6 +16,7 @@ export async function getStaticProps({
   const collection = await getNFTCollection(slug)
   const chart = await getNFTCollectionChartData(slug)
   const statistics = await getNFTStatistics(chart)
+  const backgroundColor = await getColor({ protocol: collection.slug, logo: collection.logo })
 
   return {
     props: {
@@ -22,6 +24,7 @@ export async function getStaticProps({
       chart,
       statistics,
       title: collection ? `${collection.name} - DefiLlama` : `DefiLlama - NFT Dashboard`,
+      backgroundColor
     },
     revalidate: revalidate(),
   }

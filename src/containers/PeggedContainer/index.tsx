@@ -3,7 +3,6 @@ import { Box } from 'rebass/styled-components'
 import styled from 'styled-components'
 import { Header } from 'Theme'
 import { ButtonDark } from 'components/ButtonStyled'
-import { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 import { AllPeggedOptions } from 'components/SettingsModal'
@@ -27,11 +26,11 @@ const ChartsWrapper = styled(Box)`
   }
 `
 
-const RowWrapper = styled(RowBetween)`
-  flex-wrap: wrap;
-  @media (max-width: 680px) {
-    gap: 16px;
-  }
+const HeaderWrapper = styled(Header)`
+  margin-top: 48px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
 `
 
 const AssetFilters = styled.div`
@@ -155,10 +154,10 @@ export default function PeggedContainer({
 
       <AllPeggedOptions style={{ display: 'flex', justifyContent: 'center' }} />
 
-      <RowWrapper>
-        <Header>{Capitalize(peggedSymbol)} Total Circulating All Chains</Header>
+      <HeaderWrapper>
+        <span>{Capitalize(peggedSymbol)} Total Circulating All Chains</span>
         <ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
-      </RowWrapper>
+      </HeaderWrapper>
 
       <ChartsWrapper>
         <PeggedChainPieChart data={chainsCirculatingValues} chainColor={chainColor} />

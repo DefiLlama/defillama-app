@@ -104,7 +104,9 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
     <>
       <Search />
       <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+
       <Header>Total Value Locked All Forks</Header>
+
       <ChartsWrapper>
         <ChainPieChart data={tokenTvls} chainColor={tokenColors} />
         <ChainDominanceChart

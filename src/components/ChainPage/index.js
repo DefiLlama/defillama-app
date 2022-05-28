@@ -61,6 +61,12 @@ const DownloadIcon = styled(DownloadCloud)`
   height: 20px;
 `
 
+const PanelHiddenMobile = styled(Panel)`
+  @media screen and (max-width: 800px) {
+    display: none;
+  }
+`
+
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
 })
@@ -156,7 +162,10 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     return [DENOMINATIONS, chainGeckoId]
   }, [selectedChain])
 
-  const { data: denominationPriceHistory, loading } = useDenominationPriceHistory(chainGeckoId, 0)
+  const { data: denominationPriceHistory, loading } = useDenominationPriceHistory({
+    geckoId: chainGeckoId,
+    utcStartTime: 0,
+  })
 
   const [finalChartData, chainPriceInUSD] = useMemo(() => {
     if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {
@@ -221,7 +230,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
           </RowBetween>
         </AutoColumn>
       </Panel>
-      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
+      <PanelHiddenMobile style={{ padding: '18px 25px', justifyContent: 'center' }}>
         <AutoColumn gap="4px">
           <RowBetween>
             <TYPE.heading>Change (24h)</TYPE.heading>
@@ -232,8 +241,8 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
-      </Panel>
-      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
+      </PanelHiddenMobile>
+      <PanelHiddenMobile style={{ padding: '18px 25px', justifyContent: 'center' }}>
         <AutoColumn gap="4px">
           <RowBetween>
             <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
@@ -244,7 +253,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             </TYPE.main>
           </RowBetween>
         </AutoColumn>
-      </Panel>
+      </PanelHiddenMobile>
     </>
   )
 
@@ -252,20 +261,18 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     <>
       <SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
-      <AutoColumn gap="24px">
-        <Search step={{ category: "Home", name: selectedChain === 'All' ? "All Protocols" : selectedChain }} />
-        <div>
-          <Panel background={true} style={{ textAlign: 'center' }}>
-            <TYPE.main fontWeight={400}>
-              We've launched a multichain APY dashboard. Check it out{' '}
-              <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
-                here
-              </BasicLink>
-              !
-            </TYPE.main>
-          </Panel>
-        </div>
-      </AutoColumn>
+      <Search step={{ category: 'Home', name: selectedChain === 'All' ? 'All Protocols' : selectedChain }} />
+
+      <Panel>
+        <p style={{ textAlign: 'center', margin: '0' }}>
+          We've launched a multichain APY dashboard. Check it out{' '}
+          <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
+            here
+          </BasicLink>
+          !
+        </p>
+      </Panel>
+
       <div>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
@@ -307,13 +314,12 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
         </div>
       </div>
 
-      <ListOptions style={{ marginTop: '24px' }}>
+      <ListOptions style={{ margin: '36px 0 -12px 0' }}>
         <ListHeader>TVL Rankings</ListHeader>
         <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
       </ListOptions>
 
       <ProtocolsTable data={protocolTotals} columns={columns} />
-
     </>
   )
 }

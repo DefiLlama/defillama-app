@@ -13,7 +13,6 @@ import { FixedSizeList } from 'react-window'
 import { useFetchProtocolsList } from 'utils/dataApi'
 
 const Wrapper = styled.nav`
-  flex: 1;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -28,8 +27,6 @@ const Box = styled(Combobox)`
   outline: none;
   color: ${({ theme }) => theme.text1};
   font-size: 1rem;
-  box-shadow: 0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04),
-    0px 0px 1px rgba(0, 0, 0, 0.04);
   margin: 0;
 
   ::placeholder {
@@ -37,8 +34,7 @@ const Box = styled(Combobox)`
     font-size: 1rem;
   }
 
-  :focus-visible,
-  [data-focus-visible] {
+  &[data-focus-visible] {
     outline: ${({ theme }) => '1px solid ' + theme.text4};
   }
 `
@@ -51,8 +47,9 @@ const Popover = styled(ComboboxPopover)`
   z-index: 100;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
-  box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04),
-    0px 24px 32px rgba(0, 0, 0, 0.04);
+  outline: ${({ theme }) => '1px solid ' + theme.text5};
+  box-shadow: ${({ theme }) => theme.shadowLg};
+  margin: 0;
 
   ${({ theme: { minLg } }) => minLg} {
     max-height: 320px;
@@ -93,8 +90,7 @@ const OptionsWrapper = styled.div`
   gap: 8px;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
-  box-shadow: 0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04),
-    0px 0px 1px rgba(0, 0, 0, 0.04);
+  box-shadow: ${({ theme }) => theme.shadowSm};
   background: ${({ theme }) => transparentize(0.4, theme.bg6)};
   --step-color: ${({ theme }) => (theme.mode === 'dark' ? '#7e96ff' : '#475590')};
 
@@ -108,6 +104,12 @@ const OptionsWrapper = styled.div`
     & > * {
       color: ${({ theme }) => theme.text1};
       font-size: 0.875rem;
+    }
+  }
+
+  a {
+    :focus-visible {
+      outline: ${({ theme }) => '1px solid ' + theme.text4};
     }
   }
 `
@@ -149,7 +151,7 @@ const DropdownOptions = styled(DeFiTvlOptions)`
   }
 
   ${({ theme: { min2Xl } }) => min2Xl} {
-    display: none;
+    display: none !important;
   }
 `
 
@@ -163,7 +165,6 @@ interface IStep {
   category: string
   name: string
   route?: string
-  color?: string
   hideOptions?: boolean
 }
 
@@ -196,7 +197,7 @@ const SearchDefault = ({ data, loading = false, step }: ISearchProps) => {
     return pathname.startsWith('/protocol') ? [...protocolData, ...chainData] : [...chainData, ...protocolData]
   }, [data, pathname])
 
-  const combobox = useComboboxState({ gutter: 8, sameWidth: true, list: searchData.map((x) => x.name) })
+  const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: searchData.map((x) => x.name) })
 
   // Resets combobox value when popover is collapsed
   if (!combobox.mounted && combobox.value) {
@@ -262,18 +263,18 @@ const Options = ({ step }: { step: IStep }) => {
       <p>
         <Link href={`/${step.route || step.category.toLowerCase()}`}>{step.category}</Link>
         <ArrowRight size={16} />
-        <span style={{ color: step.color ?? 'var(--step-color)' }}>{step.name}</span>
+        <span style={{ color: 'var(--step-color)' }}>{step.name}</span>
       </p>
 
       {/* below components will render base on breakpoint */}
       {!step.hideOptions && (
         <>
-          <DropdownOptions />
-
           <Filters>
             <label>INCLUDE IN TVL</label>
             <AllTvlOptions style={{ display: 'flex', justifyContent: 'flex-end', margin: 0, fontSize: '0.875rem' }} />
           </Filters>
+
+          <DropdownOptions />
         </>
       )}
     </OptionsWrapper>

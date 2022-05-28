@@ -196,15 +196,9 @@ const PageView = () => {
               </TYPE.main>
             </AutoColumn>
           )}
-          <AutoColumn>
-            <TYPE.main>
-              <HeadHelp title="Audits" text="Audits are not a guarantee of security." />
-            </TYPE.main>
-            <TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-              <AuditInfo audits={audits} auditLinks={audit_links} />
-            </TYPE.main>
-          </AutoColumn>
-          <div></div>
+
+          <AuditInfo audits={audits} auditLinks={audit_links} />
+
           <RowFixed>
             <BasicLink color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
               <ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>

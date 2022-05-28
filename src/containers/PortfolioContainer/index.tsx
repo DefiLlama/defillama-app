@@ -1,17 +1,20 @@
 import { useMemo } from 'react'
-import { FolderPlus, Trash2 } from 'react-feather'
+import { ChevronDown, FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
 import { Panel, ProtocolsTable } from 'components'
-import DropdownSelect from 'components/DropdownSelect'
 import Row, { RowBetween } from 'components/Row'
 import Search from 'components/Search'
-
 import { useIsClient } from 'hooks'
 import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
 import { TYPE } from 'Theme'
 import { columnsToShow } from 'components/Table'
+import { DropdownMenu, DropdownMenuContent, DefaultMenuButton, DefaultMenuItem } from 'components/DropdownMenu'
 
-const StyledFolderPlus = styled(FolderPlus)`
+interface IFolder {
+  isSaved?: boolean
+}
+
+const StyledFolderPlus = styled(FolderPlus)<IFolder>`
   cursor: pointer;
   fill: ${({ theme: { text1 }, isSaved }) => (isSaved ? text1 : 'none')};
 
@@ -21,7 +24,7 @@ const StyledFolderPlus = styled(FolderPlus)`
   }
 `
 
-const StyledTrash = styled(Trash2)`
+const StyledTrash = styled(Trash2)<IFolder>`
   cursor: pointer;
   fill: ${({ theme: { text1 }, isSaved }) => (isSaved ? text1 : 'none')};
 
@@ -37,9 +40,8 @@ function PortfolioContainer({ protocolsDict }) {
   const isClient = useIsClient()
 
   const { addPortfolio, removePortfolio, savedProtocols, selectedPortfolio, setSelectedPortfolio } = useSavedProtocols()
-  const portfolios = Object.keys(savedProtocols)
-    .filter((portfolio) => portfolio !== selectedPortfolio)
-    .map((portfolio) => ({ label: portfolio }))
+
+  const portfolios: string[] = Object.keys(savedProtocols).filter((portfolio) => portfolio !== selectedPortfolio)
 
   const selectedPortfolioProtocols = savedProtocols[selectedPortfolio]
 
@@ -68,14 +70,25 @@ function PortfolioContainer({ protocolsDict }) {
 
   return (
     <>
-
       <RowBetween>
         <TYPE.largeHeader>Saved Protocols</TYPE.largeHeader>
         <Search />
       </RowBetween>
       <Row sx={{ gap: '1rem' }}>
         <TYPE.main>Current portfolio:</TYPE.main>
-        <DropdownSelect setActive={setSelectedPortfolio} active={selectedPortfolio} options={portfolios} />
+        <DropdownMenu>
+          <DefaultMenuButton>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedPortfolio}</span>
+            <ChevronDown size={16} style={{ flexShrink: '0' }} />
+          </DefaultMenuButton>
+          <DropdownMenuContent sideOffset={5}>
+            {portfolios.map((o) => (
+              <DefaultMenuItem key={o} onSelect={() => setSelectedPortfolio(o)}>
+                {o}
+              </DefaultMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <StyledFolderPlus onClick={onFolderClick} />
         {selectedPortfolio !== DEFAULT_PORTFOLIO && <StyledTrash onClick={onTrashClick} />}
       </Row>
@@ -83,11 +96,10 @@ function PortfolioContainer({ protocolsDict }) {
       {filteredProtocols.length ? (
         <ProtocolsTable data={filteredProtocols} columns={columns} />
       ) : (
-        <Panel style={{ marginTop: '6px', padding: '1rem 0 0 0 ' }}>
-          <TYPE.main sx={{ textAlign: 'center', padding: '1rem' }}>You have not saved any protocols.</TYPE.main>
+        <Panel>
+          <p style={{ textAlign: 'center' }}>You have not saved any protocols.</p>
         </Panel>
       )}
-
     </>
   )
 }

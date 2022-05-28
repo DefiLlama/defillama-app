@@ -66,8 +66,11 @@ export default function Protocols({ langs, langsUnique, langsDaySum,
   return (
     <Layout title={`Languages - DefiLlama`} defaultSEO>
       <Search />
+
       <Header>TVL breakdown by Smart Contract Language</Header>
+
       <Chart {...({ langs, langsUnique })} />
+
       <ChainDominanceChart
         stackOffset="expand"
         formatPercent={true}
@@ -75,8 +78,11 @@ export default function Protocols({ langs, langsUnique, langsDaySum,
         chainsUnique={langsUnique}
         chainColor={colors}
         daySum={langsDaySum} />
+
       <br />
+
       <Header>Open/Closed Source breakdown of solana protocols</Header>
+
       <ChainDominanceChart
         stackOffset="expand"
         formatPercent={true}

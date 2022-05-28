@@ -11,7 +11,7 @@ export async function getStaticProps({
 }) {
   const props = await getPeggedsPageData(peggedcategory, chain)
 
-  if (props.filteredPeggedAssets.length === 0) {
+  if (!props.filteredPeggedAssets || props.filteredPeggedAssets?.length === 0) {
     return {
       notFound: true,
     }

@@ -21,6 +21,7 @@ export default class MyDocument extends Document {
                     <>
                         {initialProps.styles}
                         {sheet.getStyleElement()}
+                        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet" />
                     </>
                 ),
             }

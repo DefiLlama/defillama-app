@@ -402,25 +402,30 @@ export default function Menu({ type = 'defi' }) {
 export const AllTvlOptions = ({ style }) => {
   const tvlToggles = useTvlToggles()
   const extraTvlEnabled = useGetExtraTvlEnabled()
+  const router = useRouter()
+
+  let options = [...extraTvlOptions]
+
+  if (router.pathname?.includes('/protocol/')) {
+    options = options.filter((o) => o.key !== 'doublecounted')
+  }
 
   return (
-    <>
-      <ScrollAreaRoot>
-        <ScrollAreaViewport>
-          <ListWrapper style={{ ...style }}>
-            {extraTvlOptions.map((option) => (
-              <ListItem key={option.key}>
-                <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
-              </ListItem>
-            ))}
-          </ListWrapper>
-        </ScrollAreaViewport>
-        <ScrollAreaScrollbar orientation="horizontal">
-          <ScrollAreaThumb />
-        </ScrollAreaScrollbar>
-        <ScrollAreaCorner />
-      </ScrollAreaRoot>
-    </>
+    <ScrollAreaRoot>
+      <ScrollAreaViewport>
+        <ListWrapper style={{ ...style }}>
+          {options.map((option) => (
+            <ListItem key={option.key}>
+              <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
+            </ListItem>
+          ))}
+        </ListWrapper>
+      </ScrollAreaViewport>
+      <ScrollAreaScrollbar orientation="horizontal">
+        <ScrollAreaThumb />
+      </ScrollAreaScrollbar>
+      <ScrollAreaCorner />
+    </ScrollAreaRoot>
   )
 }
 

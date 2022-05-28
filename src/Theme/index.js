@@ -44,6 +44,7 @@ const theme = (darkMode, color) => ({
   bg4: darkMode ? '#565A69' : '#CED0D9',
   bg5: darkMode ? '#565A69' : '#888D9B',
   bg6: darkMode ? '#000' : '#FFFFFF',
+  bg7: darkMode ? "rgba(7,14,15,0.7)" : 'rgba(252,252,251,1)',
 
   //specialty colors
   modalBG: darkMode ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.6)',
@@ -66,8 +67,6 @@ const theme = (darkMode, color) => ({
   secondary2: darkMode ? '#17000b26' : '#F6DDE8',
   secondary3: darkMode ? '#17000b26' : '#FDEAF1',
 
-  shadow1: darkMode ? '#000' : '#2F80ED',
-
   // other
   red1: '#FF6871',
   green1: '#27AE60',
@@ -76,6 +75,13 @@ const theme = (darkMode, color) => ({
   link: '#2172E5',
   blue: '#2f80ed',
   background: darkMode ? 'black' : `radial-gradient(50% 50% at 50% 50%, #445ed0 0%, #fff 0%)`,
+
+  //shadow
+  shadow1: darkMode ? '#000' : '#2F80ED',
+  shadowSm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+  shadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+  shadowMd: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+  shadowLg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
 
   // breakpoints
   bpSm: `${sm}px`,
@@ -180,11 +186,7 @@ export const ThemedBackground = styled.div`
   background: ${({ backgroundColor, theme }) =>
     `radial-gradient(50% 50% at 50% 50%, ${backgroundColor || transparentize(0.6, theme.primary1)
     } 0%, rgba(255, 255, 255, 0) 100%)`};
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  z-index: 9999;
-
+  z-index: -100;
   transform: translateY(-110vh);
 `
 

@@ -6,7 +6,6 @@ import { BasicLink } from 'components/Link'
 
 import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from 'components/Column'
-import DropdownSelect from 'components/DropdownSelect'
 import LocalLoader from 'components/LocalLoader'
 import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 
@@ -24,7 +23,10 @@ import {
   toNiceMonthlyDate,
   toNiceHour,
   toNiceDayAndHour,
+  capitalizeFirstLetter,
 } from 'utils'
+import { DefaultMenuButton, DefaultMenuItem, DropdownMenu, DropdownMenuContent } from 'components/DropdownMenu'
+import { ChevronDown } from 'react-feather'
 
 const ChartWrapper = styled.div`
   height: 100%;
@@ -32,6 +34,21 @@ const ChartWrapper = styled.div`
 
   @media screen and (max-width: 600px) {
     min-height: 200px;
+  }
+`
+
+const MenuButton = styled(DefaultMenuButton)`
+  width: fit-content;
+  white-space: nowrap;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid ${({ theme }) => theme.bg4};
+  background: none;
+  color: ${({ theme }) => theme.text1};
+
+  & > * {
+    font-family: inherit;
+    font-weight: 500;
   }
 `
 
@@ -56,92 +73,103 @@ function stringToColour() {
   return '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0')
 }
 
-export function GeneralAreaChart({ aspect, finalChartData, tokensUnique, textColor, color, moneySymbol, formatDate, hallmarks }) {
-  return <ResponsiveContainer aspect={aspect}>
-    <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={finalChartData}>
-      <defs>
-        <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor={color} stopOpacity={0.35} />
-          <stop offset="95%" stopColor={color} stopOpacity={0} />
-        </linearGradient>
-      </defs>
-      <XAxis
-        tickLine={false}
-        axisLine={false}
-        interval="preserveEnd"
-        tickMargin={16}
-        minTickGap={120}
-        tickFormatter={formatDate}
-        dataKey={tokensUnique.length > 0 ? 'date' : '0'}
-        scale="time"
-        type="number"
-        tick={{ fill: textColor }}
-        domain={['dataMin', 'dataMax']}
-      />
-      <YAxis
-        type="number"
-        orientation="right"
-        tickFormatter={(tick) => moneySymbol + toK(tick)}
-        axisLine={false}
-        tickLine={false}
-        interval="preserveEnd"
-        minTickGap={80}
-        yAxisId={0}
-        tick={{ fill: textColor }}
-      />
-      <Tooltip
-        cursor={true}
-        formatter={(val) => formattedNum(val, moneySymbol === '$')}
-        labelFormatter={(label) => toNiceDateYear(label)}
-        labelStyle={{ paddingTop: 4 }}
-        itemSorter={(item) => -item.value}
-        contentStyle={{
-          padding: '10px 14px',
-          borderRadius: 10,
-          borderColor: color,
-          color: 'black',
-        }}
-        wrapperStyle={{ top: -70, left: -10 }}
-      />
-      {hallmarks.map((hallmark, i) => (
-        <ReferenceLine
-          x={hallmark[0]}
-          stroke={textColor}
-          label={{ value: hallmark[1], fill: textColor, position: 'insideTop', offset: ((i * 50) % 300) + 50 }}
-          key={'hall1' + i}
+export function GeneralAreaChart({
+  aspect,
+  finalChartData,
+  tokensUnique,
+  textColor,
+  color,
+  moneySymbol,
+  formatDate,
+  hallmarks,
+}) {
+  return (
+    <ResponsiveContainer aspect={aspect}>
+      <AreaChart margin={{ top: 0, right: 10, bottom: 6, left: 0 }} barCategoryGap={1} data={finalChartData}>
+        <defs>
+          <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={color} stopOpacity={0.35} />
+            <stop offset="95%" stopColor={color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <XAxis
+          tickLine={false}
+          axisLine={false}
+          interval="preserveEnd"
+          tickMargin={16}
+          minTickGap={120}
+          tickFormatter={formatDate}
+          dataKey={tokensUnique.length > 0 ? 'date' : '0'}
+          scale="time"
+          type="number"
+          tick={{ fill: textColor }}
+          domain={['dataMin', 'dataMax']}
         />
-      ))}
-      {tokensUnique.length > 0 ? (
-        tokensUnique.map((tokenSymbol) => {
-          const randomColor = stringToColour()
-          return (
-            <Area
-              type="monotone"
-              dataKey={tokenSymbol}
-              key={tokenSymbol}
-              stackId="1"
-              fill={randomColor}
-              stroke={randomColor}
-            />
-          )
-        })
-      ) : (
-        <Area
-          key={'other'}
-          dataKey="1"
-          isAnimationActive={false}
-          stackId="2"
-          strokeWidth={2}
-          dot={false}
-          type="monotone"
-          name={'TVL'}
+        <YAxis
+          type="number"
+          orientation="right"
+          tickFormatter={(tick) => moneySymbol + toK(tick)}
+          axisLine={false}
+          tickLine={false}
+          interval="preserveEnd"
+          minTickGap={80}
           yAxisId={0}
-          stroke={color}
-          fill="url(#colorUv)"
+          tick={{ fill: textColor }}
         />
-      )}
-    </AreaChart>
-  </ResponsiveContainer>
+        <Tooltip
+          cursor={true}
+          formatter={(val) => formattedNum(val, moneySymbol === '$')}
+          labelFormatter={(label) => toNiceDateYear(label)}
+          labelStyle={{ paddingTop: 4 }}
+          itemSorter={(item) => -item.value}
+          contentStyle={{
+            padding: '10px 14px',
+            borderRadius: 10,
+            borderColor: color,
+            color: 'black',
+          }}
+          wrapperStyle={{ top: -70, left: -10 }}
+        />
+        {hallmarks.map((hallmark, i) => (
+          <ReferenceLine
+            x={hallmark[0]}
+            stroke={textColor}
+            label={{ value: hallmark[1], fill: textColor, position: 'insideTop', offset: ((i * 50) % 300) + 50 }}
+            key={'hall1' + i}
+          />
+        ))}
+        {tokensUnique.length > 0 ? (
+          tokensUnique.map((tokenSymbol) => {
+            const randomColor = stringToColour()
+            return (
+              <Area
+                type="monotone"
+                dataKey={tokenSymbol}
+                key={tokenSymbol}
+                stackId="1"
+                fill={randomColor}
+                stroke={randomColor}
+              />
+            )
+          })
+        ) : (
+          <Area
+            key={'other'}
+            dataKey="1"
+            isAnimationActive={false}
+            stackId="2"
+            strokeWidth={2}
+            dot={false}
+            type="monotone"
+            name={'TVL'}
+            yAxisId={0}
+            stroke={color}
+            fill="url(#colorUv)"
+          />
+        )}
+      </AreaChart>
+    </ResponsiveContainer>
+  )
 }
 
 const ALL_CHAINS = 'All Chains'
@@ -280,7 +308,8 @@ const TokenChart = ({
       (denominationPriceHistory === undefined || denominationPriceHistory.asset !== denomination)
     ) {
       fetchAPI(
-        `https://api.coingecko.com/api/v3/coins/${denomination === DENOMINATIONS.ETH ? 'ethereum' : chainDenomination.geckoId
+        `https://api.coingecko.com/api/v3/coins/${
+          denomination === DENOMINATIONS.ETH ? 'ethereum' : chainDenomination.geckoId
         }/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(Date.now() / 1000)}`
       ).then((data) =>
         setDenominationPriceHistory({
@@ -406,20 +435,33 @@ const TokenChart = ({
     <ChartWrapper>
       {belowMed ? (
         <RowBetween mb={40}>
-          <DropdownSelect
-            options={Object.values(denominationsToDisplay).map((d) => ({
-              label: d,
-              to: buildDenomUrl(d),
-            }))}
-            active={denomination}
-            color={color}
-          />
-          <DropdownSelect
-            options={Object.values(timeframeOptions).map((t) => ({ label: t }))}
-            active={timeWindow}
-            setActive={setTimeWindow}
-            color={color}
-          />
+          <DropdownMenu>
+            <MenuButton>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{denomination}</span>
+              <ChevronDown size={16} style={{ flexShrink: '0' }} />
+            </MenuButton>
+            <DropdownMenuContent sideOffset={5}>
+              {Object.values(denominationsToDisplay).map((d) => (
+                <DefaultMenuItem key={d} onSelect={() => router.push(buildDenomUrl(d))}>
+                  {d}
+                </DefaultMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <MenuButton>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{timeWindow}</span>
+              <ChevronDown size={16} style={{ flexShrink: '0' }} />
+            </MenuButton>
+            <DropdownMenuContent sideOffset={5}>
+              {Object.values(timeframeOptions).map((t) => (
+                <DefaultMenuItem key={t} onSelect={() => setTimeWindow(t)}>
+                  {t}
+                </DefaultMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </RowBetween>
       ) : (
         <RowBetween
@@ -436,25 +478,41 @@ const TokenChart = ({
                 </BasicLink>
               ))}
               {tokenSymbols && !small && (
-                <DropdownSelect
-                  options={tokenSymbols.map((symbol) => ({
-                    label: symbol,
-                    to: buildDenomUrl(`${DENOMINATIONS.Tokens}-${symbol}`),
-                  }))}
-                  active={denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'}
-                  color={color}
-                  style={{ marginRight: '6px' }}
-                />
+                <DropdownMenu>
+                  <MenuButton>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {denomination === DENOMINATIONS.Tokens ? balanceToken : 'Tokens'}
+                    </span>
+                    <ChevronDown size={16} style={{ flexShrink: '0' }} />
+                  </MenuButton>
+                  <DropdownMenuContent sideOffset={5}>
+                    {tokenSymbols.map((symbol) => (
+                      <DefaultMenuItem
+                        key={symbol}
+                        onSelect={() => setTimeWindow(router.push(buildDenomUrl(`${DENOMINATIONS.Tokens}-${symbol}`)))}
+                      >
+                        {symbol}
+                      </DefaultMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               {chainTvls && Object.keys(chainTvls).length > 1 && (
-                <DropdownSelect
-                  options={[ALL_CHAINS].concat(Object.keys(chainTvls)).map((chain) => ({
-                    label: chain,
-                    to: buildChainUrl(chain),
-                  }))}
-                  active={selectedChain === 'all' ? ALL_CHAINS : selectedChain}
-                  color={color}
-                />
+                <DropdownMenu>
+                  <MenuButton>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {selectedChain === 'all' ? ALL_CHAINS : selectedChain}
+                    </span>
+                    <ChevronDown size={16} style={{ flexShrink: '0' }} />
+                  </MenuButton>
+                  <DropdownMenuContent sideOffset={5}>
+                    {[ALL_CHAINS].concat(Object.keys(chainTvls)).map((chain) => (
+                      <DefaultMenuItem key={chain} onSelect={() => setTimeWindow(router.push(buildChainUrl(chain)))}>
+                        {capitalizeFirstLetter(chain)}
+                      </DefaultMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </RowFixed>
           </AutoColumn>
@@ -482,7 +540,9 @@ const TokenChart = ({
       )}
       {finalChartData === undefined && <LocalLoader />}
       {chartFilter === CHART_VIEW.LIQUIDITY && finalChartData && (
-        <GeneralAreaChart {...({ aspect, finalChartData, tokensUnique, textColor, color, moneySymbol, formatDate, hallmarks })} />
+        <GeneralAreaChart
+          {...{ aspect, finalChartData, tokensUnique, textColor, color, moneySymbol, formatDate, hallmarks }}
+        />
       )}
       {chartFilter === CHART_VIEW.VOLUME && finalChartData && (
         <ResponsiveContainer aspect={aspect}>

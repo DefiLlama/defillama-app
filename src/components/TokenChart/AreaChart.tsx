@@ -1,18 +1,56 @@
-import * as echarts from 'echarts'
-import { useEffect, useMemo } from 'react'
-import { formattedNum } from 'utils'
+import * as echarts from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { LineChart } from 'echarts/charts'
+import {
+  TooltipComponent,
+  TitleComponent,
+  GridComponent,
+  DataZoomComponent,
+  GraphicComponent,
+} from 'echarts/components'
+import { useCallback, useEffect, useMemo } from 'react'
+import { toK } from 'utils'
 import { v4 as uuid } from 'uuid'
 import { stringToColour } from './utils'
+import styled from 'styled-components'
+import { useDarkModeManager } from 'contexts/LocalStorage'
+import logoLight from '../../../public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
+import logoDark from '../../../public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
+import { useMedia } from 'react-use'
 
-export default function AreaChart({ finalChartData, tokensUnique, formatDate, moneySymbol = '$', title }) {
+echarts.use([
+  CanvasRenderer,
+  LineChart,
+  TooltipComponent,
+  TitleComponent,
+  GridComponent,
+  DataZoomComponent,
+  GraphicComponent,
+])
+
+export interface IChartProps {
+  chartData: any
+  tokensUnique?: string[]
+  moneySymbol?: string
+  title: string
+  color: string
+}
+
+const Wrapper = styled.div`
+  --gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
+`
+
+export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', title, color }: IChartProps) {
   const id = useMemo(() => uuid(), [])
 
-  const { dates, series } = useMemo(() => {
-    const dates = []
-    const series = tokensUnique.map((token) => {
-      const color = stringToColour()
-      return {
-        name: token,
+  const [isDark] = useDarkModeManager()
+
+  const series = useMemo(() => {
+    const chartColor = color || stringToColour()
+
+    if (!tokensUnique || tokensUnique?.length === 0) {
+      const series = {
+        name: '',
         type: 'line',
         stack: 'Total',
         emphasis: {
@@ -20,81 +58,215 @@ export default function AreaChart({ finalChartData, tokensUnique, formatDate, mo
         },
         symbol: 'none',
         itemStyle: {
-          color,
+          color: chartColor,
         },
         areaStyle: {
-          color,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            {
+              offset: 0,
+              color: chartColor,
+            },
+            {
+              offset: 1,
+              color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)',
+            },
+          ]),
         },
         data: [],
       }
-    })
 
-    finalChartData.forEach(({ date, ...item }) => {
-      dates.push(date)
-      tokensUnique.forEach((token) => series.find((t) => t.name === token)?.data.push(item[token] || 0))
-    })
+      chartData.forEach(([date, value]) => {
+        series.data.push([new Date(date * 1000), value])
+      })
 
-    return { dates, series }
-  }, [finalChartData, tokensUnique])
+      return series
+    } else {
+      const series = tokensUnique.map((token) => {
+        const color = stringToColour()
+
+        return {
+          name: token,
+          type: 'line',
+          stack: 'Total',
+          emphasis: {
+            focus: 'series',
+          },
+          symbol: 'none',
+          itemStyle: {
+            color,
+          },
+          areaStyle: {
+            color,
+          },
+          data: [],
+        }
+      })
+
+      chartData.forEach(({ date, ...item }) => {
+        tokensUnique.forEach((token) =>
+          series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
+        )
+      })
+
+      return series
+    }
+  }, [chartData, tokensUnique, color, isDark])
+
+  const isSmall = useMedia(`(max-width: 600px)`)
+
+  const createInstance = useCallback(() => {
+    const instance = echarts.getInstanceByDom(document.getElementById(id))
+
+    return instance || echarts.init(document.getElementById(id))
+  }, [id])
 
   useEffect(() => {
-    // skip chart init when a instance already exists
-    if (echarts.getInstanceByDom(document.getElementById(id))) return
+    // create instance
+    const chartInstance = createInstance()
 
-    const chartInstance = echarts.init(document.getElementById(id))
     chartInstance.setOption({
+      graphic: {
+        type: 'image',
+        z: 0,
+        style: {
+          image: isDark ? logoLight.src : logoDark.src,
+          height: 40,
+          opacity: 0.3,
+        },
+        left: isSmall ? '40%' : '45%',
+        top: '130px',
+      },
       tooltip: {
         trigger: 'axis',
-        axisPointer: {
-          type: 'cross',
-          label: {
-            backgroundColor: '#6a7985',
-          },
+        formatter: function (params) {
+          const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })
+
+          const vals = params.reduce(
+            (prev, curr) =>
+              prev +
+              '<li style="list-style:none">' +
+              curr.marker +
+              curr.seriesName +
+              '&nbsp;&nbsp;' +
+              moneySymbol +
+              toK(curr.value[1]) +
+              '</li>',
+            ''
+          )
+          return chartdate + vals
         },
-        valueFormatter: (value) => moneySymbol + formattedNum(value),
       },
       title: {
         text: title,
       },
-      toolbox: {
-        feature: {
-          saveAsImage: {},
-        },
+      grid: {
+        left: 20,
+        containLabel: true,
+        bottom: 60,
+        top: 20,
+        right: 20,
       },
       xAxis: {
-        type: 'category',
+        type: 'time',
         boundaryGap: false,
-        data: dates,
-        axisLabel: {
-          formatter: (value) => formatDate(value),
+        nameTextStyle: {
+          fontFamily: 'var(--font-inter)',
+          fontSize: 14,
+          fontWeight: 400,
+        },
+        axisLine: {
+          lineStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+            opacity: 0.2,
+          },
         },
       },
       yAxis: {
         type: 'value',
         axisLabel: {
-          formatter: (value) => moneySymbol + formattedNum(value),
+          formatter: (value) => moneySymbol + toK(value),
+        },
+        axisLine: {
+          lineStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+            opacity: 0.1,
+          },
+        },
+        boundaryGap: false,
+        nameTextStyle: {
+          fontFamily: 'var(--font-inter)',
+          fontSize: 14,
+          fontWeight: 400,
+          color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
         },
         splitLine: {
-          show: false,
+          lineStyle: {
+            color: '#a1a1aa',
+            opacity: 0.1,
+          },
         },
       },
+      dataZoom: [
+        {
+          type: 'inside',
+          start: 0,
+          end: 100,
+        },
+        {
+          start: 0,
+          end: 100,
+          textStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+          },
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
+          handleStyle: {
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+            color: isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)',
+          },
+          moveHandleStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
+          },
+          selectedDataBackground: {
+            lineStyle: {
+              color,
+            },
+            areaStyle: {
+              color,
+            },
+          },
+          emphasis: {
+            handleStyle: {
+              borderColor: isDark ? 'rgba(255, 255, 255, 1)' : '#000',
+              color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+            },
+            moveHandleStyle: {
+              borderColor: isDark ? 'rgba(255, 255, 255, 1)' : '#000',
+              color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
+            },
+          },
+          fillerColor: isDark ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)',
+          labelFormatter: (val) => {
+            const date = new Date(val)
+            return date.toLocaleDateString()
+          },
+        },
+      ],
       series: series,
     })
 
     window.addEventListener('resize', () => chartInstance.resize())
 
-    return () =>
+    return () => {
       window.removeEventListener('resize', () => {
         chartInstance.resize()
-        chartInstance.dispose()
       })
-  }, [id, dates, series, formatDate, moneySymbol, title])
+      chartInstance.dispose()
+    }
+  }, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance])
 
-  return (
-    <div>
-      <div id={id} style={{ height: '300px' }}></div>
-    </div>
-  )
+  return <Wrapper id={id} style={{ height: '360px', margin: 'auto 0' }}></Wrapper>
 }
-
-// valueFormatter: (value) => moneySymbol + formattedNum(value),

@@ -3,8 +3,7 @@ import styled from 'styled-components'
 import { Box } from 'rebass/styled-components'
 import Layout from '../../layout'
 import NFTList from '../../components/NFTList'
-import { RowBetween } from '../../components/Row'
-import { TYPE } from '../../Theme'
+import { Header } from '../../Theme'
 import { tokenIconUrl, getRandomColor } from '../../utils'
 import { getNFTMarketplacesData, getNFTMarketplaceChartData, revalidate } from '../../utils/dataApi'
 import SEO from 'components/SEO'
@@ -78,9 +77,8 @@ const MarketplacesView = ({ marketplaceData, currentData, marketplacesUnique, st
 
   return (
     <>
-      <RowBetween>
-        <TYPE.largeHeader>Total Volume All Marketplaces</TYPE.largeHeader>
-      </RowBetween>
+      <Header>Total Volume All Marketplaces</Header>
+
       <ChartsWrapper>
         <ChainPieChart data={currentData} chainColor={marketplaceColor} />
         <ChainDominanceChart

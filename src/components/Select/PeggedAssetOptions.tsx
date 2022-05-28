@@ -1,6 +1,6 @@
 import { groupSettings, useGroupEnabled, useTvlToggles } from 'contexts/LocalStorage'
 import { ActionMeta, components, GroupProps } from 'react-select'
-import Select from '.'
+import ReactSelect from './ReactSelect'
 
 const chainAggr = groupSettings.map((g) => ({ label: g.name, value: g.key }))
 
@@ -39,7 +39,7 @@ export default function PeggedAssetOptions({ label }: { label?: string }) {
   )
 
   return (
-    <Select
+    <ReactSelect
       options={groupOptions}
       value={selectedOptions}
       onChange={toggle}

@@ -15,6 +15,7 @@ const Center = styled.main`
   width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
+  color: ${({ theme }) => theme.text1};
 `
 
 const PageWrapper = styled.div`
@@ -36,6 +37,7 @@ interface ILayoutProps {
   children: React.ReactNode
   defaultSEO?: boolean
   backgroundColor?: string
+  style?: React.CSSProperties
 }
 
 interface IBackground {
@@ -44,7 +46,7 @@ interface IBackground {
 
 const Background = styled(ThemedBackground)<IBackground>``
 
-export default function Layout({ title, children, defaultSEO = false, backgroundColor }: ILayoutProps) {
+export default function Layout({ title, children, defaultSEO = false, backgroundColor, ...props }: ILayoutProps) {
   return (
     <>
       <Head>
@@ -65,7 +67,7 @@ export default function Layout({ title, children, defaultSEO = false, background
         <SideNav />
         <PageWrapper>
           <Background backgroundColor={backgroundColor || transparentize(0.8, '#445ed0')} />
-          <Center>{children}</Center>
+          <Center {...props}>{children}</Center>
         </PageWrapper>
         <PinnedData />
       </ThemeProvider>

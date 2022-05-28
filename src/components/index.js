@@ -129,6 +129,7 @@ export const FixedMenu = styled.div`
 `
 
 export const ProtocolsTable = styled(Table)`
+
   tr > *:not(:first-child) {
     & > div {
       width: 100px;
