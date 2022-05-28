@@ -32,7 +32,6 @@ echarts.use([
 interface IChartProps {
   chartData: any
   tokensUnique: string[]
-  formatDate: (date: any) => string
   moneySymbol?: string
   title: string
   color: string
@@ -42,14 +41,7 @@ const Wrapper = styled.div`
   --gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
 `
 
-export default function AreaChart({
-  chartData,
-  tokensUnique,
-  formatDate,
-  moneySymbol = '$',
-  title,
-  color,
-}: IChartProps) {
+export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', title, color }: IChartProps) {
   const { pathname } = useRouter()
 
   const id = useMemo(() => uuid(), [])
@@ -280,7 +272,7 @@ export default function AreaChart({
       })
       chartInstance.dispose()
     }
-  }, [id, series, formatDate, moneySymbol, title, pathname, isDark, color, isSmall])
+  }, [color, id, isDark, isSmall, moneySymbol, pathname, series, title])
 
   return <Wrapper id={id} style={{ height: '360px', margin: 'auto 0' }}></Wrapper>
 }

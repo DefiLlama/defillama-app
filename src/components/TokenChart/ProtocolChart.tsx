@@ -13,33 +13,28 @@ const AreaChart = dynamic(() => import('./AreaChart'), { ssr: false }) as any
 interface IProps {
   protocol: string
   tvlChartData: any
-  formatDate: (date: string) => string
   color: string
   historicalChainTvls: {}
   chains: string[]
   bobo?: boolean
 }
 
-export default function ({
-  protocol,
-  tvlChartData,
-  formatDate,
-  color,
-  historicalChainTvls,
-  chains = [],
-  bobo = false,
-}: IProps) {
+export default function ({ protocol, tvlChartData, color, historicalChainTvls, chains = [], bobo = false }: IProps) {
   const router = useRouter()
 
   const extraTvlEnabled = useGetExtraTvlEnabled()
 
   const { denomination } = router.query
 
-  const DENOMINATIONS = [{ symbol: 'USD', geckoId: null }]
+  const DENOMINATIONS = useMemo(() => {
+    let d = [{ symbol: 'USD', geckoId: null }]
 
-  if (chains.length > 0) {
-    chainCoingeckoIds[chains[0]] && DENOMINATIONS.push(chainCoingeckoIds[chains[0]])
-  }
+    if (chains.length > 0) {
+      chainCoingeckoIds[chains[0]] && d.push(chainCoingeckoIds[chains[0]])
+    }
+
+    return d
+  }, [chains])
 
   const { data: denominationHistory, loading } = useDenominationPriceHistory({
     geckoId: DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId,
@@ -67,7 +62,7 @@ export default function ({
     } else return tvlChartData
   }, [tvlChartData, historicalChainTvls, sections])
 
-  const finalChartData = useMemo(() => {
+  const { finalChartData, moneySymbol } = useMemo(() => {
     if (isValidDenomination && denominationHistory?.prices?.length > 0 && !loading) {
       let priceIndex = 0
       let prevPriceDate = 0
@@ -87,19 +82,17 @@ export default function ({
         newChartData.push([chartDataFiltered[i][0], chartDataFiltered[i][1] / price])
       }
 
-      return newChartData
-    } else return chartDataFiltered
-  }, [chartDataFiltered, denominationHistory, isValidDenomination])
+      let moneySymbol = '$'
 
-  let moneySymbol = '$'
+      const d = DENOMINATIONS.find((d) => d.symbol === denomination)
 
-  if (isValidDenomination) {
-    const d = DENOMINATIONS.find((d) => d.symbol === denomination)
+      if (d.symbol === 'ETH') {
+        moneySymbol = 'Ξ'
+      } else moneySymbol = d.symbol.slice(0, 1)
 
-    if (d.symbol === 'ETH') {
-      moneySymbol = 'Ξ'
-    } else moneySymbol = d.symbol.slice(0, 1)
-  }
+      return { finalChartData: newChartData, moneySymbol }
+    } else return { finalChartData: chartDataFiltered, moneySymbol: '$' }
+  }, [isValidDenomination, denominationHistory, loading, chartDataFiltered, DENOMINATIONS])
 
   return (
     <div
@@ -127,14 +120,7 @@ export default function ({
           </Link>
         ))}
       </Denominations>
-      <AreaChart
-        chartData={finalChartData}
-        formatDate={formatDate}
-        color={color}
-        tokensUnique={[]}
-        title=""
-        moneySymbol={moneySymbol}
-      />
+      <AreaChart chartData={finalChartData} color={color} tokensUnique={[]} title="" moneySymbol={moneySymbol} />
     </div>
   )
 }

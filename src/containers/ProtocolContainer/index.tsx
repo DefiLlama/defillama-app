@@ -7,7 +7,7 @@ import FormattedName from 'components/FormattedName'
 import TokenLogo from 'components/TokenLogo'
 import { useCalcSingleExtraTvl } from '../../hooks/data'
 import { useScrollToTop } from 'hooks'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK, toNiceDate, toNiceMonthlyDate } from 'utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
 import Search from 'components/Search/New'
 import Layout from 'layout'
@@ -293,8 +293,6 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const tvlByChain = Object.entries(tvlBreakdowns || {})
 
-  const formatDate = (date) => (tvlChartData?.length > 120 ? toNiceMonthlyDate(date) : toNiceDate(date))
-
   const [bobo, setBobo] = useState(false)
 
   return (
@@ -360,7 +358,6 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
         <ProtocolChart
           protocol={protocol}
           tvlChartData={tvlChartData}
-          formatDate={formatDate}
           color={backgroundColor}
           historicalChainTvls={historicalChainTvls}
           chains={chains}

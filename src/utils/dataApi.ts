@@ -1127,6 +1127,7 @@ export const useDenominationPriceHistory = ({ geckoId, utcStartTime }: { geckoId
   )}`
 
   const { data, error } = useSWR(geckoId ? url : null, fetcher)
+
   return { data, error, loading: geckoId && !data && !error }
 }
 
