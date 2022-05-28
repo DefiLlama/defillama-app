@@ -276,7 +276,6 @@ export async function getSimpleProtocolsPageData(propsToKeep) {
 }
 
 export async function getPeggedsPageData(category, chain) {
-
   try {
     const { peggedAssets, chains } = await getPeggedAssets()
     const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '')).then((r) => r.json())
@@ -301,7 +300,7 @@ export async function getPeggedsPageData(category, chain) {
     )
 
     const peggedAreaChartData = chartDataByPeggedAsset.reduce((total, charts, i) => {
-      charts.forEach((chart) => {
+      charts?.forEach((chart) => {
         if ((chart.date > 1596248105) && (chart.mcap)) {
           total[chart.date] = total[chart.date] || {}
           total[chart.date][peggedAssetNames[i]] = chart.mcap
@@ -377,9 +376,6 @@ export async function getPeggedsPageData(category, chain) {
   }
   catch (e) {
     console.log(e)
-    return {
-      notFound: true,
-    }
   }
 }
 
