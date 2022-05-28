@@ -6,6 +6,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { useDenominationPriceHistory } from 'utils/dataApi'
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
+import { chainCoingeckoIds } from 'constants/chainTokens'
 
 const AreaChart = dynamic(() => import('./AreaChart'), { ssr: false }) as any
 
@@ -14,18 +15,39 @@ interface IProps {
   tvlChartData: any
   formatDate: (date: string) => string
   color: string
-  historicalChainTvls: {},
+  historicalChainTvls: {}
+  chains: string[]
   bobo?: boolean
 }
 
-export default function ({ protocol, tvlChartData, formatDate, color, historicalChainTvls, bobo=false }: IProps) {
+export default function ({
+  protocol,
+  tvlChartData,
+  formatDate,
+  color,
+  historicalChainTvls,
+  chains = [],
+  bobo = false,
+}: IProps) {
   const router = useRouter()
 
   const extraTvlEnabled = useGetExtraTvlEnabled()
 
   const { denomination } = router.query
 
-  // const {data, loading} = useDenominationPriceHistory()
+  const DENOMINATIONS = [{ symbol: 'USD', geckoId: null }]
+
+  if (chains.length > 0) {
+    chainCoingeckoIds[chains[0]] && DENOMINATIONS.push(chainCoingeckoIds[chains[0]])
+  }
+
+  const { data: denominationHistory, loading } = useDenominationPriceHistory({
+    geckoId: DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId,
+    utcStartTime: 0,
+  })
+
+  const isValidDenomination =
+    denomination && denomination !== 'USD' && DENOMINATIONS.find((d) => d.symbol === denomination)
 
   const sections = Object.keys(historicalChainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
 
@@ -45,14 +67,48 @@ export default function ({ protocol, tvlChartData, formatDate, color, historical
     } else return tvlChartData
   }, [tvlChartData, historicalChainTvls, sections])
 
+  const finalChartData = useMemo(() => {
+    if (isValidDenomination && denominationHistory?.prices?.length > 0 && !loading) {
+      let priceIndex = 0
+      let prevPriceDate = 0
+      const denominationPrices = denominationHistory.prices
+      const newChartData = []
+
+      for (let i = 0; i < chartDataFiltered.length; i++) {
+        const date = chartDataFiltered[i][0] * 1000
+        while (
+          priceIndex < denominationPrices.length &&
+          Math.abs(date - prevPriceDate) > Math.abs(date - denominationPrices[priceIndex][0])
+        ) {
+          prevPriceDate = denominationPrices[priceIndex][0]
+          priceIndex++
+        }
+        const price = denominationPrices[priceIndex - 1][1]
+        newChartData.push([chartDataFiltered[i][0], chartDataFiltered[i][1] / price])
+      }
+
+      return newChartData
+    } else return chartDataFiltered
+  }, [chartDataFiltered, denominationHistory, isValidDenomination])
+
+  let moneySymbol = '$'
+
+  if (isValidDenomination) {
+    const d = DENOMINATIONS.find((d) => d.symbol === denomination)
+
+    if (d.symbol === 'ETH') {
+      moneySymbol = 'Ξ'
+    } else moneySymbol = d.symbol.slice(0, 1)
+  }
+
   return (
     <div
       style={{
         ...(bobo && {
           backgroundImage: 'url("/bobo.png")',
-          backgroundSize: "100%",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "bottom",
+          backgroundSize: '100%',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'bottom',
         }),
         flex: 1,
         display: 'flex',
@@ -63,14 +119,22 @@ export default function ({ protocol, tvlChartData, formatDate, color, historical
       }}
     >
       <Denominations color={color}>
-        <Link href={`/protocol/${protocol}?denomination=USD`} shallow>
-          <Denomination active={!denomination || denomination === 'USD'}>USD</Denomination>
-        </Link>
-        <Link href={`/protocol/${protocol}?denomination=ETH`} shallow>
-          <Denomination active={denomination === 'ETH'}>ETH</Denomination>
-        </Link>
+        {DENOMINATIONS.map((D) => (
+          <Link href={`/protocol/${protocol}?denomination=${D.symbol}`} key={D.symbol} shallow>
+            <Denomination active={denomination === D.symbol || (D.symbol === 'USD' && !denomination)}>
+              {D.symbol}
+            </Denomination>
+          </Link>
+        ))}
       </Denominations>
-      <AreaChart chartData={chartDataFiltered} formatDate={formatDate} color={color} tokensUnique={[]} title="" />
+      <AreaChart
+        chartData={finalChartData}
+        formatDate={formatDate}
+        color={color}
+        tokensUnique={[]}
+        title=""
+        moneySymbol={moneySymbol}
+      />
     </div>
   )
 }

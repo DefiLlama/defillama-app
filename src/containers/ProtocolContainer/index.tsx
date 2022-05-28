@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { ButtonLight } from 'components/ButtonStyled'
@@ -284,6 +284,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
     methodology,
     module: codeModule,
     historicalChainTvls,
+    chains,
   } = protocolData
 
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
@@ -362,16 +363,17 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
           formatDate={formatDate}
           color={backgroundColor}
           historicalChainTvls={historicalChainTvls}
+          chains={chains}
           bobo={bobo}
         />
         <div
           style={{
             marginTop: '0px',
             marginBottom: '-34px',
-            cursor: 'pointer'
+            cursor: 'pointer',
           }}
         >
-          <Image src={boboLogo} width={34} height={34} alt="" onClick={()=>setBobo(true)} />
+          <Image src={boboLogo} width={34} height={34} alt="" onClick={() => setBobo(true)} />
         </div>
       </Stats>
 

@@ -1121,13 +1121,13 @@ export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
   return { data, error, loading: gecko_id && !data && !error }
 }
 
-export const useDenominationPriceHistory = (gecko_id: string, utcStartTime: string) => {
-  let url = `https://api.coingecko.com/api/v3/coins/${gecko_id}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(
+export const useDenominationPriceHistory = ({ geckoId, utcStartTime }: { geckoId?: string, utcStartTime: number }) => {
+  let url = `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(
     Date.now() / 1000
   )}`
 
-  const { data, error } = useSWR(gecko_id ? url : null, fetcher)
-  return { data, error, loading: gecko_id && !data && !error }
+  const { data, error } = useSWR(geckoId ? url : null, fetcher)
+  return { data, error, loading: geckoId && !data && !error }
 }
 
 // all unique pools

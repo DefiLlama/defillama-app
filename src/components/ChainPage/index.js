@@ -62,9 +62,9 @@ const DownloadIcon = styled(DownloadCloud)`
 `
 
 const PanelHiddenMobile = styled(Panel)`
-@media screen and (max-width: 800px) {
-  display: none;
-}
+  @media screen and (max-width: 800px) {
+    display: none;
+  }
 `
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
@@ -162,7 +162,10 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     return [DENOMINATIONS, chainGeckoId]
   }, [selectedChain])
 
-  const { data: denominationPriceHistory, loading } = useDenominationPriceHistory(chainGeckoId, 0)
+  const { data: denominationPriceHistory, loading } = useDenominationPriceHistory({
+    geckoId: chainGeckoId,
+    utcStartTime: 0,
+  })
 
   const [finalChartData, chainPriceInUSD] = useMemo(() => {
     if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {
@@ -258,10 +261,10 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     <>
       <SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
-      <Search step={{ category: "Home", name: selectedChain === 'All' ? "All Protocols" : selectedChain }} />
+      <Search step={{ category: 'Home', name: selectedChain === 'All' ? 'All Protocols' : selectedChain }} />
 
       <Panel>
-        <p style={{ textAlign: 'center', margin: "0" }}>
+        <p style={{ textAlign: 'center', margin: '0' }}>
           We've launched a multichain APY dashboard. Check it out{' '}
           <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
             here
@@ -311,8 +314,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
         </div>
       </div>
 
-
-      <ListOptions style={{ margin: "36px 0 -12px 0" }}>
+      <ListOptions style={{ margin: '36px 0 -12px 0' }}>
         <ListHeader>TVL Rankings</ListHeader>
         <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
       </ListOptions>
