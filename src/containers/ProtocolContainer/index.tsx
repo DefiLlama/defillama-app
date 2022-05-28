@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { ButtonLight } from 'components/ButtonStyled'
@@ -16,6 +16,8 @@ import { ArrowUpRight } from 'react-feather'
 import AuditInfo from 'components/AuditInfo'
 import Link from 'next/link'
 import ProtocolChart from 'components/TokenChart/ProtocolChart'
+import boboLogo from '../../assets/boboSmug.png'
+import Image from 'next/image'
 
 const Stats = styled.section`
   display: flex;
@@ -292,6 +294,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const formatDate = (date) => (tvlChartData?.length > 120 ? toNiceMonthlyDate(date) : toNiceDate(date))
 
+  const [bobo, setBobo] = useState(false)
+
   return (
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
@@ -358,7 +362,17 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
           formatDate={formatDate}
           color={backgroundColor}
           historicalChainTvls={historicalChainTvls}
+          bobo={bobo}
         />
+        <div
+          style={{
+            marginTop: '0px',
+            marginBottom: '-34px',
+            cursor: 'pointer'
+          }}
+        >
+          <Image src={boboLogo} width={34} height={34} alt="" onClick={()=>setBobo(true)} />
+        </div>
       </Stats>
 
       <section>

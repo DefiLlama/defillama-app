@@ -14,10 +14,11 @@ interface IProps {
   tvlChartData: any
   formatDate: (date: string) => string
   color: string
-  historicalChainTvls: {}
+  historicalChainTvls: {},
+  bobo?: boolean
 }
 
-export default function ({ protocol, tvlChartData, formatDate, color, historicalChainTvls }: IProps) {
+export default function ({ protocol, tvlChartData, formatDate, color, historicalChainTvls, bobo=false }: IProps) {
   const router = useRouter()
 
   const extraTvlEnabled = useGetExtraTvlEnabled()
@@ -47,6 +48,12 @@ export default function ({ protocol, tvlChartData, formatDate, color, historical
   return (
     <div
       style={{
+        ...(bobo && {
+          backgroundImage: 'url("/bobo.png")',
+          backgroundSize: "100%",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "bottom",
+        }),
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
