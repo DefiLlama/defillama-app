@@ -31,7 +31,11 @@ export default function ({ protocol, tvlChartData, color, historicalChainTvls, c
     let d = [{ symbol: 'USD', geckoId: null }]
 
     if (chains.length > 0) {
-      chainCoingeckoIds[chains[0]] && d.push(chainCoingeckoIds[chains[0]])
+      if (chainCoingeckoIds[chains[0]]?.geckoId) {
+        d.push(chainCoingeckoIds[chains[0]])
+      } else {
+        d.push(chainCoingeckoIds['Ethereum'])
+      }
     }
 
     return d
@@ -42,12 +46,9 @@ export default function ({ protocol, tvlChartData, color, historicalChainTvls, c
     utcStartTime: 0,
   })
 
-  const isValidDenomination =
-    denomination && denomination !== 'USD' && DENOMINATIONS.find((d) => d.symbol === denomination)
-
-  const sections = Object.keys(historicalChainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
-
   const chartDataFiltered = useMemo(() => {
+    const sections = Object.keys(historicalChainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
+
     const tvlDictionary = {}
     if (sections.length > 0) {
       for (const name of sections) {
@@ -61,10 +62,13 @@ export default function ({ protocol, tvlChartData, color, historicalChainTvls, c
         return [item[0], sum]
       })
     } else return tvlChartData
-  }, [tvlChartData, historicalChainTvls, sections])
+  }, [historicalChainTvls, extraTvlEnabled, tvlChartData])
 
   const { finalChartData, moneySymbol } = useMemo(() => {
-    if (isValidDenomination && denominationHistory?.prices?.length > 0 && !loading) {
+    const isValidDenomination =
+      denomination && denomination !== 'USD' && DENOMINATIONS.find((d) => d.symbol === denomination)
+
+    if (isValidDenomination && denominationHistory?.prices?.length > 0) {
       let priceIndex = 0
       let prevPriceDate = 0
       const denominationPrices = denominationHistory.prices
@@ -93,7 +97,7 @@ export default function ({ protocol, tvlChartData, color, historicalChainTvls, c
 
       return { finalChartData: newChartData, moneySymbol }
     } else return { finalChartData: chartDataFiltered, moneySymbol: '$' }
-  }, [isValidDenomination, denominationHistory, loading, chartDataFiltered, DENOMINATIONS])
+  }, [denomination, denominationHistory, chartDataFiltered, DENOMINATIONS])
 
   return (
     <div
@@ -121,7 +125,7 @@ export default function ({ protocol, tvlChartData, color, historicalChainTvls, c
           </Link>
         ))}
       </Denominations>
-      <AreaChart chartData={finalChartData} color={color} tokensUnique={null} title="" moneySymbol={moneySymbol} />
+      <AreaChart chartData={finalChartData} color={color} title="" moneySymbol={moneySymbol} />
     </div>
   )
 }

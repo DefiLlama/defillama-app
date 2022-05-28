@@ -279,20 +279,19 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
     audits,
     category,
     twitter,
-    tvlBreakdowns = {},
+    tvlBreakdowns = [],
+    tvlByChain,
     tvlChartData,
     audit_links,
     methodology,
     module: codeModule,
     historicalChainTvls,
-    chains,
+    chains = [],
   } = protocolData
 
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
   const totalVolume = useCalcSingleExtraTvl(tvlBreakdowns, tvl)
-
-  const tvlByChain = Object.entries(tvlBreakdowns || {})
 
   const [bobo, setBobo] = useState(false)
 
@@ -349,6 +348,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
           chains={chains}
           bobo={bobo}
         />
+
         <Bobo onClick={() => setBobo(!bobo)}>
           <Image src={boboLogo} width={34} height={34} alt="" />
         </Bobo>

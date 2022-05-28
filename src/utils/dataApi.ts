@@ -578,7 +578,7 @@ export const getProtocol = async (protocolName: string) => {
 }
 
 export const fuseProtocolData = (protocolData) => {
-  const tvlBreakdowns = protocolData.currentChainTvls ?? {}
+  const tvlBreakdowns = protocolData?.currentChainTvls ?? {}
 
   const tvl = protocolData?.tvl ?? []
 
@@ -586,11 +586,19 @@ export const fuseProtocolData = (protocolData) => {
 
   const historicalChainTvls = protocolData?.chainTvls ?? {}
 
+  const tvlByChain = Object.entries(protocolData?.currentChainTvls ?? {})?.sort(
+    (a: [string, number], b: [string, number]) => b[1] - a[1]
+  ) ?? []
+
+  const chains = tvlByChain?.flatMap((c) => protocolData?.chains?.find((x) => x === c[0]) || []) ?? []
+
   return {
     ...protocolData,
     tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
     tvlChartData,
     tvlBreakdowns,
+    tvlByChain,
+    chains,
     historicalChainTvls
   }
 }
@@ -1122,11 +1130,12 @@ export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
 }
 
 export const useDenominationPriceHistory = ({ geckoId, utcStartTime }: { geckoId?: string, utcStartTime: number }) => {
-  let url = `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=${Math.floor(
-    Date.now() / 1000
-  )}`
+  let url = `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=`
 
-  const { data, error } = useSWR(geckoId ? url : null, fetcher)
+  // append end time to fetcher params to keep query key consistent b/w renders and avoid over fetching
+  const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Math.floor(
+    Date.now() / 1000
+  )))
 
   return { data, error, loading: geckoId && !data && !error }
 }
