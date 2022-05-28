@@ -26,6 +26,7 @@ const Stats = styled.section`
   background: ${({ theme }) => theme.bg6};
   border: ${({ theme }) => '1px solid ' + theme.divider};
   box-shadow: ${({ theme }) => theme.shadowSm};
+  position: relative;
 
   @media (min-width: 80rem) {
     flex-direction: row;
@@ -90,14 +91,6 @@ const Table = styled.table`
     padding: 4px 0 0 4px;
     font-family: var(--font-jetbrains);
   }
-
-  a {
-    color: inherit;
-
-    :focus-visible {
-      outline: ${({ theme }) => '1px solid ' + theme.text4};
-    }
-  }
 `
 
 const Tvl = styled.p`
@@ -116,14 +109,6 @@ const Tvl = styled.p`
   }
 `
 
-const Category = styled.section`
-  display: flex;
-  flex-wrap: wrap;
-  gap: calc(36px - 0.4375rem);
-  align-items: flex-end;
-  justify-content: space-between;
-`
-
 const SectionHeader = styled.h2`
   font-weight: 700;
   font-size: 1.25rem;
@@ -140,6 +125,14 @@ const InfoWrapper = styled.div`
   grid-template-columns: 1fr 1fr;
   grid-template-rows: repeat(3, auto);
   box-shadow: ${({ theme }) => theme.shadowSm};
+
+  a {
+    color: inherit;
+
+    :focus-visible {
+      outline: ${({ theme }) => '1px solid ' + theme.text4};
+    }
+  }
 
   @media (min-width: 80rem) {
     grid-template-rows: repeat(2, auto);
@@ -229,12 +222,7 @@ const Button = styled(ButtonLight)`
   }
 `
 
-const DownloadButton = styled(Button)`
-  position: relative;
-  top: 0.4375rem;
-`
-
-const Address = styled.p`
+const FlexRow = styled.p`
   display: flex;
   align-items: center;
   margin: 0;
@@ -242,12 +230,16 @@ const Address = styled.p`
 `
 
 const Bobo = styled.button`
-  margin-top: 0px;
-  margin-bottom: -34px;
   cursor: pointer;
   background: none;
   border: none;
-  display: flex;
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+  }
 `
 
 interface IProtocolContainerProps {
@@ -340,28 +332,13 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
               </tbody>
             </Table>
           )}
-
-          <Category>
-            {category && (
-              <Table>
-                <caption>Category</caption>
-                <tbody>
-                  <tr>
-                    <th>
-                      <Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
-                    </th>
-                  </tr>
-                </tbody>
-              </Table>
-            )}
-
-            <Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-              <DownloadButton as="a" useTextColor={true} color={backgroundColor}>
-                <span>Download Dataset</span>
-                <ArrowUpRight size={14} />
-              </DownloadButton>
-            </Link>
-          </Category>
+          {/* 
+          <Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+            <DownloadButton as="a" useTextColor={true} color={backgroundColor}>
+              <span>Download Dataset</span>
+              <ArrowUpRight size={14} />
+            </DownloadButton>
+          </Link> */}
         </ProtocolDetails>
 
         <ProtocolChart
@@ -383,7 +360,19 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
           <Section>
             <h3>Protocol Information</h3>
             <p>{description}</p>
+
+            <FlexRow>
+              {category && (
+                <>
+                  <span>Category</span>
+                  <span>:</span>
+                  <Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+                </>
+              )}
+            </FlexRow>
+
             <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />
+
             <LinksWrapper>
               <Link href={url} passHref>
                 <Button as="a" useTextColor={true} color={backgroundColor}>
@@ -399,7 +388,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
           </Section>
           <Section>
             <h3>Token Information</h3>
-            <Address>
+
+            <FlexRow>
               {address ? (
                 <>
                   <span>Address</span>
@@ -410,7 +400,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
               ) : (
                 'No Token'
               )}
-            </Address>
+            </FlexRow>
+
             <LinksWrapper>
               {protocolData.gecko_id !== null && (
                 <Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
