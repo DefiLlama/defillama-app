@@ -6,8 +6,6 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { useDenominationPriceHistory } from 'utils/dataApi'
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
-import Image from 'next/image'
-import bobo from '../../../public/bobo.png'
 
 const AreaChart = dynamic(() => import('./AreaChart'), { ssr: false }) as any
 
@@ -17,10 +15,9 @@ interface IProps {
   formatDate: (date: string) => string
   color: string
   historicalChainTvls: {}
-  goblinMode: boolean
 }
 
-export default function ({ protocol, tvlChartData, formatDate, color, historicalChainTvls, goblinMode }: IProps) {
+export default function ({ protocol, tvlChartData, formatDate, color, historicalChainTvls }: IProps) {
   const router = useRouter()
 
   const extraTvlEnabled = useGetExtraTvlEnabled()
@@ -56,14 +53,8 @@ export default function ({ protocol, tvlChartData, formatDate, color, historical
         gap: '16px',
         padding: '0 0 20px 0',
         minHeight: '460px',
-        position: 'relative',
       }}
     >
-      {goblinMode && (
-        <TrollWrapper>
-          <Image src={bobo} alt="bobo" height="360px" />
-        </TrollWrapper>
-      )}
       <Denominations color={color}>
         <Link href={`/protocol/${protocol}?denomination=USD`} shallow>
           <Denomination active={!denomination || denomination === 'USD'}>USD</Denomination>
@@ -117,17 +108,4 @@ const Denomination = styled.a<IDenomination>`
   :hover {
     cursor: pointer;
   }
-`
-
-const TrollWrapper = styled.div`
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  left: 0;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  pointer-events: none;
 `
