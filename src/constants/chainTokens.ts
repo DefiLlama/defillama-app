@@ -504,10 +504,10 @@ export const chainCoingeckoIds = {
     symbol: "CLV",
     cmcId: "8384",
   },
-  REI: {
-    geckoId: null,
-    symbol: null,
-    cmcId: null,
+  REInetwork: {
+    geckoId: "rei-network",
+    symbol: "REI",
+    cmcId: "19819",
   },
   Crab: {
     geckoId: "darwinia-crab-network",
@@ -593,6 +593,11 @@ export const chainCoingeckoIds = {
     geckoId: "byteball",
     symbol: "GBYTE",
     cmcId: "1492",
+  },
+  REI: {
+    geckoId: null,
+    symbol: null,
+    cmcId: null,
   },
 }
 
