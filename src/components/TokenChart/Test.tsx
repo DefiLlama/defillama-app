@@ -101,7 +101,7 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
   const chartInstance = echarts.init(null, null, {
     renderer: 'svg',
     ssr: true,
-    width: 960,
+    width: 1000,
     height: 360,
   })
 
@@ -237,6 +237,7 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
       },
     ],
     series: series,
+    animation: false,
   })
 
   return <Wrapper dangerouslySetInnerHTML={{ __html: chartInstance.renderToSVGString() }} />
