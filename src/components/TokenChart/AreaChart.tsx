@@ -256,6 +256,7 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
         },
       ],
       series: series,
+      animation: false,
     })
 
     window.addEventListener('resize', () => chartInstance.resize())

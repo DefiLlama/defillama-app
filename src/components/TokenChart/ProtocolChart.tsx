@@ -8,9 +8,10 @@ import { useDenominationPriceHistory } from 'utils/dataApi'
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { chainCoingeckoIds } from 'constants/chainTokens'
 import { IChartProps } from './AreaChart'
-import AreaChart from './Test'
+import PlaceholderChart from './Test'
+import { useIsClient } from 'hooks'
 
-// const AreaChart = dynamic(() => import('./AreaChart'), { ssr: false }) as React.FC<IChartProps>
+const AreaChart = dynamic(() => import('./AreaChart'), { ssr: false }) as React.FC<IChartProps>
 
 interface IProps {
   protocol: string
@@ -100,6 +101,8 @@ export default function ({ protocol, tvlChartData, color, historicalChainTvls, c
     } else return { finalChartData: chartDataFiltered, moneySymbol: '$' }
   }, [denomination, denominationHistory, chartDataFiltered, DENOMINATIONS])
 
+  const isClient = useIsClient()
+
   return (
     <div
       style={{
@@ -126,8 +129,11 @@ export default function ({ protocol, tvlChartData, color, historicalChainTvls, c
           </Link>
         ))}
       </Denominations>
-      {/* <AreaChart chartData={finalChartData} color={color} title="" moneySymbol={moneySymbol} /> */}
-      <AreaChart chartData={finalChartData} color={color} title="" moneySymbol={moneySymbol} />
+      {isClient ? (
+        <AreaChart chartData={finalChartData} color={color} title="" moneySymbol={moneySymbol} />
+      ) : (
+        <PlaceholderChart chartData={finalChartData} color={color} title="" moneySymbol={moneySymbol} />
+      )}
     </div>
   )
 }
