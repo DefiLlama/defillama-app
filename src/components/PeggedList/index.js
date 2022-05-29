@@ -3,7 +3,6 @@ import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from '../Column'
 import { RowBetween, AutoRow } from 'components/Row'
 import Search from 'components/Search'
-import { NamePegged } from 'components/Table/index'
 import PeggedChainsRow from 'components/PeggedChainsRow'
 import {
   getRandomColor,
@@ -17,12 +16,12 @@ import {
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/data'
 import { useLg, useXl, useMed } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
-import Table, { columnsToShow, isOfTypePeggedCategory } from 'components/Table'
+import { columnsToShow, isOfTypePeggedCategory, NamePegged } from 'components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
-import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
+import { BreakpointPanels, BreakpointPanelsColumn, Panel, PeggedTable } from 'components'
 
 function Chart({ formattedPeggedAreaChart, peggedAssetNames, aspect }) {
   const [darkMode] = useDarkModeManager()
@@ -215,10 +214,7 @@ function AllPeggedsPage({
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
           <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
-            <RowBetween
-              mb={useMed ? 40 : 0}
-              align="flex-start"
-            >
+            <RowBetween mb={useMed ? 40 : 0} align="flex-start">
               <AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
                 <OptionButton active={chartType === 'Area'} onClick={() => setChartType('Area')}>
                   Area
@@ -243,7 +239,9 @@ function AllPeggedsPage({
                 aspect={aspect}
               />
             )}
-            {chartType === 'Pie' && <PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />}
+            {chartType === 'Pie' && (
+              <PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />
+            )}
           </Panel>
         </BreakpointPanels>
       </div>
@@ -254,7 +252,7 @@ function AllPeggedsPage({
         </FiltersWrapper>
       )}
 
-      <Table data={peggedTotals} columns={columns} />
+      <PeggedTable data={peggedTotals} columns={columns} />
     </>
   )
 }

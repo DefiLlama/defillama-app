@@ -65,7 +65,11 @@ const Hint = ({ children, ...rest }) => (
   </Text>
 )
 
-export const Hover = styled.div`
+interface IHover {
+  fade?: boolean
+}
+
+export const Hover = styled.div<IHover>`
   :hover {
     cursor: pointer;
     opacity: ${({ fade }) => fade && '0.7'};
@@ -76,7 +80,11 @@ export const StyledIcon = styled.div`
   color: ${({ theme }) => theme.text1};
 `
 
-const EmptyCard = styled.div`
+interface IEmptyCard {
+  height?: number
+}
+
+const EmptyCard = styled.div<IEmptyCard>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,7 +110,12 @@ export const SubNav = styled.ul`
   padding: 0;
   margin-bottom: 2rem;
 `
-export const SubNavEl = styled.li`
+
+interface ISubNavEl {
+  isActive: boolean
+}
+
+export const SubNavEl = styled.li<ISubNavEl>`
   list-style: none;
   display: flex;
   padding-bottom: 0.5rem;
@@ -129,7 +142,6 @@ export const FixedMenu = styled.div`
 `
 
 export const ProtocolsTable = styled(Table)`
-
   tr > *:not(:first-child) {
     & > div {
       width: 100px;
@@ -308,6 +320,197 @@ export const ProtocolsTable = styled(Table)`
     }
 
     // MCAPTVL
+    tr > *:nth-child(7) {
+      display: revert !important;
+    }
+  }
+
+  @media screen and (min-width: 1536px) {
+    // PROTOCOL NAME
+    tr > *:nth-child(1) {
+      & > div {
+        width: 300px;
+      }
+    }
+
+    // CHAINS
+    tr > *:nth-child(2) {
+      display: revert;
+    }
+  }
+`
+
+export const PeggedTable = styled(Table)`
+  tr > *:not(:first-child) {
+    & > div {
+      width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+      font-weight: 400;
+      margin-left: auto;
+    }
+  }
+
+  // ASSET NAME
+  tr > *:nth-child(1) {
+    & > div {
+      width: 120px;
+      overflow: hidden;
+      white-space: nowrap;
+
+      // HIDE LOGO
+      & > *:nth-child(2) {
+        display: none;
+      }
+
+      & > *:nth-child(3) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        // HIDE SYMBOL
+        & > *:nth-child(2) {
+          display: none;
+        }
+      }
+    }
+  }
+
+  // CHAINS
+  tr > *:nth-child(2) {
+    display: none;
+    & > div {
+      width: 200px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  }
+
+  // PRICE
+  tr > *:nth-child(3) {
+    padding-right: 20px;
+    & > div {
+      text-align: right;
+      margin-left: auto;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
+
+  // 1D CHANGE
+  tr > *:nth-child(4) {
+    display: none;
+  }
+
+  // 7D CHANGE
+  tr > *:nth-child(5) {
+    display: none;
+  }
+
+  // 1M CHANGE
+  tr > *:nth-child(6) {
+    display: none;
+  }
+
+  // MCAP
+  tr > *:nth-child(7) {
+    display: none;
+  }
+
+  tr > th:nth-child(7) {
+    & > div {
+      margin-left: auto;
+    }
+  }
+
+  @media screen and (min-width: 360px) {
+    // PROTOCOL NAME
+    tr > *:nth-child(1) {
+      & > div {
+        width: 160px;
+      }
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+    // PRICE
+    tr > *:nth-child(3) {
+      padding-right: 0px;
+    }
+
+    // 7D CHANGE
+    tr > *:nth-child(5) {
+      display: revert;
+      padding-right: 20px;
+    }
+  }
+
+  @media screen and (min-width: 640px) {
+    // ASSET
+    tr > *:nth-child(1) {
+      & > div {
+        width: 280px;
+        // SHOW LOGO
+        & > *:nth-child(2) {
+          display: revert;
+        }
+      }
+    }
+  }
+
+  @media screen and (min-width: 720px) {
+    // 7D CHANGE
+    tr > *:nth-child(5) {
+      padding-right: 0px;
+    }
+
+    // 1M CHANGE
+    tr > *:nth-child(6) {
+      display: revert;
+      padding-right: 20px;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+    // ASSET NAME
+    tr > *:nth-child(1) {
+      & > div {
+        & > *:nth-child(3) {
+          // SHOW SYMBOL
+          & > *:nth-child(2) {
+            display: revert;
+          }
+        }
+      }
+    }
+  }
+
+  @media screen and (min-width: 900px) {
+    // MCAP
+    tr > *:nth-child(7) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    // 1M CHANGE
+    tr > *:nth-child(6) {
+      padding-right: 20px;
+    }
+
+    // MCAP
+    tr > *:nth-child(7) {
+      display: none !important;
+    }
+  }
+
+  @media screen and (min-width: 1200px) {
+    // 1D CHANGE
+    tr > *:nth-child(4) {
+      display: revert !important;
+    }
+  }
+
+  @media screen and (min-width: 1300px) {
+    // MCAP
     tr > *:nth-child(7) {
       display: revert !important;
     }

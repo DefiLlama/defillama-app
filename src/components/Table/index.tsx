@@ -463,7 +463,15 @@ export function NamePegged({
   showRows,
   ...props
 }: PeggedNameProps) {
-  const name = symbol === '-' ? value : `${value} (${symbol})`
+  const name =
+    symbol === '-' ? (
+      value
+    ) : (
+      <>
+        <span>{value}</span>
+        <span>{` (${symbol})`}</span>
+      </>
+    )
   const { iconUrl, tokenUrl } = useMemo(() => {
     let iconUrl, tokenUrl
     if (type === 'peggedUSD') {
