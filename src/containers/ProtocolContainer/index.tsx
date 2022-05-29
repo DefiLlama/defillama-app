@@ -340,7 +340,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
           <TvlWrapper>
             <Tvl>
-              <span>Total Volume Locked</span>
+              <span>Total Value Locked</span>
               <span>{formattedNum(totalVolume || '0', true)}</span>
             </Tvl>
 
