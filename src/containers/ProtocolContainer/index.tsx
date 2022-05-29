@@ -234,7 +234,6 @@ const Bobo = styled.button`
   background: none;
   border: none;
   position: absolute;
-  z-index: -1;
   bottom: -36px;
   left: 0;
 
