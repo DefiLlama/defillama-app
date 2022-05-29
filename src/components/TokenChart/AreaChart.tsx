@@ -1,5 +1,5 @@
 import * as echarts from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
+import { SVGRenderer } from 'echarts/renderers'
 import { LineChart } from 'echarts/charts'
 import {
   TooltipComponent,
@@ -19,7 +19,7 @@ import logoDark from '../../../public/defillama-press-kit/defi/PNG/defillama-dar
 import { useMedia } from 'react-use'
 
 echarts.use([
-  CanvasRenderer,
+  SVGRenderer,
   LineChart,
   TooltipComponent,
   TitleComponent,
@@ -117,7 +117,7 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
   const createInstance = useCallback(() => {
     const instance = echarts.getInstanceByDom(document.getElementById(id))
 
-    return instance || echarts.init(document.getElementById(id))
+    return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
   }, [id])
 
   useEffect(() => {
