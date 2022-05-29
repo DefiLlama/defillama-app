@@ -118,7 +118,7 @@ export default function ({ protocol, tvlChartData, color, historicalChainTvls, c
     >
       <Denominations color={color}>
         {DENOMINATIONS.map((D) => (
-          <Link href={`/protocol/${protocol}?denomination=${D.symbol}`} key={D.symbol} shallow>
+          <Link href={`/protocol/${protocol}?denomination=${D.symbol}`} key={D.symbol} shallow passHref>
             <Denomination active={denomination === D.symbol || (D.symbol === 'USD' && !denomination)}>
               {D.symbol}
             </Denomination>
@@ -165,7 +165,7 @@ const Denomination = styled.a<IDenomination>`
       ? 'rgba(255, 255, 255, 0.6)'
       : 'rgba(0, 0, 0, 0.6)'};
   :focus-visible {
-    outline: ${({ theme }) => '2px solid ' + theme.text4};
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
   }
   :hover {
     cursor: pointer;

@@ -12,7 +12,7 @@ import SEO from 'components/SEO'
 import Search from 'components/Search/New'
 import Layout from 'layout'
 import { Panel } from 'components'
-import { ArrowUpRight } from 'react-feather'
+import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import AuditInfo from 'components/AuditInfo'
 import Link from 'next/link'
 import ProtocolChart from 'components/TokenChart/ProtocolChart'
@@ -234,12 +234,40 @@ const Bobo = styled.button`
   background: none;
   border: none;
   position: absolute;
-  top: 0;
-  right: 0;
+  z-index: -1;
+  bottom: -36px;
+  left: 0;
 
   :focus-visible {
     outline: ${({ theme }) => '1px solid ' + theme.text4};
   }
+
+  @media (min-width: 80rem) {
+    top: 0;
+    right: 0;
+    bottom: initial;
+    left: initial;
+    z-index: 1;
+  }
+`
+
+const DownloadButton = styled(Button)`
+  display: flex;
+  align-items: center;
+  color: inherit;
+  padding: 8px 12px;
+  border-radius: 10px;
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+  }
+`
+
+const TvlWrapper = styled.section`
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: nowrap;
 `
 
 interface IProtocolContainerProps {
@@ -311,10 +339,19 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
             <Symbol>{symbol !== '-' ? `(${symbol})` : ''}</Symbol>
           </ProtocolName>
 
-          <Tvl>
-            <span>Total Volume Locked</span>
-            <span>{formattedNum(totalVolume || '0', true)}</span>
-          </Tvl>
+          <TvlWrapper>
+            <Tvl>
+              <span>Total Volume Locked</span>
+              <span>{formattedNum(totalVolume || '0', true)}</span>
+            </Tvl>
+
+            <Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+              <DownloadButton as="a" color={backgroundColor}>
+                <DownloadCloud size={14} />
+                <span>&nbsp;&nbsp;.csv</span>
+              </DownloadButton>
+            </Link>
+          </TvlWrapper>
 
           {tvlByChain.length > 1 && (
             <Table>
@@ -331,13 +368,6 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
               </tbody>
             </Table>
           )}
-          {/* 
-          <Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-            <DownloadButton as="a" useTextColor={true} color={backgroundColor}>
-              <span>Download Dataset</span>
-              <ArrowUpRight size={14} />
-            </DownloadButton>
-          </Link> */}
         </ProtocolDetails>
 
         <ProtocolChart
