@@ -1,6 +1,6 @@
 import React from 'react'
 import Layout from 'layout'
-import { getPeggedChainsPageData, revalidate, getPeggedAssets } from 'utils/dataApi'
+import { getPeggedChainsPageData, revalidate, getPeggedAssets, getPeggedBridgeInfo } from 'utils/dataApi'
 import PeggedContainer from 'containers/PeggedContainer'
 import { standardizeProtocolName } from 'utils'
 
@@ -18,8 +18,8 @@ export async function getStaticProps({
     stackedDataset,
     peggedSymbol,
     pegType,
-    bridgeInfo,
   } = data.props
+  const bridgeInfo = await getPeggedBridgeInfo()
   return {
     props: {
       chainsUnique,
