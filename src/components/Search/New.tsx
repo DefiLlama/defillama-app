@@ -222,7 +222,7 @@ const SearchDefault = ({ data, loading = false, step }: ISearchProps) => {
           <Empty>Loading...</Empty>
         ) : combobox.matches.length ? (
           <FixedSizeList
-            height={240}
+            height={combobox.matches.length * 50 > 240 ? 240 : combobox.matches.length * 50}
             width="100%"
             itemCount={combobox.matches.length}
             itemSize={50}
