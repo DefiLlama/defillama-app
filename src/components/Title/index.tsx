@@ -20,9 +20,13 @@ const TitleWrapper = styled.a`
   }
 `
 
-export default function Title() {
+interface ITitleProps {
+  homePath: string
+}
+
+export default function Title({ homePath }: ITitleProps) {
   return (
-    <Link href="/" passHref>
+    <Link href={homePath} passHref>
       <TitleWrapper>
         <DefiLogo style={{ width: '160px', height: '54px' }} />
       </TitleWrapper>
