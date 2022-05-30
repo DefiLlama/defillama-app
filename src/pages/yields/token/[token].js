@@ -83,7 +83,7 @@ const YieldPage = () => {
     {
       header: 'Confidence',
       accessor: 'confidence',
-      helperText: 'Predicted confidence of outlook: 1 = Low, 2 = Medium, 3 = High',
+      helperText: 'Predicted outlook confidence',
       Cell: ({ value }) => <>{value === null ? null : value}</>,
     },
   ]
