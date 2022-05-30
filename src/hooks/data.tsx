@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useGetExtraTvlEnabled, useGroupEnabled, useGetExtraPeggedEnabled } from 'contexts/LocalStorage'
-import { getPercentChange } from 'utils'
+import { capitalizeFirstLetter, getPercentChange } from 'utils'
 
 interface IProtocol {
   name: string
@@ -68,11 +68,22 @@ interface IPegged {
   circulatingPrevDay: number
   circulatingPrevWeek: number
   circulatingPrevMonth: number
-  bridgeInfo: {
-    bridge: string
-    link?: string
+  bridges: {
+    [bridgeID: string]: {
+        amount: number;
+        source: string;
+    }
   }
-  bridgedAmount: number | string
+  bridgedAmount: number
+}
+
+type Bridge = {
+  name: string
+  link?: string
+}
+
+type BridgeInfo = {
+  [bridgeID: string]: Bridge
 }
 
 // TODO update types in localstorage file and refer them here
@@ -562,5 +573,65 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
     return (Object.values(finalData) as GroupChainPegged[]).sort((a, b) => b.circulating - a.circulating)
   }, [chains, groupData, groupsEnabled])
 
+  return data
+}
+
+export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeInfo): GroupChainPegged[] => {
+  const groupsEnabled = useGroupEnabled()
+  const data: GroupChainPegged[] = useMemo(() => {
+    const finalData = {}
+    for (const parent of chains) {
+      finalData[parent.name] = {}
+      const parentBridges = parent.bridges
+      const percentBridged = parent.circulating && parent.bridgedAmount && (parent.bridgedAmount / parent.circulating) * 100.0
+        const percentBridgedtoDisplay = (percentBridged < 100) ? percentBridged.toFixed(2)+"%" : "100%"
+      if (!parentBridges) {
+        finalData[parent.name] = {
+          ...parent,
+          bridgeInfo: {
+            name: '-',
+          },
+        }
+      } else if ((Object.keys(parentBridges).length === 1) && (parent.bridgedAmount === parent.circulating)) {
+        const bridgeID = Object.keys(parentBridges)[0]
+        const bridgeInfo = bridgeInfoObject[bridgeID]
+        bridgeInfo.name = bridgeInfo.name === 'Natively Issued' ? '-' : bridgeInfo.name
+        finalData[parent.name] = {
+          ...parent,
+          bridgeInfo: bridgeInfo,
+          bridgedAmount: percentBridgedtoDisplay,
+        }
+      } else {
+        for (const bridgeID in parentBridges) {
+          const bridgeInfo = bridgeInfoObject[bridgeID]
+          const subChains = finalData[parent.name].subRows || []
+          const percentBridgedBreakdown = parentBridges[bridgeID].amount && parent.bridgedAmount && (parentBridges[bridgeID].amount / parent.bridgedAmount) * percentBridged
+          const percentBridgedBreakdownToDisplay = (percentBridgedBreakdown < 100) ? percentBridgedBreakdown.toFixed(2)+"%" : "100%"
+          let sourceChain = parentBridges[bridgeID].source;
+
+          const childData = {
+            ...parent,
+            name: `Bridged from ${capitalizeFirstLetter(sourceChain)}`,
+            bridgeInfo: bridgeInfo,
+            bridgedAmount: percentBridgedBreakdownToDisplay,
+            circulating: parentBridges[bridgeID].amount,
+            change_1d: null,
+            change_7d: null,
+            change_1m: null,
+          }
+          finalData[parent.name] = {
+            ...parent,
+            bridgedAmount: percentBridgedtoDisplay,
+            bridgeInfo: {
+              name: '-',
+            },
+            subRows: [...subChains, childData],
+          }
+        }
+      }
+    }
+    return (Object.values(finalData) as GroupChainPegged[]).sort((a, b) => b.circulating - a.circulating)
+  }, [chains, bridgeInfoObject])
+  
   return data
 }

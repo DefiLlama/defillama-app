@@ -457,7 +457,7 @@ interface PeggedNameProps {
 export function NamePegged({
   type,
   value,
-  symbol = '',
+  symbol = '-',
   index,
   rowType = 'default',
   showRows,
@@ -498,7 +498,7 @@ export function NamePegged({
     <Index {...props} style={{ left: leftSpace }}>
       {rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
       {rowType !== 'pinned' && index && <span>{index}</span>}
-      <TokenLogo logo={iconUrl} />
+      {rowType !== 'child' && <TokenLogo logo={iconUrl} />}
       {rowType === 'accordion' ? <span>{name}</span> : <CustomLink href={tokenUrl}>{name}</CustomLink>}
     </Index>
   )

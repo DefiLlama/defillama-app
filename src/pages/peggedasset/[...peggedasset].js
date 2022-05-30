@@ -18,7 +18,7 @@ export async function getStaticProps({
     stackedDataset,
     peggedSymbol,
     pegType,
-    chainsGroupbyParent,
+    bridgeInfo,
   } = data.props
   return {
     props: {
@@ -29,7 +29,7 @@ export async function getStaticProps({
       stackedDataset,
       peggedSymbol,
       pegType,
-      chainsGroupbyParent,
+      bridgeInfo,
     },
     revalidate: revalidate(),
   }

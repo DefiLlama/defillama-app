@@ -9,7 +9,7 @@ import { AllPeggedOptions } from 'components/SettingsModal'
 import { CustomLink } from 'components/Link'
 import { columnsToShow, FullTable, NamePegged, isOfTypePeggedCategory } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
-import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupChainsPegged } from 'hooks/data'
+import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from 'hooks/data'
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { PeggedAssetOptions } from 'components/Select'
 
@@ -65,7 +65,7 @@ export default function PeggedContainer({
   stackedDataset,
   peggedSymbol,
   pegType,
-  chainsGroupbyParent,
+  bridgeInfo,
 }) {
   let firstColumn = columnsToShow('chainName')[0]
 
@@ -79,7 +79,7 @@ export default function PeggedContainer({
         <NamePegged
           type="peggedUSD"
           value={value}
-          symbol={rowValues.symbol}
+          symbol={rowType === 'child' ? '-' :rowValues.symbol}
           index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
           rowType={rowType}
           showRows={showRows}
@@ -91,11 +91,11 @@ export default function PeggedContainer({
   const columns = [
     firstColumn,
     {
-      header: 'Primary Bridge',
+      header: 'Bridge',
       accessor: 'bridgeInfo',
       disableSortBy: true,
       Cell: ({ value }) => {
-        return value.link ? <CustomLink href={value.link}>{value.bridge}</CustomLink> : <span>{value.bridge}</span>
+        return value.link ? <CustomLink href={value.link}>{value.name}</CustomLink> : <span>{value.name}</span>
       },
     },
     {
@@ -118,7 +118,7 @@ export default function PeggedContainer({
   )
 
   const chainTotals = useCalcCirculating(chainCirculatings)
-
+  
   const chainsCirculatingValues = useMemo(() => {
     const data = chainTotals.map((chain) => ({ name: chain.name, value: chain.circulating }))
 
@@ -145,9 +145,10 @@ export default function PeggedContainer({
   }
 
   const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
-
-  const groupedChains = useGroupChainsPegged(chainTotals, showByGroup ? chainsGroupbyParent : {})
-
+  
+  //const groupedChains = useGroupChainsPegged(chainTotals, showByGroup ? chainsGroupbyParent : {})
+  const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
+  
   return (
     <>
       <Search />
