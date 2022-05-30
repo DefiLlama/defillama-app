@@ -79,7 +79,7 @@ const PageView = () => {
 
   let confidence = poolData.predictions?.binnedConfidence ?? null
   if (confidence) {
-    confidence = confidence === 1 ? 'Low' : confidence === '2' ? 'Medium' : 'High'
+    confidence = confidence === 1 ? 'Low' : confidence === 2 ? 'Medium' : 'High'
   }
   const predictedDirection = poolData.predictions?.predictedClass === 'Down' ? '' : 'not'
 
