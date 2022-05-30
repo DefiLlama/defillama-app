@@ -830,6 +830,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
     })
   )
   
+  const bridgeInfo = await getPeggedBridgeInfo()
   const peggedSymbol = res.symbol
   const pegType = res.pegType
   const chainCirculatings = chainsUnique
@@ -891,6 +892,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       stackedDataset,
       peggedSymbol,
       pegType,
+      bridgeInfo,
     },
   }
 }
