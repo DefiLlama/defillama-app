@@ -104,7 +104,7 @@ export default function ({ protocol, tvlChartData, color, historicalChainTvls, c
       style={{
         ...(bobo && {
           backgroundImage: 'url("/bobo.png")',
-          backgroundSize: '100%',
+          backgroundSize: '100% 360px',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'bottom',
         }),

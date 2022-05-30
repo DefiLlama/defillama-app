@@ -21,14 +21,20 @@ export async function getStaticProps() {
 
 const ChartsWrapper = styled.section`
   display: flex;
-  flex-wrap: nowrap;
+  flex-direction: column;
+  gap: 12px;
   width: 100%;
   padding: 0;
   align-items: center;
   z-index: 1;
 
-  @media (max-width: 800px) {
-    flex-drection: column;
+  & > * {
+    width: 100%;
+    margin: 0 !important;
+  }
+
+  @media (min-width: 80rem) {
+    flex-direction: row;
   }
 `
 
@@ -40,7 +46,9 @@ const HeaderWrapper = styled(Header)`
   margin-top: 48px;
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
+  border: 1px solid transparent;
 `
 
 const StyledTable = styled(FullTable)<ITable>`

@@ -266,7 +266,7 @@ const TvlWrapper = styled.section`
   gap: 20px;
   align-items: flex-end;
   justify-content: space-between;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 `
 
 interface IProtocolContainerProps {
