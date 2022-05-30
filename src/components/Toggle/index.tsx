@@ -10,16 +10,27 @@ const IconWrapper = styled.div<{ isActive?: boolean }>`
   }
 `
 
-const StyledToggle = styled.div`
-  display: flex;
+const StyledToggle = styled.button`
+  display: none;
   width: fit-content;
   cursor: pointer;
   text-decoration: none;
   margin-top: 1rem;
   color: white;
+  background: none;
+  border: none;
+  padding: 0;
 
   :hover {
     text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.white};
+  }
+
+  @media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+    display: flex;
   }
 `
 

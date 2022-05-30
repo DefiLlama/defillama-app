@@ -85,13 +85,11 @@ html {
   box-sizing: inherit;
 }
 
-#__next {
-  font-size: 0.875rem;
+body {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  width: 100%;
   min-height: 100%;
+  font-size: 0.875rem;
 }
 
 input,

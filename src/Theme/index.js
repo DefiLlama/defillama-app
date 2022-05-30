@@ -16,7 +16,7 @@ export default function ThemeProvider({ children }) {
 const theme = (darkMode, color) => ({
   customColor: color,
   textColor: darkMode ? color : 'black',
-  mode: darkMode ? "dark" : "light",
+  mode: darkMode ? 'dark' : 'light',
 
   panelColor: darkMode ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0)',
   backgroundColor: darkMode ? '#212429' : '#445ed0',
@@ -44,7 +44,7 @@ const theme = (darkMode, color) => ({
   bg4: darkMode ? '#565A69' : '#CED0D9',
   bg5: darkMode ? '#565A69' : '#888D9B',
   bg6: darkMode ? '#000' : '#FFFFFF',
-  bg7: darkMode ? "rgba(7,14,15,0.7)" : 'rgba(252,252,251,1)',
+  bg7: darkMode ? 'rgba(7,14,15,0.7)' : 'rgba(252,252,251,1)',
 
   //specialty colors
   modalBG: darkMode ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.6)',
@@ -184,7 +184,8 @@ export const ThemedBackground = styled.div`
   height: 200vh;
   mix-blend-mode: color;
   background: ${({ backgroundColor, theme }) =>
-    `radial-gradient(50% 50% at 50% 50%, ${backgroundColor || transparentize(0.6, theme.primary1)
+    `radial-gradient(50% 50% at 50% 50%, ${
+      backgroundColor || transparentize(0.6, theme.primary1)
     } 0%, rgba(255, 255, 255, 0) 100%)`};
   z-index: -100;
   transform: translateY(-110vh);
@@ -192,9 +193,17 @@ export const ThemedBackground = styled.div`
 
 export const GlobalStyle = createGlobalStyle`
   #__next {
-    background-color: ${({ theme }) => theme.bg6};
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100%;
+    overflow-y: auto;
+    position: relative;
+    color: ${({ theme }) => theme.text1};
+    background-color: ${({ theme }) => theme.onlyLight};
+
     ${({ theme: { minLg } }) => minLg} {
-      flex-direction: row
+      flex-direction: row;
     }
   }
 `

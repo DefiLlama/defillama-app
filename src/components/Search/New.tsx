@@ -143,7 +143,7 @@ const Filters = styled.section`
 `
 
 const DropdownOptions = styled(DeFiTvlOptions)`
-  display: none;
+  display: none !important;
 
   ${({ theme: { minLg } }) => minLg} {
     display: flex;

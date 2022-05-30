@@ -58,7 +58,7 @@ export const Popover = styled(SelectPopover)`
   border-bottom-right-radius: 12px;
   box-shadow: ${({ theme }) => theme.shadowLg};
   margin: 0;
-  z-index: 100;
+  z-index: 1;
   outline: ${({ theme }) => '1px solid ' + theme.text5};
 `
 export const Item = styled(SelectItem)`

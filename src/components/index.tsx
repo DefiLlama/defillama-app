@@ -17,7 +17,7 @@ export const Panel = styled.section`
 `
 
 export const BreakpointPanels = styled.div`
-  @media screen and (min-width: 800px) {
+  @media screen and (min-width: 80rem) {
     width: 100%;
     display: flex;
     padding: 0;
@@ -29,7 +29,8 @@ export const BreakpointPanelsColumn = styled(AutoColumn)`
   width: 100%;
   margin-right: 10px;
   max-width: 350px;
-  @media (max-width: 800px) {
+
+  @media (max-width: 80rem) {
     max-width: initial;
     margin-bottom: 10px;
   }

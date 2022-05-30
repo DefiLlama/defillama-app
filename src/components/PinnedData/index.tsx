@@ -9,25 +9,40 @@ import { useSavedProtocols } from 'contexts/LocalStorage'
 import { TYPE } from 'Theme'
 import { tokenIconUrl } from 'utils'
 
-const RightColumn = styled.section`
+interface IButton {
+  open?: boolean
+}
+
+interface IWrapper {
+  open: boolean
+  gap?: string
+}
+
+const Wrapper = styled.section<IWrapper>`
   padding: 1.25rem;
   border-left: ${({ theme }) => '1px solid' + theme.bg3};
   background-color: ${({ theme }) => theme.bg1};
-  z-index: 9999;
+  z-index: 1;
   overflow: scroll;
-  display: flex;
-  flex-direction: column;
+  display: none;
 
   ::-webkit-scrollbar {
     display: none;
   }
 
-  @media screen and (max-width: ${({ theme }) => theme.bpLg}) {
-    display: none;
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: fit-content;
+    overflow-y: auto;
   }
 `
 
-const Button = styled.button`
+const Button = styled.button<IButton>`
   border: none;
   background: none;
   display: flex;
@@ -122,7 +137,7 @@ const PortfolioDropdown = ({ portfolio, removeProtocol, router, savedProtocols }
       </PortfolioHeader>
       {openPortfolio && (
         <PortfolioList>
-          {Object.entries(savedProtocols[portfolio]).map(([protocol, readableProtocolName]) => (
+          {Object.entries(savedProtocols[portfolio]).map(([protocol, readableProtocolName]: [string, string]) => (
             <li key={protocol}>
               <ButtonFaded onClick={() => router.push('/protocol/' + protocol)}>
                 <TokenLogo logo={tokenIconUrl(protocol)} size={14} />
@@ -138,6 +153,7 @@ const PortfolioDropdown = ({ portfolio, removeProtocol, router, savedProtocols }
     </>
   )
 }
+
 function PinnedData() {
   const router = useRouter()
   const { savedProtocols, removeProtocol, pinnedOpen, setPinnedOpen } = useSavedProtocols()
@@ -146,37 +162,40 @@ function PinnedData() {
 
   const hasSaved = portfolios.some((portfolio) => Object.keys(savedProtocols[portfolio]).length)
 
-  return !pinnedOpen ? (
-    <RightColumn style={{ cursor: 'pointer' }} open={pinnedOpen} onClick={() => setPinnedOpen(true)}>
-      <Button open={pinnedOpen}>
-        <Bookmark size={20} />
-      </Button>
-    </RightColumn>
-  ) : (
-    <RightColumn gap="1rem" open={pinnedOpen}>
-      <Button onClick={() => setPinnedOpen(false)} open={pinnedOpen}>
-        <Bookmark size={16} />
-        <span style={{ marginRight: "12px" }}>Saved</span>
-        <ChevronRight size={18} />
-      </Button>
+  return (
+    <>
+      {!pinnedOpen ? (
+        <Wrapper style={{ cursor: 'pointer' }} open={pinnedOpen} onClick={() => setPinnedOpen(true)}>
+          <Button open={pinnedOpen}>
+            <Bookmark size={20} />
+          </Button>
+        </Wrapper>
+      ) : (
+        <Wrapper gap="1rem" open={pinnedOpen}>
+          <Button onClick={() => setPinnedOpen(false)} open={pinnedOpen}>
+            <Bookmark size={16} />
+            <span style={{ marginRight: '12px' }}>Saved</span>
+            <ChevronRight size={18} />
+          </Button>
 
-      <ScrollableDiv>
-        {hasSaved ? (
-          portfolios.map((portfolio) => (
-            <PortfolioDropdown
-              removeProtocol={removeProtocol}
-              router={router}
-              savedProtocols={savedProtocols}
-              portfolio={portfolio}
-              key={portfolio}
-            />
-          ))
-        ) : (
-          <TYPE.light style={{ margin: '20px 0' }}>Saved protocols will appear here.</TYPE.light>
-        )}
-      </ScrollableDiv>
-
-    </RightColumn>
+          <ScrollableDiv>
+            {hasSaved ? (
+              portfolios.map((portfolio) => (
+                <PortfolioDropdown
+                  removeProtocol={removeProtocol}
+                  router={router}
+                  savedProtocols={savedProtocols}
+                  portfolio={portfolio}
+                  key={portfolio}
+                />
+              ))
+            ) : (
+              <TYPE.light style={{ margin: '20px 0' }}>Saved protocols will appear here.</TYPE.light>
+            )}
+          </ScrollableDiv>
+        </Wrapper>
+      )}
+    </>
   )
 }
 
