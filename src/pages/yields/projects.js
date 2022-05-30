@@ -1,8 +1,19 @@
 import Layout from '../../layout'
 import { getYieldPageData, revalidate } from '../../utils/dataApi'
-import { toK } from 'utils'
+import { toK, formattedPercent } from 'utils'
 import Table, { Index, NameYield } from 'components/Table'
 import PageHeader from 'components/PageHeader'
+
+function median(numbers) {
+  const sorted = Array.from(numbers).sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+
+  if (sorted.length % 2 === 0) {
+    return (sorted[middle - 1] + sorted[middle]) / 2;
+  }
+
+  return sorted[middle];
+}
 
 export async function getStaticProps() {
   const data = await getYieldPageData()
@@ -16,6 +27,13 @@ export async function getStaticProps() {
     projects[proj].protocols++
     projects[proj].tvl += p.tvlUsd
   })
+
+  // add median
+  for (const project of Object.keys(projects)) {
+    const x = data.props.pools.filter(p => p.project === project)
+    const m = median(x.map(el => el.apy))
+    projects[project]['medianApy'] = m
+  }
 
   const projArray = Object.entries(projects).map(([slug, details]) => ({
     slug,
@@ -53,6 +71,13 @@ const columns = [
     accessor: 'tvl',
     Cell: ({ value }) => {
       return <span>{'$' + toK(value)}</span>
+    },
+  },
+  {
+    header: 'Median APY',
+    accessor: 'medianApy',
+    Cell: ({ value }) => {
+      return <span>{formattedPercent(value, true)}</span>
     },
   },
 ]
