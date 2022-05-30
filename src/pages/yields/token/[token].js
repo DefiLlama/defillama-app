@@ -84,7 +84,7 @@ const YieldPage = () => {
       header: 'Confidence',
       accessor: 'confidence',
       helperText: 'Predicted outlook confidence',
-      Cell: ({ value }) => <>{value === null ? null : value}</>,
+      Cell: ({ value }) => <>{value === null ? null : value === 1 ? 'Low' : value === 2 ? 'Medium' : 'High'}</>,
     },
   ]
 
