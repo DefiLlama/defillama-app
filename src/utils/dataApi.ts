@@ -1057,6 +1057,9 @@ export async function getYieldPageData(query = null) {
     // on the db level (see `getYieldPoolData`)
     let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
 
+    // remove anchor cause UST dead
+    pools = pools.filter(p => p.project !== 'anchor')
+
     const chainList = [...new Set(pools.map((p) => p.chain))]
     const projectList = [...new Set(pools.map((p) => p.project))]
 
