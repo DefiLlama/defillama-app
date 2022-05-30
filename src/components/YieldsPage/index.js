@@ -84,7 +84,7 @@ export const TableWrapper = styled(Table)`
     display: none;
   }
 
-  // PROBABILITY
+  // CONFIDENCE
   tr > *:nth-child(9) {
     display: none;
   }
@@ -96,7 +96,7 @@ export const TableWrapper = styled(Table)`
     }
   }
 
-  // PROBABILITY
+  // CONFIDENCE
   tr > th:nth-child(9) {
     & > div {
       margin-left: auto;
@@ -166,7 +166,7 @@ export const TableWrapper = styled(Table)`
       display: revert;
     }
 
-    // PROBABILITY
+    // CONFIDENCE
     tr > *:nth-child(9) {
       display: revert;
     }
@@ -258,10 +258,10 @@ const YieldPage = ({ pools, chainList }) => {
       Cell: ({ value }) => <>{value}</>,
     },
     {
-      header: 'Probability',
-      accessor: 'probability',
-      helperText: 'Predicted probability of outlook',
-      Cell: ({ value }) => <>{value === null ? null : value.toFixed(2) + '%'}</>,
+      header: 'Confidence',
+      accessor: 'confidence',
+      helperText: 'Predicted outlook confidence',
+      Cell: ({ value }) => <>{value === null ? null : value === 1 ? 'Low' : value === 2 ? 'Medium' : 'High'}</>,
     },
   ]
 
@@ -311,7 +311,7 @@ const YieldPage = ({ pools, chainList }) => {
           change1d: t.apyPct1D,
           change7d: t.apyPct7D,
           outlook: t.predictions.predictedClass,
-          probability: t.predictions.predictedProbability,
+          confidence: t.predictions.binnedConfidence,
         }))}
         columns={columns}
       />
