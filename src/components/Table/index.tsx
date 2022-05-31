@@ -276,9 +276,8 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
     })
 
     return () => {
-      window.removeEventListener('scroll', () => {
-        setDisplayScrollToTopButton(false)
-      })
+      window.removeEventListener('scroll', () => {})
+      setDisplayScrollToTopButton(false)
     }
   }, [])
 

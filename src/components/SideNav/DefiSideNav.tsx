@@ -28,7 +28,6 @@ const Paper = () => (
     height="20px"
     width="20px"
     xmlns="http://www.w3.org/2000/svg"
-    style={{ marginRight: '0.75rem' }}
   >
     <path
       fill="none"

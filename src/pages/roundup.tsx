@@ -10,7 +10,6 @@ const Header = styled.h1`
   font-weight: 600;
   margin: 0;
   font-size: revert !important;
-  text-align: center;
 
   a {
     position: relative;
@@ -23,7 +22,6 @@ const Text = styled.p`
   white-space: pre-line;
   line-height: 1.5rem;
   font-size: 1rem;
-  margin: 0 auto;
   word-break: break-all;
 
   a {
@@ -51,19 +49,21 @@ export default function Chains({ messages }) {
 
   return (
     <Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
-      <Header>
-        Daily news round-up with the 🦙 on{' '}
-        <Link href="https://t.me/defillama_tg" passHref>
-          <a target="_blank" rel="noopener noreferrer">
-            <Image src={Telegram} alt="Join our telegram" height={28} width={24} />
-          </a>
-        </Link>
-      </Header>
-      <Text>
-        {splitText.map((m, index) => (
-          <Message text={m} key={m + index} />
-        ))}
-      </Text>
+      <span style={{ margin: '0 auto' }}>
+        <Header>
+          Daily news round-up with the 🦙 on{' '}
+          <Link href="https://t.me/defillama_tg" passHref>
+            <a target="_blank" rel="noopener noreferrer">
+              <Image src={Telegram} alt="Join our telegram" height={28} width={24} />
+            </a>
+          </Link>
+        </Header>
+        <Text>
+          {splitText.map((m, index) => (
+            <Message text={m} key={m + index} />
+          ))}
+        </Text>
+      </span>
     </Layout>
   )
 }

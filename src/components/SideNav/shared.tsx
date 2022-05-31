@@ -68,6 +68,7 @@ export const NavLink = styled(BasicLink)<INavLink>`
   opacity: ${({ activeText }) => (activeText ? 1 : 0.6)};
   display: flex;
   align-items: center;
+  gap: 12px;
 
   :hover {
     opacity: 1;
@@ -114,18 +115,19 @@ export const Entry = ({ url, name, Icon, newTag, ...props }: IEntryProps) => {
 
   return (
     <NavLink href={url} {...props} activeText={router.pathname === url}>
-      <Icon size={20} style={{ marginRight: '.75rem' }} />
-      {name}
+      <Icon size={20} />
+      <span>{name}</span>
       {newTag === true && (
         <span
           style={{
             background: '#ebebeb',
             padding: '3px',
-            marginLeft: '5px',
-            marginTop: '0px',
+            position: 'relative',
+            top: '2px',
+            left: '-6px',
             borderRadius: '4px',
             color: 'black',
-            fontSize: '11px',
+            fontSize: '0.625rem',
           }}
         >
           NEW
