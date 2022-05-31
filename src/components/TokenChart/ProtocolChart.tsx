@@ -20,7 +20,14 @@ interface IProps {
   bobo?: boolean
 }
 
-export default function ({ protocol, tvlChartData, color, historicalChainTvls, chains = [], bobo = false }: IProps) {
+export default function ProtocolChart({
+  protocol,
+  tvlChartData,
+  color,
+  historicalChainTvls,
+  chains = [],
+  bobo = false
+}: IProps) {
   const router = useRouter()
 
   const extraTvlEnabled = useGetExtraTvlEnabled()
@@ -41,7 +48,7 @@ export default function ({ protocol, tvlChartData, color, historicalChainTvls, c
     return d
   }, [chains])
 
-  const { data: denominationHistory, loading } = useDenominationPriceHistory({
+  const { data: denominationHistory } = useDenominationPriceHistory({
     geckoId: DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId,
     utcStartTime: 0,
   })
