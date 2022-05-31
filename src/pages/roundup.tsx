@@ -1,13 +1,21 @@
 import Layout from '../layout'
 import styled from 'styled-components'
 import { revalidate } from 'utils/dataApi'
+import Telegram from '../assets/telegram.svg'
+import Image from 'next/image'
+import Link from 'next/link'
 
 const Header = styled.h1`
   color: ${({ theme }) => theme.text1};
   font-weight: 600;
   margin: 0;
-  text-align: center;
   font-size: revert !important;
+  text-align: center;
+
+  a {
+    position: relative;
+    top: 4px;
+  }
 `
 
 const Text = styled.p`
@@ -43,7 +51,14 @@ export default function Chains({ messages }) {
 
   return (
     <Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
-      <Header>Daily news round-up with the 🦙</Header>
+      <Header>
+        Daily news round-up with the 🦙 on{' '}
+        <Link href="https://t.me/defillama_tg" passHref>
+          <a target="_blank" rel="noopener noreferrer">
+            <Image src={Telegram} alt="Join our telegram" height={28} width={24} />
+          </a>
+        </Link>
+      </Header>
       <Text>
         {splitText.map((m, index) => (
           <Message text={m} key={m + index} />
