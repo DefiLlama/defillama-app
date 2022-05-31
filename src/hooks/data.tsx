@@ -603,13 +603,17 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
           bridgedAmount: percentBridgedtoDisplay,
         }
       } else {
+        let totalBridged = 0;
+        for (const bridgeID in parentBridges) {
+          totalBridged += parentBridges[bridgeID].amount ?? 0;
+        }
         for (const bridgeID in parentBridges) {
           const bridgeInfo = bridgeInfoObject[bridgeID]
           const subChains = finalData[parent.name].subRows || []
           const percentBridgedBreakdown =
             parentBridges[bridgeID].amount &&
-            parent.bridgedAmount &&
-            (parentBridges[bridgeID].amount / parent.bridgedAmount) * percentBridged
+            totalBridged &&
+            (parentBridges[bridgeID].amount / totalBridged) * (percentBridged > 100 ? 100 : percentBridged)
           const percentBridgedBreakdownToDisplay =
             percentBridgedBreakdown < 100 ? percentBridgedBreakdown.toFixed(2) + '%' : '100%'
           let sourceChain = parentBridges[bridgeID].source
