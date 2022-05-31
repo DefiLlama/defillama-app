@@ -16,7 +16,7 @@ import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconL
 import { getNFTSearchResults } from '../../utils/dataApi'
 
 const NFTSearch = ({ small = false }) => {
-  const linkPath = collection => `/nfts/collection/${collection.slug}`
+  const linkPath = (collection) => `/nfts/collection/${collection.slug}`
 
   const [showMenu, toggleMenu] = useState(false)
   const [value, setValue] = useState('')
@@ -55,7 +55,7 @@ const NFTSearch = ({ small = false }) => {
   const wrapperRef = useRef()
   const menuRef = useRef()
 
-  const handleClick = e => {
+  const handleClick = (e) => {
     if (
       !(menuRef.current && menuRef.current.contains(e.target)) &&
       !(wrapperRef.current && wrapperRef.current.contains(e.target))
@@ -66,14 +66,15 @@ const NFTSearch = ({ small = false }) => {
   }
 
   useEffect(() => {
-    document.addEventListener('keyup', e => {
+    document.addEventListener('keyup', (e) => {
       if (e.key === '/') {
         document.getElementsByClassName('searchbox')[0].focus()
       }
     })
     document.addEventListener('click', handleClick)
     return () => {
-      document.removeEventListener('click', handleClick)
+      document.removeEventListener('click', () => {})
+      setTokensShown(3)
     }
   }, [])
 
@@ -83,7 +84,7 @@ const NFTSearch = ({ small = false }) => {
         small
           ? {
               display: 'flex',
-              alignItems: 'center'
+              alignItems: 'center',
             }
           : {}
       }
@@ -108,7 +109,7 @@ const NFTSearch = ({ small = false }) => {
                 : 'Search NFT collections...'
             }
             value={value}
-            onChange={e => {
+            onChange={(e) => {
               setValue(e.target.value)
             }}
             onFocus={() => {
@@ -126,7 +127,7 @@ const NFTSearch = ({ small = false }) => {
                 <TYPE.body>No results</TYPE.body>
               </MenuItem>
             )}
-            {searchResults.slice(0, tokensShown).map(token => {
+            {searchResults.slice(0, tokensShown).map((token) => {
               return (
                 <BasicLink href={linkPath(token)} key={token.id} onClick={onDismiss}>
                   <MenuItem>

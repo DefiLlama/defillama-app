@@ -72,7 +72,10 @@ const GlobalChart = ({
       setWidth(ref?.current?.container?.clientWidth ?? width)
     }
     window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', () => {})
+      setWidth(0)
+    }
   }, [isClient, width]) // Empty array ensures that effect is only run on mount and unmount
 
   let moneySymbol = '$'

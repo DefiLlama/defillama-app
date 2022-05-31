@@ -8,17 +8,14 @@ const StyledMenuIcon = styled(MenuIcon)`
   }
 `
 
-const StyledMenuButton = styled.button`
-  width: 100%;
-  height: 100%;
-  border: none;
-  background-color: transparent;
+const Wrapper = styled.button`
   margin: 0;
-  padding: 0;
-  height: 35px;
-  background-color: ${({ theme }) => theme.bg3};
   padding: 0.15rem 0.5rem;
+  height: 35px;
+  border: none;
+  background-color: ${({ theme }) => theme.bg3};
   border-radius: 0.5rem;
+
   :hover,
   :focus {
     cursor: pointer;
@@ -30,18 +27,8 @@ const StyledMenuButton = styled.button`
   }
 `
 
-const StyledMenu = styled.div`
-  margin-left: 0.5rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  border: none;
-  text-align: left;
-`
-
 export default function NavMenuButton({ setShow, show }) {
-  const node = useRef()
+  const node = useRef<HTMLButtonElement>()
   const toggle = () => {
     setShow(!show)
   }
@@ -55,15 +42,14 @@ export default function NavMenuButton({ setShow, show }) {
   useEffect(() => {
     document.addEventListener('click', handleClick)
     return () => {
-      document.removeEventListener('click', handleClick)
+      document.removeEventListener('click', () => {})
+      setShow(false)
     }
   })
 
   return (
-    <StyledMenu ref={node}>
-      <StyledMenuButton onClick={toggle}>
-        <StyledMenuIcon />
-      </StyledMenuButton>
-    </StyledMenu>
+    <Wrapper onClick={toggle} ref={node}>
+      <StyledMenuIcon />
+    </Wrapper>
   )
 }

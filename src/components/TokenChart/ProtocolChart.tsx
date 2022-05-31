@@ -133,6 +133,7 @@ export default function ({ protocol, tvlChartData, color, historicalChainTvls, c
 const Denominations = styled.section`
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
   padding: 6px;
   margin: 16px 16px 0;
@@ -145,7 +146,6 @@ interface IDenomination {
   active?: boolean
 }
 
-// TODO add translate background animation
 const Denomination = styled.a<IDenomination>`
   display: inline-block;
   margin: 0;

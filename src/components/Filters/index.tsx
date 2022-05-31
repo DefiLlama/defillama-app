@@ -105,11 +105,9 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
       setIndexToFilterFrom()
     })
 
-    return () =>
-      window.removeEventListener('resize', () => {
-        setLastIndexToRender(null)
-        setIndexToFilterFrom()
-      })
+    return () => window.removeEventListener('resize', () => {})
+    setLastIndexToRender(null)
+    setIndexToFilterFrom()
   }, [calcFiltersToRender])
 
   const { filters, menuFilters } = useMemo(() => {

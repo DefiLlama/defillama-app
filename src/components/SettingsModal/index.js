@@ -340,7 +340,8 @@ export default function Menu({ type = 'defi' }) {
   useEffect(() => {
     document.addEventListener('click', handleClick)
     return () => {
-      document.removeEventListener('click', handleClick)
+      document.removeEventListener('click', () => {})
+      setOpen(false)
     }
   }, [])
 
