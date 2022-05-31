@@ -499,7 +499,7 @@ export function NamePegged({
       {rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
       {rowType !== 'pinned' && index && <span>{index}</span>}
       {rowType !== 'child' && <TokenLogo logo={iconUrl} />}
-      {rowType === 'accordion' ? <span>{name}</span> : <CustomLink href={tokenUrl}>{name}</CustomLink>}
+      {rowType === 'accordion' || rowType === 'child' ? <span>{name}</span> : <CustomLink href={tokenUrl}>{name}</CustomLink>}
     </Index>
   )
 }
