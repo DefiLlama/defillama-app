@@ -88,6 +88,7 @@ const theme = (darkMode, color) => ({
   bpMed: `${med}px`,
   bpLg: `${lg}px`,
   bpXl: `${xl}px`,
+  bp2Xl: `${twoXl}px`,
 
   maxSm: `@media screen and (max-width: ${sm}px)`,
   maxMed: `@media screen and (max-width: ${med}px)`,

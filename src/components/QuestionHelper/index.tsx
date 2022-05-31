@@ -22,10 +22,10 @@ const QuestionWrapper = styled.div`
   }
 `
 
-export default function QuestionHelper({ text, disabled }: { text: string; disabled?: boolean }) {
+export default function QuestionHelper({ text, disabled, ...props }: { text: string; disabled?: boolean; style?: {} }) {
   return (
     <Tooltip content={disabled ? null : text}>
-      <QuestionWrapper>
+      <QuestionWrapper {...props}>
         <Question size={16} />
       </QuestionWrapper>
     </Tooltip>

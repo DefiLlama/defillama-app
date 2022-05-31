@@ -143,15 +143,11 @@ const Filters = styled.section`
 `
 
 const DropdownOptions = styled(DeFiTvlOptions)`
-  display: none !important;
+  display: none;
 
-  ${({ theme: { minLg } }) => minLg} {
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) and (max-width: ${({ theme }) => theme.bp2Xl}) {
     display: flex;
     padding: 0 4px;
-  }
-
-  ${({ theme: { min2Xl } }) => min2Xl} {
-    display: none !important;
   }
 `
 
@@ -266,7 +262,6 @@ const Options = ({ step }: { step: IStep }) => {
         <span style={{ color: 'var(--step-color)' }}>{step.name}</span>
       </p>
 
-      {/* below components will render base on breakpoint */}
       {!step.hideOptions && (
         <>
           <Filters>

@@ -11,13 +11,14 @@ import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from 'util
 import SEO from 'components/SEO'
 import Search from 'components/Search/New'
 import Layout from 'layout'
-import { Panel } from 'components'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import AuditInfo from 'components/AuditInfo'
 import Link from 'next/link'
 import ProtocolChart from 'components/TokenChart/ProtocolChart'
 import boboLogo from '../../assets/boboSmug.png'
 import Image from 'next/image'
+import QuestionHelper from 'components/QuestionHelper'
+import { useGetExtraTvlEnabled, useTvlToggles } from 'contexts/LocalStorage'
 
 const Stats = styled.section`
   display: flex;
@@ -69,7 +70,8 @@ const Symbol = styled.span`
 const Table = styled.table`
   border-collapse: collapse;
 
-  caption {
+  caption,
+  thead th {
     font-weight: 400;
     font-size: 0.75rem;
     text-align: left;
@@ -90,6 +92,16 @@ const Table = styled.table`
     text-align: right;
     padding: 4px 0 0 4px;
     font-family: var(--font-jetbrains);
+  }
+
+  thead td {
+    padding: 0 0 4px 0;
+    > * {
+      width: min-content;
+      background: none;
+      margin-left: auto;
+      color: ${({ theme }) => theme.text1};
+    }
   }
 `
 
@@ -269,6 +281,17 @@ const TvlWrapper = styled.section`
   flex-wrap: wrap;
 `
 
+const ExtraTvlOption = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  input {
+    margin: 0;
+    padding: 0;
+  }
+`
+
 interface IProtocolContainerProps {
   title: string
   protocol: string
@@ -276,22 +299,8 @@ interface IProtocolContainerProps {
   backgroundColor: string
 }
 
-function ToggleAlert({ tvlBreakdowns }) {
-  const isLowerCase = (letter) => letter === letter.toLowerCase()
-  const extraTvls = Object.keys(tvlBreakdowns).filter((section) => isLowerCase(section[0]))
-  if (extraTvls.length === 0) {
-    return null
-  }
-  return (
-    <Panel style={{ margin: '-22px 1px' }}>
-      <p style={{ margin: '0', textAlign: 'center' }}>
-        This protocol has some TVL that's classified as {extraTvls.join('/')}, enable the toggles to see it
-      </p>
-    </Panel>
-  )
-}
+const isLowerCase = (letter) => letter === letter.toLowerCase()
 
-// TODO bookmark and percent change
 function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: IProtocolContainerProps) {
   useScrollToTop()
 
@@ -322,13 +331,23 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const [bobo, setBobo] = useState(false)
 
+  const extraTvls = []
+  const tvls = []
+
+  tvlByChain.forEach((t) => {
+    if (isLowerCase(t[0][0])) {
+      extraTvls.push(t)
+    } else tvls.push(t)
+  })
+
+  const tvlToggles = useTvlToggles()
+  const extraTvlsEnabled = useGetExtraTvlEnabled()
+
   return (
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
 
       <Search step={{ category: 'Protocols', name }} />
-
-      <ToggleAlert tvlBreakdowns={tvlBreakdowns} />
 
       <Stats>
         <ProtocolDetails>
@@ -352,11 +371,11 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
             </Link>
           </TvlWrapper>
 
-          {tvlByChain.length > 1 && (
+          {tvls.length > 1 && (
             <Table>
               <caption>Breakdown</caption>
               <tbody>
-                {tvlByChain.map((chainTvl) =>
+                {tvls.map((chainTvl) =>
                   chainTvl[0].includes('-') ? null : (
                     <tr key={chainTvl[0]}>
                       <th>{capitalizeFirstLetter(chainTvl[0])}</th>
@@ -364,6 +383,37 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
                     </tr>
                   )
                 )}
+              </tbody>
+            </Table>
+          )}
+
+          {extraTvls.length > 0 && (
+            <Table>
+              <thead>
+                <tr>
+                  <th>Optional TVL Counts</th>
+                  <td>
+                    <QuestionHelper text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation' />
+                  </td>
+                </tr>
+              </thead>
+              <tbody>
+                {extraTvls.map(([option, value]) => (
+                  <tr key={option}>
+                    <th>
+                      <ExtraTvlOption>
+                        <input
+                          type="checkbox"
+                          value={option}
+                          checked={extraTvlsEnabled[option]}
+                          onChange={tvlToggles(option)}
+                        />
+                        <span>{capitalizeFirstLetter(option)}</span>
+                      </ExtraTvlOption>
+                    </th>
+                    <td>${toK(value)}</td>
+                  </tr>
+                ))}
               </tbody>
             </Table>
           )}
