@@ -202,6 +202,7 @@ export const GlobalStyle = createGlobalStyle`
     position: relative;
     color: ${({ theme }) => theme.text1};
     background-color: ${({ theme }) => theme.onlyLight};
+    isolation: isolate;
 
     ${({ theme: { minLg } }) => minLg} {
       flex-direction: row;

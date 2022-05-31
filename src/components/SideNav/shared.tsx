@@ -13,21 +13,20 @@ export const Wrapper = styled.header`
   flex-direction: column;
   gap: 20px;
   padding: 16px;
-
   z-index: 1;
   background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
 
   scrollbar-width: none;
-
   ::-webkit-scrollbar {
     display: none;
   }
 
   @media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
     padding: 32px 24px;
-    position: sticky;
+    position: fixed;
     top: 0;
     bottom: 0;
+    left: 0;
     width: revert;
     height: 100vh;
     overflow-y: auto;

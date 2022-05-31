@@ -84,9 +84,6 @@ html {
 }
 
 body {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
   font-size: 0.875rem;
 }
 

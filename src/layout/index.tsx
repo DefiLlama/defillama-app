@@ -32,6 +32,7 @@ const PageWrapper = styled.div`
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    padding-left: 220px;
     padding-right: 61px;
   }
 `
