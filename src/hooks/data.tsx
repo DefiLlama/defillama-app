@@ -70,8 +70,8 @@ interface IPegged {
   circulatingPrevMonth: number
   bridges: {
     [bridgeID: string]: {
-        amount: number;
-        source: string;
+      amount: number
+      source: string
     }
   }
   bridgedAmount: number
@@ -583,8 +583,9 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
     for (const parent of chains) {
       finalData[parent.name] = {}
       const parentBridges = parent.bridges
-      const percentBridged = parent.circulating && parent.bridgedAmount && (parent.bridgedAmount / parent.circulating) * 100.0
-        const percentBridgedtoDisplay = (percentBridged < 100) ? percentBridged.toFixed(2)+"%" : "100%"
+      const percentBridged =
+        parent.circulating && parent.bridgedAmount && (parent.bridgedAmount / parent.circulating) * 100.0
+      const percentBridgedtoDisplay = percentBridged < 100 ? percentBridged.toFixed(2) + '%' : '100%'
       if (!parentBridges) {
         finalData[parent.name] = {
           ...parent,
@@ -592,9 +593,9 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
             name: '-',
           },
         }
-      } else if ((Object.keys(parentBridges).length === 1) && (parent.bridgedAmount === parent.circulating)) {
+      } else if (Object.keys(parentBridges).length === 1 && parent.bridgedAmount === parent.circulating) {
         const bridgeID = Object.keys(parentBridges)[0]
-        const bridgeInfo = bridgeInfoObject[bridgeID]
+        const bridgeInfo = bridgeInfoObject[bridgeID] ?? { name: 'not-found' }
         bridgeInfo.name = bridgeInfo.name === 'Natively Issued' ? '-' : bridgeInfo.name
         finalData[parent.name] = {
           ...parent,
@@ -605,9 +606,13 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
         for (const bridgeID in parentBridges) {
           const bridgeInfo = bridgeInfoObject[bridgeID]
           const subChains = finalData[parent.name].subRows || []
-          const percentBridgedBreakdown = parentBridges[bridgeID].amount && parent.bridgedAmount && (parentBridges[bridgeID].amount / parent.bridgedAmount) * percentBridged
-          const percentBridgedBreakdownToDisplay = (percentBridgedBreakdown < 100) ? percentBridgedBreakdown.toFixed(2)+"%" : "100%"
-          let sourceChain = parentBridges[bridgeID].source;
+          const percentBridgedBreakdown =
+            parentBridges[bridgeID].amount &&
+            parent.bridgedAmount &&
+            (parentBridges[bridgeID].amount / parent.bridgedAmount) * percentBridged
+          const percentBridgedBreakdownToDisplay =
+            percentBridgedBreakdown < 100 ? percentBridgedBreakdown.toFixed(2) + '%' : '100%'
+          let sourceChain = parentBridges[bridgeID].source
 
           const childData = {
             ...parent,
@@ -632,6 +637,6 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
     }
     return (Object.values(finalData) as GroupChainPegged[]).sort((a, b) => b.circulating - a.circulating)
   }, [chains, bridgeInfoObject])
-  
+
   return data
 }
