@@ -596,11 +596,29 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
       } else if (Object.keys(parentBridges).length === 1 && parent.bridgedAmount === parent.circulating) {
         const bridgeID = Object.keys(parentBridges)[0]
         const bridgeInfo = bridgeInfoObject[bridgeID] ?? { name: 'not-found' }
-        bridgeInfo.name = bridgeInfo.name === 'Natively Issued' ? '-' : bridgeInfo.name
+        let childData = {}
+        if (bridgeInfo.name === 'Natively Issued') {
+          bridgeInfo.name = '-'
+          childData = {
+            ...parent,
+            bridgeInfo: bridgeInfo,
+            bridgedAmount: percentBridgedtoDisplay,
+            name: `Natively Issued`,
+          }
+        } else {
+          const sourceChain = parentBridges[bridgeID].source ?? 'not-found'
+          childData = {
+            ...parent,
+            bridgeInfo: bridgeInfo,
+            bridgedAmount: percentBridgedtoDisplay,
+            name: `Bridged from ${capitalizeFirstLetter(sourceChain)}`,
+          }
+        }
         finalData[parent.name] = {
           ...parent,
           bridgeInfo: bridgeInfo,
           bridgedAmount: percentBridgedtoDisplay,
+          subRows: [childData],
         }
       } else {
         let totalBridged = 0;
@@ -616,7 +634,7 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
             (parentBridges[bridgeID].amount / totalBridged) * (percentBridged > 100 ? 100 : percentBridged)
           const percentBridgedBreakdownToDisplay =
             percentBridgedBreakdown < 100 ? percentBridgedBreakdown.toFixed(2) + '%' : '100%'
-          let sourceChain = parentBridges[bridgeID].source
+          const sourceChain = parentBridges[bridgeID].source ?? 'not-found'
 
           const childData = {
             ...parent,
