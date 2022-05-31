@@ -17,9 +17,8 @@ export default function useInfiniteScroll({ list = [], numInView = 25 }) {
     })
 
     return () => {
-      window.removeEventListener('scroll', () => {
-        setDisplayScrollToTopButton(false)
-      })
+      window.removeEventListener('scroll', () => {})
+      setDisplayScrollToTopButton(false)
     }
   }, [])
 

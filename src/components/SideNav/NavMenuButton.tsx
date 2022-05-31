@@ -42,7 +42,8 @@ export default function NavMenuButton({ setShow, show }) {
   useEffect(() => {
     document.addEventListener('click', handleClick)
     return () => {
-      document.removeEventListener('click', handleClick)
+      document.removeEventListener('click', () => {})
+      setShow(false)
     }
   })
 
