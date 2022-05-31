@@ -608,7 +608,7 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
           totalBridged += parentBridges[bridgeID].amount ?? 0;
         }
         for (const bridgeID in parentBridges) {
-          const bridgeInfo = bridgeInfoObject[bridgeID]
+          const bridgeInfo = bridgeInfoObject[bridgeID] ?? { name: 'not-found' }
           const subChains = finalData[parent.name].subRows || []
           const percentBridgedBreakdown =
             parentBridges[bridgeID].amount &&
