@@ -17,13 +17,38 @@ const Text = styled.p`
   font-size: 1rem;
   margin: 0 auto;
   word-break: break-all;
+
+  a {
+    color: inherit;
+  }
 `
 
+const Message = ({ text }: { text: string }) => {
+  return (
+    <>
+      {text.includes('http') ? (
+        <a href={text} target="_blank" rel="noopener noreferrer">
+          {text}
+        </a>
+      ) : (
+        text
+      )}
+      <br />
+    </>
+  )
+}
+
 export default function Chains({ messages }) {
+  const splitText = messages.split('\n')
+
   return (
     <Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
       <Header>Daily news round-up with the 🦙</Header>
-      <Text>{messages}</Text>
+      <Text>
+        {splitText.map((m, index) => (
+          <Message text={m} key={m + index} />
+        ))}
+      </Text>
     </Layout>
   )
 }
@@ -53,7 +78,7 @@ export async function getStaticProps() {
     .map((m) => m.content)
     .join('')
 
-  const splitLlama = messages.split('🦙')
+  const splitLlama = messages.split('Daily news round-up with the 🦙')
 
   return {
     props: {
