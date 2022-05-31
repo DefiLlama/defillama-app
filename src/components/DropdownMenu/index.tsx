@@ -63,9 +63,8 @@ const StyledMenuTrigger = styled(DropdownMenuPrimitive.Trigger)`
   }
 
   :focus-visible {
-    outline: 1px solid red;
-    outline-offset: 2px;
-    outline-color: ${({ theme }) => transparentize(0.1, theme.primary1)};
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline-offset: 1px;
   }
 `
 

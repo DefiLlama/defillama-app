@@ -51,6 +51,10 @@ const DownloadButton = styled(BasicLink)`
   position: absolute;
   bottom: 8px;
   right: 8px;
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+  }
 `
 
 const DownloadIcon = styled(DownloadCloud)`

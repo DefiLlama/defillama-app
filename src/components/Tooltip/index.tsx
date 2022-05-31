@@ -16,6 +16,10 @@ const TooltipTrigger = styled(Button)`
   padding: 0;
   display: flex;
   align-items: center;
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+  }
 `
 
 const TooltipPopver = styled(AriaTooltip)`

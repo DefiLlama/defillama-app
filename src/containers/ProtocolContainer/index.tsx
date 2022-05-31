@@ -338,7 +338,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
   tvlByChain.forEach((t) => {
     if (isLowerCase(t[0][0])) {
       extraTvls.push(t)
-    } else tvls.push(t)
+    } else !t[0].includes('-') && tvls.push(t)
   })
 
   const tvlToggles = useTvlToggles()
@@ -376,14 +376,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
             <Table>
               <caption>Breakdown</caption>
               <tbody>
-                {tvls.map((chainTvl) =>
-                  chainTvl[0].includes('-') ? null : (
-                    <tr key={chainTvl[0]}>
-                      <th>{capitalizeFirstLetter(chainTvl[0])}</th>
-                      <td>${toK(chainTvl[1] || 0)}</td>
-                    </tr>
-                  )
-                )}
+                {tvls.map((chainTvl) => (
+                  <tr key={chainTvl[0]}>
+                    <th>{capitalizeFirstLetter(chainTvl[0])}</th>
+                    <td>${toK(chainTvl[1] || 0)}</td>
+                  </tr>
+                ))}
               </tbody>
             </Table>
           )}
