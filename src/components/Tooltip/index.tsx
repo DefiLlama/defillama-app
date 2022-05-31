@@ -5,6 +5,7 @@ import { Tooltip as AriaTooltip, TooltipAnchor, useTooltipState } from 'ariakit/
 
 interface ITooltip {
   content: string | null
+  style?: {}
   children: React.ReactNode
 }
 
@@ -28,14 +29,14 @@ const TooltipPopver = styled(AriaTooltip)`
   box-shadow: ${({ theme }) => theme.shadowSm};
 `
 
-export default function Tooltip({ content, children }: ITooltip) {
+export default function Tooltip({ content, children, ...props }: ITooltip) {
   const tooltip = useTooltipState()
 
   if (!content || content === '') return <>{children}</>
 
   return (
     <>
-      <TooltipAnchor state={tooltip} as={TooltipTrigger}>
+      <TooltipAnchor state={tooltip} as={TooltipTrigger} {...props}>
         {children}
       </TooltipAnchor>
       <TooltipPopver state={tooltip}>{content}</TooltipPopver>

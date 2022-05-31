@@ -254,7 +254,11 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
         <thead>
           <RowWrapper>
             {columns.map((col) => {
-              const text = col.helperText ? <HeadHelp title={col.header} text={col.helperText} /> : col.header
+              const text = col.helperText ? (
+                <HeadHelp title={col.header} text={col.helperText} style={{ marginLeft: 'auto' }} />
+              ) : (
+                col.header
+              )
               const disableSortBy = col.disableSortBy || false
               const sortingColumn = columnToSort === col.accessor && sortDirection !== 0
               return (
