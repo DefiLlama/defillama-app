@@ -3,11 +3,10 @@ import React from 'react'
 import { HelpCircle as Question } from 'react-feather'
 import styled from 'styled-components'
 
-const QuestionWrapper = styled.div`
+const QuestionWrapper = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.2rem;
   border: none;
   background: none;
   outline: none;

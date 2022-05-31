@@ -28,6 +28,7 @@ const Stats = styled.section`
   border: ${({ theme }) => '1px solid ' + theme.divider};
   box-shadow: ${({ theme }) => theme.shadowSm};
   position: relative;
+  isolation: isolate;
 
   @media (min-width: 80rem) {
     flex-direction: row;
@@ -347,7 +348,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
 
-      <Search step={{ category: 'Protocols', name }} />
+      <Search step={{ category: 'Protocols', name, hideOptions: true }} />
 
       <Stats>
         <ProtocolDetails>
