@@ -1,15 +1,14 @@
 import Layout from '../layout'
 import styled from 'styled-components'
 import { revalidate } from 'utils/dataApi'
-import Telegram from '../assets/telegram.svg'
-import Image from 'next/image'
 import Link from 'next/link'
 
 const Header = styled.h1`
   color: ${({ theme }) => theme.text1};
   font-weight: 600;
-  margin: 0;
+  margin: 24px 0 -24px 0;
   font-size: revert !important;
+  text-align: center;
 
   a {
     position: relative;
@@ -22,10 +21,39 @@ const Text = styled.p`
   white-space: pre-line;
   line-height: 1.5rem;
   font-size: 1rem;
+  margin: 0 auto;
+  max-width: 500px;
   word-break: break-all;
 
   a {
     color: inherit;
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+`
+
+const Banner = styled.p`
+  background: #445ed0;
+  text-align: center;
+  margin: -36px -12px 0;
+  padding: 6px;
+  color: white;
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    margin: 0;
+    position: fixed;
+    top: 0px;
+    left: 220px;
+    right: 61px;
   }
 `
 
@@ -49,21 +77,21 @@ export default function Chains({ messages }) {
 
   return (
     <Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
-      <span style={{ margin: '0 auto' }}>
-        <Header>
-          Daily news round-up with the 🦙 on{' '}
-          <Link href="https://t.me/defillama_tg" passHref>
-            <a target="_blank" rel="noopener noreferrer">
-              <Image src={Telegram} alt="Join our telegram" height={28} width={24} />
-            </a>
-          </Link>
-        </Header>
-        <Text>
-          {splitText.map((m, index) => (
-            <Message text={m} key={m + index} />
-          ))}
-        </Text>
-      </span>
+      <Banner>
+        Get the Roundup delivered every day for free by subscribing on{' '}
+        <Link href="https://t.me/defillama_tg" passHref>
+          <a target="_blank" rel="noopener noreferrer">
+            Telegram
+          </a>
+        </Link>
+      </Banner>
+
+      <Header>Daily news round-up with the 🦙</Header>
+      <Text>
+        {splitText.map((m, index) => (
+          <Message text={m} key={m + index} />
+        ))}
+      </Text>
     </Layout>
   )
 }
