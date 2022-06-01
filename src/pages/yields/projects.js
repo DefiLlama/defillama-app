@@ -33,6 +33,7 @@ export async function getStaticProps() {
     const x = data.props.pools.filter(p => p.project === project)
     const m = median(x.map(el => el.apy))
     projects[project]['medianApy'] = m
+    projects[project]['audits'] = x[0].audits
   }
 
   const projArray = Object.entries(projects).map(([slug, details]) => ({
@@ -71,6 +72,13 @@ const columns = [
     accessor: 'tvl',
     Cell: ({ value }) => {
       return <span>{'$' + toK(value)}</span>
+    },
+  },
+  {
+    header: 'Nb of Audits',
+    accessor: 'audits',
+    Cell: ({ value }) => {
+      return <span>{value}</span>
     },
   },
   {
