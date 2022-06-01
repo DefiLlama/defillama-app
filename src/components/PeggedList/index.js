@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+import styled from 'styled-components'
 import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from '../Column'
 import { RowBetween, AutoRow } from 'components/Row'
@@ -16,12 +17,12 @@ import {
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/data'
 import { useLg, useXl, useMed } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
-import { columnsToShow, isOfTypePeggedCategory, NamePegged } from 'components/Table'
+import Table, { columnsToShow, isOfTypePeggedCategory, NamePegged } from 'components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
-import { BreakpointPanels, BreakpointPanelsColumn, Panel, PeggedTable } from 'components'
+import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
 
 function Chart({ formattedPeggedAreaChart, peggedAssetNames, aspect }) {
   const [darkMode] = useDarkModeManager()
@@ -39,6 +40,185 @@ function Chart({ formattedPeggedAreaChart, peggedAssetNames, aspect }) {
     />
   )
 }
+
+const PeggedTable = styled(Table)`
+tr > *:not(:first-child) {
+  & > div {
+    width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    font-weight: 400;
+    margin-left: auto;
+  }
+}
+
+// PEGGED NAME
+tr > *:nth-child(1) {
+  & > div {
+    width: 120px;
+    overflow: hidden;
+    white-space: nowrap;
+
+    // HIDE LOGO
+    & > *:nth-child(2) {
+      display: none;
+    }
+
+    & > *:nth-child(3) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+// CHAINS
+tr > *:nth-child(2) {
+  display: none;
+  & > div {
+    width: 200px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}
+
+// PRICE
+tr > *:nth-child(3) {
+  display: none;
+}
+
+// 1D CHANGE
+tr > *:nth-child(4) {
+  display: none;
+}
+
+// 7D CHANGE
+tr > *:nth-child(5) {
+  display: none;
+}
+
+// 1M CHANGE
+tr > *:nth-child(6) {
+  display: none;
+}
+
+// MCAP
+tr > *:nth-child(7) {
+  padding-right: 20px;
+  & > div {
+    text-align: right;
+    margin-left: auto;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
+
+@media screen and (min-width: 360px) {
+  // PEGGED NAME
+  tr > *:nth-child(1) {
+    & > div {
+      width: 160px;
+    }
+  }
+}
+
+@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+  // 7D CHANGE
+  tr > *:nth-child(5) {
+    display: revert;
+  }
+}
+
+@media screen and (min-width: 640px) {
+  // PEGGED NAME
+  tr > *:nth-child(1) {
+    & > div {
+      width: 280px;
+      // SHOW LOGO
+      & > *:nth-child(3) {
+        display: revert;
+      }
+    }
+  }
+}
+
+@media screen and (min-width: 720px) {
+  // 1M CHANGE
+  tr > *:nth-child(6) {
+    display: revert;
+  }
+}
+
+@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+  // PEGGED NAME
+  tr > *:nth-child(1) {
+    & > div {
+      & > *:nth-child(4) {
+        // SHOW SYMBOL
+        & > *:nth-child(2) {
+          display: revert;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (min-width: 900px) {
+  // MCAP
+  tr > *:nth-child(7) {
+    padding-right: 0px;
+  }
+}
+
+@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+  // 1D CHANGE
+  tr > *:nth-child(4) {
+    display: none !important;
+  }
+
+  // MCAP
+  tr > *:nth-child(7) {
+    padding-right: 20px;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  // 1M CHANGE
+  tr > *:nth-child(6) {
+    display: revert !important;
+  }
+}
+
+@media screen and (min-width: 1300px) {
+  // PRICE
+  tr > *:nth-child(3) {
+    display: revert !important;
+  }
+
+  // 1D CHANGE
+  tr > *:nth-child(4) {
+    display: revert !important;
+  }
+
+  // MCAP
+  tr > *:nth-child(7) {
+    display: revert !important;
+  }
+}
+
+@media screen and (min-width: 1536px) {
+  // PEGGED NAME
+  tr > *:nth-child(1) {
+    & > div {
+      width: 300px;
+    }
+  }
+
+  // CHAINS
+  tr > *:nth-child(2) {
+    display: revert;
+  }
+}
+`
 
 function AllPeggedsPage({
   title,
