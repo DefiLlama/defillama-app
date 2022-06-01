@@ -43,7 +43,7 @@ interface ITable {
 }
 
 const HeaderWrapper = styled(Header)`
-  margin-top: 48px;
+  margin-top: 24px;
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -276,7 +276,6 @@ export default function ChainsContainer({
         step={{
           category: 'Chains',
           name: category === 'All' ? 'All Chains' : category,
-          route: '/chains',
           hideOptions: true,
         }}
       />

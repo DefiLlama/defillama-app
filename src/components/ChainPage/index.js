@@ -39,7 +39,7 @@ export const ListHeader = styled.h1`
   white-space: nowrap;
   margin: 0;
 
-  @media screen and (max-width: 640px) {
+  @media screen and (max-width: 40rem) {
     font-size: 1rem;
   }
 `
@@ -51,6 +51,10 @@ const DownloadButton = styled(BasicLink)`
   position: absolute;
   bottom: 8px;
   right: 8px;
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+  }
 `
 
 const DownloadIcon = styled(DownloadCloud)`
@@ -62,7 +66,7 @@ const DownloadIcon = styled(DownloadCloud)`
 `
 
 const PanelHiddenMobile = styled(Panel)`
-  @media screen and (max-width: 800px) {
+  @media screen and (max-width: 50rem) {
     display: none;
   }
 `
@@ -276,7 +280,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
       <div>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-          <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
+          <Panel style={{ height: '100%', minHeight: '381px', flex: 1, maxWidth: '100%' }}>
             <RowFixed>
               {DENOMINATIONS.map((option) => (
                 <OptionButton
@@ -317,6 +321,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
       <ListOptions style={{ margin: '36px 0 -12px 0' }}>
         <ListHeader>TVL Rankings</ListHeader>
         <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
+        {/* <TableFilters /> */}
       </ListOptions>
 
       <ProtocolsTable data={protocolTotals} columns={columns} />

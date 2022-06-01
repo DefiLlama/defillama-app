@@ -7,23 +7,22 @@ interface IHeadHelpProps {
   title: string
   text: string
   maxCharacters?: string
-  margin?: boolean
   adjustSize?: boolean
   fontSize?: string
   link?: boolean
+  style?: {}
 }
 
 interface ITextProps {
-  margin: boolean
   adjustSize: boolean
   link: boolean
   fontSize: string
 }
 
-const HeadHelp = ({ title, text, margin = false, adjustSize = false, fontSize, link, ...rest }: IHeadHelpProps) => {
+const HeadHelp = ({ title, text, adjustSize = false, fontSize, link, ...props }: IHeadHelpProps) => {
   return (
-    <Tooltip content={text}>
-      <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize} {...rest}>
+    <Tooltip content={text} {...props}>
+      <TextWrapper adjustSize={adjustSize} link={link} fontSize={fontSize}>
         <span>{title}</span>
         <HelpCircle size={15} style={{ marginLeft: '.3rem' }} />
       </TextWrapper>
@@ -33,7 +32,6 @@ const HeadHelp = ({ title, text, margin = false, adjustSize = false, fontSize, l
 
 const TextWrapper = styled.div<ITextProps>`
   position: relative;
-  margin-left: ${({ margin }) => margin && '4px'};
   color: ${({ theme, link }) => (link ? theme.blue : theme.text1)};
   font-size: ${({ fontSize }) => fontSize ?? 'inherit'};
   display: flex;

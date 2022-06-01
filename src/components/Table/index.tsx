@@ -1,13 +1,12 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { v4 as uuid } from 'uuid'
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight } from 'react-feather'
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronsUp } from 'react-feather'
 import HeadHelp from 'components/HeadHelp'
 import { CustomLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
 import Bookmark from 'components/Bookmark'
 import { chainIconUrl, peggedAssetIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from 'utils'
-import { useInfiniteScroll } from 'hooks'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
 import ChainsRow from 'components/ChainsRow'
@@ -89,27 +88,25 @@ const Cell = styled.td`
 `
 
 const Header = styled.th`
-  font-weight: 400;
+  font-weight: 500;
   white-space: nowrap;
-
-  svg {
-    width: 14px;
-    height: 14px;
-  }
 
   & > * {
     justify-content: var(--text-align);
   }
 `
 
-const SortedHeader = styled.div`
+const SortedHeader = styled.span`
   display: flex;
   gap: 4px;
   white-space: nowrap;
 
   & > svg {
     position: relative;
-    top: 1px;
+    top: 2px;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
   }
 `
 
@@ -142,6 +139,43 @@ const HeaderButton = styled.button`
 
   &:hover {
     opacity: 0.6;
+  }
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline-offset: 2px;
+  }
+`
+
+const ScrollToTop = styled.button`
+  background: ${({ theme }) => theme.bg2};
+  border: 1px solid;
+  border-color: ${({ theme }) => theme.divider};
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  border-radius: 100%;
+  opacity: 0.7;
+
+  svg {
+    color: ${({ theme }) => theme.text1};
+  }
+
+  :hover {
+    opacity: 1;
+    cursor: pointer;
+  }
+
+  @media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+    left: 159px;
+    bottom: 10px;
   }
 `
 
@@ -221,9 +255,34 @@ function RowWithExtras({ columns, item, index }: RowProps) {
   )
 }
 
+const handleScrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  })
+}
+
 function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
+  const [lastIndex, setLastIndex] = useState(20)
   const [columnToSort, setColumnToSort] = useState<string | null>(null)
   const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
+
+  const [displayScrollToTopButton, setDisplayScrollToTopButton] = useState(false)
+
+  useEffect(() => {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 200) {
+        setDisplayScrollToTopButton(true)
+      } else {
+        setDisplayScrollToTopButton(false)
+      }
+    })
+
+    return () => {
+      window.removeEventListener('scroll', () => {})
+      setDisplayScrollToTopButton(false)
+    }
+  }, [])
 
   const handleClick = (name: string) => {
     if (sortDirection === 0 || name !== columnToSort) {
@@ -245,26 +304,30 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
     } else return data
   }, [data, sortDirection, columnToSort])
 
-  const { LoadMoreButton, dataLength, hasMore, next } = useInfiniteScroll({ list: sortedData })
-
   const style = {
     '--text-align': align || 'end',
     '--gap': gap || '24px',
   } as React.CSSProperties
 
+  const initialData = sortedData.slice(0, lastIndex)
+
   return (
     <Wrapper style={style} {...props}>
       <InfiniteScroll
-        dataLength={dataLength}
-        next={next}
-        hasMore={hasMore}
-        loader={hasMore && <span style={{ marginLeft: '22px' }}>...</span>}
+        dataLength={initialData.length}
+        next={() => setLastIndex((prev) => prev + 10)}
+        hasMore={initialData.length < sortedData.length}
+        loader={<span style={{ marginLeft: '22px' }}>...</span>}
       >
         <TableWrapper>
           <thead>
             <RowWrapper>
               {columns.map((col) => {
-                const text = col.helperText ? <HeadHelp title={col.header} text={col.helperText} /> : col.header
+                const text = col.helperText ? (
+                  <HeadHelp title={col.header} text={col.helperText} style={{ marginLeft: 'auto' }} />
+                ) : (
+                  col.header
+                )
                 const disableSortBy = col.disableSortBy || false
                 const sortingColumn = columnToSort === col.accessor && sortDirection !== 0
                 return (
@@ -296,13 +359,17 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
                 ))}
               </PinnedRow>
             )}
-            {sortedData.slice(0, dataLength).map((item, index) => (
+            {initialData.map((item, index) => (
               <Row key={uuid()} item={item} index={index} columns={columns} />
             ))}
           </tbody>
         </TableWrapper>
       </InfiniteScroll>
-      {LoadMoreButton}
+      {displayScrollToTopButton && (
+        <ScrollToTop onClick={handleScrollToTop}>
+          <ChevronsUp />
+        </ScrollToTop>
+      )}
     </Wrapper>
   )
 }
@@ -600,7 +667,7 @@ const allColumns: AllColumns = {
     accessor: 'tvl',
     Cell: ({ value, rowValues }) => {
       return (
-        <AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
+        <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
           {rowValues.strikeTvl ? (
             <QuestionHelper text='This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off' />
           ) : null}

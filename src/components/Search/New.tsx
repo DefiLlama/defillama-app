@@ -145,13 +145,9 @@ const Filters = styled.section`
 const DropdownOptions = styled(DeFiTvlOptions)`
   display: none;
 
-  ${({ theme: { minLg } }) => minLg} {
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) and (max-width: ${({ theme }) => theme.bp2Xl}) {
     display: flex;
     padding: 0 4px;
-  }
-
-  ${({ theme: { min2Xl } }) => min2Xl} {
-    display: none !important;
   }
 `
 
@@ -222,7 +218,7 @@ const SearchDefault = ({ data, loading = false, step }: ISearchProps) => {
           <Empty>Loading...</Empty>
         ) : combobox.matches.length ? (
           <FixedSizeList
-            height={240}
+            height={combobox.matches.length * 50 > 240 ? 240 : combobox.matches.length * 50}
             width="100%"
             itemCount={combobox.matches.length}
             itemSize={50}
@@ -266,7 +262,6 @@ const Options = ({ step }: { step: IStep }) => {
         <span style={{ color: 'var(--step-color)' }}>{step.name}</span>
       </p>
 
-      {/* below components will render base on breakpoint */}
       {!step.hideOptions && (
         <>
           <Filters>
