@@ -1,6 +1,6 @@
 import { chainCoingeckoIds } from "constants/chainTokens"
 
-function buildChainBreakdown(chainTvls) {
+export function buildChainBreakdown(chainTvls) {
     const timeToTvl = {}
     Object.entries(chainTvls).forEach(([chainToAdd, tvl]) => {
         (tvl as any).tvl.forEach((dayTvl) => {
@@ -21,7 +21,7 @@ function buildChainBreakdown(chainTvls) {
     return chainsStacked
 }
 
-function buildTokensBreakdown(tokensInUsd) {
+export function buildTokensBreakdown(tokensInUsd) {
     const tokenSet = new Set()
     const stacked = tokensInUsd.map((dayTokens) => {
         Object.keys(dayTokens.tokens).forEach((symbol) => tokenSet.add(symbol))
@@ -35,7 +35,7 @@ function buildTokensBreakdown(tokensInUsd) {
     return [stacked, Array.from(tokenSet)]
 }
 
-function buildInflows(tokensInUsd, tokens) {
+export function buildInflows(tokensInUsd, tokens) {
     let tokenSet = new Set()
     const usdInflows = []
     const tokenInflows = []
@@ -64,61 +64,71 @@ function buildInflows(tokensInUsd, tokens) {
     return { usdInflows, tokenInflows }
 }
 
-const ETH_DENOMINATION = "ETH"
-export const buildProtocolData = async (protocolData, selectedChain, denomination) => {
-    const tvl = protocolData.tvl ?? []
-    delete protocolData.tvl;
-    const chainsStacked = buildChainBreakdown(protocolData.chainTvls)
-
-    let chartData = tvl.filter((item) => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
-    let { tokensInUsd, tokens, chainTvls } = protocolData
-    if (selectedChain !== 'all') {
-        chartData = chainTvls[selectedChain].tvl.map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
-        tokens = chainTvls[selectedChain].tokens
-        tokensInUsd = chainTvls[selectedChain].tokensInUsd
-    }
-    delete protocolData.chainTvls
-
-    const chains = protocolData.chains ?? [protocolData.name]
-    let chainDenomination = null;
-    if (selectedChain !== 'all' || chains.length === 1) {
-        chainDenomination = (chainCoingeckoIds[selectedChain] ?? chainCoingeckoIds[chains[0]]) ?? null
+export const buildProtocolData = (protocolData) => {
+    if (protocolData && protocolData.misrepresentedTokens !== true && protocolData.tokensInUsd !== undefined) {
+        const [tokenBreakdown, tokensUnique] = buildTokensBreakdown(protocolData.tokensInUsd)
+        const { usdInflows, tokenInflows } = buildInflows(protocolData.tokensInUsd, protocolData.tokens)
+        return { tokenBreakdown, tokensUnique, usdInflows, tokenInflows }
     }
 
-    let data = {
-        ...protocolData,
-        tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
-        tvlList: chartData,
-        chainsStacked,
-        tokens,
-        chainsList: Object.keys(chainTvls),
-        chainDenomination,
-    }
-    if (denomination !== null && (denomination === "ETH" || denomination === chainDenomination?.symbol)) {
-        data.denominationPrices = (await fetch(
-            `https://api.coingecko.com/api/v3/coins/${denomination === ETH_DENOMINATION ? 'ethereum' : chainDenomination.geckoId
-            }/market_chart/range?vs_currency=usd&from=${chartData[0][0]}&to=${Math.floor(Date.now() / 1000)}`
-        ).then(r => r.json())).prices;
-    }
-    if (protocolData.misrepresentedTokens !== true && tokensInUsd !== undefined) {
-        try {
-            const [tokenBreakdown, tokensUnique] = buildTokensBreakdown(tokensInUsd)
-            const { usdInflows, tokenInflows } = buildInflows(tokensInUsd, tokens)
-            data = {
-                ...data,
-                tokenBreakdown,
-                tokensUnique,
-                usdInflows,
-                tokenInflows,
-            }
-        } catch (e) {
-            console.log("buildTokens", e)
-        }
-    }
-    if (typeof denomination !== "string" || !denomination.startsWith("Tokens")) {
-        data.tokens = null
-    }
-    delete data.tokensInUsd
-
-    return data
+    return { tokenBreakdown: null, tokensUnique: null, usdInflows: null, tokenInflows: null }
 }
+
+// const ETH_DENOMINATION = "ETH"
+// export const buildProtocolData = async (protocolData, selectedChain, denomination) => {
+//     const tvl = protocolData.tvl ?? []
+//     delete protocolData.tvl;
+//     const chainsStacked = buildChainBreakdown(protocolData.chainTvls)
+
+//     let chartData = tvl.filter((item) => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
+//     let { tokensInUsd, tokens, chainTvls } = protocolData
+//     if (selectedChain !== 'all') {
+//         chartData = chainTvls[selectedChain].tvl.map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
+//         tokens = chainTvls[selectedChain].tokens
+//         tokensInUsd = chainTvls[selectedChain].tokensInUsd
+//     }
+//     delete protocolData.chainTvls
+
+//     const chains = protocolData.chains ?? [protocolData.name]
+//     let chainDenomination = null;
+//     if (selectedChain !== 'all' || chains.length === 1) {
+//         chainDenomination = (chainCoingeckoIds[selectedChain] ?? chainCoingeckoIds[chains[0]]) ?? null
+//     }
+
+//     let data = {
+//         ...protocolData,
+//         tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
+//         tvlList: chartData,
+//         chainsStacked,
+//         tokens,
+//         chainsList: Object.keys(chainTvls),
+//         chainDenomination,
+//     }
+//     if (denomination !== null && (denomination === "ETH" || denomination === chainDenomination?.symbol)) {
+//         data.denominationPrices = (await fetch(
+//             `https://api.coingecko.com/api/v3/coins/${denomination === ETH_DENOMINATION ? 'ethereum' : chainDenomination.geckoId
+//             }/market_chart/range?vs_currency=usd&from=${chartData[0][0]}&to=${Math.floor(Date.now() / 1000)}`
+//         ).then(r => r.json())).prices;
+//     }
+//     if (protocolData.misrepresentedTokens !== true && tokensInUsd !== undefined) {
+//         try {
+//             const [tokenBreakdown, tokensUnique] = buildTokensBreakdown(tokensInUsd)
+//             const { usdInflows, tokenInflows } = buildInflows(tokensInUsd, tokens)
+//             data = {
+//                 ...data,
+//                 tokenBreakdown,
+//                 tokensUnique,
+//                 usdInflows,
+//                 tokenInflows,
+//             }
+//         } catch (e) {
+//             console.log("buildTokens", e)
+//         }
+//     }
+//     if (typeof denomination !== "string" || !denomination.startsWith("Tokens")) {
+//         data.tokens = null
+//     }
+//     delete data.tokensInUsd
+
+//     return data
+// }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { ButtonLight } from 'components/ButtonStyled'
@@ -19,6 +20,11 @@ import boboLogo from '../../assets/boboSmug.png'
 import Image from 'next/image'
 import QuestionHelper from 'components/QuestionHelper'
 import { useGetExtraTvlEnabled, useTvlToggles } from 'contexts/LocalStorage'
+import { useFetchProtocol } from 'utils/dataApi'
+import { IChartProps } from 'components/TokenChart/types'
+import { buildProtocolData } from 'utils/protocolData'
+
+const BarChart = dynamic(() => import('components/TokenChart/BarChart'), { ssr: false }) as React.FC<IChartProps>
 
 const Stats = styled.section`
   display: flex;
@@ -125,11 +131,11 @@ const Tvl = styled.p`
 const SectionHeader = styled.h2`
   font-weight: 700;
   font-size: 1.25rem;
-  margin: 0 0 24px;
+  margin: 0 0 -24px;
   border-left: 1px solid transparent;
 `
 
-const InfoWrapper = styled.div`
+const InfoWrapper = styled.section`
   padding: 24px;
   background: ${({ theme }) => theme.bg7};
   border: ${({ theme }) => '1px solid ' + theme.divider};
@@ -293,6 +299,27 @@ const ExtraTvlOption = styled.label`
   }
 `
 
+const ChartsWrapper = styled.section`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 12px;
+  background: ${({ theme }) => theme.bg6};
+  border: ${({ theme }) => '1px solid ' + theme.divider};
+  box-shadow: ${({ theme }) => theme.shadowSm};
+`
+
+const ChartWrapper = styled.section`
+  grid-column: span 2;
+  min-height: 360px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+
+  @media (min-width: 90rem) {
+    grid-column: span 1;
+  }
+`
+
 interface IProtocolContainerProps {
   title: string
   protocol: string
@@ -343,6 +370,16 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const tvlToggles = useTvlToggles()
   const extraTvlsEnabled = useGetExtraTvlEnabled()
+
+  const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
+
+  const { usdInflows, tokenInflows, tokensUnique } = useMemo(() => {
+    const { usdInflows, tokenInflows, tokensUnique } = buildProtocolData(addlProtocolData)
+
+    return { usdInflows, tokenInflows, tokensUnique }
+  }, [addlProtocolData])
+
+  const showCharts = loading || usdInflows || tokenInflows ? true : false
 
   return (
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
@@ -432,85 +469,136 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
         </Bobo>
       </Stats>
 
-      <section>
-        <SectionHeader>Information</SectionHeader>
-        <InfoWrapper>
-          <Section>
-            <h3>Protocol Information</h3>
-            <p>{description}</p>
+      <SectionHeader>Information</SectionHeader>
+      <InfoWrapper>
+        <Section>
+          <h3>Protocol Information</h3>
+          <p>{description}</p>
 
-            <FlexRow>
-              {category && (
-                <>
-                  <span>Category</span>
-                  <span>:</span>
-                  <Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
-                </>
-              )}
-            </FlexRow>
+          <FlexRow>
+            {category && (
+              <>
+                <span>Category</span>
+                <span>:</span>
+                <Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+              </>
+            )}
+          </FlexRow>
 
-            <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />
+          <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />
 
-            <LinksWrapper>
-              <Link href={url} passHref>
+          <LinksWrapper>
+            <Link href={url} passHref>
+              <Button as="a" useTextColor={true} color={backgroundColor}>
+                <span>Website</span> <ArrowUpRight size={14} />
+              </Button>
+            </Link>
+            <Link href={`https://twitter.com/${twitter}`} passHref>
+              <Button as="a" useTextColor={true} color={backgroundColor}>
+                <span>Twitter</span> <ArrowUpRight size={14} />
+              </Button>
+            </Link>
+          </LinksWrapper>
+        </Section>
+        <Section>
+          <h3>Token Information</h3>
+
+          <FlexRow>
+            {address ? (
+              <>
+                <span>Address</span>
+                <span>:</span>
+                <span>{address.slice(0, 8) + '...' + address?.slice(36, 42)}</span>
+                <CopyHelper toCopy={address} disabled={!address} />
+              </>
+            ) : (
+              'No Token'
+            )}
+          </FlexRow>
+
+          <LinksWrapper>
+            {protocolData.gecko_id !== null && (
+              <Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
                 <Button as="a" useTextColor={true} color={backgroundColor}>
-                  <span>Website</span> <ArrowUpRight size={14} />
+                  <span>View on CoinGecko</span> <ArrowUpRight size={14} />
                 </Button>
               </Link>
-              <Link href={`https://twitter.com/${twitter}`} passHref>
+            )}
+            {blockExplorerLink !== undefined && (
+              <Link href={blockExplorerLink} passHref>
                 <Button as="a" useTextColor={true} color={backgroundColor}>
-                  <span>Twitter</span> <ArrowUpRight size={14} />
+                  <span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
                 </Button>
               </Link>
-            </LinksWrapper>
-          </Section>
-          <Section>
-            <h3>Token Information</h3>
+            )}
+          </LinksWrapper>
+        </Section>
+        <Section>
+          <h3>Methodology</h3>
+          {methodology && <p>{methodology}</p>}
+          <LinksWrapper>
+            <Link href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
+              <Button as="a" useTextColor={true} color={backgroundColor}>
+                <span>Check the code</span>
+                <ArrowUpRight size={14} />
+              </Button>
+            </Link>
+          </LinksWrapper>
+        </Section>
+      </InfoWrapper>
 
-            <FlexRow>
-              {address ? (
-                <>
-                  <span>Address</span>
-                  <span>:</span>
-                  <span>{address.slice(0, 8) + '...' + address?.slice(36, 42)}</span>
-                  <CopyHelper toCopy={address} disabled={!address} />
-                </>
-              ) : (
-                'No Token'
-              )}
-            </FlexRow>
+      {showCharts && (
+        <>
+          <SectionHeader>Charts</SectionHeader>
 
-            <LinksWrapper>
-              {protocolData.gecko_id !== null && (
-                <Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
-                  <Button as="a" useTextColor={true} color={backgroundColor}>
-                    <span>View on CoinGecko</span> <ArrowUpRight size={14} />
-                  </Button>
-                </Link>
-              )}
-              {blockExplorerLink !== undefined && (
-                <Link href={blockExplorerLink} passHref>
-                  <Button as="a" useTextColor={true} color={backgroundColor}>
-                    <span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
-                  </Button>
-                </Link>
-              )}
-            </LinksWrapper>
-          </Section>
-          <Section>
-            <h3>Methodology</h3>
-            {methodology && <p>{methodology}</p>}
-            <LinksWrapper>
-              <Link href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
-                <Button as="a" useTextColor={true} color={backgroundColor}>
-                  <span>Check the code</span>
-                  <ArrowUpRight size={14} />
-                </Button>
-              </Link>
-            </LinksWrapper>
-          </Section>
-        </InfoWrapper>
-      </section>
+          <ChartsWrapper>
+            {loading ? (
+              <span
+                style={{
+                  height: '360px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gridColumn: '1 / -1',
+                }}
+              >
+                Loading...
+              </span>
+            ) : (
+              <>
+                {/* {chainsStacked && (
+                      <GeneralAreaChart
+                        finalChartData={chainsStacked}
+                        aspect={aspect}
+                        formatDate={formatDate}
+                        color={backgroundColor}
+                        tokensUnique={chains}
+                      />
+                } */}
+                {/* {tokenBreakdown && (
+                      <GeneralAreaChart
+                        finalChartData={tokenBreakdown}
+                        aspect={aspect}
+                        formatDate={formatDate}
+                        color={backgroundColor}
+                        tokensUnique={tokensUnique}
+                      />
+                )} */}
+                {usdInflows && (
+                  <ChartWrapper>
+                    <BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" />
+                  </ChartWrapper>
+                )}
+                {tokenInflows && (
+                  <ChartWrapper>
+                    <BarChart chartData={tokenInflows} title="Token Inflows" tokensUnique={tokensUnique} />
+                  </ChartWrapper>
+                )}
+              </>
+            )}
+          </ChartsWrapper>
+        </>
+      )}
     </Layout>
   )
 }

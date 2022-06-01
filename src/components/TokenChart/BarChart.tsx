@@ -1,15 +1,25 @@
-import * as echarts from 'echarts'
-import { useEffect, useMemo } from 'react'
-import { formattedNum } from 'utils'
+import { useCallback, useEffect, useMemo } from 'react'
+import * as echarts from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { BarChart as EBarChart } from 'echarts/charts'
+import { TitleComponent } from 'echarts/components'
+import { useDarkModeManager } from 'contexts/LocalStorage'
+import { toK } from 'utils'
 import { v4 as uuid } from 'uuid'
 import { stringToColour } from './utils'
+import { IChartProps } from './types'
 
-export default function BarChart({ finalChartData, tokensUnique, formatDate, moneySymbol = '$', title }) {
+echarts.use([EBarChart, CanvasRenderer, TitleComponent])
+
+export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', title, color }: IChartProps) {
   const id = useMemo(() => uuid(), [])
-  const { dates, series } = useMemo(() => {
-    const dates = []
 
-    if (tokensUnique?.length === 0) {
+  const [isDark] = useDarkModeManager()
+
+  const series = useMemo(() => {
+    const chartColor = color || stringToColour()
+
+    if (!tokensUnique || tokensUnique?.length === 0) {
       const series = {
         name: '',
         type: 'bar',
@@ -18,99 +28,191 @@ export default function BarChart({ finalChartData, tokensUnique, formatDate, mon
           shadowBlur: 10,
           shadowColor: stringToColour(),
         },
+        itemStyle: {
+          color: chartColor,
+        },
         data: [],
       }
 
-      finalChartData.forEach(([date, value]) => {
-        dates.push(date)
-        series.data.push(value)
+      chartData.forEach(([date, value]) => {
+        series.data.push([new Date(date * 1000), value])
       })
 
-      return { dates, series }
+      return series
+    } else {
+      const series = tokensUnique.map((token) => {
+        return {
+          name: token,
+          type: 'bar',
+          stack: 'one',
+          emphasis: {
+            shadowBlur: 10,
+            shadowColor: stringToColour(),
+          },
+          data: [],
+        }
+      })
+
+      chartData.forEach(({ date, ...item }) => {
+        tokensUnique.forEach((token) =>
+          series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
+        )
+      })
+
+      return series
     }
+  }, [chartData, color, tokensUnique])
 
-    const series = tokensUnique.map((token) => {
-      const color = stringToColour()
-      return {
-        name: token,
-        type: 'bar',
-        stack: 'one',
-        emphasis: {
-          shadowBlur: 10,
-          shadowColor: color,
-        },
-        data: [],
-      }
-    })
-    finalChartData.forEach(({ date, ...item }) => {
-      dates.push(date)
-      tokensUnique.forEach((token) => series.find((t) => t.name === token)?.data.push(item[token] || 0))
-    })
+  const createInstance = useCallback(() => {
+    const instance = echarts.getInstanceByDom(document.getElementById(id))
 
-    return { dates, series }
-  }, [finalChartData, tokensUnique])
+    return instance || echarts.init(document.getElementById(id))
+  }, [id])
 
   useEffect(() => {
-    // skip chart init when a instance already exists
-    if (echarts.getInstanceByDom(document.getElementById(id))) return
+    // create instance
+    const chartInstance = createInstance()
 
-    const myChart = echarts.init(document.getElementById(id))
-    myChart.setOption({
+    chartInstance.setOption({
       tooltip: {
         trigger: 'axis',
-        axisPointer: {
-          type: 'cross',
-          label: {
-            backgroundColor: '#6a7985',
-          },
+        formatter: function (params) {
+          const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })
+
+          const vals = params.reduce((prev, curr) => {
+            if (curr.value[1] !== 0) {
+              return (prev +=
+                '<li style="list-style:none">' +
+                curr.marker +
+                curr.seriesName +
+                '&nbsp;&nbsp;' +
+                moneySymbol +
+                toK(curr.value[1]) +
+                '</li>')
+            } else return prev
+          }, '')
+
+          return chartdate + vals
         },
-        valueFormatter: (value) => moneySymbol + formattedNum(value),
       },
       title: {
         text: title,
-      },
-      toolbox: {
-        feature: {
-          saveAsImage: {},
+        textStyle: {
+          fontFamily: 'inter, sans-serif',
+          fontWeight: 600,
+          color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
         },
       },
+      grid: {
+        left: 0,
+        containLabel: true,
+        bottom: 60,
+        top: 48,
+        right: 20,
+      },
       xAxis: {
-        type: 'category',
+        type: 'time',
         boundaryGap: false,
-        data: dates,
-        axisLabel: {
-          formatter: (value) => formatDate(value),
+        nameTextStyle: {
+          fontFamily: 'inter, sans-serif',
+          fontSize: 14,
+          fontWeight: 400,
+        },
+        axisLine: {
+          lineStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+            opacity: 0.2,
+          },
         },
       },
       yAxis: {
         type: 'value',
         axisLabel: {
-          formatter: (value) => moneySymbol + formattedNum(value),
+          formatter: (value) => moneySymbol + toK(value),
+        },
+        axisLine: {
+          lineStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+            opacity: 0.1,
+          },
+        },
+        boundaryGap: false,
+        nameTextStyle: {
+          fontFamily: 'inter, sans-serif',
+          fontSize: 14,
+          fontWeight: 400,
+          color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
         },
         splitLine: {
-          show: false,
+          lineStyle: {
+            color: '#a1a1aa',
+            opacity: 0.1,
+          },
         },
       },
-      series: series,
+      series,
+      dataZoom: [
+        {
+          type: 'inside',
+          start: 0,
+          end: 100,
+        },
+        {
+          start: 0,
+          end: 100,
+          textStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+          },
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
+          handleStyle: {
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+            color: isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)',
+          },
+          moveHandleStyle: {
+            color: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
+          },
+          selectedDataBackground: {
+            lineStyle: {
+              color,
+            },
+            areaStyle: {
+              color,
+            },
+          },
+          emphasis: {
+            handleStyle: {
+              borderColor: isDark ? 'rgba(255, 255, 255, 1)' : '#000',
+              color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+            },
+            moveHandleStyle: {
+              borderColor: isDark ? 'rgba(255, 255, 255, 1)' : '#000',
+              color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
+            },
+          },
+          fillerColor: isDark ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)',
+          labelFormatter: (val) => {
+            const date = new Date(val)
+            return date.toLocaleDateString()
+          },
+        },
+      ],
     })
 
     function resize() {
-      myChart.resize()
+      chartInstance.resize()
     }
 
     window.addEventListener('resize', resize)
 
     return () => {
       window.removeEventListener('resize', resize)
-      myChart.dispose()
+      chartInstance.dispose()
     }
-  }, [id, dates, series, formatDate, moneySymbol, title])
+  }, [id, moneySymbol, title, createInstance, series, isDark, color])
 
-  return (
-    <div>
-      <div id={id} style={{ height: '300px' }}></div>
-    </div>
-  )
+  return <div id={id} style={{ height: '360px', margin: 'auto 0' }}></div>
 }
-
-// valueFormatter: (value) => moneySymbol + formattedNum(value),

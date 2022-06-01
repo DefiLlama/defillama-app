@@ -292,7 +292,7 @@ export async function getPeggedsPageData(category, chain) {
             return await fetch(`${PEGGEDCHART_API}/?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
           }
           return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
-        } catch (e) {}
+        } catch (e) { }
       }
       throw new Error(`${CHART_API}/${elem} is broken`)
     })
@@ -685,7 +685,7 @@ export const getChainsPageData = async (category: string) => {
       for (let i = 0; i < 5; i++) {
         try {
           return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-        } catch (e) {}
+        } catch (e) { }
       }
       throw new Error(`${CHART_API}/${elem} is broken`)
     })
@@ -836,7 +836,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       return res.chainBalances[elem].tokens
     })
   )
-  
+
   const bridgeInfo = await getPeggedBridgeInfo()
   const peggedSymbol = res.symbol
   const pegType = res.pegType
@@ -1109,7 +1109,6 @@ export async function retryCoingeckoRequest(func, retries) {
 }
 
 // Client Side
-
 const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then((res) => res.json())
 
 export const useFetchProtocolsList = () => {
@@ -1119,7 +1118,12 @@ export const useFetchProtocolsList = () => {
 
 export const useFetchProtocol = (protocolName) => {
   const { data, error } = useSWR(protocolName ? `${PROTOCOL_API}/${protocolName}` : null, fetcher)
-  return { data, error, loading: protocolName && !data && !error }
+
+  const { data: hourlyData, error: hourlyDataError } = useSWR(protocolName && data?.length < 7 ? `${HOURLY_PROTOCOL_API}/${protocolName}` : null, fetcher)
+
+  const loading = protocolName && ((!data && !error) || (data.length < 7 && (!hourlyData || !hourlyDataError)))
+
+  return { data, error, loading }
 }
 
 export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
