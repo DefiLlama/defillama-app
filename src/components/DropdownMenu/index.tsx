@@ -41,7 +41,7 @@ const StyledLabel = styled(DropdownMenuPrimitive.Label)`
 const StyledMenuTrigger = styled(DropdownMenuPrimitive.Trigger)`
   margin-right: 4px;
   display: flex;
-  items: center;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   padding: 8px 12px;

@@ -321,6 +321,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
       <ListOptions style={{ margin: '36px 0 -12px 0' }}>
         <ListHeader>TVL Rankings</ListHeader>
         <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
+        {/* <TableFilters /> */}
       </ListOptions>
 
       <ProtocolsTable data={protocolTotals} columns={columns} />

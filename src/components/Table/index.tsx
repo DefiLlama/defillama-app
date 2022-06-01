@@ -88,27 +88,25 @@ const Cell = styled.td`
 `
 
 const Header = styled.th`
-  font-weight: 400;
+  font-weight: 500;
   white-space: nowrap;
-
-  svg {
-    width: 14px;
-    height: 14px;
-  }
 
   & > * {
     justify-content: var(--text-align);
   }
 `
 
-const SortedHeader = styled.div`
+const SortedHeader = styled.span`
   display: flex;
   gap: 4px;
   white-space: nowrap;
 
   & > svg {
     position: relative;
-    top: 1px;
+    top: 2px;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
   }
 `
 
@@ -141,6 +139,11 @@ const HeaderButton = styled.button`
 
   &:hover {
     opacity: 0.6;
+  }
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline-offset: 2px;
   }
 `
 
@@ -664,7 +667,7 @@ const allColumns: AllColumns = {
     accessor: 'tvl',
     Cell: ({ value, rowValues }) => {
       return (
-        <AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
+        <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
           {rowValues.strikeTvl ? (
             <QuestionHelper text='This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off' />
           ) : null}
