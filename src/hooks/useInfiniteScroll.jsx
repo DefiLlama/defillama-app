@@ -8,18 +8,16 @@ export default function useInfiniteScroll({ list = [], numInView = 25 }) {
   const [displayScrollToTopButton, setDisplayScrollToTopButton] = useState(false)
 
   useEffect(() => {
-    window.addEventListener('scroll', () => {
+    function setScroll() {
       if (window.scrollY > 200) {
         setDisplayScrollToTopButton(true)
       } else {
         setDisplayScrollToTopButton(false)
       }
-    })
-
-    return () => {
-      window.removeEventListener('scroll', () => {})
-      setDisplayScrollToTopButton(false)
     }
+    window.addEventListener('scroll', setScroll)
+
+    return window.removeEventListener('scroll', setScroll)
   }, [])
 
   useEffect(() => {

@@ -55,27 +55,26 @@ const NFTSearch = ({ small = false }) => {
   const wrapperRef = useRef()
   const menuRef = useRef()
 
-  const handleClick = (e) => {
-    if (
-      !(menuRef.current && menuRef.current.contains(e.target)) &&
-      !(wrapperRef.current && wrapperRef.current.contains(e.target))
-    ) {
-      setTokensShown(3)
-      toggleMenu(false)
-    }
-  }
-
   useEffect(() => {
     document.addEventListener('keyup', (e) => {
       if (e.key === '/') {
         document.getElementsByClassName('searchbox')[0].focus()
       }
     })
-    document.addEventListener('click', handleClick)
-    return () => {
-      document.removeEventListener('click', () => {})
-      setTokensShown(3)
+
+    function handleClick(e) {
+      if (
+        !(menuRef.current && menuRef.current.contains(e.target)) &&
+        !(wrapperRef.current && wrapperRef.current.contains(e.target))
+      ) {
+        setTokensShown(3)
+        toggleMenu(false)
+      }
     }
+
+    document.addEventListener('click', handleClick)
+
+    return document.removeEventListener('click', handleClick)
   }, [])
 
   return (

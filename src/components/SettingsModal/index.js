@@ -331,17 +331,17 @@ export default function Menu({ type = 'defi' }) {
     setOpen(!open)
   }
 
-  const handleClick = (e) => {
-    if (!(node.current && node.current.contains(e.target))) {
-      setOpen(false)
-    }
-  }
-
   useEffect(() => {
+    function handleClick(e) {
+      if (!(node.current && node.current.contains(e.target))) {
+        setOpen(false)
+      }
+    }
+
     document.addEventListener('click', handleClick)
+
     return () => {
-      document.removeEventListener('click', () => {})
-      setOpen(false)
+      document.removeEventListener('click', handleClick)
     }
   }, [])
 

@@ -258,12 +258,14 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
       series: series,
     })
 
-    window.addEventListener('resize', () => chartInstance.resize())
+    function resize() {
+      chartInstance.resize()
+    }
+
+    window.addEventListener('resize', resize)
 
     return () => {
-      window.removeEventListener('resize', () => {
-        chartInstance.resize()
-      })
+      window.removeEventListener('resize', resize)
       chartInstance.dispose()
     }
   }, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance])

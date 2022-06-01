@@ -270,18 +270,16 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
   const [displayScrollToTopButton, setDisplayScrollToTopButton] = useState(false)
 
   useEffect(() => {
-    window.addEventListener('scroll', () => {
+    function setScroll() {
       if (window.scrollY > 200) {
         setDisplayScrollToTopButton(true)
       } else {
         setDisplayScrollToTopButton(false)
       }
-    })
-
-    return () => {
-      window.removeEventListener('scroll', () => {})
-      setDisplayScrollToTopButton(false)
     }
+    window.addEventListener('scroll', setScroll)
+
+    return window.removeEventListener('scroll', setScroll)
   }, [])
 
   const handleClick = (name: string) => {
@@ -566,7 +564,11 @@ export function NamePegged({
       {rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
       {rowType !== 'pinned' && index && <span>{index}</span>}
       {rowType !== 'child' && <TokenLogo logo={iconUrl} />}
-      {rowType === 'accordion' || rowType === 'child' ? <span>{name}</span> : <CustomLink href={tokenUrl}>{name}</CustomLink>}
+      {rowType === 'accordion' || rowType === 'child' ? (
+        <span>{name}</span>
+      ) : (
+        <CustomLink href={tokenUrl}>{name}</CustomLink>
+      )}
     </Index>
   )
 }

@@ -34,16 +34,16 @@ export default function NavMenuButton({ setShow, show }) {
     setShow(!show)
   }
 
-  const handleClick = (e) => {
-    if (!(node.current && node.current.contains(e.target))) {
-      setShow(false)
-    }
-  }
-
   useEffect(() => {
+    function handleClick(e) {
+      if (!(node.current && node.current.contains(e.target))) {
+        setShow(false)
+      }
+    }
+
     document.addEventListener('click', handleClick)
     return () => {
-      document.removeEventListener('click', () => {})
+      document.removeEventListener('click', handleClick)
     }
   })
 

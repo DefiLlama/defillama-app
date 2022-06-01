@@ -94,13 +94,16 @@ export default function BarChart({ finalChartData, tokensUnique, formatDate, mon
       series: series,
     })
 
-    window.addEventListener('resize', () => myChart.resize())
+    function resize() {
+      myChart.resize()
+    }
 
-    return () =>
-      window.removeEventListener('resize', () => {
-        myChart.resize()
-        myChart.dispose()
-      })
+    window.addEventListener('resize', resize)
+
+    return () => {
+      window.removeEventListener('resize', resize)
+      myChart.dispose()
+    }
   }, [id, dates, series, formatDate, moneySymbol, title])
 
   return (

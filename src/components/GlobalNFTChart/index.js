@@ -19,14 +19,14 @@ const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = '', 
     if (!isClient) {
       return false
     }
+
     function handleResize() {
       setWidth(ref?.current?.container?.clientWidth ?? width)
     }
+
     window.addEventListener('resize', handleResize)
-    return () => {
-      window.removeEventListener('resize', () => {})
-      setWidth(0)
-    }
+
+    return window.removeEventListener('resize', handleResize)
   }, [isClient, width]) // Empty array ensures that effect is only run on mount and unmount
 
   return filteredChartData ? (

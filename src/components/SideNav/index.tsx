@@ -25,11 +25,15 @@ export default function SideNav() {
         )}
       </TitleWrapper>
 
-      {(showMobileNavMenu || !isLg) && (
+      {isLg}
+
+      {!isLg ? (
         <>
           <AppSwitch />
           {isYieldApp ? <YieldSideNav /> : <DefiSideNav />}
         </>
+      ) : (
+        showMobileNavMenu && <>{isYieldApp ? <YieldSideNav /> : <DefiSideNav />}</>
       )}
     </Wrapper>
   )
