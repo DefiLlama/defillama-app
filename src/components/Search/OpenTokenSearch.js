@@ -40,20 +40,21 @@ const TokenSearch = ({
   const { protocolNames, chainsSet } = searcheableData
 
   useEffect(() => {
-    const fetchProtocols = ()=> fetch(PROTOCOLS_API)
-      .then((res) => res.json())
-      .then((res) => {
-        setIsLoading(false)
-        setDataFetched(true)
-        setSearcheableData({
-          protocolNames: res.protocols,
-          chainsSet: res.chains,
+    const fetchProtocols = () =>
+      fetch(PROTOCOLS_API)
+        .then((res) => res.json())
+        .then((res) => {
+          setIsLoading(false)
+          setDataFetched(true)
+          setSearcheableData({
+            protocolNames: res.protocols,
+            chainsSet: res.chains,
+          })
         })
-      })
     if (!searcheableData.protocolNames.length) {
       setIsLoading(true)
       fetchProtocols()
-    } else if(dataFetched === false){
+    } else if (dataFetched === false) {
       fetchProtocols()
     }
   }, [searcheableData])
@@ -115,7 +116,8 @@ const TokenSearch = ({
     })
     document.addEventListener('click', handleClick)
     return () => {
-      document.removeEventListener('click', handleClick)
+      document.removeEventListener('click', () => {})
+      setTokensShown(3)
     }
   })
 

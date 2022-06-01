@@ -1,7 +1,5 @@
 import React, { useMemo } from 'react'
-import { Box } from 'rebass/styled-components'
 import styled from 'styled-components'
-import { Header } from 'Theme'
 import { ButtonDark } from 'components/ButtonStyled'
 import Search from 'components/Search'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
@@ -12,29 +10,43 @@ import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from 'hooks/data'
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { PeggedAssetOptions } from 'components/Select'
+import { Header } from 'Theme'
 
-const ChartsWrapper = styled(Box)`
+const ChartsWrapper = styled.section`
   display: flex;
-  flex-wrap: nowrap;
+  flex-direction: column;
+  gap: 12px;
   width: 100%;
   padding: 0;
   align-items: center;
   z-index: 1;
-  @media (max-width: 800px) {
-    display: grid;
-    grid-auto-rows: auto;
+
+  & > * {
+    width: 100%;
+    margin: 0 !important;
+  }
+
+  @media (min-width: 80rem) {
+    flex-direction: row;
   }
 `
 
+interface ITable {
+  showByGroup?: boolean
+}
+
 const HeaderWrapper = styled(Header)`
-  margin-top: 48px;
+  margin-top: 0px;
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
+  border: 1px solid transparent;
 `
 
 const AssetFilters = styled.div`
   margin: 12px 0 16px;
+
   & > h2 {
     margin: 0 2px 8px;
     font-weight: 600;

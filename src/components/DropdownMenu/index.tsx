@@ -41,7 +41,7 @@ const StyledLabel = styled(DropdownMenuPrimitive.Label)`
 const StyledMenuTrigger = styled(DropdownMenuPrimitive.Trigger)`
   margin-right: 4px;
   display: flex;
-  items: center;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   padding: 8px 12px;
@@ -63,9 +63,8 @@ const StyledMenuTrigger = styled(DropdownMenuPrimitive.Trigger)`
   }
 
   :focus-visible {
-    outline: 1px solid red;
-    outline-offset: 2px;
-    outline-color: ${({ theme }) => transparentize(0.1, theme.primary1)};
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline-offset: 1px;
   }
 `
 

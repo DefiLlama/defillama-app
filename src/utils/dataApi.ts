@@ -588,8 +588,15 @@ export const fuseProtocolData = (protocolData) => {
     (a: [string, number], b: [string, number]) => b[1] - a[1]
   ) ?? []
 
+  const onlyChains = tvlByChain.filter(c => {
+    const name = c[0]
 
-  const chains = tvlByChain.length === 0 ? protocolData.chains : tvlByChain?.flatMap((c) => protocolData?.chains?.find((x) => x === c[0]) || []) ?? []
+    if (name[0] === name[0]?.toLowerCase() || name.includes("-")) {
+      return false
+    } else return true
+  })
+
+  const chains = onlyChains.length === 0 ? protocolData.chains : [onlyChains[0][0]]
 
   return {
     ...protocolData,

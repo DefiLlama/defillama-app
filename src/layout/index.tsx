@@ -11,24 +11,29 @@ const Center = styled.main`
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 1440px;
+  max-width: 90rem;
   width: 100%;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 32px 32px;
   color: ${({ theme }) => theme.text1};
 `
 
 const PageWrapper = styled.div`
-  padding-top: 36px;
-  padding-bottom: 80px;
+  padding: 36px 0 80px;
   flex: 1;
-  z-index: 9999;
+  z-index: 0;
   transition: width 0.25s ease;
   background-color: ${({ theme }) => theme.onlyLight};
-  @media screen and (max-width: 600px) {
+
+  @media screen and (max-width: 37.5rem) {
     & > * {
       padding: 0 12px;
     }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    padding-left: 220px;
+    padding-right: 61px;
   }
 `
 

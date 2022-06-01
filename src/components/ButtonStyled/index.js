@@ -17,6 +17,10 @@ const Base = styled(RebassButton)`
   outline: none;
   border-bottom-right-radius: ${({ open }) => open && '0'};
   border-bottom-left-radius: ${({ open }) => open && '0'};
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+  }
 `
 
 const BaseCustom = styled(RebassButton)`
