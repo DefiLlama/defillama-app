@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { useDenominationPriceHistory } from 'utils/dataApi'
 import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { chainCoingeckoIds } from 'constants/chainTokens'
-import { IChartProps } from './AreaChart'
+import { IChartProps } from './types'
 
 const AreaChart = dynamic(() => import('./AreaChart'), { ssr: false }) as React.FC<IChartProps>
 

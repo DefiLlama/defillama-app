@@ -17,6 +17,7 @@ import { useDarkModeManager } from 'contexts/LocalStorage'
 import logoLight from '../../../public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '../../../public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { useMedia } from 'react-use'
+import { IChartProps } from './types'
 
 echarts.use([
   CanvasRenderer,
@@ -27,14 +28,6 @@ echarts.use([
   DataZoomComponent,
   GraphicComponent,
 ])
-
-export interface IChartProps {
-  chartData: any
-  tokensUnique?: string[]
-  moneySymbol?: string
-  title: string
-  color: string
-}
 
 const Wrapper = styled.div`
   --gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
@@ -145,23 +138,29 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
             day: 'numeric',
           })
 
-          const vals = params.reduce(
-            (prev, curr) =>
-              prev +
-              '<li style="list-style:none">' +
-              curr.marker +
-              curr.seriesName +
-              '&nbsp;&nbsp;' +
-              moneySymbol +
-              toK(curr.value[1]) +
-              '</li>',
-            ''
-          )
+          const vals = params.reduce((prev, curr) => {
+            if (curr.value[1] !== 0) {
+              return (prev +=
+                '<li style="list-style:none">' +
+                curr.marker +
+                curr.seriesName +
+                '&nbsp;&nbsp;' +
+                moneySymbol +
+                toK(curr.value[1]) +
+                '</li>')
+            } else return prev
+          }, '')
+
           return chartdate + vals
         },
       },
       title: {
         text: title,
+        textStyle: {
+          fontFamily: 'inter, sans-serif',
+          fontWeight: 'normal',
+          color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+        },
       },
       grid: {
         left: 20,
@@ -174,7 +173,7 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
         type: 'time',
         boundaryGap: false,
         nameTextStyle: {
-          fontFamily: 'var(--font-inter)',
+          fontFamily: 'inter, sans-serif',
           fontSize: 14,
           fontWeight: 400,
         },
@@ -198,7 +197,7 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
         },
         boundaryGap: false,
         nameTextStyle: {
-          fontFamily: 'var(--font-inter)',
+          fontFamily: 'inter, sans-serif',
           fontSize: 14,
           fontWeight: 400,
           color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -255,7 +254,7 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
           },
         },
       ],
-      series: series,
+      series,
     })
 
     function resize() {
