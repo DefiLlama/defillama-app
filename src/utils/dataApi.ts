@@ -23,8 +23,6 @@ import {
 } from '../constants/index'
 import { getPercentChange, getPrevTvlFromChart, getPrevCirculatingFromChart, standardizeProtocolName } from 'utils'
 
-
-
 interface IProtocol {
   name: string
   symbol: string
@@ -584,12 +582,15 @@ export const fuseProtocolData = (protocolData) => {
 
   const historicalChainTvls = protocolData?.chainTvls ?? {}
 
-  const tvlByChain = Object.entries(protocolData?.currentChainTvls ?? {})?.sort(
-    (a: [string, number], b: [string, number]) => b[1] - a[1]
-  ) ?? []
+  const tvlByChain =
+    Object.entries(protocolData?.currentChainTvls ?? {})?.sort(
+      (a: [string, number], b: [string, number]) => b[1] - a[1]
+    ) ?? []
 
-
-  const chains = tvlByChain.length === 0 ? protocolData.chains : tvlByChain?.flatMap((c) => protocolData?.chains?.find((x) => x === c[0]) || []) ?? []
+  const chains =
+    tvlByChain.length === 0
+      ? protocolData.chains
+      : tvlByChain?.flatMap((c) => protocolData?.chains?.find((x) => x === c[0]) || []) ?? []
 
   return {
     ...protocolData,
@@ -598,7 +599,7 @@ export const fuseProtocolData = (protocolData) => {
     tvlBreakdowns,
     tvlByChain,
     chains,
-    historicalChainTvls
+    historicalChainTvls,
   }
 }
 
@@ -829,7 +830,7 @@ export const getPeggedChainsPageData = async (category: string, peggedasset: str
       return res.chainBalances[elem].tokens
     })
   )
-  
+
   const bridgeInfo = await getPeggedBridgeInfo()
   const peggedSymbol = res.symbol
   const pegType = res.pegType
@@ -1048,7 +1049,7 @@ export async function getYieldPageData(query = null) {
     let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
 
     // remove anchor cause UST dead
-    pools = pools.filter(p => p.project !== 'anchor')
+    pools = pools.filter((p) => p.project !== 'anchor')
 
     const chainList = [...new Set(pools.map((p) => p.chain))]
     const projectList = [...new Set(pools.map((p) => p.project))]
@@ -1123,13 +1124,11 @@ export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
   return { data, error, loading: gecko_id && !data && !error }
 }
 
-export const useDenominationPriceHistory = ({ geckoId, utcStartTime }: { geckoId?: string, utcStartTime: number }) => {
+export const useDenominationPriceHistory = ({ geckoId, utcStartTime }: { geckoId?: string; utcStartTime: number }) => {
   let url = `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=`
 
   // append end time to fetcher params to keep query key consistent b/w renders and avoid over fetching
-  const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Math.floor(
-    Date.now() / 1000
-  )))
+  const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Math.floor(Date.now() / 1000)))
 
   return { data, error, loading: geckoId && !data && !error }
 }

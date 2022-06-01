@@ -621,9 +621,9 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
           subRows: [childData],
         }
       } else {
-        let totalBridged = 0;
+        let totalBridged = 0
         for (const bridgeID in parentBridges) {
-          totalBridged += parentBridges[bridgeID].amount ?? 0;
+          totalBridged += parentBridges[bridgeID].amount ?? 0
         }
         for (const bridgeID in parentBridges) {
           const bridgeInfo = bridgeInfoObject[bridgeID] ?? { name: 'not-found' }

@@ -79,7 +79,7 @@ export default function PeggedContainer({
         <NamePegged
           type="peggedUSD"
           value={value}
-          symbol={rowType === 'child' ? '-' :rowValues.symbol}
+          symbol={rowType === 'child' ? '-' : rowValues.symbol}
           index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
           rowType={rowType}
           showRows={showRows}
@@ -118,7 +118,7 @@ export default function PeggedContainer({
   )
 
   const chainTotals = useCalcCirculating(chainCirculatings)
-  
+
   const chainsCirculatingValues = useMemo(() => {
     const data = chainTotals.map((chain) => ({ name: chain.name, value: chain.circulating }))
 
@@ -145,10 +145,9 @@ export default function PeggedContainer({
   }
 
   const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
-  
-  //const groupedChains = useGroupChainsPegged(chainTotals, showByGroup ? chainsGroupbyParent : {})
+
   const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
-  
+
   return (
     <>
       <Search />
