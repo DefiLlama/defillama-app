@@ -29,6 +29,7 @@ const Wrapper = styled.button`
 
 export default function NavMenuButton({ setShow, show }) {
   const node = useRef<HTMLButtonElement>()
+
   const toggle = () => {
     setShow(!show)
   }
@@ -43,7 +44,6 @@ export default function NavMenuButton({ setShow, show }) {
     document.addEventListener('click', handleClick)
     return () => {
       document.removeEventListener('click', () => {})
-      setShow(false)
     }
   })
 

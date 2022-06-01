@@ -78,7 +78,7 @@ export default function Chains({ messages }) {
   return (
     <Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
       <Banner>
-        Get the Roundup delivered every day for free by subscribing on{' '}
+        Get the roundup delivered every day for free by subscribing on{' '}
         <Link href="https://t.me/defillama_tg" passHref>
           <a target="_blank" rel="noopener noreferrer">
             Telegram
@@ -86,7 +86,7 @@ export default function Chains({ messages }) {
         </Link>
       </Banner>
 
-      <Header>Daily news round-up with the 🦙</Header>
+      <Header>Daily news roundup with the 🦙</Header>
       <Text>
         {splitText.map((m, index) => (
           <Message text={m} key={m + index} />
