@@ -103,9 +103,16 @@ export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', t
         text: title,
         textStyle: {
           fontFamily: 'inter, sans-serif',
-          fontWeight: 'normal',
+          fontWeight: 600,
           color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
         },
+      },
+      grid: {
+        left: 0,
+        containLabel: true,
+        bottom: 60,
+        top: 48,
+        right: 20,
       },
       xAxis: {
         type: 'time',

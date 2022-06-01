@@ -371,13 +371,15 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
   const tvlToggles = useTvlToggles()
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
-  const { data: addlProtocolData } = useFetchProtocol(protocol)
+  const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
   const { usdInflows, tokenInflows, tokensUnique } = useMemo(() => {
     const { usdInflows, tokenInflows, tokensUnique } = buildProtocolData(addlProtocolData)
 
     return { usdInflows, tokenInflows, tokensUnique }
   }, [addlProtocolData])
+
+  const showCharts = loading || usdInflows || tokenInflows ? true : false
 
   return (
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
@@ -545,37 +547,58 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
         </Section>
       </InfoWrapper>
 
-      <SectionHeader>Charts</SectionHeader>
-      <ChartsWrapper>
-        {/* {chainsStacked && (
-          <GeneralAreaChart
-            finalChartData={chainsStacked}
-            aspect={aspect}
-            formatDate={formatDate}
-            color={backgroundColor}
-            tokensUnique={chains}
-          />
-        )} */}
-        {/* {tokenBreakdown && (
-          <GeneralAreaChart
-            finalChartData={tokenBreakdown}
-            aspect={aspect}
-            formatDate={formatDate}
-            color={backgroundColor}
-            tokensUnique={tokensUnique}
-          />
-        )} */}
-        {usdInflows && (
-          <ChartWrapper>
-            <BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" />
-          </ChartWrapper>
-        )}
-        {tokenInflows && (
-          <ChartWrapper>
-            <BarChart chartData={tokenInflows} title="Token Inflows" tokensUnique={tokensUnique} />
-          </ChartWrapper>
-        )}
-      </ChartsWrapper>
+      {showCharts && (
+        <>
+          <SectionHeader>Charts</SectionHeader>
+
+          <ChartsWrapper>
+            {loading ? (
+              <span
+                style={{
+                  height: '360px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gridColumn: '1 / -1',
+                }}
+              >
+                Loading...
+              </span>
+            ) : (
+              <>
+                {/* {chainsStacked && (
+                      <GeneralAreaChart
+                        finalChartData={chainsStacked}
+                        aspect={aspect}
+                        formatDate={formatDate}
+                        color={backgroundColor}
+                        tokensUnique={chains}
+                      />
+                } */}
+                {/* {tokenBreakdown && (
+                      <GeneralAreaChart
+                        finalChartData={tokenBreakdown}
+                        aspect={aspect}
+                        formatDate={formatDate}
+                        color={backgroundColor}
+                        tokensUnique={tokensUnique}
+                      />
+                )} */}
+                {usdInflows && (
+                  <ChartWrapper>
+                    <BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" />
+                  </ChartWrapper>
+                )}
+                {tokenInflows && (
+                  <ChartWrapper>
+                    <BarChart chartData={tokenInflows} title="Token Inflows" tokensUnique={tokensUnique} />
+                  </ChartWrapper>
+                )}
+              </>
+            )}
+          </ChartsWrapper>
+        </>
+      )}
     </Layout>
   )
 }

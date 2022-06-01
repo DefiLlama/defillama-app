@@ -158,7 +158,7 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
         text: title,
         textStyle: {
           fontFamily: 'inter, sans-serif',
-          fontWeight: 'normal',
+          fontWeight: 600,
           color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
         },
       },
