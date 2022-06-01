@@ -599,6 +599,24 @@ export const chainCoingeckoIds = {
     symbol: null,
     cmcId: null,
   },
+  "Bytomsidechain": {
+    geckoId: "bytom",
+    symbol: "BTM",
+    cmcId: "1866",
+    categories: ["EVM"],
+  },
+  "Pallete": {
+    geckoId: "palette",
+    symbol: "PLT",
+    cmcId: "16272",
+    categories: ["EVM"],
+  },
+  "Carbon": {
+    geckoId: "switcheo",
+    symbol: "SWTH",
+    cmcId: "2620",
+    categories: ["Cosmos"],
+  },
 }
 
 export const chainMarketplaceMappings = {
