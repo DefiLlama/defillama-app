@@ -33,7 +33,14 @@ const Wrapper = styled.div`
   --gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
 `
 
-export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', title, color }: IChartProps) {
+export default function AreaChart({
+  chartData,
+  tokensUnique,
+  moneySymbol = '$',
+  title,
+  color,
+  hideLogo = false,
+}: IChartProps) {
   const id = useMemo(() => uuid(), [])
 
   const [isDark] = useDarkModeManager()
@@ -118,17 +125,19 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
     const chartInstance = createInstance()
 
     chartInstance.setOption({
-      graphic: {
-        type: 'image',
-        z: 0,
-        style: {
-          image: isDark ? logoLight.src : logoDark.src,
-          height: 40,
-          opacity: 0.3,
+      ...(!hideLogo && {
+        graphic: {
+          type: 'image',
+          z: 0,
+          style: {
+            image: isDark ? logoLight.src : logoDark.src,
+            height: 40,
+            opacity: 0.3,
+          },
+          left: isSmall ? '40%' : '45%',
+          top: '130px',
         },
-        left: isSmall ? '40%' : '45%',
-        top: '130px',
-      },
+      }),
       tooltip: {
         trigger: 'axis',
         formatter: function (params) {
@@ -166,7 +175,7 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
         left: 20,
         containLabel: true,
         bottom: 60,
-        top: 20,
+        top: title === '' ? 20 : 48,
         right: 20,
       },
       xAxis: {

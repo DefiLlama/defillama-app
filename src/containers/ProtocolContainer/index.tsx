@@ -24,6 +24,7 @@ import { useFetchProtocol } from 'utils/dataApi'
 import { IChartProps } from 'components/TokenChart/types'
 import { buildProtocolData } from 'utils/protocolData'
 
+const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false }) as React.FC<IChartProps>
 const BarChart = dynamic(() => import('components/TokenChart/BarChart'), { ssr: false }) as React.FC<IChartProps>
 
 const Stats = styled.section`
@@ -373,10 +374,10 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-  const { usdInflows, tokenInflows, tokensUnique } = useMemo(() => {
-    const { usdInflows, tokenInflows, tokensUnique } = buildProtocolData(addlProtocolData)
+  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown } = useMemo(() => {
+    const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown } = buildProtocolData(addlProtocolData)
 
-    return { usdInflows, tokenInflows, tokensUnique }
+    return { usdInflows, tokenInflows, tokensUnique, tokenBreakdown }
   }, [addlProtocolData])
 
   const showCharts = loading || usdInflows || tokenInflows ? true : false
@@ -575,15 +576,16 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
                         tokensUnique={chains}
                       />
                 } */}
-                {/* {tokenBreakdown && (
-                      <GeneralAreaChart
-                        finalChartData={tokenBreakdown}
-                        aspect={aspect}
-                        formatDate={formatDate}
-                        color={backgroundColor}
-                        tokensUnique={tokensUnique}
-                      />
-                )} */}
+                {tokenBreakdown && (
+                  <ChartWrapper>
+                    <AreaChart
+                      chartData={tokenBreakdown}
+                      title="Breakdown by Tokens"
+                      tokensUnique={tokensUnique}
+                      hideLogo={true}
+                    />
+                  </ChartWrapper>
+                )}
                 {usdInflows && (
                   <ChartWrapper>
                     <BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" />
