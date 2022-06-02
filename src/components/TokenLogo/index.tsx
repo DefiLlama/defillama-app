@@ -9,20 +9,24 @@ interface TokenLogoProps {
   external?: boolean
   size?: number
   style?: React.CSSProperties
+  address?: string
 }
 
 const BAD_IMAGES = {}
 
-const Inline = styled.div`
+const Inline = styled.span`
   display: flex;
   align-items: center;
-  align-self: center;
+  justify-content: center;
+  background: ${({ theme }) => theme.bg3};
+  border-radius: 50%;
+  box-shadow: ${({ theme }) => theme.shadowSm};
 `
 
 const Image = styled(NextImage)`
-  background-color: white;
+  display: inline-block;
+  background: transparent;
   border-radius: 50%;
-  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.075);
 `
 // next/image won't work, idk why
 export default function TokenLogo({

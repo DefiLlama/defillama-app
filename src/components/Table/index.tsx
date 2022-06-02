@@ -9,7 +9,7 @@ import Bookmark from 'components/Bookmark'
 import { chainIconUrl, peggedAssetIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from 'utils'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
-import ChainsRow from 'components/ChainsRow'
+import IconsRow from 'components/IconsRow'
 import QuestionHelper from 'components/QuestionHelper'
 import { AutoRow } from 'components/Row'
 
@@ -647,7 +647,7 @@ const allColumns: AllColumns = {
     accessor: 'chains',
     disableSortBy: true,
     helperText: "Chains are ordered by protocol's highest TVL on each chain",
-    Cell: ({ value }) => <ChainsRow chains={value} />,
+    Cell: ({ value }) => <IconsRow links={value} url="/chain" iconType="chain" />,
   },
   '1dChange': {
     header: '1d Change',

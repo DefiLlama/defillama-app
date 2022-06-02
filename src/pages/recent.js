@@ -113,7 +113,7 @@ const TableWrapper = styled(Table)`
         width: 300px;
         // SHOW LOGO
         & > *:nth-child(3) {
-          display: revert;
+          display: flex;
         }
       }
     }

@@ -1,12 +1,11 @@
 import Search from 'components/Search'
 import { AutoColumn } from 'components/Column'
-import Table, { columnsToShow } from 'components/Table'
+import Table, { columnsToShow, NameYield } from 'components/Table'
 import { formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
 import { CustomLink } from 'components/Link'
 import styled from 'styled-components'
 import { AutoRow } from 'components/Row'
-import { NameYield } from 'components/Table/index'
 import {
   useNoILManager,
   useSingleExposureManager,
@@ -16,6 +15,7 @@ import {
 import QuestionHelper from 'components/QuestionHelper'
 import Filters from 'components/Filters'
 import { ListHeader, ListOptions } from 'components/ChainPage'
+import IconsRow from 'components/IconsRow'
 
 export const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
@@ -53,15 +53,17 @@ export const TableWrapper = styled(Table)`
   // CHAINS
   tr > *:nth-child(3) {
     display: none;
-    text-align: start;
     & > * {
-      justify-content: flex-start;
+      justify-content: flex-end;
     }
   }
 
   // TVL
   tr > *:nth-child(4) {
     display: none;
+    & > * {
+      margin-left: auto;
+    }
   }
 
   // APY
@@ -224,7 +226,14 @@ const YieldPage = ({ pools, chainList }) => {
           <NameYield value={(value, rowValues)} rowType={'accordion'} />
         ),
     },
-    ...columnsToShow('chains', 'tvl'),
+    {
+      header: 'Chains',
+      accessor: 'chains',
+      disableSortBy: true,
+      helperText: "Chains are ordered by protocol's highest TVL on each chain",
+      Cell: ({ value }) => <IconsRow links={value} url="/yields/chain" iconType="chain" />,
+    },
+    ...columnsToShow('tvl'),
     {
       header: 'APY',
       accessor: 'apy',
