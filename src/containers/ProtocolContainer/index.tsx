@@ -24,6 +24,7 @@ import { useFetchProtocol } from 'utils/dataApi'
 import { IChartProps } from 'components/TokenChart/types'
 import { buildProtocolData } from 'utils/protocolData'
 
+const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false }) as React.FC<IChartProps>
 const BarChart = dynamic(() => import('components/TokenChart/BarChart'), { ssr: false }) as React.FC<IChartProps>
 
 const Stats = styled.section`
@@ -317,6 +318,10 @@ const ChartWrapper = styled.section`
 
   @media (min-width: 90rem) {
     grid-column: span 1;
+
+    :last-child:nth-child(2n - 1) {
+      grid-column: span 2;
+    }
   }
 `
 
@@ -343,8 +348,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
     audits,
     category,
     twitter,
-    tvlBreakdowns = [],
-    tvlByChain,
+    tvlBreakdowns = {},
+    tvlByChain = [],
     tvlChartData,
     audit_links,
     methodology,
@@ -374,13 +379,21 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-  const { usdInflows, tokenInflows, tokensUnique } = useMemo(() => {
-    const { usdInflows, tokenInflows, tokensUnique } = buildProtocolData(addlProtocolData)
+  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked, chainsUnique } = useMemo(() => {
+    const chainsUnique = Object.keys(tvlBreakdowns ?? {})
+    const data = buildProtocolData(addlProtocolData)
+    return { ...data, chainsUnique }
+  }, [addlProtocolData, tvlBreakdowns])
 
-    return { usdInflows, tokenInflows, tokensUnique }
-  }, [addlProtocolData])
-
-  const showCharts = loading || usdInflows || tokenInflows ? true : false
+  const showCharts =
+    loading ||
+    (chainsStacked && chainsUnique.length > 1) ||
+    tokensUnique.length > 0 ||
+    tokenBreakdown?.length > 0 ||
+    usdInflows ||
+    tokenInflows
+      ? true
+      : false
 
   return (
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
@@ -567,24 +580,16 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
               </span>
             ) : (
               <>
-                {/* {chainsStacked && (
-                      <GeneralAreaChart
-                        finalChartData={chainsStacked}
-                        aspect={aspect}
-                        formatDate={formatDate}
-                        color={backgroundColor}
-                        tokensUnique={chains}
-                      />
-                } */}
-                {/* {tokenBreakdown && (
-                      <GeneralAreaChart
-                        finalChartData={tokenBreakdown}
-                        aspect={aspect}
-                        formatDate={formatDate}
-                        color={backgroundColor}
-                        tokensUnique={tokensUnique}
-                      />
-                )} */}
+                {chainsStacked && chainsUnique.length > 1 && (
+                  <ChartWrapper>
+                    <AreaChart chartData={chainsStacked} tokensUnique={chainsUnique} title="Chains" hideLogo={true} />
+                  </ChartWrapper>
+                )}
+                {tokenBreakdown?.length > 0 && (
+                  <ChartWrapper>
+                    <AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} hideLogo={true} />
+                  </ChartWrapper>
+                )}
                 {usdInflows && (
                   <ChartWrapper>
                     <BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" />

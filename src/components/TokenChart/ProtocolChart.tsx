@@ -26,7 +26,7 @@ export default function ProtocolChart({
   color,
   historicalChainTvls,
   chains = [],
-  bobo = false
+  bobo = false,
 }: IProps) {
   const router = useRouter()
 
