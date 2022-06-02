@@ -374,13 +374,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown } = useMemo(() => {
-    const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown } = buildProtocolData(addlProtocolData)
+  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked } = useMemo(
+    () => buildProtocolData(addlProtocolData),
+    [addlProtocolData]
+  )
 
-    return { usdInflows, tokenInflows, tokensUnique, tokenBreakdown }
-  }, [addlProtocolData])
-
-  const showCharts = loading || usdInflows || tokenInflows ? true : false
+  const showCharts = loading || chainsStacked || tokenBreakdown || usdInflows || tokenInflows ? true : false
 
   return (
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
@@ -567,23 +566,14 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
               </span>
             ) : (
               <>
-                {/* {chainsStacked && (
-                      <GeneralAreaChart
-                        finalChartData={chainsStacked}
-                        aspect={aspect}
-                        formatDate={formatDate}
-                        color={backgroundColor}
-                        tokensUnique={chains}
-                      />
-                } */}
+                {chainsStacked && (
+                  <ChartWrapper>
+                    <AreaChart chartData={chainsStacked} tokensUnique={chains} title="Chains" hideLogo={true} />
+                  </ChartWrapper>
+                )}
                 {tokenBreakdown && (
                   <ChartWrapper>
-                    <AreaChart
-                      chartData={tokenBreakdown}
-                      title="Breakdown by Tokens"
-                      tokensUnique={tokensUnique}
-                      hideLogo={true}
-                    />
+                    <AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} hideLogo={true} />
                   </ChartWrapper>
                 )}
                 {usdInflows && (

@@ -23,10 +23,10 @@ export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', t
       const series = {
         name: '',
         type: 'bar',
-        stack: 'one',
+        stack: 'value',
         emphasis: {
+          focus: 'series',
           shadowBlur: 10,
-          shadowColor: stringToColour(),
         },
         itemStyle: {
           color: chartColor,
@@ -44,10 +44,13 @@ export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', t
         return {
           name: token,
           type: 'bar',
-          stack: 'one',
+          stack: 'value',
           emphasis: {
+            focus: 'series',
             shadowBlur: 10,
-            shadowColor: stringToColour(),
+          },
+          itemStyle: {
+            color,
           },
           data: [],
         }
@@ -108,7 +111,7 @@ export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', t
         },
       },
       grid: {
-        left: 0,
+        left: 20,
         containLabel: true,
         bottom: 60,
         top: 48,

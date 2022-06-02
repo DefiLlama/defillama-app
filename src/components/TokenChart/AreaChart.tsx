@@ -52,9 +52,10 @@ export default function AreaChart({
       const series = {
         name: '',
         type: 'line',
-        stack: 'Total',
+        stack: 'value',
         emphasis: {
           focus: 'series',
+          shadowBlur: 10,
         },
         symbol: 'none',
         itemStyle: {
@@ -82,14 +83,13 @@ export default function AreaChart({
       return series
     } else {
       const series = tokensUnique.map((token) => {
-        const color = stringToColour()
-
         return {
           name: token,
           type: 'line',
-          stack: 'Total',
+          stack: 'value',
           emphasis: {
             focus: 'series',
+            shadowBlur: 10,
           },
           symbol: 'none',
           itemStyle: {
@@ -276,7 +276,7 @@ export default function AreaChart({
       window.removeEventListener('resize', resize)
       chartInstance.dispose()
     }
-  }, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance])
+  }, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance, hideLogo])
 
   return <Wrapper id={id} style={{ height: '360px', margin: 'auto 0' }}></Wrapper>
 }
