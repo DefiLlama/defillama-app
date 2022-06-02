@@ -18,7 +18,7 @@ const Inline = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  background: ${({ theme }) => theme.bg3};
   border-radius: 50%;
   box-shadow: ${({ theme }) => theme.shadowSm};
 `

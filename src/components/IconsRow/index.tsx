@@ -25,13 +25,12 @@ const TokenCounter = styled.button`
   }
 `
 
-const Row = styled.span`
+const Row = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
   background: none;
   overflow: hidden;
-  width: 100%;
 `
 
 const Popover = styled(Hovercard)`
