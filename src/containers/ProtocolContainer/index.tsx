@@ -19,7 +19,7 @@ import ProtocolChart from 'components/TokenChart/ProtocolChart'
 import boboLogo from '../../assets/boboSmug.png'
 import Image from 'next/image'
 import QuestionHelper from 'components/QuestionHelper'
-import { useGetExtraTvlEnabled, useTvlToggles } from 'contexts/LocalStorage'
+import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from 'contexts/LocalStorage'
 import { useFetchProtocol } from 'utils/dataApi'
 import { IChartProps } from 'components/TokenChart/types'
 import { buildProtocolData } from 'utils/protocolData'
@@ -363,14 +363,15 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
   const extraTvls = []
   const tvls = []
 
-  tvlByChain.forEach((t) => {
-    if (isLowerCase(t[0][0])) {
-      extraTvls.push(t)
-    } else !t[0].includes('-') && tvls.push(t)
-  })
-
   const tvlToggles = useTvlToggles()
   const extraTvlsEnabled = useGetExtraTvlEnabled()
+
+  tvlByChain.forEach((t) => {
+    if (isLowerCase(t[0][0]) && extraTvlProps.includes(t[0])) {
+      // hide extra tvls with 0 balances
+      t[1] !== 0 && extraTvls.push(t)
+    } else !t[0].includes('-') && t[0] !== 'masterchef' && tvls.push(t)
+  })
 
   const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 

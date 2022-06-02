@@ -134,7 +134,7 @@ const PeggedTable = styled(Table)`
       & > div {
         width: 280px;
         // SHOW LOGO
-        & > *:nth-child(3) {
+        & > *:nth-child(2) {
           display: revert;
         }
       }
@@ -153,7 +153,6 @@ const PeggedTable = styled(Table)`
     tr > *:nth-child(1) {
       & > div {
         & > *:nth-child(4) {
-          // SHOW SYMBOL
           & > *:nth-child(2) {
             display: revert;
           }

@@ -29,8 +29,8 @@ export const SINGLE_EXPOSURE = 'SINGLE_EXPOSURE'
 export const NO_IL = 'NO_IL'
 export const MILLION_DOLLAR = 'MILLION_DOLLAR'
 
-const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
-const extraPeggedProps = [UNRELEASED]
+export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
+export const extraPeggedProps = [UNRELEASED]
 
 export const groupSettings = [
   {
