@@ -318,6 +318,10 @@ const ChartWrapper = styled.section`
 
   @media (min-width: 90rem) {
     grid-column: span 1;
+
+    :last-child:nth-child(2n - 1) {
+      grid-column: span 2;
+    }
   }
 `
 
@@ -344,8 +348,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
     audits,
     category,
     twitter,
-    tvlBreakdowns = [],
-    tvlByChain,
+    tvlBreakdowns = {},
+    tvlByChain = [],
     tvlChartData,
     audit_links,
     methodology,
@@ -375,10 +379,11 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked } = useMemo(
-    () => buildProtocolData(addlProtocolData),
-    [addlProtocolData]
-  )
+  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked, chainsUnique } = useMemo(() => {
+    const chainsUnique = Object.keys(tvlBreakdowns ?? {})
+    const data = buildProtocolData(addlProtocolData)
+    return { ...data, chainsUnique }
+  }, [addlProtocolData, tvlBreakdowns])
 
   const showCharts = loading || chainsStacked || tokenBreakdown || usdInflows || tokenInflows ? true : false
 
@@ -569,7 +574,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
               <>
                 {chainsStacked && (
                   <ChartWrapper>
-                    <AreaChart chartData={chainsStacked} tokensUnique={chains} title="Chains" hideLogo={true} />
+                    <AreaChart chartData={chainsStacked} tokensUnique={chainsUnique} title="Chains" hideLogo={true} />
                   </ChartWrapper>
                 )}
                 {tokenBreakdown && (

@@ -81,14 +81,20 @@ export function buildInflows(tokensInUsd, tokens) {
 }
 
 export const buildProtocolData = (protocolData) => {
-    if (protocolData && protocolData.misrepresentedTokens !== true && protocolData.tokensInUsd !== undefined) {
-        const [tokenBreakdown, tokensUnique] = buildTokensBreakdown(protocolData.tokensInUsd)
-        const { usdInflows, tokenInflows } = buildInflows(protocolData.tokensInUsd, protocolData.tokens)
+    if (protocolData) {
+
         const chainsStacked = buildChainBreakdown(protocolData.chainTvls)
-        return { tokenBreakdown, tokensUnique, usdInflows, tokenInflows, chainsStacked }
+
+        if (protocolData.misrepresentedTokens !== true && protocolData.tokensInUsd !== undefined) {
+            const [tokenBreakdown, tokensUnique] = buildTokensBreakdown(protocolData.tokensInUsd)
+            const { usdInflows, tokenInflows } = buildInflows(protocolData.tokensInUsd, protocolData.tokens)
+            return { tokenBreakdown, tokensUnique, usdInflows, tokenInflows, chainsStacked }
+        }
+
+        return { chainsStacked }
     }
 
-    return { tokenBreakdown: null, tokensUnique: null, usdInflows: null, tokenInflows: null }
+    return {}
 }
 
 // const ETH_DENOMINATION = "ETH"
