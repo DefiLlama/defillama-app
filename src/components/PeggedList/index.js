@@ -4,7 +4,6 @@ import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from '../Column'
 import { RowBetween, AutoRow } from 'components/Row'
 import Search from 'components/Search'
-import PeggedChainsRow from 'components/PeggedChainsRow'
 import {
   getRandomColor,
   capitalizeFirstLetter,
@@ -23,6 +22,7 @@ import Filters, { FiltersWrapper } from 'components/Filters'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
 import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
+import IconsRow from 'components/IconsRow'
 
 function Chart({ formattedPeggedAreaChart, peggedAssetNames, aspect }) {
   const [darkMode] = useDarkModeManager()
@@ -260,7 +260,7 @@ function AllPeggedsPage({
       accessor: 'chains', // should change this
       disableSortBy: true,
       helperText: "Chains are ordered by pegged asset's highest issuance on each chain",
-      Cell: ({ value }) => <PeggedChainsRow chains={value} />,
+      Cell: ({ value }) => <IconsRow links={value} url="/peggedassets/stablecoins" iconType="chain" />,
     },
     {
       header: 'Price',

@@ -15,8 +15,7 @@ import { useFetchInfiniteScroll } from '../../hooks'
 import { useMedia } from 'react-use'
 
 import FormattedName from '../FormattedName'
-import ChainsRow from 'components/ChainsRow'
-import TokensRow from 'components/TokensRow'
+import IconsRow from 'components/IconsRow'
 
 dayjs.extend(utc)
 
@@ -107,7 +106,7 @@ const SORT_FIELD = {
 function NFTCollectionList({
   collections,
   // itemMax = 100,
-  displayUsd = false
+  displayUsd = false,
 }) {
   // sorting
   const [collectionsList, setCollectionsList] = useState([])
@@ -163,11 +162,11 @@ function NFTCollectionList({
           </Row>
         </DataText>
         <DataText area="chains">
-          <ChainsRow chains={chains} />
+          <IconsRow links={chains} url="/nfts/chain" iconType="chain" />
         </DataText>
         {!below1080 && (
           <DataText area="marketplaces">
-            <TokensRow tokens={marketplaces} />
+            <IconsRow links={marketplaces} url="/nfts/marketplace" iconType="token" />
           </DataText>
         )}
         {!below1080 && (

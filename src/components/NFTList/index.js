@@ -7,8 +7,7 @@ import utc from 'dayjs/plugin/utc'
 import InfiniteScroll from 'react-infinite-scroll-component'
 
 import TokenLogo from '../TokenLogo'
-import ChainsRow from '../ChainsRow'
-import TokensRow from '../TokensRow'
+import IconsRow from '../IconsRow'
 import { CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
@@ -153,8 +152,8 @@ function NFTList({
             </CustomLink>
           </Row>
         </DataText>
-        {marketplaces && <TokensRow tokens={marketplaces} />}
-        {chains && <ChainsRow chains={chains} />}
+        {marketplaces && <IconsRow links={marketplaces} url="/nfts/marketplace" iconType="token" />}
+        {chains && <IconsRow links={chains} url="/nfts/chain" iconType="chain" />}
         {!below680 && <DataText area="collections">{item.collections}</DataText>}
         {!below1080 && <DataText area="dailyVolume">{formattedNum(item.dailyVolumeUSD, true)}</DataText>}
         <DataText area="totalVolume" color="text" fontWeight="500">
