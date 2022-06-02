@@ -17,12 +17,14 @@ const BAD_IMAGES = {}
 const Inline = styled.span`
   display: flex;
   align-items: center;
+  justify-content: center;
   background: transparent;
   border-radius: 50%;
   box-shadow: ${({ theme }) => theme.shadowSm};
 `
 
 const Image = styled(NextImage)`
+  display: inline-block;
   background: transparent;
   border-radius: 50%;
 `

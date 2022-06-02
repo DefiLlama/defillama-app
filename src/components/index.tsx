@@ -246,7 +246,7 @@ export const ProtocolsTable = styled(Table)`
         width: 280px;
         // SHOW LOGO
         & > *:nth-child(3) {
-          display: revert;
+          display: flex;
         }
       }
     }

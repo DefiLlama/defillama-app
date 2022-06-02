@@ -20,7 +20,8 @@ const TokenCounter = styled.button`
   justify-content: center;
 
   :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline: ${({ theme }) => '1px solid ' + theme.text1};
+    outline-offset: 2px;
   }
 `
 
@@ -28,25 +29,34 @@ const Row = styled.span`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 1px;
   background: none;
+  overflow: hidden;
+  width: 100%;
 `
 
 const Popover = styled(Hovercard)`
   z-index: 1;
-  padding: 4px;
+  padding: 6px;
   background: ${({ theme }) => theme.bg2};
   border: 1px solid ${({ theme }) => theme.bg3};
   color: ${({ theme }) => theme.text1};
   border-radius: 8px;
-  box-shadow: ${({ theme }) => theme.shadowSm};
+  box-shadow: ${({ theme }) => theme.shadowMd};
+`
+
+const Link = styled(BasicLink)`
+  border-radius: 50%;
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text1};
+    outline-offset: 2px;
+  }
 `
 
 export const ChainLogo = ({ chain, url, iconType }) => {
   return (
-    <BasicLink key={chain} href={`${url}/${chain}`}>
+    <Link key={chain} href={`${url}/${chain}`}>
       <TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
-    </BasicLink>
+    </Link>
   )
 }
 
@@ -55,7 +65,7 @@ interface IIconsRowProps {
   url: string
   iconType: 'token' | 'chain'
 }
-// TODO copy components/Filters code and fix flashing
+
 const IconsRow = ({ links, url, iconType }: IIconsRowProps) => {
   const [visibleChainIndex, setVisibileChainIndex] = useState(0)
   const mainWrapEl = useRef(null)

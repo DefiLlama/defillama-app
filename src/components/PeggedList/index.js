@@ -135,7 +135,7 @@ const PeggedTable = styled(Table)`
         width: 280px;
         // SHOW LOGO
         & > *:nth-child(2) {
-          display: revert;
+          display: flex;
         }
       }
     }

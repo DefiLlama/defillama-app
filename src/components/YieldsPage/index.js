@@ -1,12 +1,11 @@
 import Search from 'components/Search'
 import { AutoColumn } from 'components/Column'
-import Table, { columnsToShow } from 'components/Table'
+import Table, { columnsToShow, NameYield } from 'components/Table'
 import { formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
 import { CustomLink } from 'components/Link'
 import styled from 'styled-components'
 import { AutoRow } from 'components/Row'
-import { NameYield } from 'components/Table/index'
 import {
   useNoILManager,
   useSingleExposureManager,
