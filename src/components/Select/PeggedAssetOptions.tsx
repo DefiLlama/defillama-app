@@ -1,27 +1,25 @@
-import { groupSettings, useGroupEnabled, useTvlToggles } from 'contexts/LocalStorage'
+import { useTvlToggles, useGetExtraPeggedEnabled } from 'contexts/LocalStorage'
 import { ActionMeta, components, GroupProps } from 'react-select'
 import ReactSelect from './ReactSelect'
 
-const chainAggr = groupSettings.map((g) => ({ label: g.name, value: g.key }))
-
-const tvlOptions = [...chainAggr]
+const tvlOptions = [{label: "Unreleased", value: "unreleased"}]
 
 const groupOptions = [
   {
-    label: 'Aggregate Chains',
-    options: chainAggr,
+    label: 'Include Circulating Categorized as',
+    options: tvlOptions,
   },
 ]
 
 export default function PeggedAssetOptions({ label }: { label?: string }) {
   const tvlToggles = useTvlToggles()
 
-  const groupTvls = useGroupEnabled()
+  const extraPeggedEnabled = useGetExtraPeggedEnabled()
 
-  const fitlers = { ...groupTvls }
+  const filters = extraPeggedEnabled
 
-  const selectedOptions = Object.keys(fitlers)
-    .filter((key) => fitlers[key])
+  const selectedOptions = Object.keys(filters)
+    .filter((key) => filters[key])
     .map((option) => tvlOptions.find((o) => o.value === option))
 
   const toggle = (_, s: ActionMeta<any>) => {

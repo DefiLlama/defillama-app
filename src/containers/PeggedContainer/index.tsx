@@ -3,7 +3,6 @@ import styled from 'styled-components'
 import { ButtonDark } from 'components/ButtonStyled'
 import Search from 'components/Search'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
-import { AllPeggedOptions } from 'components/SettingsModal'
 import { CustomLink } from 'components/Link'
 import { columnsToShow, FullTable, NamePegged, isOfTypePeggedCategory } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
@@ -163,8 +162,6 @@ export default function PeggedContainer({
   return (
     <>
       <Search />
-
-      <AllPeggedOptions style={{ display: 'flex', justifyContent: 'center' }} />
 
       <HeaderWrapper>
         <span>{Capitalize(peggedSymbol)} Total Circulating All Chains</span>

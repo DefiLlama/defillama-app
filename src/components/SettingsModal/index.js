@@ -13,7 +13,6 @@ import {
   useMillionDollarManager,
   useTvlToggles,
   useGetExtraTvlEnabled,
-  useGetExtraPeggedEnabled,
   STAKING,
   POOL2,
   BORROWED,
@@ -427,30 +426,6 @@ export const AllTvlOptions = ({ style }) => {
       </ScrollAreaScrollbar>
       <ScrollAreaCorner />
     </ScrollAreaRoot>
-  )
-}
-
-export const AllPeggedOptions = ({ style }) => {
-  const peggedToggles = useTvlToggles()
-  const extraPeggedEnabled = useGetExtraPeggedEnabled()
-  return (
-    <>
-      <ScrollAreaRoot>
-        <ScrollAreaViewport>
-          <ListWrapper style={{ ...style }}>
-            {extraPeggedOptions.map((option) => (
-              <ListItem key={option.key}>
-                <OptionToggle {...option} toggle={peggedToggles(option.key)} enabled={extraPeggedEnabled[option.key]} />
-              </ListItem>
-            ))}
-          </ListWrapper>
-        </ScrollAreaViewport>
-        <ScrollAreaScrollbar orientation="horizontal">
-          <ScrollAreaThumb />
-        </ScrollAreaScrollbar>
-        <ScrollAreaCorner />
-      </ScrollAreaRoot>
-    </>
   )
 }
 
