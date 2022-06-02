@@ -385,7 +385,15 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
     return { ...data, chainsUnique }
   }, [addlProtocolData, tvlBreakdowns])
 
-  const showCharts = loading || chainsStacked || tokenBreakdown || usdInflows || tokenInflows ? true : false
+  const showCharts =
+    loading ||
+    (chainsStacked && chainsUnique.length > 1) ||
+    tokensUnique.length > 0 ||
+    tokenBreakdown?.length > 0 ||
+    usdInflows ||
+    tokenInflows
+      ? true
+      : false
 
   return (
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
@@ -572,12 +580,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
               </span>
             ) : (
               <>
-                {chainsStacked && (
+                {chainsStacked && chainsUnique.length > 1 && (
                   <ChartWrapper>
                     <AreaChart chartData={chainsStacked} tokensUnique={chainsUnique} title="Chains" hideLogo={true} />
                   </ChartWrapper>
                 )}
-                {tokenBreakdown && (
+                {tokenBreakdown?.length > 0 && (
                   <ChartWrapper>
                     <AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} hideLogo={true} />
                   </ChartWrapper>
