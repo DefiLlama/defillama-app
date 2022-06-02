@@ -277,7 +277,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
         </p>
       </Panel>
 
-      <div>
+      <div style={{ isolation: 'isolate' }}>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
           <Panel style={{ height: '100%', minHeight: '381px', flex: 1, maxWidth: '100%' }}>
