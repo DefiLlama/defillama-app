@@ -39,6 +39,10 @@ export function buildInflows(tokensInUsd, tokens) {
     let tokenSet = new Set()
     const usdInflows = []
     const tokenInflows = []
+
+    let zeroUsdInfows = 0
+    let zeroTokenInfows = 0
+
     for (let i = 1; i < tokensInUsd.length; i++) {
         let dayDifference = 0
         let tokenDayDifference = {}
@@ -52,6 +56,15 @@ export function buildInflows(tokensInUsd, tokens) {
                 dayDifference += diffUsd
             }
         }
+
+        if (dayDifference === 0) {
+            zeroUsdInfows++
+        }
+
+        if (Object.keys(tokenDayDifference)?.length === 0) {
+            zeroTokenInfows++
+        }
+
         usdInflows.push([
             tokensInUsd[i].date,
             dayDifference,
@@ -61,13 +74,17 @@ export function buildInflows(tokensInUsd, tokens) {
             date: tokensInUsd[i].date,
         })
     }
-    return { usdInflows, tokenInflows }
+
+
+
+    return { usdInflows: zeroUsdInfows === usdInflows.length ? null : usdInflows, tokenInflows: zeroTokenInfows === tokenInflows.length ? null : tokenInflows }
 }
 
 export const buildProtocolData = (protocolData) => {
     if (protocolData && protocolData.misrepresentedTokens !== true && protocolData.tokensInUsd !== undefined) {
         const [tokenBreakdown, tokensUnique] = buildTokensBreakdown(protocolData.tokensInUsd)
         const { usdInflows, tokenInflows } = buildInflows(protocolData.tokensInUsd, protocolData.tokens)
+
         return { tokenBreakdown, tokensUnique, usdInflows, tokenInflows }
     }
 
