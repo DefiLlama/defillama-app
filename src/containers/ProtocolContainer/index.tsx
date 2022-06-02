@@ -387,9 +387,9 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const showCharts =
     loading ||
-    (chainsStacked && chainsUnique.length > 1) ||
-    tokensUnique.length > 0 ||
-    tokenBreakdown?.length > 0 ||
+    (chainsStacked && chainsUnique?.length > 1) ||
+    (tokenBreakdown?.length > 1 && tokensUnique?.length > 1) ||
+    tokensUnique?.length > 0 ||
     usdInflows ||
     tokenInflows
       ? true
@@ -580,12 +580,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
               </span>
             ) : (
               <>
-                {chainsStacked && chainsUnique.length > 1 && (
+                {chainsStacked && chainsUnique?.length > 1 && (
                   <ChartWrapper>
                     <AreaChart chartData={chainsStacked} tokensUnique={chainsUnique} title="Chains" hideLogo={true} />
                   </ChartWrapper>
                 )}
-                {tokenBreakdown?.length > 0 && (
+                {tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
                   <ChartWrapper>
                     <AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} hideLogo={true} />
                   </ChartWrapper>
