@@ -34,7 +34,6 @@ const Wrapper = styled.span`
   padding: 6px;
   height: 40px;
   width: 160px;
-  margin-top: 6px;
 
   @media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
     display: flex;

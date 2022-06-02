@@ -38,6 +38,7 @@ const PlaceholderChartPanel = styled(Panel)`
   padding-bottom: 28%;
   flex: 1;
   color: var(--color);
+  min-height: 360px;
   @media (max-width: 800px) {
     padding-bottom: 69%;
   }
