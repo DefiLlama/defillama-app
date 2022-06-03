@@ -12,6 +12,7 @@ import orderBy from 'lodash.orderby'
 import IconsRow from 'components/IconsRow'
 import QuestionHelper from 'components/QuestionHelper'
 import { AutoRow } from 'components/Row'
+export { TableFilters } from './Filters'
 
 interface ColumnProps {
   header: string
@@ -708,7 +709,5 @@ const allColumns: AllColumns = {
 export function columnsToShow(...names: Columns[]) {
   return names.map((item) => allColumns[item])
 }
-
-export { TableFilters } from './Filters'
 
 export default Table
