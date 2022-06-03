@@ -54,7 +54,7 @@ export const TableWrapper = styled(Table)`
   tr > *:nth-child(3) {
     display: none;
     & > * {
-      justify-content: flex-end;
+      margin-left: auto;
     }
   }
 
@@ -69,21 +69,34 @@ export const TableWrapper = styled(Table)`
   // APY
   tr > *:nth-child(5) {
     padding-right: 20px;
+    & > * {
+      margin-left: auto;
+    }
   }
 
   // 1D CHANGE
   tr > *:nth-child(6) {
     display: none;
+    & > * {
+      margin-left: auto;
+    }
   }
 
   // 7D CHANGE
   tr > *:nth-child(7) {
     display: none;
+    padding-right: 20px;
+    & > * {
+      margin-left: auto;
+    }
   }
 
   // OUTLOOK
   tr > *:nth-child(8) {
     display: none;
+    & > * {
+      margin-left: auto;
+    }
   }
 
   // CONFIDENCE
@@ -144,11 +157,6 @@ export const TableWrapper = styled(Table)`
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-    // APY
-    tr > *:nth-child(5) {
-      padding-right: 0px;
-    }
-
     // TVL
     tr > *:nth-child(4) {
       display: revert;
@@ -156,6 +164,11 @@ export const TableWrapper = styled(Table)`
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    // APY
+    tr > *:nth-child(5) {
+      padding-right: 0px;
+    }
+
     // 7D CHANGE
     tr > *:nth-child(7) {
       display: revert;
@@ -163,6 +176,11 @@ export const TableWrapper = styled(Table)`
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpXl}) {
+    // 7D CHANGE
+    tr > *:nth-child(7) {
+      padding-right: 0;
+    }
+
     // OUTLOOK
     tr > *:nth-child(8) {
       display: revert;

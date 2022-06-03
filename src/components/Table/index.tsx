@@ -180,6 +180,16 @@ const ScrollToTop = styled.button`
   }
 `
 
+const HeaderWithHelperText = styled.span`
+  svg {
+    color: ${({ theme }) => theme.text1};
+  }
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+`
+
 export function splitArrayByFalsyValues(data, column) {
   return data.reduce(
     (acc, curr) => {
@@ -322,19 +332,28 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
           <thead>
             <RowWrapper>
               {columns.map((col) => {
-                const text = col.helperText ? (
-                  <HeadHelp title={col.header} text={col.helperText} style={{ marginLeft: 'auto' }} />
-                ) : (
-                  col.header
-                )
                 const disableSortBy = col.disableSortBy || false
                 const sortingColumn = columnToSort === col.accessor && sortDirection !== 0
+
+                const header = disableSortBy ? (
+                  col.header
+                ) : (
+                  <HeaderButton onClick={() => handleClick(col.accessor)}>{col.header}</HeaderButton>
+                )
+                const text = col.helperText ? (
+                  <HeaderWithHelperText>
+                    {header}
+                    <QuestionHelper text={col.helperText} />
+                  </HeaderWithHelperText>
+                ) : (
+                  header
+                )
+
                 return (
                   <Header key={uuid()}>
                     {!disableSortBy ? (
                       <SortedHeader>
-                        <HeaderButton onClick={() => handleClick(col.accessor)}>{text}</HeaderButton>{' '}
-                        {sortingColumn && (sortDirection === -1 ? <ArrowUp /> : <ArrowDown />)}
+                        {text} {sortingColumn && (sortDirection === -1 ? <ArrowUp /> : <ArrowDown />)}
                       </SortedHeader>
                     ) : (
                       text
