@@ -87,6 +87,8 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const denomination = router.query?.currency ?? 'USD'
 
+  const { minTvl, maxTvl } = router.query
+
   const [easterEgg, setEasterEgg] = useState(false)
   const [darkMode, toggleDarkMode] = useDarkModeManager()
   const activateEasterEgg = () => {
@@ -206,6 +208,14 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const isLoading = denomination !== 'USD' && loading
 
+  console.log(minTvl, maxTvl, 1)
+
+  const finalProtocolTotals = useMemo(() => {
+    const isValidTvlRange =
+      minTvl !== undefined && maxTvl !== undefined && !Number.isNaN(minTvl) && !Number.isNaN(maxTvl)
+    return isValidTvlRange ? protocolTotals.filter((p) => p.tvl > minTvl && p.tvl < maxTvl) : protocolTotals
+  }, [minTvl, maxTvl, protocolTotals])
+
   const panels = (
     <>
       <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
@@ -321,7 +331,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
         <TableFilters />
       </ListOptions>
 
-      <ProtocolsTable data={protocolTotals} columns={columns} />
+      <ProtocolsTable data={finalProtocolTotals} columns={columns} />
     </>
   )
 }

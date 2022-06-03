@@ -19,12 +19,14 @@ const TvlFilterForm = styled.form`
     display: flex;
     flex-direction: column;
     gap: 4px;
+    font: inherit;
   }
 
   input {
     padding: 4px;
     border-radius: 4px;
     border: ${({ theme }) => '1px solid ' + theme.text4};
+    font: inherit;
 
     :focus-visible {
       outline: ${({ theme }) => '1px solid ' + theme.text2};
@@ -49,12 +51,27 @@ const TvlFilterForm = styled.form`
 
 export function TableFilters() {
   const router = useRouter()
+
   const handleSubmit = (e) => {
     e.preventDefault()
     const form = e.target
     const minTvl = form.minTvl?.value
     const maxTvl = form.maxTvl?.value
-    router.push(`${router.pathname}?minTvl=${minTvl}&maxTvl=${maxTvl}`, undefined, { shallow: true })
+
+    router.push(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          minTvl,
+          maxTvl,
+        },
+      },
+      undefined,
+      {
+        shallow: true,
+      }
+    )
   }
   return (
     <Popover
@@ -65,7 +82,7 @@ export function TableFilters() {
         </>
       }
       content={
-        <section style={{ width: '240px' }}>
+        <section style={{ width: '240px', margin: '0 auto' }}>
           <TvlFilterForm onSubmit={handleSubmit}>
             <h1>TVL Range</h1>
             <label>
