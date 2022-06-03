@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { v4 as uuid } from 'uuid'
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronsUp, Filter } from 'react-feather'
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronsUp } from 'react-feather'
 import HeadHelp from 'components/HeadHelp'
 import { CustomLink } from 'components/Link'
 import TokenLogo from 'components/TokenLogo'
@@ -12,7 +12,7 @@ import orderBy from 'lodash.orderby'
 import IconsRow from 'components/IconsRow'
 import QuestionHelper from 'components/QuestionHelper'
 import { AutoRow } from 'components/Row'
-import Popover from 'components/Popover'
+export { TableFilters } from './Filters'
 
 interface ColumnProps {
   header: string
@@ -179,20 +179,6 @@ const ScrollToTop = styled.button`
     bottom: 10px;
   }
 `
-
-export function TableFilters() {
-  return (
-    <Popover
-      trigger={
-        <>
-          <Filter size={14} />
-          <span>Filters</span>
-        </>
-      }
-      content={<div style={{ height: '240px', width: '240px', background: 'red' }}>Table Filter</div>}
-    />
-  )
-}
 
 export function splitArrayByFalsyValues(data, column) {
   return data.reduce(
