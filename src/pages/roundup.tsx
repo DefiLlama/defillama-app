@@ -51,9 +51,9 @@ const Banner = styled.p`
   @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
     margin: 0;
     position: fixed;
-    top: 0px;
+    top: 0;
     left: 220px;
-    right: 61px;
+    right: 0;
   }
 `
 

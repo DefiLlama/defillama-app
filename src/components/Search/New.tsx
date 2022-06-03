@@ -257,7 +257,9 @@ const Options = ({ step }: { step: IStep }) => {
   return (
     <OptionsWrapper>
       <p>
-        <Link href={`/${step.route || step.category.toLowerCase()}`}>{step.category}</Link>
+        <Link href={`/${step.route || step.category.toLowerCase()}`} prefetch={false}>
+          {step.category}
+        </Link>
         <ArrowRight size={16} />
         <span style={{ color: 'var(--step-color)' }}>{step.name}</span>
       </p>

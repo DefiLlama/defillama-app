@@ -208,8 +208,6 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const isLoading = denomination !== 'USD' && loading
 
-  console.log(minTvl, maxTvl, 1)
-
   const finalProtocolTotals = useMemo(() => {
     const isValidTvlRange =
       minTvl !== undefined && maxTvl !== undefined && !Number.isNaN(minTvl) && !Number.isNaN(maxTvl)
