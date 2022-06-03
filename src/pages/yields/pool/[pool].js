@@ -8,12 +8,12 @@ import { toK } from 'utils'
 import Search from 'components/Search'
 import { BasicLink } from 'components/Link'
 import styled from 'styled-components'
-import { useMedia } from 'react-use'
 import { useRouter } from 'next/router'
 import FormattedName from 'components/FormattedName'
 import AuditInfo from 'components/AuditInfo'
 import { ButtonLight } from 'components/ButtonStyled'
 import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
+import { useMedia } from 'hooks'
 
 const HiddenSearch = styled.span`
   @media screen and (max-width: ${({ theme }) => theme.bpSm}) {

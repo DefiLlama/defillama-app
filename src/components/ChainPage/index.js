@@ -1,20 +1,17 @@
 import React, { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-
 import { RowBetween, RowFixed } from '../Row'
 import { AutoColumn } from '../Column'
 import Search from '../Search/New'
 import { ProtocolsTable, Panel, BreakpointPanels, BreakpointPanelsColumn } from '..'
 import Filters from '../Filters'
-
 import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { TYPE } from 'Theme'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
 import { useCalcProtocolsTvls } from 'hooks/data'
 import { DownloadCloud } from 'react-feather'
 import { BasicLink } from '../Link'
-
 import { chainCoingeckoIds } from 'constants/chainTokens'
 import { useDenominationPriceHistory } from 'utils/dataApi'
 import SEO from '../SEO'
@@ -23,7 +20,7 @@ import { useRouter } from 'next/router'
 import LocalLoader from 'components/LocalLoader'
 import llamaLogo from '../../assets/peeking-llama.png'
 import Image from 'next/image'
-import { columnsToShow } from 'components/Table'
+import { columnsToShow, TableFilters } from 'components/Table'
 
 export const ListOptions = styled.nav`
   display: flex;
@@ -89,6 +86,8 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
   const router = useRouter()
 
   const denomination = router.query?.currency ?? 'USD'
+
+  const { minTvl, maxTvl } = router.query
 
   const [easterEgg, setEasterEgg] = useState(false)
   const [darkMode, toggleDarkMode] = useDarkModeManager()
@@ -209,6 +208,14 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const isLoading = denomination !== 'USD' && loading
 
+  console.log(minTvl, maxTvl, 1)
+
+  const finalProtocolTotals = useMemo(() => {
+    const isValidTvlRange =
+      minTvl !== undefined && maxTvl !== undefined && !Number.isNaN(minTvl) && !Number.isNaN(maxTvl)
+    return isValidTvlRange ? protocolTotals.filter((p) => p.tvl > minTvl && p.tvl < maxTvl) : protocolTotals
+  }, [minTvl, maxTvl, protocolTotals])
+
   const panels = (
     <>
       <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
@@ -321,10 +328,10 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
       <ListOptions style={{ margin: '36px 0 -12px 0' }}>
         <ListHeader>TVL Rankings</ListHeader>
         <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
-        {/* <TableFilters /> */}
+        <TableFilters />
       </ListOptions>
 
-      <ProtocolsTable data={protocolTotals} columns={columns} />
+      <ProtocolsTable data={finalProtocolTotals} columns={columns} />
     </>
   )
 }

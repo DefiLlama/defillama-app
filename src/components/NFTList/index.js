@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react'
-import { useMedia } from 'react-use'
 import { Box, Flex, Text } from 'rebass'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
@@ -12,8 +11,8 @@ import { CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum } from '../../utils'
-import { useInfiniteScroll } from '../../hooks'
+import { formattedNum } from 'utils'
+import { useInfiniteScroll, useMedia } from 'hooks'
 
 import FormattedName from '../FormattedName'
 

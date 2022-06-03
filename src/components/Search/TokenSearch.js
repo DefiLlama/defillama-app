@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
 
-import { useMedia } from 'react-use'
 import RightSettings from '../RightSettings'
 
 import { CloseIcon, Container, Input, SearchIconLarge, Wrapper } from './shared'
 import { standardizeProtocolName } from 'utils'
 import dynamic from 'next/dynamic'
 
-import { useYieldApp } from '../../hooks'
-import { usePeggedApp } from '../../hooks'
+import { useYieldApp, usePeggedApp, useMedia } from 'hooks'
 
 // importing both
 const OpenTokenSearch = dynamic(() => import('./OpenTokenSearch'))

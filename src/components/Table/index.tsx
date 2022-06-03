@@ -12,6 +12,7 @@ import orderBy from 'lodash.orderby'
 import IconsRow from 'components/IconsRow'
 import QuestionHelper from 'components/QuestionHelper'
 import { AutoRow } from 'components/Row'
+export { TableFilters } from './Filters'
 
 interface ColumnProps {
   header: string

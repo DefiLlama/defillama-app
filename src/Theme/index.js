@@ -84,24 +84,24 @@ const theme = (darkMode, color) => ({
   shadowLg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
 
   // breakpoints
-  bpSm: `${sm}px`,
-  bpMed: `${med}px`,
-  bpLg: `${lg}px`,
-  bpXl: `${xl}px`,
-  bp2Xl: `${twoXl}px`,
+  bpSm: `${sm}rem`,
+  bpMed: `${med}rem`,
+  bpLg: `${lg}rem`,
+  bpXl: `${xl}rem`,
+  bp2Xl: `${twoXl}rem`,
 
-  maxSm: `@media screen and (max-width: ${sm}px)`,
-  maxMed: `@media screen and (max-width: ${med}px)`,
-  maxLg: `@media screen and (max-width: ${lg}px)`,
-  maxXl: `@media screen and (max-width: ${xl}px)`,
+  maxSm: `@media screen and (max-width: ${sm}rem)`,
+  maxMed: `@media screen and (max-width: ${med}rem)`,
+  maxLg: `@media screen and (max-width: ${lg}rem)`,
+  maxXl: `@media screen and (max-width: ${xl}rem)`,
 
-  minSm: `@media screen and (min-width: ${sm}px)`,
-  minMed: `@media screen and (min-width: ${med}px)`,
-  minLg: `@media screen and (min-width: ${lg}px)`,
-  minXl: `@media screen and (min-width: ${xl}px)`,
-  min2Xl: `@media screen and (min-width: ${twoXl}px)`,
+  minSm: `@media screen and (min-width: ${sm}rem)`,
+  minMed: `@media screen and (min-width: ${med}rem)`,
+  minLg: `@media screen and (min-width: ${lg}rem)`,
+  minXl: `@media screen and (min-width: ${xl}rem)`,
+  min2Xl: `@media screen and (min-width: ${twoXl}rem)`,
 
-  breakpoints: [`${sm}px`, `${med}px`, `${lg}px`, `${xl}px`],
+  breakpoints: [`${sm}rem`, `${med}rem`, `${lg}rem`, `${xl}rem`],
 })
 
 const TextWrapper = styled(Text)`

@@ -24,13 +24,14 @@ const TooltipTrigger = styled(Button)`
 
 const TooltipPopver = styled(AriaTooltip)`
   font-size: 0.85rem;
-  padding: 0.5rem;
-  background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
-  border: 1px solid ${({ theme }) => theme.bg3};
-  color: ${({ theme }) => theme.text1};
+  padding: 8px;
+  color: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(0, 0%, 100%)' : 'hsl(204, 10%, 10%)')};
+  background: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 12%)' : 'hsl(204, 20%, 100%)')};
+  border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 32%)' : 'hsl(204, 20%, 88%)')};
   border-radius: 8px;
+  filter: ${({ theme }) =>
+    theme.mode === 'dark' ? 'drop-shadow(0 4px 6px rgba(0, 0, 0, 40%))' : 'drop-shadow(0 4px 6px rgba(0, 0, 0, 15%))'};
   max-width: 228px;
-  box-shadow: ${({ theme }) => theme.shadowSm};
 `
 
 export default function Tooltip({ content, children, ...props }: ITooltip) {

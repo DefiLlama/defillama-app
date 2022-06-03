@@ -16,8 +16,8 @@ import styled from 'styled-components'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import logoLight from '../../../public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '../../../public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import { useMedia } from 'react-use'
 import { IChartProps } from './types'
+import { useMedia } from 'hooks'
 
 echarts.use([
   CanvasRenderer,
@@ -112,7 +112,7 @@ export default function AreaChart({
     }
   }, [chartData, tokensUnique, color, isDark])
 
-  const isSmall = useMedia(`(max-width: 600px)`)
+  const isSmall = useMedia(`(max-width: 37.5rem)`)
 
   const createInstance = useCallback(() => {
     const instance = echarts.getInstanceByDom(document.getElementById(id))

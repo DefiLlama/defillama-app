@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { useMedia } from 'react-use'
 import { Repeat } from 'react-feather'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
@@ -15,6 +14,7 @@ import { formattedNum, standardizeProtocolName } from 'utils'
 import { useFetchProtocol, useGeckoProtocol } from 'utils/dataApi'
 import { Panel } from 'components'
 import Layout from 'layout'
+import { useMedia } from 'hooks'
 
 const ComparisonDetailsLayout = styled.div`
   display: inline-grid;

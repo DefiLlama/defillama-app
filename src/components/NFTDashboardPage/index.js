@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react'
-import { useMedia } from 'react-use'
 import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import { useDisplayUsdManager, useHideLastDayManager } from '../../contexts/LocalStorage'
@@ -16,7 +15,7 @@ import SEO from 'components/SEO'
 import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
 import { ListHeader, ListOptions } from 'components/ChainPage'
 import Layout from 'layout'
-
+import { useMedia } from 'hooks'
 
 const defaultTab = {
   label: 'All',
@@ -80,7 +79,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
         totalVolumeUSD - chart[chart.length - 1].volumeUSD,
         chart[chart.length - 2].volumeUSD,
         ((chart[chart.length - 2].volumeUSD - chart[chart.length - 3].volumeUSD) / chart[chart.length - 3].volumeUSD) *
-        100,
+          100,
       ]
       chart = chart.slice(0, -1)
     } else if (chart.length >= 3) {
@@ -143,9 +142,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
       <AutoColumn gap="24px" style={{ paddingBottom: '24px' }}>
         <Search />
         <Panel background={true} style={{ textAlign: 'center', marginBottom: '1rem', marginTop: '-1rem' }}>
-          <TYPE.main fontWeight={400}>
-            Data is currently incorrect and we are fixing it, please don't use it
-          </TYPE.main>
+          <TYPE.main fontWeight={400}>Data is currently incorrect and we are fixing it, please don't use it</TYPE.main>
         </Panel>
         <CheckMarks type="nfts" />
       </AutoColumn>
@@ -172,7 +169,6 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
       <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
         <NFTCollectionList collections={collections} displayUsd={displayUsd} />
       </Panel>
-
     </Layout>
   )
 }

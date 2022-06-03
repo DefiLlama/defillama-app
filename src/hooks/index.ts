@@ -3,8 +3,10 @@ import { useRouter } from 'next/router'
 export { default as useInfiniteScroll } from './useInfiniteScroll'
 export { default as useFetchInfiniteScroll } from './useFetchInfiniteScroll'
 export { default as useResize } from './useResize'
+export { default as useAnalytics } from "./useAnalytics"
+export { default as useMedia } from "./useMedia"
+export { default as useDebounce } from "./useDebounce"
 export * from './useBreakpoints'
-export * from './useAnalytics'
 
 export const useOutsideClick = (ref, ref2, callback) => {
 
