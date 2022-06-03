@@ -31,7 +31,7 @@ const Wrapper = styled.button`
   }
 `
 
-export default function TableFilters() {
+export function TableFilters() {
   return (
     <Wrapper>
       <Filter size={14} />

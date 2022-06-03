@@ -10,9 +10,8 @@ import { CustomLink } from '../Link'
 import Row from '../Row'
 import { Divider } from '..'
 
-import { formattedNum, filterCollectionsByCurrency } from '../../utils'
-import { useFetchInfiniteScroll } from '../../hooks'
-import { useMedia } from 'react-use'
+import { formattedNum, filterCollectionsByCurrency } from 'utils'
+import { useFetchInfiniteScroll, useMedia } from 'hooks'
 
 import FormattedName from '../FormattedName'
 import IconsRow from 'components/IconsRow'

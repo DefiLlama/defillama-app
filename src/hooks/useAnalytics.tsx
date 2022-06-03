@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import * as Fathom from 'fathom-client'
 
-export const useAnalytics = () => {
+const useAnalytics = () => {
   const router = useRouter()
 
   useEffect(() => {
@@ -26,3 +26,5 @@ export const useAnalytics = () => {
     }
   }, [router.events])
 }
+
+export default useAnalytics

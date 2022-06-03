@@ -709,4 +709,6 @@ export function columnsToShow(...names: Columns[]) {
   return names.map((item) => allColumns[item])
 }
 
+export { TableFilters } from './Filters'
+
 export default Table

@@ -1,7 +1,6 @@
 import React from 'react'
 import styled, { css } from 'styled-components'
 import { transparentize } from 'polished'
-import { useMedia } from 'react-use'
 import { Text, Box } from 'rebass'
 import dynamic from 'next/dynamic'
 
@@ -23,6 +22,7 @@ import { useHideLastDayManager, useDisplayUsdManager } from '../../contexts/Loca
 import SEO from 'components/SEO'
 import Layout from 'layout'
 import { Box as RebassBox } from 'rebass'
+import { useMedia } from 'hooks'
 
 const panelPseudo = css`
   :after {
@@ -32,7 +32,7 @@ const panelPseudo = css`
     right: 0;
     height: 10px;
   }
-  @media only screen and (min-width: 40em) {
+  @media only screen and (min-width: 40rem) {
     :after {
       content: unset;
     }
@@ -50,17 +50,17 @@ export const Panel = styled(RebassBox)`
   justify-content: flex-start;
   border-radius: 8px;
   border: 1px solid ${({ theme }) => theme.bg3};
-  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);  /* box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 4px 8px rgba(0, 0, 0, 0.01), 0px 16px 24px rgba(0, 0, 0, 0.01), 0px 24px 32px rgba(0, 0, 0, 0.01); */
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05); /* box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 4px 8px rgba(0, 0, 0, 0.01), 0px 16px 24px rgba(0, 0, 0, 0.01), 0px 24px 32px rgba(0, 0, 0, 0.01); */
   :hover {
-      cursor: ${({ hover }) => hover && 'pointer'};
-      border: ${({ hover, theme }) => hover && '1px solid' + theme.bg5};
-    }
-  ${props => props.background && `background-color: ${props.theme.advancedBG};`}
-  ${props => (props.area ? `grid-area: ${props.area};` : null)}
-  ${props =>
+    cursor: ${({ hover }) => hover && 'pointer'};
+    border: ${({ hover, theme }) => hover && '1px solid' + theme.bg5};
+  }
+  ${(props) => props.background && `background-color: ${props.theme.advancedBG};`}
+  ${(props) => (props.area ? `grid-area: ${props.area};` : null)}
+  ${(props) =>
     props.grouped &&
     css`
-      @media only screen and (min-width: 40em) {
+      @media only screen and (min-width: 40rem) {
         &:first-of-type {
           border-radius: 20px 20px 0 0;
         }
@@ -69,15 +69,15 @@ export const Panel = styled(RebassBox)`
         }
       }
     `}
-  ${props =>
+  ${(props) =>
     props.rounded &&
     css`
       border-radius: 8px;
-      @media only screen and (min-width: 40em) {
+      @media only screen and (min-width: 40rem) {
         border-radius: 10px;
       }
     `};
-  ${props => !props.last && panelPseudo}
+  ${(props) => !props.last && panelPseudo}
 `
 
 const DashboardWrapper = styled(Box)`

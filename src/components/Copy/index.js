@@ -1,7 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import { CheckCircle, Copy } from 'react-feather'
-import { useCopyToClipboard } from 'react-use'
 
 const CopyIcon = styled.button`
   flex-shrink: 0;
@@ -26,20 +25,19 @@ const CopyIcon = styled.button`
   }
 
   & > svg {
-    color: ${({ theme }) => theme.text1}
+    color: ${({ theme }) => theme.text1};
   }
 `
 
 export default function CopyHelper({ toCopy, ...props }) {
-  const [{ value }, setCopied] = useCopyToClipboard()
-
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(toCopy)
+    setCopied(true)
+  }
   return (
-    <CopyIcon onClick={() => setCopied(toCopy)} aria-label="Copy" {...props}>
-      {value ? (
-        <CheckCircle size={14} />
-      ) : (
-        <Copy size={14} />
-      )}
+    <CopyIcon onClick={copy} aria-label="Copy" {...props}>
+      {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
     </CopyIcon>
   )
 }
