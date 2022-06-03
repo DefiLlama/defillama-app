@@ -74,7 +74,7 @@ const NavMenu = () => {
       <Entry url="https://chainlist.org/" name="Chainlist" Icon={List} />
       <Entry url="/about" name="About" Icon={HelpCircle} />
 
-      <Footer />
+      <Footer app="defi" />
     </Nav>
   )
 }

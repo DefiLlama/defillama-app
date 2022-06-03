@@ -15,7 +15,6 @@ const StyledToggle = styled.button`
   width: fit-content;
   cursor: pointer;
   text-decoration: none;
-  margin-top: 1rem;
   color: white;
   background: none;
   border: none;

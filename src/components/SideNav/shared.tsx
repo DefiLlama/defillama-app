@@ -52,6 +52,7 @@ export const TitleWrapper = styled.span`
 `
 
 export const Nav = styled.nav`
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -84,6 +85,7 @@ const FooterWrapper = styled.section`
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: auto;
 
   & > a {
     display: inline-block;
@@ -143,54 +145,64 @@ export const MobileOnlyEntry = styled(Entry)`
   }
 `
 
-export const Footer = () => {
+export const Footer = ({ app }: { app: 'defi' | 'yields' }) => {
   const [darkMode, toggleDarkMode] = useDarkModeManager()
   return (
     <>
       <FooterWrapper>
-        <Link href="https://twitter.com/DefiLlama" passHref>
-          <a target="_blank" rel="noopener noreferrer">
-            Twitter
-          </a>
-        </Link>
+        {app === 'defi' ? (
+          <>
+            <Link href="https://twitter.com/DefiLlama" passHref>
+              <a target="_blank" rel="noopener noreferrer">
+                Twitter
+              </a>
+            </Link>
 
-        <Link href="https://discord.gg/buPFYXzDDd" passHref>
-          <a target="_blank" rel="noopener noreferrer">
-            Discord
-          </a>
-        </Link>
+            <Link href="https://discord.gg/buPFYXzDDd" passHref>
+              <a target="_blank" rel="noopener noreferrer">
+                Discord
+              </a>
+            </Link>
 
-        <Link href="https://t.me/defillama_tg" passHref>
-          <a target="_blank" rel="noopener noreferrer">
-            Daily news
-          </a>
-        </Link>
+            <Link href="https://t.me/defillama_tg" passHref>
+              <a target="_blank" rel="noopener noreferrer">
+                Daily news
+              </a>
+            </Link>
 
-        <Link href="https://etherscan.io/address/0x08a3c2A819E3de7ACa384c798269B3Ce1CD0e437" passHref>
-          <a target="_blank" rel="noopener noreferrer">
-            Donate
-          </a>
-        </Link>
+            <Link href="https://etherscan.io/address/0x08a3c2A819E3de7ACa384c798269B3Ce1CD0e437" passHref>
+              <a target="_blank" rel="noopener noreferrer">
+                Donate
+              </a>
+            </Link>
 
-        <Link href="/press" passHref prefetch={false}>
-          <a>Press / Media</a>
-        </Link>
+            <Link href="/press" passHref prefetch={false}>
+              <a>Press / Media</a>
+            </Link>
 
-        <Link href="/docs/api" passHref prefetch={false}>
-          <a>API Docs</a>
-        </Link>
+            <Link href="/docs/api" passHref prefetch={false}>
+              <a>API Docs</a>
+            </Link>
 
-        <Link href="https://docs.llama.fi/list-your-project/submit-a-project" passHref>
-          <a target="_blank" rel="noopener noreferrer">
-            List Your Project
-          </a>
-        </Link>
+            <Link href="https://docs.llama.fi/list-your-project/submit-a-project" passHref>
+              <a target="_blank" rel="noopener noreferrer">
+                List Your Project
+              </a>
+            </Link>
 
-        <Link href="https://defillama-datasets.s3.eu-central-1.amazonaws.com/all.csv" passHref>
-          <a target="_blank" rel="noopener noreferrer">
-            Download Data
-          </a>
-        </Link>
+            <Link href="https://defillama-datasets.s3.eu-central-1.amazonaws.com/all.csv" passHref>
+              <a target="_blank" rel="noopener noreferrer">
+                Download Data
+              </a>
+            </Link>
+          </>
+        ) : (
+          <Link href="https://defillama-datasets.s3.eu-central-1.amazonaws.com/yield-ml/pools_2022_05_20.csv" passHref>
+            <a target="_blank" rel="noopener noreferrer">
+              Download Data
+            </a>
+          </Link>
+        )}
       </FooterWrapper>
 
       <Toggle isActive={darkMode} toggle={toggleDarkMode} />
