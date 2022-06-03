@@ -20,7 +20,8 @@ import { useRouter } from 'next/router'
 import LocalLoader from 'components/LocalLoader'
 import llamaLogo from '../../assets/peeking-llama.png'
 import Image from 'next/image'
-import { columnsToShow, TableFilters } from 'components/Table'
+import { columnsToShow } from 'components/Table'
+import { TableFilters } from 'components/Table/Filters'
 
 export const ListOptions = styled.nav`
   display: flex;
