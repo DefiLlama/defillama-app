@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useDebounce } from 'react-use'
 
 import { RowFixed } from '../Row'
 import TokenLogo from '../TokenLogo'
@@ -12,7 +11,7 @@ import RightSettings from '../RightSettings'
 import { Blue, CloseIcon, Container, Heading, Input, Menu, MenuItem, SearchIconLarge, Wrapper } from './shared'
 
 import { getNFTSearchResults } from 'utils/dataApi'
-import { useMedia } from 'hooks'
+import { useMedia, useDebounce } from 'hooks'
 
 const NFTSearch = ({ small = false }) => {
   const linkPath = (collection) => `/nfts/collection/${collection.slug}`

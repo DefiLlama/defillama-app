@@ -1,17 +1,77 @@
-import { useCallback } from 'react'
-import { Button } from 'ariakit/button'
+import React, { useCallback } from 'react'
 import {
   Popover as AriaPopover,
   PopoverArrow,
-  PopoverDescription,
   PopoverDisclosure,
-  PopoverHeading,
   PopoverStateRenderCallbackProps,
   usePopoverState,
 } from 'ariakit/popover'
 import assignStyle from './assign-style'
 import { useMedia } from 'hooks'
-import './style.css'
+import { transparentize } from 'polished'
+import styled from 'styled-components'
+
+const Trigger = styled(PopoverDisclosure)`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+  border: 1px solid transparent;
+  background-color: ${({ theme }) => transparentize(0.9, theme.primary1)};
+  color: ${({ theme }) => theme.text1};
+
+  white-space: nowrap;
+
+  :hover,
+  :focus-visible {
+    cursor: pointer;
+    background-color: ${({ theme }) => transparentize(0.8, theme.primary1)};
+  }
+
+  :focus-visible,
+  [data-focus-visible] {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline-offset: 1px;
+  }
+`
+
+const PopoverWrapper = styled(AriaPopover)`
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px;
+  color: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(0, 0%, 100%)' : 'hsl(204, 10%, 10%)')};
+  background: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 20%)' : 'hsl(204, 20%, 100%)')};
+  border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 32%)' : 'hsl(204, 20%, 88%)')};
+  border-radius: 8px;
+  filter: ${({ theme }) =>
+    theme.mode === 'dark' ? 'drop-shadow(0 4px 6px rgba(0, 0, 0, 40%))' : 'drop-shadow(0 4px 6px rgba(0, 0, 0, 15%))'};
+  max-height: calc(100vh - 200px);
+  width: 100%;
+  max-width: none;
+
+  .arrow svg {
+    fill: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 20%)' : 'hsl(204, 20%, 100%)')};
+    stroke: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 32%)' : 'hsl(204, 20%, 88%)')};
+  }
+
+  :focus-visible,
+  [data-focus-visible] {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline-offset: 1px;
+  }
+
+  @media screen and (min-width: 640px) {
+    max-width: min(calc(100vw - 16px), 320px);
+  }
+`
 
 function applyMobileStyles(popover: HTMLElement, arrow?: HTMLElement | null) {
   const restorePopoverStyle = assignStyle(popover, {
@@ -28,7 +88,12 @@ function applyMobileStyles(popover: HTMLElement, arrow?: HTMLElement | null) {
   return restoreDesktopStyles
 }
 
-export default function Popover() {
+interface IProps {
+  trigger: React.ReactNode
+  content: React.ReactNode
+}
+
+export default function Popover({ trigger, content }: IProps) {
   const isLarge = useMedia('(min-width: 640px)', true)
 
   const renderCallback = useCallback(
@@ -44,19 +109,11 @@ export default function Popover() {
 
   return (
     <>
-      <PopoverDisclosure state={popover} className="button">
-        Accept invite
-      </PopoverDisclosure>
-      <AriaPopover state={popover} modal={!isLarge} className="popover">
+      <Trigger state={popover}>{trigger}</Trigger>
+      <PopoverWrapper state={popover} modal={!isLarge}>
         <PopoverArrow className="arrow" />
-        <PopoverHeading className="heading">Team meeting</PopoverHeading>
-        <PopoverDescription>We are going to discuss what we have achieved on the project.</PopoverDescription>
-        <div>
-          <p>12 Jan 2022 18:00 to 19:00</p>
-          <p>Alert 10 minutes before start</p>
-        </div>
-        <Button className="button">Accept</Button>
-      </AriaPopover>
+        {content}
+      </PopoverWrapper>
     </>
   )
 }

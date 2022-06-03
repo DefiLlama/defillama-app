@@ -93,3 +93,7 @@ textarea,
 select {
   font: inherit;
 }
+
+[data-backdrop] {
+  background-color: rgb(0 0 0 / 10%);
+}

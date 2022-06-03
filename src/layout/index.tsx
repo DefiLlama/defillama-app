@@ -1,9 +1,8 @@
 import React from 'react'
 import styled from 'styled-components'
-import PinnedData from '../components/PinnedData'
-import SideNav from '../components/SideNav'
+import SideNav from 'components/SideNav'
 import Head from 'next/head'
-import ThemeProvider, { GlobalStyle, ThemedBackground } from '../Theme'
+import ThemeProvider, { GlobalStyle, ThemedBackground } from 'Theme'
 import SEO from 'components/SEO'
 import { transparentize } from 'polished'
 
@@ -33,7 +32,6 @@ const PageWrapper = styled.div`
 
   @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
     padding-left: 220px;
-    padding-right: 61px;
   }
 `
 
@@ -74,7 +72,6 @@ export default function Layout({ title, children, defaultSEO = false, background
           <Background backgroundColor={backgroundColor || transparentize(0.8, '#445ed0')} />
           <Center {...props}>{children}</Center>
         </PageWrapper>
-        <PinnedData />
       </ThemeProvider>
     </>
   )
