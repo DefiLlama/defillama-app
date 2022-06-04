@@ -425,7 +425,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
           {tvls.length > 1 && (
             <Table>
-              <caption>Breakdown</caption>
+              <caption>Chain Breakdown</caption>
               <tbody>
                 {tvls.map((chainTvl) => (
                   <tr key={chainTvl[0]}>
