@@ -1,6 +1,6 @@
 import React from 'react'
 import Layout from 'layout'
-import { getPeggedChainsPageData, revalidate, getPeggedAssets } from 'utils/dataApi'
+import { getPeggedAssetPageData, revalidate, getPeggedAssets } from 'utils/dataApi'
 import PeggedContainer from 'containers/PeggedContainer'
 import { standardizeProtocolName } from 'utils'
 
@@ -9,7 +9,7 @@ export async function getStaticProps({
     peggedasset: [peggedasset, cat = 'All'],
   },
 }) {
-  const data = await getPeggedChainsPageData(cat, peggedasset)
+  const data = await getPeggedAssetPageData(cat, peggedasset)
   const { chainsUnique, chainCirculatings, category, categories, stackedDataset, peggedSymbol, pegType, bridgeInfo } =
     data.props
   return {

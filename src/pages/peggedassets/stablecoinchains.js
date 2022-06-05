@@ -1,0 +1,46 @@
+import PeggedChainsOverview from 'components/PeggedChainsOverview'
+import Layout from 'layout'
+import { getPeggedChainsPageData, revalidate } from 'utils/dataApi'
+import { capitalizeFirstLetter } from 'utils'
+
+export async function getStaticProps() {
+  const props = await getPeggedChainsPageData('stablecoins')
+
+  if (!props.chainCirculatings || props.chainCirculatings?.length === 0) {
+    return {
+      notFound: true,
+    }
+  }
+  return {
+    props,
+    revalidate: revalidate(),
+  }
+}
+
+export default function PeggedAssets({
+  peggedcategory,
+  chainCirculatings,
+  chartData,
+  formattedPeggedChainAreaChart,
+  formattedPeggedMcapAreaChart,
+  stackedDataset,
+  peggedChartType,
+  chainList,
+  chainsGroupbyParent,
+}) {
+  return (
+    <Layout title={`${capitalizeFirstLetter(peggedcategory)} Circulating - DefiLlama`} defaultSEO>
+      <PeggedChainsOverview
+        category={peggedcategory}
+        chainCirculatings={chainCirculatings}
+        chartData={chartData}
+        formattedPeggedChainAreaChart={formattedPeggedChainAreaChart}
+        formattedPeggedMcapAreaChart={formattedPeggedMcapAreaChart}
+        stackedDataset={stackedDataset}
+        peggedChartType={peggedChartType}
+        chainList={chainList}
+        chainsGroupbyParent={chainsGroupbyParent}
+      />
+    </Layout>
+  )
+}

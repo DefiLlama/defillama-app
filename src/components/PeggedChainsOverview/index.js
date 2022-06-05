@@ -4,34 +4,36 @@ import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from '../Column'
 import { RowBetween, AutoRow } from 'components/Row'
 import Search from 'components/Search'
+import PeggedViewSwitch from 'components/PeggedViewSwitch'
 import {
   getRandomColor,
   capitalizeFirstLetter,
   formattedNum,
-  formattedPegggedPrice,
+  formattedPercent,
   getPercentChange,
   getPeggedDominance,
   toNiceMonthlyDate,
 } from 'utils'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/data'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from 'hooks/data'
 import { useLg, useXl, useMed } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
-import Table, { columnsToShow, isOfTypePeggedCategory, NamePegged } from 'components/Table'
+import { columnsToShow, isOfTypePeggedCategory, NamePegged, FullTable } from 'components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
-import Filters, { FiltersWrapper } from 'components/Filters'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
 import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
-import IconsRow from 'components/IconsRow'
+import { PeggedAssetGroupOptions } from 'components/Select'
 
-function Chart({ formattedPeggedAreaChart, peggedAssetNames, aspect }) {
+function Chart({ formattedPeggedChainAreaChart, formattedPeggedMcapAreaChart, totalMcapLabel, chainList, aspect }) {
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
+  const finalChartData = formattedPeggedChainAreaChart ? formattedPeggedChainAreaChart : formattedPeggedMcapAreaChart
+  const labels = chainList ? chainList : totalMcapLabel
   return (
     <GeneralAreaChart
       aspect={aspect}
-      finalChartData={formattedPeggedAreaChart}
-      tokensUnique={peggedAssetNames}
+      finalChartData={finalChartData}
+      tokensUnique={labels}
       textColor={textColor}
       color={'blue'}
       moneySymbol="$"
@@ -41,196 +43,34 @@ function Chart({ formattedPeggedAreaChart, peggedAssetNames, aspect }) {
   )
 }
 
-const PeggedTable = styled(Table)`
-  tr > *:not(:first-child) {
-    & > div {
-      width: 100px;
-      white-space: nowrap;
-      overflow: hidden;
-      font-weight: 400;
-      margin-left: auto;
-    }
-  }
-
-  // PEGGED NAME
-  tr > *:nth-child(1) {
-    & > div {
-      width: 120px;
-      overflow: hidden;
-      white-space: nowrap;
-
-      // HIDE LOGO
-      & > *:nth-child(2) {
-        display: none;
-      }
-
-      & > *:nth-child(3) {
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-    }
-  }
-
-  // CHAINS
-  tr > *:nth-child(2) {
-    display: none;
-    & > div {
-      width: 200px;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-  }
-
-  // PRICE
-  tr > *:nth-child(3) {
-    display: none;
-  }
-
-  // 1D CHANGE
-  tr > *:nth-child(4) {
-    display: none;
-  }
-
-  // 7D CHANGE
-  tr > *:nth-child(5) {
-    display: none;
-  }
-
-  // 1M CHANGE
-  tr > *:nth-child(6) {
-    display: none;
-  }
-
-  // MCAP
-  tr > *:nth-child(7) {
-    padding-right: 20px;
-    & > div {
-      text-align: right;
-      margin-left: auto;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-  }
-
-  @media screen and (min-width: 360px) {
-    // PEGGED NAME
-    tr > *:nth-child(1) {
-      & > div {
-        width: 160px;
-      }
-    }
-  }
-
-  @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-    // 7D CHANGE
-    tr > *:nth-child(5) {
-      display: revert;
-    }
-  }
-
-  @media screen and (min-width: 640px) {
-    // PEGGED NAME
-    tr > *:nth-child(1) {
-      & > div {
-        width: 280px;
-        // SHOW LOGO
-        & > *:nth-child(2) {
-          display: flex;
-        }
-      }
-    }
-  }
-
-  @media screen and (min-width: 720px) {
-    // 1M CHANGE
-    tr > *:nth-child(6) {
-      display: revert;
-    }
-  }
-
-  @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-    // PEGGED NAME
-    tr > *:nth-child(1) {
-      & > div {
-        & > *:nth-child(4) {
-          & > *:nth-child(2) {
-            display: revert;
-          }
-        }
-      }
-    }
-  }
-
-  @media screen and (min-width: 900px) {
-    // MCAP
-    tr > *:nth-child(7) {
-      padding-right: 0px;
-    }
-  }
-
-  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-    // 1D CHANGE
-    tr > *:nth-child(4) {
-      display: none !important;
-    }
-
-    // MCAP
-    tr > *:nth-child(7) {
-      padding-right: 20px;
-    }
-  }
-
-  @media screen and (min-width: 1200px) {
-    // 1M CHANGE
-    tr > *:nth-child(6) {
-      display: revert !important;
-    }
-  }
-
-  @media screen and (min-width: 1300px) {
-    // PRICE
-    tr > *:nth-child(3) {
-      display: revert !important;
-    }
-
-    // 1D CHANGE
-    tr > *:nth-child(4) {
-      display: revert !important;
-    }
-
-    // MCAP
-    tr > *:nth-child(7) {
-      display: revert !important;
-    }
-  }
-
-  @media screen and (min-width: 1536px) {
-    // PEGGED NAME
-    tr > *:nth-child(1) {
-      & > div {
-        width: 300px;
-      }
-    }
-
-    // CHAINS
-    tr > *:nth-child(2) {
-      display: revert;
-    }
+const AssetFilters = styled.div`
+  margin: 12px 0 16px;
+  & > h2 {
+    margin: 0 2px 8px;
+    font-weight: 600;
+    font-size: 0.825rem;
+    color: ${({ theme }) => theme.text1};
   }
 `
 
-function PeggedAssetsOverview({
+const StyledTable = styled(FullTable)`
+  tr > :first-child {
+    padding-left: 40px;
+  }
+`
+
+function PeggedChainsOverview({
   title,
   category,
-  selectedChain = 'All',
-  chains = [],
-  filteredPeggedAssets,
+  chainCirculatings,
   chartData,
-  formattedPeggedAreaChart,
+  formattedPeggedChainAreaChart,
+  formattedPeggedMcapAreaChart,
   stackedDataset,
   peggedChartType,
-  showChainList = true,
   defaultSortingColumn,
+  chainList,
+  chainsGroupbyParent,
 }) {
   let firstColumn = columnsToShow('protocolName')[0]
 
@@ -240,14 +80,14 @@ function PeggedAssetsOverview({
       header: 'Name',
       accessor: 'name',
       disableSortBy: true,
-      Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+      Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
         <NamePegged
-          type="stablecoins"
+          type="peggedUSD"
           value={value}
           symbol={rowValues.symbol}
-          index={rowIndex !== null && rowIndex + 1}
-          bookmark
+          index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
           rowType={rowType}
+          showRows={showRows}
         />
       ),
     }
@@ -256,22 +96,42 @@ function PeggedAssetsOverview({
   const columns = [
     firstColumn,
     {
-      header: 'Chains',
-      accessor: 'chains', // should change this
+      header: 'Dominant Stablecoin',
+      accessor: 'dominance',
       disableSortBy: true,
-      helperText: "Chains are ordered by pegged asset's highest issuance on each chain",
-      Cell: ({ value }) => <IconsRow links={value} url="/peggedassets/stablecoins" iconType="chain" />,
+      Cell: ({ value }) => {
+        return (
+          <>
+            {value && (
+              <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+                <span>{`${value.name}: `}</span>
+                <span>{formattedPercent(value.value, true)}</span>
+              </AutoRow>
+            )}
+          </>
+        )
+      },
     },
     {
-      header: 'Price',
-      accessor: 'price',
-      Cell: ({ value }) => <>{value ? formattedPegggedPrice(value, true) : '-'}</>,
+      header: 'Total Mcap Issued On',
+      accessor: 'minted',
+      Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
     },
-    ...columnsToShow('1dChange', '7dChange', '1mChange'),
+    {
+      header: 'Total Mcap Bridged To',
+      accessor: 'bridgedTo',
+      Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
+    },
+    ...columnsToShow('7dChange'),
     {
       header: 'Market Cap',
       accessor: 'mcap',
       Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
+    },
+    {
+      header: 'Mcap/TVL',
+      accessor: 'mcaptvl',
+      Cell: ({ value }) => <>{value && formattedNum(value, false)}</>,
     },
   ]
 
@@ -282,16 +142,11 @@ function PeggedAssetsOverview({
   const belowXl = useXl()
   const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
-  const handleRouting = (chain) => {
-    if (chain === 'All') return `/peggedassets/${category}`
-    return `/peggedassets/${category}/${chain}`
-  }
-  const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
-
-  const peggedTotals = useCalcCirculating(filteredPeggedAssets, defaultSortingColumn)
+  const filteredPeggedAssets = chainCirculatings
+  const chainTotals = useCalcCirculating(filteredPeggedAssets, defaultSortingColumn)
 
   const chainsCirculatingValues = useMemo(() => {
-    const data = peggedTotals.map((chain) => ({ name: chain.symbol, value: chain.mcap }))
+    const data = chainTotals.map((chain) => ({ name: chain.name, value: chain.mcap }))
 
     const otherCirculating = data.slice(10).reduce((total, entry) => {
       return (total += entry.value)
@@ -301,14 +156,12 @@ function PeggedAssetsOverview({
       .slice(0, 10)
       .sort((a, b) => b.value - a.value)
       .concat({ name: 'Others', value: otherCirculating })
-  }, [peggedTotals])
+  }, [chainTotals])
 
   const chainColor = useMemo(
-    () => Object.fromEntries([...peggedTotals, 'Others'].map((peggedAsset) => [peggedAsset.symbol, getRandomColor()])),
-    [peggedTotals]
+    () => Object.fromEntries([...chainTotals, 'Others'].map((chain) => [chain.name, getRandomColor()])),
+    [chainTotals]
   )
-
-  const peggedAssetNames = useMemo(() => peggedTotals.map((peggedAsset) => peggedAsset.symbol), [peggedTotals])
 
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
@@ -316,9 +169,6 @@ function PeggedAssetsOverview({
     title = `Market Cap`
     if (category) {
       title = `${capitalizeFirstLetter(category)} Market Cap`
-    }
-    if (selectedChain !== 'All') {
-      title = `${capitalizeFirstLetter(selectedChain)} ${capitalizeFirstLetter(category)} Market Cap`
     }
   }
 
@@ -333,14 +183,18 @@ function PeggedAssetsOverview({
 
   const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
-  let topToken = { symbol: 'USDT', mcap: 0 }
-  if (peggedTotals.length > 0) {
-    const topTokenData = peggedTotals[0]
-    topToken.symbol = topTokenData.symbol
-    topToken.mcap = topTokenData.mcap
+  let topChain = { name: 'Ethereum', mcap: 0 }
+  if (chainTotals.length > 0) {
+    const topChainData = chainTotals[0]
+    topChain.name = topChainData.name
+    topChain.mcap = topChainData.mcap
   }
 
-  const dominance = getPeggedDominance(topToken, totalMcapCurrent)
+  const dominance = getPeggedDominance(topChain, totalMcapCurrent)
+
+  const totalMcapLabel = ['Total Stablecoins Market Cap']
+
+  const groupedChains = useGroupChainsPegged(chainTotals, chainsGroupbyParent)
 
   const panels = (
     <>
@@ -371,7 +225,7 @@ function PeggedAssetsOverview({
       <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
         <AutoColumn gap="4px">
           <RowBetween>
-            <TYPE.heading>{topToken.symbol} Dominance</TYPE.heading>
+            <TYPE.heading>{topChain.name} Dominance</TYPE.heading>
           </RowBetween>
           <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
@@ -389,12 +243,18 @@ function PeggedAssetsOverview({
         <TYPE.largeHeader>{title}</TYPE.largeHeader>
         <Search small={!belowLg} />
       </RowBetween>
+      <AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
+        <PeggedViewSwitch />
+      </AutoRow>
       <div>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
           <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
             <RowBetween mb={useMed ? 40 : 0} align="flex-start">
               <AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
+                <OptionButton active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
+                  Total Mcap
+                </OptionButton>
                 <OptionButton active={chartType === 'Area'} onClick={() => setChartType('Area')}>
                   Area
                 </OptionButton>
@@ -406,13 +266,14 @@ function PeggedAssetsOverview({
                 </OptionButton>
               </AutoRow>
             </RowBetween>
-            {chartType === 'Area' && <Chart {...{ formattedPeggedAreaChart, peggedAssetNames, aspect }} />}
+            {chartType === 'Mcap' && <Chart {...{ formattedPeggedMcapAreaChart, totalMcapLabel, aspect }} />}
+            {chartType === 'Area' && <Chart {...{ formattedPeggedChainAreaChart, chainList, aspect }} />}
             {chartType === 'Dominance' && (
               <PeggedChainResponsiveDominance
                 stackOffset="expand"
                 formatPercent={true}
                 stackedDataset={stackedData}
-                chainsUnique={peggedAssetNames}
+                chainsUnique={chainList}
                 chainColor={chainColor}
                 daySum={daySum}
                 aspect={aspect}
@@ -425,15 +286,14 @@ function PeggedAssetsOverview({
         </BreakpointPanels>
       </div>
 
-      {showChainList && (
-        <FiltersWrapper>
-          <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
-        </FiltersWrapper>
-      )}
+      <AssetFilters>
+        <h2>Filters</h2>
+        <PeggedAssetGroupOptions label="Filters" />
+      </AssetFilters>
 
-      <PeggedTable data={peggedTotals} columns={columns} />
+      <StyledTable data={groupedChains} columns={columns} />
     </>
   )
 }
 
-export default PeggedAssetsOverview
+export default PeggedChainsOverview

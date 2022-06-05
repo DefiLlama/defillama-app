@@ -1,3 +1,3 @@
 export { ChainTvlOptions } from './ChainTvlOptions'
 export { DeFiTvlOptions } from './DeFiTvlOptions'
-export { default as PeggedAssetOptions } from './PeggedAssetOptions'
+export { default as PeggedAssetTvlOptions, PeggedAssetGroupOptions } from './PeggedAssetOptions'
