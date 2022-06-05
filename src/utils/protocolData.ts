@@ -51,7 +51,8 @@ export function buildInflows(tokensInUsd, tokens) {
             const price = tokensInUsd[i].tokens[token] / tokens[i].tokens[token]
             const diff = (tokens[i].tokens[token] ?? 0) - (tokens[i - 1].tokens[token] ?? 0)
             const diffUsd = price * diff
-            if (diffUsd) {
+
+            if (!Number.isNaN(diffUsd) && isFinite(price)) {
                 tokenDayDifference[token] = diffUsd
                 dayDifference += diffUsd
             }
