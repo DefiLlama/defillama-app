@@ -530,7 +530,7 @@ export function Name({
 }
 
 interface PeggedNameProps {
-  type: 'peggedUSD' | 'stablecoins'
+  type: 'peggedUSD' | 'stablecoins' | 'peggedBridges'
   value: string
   symbol?: string
   index?: number
@@ -559,7 +559,7 @@ export function NamePegged({
     )
   const { iconUrl, tokenUrl } = useMemo(() => {
     let iconUrl, tokenUrl
-    if (type === 'peggedUSD') {
+    if ((type === 'peggedUSD') || (type === 'peggedBridges')) {
       tokenUrl = `/peggedassets/stablecoins/${value}`
       iconUrl = chainIconUrl(value)
     } else {
@@ -584,7 +584,7 @@ export function NamePegged({
       {rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
       {rowType !== 'pinned' && index && <span>{index}</span>}
       {rowType !== 'child' && <TokenLogo logo={iconUrl} />}
-      {rowType === 'accordion' || rowType === 'child' ? (
+      {rowType === 'accordion' || type === 'peggedBridges' ? (
         <span>{name}</span>
       ) : (
         <CustomLink href={tokenUrl}>{name}</CustomLink>

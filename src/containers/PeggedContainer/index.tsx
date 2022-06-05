@@ -88,7 +88,7 @@ export default function PeggedContainer({
       disableSortBy: true,
       Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
         <NamePegged
-          type="peggedUSD"
+          type="peggedBridges"
           value={value}
           symbol={rowType === 'child' ? '-' : rowValues.symbol}
           index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
