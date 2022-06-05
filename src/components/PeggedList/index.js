@@ -4,6 +4,7 @@ import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from '../Column'
 import { RowBetween, AutoRow } from 'components/Row'
 import Search from 'components/Search'
+import PeggedViewSwitch from 'components/PeggedViewSwitch'
 import {
   getRandomColor,
   capitalizeFirstLetter,
@@ -389,6 +390,9 @@ function PeggedAssetsOverview({
         <TYPE.largeHeader>{title}</TYPE.largeHeader>
         <Search small={!belowLg} />
       </RowBetween>
+      <AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
+        <PeggedViewSwitch />
+      </AutoRow>
       <div>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
