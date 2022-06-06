@@ -17,7 +17,7 @@ import {
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from 'hooks/data'
 import { useLg, useXl, useMed } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
-import { columnsToShow, isOfTypePeggedCategory, NamePegged, FullTable } from 'components/Table'
+import Table, { columnsToShow, isOfTypePeggedCategory, NamePegged } from 'components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
@@ -53,9 +53,168 @@ const AssetFilters = styled.div`
   }
 `
 
-const StyledTable = styled(FullTable)`
+const PeggedTable = styled(Table)`
   tr > :first-child {
     padding-left: 40px;
+  }
+
+  tr > *:not(:first-child) {
+    & > div {
+      width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+      font-weight: 400;
+      margin-left: auto;
+    }
+  }
+
+  // PEGGED NAME
+  tr > *:nth-child(1) {
+    & > div {
+      width: 120px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  }
+
+  // DOMINANCE
+  tr > *:nth-child(2) {
+    display: none;
+    & > div {
+      width: 200px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  }
+
+  // MINTED
+  tr > *:nth-child(3) {
+    display: none;
+  }
+
+  // BRIDGEDTO
+  tr > *:nth-child(4) {
+    display: none;
+  }
+
+  // 7D CHANGE
+  tr > *:nth-child(5) {
+    display: none;
+  }
+
+  // MCAP
+  tr > *:nth-child(6) {
+    padding-right: 20px;
+    & > div {
+      text-align: right;
+      margin-left: auto;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
+
+  // MCAPTVL
+  tr > *:nth-child(7) {
+    display: none;
+  }
+
+  @media screen and (min-width: 360px) {
+    // PEGGED NAME
+    tr > *:nth-child(1) {
+      & > div {
+        width: 160px;
+      }
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+    // 7D CHANGE
+    tr > *:nth-child(5) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: 640px) {
+    // PEGGED NAME
+    tr > *:nth-child(1) {
+      & > div {
+        width: 280px;
+      }
+    }
+  }
+
+  @media screen and (min-width: 720px) {
+    // BRIDGEDTO
+    tr > *:nth-child(4) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: 900px) {
+    // MCAP
+    tr > *:nth-child(6) {
+      padding-right: 0px;
+    }
+
+    // MCAPTVL
+    tr > *:nth-child(7) {
+      display: revert;
+    }
+  }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    // MINTED
+    tr > *:nth-child(3) {
+      display: none !important;
+    }
+
+    // MCAP
+    tr > *:nth-child(6) {
+      padding-right: 20px;
+    }
+
+    // MCAPTVL
+    tr > *:nth-child(7) {
+      display: none !important;
+    }
+  }
+
+  @media screen and (min-width: 1200px) {
+    // 7D CHANGE
+    tr > *:nth-child(5) {
+      display: revert !important;
+    }
+  }
+
+  @media screen and (min-width: 1300px) {
+    // MINTED
+    tr > *:nth-child(3) {
+      display: revert !important;
+    }
+
+    // MCAP
+    tr > *:nth-child(6) {
+      padding-right: 0px;
+    }
+
+    // MCAPTVL
+    tr > *:nth-child(7) {
+      display: revert !important;
+    }
+  }
+
+  @media screen and (min-width: 1536px) {
+    // PEGGED NAME
+    tr > *:nth-child(1) {
+      & > div {
+        width: 300px;
+      }
+    }
+
+    // DOMINANCE
+    tr > *:nth-child(2) {
+      display: revert;
+    }
   }
 `
 
@@ -291,7 +450,7 @@ function PeggedChainsOverview({
         <PeggedAssetGroupOptions label="Filters" />
       </AssetFilters>
 
-      <StyledTable data={groupedChains} columns={columns} />
+      <PeggedTable data={groupedChains} columns={columns} />
     </>
   )
 }
