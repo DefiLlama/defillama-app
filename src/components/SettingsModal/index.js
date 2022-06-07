@@ -11,6 +11,7 @@ import {
   useSingleExposureManager,
   useNoILManager,
   useMillionDollarManager,
+  useAuditedManager,
   useTvlToggles,
   useGetExtraTvlEnabled,
   STAKING,
@@ -198,6 +199,7 @@ export function CheckMarks({ type = 'defi', style = null }) {
   const [singleExposure, toggleSingleExposure] = useSingleExposureManager()
   const [noIL, toggleNoIL] = useNoILManager()
   const [millionDollar, toggleMillionDollar] = useMillionDollarManager()
+  const [audited, toggleAudited] = useAuditedManager()
   const router = useRouter()
   const isClient = useIsClient()
 
@@ -254,6 +256,12 @@ export function CheckMarks({ type = 'defi', style = null }) {
         toggle: toggleMillionDollar,
         enabled: millionDollar && isClient,
         help: 'Select pools with at least one million dollar in TVL',
+      },
+      {
+        name: 'Audited',
+        toggle: toggleAudited,
+        enabled: audited && isClient,
+        help: 'Select pools from audited projects only',
       },
     ],
   }
