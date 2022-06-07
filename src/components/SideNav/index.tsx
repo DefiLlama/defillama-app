@@ -11,7 +11,8 @@ import Title from '../Title'
 export default function SideNav() {
   const isYieldApp = useYieldApp()
   const [showMobileNavMenu, setShowMobileNavMenu] = useState(false)
-  const isLg = useLg()
+  const isLgMedia = useLg()
+  const isLg = typeof window === "undefined"? true : isLgMedia
 
   return (
     <Wrapper>
@@ -24,8 +25,6 @@ export default function SideNav() {
           </>
         )}
       </TitleWrapper>
-
-      {isLg}
 
       {!isLg ? (
         <>
