@@ -388,11 +388,9 @@ function PeggedAssetsOverview({
     <>
       <RowBetween>
         <TYPE.largeHeader>{title}</TYPE.largeHeader>
+        <PeggedViewSwitch />
         <Search small={!belowLg} />
       </RowBetween>
-      <AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
-        <PeggedViewSwitch />
-      </AutoRow>
       <div>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
