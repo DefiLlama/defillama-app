@@ -77,33 +77,13 @@ const PeggedTable = styled(Table)`
     }
   }
 
-  // DOMINANCE
-  tr > *:nth-child(2) {
-    display: none;
-    & > div {
-      width: 200px;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-  }
-
-  // MINTED
-  tr > *:nth-child(3) {
-    display: none;
-  }
-
-  // BRIDGEDTO
-  tr > *:nth-child(4) {
-    display: none;
-  }
-
   // 7D CHANGE
-  tr > *:nth-child(5) {
+  tr > *:nth-child(2) {
     display: none;
   }
 
   // MCAP
-  tr > *:nth-child(6) {
+  tr > *:nth-child(3) {
     padding-right: 20px;
     & > div {
       text-align: right;
@@ -111,6 +91,21 @@ const PeggedTable = styled(Table)`
       white-space: nowrap;
       overflow: hidden;
     }
+  }
+
+  // DOMINANCE
+  tr > *:nth-child(4) {
+    display: none;
+  }
+
+  // MINTED
+  tr > *:nth-child(5) {
+    display: none;
+  }
+
+  // BRIDGEDTO
+  tr > *:nth-child(6) {
+    display: none;
   }
 
   // MCAPTVL
@@ -129,7 +124,7 @@ const PeggedTable = styled(Table)`
 
   @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
     // 7D CHANGE
-    tr > *:nth-child(5) {
+    tr > *:nth-child(2) {
       display: revert;
     }
   }
@@ -144,14 +139,25 @@ const PeggedTable = styled(Table)`
   }
 
   @media screen and (min-width: 720px) {
-    // BRIDGEDTO
+    // DOMINANCE
     tr > *:nth-child(4) {
       display: revert;
+      padding-right: 20px;
+      & > div {
+        width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+      }
     }
   }
 
   @media screen and (min-width: 900px) {
-    // MCAP
+    // DOMINANCE
+    tr > *:nth-child(4) {
+      display: revert;
+    }
+
+    // BRIDGEDTO
     tr > *:nth-child(6) {
       padding-right: 0px;
     }
@@ -163,14 +169,14 @@ const PeggedTable = styled(Table)`
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-    // MINTED
-    tr > *:nth-child(3) {
-      display: none !important;
-    }
-
-    // MCAP
+    // BRIDGEDTO
     tr > *:nth-child(6) {
       padding-right: 20px;
+    }
+
+    // MINTED
+    tr > *:nth-child(5) {
+      display: none !important;
     }
 
     // MCAPTVL
@@ -181,20 +187,20 @@ const PeggedTable = styled(Table)`
 
   @media screen and (min-width: 1200px) {
     // 7D CHANGE
-    tr > *:nth-child(5) {
+    tr > *:nth-child(2) {
       display: revert !important;
     }
   }
 
   @media screen and (min-width: 1300px) {
-    // MINTED
-    tr > *:nth-child(3) {
-      display: revert !important;
-    }
-
-    // MCAP
+    // BRIDGEDTO
     tr > *:nth-child(6) {
       padding-right: 0px;
+    }
+
+    // MINTED
+    tr > *:nth-child(5) {
+      display: revert !important;
     }
 
     // MCAPTVL
@@ -204,15 +210,8 @@ const PeggedTable = styled(Table)`
   }
 
   @media screen and (min-width: 1536px) {
-    // PEGGED NAME
-    tr > *:nth-child(1) {
-      & > div {
-        width: 300px;
-      }
-    }
-
-    // DOMINANCE
-    tr > *:nth-child(2) {
+    // BRIDGEDTO
+    tr > *:nth-child(6) {
       display: revert;
     }
   }
@@ -254,6 +253,12 @@ function PeggedChainsOverview({
 
   const columns = [
     firstColumn,
+    ...columnsToShow('7dChange'),
+    {
+      header: 'Stables Mcap',
+      accessor: 'mcap',
+      Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
+    },
     {
       header: 'Dominant Stablecoin',
       accessor: 'dominance',
@@ -281,14 +286,8 @@ function PeggedChainsOverview({
       accessor: 'bridgedTo',
       Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
     },
-    ...columnsToShow('7dChange'),
     {
-      header: 'Market Cap',
-      accessor: 'mcap',
-      Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
-    },
-    {
-      header: 'Mcap/TVL',
+      header: 'Stables Mcap/TVL',
       accessor: 'mcaptvl',
       Cell: ({ value }) => <>{value && formattedNum(value, false)}</>,
     },
@@ -400,11 +399,9 @@ function PeggedChainsOverview({
     <>
       <RowBetween>
         <TYPE.largeHeader>{title}</TYPE.largeHeader>
+        <PeggedViewSwitch />
         <Search small={!belowLg} />
       </RowBetween>
-      <AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
-        <PeggedViewSwitch />
-      </AutoRow>
       <div>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>

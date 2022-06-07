@@ -14,7 +14,7 @@ export default function PeggedViewSwitch() {
           <span>Assets</span>
         </AppLink>
       </Link>
-      <Link href="/peggedassets/stablecoinchains" passHref>
+      <Link href="/peggedassets/stablecoins/chains" passHref>
         <AppLink active={isPeggedChainOverview}>
           <LinkIcon size={14} />
           <span>Chains</span>
@@ -26,14 +26,21 @@ export default function PeggedViewSwitch() {
 
 const Wrapper = styled.span`
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   border-radius: 6px;
   background: ${({ theme }) => theme.bg6};
   padding: 6px;
-  height: 40px;
-  width: 200px;
+  height: 80px;
+  width: 100px;
+
+  @media screen and (min-width: 480px) {
+    flex-direction: row; 
+    height: 40px; 
+    width: 200px; 
+  }
 `
 
 interface IAppLink {
