@@ -614,6 +614,11 @@ export const chainCoingeckoIds = {
     symbol: "SWTH",
     cmcId: "2620",
   },
+  "Starcoin": {
+    geckoId: "starcoin",
+    symbol: "STC",
+    cmcId: "10202",
+  },
 }
 
 export const chainMarketplaceMappings = {
