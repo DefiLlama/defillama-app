@@ -11,6 +11,7 @@ import {
   useSingleExposureManager,
   useStablecoinsManager,
   useMillionDollarManager,
+  useAuditedManager,
 } from 'contexts/LocalStorage'
 import QuestionHelper from 'components/QuestionHelper'
 import Filters from 'components/Filters'
@@ -307,11 +308,13 @@ const YieldPage = ({ pools, chainList }) => {
   const [noIL] = useNoILManager()
   const [singleExposure] = useSingleExposureManager()
   const [millionDollar] = useMillionDollarManager()
+  const [audited] = useAuditedManager()
   // apply toggles
   pools = stablecoins === true ? pools.filter((el) => el.stablecoin === true) : pools
   pools = noIL === true ? pools.filter((el) => el.ilRisk === 'no') : pools
   pools = singleExposure === true ? pools.filter((el) => el.exposure === 'single') : pools
   pools = millionDollar === true ? pools.filter((el) => el.tvlUsd >= 1e6) : pools
+  pools = audited === true ? pools.filter((el) => el.audits !== '0') : pools
 
   return (
     <>
