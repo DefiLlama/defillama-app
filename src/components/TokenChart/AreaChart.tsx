@@ -147,18 +147,20 @@ export default function AreaChart({
             day: 'numeric',
           })
 
-          const vals = params.reduce((prev, curr) => {
-            if (curr.value[1] !== 0) {
-              return (prev +=
-                '<li style="list-style:none">' +
-                curr.marker +
-                curr.seriesName +
-                '&nbsp;&nbsp;' +
-                moneySymbol +
-                toK(curr.value[1]) +
-                '</li>')
-            } else return prev
-          }, '')
+          const vals = params
+            .sort((a, b) => b.value[1] - a.value[1])
+            .reduce((prev, curr) => {
+              if (curr.value[1] !== 0) {
+                return (prev +=
+                  '<li style="list-style:none">' +
+                  curr.marker +
+                  curr.seriesName +
+                  '&nbsp;&nbsp;' +
+                  moneySymbol +
+                  toK(curr.value[1]) +
+                  '</li>')
+              } else return prev
+            }, '')
 
           return chartdate + vals
         },
