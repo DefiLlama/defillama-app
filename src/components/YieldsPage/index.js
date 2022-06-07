@@ -1,6 +1,6 @@
 import Search from 'components/Search'
 import { AutoColumn } from 'components/Column'
-import Table, { columnsToShow, NameYield } from 'components/Table'
+import Table, { columnsToShow, NameYield, TableFilters } from 'components/Table'
 import { formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
 import { CustomLink } from 'components/Link'
@@ -17,6 +17,8 @@ import QuestionHelper from 'components/QuestionHelper'
 import Filters from 'components/Filters'
 import { ListHeader, ListOptions } from 'components/ChainPage'
 import IconsRow from 'components/IconsRow'
+import { useMemo } from 'react'
+import { useRouter } from 'next/router'
 
 export const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
@@ -303,6 +305,9 @@ const YieldPage = ({ pools, chainList }) => {
     ...chainList.map((el) => ({ label: el, to: `/yields/chain/${el}` })),
   ]
 
+  const { query } = useRouter()
+  const { minTvl, maxTvl } = query
+
   // toggles
   const [stablecoins] = useStablecoinsManager()
   const [noIL] = useNoILManager()
@@ -316,6 +321,27 @@ const YieldPage = ({ pools, chainList }) => {
   pools = millionDollar === true ? pools.filter((el) => el.tvlUsd >= 1e6) : pools
   pools = audited === true ? pools.filter((el) => el.audits !== '0') : pools
 
+  const poolsData = useMemo(() => {
+    const poolsData = pools.map((t) => ({
+      id: t.pool,
+      pool: t.symbol,
+      projectslug: t.project,
+      project: t.projectName,
+      chains: [t.chain],
+      tvl: t.tvlUsd,
+      apy: t.apy,
+      change1d: t.apyPct1D,
+      change7d: t.apyPct7D,
+      outlook: t.predictions.predictedClass,
+      confidence: t.predictions.binnedConfidence,
+    }))
+
+    const isValidTvlRange =
+      minTvl !== undefined && maxTvl !== undefined && !Number.isNaN(minTvl) && !Number.isNaN(maxTvl)
+
+    return isValidTvlRange ? poolsData.filter((p) => p.tvl > minTvl && p.tvl < maxTvl) : poolsData
+  }, [minTvl, maxTvl, pools])
+
   return (
     <>
       <AutoColumn gap="24px">
@@ -327,24 +353,10 @@ const YieldPage = ({ pools, chainList }) => {
       <ListOptions>
         <ListHeader>Yield Rankings</ListHeader>
         <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
+        <TableFilters />
       </ListOptions>
 
-      <TableWrapper
-        data={pools.map((t) => ({
-          id: t.pool,
-          pool: t.symbol,
-          projectslug: t.project,
-          project: t.projectName,
-          chains: [t.chain],
-          tvl: t.tvlUsd,
-          apy: t.apy,
-          change1d: t.apyPct1D,
-          change7d: t.apyPct7D,
-          outlook: t.predictions.predictedClass,
-          confidence: t.predictions.binnedConfidence,
-        }))}
-        columns={columns}
-      />
+      <TableWrapper data={poolsData} columns={columns} />
     </>
   )
 }
