@@ -25,13 +25,13 @@ import { GeneralAreaChart } from 'components/TokenChart'
 import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
 import IconsRow from 'components/IconsRow'
 
-function Chart({ formattedPeggedAreaChart, peggedAssetNames, aspect }) {
+function Chart({ peggedAreaChartData, peggedAssetNames, aspect }) {
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
   return (
     <GeneralAreaChart
       aspect={aspect}
-      finalChartData={formattedPeggedAreaChart}
+      finalChartData={peggedAreaChartData}
       tokensUnique={peggedAssetNames}
       textColor={textColor}
       color={'blue'}
@@ -227,7 +227,7 @@ function PeggedAssetsOverview({
   chains = [],
   filteredPeggedAssets,
   chartData,
-  formattedPeggedAreaChart,
+  peggedAreaChartData,
   stackedDataset,
   peggedChartType,
   showChainList = true,
@@ -309,7 +309,9 @@ function PeggedAssetsOverview({
     [peggedTotals]
   )
 
-  const peggedAssetNames = useMemo(() => peggedTotals.map((peggedAsset) => peggedAsset.symbol), [peggedTotals])
+  const peggedAssetNames = useMemo(() => {
+    return ['TOTAL', ...peggedTotals.map((peggedAsset) => peggedAsset.symbol)]
+  }, [peggedTotals])
 
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
@@ -408,7 +410,7 @@ function PeggedAssetsOverview({
                 </OptionButton>
               </AutoRow>
             </RowBetween>
-            {chartType === 'Area' && <Chart {...{ formattedPeggedAreaChart, peggedAssetNames, aspect }} />}
+            {chartType === 'Area' && <Chart {...{ peggedAreaChartData, peggedAssetNames, aspect }} />}
             {chartType === 'Dominance' && (
               <PeggedChainResponsiveDominance
                 stackOffset="expand"

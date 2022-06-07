@@ -21,8 +21,8 @@ export default function PeggedAssets({
   peggedcategory,
   chainCirculatings,
   chartData,
-  formattedPeggedChainAreaChart,
-  formattedPeggedMcapAreaChart,
+  peggedAreaChainData,
+  peggedAreaMcapData,
   stackedDataset,
   peggedChartType,
   chainList,
@@ -34,8 +34,8 @@ export default function PeggedAssets({
         category={peggedcategory}
         chainCirculatings={chainCirculatings}
         chartData={chartData}
-        formattedPeggedChainAreaChart={formattedPeggedChainAreaChart}
-        formattedPeggedMcapAreaChart={formattedPeggedMcapAreaChart}
+        peggedAreaChainData={peggedAreaChainData}
+        peggedAreaMcapData={peggedAreaMcapData}
         stackedDataset={stackedDataset}
         peggedChartType={peggedChartType}
         chainList={chainList}

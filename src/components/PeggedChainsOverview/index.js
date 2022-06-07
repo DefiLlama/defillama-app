@@ -24,11 +24,11 @@ import { GeneralAreaChart } from 'components/TokenChart'
 import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
 import { PeggedAssetGroupOptions } from 'components/Select'
 
-function Chart({ formattedPeggedChainAreaChart, formattedPeggedMcapAreaChart, totalMcapLabel, chainList, aspect }) {
+function Chart({ peggedAreaChainData, peggedAreaMcapData, totalMcapLabel, chainNames, aspect }) {
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
-  const finalChartData = formattedPeggedChainAreaChart ? formattedPeggedChainAreaChart : formattedPeggedMcapAreaChart
-  const labels = chainList ? chainList : totalMcapLabel
+  const finalChartData = peggedAreaChainData ? peggedAreaChainData : peggedAreaMcapData
+  const labels = chainNames ? chainNames : totalMcapLabel
   return (
     <GeneralAreaChart
       aspect={aspect}
@@ -169,14 +169,14 @@ const PeggedTable = styled(Table)`
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-    // BRIDGEDTO
-    tr > *:nth-child(6) {
-      padding-right: 20px;
-    }
-
     // MINTED
     tr > *:nth-child(5) {
       display: none !important;
+    }
+
+    // BRIDGEDTO
+    tr > *:nth-child(6) {
+      padding-right: 20px;
     }
 
     // MCAPTVL
@@ -193,14 +193,14 @@ const PeggedTable = styled(Table)`
   }
 
   @media screen and (min-width: 1300px) {
-    // BRIDGEDTO
-    tr > *:nth-child(6) {
-      padding-right: 0px;
-    }
-
     // MINTED
     tr > *:nth-child(5) {
       display: revert !important;
+    }
+
+    // BRIDGEDTO
+    tr > *:nth-child(6) {
+      padding-right: 0px;
     }
 
     // MCAPTVL
@@ -222,8 +222,8 @@ function PeggedChainsOverview({
   category,
   chainCirculatings,
   chartData,
-  formattedPeggedChainAreaChart,
-  formattedPeggedMcapAreaChart,
+  peggedAreaChainData,
+  peggedAreaMcapData,
   stackedDataset,
   peggedChartType,
   defaultSortingColumn,
@@ -320,6 +320,10 @@ function PeggedChainsOverview({
     () => Object.fromEntries([...chainTotals, 'Others'].map((chain) => [chain.name, getRandomColor()])),
     [chainTotals]
   )
+
+  const chainNames = useMemo(() => {
+    return ['TOTAL', ...chainList]
+  }, [chainList])
 
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
@@ -422,8 +426,8 @@ function PeggedChainsOverview({
                 </OptionButton>
               </AutoRow>
             </RowBetween>
-            {chartType === 'Mcap' && <Chart {...{ formattedPeggedMcapAreaChart, totalMcapLabel, aspect }} />}
-            {chartType === 'Area' && <Chart {...{ formattedPeggedChainAreaChart, chainList, aspect }} />}
+            {chartType === 'Mcap' && <Chart {...{ peggedAreaMcapData, totalMcapLabel, aspect }} />}
+            {chartType === 'Area' && <Chart {...{ peggedAreaChainData, chainNames, aspect }} />}
             {chartType === 'Dominance' && (
               <PeggedChainResponsiveDominance
                 stackOffset="expand"

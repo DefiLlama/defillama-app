@@ -352,7 +352,7 @@ export async function getPeggedOverviewPageData(category, chain) {
     })
   )
 
-  const peggedAreaChartData = chartDataByPeggedAsset.reduce((total, charts, i) => {
+  let peggedAreaChartData = chartDataByPeggedAsset.reduce((total, charts, i) => {
     if (!charts.length) return total
     charts.forEach((chart) => {
       if (chart.date > 1596248105 && chart.mcap) {
@@ -363,10 +363,15 @@ export async function getPeggedOverviewPageData(category, chain) {
     return total
   }, {})
 
-  const formattedPeggedAreaChart = Object.keys(peggedAreaChartData).map((date) => {
-    return {
-      date: date,
-      ...peggedAreaChartData[date],
+  peggedAreaChartData = Object.entries(peggedAreaChartData).map(([date, chart]) => {
+    if (typeof chart === 'object') {
+      let total = 0
+      Object.values(chart).map((value) => (total += value))
+      chart['TOTAL'] = total
+      return {
+        date: date,
+        ...chart,
+      }
     }
   })
 
@@ -421,7 +426,7 @@ export async function getPeggedOverviewPageData(category, chain) {
     chains: chainList.filter((chain) => chainsSet.has(chain)),
     filteredPeggedAssets,
     chartData,
-    formattedPeggedAreaChart,
+    peggedAreaChartData,
     stackedDataset,
     peggedChartType,
     chain: chain ?? 'All',
@@ -491,7 +496,7 @@ export async function getPeggedChainsPageData(category) {
     })
   )
 
-  const peggedAreaChainData = peggedChartDataByChain.reduce((total, charts, i) => {
+  let peggedAreaChainData = peggedChartDataByChain.reduce((total, charts, i) => {
     if (!charts.length) return total
     charts.forEach((chart) => {
       const chainName = chainList[i]
@@ -502,6 +507,18 @@ export async function getPeggedChainsPageData(category) {
     })
     return total
   }, {})
+
+  peggedAreaChainData = Object.entries(peggedAreaChainData).map(([date, chart]) => {
+    if (typeof chart === 'object') {
+      let total = 0
+      Object.values(chart).map((value) => (total += value))
+      chart['TOTAL'] = total
+      return {
+        date: date,
+        ...chart,
+      }
+    }
+  })
 
   let peggedMcapChartData = []
   peggedMcapChartData = await fetch(`${PEGGEDCHART_API}`).then((resp) => resp.json())
@@ -514,14 +531,7 @@ export async function getPeggedChainsPageData(category) {
     }
   })
 
-  const formattedPeggedChainAreaChart = Object.keys(peggedAreaChainData).map((date) => {
-    return {
-      date: date,
-      ...peggedAreaChainData[date],
-    }
-  })
-
-  const formattedPeggedMcapAreaChart = Object.keys(peggedAreaMcapData).map((date) => {
+  peggedAreaMcapData = Object.keys(peggedAreaMcapData).map((date) => {
     return {
       date: date,
       ...peggedAreaMcapData[date],
@@ -572,8 +582,8 @@ export async function getPeggedChainsPageData(category) {
     peggedcategory: category,
     chainCirculatings,
     chartData,
-    formattedPeggedChainAreaChart,
-    formattedPeggedMcapAreaChart,
+    peggedAreaChainData,
+    peggedAreaMcapData,
     stackedDataset,
     peggedChartType,
     chainList,
