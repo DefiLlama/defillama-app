@@ -65,7 +65,7 @@ const StyledMenuButton = styled.button`
   }
 `
 
-const StyledMenu = styled.div`
+const StyledMenu = styled.span`
   margin-left: 0.5rem;
   display: flex;
   justify-content: center;
@@ -330,7 +330,7 @@ export const extraPeggedOptions = [
   },
 ]
 
-export default function Menu({ type = 'defi' }) {
+export default function Menu({ type = 'defi', ...props }) {
   const node = useRef()
 
   const [open, setOpen] = useState(false)
@@ -397,7 +397,7 @@ export default function Menu({ type = 'defi' }) {
   }
 
   return (
-    <StyledMenu ref={node}>
+    <StyledMenu ref={node} {...props}>
       <StyledMenuButton onClick={toggle}>
         <StyledMenuIcon />
       </StyledMenuButton>

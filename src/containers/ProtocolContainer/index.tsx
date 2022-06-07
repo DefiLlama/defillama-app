@@ -292,11 +292,51 @@ const TvlWrapper = styled.section`
 const ExtraTvlOption = styled.label`
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 
   input {
+    position: relative;
+    top: 1px;
     margin: 0;
     padding: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    width: 1em;
+    height: 1em;
+    border: ${({ theme }) => '1px solid ' + theme.text4};
+    border-radius: 0.15em;
+    transform: translateY(-0.075em);
+    display: grid;
+    place-content: center;
+
+    ::before {
+      content: '';
+      width: 0.5em;
+      height: 0.5em;
+      transform: scale(0);
+      transition: 120ms transform ease-in-out;
+      box-shadow: ${({ theme }) => 'inset 1em 1em ' + theme.text1};
+      transform-origin: bottom left;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+
+    :checked::before {
+      transform: scale(1);
+    }
+
+    :focus-visible {
+      outline: ${({ theme }) => '1px solid ' + theme.text1};
+      outline-offset: max(2px, 0.15em);
+    }
+
+    :hover {
+      cursor: pointer;
+    }
+  }
+
+  :hover {
+    cursor: pointer;
   }
 `
 

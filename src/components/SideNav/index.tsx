@@ -1,39 +1,39 @@
 import React, { useState } from 'react'
 import DefiSideNav from './DefiSideNav'
 import YieldSideNav from './YieldSideNav'
-import { useLg, useYieldApp } from '../../hooks'
+import { useYieldApp } from '../../hooks'
 import AppSwitch from 'components/AppSwitch'
-import { Wrapper, TitleWrapper } from './shared'
-import SettingsMenuButton from '../SettingsModal'
+import { Nav, TitleWrapper, Wrapper } from './shared'
+import SettingsMenu from '../SettingsModal'
 import NavMenuButton from './NavMenuButton'
 import Title from '../Title'
+import styled from 'styled-components'
 
 export default function SideNav() {
   const isYieldApp = useYieldApp()
   const [showMobileNavMenu, setShowMobileNavMenu] = useState(false)
-  const isLgMedia = useLg()
-  const isLg = typeof window === "undefined"? true : isLgMedia
+
+  const style = { '--mobile-display': showMobileNavMenu ? 'flex' : 'none' } as React.CSSProperties
 
   return (
     <Wrapper>
       <TitleWrapper>
         <Title homePath={isYieldApp ? '/yields' : '/'} />
-        {isLg && (
-          <>
-            <SettingsMenuButton />
-            <NavMenuButton show={showMobileNavMenu} setShow={setShowMobileNavMenu} />
-          </>
-        )}
+
+        <Settings />
+
+        <NavMenuButton show={showMobileNavMenu} setShow={setShowMobileNavMenu} />
       </TitleWrapper>
 
-      {!isLg ? (
-        <>
-          <AppSwitch />
-          {isYieldApp ? <YieldSideNav /> : <DefiSideNav />}
-        </>
-      ) : (
-        showMobileNavMenu && <>{isYieldApp ? <YieldSideNav /> : <DefiSideNav />}</>
-      )}
+      <AppSwitch />
+
+      <Nav style={style}>{isYieldApp ? <YieldSideNav /> : <DefiSideNav />}</Nav>
     </Wrapper>
   )
 }
+
+const Settings = styled(SettingsMenu)`
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    display: none !important;
+  }
+`

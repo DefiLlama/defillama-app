@@ -25,6 +25,10 @@ const Wrapper = styled.button`
   svg {
     margin-top: 2px;
   }
+
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+    display: none;
+  }
 `
 
 export default function NavMenuButton({ setShow, show }) {
