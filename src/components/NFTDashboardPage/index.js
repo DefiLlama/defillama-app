@@ -139,10 +139,12 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
     <Layout title={title} backgroundColor={transparentize(0.8, '#445ed0')}>
       <SEO cardName={displayName} chain={displayName} tvl={tvl} nftPage />
 
-      <AutoColumn gap="24px" style={{ paddingBottom: '24px' }}>
+      <AutoColumn gap="24px">
         <Search />
-        <Panel background={true} style={{ textAlign: 'center', marginBottom: '1rem', marginTop: '-1rem' }}>
-          <TYPE.main fontWeight={400}>Data is currently incorrect and we are fixing it, please don't use it</TYPE.main>
+        <Panel>
+          <p style={{ textAlign: 'center', margin: '0' }}>
+            Data is currently incorrect and we are fixing it, please don't use it
+          </p>
         </Panel>
         <CheckMarks type="nfts" />
       </AutoColumn>
@@ -161,7 +163,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
         </Panel>
       </BreakpointPanels>
 
-      <ListOptions>
+      <ListOptions style={{ margin: '12px 0 -24px' }}>
         <ListHeader>NFT Rankings</ListHeader>
         <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
       </ListOptions>

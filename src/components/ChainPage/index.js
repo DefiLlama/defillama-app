@@ -68,6 +68,20 @@ const PanelHiddenMobile = styled(Panel)`
   }
 `
 
+const EasterLlama = styled.button`
+  margin: 0;
+  padding: 0;
+  width: 41px;
+  height: 34px;
+  background: none;
+  border: none;
+  position: absolute;
+
+  :hover {
+    cursor: pointer;
+  }
+`
+
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
 })
@@ -282,7 +296,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
         </p>
       </Panel>
 
-      <div style={{ isolation: 'isolate' }}>
+      <section style={{ isolation: 'isolate', position: 'relative' }}>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
           <Panel style={{ height: '100%', minHeight: '381px', flex: 1, maxWidth: '100%' }}>
@@ -313,22 +327,12 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             )}
           </Panel>
         </BreakpointPanels>
-        <button
-          style={{
-            margin: '0 0 -34px 0',
-            padding: 0,
-            width: '41px',
-            height: '34px',
-            background: 'none',
-            border: 'none',
-          }}
-          onClick={activateEasterEgg}
-        >
-          <Image src={llamaLogo} width={41} height={34} alt="Activate Easter Egg" />
-        </button>
-      </div>
+        <EasterLlama onClick={activateEasterEgg}>
+          <Image src={llamaLogo} width="41px" height="34px" alt="Activate Easter Egg" />
+        </EasterLlama>
+      </section>
 
-      <ListOptions style={{ margin: '36px 0 -12px 0' }}>
+      <ListOptions style={{ margin: '20px 0 -16px' }}>
         <ListHeader>TVL Rankings</ListHeader>
         <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
         <TableFilters />

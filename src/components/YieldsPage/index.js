@@ -350,7 +350,7 @@ const YieldPage = ({ pools, chainList }) => {
 
       <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
 
-      <ListOptions>
+      <ListOptions style={{ margin: '-6px 0 -16px' }}>
         <ListHeader>Yield Rankings</ListHeader>
         <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
         <TableFilters />
