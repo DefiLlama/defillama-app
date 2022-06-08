@@ -28,6 +28,7 @@ export default function Title({ homePath }: ITitleProps) {
   return (
     <Link href={homePath} passHref>
       <TitleWrapper>
+        <span className="visually-hidden">Navigate to Home Page</span>
         <DefiLogo style={{ width: '160px', height: '54px' }} />
       </TitleWrapper>
     </Link>

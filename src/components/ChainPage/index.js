@@ -313,14 +313,19 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
             )}
           </Panel>
         </BreakpointPanels>
-        <div
+        <button
           style={{
-            marginTop: '0px',
-            marginBottom: '-34px',
+            margin: '0 0 -34px 0',
+            padding: 0,
+            width: '41px',
+            height: '34px',
+            background: 'none',
+            border: 'none',
           }}
+          onClick={activateEasterEgg}
         >
-          <Image src={llamaLogo} width={41} height={34} onClick={activateEasterEgg} alt="" />
-        </div>
+          <Image src={llamaLogo} width={41} height={34} alt="Activate Easter Egg" />
+        </button>
       </div>
 
       <ListOptions style={{ margin: '36px 0 -12px 0' }}>
