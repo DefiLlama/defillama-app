@@ -86,7 +86,6 @@ export default function AreaChart({
         return {
           name: token,
           type: 'line',
-          stack: 'value',
           emphasis: {
             focus: 'series',
             shadowBlur: 10,
