@@ -49,15 +49,13 @@ interface GroupChain extends IChain {
   subChains: IChain[]
 }
 
-interface GroupChainPegged extends IPegged {
-  subChains: IPegged[]
-}
-
 interface IPegged {
   circulating: number
   minted: number
+  bridgedTo: number
   unreleased: number
   mcap: number
+  mcaptvl: number
   name: string
   symbol: string
   gecko_id: string
@@ -74,7 +72,15 @@ interface IPegged {
       source: string
     }
   }
+  dominance: {
+    name: string
+    value: number
+  }
   bridgedAmount: number
+}
+
+interface GroupChainPegged extends IPegged {
+  subChains: IPegged[]
 }
 
 type Bridge = {
@@ -473,39 +479,27 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
     const finalData = {}
     const addedChains = []
     for (const parentName in groupData) {
-      let circulating: DataValue = null
-      let circulatingPrevDay: DataValue = null
-      let circulatingPrevWeek: DataValue = null
-      let circulatingPrevMonth: DataValue = null
-      let bridgedAmount: number | string | null = null
-      let bridgeInfo: { bridge: string; link?: string } | null = null
+      let mcap: DataValue = null
       let unreleased: DataValue = null
+      let bridgedTo: DataValue = null
+      let minted: DataValue = null
+      let dominance: { name: string; value: number } | null = null
+      let mcaptvl: DataValue = null
 
       finalData[parentName] = {}
 
       const parentData = chains.find((item) => item.name === parentName)
       if (parentData) {
-        circulating = parentData.circulating || null
-        circulatingPrevDay = parentData.circulatingPrevDay || null
-        circulatingPrevWeek = parentData.circulatingPrevWeek || null
-        circulatingPrevMonth = parentData.circulatingPrevMonth || null
-        bridgedAmount = parentData.bridgedAmount || 0
-        bridgeInfo = parentData.bridgeInfo || null
+        mcap = parentData.mcap || null
         unreleased = parentData.unreleased || null
+        bridgedTo = parentData.bridgedTo || null
+        minted = parentData.minted || null
         finalData[parentName] = {
           ...parentData,
           subRows: [parentData],
-          symbol: '-',
         }
 
         addedChains.push(parentName)
-      } else {
-        finalData[parentName] = {
-          symbol: '-',
-          bridgeInfo: {
-            bridge: '',
-          },
-        }
       }
 
       let addedChildren = false
@@ -517,29 +511,18 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
             const alreadyAdded = (finalData[parentName].subRows ?? []).find((p) => p.name === child)
 
             if (childData && alreadyAdded === undefined) {
-              circulating += childData.circulating
-              circulatingPrevDay += childData.circulatingPrevDay
-              circulatingPrevWeek += childData.circulatingPrevWeek
-              circulatingPrevMonth += childData.circulatingPrevMonth
+              mcap += childData.mcap
               unreleased += childData.unreleased
+              bridgedTo += childData.bridgedTo
+              minted += childData.minted
               const subChains = finalData[parentName].subRows || []
-              bridgedAmount === '-' ? (bridgedAmount = 0) : true
-              if (typeof childData.bridgedAmount === 'number') {
-                bridgedAmount += childData.bridgedAmount
-              } else {
-                if (childData.bridgedAmount === 'all') {
-                  bridgedAmount += childData.circulating
-                }
-              }
 
               finalData[parentName] = {
                 ...finalData[parentName],
-                circulating,
-                circulatingPrevDay,
-                circulatingPrevWeek,
-                circulatingPrevMonth,
-                bridgedAmount,
+                mcap,
                 unreleased,
+                minted,
+                bridgedTo,
                 name: parentName,
                 subRows: [...subChains, childData],
               }
@@ -550,18 +533,11 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
         }
       }
       if (!addedChildren) {
-        if (finalData[parentName].circulating === undefined) {
+        if (finalData[parentName].mcap === undefined) {
           delete finalData[parentName]
         } else {
           finalData[parentName] = parentData
         }
-      }
-      if (
-        addedChildren &&
-        finalData[parentName] &&
-        finalData[parentName].bridgedAmount === finalData[parentName].circulating
-      ) {
-        finalData[parentName].bridgedAmount = 'all'
       }
     }
 
@@ -570,14 +546,13 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
         finalData[item.name] = item
       }
     })
-    return (Object.values(finalData) as GroupChainPegged[]).sort((a, b) => b.circulating - a.circulating)
+    return (Object.values(finalData) as GroupChainPegged[]).sort((a, b) => b.mcap - a.mcap)
   }, [chains, groupData, groupsEnabled])
 
   return data
 }
 
 export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeInfo): GroupChainPegged[] => {
-  const groupsEnabled = useGroupEnabled()
   const data: GroupChainPegged[] = useMemo(() => {
     const finalData = {}
     for (const parent of chains) {

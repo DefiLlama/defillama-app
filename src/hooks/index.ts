@@ -67,6 +67,11 @@ export function usePeggedApp() {
   return router.pathname.startsWith('/peggedasset') || router.pathname.startsWith('/peggedassets')
 }
 
+export function usePeggedChainOverview() {
+  const router = useRouter()
+  return router.pathname.startsWith('/peggedassets/stablecoins/chains')
+}
+
 export const useScrollToTop = () => {
   useEffect(() => {
     if (window) {

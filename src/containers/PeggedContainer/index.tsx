@@ -8,7 +8,7 @@ import { columnsToShow, FullTable, NamePegged, isOfTypePeggedCategory } from 'co
 import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from 'hooks/data'
 import Filters, { FiltersWrapper } from 'components/Filters'
-import { PeggedAssetOptions } from 'components/Select'
+import { PeggedAssetTvlOptions } from 'components/Select'
 import { Header } from 'Theme'
 
 const ChartsWrapper = styled.section`
@@ -88,7 +88,7 @@ export default function PeggedContainer({
       disableSortBy: true,
       Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
         <NamePegged
-          type="peggedUSD"
+          type="peggedBridges"
           value={value}
           symbol={rowType === 'child' ? '-' : rowValues.symbol}
           index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
@@ -183,7 +183,7 @@ export default function PeggedContainer({
 
       <AssetFilters>
         <h2>Filters</h2>
-        <PeggedAssetOptions label="Filters" />
+        <PeggedAssetTvlOptions label="Filters"/>
       </AssetFilters>
 
       <FiltersWrapper>

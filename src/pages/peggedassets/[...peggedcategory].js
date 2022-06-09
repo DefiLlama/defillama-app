@@ -1,7 +1,7 @@
 import PeggedList from 'components/PeggedList'
 import { PEGGEDS_API } from 'constants/index'
 import Layout from 'layout'
-import { getPeggedsPageData, revalidate } from 'utils/dataApi'
+import { getPeggedOverviewPageData, revalidate } from 'utils/dataApi'
 import { capitalizeFirstLetter } from 'utils'
 
 export async function getStaticProps({
@@ -9,7 +9,7 @@ export async function getStaticProps({
     peggedcategory: [peggedcategory, chain],
   },
 }) {
-  const props = await getPeggedsPageData(peggedcategory, chain)
+  const props = await getPeggedOverviewPageData(peggedcategory, chain)
 
   if (!props.filteredPeggedAssets || props.filteredPeggedAssets?.length === 0) {
     return {
@@ -37,7 +37,7 @@ export default function PeggedAssets({
   chains,
   filteredPeggedAssets,
   chartData,
-  formattedPeggedAreaChart,
+  peggedAreaChartData,
   stackedDataset,
   peggedChartType,
   chain,
@@ -50,7 +50,7 @@ export default function PeggedAssets({
         selectedChain={chain}
         filteredPeggedAssets={filteredPeggedAssets}
         chartData={chartData}
-        formattedPeggedAreaChart={formattedPeggedAreaChart}
+        peggedAreaChartData={peggedAreaChartData}
         stackedDataset={stackedDataset}
         peggedChartType={peggedChartType}
       />
