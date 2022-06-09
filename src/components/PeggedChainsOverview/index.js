@@ -404,6 +404,8 @@ function PeggedChainsOverview({
     <>
       <PeggedSearch step={{ category: 'Pegged Assets', name: title, route: 'peggedassets', hideOptions: true }} />
 
+      <PeggedViewSwitch />
+
       <div>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>

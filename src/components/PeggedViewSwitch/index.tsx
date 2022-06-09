@@ -35,11 +35,12 @@ const Wrapper = styled.span`
   padding: 6px;
   height: 80px;
   width: 100px;
+  margin: 0 auto;
 
   @media screen and (min-width: 480px) {
-    flex-direction: row; 
-    height: 40px; 
-    width: 200px; 
+    flex-direction: row;
+    height: 40px;
+    width: 200px;
   }
 `
 
@@ -52,7 +53,7 @@ const AppLink = styled.a<IAppLink>`
   justify-content: center;
   align-items: center;
   gap: 4px;
-  color: ${({ theme }) => theme.text1};
+  color: ${({ active, theme }) => (active ? '#fff' : theme.text1)};
   font-size: 14px;
   white-space: nowrap;
   flex-wrap: nowrap;
