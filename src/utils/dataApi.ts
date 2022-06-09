@@ -356,8 +356,10 @@ export async function getPeggedOverviewPageData(category, chain) {
     if (!charts.length) return total
     charts.forEach((chart) => {
       if (chart.date > 1596248105 && chart.mcap) {
-        total[chart.date] = total[chart.date] || {}
-        total[chart.date][peggedAssetNames[i]] = chart.mcap
+        if (!(chain && chart.date < 1652241600)) {  // for individual chains data is currently only backfilled to May 11, 2022
+          total[chart.date] = total[chart.date] || {}
+          total[chart.date][peggedAssetNames[i]] = chart.mcap
+        }
       }
     })
     return total
@@ -1095,7 +1097,7 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
       const chainName = chainsUnique[i]
       chains.forEach((circulating) => {
         const date = circulating.date
-        if (date < 1596248105) return
+        if (date < 1652932800) return // data on all chains for an asset is on only backfilled to May 20, 2022
         if (total[date] === undefined) {
           total[date] = {}
         }
