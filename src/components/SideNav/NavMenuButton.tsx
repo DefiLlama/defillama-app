@@ -53,6 +53,7 @@ export default function NavMenuButton({ setShow, show }) {
 
   return (
     <Wrapper onClick={toggle} ref={node}>
+      <span className="visually-hidden">Open Menu</span>
       <StyledMenuIcon />
     </Wrapper>
   )
