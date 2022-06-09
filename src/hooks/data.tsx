@@ -515,14 +515,18 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
               unreleased += childData.unreleased
               bridgedTo += childData.bridgedTo
               minted += childData.minted
+              dominance = null
+              mcaptvl = null
               const subChains = finalData[parentName].subRows || []
 
               finalData[parentName] = {
                 ...finalData[parentName],
                 mcap,
                 unreleased,
-                minted,
                 bridgedTo,
+                minted,
+                dominance,
+                mcaptvl,
                 name: parentName,
                 subRows: [...subChains, childData],
               }
