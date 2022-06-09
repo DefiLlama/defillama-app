@@ -24,6 +24,7 @@ import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
 import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
 import IconsRow from 'components/IconsRow'
+import { PeggedSearch } from 'components/Search/New'
 
 function Chart({ peggedAreaChartData, peggedAssetNames, aspect }) {
   const [darkMode] = useDarkModeManager()
@@ -388,10 +389,10 @@ function PeggedAssetsOverview({
 
   return (
     <>
-      <RowBetween>
-        <TYPE.largeHeader>{title}</TYPE.largeHeader>
-        <Search small={!belowLg} />
-      </RowBetween>
+      <PeggedSearch step={{ category: 'Pegged Assets', name: title, route: 'peggedassets', hideOptions: true }} />
+
+      <PeggedViewSwitch />
+
       <div>
         <BreakpointPanels>
           <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>

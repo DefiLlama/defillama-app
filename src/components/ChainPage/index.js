@@ -77,6 +77,11 @@ const EasterLlama = styled.button`
   border: none;
   position: absolute;
 
+  img {
+    width: 41px !important;
+    height: 34px !important;
+  }
+
   :hover {
     cursor: pointer;
   }

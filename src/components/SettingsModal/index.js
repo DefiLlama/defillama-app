@@ -399,6 +399,7 @@ export default function Menu({ type = 'defi', ...props }) {
   return (
     <StyledMenu ref={node} {...props}>
       <StyledMenuButton onClick={toggle}>
+        <span className="visually-hidden">Open TVL settings</span>
         <StyledMenuIcon />
       </StyledMenuButton>
 
