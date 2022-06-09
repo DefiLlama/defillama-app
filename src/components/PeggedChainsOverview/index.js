@@ -342,24 +342,6 @@ function PeggedChainsOverview({
   const filteredPeggedAssets = chainCirculatings
   const chainTotals = useCalcCirculating(filteredPeggedAssets, defaultSortingColumn)
 
-  const chainsCirculatingValues = useMemo(() => {
-    const data = chainTotals.map((chain) => ({ name: chain.name, value: chain.mcap }))
-
-    const otherCirculating = data.slice(10).reduce((total, entry) => {
-      return (total += entry.value)
-    }, 0)
-
-    return data
-      .slice(0, 10)
-      .sort((a, b) => b.value - a.value)
-      .concat({ name: 'Others', value: otherCirculating })
-  }, [chainTotals])
-
-  const chainColor = useMemo(
-    () => Object.fromEntries([...chainTotals, 'Others'].map((chain) => [chain.name, getRandomColor()])),
-    [chainTotals]
-  )
-
   const chainNames = chainList // update this when area chart is finished
 
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
@@ -404,6 +386,29 @@ function PeggedChainsOverview({
   const totalMcapLabel = ['Total Stablecoins Market Cap']
 
   const groupedChains = useGroupChainsPegged(chainTotals, chainsGroupbyParent)
+
+  const chainsCirculatingValues = useMemo(() => {
+    const data = groupedChains.map((chain) => ({ name: chain.name, value: chain.mcap }))
+
+    const otherCirculating = data.slice(10).reduce((total, entry) => {
+      return (total += entry.value)
+    }, 0)
+
+    return data
+      .slice(0, 10)
+      .sort((a, b) => b.value - a.value)
+      .concat({ name: 'Others', value: otherCirculating })
+  }, [groupedChains])
+
+  const chainColor = useMemo(
+    () => Object.fromEntries([...chainTotals, 'Others'].map((chain) => [chain.name, getRandomColor()])),
+    [chainTotals]
+  )
+
+  const groupedChainColor = useMemo(
+    () => Object.fromEntries([...groupedChains, 'Others'].map((chain) => [chain.name, getRandomColor()])),
+    [groupedChains]
+  )
 
   const panels = (
     <>
@@ -492,7 +497,7 @@ function PeggedChainsOverview({
               />
             )}
             {chartType === 'Pie' && (
-              <PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />
+              <PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={groupedChainColor} aspect={aspect} />
             )}
           </Panel>
         </BreakpointPanels>
