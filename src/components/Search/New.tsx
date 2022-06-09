@@ -4,13 +4,13 @@ import { useRouter } from 'next/router'
 import { transparentize } from 'polished'
 import { useMemo } from 'react'
 import styled from 'styled-components'
-import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from 'utils'
+import { chainIconUrl, peggedAssetIconUrl, standardizeProtocolName, tokenIconUrl } from 'utils'
 import Link from 'next/link'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { DeFiTvlOptions } from 'components/Select'
 import { FixedSizeList } from 'react-window'
-import { useFetchProtocolsList } from 'utils/dataApi'
+import { useFetchPeggedList, useFetchProtocolsList } from 'utils/dataApi'
 
 const Wrapper = styled.nav`
   display: flex;
@@ -170,30 +170,48 @@ interface ISearchProps {
   step?: IStep
 }
 
-// TODO Fetch based on routes
 export default function Search({ step }: { step: IStep }) {
   const { data, loading } = useFetchProtocolsList()
 
-  return <SearchDefault data={data} loading={loading} step={step} />
-}
-
-const SearchDefault = ({ data, loading = false, step }: ISearchProps) => {
   const { pathname } = useRouter()
 
   const searchData: IList[] = useMemo(() => {
     const chainData: IList[] =
       data?.chains?.map((name) => ({
         logo: chainIconUrl(name),
-        isChain: true,
+        route: `/chain/${name}`,
         name,
       })) ?? []
 
-    const protocolData = data?.protocols?.map((token) => ({ ...token, logo: tokenIconUrl(token.name) })) ?? []
+    const protocolData =
+      data?.protocols?.map((token) => ({
+        ...token,
+        logo: tokenIconUrl(token.name),
+        route: `/protocol/${standardizeProtocolName(token.name)}`,
+      })) ?? []
 
     return pathname.startsWith('/protocol') ? [...protocolData, ...chainData] : [...chainData, ...protocolData]
   }, [data, pathname])
 
-  const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: searchData.map((x) => x.name) })
+  return <SearchDefault data={searchData} loading={loading} step={step} />
+}
+
+// TODO add pegged chains list
+export function PeggedSearch({ step }: { step: IStep }) {
+  const { data, loading } = useFetchPeggedList()
+
+  const searchData: IList[] =
+    data?.peggedAssets?.map((asset) => ({
+      logo: peggedAssetIconUrl(asset.name),
+      route: `/peggedasset/${standardizeProtocolName(asset.name)}`,
+      name: asset.name,
+    })) ?? []
+
+  return <SearchDefault data={searchData} loading={loading} step={step} />
+}
+
+const SearchDefault = ({ data, loading = false, step }: ISearchProps) => {
+  const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: data.map((x) => x.name) })
 
   // Resets combobox value when popover is collapsed
   if (!combobox.mounted && combobox.value) {
@@ -222,7 +240,7 @@ const SearchDefault = ({ data, loading = false, step }: ISearchProps) => {
             width="100%"
             itemCount={combobox.matches.length}
             itemSize={50}
-            itemData={{ searchData, options: combobox.matches }}
+            itemData={{ searchData: data, options: combobox.matches }}
           >
             {Row}
           </FixedSizeList>
@@ -243,10 +261,9 @@ const Row = ({ index, style, data }) => {
   const item = searchData.find((x) => x.name === value)
 
   const router = useRouter()
-  const to = item.isChain ? `/chain/${value}` : `/protocol/${standardizeProtocolName(value)}`
 
   return (
-    <Item key={value} value={value} onClick={() => router.push(to)} style={style}>
+    <Item key={value} value={value} onClick={() => router.push(item.route)} style={style}>
       <TokenLogo logo={item.logo} />
       <span>{value}</span>
     </Item>

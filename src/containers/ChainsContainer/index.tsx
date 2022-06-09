@@ -110,6 +110,10 @@ const StyledTable = styled(FullTable)<ITable>`
   }
 
   // TVL
+  tr > th:nth-child(6) {
+    padding-right: 20px;
+  }
+
   tr > :nth-child(6) {
     & > div {
       padding-right: 20px;

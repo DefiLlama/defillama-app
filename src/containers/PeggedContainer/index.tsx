@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { ButtonDark } from 'components/ButtonStyled'
-import Search from 'components/Search'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 import { CustomLink } from 'components/Link'
 import { columnsToShow, FullTable, NamePegged, isOfTypePeggedCategory } from 'components/Table'
@@ -10,6 +9,7 @@ import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } 
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { PeggedAssetTvlOptions } from 'components/Select'
 import { Header } from 'Theme'
+import { PeggedSearch } from 'components/Search/New'
 
 const ChartsWrapper = styled.section`
   display: flex;
@@ -161,7 +161,9 @@ export default function PeggedContainer({
 
   return (
     <>
-      <Search />
+      <PeggedSearch
+        step={{ category: 'Pegged Asset', name: Capitalize(peggedSymbol), route: 'peggedassets', hideOptions: true }}
+      />
 
       <HeaderWrapper>
         <span>{Capitalize(peggedSymbol)} Total Circulating All Chains</span>
@@ -183,7 +185,7 @@ export default function PeggedContainer({
 
       <AssetFilters>
         <h2>Filters</h2>
-        <PeggedAssetTvlOptions label="Filters"/>
+        <PeggedAssetTvlOptions label="Filters" />
       </AssetFilters>
 
       <FiltersWrapper>

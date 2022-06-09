@@ -260,6 +260,11 @@ const Bobo = styled.button`
   bottom: -36px;
   left: 0;
 
+  img {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
   :focus-visible {
     outline: ${({ theme }) => '1px solid ' + theme.text4};
   }

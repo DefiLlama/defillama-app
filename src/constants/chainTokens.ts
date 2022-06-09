@@ -619,6 +619,11 @@ export const chainCoingeckoIds = {
     symbol: "STC",
     cmcId: "10202",
   },
+  "Terra2": {
+    geckoId: "terra-luna-2",
+    symbol: "LUNA",
+    cmcId: "20314",
+  },
 }
 
 export const chainMarketplaceMappings = {
