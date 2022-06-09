@@ -367,9 +367,6 @@ export async function getPeggedOverviewPageData(category, chain) {
 
   peggedAreaChartData = Object.entries(peggedAreaChartData).map(([date, chart]) => {
     if (typeof chart === 'object') {
-      let total = 0
-      Object.values(chart).map((value) => (total += value))
-      chart['TOTAL'] = total
       return {
         date: date,
         ...chart,
@@ -512,9 +509,6 @@ export async function getPeggedChainsPageData(category) {
 
   peggedAreaChainData = Object.entries(peggedAreaChainData).map(([date, chart]) => {
     if (typeof chart === 'object') {
-      let total = 0
-      Object.values(chart).map((value) => (total += value))
-      chart['TOTAL'] = total
       return {
         date: date,
         ...chart,
