@@ -383,6 +383,7 @@ export async function getPeggedOverviewPageData(category, chain) {
         const circulating = chart.mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
         const date = chart.date
         if (date < 1596248105) return
+        if (chain && chart.date < 1652241600) return // for individual chains data is currently only backfilled to May 11, 2022
         if (circulating !== null && circulating !== 0) {
           if (total[date] == undefined) {
             total[date] = {}
@@ -551,7 +552,7 @@ export async function getPeggedChainsPageData(category) {
         const chainName = chainList[i]
         const circulating = chart.mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
         const date = chart.date
-        if (date < 1596248105) return
+        if (date < 1652241600) return
         if (circulating !== null && circulating !== 0) {
           if (total[date] == undefined) {
             total[date] = {}
