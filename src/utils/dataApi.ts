@@ -346,7 +346,7 @@ export async function getPeggedOverviewPageData(category, chain) {
             return await fetch(`${PEGGEDCHART_API}/?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
           }
           return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
-        } catch (e) {}
+        } catch (e) { }
       }
       throw new Error(`${CHART_API}/${elem} is broken`)
     })
@@ -448,7 +448,7 @@ export async function getPeggedChainsPageData(category) {
         for (let i = 0; i < 5; i++) {
           try {
             return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-          } catch (e) {}
+          } catch (e) { }
         }
         throw new Error(`${CHART_API}/${elem} is broken`)
       } else return null
@@ -490,7 +490,7 @@ export async function getPeggedChainsPageData(category) {
         try {
           const res = await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
           return res
-        } catch (e) {}
+        } catch (e) { }
       }
       throw new Error(`${PEGGEDCHART_API}/${chain} is broken`)
     })
@@ -902,7 +902,7 @@ export const getChainsPageData = async (category: string) => {
       for (let i = 0; i < 5; i++) {
         try {
           return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-        } catch (e) {}
+        } catch (e) { }
       }
       throw new Error(`${CHART_API}/${elem} is broken`)
     })
@@ -1330,6 +1330,11 @@ const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).t
 
 export const useFetchProtocolsList = () => {
   const { data, error } = useSWR(PROTOCOLS_API, fetcher)
+  return { data, error, loading: !data && !error }
+}
+
+export const useFetchPeggedList = () => {
+  const { data, error } = useSWR(PEGGEDS_API, fetcher)
   return { data, error, loading: !data && !error }
 }
 
