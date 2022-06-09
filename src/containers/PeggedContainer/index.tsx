@@ -152,7 +152,7 @@ export default function PeggedContainer({
       .forEach((day) => {
         rows.push([day.date, toNiceCsvDate(day.date), ...chainsUnique.map((chain) => day[chain] ?? '')])
       })
-    download('chains.csv', rows.map((r) => r.join(',')).join('\n'))
+    download('peggedAssetChains.csv', rows.map((r) => r.join(',')).join('\n'))
   }
 
   const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false

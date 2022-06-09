@@ -12,10 +12,13 @@ import {
   getPercentChange,
   getPeggedDominance,
   toNiceMonthlyDate,
+  toNiceCsvDate,
+  download,
 } from 'utils'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from 'hooks/data'
 import { useLg, useXl, useMed } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
+import { DownloadCloud } from 'react-feather'
 import Table, { columnsToShow, isOfTypePeggedCategory, NamePegged } from 'components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
 import { useDarkModeManager } from 'contexts/LocalStorage'
@@ -217,6 +220,42 @@ const PeggedTable = styled(Table)`
   }
 `
 
+const Base = styled.button`
+  padding: 8px 12px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  outline: none;
+  border: 1px solid transparent;
+  outline: none;
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+  }
+`
+
+const DownloadButton = styled(Base)`
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: ${({ theme }) => theme.bg3};
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+  }
+`
+
+const DownloadIcon = styled(DownloadCloud)`
+  color: ${({ theme }) => theme.text1};
+  position: relative;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+`
+
 function PeggedChainsOverview({
   title,
   category,
@@ -321,11 +360,19 @@ function PeggedChainsOverview({
     [chainTotals]
   )
 
-  const chainNames = useMemo(() => {
-    return ['TOTAL', ...chainList]
-  }, [chainList])
+  const chainNames = chainList // update this when area chart is finished
 
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
+
+  const downloadCsv = () => {
+    const rows = [['Timestamp', 'Date', ...chainList]]
+    stackedData
+      .sort((a, b) => a.date - b.date)
+      .forEach((day) => {
+        rows.push([day.date, toNiceCsvDate(day.date), ...chainList.map((chain) => day[chain] ?? '')])
+      })
+    download('peggedAssetsChainTotals.csv', rows.map((r) => r.join(',')).join('\n'))
+  }
 
   if (!title) {
     title = `Market Cap`
@@ -369,6 +416,12 @@ function PeggedChainsOverview({
             <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
               {mcapToDisplay}
             </TYPE.main>
+            <DownloadButton onClick={downloadCsv}>
+              <RowBetween>
+                <DownloadIcon />
+                <TYPE.main>&nbsp;&nbsp;.csv</TYPE.main>
+              </RowBetween>
+            </DownloadButton>
           </RowBetween>
         </AutoColumn>
       </Panel>
