@@ -54,13 +54,6 @@ export default function Layout({ title, children, defaultSEO = false, background
     <>
       <Head>
         <title>{title}</title>
-        <link
-          rel="preload"
-          href="/font-files/Inter-roman.var.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        ></link>
       </Head>
 
       {defaultSEO && <SEO />}

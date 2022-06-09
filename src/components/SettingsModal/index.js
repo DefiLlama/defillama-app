@@ -11,6 +11,7 @@ import {
   useSingleExposureManager,
   useNoILManager,
   useMillionDollarManager,
+  useAuditedManager,
   useTvlToggles,
   useGetExtraTvlEnabled,
   STAKING,
@@ -64,7 +65,7 @@ const StyledMenuButton = styled.button`
   }
 `
 
-const StyledMenu = styled.div`
+const StyledMenu = styled.span`
   margin-left: 0.5rem;
   display: flex;
   justify-content: center;
@@ -198,6 +199,7 @@ export function CheckMarks({ type = 'defi', style = null }) {
   const [singleExposure, toggleSingleExposure] = useSingleExposureManager()
   const [noIL, toggleNoIL] = useNoILManager()
   const [millionDollar, toggleMillionDollar] = useMillionDollarManager()
+  const [audited, toggleAudited] = useAuditedManager()
   const router = useRouter()
   const isClient = useIsClient()
 
@@ -254,6 +256,12 @@ export function CheckMarks({ type = 'defi', style = null }) {
         toggle: toggleMillionDollar,
         enabled: millionDollar && isClient,
         help: 'Select pools with at least one million dollar in TVL',
+      },
+      {
+        name: 'Audited',
+        toggle: toggleAudited,
+        enabled: audited && isClient,
+        help: 'Select pools from audited projects only',
       },
     ],
   }
@@ -322,7 +330,7 @@ export const extraPeggedOptions = [
   },
 ]
 
-export default function Menu({ type = 'defi' }) {
+export default function Menu({ type = 'defi', ...props }) {
   const node = useRef()
 
   const [open, setOpen] = useState(false)
@@ -389,7 +397,7 @@ export default function Menu({ type = 'defi' }) {
   }
 
   return (
-    <StyledMenu ref={node}>
+    <StyledMenu ref={node} {...props}>
       <StyledMenuButton onClick={toggle}>
         <StyledMenuIcon />
       </StyledMenuButton>
