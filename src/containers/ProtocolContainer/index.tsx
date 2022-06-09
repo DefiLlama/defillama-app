@@ -23,6 +23,9 @@ import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from 'contexts/Lo
 import { useFetchProtocol } from 'utils/dataApi'
 import { IChartProps } from 'components/TokenChart/types'
 import { buildProtocolData } from 'utils/protocolData'
+import { useInView, defaultFallbackInView } from 'react-intersection-observer'
+
+defaultFallbackInView(true)
 
 const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false }) as React.FC<IChartProps>
 const BarChart = dynamic(() => import('components/TokenChart/BarChart'), { ssr: false }) as React.FC<IChartProps>
@@ -404,6 +407,10 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const [bobo, setBobo] = useState(false)
 
+  const { ref: addlChartsRef, inView: addlChartsInView } = useInView({
+    triggerOnce: true,
+  })
+
   const extraTvls = []
   const tvls = []
 
@@ -519,7 +526,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
         />
 
         <Bobo onClick={() => setBobo(!bobo)}>
-          <Image src={boboLogo} width={34} height={34} alt="" />
+          <span className="visually-hidden">Enable Goblin Mode</span>
+          <Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
         </Bobo>
       </Stats>
 
@@ -603,10 +611,10 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
       {showCharts && (
         <>
-          <SectionHeader>Charts</SectionHeader>
+          <SectionHeader ref={addlChartsRef}>Charts</SectionHeader>
 
           <ChartsWrapper>
-            {loading ? (
+            {loading || !addlChartsInView ? (
               <span
                 style={{
                   height: '360px',

@@ -31,7 +31,6 @@ class MyDocument extends Document {
             href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap"
             rel="stylesheet"
           />
-          <link href="https://rsms.me/inter/inter.css" rel="stylesheet" />
         </Head>
         <body>
           <Main />
