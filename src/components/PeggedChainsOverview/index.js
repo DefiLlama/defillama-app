@@ -3,7 +3,6 @@ import styled from 'styled-components'
 import { OptionButton } from 'components/ButtonStyled'
 import { AutoColumn } from '../Column'
 import { RowBetween, AutoRow } from 'components/Row'
-import Search from 'components/Search'
 import PeggedViewSwitch from 'components/PeggedViewSwitch'
 import {
   getRandomColor,
