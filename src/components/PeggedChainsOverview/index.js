@@ -144,7 +144,7 @@ const PeggedTable = styled(Table)`
       display: revert;
       padding-right: 20px;
       & > div {
-        width: 120px;
+        width: 140px;
         white-space: nowrap;
         overflow: hidden;
       }
