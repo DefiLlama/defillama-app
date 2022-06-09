@@ -500,7 +500,7 @@ export async function getPeggedChainsPageData(category) {
     if (!charts.length) return total
     charts.forEach((chart) => {
       const chainName = chainList[i]
-      if (chart.date > 1596248105 && chart.mcap) {
+      if (chart.date > 1652241600 && chart.mcap) {
         total[chart.date] = total[chart.date] || {}
         total[chart.date][chainName] = chart.mcap
       }
