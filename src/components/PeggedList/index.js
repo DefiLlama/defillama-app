@@ -390,7 +390,6 @@ function PeggedAssetsOverview({
     <>
       <RowBetween>
         <TYPE.largeHeader>{title}</TYPE.largeHeader>
-        <PeggedViewSwitch />
         <Search small={!belowLg} />
       </RowBetween>
       <div>
