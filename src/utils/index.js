@@ -3,15 +3,11 @@ import { BigNumber } from 'bignumber.js'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { Text } from 'rebass'
-import _Decimal from 'decimal.js-light'
-import toFormat from 'toformat'
 import Numeral from 'numeral'
 
 import { timeframeOptions } from '../constants'
 export * from './blockExplorers'
 
-// format libraries
-const Decimal = toFormat(_Decimal)
 BigNumber.set({ EXPONENTIAL_AT: 50 })
 dayjs.extend(utc)
 
@@ -140,12 +136,6 @@ var priceFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
 })
 
-export const toSignificant = (number, significantDigits) => {
-  Decimal.set({ precision: significantDigits + 1, rounding: Decimal.ROUND_UP })
-  const updated = new Decimal(number).toSignificantDigits(significantDigits)
-  return updated.toFormat(updated.decimalPlaces(), { groupSeparator: '' })
-}
-
 export const formattedNum = (number, symbol = false, acceptNegatives = false) => {
   let currencySymbol
   if (symbol === true) {
@@ -233,7 +223,7 @@ export const formattedPegggedPrice = (number, symbol = false, acceptNegatives = 
   }
 
   if (symbol) {
-      return currencyMark + (parseFloat(num).toFixed(6))    // this is all pegged is using, should merge with above
+    return currencyMark + parseFloat(num).toFixed(6) // this is all pegged is using, should merge with above
   }
 
   return Number(parseFloat(num).toFixed(5))

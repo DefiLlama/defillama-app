@@ -52,6 +52,7 @@ export default function TokenLogo({
           height={size}
           width={size}
           layout="fixed"
+          loading="lazy"
         />
       </Inline>
     )
@@ -60,7 +61,7 @@ export default function TokenLogo({
   if (error || BAD_IMAGES[logo]) {
     return (
       <Inline>
-        <Image {...rest} alt={''} src={PlaceHolder} height={size} width={size} layout="fixed" />
+        <Image {...rest} alt={''} src={PlaceHolder} height={size} width={size} layout="fixed" loading="lazy" />
       </Inline>
     )
   }
@@ -79,6 +80,7 @@ export default function TokenLogo({
           setError(true)
           event.preventDefault()
         }}
+        loading="lazy"
       />
     </Inline>
   )

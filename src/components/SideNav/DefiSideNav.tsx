@@ -17,7 +17,7 @@ import {
   Book,
   Pocket,
 } from 'react-feather'
-import { Nav, Entry, Footer, MobileOnlyEntry } from './shared'
+import { Entry, Footer, MobileOnlyEntry } from './shared'
 
 const Paper = () => (
   <svg
@@ -54,7 +54,7 @@ const Paper = () => (
 
 const NavMenu = () => {
   return (
-    <Nav>
+    <>
       <MobileOnlyEntry url="/yields" name="Yields" Icon={Percent} style={{ marginTop: '20px' }} />
 
       <Entry url="/" name="Overview" Icon={TrendingUp} />
@@ -75,7 +75,7 @@ const NavMenu = () => {
       <Entry url="/about" name="About" Icon={HelpCircle} />
 
       <Footer app="defi" />
-    </Nav>
+    </>
   )
 }
 

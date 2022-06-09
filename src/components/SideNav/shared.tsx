@@ -53,9 +53,13 @@ export const TitleWrapper = styled.span`
 
 export const Nav = styled.nav`
   flex: 1;
-  display: flex;
+  display: var(--mobile-display);
   flex-direction: column;
   gap: 20px;
+
+  @media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+    display: flex;
+  }
 `
 
 interface INavLink {

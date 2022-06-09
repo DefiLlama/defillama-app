@@ -38,6 +38,7 @@ function Bookmark({ readableProtocolName, ...props }) {
 
   return (
     <Wrapper ref={bookmarkRef} onClick={onClick} saved={`${isSaved}`} {...props}>
+      <span className="visually-hidden">{`Bookamrk ${protocolName}`}</span>
       <BookmarkIcon saved={`${isSaved}`} width={16} height={16} />
     </Wrapper>
   )

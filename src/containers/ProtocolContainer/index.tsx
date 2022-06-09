@@ -23,6 +23,9 @@ import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from 'contexts/Lo
 import { useFetchProtocol } from 'utils/dataApi'
 import { IChartProps } from 'components/TokenChart/types'
 import { buildProtocolData } from 'utils/protocolData'
+import { useInView, defaultFallbackInView } from 'react-intersection-observer'
+
+defaultFallbackInView(true)
 
 const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false }) as React.FC<IChartProps>
 const BarChart = dynamic(() => import('components/TokenChart/BarChart'), { ssr: false }) as React.FC<IChartProps>
@@ -292,11 +295,51 @@ const TvlWrapper = styled.section`
 const ExtraTvlOption = styled.label`
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
 
   input {
+    position: relative;
+    top: 1px;
     margin: 0;
     padding: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    width: 1em;
+    height: 1em;
+    border: ${({ theme }) => '1px solid ' + theme.text4};
+    border-radius: 0.15em;
+    transform: translateY(-0.075em);
+    display: grid;
+    place-content: center;
+
+    ::before {
+      content: '';
+      width: 0.5em;
+      height: 0.5em;
+      transform: scale(0);
+      transition: 120ms transform ease-in-out;
+      box-shadow: ${({ theme }) => 'inset 1em 1em ' + theme.text1};
+      transform-origin: bottom left;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+
+    :checked::before {
+      transform: scale(1);
+    }
+
+    :focus-visible {
+      outline: ${({ theme }) => '1px solid ' + theme.text1};
+      outline-offset: max(2px, 0.15em);
+    }
+
+    :hover {
+      cursor: pointer;
+    }
+  }
+
+  :hover {
+    cursor: pointer;
   }
 `
 
@@ -363,6 +406,10 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
   const totalVolume = useCalcSingleExtraTvl(tvlBreakdowns, tvl)
 
   const [bobo, setBobo] = useState(false)
+
+  const { ref: addlChartsRef, inView: addlChartsInView } = useInView({
+    triggerOnce: true,
+  })
 
   const extraTvls = []
   const tvls = []
@@ -479,7 +526,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
         />
 
         <Bobo onClick={() => setBobo(!bobo)}>
-          <Image src={boboLogo} width={34} height={34} alt="" />
+          <span className="visually-hidden">Enable Goblin Mode</span>
+          <Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
         </Bobo>
       </Stats>
 
@@ -563,10 +611,10 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
       {showCharts && (
         <>
-          <SectionHeader>Charts</SectionHeader>
+          <SectionHeader ref={addlChartsRef}>Charts</SectionHeader>
 
           <ChartsWrapper>
-            {loading ? (
+            {loading || !addlChartsInView ? (
               <span
                 style={{
                   height: '360px',

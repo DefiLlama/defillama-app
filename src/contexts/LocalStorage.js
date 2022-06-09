@@ -28,6 +28,7 @@ export const STABLECOINS = 'STABLECOINS'
 export const SINGLE_EXPOSURE = 'SINGLE_EXPOSURE'
 export const NO_IL = 'NO_IL'
 export const MILLION_DOLLAR = 'MILLION_DOLLAR'
+export const AUDITED = 'AUDITED'
 
 export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
 export const extraPeggedProps = [UNRELEASED]
@@ -74,6 +75,7 @@ const UPDATABLE_KEYS = [
   SINGLE_EXPOSURE,
   NO_IL,
   MILLION_DOLLAR,
+  AUDITED,
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -116,6 +118,7 @@ function init() {
     [SINGLE_EXPOSURE]: false,
     [NO_IL]: false,
     [MILLION_DOLLAR]: false,
+    [AUDITED]: false,
     [DISMISSED_PATHS]: {},
     [SAVED_ACCOUNTS]: [],
     [SAVED_TOKENS]: { main: {} },
@@ -331,6 +334,17 @@ export function useMillionDollarManager() {
   }
 
   return [millionDollar, toggleMillionDollar]
+}
+
+export function useAuditedManager() {
+  const [state, { updateKey }] = useLocalStorageContext()
+  const audited = state[AUDITED]
+
+  const toggleAudited = () => {
+    updateKey(AUDITED, !audited)
+  }
+
+  return [audited, toggleAudited]
 }
 
 export function usePathDismissed(path) {
