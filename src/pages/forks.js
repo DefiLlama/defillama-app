@@ -6,8 +6,7 @@ import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
 import { getRandomColor, toK } from 'utils'
 import { CustomLink } from 'components/Link'
 import styled from 'styled-components'
-import Search from 'components/Search'
-import { AllTvlOptions } from 'components/SettingsModal'
+import Search from 'components/Search/New'
 import { Header } from 'Theme'
 import { ChainDominanceChart, ChainPieChart } from 'components/Charts'
 import Filters, { FiltersWrapper } from 'components/Filters'
@@ -102,8 +101,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 
   return (
     <>
-      <Search />
-      <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+      <Search step={{ category: 'Home', name: 'Forks', route: '/' }} />
 
       <Header>Total Value Locked All Forks</Header>
 

@@ -293,7 +293,7 @@ const formatPeggedChainsData = ({
   return filteredPeggedAssets
 }
 
-export async function getProtocolsPageData(category, chain) {
+export async function getProtocolsPageData(category?: string, chain?: string) {
   const { protocols, chains } = await getProtocols()
 
   const chainsSet = new Set()

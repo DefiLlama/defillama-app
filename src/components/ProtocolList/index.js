@@ -1,9 +1,7 @@
 import React, { useMemo } from 'react'
 import { useCalcStakePool2Tvl } from 'hooks/data'
-import { useLg } from 'hooks/useBreakpoints'
-import { TYPE } from 'Theme'
-import { RowBetween } from 'components/Row'
-import Search from 'components/Search'
+import { Header } from 'Theme'
+import Search from 'components/Search/New'
 import Table, { columnsToShow } from 'components/Table'
 import Filters, { FiltersWrapper } from 'components/Filters'
 
@@ -16,7 +14,6 @@ function AllTokensPage({
   showChainList = true,
   defaultSortingColumn,
 }) {
-  const isLg = useLg()
   const handleRouting = (chain) => {
     if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
     return `/protocols/${category?.toLowerCase()}/${chain}`
@@ -48,12 +45,18 @@ function AllTokensPage({
     } else return columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
   }, [category])
 
+  const routeName = category ? (selectedChain === 'All' ? 'All Chains' : selectedChain) : 'All Protocols'
+
   return (
     <>
-      <RowBetween>
-        <TYPE.largeHeader>{title}</TYPE.largeHeader>
-        <Search small={!isLg} />
-      </RowBetween>
+      <Search
+        step={{
+          category: category || 'Home',
+          name: routeName,
+          route: 'categories',
+        }}
+      />
+      <Header>{title}</Header>
 
       {showChainList && (
         <FiltersWrapper>

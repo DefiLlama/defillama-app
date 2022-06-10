@@ -1,8 +1,9 @@
-import PageHeader from 'components/PageHeader'
+import Search from 'components/Search/New'
 import Table, { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useMemo } from 'react'
 import styled from 'styled-components'
+import { Header } from 'Theme'
 import Layout from '../layout'
 import { revalidate, getSimpleProtocolsPageData, basicPropertiesToKeep } from '../utils/dataApi'
 
@@ -181,7 +182,10 @@ export default function Protocols({ protocols }) {
 
   return (
     <Layout title={`TVL Rankings - DefiLlama`} defaultSEO>
-      <PageHeader title="Recently Listed Protocols" />
+      <Search step={{ category: 'Home', name: 'Recent', route: '/' }} />
+
+      <Header>Recently Listed Protocols</Header>
+
       <TableWrapper data={protocolsData} columns={columns} />
     </Layout>
   )

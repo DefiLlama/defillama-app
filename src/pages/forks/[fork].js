@@ -8,8 +8,7 @@ import { AutoColumn } from 'components/Column'
 import { RowBetween } from 'components/Row'
 import { TYPE } from 'Theme'
 import { BreakpointPanels, BreakpointPanelsColumn, Panel, ProtocolsTable } from 'components'
-import Search from 'components/Search'
-import { AllTvlOptions } from 'components/SettingsModal'
+import Search from 'components/Search/New'
 import { columnsToShow } from 'components/Table'
 import Filters, { FiltersWrapper } from 'components/Filters'
 
@@ -115,8 +114,8 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentToken
 
   return (
     <>
-      <Search />
-      <AllTvlOptions style={{ display: 'flex', justifyContent: 'center' }} />
+      <Search step={{ category: 'Oracles', name: token, route: '/forks' }} />
+
       <BreakpointPanels>
         <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
         <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>

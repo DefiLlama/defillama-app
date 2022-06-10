@@ -16,7 +16,7 @@ import {
   download,
 } from 'utils'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from 'hooks/data'
-import { useLg, useXl, useMed } from 'hooks/useBreakpoints'
+import { useXl, useMed } from 'hooks/useBreakpoints'
 import { TYPE } from 'Theme'
 import { DownloadCloud } from 'react-feather'
 import Table, { columnsToShow, isOfTypePeggedCategory, NamePegged } from 'components/Table'
@@ -335,7 +335,6 @@ function PeggedChainsOverview({
   const [chartType, setChartType] = useState(peggedChartType)
 
   const belowMed = useMed()
-  const belowLg = useLg()
   const belowXl = useXl()
   const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
