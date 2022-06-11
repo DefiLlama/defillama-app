@@ -28,14 +28,16 @@ import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
 import IconsRow from 'components/IconsRow'
 import { PeggedSearch } from 'components/Search/New'
 
-function Chart({ peggedAreaChartData, peggedAssetNames, aspect }) {
+function Chart({ peggedAreaChartData, peggedAreaMcapData, totalMcapLabel, peggedAssetNames, aspect }) {
   const [darkMode] = useDarkModeManager()
   const textColor = darkMode ? 'white' : 'black'
+  const finalChartData = peggedAreaChartData ? peggedAreaChartData : peggedAreaMcapData
+  const labels = peggedAssetNames ? peggedAssetNames : totalMcapLabel
   return (
     <GeneralAreaChart
       aspect={aspect}
-      finalChartData={peggedAreaChartData}
-      tokensUnique={peggedAssetNames}
+      finalChartData={finalChartData}
+      tokensUnique={labels}
       textColor={textColor}
       color={'blue'}
       moneySymbol="$"
@@ -267,6 +269,7 @@ function PeggedAssetsOverview({
   filteredPeggedAssets,
   chartData,
   peggedAreaChartData,
+  peggedAreaMcapData,
   stackedDataset,
   peggedChartType,
   showChainList = true,
@@ -299,7 +302,7 @@ function PeggedAssetsOverview({
       header: 'Chains',
       accessor: 'chains', // should change this
       disableSortBy: true,
-      helperText: "Chains are ordered by pegged asset's highest issuance on each chain",
+      helperText: "Chains are ordered by pegged asset's issuance on each chain",
       Cell: ({ value }) => <IconsRow links={value} url="/peggedassets/stablecoins" iconType="chain" />,
     },
     {
@@ -394,6 +397,8 @@ function PeggedAssetsOverview({
 
   const dominance = getPeggedDominance(topToken, totalMcapCurrent)
 
+  const totalMcapLabel = ['Total Stablecoins Market Cap']
+
   const panels = (
     <>
       <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
@@ -453,6 +458,9 @@ function PeggedAssetsOverview({
           <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
             <RowBetween mb={useMed ? 40 : 0} align="flex-start">
               <AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
+              <OptionButton active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
+                  Total Mcap
+                </OptionButton>
                 <OptionButton active={chartType === 'Area'} onClick={() => setChartType('Area')}>
                   Area
                 </OptionButton>
@@ -464,6 +472,7 @@ function PeggedAssetsOverview({
                 </OptionButton>
               </AutoRow>
             </RowBetween>
+            {chartType === 'Mcap' && <Chart {...{ peggedAreaMcapData, totalMcapLabel, aspect }} />}
             {chartType === 'Area' && <Chart {...{ peggedAreaChartData, peggedAssetNames, aspect }} />}
             {chartType === 'Dominance' && (
               <PeggedChainResponsiveDominance
