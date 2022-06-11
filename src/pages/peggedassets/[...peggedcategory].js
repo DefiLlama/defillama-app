@@ -38,6 +38,7 @@ export default function PeggedAssets({
   filteredPeggedAssets,
   chartData,
   peggedAreaChartData,
+  peggedAreaMcapData,
   stackedDataset,
   peggedChartType,
   chain,
@@ -51,6 +52,7 @@ export default function PeggedAssets({
         filteredPeggedAssets={filteredPeggedAssets}
         chartData={chartData}
         peggedAreaChartData={peggedAreaChartData}
+        peggedAreaMcapData={peggedAreaMcapData}
         stackedDataset={stackedDataset}
         peggedChartType={peggedChartType}
       />

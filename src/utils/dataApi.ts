@@ -374,6 +374,24 @@ export async function getPeggedOverviewPageData(category, chain) {
     }
   })
 
+  let peggedMcapChartData = []
+  peggedMcapChartData = await fetch(`${PEGGEDCHART_API}`).then((resp) => resp.json())
+
+  let peggedAreaMcapData = {}
+  peggedMcapChartData.map((chart) => {
+    if (chart.date > 1596248105 && chart.mcap) {
+      peggedAreaMcapData[chart.date] = peggedAreaMcapData[chart.date] || {}
+      peggedAreaMcapData[chart.date]['Total Stablecoins Market Cap'] = chart.mcap
+    }
+  })
+
+  peggedAreaMcapData = Object.keys(peggedAreaMcapData).map((date) => {
+    return {
+      date: date,
+      ...peggedAreaMcapData[date],
+    }
+  })
+
   const pegType = categoryToPegType[category]
   const stackedDataset = Object.entries(
     chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
@@ -427,6 +445,7 @@ export async function getPeggedOverviewPageData(category, chain) {
     filteredPeggedAssets,
     chartData,
     peggedAreaChartData,
+    peggedAreaMcapData,
     stackedDataset,
     peggedChartType,
     chain: chain ?? 'All',
