@@ -2,11 +2,11 @@ import { useMemo } from 'react'
 import { ChevronDown, FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
 import { Panel, ProtocolsTable } from 'components'
-import Row, { RowBetween } from 'components/Row'
-import Search from 'components/Search'
+import Row from 'components/Row'
+import Search from 'components/Search/New'
 import { useIsClient } from 'hooks'
 import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
-import { TYPE } from 'Theme'
+import { Header, TYPE } from 'Theme'
 import { columnsToShow } from 'components/Table'
 import { DropdownMenu, DropdownMenuContent, DefaultMenuButton, DefaultMenuItem } from 'components/DropdownMenu'
 
@@ -70,10 +70,10 @@ function PortfolioContainer({ protocolsDict }) {
 
   return (
     <>
-      <RowBetween>
-        <TYPE.largeHeader>Saved Protocols</TYPE.largeHeader>
-        <Search />
-      </RowBetween>
+      <Search step={{ category: 'Home', name: 'Watchlist', route: '/' }} />
+
+      <Header>Saved Protocols</Header>
+
       <Row sx={{ gap: '1rem' }}>
         <TYPE.main>Current portfolio:</TYPE.main>
         <DropdownMenu>

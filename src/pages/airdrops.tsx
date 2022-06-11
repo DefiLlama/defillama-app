@@ -1,8 +1,9 @@
 import { ProtocolsTable } from 'components'
-import PageHeader from 'components/PageHeader'
+import Search from 'components/Search/New'
 import { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import styled from 'styled-components'
+import { Header } from 'Theme'
 import Layout from '../layout'
 import { revalidate, getProtocolsPageData } from '../utils/dataApi'
 
@@ -52,7 +53,8 @@ export default function Protocols({ protocols }) {
   const data = useCalcStakePool2Tvl(protocols)
   return (
     <Layout title={`Airdroppable protocols - Defi Llama`} defaultSEO>
-      <PageHeader title="Tokenless protocols that may airdrop 🧑‍🌾" />
+      <Search step={{ category: 'Home', name: 'Airdrops', route: '/' }} />
+      <Header>Tokenless protocols that may airdrop 🧑‍🌾</Header>
       <TableWrapper data={data} columns={columns} />
     </Layout>
   )

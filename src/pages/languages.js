@@ -4,32 +4,38 @@ import { toNiceMonthlyDate, getRandomColor } from '../utils'
 import { revalidate } from '../utils/dataApi'
 import { GeneralAreaChart } from 'components/TokenChart/charts'
 import { ChainDominanceChart } from 'components/Charts'
-import Search from 'components/Search'
+import Search from 'components/Search/New'
 import { Header } from 'Theme'
 import { Panel } from 'components'
 
 function formatDataForChart(langs) {
   const langsUnique = new Set()
   const daySum = {}
-  const formattedLangs = Object.entries(langs).map(lang => {
-    Object.keys(lang[1]).map(l => langsUnique.add(l))
-    daySum[lang[0]] = Object.values(lang[1]).reduce((t, a) => t + a)
-    return {
-      ...lang[1],
-      date: lang[0],
-    }
-  }).sort((a, b) => a.date - b.date);
+  const formattedLangs = Object.entries(langs)
+    .map((lang) => {
+      Object.keys(lang[1]).map((l) => langsUnique.add(l))
+      daySum[lang[0]] = Object.values(lang[1]).reduce((t, a) => t + a)
+      return {
+        ...lang[1],
+        date: lang[0],
+      }
+    })
+    .sort((a, b) => a.date - b.date)
   return {
     formatted: formattedLangs,
     unique: Array.from(langsUnique),
-    daySum
+    daySum,
   }
 }
 
 export async function getStaticProps() {
-  const data = await fetch(LANGS_API).then(r => r.json())
+  const data = await fetch(LANGS_API).then((r) => r.json())
   const { unique: langsUnique, formatted: formattedLangs, daySum: langsDaySum } = formatDataForChart(data.chart)
-  const { unique: osUnique, formatted: osLangs, daySum: osDaySum } = formatDataForChart(data.sumDailySolanaOpenSourceTvls)
+  const {
+    unique: osUnique,
+    formatted: osLangs,
+    daySum: osDaySum,
+  } = formatDataForChart(data.sumDailySolanaOpenSourceTvls)
 
   return {
     props: {
@@ -38,38 +44,40 @@ export async function getStaticProps() {
       langsDaySum,
       osUnique,
       osLangs,
-      osDaySum
+      osDaySum,
     },
-    revalidate: revalidate()
+    revalidate: revalidate(),
   }
 }
 
 function Chart({ langs, langsUnique }) {
-  return <Panel style={{ marginTop: '6px' }} sx={{ padding: ['1rem 0 0 0', '1.25rem'] }}>
-    <GeneralAreaChart
-      aspect={60 / 22}
-      finalChartData={langs}
-      tokensUnique={langsUnique}
-      color={"blue"}
-      moneySymbol="$"
-      formatDate={toNiceMonthlyDate}
-      hallmarks={[]} />
-  </Panel>
+  return (
+    <Panel style={{ marginTop: '6px' }} sx={{ padding: ['1rem 0 0 0', '1.25rem'] }}>
+      <GeneralAreaChart
+        aspect={60 / 22}
+        finalChartData={langs}
+        tokensUnique={langsUnique}
+        color={'blue'}
+        moneySymbol="$"
+        formatDate={toNiceMonthlyDate}
+        hallmarks={[]}
+      />
+    </Panel>
+  )
 }
 
-export default function Protocols({ langs, langsUnique, langsDaySum,
-  osUnique,
-  osLangs,
-  osDaySum }) {
+export default function Protocols({ langs, langsUnique, langsDaySum, osUnique, osLangs, osDaySum }) {
   const colors = {}
-  langsUnique.forEach(l => { colors[l] = getRandomColor() })
+  langsUnique.forEach((l) => {
+    colors[l] = getRandomColor()
+  })
   return (
     <Layout title={`Languages - DefiLlama`} defaultSEO>
-      <Search />
+      <Search step={{ category: 'Home', name: 'Languages', route: '/', hideOptions: true }} />
 
       <Header>TVL breakdown by Smart Contract Language</Header>
 
-      <Chart {...({ langs, langsUnique })} />
+      <Chart {...{ langs, langsUnique }} />
 
       <ChainDominanceChart
         stackOffset="expand"
@@ -77,7 +85,8 @@ export default function Protocols({ langs, langsUnique, langsDaySum,
         stackedDataset={langs}
         chainsUnique={langsUnique}
         chainColor={colors}
-        daySum={langsDaySum} />
+        daySum={langsDaySum}
+      />
 
       <br />
 
@@ -89,10 +98,11 @@ export default function Protocols({ langs, langsUnique, langsDaySum,
         stackedDataset={osLangs}
         chainsUnique={osUnique}
         chainColor={{
-          opensource: "green",
-          closedsource: "red"
+          opensource: 'green',
+          closedsource: 'red',
         }}
-        daySum={osDaySum} />
+        daySum={osDaySum}
+      />
     </Layout>
   )
 }

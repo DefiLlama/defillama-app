@@ -4,6 +4,8 @@ import { getProtocolsRaw, revalidate } from '../utils/dataApi'
 import { toK } from 'utils'
 import Table, { Index } from 'components/Table'
 import PageHeader from 'components/PageHeader'
+import { Header } from 'Theme'
+import Search from 'components/Search/New'
 
 export async function getStaticProps() {
   const protocols = await getProtocolsRaw()
@@ -99,7 +101,10 @@ const columns = [
 export default function Protocols({ categories }) {
   return (
     <Layout title={`Categories - DefiLlama`} defaultSEO>
-      <PageHeader title="Protocol Categories" />
+      <Search step={{ category: 'Home', name: 'Categories', route: '/' }} />
+
+      <Header>Protocol Categories</Header>
+
       <Table data={categories} columns={columns} align="start" gap="40px" />
     </Layout>
   )

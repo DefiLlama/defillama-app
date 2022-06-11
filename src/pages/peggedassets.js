@@ -3,8 +3,9 @@ import Layout from '../layout'
 import { getPeggedAssets, revalidate, getPeggedPrices } from '../utils/dataApi'
 import { toK } from 'utils'
 import Table, { Index } from 'components/Table'
-import PageHeader from 'components/PageHeader'
 import { capitalizeFirstLetter } from 'utils'
+import { Header } from 'Theme'
+import { PeggedSearch } from 'components/Search/New'
 
 export async function getStaticProps() {
   const peggedAssets = await getPeggedAssets()
@@ -79,7 +80,10 @@ const columns = [
 export default function PeggedAssets({ categories }) {
   return (
     <Layout title={`Categories - DefiLlama`} defaultSEO>
-      <PageHeader title="Pegged Asset Categories" />
+      <PeggedSearch
+        step={{ category: 'Pegged Assets', name: 'Categories', route: 'peggedassets', hideOptions: true }}
+      />
+      <Header>Pegged Asset Categories</Header>
       <Table data={categories} columns={columns} align="start" gap="40px" />
     </Layout>
   )

@@ -86,7 +86,6 @@ const Table = styled.table`
     font-weight: 400;
     font-size: 0.75rem;
     text-align: left;
-    padding: 0 0 4px 0;
     color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
   }
 
@@ -94,25 +93,31 @@ const Table = styled.table`
     font-weight: 600;
     font-size: 1rem;
     text-align: start;
-    padding: 4px 4px 0 0;
   }
 
   td {
     font-weight: 400;
     font-size: 0.875rem;
     text-align: right;
-    padding: 4px 0 0 4px;
     font-family: var(--font-jetbrains);
   }
 
   thead td {
-    padding: 0 0 4px 0;
     > * {
       width: min-content;
       background: none;
       margin-left: auto;
       color: ${({ theme }) => theme.text1};
     }
+  }
+
+  thead > tr > *,
+  caption {
+    padding: 0 0 4px;
+  }
+
+  tbody > tr > * {
+    padding: 4px 0;
   }
 `
 
