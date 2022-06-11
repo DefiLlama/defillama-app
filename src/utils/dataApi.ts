@@ -222,7 +222,7 @@ const formatPeggedAssetsData = ({
       pegged.circulatingPrevWeek = pegged.circulatingPrevWeek[pegType] ?? null
       pegged.circulatingPrevMonth = pegged.circulatingPrevMonth[pegType] ?? null
     }
-    const chartIndex = peggedNameToIndexObj[pegged.symbol]
+    const chartIndex = peggedNameToIndexObj[pegged.name]
     const chart = chartDataByPeggedAsset[chartIndex] ?? null
 
     pegged.mcap = chart?.[chart.length - 1]?.mcap ?? null
@@ -339,7 +339,7 @@ export async function getPeggedOverviewPageData(category, chain) {
   chartDataByPeggedAsset = await Promise.all(
     peggedAssets.map(async (elem, i) => {
       peggedAssetNames.push(elem.symbol) // fix
-      peggedNameToIndexObj[elem.symbol] = i
+      peggedNameToIndexObj[elem.name] = i
       for (let i = 0; i < 5; i++) {
         try {
           if (!chain) {
