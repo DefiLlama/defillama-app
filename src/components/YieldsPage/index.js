@@ -1,9 +1,8 @@
 import Search from 'components/Search'
 import { AutoColumn } from 'components/Column'
-import Table, { columnsToShow, NameYield, TableFilters } from 'components/Table'
+import Table, { columnsToShow, NameYield, TableFilters, NameYieldPool } from 'components/Table'
 import { formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
-import { CustomLink } from 'components/Link'
 import styled from 'styled-components'
 import { AutoRow } from 'components/Row'
 import {
@@ -226,10 +225,15 @@ export const columns = [
     header: 'Pool',
     accessor: 'pool',
     disableSortBy: true,
-    Cell: ({ value, rowValues }) => (
-      <CustomLink href={`/yields/pool/${rowValues.id}`}>
-        {rowValues.project === 'Osmosis' ? `${value} ${rowValues.id.split('-').slice(-1)}` : value}
-      </CustomLink>
+    Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+      <NameYieldPool
+        value={value}
+        poolId={rowValues.id}
+        project={rowValues.project}
+        index={rowIndex !== null && rowIndex + 1}
+        bookmark
+        rowType={rowType}
+      />
     ),
   },
   {

@@ -1,14 +1,14 @@
 import { useMemo } from 'react'
 import { ChevronDown, FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
-import { Panel, ProtocolsTable } from 'components'
-import Row from 'components/Row'
-import Search from 'components/Search/New'
+import { Panel } from 'components'
+import Row, { RowBetween } from 'components/Row'
+import Search from 'components/Search'
 import { useIsClient } from 'hooks'
 import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
-import { Header, TYPE } from 'Theme'
-import { columnsToShow } from 'components/Table'
+import { TYPE } from 'Theme'
 import { DropdownMenu, DropdownMenuContent, DefaultMenuButton, DefaultMenuItem } from 'components/DropdownMenu'
+import { columns, TableWrapper } from 'components/YieldsPage'
 
 interface IFolder {
   isSaved?: boolean
@@ -33,8 +33,6 @@ const StyledTrash = styled(Trash2)<IFolder>`
     stroke: ${({ theme: { text1 } }) => text1};
   }
 `
-
-const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
 function PortfolioContainer({ protocolsDict }) {
   const isClient = useIsClient()
@@ -64,16 +62,16 @@ function PortfolioContainer({ protocolsDict }) {
 
   const filteredProtocols = useMemo(() => {
     if (isClient) {
-      return protocolsDict.filter((p) => portfolio.includes(p.name))
+      return protocolsDict.filter((p) => portfolio.includes(p.pool))
     } else return []
   }, [isClient, portfolio, protocolsDict])
 
   return (
     <>
-      <Search step={{ category: 'Home', name: 'Watchlist' }} />
-
-      <Header>Saved Protocols</Header>
-
+      <RowBetween>
+        <TYPE.largeHeader>Saved Pools</TYPE.largeHeader>
+        <Search />
+      </RowBetween>
       <Row sx={{ gap: '1rem' }}>
         <TYPE.main>Current portfolio:</TYPE.main>
         <DropdownMenu>
@@ -94,10 +92,25 @@ function PortfolioContainer({ protocolsDict }) {
       </Row>
 
       {filteredProtocols.length ? (
-        <ProtocolsTable data={filteredProtocols} columns={columns} />
+        <TableWrapper
+          data={filteredProtocols.map((t) => ({
+            id: t.pool,
+            pool: t.symbol,
+            projectslug: t.project,
+            project: t.projectName,
+            chains: [t.chain],
+            tvl: t.tvlUsd,
+            apy: t.apy,
+            change1d: t.apyPct1D,
+            change7d: t.apyPct7D,
+            outlook: t.predictions.predictedClass,
+            confidence: t.predictions.binnedConfidence,
+          }))}
+          columns={columns}
+        />
       ) : (
         <Panel>
-          <p style={{ textAlign: 'center' }}>You have not saved any protocols.</p>
+          <p style={{ textAlign: 'center' }}>You have not saved any pools.</p>
         </Panel>
       )}
     </>

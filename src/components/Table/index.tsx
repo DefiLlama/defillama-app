@@ -559,7 +559,7 @@ export function NamePegged({
     )
   const { iconUrl, tokenUrl } = useMemo(() => {
     let iconUrl, tokenUrl
-    if ((type === 'peggedUSD') || (type === 'peggedBridges')) {
+    if (type === 'peggedUSD' || type === 'peggedBridges') {
       tokenUrl = `/peggedassets/stablecoins/${value}`
       iconUrl = chainIconUrl(value)
     } else {
@@ -606,6 +606,41 @@ export function NameYield({ value, rowType, ...props }: NameProps) {
       ) : (
         <CustomLink href={tokenUrl}>{value['project']}</CustomLink>
       )}
+    </Index>
+  )
+}
+
+interface NameYieldPoolProps {
+  value: string
+  poolId: string
+  project: string
+  index?: number
+  bookmark?: boolean
+  rowType?: 'pinned' | 'default'
+}
+
+export function NameYieldPool({
+  value,
+  poolId,
+  project,
+  index,
+  bookmark,
+  rowType = 'default',
+  ...props
+}: NameYieldPoolProps) {
+  const tokenUrl = `/yields/pool/${poolId}`
+
+  let leftSpace: number | string = 0
+
+  return (
+    <Index {...props} style={{ left: leftSpace }}>
+      {bookmark && (
+        <SaveButton readableProtocolName={poolId} style={{ paddingRight: rowType === 'pinned' ? '1ch' : 0 }} />
+      )}
+      <span>{rowType !== 'pinned' && index}</span>
+      <CustomLink href={tokenUrl}>
+        {project === 'Osmosis' ? `${value} ${poolId.split('-').slice(-1)}` : value}
+      </CustomLink>
     </Index>
   )
 }
