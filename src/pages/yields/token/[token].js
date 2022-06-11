@@ -1,12 +1,7 @@
 import Layout from 'layout'
 import Search from 'components/Search'
 import { AutoColumn } from 'components/Column'
-import { columnsToShow } from 'components/Table'
-import { formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
-import { CustomLink } from 'components/Link'
-import { AutoRow } from 'components/Row'
-import { NameYield } from 'components/Table/index'
 import {
   useNoILManager,
   useSingleExposureManager,
@@ -16,11 +11,11 @@ import {
 } from 'contexts/LocalStorage'
 import { useYieldPoolsData } from 'utils/dataApi'
 import { useRouter } from 'next/router'
-import QuestionHelper from 'components/QuestionHelper'
 import LocalLoader from 'components/LocalLoader'
 import Filters from 'components/Filters'
 import { ListHeader, ListOptions } from 'components/ChainPage'
-import { TableWrapper } from 'components/YieldsPage'
+import { TableWrapper, columns } from 'components/YieldsPage'
+import { NameYield } from 'components/Table'
 
 const YieldPage = () => {
   // load the full data once
@@ -32,64 +27,6 @@ const YieldPage = () => {
   // filter to requested token
   pools = pools.filter((p) => p.symbol.toLowerCase().includes(query.token.toLowerCase()))
 
-  const columns = [
-    {
-      header: 'Pool',
-      accessor: 'pool',
-      disableSortBy: true,
-      Cell: ({ value, rowValues }) => (
-        <CustomLink href={`/yields/pool/${rowValues.id}`}>
-          {rowValues.project === 'Osmosis' ? `${value} ${rowValues.id.split('-').slice(-1)}` : value}
-        </CustomLink>
-      ),
-    },
-    {
-      header: 'Project',
-      accessor: 'project',
-      disableSortBy: true,
-      Cell: ({ value, rowValues }) => <NameYield value={(value, rowValues)} />,
-    },
-    ...columnsToShow('chains', 'tvl'),
-    {
-      header: 'APY',
-      accessor: 'apy',
-      helperText: 'Annualised percentage yield',
-      Cell: ({ value, rowValues }) => {
-        return (
-          <AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
-            {rowValues.project === 'Osmosis' ? (
-              <QuestionHelper text={`${rowValues.id.split('-').slice(-1)} lock`} />
-            ) : null}
-            {formattedPercent(value, true)}
-          </AutoRow>
-        )
-      },
-    },
-    {
-      header: '1d change',
-      accessor: 'change1d',
-      Cell: ({ value }) => <>{formattedPercent(value)}</>,
-    },
-    {
-      header: '7d change',
-      accessor: 'change7d',
-      Cell: ({ value }) => <>{formattedPercent(value)}</>,
-    },
-    {
-      header: 'Outlook',
-      accessor: 'outlook',
-      helperText:
-        'The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY.',
-      Cell: ({ value }) => <>{value}</>,
-    },
-    {
-      header: 'Confidence',
-      accessor: 'confidence',
-      helperText: 'Predicted outlook confidence',
-      Cell: ({ value }) => <>{value === null ? null : value === 1 ? 'Low' : value === 2 ? 'Medium' : 'High'}</>,
-    },
-  ]
-
   const selectedTab = 'All'
   const tabOptions = [
     {
@@ -98,6 +35,24 @@ const YieldPage = () => {
     },
     ...chainList.map((el) => ({ label: el, to: `/yields/chain/${el}` })),
   ]
+
+  // if route query contains 'project' remove project href
+  const idx = columns.findIndex((c) => c.accessor === 'project')
+  if (query.project) {
+    columns[idx] = {
+      header: 'Project',
+      accessor: 'project',
+      disableSortBy: true,
+      Cell: ({ value, rowValues }) => <NameYield value={(value, rowValues)} rowType={'accordion'} />,
+    }
+  } else {
+    columns[idx] = {
+      header: 'Project',
+      accessor: 'project',
+      disableSortBy: true,
+      Cell: ({ value, rowValues }) => <NameYield value={(value, rowValues)} />,
+    }
+  }
 
   // toggles
   const [stablecoins] = useStablecoinsManager()

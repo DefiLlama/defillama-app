@@ -221,80 +221,72 @@ export const TableWrapper = styled(Table)`
   }
 `
 
+export const columns = [
+  {
+    header: 'Pool',
+    accessor: 'pool',
+    disableSortBy: true,
+    Cell: ({ value, rowValues }) => (
+      <CustomLink href={`/yields/pool/${rowValues.id}`}>
+        {rowValues.project === 'Osmosis' ? `${value} ${rowValues.id.split('-').slice(-1)}` : value}
+      </CustomLink>
+    ),
+  },
+  {
+    header: 'Project',
+    accessor: 'project',
+    disableSortBy: true,
+    Cell: ({ value, rowValues }) => <NameYield value={(value, rowValues)} />,
+  },
+  {
+    header: 'Chains',
+    accessor: 'chains',
+    disableSortBy: true,
+    helperText: "Chains are ordered by protocol's highest TVL on each chain",
+    Cell: ({ value }) => <IconsRow links={value} url="/yields/chain" iconType="chain" />,
+  },
+  ...columnsToShow('tvl'),
+  {
+    header: 'APY',
+    accessor: 'apy',
+    helperText: 'Annualised percentage yield',
+    Cell: ({ value, rowValues }) => {
+      return (
+        <AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
+          {rowValues.project === 'Osmosis' ? (
+            <QuestionHelper text={`${rowValues.id.split('-').slice(-1)} lock`} />
+          ) : null}
+          {formattedPercent(value, true)}
+        </AutoRow>
+      )
+    },
+  },
+  {
+    header: '1d change',
+    accessor: 'change1d',
+    Cell: ({ value }) => <>{formattedPercent(value)}</>,
+  },
+  {
+    header: '7d change',
+    accessor: 'change7d',
+    Cell: ({ value }) => <>{formattedPercent(value)}</>,
+  },
+  {
+    header: 'Outlook',
+    accessor: 'outlook',
+    helperText:
+      'The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY.',
+    Cell: ({ value }) => <>{value}</>,
+  },
+  {
+    header: 'Confidence',
+    accessor: 'confidence',
+    helperText: 'Predicted outlook confidence',
+    Cell: ({ value }) => <>{value === null ? null : value === 1 ? 'Low' : value === 2 ? 'Medium' : 'High'}</>,
+  },
+]
+
 const YieldPage = ({ pools, chainList }) => {
-  // for /yields/project/[project] I don't want to use href on Project column
-  const projectsUnique = [...new Set(pools.map((el) => el.project))]
-
-  const columns = [
-    {
-      header: 'Pool',
-      accessor: 'pool',
-      disableSortBy: true,
-      Cell: ({ value, rowValues }) => (
-        <CustomLink href={`/yields/pool/${rowValues.id}`}>
-          {rowValues.project === 'Osmosis' ? `${value} ${rowValues.id.split('-').slice(-1)}` : value}
-        </CustomLink>
-      ),
-    },
-    {
-      header: 'Project',
-      accessor: 'project',
-      disableSortBy: true,
-      Cell: ({ value, rowValues }) =>
-        projectsUnique.length > 1 ? (
-          <NameYield value={(value, rowValues)} />
-        ) : (
-          <NameYield value={(value, rowValues)} rowType={'accordion'} />
-        ),
-    },
-    {
-      header: 'Chains',
-      accessor: 'chains',
-      disableSortBy: true,
-      helperText: "Chains are ordered by protocol's highest TVL on each chain",
-      Cell: ({ value }) => <IconsRow links={value} url="/yields/chain" iconType="chain" />,
-    },
-    ...columnsToShow('tvl'),
-    {
-      header: 'APY',
-      accessor: 'apy',
-      helperText: 'Annualised percentage yield',
-      Cell: ({ value, rowValues }) => {
-        return (
-          <AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
-            {rowValues.project === 'Osmosis' ? (
-              <QuestionHelper text={`${rowValues.id.split('-').slice(-1)} lock`} />
-            ) : null}
-            {formattedPercent(value, true)}
-          </AutoRow>
-        )
-      },
-    },
-    {
-      header: '1d change',
-      accessor: 'change1d',
-      Cell: ({ value }) => <>{formattedPercent(value)}</>,
-    },
-    {
-      header: '7d change',
-      accessor: 'change7d',
-      Cell: ({ value }) => <>{formattedPercent(value)}</>,
-    },
-    {
-      header: 'Outlook',
-      accessor: 'outlook',
-      helperText:
-        'The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY.',
-      Cell: ({ value }) => <>{value}</>,
-    },
-    {
-      header: 'Confidence',
-      accessor: 'confidence',
-      helperText: 'Predicted outlook confidence',
-      Cell: ({ value }) => <>{value === null ? null : value === 1 ? 'Low' : value === 2 ? 'Medium' : 'High'}</>,
-    },
-  ]
-
   const chain = [...new Set(pools.map((el) => el.chain))]
   const selectedTab = chain.length > 1 ? 'All' : chain[0]
   const tabOptions = [
@@ -307,6 +299,24 @@ const YieldPage = ({ pools, chainList }) => {
 
   const { query } = useRouter()
   const { minTvl, maxTvl } = query
+
+  // if route query contains 'project' remove project href
+  const idx = columns.findIndex((c) => c.accessor === 'project')
+  if (query.project) {
+    columns[idx] = {
+      header: 'Project',
+      accessor: 'project',
+      disableSortBy: true,
+      Cell: ({ value, rowValues }) => <NameYield value={(value, rowValues)} rowType={'accordion'} />,
+    }
+  } else {
+    columns[idx] = {
+      header: 'Project',
+      accessor: 'project',
+      disableSortBy: true,
+      Cell: ({ value, rowValues }) => <NameYield value={(value, rowValues)} />,
+    }
+  }
 
   // toggles
   const [stablecoins] = useStablecoinsManager()
