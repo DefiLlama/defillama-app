@@ -186,6 +186,7 @@ export default function Search({ step }: { step: IStep }) {
     const protocolData =
       data?.protocols?.map((token) => ({
         ...token,
+        name: `${token.name} (${token.symbol})`,
         logo: tokenIconUrl(token.name),
         route: `/protocol/${standardizeProtocolName(token.name)}`,
       })) ?? []
@@ -204,7 +205,7 @@ export function PeggedSearch({ step }: { step: IStep }) {
     data?.peggedAssets?.map((asset) => ({
       logo: peggedAssetIconUrl(asset.name),
       route: `/peggedasset/${standardizeProtocolName(asset.name)}`,
-      name: asset.name,
+      name: `${asset.name} (${asset.symbol})`,
     })) ?? []
 
   return <SearchDefault data={searchData} loading={loading} step={step} />
