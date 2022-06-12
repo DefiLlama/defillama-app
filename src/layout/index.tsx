@@ -9,7 +9,7 @@ import { transparentize } from 'polished'
 const Center = styled.main`
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
   max-width: 90rem;
   width: 100%;
   margin: 0 auto;

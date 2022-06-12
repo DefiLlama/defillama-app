@@ -25,7 +25,7 @@ export const ListOptions = styled.nav`
   align-items: center;
   gap: 10px;
   overflow: hidden;
-  margin: 0 0 -16px;
+  margin: 0 0 -20px;
 `
 
 export const ListHeader = styled.h3`
