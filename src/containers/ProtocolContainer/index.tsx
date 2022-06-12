@@ -453,7 +453,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
       : false
 
   return (
-    <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '48px' }}>
+    <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
 
       <Search step={{ category: 'Protocols', name, hideOptions: true }} />
