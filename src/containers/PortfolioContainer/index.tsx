@@ -74,7 +74,7 @@ function PortfolioContainer({ protocolsDict }) {
 
       <Header>Saved Protocols</Header>
 
-      <Row sx={{ gap: '1rem' }}>
+      <Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
         <TYPE.main>Current portfolio:</TYPE.main>
         <DropdownMenu>
           <DefaultMenuButton>

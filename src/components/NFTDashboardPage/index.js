@@ -2,17 +2,14 @@ import React, { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import { useDisplayUsdManager, useHideLastDayManager } from '../../contexts/LocalStorage'
-import { RowBetween } from '../Row'
-import { AutoColumn } from '../Column'
 import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
 import Search from '../Search'
 import NFTCollectionList from '../NFTCollectionList'
-import { TYPE } from '../../Theme'
 import { formattedNum } from '../../utils'
 import { chainCoingeckoIds, chainMarketplaceMappings } from '../../constants/chainTokens'
 import SEO from 'components/SEO'
-import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
 import { ListHeader, ListOptions } from 'components/ChainPage'
 import Layout from 'layout'
 import { useMedia } from 'hooks'
@@ -92,66 +89,34 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
     }
   }
 
-  const panels = (
-    <>
-      <Panel style={{ padding: '18px 25px' }}>
-        <AutoColumn gap="4px">
-          <RowBetween>
-            <TYPE.heading>Total Volume</TYPE.heading>
-          </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-              {formattedNum(shownTotalVolume, displayUsd)}
-            </TYPE.main>
-          </RowBetween>
-        </AutoColumn>
-      </Panel>
-      <Panel style={{ padding: '18px 25px' }}>
-        <AutoColumn gap="4px">
-          <RowBetween>
-            <TYPE.heading>Daily Volume</TYPE.heading>
-          </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-              {formattedNum(shownDailyVolume, displayUsd)}
-            </TYPE.main>
-          </RowBetween>
-        </AutoColumn>
-      </Panel>
-      <Panel style={{ padding: '18px 25px' }}>
-        <AutoColumn gap="4px">
-          <RowBetween>
-            <TYPE.heading>Change (24h)</TYPE.heading>
-          </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '4px' }} align="flex-end">
-            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-              {shownDailyChange?.toFixed(2)}%
-            </TYPE.main>
-          </RowBetween>
-        </AutoColumn>
-      </Panel>
-    </>
-  )
-
   const tvl = formattedNum(totalVolumeUSD, true)
 
   return (
     <Layout title={title} backgroundColor={transparentize(0.8, '#445ed0')}>
       <SEO cardName={displayName} chain={displayName} tvl={tvl} nftPage />
 
-      <AutoColumn gap="24px">
-        <Search />
-        <Panel>
-          <p style={{ textAlign: 'center', margin: '0' }}>
-            Data is currently incorrect and we are fixing it, please don't use it
-          </p>
-        </Panel>
-        <CheckMarks type="nfts" />
-      </AutoColumn>
+      <Search />
+      <Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
+        Data is currently incorrect and we are fixing it, please don't use it
+      </Panel>
+      <CheckMarks type="nfts" />
 
-      <BreakpointPanels>
-        <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-        <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
+      <ChartAndValuesWrapper>
+        <BreakpointPanels>
+          <BreakpointPanel>
+            <h1>Total Volume</h1>
+            <p style={{ '--tile-text-color': '#4f8fea' }}>{formattedNum(shownTotalVolume, displayUsd)}</p>
+          </BreakpointPanel>
+          <BreakpointPanel>
+            <h2>Daily Volume</h2>
+            <p style={{ '--tile-text-color': '#fd3c99' }}>{formattedNum(shownDailyVolume, displayUsd)}</p>
+          </BreakpointPanel>
+          <BreakpointPanel>
+            <h2>Change (24h)</h2>
+            <p style={{ '--tile-text-color': '#46acb7' }}>{shownDailyChange?.toFixed(2)}%</p>
+          </BreakpointPanel>
+        </BreakpointPanels>
+        <BreakpointPanel id="chartWrapper">
           <GlobalNFTChart
             chartData={chart}
             dailyVolume={shownDailyVolume}
@@ -160,15 +125,15 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
             unit={unit}
             displayUsd={displayUsd}
           />
-        </Panel>
-      </BreakpointPanels>
+        </BreakpointPanel>
+      </ChartAndValuesWrapper>
 
-      <ListOptions style={{ margin: '12px 0 -24px' }}>
+      <ListOptions>
         <ListHeader>NFT Rankings</ListHeader>
         <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
       </ListOptions>
 
-      <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
+      <Panel style={{ padding: below800 && '1rem 0 0 0 ' }}>
         <NFTCollectionList collections={collections} displayUsd={displayUsd} />
       </Panel>
     </Layout>

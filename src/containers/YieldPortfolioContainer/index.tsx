@@ -72,7 +72,8 @@ function PortfolioContainer({ protocolsDict }) {
         <TYPE.largeHeader>Saved Pools</TYPE.largeHeader>
         <Search />
       </RowBetween>
-      <Row sx={{ gap: '1rem' }}>
+
+      <Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
         <TYPE.main>Current portfolio:</TYPE.main>
         <DropdownMenu>
           <DefaultMenuButton>

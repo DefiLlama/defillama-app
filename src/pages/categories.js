@@ -101,7 +101,7 @@ const columns = [
 export default function Protocols({ categories }) {
   return (
     <Layout title={`Categories - DefiLlama`} defaultSEO>
-      <Search step={{ category: 'Home', name: 'Categories', route: '/' }} />
+      <Search step={{ category: 'Home', name: 'Categories' }} />
 
       <Header>Protocol Categories</Header>
 

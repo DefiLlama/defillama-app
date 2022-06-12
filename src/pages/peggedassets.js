@@ -83,7 +83,9 @@ export default function PeggedAssets({ categories }) {
       <PeggedSearch
         step={{ category: 'Pegged Assets', name: 'Categories', route: 'peggedassets', hideOptions: true }}
       />
+
       <Header>Pegged Asset Categories</Header>
+
       <Table data={categories} columns={columns} align="start" gap="40px" />
     </Layout>
   )

@@ -4,10 +4,7 @@ import { getOraclePageData, revalidate } from 'utils/dataApi'
 import Layout from 'layout'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
-import { AutoColumn } from 'components/Column'
-import { RowBetween } from 'components/Row'
-import { TYPE } from 'Theme'
-import { BreakpointPanels, BreakpointPanelsColumn, Panel, ProtocolsTable } from 'components'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, ProtocolsTable } from 'components'
 import Search from 'components/Search/New'
 import { columnsToShow } from 'components/Table'
 import Filters, { FiltersWrapper } from 'components/Filters'
@@ -66,58 +63,26 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
 
   const percentChange = volumeChangeUSD?.toFixed(2)
 
-  const panels = (
-    <>
-      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
-        <AutoColumn gap="4px">
-          <RowBetween>
-            <TYPE.heading>Total Value Secured (USD)</TYPE.heading>
-          </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
-            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-              {tvs}
-            </TYPE.main>
-          </RowBetween>
-        </AutoColumn>
-      </Panel>
-      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
-        <AutoColumn gap="4px">
-          <RowBetween>
-            <TYPE.heading>Change (24h)</TYPE.heading>
-          </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
-            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-              {percentChange || 0}%
-            </TYPE.main>
-          </RowBetween>
-        </AutoColumn>
-      </Panel>
-      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
-        <AutoColumn gap="4px">
-          <RowBetween>
-            <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
-          </RowBetween>
-          <TYPE.main
-            fontSize={'33px'}
-            lineHeight={'39px'}
-            fontWeight={600}
-            color={'#46acb7'}
-            style={{ marginTop: '4px', marginBottom: '-6px' }}
-          >
-            {dominance}%
-          </TYPE.main>
-        </AutoColumn>
-      </Panel>
-    </>
-  )
-
   return (
     <>
-      <Search step={{ category: 'Oracles', name: token, route: '/oracles' }} />
+      <Search step={{ category: 'Oracles', name: token, route: 'oracles' }} />
 
-      <BreakpointPanels>
-        <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-        <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
+      <ChartAndValuesWrapper>
+        <BreakpointPanels>
+          <BreakpointPanel>
+            <h1>Total Value Secured (USD)</h1>
+            <p style={{ '--tile-text-color': '#4f8fea' }}>{tvs}</p>
+          </BreakpointPanel>
+          <BreakpointPanel>
+            <h2>Change (24h)</h2>
+            <p style={{ '--tile-text-color': '#fd3c99' }}> {percentChange || 0}%</p>
+          </BreakpointPanel>
+          <BreakpointPanel>
+            <h2>{topToken.name} Dominance</h2>
+            <p style={{ '--tile-text-color': '#46acb7' }}> {dominance}%</p>
+          </BreakpointPanel>
+        </BreakpointPanels>
+        <BreakpointPanel id="chartWrapper">
           <Chart
             display="liquidity"
             dailyData={finalChartData}
@@ -125,8 +90,8 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
             liquidityChange={volumeChangeUSD}
             title="TVS"
           />
-        </Panel>
-      </BreakpointPanels>
+        </BreakpointPanel>
+      </ChartAndValuesWrapper>
 
       <FiltersWrapper>
         <Filters filterOptions={tokenLinks} activeLabel={token} />

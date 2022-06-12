@@ -182,7 +182,7 @@ export default function Protocols({ protocols }) {
 
   return (
     <Layout title={`TVL Rankings - DefiLlama`} defaultSEO>
-      <Search step={{ category: 'Home', name: 'Recent', route: '/' }} />
+      <Search step={{ category: 'Home', name: 'Recent' }} />
 
       <Header>Recently Listed Protocols</Header>
 

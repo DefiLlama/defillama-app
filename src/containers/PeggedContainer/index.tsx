@@ -35,9 +35,9 @@ interface ITable {
 }
 
 const HeaderWrapper = styled(Header)`
-  margin-top: 0px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
   gap: 12px;
   border: 1px solid transparent;
