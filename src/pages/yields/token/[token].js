@@ -1,6 +1,5 @@
 import Layout from 'layout'
 import Search from 'components/Search'
-import { AutoColumn } from 'components/Column'
 import { CheckMarks } from 'components/SettingsModal'
 import {
   useNoILManager,
@@ -69,9 +68,8 @@ const YieldPage = () => {
 
   return (
     <>
-      <AutoColumn gap="24px">
-        <Search />
-      </AutoColumn>
+      <Search />
+
       <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
 
       <ListOptions>

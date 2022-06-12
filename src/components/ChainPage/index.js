@@ -25,6 +25,7 @@ export const ListOptions = styled.nav`
   align-items: center;
   gap: 10px;
   overflow: hidden;
+  margin: 0 0 -16px;
 `
 
 export const ListHeader = styled.h3`
@@ -297,7 +298,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
         </EasterLlama>
       </ChartAndValuesWrapper>
 
-      <ListOptions style={{ margin: '20px 0 -16px' }}>
+      <ListOptions>
         <ListHeader>TVL Rankings</ListHeader>
         <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
         <TableFilters />

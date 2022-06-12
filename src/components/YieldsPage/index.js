@@ -1,5 +1,4 @@
 import Search from 'components/Search'
-import { AutoColumn } from 'components/Column'
 import Table, { columnsToShow, NameYield, TableFilters, NameYieldPool } from 'components/Table'
 import { formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
@@ -358,13 +357,11 @@ const YieldPage = ({ pools, chainList }) => {
 
   return (
     <>
-      <AutoColumn gap="24px">
-        <Search />
-      </AutoColumn>
+      <Search />
 
       <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
 
-      <ListOptions style={{ margin: '-6px 0 -16px' }}>
+      <ListOptions>
         <ListHeader>Yield Rankings</ListHeader>
         <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
         <TableFilters />

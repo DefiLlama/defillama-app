@@ -49,6 +49,7 @@ export const FiltersWrapper = styled.nav`
   align-items: center;
   gap: 20px;
   overflow: hidden;
+  margin-bottom: -16px;
 
   & > ul {
     padding: 4px 0;

@@ -2,7 +2,6 @@ import React, { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import { useDisplayUsdManager, useHideLastDayManager } from '../../contexts/LocalStorage'
-import { AutoColumn } from '../Column'
 import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
 import Search from '../Search'
@@ -96,13 +95,11 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
     <Layout title={title} backgroundColor={transparentize(0.8, '#445ed0')}>
       <SEO cardName={displayName} chain={displayName} tvl={tvl} nftPage />
 
-      <AutoColumn gap="24px">
-        <Search />
-        <Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
-          Data is currently incorrect and we are fixing it, please don't use it
-        </Panel>
-        <CheckMarks type="nfts" />
-      </AutoColumn>
+      <Search />
+      <Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
+        Data is currently incorrect and we are fixing it, please don't use it
+      </Panel>
+      <CheckMarks type="nfts" />
 
       <ChartAndValuesWrapper>
         <BreakpointPanels>
@@ -131,12 +128,12 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
         </BreakpointPanel>
       </ChartAndValuesWrapper>
 
-      <ListOptions style={{ margin: '12px 0 -24px' }}>
+      <ListOptions>
         <ListHeader>NFT Rankings</ListHeader>
         <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
       </ListOptions>
 
-      <Panel style={{ marginTop: '6px', padding: below800 && '1rem 0 0 0 ' }}>
+      <Panel style={{ padding: below800 && '1rem 0 0 0 ' }}>
         <NFTCollectionList collections={collections} displayUsd={displayUsd} />
       </Panel>
     </Layout>

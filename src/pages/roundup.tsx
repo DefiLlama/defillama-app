@@ -73,7 +73,7 @@ const Message = ({ text }: { text: string }) => {
 }
 
 export default function Chains({ messages }) {
-  const splitText = messages.split('\n')
+  const splitText = messages?.split('\n') ?? []
 
   return (
     <Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
@@ -87,6 +87,7 @@ export default function Chains({ messages }) {
       </Banner>
 
       <Header>Daily news roundup with the 🦙</Header>
+
       <Text>
         {splitText.map((m, index) => (
           <Message text={m} key={m + index} />

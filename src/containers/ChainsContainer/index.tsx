@@ -43,9 +43,9 @@ interface ITable {
 }
 
 const HeaderWrapper = styled(Header)`
-  margin-top: 24px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
   gap: 12px;
   border: 1px solid transparent;

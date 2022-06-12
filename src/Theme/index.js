@@ -146,7 +146,7 @@ export const Header = styled.h1`
   color: ${({ theme }) => theme['text1']};
   font-size: 24px;
   font-weight: 500;
-  margin: 0px;
+  margin: 0 0 -16px;
 `
 
 export const Hover = styled.div`
