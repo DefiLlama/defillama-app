@@ -94,7 +94,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
 
   return (
     <>
-      <Search step={{ category: 'Home', name: 'Oracles', route: '/' }} />
+      <Search step={{ category: 'Home', name: 'Oracles' }} />
 
       <Header>Total Value Secured All Oracles</Header>
 

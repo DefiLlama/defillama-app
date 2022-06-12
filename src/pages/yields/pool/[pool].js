@@ -12,8 +12,7 @@ import { useRouter } from 'next/router'
 import FormattedName from 'components/FormattedName'
 import AuditInfo from 'components/AuditInfo'
 import { ButtonLight } from 'components/ButtonStyled'
-import { BreakpointPanels, BreakpointPanelsColumn, Panel } from 'components'
-import { useMedia } from 'hooks'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
 
 const HiddenSearch = styled.span`
   @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
@@ -89,54 +88,6 @@ const PageView = () => {
   const category = poolData.category ?? ''
 
   const backgroundColor = '#696969'
-  const below1024 = useMedia('(max-width: 1024px)')
-
-  const panels = (
-    <>
-      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
-        <AutoColumn gap="4px">
-          <RowBetween>
-            <TYPE.heading>APY</TYPE.heading>
-          </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
-            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-              {apy}%
-            </TYPE.main>
-          </RowBetween>
-        </AutoColumn>
-      </Panel>
-      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
-        <AutoColumn gap="4px">
-          <RowBetween>
-            <TYPE.heading>Total Value Locked</TYPE.heading>
-          </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
-            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-              ${tvlUsd}
-            </TYPE.main>
-          </RowBetween>
-        </AutoColumn>
-      </Panel>
-      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
-        <AutoColumn gap="4px">
-          <RowBetween>
-            <TYPE.heading>Outlook</TYPE.heading>
-          </RowBetween>
-          <TYPE.main
-            fontSize={'15px'}
-            lineHeight={'20px'}
-            fontWeight={600}
-            color={'#46acb7'}
-            style={{ marginTop: '4px', marginBottom: '-6px' }}
-          >
-            {confidence !== null
-              ? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
-              : 'No outlook available'}
-          </TYPE.main>
-        </AutoColumn>
-      </Panel>
-    </>
-  )
 
   return (
     <>
@@ -150,26 +101,38 @@ const PageView = () => {
           <Search small={true} />
         </HiddenSearch>
       </RowBetween>
-      <RowBetween style={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        <RowFixed style={{ flexWrap: 'wrap' }}>
-          <RowFixed style={{ justifyContent: 'center', minHeight: '39px' }}>
-            <TYPE.body fontSize={below1024 ? '1.5rem' : '2rem'} fontWeight={500} style={{ margin: '0 1rem' }}>
-              <RowFixed gap="6px">
-                {' '}
-                {poolData.projectName === 'Osmosis'
-                  ? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
-                  : poolData.symbol ?? 'Loading'}
-              </RowFixed>
-            </TYPE.body>
-            <TYPE.main fontSize={'1rem'}>
-              ({poolData.projectName} - {poolData.chain})
-            </TYPE.main>
-          </RowFixed>
-        </RowFixed>
-      </RowBetween>
-      <BreakpointPanels>
-        <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-        <Panel style={{ height: '100%', minHeight: '347px', flex: 1, maxWidth: '100%' }}>
+
+      <h1 style={{ margin: '0 0 -12px', fontWeight: 500, fontSize: '1.5rem' }}>
+        <span>
+          {poolData.projectName === 'Osmosis'
+            ? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
+            : poolData.symbol ?? 'Loading'}
+        </span>{' '}
+        <span style={{ fontSize: '1rem' }}>
+          ({poolData.projectName} - {poolData.chain})
+        </span>
+      </h1>
+
+      <ChartAndValuesWrapper>
+        <BreakpointPanels>
+          <BreakpointPanel>
+            <h2>APY</h2>
+            <p style={{ '--tile-text-color': '#4f8fea' }}>{apy}%</p>
+          </BreakpointPanel>
+          <BreakpointPanel>
+            <h2>Total Value Locked</h2>
+            <p style={{ '--tile-text-color': '#fd3c99' }}>${tvlUsd}</p>
+          </BreakpointPanel>
+          <BreakpointPanel>
+            <h2>Outlook</h2>
+            <p style={{ '--tile-text-color': '#46acb7', fontSize: '1rem', fontWeight: 400 }}>
+              {confidence !== null
+                ? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
+                : 'No outlook available'}
+            </p>
+          </BreakpointPanel>
+        </BreakpointPanels>
+        <BreakpointPanel id="chartWrapper">
           <Chart
             display="liquidity"
             dailyData={finalChartData}
@@ -178,12 +141,11 @@ const PageView = () => {
             title="APY & TVL"
             dualAxis={true}
           />
-        </Panel>
-      </BreakpointPanels>
+        </BreakpointPanel>
+      </ChartAndValuesWrapper>
 
-      <RowBetween style={{ marginTop: '1rem' }}>
-        <TYPE.main fontSize={'1.125rem'}>Protocol Information</TYPE.main>{' '}
-      </RowBetween>
+      <p style={{ fontSize: '1.125rem', fontWeight: 500, margin: '0 0 -12px' }}>Protocol Information</p>
+
       <Panel>
         <TokenDetailsLayout>
           {typeof category === 'string' && (

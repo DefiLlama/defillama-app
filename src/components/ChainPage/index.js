@@ -1,13 +1,11 @@
 import React, { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import { RowBetween, RowFixed } from '../Row'
-import { AutoColumn } from '../Column'
+import { RowFixed } from '../Row'
 import Search from '../Search/New'
-import { ProtocolsTable, Panel, BreakpointPanels, BreakpointPanelsColumn } from '..'
+import { ProtocolsTable, Panel, BreakpointPanels, BreakpointPanel, PanelHiddenMobile, ChartAndValuesWrapper } from '..'
 import Filters from '../Filters'
 import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
-import { TYPE } from 'Theme'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
 import { useCalcProtocolsTvls } from 'hooks/data'
 import { DownloadCloud } from 'react-feather'
@@ -29,7 +27,7 @@ export const ListOptions = styled.nav`
   overflow: hidden;
 `
 
-export const ListHeader = styled.h1`
+export const ListHeader = styled.h3`
   font-size: 1.125rem;
   color: ${({ theme }) => theme.text1};
   font-weight: 500;
@@ -62,12 +60,6 @@ const DownloadIcon = styled(DownloadCloud)`
   height: 20px;
 `
 
-const PanelHiddenMobile = styled(Panel)`
-  @media screen and (max-width: 50rem) {
-    display: none;
-  }
-`
-
 const EasterLlama = styled.button`
   margin: 0;
   padding: 0;
@@ -76,6 +68,8 @@ const EasterLlama = styled.button`
   background: none;
   border: none;
   position: absolute;
+  bottom: -36px;
+  left: 0;
 
   img {
     width: 41px !important;
@@ -233,109 +227,75 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     return isValidTvlRange ? protocolTotals.filter((p) => p.tvl > minTvl && p.tvl < maxTvl) : protocolTotals
   }, [minTvl, maxTvl, protocolTotals])
 
-  const panels = (
-    <>
-      <Panel style={{ padding: '18px 25px', justifyContent: 'center' }}>
-        <AutoColumn gap="4px">
-          <RowBetween>
-            <TYPE.heading>Total Value Locked (USD)</TYPE.heading>
-          </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
-            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-              {tvl}
-            </TYPE.main>
-            <DownloadButton
-              href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
-                .filter((t) => t[1] === true)
-                .map((t) => `${t[0]}=true`)
-                .join('&')}`}
-            >
-              <RowBetween>
-                <DownloadIcon />
-                <TYPE.main>&nbsp;&nbsp;.csv</TYPE.main>
-              </RowBetween>
-            </DownloadButton>
-          </RowBetween>
-        </AutoColumn>
-      </Panel>
-      <PanelHiddenMobile style={{ padding: '18px 25px', justifyContent: 'center' }}>
-        <AutoColumn gap="4px">
-          <RowBetween>
-            <TYPE.heading>Change (24h)</TYPE.heading>
-          </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
-            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-              {percentChange || 0}%
-            </TYPE.main>
-          </RowBetween>
-        </AutoColumn>
-      </PanelHiddenMobile>
-      <PanelHiddenMobile style={{ padding: '18px 25px', justifyContent: 'center' }}>
-        <AutoColumn gap="4px">
-          <RowBetween>
-            <TYPE.heading>{topToken.name} Dominance</TYPE.heading>
-          </RowBetween>
-          <RowBetween style={{ marginTop: '4px', marginBottom: '-6px' }} align="flex-end">
-            <TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#46acb7'}>
-              {dominance}%
-            </TYPE.main>
-          </RowBetween>
-        </AutoColumn>
-      </PanelHiddenMobile>
-    </>
-  )
-
   return (
     <>
       <SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
       <Search step={{ category: 'Home', name: selectedChain === 'All' ? 'All Protocols' : selectedChain }} />
 
-      <Panel>
-        <p style={{ textAlign: 'center', margin: '0' }}>
-          We've launched a multichain APY dashboard. Check it out{' '}
-          <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
-            here
-          </BasicLink>
-          !
-        </p>
+      <Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
+        <span> We've launched a multichain APY dashboard. Check it out</span>{' '}
+        <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
+          here
+        </BasicLink>
+        <span>!</span>
       </Panel>
 
-      <section style={{ isolation: 'isolate', position: 'relative' }}>
+      <ChartAndValuesWrapper>
         <BreakpointPanels>
-          <BreakpointPanelsColumn gap="10px">{panels}</BreakpointPanelsColumn>
-          <Panel style={{ height: '100%', minHeight: '381px', flex: 1, maxWidth: '100%' }}>
-            <RowFixed>
-              {DENOMINATIONS.map((option) => (
-                <OptionButton
-                  active={denomination === option}
-                  onClick={() => updateRoute(option)}
-                  style={{ margin: '0 8px 8px 0' }}
-                  key={option}
-                >
-                  {option}
-                </OptionButton>
-              ))}
-            </RowFixed>
-            {easterEgg ? (
-              <Game />
-            ) : isLoading ? (
-              <LocalLoader style={{ margin: 'auto' }} />
-            ) : (
-              <Chart
-                display="liquidity"
-                dailyData={finalChartData}
-                unit={denomination}
-                totalLiquidity={totalVolume}
-                liquidityChange={volumeChangeUSD}
-              />
-            )}
-          </Panel>
+          <BreakpointPanel>
+            <h1>Total Value Locked (USD)</h1>
+            <p style={{ '--tile-text-color': '#4f8fea' }}>{tvl}</p>
+            <DownloadButton
+              href={`https://api.llama.fi/simpleChainDataset/${selectedChain}?${Object.entries(extraTvlsEnabled)
+                .filter((t) => t[1] === true)
+                .map((t) => `${t[0]}=true`)
+                .join('&')}`}
+            >
+              <DownloadIcon />
+              <span>&nbsp;&nbsp;.csv</span>
+            </DownloadButton>
+          </BreakpointPanel>
+          <PanelHiddenMobile>
+            <h2>Change (24h)</h2>
+            <p style={{ '--tile-text-color': '#fd3c99' }}> {percentChange || 0}%</p>
+          </PanelHiddenMobile>
+          <PanelHiddenMobile>
+            <h2>{topToken.name} Dominance</h2>
+            <p style={{ '--tile-text-color': '#46acb7' }}> {dominance}%</p>
+          </PanelHiddenMobile>
         </BreakpointPanels>
+        <BreakpointPanel id="chartWrapper">
+          <RowFixed>
+            {DENOMINATIONS.map((option) => (
+              <OptionButton
+                active={denomination === option}
+                onClick={() => updateRoute(option)}
+                style={{ margin: '0 8px 8px 0' }}
+                key={option}
+              >
+                {option}
+              </OptionButton>
+            ))}
+          </RowFixed>
+          {easterEgg ? (
+            <Game />
+          ) : isLoading ? (
+            <LocalLoader style={{ margin: 'auto' }} />
+          ) : (
+            <Chart
+              display="liquidity"
+              dailyData={finalChartData}
+              unit={denomination}
+              totalLiquidity={totalVolume}
+              liquidityChange={volumeChangeUSD}
+            />
+          )}
+        </BreakpointPanel>
         <EasterLlama onClick={activateEasterEgg}>
           <Image src={llamaLogo} width="41px" height="34px" alt="Activate Easter Egg" />
         </EasterLlama>
-      </section>
+      </ChartAndValuesWrapper>
 
       <ListOptions style={{ margin: '20px 0 -16px' }}>
         <ListHeader>TVL Rankings</ListHeader>

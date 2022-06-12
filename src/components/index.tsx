@@ -2,9 +2,8 @@ import React from 'react'
 import styled from 'styled-components'
 import { Text, Box } from 'rebass'
 import Table from './Table'
-import { AutoColumn } from './Column'
 
-export const Panel = styled.section`
+export const Panel = styled.div`
   position: relative;
   background-color: ${({ theme }) => theme.advancedBG};
   padding: 1.25rem;
@@ -16,23 +15,60 @@ export const Panel = styled.section`
   box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 `
 
-export const BreakpointPanels = styled.div`
-  @media screen and (min-width: 80rem) {
-    width: 100%;
-    display: flex;
-    padding: 0;
-    align-items: stretch;
+export const ChartAndValuesWrapper = styled.div`
+  flex: 1;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+
+  #chartWrapper {
+    flex: 1;
+    min-height: 381px;
+  }
+
+  @media (min-width: 80rem) {
+    flex-direction: row;
   }
 `
 
-export const BreakpointPanelsColumn = styled(AutoColumn)`
-  width: 100%;
-  margin-right: 10px;
-  max-width: 350px;
+export const BreakpointPanels = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
 
-  @media (max-width: 80rem) {
-    max-width: initial;
-    margin-bottom: 10px;
+  @media (min-width: 80rem) {
+    max-width: 350px;
+  }
+`
+
+export const BreakpointPanel = styled(Panel)`
+  flex: 1;
+  gap: 4px;
+  padding: 18px 25px;
+  justify-content: center;
+
+  h1,
+  h2 {
+    margin: 0;
+    min-width: 0;
+    font-weight: 500;
+    font-size: 1rem;
+  }
+
+  p {
+    margin: 4px 0 -6px;
+    font-weight: 600;
+    font-size: 2rem;
+    color: var(--tile-text-color);
+  }
+`
+
+export const PanelHiddenMobile = styled(BreakpointPanel)`
+  @media screen and (max-width: 50rem) {
+    display: none;
   }
 `
 

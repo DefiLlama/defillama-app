@@ -73,7 +73,7 @@ export default function Protocols({ langs, langsUnique, langsDaySum, osUnique, o
   })
   return (
     <Layout title={`Languages - DefiLlama`} defaultSEO>
-      <Search step={{ category: 'Home', name: 'Languages', route: '/', hideOptions: true }} />
+      <Search step={{ category: 'Home', name: 'Languages', hideOptions: true }} />
 
       <Header>TVL breakdown by Smart Contract Language</Header>
 

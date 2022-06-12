@@ -101,7 +101,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 
   return (
     <>
-      <Search step={{ category: 'Home', name: 'Forks', route: '/' }} />
+      <Search step={{ category: 'Home', name: 'Forks' }} />
 
       <Header>Total Value Locked All Forks</Header>
 

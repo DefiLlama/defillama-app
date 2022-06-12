@@ -187,7 +187,7 @@ const TradingViewChart = ({
 
     toolTip.style.display = 'block'
     toolTip.style.fontWeight = '500'
-    toolTip.style.left = dualAxis ? 65 + 'px' : -4 + 'px'
+    toolTip.style.left = dualAxis ? 55 + 'px' : -4 + 'px'
     toolTip.style.top = '-' + 8 + 'px'
     toolTip.style.backgroundColor = 'transparent'
 
