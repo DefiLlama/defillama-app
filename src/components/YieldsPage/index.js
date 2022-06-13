@@ -1,4 +1,3 @@
-import Search from 'components/Search'
 import Table, { columnsToShow, NameYield, TableFilters, NameYieldPool } from 'components/Table'
 import { formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
@@ -17,6 +16,7 @@ import { ListHeader, ListOptions } from 'components/ChainPage'
 import IconsRow from 'components/IconsRow'
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { YieldsSearch } from 'components/Search/New'
 
 export const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
@@ -357,7 +357,7 @@ const YieldPage = ({ pools, chainList }) => {
 
   return (
     <>
-      <Search />
+      <YieldsSearch />
 
       <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
 

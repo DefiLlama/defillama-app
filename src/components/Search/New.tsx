@@ -12,6 +12,7 @@ import { DeFiTvlOptions } from 'components/Select'
 import { FixedSizeList } from 'react-window'
 import { useFetchPeggedList, useFetchProtocolsList } from 'utils/dataApi'
 import placeholderImg from 'assets/placeholder.png'
+import { useFetchYieldsList } from '../../utils/categories/yield'
 
 const Wrapper = styled.nav`
   display: flex;
@@ -204,6 +205,23 @@ export default function Search({ step }: { step: IStep }) {
       ? [...protocolData, ...chainData, ...groupedChains]
       : [...chainData, ...protocolData, ...groupedChains]
   }, [data, pathname])
+
+  return <SearchDefault data={searchData} loading={loading} step={step} />
+}
+
+// TODO: add icons
+export function YieldsSearch({ step }: { step: IStep }) {
+  const { data, loading } = useFetchYieldsList()
+
+  const searchData = useMemo(() => {
+    return (
+      data?.map((el) => ({
+        name: `${el.name} (${el.symbol.toUpperCase()})`,
+        symbol: el.symbol.toUpperCase(),
+        route: `/yields/token/${el.symbol.toUpperCase()}`,
+      })) ?? []
+    )
+  }, [data])
 
   return <SearchDefault data={searchData} loading={loading} step={step} />
 }
