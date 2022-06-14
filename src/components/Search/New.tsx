@@ -211,7 +211,16 @@ export default function Search({ step }: { step: IStep }) {
   return <SearchDefault data={searchData} loading={loading} step={step} />
 }
 
-export function NFTsSearch({ step, preLoadedSearch }: { step: IStep; preLoadedSearch: any }) {
+interface INFTSearchProps {
+  step: IStep
+  preLoadedSearch: Array<{
+    name: string
+    route: string
+    logo: string
+  }>
+}
+
+export function NFTsSearch({ step, preLoadedSearch }: INFTSearchProps) {
   const [searchValue, setSearchValue] = useState('')
   const [usePreloadedList, setUsePreloadedList] = useState(false)
   const { data, loading } = useFetchNFTsList(searchValue)
@@ -233,7 +242,6 @@ export function NFTsSearch({ step, preLoadedSearch }: { step: IStep; preLoadedSe
   return <SearchDefault data={searchData} loading={loading} step={step} onSearchValueChange={setSearchValue} />
 }
 
-// TODO: add icons
 export function YieldsSearch({ step }: { step: IStep }) {
   const { data, loading } = useFetchYieldsList()
 
@@ -244,6 +252,7 @@ export function YieldsSearch({ step }: { step: IStep }) {
           name: `${el.name} (${el.symbol.toUpperCase()})`,
           symbol: el.symbol.toUpperCase(),
           route: `/yields/token/${el.symbol.toUpperCase()}`,
+          logo: el.image,
         })) ?? []
       )
     }, [data]) ?? []
@@ -265,7 +274,14 @@ export function PeggedSearch({ step }: { step: IStep }) {
   return <SearchDefault data={searchData} loading={loading} step={step} />
 }
 
-const SearchDefault = ({ data, loading = false, step, onSearchValueChange }: ISearchProps) => {
+interface ISearchDefaultProps {
+  data: any
+  loading?: boolean
+  step?: IStep
+  onSearchValueChange?: (searchValue: string) => void
+}
+
+const SearchDefault = ({ data, loading = false, step, onSearchValueChange }: ISearchDefaultProps) => {
   const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: data.map((x) => x.name) })
 
   useEffect(() => {
@@ -312,7 +328,7 @@ const SearchDefault = ({ data, loading = false, step, onSearchValueChange }: ISe
 }
 
 const isExternalImage = (imagePath: string) => {
-  return imagePath.includes('http')
+  return imagePath?.includes('http')
 }
 
 // Virtualized Row

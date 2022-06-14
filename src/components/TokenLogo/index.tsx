@@ -30,7 +30,7 @@ const Image = styled(NextImage)`
 `
 // next/image won't work, idk why
 export default function TokenLogo({
-  logo = null,
+  logo = null, //PlaceHolder.src default
   external = false /* TODO: temporary fix */,
   size = 24,
   style,
@@ -41,6 +41,8 @@ export default function TokenLogo({
   useEffect(() => {
     setError(false)
   }, [logo])
+
+  if (!logo) return <></> //if no src is set, no logo is displayed
 
   if (external) {
     return (
