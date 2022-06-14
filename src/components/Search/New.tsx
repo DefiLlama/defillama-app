@@ -211,18 +211,24 @@ export default function Search({ step }: { step: IStep }) {
   return <SearchDefault data={searchData} loading={loading} step={step} />
 }
 
-export function NFTsSearch({ step }: { step: IStep }) {
+export function NFTsSearch({ step, preLoadedSearch }: { step: IStep; preLoadedSearch: any }) {
   const [searchValue, setSearchValue] = useState('')
+  const [usePreloadedList, setUsePreloadedList] = useState(false)
   const { data, loading } = useFetchNFTsList(searchValue)
-  const searchData =
-    useMemo(() => {
-      return data?.map((el) => ({
-        name: el._source.name,
-        symbol: el._source.symbol,
-        route: `/nfts/collection/${el._source.slug}`,
-        logo: el._source.logo,
-      }))
-    }, [data]) ?? []
+
+  useEffect(() => {
+    if (preLoadedSearch && !searchValue && !loading) setUsePreloadedList(true)
+    else setUsePreloadedList(false)
+  }, [preLoadedSearch, searchValue, loading])
+
+  const searchData = useMemo(() => {
+    const set = usePreloadedList ? preLoadedSearch : data ?? []
+    return set.map((el) => ({
+      name: el.name,
+      route: `/nfts/collection/${el.slug}`,
+      logo: el.logo,
+    }))
+  }, [data, usePreloadedList])
 
   return <SearchDefault data={searchData} loading={loading} step={step} onSearchValueChange={setSearchValue} />
 }

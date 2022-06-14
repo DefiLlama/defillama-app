@@ -95,7 +95,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
     <Layout title={title} backgroundColor={transparentize(0.8, '#445ed0')}>
       <SEO cardName={displayName} chain={displayName} tvl={tvl} nftPage />
 
-      <NFTsSearch />
+      <NFTsSearch preLoadedSearch={collections} />
       <Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
         Data is currently incorrect and we are fixing it, please don't use it
       </Panel>
