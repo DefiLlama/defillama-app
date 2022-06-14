@@ -4,7 +4,7 @@ import { transparentize } from 'polished'
 import { useDisplayUsdManager, useHideLastDayManager } from '../../contexts/LocalStorage'
 import Filters from '../Filters'
 import { CheckMarks } from '../SettingsModal'
-import Search from '../Search'
+import { NFTsSearch } from '../Search/New'
 import NFTCollectionList from '../NFTCollectionList'
 import { formattedNum } from '../../utils'
 import { chainCoingeckoIds, chainMarketplaceMappings } from '../../constants/chainTokens'
@@ -95,7 +95,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
     <Layout title={title} backgroundColor={transparentize(0.8, '#445ed0')}>
       <SEO cardName={displayName} chain={displayName} tvl={tvl} nftPage />
 
-      <Search />
+      <NFTsSearch />
       <Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
         Data is currently incorrect and we are fixing it, please don't use it
       </Panel>

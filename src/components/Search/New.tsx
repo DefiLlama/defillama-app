@@ -2,7 +2,7 @@ import { Combobox, ComboboxItem, ComboboxPopover, useComboboxState } from 'ariak
 import TokenLogo from 'components/TokenLogo'
 import { useRouter } from 'next/router'
 import { transparentize } from 'polished'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import { chainIconUrl, peggedAssetIconUrl, standardizeProtocolName, tokenIconUrl } from 'utils'
 import Link from 'next/link'
@@ -13,6 +13,7 @@ import { FixedSizeList } from 'react-window'
 import { useFetchPeggedList, useFetchProtocolsList } from 'utils/dataApi'
 import placeholderImg from 'assets/placeholder.png'
 import { useFetchYieldsList } from '../../utils/categories/yield'
+import { useFetchNFTsList } from 'utils/categories/nfts'
 
 const Wrapper = styled.nav`
   display: flex;
@@ -170,6 +171,7 @@ interface ISearchProps {
   data: any
   loading?: boolean
   step?: IStep
+  onSearchValueChange?: (searchValue: string) => void
 }
 
 const groupedChains = [
@@ -209,19 +211,36 @@ export default function Search({ step }: { step: IStep }) {
   return <SearchDefault data={searchData} loading={loading} step={step} />
 }
 
+export function NFTsSearch({ step }: { step: IStep }) {
+  const [searchValue, setSearchValue] = useState('')
+  const { data, loading } = useFetchNFTsList(searchValue)
+  const searchData =
+    useMemo(() => {
+      return data?.map((el) => ({
+        name: el._source.name,
+        symbol: el._source.symbol,
+        route: `/nfts/collection/${el._source.slug}`,
+        logo: el._source.logo,
+      }))
+    }, [data]) ?? []
+
+  return <SearchDefault data={searchData} loading={loading} step={step} onSearchValueChange={setSearchValue} />
+}
+
 // TODO: add icons
 export function YieldsSearch({ step }: { step: IStep }) {
   const { data, loading } = useFetchYieldsList()
 
-  const searchData = useMemo(() => {
-    return (
-      data?.map((el) => ({
-        name: `${el.name} (${el.symbol.toUpperCase()})`,
-        symbol: el.symbol.toUpperCase(),
-        route: `/yields/token/${el.symbol.toUpperCase()}`,
-      })) ?? []
-    )
-  }, [data])
+  const searchData =
+    useMemo(() => {
+      return (
+        data?.map((el) => ({
+          name: `${el.name} (${el.symbol.toUpperCase()})`,
+          symbol: el.symbol.toUpperCase(),
+          route: `/yields/token/${el.symbol.toUpperCase()}`,
+        })) ?? []
+      )
+    }, [data]) ?? []
 
   return <SearchDefault data={searchData} loading={loading} step={step} />
 }
@@ -240,8 +259,12 @@ export function PeggedSearch({ step }: { step: IStep }) {
   return <SearchDefault data={searchData} loading={loading} step={step} />
 }
 
-const SearchDefault = ({ data, loading = false, step }: ISearchProps) => {
+const SearchDefault = ({ data, loading = false, step, onSearchValueChange }: ISearchProps) => {
   const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: data.map((x) => x.name) })
+
+  useEffect(() => {
+    if (onSearchValueChange) onSearchValueChange(combobox.value)
+  }, [combobox.value])
 
   // Resets combobox value when popover is collapsed
   if (!combobox.mounted && combobox.value) {
@@ -282,6 +305,10 @@ const SearchDefault = ({ data, loading = false, step }: ISearchProps) => {
   )
 }
 
+const isExternalImage = (imagePath: string) => {
+  return imagePath.includes('http')
+}
+
 // Virtualized Row
 const Row = ({ index, style, data }) => {
   const { searchData, options } = data
@@ -294,7 +321,7 @@ const Row = ({ index, style, data }) => {
 
   return (
     <Item key={value} value={value} onClick={() => router.push(item.route)} style={style}>
-      <TokenLogo logo={item.logo} />
+      <TokenLogo logo={item.logo} external={isExternalImage(item.logo)} />
       <span>{value}</span>
     </Item>
   )
