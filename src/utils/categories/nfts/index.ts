@@ -1,7 +1,7 @@
 import { NFT_SEARCH_API } from '../../../constants'
 import useSWR from 'swr'
-import { fetcher } from 'utils/dataApi'
 import { useDebounce } from 'hooks';
+import { fetcher } from 'utils/useSWR';
 
 export const useFetchNFTsList = (searchValue: string) => {
   const debouncedSearchTerm = useDebounce(searchValue, 500);

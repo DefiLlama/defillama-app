@@ -28,6 +28,7 @@ import {
   getPeggedDominance,
   standardizeProtocolName,
 } from 'utils'
+import { fetcher } from './useSWR'
 
 interface IProtocol {
   name: string
@@ -1354,8 +1355,6 @@ export async function retryCoingeckoRequest(func, retries) {
 }
 
 // Client Side
-export const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then((res) => res.json())
-export const arrayFetcher = (init?: RequestInit, ...urlArr: RequestInfo[]) => Promise.all(urlArr.map((url => fetcher(url, init))))
 
 export const useFetchProtocolsList = () => {
   const { data, error } = useSWR(PROTOCOLS_API, fetcher)
