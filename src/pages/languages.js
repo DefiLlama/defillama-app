@@ -4,7 +4,7 @@ import { toNiceMonthlyDate, getRandomColor } from '../utils'
 import { revalidate } from '../utils/dataApi'
 import { GeneralAreaChart } from 'components/TokenChart/charts'
 import { ChainDominanceChart } from 'components/Charts'
-import Search from 'components/Search/OpenSearch'
+import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
 import { Header } from 'Theme'
 import { Panel } from 'components'
 
@@ -73,7 +73,7 @@ export default function Protocols({ langs, langsUnique, langsDaySum, osUnique, o
   })
   return (
     <Layout title={`Languages - DefiLlama`} defaultSEO>
-      <Search step={{ category: 'Home', name: 'Languages', hideOptions: true }} />
+      <ProtocolsChainsSearch step={{ category: 'Home', name: 'Languages', hideOptions: true }} />
 
       <Header>TVL breakdown by Smart Contract Language</Header>
 

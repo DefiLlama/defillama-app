@@ -1,9 +1,10 @@
-import { IStep, SearchDefault } from 'components/Search/OpenSearch'
+import { BaseSearch } from '../BaseSearch'
+import type { IBaseSearchProps } from '../BaseSearch'
 import { useEffect, useMemo, useState } from 'react'
 import { useFetchNFTsList } from 'utils/categories/nfts'
 
 interface INFTSearchProps {
-  step: IStep
+  step: IBaseSearchProps['step']
   preLoadedSearch: Array<{
     name: string
     route: string
@@ -21,7 +22,7 @@ export default function NFTsSearch({ step, preLoadedSearch }: INFTSearchProps) {
     else setUsePreloadedList(false)
   }, [preLoadedSearch, searchValue, loading])
 
-  const searchData = useMemo(() => {
+  const searchData: IBaseSearchProps['data'] = useMemo(() => {
     const set = usePreloadedList ? preLoadedSearch : data ?? []
     return set.map((el) => ({
       name: el.name,
@@ -30,5 +31,5 @@ export default function NFTsSearch({ step, preLoadedSearch }: INFTSearchProps) {
     }))
   }, [data, usePreloadedList])
 
-  return <SearchDefault data={searchData} loading={loading} step={step} onSearchValueChange={setSearchValue} />
+  return <BaseSearch data={searchData} loading={loading} step={step} onSearchTermChange={setSearchValue} />
 }

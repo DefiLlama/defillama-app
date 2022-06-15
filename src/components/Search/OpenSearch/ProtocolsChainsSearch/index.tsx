@@ -1,4 +1,5 @@
-import { IList, IStep, SearchDefault } from 'components/Search/OpenSearch'
+import { BaseSearch } from 'components/Search/OpenSearch/BaseSearch'
+import type { IBaseSearchProps } from 'components/Search/OpenSearch/BaseSearch'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from 'utils'
@@ -13,13 +14,17 @@ const groupedChains = [
   { name: 'Parachain', route: '/chains/Parachain', logo: placeholderImg.src },
 ]
 
-export default function Search({ step }: { step: IStep }) {
+interface IProtocolsChainsSearch {
+  step: IBaseSearchProps['step']
+}
+
+export default function Search({ step }: IProtocolsChainsSearch) {
   const { data, loading } = useFetchProtocolsList()
 
   const { pathname } = useRouter()
 
-  const searchData: IList[] = useMemo(() => {
-    const chainData: IList[] =
+  const searchData: IBaseSearchProps['data'] = useMemo(() => {
+    const chainData: IBaseSearchProps['data'] =
       data?.chains?.map((name) => ({
         logo: chainIconUrl(name),
         route: `/chain/${name}`,
@@ -39,5 +44,5 @@ export default function Search({ step }: { step: IStep }) {
       : [...chainData, ...protocolData, ...groupedChains]
   }, [data, pathname])
 
-  return <SearchDefault data={searchData} loading={loading} step={step} />
+  return <BaseSearch data={searchData} loading={loading} step={step} />
 }

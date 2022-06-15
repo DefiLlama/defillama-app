@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { Header } from 'Theme'
-import Search from 'components/Search/OpenSearch'
+import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
 import Table, { columnsToShow } from 'components/Table'
 import Filters, { FiltersWrapper } from 'components/Filters'
 
@@ -49,7 +49,7 @@ function AllTokensPage({
 
   return (
     <>
-      <Search
+      <ProtocolsChainsSearch
         step={{
           category: category || 'Home',
           name: routeName,

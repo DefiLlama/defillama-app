@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import { ButtonDark } from 'components/ButtonStyled'
-import Search from 'components/Search/OpenSearch'
+import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
 import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
 import { columnsToShow, FullTable } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
@@ -276,7 +276,7 @@ export default function ChainsContainer({
 
   return (
     <>
-      <Search
+      <ProtocolsChainsSearch
         step={{
           category: 'Chains',
           name: category === 'All' ? 'All Chains' : category,

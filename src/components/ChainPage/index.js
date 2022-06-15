@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { RowFixed } from '../Row'
-import Search from '../Search/OpenSearch'
+import { ProtocolsChainsSearch } from '../Search/OpenSearch'
 import { ProtocolsTable, Panel, BreakpointPanels, BreakpointPanel, PanelHiddenMobile, ChartAndValuesWrapper } from '..'
 import Filters from '../Filters'
 import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
@@ -232,7 +232,9 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     <>
       <SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
-      <Search step={{ category: 'Home', name: selectedChain === 'All' ? 'All Protocols' : selectedChain }} />
+      <ProtocolsChainsSearch
+        step={{ category: 'Home', name: selectedChain === 'All' ? 'All Protocols' : selectedChain }}
+      />
 
       <Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
         <span> We've launched a multichain APY dashboard. Check it out</span>{' '}

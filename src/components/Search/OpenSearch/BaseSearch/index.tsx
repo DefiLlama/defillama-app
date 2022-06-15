@@ -9,10 +9,6 @@ import { AllTvlOptions } from 'components/SettingsModal'
 import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { DeFiTvlOptions } from 'components/Select'
 import { FixedSizeList } from 'react-window'
-import NFTsSearch from './NFTsSearch'
-import YieldsSearch from './YieldsSearch'
-import PeggedSearch from './PeggedSearch'
-import ProtocolsChainsSearch from './ProtocolsChainsSearch'
 
 const Wrapper = styled.nav`
   display: flex;
@@ -153,31 +149,40 @@ const DropdownOptions = styled(DeFiTvlOptions)`
   }
 `
 
-export interface IList {
+interface IList {
   isChain: boolean
   logo: string
   name: string
 }
 
-export interface IStep {
+interface ISearchItem {
+  name: string
+  route: string
+  logo?: string
+  symbol?: string
+}
+
+// Define breadcrumb of the search
+interface IStep {
   category: string
   name: string
   route?: string
   hideOptions?: boolean
 }
 
-interface ISearchDefaultProps {
-  data: any
+export interface IBaseSearchProps {
+  data: ISearchItem[]
   loading?: boolean
   step?: IStep
-  onSearchValueChange?: (searchValue: string) => void
+  onSearchTermChange?: (searchValue: string) => void
 }
 
-export const SearchDefault = ({ data, loading = false, step, onSearchValueChange }: ISearchDefaultProps) => {
+export const BaseSearch = (props: IBaseSearchProps) => {
+  const { data, loading = false, step, onSearchTermChange } = props
   const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: data.map((x) => x.name) })
 
   useEffect(() => {
-    if (onSearchValueChange) onSearchValueChange(combobox.value)
+    if (onSearchTermChange) onSearchTermChange(combobox.value)
   }, [combobox.value])
 
   // Resets combobox value when popover is collapsed
@@ -265,7 +270,3 @@ const Options = ({ step }: { step: IStep }) => {
     </OptionsWrapper>
   )
 }
-
-export default ProtocolsChainsSearch
-
-export { NFTsSearch, YieldsSearch, PeggedSearch }

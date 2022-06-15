@@ -3,9 +3,8 @@ import Layout from '../layout'
 import { getProtocolsRaw, revalidate } from '../utils/dataApi'
 import { toK } from 'utils'
 import Table, { Index } from 'components/Table'
-import PageHeader from 'components/PageHeader'
 import { Header } from 'Theme'
-import Search from 'components/Search/OpenSearch'
+import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
 
 export async function getStaticProps() {
   const protocols = await getProtocolsRaw()
@@ -101,7 +100,7 @@ const columns = [
 export default function Protocols({ categories }) {
   return (
     <Layout title={`Categories - DefiLlama`} defaultSEO>
-      <Search step={{ category: 'Home', name: 'Categories' }} />
+      <ProtocolsChainsSearch step={{ category: 'Home', name: 'Categories' }} />
 
       <Header>Protocol Categories</Header>
 
