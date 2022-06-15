@@ -11,6 +11,7 @@ import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { DeFiTvlOptions } from 'components/Select'
 import { FixedSizeList } from 'react-window'
 import { useFetchPeggedList, useFetchProtocolsList } from 'utils/dataApi'
+import placeholderImg from 'assets/placeholder.png'
 
 const Wrapper = styled.nav`
   display: flex;
@@ -170,6 +171,14 @@ interface ISearchProps {
   step?: IStep
 }
 
+const groupedChains = [
+  { name: 'Non-EVM', route: '/chains/Non-EVM', logo: placeholderImg.src },
+  { name: 'EVM', route: '/chains/EVM', logo: placeholderImg.src },
+  { name: 'Rollup', route: '/chains/Rollup', logo: placeholderImg.src },
+  { name: 'Cosmos', route: '/chains/Cosmos', logo: placeholderImg.src },
+  { name: 'Parachain', route: '/chains/Parachain', logo: placeholderImg.src },
+]
+
 export default function Search({ step }: { step: IStep }) {
   const { data, loading } = useFetchProtocolsList()
 
@@ -191,7 +200,9 @@ export default function Search({ step }: { step: IStep }) {
         route: `/protocol/${standardizeProtocolName(token.name)}`,
       })) ?? []
 
-    return pathname.startsWith('/protocol') ? [...protocolData, ...chainData] : [...chainData, ...protocolData]
+    return pathname.startsWith('/protocol')
+      ? [...protocolData, ...chainData, ...groupedChains]
+      : [...chainData, ...protocolData, ...groupedChains]
   }, [data, pathname])
 
   return <SearchDefault data={searchData} loading={loading} step={step} />
