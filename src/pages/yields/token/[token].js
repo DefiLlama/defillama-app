@@ -1,5 +1,5 @@
 import Layout from 'layout'
-import Search from 'components/Search'
+import { YieldsSearch } from 'components/Search/OpenSearch'
 import { CheckMarks } from 'components/SettingsModal'
 import {
   useNoILManager,
@@ -68,7 +68,7 @@ const YieldPage = () => {
 
   return (
     <>
-      <Search />
+      <YieldsSearch />
 
       <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
 
