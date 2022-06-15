@@ -355,9 +355,13 @@ const YieldPage = ({ pools, chainList }) => {
     return isValidTvlRange ? poolsData.filter((p) => p.tvl > minTvl && p.tvl < maxTvl) : poolsData
   }, [minTvl, maxTvl, pools])
 
+  let stepName = undefined
+  if (query.chain) stepName = selectedTab
+  else if (query.project) stepName = poolsData[0].project
+
   return (
     <>
-      <YieldsSearch />
+      <YieldsSearch step={{ category: 'Yields', name: stepName ?? 'All chains', hideOptions: true }} />
 
       <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
 

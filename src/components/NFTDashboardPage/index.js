@@ -24,7 +24,7 @@ const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
 })
 
 const NFTDashboard = ({ title, statistics, collections, chart, chainData, marketplaceData, displayName = 'All' }) => {
-  useEffect(() => window.scrollTo(0, 0))
+  useEffect(() => window.scrollTo(0, 0), [])
 
   const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics
   const [hideLastDay] = useHideLastDayManager()
@@ -95,7 +95,10 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
     <Layout title={title} backgroundColor={transparentize(0.8, '#445ed0')}>
       <SEO cardName={displayName} chain={displayName} tvl={tvl} nftPage />
 
-      <NFTsSearch preLoadedSearch={collections} />
+      <NFTsSearch
+        preLoadedSearch={collections}
+        step={{ category: 'NFTs', name: 'All collections', hideOptions: true }}
+      />
       <Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
         Data is currently incorrect and we are fixing it, please don't use it
       </Panel>

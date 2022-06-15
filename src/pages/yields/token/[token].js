@@ -68,7 +68,7 @@ const YieldPage = () => {
 
   return (
     <>
-      <YieldsSearch />
+      <YieldsSearch step={{ category: 'Yields', name: query.token, hideOptions: true }} />
 
       <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
 
