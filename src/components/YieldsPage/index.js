@@ -1,5 +1,5 @@
 import Table, { columnsToShow, NameYield, TableFilters, NameYieldPool } from 'components/Table'
-import { formattedPercent } from 'utils'
+import { capitalizeFirstLetter, formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
 import styled from 'styled-components'
 import { AutoRow } from 'components/Row'
@@ -17,6 +17,7 @@ import IconsRow from 'components/IconsRow'
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { YieldsSearch } from 'components/Search/OpenSearch'
+import { Panel } from 'components'
 
 export const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
@@ -357,7 +358,7 @@ const YieldPage = ({ pools, chainList }) => {
 
   let stepName = undefined
   if (query.chain) stepName = selectedTab
-  else if (query.project) stepName = poolsData[0].project
+  else if (query.project) stepName = poolsData[0]?.project ?? capitalizeFirstLetter(query.project)
 
   return (
     <>
@@ -371,7 +372,11 @@ const YieldPage = ({ pools, chainList }) => {
         <TableFilters />
       </ListOptions>
 
-      <TableWrapper data={poolsData} columns={columns} />
+      {poolsData.length > 0 ? (
+        <TableWrapper data={poolsData} columns={columns} />
+      ) : (
+        <Panel as="p" style={{ margin: 0, textAlign: 'center' }}>{`${stepName} has no pools listed`}</Panel>
+      )}
     </>
   )
 }
