@@ -174,7 +174,7 @@ export interface IBaseSearchProps {
 
 export const BaseSearch = (props: IBaseSearchProps) => {
   const { data, loading = false, step, onSearchTermChange } = props
-  const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: data.map(getDisplayNameFromItem) })
+  const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: data.map((x) => x.name) })
 
   useEffect(() => {
     if (onSearchTermChange) onSearchTermChange(combobox.value)
@@ -223,20 +223,16 @@ const isExternalImage = (imagePath: string) => {
   return imagePath?.includes('http')
 }
 
-const getDisplayNameFromItem = (item: ISearchItem) => (item.symbol ? `${item.name} (${item.symbol})` : item.name)
-const getNameFromDisplayName = (displayName: string) => displayName.split(' (')[0]
-
 // Virtualized Row
 const Row = ({ index, style, data }) => {
   const { searchData, options, onItemClick } = data
 
-  const value = getNameFromDisplayName(options[index])
+  const value = options[index]
 
   const item = searchData.find((x) => x.name === value)
 
   const router = useRouter()
 
-  const displayName = getDisplayNameFromItem(item)
   return (
     <Item
       key={value}
@@ -247,8 +243,8 @@ const Row = ({ index, style, data }) => {
       }}
       style={style}
     >
-      <TokenLogo logo={item.logo} external={isExternalImage(item.logo)} />
-      <span>{displayName}</span>
+      <TokenLogo logo={item?.logo} external={isExternalImage(item.logo)} />
+      <span>{value}</span>
     </Item>
   )
 }
