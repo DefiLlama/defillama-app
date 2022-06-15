@@ -11,7 +11,8 @@ interface INFTSearchProps extends ICommonSearchProps {
   }>
 }
 
-export default function NFTsSearch({ step, preLoadedSearch }: INFTSearchProps) {
+export default function NFTsSearch(props: INFTSearchProps) {
+  const { preLoadedSearch } = props
   const [searchValue, setSearchValue] = useState('')
   const [usePreloadedList, setUsePreloadedList] = useState(false)
   const { data, loading } = useFetchNFTsList(searchValue)
@@ -30,5 +31,5 @@ export default function NFTsSearch({ step, preLoadedSearch }: INFTSearchProps) {
     }))
   }, [data, usePreloadedList])
 
-  return <BaseSearch data={searchData} loading={loading} step={step} onSearchTermChange={setSearchValue} />
+  return <BaseSearch {...props} data={searchData} loading={loading} onSearchTermChange={setSearchValue} />
 }

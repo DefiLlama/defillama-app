@@ -6,7 +6,7 @@ import { useFetchYieldsList } from 'utils/categories/yield'
 interface IYieldsSearchProps extends ICommonSearchProps {}
 
 //tmp fix: made step optional
-export default function YieldsSearch({ step }: IYieldsSearchProps) {
+export default function YieldsSearch(props: IYieldsSearchProps) {
   const { data, loading } = useFetchYieldsList()
 
   const searchData: IBaseSearchProps['data'] =
@@ -21,5 +21,5 @@ export default function YieldsSearch({ step }: IYieldsSearchProps) {
       )
     }, [data]) ?? []
 
-  return <BaseSearch data={searchData} loading={loading} step={step} />
+  return <BaseSearch {...props} data={searchData} loading={loading} />
 }

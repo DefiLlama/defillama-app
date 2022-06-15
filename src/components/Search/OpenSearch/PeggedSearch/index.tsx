@@ -6,7 +6,8 @@ import { useFetchPeggedList } from 'utils/dataApi'
 interface IPeggedSearchProps extends ICommonSearchProps {}
 
 // TODO add pegged chains list
-export default function PeggedSearch({ step }: IPeggedSearchProps) {
+export default function PeggedSearch(props: IPeggedSearchProps) {
+  const { step } = props
   const { data, loading } = useFetchPeggedList()
 
   const searchData: IBaseSearchProps['data'] =
@@ -16,5 +17,5 @@ export default function PeggedSearch({ step }: IPeggedSearchProps) {
       name: `${asset.name} (${asset.symbol})`,
     })) ?? []
 
-  return <BaseSearch data={searchData} loading={loading} step={step} />
+  return <BaseSearch {...props} data={searchData} loading={loading} />
 }

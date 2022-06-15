@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Repeat } from 'react-feather'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
@@ -15,6 +15,8 @@ import { useFetchProtocol, useGeckoProtocol } from 'utils/dataApi'
 import { Panel } from 'components'
 import Layout from 'layout'
 import { useMedia } from 'hooks'
+import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
+import { SETS } from 'components/Search/OpenSearch/ProtocolsChainsSearch'
 
 const ComparisonDetailsLayout = styled.div`
   display: inline-grid;
@@ -135,10 +137,10 @@ const TokenComparisonSearch = ({
         resetDisplay={customOnLinkClick(protocolAorB)}
       />
     ) : (
-      <Search
-        linkPath={handleLinkPath(protocolAorB)}
-        customOnLinkClick={customOnLinkClick(protocolAorB)}
-        includeChains={false}
+      <ProtocolsChainsSearch
+        includedSets={[SETS.PROTOCOLS]}
+        customPath={handleLinkPath(protocolAorB)}
+        onItemClick={customOnLinkClick(protocolAorB)}
       />
     )}
   </Column>
@@ -147,6 +149,10 @@ const TokenComparisonSearch = ({
 function ComparisonPage({ title, protocolA: protocolARouteParam, protocolB: protocolBRouteParam, protocolsMcapTvl }) {
   const [protocolA, setProtocolA] = useState(protocolARouteParam)
   const [protocolB, setProtocolB] = useState(protocolBRouteParam)
+
+  const below400 = useMedia('(max-width: 400px)')
+  const below1024 = useMedia('(max-width: 1024px)')
+  const LENGTH = below1024 ? 10 : 16
 
   const tokenAData = TokenInfoHook(protocolA, protocolsMcapTvl)
 
@@ -175,9 +181,6 @@ function ComparisonPage({ title, protocolA: protocolARouteParam, protocolB: prot
   const tokenAPriceWithTokenBMcapTvl = (tokenBMcapTvl * tokenATvl) / tokenACirculating
   const tokenAPriceChange = tokenAPriceWithTokenBMcapTvl / tokenAPrice
 
-  const below400 = useMedia('(max-width: 400px)')
-  const below1024 = useMedia('(max-width: 1024px)')
-  const LENGTH = below1024 ? 10 : 16
   // format for long symbol
   const tokenAFormattedSymbol = tokenASymbol?.length > LENGTH ? tokenASymbol.slice(0, LENGTH) + '...' : tokenASymbol
   const tokenBFormattedSymbol = tokenBSymbol?.length > LENGTH ? tokenBSymbol.slice(0, LENGTH) + '...' : tokenBSymbol
@@ -185,15 +188,18 @@ function ComparisonPage({ title, protocolA: protocolARouteParam, protocolB: prot
   const tokenAValid = validTokenData(tokenAData)
   const tokenBValid = validTokenData(tokenBData)
 
-  const handleLinkPath = (protocolAorB) => (clickedProtocol) => {
-    const protocolName = standardizeProtocolName(clickedProtocol)
-
-    if (protocolAorB === 'A') {
-      return `/comparison?protocolA=${protocolName}&protocolB=${protocolB || ''}`
-    } else {
-      return `/comparison?protocolA=${protocolA || ''}&protocolB=${protocolName}`
-    }
-  }
+  const handleLinkPath = (protocolAorB) =>
+    useCallback(
+      (clickedProtocol) => {
+        const protocolName = standardizeProtocolName(clickedProtocol)
+        if (protocolAorB === 'A') {
+          return `/comparison?protocolA=${protocolName}&protocolB=${protocolB || ''}`
+        } else {
+          return `/comparison?protocolA=${protocolA || ''}&protocolB=${protocolName}`
+        }
+      },
+      [protocolA, protocolB]
+    )
 
   const handleSwapLinkPath = () => {
     const comparisonRoute = '/comparison'

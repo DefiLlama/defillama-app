@@ -168,6 +168,8 @@ export interface IBaseSearchProps {
   loading?: boolean
   step?: IStep
   onSearchTermChange?: (searchValue: string) => void
+  customPath?: (item: string) => string
+  onItemClick?: (item: string) => void
 }
 
 export const BaseSearch = (props: IBaseSearchProps) => {
@@ -205,7 +207,7 @@ export const BaseSearch = (props: IBaseSearchProps) => {
             width="100%"
             itemCount={combobox.matches.length}
             itemSize={50}
-            itemData={{ searchData: data, options: combobox.matches }}
+            itemData={{ searchData: data, options: combobox.matches, onItemClick: props.onItemClick }}
           >
             {Row}
           </FixedSizeList>
@@ -223,7 +225,7 @@ const isExternalImage = (imagePath: string) => {
 
 // Virtualized Row
 const Row = ({ index, style, data }) => {
-  const { searchData, options } = data
+  const { searchData, options, onItemClick } = data
 
   const value = options[index]
 
@@ -231,10 +233,19 @@ const Row = ({ index, style, data }) => {
 
   const router = useRouter()
 
+  const displayName = item.symbol ? `${value} (${item.name})` : value
   return (
-    <Item key={value} value={value} onClick={() => router.push(item.route)} style={style}>
+    <Item
+      key={value}
+      value={value}
+      onClick={() => {
+        if (onItemClick) onItemClick(item)
+        router.push(item.route)
+      }}
+      style={style}
+    >
       <TokenLogo logo={item.logo} external={isExternalImage(item.logo)} />
-      <span>{value}</span>
+      <span>{displayName}</span>
     </Item>
   )
 }
@@ -270,4 +281,5 @@ const Options = ({ step }: IOptionsProps) => {
 
 export interface ICommonSearchProps {
   step?: IBaseSearchProps['step']
+  onItemClick?: IBaseSearchProps['onItemClick']
 }
