@@ -16,7 +16,7 @@ import { ListHeader, ListOptions } from 'components/ChainPage'
 import IconsRow from 'components/IconsRow'
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
-import { YieldsSearch } from 'components/Search/New'
+import { YieldsSearch } from 'components/Search/OpenSearch'
 
 export const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {

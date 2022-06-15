@@ -1,4 +1,4 @@
-import { IStep, SearchDefault } from 'components/Search/New'
+import { IStep, SearchDefault } from 'components/Search/OpenSearch'
 import { useEffect, useMemo, useState } from 'react'
 import { useFetchNFTsList } from 'utils/categories/nfts'
 

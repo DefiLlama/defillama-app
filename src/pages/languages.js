@@ -4,7 +4,7 @@ import { toNiceMonthlyDate, getRandomColor } from '../utils'
 import { revalidate } from '../utils/dataApi'
 import { GeneralAreaChart } from 'components/TokenChart/charts'
 import { ChainDominanceChart } from 'components/Charts'
-import Search from 'components/Search/New'
+import Search from 'components/Search/OpenSearch'
 import { Header } from 'Theme'
 import { Panel } from 'components'
 

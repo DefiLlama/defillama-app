@@ -1,4 +1,4 @@
-import { IStep, SearchDefault } from 'components/Search/New'
+import { IStep, SearchDefault } from 'components/Search/OpenSearch'
 import { useMemo } from 'react'
 import { useFetchYieldsList } from 'utils/categories/yield'
 

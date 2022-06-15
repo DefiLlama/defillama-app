@@ -3,7 +3,7 @@ import { getYieldPageData, revalidate } from '../../utils/dataApi'
 import { toK, formattedPercent } from 'utils'
 import Table, { Index, NameYield } from 'components/Table'
 import PageHeader from 'components/PageHeader'
-import { YieldsSearch } from 'components/Search/New'
+import { YieldsSearch } from 'components/Search/OpenSearch'
 
 function median(numbers) {
   const sorted = Array.from(numbers).sort((a, b) => a - b)

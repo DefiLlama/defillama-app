@@ -13,7 +13,7 @@ import FormattedName from 'components/FormattedName'
 import AuditInfo from 'components/AuditInfo'
 import { ButtonLight } from 'components/ButtonStyled'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
-import { YieldsSearch } from 'components/Search/New'
+import { YieldsSearch } from 'components/Search/OpenSearch'
 
 const HiddenSearch = styled.span`
   @media screen and (max-width: ${({ theme }) => theme.bpSm}) {

@@ -9,7 +9,7 @@ import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
 import { TYPE } from 'Theme'
 import { DropdownMenu, DropdownMenuContent, DefaultMenuButton, DefaultMenuItem } from 'components/DropdownMenu'
 import { columns, TableWrapper } from 'components/YieldsPage'
-import { YieldsSearch } from 'components/Search/New'
+import { YieldsSearch } from 'components/Search/OpenSearch'
 
 interface IFolder {
   isSaved?: boolean

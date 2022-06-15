@@ -24,7 +24,7 @@ import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from 'components'
 import IconsRow from 'components/IconsRow'
-import { PeggedSearch } from 'components/Search/New'
+import { PeggedSearch } from 'components/Search/OpenSearch'
 
 function Chart({ peggedAreaChartData, peggedAreaMcapData, totalMcapLabel, peggedAssetNames, aspect }) {
   const [darkMode] = useDarkModeManager()

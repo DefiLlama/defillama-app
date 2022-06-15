@@ -1,4 +1,4 @@
-import { IList, IStep, SearchDefault } from 'components/Search/New'
+import { IList, IStep, SearchDefault } from 'components/Search/OpenSearch'
 import { peggedAssetIconUrl, standardizeProtocolName } from 'utils'
 import { useFetchPeggedList } from 'utils/dataApi'
 

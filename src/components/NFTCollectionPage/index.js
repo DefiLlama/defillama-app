@@ -23,7 +23,7 @@ import SEO from 'components/SEO'
 import Layout from 'layout'
 import { Box as RebassBox } from 'rebass'
 import { useMedia } from 'hooks'
-import { NFTsSearch } from 'components/Search/New'
+import { NFTsSearch } from 'components/Search/OpenSearch'
 
 const panelPseudo = css`
   :after {

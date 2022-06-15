@@ -1,4 +1,4 @@
-import Search from 'components/Search/New'
+import Search from 'components/Search/OpenSearch'
 import Table, { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useMemo } from 'react'

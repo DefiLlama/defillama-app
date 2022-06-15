@@ -5,7 +5,7 @@ import Layout from 'layout'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, ProtocolsTable } from 'components'
-import Search from 'components/Search/New'
+import Search from 'components/Search/OpenSearch'
 import { columnsToShow } from 'components/Table'
 import Filters, { FiltersWrapper } from 'components/Filters'
 

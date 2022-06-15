@@ -5,7 +5,7 @@ import { toK } from 'utils'
 import Table, { Index } from 'components/Table'
 import PageHeader from 'components/PageHeader'
 import { Header } from 'Theme'
-import Search from 'components/Search/New'
+import Search from 'components/Search/OpenSearch'
 
 export async function getStaticProps() {
   const protocols = await getProtocolsRaw()

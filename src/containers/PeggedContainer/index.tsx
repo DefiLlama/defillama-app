@@ -9,7 +9,7 @@ import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } 
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { PeggedAssetTvlOptions } from 'components/Select'
 import { Header } from 'Theme'
-import { PeggedSearch } from 'components/Search/New'
+import { PeggedSearch } from 'components/Search/OpenSearch'
 
 const ChartsWrapper = styled.section`
   display: flex;

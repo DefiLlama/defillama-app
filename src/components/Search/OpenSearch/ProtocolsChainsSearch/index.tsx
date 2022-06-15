@@ -1,4 +1,4 @@
-import { IList, IStep, SearchDefault } from 'components/Search/New'
+import { IList, IStep, SearchDefault } from 'components/Search/OpenSearch'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from 'utils'

@@ -9,10 +9,10 @@ import { AllTvlOptions } from 'components/SettingsModal'
 import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { DeFiTvlOptions } from 'components/Select'
 import { FixedSizeList } from 'react-window'
-import NFTsSearch from './OpenSearch/NFTsSearch'
-import YieldsSearch from './OpenSearch/YieldsSearch'
-import PeggedSearch from './OpenSearch/PeggedSearch'
-import ProtocolsChainsSearch from './OpenSearch/ProtocolsChainsSearch'
+import NFTsSearch from './NFTsSearch'
+import YieldsSearch from './YieldsSearch'
+import PeggedSearch from './PeggedSearch'
+import ProtocolsChainsSearch from './ProtocolsChainsSearch'
 
 const Wrapper = styled.nav`
   display: flex;

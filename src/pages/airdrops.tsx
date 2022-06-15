@@ -1,5 +1,5 @@
 import { ProtocolsTable } from 'components'
-import Search from 'components/Search/New'
+import Search from 'components/Search/OpenSearch'
 import { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import styled from 'styled-components'
