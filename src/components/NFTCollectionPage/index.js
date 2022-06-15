@@ -9,7 +9,6 @@ import Section from './Section'
 import Links from './Links'
 
 import Link, { BasicLink } from 'components/Link'
-import Search from 'components/Search'
 import { formattedNum, capitalizeFirstLetter } from '../../utils'
 import { AutoRow, RowBetween } from '../../components/Row'
 import Column from '../../components/Column'
