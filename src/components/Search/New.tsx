@@ -2,18 +2,17 @@ import { Combobox, ComboboxItem, ComboboxPopover, useComboboxState } from 'ariak
 import TokenLogo from 'components/TokenLogo'
 import { useRouter } from 'next/router'
 import { transparentize } from 'polished'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect } from 'react'
 import styled from 'styled-components'
-import { chainIconUrl, peggedAssetIconUrl, standardizeProtocolName, tokenIconUrl } from 'utils'
 import Link from 'next/link'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { DeFiTvlOptions } from 'components/Select'
 import { FixedSizeList } from 'react-window'
-import { useFetchPeggedList, useFetchProtocolsList } from 'utils/dataApi'
-import placeholderImg from 'assets/placeholder.png'
-import { useFetchYieldsList } from '../../utils/categories/yield'
-import { useFetchNFTsList } from 'utils/categories/nfts'
+import NFTsSearch from './OpenSearch/NFTsSearch'
+import YieldsSearch from './OpenSearch/YieldsSearch'
+import PeggedSearch from './OpenSearch/PeggedSearch'
+import ProtocolsChainsSearch from './OpenSearch/ProtocolsChainsSearch'
 
 const Wrapper = styled.nav`
   display: flex;
@@ -154,125 +153,17 @@ const DropdownOptions = styled(DeFiTvlOptions)`
   }
 `
 
-interface IList {
+export interface IList {
   isChain: boolean
   logo: string
   name: string
 }
 
-interface IStep {
+export interface IStep {
   category: string
   name: string
   route?: string
   hideOptions?: boolean
-}
-
-interface ISearchProps {
-  data: any
-  loading?: boolean
-  step?: IStep
-  onSearchValueChange?: (searchValue: string) => void
-}
-
-const groupedChains = [
-  { name: 'Non-EVM', route: '/chains/Non-EVM', logo: placeholderImg.src },
-  { name: 'EVM', route: '/chains/EVM', logo: placeholderImg.src },
-  { name: 'Rollup', route: '/chains/Rollup', logo: placeholderImg.src },
-  { name: 'Cosmos', route: '/chains/Cosmos', logo: placeholderImg.src },
-  { name: 'Parachain', route: '/chains/Parachain', logo: placeholderImg.src },
-]
-
-export default function Search({ step }: { step: IStep }) {
-  const { data, loading } = useFetchProtocolsList()
-
-  const { pathname } = useRouter()
-
-  const searchData: IList[] = useMemo(() => {
-    const chainData: IList[] =
-      data?.chains?.map((name) => ({
-        logo: chainIconUrl(name),
-        route: `/chain/${name}`,
-        name,
-      })) ?? []
-
-    const protocolData =
-      data?.protocols?.map((token) => ({
-        ...token,
-        name: `${token.name} (${token.symbol})`,
-        logo: tokenIconUrl(token.name),
-        route: `/protocol/${standardizeProtocolName(token.name)}`,
-      })) ?? []
-
-    return pathname.startsWith('/protocol')
-      ? [...protocolData, ...chainData, ...groupedChains]
-      : [...chainData, ...protocolData, ...groupedChains]
-  }, [data, pathname])
-
-  return <SearchDefault data={searchData} loading={loading} step={step} />
-}
-
-interface INFTSearchProps {
-  step: IStep
-  preLoadedSearch: Array<{
-    name: string
-    route: string
-    logo: string
-  }>
-}
-
-export function NFTsSearch({ step, preLoadedSearch }: INFTSearchProps) {
-  const [searchValue, setSearchValue] = useState('')
-  const [usePreloadedList, setUsePreloadedList] = useState(false)
-  const { data, loading } = useFetchNFTsList(searchValue)
-
-  useEffect(() => {
-    if (preLoadedSearch && !searchValue && !loading) setUsePreloadedList(true)
-    else setUsePreloadedList(false)
-  }, [preLoadedSearch, searchValue, loading])
-
-  const searchData = useMemo(() => {
-    const set = usePreloadedList ? preLoadedSearch : data ?? []
-    return set.map((el) => ({
-      name: el.name,
-      route: `/nfts/collection/${el.slug}`,
-      logo: el.logo,
-    }))
-  }, [data, usePreloadedList])
-
-  return <SearchDefault data={searchData} loading={loading} step={step} onSearchValueChange={setSearchValue} />
-}
-
-//tmp fix: made step optional
-export function YieldsSearch({ step }: { step?: IStep }) {
-  const { data, loading } = useFetchYieldsList()
-
-  const searchData =
-    useMemo(() => {
-      return (
-        data?.map((el) => ({
-          name: `${el.name} (${el.symbol.toUpperCase()})`,
-          symbol: el.symbol.toUpperCase(),
-          route: `/yields/token/${el.symbol.toUpperCase()}`,
-          logo: el.image,
-        })) ?? []
-      )
-    }, [data]) ?? []
-
-  return <SearchDefault data={searchData} loading={loading} step={step} />
-}
-
-// TODO add pegged chains list
-export function PeggedSearch({ step }: { step: IStep }) {
-  const { data, loading } = useFetchPeggedList()
-
-  const searchData: IList[] =
-    data?.peggedAssets?.map((asset) => ({
-      logo: peggedAssetIconUrl(asset.name),
-      route: `/peggedasset/${standardizeProtocolName(asset.name)}`,
-      name: `${asset.name} (${asset.symbol})`,
-    })) ?? []
-
-  return <SearchDefault data={searchData} loading={loading} step={step} />
 }
 
 interface ISearchDefaultProps {
@@ -282,7 +173,7 @@ interface ISearchDefaultProps {
   onSearchValueChange?: (searchValue: string) => void
 }
 
-const SearchDefault = ({ data, loading = false, step, onSearchValueChange }: ISearchDefaultProps) => {
+export const SearchDefault = ({ data, loading = false, step, onSearchValueChange }: ISearchDefaultProps) => {
   const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: data.map((x) => x.name) })
 
   useEffect(() => {
@@ -374,3 +265,7 @@ const Options = ({ step }: { step: IStep }) => {
     </OptionsWrapper>
   )
 }
+
+export default ProtocolsChainsSearch
+
+export { NFTsSearch, YieldsSearch, PeggedSearch }
