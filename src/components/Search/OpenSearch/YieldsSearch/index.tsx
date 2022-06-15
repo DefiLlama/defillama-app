@@ -1,11 +1,9 @@
 import { BaseSearch } from 'components/Search/OpenSearch/BaseSearch'
-import type { IBaseSearchProps } from 'components/Search/OpenSearch/BaseSearch'
+import type { IBaseSearchProps, ICommonSearchProps } from 'components/Search/OpenSearch/BaseSearch'
 import { useMemo } from 'react'
 import { useFetchYieldsList } from 'utils/categories/yield'
 
-interface IYieldsSearchProps {
-  step?: IBaseSearchProps['step']
-}
+interface IYieldsSearchProps extends ICommonSearchProps {}
 
 //tmp fix: made step optional
 export default function YieldsSearch({ step }: IYieldsSearchProps) {

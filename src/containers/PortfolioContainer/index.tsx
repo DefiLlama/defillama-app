@@ -70,7 +70,7 @@ function PortfolioContainer({ protocolsDict }) {
 
   return (
     <>
-      <ProtocolsChainsSearch step={{ category: 'Home', name: 'Watchlist' }} />
+      <ProtocolsChainsSearch step={{ category: 'Home', name: 'Watchlist', hideOptions: true }} />
 
       <Header>Saved Protocols</Header>
 

@@ -1,10 +1,9 @@
 import { BaseSearch } from '../BaseSearch'
-import type { IBaseSearchProps } from '../BaseSearch'
+import type { IBaseSearchProps, ICommonSearchProps } from '../BaseSearch'
 import { useEffect, useMemo, useState } from 'react'
 import { useFetchNFTsList } from 'utils/categories/nfts'
 
-interface INFTSearchProps {
-  step: IBaseSearchProps['step']
+interface INFTSearchProps extends ICommonSearchProps {
   preLoadedSearch: Array<{
     name: string
     route: string

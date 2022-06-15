@@ -148,13 +148,6 @@ const DropdownOptions = styled(DeFiTvlOptions)`
     padding: 0 4px;
   }
 `
-
-interface IList {
-  isChain: boolean
-  logo: string
-  name: string
-}
-
 interface ISearchItem {
   name: string
   route: string
@@ -246,7 +239,11 @@ const Row = ({ index, style, data }) => {
   )
 }
 
-const Options = ({ step }: { step: IStep }) => {
+interface IOptionsProps {
+  step?: IBaseSearchProps['step']
+}
+
+const Options = ({ step }: IOptionsProps) => {
   return (
     <OptionsWrapper>
       <p>
@@ -269,4 +266,8 @@ const Options = ({ step }: { step: IStep }) => {
       )}
     </OptionsWrapper>
   )
+}
+
+export interface ICommonSearchProps {
+  step?: IBaseSearchProps['step']
 }
