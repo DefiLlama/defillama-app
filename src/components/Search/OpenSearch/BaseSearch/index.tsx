@@ -2,16 +2,13 @@ import { Combobox, ComboboxItem, ComboboxPopover, useComboboxState } from 'ariak
 import TokenLogo from 'components/TokenLogo'
 import { useRouter } from 'next/router'
 import { transparentize } from 'polished'
-import { useMemo } from 'react'
+import { useEffect } from 'react'
 import styled from 'styled-components'
-import { chainIconUrl, peggedAssetIconUrl, standardizeProtocolName, tokenIconUrl } from 'utils'
 import Link from 'next/link'
 import { AllTvlOptions } from 'components/SettingsModal'
 import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { DeFiTvlOptions } from 'components/Select'
 import { FixedSizeList } from 'react-window'
-import { useFetchPeggedList, useFetchProtocolsList } from 'utils/dataApi'
-import placeholderImg from 'assets/placeholder.png'
 
 const Wrapper = styled.nav`
   display: flex;
@@ -151,13 +148,14 @@ const DropdownOptions = styled(DeFiTvlOptions)`
     padding: 0 4px;
   }
 `
-
-interface IList {
-  isChain: boolean
-  logo: string
+interface ISearchItem {
   name: string
+  route: string
+  logo?: string
+  symbol?: string
 }
 
+// Define breadcrumb of the search
 interface IStep {
   category: string
   name: string
@@ -165,65 +163,20 @@ interface IStep {
   hideOptions?: boolean
 }
 
-interface ISearchProps {
-  data: any
+export interface IBaseSearchProps {
+  data: ISearchItem[]
   loading?: boolean
   step?: IStep
+  onSearchTermChange?: (searchValue: string) => void
 }
 
-const groupedChains = [
-  { name: 'Non-EVM', route: '/chains/Non-EVM', logo: placeholderImg.src },
-  { name: 'EVM', route: '/chains/EVM', logo: placeholderImg.src },
-  { name: 'Rollup', route: '/chains/Rollup', logo: placeholderImg.src },
-  { name: 'Cosmos', route: '/chains/Cosmos', logo: placeholderImg.src },
-  { name: 'Parachain', route: '/chains/Parachain', logo: placeholderImg.src },
-]
-
-export default function Search({ step }: { step: IStep }) {
-  const { data, loading } = useFetchProtocolsList()
-
-  const { pathname } = useRouter()
-
-  const searchData: IList[] = useMemo(() => {
-    const chainData: IList[] =
-      data?.chains?.map((name) => ({
-        logo: chainIconUrl(name),
-        route: `/chain/${name}`,
-        name,
-      })) ?? []
-
-    const protocolData =
-      data?.protocols?.map((token) => ({
-        ...token,
-        name: `${token.name} (${token.symbol})`,
-        logo: tokenIconUrl(token.name),
-        route: `/protocol/${standardizeProtocolName(token.name)}`,
-      })) ?? []
-
-    return pathname.startsWith('/protocol')
-      ? [...protocolData, ...chainData, ...groupedChains]
-      : [...chainData, ...protocolData, ...groupedChains]
-  }, [data, pathname])
-
-  return <SearchDefault data={searchData} loading={loading} step={step} />
-}
-
-// TODO add pegged chains list
-export function PeggedSearch({ step }: { step: IStep }) {
-  const { data, loading } = useFetchPeggedList()
-
-  const searchData: IList[] =
-    data?.peggedAssets?.map((asset) => ({
-      logo: peggedAssetIconUrl(asset.name),
-      route: `/peggedasset/${standardizeProtocolName(asset.name)}`,
-      name: `${asset.name} (${asset.symbol})`,
-    })) ?? []
-
-  return <SearchDefault data={searchData} loading={loading} step={step} />
-}
-
-const SearchDefault = ({ data, loading = false, step }: ISearchProps) => {
+export const BaseSearch = (props: IBaseSearchProps) => {
+  const { data, loading = false, step, onSearchTermChange } = props
   const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: data.map((x) => x.name) })
+
+  useEffect(() => {
+    if (onSearchTermChange) onSearchTermChange(combobox.value)
+  }, [combobox.value])
 
   // Resets combobox value when popover is collapsed
   if (!combobox.mounted && combobox.value) {
@@ -264,6 +217,10 @@ const SearchDefault = ({ data, loading = false, step }: ISearchProps) => {
   )
 }
 
+const isExternalImage = (imagePath: string) => {
+  return imagePath?.includes('http')
+}
+
 // Virtualized Row
 const Row = ({ index, style, data }) => {
   const { searchData, options } = data
@@ -276,13 +233,17 @@ const Row = ({ index, style, data }) => {
 
   return (
     <Item key={value} value={value} onClick={() => router.push(item.route)} style={style}>
-      <TokenLogo logo={item.logo} />
+      <TokenLogo logo={item.logo} external={isExternalImage(item.logo)} />
       <span>{value}</span>
     </Item>
   )
 }
 
-const Options = ({ step }: { step: IStep }) => {
+interface IOptionsProps {
+  step?: IBaseSearchProps['step']
+}
+
+const Options = ({ step }: IOptionsProps) => {
   return (
     <OptionsWrapper>
       <p>
@@ -305,4 +266,8 @@ const Options = ({ step }: { step: IStep }) => {
       )}
     </OptionsWrapper>
   )
+}
+
+export interface ICommonSearchProps {
+  step?: IBaseSearchProps['step']
 }

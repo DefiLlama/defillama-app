@@ -1,4 +1,3 @@
-import Search from 'components/Search'
 import Table, { columnsToShow, NameYield, TableFilters, NameYieldPool } from 'components/Table'
 import { formattedPercent } from 'utils'
 import { CheckMarks } from 'components/SettingsModal'
@@ -17,6 +16,7 @@ import { ListHeader, ListOptions } from 'components/ChainPage'
 import IconsRow from 'components/IconsRow'
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { YieldsSearch } from 'components/Search/OpenSearch'
 
 export const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
@@ -355,9 +355,13 @@ const YieldPage = ({ pools, chainList }) => {
     return isValidTvlRange ? poolsData.filter((p) => p.tvl > minTvl && p.tvl < maxTvl) : poolsData
   }, [minTvl, maxTvl, pools])
 
+  let stepName = undefined
+  if (query.chain) stepName = selectedTab
+  else if (query.project) stepName = poolsData[0].project
+
   return (
     <>
-      <Search />
+      <YieldsSearch step={{ category: 'Yields', name: stepName ?? 'All chains', hideOptions: true }} />
 
       <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
 

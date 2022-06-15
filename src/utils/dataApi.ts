@@ -28,6 +28,7 @@ import {
   getPeggedDominance,
   standardizeProtocolName,
 } from 'utils'
+import { fetcher } from './useSWR'
 
 interface IProtocol {
   name: string
@@ -1329,6 +1330,15 @@ export async function fetchCGMarketsData() {
   return await Promise.all(promises)
 }
 
+export function getCGMarketsDataURLs() {
+  const urls = []
+  const maxPage = 10
+  for (let page = 1; page <= maxPage; page++) {
+    urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', `${page}`)}`)
+  }
+  return urls
+}
+
 export async function retryCoingeckoRequest(func, retries) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -1345,7 +1355,6 @@ export async function retryCoingeckoRequest(func, retries) {
 }
 
 // Client Side
-const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then((res) => res.json())
 
 export const useFetchProtocolsList = () => {
   const { data, error } = useSWR(PROTOCOLS_API, fetcher)

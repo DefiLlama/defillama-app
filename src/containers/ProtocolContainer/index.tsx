@@ -10,7 +10,7 @@ import { useCalcSingleExtraTvl } from '../../hooks/data'
 import { useScrollToTop } from 'hooks'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from 'utils'
 import SEO from 'components/SEO'
-import Search from 'components/Search/New'
+import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
 import Layout from 'layout'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import AuditInfo from 'components/AuditInfo'
@@ -456,7 +456,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
 
-      <Search step={{ category: 'Protocols', name, hideOptions: true }} />
+      <ProtocolsChainsSearch step={{ category: 'Protocols', name, hideOptions: true }} />
 
       <Stats>
         <ProtocolDetails>

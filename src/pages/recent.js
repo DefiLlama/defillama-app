@@ -1,4 +1,4 @@
-import Search from 'components/Search/New'
+import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
 import Table, { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useMemo } from 'react'
@@ -182,7 +182,7 @@ export default function Protocols({ protocols }) {
 
   return (
     <Layout title={`TVL Rankings - DefiLlama`} defaultSEO>
-      <Search step={{ category: 'Home', name: 'Recent' }} />
+      <ProtocolsChainsSearch step={{ category: 'Home', name: 'Recent' }} />
 
       <Header>Recently Listed Protocols</Header>
 

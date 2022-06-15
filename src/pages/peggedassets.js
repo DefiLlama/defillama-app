@@ -5,7 +5,7 @@ import { toK } from 'utils'
 import Table, { Index } from 'components/Table'
 import { capitalizeFirstLetter } from 'utils'
 import { Header } from 'Theme'
-import { PeggedSearch } from 'components/Search/New'
+import { PeggedSearch } from 'components/Search/OpenSearch'
 
 export async function getStaticProps() {
   const peggedAssets = await getPeggedAssets()

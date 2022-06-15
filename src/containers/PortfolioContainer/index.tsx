@@ -3,7 +3,7 @@ import { ChevronDown, FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
 import { Panel, ProtocolsTable } from 'components'
 import Row from 'components/Row'
-import Search from 'components/Search/New'
+import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
 import { useIsClient } from 'hooks'
 import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
 import { Header, TYPE } from 'Theme'
@@ -70,7 +70,7 @@ function PortfolioContainer({ protocolsDict }) {
 
   return (
     <>
-      <Search step={{ category: 'Home', name: 'Watchlist' }} />
+      <ProtocolsChainsSearch step={{ category: 'Home', name: 'Watchlist', hideOptions: true }} />
 
       <Header>Saved Protocols</Header>
 

@@ -6,9 +6,10 @@ import Row, { RowBetween } from 'components/Row'
 import Search from 'components/Search'
 import { useIsClient } from 'hooks'
 import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
-import { TYPE } from 'Theme'
+import { Header, TYPE } from 'Theme'
 import { DropdownMenu, DropdownMenuContent, DefaultMenuButton, DefaultMenuItem } from 'components/DropdownMenu'
 import { columns, TableWrapper } from 'components/YieldsPage'
+import { YieldsSearch } from 'components/Search/OpenSearch'
 
 interface IFolder {
   isSaved?: boolean
@@ -68,10 +69,9 @@ function PortfolioContainer({ protocolsDict }) {
 
   return (
     <>
-      <RowBetween>
-        <TYPE.largeHeader>Saved Pools</TYPE.largeHeader>
-        <Search />
-      </RowBetween>
+      <YieldsSearch step={{ category: 'Yields', name: 'Watchlist', hideOptions: true }} />
+
+      <Header>Saved Pools</Header>
 
       <Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
         <TYPE.main>Current portfolio:</TYPE.main>

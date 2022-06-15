@@ -6,7 +6,7 @@ import { Box } from 'rebass'
 import { CustomLink } from 'components/Link'
 import { getRandomColor, toK } from 'utils'
 import { useCalcGroupExtraTvlsByDay } from 'hooks/data'
-import Search from 'components/Search/New'
+import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
 import { Header } from 'Theme'
 import { ChainDominanceChart, ChainPieChart } from 'components/Charts'
 import Filters, { FiltersWrapper } from 'components/Filters'
@@ -94,7 +94,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
 
   return (
     <>
-      <Search step={{ category: 'Home', name: 'Oracles' }} />
+      <ProtocolsChainsSearch step={{ category: 'Home', name: 'Oracles' }} />
 
       <Header>Total Value Secured All Oracles</Header>
 

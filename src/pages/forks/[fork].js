@@ -5,7 +5,7 @@ import Layout from 'layout'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, ProtocolsTable } from 'components'
-import Search from 'components/Search/New'
+import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
 import { columnsToShow } from 'components/Table'
 import Filters, { FiltersWrapper } from 'components/Filters'
 
@@ -66,7 +66,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentToken
 
   return (
     <>
-      <Search step={{ category: 'Oracles', name: token, route: 'forks' }} />
+      <ProtocolsChainsSearch step={{ category: 'Oracles', name: token, route: 'forks' }} />
 
       <ChartAndValuesWrapper>
         <BreakpointPanels>

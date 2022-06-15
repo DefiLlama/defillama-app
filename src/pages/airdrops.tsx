@@ -1,5 +1,5 @@
 import { ProtocolsTable } from 'components'
-import Search from 'components/Search/New'
+import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
 import { columnsToShow } from 'components/Table'
 import { useCalcStakePool2Tvl } from 'hooks/data'
 import styled from 'styled-components'
@@ -53,7 +53,7 @@ export default function Protocols({ protocols }) {
   const data = useCalcStakePool2Tvl(protocols)
   return (
     <Layout title={`Airdroppable protocols - Defi Llama`} defaultSEO>
-      <Search step={{ category: 'Home', name: 'Airdrops' }} />
+      <ProtocolsChainsSearch step={{ category: 'Home', name: 'Airdrops' }} />
 
       <Header>Tokenless protocols that may airdrop 🧑‍🌾</Header>
 
