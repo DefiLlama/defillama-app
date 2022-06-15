@@ -349,11 +349,12 @@ const YieldPage = ({ pools, chainList }) => {
       outlook: t.predictions.predictedClass,
       confidence: t.predictions.binnedConfidence,
     }))
-
     const isValidTvlRange =
-      minTvl !== undefined && maxTvl !== undefined && !Number.isNaN(minTvl) && !Number.isNaN(maxTvl)
+      (minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
-    return isValidTvlRange ? poolsData.filter((p) => p.tvl > minTvl && p.tvl < maxTvl) : poolsData
+    return isValidTvlRange
+      ? poolsData.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
+      : poolsData
   }, [minTvl, maxTvl, pools])
 
   let stepName = undefined

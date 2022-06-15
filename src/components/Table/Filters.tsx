@@ -87,11 +87,11 @@ export function TableFilters() {
             <h1>TVL Range</h1>
             <label>
               <span>Min</span>
-              <input type="number" name="minTvl" required />
+              <input type="number" name="minTvl" />
             </label>
             <label>
               <span>Max</span>
-              <input type="number" name="maxTvl" required />
+              <input type="number" name="maxTvl" />
             </label>
             <button>Filter</button>
           </TvlFilterForm>

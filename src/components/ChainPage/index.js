@@ -224,8 +224,11 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const finalProtocolTotals = useMemo(() => {
     const isValidTvlRange =
-      minTvl !== undefined && maxTvl !== undefined && !Number.isNaN(minTvl) && !Number.isNaN(maxTvl)
-    return isValidTvlRange ? protocolTotals.filter((p) => p.tvl > minTvl && p.tvl < maxTvl) : protocolTotals
+      (minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
+
+    return isValidTvlRange
+      ? protocolTotals.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
+      : protocolTotals
   }, [minTvl, maxTvl, protocolTotals])
 
   return (
