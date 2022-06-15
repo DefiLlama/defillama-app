@@ -236,21 +236,7 @@ function NFTCollectionPage({ collection, chart, statistics, title, backgroundCol
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)}>
       <SEO cardName={name} logo={logo} nftPage />
 
-      <RowBetween flexWrap="wrap">
-        <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
-          <TYPE.body>
-            <BasicLink href="/nfts">{'Collections '}</BasicLink>→{' '}
-          </TYPE.body>
-          <Link style={{ width: 'fit-content' }} color={backgroundColor} external href="#">
-            <Text style={{ marginLeft: '.15rem' }} fontSize={'14px'} fontWeight={400}>
-              {name}
-            </Text>
-          </Link>
-        </AutoRow>
-        <HiddenSearch>
-          <NFTsSearch />
-        </HiddenSearch>
-      </RowBetween>
+      <NFTsSearch step={{ category: 'NFTs', name: name, hideOptions: true }} />
       <DashboardWrapper>
         <Header address={address} below1024={below1024} logo={logo} name={name} />
         <PanelWrapper>

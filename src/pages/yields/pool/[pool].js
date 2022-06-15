@@ -91,16 +91,7 @@ const PageView = () => {
 
   return (
     <>
-      <RowBetween flexWrap="wrap">
-        <AutoRow align="flex-end" style={{ width: 'fit-content' }}>
-          <TYPE.body>
-            <BasicLink href="/yields">{'Pool '}</BasicLink>→ {poolData.symbol}
-          </TYPE.body>
-        </AutoRow>
-        <HiddenSearch>
-          <YieldsSearch />
-        </HiddenSearch>
-      </RowBetween>
+      <YieldsSearch step={{ category: 'Yields', name: poolData.symbol, hideOptions: true }} />
 
       <h1 style={{ margin: '0 0 -12px', fontWeight: 500, fontSize: '1.5rem' }}>
         <span>
