@@ -174,7 +174,7 @@ export interface IBaseSearchProps {
 
 export const BaseSearch = (props: IBaseSearchProps) => {
   const { data, loading = false, step, onSearchTermChange } = props
-  const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: data.map((x) => x.name) })
+  const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: data.map(getDisplayNameFromItem) })
 
   useEffect(() => {
     if (onSearchTermChange) onSearchTermChange(combobox.value)
@@ -223,17 +223,20 @@ const isExternalImage = (imagePath: string) => {
   return imagePath?.includes('http')
 }
 
+const getDisplayNameFromItem = (item: ISearchItem) => (item.symbol ? `${item.name} (${item.symbol})` : item.name)
+const getNameFromDisplayName = (displayName: string) => displayName.split(' (')[0]
+
 // Virtualized Row
 const Row = ({ index, style, data }) => {
   const { searchData, options, onItemClick } = data
 
-  const value = options[index]
+  const value = getNameFromDisplayName(options[index])
 
   const item = searchData.find((x) => x.name === value)
 
   const router = useRouter()
 
-  const displayName = item.symbol ? `${value} (${item.name})` : value
+  const displayName = getDisplayNameFromItem(item)
   return (
     <Item
       key={value}
