@@ -23,6 +23,7 @@ import SEO from 'components/SEO'
 import Layout from 'layout'
 import { Box as RebassBox } from 'rebass'
 import { useMedia } from 'hooks'
+import { NFTsSearch } from 'components/Search/New'
 
 const panelPseudo = css`
   :after {
@@ -248,7 +249,7 @@ function NFTCollectionPage({ collection, chart, statistics, title, backgroundCol
           </Link>
         </AutoRow>
         <HiddenSearch>
-          <Search small={true} />
+          <NFTsSearch />
         </HiddenSearch>
       </RowBetween>
       <DashboardWrapper>

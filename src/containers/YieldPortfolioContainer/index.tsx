@@ -9,6 +9,7 @@ import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
 import { TYPE } from 'Theme'
 import { DropdownMenu, DropdownMenuContent, DefaultMenuButton, DefaultMenuItem } from 'components/DropdownMenu'
 import { columns, TableWrapper } from 'components/YieldsPage'
+import { YieldsSearch } from 'components/Search/New'
 
 interface IFolder {
   isSaved?: boolean
@@ -70,7 +71,7 @@ function PortfolioContainer({ protocolsDict }) {
     <>
       <RowBetween>
         <TYPE.largeHeader>Saved Pools</TYPE.largeHeader>
-        <Search />
+        <YieldsSearch /> {/* TODO: remove options and add step*/}
       </RowBetween>
 
       <Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>

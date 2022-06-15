@@ -3,16 +3,17 @@ import { getYieldPageData, revalidate } from '../../utils/dataApi'
 import { toK, formattedPercent } from 'utils'
 import Table, { Index, NameYield } from 'components/Table'
 import PageHeader from 'components/PageHeader'
+import { YieldsSearch } from 'components/Search/New'
 
 function median(numbers) {
-  const sorted = Array.from(numbers).sort((a, b) => a - b);
-  const middle = Math.floor(sorted.length / 2);
+  const sorted = Array.from(numbers).sort((a, b) => a - b)
+  const middle = Math.floor(sorted.length / 2)
 
   if (sorted.length % 2 === 0) {
-    return (sorted[middle - 1] + sorted[middle]) / 2;
+    return (sorted[middle - 1] + sorted[middle]) / 2
   }
 
-  return sorted[middle];
+  return sorted[middle]
 }
 
 export async function getStaticProps() {
@@ -30,8 +31,8 @@ export async function getStaticProps() {
 
   // add median
   for (const project of Object.keys(projects)) {
-    const x = data.props.pools.filter(p => p.project === project)
-    const m = median(x.map(el => el.apy))
+    const x = data.props.pools.filter((p) => p.project === project)
+    const m = median(x.map((el) => el.apy))
     projects[project]['medianApy'] = m
     projects[project]['audits'] = x[0].audits
   }
@@ -93,6 +94,7 @@ const columns = [
 export default function Protocols({ projects }) {
   return (
     <Layout title={`Projects - DefiLlama Yield`} defaultSEO>
+      <YieldsSearch step={{ category: 'Yields', name: 'Projects' }} />
       <PageHeader title="Projects" />
       <Table data={projects} columns={columns} gap="40px" />
     </Layout>

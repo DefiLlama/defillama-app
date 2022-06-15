@@ -242,7 +242,8 @@ export function NFTsSearch({ step, preLoadedSearch }: INFTSearchProps) {
   return <SearchDefault data={searchData} loading={loading} step={step} onSearchValueChange={setSearchValue} />
 }
 
-export function YieldsSearch({ step }: { step: IStep }) {
+//tmp fix: made step optional
+export function YieldsSearch({ step }: { step?: IStep }) {
   const { data, loading } = useFetchYieldsList()
 
   const searchData =
