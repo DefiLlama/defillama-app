@@ -653,6 +653,7 @@ export function isOfTypePeggedCategory(peggedCategory: string): peggedCategory i
 
 type Columns =
   | 'protocolName'
+  | 'category'
   | 'chainName'
   | 'chains'
   | '1dChange'
@@ -681,6 +682,11 @@ const allColumns: AllColumns = {
         rowType={rowType}
       />
     ),
+  },
+  category: {
+    header: 'Category',
+    accessor: 'category',
+    Cell: ({ value }) => <>{value}</>,
   },
   chainName: {
     header: 'Name',

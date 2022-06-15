@@ -92,7 +92,16 @@ const BASIC_DENOMINATIONS = ['USD']
 
 const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
-const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
+const columns = columnsToShow(
+  'protocolName',
+  'category',
+  'chains',
+  '1dChange',
+  '7dChange',
+  '1mChange',
+  'tvl',
+  'mcaptvl'
+)
 
 function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart, extraVolumesCharts = {} }) {
   const extraTvlsEnabled = useGetExtraTvlEnabled()
