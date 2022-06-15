@@ -14,33 +14,52 @@ const groupedChains = [
   { name: 'Parachain', route: '/chains/Parachain', logo: placeholderImg.src },
 ]
 
-interface IProtocolsChainsSearch extends ICommonSearchProps {}
+export enum SETS {
+  PROTOCOLS = 'protocols',
+  CHAINS = 'chains',
+  GROUPED_CHAINS = 'grouped_chains',
+}
 
-export default function Search({ step }: IProtocolsChainsSearch) {
+interface IProtocolsChainsSearch extends ICommonSearchProps {
+  includedSets?: SETS[]
+  customPath?: IBaseSearchProps['customPath']
+}
+
+export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
+  const { includedSets = Object.values(SETS), customPath } = props
   const { data, loading } = useFetchProtocolsList()
-
   const { pathname } = useRouter()
-
   const searchData: IBaseSearchProps['data'] = useMemo(() => {
-    const chainData: IBaseSearchProps['data'] =
-      data?.chains?.map((name) => ({
-        logo: chainIconUrl(name),
-        route: `/chain/${name}`,
-        name,
-      })) ?? []
+    const includeChains = includedSets.includes(SETS.CHAINS)
+    const getCustomPathChains = customPath ? customPath : (name) => `/chain/${name}`
+    const chainData: IBaseSearchProps['data'] = includeChains
+      ? data?.chains?.map((name) => ({
+          logo: chainIconUrl(name),
+          route: getCustomPathChains(name),
+          name,
+        })) ?? []
+      : []
+    const includeProtocols = includedSets.includes(SETS.PROTOCOLS)
+    const getCustomPathProtocols = customPath ? customPath : (name) => `/protocol/${standardizeProtocolName(name)}`
+    const protocolData = includeProtocols
+      ? data?.protocols?.map((token) => ({
+          ...token,
+          name: token.name,
+          symbol: token.symbol,
+          logo: tokenIconUrl(token.name),
+          route: getCustomPathProtocols(token.name),
+        })) ?? []
+      : []
 
-    const protocolData =
-      data?.protocols?.map((token) => ({
-        ...token,
-        name: `${token.name} (${token.symbol})`,
-        logo: tokenIconUrl(token.name),
-        route: `/protocol/${standardizeProtocolName(token.name)}`,
-      })) ?? []
+    const sets = pathname.startsWith('/protocol') ? [...protocolData, ...chainData] : [...chainData, ...protocolData]
+    if (includedSets.includes(SETS.GROUPED_CHAINS)) {
+      let _groupedChains = groupedChains
+      if (customPath) _groupedChains = groupedChains.map((gchain) => ({ ...gchain, route: customPath(gchain.name) }))
+      sets.push(..._groupedChains)
+    }
 
-    return pathname.startsWith('/protocol')
-      ? [...protocolData, ...chainData, ...groupedChains]
-      : [...chainData, ...protocolData, ...groupedChains]
-  }, [data, pathname])
+    return sets
+  }, [data, pathname, customPath])
 
-  return <BaseSearch data={searchData} loading={loading} step={step} />
+  return <BaseSearch {...props} data={searchData} loading={loading} />
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Repeat } from 'react-feather'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
@@ -15,6 +15,8 @@ import { useFetchProtocol, useGeckoProtocol } from 'utils/dataApi'
 import { Panel } from 'components'
 import Layout from 'layout'
 import { useMedia } from 'hooks'
+import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
+import { SETS } from 'components/Search/OpenSearch/ProtocolsChainsSearch'
 
 const ComparisonDetailsLayout = styled.div`
   display: inline-grid;
@@ -76,7 +78,7 @@ const backgroundColor = '#2172E5'
 // assuming price is 0 is not valid
 const validTokenData = (tokenData) => !!tokenData?.price && !!tokenData?.name
 
-const TokenInfoHook = (protocol, protocolsMcapTvl) => {
+const useTokenInfoHook = (protocol, protocolsMcapTvl) => {
   // 0 price for unable to query gecko properly
   const [tokenPrice, setTokenPrice] = useState(0)
   // Ability to change currency in future?
@@ -135,20 +137,34 @@ const TokenComparisonSearch = ({
         resetDisplay={customOnLinkClick(protocolAorB)}
       />
     ) : (
-      <Search
-        linkPath={handleLinkPath(protocolAorB)}
-        customOnLinkClick={customOnLinkClick(protocolAorB)}
-        includeChains={false}
+      <ProtocolsChainsSearch
+        includedSets={[SETS.PROTOCOLS]}
+        customPath={handleLinkPath(protocolAorB)}
+        onItemClick={customOnLinkClick(protocolAorB)}
       />
     )}
   </Column>
 )
 
-function ComparisonPage({ title, protocolA: protocolARouteParam, protocolB: protocolBRouteParam, protocolsMcapTvl }) {
+function ComparisonPage(props) {
+  const { title, protocolA: protocolARouteParam, protocolB: protocolBRouteParam, protocolsMcapTvl } = props
   const [protocolA, setProtocolA] = useState(protocolARouteParam)
   const [protocolB, setProtocolB] = useState(protocolBRouteParam)
 
-  const tokenAData = TokenInfoHook(protocolA, protocolsMcapTvl)
+  // Added to initialize protocolA and protocolB from props, on initial render is undefined and useState only initializes the first render
+  // https://stackoverflow.com/questions/58818727/react-usestate-not-setting-initial-value
+  useEffect(() => {
+    setProtocolA(props.protocolA)
+  }, [props.protocolA])
+  useEffect(() => {
+    setProtocolB(props.protocolB)
+  }, [props.protocolB])
+
+  const below400 = useMedia('(max-width: 400px)')
+  const below1024 = useMedia('(max-width: 1024px)')
+  const LENGTH = below1024 ? 10 : 16
+
+  const tokenAData = useTokenInfoHook(protocolA, protocolsMcapTvl)
 
   const {
     address: tokenAAddress,
@@ -159,7 +175,7 @@ function ComparisonPage({ title, protocolA: protocolARouteParam, protocolB: prot
     tvl: tokenATvl,
     loading: loadingA,
   } = tokenAData
-  const tokenBData = TokenInfoHook(protocolB, protocolsMcapTvl)
+  const tokenBData = useTokenInfoHook(protocolB, protocolsMcapTvl)
   const {
     address: tokenBAddress,
     logo: tokenBLogo,
@@ -175,9 +191,6 @@ function ComparisonPage({ title, protocolA: protocolARouteParam, protocolB: prot
   const tokenAPriceWithTokenBMcapTvl = (tokenBMcapTvl * tokenATvl) / tokenACirculating
   const tokenAPriceChange = tokenAPriceWithTokenBMcapTvl / tokenAPrice
 
-  const below400 = useMedia('(max-width: 400px)')
-  const below1024 = useMedia('(max-width: 1024px)')
-  const LENGTH = below1024 ? 10 : 16
   // format for long symbol
   const tokenAFormattedSymbol = tokenASymbol?.length > LENGTH ? tokenASymbol.slice(0, LENGTH) + '...' : tokenASymbol
   const tokenBFormattedSymbol = tokenBSymbol?.length > LENGTH ? tokenBSymbol.slice(0, LENGTH) + '...' : tokenBSymbol
@@ -185,15 +198,18 @@ function ComparisonPage({ title, protocolA: protocolARouteParam, protocolB: prot
   const tokenAValid = validTokenData(tokenAData)
   const tokenBValid = validTokenData(tokenBData)
 
-  const handleLinkPath = (protocolAorB) => (clickedProtocol) => {
-    const protocolName = standardizeProtocolName(clickedProtocol)
-
-    if (protocolAorB === 'A') {
-      return `/comparison?protocolA=${protocolName}&protocolB=${protocolB || ''}`
-    } else {
-      return `/comparison?protocolA=${protocolA || ''}&protocolB=${protocolName}`
-    }
-  }
+  const handleLinkPath = (protocolAorB) =>
+    useCallback(
+      (clickedProtocol) => {
+        const protocolName = standardizeProtocolName(clickedProtocol)
+        if (protocolAorB === 'A') {
+          return `/comparison?protocolA=${protocolName}&protocolB=${protocolB || ''}`
+        } else {
+          return `/comparison?protocolA=${protocolA || ''}&protocolB=${protocolName}`
+        }
+      },
+      [protocolA, protocolB]
+    )
 
   const handleSwapLinkPath = () => {
     const comparisonRoute = '/comparison'
