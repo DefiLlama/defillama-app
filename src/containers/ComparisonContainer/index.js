@@ -78,7 +78,7 @@ const backgroundColor = '#2172E5'
 // assuming price is 0 is not valid
 const validTokenData = (tokenData) => !!tokenData?.price && !!tokenData?.name
 
-const TokenInfoHook = (protocol, protocolsMcapTvl) => {
+const useTokenInfoHook = (protocol, protocolsMcapTvl) => {
   // 0 price for unable to query gecko properly
   const [tokenPrice, setTokenPrice] = useState(0)
   // Ability to change currency in future?
@@ -146,15 +146,25 @@ const TokenComparisonSearch = ({
   </Column>
 )
 
-function ComparisonPage({ title, protocolA: protocolARouteParam, protocolB: protocolBRouteParam, protocolsMcapTvl }) {
+function ComparisonPage(props) {
+  const { title, protocolA: protocolARouteParam, protocolB: protocolBRouteParam, protocolsMcapTvl } = props
   const [protocolA, setProtocolA] = useState(protocolARouteParam)
   const [protocolB, setProtocolB] = useState(protocolBRouteParam)
+
+  // Added to initialize protocolA and protocolB from props, on initial render is undefined and useState only initializes the first render
+  // https://stackoverflow.com/questions/58818727/react-usestate-not-setting-initial-value
+  useEffect(() => {
+    setProtocolA(props.protocolA)
+  }, [props.protocolA])
+  useEffect(() => {
+    setProtocolB(props.protocolB)
+  }, [props.protocolB])
 
   const below400 = useMedia('(max-width: 400px)')
   const below1024 = useMedia('(max-width: 1024px)')
   const LENGTH = below1024 ? 10 : 16
 
-  const tokenAData = TokenInfoHook(protocolA, protocolsMcapTvl)
+  const tokenAData = useTokenInfoHook(protocolA, protocolsMcapTvl)
 
   const {
     address: tokenAAddress,
@@ -165,7 +175,7 @@ function ComparisonPage({ title, protocolA: protocolARouteParam, protocolB: prot
     tvl: tokenATvl,
     loading: loadingA,
   } = tokenAData
-  const tokenBData = TokenInfoHook(protocolB, protocolsMcapTvl)
+  const tokenBData = useTokenInfoHook(protocolB, protocolsMcapTvl)
   const {
     address: tokenBAddress,
     logo: tokenBLogo,
