@@ -306,7 +306,14 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
         <TableFilters />
       </ListOptions>
 
-      <ProtocolsTable data={finalProtocolTotals} columns={columns} />
+      {finalProtocolTotals.length > 0 ? (
+        <ProtocolsTable data={finalProtocolTotals} columns={columns} />
+      ) : (
+        <Panel
+          as="p"
+          style={{ textAlign: 'center', margin: 0 }}
+        >{`${selectedChain} chain has no protocols listed`}</Panel>
+      )}
     </>
   )
 }
