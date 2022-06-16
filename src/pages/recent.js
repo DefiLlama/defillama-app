@@ -20,7 +20,7 @@ export async function getStaticProps() {
 
 const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
-    & > div {
+    & > * {
       width: 100px;
       white-space: nowrap;
       overflow: hidden;
@@ -31,7 +31,7 @@ const TableWrapper = styled(Table)`
 
   // PROTOCOL NAME
   tr > *:nth-child(1) {
-    & > div {
+    & > * {
       width: 160px;
       overflow: hidden;
       white-space: nowrap;
@@ -55,7 +55,7 @@ const TableWrapper = styled(Table)`
   // CHAINS
   tr > *:nth-child(2) {
     display: none;
-    & > div {
+    & > * {
       width: 200px;
       overflow: hidden;
       white-space: nowrap;
@@ -85,7 +85,7 @@ const TableWrapper = styled(Table)`
   // TVL
   tr > *:nth-child(7) {
     padding-right: 20px;
-    & > div {
+    & > * {
       text-align: right;
       margin-left: auto;
       white-space: nowrap;
@@ -110,7 +110,7 @@ const TableWrapper = styled(Table)`
   @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
     // PROTOCOL NAME
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         width: 300px;
         // SHOW LOGO
         & > *:nth-child(3) {
@@ -123,7 +123,7 @@ const TableWrapper = styled(Table)`
   @media screen and (min-width: 900px) {
     // PROTOCOL NAME
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         & > *:nth-child(4) {
           // SHOW SYMBOL
           & > *:nth-child(2) {
@@ -166,7 +166,16 @@ const TableWrapper = styled(Table)`
   }
 `
 
-const columns = columnsToShow('protocolName', 'chains', 'listedAt', '1dChange', '7dChange', '1mChange', 'tvl')
+const columns = columnsToShow(
+  'protocolName',
+  'category',
+  'chains',
+  'listedAt',
+  '1dChange',
+  '7dChange',
+  '1mChange',
+  'tvl'
+)
 
 export default function Protocols({ protocols }) {
   const data = useMemo(() => {

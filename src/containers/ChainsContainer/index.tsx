@@ -53,7 +53,7 @@ const HeaderWrapper = styled(Header)`
 
 const StyledTable = styled(FullTable)<ITable>`
   tr > *:not(:first-child) {
-    & > div {
+    & > * {
       width: 100px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -66,9 +66,9 @@ const StyledTable = styled(FullTable)<ITable>`
   tr > :nth-child(1) {
     padding-left: ${({ showByGroup }) => (showByGroup ? '40px' : '20px')};
 
-    & > div {
+    & > * {
       // LOGO
-      & > div {
+      & > * {
         display: none;
       }
 
@@ -115,7 +115,7 @@ const StyledTable = styled(FullTable)<ITable>`
   }
 
   tr > :nth-child(6) {
-    & > div {
+    & > * {
       padding-right: 20px;
     }
   }
@@ -131,7 +131,7 @@ const StyledTable = styled(FullTable)<ITable>`
   @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
     // CHAIN
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         & > a {
           width: 100px;
         }
@@ -147,9 +147,9 @@ const StyledTable = styled(FullTable)<ITable>`
   @media screen and (min-width: 640px) {
     // CHAIN
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         // LOGO
-        & > div {
+        & > * {
           display: revert;
         }
       }
@@ -164,7 +164,7 @@ const StyledTable = styled(FullTable)<ITable>`
   @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
     // CHAIN
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         & > a {
           width: 140px;
 
@@ -192,7 +192,7 @@ const StyledTable = styled(FullTable)<ITable>`
   @media screen and (min-width: 1260px) {
     // CHAIN
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         & > a {
           width: 200px;
         }

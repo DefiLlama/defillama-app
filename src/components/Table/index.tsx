@@ -686,7 +686,7 @@ const allColumns: AllColumns = {
   category: {
     header: 'Category',
     accessor: 'category',
-    Cell: ({ value }) => <>{value}</>,
+    Cell: ({ value }) => <span>{value}</span>,
   },
   chainName: {
     header: 'Name',

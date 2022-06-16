@@ -36,7 +36,16 @@ export async function getStaticPaths() {
   return { paths, fallback: 'blocking' }
 }
 
-const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
+const columns = columnsToShow(
+  'protocolName',
+  'category',
+  'chains',
+  '1dChange',
+  '7dChange',
+  '1mChange',
+  'tvl',
+  'mcaptvl'
+)
 
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {
   const protocolsData = useCalcStakePool2Tvl(filteredProtocols)

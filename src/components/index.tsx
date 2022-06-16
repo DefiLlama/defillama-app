@@ -180,7 +180,7 @@ export const FixedMenu = styled.div`
 
 export const ProtocolsTable = styled(Table)`
   tr > *:not(:first-child) {
-    & > div {
+    & > * {
       width: 100px;
       white-space: nowrap;
       overflow: hidden;
@@ -191,7 +191,7 @@ export const ProtocolsTable = styled(Table)`
 
   // PROTOCOL NAME
   tr > *:nth-child(1) {
-    & > div {
+    & > * {
       width: 120px;
       overflow: hidden;
       white-space: nowrap;
@@ -212,10 +212,15 @@ export const ProtocolsTable = styled(Table)`
     }
   }
 
-  // CHAINS
+  // Category
   tr > *:nth-child(2) {
     display: none;
-    & > div {
+  }
+
+  // CHAINS
+  tr > *:nth-child(3) {
+    display: none;
+    & > * {
       width: 200px;
       overflow: hidden;
       white-space: nowrap;
@@ -223,24 +228,24 @@ export const ProtocolsTable = styled(Table)`
   }
 
   // 1D CHANGE
-  tr > *:nth-child(3) {
-    display: none;
-  }
-
-  // 7D CHANGE
   tr > *:nth-child(4) {
     display: none;
   }
 
-  // 1M CHANGE
+  // 7D CHANGE
   tr > *:nth-child(5) {
     display: none;
   }
 
-  // TVL
+  // 1M CHANGE
   tr > *:nth-child(6) {
+    display: none;
+  }
+
+  // TVL
+  tr > *:nth-child(7) {
     padding-right: 20px;
-    & > div {
+    & > * {
       text-align: right;
       margin-left: auto;
       white-space: nowrap;
@@ -249,12 +254,12 @@ export const ProtocolsTable = styled(Table)`
   }
 
   // MCAPTVL
-  tr > *:nth-child(7) {
+  tr > *:nth-child(8) {
     display: none;
   }
 
-  tr > th:nth-child(7) {
-    & > div {
+  tr > th:nth-child(8) {
+    & > * {
       margin-left: auto;
     }
   }
@@ -262,7 +267,7 @@ export const ProtocolsTable = styled(Table)`
   @media screen and (min-width: 360px) {
     // PROTOCOL NAME
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         width: 160px;
       }
     }
@@ -270,7 +275,7 @@ export const ProtocolsTable = styled(Table)`
 
   @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
     // 7D CHANGE
-    tr > *:nth-child(4) {
+    tr > *:nth-child(5) {
       display: revert;
     }
   }
@@ -278,7 +283,7 @@ export const ProtocolsTable = styled(Table)`
   @media screen and (min-width: 640px) {
     // PROTOCOL NAME
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         width: 280px;
         // SHOW LOGO
         & > *:nth-child(3) {
@@ -290,7 +295,7 @@ export const ProtocolsTable = styled(Table)`
 
   @media screen and (min-width: 720px) {
     // 1M CHANGE
-    tr > *:nth-child(5) {
+    tr > *:nth-child(6) {
       display: revert;
     }
   }
@@ -298,7 +303,7 @@ export const ProtocolsTable = styled(Table)`
   @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
     // PROTOCOL NAME
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         & > *:nth-child(4) {
           // SHOW SYMBOL
           & > *:nth-child(2) {
@@ -311,67 +316,69 @@ export const ProtocolsTable = styled(Table)`
 
   @media screen and (min-width: 900px) {
     // TVL
-    tr > *:nth-child(6) {
+    tr > *:nth-child(7) {
       padding-right: 0px;
     }
 
     // MCAPTVL
-    tr > *:nth-child(7) {
+    tr > *:nth-child(8) {
       display: revert;
     }
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
     // 1D CHANGE
-    tr > *:nth-child(3) {
+    tr > *:nth-child(4) {
       display: none !important;
     }
 
     // TVL
-    tr > *:nth-child(6) {
+    tr > *:nth-child(7) {
       padding-right: 20px;
     }
 
     // MCAPTVL
-    tr > *:nth-child(7) {
+    tr > *:nth-child(8) {
       display: none !important;
     }
   }
 
   @media screen and (min-width: 1200px) {
+    // Category
+    tr > *:nth-child(2) {
+      display: revert !important;
+
+      & > * {
+        width: 140px;
+      }
+    }
+
     // 1M CHANGE
-    tr > *:nth-child(5) {
+    tr > *:nth-child(6) {
       display: revert !important;
     }
   }
 
   @media screen and (min-width: 1300px) {
     // 1D CHANGE
-    tr > *:nth-child(3) {
+    tr > *:nth-child(4) {
       display: revert !important;
     }
 
     // TVL
-    tr > *:nth-child(6) {
+    tr > *:nth-child(7) {
       padding-right: 0px;
     }
 
     // MCAPTVL
-    tr > *:nth-child(7) {
+    tr > *:nth-child(8) {
       display: revert !important;
     }
   }
 
   @media screen and (min-width: 1536px) {
-    // PROTOCOL NAME
-    tr > *:nth-child(1) {
-      & > div {
-        width: 300px;
-      }
-    }
-
     // CHAINS
-    tr > *:nth-child(2) {
+    tr > *:nth-child(3) {
       display: revert;
     }
   }

@@ -21,7 +21,7 @@ import { Panel } from 'components'
 
 export const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
-    & > div {
+    & > * {
       width: 100px;
       white-space: nowrap;
       overflow: hidden;
@@ -31,12 +31,15 @@ export const TableWrapper = styled(Table)`
 
   // POOL
   tr > *:nth-child(1) {
-    & > a {
+    & > * {
       width: 120px;
+      display: flex;
+    }
+
+    a {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      display: block;
     }
   }
 
@@ -45,7 +48,7 @@ export const TableWrapper = styled(Table)`
     display: none;
     text-align: start;
 
-    & > div {
+    a {
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
@@ -137,9 +140,17 @@ export const TableWrapper = styled(Table)`
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+    // POOL
+    tr > *:nth-child(1) {
+      & > * {
+        width: 200px;
+      }
+    }
+
     // PROJECT
     tr > *:nth-child(2) {
       display: revert;
+
       & > div {
         width: 100px;
         overflow: hidden;
@@ -195,20 +206,28 @@ export const TableWrapper = styled(Table)`
   }
 
   @media screen and (min-width: 1536px) {
-    // 1D CHANGE
-    tr > *:nth-child(6) {
-      display: revert;
+    // POOL
+    tr > *:nth-child(1) {
+      & > * {
+        width: 240px;
+      }
     }
 
+    // PROJECT
     tr > *:nth-child(2) {
       & > div {
-        width: 200px;
+        width: 160px;
 
         // HIDE LOGO
         & > div {
           display: revert;
         }
       }
+    }
+
+    // 1D CHANGE
+    tr > *:nth-child(6) {
+      display: revert;
     }
   }
 

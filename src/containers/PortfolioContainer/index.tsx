@@ -34,7 +34,16 @@ const StyledTrash = styled(Trash2)<IFolder>`
   }
 `
 
-const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
+const columns = columnsToShow(
+  'protocolName',
+  'category',
+  'chains',
+  '1dChange',
+  '7dChange',
+  '1mChange',
+  'tvl',
+  'mcaptvl'
+)
 
 function PortfolioContainer({ protocolsDict }) {
   const isClient = useIsClient()

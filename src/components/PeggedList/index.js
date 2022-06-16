@@ -47,7 +47,7 @@ function Chart({ peggedAreaChartData, peggedAreaMcapData, totalMcapLabel, pegged
 
 const PeggedTable = styled(Table)`
   tr > *:not(:first-child) {
-    & > div {
+    & > * {
       width: 100px;
       white-space: nowrap;
       overflow: hidden;
@@ -58,7 +58,7 @@ const PeggedTable = styled(Table)`
 
   // PEGGED NAME
   tr > *:nth-child(1) {
-    & > div {
+    & > * {
       width: 120px;
       overflow: hidden;
       white-space: nowrap;
@@ -78,7 +78,7 @@ const PeggedTable = styled(Table)`
   // CHAINS
   tr > *:nth-child(2) {
     display: none;
-    & > div {
+    & > * {
       width: 200px;
       overflow: hidden;
       white-space: nowrap;
@@ -108,7 +108,7 @@ const PeggedTable = styled(Table)`
   // MCAP
   tr > *:nth-child(7) {
     padding-right: 20px;
-    & > div {
+    & > * {
       text-align: right;
       margin-left: auto;
       white-space: nowrap;
@@ -119,7 +119,7 @@ const PeggedTable = styled(Table)`
   @media screen and (min-width: 360px) {
     // PEGGED NAME
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         width: 160px;
       }
     }
@@ -135,7 +135,7 @@ const PeggedTable = styled(Table)`
   @media screen and (min-width: 640px) {
     // PEGGED NAME
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         width: 280px;
         // SHOW LOGO
         & > *:nth-child(2) {
@@ -155,7 +155,7 @@ const PeggedTable = styled(Table)`
   @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
     // PEGGED NAME
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         & > *:nth-child(4) {
           & > *:nth-child(2) {
             display: revert;
@@ -211,7 +211,7 @@ const PeggedTable = styled(Table)`
   @media screen and (min-width: 1536px) {
     // PEGGED NAME
     tr > *:nth-child(1) {
-      & > div {
+      & > * {
         width: 300px;
       }
     }

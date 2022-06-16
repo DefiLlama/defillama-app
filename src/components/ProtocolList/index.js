@@ -41,8 +41,19 @@ function AllTokensPage({
 
   const columns = useMemo(() => {
     if (category === 'Lending') {
-      return columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl', 'msizetvl')
-    } else return columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
+      return columnsToShow(
+        'protocolName',
+        'category',
+        'chains',
+        '1dChange',
+        '7dChange',
+        '1mChange',
+        'tvl',
+        'mcaptvl',
+        'msizetvl'
+      )
+    } else
+      return columnsToShow('protocolName', 'category', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
   }, [category])
 
   const routeName = category ? (selectedChain === 'All' ? 'All Chains' : selectedChain) : 'All Protocols'

@@ -47,7 +47,7 @@ export async function getStaticProps() {
   }
 }
 
-const columns = columnsToShow('protocolName', 'chains', '1dChange', '7dChange', '1mChange', 'tvl')
+const columns = columnsToShow('protocolName', 'category', 'chains', '1dChange', '7dChange', '1mChange', 'tvl')
 
 export default function Protocols({ protocols }) {
   const data = useCalcStakePool2Tvl(protocols)
