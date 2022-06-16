@@ -1331,7 +1331,7 @@ export async function fetchCGMarketsData() {
 }
 
 export function getCGMarketsDataURLs() {
-  const urls = []
+  const urls: string[] = []
   const maxPage = 10
   for (let page = 1; page <= maxPage; page++) {
     urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', `${page}`)}`)
@@ -1355,7 +1355,6 @@ export async function retryCoingeckoRequest(func, retries) {
 }
 
 // Client Side
-
 export const useFetchProtocolsList = () => {
   const { data, error } = useSWR(PROTOCOLS_API, fetcher)
   return { data, error, loading: !data && !error }

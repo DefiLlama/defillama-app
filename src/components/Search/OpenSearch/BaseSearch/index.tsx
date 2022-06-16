@@ -243,7 +243,11 @@ const Row = ({ index, style, data }) => {
       }}
       style={style}
     >
-      <TokenLogo logo={item?.logo} external={isExternalImage(item.logo)} />
+      <TokenLogo
+        logo={item?.logo}
+        external={isExternalImage(item.logo)}
+        skipApiRoute={router.pathname.includes('/yield')}
+      />
       <span>{value}</span>
     </Item>
   )

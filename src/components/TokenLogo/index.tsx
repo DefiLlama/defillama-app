@@ -10,6 +10,7 @@ interface TokenLogoProps {
   size?: number
   style?: React.CSSProperties
   address?: string
+  skipApiRoute?: boolean
 }
 
 const BAD_IMAGES = {}
@@ -34,6 +35,7 @@ export default function TokenLogo({
   external = false /* TODO: temporary fix */,
   size = 24,
   style,
+  skipApiRoute = false,
   ...rest
 }: TokenLogoProps) {
   const [error, setError] = useState(false)
@@ -50,7 +52,7 @@ export default function TokenLogo({
         <Image
           {...rest}
           alt={''}
-          src={`/api/image?url=${encodeURIComponent(logo)}`}
+          src={skipApiRoute ? logo : `/api/image?url=${encodeURIComponent(logo)}`}
           height={size}
           width={size}
           layout="fixed"
