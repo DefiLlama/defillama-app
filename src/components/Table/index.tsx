@@ -509,7 +509,7 @@ export function Name({
   let leftSpace: number | string = 0
 
   if (rowType === 'accordion') {
-    leftSpace = '-30px'
+    leftSpace = bookmark ? '0px' : '-30px'
   }
 
   if (rowType === 'child') {
@@ -518,7 +518,7 @@ export function Name({
 
   return (
     <Index {...props} style={{ left: leftSpace }}>
-      {bookmark && (
+      {rowType !== 'accordion' && bookmark && (
         <SaveButton readableProtocolName={value} style={{ paddingRight: rowType === 'pinned' ? '1ch' : 0 }} />
       )}
       {rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
