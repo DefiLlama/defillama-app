@@ -59,7 +59,7 @@ export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
     }
 
     return sets
-  }, [data, pathname, customPath])
+  }, [data, pathname, customPath, includedSets])
 
   return <BaseSearch {...props} data={searchData} loading={loading} />
 }

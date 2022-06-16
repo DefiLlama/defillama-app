@@ -1,13 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import { Repeat } from 'react-feather'
+import React, { useEffect, useState } from 'react'
+import { Repeat, X } from 'react-feather'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 import Column from 'components/Column'
 import { BasicLink } from 'components/Link'
 import Loader from 'components/LocalLoader'
-import { AutoRow, RowBetween, RowFixed } from 'components/Row'
-import Search from 'components/Search'
-import { Wrapper, CloseIcon } from 'components/Search/shared'
+import { AutoRow, RowBetween } from 'components/Row'
 import TokenLogo from 'components/TokenLogo'
 import { TYPE } from 'Theme'
 import { formattedNum, standardizeProtocolName } from 'utils'
@@ -38,6 +36,50 @@ const ComparisonDetailsLayout = styled.div`
         margin-bottom: 1rem;
       }
     }
+  }
+`
+
+export const Wrapper = styled.div`
+  padding: 13px 16px;
+  background: ${({ theme }) => theme.bg6};
+  border: none;
+  border-radius: 12px;
+  outline: none;
+  color: ${({ theme }) => theme.text1};
+  font-size: 1rem;
+  margin: 0;
+  box-shadow: ${({ theme }) => theme.shadow};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  & > * {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  button {
+    background: none;
+    border: none;
+  }
+
+  img {
+    width: 20px !important;
+    height: 20px !important;
+  }
+`
+
+export const CloseIcon = styled(X)`
+  height: 20px;
+  width: 20px;
+  color: ${({ theme }) => theme.text3};
+  :hover {
+    cursor: pointer;
   }
 `
 
@@ -102,13 +144,15 @@ const useTokenInfoHook = (protocol, protocolsMcapTvl) => {
 }
 
 const DisplayToken = ({ tokenSymbol, logo, address, price, resetDisplay }) => (
-  <Wrapper style={{ justifyContent: 'space-between' }}>
-    <RowFixed style={{ display: 'flex', gap: '7.5px', justifyContent: 'flex-start' }}>
-      <TokenLogo address={address} logo={logo} size={32} style={{ alignSelf: 'center' }} />
-      <TYPE.main>{tokenSymbol}</TYPE.main>
-      <TYPE.main>{formattedNum(price, true)}</TYPE.main>
-    </RowFixed>
-    <CloseIcon onClick={resetDisplay} />
+  <Wrapper>
+    <p>
+      <TokenLogo address={address} logo={logo} size={24} />
+      <span>{tokenSymbol}</span>
+      <span>{formattedNum(price, true)}</span>
+    </p>
+    <button onClick={resetDisplay}>
+      <CloseIcon />
+    </button>
   </Wrapper>
 )
 
@@ -198,18 +242,14 @@ function ComparisonPage(props) {
   const tokenAValid = validTokenData(tokenAData)
   const tokenBValid = validTokenData(tokenBData)
 
-  const handleLinkPath = (protocolAorB) =>
-    useCallback(
-      (clickedProtocol) => {
-        const protocolName = standardizeProtocolName(clickedProtocol)
-        if (protocolAorB === 'A') {
-          return `/comparison?protocolA=${protocolName}&protocolB=${protocolB || ''}`
-        } else {
-          return `/comparison?protocolA=${protocolA || ''}&protocolB=${protocolName}`
-        }
-      },
-      [protocolA, protocolB]
-    )
+  const handleLinkPath = (protocolAorB) => (clickedProtocol) => {
+    const protocolName = standardizeProtocolName(clickedProtocol)
+    if (protocolAorB === 'A') {
+      return `/comparison?protocolA=${protocolName}&protocolB=${protocolB || ''}`
+    } else {
+      return `/comparison?protocolA=${protocolA || ''}&protocolB=${protocolName}`
+    }
+  }
 
   const handleSwapLinkPath = () => {
     const comparisonRoute = '/comparison'

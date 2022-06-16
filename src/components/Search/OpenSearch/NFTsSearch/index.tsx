@@ -29,7 +29,7 @@ export default function NFTsSearch(props: INFTSearchProps) {
       route: `/nfts/collection/${el.slug}`,
       logo: el.logo,
     }))
-  }, [data, usePreloadedList])
+  }, [data, usePreloadedList, preLoadedSearch])
 
   return <BaseSearch {...props} data={searchData} loading={loading} onSearchTermChange={setSearchValue} />
 }

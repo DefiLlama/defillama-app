@@ -178,7 +178,7 @@ export const BaseSearch = (props: IBaseSearchProps) => {
 
   useEffect(() => {
     if (onSearchTermChange) onSearchTermChange(combobox.value)
-  }, [combobox.value])
+  }, [combobox.value, onSearchTermChange])
 
   // Resets combobox value when popover is collapsed
   if (!combobox.mounted && combobox.value) {

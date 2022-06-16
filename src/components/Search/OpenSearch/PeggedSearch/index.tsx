@@ -7,7 +7,6 @@ interface IPeggedSearchProps extends ICommonSearchProps {}
 
 // TODO add pegged chains list
 export default function PeggedSearch(props: IPeggedSearchProps) {
-  const { step } = props
   const { data, loading } = useFetchPeggedList()
 
   const searchData: IBaseSearchProps['data'] =
