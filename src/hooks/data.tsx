@@ -12,7 +12,8 @@ interface IProtocol {
   mcap: number | null
   mcaptvl: number | null
   category: string
-  extraTvl: {
+  symbol: string
+  extraTvl?: {
     [key: string]: {
       tvl: number | null
       tvlPrevDay: number | null
@@ -167,9 +168,44 @@ export const useCalcStakePool2Tvl = (
         } else return b[defaultSortingColumn] - a[defaultSortingColumn]
       })
     }
-  }, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn, dir])
+  }, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn, dir, applyDoublecounted])
 
   return protocolTotals
+}
+
+const groupProtocols = (protocols: Readonly<IProtocol[]>) => {
+  const toGroup = protocols.filter((p) => p.symbol === 'AAVE')
+
+  if (toGroup.length >= 2) {
+    let tvl: number | null = toGroup[0].tvl + toGroup[1].tvl
+    let tvlPrevDay: number | null = toGroup[0].tvlPrevDay + toGroup[1].tvlPrevDay
+    let tvlPrevWeek: number | null = toGroup[0].tvlPrevWeek + toGroup[1].tvlPrevWeek
+    let tvlPrevMonth: number | null = toGroup[0].tvlPrevMonth + toGroup[1].tvlPrevMonth
+
+    let change1d: number | null = getPercentChange(tvl, tvlPrevDay)
+    let change7d: number | null = getPercentChange(tvl, tvlPrevWeek)
+    let change1m: number | null = getPercentChange(tvl, tvlPrevMonth)
+    const mcap = toGroup[0].mcap + toGroup[1].mcap
+    const mcaptvl = mcap && tvl ? mcap / tvl : null
+
+    const aave = {
+      ...toGroup[0],
+      tvl,
+      tvlPrevDay,
+      tvlPrevWeek,
+      tvlPrevMonth,
+      change_1d: change1d,
+      change_7d: change7d,
+      change_1m: change1m,
+      mcap,
+      mcaptvl,
+      subRows: [...toGroup],
+    }
+
+    return [aave, ...protocols].sort((a, b) => b.tvl - a.tvl)
+  }
+
+  return [...protocols]
 }
 
 export const useCalcProtocolsTvls = (
@@ -183,10 +219,10 @@ export const useCalcProtocolsTvls = (
     const checkExtras = { ...extraTvlsEnabled, doublecounted: !extraTvlsEnabled.doublecounted }
 
     if (Object.values(checkExtras).every((t) => !t)) {
-      return filteredProtocols
+      return groupProtocols(filteredProtocols)
     }
 
-    const updatedProtocols = filteredProtocols.map(
+    const updatedProtocols: IProtocol[] = filteredProtocols.map(
       ({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, ...props }) => {
         let finalTvl: number | null = tvl
         let finalTvlPrevDay: number | null = tvlPrevDay
@@ -234,9 +270,9 @@ export const useCalcProtocolsTvls = (
     )
 
     if (defaultSortingColumn === undefined) {
-      return updatedProtocols.sort((a, b) => b.tvl - a.tvl)
+      return groupProtocols(updatedProtocols).sort((a, b) => b.tvl - a.tvl)
     } else {
-      return updatedProtocols.sort((a, b) => {
+      return groupProtocols(updatedProtocols).sort((a, b) => {
         if (dir === 'asc') {
           return a[defaultSortingColumn] - b[defaultSortingColumn]
         } else return b[defaultSortingColumn] - a[defaultSortingColumn]
