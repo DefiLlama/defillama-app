@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import styled from 'styled-components'
 import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, BarChart, Bar, ReferenceLine } from 'recharts'
 import { useRouter } from 'next/router'
@@ -237,9 +237,10 @@ const TokenChart = ({
     return splitLocation.join('/')
   }
 
-  let chartData = data
+  const chartData = useRef(data)
+
   if (selectedChain !== 'all') {
-    chartData = chainTvls[selectedChain].tvl.map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
+    chartData.current = chainTvls[selectedChain].tvl.map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
     tokens = chainTvls[selectedChain].tokens
     tokensInUsd = chainTvls[selectedChain].tokensInUsd
   }
@@ -249,7 +250,7 @@ const TokenChart = ({
   let utcStartTime = 0
   if (timeWindow !== timeframeOptions.ALL_TIME) {
     utcStartTime = getTimeframe(timeWindow)
-    chartData = chartData?.filter((entry) => entry[0] >= utcStartTime)
+    chartData.current = chartData.current?.filter((entry) => entry[0] >= utcStartTime)
     tokens = tokens?.filter((entry) => entry[0] >= utcStartTime)
     tokensInUsd = tokensInUsd?.filter((entry) => entry[0] >= utcStartTime)
   }
@@ -299,7 +300,7 @@ const TokenChart = ({
   }, [tokensInUsd, denomination, chainTvls, DENOMINATIONS])
 
   if (denomination === DENOMINATIONS.TokensUSD || denomination === DENOMINATIONS.Chains) {
-    chartData = stackedDataset
+    chartData.current = stackedDataset
   }
 
   useEffect(() => {
@@ -327,8 +328,8 @@ const TokenChart = ({
         let prevPriceDate = 0
         const denominationPrices = denominationPriceHistory.prices
         const newChartData = []
-        for (let i = 0; i < chartData.length; i++) {
-          const date = chartData[i][0] * 1000
+        for (let i = 0; i < chartData.current.length; i++) {
+          const date = chartData.current[i][0] * 1000
           while (
             priceIndex < denominationPrices.length &&
             Math.abs(date - prevPriceDate) > Math.abs(date - denominationPrices[priceIndex][0])
@@ -337,22 +338,22 @@ const TokenChart = ({
             priceIndex++
           }
           const price = denominationPrices[priceIndex - 1][1]
-          newChartData.push([chartData[i][0], chartData[i][1] / price])
+          newChartData.push([chartData.current[i][0], chartData.current[i][1] / price])
         }
-        chartData = newChartData
+        chartData.current = newChartData
       } else {
-        chartData = undefined
+        chartData.current = undefined
       }
     }
     if (denomination === DENOMINATIONS.Tokens) {
-      chartData = []
+      chartData.current = []
       tokens.forEach((tokenSnapshot) => {
-        chartData.push([tokenSnapshot.date, tokenSnapshot.tokens[balanceToken] ?? 0])
+        chartData.current.push([tokenSnapshot.date, tokenSnapshot.tokens[balanceToken] ?? 0])
       })
     }
     let tokenSet = new Set()
     if (denomination === DENOMINATIONS.Change || denomination === DENOMINATIONS.ChangeSplit) {
-      chartData = []
+      chartData.current = []
       for (let i = 1; i < tokensInUsd?.length; i++) {
         let dayDifference = 0
         let tokenDayDifference = {}
@@ -367,20 +368,29 @@ const TokenChart = ({
           }
         }
         if (denomination === DENOMINATIONS.Change) {
-          chartData.push({
+          chartData.current.push({
             date: tokensInUsd[i].date,
             dailyVolumeUSD: dayDifference,
           })
         } else {
-          chartData.push({
+          chartData.current.push({
             ...tokenDayDifference,
             date: tokensInUsd[i].date,
           })
         }
       }
     }
-    return [chartData, tokenSet]
-  }, [denomination, chartData, denominationPriceHistory, tokens, tokensInUsd, balanceToken])
+    return [chartData.current, tokenSet]
+  }, [
+    balanceToken,
+    chartData,
+    chainDenomination,
+    DENOMINATIONS,
+    denomination,
+    denominationPriceHistory,
+    tokens,
+    tokensInUsd
+  ])
 
   let moneySymbol = '$'
   switch (denomination) {
