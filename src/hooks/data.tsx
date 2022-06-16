@@ -21,6 +21,7 @@ interface IProtocol {
       tvlPrevMonth: number | null
     }
   }
+  chains?: string[]
 }
 
 interface IChainTvl {
@@ -173,39 +174,69 @@ export const useCalcStakePool2Tvl = (
   return protocolTotals
 }
 
-const groupProtocols = (protocols: Readonly<IProtocol[]>) => {
-  const toGroup = protocols.filter((p) => p.symbol === 'AAVE')
+const groupData = (protocols: IProtocol[], name: string) => {
+  const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = protocols.reduce(
+    (acc, curr) => {
+      curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
+      curr.tvlPrevDay && (acc.tvlPrevDay = (acc.tvlPrevDay || 0) + curr.tvlPrevDay)
+      curr.tvlPrevWeek && (acc.tvlPrevWeek = (acc.tvlPrevWeek || 0) + curr.tvlPrevWeek)
+      curr.tvlPrevMonth && (acc.tvlPrevMonth = (acc.tvlPrevMonth || 0) + curr.tvlPrevMonth)
 
-  if (toGroup.length >= 2) {
-    let tvl: number | null = toGroup[0].tvl + toGroup[1].tvl
-    let tvlPrevDay: number | null = toGroup[0].tvlPrevDay + toGroup[1].tvlPrevDay
-    let tvlPrevWeek: number | null = toGroup[0].tvlPrevWeek + toGroup[1].tvlPrevWeek
-    let tvlPrevMonth: number | null = toGroup[0].tvlPrevMonth + toGroup[1].tvlPrevMonth
-
-    let change1d: number | null = getPercentChange(tvl, tvlPrevDay)
-    let change7d: number | null = getPercentChange(tvl, tvlPrevWeek)
-    let change1m: number | null = getPercentChange(tvl, tvlPrevMonth)
-    const mcap = toGroup[0].mcap + toGroup[1].mcap
-    const mcaptvl = mcap && tvl ? mcap / tvl : null
-
-    const aave = {
-      ...toGroup[0],
-      tvl,
-      tvlPrevDay,
-      tvlPrevWeek,
-      tvlPrevMonth,
-      change_1d: change1d,
-      change_7d: change7d,
-      change_1m: change1m,
-      mcap,
-      mcaptvl,
-      subRows: [...toGroup],
+      return acc
+    },
+    {
+      tvl: null,
+      tvlPrevDay: null,
+      tvlPrevWeek: null,
+      tvlPrevMonth: null,
     }
+  )
 
-    return [aave, ...protocols].sort((a, b) => b.tvl - a.tvl)
+  const change1d: number | null = getPercentChange(tvl, tvlPrevDay)
+  const change7d: number | null = getPercentChange(tvl, tvlPrevWeek)
+  const change1m: number | null = getPercentChange(tvl, tvlPrevMonth)
+  const mcap = protocols[0].mcap + protocols[1].mcap
+  const mcaptvl = mcap && tvl ? mcap / tvl : null
+
+  const chains = new Set(protocols[0].chains)
+
+  protocols[1].chains?.forEach((c) => chains.add(c))
+
+  return {
+    ...protocols[0],
+    name,
+    chains: Array.from(chains),
+    tvl,
+    tvlPrevDay,
+    tvlPrevWeek,
+    tvlPrevMonth,
+    change_1d: change1d,
+    change_7d: change7d,
+    change_1m: change1m,
+    mcap,
+    mcaptvl,
+    subRows: [...protocols],
   }
+}
 
-  return [...protocols]
+const toGroup = [
+  { name: 'AAVE', symbol: 'AAVE' },
+  { name: 'SUN.io', symbol: 'SUN' },
+]
+
+const groupProtocols = (protocols: Readonly<IProtocol[]>) => {
+  let data = [...protocols]
+
+  toGroup.forEach((item) => {
+    const list = protocols.filter((p) => p.symbol === item.symbol)
+
+    if (list.length >= 2) {
+      data = data.filter((p) => p.symbol !== item.symbol)
+      data.push(groupData(list, item.name))
+    }
+  })
+
+  return data.sort((a, b) => b.tvl - a.tvl)
 }
 
 export const useCalcProtocolsTvls = (
