@@ -62,7 +62,20 @@ function PortfolioContainer({ protocolsDict }) {
 
   const filteredProtocols = useMemo(() => {
     if (isClient) {
-      return protocolsDict.filter((p) => portfolio.includes(p.pool))
+      const list = protocolsDict.filter((p) => portfolio.includes(p.pool))
+      return list.map((t) => ({
+        id: t.pool,
+        pool: t.symbol,
+        projectslug: t.project,
+        project: t.projectName,
+        chains: [t.chain],
+        tvl: t.tvlUsd,
+        apy: t.apy,
+        change1d: t.apyPct1D,
+        change7d: t.apyPct7D,
+        outlook: t.predictions.predictedClass,
+        confidence: t.predictions.binnedConfidence,
+      }))
     } else return []
   }, [isClient, portfolio, protocolsDict])
 
@@ -92,22 +105,7 @@ function PortfolioContainer({ protocolsDict }) {
       </Row>
 
       {filteredProtocols.length ? (
-        <TableWrapper
-          data={filteredProtocols.map((t) => ({
-            id: t.pool,
-            pool: t.symbol,
-            projectslug: t.project,
-            project: t.projectName,
-            chains: [t.chain],
-            tvl: t.tvlUsd,
-            apy: t.apy,
-            change1d: t.apyPct1D,
-            change7d: t.apyPct7D,
-            outlook: t.predictions.predictedClass,
-            confidence: t.predictions.binnedConfidence,
-          }))}
-          columns={columns}
-        />
+        <TableWrapper data={filteredProtocols} columns={columns} />
       ) : (
         <Panel>
           <p style={{ textAlign: 'center' }}>You have not saved any pools.</p>
