@@ -38,10 +38,6 @@ const ChartsWrapper = styled.section`
   }
 `
 
-interface ITable {
-  showByGroup?: boolean
-}
-
 const HeaderWrapper = styled(Header)`
   display: flex;
   justify-content: space-between;
@@ -51,46 +47,31 @@ const HeaderWrapper = styled(Header)`
   border: 1px solid transparent;
 `
 
-const StyledTable = styled(FullTable)<ITable>`
+const StyledTable = styled(FullTable)`
   tr > *:not(:first-child) {
     & > * {
       width: 100px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-left: auto;
       font-weight: 400;
     }
   }
 
   // CHAIN
   tr > :nth-child(1) {
-    padding-left: ${({ showByGroup }) => (showByGroup ? '40px' : '20px')};
+    padding-left: 40px;
 
-    & > * {
-      // LOGO
-      & > * {
-        display: none;
-      }
+    #table-p-logo {
+      display: none;
+    }
 
-      & > a {
-        width: 60px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: block;
-
-        // SYMBOL
-        & > *:nth-child(2) {
-          display: none;
-        }
-      }
+    #table-p-name {
+      width: 60px;
+      display: block;
     }
   }
 
   // PROTOCOLS
   tr > :nth-child(2) {
     width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
     display: none;
   }
 
@@ -110,10 +91,6 @@ const StyledTable = styled(FullTable)<ITable>`
   }
 
   // TVL
-  tr > th:nth-child(6) {
-    padding-right: 20px;
-  }
-
   tr > :nth-child(6) {
     & > * {
       padding-right: 20px;
@@ -123,18 +100,14 @@ const StyledTable = styled(FullTable)<ITable>`
   // MCAPTVL
   tr > :nth-child(7) {
     width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
     display: none;
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
     // CHAIN
     tr > *:nth-child(1) {
-      & > * {
-        & > a {
-          width: 100px;
-        }
+      #table-p-name {
+        width: 100px;
       }
     }
 
@@ -147,11 +120,8 @@ const StyledTable = styled(FullTable)<ITable>`
   @media screen and (min-width: 640px) {
     // CHAIN
     tr > *:nth-child(1) {
-      & > * {
-        // LOGO
-        & > * {
-          display: revert;
-        }
+      #table-p-logo {
+        display: revert;
       }
     }
 
@@ -164,15 +134,8 @@ const StyledTable = styled(FullTable)<ITable>`
   @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
     // CHAIN
     tr > *:nth-child(1) {
-      & > * {
-        & > a {
-          width: 140px;
-
-          // SYMBOL
-          & > *:nth-child(2) {
-            display: revert;
-          }
-        }
+      #table-p-name {
+        width: 140px;
       }
     }
 
@@ -190,12 +153,9 @@ const StyledTable = styled(FullTable)<ITable>`
   }
 
   @media screen and (min-width: 1260px) {
-    // CHAIN
     tr > *:nth-child(1) {
-      & > * {
-        & > a {
-          width: 200px;
-        }
+      #table-p-name {
+        width: 200px;
       }
     }
 
@@ -310,7 +270,7 @@ export default function ChainsContainer({
         <Filters filterOptions={categories} activeLabel={category} />
       </FiltersWrapper>
 
-      <StyledTable data={groupedChains} columns={columns} showByGroup={showByGroup} />
+      <StyledTable data={groupedChains} columns={columns} />
     </>
   )
 }

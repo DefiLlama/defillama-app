@@ -183,33 +183,22 @@ export const ProtocolsTable = styled(Table)`
   tr > *:not(:first-child) {
     & > * {
       width: 100px;
-      white-space: nowrap;
-      overflow: hidden;
       font-weight: 400;
-      margin-left: auto;
     }
   }
 
   // PROTOCOL NAME
   tr > *:nth-child(1) {
-    & > * {
-      width: 120px;
-      overflow: hidden;
-      white-space: nowrap;
+    #table-p-logo {
+      display: none;
+    }
 
-      // HIDE LOGO
-      & > *:nth-child(3) {
-        display: none;
-      }
+    #table-p-name {
+      width: 80px;
+    }
 
-      & > *:nth-child(4) {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        // HIDE SYMBOL
-        & > *:nth-child(2) {
-          display: none;
-        }
-      }
+    #table-p-symbol {
+      display: none;
     }
   }
 
@@ -221,10 +210,9 @@ export const ProtocolsTable = styled(Table)`
   // CHAINS
   tr > *:nth-child(3) {
     display: none;
+
     & > * {
       width: 200px;
-      overflow: hidden;
-      white-space: nowrap;
     }
   }
 
@@ -246,12 +234,6 @@ export const ProtocolsTable = styled(Table)`
   // TVL
   tr > *:nth-child(7) {
     padding-right: 20px;
-    & > * {
-      text-align: right;
-      margin-left: auto;
-      white-space: nowrap;
-      overflow: hidden;
-    }
   }
 
   // MCAPTVL
@@ -259,17 +241,11 @@ export const ProtocolsTable = styled(Table)`
     display: none;
   }
 
-  tr > th:nth-child(8) {
-    & > * {
-      margin-left: auto;
-    }
-  }
-
   @media screen and (min-width: 360px) {
     // PROTOCOL NAME
     tr > *:nth-child(1) {
-      & > * {
-        width: 160px;
+      #table-p-name {
+        width: 120px;
       }
     }
   }
@@ -284,12 +260,8 @@ export const ProtocolsTable = styled(Table)`
   @media screen and (min-width: 640px) {
     // PROTOCOL NAME
     tr > *:nth-child(1) {
-      & > * {
-        width: 280px;
-        // SHOW LOGO
-        & > *:nth-child(3) {
-          display: flex;
-        }
+      #table-p-logo {
+        display: flex;
       }
     }
   }
@@ -304,13 +276,12 @@ export const ProtocolsTable = styled(Table)`
   @media screen and (min-width: ${({ theme }) => theme.bpMed}) {
     // PROTOCOL NAME
     tr > *:nth-child(1) {
-      & > * {
-        & > *:nth-child(4) {
-          // SHOW SYMBOL
-          & > *:nth-child(2) {
-            display: revert;
-          }
-        }
+      #table-p-name {
+        width: 140px;
+      }
+
+      #table-p-symbol {
+        display: revert;
       }
     }
   }
@@ -377,10 +348,31 @@ export const ProtocolsTable = styled(Table)`
     }
   }
 
-  @media screen and (min-width: 1536px) {
+  @media screen and (min-width: 1540px) {
+    tr > *:nth-child(1) {
+      & > * {
+        width: 220px;
+      }
+    }
+
     // CHAINS
     tr > *:nth-child(3) {
       display: revert;
+    }
+  }
+
+  @media screen and (min-width: 1580px) {
+    tr > *:nth-child(1) {
+      & > * {
+        width: 280px;
+      }
+    }
+  }
+  @media screen and (min-width: 1680px) {
+    tr > *:nth-child(1) {
+      #table-p-name {
+        width: 180px;
+      }
     }
   }
 `

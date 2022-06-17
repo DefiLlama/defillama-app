@@ -39,7 +39,7 @@ const ComparisonDetailsLayout = styled.div`
   }
 `
 
-export const Wrapper = styled.div`
+const Wrapper = styled.div`
   padding: 13px 16px;
   background: ${({ theme }) => theme.bg6};
   border: none;
@@ -74,7 +74,7 @@ export const Wrapper = styled.div`
   }
 `
 
-export const CloseIcon = styled(X)`
+const CloseIcon = styled(X)`
   height: 20px;
   width: 20px;
   color: ${({ theme }) => theme.text3};

@@ -12,7 +12,6 @@ import { AutoRow, RowBetween, RowFixed } from 'components/Row'
 import { timeframeOptions } from 'constants/index'
 import { chainCoingeckoIds } from 'constants/chainTokens'
 import { useDarkModeManager } from 'contexts/LocalStorage'
-import { fetchAPI } from 'contexts/API'
 import { useXl, useLg, useMed } from 'hooks'
 import {
   toK,
@@ -27,6 +26,26 @@ import {
 } from 'utils'
 import { DefaultMenuButton, DefaultMenuItem, DropdownMenu, DropdownMenuContent } from 'components/DropdownMenu'
 import { ChevronDown } from 'react-feather'
+
+async function fetchAPI(endpoint, method = 'GET', payload = null) {
+  const options = { method }
+  if (payload) {
+    options.body = JSON.stringify(payload)
+  }
+
+  return fetch(endpoint)
+    .then((response) => {
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new TypeError("Oops, we haven't got JSON!")
+      }
+      return response.json()
+    })
+    .then((data) => {
+      return data
+    })
+    .catch((error) => console.error(error))
+}
 
 const ChartWrapper = styled.div`
   height: 100%;

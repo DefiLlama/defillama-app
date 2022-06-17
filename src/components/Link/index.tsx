@@ -11,6 +11,7 @@ interface BasicLinkProps {
 }
 
 interface CustomLinkProps extends BasicLinkProps {
+  id?: string
   style?: React.CSSProperties
 }
 
@@ -53,11 +54,11 @@ export const CustomLinkStyle = styled.a`
   }
 `
 
-export const CustomLink = ({ href, children, style }: CustomLinkProps) => {
+export const CustomLink = ({ href, children, ...props }: CustomLinkProps) => {
   // Must add passHref to Link
   return (
     <RouterLink href={href} passHref prefetch={false}>
-      <CustomLinkStyle style={style}>{children}</CustomLinkStyle>
+      <CustomLinkStyle {...props}>{children}</CustomLinkStyle>
     </RouterLink>
   )
 }
