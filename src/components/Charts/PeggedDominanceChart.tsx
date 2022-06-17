@@ -67,6 +67,12 @@ export const PeggedChainDominanceChart = ({
         labelFormatter={(label) => toNiceDateYear(label)}
         itemSorter={(p) => -p.value}
         labelStyle={{ color: 'black', fontWeight: '500' }}
+        contentStyle={{
+          padding: '10px 14px',
+          borderRadius: 10,
+          borderColor: 'black',
+          color: 'black',
+        }}
       />
       {chainsUnique.map((chainName) => (
         <Area
@@ -111,6 +117,12 @@ export const PeggedChainResponsiveDominance = ({
         labelFormatter={(label) => toNiceDateYear(label)}
         itemSorter={(p) => -p.value}
         labelStyle={{ color: 'black', fontWeight: '500' }}
+        contentStyle={{
+          padding: '10px 14px',
+          borderRadius: 10,
+          borderColor: 'black',
+          color: 'black',
+        }}
       />
       {chainsUnique.map((chainName) => (
         <Area

@@ -18,6 +18,7 @@ export const Panel = styled.div`
 export const ChartAndValuesWrapper = styled.div`
   flex: 1;
   isolation: isolate;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -50,15 +51,15 @@ export const BreakpointPanel = styled(Panel)`
   padding: 18px 25px;
   justify-content: center;
 
-  h1,
-  h2 {
+  & > h1,
+  & > h2 {
     margin: 0;
     min-width: 0;
     font-weight: 500;
     font-size: 1rem;
   }
 
-  p {
+  & > p {
     margin: 4px 0 -6px;
     font-weight: 600;
     font-size: 2rem;

@@ -242,6 +242,7 @@ const DownloadButton = styled(Base)`
   padding: 4px 6px;
   border-radius: 6px;
   background: ${({ theme }) => theme.bg3};
+  color: ${({ theme }) => theme.text1};
   position: absolute;
   bottom: 8px;
   right: 8px;

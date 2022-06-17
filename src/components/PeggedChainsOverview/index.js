@@ -46,6 +46,7 @@ function Chart({ peggedAreaChainData, peggedAreaMcapData, totalMcapLabel, chainN
 
 const AssetFilters = styled.div`
   margin: 12px 0 16px;
+
   & > h2 {
     margin: 0 2px 8px;
     font-weight: 600;
@@ -237,6 +238,7 @@ const DownloadButton = styled(Base)`
   padding: 4px 6px;
   border-radius: 6px;
   background: ${({ theme }) => theme.bg3};
+  color: ${({ theme }) => theme.text1};
   position: absolute;
   bottom: 8px;
   right: 8px;
