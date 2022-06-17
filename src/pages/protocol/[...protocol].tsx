@@ -1,7 +1,7 @@
 import ProtocolContainer from 'containers/ProtocolContainer'
 import { standardizeProtocolName } from 'utils'
 import { getProtocols, getProtocol, fuseProtocolData, revalidate } from 'utils/dataApi'
-import getColor from 'utils/getColor'
+import { getColor } from 'utils/getColor'
 import { InferGetStaticPropsType, GetStaticProps } from 'next'
 
 type PageParams = {
@@ -33,7 +33,7 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 
   const protocolData = fuseProtocolData(protocolRes)
 
-  const backgroundColor = await getColor({ protocol, logo: protocolData.logo })
+  const backgroundColor = await getColor(protocol, protocolData.logo)
 
   return {
     props: {
