@@ -23,8 +23,6 @@ export const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
     & > * {
       width: 100px;
-      white-space: nowrap;
-      overflow: hidden;
       font-weight: 400;
     }
   }
@@ -47,6 +45,12 @@ export const TableWrapper = styled(Table)`
   tr > *:nth-child(2) {
     display: none;
     text-align: start;
+    margin-left: 0;
+
+    & > * {
+      text-align: start;
+      margin-left: 0;
+    }
 
     a {
       overflow: hidden;
@@ -58,69 +62,37 @@ export const TableWrapper = styled(Table)`
   // CHAINS
   tr > *:nth-child(3) {
     display: none;
-    & > * {
-      margin-left: auto;
-    }
   }
 
   // TVL
   tr > *:nth-child(4) {
     display: none;
-    & > * {
-      margin-left: auto;
-    }
   }
 
   // APY
   tr > *:nth-child(5) {
     padding-right: 20px;
-    & > * {
-      margin-left: auto;
-    }
   }
 
   // 1D CHANGE
   tr > *:nth-child(6) {
     display: none;
-    & > * {
-      margin-left: auto;
-    }
   }
 
   // 7D CHANGE
   tr > *:nth-child(7) {
     display: none;
     padding-right: 20px;
-    & > * {
-      margin-left: auto;
-    }
   }
 
   // OUTLOOK
   tr > *:nth-child(8) {
     display: none;
-    & > * {
-      margin-left: auto;
-    }
   }
 
   // CONFIDENCE
   tr > *:nth-child(9) {
     display: none;
-  }
-
-  // OUTLOOK
-  tr > th:nth-child(8) {
-    & > div {
-      margin-left: auto;
-    }
-  }
-
-  // CONFIDENCE
-  tr > th:nth-child(9) {
-    & > div {
-      margin-left: auto;
-    }
   }
 
   @media screen and (min-width: 320px) {

@@ -5,6 +5,7 @@ import { toK } from 'utils'
 import Table, { Index } from 'components/Table'
 import { Header } from 'Theme'
 import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
+import styled from 'styled-components'
 
 export async function getStaticProps() {
   const protocols = await getProtocolsRaw()
@@ -97,6 +98,12 @@ const columns = [
   },
 ]
 
+const TableWrapper = styled(Table)`
+  tr > *:last-child {
+    text-align: start;
+  }
+`
+
 export default function Protocols({ categories }) {
   return (
     <Layout title={`Categories - DefiLlama`} defaultSEO>
@@ -104,7 +111,7 @@ export default function Protocols({ categories }) {
 
       <Header>Protocol Categories</Header>
 
-      <Table data={categories} columns={columns} align="start" gap="40px" />
+      <TableWrapper data={categories} columns={columns} align="start" gap="40px" />
     </Layout>
   )
 }
