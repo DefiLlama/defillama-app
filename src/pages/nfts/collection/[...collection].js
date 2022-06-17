@@ -1,4 +1,4 @@
-import getColor from 'utils/getColor'
+import { getColor } from 'utils/getColor'
 import NFTCollectionPage from '../../../components/NFTCollectionPage'
 import {
   getNFTCollection,
@@ -16,7 +16,7 @@ export async function getStaticProps({
   const collection = await getNFTCollection(slug)
   const chart = await getNFTCollectionChartData(slug)
   const statistics = await getNFTStatistics(chart)
-  const backgroundColor = await getColor({ protocol: collection.slug, logo: collection.logo })
+  const backgroundColor = await getColor(collection.slug, collection.logo)
 
   return {
     props: {
