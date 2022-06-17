@@ -73,8 +73,11 @@ function AboutPage({ chains, protocols }) {
           <Divider />
 
           <TYPE.main>
-            DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully open-source and
-            maintained by a team of passionate individuals and contributors from hundreds of protocols.
+            DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
+            <Link href="https://github.com/DefiLlama/defillama-app">open-source</Link> and maintained by a team of
+            passionate individuals and{' '}
+            <Link href="https://github.com/DefiLlama/defillama-app/graphs/contributors">contributors</Link>{' '}
+            from hundreds of protocols.
           </TYPE.main>
           <TYPE.main>Our focus is on accurate data and transparent methodology.</TYPE.main>
           <TYPE.main>We track over 800 DeFi protocols from over 80 different blockchains.</TYPE.main>
