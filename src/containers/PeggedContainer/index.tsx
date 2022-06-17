@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { ButtonDark } from 'components/ButtonStyled'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 import { CustomLink } from 'components/Link'
-import { columnsToShow, FullTable } from 'components/Table'
+import FullTable, { columnsToShow } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from 'hooks/data'
 import Filters, { FiltersWrapper } from 'components/Filters'
@@ -15,7 +15,6 @@ const ChartsWrapper = styled.section`
   display: flex;
   flex-direction: column;
   gap: 12px;
-  width: 100%;
   padding: 0;
   align-items: center;
   z-index: 1;
@@ -44,8 +43,6 @@ const HeaderWrapper = styled(Header)`
 `
 
 const AssetFilters = styled.div`
-  margin: 12px 0 16px;
-
   & > h2 {
     margin: 0 2px 8px;
     font-weight: 600;
@@ -58,7 +55,7 @@ interface ITable {
   showByGroup?: boolean
 }
 
-const StyledTable = styled(FullTable)<ITable>`
+const Table = styled(FullTable)<ITable>`
   tr > :first-child {
     padding-left: ${({ showByGroup }) => (showByGroup ? '40px' : '20px')};
   }
@@ -170,7 +167,7 @@ export default function PeggedContainer({
         <Filters filterOptions={categories} activeLabel={category} />
       </FiltersWrapper>
 
-      <StyledTable data={groupedChains} columns={columns} showByGroup={showByGroup} />
+      <Table data={groupedChains} columns={columns} showByGroup={showByGroup} />
     </>
   )
 }

@@ -523,7 +523,7 @@ export function Name({
     if (type === 'chain') {
       tokenUrl = `/${type}/${value}`
       iconUrl = chainIconUrl(value)
-    } else if (type === 'peggedAssetChain') {
+    } else if (type === 'peggedAssetChain' && !value.includes('Bridged from')) {
       tokenUrl = `/peggedassets/stablecoins/${value}`
       iconUrl = chainIconUrl(value)
     } else if (type === 'peggedAsset') {
@@ -545,6 +545,15 @@ export function Name({
 
   if (rowType === 'child') {
     leftSpace = '30px'
+  }
+
+  if (value.includes('Bridged from')) {
+    return (
+      <Index {...props} style={{ left: leftSpace }}>
+        <span>-</span>
+        <span id="table-p-name">{name}</span>
+      </Index>
+    )
   }
 
   return (

@@ -350,8 +350,8 @@ export const ProtocolsTable = styled(Table)`
 
   @media screen and (min-width: 1540px) {
     tr > *:nth-child(1) {
-      #table-p-name {
-        width: 140px;
+      & > * {
+        width: 220px;
       }
     }
 
@@ -363,8 +363,8 @@ export const ProtocolsTable = styled(Table)`
 
   @media screen and (min-width: 1580px) {
     tr > *:nth-child(1) {
-      #table-p-name {
-        width: 160px;
+      & > * {
+        width: 280px;
       }
     }
   }
