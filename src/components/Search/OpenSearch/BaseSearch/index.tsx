@@ -42,7 +42,7 @@ const Popover = styled(ComboboxPopover)`
   max-height: 240px;
   overflow-y: auto;
   background: ${({ theme }) => theme.bg6};
-  z-index: 1;
+  z-index: 2;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
   outline: ${({ theme }) => '1px solid ' + theme.text5};
