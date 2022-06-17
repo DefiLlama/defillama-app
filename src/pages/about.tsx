@@ -68,13 +68,13 @@ function AboutPage({ chains, protocols }) {
         </tbody>
       </Metrics>
       <Panel style={{ marginTop: '6px' }}>
-        <DashGrid center={true} style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
+        <DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
           <TYPE.main area="account">Mission</TYPE.main>
           <Divider />
 
           <TYPE.main>
-            DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully open-source
-            and maintained by a team of passionate individuals and contributors from hundreds of protocols.
+            DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully open-source and
+            maintained by a team of passionate individuals and contributors from hundreds of protocols.
           </TYPE.main>
           <TYPE.main>Our focus is on accurate data and transparent methodology.</TYPE.main>
           <TYPE.main>We track over 800 DeFi protocols from over 80 different blockchains.</TYPE.main>
@@ -87,7 +87,7 @@ function AboutPage({ chains, protocols }) {
         </DashGrid>
       </Panel>
       <Panel style={{ marginTop: '6px' }}>
-        <DashGrid center={true} style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
+        <DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
           <TYPE.main area="account">Acknowledgements</TYPE.main>
           <Divider />
           <TYPE.main>
@@ -95,8 +95,7 @@ function AboutPage({ chains, protocols }) {
           </TYPE.main>
           <Divider />
           <TYPE.main>
-            DeFiLlama&apos;s design is based on{' '}
-            <Link href="https://github.com/Uniswap/uniswap-info">Uniswap.info</Link>
+            DeFiLlama&apos;s design is based on <Link href="https://github.com/Uniswap/uniswap-info">Uniswap.info</Link>
           </TYPE.main>
         </DashGrid>
       </Panel>
