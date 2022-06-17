@@ -11,6 +11,7 @@ interface TokenLogoProps {
   style?: React.CSSProperties
   address?: string
   skipApiRoute?: boolean
+  id?: string
 }
 
 const BAD_IMAGES = {}
@@ -36,6 +37,7 @@ export default function TokenLogo({
   size = 24,
   style,
   skipApiRoute = false,
+  id,
   ...rest
 }: TokenLogoProps) {
   const [error, setError] = useState(false)
@@ -48,7 +50,7 @@ export default function TokenLogo({
 
   if (external) {
     return (
-      <Inline>
+      <Inline id={id}>
         <Image
           {...rest}
           alt={''}
@@ -64,14 +66,14 @@ export default function TokenLogo({
 
   if (error || BAD_IMAGES[logo]) {
     return (
-      <Inline>
+      <Inline id={id}>
         <Image {...rest} alt={''} src={PlaceHolder} height={size} width={size} layout="fixed" loading="lazy" />
       </Inline>
     )
   }
 
   return (
-    <Inline style={style}>
+    <Inline id={id} style={style}>
       <Image
         {...rest}
         alt={''}

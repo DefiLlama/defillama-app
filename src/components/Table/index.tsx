@@ -78,6 +78,19 @@ const RowWrapper = styled.tr`
   & > :last-child {
     padding-right: 20px;
   }
+
+  & > *:not(:first-child),
+  & > *:not(:first-child) > * {
+    margin-left: auto;
+    text-align: right;
+  }
+
+  td:not(:first-child),
+  td:not(:first-child) > * {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipses;
+  }
 `
 
 const PinnedRow = styled(RowWrapper)`
@@ -116,6 +129,17 @@ export const Index = styled.div`
   gap: 1em;
   align-items: center;
   position: relative;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  & > a,
+  & > #table-p-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 `
 
 const SaveButton = styled(Bookmark)`
@@ -466,7 +490,7 @@ export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...p
 }
 
 interface NameProps {
-  type: 'chain' | 'protocol'
+  type: 'chain' | 'protocol' | 'peggedAsset' | 'peggedAssetChain'
   value: string
   symbol?: string
   index?: number
@@ -478,7 +502,7 @@ interface NameProps {
 export function Name({
   type,
   value,
-  symbol = '',
+  symbol = '-',
   index,
   bookmark,
   rowType = 'default',
@@ -491,7 +515,7 @@ export function Name({
     ) : (
       <>
         <span>{value}</span>
-        <span>{` (${symbol})`}</span>
+        <span id="table-p-symbol">{` (${symbol})`}</span>
       </>
     )
   const { iconUrl, tokenUrl } = useMemo(() => {
@@ -499,10 +523,17 @@ export function Name({
     if (type === 'chain') {
       tokenUrl = `/${type}/${value}`
       iconUrl = chainIconUrl(value)
+    } else if (type === 'peggedAssetChain') {
+      tokenUrl = `/peggedassets/stablecoins/${value}`
+      iconUrl = chainIconUrl(value)
+    } else if (type === 'peggedAsset') {
+      tokenUrl = `/peggedasset/${slug(value)}`
+      iconUrl = peggedAssetIconUrl(value)
     } else {
       tokenUrl = `/${type}/${slug(value)}`
       iconUrl = tokenIconUrl(value)
     }
+
     return { iconUrl, tokenUrl }
   }, [type, value])
 
@@ -523,71 +554,13 @@ export function Name({
       )}
       {rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
       <span>{rowType !== 'pinned' && index}</span>
-      <TokenLogo logo={iconUrl} />
-      {rowType === 'accordion' ? <span>{name}</span> : <CustomLink href={tokenUrl}>{name}</CustomLink>}
-    </Index>
-  )
-}
-
-interface PeggedNameProps {
-  type: 'peggedUSD' | 'stablecoins' | 'peggedBridges'
-  value: string
-  symbol?: string
-  index?: number
-  bookmark?: boolean
-  rowType?: 'pinned' | 'accordion' | 'child' | 'default'
-  showRows?: boolean
-}
-
-export function NamePegged({
-  type,
-  value,
-  symbol = '-',
-  index,
-  rowType = 'default',
-  showRows,
-  ...props
-}: PeggedNameProps) {
-  const name =
-    symbol === '-' ? (
-      value
-    ) : (
-      <>
-        <span>{value}</span>
-        <span>{` (${symbol})`}</span>
-      </>
-    )
-  const { iconUrl, tokenUrl } = useMemo(() => {
-    let iconUrl, tokenUrl
-    if (type === 'peggedUSD' || type === 'peggedBridges') {
-      tokenUrl = `/peggedassets/stablecoins/${value}`
-      iconUrl = chainIconUrl(value)
-    } else {
-      tokenUrl = `/peggedasset/${slug(value)}`
-      iconUrl = peggedAssetIconUrl(value)
-    }
-    return { iconUrl, tokenUrl }
-  }, [type, value])
-
-  let leftSpace: number | string = 0
-
-  if (rowType === 'accordion') {
-    leftSpace = '-30px'
-  }
-
-  if (rowType === 'child') {
-    leftSpace = '30px'
-  }
-
-  return (
-    <Index {...props} style={{ left: leftSpace }}>
-      {rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
-      {rowType !== 'pinned' && index && <span>{index}</span>}
-      {rowType !== 'child' && <TokenLogo logo={iconUrl} />}
-      {rowType === 'accordion' || type === 'peggedBridges' ? (
-        <span>{name}</span>
+      <TokenLogo id="table-p-logo" logo={iconUrl} />
+      {rowType === 'accordion' ? (
+        <span id="table-p-name">{name}</span>
       ) : (
-        <CustomLink href={tokenUrl}>{name}</CustomLink>
+        <CustomLink href={tokenUrl} id="table-p-name">
+          {name}
+        </CustomLink>
       )}
     </Index>
   )
@@ -600,11 +573,13 @@ export function NameYield({ value, rowType, ...props }: NameProps) {
 
   return (
     <Index {...props}>
-      <TokenLogo logo={iconUrl} />
+      <TokenLogo id="table-p-logo" logo={iconUrl} />
       {rowType === 'accordion' ? (
-        <span>{value['project']}</span>
+        <span id="table-p-name">{value['project']}</span>
       ) : (
-        <CustomLink href={tokenUrl}>{value['project']}</CustomLink>
+        <CustomLink id="table-p-name" href={tokenUrl}>
+          {value['project']}
+        </CustomLink>
       )}
     </Index>
   )
@@ -653,6 +628,8 @@ export function isOfTypePeggedCategory(peggedCategory: string): peggedCategory i
 
 type Columns =
   | 'protocolName'
+  | 'peggedAsset'
+  | 'peggedAssetChain'
   | 'category'
   | 'chainName'
   | 'chains'
@@ -679,6 +656,34 @@ const allColumns: AllColumns = {
         symbol={rowValues.symbol}
         index={rowIndex !== null && rowIndex + 1}
         bookmark
+        rowType={rowType}
+      />
+    ),
+  },
+  peggedAsset: {
+    header: 'Name',
+    accessor: 'name',
+    disableSortBy: true,
+    Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+      <Name
+        type="peggedAsset"
+        value={value}
+        symbol={rowValues.symbol}
+        index={rowIndex !== null && rowIndex + 1}
+        rowType={rowType}
+      />
+    ),
+  },
+  peggedAssetChain: {
+    header: 'Name',
+    accessor: 'name',
+    disableSortBy: true,
+    Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+      <Name
+        type="peggedAssetChain"
+        value={value}
+        symbol={rowValues.symbol}
+        index={rowIndex !== null && rowIndex + 1}
         rowType={rowType}
       />
     ),

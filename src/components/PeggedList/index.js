@@ -17,7 +17,7 @@ import {
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/data'
 import { useXl, useMed } from 'hooks/useBreakpoints'
 import { DownloadCloud } from 'react-feather'
-import Table, { columnsToShow, isOfTypePeggedCategory, NamePegged } from 'components/Table'
+import Table, { columnsToShow } from 'components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { useDarkModeManager } from 'contexts/LocalStorage'
@@ -260,6 +260,28 @@ const DownloadIcon = styled(DownloadCloud)`
   height: 20px;
 `
 
+const columns = [
+  ...columnsToShow('peggedAsset'),
+  {
+    header: 'Chains',
+    accessor: 'chains',
+    disableSortBy: true,
+    helperText: "Chains are ordered by pegged asset's issuance on each chain",
+    Cell: ({ value }) => <IconsRow links={value} url="/peggedassets/stablecoins" iconType="chain" />,
+  },
+  {
+    header: 'Price',
+    accessor: 'price',
+    Cell: ({ value }) => <>{value ? formattedPegggedPrice(value, true) : '-'}</>,
+  },
+  ...columnsToShow('1dChange', '7dChange', '1mChange'),
+  {
+    header: 'Market Cap',
+    accessor: 'mcap',
+    Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
+  },
+]
+
 function PeggedAssetsOverview({
   title,
   category,
@@ -274,49 +296,6 @@ function PeggedAssetsOverview({
   showChainList = true,
   defaultSortingColumn,
 }) {
-  let firstColumn = columnsToShow('protocolName')[0]
-
-  const peggedColumn = `${category}`
-  if (isOfTypePeggedCategory(peggedColumn)) {
-    firstColumn = {
-      header: 'Name',
-      accessor: 'name',
-      disableSortBy: true,
-      Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
-        <NamePegged
-          type="stablecoins"
-          value={value}
-          symbol={rowValues.symbol}
-          index={rowIndex !== null && rowIndex + 1}
-          bookmark
-          rowType={rowType}
-        />
-      ),
-    }
-  }
-
-  const columns = [
-    firstColumn,
-    {
-      header: 'Chains',
-      accessor: 'chains', // should change this
-      disableSortBy: true,
-      helperText: "Chains are ordered by pegged asset's issuance on each chain",
-      Cell: ({ value }) => <IconsRow links={value} url="/peggedassets/stablecoins" iconType="chain" />,
-    },
-    {
-      header: 'Price',
-      accessor: 'price',
-      Cell: ({ value }) => <>{value ? formattedPegggedPrice(value, true) : '-'}</>,
-    },
-    ...columnsToShow('1dChange', '7dChange', '1mChange'),
-    {
-      header: 'Market Cap',
-      accessor: 'mcap',
-      Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
-    },
-  ]
-
   const [chartType, setChartType] = useState(peggedChartType)
 
   const belowMed = useMed()

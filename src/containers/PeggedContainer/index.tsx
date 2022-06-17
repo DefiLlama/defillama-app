@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { ButtonDark } from 'components/ButtonStyled'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 import { CustomLink } from 'components/Link'
-import { columnsToShow, FullTable, NamePegged, isOfTypePeggedCategory } from 'components/Table'
+import { columnsToShow, FullTable } from 'components/Table'
 import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from 'hooks/data'
 import Filters, { FiltersWrapper } from 'components/Filters'
@@ -68,6 +68,30 @@ const Capitalize = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
+const columns = [
+  ...columnsToShow('peggedAssetChain'),
+  {
+    header: 'Bridge',
+    accessor: 'bridgeInfo',
+    disableSortBy: true,
+    Cell: ({ value }) => {
+      return value.link ? <CustomLink href={value.link}>{value.name}</CustomLink> : <span>{value.name}</span>
+    },
+  },
+  {
+    header: 'Bridged Amount',
+    accessor: 'bridgedAmount',
+    disableSortBy: true,
+    Cell: ({ value }) => <>{typeof value === 'string' ? value : formattedNum(value)}</>,
+  },
+  ...columnsToShow('1dChange', '7dChange', '1mChange'),
+  {
+    header: 'Total Circulating',
+    accessor: 'circulating',
+    Cell: ({ value }) => <>{value && formattedNum(value)}</>,
+  },
+]
+
 export default function PeggedContainer({
   chainsUnique,
   chainCirculatings,
@@ -75,54 +99,8 @@ export default function PeggedContainer({
   categories,
   stackedDataset,
   peggedSymbol,
-  pegType,
   bridgeInfo,
 }) {
-  let firstColumn = columnsToShow('chainName')[0]
-
-  const peggedColumn = `${pegType}`
-  if (isOfTypePeggedCategory(peggedColumn)) {
-    firstColumn = {
-      header: 'Name',
-      accessor: 'name',
-      disableSortBy: true,
-      Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
-        <NamePegged
-          type="peggedBridges"
-          value={value}
-          symbol={rowType === 'child' ? '-' : rowValues.symbol}
-          index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
-          rowType={rowType}
-          showRows={showRows}
-        />
-      ),
-    }
-  }
-
-  const columns = [
-    firstColumn,
-    {
-      header: 'Bridge',
-      accessor: 'bridgeInfo',
-      disableSortBy: true,
-      Cell: ({ value }) => {
-        return value.link ? <CustomLink href={value.link}>{value.name}</CustomLink> : <span>{value.name}</span>
-      },
-    },
-    {
-      header: 'Bridged Amount',
-      accessor: 'bridgedAmount',
-      disableSortBy: true,
-      Cell: ({ value }) => <>{typeof value === 'string' ? value : formattedNum(value)}</>,
-    },
-    ...columnsToShow('1dChange', '7dChange', '1mChange'),
-    {
-      header: 'Total Circulating',
-      accessor: 'circulating',
-      Cell: ({ value }) => <>{value && formattedNum(value)}</>,
-    },
-  ]
-
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
     [chainsUnique]

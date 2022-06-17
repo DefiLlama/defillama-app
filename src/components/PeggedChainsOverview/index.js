@@ -17,7 +17,7 @@ import {
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from 'hooks/data'
 import { useXl, useMed } from 'hooks/useBreakpoints'
 import { DownloadCloud } from 'react-feather'
-import Table, { columnsToShow, isOfTypePeggedCategory, NamePegged } from 'components/Table'
+import Table, { columnsToShow } from 'components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { GeneralAreaChart } from 'components/TokenChart'
@@ -56,26 +56,12 @@ const AssetFilters = styled.div`
 `
 
 const PeggedTable = styled(Table)`
-  tr > :first-child {
-    padding-left: 40px;
-  }
-
-  tr > *:not(:first-child) {
-    & > * {
-      width: 100px;
-      white-space: nowrap;
-      overflow: hidden;
-      font-weight: 400;
-      margin-left: auto;
-    }
-  }
-
   // PEGGED NAME
   tr > *:nth-child(1) {
+    padding-left: 40px;
+
     & > * {
       width: 120px;
-      overflow: hidden;
-      white-space: nowrap;
     }
   }
 
@@ -87,12 +73,6 @@ const PeggedTable = styled(Table)`
   // MCAP
   tr > *:nth-child(3) {
     padding-right: 20px;
-    & > * {
-      text-align: right;
-      margin-left: auto;
-      white-space: nowrap;
-      overflow: hidden;
-    }
   }
 
   // DOMINANCE
@@ -141,14 +121,18 @@ const PeggedTable = styled(Table)`
   }
 
   @media screen and (min-width: 720px) {
+    // MCAP
+    tr > *:nth-child(3) {
+      padding-right: 0px;
+    }
+
     // DOMINANCE
     tr > *:nth-child(4) {
       display: revert;
       padding-right: 20px;
+
       & > * {
         width: 140px;
-        white-space: nowrap;
-        overflow: hidden;
       }
     }
   }
@@ -162,11 +146,6 @@ const PeggedTable = styled(Table)`
     // BRIDGEDTO
     tr > *:nth-child(6) {
       padding-right: 0px;
-    }
-
-    // MCAPTVL
-    tr > *:nth-child(7) {
-      display: revert;
     }
   }
 
@@ -195,6 +174,11 @@ const PeggedTable = styled(Table)`
   }
 
   @media screen and (min-width: 1300px) {
+    // DOMINANCE
+    tr > *:nth-child(4) {
+      padding-right: 0px;
+    }
+
     // MINTED
     tr > *:nth-child(5) {
       display: revert !important;
@@ -256,6 +240,47 @@ const DownloadIcon = styled(DownloadCloud)`
   height: 20px;
 `
 
+const columns = [
+  ...columnsToShow('peggedAssetChain', '7dChange'),
+  {
+    header: 'Stables Mcap',
+    accessor: 'mcap',
+    Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
+  },
+  {
+    header: 'Dominant Stablecoin',
+    accessor: 'dominance',
+    disableSortBy: true,
+    Cell: ({ value }) => {
+      return (
+        <>
+          {value && (
+            <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+              <span>{`${value.name}: `}</span>
+              <span>{formattedPercent(value.value, true)}</span>
+            </AutoRow>
+          )}
+        </>
+      )
+    },
+  },
+  {
+    header: 'Total Mcap Issued On',
+    accessor: 'minted',
+    Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
+  },
+  {
+    header: 'Total Mcap Bridged To',
+    accessor: 'bridgedTo',
+    Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
+  },
+  {
+    header: 'Stables Mcap/TVL',
+    accessor: 'mcaptvl',
+    Cell: ({ value }) => <>{value && formattedNum(value, false)}</>,
+  },
+]
+
 function PeggedChainsOverview({
   title,
   category,
@@ -269,69 +294,6 @@ function PeggedChainsOverview({
   chainList,
   chainsGroupbyParent,
 }) {
-  let firstColumn = columnsToShow('protocolName')[0]
-
-  const peggedColumn = `${category}`
-  if (isOfTypePeggedCategory(peggedColumn)) {
-    firstColumn = {
-      header: 'Name',
-      accessor: 'name',
-      disableSortBy: true,
-      Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
-        <NamePegged
-          type="peggedUSD"
-          value={value}
-          symbol={rowValues.symbol}
-          index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
-          rowType={rowType}
-          showRows={showRows}
-        />
-      ),
-    }
-  }
-
-  const columns = [
-    firstColumn,
-    ...columnsToShow('7dChange'),
-    {
-      header: 'Stables Mcap',
-      accessor: 'mcap',
-      Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
-    },
-    {
-      header: 'Dominant Stablecoin',
-      accessor: 'dominance',
-      disableSortBy: true,
-      Cell: ({ value }) => {
-        return (
-          <>
-            {value && (
-              <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-                <span>{`${value.name}: `}</span>
-                <span>{formattedPercent(value.value, true)}</span>
-              </AutoRow>
-            )}
-          </>
-        )
-      },
-    },
-    {
-      header: 'Total Mcap Issued On',
-      accessor: 'minted',
-      Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
-    },
-    {
-      header: 'Total Mcap Bridged To',
-      accessor: 'bridgedTo',
-      Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
-    },
-    {
-      header: 'Stables Mcap/TVL',
-      accessor: 'mcaptvl',
-      Cell: ({ value }) => <>{value && formattedNum(value, false)}</>,
-    },
-  ]
-
   const [chartType, setChartType] = useState(peggedChartType)
 
   const belowMed = useMed()
@@ -340,8 +302,6 @@ function PeggedChainsOverview({
 
   const filteredPeggedAssets = chainCirculatings
   const chainTotals = useCalcCirculating(filteredPeggedAssets, defaultSortingColumn)
-
-  const chainNames = chainList // update this when area chart is finished
 
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
@@ -452,7 +412,7 @@ function PeggedChainsOverview({
             </AutoRow>
           </RowBetween>
           {chartType === 'Mcap' && <Chart {...{ peggedAreaMcapData, totalMcapLabel, aspect }} />}
-          {chartType === 'Area' && <Chart {...{ peggedAreaChainData, chainNames, aspect }} />}
+          {chartType === 'Area' && <Chart {...{ peggedAreaChainData, chainNames: chainList, aspect }} />}
           {chartType === 'Dominance' && (
             <PeggedChainResponsiveDominance
               stackOffset="expand"

@@ -30,7 +30,7 @@ const exclude = [
 ]
 
 const TableWrapper = styled(ProtocolsTable)`
-  tr > *:nth-child(6) {
+  tr > *:nth-child(7) {
     padding-right: 20px;
   }
 `

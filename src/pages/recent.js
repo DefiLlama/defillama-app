@@ -22,10 +22,7 @@ const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
     & > * {
       width: 100px;
-      white-space: nowrap;
-      overflow: hidden;
       font-weight: 400;
-      margin-left: auto;
     }
   }
 
@@ -33,76 +30,59 @@ const TableWrapper = styled(Table)`
   tr > *:nth-child(1) {
     & > * {
       width: 160px;
-      overflow: hidden;
-      white-space: nowrap;
 
-      // HIDE LOGO
-      & > *:nth-child(3) {
+      #table-p-logo,
+      #table-p-symbol {
         display: none;
       }
-
-      & > *:nth-child(4) {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        // HIDE SYMBOL
-        & > *:nth-child(2) {
-          display: none;
-        }
-      }
     }
+  }
+
+  // CATEGORY
+  tr > *:nth-child(2) {
+    display: none;
   }
 
   // CHAINS
-  tr > *:nth-child(2) {
-    display: none;
-    & > * {
-      width: 200px;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-  }
-
-  // LISTED AT
   tr > *:nth-child(3) {
     display: none;
   }
 
-  // 1D CHANGE
+  // LISTED AT
   tr > *:nth-child(4) {
     display: none;
   }
 
-  // 7D CHANGE
+  // 1D CHANGE
   tr > *:nth-child(5) {
     display: none;
   }
 
-  // 1M CHANGE
+  // 7D CHANGE
   tr > *:nth-child(6) {
     display: none;
   }
 
-  // TVL
+  // 1M CHANGE
   tr > *:nth-child(7) {
+    display: none;
+  }
+
+  // TVL
+  tr > *:nth-child(8) {
     padding-right: 20px;
-    & > * {
-      text-align: right;
-      margin-left: auto;
-      white-space: nowrap;
-      overflow: hidden;
-    }
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpSm}) {
     // LISTED AT
-    tr > *:nth-child(3) {
+    tr > *:nth-child(4) {
       display: revert;
     }
   }
 
   @media screen and (min-width: 640px) {
     // 1D CHANGE
-    tr > *:nth-child(4) {
+    tr > *:nth-child(5) {
       display: revert;
     }
   }
@@ -111,11 +91,11 @@ const TableWrapper = styled(Table)`
     // PROTOCOL NAME
     tr > *:nth-child(1) {
       & > * {
-        width: 300px;
-        // SHOW LOGO
-        & > *:nth-child(3) {
-          display: flex;
-        }
+        width: 200px;
+      }
+
+      #table-p-logo {
+        display: flex;
       }
     }
   }
@@ -124,43 +104,47 @@ const TableWrapper = styled(Table)`
     // PROTOCOL NAME
     tr > *:nth-child(1) {
       & > * {
-        & > *:nth-child(4) {
-          // SHOW SYMBOL
-          & > *:nth-child(2) {
-            display: revert;
-          }
-        }
+        width: 280px;
+      }
+
+      #table-p-symbol {
+        display: revert;
       }
     }
 
     // 7D CHANGE
-    tr > *:nth-child(5) {
+    tr > *:nth-child(6) {
       display: revert;
     }
   }
 
   @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
     // 7D CHANGE
-    tr > *:nth-child(5) {
+    tr > *:nth-child(6) {
       display: none;
     }
   }
 
   @media screen and (min-width: 1200px) {
+    // CATEGORY
+    tr > *:nth-child(2) {
+      display: revert;
+    }
+
     // 7D CHANGE
-    tr > *:nth-child(5) {
+    tr > *:nth-child(6) {
       display: revert;
     }
   }
 
   @media screen and (min-width: 1536px) {
     // CHAINS
-    tr > *:nth-child(2) {
+    tr > *:nth-child(3) {
       display: revert;
     }
 
     // 1M CHANGE
-    tr > *:nth-child(6) {
+    tr > *:nth-child(7) {
       display: revert !important;
     }
   }
