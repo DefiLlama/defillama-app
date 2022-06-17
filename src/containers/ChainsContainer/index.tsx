@@ -121,7 +121,7 @@ const StyledTable = styled(FullTable)`
     // CHAIN
     tr > *:nth-child(1) {
       #table-p-logo {
-        display: revert;
+        display: flex;
       }
     }
 
