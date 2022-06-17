@@ -624,6 +624,11 @@ export const chainCoingeckoIds = {
     symbol: "LUNA",
     cmcId: "20314",
   },
+  "SXnetwork": {
+    geckoId: "sx-network",
+    symbol: "SX",
+    cmcId: "8377",
+  }
 }
 
 export const chainMarketplaceMappings = {
