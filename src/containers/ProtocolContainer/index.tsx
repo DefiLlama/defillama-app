@@ -436,11 +436,10 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked, chainsUnique } = useMemo(() => {
-    const chainsUnique = Object.keys(tvlBreakdowns ?? {})
-    const data = buildProtocolData(addlProtocolData)
-    return { ...data, chainsUnique }
-  }, [addlProtocolData, tvlBreakdowns])
+  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked } = useMemo(
+    () => buildProtocolData(addlProtocolData),
+    [addlProtocolData]
+  )
 
   const chainsSplit = useMemo(() => {
     return chainsStacked?.map((chain) => {
@@ -460,6 +459,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
       return chain
     })
   }, [chainsStacked, extraTvlsEnabled])
+
+  const chainsUnique = tvls.map((t) => t[0])
 
   const showCharts =
     loading ||

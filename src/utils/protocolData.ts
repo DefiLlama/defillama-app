@@ -14,7 +14,7 @@ function buildChainBreakdown(chainTvls) {
                     extraTvl: {
                         ...(timeToTvl[dayTvl.date]?.extraTvl ?? {}),
                         [chainToAdd.split("-")[0]]: {
-                            ...(timeToTvl[dayTvl.date]?.extraTvl[chainToAdd.split("-")[0]] ?? {}),
+                            ...(timeToTvl[dayTvl.date]?.extraTvl ? timeToTvl[dayTvl.date]?.extraTvl[chainToAdd.split("-")[0]] ?? {} : {}),
                             [chainToAdd.split("-")[1]]: dayTvl.totalLiquidityUSD
                         },
                     },
