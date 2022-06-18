@@ -81,7 +81,7 @@ function PortfolioContainer({ protocolsDict }) {
 
   return (
     <>
-      <YieldsSearch step={{ category: 'Yields', name: 'Watchlist', hideOptions: true }} />
+      <YieldsSearch step={{ category: 'Yields', name: 'Watchlist' }} />
 
       <Header>Saved Pools</Header>
 

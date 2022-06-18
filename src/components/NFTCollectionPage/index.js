@@ -226,7 +226,7 @@ function NFTCollectionPage({ collection, chart, statistics, title, backgroundCol
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)}>
       <SEO cardName={name} logo={logo} nftPage />
 
-      <NFTsSearch step={{ category: 'NFTs', name: name, hideOptions: true }} />
+      <NFTsSearch step={{ category: 'NFTs', name: name }} />
       <DashboardWrapper>
         <Header address={address} below1024={below1024} logo={logo} name={name} />
         <PanelWrapper>

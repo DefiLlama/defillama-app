@@ -10,7 +10,7 @@ const IconWrapper = styled.div<{ isActive?: boolean }>`
   }
 `
 
-const StyledToggle = styled.button`
+const Wrapper = styled.button`
   display: none;
   width: fit-content;
   cursor: pointer;
@@ -33,14 +33,14 @@ const StyledToggle = styled.button`
   }
 `
 
-export interface ToggleProps {
+interface ThemeSwitchProps {
   isActive: boolean
   toggle: () => void
 }
 
-export default function Toggle({ isActive, toggle }: ToggleProps) {
+export default function ThemeSwitch({ isActive, toggle }: ThemeSwitchProps) {
   return (
-    <StyledToggle onClick={toggle}>
+    <Wrapper onClick={toggle}>
       <span>
         <IconWrapper isActive={!isActive}>
           <Sun size={20} />
@@ -52,6 +52,6 @@ export default function Toggle({ isActive, toggle }: ToggleProps) {
           <Moon size={20} />
         </IconWrapper>
       </span>
-    </StyledToggle>
+    </Wrapper>
   )
 }

@@ -1,14 +1,12 @@
+import * as React from 'react'
+import { useRouter } from 'next/router'
+import Link from 'next/link'
+import { FixedSizeList } from 'react-window'
+import { transparentize } from 'polished'
+import styled from 'styled-components'
+import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { Combobox, ComboboxItem, ComboboxPopover, useComboboxState } from 'ariakit/combobox'
 import TokenLogo from 'components/TokenLogo'
-import { useRouter } from 'next/router'
-import { transparentize } from 'polished'
-import { useEffect } from 'react'
-import styled from 'styled-components'
-import Link from 'next/link'
-import { AllTvlOptions } from 'components/SettingsModal'
-import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
-import { DeFiTvlOptions } from 'components/Select'
-import { FixedSizeList } from 'react-window'
 
 const Wrapper = styled.nav`
   display: flex;
@@ -123,31 +121,6 @@ const IconWrapper = styled.div`
   }
 `
 
-const Filters = styled.section`
-  color: ${({ theme }) => theme.text1};
-  font-weight: 400;
-  font-size: 0.75rem;
-  opacity: 0.8;
-  white-space: nowrap;
-  display: none;
-  gap: 8px;
-  align-items: center;
-  margin-left: auto;
-  padding: 0 16px;
-
-  ${({ theme: { min2Xl } }) => min2Xl} {
-    display: flex;
-  }
-`
-
-const DropdownOptions = styled(DeFiTvlOptions)`
-  display: none;
-
-  @media screen and (min-width: ${({ theme }) => theme.bpLg}) and (max-width: ${({ theme }) => theme.bp2Xl}) {
-    display: flex;
-    padding: 0 4px;
-  }
-`
 interface ISearchItem {
   name: string
   route: string
@@ -170,13 +143,14 @@ export interface IBaseSearchProps {
   onSearchTermChange?: (searchValue: string) => void
   customPath?: (item: string) => string
   onItemClick?: (item: string) => void
+  filters?: React.ReactNode
 }
 
 export const BaseSearch = (props: IBaseSearchProps) => {
-  const { data, loading = false, step, onSearchTermChange } = props
+  const { data, loading = false, step, onSearchTermChange, filters } = props
   const combobox = useComboboxState({ gutter: 6, sameWidth: true, list: data.map((x) => x.name) })
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (onSearchTermChange) onSearchTermChange(combobox.value)
   }, [combobox.value, onSearchTermChange])
 
@@ -195,7 +169,7 @@ export const BaseSearch = (props: IBaseSearchProps) => {
 
       <IconWrapper>{combobox.mounted ? <XIcon /> : <SearchIcon />}</IconWrapper>
 
-      {step && <Options step={step} />}
+      {step && <Options step={step} filters={filters} />}
 
       {/* TODO make auto resizing work */}
       <Popover state={combobox}>
@@ -255,9 +229,10 @@ const Row = ({ index, style, data }) => {
 
 interface IOptionsProps {
   step?: IBaseSearchProps['step']
+  filters?: React.ReactNode
 }
 
-const Options = ({ step }: IOptionsProps) => {
+const Options = ({ step, filters }: IOptionsProps) => {
   return (
     <OptionsWrapper>
       <p>
@@ -268,16 +243,7 @@ const Options = ({ step }: IOptionsProps) => {
         <span style={{ color: 'var(--step-color)' }}>{step.name}</span>
       </p>
 
-      {!step.hideOptions && (
-        <>
-          <Filters>
-            <label>INCLUDE IN TVL</label>
-            <AllTvlOptions style={{ display: 'flex', justifyContent: 'flex-end', margin: 0, fontSize: '0.875rem' }} />
-          </Filters>
-
-          <DropdownOptions />
-        </>
-      )}
+      {!step.hideOptions && filters && <>{filters}</>}
     </OptionsWrapper>
   )
 }

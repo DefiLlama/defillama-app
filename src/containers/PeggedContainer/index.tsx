@@ -136,9 +136,7 @@ export default function PeggedContainer({
 
   return (
     <>
-      <PeggedSearch
-        step={{ category: 'Pegged Asset', name: Capitalize(peggedSymbol), route: 'peggedassets', hideOptions: true }}
-      />
+      <PeggedSearch step={{ category: 'Pegged Asset', name: Capitalize(peggedSymbol), route: 'peggedassets' }} />
 
       <HeaderWrapper>
         <span>{Capitalize(peggedSymbol)} Total Circulating All Chains</span>

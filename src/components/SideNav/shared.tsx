@@ -1,11 +1,11 @@
 import React from 'react'
-import styled from 'styled-components'
-import { BasicLink } from '../Link'
 import Link from 'next/link'
-import Toggle from '../Toggle'
-import { Icon } from 'react-feather'
 import { useRouter } from 'next/router'
+import styled from 'styled-components'
+import { Icon } from 'react-feather'
+import { BasicLink } from 'components/Link'
 import { useDarkModeManager } from 'contexts/LocalStorage'
+import ThemeSwitch from './ThemeSwitch'
 
 export const Wrapper = styled.header`
   min-width: 220px;
@@ -209,7 +209,7 @@ export const Footer = ({ app }: { app: 'defi' | 'yields' }) => {
         )}
       </FooterWrapper>
 
-      <Toggle isActive={darkMode} toggle={toggleDarkMode} />
+      <ThemeSwitch isActive={darkMode} toggle={toggleDarkMode} />
     </>
   )
 }

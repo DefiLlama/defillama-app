@@ -8,12 +8,11 @@ import PeggedViewSwitch from 'components/PeggedViewSwitch'
 import Table, { columnsToShow } from 'components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
 import Filters, { FiltersWrapper } from 'components/Filters'
-import { GeneralAreaChart } from 'components/TokenChart'
+import { AreaChart } from 'components/Charts'
 import IconsRow from 'components/IconsRow'
 import { PeggedSearch } from 'components/Search'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/data'
 import { useXl, useMed } from 'hooks/useBreakpoints'
-import { useDarkModeManager } from 'contexts/LocalStorage'
 import {
   getRandomColor,
   capitalizeFirstLetter,
@@ -27,16 +26,13 @@ import {
 } from 'utils'
 
 function Chart({ peggedAreaChartData, peggedAreaMcapData, totalMcapLabel, peggedAssetNames, aspect }) {
-  const [darkMode] = useDarkModeManager()
-  const textColor = darkMode ? 'white' : 'black'
   const finalChartData = peggedAreaChartData ? peggedAreaChartData : peggedAreaMcapData
   const labels = peggedAssetNames ? peggedAssetNames : totalMcapLabel
   return (
-    <GeneralAreaChart
+    <AreaChart
       aspect={aspect}
       finalChartData={finalChartData}
       tokensUnique={labels}
-      textColor={textColor}
       color={'blue'}
       moneySymbol="$"
       formatDate={toNiceMonthlyDate}
@@ -378,7 +374,7 @@ function PeggedAssetsOverview({
 
   return (
     <>
-      <PeggedSearch step={{ category: 'Pegged Assets', name: title, route: 'peggedassets', hideOptions: true }} />
+      <PeggedSearch step={{ category: 'Pegged Assets', name: title, route: 'peggedassets' }} />
 
       <PeggedViewSwitch />
 

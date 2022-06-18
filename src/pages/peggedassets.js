@@ -79,9 +79,7 @@ const columns = [
 export default function PeggedAssets({ categories }) {
   return (
     <Layout title={`Categories - DefiLlama`} defaultSEO>
-      <PeggedSearch
-        step={{ category: 'Pegged Assets', name: 'Categories', route: 'peggedassets', hideOptions: true }}
-      />
+      <PeggedSearch step={{ category: 'Pegged Assets', name: 'Categories', route: 'peggedassets' }} />
 
       <Header>Pegged Asset Categories</Header>
 

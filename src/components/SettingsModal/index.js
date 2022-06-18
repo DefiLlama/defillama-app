@@ -1,7 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
+import * as ScrollArea from '@radix-ui/react-scroll-area'
 import styled from 'styled-components'
-import MenuIcon from './MenuSvg'
+import { AutoRow } from 'components/Row'
+import OptionToggle from 'components/OptionToggle'
 import {
   useStakingManager,
   useDisplayUsdManager,
@@ -23,14 +25,9 @@ import {
   DOUBLE_COUNT,
   useDarkModeManager,
   UNRELEASED,
-  useGroupEnabled,
-  groupSettings,
-} from '../../contexts/LocalStorage'
-
-import { AutoRow } from '../Row'
+} from 'contexts/LocalStorage'
 import { useIsClient } from 'hooks'
-import OptionToggle from 'components/OptionToggle'
-import * as ScrollArea from '@radix-ui/react-scroll-area'
+import MenuIcon from './MenuSvg'
 
 const StyledMenuIcon = styled(MenuIcon)`
   svg {
@@ -408,7 +405,7 @@ export default function Menu({ type = 'defi', ...props }) {
   )
 }
 
-export const AllTvlOptions = ({ style }) => {
+export const DefiTvlSwitches = (props) => {
   const tvlToggles = useTvlToggles()
   const extraTvlEnabled = useGetExtraTvlEnabled()
   const router = useRouter()
@@ -422,7 +419,7 @@ export const AllTvlOptions = ({ style }) => {
   return (
     <ScrollAreaRoot>
       <ScrollAreaViewport>
-        <ListWrapper style={{ ...style }}>
+        <ListWrapper {...props}>
           {options.map((option) => (
             <ListItem key={option.key}>
               <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
@@ -435,30 +432,5 @@ export const AllTvlOptions = ({ style }) => {
       </ScrollAreaScrollbar>
       <ScrollAreaCorner />
     </ScrollAreaRoot>
-  )
-}
-
-export const AllGroupOptions = ({ style }) => {
-  const tvlToggles = useTvlToggles()
-  const extraTvlEnabled = useGroupEnabled()
-
-  return (
-    <>
-      <ScrollAreaRoot>
-        <ScrollAreaViewport>
-          <ListWrapper style={{ ...style }}>
-            {groupSettings.map((option) => (
-              <ListItem key={option.key}>
-                <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
-              </ListItem>
-            ))}
-          </ListWrapper>
-        </ScrollAreaViewport>
-        <ScrollAreaScrollbar orientation="horizontal">
-          <ScrollAreaThumb />
-        </ScrollAreaScrollbar>
-        <ScrollAreaCorner />
-      </ScrollAreaRoot>
-    </>
   )
 }
