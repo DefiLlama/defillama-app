@@ -190,18 +190,23 @@ const TokenComparisonSearch = ({
   </Column>
 )
 
+const removeSymbolFromName = (nameWithSymbol) => {
+  return nameWithSymbol.split(' (')[0]
+}
+
 function ComparisonPage(props) {
   const { title, protocolA: protocolARouteParam, protocolB: protocolBRouteParam, protocolsMcapTvl } = props
   const [protocolA, setProtocolA] = useState(protocolARouteParam)
   const [protocolB, setProtocolB] = useState(protocolBRouteParam)
 
   // Added to initialize protocolA and protocolB from props, on initial render is undefined and useState only initializes the first render
+  // Do this only when state is undefined
   // https://stackoverflow.com/questions/58818727/react-usestate-not-setting-initial-value
   useEffect(() => {
-    setProtocolA(props.protocolA)
+    if (!protocolA) setProtocolA(props.protocolA)
   }, [props.protocolA])
   useEffect(() => {
-    setProtocolB(props.protocolB)
+    if (!protocolB) setProtocolB(props.protocolB)
   }, [props.protocolB])
 
   const below400 = useMedia('(max-width: 400px)')
@@ -269,8 +274,8 @@ function ComparisonPage(props) {
   }, [protocolA, protocolARouteParam, protocolB, protocolBRouteParam, tokenAValid, tokenBValid])
 
   const customOnLinkClick = (protocolAorB) => (token) => {
-    if (protocolAorB === 'A') return setProtocolA(standardizeProtocolName(token?.name))
-    return setProtocolB(standardizeProtocolName(token?.name))
+    if (protocolAorB === 'A') return setProtocolA(standardizeProtocolName(removeSymbolFromName(token?.name)))
+    return setProtocolB(standardizeProtocolName(removeSymbolFromName(token?.name)))
   }
 
   return (

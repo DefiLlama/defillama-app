@@ -25,6 +25,11 @@ interface IProtocolsChainsSearch extends ICommonSearchProps {
   customPath?: IBaseSearchProps['customPath']
 }
 
+const getNameWithSymbol = (token: IBaseSearchProps['data'][0]) => {
+  if (token.symbol !== '-' && !!token.symbol) return `${token.name} (${token.symbol})`
+  return token.name
+}
+
 export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
   const { includedSets = Object.values(SETS), customPath } = props
   const { data, loading } = useFetchProtocolsList()
@@ -44,7 +49,7 @@ export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
     const protocolData = includeProtocols
       ? data?.protocols?.map((token) => ({
           ...token,
-          name: token.name,
+          name: getNameWithSymbol(token),
           symbol: token.symbol,
           logo: tokenIconUrl(token.name),
           route: getCustomPathProtocols(token.name),
