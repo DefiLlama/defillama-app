@@ -249,8 +249,8 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
       />
 
       <Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
-        <span> We've launched a multichain APY dashboard. Check it out</span>{' '}
-        <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/yields">
+        <span> We've launched a multi-chain stablecoin dashboard. Check it out</span>{' '}
+        <BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/peggedassets/stablecoins">
           here
         </BasicLink>
         <span>!</span>
