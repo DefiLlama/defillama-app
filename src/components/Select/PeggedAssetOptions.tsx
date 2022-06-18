@@ -91,6 +91,7 @@ export function PeggedAssetGroupOptions({ label }: { label?: string }) {
       onChange={toggle}
       isMulti
       aria-label={label}
+      instanceId={'peggedAssetGroupOptions'}
       components={{ Group }}
     />
   )
