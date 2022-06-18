@@ -102,11 +102,11 @@ const PageView = () => {
         <BreakpointPanels>
           <BreakpointPanel>
             <h2>APY</h2>
-            <p style={{ '--tile-text-color': '#4f8fea' }}>{apy}%</p>
+            <p style={{ '--tile-text-color': '#fd3c99' }}>{apy}%</p>
           </BreakpointPanel>
           <BreakpointPanel>
             <h2>Total Value Locked</h2>
-            <p style={{ '--tile-text-color': '#fd3c99' }}>${tvlUsd}</p>
+            <p style={{ '--tile-text-color': '#4f8fea' }}>${tvlUsd}</p>
           </BreakpointPanel>
           <BreakpointPanel>
             <h2>Outlook</h2>
