@@ -551,7 +551,7 @@ export function Name({
     return (
       <Index {...props} style={{ left: leftSpace }}>
         <span>-</span>
-        <span id="table-p-name">{name}</span>
+        <span id="table-p-name">{value}</span>
       </Index>
     )
   }
