@@ -1,15 +1,15 @@
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
+import { Header } from 'Theme'
 import { ButtonDark } from 'components/ButtonStyled'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 import { CustomLink } from 'components/Link'
 import FullTable, { columnsToShow } from 'components/Table'
-import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
-import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from 'hooks/data'
 import Filters, { FiltersWrapper } from 'components/Filters'
 import { PeggedAssetTvlOptions } from 'components/Select'
-import { Header } from 'Theme'
-import { PeggedSearch } from 'components/Search/OpenSearch'
+import { PeggedSearch } from 'components/Search'
+import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from 'hooks/data'
+import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
 
 const ChartsWrapper = styled.section`
   display: flex;

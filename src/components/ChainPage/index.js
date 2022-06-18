@@ -1,24 +1,31 @@
 import React, { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { RowFixed } from '../Row'
-import { ProtocolsChainsSearch } from '../Search/OpenSearch'
-import { ProtocolsTable, Panel, BreakpointPanels, BreakpointPanel, PanelHiddenMobile, ChartAndValuesWrapper } from '..'
-import Filters from '../Filters'
+import { DownloadCloud } from 'react-feather'
+import {
+  ProtocolsTable,
+  Panel,
+  BreakpointPanels,
+  BreakpointPanel,
+  PanelHiddenMobile,
+  ChartAndValuesWrapper,
+} from 'components'
+import { RowFixed } from 'components/Row'
+import { ProtocolsChainsSearch } from 'components/Search'
+import Filters from 'components/Filters'
+import { BasicLink } from 'components/Link'
+import SEO from 'components/SEO'
+import { OptionButton } from 'components/ButtonStyled'
+import LocalLoader from 'components/LocalLoader'
+import { columnsToShow, TableFilters } from 'components/Table'
+import { useCalcProtocolsTvls } from 'hooks/data'
 import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
-import { useCalcProtocolsTvls } from 'hooks/data'
-import { DownloadCloud } from 'react-feather'
-import { BasicLink } from '../Link'
 import { chainCoingeckoIds } from 'constants/chainTokens'
 import { useDenominationPriceHistory } from 'utils/dataApi'
-import SEO from '../SEO'
-import { OptionButton } from 'components/ButtonStyled'
-import { useRouter } from 'next/router'
-import LocalLoader from 'components/LocalLoader'
 import llamaLogo from '../../assets/peeking-llama.png'
-import Image from 'next/image'
-import { columnsToShow, TableFilters } from 'components/Table'
 
 export const ListOptions = styled.nav`
   display: flex;

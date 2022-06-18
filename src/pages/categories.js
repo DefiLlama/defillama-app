@@ -1,11 +1,11 @@
-import { CustomLink } from 'components/Link'
-import Layout from '../layout'
-import { getProtocolsRaw, revalidate } from '../utils/dataApi'
-import { toK } from 'utils'
-import Table, { Index } from 'components/Table'
-import { Header } from 'Theme'
-import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
 import styled from 'styled-components'
+import { Header } from 'Theme'
+import Layout from 'layout'
+import { CustomLink } from 'components/Link'
+import Table, { Index } from 'components/Table'
+import { ProtocolsChainsSearch } from 'components/Search'
+import { toK } from 'utils'
+import { getProtocolsRaw, revalidate } from 'utils/dataApi'
 
 export async function getStaticProps() {
   const protocols = await getProtocolsRaw()

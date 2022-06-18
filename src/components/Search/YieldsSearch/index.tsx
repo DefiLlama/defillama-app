@@ -1,5 +1,5 @@
-import { BaseSearch } from 'components/Search/OpenSearch/BaseSearch'
-import type { IBaseSearchProps, ICommonSearchProps } from 'components/Search/OpenSearch/BaseSearch'
+import { BaseSearch } from 'components/Search/BaseSearch'
+import type { IBaseSearchProps, ICommonSearchProps } from 'components/Search/BaseSearch'
 import { useMemo } from 'react'
 import { useFetchYieldsList } from 'utils/categories/yield'
 

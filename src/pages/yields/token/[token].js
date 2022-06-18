@@ -1,6 +1,12 @@
+import { useRouter } from 'next/router'
 import Layout from 'layout'
-import { YieldsSearch } from 'components/Search/OpenSearch'
+import { YieldsSearch } from 'components/Search'
 import { CheckMarks } from 'components/SettingsModal'
+import LocalLoader from 'components/LocalLoader'
+import Filters from 'components/Filters'
+import { ListHeader, ListOptions } from 'components/ChainPage'
+import { TableWrapper, columns } from 'components/YieldsPage'
+import { NameYield } from 'components/Table'
 import {
   useNoILManager,
   useSingleExposureManager,
@@ -9,12 +15,6 @@ import {
   useAuditedManager,
 } from 'contexts/LocalStorage'
 import { useYieldPoolsData } from 'utils/dataApi'
-import { useRouter } from 'next/router'
-import LocalLoader from 'components/LocalLoader'
-import Filters from 'components/Filters'
-import { ListHeader, ListOptions } from 'components/ChainPage'
-import { TableWrapper, columns } from 'components/YieldsPage'
-import { NameYield } from 'components/Table'
 
 const YieldPage = () => {
   // load the full data once

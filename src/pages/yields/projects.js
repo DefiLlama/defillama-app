@@ -1,9 +1,9 @@
-import Layout from '../../layout'
-import { getYieldPageData, revalidate } from '../../utils/dataApi'
-import { toK, formattedPercent } from 'utils'
+import Layout from 'layout'
 import Table, { Index, NameYield } from 'components/Table'
 import PageHeader from 'components/PageHeader'
-import { YieldsSearch } from 'components/Search/OpenSearch'
+import { YieldsSearch } from 'components/Search'
+import { getYieldPageData, revalidate } from 'utils/dataApi'
+import { toK, formattedPercent } from 'utils'
 
 function median(numbers) {
   const sorted = Array.from(numbers).sort((a, b) => a - b)

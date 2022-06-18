@@ -1,8 +1,18 @@
 import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
+import { DownloadCloud } from 'react-feather'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from 'components'
 import { OptionButton } from 'components/ButtonStyled'
 import { RowBetween, AutoRow } from 'components/Row'
 import PeggedViewSwitch from 'components/PeggedViewSwitch'
+import Table, { columnsToShow } from 'components/Table'
+import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
+import { GeneralAreaChart } from 'components/TokenChart'
+import { PeggedAssetGroupOptions } from 'components/Select'
+import { PeggedSearch } from 'components/Search'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from 'hooks/data'
+import { useXl, useMed } from 'hooks/useBreakpoints'
+import { useDarkModeManager } from 'contexts/LocalStorage'
 import {
   getRandomColor,
   capitalizeFirstLetter,
@@ -14,16 +24,6 @@ import {
   toNiceCsvDate,
   download,
 } from 'utils'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from 'hooks/data'
-import { useXl, useMed } from 'hooks/useBreakpoints'
-import { DownloadCloud } from 'react-feather'
-import Table, { columnsToShow } from 'components/Table'
-import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
-import { useDarkModeManager } from 'contexts/LocalStorage'
-import { GeneralAreaChart } from 'components/TokenChart'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from 'components'
-import { PeggedAssetGroupOptions } from 'components/Select'
-import { PeggedSearch } from 'components/Search/OpenSearch'
 
 function Chart({ peggedAreaChainData, peggedAreaMcapData, totalMcapLabel, chainNames, aspect }) {
   const [darkMode] = useDarkModeManager()

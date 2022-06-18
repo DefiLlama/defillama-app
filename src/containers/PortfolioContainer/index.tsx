@@ -1,14 +1,14 @@
 import { useMemo } from 'react'
 import { ChevronDown, FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
+import { Header, TYPE } from 'Theme'
 import { Panel, ProtocolsTable } from 'components'
 import Row from 'components/Row'
-import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
-import { useIsClient } from 'hooks'
-import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
-import { Header, TYPE } from 'Theme'
+import { ProtocolsChainsSearch } from 'components/Search'
 import { columnsToShow } from 'components/Table'
 import { DropdownMenu, DropdownMenuContent, DefaultMenuButton, DefaultMenuItem } from 'components/DropdownMenu'
+import { useIsClient } from 'hooks'
+import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
 
 interface IFolder {
   isSaved?: boolean

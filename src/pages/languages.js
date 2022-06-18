@@ -1,12 +1,12 @@
-import Layout from '../layout'
-import { LANGS_API } from '../constants'
-import { toNiceMonthlyDate, getRandomColor } from '../utils'
-import { revalidate } from '../utils/dataApi'
+import { LANGS_API } from 'constants'
+import { Header } from 'Theme'
+import Layout from 'layout'
+import { Panel } from 'components'
 import { GeneralAreaChart } from 'components/TokenChart/charts'
 import { ChainDominanceChart } from 'components/Charts'
-import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
-import { Header } from 'Theme'
-import { Panel } from 'components'
+import { ProtocolsChainsSearch } from 'components/Search'
+import { toNiceMonthlyDate, getRandomColor } from 'utils'
+import { revalidate } from 'utils/dataApi'
 
 function formatDataForChart(langs) {
   const langsUnique = new Set()

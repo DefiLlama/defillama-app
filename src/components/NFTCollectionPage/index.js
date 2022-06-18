@@ -1,28 +1,24 @@
 import React from 'react'
 import styled, { css } from 'styled-components'
+import { Box as RebassBox } from 'rebass'
 import { transparentize } from 'polished'
-import { Text, Box } from 'rebass'
 import dynamic from 'next/dynamic'
-
+import { TYPE } from 'Theme'
+import Layout from 'layout'
+import { AutoRow, RowBetween } from 'components/Row'
+import Column from 'components/Column'
+import HeadHelp from 'components/HeadHelp'
+import CopyHelper from 'components/Copy'
+import { chainCoingeckoIds } from 'constants/chainTokens'
+import LocalLoader from 'components/LocalLoader'
+import { useHideLastDayManager, useDisplayUsdManager } from 'contexts/LocalStorage'
+import SEO from 'components/SEO'
+import { NFTsSearch } from 'components/Search'
+import { formattedNum, capitalizeFirstLetter } from 'utils'
 import Header from './Header'
 import Section from './Section'
 import Links from './Links'
-
-import Link, { BasicLink } from 'components/Link'
-import { formattedNum, capitalizeFirstLetter } from '../../utils'
-import { AutoRow, RowBetween } from '../../components/Row'
-import Column from '../../components/Column'
-import HeadHelp from '../../components/HeadHelp'
-import CopyHelper from '../../components/Copy'
-import { TYPE } from '../../Theme'
-import { chainCoingeckoIds } from '../../constants/chainTokens'
-import LocalLoader from 'components/LocalLoader'
-import { useHideLastDayManager, useDisplayUsdManager } from '../../contexts/LocalStorage'
-import SEO from 'components/SEO'
-import Layout from 'layout'
-import { Box as RebassBox } from 'rebass'
 import { useMedia } from 'hooks'
-import { NFTsSearch } from 'components/Search/OpenSearch'
 
 const panelPseudo = css`
   :after {
@@ -80,7 +76,7 @@ export const Panel = styled(RebassBox)`
   ${(props) => !props.last && panelPseudo}
 `
 
-const DashboardWrapper = styled(Box)`
+const DashboardWrapper = styled(RebassBox)`
   width: 100%;
 `
 
@@ -114,7 +110,7 @@ export const DetailsLayout = styled.div`
   }
 `
 
-const PanelWrapper = styled(Box)`
+const PanelWrapper = styled(RebassBox)`
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: max-content;
   gap: 6px;
@@ -133,12 +129,6 @@ const PanelWrapper = styled(Box)`
         width: 100%;
       }
     }
-  }
-`
-
-const HiddenSearch = styled.span`
-  @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
-    display: none;
   }
 `
 

@@ -1,5 +1,5 @@
-import { BaseSearch } from 'components/Search/OpenSearch/BaseSearch'
-import type { IBaseSearchProps, ICommonSearchProps } from 'components/Search/OpenSearch/BaseSearch'
+import { BaseSearch } from 'components/Search/BaseSearch'
+import type { IBaseSearchProps, ICommonSearchProps } from 'components/Search/BaseSearch'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from 'utils'

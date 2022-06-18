@@ -1,11 +1,11 @@
-import { ProtocolsTable } from 'components'
-import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
-import { columnsToShow } from 'components/Table'
-import { useCalcStakePool2Tvl } from 'hooks/data'
 import styled from 'styled-components'
 import { Header } from 'Theme'
-import Layout from '../layout'
-import { revalidate, getProtocolsPageData } from '../utils/dataApi'
+import Layout from 'layout'
+import { ProtocolsTable } from 'components'
+import { ProtocolsChainsSearch } from 'components/Search'
+import { columnsToShow } from 'components/Table'
+import { useCalcStakePool2Tvl } from 'hooks/data'
+import { revalidate, getProtocolsPageData } from 'utils/dataApi'
 
 const exclude = [
   'DeerFi',
