@@ -1,5 +1,5 @@
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { ChartWrapper } from '.'
+import { ChartWrapper } from './shared'
 import { toNiceDateYear, formattedNum, toNiceMonthlyDate } from 'utils'
 
 interface IChainColor {
@@ -70,7 +70,7 @@ export const PeggedChainDominanceChart = ({
         contentStyle={{
           padding: '10px 14px',
           borderRadius: 10,
-          borderColor: 'black',
+          borderColor: '#00000040',
           color: 'black',
         }}
       />
@@ -120,7 +120,7 @@ export const PeggedChainResponsiveDominance = ({
         contentStyle={{
           padding: '10px 14px',
           borderRadius: 10,
-          borderColor: 'black',
+          borderColor: '#00000040',
           color: 'black',
         }}
       />

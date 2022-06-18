@@ -2,7 +2,7 @@ import dynamic from 'next/dynamic'
 import { useYieldPoolData, useYieldChartData } from 'utils/dataApi'
 import Layout from 'layout'
 import { AutoColumn } from 'components/Column'
-import { AutoRow, RowBetween, RowFixed } from 'components/Row'
+import { RowFixed } from 'components/Row'
 import { TYPE } from 'Theme'
 import { toK } from 'utils'
 import { BasicLink } from 'components/Link'
@@ -13,12 +13,6 @@ import AuditInfo from 'components/AuditInfo'
 import { ButtonLight } from 'components/ButtonStyled'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
 import { YieldsSearch } from 'components/Search/OpenSearch'
-
-const HiddenSearch = styled.span`
-  @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
-    display: none;
-  }
-`
 
 const TokenDetailsLayout = styled.div`
   display: inline-grid;

@@ -1,5 +1,5 @@
 import { AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts'
-import { ChartWrapper } from '.'
+import { ChartWrapper } from './shared'
 import { toNiceDateYear, formattedNum, toNiceMonthlyDate } from 'utils'
 
 interface IChainColor {
@@ -55,6 +55,12 @@ export const ChainDominanceChart = ({
         labelFormatter={(label) => toNiceDateYear(label)}
         itemSorter={(p) => -p.value}
         labelStyle={{ color: 'black', fontWeight: '500' }}
+        contentStyle={{
+          padding: '10px 14px',
+          borderRadius: 10,
+          borderColor: '#00000040',
+          color: 'black',
+        }}
       />
       {chainsUnique.map((chainName) => (
         <Area
