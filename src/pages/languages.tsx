@@ -1,4 +1,3 @@
-import { LANGS_API } from 'constants'
 import { Header } from 'Theme'
 import Layout from 'layout'
 import { Panel } from 'components'
@@ -7,12 +6,13 @@ import { ChainDominanceChart } from 'components/Charts'
 import { ProtocolsChainsSearch } from 'components/Search'
 import { toNiceMonthlyDate, getRandomColor } from 'utils'
 import { revalidate } from 'utils/dataApi'
+import { LANGS_API } from '../constants'
 
 function formatDataForChart(langs) {
   const langsUnique = new Set()
   const daySum = {}
   const formattedLangs = Object.entries(langs)
-    .map((lang) => {
+    .map((lang: [any, string[]]) => {
       Object.keys(lang[1]).map((l) => langsUnique.add(l))
       daySum[lang[0]] = Object.values(lang[1]).reduce((t, a) => t + a)
       return {
@@ -52,7 +52,7 @@ export async function getStaticProps() {
 
 function Chart({ langs, langsUnique }) {
   return (
-    <Panel style={{ marginTop: '6px' }} sx={{ padding: ['1rem 0 0 0', '1.25rem'] }}>
+    <Panel style={{ marginTop: '6px' }}>
       <GeneralAreaChart
         aspect={60 / 22}
         finalChartData={langs}
