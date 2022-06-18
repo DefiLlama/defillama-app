@@ -354,7 +354,7 @@ const YieldPage = ({ pools, chainList }) => {
 
   return (
     <>
-      <YieldsSearch step={{ category: 'Yields', name: stepName ?? 'All chains', hideOptions: true }} />
+      <YieldsSearch step={{ category: 'Yields', name: stepName ?? 'All chains' }} />
 
       <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
 

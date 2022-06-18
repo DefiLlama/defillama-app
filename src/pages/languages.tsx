@@ -1,7 +1,7 @@
 import { Header } from 'Theme'
 import Layout from 'layout'
 import { Panel } from 'components'
-import { GeneralAreaChart } from 'components/TokenChart/charts'
+import { AreaChart } from 'components/Charts'
 import { ChainDominanceChart } from 'components/Charts'
 import { ProtocolsChainsSearch } from 'components/Search'
 import { toNiceMonthlyDate, getRandomColor } from 'utils'
@@ -53,7 +53,7 @@ export async function getStaticProps() {
 function Chart({ langs, langsUnique }) {
   return (
     <Panel style={{ marginTop: '6px' }}>
-      <GeneralAreaChart
+      <AreaChart
         aspect={60 / 22}
         finalChartData={langs}
         tokensUnique={langsUnique}

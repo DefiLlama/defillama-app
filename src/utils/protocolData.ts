@@ -1,15 +1,37 @@
-import { chainCoingeckoIds } from "constants/chainTokens"
+import { extraTvlProps } from "contexts/LocalStorage"
 
-export function buildChainBreakdown(chainTvls) {
+function buildChainBreakdown(chainTvls) {
     const timeToTvl = {}
-    Object.entries(chainTvls).forEach(([chainToAdd, tvl]) => {
-        (tvl as any).tvl.forEach((dayTvl) => {
-            timeToTvl[dayTvl.date] = {
-                ...timeToTvl[dayTvl.date],
-                [chainToAdd]: dayTvl.totalLiquidityUSD,
-            }
-        })
+
+    Object.entries(chainTvls).forEach(([chainToAdd, data]) => {
+        if (extraTvlProps.includes(chainToAdd?.toLowerCase())) return;
+
+        if (chainToAdd.includes("-") && extraTvlProps.includes(chainToAdd.split("-")[1])) {
+
+            (data as any).tvl.forEach((dayTvl) => {
+                timeToTvl[dayTvl.date] = {
+                    ...timeToTvl[dayTvl.date],
+                    extraTvl: {
+                        ...(timeToTvl[dayTvl.date]?.extraTvl ?? {}),
+                        [chainToAdd.split("-")[0]]: {
+                            ...(timeToTvl[dayTvl.date]?.extraTvl[chainToAdd.split("-")[0]] ?? {}),
+                            [chainToAdd.split("-")[1]]: dayTvl.totalLiquidityUSD
+                        },
+                    },
+
+                }
+            })
+        } else {
+            (data as any).tvl.forEach((dayTvl) => {
+                timeToTvl[dayTvl.date] = {
+                    ...timeToTvl[dayTvl.date],
+                    [chainToAdd]: dayTvl.totalLiquidityUSD,
+                }
+            })
+        }
     })
+
+
 
     const chainsStacked = Object.keys(timeToTvl)
         .sort((a, b) => Number(a) - Number(b))
@@ -18,10 +40,11 @@ export function buildChainBreakdown(chainTvls) {
             // kinda scuffed but gotta fix the datakey for chart again
             date: Number(dayDate),
         }))
+
     return chainsStacked
 }
 
-export function buildTokensBreakdown(tokensInUsd) {
+function buildTokensBreakdown(tokensInUsd) {
     const tokenSet = new Set()
     const stacked = tokensInUsd.map((dayTokens) => {
         Object.keys(dayTokens.tokens).forEach((symbol) => tokenSet.add(symbol))
@@ -35,7 +58,7 @@ export function buildTokensBreakdown(tokensInUsd) {
     return [stacked, Array.from(tokenSet)]
 }
 
-export function buildInflows(tokensInUsd, tokens) {
+function buildInflows(tokensInUsd, tokens) {
     let tokenSet = new Set()
     const usdInflows = []
     const tokenInflows = []
@@ -97,62 +120,3 @@ export const buildProtocolData = (protocolData) => {
 
     return {}
 }
-
-// const ETH_DENOMINATION = "ETH"
-// export const buildProtocolData = async (protocolData, selectedChain, denomination) => {
-//     const tvl = protocolData.tvl ?? []
-//     delete protocolData.tvl;
-//     const chainsStacked = buildChainBreakdown(protocolData.chainTvls)
-
-//     let chartData = tvl.filter((item) => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
-//     let { tokensInUsd, tokens, chainTvls } = protocolData
-//     if (selectedChain !== 'all') {
-//         chartData = chainTvls[selectedChain].tvl.map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
-//         tokens = chainTvls[selectedChain].tokens
-//         tokensInUsd = chainTvls[selectedChain].tokensInUsd
-//     }
-//     delete protocolData.chainTvls
-
-//     const chains = protocolData.chains ?? [protocolData.name]
-//     let chainDenomination = null;
-//     if (selectedChain !== 'all' || chains.length === 1) {
-//         chainDenomination = (chainCoingeckoIds[selectedChain] ?? chainCoingeckoIds[chains[0]]) ?? null
-//     }
-
-//     let data = {
-//         ...protocolData,
-//         tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
-//         tvlList: chartData,
-//         chainsStacked,
-//         tokens,
-//         chainsList: Object.keys(chainTvls),
-//         chainDenomination,
-//     }
-//     if (denomination !== null && (denomination === "ETH" || denomination === chainDenomination?.symbol)) {
-//         data.denominationPrices = (await fetch(
-//             `https://api.coingecko.com/api/v3/coins/${denomination === ETH_DENOMINATION ? 'ethereum' : chainDenomination.geckoId
-//             }/market_chart/range?vs_currency=usd&from=${chartData[0][0]}&to=${Math.floor(Date.now() / 1000)}`
-//         ).then(r => r.json())).prices;
-//     }
-//     if (protocolData.misrepresentedTokens !== true && tokensInUsd !== undefined) {
-//         try {
-//             const [tokenBreakdown, tokensUnique] = buildTokensBreakdown(tokensInUsd)
-//             const { usdInflows, tokenInflows } = buildInflows(tokensInUsd, tokens)
-//             data = {
-//                 ...data,
-//                 tokenBreakdown,
-//                 tokensUnique,
-//                 usdInflows,
-//                 tokenInflows,
-//             }
-//         } catch (e) {
-//             console.log("buildTokens", e)
-//         }
-//     }
-//     if (typeof denomination !== "string" || !denomination.startsWith("Tokens")) {
-//         data.tokens = null
-//     }
-//     delete data.tokensInUsd
-
-//     return data
-// }

@@ -442,9 +442,28 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
     return { ...data, chainsUnique }
   }, [addlProtocolData, tvlBreakdowns])
 
+  const chainsSplit = useMemo(() => {
+    return chainsStacked?.map((chain) => {
+      if (chain.extraTvl) {
+        const data = { ...chain }
+
+        for (const c in chain.extraTvl) {
+          for (const extra in chain.extraTvl[c]) {
+            if (extraTvlsEnabled[extra?.toLowerCase()]) {
+              data[c] += chain.extraTvl[c][extra]
+            }
+          }
+        }
+
+        return data
+      }
+      return chain
+    })
+  }, [chainsStacked, extraTvlsEnabled])
+
   const showCharts =
     loading ||
-    (chainsStacked && chainsUnique?.length > 1) ||
+    (chainsSplit && chainsUnique?.length > 1) ||
     (tokenBreakdown?.length > 1 && tokensUnique?.length > 1) ||
     tokensUnique?.length > 0 ||
     usdInflows ||
@@ -561,12 +580,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
           <LinksWrapper>
             <Link href={url} passHref>
-              <Button as="a" useTextColor={true} color={backgroundColor}>
+              <Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
                 <span>Website</span> <ArrowUpRight size={14} />
               </Button>
             </Link>
             <Link href={`https://twitter.com/${twitter}`} passHref>
-              <Button as="a" useTextColor={true} color={backgroundColor}>
+              <Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
                 <span>Twitter</span> <ArrowUpRight size={14} />
               </Button>
             </Link>
@@ -591,14 +610,14 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
           <LinksWrapper>
             {protocolData.gecko_id !== null && (
               <Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
-                <Button as="a" useTextColor={true} color={backgroundColor}>
+                <Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
                   <span>View on CoinGecko</span> <ArrowUpRight size={14} />
                 </Button>
               </Link>
             )}
             {blockExplorerLink !== undefined && (
               <Link href={blockExplorerLink} passHref>
-                <Button as="a" useTextColor={true} color={backgroundColor}>
+                <Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
                   <span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
                 </Button>
               </Link>
@@ -610,7 +629,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
           {methodology && <p>{methodology}</p>}
           <LinksWrapper>
             <Link href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
-              <Button as="a" useTextColor={true} color={backgroundColor}>
+              <Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
                 <span>Check the code</span>
                 <ArrowUpRight size={14} />
               </Button>
@@ -638,9 +657,9 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
               </span>
             ) : (
               <>
-                {chainsStacked && chainsUnique?.length > 1 && (
+                {chainsSplit && chainsUnique?.length > 1 && (
                   <ChartWrapper>
-                    <AreaChart chartData={chainsStacked} tokensUnique={chainsUnique} title="Chains" hideLogo={true} />
+                    <AreaChart chartData={chainsSplit} tokensUnique={chainsUnique} title="Chains" hideLogo={true} />
                   </ChartWrapper>
                 )}
                 {tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (

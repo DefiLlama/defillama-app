@@ -1,7 +1,10 @@
+import { useMemo } from 'react'
+import { useRouter } from 'next/router'
+import styled from 'styled-components'
+import { DeFiTvlOptions } from 'components/Select'
 import { BaseSearch } from 'components/Search/BaseSearch'
 import type { IBaseSearchProps, ICommonSearchProps } from 'components/Search/BaseSearch'
-import { useRouter } from 'next/router'
-import { useMemo } from 'react'
+import { DefiTvlSwitches } from 'components/SettingsModal'
 import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from 'utils'
 import { useFetchProtocolsList } from 'utils/dataApi'
 import placeholderImg from 'assets/placeholder.png'
@@ -32,11 +35,16 @@ const getNameWithSymbol = (token: IBaseSearchProps['data'][0]) => {
 
 export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
   const { includedSets = Object.values(SETS), customPath } = props
+
   const { data, loading } = useFetchProtocolsList()
+
   const { pathname } = useRouter()
+
   const searchData: IBaseSearchProps['data'] = useMemo(() => {
     const includeChains = includedSets.includes(SETS.CHAINS)
+
     const getCustomPathChains = customPath ? customPath : (name) => `/chain/${name}`
+
     const chainData: IBaseSearchProps['data'] = includeChains
       ? data?.chains?.map((name) => ({
           logo: chainIconUrl(name),
@@ -45,7 +53,9 @@ export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
         })) ?? []
       : []
     const includeProtocols = includedSets.includes(SETS.PROTOCOLS)
+
     const getCustomPathProtocols = customPath ? customPath : (name) => `/protocol/${standardizeProtocolName(name)}`
+
     const protocolData = includeProtocols
       ? data?.protocols?.map((token) => ({
           ...token,
@@ -57,6 +67,7 @@ export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
       : []
 
     const sets = pathname.startsWith('/protocol') ? [...protocolData, ...chainData] : [...chainData, ...protocolData]
+
     if (includedSets.includes(SETS.GROUPED_CHAINS)) {
       let _groupedChains = groupedChains
       if (customPath) _groupedChains = groupedChains.map((gchain) => ({ ...gchain, route: customPath(gchain.name) }))
@@ -66,5 +77,51 @@ export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
     return sets
   }, [data, pathname, customPath, includedSets])
 
-  return <BaseSearch {...props} data={searchData} loading={loading} />
+  return <BaseSearch {...props} data={searchData} loading={loading} filters={<TvlOptions />} />
 }
+
+const TvlOptions = () => {
+  return (
+    <>
+      <Filters>
+        <label>INCLUDE IN TVL:</label>
+        <Switches />
+      </Filters>
+
+      <DropdownOptions />
+    </>
+  )
+}
+
+const Switches = styled(DefiTvlSwitches)`
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+  font-size: 0.875rem;
+`
+
+const Filters = styled.section`
+  color: ${({ theme }) => theme.text1};
+  font-weight: 400;
+  font-size: 0.75rem;
+  opacity: 0.8;
+  white-space: nowrap;
+  display: none;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+  padding: 0 16px;
+
+  ${({ theme: { min2Xl } }) => min2Xl} {
+    display: flex;
+  }
+`
+
+const DropdownOptions = styled(DeFiTvlOptions)`
+  display: none;
+
+  @media screen and (min-width: ${({ theme }) => theme.bpLg}) and (max-width: ${({ theme }) => theme.bp2Xl}) {
+    display: flex;
+    padding: 0 4px;
+  }
+`
