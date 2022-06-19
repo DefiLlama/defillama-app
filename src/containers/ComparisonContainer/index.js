@@ -191,7 +191,10 @@ const TokenComparisonSearch = ({
 )
 
 const removeSymbolFromName = (nameWithSymbol) => {
-  return nameWithSymbol.split(' (')[0]
+  if (nameWithSymbol)
+    return nameWithSymbol.split(' (')[0]
+  else
+    return ""
 }
 
 function ComparisonPage(props) {
