@@ -7,6 +7,7 @@ import { lighten, darken } from 'polished'
 
 interface BasicLinkProps {
   href: string
+  style?: React.CSSProperties
   children: React.ReactNode
 }
 

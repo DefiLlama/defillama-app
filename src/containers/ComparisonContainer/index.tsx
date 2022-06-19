@@ -15,6 +15,7 @@ import { SETS } from 'components/Search/ProtocolsChainsSearch'
 import { useMedia } from 'hooks'
 import { formattedNum, standardizeProtocolName } from 'utils'
 import { useFetchProtocol, useGeckoProtocol } from 'utils/dataApi'
+import { useRouter } from 'next/router'
 
 const ComparisonDetailsLayout = styled.div`
   display: inline-grid;
@@ -91,7 +92,11 @@ const TokenColoredText = styled.span`
   color: ${({ color }) => (color ? color : 'inherit')};
 `
 
-const PriceChange = styled.span`
+interface IPriceChange {
+  priceChange?: number
+}
+
+const PriceChange = styled.span<IPriceChange>`
   color: ${({ priceChange, theme }) => (priceChange === 1 ? 'inherit' : priceChange > 1 ? theme.green1 : theme.red1)};
 `
 
@@ -156,61 +161,55 @@ const DisplayToken = ({ tokenSymbol, logo, address, price, resetDisplay }) => (
   </Wrapper>
 )
 
-const TokenComparisonSearch = ({
-  protocolAorB,
-  tokenValid,
-  tokenSymbol,
-  logo,
-  address,
-  price,
-  handleLinkPath,
-  customOnLinkClick,
-}) => (
-  <Column>
-    <ProtocolTitle mb="1rem">
-      <TokenColoredText color={protocolAorB === 'A' ? protocolAColor : protocolBColor}>
-        Protocol {protocolAorB}
-      </TokenColoredText>
-    </ProtocolTitle>
-    {tokenValid ? (
-      <DisplayToken
-        tokenSymbol={tokenSymbol}
-        logo={logo}
-        address={address}
-        price={price}
-        resetDisplay={customOnLinkClick(protocolAorB)}
-      />
-    ) : (
-      <ProtocolsChainsSearch
-        includedSets={[SETS.PROTOCOLS]}
-        customPath={handleLinkPath(protocolAorB)}
-        onItemClick={customOnLinkClick(protocolAorB)}
-      />
-    )}
-  </Column>
-)
+const removeSymbolFromName = (nameWithSymbol) => nameWithSymbol?.split(' (')[0] ?? ''
 
-const removeSymbolFromName = (nameWithSymbol) => {
-  if (nameWithSymbol)
-    return nameWithSymbol.split(' (')[0]
-  else
-    return ""
+const TokenComparisonSearch = ({ protocolAorB, tokenValid, tokenSymbol, logo, address, price }) => {
+  const router = useRouter()
+
+  const { protocolA, protocolB } = router.query
+
+  const linkPath = (protocolAorB) => (clickedProtocol) => {
+    return `/comparison?protocolA=${standardizeProtocolName(
+      removeSymbolFromName(protocolAorB === 'A' ? clickedProtocol : protocolA)
+    )}&protocolB=${standardizeProtocolName(removeSymbolFromName(protocolAorB === 'B' ? clickedProtocol : protocolB))}`
+  }
+
+  const resetToken = (protocolAorB) => () => {
+    const path = `/comparison?protocolA=${standardizeProtocolName(
+      removeSymbolFromName(protocolAorB === 'A' ? '' : protocolA)
+    )}&protocolB=${standardizeProtocolName(removeSymbolFromName(protocolAorB === 'B' ? '' : protocolB))}`
+
+    router.push(path, undefined, { shallow: true })
+  }
+
+  return (
+    <Column>
+      <ProtocolTitle mb="1rem">
+        <TokenColoredText color={protocolAorB === 'A' ? protocolAColor : protocolBColor}>
+          Protocol {protocolAorB}
+        </TokenColoredText>
+      </ProtocolTitle>
+      {tokenValid ? (
+        <DisplayToken
+          tokenSymbol={tokenSymbol}
+          logo={logo}
+          address={address}
+          price={price}
+          resetDisplay={resetToken(protocolAorB)}
+        />
+      ) : (
+        <ProtocolsChainsSearch includedSets={[SETS.PROTOCOLS]} customPath={linkPath(protocolAorB)} />
+      )}
+    </Column>
+  )
 }
 
 function ComparisonPage(props) {
-  const { title, protocolA: protocolARouteParam, protocolB: protocolBRouteParam, protocolsMcapTvl } = props
-  const [protocolA, setProtocolA] = useState(protocolARouteParam)
-  const [protocolB, setProtocolB] = useState(protocolBRouteParam)
+  const { title, protocolsMcapTvl } = props
 
-  // Added to initialize protocolA and protocolB from props, on initial render is undefined and useState only initializes the first render
-  // Do this only when state is undefined
-  // https://stackoverflow.com/questions/58818727/react-usestate-not-setting-initial-value
-  useEffect(() => {
-    if (!protocolA) setProtocolA(props.protocolA)
-  }, [props.protocolA])
-  useEffect(() => {
-    if (!protocolB) setProtocolB(props.protocolB)
-  }, [props.protocolB])
+  const router = useRouter()
+
+  const { protocolA, protocolB } = router.query
 
   const below400 = useMedia('(max-width: 400px)')
   const below1024 = useMedia('(max-width: 1024px)')
@@ -250,35 +249,12 @@ function ComparisonPage(props) {
   const tokenAValid = validTokenData(tokenAData)
   const tokenBValid = validTokenData(tokenBData)
 
-  const handleLinkPath = (protocolAorB) => (clickedProtocol) => {
-    const protocolName = standardizeProtocolName(clickedProtocol)
-    if (protocolAorB === 'A') {
-      return `/comparison?protocolA=${protocolName}&protocolB=${protocolB || ''}`
-    } else {
-      return `/comparison?protocolA=${protocolA || ''}&protocolB=${protocolName}`
-    }
-  }
-
   const handleSwapLinkPath = () => {
     const comparisonRoute = '/comparison'
     // If doesn't have two protocols stay on same page
-    if (!tokenAValid || !tokenBValid) return ''
-    return `${comparisonRoute}?protocolA=${protocolB}&protocolB=${protocolA}`
-  }
+    if (!tokenAValid || !tokenBValid) return comparisonRoute
 
-  // Update protocol to correct order based off of pathname from user clicking switch button
-  useEffect(() => {
-    if (protocolA !== protocolARouteParam && tokenAValid && tokenBValid) {
-      setProtocolA(protocolARouteParam)
-    }
-    if (protocolB !== protocolBRouteParam && tokenAValid && tokenBValid) {
-      setProtocolB(protocolBRouteParam)
-    }
-  }, [protocolA, protocolARouteParam, protocolB, protocolBRouteParam, tokenAValid, tokenBValid])
-
-  const customOnLinkClick = (protocolAorB) => (token) => {
-    if (protocolAorB === 'A') return setProtocolA(standardizeProtocolName(removeSymbolFromName(token?.name)))
-    return setProtocolB(standardizeProtocolName(removeSymbolFromName(token?.name)))
+    return `${comparisonRoute}?protocolA=${protocolB || ''}&protocolB=${protocolA || ''}`
   }
 
   return (
@@ -299,14 +275,12 @@ function ComparisonPage(props) {
             logo={tokenALogo}
             address={tokenAAddress}
             price={tokenAPrice}
-            handleLinkPath={handleLinkPath}
-            customOnLinkClick={customOnLinkClick}
           />
-          <Column>
-            <BasicLink style={{ margin: '2rem auto 0' }} href={handleSwapLinkPath()}>
-              <SwapProtocolsIcon onClick={handleSwapLinkPath} />
-            </BasicLink>
-          </Column>
+
+          <BasicLink style={{ margin: '2rem auto 0' }} href={handleSwapLinkPath()}>
+            <SwapProtocolsIcon onClick={handleSwapLinkPath} />
+          </BasicLink>
+
           <TokenComparisonSearch
             protocolAorB="B"
             tokenValid={tokenBValid}
@@ -314,18 +288,16 @@ function ComparisonPage(props) {
             logo={tokenBLogo}
             address={tokenBAddress}
             price={tokenBPrice}
-            handleLinkPath={handleLinkPath}
-            customOnLinkClick={customOnLinkClick}
           />
         </ComparisonDetailsLayout>
       </RowBetween>
       {(loadingA || loadingB) && (
         <AutoRow style={{ gap: '1rem', justifyContent: 'center' }}>
-          <Loader style={{ width: 'fit-content' }} />{' '}
+          <Loader style={{ width: 'fit-content' }} />
         </AutoRow>
       )}
       {tokenAValid && tokenBValid && (
-        <PriceResultPanel margin="auto" rounded p={20}>
+        <PriceResultPanel>
           <Column style={{ gap: '1rem' }}>
             <TYPE.main>
               {tokenAFormattedSymbol} price with the Mcap/TVL of {tokenBFormattedSymbol}

@@ -3,7 +3,6 @@ import ComparisonContainer from 'containers/ComparisonContainer'
 import { PROTOCOLS_API } from 'constants/index'
 import { standardizeProtocolName } from 'utils'
 import { revalidate } from 'utils/dataApi'
-import { useRouter } from 'next/router'
 
 export async function getStaticProps() {
   const res = await fetch(PROTOCOLS_API).then((res) => res.json())
@@ -25,16 +24,5 @@ export async function getStaticProps() {
 }
 
 export default function Protocols({ protocolsMcapTvl }) {
-  const router = useRouter()
-
-  const { protocolA, protocolB } = router.query
-
-  return (
-    <ComparisonContainer
-      title="Protocol Price Comparison - DefiLlama"
-      protocolsMcapTvl={protocolsMcapTvl}
-      protocolA={protocolA}
-      protocolB={protocolB}
-    />
-  )
+  return <ComparisonContainer title="Protocol Price Comparison - DefiLlama" protocolsMcapTvl={protocolsMcapTvl} />
 }

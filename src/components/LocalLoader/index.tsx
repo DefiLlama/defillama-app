@@ -1,16 +1,17 @@
-import React from 'react'
+import * as React from 'react'
 import Image from 'next/image'
 import styled, { css, keyframes } from 'styled-components'
 import { useNFTApp } from '../../hooks'
 import DefiLogo from 'assets/logo_white.webp'
 import NFTLogo from 'assets/nft_logo_white.webp'
+
 const rotate = keyframes`
   0% { transform: scale(1); }
   60% { transform: scale(1.1); }
   100% { transform: scale(1); }
 `
 
-const Loader = styled.div`
+const Loader = styled.div<ILocalLoaderProps>`
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -21,8 +22,8 @@ const Loader = styled.div`
   & > * {
     width: 72px;
   }
-  ${props =>
-    props.fill && !props.height
+  ${(props) =>
+    props.fill
       ? css`
           height: 100vh;
         `
@@ -31,7 +32,12 @@ const Loader = styled.div`
         `}
 `
 
-const LocalLoader = ({ fill, ...props }) => {
+interface ILocalLoaderProps {
+  fill?: boolean
+  style?: React.CSSProperties
+}
+
+const LocalLoader = ({ fill, ...props }: ILocalLoaderProps) => {
   const isNFTApp = useNFTApp()
 
   return (
