@@ -46,7 +46,7 @@ const Popover = styled(ComboboxPopover)`
   outline: ${({ theme }) => '1px solid ' + theme.text5};
   box-shadow: ${({ theme }) => theme.shadowLg};
   margin: 0;
-
+  transform: translate(0px, -5px);
   ${({ theme: { minLg } }) => minLg} {
     max-height: 320px;
   }
