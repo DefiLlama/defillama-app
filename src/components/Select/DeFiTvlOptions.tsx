@@ -10,13 +10,17 @@ import {
   SelectArrow,
   SelectItemCheck,
 } from 'ariakit/select'
-import { useRouter } from 'next/router'
 
 export const WrapperWithLabel = styled.div`
-  display: flex;
+  display: none;
   gap: 8px;
   align-items: center;
   margin-left: auto;
+
+  @media (min-width: ${({ theme }) => theme.bpLg}) and (max-width: ${({ theme }) => theme.bp2Xl}) {
+    display: flex;
+    padding: 0 4px;
+  }
 `
 
 export const Label = styled(SelectLabel)`
@@ -88,20 +92,18 @@ function renderValue(value: string[]) {
   return `${value.length} options selected`
 }
 
-export function DeFiTvlOptions(props) {
-  const tvlToggles = useTvlToggles()
+interface IProps {
+  options?: { name: string; key: string }[]
+}
 
-  const router = useRouter()
+export function DeFiTvlOptions({ options, ...props }: IProps) {
+  const tvlToggles = useTvlToggles()
 
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
   const fitlers = { ...extraTvlsEnabled }
 
-  let options = extraTvls.map((e) => e.value)
-
-  if (router.pathname?.includes('/protocol/')) {
-    options = options.filter((o) => o !== 'doublecounted')
-  }
+  let tvlOptions = options?.map((e) => e.key) ?? extraTvls.map((e) => e.value)
 
   const selectedOptions = Object.keys(fitlers).filter((key) => fitlers[key])
 
@@ -132,7 +134,7 @@ export function DeFiTvlOptions(props) {
       </SelectMenu>
       {select.mounted && (
         <Popover state={select}>
-          {options.map((value) => (
+          {tvlOptions.map((value) => (
             <Item key={value} value={value}>
               <SelectItemCheck />
               {renderValue([value])}

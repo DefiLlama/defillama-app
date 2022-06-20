@@ -24,6 +24,7 @@ import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from 'util
 import { useFetchProtocol } from 'utils/dataApi'
 import { buildProtocolData } from 'utils/protocolData'
 import boboLogo from '../../assets/boboSmug.png'
+import { extraTvlOptions } from 'components/SettingsModal'
 
 defaultFallbackInView(true)
 
@@ -423,14 +424,19 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const extraTvls = []
   const tvls = []
+  const tvlOptions = []
 
   const tvlToggles = useTvlToggles()
+
   const extraTvlsEnabled = useGetExtraTvlEnabled()
 
   tvlByChain.forEach((t) => {
     if (isLowerCase(t[0][0]) && extraTvlProps.includes(t[0])) {
       // hide extra tvls with 0 balances
-      t[1] !== 0 && extraTvls.push(t)
+      if (t[1] !== 0) {
+        extraTvls.push(t)
+        tvlOptions.push(extraTvlOptions.find((e) => e.key === t[0]))
+      }
     } else !t[0].includes('-') && t[0] !== 'masterchef' && tvls.push(t)
   })
 
@@ -476,7 +482,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
       <SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
 
-      <ProtocolsChainsSearch step={{ category: 'Protocols', name, hideOptions: true }} />
+      <ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
 
       <Stats>
         <ProtocolDetails>

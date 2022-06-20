@@ -405,22 +405,17 @@ export default function Menu({ type = 'defi', ...props }) {
   )
 }
 
-export const DefiTvlSwitches = (props) => {
+export const DefiTvlSwitches = ({ options, ...props }) => {
   const tvlToggles = useTvlToggles()
   const extraTvlEnabled = useGetExtraTvlEnabled()
-  const router = useRouter()
 
-  let options = [...extraTvlOptions]
-
-  if (router.pathname?.includes('/protocol/')) {
-    options = options.filter((o) => o.key !== 'doublecounted')
-  }
+  let tvlOptions = options || [...extraTvlOptions]
 
   return (
     <ScrollAreaRoot>
       <ScrollAreaViewport>
         <ListWrapper {...props}>
-          {options.map((option) => (
+          {tvlOptions.map((option) => (
             <ListItem key={option.key}>
               <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
             </ListItem>

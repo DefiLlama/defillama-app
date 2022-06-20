@@ -26,6 +26,7 @@ export enum SETS {
 interface IProtocolsChainsSearch extends ICommonSearchProps {
   includedSets?: SETS[]
   customPath?: IBaseSearchProps['customPath']
+  options: { name: string; key: string }[]
 }
 
 const getNameWithSymbol = (token: IBaseSearchProps['data'][0]) => {
@@ -34,7 +35,7 @@ const getNameWithSymbol = (token: IBaseSearchProps['data'][0]) => {
 }
 
 export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
-  const { includedSets = Object.values(SETS), customPath } = props
+  const { includedSets = Object.values(SETS), customPath, options } = props
 
   const { data, loading } = useFetchProtocolsList()
 
@@ -77,18 +78,22 @@ export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
     return sets
   }, [data, pathname, customPath, includedSets])
 
-  return <BaseSearch {...props} data={searchData} loading={loading} filters={<TvlOptions />} />
+  return <BaseSearch {...props} data={searchData} loading={loading} filters={<TvlOptions options={options} />} />
 }
 
-const TvlOptions = () => {
+const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) => {
+  const router = useRouter()
+
+  if (router.pathname?.includes('/protocol/') && (!options || options.length === 0)) return null
+
   return (
     <>
       <Filters>
         <label>INCLUDE IN TVL:</label>
-        <Switches />
+        <Switches options={options} />
       </Filters>
 
-      <DropdownOptions />
+      <DeFiTvlOptions options={options} />
     </>
   )
 }
@@ -112,16 +117,7 @@ const Filters = styled.section`
   margin-left: auto;
   padding: 0 16px;
 
-  ${({ theme: { min2Xl } }) => min2Xl} {
+  @media (min-width: 96.0625rem) {
     display: flex;
-  }
-`
-
-const DropdownOptions = styled(DeFiTvlOptions)`
-  display: none;
-
-  @media screen and (min-width: ${({ theme }) => theme.bpLg}) and (max-width: ${({ theme }) => theme.bp2Xl}) {
-    display: flex;
-    padding: 0 4px;
   }
 `
