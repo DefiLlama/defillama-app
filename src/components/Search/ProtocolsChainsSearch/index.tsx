@@ -26,7 +26,7 @@ export enum SETS {
 interface IProtocolsChainsSearch extends ICommonSearchProps {
   includedSets?: SETS[]
   customPath?: IBaseSearchProps['customPath']
-  options: { name: string; key: string }[]
+  options?: { name: string; key: string }[]
 }
 
 const getNameWithSymbol = (token: IBaseSearchProps['data'][0]) => {
