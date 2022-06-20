@@ -26,20 +26,9 @@ interface IResponseNFTSearchAPI {
 
 interface ICollectionApiResponse {
   data: {
-    address: string
-    category: string
-    chains: string[]
-    dailyVolume: number
-    dailyVolumeUSD: number
-    floor: number
-    floorUSD: number
     logo: string
-    marketplaces: string[]
     name: string
-    owners: number
     slug: string
-    totalVolume: number
-    totalVolumeUSD: number
   }[]
   hits: null
 }

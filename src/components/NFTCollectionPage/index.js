@@ -15,10 +15,10 @@ import { useHideLastDayManager, useDisplayUsdManager } from 'contexts/LocalStora
 import SEO from 'components/SEO'
 import { NFTsSearch } from 'components/Search'
 import { formattedNum, capitalizeFirstLetter } from 'utils'
-import Header from './Header'
 import Section from './Section'
 import Links from './Links'
-import { useMedia } from 'hooks'
+import TokenLogo from 'components/TokenLogo'
+import FormattedName from 'components/FormattedName'
 
 const panelPseudo = css`
   :after {
@@ -132,6 +132,20 @@ const PanelWrapper = styled(RebassBox)`
   }
 `
 
+const Header = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0;
+    word-break: break-all;
+  }
+`
+
 const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
   ssr: false,
 })
@@ -139,7 +153,6 @@ const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
 function NFTCollectionPage({ collection, chart, statistics, title, backgroundColor }) {
   const [hideLastDay] = useHideLastDayManager()
   const [displayUsd] = useDisplayUsdManager()
-  const below1024 = useMedia('(max-width: 1024px)')
 
   const {
     chains,
@@ -229,7 +242,10 @@ function NFTCollectionPage({ collection, chart, statistics, title, backgroundCol
       <NFTsSearch step={{ category: 'NFTs', name: name }} />
 
       <DashboardWrapper>
-        <Header address={address} below1024={below1024} logo={logo} name={name} />
+        <Header>
+          <TokenLogo logo={logo} size={24} external />
+          <h1>{name}</h1>
+        </Header>
         <PanelWrapper>
           <Section title="Market Cap" content={marketCapSection} />
           <Section title="Total Volume" content={totalVolumeSection} />
