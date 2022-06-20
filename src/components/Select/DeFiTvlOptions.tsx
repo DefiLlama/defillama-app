@@ -1,17 +1,10 @@
+import styled from 'styled-components'
+import { SelectLabel, useSelectState, SelectArrow, SelectItemCheck } from 'ariakit/select'
 import { extraTvlOptions } from 'components/SettingsModal'
 import { useGetExtraTvlEnabled, useTvlToggles } from 'contexts/LocalStorage'
-import styled from 'styled-components'
-import {
-  Select as AriaSelect,
-  SelectItem,
-  SelectLabel,
-  SelectPopover,
-  useSelectState,
-  SelectArrow,
-  SelectItemCheck,
-} from 'ariakit/select'
+import { Item, Popover, SelectMenu } from './AriakitSelect'
 
-export const WrapperWithLabel = styled.div`
+const WrapperWithLabel = styled.div`
   display: none;
   gap: 8px;
   align-items: center;
@@ -23,65 +16,12 @@ export const WrapperWithLabel = styled.div`
   }
 `
 
-export const Label = styled(SelectLabel)`
+const Label = styled(SelectLabel)`
   color: ${({ theme }) => theme.text1};
   font-weight: 400;
   font-size: 0.75rem;
   opacity: 0.8;
   white-space: nowrap;
-`
-
-export const SelectMenu = styled(AriaSelect)`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  background: ${({ theme }) => theme.bg6};
-  color: ${({ theme }) => theme.text1};
-  padding: 12px;
-  border-radius: 12px;
-  border: none;
-  margin: 0;
-  width: 200px;
-
-  & > *:first-child {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  :focus-visible,
-  &[data-focus-visible] {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
-`
-export const Popover = styled(SelectPopover)`
-  background: ${({ theme }) => theme.bg6};
-  color: ${({ theme }) => theme.text1};
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-  box-shadow: ${({ theme }) => theme.shadowLg};
-  margin: 0;
-  z-index: 10;
-  outline: ${({ theme }) => '1px solid ' + theme.text5};
-`
-export const Item = styled(SelectItem)`
-  padding: 12px 4px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-
-  :hover,
-  &[data-focus-visible] {
-    outline: none;
-    background: ${({ theme }) => theme.bg3};
-  }
-
-  &:last-of-type {
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
-  }
 `
 
 const extraTvls = extraTvlOptions.map((g) => ({ label: g.name, value: g.key }))

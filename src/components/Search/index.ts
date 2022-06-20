@@ -1,6 +1,5 @@
-import NFTsSearch from './NFTsSearch'
-import YieldsSearch from './YieldsSearch'
-import PeggedSearch from './PeggedSearch'
-import ProtocolsChainsSearch from './ProtocolsChainsSearch'
+export { default as NFTsSearch } from './NFTsSearch'
+export { default as YieldsSearch } from './YieldsSearch'
+export { default as PeggedSearch } from './PeggedSearch'
+export { default as ProtocolsChainsSearch } from './ProtocolsChainsSearch'
 
-export { NFTsSearch, YieldsSearch, PeggedSearch, ProtocolsChainsSearch }
