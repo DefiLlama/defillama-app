@@ -8,7 +8,7 @@ import {
   DataZoomComponent,
   GraphicComponent,
 } from 'echarts/components'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toK } from 'utils'
 import { v4 as uuid } from 'uuid'
 import { stringToColour } from './utils'
@@ -18,6 +18,7 @@ import logoLight from '../../../public/defillama-press-kit/defi/PNG/defillama-li
 import logoDark from '../../../public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { IChartProps } from './types'
 import { useMedia } from 'hooks'
+import { CustomLegend } from './shared'
 
 echarts.use([
   CanvasRenderer,
@@ -41,6 +42,8 @@ export default function AreaChart({
   color,
   hideLogo = false,
 }: IChartProps) {
+  const [legendOptions, setLegendOptions] = useState(tokensUnique)
+
   const id = useMemo(() => uuid(), [])
 
   const [isDark] = useDarkModeManager()
@@ -102,14 +105,16 @@ export default function AreaChart({
       })
 
       chartData.forEach(({ date, ...item }) => {
-        tokensUnique.forEach((token) =>
-          series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
-        )
+        tokensUnique.forEach((token) => {
+          if (legendOptions.includes(token)) {
+            series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
+          }
+        })
       })
 
       return series
     }
-  }, [chartData, tokensUnique, color, isDark])
+  }, [chartData, tokensUnique, color, isDark, legendOptions])
 
   const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -279,5 +284,19 @@ export default function AreaChart({
     }
   }, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance, hideLogo])
 
-  return <Wrapper id={id} style={{ height: '360px', margin: 'auto 0' }}></Wrapper>
+  const legendTitle = title === 'Chains' ? 'Chain' : 'Token'
+
+  return (
+    <div style={{ position: 'relative' }}>
+      {tokensUnique?.length > 1 && (
+        <CustomLegend
+          allOptions={tokensUnique}
+          options={legendOptions}
+          setOptions={setLegendOptions}
+          title={legendTitle + (legendOptions.length !== 1 ? 's' : '')}
+        />
+      )}
+      <Wrapper id={id} style={{ height: '360px', margin: 'auto 0' }}></Wrapper>
+    </div>
+  )
 }

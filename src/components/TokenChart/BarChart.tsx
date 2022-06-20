@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { BarChart as EBarChart } from 'echarts/charts'
@@ -8,11 +8,14 @@ import { toK } from 'utils'
 import { v4 as uuid } from 'uuid'
 import { stringToColour } from './utils'
 import { IChartProps } from './types'
+import { CustomLegend } from './shared'
 
 echarts.use([EBarChart, CanvasRenderer, TitleComponent])
 
 export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', title, color }: IChartProps) {
   const id = useMemo(() => uuid(), [])
+
+  const [legendOptions, setLegendOptions] = useState(tokensUnique)
 
   const [isDark] = useDarkModeManager()
 
@@ -57,14 +60,16 @@ export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', t
       })
 
       chartData.forEach(({ date, ...item }) => {
-        tokensUnique.forEach((token) =>
-          series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
-        )
+        tokensUnique.forEach((token) => {
+          if (legendOptions.includes(token)) {
+            series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
+          }
+        })
       })
 
       return series
     }
-  }, [chartData, color, tokensUnique])
+  }, [chartData, color, tokensUnique, legendOptions])
 
   const createInstance = useCallback(() => {
     const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -219,5 +224,17 @@ export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', t
     }
   }, [id, moneySymbol, title, createInstance, series, isDark, color])
 
-  return <div id={id} style={{ height: '360px', margin: 'auto 0' }}></div>
+  return (
+    <div style={{ position: 'relative' }}>
+      {tokensUnique?.length > 1 && (
+        <CustomLegend
+          allOptions={tokensUnique}
+          options={legendOptions}
+          setOptions={setLegendOptions}
+          title={legendOptions.length === 1 ? 'Token' : 'Tokens'}
+        />
+      )}
+      <div id={id} style={{ height: '360px', margin: 'auto 0' }}></div>
+    </div>
+  )
 }
