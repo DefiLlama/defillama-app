@@ -136,7 +136,7 @@ const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
   ssr: false,
 })
 
-function NFTCollectionPage({ collections, collection, chart, statistics, title, backgroundColor }) {
+function NFTCollectionPage({ collection, chart, statistics, title, backgroundColor }) {
   const [hideLastDay] = useHideLastDayManager()
   const [displayUsd] = useDisplayUsdManager()
   const below1024 = useMedia('(max-width: 1024px)')
@@ -226,7 +226,8 @@ function NFTCollectionPage({ collections, collection, chart, statistics, title, 
     <Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)}>
       <SEO cardName={name} logo={logo} nftPage />
 
-      <NFTsSearch preLoadedSearch={collections} step={{ category: 'NFTs', name: name }} />
+      <NFTsSearch step={{ category: 'NFTs', name: name }} />
+
       <DashboardWrapper>
         <Header address={address} below1024={below1024} logo={logo} name={name} />
         <PanelWrapper>
