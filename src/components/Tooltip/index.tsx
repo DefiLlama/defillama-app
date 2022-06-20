@@ -24,7 +24,7 @@ const TooltipTrigger = styled(Button)`
 
 const TooltipPopver = styled(AriaTooltip)`
   font-size: 0.85rem;
-  padding: 8px;
+  padding: 1em;
   color: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(0, 0%, 100%)' : 'hsl(204, 10%, 10%)')};
   background: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 12%)' : 'hsl(204, 20%, 100%)')};
   border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 32%)' : 'hsl(204, 20%, 88%)')};

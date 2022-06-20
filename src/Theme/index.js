@@ -67,6 +67,10 @@ const theme = (darkMode, color) => ({
   secondary2: darkMode ? '#17000b26' : '#F6DDE8',
   secondary3: darkMode ? '#17000b26' : '#FDEAF1',
 
+  // scrollbar
+  scrollbarTrackColor: 'rgba(0, 0, 0, 0)',
+  scrollbarThumbColor: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
+
   // other
   red1: '#FF6871',
   green1: '#27AE60',
@@ -219,5 +223,27 @@ export const GlobalStyle = createGlobalStyle`
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border-width: 0;
+  }
+
+  /* ===== Scrollbar CSS ===== */
+  /* Firefox */
+  * {
+    scrollbar-width: auto;
+    scrollbar-color: ${({ theme }) => theme.scrollbarThumbColor} ${({ theme }) => theme.scrollbarTrackColor};
+  }
+
+  /* Chrome, Edge, and Safari */
+  *::-webkit-scrollbar {
+    width: 0.64em;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: ${({ theme }) => theme.scrollbarTrackColor};
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: ${({ theme }) => theme.scrollbarThumbColor};
+    border-radius: 0.71em;
+    border: 0px;
   }
 `
