@@ -1,16 +1,9 @@
-import { ButtonDark, ButtonLight } from 'components/ButtonStyled'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from 'components/DropdownMenu'
-import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import styled from 'styled-components'
-import { ChevronDown } from 'react-feather'
 import { useRouter } from 'next/router'
+import Link from 'next/link'
+import styled from 'styled-components'
+import { ButtonDark, ButtonLight } from 'components/ButtonStyled'
+import { MenuCombobox } from 'components/DropdownMenu'
 
 interface IFilterOption {
   label: string
@@ -135,22 +128,10 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
         </Wrapper>
       )}
       {menuFilters && (
-        <DropdownMenu>
-          <DropdownMenuTrigger style={{ width: '8rem', margin: '4px', marginLeft: !filters ? 'auto' : '4px' }}>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {menuFilters.find((label) => label.label === activeLabel) ? activeLabel : 'Others'}
-            </span>
-            <ChevronDown size={16} style={{ flexShrink: '0' }} />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent sideOffset={5}>
-            <DropdownMenuLabel>Others</DropdownMenuLabel>
-            {menuFilters.map((o) => (
-              <DropdownMenuItem key={o.to} onSelect={() => router.push(o.to)} role="link">
-                {o.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <MenuCombobox
+          name={menuFilters.find((label) => label.label === activeLabel) ? activeLabel : 'Others'}
+          options={menuFilters}
+        />
       )}
     </>
   )

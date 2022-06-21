@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
-import { ChevronDown, FolderPlus, Trash2 } from 'react-feather'
+import { FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
 import { Header, TYPE } from 'Theme'
 import { Panel } from 'components'
 import Row from 'components/Row'
-import { DropdownMenu, DropdownMenuContent, DefaultMenuButton, DefaultMenuItem } from 'components/DropdownMenu'
+import { Menu } from 'components/DropdownMenu'
 import { columns, TableWrapper } from 'components/YieldsPage'
 import { YieldsSearch } from 'components/Search'
 import { useIsClient } from 'hooks'
@@ -87,19 +87,7 @@ function PortfolioContainer({ protocolsDict }) {
 
       <Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
         <TYPE.main>Current portfolio:</TYPE.main>
-        <DropdownMenu>
-          <DefaultMenuButton>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedPortfolio}</span>
-            <ChevronDown size={16} style={{ flexShrink: '0' }} />
-          </DefaultMenuButton>
-          <DropdownMenuContent sideOffset={5}>
-            {portfolios.map((o) => (
-              <DefaultMenuItem key={o} onSelect={() => setSelectedPortfolio(o)}>
-                {o}
-              </DefaultMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Menu name={selectedPortfolio} options={portfolios} onItemClick={(value) => setSelectedPortfolio(value)} />
         <StyledFolderPlus onClick={onFolderClick} />
         {selectedPortfolio !== DEFAULT_PORTFOLIO && <StyledTrash onClick={onTrashClick} />}
       </Row>

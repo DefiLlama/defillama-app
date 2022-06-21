@@ -1,7 +1,6 @@
-import { DefaultMenuButton, DropdownMenuContent, DropdownMenu, DefaultMenuItem } from 'components/DropdownMenu'
+import { Menu } from 'components/DropdownMenu'
 import HeadHelp from 'components/HeadHelp'
 import React from 'react'
-import { ChevronDown } from 'react-feather'
 import styled from 'styled-components'
 
 const Audits = styled.section`
@@ -21,25 +20,7 @@ const AuditInfo = ({ audits, auditLinks = [], color, ...props }: IProps) => {
     <Audits {...props}>
       <HeadHelp title="Audits" text="Audits are not a guarantee of security." />
       <span>:</span>
-      {audits > 0 ? (
-        <DropdownMenu>
-          <DefaultMenuButton color={color}>
-            <span>Yes</span>
-            <ChevronDown size={14} />
-          </DefaultMenuButton>
-          <DropdownMenuContent sideOffset={5} style={{ maxWidth: '300px' }}>
-            {auditLinks?.map((d) => (
-              <DefaultMenuItem key={d}>
-                <a href={d} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>
-                  {d}
-                </a>
-              </DefaultMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : (
-        <span>No</span>
-      )}
+      {audits > 0 ? <Menu name="Yes" options={auditLinks} color={color} isExternal /> : <span>No</span>}
     </Audits>
   )
 }
