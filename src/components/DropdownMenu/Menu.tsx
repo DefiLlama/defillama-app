@@ -20,23 +20,21 @@ export function Menu({ options, name, color, isExternal, onItemClick }: IMenuPro
         <MenuButtonArrow />
       </Button>
       <Popover state={menu} className="menu">
-        {options.map((value, i) => (
-          <>
-            {onItemClick ? (
-              <Item as="button" onClick={() => onItemClick(value)}>
-                {value}
-              </Item>
-            ) : isExternal ? (
-              <a href={value} target="_blank" rel="noopener noreferrer" key={value + i}>
-                <Item>{value}</Item>
-              </a>
-            ) : (
-              <Link href={value} key={value + i} passHref>
-                <Item>{value}</Item>
-              </Link>
-            )}
-          </>
-        ))}
+        {options.map((value, i) => {
+          return onItemClick ? (
+            <Item as="button" key={value + i} onClick={() => onItemClick(value)}>
+              {value}
+            </Item>
+          ) : isExternal ? (
+            <a href={value} target="_blank" rel="noopener noreferrer" key={value + i}>
+              <Item>{value}</Item>
+            </a>
+          ) : (
+            <Link href={value} key={value + i} passHref>
+              <Item>{value}</Item>
+            </Link>
+          )
+        })}
       </Popover>
     </>
   )
