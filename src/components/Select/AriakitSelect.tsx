@@ -26,6 +26,11 @@ export const SelectMenu = styled(AriaSelect)`
   }
 `
 export const Popover = styled(SelectPopover)`
+  display: flex;
+  flex-direction: column;
+  overscroll-behavior: contain;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 15%));
+  overflow: auto;
   background: ${({ theme }) => theme.bg6};
   color: ${({ theme }) => theme.text1};
   border-bottom-left-radius: 12px;
@@ -34,6 +39,11 @@ export const Popover = styled(SelectPopover)`
   margin: 0;
   z-index: 10;
   outline: ${({ theme }) => '1px solid ' + theme.text5};
+  color: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(0, 0%, 100%)' : 'hsl(204, 10%, 10%)')};
+  background: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 12%)' : 'hsl(204, 20%, 100%)')};
+  border-radius: 8px;
+  filter: ${({ theme }) =>
+    theme.mode === 'dark' ? 'drop-shadow(0 4px 6px rgba(0, 0, 0, 40%))' : 'drop-shadow(0 4px 6px rgba(0, 0, 0, 15%))'};
 `
 export const Item = styled(SelectItem)`
   padding: 12px 4px;

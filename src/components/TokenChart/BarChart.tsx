@@ -8,7 +8,7 @@ import { toK } from 'utils'
 import { v4 as uuid } from 'uuid'
 import { stringToColour } from './utils'
 import { IChartProps } from './types'
-import { CustomLegend } from './shared'
+import { SelectLegendMultiple } from './shared'
 
 echarts.use([EBarChart, CanvasRenderer, TitleComponent])
 
@@ -227,7 +227,7 @@ export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', t
   return (
     <div style={{ position: 'relative' }}>
       {tokensUnique?.length > 1 && (
-        <CustomLegend
+        <SelectLegendMultiple
           allOptions={tokensUnique}
           options={legendOptions}
           setOptions={setLegendOptions}

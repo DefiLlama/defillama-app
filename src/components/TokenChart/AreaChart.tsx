@@ -18,7 +18,7 @@ import logoLight from '../../../public/defillama-press-kit/defi/PNG/defillama-li
 import logoDark from '../../../public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { IChartProps } from './types'
 import { useMedia } from 'hooks'
-import { CustomLegend } from './shared'
+import { SelectLegend, SelectLegendMultiple } from './shared'
 
 echarts.use([
   CanvasRenderer,
@@ -42,7 +42,10 @@ export default function AreaChart({
   color,
   hideLogo = false,
 }: IChartProps) {
-  const [legendOptions, setLegendOptions] = useState(tokensUnique)
+  // For Tokens Chart
+  const [legendOptions, setLegendOptions] = useState<string[]>(
+    title === 'Chains' ? (tokensUnique?.length > 0 ? [tokensUnique[0]] : []) : tokensUnique
+  )
 
   const id = useMemo(() => uuid(), [])
 
@@ -289,12 +292,22 @@ export default function AreaChart({
   return (
     <div style={{ position: 'relative' }}>
       {tokensUnique?.length > 1 && (
-        <CustomLegend
-          allOptions={tokensUnique}
-          options={legendOptions}
-          setOptions={setLegendOptions}
-          title={legendTitle + (legendOptions.length !== 1 ? 's' : '')}
-        />
+        <>
+          {title === 'Chains' ? (
+            <SelectLegend
+              allOptions={tokensUnique}
+              setOptions={setLegendOptions}
+              title={legendTitle + (legendOptions.length !== 1 ? 's' : '')}
+            />
+          ) : (
+            <SelectLegendMultiple
+              allOptions={tokensUnique}
+              options={legendOptions}
+              setOptions={setLegendOptions}
+              title={legendTitle + (legendOptions.length !== 1 ? 's' : '')}
+            />
+          )}
+        </>
       )}
       <Wrapper id={id} style={{ height: '360px', margin: 'auto 0' }}></Wrapper>
     </div>

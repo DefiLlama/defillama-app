@@ -658,7 +658,7 @@ const allColumns: AllColumns = {
     header: 'Name',
     accessor: 'name',
     disableSortBy: true,
-    Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+    Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
       <Name
         type="protocol"
         value={value}
@@ -666,6 +666,7 @@ const allColumns: AllColumns = {
         index={rowIndex !== null && rowIndex + 1}
         bookmark
         rowType={rowType}
+        showRows={showRows}
       />
     ),
   },
