@@ -31,25 +31,18 @@ const SelectedOptions = styled.span`
 const StyledPopover = styled(Popover)`
   min-width: 160px;
   max-height: 300px;
-  overflow-y: auto;
-  color: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(0, 0%, 100%)' : 'hsl(204, 10%, 10%)')};
-  background: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 12%)' : 'hsl(204, 20%, 100%)')};
-  border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 32%)' : 'hsl(204, 20%, 88%)')};
-  border-radius: 8px;
-  filter: ${({ theme }) =>
-    theme.mode === 'dark' ? 'drop-shadow(0 4px 6px rgba(0, 0, 0, 40%))' : 'drop-shadow(0 4px 6px rgba(0, 0, 0, 15%))'};
 `
 
-const Button = styled.button`
+const Button = styled(Item)`
   white-space: nowrap;
   background: #2172e5;
-  border: none;
-  padding: 8px 20px;
-  width: 100%;
   color: #fff;
+  justify-content: center;
 
-  :hover {
+  :hover,
+  &[data-focus-visible] {
     cursor: pointer;
+    background: #445ed0;
   }
 `
 
@@ -85,7 +78,6 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
     value: options,
     setValue: onChange,
     defaultValue: allOptions,
-    sameWidth: true,
     gutter: 6,
   })
 
@@ -98,9 +90,13 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
       {select.mounted && (
         <StyledPopover state={select}>
           {options.length > 0 ? (
-            <Button onClick={() => select.setValue([])}>Deselect All</Button>
+            <Button onClick={() => select.setValue([])} id="filter-button">
+              Deselect All
+            </Button>
           ) : (
-            <Button onClick={() => select.setValue(allOptions)}>Select All</Button>
+            <Button onClick={() => select.setValue(allOptions)} id="filter-button">
+              Select All
+            </Button>
           )}
 
           {allOptions.map((value) => (
@@ -124,7 +120,6 @@ interface ISelectLegendProps {
 export function SelectLegend({ allOptions, setOptions, title, ...props }: ISelectLegendProps) {
   const select = useSelectState({
     defaultValue: allOptions[0],
-    sameWidth: true,
     gutter: 6,
   })
 
