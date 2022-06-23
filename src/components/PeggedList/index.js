@@ -17,7 +17,7 @@ import {
   getRandomColor,
   capitalizeFirstLetter,
   formattedNum,
-  formattedPegggedPrice,
+  formattedPeggedPrice,
   getPercentChange,
   getPeggedDominance,
   toNiceMonthlyDate,
@@ -268,7 +268,7 @@ const columns = [
   {
     header: 'Price',
     accessor: 'price',
-    Cell: ({ value }) => <>{value ? formattedPegggedPrice(value, true) : '-'}</>,
+    Cell: ({ value }) => <>{value ? formattedPeggedPrice(value, true) : '-'}</>,
   },
   ...columnsToShow('1dChange', '7dChange', '1mChange'),
   {
