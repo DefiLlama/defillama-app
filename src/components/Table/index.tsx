@@ -574,10 +574,14 @@ export function Name({
   )
 }
 
-export function NameYield({ value, rowType, ...props }: NameProps) {
-  const { iconUrl, tokenUrl } = useMemo(() => {
-    return { iconUrl: tokenIconUrl(value['project']), tokenUrl: `/yields/project/${value['projectslug']}` }
-  }, [value])
+interface INameYield extends Omit<NameProps, 'type'> {
+  project: string
+  projectslug: string
+}
+
+export function NameYield({ value, project, projectslug, rowType, ...props }: INameYield) {
+  const iconUrl = tokenIconUrl(project)
+  const tokenUrl = `/yields/project/${projectslug}`
 
   return (
     <Index {...props}>
@@ -599,7 +603,7 @@ interface NameYieldPoolProps {
   project: string
   index?: number
   bookmark?: boolean
-  rowType?: 'pinned' | 'default'
+  rowType?: 'pinned' | 'default' | 'accordion'
 }
 
 export function NameYieldPool({

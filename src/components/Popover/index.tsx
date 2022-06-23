@@ -56,6 +56,7 @@ const PopoverWrapper = styled(AriaPopover)`
   max-height: calc(100vh - 200px);
   width: 100%;
   max-width: none;
+  padding-bottom: 16px;
 
   :focus-visible,
   [data-focus-visible] {
@@ -64,6 +65,7 @@ const PopoverWrapper = styled(AriaPopover)`
   }
 
   @media screen and (min-width: 640px) {
+    padding-bottom: 0;
     max-width: min(calc(100vw - 16px), 320px);
   }
 `

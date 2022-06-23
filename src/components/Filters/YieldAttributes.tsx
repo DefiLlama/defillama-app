@@ -1,5 +1,4 @@
-import { MenuButtonArrow, useMenuState } from 'ariakit'
-import { Button, Checkbox, ItemWithCheckbox, Popover } from 'components/DropdownMenu/shared'
+import { MenuButtonArrow, useSelectState } from 'ariakit'
 import HeadHelp from 'components/HeadHelp'
 import {
   AUDITED,
@@ -10,21 +9,13 @@ import {
   useLocalStorageContext,
 } from 'contexts/LocalStorage'
 import { useIsClient } from 'hooks'
+import { FilterButton, FilterItem, FilterPopover } from 'components/Select/AriakitSelect'
+import { Checkbox } from 'components'
 
 export function YieldAttributes() {
   const isClient = useIsClient()
 
   const [state, { updateKey }] = useLocalStorageContext()
-
-  const updateAttributes = (updatedValues) => {
-    options.forEach((option) => {
-      const isSelected = updatedValues.selected?.find((value) => value === option.key)
-
-      if ((option.enabled && !isSelected) || (!option.enabled && isSelected)) {
-        updateKey(option.key, !option.enabled)
-      }
-    })
-  }
 
   const options = [
     {
@@ -59,29 +50,39 @@ export function YieldAttributes() {
     },
   ]
 
-  const values = options.filter((o) => o.enabled).map((o) => o.key)
+  const updateAttributes = (values) => {
+    options.forEach((option) => {
+      const isSelected = values?.find((value) => value === option.key)
 
-  const menu = useMenuState({
-    values: { selected: values },
-    setValues: updateAttributes,
-    defaultValues: { selected: values },
+      if ((option.enabled && !isSelected) || (!option.enabled && isSelected)) {
+        updateKey(option.key, !option.enabled)
+      }
+    })
+  }
+
+  const value = options.filter((o) => o.enabled).map((o) => o.key)
+
+  const menu = useSelectState({
+    value,
+    setValue: updateAttributes,
+    defaultValue: value,
     gutter: 8,
   })
 
   return (
     <>
-      <Button state={menu} className="button">
+      <FilterButton state={menu}>
         Filter by Attribute
         <MenuButtonArrow />
-      </Button>
-      <Popover state={menu} className="menu">
+      </FilterButton>
+      <FilterPopover state={menu}>
         {options.map((option) => (
-          <ItemWithCheckbox key={option.key} name="selected" value={option.key}>
+          <FilterItem key={option.key} value={option.key}>
             {option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
             <Checkbox checked={option.enabled} />
-          </ItemWithCheckbox>
+          </FilterItem>
         ))}
-      </Popover>
+      </FilterPopover>
     </>
   )
 }
