@@ -670,7 +670,7 @@ export default function PeggedContainer({
                   <tbody>
                     <tr key={'Total Circulating'}>
                       <th>{'Total Circulating'}</th>
-                      <td>${toK(totalCirculating)}</td>
+                      <td>{toK(totalCirculating)}</td>
                     </tr>
                   </tbody>
                 </DetailsTable>
