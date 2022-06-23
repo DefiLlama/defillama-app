@@ -116,25 +116,24 @@ export const Item = styled(ComboboxItem)`
 `
 
 export const ItemWithCheckbox = styled(MenuItemCheckbox)`
-  padding: 8px 0;
+  padding: 8px 12px;
   color: ${({ theme }) => theme.text1};
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   border-bottom: ${({ theme }) => '1px solid ' + transparentize(0.9, theme.text1)};
-  margin: 0 12px;
   text-align: start;
   display: flex;
   align-items: center;
   font-weight: 400;
 
   &:first-of-type {
-    margin-top: 6px;
+    padding-top: 14px;
   }
 
   &:last-of-type {
-    margin-bottom: 6px;
+    padding-bottom: 14px;
     border: none;
   }
 

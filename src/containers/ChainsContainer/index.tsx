@@ -240,7 +240,6 @@ export default function ChainsContainer({
         step={{
           category: 'Chains',
           name: category === 'All' ? 'All Chains' : category,
-          hideOptions: true,
         }}
       />
 

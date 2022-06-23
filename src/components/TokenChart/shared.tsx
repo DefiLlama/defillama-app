@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { useSelectState, SelectArrow, SelectItemCheck } from 'ariakit/select'
+import { useSelectState, SelectArrow, SelectItemCheck, SelectList } from 'ariakit/select'
 import { Item, Popover, SelectMenu } from 'components/Select/AriakitSelect'
 
 const Menu = styled(SelectMenu)`
@@ -31,7 +31,21 @@ const SelectedOptions = styled.span`
 const StyledPopover = styled(Popover)`
   min-width: 160px;
   max-height: 300px;
+  position: relative;
+  z-index: 50;
+  color: ${({ theme }) => theme.text1};
+  background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
+  filter: ${({ theme }) =>
+    theme.mode === 'dark'
+      ? 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 40%))'
+      : 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%))'};
   border-radius: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+
+  & > *:last-of-type {
+    border-radius: 0;
+  }
 `
 
 const Button = styled(Item)`
