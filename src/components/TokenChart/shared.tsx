@@ -31,6 +31,7 @@ const SelectedOptions = styled.span`
 const StyledPopover = styled(Popover)`
   min-width: 160px;
   max-height: 300px;
+  border-radius: 0;
 `
 
 const Button = styled(Item)`
@@ -42,7 +43,7 @@ const Button = styled(Item)`
   :hover,
   &[data-focus-visible] {
     cursor: pointer;
-    background: #445ed0;
+    background: #4190ff;
   }
 `
 
@@ -81,6 +82,8 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
     gutter: 6,
   })
 
+  const selectButtonRef = React.useRef(null)
+
   return (
     <>
       <Menu state={select} {...props}>
@@ -88,13 +91,13 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
         <SelectArrow />
       </Menu>
       {select.mounted && (
-        <StyledPopover state={select}>
+        <StyledPopover state={select} initialFocusRef={selectButtonRef}>
           {options.length > 0 ? (
-            <Button onClick={() => select.setValue([])} id="filter-button">
+            <Button onClick={() => select.setValue([])} ref={selectButtonRef} id="filter-button">
               Deselect All
             </Button>
           ) : (
-            <Button onClick={() => select.setValue(allOptions)} id="filter-button">
+            <Button onClick={() => select.setValue(allOptions)} ref={selectButtonRef} id="filter-button">
               Select All
             </Button>
           )}
