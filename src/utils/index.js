@@ -185,7 +185,7 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
   return Number(parseFloat(num).toFixed(5))
 }
 
-export const formattedPegggedPrice = (number, symbol = false, acceptNegatives = false) => {
+export const formattedPeggedPrice = (number, symbol = false, acceptNegatives = false) => {
   let currencySymbol
   if (symbol === true) {
     currencySymbol = '$'

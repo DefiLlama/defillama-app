@@ -22,6 +22,7 @@ import {
   getBlockExplorer,
   toK,
   peggedAssetIconUrl,
+  formattedPeggedPrice,
 } from 'utils'
 import SEO from 'components/SEO'
 import Layout from 'layout'
@@ -534,6 +535,7 @@ export default function PeggedContainer({
     twitter,
     wiki,
     auditLinks,
+    price,
   } = peggedAssetData
   const logo = peggedAssetIconUrl(name)
 
@@ -653,6 +655,15 @@ export default function PeggedContainer({
                 </DownloadButton>
               </McapWrapper>
 
+              <DetailsTable>
+                  <tbody>
+                    <tr key={'Price'}>
+                      <th>{'Price'}</th>
+                      <td>{formattedPeggedPrice(price, true) || '-'}</td>
+                    </tr>
+                  </tbody>
+                </DetailsTable>
+
               {totalCirculating && (
                 <DetailsTable>
                   <caption>Issuance Stats</caption>
@@ -695,19 +706,6 @@ export default function PeggedContainer({
                   </tbody>
                 </DetailsTable>
               )}
-
-              <Mcap>
-                <span>Methodology</span>
-                <Link
-                  href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
-                  passHref
-                >
-                  <AlignSelfButton as="a" useTextColor={true} color={backgroundColor}>
-                    <span>Check the code</span>
-                    <ArrowUpRight size={14} />
-                  </AlignSelfButton>
-                </Link>
-              </Mcap>
             </PeggedDetails>
           </TabPanel>
 
@@ -823,6 +821,20 @@ export default function PeggedContainer({
                   </>
                 </FlexRow>
               )}
+
+              <FlexRow>
+                <>
+                  <Link
+                    href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
+                    passHref
+                  >
+                    <AlignSelfButton as="a" useTextColor={true} color={backgroundColor}>
+                      <span>Check the code</span>
+                      <ArrowUpRight size={14} />
+                    </AlignSelfButton>
+                  </Link>
+                </>
+              </FlexRow>
             </PeggedDetails>
           </TabPanel>
         </TabWrapper>
