@@ -14,12 +14,12 @@ import {
 } from 'components'
 import { RowFixed } from 'components/Row'
 import { ProtocolsChainsSearch } from 'components/Search'
-import Filters from 'components/Filters'
+import { RowLinks, TVLRange } from 'components/Filters'
 import { BasicLink } from 'components/Link'
 import SEO from 'components/SEO'
 import { OptionButton } from 'components/ButtonStyled'
 import LocalLoader from 'components/LocalLoader'
-import { columnsToShow, TableFilters } from 'components/Table'
+import { columnsToShow } from 'components/Table'
 import { useCalcProtocolsTvls } from 'hooks/data'
 import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
@@ -321,8 +321,8 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
       <ListOptions>
         <ListHeader>TVL Rankings</ListHeader>
-        <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
-        <TableFilters />
+        <RowLinks links={chainOptions} activeLink={selectedChain} />
+        <TVLRange />
       </ListOptions>
 
       {finalProtocolTotals.length > 0 ? (

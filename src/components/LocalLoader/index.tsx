@@ -14,14 +14,15 @@ const rotate = keyframes`
 const Loader = styled.div<ILocalLoaderProps>`
   pointer-events: none;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  width: 100%;
+
   animation: ${rotate} 800ms linear infinite;
   & > * {
     width: 72px;
   }
+
   ${(props) =>
     props.fill
       ? css`

@@ -7,7 +7,7 @@ import { RowBetween, AutoRow } from 'components/Row'
 import PeggedViewSwitch from 'components/PeggedViewSwitch'
 import Table, { columnsToShow } from 'components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
-import Filters, { FiltersWrapper } from 'components/Filters'
+import { RowLinks, LinksWrapper } from 'components/Filters'
 import { AreaChart } from 'components/Charts'
 import IconsRow from 'components/IconsRow'
 import { PeggedSearch } from 'components/Search'
@@ -434,9 +434,9 @@ function PeggedAssetsOverview({
       </ChartAndValuesWrapper>
 
       {showChainList && (
-        <FiltersWrapper>
-          <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
-        </FiltersWrapper>
+        <LinksWrapper>
+          <RowLinks links={chainOptions} activeLink={selectedChain} />
+        </LinksWrapper>
       )}
 
       <PeggedTable data={peggedTotals} columns={columns} />

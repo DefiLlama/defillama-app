@@ -6,7 +6,7 @@ import { Header } from 'Theme'
 import { CustomLink } from 'components/Link'
 import { ProtocolsChainsSearch } from 'components/Search'
 import { ChainDominanceChart, ChainPieChart } from 'components/Charts'
-import Filters, { FiltersWrapper } from 'components/Filters'
+import { RowLinks, LinksWrapper } from 'components/Filters'
 import Table, { Index } from 'components/Table'
 import { useCalcGroupExtraTvlsByDay } from 'hooks/data'
 import { getRandomColor, toK } from 'utils'
@@ -110,9 +110,9 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
         />
       </ChartsWrapper>
 
-      <FiltersWrapper>
-        <Filters filterOptions={tokenLinks} activeLabel="All" />
-      </FiltersWrapper>
+      <LinksWrapper>
+        <RowLinks links={tokenLinks} activeLink="All" />
+      </LinksWrapper>
 
       <Table columns={columns} data={tokensList} />
     </>

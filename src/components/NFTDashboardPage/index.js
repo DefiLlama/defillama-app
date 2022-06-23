@@ -3,7 +3,7 @@ import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import Layout from 'layout'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
-import Filters from 'components/Filters'
+import { RowLinks } from 'components/Filters'
 import { NFTSwitches } from 'components/SettingsModal'
 import { NFTsSearch } from 'components/Search'
 import NFTCollectionList from 'components/NFTCollectionList'
@@ -132,7 +132,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 
       <ListOptions>
         <ListHeader>NFT Rankings</ListHeader>
-        <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
+        <RowLinks links={tabOptions} activeLink={selectedTab} />
       </ListOptions>
 
       <Panel style={{ padding: below800 && '1rem 0 0 0 ' }}>

@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import Layout from 'layout'
 import { YieldsSearch } from 'components/Search'
 import LocalLoader from 'components/LocalLoader'
-import Filters from 'components/Filters'
+import { RowLinks, YieldAttributes } from 'components/Filters'
 import { ListHeader, ListOptions } from 'components/ChainPage'
 import { TableWrapper, columns } from 'components/YieldsPage'
 import { NameYield } from 'components/Table'
@@ -14,7 +14,6 @@ import {
   useAuditedManager,
 } from 'contexts/LocalStorage'
 import { useYieldPoolsData } from 'utils/dataApi'
-import { YieldAttributes } from 'components/DropdownMenu'
 
 const YieldPage = () => {
   // load the full data once
@@ -72,7 +71,7 @@ const YieldPage = () => {
 
       <ListOptions>
         <ListHeader>Yield Rankings</ListHeader>
-        {!loading && <Filters filterOptions={tabOptions} activeLabel={selectedTab} />}
+        {!loading && <RowLinks links={tabOptions} activeLink={selectedTab} />}
         <YieldAttributes />
       </ListOptions>
 

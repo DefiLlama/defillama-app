@@ -127,6 +127,7 @@ export const ItemWithCheckbox = styled(MenuItemCheckbox)`
   text-align: start;
   display: flex;
   align-items: center;
+  font-weight: 400;
 
   &:first-of-type {
     margin-top: 6px;

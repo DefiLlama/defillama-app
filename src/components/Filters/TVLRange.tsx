@@ -41,7 +41,7 @@ const TvlFilterForm = styled.form`
   }
 `
 
-export function TableFilters() {
+export function TVLRange() {
   const router = useRouter()
 
   const handleSubmit = (e) => {

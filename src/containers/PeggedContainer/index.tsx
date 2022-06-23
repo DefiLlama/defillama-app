@@ -5,7 +5,7 @@ import { ButtonDark } from 'components/ButtonStyled'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 import { CustomLink } from 'components/Link'
 import FullTable, { columnsToShow } from 'components/Table'
-import Filters, { FiltersWrapper } from 'components/Filters'
+import { RowLinks, LinksWrapper } from 'components/Filters'
 import { PeggedAssetTvlOptions } from 'components/Select'
 import { PeggedSearch } from 'components/Search'
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from 'hooks/data'
@@ -161,9 +161,9 @@ export default function PeggedContainer({
         <PeggedAssetTvlOptions label="Filters" />
       </AssetFilters>
 
-      <FiltersWrapper>
-        <Filters filterOptions={categories} activeLabel={category} />
-      </FiltersWrapper>
+      <LinksWrapper>
+        <RowLinks links={categories} activeLink={category} />
+      </LinksWrapper>
 
       <Table data={groupedChains} columns={columns} showByGroup={showByGroup} />
     </>

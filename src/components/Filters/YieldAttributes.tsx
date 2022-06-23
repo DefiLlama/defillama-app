@@ -1,5 +1,5 @@
 import { MenuButtonArrow, useMenuState } from 'ariakit'
-import { Button, Checkbox, ItemWithCheckbox, Popover } from './shared'
+import { Button, Checkbox, ItemWithCheckbox, Popover } from 'components/DropdownMenu/shared'
 import HeadHelp from 'components/HeadHelp'
 import {
   AUDITED,

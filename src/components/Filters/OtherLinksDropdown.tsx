@@ -1,14 +1,14 @@
 import { useComboboxState } from 'ariakit/combobox'
 import { MenuButtonArrow, useMenuState } from 'ariakit/menu'
 import Link from 'next/link'
-import { Button, Input, Item, List, Popover } from './shared'
+import { Button, Input, Item, List, Popover } from 'components/DropdownMenu/shared'
 
 interface IProps {
   options: { label: string; to: string }[]
   name: string
 }
 
-export function MenuWithCombobox({ options, name }: IProps) {
+export function OtherLinks({ options, name }: IProps) {
   const defaultList = options.map((l) => l.to)
   const combobox = useComboboxState({ defaultList, gutter: 8 })
   const menu = useMenuState(combobox)
