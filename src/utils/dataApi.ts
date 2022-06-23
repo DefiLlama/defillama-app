@@ -1025,6 +1025,15 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
     [`${PEGGED_API}/${peggedasset}`, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
   )
 
+  const peggedChart = await fetch(`${PEGGEDCHART_API}/?peggedAsset=${res.gecko_id}`).then((resp) => resp.json())
+  const bridgeInfo = await getPeggedBridgeInfo()
+  const pegType = res.pegType
+
+  const totalCirculating = getPrevCirculatingFromChart(peggedChart, 0, 'totalCirculating', pegType)
+  const unreleased = getPrevCirculatingFromChart(peggedChart, 0, 'unreleased', pegType)
+  const mcap = peggedChart[peggedChart.length - 1]?.mcap ?? null
+  
+
   let categories = []
   for (const chain in chainCoingeckoIds) {
     chainCoingeckoIds[chain].categories?.forEach((category) => {
@@ -1080,9 +1089,6 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
     })
   )
 
-  const bridgeInfo = await getPeggedBridgeInfo()
-  const peggedSymbol = res.symbol
-  const pegType = res.pegType
   const chainCirculatings = chainsUnique
     .map((chainName, i) => {
       const circulating: number = getPrevCirculatingFromChart(chainsData[i], 0, 'circulating', pegType)
@@ -1133,6 +1139,8 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
     }, {})
   )
 
+  const peggedChartType = 'Dominance'
+
   return {
     props: {
       chainsUnique,
@@ -1140,9 +1148,12 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
       category,
       categories,
       stackedDataset,
-      peggedSymbol,
-      pegType,
+      peggedAssetData: res,
+      totalCirculating,
+      unreleased,
+      mcap,
       bridgeInfo,
+      peggedChartType,
     },
   }
 }

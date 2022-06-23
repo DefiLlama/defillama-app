@@ -1,7 +1,7 @@
 import React from 'react'
-import Layout from 'layout'
 import { getPeggedAssetPageData, revalidate, getPeggedAssets } from 'utils/dataApi'
 import PeggedContainer from 'containers/PeggedContainer'
+import { getPeggedColor } from 'utils/getColor'
 import { standardizeProtocolName } from 'utils'
 
 export async function getStaticProps({
@@ -10,8 +10,20 @@ export async function getStaticProps({
   },
 }) {
   const data = await getPeggedAssetPageData(cat, peggedasset)
-  const { chainsUnique, chainCirculatings, category, categories, stackedDataset, peggedSymbol, pegType, bridgeInfo } =
-    data.props
+  const {
+    chainsUnique,
+    chainCirculatings,
+    category,
+    categories,
+    stackedDataset,
+    peggedAssetData,
+    totalCirculating,
+    unreleased,
+    mcap,
+    bridgeInfo,
+    peggedChartType,
+  } = data.props
+  const backgroundColor = await getPeggedColor({ peggedAsset: peggedAssetData.name })
   return {
     props: {
       chainsUnique,
@@ -19,9 +31,13 @@ export async function getStaticProps({
       category,
       categories,
       stackedDataset,
-      peggedSymbol,
-      pegType,
+      peggedAssetData,
+      totalCirculating,
+      unreleased,
+      mcap,
       bridgeInfo,
+      peggedChartType,
+      backgroundColor,
     },
     revalidate: revalidate(),
   }
@@ -38,9 +54,5 @@ export async function getStaticPaths() {
 }
 
 export default function PeggedAsset(props) {
-  return (
-    <Layout title={`All Chains Pegged Asset - DefiLlama`} defaultSEO>
-      <PeggedContainer {...props} />
-    </Layout>
-  )
+  return <PeggedContainer {...props} />
 }
