@@ -1,2 +1,3 @@
 export { Menu } from './Menu'
-export { MenuCombobox } from './MenuCombobox'
+export { MenuWithCombobox } from './MenuWithCombobox'
+export { YieldAttributes } from './YieldAttributes'

@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/router'
 import Link from 'next/link'
 import styled from 'styled-components'
 import { ButtonDark, ButtonLight } from 'components/ButtonStyled'
-import { MenuCombobox } from 'components/DropdownMenu'
+import { MenuWithCombobox } from 'components/DropdownMenu'
 
 interface IFilterOption {
   label: string
@@ -51,8 +50,6 @@ export const FiltersWrapper = styled.nav`
 
 const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) => {
   const [lastIndexToRender, setLastIndexToRender] = useState<number | null | 'renderMenu'>(null)
-
-  const router = useRouter()
 
   const calcFiltersToRender = useCallback(() => {
     if (typeof document !== 'undefined') {
@@ -128,7 +125,7 @@ const Filters = ({ filterOptions = [], activeLabel, ...props }: FiltersProps) =>
         </Wrapper>
       )}
       {menuFilters && (
-        <MenuCombobox
+        <MenuWithCombobox
           name={menuFilters.find((label) => label.label === activeLabel) ? activeLabel : 'Others'}
           options={menuFilters}
         />

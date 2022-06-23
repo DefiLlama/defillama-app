@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react'
 import {
   Popover as AriaPopover,
-  PopoverArrow,
   PopoverDisclosure,
   PopoverStateRenderCallbackProps,
   usePopoverState,
@@ -46,21 +45,17 @@ const PopoverWrapper = styled(AriaPopover)`
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 8px;
-  color: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(0, 0%, 100%)' : 'hsl(204, 10%, 10%)')};
-  background: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 20%)' : 'hsl(204, 20%, 100%)')};
-  border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 32%)' : 'hsl(204, 20%, 88%)')};
-  border-radius: 8px;
+  color: ${({ theme }) => theme.text1};
+  background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
+  border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
   filter: ${({ theme }) =>
-    theme.mode === 'dark' ? 'drop-shadow(0 4px 6px rgba(0, 0, 0, 40%))' : 'drop-shadow(0 4px 6px rgba(0, 0, 0, 15%))'};
+    theme.mode === 'dark'
+      ? 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 40%))'
+      : 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%))'};
+  border-radius: 8px;
   max-height: calc(100vh - 200px);
   width: 100%;
   max-width: none;
-
-  .arrow svg {
-    fill: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 20%)' : 'hsl(204, 20%, 100%)')};
-    stroke: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 32%)' : 'hsl(204, 20%, 88%)')};
-  }
 
   :focus-visible,
   [data-focus-visible] {
@@ -73,17 +68,16 @@ const PopoverWrapper = styled(AriaPopover)`
   }
 `
 
-function applyMobileStyles(popover: HTMLElement, arrow?: HTMLElement | null) {
+function applyMobileStyles(popover: HTMLElement) {
   const restorePopoverStyle = assignStyle(popover, {
     position: 'fixed',
     bottom: '0',
     width: '100%',
     padding: '12px',
   })
-  const restoreArrowStyle = assignStyle(arrow, { display: 'none' })
+
   const restoreDesktopStyles = () => {
     restorePopoverStyle()
-    restoreArrowStyle()
   }
   return restoreDesktopStyles
 }
@@ -93,25 +87,24 @@ interface IProps {
   content: React.ReactNode
 }
 
-export default function Popover({ trigger, content }: IProps) {
+export default function Popover({ trigger, content, ...props }: IProps) {
   const isLarge = useMedia('(min-width: 640px)', true)
 
   const renderCallback = useCallback(
     (props: PopoverStateRenderCallbackProps) => {
-      const { popover, arrow, defaultRenderCallback } = props
+      const { popover, defaultRenderCallback } = props
       if (isLarge) return defaultRenderCallback()
-      return applyMobileStyles(popover, arrow)
+      return applyMobileStyles(popover)
     },
     [isLarge]
   )
 
-  const popover = usePopoverState({ renderCallback })
+  const popover = usePopoverState({ renderCallback, gutter: 8 })
 
   return (
     <>
       <Trigger state={popover}>{trigger}</Trigger>
-      <PopoverWrapper state={popover} modal={!isLarge}>
-        <PopoverArrow className="arrow" />
+      <PopoverWrapper state={popover} modal={!isLarge} {...props}>
         {content}
       </PopoverWrapper>
     </>

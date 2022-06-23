@@ -2,8 +2,7 @@ import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { Panel } from 'components'
-import Table, { columnsToShow, NameYield, TableFilters, NameYieldPool } from 'components/Table'
-import { CheckMarks } from 'components/SettingsModal'
+import Table, { columnsToShow, NameYield, TableFilters as TvlFilters, NameYieldPool } from 'components/Table'
 import { AutoRow } from 'components/Row'
 import QuestionHelper from 'components/QuestionHelper'
 import Filters from 'components/Filters'
@@ -18,6 +17,7 @@ import {
   useAuditedManager,
 } from 'contexts/LocalStorage'
 import { capitalizeFirstLetter, formattedPercent } from 'utils'
+import { YieldAttributes } from 'components/DropdownMenu'
 
 export const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
@@ -356,12 +356,11 @@ const YieldPage = ({ pools, chainList }) => {
     <>
       <YieldsSearch step={{ category: 'Yields', name: stepName ?? 'All chains' }} />
 
-      <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
-
       <ListOptions>
         <ListHeader>Yield Rankings</ListHeader>
         <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
-        <TableFilters />
+        <YieldAttributes />
+        <TvlFilters />
       </ListOptions>
 
       {poolsData.length > 0 ? (

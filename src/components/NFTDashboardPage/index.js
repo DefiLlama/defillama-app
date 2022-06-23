@@ -4,7 +4,7 @@ import { transparentize } from 'polished'
 import Layout from 'layout'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
 import Filters from 'components/Filters'
-import { CheckMarks } from 'components/SettingsModal'
+import { NFTSwitches } from 'components/SettingsModal'
 import { NFTsSearch } from 'components/Search'
 import NFTCollectionList from 'components/NFTCollectionList'
 import SEO from 'components/SEO'
@@ -96,10 +96,12 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
       <SEO cardName={displayName} chain={displayName} tvl={tvl} nftPage />
 
       <NFTsSearch preLoadedSearch={collections} step={{ category: 'NFTs', name: 'All collections' }} />
+
       <Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
         Data is currently incorrect and we are fixing it, please don't use it
       </Panel>
-      <CheckMarks type="nfts" />
+
+      <NFTSwitches />
 
       <ChartAndValuesWrapper>
         <BreakpointPanels>
