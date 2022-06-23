@@ -14,7 +14,7 @@ import {
   useAuditedManager,
 } from 'contexts/LocalStorage'
 import { useYieldPoolsData } from 'utils/dataApi'
-import { AttributesFilters } from 'components/YieldsPage/AttributesFilters'
+import { YieldAttributes } from 'components/DropdownMenu'
 
 const YieldPage = () => {
   // load the full data once
@@ -73,7 +73,7 @@ const YieldPage = () => {
       <ListOptions>
         <ListHeader>Yield Rankings</ListHeader>
         {!loading && <Filters filterOptions={tabOptions} activeLabel={selectedTab} />}
-        <AttributesFilters />
+        <YieldAttributes />
       </ListOptions>
 
       {poolData === undefined ? (

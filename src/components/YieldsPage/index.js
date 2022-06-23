@@ -17,7 +17,7 @@ import {
   useAuditedManager,
 } from 'contexts/LocalStorage'
 import { capitalizeFirstLetter, formattedPercent } from 'utils'
-import { AttributesFilters } from './AttributesFilters'
+import { YieldAttributes } from 'components/DropdownMenu'
 
 export const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
@@ -359,7 +359,7 @@ const YieldPage = ({ pools, chainList }) => {
       <ListOptions>
         <ListHeader>Yield Rankings</ListHeader>
         <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
-        <AttributesFilters />
+        <YieldAttributes />
         <TvlFilters />
       </ListOptions>
 
