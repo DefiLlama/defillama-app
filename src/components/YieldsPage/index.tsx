@@ -1,12 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { Panel } from 'components'
 import Table, { columnsToShow, NameYield, NameYieldPool } from 'components/Table'
 import { AutoRow } from 'components/Row'
 import QuestionHelper from 'components/QuestionHelper'
-import { RowLinks, YieldAttributes, TVLRange } from 'components/Filters'
-import { ListHeader, ListOptions } from 'components/ChainPage'
+import { YieldAttributes, TVLRange, FiltersByChain } from 'components/Filters'
 import IconsRow from 'components/IconsRow'
 import { YieldsSearch } from 'components/Search'
 import {
@@ -230,7 +229,9 @@ export const columns = [
     header: 'Project',
     accessor: 'project',
     disableSortBy: true,
-    Cell: ({ value, rowValues }) => <NameYield value={(value, rowValues)} />,
+    Cell: ({ value, rowValues }) => (
+      <NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} />
+    ),
   },
   {
     header: 'Chains',
@@ -283,32 +284,31 @@ export const columns = [
 const YieldPage = ({ pools, chainList }) => {
   const chain = [...new Set(pools.map((el) => el.chain))]
   const selectedTab = chain.length > 1 ? 'All' : chain[0]
-  const tabOptions = [
-    {
-      label: 'All',
-      to: '/yields',
-    },
-    ...chainList.map((el) => ({ label: el, to: `/yields/chain/${el}` })),
-  ]
+  const [chainsToFilter, setChainsToFilter] = useState<string[]>(chainList)
 
   const { query } = useRouter()
   const { minTvl, maxTvl } = query
 
   // if route query contains 'project' remove project href
   const idx = columns.findIndex((c) => c.accessor === 'project')
+
   if (query.project) {
     columns[idx] = {
       header: 'Project',
       accessor: 'project',
       disableSortBy: true,
-      Cell: ({ value, rowValues }) => <NameYield value={(value, rowValues)} rowType={'accordion'} />,
+      Cell: ({ value, rowValues }) => (
+        <NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} rowType="accordion" />
+      ),
     }
   } else {
     columns[idx] = {
       header: 'Project',
       accessor: 'project',
       disableSortBy: true,
-      Cell: ({ value, rowValues }) => <NameYield value={(value, rowValues)} />,
+      Cell: ({ value, rowValues }) => (
+        <NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} />
+      ),
     }
   }
 
@@ -326,26 +326,29 @@ const YieldPage = ({ pools, chainList }) => {
   pools = audited === true ? pools.filter((el) => el.audits !== '0') : pools
 
   const poolsData = useMemo(() => {
-    const poolsData = pools.map((t) => ({
-      id: t.pool,
-      pool: t.symbol,
-      projectslug: t.project,
-      project: t.projectName,
-      chains: [t.chain],
-      tvl: t.tvlUsd,
-      apy: t.apy,
-      change1d: t.apyPct1D,
-      change7d: t.apyPct7D,
-      outlook: t.predictions.predictedClass,
-      confidence: t.predictions.binnedConfidence,
-    }))
+    const poolsData = pools
+      .map((t) => ({
+        id: t.pool,
+        pool: t.symbol,
+        projectslug: t.project,
+        project: t.projectName,
+        chains: [t.chain],
+        tvl: t.tvlUsd,
+        apy: t.apy,
+        change1d: t.apyPct1D,
+        change7d: t.apyPct7D,
+        outlook: t.predictions.predictedClass,
+        confidence: t.predictions.binnedConfidence,
+      }))
+      .filter((p) => chainsToFilter.find((chain) => chain === p.chains[0]))
+
     const isValidTvlRange =
       (minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
     return isValidTvlRange
       ? poolsData.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
       : poolsData
-  }, [minTvl, maxTvl, pools])
+  }, [minTvl, maxTvl, pools, chainsToFilter])
 
   let stepName = undefined
   if (query.chain) stepName = selectedTab
@@ -355,20 +358,49 @@ const YieldPage = ({ pools, chainList }) => {
     <>
       <YieldsSearch step={{ category: 'Yields', name: stepName ?? 'All chains' }} />
 
-      <ListOptions>
-        <ListHeader>Yield Rankings</ListHeader>
-        <RowLinks links={tabOptions} activeLink={selectedTab} />
-        <YieldAttributes />
-        <TVLRange />
-      </ListOptions>
+      <TableFilters>
+        <TableHeader>Yield Rankings</TableHeader>
+        <Dropdowns>
+          <FiltersByChain chains={chainList} setChainsToFilter={setChainsToFilter} />
+          <YieldAttributes />
+          <TVLRange />
+        </Dropdowns>
+      </TableFilters>
 
       {poolsData.length > 0 ? (
         <TableWrapper data={poolsData} columns={columns} />
       ) : (
-        <Panel as="p" style={{ margin: 0, textAlign: 'center' }}>{`${stepName} has no pools listed`}</Panel>
+        <Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
+          {stepName ? `${stepName} has no pools listed` : "Couldn't find any pools for these filters"}
+        </Panel>
       )}
     </>
   )
 }
+
+const TableFilters = styled.nav`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  margin: 0 0 -20px;
+`
+
+const Dropdowns = styled.span`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+
+  button {
+    font-weight: 400;
+  }
+`
+
+const TableHeader = styled.h1`
+  margin: 0 auto 0 0;
+  font-weight: 500;
+  font-size: 1.125rem;
+`
 
 export default YieldPage
