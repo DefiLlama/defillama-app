@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router'
 import Layout from 'layout'
 import { YieldsSearch } from 'components/Search'
-import { CheckMarks } from 'components/SettingsModal'
 import LocalLoader from 'components/LocalLoader'
 import Filters from 'components/Filters'
 import { ListHeader, ListOptions } from 'components/ChainPage'
@@ -15,6 +14,7 @@ import {
   useAuditedManager,
 } from 'contexts/LocalStorage'
 import { useYieldPoolsData } from 'utils/dataApi'
+import { AttributesFilters } from 'components/YieldsPage/AttributesFilters'
 
 const YieldPage = () => {
   // load the full data once
@@ -70,11 +70,10 @@ const YieldPage = () => {
     <>
       <YieldsSearch step={{ category: 'Yields', name: query.token }} />
 
-      <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
-
       <ListOptions>
         <ListHeader>Yield Rankings</ListHeader>
         {!loading && <Filters filterOptions={tabOptions} activeLabel={selectedTab} />}
+        <AttributesFilters />
       </ListOptions>
 
       {poolData === undefined ? (

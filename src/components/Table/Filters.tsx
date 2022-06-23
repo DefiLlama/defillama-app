@@ -1,31 +1,32 @@
+import { MenuButtonArrow } from 'ariakit'
+import { ApplyFilters } from 'components/DropdownMenu/shared'
 import Popover from 'components/Popover'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { Filter } from 'react-feather'
+
+const Wrapper = styled(Popover)`
+  padding: 0;
+`
 
 const TvlFilterForm = styled.form`
   display: flex;
   flex-direction: column;
   gap: 8px;
 
-  h1 {
-    margin: 0 0 -4px;
-    padding: 0;
-    font-weight: 500;
-    text-align: center;
-  }
-
   label {
     display: flex;
     flex-direction: column;
     gap: 4px;
     font: inherit;
+    margin: 12px 0 0;
   }
 
   input {
-    padding: 4px;
+    padding: 8px;
     border-radius: 4px;
     border: ${({ theme }) => '1px solid ' + theme.text4};
+    background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
+    color: ${({ theme }) => theme.text1};
     font: inherit;
 
     :focus-visible {
@@ -33,18 +34,9 @@ const TvlFilterForm = styled.form`
     }
   }
 
-  button {
-    padding: 4px;
-    border-radius: 4px;
-    border: ${({ theme }) => '1px solid ' + theme.text4};
-    margin: 6px 0 0;
-
-    :focus-visible {
-      outline: ${({ theme }) => '1px solid ' + theme.text2};
-    }
-
-    :hover {
-      cursor: pointer;
+  @media (min-width: 640px) {
+    label {
+      margin: 12px 12px 0;
     }
   }
 `
@@ -74,17 +66,16 @@ export function TableFilters() {
     )
   }
   return (
-    <Popover
+    <Wrapper
       trigger={
         <>
-          <Filter size={14} />
-          <span>Filters</span>
+          <span>Filter by TVL</span>
+          <MenuButtonArrow />
         </>
       }
       content={
         <section style={{ width: '240px', margin: '0 auto' }}>
           <TvlFilterForm onSubmit={handleSubmit}>
-            <h1>TVL Range</h1>
             <label>
               <span>Min</span>
               <input type="number" name="minTvl" />
@@ -93,7 +84,7 @@ export function TableFilters() {
               <span>Max</span>
               <input type="number" name="maxTvl" />
             </label>
-            <button>Filter</button>
+            <ApplyFilters>Apply Filter</ApplyFilters>
           </TvlFilterForm>
         </section>
       }
