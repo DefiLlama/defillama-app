@@ -22,3 +22,11 @@
   "exclude": ["node_modules", "cypress"],
   "include": ["**/*.js", "**/*.ts", "**/*.tsx"]
 }
+
+// TODO update baseUrl to
+// "baseUrl": ".",
+// "paths": {
+//    "~/*": ["./src/*"]
+// },
+// and update all imports in src folder except dependencies to start with ~
+// to distinguish dependency imports and imports of other files in src folder

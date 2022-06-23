@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { getForkPageData, revalidate } from 'utils/dataApi'
 import Layout from 'layout'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, ProtocolsTable } from 'components'
+import { ProtocolsChainsSearch } from 'components/Search'
+import { columnsToShow } from 'components/Table'
+import { RowLinks, LinksWrapper } from 'components/Filters'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, ProtocolsTable } from 'components'
-import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
-import { columnsToShow } from 'components/Table'
-import Filters, { FiltersWrapper } from 'components/Filters'
+import { getForkPageData, revalidate } from 'utils/dataApi'
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
@@ -103,9 +103,9 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentToken
         </BreakpointPanel>
       </ChartAndValuesWrapper>
 
-      <FiltersWrapper>
-        <Filters filterOptions={tokenLinks} activeLabel={token} />
-      </FiltersWrapper>
+      <LinksWrapper>
+        <RowLinks links={tokenLinks} activeLink={token} />
+      </LinksWrapper>
 
       <ProtocolsTable columns={columns} data={protocolsData} pinnedRow={parentForks[0]} />
     </>

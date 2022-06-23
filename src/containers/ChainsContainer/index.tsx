@@ -1,15 +1,15 @@
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
+import { Header } from 'Theme'
 import { ButtonDark } from 'components/ButtonStyled'
-import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
+import { ProtocolsChainsSearch } from 'components/Search'
 import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
 import { columnsToShow, FullTable } from 'components/Table'
+import { RowLinks, LinksWrapper } from 'components/Filters'
+import { ChainTvlOptions } from 'components/Select'
+import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
 import { toNiceCsvDate, getRandomColor, download } from 'utils'
 import { getChainsPageData, revalidate } from 'utils/dataApi'
-import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from 'hooks/data'
-import Filters, { FiltersWrapper } from 'components/Filters'
-import { ChainTvlOptions } from 'components/Select'
-import { Header } from 'Theme'
 
 export async function getStaticProps() {
   const data = await getChainsPageData('All')
@@ -266,9 +266,9 @@ export default function ChainsContainer({
         <ChainTvlOptions label="Filters" />
       </ChainTvlsFilter>
 
-      <FiltersWrapper>
-        <Filters filterOptions={categories} activeLabel={category} />
-      </FiltersWrapper>
+      <LinksWrapper>
+        <RowLinks links={categories} activeLink={category} />
+      </LinksWrapper>
 
       <StyledTable data={groupedChains} columns={columns} />
     </>

@@ -1,24 +1,18 @@
 import dynamic from 'next/dynamic'
-import { useYieldPoolData, useYieldChartData } from 'utils/dataApi'
-import Layout from 'layout'
-import { AutoColumn } from 'components/Column'
-import { AutoRow, RowBetween, RowFixed } from 'components/Row'
-import { TYPE } from 'Theme'
-import { toK } from 'utils'
-import { BasicLink } from 'components/Link'
-import styled from 'styled-components'
 import { useRouter } from 'next/router'
+import styled from 'styled-components'
+import { TYPE } from 'Theme'
+import Layout from 'layout'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
+import { AutoColumn } from 'components/Column'
+import { RowFixed } from 'components/Row'
+import { BasicLink } from 'components/Link'
 import FormattedName from 'components/FormattedName'
 import AuditInfo from 'components/AuditInfo'
 import { ButtonLight } from 'components/ButtonStyled'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
-import { YieldsSearch } from 'components/Search/OpenSearch'
-
-const HiddenSearch = styled.span`
-  @media screen and (max-width: ${({ theme }) => theme.bpSm}) {
-    display: none;
-  }
-`
+import { YieldsSearch } from 'components/Search'
+import { toK } from 'utils'
+import { useYieldPoolData, useYieldChartData } from 'utils/dataApi'
 
 const TokenDetailsLayout = styled.div`
   display: inline-grid;
@@ -91,7 +85,7 @@ const PageView = () => {
 
   return (
     <>
-      <YieldsSearch step={{ category: 'Yields', name: poolData.symbol, hideOptions: true }} />
+      <YieldsSearch step={{ category: 'Yields', name: poolData.symbol }} />
 
       <h1 style={{ margin: '0 0 -12px', fontWeight: 500, fontSize: '1.5rem' }}>
         <span>
@@ -108,11 +102,11 @@ const PageView = () => {
         <BreakpointPanels>
           <BreakpointPanel>
             <h2>APY</h2>
-            <p style={{ '--tile-text-color': '#4f8fea' }}>{apy}%</p>
+            <p style={{ '--tile-text-color': '#fd3c99' }}>{apy}%</p>
           </BreakpointPanel>
           <BreakpointPanel>
             <h2>Total Value Locked</h2>
-            <p style={{ '--tile-text-color': '#fd3c99' }}>${tvlUsd}</p>
+            <p style={{ '--tile-text-color': '#4f8fea' }}>${tvlUsd}</p>
           </BreakpointPanel>
           <BreakpointPanel>
             <h2>Outlook</h2>

@@ -1,16 +1,16 @@
 import React, { useMemo } from 'react'
-import { getOraclePageData, revalidate } from '../utils/dataApi'
-import Layout from '../layout'
 import styled from 'styled-components'
 import { Box } from 'rebass'
-import { CustomLink } from 'components/Link'
-import { getRandomColor, toK } from 'utils'
-import { useCalcGroupExtraTvlsByDay } from 'hooks/data'
-import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
+import Layout from 'layout'
 import { Header } from 'Theme'
+import { CustomLink } from 'components/Link'
+import { ProtocolsChainsSearch } from 'components/Search'
 import { ChainDominanceChart, ChainPieChart } from 'components/Charts'
-import Filters, { FiltersWrapper } from 'components/Filters'
+import { RowLinks, LinksWrapper } from 'components/Filters'
 import Table, { Index } from 'components/Table'
+import { useCalcGroupExtraTvlsByDay } from 'hooks/data'
+import { getRandomColor, toK } from 'utils'
+import { getOraclePageData, revalidate } from 'utils/dataApi'
 
 export async function getStaticProps() {
   const data = await getOraclePageData()
@@ -110,9 +110,9 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
         />
       </ChartsWrapper>
 
-      <FiltersWrapper>
-        <Filters filterOptions={tokenLinks} activeLabel="All" />
-      </FiltersWrapper>
+      <LinksWrapper>
+        <RowLinks links={tokenLinks} activeLink="All" />
+      </LinksWrapper>
 
       <Table columns={columns} data={tokensList} />
     </>

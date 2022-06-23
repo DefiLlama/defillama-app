@@ -1,18 +1,18 @@
 import React, { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
-import { useDisplayUsdManager, useHideLastDayManager } from '../../contexts/LocalStorage'
-import Filters from '../Filters'
-import { CheckMarks } from '../SettingsModal'
-import { NFTsSearch } from '../Search/OpenSearch'
-import NFTCollectionList from '../NFTCollectionList'
-import { formattedNum } from '../../utils'
-import { chainCoingeckoIds, chainMarketplaceMappings } from '../../constants/chainTokens'
-import SEO from 'components/SEO'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
-import { ListHeader, ListOptions } from 'components/ChainPage'
 import Layout from 'layout'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
+import { RowLinks } from 'components/Filters'
+import { NFTSwitches } from 'components/SettingsModal'
+import { NFTsSearch } from 'components/Search'
+import NFTCollectionList from 'components/NFTCollectionList'
+import SEO from 'components/SEO'
+import { ListHeader, ListOptions } from 'components/ChainPage'
 import { useMedia } from 'hooks'
+import { formattedNum } from 'utils'
+import { useDisplayUsdManager, useHideLastDayManager } from 'contexts/LocalStorage'
+import { chainCoingeckoIds, chainMarketplaceMappings } from 'constants/chainTokens'
 
 const defaultTab = {
   label: 'All',
@@ -95,14 +95,13 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
     <Layout title={title} backgroundColor={transparentize(0.8, '#445ed0')}>
       <SEO cardName={displayName} chain={displayName} tvl={tvl} nftPage />
 
-      <NFTsSearch
-        preLoadedSearch={collections}
-        step={{ category: 'NFTs', name: 'All collections', hideOptions: true }}
-      />
+      <NFTsSearch preLoadedSearch={collections} step={{ category: 'NFTs', name: 'All collections' }} />
+
       <Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
         Data is currently incorrect and we are fixing it, please don't use it
       </Panel>
-      <CheckMarks type="nfts" />
+
+      <NFTSwitches />
 
       <ChartAndValuesWrapper>
         <BreakpointPanels>
@@ -133,7 +132,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 
       <ListOptions>
         <ListHeader>NFT Rankings</ListHeader>
-        <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
+        <RowLinks links={tabOptions} activeLink={selectedTab} />
       </ListOptions>
 
       <Panel style={{ padding: below800 && '1rem 0 0 0 ' }}>

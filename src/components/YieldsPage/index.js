@@ -1,8 +1,14 @@
-import Table, { columnsToShow, NameYield, TableFilters, NameYieldPool } from 'components/Table'
-import { capitalizeFirstLetter, formattedPercent } from 'utils'
-import { CheckMarks } from 'components/SettingsModal'
+import { useMemo } from 'react'
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
+import { Panel } from 'components'
+import Table, { columnsToShow, NameYield, NameYieldPool } from 'components/Table'
 import { AutoRow } from 'components/Row'
+import QuestionHelper from 'components/QuestionHelper'
+import { RowLinks, YieldAttributes, TVLRange } from 'components/Filters'
+import { ListHeader, ListOptions } from 'components/ChainPage'
+import IconsRow from 'components/IconsRow'
+import { YieldsSearch } from 'components/Search'
 import {
   useNoILManager,
   useSingleExposureManager,
@@ -10,14 +16,7 @@ import {
   useMillionDollarManager,
   useAuditedManager,
 } from 'contexts/LocalStorage'
-import QuestionHelper from 'components/QuestionHelper'
-import Filters from 'components/Filters'
-import { ListHeader, ListOptions } from 'components/ChainPage'
-import IconsRow from 'components/IconsRow'
-import { useMemo } from 'react'
-import { useRouter } from 'next/router'
-import { YieldsSearch } from 'components/Search/OpenSearch'
-import { Panel } from 'components'
+import { capitalizeFirstLetter, formattedPercent } from 'utils'
 
 export const TableWrapper = styled(Table)`
   tr > *:not(:first-child) {
@@ -354,14 +353,13 @@ const YieldPage = ({ pools, chainList }) => {
 
   return (
     <>
-      <YieldsSearch step={{ category: 'Yields', name: stepName ?? 'All chains', hideOptions: true }} />
-
-      <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
+      <YieldsSearch step={{ category: 'Yields', name: stepName ?? 'All chains' }} />
 
       <ListOptions>
         <ListHeader>Yield Rankings</ListHeader>
-        <Filters filterOptions={tabOptions} activeLabel={selectedTab} />
-        <TableFilters />
+        <RowLinks links={tabOptions} activeLink={selectedTab} />
+        <YieldAttributes />
+        <TVLRange />
       </ListOptions>
 
       {poolsData.length > 0 ? (

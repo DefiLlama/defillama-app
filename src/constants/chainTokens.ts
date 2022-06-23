@@ -628,7 +628,12 @@ export const chainCoingeckoIds = {
     geckoId: "sx-network",
     symbol: "SX",
     cmcId: "8377",
-  }
+  },
+  "Acala": {
+    geckoId: "acala",
+    symbol: "ACA",
+    cmcId: "6756",
+  },
 }
 
 export const chainMarketplaceMappings = {

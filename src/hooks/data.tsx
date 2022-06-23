@@ -222,6 +222,7 @@ const groupData = (protocols: IProtocol[], name: string) => {
 const toGroup = [
   { name: 'AAVE', symbol: 'AAVE' },
   { name: 'SUN.io', symbol: 'SUN' },
+  { name: 'SushiSwap', symbol: 'SUSHI' },
 ]
 
 const groupProtocols = (protocols: Readonly<IProtocol[]>) => {

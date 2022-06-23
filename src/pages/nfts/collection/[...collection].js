@@ -24,7 +24,7 @@ export async function getStaticProps({
       chart,
       statistics,
       title: collection ? `${collection.name} - DefiLlama` : `DefiLlama - NFT Dashboard`,
-      backgroundColor
+      backgroundColor,
     },
     revalidate: revalidate(),
   }

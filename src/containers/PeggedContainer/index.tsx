@@ -1,15 +1,15 @@
 import React, { useMemo } from 'react'
 import styled from 'styled-components'
+import { Header } from 'Theme'
 import { ButtonDark } from 'components/ButtonStyled'
 import { PeggedChainPieChart, PeggedChainDominanceChart } from 'components/Charts'
 import { CustomLink } from 'components/Link'
 import FullTable, { columnsToShow } from 'components/Table'
-import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
-import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from 'hooks/data'
-import Filters, { FiltersWrapper } from 'components/Filters'
+import { RowLinks, LinksWrapper } from 'components/Filters'
 import { PeggedAssetTvlOptions } from 'components/Select'
-import { Header } from 'Theme'
-import { PeggedSearch } from 'components/Search/OpenSearch'
+import { PeggedSearch } from 'components/Search'
+import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from 'hooks/data'
+import { toNiceCsvDate, getRandomColor, formattedNum, download } from 'utils'
 
 const ChartsWrapper = styled.section`
   display: flex;
@@ -136,9 +136,7 @@ export default function PeggedContainer({
 
   return (
     <>
-      <PeggedSearch
-        step={{ category: 'Pegged Asset', name: Capitalize(peggedSymbol), route: 'peggedassets', hideOptions: true }}
-      />
+      <PeggedSearch step={{ category: 'Pegged Asset', name: Capitalize(peggedSymbol), route: 'peggedassets' }} />
 
       <HeaderWrapper>
         <span>{Capitalize(peggedSymbol)} Total Circulating All Chains</span>
@@ -163,9 +161,9 @@ export default function PeggedContainer({
         <PeggedAssetTvlOptions label="Filters" />
       </AssetFilters>
 
-      <FiltersWrapper>
-        <Filters filterOptions={categories} activeLabel={category} />
-      </FiltersWrapper>
+      <LinksWrapper>
+        <RowLinks links={categories} activeLink={category} />
+      </LinksWrapper>
 
       <Table data={groupedChains} columns={columns} showByGroup={showByGroup} />
     </>

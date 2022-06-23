@@ -1,6 +1,11 @@
+import { useRouter } from 'next/router'
 import Layout from 'layout'
-import { YieldsSearch } from 'components/Search/OpenSearch'
-import { CheckMarks } from 'components/SettingsModal'
+import { YieldsSearch } from 'components/Search'
+import LocalLoader from 'components/LocalLoader'
+import { RowLinks, YieldAttributes } from 'components/Filters'
+import { ListHeader, ListOptions } from 'components/ChainPage'
+import { TableWrapper, columns } from 'components/YieldsPage'
+import { NameYield } from 'components/Table'
 import {
   useNoILManager,
   useSingleExposureManager,
@@ -9,12 +14,6 @@ import {
   useAuditedManager,
 } from 'contexts/LocalStorage'
 import { useYieldPoolsData } from 'utils/dataApi'
-import { useRouter } from 'next/router'
-import LocalLoader from 'components/LocalLoader'
-import Filters from 'components/Filters'
-import { ListHeader, ListOptions } from 'components/ChainPage'
-import { TableWrapper, columns } from 'components/YieldsPage'
-import { NameYield } from 'components/Table'
 
 const YieldPage = () => {
   // load the full data once
@@ -68,13 +67,12 @@ const YieldPage = () => {
 
   return (
     <>
-      <YieldsSearch step={{ category: 'Yields', name: query.token, hideOptions: true }} />
-
-      <CheckMarks type="yields" style={{ display: 'flex', justifyContent: 'center' }} />
+      <YieldsSearch step={{ category: 'Yields', name: query.token }} />
 
       <ListOptions>
         <ListHeader>Yield Rankings</ListHeader>
-        {!loading && <Filters filterOptions={tabOptions} activeLabel={selectedTab} />}
+        {!loading && <RowLinks links={tabOptions} activeLink={selectedTab} />}
+        <YieldAttributes />
       </ListOptions>
 
       {poolData === undefined ? (

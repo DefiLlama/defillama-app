@@ -1,16 +1,16 @@
 import React, { useMemo } from 'react'
-import { getForkPageData, revalidate } from '../utils/dataApi'
-import Layout from '../layout'
+import styled from 'styled-components'
+import { Box } from 'rebass'
+import { Header } from 'Theme'
+import Layout from 'layout'
 import Table, { Index } from 'components/Table'
+import { CustomLink } from 'components/Link'
+import { ProtocolsChainsSearch } from 'components/Search'
+import { ChainDominanceChart, ChainPieChart } from 'components/Charts'
+import { RowLinks, LinksWrapper } from 'components/Filters'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
 import { getRandomColor, toK } from 'utils'
-import { CustomLink } from 'components/Link'
-import styled from 'styled-components'
-import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
-import { Header } from 'Theme'
-import { ChainDominanceChart, ChainPieChart } from 'components/Charts'
-import Filters, { FiltersWrapper } from 'components/Filters'
-import { Box } from 'rebass'
+import { getForkPageData, revalidate } from 'utils/dataApi'
 
 export async function getStaticProps() {
   const data = await getForkPageData()
@@ -117,9 +117,9 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
         />
       </ChartsWrapper>
 
-      <FiltersWrapper>
-        <Filters filterOptions={tokenLinks} activeLabel="All" />
-      </FiltersWrapper>
+      <LinksWrapper>
+        <RowLinks links={tokenLinks} activeLink="All" />
+      </LinksWrapper>
 
       <Table columns={columns} data={tokensList} />
     </>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { PieChart, Pie, Cell, Sector, ResponsiveContainer } from 'recharts'
-import { ChartWrapper } from '.'
+import { ChartWrapper } from './shared'
 import { toK } from 'utils'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 

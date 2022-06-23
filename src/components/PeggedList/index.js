@@ -1,8 +1,18 @@
 import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
+import { DownloadCloud } from 'react-feather'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from 'components'
 import { OptionButton } from 'components/ButtonStyled'
 import { RowBetween, AutoRow } from 'components/Row'
 import PeggedViewSwitch from 'components/PeggedViewSwitch'
+import Table, { columnsToShow } from 'components/Table'
+import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
+import { RowLinks, LinksWrapper } from 'components/Filters'
+import { AreaChart } from 'components/Charts'
+import IconsRow from 'components/IconsRow'
+import { PeggedSearch } from 'components/Search'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/data'
+import { useXl, useMed } from 'hooks/useBreakpoints'
 import {
   getRandomColor,
   capitalizeFirstLetter,
@@ -14,29 +24,15 @@ import {
   toNiceCsvDate,
   download,
 } from 'utils'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/data'
-import { useXl, useMed } from 'hooks/useBreakpoints'
-import { DownloadCloud } from 'react-feather'
-import Table, { columnsToShow } from 'components/Table'
-import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
-import Filters, { FiltersWrapper } from 'components/Filters'
-import { useDarkModeManager } from 'contexts/LocalStorage'
-import { GeneralAreaChart } from 'components/TokenChart'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from 'components'
-import IconsRow from 'components/IconsRow'
-import { PeggedSearch } from 'components/Search/OpenSearch'
 
 function Chart({ peggedAreaChartData, peggedAreaMcapData, totalMcapLabel, peggedAssetNames, aspect }) {
-  const [darkMode] = useDarkModeManager()
-  const textColor = darkMode ? 'white' : 'black'
   const finalChartData = peggedAreaChartData ? peggedAreaChartData : peggedAreaMcapData
   const labels = peggedAssetNames ? peggedAssetNames : totalMcapLabel
   return (
-    <GeneralAreaChart
+    <AreaChart
       aspect={aspect}
       finalChartData={finalChartData}
       tokensUnique={labels}
-      textColor={textColor}
       color={'blue'}
       moneySymbol="$"
       formatDate={toNiceMonthlyDate}
@@ -378,7 +374,7 @@ function PeggedAssetsOverview({
 
   return (
     <>
-      <PeggedSearch step={{ category: 'Pegged Assets', name: title, route: 'peggedassets', hideOptions: true }} />
+      <PeggedSearch step={{ category: 'Pegged Assets', name: title, route: 'peggedassets' }} />
 
       <PeggedViewSwitch />
 
@@ -438,9 +434,9 @@ function PeggedAssetsOverview({
       </ChartAndValuesWrapper>
 
       {showChainList && (
-        <FiltersWrapper>
-          <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
-        </FiltersWrapper>
+        <LinksWrapper>
+          <RowLinks links={chainOptions} activeLink={selectedChain} />
+        </LinksWrapper>
       )}
 
       <PeggedTable data={peggedTotals} columns={columns} />

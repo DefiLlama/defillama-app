@@ -1,17 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import MenuIcon from './MenuSvg'
+import OptionToggle from 'components/OptionToggle'
 import {
-  useStakingManager,
   useDisplayUsdManager,
-  useBorrowedManager,
   useHideLastDayManager,
-  useStablecoinsManager,
-  useSingleExposureManager,
-  useNoILManager,
-  useMillionDollarManager,
-  useAuditedManager,
   useTvlToggles,
   useGetExtraTvlEnabled,
   STAKING,
@@ -23,14 +15,9 @@ import {
   DOUBLE_COUNT,
   useDarkModeManager,
   UNRELEASED,
-  useGroupEnabled,
-  groupSettings,
-} from '../../contexts/LocalStorage'
-
-import { AutoRow } from '../Row'
+} from 'contexts/LocalStorage'
 import { useIsClient } from 'hooks'
-import OptionToggle from 'components/OptionToggle'
-import * as ScrollArea from '@radix-ui/react-scroll-area'
+import MenuIcon from './MenuSvg'
 
 const StyledMenuIcon = styled(MenuIcon)`
   svg {
@@ -129,58 +116,9 @@ const MenuItem = styled(StyledLink)`
   }
 `
 
-const ScrollAreaRoot = styled(ScrollArea.Root)`
-  width: 100%;
-  overflow: hidden;
-  color: white;
-`
-
-const ScrollAreaViewport = styled(ScrollArea.Viewport)`
-  width: 100%;
-  height: 100%;
-`
-
-const ScrollAreaScrollbar = styled(ScrollArea.Scrollbar)`
-  display: flex;
-  user-select: none;
-  touch-action: none;
-  padding: 2px;
-  background: rgba(229, 231, 235);
-  transition: background 160ms ease-out;
-  &[data-orientation='vertical'] {
-    width: 10px;
-  }
-  &[data-orientation='horizontal'] {
-    flex-direction: column;
-    height: 10px;
-  }
-`
-
-const ScrollAreaThumb = styled(ScrollArea.Thumb)`
-  flex: 1;
-  background: rgba(163, 163, 163);
-  border-radius: 10px;
-  position: relative;
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    height: 100%;
-    min-width: 44px;
-    min-height: 44px;
-  }
-`
-
-const ScrollAreaCorner = styled(ScrollArea.Corner)`
-  background: (163, 163, 163);
-`
-
 const ListWrapper = styled.ul`
   display: flex;
-  margin: 24px 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 `
@@ -189,115 +127,6 @@ const ListItem = styled.li`
     margin-left: 12px;
   }
 `
-
-export function CheckMarks({ type = 'defi', style = null }) {
-  const [stakingEnabled, toggleStaking] = useStakingManager()
-  const [borrowedEnabled, toggleBorrowed] = useBorrowedManager()
-  const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
-  const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
-  const [stablecoins, toggleStablecoins] = useStablecoinsManager()
-  const [singleExposure, toggleSingleExposure] = useSingleExposureManager()
-  const [noIL, toggleNoIL] = useNoILManager()
-  const [millionDollar, toggleMillionDollar] = useMillionDollarManager()
-  const [audited, toggleAudited] = useAuditedManager()
-  const router = useRouter()
-  const isClient = useIsClient()
-
-  const toggleSettings = {
-    defi: [
-      {
-        name: 'Staking',
-        toggle: toggleStaking,
-        enabled: stakingEnabled && isClient,
-        help: 'Include governance tokens staked in the protocol',
-      },
-      {
-        name: 'Borrows',
-        toggle: toggleBorrowed,
-        enabled: borrowedEnabled && isClient,
-        help: 'Include borrowed coins in lending protocols',
-      },
-    ],
-    nfts: [
-      router.pathname !== '/nfts' && {
-        name: 'Display in USD',
-        toggle: toggleDisplayUsd,
-        enabled: displayUsd && isClient,
-        help: 'Display metrics in USD',
-      },
-      {
-        name: 'Hide last day',
-        toggle: toggleHideLastDay,
-        enabled: hideLastDay && isClient,
-        help: 'Hide the last day of data',
-      },
-    ],
-    yields: [
-      {
-        name: 'Stablecoins',
-        toggle: toggleStablecoins,
-        enabled: stablecoins && isClient,
-        help: 'Select pools consisting of stablecoins only',
-      },
-      {
-        name: 'Single Exposure',
-        toggle: toggleSingleExposure,
-        enabled: singleExposure && isClient,
-        help: 'Select pools with single token exposure only',
-      },
-      {
-        name: 'No IL',
-        toggle: toggleNoIL,
-        enabled: noIL && isClient,
-        help: 'Select pools with no impermanent loss',
-      },
-      {
-        name: 'Million Dollar',
-        toggle: toggleMillionDollar,
-        enabled: millionDollar && isClient,
-        help: 'Select pools with at least one million dollar in TVL',
-      },
-      {
-        name: 'Audited',
-        toggle: toggleAudited,
-        enabled: audited && isClient,
-        help: 'Select pools from audited projects only',
-      },
-    ],
-  }
-
-  if (type !== 'yields') {
-    return (
-      <AutoRow gap="10px" justify="center" key="settings">
-        {toggleSettings[type].map((toggleSetting) => {
-          if (toggleSetting) {
-            return <OptionToggle {...toggleSetting} key={toggleSetting.name} />
-          } else return null
-        })}
-      </AutoRow>
-    )
-  } else {
-    return (
-      <>
-        <ScrollAreaRoot>
-          <ScrollAreaViewport>
-            <ListWrapper style={{ ...style }}>
-              {toggleSettings[type].map((toggleSetting) => (
-                <ListItem key={toggleSetting.name}>
-                  <OptionToggle {...toggleSetting} />
-                </ListItem>
-              ))}
-            </ListWrapper>
-          </ScrollAreaViewport>
-          <ScrollAreaScrollbar orientation="horizontal">
-            <ScrollAreaThumb />
-          </ScrollAreaScrollbar>
-          <ScrollAreaCorner />
-        </ScrollAreaRoot>
-      </>
-    )
-  }
-}
 
 export const extraTvlOptions = [
   {
@@ -408,57 +237,50 @@ export default function Menu({ type = 'defi', ...props }) {
   )
 }
 
-export const AllTvlOptions = ({ style }) => {
+export const DefiTvlSwitches = ({ options, ...props }) => {
   const tvlToggles = useTvlToggles()
   const extraTvlEnabled = useGetExtraTvlEnabled()
-  const router = useRouter()
 
-  let options = [...extraTvlOptions]
-
-  if (router.pathname?.includes('/protocol/')) {
-    options = options.filter((o) => o.key !== 'doublecounted')
-  }
+  let tvlOptions = options || [...extraTvlOptions]
 
   return (
-    <ScrollAreaRoot>
-      <ScrollAreaViewport>
-        <ListWrapper style={{ ...style }}>
-          {options.map((option) => (
-            <ListItem key={option.key}>
-              <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
-            </ListItem>
-          ))}
-        </ListWrapper>
-      </ScrollAreaViewport>
-      <ScrollAreaScrollbar orientation="horizontal">
-        <ScrollAreaThumb />
-      </ScrollAreaScrollbar>
-      <ScrollAreaCorner />
-    </ScrollAreaRoot>
+    <ListWrapper {...props}>
+      {tvlOptions.map((option) => (
+        <ListItem key={option.key}>
+          <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
+        </ListItem>
+      ))}
+    </ListWrapper>
   )
 }
 
-export const AllGroupOptions = ({ style }) => {
-  const tvlToggles = useTvlToggles()
-  const extraTvlEnabled = useGroupEnabled()
+export function NFTSwitches(props) {
+  const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
+  const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
+  const isClient = useIsClient()
+
+  const toggleSettings = [
+    {
+      name: 'Display in USD',
+      toggle: toggleDisplayUsd,
+      enabled: displayUsd && isClient,
+      help: 'Display metrics in USD',
+    },
+    {
+      name: 'Hide last day',
+      toggle: toggleHideLastDay,
+      enabled: hideLastDay && isClient,
+      help: 'Hide the last day of data',
+    },
+  ]
 
   return (
-    <>
-      <ScrollAreaRoot>
-        <ScrollAreaViewport>
-          <ListWrapper style={{ ...style }}>
-            {groupSettings.map((option) => (
-              <ListItem key={option.key}>
-                <OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
-              </ListItem>
-            ))}
-          </ListWrapper>
-        </ScrollAreaViewport>
-        <ScrollAreaScrollbar orientation="horizontal">
-          <ScrollAreaThumb />
-        </ScrollAreaScrollbar>
-        <ScrollAreaCorner />
-      </ScrollAreaRoot>
-    </>
+    <ListWrapper {...props} style={{ margin: '0 auto' }}>
+      {toggleSettings.map((toggleSetting) => (
+        <ListItem key={toggleSetting.name}>
+          <OptionToggle {...toggleSetting} />
+        </ListItem>
+      ))}
+    </ListWrapper>
   )
 }

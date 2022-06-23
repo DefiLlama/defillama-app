@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { Text, Box } from 'rebass'
-import Table from './Table'
+import Table from 'components/Table'
 
 export const Panel = styled.div`
   position: relative;

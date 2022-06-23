@@ -221,3 +221,30 @@ export const GlobalStyle = createGlobalStyle`
     border-width: 0;
   }
 `
+
+// Don't apply scrollbar styles for now
+// scrollbar
+// scrollbarTrackColor: 'rgba(0, 0, 0, 0)',
+// scrollbarThumbColor: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
+
+//   /* ===== Scrollbar CSS ===== */
+//   /* Firefox */
+//   * {
+//   scrollbar-width: auto;
+//   scrollbar-color: ${({ theme }) => theme.scrollbarThumbColor} ${({ theme }) => theme.scrollbarTrackColor};
+// }
+
+// /* Chrome, Edge, and Safari */
+// *::-webkit-scrollbar {
+//   width: 0.64em;
+// }
+
+// *::-webkit-scrollbar-track {
+//   background: ${({ theme }) => theme.scrollbarTrackColor};
+// }
+
+// *::-webkit-scrollbar-thumb {
+//   background-color: ${({ theme }) => theme.scrollbarThumbColor};
+//   border-radius: 0.71em;
+//   border: 0px;
+// }

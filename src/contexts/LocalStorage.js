@@ -82,7 +82,7 @@ const UPDATE_KEY = 'UPDATE_KEY'
 
 const LocalStorageContext = createContext()
 
-function useLocalStorageContext() {
+export function useLocalStorageContext() {
   return useContext(LocalStorageContext)
 }
 

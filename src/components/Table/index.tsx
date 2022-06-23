@@ -12,7 +12,6 @@ import orderBy from 'lodash.orderby'
 import IconsRow from 'components/IconsRow'
 import QuestionHelper from 'components/QuestionHelper'
 import { AutoRow } from 'components/Row'
-export { TableFilters } from './Filters'
 
 interface ColumnProps {
   header: string
@@ -658,7 +657,7 @@ const allColumns: AllColumns = {
     header: 'Name',
     accessor: 'name',
     disableSortBy: true,
-    Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+    Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
       <Name
         type="protocol"
         value={value}
@@ -666,6 +665,7 @@ const allColumns: AllColumns = {
         index={rowIndex !== null && rowIndex + 1}
         bookmark
         rowType={rowType}
+        showRows={showRows}
       />
     ),
   },

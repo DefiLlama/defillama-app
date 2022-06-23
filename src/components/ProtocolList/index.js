@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react'
-import { useCalcStakePool2Tvl } from 'hooks/data'
 import { Header } from 'Theme'
-import { ProtocolsChainsSearch } from 'components/Search/OpenSearch'
+import { ProtocolsChainsSearch } from 'components/Search'
 import Table, { columnsToShow } from 'components/Table'
-import Filters, { FiltersWrapper } from 'components/Filters'
+import { RowLinks, LinksWrapper } from 'components/Filters'
+import { useCalcStakePool2Tvl } from 'hooks/data'
 
 function AllTokensPage({
   title,
@@ -70,9 +70,9 @@ function AllTokensPage({
       <Header>{title}</Header>
 
       {showChainList && (
-        <FiltersWrapper>
-          <Filters filterOptions={chainOptions} activeLabel={selectedChain} />
-        </FiltersWrapper>
+        <LinksWrapper>
+          <RowLinks links={chainOptions} activeLink={selectedChain} />
+        </LinksWrapper>
       )}
 
       <Table data={protocolTotals} columns={columns} />
