@@ -90,7 +90,7 @@ export function FiltersByChain({ chains = [], setChainsToFilter }: IFiltersByCha
         {combobox.matches.length > 0 ? (
           <>
             <Stats>
-              <p>{`${combobox.matches.length} selected`}</p>
+              <p>{`${select.value.length} selected`}</p>
               <button onClick={toggleAll}>toggle all</button>
             </Stats>
             <List state={combobox} className="filter-by-chain-list">
