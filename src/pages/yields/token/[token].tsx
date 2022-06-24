@@ -22,8 +22,11 @@ const YieldPage = () => {
   const chainList = [...new Set(pools.map((p) => p.chain))]
 
   const { query } = useRouter()
+
+  const queryToken = typeof query.token === 'string' ? query.token : null
+
   // filter to requested token
-  pools = pools.filter((p) => p.symbol.toLowerCase().includes(query.token.toLowerCase()))
+  pools = pools.filter((p) => queryToken && p.symbol.toLowerCase().includes(queryToken.toLowerCase()))
 
   const selectedTab = 'All'
   const tabOptions = [
@@ -31,7 +34,7 @@ const YieldPage = () => {
       label: 'All',
       to: '/yields',
     },
-    ...chainList.map((el) => ({ label: el, to: `/yields/chain/${el}` })),
+    ...chainList.map((el: string) => ({ label: el, to: `/yields/chain/${el}` })),
   ]
 
   // if route query contains 'project' remove project href
@@ -41,14 +44,23 @@ const YieldPage = () => {
       header: 'Project',
       accessor: 'project',
       disableSortBy: true,
-      Cell: ({ value, rowValues }) => <NameYield value={(value, rowValues)} rowType={'accordion'} />,
+      Cell: ({ value, rowValues }) => (
+        <NameYield
+          value={value}
+          project={rowValues.project}
+          projectslug={rowValues.projectslug}
+          rowType={'accordion'}
+        />
+      ),
     }
   } else {
     columns[idx] = {
       header: 'Project',
       accessor: 'project',
       disableSortBy: true,
-      Cell: ({ value, rowValues }) => <NameYield value={(value, rowValues)} />,
+      Cell: ({ value, rowValues }) => (
+        <NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} />
+      ),
     }
   }
 
@@ -67,7 +79,7 @@ const YieldPage = () => {
 
   return (
     <>
-      <YieldsSearch step={{ category: 'Yields', name: query.token }} />
+      <YieldsSearch step={{ category: 'Yields', name: queryToken }} />
 
       <ListOptions>
         <ListHeader>Yield Rankings</ListHeader>
@@ -92,7 +104,6 @@ const YieldPage = () => {
             outlook: t.predictions.predictedClass,
             confidence: t.predictions.binnedConfidence,
           }))}
-          secondColumnAlign="start"
           columns={columns}
         />
       )}

@@ -579,7 +579,7 @@ interface INameYield extends Omit<NameProps, 'type'> {
   projectslug: string
 }
 
-export function NameYield({ value, project, projectslug, rowType, ...props }: INameYield) {
+export function NameYield({ project, projectslug, rowType, ...props }: INameYield) {
   const iconUrl = tokenIconUrl(project)
   const tokenUrl = `/yields/project/${projectslug}`
 
@@ -587,10 +587,10 @@ export function NameYield({ value, project, projectslug, rowType, ...props }: IN
     <Index {...props}>
       <TokenLogo id="table-p-logo" logo={iconUrl} />
       {rowType === 'accordion' ? (
-        <span id="table-p-name">{value['project']}</span>
+        <span id="table-p-name">{project}</span>
       ) : (
         <CustomLink id="table-p-name" href={tokenUrl}>
-          {value['project']}
+          {project}
         </CustomLink>
       )}
     </Index>
