@@ -13,6 +13,8 @@ import { ButtonLight } from 'components/ButtonStyled'
 import { YieldsSearch } from 'components/Search'
 import { toK } from 'utils'
 import { useYieldPoolData, useYieldChartData } from 'utils/dataApi'
+import { DownloadCloud } from 'react-feather'
+import { CSVLink } from 'react-csv'
 
 const TokenDetailsLayout = styled.div`
   display: inline-grid;
@@ -44,6 +46,27 @@ const TokenDetailsLayout = styled.div`
   }
 `
 
+const DownloadButton = styled(CSVLink)`
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: ${({ theme }) => theme.bg3};
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text4};
+  }
+`
+
+const DownloadIcon = styled(DownloadCloud)`
+  color: ${({ theme }) => theme.text1};
+  position: relative;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+`
+
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
 })
@@ -60,6 +83,16 @@ const PageView = () => {
     // i format here for the plot in `TradingViewChart`
     el.apy?.toFixed(2) ?? 0,
   ])
+
+  // prepare csv data
+  const csvColumns = chart?.data ? Object.keys(chart['data'][0]) : []
+  const csvData = chart?.data ? chart['data'] : []
+  const headers = csvColumns.map((c) => ({ label: c, key: c }))
+  const csvReport = {
+    data: csvData,
+    headers: headers,
+    filename: `${query.pool}.csv`,
+  }
 
   const poolData = pool?.data ? pool.data[0] : {}
 
@@ -103,6 +136,10 @@ const PageView = () => {
           <BreakpointPanel>
             <h2>APY</h2>
             <p style={{ '--tile-text-color': '#fd3c99' }}>{apy}%</p>
+            <DownloadButton {...csvReport}>
+              <DownloadIcon />
+              <span>&nbsp;&nbsp;.csv</span>
+            </DownloadButton>
           </BreakpointPanel>
           <BreakpointPanel>
             <h2>Total Value Locked</h2>
