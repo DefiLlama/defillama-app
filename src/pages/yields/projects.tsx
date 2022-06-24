@@ -94,7 +94,7 @@ export async function getStaticProps() {
 export default function Protocols({ projects }) {
   return (
     <Layout title={`Projects - DefiLlama Yield`} defaultSEO>
-      <YieldsSearch step={{ category: 'Yields', name: 'All projects' }} />
+      <YieldsSearch step={{ category: 'Yields', name: 'All projects', hideOptions: true }} />
       <PageHeader title="Projects" />
       <Table data={projects} columns={columns} gap="40px" />
     </Layout>

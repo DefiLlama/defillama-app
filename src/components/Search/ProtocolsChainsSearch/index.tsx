@@ -109,13 +109,15 @@ const Filters = styled.section`
   color: ${({ theme }) => theme.text1};
   font-weight: 400;
   font-size: 0.75rem;
-  opacity: 0.8;
-  white-space: nowrap;
   display: none;
   gap: 8px;
   align-items: center;
   margin-left: auto;
   padding: 0 16px;
+
+  label {
+    opacity: 0.8;
+  }
 
   @media (min-width: 96.0625rem) {
     display: flex;

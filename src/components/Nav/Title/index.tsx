@@ -6,10 +6,6 @@ import Link from 'next/link'
 const TitleWrapper = styled.a`
   transition: transform 0.3s ease;
 
-  & > svg {
-    display: block;
-  }
-
   :focus-visible {
     outline: 1px solid white;
   }

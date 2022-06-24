@@ -154,6 +154,10 @@ const HeaderButton = styled.button`
   display: flex;
   justify-content: flex-end;
 
+  svg {
+    flex-shrink: 0;
+  }
+
   &:hover {
     opacity: 0.6;
   }
@@ -196,8 +200,10 @@ const ScrollToTop = styled.button`
 
 const HeaderWithHelperText = styled.span`
   svg {
+    flex-shrink: 0;
     color: ${({ theme }) => theme.text1};
   }
+
   display: flex;
   align-items: center;
   gap: 4px;

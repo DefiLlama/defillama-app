@@ -85,7 +85,7 @@ const PageView = () => {
 
   return (
     <>
-      <YieldsSearch step={{ category: 'Yields', name: poolData.symbol }} />
+      <YieldsSearch step={{ category: 'Yields', name: poolData.symbol, hideOptions: true }} />
 
       <h1 style={{ margin: '0 0 -12px', fontWeight: 500, fontSize: '1.5rem' }}>
         <span>

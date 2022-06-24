@@ -62,15 +62,10 @@ export const Nav = styled.nav`
   }
 `
 
-interface INavLink {
-  activeText?: boolean
-}
-
-export const NavLink = styled(BasicLink)<INavLink>`
+export const NavLink = styled(BasicLink)`
   font-weight: 500;
   font-size: 14px;
   color: ${({ theme }) => theme.white};
-  opacity: ${({ activeText }) => (activeText ? 1 : 0.6)};
   display: flex;
   align-items: center;
   gap: 12px;
@@ -120,7 +115,7 @@ export const Entry = ({ url, name, Icon, newTag, ...props }: IEntryProps) => {
   const router = useRouter()
 
   return (
-    <NavLink href={url} {...props} activeText={router.pathname === url}>
+    <NavLink href={url} {...props} style={{ opacity: router.pathname === url ? 1 : 0.6 }}>
       <Icon size={20} />
       <span>{name}</span>
       {newTag === true && (

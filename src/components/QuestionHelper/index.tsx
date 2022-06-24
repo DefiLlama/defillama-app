@@ -10,6 +10,7 @@ const QuestionWrapper = styled.span`
   border-radius: 36px;
   background-color: ${({ theme }) => theme.bg2};
   color: ${({ theme }) => theme.text2};
+  flex-shrink: 0;
 
   :hover,
   :focus-visible {

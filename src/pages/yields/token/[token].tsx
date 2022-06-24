@@ -79,7 +79,7 @@ const YieldPage = () => {
 
   return (
     <>
-      <YieldsSearch step={{ category: 'Yields', name: queryToken }} />
+      <YieldsSearch step={{ category: 'Yields', name: queryToken, hideOptions: true }} />
 
       <ListOptions>
         <ListHeader>Yield Rankings</ListHeader>

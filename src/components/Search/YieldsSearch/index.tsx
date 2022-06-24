@@ -1,13 +1,11 @@
 import * as React from 'react'
-import styled from 'styled-components'
 import { BaseSearch } from 'components/Search/BaseSearch'
 import type { IBaseSearchProps, ICommonSearchProps } from 'components/Search/BaseSearch'
 import { useFetchYieldsList } from 'utils/categories/yield'
+import { AdvancedYieldsSearch } from './Advanced'
+import { ToggleSearch } from './shared'
 
-interface IYieldsSearchProps extends ICommonSearchProps {}
-
-//tmp fix: made step optional
-export default function YieldsSearch(props: IYieldsSearchProps) {
+export default function YieldsSearch(props: ICommonSearchProps) {
   const [advancedSearch, setAdvancedSearch] = React.useState(false)
 
   const { data, loading } = useFetchYieldsList()
@@ -24,20 +22,20 @@ export default function YieldsSearch(props: IYieldsSearchProps) {
       )
     }, [data]) ?? []
 
-  return <BaseSearch {...props} data={searchData} loading={loading} />
+  // if (!props.step?.hideOptions && advancedSearch) {
+  //   return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} />
+  // }
+
+  return (
+    <BaseSearch
+      {...props}
+      data={searchData}
+      loading={loading}
+      // filters={
+      //   !props.step?.hideOptions && (
+      //     <ToggleSearch onClick={() => setAdvancedSearch(true)}>Switch to Advanced Search</ToggleSearch>
+      //   )
+      // }
+    />
+  )
 }
-
-const ToggleSearch = styled.button`
-  margin-left: auto;
-  padding: 16px;
-  color: #4190ff;
-
-  :hover,
-  :focus-visible {
-    color: #2172e5;
-  }
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text1};
-  }
-`

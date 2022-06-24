@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { Panel } from 'components'
@@ -18,7 +18,7 @@ import { columns, TableWrapper } from './shared'
 const YieldPage = ({ pools, chainList }) => {
   const chain = [...new Set(pools.map((el) => el.chain))]
   const selectedTab = chain.length > 1 ? 'All' : chain[0]
-  const [chainsToFilter, setChainsToFilter] = useState<string[]>(chainList)
+  const [chainsToFilter, setChainsToFilter] = React.useState<string[]>(chainList)
 
   const { query } = useRouter()
   const { minTvl, maxTvl } = query
@@ -59,7 +59,7 @@ const YieldPage = ({ pools, chainList }) => {
   pools = millionDollar === true ? pools.filter((el) => el.tvlUsd >= 1e6) : pools
   pools = audited === true ? pools.filter((el) => el.audits !== '0') : pools
 
-  const poolsData = useMemo(() => {
+  const poolsData = React.useMemo(() => {
     const poolsData = pools
       .map((t) => ({
         id: t.pool,
@@ -112,7 +112,7 @@ const YieldPage = ({ pools, chainList }) => {
   )
 }
 
-const TableFilters = styled.nav`
+const TableFilters = styled.div`
   display: flex;
   flex-wrap: wrap;
   align-items: center;
