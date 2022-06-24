@@ -2,6 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import { Text, Box } from 'rebass'
 import Table from 'components/Table'
+import { CheckboxCheck } from 'ariakit'
 
 export const Panel = styled.div`
   position: relative;
@@ -375,6 +376,43 @@ export const ProtocolsTable = styled(Table)`
       }
     }
   }
+`
+
+export const ApplyFilters = styled.button`
+  padding: 12px;
+  border: none;
+  margin: 12px 0 0;
+  background: #2172e5;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 400;
+  border-radius: 8px;
+
+  :hover,
+  :focus-visible {
+    background: #4190ff;
+  }
+
+  :focus-visible {
+    outline: ${({ theme }) => '1px solid ' + theme.text2};
+  }
+
+  @media (min-width: 640px) {
+    border-radius: 0 0 8px 8px;
+  }
+`
+
+export const Checkbox = styled(CheckboxCheck)`
+  display: flex;
+  height: 13px;
+  width: 13px;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  border-radius: 2px;
+  background: #28a2b5;
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
+  color: #fff;
 `
 
 export { Hint, Divider, EmptyCard }

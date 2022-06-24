@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { useSelectState, SelectArrow, SelectItemCheck } from 'ariakit/select'
+import { useSelectState, SelectArrow, SelectItemCheck, SelectList } from 'ariakit/select'
 import { Item, Popover, SelectMenu } from 'components/Select/AriakitSelect'
 
 const Menu = styled(SelectMenu)`
@@ -31,6 +31,21 @@ const SelectedOptions = styled.span`
 const StyledPopover = styled(Popover)`
   min-width: 160px;
   max-height: 300px;
+  position: relative;
+  z-index: 50;
+  color: ${({ theme }) => theme.text1};
+  background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
+  filter: ${({ theme }) =>
+    theme.mode === 'dark'
+      ? 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 40%))'
+      : 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%))'};
+  border-radius: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+
+  & > *:last-of-type {
+    border-radius: 0;
+  }
 `
 
 const Button = styled(Item)`
@@ -42,7 +57,7 @@ const Button = styled(Item)`
   :hover,
   &[data-focus-visible] {
     cursor: pointer;
-    background: #445ed0;
+    background: #4190ff;
   }
 `
 
@@ -81,6 +96,8 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
     gutter: 6,
   })
 
+  const selectButtonRef = React.useRef(null)
+
   return (
     <>
       <Menu state={select} {...props}>
@@ -88,13 +105,13 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
         <SelectArrow />
       </Menu>
       {select.mounted && (
-        <StyledPopover state={select}>
+        <StyledPopover state={select} initialFocusRef={selectButtonRef}>
           {options.length > 0 ? (
-            <Button onClick={() => select.setValue([])} id="filter-button">
+            <Button onClick={() => select.setValue([])} ref={selectButtonRef} id="filter-button">
               Deselect All
             </Button>
           ) : (
-            <Button onClick={() => select.setValue(allOptions)} id="filter-button">
+            <Button onClick={() => select.setValue(allOptions)} ref={selectButtonRef} id="filter-button">
               Select All
             </Button>
           )}

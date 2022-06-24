@@ -201,7 +201,7 @@ export const Footer = ({ app }: { app: 'defi' | 'yields' }) => {
             </Link>
           </>
         ) : (
-          <Link href="https://defillama-datasets.s3.eu-central-1.amazonaws.com/yield-ml/pools_2022_05_20.csv" passHref>
+          <Link href="https://defillama-datasets.s3.eu-central-1.amazonaws.com/yields/yield_rankings.csv" passHref>
             <a target="_blank" rel="noopener noreferrer">
               Download Data
             </a>

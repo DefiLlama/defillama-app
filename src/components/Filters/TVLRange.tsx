@@ -1,8 +1,8 @@
 import { MenuButtonArrow } from 'ariakit'
-import { ApplyFilters } from 'components/DropdownMenu/shared'
-import Popover from 'components/Popover'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
+import Popover from 'components/Popover'
+import { ApplyFilters } from 'components'
 
 const Wrapper = styled(Popover)`
   padding: 0;
