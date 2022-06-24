@@ -18,7 +18,6 @@ import { formattedNum, capitalizeFirstLetter } from 'utils'
 import Section from './Section'
 import Links from './Links'
 import TokenLogo from 'components/TokenLogo'
-import FormattedName from 'components/FormattedName'
 
 const panelPseudo = css`
   :after {

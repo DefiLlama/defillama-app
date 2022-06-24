@@ -6,7 +6,11 @@ import { useSavedProtocols } from 'contexts/LocalStorage'
 import { useIsClient } from 'hooks'
 import { standardizeProtocolName } from 'utils'
 
-const Wrapper = styled.button`
+interface IWrapperProps {
+  saved: boolean
+}
+
+const Wrapper = styled.button<IWrapperProps>`
   background: none;
   padding: 0;
   border: none;
@@ -14,7 +18,7 @@ const Wrapper = styled.button`
 
   & > svg {
     cursor: pointer;
-    fill: ${({ theme: { text1 }, saved }) => (saved === 'true' ? text1 : 'none')};
+    fill: ${({ theme: { text1 }, saved }) => (saved ? text1 : 'none')};
 
     path {
       stroke: ${({ theme: { text1 } }) => text1};
@@ -32,14 +36,14 @@ function Bookmark({ readableProtocolName, ...props }) {
   const portfolios = Object.keys(savedProtocols)
   const protocolName = standardizeProtocolName(readableProtocolName)
 
-  const isSaved = portfolios.some((portfolio) => savedProtocols[portfolio][protocolName]) && isClient
+  const isSaved: boolean = portfolios.some((portfolio) => savedProtocols[portfolio][protocolName]) && isClient
 
   const onClick = isSaved ? () => removeProtocol(readableProtocolName) : () => addProtocol(readableProtocolName)
 
   return (
-    <Wrapper ref={bookmarkRef} onClick={onClick} saved={`${isSaved}`} {...props}>
+    <Wrapper ref={bookmarkRef} onClick={onClick} saved={isSaved} {...props}>
       <span className="visually-hidden">{`Bookmark ${protocolName}`}</span>
-      <BookmarkIcon saved={`${isSaved}`} width={16} height={16} />
+      <BookmarkIcon width={16} height={16} />
     </Wrapper>
   )
 }

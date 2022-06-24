@@ -2,8 +2,8 @@ import * as React from 'react'
 import Image from 'next/image'
 import styled, { css, keyframes } from 'styled-components'
 import { useNFTApp } from '../../hooks'
-import DefiLogo from 'assets/logo_white.webp'
-import NFTLogo from 'assets/nft_logo_white.webp'
+import DefiLogo from 'assets/logo_white.png'
+import NFTLogo from 'assets/nft_logo_white.png'
 
 const rotate = keyframes`
   0% { transform: scale(1); }

@@ -126,7 +126,7 @@ export const RowLinks = ({ links = [], activeLink, ...props }: IRowLinksProps) =
       )}
       {dropdownLinks && (
         <OtherLinks
-          name={dropdownLinks.find((label) => label.label === activeLink) ? activeLink : 'Others'}
+          name={dropdownLinks.find((link) => link.label === activeLink) ? activeLink : 'Others'}
           options={dropdownLinks}
         />
       )}

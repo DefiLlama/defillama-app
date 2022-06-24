@@ -52,7 +52,7 @@ export function YieldAttributes() {
 
   const updateAttributes = (values) => {
     options.forEach((option) => {
-      const isSelected = values?.find((value) => value === option.key)
+      const isSelected = values?.includes(option.key)
 
       if ((option.enabled && !isSelected) || (!option.enabled && isSelected)) {
         updateKey(option.key, !option.enabled)

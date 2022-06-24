@@ -26,26 +26,7 @@ import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance 
 import { chainCoingeckoIds } from 'constants/chainTokens'
 import { useDenominationPriceHistory } from 'utils/dataApi'
 import llamaLogo from '../../assets/peeking-llama.png'
-
-export const ListOptions = styled.nav`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  overflow: hidden;
-  margin: 0 0 -20px;
-`
-
-export const ListHeader = styled.h3`
-  font-size: 1.125rem;
-  color: ${({ theme }) => theme.text1};
-  font-weight: 500;
-  white-space: nowrap;
-  margin: 0;
-
-  @media screen and (max-width: 40rem) {
-    font-size: 1rem;
-  }
-`
+import { ListHeader, ListOptions } from './shared'
 
 const DownloadButton = styled(BasicLink)`
   padding: 4px 6px;

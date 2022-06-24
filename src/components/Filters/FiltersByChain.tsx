@@ -97,7 +97,7 @@ export function FiltersByChain({ chains = [], setChainsToFilter }: IFiltersByCha
               {combobox.matches.map((value, i) => (
                 <Item value={value} key={value + i} focusOnHover>
                   <span>{value}</span>
-                  <Checkbox checked={select.value.find((v) => v === value) ? true : false} />
+                  <Checkbox checked={select.value.includes(value) ? true : false} />
                 </Item>
               ))}
             </List>

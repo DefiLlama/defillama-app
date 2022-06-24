@@ -3,8 +3,8 @@ import Layout from 'layout'
 import { YieldsSearch } from 'components/Search'
 import LocalLoader from 'components/LocalLoader'
 import { RowLinks, YieldAttributes } from 'components/Filters'
-import { ListHeader, ListOptions } from 'components/ChainPage'
-import { TableWrapper, columns } from 'components/YieldsPage'
+import { ListHeader, ListOptions } from 'components/ChainPage/shared'
+import { TableWrapper, columns } from 'components/YieldsPage/shared'
 import { NameYield } from 'components/Table'
 import {
   useNoILManager,
