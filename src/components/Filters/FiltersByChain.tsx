@@ -44,17 +44,12 @@ const Stats = styled.span`
   border-bottom: ${({ theme }) => '1px solid ' + transparentize(0.9, theme.text1)};
 
   p {
-    margin: 0;
     color: ${({ theme }) => theme.text2};
   }
 
   button {
-    background: none;
-    border: none;
-    margin: 0;
     padding: 4px;
     color: ${({ theme }) => theme.primary1};
-    cursor: pointer;
   }
 `
 

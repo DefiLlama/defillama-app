@@ -34,6 +34,36 @@ const ChartsWrapper = styled(Box)`
   }
 `
 
+const columns = [
+  {
+    header: 'Name',
+    accessor: 'name',
+    disableSortBy: true,
+    Cell: ({ value, rowIndex }) => {
+      return (
+        <Index>
+          <span>{rowIndex + 1}</span>
+          <CustomLink href={`/forks/${value}`}>{value}</CustomLink>
+        </Index>
+      )
+    },
+  },
+  {
+    header: 'Forked Protocols',
+    accessor: 'forkedProtocols',
+  },
+  {
+    header: 'TVL',
+    accessor: 'tvl',
+    Cell: ({ value }) => <>{'$' + toK(value)}</>,
+  },
+  {
+    header: 'Forks TVL / Original TVL',
+    accessor: 'ftot',
+    Cell: ({ value }) => <>{value && value.toFixed(2) + '%'}</>,
+  },
+]
+
 const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens }) => {
   const tokenColors = useMemo(
     () => Object.fromEntries([...tokens, 'Others'].map((token) => [token, getRandomColor()])),
@@ -65,39 +95,6 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 
     return { tokenTvls, tokensList }
   }, [stackedData, tokensProtocols, forkedTokensData])
-
-  const columns = useMemo(
-    () => [
-      {
-        header: 'Name',
-        accessor: 'name',
-        disableSortBy: true,
-        Cell: ({ value, rowIndex }) => {
-          return (
-            <Index>
-              <span>{rowIndex + 1}</span>
-              <CustomLink href={`/forks/${value}`}>{value}</CustomLink>
-            </Index>
-          )
-        },
-      },
-      {
-        header: 'Forked Protocols',
-        accessor: 'forkedProtocols',
-      },
-      {
-        header: 'TVL',
-        accessor: 'tvl',
-        Cell: ({ value }) => <>{'$' + toK(value)}</>,
-      },
-      {
-        header: 'Forks TVL / Original TVL',
-        accessor: 'ftot',
-        Cell: ({ value }) => <>{value && value.toFixed(2) + '%'}</>,
-      },
-    ],
-    []
-  )
 
   return (
     <>

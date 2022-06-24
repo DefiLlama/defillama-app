@@ -12,7 +12,7 @@ export const Input = styled(Combobox)`
   margin: 12px 12px 0;
 
   :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text2};
+    outline: ${({ theme }) => '1px solid ' + theme.text1};
   }
 `
 

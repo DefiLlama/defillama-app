@@ -54,9 +54,6 @@ export const Button = styled(MenuButton)<IButtonProps>`
   font-size: 0.825rem;
   font-weight: 600;
   border-radius: 8px;
-  cursor: pointer;
-  outline: none;
-  border: 1px solid transparent;
   background-color: ${({ color, theme }) => transparentize(0.9, color || theme.primary1)};
   color: ${({ theme }) => theme.text1};
 
@@ -64,12 +61,10 @@ export const Button = styled(MenuButton)<IButtonProps>`
 
   :hover,
   :focus-visible {
-    cursor: pointer;
     background-color: ${({ color, theme }) => transparentize(0.8, color || theme.primary1)};
   }
 
   :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
     outline-offset: 1px;
   }
 

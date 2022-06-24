@@ -25,10 +25,8 @@ html {
 
 a {
   text-decoration: none;
-}
-
-a:hover {
-  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 }
 
 .three-line-legend {
@@ -77,6 +75,10 @@ html {
   box-sizing: border-box;
 }
 
+* {
+  margin: 0;
+}
+
 *,
 *:before,
 *:after {
@@ -94,6 +96,32 @@ button,
 textarea,
 select {
   font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
 }
 
 [data-backdrop] {

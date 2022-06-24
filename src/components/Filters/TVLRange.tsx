@@ -28,10 +28,6 @@ const TvlFilterForm = styled.form`
     background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
     color: ${({ theme }) => theme.text1};
     font: inherit;
-
-    :focus-visible {
-      outline: ${({ theme }) => '1px solid ' + theme.text2};
-    }
   }
 
   @media (min-width: 640px) {

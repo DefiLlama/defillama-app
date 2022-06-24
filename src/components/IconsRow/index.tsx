@@ -14,13 +14,11 @@ const TokenCounter = styled.button`
   border-radius: 50%;
   background: ${({ theme }) => theme.bg3};
   color: ${({ theme }) => theme.text1};
-  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
 
   :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text1};
     outline-offset: 2px;
   }
 `
@@ -46,7 +44,6 @@ const Popover = styled(Hovercard)`
 const Link = styled(BasicLink)`
   border-radius: 50%;
   :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text1};
     outline-offset: 2px;
   }
 `

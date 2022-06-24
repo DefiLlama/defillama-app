@@ -4,12 +4,7 @@ import DefiLogo from './DefiLogo'
 import Link from 'next/link'
 
 const TitleWrapper = styled.a`
-  text-decoration: none;
   transition: transform 0.3s ease;
-  :hover {
-    cursor: pointer;
-    transform: rotate(-5deg);
-  }
 
   & > svg {
     display: block;
@@ -17,6 +12,12 @@ const TitleWrapper = styled.a`
 
   :focus-visible {
     outline: 1px solid white;
+  }
+
+  @media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+    :hover {
+      transform: rotate(-5deg);
+    }
   }
 `
 

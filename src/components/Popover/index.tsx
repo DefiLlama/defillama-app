@@ -29,13 +29,12 @@ const Trigger = styled(PopoverDisclosure)`
 
   :hover,
   :focus-visible {
-    cursor: pointer;
     background-color: ${({ theme }) => transparentize(0.8, theme.primary1)};
   }
 
   :focus-visible,
   [data-focus-visible] {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline: ${({ theme }) => '1px solid ' + theme.text1};
     outline-offset: 1px;
   }
 `
@@ -60,7 +59,7 @@ const PopoverWrapper = styled(AriaPopover)`
 
   :focus-visible,
   [data-focus-visible] {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline: ${({ theme }) => '1px solid ' + theme.text1};
     outline-offset: 1px;
   }
 

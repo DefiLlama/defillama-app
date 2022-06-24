@@ -4,24 +4,14 @@ import { CheckCircle, Copy } from 'react-feather'
 
 const CopyIcon = styled.button`
   flex-shrink: 0;
-  text-decoration: none;
-  background: none;
-  border: none;
   display: flex;
   align-items: center;
   padding: 2px 0;
-  margin: 0;
 
   :hover,
   :active,
   :focus-visible {
-    text-decoration: none;
     opacity: 0.8;
-    cursor: pointer;
-  }
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
   }
 
   & > svg {

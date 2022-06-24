@@ -31,7 +31,7 @@ const Box = styled(Combobox)`
   }
 
   &[data-focus-visible] {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline: ${({ theme }) => '1px solid ' + theme.text1};
   }
 `
 
@@ -95,17 +95,10 @@ const OptionsWrapper = styled.div`
     align-items: center;
     gap: 8px;
     padding: 16px;
-    margin: 0;
 
     & > * {
       color: ${({ theme }) => theme.text1};
       font-size: 0.875rem;
-    }
-  }
-
-  a {
-    :focus-visible {
-      outline: ${({ theme }) => '1px solid ' + theme.text4};
     }
   }
 `
@@ -114,6 +107,7 @@ const IconWrapper = styled.div`
   position: absolute;
   top: 14px;
   right: 16px;
+
   & > svg {
     color: ${({ theme }) => theme.text3};
     height: 20px;
@@ -171,7 +165,6 @@ export const BaseSearch = (props: IBaseSearchProps) => {
 
       {step && <Options step={step} filters={filters} />}
 
-      {/* TODO make auto resizing work */}
       <Popover state={combobox}>
         {loading || !combobox.mounted ? (
           <Empty>Loading...</Empty>

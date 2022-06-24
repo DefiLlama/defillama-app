@@ -55,8 +55,4 @@ const AppLink = styled.a<IAppLink>`
   border-radius: 6px;
   background: ${({ active, theme }) => (active ? '#445ed0' : theme.bg6)};
   flex: 1;
-
-  :focus-visible {
-    outline: 1px solid white;
-  }
 `

@@ -34,6 +34,34 @@ const ChartsWrapper = styled(Box)`
   }
 `
 
+const columns = [
+  {
+    header: 'Name',
+    accessor: 'name',
+    disableSortBy: true,
+    Cell: ({ value, rowIndex }) => {
+      return (
+        <Index>
+          <span>{rowIndex + 1}</span>
+          <CustomLink href={`/oracles/${value}`}>{value}</CustomLink>
+        </Index>
+      )
+    },
+  },
+  {
+    header: 'Protocols Secured',
+    accessor: 'protocolsSecured',
+  },
+  {
+    header: 'TVS',
+    accessor: 'tvs',
+    helperText: 'Excludes CeFi',
+    Cell: ({ value }) => {
+      return <span>{'$' + toK(value)}</span>
+    },
+  },
+]
+
 const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
   const tokenColors = useMemo(
     () => Object.fromEntries([...tokens, 'Others'].map((token) => [token, getRandomColor()])),
@@ -60,37 +88,6 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
 
     return { tokenTvls, tokensList }
   }, [stackedData, tokensProtocols])
-
-  const columns = useMemo(
-    () => [
-      {
-        header: 'Name',
-        accessor: 'name',
-        disableSortBy: true,
-        Cell: ({ value, rowIndex }) => {
-          return (
-            <Index>
-              <span>{rowIndex + 1}</span>
-              <CustomLink href={`/oracles/${value}`}>{value}</CustomLink>
-            </Index>
-          )
-        },
-      },
-      {
-        header: 'Protocols Secured',
-        accessor: 'protocolsSecured',
-      },
-      {
-        header: 'TVS',
-        accessor: 'tvs',
-        helperText: 'Excludes CeFi',
-        Cell: ({ value }) => {
-          return <span>{'$' + toK(value)}</span>
-        },
-      },
-    ],
-    []
-  )
 
   return (
     <>

@@ -9,17 +9,13 @@ const StyledMenuIcon = styled(MenuIcon)`
 `
 
 const Wrapper = styled.button`
-  margin: 0;
   padding: 0.15rem 0.5rem;
   height: 35px;
-  border: none;
   background-color: ${({ theme }) => theme.bg3};
   border-radius: 0.5rem;
 
   :hover,
-  :focus {
-    cursor: pointer;
-    outline: none;
+  :focus-visible {
     background-color: ${({ theme }) => theme.bg4};
   }
   svg {

@@ -3,7 +3,6 @@ import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { DownloadCloud } from 'react-feather'
 import {
   ProtocolsTable,
   Panel,
@@ -11,6 +10,8 @@ import {
   BreakpointPanel,
   PanelHiddenMobile,
   ChartAndValuesWrapper,
+  DownloadButton,
+  DownloadIcon,
 } from 'components'
 import { RowFixed } from 'components/Row'
 import { ProtocolsChainsSearch } from 'components/Search'
@@ -28,34 +29,10 @@ import { useDenominationPriceHistory } from 'utils/dataApi'
 import llamaLogo from '../../assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
 
-const DownloadButton = styled(BasicLink)`
-  padding: 4px 6px;
-  border-radius: 6px;
-  background: ${({ theme }) => theme.bg3};
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
-`
-
-const DownloadIcon = styled(DownloadCloud)`
-  color: ${({ theme }) => theme.text1};
-  position: relative;
-  top: 2px;
-  width: 20px;
-  height: 20px;
-`
-
 const EasterLlama = styled.button`
-  margin: 0;
   padding: 0;
   width: 41px;
   height: 34px;
-  background: none;
-  border: none;
   position: absolute;
   bottom: -36px;
   left: 0;
@@ -63,10 +40,6 @@ const EasterLlama = styled.button`
   img {
     width: 41px !important;
     height: 34px !important;
-  }
-
-  :hover {
-    cursor: pointer;
   }
 `
 

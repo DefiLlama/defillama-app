@@ -19,7 +19,6 @@ const GAP = 6
 const Wrapper = styled.ul`
   flex: 1;
   overflow: hidden;
-  margin: 0;
   padding: 4px;
   display: flex;
   flex-wrap: wrap;

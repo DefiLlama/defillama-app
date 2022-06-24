@@ -13,7 +13,6 @@ export const ListHeader = styled.h3`
   color: ${({ theme }) => theme.text1};
   font-weight: 500;
   white-space: nowrap;
-  margin: 0;
 
   @media screen and (max-width: 40rem) {
     font-size: 1rem;

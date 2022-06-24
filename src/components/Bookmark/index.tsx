@@ -11,15 +11,8 @@ interface IWrapperProps {
 }
 
 const Wrapper = styled.button<IWrapperProps>`
-  background: none;
-  padding: 0;
-  border: none;
-  margin: 0;
-
   & > svg {
-    cursor: pointer;
     fill: ${({ theme: { text1 }, saved }) => (saved ? text1 : 'none')};
-
     path {
       stroke: ${({ theme: { text1 } }) => text1};
     }

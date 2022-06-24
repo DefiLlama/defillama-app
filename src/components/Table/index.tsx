@@ -144,19 +144,12 @@ export const Index = styled.div`
 const SaveButton = styled(Bookmark)`
   position: relative;
   top: 2px;
-  cursor: pointer;
 `
 
 const HeaderButton = styled.button`
-  cursor: pointer;
   width: 100%;
   height: 100%;
-  color: inherit;
-  background: none;
-  border: none;
-  text-align: inherit;
   padding: 0;
-  font-size: inherit;
   font-weight: 500;
   display: flex;
   justify-content: flex-end;
@@ -166,7 +159,6 @@ const HeaderButton = styled.button`
   }
 
   :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
     outline-offset: 2px;
   }
 `
@@ -194,7 +186,6 @@ const ScrollToTop = styled.button`
 
   :hover {
     opacity: 1;
-    cursor: pointer;
   }
 
   @media (min-width: ${({ theme: { bpLg } }) => bpLg}) {

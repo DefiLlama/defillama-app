@@ -10,16 +10,9 @@ interface ITooltip {
 }
 
 const TooltipTrigger = styled(Button)`
-  background: none;
-  border: none;
   color: ${({ theme }) => theme.text1};
-  padding: 0;
   display: flex;
   align-items: center;
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
 `
 
 const TooltipPopver = styled(AriaTooltip)`

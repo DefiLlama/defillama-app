@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
-import { DownloadCloud } from 'react-feather'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from 'components'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from 'components'
 import { OptionButton } from 'components/ButtonStyled'
 import { RowBetween, AutoRow } from 'components/Row'
 import PeggedViewSwitch from 'components/PeggedViewSwitch'
@@ -220,43 +219,6 @@ const PeggedTable = styled(Table)`
   }
 `
 
-const Base = styled.button`
-  padding: 8px 12px;
-  font-size: 0.825rem;
-  font-weight: 600;
-  border-radius: 12px;
-  cursor: pointer;
-  outline: none;
-  border: 1px solid transparent;
-  outline: none;
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
-`
-
-const DownloadButton = styled(Base)`
-  padding: 4px 6px;
-  border-radius: 6px;
-  background: ${({ theme }) => theme.bg3};
-  color: ${({ theme }) => theme.text1};
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
-`
-
-const DownloadIcon = styled(DownloadCloud)`
-  color: ${({ theme }) => theme.text1};
-  position: relative;
-  top: 2px;
-  width: 20px;
-  height: 20px;
-`
-
 const columns = [
   ...columnsToShow('peggedAsset'),
   {
@@ -273,10 +235,10 @@ const columns = [
       return (
         <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
           {rowValues.depeggedTwoPercent ? (
-            <QuestionHelper text='This pegged asset is currently de-pegged by 2% or more.' />
+            <QuestionHelper text="This pegged asset is currently de-pegged by 2% or more." />
           ) : null}
           {rowValues.floatingPeg ? (
-            <QuestionHelper text='This pegged asset has a variable, floating, or crawling peg.' />
+            <QuestionHelper text="This pegged asset has a variable, floating, or crawling peg." />
           ) : null}
           <span
             style={{
@@ -402,7 +364,7 @@ function PeggedAssetsOverview({
           <BreakpointPanel>
             <h1>Total {title}</h1>
             <p style={{ '--tile-text-color': '#4f8fea' }}>{mcapToDisplay}</p>
-            <DownloadButton onClick={downloadCsv}>
+            <DownloadButton as="button" onClick={downloadCsv}>
               <DownloadIcon />
               <span>&nbsp;&nbsp;.csv</span>
             </DownloadButton>

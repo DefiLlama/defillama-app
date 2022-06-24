@@ -7,16 +7,12 @@ const QuestionWrapper = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  background: none;
-  outline: none;
-  cursor: default;
   border-radius: 36px;
   background-color: ${({ theme }) => theme.bg2};
   color: ${({ theme }) => theme.text2};
 
   :hover,
-  :focus {
+  :focus-visible {
     opacity: 0.7;
   }
 `

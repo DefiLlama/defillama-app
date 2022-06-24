@@ -43,13 +43,9 @@ const Wrapper = styled.section<IWrapper>`
 `
 
 const Button = styled.button<IButton>`
-  border: none;
-  background: none;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  margin: 0;
-  padding: 0;
   color: ${({ theme }) => theme.text1};
   gap: 4px;
   overflow: hidden:
@@ -59,14 +55,9 @@ const Button = styled.button<IButton>`
     color: ${({ theme }) => theme.text2};
     flex-shrink: 0;
   }
-
-  :hover {
-    cursor: pointer;
-  }
-
+  
   :focus-visible {
     background: ${({ theme }) => theme.bg3};
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
   }
 `
 
@@ -88,7 +79,6 @@ const PortfolioHeader = styled(Button)`
 
 const PortfolioList = styled.ul`
   list-style: none;
-  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -109,7 +99,6 @@ const PortfolioList = styled.ul`
 
       :focus-visible {
         background: ${({ theme }) => theme.bg3};
-        outline: ${({ theme }) => '1px solid ' + theme.text4};
       }
 
       & > *:first-child {

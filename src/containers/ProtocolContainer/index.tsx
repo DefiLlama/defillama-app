@@ -71,8 +71,6 @@ const ProtocolName = styled.h1`
   align-items: center;
   gap: 8px;
   font-size: 1.25rem;
-  margin: 0;
-  padding: 0;
 `
 
 const Symbol = styled.span`
@@ -125,7 +123,6 @@ const Table = styled.table`
 const Tvl = styled.p`
   font-weight: 700;
   font-size: 2rem;
-  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -155,14 +152,6 @@ const InfoWrapper = styled.section`
   grid-template-rows: repeat(3, auto);
   box-shadow: ${({ theme }) => theme.shadowSm};
 
-  a {
-    color: inherit;
-
-    :focus-visible {
-      outline: ${({ theme }) => '1px solid ' + theme.text4};
-    }
-  }
-
   @media (min-width: 80rem) {
     grid-template-rows: repeat(2, auto);
   }
@@ -179,8 +168,6 @@ const Section = styled.section`
   h3 {
     font-weight: 600;
     font-size: 1.125rem;
-    margin: 0;
-    padding: 0;
   }
 
   &:not(:first-of-type) {
@@ -197,7 +184,6 @@ const Section = styled.section`
   }
 
   p {
-    margin: 0;
     line-height: 1.5rem;
   }
 
@@ -242,26 +228,17 @@ const Button = styled(ButtonLight)`
   padding: 8px 12px;
   font-size: 0.875rem;
   font-weight: 400;
-  border: none;
   white-space: nowrap;
   font-family: var(--font-inter);
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
 `
 
 const FlexRow = styled.p`
   display: flex;
   align-items: center;
-  margin: 0;
   gap: 8px;
 `
 
 const Bobo = styled.button`
-  cursor: pointer;
-  background: none;
-  border: none;
   position: absolute;
   bottom: -36px;
   left: 0;
@@ -269,10 +246,6 @@ const Bobo = styled.button`
   img {
     width: 34px !important;
     height: 34px !important;
-  }
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
   }
 
   @media (min-width: 80rem) {
@@ -290,9 +263,6 @@ const DownloadButton = styled(Button)`
   color: inherit;
   padding: 8px 12px;
   border-radius: 10px;
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
 `
 
 const TvlWrapper = styled.section`
@@ -311,7 +281,6 @@ const ExtraTvlOption = styled.label`
   input {
     position: relative;
     top: 1px;
-    margin: 0;
     padding: 0;
     -webkit-appearance: none;
     appearance: none;
@@ -340,7 +309,6 @@ const ExtraTvlOption = styled.label`
     }
 
     :focus-visible {
-      outline: ${({ theme }) => '1px solid ' + theme.text1};
       outline-offset: max(2px, 0.15em);
     }
 
