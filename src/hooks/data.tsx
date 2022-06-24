@@ -62,6 +62,7 @@ interface IPegged {
   symbol: string
   gecko_id: string
   price: number
+  pegType: string
   change_1d: number | null
   change_7d: number | null
   change_1m: number | null
@@ -487,13 +488,31 @@ export const useCalcCirculating = (filteredPeggedAssets: IPegged[], defaultSorti
   const extraPeggedEnabled: ExtraTvls = useGetExtraPeggedEnabled()
 
   const peggedAssetTotals = useMemo(() => {
-    const updatedPeggedAssets = filteredPeggedAssets.map(({ circulating, unreleased, ...props }) => {
+    const updatedPeggedAssets = filteredPeggedAssets.map(({ circulating, unreleased, pegType, price, ...props }) => {
       if (extraPeggedEnabled['unreleased'] && unreleased) {
         circulating += unreleased
       }
+
+      let floatingPeg = false
+      if (pegType === 'peggedVAR') {
+        floatingPeg = true
+      }
+      
+      let depeggedTwoPercent = false
+      if (pegType === 'peggedUSD') {
+        let percentChange = getPercentChange(price, 1)
+        if (2 < Math.abs(percentChange)) {
+          depeggedTwoPercent = true
+        }
+      }
+
       return {
         circulating,
         unreleased,
+        pegType,
+        price,
+        depeggedTwoPercent,
+        floatingPeg,
         ...props,
       }
     })

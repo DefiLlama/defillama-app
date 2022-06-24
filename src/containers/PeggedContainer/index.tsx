@@ -508,6 +508,30 @@ const Capitalize = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
+const columns = [
+  ...columnsToShow('peggedAssetChain'),
+  {
+    header: 'Bridge',
+    accessor: 'bridgeInfo',
+    disableSortBy: true,
+    Cell: ({ value }) => {
+      return value.link ? <CustomLink href={value.link}>{value.name}</CustomLink> : <span>{value.name}</span>
+    },
+  },
+  {
+    header: 'Bridged Amount',
+    accessor: 'bridgedAmount',
+    disableSortBy: true,
+    Cell: ({ value }) => <>{typeof value === 'string' ? value : formattedNum(value)}</>,
+  },
+  ...columnsToShow('1dChange', '7dChange', '1mChange'),
+  {
+    header: 'Total Circulating',
+    accessor: 'circulating',
+    Cell: ({ value }) => <>{value && formattedNum(value)}</>,
+  },
+]
+
 export default function PeggedContainer({
   chainsUnique,
   chainCirculatings,
@@ -552,30 +576,6 @@ export default function PeggedContainer({
   const extraPeggeds = [...extraPeggedProps]
   const tvlToggles = useTvlToggles()
   const extraPeggedsEnabled = useGetExtraPeggedEnabled()
-
-  const columns = [
-    ...columnsToShow('peggedAssetChain'),
-    {
-      header: 'Bridge',
-      accessor: 'bridgeInfo',
-      disableSortBy: true,
-      Cell: ({ value }) => {
-        return value.link ? <CustomLink href={value.link}>{value.name}</CustomLink> : <span>{value.name}</span>
-      },
-    },
-    {
-      header: 'Bridged Amount',
-      accessor: 'bridgedAmount',
-      disableSortBy: true,
-      Cell: ({ value }) => <>{typeof value === 'string' ? value : formattedNum(value)}</>,
-    },
-    ...columnsToShow('1dChange', '7dChange', '1mChange'),
-    {
-      header: 'Total Circulating',
-      accessor: 'circulating',
-      Cell: ({ value }) => <>{value && formattedNum(value)}</>,
-    },
-  ]
 
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),

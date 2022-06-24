@@ -88,6 +88,7 @@ export const peggedPropertiesToKeep = [
   'gecko_id',
   'chains',
   'price',
+  'pegType',
   'change_1d',
   'change_7d',
   'change_1m',
@@ -399,7 +400,6 @@ export async function getPeggedOverviewPageData(category, chain) {
     }
   })
 
-  const pegType = categoryToPegType[category]
   const stackedDataset = Object.entries(
     chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
       if (!charts.length) return total
@@ -591,6 +591,7 @@ export async function getPeggedChainsPageData(category) {
     }, {})
   )
 
+  // formatPeggedChainsData includes all "pegTypes" for mcap, but only 1 pegType for other chainCirculatings props
   const chainCirculatings = formatPeggedChainsData({
     pegType,
     chainList,
