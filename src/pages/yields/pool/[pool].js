@@ -3,7 +3,14 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { TYPE } from 'Theme'
 import Layout from 'layout'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
+import {
+  BreakpointPanel,
+  BreakpointPanels,
+  ChartAndValuesWrapper,
+  DownloadButton,
+  DownloadIcon,
+  Panel,
+} from 'components'
 import { AutoColumn } from 'components/Column'
 import { RowFixed } from 'components/Row'
 import { BasicLink } from 'components/Link'
@@ -11,10 +18,8 @@ import FormattedName from 'components/FormattedName'
 import AuditInfo from 'components/AuditInfo'
 import { ButtonLight } from 'components/ButtonStyled'
 import { YieldsSearch } from 'components/Search'
-import { toK } from 'utils'
+import { download, toK } from 'utils'
 import { useYieldPoolData, useYieldChartData } from 'utils/dataApi'
-import { DownloadCloud } from 'react-feather'
-import { CSVLink } from 'react-csv'
 
 const TokenDetailsLayout = styled.div`
   display: inline-grid;
@@ -46,27 +51,6 @@ const TokenDetailsLayout = styled.div`
   }
 `
 
-const DownloadButton = styled(CSVLink)`
-  padding: 4px 6px;
-  border-radius: 6px;
-  background: ${({ theme }) => theme.bg3};
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
-`
-
-const DownloadIcon = styled(DownloadCloud)`
-  color: ${({ theme }) => theme.text1};
-  position: relative;
-  top: 2px;
-  width: 20px;
-  height: 20px;
-`
-
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,
 })
@@ -85,13 +69,14 @@ const PageView = () => {
   ])
 
   // prepare csv data
-  const csvColumns = chart?.data ? Object.keys(chart['data'][0]) : []
-  const csvData = chart?.data ? chart['data'] : []
-  const headers = csvColumns.map((c) => ({ label: c, key: c }))
-  const csvReport = {
-    data: csvData,
-    headers: headers,
-    filename: `${query.pool}.csv`,
+  const downloadCsv = () => {
+    const rows = [['APY', 'TVL', 'DATE']]
+
+    chart.data?.forEach((item) => {
+      rows.push([item.apy, item.tvlUsd, item.timestamp])
+    })
+
+    download(`${query.pool}.csv`, rows.map((r) => r.join(',')).join('\n'))
   }
 
   const poolData = pool?.data ? pool.data[0] : {}
@@ -136,7 +121,7 @@ const PageView = () => {
           <BreakpointPanel>
             <h2>APY</h2>
             <p style={{ '--tile-text-color': '#fd3c99' }}>{apy}%</p>
-            <DownloadButton {...csvReport}>
+            <DownloadButton as="button" onClick={downloadCsv}>
               <DownloadIcon />
               <span>&nbsp;&nbsp;.csv</span>
             </DownloadButton>
