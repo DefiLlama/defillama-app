@@ -11,6 +11,7 @@ import { RowLinks, LinksWrapper } from 'components/Filters'
 import { AreaChart } from 'components/Charts'
 import IconsRow from 'components/IconsRow'
 import { PeggedSearch } from 'components/Search'
+import QuestionHelper from 'components/QuestionHelper'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/data'
 import { useXl, useMed } from 'hooks/useBreakpoints'
 import {
@@ -268,7 +269,25 @@ const columns = [
   {
     header: 'Price',
     accessor: 'price',
-    Cell: ({ value }) => <>{value ? formattedPeggedPrice(value, true) : '-'}</>,
+    Cell: ({ value, rowValues }) => {
+      return (
+        <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+          {rowValues.depeggedTwoPercent ? (
+            <QuestionHelper text='This pegged asset is currently de-pegged by 2% or more.' />
+          ) : null}
+          {rowValues.floatingPeg ? (
+            <QuestionHelper text='This pegged asset has a variable, floating, or crawling peg.' />
+          ) : null}
+          <span
+            style={{
+              color: rowValues.depeggedTwoPercent ? 'tomato' : 'inherit',
+            }}
+          >
+            {value ? formattedPeggedPrice(value, true) : '-'}
+          </span>
+        </AutoRow>
+      )
+    },
   },
   ...columnsToShow('1dChange', '7dChange', '1mChange'),
   {
