@@ -6,7 +6,7 @@ import { AdvancedYieldsSearch } from './Advanced'
 import { ToggleSearch } from './shared'
 
 interface IYieldSearchProps extends ICommonSearchProps {
-  setTokensToFilter: React.Dispatch<
+  setTokensToFilter?: React.Dispatch<
     React.SetStateAction<{
       includeTokens: string[]
       excludeTokens: string[]
