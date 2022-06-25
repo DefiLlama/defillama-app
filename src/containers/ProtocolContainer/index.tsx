@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -6,30 +6,30 @@ import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { useInView, defaultFallbackInView } from 'react-intersection-observer'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
-import Layout from 'layout'
-import { ButtonLight } from 'components/ButtonStyled'
-import CopyHelper from 'components/Copy'
-import FormattedName from 'components/FormattedName'
-import TokenLogo from 'components/TokenLogo'
-import SEO from 'components/SEO'
-import { ProtocolsChainsSearch } from 'components/Search'
-import AuditInfo from 'components/AuditInfo'
-import ProtocolChart from 'components/TokenChart/ProtocolChart'
-import QuestionHelper from 'components/QuestionHelper'
-import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from 'contexts/LocalStorage'
-import type { IChartProps } from 'components/TokenChart/types'
-import { useScrollToTop } from 'hooks'
-import { useCalcSingleExtraTvl } from 'hooks/data'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from 'utils'
-import { useFetchProtocol } from 'utils/dataApi'
-import { buildProtocolData } from 'utils/protocolData'
-import boboLogo from '../../assets/boboSmug.png'
-import { extraTvlOptions } from 'components/SettingsModal'
+import Layout from '~/layout'
+import { ButtonLight } from '~/components/ButtonStyled'
+import CopyHelper from '~/components/Copy'
+import FormattedName from '~/components/FormattedName'
+import TokenLogo from '~/components/TokenLogo'
+import SEO from '~/components/SEO'
+import { ProtocolsChainsSearch } from '~/components/Search'
+import AuditInfo from '~/components/AuditInfo'
+import ProtocolChart from '~/components/TokenChart/ProtocolChart'
+import QuestionHelper from '~/components/QuestionHelper'
+import type { IChartProps } from '~/components/TokenChart/types'
+import { extraTvlOptions } from '~/components/SettingsModal'
+import { useScrollToTop } from '~/hooks'
+import { useCalcSingleExtraTvl } from '~/hooks/data'
+import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from '~/utils'
+import { useFetchProtocol } from '~/utils/dataApi'
+import { buildProtocolData } from '~/utils/protocolData'
+import boboLogo from '~/assets/boboSmug.png'
 
 defaultFallbackInView(true)
 
-const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false }) as React.FC<IChartProps>
-const BarChart = dynamic(() => import('components/TokenChart/BarChart'), { ssr: false }) as React.FC<IChartProps>
+const AreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), { ssr: false }) as React.FC<IChartProps>
+const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), { ssr: false }) as React.FC<IChartProps>
 
 const Stats = styled.section`
   display: flex;
@@ -384,7 +384,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const totalVolume = useCalcSingleExtraTvl(tvlBreakdowns, tvl)
 
-  const [bobo, setBobo] = useState(false)
+  const [bobo, setBobo] = React.useState(false)
 
   const { ref: addlChartsRef, inView: addlChartsInView } = useInView({
     triggerOnce: true,
@@ -410,12 +410,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked } = useMemo(
+  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked } = React.useMemo(
     () => buildProtocolData(addlProtocolData),
     [addlProtocolData]
   )
 
-  const chainsSplit = useMemo(() => {
+  const chainsSplit = React.useMemo(() => {
     return chainsStacked?.map((chain) => {
       if (chain.extraTvl) {
         const data = { ...chain }

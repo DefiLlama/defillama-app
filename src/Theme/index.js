@@ -1,11 +1,9 @@
-import React from 'react'
-import { ThemeProvider as StyledComponentsThemeProvider, createGlobalStyle } from 'styled-components'
-import styled from 'styled-components'
+import * as React from 'react'
+import styled, { ThemeProvider as StyledComponentsThemeProvider, createGlobalStyle } from 'styled-components'
 import { Text } from 'rebass'
 import { transparentize } from 'polished'
-
-import { sm, med, lg, xl, twoXl } from '../constants/breakpoints'
-import { useDarkModeManager } from '../contexts/LocalStorage'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { sm, med, lg, xl, twoXl } from '~/constants/breakpoints'
 
 export default function ThemeProvider({ children }) {
   const [darkMode] = useDarkModeManager()

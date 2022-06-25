@@ -1,8 +1,8 @@
-import React from 'react'
-import { AutoColumn } from '../../components/Column'
-import { RowBetween } from '../../components/Row'
-import { TYPE } from '../../Theme'
-import { Panel } from 'components'
+import * as React from 'react'
+import { TYPE } from '~/Theme'
+import { Panel } from '~/components'
+import { AutoColumn } from '~/components/Column'
+import { RowBetween } from '~/components/Row'
 
 const Section = ({ title, content }) => (
   <Panel>

@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import { SelectLabel, useSelectState, SelectArrow, SelectItemCheck } from 'ariakit/select'
-import { extraTvlOptions } from 'components/SettingsModal'
-import { useGetExtraTvlEnabled, useTvlToggles } from 'contexts/LocalStorage'
+import { extraTvlOptions } from '~/components/SettingsModal'
+import { useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
 import { Item, Popover, SelectMenu } from './AriakitSelect'
 
 const WrapperWithLabel = styled.div`

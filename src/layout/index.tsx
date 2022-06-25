@@ -1,10 +1,10 @@
 import * as React from 'react'
 import Head from 'next/head'
 import styled from 'styled-components'
-import Nav from 'components/Nav'
-import ThemeProvider, { GlobalStyle, ThemedBackground } from 'Theme'
-import SEO from 'components/SEO'
 import { transparentize } from 'polished'
+import ThemeProvider, { GlobalStyle, ThemedBackground } from '~/Theme'
+import SEO from '~/components/SEO'
+import Nav from '~/components/Nav'
 
 const Center = styled.main`
   display: flex;

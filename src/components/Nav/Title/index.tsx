@@ -1,7 +1,7 @@
-import React from 'react'
+import * as React from 'react'
+import Link from 'next/link'
 import styled from 'styled-components'
 import DefiLogo from './DefiLogo'
-import Link from 'next/link'
 
 const TitleWrapper = styled.a`
   transition: transform 0.3s ease;

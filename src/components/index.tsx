@@ -1,10 +1,10 @@
-import React from 'react'
+import * as React from 'react'
 import styled from 'styled-components'
 import { Text, Box } from 'rebass'
-import Table from 'components/Table'
 import { CheckboxCheck } from 'ariakit'
 import { DownloadCloud } from 'react-feather'
-import { BasicLink } from './Link'
+import Table from '~/components/Table'
+import { BasicLink } from '~/components/Link'
 
 export const Panel = styled.div`
   position: relative;

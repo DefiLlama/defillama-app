@@ -1,7 +1,7 @@
-import { usePeggedChainOverview } from 'hooks'
 import styled from 'styled-components'
 import Link from 'next/link'
 import { Link as LinkIcon, DollarSign } from 'react-feather'
+import { usePeggedChainOverview } from '~/hooks'
 
 export default function PeggedViewSwitch() {
   const isPeggedChainOverview = usePeggedChainOverview()

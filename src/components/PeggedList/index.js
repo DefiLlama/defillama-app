@@ -1,18 +1,18 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import styled from 'styled-components'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from 'components'
-import { OptionButton } from 'components/ButtonStyled'
-import { RowBetween, AutoRow } from 'components/Row'
-import PeggedViewSwitch from 'components/PeggedViewSwitch'
-import Table, { columnsToShow } from 'components/Table'
-import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
-import { RowLinks, LinksWrapper } from 'components/Filters'
-import { AreaChart } from 'components/Charts'
-import IconsRow from 'components/IconsRow'
-import { PeggedSearch } from 'components/Search'
-import QuestionHelper from 'components/QuestionHelper'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from 'hooks/data'
-import { useXl, useMed } from 'hooks/useBreakpoints'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
+import { OptionButton } from '~/components/ButtonStyled'
+import { RowBetween, AutoRow } from '~/components/Row'
+import PeggedViewSwitch from '~/components/PeggedViewSwitch'
+import Table, { columnsToShow } from '~/components/Table'
+import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
+import { RowLinks, LinksWrapper } from '~/components/Filters'
+import { AreaChart } from '~/components/Charts'
+import IconsRow from '~/components/IconsRow'
+import { PeggedSearch } from '~/components/Search'
+import QuestionHelper from '~/components/QuestionHelper'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/hooks/data'
+import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {
   getRandomColor,
   capitalizeFirstLetter,
@@ -23,7 +23,7 @@ import {
   toNiceMonthlyDate,
   toNiceCsvDate,
   download,
-} from 'utils'
+} from '~/utils'
 
 function Chart({ peggedAreaChartData, peggedAreaMcapData, totalMcapLabel, peggedAssetNames, aspect }) {
   const finalChartData = peggedAreaChartData ? peggedAreaChartData : peggedAreaMcapData

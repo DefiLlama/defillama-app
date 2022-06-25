@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { TrendingUp, BarChart2, PlusCircle, List, Bookmark } from 'react-feather'
 import { Entry, MobileOnlyEntry, Footer } from './shared'
 

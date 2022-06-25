@@ -1,7 +1,7 @@
-import Tooltip from 'components/Tooltip'
-import React from 'react'
-import { HelpCircle as Question } from 'react-feather'
+import * as React from 'react'
 import styled from 'styled-components'
+import { HelpCircle as Question } from 'react-feather'
+import Tooltip from '~/components/Tooltip'
 
 const QuestionWrapper = styled.span`
   display: flex;

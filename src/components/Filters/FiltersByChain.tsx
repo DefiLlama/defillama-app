@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import styled from 'styled-components'
-import { ApplyFilters, Checkbox } from 'components'
-import { Input, List } from 'components/Combobox'
-import { FilterButton, FilterItem, FilterPopover } from 'components/Select/AriakitSelect'
 import { transparentize } from 'polished'
+import { ApplyFilters, Checkbox } from '~/components'
+import { Input, List } from '~/components/Combobox'
+import { FilterButton, FilterItem, FilterPopover } from '~/components/Select/AriakitSelect'
 
 interface IFiltersByChainProps {
   chains: string[]

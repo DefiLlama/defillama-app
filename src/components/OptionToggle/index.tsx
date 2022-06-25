@@ -1,6 +1,6 @@
 import ReactSwitch from 'react-switch'
-import { TYPE } from '../../Theme'
-import HeadHelp from '../HeadHelp'
+import { TYPE } from '~/Theme'
+import HeadHelp from '~/components/HeadHelp'
 
 interface IProps {
   toggle: () => {}

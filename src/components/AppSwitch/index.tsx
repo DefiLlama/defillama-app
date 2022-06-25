@@ -1,7 +1,7 @@
-import { useYieldApp } from 'hooks'
-import styled from 'styled-components'
 import Link from 'next/link'
+import styled from 'styled-components'
 import { BarChart2, Percent } from 'react-feather'
+import { useYieldApp } from '~/hooks'
 
 export default function AppSwitch() {
   const isYieldApp = useYieldApp()

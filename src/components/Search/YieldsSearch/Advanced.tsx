@@ -2,8 +2,8 @@ import * as React from 'react'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { ToggleSearch } from './shared'
-import ReactSelect from 'components/Select/ReactSelect'
-import { useFetchYieldsList } from 'utils/categories/yield'
+import ReactSelect from '~/components/Select/ReactSelect'
+import { useFetchYieldsList } from '~/utils/categories/yield'
 
 interface IAdvancedYieldSearchProps {
   setAdvancedSearch: React.Dispatch<React.SetStateAction<boolean>>

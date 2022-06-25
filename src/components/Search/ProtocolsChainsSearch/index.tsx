@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { DeFiTvlOptions } from 'components/Select'
-import { BaseSearch } from 'components/Search/BaseSearch'
-import type { IBaseSearchProps, ICommonSearchProps } from 'components/Search/BaseSearch'
-import { DefiTvlSwitches } from 'components/SettingsModal'
-import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from 'utils'
-import { useFetchProtocolsList } from 'utils/dataApi'
-import placeholderImg from 'assets/placeholder.png'
+import { DeFiTvlOptions } from '~/components/Select'
+import { BaseSearch } from '~/components/Search/BaseSearch'
+import type { IBaseSearchProps, ICommonSearchProps } from '~/components/Search/BaseSearch'
+import { DefiTvlSwitches } from '~/components/SettingsModal'
+import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from '~/utils'
+import { useFetchProtocolsList } from '~/utils/dataApi'
+import placeholderImg from '~/assets/placeholder.png'
 
 const groupedChains = [
   { name: 'Non-EVM', route: '/chains/Non-EVM', logo: placeholderImg.src },

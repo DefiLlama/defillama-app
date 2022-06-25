@@ -1,11 +1,11 @@
-import Table, { columnsToShow, splitArrayByFalsyValues } from 'components/Table'
-import { useCalcStakePool2Tvl } from 'hooks/data'
 import { useMemo } from 'react'
-import Layout from '../layout'
-import { revalidate, getSimpleProtocolsPageData, basicPropertiesToKeep } from '../utils/dataApi'
 import orderBy from 'lodash.orderby'
-import { TYPE } from 'Theme'
 import styled from 'styled-components'
+import { TYPE } from '~/Theme'
+import Layout from '~/layout'
+import Table, { columnsToShow, splitArrayByFalsyValues } from '~/components/Table'
+import { useCalcStakePool2Tvl } from '~/hooks/data'
+import { revalidate, getSimpleProtocolsPageData, basicPropertiesToKeep } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const { protocols } = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl'])

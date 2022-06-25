@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import NextImage from 'next/image'
-import PlaceHolder from '../../assets/placeholder.png'
+import PlaceHolder from '~/assets/placeholder.png'
 
 const BAD_IMAGES = {}
 
@@ -62,7 +62,7 @@ export default function TokenLogo({
         height={size}
         width={size}
         layout="fixed"
-        onError={event => {
+        onError={(event) => {
           BAD_IMAGES[logo] = true
           setError(true)
           event.preventDefault()

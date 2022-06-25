@@ -1,12 +1,12 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { ResponsiveContainer } from 'recharts'
-import { timeframeOptions } from '../../constants'
-import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
-import { RowFixed } from '../Row'
-import { OptionButton } from '../ButtonStyled'
-import { getTimeframe } from '../../utils'
-import { TYPE } from '../../Theme'
-import { useIsClient } from 'hooks'
+import { TYPE } from '~/Theme'
+import TradingViewChart, { CHART_TYPES } from '~/components/TradingviewChart'
+import { RowFixed } from '~/components/Row'
+import { OptionButton } from '~/components/ButtonStyled'
+import { getTimeframe } from '~/utils'
+import { timeframeOptions } from '~/constants'
+import { useIsClient } from '~/hooks'
 
 const CHART_VIEW = {
   VOLUME: 'Volume',

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -12,21 +12,21 @@ import {
   ChartAndValuesWrapper,
   DownloadButton,
   DownloadIcon,
-} from 'components'
-import { RowFixed } from 'components/Row'
-import { ProtocolsChainsSearch } from 'components/Search'
-import { RowLinks, TVLRange } from 'components/Filters'
-import { BasicLink } from 'components/Link'
-import SEO from 'components/SEO'
-import { OptionButton } from 'components/ButtonStyled'
-import LocalLoader from 'components/LocalLoader'
-import { columnsToShow } from 'components/Table'
-import { useCalcProtocolsTvls } from 'hooks/data'
-import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
-import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
-import { chainCoingeckoIds } from 'constants/chainTokens'
-import { useDenominationPriceHistory } from 'utils/dataApi'
-import llamaLogo from '../../assets/peeking-llama.png'
+} from '~/components'
+import { RowFixed } from '~/components/Row'
+import { ProtocolsChainsSearch } from '~/components/Search'
+import { RowLinks, TVLRange } from '~/components/Filters'
+import { BasicLink } from '~/components/Link'
+import SEO from '~/components/SEO'
+import { OptionButton } from '~/components/ButtonStyled'
+import LocalLoader from '~/components/LocalLoader'
+import { columnsToShow } from '~/components/Table'
+import { useCalcProtocolsTvls } from '~/hooks/data'
+import { useDarkModeManager, useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
+import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
+import { chainCoingeckoIds } from '~/constants/chainTokens'
+import { useDenominationPriceHistory } from '~/utils/dataApi'
+import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
 
 const EasterLlama = styled.button`
@@ -43,11 +43,11 @@ const EasterLlama = styled.button`
   }
 `
 
-const Chart = dynamic(() => import('components/GlobalChart'), {
+const Chart = dynamic(() => import('~/components/GlobalChart'), {
   ssr: false,
 })
 
-const Game = dynamic(() => import('game'))
+const Game = dynamic(() => import('~/game'))
 
 const BASIC_DENOMINATIONS = ['USD']
 
@@ -73,7 +73,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const { minTvl, maxTvl } = router.query
 
-  const [easterEgg, setEasterEgg] = useState(false)
+  const [easterEgg, setEasterEgg] = React.useState(false)
   const [darkMode, toggleDarkMode] = useDarkModeManager()
   const activateEasterEgg = () => {
     if (easterEgg) {
@@ -89,7 +89,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     }
   }
 
-  const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
+  const { totalVolumeUSD, volumeChangeUSD, globalChart } = React.useMemo(() => {
     const globalChart = chart.map((data) => {
       let sum = data[1]
       Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
@@ -134,7 +134,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const volumeChange = (percentChange > 0 ? '+' : '') + percentChange + '%'
 
-  const [DENOMINATIONS, chainGeckoId] = useMemo(() => {
+  const [DENOMINATIONS, chainGeckoId] = React.useMemo(() => {
     let DENOMINATIONS = []
     let chainGeckoId = null
     if (selectedChain !== 'All') {
@@ -154,7 +154,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     utcStartTime: 0,
   })
 
-  const [finalChartData, chainPriceInUSD] = useMemo(() => {
+  const [finalChartData, chainPriceInUSD] = React.useMemo(() => {
     if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {
       let priceIndex = 0
       let prevPriceDate = 0
@@ -192,7 +192,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const isLoading = denomination !== 'USD' && loading
 
-  const finalProtocolTotals = useMemo(() => {
+  const finalProtocolTotals = React.useMemo(() => {
     const isValidTvlRange =
       (minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 

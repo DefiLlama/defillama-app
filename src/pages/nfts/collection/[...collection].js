@@ -1,12 +1,12 @@
-import { getColor } from 'utils/getColor'
-import NFTCollectionPage from '../../../components/NFTCollectionPage'
+import NFTCollectionPage from '~/components/NFTCollectionPage'
 import {
   getNFTCollection,
   getNFTCollections,
   getNFTCollectionChartData,
   revalidate,
   getNFTStatistics,
-} from '../../../utils/dataApi'
+} from '~/utils/dataApi'
+import { getColor } from '~/utils/getColor'
 
 export async function getStaticProps({
   params: {

@@ -1,10 +1,9 @@
 import { useRef } from 'react'
 import { Bookmark as BookmarkIcon } from 'react-feather'
 import styled from 'styled-components'
-
-import { useSavedProtocols } from 'contexts/LocalStorage'
-import { useIsClient } from 'hooks'
-import { standardizeProtocolName } from 'utils'
+import { useSavedProtocols } from '~/contexts/LocalStorage'
+import { useIsClient } from '~/hooks'
+import { standardizeProtocolName } from '~/utils'
 
 interface IWrapperProps {
   saved: boolean

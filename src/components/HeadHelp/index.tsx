@@ -1,7 +1,7 @@
-import React from 'react'
+import * as React from 'react'
 import styled from 'styled-components'
 import { HelpCircle } from 'react-feather'
-import Tooltip from 'components/Tooltip'
+import Tooltip from '~/components/Tooltip'
 
 interface IHeadHelpProps {
   title: string

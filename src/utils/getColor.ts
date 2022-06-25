@@ -1,8 +1,8 @@
 import Vibrant from 'node-vibrant'
 import { shade } from 'polished'
 import { hex } from 'wcag-contrast'
-import { primaryColor } from 'constants/colors'
-import { tokenIconUrl, peggedAssetIconUrl } from 'utils'
+import { tokenIconUrl, peggedAssetIconUrl } from '~/utils'
+import { primaryColor } from '~/constants/colors'
 
 export const getColor = async (protocol?: string, logo?: string) => {
   let color = primaryColor

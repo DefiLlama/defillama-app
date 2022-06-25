@@ -1,8 +1,7 @@
-import ComparisonContainer from 'containers/ComparisonContainer'
-
-import { PROTOCOLS_API } from 'constants/index'
-import { standardizeProtocolName } from 'utils'
-import { revalidate } from 'utils/dataApi'
+import ComparisonContainer from '~/containers/ComparisonContainer'
+import { standardizeProtocolName } from '~/utils'
+import { revalidate } from '~/utils/dataApi'
+import { PROTOCOLS_API } from '~/constants/index'
 
 export async function getStaticProps() {
   const res = await fetch(PROTOCOLS_API).then((res) => res.json())

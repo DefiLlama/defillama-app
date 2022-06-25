@@ -1,10 +1,10 @@
 import 'swagger-ui-react/swagger-ui.css'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import yamlApiSpec from 'docs/resolvedSpec.json'
-import Layout from 'layout'
-import DarkSwagger from 'docs/swaggerDark'
-import { useDarkModeManager } from 'contexts/LocalStorage'
+import Layout from '~/layout'
+import DarkSwagger from '~/docs/swaggerDark'
+import yamlApiSpec from '~/docs/resolvedSpec.json'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 const SwaggerUI = dynamic(import('swagger-ui-react'), { ssr: false })
 

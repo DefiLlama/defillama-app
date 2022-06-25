@@ -1,12 +1,12 @@
-import React, { useRef } from 'react'
+import * as React from 'react'
 import { ResponsiveContainer } from 'recharts'
 import styled from 'styled-components'
-import { useMed } from 'hooks/useBreakpoints'
-import { useDarkModeManager } from 'contexts/LocalStorage'
-import { Panel } from 'components'
+import { Panel } from '~/components'
+import { useMed } from '~/hooks/useBreakpoints'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 export const ChartWrapper = ({ children }) => {
-  const ref = useRef(null)
+  const ref = React.useRef(null)
   const isMobile = useMed()
   const [isDark] = useDarkModeManager()
 

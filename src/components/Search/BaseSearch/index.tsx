@@ -6,7 +6,7 @@ import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { Combobox, ComboboxItem, ComboboxPopover, useComboboxState } from 'ariakit/combobox'
-import TokenLogo from 'components/TokenLogo'
+import TokenLogo from '~/components/TokenLogo'
 
 const Wrapper = styled.nav`
   display: flex;

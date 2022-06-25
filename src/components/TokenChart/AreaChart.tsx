@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart } from 'echarts/charts'
@@ -8,17 +9,16 @@ import {
   DataZoomComponent,
   GraphicComponent,
 } from 'echarts/components'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { toK } from 'utils'
 import { v4 as uuid } from 'uuid'
-import { stringToColour } from './utils'
 import styled from 'styled-components'
-import { useDarkModeManager } from 'contexts/LocalStorage'
-import logoLight from '../../../public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
-import logoDark from '../../../public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import { IChartProps } from './types'
-import { useMedia } from 'hooks'
+import logoLight from 'public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
+import logoDark from 'public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
+import { useMedia } from '~/hooks'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { toK } from '~/utils'
+import { stringToColour } from './utils'
 import { SelectLegendMultiple } from './shared'
+import { IChartProps } from './types'
 
 echarts.use([
   CanvasRenderer,

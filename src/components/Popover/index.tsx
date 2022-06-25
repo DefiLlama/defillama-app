@@ -1,14 +1,14 @@
-import React, { useCallback } from 'react'
+import * as React from 'react'
 import {
   Popover as AriaPopover,
   PopoverDisclosure,
   PopoverStateRenderCallbackProps,
   usePopoverState,
 } from 'ariakit/popover'
-import assignStyle from './assign-style'
-import { useMedia } from 'hooks'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
+import { useMedia } from '~/hooks'
+import assignStyle from './assign-style'
 
 const Trigger = styled(PopoverDisclosure)`
   display: flex;
@@ -91,7 +91,7 @@ interface IProps {
 export default function Popover({ trigger, content, ...props }: IProps) {
   const isLarge = useMedia('(min-width: 640px)', true)
 
-  const renderCallback = useCallback(
+  const renderCallback = React.useCallback(
     (props: PopoverStateRenderCallbackProps) => {
       const { popover, defaultRenderCallback } = props
       if (isLarge) return defaultRenderCallback()

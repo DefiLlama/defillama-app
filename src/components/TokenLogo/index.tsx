@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import * as React from 'react'
 import styled from 'styled-components'
 import NextImage from 'next/image'
-import PlaceHolder from '../../assets/placeholder.png'
+import PlaceHolder from '~/assets/placeholder.png'
 
 interface TokenLogoProps {
   logo?: string | null
@@ -40,9 +40,9 @@ export default function TokenLogo({
   id,
   ...rest
 }: TokenLogoProps) {
-  const [error, setError] = useState(false)
+  const [error, setError] = React.useState(false)
 
-  useEffect(() => {
+  React.useEffect(() => {
     setError(false)
   }, [logo])
 

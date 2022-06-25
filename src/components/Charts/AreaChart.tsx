@@ -1,7 +1,7 @@
-import React from 'react'
+import * as React from 'react'
 import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart as AChart, ReferenceLine } from 'recharts'
-import { useDarkModeManager } from 'contexts/LocalStorage'
-import { toK, toNiceDateYear, formattedNum } from 'utils'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { toK, toNiceDateYear, formattedNum } from '~/utils'
 
 function stringToColour() {
   return '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0')

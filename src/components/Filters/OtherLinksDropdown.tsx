@@ -1,8 +1,8 @@
 import { useComboboxState } from 'ariakit/combobox'
 import { MenuButtonArrow, useMenuState } from 'ariakit/menu'
 import Link from 'next/link'
-import { Button, Popover } from 'components/DropdownMenu'
-import { Input, Item, List } from 'components/Combobox'
+import { Button, Popover } from '~/components/DropdownMenu'
+import { Input, Item, List } from '~/components/Combobox'
 
 interface IProps {
   options: { label: string; to: string }[]

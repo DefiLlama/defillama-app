@@ -1,13 +1,13 @@
-import { useRouter } from 'next/router'
 import { useState } from 'react'
+import { useRouter } from 'next/router'
 import { Bookmark, ChevronRight, X, ChevronUp, ChevronDown } from 'react-feather'
 import styled from 'styled-components'
-import { ButtonFaded } from 'components/ButtonStyled'
-import FormattedName from 'components/FormattedName'
-import TokenLogo from 'components/TokenLogo'
-import { useSavedProtocols } from 'contexts/LocalStorage'
-import { TYPE } from 'Theme'
-import { tokenIconUrl } from 'utils'
+import { TYPE } from '~/Theme'
+import { ButtonFaded } from '~/components/ButtonStyled'
+import FormattedName from '~/components/FormattedName'
+import TokenLogo from '~/components/TokenLogo'
+import { useSavedProtocols } from '~/contexts/LocalStorage'
+import { tokenIconUrl } from '~/utils'
 
 interface IButton {
   open?: boolean

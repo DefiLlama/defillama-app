@@ -1,6 +1,6 @@
-import ChainPage from '../components/ChainPage'
-import Layout from '../layout'
-import { getChainPageData, revalidate } from '../utils/dataApi'
+import Layout from '~/layout'
+import ChainPage from '~/components/ChainPage'
+import { getChainPageData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const data = await getChainPageData()

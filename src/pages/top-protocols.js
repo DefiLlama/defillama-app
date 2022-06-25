@@ -1,12 +1,12 @@
-import Layout from '../layout'
-import { revalidate, getSimpleProtocolsPageData } from '../utils/dataApi'
-import { CustomLink } from 'components/Link'
-import { FullTable, Index } from 'components/Table'
-import TokenLogo from 'components/TokenLogo'
-import { chainIconUrl } from 'utils'
 import { useMemo } from 'react'
 import styled from 'styled-components'
-import { TYPE } from 'Theme'
+import { TYPE } from '~/Theme'
+import Layout from '~/layout'
+import { CustomLink } from '~/components/Link'
+import { FullTable, Index } from '~/components/Table'
+import TokenLogo from '~/components/TokenLogo'
+import { chainIconUrl } from '~/utils'
+import { revalidate, getSimpleProtocolsPageData } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
