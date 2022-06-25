@@ -1,7 +1,7 @@
-import Layout from '../layout'
-import styled from 'styled-components'
-import { revalidate } from 'utils/dataApi'
 import Link from 'next/link'
+import styled from 'styled-components'
+import Layout from '~/layout'
+import { revalidate } from '~/utils/dataApi'
 
 const Header = styled.h1`
   color: ${({ theme }) => theme.text1};

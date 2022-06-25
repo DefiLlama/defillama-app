@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
 import styled from 'styled-components'
-import { Header } from 'Theme'
-import Layout from 'layout'
-import { ProtocolsChainsSearch } from 'components/Search'
-import Table, { columnsToShow } from 'components/Table'
-import { useCalcStakePool2Tvl } from 'hooks/data'
-import { revalidate, getSimpleProtocolsPageData, basicPropertiesToKeep } from 'utils/dataApi'
+import { Header } from '~/Theme'
+import Layout from '~/layout'
+import { ProtocolsChainsSearch } from '~/components/Search'
+import Table, { columnsToShow } from '~/components/Table'
+import { useCalcStakePool2Tvl } from '~/hooks/data'
+import { revalidate, getSimpleProtocolsPageData, basicPropertiesToKeep } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const protocolsRaw = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt'])

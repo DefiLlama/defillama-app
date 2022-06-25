@@ -20,14 +20,14 @@ import {
   PEGGEDS_API,
   PEGGEDCHART_API,
   PEGGEDPRICES_API,
-} from '../constants/index'
+} from '~/constants/index'
 import {
   getPercentChange,
   getPrevTvlFromChart,
   getPrevCirculatingFromChart,
   getPeggedDominance,
   standardizeProtocolName,
-} from 'utils'
+} from '~/utils'
 import { fetcher } from './useSWR'
 
 interface IProtocol {
@@ -348,7 +348,7 @@ export async function getPeggedOverviewPageData(category, chain) {
             return await fetch(`${PEGGEDCHART_API}/?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
           }
           return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
-        } catch (e) {}
+        } catch (e) { }
       }
       throw new Error(`${CHART_API}/${elem} is broken`)
     })
@@ -474,7 +474,7 @@ export async function getPeggedChainsPageData(category) {
         for (let i = 0; i < 5; i++) {
           try {
             return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-          } catch (e) {}
+          } catch (e) { }
         }
         throw new Error(`${CHART_API}/${elem} is broken`)
       } else return null
@@ -516,7 +516,7 @@ export async function getPeggedChainsPageData(category) {
         try {
           const res = await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
           return res
-        } catch (e) {}
+        } catch (e) { }
       }
       throw new Error(`${PEGGEDCHART_API}/${chain} is broken`)
     })
@@ -929,7 +929,7 @@ export const getChainsPageData = async (category: string) => {
       for (let i = 0; i < 5; i++) {
         try {
           return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-        } catch (e) {}
+        } catch (e) { }
       }
       throw new Error(`${CHART_API}/${elem} is broken`)
     })
@@ -1033,7 +1033,7 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
   const totalCirculating = getPrevCirculatingFromChart(peggedChart, 0, 'totalCirculating', pegType)
   const unreleased = getPrevCirculatingFromChart(peggedChart, 0, 'unreleased', pegType)
   const mcap = peggedChart[peggedChart.length - 1]?.mcap ?? null
-  
+
 
   let categories = []
   for (const chain in chainCoingeckoIds) {

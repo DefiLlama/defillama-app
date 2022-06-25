@@ -1,7 +1,7 @@
+import Layout from '~/layout'
 import PeggedChainsOverview from 'components/PeggedChainsOverview'
-import Layout from 'layout'
-import { getPeggedChainsPageData, revalidate } from 'utils/dataApi'
-import { capitalizeFirstLetter } from 'utils'
+import { capitalizeFirstLetter } from '~/utils'
+import { getPeggedChainsPageData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const props = await getPeggedChainsPageData('stablecoins')

@@ -1,6 +1,6 @@
 import useSWR from 'swr'
-import { getCGMarketsDataURLs } from 'utils/dataApi'
-import { arrayFetcher, retrySWR } from 'utils/useSWR'
+import { getCGMarketsDataURLs } from '~/utils/dataApi'
+import { arrayFetcher, retrySWR } from '~/utils/useSWR'
 
 interface IResponseCGMarketsAPI {
   ath: number

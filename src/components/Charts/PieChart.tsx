@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { PieChart, Pie, Cell, Sector } from 'recharts'
 import { ChartWrapper } from './shared'
-import { toK } from 'utils'
+import { toK } from '~/utils'
 
 interface IChainData {
   name: string

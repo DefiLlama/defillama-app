@@ -1,8 +1,8 @@
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { TYPE } from 'Theme'
-import Layout from 'layout'
+import { TYPE } from '~/Theme'
+import Layout from '~/layout'
 import {
   BreakpointPanel,
   BreakpointPanels,
@@ -10,16 +10,16 @@ import {
   DownloadButton,
   DownloadIcon,
   Panel,
-} from 'components'
-import { AutoColumn } from 'components/Column'
-import { RowFixed } from 'components/Row'
-import { BasicLink } from 'components/Link'
-import FormattedName from 'components/FormattedName'
-import AuditInfo from 'components/AuditInfo'
-import { ButtonLight } from 'components/ButtonStyled'
-import { YieldsSearch } from 'components/Search'
-import { download, toK } from 'utils'
-import { useYieldPoolData, useYieldChartData } from 'utils/dataApi'
+} from '~/components'
+import { AutoColumn } from '~/components/Column'
+import { RowFixed } from '~/components/Row'
+import { BasicLink } from '~/components/Link'
+import FormattedName from '~/components/FormattedName'
+import AuditInfo from '~/components/AuditInfo'
+import { ButtonLight } from '~/components/ButtonStyled'
+import { YieldsSearch } from '~/components/Search'
+import { download, toK } from '~/utils'
+import { useYieldPoolData, useYieldChartData } from '~/utils/dataApi'
 
 const TokenDetailsLayout = styled.div`
   display: inline-grid;

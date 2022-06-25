@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import styled from 'styled-components'
-import OptionToggle from 'components/OptionToggle'
+import OptionToggle from '~/components/OptionToggle'
 import {
   useDisplayUsdManager,
   useHideLastDayManager,
@@ -15,8 +15,8 @@ import {
   DOUBLE_COUNT,
   useDarkModeManager,
   UNRELEASED,
-} from 'contexts/LocalStorage'
-import { useIsClient } from 'hooks'
+} from '~/contexts/LocalStorage'
+import { useIsClient } from '~/hooks'
 import MenuIcon from './MenuSvg'
 
 const StyledMenuIcon = styled(MenuIcon)`

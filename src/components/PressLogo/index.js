@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import NextImage from 'next/image'
-import PlaceHolder from '../../assets/placeholder.png'
+import PlaceHolder from '~/assets/placeholder.png'
 
 const BAD_IMAGES = {}
 

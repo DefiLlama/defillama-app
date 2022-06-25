@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import { ChevronsUp } from 'react-feather'
 import { Button } from 'rebass'
-import { useRouter } from 'next/router'
-import { NFT_COLLECTIONS_API } from 'constants'
+import { NFT_COLLECTIONS_API } from '~/constants'
 
 export default function useFetchInfiniteScroll({ list = [], cursor = null, filters = [], setFetchedData, setCursor }) {
   const { asPath } = useRouter()

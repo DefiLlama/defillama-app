@@ -5,10 +5,10 @@ import {
   PopoverStateRenderCallbackProps,
   usePopoverState,
 } from 'ariakit/popover'
-import assignStyle from './assign-style'
-import { useMedia } from 'hooks'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
+import { useMedia } from '~/hooks'
+import assignStyle from './assign-style'
 
 const Trigger = styled(PopoverDisclosure)`
   display: flex;

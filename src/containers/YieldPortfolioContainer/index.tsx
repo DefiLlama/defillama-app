@@ -1,14 +1,14 @@
 import { useMemo } from 'react'
 import { FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
-import { Header, TYPE } from 'Theme'
-import { Panel } from 'components'
-import Row from 'components/Row'
-import { Menu } from 'components/DropdownMenu'
-import { columns, TableWrapper } from 'components/YieldsPage/shared'
-import { YieldsSearch } from 'components/Search'
-import { useIsClient } from 'hooks'
-import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
+import { Header, TYPE } from '~/Theme'
+import { Panel } from '~/components'
+import Row from '~/components/Row'
+import { Menu } from '~/components/DropdownMenu'
+import { columns, TableWrapper } from '~/components/YieldsPage/shared'
+import { YieldsSearch } from '~/components/Search'
+import { useIsClient } from '~/hooks'
+import { DEFAULT_PORTFOLIO, useSavedProtocols } from '~/contexts/LocalStorage'
 
 interface IFolder {
   isSaved?: boolean

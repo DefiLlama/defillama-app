@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import NextImage from 'next/image'
-import PlaceHolder from '../../assets/placeholder.png'
+import PlaceHolder from '~/assets/placeholder.png'
 
 interface TokenLogoProps {
   logo?: string | null

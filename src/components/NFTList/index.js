@@ -4,17 +4,14 @@ import styled from 'styled-components'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import InfiniteScroll from 'react-infinite-scroll-component'
-
-import TokenLogo from '../TokenLogo'
-import IconsRow from '../IconsRow'
-import { CustomLink } from '../Link'
-import Row from '../Row'
-import { Divider } from '..'
-
-import { formattedNum } from 'utils'
-import { useInfiniteScroll, useMedia } from 'hooks'
-
-import FormattedName from '../FormattedName'
+import { Divider } from '~/components'
+import TokenLogo from '~/components/TokenLogo'
+import IconsRow from '~/components/IconsRow'
+import { CustomLink } from '~/components/Link'
+import Row from '~/components/Row'
+import FormattedName from '~/components/FormattedName'
+import { formattedNum } from '~/utils'
+import { useInfiniteScroll, useMedia } from '~/hooks'
 
 dayjs.extend(utc)
 

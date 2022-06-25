@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import TokenLogo from '../../components/TokenLogo'
-import { tokenIconUrl } from 'utils'
+import TokenLogo from '~/components/TokenLogo'
+import { tokenIconUrl } from '~/utils'
 
 const StyledToggle = styled.div`
   display: flex;

@@ -1,18 +1,25 @@
 import { useState, useMemo } from 'react'
-import styled from 'styled-components'
-import { CustomLink } from 'components/Link'
-import { PeggedSearch } from 'components/Search'
+import Link from 'next/link'
 import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
-import { OptionButton } from 'components/ButtonStyled'
 import { transparentize } from 'polished'
-import { AutoRow, RowBetween } from 'components/Row'
-import { ButtonLight } from 'components/ButtonStyled'
-import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
-import FormattedName from 'components/FormattedName'
-import TokenLogo from 'components/TokenLogo'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
-import AuditInfo from 'components/AuditInfo'
-import { columnsToShow, FullTable } from 'components/Table'
+import styled from 'styled-components'
+import Layout from '~/layout'
+import { CustomLink } from '~/components/Link'
+import { PeggedSearch } from '~/components/Search'
+import { OptionButton } from '~/components/ButtonStyled'
+import { AutoRow, RowBetween } from '~/components/Row'
+import { ButtonLight } from '~/components/ButtonStyled'
+import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
+import FormattedName from '~/components/FormattedName'
+import TokenLogo from '~/components/TokenLogo'
+import AuditInfo from '~/components/AuditInfo'
+import { columnsToShow, FullTable } from '~/components/Table'
+import SEO from '~/components/SEO'
+import QuestionHelper from '~/components/QuestionHelper'
+import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data'
+import { useXl, useMed } from '~/hooks/useBreakpoints'
+import { extraPeggedProps, useGetExtraPeggedEnabled, useTvlToggles } from '~/contexts/LocalStorage'
 import {
   capitalizeFirstLetter,
   toNiceCsvDate,
@@ -23,14 +30,7 @@ import {
   toK,
   peggedAssetIconUrl,
   formattedPeggedPrice,
-} from 'utils'
-import SEO from 'components/SEO'
-import Layout from 'layout'
-import Link from 'next/link'
-import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from 'hooks/data'
-import { useXl, useMed } from 'hooks/useBreakpoints'
-import QuestionHelper from 'components/QuestionHelper'
-import { extraPeggedProps, useGetExtraPeggedEnabled, useTvlToggles } from 'contexts/LocalStorage'
+} from '~/utils'
 
 const risksHelperTexts = {
   algorithmic:

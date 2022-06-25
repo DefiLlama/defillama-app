@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { getPeggedAssetPageData, revalidate, getPeggedAssets } from 'utils/dataApi'
-import PeggedContainer from 'containers/PeggedContainer'
-import { getPeggedColor } from 'utils/getColor'
-import { standardizeProtocolName } from 'utils'
+import PeggedContainer from '~/containers/PeggedContainer'
+import { getPeggedAssetPageData, revalidate, getPeggedAssets } from '~/utils/dataApi'
+import { getPeggedColor } from '~/utils/getColor'
+import { standardizeProtocolName } from '~/utils'
 
 export async function getStaticProps({
   params: {

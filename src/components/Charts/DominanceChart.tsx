@@ -1,6 +1,6 @@
 import { AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts'
 import { ChartWrapper } from './shared'
-import { toNiceDateYear, formattedNum, toNiceMonthlyDate } from 'utils'
+import { toNiceDateYear, formattedNum, toNiceMonthlyDate } from '~/utils'
 
 interface IChainColor {
   [key: string]: string

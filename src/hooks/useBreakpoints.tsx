@@ -1,4 +1,4 @@
-import { sm, med, lg, xl, twoXl } from 'constants/breakpoints'
+import { sm, med, lg, xl, twoXl } from '~/constants/breakpoints'
 import useMedia from './useMedia'
 
 export const useSmall = () => useMedia(`(max-width: ${sm}rem)`)

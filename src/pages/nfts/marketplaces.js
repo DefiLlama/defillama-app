@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
 import styled from 'styled-components'
 import { Box } from 'rebass/styled-components'
-import Layout from '../../layout'
-import NFTList from '../../components/NFTList'
-import { Header } from '../../Theme'
-import { tokenIconUrl, getRandomColor } from '../../utils'
-import { getNFTMarketplacesData, getNFTMarketplaceChartData, revalidate } from '../../utils/dataApi'
-import SEO from 'components/SEO'
-import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
+import Layout from '~/layout'
+import { Header } from '~/Theme'
+import NFTList from '~/components/NFTList'
+import SEO from '~/components/SEO'
+import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
+import { tokenIconUrl, getRandomColor } from '~/utils'
+import { getNFTMarketplacesData, getNFTMarketplaceChartData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const marketplaceData = await getNFTMarketplacesData()

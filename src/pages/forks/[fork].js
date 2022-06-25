@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import Layout from 'layout'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, ProtocolsTable } from 'components'
-import { ProtocolsChainsSearch } from 'components/Search'
-import { columnsToShow } from 'components/Table'
-import { RowLinks, LinksWrapper } from 'components/Filters'
-import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
-import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
-import { getForkPageData, revalidate } from 'utils/dataApi'
+import Layout from '~/layout'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, ProtocolsTable } from '~/components'
+import { ProtocolsChainsSearch } from '~/components/Search'
+import { columnsToShow } from '~/components/Table'
+import { RowLinks, LinksWrapper } from '~/components/Filters'
+import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
+import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
+import { getForkPageData, revalidate } from '~/utils/dataApi'
 
 const Chart = dynamic(() => import('components/GlobalChart'), {
   ssr: false,

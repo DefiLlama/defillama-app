@@ -1,11 +1,11 @@
 import * as React from 'react'
-import { TYPE } from '../Theme'
-import { RowBetween } from '../components/Row'
 import styled from 'styled-components'
-import { Divider, Panel } from '../components'
-import Link from '../components/Link'
-import Layout from '../layout'
-import { getChainPageData, revalidate } from 'utils/dataApi'
+import { TYPE } from '~/Theme'
+import Layout from '~/layout'
+import { Divider, Panel } from '~/components'
+import { RowBetween } from '~/components/Row'
+import Link from '~/components/Link'
+import { getChainPageData, revalidate } from '~/utils/dataApi'
 
 const DashGrid = styled.div`
   display: grid;

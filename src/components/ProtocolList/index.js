@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
-import { Header } from 'Theme'
-import { ProtocolsChainsSearch } from 'components/Search'
-import Table, { columnsToShow } from 'components/Table'
-import { RowLinks, LinksWrapper } from 'components/Filters'
-import { useCalcStakePool2Tvl } from 'hooks/data'
+import { Header } from '~/Theme'
+import { ProtocolsChainsSearch } from '~/components/Search'
+import Table, { columnsToShow } from '~/components/Table'
+import { RowLinks, LinksWrapper } from '~/components/Filters'
+import { useCalcStakePool2Tvl } from '~/hooks/data'
 
 function AllTokensPage({
   title,

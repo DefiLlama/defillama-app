@@ -3,8 +3,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { Icon } from 'react-feather'
-import { BasicLink } from 'components/Link'
-import { useDarkModeManager } from 'contexts/LocalStorage'
+import { BasicLink } from '~/components/Link'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 import ThemeSwitch from './ThemeSwitch'
 
 export const Wrapper = styled.header`

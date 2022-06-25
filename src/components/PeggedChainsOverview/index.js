@@ -1,16 +1,16 @@
 import { useMemo, useState } from 'react'
 import styled from 'styled-components'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from 'components'
-import { OptionButton } from 'components/ButtonStyled'
-import { RowBetween, AutoRow } from 'components/Row'
-import PeggedViewSwitch from 'components/PeggedViewSwitch'
-import Table, { columnsToShow } from 'components/Table'
-import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
-import { AreaChart } from 'components/Charts'
-import { PeggedAssetGroupOptions } from 'components/Select'
-import { PeggedSearch } from 'components/Search'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from 'hooks/data'
-import { useXl, useMed } from 'hooks/useBreakpoints'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
+import { OptionButton } from '~/components/ButtonStyled'
+import { RowBetween, AutoRow } from '~/components/Row'
+import PeggedViewSwitch from '~/components/PeggedViewSwitch'
+import Table, { columnsToShow } from '~/components/Table'
+import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
+import { AreaChart } from '~/components/Charts'
+import { PeggedAssetGroupOptions } from '~/components/Select'
+import { PeggedSearch } from '~/components/Search'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data'
+import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {
   getRandomColor,
   capitalizeFirstLetter,
@@ -21,7 +21,7 @@ import {
   toNiceMonthlyDate,
   toNiceCsvDate,
   download,
-} from 'utils'
+} from '~/utils'
 
 function Chart({ peggedAreaChainData, peggedAreaMcapData, totalMcapLabel, chainNames, aspect }) {
   const finalChartData = peggedAreaChainData ? peggedAreaChainData : peggedAreaMcapData

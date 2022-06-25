@@ -12,21 +12,21 @@ import {
   ChartAndValuesWrapper,
   DownloadButton,
   DownloadIcon,
-} from 'components'
-import { RowFixed } from 'components/Row'
-import { ProtocolsChainsSearch } from 'components/Search'
-import { RowLinks, TVLRange } from 'components/Filters'
-import { BasicLink } from 'components/Link'
-import SEO from 'components/SEO'
-import { OptionButton } from 'components/ButtonStyled'
-import LocalLoader from 'components/LocalLoader'
-import { columnsToShow } from 'components/Table'
-import { useCalcProtocolsTvls } from 'hooks/data'
-import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
-import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
-import { chainCoingeckoIds } from 'constants/chainTokens'
-import { useDenominationPriceHistory } from 'utils/dataApi'
-import llamaLogo from '../../assets/peeking-llama.png'
+} from '~/components'
+import { RowFixed } from '~/components/Row'
+import { ProtocolsChainsSearch } from '~/components/Search'
+import { RowLinks, TVLRange } from '~/components/Filters'
+import { BasicLink } from '~/components/Link'
+import SEO from '~/components/SEO'
+import { OptionButton } from '~/components/ButtonStyled'
+import LocalLoader from '~/components/LocalLoader'
+import { columnsToShow } from '~/components/Table'
+import { useCalcProtocolsTvls } from '~/hooks/data'
+import { useDarkModeManager, useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
+import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
+import { chainCoingeckoIds } from '~/constants/chainTokens'
+import { useDenominationPriceHistory } from '~/utils/dataApi'
+import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
 
 const EasterLlama = styled.button`
@@ -43,11 +43,11 @@ const EasterLlama = styled.button`
   }
 `
 
-const Chart = dynamic(() => import('components/GlobalChart'), {
+const Chart = dynamic(() => import('~/components/GlobalChart'), {
   ssr: false,
 })
 
-const Game = dynamic(() => import('game'))
+const Game = dynamic(() => import('~/game'))
 
 const BASIC_DENOMINATIONS = ['USD']
 

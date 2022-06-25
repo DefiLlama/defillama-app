@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { useGetExtraTvlEnabled, useGroupEnabled, useGetExtraPeggedEnabled } from 'contexts/LocalStorage'
-import { capitalizeFirstLetter, getPercentChange } from 'utils'
+import { useGetExtraTvlEnabled, useGroupEnabled, useGetExtraPeggedEnabled } from '~/contexts/LocalStorage'
+import { capitalizeFirstLetter, getPercentChange } from '~/utils'
 
 interface IProtocol {
   name: string
@@ -497,7 +497,7 @@ export const useCalcCirculating = (filteredPeggedAssets: IPegged[], defaultSorti
       if (pegType === 'peggedVAR') {
         floatingPeg = true
       }
-      
+
       let depeggedTwoPercent = false
       if (pegType === 'peggedUSD') {
         let percentChange = getPercentChange(price, 1)

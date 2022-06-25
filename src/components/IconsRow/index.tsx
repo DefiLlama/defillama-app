@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Hovercard, HovercardAnchor, useHovercardState } from 'ariakit/hovercard'
 import styled from 'styled-components'
-import { BasicLink } from 'components/Link'
-import TokenLogo from 'components/TokenLogo'
-import { useResize } from 'hooks'
-import { chainIconUrl, tokenIconUrl } from 'utils'
+import { BasicLink } from '~/components/Link'
+import TokenLogo from '~/components/TokenLogo'
+import { useResize } from '~/hooks'
+import { chainIconUrl, tokenIconUrl } from '~/utils'
 
 const CHAIN_ICON_WIDTH = 24
 

@@ -1,5 +1,8 @@
 import { MenuButtonArrow, useSelectState } from 'ariakit'
-import HeadHelp from 'components/HeadHelp'
+import { Checkbox } from '~/components'
+import HeadHelp from '~/components/HeadHelp'
+import { FilterButton, FilterItem, FilterPopover } from '~/components/Select/AriakitSelect'
+import { useIsClient } from 'hooks'
 import {
   AUDITED,
   MILLION_DOLLAR,
@@ -7,10 +10,7 @@ import {
   SINGLE_EXPOSURE,
   STABLECOINS,
   useLocalStorageContext,
-} from 'contexts/LocalStorage'
-import { useIsClient } from 'hooks'
-import { FilterButton, FilterItem, FilterPopover } from 'components/Select/AriakitSelect'
-import { Checkbox } from 'components'
+} from '~/contexts/LocalStorage'
 
 export function YieldAttributes() {
   const isClient = useIsClient()

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import styled from 'styled-components'
-import { ButtonDark, ButtonLight } from 'components/ButtonStyled'
+import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
 import { OtherLinks } from './OtherLinksDropdown'
 
 interface ILink {

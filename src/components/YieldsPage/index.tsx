@@ -1,18 +1,18 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { Panel } from 'components'
-import { NameYield } from 'components/Table'
-import { YieldAttributes, TVLRange, FiltersByChain } from 'components/Filters'
-import { YieldsSearch } from 'components/Search'
+import { Panel } from '~/components'
+import { NameYield } from '~/components/Table'
+import { YieldAttributes, TVLRange, FiltersByChain } from '~/components/Filters'
+import { YieldsSearch } from '~/components/Search'
 import {
   useNoILManager,
   useSingleExposureManager,
   useStablecoinsManager,
   useMillionDollarManager,
   useAuditedManager,
-} from 'contexts/LocalStorage'
-import { capitalizeFirstLetter } from 'utils'
+} from '~/contexts/LocalStorage'
+import { capitalizeFirstLetter } from '~/utils'
 import { columns, TableWrapper } from './shared'
 
 interface ITokensToIncludeAndExclude {

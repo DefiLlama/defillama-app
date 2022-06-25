@@ -1,12 +1,12 @@
 import * as React from 'react'
+import { useRouter } from 'next/router'
+import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { useRouter } from 'next/router'
-import Link from 'next/link'
-import { useDenominationPriceHistory } from 'utils/dataApi'
-import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
-import { chainCoingeckoIds } from 'constants/chainTokens'
+import { useDenominationPriceHistory } from '~/utils/dataApi'
+import { useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
+import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { IChartProps } from './types'
 
 const AreaChart = dynamic(() => import('./AreaChart'), { ssr: false }) as React.FC<IChartProps>

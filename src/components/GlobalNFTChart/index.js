@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { ResponsiveContainer } from 'recharts'
-import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
-import { useIsClient } from 'hooks'
+import TradingViewChart, { CHART_TYPES } from '~/components/TradingviewChart'
+import { useIsClient } from '~/hooks'
 
 const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = '', symbol = '', displayUsd = false }) => {
   const filteredChartData = useMemo(() => {

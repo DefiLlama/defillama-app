@@ -1,13 +1,13 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import { Box } from 'rebass'
-import { TYPE } from 'Theme'
-import { RowBetween } from 'components/Row'
-import { Divider, Panel } from 'components'
-import Link from 'components/Link'
-import PressLogo from 'components/PressLogo'
-import { AutoColumn } from 'components/Column'
-import Layout from 'layout'
+import { TYPE } from '~/Theme'
+import Layout from '~/layout'
+import { Divider, Panel } from '~/components'
+import { RowBetween } from '~/components/Row'
+import Link from '~/components/Link'
+import PressLogo from '~/components/PressLogo'
+import { AutoColumn } from '~/components/Column'
 
 const PressPanel = ({ imageFilename }) => (
   <Panel style={{ padding: '18px 25px' }}>

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { Menu } from 'components/DropdownMenu'
-import HeadHelp from 'components/HeadHelp'
+import { Menu } from '~/components/DropdownMenu'
+import HeadHelp from '~/components/HeadHelp'
 
 const Audits = styled.section`
   display: flex;

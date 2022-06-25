@@ -1,4 +1,4 @@
-import { TYPE } from 'Theme'
+import { TYPE } from '~/Theme'
 
 interface IProps {
   title: string
