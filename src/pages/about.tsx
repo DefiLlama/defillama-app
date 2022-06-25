@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { TYPE } from '../Theme'
 import { RowBetween } from '../components/Row'
 import styled from 'styled-components'
@@ -76,8 +76,8 @@ function AboutPage({ chains, protocols }) {
             DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
             <Link href="https://github.com/DefiLlama/DefiLlama-Adapters">open-source</Link> and maintained by a team of
             passionate individuals and{' '}
-            <Link href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors">contributors</Link>{' '}
-            from hundreds of protocols.
+            <Link href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors">contributors</Link> from
+            hundreds of protocols.
           </TYPE.main>
           <TYPE.main>Our focus is on accurate data and transparent methodology.</TYPE.main>
           <TYPE.main>We track over 800 DeFi protocols from over 80 different blockchains.</TYPE.main>

@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { getPeggedAssetPageData, revalidate, getPeggedAssets } from 'utils/dataApi'
 import PeggedContainer from 'containers/PeggedContainer'
 import { getPeggedColor } from 'utils/getColor'

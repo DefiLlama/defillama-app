@@ -1,13 +1,13 @@
-import React from 'react'
-import { TYPE } from '../Theme'
-import { RowBetween } from '../components/Row'
+import * as React from 'react'
 import styled from 'styled-components'
-import { Divider, Panel } from '../components'
-import Link from '../components/Link'
-import PressLogo from '../components/PressLogo'
-import { AutoColumn } from '../components/Column'
 import { Box } from 'rebass'
-import Layout from '../layout'
+import { TYPE } from 'Theme'
+import { RowBetween } from 'components/Row'
+import { Divider, Panel } from 'components'
+import Link from 'components/Link'
+import PressLogo from 'components/PressLogo'
+import { AutoColumn } from 'components/Column'
+import Layout from 'layout'
 
 const PressPanel = ({ imageFilename }) => (
   <Panel style={{ padding: '18px 25px' }}>
@@ -76,8 +76,8 @@ function PressPage() {
           <TYPE.heading>Mission</TYPE.heading>
           <Divider />
           <TYPE.main>
-            DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully open-source
-            and maintained by a team of passionate individuals and contributors from hundreds of protocols.
+            DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully open-source and
+            maintained by a team of passionate individuals and contributors from hundreds of protocols.
           </TYPE.main>
           <TYPE.main>Our focus is on accurate data and transparent methodology.</TYPE.main>
           <TYPE.main>We track over 800 DeFi protocols from over 80 different blockchains.</TYPE.main>

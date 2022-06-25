@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -73,7 +73,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const { minTvl, maxTvl } = router.query
 
-  const [easterEgg, setEasterEgg] = useState(false)
+  const [easterEgg, setEasterEgg] = React.useState(false)
   const [darkMode, toggleDarkMode] = useDarkModeManager()
   const activateEasterEgg = () => {
     if (easterEgg) {
@@ -89,7 +89,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     }
   }
 
-  const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
+  const { totalVolumeUSD, volumeChangeUSD, globalChart } = React.useMemo(() => {
     const globalChart = chart.map((data) => {
       let sum = data[1]
       Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
@@ -134,7 +134,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const volumeChange = (percentChange > 0 ? '+' : '') + percentChange + '%'
 
-  const [DENOMINATIONS, chainGeckoId] = useMemo(() => {
+  const [DENOMINATIONS, chainGeckoId] = React.useMemo(() => {
     let DENOMINATIONS = []
     let chainGeckoId = null
     if (selectedChain !== 'All') {
@@ -154,7 +154,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     utcStartTime: 0,
   })
 
-  const [finalChartData, chainPriceInUSD] = useMemo(() => {
+  const [finalChartData, chainPriceInUSD] = React.useMemo(() => {
     if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {
       let priceIndex = 0
       let prevPriceDate = 0
@@ -192,7 +192,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const isLoading = denomination !== 'USD' && loading
 
-  const finalProtocolTotals = useMemo(() => {
+  const finalProtocolTotals = React.useMemo(() => {
     const isValidTvlRange =
       (minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 

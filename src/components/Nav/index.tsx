@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import * as React from 'react'
 import styled from 'styled-components'
 import AppSwitch from 'components/AppSwitch'
 import SettingsMenu from 'components/SettingsModal'
@@ -11,7 +11,7 @@ import Title from './Title'
 
 export default function SideNav() {
   const isYieldApp = useYieldApp()
-  const [showMobileNavMenu, setShowMobileNavMenu] = useState(false)
+  const [showMobileNavMenu, setShowMobileNavMenu] = React.useState(false)
 
   const style = { '--mobile-display': showMobileNavMenu ? 'flex' : 'none' } as React.CSSProperties
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import styled from 'styled-components'
 import { Header } from 'Theme'
 import { ButtonDark } from 'components/ButtonStyled'

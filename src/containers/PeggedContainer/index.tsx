@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import styled from 'styled-components'
 import { CustomLink } from 'components/Link'
 import { PeggedSearch } from 'components/Search'

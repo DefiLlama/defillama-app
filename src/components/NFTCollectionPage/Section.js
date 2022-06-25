@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { AutoColumn } from '../../components/Column'
 import { RowBetween } from '../../components/Row'
 import { TYPE } from '../../Theme'

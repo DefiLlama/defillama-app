@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { Link as RebassLink } from 'rebass'
 import RouterLink from 'next/link'
 import PropTypes from 'prop-types'

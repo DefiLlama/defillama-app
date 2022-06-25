@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Box, Flex, Text } from 'rebass'
 import styled from 'styled-components'
 import dayjs from 'dayjs'

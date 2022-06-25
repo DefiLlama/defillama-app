@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import * as React from 'react'
 import {
   Popover as AriaPopover,
   PopoverDisclosure,
@@ -91,7 +91,7 @@ interface IProps {
 export default function Popover({ trigger, content, ...props }: IProps) {
   const isLarge = useMedia('(min-width: 640px)', true)
 
-  const renderCallback = useCallback(
+  const renderCallback = React.useCallback(
     (props: PopoverStateRenderCallbackProps) => {
       const { popover, defaultRenderCallback } = props
       if (isLarge) return defaultRenderCallback()

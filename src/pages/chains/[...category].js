@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import Layout from 'layout'
 import { getChainsPageData, revalidate } from 'utils/dataApi'
 import { CONFIG_API } from 'constants/index'

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -384,7 +384,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const totalVolume = useCalcSingleExtraTvl(tvlBreakdowns, tvl)
 
-  const [bobo, setBobo] = useState(false)
+  const [bobo, setBobo] = React.useState(false)
 
   const { ref: addlChartsRef, inView: addlChartsInView } = useInView({
     triggerOnce: true,
@@ -410,12 +410,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked } = useMemo(
+  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked } = React.useMemo(
     () => buildProtocolData(addlProtocolData),
     [addlProtocolData]
   )
 
-  const chainsSplit = useMemo(() => {
+  const chainsSplit = React.useMemo(() => {
     return chainsStacked?.map((chain) => {
       if (chain.extraTvl) {
         const data = { ...chain }

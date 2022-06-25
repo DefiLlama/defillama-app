@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { Area, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart as AChart, ReferenceLine } from 'recharts'
 import { useDarkModeManager } from 'contexts/LocalStorage'
 import { toK, toNiceDateYear, formattedNum } from 'utils'

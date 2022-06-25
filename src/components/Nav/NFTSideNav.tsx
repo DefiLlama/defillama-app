@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { TrendingUp, HelpCircle, Link as LinkLogo, ShoppingCart, BarChart2 } from 'react-feather'
 import { Nav, Entry, MobileOnlyEntry } from './shared'
 

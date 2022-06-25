@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Repeat, X } from 'react-feather'
 import { transparentize } from 'polished'
 import styled from 'styled-components'

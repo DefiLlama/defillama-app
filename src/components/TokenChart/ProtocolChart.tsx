@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import * as React from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
@@ -34,7 +34,7 @@ export default function ProtocolChart({
 
   const { denomination } = router.query
 
-  const DENOMINATIONS = useMemo(() => {
+  const DENOMINATIONS = React.useMemo(() => {
     let d = [{ symbol: 'USD', geckoId: null }]
 
     if (chains.length > 0) {
@@ -53,7 +53,7 @@ export default function ProtocolChart({
     utcStartTime: 0,
   })
 
-  const chartDataFiltered = useMemo(() => {
+  const chartDataFiltered = React.useMemo(() => {
     const sections = Object.keys(historicalChainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
 
     const tvlDictionary = {}
@@ -71,7 +71,7 @@ export default function ProtocolChart({
     } else return tvlChartData
   }, [historicalChainTvls, extraTvlEnabled, tvlChartData])
 
-  const { finalChartData, moneySymbol } = useMemo(() => {
+  const { finalChartData, moneySymbol } = React.useMemo(() => {
     const isValidDenomination =
       denomination && denomination !== 'USD' && DENOMINATIONS.find((d) => d.symbol === denomination)
 

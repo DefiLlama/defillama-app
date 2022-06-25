@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { Header } from 'Theme'
 import { ProtocolsChainsSearch } from 'components/Search'
 import Table, { columnsToShow } from 'components/Table'

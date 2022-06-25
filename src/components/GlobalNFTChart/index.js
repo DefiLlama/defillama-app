@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { ResponsiveContainer } from 'recharts'
 import TradingViewChart, { CHART_TYPES } from '../TradingviewChart'
 import { useIsClient } from 'hooks'

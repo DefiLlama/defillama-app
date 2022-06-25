@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import * as React from 'react'
 import styled from 'styled-components'
 import { v4 as uuid } from 'uuid'
 import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronsUp } from 'react-feather'
@@ -251,7 +251,7 @@ function Row(props: RowProps) {
 }
 
 function RowWithExtras({ columns, item, index }: RowProps) {
-  const [displayRows, setDisplay] = useState(false)
+  const [displayRows, setDisplay] = React.useState(false)
 
   return (
     <>
@@ -298,13 +298,13 @@ const handleScrollToTop = () => {
 }
 
 function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
-  const [lastIndex, setLastIndex] = useState(20)
-  const [columnToSort, setColumnToSort] = useState<string | null>(null)
-  const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
+  const [lastIndex, setLastIndex] = React.useState(20)
+  const [columnToSort, setColumnToSort] = React.useState<string | null>(null)
+  const [sortDirection, setDirection] = React.useState<-1 | 0 | 1>(0)
 
-  const [displayScrollToTopButton, setDisplayScrollToTopButton] = useState(false)
+  const [displayScrollToTopButton, setDisplayScrollToTopButton] = React.useState(false)
 
-  useEffect(() => {
+  React.useEffect(() => {
     function setScroll() {
       if (window.scrollY > 200) {
         setDisplayScrollToTopButton(true)
@@ -328,7 +328,7 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
     }
   }
 
-  const sortedData = useMemo(() => {
+  const sortedData = React.useMemo(() => {
     if (sortDirection && columnToSort) {
       const values = splitArrayByFalsyValues(data, columnToSort)
       if (sortDirection === 1) {
@@ -417,8 +417,8 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
 }
 
 export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
-  const [columnToSort, setColumnToSort] = useState<string | null>(null)
-  const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
+  const [columnToSort, setColumnToSort] = React.useState<string | null>(null)
+  const [sortDirection, setDirection] = React.useState<-1 | 0 | 1>(0)
 
   const handleClick = (name: string) => {
     if (sortDirection === 0 || name !== columnToSort) {
@@ -431,7 +431,7 @@ export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...p
     }
   }
 
-  const sortedData = useMemo(() => {
+  const sortedData = React.useMemo(() => {
     if (sortDirection && columnToSort) {
       const values = splitArrayByFalsyValues(data, columnToSort)
       if (sortDirection === 1) {
@@ -518,7 +518,7 @@ export function Name({
         <span id="table-p-symbol">{` (${symbol})`}</span>
       </>
     )
-  const { iconUrl, tokenUrl } = useMemo(() => {
+  const { iconUrl, tokenUrl } = React.useMemo(() => {
     let iconUrl, tokenUrl
     if (type === 'chain') {
       tokenUrl = `/${type}/${value}`
