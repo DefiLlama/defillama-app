@@ -50,6 +50,7 @@ export function AdvancedYieldsSearch({ setAdvancedSearch, setTokensToFilter }: I
             value={includeTokens}
             onChange={setIncludeTokens}
             aria-label="Include tokens"
+            placeholder="Search for a token..."
           />
         </Label>
         <Label>
@@ -62,6 +63,7 @@ export function AdvancedYieldsSearch({ setAdvancedSearch, setTokensToFilter }: I
             value={excludeTokens}
             onChange={setExcludeTokens}
             aria-label="Exclude tokens"
+            placeholder="Search for a token..."
           />
         </Label>
         <ConfirmButton>Search</ConfirmButton>
