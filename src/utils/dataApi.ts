@@ -16,6 +16,7 @@ import {
   YIELD_POOLS_API,
   YIELD_CHART_API,
   CG_TOKEN_API,
+  AGGREGATOPN_API,
   PEGGED_API,
   PEGGEDS_API,
   PEGGEDCHART_API,
@@ -347,7 +348,7 @@ export async function getPeggedOverviewPageData(category, chain) {
             return await fetch(`${PEGGEDCHART_API}/?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
           }
           return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
-        } catch (e) {}
+        } catch (e) { }
       }
       throw new Error(`${CHART_API}/${elem} is broken`)
     })
@@ -474,7 +475,7 @@ export async function getPeggedChainsPageData(category) {
         for (let i = 0; i < 5; i++) {
           try {
             return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-          } catch (e) {}
+          } catch (e) { }
         }
         throw new Error(`${CHART_API}/${elem} is broken`)
       } else return null
@@ -516,7 +517,7 @@ export async function getPeggedChainsPageData(category) {
         try {
           const res = await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
           return res
-        } catch (e) {}
+        } catch (e) { }
       }
       throw new Error(`${PEGGEDCHART_API}/${chain} is broken`)
     })
@@ -928,7 +929,7 @@ export const getChainsPageData = async (category: string) => {
       for (let i = 0; i < 5; i++) {
         try {
           return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-        } catch (e) {}
+        } catch (e) { }
       }
       throw new Error(`${CHART_API}/${elem} is broken`)
     })
@@ -1032,7 +1033,7 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
   const totalCirculating = getPrevCirculatingFromChart(peggedChart, 0, 'totalCirculating', pegType)
   const unreleased = getPrevCirculatingFromChart(peggedChart, 0, 'unreleased', pegType)
   const mcap = peggedChart[peggedChart.length - 1]?.mcap ?? null
-  
+
 
   let categories = []
   for (const chain in chainCoingeckoIds) {
@@ -1333,6 +1334,46 @@ export async function getYieldPageData(query = null) {
     return {
       notFound: true,
     }
+  }
+}
+
+export async function getAggregatedData() {
+
+  // get enriched pools data
+  let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
+  pools = pools.filter((p) => p.project !== 'anchor')
+
+  // need to take the latest info, scale apy accordingly
+  const T = 365
+  pools = pools.map(p => ({ ...p, return: (1 + (p.apy / 100)) ** (1 / T) - 1 }))
+
+  // get aggregated data containing info about mean, mean2, count, returnProduct
+  // which we need to calc mu and sigma
+  const aggregations = (await fetch(AGGREGATOPN_API).then(r => r.json())).data
+  for (const el of pools) {
+    const d = aggregations.find((i) => i.pool === el.pool);
+
+    if (d === undefined) continue
+
+    // calc std using welford's algorithm
+    // https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    // For a new value newValue, compute the new count, new mean, the new M2.
+    // mean accumulates the mean of the entire dataset
+    // M2 aggregates the squared distance from the mean
+    // count aggregates the number of samples seen so far
+    let count = d.count;
+    let mean = d.mean;
+    let mean2 = d.mean2;
+
+    count += 1;
+    let delta = el.return - mean;
+    mean += delta / count;
+    let delta2 = el.return - mean;
+    mean2 += delta * delta2;
+
+    el['sigma'] = Math.sqrt(mean2 / (count - 1));
+    el['mu'] = ((1 + el.return) * d.returnProduct) ** (T / count) - 1
+    el['count'] = count
   }
 }
 
