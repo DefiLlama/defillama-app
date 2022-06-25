@@ -72,7 +72,7 @@ function PressPage() {
         <TYPE.largeHeader>Press & Media</TYPE.largeHeader>
       </RowBetween>
       <Panel style={{ marginTop: '6px' }}>
-        <DashGrid center={true} style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
+        <DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
           <TYPE.heading>Mission</TYPE.heading>
           <Divider />
           <TYPE.main>
@@ -84,7 +84,7 @@ function PressPage() {
         </DashGrid>
       </Panel>
       <Panel style={{ marginTop: '6px' }}>
-        <DashGrid center={true} style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
+        <DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
           <TYPE.heading>Press</TYPE.heading>
           <Divider />
           <TYPE.main>
@@ -103,7 +103,7 @@ function PressPage() {
         </DashGrid>
       </Panel>
       <Panel style={{ marginTop: '6px' }}>
-        <DashGrid center={true} style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
+        <DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
           <TYPE.heading>Branding Assets</TYPE.heading>
           <Divider />
           <TYPE.main>

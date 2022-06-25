@@ -5,6 +5,16 @@ import Table, { columnsToShow } from '~/components/Table'
 import { RowLinks, LinksWrapper } from '~/components/Filters'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 
+interface IAllTokensPageProps {
+  title?: string
+  category?: string
+  selectedChain?: string
+  chains?: string[]
+  filteredProtocols?: any
+  showChainList?: boolean
+  defaultSortingColumn?: string
+}
+
 function AllTokensPage({
   title,
   category,
@@ -13,7 +23,7 @@ function AllTokensPage({
   filteredProtocols,
   showChainList = true,
   defaultSortingColumn,
-}) {
+}: IAllTokensPageProps) {
   const handleRouting = (chain) => {
     if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
     return `/protocols/${category?.toLowerCase()}/${chain}`

@@ -13,7 +13,12 @@ export const ColumnCenter = styled(Column)`
   align-items: center;
 `
 
-export const AutoColumn = styled.div`
+interface IAutoColumn {
+  gap?: string
+  justify?: string
+}
+
+export const AutoColumn = styled.div<IAutoColumn>`
   display: grid;
   grid-auto-rows: auto;
   grid-row-gap: ${({ gap }) => (gap === 'sm' && '8px') || (gap === 'md' && '12px') || (gap === 'lg' && '24px') || gap};

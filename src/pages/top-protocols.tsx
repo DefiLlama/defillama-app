@@ -14,7 +14,7 @@ export async function getStaticProps() {
 
   protocols.forEach((p) => {
     const { chainTvls, category, name } = p
-    Object.entries(chainTvls).forEach(([chain, { tvl }]) => {
+    Object.entries(chainTvls).forEach(([chain, { tvl }]: [string, { tvl: number }]) => {
       if (topProtocolPerChainAndCategory[chain] === undefined) {
         return
       }

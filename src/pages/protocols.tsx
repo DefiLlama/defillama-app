@@ -3,20 +3,19 @@ import ProtocolList from '~/components/ProtocolList'
 import { getSimpleProtocolsPageData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps() {
-  const { protocols, chains } = await getSimpleProtocolsPageData()
+  const { protocols } = await getSimpleProtocolsPageData()
   return {
     props: {
       protocols,
-      chainsSet: chains,
     },
     revalidate: revalidate(),
   }
 }
 
-export default function Protocols({ chainsSet, protocols }) {
+export default function Protocols({ protocols }) {
   return (
     <Layout title={`TVL Rankings - DefiLlama`} defaultSEO>
-      <ProtocolList chainsSet={chainsSet} filteredProtocols={protocols} showChainList={false} />
+      <ProtocolList filteredProtocols={protocols} showChainList={false} />
     </Layout>
   )
 }

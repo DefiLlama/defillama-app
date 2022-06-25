@@ -10,7 +10,6 @@ import TokenLogo from '~/components/TokenLogo'
 import Bookmark from '~/components/Bookmark'
 import IconsRow from '~/components/IconsRow'
 import QuestionHelper from '~/components/QuestionHelper'
-import { AutoRow } from '~/components/Row'
 import { chainIconUrl, peggedAssetIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
 
 interface ColumnProps {
@@ -34,6 +33,7 @@ interface TableProps {
   align?: string
   gap?: string
   pinnedRow?: unknown
+  style?: React.CSSProperties
 }
 
 const Wrapper = styled.section`
@@ -199,6 +199,10 @@ const ScrollToTop = styled.button`
 `
 
 const HeaderWithHelperText = styled.span`
+  display: flex;
+  gap: 4px;
+  font-weight: 500 !important;
+
   svg {
     flex-shrink: 0;
     color: ${({ theme }) => theme.text1};
@@ -207,11 +211,6 @@ const HeaderWithHelperText = styled.span`
   button {
     padding-right: 2px;
   }
-
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
 `
 
 export function splitArrayByFalsyValues(data, column) {
@@ -366,7 +365,7 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
                 )
                 const text = col.helperText ? (
                   <HeaderWithHelperText>
-                    {header}
+                    <span>{header}</span>
                     <QuestionHelper text={col.helperText} />
                   </HeaderWithHelperText>
                 ) : (
@@ -749,7 +748,7 @@ const allColumns: AllColumns = {
     accessor: 'tvl',
     Cell: ({ value, rowValues }) => {
       return (
-        <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+        <span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
           {rowValues.strikeTvl ? (
             <QuestionHelper text='This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off' />
           ) : null}
@@ -760,7 +759,7 @@ const allColumns: AllColumns = {
           >
             {'$' + formattedNum(value)}
           </span>
-        </AutoRow>
+        </span>
       )
     },
   },

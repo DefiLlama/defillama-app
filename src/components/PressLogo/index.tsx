@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import * as React from 'react'
 import styled from 'styled-components'
 import NextImage from 'next/image'
 import PlaceHolder from '~/assets/placeholder.png'
@@ -16,6 +17,13 @@ const Image = styled(NextImage)`
   border-radius: 50%;
   box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.075);
 `
+
+interface IProps {
+  logo: string
+  external?: boolean
+  size?: number
+  style?: React.CSSProperties
+}
 // next/image won't work, idk why
 export default function TokenLogo({
   logo = null,
@@ -23,7 +31,7 @@ export default function TokenLogo({
   size = 24,
   style,
   ...rest
-}) {
+}: IProps) {
   const [error, setError] = useState(false)
 
   useEffect(() => {

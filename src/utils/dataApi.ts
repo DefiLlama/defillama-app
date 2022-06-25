@@ -322,7 +322,7 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
   }
 }
 
-export async function getSimpleProtocolsPageData(propsToKeep) {
+export async function getSimpleProtocolsPageData(propsToKeep?: string[]) {
   const { protocols, chains } = await getProtocolsRaw()
   const filteredProtocols = formatProtocolsData({
     protocols,
