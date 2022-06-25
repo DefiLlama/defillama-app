@@ -15,10 +15,19 @@ import {
 import { capitalizeFirstLetter } from 'utils'
 import { columns, TableWrapper } from './shared'
 
+interface ITokensToIncludeAndExclude {
+  includeTokens: string[]
+  excludeTokens: string[]
+}
+
 const YieldPage = ({ pools, chainList }) => {
   const chain = [...new Set(pools.map((el) => el.chain))]
   const selectedTab = chain.length > 1 ? 'All' : chain[0]
   const [chainsToFilter, setChainsToFilter] = React.useState<string[]>(chainList)
+  const [tokensToFilter, setTokensToFilter] = React.useState<ITokensToIncludeAndExclude>({
+    includeTokens: [],
+    excludeTokens: [],
+  })
 
   const { query } = useRouter()
   const { minTvl, maxTvl } = query
@@ -52,29 +61,56 @@ const YieldPage = ({ pools, chainList }) => {
   const [singleExposure] = useSingleExposureManager()
   const [millionDollar] = useMillionDollarManager()
   const [audited] = useAuditedManager()
-  // apply toggles
-  pools = stablecoins === true ? pools.filter((el) => el.stablecoin === true) : pools
-  pools = noIL === true ? pools.filter((el) => el.ilRisk === 'no') : pools
-  pools = singleExposure === true ? pools.filter((el) => el.exposure === 'single') : pools
-  pools = millionDollar === true ? pools.filter((el) => el.tvlUsd >= 1e6) : pools
-  pools = audited === true ? pools.filter((el) => el.audits !== '0') : pools
 
   const poolsData = React.useMemo(() => {
-    const poolsData = pools
-      .map((t) => ({
-        id: t.pool,
-        pool: t.symbol,
-        projectslug: t.project,
-        project: t.projectName,
-        chains: [t.chain],
-        tvl: t.tvlUsd,
-        apy: t.apy,
-        change1d: t.apyPct1D,
-        change7d: t.apyPct7D,
-        outlook: t.predictions.predictedClass,
-        confidence: t.predictions.binnedConfidence,
-      }))
-      .filter((p) => chainsToFilter.includes(p.chains[0]))
+    const data = pools.filter((p) => {
+      let toFilter = true
+
+      if (stablecoins) {
+        toFilter = p.stablecoin === true
+      }
+
+      if (noIL) {
+        toFilter = p.ilRisk === 'no'
+      }
+
+      if (singleExposure) {
+        toFilter = p.exposure === 'single'
+      }
+
+      if (millionDollar) {
+        toFilter = p.tvlUsd >= 1e6
+      }
+
+      if (audited) {
+        toFilter = p.audits !== '0'
+      }
+
+      const tokensInPool = p.pool.split('-').map((x) => x.toLowerCase())
+
+      const includeToken =
+        tokensToFilter.includeTokens.length > 0
+          ? tokensToFilter.includeTokens.find((token) => tokensInPool.includes(token))
+          : true
+
+      const excludeToken = !tokensToFilter.excludeTokens.find((token) => tokensInPool.includes(token))
+
+      return toFilter && chainsToFilter.includes(p.chain) && includeToken && excludeToken
+    })
+
+    const poolsData = data.map((t) => ({
+      id: t.pool,
+      pool: t.symbol,
+      projectslug: t.project,
+      project: t.projectName,
+      chains: [t.chain],
+      tvl: t.tvlUsd,
+      apy: t.apy,
+      change1d: t.apyPct1D,
+      change7d: t.apyPct7D,
+      outlook: t.predictions.predictedClass,
+      confidence: t.predictions.binnedConfidence,
+    }))
 
     const isValidTvlRange =
       (minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
@@ -82,7 +118,7 @@ const YieldPage = ({ pools, chainList }) => {
     return isValidTvlRange
       ? poolsData.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
       : poolsData
-  }, [minTvl, maxTvl, pools, chainsToFilter])
+  }, [minTvl, maxTvl, pools, chainsToFilter, audited, millionDollar, noIL, singleExposure, stablecoins, tokensToFilter])
 
   let stepName = undefined
   if (query.chain) stepName = selectedTab
@@ -90,7 +126,10 @@ const YieldPage = ({ pools, chainList }) => {
 
   return (
     <>
-      <YieldsSearch step={{ category: 'Yields', name: stepName ?? 'All chains' }} />
+      <YieldsSearch
+        step={{ category: 'Yields', name: stepName ?? 'All chains' }}
+        setTokensToFilter={setTokensToFilter}
+      />
 
       <TableFilters>
         <TableHeader>Yield Rankings</TableHeader>

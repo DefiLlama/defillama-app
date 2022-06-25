@@ -3,7 +3,6 @@ import Select, { Props } from 'react-select'
 import styled from 'styled-components'
 
 const Wrapper = styled.span`
-  z-index: 10;
   --background: ${({ theme }) => transparentize(0.4, theme.bg6)};
   --menu-background: ${({ theme }) => theme.bg6};
   --color: ${({ theme }) => theme.text1};
@@ -30,11 +29,14 @@ const customStyles = {
       '0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04)',
     margin: 0,
   }),
+  input: (provided) => ({
+    ...provided,
+    color: 'var(--color)',
+  }),
   menu: (provided) => ({
     ...provided,
     background: 'var(--menu-background)',
   }),
-
   option: (provided, state) => ({
     ...provided,
     color: state.isActive ? 'black' : 'var(--color)',
@@ -43,10 +45,8 @@ const customStyles = {
     ...provided,
     fontFamily: 'inherit',
     background: 'var(--option-bg)',
-
     padding: '2px',
   }),
-
   multiValueLabel: (styles) => ({
     ...styles,
     color: 'var(--color)',
@@ -61,10 +61,10 @@ const customStyles = {
   }),
 }
 
-const ReactSelect = ({ options, ...props }: Props) => (
+const ReactSelect = ({ options, styles, ...props }: Props) => (
   <Wrapper>
     <Select
-      styles={customStyles}
+      styles={{ ...customStyles, ...styles }}
       options={options}
       theme={(theme) => {
         return {

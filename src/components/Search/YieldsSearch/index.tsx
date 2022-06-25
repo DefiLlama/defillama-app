@@ -5,7 +5,16 @@ import { useFetchYieldsList } from 'utils/categories/yield'
 import { AdvancedYieldsSearch } from './Advanced'
 import { ToggleSearch } from './shared'
 
-export default function YieldsSearch(props: ICommonSearchProps) {
+interface IYieldSearchProps extends ICommonSearchProps {
+  setTokensToFilter?: React.Dispatch<
+    React.SetStateAction<{
+      includeTokens: string[]
+      excludeTokens: string[]
+    }>
+  >
+}
+
+export default function YieldsSearch({ setTokensToFilter, ...props }: IYieldSearchProps) {
   const [advancedSearch, setAdvancedSearch] = React.useState(false)
 
   const { data, loading } = useFetchYieldsList()
@@ -22,20 +31,20 @@ export default function YieldsSearch(props: ICommonSearchProps) {
       )
     }, [data]) ?? []
 
-  // if (!props.step?.hideOptions && advancedSearch) {
-  //   return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} />
-  // }
+  if (!props.step?.hideOptions && advancedSearch) {
+    return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} setTokensToFilter={setTokensToFilter} />
+  }
 
   return (
     <BaseSearch
       {...props}
       data={searchData}
       loading={loading}
-      // filters={
-      //   !props.step?.hideOptions && (
-      //     <ToggleSearch onClick={() => setAdvancedSearch(true)}>Switch to Advanced Search</ToggleSearch>
-      //   )
-      // }
+      filters={
+        !props.step?.hideOptions && (
+          <ToggleSearch onClick={() => setAdvancedSearch(true)}>Switch to Advanced Search</ToggleSearch>
+        )
+      }
     />
   )
 }
