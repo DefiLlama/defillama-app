@@ -52,6 +52,7 @@ export const YIELD_POOLS_API = 'https://1rwmj4tky9.execute-api.eu-central-1.amaz
 export const YIELD_CHART_API = 'https://1rwmj4tky9.execute-api.eu-central-1.amazonaws.com/chart'
 export const CG_TOKEN_API =
   'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'
+export const AGGREGATOPN_API = 'https://1rwmj4tky9.execute-api.eu-central-1.amazonaws.com/aggregations'
 
 // GlobalData Constants
 export const UPDATE = 'UPDATE'
