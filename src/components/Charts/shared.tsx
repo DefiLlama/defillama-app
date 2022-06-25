@@ -2,7 +2,7 @@ import * as React from 'react'
 import { ResponsiveContainer } from 'recharts'
 import styled from 'styled-components'
 import { Panel } from '~/components'
-import { useMed } from 'hooks/useBreakpoints'
+import { useMed } from '~/hooks/useBreakpoints'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 export const ChartWrapper = ({ children }) => {

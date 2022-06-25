@@ -28,8 +28,8 @@ import boboLogo from '~/assets/boboSmug.png'
 
 defaultFallbackInView(true)
 
-const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false }) as React.FC<IChartProps>
-const BarChart = dynamic(() => import('components/TokenChart/BarChart'), { ssr: false }) as React.FC<IChartProps>
+const AreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), { ssr: false }) as React.FC<IChartProps>
+const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), { ssr: false }) as React.FC<IChartProps>
 
 const Stats = styled.section`
   display: flex;

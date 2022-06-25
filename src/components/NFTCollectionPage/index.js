@@ -3,8 +3,8 @@ import dynamic from 'next/dynamic'
 import styled, { css } from 'styled-components'
 import { Box as RebassBox } from 'rebass'
 import { transparentize } from 'polished'
-import { TYPE } from 'Theme'
-import Layout from 'layout'
+import { TYPE } from '~/Theme'
+import Layout from '~/layout'
 import { AutoRow, RowBetween } from '~/components/Row'
 import Column from '~/components/Column'
 import HeadHelp from '~/components/HeadHelp'
@@ -144,7 +144,7 @@ const Header = styled.span`
   }
 `
 
-const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
+const GlobalNFTChart = dynamic(() => import('~/components/GlobalNFTChart'), {
   ssr: false,
 })
 

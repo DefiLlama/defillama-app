@@ -9,7 +9,7 @@ import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
 import { getForkPageData, revalidate } from '~/utils/dataApi'
 
-const Chart = dynamic(() => import('components/GlobalChart'), {
+const Chart = dynamic(() => import('~/components/GlobalChart'), {
   ssr: false,
 })
 

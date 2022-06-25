@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import PeggedChainsOverview from 'components/PeggedChainsOverview'
+import PeggedChainsOverview from '~/components/PeggedChainsOverview'
 import { capitalizeFirstLetter } from '~/utils'
 import { getPeggedChainsPageData, revalidate } from '~/utils/dataApi'
 

@@ -11,7 +11,7 @@ import Row from '~/components/Row'
 import FormattedName from '~/components/FormattedName'
 import IconsRow from '~/components/IconsRow'
 import { useFetchInfiniteScroll, useMedia } from '~/hooks'
-import { formattedNum, filterCollectionsByCurrency } from 'utils'
+import { formattedNum, filterCollectionsByCurrency } from '~/utils'
 
 dayjs.extend(utc)
 

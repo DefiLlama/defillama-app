@@ -51,7 +51,7 @@ const TokenDetailsLayout = styled.div`
   }
 `
 
-const Chart = dynamic(() => import('components/GlobalChart'), {
+const Chart = dynamic(() => import('~/components/GlobalChart'), {
   ssr: false,
 })
 

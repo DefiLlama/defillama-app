@@ -19,7 +19,7 @@ const defaultTab = {
   to: '/nfts',
 }
 
-const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
+const GlobalNFTChart = dynamic(() => import('~/components/GlobalNFTChart'), {
   ssr: false,
 })
 
