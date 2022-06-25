@@ -293,7 +293,7 @@ const columns = [
   {
     header: 'Market Cap',
     accessor: 'mcap',
-    Cell: ({ value }) => <>{value && formattedNum(value, true)}</>,
+    Cell: ({ value }) => <>{value ? formattedNum(value, true) : '-'}</>,
   },
 ]
 
