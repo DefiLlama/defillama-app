@@ -659,7 +659,7 @@ export default function PeggedContainer({
                   <tbody>
                     <tr key={'Price'}>
                       <th>{'Price'}</th>
-                      <td>{formattedPeggedPrice(price, true) || '-'}</td>
+                      <td>{price === 'null' ? '-' : formattedPeggedPrice(price, true)}</td>
                     </tr>
                   </tbody>
                 </DetailsTable>
