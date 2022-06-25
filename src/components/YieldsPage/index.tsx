@@ -86,7 +86,7 @@ const YieldPage = ({ pools, chainList }) => {
         toFilter = p.audits !== '0'
       }
 
-      const tokensInPool = p.pool.split('-').map((x) => x.toLowerCase())
+      const tokensInPool = p.symbol.split('-').map((x) => x.toLowerCase())
 
       const includeToken =
         tokensToFilter.includeTokens.length > 0

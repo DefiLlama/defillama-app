@@ -204,6 +204,10 @@ const HeaderWithHelperText = styled.span`
     color: ${({ theme }) => theme.text1};
   }
 
+  button {
+    padding-right: 2px;
+  }
+
   display: flex;
   align-items: center;
   gap: 4px;
