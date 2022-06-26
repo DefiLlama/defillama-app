@@ -67,23 +67,23 @@ const YieldPage = ({ pools, chainList }) => {
       let toFilter = true
 
       if (stablecoins) {
-        toFilter = p.stablecoin === true
+        toFilter = toFilter && p.stablecoin === true
       }
 
       if (noIL) {
-        toFilter = p.ilRisk === 'no'
+        toFilter = toFilter && p.ilRisk === 'no'
       }
 
       if (singleExposure) {
-        toFilter = p.exposure === 'single'
+        toFilter = toFilter && p.exposure === 'single'
       }
 
       if (millionDollar) {
-        toFilter = p.tvlUsd >= 1e6
+        toFilter = toFilter && p.tvlUsd >= 1e6
       }
 
       if (audited) {
-        toFilter = p.audits !== '0'
+        toFilter = toFilter && p.audits !== '0'
       }
 
       const tokensInPool = p.symbol.split('-').map((x) => x.toLowerCase())
