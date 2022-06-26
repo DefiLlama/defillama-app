@@ -265,6 +265,7 @@ function PeggedAssetsOverview({
   selectedChain = 'All',
   chains = [],
   filteredPeggedAssets,
+  peggedAssetNames,
   chartData,
   peggedAreaChartData,
   peggedAreaMcapData,
@@ -304,10 +305,6 @@ function PeggedAssetsOverview({
     () => Object.fromEntries([...peggedTotals, 'Others'].map((peggedAsset) => [peggedAsset.symbol, getRandomColor()])),
     [peggedTotals]
   )
-
-  const peggedAssetNames = useMemo(() => {
-    return peggedTotals.map((peggedAsset) => peggedAsset.symbol)
-  }, [peggedTotals])
 
   const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
