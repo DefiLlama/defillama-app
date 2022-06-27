@@ -1375,6 +1375,7 @@ export async function getAggregatedData() {
     el['mu'] = ((1 + el.return) * d.returnProduct) ** (T / count) - 1
     el['count'] = count
   }
+  return pools
 }
 
 export async function fetchCGMarketsData() {
