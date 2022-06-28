@@ -405,9 +405,9 @@ export const Checkbox = styled(CheckboxCheck)`
   justify-content: center;
   margin-left: auto;
   border-radius: 2px;
-  background: #28a2b5;
+  border: 1px solid #28a2b5;
   box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
-  color: #fff;
+  color: ${({ theme }) => theme.text1};
 `
 
 export const DownloadButton = styled(BasicLink)`
