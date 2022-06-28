@@ -358,6 +358,7 @@ const YieldPage = ({ pools, chainList }) => {
     <>
       <YieldsSearch step={{ category: 'Yields', name: stepName ?? 'All chains' }} />
 
+      {/* <ScatterChart></ScatterChart> */}
       <TableFilters>
         <TableHeader>Yield Rankings</TableHeader>
         <Dropdowns>

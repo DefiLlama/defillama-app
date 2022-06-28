@@ -30,6 +30,7 @@ import {
   standardizeProtocolName,
 } from 'utils'
 import { fetcher } from './useSWR'
+import { quantile, median } from 'simple-statistics'
 
 interface IProtocol {
   name: string
@@ -1371,10 +1372,24 @@ export async function getAggregatedData() {
     let delta2 = el.return - mean;
     mean2 += delta * delta2;
 
-    el['sigma'] = Math.sqrt(mean2 / (count - 1));
+    el['sigma'] = Math.sqrt((mean2 / (count - 1) * T));
     el['mu'] = ((1 + el.return) * d.returnProduct) ** (T / count) - 1
     el['count'] = count
   }
+
+  // remove outliers
+  function removeOutliers(pools, column) {
+    const col = pools.map(p => p[column])
+    const col_iqr = quantile(col, 0.75) - quantile(col, 0.25)
+    const col_median = median(col)
+    const col_lb = col_median - 1.5 * col_iqr
+    const col_ub = col_median + 1.5 * col_iqr
+
+    return pools.filter(p => p[column] >= col_lb && p[column] <= col_ub)
+  }
+  pools = removeOutliers(pools, 'mu')
+  pools = removeOutliers(pools, 'sigma')
+
   return pools
 }
 
