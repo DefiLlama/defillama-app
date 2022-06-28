@@ -67,7 +67,7 @@ export function DeFiTvlOptions({ options, ...props }: IProps) {
 
 	return (
 		<WrapperWithLabel {...props}>
-			<Label state={select}>INCLUDE IN TVL</Label>
+			<Label state={select}>INCLUDE IN TVL: </Label>
 			<SelectMenu state={select}>
 				<span>{renderValue(select.value)}</span>
 				<SelectArrow />
