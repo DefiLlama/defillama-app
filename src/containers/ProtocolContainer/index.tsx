@@ -378,6 +378,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
     module: codeModule,
     historicalChainTvls,
     chains = [],
+    forkedFrom,
   } = protocolData
 
   const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
@@ -541,15 +542,27 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
           <h3>Protocol Information</h3>
           <p>{description}</p>
 
-          <FlexRow>
-            {category && (
+          {category && (
+            <FlexRow>
+              <span>Category</span>
+              <span>:</span>
+              <Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+            </FlexRow>
+          )}
+
+          {forkedFrom && (
+            <FlexRow>
+              <span>Forked from</span>
+              <span>:</span>
               <>
-                <span>Category</span>
-                <span>:</span>
-                <Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+                {forkedFrom.map((p, index) => (
+                  <Link href={`/protocol/${p}`} key={p}>
+                    {forkedFrom[index + 1] ? p + ', ' : p}
+                  </Link>
+                ))}
               </>
-            )}
-          </FlexRow>
+            </FlexRow>
+          )}
 
           <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />
 

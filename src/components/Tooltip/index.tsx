@@ -13,6 +13,7 @@ const TooltipTrigger = styled(Button)`
   color: ${({ theme }) => theme.text1};
   display: flex;
   align-items: center;
+  padding: 0;
 `
 
 const TooltipPopver = styled(AriaTooltip)`
