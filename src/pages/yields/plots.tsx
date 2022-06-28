@@ -1,15 +1,15 @@
-import Layout from 'layout'
-import PageHeader from 'components/PageHeader'
-import { YieldsSearch } from 'components/Search'
-import { getAggregatedData, revalidate } from 'utils/dataApi'
-import dynamic from 'next/dynamic'
 import React from 'react'
+import dynamic from 'next/dynamic'
+import Layout from '~/layout'
+import PageHeader from '~/components/PageHeader'
+import { YieldsSearch } from '~/components/Search'
+import { getAggregatedData, revalidate } from '~/utils/dataApi'
 
 interface IChartProps {
   chartData: any
 }
 
-const ScatterChart = dynamic(() => import('components/TokenChart/ScatterChart'), {
+const ScatterChart = dynamic(() => import('~/components/TokenChart/ScatterChart'), {
   ssr: false,
 }) as React.FC<IChartProps>
 
