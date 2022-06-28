@@ -1,11 +1,11 @@
-import NFTDashboardPage from '../../../components/NFTDashboardPage'
+import NFTDashboardPage from '~/components/NFTDashboardPage'
 import {
   getNFTChainChartData,
   getNFTChainsData,
   getNFTCollectionsByChain,
   getNFTStatistics,
   revalidate,
-} from '../../../utils/dataApi'
+} from '~/utils/dataApi'
 
 export async function getStaticProps({
   params: {

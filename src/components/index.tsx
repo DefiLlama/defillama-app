@@ -1,8 +1,10 @@
-import React from 'react'
+import * as React from 'react'
 import styled from 'styled-components'
 import { Text, Box } from 'rebass'
-import Table from 'components/Table'
 import { CheckboxCheck } from 'ariakit'
+import { DownloadCloud } from 'react-feather'
+import Table from '~/components/Table'
+import { BasicLink } from '~/components/Link'
 
 export const Panel = styled.div`
   position: relative;
@@ -54,7 +56,6 @@ export const BreakpointPanel = styled(Panel)`
 
   & > h1,
   & > h2 {
-    margin: 0;
     min-width: 0;
     font-weight: 500;
     font-size: 1rem;
@@ -380,21 +381,15 @@ export const ProtocolsTable = styled(Table)`
 
 export const ApplyFilters = styled.button`
   padding: 12px;
-  border: none;
   margin: 12px 0 0;
   background: #2172e5;
   color: #fff;
-  cursor: pointer;
   font-weight: 400;
   border-radius: 8px;
 
   :hover,
   :focus-visible {
     background: #4190ff;
-  }
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text2};
   }
 
   @media (min-width: 640px) {
@@ -413,6 +408,23 @@ export const Checkbox = styled(CheckboxCheck)`
   background: #28a2b5;
   box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
   color: #fff;
+`
+
+export const DownloadButton = styled(BasicLink)`
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: ${({ theme }) => theme.bg3};
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+`
+
+export const DownloadIcon = styled(DownloadCloud)`
+  color: inherit;
+  width: 16px;
+  height: 16px;
 `
 
 export { Hint, Divider, EmptyCard }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronsUp } from 'react-feather'
 import { Button } from 'rebass'
 

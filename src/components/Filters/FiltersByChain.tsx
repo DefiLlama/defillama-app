@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import styled from 'styled-components'
-import { ApplyFilters, Checkbox } from 'components'
-import { Input, List } from 'components/Combobox'
-import { FilterButton, FilterItem, FilterPopover } from 'components/Select/AriakitSelect'
 import { transparentize } from 'polished'
+import { ApplyFilters, Checkbox } from '~/components'
+import { Input, List } from '~/components/Combobox'
+import { FilterButton, FilterItem, FilterPopover } from '~/components/Select/AriakitSelect'
 
 interface IFiltersByChainProps {
   chains: string[]
@@ -44,17 +44,12 @@ const Stats = styled.span`
   border-bottom: ${({ theme }) => '1px solid ' + transparentize(0.9, theme.text1)};
 
   p {
-    margin: 0;
     color: ${({ theme }) => theme.text2};
   }
 
   button {
-    background: none;
-    border: none;
-    margin: 0;
     padding: 4px;
     color: ${({ theme }) => theme.primary1};
-    cursor: pointer;
   }
 `
 
@@ -97,7 +92,7 @@ export function FiltersByChain({ chains = [], setChainsToFilter }: IFiltersByCha
               {combobox.matches.map((value, i) => (
                 <Item value={value} key={value + i} focusOnHover>
                   <span>{value}</span>
-                  <Checkbox checked={select.value.find((v) => v === value) ? true : false} />
+                  <Checkbox checked={select.value.includes(value) ? true : false} />
                 </Item>
               ))}
             </List>

@@ -1,12 +1,12 @@
-import React, { useMemo } from 'react'
+import * as React from 'react'
+import { useRouter } from 'next/router'
+import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { useRouter } from 'next/router'
-import Link from 'next/link'
-import { useDenominationPriceHistory } from 'utils/dataApi'
-import { useGetExtraTvlEnabled } from 'contexts/LocalStorage'
-import { chainCoingeckoIds } from 'constants/chainTokens'
+import { useDenominationPriceHistory } from '~/utils/dataApi'
+import { useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
+import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { IChartProps } from './types'
 
 const AreaChart = dynamic(() => import('./AreaChart'), { ssr: false }) as React.FC<IChartProps>
@@ -34,7 +34,7 @@ export default function ProtocolChart({
 
   const { denomination } = router.query
 
-  const DENOMINATIONS = useMemo(() => {
+  const DENOMINATIONS = React.useMemo(() => {
     let d = [{ symbol: 'USD', geckoId: null }]
 
     if (chains.length > 0) {
@@ -53,7 +53,7 @@ export default function ProtocolChart({
     utcStartTime: 0,
   })
 
-  const chartDataFiltered = useMemo(() => {
+  const chartDataFiltered = React.useMemo(() => {
     const sections = Object.keys(historicalChainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
 
     const tvlDictionary = {}
@@ -71,7 +71,7 @@ export default function ProtocolChart({
     } else return tvlChartData
   }, [historicalChainTvls, extraTvlEnabled, tvlChartData])
 
-  const { finalChartData, moneySymbol } = useMemo(() => {
+  const { finalChartData, moneySymbol } = React.useMemo(() => {
     const isValidDenomination =
       denomination && denomination !== 'USD' && DENOMINATIONS.find((d) => d.symbol === denomination)
 
@@ -155,8 +155,6 @@ interface IDenomination {
 
 const Denomination = styled.a<IDenomination>`
   display: inline-block;
-  margin: 0;
-  border: none;
   font-weight: 500;
   font-size: 0.875rem;
   border-radius: 10px;
@@ -171,10 +169,4 @@ const Denomination = styled.a<IDenomination>`
       : theme.mode === 'dark'
       ? 'rgba(255, 255, 255, 0.6)'
       : 'rgba(0, 0, 0, 0.6)'};
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
-  :hover {
-    cursor: pointer;
-  }
 `

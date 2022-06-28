@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Hovercard, HovercardAnchor, useHovercardState } from 'ariakit/hovercard'
 import styled from 'styled-components'
-import { BasicLink } from 'components/Link'
-import TokenLogo from 'components/TokenLogo'
-import { useResize } from 'hooks'
-import { chainIconUrl, tokenIconUrl } from 'utils'
+import { BasicLink } from '~/components/Link'
+import TokenLogo from '~/components/TokenLogo'
+import { useResize } from '~/hooks'
+import { chainIconUrl, tokenIconUrl } from '~/utils'
 
 const CHAIN_ICON_WIDTH = 24
 
@@ -14,13 +14,11 @@ const TokenCounter = styled.button`
   border-radius: 50%;
   background: ${({ theme }) => theme.bg3};
   color: ${({ theme }) => theme.text1};
-  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
 
   :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text1};
     outline-offset: 2px;
   }
 `
@@ -46,7 +44,6 @@ const Popover = styled(Hovercard)`
 const Link = styled(BasicLink)`
   border-radius: 50%;
   :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text1};
     outline-offset: 2px;
   }
 `

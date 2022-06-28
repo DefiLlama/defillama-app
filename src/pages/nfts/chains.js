@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
-import Layout from 'layout'
-import { Box } from 'rebass/styled-components'
 import styled from 'styled-components'
-import NFTList from 'components/NFTList'
-import { Header } from 'Theme'
-import { chainIconUrl, getRandomColor } from 'utils'
-import { getNFTChainChartData, getNFTChainsData, revalidate } from 'utils/dataApi'
-import SEO from 'components/SEO'
-import { ChainPieChart, ChainDominanceChart } from 'components/Charts'
+import { Box } from 'rebass/styled-components'
+import { Header } from '~/Theme'
+import Layout from '~/layout'
+import SEO from '~/components/SEO'
+import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
+import NFTList from '~/components/NFTList'
+import { chainIconUrl, getRandomColor } from '~/utils'
+import { getNFTChainChartData, getNFTChainsData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const chainData = await getNFTChainsData()

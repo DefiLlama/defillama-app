@@ -1,20 +1,17 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import styled from 'styled-components'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { List as VirtualizedList, AutoSizer, InfiniteLoader, WindowScroller } from 'react-virtualized'
-
 import { Box, Flex, Text } from 'rebass'
-import TokenLogo from '../TokenLogo'
-import { CustomLink } from '../Link'
-import Row from '../Row'
-import { Divider } from '..'
-
-import { formattedNum, filterCollectionsByCurrency } from 'utils'
-import { useFetchInfiniteScroll, useMedia } from 'hooks'
-
-import FormattedName from '../FormattedName'
-import IconsRow from 'components/IconsRow'
+import { Divider } from '~/components'
+import TokenLogo from '~/components/TokenLogo'
+import { CustomLink } from '~/components/Link'
+import Row from '~/components/Row'
+import FormattedName from '~/components/FormattedName'
+import IconsRow from '~/components/IconsRow'
+import { useFetchInfiniteScroll, useMedia } from '~/hooks'
+import { formattedNum, filterCollectionsByCurrency } from '~/utils'
 
 dayjs.extend(utc)
 

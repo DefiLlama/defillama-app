@@ -1,11 +1,11 @@
-import React from 'react'
-import { TYPE } from '../Theme'
-import { RowBetween } from '../components/Row'
+import * as React from 'react'
 import styled from 'styled-components'
-import { Divider, Panel } from '../components'
-import Link from '../components/Link'
-import Layout from '../layout'
-import { getChainPageData, revalidate } from 'utils/dataApi'
+import { TYPE } from '~/Theme'
+import Layout from '~/layout'
+import { Divider, Panel } from '~/components'
+import { RowBetween } from '~/components/Row'
+import Link from '~/components/Link'
+import { getChainPageData, revalidate } from '~/utils/dataApi'
 
 const DashGrid = styled.div`
   display: grid;
@@ -76,8 +76,8 @@ function AboutPage({ chains, protocols }) {
             DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
             <Link href="https://github.com/DefiLlama/DefiLlama-Adapters">open-source</Link> and maintained by a team of
             passionate individuals and{' '}
-            <Link href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors">contributors</Link>{' '}
-            from hundreds of protocols.
+            <Link href="https://github.com/DefiLlama/DefiLlama-Adapters/graphs/contributors">contributors</Link> from
+            hundreds of protocols.
           </TYPE.main>
           <TYPE.main>Our focus is on accurate data and transparent methodology.</TYPE.main>
           <TYPE.main>We track over 800 DeFi protocols from over 80 different blockchains.</TYPE.main>

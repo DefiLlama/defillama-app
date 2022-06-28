@@ -1,36 +1,27 @@
 import { useMemo } from 'react'
 import { FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
-import { Header, TYPE } from 'Theme'
-import { Panel } from 'components'
-import Row from 'components/Row'
-import { Menu } from 'components/DropdownMenu'
-import { columns, TableWrapper } from 'components/YieldsPage'
-import { YieldsSearch } from 'components/Search'
-import { useIsClient } from 'hooks'
-import { DEFAULT_PORTFOLIO, useSavedProtocols } from 'contexts/LocalStorage'
+import { Header, TYPE } from '~/Theme'
+import { Panel } from '~/components'
+import Row from '~/components/Row'
+import { Menu } from '~/components/DropdownMenu'
+import { columns, TableWrapper } from '~/components/YieldsPage/shared'
+import { YieldsSearch } from '~/components/Search'
+import { useIsClient } from '~/hooks'
+import { DEFAULT_PORTFOLIO, useSavedProtocols } from '~/contexts/LocalStorage'
 
 interface IFolder {
   isSaved?: boolean
 }
 
-const StyledFolderPlus = styled(FolderPlus)<IFolder>`
-  cursor: pointer;
-  fill: ${({ theme: { text1 }, isSaved }) => (isSaved ? text1 : 'none')};
+const Action = styled.button<IFolder>`
+  svg {
+    fill: ${({ theme: { text1 }, isSaved }) => (isSaved ? text1 : 'none')};
 
-  path,
-  line {
-    stroke: ${({ theme: { text1 } }) => text1};
-  }
-`
-
-const StyledTrash = styled(Trash2)<IFolder>`
-  cursor: pointer;
-  fill: ${({ theme: { text1 }, isSaved }) => (isSaved ? text1 : 'none')};
-
-  path,
-  line {
-    stroke: ${({ theme: { text1 } }) => text1};
+    path,
+    line {
+      stroke: ${({ theme: { text1 } }) => text1};
+    }
   }
 `
 
@@ -81,15 +72,21 @@ function PortfolioContainer({ protocolsDict }) {
 
   return (
     <>
-      <YieldsSearch step={{ category: 'Yields', name: 'Watchlist' }} />
+      <YieldsSearch step={{ category: 'Yields', name: 'Watchlist', hideOptions: true }} />
 
       <Header>Saved Pools</Header>
 
       <Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
         <TYPE.main>Current portfolio:</TYPE.main>
         <Menu name={selectedPortfolio} options={portfolios} onItemClick={(value) => setSelectedPortfolio(value)} />
-        <StyledFolderPlus onClick={onFolderClick} />
-        {selectedPortfolio !== DEFAULT_PORTFOLIO && <StyledTrash onClick={onTrashClick} />}
+        <Action onClick={onFolderClick}>
+          <FolderPlus />
+        </Action>
+        {selectedPortfolio !== DEFAULT_PORTFOLIO && (
+          <Action onClick={onTrashClick}>
+            <Trash2 />
+          </Action>
+        )}
       </Row>
 
       {filteredProtocols.length ? (

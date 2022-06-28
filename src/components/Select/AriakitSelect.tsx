@@ -23,7 +23,7 @@ export const SelectMenu = styled(AriaSelect)`
 
   :focus-visible,
   &[data-focus-visible] {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline: ${({ theme }) => '1px solid ' + theme.text1};
   }
 `
 export const Popover = styled(SelectPopover)`
@@ -141,12 +141,11 @@ export const FilterButton = styled(AriaSelect)`
 
   :hover,
   :focus-visible {
-    cursor: pointer;
     background-color: ${({ color, theme }) => transparentize(0.8, color || theme.primary1)};
   }
 
   :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline: ${({ theme }) => '1px solid ' + theme.text1};
     outline-offset: 1px;
   }
 

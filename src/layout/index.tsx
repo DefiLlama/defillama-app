@@ -1,10 +1,10 @@
-import React from 'react'
-import styled from 'styled-components'
-import SideNav from 'components/SideNav'
+import * as React from 'react'
 import Head from 'next/head'
-import ThemeProvider, { GlobalStyle, ThemedBackground } from 'Theme'
-import SEO from 'components/SEO'
+import styled from 'styled-components'
 import { transparentize } from 'polished'
+import ThemeProvider, { GlobalStyle, ThemedBackground } from '~/Theme'
+import SEO from '~/components/SEO'
+import Nav from '~/components/Nav'
 
 const Center = styled.main`
   display: flex;
@@ -60,7 +60,7 @@ export default function Layout({ title, children, defaultSEO = false, background
 
       <ThemeProvider>
         <GlobalStyle />
-        <SideNav />
+        <Nav />
         <PageWrapper>
           <Background backgroundColor={backgroundColor || transparentize(0.8, '#445ed0')} />
           <Center {...props}>{children}</Center>

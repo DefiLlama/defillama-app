@@ -1,11 +1,10 @@
-import React from 'react'
+import * as React from 'react'
 import { BigNumber } from 'bignumber.js'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { Text } from 'rebass'
 import Numeral from 'numeral'
-
-import { timeframeOptions } from '../constants'
+import { timeframeOptions } from '~/constants'
 export * from './blockExplorers'
 
 BigNumber.set({ EXPONENTIAL_AT: 50 })

@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useState } from 'react'
+import { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useState } from 'react'
 import { trackGoal } from 'fathom-client'
-
-import { standardizeProtocolName } from 'utils'
-import { useIsClient } from 'hooks'
+import { standardizeProtocolName } from '~/utils'
+import { useIsClient } from '~/hooks'
 
 const UNISWAP = 'UNISWAP'
 

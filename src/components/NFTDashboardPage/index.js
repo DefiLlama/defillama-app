@@ -1,25 +1,25 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
-import Layout from 'layout'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
-import { RowLinks } from 'components/Filters'
-import { NFTSwitches } from 'components/SettingsModal'
-import { NFTsSearch } from 'components/Search'
-import NFTCollectionList from 'components/NFTCollectionList'
-import SEO from 'components/SEO'
-import { ListHeader, ListOptions } from 'components/ChainPage'
-import { useMedia } from 'hooks'
-import { formattedNum } from 'utils'
-import { useDisplayUsdManager, useHideLastDayManager } from 'contexts/LocalStorage'
-import { chainCoingeckoIds, chainMarketplaceMappings } from 'constants/chainTokens'
+import Layout from '~/layout'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from '~/components'
+import { RowLinks } from '~/components/Filters'
+import { NFTSwitches } from '~/components/SettingsModal'
+import { NFTsSearch } from '~/components/Search'
+import NFTCollectionList from '~/components/NFTCollectionList'
+import SEO from '~/components/SEO'
+import { ListHeader, ListOptions } from '~/components/ChainPage/shared'
+import { useMedia } from '~/hooks'
+import { formattedNum } from '~/utils'
+import { useDisplayUsdManager, useHideLastDayManager } from '~/contexts/LocalStorage'
+import { chainCoingeckoIds, chainMarketplaceMappings } from '~/constants/chainTokens'
 
 const defaultTab = {
   label: 'All',
   to: '/nfts',
 }
 
-const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
+const GlobalNFTChart = dynamic(() => import('~/components/GlobalNFTChart'), {
   ssr: false,
 })
 

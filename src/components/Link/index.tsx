@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { Link as RebassLink } from 'rebass'
 import RouterLink from 'next/link'
 import PropTypes from 'prop-types'
@@ -38,7 +38,6 @@ const Link = styled(WrappedLink)`
 export default Link
 
 export const CustomLinkStyle = styled.a`
-  text-decoration: none;
   font-size: 14px;
   font-weight: 500;
   color: ${({ color, theme }) => (color ? color : theme.link)};
@@ -48,9 +47,6 @@ export const CustomLinkStyle = styled.a`
   }
 
   &:hover {
-    cursor: pointer;
-    text-decoration: none;
-    underline: none;
     color: ${({ color, theme }) => (color ? darken(0.1, color) : darken(0.1, theme.link))};
   }
 `
@@ -64,18 +60,8 @@ export const CustomLink = ({ href, children, ...props }: CustomLinkProps) => {
   )
 }
 
-export const BasicLinkStyle = styled.a`
-  text-decoration: none;
-  color: inherit;
-  &:hover {
-    cursor: pointer;
-    text-decoration: none;
-    underline: none;
-  }
-`
-
 export const BasicLink = ({ href, children, ...props }: BasicLinkProps) => (
   <RouterLink href={href} passHref prefetch={false}>
-    <BasicLinkStyle {...props}>{children}</BasicLinkStyle>
+    <a {...props}>{children}</a>
   </RouterLink>
 )

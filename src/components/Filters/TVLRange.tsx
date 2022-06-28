@@ -1,8 +1,8 @@
 import { MenuButtonArrow } from 'ariakit'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import Popover from 'components/Popover'
-import { ApplyFilters } from 'components'
+import { ApplyFilters } from '~/components'
+import Popover from '~/components/Popover'
 
 const Wrapper = styled(Popover)`
   padding: 0;
@@ -28,10 +28,6 @@ const TvlFilterForm = styled.form`
     background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
     color: ${({ theme }) => theme.text1};
     font: inherit;
-
-    :focus-visible {
-      outline: ${({ theme }) => '1px solid ' + theme.text2};
-    }
   }
 
   @media (min-width: 640px) {

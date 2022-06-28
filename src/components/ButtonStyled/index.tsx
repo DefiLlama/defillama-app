@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import styled from 'styled-components'
 import { Plus } from 'react-feather'
 import { darken, transparentize } from 'polished'
@@ -17,14 +17,6 @@ const Base = styled.button`
   font-size: 0.825rem;
   font-weight: 600;
   border-radius: 12px;
-  cursor: pointer;
-  outline: none;
-  border: 1px solid transparent;
-  outline: none;
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
 `
 
 const Dull = styled(Base)`
@@ -34,11 +26,12 @@ const Dull = styled(Base)`
   height: 100%;
   font-weight: 400;
   &:hover,
-  :focus {
+  :focus-visible {
     background-color: rgba(255, 255, 255, 0.25);
     border-color: rgba(255, 255, 255, 0.25);
   }
-  &:focus {
+
+  &:focus-visible {
     box-shadow: 0 0 0 1pt rgba(255, 255, 255, 0.25);
   }
   &:active {
@@ -72,7 +65,7 @@ export const ButtonLight = styled(Base)<IButtonLightProps>`
   }
 
   :hover,
-  :focus {
+  :focus-visible {
     background-color: ${({ color, theme }) =>
       color ? transparentize(0.8, color) : transparentize(0.8, theme.primary1)};
   }
@@ -86,7 +79,7 @@ export const ButtonDark = styled(Base)`
   white-space: nowrap;
 
   :hover,
-  :focus {
+  :focus-visible {
     background-color: ${({ color, theme }) => (color ? darken(0.1, color) : darken(0.1, theme.primary1))};
   }
 `

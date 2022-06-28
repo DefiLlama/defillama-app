@@ -1,8 +1,8 @@
-import PeggedList from 'components/PeggedList'
-import { PEGGEDS_API } from 'constants/index'
-import Layout from 'layout'
-import { getPeggedOverviewPageData, revalidate } from 'utils/dataApi'
-import { capitalizeFirstLetter } from 'utils'
+import Layout from '~/layout'
+import PeggedList from '~/components/PeggedList'
+import { capitalizeFirstLetter } from '~/utils'
+import { getPeggedOverviewPageData, revalidate } from '~/utils/dataApi'
+import { PEGGEDS_API } from '~/constants/index'
 
 export async function getStaticProps({
   params: {
@@ -36,6 +36,7 @@ export default function PeggedAssets({
   peggedcategory,
   chains,
   filteredPeggedAssets,
+  peggedAssetNames,
   chartData,
   peggedAreaChartData,
   peggedAreaMcapData,
@@ -50,6 +51,7 @@ export default function PeggedAssets({
         chains={chains}
         selectedChain={chain}
         filteredPeggedAssets={filteredPeggedAssets}
+        peggedAssetNames={peggedAssetNames}
         chartData={chartData}
         peggedAreaChartData={peggedAreaChartData}
         peggedAreaMcapData={peggedAreaMcapData}

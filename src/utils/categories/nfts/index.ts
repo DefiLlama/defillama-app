@@ -1,7 +1,7 @@
-import { NFT_COLLECTIONS_API, NFT_SEARCH_API } from '../../../constants'
 import useSWR from 'swr'
-import { useDebounce } from 'hooks';
-import { fetcher } from 'utils/useSWR';
+import { useDebounce } from '~/hooks';
+import { fetcher } from '~/utils/useSWR';
+import { NFT_COLLECTIONS_API, NFT_SEARCH_API } from '~/constants'
 
 interface IResponseNFTSearchAPI {
   hits: Array<{

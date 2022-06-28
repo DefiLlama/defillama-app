@@ -1,6 +1,6 @@
-import React, { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import styled from 'styled-components'
-import OptionToggle from 'components/OptionToggle'
+import OptionToggle from '~/components/OptionToggle'
 import {
   useDisplayUsdManager,
   useHideLastDayManager,
@@ -15,8 +15,8 @@ import {
   DOUBLE_COUNT,
   useDarkModeManager,
   UNRELEASED,
-} from 'contexts/LocalStorage'
-import { useIsClient } from 'hooks'
+} from '~/contexts/LocalStorage'
+import { useIsClient } from '~/hooks'
 import MenuIcon from './MenuSvg'
 
 const StyledMenuIcon = styled(MenuIcon)`
@@ -30,18 +30,13 @@ const StyledMenuIcon = styled(MenuIcon)`
 const StyledMenuButton = styled.button`
   width: 100%;
   height: 100%;
-  border: none;
-  background-color: transparent;
-  margin: 0;
   padding: 0;
   height: 35px;
   background-color: ${({ theme }) => theme.bg3};
   padding: 0.15rem 0.5rem;
   border-radius: 0.5rem;
   :hover,
-  :focus {
-    cursor: pointer;
-    outline: none;
+  :focus-visible {
     background-color: ${({ theme }) => theme.bg4};
   }
   svg {
@@ -79,25 +74,14 @@ const MenuFlyout = styled.span`
 `
 
 const StyledLink = styled.a`
-  text-decoration: none;
-  cursor: pointer;
   color: ${({ theme }) => theme.primary1};
   font-weight: 500;
   display: inline;
   flex-direction: center;
   align-items: center;
+
   :hover {
-    text-decoration: underline;
-    text-decoration: none;
     opacity: 0.7;
-  }
-  :focus {
-    outline: none;
-    text-decoration: none;
-  }
-  :active {
-    outline: none;
-    text-decoration: none;
   }
 `
 
@@ -107,8 +91,6 @@ const MenuItem = styled(StyledLink)`
   color: ${({ theme }) => theme.text2};
   :hover {
     color: ${({ theme }) => theme.text1};
-    cursor: pointer;
-    text-decoration: none;
     opacity: 0.6;
   }
   > svg {
@@ -118,7 +100,6 @@ const MenuItem = styled(StyledLink)`
 
 const ListWrapper = styled.ul`
   display: flex;
-  margin: 0;
   padding: 0;
   list-style: none;
 `

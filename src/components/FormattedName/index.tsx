@@ -1,6 +1,6 @@
-import Tooltip from 'components/Tooltip'
-import React from 'react'
+import * as React from 'react'
 import styled from 'styled-components'
+import Tooltip from '~/components/Tooltip'
 
 interface WrapperProps {
   margin?: string | boolean

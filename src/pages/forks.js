@@ -1,16 +1,16 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import styled from 'styled-components'
 import { Box } from 'rebass'
-import { Header } from 'Theme'
-import Layout from 'layout'
-import Table, { Index } from 'components/Table'
-import { CustomLink } from 'components/Link'
-import { ProtocolsChainsSearch } from 'components/Search'
-import { ChainDominanceChart, ChainPieChart } from 'components/Charts'
-import { RowLinks, LinksWrapper } from 'components/Filters'
-import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from 'hooks/data'
-import { getRandomColor, toK } from 'utils'
-import { getForkPageData, revalidate } from 'utils/dataApi'
+import { Header } from '~/Theme'
+import Layout from '~/layout'
+import Table, { Index } from '~/components/Table'
+import { CustomLink } from '~/components/Link'
+import { ProtocolsChainsSearch } from '~/components/Search'
+import { ChainDominanceChart, ChainPieChart } from '~/components/Charts'
+import { RowLinks, LinksWrapper } from '~/components/Filters'
+import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
+import { getRandomColor, toK } from '~/utils'
+import { getForkPageData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const data = await getForkPageData()
@@ -33,6 +33,36 @@ const ChartsWrapper = styled(Box)`
     grid-auto-rows: auto;
   }
 `
+
+const columns = [
+  {
+    header: 'Name',
+    accessor: 'name',
+    disableSortBy: true,
+    Cell: ({ value, rowIndex }) => {
+      return (
+        <Index>
+          <span>{rowIndex + 1}</span>
+          <CustomLink href={`/forks/${value}`}>{value}</CustomLink>
+        </Index>
+      )
+    },
+  },
+  {
+    header: 'Forked Protocols',
+    accessor: 'forkedProtocols',
+  },
+  {
+    header: 'TVL',
+    accessor: 'tvl',
+    Cell: ({ value }) => <>{'$' + toK(value)}</>,
+  },
+  {
+    header: 'Forks TVL / Original TVL',
+    accessor: 'ftot',
+    Cell: ({ value }) => <>{value && value.toFixed(2) + '%'}</>,
+  },
+]
 
 const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens }) => {
   const tokenColors = useMemo(
@@ -65,39 +95,6 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 
     return { tokenTvls, tokensList }
   }, [stackedData, tokensProtocols, forkedTokensData])
-
-  const columns = useMemo(
-    () => [
-      {
-        header: 'Name',
-        accessor: 'name',
-        disableSortBy: true,
-        Cell: ({ value, rowIndex }) => {
-          return (
-            <Index>
-              <span>{rowIndex + 1}</span>
-              <CustomLink href={`/forks/${value}`}>{value}</CustomLink>
-            </Index>
-          )
-        },
-      },
-      {
-        header: 'Forked Protocols',
-        accessor: 'forkedProtocols',
-      },
-      {
-        header: 'TVL',
-        accessor: 'tvl',
-        Cell: ({ value }) => <>{'$' + toK(value)}</>,
-      },
-      {
-        header: 'Forks TVL / Original TVL',
-        accessor: 'ftot',
-        Cell: ({ value }) => <>{value && value.toFixed(2) + '%'}</>,
-      },
-    ],
-    []
-  )
 
   return (
     <>

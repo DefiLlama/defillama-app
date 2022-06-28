@@ -1,7 +1,7 @@
-import { useYieldApp } from 'hooks'
-import styled from 'styled-components'
 import Link from 'next/link'
+import styled from 'styled-components'
 import { BarChart2, Percent } from 'react-feather'
+import { useYieldApp } from '~/hooks'
 
 export default function AppSwitch() {
   const isYieldApp = useYieldApp()
@@ -57,8 +57,4 @@ const AppLink = styled.a<IAppLink>`
   border-radius: 6px;
   background: ${({ active }) => (active ? '#445ed0' : '#000')};
   flex: 1;
-
-  :focus-visible {
-    outline: 1px solid white;
-  }
 `

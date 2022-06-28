@@ -1,24 +1,23 @@
-import React from 'react'
+import * as React from 'react'
+import dynamic from 'next/dynamic'
 import styled, { css } from 'styled-components'
 import { Box as RebassBox } from 'rebass'
 import { transparentize } from 'polished'
-import dynamic from 'next/dynamic'
-import { TYPE } from 'Theme'
-import Layout from 'layout'
-import { AutoRow, RowBetween } from 'components/Row'
-import Column from 'components/Column'
-import HeadHelp from 'components/HeadHelp'
-import CopyHelper from 'components/Copy'
-import { chainCoingeckoIds } from 'constants/chainTokens'
-import LocalLoader from 'components/LocalLoader'
-import { useHideLastDayManager, useDisplayUsdManager } from 'contexts/LocalStorage'
-import SEO from 'components/SEO'
-import { NFTsSearch } from 'components/Search'
-import { formattedNum, capitalizeFirstLetter } from 'utils'
+import { TYPE } from '~/Theme'
+import Layout from '~/layout'
+import { AutoRow, RowBetween } from '~/components/Row'
+import Column from '~/components/Column'
+import HeadHelp from '~/components/HeadHelp'
+import CopyHelper from '~/components/Copy'
+import TokenLogo from '~/components/TokenLogo'
+import LocalLoader from '~/components/LocalLoader'
+import SEO from '~/components/SEO'
+import { NFTsSearch } from '~/components/Search'
 import Section from './Section'
 import Links from './Links'
-import TokenLogo from 'components/TokenLogo'
-import FormattedName from 'components/FormattedName'
+import { useHideLastDayManager, useDisplayUsdManager } from '~/contexts/LocalStorage'
+import { formattedNum, capitalizeFirstLetter } from '~/utils'
+import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 const panelPseudo = css`
   :after {
@@ -141,12 +140,11 @@ const Header = styled.span`
   h1 {
     font-size: 1.5rem;
     font-weight: 500;
-    margin: 0;
     word-break: break-all;
   }
 `
 
-const GlobalNFTChart = dynamic(() => import('../GlobalNFTChart'), {
+const GlobalNFTChart = dynamic(() => import('~/components/GlobalNFTChart'), {
   ssr: false,
 })
 

@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import { Repeat, X } from 'react-feather'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
-import { TYPE } from 'Theme'
-import Layout from 'layout'
-import { Panel } from 'components'
-import Column from 'components/Column'
-import { BasicLink } from 'components/Link'
-import Loader from 'components/LocalLoader'
-import { AutoRow, RowBetween } from 'components/Row'
-import TokenLogo from 'components/TokenLogo'
-import { ProtocolsChainsSearch } from 'components/Search'
-import { SETS } from 'components/Search/ProtocolsChainsSearch'
-import { useMedia } from 'hooks'
-import { formattedNum, standardizeProtocolName } from 'utils'
-import { useFetchProtocol, useGeckoProtocol } from 'utils/dataApi'
-import { useRouter } from 'next/router'
+import { TYPE } from '~/Theme'
+import Layout from '~/layout'
+import { Panel } from '~/components'
+import Column from '~/components/Column'
+import { BasicLink } from '~/components/Link'
+import Loader from '~/components/LocalLoader'
+import { AutoRow, RowBetween } from '~/components/Row'
+import TokenLogo from '~/components/TokenLogo'
+import { ProtocolsChainsSearch } from '~/components/Search'
+import { SETS } from '~/components/Search/ProtocolsChainsSearch'
+import { useMedia } from '~/hooks'
+import { formattedNum, standardizeProtocolName } from '~/utils'
+import { useFetchProtocol, useGeckoProtocol } from '~/utils/dataApi'
 
 const ComparisonDetailsLayout = styled.div`
   display: inline-grid;
@@ -43,12 +43,10 @@ const ComparisonDetailsLayout = styled.div`
 const Wrapper = styled.div`
   padding: 13px 16px;
   background: ${({ theme }) => theme.bg6};
-  border: none;
   border-radius: 12px;
   outline: none;
   color: ${({ theme }) => theme.text1};
   font-size: 1rem;
-  margin: 0;
   box-shadow: ${({ theme }) => theme.shadow};
   display: flex;
   align-items: center;
@@ -64,11 +62,6 @@ const Wrapper = styled.div`
     font-size: 14px;
   }
 
-  button {
-    background: none;
-    border: none;
-  }
-
   img {
     width: 20px !important;
     height: 20px !important;
@@ -79,9 +72,6 @@ const CloseIcon = styled(X)`
   height: 20px;
   width: 20px;
   color: ${({ theme }) => theme.text3};
-  :hover {
-    cursor: pointer;
-  }
 `
 
 const ProtocolTitle = styled(TYPE.main)`
@@ -102,7 +92,6 @@ const PriceChange = styled.span<IPriceChange>`
 
 const SwapProtocolsIcon = styled(Repeat)`
   color: white;
-  cursor: pointer;
 
   &:hover {
     transform: scale(1.15);

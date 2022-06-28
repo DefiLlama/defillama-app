@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import styled from 'styled-components'
-import { ButtonDark, ButtonLight } from 'components/ButtonStyled'
+import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
 import { OtherLinks } from './OtherLinksDropdown'
 
 interface ILink {
@@ -19,7 +19,6 @@ const GAP = 6
 const Wrapper = styled.ul`
   flex: 1;
   overflow: hidden;
-  margin: 0;
   padding: 4px;
   display: flex;
   flex-wrap: wrap;
@@ -126,7 +125,7 @@ export const RowLinks = ({ links = [], activeLink, ...props }: IRowLinksProps) =
       )}
       {dropdownLinks && (
         <OtherLinks
-          name={dropdownLinks.find((label) => label.label === activeLink) ? activeLink : 'Others'}
+          name={dropdownLinks.find((link) => link.label === activeLink) ? activeLink : 'Others'}
           options={dropdownLinks}
         />
       )}

@@ -1,17 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import * as React from 'react'
 import styled from 'styled-components'
 import { v4 as uuid } from 'uuid'
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronsUp } from 'react-feather'
-import HeadHelp from 'components/HeadHelp'
-import { CustomLink } from 'components/Link'
-import TokenLogo from 'components/TokenLogo'
-import Bookmark from 'components/Bookmark'
-import { chainIconUrl, peggedAssetIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from 'utils'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
-import IconsRow from 'components/IconsRow'
-import QuestionHelper from 'components/QuestionHelper'
-import { AutoRow } from 'components/Row'
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronsUp } from 'react-feather'
+import HeadHelp from '~/components/HeadHelp'
+import { CustomLink } from '~/components/Link'
+import TokenLogo from '~/components/TokenLogo'
+import Bookmark from '~/components/Bookmark'
+import IconsRow from '~/components/IconsRow'
+import QuestionHelper from '~/components/QuestionHelper'
+import { chainIconUrl, peggedAssetIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
 
 interface ColumnProps {
   header: string
@@ -34,6 +33,7 @@ interface TableProps {
   align?: string
   gap?: string
   pinnedRow?: unknown
+  style?: React.CSSProperties
 }
 
 const Wrapper = styled.section`
@@ -144,29 +144,25 @@ export const Index = styled.div`
 const SaveButton = styled(Bookmark)`
   position: relative;
   top: 2px;
-  cursor: pointer;
 `
 
 const HeaderButton = styled.button`
-  cursor: pointer;
   width: 100%;
   height: 100%;
-  color: inherit;
-  background: none;
-  border: none;
-  text-align: inherit;
   padding: 0;
-  font-size: inherit;
   font-weight: 500;
   display: flex;
   justify-content: flex-end;
+
+  svg {
+    flex-shrink: 0;
+  }
 
   &:hover {
     opacity: 0.6;
   }
 
   :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
     outline-offset: 2px;
   }
 `
@@ -194,7 +190,6 @@ const ScrollToTop = styled.button`
 
   :hover {
     opacity: 1;
-    cursor: pointer;
   }
 
   @media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
@@ -204,13 +199,18 @@ const ScrollToTop = styled.button`
 `
 
 const HeaderWithHelperText = styled.span`
+  display: flex;
+  gap: 4px;
+  font-weight: 500 !important;
+
   svg {
+    flex-shrink: 0;
     color: ${({ theme }) => theme.text1};
   }
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
+
+  button {
+    padding-right: 2px;
+  }
 `
 
 export function splitArrayByFalsyValues(data, column) {
@@ -250,7 +250,7 @@ function Row(props: RowProps) {
 }
 
 function RowWithExtras({ columns, item, index }: RowProps) {
-  const [displayRows, setDisplay] = useState(false)
+  const [displayRows, setDisplay] = React.useState(false)
 
   return (
     <>
@@ -297,13 +297,13 @@ const handleScrollToTop = () => {
 }
 
 function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
-  const [lastIndex, setLastIndex] = useState(20)
-  const [columnToSort, setColumnToSort] = useState<string | null>(null)
-  const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
+  const [lastIndex, setLastIndex] = React.useState(20)
+  const [columnToSort, setColumnToSort] = React.useState<string | null>(null)
+  const [sortDirection, setDirection] = React.useState<-1 | 0 | 1>(0)
 
-  const [displayScrollToTopButton, setDisplayScrollToTopButton] = useState(false)
+  const [displayScrollToTopButton, setDisplayScrollToTopButton] = React.useState(false)
 
-  useEffect(() => {
+  React.useEffect(() => {
     function setScroll() {
       if (window.scrollY > 200) {
         setDisplayScrollToTopButton(true)
@@ -327,7 +327,7 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
     }
   }
 
-  const sortedData = useMemo(() => {
+  const sortedData = React.useMemo(() => {
     if (sortDirection && columnToSort) {
       const values = splitArrayByFalsyValues(data, columnToSort)
       if (sortDirection === 1) {
@@ -365,7 +365,7 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
                 )
                 const text = col.helperText ? (
                   <HeaderWithHelperText>
-                    {header}
+                    <span>{header}</span>
                     <QuestionHelper text={col.helperText} />
                   </HeaderWithHelperText>
                 ) : (
@@ -416,8 +416,8 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
 }
 
 export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
-  const [columnToSort, setColumnToSort] = useState<string | null>(null)
-  const [sortDirection, setDirection] = useState<-1 | 0 | 1>(0)
+  const [columnToSort, setColumnToSort] = React.useState<string | null>(null)
+  const [sortDirection, setDirection] = React.useState<-1 | 0 | 1>(0)
 
   const handleClick = (name: string) => {
     if (sortDirection === 0 || name !== columnToSort) {
@@ -430,7 +430,7 @@ export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...p
     }
   }
 
-  const sortedData = useMemo(() => {
+  const sortedData = React.useMemo(() => {
     if (sortDirection && columnToSort) {
       const values = splitArrayByFalsyValues(data, columnToSort)
       if (sortDirection === 1) {
@@ -517,7 +517,7 @@ export function Name({
         <span id="table-p-symbol">{` (${symbol})`}</span>
       </>
     )
-  const { iconUrl, tokenUrl } = useMemo(() => {
+  const { iconUrl, tokenUrl } = React.useMemo(() => {
     let iconUrl, tokenUrl
     if (type === 'chain') {
       tokenUrl = `/${type}/${value}`
@@ -579,7 +579,7 @@ interface INameYield extends Omit<NameProps, 'type'> {
   projectslug: string
 }
 
-export function NameYield({ value, project, projectslug, rowType, ...props }: INameYield) {
+export function NameYield({ project, projectslug, rowType, ...props }: INameYield) {
   const iconUrl = tokenIconUrl(project)
   const tokenUrl = `/yields/project/${projectslug}`
 
@@ -587,10 +587,10 @@ export function NameYield({ value, project, projectslug, rowType, ...props }: IN
     <Index {...props}>
       <TokenLogo id="table-p-logo" logo={iconUrl} />
       {rowType === 'accordion' ? (
-        <span id="table-p-name">{value['project']}</span>
+        <span id="table-p-name">{project}</span>
       ) : (
         <CustomLink id="table-p-name" href={tokenUrl}>
-          {value['project']}
+          {project}
         </CustomLink>
       )}
     </Index>
@@ -748,7 +748,7 @@ const allColumns: AllColumns = {
     accessor: 'tvl',
     Cell: ({ value, rowValues }) => {
       return (
-        <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+        <span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
           {rowValues.strikeTvl ? (
             <QuestionHelper text='This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off' />
           ) : null}
@@ -759,7 +759,7 @@ const allColumns: AllColumns = {
           >
             {'$' + formattedNum(value)}
           </span>
-        </AutoRow>
+        </span>
       )
     },
   },

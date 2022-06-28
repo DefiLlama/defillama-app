@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -6,30 +6,30 @@ import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { useInView, defaultFallbackInView } from 'react-intersection-observer'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
-import Layout from 'layout'
-import { ButtonLight } from 'components/ButtonStyled'
-import CopyHelper from 'components/Copy'
-import FormattedName from 'components/FormattedName'
-import TokenLogo from 'components/TokenLogo'
-import SEO from 'components/SEO'
-import { ProtocolsChainsSearch } from 'components/Search'
-import AuditInfo from 'components/AuditInfo'
-import ProtocolChart from 'components/TokenChart/ProtocolChart'
-import QuestionHelper from 'components/QuestionHelper'
-import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from 'contexts/LocalStorage'
-import type { IChartProps } from 'components/TokenChart/types'
-import { useScrollToTop } from 'hooks'
-import { useCalcSingleExtraTvl } from 'hooks/data'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from 'utils'
-import { useFetchProtocol } from 'utils/dataApi'
-import { buildProtocolData } from 'utils/protocolData'
-import boboLogo from '../../assets/boboSmug.png'
-import { extraTvlOptions } from 'components/SettingsModal'
+import Layout from '~/layout'
+import { ButtonLight } from '~/components/ButtonStyled'
+import CopyHelper from '~/components/Copy'
+import FormattedName from '~/components/FormattedName'
+import TokenLogo from '~/components/TokenLogo'
+import SEO from '~/components/SEO'
+import { ProtocolsChainsSearch } from '~/components/Search'
+import AuditInfo from '~/components/AuditInfo'
+import ProtocolChart from '~/components/TokenChart/ProtocolChart'
+import QuestionHelper from '~/components/QuestionHelper'
+import type { IChartProps } from '~/components/TokenChart/types'
+import { extraTvlOptions } from '~/components/SettingsModal'
+import { useScrollToTop } from '~/hooks'
+import { useCalcSingleExtraTvl } from '~/hooks/data'
+import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from '~/utils'
+import { useFetchProtocol } from '~/utils/dataApi'
+import { buildProtocolData } from '~/utils/protocolData'
+import boboLogo from '~/assets/boboSmug.png'
 
 defaultFallbackInView(true)
 
-const AreaChart = dynamic(() => import('components/TokenChart/AreaChart'), { ssr: false }) as React.FC<IChartProps>
-const BarChart = dynamic(() => import('components/TokenChart/BarChart'), { ssr: false }) as React.FC<IChartProps>
+const AreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), { ssr: false }) as React.FC<IChartProps>
+const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), { ssr: false }) as React.FC<IChartProps>
 
 const Stats = styled.section`
   display: flex;
@@ -71,8 +71,6 @@ const ProtocolName = styled.h1`
   align-items: center;
   gap: 8px;
   font-size: 1.25rem;
-  margin: 0;
-  padding: 0;
 `
 
 const Symbol = styled.span`
@@ -125,7 +123,6 @@ const Table = styled.table`
 const Tvl = styled.p`
   font-weight: 700;
   font-size: 2rem;
-  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -155,14 +152,6 @@ const InfoWrapper = styled.section`
   grid-template-rows: repeat(3, auto);
   box-shadow: ${({ theme }) => theme.shadowSm};
 
-  a {
-    color: inherit;
-
-    :focus-visible {
-      outline: ${({ theme }) => '1px solid ' + theme.text4};
-    }
-  }
-
   @media (min-width: 80rem) {
     grid-template-rows: repeat(2, auto);
   }
@@ -179,8 +168,6 @@ const Section = styled.section`
   h3 {
     font-weight: 600;
     font-size: 1.125rem;
-    margin: 0;
-    padding: 0;
   }
 
   &:not(:first-of-type) {
@@ -197,7 +184,6 @@ const Section = styled.section`
   }
 
   p {
-    margin: 0;
     line-height: 1.5rem;
   }
 
@@ -242,26 +228,17 @@ const Button = styled(ButtonLight)`
   padding: 8px 12px;
   font-size: 0.875rem;
   font-weight: 400;
-  border: none;
   white-space: nowrap;
   font-family: var(--font-inter);
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
 `
 
 const FlexRow = styled.p`
   display: flex;
   align-items: center;
-  margin: 0;
   gap: 8px;
 `
 
 const Bobo = styled.button`
-  cursor: pointer;
-  background: none;
-  border: none;
   position: absolute;
   bottom: -36px;
   left: 0;
@@ -269,10 +246,6 @@ const Bobo = styled.button`
   img {
     width: 34px !important;
     height: 34px !important;
-  }
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
   }
 
   @media (min-width: 80rem) {
@@ -290,9 +263,6 @@ const DownloadButton = styled(Button)`
   color: inherit;
   padding: 8px 12px;
   border-radius: 10px;
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
 `
 
 const TvlWrapper = styled.section`
@@ -311,7 +281,6 @@ const ExtraTvlOption = styled.label`
   input {
     position: relative;
     top: 1px;
-    margin: 0;
     padding: 0;
     -webkit-appearance: none;
     appearance: none;
@@ -340,7 +309,6 @@ const ExtraTvlOption = styled.label`
     }
 
     :focus-visible {
-      outline: ${({ theme }) => '1px solid ' + theme.text1};
       outline-offset: max(2px, 0.15em);
     }
 
@@ -416,7 +384,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const totalVolume = useCalcSingleExtraTvl(tvlBreakdowns, tvl)
 
-  const [bobo, setBobo] = useState(false)
+  const [bobo, setBobo] = React.useState(false)
 
   const { ref: addlChartsRef, inView: addlChartsInView } = useInView({
     triggerOnce: true,
@@ -442,12 +410,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
   const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked } = useMemo(
+  const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked } = React.useMemo(
     () => buildProtocolData(addlProtocolData),
     [addlProtocolData]
   )
 
-  const chainsSplit = useMemo(() => {
+  const chainsSplit = React.useMemo(() => {
     return chainsStacked?.map((chain) => {
       if (chain.extraTvl) {
         const data = { ...chain }

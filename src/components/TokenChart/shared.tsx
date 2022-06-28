@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { useSelectState, SelectArrow, SelectItemCheck, SelectList } from 'ariakit/select'
-import { Item, Popover, SelectMenu } from 'components/Select/AriakitSelect'
+import { useSelectState, SelectArrow, SelectItemCheck } from 'ariakit/select'
+import { Item, Popover, SelectMenu } from '~/components/Select/AriakitSelect'
 
 const Menu = styled(SelectMenu)`
   position: absolute;
@@ -118,38 +118,6 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
 
           {allOptions.map((value) => (
             <Item key={title + value} value={value}>
-              <SelectItemCheck />
-              <DropdownValue>{value}</DropdownValue>
-            </Item>
-          ))}
-        </StyledPopover>
-      )}
-    </>
-  )
-}
-
-interface ISelectLegendProps {
-  allOptions: string[]
-  setOptions: React.Dispatch<React.SetStateAction<string[]>>
-  title: string
-}
-
-export function SelectLegend({ allOptions, setOptions, title, ...props }: ISelectLegendProps) {
-  const select = useSelectState({
-    defaultValue: allOptions[0],
-    gutter: 6,
-  })
-
-  return (
-    <>
-      <Menu state={select} {...props}>
-        <span style={{ padding: '4px' }}>{select.value}</span>
-        <SelectArrow />
-      </Menu>
-      {select.mounted && (
-        <StyledPopover state={select}>
-          {allOptions.map((value) => (
-            <Item key={title + value} value={value} onClick={() => setOptions([value])}>
               <SelectItemCheck />
               <DropdownValue>{value}</DropdownValue>
             </Item>

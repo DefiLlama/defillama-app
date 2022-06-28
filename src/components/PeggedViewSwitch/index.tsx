@@ -1,7 +1,7 @@
-import { usePeggedChainOverview } from 'hooks'
 import styled from 'styled-components'
 import Link from 'next/link'
 import { Link as LinkIcon, DollarSign } from 'react-feather'
+import { usePeggedChainOverview } from '~/hooks'
 
 export default function PeggedViewSwitch() {
   const isPeggedChainOverview = usePeggedChainOverview()
@@ -55,8 +55,4 @@ const AppLink = styled.a<IAppLink>`
   border-radius: 6px;
   background: ${({ active, theme }) => (active ? '#445ed0' : theme.bg6)};
   flex: 1;
-
-  :focus-visible {
-    outline: 1px solid white;
-  }
 `

@@ -6,7 +6,7 @@ import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { Combobox, ComboboxItem, ComboboxPopover, useComboboxState } from 'ariakit/combobox'
-import TokenLogo from 'components/TokenLogo'
+import TokenLogo from '~/components/TokenLogo'
 
 const Wrapper = styled.nav`
   display: flex;
@@ -18,12 +18,11 @@ const Box = styled(Combobox)`
   padding: 14px 16px;
   padding-top: 16px;
   background: ${({ theme }) => theme.bg6};
+  color: ${({ theme }) => theme.text1};
+  font-size: 1rem;
   border: none;
   border-radius: 12px;
   outline: none;
-  color: ${({ theme }) => theme.text1};
-  font-size: 1rem;
-  margin: 0;
 
   ::placeholder {
     color: ${({ theme }) => theme.text3};
@@ -40,13 +39,12 @@ const Popover = styled(ComboboxPopover)`
   max-height: 240px;
   overflow-y: auto;
   background: ${({ theme }) => theme.bg6};
-  z-index: 11;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
   outline: ${({ theme }) => '1px solid ' + theme.text5};
   box-shadow: ${({ theme }) => theme.shadowLg};
-  margin: 0;
   transform: translate(0px, -5px);
+  z-index: 11;
   ${({ theme: { minLg } }) => minLg} {
     max-height: 320px;
   }
@@ -54,11 +52,11 @@ const Popover = styled(ComboboxPopover)`
 
 const Item = styled(ComboboxItem)`
   padding: 12px 14px;
-  font-size: 0.85rem;
-  color: ${({ theme }) => theme.text1};
   display: flex;
   align-items: center;
   gap: 4px;
+  font-size: 0.85rem;
+  color: ${({ theme }) => theme.text1};
 
   & > * {
     margin-right: 6px;
@@ -75,9 +73,9 @@ const Item = styled(ComboboxItem)`
 `
 
 const Empty = styled.div`
-  text-align: center;
   padding: 24px 12px;
   color: ${({ theme }) => theme.text1};
+  text-align: center;
 `
 
 const OptionsWrapper = styled.div`
@@ -95,17 +93,10 @@ const OptionsWrapper = styled.div`
     align-items: center;
     gap: 8px;
     padding: 16px;
-    margin: 0;
 
     & > * {
       color: ${({ theme }) => theme.text1};
       font-size: 0.875rem;
-    }
-  }
-
-  a {
-    :focus-visible {
-      outline: ${({ theme }) => '1px solid ' + theme.text4};
     }
   }
 `
@@ -114,6 +105,7 @@ const IconWrapper = styled.div`
   position: absolute;
   top: 14px;
   right: 16px;
+
   & > svg {
     color: ${({ theme }) => theme.text3};
     height: 20px;
@@ -171,7 +163,6 @@ export const BaseSearch = (props: IBaseSearchProps) => {
 
       {step && <Options step={step} filters={filters} />}
 
-      {/* TODO make auto resizing work */}
       <Popover state={combobox}>
         {loading || !combobox.mounted ? (
           <Empty>Loading...</Empty>

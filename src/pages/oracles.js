@@ -1,16 +1,16 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import styled from 'styled-components'
 import { Box } from 'rebass'
-import Layout from 'layout'
-import { Header } from 'Theme'
-import { CustomLink } from 'components/Link'
-import { ProtocolsChainsSearch } from 'components/Search'
-import { ChainDominanceChart, ChainPieChart } from 'components/Charts'
-import { RowLinks, LinksWrapper } from 'components/Filters'
-import Table, { Index } from 'components/Table'
-import { useCalcGroupExtraTvlsByDay } from 'hooks/data'
-import { getRandomColor, toK } from 'utils'
-import { getOraclePageData, revalidate } from 'utils/dataApi'
+import Layout from '~/layout'
+import { Header } from '~/Theme'
+import { CustomLink } from '~/components/Link'
+import { ProtocolsChainsSearch } from '~/components/Search'
+import { ChainDominanceChart, ChainPieChart } from '~/components/Charts'
+import { RowLinks, LinksWrapper } from '~/components/Filters'
+import Table, { Index } from '~/components/Table'
+import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
+import { getRandomColor, toK } from '~/utils'
+import { getOraclePageData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const data = await getOraclePageData()
@@ -33,6 +33,34 @@ const ChartsWrapper = styled(Box)`
     grid-auto-rows: auto;
   }
 `
+
+const columns = [
+  {
+    header: 'Name',
+    accessor: 'name',
+    disableSortBy: true,
+    Cell: ({ value, rowIndex }) => {
+      return (
+        <Index>
+          <span>{rowIndex + 1}</span>
+          <CustomLink href={`/oracles/${value}`}>{value}</CustomLink>
+        </Index>
+      )
+    },
+  },
+  {
+    header: 'Protocols Secured',
+    accessor: 'protocolsSecured',
+  },
+  {
+    header: 'TVS',
+    accessor: 'tvs',
+    helperText: 'Excludes CeFi',
+    Cell: ({ value }) => {
+      return <span>{'$' + toK(value)}</span>
+    },
+  },
+]
 
 const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
   const tokenColors = useMemo(
@@ -60,37 +88,6 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
 
     return { tokenTvls, tokensList }
   }, [stackedData, tokensProtocols])
-
-  const columns = useMemo(
-    () => [
-      {
-        header: 'Name',
-        accessor: 'name',
-        disableSortBy: true,
-        Cell: ({ value, rowIndex }) => {
-          return (
-            <Index>
-              <span>{rowIndex + 1}</span>
-              <CustomLink href={`/oracles/${value}`}>{value}</CustomLink>
-            </Index>
-          )
-        },
-      },
-      {
-        header: 'Protocols Secured',
-        accessor: 'protocolsSecured',
-      },
-      {
-        header: 'TVS',
-        accessor: 'tvs',
-        helperText: 'Excludes CeFi',
-        Cell: ({ value }) => {
-          return <span>{'$' + toK(value)}</span>
-        },
-      },
-    ],
-    []
-  )
 
   return (
     <>

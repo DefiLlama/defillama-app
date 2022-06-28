@@ -1,10 +1,10 @@
-import Layout from 'layout'
-import { Header } from 'Theme'
-import Table, { Index } from 'components/Table'
-import { CustomLink } from 'components/Link'
-import { PeggedSearch } from 'components/Search'
-import { capitalizeFirstLetter, toK } from 'utils'
-import { getPeggedAssets, revalidate, getPeggedPrices } from 'utils/dataApi'
+import Layout from '~/layout'
+import { Header } from '~/Theme'
+import Table, { Index } from '~/components/Table'
+import { CustomLink } from '~/components/Link'
+import { PeggedSearch } from '~/components/Search'
+import { capitalizeFirstLetter, toK } from '~/utils'
+import { getPeggedAssets, revalidate, getPeggedPrices } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const peggedAssets = await getPeggedAssets()

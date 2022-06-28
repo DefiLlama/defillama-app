@@ -1,5 +1,5 @@
-import NFTDashboardPage from '../components/NFTDashboardPage'
-import { getNFTChainsData, getNFTData, revalidate } from '../utils/dataApi'
+import NFTDashboardPage from '~/components/NFTDashboardPage'
+import { getNFTChainsData, getNFTData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const data = await getNFTData()
@@ -8,9 +8,9 @@ export async function getStaticProps() {
   return {
     props: {
       ...data,
-      chainData
+      chainData,
     },
-    revalidate: revalidate()
+    revalidate: revalidate(),
   }
 }
 

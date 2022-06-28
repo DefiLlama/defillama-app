@@ -1,11 +1,5 @@
-import styled from 'styled-components'
-import { Header } from 'Theme'
-import Layout from 'layout'
-import { ProtocolsTable } from 'components'
-import { ProtocolsChainsSearch } from 'components/Search'
-import { columnsToShow } from 'components/Table'
-import { useCalcStakePool2Tvl } from 'hooks/data'
-import { revalidate, getProtocolsPageData } from 'utils/dataApi'
+import { revalidate, getSimpleProtocolsPageData, basicPropertiesToKeep } from '~/utils/dataApi'
+import { RecentProtocols } from '~/components/RecentProtocols'
 
 const exclude = [
   'DeerFi',
@@ -29,16 +23,10 @@ const exclude = [
   'Kuu Finance',
 ]
 
-const TableWrapper = styled(ProtocolsTable)`
-  tr > *:nth-child(7) {
-    padding-right: 20px;
-  }
-`
-
 export async function getStaticProps() {
-  const protocols = (await getProtocolsPageData()).filteredProtocols.filter(
+  const protocols = (await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt'])).protocols.filter(
     (token) => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name)
-  )
+  ).map(p=>({listedAt: 1624728920, ...p})).sort((a, b) => b.listedAt - a.listedAt)
   return {
     props: {
       protocols,
@@ -47,17 +35,6 @@ export async function getStaticProps() {
   }
 }
 
-const columns = columnsToShow('protocolName', 'category', 'chains', '1dChange', '7dChange', '1mChange', 'tvl')
-
 export default function Protocols({ protocols }) {
-  const data = useCalcStakePool2Tvl(protocols)
-  return (
-    <Layout title={`Airdroppable protocols - Defi Llama`} defaultSEO>
-      <ProtocolsChainsSearch step={{ category: 'Home', name: 'Airdrops' }} />
-
-      <Header>Tokenless protocols that may airdrop 🧑‍🌾</Header>
-
-      <TableWrapper data={data} columns={columns} />
-    </Layout>
-  )
+  return <RecentProtocols protocols={protocols} title="Airdroppable protocols - Defi Llama" name="Airdrops" header="Tokenless protocols that may airdrop 🧑‍🌾"/>
 }

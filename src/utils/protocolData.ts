@@ -1,4 +1,4 @@
-import { extraTvlProps } from "contexts/LocalStorage"
+import { extraTvlProps } from "~/contexts/LocalStorage"
 
 function buildChainBreakdown(chainTvls) {
     const timeToTvl = {}

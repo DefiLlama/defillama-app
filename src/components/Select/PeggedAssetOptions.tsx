@@ -1,6 +1,6 @@
-import { groupSettings, useTvlToggles, useGroupEnabled, useGetExtraPeggedEnabled } from 'contexts/LocalStorage'
 import { ActionMeta, components, GroupProps } from 'react-select'
 import ReactSelect from './ReactSelect'
+import { groupSettings, useTvlToggles, useGroupEnabled, useGetExtraPeggedEnabled } from '~/contexts/LocalStorage'
 
 const tvlOptions = [{ label: 'Unreleased', value: 'unreleased' }]
 

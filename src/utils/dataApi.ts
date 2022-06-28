@@ -21,14 +21,14 @@ import {
   PEGGEDS_API,
   PEGGEDCHART_API,
   PEGGEDPRICES_API,
-} from '../constants/index'
+} from '~/constants/index'
 import {
   getPercentChange,
   getPrevTvlFromChart,
   getPrevCirculatingFromChart,
   getPeggedDominance,
   standardizeProtocolName,
-} from 'utils'
+} from '~/utils'
 import { fetcher } from './useSWR'
 import { quantile, median } from 'simple-statistics'
 
@@ -90,6 +90,7 @@ export const peggedPropertiesToKeep = [
   'gecko_id',
   'chains',
   'price',
+  'pegType',
   'change_1d',
   'change_7d',
   'change_1m',
@@ -323,7 +324,7 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
   }
 }
 
-export async function getSimpleProtocolsPageData(propsToKeep) {
+export async function getSimpleProtocolsPageData(propsToKeep?: string[]) {
   const { protocols, chains } = await getProtocolsRaw()
   const filteredProtocols = formatProtocolsData({
     protocols,
@@ -337,11 +338,15 @@ export async function getPeggedOverviewPageData(category, chain) {
   const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '')).then((r) => r.json())
 
   let chartDataByPeggedAsset = []
-  let peggedAssetNames: string[] = []
+  let peggedAssetNames: string[] = [] // fix name of this variable
   let peggedNameToIndexObj: object = {}
   chartDataByPeggedAsset = await Promise.all(
     peggedAssets.map(async (elem, i) => {
-      peggedAssetNames.push(elem.symbol) // fix
+      if (peggedAssetNames.includes(elem.symbol)) {
+        peggedAssetNames.push(`${elem.name}`)
+      } else {
+        peggedAssetNames.push(elem.symbol)
+      }
       peggedNameToIndexObj[elem.name] = i
       for (let i = 0; i < 5; i++) {
         try {
@@ -401,7 +406,6 @@ export async function getPeggedOverviewPageData(category, chain) {
     }
   })
 
-  const pegType = categoryToPegType[category]
   const stackedDataset = Object.entries(
     chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
       if (!charts.length) return total
@@ -452,6 +456,7 @@ export async function getPeggedOverviewPageData(category, chain) {
     peggedcategory: category,
     chains: chainList.filter((chain) => chainsSet.has(chain)),
     filteredPeggedAssets,
+    peggedAssetNames,
     chartData,
     peggedAreaChartData,
     peggedAreaMcapData,
@@ -593,6 +598,7 @@ export async function getPeggedChainsPageData(category) {
     }, {})
   )
 
+  // formatPeggedChainsData includes all "pegTypes" for mcap, but only 1 pegType for other chainCirculatings props
   const chainCirculatings = formatPeggedChainsData({
     pegType,
     chainList,
@@ -1034,7 +1040,6 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
   const totalCirculating = getPrevCirculatingFromChart(peggedChart, 0, 'totalCirculating', pegType)
   const unreleased = getPrevCirculatingFromChart(peggedChart, 0, 'unreleased', pegType)
   const mcap = peggedChart[peggedChart.length - 1]?.mcap ?? null
-
 
   let categories = []
   for (const chain in chainCoingeckoIds) {

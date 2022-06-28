@@ -1,7 +1,6 @@
-import PortfolioContainer from 'containers/PortfolioContainer'
-import Layout from 'layout'
-
-import { basicPropertiesToKeep, getSimpleProtocolsPageData, revalidate } from 'utils/dataApi'
+import PortfolioContainer from '~/containers/PortfolioContainer'
+import Layout from '~/layout'
+import { basicPropertiesToKeep, getSimpleProtocolsPageData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const { protocols } = await getSimpleProtocolsPageData(basicPropertiesToKeep)

@@ -1,9 +1,8 @@
-import React, { useMemo, useState } from 'react'
+import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { DownloadCloud } from 'react-feather'
 import {
   ProtocolsTable,
   Panel,
@@ -11,70 +10,29 @@ import {
   BreakpointPanel,
   PanelHiddenMobile,
   ChartAndValuesWrapper,
-} from 'components'
-import { RowFixed } from 'components/Row'
-import { ProtocolsChainsSearch } from 'components/Search'
-import { RowLinks, TVLRange } from 'components/Filters'
-import { BasicLink } from 'components/Link'
-import SEO from 'components/SEO'
-import { OptionButton } from 'components/ButtonStyled'
-import LocalLoader from 'components/LocalLoader'
-import { columnsToShow } from 'components/Table'
-import { useCalcProtocolsTvls } from 'hooks/data'
-import { useDarkModeManager, useGetExtraTvlEnabled } from 'contexts/LocalStorage'
-import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from 'utils'
-import { chainCoingeckoIds } from 'constants/chainTokens'
-import { useDenominationPriceHistory } from 'utils/dataApi'
-import llamaLogo from '../../assets/peeking-llama.png'
-
-export const ListOptions = styled.nav`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  overflow: hidden;
-  margin: 0 0 -20px;
-`
-
-export const ListHeader = styled.h3`
-  font-size: 1.125rem;
-  color: ${({ theme }) => theme.text1};
-  font-weight: 500;
-  white-space: nowrap;
-  margin: 0;
-
-  @media screen and (max-width: 40rem) {
-    font-size: 1rem;
-  }
-`
-
-const DownloadButton = styled(BasicLink)`
-  padding: 4px 6px;
-  border-radius: 6px;
-  background: ${({ theme }) => theme.bg3};
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
-`
-
-const DownloadIcon = styled(DownloadCloud)`
-  color: ${({ theme }) => theme.text1};
-  position: relative;
-  top: 2px;
-  width: 20px;
-  height: 20px;
-`
+  DownloadButton,
+  DownloadIcon,
+} from '~/components'
+import { RowFixed } from '~/components/Row'
+import { ProtocolsChainsSearch } from '~/components/Search'
+import { RowLinks, TVLRange } from '~/components/Filters'
+import { BasicLink } from '~/components/Link'
+import SEO from '~/components/SEO'
+import { OptionButton } from '~/components/ButtonStyled'
+import LocalLoader from '~/components/LocalLoader'
+import { columnsToShow } from '~/components/Table'
+import { useCalcProtocolsTvls } from '~/hooks/data'
+import { useDarkModeManager, useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
+import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
+import { chainCoingeckoIds } from '~/constants/chainTokens'
+import { useDenominationPriceHistory } from '~/utils/dataApi'
+import llamaLogo from '~/assets/peeking-llama.png'
+import { ListHeader, ListOptions } from './shared'
 
 const EasterLlama = styled.button`
-  margin: 0;
   padding: 0;
   width: 41px;
   height: 34px;
-  background: none;
-  border: none;
   position: absolute;
   bottom: -36px;
   left: 0;
@@ -83,17 +41,13 @@ const EasterLlama = styled.button`
     width: 41px !important;
     height: 34px !important;
   }
-
-  :hover {
-    cursor: pointer;
-  }
 `
 
-const Chart = dynamic(() => import('components/GlobalChart'), {
+const Chart = dynamic(() => import('~/components/GlobalChart'), {
   ssr: false,
 })
 
-const Game = dynamic(() => import('game'))
+const Game = dynamic(() => import('~/game'))
 
 const BASIC_DENOMINATIONS = ['USD']
 
@@ -119,7 +73,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const { minTvl, maxTvl } = router.query
 
-  const [easterEgg, setEasterEgg] = useState(false)
+  const [easterEgg, setEasterEgg] = React.useState(false)
   const [darkMode, toggleDarkMode] = useDarkModeManager()
   const activateEasterEgg = () => {
     if (easterEgg) {
@@ -135,7 +89,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     }
   }
 
-  const { totalVolumeUSD, volumeChangeUSD, globalChart } = useMemo(() => {
+  const { totalVolumeUSD, volumeChangeUSD, globalChart } = React.useMemo(() => {
     const globalChart = chart.map((data) => {
       let sum = data[1]
       Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
@@ -180,7 +134,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const volumeChange = (percentChange > 0 ? '+' : '') + percentChange + '%'
 
-  const [DENOMINATIONS, chainGeckoId] = useMemo(() => {
+  const [DENOMINATIONS, chainGeckoId] = React.useMemo(() => {
     let DENOMINATIONS = []
     let chainGeckoId = null
     if (selectedChain !== 'All') {
@@ -200,7 +154,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
     utcStartTime: 0,
   })
 
-  const [finalChartData, chainPriceInUSD] = useMemo(() => {
+  const [finalChartData, chainPriceInUSD] = React.useMemo(() => {
     if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {
       let priceIndex = 0
       let prevPriceDate = 0
@@ -238,7 +192,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
   const isLoading = denomination !== 'USD' && loading
 
-  const finalProtocolTotals = useMemo(() => {
+  const finalProtocolTotals = React.useMemo(() => {
     const isValidTvlRange =
       (minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 

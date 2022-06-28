@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import styled from 'styled-components'
 import { Button } from 'ariakit/button'
 import { Tooltip as AriaTooltip, TooltipAnchor, useTooltipState } from 'ariakit/tooltip'
@@ -10,16 +10,9 @@ interface ITooltip {
 }
 
 const TooltipTrigger = styled(Button)`
-  background: none;
-  border: none;
   color: ${({ theme }) => theme.text1};
-  padding: 0;
   display: flex;
   align-items: center;
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
 `
 
 const TooltipPopver = styled(AriaTooltip)`

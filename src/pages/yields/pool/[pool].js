@@ -1,18 +1,25 @@
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { TYPE } from 'Theme'
-import Layout from 'layout'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from 'components'
-import { AutoColumn } from 'components/Column'
-import { RowFixed } from 'components/Row'
-import { BasicLink } from 'components/Link'
-import FormattedName from 'components/FormattedName'
-import AuditInfo from 'components/AuditInfo'
-import { ButtonLight } from 'components/ButtonStyled'
-import { YieldsSearch } from 'components/Search'
-import { toK } from 'utils'
-import { useYieldPoolData, useYieldChartData } from 'utils/dataApi'
+import { TYPE } from '~/Theme'
+import Layout from '~/layout'
+import {
+  BreakpointPanel,
+  BreakpointPanels,
+  ChartAndValuesWrapper,
+  DownloadButton,
+  DownloadIcon,
+  Panel,
+} from '~/components'
+import { AutoColumn } from '~/components/Column'
+import { RowFixed } from '~/components/Row'
+import { BasicLink } from '~/components/Link'
+import FormattedName from '~/components/FormattedName'
+import AuditInfo from '~/components/AuditInfo'
+import { ButtonLight } from '~/components/ButtonStyled'
+import { YieldsSearch } from '~/components/Search'
+import { download, toK } from '~/utils'
+import { useYieldPoolData, useYieldChartData } from '~/utils/dataApi'
 
 const TokenDetailsLayout = styled.div`
   display: inline-grid;
@@ -44,7 +51,7 @@ const TokenDetailsLayout = styled.div`
   }
 `
 
-const Chart = dynamic(() => import('components/GlobalChart'), {
+const Chart = dynamic(() => import('~/components/GlobalChart'), {
   ssr: false,
 })
 
@@ -60,6 +67,17 @@ const PageView = () => {
     // i format here for the plot in `TradingViewChart`
     el.apy?.toFixed(2) ?? 0,
   ])
+
+  // prepare csv data
+  const downloadCsv = () => {
+    const rows = [['APY', 'TVL', 'DATE']]
+
+    chart.data?.forEach((item) => {
+      rows.push([item.apy, item.tvlUsd, item.timestamp])
+    })
+
+    download(`${query.pool}.csv`, rows.map((r) => r.join(',')).join('\n'))
+  }
 
   const poolData = pool?.data ? pool.data[0] : {}
 
@@ -85,7 +103,7 @@ const PageView = () => {
 
   return (
     <>
-      <YieldsSearch step={{ category: 'Yields', name: poolData.symbol }} />
+      <YieldsSearch step={{ category: 'Yields', name: poolData.symbol, hideOptions: true }} />
 
       <h1 style={{ margin: '0 0 -12px', fontWeight: 500, fontSize: '1.5rem' }}>
         <span>
@@ -103,6 +121,10 @@ const PageView = () => {
           <BreakpointPanel>
             <h2>APY</h2>
             <p style={{ '--tile-text-color': '#fd3c99' }}>{apy}%</p>
+            <DownloadButton as="button" onClick={downloadCsv}>
+              <DownloadIcon />
+              <span>&nbsp;&nbsp;.csv</span>
+            </DownloadButton>
           </BreakpointPanel>
           <BreakpointPanel>
             <h2>Total Value Locked</h2>

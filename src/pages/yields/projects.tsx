@@ -1,9 +1,9 @@
-import Layout from 'layout'
-import Table, { Index, NameYield } from 'components/Table'
-import PageHeader from 'components/PageHeader'
-import { YieldsSearch } from 'components/Search'
-import { getYieldPageData, revalidate } from 'utils/dataApi'
-import { toK, formattedPercent } from 'utils'
+import Layout from '~/layout'
+import Table, { Index, NameYield } from '~/components/Table'
+import PageHeader from '~/components/PageHeader'
+import { YieldsSearch } from '~/components/Search'
+import { toK, formattedPercent } from '~/utils'
+import { getYieldPageData, revalidate } from '~/utils/dataApi'
 
 function median(numbers) {
   const sorted: any = Array.from(numbers).sort((a: number, b: number) => a - b)
@@ -94,7 +94,7 @@ export async function getStaticProps() {
 export default function Protocols({ projects }) {
   return (
     <Layout title={`Projects - DefiLlama Yield`} defaultSEO>
-      <YieldsSearch step={{ category: 'Yields', name: 'All projects' }} />
+      <YieldsSearch step={{ category: 'Yields', name: 'All projects', hideOptions: true }} />
       <PageHeader title="Projects" />
       <Table data={projects} columns={columns} gap="40px" />
     </Layout>

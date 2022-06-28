@@ -1,14 +1,14 @@
-import React, { useCallback } from 'react'
+import * as React from 'react'
 import {
   Popover as AriaPopover,
   PopoverDisclosure,
   PopoverStateRenderCallbackProps,
   usePopoverState,
 } from 'ariakit/popover'
-import assignStyle from './assign-style'
-import { useMedia } from 'hooks'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
+import { useMedia } from '~/hooks'
+import assignStyle from './assign-style'
 
 const Trigger = styled(PopoverDisclosure)`
   display: flex;
@@ -29,13 +29,12 @@ const Trigger = styled(PopoverDisclosure)`
 
   :hover,
   :focus-visible {
-    cursor: pointer;
     background-color: ${({ theme }) => transparentize(0.8, theme.primary1)};
   }
 
   :focus-visible,
   [data-focus-visible] {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline: ${({ theme }) => '1px solid ' + theme.text1};
     outline-offset: 1px;
   }
 `
@@ -60,7 +59,7 @@ const PopoverWrapper = styled(AriaPopover)`
 
   :focus-visible,
   [data-focus-visible] {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
+    outline: ${({ theme }) => '1px solid ' + theme.text1};
     outline-offset: 1px;
   }
 
@@ -92,7 +91,7 @@ interface IProps {
 export default function Popover({ trigger, content, ...props }: IProps) {
   const isLarge = useMedia('(min-width: 640px)', true)
 
-  const renderCallback = useCallback(
+  const renderCallback = React.useCallback(
     (props: PopoverStateRenderCallbackProps) => {
       const { popover, defaultRenderCallback } = props
       if (isLarge) return defaultRenderCallback()

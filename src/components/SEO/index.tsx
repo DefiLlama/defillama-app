@@ -1,7 +1,7 @@
-import Head from 'next/head'
 import { useMemo } from 'react'
-import { chainIconUrl, tokenIconUrl } from 'utils'
-import { useIsClient } from 'hooks'
+import Head from 'next/head'
+import { chainIconUrl, tokenIconUrl } from '~/utils'
+import { useIsClient } from '~/hooks'
 
 interface SEOProps {
   cardName?: string

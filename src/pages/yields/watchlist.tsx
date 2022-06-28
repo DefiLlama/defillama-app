@@ -1,7 +1,6 @@
-import PortfolioContainer from 'containers/YieldPortfolioContainer'
-import Layout from 'layout'
-
-import { revalidate, getYieldPageData } from 'utils/dataApi'
+import Layout from '~/layout'
+import PortfolioContainer from '~/containers/YieldPortfolioContainer'
+import { revalidate, getYieldPageData } from '~/utils/dataApi'
 
 export async function getStaticProps() {
   const data = await getYieldPageData()

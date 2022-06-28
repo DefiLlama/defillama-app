@@ -1,18 +1,25 @@
-import React, { useState, useMemo } from 'react'
-import styled from 'styled-components'
-import { CustomLink } from 'components/Link'
-import { PeggedSearch } from 'components/Search'
+import { useState, useMemo } from 'react'
+import Link from 'next/link'
 import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
-import { OptionButton } from 'components/ButtonStyled'
 import { transparentize } from 'polished'
-import { AutoRow, RowBetween } from 'components/Row'
-import { ButtonLight } from 'components/ButtonStyled'
-import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from 'components/Charts'
-import FormattedName from 'components/FormattedName'
-import TokenLogo from 'components/TokenLogo'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
-import AuditInfo from 'components/AuditInfo'
-import { columnsToShow, FullTable } from 'components/Table'
+import styled from 'styled-components'
+import Layout from '~/layout'
+import { CustomLink } from '~/components/Link'
+import { PeggedSearch } from '~/components/Search'
+import { OptionButton } from '~/components/ButtonStyled'
+import { AutoRow, RowBetween } from '~/components/Row'
+import { ButtonLight } from '~/components/ButtonStyled'
+import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
+import FormattedName from '~/components/FormattedName'
+import TokenLogo from '~/components/TokenLogo'
+import AuditInfo from '~/components/AuditInfo'
+import { columnsToShow, FullTable } from '~/components/Table'
+import SEO from '~/components/SEO'
+import QuestionHelper from '~/components/QuestionHelper'
+import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data'
+import { useXl, useMed } from '~/hooks/useBreakpoints'
+import { extraPeggedProps, useGetExtraPeggedEnabled, useTvlToggles } from '~/contexts/LocalStorage'
 import {
   capitalizeFirstLetter,
   toNiceCsvDate,
@@ -23,14 +30,7 @@ import {
   toK,
   peggedAssetIconUrl,
   formattedPeggedPrice,
-} from 'utils'
-import SEO from 'components/SEO'
-import Layout from 'layout'
-import Link from 'next/link'
-import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from 'hooks/data'
-import { useXl, useMed } from 'hooks/useBreakpoints'
-import QuestionHelper from 'components/QuestionHelper'
-import { extraPeggedProps, useGetExtraPeggedEnabled, useTvlToggles } from 'contexts/LocalStorage'
+} from '~/utils'
 
 const risksHelperTexts = {
   algorithmic:
@@ -71,8 +71,6 @@ const PeggedName = styled.h1`
   align-items: center;
   gap: 8px;
   font-size: 1.25rem;
-  margin: 0;
-  padding: 0;
 `
 
 const Symbol = styled.span`
@@ -83,7 +81,7 @@ const Table = styled(FullTable)<ITable>`
   tr > :first-child {
     padding-left: ${({ showByGroup }) => (showByGroup ? '40px' : '20px')};
   }
-  
+
   tr > *:not(:first-child) {
     & > * {
       white-space: nowrap;
@@ -302,7 +300,6 @@ const DetailsTable = styled.table`
 const Mcap = styled.p`
   font-weight: 700;
   font-size: 2rem;
-  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -377,7 +374,6 @@ const TabWrapper = styled.section`
 const PeggedDescription = styled.p`
   font-weight: 400;
   font-size: 0.875rem;
-  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -406,7 +402,6 @@ const ExtraPeggedOption = styled.label`
   input {
     position: relative;
     top: 1px;
-    margin: 0;
     padding: 0;
     -webkit-appearance: none;
     appearance: none;
@@ -435,7 +430,6 @@ const ExtraPeggedOption = styled.label`
     }
 
     :focus-visible {
-      outline: ${({ theme }) => '1px solid ' + theme.text1};
       outline-offset: max(2px, 0.15em);
     }
 
@@ -456,13 +450,8 @@ const Button = styled(ButtonLight)`
   padding: 8px 12px;
   font-size: 0.875rem;
   font-weight: 400;
-  border: none;
   white-space: nowrap;
   font-family: var(--font-inter);
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
 `
 
 const AlignSelfButton = styled(ButtonLight)`
@@ -473,30 +462,20 @@ const AlignSelfButton = styled(ButtonLight)`
   padding: 8px 12px;
   font-size: 0.875rem;
   font-weight: 400;
-  border: none;
   white-space: nowrap;
   font-family: var(--font-inter);
-
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
 `
 
 const DownloadButton = styled(Button)`
   display: flex;
   align-items: center;
-  color: inherit;
   padding: 8px 12px;
   border-radius: 10px;
-  :focus-visible {
-    outline: ${({ theme }) => '1px solid ' + theme.text4};
-  }
 `
 
 const FlexRow = styled.p`
   display: flex;
   align-items: center;
-  margin: 0;
   gap: 8px;
 `
 
@@ -507,6 +486,30 @@ interface ITable {
 const Capitalize = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
+
+const columns = [
+  ...columnsToShow('peggedAssetChain'),
+  {
+    header: 'Bridge',
+    accessor: 'bridgeInfo',
+    disableSortBy: true,
+    Cell: ({ value }) => {
+      return value.link ? <CustomLink href={value.link}>{value.name}</CustomLink> : <span>{value.name}</span>
+    },
+  },
+  {
+    header: 'Bridged Amount',
+    accessor: 'bridgedAmount',
+    disableSortBy: true,
+    Cell: ({ value }) => <>{typeof value === 'string' ? value : formattedNum(value)}</>,
+  },
+  ...columnsToShow('1dChange', '7dChange', '1mChange'),
+  {
+    header: 'Total Circulating',
+    accessor: 'circulating',
+    Cell: ({ value }) => <>{value && formattedNum(value)}</>,
+  },
+]
 
 export default function PeggedContainer({
   chainsUnique,
@@ -552,30 +555,6 @@ export default function PeggedContainer({
   const extraPeggeds = [...extraPeggedProps]
   const tvlToggles = useTvlToggles()
   const extraPeggedsEnabled = useGetExtraPeggedEnabled()
-
-  const columns = [
-    ...columnsToShow('peggedAssetChain'),
-    {
-      header: 'Bridge',
-      accessor: 'bridgeInfo',
-      disableSortBy: true,
-      Cell: ({ value }) => {
-        return value.link ? <CustomLink href={value.link}>{value.name}</CustomLink> : <span>{value.name}</span>
-      },
-    },
-    {
-      header: 'Bridged Amount',
-      accessor: 'bridgedAmount',
-      disableSortBy: true,
-      Cell: ({ value }) => <>{typeof value === 'string' ? value : formattedNum(value)}</>,
-    },
-    ...columnsToShow('1dChange', '7dChange', '1mChange'),
-    {
-      header: 'Total Circulating',
-      accessor: 'circulating',
-      Cell: ({ value }) => <>{value && formattedNum(value)}</>,
-    },
-  ]
 
   const chainColor = useMemo(
     () => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
@@ -656,13 +635,13 @@ export default function PeggedContainer({
               </McapWrapper>
 
               <DetailsTable>
-                  <tbody>
-                    <tr key={'Price'}>
-                      <th>{'Price'}</th>
-                      <td>{formattedPeggedPrice(price, true) || '-'}</td>
-                    </tr>
-                  </tbody>
-                </DetailsTable>
+                <tbody>
+                  <tr key={'Price'}>
+                    <th>{'Price'}</th>
+                    <td>{price === null ? '-' : formattedPeggedPrice(price, true)}</td>
+                  </tr>
+                </tbody>
+              </DetailsTable>
 
               {totalCirculating && (
                 <DetailsTable>

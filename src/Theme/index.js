@@ -1,11 +1,9 @@
-import React from 'react'
-import { ThemeProvider as StyledComponentsThemeProvider, createGlobalStyle } from 'styled-components'
-import styled from 'styled-components'
+import * as React from 'react'
+import styled, { ThemeProvider as StyledComponentsThemeProvider, createGlobalStyle } from 'styled-components'
 import { Text } from 'rebass'
 import { transparentize } from 'polished'
-
-import { sm, med, lg, xl, twoXl } from '../constants/breakpoints'
-import { useDarkModeManager } from '../contexts/LocalStorage'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { sm, med, lg, xl, twoXl } from '~/constants/breakpoints'
 
 export default function ThemeProvider({ children }) {
   const [darkMode] = useDarkModeManager()
@@ -149,32 +147,6 @@ export const Header = styled.h1`
   margin: 0 0 -20px;
 `
 
-export const Hover = styled.div`
-  :hover {
-    cursor: pointer;
-  }
-`
-
-export const Link = styled.a.attrs({
-  target: '_blank',
-  rel: 'noopener noreferrer',
-})`
-  text-decoration: none;
-  cursor: pointer;
-  color: ${({ theme }) => theme.primary1};
-  font-weight: 500;
-  :hover {
-    text-decoration: underline;
-  }
-  :focus {
-    outline: none;
-    text-decoration: underline;
-  }
-  :active {
-    text-decoration: none;
-  }
-`
-
 export const ThemedBackground = styled.div`
   position: absolute;
   top: 0;
@@ -206,6 +178,12 @@ export const GlobalStyle = createGlobalStyle`
 
     ${({ theme: { minLg } }) => minLg} {
       flex-direction: row;
+    }
+  }
+
+  a, input, button, textarea, select, {
+    &:focus-visible {
+      outline: 1px solid ${({ theme }) => theme.text1};
     }
   }
 
