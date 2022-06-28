@@ -3,26 +3,26 @@ import YieldPage from '~/components/YieldsPage'
 import { revalidate, getYieldPageData } from '~/utils/dataApi'
 
 export async function getStaticPaths() {
-  const data = await getYieldPageData()
+	const data = await getYieldPageData()
 
-  const paths = data.props.projectList.slice(0, 20).map((project) => ({ params: { project } }))
+	const paths = data.props.projectList.slice(0, 20).map((project) => ({ params: { project } }))
 
-  return { paths, fallback: 'blocking' }
+	return { paths, fallback: 'blocking' }
 }
 
 export async function getStaticProps({ params: { project } }) {
-  const data = await getYieldPageData({ project: project })
+	const data = await getYieldPageData({ project: project })
 
-  return {
-    ...data,
-    revalidate: revalidate(),
-  }
+	return {
+		...data,
+		revalidate: revalidate()
+	}
 }
 
 export default function YieldProjectPage(props) {
-  return (
-    <Layout title={`Yield Rankings - DefiLlama`} defaultSEO>
-      <YieldPage {...props} />
-    </Layout>
-  )
+	return (
+		<Layout title={`Yield Rankings - DefiLlama`} defaultSEO>
+			<YieldPage {...props} />
+		</Layout>
+	)
 }

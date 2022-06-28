@@ -3,14 +3,14 @@ import { useAnalytics } from '~/hooks'
 import '~/Theme/globals.css'
 
 function App({ Component, pageProps }) {
-  useAnalytics()
+	useAnalytics()
 
-  return (
-    <LocalStorageContextProvider>
-      <LocalStorageContextUpdater />
-      <Component {...pageProps} />
-    </LocalStorageContextProvider>
-  )
+	return (
+		<LocalStorageContextProvider>
+			<LocalStorageContextUpdater />
+			<Component {...pageProps} />
+		</LocalStorageContextProvider>
+	)
 }
 
 export default App

@@ -6,45 +6,45 @@ import { AdvancedYieldsSearch } from './Advanced'
 import { ToggleSearch } from './shared'
 
 interface IYieldSearchProps extends ICommonSearchProps {
-  setTokensToFilter?: React.Dispatch<
-    React.SetStateAction<{
-      includeTokens: string[]
-      excludeTokens: string[]
-    }>
-  >
+	setTokensToFilter?: React.Dispatch<
+		React.SetStateAction<{
+			includeTokens: string[]
+			excludeTokens: string[]
+		}>
+	>
 }
 
 export default function YieldsSearch({ setTokensToFilter, ...props }: IYieldSearchProps) {
-  const [advancedSearch, setAdvancedSearch] = React.useState(false)
+	const [advancedSearch, setAdvancedSearch] = React.useState(false)
 
-  const { data, loading } = useFetchYieldsList()
+	const { data, loading } = useFetchYieldsList()
 
-  const searchData: IBaseSearchProps['data'] =
-    React.useMemo(() => {
-      return (
-        data?.map((el) => ({
-          name: `${el.name} (${el.symbol.toUpperCase()})`,
-          symbol: el.symbol.toUpperCase(),
-          route: `/yields/token/${el.symbol.toUpperCase()}`,
-          logo: el.image,
-        })) ?? []
-      )
-    }, [data]) ?? []
+	const searchData: IBaseSearchProps['data'] =
+		React.useMemo(() => {
+			return (
+				data?.map((el) => ({
+					name: `${el.name} (${el.symbol.toUpperCase()})`,
+					symbol: el.symbol.toUpperCase(),
+					route: `/yields/token/${el.symbol.toUpperCase()}`,
+					logo: el.image
+				})) ?? []
+			)
+		}, [data]) ?? []
 
-  if (!props.step?.hideOptions && advancedSearch) {
-    return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} setTokensToFilter={setTokensToFilter} />
-  }
+	if (!props.step?.hideOptions && advancedSearch) {
+		return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} setTokensToFilter={setTokensToFilter} />
+	}
 
-  return (
-    <BaseSearch
-      {...props}
-      data={searchData}
-      loading={loading}
-      filters={
-        !props.step?.hideOptions && (
-          <ToggleSearch onClick={() => setAdvancedSearch(true)}>Switch to Advanced Search</ToggleSearch>
-        )
-      }
-    />
-  )
+	return (
+		<BaseSearch
+			{...props}
+			data={searchData}
+			loading={loading}
+			filters={
+				!props.step?.hideOptions && (
+					<ToggleSearch onClick={() => setAdvancedSearch(true)}>Switch to Advanced Search</ToggleSearch>
+				)
+			}
+		/>
+	)
 }

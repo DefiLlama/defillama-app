@@ -1,9 +1,9 @@
 import { TYPE } from '~/Theme'
 
 interface IProps {
-  title: string
+	title: string
 }
 
 export default function PageHeader({ title }: IProps) {
-  return <TYPE.largeHeader>{title}</TYPE.largeHeader>
+	return <TYPE.largeHeader>{title}</TYPE.largeHeader>
 }

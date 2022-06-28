@@ -1,88 +1,82 @@
+import { useState } from 'react'
 import { MenuButtonArrow, useSelectState } from 'ariakit'
-import { Checkbox } from '~/components'
+import { ApplyFilters, Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { FilterButton, FilterItem, FilterPopover } from '~/components/Select/AriakitSelect'
-import { useIsClient } from '~/hooks'
 import {
-  AUDITED,
-  MILLION_DOLLAR,
-  NO_IL,
-  SINGLE_EXPOSURE,
-  STABLECOINS,
-  useLocalStorageContext,
+	AUDITED,
+	MILLION_DOLLAR,
+	NO_IL,
+	SINGLE_EXPOSURE,
+	STABLECOINS,
+	useLocalStorageContext
 } from '~/contexts/LocalStorage'
 
+const options = [
+	{
+		name: 'Stablecoins',
+		key: STABLECOINS,
+		help: 'Select pools consisting of stablecoins only'
+	},
+	{
+		name: 'Single Exposure',
+		key: SINGLE_EXPOSURE,
+		help: 'Select pools with single token exposure only'
+	},
+	{
+		name: 'No IL',
+		key: NO_IL,
+		help: 'Select pools with no impermanent loss'
+	},
+	{
+		name: 'Million Dollar',
+		key: MILLION_DOLLAR,
+		help: 'Select pools with at least one million dollar in TVL'
+	},
+	{
+		name: 'Audited',
+		key: AUDITED,
+		help: 'Select pools from audited projects only'
+	}
+]
+
 export function YieldAttributes() {
-  const isClient = useIsClient()
+	const [state, { updateKey }] = useLocalStorageContext()
 
-  const [state, { updateKey }] = useLocalStorageContext()
+	const [value, setValue] = useState<string[]>(options.map((o) => o.key).filter((o) => state[o]))
 
-  const options = [
-    {
-      name: 'Stablecoins',
-      key: STABLECOINS,
-      enabled: state[STABLECOINS] && isClient,
-      help: 'Select pools consisting of stablecoins only',
-    },
-    {
-      name: 'Single Exposure',
-      key: SINGLE_EXPOSURE,
-      enabled: state[SINGLE_EXPOSURE] && isClient,
-      help: 'Select pools with single token exposure only',
-    },
-    {
-      name: 'No IL',
-      key: NO_IL,
-      enabled: state[NO_IL] && isClient,
-      help: 'Select pools with no impermanent loss',
-    },
-    {
-      name: 'Million Dollar',
-      key: MILLION_DOLLAR,
-      enabled: state[MILLION_DOLLAR] && isClient,
-      help: 'Select pools with at least one million dollar in TVL',
-    },
-    {
-      name: 'Audited',
-      key: AUDITED,
-      enabled: state[AUDITED] && isClient,
-      help: 'Select pools from audited projects only',
-    },
-  ]
+	const menu = useSelectState({
+		value,
+		setValue: (values) => setValue(values),
+		gutter: 8
+	})
 
-  const updateAttributes = (values) => {
-    options.forEach((option) => {
-      const isSelected = values?.includes(option.key)
+	const updateAttributes = () => {
+		options.forEach((option) => {
+			const isSelected = value.includes(option.key)
+			const isEnabled = state[option.key]
 
-      if ((option.enabled && !isSelected) || (!option.enabled && isSelected)) {
-        updateKey(option.key, !option.enabled)
-      }
-    })
-  }
+			if ((isEnabled && !isSelected) || (!isEnabled && isSelected)) {
+				updateKey(option.key, !isEnabled)
+			}
+		})
+	}
 
-  const value = options.filter((o) => o.enabled).map((o) => o.key)
-
-  const menu = useSelectState({
-    value,
-    setValue: updateAttributes,
-    defaultValue: value,
-    gutter: 8,
-  })
-
-  return (
-    <>
-      <FilterButton state={menu}>
-        Filter by Attribute
-        <MenuButtonArrow />
-      </FilterButton>
-      <FilterPopover state={menu}>
-        {options.map((option) => (
-          <FilterItem key={option.key} value={option.key}>
-            {option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
-            <Checkbox checked={option.enabled} />
-          </FilterItem>
-        ))}
-      </FilterPopover>
-    </>
-  )
+	return (
+		<>
+			<FilterButton state={menu}>
+				Filter by Attribute
+				<MenuButtonArrow />
+			</FilterButton>
+			<FilterPopover state={menu}>
+				{options.map((option) => (
+					<FilterItem key={option.key} value={option.key}>
+						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
+						<Checkbox checked={value.includes(option.key)} />
+					</FilterItem>
+				))}
+				<ApplyFilters onClick={updateAttributes}>Apply Filters</ApplyFilters>
+			</FilterPopover>
+		</>
+	)
 }

@@ -6,12 +6,12 @@ https://www.akmittal.dev/posts/nextjs-image-use-any-domain/
 */
 
 export default async function getImage(req, res) {
-  try {
-    const url = decodeURIComponent(req.query.url)
-    const result = await fetch(url)
-    const body = await result.body
-    body.pipe(res)
-  } catch (e) {
-    res.end()
-  }
+	try {
+		const url = decodeURIComponent(req.query.url)
+		const result = await fetch(url)
+		const body = await result.body
+		body.pipe(res)
+	} catch (e) {
+		res.end()
+	}
 }
