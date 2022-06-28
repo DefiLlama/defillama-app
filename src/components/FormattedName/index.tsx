@@ -3,70 +3,70 @@ import styled from 'styled-components'
 import Tooltip from '~/components/Tooltip'
 
 interface WrapperProps {
-  margin?: string | boolean
-  link?: boolean
-  adjustSize?: boolean
-  fontSize?: string | number
-  fontWeight?: number
-  maxCharacters?: number
+	margin?: string | boolean
+	link?: boolean
+	adjustSize?: boolean
+	fontSize?: string | number
+	fontWeight?: number
+	maxCharacters?: number
 }
 
 interface IFormattedNameProps extends WrapperProps {
-  text: string
+	text: string
 }
 
 const TextWrapper = styled.div<WrapperProps>`
-  position: relative;
-  margin-left: ${({ margin }) => margin && '4px'};
-  color: ${({ theme, link }) => (link ? theme.blue : theme.text1)};
-  font-size: ${({ fontSize }) => fontSize ?? 'inherit'};
-  font-weight: ${({ fontWeight }) => fontWeight};
+	position: relative;
+	margin-left: ${({ margin }) => margin && '4px'};
+	color: ${({ theme, link }) => (link ? theme.blue : theme.text1)};
+	font-size: ${({ fontSize }) => fontSize ?? 'inherit'};
+	font-weight: ${({ fontWeight }) => fontWeight};
 
-  :hover {
-    cursor: pointer;
-  }
+	:hover {
+		cursor: pointer;
+	}
 
-  @media screen and (max-width: 600px) {
-    font-size: ${({ adjustSize }) => adjustSize && '12px'};
-  }
+	@media screen and (max-width: 600px) {
+		font-size: ${({ adjustSize }) => adjustSize && '12px'};
+	}
 `
 
 const FormattedName = ({
-  text,
-  maxCharacters,
-  margin = false,
-  adjustSize = false,
-  fontSize,
-  fontWeight = 400,
-  link,
-  ...rest
+	text,
+	maxCharacters,
+	margin = false,
+	adjustSize = false,
+	fontSize,
+	fontWeight = 400,
+	link,
+	...rest
 }: IFormattedNameProps) => {
-  if (!text) {
-    return null
-  }
+	if (!text) {
+		return null
+	}
 
-  if (text.length > maxCharacters) {
-    return (
-      <Tooltip content={text}>
-        <TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize} {...rest}>
-          {' ' + text.slice(0, maxCharacters - 1) + '...'}
-        </TextWrapper>
-      </Tooltip>
-    )
-  }
+	if (text.length > maxCharacters) {
+		return (
+			<Tooltip content={text}>
+				<TextWrapper margin={margin} adjustSize={adjustSize} link={link} fontSize={fontSize} {...rest}>
+					{' ' + text.slice(0, maxCharacters - 1) + '...'}
+				</TextWrapper>
+			</Tooltip>
+		)
+	}
 
-  return (
-    <TextWrapper
-      margin={margin}
-      adjustSize={adjustSize}
-      link={link}
-      fontSize={fontSize}
-      fontWeight={fontWeight}
-      {...rest}
-    >
-      {text}
-    </TextWrapper>
-  )
+	return (
+		<TextWrapper
+			margin={margin}
+			adjustSize={adjustSize}
+			link={link}
+			fontSize={fontSize}
+			fontWeight={fontWeight}
+			{...rest}
+		>
+			{text}
+		</TextWrapper>
+	)
 }
 
 export default FormattedName

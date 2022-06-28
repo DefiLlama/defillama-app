@@ -10,30 +10,32 @@ import YieldSideNav from './YieldSideNav'
 import Title from './Title'
 
 export default function SideNav() {
-  const isYieldApp = useYieldApp()
-  const [showMobileNavMenu, setShowMobileNavMenu] = React.useState(false)
+	const isYieldApp = useYieldApp()
+	const [showMobileNavMenu, setShowMobileNavMenu] = React.useState(false)
 
-  const style = { '--mobile-display': showMobileNavMenu ? 'flex' : 'none' } as React.CSSProperties
+	const style = {
+		'--mobile-display': showMobileNavMenu ? 'flex' : 'none'
+	} as React.CSSProperties
 
-  return (
-    <Wrapper>
-      <TitleWrapper>
-        <Title homePath="/" />
+	return (
+		<Wrapper>
+			<TitleWrapper>
+				<Title homePath="/" />
 
-        <Settings />
+				<Settings />
 
-        <NavMenuButton show={showMobileNavMenu} setShow={setShowMobileNavMenu} />
-      </TitleWrapper>
+				<NavMenuButton show={showMobileNavMenu} setShow={setShowMobileNavMenu} />
+			</TitleWrapper>
 
-      <AppSwitch />
+			<AppSwitch />
 
-      <Nav style={style}>{isYieldApp ? <YieldSideNav /> : <DefiSideNav />}</Nav>
-    </Wrapper>
-  )
+			<Nav style={style}>{isYieldApp ? <YieldSideNav /> : <DefiSideNav />}</Nav>
+		</Wrapper>
+	)
 }
 
 const Settings = styled(SettingsMenu)`
-  @media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-    display: none !important;
-  }
+	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+		display: none !important;
+	}
 `

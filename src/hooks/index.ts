@@ -9,89 +9,89 @@ export { default as useDebounce } from './useDebounce'
 export * from './useBreakpoints'
 
 export const useOutsideClick = (ref, ref2, callback) => {
-  useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && ref.current && !ref2.current) {
-        callback(true)
-      } else if (ref.current && !ref.current.contains(e.target) && ref2.current && !ref2.current.contains(e.target)) {
-        callback(true)
-      } else {
-        callback(false)
-      }
-    }
+	useEffect(() => {
+		function handleClick(e) {
+			if (ref.current && ref.current && !ref2.current) {
+				callback(true)
+			} else if (ref.current && !ref.current.contains(e.target) && ref2.current && !ref2.current.contains(e.target)) {
+				callback(true)
+			} else {
+				callback(false)
+			}
+		}
 
-    document.addEventListener('click', handleClick)
-    return () => {
-      document.removeEventListener('click', handleClick)
-    }
-  })
+		document.addEventListener('click', handleClick)
+		return () => {
+			document.removeEventListener('click', handleClick)
+		}
+	})
 }
 
 export default function useInterval(callback: () => void, delay: null | number) {
-  const savedCallback = useRef<() => void>()
+	const savedCallback = useRef<() => void>()
 
-  // Remember the latest callback.
-  useEffect(() => {
-    savedCallback.current = callback
-  }, [callback])
+	// Remember the latest callback.
+	useEffect(() => {
+		savedCallback.current = callback
+	}, [callback])
 
-  // Set up the interval.
-  useEffect(() => {
-    function tick() {
-      const current = savedCallback.current
-      current && current()
-    }
+	// Set up the interval.
+	useEffect(() => {
+		function tick() {
+			const current = savedCallback.current
+			current && current()
+		}
 
-    if (delay !== null) {
-      tick()
-      const id = setInterval(tick, delay)
-      return () => clearInterval(id)
-    }
-    return
-  }, [delay])
+		if (delay !== null) {
+			tick()
+			const id = setInterval(tick, delay)
+			return () => clearInterval(id)
+		}
+		return
+	}, [delay])
 }
 
 export function useNFTApp() {
-  const router = useRouter()
-  return router.pathname.startsWith('/nfts')
+	const router = useRouter()
+	return router.pathname.startsWith('/nfts')
 }
 
 export function useYieldApp() {
-  const router = useRouter()
-  return router.pathname.startsWith('/yields')
+	const router = useRouter()
+	return router.pathname.startsWith('/yields')
 }
 
 export function usePeggedApp() {
-  const router = useRouter()
-  return router.pathname.startsWith('/peggedasset') || router.pathname.startsWith('/peggedassets')
+	const router = useRouter()
+	return router.pathname.startsWith('/peggedasset') || router.pathname.startsWith('/peggedassets')
 }
 
 export function usePeggedChainOverview() {
-  const router = useRouter()
-  return router.pathname.startsWith('/peggedassets/stablecoins/chains')
+	const router = useRouter()
+	return router.pathname.startsWith('/peggedassets/stablecoins/chains')
 }
 
 export const useScrollToTop = () => {
-  useEffect(() => {
-    if (window) {
-      window.scrollTo({
-        behavior: 'smooth',
-        top: 0,
-      })
-    }
-  }, [])
+	useEffect(() => {
+		if (window) {
+			window.scrollTo({
+				behavior: 'smooth',
+				top: 0
+			})
+		}
+	}, [])
 }
 
 export const useIsClient = () => {
-  const [isClient, setIsClient] = useState(false)
+	const [isClient, setIsClient] = useState(false)
 
-  const windowType = typeof window
+	const windowType = typeof window
 
-  useEffect(() => {
-    if (windowType !== 'undefined') {
-      setIsClient(true)
-    }
-  }, [windowType])
+	useEffect(() => {
+		if (windowType !== 'undefined') {
+			setIsClient(true)
+		}
+	}, [windowType])
 
-  return isClient
+	return isClient
 }
