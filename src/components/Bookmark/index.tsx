@@ -10,6 +10,8 @@ interface IWrapperProps {
 }
 
 const Wrapper = styled.button<IWrapperProps>`
+	padding-inline: 0;
+
 	& > svg {
 		fill: ${({ theme: { text1 }, saved }) => (saved ? text1 : 'none')};
 		path {

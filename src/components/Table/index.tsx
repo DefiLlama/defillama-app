@@ -207,10 +207,6 @@ const HeaderWithHelperText = styled.span`
 		flex-shrink: 0;
 		color: ${({ theme }) => theme.text1};
 	}
-
-	button {
-		padding-right: 2px;
-	}
 `
 
 export function splitArrayByFalsyValues(data, column) {
