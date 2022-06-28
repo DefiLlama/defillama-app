@@ -336,7 +336,7 @@ function PeggedAssetsOverview({
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
 		const chartCurrent = chartData[chartData.length - 1] ?? null
-		const chartPrevDay = chartData[chartData.length - 2] ?? null
+		const chartPrevDay = chartData[chartData.length - 8] ?? null
 		const totalMcapCurrent = chartCurrent?.mcap
 		const totalMcapPrevDay = chartPrevDay?.mcap
 		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
@@ -373,7 +373,7 @@ function PeggedAssetsOverview({
 						</DownloadButton>
 					</BreakpointPanel>
 					<BreakpointPanel>
-						<h2>Change (24h)</h2>
+						<h2>Change (7d)</h2>
 						<p style={{ '--tile-text-color': '#fd3c99' }}> {percentChange || 0}%</p>
 					</BreakpointPanel>
 					<BreakpointPanel>
