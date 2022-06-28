@@ -33,31 +33,31 @@ const blockExplorers = {
   astar: ['https://blockscout.com/astar/address/', 'Blockscout'],
   algorand: ['https://algoexplorer.io/asset/', 'Algoexplorer'],
   evmos: ['https://evm.evmos.org/address/', 'Evmos Explorer'],
-  klaytn: ['https://scope.klaytn.com/token/','Klaytn Scope'],
-  proton: ['https://www.protonscan.io/tokens/','Protonscan'],
-  vite: ['https://vitescan.io/token/','Vitescan'],
-  ethereumclassic: ['https://blockscout.com/etc/mainnet/address/','ETC Blockscout'],
-  milkomeda: ['https://rpc.c1.milkomeda.com:4000/address/','C1 Blockscout'],
-  dfk: ['https://subnets.avax.network/defi-kingdoms/dfk-chain/explorer/token/','DFK Chain Explorer'],
-  findora: ['https://evm.findorascan.io/token/','Findorascan'],
+  klaytn: ['https://scope.klaytn.com/token/', 'Klaytn Scope'],
+  proton: ['https://www.protonscan.io/tokens/', 'Protonscan'],
+  vite: ['https://vitescan.io/token/', 'Vitescan'],
+  ethereumclassic: ['https://blockscout.com/etc/mainnet/address/', 'ETC Blockscout'],
+  milkomeda: ['https://rpc.c1.milkomeda.com:4000/address/', 'C1 Blockscout'],
+  dfk: ['https://subnets.avax.network/defi-kingdoms/dfk-chain/explorer/token/', 'DFK Chain Explorer'],
+  findora: ['https://evm.findorascan.io/token/', 'Findorascan'],
 }
 
 export const getBlockExplorer = (address = '') => {
-  let blockExplorerLink, blockExplorerName;
+  let blockExplorerLink, blockExplorerName
   if (address?.includes(':')) {
     const [chain, chainAddress] = address.split(':')
     const explorer = blockExplorers[chain]
     if (explorer !== undefined) {
-      blockExplorerLink = explorer[0] + chainAddress;
-      blockExplorerName = explorer[1];
+      blockExplorerLink = explorer[0] + chainAddress
+      blockExplorerName = explorer[1]
     }
-  } else if (typeof address === "string") {
+  } else if (typeof address === 'string') {
     blockExplorerLink = 'https://etherscan.io/token/' + address
     blockExplorerName = 'Etherscan'
   }
 
   return {
     blockExplorerLink,
-    blockExplorerName
+    blockExplorerName,
   }
 }

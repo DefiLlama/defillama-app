@@ -1,6 +1,6 @@
 import useSWR from 'swr'
-import { useDebounce } from '~/hooks';
-import { fetcher } from '~/utils/useSWR';
+import { useDebounce } from '~/hooks'
+import { fetcher } from '~/utils/useSWR'
 import { NFT_COLLECTIONS_API, NFT_SEARCH_API } from '~/constants'
 
 interface IResponseNFTSearchAPI {
@@ -16,9 +16,9 @@ interface IResponseNFTSearchAPI {
     }
     _type: string
   }>
-  max_score: number,
+  max_score: number
   total: {
-    relation: string,
+    relation: string
     value: number
   }
   data: null
@@ -36,13 +36,16 @@ interface ICollectionApiResponse {
 type ApiResponse = IResponseNFTSearchAPI | ICollectionApiResponse
 
 export const useFetchNFTsList = (searchValue: string) => {
-  const debouncedSearchTerm = useDebounce(searchValue, 500);
+  const debouncedSearchTerm = useDebounce(searchValue, 500)
 
-  const { data, error } = useSWR<ApiResponse>(debouncedSearchTerm ? `${NFT_SEARCH_API}?query=${debouncedSearchTerm}` : NFT_COLLECTIONS_API, fetcher)
+  const { data, error } = useSWR<ApiResponse>(
+    debouncedSearchTerm ? `${NFT_SEARCH_API}?query=${debouncedSearchTerm}` : NFT_COLLECTIONS_API,
+    fetcher
+  )
 
   return {
-    data: data?.hits?.map(el => el._source) ?? data?.data ?? null,
+    data: data?.hits?.map((el) => el._source) ?? data?.data ?? null,
     error: error?.error,
-    loading: (!data && !error && !!searchValue) || (searchValue != debouncedSearchTerm),
+    loading: (!data && !error && !!searchValue) || searchValue != debouncedSearchTerm,
   }
 }

@@ -31,7 +31,6 @@ interface IResponseCGMarketsAPI {
   total_volume: number
 }
 
-
 export const useFetchYieldsList = () => {
   const { data, error } = useSWR<IResponseCGMarketsAPI[]>('yield-api', () => arrayFetcher(getCGMarketsDataURLs()), {
     onErrorRetry: retrySWR,

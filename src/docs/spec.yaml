@@ -92,7 +92,7 @@ paths:
       summary: Get the closest block to a timestamp
       description: |
         Runs binary search over a blockchain's blocks to get the closest one to a timestamp.
-        
+
         Every time this is run we add new data to our database, so each query permanently speeds up future queries.
       servers:
         - url: https://coins.llama.fi
@@ -148,8 +148,8 @@ paths:
                   items:
                     type: string
                   example:
-                    - "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
-                    - "avax:0xd586e7f844cea2f87f50152665bcbc2c279d8d70"
+                    - 'ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
+                    - 'avax:0xd586e7f844cea2f87f50152665bcbc2c279d8d70'
                 timestamp:
                   type: integer
                   format: uint
