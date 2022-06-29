@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { Panel } from '~/components'
 import { NameYield } from '~/components/Table'
-import { YieldAttributes, TVLRange, FiltersByChain } from '~/components/Filters'
+import { YieldAttributes, TVLRange, FiltersByChain, YieldProjects } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
 import {
 	useNoILManager,
@@ -20,9 +20,8 @@ interface ITokensToIncludeAndExclude {
 	excludeTokens: string[]
 }
 
-const YieldPage = ({ pools, chainList }) => {
-	const chain = [...new Set(pools.map((el) => el.chain))]
-	const selectedTab = chain.length > 1 ? 'All' : chain[0]
+const YieldPage = ({ pools, chainList, projectNameList }) => {
+	const selectedTab = chainList.length > 1 ? 'All' : chainList[0]
 	const [chainsToFilter, setChainsToFilter] = React.useState<string[]>(chainList)
 	const [tokensToFilter, setTokensToFilter] = React.useState<ITokensToIncludeAndExclude>({
 		includeTokens: [],
@@ -124,6 +123,8 @@ const YieldPage = ({ pools, chainList }) => {
 	if (query.chain) stepName = selectedTab
 	else if (query.project) stepName = poolsData[0]?.project ?? capitalizeFirstLetter(query.project)
 
+	console.log('hello')
+
 	return (
 		<>
 			<YieldsSearch
@@ -135,6 +136,7 @@ const YieldPage = ({ pools, chainList }) => {
 				<TableHeader>Yield Rankings</TableHeader>
 				<Dropdowns>
 					<FiltersByChain chains={chainList} setChainsToFilter={setChainsToFilter} />
+					<YieldProjects projectNameList={projectNameList} />
 					<YieldAttributes />
 					<TVLRange />
 				</Dropdowns>
