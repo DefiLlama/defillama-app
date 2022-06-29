@@ -179,7 +179,7 @@ export default function ScatterChart({ chartData }: IChartProps) {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id])
+	}, [id, chartData, createInstance])
 
 	return (
 		<div style={{ position: 'relative' }}>
