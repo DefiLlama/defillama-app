@@ -2,6 +2,7 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { useInView, defaultFallbackInView } from 'react-intersection-observer'
@@ -21,7 +22,7 @@ import { extraTvlOptions } from '~/components/SettingsModal'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
 import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName, toK } from '~/utils'
 import { useFetchProtocol } from '~/utils/dataApi'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
@@ -36,8 +37,8 @@ const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
 }) as React.FC<IChartProps>
 
 const Stats = styled.section`
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: 1fr;
 	border-radius: 12px;
 	background: ${({ theme }) => theme.bg6};
 	border: ${({ theme }) => '1px solid ' + theme.divider};
@@ -46,7 +47,7 @@ const Stats = styled.section`
 	isolation: isolate;
 
 	@media (min-width: 80rem) {
-		flex-direction: row;
+		grid-template-columns: auto 1fr;
 	}
 `
 
@@ -57,15 +58,12 @@ const ProtocolDetails = styled.div`
 	padding: 24px;
 	padding-bottom: calc(24px + 0.4375rem);
 	color: ${({ theme }) => theme.text1};
-	border-top-left-radius: 12px;
-	border-top-right-radius: 12px;
 	background: ${({ theme }) => theme.bg7};
 	overflow: auto;
+	grid-column: span 1;
 
 	@media (min-width: 80rem) {
 		min-width: 380px;
-		border-top-right-radius: 0;
-		border-bottom-right-radius: 0;
 		border-bottom-left-radius: 12px;
 	}
 `
@@ -351,6 +349,38 @@ const ChartWrapper = styled.section`
 	}
 `
 
+const OtherProtocols = styled.nav`
+	grid-column: span 2;
+	display: flex;
+	background: ${({ theme }) => theme.bg7};
+	font-weight: 500;
+	border-radius: 12px 0;
+`
+
+interface IProtocolLink {
+	active: boolean
+	color: string | null
+}
+
+const ProtocolLink = styled.a<IProtocolLink>`
+	padding: 8px 20px;
+
+	& + & {
+		border-left: ${({ theme }) => '1px solid ' + theme.divider};
+	}
+
+	border-bottom: ${({ active, color, theme }) => '1px solid ' + (active ? color : theme.divider)};
+
+	:first-child {
+		border-top-left-radius: 12px;
+	}
+
+	:hover,
+	:focus-visible {
+		background-color: ${({ color }) => transparentize(0.9, color)};
+	}
+`
+
 interface IProtocolContainerProps {
 	title: string
 	protocol: string
@@ -382,8 +412,11 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 		module: codeModule,
 		historicalChainTvls,
 		chains = [],
-		forkedFrom
+		forkedFrom,
+		otherProtocols
 	} = protocolData
+
+	const router = useRouter()
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
@@ -458,6 +491,20 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
 
 			<Stats>
+				{otherProtocols?.length > 1 && (
+					<OtherProtocols>
+						{otherProtocols.map((p) => (
+							<Link href={`/protocol/${standardizeProtocolName(p)}`} key={p} passHref>
+								<ProtocolLink
+									active={router.asPath === `/protocol/${standardizeProtocolName(p)}`}
+									color={backgroundColor}
+								>
+									{p}
+								</ProtocolLink>
+							</Link>
+						))}
+					</OtherProtocols>
+				)}
 				<ProtocolDetails>
 					<ProtocolName>
 						<TokenLogo logo={logo} size={24} />
