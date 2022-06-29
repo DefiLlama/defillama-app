@@ -1,8 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { Panel } from '~/components'
-import { NameYield } from '~/components/Table'
 import { YieldAttributes, TVLRange, FiltersByChain } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
 import {
@@ -12,17 +10,22 @@ import {
 	useMillionDollarManager,
 	useAuditedManager
 } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter } from '~/utils'
-import { columns, TableWrapper } from './shared'
+import dynamic from 'next/dynamic'
 
 interface ITokensToIncludeAndExclude {
 	includeTokens: string[]
 	excludeTokens: string[]
 }
 
-const YieldPage = ({ pools, chainList }) => {
-	const chain = [...new Set(pools.map((el) => el.chain))]
-	const selectedTab = chain.length > 1 ? 'All' : chain[0]
+interface IChartProps {
+	chartData: any
+}
+
+const ScatterChart = dynamic(() => import('~/components/TokenChart/ScatterChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
+
+const PlotsPage = ({ pools, chainList }) => {
 	const [chainsToFilter, setChainsToFilter] = React.useState<string[]>(chainList)
 	const [tokensToFilter, setTokensToFilter] = React.useState<ITokensToIncludeAndExclude>({
 		includeTokens: [],
@@ -32,29 +35,6 @@ const YieldPage = ({ pools, chainList }) => {
 	const { query } = useRouter()
 	const { minTvl, maxTvl } = query
 
-	// if route query contains 'project' remove project href
-	const idx = columns.findIndex((c) => c.accessor === 'project')
-
-	if (query.project) {
-		columns[idx] = {
-			header: 'Project',
-			accessor: 'project',
-			disableSortBy: true,
-			Cell: ({ value, rowValues }) => (
-				<NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} rowType="accordion" />
-			)
-		}
-	} else {
-		columns[idx] = {
-			header: 'Project',
-			accessor: 'project',
-			disableSortBy: true,
-			Cell: ({ value, rowValues }) => (
-				<NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} />
-			)
-		}
-	}
-
 	// toggles
 	const [stablecoins] = useStablecoinsManager()
 	const [noIL] = useNoILManager()
@@ -62,7 +42,7 @@ const YieldPage = ({ pools, chainList }) => {
 	const [millionDollar] = useMillionDollarManager()
 	const [audited] = useAuditedManager()
 
-	const poolsData = React.useMemo(() => {
+	const data = React.useMemo(() => {
 		const data = pools.filter((p) => {
 			let toFilter = true
 
@@ -98,63 +78,27 @@ const YieldPage = ({ pools, chainList }) => {
 			return toFilter && chainsToFilter.includes(p.chain) && includeToken && excludeToken
 		})
 
-		const poolsData = data.map((t) => ({
-			id: t.pool,
-			pool: t.symbol,
-			projectslug: t.project,
-			project: t.projectName,
-			chains: [t.chain],
-			tvl: t.tvlUsd,
-			apy: t.apy,
-			change1d: t.apyPct1D,
-			change7d: t.apyPct7D,
-			outlook: t.predictions.predictedClass,
-			confidence: t.predictions.binnedConfidence
-		}))
-
 		const isValidTvlRange =
 			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
 		return isValidTvlRange
-			? poolsData.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
-			: poolsData
+			? data.filter((p) => (minTvl ? p.tvlUsd > minTvl : true) && (maxTvl ? p.tvlUsd < maxTvl : true))
+			: data
 	}, [minTvl, maxTvl, pools, chainsToFilter, audited, millionDollar, noIL, singleExposure, stablecoins, tokensToFilter])
-
-	let stepName = undefined
-	if (query.chain) stepName = selectedTab
-	else if (query.project) stepName = poolsData[0]?.project ?? capitalizeFirstLetter(query.project)
 
 	return (
 		<>
-			<YieldsSearch
-				step={{ category: 'Yields', name: stepName ?? 'All chains' }}
-				setTokensToFilter={setTokensToFilter}
-			/>
+			<YieldsSearch step={{ category: 'Yields', name: 'All chains' }} setTokensToFilter={setTokensToFilter} />
 
 			<TableFilters>
-				<TableHeader>Yield Rankings</TableHeader>
+				<TableHeader>Yield Plots</TableHeader>
 				<Dropdowns>
 					<FiltersByChain chains={chainList} setChainsToFilter={setChainsToFilter} />
 					<YieldAttributes />
 					<TVLRange />
 				</Dropdowns>
 			</TableFilters>
-			<TableFilters>
-				<TableHeader>Yield Rankings</TableHeader>
-				<Dropdowns>
-					<FiltersByChain chains={chainList} setChainsToFilter={setChainsToFilter} />
-					<YieldAttributes />
-					<TVLRange />
-				</Dropdowns>
-			</TableFilters>
-
-			{poolsData.length > 0 ? (
-				<TableWrapper data={poolsData} columns={columns} />
-			) : (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					{stepName ? `${stepName} has no pools listed` : "Couldn't find any pools for these filters"}
-				</Panel>
-			)}
+			<ScatterChart chartData={data}></ScatterChart>
 		</>
 	)
 }
@@ -184,4 +128,4 @@ const TableHeader = styled.h1`
 	font-size: 1.125rem;
 `
 
-export default YieldPage
+export default PlotsPage

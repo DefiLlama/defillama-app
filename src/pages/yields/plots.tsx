@@ -1,35 +1,23 @@
-import React from 'react'
-import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import PageHeader from '~/components/PageHeader'
-import { YieldsSearch } from '~/components/Search'
+import PlotsPage from '~/components/YieldsPage/indexPlots'
 import { getAggregatedData, revalidate } from '~/utils/dataApi'
 
-interface IChartProps {
-	chartData: any
-}
-
-const ScatterChart = dynamic(() => import('~/components/TokenChart/ScatterChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
-
 export async function getStaticProps() {
-	// const data = await getAggregatedData()
+	const data = await getAggregatedData()
 
 	return {
 		props: {
-			pools: []
+			pools: data,
+			chainList: [...new Set(data.map((p) => p.chain))]
 		},
 		revalidate: revalidate()
 	}
 }
 
-export default function Protocols({ pools }) {
+export default function YieldPlots(props) {
 	return (
 		<Layout title={`Plots - DefiLlama Yield`} defaultSEO>
-			<YieldsSearch step={{ category: 'Yields', name: 'All projects' }} />
-			<PageHeader title="Plots" />
-			<ScatterChart chartData={pools}></ScatterChart>
+			<PlotsPage {...props} />
 		</Layout>
 	)
 }

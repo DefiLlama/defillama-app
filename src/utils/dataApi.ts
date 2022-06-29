@@ -31,6 +31,7 @@ import {
 } from '~/utils'
 import { fetcher } from './useSWR'
 import { quantile, median } from 'simple-statistics'
+import { writeFileSync } from 'fs'
 
 interface IProtocol {
 	name: string
@@ -1398,9 +1399,12 @@ export async function getAggregatedData() {
 		el['count'] = count
 	}
 
+	// keep only apy > 0
+	pools = pools.filter((p) => p.mu > 0)
+
 	// remove outliers
 	function removeOutliers(pools, column) {
-		const col = pools.map((p) => p[column])
+		const col = pools.map((p) => p[column]).filter((i) => i >= 0)
 		const col_iqr = quantile(col, 0.75) - quantile(col, 0.25)
 		const col_median = median(col)
 		const col_lb = col_median - 1.5 * col_iqr
