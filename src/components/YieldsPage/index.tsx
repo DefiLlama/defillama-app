@@ -123,8 +123,6 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 	if (query.chain) stepName = selectedTab
 	else if (query.project) stepName = poolsData[0]?.project ?? capitalizeFirstLetter(query.project)
 
-	console.log('hello')
-
 	return (
 		<>
 			<YieldsSearch
