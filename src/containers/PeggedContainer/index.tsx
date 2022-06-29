@@ -515,7 +515,6 @@ export default function PeggedContainer({
 	chainsUnique,
 	chainCirculatings,
 	category,
-	categories,
 	stackedDataset,
 	peggedAssetData,
 	totalCirculating,
@@ -727,7 +726,7 @@ export default function PeggedContainer({
 								</PeggedDescription>
 							)}
 
-							{pegMechanism === 'fiat-backed' && (
+							{pegMechanism === 'fiat-backed' && auditLinks && (
 								<AuditInfo audits={auditLinks.length > 0 ? 2 : 0} auditLinks={auditLinks} color={backgroundColor} />
 							)}
 						</PeggedDetails>
