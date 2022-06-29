@@ -109,20 +109,14 @@ export default function ProtocolChart({
 	}, [denomination, denominationHistory, chartDataFiltered, DENOMINATIONS])
 
 	return (
-		<div
+		<Wrapper
 			style={{
 				...(bobo && {
 					backgroundImage: 'url("/bobo.png")',
 					backgroundSize: '100% 360px',
 					backgroundRepeat: 'no-repeat',
 					backgroundPosition: 'bottom'
-				}),
-				flex: 1,
-				display: 'flex',
-				flexDirection: 'column',
-				gap: '16px',
-				padding: '0 0 20px 0',
-				minHeight: '460px'
+				})
 			}}
 		>
 			<Denominations color={color}>
@@ -135,9 +129,18 @@ export default function ProtocolChart({
 				))}
 			</Denominations>
 			<AreaChart chartData={finalChartData} color={color} title="" moneySymbol={moneySymbol} />
-		</div>
+		</Wrapper>
 	)
 }
+
+const Wrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 0 0 20px 0;
+	min-height: 460px;
+	grid-column: span 1;
+`
 
 const Denominations = styled.section`
 	display: flex;
