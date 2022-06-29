@@ -139,14 +139,6 @@ const YieldPage = ({ pools, chainList }) => {
 					<TVLRange />
 				</Dropdowns>
 			</TableFilters>
-			<TableFilters>
-				<TableHeader>Yield Rankings</TableHeader>
-				<Dropdowns>
-					<FiltersByChain chains={chainList} setChainsToFilter={setChainsToFilter} />
-					<YieldAttributes />
-					<TVLRange />
-				</Dropdowns>
-			</TableFilters>
 
 			{poolsData.length > 0 ? (
 				<TableWrapper data={poolsData} columns={columns} />
