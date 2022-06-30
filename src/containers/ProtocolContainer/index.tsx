@@ -698,12 +698,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 							<>
 								{chainsSplit && chainsUnique?.length > 1 && (
 									<ChartWrapper>
-										<AreaChart chartData={chainsSplit} tokensUnique={chainsUnique} title="Chains" hideLogo={true} />
+										<AreaChart chartData={chainsSplit} tokensUnique={chainsUnique} title="Chains" />
 									</ChartWrapper>
 								)}
 								{tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
 									<ChartWrapper>
-										<AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} hideLogo={true} />
+										<AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} />
 									</ChartWrapper>
 								)}
 								{usdInflows && (

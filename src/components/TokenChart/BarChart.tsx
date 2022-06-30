@@ -4,6 +4,9 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { BarChart as EBarChart } from 'echarts/charts'
 import { TitleComponent } from 'echarts/components'
 import { v4 as uuid } from 'uuid'
+import logoLight from 'public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
+import logoDark from 'public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
+import { useMedia } from '~/hooks'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { toK } from '~/utils'
 import { stringToColour } from './utils'
@@ -71,6 +74,8 @@ export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', t
 		}
 	}, [chartData, color, tokensUnique, legendOptions])
 
+	const isSmall = useMedia(`(max-width: 37.5rem)`)
+
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
 
@@ -82,6 +87,17 @@ export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', t
 		const chartInstance = createInstance()
 
 		chartInstance.setOption({
+			graphic: {
+				type: 'image',
+				z: 0,
+				style: {
+					image: isDark ? logoLight.src : logoDark.src,
+					height: 40,
+					opacity: 0.3
+				},
+				left: isSmall ? '40%' : '45%',
+				top: '130px'
+			},
 			tooltip: {
 				trigger: 'axis',
 				formatter: function (params) {
@@ -222,7 +238,7 @@ export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', t
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, moneySymbol, title, createInstance, series, isDark, color])
+	}, [id, moneySymbol, title, createInstance, series, isDark, color, isSmall])
 
 	return (
 		<div style={{ position: 'relative' }}>

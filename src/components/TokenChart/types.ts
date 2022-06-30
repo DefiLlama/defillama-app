@@ -4,5 +4,4 @@ export interface IChartProps {
 	moneySymbol?: string
 	title: string
 	color?: string
-	hideLogo?: boolean
 }

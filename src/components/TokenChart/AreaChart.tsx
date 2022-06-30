@@ -34,14 +34,7 @@ const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
 `
 
-export default function AreaChart({
-	chartData,
-	tokensUnique,
-	moneySymbol = '$',
-	title,
-	color,
-	hideLogo = false
-}: IChartProps) {
+export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', title, color }: IChartProps) {
 	// For Tokens Chart
 	const [legendOptions, setLegendOptions] = useState<string[]>(tokensUnique)
 
@@ -130,19 +123,17 @@ export default function AreaChart({
 		const chartInstance = createInstance()
 
 		chartInstance.setOption({
-			...(!hideLogo && {
-				graphic: {
-					type: 'image',
-					z: 0,
-					style: {
-						image: isDark ? logoLight.src : logoDark.src,
-						height: 40,
-						opacity: 0.3
-					},
-					left: isSmall ? '40%' : '45%',
-					top: '130px'
-				}
-			}),
+			graphic: {
+				type: 'image',
+				z: 0,
+				style: {
+					image: isDark ? logoLight.src : logoDark.src,
+					height: 40,
+					opacity: 0.3
+				},
+				left: isSmall ? '40%' : '45%',
+				top: '130px'
+			},
 			tooltip: {
 				trigger: 'axis',
 				formatter: function (params) {
@@ -283,7 +274,7 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance, hideLogo])
+	}, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance])
 
 	const legendTitle = title === 'Chains' ? 'Chain' : 'Token'
 
