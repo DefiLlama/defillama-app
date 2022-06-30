@@ -880,7 +880,7 @@ export const getPeggedAssets = () =>
 export const getPeggedPrices = () => fetch(PEGGEDPRICES_API).then((r) => r.json())
 
 export const getPeggedBridgeInfo = () =>
-	fetch('https://cocoahomology-datasets.s3.amazonaws.com/bridgeInfo.json').then((r) => r.json())
+	fetch('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json').then((r) => r.json())
 
 export const getChainsPageData = async (category: string) => {
 	const [res, { chainCoingeckoIds }] = await Promise.all(
