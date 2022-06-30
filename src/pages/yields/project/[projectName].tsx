@@ -5,13 +5,13 @@ import { revalidate, getYieldPageData } from '~/utils/dataApi'
 export async function getStaticPaths() {
 	const data = await getYieldPageData()
 
-	const paths = data.props.projectSlugList.slice(0, 20).map((project) => ({ params: { project } }))
+	const paths = data.props.projectSlugList.slice(0, 20).map((project) => ({ params: { projectName: project } }))
 
 	return { paths, fallback: 'blocking' }
 }
 
-export async function getStaticProps({ params: { project } }) {
-	const data = await getYieldPageData({ project: project })
+export async function getStaticProps({ params: { projectName } }) {
+	const data = await getYieldPageData({ project: projectName })
 
 	return {
 		...data,
