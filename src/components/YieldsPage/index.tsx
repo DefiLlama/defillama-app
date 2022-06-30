@@ -29,12 +29,17 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 	})
 
 	const { query } = useRouter()
-	const { minTvl, maxTvl } = query
+	const { minTvl, maxTvl, project } = query
+
+	const selectedProjects = React.useMemo(
+		() => (project ? (typeof project === 'string' ? [project] : project) : []),
+		[project]
+	)
 
 	// if route query contains 'project' remove project href
 	const idx = columns.findIndex((c) => c.accessor === 'project')
 
-	if (query.project) {
+	if (query.projectName) {
 		columns[idx] = {
 			header: 'Project',
 			accessor: 'project',
@@ -62,30 +67,34 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 	const [audited] = useAuditedManager()
 
 	const poolsData = React.useMemo(() => {
-		const data = pools.filter((p) => {
+		return pools.reduce((acc, curr) => {
 			let toFilter = true
 
 			if (stablecoins) {
-				toFilter = toFilter && p.stablecoin === true
+				toFilter = toFilter && curr.stablecoin === true
 			}
 
 			if (noIL) {
-				toFilter = toFilter && p.ilRisk === 'no'
+				toFilter = toFilter && curr.ilRisk === 'no'
 			}
 
 			if (singleExposure) {
-				toFilter = toFilter && p.exposure === 'single'
+				toFilter = toFilter && curr.exposure === 'single'
 			}
 
 			if (millionDollar) {
-				toFilter = toFilter && p.tvlUsd >= 1e6
+				toFilter = toFilter && curr.tvlUsd >= 1e6
 			}
 
 			if (audited) {
-				toFilter = toFilter && p.audits !== '0'
+				toFilter = toFilter && curr.audits !== '0'
 			}
 
-			const tokensInPool = p.symbol.split('-').map((x) => x.toLowerCase())
+			if (selectedProjects.length > 0) {
+				toFilter = toFilter && selectedProjects.includes(curr.projectName)
+			}
+
+			const tokensInPool = curr.symbol.split('-').map((x) => x.toLowerCase())
 
 			const includeToken =
 				tokensToFilter.includeTokens.length > 0
@@ -94,34 +103,49 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 
 			const excludeToken = !tokensToFilter.excludeTokens.find((token) => tokensInPool.includes(token))
 
-			return toFilter && chainsToFilter.includes(p.chain) && includeToken && excludeToken
-		})
+			toFilter = toFilter && chainsToFilter.includes(curr.chain) && includeToken && excludeToken
 
-		const poolsData = data.map((t) => ({
-			id: t.pool,
-			pool: t.symbol,
-			projectslug: t.project,
-			project: t.projectName,
-			chains: [t.chain],
-			tvl: t.tvlUsd,
-			apy: t.apy,
-			change1d: t.apyPct1D,
-			change7d: t.apyPct7D,
-			outlook: t.predictions.predictedClass,
-			confidence: t.predictions.binnedConfidence
-		}))
+			const isValidTvlRange =
+				(minTvl !== undefined && !Number.isNaN(Number(minTvl))) ||
+				(maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
-		const isValidTvlRange =
-			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
+			if (isValidTvlRange) {
+				toFilter = toFilter && (minTvl ? curr.tvlUsd > minTvl : true) && (maxTvl ? curr.tvlUsd < maxTvl : true)
+			}
 
-		return isValidTvlRange
-			? poolsData.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
-			: poolsData
-	}, [minTvl, maxTvl, pools, chainsToFilter, audited, millionDollar, noIL, singleExposure, stablecoins, tokensToFilter])
+			if (toFilter) {
+				return acc.concat({
+					id: curr.pool,
+					pool: curr.symbol,
+					projectslug: curr.project,
+					project: curr.projectName,
+					chains: [curr.chain],
+					tvl: curr.tvlUsd,
+					apy: curr.apy,
+					change1d: curr.apyPct1D,
+					change7d: curr.apyPct7D,
+					outlook: curr.predictions.predictedClass,
+					confidence: curr.predictions.binnedConfidence
+				})
+			} else return acc
+		}, [])
+	}, [
+		minTvl,
+		maxTvl,
+		pools,
+		chainsToFilter,
+		audited,
+		millionDollar,
+		noIL,
+		singleExposure,
+		stablecoins,
+		tokensToFilter,
+		selectedProjects
+	])
 
 	let stepName = undefined
 	if (query.chain) stepName = selectedTab
-	else if (query.project) stepName = poolsData[0]?.project ?? capitalizeFirstLetter(query.project)
+	else if (query.projectName) stepName = poolsData[0]?.project ?? capitalizeFirstLetter(query.projectName)
 
 	return (
 		<>
@@ -134,7 +158,7 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 				<TableHeader>Yield Rankings</TableHeader>
 				<Dropdowns>
 					<FiltersByChain chains={chainList} setChainsToFilter={setChainsToFilter} />
-					<YieldProjects projectNameList={projectNameList} />
+					<YieldProjects projectNameList={projectNameList} selectedProjects={selectedProjects} />
 					<YieldAttributes />
 					<TVLRange />
 				</Dropdowns>

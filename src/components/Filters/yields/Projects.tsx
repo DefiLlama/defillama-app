@@ -1,22 +1,36 @@
-import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { ApplyFilters, Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
-import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
-import { Dropdown, Stats, Item } from '../shared'
+import { FilterButton } from '~/components/Select/AriakitSelect'
+import { Dropdown, Item, Stats } from '../shared'
 
 interface IYieldProjectsProps {
 	projectNameList: string[]
+	selectedProjects: string[]
 }
 
-export function YieldProjects({ projectNameList }: IYieldProjectsProps) {
+export function YieldProjects({ projectNameList = [], selectedProjects }: IYieldProjectsProps) {
+	const router = useRouter()
+
+	const [projects, setProjects] = useState<string[]>([])
+
+	useEffect(() => {
+		if (selectedProjects) {
+			setProjects(selectedProjects)
+		}
+	}, [selectedProjects])
+
 	const combobox = useComboboxState({ list: projectNameList })
 	// value and setValue shouldn't be passed to the select state because the
 	// select value and the combobox value are different things.
 	const { value, setValue, ...selectProps } = combobox
+
 	const select = useSelectState({
 		...selectProps,
-		defaultValue: projectNameList,
+		value: projects,
+		setValue: (v) => setProjects(v),
 		gutter: 8
 	})
 
@@ -25,10 +39,22 @@ export function YieldProjects({ projectNameList }: IYieldProjectsProps) {
 		combobox.setValue('')
 	}
 
-	const filterChains = () => {}
+	const filterProjects = () => {
+		router.push(
+			{
+				pathname: '/yields',
+				query: {
+					...router.query,
+					project: select.value
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
 
 	const toggleAll = () => {
-		select.setValue(select.value.length === [].length ? [] : projectNameList)
+		select.setValue(select.value.length === projectNameList.length ? [] : projectNameList)
 	}
 
 	return (
@@ -37,32 +63,30 @@ export function YieldProjects({ projectNameList }: IYieldProjectsProps) {
 				Filter by Project
 				<MenuButtonArrow />
 			</FilterButton>
-			<FilterPopover state={select}>
-				<Dropdown state={select}>
-					<Input state={combobox} placeholder="Search..." />
+			<Dropdown state={select}>
+				<Input state={combobox} placeholder="Search..." />
 
-					{combobox.matches.length > 0 ? (
-						<>
-							<Stats>
-								<p>{`${select.value.length} selected`}</p>
-								<button onClick={toggleAll}>toggle all</button>
-							</Stats>
-							<List state={combobox} className="filter-by-list">
-								{combobox.matches.map((value, i) => (
-									<Item value={value} key={value + i} focusOnHover>
-										<span>{value}</span>
-										<Checkbox checked={select.value.includes(value) ? true : false} />
-									</Item>
-								))}
-							</List>
-						</>
-					) : (
-						<p id="no-results">No results</p>
-					)}
+				{combobox.matches.length > 0 ? (
+					<>
+						<Stats>
+							<p>{`${select.value.length} selected`}</p>
+							<button onClick={toggleAll}>toggle all</button>
+						</Stats>
+						<List state={combobox} className="filter-by-list">
+							{combobox.matches.map((value, i) => (
+								<Item value={value} key={value + i} focusOnHover>
+									<span>{value}</span>
+									<Checkbox checked={select.value.includes(value) ? true : false} />
+								</Item>
+							))}
+						</List>
+					</>
+				) : (
+					<p id="no-results">No results</p>
+				)}
 
-					<ApplyFilters onClick={filterChains}>Apply Filters</ApplyFilters>
-				</Dropdown>
-			</FilterPopover>
+				<ApplyFilters onClick={filterProjects}>Apply Filters</ApplyFilters>
+			</Dropdown>
 		</>
 	)
 }
