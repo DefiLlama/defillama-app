@@ -254,7 +254,7 @@ paths:
       responses:
         '200':
           description: successful operation
-  /poolsEnriched:
+  /pools:
     get:
       tags:
         - yields

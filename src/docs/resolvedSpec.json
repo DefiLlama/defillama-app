@@ -409,7 +409,7 @@
         }
       }
     },
-    "/poolsEnriched": {
+    "/pools": {
       "get": {
         "tags": [
           "yields"
