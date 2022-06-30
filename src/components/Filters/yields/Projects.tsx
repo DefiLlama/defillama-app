@@ -1,23 +1,36 @@
-import * as React from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { ApplyFilters, Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
 import { FilterButton } from '~/components/Select/AriakitSelect'
-import { Dropdown, Item, Stats } from './shared'
+import { Dropdown, Item, Stats } from '../shared'
 
-interface IFiltersByChainProps {
-	chains: string[]
-	setChainsToFilter: React.Dispatch<React.SetStateAction<string[]>>
+interface IYieldProjectsProps {
+	projectNameList: string[]
+	selectedProjects: string[]
 }
 
-export function FiltersByChain({ chains = [], setChainsToFilter }: IFiltersByChainProps) {
-	const combobox = useComboboxState({ list: chains })
+export function YieldProjects({ projectNameList = [], selectedProjects }: IYieldProjectsProps) {
+	const router = useRouter()
+
+	const [projects, setProjects] = useState<string[]>([])
+
+	useEffect(() => {
+		if (selectedProjects) {
+			setProjects(selectedProjects)
+		}
+	}, [selectedProjects])
+
+	const combobox = useComboboxState({ list: projectNameList })
 	// value and setValue shouldn't be passed to the select state because the
 	// select value and the combobox value are different things.
 	const { value, setValue, ...selectProps } = combobox
+
 	const select = useSelectState({
 		...selectProps,
-		defaultValue: chains,
+		value: projects,
+		setValue: (v) => setProjects(v),
 		gutter: 8
 	})
 
@@ -26,18 +39,28 @@ export function FiltersByChain({ chains = [], setChainsToFilter }: IFiltersByCha
 		combobox.setValue('')
 	}
 
-	const filterChains = () => {
-		setChainsToFilter(select.value)
+	const filterProjects = () => {
+		router.push(
+			{
+				pathname: '/yields',
+				query: {
+					...router.query,
+					project: select.value
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
 	}
 
 	const toggleAll = () => {
-		select.setValue(select.value.length === chains.length ? [] : chains)
+		select.setValue(select.value.length === projectNameList.length ? [] : projectNameList)
 	}
 
 	return (
 		<>
 			<FilterButton state={select}>
-				Filter by Chain
+				Filter by Project
 				<MenuButtonArrow />
 			</FilterButton>
 			<Dropdown state={select}>
@@ -62,7 +85,7 @@ export function FiltersByChain({ chains = [], setChainsToFilter }: IFiltersByCha
 					<p id="no-results">No results</p>
 				)}
 
-				<ApplyFilters onClick={filterChains}>Apply Filters</ApplyFilters>
+				<ApplyFilters onClick={filterProjects}>Apply Filters</ApplyFilters>
 			</Dropdown>
 		</>
 	)

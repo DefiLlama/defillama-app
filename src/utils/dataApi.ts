@@ -1333,8 +1333,15 @@ export async function getYieldPageData(query = null) {
 		// remove anchor cause UST dead
 		pools = pools.filter((p) => p.project !== 'anchor')
 
-		const chainList = [...new Set(pools.map((p) => p.chain))]
-		const projectList = [...new Set(pools.map((p) => p.project))]
+		const chainList = new Set()
+		const projectSlugList = new Set()
+		const projectNameList = new Set()
+
+		pools.forEach((p) => {
+			chainList.add(p.chain)
+			projectSlugList.add(p.project)
+			projectNameList.add(p.projectName)
+		})
 
 		// for chain, project and pool queries
 		if (query !== null && Object.keys(query)[0] !== 'token') {
@@ -1346,8 +1353,9 @@ export async function getYieldPageData(query = null) {
 		return {
 			props: {
 				pools,
-				chainList,
-				projectList
+				chainList: Array.from(chainList),
+				projectSlugList: Array.from(projectSlugList),
+				projectNameList: Array.from(projectNameList)
 			}
 		}
 	} catch (e) {
