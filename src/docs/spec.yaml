@@ -254,16 +254,6 @@ paths:
       responses:
         '200':
           description: successful operation
-  /pools:
-    get:
-      tags:
-        - yields
-      summary: Retrieve the latest data for all pools
-      servers:
-        - url: https://yields.llama.fi
-      responses:
-        '200':
-          description: successful operation
   /poolsEnriched:
     get:
       tags:
