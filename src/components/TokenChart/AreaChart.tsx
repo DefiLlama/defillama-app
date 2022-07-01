@@ -82,7 +82,7 @@ export default function AreaChart({
 				data: [],
 				...(hallmarks && {
 					markLine: {
-						data: hallmarks.map(([date, event]) => [
+						data: hallmarks.map(([date, event], index) => [
 							{
 								name: event,
 								xAxis: new Date(date * 1000),
@@ -97,7 +97,8 @@ export default function AreaChart({
 							{
 								name: 'end',
 								xAxis: new Date(date * 1000),
-								yAxis: 'max'
+								yAxis: 'max',
+								y: Math.max(150 - index * 30, 40)
 							}
 						])
 					}
