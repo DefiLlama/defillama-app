@@ -144,6 +144,7 @@ export const Index = styled.div`
 const SaveButton = styled(Bookmark)`
 	position: relative;
 	top: 2px;
+	flex-shrink: 0;
 `
 
 const HeaderButton = styled.button`

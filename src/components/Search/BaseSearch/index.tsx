@@ -80,7 +80,9 @@ const Empty = styled.div`
 
 const OptionsWrapper = styled.div`
 	display: flex;
+	justify-content: space-between;
 	align-items: center;
+	flex-wrap: wrap;
 	gap: 8px;
 	border-bottom-left-radius: 12px;
 	border-bottom-right-radius: 12px;
@@ -97,6 +99,10 @@ const OptionsWrapper = styled.div`
 		& > * {
 			color: ${({ theme }) => theme.text1};
 			font-size: 0.875rem;
+		}
+
+		svg {
+			flex-shrink: 0;
 		}
 	}
 `
