@@ -59,7 +59,6 @@ const ProtocolDetails = styled.div`
 	padding-bottom: calc(24px + 0.4375rem);
 	color: ${({ theme }) => theme.text1};
 	background: ${({ theme }) => theme.bg7};
-	overflow: auto;
 	grid-column: span 1;
 
 	@media (min-width: 80rem) {
@@ -350,11 +349,16 @@ const ChartWrapper = styled.section`
 `
 
 const OtherProtocols = styled.nav`
-	grid-column: span 2;
+	grid-column: span 1;
 	display: flex;
+	overflow-x: auto;
 	background: ${({ theme }) => theme.bg7};
 	font-weight: 500;
 	border-radius: 12px 0;
+
+	@media (min-width: 80rem) {
+		grid-column: span 2;
+	}
 `
 
 interface IProtocolLink {
@@ -364,6 +368,7 @@ interface IProtocolLink {
 
 const ProtocolLink = styled.a<IProtocolLink>`
 	padding: 8px 20px;
+	white-space: nowrap;
 
 	& + & {
 		border-left: ${({ theme }) => '1px solid ' + theme.divider};
@@ -506,7 +511,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						))}
 					</OtherProtocols>
 				)}
-				<ProtocolDetails>
+				<ProtocolDetails style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
 					<ProtocolName>
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
