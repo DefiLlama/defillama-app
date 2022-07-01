@@ -11,6 +11,7 @@ import {
 	STABLECOINS,
 	useLocalStorageContext
 } from '~/contexts/LocalStorage'
+import { Stats } from '../shared'
 
 const options = [
 	{
@@ -45,7 +46,7 @@ export function YieldAttributes() {
 
 	const [value, setValue] = useState<string[]>(options.map((o) => o.key).filter((o) => state[o]))
 
-	const menu = useSelectState({
+	const select = useSelectState({
 		value,
 		setValue: (values) => setValue(values),
 		gutter: 8
@@ -62,13 +63,21 @@ export function YieldAttributes() {
 		})
 	}
 
+	const toggleAll = () => {
+		select.setValue(select.value.length === options.length ? [] : options.map((o) => o.key))
+	}
+
 	return (
 		<>
-			<FilterButton state={menu}>
+			<FilterButton state={select}>
 				Filter by Attribute
 				<MenuButtonArrow />
 			</FilterButton>
-			<FilterPopover state={menu}>
+			<FilterPopover state={select}>
+				<Stats>
+					<p>{`${select.value.length} selected`}</p>
+					<button onClick={toggleAll}>toggle all</button>
+				</Stats>
 				{options.map((option) => (
 					<FilterItem key={option.key} value={option.key}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}

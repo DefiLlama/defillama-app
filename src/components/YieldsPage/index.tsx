@@ -15,26 +15,57 @@ import {
 import { capitalizeFirstLetter } from '~/utils'
 import { columns, TableWrapper } from './shared'
 
-interface ITokensToIncludeAndExclude {
-	includeTokens: string[]
-	excludeTokens: string[]
-}
-
-const YieldPage = ({ pools, chainList, projectNameList }) => {
+const YieldPage = ({ pools, chainList, projectList }) => {
 	const selectedTab = chainList.length > 1 ? 'All' : chainList[0]
-	const [chainsToFilter, setChainsToFilter] = React.useState<string[]>(chainList)
-	const [tokensToFilter, setTokensToFilter] = React.useState<ITokensToIncludeAndExclude>({
-		includeTokens: [],
-		excludeTokens: []
-	})
 
 	const { query } = useRouter()
-	const { minTvl, maxTvl, project } = query
+	const { minTvl, maxTvl, project, chain, token, excludeToken } = query
 
-	const selectedProjects = React.useMemo(
-		() => (project ? (typeof project === 'string' ? [project] : project) : []),
-		[project]
-	)
+	const { selectedProjects, selectedChains, includeTokens, excludeTokens } = React.useMemo(() => {
+		let selectedProjects = [],
+			selectedChains = [],
+			includeTokens = [],
+			excludeTokens = []
+
+		if (project) {
+			if (typeof project === 'string') {
+				selectedProjects = project === 'All' ? [...projectList] : [project]
+			} else {
+				selectedProjects = [...project]
+			}
+		}
+
+		if (chain) {
+			if (typeof chain === 'string') {
+				selectedChains = chain === 'All' ? [...chainList] : [chain]
+			} else {
+				selectedChains = [...chain]
+			}
+		} else selectedChains = [...chainList]
+
+		if (token) {
+			if (typeof token === 'string') {
+				includeTokens = [token]
+			} else {
+				includeTokens = [...token]
+			}
+		}
+
+		if (excludeToken) {
+			if (typeof excludeToken === 'string') {
+				excludeTokens = [excludeToken]
+			} else {
+				excludeTokens = [...excludeToken]
+			}
+		}
+
+		return {
+			selectedProjects,
+			selectedChains,
+			includeTokens,
+			excludeTokens
+		}
+	}, [project, chain, projectList, chainList, token, excludeToken])
 
 	// if route query contains 'project' remove project href
 	const idx = columns.findIndex((c) => c.accessor === 'project')
@@ -91,19 +122,25 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 			}
 
 			if (selectedProjects.length > 0) {
-				toFilter = toFilter && selectedProjects.includes(curr.projectName)
+				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.projectName.toLowerCase())
 			}
 
 			const tokensInPool = curr.symbol.split('-').map((x) => x.toLowerCase())
 
 			const includeToken =
-				tokensToFilter.includeTokens.length > 0
-					? tokensToFilter.includeTokens.find((token) => tokensInPool.includes(token))
+				includeTokens.length > 0
+					? includeTokens.map((t) => t.toLowerCase()).find((token) => tokensInPool.includes(token.toLowerCase()))
 					: true
 
-			const excludeToken = !tokensToFilter.excludeTokens.find((token) => tokensInPool.includes(token))
+			const excludeToken = !excludeTokens
+				.map((t) => t.toLowerCase())
+				.find((token) => tokensInPool.includes(token.toLowerCase()))
 
-			toFilter = toFilter && chainsToFilter.includes(curr.chain) && includeToken && excludeToken
+			toFilter =
+				toFilter &&
+				selectedChains.map((t) => t.toLowerCase()).includes(curr.chain.toLowerCase()) &&
+				includeToken &&
+				excludeToken
 
 			const isValidTvlRange =
 				(minTvl !== undefined && !Number.isNaN(Number(minTvl))) ||
@@ -133,14 +170,15 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 		minTvl,
 		maxTvl,
 		pools,
-		chainsToFilter,
 		audited,
 		millionDollar,
 		noIL,
 		singleExposure,
 		stablecoins,
-		tokensToFilter,
-		selectedProjects
+		selectedProjects,
+		selectedChains,
+		includeTokens,
+		excludeTokens
 	])
 
 	let stepName = undefined
@@ -149,16 +187,13 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 
 	return (
 		<>
-			<YieldsSearch
-				step={{ category: 'Yields', name: stepName ?? 'All chains' }}
-				setTokensToFilter={setTokensToFilter}
-			/>
+			<YieldsSearch step={{ category: 'Yields', name: stepName ?? 'All chains' }} />
 
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>
 				<Dropdowns>
-					<FiltersByChain chains={chainList} setChainsToFilter={setChainsToFilter} />
-					<YieldProjects projectNameList={projectNameList} selectedProjects={selectedProjects} />
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} />
+					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} />
 					<YieldAttributes />
 					<TVLRange />
 				</Dropdowns>

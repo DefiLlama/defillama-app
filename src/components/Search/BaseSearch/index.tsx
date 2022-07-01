@@ -211,8 +211,11 @@ const Row = ({ index, style, data }) => {
 			key={value}
 			value={value}
 			onClick={() => {
-				if (onItemClick) onItemClick(item)
-				router.push(item.route)
+				if (onItemClick) {
+					onItemClick(item)
+				} else {
+					router.push(item.route)
+				}
 			}}
 			style={style}
 		>

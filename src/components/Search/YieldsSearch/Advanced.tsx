@@ -4,18 +4,15 @@ import styled from 'styled-components'
 import { ToggleSearch } from './shared'
 import ReactSelect from '~/components/Select/ReactSelect'
 import { useFetchYieldsList } from '~/utils/categories/yield'
+import { useRouter } from 'next/router'
 
 interface IAdvancedYieldSearchProps {
 	setAdvancedSearch: React.Dispatch<React.SetStateAction<boolean>>
-	setTokensToFilter: React.Dispatch<
-		React.SetStateAction<{
-			includeTokens: string[]
-			excludeTokens: string[]
-		}>
-	>
 }
 
-export function AdvancedYieldsSearch({ setAdvancedSearch, setTokensToFilter }: IAdvancedYieldSearchProps) {
+export function AdvancedYieldsSearch({ setAdvancedSearch }: IAdvancedYieldSearchProps) {
+	const router = useRouter()
+
 	const [includeTokens, setIncludeTokens] = React.useState([])
 	const [excludeTokens, setExcludeTokens] = React.useState([])
 
@@ -23,10 +20,19 @@ export function AdvancedYieldsSearch({ setAdvancedSearch, setTokensToFilter }: I
 
 	const handleSubmit = (e) => {
 		e.preventDefault()
-		setTokensToFilter({
-			includeTokens: includeTokens.map((t) => t.label.toLowerCase()),
-			excludeTokens: excludeTokens.map((t) => t.label.toLowerCase())
-		})
+
+		router.push(
+			{
+				pathname: '/yields',
+				query: {
+					...router.query,
+					token: includeTokens.map((t) => t.label),
+					excludeToken: excludeTokens.map((t) => t.label)
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
 	}
 
 	const options = React.useMemo(() => {
