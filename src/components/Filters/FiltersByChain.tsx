@@ -45,7 +45,7 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 				pathname: '/yields',
 				query: {
 					...router.query,
-					chain: select.value.length === chainList.length ? 'All' : select.value
+					chain: select.value.length === 0 ? 'None' : select.value.length === chainList.length ? 'All' : select.value
 				}
 			},
 			undefined,
@@ -54,13 +54,17 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 	}
 
 	const toggleAll = () => {
-		select.setValue(select.value.length === chainList.length ? [] : chainList)
+		select.setValue(chainList)
+	}
+
+	const clear = () => {
+		select.setValue([])
 	}
 
 	return (
 		<>
 			<FilterButton state={select}>
-				Filter by Chain
+				<span>Filter by Chain</span>
 				<MenuButtonArrow />
 			</FilterButton>
 			<Dropdown state={select}>
@@ -69,7 +73,8 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 				{combobox.matches.length > 0 ? (
 					<>
 						<Stats>
-							<p>{`${select.value.length} selected`}</p>
+							<button onClick={clear}>clear</button>
+
 							<button onClick={toggleAll}>toggle all</button>
 						</Stats>
 						<List state={combobox} className="filter-by-list">

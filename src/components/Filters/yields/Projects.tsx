@@ -7,7 +7,7 @@ import { FilterButton } from '~/components/Select/AriakitSelect'
 import { Dropdown, Item, Stats } from '../shared'
 
 interface IYieldProjectsProps {
-	projectList: string[]
+	projectList: { name: string; slug: string }[]
 	selectedProjects: string[]
 }
 
@@ -22,7 +22,7 @@ export function YieldProjects({ projectList = [], selectedProjects }: IYieldProj
 		}
 	}, [selectedProjects])
 
-	const combobox = useComboboxState({ list: projectList })
+	const combobox = useComboboxState({ list: projectList.map((p) => p.slug) })
 	// value and setValue shouldn't be passed to the select state because the
 	// select value and the combobox value are different things.
 	const { value, setValue, ...selectProps } = combobox
@@ -54,13 +54,17 @@ export function YieldProjects({ projectList = [], selectedProjects }: IYieldProj
 	}
 
 	const toggleAll = () => {
-		select.setValue(select.value.length === projectList.length ? [] : projectList)
+		select.setValue(projectList.map((p) => p.slug))
+	}
+
+	const clear = () => {
+		select.setValue([])
 	}
 
 	return (
 		<>
 			<FilterButton state={select}>
-				Filter by Project
+				<span>Filter by Project</span>
 				<MenuButtonArrow />
 			</FilterButton>
 			<Dropdown state={select}>
@@ -69,13 +73,14 @@ export function YieldProjects({ projectList = [], selectedProjects }: IYieldProj
 				{combobox.matches.length > 0 ? (
 					<>
 						<Stats>
-							<p>{`${select.value.length} selected`}</p>
+							<button onClick={clear}>clear</button>
+
 							<button onClick={toggleAll}>toggle all</button>
 						</Stats>
 						<List state={combobox} className="filter-by-list">
 							{combobox.matches.map((value, i) => (
 								<Item value={value} key={value + i} focusOnHover>
-									<span>{value}</span>
+									<span>{projectList.find((p) => p.slug === value)?.name ?? value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
 								</Item>
 							))}

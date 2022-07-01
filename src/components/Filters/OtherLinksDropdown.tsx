@@ -21,7 +21,7 @@ export function OtherLinks({ options, name }: IProps) {
 
 	return (
 		<>
-			<Button state={menu}>
+			<Button state={menu} style={{ fontWeight: 600 }}>
 				<span>{name}</span>
 				<MenuButtonArrow />
 			</Button>

@@ -29,7 +29,7 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 
 		if (project) {
 			if (typeof project === 'string') {
-				selectedProjects = project === 'All' ? [...projectList] : [project]
+				selectedProjects = project === 'All' ? projectList.map((p) => p.slug) : [project]
 			} else {
 				selectedProjects = [...project]
 			}
@@ -122,7 +122,7 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 			}
 
 			if (selectedProjects.length > 0) {
-				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.projectName.toLowerCase())
+				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
 			}
 
 			const tokensInPool = curr.symbol.split('-').map((x) => x.toLowerCase())
@@ -223,10 +223,6 @@ const Dropdowns = styled.span`
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 20px;
-
-	button {
-		font-weight: 400;
-	}
 `
 
 const TableHeader = styled.h1`

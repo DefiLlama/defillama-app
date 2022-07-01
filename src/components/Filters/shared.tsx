@@ -29,17 +29,13 @@ export const Item = styled(FilterItem)`
 export const Stats = styled.span`
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
+	flex-wrap: wrap;
 	padding: 12px;
 	font-size: 0.75rem;
 	border-bottom: ${({ theme }) => '1px solid ' + transparentize(0.9, theme.text1)};
 
-	p {
-		color: ${({ theme }) => theme.text2};
-	}
-
 	button {
-		padding: 4px;
+		padding: 4px 0;
 		color: ${({ theme }) => theme.primary1};
 	}
 `

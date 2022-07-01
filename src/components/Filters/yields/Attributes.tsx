@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { ApplyFilters, Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
-import { FilterButton, FilterItem, FilterPopover } from '~/components/Select/AriakitSelect'
+import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
 import {
 	AUDITED,
 	MILLION_DOLLAR,
@@ -11,7 +11,7 @@ import {
 	STABLECOINS,
 	useLocalStorageContext
 } from '~/contexts/LocalStorage'
-import { Stats } from '../shared'
+import { Item, Stats } from '../shared'
 
 const options = [
 	{
@@ -64,25 +64,30 @@ export function YieldAttributes() {
 	}
 
 	const toggleAll = () => {
-		select.setValue(select.value.length === options.length ? [] : options.map((o) => o.key))
+		select.setValue(options.map((o) => o.key))
+	}
+
+	const clear = () => {
+		select.setValue([])
 	}
 
 	return (
 		<>
 			<FilterButton state={select}>
-				Filter by Attribute
+				<span>Filter by Attribute</span>
 				<MenuButtonArrow />
 			</FilterButton>
 			<FilterPopover state={select}>
 				<Stats>
-					<p>{`${select.value.length} selected`}</p>
+					<button onClick={clear}>clear</button>
+
 					<button onClick={toggleAll}>toggle all</button>
 				</Stats>
 				{options.map((option) => (
-					<FilterItem key={option.key} value={option.key}>
+					<Item key={option.key} value={option.key}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
 						<Checkbox checked={value.includes(option.key)} />
-					</FilterItem>
+					</Item>
 				))}
 				<ApplyFilters onClick={updateAttributes}>Apply Filters</ApplyFilters>
 			</FilterPopover>

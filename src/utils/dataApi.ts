@@ -1334,13 +1334,18 @@ export async function getYieldPageData(query = null) {
 		pools = pools.filter((p) => p.project !== 'anchor')
 
 		const chainList = new Set()
-		const projectSlugList = new Set()
-		const projectList = new Set()
+
+		const projectList = []
+
+		const projects = []
 
 		pools.forEach((p) => {
 			chainList.add(p.chain)
-			projectList.add(p.projectName)
-			projectSlugList.add(p.project)
+
+			if (!projects.includes(p.projectName)) {
+				projects.push(p.projectName)
+				projectList.push({ name: p.projectName, slug: p.project })
+			}
 		})
 
 		// for chain, project and pool queries
@@ -1354,8 +1359,7 @@ export async function getYieldPageData(query = null) {
 			props: {
 				pools,
 				chainList: Array.from(chainList),
-				projectSlugList: Array.from(projectSlugList),
-				projectList: Array.from(projectList)
+				projectList
 			}
 		}
 	} catch (e) {
