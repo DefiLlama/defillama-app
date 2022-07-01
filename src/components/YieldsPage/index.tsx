@@ -22,19 +22,20 @@ interface ITokensToIncludeAndExclude {
 
 const YieldPage = ({ pools, chainList, projectNameList }) => {
 	const selectedTab = chainList.length > 1 ? 'All' : chainList[0]
-	const [chainsToFilter, setChainsToFilter] = React.useState<string[]>(chainList)
 	const [tokensToFilter, setTokensToFilter] = React.useState<ITokensToIncludeAndExclude>({
 		includeTokens: [],
 		excludeTokens: []
 	})
 
 	const { query } = useRouter()
-	const { minTvl, maxTvl, project } = query
+	const { minTvl, maxTvl, project, chain } = query
 
-	const selectedProjects = React.useMemo(
-		() => (project ? (typeof project === 'string' ? [project] : project) : []),
-		[project]
-	)
+	const { selectedProjects, selectedChains } = React.useMemo(() => {
+		return {
+			selectedProjects: project ? (typeof project === 'string' ? [project] : project) : [],
+			selectedChains: chain ? (typeof chain === 'string' ? [chain] : chain) : []
+		}
+	}, [project, chain])
 
 	// if route query contains 'project' remove project href
 	const idx = columns.findIndex((c) => c.accessor === 'project')
@@ -103,7 +104,7 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 
 			const excludeToken = !tokensToFilter.excludeTokens.find((token) => tokensInPool.includes(token))
 
-			toFilter = toFilter && chainsToFilter.includes(curr.chain) && includeToken && excludeToken
+			toFilter = toFilter && selectedChains.includes(curr.chain) && includeToken && excludeToken
 
 			const isValidTvlRange =
 				(minTvl !== undefined && !Number.isNaN(Number(minTvl))) ||
@@ -133,14 +134,14 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 		minTvl,
 		maxTvl,
 		pools,
-		chainsToFilter,
 		audited,
 		millionDollar,
 		noIL,
 		singleExposure,
 		stablecoins,
 		tokensToFilter,
-		selectedProjects
+		selectedProjects,
+		selectedChains
 	])
 
 	let stepName = undefined
@@ -157,7 +158,7 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>
 				<Dropdowns>
-					<FiltersByChain chains={chainList} setChainsToFilter={setChainsToFilter} />
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} />
 					<YieldProjects projectNameList={projectNameList} selectedProjects={selectedProjects} />
 					<YieldAttributes />
 					<TVLRange />

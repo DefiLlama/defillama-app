@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { ApplyFilters, Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
@@ -6,18 +7,30 @@ import { FilterButton } from '~/components/Select/AriakitSelect'
 import { Dropdown, Item, Stats } from './shared'
 
 interface IFiltersByChainProps {
-	chains: string[]
-	setChainsToFilter: React.Dispatch<React.SetStateAction<string[]>>
+	chainList: string[]
+	selectedChains: string[]
 }
 
-export function FiltersByChain({ chains = [], setChainsToFilter }: IFiltersByChainProps) {
-	const combobox = useComboboxState({ list: chains })
+export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByChainProps) {
+	const router = useRouter()
+
+	const combobox = useComboboxState({ list: chainList })
+
+	const [chains, setChains] = React.useState<string[]>([])
+
+	React.useEffect(() => {
+		if (selectedChains) {
+			setChains(selectedChains)
+		}
+	}, [selectedChains])
+
 	// value and setValue shouldn't be passed to the select state because the
 	// select value and the combobox value are different things.
 	const { value, setValue, ...selectProps } = combobox
 	const select = useSelectState({
 		...selectProps,
-		defaultValue: chains,
+		value: chains,
+		setValue: (v) => setChains(v),
 		gutter: 8
 	})
 
@@ -27,11 +40,21 @@ export function FiltersByChain({ chains = [], setChainsToFilter }: IFiltersByCha
 	}
 
 	const filterChains = () => {
-		setChainsToFilter(select.value)
+		router.push(
+			{
+				pathname: '/yields',
+				query: {
+					...router.query,
+					chain: select.value
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
 	}
 
 	const toggleAll = () => {
-		select.setValue(select.value.length === chains.length ? [] : chains)
+		select.setValue(select.value.length === chainList.length ? [] : chainList)
 	}
 
 	return (
