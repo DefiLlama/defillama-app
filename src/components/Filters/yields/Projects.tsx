@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { ApplyFilters, Checkbox } from '~/components'
+import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
 import { FilterButton } from '~/components/Select/AriakitSelect'
 import { Dropdown, Item, Stats } from '../shared'
@@ -14,13 +13,19 @@ interface IYieldProjectsProps {
 export function YieldProjects({ projectList = [], selectedProjects }: IYieldProjectsProps) {
 	const router = useRouter()
 
-	const [projects, setProjects] = useState<string[]>([])
-
-	useEffect(() => {
-		if (selectedProjects) {
-			setProjects(selectedProjects)
-		}
-	}, [selectedProjects])
+	const addProject = (project) => {
+		router.push(
+			{
+				pathname: '/yields',
+				query: {
+					...router.query,
+					project: project
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
 
 	const combobox = useComboboxState({ list: projectList.map((p) => p.slug) })
 	// value and setValue shouldn't be passed to the select state because the
@@ -29,8 +34,8 @@ export function YieldProjects({ projectList = [], selectedProjects }: IYieldProj
 
 	const select = useSelectState({
 		...selectProps,
-		value: projects,
-		setValue: (v) => setProjects(v),
+		value: selectedProjects,
+		setValue: addProject,
 		gutter: 8
 	})
 
@@ -39,13 +44,13 @@ export function YieldProjects({ projectList = [], selectedProjects }: IYieldProj
 		combobox.setValue('')
 	}
 
-	const filterProjects = () => {
+	const toggleAll = () => {
 		router.push(
 			{
 				pathname: '/yields',
 				query: {
 					...router.query,
-					project: select.value.length === projectList.length ? 'All' : select.value
+					project: 'All'
 				}
 			},
 			undefined,
@@ -53,12 +58,18 @@ export function YieldProjects({ projectList = [], selectedProjects }: IYieldProj
 		)
 	}
 
-	const toggleAll = () => {
-		select.setValue(projectList.map((p) => p.slug))
-	}
-
 	const clear = () => {
-		select.setValue([])
+		router.push(
+			{
+				pathname: '/yields',
+				query: {
+					...router.query,
+					project: []
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
 	}
 
 	return (
@@ -89,8 +100,6 @@ export function YieldProjects({ projectList = [], selectedProjects }: IYieldProj
 				) : (
 					<p id="no-results">No results</p>
 				)}
-
-				<ApplyFilters onClick={filterProjects}>Apply Filters</ApplyFilters>
 			</Dropdown>
 		</>
 	)
