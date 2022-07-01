@@ -19,7 +19,7 @@ export function YieldProjects({ projectList = [], selectedProjects }: IYieldProj
 				pathname: '/yields',
 				query: {
 					...router.query,
-					project: project
+					project
 				}
 			},
 			undefined,

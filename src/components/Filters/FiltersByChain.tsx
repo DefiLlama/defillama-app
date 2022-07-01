@@ -1,7 +1,6 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { ApplyFilters, Checkbox } from '~/components'
+import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
 import { FilterButton } from '~/components/Select/AriakitSelect'
 import { Dropdown, Item, Stats } from './shared'
@@ -14,23 +13,28 @@ interface IFiltersByChainProps {
 export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByChainProps) {
 	const router = useRouter()
 
+	const addChain = (chain) => {
+		router.push(
+			{
+				pathname: '/yields',
+				query: {
+					...router.query,
+					chain
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
 	const combobox = useComboboxState({ list: chainList })
-
-	const [chains, setChains] = React.useState<string[]>([])
-
-	React.useEffect(() => {
-		if (selectedChains) {
-			setChains(selectedChains)
-		}
-	}, [selectedChains])
-
 	// value and setValue shouldn't be passed to the select state because the
 	// select value and the combobox value are different things.
 	const { value, setValue, ...selectProps } = combobox
 	const select = useSelectState({
 		...selectProps,
-		value: chains,
-		setValue: (v) => setChains(v),
+		value: selectedChains,
+		setValue: addChain,
 		gutter: 8
 	})
 
@@ -39,13 +43,13 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 		combobox.setValue('')
 	}
 
-	const filterChains = () => {
+	const toggleAll = () => {
 		router.push(
 			{
 				pathname: '/yields',
 				query: {
 					...router.query,
-					chain: select.value.length === 0 ? 'None' : select.value.length === chainList.length ? 'All' : select.value
+					chain: 'All'
 				}
 			},
 			undefined,
@@ -53,12 +57,18 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 		)
 	}
 
-	const toggleAll = () => {
-		select.setValue(chainList)
-	}
-
 	const clear = () => {
-		select.setValue([])
+		router.push(
+			{
+				pathname: '/yields',
+				query: {
+					...router.query,
+					chain: 'None'
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
 	}
 
 	return (
@@ -89,8 +99,6 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 				) : (
 					<p id="no-results">No results</p>
 				)}
-
-				<ApplyFilters onClick={filterChains}>Apply Filters</ApplyFilters>
 			</Dropdown>
 		</>
 	)
