@@ -5,7 +5,8 @@
 		"allowJs": true,
 		"baseUrl": ".",
 		"paths": {
-			"~/*": ["./src/*"]
+			"~/*": ["./src/*"],
+			"~/public/*": ["./public/*"]
 		},
 		"skipLibCheck": true,
 		"strict": false,
