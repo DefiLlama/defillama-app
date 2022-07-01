@@ -12,12 +12,9 @@ import {
 	useMillionDollarManager,
 	useAuditedManager
 } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter } from '~/utils'
 import { columns, TableWrapper } from './shared'
 
 const YieldPage = ({ pools, chainList, projectList }) => {
-	const selectedTab = chainList.length > 1 ? 'All' : chainList[0]
-
 	const { query } = useRouter()
 	const { minTvl, maxTvl, project, chain, token, excludeToken } = query
 
@@ -181,13 +178,9 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 		excludeTokens
 	])
 
-	let stepName = undefined
-	if (query.chain) stepName = selectedTab
-	else if (query.projectName) stepName = poolsData[0]?.project ?? capitalizeFirstLetter(query.projectName)
-
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Yields', name: stepName ?? 'All chains' }} />
+			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} />
 
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>
@@ -203,7 +196,7 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 				<TableWrapper data={poolsData} columns={columns} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					{stepName ? `${stepName} has no pools listed` : "Couldn't find any pools for these filters"}
+					Couldn't find any pools for these filters
 				</Panel>
 			)}
 		</>
