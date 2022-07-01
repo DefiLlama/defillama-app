@@ -45,7 +45,7 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 				pathname: '/yields',
 				query: {
 					...router.query,
-					chain: select.value
+					chain: select.value.length === chainList.length ? 'All' : select.value
 				}
 			},
 			undefined,

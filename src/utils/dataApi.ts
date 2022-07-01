@@ -1335,12 +1335,12 @@ export async function getYieldPageData(query = null) {
 
 		const chainList = new Set()
 		const projectSlugList = new Set()
-		const projectNameList = new Set()
+		const projectList = new Set()
 
 		pools.forEach((p) => {
 			chainList.add(p.chain)
+			projectList.add(p.projectName)
 			projectSlugList.add(p.project)
-			projectNameList.add(p.projectName)
 		})
 
 		// for chain, project and pool queries
@@ -1355,7 +1355,7 @@ export async function getYieldPageData(query = null) {
 				pools,
 				chainList: Array.from(chainList),
 				projectSlugList: Array.from(projectSlugList),
-				projectNameList: Array.from(projectNameList)
+				projectList: Array.from(projectList)
 			}
 		}
 	} catch (e) {

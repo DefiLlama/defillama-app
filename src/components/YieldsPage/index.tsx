@@ -20,7 +20,7 @@ interface ITokensToIncludeAndExclude {
 	excludeTokens: string[]
 }
 
-const YieldPage = ({ pools, chainList, projectNameList }) => {
+const YieldPage = ({ pools, chainList, projectList }) => {
 	const selectedTab = chainList.length > 1 ? 'All' : chainList[0]
 	const [tokensToFilter, setTokensToFilter] = React.useState<ITokensToIncludeAndExclude>({
 		includeTokens: [],
@@ -31,11 +31,30 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 	const { minTvl, maxTvl, project, chain } = query
 
 	const { selectedProjects, selectedChains } = React.useMemo(() => {
-		return {
-			selectedProjects: project ? (typeof project === 'string' ? [project] : project) : [],
-			selectedChains: chain ? (typeof chain === 'string' ? [chain] : chain) : []
+		let selectedProjects = [],
+			selectedChains = []
+
+		if (project) {
+			if (typeof project === 'string') {
+				selectedProjects = project === 'All' ? projectList : [project]
+			} else {
+				selectedProjects = [...project]
+			}
 		}
-	}, [project, chain])
+
+		if (chain) {
+			if (typeof chain === 'string') {
+				selectedChains = chain === 'All' ? chainList : [chain]
+			} else {
+				selectedChains = [...chain]
+			}
+		}
+
+		return {
+			selectedProjects,
+			selectedChains
+		}
+	}, [project, chain, projectList, chainList])
 
 	// if route query contains 'project' remove project href
 	const idx = columns.findIndex((c) => c.accessor === 'project')
@@ -159,7 +178,7 @@ const YieldPage = ({ pools, chainList, projectNameList }) => {
 				<TableHeader>Yield Rankings</TableHeader>
 				<Dropdowns>
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} />
-					<YieldProjects projectNameList={projectNameList} selectedProjects={selectedProjects} />
+					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} />
 					<YieldAttributes />
 					<TVLRange />
 				</Dropdowns>

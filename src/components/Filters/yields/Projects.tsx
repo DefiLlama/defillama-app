@@ -7,11 +7,11 @@ import { FilterButton } from '~/components/Select/AriakitSelect'
 import { Dropdown, Item, Stats } from '../shared'
 
 interface IYieldProjectsProps {
-	projectNameList: string[]
+	projectList: string[]
 	selectedProjects: string[]
 }
 
-export function YieldProjects({ projectNameList = [], selectedProjects }: IYieldProjectsProps) {
+export function YieldProjects({ projectList = [], selectedProjects }: IYieldProjectsProps) {
 	const router = useRouter()
 
 	const [projects, setProjects] = useState<string[]>([])
@@ -22,7 +22,7 @@ export function YieldProjects({ projectNameList = [], selectedProjects }: IYield
 		}
 	}, [selectedProjects])
 
-	const combobox = useComboboxState({ list: projectNameList })
+	const combobox = useComboboxState({ list: projectList })
 	// value and setValue shouldn't be passed to the select state because the
 	// select value and the combobox value are different things.
 	const { value, setValue, ...selectProps } = combobox
@@ -45,7 +45,7 @@ export function YieldProjects({ projectNameList = [], selectedProjects }: IYield
 				pathname: '/yields',
 				query: {
 					...router.query,
-					project: select.value
+					project: select.value.length === projectList.length ? 'All' : select.value
 				}
 			},
 			undefined,
@@ -54,7 +54,7 @@ export function YieldProjects({ projectNameList = [], selectedProjects }: IYield
 	}
 
 	const toggleAll = () => {
-		select.setValue(select.value.length === projectNameList.length ? [] : projectNameList)
+		select.setValue(select.value.length === projectList.length ? [] : projectList)
 	}
 
 	return (
