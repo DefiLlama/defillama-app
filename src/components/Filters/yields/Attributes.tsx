@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { MenuButtonArrow, useSelectState } from 'ariakit'
-import { ApplyFilters, Checkbox } from '~/components'
+import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
 import {
@@ -13,7 +12,7 @@ import {
 } from '~/contexts/LocalStorage'
 import { Item, Stats } from '../shared'
 
-const options = [
+export const options = [
 	{
 		name: 'Stablecoins',
 		key: STABLECOINS,
@@ -44,17 +43,10 @@ const options = [
 export function YieldAttributes() {
 	const [state, { updateKey }] = useLocalStorageContext()
 
-	const [value, setValue] = useState<string[]>(options.map((o) => o.key).filter((o) => state[o]))
-
-	const select = useSelectState({
-		value,
-		setValue: (values) => setValue(values),
-		gutter: 8
-	})
-
-	const updateAttributes = () => {
+	const updateAttributes = (updatedValues) => {
 		options.forEach((option) => {
-			const isSelected = value.includes(option.key)
+			const isSelected = updatedValues.includes(option.key)
+
 			const isEnabled = state[option.key]
 
 			if ((isEnabled && !isSelected) || (!isEnabled && isSelected)) {
@@ -63,12 +55,32 @@ export function YieldAttributes() {
 		})
 	}
 
+	const values = options.filter((o) => state[o.key]).map((o) => o.key)
+
+	const select = useSelectState({
+		value: values,
+		setValue: updateAttributes,
+		gutter: 8
+	})
+
 	const toggleAll = () => {
-		select.setValue(options.map((o) => o.key))
+		options.forEach((option) => {
+			const isEnabled = state[option.key]
+
+			if (!isEnabled) {
+				updateKey(option.key, true)
+			}
+		})
 	}
 
 	const clear = () => {
-		select.setValue([])
+		options.forEach((option) => {
+			const isEnabled = state[option.key]
+
+			if (isEnabled) {
+				updateKey(option.key, false)
+			}
+		})
 	}
 
 	return (
@@ -86,10 +98,9 @@ export function YieldAttributes() {
 				{options.map((option) => (
 					<Item key={option.key} value={option.key}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
-						<Checkbox checked={value.includes(option.key)} />
+						<Checkbox checked={values.includes(option.key)} />
 					</Item>
 				))}
-				<ApplyFilters onClick={updateAttributes}>Apply Filters</ApplyFilters>
 			</FilterPopover>
 		</>
 	)
