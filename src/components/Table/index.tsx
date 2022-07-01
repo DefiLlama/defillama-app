@@ -131,6 +131,8 @@ export const Index = styled.div`
 
 	svg {
 		flex-shrink: 0;
+		position: relative;
+		top: 1px;
 	}
 
 	& > a,
@@ -143,7 +145,6 @@ export const Index = styled.div`
 
 const SaveButton = styled(Bookmark)`
 	position: relative;
-	top: 2px;
 	flex-shrink: 0;
 `
 
