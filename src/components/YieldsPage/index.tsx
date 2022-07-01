@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { Panel } from '~/components'
 import { NameYield } from '~/components/Table'
-import { YieldAttributes, TVLRange, FiltersByChain, YieldProjects } from '~/components/Filters'
+import { YieldAttributes, TVLRange, FiltersByChain, YieldProjects, ResetAllYieldFilters } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
 import {
 	useNoILManager,
@@ -189,6 +189,7 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} />
 					<YieldAttributes />
 					<TVLRange />
+					<ResetAllYieldFilters />
 				</Dropdowns>
 			</TableFilters>
 

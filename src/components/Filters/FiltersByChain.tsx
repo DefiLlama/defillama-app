@@ -78,7 +78,7 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 				<MenuButtonArrow />
 			</FilterButton>
 			<Dropdown state={select}>
-				<Input state={combobox} placeholder="Search..." />
+				<Input state={combobox} placeholder="Search for chains..." />
 
 				{combobox.matches.length > 0 ? (
 					<>

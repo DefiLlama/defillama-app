@@ -12,7 +12,7 @@ import {
 } from '~/contexts/LocalStorage'
 import { Item, Stats } from '../shared'
 
-const options = [
+export const options = [
 	{
 		name: 'Stablecoins',
 		key: STABLECOINS,
