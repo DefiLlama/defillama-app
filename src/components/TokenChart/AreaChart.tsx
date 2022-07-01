@@ -7,7 +7,8 @@ import {
 	TitleComponent,
 	GridComponent,
 	DataZoomComponent,
-	GraphicComponent
+	GraphicComponent,
+	MarkLineComponent
 } from 'echarts/components'
 import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'
@@ -27,14 +28,22 @@ echarts.use([
 	TitleComponent,
 	GridComponent,
 	DataZoomComponent,
-	GraphicComponent
+	GraphicComponent,
+	MarkLineComponent
 ])
 
 const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
 `
 
-export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', title, color }: IChartProps) {
+export default function AreaChart({
+	chartData,
+	tokensUnique,
+	moneySymbol = '$',
+	title,
+	color,
+	hallmarks
+}: IChartProps) {
 	// For Tokens Chart
 	const [legendOptions, setLegendOptions] = useState<string[]>(tokensUnique)
 
@@ -70,7 +79,29 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
 						}
 					])
 				},
-				data: []
+				data: [],
+				...(hallmarks && {
+					markLine: {
+						data: hallmarks.map(([date, event]) => [
+							{
+								name: event,
+								xAxis: new Date(date * 1000),
+								yAxis: 0,
+								label: {
+									color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+									fontFamily: 'inter, sans-serif',
+									fontSize: 14,
+									fontWeight: 500
+								}
+							},
+							{
+								name: 'end',
+								xAxis: new Date(date * 1000),
+								yAxis: 'max'
+							}
+						])
+					}
+				})
 			}
 
 			chartData.forEach(([date, value]) => {
@@ -108,7 +139,7 @@ export default function AreaChart({ chartData, tokensUnique, moneySymbol = '$', 
 
 			return series
 		}
-	}, [chartData, tokensUnique, color, isDark, legendOptions])
+	}, [chartData, tokensUnique, color, isDark, legendOptions, hallmarks])
 
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 

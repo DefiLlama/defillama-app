@@ -413,7 +413,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 		historicalChainTvls,
 		chains = [],
 		forkedFrom,
-		otherProtocols
+		otherProtocols,
+		hallmarks
 	} = protocolData
 
 	const router = useRouter()
@@ -578,6 +579,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					color={backgroundColor}
 					historicalChainTvls={historicalChainTvls}
 					chains={chains}
+					hallmarks={hallmarks}
 					bobo={bobo}
 				/>
 

@@ -20,6 +20,7 @@ interface IProps {
 	historicalChainTvls: {}
 	chains: string[]
 	bobo?: boolean
+	hallmarks?: [number, string][]
 }
 
 export default function ProtocolChart({
@@ -28,7 +29,8 @@ export default function ProtocolChart({
 	color,
 	historicalChainTvls,
 	chains = [],
-	bobo = false
+	bobo = false,
+	hallmarks
 }: IProps) {
 	const router = useRouter()
 
@@ -128,7 +130,7 @@ export default function ProtocolChart({
 					</Link>
 				))}
 			</Denominations>
-			<AreaChart chartData={finalChartData} color={color} title="" moneySymbol={moneySymbol} />
+			<AreaChart chartData={finalChartData} color={color} title="" moneySymbol={moneySymbol} hallmarks={hallmarks} />
 		</Wrapper>
 	)
 }
