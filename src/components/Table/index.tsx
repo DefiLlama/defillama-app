@@ -580,7 +580,7 @@ interface INameYield extends Omit<NameProps, 'type'> {
 
 export function NameYield({ project, projectslug, rowType, ...props }: INameYield) {
 	const iconUrl = tokenIconUrl(project)
-	const tokenUrl = `/yields/project/${projectslug}`
+	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
 		<Index {...props}>

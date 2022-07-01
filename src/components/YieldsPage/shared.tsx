@@ -226,7 +226,7 @@ export const columns = [
 		accessor: 'chains',
 		disableSortBy: true,
 		helperText: "Chains are ordered by protocol's highest TVL on each chain",
-		Cell: ({ value }) => <IconsRow links={value} url="/yields/chain" iconType="chain" />
+		Cell: ({ value }) => <IconsRow links={value} url="/yields?chain" iconType="chain" />
 	},
 	...columnsToShow('tvl'),
 	{
