@@ -5,7 +5,7 @@ import Layout from '~/layout'
 import { CustomLink } from '~/components/Link'
 import { FullTable, Index } from '~/components/Table'
 import TokenLogo from '~/components/TokenLogo'
-import { chainIconUrl } from '~/utils'
+import { chainIconUrl, slug } from '~/utils'
 import { revalidate, getSimpleProtocolsPageData } from '~/utils/dataApi'
 
 export async function getStaticProps() {
@@ -112,7 +112,10 @@ export default function Chains({ data, columns }) {
 					)
 				}
 			},
-			...columns
+			...columns.map((column) => ({
+				...column,
+				Cell: ({ value }) => <CustomLink href={`/protocol/${slug(value)}`}>{value}</CustomLink>
+			}))
 		],
 		[columns]
 	)
