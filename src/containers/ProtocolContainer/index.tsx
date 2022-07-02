@@ -430,10 +430,6 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const [bobo, setBobo] = React.useState(false)
 
-	const { ref: addlChartsRef, inView: addlChartsInView } = useInView({
-		triggerOnce: true
-	})
-
 	const extraTvls = []
 	const tvls = []
 	const tvlOptions = []
@@ -454,7 +450,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked } = React.useMemo(
+	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD, chainsStacked } = React.useMemo(
 		() => buildProtocolData(addlProtocolData),
 		[addlProtocolData]
 	)
@@ -483,7 +479,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 	const showCharts =
 		loading ||
 		(chainsSplit && chainsUnique?.length > 1) ||
-		(tokenBreakdown?.length > 1 && tokensUnique?.length > 1) ||
+		(tokenBreakdown?.length > 1 && tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1) ||
 		tokensUnique?.length > 0 ||
 		usdInflows ||
 		tokenInflows
@@ -686,10 +682,10 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 			{showCharts && (
 				<>
-					<SectionHeader ref={addlChartsRef}>Charts</SectionHeader>
+					<SectionHeader>Charts</SectionHeader>
 
 					<ChartsWrapper>
-						{loading || !addlChartsInView ? (
+						{loading ? (
 							<span
 								style={{
 									height: '360px',
@@ -704,24 +700,29 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						) : (
 							<>
 								{chainsSplit && chainsUnique?.length > 1 && (
-									<ChartWrapper>
+									<Chart>
 										<AreaChart chartData={chainsSplit} tokensUnique={chainsUnique} title="Chains" />
-									</ChartWrapper>
+									</Chart>
 								)}
 								{tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
-									<ChartWrapper>
-										<AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} />
-									</ChartWrapper>
+									<Chart>
+										<AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} moneySymbol="" />
+									</Chart>
+								)}
+								{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
+									<Chart>
+										<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" tokensUnique={tokensUnique} />
+									</Chart>
 								)}
 								{usdInflows && (
-									<ChartWrapper>
+									<Chart>
 										<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" />
-									</ChartWrapper>
+									</Chart>
 								)}
 								{tokenInflows && (
-									<ChartWrapper>
+									<Chart>
 										<BarChart chartData={tokenInflows} title="Token Inflows" tokensUnique={tokensUnique} />
-									</ChartWrapper>
+									</Chart>
 								)}
 							</>
 						)}
@@ -730,6 +731,14 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			)}
 		</Layout>
 	)
+}
+
+const Chart = ({ children }) => {
+	const { ref, inView } = useInView({
+		triggerOnce: true
+	})
+
+	return <ChartWrapper ref={ref}>{inView && children}</ChartWrapper>
 }
 
 export default ProtocolContainer
