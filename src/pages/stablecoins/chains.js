@@ -3,7 +3,7 @@ import PeggedChainsOverview from '~/components/PeggedChainsOverview'
 import { getPeggedChainsPageData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps() {
-  const props = await getPeggedChainsPageData()
+	const props = await getPeggedChainsPageData()
 
 	if (!props.chainCirculatings || props.chainCirculatings?.length === 0) {
 		return {
@@ -17,27 +17,27 @@ export async function getStaticProps() {
 }
 
 export default function PeggedAssets({
-  chainCirculatings,
-  chartData,
-  peggedAreaChainData,
-  peggedAreaMcapData,
-  stackedDataset,
-  peggedChartType,
-  chainList,
-  chainsGroupbyParent,
+	chainCirculatings,
+	chartData,
+	peggedAreaChainData,
+	peggedAreaMcapData,
+	stackedDataset,
+	peggedChartType,
+	chainList,
+	chainsGroupbyParent
 }) {
-  return (
-    <Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO>
-      <PeggedChainsOverview
-        chainCirculatings={chainCirculatings}
-        chartData={chartData}
-        peggedAreaChainData={peggedAreaChainData}
-        peggedAreaMcapData={peggedAreaMcapData}
-        stackedDataset={stackedDataset}
-        peggedChartType={peggedChartType}
-        chainList={chainList}
-        chainsGroupbyParent={chainsGroupbyParent}
-      />
-    </Layout>
-  )
+	return (
+		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO>
+			<PeggedChainsOverview
+				chainCirculatings={chainCirculatings}
+				chartData={chartData}
+				peggedAreaChainData={peggedAreaChainData}
+				peggedAreaMcapData={peggedAreaMcapData}
+				stackedDataset={stackedDataset}
+				peggedChartType={peggedChartType}
+				chainList={chainList}
+				chainsGroupbyParent={chainsGroupbyParent}
+			/>
+		</Layout>
+	)
 }

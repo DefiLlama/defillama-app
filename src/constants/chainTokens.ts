@@ -634,11 +634,11 @@ export const chainCoingeckoIds = {
 		symbol: 'ACA',
 		cmcId: '6756'
 	},
-	"ICP": {
-    geckoId: "internet-computer",
-    symbol: "ICP",
-    cmcId: "8916",
-  }
+	ICP: {
+		geckoId: 'internet-computer',
+		symbol: 'ICP',
+		cmcId: '8916'
+	}
 }
 
 export const chainMarketplaceMappings = {

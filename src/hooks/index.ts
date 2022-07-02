@@ -62,13 +62,13 @@ export function useYieldApp() {
 }
 
 export function usePeggedApp() {
-  const router = useRouter()
-  return router.pathname.startsWith('/stablecoin') || router.pathname.startsWith('/stablecoins')
+	const router = useRouter()
+	return router.pathname.startsWith('/stablecoin') || router.pathname.startsWith('/stablecoins')
 }
 
 export function usePeggedChainOverview() {
-  const router = useRouter()
-  return router.pathname.startsWith('/stablecoins/chains')
+	const router = useRouter()
+	return router.pathname.startsWith('/stablecoins/chains')
 }
 
 export const useScrollToTop = () => {
