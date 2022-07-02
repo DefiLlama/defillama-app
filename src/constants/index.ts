@@ -43,10 +43,10 @@ export const NFT_CHAINS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaw
 export const NFT_MARKETPLACES_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/marketplaces'
 export const NFT_SEARCH_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/search'
 
-export const PEGGEDS_API = 'https://stablecoins.llama.fi/peggeds'
-export const PEGGED_API = 'https://stablecoins.llama.fi/pegged'
-export const PEGGEDCHART_API = 'https://stablecoins.llama.fi/peggedcharts'
-export const PEGGEDPRICES_API = 'https://stablecoins.llama.fi/peggedprices'
+export const PEGGEDS_API = 'https://kubymhn14j.execute-api.eu-central-1.amazonaws.com/dev/stablecoins'
+export const PEGGED_API = 'https://kubymhn14j.execute-api.eu-central-1.amazonaws.com/dev/stablecoin'
+export const PEGGEDCHART_API = 'https://kubymhn14j.execute-api.eu-central-1.amazonaws.com/dev/stablecoinchart'
+export const PEGGEDDOMINANCE_API = 'https://kubymhn14j.execute-api.eu-central-1.amazonaws.com/dev/stablecoindominance'
 
 export const YIELD_POOLS_API = 'https://yields.llama.fi/poolsEnriched'
 export const YIELD_CHART_API = 'https://yields.llama.fi/chart'

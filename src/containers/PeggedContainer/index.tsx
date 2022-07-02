@@ -77,9 +77,9 @@ const Symbol = styled.span`
 	font-weight: 400;
 `
 
-const Table = styled(FullTable)<ITable>`
+const Table = styled(FullTable)`
 	tr > :first-child {
-		padding-left: ${({ showByGroup }) => (showByGroup ? '40px' : '20px')};
+		padding-left: '40px';
 	}
 
 	tr > *:not(:first-child) {
@@ -479,10 +479,6 @@ const FlexRow = styled.p`
 	gap: 8px;
 `
 
-interface ITable {
-	showByGroup?: boolean
-}
-
 const Capitalize = (str) => {
 	return str.charAt(0).toUpperCase() + str.slice(1)
 }
@@ -514,8 +510,6 @@ const columns = [
 export default function PeggedContainer({
 	chainsUnique,
 	chainCirculatings,
-	category,
-	categories,
 	stackedDataset,
 	peggedAssetData,
 	totalCirculating,
@@ -590,8 +584,6 @@ export default function PeggedContainer({
 			})
 		download('peggedAssetChains.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
-
-	const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
 
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
 
@@ -865,7 +857,7 @@ export default function PeggedContainer({
 				</div>
 			</Stats>
 
-			<Table data={groupedChains} columns={columns} showByGroup={showByGroup} />
+			<Table data={groupedChains} columns={columns} />
 		</Layout>
 	)
 }

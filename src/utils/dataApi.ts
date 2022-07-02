@@ -19,7 +19,7 @@ import {
 	PEGGED_API,
 	PEGGEDS_API,
 	PEGGEDCHART_API,
-	PEGGEDPRICES_API
+	PEGGEDDOMINANCE_API,
 } from '~/constants/index'
 import {
 	getPercentChange,
@@ -195,6 +195,7 @@ const formatPeggedAssetsData = ({
 	peggedAssetProps = [...peggedPropertiesToKeep]
 }) => {
 	let filteredPeggedAssets = [...peggedAssets]
+	
 	if (chain) {
 		filteredPeggedAssets = filteredPeggedAssets.filter(({ chains = [] }) => chains.includes(chain))
 	}
@@ -230,7 +231,7 @@ const formatPeggedAssetsData = ({
 	if (chain) {
 		filteredPeggedAssets = filteredPeggedAssets.sort((a, b) => b.mcap - a.mcap)
 	}
-
+	
 	return filteredPeggedAssets
 }
 
@@ -259,13 +260,13 @@ const formatPeggedChainsData = ({
 		chainData.unreleased = getPrevCirculatingFromChart(chart, 0, 'unreleased', pegType)
 		chainData.bridgedTo = getPrevCirculatingFromChart(chart, 0, 'bridgedTo', pegType)
 		chainData.minted = getPrevCirculatingFromChart(chart, 0, 'minted', pegType)
-		chainData.circulatingPrevDay = getPrevCirculatingFromChart(chart, 1, 'totalCirculating', pegType)
-		chainData.circulatingPrevWeek = getPrevCirculatingFromChart(chart, 7, 'totalCirculating', pegType)
-		chainData.circulatingPrevMonth = getPrevCirculatingFromChart(chart, 30, 'totalCirculating', pegType)
+		chainData.mcapPrevDay = chart[chart.length - 2]?.mcap ?? 0
+		chainData.mcapPrevWeek = chart[chart.length - 8]?.mcap ?? 0
+		chainData.mcapPrevMonth = chart[chart.length - 31]?.mcap ?? 0
 
-		chainData.change_1d = getPercentChange(chainData.circulating, chainData.circulatingPrevDay)
-		chainData.change_7d = getPercentChange(chainData.circulating, chainData.circulatingPrevWeek)
-		chainData.change_1m = getPercentChange(chainData.circulating, chainData.circulatingPrevMonth)
+		chainData.change_1d = getPercentChange(chainData.mcap, chainData.mcapPrevDay)
+		chainData.change_7d = getPercentChange(chainData.mcap, chainData.mcapPrevWeek)
+		chainData.change_1m = getPercentChange(chainData.mcap, chainData.mcapPrevMonth)
 
 		chainData.dominance = chainDominance
 			? {
@@ -325,7 +326,8 @@ export async function getSimpleProtocolsPageData(propsToKeep?: string[]) {
 
 export async function getPeggedOverviewPageData(chain) {
 	const { peggedAssets, chains } = await getPeggedAssets()
-	const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '')).then((r) => r.json())
+
+	const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '/all')).then((r) => r.json())
 
 	let chartDataByPeggedAsset = []
 	let peggedAssetNames: string[] = [] // fix name of this variable
@@ -341,7 +343,7 @@ export async function getPeggedOverviewPageData(chain) {
 			for (let i = 0; i < 5; i++) {
 				try {
 					if (!chain) {
-						return await fetch(`${PEGGEDCHART_API}/?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
+						return await fetch(`${PEGGEDCHART_API}/all?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
 					}
 					return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
 				} catch (e) {}
@@ -377,7 +379,7 @@ export async function getPeggedOverviewPageData(chain) {
 	if (chain) {
 		peggedMcapChartData = await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
 	} else {
-		peggedMcapChartData = await fetch(`${PEGGEDCHART_API}`).then((resp) => resp.json())
+		peggedMcapChartData = await fetch(`${PEGGEDCHART_API}/all`).then((resp) => resp.json())
 	}
 
 	let peggedAreaMcapData = {}
@@ -458,7 +460,7 @@ export async function getPeggedChainsPageData() {
 	const { peggedAssets, chains } = await getPeggedAssets()
 	const { chainCoingeckoIds } = await fetch(CONFIG_API).then((r) => r.json())
 
-	const chartData = await fetch(PEGGEDCHART_API).then((r) => r.json())
+	const chartData = await fetch(`${PEGGEDCHART_API}/all`).then((r) => r.json())
 
 	const chainList = await chains.sort((a, b) => b.mcap - a.mcap).map((chain) => chain.name)
 	const chainsSet = new Set()
@@ -539,7 +541,7 @@ export async function getPeggedChainsPageData() {
 	})
 
 	let peggedMcapChartData = []
-	peggedMcapChartData = await fetch(`${PEGGEDCHART_API}`).then((resp) => resp.json())
+	peggedMcapChartData = await fetch(`${PEGGEDCHART_API}/all`).then((resp) => resp.json())
 
 	let peggedAreaMcapData = {}
 	peggedMcapChartData.map((chart) => {
@@ -556,11 +558,24 @@ export async function getPeggedChainsPageData() {
 		}
 	})
 
+	let peggedDomDataByChain = []
+	peggedDomDataByChain = await Promise.all(
+		chainList.map(async (chain) => {
+			for (let i = 0; i < 5; i++) {
+				try {
+					const res = await fetch(`${PEGGEDDOMINANCE_API}/${chain}`).then((resp) => resp.json())
+					return res
+				} catch (e) {}
+			}
+			throw new Error(`${PEGGEDDOMINANCE_API}/${chain} is broken`)
+		})
+	)
+
 	let chainDominances = {}
-	peggedChartDataByChain.map((charts, i) => {
+	peggedDomDataByChain.map((charts, i) => {
 		const lastChart = charts[charts.length - 1]
 		if (!lastChart) return
-		const greatestChainMcap = lastChart.greatestChainMcap
+		const greatestChainMcap = lastChart.greatestMcap
 		const chainName = chainList[i]
 		chainDominances[chainName] = greatestChainMcap
 	})
@@ -863,8 +878,6 @@ export const getPeggedAssets = () =>
 			chains
 		}))
 
-export const getPeggedPrices = () => fetch(PEGGEDPRICES_API).then((r) => r.json())
-
 export const getPeggedBridgeInfo = () =>
 	fetch('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json').then((r) => r.json())
 
@@ -1029,7 +1042,7 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
 		[`${PEGGED_API}/${peggedasset}`, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
 	)
 
-	const peggedChart = await fetch(`${PEGGEDCHART_API}/?peggedAsset=${res.gecko_id}`).then((resp) => resp.json())
+	const peggedChart = await fetch(`${PEGGEDCHART_API}/all?peggedAsset=${res.gecko_id}`).then((resp) => resp.json())
 	const bridgeInfo = await getPeggedBridgeInfo()
 	const pegType = res.pegType
 
@@ -1037,43 +1050,7 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
 	const unreleased = getPrevCirculatingFromChart(peggedChart, 0, 'unreleased', pegType)
 	const mcap = peggedChart[peggedChart.length - 1]?.mcap ?? null
 
-	let categories = []
-	for (const chain in chainCoingeckoIds) {
-		chainCoingeckoIds[chain].categories?.forEach((category) => {
-			if (!categories.includes(category)) {
-				categories.push(category)
-			}
-		})
-	}
-
-	const categoryExists = categories.includes(category) || category === 'All' || category === 'Non-EVM'
-
-	if (!categoryExists) {
-		return {
-			notFound: true
-		}
-	} else {
-		categories = [
-			{ label: 'All', to: `/peggedasset/${peggedasset}` },
-			{ label: 'Non-EVM', to: `/peggedasset/${peggedasset}/Non-EVM` }
-		].concat(
-			categories.map((category) => ({
-				label: category,
-				to: `/peggedasset/${peggedasset}/${category}`
-			}))
-		)
-	}
-
-	const chainsUnique: string[] = res.chains.filter((t: string) => {
-		const chainCategories = chainCoingeckoIds[t]?.categories ?? []
-		if (category === 'All') {
-			return true
-		} else if (category === 'Non-EVM') {
-			return !chainCategories.includes('EVM')
-		} else {
-			return chainCategories.includes(category)
-		}
-	})
+	const chainsUnique: string[] = res.chains
 
 	let chainsGroupbyParent = {}
 	chainsUnique.forEach((chain) => {
@@ -1153,8 +1130,6 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
 		props: {
 			chainsUnique,
 			chainCirculatings,
-			category,
-			categories,
 			stackedDataset,
 			peggedAssetData: res,
 			totalCirculating,

@@ -240,7 +240,6 @@ const columns = [
 
 function PeggedChainsOverview({
 	title,
-	category,
 	chainCirculatings,
 	chartData,
 	peggedAreaChainData,
