@@ -98,7 +98,7 @@ export default function AreaChart({
 								name: 'end',
 								xAxis: new Date(date * 1000),
 								yAxis: 'max',
-								y: Math.max(150 - index * 30, 40)
+								y: Math.max(hallmarks.length * 40 - index * 40, 40)
 							}
 						])
 					}
