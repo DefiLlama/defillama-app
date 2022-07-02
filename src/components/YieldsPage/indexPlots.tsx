@@ -24,6 +24,12 @@ interface IChartProps {
 const ScatterChart = dynamic(() => import('~/components/TokenChart/ScatterChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
+const BoxplotChart = dynamic(() => import('~/components/TokenChart/BoxplotChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
+const TreemapChart = dynamic(() => import('~/components/TokenChart/TreemapChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
 
 const PlotsPage = ({ pools, chainList, projectList }) => {
 	const { query } = useRouter()
@@ -168,6 +174,8 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 				</Dropdowns>
 			</TableFilters>
 			<ScatterChart chartData={poolsData}></ScatterChart>
+			<BoxplotChart chartData={poolsData}></BoxplotChart>
+			<TreemapChart chartData={poolsData}></TreemapChart>
 		</>
 	)
 }
