@@ -21,6 +21,21 @@ const nextConfig = {
 				source: '/langs',
 				destination: '/languages',
 				permanent: true
+			},
+			{
+				source: '/yields/project/:path*',
+				destination: '/yields?project=:path*',
+				permanent: true
+			},
+			{
+				source: '/yields/token/:path*',
+				destination: '/yields?token=:path*',
+				permanent: true
+			},
+			{
+				source: '/yields/chain/:path*',
+				destination: '/yields?chain=:path*',
+				permanent: true
 			}
 		]
 	},

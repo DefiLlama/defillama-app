@@ -50,7 +50,7 @@ const Link = styled(BasicLink)`
 
 export const ChainLogo = ({ chain, url, iconType }) => {
 	return (
-		<Link key={chain} href={`${url}/${chain}`}>
+		<Link key={chain} href={url.includes('/yields?chain') ? `${url}=${chain}` : `${url}/${chain}`}>
 			<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
 		</Link>
 	)

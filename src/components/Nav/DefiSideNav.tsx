@@ -64,7 +64,7 @@ const NavMenu = () => {
 			<Entry url="/airdrops" name="Airdrops" Icon={CloudDrizzle} />
 			<Entry url="/oracles" name="Oracles" Icon={Shield} />
 			<Entry url="/forks" name="Forks" Icon={Share2} />
-			<Entry url="/peggedassets/stablecoins" name="Stablecoins" Icon={Pocket} newTag />
+			<Entry url="/stablecoins" name="Stablecoins" Icon={Pocket} newTag />
 			<Entry url="/watchlist" name="Watchlist" Icon={Bookmark} />
 			<Entry url="/top-protocols" name="Top Protocols" Icon={Map} />
 			<Entry url="/categories" name="Categories" Icon={RefreshCcw} />

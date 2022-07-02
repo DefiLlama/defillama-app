@@ -6,6 +6,10 @@ export const ListOptions = styled.nav`
 	gap: 10px;
 	overflow: hidden;
 	margin: 0 0 -20px;
+
+	button {
+		font-weight: 600;
+	}
 `
 
 export const ListHeader = styled.h3`

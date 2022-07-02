@@ -78,9 +78,6 @@ export function getProtocolNames(protocols) {
 	return protocols.map((p) => ({ name: p.name, symbol: p.symbol }))
 }
 
-export const categoryToPegType = {
-	stablecoins: 'peggedUSD'
-}
 export const peggedPropertiesToKeep = [
 	'circulating',
 	'minted',
@@ -195,7 +192,6 @@ const formatProtocolsData = ({
 
 const formatPeggedAssetsData = ({
 	chain = '',
-	category = '',
 	peggedAssets = [],
 	chartDataByPeggedAsset = [],
 	peggedNameToIndexObj = {},
@@ -204,13 +200,6 @@ const formatPeggedAssetsData = ({
 	let filteredPeggedAssets = [...peggedAssets]
 	if (chain) {
 		filteredPeggedAssets = filteredPeggedAssets.filter(({ chains = [] }) => chains.includes(chain))
-	}
-
-	if (category) {
-		filteredPeggedAssets = filteredPeggedAssets.filter(
-			({ category: peggedCategory = '' }) =>
-				category.toLowerCase() === (peggedCategory ? peggedCategory.toLowerCase() : '')
-		)
 	}
 
 	filteredPeggedAssets = filteredPeggedAssets.map((pegged) => {
@@ -337,7 +326,7 @@ export async function getSimpleProtocolsPageData(propsToKeep?: string[]) {
 	return { protocols: filteredProtocols, chains }
 }
 
-export async function getPeggedOverviewPageData(category, chain) {
+export async function getPeggedOverviewPageData(chain) {
 	const { peggedAssets, chains } = await getPeggedAssets()
 	const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '')).then((r) => r.json())
 
@@ -434,12 +423,12 @@ export async function getPeggedOverviewPageData(category, chain) {
 	const chainList = await chains.sort((a, b) => b.mcap - a.mcap).map((chain) => chain.name)
 	const chainsSet = new Set()
 
-	peggedAssets.forEach(({ chains, category: pCategory }) => {
+	peggedAssets.forEach(({ chains }) => {
 		chains.forEach((chain) => {
-			if (!category || !chain) {
+			if (!chain) {
 				chainsSet.add(chain)
 			} else {
-				if (pCategory?.toLowerCase() === category?.toLowerCase() && chainList.includes(chain)) {
+				if (chainList.includes(chain)) {
 					chainsSet.add(chain)
 				}
 			}
@@ -447,7 +436,6 @@ export async function getPeggedOverviewPageData(category, chain) {
 	})
 
 	const filteredPeggedAssets = formatPeggedAssetsData({
-		category,
 		peggedAssets,
 		chartDataByPeggedAsset,
 		peggedNameToIndexObj,
@@ -457,7 +445,6 @@ export async function getPeggedOverviewPageData(category, chain) {
 	const peggedChartType = stackedDataset.length > 30 ? 'Area' : 'Pie'
 
 	return {
-		peggedcategory: category,
 		chains: chainList.filter((chain) => chainsSet.has(chain)),
 		filteredPeggedAssets,
 		peggedAssetNames,
@@ -470,7 +457,7 @@ export async function getPeggedOverviewPageData(category, chain) {
 	}
 }
 
-export async function getPeggedChainsPageData(category) {
+export async function getPeggedChainsPageData() {
 	const { peggedAssets, chains } = await getPeggedAssets()
 	const { chainCoingeckoIds } = await fetch(CONFIG_API).then((r) => r.json())
 
@@ -508,12 +495,12 @@ export async function getPeggedChainsPageData(category) {
 		}
 	})
 
-	peggedAssets.forEach(({ chains, category: pCategory }) => {
+	peggedAssets.forEach(({ chains }) => {
 		chains.forEach((chain) => {
-			if (!category || !chain) {
+			if (!chain) {
 				chainsSet.add(chain)
 			} else {
-				if (pCategory?.toLowerCase() === category?.toLowerCase() && chainList.includes(chain)) {
+				if (chainList.includes(chain)) {
 					chainsSet.add(chain)
 				}
 			}
@@ -581,7 +568,7 @@ export async function getPeggedChainsPageData(category) {
 		chainDominances[chainName] = greatestChainMcap
 	})
 
-	const pegType = categoryToPegType[category]
+	const pegType = 'peggedUSD'
 	const stackedDataset = Object.entries(
 		peggedChartDataByChain.reduce((total: IStackedDataset, charts, i) => {
 			if (!charts.length) return total
@@ -614,7 +601,6 @@ export async function getPeggedChainsPageData(category) {
 	const peggedChartType = stackedDataset.length > 30 ? 'Area' : 'Pie'
 
 	return {
-		peggedcategory: category,
 		chainCirculatings,
 		chartData,
 		peggedAreaChainData,
@@ -883,7 +869,7 @@ export const getPeggedAssets = () =>
 export const getPeggedPrices = () => fetch(PEGGEDPRICES_API).then((r) => r.json())
 
 export const getPeggedBridgeInfo = () =>
-	fetch('https://cocoahomology-datasets.s3.amazonaws.com/bridgeInfo.json').then((r) => r.json())
+	fetch('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json').then((r) => r.json())
 
 export const getChainsPageData = async (category: string) => {
 	const [res, { chainCoingeckoIds }] = await Promise.all(
@@ -1336,8 +1322,20 @@ export async function getYieldPageData(query = null) {
 		// remove anchor cause UST dead
 		pools = pools.filter((p) => p.project !== 'anchor')
 
-		const chainList = [...new Set(pools.map((p) => p.chain))]
-		const projectList = [...new Set(pools.map((p) => p.project))]
+		const chainList = new Set()
+
+		const projectList = []
+
+		const projects = []
+
+		pools.forEach((p) => {
+			chainList.add(p.chain)
+
+			if (!projects.includes(p.projectName)) {
+				projects.push(p.projectName)
+				projectList.push({ name: p.projectName, slug: p.project })
+			}
+		})
 
 		// for chain, project and pool queries
 		if (query !== null && Object.keys(query)[0] !== 'token') {
@@ -1349,7 +1347,7 @@ export async function getYieldPageData(query = null) {
 		return {
 			props: {
 				pools,
-				chainList,
+				chainList: Array.from(chainList),
 				projectList
 			}
 		}

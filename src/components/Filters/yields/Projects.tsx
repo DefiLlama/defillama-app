@@ -3,23 +3,23 @@ import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
 import { FilterButton } from '~/components/Select/AriakitSelect'
-import { Dropdown, Item, Stats } from './shared'
+import { Dropdown, Item, Stats } from '../shared'
 
-interface IFiltersByChainProps {
-	chainList: string[]
-	selectedChains: string[]
+interface IYieldProjectsProps {
+	projectList: { name: string; slug: string }[]
+	selectedProjects: string[]
 }
 
-export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByChainProps) {
+export function YieldProjects({ projectList = [], selectedProjects }: IYieldProjectsProps) {
 	const router = useRouter()
 
-	const addChain = (chain) => {
+	const addProject = (project) => {
 		router.push(
 			{
 				pathname: '/yields',
 				query: {
 					...router.query,
-					chain
+					project
 				}
 			},
 			undefined,
@@ -27,14 +27,15 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 		)
 	}
 
-	const combobox = useComboboxState({ list: chainList })
+	const combobox = useComboboxState({ list: projectList.map((p) => p.slug) })
 	// value and setValue shouldn't be passed to the select state because the
 	// select value and the combobox value are different things.
 	const { value, setValue, ...selectProps } = combobox
+
 	const select = useSelectState({
 		...selectProps,
-		value: selectedChains,
-		setValue: addChain,
+		value: selectedProjects,
+		setValue: addProject,
 		gutter: 8
 	})
 
@@ -49,7 +50,7 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 				pathname: '/yields',
 				query: {
 					...router.query,
-					chain: 'All'
+					project: 'All'
 				}
 			},
 			undefined,
@@ -63,7 +64,7 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 				pathname: '/yields',
 				query: {
 					...router.query,
-					chain: 'None'
+					project: []
 				}
 			},
 			undefined,
@@ -74,11 +75,11 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 	return (
 		<>
 			<FilterButton state={select}>
-				<span>Filter by Chain</span>
+				<span>Filter by Project</span>
 				<MenuButtonArrow />
 			</FilterButton>
 			<Dropdown state={select}>
-				<Input state={combobox} placeholder="Search for chains..." />
+				<Input state={combobox} placeholder="Search for projects..." />
 
 				{combobox.matches.length > 0 ? (
 					<>
@@ -90,7 +91,7 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 						<List state={combobox} className="filter-by-list">
 							{combobox.matches.map((value, i) => (
 								<Item value={value} key={value + i} focusOnHover>
-									<span>{value}</span>
+									<span>{projectList.find((p) => p.slug === value)?.name ?? value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
 								</Item>
 							))}

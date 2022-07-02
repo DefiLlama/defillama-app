@@ -131,6 +131,8 @@ export const Index = styled.div`
 
 	svg {
 		flex-shrink: 0;
+		position: relative;
+		top: 1px;
 	}
 
 	& > a,
@@ -143,7 +145,7 @@ export const Index = styled.div`
 
 const SaveButton = styled(Bookmark)`
 	position: relative;
-	top: 2px;
+	flex-shrink: 0;
 `
 
 const HeaderButton = styled.button`
@@ -522,10 +524,10 @@ export function Name({
 			tokenUrl = `/${type}/${value}`
 			iconUrl = chainIconUrl(value)
 		} else if (type === 'peggedAssetChain' && !value.includes('Bridged from')) {
-			tokenUrl = `/peggedassets/stablecoins/${value}`
+			tokenUrl = `/stablecoins/${value}`
 			iconUrl = chainIconUrl(value)
 		} else if (type === 'peggedAsset') {
-			tokenUrl = `/peggedasset/${slug(value)}`
+			tokenUrl = `/stablecoin/${slug(value)}`
 			iconUrl = peggedAssetIconUrl(value)
 		} else {
 			tokenUrl = `/${type}/${slug(value)}`
@@ -580,7 +582,7 @@ interface INameYield extends Omit<NameProps, 'type'> {
 
 export function NameYield({ project, projectslug, rowType, ...props }: INameYield) {
 	const iconUrl = tokenIconUrl(project)
-	const tokenUrl = `/yields/project/${projectslug}`
+	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
 		<Index {...props}>
@@ -629,12 +631,6 @@ export function NameYieldPool({
 			</CustomLink>
 		</Index>
 	)
-}
-
-type PeggedCategories = 'stablecoins' | 'peggedUSD'
-
-export function isOfTypePeggedCategory(peggedCategory: string): peggedCategory is PeggedCategories {
-	return ['stablecoins', 'peggedUSD'].includes(peggedCategory)
 }
 
 type Columns =

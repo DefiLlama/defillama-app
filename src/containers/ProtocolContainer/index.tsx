@@ -2,6 +2,7 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { useInView, defaultFallbackInView } from 'react-intersection-observer'
@@ -21,7 +22,7 @@ import { extraTvlOptions } from '~/components/SettingsModal'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
 import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, toK } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName, toK } from '~/utils'
 import { useFetchProtocol } from '~/utils/dataApi'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
@@ -36,8 +37,8 @@ const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
 }) as React.FC<IChartProps>
 
 const Stats = styled.section`
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: 1fr;
 	border-radius: 12px;
 	background: ${({ theme }) => theme.bg6};
 	border: ${({ theme }) => '1px solid ' + theme.divider};
@@ -46,7 +47,7 @@ const Stats = styled.section`
 	isolation: isolate;
 
 	@media (min-width: 80rem) {
-		flex-direction: row;
+		grid-template-columns: auto 1fr;
 	}
 `
 
@@ -57,15 +58,11 @@ const ProtocolDetails = styled.div`
 	padding: 24px;
 	padding-bottom: calc(24px + 0.4375rem);
 	color: ${({ theme }) => theme.text1};
-	border-top-left-radius: 12px;
-	border-top-right-radius: 12px;
 	background: ${({ theme }) => theme.bg7};
-	overflow: auto;
+	grid-column: span 1;
 
 	@media (min-width: 80rem) {
 		min-width: 380px;
-		border-top-right-radius: 0;
-		border-bottom-right-radius: 0;
 		border-bottom-left-radius: 12px;
 	}
 `
@@ -351,6 +348,44 @@ const ChartWrapper = styled.section`
 	}
 `
 
+const OtherProtocols = styled.nav`
+	grid-column: span 1;
+	display: flex;
+	overflow-x: auto;
+	background: ${({ theme }) => theme.bg7};
+	font-weight: 500;
+	border-radius: 12px 0;
+
+	@media (min-width: 80rem) {
+		grid-column: span 2;
+	}
+`
+
+interface IProtocolLink {
+	active: boolean
+	color: string | null
+}
+
+const ProtocolLink = styled.a<IProtocolLink>`
+	padding: 8px 20px;
+	white-space: nowrap;
+
+	& + & {
+		border-left: ${({ theme }) => '1px solid ' + theme.divider};
+	}
+
+	border-bottom: ${({ active, color, theme }) => '1px solid ' + (active ? color : theme.divider)};
+
+	:first-child {
+		border-top-left-radius: 12px;
+	}
+
+	:hover,
+	:focus-visible {
+		background-color: ${({ color }) => transparentize(0.9, color)};
+	}
+`
+
 interface IProtocolContainerProps {
 	title: string
 	protocol: string
@@ -382,18 +417,18 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 		module: codeModule,
 		historicalChainTvls,
 		chains = [],
-		forkedFrom
+		forkedFrom,
+		otherProtocols,
+		hallmarks
 	} = protocolData
+
+	const router = useRouter()
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
 	const totalVolume = useCalcSingleExtraTvl(tvlBreakdowns, tvl)
 
 	const [bobo, setBobo] = React.useState(false)
-
-	const { ref: addlChartsRef, inView: addlChartsInView } = useInView({
-		triggerOnce: true
-	})
 
 	const extraTvls = []
 	const tvls = []
@@ -415,7 +450,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked } = React.useMemo(
+	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD, chainsStacked } = React.useMemo(
 		() => buildProtocolData(addlProtocolData),
 		[addlProtocolData]
 	)
@@ -444,7 +479,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 	const showCharts =
 		loading ||
 		(chainsSplit && chainsUnique?.length > 1) ||
-		(tokenBreakdown?.length > 1 && tokensUnique?.length > 1) ||
+		(tokenBreakdown?.length > 1 && tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1) ||
 		tokensUnique?.length > 0 ||
 		usdInflows ||
 		tokenInflows
@@ -458,7 +493,21 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
 
 			<Stats>
-				<ProtocolDetails>
+				{otherProtocols?.length > 1 && (
+					<OtherProtocols>
+						{otherProtocols.map((p) => (
+							<Link href={`/protocol/${standardizeProtocolName(p)}`} key={p} passHref>
+								<ProtocolLink
+									active={router.asPath === `/protocol/${standardizeProtocolName(p)}`}
+									color={backgroundColor}
+								>
+									{p}
+								</ProtocolLink>
+							</Link>
+						))}
+					</OtherProtocols>
+				)}
+				<ProtocolDetails style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
 					<ProtocolName>
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
@@ -531,6 +580,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					color={backgroundColor}
 					historicalChainTvls={historicalChainTvls}
 					chains={chains}
+					hallmarks={hallmarks}
 					bobo={bobo}
 				/>
 
@@ -632,10 +682,10 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 			{showCharts && (
 				<>
-					<SectionHeader ref={addlChartsRef}>Charts</SectionHeader>
+					<SectionHeader>Charts</SectionHeader>
 
 					<ChartsWrapper>
-						{loading || !addlChartsInView ? (
+						{loading ? (
 							<span
 								style={{
 									height: '360px',
@@ -650,24 +700,29 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						) : (
 							<>
 								{chainsSplit && chainsUnique?.length > 1 && (
-									<ChartWrapper>
-										<AreaChart chartData={chainsSplit} tokensUnique={chainsUnique} title="Chains" hideLogo={true} />
-									</ChartWrapper>
+									<Chart>
+										<AreaChart chartData={chainsSplit} tokensUnique={chainsUnique} title="Chains" />
+									</Chart>
 								)}
 								{tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
-									<ChartWrapper>
-										<AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} hideLogo={true} />
-									</ChartWrapper>
+									<Chart>
+										<AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} moneySymbol="" />
+									</Chart>
+								)}
+								{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
+									<Chart>
+										<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" tokensUnique={tokensUnique} />
+									</Chart>
 								)}
 								{usdInflows && (
-									<ChartWrapper>
+									<Chart>
 										<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" />
-									</ChartWrapper>
+									</Chart>
 								)}
 								{tokenInflows && (
-									<ChartWrapper>
+									<Chart>
 										<BarChart chartData={tokenInflows} title="Token Inflows" tokensUnique={tokensUnique} />
-									</ChartWrapper>
+									</Chart>
 								)}
 							</>
 						)}
@@ -676,6 +731,14 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			)}
 		</Layout>
 	)
+}
+
+const Chart = ({ children }) => {
+	const { ref, inView } = useInView({
+		triggerOnce: true
+	})
+
+	return <ChartWrapper ref={ref}>{inView && children}</ChartWrapper>
 }
 
 export default ProtocolContainer

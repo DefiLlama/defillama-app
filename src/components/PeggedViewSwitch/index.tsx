@@ -8,13 +8,13 @@ export default function PeggedViewSwitch() {
 
 	return (
 		<Wrapper>
-			<Link href="/peggedassets/stablecoins" passHref>
+			<Link href="/stablecoins" passHref>
 				<AppLink active={!isPeggedChainOverview}>
 					<DollarSign size={14} />
 					<span>Assets</span>
 				</AppLink>
 			</Link>
-			<Link href="/peggedassets/stablecoins/chains" passHref>
+			<Link href="/stablecoins/chains" passHref>
 				<AppLink active={isPeggedChainOverview}>
 					<LinkIcon size={14} />
 					<span>Chains</span>

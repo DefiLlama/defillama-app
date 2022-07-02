@@ -226,7 +226,7 @@ const columns = [
 		accessor: 'chains',
 		disableSortBy: true,
 		helperText: "Chains are ordered by pegged asset's issuance on each chain",
-		Cell: ({ value }) => <IconsRow links={value} url="/peggedassets/stablecoins" iconType="chain" />
+		Cell: ({ value }) => <IconsRow links={value} url="/stablecoins" iconType="chain" />
 	},
 	{
 		header: 'Price',
@@ -261,7 +261,6 @@ const columns = [
 
 function PeggedAssetsOverview({
 	title,
-	category,
 	selectedChain = 'All',
 	chains = [],
 	filteredPeggedAssets,
@@ -281,21 +280,15 @@ function PeggedAssetsOverview({
 	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
 	const handleRouting = (chain) => {
-		if (chain === 'All') return `/peggedassets/${category}`
-		return `/peggedassets/${category}/${chain}`
+		if (chain === 'All') return `/stablecoins`
+		return `/stablecoins/${chain}`
 	}
-	const chainOptions = ['All', ...chains].map((label) => ({
-		label,
-		to: handleRouting(label)
-	}))
+	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
 
 	const peggedTotals = useCalcCirculating(filteredPeggedAssets, defaultSortingColumn)
 
 	const chainsCirculatingValues = useMemo(() => {
-		const data = peggedTotals.map((chain) => ({
-			name: chain.symbol,
-			value: chain.mcap
-		}))
+		const data = peggedTotals.map((chain) => ({ name: chain.symbol, value: chain.mcap }))
 
 		const otherCirculating = data.slice(10).reduce((total, entry) => {
 			return (total += entry.value)
@@ -325,12 +318,9 @@ function PeggedAssetsOverview({
 	}
 
 	if (!title) {
-		title = `Market Cap`
-		if (category) {
-			title = `${capitalizeFirstLetter(category)} Market Cap`
-		}
+		title = `Stablecoins Market Cap`
 		if (selectedChain !== 'All') {
-			title = `${capitalizeFirstLetter(selectedChain)} ${capitalizeFirstLetter(category)} Market Cap`
+			title = `${capitalizeFirstLetter(selectedChain)} Stablecoins Market Cap`
 		}
 	}
 
