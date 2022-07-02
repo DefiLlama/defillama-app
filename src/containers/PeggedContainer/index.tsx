@@ -79,7 +79,7 @@ const Symbol = styled.span`
 
 const Table = styled(FullTable)`
 	tr > :first-child {
-		padding-left: '40px';
+		padding-left: 40px;
 	}
 
 	tr > *:not(:first-child) {
@@ -679,7 +679,7 @@ export default function PeggedContainer({
 														<span>{capitalizeFirstLetter(option)}</span>
 													</ExtraPeggedOption>
 												</th>
-												<td>${toK(unreleased)}</td>
+												<td>{toK(unreleased)}</td>
 											</tr>
 										))}
 									</tbody>
