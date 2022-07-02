@@ -450,7 +450,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, chainsStacked } = React.useMemo(
+	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD, chainsStacked } = React.useMemo(
 		() => buildProtocolData(addlProtocolData),
 		[addlProtocolData]
 	)
@@ -479,7 +479,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 	const showCharts =
 		loading ||
 		(chainsSplit && chainsUnique?.length > 1) ||
-		(tokenBreakdown?.length > 1 && tokensUnique?.length > 1) ||
+		(tokenBreakdown?.length > 1 && tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1) ||
 		tokensUnique?.length > 0 ||
 		usdInflows ||
 		tokenInflows
@@ -706,7 +706,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 								)}
 								{tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
 									<Chart>
-										<AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} />
+										<AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} moneySymbol="" />
+									</Chart>
+								)}
+								{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
+									<Chart>
+										<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" tokensUnique={tokensUnique} />
 									</Chart>
 								)}
 								{usdInflows && (
