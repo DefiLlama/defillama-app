@@ -52,7 +52,6 @@ export const Button = styled(MenuButton)<IButtonProps>`
 	gap: 16px;
 	padding: 8px 12px;
 	font-size: 0.825rem;
-	font-weight: 600;
 	border-radius: 8px;
 	background-color: ${({ color, theme }) => transparentize(0.9, color || theme.primary1)};
 	color: ${({ theme }) => theme.text1};
@@ -89,7 +88,6 @@ export const Popover = styled(AriakitMenu)`
 	flex-direction: column;
 	overscroll-behavior: contain;
 	font-size: 0.825rem;
-	font-weight: 600;
 	color: ${({ theme }) => theme.text1};
 	background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
 	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
@@ -103,7 +101,7 @@ export const Popover = styled(AriakitMenu)`
 	overflow: visible;
 
 	#no-results {
-		padding: 0 12px 2px;
+		padding: 0 12px 8px;
 		text-align: center;
 	}
 `
@@ -117,6 +115,7 @@ export const Item = styled(MenuItem)`
 	text-overflow: ellipsis;
 	background: none;
 	border: none;
+	border-radius: 8px;
 	text-align: start;
 
 	:hover,

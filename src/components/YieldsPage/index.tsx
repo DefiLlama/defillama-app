@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { Panel } from '~/components'
 import { NameYield } from '~/components/Table'
-import { YieldAttributes, TVLRange, FiltersByChain } from '~/components/Filters'
+import { YieldAttributes, TVLRange, FiltersByChain, YieldProjects, ResetAllYieldFilters } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
 import {
 	useNoILManager,
@@ -12,30 +12,62 @@ import {
 	useMillionDollarManager,
 	useAuditedManager
 } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter } from '~/utils'
 import { columns, TableWrapper } from './shared'
 
-interface ITokensToIncludeAndExclude {
-	includeTokens: string[]
-	excludeTokens: string[]
-}
-
-const YieldPage = ({ pools, chainList }) => {
-	const chain = [...new Set(pools.map((el) => el.chain))]
-	const selectedTab = chain.length > 1 ? 'All' : chain[0]
-	const [chainsToFilter, setChainsToFilter] = React.useState<string[]>(chainList)
-	const [tokensToFilter, setTokensToFilter] = React.useState<ITokensToIncludeAndExclude>({
-		includeTokens: [],
-		excludeTokens: []
-	})
-
+const YieldPage = ({ pools, chainList, projectList }) => {
 	const { query } = useRouter()
-	const { minTvl, maxTvl } = query
+	const { minTvl, maxTvl, project, chain, token, excludeToken } = query
+
+	const { selectedProjects, selectedChains, includeTokens, excludeTokens } = React.useMemo(() => {
+		let selectedProjects = [],
+			selectedChains = [],
+			includeTokens = [],
+			excludeTokens = []
+
+		if (project) {
+			if (typeof project === 'string') {
+				selectedProjects = project === 'All' ? projectList.map((p) => p.slug) : [project]
+			} else {
+				selectedProjects = [...project]
+			}
+		}
+
+		if (chain) {
+			if (typeof chain === 'string') {
+				selectedChains = chain === 'All' ? [...chainList] : [chain]
+			} else {
+				selectedChains = [...chain]
+			}
+		} else selectedChains = [...chainList]
+
+		if (token) {
+			if (typeof token === 'string') {
+				includeTokens = [token]
+			} else {
+				includeTokens = [...token]
+			}
+		}
+
+		if (excludeToken) {
+			if (typeof excludeToken === 'string') {
+				excludeTokens = [excludeToken]
+			} else {
+				excludeTokens = [...excludeToken]
+			}
+		}
+
+		return {
+			selectedProjects,
+			selectedChains,
+			includeTokens,
+			excludeTokens
+		}
+	}, [project, chain, projectList, chainList, token, excludeToken])
 
 	// if route query contains 'project' remove project href
 	const idx = columns.findIndex((c) => c.accessor === 'project')
 
-	if (query.project) {
+	if (query.projectName) {
 		columns[idx] = {
 			header: 'Project',
 			accessor: 'project',
@@ -63,80 +95,101 @@ const YieldPage = ({ pools, chainList }) => {
 	const [audited] = useAuditedManager()
 
 	const poolsData = React.useMemo(() => {
-		const data = pools.filter((p) => {
+		return pools.reduce((acc, curr) => {
 			let toFilter = true
 
 			if (stablecoins) {
-				toFilter = toFilter && p.stablecoin === true
+				toFilter = toFilter && curr.stablecoin === true
 			}
 
 			if (noIL) {
-				toFilter = toFilter && p.ilRisk === 'no'
+				toFilter = toFilter && curr.ilRisk === 'no'
 			}
 
 			if (singleExposure) {
-				toFilter = toFilter && p.exposure === 'single'
+				toFilter = toFilter && curr.exposure === 'single'
 			}
 
 			if (millionDollar) {
-				toFilter = toFilter && p.tvlUsd >= 1e6
+				toFilter = toFilter && curr.tvlUsd >= 1e6
 			}
 
 			if (audited) {
-				toFilter = toFilter && p.audits !== '0'
+				toFilter = toFilter && curr.audits !== '0'
 			}
 
-			const tokensInPool = p.symbol.split('-').map((x) => x.toLowerCase())
+			if (selectedProjects.length > 0) {
+				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
+			}
+
+			const tokensInPool = curr.symbol.split('-').map((x) => x.toLowerCase())
 
 			const includeToken =
-				tokensToFilter.includeTokens.length > 0
-					? tokensToFilter.includeTokens.find((token) => tokensInPool.includes(token))
+				includeTokens.length > 0
+					? includeTokens.map((t) => t.toLowerCase()).find((token) => tokensInPool.includes(token.toLowerCase()))
 					: true
 
-			const excludeToken = !tokensToFilter.excludeTokens.find((token) => tokensInPool.includes(token))
+			const excludeToken = !excludeTokens
+				.map((t) => t.toLowerCase())
+				.find((token) => tokensInPool.includes(token.toLowerCase()))
 
-			return toFilter && chainsToFilter.includes(p.chain) && includeToken && excludeToken
-		})
+			toFilter =
+				toFilter &&
+				selectedChains.map((t) => t.toLowerCase()).includes(curr.chain.toLowerCase()) &&
+				includeToken &&
+				excludeToken
 
-		const poolsData = data.map((t) => ({
-			id: t.pool,
-			pool: t.symbol,
-			projectslug: t.project,
-			project: t.projectName,
-			chains: [t.chain],
-			tvl: t.tvlUsd,
-			apy: t.apy,
-			change1d: t.apyPct1D,
-			change7d: t.apyPct7D,
-			outlook: t.predictions.predictedClass,
-			confidence: t.predictions.binnedConfidence
-		}))
+			const isValidTvlRange =
+				(minTvl !== undefined && !Number.isNaN(Number(minTvl))) ||
+				(maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
-		const isValidTvlRange =
-			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
+			if (isValidTvlRange) {
+				toFilter = toFilter && (minTvl ? curr.tvlUsd > minTvl : true) && (maxTvl ? curr.tvlUsd < maxTvl : true)
+			}
 
-		return isValidTvlRange
-			? poolsData.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
-			: poolsData
-	}, [minTvl, maxTvl, pools, chainsToFilter, audited, millionDollar, noIL, singleExposure, stablecoins, tokensToFilter])
-
-	let stepName = undefined
-	if (query.chain) stepName = selectedTab
-	else if (query.project) stepName = poolsData[0]?.project ?? capitalizeFirstLetter(query.project)
+			if (toFilter) {
+				return acc.concat({
+					id: curr.pool,
+					pool: curr.symbol,
+					projectslug: curr.project,
+					project: curr.projectName,
+					chains: [curr.chain],
+					tvl: curr.tvlUsd,
+					apy: curr.apy,
+					change1d: curr.apyPct1D,
+					change7d: curr.apyPct7D,
+					outlook: curr.predictions.predictedClass,
+					confidence: curr.predictions.binnedConfidence
+				})
+			} else return acc
+		}, [])
+	}, [
+		minTvl,
+		maxTvl,
+		pools,
+		audited,
+		millionDollar,
+		noIL,
+		singleExposure,
+		stablecoins,
+		selectedProjects,
+		selectedChains,
+		includeTokens,
+		excludeTokens
+	])
 
 	return (
 		<>
-			<YieldsSearch
-				step={{ category: 'Yields', name: stepName ?? 'All chains' }}
-				setTokensToFilter={setTokensToFilter}
-			/>
+			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} />
 
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>
 				<Dropdowns>
-					<FiltersByChain chains={chainList} setChainsToFilter={setChainsToFilter} />
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} />
+					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} />
 					<YieldAttributes />
 					<TVLRange />
+					<ResetAllYieldFilters />
 				</Dropdowns>
 			</TableFilters>
 
@@ -144,7 +197,7 @@ const YieldPage = ({ pools, chainList }) => {
 				<TableWrapper data={poolsData} columns={columns} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					{stepName ? `${stepName} has no pools listed` : "Couldn't find any pools for these filters"}
+					Couldn't find any pools for these filters
 				</Panel>
 			)}
 		</>
@@ -164,10 +217,6 @@ const Dropdowns = styled.span`
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 20px;
-
-	button {
-		font-weight: 400;
-	}
 `
 
 const TableHeader = styled.h1`

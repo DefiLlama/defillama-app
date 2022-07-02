@@ -275,7 +275,7 @@ export function tokenIconUrl(name) {
 }
 
 export function peggedAssetIconUrl(name) {
-	return `/pegged-icons/${name.toLowerCase().split(' ').join('-')}.jpg`
+	return `/pegged-icons/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}.jpg`
 }
 
 export function formattedPercent(percent, noSign = false) {

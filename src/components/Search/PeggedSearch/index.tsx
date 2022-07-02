@@ -12,7 +12,7 @@ export default function PeggedSearch(props: IPeggedSearchProps) {
 	const searchData: IBaseSearchProps['data'] =
 		data?.peggedAssets?.map((asset) => ({
 			logo: peggedAssetIconUrl(asset.name),
-			route: `/peggedasset/${standardizeProtocolName(asset.name)}`,
+			route: `/stablecoin/${standardizeProtocolName(asset.name)}`,
 			name: `${asset.name} (${asset.symbol})`
 		})) ?? []
 

@@ -1,10 +1,9 @@
 import Layout from '~/layout'
 import PeggedChainsOverview from '~/components/PeggedChainsOverview'
-import { capitalizeFirstLetter } from '~/utils'
 import { getPeggedChainsPageData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps() {
-	const props = await getPeggedChainsPageData('stablecoins')
+	const props = await getPeggedChainsPageData()
 
 	if (!props.chainCirculatings || props.chainCirculatings?.length === 0) {
 		return {
@@ -18,7 +17,6 @@ export async function getStaticProps() {
 }
 
 export default function PeggedAssets({
-	peggedcategory,
 	chainCirculatings,
 	chartData,
 	peggedAreaChainData,
@@ -29,9 +27,8 @@ export default function PeggedAssets({
 	chainsGroupbyParent
 }) {
 	return (
-		<Layout title={`${capitalizeFirstLetter(peggedcategory)} Circulating - DefiLlama`} defaultSEO>
+		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO>
 			<PeggedChainsOverview
-				category={peggedcategory}
 				chainCirculatings={chainCirculatings}
 				chartData={chartData}
 				peggedAreaChainData={peggedAreaChainData}

@@ -7,12 +7,13 @@ import {
 	TitleComponent,
 	GridComponent,
 	DataZoomComponent,
-	GraphicComponent
+	GraphicComponent,
+	MarkLineComponent
 } from 'echarts/components'
 import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'
-import logoLight from 'public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
-import logoDark from 'public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
+import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
+import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { useMedia } from '~/hooks'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { toK } from '~/utils'
@@ -27,7 +28,8 @@ echarts.use([
 	TitleComponent,
 	GridComponent,
 	DataZoomComponent,
-	GraphicComponent
+	GraphicComponent,
+	MarkLineComponent
 ])
 
 const Wrapper = styled.div`
@@ -40,7 +42,7 @@ export default function AreaChart({
 	moneySymbol = '$',
 	title,
 	color,
-	hideLogo = false
+	hallmarks
 }: IChartProps) {
 	// For Tokens Chart
 	const [legendOptions, setLegendOptions] = useState<string[]>(tokensUnique)
@@ -77,7 +79,30 @@ export default function AreaChart({
 						}
 					])
 				},
-				data: []
+				data: [],
+				...(hallmarks && {
+					markLine: {
+						data: hallmarks.map(([date, event], index) => [
+							{
+								name: event,
+								xAxis: new Date(date * 1000),
+								yAxis: 0,
+								label: {
+									color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+									fontFamily: 'inter, sans-serif',
+									fontSize: 14,
+									fontWeight: 500
+								}
+							},
+							{
+								name: 'end',
+								xAxis: new Date(date * 1000),
+								yAxis: 'max',
+								y: Math.max(hallmarks.length * 40 - index * 40, 40)
+							}
+						])
+					}
+				})
 			}
 
 			chartData.forEach(([date, value]) => {
@@ -115,7 +140,7 @@ export default function AreaChart({
 
 			return series
 		}
-	}, [chartData, tokensUnique, color, isDark, legendOptions])
+	}, [chartData, tokensUnique, color, isDark, legendOptions, hallmarks])
 
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -130,19 +155,17 @@ export default function AreaChart({
 		const chartInstance = createInstance()
 
 		chartInstance.setOption({
-			...(!hideLogo && {
-				graphic: {
-					type: 'image',
-					z: 0,
-					style: {
-						image: isDark ? logoLight.src : logoDark.src,
-						height: 40,
-						opacity: 0.3
-					},
-					left: isSmall ? '40%' : '45%',
-					top: '130px'
-				}
-			}),
+			graphic: {
+				type: 'image',
+				z: 0,
+				style: {
+					image: isDark ? logoLight.src : logoDark.src,
+					height: 40,
+					opacity: 0.3
+				},
+				left: isSmall ? '40%' : '45%',
+				top: '130px'
+			},
 			tooltip: {
 				trigger: 'axis',
 				formatter: function (params) {
@@ -283,7 +306,7 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance, hideLogo])
+	}, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance])
 
 	const legendTitle = title === 'Chains' ? 'Chain' : 'Token'
 

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { YieldAttributes, TVLRange, FiltersByChain } from '~/components/Filters'
+import { YieldAttributes, TVLRange, FiltersByChain, YieldProjects } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
 import {
 	useNoILManager,
@@ -25,15 +25,55 @@ const ScatterChart = dynamic(() => import('~/components/TokenChart/ScatterChart'
 	ssr: false
 }) as React.FC<IChartProps>
 
-const PlotsPage = ({ pools, chainList }) => {
-	const [chainsToFilter, setChainsToFilter] = React.useState<string[]>(chainList)
-	const [tokensToFilter, setTokensToFilter] = React.useState<ITokensToIncludeAndExclude>({
-		includeTokens: [],
-		excludeTokens: []
-	})
-
+const PlotsPage = ({ pools, chainList, projectList }) => {
 	const { query } = useRouter()
-	const { minTvl, maxTvl } = query
+	const { minTvl, maxTvl, project, chain, token, excludeToken } = query
+
+	const { selectedProjects, selectedChains, includeTokens, excludeTokens } = React.useMemo(() => {
+		let selectedProjects = [],
+			selectedChains = [],
+			includeTokens = [],
+			excludeTokens = []
+
+		if (project) {
+			if (typeof project === 'string') {
+				selectedProjects = project === 'All' ? projectList.map((p) => p.slug) : [project]
+			} else {
+				selectedProjects = [...project]
+			}
+		}
+
+		if (chain) {
+			if (typeof chain === 'string') {
+				selectedChains = chain === 'All' ? [...chainList] : [chain]
+			} else {
+				selectedChains = [...chain]
+			}
+		} else selectedChains = [...chainList]
+
+		if (token) {
+			if (typeof token === 'string') {
+				includeTokens = [token]
+			} else {
+				includeTokens = [...token]
+			}
+		}
+
+		if (excludeToken) {
+			if (typeof excludeToken === 'string') {
+				excludeTokens = [excludeToken]
+			} else {
+				excludeTokens = [...excludeToken]
+			}
+		}
+
+		return {
+			selectedProjects,
+			selectedChains,
+			includeTokens,
+			excludeTokens
+		}
+	}, [project, chain, projectList, chainList, token, excludeToken])
 
 	// toggles
 	const [stablecoins] = useStablecoinsManager()
@@ -42,63 +82,92 @@ const PlotsPage = ({ pools, chainList }) => {
 	const [millionDollar] = useMillionDollarManager()
 	const [audited] = useAuditedManager()
 
-	const data = React.useMemo(() => {
-		const data = pools.filter((p) => {
+	const poolsData = React.useMemo(() => {
+		return pools.reduce((acc, curr) => {
 			let toFilter = true
 
 			if (stablecoins) {
-				toFilter = toFilter && p.stablecoin === true
+				toFilter = toFilter && curr.stablecoin === true
 			}
 
 			if (noIL) {
-				toFilter = toFilter && p.ilRisk === 'no'
+				toFilter = toFilter && curr.ilRisk === 'no'
 			}
 
 			if (singleExposure) {
-				toFilter = toFilter && p.exposure === 'single'
+				toFilter = toFilter && curr.exposure === 'single'
 			}
 
 			if (millionDollar) {
-				toFilter = toFilter && p.tvlUsd >= 1e6
+				toFilter = toFilter && curr.tvlUsd >= 1e6
 			}
 
 			if (audited) {
-				toFilter = toFilter && p.audits !== '0'
+				toFilter = toFilter && curr.audits !== '0'
 			}
 
-			const tokensInPool = p.symbol.split('-').map((x) => x.toLowerCase())
+			if (selectedProjects.length > 0) {
+				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
+			}
+
+			const tokensInPool = curr.symbol.split('-').map((x) => x.toLowerCase())
 
 			const includeToken =
-				tokensToFilter.includeTokens.length > 0
-					? tokensToFilter.includeTokens.find((token) => tokensInPool.includes(token))
+				includeTokens.length > 0
+					? includeTokens.map((t) => t.toLowerCase()).find((token) => tokensInPool.includes(token.toLowerCase()))
 					: true
 
-			const excludeToken = !tokensToFilter.excludeTokens.find((token) => tokensInPool.includes(token))
+			const excludeToken = !excludeTokens
+				.map((t) => t.toLowerCase())
+				.find((token) => tokensInPool.includes(token.toLowerCase()))
 
-			return toFilter && chainsToFilter.includes(p.chain) && includeToken && excludeToken
-		})
+			toFilter =
+				toFilter &&
+				selectedChains.map((t) => t.toLowerCase()).includes(curr.chain.toLowerCase()) &&
+				includeToken &&
+				excludeToken
 
-		const isValidTvlRange =
-			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
+			const isValidTvlRange =
+				(minTvl !== undefined && !Number.isNaN(Number(minTvl))) ||
+				(maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
-		return isValidTvlRange
-			? data.filter((p) => (minTvl ? p.tvlUsd > minTvl : true) && (maxTvl ? p.tvlUsd < maxTvl : true))
-			: data
-	}, [minTvl, maxTvl, pools, chainsToFilter, audited, millionDollar, noIL, singleExposure, stablecoins, tokensToFilter])
+			if (isValidTvlRange) {
+				toFilter = toFilter && (minTvl ? curr.tvlUsd > minTvl : true) && (maxTvl ? curr.tvlUsd < maxTvl : true)
+			}
+
+			if (toFilter) {
+				return acc.concat(curr)
+			} else return acc
+		}, [])
+	}, [
+		minTvl,
+		maxTvl,
+		pools,
+		audited,
+		millionDollar,
+		noIL,
+		singleExposure,
+		stablecoins,
+		selectedProjects,
+		selectedChains,
+		includeTokens,
+		excludeTokens
+	])
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Yields', name: 'All chains' }} setTokensToFilter={setTokensToFilter} />
+			<YieldsSearch step={{ category: 'Yields', name: 'All chains' }} />
 
 			<TableFilters>
 				<TableHeader>Yield Plots</TableHeader>
 				<Dropdowns>
-					<FiltersByChain chains={chainList} setChainsToFilter={setChainsToFilter} />
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} />
+					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} />
 					<YieldAttributes />
 					<TVLRange />
 				</Dropdowns>
 			</TableFilters>
-			<ScatterChart chartData={data}></ScatterChart>
+			<ScatterChart chartData={poolsData}></ScatterChart>
 		</>
 	)
 }

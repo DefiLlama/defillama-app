@@ -13,7 +13,6 @@ import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged 
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {
 	getRandomColor,
-	capitalizeFirstLetter,
 	formattedNum,
 	formattedPercent,
 	getPercentChange,
@@ -274,15 +273,12 @@ function PeggedChainsOverview({
 	}
 
 	if (!title) {
-		title = `Market Cap`
-		if (category) {
-			title = `${capitalizeFirstLetter(category)} Market Cap`
-		}
+		title = `Stablecoins Market Cap`
 	}
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
 		const chartCurrent = chartData[chartData.length - 1] ?? null
-		const chartPrevDay = chartData[chartData.length - 2] ?? null
+		const chartPrevDay = chartData[chartData.length - 8] ?? null
 		const totalMcapCurrent = chartCurrent?.mcap
 		const totalMcapPrevDay = chartPrevDay?.mcap
 		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
@@ -305,10 +301,7 @@ function PeggedChainsOverview({
 	const groupedChains = useGroupChainsPegged(chainTotals, chainsGroupbyParent)
 
 	const chainsCirculatingValues = useMemo(() => {
-		const data = groupedChains.map((chain) => ({
-			name: chain.name,
-			value: chain.mcap
-		}))
+		const data = groupedChains.map((chain) => ({ name: chain.name, value: chain.mcap }))
 
 		const otherCirculating = data.slice(10).reduce((total, entry) => {
 			return (total += entry.value)
@@ -347,7 +340,7 @@ function PeggedChainsOverview({
 						</DownloadButton>
 					</BreakpointPanel>
 					<BreakpointPanel>
-						<h2>Change (24h)</h2>
+						<h2>Change (7d)</h2>
 						<p style={{ '--tile-text-color': '#fd3c99' }}> {percentChange || 0}%</p>
 					</BreakpointPanel>
 					<BreakpointPanel>

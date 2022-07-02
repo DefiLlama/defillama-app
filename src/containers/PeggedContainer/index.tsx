@@ -515,6 +515,7 @@ export default function PeggedContainer({
 	chainsUnique,
 	chainCirculatings,
 	category,
+	categories,
 	stackedDataset,
 	peggedAssetData,
 	totalCirculating,

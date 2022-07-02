@@ -4,18 +4,12 @@ import type { IBaseSearchProps, ICommonSearchProps } from '~/components/Search/B
 import { useFetchYieldsList } from '~/utils/categories/yield'
 import { AdvancedYieldsSearch } from './Advanced'
 import { ToggleSearch } from './shared'
+import { useRouter } from 'next/router'
 
-interface IYieldSearchProps extends ICommonSearchProps {
-	setTokensToFilter?: React.Dispatch<
-		React.SetStateAction<{
-			includeTokens: string[]
-			excludeTokens: string[]
-		}>
-	>
-}
-
-export default function YieldsSearch({ setTokensToFilter, ...props }: IYieldSearchProps) {
+export default function YieldsSearch(props: ICommonSearchProps) {
 	const [advancedSearch, setAdvancedSearch] = React.useState(false)
+
+	const router = useRouter()
 
 	const { data, loading } = useFetchYieldsList()
 
@@ -25,14 +19,28 @@ export default function YieldsSearch({ setTokensToFilter, ...props }: IYieldSear
 				data?.map((el) => ({
 					name: `${el.name} (${el.symbol.toUpperCase()})`,
 					symbol: el.symbol.toUpperCase(),
-					route: `/yields/token/${el.symbol.toUpperCase()}`,
+					route: `/yields?token=${el.symbol.toUpperCase()}`,
 					logo: el.image
 				})) ?? []
 			)
 		}, [data]) ?? []
 
+	const handleTokenRoute = (token) => {
+		router.push(
+			{
+				pathname: '/yields',
+				query: {
+					...router.query,
+					token: token.symbol
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
 	if (!props.step?.hideOptions && advancedSearch) {
-		return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} setTokensToFilter={setTokensToFilter} />
+		return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} />
 	}
 
 	return (
@@ -40,6 +48,7 @@ export default function YieldsSearch({ setTokensToFilter, ...props }: IYieldSear
 			{...props}
 			data={searchData}
 			loading={loading}
+			onItemClick={handleTokenRoute}
 			filters={
 				!props.step?.hideOptions && (
 					<ToggleSearch onClick={() => setAdvancedSearch(true)}>Switch to Advanced Search</ToggleSearch>

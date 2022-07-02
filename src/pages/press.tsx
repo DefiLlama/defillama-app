@@ -90,8 +90,9 @@ function PressPage() {
 					<Divider />
 					<TYPE.main>
 						If you are working on a story using our data or need to get in touch, contact:{' '}
-						<Link href="mailto:defillama@protonmail.com">llamapress@protonmail.com</Link>
+						<Link href="mailto:contact@llama-corp.com">contact@llama-corp.com</Link>
 					</TYPE.main>
+					<TYPE.main>DL Data is free to use by anyone. Attribution is always appreciated.</TYPE.main>
 					<Divider />
 					<TYPE.main>
 						DeFiLlama is used across a large number of media organisations and financial institutions.

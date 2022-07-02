@@ -17,7 +17,6 @@ const Trigger = styled(PopoverDisclosure)`
 	gap: 8px;
 	padding: 8px 12px;
 	font-size: 0.825rem;
-	font-weight: 600;
 	border-radius: 8px;
 	cursor: pointer;
 	outline: none;
