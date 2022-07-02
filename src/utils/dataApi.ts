@@ -1154,6 +1154,7 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
 			chainsUnique,
 			chainCirculatings,
 			category,
+			categories,
 			stackedDataset,
 			peggedAssetData: res,
 			totalCirculating,
