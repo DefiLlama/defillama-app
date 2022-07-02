@@ -9,15 +9,11 @@ import {
 	TooltipComponent,
 	TitleComponent,
 	GridComponent,
-	DataZoomComponent,
 	GraphicComponent,
 	ToolboxComponent,
 	AxisPointerComponent,
 	BrushComponent,
-	LegendComponent,
-	MarkAreaComponent,
-	MarkPointComponent,
-	MarkLineComponent
+	LegendComponent
 } from 'echarts/components'
 
 echarts.use([
@@ -26,15 +22,11 @@ echarts.use([
 	TooltipComponent,
 	TitleComponent,
 	GridComponent,
-	DataZoomComponent,
 	GraphicComponent,
 	ToolboxComponent,
 	AxisPointerComponent,
 	BrushComponent,
-	LegendComponent,
-	MarkAreaComponent,
-	MarkPointComponent,
-	MarkLineComponent
+	LegendComponent
 ])
 
 export interface IChartProps {
@@ -47,9 +39,6 @@ const Wrapper = styled.div`
 
 export default function ScatterChart({ chartData }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
-
-	// NOTE(this should be a filter)
-	chartData = chartData.filter((p) => p.count >= 90)
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -128,25 +117,19 @@ export default function ScatterChart({ chartData }: IChartProps) {
 			},
 			toolbox: {
 				feature: {
-					dataZoom: {},
-					brush: {
-						type: ['rect', 'polygon', 'clear']
-					}
+					dataZoom: {}
 				}
-			},
-			brush: {},
-			legend: {
-				data: projectNames,
-				left: 'center',
-				bottom: 10
 			},
 			xAxis: [
 				{
 					type: 'value',
 					scale: true,
 					axisLabel: {
-						formatter: '{value} sigma'
+						formatter: '{value}'
 					},
+					name: 'Standard deviation',
+					nameLocation: 'middle',
+					nameGap: 30,
 					splitLine: {
 						show: true
 					}
@@ -157,8 +140,11 @@ export default function ScatterChart({ chartData }: IChartProps) {
 					type: 'value',
 					scale: true,
 					axisLabel: {
-						formatter: '{value} mean'
+						formatter: '{value}'
 					},
+					name: 'Mean',
+					nameLocation: 'middle',
+					nameGap: 40,
 					splitLine: {
 						show: true
 					}
@@ -179,7 +165,7 @@ export default function ScatterChart({ chartData }: IChartProps) {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id])
+	}, [id, chartData, createInstance])
 
 	return (
 		<div style={{ position: 'relative' }}>
