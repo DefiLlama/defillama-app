@@ -13,8 +13,6 @@ export async function getStaticProps({
 	const {
 		chainsUnique,
 		chainCirculatings,
-		category,
-		categories,
 		stackedDataset,
 		peggedAssetData,
 		totalCirculating,
@@ -30,8 +28,6 @@ export async function getStaticProps({
 		props: {
 			chainsUnique,
 			chainCirculatings,
-			category,
-			categories,
 			stackedDataset,
 			peggedAssetData,
 			totalCirculating,
