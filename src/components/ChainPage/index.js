@@ -149,10 +149,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 		return [DENOMINATIONS, chainGeckoId]
 	}, [selectedChain])
 
-	const { data: denominationPriceHistory, loading } = useDenominationPriceHistory({
-		geckoId: chainGeckoId,
-		utcStartTime: 0
-	})
+	const { data: denominationPriceHistory, loading } = useDenominationPriceHistory(chainGeckoId)
 
 	const [finalChartData, chainPriceInUSD] = React.useMemo(() => {
 		if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {

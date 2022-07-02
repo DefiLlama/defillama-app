@@ -7,11 +7,15 @@ import { transparentize } from 'polished'
 import { useDenominationPriceHistory } from '~/utils/dataApi'
 import { useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
-import { IChartProps } from './types'
+import { IChartProps, IProtocolMcapTVLChartProps } from './types'
 
 const AreaChart = dynamic(() => import('./AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
+
+const McapTvlChart = dynamic(() => import('./McapTvlChart'), {
+	ssr: false
+}) as React.FC<IProtocolMcapTVLChartProps>
 
 interface IProps {
 	protocol: string
@@ -21,22 +25,24 @@ interface IProps {
 	chains: string[]
 	bobo?: boolean
 	hallmarks?: [number, string][]
+	geckoId?: string
 }
 
-export default function ProtocolChart({
+export default function ProtocolTvlChart({
 	protocol,
 	tvlChartData,
 	color,
 	historicalChainTvls,
 	chains = [],
 	bobo = false,
-	hallmarks
+	hallmarks,
+	geckoId
 }: IProps) {
 	const router = useRouter()
 
 	const extraTvlEnabled = useGetExtraTvlEnabled()
 
-	const { denomination } = router.query
+	const { denomination, chart } = router.query
 
 	const DENOMINATIONS = React.useMemo(() => {
 		let d = [{ symbol: 'USD', geckoId: null }]
@@ -52,10 +58,9 @@ export default function ProtocolChart({
 		return d
 	}, [chains])
 
-	const { data: denominationHistory } = useDenominationPriceHistory({
-		geckoId: DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId,
-		utcStartTime: 0
-	})
+	const { data: denominationHistory } = useDenominationPriceHistory(
+		DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId
+	)
 
 	const chartDataFiltered = React.useMemo(() => {
 		const sections = Object.keys(historicalChainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
@@ -121,16 +126,47 @@ export default function ProtocolChart({
 				})
 			}}
 		>
-			<Denominations color={color}>
-				{DENOMINATIONS.map((D) => (
-					<Link href={`/protocol/${protocol}?denomination=${D.symbol}`} key={D.symbol} shallow passHref>
-						<Denomination active={denomination === D.symbol || (D.symbol === 'USD' && !denomination)}>
-							{D.symbol}
-						</Denomination>
-					</Link>
-				))}
-			</Denominations>
-			<AreaChart chartData={finalChartData} color={color} title="" moneySymbol={moneySymbol} hallmarks={hallmarks} />
+			<FiltersWrapper>
+				{geckoId && (
+					<Filters color={color}>
+						<Link
+							href={`/protocol/${protocol}?${(denomination ? `denomination=${denomination}&` : '') + `chart=tvl`}`}
+							shallow
+							passHref
+						>
+							<Denomination active={chart !== 'mcaptvl'}>TVL</Denomination>
+						</Link>
+						<Link
+							href={`/protocol/${protocol}?${(denomination ? `denomination=${denomination}&` : '') + `chart=mcaptvl`}`}
+							shallow
+							passHref
+						>
+							<Denomination active={chart === 'mcaptvl'}>MCap/TVL</Denomination>
+						</Link>
+					</Filters>
+				)}
+
+				<Filters color={color}>
+					{DENOMINATIONS.map((D) => (
+						<Link
+							href={`/protocol/${protocol}?${`denomination=${D.symbol}` + (chart ? `&chart=${chart}` : '')}`}
+							key={D.symbol}
+							shallow
+							passHref
+						>
+							<Denomination active={denomination === D.symbol || (D.symbol === 'USD' && !denomination)}>
+								{D.symbol}
+							</Denomination>
+						</Link>
+					))}
+				</Filters>
+			</FiltersWrapper>
+
+			{typeof chart === 'string' && chart === 'mcaptvl' ? (
+				<McapTvlChart chartData={finalChartData} geckoId={geckoId} color={color} title="" moneySymbol="" />
+			) : (
+				<AreaChart chartData={finalChartData} color={color} title="" moneySymbol={moneySymbol} hallmarks={hallmarks} />
+			)}
 		</Wrapper>
 	)
 }
@@ -144,16 +180,23 @@ const Wrapper = styled.div`
 	grid-column: span 1;
 `
 
-const Denominations = styled.section`
+const Filters = styled.div`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 16px;
 	padding: 6px;
-	margin: 16px 16px 0;
 	background-color: ${({ color }) => transparentize(0.8, color)};
 	border-radius: 12px;
 	width: min-content;
+`
+
+const FiltersWrapper = styled.div`
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin: 16px 16px 0;
 `
 
 interface IDenomination {

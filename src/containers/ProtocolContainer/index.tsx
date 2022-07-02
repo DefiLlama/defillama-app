@@ -15,7 +15,7 @@ import TokenLogo from '~/components/TokenLogo'
 import SEO from '~/components/SEO'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
-import ProtocolChart from '~/components/TokenChart/ProtocolChart'
+import ProtocolTvlChart from '~/components/TokenChart/ProtocolTvlChart'
 import QuestionHelper from '~/components/QuestionHelper'
 import type { IChartProps } from '~/components/TokenChart/types'
 import { extraTvlOptions } from '~/components/SettingsModal'
@@ -32,6 +32,7 @@ defaultFallbackInView(true)
 const AreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
+
 const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
@@ -419,7 +420,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 		chains = [],
 		forkedFrom,
 		otherProtocols,
-		hallmarks
+		hallmarks,
+		gecko_id
 	} = protocolData
 
 	const router = useRouter()
@@ -574,7 +576,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					)}
 				</ProtocolDetails>
 
-				<ProtocolChart
+				<ProtocolTvlChart
 					protocol={protocol}
 					tvlChartData={tvlChartData}
 					color={backgroundColor}
@@ -582,6 +584,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					chains={chains}
 					hallmarks={hallmarks}
 					bobo={bobo}
+					geckoId={gecko_id}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
