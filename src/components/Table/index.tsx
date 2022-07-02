@@ -526,7 +526,7 @@ export function Name({
 			tokenUrl = `/stablecoins/${value}`
 			iconUrl = chainIconUrl(value)
 		} else if (type === 'peggedAsset') {
-			tokenUrl = `/peggedasset/${slug(value)}`
+			tokenUrl = `/stablecoin/${slug(value)}`
 			iconUrl = peggedAssetIconUrl(value)
 		} else {
 			tokenUrl = `/${type}/${slug(value)}`
@@ -630,12 +630,6 @@ export function NameYieldPool({
 			</CustomLink>
 		</Index>
 	)
-}
-
-type PeggedCategories = 'stablecoins' | 'peggedUSD'
-
-export function isOfTypePeggedCategory(peggedCategory: string): peggedCategory is PeggedCategories {
-	return ['stablecoins', 'peggedUSD'].includes(peggedCategory)
 }
 
 type Columns =

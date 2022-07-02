@@ -64,12 +64,12 @@ export function useYieldApp() {
 
 export function usePeggedApp() {
   const router = useRouter()
-  return router.pathname.startsWith('/peggedasset') || router.pathname.startsWith('/peggedassets')
+  return router.pathname.startsWith('/stablecoin') || router.pathname.startsWith('/stablecoins')
 }
 
 export function usePeggedChainOverview() {
   const router = useRouter()
-  return router.pathname.startsWith('/peggedassets/stablecoins/chains')
+  return router.pathname.startsWith('/stablecoins/chains')
 }
 
 export const useScrollToTop = () => {
