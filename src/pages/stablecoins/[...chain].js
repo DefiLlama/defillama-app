@@ -9,21 +9,21 @@ export async function getStaticProps({
 }) {
   const props = await getPeggedOverviewPageData(chain)
 
-  if (!props.filteredPeggedAssets || props.filteredPeggedAssets?.length === 0) {
-    return {
-      notFound: true,
-    }
-  }
-  return {
-    props,
-    revalidate: revalidate(),
-  }
+	if (!props.filteredPeggedAssets || props.filteredPeggedAssets?.length === 0) {
+		return {
+			notFound: true
+		}
+	}
+	return {
+		props,
+		revalidate: revalidate()
+	}
 }
 
 export async function getStaticPaths() {
   const paths = []
 
-  return { paths, fallback: 'blocking' }
+	return { paths, fallback: 'blocking' }
 }
 
 export default function PeggedAssets({

@@ -268,7 +268,10 @@ const formatPeggedChainsData = ({
 		chainData.change_1m = getPercentChange(chainData.circulating, chainData.circulatingPrevMonth)
 
 		chainData.dominance = chainDominance
-			? { name: chainDominance.symbol, value: getPeggedDominance(chainDominance, chainData.mcap) }
+			? {
+					name: chainDominance.symbol,
+					value: getPeggedDominance(chainDominance, chainData.mcap)
+			  }
 			: null
 
 		chainData.mcaptvl = (chainData.mcap && latestChainTVL && chainData.mcap / latestChainTVL) ?? null
@@ -629,7 +632,11 @@ export async function getChainPageData(chain?: string) {
 		[CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
 	)
 
-	const filteredProtocols = formatProtocolsData({ chain, protocols, removeBridges: true })
+	const filteredProtocols = formatProtocolsData({
+		chain,
+		protocols,
+		removeBridges: true
+	})
 
 	const charts = getVolumeCharts(chartData)
 
@@ -859,7 +866,7 @@ export const getPeggedAssets = () =>
 export const getPeggedPrices = () => fetch(PEGGEDPRICES_API).then((r) => r.json())
 
 export const getPeggedBridgeInfo = () =>
-	fetch('https://cocoahomology-datasets.s3.amazonaws.com/bridgeInfo.json').then((r) => r.json())
+	fetch('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json').then((r) => r.json())
 
 export const getChainsPageData = async (category: string) => {
 	const [res, { chainCoingeckoIds }] = await Promise.all(
@@ -885,7 +892,12 @@ export const getChainsPageData = async (category: string) => {
 		categories = [
 			{ label: 'All', to: '/chains' },
 			{ label: 'Non-EVM', to: '/chains/Non-EVM' }
-		].concat(categories.map((category) => ({ label: category, to: `/chains/${category}` })))
+		].concat(
+			categories.map((category) => ({
+				label: category,
+				to: `/chains/${category}`
+			}))
+		)
 	}
 
 	const chainsUnique: string[] = res.chains.filter((t: string) => {
@@ -1044,7 +1056,12 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
 		categories = [
 			{ label: 'All', to: `/peggedasset/${peggedasset}` },
 			{ label: 'Non-EVM', to: `/peggedasset/${peggedasset}/Non-EVM` }
-		].concat(categories.map((category) => ({ label: category, to: `/peggedasset/${peggedasset}/${category}` })))
+		].concat(
+			categories.map((category) => ({
+				label: category,
+				to: `/peggedasset/${peggedasset}/${category}`
+			}))
+		)
 	}
 
 	const chainsUnique: string[] = res.chains.filter((t: string) => {
@@ -1137,7 +1154,6 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
 			chainsUnique,
 			chainCirculatings,
 			category,
-			categories,
 			stackedDataset,
 			peggedAssetData: res,
 			totalCirculating,
@@ -1302,8 +1318,20 @@ export async function getYieldPageData(query = null) {
 		// remove anchor cause UST dead
 		pools = pools.filter((p) => p.project !== 'anchor')
 
-		const chainList = [...new Set(pools.map((p) => p.chain))]
-		const projectList = [...new Set(pools.map((p) => p.project))]
+		const chainList = new Set()
+
+		const projectList = []
+
+		const projects = []
+
+		pools.forEach((p) => {
+			chainList.add(p.chain)
+
+			if (!projects.includes(p.projectName)) {
+				projects.push(p.projectName)
+				projectList.push({ name: p.projectName, slug: p.project })
+			}
+		})
 
 		// for chain, project and pool queries
 		if (query !== null && Object.keys(query)[0] !== 'token') {
@@ -1315,7 +1343,7 @@ export async function getYieldPageData(query = null) {
 		return {
 			props: {
 				pools,
-				chainList,
+				chainList: Array.from(chainList),
 				projectList
 			}
 		}

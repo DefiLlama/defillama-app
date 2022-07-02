@@ -3,18 +3,18 @@ import YieldPage from '~/components/YieldsPage'
 import { revalidate, getYieldPageData } from '~/utils/dataApi'
 
 export async function getStaticProps() {
-  const data = await getYieldPageData()
+	const data = await getYieldPageData()
 
-  return {
-    ...data,
-    revalidate: revalidate(),
-  }
+	return {
+		...data,
+		revalidate: revalidate()
+	}
 }
 
 export default function ApyHomePage(props) {
-  return (
-    <Layout title={`Yield Rankings - DefiLlama`} defaultSEO>
-      <YieldPage {...props} />
-    </Layout>
-  )
+	return (
+		<Layout title={`Yield Rankings - DefiLlama`} defaultSEO>
+			<YieldPage {...props} />
+		</Layout>
+	)
 }

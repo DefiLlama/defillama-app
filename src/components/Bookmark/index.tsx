@@ -6,38 +6,40 @@ import { useIsClient } from '~/hooks'
 import { standardizeProtocolName } from '~/utils'
 
 interface IWrapperProps {
-  saved: boolean
+	saved: boolean
 }
 
 const Wrapper = styled.button<IWrapperProps>`
-  & > svg {
-    fill: ${({ theme: { text1 }, saved }) => (saved ? text1 : 'none')};
-    path {
-      stroke: ${({ theme: { text1 } }) => text1};
-    }
-  }
+	padding-inline: 0;
+
+	& > svg {
+		fill: ${({ theme: { text1 }, saved }) => (saved ? text1 : 'none')};
+		path {
+			stroke: ${({ theme: { text1 } }) => text1};
+		}
+	}
 `
 
 // readableProtocolName has proper caps and spaces
 function Bookmark({ readableProtocolName, ...props }) {
-  const bookmarkRef = useRef(null)
-  const { savedProtocols, addProtocol, removeProtocol } = useSavedProtocols()
-  // isClient for local storage
-  const isClient = useIsClient()
+	const bookmarkRef = useRef(null)
+	const { savedProtocols, addProtocol, removeProtocol } = useSavedProtocols()
+	// isClient for local storage
+	const isClient = useIsClient()
 
-  const portfolios = Object.keys(savedProtocols)
-  const protocolName = standardizeProtocolName(readableProtocolName)
+	const portfolios = Object.keys(savedProtocols)
+	const protocolName = standardizeProtocolName(readableProtocolName)
 
-  const isSaved: boolean = portfolios.some((portfolio) => savedProtocols[portfolio][protocolName]) && isClient
+	const isSaved: boolean = portfolios.some((portfolio) => savedProtocols[portfolio][protocolName]) && isClient
 
-  const onClick = isSaved ? () => removeProtocol(readableProtocolName) : () => addProtocol(readableProtocolName)
+	const onClick = isSaved ? () => removeProtocol(readableProtocolName) : () => addProtocol(readableProtocolName)
 
-  return (
-    <Wrapper ref={bookmarkRef} onClick={onClick} saved={isSaved} {...props}>
-      <span className="visually-hidden">{`Bookmark ${protocolName}`}</span>
-      <BookmarkIcon width={16} height={16} />
-    </Wrapper>
-  )
+	return (
+		<Wrapper ref={bookmarkRef} onClick={onClick} saved={isSaved} {...props}>
+			<span className="visually-hidden">{`Bookmark ${protocolName}`}</span>
+			<BookmarkIcon width={16} height={16} />
+		</Wrapper>
+	)
 }
 
 export default Bookmark

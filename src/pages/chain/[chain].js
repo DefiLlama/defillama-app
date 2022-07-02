@@ -4,28 +4,28 @@ import Layout from '~/layout'
 import { getChainPageData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps({ params }) {
-  const chain = params.chain
-  const data = await getChainPageData(chain)
-  return {
-    ...data,
-    revalidate: revalidate(),
-  }
+	const chain = params.chain
+	const data = await getChainPageData(chain)
+	return {
+		...data,
+		revalidate: revalidate()
+	}
 }
 
 export async function getStaticPaths() {
-  const res = await fetch(PROTOCOLS_API)
+	const res = await fetch(PROTOCOLS_API)
 
-  const paths = (await res.json()).chains.slice(0, 20).map((chain) => ({
-    params: { chain },
-  }))
+	const paths = (await res.json()).chains.slice(0, 20).map((chain) => ({
+		params: { chain }
+	}))
 
-  return { paths, fallback: 'blocking' }
+	return { paths, fallback: 'blocking' }
 }
 
 export default function Chain({ chain, ...props }) {
-  return (
-    <Layout title={`${chain} TVL - DefiLlama`}>
-      <ChainPage {...props} selectedChain={chain} />
-    </Layout>
-  )
+	return (
+		<Layout title={`${chain} TVL - DefiLlama`}>
+			<ChainPage {...props} selectedChain={chain} />
+		</Layout>
+	)
 }

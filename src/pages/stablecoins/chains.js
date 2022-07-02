@@ -5,15 +5,15 @@ import { getPeggedChainsPageData, revalidate } from '~/utils/dataApi'
 export async function getStaticProps() {
   const props = await getPeggedChainsPageData()
 
-  if (!props.chainCirculatings || props.chainCirculatings?.length === 0) {
-    return {
-      notFound: true,
-    }
-  }
-  return {
-    props,
-    revalidate: revalidate(),
-  }
+	if (!props.chainCirculatings || props.chainCirculatings?.length === 0) {
+		return {
+			notFound: true
+		}
+	}
+	return {
+		props,
+		revalidate: revalidate()
+	}
 }
 
 export default function PeggedAssets({

@@ -12,40 +12,40 @@ const rotate = keyframes`
 `
 
 const Loader = styled.div<ILocalLoaderProps>`
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+	pointer-events: none;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 
-  animation: ${rotate} 800ms linear infinite;
-  & > * {
-    width: 72px;
-  }
+	animation: ${rotate} 800ms linear infinite;
+	& > * {
+		width: 72px;
+	}
 
-  ${(props) =>
-    props.fill
-      ? css`
-          height: 100vh;
-        `
-      : css`
-          height: 180px;
-        `}
+	${(props) =>
+		props.fill
+			? css`
+					height: 100vh;
+			  `
+			: css`
+					height: 180px;
+			  `}
 `
 
 interface ILocalLoaderProps {
-  fill?: boolean
-  style?: React.CSSProperties
+	fill?: boolean
+	style?: React.CSSProperties
 }
 
 const LocalLoader = ({ fill, ...props }: ILocalLoaderProps) => {
-  const isNFTApp = useNFTApp()
+	const isNFTApp = useNFTApp()
 
-  return (
-    <Loader fill={fill} {...props}>
-      <Image src={isNFTApp ? NFTLogo : DefiLogo} alt="loading-icon" />
-    </Loader>
-  )
+	return (
+		<Loader fill={fill} {...props}>
+			<Image src={isNFTApp ? NFTLogo : DefiLogo} alt="loading-icon" />
+		</Loader>
+	)
 }
 
 export default LocalLoader

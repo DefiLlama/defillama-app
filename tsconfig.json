@@ -1,27 +1,28 @@
 {
-  "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "baseUrl": ".",
-    "paths": {
-      "~/*": ["./src/*"]
-    },
-    "skipLibCheck": true,
-    "strict": false,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "downlevelIteration": true,
-    "allowSyntheticDefaultImports": true,
-    "noFallthroughCasesInSwitch": true
-  },
-  "exclude": ["node_modules", "cypress"],
-  "include": ["**/*.js", "**/*.ts", "**/*.tsx"]
+	"compilerOptions": {
+		"target": "es5",
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"allowJs": true,
+		"baseUrl": ".",
+		"paths": {
+			"~/*": ["./src/*"],
+			"~/public/*": ["./public/*"]
+		},
+		"skipLibCheck": true,
+		"strict": false,
+		"forceConsistentCasingInFileNames": true,
+		"noEmit": true,
+		"esModuleInterop": true,
+		"module": "esnext",
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"jsx": "preserve",
+		"incremental": true,
+		"downlevelIteration": true,
+		"allowSyntheticDefaultImports": true,
+		"noFallthroughCasesInSwitch": true
+	},
+	"exclude": ["node_modules", "cypress"],
+	"include": ["**/*.js", "**/*.ts", "**/*.tsx"]
 }

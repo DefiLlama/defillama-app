@@ -9,27 +9,27 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 const SwaggerUI = dynamic(import('swagger-ui-react'), { ssr: false })
 
 export default function ApiDocs() {
-  return (
-    <Layout title={`API Docs - DefiLlama`}>
-      <DarkModeWrapper />
-    </Layout>
-  )
+	return (
+		<Layout title={`API Docs - DefiLlama`}>
+			<DarkModeWrapper />
+		</Layout>
+	)
 }
 
 const HideSections = styled.div`
-  .scheme-container {
-    display: none;
-  }
+	.scheme-container {
+		display: none;
+	}
 `
 
 function DarkModeWrapper() {
-  const [isDark] = useDarkModeManager()
-  const Wrapper = isDark ? DarkSwagger : styled.div``
-  return (
-    <HideSections>
-      <Wrapper>
-        <SwaggerUI spec={yamlApiSpec} defaultModelsExpandDepth={-1} />
-      </Wrapper>
-    </HideSections>
-  )
+	const [isDark] = useDarkModeManager()
+	const Wrapper = isDark ? DarkSwagger : styled.div``
+	return (
+		<HideSections>
+			<Wrapper>
+				<SwaggerUI spec={yamlApiSpec} defaultModelsExpandDepth={-1} />
+			</Wrapper>
+		</HideSections>
+	)
 }

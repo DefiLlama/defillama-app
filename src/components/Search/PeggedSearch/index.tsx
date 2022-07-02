@@ -7,14 +7,14 @@ interface IPeggedSearchProps extends ICommonSearchProps {}
 
 // TODO add pegged chains list
 export default function PeggedSearch(props: IPeggedSearchProps) {
-  const { data, loading } = useFetchPeggedList()
+	const { data, loading } = useFetchPeggedList()
 
-  const searchData: IBaseSearchProps['data'] =
-    data?.peggedAssets?.map((asset) => ({
-      logo: peggedAssetIconUrl(asset.name),
-      route: `/stablecoin/${standardizeProtocolName(asset.name)}`,
-      name: `${asset.name} (${asset.symbol})`,
-    })) ?? []
+	const searchData: IBaseSearchProps['data'] =
+		data?.peggedAssets?.map((asset) => ({
+			logo: peggedAssetIconUrl(asset.name),
+			route: `/stablecoin/${standardizeProtocolName(asset.name)}`,
+			name: `${asset.name} (${asset.symbol})`
+		})) ?? []
 
-  return <BaseSearch {...props} data={searchData} loading={loading} />
+	return <BaseSearch {...props} data={searchData} loading={loading} />
 }

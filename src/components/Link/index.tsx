@@ -6,62 +6,62 @@ import styled from 'styled-components'
 import { lighten, darken } from 'polished'
 
 interface BasicLinkProps {
-  href: string
-  style?: React.CSSProperties
-  children: React.ReactNode
+	href: string
+	style?: React.CSSProperties
+	children: React.ReactNode
 }
 
 interface CustomLinkProps extends BasicLinkProps {
-  id?: string
-  style?: React.CSSProperties
+	id?: string
+	style?: React.CSSProperties
 }
 
 const WrappedLink = ({ external, children, ...rest }) => (
-  <RebassLink
-    target={external ? '_blank' : null}
-    rel={external ? 'noopener noreferrer' : null}
-    color="#2f80ed"
-    {...rest}
-  >
-    {children}
-  </RebassLink>
+	<RebassLink
+		target={external ? '_blank' : null}
+		rel={external ? 'noopener noreferrer' : null}
+		color="#2f80ed"
+		{...rest}
+	>
+		{children}
+	</RebassLink>
 )
 
 WrappedLink.propTypes = {
-  external: PropTypes.bool,
+	external: PropTypes.bool
 }
 
 const Link = styled(WrappedLink)`
-  color: ${({ color, theme }) => (color ? color : theme.link)};
+	color: ${({ color, theme }) => (color ? color : theme.link)};
 `
 
 export default Link
 
 export const CustomLinkStyle = styled.a`
-  font-size: 14px;
-  font-weight: 500;
-  color: ${({ color, theme }) => (color ? color : theme.link)};
+	font-size: 14px;
+	font-weight: 500;
+	color: ${({ color, theme }) => (color ? color : theme.link)};
 
-  &:visited {
-    color: ${({ color, theme }) => (color ? lighten(0.1, color) : lighten(0.1, theme.link))};
-  }
+	&:visited {
+		color: ${({ color, theme }) => (color ? lighten(0.1, color) : lighten(0.1, theme.link))};
+	}
 
-  &:hover {
-    color: ${({ color, theme }) => (color ? darken(0.1, color) : darken(0.1, theme.link))};
-  }
+	&:hover {
+		color: ${({ color, theme }) => (color ? darken(0.1, color) : darken(0.1, theme.link))};
+	}
 `
 
 export const CustomLink = ({ href, children, ...props }: CustomLinkProps) => {
-  // Must add passHref to Link
-  return (
-    <RouterLink href={href} passHref prefetch={false}>
-      <CustomLinkStyle {...props}>{children}</CustomLinkStyle>
-    </RouterLink>
-  )
+	// Must add passHref to Link
+	return (
+		<RouterLink href={href} passHref prefetch={false}>
+			<CustomLinkStyle {...props}>{children}</CustomLinkStyle>
+		</RouterLink>
+	)
 }
 
 export const BasicLink = ({ href, children, ...props }: BasicLinkProps) => (
-  <RouterLink href={href} passHref prefetch={false}>
-    <a {...props}>{children}</a>
-  </RouterLink>
+	<RouterLink href={href} passHref prefetch={false}>
+		<a {...props}>{children}</a>
+	</RouterLink>
 )

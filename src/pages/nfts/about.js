@@ -1,7 +1,7 @@
-import About from "../about"
+import About from '../about'
 
 function AboutPage() {
-  return <About />
+	return <About />
 }
 
 export default AboutPage

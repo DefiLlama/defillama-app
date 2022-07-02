@@ -131,6 +131,8 @@ export const Index = styled.div`
 
 	svg {
 		flex-shrink: 0;
+		position: relative;
+		top: 1px;
 	}
 
 	& > a,
@@ -143,7 +145,7 @@ export const Index = styled.div`
 
 const SaveButton = styled(Bookmark)`
 	position: relative;
-	top: 2px;
+	flex-shrink: 0;
 `
 
 const HeaderButton = styled.button`
@@ -206,10 +208,6 @@ const HeaderWithHelperText = styled.span`
 	svg {
 		flex-shrink: 0;
 		color: ${({ theme }) => theme.text1};
-	}
-
-	button {
-		padding-right: 2px;
 	}
 `
 
@@ -439,7 +437,10 @@ export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...p
 		} else return data
 	}, [data, sortDirection, columnToSort])
 
-	const style = { '--text-align': align || 'end', '--gap': gap || '24px' } as React.CSSProperties
+	const style = {
+		'--text-align': align || 'end',
+		'--gap': gap || '24px'
+	} as React.CSSProperties
 
 	return (
 		<Wrapper style={style} {...props}>
@@ -581,7 +582,7 @@ interface INameYield extends Omit<NameProps, 'type'> {
 
 export function NameYield({ project, projectslug, rowType, ...props }: INameYield) {
 	const iconUrl = tokenIconUrl(project)
-	const tokenUrl = `/yields/project/${projectslug}`
+	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
 		<Index {...props}>

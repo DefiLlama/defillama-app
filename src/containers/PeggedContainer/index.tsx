@@ -564,7 +564,10 @@ export default function PeggedContainer({
 	const chainTotals = useCalcCirculating(chainCirculatings)
 
 	const chainsCirculatingValues = useMemo(() => {
-		const data = chainTotals.map((chain) => ({ name: chain.name, value: chain.circulating }))
+		const data = chainTotals.map((chain) => ({
+			name: chain.name,
+			value: chain.circulating
+		}))
 
 		const otherCirculating = data.slice(10).reduce((total, entry) => {
 			return (total += entry.value)
@@ -601,7 +604,12 @@ export default function PeggedContainer({
 			<SEO cardName={name} token={name} logo={logo} tvl={formattedNum(mcap, true)?.toString()} />
 
 			<PeggedSearch
-				step={{ category: 'Pegged Asset', name: Capitalize(symbol), route: 'peggedassets', hideOptions: true }}
+				step={{
+					category: 'Pegged Asset',
+					name: Capitalize(symbol),
+					route: 'peggedassets',
+					hideOptions: true
+				}}
 			/>
 
 			<Stats>

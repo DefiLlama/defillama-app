@@ -3,19 +3,19 @@ export const FACTORY_ADDRESS = '0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac'
 export const BUNDLE_ID = '1'
 
 export const timeframeOptions = {
-  // WEEK: '1 week',
-  MONTH: '1 month',
-  // THREE_MONTHS: '3 months',
-  YEAR: '1 year',
-  ALL_TIME: 'All time',
+	// WEEK: '1 week',
+	MONTH: '1 month',
+	// THREE_MONTHS: '3 months',
+	YEAR: '1 year',
+	ALL_TIME: 'All time'
 }
 
 // hide from overview list
 export const OVERVIEW_TOKEN_BLACKLIST = [
-  '0x495c7f3a713870f68f8b418b355c085dfdc412c3',
-  '0xc3761eb917cd790b30dad99f6cc5b4ff93c4f9ea',
-  '0xe31debd7abff90b06bca21010dd860d8701fd901',
-  '0xfc989fbb6b3024de5ca0144dc23c18a063942ac1',
+	'0x495c7f3a713870f68f8b418b355c085dfdc412c3',
+	'0xc3761eb917cd790b30dad99f6cc5b4ff93c4f9ea',
+	'0xe31debd7abff90b06bca21010dd860d8701fd901',
+	'0xfc989fbb6b3024de5ca0144dc23c18a063942ac1'
 ]
 
 // pair blacklist
@@ -43,15 +43,15 @@ export const NFT_CHAINS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaw
 export const NFT_MARKETPLACES_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/marketplaces'
 export const NFT_SEARCH_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/search'
 
-export const PEGGEDS_API = 'https://kubymhn14j.execute-api.eu-central-1.amazonaws.com/dev/peggeds'
-export const PEGGED_API = 'https://kubymhn14j.execute-api.eu-central-1.amazonaws.com/dev/pegged'
-export const PEGGEDCHART_API = 'https://kubymhn14j.execute-api.eu-central-1.amazonaws.com/dev/peggedcharts'
-export const PEGGEDPRICES_API = 'https://kubymhn14j.execute-api.eu-central-1.amazonaws.com/dev/peggedprices'
+export const PEGGEDS_API = 'https://stablecoins.llama.fi/peggeds'
+export const PEGGED_API = 'https://stablecoins.llama.fi/pegged'
+export const PEGGEDCHART_API = 'https://stablecoins.llama.fi/peggedcharts'
+export const PEGGEDPRICES_API = 'https://stablecoins.llama.fi/peggedprices'
 
-export const YIELD_POOLS_API = 'https://1rwmj4tky9.execute-api.eu-central-1.amazonaws.com/poolsEnriched'
-export const YIELD_CHART_API = 'https://1rwmj4tky9.execute-api.eu-central-1.amazonaws.com/chart'
+export const YIELD_POOLS_API = 'https://yields.llama.fi/poolsEnriched'
+export const YIELD_CHART_API = 'https://yields.llama.fi/chart'
 export const CG_TOKEN_API =
-  'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'
+	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'
 
 // GlobalData Constants
 export const UPDATE = 'UPDATE'

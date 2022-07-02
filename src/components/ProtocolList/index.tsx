@@ -6,88 +6,91 @@ import { RowLinks, LinksWrapper } from '~/components/Filters'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 
 interface IAllTokensPageProps {
-  title?: string
-  category?: string
-  selectedChain?: string
-  chains?: string[]
-  filteredProtocols?: any
-  showChainList?: boolean
-  defaultSortingColumn?: string
+	title?: string
+	category?: string
+	selectedChain?: string
+	chains?: string[]
+	filteredProtocols?: any
+	showChainList?: boolean
+	defaultSortingColumn?: string
 }
 
 function AllTokensPage({
-  title,
-  category,
-  selectedChain = 'All',
-  chains = [],
-  filteredProtocols,
-  showChainList = true,
-  defaultSortingColumn,
+	title,
+	category,
+	selectedChain = 'All',
+	chains = [],
+	filteredProtocols,
+	showChainList = true,
+	defaultSortingColumn
 }: IAllTokensPageProps) {
-  const handleRouting = (chain) => {
-    if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
-    return `/protocols/${category?.toLowerCase()}/${chain}`
-  }
-  const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
+	const handleRouting = (chain) => {
+		if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
+		return `/protocols/${category?.toLowerCase()}/${chain}`
+	}
+	const chainOptions = ['All', ...chains].map((label) => ({
+		label,
+		to: handleRouting(label)
+	}))
 
-  const protocols = useMemo(() => {
-    if (category === 'Lending') {
-      return filteredProtocols.map((p) => {
-        const bTvl = p.extraTvl?.borrowed?.tvl ?? null
-        const msizetvl = bTvl ? (bTvl + p.tvl) / p.tvl : null
-        return { ...p, msizetvl }
-      })
-    } else return filteredProtocols
-  }, [filteredProtocols, category])
+	const protocols = useMemo(() => {
+		if (category === 'Lending') {
+			return filteredProtocols.map((p) => {
+				const bTvl = p.extraTvl?.borrowed?.tvl ?? null
+				const msizetvl = bTvl ? (bTvl + p.tvl) / p.tvl : null
+				return { ...p, msizetvl }
+			})
+		} else return filteredProtocols
+	}, [filteredProtocols, category])
 
-  const protocolTotals = useCalcStakePool2Tvl(protocols, defaultSortingColumn)
+	const protocolTotals = useCalcStakePool2Tvl(protocols, defaultSortingColumn)
 
-  if (!title) {
-    title = `TVL Rankings`
-    if (category) {
-      title = `${category} TVL Rankings`
-    }
-  }
+	if (!title) {
+		title = `TVL Rankings`
+		if (category) {
+			title = `${category} TVL Rankings`
+		}
+	}
 
-  const columns = useMemo(() => {
-    if (category === 'Lending') {
-      return columnsToShow(
-        'protocolName',
-        'category',
-        'chains',
-        '1dChange',
-        '7dChange',
-        '1mChange',
-        'tvl',
-        'mcaptvl',
-        'msizetvl'
-      )
-    } else
-      return columnsToShow('protocolName', 'category', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
-  }, [category])
+	const columns = useMemo(() => {
+		if (category === 'Lending') {
+			return columnsToShow(
+				'protocolName',
+				'category',
+				'chains',
+				'1dChange',
+				'7dChange',
+				'1mChange',
+				'tvl',
+				'mcaptvl',
+				'msizetvl'
+			)
+		} else
+			return columnsToShow('protocolName', 'category', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
+	}, [category])
 
-  const routeName = category ? (selectedChain === 'All' ? 'All Chains' : selectedChain) : 'All Protocols'
+	const routeName = category ? (selectedChain === 'All' ? 'All Chains' : selectedChain) : 'All Protocols'
 
-  return (
-    <>
-      <ProtocolsChainsSearch
-        step={{
-          category: category || 'Home',
-          name: routeName,
-          route: 'categories',
-        }}
-      />
-      <Header>{title}</Header>
+	return (
+		<>
+			<ProtocolsChainsSearch
+				step={{
+					category: category || 'Home',
+					name: routeName,
+					route: 'categories'
+				}}
+			/>
+			<Header>{title}</Header>
 
-      {showChainList && (
-        <LinksWrapper>
-          <RowLinks links={chainOptions} activeLink={selectedChain} />
-        </LinksWrapper>
-      )}
+			{showChainList && (
+				<LinksWrapper>
+					<RowLinks links={chainOptions} activeLink={selectedChain} />
+				</LinksWrapper>
+			)}
 
-      <Table data={protocolTotals} columns={columns} />
-    </>
-  )
+			<Table data={protocolTotals} columns={columns} />
+		</>
+	)
 }
 
 export default AllTokensPage
