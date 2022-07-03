@@ -109,7 +109,7 @@ export default function ProtocolTvlChart({
 
 	// append mcap data when api return it
 	const finalData = React.useMemo(() => {
-		if (protocolCGData && !loading && !denominationLoading) {
+		if (protocolCGData && !loading && (!denomination || denomination === 'USD')) {
 			const mcapData = protocolCGData['market_caps']
 
 			return tvlData.map(([date, tvl]) => {
@@ -117,8 +117,8 @@ export default function ProtocolTvlChart({
 
 				return { date, TVL: tvl, Mcap: mcapAtDate ? mcapAtDate[1] : 0 }
 			})
-		} else return tvlData
-	}, [tvlData, protocolCGData, loading, denominationLoading])
+		} else return tvlData.map(([date, TVL]) => ({ date, TVL }))
+	}, [tvlData, protocolCGData, loading, denomination])
 
 	return (
 		<Wrapper
@@ -143,7 +143,7 @@ export default function ProtocolTvlChart({
 				</Filters>
 			</FiltersWrapper>
 
-			{(!loading || (denomination && !denominationLoading)) && (
+			{!loading && (
 				<AreaChart
 					chartData={finalData}
 					geckoId={geckoId}
