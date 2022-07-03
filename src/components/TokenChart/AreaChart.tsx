@@ -42,7 +42,8 @@ export default function AreaChart({
 	moneySymbol = '$',
 	title,
 	color,
-	hallmarks
+	hallmarks,
+	hideLegend
 }: IChartProps) {
 	// For Tokens Chart
 	const [legendOptions, setLegendOptions] = useState<string[]>(tokensUnique)
@@ -111,7 +112,7 @@ export default function AreaChart({
 
 			return series
 		} else {
-			const series = tokensUnique.map((token) => {
+			const series = tokensUnique.map((token, index) => {
 				return {
 					name: token,
 					type: 'line',
@@ -121,12 +122,35 @@ export default function AreaChart({
 					},
 					symbol: 'none',
 					itemStyle: {
-						color
+						color: index === 0 ? chartColor : null
 					},
 					areaStyle: {
-						color
+						color: index === 0 ? chartColor : null
 					},
-					data: []
+					data: [],
+					...(hallmarks && {
+						markLine: {
+							data: hallmarks.map(([date, event], index) => [
+								{
+									name: event,
+									xAxis: new Date(date * 1000),
+									yAxis: 0,
+									label: {
+										color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+										fontFamily: 'inter, sans-serif',
+										fontSize: 14,
+										fontWeight: 500
+									}
+								},
+								{
+									name: 'end',
+									xAxis: new Date(date * 1000),
+									yAxis: 'max',
+									y: Math.max(hallmarks.length * 40 - index * 40, 40)
+								}
+							])
+						}
+					})
 				}
 			})
 
@@ -312,7 +336,7 @@ export default function AreaChart({
 
 	return (
 		<div style={{ position: 'relative' }}>
-			{tokensUnique?.length > 1 && (
+			{tokensUnique?.length > 1 && !hideLegend && (
 				<SelectLegendMultiple
 					allOptions={tokensUnique}
 					options={legendOptions}

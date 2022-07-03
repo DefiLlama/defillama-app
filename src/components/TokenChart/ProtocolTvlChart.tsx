@@ -7,11 +7,11 @@ import { transparentize } from 'polished'
 import { useDenominationPriceHistory } from '~/utils/dataApi'
 import { useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
-import { IChartProps } from './types'
+import { IProtocolMcapTVLChartProps } from './types'
 
 const AreaChart = dynamic(() => import('./AreaChart'), {
 	ssr: false
-}) as React.FC<IChartProps>
+}) as React.FC<IProtocolMcapTVLChartProps>
 
 interface IProps {
 	protocol: string
@@ -21,16 +21,18 @@ interface IProps {
 	chains: string[]
 	bobo?: boolean
 	hallmarks?: [number, string][]
+	geckoId?: string
 }
 
-export default function ProtocolChart({
+export default function ProtocolTvlChart({
 	protocol,
 	tvlChartData,
 	color,
 	historicalChainTvls,
 	chains = [],
 	bobo = false,
-	hallmarks
+	hallmarks,
+	geckoId
 }: IProps) {
 	const router = useRouter()
 
@@ -52,11 +54,15 @@ export default function ProtocolChart({
 		return d
 	}, [chains])
 
-	const { data: denominationHistory } = useDenominationPriceHistory({
-		geckoId: DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId,
-		utcStartTime: 0
-	})
+	// fetch denomination on protocol chains
+	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
+		DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId
+	)
 
+	// fetch protocol mcap data
+	const { data: protocolCGData, loading } = useDenominationPriceHistory(geckoId)
+
+	// update tvl calc based on extra tvl options like staking, pool2 selected
 	const chartDataFiltered = React.useMemo(() => {
 		const sections = Object.keys(historicalChainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
 
@@ -75,28 +81,19 @@ export default function ProtocolChart({
 		} else return tvlChartData
 	}, [historicalChainTvls, extraTvlEnabled, tvlChartData])
 
-	const { finalChartData, moneySymbol } = React.useMemo(() => {
+	// calc y-axis based on denomination
+	const { tvlData, moneySymbol } = React.useMemo(() => {
 		const isValidDenomination =
 			denomination && denomination !== 'USD' && DENOMINATIONS.find((d) => d.symbol === denomination)
 
 		if (isValidDenomination && denominationHistory?.prices?.length > 0) {
-			let priceIndex = 0
-			let prevPriceDate = 0
-			const denominationPrices = denominationHistory.prices
-			const newChartData = []
+			const newChartData = chartDataFiltered.map(([date, tvl]) => {
+				const priceAtDate = denominationHistory.prices.find(
+					(x) => -14400000 < x[0] - date * 1000 && x[0] - date * 1000 < 14400000
+				)
 
-			for (let i = 0; i < chartDataFiltered.length; i++) {
-				const date = chartDataFiltered[i][0] * 1000
-				while (
-					priceIndex < denominationPrices.length &&
-					Math.abs(date - prevPriceDate) > Math.abs(date - denominationPrices[priceIndex][0])
-				) {
-					prevPriceDate = denominationPrices[priceIndex][0]
-					priceIndex++
-				}
-				const price = denominationPrices[priceIndex - 1][1]
-				newChartData.push([chartDataFiltered[i][0], chartDataFiltered[i][1] / price])
-			}
+				return [date, tvl / priceAtDate[1]]
+			})
 
 			let moneySymbol = '$'
 
@@ -106,9 +103,22 @@ export default function ProtocolChart({
 				moneySymbol = 'Ξ'
 			} else moneySymbol = d.symbol.slice(0, 1)
 
-			return { finalChartData: newChartData, moneySymbol }
-		} else return { finalChartData: chartDataFiltered, moneySymbol: '$' }
+			return { tvlData: newChartData, moneySymbol }
+		} else return { tvlData: chartDataFiltered, moneySymbol: '$' }
 	}, [denomination, denominationHistory, chartDataFiltered, DENOMINATIONS])
+
+	// append mcap data when api return it
+	const finalData = React.useMemo(() => {
+		if (protocolCGData && !loading && !denominationLoading) {
+			const mcapData = protocolCGData['market_caps']
+
+			return tvlData.map(([date, tvl]) => {
+				const mcapAtDate = mcapData.find((x) => -14400000 < x[0] - date * 1000 && x[0] - date * 1000 < 14400000)
+
+				return { date, TVL: tvl, Mcap: mcapAtDate ? mcapAtDate[1] : 0 }
+			})
+		} else return tvlData
+	}, [tvlData, protocolCGData, loading, denominationLoading])
 
 	return (
 		<Wrapper
@@ -121,16 +131,30 @@ export default function ProtocolChart({
 				})
 			}}
 		>
-			<Denominations color={color}>
-				{DENOMINATIONS.map((D) => (
-					<Link href={`/protocol/${protocol}?denomination=${D.symbol}`} key={D.symbol} shallow passHref>
-						<Denomination active={denomination === D.symbol || (D.symbol === 'USD' && !denomination)}>
-							{D.symbol}
-						</Denomination>
-					</Link>
-				))}
-			</Denominations>
-			<AreaChart chartData={finalChartData} color={color} title="" moneySymbol={moneySymbol} hallmarks={hallmarks} />
+			<FiltersWrapper>
+				<Filters color={color}>
+					{DENOMINATIONS.map((D) => (
+						<Link href={`/protocol/${protocol}?denomination=${D.symbol}`} key={D.symbol} shallow passHref>
+							<Denomination active={denomination === D.symbol || (D.symbol === 'USD' && !denomination)}>
+								{D.symbol}
+							</Denomination>
+						</Link>
+					))}
+				</Filters>
+			</FiltersWrapper>
+
+			{(!loading || (denomination && !denominationLoading)) && (
+				<AreaChart
+					chartData={finalData}
+					geckoId={geckoId}
+					color={color}
+					title=""
+					moneySymbol={moneySymbol}
+					tokensUnique={['TVL', 'Mcap']}
+					hideLegend={true}
+					hallmarks={hallmarks}
+				/>
+			)}
 		</Wrapper>
 	)
 }
@@ -144,16 +168,23 @@ const Wrapper = styled.div`
 	grid-column: span 1;
 `
 
-const Denominations = styled.section`
+const Filters = styled.div`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 16px;
 	padding: 6px;
-	margin: 16px 16px 0;
 	background-color: ${({ color }) => transparentize(0.8, color)};
 	border-radius: 12px;
 	width: min-content;
+`
+
+const FiltersWrapper = styled.div`
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin: 16px 16px 0;
 `
 
 interface IDenomination {
