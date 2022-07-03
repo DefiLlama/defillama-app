@@ -125,7 +125,18 @@ export default function AreaChart({
 						color: index === 0 ? chartColor : null
 					},
 					areaStyle: {
-						color: index === 0 ? chartColor : hideLegend ? 'transparent' : null
+						color: hideLegend
+							? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+									{
+										offset: 0,
+										color: index === 0 ? chartColor : 'transparent'
+									},
+									{
+										offset: 1,
+										color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+									}
+							  ])
+							: null
 					},
 					data: [],
 					...(hallmarks && {
@@ -156,7 +167,7 @@ export default function AreaChart({
 
 			chartData.forEach(({ date, ...item }) => {
 				tokensUnique.forEach((token) => {
-					if (legendOptions.includes(token)) {
+					if (legendOptions.includes(token) || hideLegend) {
 						series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
 					}
 				})
@@ -164,7 +175,7 @@ export default function AreaChart({
 
 			return series
 		}
-	}, [chartData, tokensUnique, color, isDark, legendOptions, hallmarks])
+	}, [chartData, tokensUnique, color, isDark, legendOptions, hallmarks, hideLegend])
 
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 

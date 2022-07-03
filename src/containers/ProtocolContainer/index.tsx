@@ -488,6 +488,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			? true
 			: false
 
+	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
+
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
@@ -500,7 +502,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						{otherProtocols.map((p) => (
 							<Link href={`/protocol/${standardizeProtocolName(p)}`} key={p} passHref>
 								<ProtocolLink
-									active={router.asPath === `/protocol/${standardizeProtocolName(p)}`}
+									active={router.asPath === `/protocol/${standardizeProtocolName(p)}` + queryParams}
 									color={backgroundColor}
 								>
 									{p}
