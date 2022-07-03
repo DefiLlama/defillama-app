@@ -143,7 +143,7 @@ export default function ProtocolTvlChart({
 				</Filters>
 			</FiltersWrapper>
 
-			{!loading && (
+			{!loading && !denominationLoading && (
 				<AreaChart
 					chartData={finalData}
 					geckoId={geckoId}
