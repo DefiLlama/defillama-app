@@ -91,7 +91,7 @@ export default function ProtocolTvlChart({
 
 			chartDataFiltered.forEach(([date, tvl]) => {
 				const priceAtDate = denominationHistory.prices.find(
-					(x) => -14400000 < x[0] - date * 1000 && x[0] - date * 1000 < 14400000
+					(x) => -432000000 < x[0] - date * 1000 && x[0] - date * 1000 < 432000000
 				)
 
 				if (priceAtDate) {
@@ -122,7 +122,7 @@ export default function ProtocolTvlChart({
 			tokensUnique = ['TVL', 'Mcap']
 
 			tvlData.forEach(([date, tvl]) => {
-				const mcapAtDate = mcapData.find((x) => -14400000 < x[0] - date * 1000 && x[0] - date * 1000 < 14400000)
+				const mcapAtDate = mcapData.find((x) => -432000000 < x[0] - date * 1000 && x[0] - date * 1000 < 432000000)
 
 				if (mcapAtDate) {
 					chartData.push({ date, TVL: tvl, Mcap: mcapAtDate[1] })

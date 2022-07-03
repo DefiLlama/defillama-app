@@ -1416,7 +1416,7 @@ export const useDenominationPriceHistory = (geckoId?: string) => {
 	let url = `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart/range?vs_currency=usd&from=0&to=`
 
 	// append end time to fetcher params to keep query key consistent b/w renders and avoid over fetching
-	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Math.floor(Date.now() / 1000)))
+	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Date.now()))
 
 	return { data, error, loading: geckoId && !data && !error }
 }
