@@ -116,13 +116,19 @@ export default function ProtocolTvlChart({
 		let chartData = []
 		let tokensUnique = ['TVL']
 
-		if (protocolCGData && !loading && (!denomination || denomination === 'USD')) {
-			const mcapData = protocolCGData['market_caps']
+		const isValid =
+			protocolCGData &&
+			!loading &&
+			protocolCGData['market_caps'] &&
+			protocolCGData['market_caps'].filter((x) => x[1] !== 0)?.length > 0
 
+		if (isValid && (!denomination || denomination === 'USD')) {
 			tokensUnique = ['TVL', 'Mcap']
 
 			tvlData.forEach(([date, tvl]) => {
-				const mcapAtDate = mcapData.find((x) => -432000000 < x[0] - date * 1000 && x[0] - date * 1000 < 432000000)
+				const mcapAtDate = protocolCGData['market_caps'].find(
+					(x) => -432000000 < x[0] - date * 1000 && x[0] - date * 1000 < 432000000
+				)
 
 				if (mcapAtDate) {
 					chartData.push({ date, TVL: tvl, Mcap: mcapAtDate[1] })
