@@ -127,3 +127,12 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
 		</>
 	)
 }
+
+export const ProtocolChartWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 0 0 20px 0;
+	min-height: 460px;
+	grid-column: span 1;
+`

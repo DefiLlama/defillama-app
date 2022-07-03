@@ -15,7 +15,7 @@ import TokenLogo from '~/components/TokenLogo'
 import SEO from '~/components/SEO'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
-import ProtocolChart from '~/components/TokenChart/ProtocolChart'
+import ProtocolTvlChart from '~/components/TokenChart/ProtocolTvlChart'
 import QuestionHelper from '~/components/QuestionHelper'
 import type { IChartProps } from '~/components/TokenChart/types'
 import { extraTvlOptions } from '~/components/SettingsModal'
@@ -32,6 +32,7 @@ defaultFallbackInView(true)
 const AreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
+
 const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
@@ -419,7 +420,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 		chains = [],
 		forkedFrom,
 		otherProtocols,
-		hallmarks
+		hallmarks,
+		gecko_id
 	} = protocolData
 
 	const router = useRouter()
@@ -486,6 +488,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			? true
 			: false
 
+	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
+
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
@@ -498,7 +502,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						{otherProtocols.map((p) => (
 							<Link href={`/protocol/${standardizeProtocolName(p)}`} key={p} passHref>
 								<ProtocolLink
-									active={router.asPath === `/protocol/${standardizeProtocolName(p)}`}
+									active={router.asPath === `/protocol/${standardizeProtocolName(p)}` + queryParams}
 									color={backgroundColor}
 								>
 									{p}
@@ -574,7 +578,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					)}
 				</ProtocolDetails>
 
-				<ProtocolChart
+				<ProtocolTvlChart
 					protocol={protocol}
 					tvlChartData={tvlChartData}
 					color={backgroundColor}
@@ -582,6 +586,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					chains={chains}
 					hallmarks={hallmarks}
 					bobo={bobo}
+					geckoId={gecko_id}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>

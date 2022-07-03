@@ -149,10 +149,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 		return [DENOMINATIONS, chainGeckoId]
 	}, [selectedChain])
 
-	const { data: denominationPriceHistory, loading } = useDenominationPriceHistory({
-		geckoId: chainGeckoId,
-		utcStartTime: 0
-	})
+	const { data: denominationPriceHistory, loading } = useDenominationPriceHistory(chainGeckoId)
 
 	const [finalChartData, chainPriceInUSD] = React.useMemo(() => {
 		if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {
@@ -214,7 +211,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
 			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
 				<span> We've launched a multi-chain stablecoin dashboard. Check it out</span>{' '}
-				<BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/peggedassets/stablecoins">
+				<BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/stablecoins">
 					here
 				</BasicLink>
 				<span>!</span>
