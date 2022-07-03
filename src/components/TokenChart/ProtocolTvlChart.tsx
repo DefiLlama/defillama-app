@@ -7,11 +7,7 @@ import { transparentize } from 'polished'
 import { useDenominationPriceHistory } from '~/utils/dataApi'
 import { useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
-import { IChartProps, IProtocolMcapTVLChartProps } from './types'
-
-const AreaChart = dynamic(() => import('./AreaChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+import { IProtocolMcapTVLChartProps } from './types'
 
 const McapTvlChart = dynamic(() => import('./McapTvlChart'), {
 	ssr: false
@@ -42,7 +38,7 @@ export default function ProtocolTvlChart({
 
 	const extraTvlEnabled = useGetExtraTvlEnabled()
 
-	const { denomination, chart } = router.query
+	const { denomination } = router.query
 
 	const DENOMINATIONS = React.useMemo(() => {
 		let d = [{ symbol: 'USD', geckoId: null }]
@@ -127,33 +123,9 @@ export default function ProtocolTvlChart({
 			}}
 		>
 			<FiltersWrapper>
-				{geckoId && (
-					<Filters color={color}>
-						<Link
-							href={`/protocol/${protocol}?${(denomination ? `denomination=${denomination}&` : '') + `chart=tvl`}`}
-							shallow
-							passHref
-						>
-							<Denomination active={chart !== 'mcaptvl'}>TVL</Denomination>
-						</Link>
-						<Link
-							href={`/protocol/${protocol}?${(denomination ? `denomination=${denomination}&` : '') + `chart=mcaptvl`}`}
-							shallow
-							passHref
-						>
-							<Denomination active={chart === 'mcaptvl'}>MCap/TVL</Denomination>
-						</Link>
-					</Filters>
-				)}
-
 				<Filters color={color}>
 					{DENOMINATIONS.map((D) => (
-						<Link
-							href={`/protocol/${protocol}?${`denomination=${D.symbol}` + (chart ? `&chart=${chart}` : '')}`}
-							key={D.symbol}
-							shallow
-							passHref
-						>
+						<Link href={`/protocol/${protocol}?denomination=${D.symbol}`} key={D.symbol} shallow passHref>
 							<Denomination active={denomination === D.symbol || (D.symbol === 'USD' && !denomination)}>
 								{D.symbol}
 							</Denomination>
@@ -162,11 +134,14 @@ export default function ProtocolTvlChart({
 				</Filters>
 			</FiltersWrapper>
 
-			{typeof chart === 'string' && chart === 'mcaptvl' ? (
-				<McapTvlChart chartData={finalChartData} geckoId={geckoId} color={color} title="" moneySymbol="" />
-			) : (
-				<AreaChart chartData={finalChartData} color={color} title="" moneySymbol={moneySymbol} hallmarks={hallmarks} />
-			)}
+			<McapTvlChart
+				chartData={finalChartData}
+				geckoId={geckoId}
+				color={color}
+				title=""
+				moneySymbol={moneySymbol}
+				hallmarks={hallmarks}
+			/>
 		</Wrapper>
 	)
 }

@@ -17,11 +17,9 @@ export default function ProtocolMcapTVLChart({ geckoId, chartData, ...props }: I
 			const mcapData = data['market_caps']
 
 			chartData.map(([date, tvl]) => {
-				const mcapAtDate = mcapData.find((x) => x[0] - date * 1000 < 1.44e7)
+				const mcapAtDate = mcapData.find((x) => -14400000 < x[0] - date * 1000 && x[0] - date * 1000 < 14400000)
 
-				if (mcapAtDate) {
-					newData.push([date, mcapAtDate[1] / tvl])
-				}
+				newData.push({ date, TVL: tvl, Mcap: mcapAtDate ? mcapAtDate[1] : 0 })
 			})
 		}
 		return newData
@@ -29,5 +27,5 @@ export default function ProtocolMcapTVLChart({ geckoId, chartData, ...props }: I
 
 	if (loading || error) return null
 
-	return <>{data && <AreaChart chartData={finalData} {...props} />}</>
+	return <>{data && <AreaChart chartData={finalData} tokensUnique={['TVL', 'Mcap']} hideLegend={true} {...props} />}</>
 }
