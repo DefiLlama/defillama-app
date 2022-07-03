@@ -87,12 +87,16 @@ export default function ProtocolTvlChart({
 			denomination && denomination !== 'USD' && DENOMINATIONS.find((d) => d.symbol === denomination)
 
 		if (isValidDenomination && denominationHistory?.prices?.length > 0) {
-			const newChartData = chartDataFiltered.map(([date, tvl]) => {
+			const newChartData = []
+
+			chartDataFiltered.forEach(([date, tvl]) => {
 				const priceAtDate = denominationHistory.prices.find(
 					(x) => -14400000 < x[0] - date * 1000 && x[0] - date * 1000 < 14400000
 				)
 
-				return [date, tvl / priceAtDate[1]]
+				if (priceAtDate) {
+					newChartData.push([date, tvl / priceAtDate[1]])
+				}
 			})
 
 			let moneySymbol = '$'
@@ -108,16 +112,27 @@ export default function ProtocolTvlChart({
 	}, [denomination, denominationHistory, chartDataFiltered, DENOMINATIONS])
 
 	// append mcap data when api return it
-	const finalData = React.useMemo(() => {
+	const { finalData, tokensUnique } = React.useMemo(() => {
+		let chartData = []
+		let tokensUnique = ['TVL']
+
 		if (protocolCGData && !loading && (!denomination || denomination === 'USD')) {
 			const mcapData = protocolCGData['market_caps']
 
-			return tvlData.map(([date, tvl]) => {
+			tokensUnique = ['TVL', 'Mcap']
+
+			tvlData.forEach(([date, tvl]) => {
 				const mcapAtDate = mcapData.find((x) => -14400000 < x[0] - date * 1000 && x[0] - date * 1000 < 14400000)
 
-				return { date, TVL: tvl, Mcap: mcapAtDate ? mcapAtDate[1] : 0 }
+				if (mcapAtDate) {
+					chartData.push({ date, TVL: tvl, Mcap: mcapAtDate[1] })
+				}
 			})
-		} else return tvlData.map(([date, TVL]) => ({ date, TVL }))
+		} else {
+			chartData = tvlData.map(([date, TVL]) => ({ date, TVL }))
+		}
+
+		return { finalData: chartData, tokensUnique }
 	}, [tvlData, protocolCGData, loading, denomination])
 
 	return (
@@ -150,7 +165,7 @@ export default function ProtocolTvlChart({
 					color={color}
 					title=""
 					moneySymbol={moneySymbol}
-					tokensUnique={['TVL', 'Mcap']}
+					tokensUnique={tokensUnique}
 					hideLegend={true}
 					hallmarks={hallmarks}
 				/>

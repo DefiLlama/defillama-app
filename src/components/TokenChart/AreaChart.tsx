@@ -125,7 +125,7 @@ export default function AreaChart({
 						color: index === 0 ? chartColor : null
 					},
 					areaStyle: {
-						color: index === 0 ? chartColor : hideLegend ? 'transparent' : null
+						color: hideLegend ? 'transparent' : null
 					},
 					data: [],
 					...(hallmarks && {
@@ -156,7 +156,7 @@ export default function AreaChart({
 
 			chartData.forEach(({ date, ...item }) => {
 				tokensUnique.forEach((token) => {
-					if (legendOptions.includes(token)) {
+					if (legendOptions.includes(token) || hideLegend) {
 						series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
 					}
 				})
@@ -164,7 +164,7 @@ export default function AreaChart({
 
 			return series
 		}
-	}, [chartData, tokensUnique, color, isDark, legendOptions, hallmarks])
+	}, [chartData, tokensUnique, color, isDark, legendOptions, hallmarks, hideLegend])
 
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
