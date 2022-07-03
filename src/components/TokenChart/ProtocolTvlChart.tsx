@@ -55,7 +55,7 @@ export default function ProtocolTvlChart({
 	}, [chains])
 
 	// fetch denomination on protocol chains
-	const { data: denominationHistory } = useDenominationPriceHistory(
+	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
 		DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId
 	)
 
@@ -109,7 +109,7 @@ export default function ProtocolTvlChart({
 
 	// append mcap data when api return it
 	const finalData = React.useMemo(() => {
-		if (protocolCGData && !loading) {
+		if (protocolCGData && !loading && !denominationLoading) {
 			const mcapData = protocolCGData['market_caps']
 
 			return tvlData.map(([date, tvl]) => {
@@ -118,7 +118,7 @@ export default function ProtocolTvlChart({
 				return { date, TVL: tvl, Mcap: mcapAtDate ? mcapAtDate[1] : 0 }
 			})
 		} else return tvlData
-	}, [tvlData, protocolCGData, loading])
+	}, [tvlData, protocolCGData, loading, denominationLoading])
 
 	return (
 		<Wrapper
@@ -143,16 +143,18 @@ export default function ProtocolTvlChart({
 				</Filters>
 			</FiltersWrapper>
 
-			<AreaChart
-				chartData={finalData}
-				geckoId={geckoId}
-				color={color}
-				title=""
-				moneySymbol={moneySymbol}
-				tokensUnique={['TVL', 'Mcap']}
-				hideLegend={true}
-				hallmarks={hallmarks}
-			/>
+			{(!loading || (denomination && !denominationLoading)) && (
+				<AreaChart
+					chartData={finalData}
+					geckoId={geckoId}
+					color={color}
+					title=""
+					moneySymbol={moneySymbol}
+					tokensUnique={['TVL', 'Mcap']}
+					hideLegend={true}
+					hallmarks={hallmarks}
+				/>
+			)}
 		</Wrapper>
 	)
 }
