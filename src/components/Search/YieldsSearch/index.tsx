@@ -7,7 +7,7 @@ import { ToggleSearch } from './shared'
 import { useRouter } from 'next/router'
 
 interface IYieldSearchProps extends ICommonSearchProps {
-	pathname: string
+	pathname?: string
 }
 
 export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) {
@@ -44,7 +44,7 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 	}
 
 	if (!props.step?.hideOptions && advancedSearch) {
-		return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} pathname={pathname} />
+		return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} pathname={pathname || '/yields'} />
 	}
 
 	return (
