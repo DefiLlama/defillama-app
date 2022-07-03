@@ -130,7 +130,7 @@ export default function ProtocolTvlChart({
 					(x) => -432000000 < x[0] - date * 1000 && x[0] - date * 1000 < 432000000
 				)
 
-				chartData.push({ date, TVL: tvl, Mcap: mcapAtDate ? mcapAtDate[1] : 0 })
+				chartData.push({ date, TVL: tvl, Mcap: mcapAtDate ? mcapAtDate[1] : '-' })
 			})
 		} else {
 			chartData = tvlData.map(([date, TVL]) => ({ date, TVL }))

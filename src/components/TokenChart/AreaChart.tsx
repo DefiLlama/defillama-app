@@ -213,7 +213,7 @@ export default function AreaChart({
 					const vals = params
 						.sort((a, b) => b.value[1] - a.value[1])
 						.reduce((prev, curr) => {
-							if (curr.value[1] !== 0) {
+							if (curr.value[1] !== 0 && curr.value[1] !== '-') {
 								return (prev +=
 									'<li style="list-style:none">' +
 									curr.marker +
