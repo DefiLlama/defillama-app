@@ -15,18 +15,14 @@ export default function ProtocolMcapTVLChart({ geckoId, chartData, ...props }: I
 
 		if (data) {
 			const mcapData = data['market_caps']
-			let index = 0
-			let prevMcapDate = 0
 
-			for (let i = 0; i < chartData.length; i++) {
-				const date = chartData[i][0] * 1000
-				while (index < mcapData.length && Math.abs(date - prevMcapDate) > Math.abs(date - mcapData[index][0])) {
-					prevMcapDate = mcapData[index][0]
-					index++
+			chartData.map(([date, tvl]) => {
+				const mcapAtDate = mcapData.find((x) => x[0] === date * 1000)
+
+				if (mcapAtDate) {
+					newData.push([date, mcapAtDate[1] / tvl])
 				}
-				const mcap = mcapData[index - 1][1]
-				newData.push([chartData[i][0], mcap / chartData[i][1]])
-			}
+			})
 		}
 		return newData
 	}, [chartData, data])
