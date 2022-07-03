@@ -10,11 +10,11 @@ import {
 	TitleComponent,
 	GridComponent,
 	GraphicComponent,
-	ToolboxComponent,
 	AxisPointerComponent,
 	BrushComponent,
 	LegendComponent
 } from 'echarts/components'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 echarts.use([
 	CanvasRenderer,
@@ -23,7 +23,6 @@ echarts.use([
 	TitleComponent,
 	GridComponent,
 	GraphicComponent,
-	ToolboxComponent,
 	AxisPointerComponent,
 	BrushComponent,
 	LegendComponent
@@ -39,6 +38,8 @@ const Wrapper = styled.div`
 
 export default function ScatterChart({ chartData }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
+
+	const [isDark] = useDarkModeManager()
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -67,7 +68,12 @@ export default function ScatterChart({ chartData }: IChartProps) {
 
 		const option = {
 			title: {
-				text: 'Geometric mean and standard deviation'
+				text: 'Geometric mean and standard deviation',
+				textStyle: {
+					fontFamily: 'inter, sans-serif',
+					fontWeight: 600,
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				}
 			},
 			grid: {
 				left: '3%',
@@ -115,23 +121,27 @@ export default function ScatterChart({ chartData }: IChartProps) {
 					}
 				}
 			},
-			toolbox: {
-				feature: {
-					dataZoom: {}
-				}
-			},
 			xAxis: [
 				{
 					type: 'value',
 					scale: true,
-					axisLabel: {
-						formatter: '{value}'
-					},
 					name: 'Standard deviation',
 					nameLocation: 'middle',
 					nameGap: 30,
+					nameTextStyle: {
+						fontFamily: 'inter, sans-serif',
+						fontSize: 14,
+						fontWeight: 500,
+						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+					},
+					axisLabel: {
+						formatter: '{value}'
+					},
 					splitLine: {
-						show: true
+						lineStyle: {
+							color: '#a1a1aa',
+							opacity: 0.1
+						}
 					}
 				}
 			],
@@ -139,14 +149,23 @@ export default function ScatterChart({ chartData }: IChartProps) {
 				{
 					type: 'value',
 					scale: true,
-					axisLabel: {
-						formatter: '{value}'
-					},
 					name: 'Mean',
 					nameLocation: 'middle',
 					nameGap: 40,
+					nameTextStyle: {
+						fontFamily: 'inter, sans-serif',
+						fontSize: 14,
+						fontWeight: 500,
+						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+					},
+					axisLabel: {
+						formatter: '{value}'
+					},
 					splitLine: {
-						show: true
+						lineStyle: {
+							color: '#a1a1aa',
+							opacity: 0.1
+						}
 					}
 				}
 			],
@@ -165,7 +184,7 @@ export default function ScatterChart({ chartData }: IChartProps) {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, chartData, createInstance])
+	}, [id, chartData, createInstance, isDark])
 
 	return (
 		<div style={{ position: 'relative' }}>

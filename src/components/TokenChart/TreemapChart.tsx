@@ -7,6 +7,7 @@ import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { toK } from '~/utils'
 
 import { TooltipComponent, TitleComponent } from 'echarts/components'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 echarts.use([TitleComponent, TooltipComponent, EChartTreemap, CanvasRenderer])
 
@@ -60,6 +61,8 @@ function addColorGradientField(chartDataTree) {
 export default function TreemapChart({ chartData }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
 
+	const [isDark] = useDarkModeManager()
+
 	const chartDataTree = useMemo(() => {
 		const treeData = []
 
@@ -99,7 +102,12 @@ export default function TreemapChart({ chartData }: IChartProps) {
 		const option = {
 			title: {
 				text: 'APY Heatmap',
-				left: 'center'
+				left: 'center',
+				textStyle: {
+					fontFamily: 'inter, sans-serif',
+					fontWeight: 600,
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				}
 			},
 			tooltip: {
 				formatter: function (info) {
@@ -214,7 +222,7 @@ export default function TreemapChart({ chartData }: IChartProps) {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, chartDataTree, createInstance])
+	}, [id, chartDataTree, createInstance, isDark])
 
 	return (
 		<div style={{ position: 'relative' }}>

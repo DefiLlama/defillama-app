@@ -191,7 +191,7 @@ const ChartFilters = styled.div`
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 20px;
-	margin: 0;
+	margin: 0 0 -18px;
 `
 
 const Dropdowns = styled.span`

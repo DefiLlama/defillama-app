@@ -15,6 +15,7 @@ import {
 	DatasetComponent,
 	TransformComponent
 } from 'echarts/components'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 echarts.use([
 	CanvasRenderer,
@@ -39,6 +40,8 @@ const Wrapper = styled.div`
 
 export default function BoxplotChart({ chartData }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
+
+	const [isDark] = useDarkModeManager()
 
 	// transform chartData into required structure
 	const data = chartData.filter((p) => p.apy > 0).map((p) => [p.apy, p.projectName])
@@ -91,20 +94,51 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 				}
 			],
 			title: {
-				text: 'Current APY distribution'
+				text: 'Current APY distribution',
+				textStyle: {
+					fontFamily: 'inter, sans-serif',
+					fontWeight: 600,
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				}
 			},
 			tooltip: {
 				trigger: 'axis',
 				confine: true
 			},
 			xAxis: {
+				scale: true,
+				boundaryGap: false,
 				name: 'APY',
 				nameLocation: 'middle',
 				nameGap: 30,
-				scale: true
+				nameTextStyle: {
+					fontFamily: 'inter, sans-serif',
+					fontSize: 14,
+					fontWeight: 500,
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				},
+				splitLine: {
+					lineStyle: {
+						color: '#a1a1aa',
+						opacity: 0.1
+					}
+				}
 			},
 			yAxis: {
-				type: 'category'
+				type: 'category',
+				boundaryGap: false,
+				nameTextStyle: {
+					fontFamily: 'inter, sans-serif',
+					fontSize: 14,
+					fontWeight: 600,
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				},
+				splitLine: {
+					lineStyle: {
+						color: '#a1a1aa',
+						opacity: 0.1
+					}
+				}
 			},
 			grid: {
 				bottom: 100
@@ -114,11 +148,44 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 			},
 			dataZoom: [
 				{
-					type: 'inside'
+					type: 'inside',
+					start: 0,
+					end: 100
 				},
 				{
 					type: 'slider',
-					height: 20
+					start: 0,
+					end: 100,
+					textStyle: {
+						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+					},
+					borderColor: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
+					handleStyle: {
+						borderColor: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+						color: isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'
+					},
+					moveHandleStyle: {
+						color: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)'
+					},
+					selectedDataBackground: {
+						lineStyle: {
+							color: '#445ed0'
+						},
+						areaStyle: {
+							color: '#445ed0'
+						}
+					},
+					emphasis: {
+						handleStyle: {
+							borderColor: isDark ? 'rgba(255, 255, 255, 1)' : '#000',
+							color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
+						},
+						moveHandleStyle: {
+							borderColor: isDark ? 'rgba(255, 255, 255, 1)' : '#000',
+							color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'
+						}
+					},
+					fillerColor: isDark ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)'
 				}
 			],
 			series: [
@@ -149,7 +216,7 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, data, createInstance])
+	}, [id, data, createInstance, isDark])
 
 	return (
 		<div style={{ position: 'relative' }}>
