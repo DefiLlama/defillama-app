@@ -125,7 +125,7 @@ export default function AreaChart({
 						color: index === 0 ? chartColor : null
 					},
 					areaStyle: {
-						color: index === 0 ? chartColor : null
+						color: index === 0 ? chartColor : hideLegend ? 'transparent' : null
 					},
 					data: [],
 					...(hallmarks && {
