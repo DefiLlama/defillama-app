@@ -125,16 +125,18 @@ export default function AreaChart({
 						color: index === 0 ? chartColor : null
 					},
 					areaStyle: {
-						color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-							{
-								offset: 0,
-								color: index === 0 ? chartColor : 'transparent'
-							},
-							{
-								offset: 1,
-								color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-							}
-						])
+						color: hideLegend
+							? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+									{
+										offset: 0,
+										color: index === 0 ? chartColor : 'transparent'
+									},
+									{
+										offset: 1,
+										color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+									}
+							  ])
+							: null
 					},
 					data: [],
 					...(hallmarks && {
