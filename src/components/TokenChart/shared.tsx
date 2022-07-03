@@ -136,3 +136,12 @@ export const ProtocolChartWrapper = styled.div`
 	min-height: 460px;
 	grid-column: span 1;
 `
+
+export const YieldsChartWrapper = styled.div`
+	position: relative;
+	padding: 20px;
+	border-radius: 12px;
+	background: ${({ theme }) => theme.bg6};
+	border: ${({ theme }) => '1px solid ' + theme.divider};
+	box-shadow: ${({ theme }) => theme.shadowSm};
+`

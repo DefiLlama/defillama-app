@@ -7,8 +7,8 @@ const NavMenu = () => {
 		<>
 			<MobileOnlyEntry url="/" name="DeFi" Icon={BarChart2} style={{ marginTop: '20px' }} />
 
-			<Entry url="/yields" name="Overview" Icon={TrendingUp} />
-			<Entry url="/yields/plots" name="Plots" Icon={PieChart} />
+			<Entry url="/yields/overview" name="Overview" Icon={PieChart} />
+			<Entry url="/yields" name="Pools" Icon={TrendingUp} />
 			<Entry url="/yields/projects" name="Projects" Icon={List} />
 			<Entry url="/yields/watchlist" name="Watchlist" Icon={Bookmark} />
 			<Entry url="https://github.com/DefiLlama/yield-server#readme" name="List your protocol" Icon={PlusCircle} />

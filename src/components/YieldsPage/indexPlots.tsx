@@ -173,15 +173,9 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 				</Dropdowns>
 			</ChartFilters>
 
-			<ChartWrapper>
-				<ScatterChart chartData={poolsDataScatter} />
-			</ChartWrapper>
-			<ChartWrapper>
-				<BoxplotChart chartData={poolsData} />
-			</ChartWrapper>
-			<ChartWrapper>
-				<TreemapChart chartData={poolsData} />
-			</ChartWrapper>
+			<TreemapChart chartData={poolsData} />
+			<ScatterChart chartData={poolsDataScatter} />
+			<BoxplotChart chartData={poolsData} />
 		</>
 	)
 }
@@ -209,14 +203,6 @@ const TableHeader = styled.h1`
 	margin: 0 auto 0 0;
 	font-weight: 500;
 	font-size: 1.125rem;
-`
-
-const ChartWrapper = styled.div`
-	padding: 20px;
-	border-radius: 12px;
-	background: ${({ theme }) => theme.bg6};
-	border: ${({ theme }) => '1px solid ' + theme.divider};
-	box-shadow: ${({ theme }) => theme.shadowSm};
 `
 
 export default PlotsPage

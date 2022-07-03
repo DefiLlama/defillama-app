@@ -15,6 +15,7 @@ import {
 	LegendComponent
 } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { YieldsChartWrapper } from './shared'
 
 echarts.use([
 	CanvasRenderer,
@@ -187,8 +188,8 @@ export default function ScatterChart({ chartData }: IChartProps) {
 	}, [id, chartData, createInstance, isDark])
 
 	return (
-		<div style={{ position: 'relative' }}>
+		<YieldsChartWrapper>
 			<Wrapper id={id} style={{ height: '600px', margin: 'auto 0' }}></Wrapper>
-		</div>
+		</YieldsChartWrapper>
 	)
 }

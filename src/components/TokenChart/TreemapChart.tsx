@@ -8,6 +8,7 @@ import { toK } from '~/utils'
 
 import { TooltipComponent, TitleComponent } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { YieldsChartWrapper } from './shared'
 
 echarts.use([TitleComponent, TooltipComponent, EChartTreemap, CanvasRenderer])
 
@@ -225,8 +226,8 @@ export default function TreemapChart({ chartData }: IChartProps) {
 	}, [id, chartDataTree, createInstance, isDark])
 
 	return (
-		<div style={{ position: 'relative' }}>
+		<YieldsChartWrapper>
 			<Wrapper id={id} style={{ height: '800px', margin: 'auto 0' }}></Wrapper>
-		</div>
+		</YieldsChartWrapper>
 	)
 }
