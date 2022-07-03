@@ -8,6 +8,7 @@ import { UniversalTransition } from 'echarts/features'
 import { aggregate } from 'echarts-simple-transform'
 import {
 	TooltipComponent,
+	ToolboxComponent,
 	TitleComponent,
 	GridComponent,
 	DataZoomComponent,
@@ -22,6 +23,7 @@ echarts.use([
 	CanvasRenderer,
 	EChartBoxPlot,
 	TooltipComponent,
+	ToolboxComponent,
 	TitleComponent,
 	GridComponent,
 	DataZoomComponent,
@@ -105,6 +107,11 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 			tooltip: {
 				trigger: 'axis',
 				confine: true
+			},
+			toolbox: {
+				feature: {
+					restore: {}
+				}
 			},
 			xAxis: {
 				scale: true,

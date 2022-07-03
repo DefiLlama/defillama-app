@@ -180,7 +180,7 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} />
+			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} pathname="/yields" />
 
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>

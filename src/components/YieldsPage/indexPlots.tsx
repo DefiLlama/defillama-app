@@ -160,16 +160,16 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Yields', name: 'All chains' }} />
+			<YieldsSearch step={{ category: 'Yields', name: 'All chains' }} pathname="/yields/overview" />
 
 			<ChartFilters>
-				<TableHeader>Yield Plots</TableHeader>
+				<TableHeader>Yields Overview</TableHeader>
 				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields/plots" />
-					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname="/yields/plots" />
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields/overview" />
+					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname="/yields/overview" />
 					<YieldAttributes />
 					<TVLRange />
-					<ResetAllYieldFilters pathname="/yields/plots" />
+					<ResetAllYieldFilters pathname="/yields/overview" />
 				</Dropdowns>
 			</ChartFilters>
 

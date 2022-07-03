@@ -4,13 +4,12 @@ import styled from 'styled-components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
-import { toK } from '~/utils'
-
-import { TooltipComponent, TitleComponent } from 'echarts/components'
+import { TooltipComponent, ToolboxComponent, DataZoomComponent, TitleComponent } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { toK } from '~/utils'
 import { YieldsChartWrapper } from './shared'
 
-echarts.use([TitleComponent, TooltipComponent, EChartTreemap, CanvasRenderer])
+echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, DataZoomComponent, EChartTreemap, CanvasRenderer])
 
 export interface IChartProps {
 	chartData: any
@@ -128,6 +127,11 @@ export default function TreemapChart({ chartData }: IChartProps) {
 					} else {
 						return ['Project: ' + treePath[0]].join('')
 					}
+				}
+			},
+			toolbox: {
+				feature: {
+					restore: {}
 				}
 			},
 			series: [

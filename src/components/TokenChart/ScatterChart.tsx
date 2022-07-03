@@ -7,6 +7,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { ScatterChart as EChartScatter } from 'echarts/charts'
 import {
 	TooltipComponent,
+	ToolboxComponent,
 	TitleComponent,
 	GridComponent,
 	GraphicComponent,
@@ -21,6 +22,7 @@ echarts.use([
 	CanvasRenderer,
 	EChartScatter,
 	TooltipComponent,
+	ToolboxComponent,
 	TitleComponent,
 	GridComponent,
 	GraphicComponent,
@@ -122,6 +124,12 @@ export default function ScatterChart({ chartData }: IChartProps) {
 					}
 				}
 			},
+			toolbox: {
+				feature: {
+					dataZoom: {},
+					restore: {}
+				}
+			},
 			xAxis: [
 				{
 					type: 'value',
@@ -168,6 +176,13 @@ export default function ScatterChart({ chartData }: IChartProps) {
 							opacity: 0.1
 						}
 					}
+				}
+			],
+			dataZoom: [
+				{
+					type: 'inside',
+					start: 0,
+					end: 100
 				}
 			],
 			series: series
