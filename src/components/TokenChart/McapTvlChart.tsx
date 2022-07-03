@@ -17,7 +17,7 @@ export default function ProtocolMcapTVLChart({ geckoId, chartData, ...props }: I
 			const mcapData = data['market_caps']
 
 			chartData.map(([date, tvl]) => {
-				const mcapAtDate = mcapData.find((x) => x[0] === date * 1000)
+				const mcapAtDate = mcapData.find((x) => x[0] - date * 1000 < 1.44e7)
 
 				if (mcapAtDate) {
 					newData.push([date, mcapAtDate[1] / tvl])
