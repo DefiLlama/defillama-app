@@ -8,15 +8,16 @@ import { Dropdown, Item, Stats } from '../shared'
 interface IYieldProjectsProps {
 	projectList: { name: string; slug: string }[]
 	selectedProjects: string[]
+	pathname: string
 }
 
-export function YieldProjects({ projectList = [], selectedProjects }: IYieldProjectsProps) {
+export function YieldProjects({ projectList = [], selectedProjects, pathname }: IYieldProjectsProps) {
 	const router = useRouter()
 
 	const addProject = (project) => {
 		router.push(
 			{
-				pathname: '/yields',
+				pathname,
 				query: {
 					...router.query,
 					project
@@ -47,7 +48,7 @@ export function YieldProjects({ projectList = [], selectedProjects }: IYieldProj
 	const toggleAll = () => {
 		router.push(
 			{
-				pathname: '/yields',
+				pathname,
 				query: {
 					...router.query,
 					project: 'All'
@@ -61,7 +62,7 @@ export function YieldProjects({ projectList = [], selectedProjects }: IYieldProj
 	const clear = () => {
 		router.push(
 			{
-				pathname: '/yields',
+				pathname,
 				query: {
 					...router.query,
 					project: []

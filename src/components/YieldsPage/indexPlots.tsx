@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { YieldAttributes, TVLRange, FiltersByChain, YieldProjects } from '~/components/Filters'
+import { YieldAttributes, TVLRange, FiltersByChain, YieldProjects, ResetAllYieldFilters } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
 import {
 	useNoILManager,
@@ -11,11 +11,6 @@ import {
 	useAuditedManager
 } from '~/contexts/LocalStorage'
 import dynamic from 'next/dynamic'
-
-interface ITokensToIncludeAndExclude {
-	includeTokens: string[]
-	excludeTokens: string[]
-}
 
 interface IChartProps {
 	chartData: any
@@ -170,15 +165,17 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 			<TableFilters>
 				<TableHeader>Yield Plots</TableHeader>
 				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} />
-					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} />
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields/plots" />
+					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname="/yields/plots" />
 					<YieldAttributes />
 					<TVLRange />
+					<ResetAllYieldFilters pathname="/yields/plots" />
 				</Dropdowns>
 			</TableFilters>
-			<ScatterChart chartData={poolsDataScatter}></ScatterChart>
-			<BoxplotChart chartData={poolsData}></BoxplotChart>
-			<TreemapChart chartData={poolsData}></TreemapChart>
+
+			<ScatterChart chartData={poolsDataScatter} />
+			<BoxplotChart chartData={poolsData} />
+			<TreemapChart chartData={poolsData} />
 		</>
 	)
 }

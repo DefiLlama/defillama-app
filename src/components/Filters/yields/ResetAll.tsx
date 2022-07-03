@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import { useLocalStorageContext } from '~/contexts/LocalStorage'
 import { options } from './Attributes'
 
-export function ResetAllYieldFilters() {
+export function ResetAllYieldFilters({ pathname }: { pathname: string }) {
 	const router = useRouter()
 	const [state, { updateKey }] = useLocalStorageContext()
 
@@ -17,7 +17,7 @@ export function ResetAllYieldFilters() {
 					}
 				})
 
-				router.push('/yields', undefined, { shallow: true })
+				router.push(pathname, undefined, { shallow: true })
 			}}
 			style={{ textDecoration: 'underline' }}
 		>

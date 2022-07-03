@@ -185,11 +185,11 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>
 				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} />
-					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} />
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields" />
+					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname="/yields" />
 					<YieldAttributes />
 					<TVLRange />
-					<ResetAllYieldFilters />
+					<ResetAllYieldFilters pathname="/yields" />
 				</Dropdowns>
 			</TableFilters>
 

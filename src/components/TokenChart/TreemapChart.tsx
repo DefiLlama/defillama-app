@@ -60,27 +60,32 @@ function addColorGradientField(chartDataTree) {
 export default function TreemapChart({ chartData }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
 
-	chartData = chartData.filter((p) => p.apyPct1D !== null)
+	const chartDataTree = useMemo(() => {
+		const treeData = []
 
-	const chartDataTree = []
+		const cData = chartData.filter((p) => p.apyPct1D !== null)
 
-	// structure into hierarchy
-	for (let project of [...new Set(chartData.map((p) => p.projectName))]) {
-		const projectData = chartData.filter((p) => p.projectName === project)
-		const projectTvl = projectData.map((p) => p.tvlUsd).reduce((a, b) => a + b, 0)
+		// structure into hierarchy
+		for (let project of [...new Set(cData.map((p) => p.projectName))]) {
+			const projectData = cData.filter((p) => p.projectName === project)
+			const projectTvl = projectData.map((p) => p.tvlUsd).reduce((a, b) => a + b, 0)
 
-		chartDataTree.push({
-			value: [projectTvl, null, null],
-			name: project,
-			path: project,
-			children: projectData.map((p) => ({
-				value: [p.tvlUsd, parseFloat(p.apy.toFixed(2)), parseFloat(p.apyPct1D.toFixed(2))],
-				name: p.symbol,
-				path: `${p.projectName}/${p.symbol}`
-			}))
-		})
-	}
-	addColorGradientField(chartDataTree)
+			treeData.push({
+				value: [projectTvl, null, null],
+				name: project,
+				path: project,
+				children: projectData.map((p) => ({
+					value: [p.tvlUsd, parseFloat(p.apy.toFixed(2)), parseFloat(p.apyPct1D.toFixed(2))],
+					name: p.symbol,
+					path: `${p.projectName}/${p.symbol}`
+				}))
+			})
+		}
+
+		addColorGradientField(treeData)
+
+		return treeData
+	}, [chartData])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -127,7 +132,7 @@ export default function TreemapChart({ chartData }: IChartProps) {
 						position: 'insideTopRight',
 						formatter: function (params) {
 							let arr
-							if (params.data.path.split('/').length > 1) {
+							if (params?.data?.path?.split('/')?.length > 1) {
 								arr = [
 									'{name|' + params.data.path.split('/').slice(-1)[0] + '}',
 									'{apy| ' + params.value[1] + '%' + '}',

@@ -1360,60 +1360,88 @@ export async function getYieldPageData(query = null) {
 }
 
 export async function getAggregatedData() {
-	// get enriched pools data
-	let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
-	pools = pools.filter((p) => p.project !== 'anchor')
+	try {
+		// get enriched pools data
+		let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
+		pools = pools.filter((p) => p.project !== 'anchor')
 
-	// need to take the latest info, scale apy accordingly
-	const T = 365
-	pools = pools.map((p) => ({ ...p, return: (1 + p.apy / 100) ** (1 / T) - 1 }))
+		// need to take the latest info, scale apy accordingly
+		const T = 365
+		pools = pools.map((p) => ({ ...p, return: (1 + p.apy / 100) ** (1 / T) - 1 }))
 
-	// get aggregated data containing info about mean, mean2, count, returnProduct
-	// which we need to calc mu and sigma
-	const aggregations = (await fetch(AGGREGATOPN_API).then((r) => r.json())).data
-	for (const el of pools) {
-		const d = aggregations.find((i) => i.pool === el.pool)
+		// get aggregated data containing info about mean, mean2, count, returnProduct
+		// which we need to calc mu and sigma
+		const aggregations = (await fetch(AGGREGATOPN_API).then((r) => r.json())).data
+		for (const el of pools) {
+			const d = aggregations.find((i) => i.pool === el.pool)
 
-		if (d === undefined) continue
+			if (d === undefined) continue
 
-		// calc std using welford's algorithm
-		// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-		// For a new value newValue, compute the new count, new mean, the new M2.
-		// mean accumulates the mean of the entire dataset
-		// M2 aggregates the squared distance from the mean
-		// count aggregates the number of samples seen so far
-		let count = d.count
-		let mean = d.mean
-		let mean2 = d.mean2
+			// calc std using welford's algorithm
+			// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+			// For a new value newValue, compute the new count, new mean, the new M2.
+			// mean accumulates the mean of the entire dataset
+			// M2 aggregates the squared distance from the mean
+			// count aggregates the number of samples seen so far
+			let count = d.count
+			let mean = d.mean
+			let mean2 = d.mean2
 
-		count += 1
-		let delta = el.return - mean
-		mean += delta / count
-		let delta2 = el.return - mean
-		mean2 += delta * delta2
+			count += 1
+			let delta = el.return - mean
+			mean += delta / count
+			let delta2 = el.return - mean
+			mean2 += delta * delta2
 
-		el['sigma'] = Math.sqrt((mean2 / (count - 1)) * T)
-		el['mu'] = ((1 + el.return) * d.returnProduct) ** (T / count) - 1
-		el['count'] = count
+			el['sigma'] = Math.sqrt((mean2 / (count - 1)) * T)
+			el['mu'] = ((1 + el.return) * d.returnProduct) ** (T / count) - 1
+			el['count'] = count
+		}
+
+		// keep only apy > 0
+		pools = pools.filter((p) => p.mu > 0)
+
+		// remove outliers
+		const removeOutliers = (pools, column) => {
+			const col = pools.map((p) => p[column]).filter((i) => i >= 0)
+			const col_iqr = quantile(col, 0.75) - quantile(col, 0.25)
+			const col_median = median(col)
+			const col_lb = col_median - 1.5 * col_iqr
+			const col_ub = col_median + 1.5 * col_iqr
+
+			return pools.filter((p) => p[column] >= col_lb && p[column] <= col_ub)
+		}
+		pools = removeOutliers(pools, 'mu')
+		pools = removeOutliers(pools, 'sigma')
+
+		const chainList = new Set<String>()
+
+		const projectList: { name: string; slug: string }[] = []
+
+		const projects: string[] = []
+
+		pools.forEach((p) => {
+			chainList.add(p.chain)
+
+			if (!projects.includes(p.projectName)) {
+				projects.push(p.projectName)
+				projectList.push({ name: p.projectName, slug: p.project })
+			}
+		})
+
+		return {
+			props: {
+				pools,
+				chainList: Array.from(chainList),
+				projectList
+			}
+		}
+	} catch (e) {
+		console.log(e)
+		return {
+			notFound: true
+		}
 	}
-
-	// keep only apy > 0
-	pools = pools.filter((p) => p.mu > 0)
-
-	// remove outliers
-	function removeOutliers(pools, column) {
-		const col = pools.map((p) => p[column]).filter((i) => i >= 0)
-		const col_iqr = quantile(col, 0.75) - quantile(col, 0.25)
-		const col_median = median(col)
-		const col_lb = col_median - 1.5 * col_iqr
-		const col_ub = col_median + 1.5 * col_iqr
-
-		return pools.filter((p) => p[column] >= col_lb && p[column] <= col_ub)
-	}
-	pools = removeOutliers(pools, 'mu')
-	pools = removeOutliers(pools, 'sigma')
-
-	return pools
 }
 
 export async function fetchCGMarketsData() {

@@ -6,10 +6,7 @@ export async function getStaticProps() {
 	const data = await getAggregatedData()
 
 	return {
-		props: {
-			pools: data,
-			chainList: [...new Set(data.map((p) => p.chain))]
-		},
+		...data,
 		revalidate: revalidate()
 	}
 }
