@@ -162,7 +162,7 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 		<>
 			<YieldsSearch step={{ category: 'Yields', name: 'All chains' }} />
 
-			<TableFilters>
+			<ChartFilters>
 				<TableHeader>Yield Plots</TableHeader>
 				<Dropdowns>
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields/plots" />
@@ -171,21 +171,27 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 					<TVLRange />
 					<ResetAllYieldFilters pathname="/yields/plots" />
 				</Dropdowns>
-			</TableFilters>
+			</ChartFilters>
 
-			<ScatterChart chartData={poolsDataScatter} />
-			<BoxplotChart chartData={poolsData} />
-			<TreemapChart chartData={poolsData} />
+			<ChartWrapper>
+				<ScatterChart chartData={poolsDataScatter} />
+			</ChartWrapper>
+			<ChartWrapper>
+				<BoxplotChart chartData={poolsData} />
+			</ChartWrapper>
+			<ChartWrapper>
+				<TreemapChart chartData={poolsData} />
+			</ChartWrapper>
 		</>
 	)
 }
 
-const TableFilters = styled.div`
+const ChartFilters = styled.div`
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 20px;
-	margin: 0 0 -20px;
+	margin: 0;
 `
 
 const Dropdowns = styled.span`
@@ -203,6 +209,14 @@ const TableHeader = styled.h1`
 	margin: 0 auto 0 0;
 	font-weight: 500;
 	font-size: 1.125rem;
+`
+
+const ChartWrapper = styled.div`
+	padding: 20px;
+	border-radius: 12px;
+	background: ${({ theme }) => theme.bg6};
+	border: ${({ theme }) => '1px solid ' + theme.divider};
+	box-shadow: ${({ theme }) => theme.shadowSm};
 `
 
 export default PlotsPage
