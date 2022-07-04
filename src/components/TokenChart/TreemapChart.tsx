@@ -101,7 +101,7 @@ export default function TreemapChart({ chartData }: IChartProps) {
 
 		const option = {
 			title: {
-				text: 'APY Heatmap',
+				text: 'APY Trends - 1d change',
 				left: 'center',
 				textStyle: {
 					fontFamily: 'inter, sans-serif',
@@ -148,8 +148,8 @@ export default function TreemapChart({ chartData }: IChartProps) {
 							if (params?.data?.path?.split('/')?.length > 1) {
 								arr = [
 									'{name|' + params.data.path.split('/').slice(-1)[0] + '}',
-									'{apy| ' + params.value[1] + '%' + '}',
-									'{apy| ' + params.value[2] + '%' + '}'
+									'Spot: {apy| ' + params.value[1] + '%' + '}',
+									'Change {apy| ' + params.value[2] + '%' + '}'
 								]
 							} else {
 								arr = [params.name]

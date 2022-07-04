@@ -71,7 +71,7 @@ export default function ScatterChart({ chartData }: IChartProps) {
 
 		const option = {
 			title: {
-				text: 'Geometric mean and standard deviation',
+				text: 'APY Average vs Volatility',
 				textStyle: {
 					fontFamily: 'inter, sans-serif',
 					fontWeight: 600,
@@ -98,18 +98,19 @@ export default function ScatterChart({ chartData }: IChartProps) {
 							'TVL: $' +
 							toK(params.value[5]) +
 							'<br/>' +
-							'APY: ' +
+							'APY Spot: ' +
 							params.value[6].toFixed(2) +
 							'%' +
 							'<br/>' +
 							'Project: ' +
 							params.seriesName +
 							'<br/>' +
-							'Sigma: ' +
-							params.value[0].toFixed(5) +
+							'APY Geometric Average: ' +
+							params.value[1].toFixed(5) +
 							'<br/>' +
-							'Mean: ' +
-							params.value[1].toFixed(5)
+							'APY Standard Deviation: ' +
+							params.value[0].toFixed(5) +
+							'<br/>'
 						)
 					} else {
 						return params.seriesName + ' :<br/>' + params.name + ' : ' + params.value.toFixed(5) + 'mean '
@@ -134,7 +135,7 @@ export default function ScatterChart({ chartData }: IChartProps) {
 				{
 					type: 'value',
 					scale: true,
-					name: 'Standard deviation',
+					name: 'APY Standard Deviation',
 					nameLocation: 'middle',
 					nameGap: 30,
 					nameTextStyle: {
@@ -158,7 +159,7 @@ export default function ScatterChart({ chartData }: IChartProps) {
 				{
 					type: 'value',
 					scale: true,
-					name: 'Mean',
+					name: 'APY Geometric Average',
 					nameLocation: 'middle',
 					nameGap: 40,
 					nameTextStyle: {

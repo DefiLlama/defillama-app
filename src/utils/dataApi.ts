@@ -1311,58 +1311,9 @@ export const getNFTSearchResults = async (query: string) => {
 
 export async function getYieldPageData(query = null) {
 	try {
-		// note(!) the api supports direct queries of chain or projectName
-		// however, i have no clue yet how to make sure that the chainList is complete for the
-		// filter section on the PageViews. so to get around this for now i just always load the full
-		// batch of data and filter on the next.js server side.
-		// this only affects /chain/[chain] and /project/[project]. for /pool/[pool] we are filtering
-		// on the db level (see `getYieldPoolData`)
 		let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
 
 		// remove anchor cause UST dead
-		pools = pools.filter((p) => p.project !== 'anchor')
-
-		const chainList = new Set()
-
-		const projectList = []
-
-		const projects = []
-
-		pools.forEach((p) => {
-			chainList.add(p.chain)
-
-			if (!projects.includes(p.projectName)) {
-				projects.push(p.projectName)
-				projectList.push({ name: p.projectName, slug: p.project })
-			}
-		})
-
-		// for chain, project and pool queries
-		if (query !== null && Object.keys(query)[0] !== 'token') {
-			const queryKey = Object.keys(query)[0]
-			const queryVal = Object.values(query)[0]
-			pools = pools.filter((p) => p[queryKey] === queryVal)
-		}
-
-		return {
-			props: {
-				pools,
-				chainList: Array.from(chainList),
-				projectList
-			}
-		}
-	} catch (e) {
-		console.log(e)
-		return {
-			notFound: true
-		}
-	}
-}
-
-export async function getAggregatedData() {
-	try {
-		// get enriched pools data
-		let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
 		pools = pools.filter((p) => p.project !== 'anchor')
 
 		// need to take the latest info, scale apy accordingly
@@ -1393,32 +1344,36 @@ export async function getAggregatedData() {
 			let delta2 = el.return - mean
 			mean2 += delta * delta2
 
-			el['sigma'] = Math.sqrt((mean2 / (count - 1)) * T)
-			el['mu'] = ((1 + el.return) * d.returnProduct) ** (T / count) - 1
+			el['sigma'] = Math.sqrt((mean2 / (count - 1)) * T) * 100
+			el['mu'] = (((1 + el.return) * d.returnProduct) ** (T / count) - 1) * 100
 			el['count'] = count
 		}
 
-		// keep only apy > 0
-		pools = pools.filter((p) => p.mu > 0)
-
-		// remove outliers
-		const removeOutliers = (pools, column) => {
-			const col = pools.map((p) => p[column]).filter((i) => i >= 0)
-			const col_iqr = quantile(col, 0.75) - quantile(col, 0.25)
-			const col_median = median(col)
-			const col_lb = col_median - 1.5 * col_iqr
-			const col_ub = col_median + 1.5 * col_iqr
-
-			return pools.filter((p) => p[column] >= col_lb && p[column] <= col_ub)
+		// mark pools as outliers if outside boundary (let user filter via toggle on frontend)
+		const columns = ['mu', 'sigma']
+		const outlierBoundaries = {}
+		for (const col of columns) {
+			const x = pools.map((p) => p[col]).filter((p) => p !== undefined && p !== null)
+			const x_iqr = quantile(x, 0.75) - quantile(x, 0.25)
+			const x_median = median(x)
+			const x_lb = x_median - 1.5 * x_iqr
+			const x_ub = x_median + 1.5 * x_iqr
+			outlierBoundaries[col] = { lb: x_lb, ub: x_ub }
 		}
-		pools = removeOutliers(pools, 'mu')
-		pools = removeOutliers(pools, 'sigma')
+		pools = pools.map((p) => ({
+			...p,
+			outlier:
+				p['mu'] < outlierBoundaries['mu']['lb'] ||
+				p['mu'] > outlierBoundaries['mu']['ub'] ||
+				p['sigma'] < outlierBoundaries['sigma']['lb'] ||
+				p['sigma'] > outlierBoundaries['sigma']['ub']
+		}))
 
-		const chainList = new Set<String>()
+		const chainList = new Set()
 
-		const projectList: { name: string; slug: string }[] = []
+		const projectList = []
 
-		const projects: string[] = []
+		const projects = []
 
 		pools.forEach((p) => {
 			chainList.add(p.chain)
@@ -1428,6 +1383,13 @@ export async function getAggregatedData() {
 				projectList.push({ name: p.projectName, slug: p.project })
 			}
 		})
+
+		// for chain, project and pool queries
+		if (query !== null && Object.keys(query)[0] !== 'token') {
+			const queryKey = Object.keys(query)[0]
+			const queryVal = Object.values(query)[0]
+			pools = pools.filter((p) => p[queryKey] === queryVal)
+		}
 
 		return {
 			props: {

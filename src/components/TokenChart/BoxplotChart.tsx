@@ -97,7 +97,7 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 				}
 			],
 			title: {
-				text: 'Current APY distribution',
+				text: 'Spot APY distribution',
 				textStyle: {
 					fontFamily: 'inter, sans-serif',
 					fontWeight: 600,

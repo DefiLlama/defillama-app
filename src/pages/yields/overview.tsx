@@ -1,9 +1,9 @@
 import Layout from '~/layout'
 import PlotsPage from '~/components/YieldsPage/indexPlots'
-import { getAggregatedData, revalidate } from '~/utils/dataApi'
+import { getYieldPageData, revalidate } from '~/utils/dataApi'
 
 export async function getStaticProps() {
-	const data = await getAggregatedData()
+	const data = await getYieldPageData()
 
 	return {
 		...data,
