@@ -211,7 +211,17 @@ export default function TreemapChart({ chartData }: IChartProps) {
 							}
 						}
 					],
-					data: chartDataTree
+					data: chartDataTree,
+					breadcrumb: {
+						itemStyle: {
+							color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.4)'
+						},
+						textStyle: {
+							fontFamily: 'inter, sans-serif',
+							fontWeight: 400,
+							color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+						}
+					}
 				}
 			]
 		}
