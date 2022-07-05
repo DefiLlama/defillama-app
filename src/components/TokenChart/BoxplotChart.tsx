@@ -47,7 +47,7 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 	const [isDark] = useDarkModeManager()
 
 	// transform chartData into required structure
-	const data = chartData.filter((p) => p.apy > 0).map((p) => [p.apy, p.projectName])
+	const data = chartData.map((p) => [p.apy, p.projectName])
 	data.unshift(['APY', 'Project'])
 
 	const createInstance = useCallback(() => {

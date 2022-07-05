@@ -162,9 +162,6 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 		excludeTokens
 	])
 
-	// hardcode to min 30days of data for scatter chart
-	const poolsDataScatter = poolsData.filter((p) => p.count >= 30)
-
 	return (
 		<>
 			<YieldsSearch step={{ category: 'Yields', name: 'All chains' }} pathname="/yields/overview" />
@@ -181,7 +178,7 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 			</ChartFilters>
 
 			<TreemapChart chartData={poolsData} />
-			<ScatterChart chartData={poolsDataScatter} />
+			<ScatterChart chartData={poolsData} />
 			<BoxplotChart chartData={poolsData} />
 		</>
 	)
