@@ -1,11 +1,11 @@
 import NFTDashboardPage from '~/components/NFTDashboardPage'
+import { revalidate } from '~/api'
 import {
 	getNFTMarketplaceChartData,
 	getNFTMarketplacesData,
 	getNFTCollectionsByMarketplace,
-	getNFTStatistics,
-	revalidate
-} from '~/utils/dataApi'
+	getNFTStatistics
+} from '~/api/categories/nfts'
 
 export async function getStaticProps({
 	params: {

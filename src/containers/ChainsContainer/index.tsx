@@ -9,7 +9,8 @@ import { RowLinks, LinksWrapper } from '~/components/Filters'
 import { ChainTvlOptions } from '~/components/Select'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from '~/hooks/data'
 import { toNiceCsvDate, getRandomColor, download } from '~/utils'
-import { getChainsPageData, revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getChainsPageData } from '~/api/categories/protocols'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')

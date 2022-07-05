@@ -19,7 +19,7 @@ import AuditInfo from '~/components/AuditInfo'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { YieldsSearch } from '~/components/Search'
 import { download, toK } from '~/utils'
-import { useYieldPoolData, useYieldChartData } from '~/utils/dataApi'
+import { useYieldPoolData, useYieldChartData } from '~/api/categories/yield/client'
 
 const TokenDetailsLayout = styled.div`
 	display: inline-grid;

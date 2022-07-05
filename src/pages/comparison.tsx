@@ -1,6 +1,6 @@
 import ComparisonContainer from '~/containers/ComparisonContainer'
 import { standardizeProtocolName } from '~/utils'
-import { revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
 import { PROTOCOLS_API } from '~/constants/index'
 
 export async function getStaticProps() {

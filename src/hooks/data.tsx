@@ -178,72 +178,6 @@ export const useCalcStakePool2Tvl = (
 	return protocolTotals
 }
 
-const groupData = (protocols: IProtocol[], name: string) => {
-	const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = protocols.reduce(
-		(acc, curr) => {
-			curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
-			curr.tvlPrevDay && (acc.tvlPrevDay = (acc.tvlPrevDay || 0) + curr.tvlPrevDay)
-			curr.tvlPrevWeek && (acc.tvlPrevWeek = (acc.tvlPrevWeek || 0) + curr.tvlPrevWeek)
-			curr.tvlPrevMonth && (acc.tvlPrevMonth = (acc.tvlPrevMonth || 0) + curr.tvlPrevMonth)
-
-			return acc
-		},
-		{
-			tvl: null,
-			tvlPrevDay: null,
-			tvlPrevWeek: null,
-			tvlPrevMonth: null
-		}
-	)
-
-	const change1d: number | null = getPercentChange(tvl, tvlPrevDay)
-	const change7d: number | null = getPercentChange(tvl, tvlPrevWeek)
-	const change1m: number | null = getPercentChange(tvl, tvlPrevMonth)
-	const mcap = protocols[0].mcap + protocols[1].mcap
-	const mcaptvl = mcap && tvl ? mcap / tvl : null
-
-	const chains = new Set(protocols[0].chains)
-
-	protocols[1].chains?.forEach((c) => chains.add(c))
-
-	return {
-		...protocols[0],
-		name,
-		chains: Array.from(chains),
-		tvl,
-		tvlPrevDay,
-		tvlPrevWeek,
-		tvlPrevMonth,
-		change_1d: change1d,
-		change_7d: change7d,
-		change_1m: change1m,
-		mcap,
-		mcaptvl,
-		subRows: [...protocols]
-	}
-}
-
-const toGroup = [
-	{ name: 'AAVE', symbol: 'AAVE' },
-	{ name: 'SUN.io', symbol: 'SUN' },
-	{ name: 'SushiSwap', symbol: 'SUSHI' }
-]
-
-const groupProtocols = (protocols: Readonly<IProtocol[]>) => {
-	let data = [...protocols]
-
-	toGroup.forEach((item) => {
-		const list = protocols.filter((p) => p.symbol === item.symbol)
-
-		if (list.length >= 2) {
-			data = data.filter((p) => p.symbol !== item.symbol)
-			data.push(groupData(list, item.name))
-		}
-	})
-
-	return data.sort((a, b) => b.tvl - a.tvl)
-}
-
 export const useCalcProtocolsTvls = (
 	filteredProtocols: Readonly<IProtocol[]>,
 	defaultSortingColumn?: string,
@@ -258,7 +192,7 @@ export const useCalcProtocolsTvls = (
 		}
 
 		if (Object.values(checkExtras).every((t) => !t)) {
-			return groupProtocols(filteredProtocols)
+			return filteredProtocols
 		}
 
 		const updatedProtocols: IProtocol[] = filteredProtocols.map(
@@ -309,9 +243,9 @@ export const useCalcProtocolsTvls = (
 		)
 
 		if (defaultSortingColumn === undefined) {
-			return groupProtocols(updatedProtocols).sort((a, b) => b.tvl - a.tvl)
+			return updatedProtocols.sort((a, b) => b.tvl - a.tvl)
 		} else {
-			return groupProtocols(updatedProtocols).sort((a, b) => {
+			return updatedProtocols.sort((a, b) => {
 				if (dir === 'asc') {
 					return a[defaultSortingColumn] - b[defaultSortingColumn]
 				} else return b[defaultSortingColumn] - a[defaultSortingColumn]

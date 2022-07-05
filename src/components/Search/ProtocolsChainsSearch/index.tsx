@@ -6,7 +6,7 @@ import { BaseSearch } from '~/components/Search/BaseSearch'
 import type { IBaseSearchProps, ICommonSearchProps } from '~/components/Search/BaseSearch'
 import { DefiTvlSwitches } from '~/components/SettingsModal'
 import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from '~/utils'
-import { useFetchProtocolsList } from '~/utils/dataApi'
+import { useFetchProtocolsList } from '~/api/categories/protocols/client'
 import placeholderImg from '~/assets/placeholder.png'
 
 const groupedChains = [

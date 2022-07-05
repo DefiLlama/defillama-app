@@ -5,7 +5,9 @@ import { TYPE } from '~/Theme'
 import Layout from '~/layout'
 import Table, { columnsToShow, splitArrayByFalsyValues } from '~/components/Table'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
-import { revalidate, getSimpleProtocolsPageData, basicPropertiesToKeep } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 
 export async function getStaticProps() {
 	const { protocols } = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl'])

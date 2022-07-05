@@ -25,7 +25,7 @@ import { useCalcProtocolsTvls } from '~/hooks/data'
 import { useDarkModeManager, useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
-import { useDenominationPriceHistory } from '~/utils/dataApi'
+import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
 

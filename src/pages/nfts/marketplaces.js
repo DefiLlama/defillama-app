@@ -7,7 +7,8 @@ import NFTList from '~/components/NFTList'
 import SEO from '~/components/SEO'
 import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
 import { tokenIconUrl, getRandomColor } from '~/utils'
-import { getNFTMarketplacesData, getNFTMarketplaceChartData, revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getNFTMarketplacesData, getNFTMarketplaceChartData } from '~/api/categories/nfts'
 
 export async function getStaticProps() {
 	const marketplaceData = await getNFTMarketplacesData()

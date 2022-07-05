@@ -1,12 +1,7 @@
 import NFTCollectionPage from '~/components/NFTCollectionPage'
-import {
-	getNFTCollection,
-	getNFTCollections,
-	getNFTCollectionChartData,
-	revalidate,
-	getNFTStatistics
-} from '~/utils/dataApi'
 import { getColor } from '~/utils/getColor'
+import { revalidate } from '~/api'
+import { getNFTCollection, getNFTCollections, getNFTCollectionChartData, getNFTStatistics } from '~/api/categories/nfts'
 
 export async function getStaticProps({
 	params: {

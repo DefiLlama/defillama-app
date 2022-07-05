@@ -7,7 +7,8 @@ import { columnsToShow } from '~/components/Table'
 import { RowLinks, LinksWrapper } from '~/components/Filters'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
-import { getOraclePageData, revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getOraclePageData } from '~/api/categories/protocols'
 
 const Chart = dynamic(() => import('~/components/GlobalChart'), {
 	ssr: false

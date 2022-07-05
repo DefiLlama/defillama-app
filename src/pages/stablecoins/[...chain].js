@@ -1,6 +1,7 @@
 import Layout from '~/layout'
 import PeggedList from '~/components/PeggedList'
-import { getPeggedOverviewPageData, revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 
 export async function getStaticProps({
 	params: {

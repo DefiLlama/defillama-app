@@ -23,7 +23,7 @@ import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
 import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName, toK } from '~/utils'
-import { useFetchProtocol } from '~/utils/dataApi'
+import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 
