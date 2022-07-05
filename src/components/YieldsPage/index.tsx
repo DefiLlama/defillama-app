@@ -10,7 +10,8 @@ import {
 	useSingleExposureManager,
 	useStablecoinsManager,
 	useMillionDollarManager,
-	useAuditedManager
+	useAuditedManager,
+	useNoOutlierManager
 } from '~/contexts/LocalStorage'
 import { columns, TableWrapper } from './shared'
 
@@ -93,6 +94,7 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 	const [singleExposure] = useSingleExposureManager()
 	const [millionDollar] = useMillionDollarManager()
 	const [audited] = useAuditedManager()
+	const [noOutlier] = useNoOutlierManager()
 
 	const poolsData = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
@@ -116,6 +118,10 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 
 			if (audited) {
 				toFilter = toFilter && curr.audits !== '0'
+			}
+
+			if (noOutlier) {
+				toFilter = toFilter && curr.outlier === false
 			}
 
 			if (selectedProjects.length > 0) {
@@ -168,6 +174,7 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 		maxTvl,
 		pools,
 		audited,
+		noOutlier,
 		millionDollar,
 		noIL,
 		singleExposure,

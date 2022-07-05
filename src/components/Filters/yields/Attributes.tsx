@@ -8,6 +8,7 @@ import {
 	NO_IL,
 	SINGLE_EXPOSURE,
 	STABLECOINS,
+	NO_OUTLIER,
 	useLocalStorageContext
 } from '~/contexts/LocalStorage'
 import { Item, Stats } from '../shared'
@@ -37,6 +38,11 @@ export const options = [
 		name: 'Audited',
 		key: AUDITED,
 		help: 'Select pools from audited projects only'
+	},
+	{
+		name: 'No Outliers',
+		key: NO_OUTLIER,
+		help: 'Remove pools which extreme apy values'
 	}
 ]
 
