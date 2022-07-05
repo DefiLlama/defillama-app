@@ -31,7 +31,6 @@ import {
 } from '~/utils'
 import { fetcher } from './useSWR'
 import { quantile, median } from 'simple-statistics'
-import { writeFileSync } from 'fs'
 
 interface IProtocol {
 	name: string

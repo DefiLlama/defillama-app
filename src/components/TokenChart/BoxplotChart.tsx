@@ -76,6 +76,7 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 							type: 'ecSimpleTransform:aggregate',
 							config: {
 								resultDimensions: [
+									{ name: 'count', from: 'APY', method: 'count' },
 									{ name: 'min', from: 'APY', method: 'min' },
 									{ name: 'Q1', from: 'APY', method: 'Q1' },
 									{ name: 'median', from: 'APY', method: 'median' },
@@ -207,7 +208,7 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 						x: ['min', 'Q1', 'median', 'Q3', 'max'],
 						y: 'Project',
 						itemName: ['Project'],
-						tooltip: ['min', 'Q1', 'median', 'Q3', 'max']
+						tooltip: ['count', 'min', 'Q1', 'median', 'Q3', 'max']
 					}
 				}
 			]
