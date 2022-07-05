@@ -343,9 +343,9 @@ export async function getPeggedOverviewPageData(chain) {
 			for (let i = 0; i < 5; i++) {
 				try {
 					if (!chain) {
-						return await fetch(`${PEGGEDCHART_API}/all?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
+						return await fetch(`${PEGGEDCHART_API}/all?peggedAsset=${elem.id}`).then((resp) => resp.json())
 					}
-					return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.gecko_id}`).then((resp) => resp.json())
+					return await fetch(`${PEGGEDCHART_API}/${chain}?peggedAsset=${elem.id}`).then((resp) => resp.json())
 				} catch (e) {}
 			}
 			throw new Error(`${CHART_API}/${elem} is broken`)
@@ -1047,7 +1047,7 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 		[`${PEGGED_API}/${peggedID}`, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
 	)
 
-	const peggedChart = await fetch(`${PEGGEDCHART_API}/all?peggedAsset=${res.gecko_id}`).then((resp) => resp.json())
+	const peggedChart = await fetch(`${PEGGEDCHART_API}/all?peggedAsset=${peggedID}`).then((resp) => resp.json())
 	const bridgeInfo = await getPeggedBridgeInfo()
 	const pegType = res.pegType
 
