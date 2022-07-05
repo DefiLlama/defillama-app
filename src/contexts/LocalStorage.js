@@ -123,7 +123,7 @@ function init() {
 		[MILLION_DOLLAR]: false,
 		[AUDITED]: false,
 		[NO_OUTLIER]: true,
-		[APY_GT0]: false,
+		[APY_GT0]: true,
 		[DISMISSED_PATHS]: {},
 		[SAVED_ACCOUNTS]: [],
 		[SAVED_TOKENS]: { main: {} },
