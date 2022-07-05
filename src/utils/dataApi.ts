@@ -217,8 +217,6 @@ const formatPeggedAssetsData = ({
 		const chartIndex = peggedNameToIndexObj[pegged.name]
 		const chart = chartDataByPeggedAsset[chartIndex] ?? null
 
-		console.log(chart)
-
 		pegged.mcap = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculatingUSD') ?? null
 		const mcapPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'totalCirculatingUSD') ?? null
 		const mcapPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'totalCirculatingUSD') ?? null
