@@ -19,12 +19,12 @@ import {
 	PEGGED_API,
 	PEGGEDS_API,
 	PEGGEDCHART_API,
-	PEGGEDDOMINANCE_API,
+	PEGGEDDOMINANCE_API
 } from '~/constants/index'
 import {
 	getPercentChange,
 	getPrevTvlFromChart,
-	getPrevCirculatingFromChart,
+	getPrevPeggedTotalFromChart,
 	getPeggedDominance,
 	standardizeProtocolName
 } from '~/utils'
@@ -195,7 +195,7 @@ const formatPeggedAssetsData = ({
 	peggedAssetProps = [...peggedPropertiesToKeep]
 }) => {
 	let filteredPeggedAssets = [...peggedAssets]
-	
+
 	if (chain) {
 		filteredPeggedAssets = filteredPeggedAssets.filter(({ chains = [] }) => chains.includes(chain))
 	}
@@ -217,10 +217,12 @@ const formatPeggedAssetsData = ({
 		const chartIndex = peggedNameToIndexObj[pegged.name]
 		const chart = chartDataByPeggedAsset[chartIndex] ?? null
 
-		pegged.mcap = chart?.[chart.length - 1]?.mcap ?? null
-		const mcapPrevDay = chart?.[chart.length - 1 - 1]?.mcap ?? null
-		const mcapPrevWeek = chart?.[chart.length - 1 - 7]?.mcap ?? null
-		const mcapPrevMonth = chart?.[chart.length - 1 - 30]?.mcap ?? null
+		console.log(chart)
+
+		pegged.mcap = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculatingUSD') ?? null
+		const mcapPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'totalCirculatingUSD') ?? null
+		const mcapPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'totalCirculatingUSD') ?? null
+		const mcapPrevMonth = getPrevPeggedTotalFromChart(chart, 30, 'totalCirculatingUSD') ?? null
 		pegged.change_1d = getPercentChange(pegged.mcap, mcapPrevDay)
 		pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
 		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
@@ -231,12 +233,11 @@ const formatPeggedAssetsData = ({
 	if (chain) {
 		filteredPeggedAssets = filteredPeggedAssets.sort((a, b) => b.mcap - a.mcap)
 	}
-	
+
 	return filteredPeggedAssets
 }
 
 const formatPeggedChainsData = ({
-	pegType,
 	chainList = [],
 	peggedChartDataByChain = [],
 	chainDominances = {},
@@ -255,14 +256,14 @@ const formatPeggedChainsData = ({
 			currentTimestamp - secondsInMonth < (latestChainTVLItem?.[0] ?? 0) ? latestChainTVLItem[1] : null
 
 		chainData.name = chainName
-		chainData.circulating = getPrevCirculatingFromChart(chart, 0, 'totalCirculating', pegType)
-		chainData.mcap = chart[chart.length - 1]?.mcap ?? 0
-		chainData.unreleased = getPrevCirculatingFromChart(chart, 0, 'unreleased', pegType)
-		chainData.bridgedTo = getPrevCirculatingFromChart(chart, 0, 'bridgedTo', pegType)
-		chainData.minted = getPrevCirculatingFromChart(chart, 0, 'minted', pegType)
-		chainData.mcapPrevDay = chart[chart.length - 2]?.mcap ?? 0
-		chainData.mcapPrevWeek = chart[chart.length - 8]?.mcap ?? 0
-		chainData.mcapPrevMonth = chart[chart.length - 31]?.mcap ?? 0
+		chainData.circulating = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculating')
+		chainData.mcap = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculatingUSD')
+		chainData.unreleased = getPrevPeggedTotalFromChart(chart, 0, 'totalUnreleased')
+		chainData.bridgedTo = getPrevPeggedTotalFromChart(chart, 0, 'totalBridgedToUSD')
+		chainData.minted = getPrevPeggedTotalFromChart(chart, 0, 'totalMintedUSD')
+		chainData.mcapPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'totalCirculatingUSD')
+		chainData.mcapPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'totalCirculatingUSD')
+		chainData.mcapPrevMonth = getPrevPeggedTotalFromChart(chart, 30, 'totalCirculatingUSD')
 
 		chainData.change_1d = getPercentChange(chainData.mcap, chainData.mcapPrevDay)
 		chainData.change_7d = getPercentChange(chainData.mcap, chainData.mcapPrevWeek)
@@ -355,11 +356,12 @@ export async function getPeggedOverviewPageData(chain) {
 	let peggedAreaChartData = chartDataByPeggedAsset.reduce((total, charts, i) => {
 		if (!charts.length) return total
 		charts.forEach((chart) => {
-			if (chart.date > 1596248105 && chart.mcap) {
+			const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
+			if (chart.date > 1596248105 && mcap) {
 				if (!(chain && chart.date < 1652241600)) {
 					// for individual chains data is currently only backfilled to May 11, 2022
 					total[chart.date] = total[chart.date] || {}
-					total[chart.date][peggedAssetNames[i]] = chart.mcap
+					total[chart.date][peggedAssetNames[i]] = mcap
 				}
 			}
 		})
@@ -384,10 +386,11 @@ export async function getPeggedOverviewPageData(chain) {
 
 	let peggedAreaMcapData = {}
 	peggedMcapChartData.map((chart) => {
-		if ((!chain && chart.date > 1596248105 && chart.mcap) || (chart.date > 1652241600 && chart.mcap)) {
+		const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
+		if ((!chain && chart.date > 1596248105 && mcap) || (chart.date > 1652241600 && mcap)) {
 			// for individual chains data is currently only backfilled to May 11, 2022
 			peggedAreaMcapData[chart.date] = peggedAreaMcapData[chart.date] || {}
-			peggedAreaMcapData[chart.date]['Total Stablecoins Market Cap'] = chart.mcap
+			peggedAreaMcapData[chart.date]['Total Stablecoins Market Cap'] = mcap
 		}
 	})
 
@@ -402,8 +405,9 @@ export async function getPeggedOverviewPageData(chain) {
 		chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
 			if (!charts.length) return total
 			charts.forEach((chart) => {
+				const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
 				const peggedName = peggedAssetNames[i]
-				const circulating = chart.mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
+				const circulating = mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
 				const date = chart.date
 				if (date < 1596248105) return
 				if (chain && chart.date < 1652241600) return // for individual chains data is currently only backfilled to May 11, 2022
@@ -523,9 +527,10 @@ export async function getPeggedChainsPageData() {
 		if (!charts.length) return total
 		charts.forEach((chart) => {
 			const chainName = chainList[i]
-			if (chart.date > 1652241600 && chart.mcap) {
+			const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
+			if (chart.date > 1652241600 && mcap) {
 				total[chart.date] = total[chart.date] || {}
-				total[chart.date][chainName] = chart.mcap
+				total[chart.date][chainName] = mcap
 			}
 		})
 		return total
@@ -545,9 +550,10 @@ export async function getPeggedChainsPageData() {
 
 	let peggedAreaMcapData = {}
 	peggedMcapChartData.map((chart) => {
-		if (chart.date > 1596248105 && chart.mcap) {
+		const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
+		if (chart.date > 1596248105 && mcap) {
 			peggedAreaMcapData[chart.date] = peggedAreaMcapData[chart.date] || {}
-			peggedAreaMcapData[chart.date]['Total Stablecoins Market Cap'] = chart.mcap
+			peggedAreaMcapData[chart.date]['Total Stablecoins Market Cap'] = mcap
 		}
 	})
 
@@ -580,13 +586,13 @@ export async function getPeggedChainsPageData() {
 		chainDominances[chainName] = greatestChainMcap
 	})
 
-	const pegType = 'peggedUSD'
 	const stackedDataset = Object.entries(
 		peggedChartDataByChain.reduce((total: IStackedDataset, charts, i) => {
 			if (!charts.length) return total
 			charts.forEach((chart) => {
+				const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
 				const chainName = chainList[i]
-				const circulating = chart.mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
+				const circulating = mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
 				const date = chart.date
 				if (date < 1652241600) return
 				if (circulating !== null && circulating !== 0) {
@@ -601,9 +607,7 @@ export async function getPeggedChainsPageData() {
 		}, {})
 	)
 
-	// formatPeggedChainsData includes all "pegTypes" for mcap, but only 1 pegType for other chainCirculatings props
 	const chainCirculatings = formatPeggedChainsData({
-		pegType,
 		chainList,
 		peggedChartDataByChain,
 		chainDominances,
@@ -1046,9 +1050,9 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
 	const bridgeInfo = await getPeggedBridgeInfo()
 	const pegType = res.pegType
 
-	const totalCirculating = getPrevCirculatingFromChart(peggedChart, 0, 'totalCirculating', pegType)
-	const unreleased = getPrevCirculatingFromChart(peggedChart, 0, 'unreleased', pegType)
-	const mcap = peggedChart[peggedChart.length - 1]?.mcap ?? null
+	const totalCirculating = getPrevPeggedTotalFromChart(peggedChart, 0, 'totalCirculating', pegType)
+	const unreleased = getPrevPeggedTotalFromChart(peggedChart, 0, 'totalUnreleased', pegType)
+	const mcap = getPrevPeggedTotalFromChart(peggedChart, 0, 'totalCirculatingUSD', pegType)
 
 	const chainsUnique: string[] = res.chains
 
@@ -1076,13 +1080,13 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
 
 	const chainCirculatings = chainsUnique
 		.map((chainName, i) => {
-			const circulating: number = getPrevCirculatingFromChart(chainsData[i], 0, 'circulating', pegType)
-			const unreleased: number = getPrevCirculatingFromChart(chainsData[i], 0, 'unreleased', pegType)
-			let bridgedTo: number = getPrevCirculatingFromChart(chainsData[i], 0, 'bridgedTo', pegType)
-			const bridges: any = getPrevCirculatingFromChart(chainsData[i], 0, 'bridgedTo', 'bridges')
-			const circulatingPrevDay: number = getPrevCirculatingFromChart(chainsData[i], 1, 'circulating', pegType)
-			const circulatingPrevWeek: number = getPrevCirculatingFromChart(chainsData[i], 7, 'circulating', pegType)
-			const circulatingPrevMonth: number = getPrevCirculatingFromChart(chainsData[i], 30, 'circulating', pegType)
+			const circulating: number = getPrevPeggedTotalFromChart(chainsData[i], 0, 'circulating', pegType)
+			const unreleased: number = getPrevPeggedTotalFromChart(chainsData[i], 0, 'unreleased', pegType)
+			let bridgedTo: number = getPrevPeggedTotalFromChart(chainsData[i], 0, 'bridgedTo', pegType)
+			const bridges: any = getPrevPeggedTotalFromChart(chainsData[i], 0, 'bridgedTo', 'bridges')
+			const circulatingPrevDay: number = getPrevPeggedTotalFromChart(chainsData[i], 1, 'circulating', pegType)
+			const circulatingPrevWeek: number = getPrevPeggedTotalFromChart(chainsData[i], 7, 'circulating', pegType)
+			const circulatingPrevMonth: number = getPrevPeggedTotalFromChart(chainsData[i], 30, 'circulating', pegType)
 			const change_1d = getPercentChange(circulating, circulatingPrevDay)
 			const change_7d = getPercentChange(circulating, circulatingPrevWeek)
 			const change_1m = getPercentChange(circulating, circulatingPrevMonth)
