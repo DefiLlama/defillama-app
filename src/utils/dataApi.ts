@@ -422,7 +422,15 @@ export async function getPeggedOverviewPageData(chain) {
 		}, {})
 	)
 
-	const chainList = await chains.sort((a, b) => b.mcap - a.mcap).map((chain) => chain.name)
+	const chainList = await chains
+		.sort((a, b) => {
+			const bTotalCirculatings = Object.values(b.totalCirculatingUSD) as any
+			const bMcap = bTotalCirculatings.reduce((c, d) => c + d)
+			const aTotalCirculatings = Object.values(a.totalCirculatingUSD) as any
+			const aMcap = aTotalCirculatings.reduce((c, d) => c + d)
+			return bMcap - aMcap
+		})
+		.map((chain) => chain.name)
 	const chainsSet = new Set()
 
 	peggedAssets.forEach(({ chains }) => {
@@ -465,7 +473,15 @@ export async function getPeggedChainsPageData() {
 
 	const chartData = await fetch(`${PEGGEDCHART_API}/all`).then((r) => r.json())
 
-	const chainList = await chains.sort((a, b) => b.mcap - a.mcap).map((chain) => chain.name)
+	const chainList = await chains
+		.sort((a, b) => {
+			const bTotalCirculatings = Object.values(b.totalCirculatingUSD) as any
+			const bMcap = bTotalCirculatings.reduce((c, d) => c + d)
+			const aTotalCirculatings = Object.values(a.totalCirculatingUSD) as any
+			const aMcap = aTotalCirculatings.reduce((c, d) => c + d)
+			return bMcap - aMcap
+		})
+		.map((chain) => chain.name)
 	const chainsSet = new Set()
 
 	const chainsData: IChainData[] = await Promise.all(
