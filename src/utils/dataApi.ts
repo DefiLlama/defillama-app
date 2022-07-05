@@ -19,6 +19,7 @@ import {
 	PEGGED_API,
 	PEGGEDS_API,
 	PEGGEDCHART_API,
+	PEGGEDCONFIG_API,
 	PEGGEDDOMINANCE_API
 } from '~/constants/index'
 import {
@@ -1039,9 +1040,11 @@ export const getChainsPageData = async (category: string) => {
 	}
 }
 
-export const getPeggedAssetPageData = async (category: string, peggedasset: string) => {
+export const getPeggedAssetPageData = async (peggedasset: string) => {
+	const peggedNameToPeggedIDMapping = await fetch(PEGGEDCONFIG_API).then((resp) => resp.json())
+	const peggedID = peggedNameToPeggedIDMapping[peggedasset]
 	const [res, { chainCoingeckoIds }] = await Promise.all(
-		[`${PEGGED_API}/${peggedasset}`, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
+		[`${PEGGED_API}/${peggedID}`, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
 	)
 
 	const peggedChart = await fetch(`${PEGGEDCHART_API}/all?peggedAsset=${res.gecko_id}`).then((resp) => resp.json())
@@ -1053,22 +1056,6 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
 	const mcap = getPrevPeggedTotalFromChart(peggedChart, 0, 'totalCirculatingUSD', pegType)
 
 	const chainsUnique: string[] = res.chains
-
-	let chainsGroupbyParent = {}
-	chainsUnique.forEach((chain) => {
-		const parent = chainCoingeckoIds[chain]?.parent
-		if (parent) {
-			if (!chainsGroupbyParent[parent.chain]) {
-				chainsGroupbyParent[parent.chain] = {}
-			}
-			for (const type of parent.types) {
-				if (!chainsGroupbyParent[parent.chain][type]) {
-					chainsGroupbyParent[parent.chain][type] = []
-				}
-				chainsGroupbyParent[parent.chain][type].push(chain)
-			}
-		}
-	})
 
 	const chainsData: any[] = await Promise.all(
 		chainsUnique.map(async (elem: string) => {

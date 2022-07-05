@@ -6,10 +6,10 @@ import { getPeggedColor } from '~/utils/getColor'
 
 export async function getStaticProps({
 	params: {
-		peggedasset: [peggedasset, cat = 'All']
+		peggedasset: [peggedasset]
 	}
 }) {
-	const data = await getPeggedAssetPageData(cat, peggedasset)
+	const data = await getPeggedAssetPageData(peggedasset)
 	const {
 		chainsUnique,
 		chainCirculatings,
