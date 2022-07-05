@@ -9,6 +9,7 @@ import {
 	SINGLE_EXPOSURE,
 	STABLECOINS,
 	NO_OUTLIER,
+	APY_GT0,
 	useLocalStorageContext
 } from '~/contexts/LocalStorage'
 import { Item, Stats } from '../shared'
@@ -43,6 +44,11 @@ export const options = [
 		name: 'No Outliers',
 		key: NO_OUTLIER,
 		help: 'Remove pools which extreme apy values'
+	},
+	{
+		name: 'APY > 0',
+		key: APY_GT0,
+		help: 'Remove pools which 0 apy values'
 	}
 ]
 

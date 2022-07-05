@@ -11,7 +11,8 @@ import {
 	useStablecoinsManager,
 	useMillionDollarManager,
 	useAuditedManager,
-	useNoOutlierManager
+	useNoOutlierManager,
+	useAPYManager
 } from '~/contexts/LocalStorage'
 import { columns, TableWrapper } from './shared'
 
@@ -95,6 +96,7 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 	const [millionDollar] = useMillionDollarManager()
 	const [audited] = useAuditedManager()
 	const [noOutlier] = useNoOutlierManager()
+	const [apyGT0] = useAPYManager()
 
 	const poolsData = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
@@ -122,6 +124,10 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 
 			if (noOutlier) {
 				toFilter = toFilter && curr.outlier === false
+			}
+
+			if (apyGT0) {
+				toFilter = toFilter && curr.apy > 0
 			}
 
 			if (selectedProjects.length > 0) {
@@ -175,6 +181,7 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 		pools,
 		audited,
 		noOutlier,
+		apyGT0,
 		millionDollar,
 		noIL,
 		singleExposure,
