@@ -1,4 +1,4 @@
-import { getPeggedDominance, getPercentChange, getPrevCirculatingFromChart } from '~/utils'
+import { getPeggedDominance, getPercentChange, getPrevPeggedTotalFromChart } from '~/utils'
 import { keepNeededProperties } from '../../shared'
 
 export const peggedPropertiesToKeep = [
@@ -87,14 +87,14 @@ export const formatPeggedChainsData = ({
 			currentTimestamp - secondsInMonth < (latestChainTVLItem?.[0] ?? 0) ? latestChainTVLItem[1] : null
 
 		chainData.name = chainName
-		chainData.circulating = getPrevCirculatingFromChart(chart, 0, 'totalCirculating', pegType)
+		chainData.circulating = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculating', pegType)
 		chainData.mcap = chart[chart.length - 1]?.mcap ?? 0
-		chainData.unreleased = getPrevCirculatingFromChart(chart, 0, 'unreleased', pegType)
-		chainData.bridgedTo = getPrevCirculatingFromChart(chart, 0, 'bridgedTo', pegType)
-		chainData.minted = getPrevCirculatingFromChart(chart, 0, 'minted', pegType)
-		chainData.circulatingPrevDay = getPrevCirculatingFromChart(chart, 1, 'totalCirculating', pegType)
-		chainData.circulatingPrevWeek = getPrevCirculatingFromChart(chart, 7, 'totalCirculating', pegType)
-		chainData.circulatingPrevMonth = getPrevCirculatingFromChart(chart, 30, 'totalCirculating', pegType)
+		chainData.unreleased = getPrevPeggedTotalFromChart(chart, 0, 'unreleased', pegType)
+		chainData.bridgedTo = getPrevPeggedTotalFromChart(chart, 0, 'bridgedTo', pegType)
+		chainData.minted = getPrevPeggedTotalFromChart(chart, 0, 'minted', pegType)
+		chainData.circulatingPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'totalCirculating', pegType)
+		chainData.circulatingPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'totalCirculating', pegType)
+		chainData.circulatingPrevMonth = getPrevPeggedTotalFromChart(chart, 30, 'totalCirculating', pegType)
 
 		chainData.change_1d = getPercentChange(chainData.circulating, chainData.circulatingPrevDay)
 		chainData.change_7d = getPercentChange(chainData.circulating, chainData.circulatingPrevWeek)
