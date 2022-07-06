@@ -1298,6 +1298,9 @@ export async function getYieldPageData(query = null) {
 
 		// remove anchor cause UST dead
 		pools = pools.filter((p) => p.project !== 'anchor')
+		// temporary fix for those projects with undefined projectName field (happens if adaptor is a yield adaptor
+		// but not available via tvl dashboard, will remove for now until fixed on adaptor side)
+		pools = pools.filter((p) => p.projectName !== undefined)
 
 		const chainList = new Set()
 
@@ -1423,14 +1426,16 @@ export const useYieldChartData = (poolId) => {
 //:00 -> adapters start running, they take up to 15mins
 //:20 -> storeProtocols starts running, sets cache expiry to :21 of next hour
 //:22 -> we rebuild all pages
-function next22Minutedate() {
+function next22Minutedate(minutesForRollover) {
 	const dt = new Date()
-	dt.setHours(dt.getHours() + 1)
-	dt.setMinutes(22)
+	dt.setMinutes(minutesForRollover)
+	if (dt < new Date()) {
+		dt.setHours(dt.getHours() + 1)
+	}
 	return dt
 }
 
-export function revalidate() {
+export function revalidate(minutesForRollover = 22) {
 	const current = Date.now()
-	return Math.ceil((next22Minutedate().getTime() - current) / 1000)
+	return Math.ceil((next22Minutedate(minutesForRollover).getTime() - current) / 1000)
 }
