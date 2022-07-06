@@ -88,7 +88,7 @@ export async function getStaticProps() {
 		props: {
 			projects: projArray.sort((a, b) => b.tvl - a.tvl)
 		},
-		revalidate: revalidate()
+		revalidate: revalidate(23)
 	}
 }
 
