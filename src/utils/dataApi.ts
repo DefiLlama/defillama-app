@@ -1071,7 +1071,7 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 	const unreleased = getPrevPeggedTotalFromChart(peggedChart, 0, 'totalUnreleased', pegType)
 	const mcap = getPrevPeggedTotalFromChart(peggedChart, 0, 'totalCirculatingUSD', pegType)
 
-	const chainsUnique: string[] = res.chains
+	const chainsUnique: string[] = Object.keys(res.chainBalances)
 
 	const chainsData: any[] = await Promise.all(
 		chainsUnique.map(async (elem: string) => {

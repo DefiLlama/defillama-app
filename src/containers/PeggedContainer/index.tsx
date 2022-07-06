@@ -525,7 +525,7 @@ export default function PeggedContainer({
 		gecko_id,
 		symbol,
 		description,
-		mechanismDescription,
+		mintRedeemDescription,
 		address,
 		url,
 		pegMechanism,
@@ -710,11 +710,11 @@ export default function PeggedContainer({
 								</FlexRow>
 							)}
 
-							{mechanismDescription && (
+							{mintRedeemDescription && (
 								<PeggedDescription>
 									<>
 										<span>Minting and Redemption</span>
-										<span>{mechanismDescription}</span>
+										<span>{mintRedeemDescription}</span>
 									</>
 								</PeggedDescription>
 							)}
