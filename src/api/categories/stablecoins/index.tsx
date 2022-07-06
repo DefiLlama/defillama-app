@@ -1,6 +1,14 @@
 import { getPercentChange, getPrevPeggedTotalFromChart, standardizeProtocolName } from '~/utils'
 import type { IChainData, IStackedDataset } from '~/api/types'
-import { CHART_API, CONFIG_API, PEGGEDCHART_API, PEGGEDCONFIG_API, PEGGEDS_API, PEGGED_API } from '~/constants'
+import {
+	CHART_API,
+	CONFIG_API,
+	PEGGEDCHART_API,
+	PEGGEDCONFIG_API,
+	PEGGEDDOMINANCE_API,
+	PEGGEDS_API,
+	PEGGED_API
+} from '~/constants'
 import { formatPeggedAssetsData, formatPeggedChainsData } from './utils'
 
 export const getPeggedAssets = () =>
