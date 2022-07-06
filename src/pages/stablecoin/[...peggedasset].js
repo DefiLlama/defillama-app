@@ -7,15 +7,13 @@ import { getPeggedAssetPageData, getPeggedAssets } from '~/api/categories/stable
 
 export async function getStaticProps({
 	params: {
-		peggedasset: [peggedasset, cat = 'All']
+		peggedasset: [peggedasset]
 	}
 }) {
-	const data = await getPeggedAssetPageData(cat, peggedasset)
+	const data = await getPeggedAssetPageData(peggedasset)
 	const {
 		chainsUnique,
 		chainCirculatings,
-		category,
-		categories,
 		stackedDataset,
 		peggedAssetData,
 		totalCirculating,
@@ -31,8 +29,6 @@ export async function getStaticProps({
 		props: {
 			chainsUnique,
 			chainCirculatings,
-			category,
-			categories,
 			stackedDataset,
 			peggedAssetData,
 			totalCirculating,

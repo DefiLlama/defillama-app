@@ -465,8 +465,11 @@ export const getPrevTvlFromChart = (chart, daysBefore) => {
 	return chart[chart.length - 1 - daysBefore]?.[1] ?? null
 }
 
-export const getPrevCirculatingFromChart = (chart, daysBefore, issuanceType, pegType) => {
-	return chart[chart.length - 1 - daysBefore]?.[issuanceType]?.[pegType] ?? null
+export const getPrevPeggedTotalFromChart = (chart, daysBefore, issuanceType, pegType = '') => {
+	const prevChart = chart[chart.length - 1 - daysBefore]
+	if (!prevChart) return null
+	if (!pegType) return Object.values(prevChart?.[issuanceType]).reduce((a, b) => a + b)
+	return prevChart?.[issuanceType]?.[pegType] ?? null
 }
 
 export function download(filename, text) {
