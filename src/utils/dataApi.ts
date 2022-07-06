@@ -1336,17 +1336,6 @@ export async function getYieldPageData(query = null) {
 	}
 }
 
-export async function fetchCGMarketsData() {
-	const urls = []
-	const maxPage = 10
-	for (let page = 1; page <= maxPage; page++) {
-		urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', `${page}`)}`)
-	}
-
-	const promises = urls.map((url) => fetch(url).then((resp) => resp.json()))
-	return await Promise.all(promises)
-}
-
 export function getCGMarketsDataURLs() {
 	const urls: string[] = []
 	const maxPage = 10
@@ -1403,11 +1392,11 @@ export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
 	return { data, error, loading: gecko_id && !data && !error }
 }
 
-export const useDenominationPriceHistory = ({ geckoId, utcStartTime }: { geckoId?: string; utcStartTime: number }) => {
-	let url = `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart/range?vs_currency=usd&from=${utcStartTime}&to=`
+export const useDenominationPriceHistory = (geckoId?: string) => {
+	let url = `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart/range?vs_currency=usd&from=0&to=`
 
 	// append end time to fetcher params to keep query key consistent b/w renders and avoid over fetching
-	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Math.floor(Date.now() / 1000)))
+	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Date.now()))
 
 	return { data, error, loading: geckoId && !data && !error }
 }

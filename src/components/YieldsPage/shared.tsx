@@ -247,11 +247,13 @@ export const columns = [
 	{
 		header: '1d change',
 		accessor: 'change1d',
+		helperText: 'Absolute change in APY',
 		Cell: ({ value }) => <>{formattedPercent(value)}</>
 	},
 	{
 		header: '7d change',
 		accessor: 'change7d',
+		helperText: 'Absolute change in APY',
 		Cell: ({ value }) => <>{formattedPercent(value)}</>
 	},
 	{

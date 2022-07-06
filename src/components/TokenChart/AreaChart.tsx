@@ -42,7 +42,8 @@ export default function AreaChart({
 	moneySymbol = '$',
 	title,
 	color,
-	hallmarks
+	hallmarks,
+	hideLegend
 }: IChartProps) {
 	// For Tokens Chart
 	const [legendOptions, setLegendOptions] = useState<string[]>(tokensUnique)
@@ -111,7 +112,7 @@ export default function AreaChart({
 
 			return series
 		} else {
-			const series = tokensUnique.map((token) => {
+			const series = tokensUnique.map((token, index) => {
 				return {
 					name: token,
 					type: 'line',
@@ -121,18 +122,52 @@ export default function AreaChart({
 					},
 					symbol: 'none',
 					itemStyle: {
-						color
+						color: index === 0 ? chartColor : null
 					},
 					areaStyle: {
-						color
+						color: hideLegend
+							? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+									{
+										offset: 0,
+										color: index === 0 ? chartColor : 'transparent'
+									},
+									{
+										offset: 1,
+										color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+									}
+							  ])
+							: null
 					},
-					data: []
+					data: [],
+					...(hallmarks && {
+						markLine: {
+							data: hallmarks.map(([date, event], index) => [
+								{
+									name: event,
+									xAxis: new Date(date * 1000),
+									yAxis: 0,
+									label: {
+										color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+										fontFamily: 'inter, sans-serif',
+										fontSize: 14,
+										fontWeight: 500
+									}
+								},
+								{
+									name: 'end',
+									xAxis: new Date(date * 1000),
+									yAxis: 'max',
+									y: Math.max(hallmarks.length * 40 - index * 40, 40)
+								}
+							])
+						}
+					})
 				}
 			})
 
 			chartData.forEach(({ date, ...item }) => {
 				tokensUnique.forEach((token) => {
-					if (legendOptions.includes(token)) {
+					if (legendOptions.includes(token) || hideLegend) {
 						series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
 					}
 				})
@@ -140,7 +175,7 @@ export default function AreaChart({
 
 			return series
 		}
-	}, [chartData, tokensUnique, color, isDark, legendOptions, hallmarks])
+	}, [chartData, tokensUnique, color, isDark, legendOptions, hallmarks, hideLegend])
 
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -178,7 +213,7 @@ export default function AreaChart({
 					const vals = params
 						.sort((a, b) => b.value[1] - a.value[1])
 						.reduce((prev, curr) => {
-							if (curr.value[1] !== 0) {
+							if (curr.value[1] !== 0 && curr.value[1] !== '-') {
 								return (prev +=
 									'<li style="list-style:none">' +
 									curr.marker +
@@ -312,7 +347,7 @@ export default function AreaChart({
 
 	return (
 		<div style={{ position: 'relative' }}>
-			{tokensUnique?.length > 1 && (
+			{tokensUnique?.length > 1 && !hideLegend && (
 				<SelectLegendMultiple
 					allOptions={tokensUnique}
 					options={legendOptions}
