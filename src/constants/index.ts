@@ -45,7 +45,7 @@ export const NFT_SEARCH_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaw
 
 export const PEGGEDS_API = 'https://stablecoins.llama.fi/stablecoins'
 export const PEGGED_API = 'https://stablecoins.llama.fi/stablecoin'
-export const PEGGEDCHART_API = 'https://stablecoins.llama.fi/stablecoinchart'
+export const PEGGEDCHART_API = 'https://stablecoins.llama.fi/stablecoincharts'
 export const PEGGEDCONFIG_API = 'https://stablecoins.llama.fi/config'
 export const PEGGEDDOMINANCE_API = 'https://stablecoins.llama.fi/stablecoindominance'
 
