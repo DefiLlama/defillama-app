@@ -18,6 +18,7 @@ import {
 	capitalizeFirstLetter,
 	formattedNum,
 	formattedPeggedPrice,
+	getPrevPeggedTotalFromChart,
 	getPercentChange,
 	getPeggedDominance,
 	toNiceMonthlyDate,
@@ -325,10 +326,8 @@ function PeggedAssetsOverview({
 	}
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
-		const chartCurrent = chartData[chartData.length - 1] ?? null
-		const chartPrevDay = chartData[chartData.length - 8] ?? null
-		const totalMcapCurrent = chartCurrent?.mcap
-		const totalMcapPrevDay = chartPrevDay?.mcap
+		const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, "totalCirculatingUSD")
+		const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 7, "totalCirculatingUSD")
 		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
 		return { percentChange, totalMcapCurrent }
 	}, [chartData])
