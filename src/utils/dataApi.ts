@@ -1308,7 +1308,12 @@ export async function getYieldPageData(query = null) {
 		for (const el of pools) {
 			const d = aggregations.find((i) => i.pool === el.pool)
 
-			if (d === undefined) continue
+			if (d === undefined) {
+				el['sigma'] = 0
+				el['mu'] = el.apy
+				el['count'] = 1
+				continue
+			}
 
 			// calc std using welford's algorithm
 			// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
