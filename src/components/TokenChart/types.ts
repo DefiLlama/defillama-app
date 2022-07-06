@@ -5,4 +5,9 @@ export interface IChartProps {
 	title: string
 	color?: string
 	hallmarks?: [number, string][]
+	hideLegend?: boolean
+}
+
+export interface IProtocolMcapTVLChartProps extends IChartProps {
+	geckoId: string
 }
