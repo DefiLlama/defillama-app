@@ -1423,14 +1423,16 @@ export const useYieldChartData = (poolId) => {
 //:00 -> adapters start running, they take up to 15mins
 //:20 -> storeProtocols starts running, sets cache expiry to :21 of next hour
 //:22 -> we rebuild all pages
-function next22Minutedate() {
+function next22Minutedate(minutesForRollover) {
 	const dt = new Date()
-	dt.setHours(dt.getHours() + 1)
-	dt.setMinutes(22)
+	dt.setMinutes(minutesForRollover)
+	if(dt < new Date()){
+		dt.setHours(dt.getHours() + 1)
+	}
 	return dt
 }
 
-export function revalidate() {
+export function revalidate(minutesForRollover = 22) {
 	const current = Date.now()
-	return Math.ceil((next22Minutedate().getTime() - current) / 1000)
+	return Math.ceil((next22Minutedate(minutesForRollover).getTime() - current) / 1000)
 }
