@@ -101,8 +101,7 @@ export default function TreemapChart({ chartData }: IChartProps) {
 
 		const option = {
 			title: {
-				text: 'APY Trends - 1d change',
-				left: 'center',
+				text: 'APY Trends - 1d Change',
 				textStyle: {
 					fontFamily: 'inter, sans-serif',
 					fontWeight: 600,
@@ -122,7 +121,7 @@ export default function TreemapChart({ chartData }: IChartProps) {
 							'Pool: ' + treePath[1] + '<br>',
 							'TVL: $' + toK(info.value[0]) + '<br>',
 							'APY: ' + info.value[1] + '%' + '<br>',
-							'1d change: ' + info.value[2] + '%'
+							'1d Change: ' + info.value[2] + '%'
 						].join('')
 					} else {
 						return ['Project: ' + treePath[0]].join('')
