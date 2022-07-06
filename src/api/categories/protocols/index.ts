@@ -9,7 +9,7 @@ import {
 	PROTOCOLS_API,
 	PROTOCOL_API
 } from '~/constants'
-import { formatProtocolsData } from './utils'
+import { BasicPropsToKeep, formatProtocolsData, groupProtocolsByParent } from './utils'
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
@@ -101,7 +101,7 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 	}
 }
 
-export async function getSimpleProtocolsPageData(propsToKeep?: string[]) {
+export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep) {
 	const { protocols, chains } = await getProtocolsRaw()
 	const filteredProtocols = formatProtocolsData({
 		protocols,
@@ -129,7 +129,7 @@ export const getVolumeCharts = (data) => {
 }
 
 export async function getChainPageData(chain?: string) {
-	const [chartData, { protocols, chains }] = await Promise.all(
+	const [chartData, { protocols, chains, parentProtocols }] = await Promise.all(
 		[CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
 	)
 
@@ -139,13 +139,15 @@ export async function getChainPageData(chain?: string) {
 		removeBridges: true
 	})
 
+	const data = groupProtocolsByParent(parentProtocols, filteredProtocols)
+
 	const charts = getVolumeCharts(chartData)
 
 	return {
 		props: {
 			...(chain && { chain }),
 			chainsSet: chains,
-			filteredProtocols,
+			filteredProtocols: data,
 			...charts
 		}
 	}

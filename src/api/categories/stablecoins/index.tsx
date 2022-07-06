@@ -1,6 +1,6 @@
-import { getPercentChange, getPrevCirculatingFromChart, standardizeProtocolName } from '~/utils'
+import { getPercentChange, getPrevPeggedTotalFromChart, standardizeProtocolName } from '~/utils'
 import type { IChainData, IStackedDataset } from '~/api/types'
-import { CHART_API, CONFIG_API, PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDS_API, PEGGED_API } from '~/constants'
+import { CHART_API, CONFIG_API, PEGGEDCHART_API, PEGGEDCONFIG_API, PEGGEDS_API, PEGGED_API } from '~/constants'
 import { formatPeggedAssetsData, formatPeggedChainsData } from './utils'
 
 export const getPeggedAssets = () =>
@@ -15,7 +15,7 @@ export const getPeggedAssets = () =>
 			chains
 		}))
 
-export const getPeggedPrices = () => fetch(PEGGEDPRICES_API).then((r) => r.json())
+export const getPeggedPrices = () => fetch(PEGGEDCONFIG_API).then((r) => r.json())
 
 export const getPeggedBridgeInfo = () =>
 	fetch('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json').then((r) => r.json())
@@ -315,8 +315,8 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
 	const bridgeInfo = await getPeggedBridgeInfo()
 	const pegType = res.pegType
 
-	const totalCirculating = getPrevCirculatingFromChart(peggedChart, 0, 'totalCirculating', pegType)
-	const unreleased = getPrevCirculatingFromChart(peggedChart, 0, 'unreleased', pegType)
+	const totalCirculating = getPrevPeggedTotalFromChart(peggedChart, 0, 'totalCirculating', pegType)
+	const unreleased = getPrevPeggedTotalFromChart(peggedChart, 0, 'unreleased', pegType)
 	const mcap = peggedChart[peggedChart.length - 1]?.mcap ?? null
 
 	let categories = []
@@ -381,13 +381,13 @@ export const getPeggedAssetPageData = async (category: string, peggedasset: stri
 
 	const chainCirculatings = chainsUnique
 		.map((chainName, i) => {
-			const circulating: number = getPrevCirculatingFromChart(chainsData[i], 0, 'circulating', pegType)
-			const unreleased: number = getPrevCirculatingFromChart(chainsData[i], 0, 'unreleased', pegType)
-			let bridgedTo: number = getPrevCirculatingFromChart(chainsData[i], 0, 'bridgedTo', pegType)
-			const bridges: any = getPrevCirculatingFromChart(chainsData[i], 0, 'bridgedTo', 'bridges')
-			const circulatingPrevDay: number = getPrevCirculatingFromChart(chainsData[i], 1, 'circulating', pegType)
-			const circulatingPrevWeek: number = getPrevCirculatingFromChart(chainsData[i], 7, 'circulating', pegType)
-			const circulatingPrevMonth: number = getPrevCirculatingFromChart(chainsData[i], 30, 'circulating', pegType)
+			const circulating: number = getPrevPeggedTotalFromChart(chainsData[i], 0, 'circulating', pegType)
+			const unreleased: number = getPrevPeggedTotalFromChart(chainsData[i], 0, 'unreleased', pegType)
+			let bridgedTo: number = getPrevPeggedTotalFromChart(chainsData[i], 0, 'bridgedTo', pegType)
+			const bridges: any = getPrevPeggedTotalFromChart(chainsData[i], 0, 'bridgedTo', 'bridges')
+			const circulatingPrevDay: number = getPrevPeggedTotalFromChart(chainsData[i], 1, 'circulating', pegType)
+			const circulatingPrevWeek: number = getPrevPeggedTotalFromChart(chainsData[i], 7, 'circulating', pegType)
+			const circulatingPrevMonth: number = getPrevPeggedTotalFromChart(chainsData[i], 30, 'circulating', pegType)
 			const change_1d = getPercentChange(circulating, circulatingPrevDay)
 			const change_7d = getPercentChange(circulating, circulatingPrevWeek)
 			const change_1m = getPercentChange(circulating, circulatingPrevMonth)
