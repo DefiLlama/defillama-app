@@ -1,7 +1,7 @@
 import Layout from '~/layout'
 import PeggedList from '~/components/PeggedList'
 import { revalidate } from '~/api'
-import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
+import { getPeggedAssets, getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 
 export async function getStaticProps({
 	params: {
@@ -22,7 +22,7 @@ export async function getStaticProps({
 }
 
 export async function getStaticPaths() {
-	const { peggedAssets, chains } = await getPeggedAssets()
+	const { chains } = await getPeggedAssets()
 
 	const paths = chains.slice(0, 20).map((chain) => ({
 		params: { chain: [chain.name] }
