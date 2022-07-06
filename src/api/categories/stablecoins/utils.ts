@@ -28,6 +28,7 @@ export const formatPeggedAssetsData = ({
 	peggedAssetProps = [...peggedPropertiesToKeep]
 }) => {
 	let filteredPeggedAssets = [...peggedAssets]
+
 	if (chain) {
 		filteredPeggedAssets = filteredPeggedAssets.filter(({ chains = [] }) => chains.includes(chain))
 	}
@@ -49,10 +50,10 @@ export const formatPeggedAssetsData = ({
 		const chartIndex = peggedNameToIndexObj[pegged.name]
 		const chart = chartDataByPeggedAsset[chartIndex] ?? null
 
-		pegged.mcap = chart?.[chart.length - 1]?.mcap ?? null
-		const mcapPrevDay = chart?.[chart.length - 1 - 1]?.mcap ?? null
-		const mcapPrevWeek = chart?.[chart.length - 1 - 7]?.mcap ?? null
-		const mcapPrevMonth = chart?.[chart.length - 1 - 30]?.mcap ?? null
+		pegged.mcap = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculatingUSD') ?? null
+		const mcapPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'totalCirculatingUSD') ?? null
+		const mcapPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'totalCirculatingUSD') ?? null
+		const mcapPrevMonth = getPrevPeggedTotalFromChart(chart, 30, 'totalCirculatingUSD') ?? null
 		pegged.change_1d = getPercentChange(pegged.mcap, mcapPrevDay)
 		pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
 		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
@@ -68,7 +69,6 @@ export const formatPeggedAssetsData = ({
 }
 
 export const formatPeggedChainsData = ({
-	pegType,
 	chainList = [],
 	peggedChartDataByChain = [],
 	chainDominances = {},
@@ -87,18 +87,18 @@ export const formatPeggedChainsData = ({
 			currentTimestamp - secondsInMonth < (latestChainTVLItem?.[0] ?? 0) ? latestChainTVLItem[1] : null
 
 		chainData.name = chainName
-		chainData.circulating = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculating', pegType)
-		chainData.mcap = chart[chart.length - 1]?.mcap ?? 0
-		chainData.unreleased = getPrevPeggedTotalFromChart(chart, 0, 'unreleased', pegType)
-		chainData.bridgedTo = getPrevPeggedTotalFromChart(chart, 0, 'bridgedTo', pegType)
-		chainData.minted = getPrevPeggedTotalFromChart(chart, 0, 'minted', pegType)
-		chainData.circulatingPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'totalCirculating', pegType)
-		chainData.circulatingPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'totalCirculating', pegType)
-		chainData.circulatingPrevMonth = getPrevPeggedTotalFromChart(chart, 30, 'totalCirculating', pegType)
+		chainData.circulating = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculating')
+		chainData.mcap = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculatingUSD')
+		chainData.unreleased = getPrevPeggedTotalFromChart(chart, 0, 'totalUnreleased')
+		chainData.bridgedTo = getPrevPeggedTotalFromChart(chart, 0, 'totalBridgedToUSD')
+		chainData.minted = getPrevPeggedTotalFromChart(chart, 0, 'totalMintedUSD')
+		chainData.mcapPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'totalCirculatingUSD')
+		chainData.mcapPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'totalCirculatingUSD')
+		chainData.mcapPrevMonth = getPrevPeggedTotalFromChart(chart, 30, 'totalCirculatingUSD')
 
-		chainData.change_1d = getPercentChange(chainData.circulating, chainData.circulatingPrevDay)
-		chainData.change_7d = getPercentChange(chainData.circulating, chainData.circulatingPrevWeek)
-		chainData.change_1m = getPercentChange(chainData.circulating, chainData.circulatingPrevMonth)
+		chainData.change_1d = getPercentChange(chainData.mcap, chainData.mcapPrevDay)
+		chainData.change_7d = getPercentChange(chainData.mcap, chainData.mcapPrevWeek)
+		chainData.change_1m = getPercentChange(chainData.mcap, chainData.mcapPrevMonth)
 
 		chainData.dominance = chainDominance
 			? {

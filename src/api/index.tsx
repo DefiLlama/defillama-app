@@ -27,7 +27,7 @@ export async function retryCoingeckoRequest(func, retries) {
 //:00 -> adapters start running, they take up to 15mins
 //:20 -> storeProtocols starts running, sets cache expiry to :21 of next hour
 //:22 -> we rebuild all pages
-function next22Minutedate(minutesForRollover) {
+function next22Minutedate(minutesForRollover: number) {
 	const dt = new Date()
 	dt.setMinutes(minutesForRollover)
 	if (dt < new Date()) {

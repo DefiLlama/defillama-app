@@ -13,6 +13,10 @@ export async function getYieldPageData(query = null) {
 		// remove anchor cause UST dead
 		pools = pools.filter((p) => p.project !== 'anchor')
 
+		// temporary fix for those projects with undefined projectName field (happens if adaptor is a yield adaptor
+		// but not available via tvl dashboard, will remove for now until fixed on adaptor side)
+		pools = pools.filter((p) => p.projectName !== undefined)
+
 		const chainList = new Set()
 
 		const projectList = []
