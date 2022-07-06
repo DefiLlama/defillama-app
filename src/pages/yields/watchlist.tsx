@@ -7,7 +7,7 @@ export async function getStaticProps() {
 
 	return {
 		...data,
-		revalidate: revalidate()
+		revalidate: revalidate(23)
 	}
 }
 

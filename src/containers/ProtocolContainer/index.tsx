@@ -61,10 +61,11 @@ const ProtocolDetails = styled.div`
 	color: ${({ theme }) => theme.text1};
 	background: ${({ theme }) => theme.bg7};
 	grid-column: span 1;
+	border-radius: 12px 12px 0 0;
 
 	@media (min-width: 80rem) {
 		min-width: 380px;
-		border-bottom-left-radius: 12px;
+		border-radius: 0 0 0 12px;
 	}
 `
 
@@ -119,6 +120,10 @@ const Table = styled.table`
 
 	tbody > tr > * {
 		padding: 4px 0;
+	}
+
+	.question-helper {
+		padding: 0 16px;
 	}
 `
 
@@ -355,7 +360,7 @@ const OtherProtocols = styled.nav`
 	overflow-x: auto;
 	background: ${({ theme }) => theme.bg7};
 	font-weight: 500;
-	border-radius: 12px 0;
+	border-radius: 12px 12px 0 0;
 
 	@media (min-width: 80rem) {
 		grid-column: span 2;
@@ -368,7 +373,7 @@ interface IProtocolLink {
 }
 
 const ProtocolLink = styled.a<IProtocolLink>`
-	padding: 8px 20px;
+	padding: 8px 24px;
 	white-space: nowrap;
 
 	& + & {
@@ -551,7 +556,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 							<thead>
 								<tr>
 									<th>Optional TVL Counts</th>
-									<td>
+									<td className="question-helper">
 										<QuestionHelper text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation' />
 									</td>
 								</tr>

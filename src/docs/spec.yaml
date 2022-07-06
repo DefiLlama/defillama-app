@@ -178,27 +178,43 @@ paths:
                     example: 1603964988
         '502':
           description: Internal error
-  /peggeds:
+  /stablecoins:
     get:
       tags:
         - stablecoins
-      summary: List all stablecoins along with their info
+      summary: List all stablecoins along with their circulating amounts
       servers:
         - url: https://stablecoins.llama.fi
+      parameters:
+        - name: includePrices
+          in: query
+          required: false
+          description: set whether to include current stablecoin prices
+          schema:
+            type: boolean
+            example: true
       responses:
         '200':
           description: successful operation
-  /peggedcharts:
+  /stablecoincharts/all:
     get:
       tags:
         - stablecoins
       summary: Get historical mcap sum of all stablecoins
       servers:
         - url: https://stablecoins.llama.fi
+      parameters:
+        - name: stablecoin
+          in: query
+          required: false
+          description: stablecoin ID, you can get these from /stablecoins
+          schema:
+            type: integer
+            example: 1
       responses:
         '200':
           description: successful operation
-  /peggedcharts/{chain}:
+  /stablecoincharts/{chain}:
     get:
       tags:
         - stablecoins
@@ -213,10 +229,17 @@ paths:
           schema:
             type: string
             example: Ethereum
+        - name: stablecoin
+          in: query
+          required: false
+          description: stablecoin ID, you can get these from /stablecoins
+          schema:
+            type: integer
+            example: 1
       responses:
         '200':
           description: successful operation
-  /pegged/{asset}:
+  /stablecoin/{asset}:
     get:
       tags:
         - stablecoins
@@ -227,24 +250,24 @@ paths:
         - name: asset
           in: path
           required: true
-          description: stablecoin slug, you can get these from /peggeds
+          description: stablecoin ID, you can get these from /stablecoins
           schema:
-            type: string
-            example: Tether
+            type: integer
+            example: 1
       responses:
         '200':
           description: successful operation
-  /peggedchains:
+  /stablecoinchains:
     get:
       tags:
         - stablecoins
-      summary: Get current mcap sum of all stablecoins in each chain
+      summary: Get current mcap sum of all stablecoins on each chain
       servers:
         - url: https://stablecoins.llama.fi
       responses:
         '200':
           description: successful operation
-  /peggedprices:
+  /stablecoinprices:
     get:
       tags:
         - stablecoins
