@@ -10,7 +10,8 @@ import { RowLinks, LinksWrapper } from '~/components/Filters'
 import Table, { Index } from '~/components/Table'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import { getRandomColor, toK } from '~/utils'
-import { getOraclePageData, revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getOraclePageData } from '~/api/categories/protocols'
 
 export async function getStaticProps() {
 	const data = await getOraclePageData()

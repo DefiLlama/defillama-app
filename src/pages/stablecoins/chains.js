@@ -1,6 +1,7 @@
 import Layout from '~/layout'
 import PeggedChainsOverview from '~/components/PeggedChainsOverview'
-import { getPeggedChainsPageData, revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getPeggedChainsPageData } from '~/api/categories/stablecoins'
 
 export async function getStaticProps() {
 	const props = await getPeggedChainsPageData()

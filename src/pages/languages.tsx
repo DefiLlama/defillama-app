@@ -5,7 +5,7 @@ import { AreaChart } from '~/components/Charts'
 import { ChainDominanceChart } from '~/components/Charts'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { toNiceMonthlyDate, getRandomColor } from '~/utils'
-import { revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
 import { LANGS_API } from '~/constants'
 
 function formatDataForChart(langs) {

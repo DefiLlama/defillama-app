@@ -1,5 +1,7 @@
-import { revalidate, getSimpleProtocolsPageData, basicPropertiesToKeep } from '~/utils/dataApi'
 import { RecentProtocols } from '~/components/RecentProtocols'
+import { revalidate } from '~/api'
+import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 
 const exclude = [
 	'DeerFi',

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { BaseSearch } from '../BaseSearch'
 import type { IBaseSearchProps, ICommonSearchProps } from '../BaseSearch'
-import { useFetchNFTsList } from '~/utils/categories/nfts'
+import { useFetchNFTsList } from '~/api/categories/nfts'
 
 interface INFTSearchProps extends ICommonSearchProps {
 	preLoadedSearch: Array<{

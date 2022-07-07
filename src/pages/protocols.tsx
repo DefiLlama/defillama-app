@@ -1,6 +1,7 @@
 import Layout from '~/layout'
 import ProtocolList from '~/components/ProtocolList'
-import { getSimpleProtocolsPageData, revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 
 export async function getStaticProps() {
 	const { protocols } = await getSimpleProtocolsPageData()

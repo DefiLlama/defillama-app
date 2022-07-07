@@ -5,7 +5,8 @@ import { CustomLink } from '~/components/Link'
 import Table, { Index } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { toK } from '~/utils'
-import { getProtocolsRaw, revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getProtocolsRaw } from '~/api/categories/protocols'
 
 export async function getStaticProps() {
 	const protocols = await getProtocolsRaw()

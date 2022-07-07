@@ -1,6 +1,7 @@
 import Layout from '~/layout'
 import ProtocolList from '~/components/ProtocolList'
-import { getProtocolsPageData, revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getProtocolsPageData } from '~/api/categories/protocols'
 import { PROTOCOLS_API } from '~/constants/index'
 
 function capitalizeFirstLetter(string) {

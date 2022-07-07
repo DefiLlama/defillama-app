@@ -1,7 +1,7 @@
 import { BaseSearch } from '~/components/Search/BaseSearch'
 import type { IBaseSearchProps, ICommonSearchProps } from '~/components/Search/BaseSearch'
 import { peggedAssetIconUrl, standardizeProtocolName } from '~/utils'
-import { useFetchPeggedList } from '~/utils/dataApi'
+import { useFetchPeggedList } from '~/api/categories/stablecoins/client'
 
 interface IPeggedSearchProps extends ICommonSearchProps {}
 

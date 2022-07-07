@@ -42,7 +42,7 @@ const blockExplorers = {
 	findora: ['https://evm.findorascan.io/token/', 'Findorascan']
 }
 
-export const getBlockExplorer = (address = '') => {
+export const getBlockExplorer = (address: string = '') => {
 	let blockExplorerLink, blockExplorerName
 	if (address?.includes(':')) {
 		const [chain, chainAddress] = address.split(':')
