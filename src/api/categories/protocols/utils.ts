@@ -1,30 +1,6 @@
-import type { IProtocol, IParentProtocol } from '~/api/types'
+import type { IFormattedProtocol, IProtocol } from '~/api/types'
 import { getPercentChange } from '~/utils'
 import { keepNeededProperties } from '../../shared'
-
-interface IFormattedProtocol {
-	name: string
-	symbol: string
-	category: string
-	chains: string[]
-	tvl: number
-	mcap: number
-	mcaptvl: number
-	change_1d: number
-	change_7d: number
-	change_1m: number
-	tvlPrevDay: number
-	tvlPrevWeek: number
-	tvlPrevMonth: number
-	extraTvl?: {
-		[key: string]: { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
-	}
-	chainTvls?: {
-		[key: string]: { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
-	}
-	listedAt?: number
-	parentProtocol?: string
-}
 
 export type BasicPropsToKeep = (keyof IFormattedProtocol)[]
 
@@ -123,22 +99,4 @@ export const formatProtocolsData = ({
 		})
 
 	return data.sort((a, b) => b.tvl - a.tvl)
-}
-
-export function groupProtocolsByParent(parentProtocols: IParentProtocol[], allProtocols: IFormattedProtocol[]) {
-	const data = []
-
-	allProtocols.forEach((p) => {
-		if (p.parentProtocol) {
-			let parent = parentProtocols.find((x) => x.id === p.parentProtocol)
-
-			if (parent) {
-				// parent = {...parent, subRows: p.subRows}
-			}
-		} else {
-			data.push(p)
-		}
-	})
-
-	return data
 }

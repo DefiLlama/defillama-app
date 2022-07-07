@@ -78,6 +78,23 @@ export interface IChainGeckoId {
 export interface IFormattedProtocol {
 	name: string
 	symbol: string
-	logo: string
+	category: string
 	chains: string[]
+	tvl: number
+	mcap: number
+	mcaptvl: number
+	change_1d: number
+	change_7d: number
+	change_1m: number
+	tvlPrevDay: number
+	tvlPrevWeek: number
+	tvlPrevMonth: number
+	extraTvl?: {
+		[key: string]: { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
+	}
+	chainTvls?: {
+		[key: string]: { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
+	}
+	listedAt?: number
+	parentProtocol?: string
 }

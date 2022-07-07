@@ -9,7 +9,7 @@ import {
 	PROTOCOLS_API,
 	PROTOCOL_API
 } from '~/constants'
-import { BasicPropsToKeep, formatProtocolsData, groupProtocolsByParent } from './utils'
+import { BasicPropsToKeep, formatProtocolsData } from './utils'
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
@@ -74,6 +74,7 @@ export const fuseProtocolData = (protocolData) => {
 	}
 }
 
+// used in /protocols/[category]
 export async function getProtocolsPageData(category?: string, chain?: string) {
 	const { protocols, chains } = await getProtocols()
 
@@ -100,7 +101,7 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 		chains: chains.filter((chain) => chainsSet.has(chain))
 	}
 }
-
+// - used in /airdrops, /protocols, /recent, /top-gainers-and-losers, /top-protocols, /watchlist
 export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep) {
 	const { protocols, chains } = await getProtocolsRaw()
 	const filteredProtocols = formatProtocolsData({
@@ -128,6 +129,7 @@ export const getVolumeCharts = (data) => {
 	}
 }
 
+// - used in / and /[chain]
 export async function getChainPageData(chain?: string) {
 	const [chartData, { protocols, chains, parentProtocols }] = await Promise.all(
 		[CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
@@ -139,20 +141,20 @@ export async function getChainPageData(chain?: string) {
 		removeBridges: true
 	})
 
-	const data = groupProtocolsByParent(parentProtocols, filteredProtocols)
-
 	const charts = getVolumeCharts(chartData)
 
 	return {
 		props: {
 			...(chain && { chain }),
 			chainsSet: chains,
-			filteredProtocols: data,
+			filteredProtocols,
+			parentProtocols,
 			...charts
 		}
 	}
 }
 
+// - used in /oracles and /oracles/[name]
 export async function getOraclePageData(oracle = null) {
 	try {
 		const [{ chart = {}, oracles = {} }, { protocols }] = await Promise.all(
@@ -214,6 +216,7 @@ export async function getOraclePageData(oracle = null) {
 	}
 }
 
+// - used in /forks and /forks/[name]
 export async function getForkPageData(fork = null) {
 	try {
 		const [{ chart = {}, forks = {} }, { protocols }] = await Promise.all(
@@ -291,6 +294,8 @@ export async function getForkPageData(fork = null) {
 	}
 }
 
+// used in /chain , /chain/[category]
+// where category can be EVM, Non-EVM etc
 export const getChainsPageData = async (category: string) => {
 	const [res, { chainCoingeckoIds }] = await Promise.all(
 		[PROTOCOLS_API, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
