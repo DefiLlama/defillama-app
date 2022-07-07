@@ -14,7 +14,9 @@ const groupedChains = [
 	{ name: 'EVM', route: '/chains/EVM', logo: placeholderImg.src },
 	{ name: 'Rollup', route: '/chains/Rollup', logo: placeholderImg.src },
 	{ name: 'Cosmos', route: '/chains/Cosmos', logo: placeholderImg.src },
-	{ name: 'Parachain', route: '/chains/Parachain', logo: placeholderImg.src }
+	{ name: 'Parachain', route: '/chains/Parachain', logo: placeholderImg.src },
+	{ name: 'Chains - Polkadot', route: '/chains/Polkadot', logo: chainIconUrl('polkadot') },
+	{ name: 'Chains - Kusama', route: '/chains/Kusama', logo: chainIconUrl('kusama') }
 ]
 
 export enum SETS {

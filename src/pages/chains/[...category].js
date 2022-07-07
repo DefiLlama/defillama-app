@@ -27,6 +27,12 @@ export async function getStaticPaths() {
 				categories.push(category)
 			}
 		})
+
+		const parentChain = chainCoingeckoIds[chain].parent?.chain
+
+		if (parentChain && !categories.includes(parentChain)) {
+			categories.push(parentChain)
+		}
 	}
 
 	const paths = categories.map((category) => ({

@@ -301,6 +301,10 @@ export const getChainsPageData = async (category: string) => {
 		[PROTOCOLS_API, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
 	)
 
+	// get all chains by parent and not include them in categories below as we don't want to show these links, but user can access with url
+	const chainsByParent = []
+
+	// get all unique categories from api
 	let categories = []
 	for (const chain in chainCoingeckoIds) {
 		chainCoingeckoIds[chain].categories?.forEach((category) => {
@@ -308,9 +312,17 @@ export const getChainsPageData = async (category: string) => {
 				categories.push(category)
 			}
 		})
+
+		const parentChain = chainCoingeckoIds[chain].parent?.chain
+
+		if (parentChain && !chainsByParent.includes(parentChain)) {
+			chainsByParent.push(parentChain)
+		}
 	}
 
-	const categoryExists = categories.includes(category) || category === 'All' || category === 'Non-EVM'
+	// check if category exists
+	const categoryExists =
+		categories.includes(category) || category === 'All' || category === 'Non-EVM' || chainsByParent.includes(category)
 
 	if (!categoryExists) {
 		return {
@@ -328,17 +340,25 @@ export const getChainsPageData = async (category: string) => {
 		)
 	}
 
+	// get all chains and filter them based on category
 	const chainsUnique: string[] = res.chains.filter((t: string) => {
 		const chainCategories = chainCoingeckoIds[t]?.categories ?? []
+
 		if (category === 'All') {
 			return true
 		} else if (category === 'Non-EVM') {
 			return !chainCategories.includes('EVM')
-		} else {
+		} else if (categories.includes(category)) {
 			return chainCategories.includes(category)
+		} else {
+			// filter chains like Polkadot and Kusama that are not defined as categories but can be accessed as from url
+			return (
+				chainCoingeckoIds[t]?.parent?.chain === category && chainsByParent.includes(chainCoingeckoIds[t]?.parent?.chain)
+			)
 		}
 	})
 
+	// group chains by parent like Ethereum -> [Arbitrum, Optimism] etc
 	let chainsGroupbyParent = {}
 	chainsUnique.forEach((chain) => {
 		const parent = chainCoingeckoIds[chain]?.parent
@@ -355,6 +375,7 @@ export const getChainsPageData = async (category: string) => {
 		}
 	})
 
+	// get data of chains in given category
 	const chainsData: IChainData[] = await Promise.all(
 		chainsUnique.map(async (elem: string) => {
 			for (let i = 0; i < 5; i++) {
@@ -366,14 +387,16 @@ export const getChainsPageData = async (category: string) => {
 		})
 	)
 
+	// get mcaps of chains in given category
 	const chainMcaps = await fetch(
 		`https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(chainCoingeckoIds)
 			.map((v: IChainGeckoId) => v.geckoId)
 			.join(',')}&vs_currencies=usd&include_market_cap=true`
 	).then((res) => res.json())
+
+	// calc no.of protocols present in each chains as well as extra tvl data like staking , pool2 etc
 	const numProtocolsPerChain = {}
 	const extraPropPerChain = {}
-
 	res.protocols.forEach((protocol: IProtocol) => {
 		protocol.chains.forEach((chain) => {
 			numProtocolsPerChain[chain] = (numProtocolsPerChain[chain] || 0) + 1
@@ -395,7 +418,9 @@ export const getChainsPageData = async (category: string) => {
 		})
 	})
 
+	// format chains data
 	const tvlData = chainsData.map((d) => d.tvl)
+	// data set for pie chart and table
 	const chainTvls = chainsUnique
 		.map((chainName, i) => {
 			const tvl = getPrevTvlFromChart(tvlData[i], 0)
@@ -423,6 +448,7 @@ export const getChainsPageData = async (category: string) => {
 		})
 		.sort((a, b) => b.tvl - a.tvl)
 
+	// format chains data to use in stacked area chart
 	const stackedDataset = Object.entries(
 		chainsData.reduce((total: IStackedDataset, chains, i) => {
 			const chainName = chainsUnique[i]
