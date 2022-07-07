@@ -8,9 +8,10 @@ import { useRouter } from 'next/router'
 
 interface IAdvancedYieldSearchProps {
 	setAdvancedSearch: React.Dispatch<React.SetStateAction<boolean>>
+	pathname: string
 }
 
-export function AdvancedYieldsSearch({ setAdvancedSearch }: IAdvancedYieldSearchProps) {
+export function AdvancedYieldsSearch({ setAdvancedSearch, pathname }: IAdvancedYieldSearchProps) {
 	const router = useRouter()
 
 	const [includeTokens, setIncludeTokens] = React.useState([])
@@ -23,7 +24,7 @@ export function AdvancedYieldsSearch({ setAdvancedSearch }: IAdvancedYieldSearch
 
 		router.push(
 			{
-				pathname: '/yields',
+				pathname,
 				query: {
 					...router.query,
 					token: includeTokens.map((t) => t.label),

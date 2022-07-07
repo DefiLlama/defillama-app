@@ -50,7 +50,6 @@ export const useYieldChartData = (poolId) => {
 	const { data, error } = useSWR(poolId ? url : null, fetcher)
 	return { data, error, loading: !data && !error }
 }
-
 export const useFetchYieldsList = () => {
 	const { data, error } = useSWR<IResponseCGMarketsAPI[]>('yield-api', () => arrayFetcher(getCGMarketsDataURLs()), {
 		onErrorRetry: retrySWR
