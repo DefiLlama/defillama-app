@@ -15,7 +15,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { SETS } from '~/components/Search/ProtocolsChainsSearch'
 import { useMedia } from '~/hooks'
 import { formattedNum, standardizeProtocolName } from '~/utils'
-import { useFetchProtocol, useGeckoProtocol } from '~/utils/dataApi'
+import { useFetchProtocol, useGeckoProtocol } from '~/api/categories/protocols/client'
 
 const ComparisonDetailsLayout = styled.div`
 	display: inline-grid;

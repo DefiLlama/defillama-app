@@ -1,7 +1,8 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import ChainsContainer from '~/containers/ChainsContainer'
-import { getChainsPageData, revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getChainsPageData } from '~/api/categories/protocols'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')

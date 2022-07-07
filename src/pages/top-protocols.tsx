@@ -6,7 +6,8 @@ import { CustomLink } from '~/components/Link'
 import { FullTable, Index } from '~/components/Table'
 import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, slug } from '~/utils'
-import { revalidate, getSimpleProtocolsPageData } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 
 export async function getStaticProps() {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])

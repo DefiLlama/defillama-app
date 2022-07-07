@@ -25,7 +25,7 @@ import { useCalcProtocolsTvls } from '~/hooks/data'
 import { useDarkModeManager, useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
-import { useDenominationPriceHistory } from '~/utils/dataApi'
+import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
 
@@ -64,7 +64,14 @@ const columns = columnsToShow(
 	'mcaptvl'
 )
 
-function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart, extraVolumesCharts = {} }) {
+function GlobalPage({
+	selectedChain = 'All',
+	chainsSet,
+	filteredProtocols,
+	chart,
+	extraVolumesCharts = {},
+	parentProtocols
+}) {
 	const extraTvlsEnabled = useGetExtraTvlEnabled()
 
 	const router = useRouter()
@@ -116,7 +123,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, filteredProtocols, chart
 
 	let chainOptions = ['All'].concat(chainsSet).map((label) => ({ label, to: setSelectedChain(label) }))
 
-	const protocolTotals = useCalcProtocolsTvls(filteredProtocols)
+	const protocolTotals = useCalcProtocolsTvls({ protocols: filteredProtocols, parentProtocols })
 
 	const topToken = { name: 'Uniswap', tvl: 0 }
 	if (protocolTotals.length > 0) {

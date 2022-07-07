@@ -3,7 +3,7 @@ import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { ToggleSearch } from './shared'
 import ReactSelect from '~/components/Select/ReactSelect'
-import { useFetchYieldsList } from '~/utils/categories/yield'
+import { useFetchYieldsList } from '~/api/categories/yield/client'
 import { useRouter } from 'next/router'
 
 interface IAdvancedYieldSearchProps {

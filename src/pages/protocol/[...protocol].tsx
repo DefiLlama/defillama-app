@@ -1,8 +1,9 @@
 import { InferGetStaticPropsType, GetStaticProps } from 'next'
 import ProtocolContainer from '~/containers/ProtocolContainer'
 import { standardizeProtocolName } from '~/utils'
-import { getProtocols, getProtocol, fuseProtocolData, revalidate } from '~/utils/dataApi'
 import { getColor } from '~/utils/getColor'
+import { revalidate } from '~/api'
+import { getProtocols, getProtocol, fuseProtocolData } from '~/api/categories/protocols'
 
 type PageParams = {
 	protocol: string

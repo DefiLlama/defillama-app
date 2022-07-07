@@ -34,10 +34,6 @@ export function getTimeframe(timeWindow) {
 	return utcStartTime
 }
 
-export function localNumber(val) {
-	return Numeral(val).format('0,0')
-}
-
 export const toNiceDayAndHour = (date) => {
 	let x = dayjs.utc(dayjs.unix(date)).format('D MMM, HH:mm')
 	return x
@@ -62,70 +58,10 @@ export const toNiceCsvDate = (date) => {
 	return x
 }
 
-export const toWeeklyDate = (date) => {
-	const formatted = dayjs.utc(dayjs.unix(date))
-	date = new Date(formatted)
-	const day = new Date(formatted).getDay()
-	var lessDays = day === 6 ? 0 : day + 1
-	var wkStart = new Date(new Date(date).setDate(date.getDate() - lessDays))
-	var wkEnd = new Date(new Date(wkStart).setDate(wkStart.getDate() + 6))
-	return dayjs.utc(wkStart).format('MMM DD') + ' - ' + dayjs.utc(wkEnd).format('MMM DD')
-}
-
-export function getTimestampsForChanges() {
-	const utcCurrentTime = dayjs()
-	const t1 = utcCurrentTime.subtract(1, 'day').startOf('minute').unix()
-	const t2 = utcCurrentTime.subtract(2, 'day').startOf('minute').unix()
-	const tWeek = utcCurrentTime.subtract(1, 'week').startOf('minute').unix()
-	return [t1, t2, tWeek]
-}
-
-/**
- * @notice Creates an evenly-spaced array of timestamps
- * @dev Periods include a start and end timestamp. For example, n periods are defined by n+1 timestamps.
- * @param {Int} timestamp_from in seconds
- * @param {Int} period_length in seconds
- * @param {Int} periods
- */
-export function getTimestampRange(timestamp_from, period_length, periods) {
-	let timestamps = []
-	for (let i = 0; i <= periods; i++) {
-		timestamps.push(timestamp_from + i * period_length)
-	}
-	return timestamps
-}
-
 export const toNiceDateYear = (date) => dayjs.utc(dayjs.unix(date)).format('MMMM DD, YYYY')
+
 export const toK = (num) => {
 	return Numeral(num).format('0.[00]a')
-}
-
-export const setThemeColor = (theme) => document.documentElement.style.setProperty('--c-token', theme || '#333333')
-
-export const Big = (number) => new BigNumber(number)
-
-export const formatTime = (unix) => {
-	const now = dayjs()
-	const timestamp = dayjs.unix(unix)
-
-	const inSeconds = now.diff(timestamp, 'second')
-	const inMinutes = now.diff(timestamp, 'minute')
-	const inHours = now.diff(timestamp, 'hour')
-	const inDays = now.diff(timestamp, 'day')
-
-	if (inHours >= 24) {
-		return `${inDays} ${inDays === 1 ? 'day' : 'days'} ago`
-	} else if (inMinutes >= 60) {
-		return `${inHours} ${inHours === 1 ? 'hour' : 'hours'} ago`
-	} else if (inSeconds >= 60) {
-		return `${inMinutes} ${inMinutes === 1 ? 'minute' : 'minutes'} ago`
-	} else {
-		return `${inSeconds} ${inSeconds === 1 ? 'second' : 'seconds'} ago`
-	}
-}
-
-export const formatNumber = (num) => {
-	return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 }
 
 // using a currency library here in case we want to add more in future
@@ -239,33 +175,6 @@ export const filterCollectionsByCurrency = (collections, displayUsd) =>
 		}))) ||
 	[]
 
-export function rawPercent(percentRaw) {
-	let percent = parseFloat(percentRaw * 100)
-	if (!percent || percent === 0) {
-		return '0%'
-	}
-	if (percent < 1 && percent > 0) {
-		return '< 1%'
-	}
-	return percent.toFixed(0) + '%'
-}
-
-export function getChainsFromAllTokenData(data) {
-	const chainsUniqueSet = new Set()
-	Object.values(data).forEach((token) => {
-		if (token.category === 'Chain') return
-		token.chains.forEach((chain) => {
-			chainsUniqueSet.add(chain)
-		})
-	})
-	const chainsUnique = Array.from(chainsUniqueSet)
-	return chainsUnique.map((name) => ({
-		logo: chainIconUrl(name),
-		isChain: true,
-		name
-	}))
-}
-
 export function chainIconUrl(chain) {
 	return `/chain-icons/rsz_${chain.toLowerCase()}.jpg`
 }
@@ -328,25 +237,6 @@ export function formattedPercent(percent, noSign = false) {
 }
 
 /**
- * gets the amoutn difference plus the % change in change itself (second order change)
- * @param {*} valueNow
- * @param {*} value24HoursAgo
- * @param {*} value48HoursAgo
- */
-export const get2DayPercentChange = (valueNow, value24HoursAgo, value48HoursAgo) => {
-	// get volume info for both 24 hour periods
-	let currentChange = parseFloat(valueNow) - parseFloat(value24HoursAgo)
-	let previousChange = parseFloat(value24HoursAgo) - parseFloat(value48HoursAgo)
-
-	const adjustedPercentChange = (parseFloat(currentChange - previousChange) / parseFloat(previousChange)) * 100
-
-	if (isNaN(adjustedPercentChange) || !isFinite(adjustedPercentChange)) {
-		return [currentChange, 0]
-	}
-	return [currentChange, adjustedPercentChange]
-}
-
-/**
  * get standard percent change between two values
  * @param {*} valueNow
  * @param {*} value24HoursAgo
@@ -358,70 +248,6 @@ export const getPercentChange = (valueNow, value24HoursAgo) => {
 		return null
 	}
 	return adjustedPercentChange
-}
-
-export function isEquivalent(a, b) {
-	var aProps = Object.getOwnPropertyNames(a)
-	var bProps = Object.getOwnPropertyNames(b)
-	if (aProps.length !== bProps.length) {
-		return false
-	}
-	for (var i = 0; i < aProps.length; i++) {
-		var propName = aProps[i]
-		if (a[propName] !== b[propName]) {
-			return false
-		}
-	}
-	return true
-}
-
-export function isValidProtocol(tokensObject, protocol) {
-	try {
-		const tokens = Object.values(tokensObject)
-		const isValid = tokens.some(
-			(token) =>
-				(protocol.includes('-') && token.name.toLowerCase().split(' ').join('-') === protocol) ||
-				token.name.toLowerCase().split(' ').join('') === protocol
-		)
-		return isValid
-	} catch (error) {
-		return false
-	}
-}
-
-export function isValidCollection(nftCollections, collection) {
-	const isValid = nftCollections.some((nftCollection) => nftCollection.id === collection)
-	return isValid
-}
-
-export function getTokenAddressFromName(tokensObject, protocol) {
-	try {
-		const tokens = Object.values(tokensObject)
-		const filteredToken = tokens.find((token) => token.slug === protocol)
-		return filteredToken?.address || ''
-	} catch (error) {
-		return false
-	}
-}
-
-export function getTokenIdFromName(tokensObject, protocol) {
-	try {
-		const tokens = Object.values(tokensObject)
-		const filteredToken = tokens.findIndex((token) => token.name.toLowerCase().replace(' ', '-') === protocol)
-		return filteredToken
-	} catch (error) {
-		return false
-	}
-}
-
-export function getTokenFromName(tokensObject, protocol) {
-	try {
-		const tokens = Object.values(tokensObject)
-		const filteredToken = tokens.find((token) => token.slug === protocol)
-		return filteredToken
-	} catch (error) {
-		return false
-	}
 }
 
 export const capitalizeFirstLetter = (word) => word.charAt(0).toUpperCase() + word.slice(1)

@@ -7,7 +7,8 @@ import SEO from '~/components/SEO'
 import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
 import NFTList from '~/components/NFTList'
 import { chainIconUrl, getRandomColor } from '~/utils'
-import { getNFTChainChartData, getNFTChainsData, revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getNFTChainChartData, getNFTChainsData } from '~/api/categories/nfts'
 
 export async function getStaticProps() {
 	const chainData = await getNFTChainsData()

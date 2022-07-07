@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { BaseSearch } from '~/components/Search/BaseSearch'
 import type { IBaseSearchProps, ICommonSearchProps } from '~/components/Search/BaseSearch'
-import { useFetchYieldsList } from '~/utils/categories/yield'
+import { useFetchYieldsList } from '~/api/categories/yield/client'
 import { AdvancedYieldsSearch } from './Advanced'
 import { ToggleSearch } from './shared'
 import { useRouter } from 'next/router'

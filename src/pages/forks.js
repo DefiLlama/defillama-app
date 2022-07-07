@@ -10,7 +10,8 @@ import { ChainDominanceChart, ChainPieChart } from '~/components/Charts'
 import { RowLinks, LinksWrapper } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { getRandomColor, toK } from '~/utils'
-import { getForkPageData, revalidate } from '~/utils/dataApi'
+import { revalidate } from '~/api'
+import { getForkPageData } from '~/api/categories/protocols'
 
 export async function getStaticProps() {
 	const data = await getForkPageData()
