@@ -87,7 +87,7 @@ const PeggedTable = styled(Table)`
 	tr > *:nth-child(3) {
 		display: none;
 		& > * {
-			width: 80px;
+			width: 100px;
 			overflow: hidden;
 			white-space: nowrap;
 		}
@@ -97,7 +97,7 @@ const PeggedTable = styled(Table)`
 	tr > *:nth-child(4) {
 		display: none;
 		& > * {
-			width: 110px;
+			width: 120px;
 			overflow: hidden;
 			white-space: nowrap;
 		}
