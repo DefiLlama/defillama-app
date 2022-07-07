@@ -13,7 +13,8 @@ import {
 	GraphicComponent,
 	AxisPointerComponent,
 	BrushComponent,
-	LegendComponent
+	LegendComponent,
+	DataZoomComponent
 } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { YieldsChartWrapper } from './shared'
@@ -30,7 +31,8 @@ echarts.use([
 	GraphicComponent,
 	AxisPointerComponent,
 	BrushComponent,
-	LegendComponent
+	LegendComponent,
+	DataZoomComponent
 ])
 
 export interface IChartProps {
