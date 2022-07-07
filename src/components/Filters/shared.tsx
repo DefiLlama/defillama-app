@@ -6,7 +6,7 @@ export const Dropdown = styled(FilterPopover)`
 	max-height: 320px;
 
 	#no-results {
-		margin-top: 24px;
+		margin: 24px 0 16px;
 	}
 
 	.filter-by-list {
