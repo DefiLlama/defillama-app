@@ -15,6 +15,8 @@ export const peggedPropertiesToKeep = [
 	'change_1d',
 	'change_7d',
 	'change_1m',
+	'pegDeviation',
+	'pegDeviation_1m',
 	'circulatingPrevDay',
 	'circulatingPrevWeek',
 	'circulatingPrevMonth'
@@ -24,6 +26,7 @@ export const formatPeggedAssetsData = ({
 	chain = '',
 	peggedAssets = [],
 	chartDataByPeggedAsset = [],
+	priceData = [],
 	peggedNameToIndexObj = {},
 	peggedAssetProps = [...peggedPropertiesToKeep]
 }) => {
@@ -58,6 +61,17 @@ export const formatPeggedAssetsData = ({
 		pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
 		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
 
+		if (pegType === 'peggedUSD') {
+			pegged.pegDeviation = getPercentChange(pegged.price, 1)
+			let greatestDeviation = 0
+			for (let i = 0; i < 30; i++) {
+				let historicalPrices = priceData[priceData.length - i - 1]
+				let price = parseFloat(historicalPrices?.prices?.[pegged.gecko_id])
+				let deviation = price - 1
+				if (Math.abs(greatestDeviation) < Math.abs(deviation)) greatestDeviation = deviation 
+			}
+			pegged.pegDeviation_1m = getPercentChange(1 + greatestDeviation, 1)
+		}
 		return keepNeededProperties(pegged, peggedAssetProps)
 	})
 
