@@ -55,7 +55,17 @@ export default function ScatterChart({ chartData }: IChartProps) {
 	// prepare csv data
 	const downloadCsv = () => {
 		const rows = [
-			['Pool', 'Symbol', 'Project', 'Chain', 'TVL', 'APY', 'APY-Geometric-Average', 'APY-Standard-Deviation', 'Count']
+			[
+				'pool',
+				'symbol',
+				'projectName',
+				'chain',
+				'tvlUsd',
+				'apy',
+				'apy-geometric-average',
+				'apy-standard-deviation',
+				'count'
+			]
 		]
 
 		chartData.forEach((item) => {
@@ -90,7 +100,7 @@ export default function ScatterChart({ chartData }: IChartProps) {
 				},
 				data: chartData
 					.filter((p) => p.projectName === project)
-					.map((p) => [p.sigma, p.mu, p.count, p.symbol, p.pool, p.tvlUsd, p.apy])
+					.map((p) => [p.sigma, p.mu, p.count, p.symbol, p.pool, p.tvlUsd, p.apy, p.chain])
 			})
 		}
 
@@ -114,10 +124,10 @@ export default function ScatterChart({ chartData }: IChartProps) {
 				formatter: function (params) {
 					if (params.value.length > 1) {
 						return (
-							'Pool: ' +
+							'Symbol: ' +
 							params.value[3] +
 							'<br/>' +
-							'PoolId: ' +
+							'Pool: ' +
 							params.value[4] +
 							'<br/>' +
 							'TVL: $' +
@@ -126,6 +136,9 @@ export default function ScatterChart({ chartData }: IChartProps) {
 							'APY Spot: ' +
 							params.value[6].toFixed(2) +
 							'%' +
+							'<br/>' +
+							'Chain: ' +
+							params.value[7] +
 							'<br/>' +
 							'Project: ' +
 							params.seriesName +
