@@ -638,7 +638,17 @@ export const chainCoingeckoIds = {
 		geckoId: 'internet-computer',
 		symbol: 'ICP',
 		cmcId: '8916'
-	}
+	},
+	"Nova": {
+    geckoId: "supernova",
+    symbol: "SNT",
+    cmcId: "15399"
+  },
+	"Kintsugi": {
+    geckoId: "kintsugi",
+    symbol: "KINT",
+    cmcId: "13675"
+  }
 }
 
 export const chainMarketplaceMappings = {
