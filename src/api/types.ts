@@ -98,3 +98,8 @@ export interface IFormattedProtocol {
 	listedAt?: number
 	parentProtocol?: string
 }
+
+export interface ICategory {
+	label: string
+	to: string
+}
