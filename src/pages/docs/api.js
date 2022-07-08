@@ -7,9 +7,17 @@ import { useEffect } from 'react'
 import 'swagger-ui/dist/swagger-ui.css'
 
 export default function ApiDocs() {
+	const [isDark] = useDarkModeManager()
+
+	const Wrapper = isDark ? DarkSwagger : styled.div``
+
 	return (
 		<Layout title={`API Docs - DefiLlama`}>
-			<DarkModeWrapper />
+			<HideSections>
+				<Wrapper>
+					<Swagger />
+				</Wrapper>
+			</HideSections>
 		</Layout>
 	)
 }
@@ -20,28 +28,23 @@ const HideSections = styled.div`
 	}
 `
 
-function DarkModeWrapper() {
-	const [isDark] = useDarkModeManager()
-	const Wrapper = isDark ? DarkSwagger : styled.div``
+function Swagger() {
+	useEffect(() => {
+		async function init() {
+			const { default: SwaggerUI } = await import('swagger-ui')
+			SwaggerUI({
+				dom_id: '#swagger',
+				defaultModelsExpandDepth: -1,
+				spec: yamlApiSpec,
+				syntaxHighlight: {
+					activated: false,
+					theme: 'agate'
+				}
+			})
+		}
 
-	useEffect(async ()=>{
-		const {default: SwaggerUI} = await import('swagger-ui')
-		SwaggerUI({
-			dom_id: '#swagger',
-			defaultModelsExpandDepth: -1,
-			spec: yamlApiSpec,
-			syntaxHighlight: {
-				activated: false,
-				theme: "agate"
-			},
-		})
+		init()
 	}, [])
 
-	return (
-		<HideSections>
-			<Wrapper>
-				<div id="swagger" />
-			</Wrapper>
-		</HideSections>
-	)
+	return <div id="swagger" />
 }
