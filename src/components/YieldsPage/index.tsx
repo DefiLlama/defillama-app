@@ -16,7 +16,7 @@ import {
 } from '~/contexts/LocalStorage'
 import { columns, TableWrapper } from './shared'
 
-const YieldPage = ({ pools, chainList, projectList }) => {
+const YieldPage = ({ loading, pools, projectList, chainList }) => {
 	const { query } = useRouter()
 	const { minTvl, maxTvl, project, chain, token, excludeToken } = query
 
@@ -207,7 +207,11 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 				</Dropdowns>
 			</TableFilters>
 
-			{poolsData.length > 0 ? (
+			{loading ? (
+				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
+					Loading...
+				</Panel>
+			) : poolsData.length > 0 ? (
 				<TableWrapper data={poolsData} columns={columns} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>

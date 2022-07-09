@@ -1,21 +1,14 @@
 import Layout from '~/layout'
 import YieldPage from '~/components/YieldsPage'
-import { revalidate } from '~/api'
-import { getYieldPageData } from '~/api/categories/yield'
+import { useYieldPageData } from '~/api/categories/yield/client'
+import { useFormatYieldsData } from '~/api/categories/yield'
 
-export async function getStaticProps() {
-	const data = await getYieldPageData()
-
-	return {
-		...data,
-		revalidate: revalidate(23)
-	}
-}
-
-export default function ApyHomePage(props) {
+export default function ApyHomePage() {
+	const { data, loading } = useYieldPageData()
+	const formattedData = useFormatYieldsData(data, loading)
 	return (
 		<Layout title={`Yield Rankings - DefiLlama`} defaultSEO>
-			<YieldPage {...props} />
+			<YieldPage loading={loading} {...formattedData} />
 		</Layout>
 	)
 }

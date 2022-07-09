@@ -1,7 +1,7 @@
 import useSWR from 'swr'
 import { fetcher, arrayFetcher, retrySWR } from '~/utils/useSWR'
 import { getCGMarketsDataURLs } from '~/api'
-import { YIELD_CHART_API, YIELD_POOLS_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
+import { AGGREGATOPN_API, YIELD_CHART_API, YIELD_POOLS_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
 
 interface IResponseCGMarketsAPI {
 	ath: number
@@ -57,6 +57,20 @@ export const useFetchYieldsList = () => {
 
 	return {
 		data: data?.flat(),
+		error,
+		loading: !data && !error
+	}
+}
+
+export const useYieldPageData = () => {
+	const { data, error } = useSWR('yield-api-pools-and-aggr', () => arrayFetcher([YIELD_POOLS_API, AGGREGATOPN_API]), {
+		onErrorRetry: retrySWR
+	})
+
+	const response = data && { pools: data[0]?.data ?? [], aggregations: data[1]?.data ?? [] }
+
+	return {
+		data: response,
 		error,
 		loading: !data && !error
 	}
