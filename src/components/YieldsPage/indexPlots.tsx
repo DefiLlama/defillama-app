@@ -1,8 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { Panel } from '~/components'
-import { NameYield } from '~/components/Table'
 import { YieldAttributes, TVLRange, FiltersByChain, YieldProjects, ResetAllYieldFilters } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
 import {
@@ -14,9 +12,23 @@ import {
 	useNoOutlierManager,
 	useAPYManager
 } from '~/contexts/LocalStorage'
-import { columns, fallbackColumns, fallbackList, TableWrapper } from './shared'
+import dynamic from 'next/dynamic'
 
-const YieldPage = ({ loading, pools, projectList, chainList }) => {
+interface IChartProps {
+	chartData: any
+}
+
+const ScatterChart = dynamic(() => import('~/components/TokenChart/ScatterChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
+const BoxplotChart = dynamic(() => import('~/components/TokenChart/BoxplotChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
+const TreemapChart = dynamic(() => import('~/components/TokenChart/TreemapChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
+
+const PlotsPage = ({ pools, chainList, projectList }) => {
 	const { query } = useRouter()
 	const { minTvl, maxTvl, project, chain, token, excludeToken } = query
 
@@ -65,29 +77,6 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 			excludeTokens
 		}
 	}, [project, chain, projectList, chainList, token, excludeToken])
-
-	// if route query contains 'project' remove project href
-	const idx = columns.findIndex((c) => c.accessor === 'project')
-
-	if (query.projectName) {
-		columns[idx] = {
-			header: 'Project',
-			accessor: 'project',
-			disableSortBy: true,
-			Cell: ({ value, rowValues }) => (
-				<NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} rowType="accordion" />
-			)
-		}
-	} else {
-		columns[idx] = {
-			header: 'Project',
-			accessor: 'project',
-			disableSortBy: true,
-			Cell: ({ value, rowValues }) => (
-				<NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} />
-			)
-		}
-	}
 
 	// toggles
 	const [stablecoins] = useStablecoinsManager()
@@ -160,19 +149,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 			}
 
 			if (toFilter) {
-				return acc.concat({
-					id: curr.pool,
-					pool: curr.symbol,
-					projectslug: curr.project,
-					project: curr.projectName,
-					chains: [curr.chain],
-					tvl: curr.tvlUsd,
-					apy: curr.apy,
-					change1d: curr.apyPct1D,
-					change7d: curr.apyPct7D,
-					outlook: curr.predictions.predictedClass,
-					confidence: curr.predictions.binnedConfidence
-				})
+				return acc.concat(curr)
 			} else return acc
 		}, [])
 	}, [
@@ -194,38 +171,32 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} pathname="/yields" />
+			<YieldsSearch step={{ category: 'Yields', name: 'All chains' }} pathname="/yields/overview" />
 
-			<TableFilters>
-				<TableHeader>Yield Rankings</TableHeader>
+			<ChartFilters>
+				<TableHeader>Yields Overview</TableHeader>
 				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields" />
-					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname="/yields" />
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields/overview" />
+					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname="/yields/overview" />
 					<YieldAttributes />
 					<TVLRange />
-					<ResetAllYieldFilters pathname="/yields" />
+					<ResetAllYieldFilters pathname="/yields/overview" />
 				</Dropdowns>
-			</TableFilters>
+			</ChartFilters>
 
-			{loading ? (
-				<TableWrapper data={fallbackList} columns={fallbackColumns} />
-			) : poolsData.length > 0 ? (
-				<TableWrapper data={poolsData} columns={columns} />
-			) : (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					Couldn't find any pools for these filters
-				</Panel>
-			)}
+			<TreemapChart chartData={poolsData} />
+			<ScatterChart chartData={poolsData} />
+			<BoxplotChart chartData={poolsData} />
 		</>
 	)
 }
 
-const TableFilters = styled.div`
+const ChartFilters = styled.div`
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 20px;
-	margin: 0 0 -20px;
+	margin: 0 0 -18px;
 `
 
 const Dropdowns = styled.span`
@@ -233,6 +204,10 @@ const Dropdowns = styled.span`
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 20px;
+
+	button {
+		font-weight: 400;
+	}
 `
 
 const TableHeader = styled.h1`
@@ -241,4 +216,4 @@ const TableHeader = styled.h1`
 	font-size: 1.125rem;
 `
 
-export default YieldPage
+export default PlotsPage

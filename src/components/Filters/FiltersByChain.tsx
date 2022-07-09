@@ -8,15 +8,16 @@ import { Dropdown, Item, Stats } from './shared'
 interface IFiltersByChainProps {
 	chainList: string[]
 	selectedChains: string[]
+	pathname: string
 }
 
-export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByChainProps) {
+export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFiltersByChainProps) {
 	const router = useRouter()
 
 	const addChain = (chain) => {
 		router.push(
 			{
-				pathname: '/yields',
+				pathname,
 				query: {
 					...router.query,
 					chain
@@ -46,7 +47,7 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 	const toggleAll = () => {
 		router.push(
 			{
-				pathname: '/yields',
+				pathname,
 				query: {
 					...router.query,
 					chain: 'All'
@@ -60,7 +61,7 @@ export function FiltersByChain({ chainList = [], selectedChains }: IFiltersByCha
 	const clear = () => {
 		router.push(
 			{
-				pathname: '/yields',
+				pathname,
 				query: {
 					...router.query,
 					chain: 'None'

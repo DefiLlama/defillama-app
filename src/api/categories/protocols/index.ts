@@ -1,5 +1,5 @@
 import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from '~/utils'
-import type { IChainData, IChainGeckoId, IOracleProtocols, IProtocol, IStackedDataset } from '~/api/types'
+import type { ICategory, IChainData, IChainGeckoId, IOracleProtocols, IProtocol, IStackedDataset } from '~/api/types'
 import {
 	CHART_API,
 	CONFIG_API,
@@ -294,7 +294,7 @@ export async function getForkPageData(fork = null) {
 	}
 }
 
-// used in /chain , /chain/[category]
+// used in /chains , /chains/[category]
 // where category can be EVM, Non-EVM etc
 export const getChainsPageData = async (category: string) => {
 	const [res, { chainCoingeckoIds }] = await Promise.all(
@@ -305,11 +305,11 @@ export const getChainsPageData = async (category: string) => {
 	const chainsByParent = []
 
 	// get all unique categories from api
-	let categories = []
+	let allCategories: string[] = []
 	for (const chain in chainCoingeckoIds) {
-		chainCoingeckoIds[chain].categories?.forEach((category) => {
-			if (!categories.includes(category)) {
-				categories.push(category)
+		chainCoingeckoIds[chain].categories?.forEach((cat) => {
+			if (!allCategories.includes(cat)) {
+				allCategories.push(cat)
 			}
 		})
 
@@ -322,23 +322,27 @@ export const getChainsPageData = async (category: string) => {
 
 	// check if category exists
 	const categoryExists =
-		categories.includes(category) || category === 'All' || category === 'Non-EVM' || chainsByParent.includes(category)
+		allCategories.includes(category) ||
+		category === 'All' ||
+		category === 'Non-EVM' ||
+		chainsByParent.includes(category)
 
+	// return if category not found
 	if (!categoryExists) {
 		return {
 			notFound: true
 		}
-	} else {
-		categories = [
-			{ label: 'All', to: '/chains' },
-			{ label: 'Non-EVM', to: '/chains/Non-EVM' }
-		].concat(
-			categories.map((category) => ({
-				label: category,
-				to: `/chains/${category}`
-			}))
-		)
 	}
+
+	const categoryLinks = [
+		{ label: 'All', to: '/chains' },
+		{ label: 'Non-EVM', to: '/chains/Non-EVM' }
+	].concat(
+		allCategories.map((category) => ({
+			label: category,
+			to: `/chains/${category}`
+		}))
+	)
 
 	// get all chains and filter them based on category
 	const chainsUnique: string[] = res.chains.filter((t: string) => {
@@ -348,7 +352,7 @@ export const getChainsPageData = async (category: string) => {
 			return true
 		} else if (category === 'Non-EVM') {
 			return !chainCategories.includes('EVM')
-		} else if (categories.includes(category)) {
+		} else if (allCategories.includes(category)) {
 			return chainCategories.includes(category)
 		} else {
 			// filter chains like Polkadot and Kusama that are not defined as categories but can be accessed as from url
@@ -472,7 +476,7 @@ export const getChainsPageData = async (category: string) => {
 			chainTvls,
 			stackedDataset,
 			category,
-			categories,
+			categories: categoryLinks,
 			chainsGroupbyParent
 		}
 	}

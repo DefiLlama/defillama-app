@@ -1,7 +1,7 @@
 import useSWR from 'swr'
 import { fetcher, arrayFetcher, retrySWR } from '~/utils/useSWR'
 import { getCGMarketsDataURLs } from '~/api'
-import { YIELD_CHART_API, YIELD_POOLS_API } from '~/constants'
+import { YIELD_AGGREGATION_API, YIELD_CHART_API, YIELD_POOLS_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
 
 interface IResponseCGMarketsAPI {
 	ath: number
@@ -39,7 +39,7 @@ export const useYieldPoolsData = () => {
 }
 // single pool
 export const useYieldPoolData = (poolId) => {
-	const url = `${YIELD_POOLS_API}?pool=${poolId}`
+	const url = `${YIELD_POOLS_LAMBDA_API}?pool=${poolId}`
 	const { data, error } = useSWR(poolId ? url : null, fetcher)
 	return { data, error, loading: !data && !error }
 }
@@ -50,7 +50,6 @@ export const useYieldChartData = (poolId) => {
 	const { data, error } = useSWR(poolId ? url : null, fetcher)
 	return { data, error, loading: !data && !error }
 }
-
 export const useFetchYieldsList = () => {
 	const { data, error } = useSWR<IResponseCGMarketsAPI[]>('yield-api', () => arrayFetcher(getCGMarketsDataURLs()), {
 		onErrorRetry: retrySWR
@@ -58,6 +57,16 @@ export const useFetchYieldsList = () => {
 
 	return {
 		data: data?.flat(),
+		error,
+		loading: !data && !error
+	}
+}
+
+export const useYieldPageData = () => {
+	const { data, error } = useSWR('/pools-and-aggr', () => arrayFetcher([YIELD_POOLS_API, YIELD_AGGREGATION_API]))
+
+	return {
+		data,
 		error,
 		loading: !data && !error
 	}

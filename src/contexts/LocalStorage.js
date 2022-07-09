@@ -28,6 +28,8 @@ export const SINGLE_EXPOSURE = 'SINGLE_EXPOSURE'
 export const NO_IL = 'NO_IL'
 export const MILLION_DOLLAR = 'MILLION_DOLLAR'
 export const AUDITED = 'AUDITED'
+export const NO_OUTLIER = 'NO_OUTLIER'
+export const APY_GT0 = 'APY_GT0'
 
 export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
 export const extraPeggedProps = [UNRELEASED]
@@ -74,7 +76,9 @@ const UPDATABLE_KEYS = [
 	SINGLE_EXPOSURE,
 	NO_IL,
 	MILLION_DOLLAR,
-	AUDITED
+	AUDITED,
+	NO_OUTLIER,
+	APY_GT0
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -118,6 +122,8 @@ function init() {
 		[NO_IL]: false,
 		[MILLION_DOLLAR]: false,
 		[AUDITED]: false,
+		[NO_OUTLIER]: true,
+		[APY_GT0]: true,
 		[DISMISSED_PATHS]: {},
 		[SAVED_ACCOUNTS]: [],
 		[SAVED_TOKENS]: { main: {} },
@@ -344,6 +350,28 @@ export function useAuditedManager() {
 	}
 
 	return [audited, toggleAudited]
+}
+
+export function useNoOutlierManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const noOutlier = state[NO_OUTLIER]
+
+	const toggleNoOutlier = () => {
+		updateKey(NO_OUTLIER, !noOutlier)
+	}
+
+	return [noOutlier, toggleNoOutlier]
+}
+
+export function useAPYManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const apyGT0 = state[APY_GT0]
+
+	const toggleAPYGT0 = () => {
+		updateKey(APY_GT0, !apyGT0)
+	}
+
+	return [apyGT0, toggleAPYGT0]
 }
 
 export function usePathDismissed(path) {

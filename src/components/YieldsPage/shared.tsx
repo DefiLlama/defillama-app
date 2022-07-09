@@ -245,13 +245,13 @@ export const columns = [
 		}
 	},
 	{
-		header: '1d change',
+		header: '1d Change',
 		accessor: 'change1d',
 		helperText: 'Absolute change in APY',
 		Cell: ({ value }) => <>{formattedPercent(value)}</>
 	},
 	{
-		header: '7d change',
+		header: '7d Change',
 		accessor: 'change7d',
 		helperText: 'Absolute change in APY',
 		Cell: ({ value }) => <>{formattedPercent(value)}</>
@@ -270,3 +270,8 @@ export const columns = [
 		Cell: ({ value }) => <>{value === null ? null : value === 1 ? 'Low' : value === 2 ? 'Medium' : 'High'}</>
 	}
 ]
+export const fallbackList = new Array(20).fill('x')
+export const fallbackColumns = columns.map((column) => ({
+	...column,
+	Cell: () => <span style={{ height: '24px' }}></span>
+}))

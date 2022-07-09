@@ -211,7 +211,7 @@ export default function AreaChart({
 					})
 
 					const vals = params
-						.sort((a, b) => b.value[1] - a.value[1])
+						.sort((a, b) => (hideLegend ? 0 : b.value[1] - a.value[1])) // skip sort for mcap and tvl charts
 						.reduce((prev, curr) => {
 							if (curr.value[1] !== 0 && curr.value[1] !== '-') {
 								return (prev +=

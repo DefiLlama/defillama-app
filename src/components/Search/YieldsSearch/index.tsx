@@ -6,7 +6,11 @@ import { AdvancedYieldsSearch } from './Advanced'
 import { ToggleSearch } from './shared'
 import { useRouter } from 'next/router'
 
-export default function YieldsSearch(props: ICommonSearchProps) {
+interface IYieldSearchProps extends ICommonSearchProps {
+	pathname?: string
+}
+
+export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) {
 	const [advancedSearch, setAdvancedSearch] = React.useState(false)
 
 	const router = useRouter()
@@ -19,16 +23,16 @@ export default function YieldsSearch(props: ICommonSearchProps) {
 				data?.map((el) => ({
 					name: `${el.name} (${el.symbol.toUpperCase()})`,
 					symbol: el.symbol.toUpperCase(),
-					route: `/yields?token=${el.symbol.toUpperCase()}`,
+					route: `${pathname}?token=${el.symbol.toUpperCase()}`,
 					logo: el.image
 				})) ?? []
 			)
-		}, [data]) ?? []
+		}, [data, pathname]) ?? []
 
 	const handleTokenRoute = (token) => {
 		router.push(
 			{
-				pathname: '/yields',
+				pathname,
 				query: {
 					...router.query,
 					token: token.symbol
@@ -40,7 +44,7 @@ export default function YieldsSearch(props: ICommonSearchProps) {
 	}
 
 	if (!props.step?.hideOptions && advancedSearch) {
-		return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} />
+		return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} pathname={pathname || '/yields'} />
 	}
 
 	return (

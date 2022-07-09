@@ -1,17 +1,23 @@
-import 'swagger-ui-react/swagger-ui.css'
-import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import Layout from '~/layout'
 import DarkSwagger from '~/docs/swaggerDark'
 import yamlApiSpec from '~/docs/resolvedSpec.json'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-
-const SwaggerUI = dynamic(import('swagger-ui-react'), { ssr: false })
+import { useEffect } from 'react'
+import 'swagger-ui/dist/swagger-ui.css'
 
 export default function ApiDocs() {
+	const [isDark] = useDarkModeManager()
+
+	const Wrapper = isDark ? DarkSwagger : styled.div``
+
 	return (
 		<Layout title={`API Docs - DefiLlama`}>
-			<DarkModeWrapper />
+			<HideSections>
+				<Wrapper>
+					<Swagger />
+				</Wrapper>
+			</HideSections>
 		</Layout>
 	)
 }
@@ -22,14 +28,23 @@ const HideSections = styled.div`
 	}
 `
 
-function DarkModeWrapper() {
-	const [isDark] = useDarkModeManager()
-	const Wrapper = isDark ? DarkSwagger : styled.div``
-	return (
-		<HideSections>
-			<Wrapper>
-				<SwaggerUI spec={yamlApiSpec} defaultModelsExpandDepth={-1} />
-			</Wrapper>
-		</HideSections>
-	)
+function Swagger() {
+	useEffect(() => {
+		async function init() {
+			const { default: SwaggerUI } = await import('swagger-ui')
+			SwaggerUI({
+				dom_id: '#swagger',
+				defaultModelsExpandDepth: -1,
+				spec: yamlApiSpec,
+				syntaxHighlight: {
+					activated: false,
+					theme: 'agate'
+				}
+			})
+		}
+
+		init()
+	}, [])
+
+	return <div id="swagger" />
 }
