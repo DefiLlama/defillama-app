@@ -495,9 +495,15 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
 
+	const tvlWithExtra =
+		tvl +
+		extraTvls?.reduce((acc, curr) => {
+			return (acc += curr[1])
+		}, 0)
+
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
-			<SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
+			<SEO cardName={name} token={name} logo={logo} tvl={formattedNum(tvlWithExtra, true)?.toString()} />
 
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
 

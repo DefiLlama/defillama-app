@@ -14,7 +14,7 @@ import {
 	useNoOutlierManager,
 	useAPYManager
 } from '~/contexts/LocalStorage'
-import { columns, TableWrapper } from './shared'
+import { columns, fallbackColumns, fallbackList, TableWrapper } from './shared'
 
 const YieldPage = ({ loading, pools, projectList, chainList }) => {
 	const { query } = useRouter()
@@ -208,9 +208,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 			</TableFilters>
 
 			{loading ? (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					Loading...
-				</Panel>
+				<TableWrapper data={fallbackList} columns={fallbackColumns} />
 			) : poolsData.length > 0 ? (
 				<TableWrapper data={poolsData} columns={columns} />
 			) : (

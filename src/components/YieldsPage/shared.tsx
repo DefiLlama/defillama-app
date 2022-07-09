@@ -270,3 +270,8 @@ export const columns = [
 		Cell: ({ value }) => <>{value === null ? null : value === 1 ? 'Low' : value === 2 ? 'Medium' : 'High'}</>
 	}
 ]
+export const fallbackList = new Array(20).fill('x')
+export const fallbackColumns = columns.map((column) => ({
+	...column,
+	Cell: () => <span style={{ height: '24px' }}></span>
+}))
