@@ -7,7 +7,7 @@ export default function ApyHomePage() {
 	const { data, loading } = useYieldPageData()
 	const formattedData = useFormatYieldsData(data, loading)
 	return (
-		<Layout title={`Yield Rankings - DefiLlama`} defaultSEO>
+		<Layout title={`Yield Rankings - DefiLlama`} defaultSEO prefetchYield>
 			<YieldPage loading={loading} {...formattedData} />
 		</Layout>
 	)
