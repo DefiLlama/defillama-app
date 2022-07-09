@@ -3,7 +3,10 @@ import { AGGREGATOPN_API, YIELD_POOLS_API } from '~/constants'
 
 export async function getYieldPageData(query = null) {
 	try {
-		let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
+		let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data.map(pool=>({
+			...pool,
+			"audit_links": []
+		}))
 
 		// remove anchor cause UST dead
 		pools = pools.filter((p) => p.project !== 'anchor')
