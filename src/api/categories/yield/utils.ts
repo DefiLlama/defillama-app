@@ -2,7 +2,7 @@ import { quantile, median } from 'simple-statistics'
 
 export function formatYieldsPageData(poolsAndAggr: any) {
 	const _pools = poolsAndAggr[0]?.data ?? []
-	const _aggregations = poolsAndAggr[0]?.data ?? []
+	const _aggregations = poolsAndAggr[1]?.data ?? []
 
 	// need to take the latest info, scale apy accordingly
 	const T = 365
