@@ -63,18 +63,10 @@ export const useFetchYieldsList = () => {
 }
 
 export const useYieldPageData = () => {
-	const { data, error } = useSWR(
-		'yield-api-pools-and-aggr',
-		() => arrayFetcher([YIELD_POOLS_API, YIELD_AGGREGATION_API]),
-		{
-			onErrorRetry: retrySWR
-		}
-	)
-
-	const response = data && { pools: data[0]?.data ?? [], aggregations: data[1]?.data ?? [] }
+	const { data, error } = useSWR('/pools-and-aggr', () => arrayFetcher([YIELD_POOLS_API, YIELD_AGGREGATION_API]))
 
 	return {
-		data: response,
+		data,
 		error,
 		loading: !data && !error
 	}

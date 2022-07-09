@@ -110,11 +110,12 @@ export async function getYieldPageData(query = null) {
 	}
 }
 
-export function useFormatYieldsData(poolsAndAggr, isLoading) {
+export function useFormatYieldsData(response, isLoading) {
 	return useMemo(() => {
-		if (isLoading || !poolsAndAggr) return { pools: [], chainList: [], projectList: [] }
+		if (isLoading || !response) return { pools: [], chainList: [], projectList: [] }
 
-		const { pools, aggregations } = poolsAndAggr
+		const pools = response[0]?.data ?? []
+		const aggregations = response[0]?.data ?? []
 
 		// need to take the latest info, scale apy accordingly
 		const T = 365
@@ -198,5 +199,5 @@ export function useFormatYieldsData(poolsAndAggr, isLoading) {
 			chainList: Array.from(chainList),
 			projectList
 		}
-	}, [poolsAndAggr, isLoading])
+	}, [isLoading, response])
 }
