@@ -15,8 +15,11 @@ import {
 	useAPYManager
 } from '~/contexts/LocalStorage'
 import { columns, TableWrapper } from './shared'
+import { useFormatYieldsData } from '~/api/categories/yield'
 
-const YieldPage = ({ pools, chainList, projectList }) => {
+const YieldPage = ({ loading, data }) => {
+	const { pools, projectList, chainList } = useFormatYieldsData(data, loading)
+
 	const { query } = useRouter()
 	const { minTvl, maxTvl, project, chain, token, excludeToken } = query
 
@@ -207,7 +210,11 @@ const YieldPage = ({ pools, chainList, projectList }) => {
 				</Dropdowns>
 			</TableFilters>
 
-			{poolsData.length > 0 ? (
+			{loading ? (
+				<Panel as="p" style={{ margin: 0, textAlign: 'center', height: '300px' }}>
+					Loading...
+				</Panel>
+			) : poolsData.length > 0 ? (
 				<TableWrapper data={poolsData} columns={columns} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
