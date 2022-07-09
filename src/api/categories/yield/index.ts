@@ -1,19 +1,18 @@
 import { useMemo } from 'react'
 import { quantile, median } from 'simple-statistics'
-import { YIELD_AGGREGATION_API, YIELD_POOLS_API } from '~/constants'
+import { YIELD_AGGREGATION_API, YIELD_POOLS_API, CONFIG_API } from '~/constants'
 
-export async function getYieldPageData(query = null) {
+export async function getYieldPageData() {
 	try {
-		let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data.map((pool) => ({
-			...pool,
-			audit_links: []
-		}))
+		let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
 
-		// remove anchor cause UST dead
-		pools = pools.filter((p) => p.project !== 'anchor')
-		// temporary fix for those projects with undefined projectName field (happens if adaptor is a yield adaptor
-		// but not available via tvl dashboard, will remove for now until fixed on adaptor side)
-		pools = pools.filter((p) => p.projectName !== undefined)
+		// add projectName field to pools
+		let config = (await fetch(CONFIG_API).then((r) => r.json())).protocols
+		for (const pool of pools) {
+			pool['projectName'] = config.find((c) => c.name.toLowerCase().replace(/\s/g, '-') === pool.project)?.name
+		}
+		// remove any potential undefined value
+		pools = pools.filter((p) => p.projectName)
 
 		// need to take the latest info, scale apy accordingly
 		const T = 365
@@ -87,13 +86,6 @@ export async function getYieldPageData(query = null) {
 				projectList.push({ name: p.projectName, slug: p.project })
 			}
 		})
-
-		// for chain, project and pool queries
-		if (query !== null && Object.keys(query)[0] !== 'token') {
-			const queryKey = Object.keys(query)[0]
-			const queryVal = Object.values(query)[0]
-			pools = pools.filter((p) => p[queryKey] === queryVal)
-		}
 
 		return {
 			props: {
