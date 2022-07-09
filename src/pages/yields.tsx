@@ -6,10 +6,12 @@ import { useYieldPageData } from '~/api/categories/yield/client'
 import { useFormatYieldsData } from '~/api/categories/yield'
 
 async function prefetchData() {
-	return await fetch('/api/poolsAndAggr').then((data) => {
-		mutate('/pools-and-aggr', data, false)
-		return data
-	})
+	return await fetch('/api/poolsAndAggr')
+		.then((res) => res.json())
+		.then((data) => {
+			mutate('/api/poolsAndAggr', data, false)
+			return data
+		})
 }
 
 // if we are on the browser trigger a prefetch as soon as possible
@@ -17,6 +19,7 @@ if (typeof window !== 'undefined') prefetchData()
 
 export default function ApyHomePage() {
 	const { data, loading } = useYieldPageData()
+
 	const formattedData = useFormatYieldsData(data, loading)
 
 	return (
