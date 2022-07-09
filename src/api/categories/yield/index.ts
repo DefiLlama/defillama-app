@@ -1,12 +1,12 @@
 import { useMemo } from 'react'
 import { quantile, median } from 'simple-statistics'
-import { AGGREGATOPN_API, YIELD_POOLS_API } from '~/constants'
+import { YIELD_AGGREGATION_API, YIELD_POOLS_API } from '~/constants'
 
 export async function getYieldPageData(query = null) {
 	try {
-		let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data.map(pool=>({
+		let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data.map((pool) => ({
 			...pool,
-			"audit_links": []
+			audit_links: []
 		}))
 
 		// remove anchor cause UST dead
@@ -21,7 +21,7 @@ export async function getYieldPageData(query = null) {
 
 		// get aggregated data containing info about mean, mean2, count, returnProduct
 		// which we need to calc mu and sigma
-		const aggregations = (await fetch(AGGREGATOPN_API).then((r) => r.json())).data
+		const aggregations = (await fetch(YIELD_AGGREGATION_API).then((r) => r.json())).data
 		for (const el of pools) {
 			const d = aggregations.find((i) => i.pool === el.pool)
 
