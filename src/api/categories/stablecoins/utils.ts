@@ -17,6 +17,7 @@ export const peggedPropertiesToKeep = [
 	'change_1m',
 	'pegDeviation',
 	'pegDeviation_1m',
+	'pegDeviationInfo',
 	'circulatingPrevDay',
 	'circulatingPrevWeek',
 	'circulatingPrevMonth'
@@ -37,7 +38,10 @@ export const formatPeggedAssetsData = ({
 	}
 
 	filteredPeggedAssets = filteredPeggedAssets.map((pegged) => {
-		let pegType = pegged.pegType
+		const pegType = pegged.pegType
+		const peggedGeckoID = pegged.gecko_id
+		const price = pegged.price
+		const priceSource = pegged.priceSource
 		if (chain) {
 			const chainCirculating = pegged.chainCirculating[chain]
 			pegged.circulating = chainCirculating ? chainCirculating.current[pegType] ?? 0 : 0
@@ -61,14 +65,34 @@ export const formatPeggedAssetsData = ({
 		pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
 		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
 
-		if (pegType === 'peggedUSD') {
-			pegged.pegDeviation = getPercentChange(pegged.price, 1)
+		if (pegType === 'peggedUSD' && price) {
+			pegged.pegDeviation = getPercentChange(price, 1)
 			let greatestDeviation = 0
 			for (let i = 0; i < 30; i++) {
 				let historicalPrices = priceData[priceData.length - i - 1]
-				let price = parseFloat(historicalPrices?.prices?.[pegged.gecko_id])
-				let deviation = price - 1
-				if (Math.abs(greatestDeviation) < Math.abs(deviation)) greatestDeviation = deviation 
+				let historicalPrice = parseFloat(historicalPrices?.prices?.[peggedGeckoID])
+				let timestamp = historicalPrices?.date
+				let deviation = historicalPrice - 1
+				if (Math.abs(greatestDeviation) < Math.abs(deviation)) {
+					greatestDeviation = deviation
+					if (0.02 < Math.abs(greatestDeviation)) {
+						pegged.pegDeviationInfo = {
+							timestamp: timestamp,
+							price: historicalPrice,
+							priceSource: priceSource
+						}
+					}
+				}
+			}
+			if (Math.abs(greatestDeviation) < Math.abs(price - 1)) {
+				greatestDeviation = price - 1
+				if (0.02 < Math.abs(greatestDeviation)) {
+					pegged.pegDeviationInfo = {
+						timestamp: Date.now() / 1000,
+						price: price,
+						priceSource: priceSource
+					}
+				}
 			}
 			pegged.pegDeviation_1m = getPercentChange(1 + greatestDeviation, 1)
 		}
