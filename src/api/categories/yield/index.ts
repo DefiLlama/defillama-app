@@ -1,9 +1,14 @@
 import { useMemo } from 'react'
 import { quantile, median } from 'simple-statistics'
+import { YIELD_AGGREGATION_API, YIELD_POOLS_API } from '~/constants'
 
 export async function getYieldPageData(query = null) {
 	try {
-		let { pools, aggregations } = (await fetch('/api/poolsAndAggr').then((r) => r.json())).data
+		let pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data.map((pool) => ({
+			...pool,
+			audit_links: []
+		}))
+
 		// remove anchor cause UST dead
 		pools = pools.filter((p) => p.project !== 'anchor')
 		// temporary fix for those projects with undefined projectName field (happens if adaptor is a yield adaptor
@@ -16,7 +21,7 @@ export async function getYieldPageData(query = null) {
 
 		// get aggregated data containing info about mean, mean2, count, returnProduct
 		// which we need to calc mu and sigma
-
+		const aggregations = (await fetch(YIELD_AGGREGATION_API).then((r) => r.json())).data
 		for (const el of pools) {
 			const d = aggregations.find((i) => i.pool === el.pool)
 
@@ -105,11 +110,13 @@ export async function getYieldPageData(query = null) {
 	}
 }
 
-export function useFormatYieldsData(poolsAndAggr, isLoading) {
-	return useMemo(() => {
-		if (isLoading || !poolsAndAggr) return { pools: [], chainList: [], projectList: [] }
+export function useFormatYieldsData(data, isLoading) {
+	const response = data && { pools: data[0]?.data ?? [], aggregations: data[1]?.data ?? [] }
 
-		const { pools, aggregations } = poolsAndAggr
+	return useMemo(() => {
+		if (isLoading || !response) return { pools: [], chainList: [], projectList: [] }
+
+		const { pools, aggregations } = response
 
 		// need to take the latest info, scale apy accordingly
 		const T = 365
@@ -193,5 +200,5 @@ export function useFormatYieldsData(poolsAndAggr, isLoading) {
 			chainList: Array.from(chainList),
 			projectList
 		}
-	}, [poolsAndAggr, isLoading])
+	}, [isLoading, response])
 }

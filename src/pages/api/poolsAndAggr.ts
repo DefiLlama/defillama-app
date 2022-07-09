@@ -9,8 +9,8 @@ export default async function handler(_req: NextApiRequest, res: NextApiResponse
 		const response = {
 			data: data
 				? {
-						pools: data[0]?.data?.map((pool) => ({ ...pool, audit_links: [] })) ?? [],
-						aggregations: data[1]?.data ?? []
+						pools: data[0]?.data?.slice(0, 100).map((pool) => ({ ...pool, audit_links: [] })) ?? [],
+						aggregations: data[1]?.data?.slice(0, 100) ?? []
 				  }
 				: null
 		}
