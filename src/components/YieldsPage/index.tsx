@@ -15,11 +15,8 @@ import {
 	useAPYManager
 } from '~/contexts/LocalStorage'
 import { columns, TableWrapper } from './shared'
-import { useFormatYieldsData } from '~/api/categories/yield'
 
-const YieldPage = ({ loading, data }) => {
-	const { pools, projectList, chainList } = useFormatYieldsData(data, loading)
-
+const YieldPage = ({ loading, pools, projectList, chainList }) => {
 	const { query } = useRouter()
 	const { minTvl, maxTvl, project, chain, token, excludeToken } = query
 

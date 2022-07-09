@@ -119,11 +119,11 @@ export function useFormatYieldsData(poolsAndAggr, isLoading) {
 		// remove anchor cause UST dead
 		// and temporary fix for those projects with undefined projectName field (happens if adaptor is a yield adaptor
 		// but not available via tvl dashboard, will remove for now until fixed on adaptor side)
-		const poolsData = pools
+		const _poolsData = pools
 			.filter((p) => p.projectName !== undefined || p.project !== 'anchor')
 			.map((p) => ({ ...p, return: (1 + p.apy / 100) ** (1 / T) - 1 }))
 
-		for (const el of poolsData) {
+		for (const el of _poolsData) {
 			const d = aggregations.find((i) => i.pool === el.pool)
 
 			if (d === undefined) {
@@ -158,7 +158,7 @@ export function useFormatYieldsData(poolsAndAggr, isLoading) {
 		const columns = ['mu', 'sigma']
 		const outlierBoundaries = {}
 		for (const col of columns) {
-			const x = poolsData.map((p) => p[col]).filter((p) => p !== undefined && p !== null)
+			const x = _poolsData.map((p) => p[col]).filter((p) => p !== undefined && p !== null)
 			const x_iqr = quantile(x, 0.75) - quantile(x, 0.25)
 			const x_median = median(x)
 			const x_lb = x_median - 1.5 * x_iqr
@@ -166,7 +166,7 @@ export function useFormatYieldsData(poolsAndAggr, isLoading) {
 			outlierBoundaries[col] = { lb: x_lb, ub: x_ub }
 		}
 
-		let data = poolsData.map((p) => ({
+		let data = _poolsData.map((p) => ({
 			...p,
 			outlier:
 				p['mu'] < outlierBoundaries['mu']['lb'] ||
