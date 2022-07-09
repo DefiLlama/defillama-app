@@ -211,7 +211,7 @@ const YieldPage = ({ loading, data }) => {
 			</TableFilters>
 
 			{loading ? (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center', height: '300px' }}>
+				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
 					Loading...
 				</Panel>
 			) : poolsData.length > 0 ? (
