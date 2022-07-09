@@ -41,7 +41,6 @@ interface ILayoutProps {
 	defaultSEO?: boolean
 	backgroundColor?: string
 	style?: React.CSSProperties
-	prefetchYield?: boolean
 }
 
 interface IBackground {
@@ -50,15 +49,11 @@ interface IBackground {
 
 const Background = styled(ThemedBackground)<IBackground>``
 
-export default function Layout({ title, children, defaultSEO = false, backgroundColor, prefetchYield=false, ...props }: ILayoutProps) {
+export default function Layout({ title, children, defaultSEO = false, backgroundColor, ...props }: ILayoutProps) {
 	return (
 		<>
 			<Head>
 				<title>{title}</title>
-				{prefetchYield && (<>
-					<link rel="prefetch" href="https://yields.llama.fi/pools" />
-					<link rel="prefetch" href="https://yields.llama.fi/aggregations" />
-					</>)}
 			</Head>
 
 			{defaultSEO && <SEO />}
