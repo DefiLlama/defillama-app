@@ -114,7 +114,8 @@ export function useFormatYieldsData(response, isLoading) {
 	return useMemo(() => {
 		if (isLoading || !response) return { pools: [], chainList: [], projectList: [] }
 
-		const { pools, aggregations } = response
+		const pools = response[0]?.data ?? []
+		const aggregations = response[0]?.data ?? []
 
 		// need to take the latest info, scale apy accordingly
 		const T = 365
