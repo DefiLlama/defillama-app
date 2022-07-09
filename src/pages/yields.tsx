@@ -17,8 +17,8 @@ if (typeof window !== 'undefined') prefetchData()
 
 export default function ApyHomePage() {
 	const { data, loading } = useYieldPageData()
-
 	const formattedData = useFormatYieldsData(data, loading)
+
 	return (
 		<>
 			<Head>

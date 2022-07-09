@@ -112,11 +112,9 @@ export async function getYieldPageData(query = null) {
 
 export function useFormatYieldsData(response, isLoading) {
 	return useMemo(() => {
-		const poolsAndAggr = response && { pools: response[0]?.data ?? [], aggregations: response[1]?.data ?? [] }
+		if (isLoading || !response) return { pools: [], chainList: [], projectList: [] }
 
-		if (isLoading || !poolsAndAggr) return { pools: [], chainList: [], projectList: [] }
-
-		const { pools, aggregations } = poolsAndAggr
+		const { pools, aggregations } = response
 
 		// need to take the latest info, scale apy accordingly
 		const T = 365

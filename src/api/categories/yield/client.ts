@@ -67,8 +67,10 @@ export const useYieldPageData = () => {
 		onErrorRetry: retrySWR
 	})
 
+	const response = data && { pools: data[0]?.data ?? [], aggregations: data[1]?.data ?? [] }
+
 	return {
-		data,
+		data: response,
 		error,
 		loading: !data && !error
 	}
