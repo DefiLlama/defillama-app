@@ -91,14 +91,13 @@ const PageView = () => {
 
 	const tvlUsd = toK(poolData.tvlUsd ?? 0)
 
-	const projectName = poolData.projectName ?? ''
-
 	let confidence = poolData.predictions?.binnedConfidence ?? null
 	if (confidence) {
 		confidence = confidence === 1 ? 'Low' : confidence === 2 ? 'Medium' : 'High'
 	}
 	const predictedDirection = poolData.predictions?.predictedClass === 'Down' ? '' : 'not'
 
+	const projectName = configData.name ?? ''
 	const audits = configData.audits ?? ''
 	const audit_links = configData.audit_links ?? []
 	const url = configData.url ?? ''
