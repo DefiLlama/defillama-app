@@ -64,7 +64,7 @@ export const useFetchYieldsList = () => {
 }
 
 export const useYieldPageData = () => {
-	const { data, error } = useSWR('/pools-and-aggr', () => arrayFetcher([YIELD_POOLS_API]))
+	const { data, error } = useSWR('/pools-and-config', () => arrayFetcher([YIELD_POOLS_API, CONFIG_API]))
 
 	return {
 		data,
