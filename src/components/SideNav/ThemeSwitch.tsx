@@ -14,6 +14,10 @@ const Wrapper = styled.button`
 	display: flex;
 	width: fit-content;
 	padding: 0;
+	position: relative;
+	top: 2px;
+	margin-left: auto;
+	color: white;
 `
 
 interface ThemeSwitchProps {

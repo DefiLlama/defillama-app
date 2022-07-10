@@ -7,12 +7,16 @@ import { BasicLink } from '~/components/Link'
 import { transparentize } from 'polished'
 
 export const Wrapper = styled.div`
-	grid-column: span 1;
+	position: sticky;
+	top: 0;
+	height: 100vh;
 	width: 220px;
-	gap: 20px;
+	grid-column: span 1;
 	padding: 32px;
 	background: ${({ theme }) => (theme.mode === 'dark' ? '#222c3d' : '#edf0fa')};
 	z-index: 1;
+	overflow-y: auto;
+
 	scrollbar-width: none;
 	::-webkit-scrollbar {
 		display: none;
@@ -23,8 +27,7 @@ export const Nav = styled.nav`
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
-	position: sticky;
-	top: 24px;
+	height: 100%;
 `
 
 export const NavLink = styled(BasicLink)`

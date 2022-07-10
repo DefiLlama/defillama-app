@@ -1,8 +1,10 @@
 import * as React from 'react'
 import Link from 'next/link'
-import styled from 'styled-components'
-import DefiLogo from './DefiLogo'
 import { useRouter } from 'next/router'
+import styled from 'styled-components'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import ThemeSwitch from '../SideNav/ThemeSwitch'
+import DefiLogo from './DefiLogo'
 
 interface IAppLink {
 	name: string
@@ -17,6 +19,7 @@ const appLinks: IAppLink[] = [
 
 export default function Header() {
 	const router = useRouter()
+	const [darkMode, toggleDarkMode] = useDarkModeManager()
 	return (
 		<Wrapper>
 			<Link href="/" passHref>
@@ -31,6 +34,8 @@ export default function Header() {
 					<AppLink isActive={router.pathname === item.url}>{item.name}</AppLink>
 				</Link>
 			))}
+
+			<ThemeSwitch isActive={darkMode} toggle={toggleDarkMode} />
 
 			{/* <Link href="/" passHref>
 				<a target="_blank" rel="noopener noreferrer">
