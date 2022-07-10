@@ -4,7 +4,8 @@ import styled from 'styled-components'
 import { transparentize } from 'polished'
 import ThemeProvider, { GlobalStyle, ThemedBackground } from '~/Theme'
 import SEO from '~/components/SEO'
-import Nav from '~/components/Nav'
+import SideNav from '~/components/SideNav'
+import Header from '~/components/Header'
 
 const Center = styled.main`
 	display: flex;
@@ -18,8 +19,9 @@ const Center = styled.main`
 `
 
 const PageWrapper = styled.div`
-	padding: 36px 0 80px;
-	flex: 1;
+	grid-column: 1 / -1;
+	padding: 40px 0 80px;
+	min-height: calc(100vh - 70px);
 	z-index: 0;
 	transition: width 0.25s ease;
 	background-color: ${({ theme }) => theme.onlyLight};
@@ -31,7 +33,7 @@ const PageWrapper = styled.div`
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		padding-left: 220px;
+		grid-column: span 1;
 	}
 `
 
@@ -60,7 +62,8 @@ export default function Layout({ title, children, defaultSEO = false, background
 
 			<ThemeProvider>
 				<GlobalStyle />
-				<Nav />
+				<Header />
+				<SideNav />
 				<PageWrapper>
 					<Background backgroundColor={backgroundColor || transparentize(0.8, '#445ed0')} />
 					<Center {...props}>{children}</Center>

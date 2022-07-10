@@ -13,11 +13,9 @@ import {
 	Share2,
 	Map,
 	List,
-	Percent,
-	Book,
-	Pocket
+	Book
 } from 'react-feather'
-import { Entry, Footer, MobileOnlyEntry } from './shared'
+import { Entry, Footer } from './shared'
 
 const Paper = () => (
 	<svg
@@ -55,8 +53,6 @@ const Paper = () => (
 const NavMenu = () => {
 	return (
 		<>
-			<MobileOnlyEntry url="/yields" name="Yields" Icon={Percent} style={{ marginTop: '20px' }} />
-
 			<Entry url="/" name="Overview" Icon={TrendingUp} />
 			<Entry url="/chains" name="Chains" Icon={LinkLogo} />
 			<Entry url="/roundup" name="Roundup" Icon={Paper} newTag />
@@ -64,7 +60,6 @@ const NavMenu = () => {
 			<Entry url="/airdrops" name="Airdrops" Icon={CloudDrizzle} />
 			<Entry url="/oracles" name="Oracles" Icon={Shield} />
 			<Entry url="/forks" name="Forks" Icon={Share2} />
-			<Entry url="/stablecoins" name="Stablecoins" Icon={Pocket} newTag />
 			<Entry url="/watchlist" name="Watchlist" Icon={Bookmark} />
 			<Entry url="/top-protocols" name="Top Protocols" Icon={Map} />
 			<Entry url="/categories" name="Categories" Icon={RefreshCcw} />

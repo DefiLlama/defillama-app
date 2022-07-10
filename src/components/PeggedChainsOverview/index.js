@@ -3,7 +3,6 @@ import styled from 'styled-components'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
 import { OptionButton } from '~/components/ButtonStyled'
 import { RowBetween, AutoRow } from '~/components/Row'
-import PeggedViewSwitch from '~/components/PeggedViewSwitch'
 import Table, { columnsToShow } from '~/components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
 import { AreaChart } from '~/components/Charts'
@@ -277,8 +276,8 @@ function PeggedChainsOverview({
 	}
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
-		const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, "totalCirculatingUSD")
-		const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 7, "totalCirculatingUSD")
+		const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, 'totalCirculatingUSD')
+		const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 7, 'totalCirculatingUSD')
 		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
 		return { percentChange, totalMcapCurrent }
 	}, [chartData])
@@ -323,9 +322,7 @@ function PeggedChainsOverview({
 
 	return (
 		<>
-			<PeggedSearch step={{ category: 'Pegged Assets', name: title, route: 'peggedassets' }} />
-
-			<PeggedViewSwitch />
+			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains', route: 'stablecoins' }} />
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>

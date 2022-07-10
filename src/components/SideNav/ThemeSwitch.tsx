@@ -11,14 +11,9 @@ const IconWrapper = styled.div<{ isActive?: boolean }>`
 `
 
 const Wrapper = styled.button`
-	display: none;
+	display: flex;
 	width: fit-content;
-	color: white;
 	padding: 0;
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		display: flex;
-	}
 `
 
 interface ThemeSwitchProps {

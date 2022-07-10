@@ -4,68 +4,32 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { Icon } from 'react-feather'
 import { BasicLink } from '~/components/Link'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
-import ThemeSwitch from './ThemeSwitch'
+import { transparentize } from 'polished'
 
-export const Wrapper = styled.header`
-	min-width: 220px;
-	display: flex;
-	flex-direction: column;
+export const Wrapper = styled.div`
+	grid-column: span 1;
+	width: 220px;
 	gap: 20px;
-	padding: 16px;
+	padding: 32px;
+	background: ${({ theme }) => (theme.mode === 'dark' ? '#222c3d' : '#edf0fa')};
 	z-index: 1;
-	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
-
 	scrollbar-width: none;
 	::-webkit-scrollbar {
 		display: none;
 	}
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		padding: 32px 24px;
-		position: fixed;
-		top: 0;
-		bottom: 0;
-		left: 0;
-		width: revert;
-		height: 100vh;
-		overflow-y: auto;
-	}
-`
-
-export const TitleWrapper = styled.span`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
-
-	& > *:first-child {
-		flex: 1;
-	}
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		& > *:not(:first-child) {
-			display: none;
-		}
-	}
 `
 
 export const Nav = styled.nav`
-	flex: 1;
-	display: var(--mobile-display);
+	display: flex;
 	flex-direction: column;
 	gap: 20px;
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		display: flex;
-	}
+	position: sticky;
+	top: 24px;
 `
 
 export const NavLink = styled(BasicLink)`
 	font-weight: 500;
 	font-size: 14px;
-	color: ${({ theme }) => theme.white};
 	display: flex;
 	align-items: center;
 	gap: 12px;
@@ -80,15 +44,15 @@ export const NavLink = styled(BasicLink)`
 	}
 `
 
-const FooterWrapper = styled.section`
+const FooterWrapper = styled.span`
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
-	margin-top: auto;
+	border-top: ${({ theme }) => '1px solid ' + transparentize(0.9, theme.text1)};
+	padding-top: 20px;
 
 	& > a {
 		display: inline-block;
-		color: ${({ theme }) => theme.white};
 		opacity: 0.8;
 
 		:hover {
@@ -100,6 +64,17 @@ const FooterWrapper = styled.section`
 			opacity: 1;
 		}
 	}
+`
+
+const NewTagWrapper = styled.span`
+	background: ${({ theme }) => theme.bg6};
+	padding: 3px;
+	position: relative;
+	top: 2px;
+	left: -6px;
+	border-radius: 4px;
+	color: ${({ theme }) => theme.text1};
+	font-size: 0.625rem;
 `
 
 interface IEntryProps {
@@ -118,22 +93,7 @@ export const Entry = ({ url, name, Icon, newTag, ...props }: IEntryProps) => {
 		<NavLink href={url} {...props} style={{ opacity: router.pathname === url ? 1 : 0.6 }}>
 			<Icon size={20} />
 			<span>{name}</span>
-			{newTag === true && (
-				<span
-					style={{
-						background: '#ebebeb',
-						padding: '3px',
-						position: 'relative',
-						top: '2px',
-						left: '-6px',
-						borderRadius: '4px',
-						color: 'black',
-						fontSize: '0.625rem'
-					}}
-				>
-					NEW
-				</span>
-			)}
+			{newTag === true && <NewTagWrapper>NEW</NewTagWrapper>}
 		</NavLink>
 	)
 }
@@ -145,7 +105,6 @@ export const MobileOnlyEntry = styled(Entry)`
 `
 
 export const Footer = ({ app }: { app: 'defi' | 'yields' }) => {
-	const [darkMode, toggleDarkMode] = useDarkModeManager()
 	return (
 		<>
 			<FooterWrapper>
@@ -160,12 +119,6 @@ export const Footer = ({ app }: { app: 'defi' | 'yields' }) => {
 						<Link href="https://discord.gg/buPFYXzDDd" passHref>
 							<a target="_blank" rel="noopener noreferrer">
 								Discord
-							</a>
-						</Link>
-
-						<Link href="https://t.me/defillama_tg" passHref>
-							<a target="_blank" rel="noopener noreferrer">
-								Daily news
 							</a>
 						</Link>
 
@@ -203,8 +156,6 @@ export const Footer = ({ app }: { app: 'defi' | 'yields' }) => {
 					</Link>
 				)}
 			</FooterWrapper>
-
-			<ThemeSwitch isActive={darkMode} toggle={toggleDarkMode} />
 		</>
 	)
 }
