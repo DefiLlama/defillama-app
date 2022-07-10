@@ -580,7 +580,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						<Table>
 							<thead>
 								<tr>
-									<th>Add TVL types (optional)</th>
+									<th>Include in TVL (optional)</th>
 									<td className="question-helper">
 										<QuestionHelper text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation' />
 									</td>
