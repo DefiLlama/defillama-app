@@ -3,12 +3,12 @@ import Layout from '~/layout'
 import YieldPage from '~/components/YieldsPage'
 import { useYieldPageData } from '~/api/categories/yield/client'
 import { arrayFetcher } from '~/utils/useSWR'
-import { YIELD_AGGREGATION_API, YIELD_POOLS_API } from '~/constants'
+import { YIELD_POOLS_API } from '~/constants'
 import { useMemo } from 'react'
 import { formatYieldsPageData } from '~/api/categories/yield/utils'
 
 async function prefetchData() {
-	return await arrayFetcher([YIELD_POOLS_API, YIELD_AGGREGATION_API]).then((data) => {
+	return await arrayFetcher([YIELD_POOLS_API]).then((data) => {
 		mutate('/pools-and-aggr', data, false)
 	})
 }
