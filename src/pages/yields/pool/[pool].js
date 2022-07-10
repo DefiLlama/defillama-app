@@ -91,6 +91,8 @@ const PageView = () => {
 
 	const tvlUsd = toK(poolData.tvlUsd ?? 0)
 
+	const projectName = poolData.projectName ?? ''
+
 	let confidence = poolData.predictions?.binnedConfidence ?? null
 	if (confidence) {
 		confidence = confidence === 1 ? 'Low' : confidence === 2 ? 'Medium' : 'High'
@@ -111,12 +113,12 @@ const PageView = () => {
 
 			<h1 style={{ margin: '0 0 -12px', fontWeight: 500, fontSize: '1.5rem' }}>
 				<span>
-					{configData.name === 'Osmosis'
+					{projectName === 'Osmosis'
 						? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
 						: poolData.symbol ?? 'Loading'}
 				</span>{' '}
 				<span style={{ fontSize: '1rem' }}>
-					({configData.name} - {poolData.chain})
+					({projectName} - {poolData.chain})
 				</span>
 			</h1>
 
