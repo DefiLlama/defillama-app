@@ -19,7 +19,7 @@ import AuditInfo from '~/components/AuditInfo'
 import { ButtonLight } from '~/components/ButtonStyled'
 import { YieldsSearch } from '~/components/Search'
 import { download, toK } from '~/utils'
-import { useYieldPoolData, useYieldChartData } from '~/api/categories/yield/client'
+import { useYieldPoolData, useYieldChartData, useYieldConfigData } from '~/api/categories/yield/client'
 
 const TokenDetailsLayout = styled.div`
 	display: inline-grid;
@@ -61,6 +61,12 @@ const PageView = () => {
 	let { data: pool } = useYieldPoolData(query.pool)
 	let { data: chart } = useYieldChartData(query.pool)
 
+	const poolData = pool?.data ? pool.data[0] : {}
+
+	const project = poolData.project ?? ''
+	let { data: config } = useYieldConfigData(project)
+	const configData = config ?? {}
+
 	const finalChartData = chart?.data.map((el) => [
 		String(Math.floor(new Date(el.timestamp).getTime() / 1000)),
 		el.tvlUsd,
@@ -79,8 +85,6 @@ const PageView = () => {
 		download(`${query.pool}.csv`, rows.map((r) => r.join(',')).join('\n'))
 	}
 
-	const poolData = pool?.data ? pool.data[0] : {}
-
 	const apy = poolData.apy?.toFixed(2) ?? 0
 
 	const apyDelta20pct = (apy * 0.8).toFixed(2)
@@ -93,11 +97,12 @@ const PageView = () => {
 	}
 	const predictedDirection = poolData.predictions?.predictedClass === 'Down' ? '' : 'not'
 
-	const audits = poolData.audits ?? ''
-	const audit_links = poolData.audit_links ?? []
-	const url = poolData.url ?? ''
-	const twitter = poolData.twitter ?? ''
-	const category = poolData.category ?? ''
+	const projectName = configData.name ?? ''
+	const audits = configData.audits ?? ''
+	const audit_links = configData.audit_links ?? []
+	const url = configData.url ?? ''
+	const twitter = configData.twitter ?? ''
+	const category = configData.category ?? ''
 
 	const backgroundColor = '#696969'
 
@@ -107,12 +112,12 @@ const PageView = () => {
 
 			<h1 style={{ margin: '0 0 -12px', fontWeight: 500, fontSize: '1.5rem' }}>
 				<span>
-					{poolData.projectName === 'Osmosis'
+					{projectName === 'Osmosis'
 						? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
 						: poolData.symbol ?? 'Loading'}
 				</span>{' '}
 				<span style={{ fontSize: '1rem' }}>
-					({poolData.projectName} - {poolData.chain})
+					({projectName} - {poolData.chain})
 				</span>
 			</h1>
 
