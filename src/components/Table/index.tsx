@@ -1,6 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import { v4 as uuid } from 'uuid'
+import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
 import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronsUp } from 'react-feather'
 import HeadHelp from '~/components/HeadHelp'
@@ -36,26 +37,24 @@ interface TableProps {
 }
 
 const Wrapper = styled.section`
+	position: relative;
+	background-color: ${({ theme }) => theme.advancedBG};
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
-	padding: 6px 0;
-	background: ${({ theme }) => theme.advancedBg};
-	color: ${({ theme }) => theme.text1};
 	border-radius: 8px;
 	border: 1px solid ${({ theme }) => theme.bg3};
-	box-shadow: ${({ theme }) => theme.shadow};
+	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
+	padding: 6px 0;
+	color: ${({ theme }) => theme.text1};
+	overflow-x: auto;
 `
 
 const TableWrapper = styled.table`
 	border-collapse: collapse;
 	border-spacing: 0;
 	width: 100%;
-
-	thead > tr:first-child {
-		position: sticky;
-		top: 0;
-	}
+	position: relative;
 `
 
 const RowWrapper = styled.tr`
@@ -296,6 +295,7 @@ const handleScrollToTop = () => {
 }
 
 function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
+	const [lastIndex, setLastIndex] = React.useState(20)
 	const [columnToSort, setColumnToSort] = React.useState<string | null>(null)
 	const [sortDirection, setDirection] = React.useState<-1 | 0 | 1>(0)
 
@@ -339,65 +339,71 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
 		'--gap': gap || '24px'
 	} as React.CSSProperties
 
-	const initialData = sortedData.slice(0, 20)
+	const initialData = sortedData.slice(0, lastIndex)
 
 	return (
 		<Wrapper style={style} {...props}>
-			<TableWrapper>
-				<thead>
-					<RowWrapper>
-						{columns.map((col) => {
-							const disableSortBy = col.disableSortBy || false
-							const sortingColumn = columnToSort === col.accessor && sortDirection !== 0
+			<InfiniteScroll
+				dataLength={initialData.length}
+				next={() => setLastIndex((prev) => prev + 10)}
+				hasMore={initialData.length < sortedData.length}
+				loader={<span style={{ marginLeft: '22px' }}>...</span>}
+			>
+				<TableWrapper>
+					<thead>
+						<RowWrapper>
+							{columns.map((col) => {
+								const disableSortBy = col.disableSortBy || false
+								const sortingColumn = columnToSort === col.accessor && sortDirection !== 0
 
-							const header = disableSortBy ? (
-								col.header
-							) : (
-								<HeaderButton onClick={() => handleClick(col.accessor)}>{col.header}</HeaderButton>
-							)
-							const text = col.helperText ? (
-								<HeaderWithHelperText>
-									<span>{header}</span>
-									<QuestionHelper text={col.helperText} />
-								</HeaderWithHelperText>
-							) : (
-								header
-							)
+								const header = disableSortBy ? (
+									col.header
+								) : (
+									<HeaderButton onClick={() => handleClick(col.accessor)}>{col.header}</HeaderButton>
+								)
+								const text = col.helperText ? (
+									<HeaderWithHelperText>
+										<span>{header}</span>
+										<QuestionHelper text={col.helperText} />
+									</HeaderWithHelperText>
+								) : (
+									header
+								)
 
-							return (
-								<Header key={uuid()}>
-									{!disableSortBy ? (
-										<SortedHeader>
-											{text} {sortingColumn && (sortDirection === -1 ? <ArrowUp /> : <ArrowDown />)}
-										</SortedHeader>
-									) : (
-										text
-									)}
-								</Header>
-							)
-						})}
-					</RowWrapper>
-				</thead>
-				<tbody>
-					{pinnedRow && (
-						<PinnedRow>
-							{columns.map((col) => (
-								<Cell key={uuid()}>
-									{col.Cell ? (
-										<col.Cell value={pinnedRow[col.accessor]} rowValues={pinnedRow} rowType="pinned" />
-									) : (
-										pinnedRow[col.accessor]
-									)}
-								</Cell>
-							))}
-						</PinnedRow>
-					)}
-					{initialData.map((item, index) => (
-						<Row key={uuid()} item={item} index={index} columns={columns} />
-					))}
-				</tbody>
-			</TableWrapper>
-
+								return (
+									<Header key={uuid()}>
+										{!disableSortBy ? (
+											<SortedHeader>
+												{text} {sortingColumn && (sortDirection === -1 ? <ArrowUp /> : <ArrowDown />)}
+											</SortedHeader>
+										) : (
+											text
+										)}
+									</Header>
+								)
+							})}
+						</RowWrapper>
+					</thead>
+					<tbody>
+						{pinnedRow && (
+							<PinnedRow>
+								{columns.map((col) => (
+									<Cell key={uuid()}>
+										{col.Cell ? (
+											<col.Cell value={pinnedRow[col.accessor]} rowValues={pinnedRow} rowType="pinned" />
+										) : (
+											pinnedRow[col.accessor]
+										)}
+									</Cell>
+								))}
+							</PinnedRow>
+						)}
+						{initialData.map((item, index) => (
+							<Row key={uuid()} item={item} index={index} columns={columns} />
+						))}
+					</tbody>
+				</TableWrapper>
+			</InfiniteScroll>
 			{displayScrollToTopButton && (
 				<ScrollToTop onClick={handleScrollToTop}>
 					<ChevronsUp />
@@ -693,7 +699,6 @@ const allColumns: AllColumns = {
 	category: {
 		header: 'Category',
 		accessor: 'category',
-		disableSortBy: true,
 		Cell: ({ value }) => <span>{value}</span>
 	},
 	chainName: {
