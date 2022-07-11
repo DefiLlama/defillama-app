@@ -3,26 +3,28 @@ import { Header } from '~/Theme'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import Table, { columnsToShow } from '~/components/Table'
 import { RowLinks, LinksWrapper } from '~/components/Filters'
-import { useCalcStakePool2Tvl } from '~/hooks/data'
+import { useCalcProtocolsTvls } from '~/hooks/data'
+import { IParentProtocol } from '~/api/types'
 
 interface IAllTokensPageProps {
 	title?: string
 	category?: string
-	selectedChain?: string
+	chain?: string
 	chains?: string[]
 	filteredProtocols?: any
 	showChainList?: boolean
 	defaultSortingColumn?: string
+	parentProtocols?: IParentProtocol[]
 }
 
-function AllTokensPage({
+function ProtocolList({
 	title,
 	category,
-	selectedChain = 'All',
+	chain = 'All',
 	chains = [],
 	filteredProtocols,
 	showChainList = true,
-	defaultSortingColumn
+	parentProtocols
 }: IAllTokensPageProps) {
 	const handleRouting = (chain) => {
 		if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
@@ -43,7 +45,7 @@ function AllTokensPage({
 		} else return filteredProtocols
 	}, [filteredProtocols, category])
 
-	const protocolTotals = useCalcStakePool2Tvl(protocols, defaultSortingColumn)
+	const protocolTotals = useCalcProtocolsTvls({ protocols, parentProtocols })
 
 	if (!title) {
 		title = `TVL Rankings`
@@ -69,7 +71,7 @@ function AllTokensPage({
 			return columnsToShow('protocolName', 'category', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 	}, [category])
 
-	const routeName = category ? (selectedChain === 'All' ? 'All Chains' : selectedChain) : 'All Protocols'
+	const routeName = category ? (chain === 'All' ? 'All Chains' : chain) : 'All Protocols'
 
 	return (
 		<>
@@ -84,7 +86,7 @@ function AllTokensPage({
 
 			{showChainList && (
 				<LinksWrapper>
-					<RowLinks links={chainOptions} activeLink={selectedChain} />
+					<RowLinks links={chainOptions} activeLink={chain} />
 				</LinksWrapper>
 			)}
 
@@ -93,4 +95,4 @@ function AllTokensPage({
 	)
 }
 
-export default AllTokensPage
+export default ProtocolList
