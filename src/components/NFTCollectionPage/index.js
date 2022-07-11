@@ -15,9 +15,10 @@ import SEO from '~/components/SEO'
 import { NFTsSearch } from '~/components/Search'
 import Section from './Section'
 import Links from './Links'
-import { useHideLastDayManager, useDisplayUsdManager } from '~/contexts/LocalStorage'
+import { useSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, capitalizeFirstLetter } from '~/utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
+import { extraNftSettings } from '../Settings'
 
 const panelPseudo = css`
 	:after {
@@ -149,8 +150,7 @@ const GlobalNFTChart = dynamic(() => import('~/components/GlobalNFTChart'), {
 })
 
 function NFTCollectionPage({ collection, chart, statistics, title, backgroundColor }) {
-	const [hideLastDay] = useHideLastDayManager()
-	const [displayUsd] = useDisplayUsdManager()
+	const { HIDE_LAST_DAY, DISPLAY_USD } = useSettingsManager(extraNftSettings)
 
 	const {
 		chains,
@@ -184,7 +184,7 @@ function NFTCollectionPage({ collection, chart, statistics, title, backgroundCol
 
 	let shownMarketCap, shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit
 
-	if (displayUsd) {
+	if (DISPLAY_USD) {
 		;[shownMarketCap, shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit] = [
 			marketCapUSD,
 			totalVolumeUSD,
@@ -204,8 +204,8 @@ function NFTCollectionPage({ collection, chart, statistics, title, backgroundCol
 		]
 	}
 
-	if (hideLastDay) {
-		if (chart.length >= 2 && displayUsd) {
+	if (HIDE_LAST_DAY) {
+		if (chart.length >= 2 && DISPLAY_USD) {
 			shownTotalVolume = totalVolumeUSD - chart[chart.length - 1].volumeUSD
 			shownDailyVolume = chart[chart.length - 2].volumeUSD
 			shownDailyChange =
@@ -223,13 +223,13 @@ function NFTCollectionPage({ collection, chart, statistics, title, backgroundCol
 
 	const marketCapSection = (
 		<TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#4f8fea'}>
-			{shownMarketCap ? formattedNum(shownMarketCap, displayUsd) : '-'}
+			{shownMarketCap ? formattedNum(shownMarketCap, DISPLAY_USD) : '-'}
 		</TYPE.main>
 	)
 
 	const totalVolumeSection = (
 		<TYPE.main fontSize={'33px'} lineHeight={'39px'} fontWeight={600} color={'#fd3c99'}>
-			{formattedNum(shownTotalVolume, displayUsd)}
+			{formattedNum(shownTotalVolume, DISPLAY_USD)}
 		</TYPE.main>
 	)
 
@@ -260,7 +260,7 @@ function NFTCollectionPage({ collection, chart, statistics, title, backgroundCol
 							dailyVolumeChange={shownDailyChange}
 							symbol={symbol}
 							unit={unit}
-							displayUsd={displayUsd}
+							DISPLAY_USD={DISPLAY_USD}
 						/>
 					</Panel>
 				</PanelWrapper>

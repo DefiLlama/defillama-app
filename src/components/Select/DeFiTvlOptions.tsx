@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import { SelectLabel, useSelectState, SelectArrow, SelectItemCheck } from 'ariakit/select'
-import { extraTvlOptions } from '~/components/SettingsModal'
-import { useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { defiTvlOptions, extraTvlSettings } from '~/components/Settings'
+import { useSettingsManager, useToggleSetting } from '~/contexts/LocalStorage'
 import { Item, Popover, SelectMenu } from './AriakitSelect'
 
 const WrapperWithLabel = styled.div`
@@ -24,7 +24,7 @@ const Label = styled(SelectLabel)`
 	white-space: nowrap;
 `
 
-const extraTvls = extraTvlOptions.map((g) => ({ label: g.name, value: g.key }))
+const extraTvls = defiTvlOptions.map((g) => ({ label: g.name, value: g.key }))
 
 function renderValue(value: string[]) {
 	if (value.length === 0) return 'No option selected'
@@ -37,9 +37,9 @@ interface IProps {
 }
 
 export function DeFiTvlOptions({ options, ...props }: IProps) {
-	const tvlToggles = useTvlToggles()
+	const tvlToggles = useToggleSetting()
 
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const extraTvlsEnabled = useSettingsManager(extraTvlSettings)
 
 	const fitlers = { ...extraTvlsEnabled }
 

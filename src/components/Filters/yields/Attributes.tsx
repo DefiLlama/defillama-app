@@ -2,61 +2,15 @@ import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
-import {
-	AUDITED,
-	MILLION_DOLLAR,
-	NO_IL,
-	SINGLE_EXPOSURE,
-	STABLECOINS,
-	NO_OUTLIER,
-	APY_GT0,
-	useLocalStorageContext
-} from '~/contexts/LocalStorage'
+import { yieldOptions } from '~/components/Settings'
+import { useLocalStorageContext } from '~/contexts/LocalStorage'
 import { Item, Stats } from '../shared'
-
-export const options = [
-	{
-		name: 'Stablecoins',
-		key: STABLECOINS,
-		help: 'Select pools consisting of stablecoins only'
-	},
-	{
-		name: 'Single Exposure',
-		key: SINGLE_EXPOSURE,
-		help: 'Select pools with single token exposure only'
-	},
-	{
-		name: 'No IL',
-		key: NO_IL,
-		help: 'Select pools with no impermanent loss'
-	},
-	{
-		name: 'Million Dollar',
-		key: MILLION_DOLLAR,
-		help: 'Select pools with at least one million dollar in TVL'
-	},
-	{
-		name: 'Audited',
-		key: AUDITED,
-		help: 'Select pools from audited projects only'
-	},
-	{
-		name: 'No Outliers',
-		key: NO_OUTLIER,
-		help: 'Remove pools which extreme apy values'
-	},
-	{
-		name: 'APY > 0',
-		key: APY_GT0,
-		help: 'Remove pools which 0 apy values'
-	}
-]
 
 export function YieldAttributes() {
 	const [state, { updateKey }] = useLocalStorageContext()
 
 	const updateAttributes = (updatedValues) => {
-		options.forEach((option) => {
+		yieldOptions.forEach((option) => {
 			const isSelected = updatedValues.includes(option.key)
 
 			const isEnabled = state[option.key]
@@ -67,7 +21,7 @@ export function YieldAttributes() {
 		})
 	}
 
-	const values = options.filter((o) => state[o.key]).map((o) => o.key)
+	const values = yieldOptions.filter((o) => state[o.key]).map((o) => o.key)
 
 	const select = useSelectState({
 		value: values,
@@ -76,7 +30,7 @@ export function YieldAttributes() {
 	})
 
 	const toggleAll = () => {
-		options.forEach((option) => {
+		yieldOptions.forEach((option) => {
 			const isEnabled = state[option.key]
 
 			if (!isEnabled) {
@@ -86,7 +40,7 @@ export function YieldAttributes() {
 	}
 
 	const clear = () => {
-		options.forEach((option) => {
+		yieldOptions.forEach((option) => {
 			const isEnabled = state[option.key]
 
 			if (isEnabled) {
@@ -107,7 +61,7 @@ export function YieldAttributes() {
 
 					<button onClick={toggleAll}>toggle all</button>
 				</Stats>
-				{options.map((option) => (
+				{yieldOptions.map((option) => (
 					<Item key={option.key} value={option.key}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
 						<Checkbox checked={values.includes(option.key)} />

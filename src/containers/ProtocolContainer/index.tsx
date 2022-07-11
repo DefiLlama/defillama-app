@@ -18,10 +18,10 @@ import AuditInfo from '~/components/AuditInfo'
 import ProtocolTvlChart from '~/components/TokenChart/ProtocolTvlChart'
 import QuestionHelper from '~/components/QuestionHelper'
 import type { IChartProps } from '~/components/TokenChart/types'
-import { extraTvlOptions } from '~/components/SettingsModal'
+import { defiTvlOptions, extraTvlSettings } from '~/components/Settings'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
-import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { useSettingsManager, useToggleSetting } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName, toK } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
@@ -437,9 +437,9 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const [bobo, setBobo] = React.useState(false)
 
-	const tvlToggles = useTvlToggles()
+	const tvlToggles = useToggleSetting()
 
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const extraTvlsEnabled = useSettingsManager(extraTvlSettings)
 
 	const {
 		tvls: tvlsByChain,
@@ -451,9 +451,9 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			if (name === 'masterchef' || tvl === 0) return acc
 
 			// check if tvl name is addl tvl type and is toggled
-			if (isLowerCase(name[0]) && extraTvlProps.includes(name) && tvl !== 0) {
+			if (isLowerCase(name[0]) && extraTvlSettings.includes(name) && tvl !== 0) {
 				acc.extraTvls.push([name, tvl])
-				acc.tvlOptions.push(extraTvlOptions.find((e) => e.key === name))
+				acc.tvlOptions.push(defiTvlOptions.find((e) => e.key === name))
 			} else {
 				// only include total tvl of each chain skip breakdown of addl tvls if extra tvl type is not toggled
 				if (!name.includes('-')) {

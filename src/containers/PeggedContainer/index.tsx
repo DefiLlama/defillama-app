@@ -19,7 +19,7 @@ import SEO from '~/components/SEO'
 import QuestionHelper from '~/components/QuestionHelper'
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
-import { extraPeggedProps, useGetExtraPeggedEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { useSettingsManager, useToggleSetting } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
 	toNiceCsvDate,
@@ -31,6 +31,7 @@ import {
 	peggedAssetIconUrl,
 	formattedPeggedPrice
 } from '~/utils'
+import { extraPeggedSettings } from '~/components/Settings'
 
 const risksHelperTexts = {
 	algorithmic:
@@ -546,9 +547,8 @@ export default function PeggedContainer({
 	const belowXl = useXl()
 	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
-	const extraPeggeds = [...extraPeggedProps]
-	const tvlToggles = useTvlToggles()
-	const extraPeggedsEnabled = useGetExtraPeggedEnabled()
+	const tvlToggles = useToggleSetting()
+	const extraPeggedsEnabled = useSettingsManager(extraPeggedSettings)
 
 	const chainColor = useMemo(
 		() => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
@@ -655,7 +655,7 @@ export default function PeggedContainer({
 								</DetailsTable>
 							)}
 
-							{extraPeggeds.length > 0 && (
+							{extraPeggedSettings.length > 0 && (
 								<DetailsTable>
 									<thead>
 										<tr>
@@ -666,7 +666,7 @@ export default function PeggedContainer({
 										</tr>
 									</thead>
 									<tbody>
-										{extraPeggeds.map((option) => (
+										{extraPeggedSettings.map((option) => (
 											<tr key={option}>
 												<th>
 													<ExtraPeggedOption>

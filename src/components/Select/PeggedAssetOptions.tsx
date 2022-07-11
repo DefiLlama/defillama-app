@@ -1,6 +1,7 @@
 import { ActionMeta, components, GroupProps } from 'react-select'
 import ReactSelect from './ReactSelect'
-import { groupSettings, useTvlToggles, useGroupEnabled, useGetExtraPeggedEnabled } from '~/contexts/LocalStorage'
+import { groupSettings, useToggleSetting, useSettingsManager, groupKeys } from '~/contexts/LocalStorage'
+import { extraPeggedOptions } from '../Settings'
 
 const tvlOptions = [{ label: 'Unreleased', value: 'unreleased' }]
 
@@ -12,11 +13,9 @@ const tvlOptionsLabel = [
 ]
 
 export default function PeggedAssetTvlOptions({ label }: { label?: string }) {
-	const tvlToggles = useTvlToggles()
+	const tvlToggles = useToggleSetting()
 
-	const extraPeggedEnabled = useGetExtraPeggedEnabled()
-
-	const filters = extraPeggedEnabled
+	const filters = useSettingsManager(extraPeggedOptions)
 
 	const selectedOptions = Object.keys(filters)
 		.filter((key) => filters[key])
@@ -60,9 +59,9 @@ const groupOptionsLabel = [
 ]
 
 export function PeggedAssetGroupOptions({ label }: { label?: string }) {
-	const tvlToggles = useTvlToggles()
+	const tvlToggles = useToggleSetting()
 
-	const groupTvls = useGroupEnabled()
+	const groupTvls = useSettingsManager(groupKeys)
 
 	const filters = { ...groupTvls }
 

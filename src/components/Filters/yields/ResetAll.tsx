@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
+import { yieldOptions } from '~/components/Settings'
 import { useLocalStorageContext } from '~/contexts/LocalStorage'
-import { options } from './Attributes'
 
 export function ResetAllYieldFilters({ pathname }: { pathname: string }) {
 	const router = useRouter()
@@ -9,7 +9,7 @@ export function ResetAllYieldFilters({ pathname }: { pathname: string }) {
 	return (
 		<button
 			onClick={() => {
-				options.forEach((option) => {
+				yieldOptions.forEach((option) => {
 					const isEnabled = state[option.key]
 
 					if (isEnabled) {

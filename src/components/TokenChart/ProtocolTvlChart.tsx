@@ -4,8 +4,9 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
+import { extraTvlSettings } from '~/components/Settings'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
-import { useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
+import { useSettingsManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { IProtocolMcapTVLChartProps } from './types'
 
@@ -36,7 +37,7 @@ export default function ProtocolTvlChart({
 }: IProps) {
 	const router = useRouter()
 
-	const extraTvlEnabled = useGetExtraTvlEnabled()
+	const extraTvlEnabled = useSettingsManager(extraTvlSettings)
 
 	const { denomination } = router.query
 

@@ -1,12 +1,12 @@
-import { extraTvlProps } from '~/contexts/LocalStorage'
+import { extraTvlSettings } from '~/components/Settings'
 
 function buildChainBreakdown(chainTvls) {
 	const timeToTvl = {}
 
 	Object.entries(chainTvls).forEach(([chainToAdd, data]) => {
-		if (extraTvlProps.includes(chainToAdd?.toLowerCase())) return
+		if (extraTvlSettings.includes(chainToAdd?.toLowerCase())) return
 
-		if (chainToAdd.includes('-') && extraTvlProps.includes(chainToAdd.split('-')[1])) {
+		if (chainToAdd.includes('-') && extraTvlSettings.includes(chainToAdd.split('-')[1])) {
 			;(data as any).tvl.forEach((dayTvl) => {
 				timeToTvl[dayTvl.date] = {
 					...timeToTvl[dayTvl.date],

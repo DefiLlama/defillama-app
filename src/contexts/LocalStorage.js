@@ -1,18 +1,7 @@
-import { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useState } from 'react'
+import { createContext, useContext, useReducer, useMemo, useCallback, useState } from 'react'
 import { trackGoal } from 'fathom-client'
 import { standardizeProtocolName } from '~/utils'
 import { useIsClient } from '~/hooks'
-
-const UNISWAP = 'UNISWAP'
-
-const VERSION = 'VERSION'
-const CURRENT_VERSION = 0
-const LAST_SAVED = 'LAST_SAVED'
-const DISMISSED_PATHS = 'DISMISSED_PATHS'
-const SAVED_ACCOUNTS = 'SAVED_ACCOUNTS'
-const SAVED_TOKENS = 'SAVED_TOKENS'
-const SAVED_PAIRS = 'SAVED_PAIRS'
-const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
 
 export const DARK_MODE = 'DARK_MODE'
 export const POOL2 = 'pool2'
@@ -30,6 +19,9 @@ export const MILLION_DOLLAR = 'MILLION_DOLLAR'
 export const AUDITED = 'AUDITED'
 export const NO_OUTLIER = 'NO_OUTLIER'
 export const APY_GT0 = 'APY_GT0'
+
+const DEFI_WATCHLIST = 'DEFI_WATCHLIST'
+const YIELDS_WATCHLIST = 'YIELDS_WATCHLIST'
 
 export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
 export const extraPeggedProps = [UNRELEASED]
@@ -58,19 +50,16 @@ export const groupSettings = [
 	// skale
 ]
 
-const groupKeys = groupSettings.map((g) => g.key)
+export const groupKeys = groupSettings.map((g) => g.key)
 
 const UPDATABLE_KEYS = [
 	DARK_MODE,
-	DISMISSED_PATHS,
-	SAVED_ACCOUNTS,
-	SAVED_PAIRS,
-	SAVED_TOKENS,
+	DEFI_WATCHLIST,
+	YIELDS_WATCHLIST,
 	...extraTvlProps,
 	...extraPeggedProps,
 	DISPLAY_USD,
 	HIDE_LAST_DAY,
-	SELECTED_PORTFOLIO,
 	...groupKeys,
 	STABLECOINS,
 	SINGLE_EXPOSURE,
@@ -110,7 +99,6 @@ function reducer(state, { type, payload }) {
 
 function init() {
 	const defaultLocalStorage = {
-		[VERSION]: CURRENT_VERSION,
 		[DARK_MODE]: true,
 		...extraTvlProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...extraPeggedProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
@@ -124,24 +112,11 @@ function init() {
 		[AUDITED]: false,
 		[NO_OUTLIER]: true,
 		[APY_GT0]: true,
-		[DISMISSED_PATHS]: {},
-		[SAVED_ACCOUNTS]: [],
-		[SAVED_TOKENS]: { main: {} },
-		[SAVED_PAIRS]: {},
-		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO
+		[DEFI_WATCHLIST]: { main: {} },
+		[YIELDS_WATCHLIST]: DEFAULT_PORTFOLIO
 	}
 
-	try {
-		const parsed = JSON.parse(window.localStorage.getItem(UNISWAP))
-		if (parsed[VERSION] !== CURRENT_VERSION) {
-			// this is where we could run migration logic
-			return defaultLocalStorage
-		} else {
-			return { ...defaultLocalStorage, ...parsed }
-		}
-	} catch {
-		return defaultLocalStorage
-	}
+	return defaultLocalStorage
 }
 
 export default function Provider({ children }) {
@@ -153,7 +128,7 @@ export default function Provider({ children }) {
 
 	// Change format from save addresses to save protocol names, so backwards compatible
 
-	const savedProtocols = state[SAVED_TOKENS]
+	const savedProtocols = state[DEFI_WATCHLIST]
 
 	let newSavedProtocols = savedProtocols
 
@@ -168,23 +143,13 @@ export default function Provider({ children }) {
 	return (
 		<LocalStorageContext.Provider
 			value={useMemo(
-				() => [{ ...state, [SAVED_TOKENS]: newSavedProtocols }, { updateKey }],
+				() => [{ ...state, [DEFI_WATCHLIST]: newSavedProtocols }, { updateKey }],
 				[state, updateKey, newSavedProtocols]
 			)}
 		>
 			{children}
 		</LocalStorageContext.Provider>
 	)
-}
-
-export function Updater() {
-	const [state] = useLocalStorageContext()
-
-	useEffect(() => {
-		window.localStorage.setItem(UNISWAP, JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000) }))
-	})
-
-	return null
 }
 
 export function useDarkModeManager() {
@@ -201,278 +166,76 @@ export function useDarkModeManager() {
 	return [isDarkMode, toggleDarkMode]
 }
 
-export const useGetExtraTvlEnabled = () => {
-	const [state] = useLocalStorageContext()
-	const isClient = useIsClient()
-
-	return useMemo(
-		() =>
-			extraTvlProps.reduce((all, prop) => {
-				all[prop] = isClient ? state[prop] : prop === 'doublecounted'
-				return all
-			}, {}),
-		[state, isClient]
-	)
-}
-
-// TODO: Remove code duplication with useGetExtraTvlEnabled
-export const useGroupEnabled = () => {
-	const [state] = useLocalStorageContext()
-	const isClient = useIsClient()
-
-	return useMemo(
-		() =>
-			groupKeys.reduce((all, prop) => {
-				all[prop] = isClient ? state[prop] : prop === 'emulator'
-				return all
-			}, {}),
-		[state, isClient]
-	)
-}
-
-export function useTvlToggles() {
+export function useToggleSetting() {
 	const [state, { updateKey }] = useLocalStorageContext()
 	return (key) => () => {
 		updateKey(key, !state[key])
 	}
 }
 
-export const useGetExtraPeggedEnabled = () => {
+export function useSettingsManager(settings) {
 	const [state] = useLocalStorageContext()
 	const isClient = useIsClient()
 
 	return useMemo(
 		() =>
-			extraPeggedProps.reduce((all, prop) => {
-				all[prop] = isClient ? state[prop] : prop === 'unreleased'
-				return all
+			settings.reduce((acc, setting) => {
+				let toggled = false
+				if (isClient) {
+					toggled = state[setting]
+				} else if (setting === 'doublecounted') {
+					toggled = true
+				} else if (setting === 'emulator') {
+					toggled = true
+				} else toggled = false
+
+				acc[setting] = toggled
+				return acc
 			}, {}),
-		[state, isClient]
+		[state, isClient, settings]
 	)
-}
-
-export function useStakingManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	let stakingEnabled = state[STAKING]
-	const toggleStaking = useCallback(
-		(value) => {
-			updateKey(STAKING, value === false || value === true ? value : !stakingEnabled)
-		},
-		[updateKey, stakingEnabled]
-	)
-	return [stakingEnabled, toggleStaking]
-}
-
-export function useBorrowedManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	let borrowedEnabled = state[BORROWED]
-	const toggleBorrowed = useCallback(
-		(value) => {
-			updateKey(BORROWED, value === false || value === true ? value : !borrowedEnabled)
-		},
-		[updateKey, borrowedEnabled]
-	)
-	return [borrowedEnabled, toggleBorrowed]
-}
-
-export function useDisplayUsdManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const displayUsd = state[DISPLAY_USD]
-
-	const toggleDisplayUsd = () => {
-		updateKey(DISPLAY_USD, !displayUsd)
-	}
-
-	return [displayUsd, toggleDisplayUsd]
-}
-
-export function useHideLastDayManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const hideLastDay = state[HIDE_LAST_DAY]
-
-	const toggleHideLastDay = () => {
-		updateKey(HIDE_LAST_DAY, !hideLastDay)
-	}
-
-	return [hideLastDay, toggleHideLastDay]
-}
-
-export function useStablecoinsManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const stablecoins = state[STABLECOINS]
-
-	const toggleStablecoins = () => {
-		updateKey(STABLECOINS, !stablecoins)
-	}
-
-	return [stablecoins, toggleStablecoins]
-}
-
-export function useSingleExposureManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const singleExposure = state[SINGLE_EXPOSURE]
-
-	const toggleSingleExposure = () => {
-		updateKey(SINGLE_EXPOSURE, !singleExposure)
-	}
-
-	return [singleExposure, toggleSingleExposure]
-}
-
-export function useNoILManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const noIL = state[NO_IL]
-
-	const toggleNoIL = () => {
-		updateKey(NO_IL, !noIL)
-	}
-
-	return [noIL, toggleNoIL]
-}
-
-export function useMillionDollarManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const millionDollar = state[MILLION_DOLLAR]
-
-	const toggleMillionDollar = () => {
-		updateKey(MILLION_DOLLAR, !millionDollar)
-	}
-
-	return [millionDollar, toggleMillionDollar]
-}
-
-export function useAuditedManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const audited = state[AUDITED]
-
-	const toggleAudited = () => {
-		updateKey(AUDITED, !audited)
-	}
-
-	return [audited, toggleAudited]
-}
-
-export function useNoOutlierManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const noOutlier = state[NO_OUTLIER]
-
-	const toggleNoOutlier = () => {
-		updateKey(NO_OUTLIER, !noOutlier)
-	}
-
-	return [noOutlier, toggleNoOutlier]
-}
-
-export function useAPYManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const apyGT0 = state[APY_GT0]
-
-	const toggleAPYGT0 = () => {
-		updateKey(APY_GT0, !apyGT0)
-	}
-
-	return [apyGT0, toggleAPYGT0]
-}
-
-export function usePathDismissed(path) {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const pathDismissed = state?.[DISMISSED_PATHS]?.[path]
-	function dismiss() {
-		let newPaths = state?.[DISMISSED_PATHS]
-		newPaths[path] = true
-		updateKey(DISMISSED_PATHS, newPaths)
-	}
-
-	return [pathDismissed, dismiss]
-}
-
-export function useSavedAccounts() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const savedAccounts = state?.[SAVED_ACCOUNTS]
-
-	function addAccount(account) {
-		let newAccounts = state?.[SAVED_ACCOUNTS]
-		newAccounts.push(account)
-		updateKey(SAVED_ACCOUNTS, newAccounts)
-	}
-
-	function removeAccount(account) {
-		let newAccounts = state?.[SAVED_ACCOUNTS]
-		let index = newAccounts.indexOf(account)
-		if (index > -1) {
-			newAccounts.splice(index, 1)
-		}
-		updateKey(SAVED_ACCOUNTS, newAccounts)
-	}
-
-	return [savedAccounts, addAccount, removeAccount]
-}
-
-export function useSavedPairs() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const savedPairs = state?.[SAVED_PAIRS]
-
-	function addPair(address, token0Address, token1Address, token0Symbol, token1Symbol) {
-		let newList = state?.[SAVED_PAIRS]
-		newList[address] = {
-			address,
-			token0Address,
-			token1Address,
-			token0Symbol,
-			token1Symbol
-		}
-		updateKey(SAVED_PAIRS, newList)
-	}
-
-	function removePair(address) {
-		let newList = state?.[SAVED_PAIRS]
-		newList[address] = null
-		updateKey(SAVED_PAIRS, newList)
-	}
-
-	return [savedPairs, addPair, removePair]
 }
 
 // Since we are only using protocol name as the unique identifier for the /protcol/:name route, change keys to be unique by name for now.
 export function useSavedProtocols() {
 	const [pinnedOpen, setPinnedOpen] = useState(false)
 	const [state, { updateKey }] = useLocalStorageContext()
-	const savedProtocols = state?.[SAVED_TOKENS]
-	const selectedPortfolio = state?.[SELECTED_PORTFOLIO]
+	const savedProtocols = state?.[DEFI_WATCHLIST]
+	const selectedPortfolio = state?.[YIELDS_WATCHLIST]
 
 	function addPortfolio(portfolio) {
-		const newList = state?.[SAVED_TOKENS]
+		const newList = state?.[DEFI_WATCHLIST]
 		newList[portfolio] = {}
-		updateKey(SAVED_TOKENS, newList)
+		updateKey(DEFI_WATCHLIST, newList)
 	}
 
 	function removePortfolio(portfolio) {
-		const newList = state?.[SAVED_TOKENS]
+		const newList = state?.[DEFI_WATCHLIST]
 		delete newList?.[portfolio]
-		updateKey(SAVED_TOKENS, newList)
+		updateKey(DEFI_WATCHLIST, newList)
 	}
 
 	function addProtocol(readableProtocolName) {
-		let newList = state?.[SAVED_TOKENS]
+		let newList = state?.[DEFI_WATCHLIST]
 		const standardProtocol = standardizeProtocolName(readableProtocolName)
 		newList[selectedPortfolio] = {
 			...(newList[selectedPortfolio] || {}),
 			[standardProtocol]: readableProtocolName
 		}
 		trackGoal('VQ0TO7CU', standardProtocol)
-		updateKey(SAVED_TOKENS, newList)
+		updateKey(DEFI_WATCHLIST, newList)
 	}
 
 	function removeProtocol(protocol) {
-		let newList = state?.[SAVED_TOKENS]
+		let newList = state?.[DEFI_WATCHLIST]
 		const standardProtocol = standardizeProtocolName(protocol)
 		delete newList?.[selectedPortfolio]?.[standardProtocol]
 		trackGoal('6SL0NZYJ', standardProtocol)
-		updateKey(SAVED_TOKENS, newList)
+		updateKey(DEFI_WATCHLIST, newList)
 	}
 
 	function setSelectedPortfolio(name) {
-		updateKey(SELECTED_PORTFOLIO, name)
+		updateKey(YIELDS_WATCHLIST, name)
 	}
 
 	return {

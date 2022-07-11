@@ -3,16 +3,9 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { YieldAttributes, TVLRange, FiltersByChain, YieldProjects, ResetAllYieldFilters } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
-import {
-	useNoILManager,
-	useSingleExposureManager,
-	useStablecoinsManager,
-	useMillionDollarManager,
-	useAuditedManager,
-	useNoOutlierManager,
-	useAPYManager
-} from '~/contexts/LocalStorage'
+import { useSettingsManager } from '~/contexts/LocalStorage'
 import dynamic from 'next/dynamic'
+import { extraYieldSettings } from '../Settings'
 
 interface IChartProps {
 	chartData: any
@@ -78,44 +71,38 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 		}
 	}, [project, chain, projectList, chainList, token, excludeToken])
 
-	// toggles
-	const [stablecoins] = useStablecoinsManager()
-	const [noIL] = useNoILManager()
-	const [singleExposure] = useSingleExposureManager()
-	const [millionDollar] = useMillionDollarManager()
-	const [audited] = useAuditedManager()
-	const [noOutlier] = useNoOutlierManager()
-	const [apyGT0] = useAPYManager()
+	const { STABLECOINS, NO_IL, SINGLE_EXPOSURE, MILLION_DOLLAR, AUDITED, NO_OUTLIER, APY_GT0 } =
+		useSettingsManager(extraYieldSettings)
 
 	const poolsData = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
 			let toFilter = true
 
-			if (stablecoins) {
+			if (STABLECOINS) {
 				toFilter = toFilter && curr.stablecoin === true
 			}
 
-			if (noIL) {
+			if (NO_IL) {
 				toFilter = toFilter && curr.ilRisk === 'no'
 			}
 
-			if (singleExposure) {
+			if (SINGLE_EXPOSURE) {
 				toFilter = toFilter && curr.exposure === 'single'
 			}
 
-			if (millionDollar) {
+			if (MILLION_DOLLAR) {
 				toFilter = toFilter && curr.tvlUsd >= 1e6
 			}
 
-			if (audited) {
+			if (AUDITED) {
 				toFilter = toFilter && curr.audits !== '0'
 			}
 
-			if (noOutlier) {
+			if (NO_OUTLIER) {
 				toFilter = toFilter && curr.outlier === false
 			}
 
-			if (apyGT0) {
+			if (APY_GT0) {
 				toFilter = toFilter && curr.apy > 0
 			}
 
@@ -156,13 +143,13 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 		minTvl,
 		maxTvl,
 		pools,
-		audited,
-		noOutlier,
-		apyGT0,
-		millionDollar,
-		noIL,
-		singleExposure,
-		stablecoins,
+		AUDITED,
+		NO_OUTLIER,
+		APY_GT0,
+		MILLION_DOLLAR,
+		NO_IL,
+		SINGLE_EXPOSURE,
+		STABLECOINS,
 		selectedProjects,
 		selectedChains,
 		includeTokens,

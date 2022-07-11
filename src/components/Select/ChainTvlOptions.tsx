@@ -1,10 +1,10 @@
 import { ActionMeta, components, GroupProps } from 'react-select'
-import { extraTvlOptions } from '~/components/SettingsModal'
-import { groupSettings, useGetExtraTvlEnabled, useGroupEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { defiTvlOptions, extraTvlSettings } from '~/components/Settings'
+import { groupKeys, groupSettings, useSettingsManager, useToggleSetting } from '~/contexts/LocalStorage'
 import ReactSelect from './ReactSelect'
 
 const chainAggr = groupSettings.map((g) => ({ label: g.name, value: g.key }))
-const extraTvls = extraTvlOptions.map((g) => ({ label: g.name, value: g.key }))
+const extraTvls = defiTvlOptions.map((g) => ({ label: g.name, value: g.key }))
 const tvlOptions = [...chainAggr, ...extraTvls]
 
 const groupOptions = [
@@ -19,10 +19,10 @@ const groupOptions = [
 ]
 
 export function ChainTvlOptions({ label }: { label?: string }) {
-	const tvlToggles = useTvlToggles()
+	const tvlToggles = useToggleSetting()
 
-	const groupTvls = useGroupEnabled()
-	const extraTvls = useGetExtraTvlEnabled()
+	const groupTvls = useSettingsManager(groupKeys)
+	const extraTvls = useSettingsManager(extraTvlSettings)
 
 	const fitlers = { ...groupTvls, ...extraTvls }
 

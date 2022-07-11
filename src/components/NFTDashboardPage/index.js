@@ -1,17 +1,16 @@
-import { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from '~/components'
 import { RowLinks } from '~/components/Filters'
-import { NFTSwitches } from '~/components/SettingsModal'
+import { extraNftSettings, NFTSwitches } from '~/components/Settings'
 import { NFTsSearch } from '~/components/Search'
 import NFTCollectionList from '~/components/NFTCollectionList'
 import SEO from '~/components/SEO'
 import { ListHeader, ListOptions } from '~/components/ChainPage/shared'
 import { useMedia } from '~/hooks'
 import { formattedNum } from '~/utils'
-import { useDisplayUsdManager, useHideLastDayManager } from '~/contexts/LocalStorage'
+import { useSettingsManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds, chainMarketplaceMappings } from '~/constants/chainTokens'
 
 const defaultTab = {
@@ -24,10 +23,9 @@ const GlobalNFTChart = dynamic(() => import('~/components/GlobalNFTChart'), {
 })
 
 const NFTDashboard = ({ title, statistics, collections, chart, chainData, marketplaceData, displayName = 'All' }) => {
-	useEffect(() => window.scrollTo(0, 0), [])
-
 	const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics
-	const [hideLastDay] = useHideLastDayManager()
+	const { HIDE_LAST_DAY, DISPLAY_USD } = useSettingsManager(extraNftSettings)
+	let displayUsd = DISPLAY_USD
 	const below800 = useMedia('(max-width: 800px)')
 
 	const isChain = chainData ? true : false
@@ -46,7 +44,6 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 	]
 
 	let shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit
-	let [displayUsd] = useDisplayUsdManager()
 
 	const isHomePage = selectedTab === 'All'
 	if (isHomePage || displayUsd) {
@@ -70,7 +67,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 		]
 	}
 
-	if (hideLastDay) {
+	if (HIDE_LAST_DAY) {
 		if (chart.length >= 3 && displayUsd) {
 			;[shownTotalVolume, shownDailyVolume, shownDailyChange] = [
 				totalVolumeUSD - chart[chart.length - 1].volumeUSD,
@@ -125,7 +122,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 						dailyVolumeChange={shownDailyChange}
 						symbol={symbol}
 						unit={unit}
-						displayUsd={displayUsd}
+						DISPLAY_USD={displayUsd}
 					/>
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
@@ -136,7 +133,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 			</ListOptions>
 
 			<Panel style={{ padding: below800 && '1rem 0 0 0 ' }}>
-				<NFTCollectionList collections={collections} displayUsd={displayUsd} />
+				<NFTCollectionList collections={collections} DISPLAY_USD={displayUsd} />
 			</Panel>
 		</Layout>
 	)

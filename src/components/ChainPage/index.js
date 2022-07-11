@@ -22,12 +22,13 @@ import { OptionButton } from '~/components/ButtonStyled'
 import LocalLoader from '~/components/LocalLoader'
 import { columnsToShow } from '~/components/Table'
 import { useCalcProtocolsTvls } from '~/hooks/data'
-import { useDarkModeManager, useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
+import { extraTvlSettings } from '../Settings'
 
 const EasterLlama = styled.button`
 	padding: 0;
@@ -72,7 +73,7 @@ function GlobalPage({
 	extraVolumesCharts = {},
 	parentProtocols
 }) {
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const extraTvlsEnabled = useSettingsManager(extraTvlSettings)
 
 	const router = useRouter()
 

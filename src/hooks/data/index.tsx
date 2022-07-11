@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { IFormattedProtocol, IParentProtocol } from '~/api/types'
-import { useGetExtraTvlEnabled, useGroupEnabled, useGetExtraPeggedEnabled } from '~/contexts/LocalStorage'
+import { extraPeggedOptions, extraTvlSettings } from '~/components/Settings'
+import { groupKeys, useSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
 
@@ -107,7 +108,7 @@ export const useCalcStakePool2Tvl = (
 	dir?: 'asc',
 	applyDoublecounted = false
 ) => {
-	const extraTvlsEnabled: ExtraTvls = useGetExtraTvlEnabled()
+	const extraTvlsEnabled: ExtraTvls = useSettingsManager(extraTvlSettings)
 
 	const protocolTotals = useMemo(() => {
 		const checkExtras = {
@@ -187,7 +188,7 @@ export const useCalcProtocolsTvls = ({
 	protocols: IFormattedProtocol[]
 	parentProtocols: IParentProtocol[]
 }) => {
-	const extraTvlsEnabled: ExtraTvls = useGetExtraTvlEnabled()
+	const extraTvlsEnabled: ExtraTvls = useSettingsManager(extraTvlSettings)
 
 	const protocolTotals = useMemo(() => {
 		const checkExtras = {
@@ -249,7 +250,7 @@ export const useCalcProtocolsTvls = ({
 }
 
 export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const extraTvlsEnabled = useSettingsManager(extraTvlSettings)
 
 	const protocolTvl = useMemo(() => {
 		let tvl = simpleTvl
@@ -267,7 +268,7 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
 }
 
 export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IGroupData): GroupChain[] => {
-	const groupsEnabled = useGroupEnabled()
+	const groupsEnabled = useSettingsManager(groupKeys)
 	const data: GroupChain[] = useMemo(() => {
 		const finalData = {}
 		const addedChains = []
@@ -360,7 +361,7 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
 
 // returns tvl by day for a group of tokens
 export const useCalcGroupExtraTvlsByDay = (chains) => {
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const extraTvlsEnabled = useSettingsManager(extraTvlSettings)
 
 	const { data, daySum } = useMemo(() => {
 		const daySum = {}
@@ -395,7 +396,7 @@ export const useCalcGroupExtraTvlsByDay = (chains) => {
 
 // returns tvl by day for a single token
 export const useCalcExtraTvlsByDay = (data) => {
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const extraTvlsEnabled = useSettingsManager(extraTvlSettings)
 
 	return useMemo(() => {
 		return data.map(([date, values]) => {
@@ -417,7 +418,7 @@ export const useCalcExtraTvlsByDay = (data) => {
 
 // PEGGED ASSETS
 export const useCalcCirculating = (filteredPeggedAssets: IPegged[], defaultSortingColumn?: string, dir?: 'asc') => {
-	const extraPeggedEnabled: ExtraTvls = useGetExtraPeggedEnabled()
+	const extraPeggedEnabled: ExtraTvls = useSettingsManager(extraPeggedOptions)
 
 	const peggedAssetTotals = useMemo(() => {
 		const updatedPeggedAssets = filteredPeggedAssets.map(({ circulating, unreleased, pegType, price, ...props }) => {
@@ -465,7 +466,7 @@ export const useCalcCirculating = (filteredPeggedAssets: IPegged[], defaultSorti
 
 // returns circulating by day for a group of tokens
 export const useCalcGroupExtraPeggedByDay = (chains) => {
-	const extraPeggedEnabled = useGetExtraPeggedEnabled()
+	const extraPeggedEnabled = useSettingsManager(extraPeggedOptions)
 
 	const { data, daySum } = useMemo(() => {
 		const daySum = {}
@@ -493,7 +494,7 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 }
 
 export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainPegged[] => {
-	const groupsEnabled = useGroupEnabled()
+	const groupsEnabled = useSettingsManager(groupKeys)
 	const data: GroupChainPegged[] = useMemo(() => {
 		const finalData = {}
 		const addedChains = []

@@ -36,25 +36,6 @@ export default function Header() {
 			))}
 
 			<ThemeSwitch isActive={darkMode} toggle={toggleDarkMode} />
-
-			{/* <Link href="/" passHref>
-				<a target="_blank" rel="noopener noreferrer">
-					<span className="visually-hidden">Twitter</span>
-					<Twitter />
-				</a>
-			</Link>
-			<Link href="/" passHref>
-				<a target="_blank" rel="noopener noreferrer">
-					<span className="visually-hidden">Discord</span>
-					<Discord />
-				</a>
-			</Link>
-			<Link href="/" passHref>
-				<a target="_blank" rel="noopener noreferrer">
-					<span className="visually-hidden">Github</span>
-					<GitHub />
-				</a>
-			</Link> */}
 		</Wrapper>
 	)
 }
