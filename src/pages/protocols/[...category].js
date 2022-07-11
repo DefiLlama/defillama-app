@@ -3,10 +3,7 @@ import ProtocolList from '~/components/ProtocolList'
 import { revalidate } from '~/api'
 import { getProtocolsPageData } from '~/api/categories/protocols'
 import { PROTOCOLS_API } from '~/constants/index'
-
-function capitalizeFirstLetter(string) {
-	return string.charAt(0).toUpperCase() + string.slice(1)
-}
+import { capitalizeFirstLetter } from '~/utils'
 
 export async function getStaticProps({
 	params: {
@@ -36,15 +33,10 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
-export default function Protocols({ category, chains, filteredProtocols, chain }) {
+export default function Protocols({ category, ...props }) {
 	return (
 		<Layout title={`${capitalizeFirstLetter(category)} TVL Rankings - DefiLlama`} defaultSEO>
-			<ProtocolList
-				category={capitalizeFirstLetter(category)}
-				chains={chains}
-				selectedChain={chain}
-				filteredProtocols={filteredProtocols}
-			/>
+			<ProtocolList category={capitalizeFirstLetter(category)} {...props} />
 		</Layout>
 	)
 }
