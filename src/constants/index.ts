@@ -50,10 +50,9 @@ export const PEGGEDCONFIG_API = 'https://stablecoins.llama.fi/config'
 export const PEGGEDDOMINANCE_API = 'https://stablecoins.llama.fi/stablecoindominance'
 export const PEGGEDPRICES_API = 'https://stablecoins.llama.fi/stablecoinprices'
 
-export const YIELD_POOLS_API = 'https://yields.llama.fi/pools?refresh=3'
+export const YIELD_POOLS_API = 'https://yields.llama.fi/pools'
 export const YIELD_POOLS_LAMBDA_API = 'https://yields.llama.fi/poolsEnriched'
 export const YIELD_CHART_API = 'https://yields.llama.fi/chart'
-export const YIELD_AGGREGATION_API = 'https://yields.llama.fi/aggregations?refresh=3'
 
 export const CG_TOKEN_API =
 	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'

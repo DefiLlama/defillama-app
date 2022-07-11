@@ -1,5 +1,5 @@
 import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from '~/utils'
-import type { ICategory, IChainData, IChainGeckoId, IOracleProtocols, IProtocol, IStackedDataset } from '~/api/types'
+import type { IChainData, IChainGeckoId, IOracleProtocols, IProtocol, IStackedDataset } from '~/api/types'
 import {
 	CHART_API,
 	CONFIG_API,
@@ -16,14 +16,14 @@ export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 export const getProtocols = () =>
 	fetch(PROTOCOLS_API)
 		.then((r) => r.json())
-		.then(({ protocols, chains, protocolCategories }) => ({
+		.then(({ protocols, chains, parentProtocols }) => ({
 			protocolsDict: protocols.reduce((acc, curr) => {
 				acc[standardizeProtocolName(curr.name)] = curr
 				return acc
 			}, {}),
 			protocols,
 			chains,
-			categories: protocolCategories
+			parentProtocols
 		}))
 
 export const getProtocol = async (protocolName: string) => {
@@ -76,7 +76,7 @@ export const fuseProtocolData = (protocolData) => {
 
 // used in /protocols/[category]
 export async function getProtocolsPageData(category?: string, chain?: string) {
-	const { protocols, chains } = await getProtocols()
+	const { protocols, chains, parentProtocols } = await getProtocols()
 
 	const chainsSet = new Set()
 
@@ -98,7 +98,8 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 		filteredProtocols,
 		chain: chain ?? 'All',
 		category,
-		chains: chains.filter((chain) => chainsSet.has(chain))
+		chains: chains.filter((chain) => chainsSet.has(chain)),
+		parentProtocols
 	}
 }
 // - used in /airdrops, /protocols, /recent, /top-gainers-and-losers, /top-protocols, /watchlist
