@@ -437,23 +437,48 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const [bobo, setBobo] = React.useState(false)
 
-	const extraTvls = []
-	const tvls = []
-	const tvlOptions = []
-
 	const tvlToggles = useTvlToggles()
 
 	const extraTvlsEnabled = useGetExtraTvlEnabled()
 
-	tvlByChain.forEach((t) => {
-		if (isLowerCase(t[0][0]) && extraTvlProps.includes(t[0])) {
-			// hide extra tvls with 0 balances
-			if (t[1] !== 0) {
-				extraTvls.push(t)
-				tvlOptions.push(extraTvlOptions.find((e) => e.key === t[0]))
+	const {
+		tvls: tvlsByChain,
+		extraTvls,
+		tvlOptions
+	} = tvlByChain.reduce(
+		(acc, [name, tvl]: [string, number]) => {
+			// skip masterchef tvl type and only return non zero tvls
+			if (name === 'masterchef' || tvl === 0) return acc
+
+			// check if tvl name is addl tvl type and is toggled
+			if (isLowerCase(name[0]) && extraTvlProps.includes(name) && tvl !== 0) {
+				acc.extraTvls.push([name, tvl])
+				acc.tvlOptions.push(extraTvlOptions.find((e) => e.key === name))
+			} else {
+				// only include total tvl of each chain skip breakdown of addl tvls if extra tvl type is not toggled
+				if (!name.includes('-')) {
+					acc.tvls[name] = (acc.tvls[name] || 0) + tvl
+				} else {
+					// format name to only include chain name and check if it already exists in tvls list
+					const chainName = name.split('-')[0]
+					const prop = name.split('-')[1]
+
+					// check if prop is toggled
+					if (extraTvlsEnabled[prop.toLowerCase()]) {
+						acc.tvls[chainName] = (acc.tvls[chainName] || 0) + tvl
+					}
+				}
 			}
-		} else !t[0].includes('-') && t[0] !== 'masterchef' && tvls.push(t)
-	})
+			return acc
+		},
+		{
+			tvls: {},
+			extraTvls: [],
+			tvlOptions: []
+		}
+	)
+
+	const tvls = Object.entries(tvlsByChain)
 
 	const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
@@ -495,15 +520,9 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
 
-	const tvlWithExtra =
-		tvl +
-		extraTvls?.reduce((acc, curr) => {
-			return (acc += curr[1])
-		}, 0)
-
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
-			<SEO cardName={name} token={name} logo={logo} tvl={formattedNum(tvlWithExtra, true)?.toString()} />
+			<SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
 
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
 
@@ -561,7 +580,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						<Table>
 							<thead>
 								<tr>
-									<th>Optional TVL Counts</th>
+									<th>Include in TVL (optional)</th>
 									<td className="question-helper">
 										<QuestionHelper text='People define TVL differently. Instead of being opinionated, we give you the option to choose what you would include in a "real" TVL calculation' />
 									</td>
@@ -578,7 +597,9 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 													checked={extraTvlsEnabled[option]}
 													onChange={tvlToggles(option)}
 												/>
-												<span>{capitalizeFirstLetter(option)}</span>
+												<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
+													{capitalizeFirstLetter(option)}
+												</span>
 											</ExtraTvlOption>
 										</th>
 										<td>${toK(value)}</td>
