@@ -18,8 +18,6 @@ import {
 } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { YieldsChartWrapper } from './shared'
-import { download } from '~/utils'
-import { DownloadButton, DownloadIcon } from '~/components'
 
 echarts.use([
 	CanvasRenderer,
@@ -53,39 +51,6 @@ export default function ScatterChart({ chartData }: IChartProps) {
 
 		return instance || echarts.init(document.getElementById(id))
 	}, [id])
-
-	// prepare csv data
-	const downloadCsv = () => {
-		const rows = [
-			[
-				'pool',
-				'symbol',
-				'projectName',
-				'chain',
-				'tvlUsd',
-				'apy',
-				'apy-geometric-average',
-				'apy-standard-deviation',
-				'count'
-			]
-		]
-
-		chartData.forEach((item) => {
-			rows.push([
-				item.pool,
-				item.symbol,
-				item.projectName,
-				item.chain,
-				item.tvlUsd,
-				item.apy,
-				item.mu,
-				item.sigma,
-				item.count
-			])
-		})
-
-		download('scatterplot.csv', rows.map((r) => r.join(',')).join('\n'))
-	}
 
 	useEffect(() => {
 		const chartInstance = createInstance()
@@ -248,10 +213,6 @@ export default function ScatterChart({ chartData }: IChartProps) {
 	return (
 		<YieldsChartWrapper>
 			<Wrapper id={id} style={{ height: '600px', margin: 'auto 0' }}></Wrapper>
-			<DownloadButton as="button" onClick={downloadCsv}>
-				<DownloadIcon />
-				<span>&nbsp;&nbsp;.csv</span>
-			</DownloadButton>
 		</YieldsChartWrapper>
 	)
 }
