@@ -3,6 +3,7 @@ import { Hovercard, HovercardAnchor, useHovercardState } from 'ariakit/hovercard
 import styled from 'styled-components'
 import { BasicLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
+import Tooltip from '~/components/Tooltip'
 import { useResize } from '~/hooks'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 
@@ -48,11 +49,17 @@ const Link = styled(BasicLink)`
 	}
 `
 
+const StyledTooltip = styled(Tooltip)`
+	padding: 6px;
+`
+
 export const ChainLogo = ({ chain, url, iconType }) => {
 	return (
-		<Link key={chain} href={url.includes('/yields?chain') ? `${url}=${chain}` : `${url}/${chain}`}>
-			<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
-		</Link>
+		<StyledTooltip content={chain}>
+			<Link key={chain} href={url.includes('/yields?chain') ? `${url}=${chain}` : `${url}/${chain}`}>
+				<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
+			</Link>
+		</StyledTooltip>
 	)
 }
 

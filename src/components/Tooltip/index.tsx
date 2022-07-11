@@ -35,10 +35,12 @@ export default function Tooltip({ content, children, ...props }: ITooltip) {
 
 	return (
 		<>
-			<TooltipAnchor state={tooltip} as={TooltipTrigger} {...props}>
+			<TooltipAnchor state={tooltip} as={TooltipTrigger}>
 				{children}
 			</TooltipAnchor>
-			<TooltipPopver state={tooltip}>{content}</TooltipPopver>
+			<TooltipPopver state={tooltip} {...props}>
+				{content}
+			</TooltipPopver>
 		</>
 	)
 }
