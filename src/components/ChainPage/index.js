@@ -294,6 +294,17 @@ function GlobalPage({
 					style={{ textAlign: 'center', margin: 0 }}
 				>{`${selectedChain} chain has no protocols listed`}</Panel>
 			)}
+
+			{/* <table style={{ height: '200vh' }}>
+				<thead>
+					<tr style={{ background: 'red', position: 'sticky', top: 0 }}>
+						{columns.map((column) => (
+							<th key={column.accessor}>{column.header}</th>
+						))}
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table> */}
 		</>
 	)
 }

@@ -427,4 +427,12 @@ export const DownloadIcon = styled(DownloadCloud)`
 	height: 16px;
 `
 
+export const StickyContainer = styled.div`
+	position: sticky;
+	top: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 28px;
+`
+
 export { Hint, Divider, EmptyCard }

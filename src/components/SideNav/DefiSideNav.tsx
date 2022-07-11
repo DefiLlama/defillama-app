@@ -66,7 +66,6 @@ const NavMenu = () => {
 			<Entry url="/recent" name="Recent" Icon={Clock} />
 			<Entry url="/comparison" name="Comparison" Icon={Minimize2} />
 			<Entry url="/languages" name="Languages" Icon={Code} />
-			<Entry url="https://chainlist.org/" name="Chainlist" Icon={List} />
 			<Entry url="/about" name="About" Icon={HelpCircle} />
 
 			<Footer app="defi" />

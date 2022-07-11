@@ -16,10 +16,15 @@ export const Wrapper = styled.div`
 	background: ${({ theme }) => (theme.mode === 'dark' ? '#222c3d' : '#edf0fa')};
 	z-index: 1;
 	overflow-y: auto;
+	display: none;
 
 	scrollbar-width: none;
 	::-webkit-scrollbar {
 		display: none;
+	}
+
+	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		display: block;
 	}
 `
 
@@ -50,7 +55,7 @@ export const NavLink = styled(BasicLink)`
 const FooterWrapper = styled.span`
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 10px;
 	border-top: ${({ theme }) => '1px solid ' + transparentize(0.9, theme.text1)};
 	padding-top: 20px;
 

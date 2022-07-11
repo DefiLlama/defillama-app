@@ -65,32 +65,49 @@ const Wrapper = styled.header`
 	display: flex;
 	align-items: center;
 	gap: 1.5rem;
-	padding: 12px 36px;
+	padding: 12px 16px;
 	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
 	z-index: 10;
+
+	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		padding: 12px 36px;
+	}
 `
 interface IAppLinkWrapper {
 	isActive: boolean
 }
 
 const AppLink = styled.a<IAppLinkWrapper>`
-	font-size: 1rem;
+	font-size: 0.85rem;
 	font-weight: 500;
 	position: relative;
-	top: 1.5px;
 	color: ${({ isActive }) => (isActive ? '#fff' : 'rgba(255, 255, 255, 0.7)')};
 
 	:hover,
 	:focus-visible {
 		color: #fff;
 	}
+
+	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		font-size: 1rem;
+		top: 1px;
+	}
 `
 
 const LogoWrapper = styled.a`
+	flex-shrink: 0;
 	svg {
 		width: 160px;
-		height: 46px;
+		height: 30px;
 		position: relative;
-		margin: 0 -8px;
+		margin: 0 -20px;
+	}
+
+	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		svg {
+			width: 160px;
+			height: 44px;
+			margin: 0 -12px;
+		}
 	}
 `
