@@ -2,9 +2,9 @@ import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
+import DefiLogo from '~/assets/DefiLogo'
+import ThemeSwitch from '~/components/SideNav/ThemeSwitch'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import ThemeSwitch from '../SideNav/ThemeSwitch'
-import DefiLogo from './DefiLogo'
 
 interface IAppLink {
 	name: string
@@ -22,20 +22,24 @@ export default function Header() {
 	const [darkMode, toggleDarkMode] = useDarkModeManager()
 	return (
 		<Wrapper>
-			<Link href="/" passHref>
+			{/* <Link href="/" passHref>
 				<LogoWrapper>
 					<span className="visually-hidden">Navigate to Home Page</span>
 					<DefiLogo />
 				</LogoWrapper>
 			</Link>
 
-			{appLinks.map((item) => (
-				<Link href={item.url} key={item.url} passHref>
-					<AppLink isActive={router.pathname === item.url}>{item.name}</AppLink>
-				</Link>
-			))}
+			<MobileLinksWrapper></MobileLinksWrapper>
 
-			<ThemeSwitch isActive={darkMode} toggle={toggleDarkMode} />
+			<AppLinksWrapper>
+				{appLinks.map((item) => (
+					<Link href={item.url} key={item.url} passHref>
+						<AppLink isActive={router.pathname === item.url}>{item.name}</AppLink>
+					</Link>
+				))}
+
+				<ThemeSwitch isActive={darkMode} toggle={toggleDarkMode} />
+			</AppLinksWrapper> */}
 		</Wrapper>
 	)
 }
@@ -47,11 +51,10 @@ const Wrapper = styled.header`
 	align-items: center;
 	gap: 1.5rem;
 	padding: 12px 16px;
-	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
 	z-index: 10;
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		padding: 12px 36px;
+		display: none;
 	}
 `
 interface IAppLinkWrapper {
@@ -83,12 +86,15 @@ const LogoWrapper = styled.a`
 		position: relative;
 		margin: 0 -20px;
 	}
+`
+
+const MobileLinksWrapper = styled.span`
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+	flex: 1;
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		svg {
-			width: 160px;
-			height: 44px;
-			margin: 0 -12px;
-		}
+		display: none;
 	}
 `

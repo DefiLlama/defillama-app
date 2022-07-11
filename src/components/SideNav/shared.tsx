@@ -6,14 +6,14 @@ import { Icon } from 'react-feather'
 import { BasicLink } from '~/components/Link'
 import { transparentize } from 'polished'
 
-export const Wrapper = styled.div`
-	position: sticky;
+export const Wrapper = styled.header`
+	position: fixed;
 	top: 0;
-	height: 100vh;
+	bottom: 0;
+	left: 0;
 	width: 220px;
-	grid-column: span 1;
 	padding: 32px;
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#222c3d' : '#edf0fa')};
+	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
 	z-index: 1;
 	overflow-y: auto;
 	display: none;
@@ -24,7 +24,9 @@ export const Wrapper = styled.div`
 	}
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		display: block;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
 	}
 `
 
@@ -32,7 +34,7 @@ export const Nav = styled.nav`
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
-	height: 100%;
+	margin-bottom: auto;
 `
 
 export const NavLink = styled(BasicLink)`

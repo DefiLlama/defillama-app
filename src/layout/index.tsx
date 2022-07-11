@@ -19,9 +19,8 @@ const Center = styled.main`
 `
 
 const PageWrapper = styled.div`
-	grid-column: 1 / -1;
-	padding: 40px 0 80px;
-	min-height: calc(100vh - 70px);
+	padding: 32px 0 80px;
+	flex: 1;
 	z-index: 0;
 	transition: width 0.25s ease;
 	background-color: ${({ theme }) => theme.onlyLight};
@@ -31,9 +30,8 @@ const PageWrapper = styled.div`
 			padding: 0 12px;
 		}
 	}
-
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		grid-column: span 1;
+		padding-left: 220px;
 	}
 `
 

@@ -166,14 +166,18 @@ export const ThemedBackground = styled.div`
 
 export const GlobalStyle = createGlobalStyle`
   #__next {
-    display: grid;
-    grid-template-columns: auto 1fr;
+    display: flex;
+    flex-direction: column;
     width: 100%;
     min-height: 100%;
     position: relative;
     color: ${({ theme }) => theme.text1};
     background-color: ${({ theme }) => theme.onlyLight};
     isolation: isolate;
+
+		@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+			flex-direction: row;
+		}
   }
 
   a, input, button, textarea, select, {
