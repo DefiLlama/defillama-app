@@ -118,7 +118,7 @@ export const FilterPopover = styled(SelectPopover)`
 	overflow: visible;
 
 	#no-results {
-		padding: 0 12px 8px;
+		margin: 24px 0;
 		text-align: center;
 	}
 `
