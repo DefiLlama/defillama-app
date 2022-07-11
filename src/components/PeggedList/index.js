@@ -18,7 +18,6 @@ import {
 	getRandomColor,
 	capitalizeFirstLetter,
 	formattedNum,
-	formattedPercent,
 	formattedPeggedPrice,
 	getPrevPeggedTotalFromChart,
 	getPercentChange,

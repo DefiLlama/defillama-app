@@ -65,27 +65,32 @@ export const formatPeggedAssetsData = ({
 		pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
 		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
 
-		if (pegType === 'peggedUSD' && price) {
-			pegged.pegDeviation = getPercentChange(price, 1)
+		if (pegType !== 'peggedVAR' && price) {
+			let targetPrice = pegType === 'peggedEUR' ? parseFloat(priceData[priceData.length - 1]?.prices?.['eur']) : 1
+			pegged.pegDeviation = getPercentChange(price, targetPrice)
+
 			let greatestDeviation = 0
 			for (let i = 0; i < 30; i++) {
 				let historicalPrices = priceData[priceData.length - i - 1]
 				let historicalPrice = parseFloat(historicalPrices?.prices?.[peggedGeckoID])
-				let timestamp = historicalPrices?.date
-				let deviation = historicalPrice - 1
-				if (Math.abs(greatestDeviation) < Math.abs(deviation)) {
-					greatestDeviation = deviation
-					if (0.02 < Math.abs(greatestDeviation)) {
-						pegged.pegDeviationInfo = {
-							timestamp: timestamp,
-							price: historicalPrice,
-							priceSource: priceSource
+				let historicalTargetPrice = pegType === 'peggedEUR' ? parseFloat(historicalPrices?.prices?.['eur']) : 1
+				if (historicalPrice && historicalTargetPrice) {
+					let timestamp = historicalPrices?.date
+					let deviation = historicalPrice - historicalTargetPrice
+					if (Math.abs(greatestDeviation) < Math.abs(deviation)) {
+						greatestDeviation = deviation
+						if (0.02 < Math.abs(greatestDeviation)) {
+							pegged.pegDeviationInfo = {
+								timestamp: timestamp,
+								price: historicalPrice,
+								priceSource: priceSource
+							}
 						}
 					}
 				}
 			}
-			if (Math.abs(greatestDeviation) < Math.abs(price - 1)) {
-				greatestDeviation = price - 1
+			if (Math.abs(greatestDeviation) < Math.abs(price - targetPrice)) {
+				greatestDeviation = price - targetPrice
 				if (0.02 < Math.abs(greatestDeviation)) {
 					pegged.pegDeviationInfo = {
 						timestamp: Date.now() / 1000,
@@ -94,7 +99,7 @@ export const formatPeggedAssetsData = ({
 					}
 				}
 			}
-			pegged.pegDeviation_1m = getPercentChange(1 + greatestDeviation, 1)
+			pegged.pegDeviation_1m = getPercentChange(targetPrice + greatestDeviation, targetPrice)
 		}
 		return keepNeededProperties(pegged, peggedAssetProps)
 	})
