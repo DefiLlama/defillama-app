@@ -52,6 +52,8 @@ const AssetFilters = styled.div`
 const PeggedTable = styled(Table)`
 	// PEGGED NAME
 	tr > *:nth-child(1) {
+		padding-left: 40px;
+
 		& > * {
 			width: 120px;
 			overflow: hidden;
