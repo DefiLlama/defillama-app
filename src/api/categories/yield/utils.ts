@@ -3,13 +3,6 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	let _config = poolsAndConfig[1]?.protocols ?? []
 
 	// add projectName and audit fields from config to pools array
-	_config = _config.reduce(
-		(all, c) => ({
-			...all,
-			[c.name.toLowerCase().replace(/\s/g, '-')]: { name: c.name, audits: c.audits }
-		}),
-		{}
-	)
 	_pools = _pools.map((p) => ({ ...p, projectName: _config[p.project]?.name, audits: _config[p.project]?.audits }))
 	// remove potential undefined on projectName
 	const data = _pools.filter((p) => p.projectName)
