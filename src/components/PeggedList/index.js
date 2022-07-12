@@ -99,14 +99,15 @@ function formattedPeggedPercent(percent, noSign = false) {
 		}
 	}
 }
-;'chainlink' | 'uniswap' | 'dexscreener' | 'curve' | 'coingecko' | 'birdeye'
+
 const formatPriceSource = {
 	chainlink: 'Chainlink',
 	uniswap: 'a Uniswap v3 pool oracle',
 	dexscreener: 'DEX Screener',
 	curve: 'a Curve pool oracle',
 	coingecko: 'CoinGecko',
-	birdeye: 'Birdeye'
+	birdeye: 'Birdeye',
+	kucoin: 'KuCoin Exchange'
 }
 
 function pegDeviationText(pegDeviationInfo) {
