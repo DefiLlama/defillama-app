@@ -122,7 +122,7 @@ function init() {
 		[NO_IL]: false,
 		[MILLION_DOLLAR]: false,
 		[AUDITED]: false,
-		[NO_OUTLIER]: true,
+		[NO_OUTLIER]: false,
 		[APY_GT0]: true,
 		[DISMISSED_PATHS]: {},
 		[SAVED_ACCOUNTS]: [],
