@@ -185,7 +185,7 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 			</ChartFilters>
 
 			<TreemapChart chartData={poolsData} />
-			<ScatterChart chartData={poolsData} />
+			<ScatterChart chartData={poolsData.filter((p) => !p.outlier)} />
 			<BoxplotChart chartData={poolsData} />
 		</>
 	)
