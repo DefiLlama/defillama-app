@@ -11,6 +11,7 @@ import { AreaChart } from '~/components/Charts'
 import IconsRow from '~/components/IconsRow'
 import { PeggedSearch } from '~/components/Search'
 import QuestionHelper from '~/components/QuestionHelper'
+import { Text } from 'rebass'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/hooks/data'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {
@@ -42,6 +43,79 @@ function Chart({ peggedAreaChartData, peggedAreaMcapData, totalMcapLabel, pegged
 	)
 }
 
+function formattedPeggedPercent(percent, noSign = false) {
+	if (percent === null) {
+		return null
+	}
+
+	let up = 'green'
+	let down = 'red'
+
+	if (noSign) {
+		up = down = ''
+	}
+
+	percent = parseFloat(percent)
+	if (!percent || percent === 0) {
+		return <Text fontWeight={500}>0%</Text>
+	}
+
+	if (percent < 0.0001 && percent > 0) {
+		return (
+			<Text fontWeight={500} color={up}>
+				{'< 0.0001%'}
+			</Text>
+		)
+	}
+
+	if (percent < 0 && percent > -0.0001) {
+		return (
+			<Text fontWeight={500} color={down}>
+				{'< 0.0001%'}
+			</Text>
+		)
+	}
+
+	let fixedPercent = percent.toFixed(2)
+	if (fixedPercent === '0.00') {
+		return '0%'
+	}
+	const prefix = noSign ? '' : '+'
+	if (fixedPercent > 0) {
+		if (fixedPercent > 100) {
+			return <Text fontWeight={500} color={up}>{`${prefix}${percent?.toFixed(0).toLocaleString()}%`}</Text>
+		} else {
+			if (fixedPercent > 2) {
+				return <Text fontWeight={700} color={up}>{`${prefix}${fixedPercent}%`}</Text>
+			} else {
+				return <Text fontWeight={500} color={up}>{`${prefix}${fixedPercent}%`}</Text>
+			}
+		}
+	} else {
+		if (fixedPercent < -2) {
+			return <Text fontWeight={700} color={down}>{`${fixedPercent}%`}</Text>
+		} else {
+			return <Text fontWeight={500} color={down}>{`${fixedPercent}%`}</Text>
+		}
+	}
+}
+
+const formatPriceSource = {
+	chainlink: 'Chainlink',
+	uniswap: 'a Uniswap v3 pool oracle',
+	dexscreener: 'DEX Screener',
+	curve: 'a Curve pool oracle',
+	coingecko: 'CoinGecko',
+	birdeye: 'Birdeye',
+	kucoin: 'KuCoin Exchange'
+}
+
+function pegDeviationText(pegDeviationInfo) {
+	const { timestamp, price, priceSource } = pegDeviationInfo
+	const date = new Date(timestamp * 1000).toISOString().slice(0, 10)
+	return `On ${date}, ${formatPriceSource[priceSource]} reported a price of $${formattedPeggedPrice(price)}.`
+}
+
 const PeggedTable = styled(Table)`
 	tr > *:not(:first-child) {
 		& > * {
@@ -56,7 +130,7 @@ const PeggedTable = styled(Table)`
 	// PEGGED NAME
 	tr > *:nth-child(1) {
 		& > * {
-			width: 120px;
+			width: 200px;
 			overflow: hidden;
 			white-space: nowrap;
 
@@ -82,28 +156,48 @@ const PeggedTable = styled(Table)`
 		}
 	}
 
-	// PRICE
+	// % OFF PEG
 	tr > *:nth-child(3) {
 		display: none;
+		& > * {
+			width: 100px;
+			overflow: hidden;
+			white-space: nowrap;
+		}
 	}
 
-	// 1D CHANGE
+	// % OFF PEG (1M)
 	tr > *:nth-child(4) {
 		display: none;
+		& > * {
+			width: 120px;
+			overflow: hidden;
+			white-space: nowrap;
+		}
 	}
 
-	// 7D CHANGE
+	// PRICE
 	tr > *:nth-child(5) {
 		display: none;
 	}
 
-	// 1M CHANGE
+	// 1D CHANGE
 	tr > *:nth-child(6) {
 		display: none;
 	}
 
-	// MCAP
+	// 7D CHANGE
 	tr > *:nth-child(7) {
+		display: none;
+	}
+
+	// 1M CHANGE
+	tr > *:nth-child(8) {
+		display: none;
+	}
+
+	// MCAP
+	tr > *:nth-child(9) {
 		padding-right: 20px;
 		& > * {
 			text-align: right;
@@ -113,18 +207,9 @@ const PeggedTable = styled(Table)`
 		}
 	}
 
-	@media screen and (min-width: 360px) {
-		// PEGGED NAME
-		tr > *:nth-child(1) {
-			& > * {
-				width: 160px;
-			}
-		}
-	}
-
 	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
 		// 7D CHANGE
-		tr > *:nth-child(5) {
+		tr > *:nth-child(7) {
 			display: revert;
 		}
 	}
@@ -133,7 +218,6 @@ const PeggedTable = styled(Table)`
 		// PEGGED NAME
 		tr > *:nth-child(1) {
 			& > * {
-				width: 280px;
 				// SHOW LOGO
 				& > *:nth-child(2) {
 					display: flex;
@@ -144,7 +228,7 @@ const PeggedTable = styled(Table)`
 
 	@media screen and (min-width: 720px) {
 		// 1M CHANGE
-		tr > *:nth-child(6) {
+		tr > *:nth-child(8) {
 			display: revert;
 		}
 	}
@@ -153,6 +237,8 @@ const PeggedTable = styled(Table)`
 		// PEGGED NAME
 		tr > *:nth-child(1) {
 			& > * {
+				width: 220px;
+
 				& > *:nth-child(4) {
 					& > *:nth-child(2) {
 						display: revert;
@@ -164,57 +250,60 @@ const PeggedTable = styled(Table)`
 
 	@media screen and (min-width: 900px) {
 		// MCAP
-		tr > *:nth-child(7) {
+		tr > *:nth-child(9) {
 			padding-right: 0px;
 		}
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
 		// 1D CHANGE
-		tr > *:nth-child(4) {
+		tr > *:nth-child(6) {
 			display: none !important;
 		}
 
 		// MCAP
-		tr > *:nth-child(7) {
+		tr > *:nth-child(9) {
 			padding-right: 20px;
 		}
 	}
 
 	@media screen and (min-width: 1200px) {
 		// 1M CHANGE
-		tr > *:nth-child(6) {
+		tr > *:nth-child(8) {
 			display: revert !important;
 		}
 	}
 
 	@media screen and (min-width: 1300px) {
-		// PRICE
+		// % OFF PEG
 		tr > *:nth-child(3) {
 			display: revert !important;
 		}
 
+		// PRICE
+		tr > *:nth-child(5) {
+			display: revert !important;
+		}
+
 		// 1D CHANGE
-		tr > *:nth-child(4) {
+		tr > *:nth-child(6) {
 			display: revert !important;
 		}
 
 		// MCAP
-		tr > *:nth-child(7) {
+		tr > *:nth-child(9) {
 			display: revert !important;
 		}
 	}
 
 	@media screen and (min-width: 1536px) {
-		// PEGGED NAME
-		tr > *:nth-child(1) {
-			& > * {
-				width: 300px;
-			}
-		}
-
 		// CHAINS
 		tr > *:nth-child(2) {
+			display: revert;
+		}
+
+		// % OFF PEG (1M)
+		tr > *:nth-child(4) {
 			display: revert;
 		}
 	}
@@ -230,24 +319,38 @@ const columns = [
 		Cell: ({ value }) => <IconsRow links={value} url="/stablecoins" iconType="chain" />
 	},
 	{
+		header: '% Off Peg',
+		accessor: 'pegDeviation',
+		Cell: ({ value, rowValues }) => {
+			return (
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{rowValues.depeggedTwoPercent ? <QuestionHelper text="Currently de-pegged by 2% or more." /> : null}
+					{value ? formattedPeggedPercent(value) : value === 0 ? formattedPeggedPercent(0) : '-'}
+				</AutoRow>
+			)
+		}
+	},
+	{
+		header: '1m % Off Peg',
+		accessor: 'pegDeviation_1m',
+		helperText: 'Shows greatest % price deviation from peg over the past month',
+		Cell: ({ value, rowValues }) => {
+			return (
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{rowValues.pegDeviationInfo ? <QuestionHelper text={pegDeviationText(rowValues.pegDeviationInfo)} /> : null}
+					<span>{value ? formattedPeggedPercent(value) : '-'}</span>
+				</AutoRow>
+			)
+		}
+	},
+	{
 		header: 'Price',
 		accessor: 'price',
 		Cell: ({ value, rowValues }) => {
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{rowValues.depeggedTwoPercent ? (
-						<QuestionHelper text="This pegged asset is currently de-pegged by 2% or more." />
-					) : null}
-					{rowValues.floatingPeg ? (
-						<QuestionHelper text="This pegged asset has a variable, floating, or crawling peg." />
-					) : null}
-					<span
-						style={{
-							color: rowValues.depeggedTwoPercent ? 'tomato' : 'inherit'
-						}}
-					>
-						{value ? formattedPeggedPrice(value, true) : '-'}
-					</span>
+					{rowValues.floatingPeg ? <QuestionHelper text="Has a variable, floating, or crawling peg." /> : null}
+					<span>{value ? formattedPeggedPrice(value, true) : '-'}</span>
 				</AutoRow>
 			)
 		}
@@ -326,8 +429,8 @@ function PeggedAssetsOverview({
 	}
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
-		const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, "totalCirculatingUSD")
-		const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 7, "totalCirculatingUSD")
+		const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, 'totalCirculatingUSD')
+		const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 7, 'totalCirculatingUSD')
 		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
 		return { percentChange, totalMcapCurrent }
 	}, [chartData])

@@ -158,7 +158,7 @@ export const formattedPeggedPrice = (number, symbol = false, acceptNegatives = f
 	}
 
 	if (symbol) {
-		return currencyMark + parseFloat(num).toFixed(6) // this is all pegged is using, should merge with above
+		return currencyMark + parseFloat(num).toFixed(5) // this is all pegged is using, should merge with above
 	}
 
 	return Number(parseFloat(num).toFixed(5))

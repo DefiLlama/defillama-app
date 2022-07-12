@@ -732,7 +732,7 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={blockExplorerLink} passHref>
-												<Button as="a" useTextColor={true} color={backgroundColor}>
+												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 													<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
 												</Button>
 											</Link>
@@ -746,7 +746,7 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={url} passHref>
-												<Button as="a" useTextColor={true} color={backgroundColor}>
+												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 													<span>Website</span>
 													<ArrowUpRight size={14} />
 												</Button>
@@ -761,7 +761,7 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={twitter} passHref>
-												<Button as="a" useTextColor={true} color={backgroundColor}>
+												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 													<span>Twitter</span>
 													<ArrowUpRight size={14} />
 												</Button>
@@ -776,7 +776,7 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={wiki} passHref>
-												<Button as="a" useTextColor={true} color={backgroundColor}>
+												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 													<span>DeFiLlama Wiki</span>
 													<ArrowUpRight size={14} />
 												</Button>
@@ -791,7 +791,7 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} passHref>
-												<Button as="a" useTextColor={true} color={backgroundColor}>
+												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 													<span>CoinGecko</span>
 													<ArrowUpRight size={14} />
 												</Button>
@@ -807,7 +807,7 @@ export default function PeggedContainer({
 										href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
 										passHref
 									>
-										<AlignSelfButton as="a" useTextColor={true} color={backgroundColor}>
+										<AlignSelfButton as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 											<span>Check the code</span>
 											<ArrowUpRight size={14} />
 										</AlignSelfButton>
