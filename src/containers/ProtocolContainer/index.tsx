@@ -26,6 +26,7 @@ import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProto
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
+import { IFusedProtocolData } from '~/api/types'
 
 defaultFallbackInView(true)
 
@@ -395,16 +396,16 @@ const ProtocolLink = styled.a<IProtocolLink>`
 interface IProtocolContainerProps {
 	title: string
 	protocol: string
-	protocolData: any
+	protocolData: IFusedProtocolData
 	backgroundColor: string
 }
 
-const isLowerCase = (letter) => letter === letter.toLowerCase()
+const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 
 function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: IProtocolContainerProps) {
 	useScrollToTop()
 
-	let {
+	const {
 		address = '',
 		name,
 		symbol,
@@ -431,7 +432,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const router = useRouter()
 
-	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
+	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address || '')
 
 	const totalVolume = useCalcSingleExtraTvl(tvlBreakdowns, tvl)
 
@@ -655,7 +656,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						</FlexRow>
 					)}
 
-					<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />
+					{audits && audit_links && <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />}
 
 					<LinksWrapper>
 						<Link href={url} passHref>
@@ -663,11 +664,14 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 								<span>Website</span> <ArrowUpRight size={14} />
 							</Button>
 						</Link>
-						<Link href={`https://twitter.com/${twitter}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-								<span>Twitter</span> <ArrowUpRight size={14} />
-							</Button>
-						</Link>
+
+						{twitter && (
+							<Link href={`https://twitter.com/${twitter}`} passHref>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+									<span>Twitter</span> <ArrowUpRight size={14} />
+								</Button>
+							</Link>
+						)}
 					</LinksWrapper>
 				</Section>
 				<Section>

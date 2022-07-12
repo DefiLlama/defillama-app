@@ -1,55 +1,117 @@
-export interface IProtocol {
+export interface Protocol {
 	id: string
 	name: string
-	address: string
+	address?: string | null
 	symbol: string
 	url: string
-	description: string
+	description?: string | null
 	chain: string
-	logo: null | string
-	audits: null | '0' | '1' | '2' | '3'
-	audit_note: null
-	gecko_id: string
-	cmcId: string
-	category: string
-	chains: string[]
-	oracles: string[]
-	forkedFrom?: string[]
+	logo: string | null
+	audits?: string | null
+	audit_note?: string | null
+	gecko_id?: string | null
+	cmcId?: string | null
+	category?: string | null
+	chains: Array<string>
+	oracles?: Array<string>
+	forkedFrom?: Array<string>
 	module: string
-	twitter: string
+	twitter?: string | null
 	language?: string
-	audit_links?: string[]
+	audit_links?: Array<string>
 	listedAt?: number
 	openSource?: boolean
 	parentProtocol?: string
-	chainTvls: {
-		[key: string]: {
-			tvl: number
-			tvlPrevDay: number
-			tvlPrevWeek: number
-			tvlPrevMonth: number
-		}
-	}
-	tvl: {
-		date: number
-		totalLiquidityUSD: number
-	}[]
-	mcap?: number
 }
 
+// TODO cleanup
 export interface IParentProtocol {
 	id: string
 	name: string
 	url: string
 	description: string
 	logo: string
-	chains: string[]
+	chains: Array<string>
 	gecko_id: string
 	cmcId: string
-	categories?: string[]
-	twitter: string
-	oracles?: string[]
-	forkedFrom?: string[]
+	categories?: Array<string>
+	twitter?: string | null
+	oracles?: Array<string>
+	forkedFrom?: Array<string>
+}
+
+interface ICurrentChainTvls {
+	[chain: string]: number
+}
+
+interface IChainTvl {
+	[type: string]: {
+		tvl: { date: number; totalLiquidityUSD: number }[]
+		tokensInUsd?: Array<{ date: number; tokens: { [token: string]: number } }>
+		tokens?: Array<{ date: number; tokens: { [token: string]: number } }>
+	}
+}
+
+interface ITvlsWithChangesByChain {
+	[key: string]: {
+		tvl: number | null
+		tvlPrevDay: number | null
+		tvlPrevWeek: number | null
+		tvlPrevMonth: number | null
+	}
+}
+
+export interface ITvlsByChain {
+	[chain: string]: number
+}
+
+export interface ProtocolTvls {
+	tvl: number | null
+	tvlPrevDay: number | null
+	tvlPrevWeek: number | null
+	tvlPrevMonth: number | null
+	chainTvls: ITvlsWithChangesByChain
+}
+
+export interface IProtocolResponse extends Protocol {
+	otherProtocols?: Array<string>
+	methodology?: string
+	misrepresentedTokens?: boolean
+	hallmarks?: [number, string][]
+	chainTvls: IChainTvl
+	currentChainTvls: ICurrentChainTvls
+	tvl: { date: number; totalLiquidityUSD: number }[]
+	tokensInUsd?: Array<{ date: number; tokens: { string: number } }>
+	tokens?: Array<{ date: number; tokens: { string: number } }>
+}
+
+export interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChainTvls' | 'chainTvls'> {
+	slug: string
+	tvl: number
+	chain: string
+	chainTvls: ITvlsByChain
+	change_1h: number | null
+	change_1d: number | null
+	change_7d: number | null
+	mcap?: number
+	fdv?: number
+	staking?: number
+	pool2?: number
+}
+
+export type LiteProtocol = Pick<
+	IProtocol,
+	'category' | 'chains' | 'oracles' | 'forkedFrom' | 'listedAt' | 'mcap' | 'name' | 'symbol' | 'parentProtocol'
+> &
+	ProtocolTvls
+
+export interface IChain {
+	gecko_id?: string | null
+	tokenSymbol?: string | null
+	cmcId?: string | null
+	chainId: number | null
+	tvl: number
+	name: string
 }
 
 export interface IOracleProtocols {
@@ -75,28 +137,22 @@ export interface IChainGeckoId {
 	categories: string[]
 }
 
-export interface IFormattedProtocol {
-	name: string
-	symbol: string
-	category: string
-	chains: string[]
-	tvl: number
-	mcap: number
-	mcaptvl: number
-	change_1d: number
-	change_7d: number
-	change_1m: number
-	tvlPrevDay: number
-	tvlPrevWeek: number
-	tvlPrevMonth: number
+export interface IFormattedProtocol extends LiteProtocol {
 	extraTvl?: {
 		[key: string]: { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
 	}
-	chainTvls?: {
-		[key: string]: { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
-	}
-	listedAt?: number
-	parentProtocol?: string
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	mcaptvl: number | null
+}
+
+export interface IFusedProtocolData extends Omit<IProtocolResponse, 'tvl'> {
+	tvl: number
+	tvlChartData: number[][]
+	tvlBreakdowns: ICurrentChainTvls
+	tvlByChain: [string, number][]
+	historicalChainTvls: IChainTvl
 }
 
 export interface ICategory {

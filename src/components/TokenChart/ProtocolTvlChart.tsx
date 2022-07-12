@@ -21,7 +21,7 @@ interface IProps {
 	chains: string[]
 	bobo?: boolean
 	hallmarks?: [number, string][]
-	geckoId?: string
+	geckoId?: string | null
 }
 
 export default function ProtocolTvlChart({

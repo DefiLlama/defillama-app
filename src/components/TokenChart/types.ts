@@ -9,5 +9,5 @@ export interface IChartProps {
 }
 
 export interface IProtocolMcapTVLChartProps extends IChartProps {
-	geckoId: string
+	geckoId?: string | null
 }
