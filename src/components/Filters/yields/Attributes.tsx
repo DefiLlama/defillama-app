@@ -43,7 +43,7 @@ export const options = [
 	{
 		name: 'No Outliers',
 		key: NO_OUTLIER,
-		help: 'Remove pools which extreme apy values'
+		help: 'Remove pools which are considered outliers based on their geometric mean of apy values'
 	},
 	{
 		name: 'APY > 0',
