@@ -45,7 +45,7 @@ export const formatProtocolsData = ({
 			let toFilter = true
 
 			if (removeBridges) {
-				toFilter = toFilter && protocol?.category !== 'Bridged'
+				toFilter = toFilter && protocol?.category !== 'Bridge'
 			}
 
 			if (chain) {
