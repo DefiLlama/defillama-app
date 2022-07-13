@@ -432,7 +432,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const router = useRouter()
 
-	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address || '')
+	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
 	const totalVolume = useCalcSingleExtraTvl(tvlBreakdowns, tvl)
 
@@ -546,7 +546,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					<ProtocolName>
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-						<Symbol>{symbol !== '-' ? `(${symbol})` : ''}</Symbol>
+						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
 					</ProtocolName>
 
 					<TvlWrapper>
@@ -632,7 +632,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			<InfoWrapper>
 				<Section>
 					<h3>Protocol Information</h3>
-					<p>{description}</p>
+					{description && <p>{description}</p>}
 
 					{category && (
 						<FlexRow>
@@ -677,28 +677,24 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 				<Section>
 					<h3>Token Information</h3>
 
-					<FlexRow>
-						{address ? (
-							<>
-								<span>Address</span>
-								<span>:</span>
-								<span>{address.slice(0, 8) + '...' + address?.slice(36, 42)}</span>
-								<CopyHelper toCopy={address} disabled={!address} />
-							</>
-						) : (
-							'No Token'
-						)}
-					</FlexRow>
+					{address && (
+						<FlexRow>
+							<span>Address</span>
+							<span>:</span>
+							<span>{address.slice(0, 8) + '...' + address?.slice(36, 42)}</span>
+							<CopyHelper toCopy={address} disabled={!address} />
+						</FlexRow>
+					)}
 
 					<LinksWrapper>
-						{protocolData.gecko_id !== null && (
+						{protocolData.gecko_id && (
 							<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 									<span>View on CoinGecko</span> <ArrowUpRight size={14} />
 								</Button>
 							</Link>
 						)}
-						{blockExplorerLink !== undefined && (
+						{blockExplorerLink && (
 							<Link href={blockExplorerLink} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 									<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
@@ -711,12 +707,14 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					<h3>Methodology</h3>
 					{methodology && <p>{methodology}</p>}
 					<LinksWrapper>
-						<Link href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-								<span>Check the code</span>
-								<ArrowUpRight size={14} />
-							</Button>
-						</Link>
+						{codeModule && (
+							<Link href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+									<span>Check the code</span>
+									<ArrowUpRight size={14} />
+								</Button>
+							</Link>
+						)}
 					</LinksWrapper>
 				</Section>
 			</InfoWrapper>
