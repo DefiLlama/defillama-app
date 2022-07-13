@@ -102,7 +102,7 @@ export const buildProtocolData = (protocolData) => {
 	if (protocolData) {
 		const chainsStacked = buildChainBreakdown(protocolData.chainTvls)
 
-		if (protocolData.misrepresentedTokens !== true && protocolData.tokensInUsd !== undefined) {
+		if (!protocolData.misrepresentedTokens && protocolData.tokensInUsd && protocolData.tokens) {
 			const [tokenBreakdownUSD, tokensUnique] = buildTokensBreakdown(protocolData.tokensInUsd)
 			const [tokenBreakdown] = buildTokensBreakdown(protocolData.tokens)
 			const { usdInflows, tokenInflows } = buildInflows(protocolData.tokensInUsd, protocolData.tokens)
