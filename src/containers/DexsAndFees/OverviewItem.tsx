@@ -111,7 +111,7 @@ export const ProtocolChart = ({
 							<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 						</Name>
 					)}
-					{data.total24h && (
+					{data.total24h ? (
 						<Stat>
 							<span>
 								{data.disabled === true
@@ -122,8 +122,10 @@ export const ProtocolChart = ({
 							</span>
 							<span>{formattedNum(data.total24h || '0', true)}</span>
 						</Stat>
+					) : (
+						<></>
 					)}
-					{data.revenue24h && (
+					{data.revenue24h ? (
 						<Stat>
 							<span>
 								{data.disabled === true
@@ -134,6 +136,8 @@ export const ProtocolChart = ({
 							</span>
 							<span>{formattedNum(data.revenue24h || '0', true)}</span>
 						</Stat>
+					) : (
+						<></>
 					)}
 
 					{typeString !== 'Fees' && data.change_1d ? (
