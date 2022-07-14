@@ -1,4 +1,5 @@
 const blockExplorers = {
+	ethereum: ['https://etherscan.io/token/', 'Etherscan'],
 	bsc: ['https://bscscan.com/address/', 'Bscscan'],
 	xdai: ['https://blockscout.com/xdai/mainnet/address/', 'BlockScout'],
 	avax: ['https://snowtrace.io/address/', 'Snowtrace'],
