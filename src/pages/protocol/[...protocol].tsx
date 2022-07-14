@@ -19,12 +19,6 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 }) => {
 	const protocolRes: IProtocolResponse = await getProtocol(protocol)
 
-	if (!protocolRes || !protocolRes.name) {
-		return {
-			notFound: true
-		}
-	}
-
 	delete protocolRes.tokensInUsd
 	delete protocolRes.tokens
 
