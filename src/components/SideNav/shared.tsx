@@ -12,7 +12,7 @@ export const Wrapper = styled.header`
 	bottom: 0;
 	left: 0;
 	width: 220px;
-	padding: 32px;
+	padding: 30px;
 	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
 	z-index: 1;
 	overflow-y: auto;
