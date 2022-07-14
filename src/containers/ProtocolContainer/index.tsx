@@ -27,6 +27,7 @@ import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 import { IFusedProtocolData } from '~/api/types'
+import { Checkbox2 } from '~/components'
 
 defaultFallbackInView(true)
 
@@ -285,45 +286,6 @@ const ExtraTvlOption = styled.label`
 	display: flex;
 	align-items: center;
 	gap: 8px;
-
-	input {
-		position: relative;
-		top: 1px;
-		padding: 0;
-		-webkit-appearance: none;
-		appearance: none;
-		background-color: transparent;
-		width: 1em;
-		height: 1em;
-		border: ${({ theme }) => '1px solid ' + theme.text4};
-		border-radius: 0.15em;
-		transform: translateY(-0.075em);
-		display: grid;
-		place-content: center;
-
-		::before {
-			content: '';
-			width: 0.5em;
-			height: 0.5em;
-			transform: scale(0);
-			transition: 120ms transform ease-in-out;
-			box-shadow: ${({ theme }) => 'inset 1em 1em ' + theme.text1};
-			transform-origin: bottom left;
-			clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-		}
-
-		:checked::before {
-			transform: scale(1);
-		}
-
-		:focus-visible {
-			outline-offset: max(2px, 0.15em);
-		}
-
-		:hover {
-			cursor: pointer;
-		}
-	}
 
 	:hover {
 		cursor: pointer;
@@ -592,7 +554,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 									<tr key={option}>
 										<th>
 											<ExtraTvlOption>
-												<input
+												<Checkbox2
 													type="checkbox"
 													value={option}
 													checked={extraTvlsEnabled[option]}
