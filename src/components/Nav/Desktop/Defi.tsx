@@ -12,7 +12,6 @@ import {
 	Shield,
 	Share2,
 	Map,
-	List,
 	Book
 } from 'react-feather'
 import { Entry, Footer } from './shared'
@@ -50,7 +49,7 @@ const Paper = () => (
 	</svg>
 )
 
-const NavMenu = () => {
+const DefiNav = () => {
 	return (
 		<>
 			<Entry url="/" name="Overview" Icon={TrendingUp} />
@@ -73,4 +72,4 @@ const NavMenu = () => {
 	)
 }
 
-export default NavMenu
+export default DefiNav

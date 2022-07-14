@@ -1,15 +1,18 @@
 import * as React from 'react'
 import Link from 'next/link'
-import DefiLogo from '~/assets/DefiLogo'
+import Image from 'next/image'
+import AppSwitch from '~/components/AppSwitch'
 import { usePeggedApp, useYieldApp } from '~/hooks'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { Nav, Wrapper } from './shared'
-import DefiSideNav from './DefiSideNav'
-import YieldSideNav from './YieldSideNav'
-import StablecoinsNav from './StablecoinsSideNav'
-import ThemeSwitch from './ThemeSwitch'
+import DefiSideNav from './Defi'
+import YieldSideNav from './Yield'
+import StablecoinsNav from './Stablecoins'
+import Logo from '~/assets/logo_white_long.png'
+import ThemeSwitch from '../ThemeSwitch'
+import { LogoWrapper } from '../shared'
 
-export default function SideNav() {
+export default function Desktop() {
 	const isYieldApp = useYieldApp()
 	const isStableCoinsApp = usePeggedApp()
 	const [darkMode, toggleDarkMode] = useDarkModeManager()
@@ -17,11 +20,20 @@ export default function SideNav() {
 	return (
 		<Wrapper>
 			<Link href="/" passHref>
-				<a style={{ width: '160px', height: '54px' }}>
-					<span className="visually-hidden">Navigate to Home Page</span>
-					<DefiLogo />
-				</a>
+				<LogoWrapper>
+					<Image
+						src={Logo}
+						alt="Navigate to Home Page"
+						height={54}
+						width={160}
+						objectFit="contain"
+						objectPosition="left"
+						priority
+					/>
+				</LogoWrapper>
 			</Link>
+
+			<AppSwitch />
 
 			<Nav>{isYieldApp ? <YieldSideNav /> : isStableCoinsApp ? <StablecoinsNav /> : <DefiSideNav />}</Nav>
 

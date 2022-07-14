@@ -4,8 +4,7 @@ import styled from 'styled-components'
 import { transparentize } from 'polished'
 import ThemeProvider, { GlobalStyle, ThemedBackground } from '~/Theme'
 import SEO from '~/components/SEO'
-import SideNav from '~/components/SideNav'
-import Header from '~/components/Header'
+import { DesktopNav, MobileNav } from '~/components/Nav'
 
 const Center = styled.main`
 	display: flex;
@@ -60,8 +59,8 @@ export default function Layout({ title, children, defaultSEO = false, background
 
 			<ThemeProvider>
 				<GlobalStyle />
-				<Header />
-				<SideNav />
+				<MobileNav />
+				<DesktopNav />
 				<PageWrapper>
 					<Background backgroundColor={backgroundColor || transparentize(0.8, '#445ed0')} />
 					<Center {...props}>{children}</Center>
