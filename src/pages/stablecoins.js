@@ -6,11 +6,6 @@ import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 export async function getStaticProps({}) {
 	const props = await getPeggedOverviewPageData(null)
 
-	if (!props.filteredPeggedAssets || props.filteredPeggedAssets?.length === 0) {
-		return {
-			notFound: true
-		}
-	}
 	return {
 		props,
 		revalidate: revalidate()

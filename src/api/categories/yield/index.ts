@@ -3,20 +3,11 @@ import { arrayFetcher } from '~/utils/useSWR'
 import { formatYieldsPageData } from './utils'
 
 export async function getYieldPageData() {
-	try {
-		let poolsAndConfig = await arrayFetcher([YIELD_POOLS_API, YIELD_CONFIG_API])
+	let poolsAndConfig = await arrayFetcher([YIELD_POOLS_API, YIELD_CONFIG_API])
 
-		const data = formatYieldsPageData(poolsAndConfig)
+	const data = formatYieldsPageData(poolsAndConfig)
 
-		return {
-			props: {
-				...data
-			}
-		}
-	} catch (e) {
-		console.log(e)
-		return {
-			notFound: true
-		}
+	return {
+		props: data
 	}
 }
