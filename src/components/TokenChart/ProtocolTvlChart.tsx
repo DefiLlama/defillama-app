@@ -113,18 +113,19 @@ export default function ProtocolTvlChart({
 		} else return { tvlData: chartDataFiltered, moneySymbol: '$' }
 	}, [denomination, denominationHistory, chartDataFiltered, DENOMINATIONS])
 
+	const isValid =
+		protocolCGData &&
+		!loading &&
+		protocolCGData['market_caps'] &&
+		protocolCGData['market_caps'].filter((x) => x[1] !== 0)?.length > 0 &&
+		(!denomination || denomination === 'USD')
+
 	// append mcap data when api return it
 	const { finalData, tokensUnique } = React.useMemo(() => {
 		let chartData = []
 		let tokensUnique = ['TVL']
 
-		const isValid =
-			protocolCGData &&
-			!loading &&
-			protocolCGData['market_caps'] &&
-			protocolCGData['market_caps'].filter((x) => x[1] !== 0)?.length > 0
-
-		if (isValid && (!denomination || denomination === 'USD') && !hideMcap) {
+		if (isValid && !hideMcap) {
 			tokensUnique = ['TVL', 'Mcap']
 
 			tvlData.forEach(([date, tvl]) => {
@@ -139,7 +140,7 @@ export default function ProtocolTvlChart({
 		}
 
 		return { finalData: chartData, tokensUnique }
-	}, [tvlData, protocolCGData, loading, denomination, hideMcap])
+	}, [tvlData, protocolCGData, hideMcap, isValid])
 
 	const toggleMcap = () => {
 		router.push(
@@ -167,10 +168,12 @@ export default function ProtocolTvlChart({
 						</Link>
 					))}
 				</Filters>
-				<HideMcapChart>
-					<input type="checkbox" value="hideMcapChart" checked={hideMcap} onChange={toggleMcap} />
-					<span>Hide MCap Chart</span>
-				</HideMcapChart>
+				{isValid && (
+					<HideMcapChart>
+						<input type="checkbox" value="hideMcapChart" checked={hideMcap} onChange={toggleMcap} />
+						<span>Hide MCap Chart</span>
+					</HideMcapChart>
+				)}
 			</FiltersWrapper>
 
 			{!loading && !denominationLoading && (
