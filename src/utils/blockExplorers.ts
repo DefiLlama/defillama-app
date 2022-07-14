@@ -26,7 +26,7 @@ const blockExplorers = {
 	iotex: ['https://iotexscan.io/address/', 'IoTeX Explorer'],
 	callisto: ['https://explorer.callisto.network/address/', 'Callisto Explorer'],
 	aurora: ['https://explorer.mainnet.aurora.dev/address/', 'Aurora Explorer'],
-	boba: ['https://blockexplorer.boba.network/tokens/', 'Boba Explorer'],
+	boba: ['https://bobascan.com/address/', 'Boba Explorer'],
 	elrond: ['https://elrondscan.com/token/', 'Elrondscan'],
 	xdc: ['https://explorer.xinfin.network/token/', 'XDC Explorer'],
 	csc: ['https://www.coinex.net/address/', 'CSC Explorer'],
