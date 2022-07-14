@@ -110,7 +110,7 @@ function init() {
 		[NO_IL]: false,
 		[MILLION_DOLLAR]: false,
 		[AUDITED]: false,
-		[NO_OUTLIER]: true,
+		[NO_OUTLIER]: false,
 		[APY_GT0]: true,
 		[DEFI_WATCHLIST]: { main: {} },
 		[YIELDS_WATCHLIST]: DEFAULT_PORTFOLIO

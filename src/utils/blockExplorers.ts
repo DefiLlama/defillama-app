@@ -51,9 +51,11 @@ export const getBlockExplorer = (address: string = '') => {
 			blockExplorerLink = explorer[0] + chainAddress
 			blockExplorerName = explorer[1]
 		}
-	} else if (typeof address === 'string') {
-		blockExplorerLink = 'https://etherscan.io/token/' + address
-		blockExplorerName = 'Etherscan'
+	} else {
+		if (typeof address === 'string' && address !== '') {
+			blockExplorerLink = 'https://etherscan.io/token/' + address
+			blockExplorerName = 'Etherscan'
+		}
 	}
 
 	return {

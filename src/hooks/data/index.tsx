@@ -5,6 +5,7 @@ import { groupKeys, useSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
 
+// TODO cleanup
 interface IProtocol {
 	name: string
 	protocols: number
@@ -196,7 +197,7 @@ export const useCalcProtocolsTvls = ({
 			doublecounted: !extraTvlsEnabled.doublecounted
 		}
 
-		const updatedProtocols: IFormattedProtocol[] = Object.values(checkExtras).every((t) => !t)
+		const updatedProtocols = Object.values(checkExtras).every((t) => !t)
 			? protocols
 			: protocols.map(({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, ...props }) => {
 					let finalTvl: number | null = tvl

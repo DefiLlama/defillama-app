@@ -46,7 +46,8 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 		extraTvl: {},
 		symbol: undefined,
 		category: undefined,
-		subRows: [...protocols]
+		subRows: [...protocols],
+		chainTvls: {} // TODO cleanup
 	}
 }
 

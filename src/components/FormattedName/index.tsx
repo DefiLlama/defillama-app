@@ -15,8 +15,9 @@ interface IFormattedNameProps extends WrapperProps {
 	text: string
 }
 
-const TextWrapper = styled.div<WrapperProps>`
+const TextWrapper = styled.span<WrapperProps>`
 	position: relative;
+	top: 1px;
 	margin-left: ${({ margin }) => margin && '4px'};
 	color: ${({ theme, link }) => (link ? theme.blue : theme.text1)};
 	font-size: ${({ fontSize }) => fontSize ?? 'inherit'};

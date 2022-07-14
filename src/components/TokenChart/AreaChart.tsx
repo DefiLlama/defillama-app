@@ -43,7 +43,8 @@ export default function AreaChart({
 	title,
 	color,
 	hallmarks,
-	hideLegend
+	hideLegend,
+	...props
 }: IChartProps) {
 	// For Tokens Chart
 	const [legendOptions, setLegendOptions] = useState<string[]>(tokensUnique)
@@ -341,12 +342,12 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance])
+	}, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance, hideLegend])
 
 	const legendTitle = title === 'Chains' ? 'Chain' : 'Token'
 
 	return (
-		<div style={{ position: 'relative' }}>
+		<div style={{ position: 'relative' }} {...props}>
 			{tokensUnique?.length > 1 && !hideLegend && (
 				<SelectLegendMultiple
 					allOptions={tokensUnique}

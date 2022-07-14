@@ -1,3 +1,5 @@
+import * as React from 'react'
+
 export interface IChartProps {
 	chartData: any
 	tokensUnique?: string[]
@@ -6,8 +8,9 @@ export interface IChartProps {
 	color?: string
 	hallmarks?: [number, string][]
 	hideLegend?: boolean
+	style?: React.CSSProperties
 }
 
 export interface IProtocolMcapTVLChartProps extends IChartProps {
-	geckoId: string
+	geckoId?: string | null
 }

@@ -15,6 +15,9 @@ export const peggedPropertiesToKeep = [
 	'change_1d',
 	'change_7d',
 	'change_1m',
+	'pegDeviation',
+	'pegDeviation_1m',
+	'pegDeviationInfo',
 	'circulatingPrevDay',
 	'circulatingPrevWeek',
 	'circulatingPrevMonth'
@@ -24,6 +27,7 @@ export const formatPeggedAssetsData = ({
 	chain = '',
 	peggedAssets = [],
 	chartDataByPeggedAsset = [],
+	priceData = [],
 	peggedNameToIndexObj = {},
 	peggedAssetProps = [...peggedPropertiesToKeep]
 }) => {
@@ -34,7 +38,10 @@ export const formatPeggedAssetsData = ({
 	}
 
 	filteredPeggedAssets = filteredPeggedAssets.map((pegged) => {
-		let pegType = pegged.pegType
+		const pegType = pegged.pegType
+		const peggedGeckoID = pegged.gecko_id
+		const price = pegged.price
+		const priceSource = pegged.priceSource
 		if (chain) {
 			const chainCirculating = pegged.chainCirculating[chain]
 			pegged.circulating = chainCirculating ? chainCirculating.current[pegType] ?? 0 : 0
@@ -58,6 +65,42 @@ export const formatPeggedAssetsData = ({
 		pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
 		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
 
+		if (pegType !== 'peggedVAR' && price) {
+			let targetPrice = pegType === 'peggedEUR' ? parseFloat(priceData[priceData.length - 1]?.prices?.['eur']) : 1
+			pegged.pegDeviation = getPercentChange(price, targetPrice)
+
+			let greatestDeviation = 0
+			for (let i = 0; i < 30; i++) {
+				let historicalPrices = priceData[priceData.length - i - 1]
+				let historicalPrice = parseFloat(historicalPrices?.prices?.[peggedGeckoID])
+				let historicalTargetPrice = pegType === 'peggedEUR' ? parseFloat(historicalPrices?.prices?.['eur']) : 1
+				if (historicalPrice && historicalTargetPrice) {
+					let timestamp = historicalPrices?.date
+					let deviation = historicalPrice - historicalTargetPrice
+					if (Math.abs(greatestDeviation) < Math.abs(deviation)) {
+						greatestDeviation = deviation
+						if (0.02 < Math.abs(greatestDeviation)) {
+							pegged.pegDeviationInfo = {
+								timestamp: timestamp,
+								price: historicalPrice,
+								priceSource: priceSource
+							}
+						}
+					}
+				}
+			}
+			if (Math.abs(greatestDeviation) < Math.abs(price - targetPrice)) {
+				greatestDeviation = price - targetPrice
+				if (0.02 < Math.abs(greatestDeviation)) {
+					pegged.pegDeviationInfo = {
+						timestamp: Date.now() / 1000,
+						price: price,
+						priceSource: priceSource
+					}
+				}
+			}
+			pegged.pegDeviation_1m = getPercentChange(targetPrice + greatestDeviation, targetPrice)
+		}
 		return keepNeededProperties(pegged, peggedAssetProps)
 	})
 

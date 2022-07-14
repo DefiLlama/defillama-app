@@ -1,6 +1,6 @@
-import type { IFormattedProtocol, IProtocol } from '~/api/types'
+import type { IFormattedProtocol, LiteProtocol } from '~/api/types'
+import { keepNeededProperties } from '~/api/shared'
 import { getPercentChange } from '~/utils'
-import { keepNeededProperties } from '../../shared'
 
 export type BasicPropsToKeep = (keyof IFormattedProtocol)[]
 
@@ -9,7 +9,7 @@ interface IFormatProtocolsData {
 	oracle?: string
 	fork?: string
 	category?: string
-	protocols: IProtocol[]
+	protocols: LiteProtocol[]
 	protocolProps?: BasicPropsToKeep
 	removeBridges?: boolean
 }
@@ -19,12 +19,12 @@ export const basicPropertiesToKeep: BasicPropsToKeep = [
 	'name',
 	'symbol',
 	'chains',
-	'change_1d',
-	'change_7d',
-	'change_1m',
 	'tvlPrevDay',
 	'tvlPrevWeek',
 	'tvlPrevMonth',
+	'change_1d',
+	'change_7d',
+	'change_1m',
 	'mcap',
 	'mcaptvl',
 	'category',
@@ -45,7 +45,7 @@ export const formatProtocolsData = ({
 			let toFilter = true
 
 			if (removeBridges) {
-				toFilter = toFilter && protocol?.category !== 'Bridged'
+				toFilter = toFilter && protocol?.category !== 'Bridge'
 			}
 
 			if (chain) {

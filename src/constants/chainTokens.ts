@@ -499,7 +499,7 @@ export const chainCoingeckoIds = {
 		symbol: 'JEWEL',
 		cmcId: '12319'
 	},
-	Clover: {
+	CLV: {
 		geckoId: 'clover-finance',
 		symbol: 'CLV',
 		cmcId: '8384'

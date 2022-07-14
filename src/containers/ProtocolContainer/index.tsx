@@ -26,6 +26,8 @@ import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProto
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
+import { IFusedProtocolData } from '~/api/types'
+import { Checkbox2 } from '~/components'
 
 defaultFallbackInView(true)
 
@@ -285,45 +287,6 @@ const ExtraTvlOption = styled.label`
 	align-items: center;
 	gap: 8px;
 
-	input {
-		position: relative;
-		top: 1px;
-		padding: 0;
-		-webkit-appearance: none;
-		appearance: none;
-		background-color: transparent;
-		width: 1em;
-		height: 1em;
-		border: ${({ theme }) => '1px solid ' + theme.text4};
-		border-radius: 0.15em;
-		transform: translateY(-0.075em);
-		display: grid;
-		place-content: center;
-
-		::before {
-			content: '';
-			width: 0.5em;
-			height: 0.5em;
-			transform: scale(0);
-			transition: 120ms transform ease-in-out;
-			box-shadow: ${({ theme }) => 'inset 1em 1em ' + theme.text1};
-			transform-origin: bottom left;
-			clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-		}
-
-		:checked::before {
-			transform: scale(1);
-		}
-
-		:focus-visible {
-			outline-offset: max(2px, 0.15em);
-		}
-
-		:hover {
-			cursor: pointer;
-		}
-	}
-
 	:hover {
 		cursor: pointer;
 	}
@@ -395,16 +358,16 @@ const ProtocolLink = styled.a<IProtocolLink>`
 interface IProtocolContainerProps {
 	title: string
 	protocol: string
-	protocolData: any
+	protocolData: IFusedProtocolData
 	backgroundColor: string
 }
 
-const isLowerCase = (letter) => letter === letter.toLowerCase()
+const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 
 function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: IProtocolContainerProps) {
 	useScrollToTop()
 
-	let {
+	const {
 		address = '',
 		name,
 		symbol,
@@ -545,7 +508,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					<ProtocolName>
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-						<Symbol>{symbol !== '-' ? `(${symbol})` : ''}</Symbol>
+						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
 					</ProtocolName>
 
 					<TvlWrapper>
@@ -591,7 +554,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 									<tr key={option}>
 										<th>
 											<ExtraTvlOption>
-												<input
+												<Checkbox2
 													type="checkbox"
 													value={option}
 													checked={extraTvlsEnabled[option]}
@@ -631,7 +594,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			<InfoWrapper>
 				<Section>
 					<h3>Protocol Information</h3>
-					<p>{description}</p>
+					{description && <p>{description}</p>}
 
 					{category && (
 						<FlexRow>
@@ -655,7 +618,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						</FlexRow>
 					)}
 
-					<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />
+					{audits && audit_links && <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />}
 
 					<LinksWrapper>
 						<Link href={url} passHref>
@@ -663,38 +626,37 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 								<span>Website</span> <ArrowUpRight size={14} />
 							</Button>
 						</Link>
-						<Link href={`https://twitter.com/${twitter}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-								<span>Twitter</span> <ArrowUpRight size={14} />
-							</Button>
-						</Link>
+
+						{twitter && (
+							<Link href={`https://twitter.com/${twitter}`} passHref>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+									<span>Twitter</span> <ArrowUpRight size={14} />
+								</Button>
+							</Link>
+						)}
 					</LinksWrapper>
 				</Section>
 				<Section>
 					<h3>Token Information</h3>
 
-					<FlexRow>
-						{address ? (
-							<>
-								<span>Address</span>
-								<span>:</span>
-								<span>{address.slice(0, 8) + '...' + address?.slice(36, 42)}</span>
-								<CopyHelper toCopy={address} disabled={!address} />
-							</>
-						) : (
-							'No Token'
-						)}
-					</FlexRow>
+					{address && (
+						<FlexRow>
+							<span>Address</span>
+							<span>:</span>
+							<span>{address.slice(0, 8) + '...' + address?.slice(36, 42)}</span>
+							<CopyHelper toCopy={address} disabled={!address} />
+						</FlexRow>
+					)}
 
 					<LinksWrapper>
-						{protocolData.gecko_id !== null && (
+						{protocolData.gecko_id && (
 							<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 									<span>View on CoinGecko</span> <ArrowUpRight size={14} />
 								</Button>
 							</Link>
 						)}
-						{blockExplorerLink !== undefined && (
+						{blockExplorerLink && (
 							<Link href={blockExplorerLink} passHref>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
 									<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
@@ -707,12 +669,14 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					<h3>Methodology</h3>
 					{methodology && <p>{methodology}</p>}
 					<LinksWrapper>
-						<Link href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-								<span>Check the code</span>
-								<ArrowUpRight size={14} />
-							</Button>
-						</Link>
+						{codeModule && (
+							<Link href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+									<span>Check the code</span>
+									<ArrowUpRight size={14} />
+								</Button>
+							</Link>
+						)}
 					</LinksWrapper>
 				</Section>
 			</InfoWrapper>

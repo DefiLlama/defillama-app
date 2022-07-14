@@ -22,7 +22,7 @@ interface IProps {
 	chains: string[]
 	bobo?: boolean
 	hallmarks?: [number, string][]
-	geckoId?: string
+	geckoId?: string | null
 }
 
 export default function ProtocolTvlChart({
@@ -39,7 +39,9 @@ export default function ProtocolTvlChart({
 
 	const extraTvlEnabled = useSettingsManager(extraTvlSettings)
 
-	const { denomination } = router.query
+	const { denomination, hideMcapChart } = router.query
+
+	const hideMcap = hideMcapChart === 'true'
 
 	const DENOMINATIONS = React.useMemo(() => {
 		let d = [{ symbol: 'USD', geckoId: null }]
@@ -123,7 +125,7 @@ export default function ProtocolTvlChart({
 			protocolCGData['market_caps'] &&
 			protocolCGData['market_caps'].filter((x) => x[1] !== 0)?.length > 0
 
-		if (isValid && (!denomination || denomination === 'USD')) {
+		if (isValid && (!denomination || denomination === 'USD') && !hideMcap) {
 			tokensUnique = ['TVL', 'Mcap']
 
 			tvlData.forEach(([date, tvl]) => {
@@ -138,19 +140,24 @@ export default function ProtocolTvlChart({
 		}
 
 		return { finalData: chartData, tokensUnique }
-	}, [tvlData, protocolCGData, loading, denomination])
+	}, [tvlData, protocolCGData, loading, denomination, hideMcap])
+
+	const toggleMcap = () => {
+		router.push(
+			{
+				pathname: router.pathname,
+				query: {
+					...router.query,
+					hideMcapChart: !hideMcap
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
 
 	return (
-		<Wrapper
-			style={{
-				...(bobo && {
-					backgroundImage: 'url("/bobo.png")',
-					backgroundSize: '100% 360px',
-					backgroundRepeat: 'no-repeat',
-					backgroundPosition: 'bottom'
-				})
-			}}
-		>
+		<Wrapper>
 			<FiltersWrapper>
 				<Filters color={color}>
 					{DENOMINATIONS.map((D) => (
@@ -161,18 +168,29 @@ export default function ProtocolTvlChart({
 						</Link>
 					))}
 				</Filters>
+				<HideMcapChart>
+					<input type="checkbox" value="hideMcapChart" checked={hideMcap} onChange={toggleMcap} />
+					<span>Hide MCap Chart</span>
+				</HideMcapChart>
 			</FiltersWrapper>
 
 			{!loading && !denominationLoading && (
 				<AreaChart
 					chartData={finalData}
-					geckoId={geckoId}
 					color={color}
 					title=""
 					moneySymbol={moneySymbol}
 					tokensUnique={tokensUnique}
 					hideLegend={true}
 					hallmarks={hallmarks}
+					style={{
+						...(bobo && {
+							backgroundImage: 'url("/bobo.png")',
+							backgroundSize: '100% 360px',
+							backgroundRepeat: 'no-repeat',
+							backgroundPosition: 'bottom'
+						})
+					}}
 				/>
 			)}
 		</Wrapper>
@@ -227,4 +245,15 @@ const Denomination = styled.a<IDenomination>`
 			: theme.mode === 'dark'
 			? 'rgba(255, 255, 255, 0.6)'
 			: 'rgba(0, 0, 0, 0.6)'};
+`
+
+export const HideMcapChart = styled.label`
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+
+	:hover {
+		cursor: pointer;
+	}
 `

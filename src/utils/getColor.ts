@@ -4,7 +4,7 @@ import { hex } from 'wcag-contrast'
 import { tokenIconUrl, peggedAssetIconUrl } from '~/utils'
 import { primaryColor } from '~/constants/colors'
 
-export const getColor = async (protocol?: string, logo?: string) => {
+export const getColor = async (protocol?: string, logo?: string | null) => {
 	let color = primaryColor
 
 	try {
