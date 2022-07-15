@@ -192,7 +192,7 @@ function GlobalPage({
 
 	const totalVolume = totalVolumeUSD / chainPriceInUSD
 
-	const dominance = getTokenDominance(topToken, totalVolume)
+	const dominance = getTokenDominance(topToken, totalVolumeUSD)
 
 	const isLoading = denomination !== 'USD' && loading
 
