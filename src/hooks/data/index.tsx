@@ -83,6 +83,13 @@ interface IPegged {
 		value: number
 	}
 	bridgedAmount: number
+	pegDeviation: number
+	getDeviation_1m: number
+	pegDeviationInfo: {
+		timestamp: number
+		price: number
+		priceSource: string
+	}
 }
 
 interface GroupChainPegged extends IPegged {
@@ -421,34 +428,33 @@ export const useCalcCirculating = (filteredPeggedAssets: IPegged[], defaultSorti
 	const extraPeggedEnabled: ExtraTvls = useGetExtraPeggedEnabled()
 
 	const peggedAssetTotals = useMemo(() => {
-		const updatedPeggedAssets = filteredPeggedAssets.map(({ circulating, unreleased, pegType, price, ...props }) => {
-			if (extraPeggedEnabled['unreleased'] && unreleased) {
-				circulating += unreleased
-			}
+		const updatedPeggedAssets = filteredPeggedAssets.map(
+			({ circulating, unreleased, pegType, pegDeviation, ...props }) => {
+				if (extraPeggedEnabled['unreleased'] && unreleased) {
+					circulating += unreleased
+				}
 
-			let floatingPeg = false
-			if (pegType === 'peggedVAR') {
-				floatingPeg = true
-			}
+				let floatingPeg = false
+				if (pegType === 'peggedVAR') {
+					floatingPeg = true
+				}
 
-			let depeggedTwoPercent = false
-			if (pegType === 'peggedUSD') {
-				let percentChange = getPercentChange(price, 1)
-				if (2 < Math.abs(percentChange)) {
+				let depeggedTwoPercent = false
+				if (2 < Math.abs(pegDeviation)) {
 					depeggedTwoPercent = true
 				}
-			}
 
-			return {
-				circulating,
-				unreleased,
-				pegType,
-				price,
-				depeggedTwoPercent,
-				floatingPeg,
-				...props
+				return {
+					circulating,
+					unreleased,
+					pegType,
+					pegDeviation,
+					depeggedTwoPercent,
+					floatingPeg,
+					...props
+				}
 			}
-		})
+		)
 
 		if (defaultSortingColumn === undefined) {
 			return updatedPeggedAssets.sort((a, b) => b.mcap - a.mcap)

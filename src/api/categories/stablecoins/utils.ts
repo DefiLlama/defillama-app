@@ -23,11 +23,22 @@ export const peggedPropertiesToKeep = [
 	'circulatingPrevMonth'
 ]
 
+const getTargetPrice = (pegType: string, ratesChart: any, daysBefore: number) => {
+	const currencyTicker = pegType.slice(-3)
+	if (currencyTicker === 'USD') {
+		return 1
+	}
+	const rates = ratesChart?.[ratesChart.length - 1 - daysBefore] ?? null
+	const rate = rates?.rates?.[currencyTicker]
+	return 1 / parseFloat(rate)
+}
+
 export const formatPeggedAssetsData = ({
 	chain = '',
 	peggedAssets = [],
 	chartDataByPeggedAsset = [],
 	priceData = [],
+	rateData = [],
 	peggedNameToIndexObj = {},
 	peggedAssetProps = [...peggedPropertiesToKeep]
 }) => {
@@ -66,14 +77,13 @@ export const formatPeggedAssetsData = ({
 		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
 
 		if (pegType !== 'peggedVAR' && price) {
-			let targetPrice = pegType === 'peggedEUR' ? parseFloat(priceData[priceData.length - 1]?.prices?.['eur']) : 1
+			let targetPrice = getTargetPrice(pegType, rateData, 0)
 			pegged.pegDeviation = getPercentChange(price, targetPrice)
-
 			let greatestDeviation = 0
 			for (let i = 0; i < 30; i++) {
 				let historicalPrices = priceData[priceData.length - i - 1]
+				let historicalTargetPrice = getTargetPrice(pegType, rateData, i)
 				let historicalPrice = parseFloat(historicalPrices?.prices?.[peggedGeckoID])
-				let historicalTargetPrice = pegType === 'peggedEUR' ? parseFloat(historicalPrices?.prices?.['eur']) : 1
 				if (historicalPrice && historicalTargetPrice) {
 					let timestamp = historicalPrices?.date
 					let deviation = historicalPrice - historicalTargetPrice
