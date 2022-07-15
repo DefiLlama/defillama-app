@@ -15,7 +15,7 @@ export const useFetchProtocol = (protocolName) => {
 		fetcher
 	)
 
-	const loading = protocolName && ((!data && !error) || (data.length < 7 && (!hourlyData || !hourlyDataError)))
+	const loading = protocolName && ((!data && !error) || (data?.length < 7 && (!hourlyData || !hourlyDataError)))
 
 	return { data, error, loading }
 }

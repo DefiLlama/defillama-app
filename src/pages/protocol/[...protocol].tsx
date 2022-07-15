@@ -4,10 +4,11 @@ import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { revalidate } from '~/api'
 import { getProtocols, getProtocol, fuseProtocolData } from '~/api/categories/protocols'
+import { IFusedProtocolData, IProtocolResponse } from '~/api/types'
 
 type PageParams = {
 	protocol: string
-	protocolData: any
+	protocolData: IFusedProtocolData
 	backgroundColor: string
 }
 
@@ -16,13 +17,7 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 		protocol: [protocol]
 	}
 }) => {
-	const protocolRes = await getProtocol(protocol)
-
-	if (!protocolRes || protocolRes.statusCode === 400) {
-		return {
-			notFound: true
-		}
-	}
+	const protocolRes: IProtocolResponse = await getProtocol(protocol)
 
 	delete protocolRes.tokensInUsd
 	delete protocolRes.tokens

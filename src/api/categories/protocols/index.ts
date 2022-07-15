@@ -1,5 +1,13 @@
 import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from '~/utils'
-import type { IChainData, IChainGeckoId, IOracleProtocols, IProtocol, IStackedDataset } from '~/api/types'
+import type {
+	IChainData,
+	IChainGeckoId,
+	IFusedProtocolData,
+	IOracleProtocols,
+	IProtocolResponse,
+	IStackedDataset,
+	LiteProtocol
+} from '~/api/types'
 import {
 	CHART_API,
 	CONFIG_API,
@@ -28,7 +36,7 @@ export const getProtocols = () =>
 
 export const getProtocol = async (protocolName: string) => {
 	try {
-		const data: IProtocol = await fetch(`${PROTOCOL_API}/${protocolName}`).then((r) => r.json())
+		const data: IProtocolResponse = await fetch(`${PROTOCOL_API}/${protocolName}`).then((r) => r.json())
 		const tvl = data?.tvl ?? []
 		if (tvl.length < 7) {
 			const hourlyData = await fetch(`${HOURLY_PROTOCOL_API}/${protocolName}`).then((r) => r.json())
@@ -39,7 +47,7 @@ export const getProtocol = async (protocolName: string) => {
 	}
 }
 
-export const fuseProtocolData = (protocolData) => {
+export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtocolData => {
 	const tvlBreakdowns = protocolData?.currentChainTvls ?? {}
 
 	const tvl = protocolData?.tvl ?? []
@@ -105,6 +113,7 @@ export async function getProtocolsPageData(category?: string, chain?: string) {
 // - used in /airdrops, /protocols, /recent, /top-gainers-and-losers, /top-protocols, /watchlist
 export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep) {
 	const { protocols, chains } = await getProtocolsRaw()
+
 	const filteredProtocols = formatProtocolsData({
 		protocols,
 		protocolProps: propsToKeep
@@ -402,7 +411,7 @@ export const getChainsPageData = async (category: string) => {
 	// calc no.of protocols present in each chains as well as extra tvl data like staking , pool2 etc
 	const numProtocolsPerChain = {}
 	const extraPropPerChain = {}
-	res.protocols.forEach((protocol: IProtocol) => {
+	res.protocols.forEach((protocol: LiteProtocol) => {
 		protocol.chains.forEach((chain) => {
 			numProtocolsPerChain[chain] = (numProtocolsPerChain[chain] || 0) + 1
 		})

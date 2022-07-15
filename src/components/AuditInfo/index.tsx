@@ -10,7 +10,7 @@ const Audits = styled.section`
 `
 
 interface IProps {
-	audits: number
+	audits: number | string
 	auditLinks: string[]
 	color?: string
 }

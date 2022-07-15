@@ -1,4 +1,5 @@
 const blockExplorers = {
+	ethereum: ['https://etherscan.io/token/', 'Etherscan'],
 	bsc: ['https://bscscan.com/address/', 'Bscscan'],
 	xdai: ['https://blockscout.com/xdai/mainnet/address/', 'BlockScout'],
 	avax: ['https://snowtrace.io/address/', 'Snowtrace'],
@@ -25,7 +26,7 @@ const blockExplorers = {
 	iotex: ['https://iotexscan.io/address/', 'IoTeX Explorer'],
 	callisto: ['https://explorer.callisto.network/address/', 'Callisto Explorer'],
 	aurora: ['https://explorer.mainnet.aurora.dev/address/', 'Aurora Explorer'],
-	boba: ['https://blockexplorer.boba.network/tokens/', 'Boba Explorer'],
+	boba: ['https://bobascan.com/address/', 'Boba Explorer'],
 	elrond: ['https://elrondscan.com/token/', 'Elrondscan'],
 	xdc: ['https://explorer.xinfin.network/token/', 'XDC Explorer'],
 	csc: ['https://www.coinex.net/address/', 'CSC Explorer'],
@@ -51,9 +52,11 @@ export const getBlockExplorer = (address: string = '') => {
 			blockExplorerLink = explorer[0] + chainAddress
 			blockExplorerName = explorer[1]
 		}
-	} else if (typeof address === 'string') {
-		blockExplorerLink = 'https://etherscan.io/token/' + address
-		blockExplorerName = 'Etherscan'
+	} else {
+		if (typeof address === 'string' && address !== '') {
+			blockExplorerLink = 'https://etherscan.io/token/' + address
+			blockExplorerName = 'Etherscan'
+		}
 	}
 
 	return {
