@@ -411,7 +411,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 	} = tvlByChain.reduce(
 		(acc, [name, tvl]: [string, number]) => {
 			// skip masterchef tvl type and only return non zero tvls
-			if (name === 'masterchef' || tvl === 0) return acc
+			if (name === 'masterchef') return acc
 
 			// check if tvl name is addl tvl type and is toggled
 			if (isLowerCase(name[0]) && extraTvlProps.includes(name) && tvl !== 0) {
