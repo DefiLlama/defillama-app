@@ -48,7 +48,7 @@ export const options = [
 	{
 		name: 'APY > 0',
 		key: APY_GT0,
-		help: 'Remove pools which 0 apy values'
+		help: 'Remove pools with apy values of 0'
 	}
 ]
 
