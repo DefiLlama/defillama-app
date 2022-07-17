@@ -2,7 +2,7 @@ import * as React from 'react'
 import Layout from '~/layout'
 import ChainsContainer from '~/containers/ChainsContainer'
 import { revalidate } from '~/api'
-import { getChainsPageData } from '~/api/categories/protocols'
+import { getNewChainsPageData } from '~/api/categories/protocols'
 import { CONFIG_API } from '~/constants/index'
 
 export async function getStaticProps({
@@ -10,7 +10,7 @@ export async function getStaticProps({
 		category: [category]
 	}
 }) {
-	const data = await getChainsPageData(category)
+	const data = await getNewChainsPageData(category)
 	return {
 		...data,
 		revalidate: revalidate()

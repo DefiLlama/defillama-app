@@ -2,10 +2,10 @@ import * as React from 'react'
 import Layout from '~/layout'
 import ChainsContainer from '~/containers/ChainsContainer'
 import { revalidate } from '~/api'
-import { getChainsPageData } from '~/api/categories/protocols'
+import { getNewChainsPageData } from '~/api/categories/protocols'
 
 export async function getStaticProps() {
-	const data = await getChainsPageData('All')
+	const data = await getNewChainsPageData('All')
 	return {
 		...data,
 		revalidate: revalidate()
