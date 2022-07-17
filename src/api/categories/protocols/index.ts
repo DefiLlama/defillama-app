@@ -305,20 +305,20 @@ export async function getForkPageData(fork = null) {
 }
 
 export const getNewChainsPageData = async (category: string) => {
-	const res = await fetch(`https://api.llama.fi/chains2/${category}`).then((res) => res.json())
+	const { categories, ...rest } = await fetch(`https://api.llama.fi/chains2/${category}`).then((res) => res.json())
 
 	const categoryLinks = [
 		{ label: 'All', to: '/chains' },
 		{ label: 'Non-EVM', to: '/chains/Non-EVM' }
 	].concat(
-		res.categories.map((category) => ({
+		categories.map((category) => ({
 			label: category,
 			to: `/chains/${category}`
 		}))
 	)
 
 	return {
-		props: { ...res, categoryLinks }
+		props: { ...rest, category, categories: categoryLinks }
 	}
 }
 
