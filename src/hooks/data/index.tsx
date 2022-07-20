@@ -367,8 +367,13 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
 }
 
 // returns tvl by day for a group of tokens
-export const useCalcGroupExtraTvlsByDay = (chains) => {
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
+	let extraTvlsEnabled = useGetExtraTvlEnabled()
+	let tvlKey = "tvl"
+	if(tvlTypes !== null){
+		tvlKey = tvlTypes[tvlKey]
+		extraTvlsEnabled = Object.fromEntries(Object.entries(extraTvlsEnabled).map(([toggle, val])=>[tvlTypes[toggle], val]));
+	}
 
 	const { data, daySum } = useMemo(() => {
 		const daySum = {}
@@ -377,11 +382,11 @@ export const useCalcGroupExtraTvlsByDay = (chains) => {
 			let totalDaySum = 0
 
 			Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
-				let sum = chainTvls.tvl
-				totalDaySum += chainTvls.tvl || 0
+				let sum = chainTvls[tvlKey]
+				totalDaySum += chainTvls[tvlKey] || 0
 
 				for (const c in chainTvls) {
-					if (c === 'doublecounted') {
+					if (c === 'doublecounted' || c === 'd') {
 						sum -= chainTvls[c]
 						totalDaySum -= chainTvls[c]
 					}
