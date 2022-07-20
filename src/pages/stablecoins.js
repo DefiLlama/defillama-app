@@ -16,11 +16,9 @@ export default function PeggedAssets({
 	chains,
 	filteredPeggedAssets,
 	peggedAssetNames,
+	peggedNameToChartDataIndex,
 	chartData,
-	peggedAreaChartData,
-	peggedAreaMcapData,
-	stackedDataset,
-	peggedChartType,
+	chartDataByPeggedAsset,
 	chain
 }) {
 	return (
@@ -30,11 +28,9 @@ export default function PeggedAssets({
 				selectedChain={chain}
 				filteredPeggedAssets={filteredPeggedAssets}
 				peggedAssetNames={peggedAssetNames}
+				peggedNameToChartDataIndex={peggedNameToChartDataIndex}
 				chartData={chartData}
-				peggedAreaChartData={peggedAreaChartData}
-				peggedAreaMcapData={peggedAreaMcapData}
-				stackedDataset={stackedDataset}
-				peggedChartType={peggedChartType}
+				chartDataByPeggedAsset={chartDataByPeggedAsset}
 			/>
 		</Layout>
 	)

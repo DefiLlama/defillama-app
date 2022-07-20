@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { IFormattedProtocol, IParentProtocol } from '~/api/types'
 import { useGetExtraTvlEnabled, useGroupEnabled, useGetExtraPeggedEnabled } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, getPercentChange } from '~/utils'
+import { capitalizeFirstLetter, getPercentChange, getPrevPeggedTotalFromChart } from '~/utils'
 import { groupProtocols } from './utils'
 
 // TODO cleanup
@@ -429,7 +429,7 @@ export const useCalcExtraTvlsByDay = (data) => {
 }
 
 // PEGGED ASSETS
-export const useCalcCirculating = (filteredPeggedAssets: IPegged[], defaultSortingColumn?: string, dir?: 'asc') => {
+export const useCalcCirculating = (filteredPeggedAssets: IPegged[]) => {
 	const extraPeggedEnabled: ExtraTvls = useGetExtraPeggedEnabled()
 
 	const peggedAssetTotals = useMemo(() => {
@@ -461,18 +461,89 @@ export const useCalcCirculating = (filteredPeggedAssets: IPegged[], defaultSorti
 			}
 		)
 
-		if (defaultSortingColumn === undefined) {
-			return updatedPeggedAssets.sort((a, b) => b.mcap - a.mcap)
-		} else {
-			return updatedPeggedAssets.sort((a, b) => {
-				if (dir === 'asc') {
-					return a[defaultSortingColumn] - b[defaultSortingColumn]
-				} else return b[defaultSortingColumn] - a[defaultSortingColumn]
-			})
-		}
-	}, [filteredPeggedAssets, extraPeggedEnabled, defaultSortingColumn, dir])
+		return updatedPeggedAssets.sort((a, b) => b.mcap - a.mcap)
+	}, [filteredPeggedAssets, extraPeggedEnabled])
 
 	return peggedAssetTotals
+}
+
+export const useCreatePeggedCharts = (
+	chartData,
+	chartDataByPeggedAsset,
+	peggedAssetNames,
+	chartType,
+	filteredIndexes?,
+	selectedChain?,
+	toggles?,
+) => {
+	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useMemo(() => {
+		const { peggedUSD, peggedEUR, peggedVAR } = toggles || { peggedUSD: true, peggedEUR: true, peggedVAR: true }
+		let unformattedAreaData = {}
+		let unformattedTotalData = {}
+		let stackedDatasetObject = {}
+		chartDataByPeggedAsset.map((charts, i) => {
+			if (!charts.length || !filteredIndexes.includes(i)) return
+			charts.forEach((chart) => {
+				const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
+				const peggedName = peggedAssetNames[i]
+				const date = chart.date
+				if (date > 1596248105 && mcap) {
+					if (selectedChain === 'All' || date > 1652241600) {
+						// for individual chains data is currently only backfilled to May 11, 2022
+						unformattedAreaData[date] = unformattedAreaData[date] || {}
+						unformattedAreaData[date][peggedAssetNames[i]] = mcap
+
+						unformattedTotalData[date] = unformattedTotalData[date] || {}
+						unformattedTotalData[date]['Total Stablecoins Market Cap'] =
+							(unformattedTotalData[date]['Total Stablecoins Market Cap'] ?? 0) + mcap
+
+						if (mcap !== null && mcap !== 0) {
+							if (stackedDatasetObject[date] == undefined) {
+								stackedDatasetObject[date] = {}
+							}
+							const b = stackedDatasetObject[date][peggedName]
+							stackedDatasetObject[date][peggedName] = { ...b, circulating: mcap ?? 0 }
+						}
+					}
+				}
+			})
+		})
+
+		if ((selectedChain === 'All' && peggedUSD && peggedEUR && peggedVAR) || selectedChain === undefined) {
+			unformattedTotalData = {}
+			chartData.map((chart) => {
+				const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
+				const date = chart.date
+				if (date > 1596248105 && mcap) {
+					unformattedTotalData[date] = unformattedTotalData[date] || {}
+					unformattedTotalData[date]['Total Stablecoins Market Cap'] = mcap
+				}
+			})
+		}
+
+		const peggedAreaChartData = Object.entries(unformattedAreaData).map(([date, chart]) => {
+			if (typeof chart === 'object') {
+				return {
+					date: date,
+					...chart
+				}
+			}
+		})
+
+		const peggedAreaTotalData = Object.entries(unformattedTotalData).map(([date, chart]) => {
+			if (typeof chart === 'object') {
+				return {
+					date: date,
+					...chart
+				}
+			}
+		})
+
+		const stackedDataset = Object.entries(stackedDatasetObject)
+
+		return [peggedAreaChartData, peggedAreaTotalData, stackedDataset]
+	}, [chartDataByPeggedAsset, chartData, filteredIndexes, chartType])
+	return [peggedAreaChartData, peggedAreaTotalData, stackedDataset]
 }
 
 // returns circulating by day for a group of tokens
