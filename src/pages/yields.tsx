@@ -1,21 +1,32 @@
+import { mutate } from 'swr'
 import Layout from '~/layout'
 import YieldPage from '~/components/YieldsPage'
-import { revalidate } from '~/api'
-import { getYieldPageData } from '~/api/categories/yield'
+import { useYieldPageData } from '~/api/categories/yield/client'
+import { arrayFetcher } from '~/utils/useSWR'
+import { YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
+import { useMemo } from 'react'
+import { formatYieldsPageData } from '~/api/categories/yield/utils'
 
-export async function getStaticProps() {
-	const data = await getYieldPageData()
-
-	return {
-		...data,
-		revalidate: revalidate(23)
-	}
+async function prefetchData() {
+	return await arrayFetcher([YIELD_POOLS_API, YIELD_CONFIG_API]).then((data) => {
+		mutate('/pools-and-config', data, false)
+	})
 }
 
-export default function ApyHomePage(props) {
+// if we are on the browser trigger a prefetch as soon as possible
+if (typeof window !== 'undefined') prefetchData()
+
+export default function ApyHomePage() {
+	const { data, loading } = useYieldPageData()
+
+	const formattedData = useMemo(() => {
+		if (loading || !data) return { pools: [], chainList: [], projectList: [] }
+		return formatYieldsPageData(data)
+	}, [loading, data])
+
 	return (
 		<Layout title={`Yield Rankings - DefiLlama`} defaultSEO>
-			<YieldPage {...props} />
+			<YieldPage loading={loading} {...formattedData} />
 		</Layout>
 	)
 }
