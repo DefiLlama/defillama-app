@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import styled from 'styled-components'
+import ReactMarkdown from 'react-markdown'
 import Layout from '~/layout'
 import { revalidate } from '~/api'
 
@@ -16,7 +17,7 @@ const Header = styled.h1`
 	}
 `
 
-const Text = styled.p`
+const Text = styled.div`
 	color: ${({ theme }) => theme.text1};
 	white-space: pre-line;
 	line-height: 1.5rem;
@@ -27,6 +28,18 @@ const Text = styled.p`
 
 	a {
 		color: inherit;
+	}
+
+	p {
+		margin: 0.5rem 0;
+	}
+
+	h2 {
+		margin: 2rem 0 1rem 0;
+	}
+
+	h3 {
+		margin: 1rem 0 0.5rem 0;
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
@@ -57,23 +70,35 @@ const Banner = styled.p`
 	}
 `
 
-const Message = ({ text }: { text: string }) => {
+const Content = ({ text }: { text: string }) => {
 	return (
 		<>
-			{text.includes('http') ? (
-				<a href={text} target="_blank" rel="noopener noreferrer">
-					{text}
-				</a>
-			) : (
-				text
-			)}
-			<br />
+			<ReactMarkdown
+				components={
+					{
+						// h1: 'h2',
+						// // Rewrite `em`s (`*like so*`) to `i` with a red foreground color.
+						// em: ({ node, ...props }) => <i style={{ color: 'red' }} {...props} />
+					}
+				}
+			>
+				{text}
+			</ReactMarkdown>
 		</>
 	)
 }
 
 export default function Chains({ messages }) {
-	const splitText = messages?.split('\n') ?? []
+	console.log(messages)
+
+	// if "Threads🧵" then turn into h2
+	// if "Watch📺" then turn into h2
+	// if **foobar**📺 then turn into h3
+	// if http then merge with pervious line into <a/>
+	const text = messages
+		.replace(/(.*)\n(http.*)/g, '[$1]($2)') // merge title + link into markdown links
+		.replace(/(\w+)\s*(\p{Emoji_Presentation}|\p{Extended_Pictographic})\n/gu, '## $1 $2\n')
+		.replace(/\*\*(\w+)\*\*\s*(\p{Emoji_Presentation}|\p{Extended_Pictographic})\n/gu, '### $1 $2\n')
 
 	return (
 		<Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
@@ -89,9 +114,7 @@ export default function Chains({ messages }) {
 			<Header>Daily news roundup with the 🦙</Header>
 
 			<Text>
-				{splitText.map((m, index) => (
-					<Message text={m} key={m + index} />
-				))}
+				<Content text={text} />
 			</Text>
 		</Layout>
 	)
