@@ -529,7 +529,7 @@ function PeggedAssetsOverview({
 
 	return (
 		<>
-			<PeggedSearch step={{ category: 'Pegged Assets', name: title, route: 'peggedassets' }} />
+			<PeggedSearch step={{ category: 'Stablecoins', name: title }} />
 
 			<ChartFilters>
 				<PeggedViewSwitch />

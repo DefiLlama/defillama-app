@@ -338,7 +338,7 @@ function PeggedChainsOverview({
 
 	return (
 		<>
-			<PeggedSearch step={{ category: 'Pegged Assets', name: title, route: 'peggedassets' }} />
+			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains' }} />
 
 			<ChartFilters>
 				<PeggedViewSwitch />

@@ -369,10 +369,12 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
 // returns tvl by day for a group of tokens
 export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 	let extraTvlsEnabled = useGetExtraTvlEnabled()
-	let tvlKey = "tvl"
-	if(tvlTypes !== null){
+	let tvlKey = 'tvl'
+	if (tvlTypes !== null) {
 		tvlKey = tvlTypes[tvlKey]
-		extraTvlsEnabled = Object.fromEntries(Object.entries(extraTvlsEnabled).map(([toggle, val])=>[tvlTypes[toggle], val]));
+		extraTvlsEnabled = Object.fromEntries(
+			Object.entries(extraTvlsEnabled).map(([toggle, val]) => [tvlTypes[toggle], val])
+		)
 	}
 
 	const { data, daySum } = useMemo(() => {
@@ -740,7 +742,9 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 				}
 			}
 		}
-		return (Object.values(finalData) as GroupChainPegged[]).sort((a, b) => b.circulating - a.circulating)
+		return (Object.values(finalData) as GroupChainPegged[])
+			.filter((chain) => chain.name)
+			.sort((a, b) => b.circulating - a.circulating)
 	}, [chains, bridgeInfoObject])
 
 	return data

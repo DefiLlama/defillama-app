@@ -146,6 +146,16 @@ export const MobileOnlyEntry = styled(Entry)`
 
 export const Footer = ({ app }: { app: 'defi' | 'yields' }) => {
 	const [darkMode, toggleDarkMode] = useDarkModeManager()
+
+	const downloadAll = ()=>{
+		if(confirm(`This data export contains a lot of data and is not well suited for most types of analysis.
+We heavily recommend to use the csv exports available on other pages through the ".csv" buttons, since this export is hard to analyze unless you make heavy use of code.
+
+Do you still wish to download it?`)){
+			window.location.href = "https://datasets.llama.fi/all.csv"
+		}
+	}
+
 	return (
 		<>
 			<FooterWrapper>
@@ -189,11 +199,11 @@ export const Footer = ({ app }: { app: 'defi' | 'yields' }) => {
 							</a>
 						</Link>
 
-						<Link href="https://datasets.llama.fi/all.csv" passHref>
+						<p onClick={downloadAll}>
 							<a target="_blank" rel="noopener noreferrer">
 								Download Data
 							</a>
-						</Link>
+						</p>
 					</>
 				) : (
 					<Link href="https://datasets.llama.fi/yields/yield_rankings.csv" passHref>
