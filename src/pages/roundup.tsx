@@ -19,19 +19,21 @@ const Header = styled.h1`
 
 const Text = styled.div`
 	color: ${({ theme }) => theme.text1};
-	white-space: pre-line;
-	line-height: 1.5rem;
 	font-size: 1rem;
-	margin: 0 auto;
+	margin: 2rem auto;
 	max-width: 500px;
-	word-break: break-all;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 
 	a {
 		color: inherit;
 	}
 
 	p {
-		margin: 0.5rem 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		margin: 0.3rem 0;
 	}
 
 	h2 {
@@ -39,13 +41,7 @@ const Text = styled.div`
 	}
 
 	h3 {
-		margin: 1rem 0 0.5rem 0;
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
+		margin: 1rem 0 0.6rem 0;
 	}
 `
 
@@ -74,13 +70,9 @@ const Content = ({ text }: { text: string }) => {
 	return (
 		<>
 			<ReactMarkdown
-				components={
-					{
-						// h1: 'h2',
-						// // Rewrite `em`s (`*like so*`) to `i` with a red foreground color.
-						// em: ({ node, ...props }) => <i style={{ color: 'red' }} {...props} />
-					}
-				}
+				components={{
+					a: ({ node, ...props }) => <a target="_blank" rel="noopener noreferrer" {...props} />
+				}}
 			>
 				{text}
 			</ReactMarkdown>
@@ -89,16 +81,10 @@ const Content = ({ text }: { text: string }) => {
 }
 
 export default function Chains({ messages }) {
-	console.log(messages)
-
-	// if "Threads🧵" then turn into h2
-	// if "Watch📺" then turn into h2
-	// if **foobar**📺 then turn into h3
-	// if http then merge with pervious line into <a/>
 	const text = messages
 		.replace(/(.*)\n(http.*)/g, '[$1]($2)') // merge title + link into markdown links
-		.replace(/(\w+)\s*(\p{Emoji_Presentation}|\p{Extended_Pictographic})\n/gu, '## $1 $2\n')
-		.replace(/\*\*(\w+)\*\*\s*(\p{Emoji_Presentation}|\p{Extended_Pictographic})\n/gu, '### $1 $2\n')
+		.replace(/(\w+)\s*(\p{Emoji})\n/gu, '## $1 $2\n') // Watch📺 -> ## Watch 📺
+		.replace(/\*\*([\w\s'".&,?!;:]+)\*\*\s*(\p{Emoji})/gu, '### $1 $2') // **Threads**🧵 -> ### Threads 🧵
 
 	return (
 		<Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
@@ -121,37 +107,10 @@ export default function Chains({ messages }) {
 }
 
 export async function getStaticProps() {
-	// const headers = new Headers()
-	// headers.append('Authorization', `Bot ${process.env.ROUND_UP_BOT_TOKEN}`)
-
-	// let data = []
-
-	// const response = await fetch('https://discordapp.com/api/channels/965023197365960734/messages', {
-	// 	method: 'GET',
-	// 	headers: headers,
-	// 	redirect: 'follow'
-	// })
-
-	// if (response.ok) {
-	// 	data = await response.json()
-	// }
-
-	// const index = data.findIndex((d) => d.content.startsWith('Daily news round-up with the')) ?? null
-
-	// const raw = Number.isNaN(index) ? [] : data.slice(0, index + 1)
-
-	// const messages = raw
-	// 	.reverse()
-	// 	.map((m) => m.content)
-	// 	.join('')
-
-	// const splitLlama = messages.split('Daily news round-up with the 🦙')
-
 	const response = await fetch('https://defillama.com/api/roundupMarkdown')
 	const messages = await response.json()
 
 	const splitLlama = messages.split('Daily news round-up with the 🦙')
-	console.log(splitLlama)
 
 	return {
 		props: {
