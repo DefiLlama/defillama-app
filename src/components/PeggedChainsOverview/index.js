@@ -277,8 +277,8 @@ function PeggedChainsOverview({
 	}
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
-		const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, "totalCirculatingUSD")
-		const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 7, "totalCirculatingUSD")
+		const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, 'totalCirculatingUSD')
+		const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 7, 'totalCirculatingUSD')
 		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
 		return { percentChange, totalMcapCurrent }
 	}, [chartData])
@@ -323,7 +323,7 @@ function PeggedChainsOverview({
 
 	return (
 		<>
-			<PeggedSearch step={{ category: 'Pegged Assets', name: title, route: 'peggedassets' }} />
+			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains' }} />
 
 			<PeggedViewSwitch />
 
