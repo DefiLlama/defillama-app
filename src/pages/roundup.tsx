@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import styled from 'styled-components'
+import ReactMarkdown from 'react-markdown'
 import Layout from '~/layout'
 import { revalidate } from '~/api'
 
@@ -16,23 +17,31 @@ const Header = styled.h1`
 	}
 `
 
-const Text = styled.p`
+const Text = styled.div`
 	color: ${({ theme }) => theme.text1};
-	white-space: pre-line;
-	line-height: 1.5rem;
 	font-size: 1rem;
-	margin: 0 auto;
+	margin: 2rem auto;
 	max-width: 500px;
-	word-break: break-all;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 
 	a {
 		color: inherit;
 	}
 
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+	p {
 		overflow: hidden;
-		white-space: nowrap;
 		text-overflow: ellipsis;
+		margin: 0.3rem 0;
+	}
+
+	h2 {
+		margin: 2rem 0 1rem 0;
+	}
+
+	h3 {
+		margin: 1rem 0 0.6rem 0;
 	}
 `
 
@@ -57,23 +66,25 @@ const Banner = styled.p`
 	}
 `
 
-const Message = ({ text }: { text: string }) => {
+const Content = ({ text }: { text: string }) => {
 	return (
 		<>
-			{text.includes('http') ? (
-				<a href={text} target="_blank" rel="noopener noreferrer">
-					{text}
-				</a>
-			) : (
-				text
-			)}
-			<br />
+			<ReactMarkdown
+				components={{
+					a: ({ node, ...props }) => <a target="_blank" rel="noopener noreferrer" {...props} />
+				}}
+			>
+				{text}
+			</ReactMarkdown>
 		</>
 	)
 }
 
 export default function Chains({ messages }) {
-	const splitText = messages?.split('\n') ?? []
+	const text = messages
+		.replace(/(.*)\n(http.*)/g, '[$1]($2)') // merge title + link into markdown links
+		.replace(/(\w+)\s*(\p{Emoji})\n/gu, '## $1 $2\n') // Watch📺 -> ## Watch 📺
+		.replace(/\*\*([\w\s'".&,?!;:]+)\*\*\s*(\p{Emoji})/gu, '### $1 $2') // **Threads**🧵 -> ### Threads 🧵
 
 	return (
 		<Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
@@ -89,38 +100,15 @@ export default function Chains({ messages }) {
 			<Header>Daily news roundup with the 🦙</Header>
 
 			<Text>
-				{splitText.map((m, index) => (
-					<Message text={m} key={m + index} />
-				))}
+				<Content text={text} />
 			</Text>
 		</Layout>
 	)
 }
 
 export async function getStaticProps() {
-	const headers = new Headers()
-	headers.append('Authorization', `Bot ${process.env.ROUND_UP_BOT_TOKEN}`)
-
-	let data = []
-
-	const response = await fetch('https://discordapp.com/api/channels/965023197365960734/messages', {
-		method: 'GET',
-		headers: headers,
-		redirect: 'follow'
-	})
-
-	if (response.ok) {
-		data = await response.json()
-	}
-
-	const index = data.findIndex((d) => d.content.startsWith('Daily news round-up with the')) ?? null
-
-	const raw = Number.isNaN(index) ? [] : data.slice(0, index + 1)
-
-	const messages = raw
-		.reverse()
-		.map((m) => m.content)
-		.join('')
+	const response = await fetch('https://defillama.com/api/roundupMarkdown')
+	const messages = await response.json()
 
 	const splitLlama = messages.split('Daily news round-up with the 🦙')
 
