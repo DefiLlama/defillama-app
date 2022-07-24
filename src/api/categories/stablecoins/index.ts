@@ -9,7 +9,7 @@ import {
 	PEGGEDPRICES_API,
 	PEGGEDRATES_API,
 	PEGGEDS_API,
-	PEGGED_API,
+	PEGGED_API
 } from '~/constants'
 import { formatPeggedAssetsData, formatPeggedChainsData } from './utils'
 
