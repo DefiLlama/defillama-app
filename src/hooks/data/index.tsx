@@ -84,6 +84,13 @@ interface IPegged {
 		value: number
 	}
 	bridgedAmount: number
+	pegDeviation: number
+	getDeviation_1m: number
+	pegDeviationInfo: {
+		timestamp: number
+		price: number
+		priceSource: string
+	}
 }
 
 interface GroupChainPegged extends IPegged {
@@ -361,8 +368,17 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
 }
 
 // returns tvl by day for a group of tokens
-export const useCalcGroupExtraTvlsByDay = (chains) => {
-	const extraTvlsEnabled = useSettingsManager(extraTvlSettings)
+export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
+	let extraTvlsEnabled = useSettingsManager(extraTvlSettings)
+
+	let tvlKey = 'tvl'
+
+	if (tvlTypes !== null) {
+		tvlKey = tvlTypes[tvlKey]
+		extraTvlsEnabled = Object.fromEntries(
+			Object.entries(extraTvlsEnabled).map(([toggle, val]) => [tvlTypes[toggle], val])
+		)
+	}
 
 	const { data, daySum } = useMemo(() => {
 		const daySum = {}
@@ -371,11 +387,11 @@ export const useCalcGroupExtraTvlsByDay = (chains) => {
 			let totalDaySum = 0
 
 			Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
-				let sum = chainTvls.tvl
-				totalDaySum += chainTvls.tvl || 0
+				let sum = chainTvls[tvlKey]
+				totalDaySum += chainTvls[tvlKey] || 0
 
 				for (const c in chainTvls) {
-					if (c === 'doublecounted') {
+					if (c === 'doublecounted' || c === 'd') {
 						sum -= chainTvls[c]
 						totalDaySum -= chainTvls[c]
 					}
@@ -422,34 +438,33 @@ export const useCalcCirculating = (filteredPeggedAssets: IPegged[], defaultSorti
 	const extraPeggedEnabled: ExtraTvls = useSettingsManager(extraPeggedOptions)
 
 	const peggedAssetTotals = useMemo(() => {
-		const updatedPeggedAssets = filteredPeggedAssets.map(({ circulating, unreleased, pegType, price, ...props }) => {
-			if (extraPeggedEnabled['unreleased'] && unreleased) {
-				circulating += unreleased
-			}
+		const updatedPeggedAssets = filteredPeggedAssets.map(
+			({ circulating, unreleased, pegType, pegDeviation, ...props }) => {
+				if (extraPeggedEnabled['unreleased'] && unreleased) {
+					circulating += unreleased
+				}
 
-			let floatingPeg = false
-			if (pegType === 'peggedVAR') {
-				floatingPeg = true
-			}
+				let floatingPeg = false
+				if (pegType === 'peggedVAR') {
+					floatingPeg = true
+				}
 
-			let depeggedTwoPercent = false
-			if (pegType === 'peggedUSD') {
-				let percentChange = getPercentChange(price, 1)
-				if (2 < Math.abs(percentChange)) {
+				let depeggedTwoPercent = false
+				if (2 < Math.abs(pegDeviation)) {
 					depeggedTwoPercent = true
 				}
-			}
 
-			return {
-				circulating,
-				unreleased,
-				pegType,
-				price,
-				depeggedTwoPercent,
-				floatingPeg,
-				...props
+				return {
+					circulating,
+					unreleased,
+					pegType,
+					pegDeviation,
+					depeggedTwoPercent,
+					floatingPeg,
+					...props
+				}
 			}
-		})
+		)
 
 		if (defaultSortingColumn === undefined) {
 			return updatedPeggedAssets.sort((a, b) => b.mcap - a.mcap)
@@ -659,7 +674,9 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 				}
 			}
 		}
-		return (Object.values(finalData) as GroupChainPegged[]).sort((a, b) => b.circulating - a.circulating)
+		return (Object.values(finalData) as GroupChainPegged[])
+			.filter((chain) => chain.name)
+			.sort((a, b) => b.circulating - a.circulating)
 	}, [chains, bridgeInfoObject])
 
 	return data

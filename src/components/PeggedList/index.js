@@ -449,7 +449,7 @@ function PeggedAssetsOverview({
 
 	return (
 		<>
-			<PeggedSearch step={{ category: 'Home', name: 'Stablecoins' }} />
+			<PeggedSearch step={{ category: 'Stablecoins', name: title }} />
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>

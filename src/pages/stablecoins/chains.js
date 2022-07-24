@@ -6,10 +6,8 @@ import { getPeggedChainsPageData } from '~/api/categories/stablecoins'
 export async function getStaticProps() {
 	const props = await getPeggedChainsPageData()
 
-	if (!props.chainCirculatings || props.chainCirculatings?.length === 0) {
-		return {
-			notFound: true
-		}
+	if (!props.chainCirculatings || props.chainCirculatings?.length === 0) { // TODO: Remove
+		throw new Error("getPeggedChainsPageData() broken")
 	}
 	return {
 		props,

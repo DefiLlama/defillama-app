@@ -324,7 +324,7 @@ function PeggedChainsOverview({
 
 	return (
 		<>
-			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains', route: 'stablecoins' }} />
+			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains' }} />
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>

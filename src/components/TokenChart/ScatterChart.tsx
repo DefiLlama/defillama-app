@@ -112,9 +112,11 @@ export default function ScatterChart({ chartData }: IChartProps) {
 							'<br/>' +
 							'APY Geometric Average: ' +
 							params.value[1].toFixed(2) +
+							'%' +
 							'<br/>' +
 							'APY Standard Deviation: ' +
 							params.value[0].toFixed(2) +
+							'%' +
 							'<br/>' +
 							'Nb of collected daily datapoints: ' +
 							params.value[2]

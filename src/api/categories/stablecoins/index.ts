@@ -7,6 +7,7 @@ import {
 	PEGGEDCONFIG_API,
 	PEGGEDDOMINANCE_API,
 	PEGGEDPRICES_API,
+	PEGGEDRATES_API,
 	PEGGEDS_API,
 	PEGGED_API,
 } from '~/constants'
@@ -26,6 +27,8 @@ export const getPeggedAssets = () =>
 
 export const getPeggedPrices = () => fetch(PEGGEDPRICES_API).then((r) => r.json())
 
+export const getPeggedRates = () => fetch(PEGGEDRATES_API).then((r) => r.json())
+
 export const getPeggedBridgeInfo = () =>
 	fetch('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json').then((r) => r.json())
 
@@ -34,6 +37,7 @@ export async function getPeggedOverviewPageData(chain) {
 
 	const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '/all')).then((r) => r.json())
 	const priceData = await getPeggedPrices()
+	const rateData = await getPeggedRates()
 
 	let chartDataByPeggedAsset = []
 	let peggedAssetNames: string[] = [] // fix name of this variable
@@ -155,6 +159,7 @@ export async function getPeggedOverviewPageData(chain) {
 		peggedAssets,
 		chartDataByPeggedAsset,
 		priceData,
+		rateData,
 		peggedNameToIndexObj,
 		chain
 	})

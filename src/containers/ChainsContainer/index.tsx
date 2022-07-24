@@ -197,7 +197,8 @@ export default function ChainsContainer({
 	stackedDataset,
 	category,
 	categories,
-	chainsGroupbyParent
+	chainsGroupbyParent,
+	tvlTypes,
 }) {
 	const chainColor = useMemo(
 		() => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
@@ -222,7 +223,7 @@ export default function ChainsContainer({
 			.concat({ name: 'Others', value: otherTvl })
 	}, [chainTotals])
 
-	const { data: stackedData, daySum } = useCalcGroupExtraTvlsByDay(stackedDataset)
+	const { data: stackedData, daySum } = useCalcGroupExtraTvlsByDay(stackedDataset, tvlTypes)
 
 	const downloadCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique]]
