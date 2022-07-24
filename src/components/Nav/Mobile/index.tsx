@@ -13,7 +13,7 @@ export default function Mobile() {
 					<Image
 						src={Logo}
 						alt="Navigate to Home Page"
-						height={30}
+						height={36}
 						objectFit="contain"
 						objectPosition="left"
 						priority
