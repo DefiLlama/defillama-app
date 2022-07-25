@@ -441,6 +441,7 @@ function PeggedAssetsOverview({
 		return peggedAssets
 	}, [filteredPeggedAssets, peggedUSD, peggedEUR, peggedVAR])
 
+	const backfilledChains = ["All", "Ethereum"]
 	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useCreatePeggedCharts(
 		chartData,
 		chartDataByPeggedAsset,
@@ -448,7 +449,8 @@ function PeggedAssetsOverview({
 		chartType,
 		filteredIndexes,
 		selectedChain,
-		toggles
+		toggles,
+		backfilledChains
 	)
 
 	const handleRouting = (selectedChain) => {

@@ -477,6 +477,7 @@ export const useCreatePeggedCharts = (
 	filteredIndexes?,
 	selectedChain?,
 	toggles?,
+	backfilledChains = ['All']
 ) => {
 	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useMemo(() => {
 		const { peggedUSD, peggedEUR, peggedVAR } = toggles || { peggedUSD: true, peggedEUR: true, peggedVAR: true }
@@ -490,7 +491,7 @@ export const useCreatePeggedCharts = (
 				const peggedName = peggedAssetNames[i]
 				const date = chart.date
 				if (date > 1596248105 && mcap) {
-					if (selectedChain === 'All' || date > 1652241600) {
+					if (backfilledChains.includes(selectedChain) || date > 1652241600) {
 						// for individual chains data is currently only backfilled to May 11, 2022
 						unformattedAreaData[date] = unformattedAreaData[date] || {}
 						unformattedAreaData[date][peggedAssetNames[i]] = mcap
