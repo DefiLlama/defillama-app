@@ -38,9 +38,10 @@ export default function ProtocolTvlChart({
 
 	const extraTvlEnabled = useGetExtraTvlEnabled()
 
-	const { denomination, hideMcapChart } = router.query
+	const { denomination, hideMcapChart, hideEvents } = router.query
 
 	const hideMcap = hideMcapChart === 'true'
+	const hideHallmarks = hideEvents === 'true'
 
 	const DENOMINATIONS = React.useMemo(() => {
 		let d = [{ symbol: 'USD', geckoId: null }]
@@ -113,7 +114,7 @@ export default function ProtocolTvlChart({
 		} else return { tvlData: chartDataFiltered, moneySymbol: '$' }
 	}, [denomination, denominationHistory, chartDataFiltered, DENOMINATIONS])
 
-	const isValid =
+	const protocolHasMcap =
 		protocolCGData &&
 		!loading &&
 		protocolCGData['market_caps'] &&
@@ -125,7 +126,7 @@ export default function ProtocolTvlChart({
 		let chartData = []
 		let tokensUnique = ['TVL']
 
-		if (isValid && !hideMcap) {
+		if (protocolHasMcap && !hideMcap) {
 			tokensUnique = ['TVL', 'Mcap']
 
 			tvlData.forEach(([date, tvl]) => {
@@ -140,15 +141,17 @@ export default function ProtocolTvlChart({
 		}
 
 		return { finalData: chartData, tokensUnique }
-	}, [tvlData, protocolCGData, hideMcap, isValid])
+	}, [tvlData, protocolCGData, hideMcap, protocolHasMcap])
 
-	const toggleMcap = () => {
+	const toggleFilter = (type: 'mcap' | 'events') => {
+		const param = type === 'mcap' ? { hideMcapChart: !hideMcap } : { hideEvents: !hideHallmarks }
+
 		router.push(
 			{
 				pathname: router.pathname,
 				query: {
 					...router.query,
-					hideMcapChart: !hideMcap
+					...param
 				}
 			},
 			undefined,
@@ -168,11 +171,18 @@ export default function ProtocolTvlChart({
 						</Link>
 					))}
 				</Filters>
-				{isValid && (
-					<HideMcapChart>
-						<input type="checkbox" value="hideMcapChart" checked={hideMcap} onChange={toggleMcap} />
+
+				{protocolHasMcap && (
+					<ToggleCharts>
+						<input type="checkbox" value="hideEvents" checked={hideHallmarks} onChange={() => toggleFilter('events')} />
+						<span>Hide Events</span>
+					</ToggleCharts>
+				)}
+				{protocolHasMcap && (
+					<ToggleCharts>
+						<input type="checkbox" value="hideMcapChart" checked={hideMcap} onChange={() => toggleFilter('mcap')} />
 						<span>Hide MCap Chart</span>
-					</HideMcapChart>
+					</ToggleCharts>
 				)}
 			</FiltersWrapper>
 
@@ -184,7 +194,7 @@ export default function ProtocolTvlChart({
 					moneySymbol={moneySymbol}
 					tokensUnique={tokensUnique}
 					hideLegend={true}
-					hallmarks={hallmarks}
+					hallmarks={!hideHallmarks && hallmarks}
 					style={{
 						...(bobo && {
 							backgroundImage: 'url("/bobo.png")',
@@ -208,6 +218,20 @@ const Wrapper = styled.div`
 	grid-column: span 1;
 `
 
+const FiltersWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin: 16px 16px 0;
+
+	@media (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+		flex-wrap: wrap;
+		flex-direction: row;
+		align-items: center;
+	}
+`
+
 const Filters = styled.div`
 	display: flex;
 	align-items: center;
@@ -219,12 +243,20 @@ const Filters = styled.div`
 	width: min-content;
 `
 
-const FiltersWrapper = styled.div`
+export const ToggleCharts = styled.label`
 	display: flex;
 	align-items: center;
-	flex-wrap: wrap;
-	gap: 16px;
-	margin: 16px 16px 0;
+	gap: 8px;
+
+	:hover {
+		cursor: pointer;
+	}
+
+	@media (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+		:first-of-type {
+			margin-left: auto;
+		}
+	}
 `
 
 interface IDenomination {
@@ -247,15 +279,4 @@ const Denomination = styled.a<IDenomination>`
 			: theme.mode === 'dark'
 			? 'rgba(255, 255, 255, 0.6)'
 			: 'rgba(0, 0, 0, 0.6)'};
-`
-
-export const HideMcapChart = styled.label`
-	margin-left: auto;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-
-	:hover {
-		cursor: pointer;
-	}
 `
