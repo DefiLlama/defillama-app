@@ -86,7 +86,7 @@ const FooterWrapper = styled.section`
 	gap: 8px;
 	margin-top: auto;
 
-	& > a {
+	& a {
 		display: inline-block;
 		color: ${({ theme }) => theme.white};
 		opacity: 0.8;
