@@ -13,7 +13,10 @@ export async function getStaticProps() {
       forked[f] = true
     })
   })
-  const protocols = protocolsRaw.protocols.filter((p) => p.listedAt && forked[p.name] === undefined).sort((a, b) => b.listedAt - a.listedAt)
+  const protocols = protocolsRaw.protocols.filter((p) => forked[p.name] === undefined).map(p=>({
+		listedAt: 1609506000, // 1/1/2021
+		...p,
+	})).sort((a, b) => b.listedAt - a.listedAt)
 	return {
 		props: {
 			protocols
