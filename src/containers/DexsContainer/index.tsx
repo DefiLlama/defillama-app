@@ -1,18 +1,14 @@
-import { useMemo } from 'react'
+import { useState } from 'react'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
-import { ButtonDark } from '~/components/ButtonStyled'
 import { DexsSearch } from '~/components/Search'
-import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
 import { columnsToShow, FullTable } from '~/components/Table'
-import { RowLinks, LinksWrapper } from '~/components/Filters'
-import { ChainTvlOptions } from '~/components/Select'
-import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from '~/hooks/data'
-import { toNiceCsvDate, getRandomColor, download } from '~/utils'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
 import { useFetchDexsList } from '~/api/categories/dexs/client'
-import { Panel } from '~/components'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import dynamic from 'next/dynamic'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -21,6 +17,11 @@ export async function getStaticProps() {
 		revalidate: revalidate()
 	}
 }
+
+// tmp fix
+const Chart = dynamic(() => import('~/components/GlobalChart'), {
+	ssr: false
+}) as any
 
 const ChartsWrapper = styled.section`
 	display: flex;
@@ -182,66 +183,32 @@ const StyledTable = styled(FullTable)`
 		}
 	}
 `
-const ChainTvlsFilter = styled.form`
-	& > h2 {
-		margin: 0 2px 8px;
-		font-weight: 600;
-		font-size: 0.825rem;
-		color: ${({ theme }) => theme.text1};
+
+const columns = columnsToShow('dexName', '1dChange', '7dChange', '1mChange', 'totalVolume24h')
+
+export default function DexsContainer({ category }) {
+	const {
+		data: { dexs } = {},
+		data: { totalVolume } = {},
+		data: { change_1d } = {},
+		data: { totalDataChart } = {}
+	} = useFetchDexsList()
+
+	const [easterEgg, setEasterEgg] = useState(false)
+	const [darkMode, toggleDarkMode] = useDarkModeManager()
+	const activateEasterEgg = () => {
+		if (easterEgg) {
+			if (!darkMode) {
+				toggleDarkMode()
+			}
+			window.location.reload()
+		} else {
+			if (darkMode) {
+				toggleDarkMode()
+			}
+			setEasterEgg(true)
+		}
 	}
-`
-
-const columns = columnsToShow('dexName', 'totalVolume24h')
-
-export default function ChainsContainer({
-	chainsUnique,
-	chainTvls,
-	stackedDataset,
-	category,
-	categories,
-	chainsGroupbyParent,
-	tvlTypes
-}) {
-	const { data } = useFetchDexsList()
-
-	/* 	const chainColor = useMemo(
-		() => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
-		[chainsUnique]
-	)
-
-	const chainTotals = useCalcStakePool2Tvl(chainTvls, undefined, undefined, true)
-
-	const chainsTvlValues = useMemo(() => {
-		const data = chainTotals.map((chain) => ({
-			name: chain.name,
-			value: chain.tvl
-		}))
-
-		const otherTvl = data.slice(10).reduce((total, entry) => {
-			return (total += entry.value)
-		}, 0)
-
-		return data
-			.slice(0, 10)
-			.sort((a, b) => b.value - a.value)
-			.concat({ name: 'Others', value: otherTvl })
-	}, [chainTotals])
-
-	const { data: stackedData, daySum } = useCalcGroupExtraTvlsByDay(stackedDataset, tvlTypes)
-
-	const downloadCsv = () => {
-		const rows = [['Timestamp', 'Date', ...chainsUnique]]
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([day.date, toNiceCsvDate(day.date), ...chainsUnique.map((chain) => day[chain] ?? '')])
-			})
-		download('chains.csv', rows.map((r) => r.join(',')).join('\n'))
-	}
-
-	const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
-
-	const groupedChains = useGroupChainsByParent(chainTotals, showByGroup ? chainsGroupbyParent : {}) */
 
 	return (
 		<>
@@ -255,35 +222,33 @@ export default function ChainsContainer({
 					name: category === 'All' ? 'All DEXs' : category
 				}}
 			/>
-
-			{/* <HeaderWrapper>
-				<span>Total volume by all DEXs (not correct data)</span>
-				<ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
+			<HeaderWrapper>
+				<span>Volume in all DEXs</span>
 			</HeaderWrapper>
+			<ChartAndValuesWrapper>
+				<BreakpointPanels>
+					<BreakpointPanel>
+						<h1>Total dexs volume (USD)</h1>
+						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>{totalVolume || 0}</p>
+					</BreakpointPanel>
+					<PanelHiddenMobile>
+						<h2>Change (24h)</h2>
+						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {change_1d || 0}%</p>
+					</PanelHiddenMobile>
+				</BreakpointPanels>
+				<BreakpointPanel id="chartWrapper">
+					<Chart
+						display="liquidity"
+						dailyData={totalDataChart}
+						unit={'USD'}
+						totalLiquidity={totalVolume}
+						liquidityChange={0}
+					/>
+				</BreakpointPanel>
+			</ChartAndValuesWrapper>
 
-			<ChartsWrapper>
-				<ChainPieChart data={chainsTvlValues} chainColor={chainColor} />
-				<ChainDominanceChart
-					stackOffset="expand"
-					formatPercent={true}
-					stackedDataset={stackedData}
-					chainsUnique={chainsUnique}
-					chainColor={chainColor}
-					daySum={daySum}
-				/>
-			</ChartsWrapper>
-
-			<ChainTvlsFilter>
-				<h2>Filters</h2>
-				<ChainTvlOptions label="Filters" />
-			</ChainTvlsFilter>
-
-			<LinksWrapper>
-				<RowLinks links={categories} activeLink={category} />
-			</LinksWrapper>*/}
-
-			{data && data.dexs.length > 0 ? (
-				<StyledTable data={data?.dexs} columns={columns} />
+			{dexs && dexs.length > 0 ? (
+				<StyledTable data={dexs} columns={columns} />
 			) : (
 				<Panel as="p" style={{ textAlign: 'center', margin: 0 }}>
 					Loading dexs...
