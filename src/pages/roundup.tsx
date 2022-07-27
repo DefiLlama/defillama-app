@@ -80,11 +80,13 @@ const Content = ({ text }: { text: string }) => {
 	)
 }
 
-export default function Chains({ messages }) {
-	const text = messages
-		.replace(/(.*)\n(http.*)/g, '[$1]($2)') // merge title + link into markdown links
-		.replace(/(\w+)\s*(\p{Emoji})\n/gu, '## $1 $2\n') // Watch📺 -> ## Watch 📺
-		.replace(/\*\*([\w\s'".&,?!;:]+)\*\*\s*(\p{Emoji})/gu, '### $1 $2') // **Threads**🧵 -> ### Threads 🧵
+export default function Chains({ messages }: { messages?: string }) {
+	const text =
+		messages
+			?.replace(/(.*)\n(http.*)/g, '[$1]($2)') // merge title + link into markdown links
+			?.replace(/(\w+)\s*(\p{Emoji})\n/gu, '## $1 $2\n') // Watch📺 -> ## Watch 📺
+			?.replace(/\*\*([\w\s'".&,?!;:]+)\*\*\s*(\p{Emoji})/gu, '### $1 $2') ?? // **Threads**🧵 -> ### Threads 🧵
+		''
 
 	return (
 		<Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
