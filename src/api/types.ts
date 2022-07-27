@@ -101,7 +101,16 @@ export interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChain
 
 export type LiteProtocol = Pick<
 	IProtocol,
-	'category' | 'chains' | 'oracles' | 'forkedFrom' | 'listedAt' | 'mcap' | 'name' | 'symbol' | 'parentProtocol'
+	| 'category'
+	| 'chains'
+	| 'oracles'
+	| 'forkedFrom'
+	| 'listedAt'
+	| 'mcap'
+	| 'name'
+	| 'symbol'
+	| 'parentProtocol'
+	| 'chainTvls'
 > &
 	ProtocolTvls
 

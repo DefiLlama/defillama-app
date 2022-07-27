@@ -3,38 +3,13 @@ import styled from 'styled-components'
 import { v4 as uuid } from 'uuid'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import orderBy from 'lodash.orderby'
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, ChevronsUp } from 'react-feather'
+import { ArrowDown, ArrowUp, ChevronsUp } from 'react-feather'
 import HeadHelp from '~/components/HeadHelp'
-import { CustomLink } from '~/components/Link'
-import TokenLogo from '~/components/TokenLogo'
-import Bookmark from '~/components/Bookmark'
-import IconsRow from '~/components/IconsRow'
 import QuestionHelper from '~/components/QuestionHelper'
-import { chainIconUrl, peggedAssetIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
-
-interface ColumnProps {
-	header: string
-	accessor: string
-	disableSortBy?: boolean
-	helperText?: string
-	Cell?: any
-}
-
-interface RowProps {
-	columns: ColumnProps[]
-	item: { [key: string]: any }
-	index?: number
-	subRow?: boolean
-}
-
-interface TableProps {
-	columns: ColumnProps[]
-	data: unknown
-	align?: string
-	gap?: string
-	pinnedRow?: unknown
-	style?: React.CSSProperties
-}
+import { Row } from './Row'
+import { Cell, RowWrapper } from './shared'
+import { splitArrayByFalsyValues } from './utils'
+import type { ITableProps } from './types'
 
 const Wrapper = styled.section`
 	position: relative;
@@ -57,47 +32,8 @@ const TableWrapper = styled.table`
 	position: relative;
 `
 
-const RowWrapper = styled.tr`
-	border-bottom: 1px solid;
-	border-color: ${({ theme }) => theme.divider};
-	--padding-left: 20px;
-
-	& > * {
-		padding: 12px 0;
-		padding-left: var(--gap);
-		text-align: var(--text-align);
-	}
-
-	& > :first-child {
-		white-space: nowrap;
-		text-align: start;
-		padding-left: var(--padding-left);
-	}
-
-	& > :last-child {
-		padding-right: 20px;
-	}
-
-	& > *:not(:first-child),
-	& > *:not(:first-child) > * {
-		margin-left: auto;
-		text-align: right;
-	}
-
-	td:not(:first-child),
-	td:not(:first-child) > * {
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipses;
-	}
-`
-
 const PinnedRow = styled(RowWrapper)`
 	background: ${({ theme }) => theme.bg1};
-`
-
-const Cell = styled.td`
-	font-size: 14px;
 `
 
 const Header = styled.th`
@@ -121,31 +57,6 @@ const SortedHeader = styled.span`
 		height: 14px;
 		flex-shrink: 0;
 	}
-`
-
-export const Index = styled.div`
-	display: flex;
-	gap: 1em;
-	align-items: center;
-	position: relative;
-
-	svg {
-		flex-shrink: 0;
-		position: relative;
-		top: 1px;
-	}
-
-	& > a,
-	& > #table-p-name {
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-`
-
-const SaveButton = styled(Bookmark)`
-	position: relative;
-	flex-shrink: 0;
 `
 
 const HeaderButton = styled.button`
@@ -211,82 +122,6 @@ const HeaderWithHelperText = styled.span`
 	}
 `
 
-export function splitArrayByFalsyValues(data, column) {
-	return data.reduce(
-		(acc, curr) => {
-			if (!curr[column] && curr[column] !== 0) {
-				acc[1].push(curr)
-			} else acc[0].push(curr)
-			return acc
-		},
-		[[], []]
-	)
-}
-
-function Row(props: RowProps) {
-	const { columns, item, index } = props
-
-	return (
-		<>
-			{item.subRows ? (
-				<RowWithExtras {...props} />
-			) : (
-				<RowWrapper>
-					{columns.map((col) => (
-						<Cell key={uuid()}>
-							{col.Cell ? (
-								<col.Cell value={item[col.accessor]} rowValues={item} rowIndex={index} />
-							) : (
-								item[col.accessor]
-							)}
-						</Cell>
-					))}
-				</RowWrapper>
-			)}
-		</>
-	)
-}
-
-function RowWithExtras({ columns, item, index }: RowProps) {
-	const [displayRows, setDisplay] = React.useState(false)
-
-	return (
-		<>
-			<RowWrapper style={{ cursor: 'pointer' }} onClick={() => setDisplay(!displayRows)}>
-				{columns.map((col) => (
-					<Cell key={uuid()}>
-						{col.Cell ? (
-							<col.Cell
-								value={item[col.accessor]}
-								rowValues={item}
-								rowIndex={index}
-								rowType="accordion"
-								showRows={displayRows}
-							/>
-						) : (
-							item[col.accessor]
-						)}
-					</Cell>
-				))}
-			</RowWrapper>
-			{displayRows &&
-				item.subRows.map((subRow) => (
-					<RowWrapper key={uuid()}>
-						{columns.map((col) => (
-							<Cell key={uuid()}>
-								{col.Cell ? (
-									<col.Cell value={subRow[col.accessor]} rowValues={subRow} rowType="child" />
-								) : (
-									subRow[col.accessor]
-								)}
-							</Cell>
-						))}
-					</RowWrapper>
-				))}
-		</>
-	)
-}
-
 const handleScrollToTop = () => {
 	window.scrollTo({
 		top: 0,
@@ -294,7 +129,7 @@ const handleScrollToTop = () => {
 	})
 }
 
-function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
+function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: ITableProps) {
 	const [lastIndex, setLastIndex] = React.useState(20)
 	const [columnToSort, setColumnToSort] = React.useState<string | null>(null)
 	const [sortDirection, setDirection] = React.useState<-1 | 0 | 1>(0)
@@ -413,7 +248,7 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: Tab
 	)
 }
 
-export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...props }: TableProps) {
+export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...props }: ITableProps) {
 	const [columnToSort, setColumnToSort] = React.useState<string | null>(null)
 	const [sortDirection, setDirection] = React.useState<-1 | 0 | 1>(0)
 
@@ -489,298 +324,9 @@ export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...p
 	)
 }
 
-interface NameProps {
-	type: 'chain' | 'protocol' | 'peggedAsset' | 'peggedAssetChain'
-	value: string
-	symbol?: string
-	index?: number
-	bookmark?: boolean
-	rowType?: 'pinned' | 'accordion' | 'child' | 'default'
-	showRows?: boolean
-}
-
-export function Name({
-	type,
-	value,
-	symbol = '-',
-	index,
-	bookmark,
-	rowType = 'default',
-	showRows,
-	...props
-}: NameProps) {
-	const name =
-		symbol === '-' ? (
-			value
-		) : (
-			<>
-				<span>{value}</span>
-				<span id="table-p-symbol">{` (${symbol})`}</span>
-			</>
-		)
-	const { iconUrl, tokenUrl } = React.useMemo(() => {
-		let iconUrl, tokenUrl
-		if (type === 'chain') {
-			tokenUrl = `/${type}/${value}`
-			iconUrl = chainIconUrl(value)
-		} else if (type === 'peggedAssetChain' && !value.includes('Bridged from')) {
-			tokenUrl = `/stablecoins/${value}`
-			iconUrl = chainIconUrl(value)
-		} else if (type === 'peggedAsset') {
-			tokenUrl = `/stablecoin/${slug(value)}`
-			iconUrl = peggedAssetIconUrl(value)
-		} else {
-			tokenUrl = `/${type}/${slug(value)}`
-			iconUrl = tokenIconUrl(value)
-		}
-
-		return { iconUrl, tokenUrl }
-	}, [type, value])
-
-	let leftSpace: number | string = 0
-
-	if (rowType === 'accordion') {
-		leftSpace = bookmark ? '0px' : '-30px'
-	}
-
-	if (rowType === 'child') {
-		leftSpace = '30px'
-	}
-
-	if (value.includes('Bridged from')) {
-		return (
-			<Index {...props} style={{ left: leftSpace }}>
-				<span>-</span>
-				<span id="table-p-name">{value}</span>
-			</Index>
-		)
-	}
-
-	return (
-		<Index {...props} style={{ left: leftSpace }}>
-			{rowType !== 'accordion' && bookmark && (
-				<SaveButton readableProtocolName={value} style={{ paddingRight: rowType === 'pinned' ? '1ch' : 0 }} />
-			)}
-			{rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
-			<span>{rowType !== 'pinned' && index}</span>
-			<TokenLogo id="table-p-logo" logo={iconUrl} />
-			{rowType === 'accordion' ? (
-				<span id="table-p-name">{name}</span>
-			) : (
-				<CustomLink href={tokenUrl} id="table-p-name">
-					{name}
-				</CustomLink>
-			)}
-		</Index>
-	)
-}
-
-interface INameYield extends Omit<NameProps, 'type'> {
-	project: string
-	projectslug: string
-}
-
-export function NameYield({ project, projectslug, rowType, ...props }: INameYield) {
-	const iconUrl = tokenIconUrl(project)
-	const tokenUrl = `/yields?project=${projectslug}`
-
-	return (
-		<Index {...props}>
-			<TokenLogo id="table-p-logo" logo={iconUrl} />
-			{rowType === 'accordion' ? (
-				<span id="table-p-name">{project}</span>
-			) : (
-				<CustomLink id="table-p-name" href={tokenUrl}>
-					{project}
-				</CustomLink>
-			)}
-		</Index>
-	)
-}
-
-interface NameYieldPoolProps {
-	value: string
-	poolId: string
-	project: string
-	index?: number
-	bookmark?: boolean
-	rowType?: 'pinned' | 'default' | 'accordion'
-}
-
-export function NameYieldPool({
-	value,
-	poolId,
-	project,
-	index,
-	bookmark,
-	rowType = 'default',
-	...props
-}: NameYieldPoolProps) {
-	const tokenUrl = `/yields/pool/${poolId}`
-
-	let leftSpace: number | string = 0
-
-	return (
-		<Index {...props} style={{ left: leftSpace }}>
-			{bookmark && (
-				<SaveButton readableProtocolName={poolId} style={{ paddingRight: rowType === 'pinned' ? '1ch' : 0 }} />
-			)}
-			<span>{rowType !== 'pinned' && index}</span>
-			<CustomLink href={tokenUrl}>
-				{project === 'Osmosis' ? `${value} ${poolId.split('-').slice(-1)}` : value}
-			</CustomLink>
-		</Index>
-	)
-}
-
-type Columns =
-	| 'protocolName'
-	| 'peggedAsset'
-	| 'peggedAssetChain'
-	| 'category'
-	| 'chainName'
-	| 'chains'
-	| '1dChange'
-	| '7dChange'
-	| '1mChange'
-	| 'tvl'
-	| 'mcaptvl'
-	| 'listedAt'
-	| 'msizetvl'
-	| 'protocols'
-
-type AllColumns = Record<Columns, ColumnProps>
-
-const allColumns: AllColumns = {
-	protocolName: {
-		header: 'Name',
-		accessor: 'name',
-		disableSortBy: true,
-		Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
-			<Name
-				type="protocol"
-				value={value}
-				symbol={rowValues.symbol}
-				index={rowIndex !== null && rowIndex + 1}
-				bookmark
-				rowType={rowType}
-				showRows={showRows}
-			/>
-		)
-	},
-	peggedAsset: {
-		header: 'Name',
-		accessor: 'name',
-		disableSortBy: true,
-		Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
-			<Name
-				type="peggedAsset"
-				value={value}
-				symbol={rowValues.symbol}
-				index={rowIndex !== null && rowIndex + 1}
-				rowType={rowType}
-			/>
-		)
-	},
-	peggedAssetChain: {
-		header: 'Name',
-		accessor: 'name',
-		disableSortBy: true,
-		Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
-			<Name
-				type="peggedAssetChain"
-				value={value}
-				symbol={rowValues.symbol}
-				index={rowIndex !== null && rowIndex + 1}
-				rowType={rowType}
-			/>
-		)
-	},
-	category: {
-		header: 'Category',
-		accessor: 'category',
-		Cell: ({ value }) => <span>{value}</span>
-	},
-	chainName: {
-		header: 'Name',
-		accessor: 'name',
-		disableSortBy: true,
-		Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
-			<Name
-				type="chain"
-				value={value}
-				symbol={rowValues.symbol}
-				index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
-				rowType={rowType}
-				showRows={showRows}
-			/>
-		)
-	},
-	chains: {
-		header: 'Chains',
-		accessor: 'chains',
-		disableSortBy: true,
-		helperText: "Chains are ordered by protocol's highest TVL on each chain",
-		Cell: ({ value }) => <IconsRow links={value} url="/chain" iconType="chain" />
-	},
-	'1dChange': {
-		header: '1d Change',
-		accessor: 'change_1d',
-		Cell: ({ value }) => <>{formattedPercent(value)}</>
-	},
-	'7dChange': {
-		header: '7d Change',
-		accessor: 'change_7d',
-		Cell: ({ value }) => <>{formattedPercent(value)}</>
-	},
-	'1mChange': {
-		header: '1m Change',
-		accessor: 'change_1m',
-		Cell: ({ value }) => <>{formattedPercent(value)}</>
-	},
-	tvl: {
-		header: 'TVL',
-		accessor: 'tvl',
-		Cell: ({ value, rowValues }) => {
-			return (
-				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{rowValues.strikeTvl ? (
-						<QuestionHelper text='This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off' />
-					) : null}
-					<span
-						style={{
-							color: rowValues.strikeTvl ? 'gray' : 'inherit'
-						}}
-					>
-						{'$' + formattedNum(value)}
-					</span>
-				</span>
-			)
-		}
-	},
-	mcaptvl: {
-		header: 'Mcap/TVL',
-		accessor: 'mcaptvl',
-		Cell: ({ value }) => <>{value && formattedNum(value)}</>
-	},
-	msizetvl: {
-		header: 'Msize/TVL',
-		accessor: 'msizetvl',
-		Cell: ({ value }) => <>{value && formattedNum(value)}</>
-	},
-	listedAt: {
-		header: 'Listed',
-		accessor: 'listedAt',
-		Cell: ({ value }) => <span style={{ whiteSpace: 'nowrap' }}>{value} days ago</span>
-	},
-	protocols: {
-		header: 'Protocols',
-		accessor: 'protocols'
-	}
-}
-
-export function columnsToShow(...names: Columns[]) {
-	return names.map((item) => allColumns[item])
-}
+export * from './shared'
+export * from './Name'
+export * from './Columns'
+export * from './utils'
 
 export default Table
