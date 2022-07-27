@@ -1,10 +1,12 @@
 import { useMemo } from 'react'
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { Header } from '~/Theme'
 import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import Table, { columnsToShow } from '~/components/Table'
+import Table, { columnsToShow, Dropdowns, TableFilters, TableHeader } from '~/components/Table'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
+import { FiltersByChain } from '../Filters'
+import { getPercentChange } from '~/utils'
 
 const TableWrapper = styled(Table)`
 	tr > *:not(:first-child) {
@@ -149,15 +151,100 @@ const columns = columnsToShow(
 	'tvl'
 )
 
-export function RecentProtocols({ protocols, title, name, header }) {
-	const data = useMemo(() => {
+function getSelectedChainFilters(chainQueryParam, allChains) {
+	if (chainQueryParam) {
+		if (typeof chainQueryParam === 'string') {
+			return chainQueryParam === 'All' ? [...allChains] : [chainQueryParam]
+		} else {
+			return [...chainQueryParam]
+		}
+	} else return [...allChains]
+}
+
+export function RecentProtocols({ protocols, title, name, header, chainList }) {
+	const { query } = useRouter()
+	const { chain } = query
+
+	const { selectedChains, data } = useMemo(() => {
 		const currentTimestamp = Date.now() / 1000
 		const secondsInDay = 3600 * 24
-		return protocols.map((p) => ({
-			...p,
-			listedAt: ((currentTimestamp - p.listedAt) / secondsInDay).toFixed(2)
-		}))
-	}, [protocols])
+
+		const selectedChains = getSelectedChainFilters(chain, chainList)
+
+		const _chainsToSelect = selectedChains.map((t) => t.toLowerCase())
+
+		const data = protocols
+			.filter((protocol) => {
+				let toFilter = false
+
+				protocol.chains.forEach((chain) => {
+					// filter if a protocol has atleast of one selected chain
+					if (!toFilter) {
+						toFilter = _chainsToSelect.includes(chain.toLowerCase())
+					}
+				})
+
+				return toFilter
+			})
+			.map((p) => {
+				let tvl = 0
+				let tvlPrevDay = null
+				let tvlPrevWeek = null
+				let tvlPrevMonth = null
+				let extraTvl = {}
+
+				p.chains.forEach((chainName) => {
+					// return if chainsToSelect doesnot include chainName
+					if (!_chainsToSelect.includes(chainName.toLowerCase())) {
+						return
+					}
+
+					for (const sectionName in p.chainTvls) {
+						const _sanitisedChainName = sectionName.startsWith(`${chainName}-`)
+							? sectionName.split('-')[1]?.toLowerCase()
+							: sectionName.toLowerCase()
+
+						// add only if chainsToSelect includes sanitisedChainName and chainName equalt sanitisedChainName
+						if (_chainsToSelect.includes(_sanitisedChainName) && chainName.toLowerCase() === _sanitisedChainName) {
+							const _values = p.chainTvls[sectionName]
+
+							// only add tvl values where chainName is strictly equal to sectionName, else check if its extraTvl and add
+							if (sectionName.startsWith(`${chainName}-`)) {
+								const sectionToAdd = sectionName.split('-')[1]
+								extraTvl[sectionToAdd] = (extraTvl[sectionToAdd] || 0) + _values
+							} else {
+								if (_values.tvl) {
+									tvl = (tvl || 0) + _values.tvl
+								}
+								if (_values.tvlPrevDay) {
+									tvlPrevDay = (tvlPrevDay || 0) + _values.tvlPrevDay
+								}
+								if (_values.tvlPrevWeek) {
+									tvlPrevWeek = (tvlPrevWeek || 0) + _values.tvlPrevWeek
+								}
+								if (_values.tvlPrevMonth) {
+									tvlPrevMonth = (tvlPrevMonth || 0) + _values.tvlPrevMonth
+								}
+							}
+						}
+					}
+				})
+
+				return {
+					...p,
+					tvl,
+					tvlPrevDay,
+					tvlPrevWeek,
+					tvlPrevMonth,
+					change_1d: getPercentChange(tvl, tvlPrevDay),
+					change_7d: getPercentChange(tvl, tvlPrevWeek),
+					change_1m: getPercentChange(tvl, tvlPrevMonth),
+					listedAt: ((currentTimestamp - p.listedAt) / secondsInDay).toFixed(2)
+				}
+			})
+
+		return { data, selectedChains }
+	}, [protocols, chain, chainList])
 
 	const protocolsData = useCalcStakePool2Tvl(data, 'listedAt', 'asc')
 
@@ -165,7 +252,12 @@ export function RecentProtocols({ protocols, title, name, header }) {
 		<Layout title={title} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: name }} />
 
-			<Header>{header}</Header>
+			<TableFilters>
+				<TableHeader>{header}</TableHeader>
+				<Dropdowns>
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/recent" />
+				</Dropdowns>
+			</TableFilters>
 
 			<TableWrapper data={protocolsData} columns={columns} />
 		</Layout>
