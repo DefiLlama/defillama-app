@@ -107,8 +107,29 @@ export default function Chains({ messages }) {
 }
 
 export async function getStaticProps() {
-	const response = await fetch('https://defillama.com/api/roundupMarkdown')
-	const messages = await response.json()
+	const headers = new Headers()
+	headers.append('Authorization', `Bot ${process.env.ROUND_UP_BOT_TOKEN}`)
+
+	let data = []
+
+	const response = await fetch('https://discordapp.com/api/channels/965023197365960734/messages', {
+		method: 'GET',
+		headers: headers,
+		redirect: 'follow'
+	})
+
+	if (response.ok) {
+		data = await response.json()
+	}
+
+	const index = data.findIndex((d) => d.content.startsWith('Daily news round-up with the')) ?? null
+
+	const raw = Number.isNaN(index) ? [] : data.slice(0, index + 1)
+
+	const messages = raw
+		.reverse()
+		.map((m) => m.content)
+		.join('')
 
 	const splitLlama = messages.split('Daily news round-up with the 🦙')
 
