@@ -7,6 +7,8 @@ import Table, { columnsToShow, Dropdowns, TableFilters, TableHeader } from '~/co
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { FiltersByChain } from '../Filters'
 import { getPercentChange } from '~/utils'
+import HideForkedProtocols from '../Filters/HideForkedProtocols'
+import { Panel } from '..'
 
 const TableWrapper = styled(Table)`
 	tr > *:not(:first-child) {
@@ -161,9 +163,20 @@ function getSelectedChainFilters(chainQueryParam, allChains) {
 	} else return [...allChains]
 }
 
-export function RecentProtocols({ protocols, title, name, header, chainList }) {
+interface IRecentProtocolProps {
+	title: string
+	name: string
+	header: string
+	protocols: any
+	chainList: string[]
+	forkedList?: { [name: string]: boolean }
+}
+
+export function RecentProtocols({ title, name, header, protocols, chainList, forkedList }: IRecentProtocolProps) {
 	const { query } = useRouter()
-	const { chain } = query
+	const { chain, hideForks } = query
+
+	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? true : false
 
 	const { selectedChains, data } = useMemo(() => {
 		const currentTimestamp = Date.now() / 1000
@@ -175,11 +188,16 @@ export function RecentProtocols({ protocols, title, name, header, chainList }) {
 
 		const data = protocols
 			.filter((protocol) => {
-				let toFilter = false
+				let toFilter = true
+
+				// filter out protocols that are forks
+				if (toHideForkedProtocols && forkedList) {
+					toFilter = !forkedList[protocol.name]
+				}
 
 				protocol.chains.forEach((chain) => {
 					// filter if a protocol has atleast of one selected chain
-					if (!toFilter) {
+					if (toFilter) {
 						toFilter = _chainsToSelect.includes(chain.toLowerCase())
 					}
 				})
@@ -244,7 +262,7 @@ export function RecentProtocols({ protocols, title, name, header, chainList }) {
 			})
 
 		return { data, selectedChains }
-	}, [protocols, chain, chainList])
+	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols])
 
 	const protocolsData = useCalcStakePool2Tvl(data, 'listedAt', 'asc')
 
@@ -257,9 +275,16 @@ export function RecentProtocols({ protocols, title, name, header, chainList }) {
 				<Dropdowns>
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/recent" />
 				</Dropdowns>
+				<HideForkedProtocols />
 			</TableFilters>
 
-			<TableWrapper data={protocolsData} columns={columns} />
+			{protocolsData.length > 0 ? (
+				<TableWrapper data={protocolsData} columns={columns} />
+			) : (
+				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
+					Couldn't find any protocols for these filters
+				</Panel>
+			)}
 		</Layout>
 	)
 }
