@@ -12,7 +12,7 @@ const SaveButton = styled(Bookmark)`
 	flex-shrink: 0;
 `
 
-const Index = styled.div`
+export const Index = styled.div`
 	display: flex;
 	gap: 1em;
 	align-items: center;
