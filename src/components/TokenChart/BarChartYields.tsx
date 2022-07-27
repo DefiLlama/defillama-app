@@ -2,7 +2,13 @@ import { useCallback, useEffect, useMemo } from 'react'
 import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'
 import * as echarts from 'echarts/core'
-import { ToolboxComponent, TooltipComponent, GridComponent, LegendComponent } from 'echarts/components'
+import {
+	ToolboxComponent,
+	TooltipComponent,
+	GridComponent,
+	LegendComponent,
+	DataZoomComponent
+} from 'echarts/components'
 import { BarChart, LineChart } from 'echarts/charts'
 import { UniversalTransition } from 'echarts/features'
 import { CanvasRenderer } from 'echarts/renderers'
@@ -19,7 +25,8 @@ echarts.use([
 	BarChart,
 	LineChart,
 	CanvasRenderer,
-	UniversalTransition
+	UniversalTransition,
+	DataZoomComponent
 ])
 
 export interface IChartProps {
