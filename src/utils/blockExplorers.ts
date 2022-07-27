@@ -41,7 +41,8 @@ const blockExplorers = {
 	milkomeda: ['https://rpc.c1.milkomeda.com:4000/address/', 'C1 Blockscout'],
 	dfk: ['https://subnets.avax.network/defi-kingdoms/dfk-chain/explorer/token/', 'DFK Chain Explorer'],
 	findora: ['https://evm.findorascan.io/token/', 'Findorascan'],
-	rei: ['https://scan.rei.network/address/', 'ReiScan']
+	rei: ['https://scan.rei.network/address/', 'ReiScan'],
+	nova: ['https://explorer.novanetwork.io/', 'NovaExplorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
