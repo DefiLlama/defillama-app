@@ -12,7 +12,7 @@ export default function HideForkedProtocols() {
 	const hide = () => {
 		router.push(
 			{
-				pathname: '/recent',
+				pathname: router.pathname,
 				query: {
 					...router.query,
 					hideForks: toHide

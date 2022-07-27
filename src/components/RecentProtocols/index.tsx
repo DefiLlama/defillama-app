@@ -275,7 +275,7 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 				<Dropdowns>
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/recent" />
 				</Dropdowns>
-				<HideForkedProtocols />
+				{forkedList && <HideForkedProtocols />}
 			</TableFilters>
 
 			{protocolsData.length > 0 ? (
