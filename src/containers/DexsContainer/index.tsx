@@ -12,6 +12,7 @@ import { toNiceCsvDate, getRandomColor, download } from '~/utils'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
 import { useFetchDexsList } from '~/api/categories/dexs/client'
+import { Panel } from '~/components'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -244,6 +245,10 @@ export default function ChainsContainer({
 
 	return (
 		<>
+			<Panel as="p" style={{ textAlign: 'center', margin: 0 }}>
+				Dashboard under developement, data might be incorrect.
+			</Panel>
+
 			<DexsSearch
 				step={{
 					category: 'DEXs',
@@ -277,7 +282,13 @@ export default function ChainsContainer({
 				<RowLinks links={categories} activeLink={category} />
 			</LinksWrapper>*/}
 
-			<StyledTable data={data?.dexs} columns={columns} />
+			{data && data.dexs.length > 0 ? (
+				<StyledTable data={data?.dexs} columns={columns} />
+			) : (
+				<Panel as="p" style={{ textAlign: 'center', margin: 0 }}>
+					Loading dexs...
+				</Panel>
+			)}
 		</>
 	)
 }
