@@ -257,7 +257,7 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 					change_1d: getPercentChange(tvl, tvlPrevDay),
 					change_7d: getPercentChange(tvl, tvlPrevWeek),
 					change_1m: getPercentChange(tvl, tvlPrevMonth),
-					listedAt: ((currentTimestamp - p.listedAt) / secondsInDay).toFixed(2)
+					listedAt: Number(((currentTimestamp - p.listedAt) / secondsInDay).toFixed(2))
 				}
 			})
 
