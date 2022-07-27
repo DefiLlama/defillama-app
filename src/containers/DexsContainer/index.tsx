@@ -195,22 +195,6 @@ export default function DexsContainer({ category }) {
 		data: { totalDataChart } = {}
 	} = useFetchDexsList()
 
-	const [easterEgg, setEasterEgg] = useState(false)
-	const [darkMode, toggleDarkMode] = useDarkModeManager()
-	const activateEasterEgg = () => {
-		if (easterEgg) {
-			if (!darkMode) {
-				toggleDarkMode()
-			}
-			window.location.reload()
-		} else {
-			if (darkMode) {
-				toggleDarkMode()
-			}
-			setEasterEgg(true)
-		}
-	}
-
 	return (
 		<>
 			<Panel as="p" style={{ textAlign: 'center', margin: 0 }}>
