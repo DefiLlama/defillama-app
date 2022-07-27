@@ -223,6 +223,7 @@ export default function DexsContainer({ category }) {
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
 					<Chart
+						title="Total volume"
 						display="liquidity"
 						dailyData={totalDataChart}
 						unit={'USD'}
