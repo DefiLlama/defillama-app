@@ -441,7 +441,31 @@ function PeggedAssetsOverview({
 		return peggedAssets
 	}, [filteredPeggedAssets, peggedUSD, peggedEUR, peggedVAR])
 
-	const backfilledChains = ["All", "Ethereum"]
+	const backfilledChains = [
+		'All',
+		'Ethereum',
+		'BSC',
+		'Avalanche',
+		'Arbitrum',
+		'Optimism',
+		'Fantom',
+		'Polygon',
+		'Gnosis',
+		'Celo',
+		'Harmony',
+		'Moonriver',
+		'Aztec',
+		'Loopring',
+		'Starknet',
+		'zkSync',
+		'Boba',
+		'Metis',
+		'Moonbeam',
+		'Syscoin',
+		'OKExChain',
+		'IoTeX',
+		'Heco'
+	]
 	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useCreatePeggedCharts(
 		chartData,
 		chartDataByPeggedAsset,
