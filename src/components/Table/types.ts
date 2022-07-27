@@ -39,6 +39,8 @@ export type TColumns =
 	| 'listedAt'
 	| 'msizetvl'
 	| 'protocols'
+	| 'dexName'
+	| 'totalVolume24h'
 
 export interface INameProps {
 	type: 'chain' | 'protocol' | 'peggedAsset' | 'peggedAssetChain'

@@ -11,6 +11,7 @@ import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParen
 import { toNiceCsvDate, getRandomColor, download } from '~/utils'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
+import { useFetchDexsList } from '~/api/categories/dexs/client'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -189,7 +190,7 @@ const ChainTvlsFilter = styled.form`
 	}
 `
 
-const columns = columnsToShow('chainName', 'protocols', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
+const columns = columnsToShow('dexName', 'totalVolume24h')
 
 export default function ChainsContainer({
 	chainsUnique,
@@ -200,6 +201,8 @@ export default function ChainsContainer({
 	chainsGroupbyParent,
 	tvlTypes
 }) {
+	const { data } = useFetchDexsList()
+
 	/* 	const chainColor = useMemo(
 		() => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
 		[chainsUnique]
@@ -272,9 +275,9 @@ export default function ChainsContainer({
 
 			<LinksWrapper>
 				<RowLinks links={categories} activeLink={category} />
-			</LinksWrapper>
+			</LinksWrapper>*/}
 
-			<StyledTable data={groupedChains} columns={columns} /> */}
+			<StyledTable data={data?.dexs} columns={columns} />
 		</>
 	)
 }
