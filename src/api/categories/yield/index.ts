@@ -13,9 +13,26 @@ export async function getYieldPageData() {
 }
 
 export async function getYieldMedianData() {
-	const data = await arrayFetcher([YIELD_MEDIAN_API])
+	let data = (await arrayFetcher([YIELD_MEDIAN_API]))[0].data
+
+	// add 7day average field
+	data = data
+		.map((e) => ({ ...e, timestamp: e.timestamp.split('T')[0] }))
+		.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+	// add rolling 7d avg of median values (first 6days == null)
+	const windowSize = 7
+	const apyMedianValues = data.map((m) => m.medianAPY)
+	const avg = []
+	for (let i = 0; i < apyMedianValues.length; i++) {
+		if (i + 1 < windowSize) {
+			avg[i] = null
+		} else {
+			avg[i] = apyMedianValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
+		}
+	}
+	data = data.map((m, i) => ({ ...m, avg7day: avg[i] }))
 
 	return {
-		props: data[0].data
+		props: data
 	}
 }

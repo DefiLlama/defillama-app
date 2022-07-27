@@ -8,6 +8,8 @@ import { UniversalTransition } from 'echarts/features'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { YieldsChartWrapper } from './shared'
+import { download } from '~/utils'
+import { DownloadButton, DownloadIcon } from '~/components'
 
 echarts.use([
 	ToolboxComponent,
@@ -29,6 +31,7 @@ const Wrapper = styled.div`
 `
 
 export default function BarChartYields({ chartData }: IChartProps) {
+	console.log(chartData)
 	const id = useMemo(() => uuid(), [])
 
 	const [isDark] = useDarkModeManager()
@@ -41,21 +44,6 @@ export default function BarChartYields({ chartData }: IChartProps) {
 
 	useEffect(() => {
 		const chartInstance = createInstance()
-
-		const median = chartData
-			.map((e) => ({ ...e, timestamp: e.timestamp.split('T')[0] }))
-			.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-		// add rolling 7d avg of median values (first 6days == null)
-		const windowSize = 7
-		const apyMedianValues = median.map((m) => m.medianAPY)
-		const avg = []
-		for (let i = 0; i < apyMedianValues.length; i++) {
-			if (i + 1 < windowSize) {
-				avg[i] = null
-			} else {
-				avg[i] = apyMedianValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
-			}
-		}
 
 		const option = {
 			color: ['#66c2a5', '#fc8d62'],
@@ -119,7 +107,7 @@ export default function BarChartYields({ chartData }: IChartProps) {
 					axisTick: {
 						alignWithLabel: true
 					},
-					data: median.map((m) => m.timestamp)
+					data: chartData.map((m) => m.timestamp)
 				}
 			],
 			yAxis: [
@@ -157,12 +145,12 @@ export default function BarChartYields({ chartData }: IChartProps) {
 				{
 					name: 'Median APY',
 					type: 'bar',
-					data: median.map((m) => m.medianAPY.toFixed(3))
+					data: chartData.map((m) => m.medianAPY.toFixed(3))
 				},
 				{
 					name: '7-day Average',
 					type: 'line',
-					data: avg.map((a) => (a === null ? a : a.toFixed(3)))
+					data: chartData.map((a) => a.avg7day).map((a) => (a === null ? a : a.toFixed(3)))
 				}
 			]
 		}
@@ -180,9 +168,24 @@ export default function BarChartYields({ chartData }: IChartProps) {
 		}
 	}, [id, chartData, createInstance, isDark])
 
+	// prepare csv data
+	const downloadCsv = () => {
+		const rows = [['timestamp', 'medianAPY', 'avg7day']]
+
+		chartData.forEach((item) => {
+			rows.push([item.timestamp, item.medianAPY, item.avg7day])
+		})
+
+		download('medianAPY.csv', rows.map((r) => r.join(',')).join('\n'))
+	}
+
 	return (
 		<YieldsChartWrapper>
 			<Wrapper id={id} style={{ height: '600px', margin: 'auto 0' }}></Wrapper>
+			<DownloadButton as="button" onClick={downloadCsv}>
+				<DownloadIcon />
+				<span>&nbsp;&nbsp;.csv</span>
+			</DownloadButton>
 		</YieldsChartWrapper>
 	)
 }
