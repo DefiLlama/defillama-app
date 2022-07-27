@@ -9,6 +9,7 @@ import { useFetchDexsList } from '~/api/categories/dexs/client'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import dynamic from 'next/dynamic'
+import { formattedNum } from '~/utils'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -229,7 +230,7 @@ export default function DexsContainer({ category }) {
 				<BreakpointPanels>
 					<BreakpointPanel>
 						<h1>Total dexs volume (USD)</h1>
-						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>{totalVolume || 0}</p>
+						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>{formattedNum(totalVolume, true)}</p>
 					</BreakpointPanel>
 					<PanelHiddenMobile>
 						<h2>Change (24h)</h2>
