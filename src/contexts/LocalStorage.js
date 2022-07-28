@@ -33,6 +33,9 @@ export const UNRELEASED = 'unreleased'
 export const PEGGEDUSD = 'PEGGEDUSD'
 export const PEGGEDEUR = 'PEGGEDEUR'
 export const PEGGEDVAR = 'PEGGEDVAR'
+export const FIATSTABLES = 'FIATSTABLES'
+export const CRYPTOSTABLES = 'CRYPTOSTABLES'
+export const ALGOSTABLES = 'ALGOSTABLES'
 
 export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
 export const extraPeggedProps = [UNRELEASED]
@@ -84,7 +87,10 @@ const UPDATABLE_KEYS = [
 	APY_GT0,
 	PEGGEDUSD,
 	PEGGEDEUR,
-	PEGGEDVAR
+	PEGGEDVAR,
+	FIATSTABLES,
+	CRYPTOSTABLES,
+	ALGOSTABLES
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -133,6 +139,9 @@ function init() {
 		[PEGGEDUSD]: true,
 		[PEGGEDEUR]: true,
 		[PEGGEDVAR]: true,
+		[FIATSTABLES]: true,
+		[CRYPTOSTABLES]: true,
+		[ALGOSTABLES]: true,
 		[DISMISSED_PATHS]: {},
 		[SAVED_ACCOUNTS]: [],
 		[SAVED_TOKENS]: { main: {} },
@@ -291,6 +300,39 @@ export function usePeggedVARManager() {
 	}
 
 	return [peggedVAR, togglePeggedVAR]
+}
+
+export function useFiatStablesManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const fiatStables = state[FIATSTABLES]
+
+	const toggleFiatStables = () => {
+		updateKey(FIATSTABLES, !fiatStables)
+	}
+
+	return [fiatStables, toggleFiatStables]
+}
+
+export function useCryptoStablesManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const cryptoStables = state[CRYPTOSTABLES]
+
+	const toggleCryptoStables = () => {
+		updateKey(CRYPTOSTABLES, !cryptoStables)
+	}
+
+	return [cryptoStables, toggleCryptoStables]
+}
+
+export function useAlgoStablesManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const algoStables = state[ALGOSTABLES]
+
+	const toggleAlgoStables = () => {
+		updateKey(ALGOSTABLES, !algoStables)
+	}
+
+	return [algoStables, toggleAlgoStables]
 }
 
 export function useStakingManager() {

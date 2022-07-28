@@ -75,7 +75,7 @@ interface IPegged {
 	bridges: {
 		[bridgeID: string]: {
 			[source: string]: {
-			amount: number
+				amount: number
 			}
 		}
 	}
@@ -512,18 +512,6 @@ export const useCreatePeggedCharts = (
 				}
 			})
 		})
-
-		if ((selectedChain === 'All' && peggedUSD && peggedEUR && peggedVAR) || selectedChain === undefined) {
-			unformattedTotalData = {}
-			chartData.map((chart) => {
-				const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
-				const date = chart.date
-				if (date > 1596248105 && mcap) {
-					unformattedTotalData[date] = unformattedTotalData[date] || {}
-					unformattedTotalData[date]['Total Stablecoins Market Cap'] = mcap
-				}
-			})
-		}
 
 		const peggedAreaChartData = Object.entries(unformattedAreaData).map(([date, chart]) => {
 			if (typeof chart === 'object') {

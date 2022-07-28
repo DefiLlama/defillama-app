@@ -12,6 +12,7 @@ export const peggedPropertiesToKeep = [
 	'chains',
 	'price',
 	'pegType',
+	'pegMechanism',
 	'change_1d',
 	'change_7d',
 	'change_1m',

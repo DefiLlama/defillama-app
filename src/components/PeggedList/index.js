@@ -19,15 +19,21 @@ import {
 	capitalizeFirstLetter,
 	formattedNum,
 	formattedPeggedPrice,
-	getPrevPeggedTotalFromChart,
 	getPercentChange,
 	getPeggedDominance,
 	toNiceMonthlyDate,
 	toNiceCsvDate,
 	download
 } from '~/utils'
-import { usePeggedUSDManager, usePeggedEURManager, usePeggedVARManager } from '~/contexts/LocalStorage'
-import { PegType } from '~/components/Filters'
+import {
+	usePeggedUSDManager,
+	usePeggedEURManager,
+	usePeggedVARManager,
+	useFiatStablesManager,
+	useCryptoStablesManager,
+	useAlgoStablesManager
+} from '~/contexts/LocalStorage'
+import { PegType, BackingType } from '~/components/Filters'
 
 function Chart({ peggedAreaChartData, peggedAreaTotalData, totalMcapLabel, peggedAssetNames, aspect }) {
 	const finalChartData = peggedAreaChartData ? peggedAreaChartData : peggedAreaTotalData
@@ -406,10 +412,16 @@ function PeggedAssetsOverview({
 	const [peggedUSD] = usePeggedUSDManager()
 	const [peggedEUR] = usePeggedEURManager()
 	const [peggedVAR] = usePeggedVARManager()
+	const [fiatStables] = useFiatStablesManager()
+	const [cryptoStables] = useCryptoStablesManager()
+	const [algoStables] = useAlgoStablesManager()
 	const toggles = {
 		peggedUSD: peggedUSD,
 		peggedEUR: peggedEUR,
-		peggedVAR: peggedVAR
+		peggedVAR: peggedVAR,
+		fiatStables: fiatStables,
+		cryptoStables: cryptoStables,
+		algoStables: algoStables
 	}
 
 	const peggedAssets = useMemo(() => {
@@ -417,17 +429,16 @@ function PeggedAssetsOverview({
 		const peggedAssets = filteredPeggedAssets.reduce((acc, curr) => {
 			let toFilter = false
 
-			if (peggedUSD) {
-				toFilter = toFilter || curr.pegType === 'peggedUSD'
-			}
+			toFilter =
+				(peggedUSD && curr.pegType === 'peggedUSD') ||
+				(peggedEUR && curr.pegType === 'peggedEUR') ||
+				(peggedVAR && curr.pegType === 'peggedVAR')
 
-			if (peggedEUR) {
-				toFilter = toFilter || curr.pegType === 'peggedEUR'
-			}
-
-			if (peggedVAR) {
-				toFilter = toFilter || curr.pegType === 'peggedVAR'
-			}
+			toFilter =
+				toFilter &&
+				((fiatStables && curr.pegMechanism === 'fiat-backed') ||
+					(cryptoStables && curr.pegMechanism === 'crypto-backed') ||
+					(algoStables && curr.pegMechanism === 'algorithmic'))
 
 			if (toFilter) {
 				const chartDataIndex = peggedNameToChartDataIndex[curr.name]
@@ -439,7 +450,7 @@ function PeggedAssetsOverview({
 		setFilteredIndexes(chartDataIndexes)
 
 		return peggedAssets
-	}, [filteredPeggedAssets, peggedUSD, peggedEUR, peggedVAR])
+	}, [filteredPeggedAssets, peggedUSD, peggedEUR, peggedVAR, fiatStables, cryptoStables, algoStables])
 
 	const backfilledChains = [
 		'All',
@@ -526,19 +537,11 @@ function PeggedAssetsOverview({
 	}
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
-		let totalMcapCurrent = 0
-		let totalMcapPrevDay = 0
-		for (let pegType of Object.keys(toggles)) {
-			totalMcapCurrent += toggles[pegType]
-				? getPrevPeggedTotalFromChart(chartData, 0, 'totalCirculatingUSD', pegType)
-				: 0
-			totalMcapPrevDay += toggles[pegType]
-				? getPrevPeggedTotalFromChart(chartData, 7, 'totalCirculatingUSD', pegType)
-				: 0
-		}
-		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
+		let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.['Total Stablecoins Market Cap']
+		let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.['Total Stablecoins Market Cap']
+		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
 		return { percentChange, totalMcapCurrent }
-	}, [chartData, toggles])
+	}, [chartData, peggedAreaTotalData])
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
@@ -560,6 +563,7 @@ function PeggedAssetsOverview({
 			<ChartFilters>
 				<PeggedViewSwitch />
 				<Dropdowns>
+					<BackingType />
 					<PegType />
 				</Dropdowns>
 			</ChartFilters>
