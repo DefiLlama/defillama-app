@@ -53,7 +53,7 @@ export interface INameProps {
 export interface INameYield extends Omit<INameProps, 'type'> {
 	project: string
 	projectslug: string
-	airdrop: boolean
+	airdrop?: boolean
 }
 
 export interface INameYieldPoolProps {
