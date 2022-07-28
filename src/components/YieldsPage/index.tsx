@@ -1,8 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import { Panel } from '~/components'
-import { NameYield } from '~/components/Table'
+import { Dropdowns, NameYield, TableFilters, TableHeader } from '~/components/Table'
 import { YieldAttributes, TVLRange, FiltersByChain, YieldProjects, ResetAllYieldFilters } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
 import {
@@ -75,7 +74,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 			accessor: 'project',
 			disableSortBy: true,
 			Cell: ({ value, rowValues }) => (
-				<NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} rowType="accordion" />
+				<NameYield value={value} project={rowValues.project} airdrop={rowValues.airdrop} projectslug={rowValues.projectslug} rowType="accordion" />
 			)
 		}
 	} else {
@@ -84,7 +83,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 			accessor: 'project',
 			disableSortBy: true,
 			Cell: ({ value, rowValues }) => (
-				<NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} />
+				<NameYield value={value} project={rowValues.project} airdrop={rowValues.airdrop} projectslug={rowValues.projectslug} />
 			)
 		}
 	}
@@ -165,6 +164,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 					pool: curr.symbol,
 					projectslug: curr.project,
 					project: curr.projectName,
+					airdrop: curr.airdrop,
 					chains: [curr.chain],
 					tvl: curr.tvlUsd,
 					apy: curr.apy,
@@ -219,26 +219,5 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 		</>
 	)
 }
-
-const TableFilters = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 20px;
-	margin: 0 0 -20px;
-`
-
-const Dropdowns = styled.span`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 20px;
-`
-
-const TableHeader = styled.h1`
-	margin: 0 auto 0 0;
-	font-weight: 500;
-	font-size: 1.125rem;
-`
 
 export default YieldPage

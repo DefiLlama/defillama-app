@@ -26,25 +26,29 @@ const exclude = [
 ]
 
 export async function getStaticProps() {
-	const protocols = (await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt'])).protocols
+	const protocolsRaw = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls'])
+
+	const protocols = protocolsRaw.protocols
 		.filter((token) => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name))
 		.map((p) => ({ listedAt: 1624728920, ...p }))
 		.sort((a, b) => b.listedAt - a.listedAt)
+
 	return {
 		props: {
-			protocols
+			protocols,
+			chainList: protocolsRaw.chains
 		},
 		revalidate: revalidate()
 	}
 }
 
-export default function Protocols({ protocols }) {
+export default function Protocols(props) {
 	return (
 		<RecentProtocols
-			protocols={protocols}
 			title="Airdroppable protocols - Defi Llama"
 			name="Airdrops"
 			header="Tokenless protocols that may airdrop 🧑‍🌾"
+			{...props}
 		/>
 	)
 }

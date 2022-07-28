@@ -12,6 +12,7 @@ export const peggedPropertiesToKeep = [
 	'chains',
 	'price',
 	'pegType',
+	'pegMechanism',
 	'change_1d',
 	'change_7d',
 	'change_1m',
@@ -39,7 +40,7 @@ export const formatPeggedAssetsData = ({
 	chartDataByPeggedAsset = [],
 	priceData = [],
 	rateData = [],
-	peggedNameToIndexObj = {},
+	peggedNameToChartDataIndex = {},
 	peggedAssetProps = [...peggedPropertiesToKeep]
 }) => {
 	let filteredPeggedAssets = [...peggedAssets]
@@ -65,7 +66,7 @@ export const formatPeggedAssetsData = ({
 			pegged.circulatingPrevWeek = pegged.circulatingPrevWeek[pegType] ?? null
 			pegged.circulatingPrevMonth = pegged.circulatingPrevMonth[pegType] ?? null
 		}
-		const chartIndex = peggedNameToIndexObj[pegged.name]
+		const chartIndex = peggedNameToChartDataIndex[pegged.name]
 		const chart = chartDataByPeggedAsset[chartIndex] ?? null
 
 		pegged.mcap = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculatingUSD') ?? null

@@ -34,7 +34,7 @@ export const PEGGEDRATES_API = 'https://stablecoins.llama.fi/rates'
 export const YIELD_POOLS_API = 'https://yields.llama.fi/pools'
 export const YIELD_POOLS_LAMBDA_API = 'https://yields.llama.fi/poolsEnriched'
 export const YIELD_CHART_API = 'https://yields.llama.fi/chart'
-export const YIELD_CONFIG_API = 'https://api.llama.fi/config/yields'
+export const YIELD_CONFIG_API = 'https://api.llama.fi/config/yields?a=1'
 export const YIELD_MEDIAN_API = 'https://yields.llama.fi/median'
 
 export const CG_TOKEN_API =
