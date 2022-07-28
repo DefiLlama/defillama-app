@@ -1,11 +1,3 @@
-function addAirdropToProjectName(project){
-	if(project === undefined){
-		return undefined
-	}
-	const hasAirdrop = project.symbol === null || project.symbol === '-'
-	return project.name + (hasAirdrop? "🪂":"")
-}
-
 export function formatYieldsPageData(poolsAndConfig: any) {
 	let _pools = poolsAndConfig[0]?.data ?? []
 	let _config = poolsAndConfig[1]?.protocols ?? []
@@ -16,8 +8,10 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 
 	// add projectName and audit fields from config to pools array
 	_pools = _pools.map((p) => ({ ...p, 
-		projectName: addAirdropToProjectName(_config[p.project]),
-		audits: _config[p.project]?.audits }))
+		projectName: _config[p.project]?.name,
+		audits: _config[p.project]?.audits,
+		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-'
+	}))
 	// remove potential undefined on projectName
 	const data = _pools.filter((p) => p.projectName)
 

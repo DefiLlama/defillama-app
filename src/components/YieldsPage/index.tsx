@@ -74,7 +74,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 			accessor: 'project',
 			disableSortBy: true,
 			Cell: ({ value, rowValues }) => (
-				<NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} rowType="accordion" />
+				<NameYield value={value} project={rowValues.project} airdrop={rowValues.airdrop} projectslug={rowValues.projectslug} rowType="accordion" />
 			)
 		}
 	} else {
@@ -83,7 +83,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 			accessor: 'project',
 			disableSortBy: true,
 			Cell: ({ value, rowValues }) => (
-				<NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} />
+				<NameYield value={value} project={rowValues.project} airdrop={rowValues.airdrop} projectslug={rowValues.projectslug} />
 			)
 		}
 	}
@@ -164,6 +164,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 					pool: curr.symbol,
 					projectslug: curr.project,
 					project: curr.projectName,
+					airdrop: curr.airdrop,
 					chains: [curr.chain],
 					tvl: curr.tvlUsd,
 					apy: curr.apy,
