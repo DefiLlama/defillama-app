@@ -74,8 +74,9 @@ interface IPegged {
 	circulatingPrevMonth: number
 	bridges: {
 		[bridgeID: string]: {
+			[source: string]: {
 			amount: number
-			source: string
+			}
 		}
 	}
 	dominance: {
@@ -677,7 +678,11 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 						name: '-'
 					}
 				}
-			} else if (Object.keys(parentBridges).length === 1 && parent.bridgedAmount === parent.circulating) {
+			} else if (
+				Object.keys(parentBridges).length === 1 &&
+				Object.keys(parentBridges[Object.keys(parentBridges)[0]]).length === 1 &&
+				parent.bridgedAmount === parent.circulating
+			) {
 				const bridgeID = Object.keys(parentBridges)[0]
 				const bridgeInfo = bridgeInfoObject[bridgeID] ?? { name: 'not-found' }
 				let childData = {}
@@ -690,7 +695,7 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 						name: `Natively Issued`
 					}
 				} else {
-					const sourceChain = parentBridges[bridgeID].source ?? 'not-found'
+					const sourceChain = Object.keys(parentBridges[bridgeID])[0] ?? 'not-found'
 					childData = {
 						...parent,
 						bridgeInfo: bridgeInfo,
@@ -707,38 +712,42 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 			} else {
 				let totalBridged = 0
 				for (const bridgeID in parentBridges) {
-					totalBridged += parentBridges[bridgeID].amount ?? 0
+					for (const sourceChain in parentBridges[bridgeID]) {
+						totalBridged += parentBridges[bridgeID][sourceChain].amount ?? 0
+					}
 				}
 				for (const bridgeID in parentBridges) {
-					const bridgeInfo = bridgeInfoObject[bridgeID] ?? {
-						name: 'not-found'
-					}
-					const subChains = finalData[parent.name].subRows || []
-					const percentBridgedBreakdown =
-						parentBridges[bridgeID].amount &&
-						totalBridged &&
-						(parentBridges[bridgeID].amount / totalBridged) * (percentBridged > 100 ? 100 : percentBridged)
-					const percentBridgedBreakdownToDisplay =
-						percentBridgedBreakdown < 100 ? percentBridgedBreakdown.toFixed(2) + '%' : '100%'
-					const sourceChain = parentBridges[bridgeID].source ?? 'not-found'
+					for (const sourceChain in parentBridges[bridgeID]) {
+						const bridgeInfo = bridgeInfoObject[bridgeID] ?? {
+							name: 'not-found'
+						}
+						const subChains = finalData[parent.name].subRows || []
+						const parentAmountBridged = parentBridges[bridgeID][sourceChain].amount
+						const percentBridgedBreakdown =
+							parentAmountBridged &&
+							totalBridged &&
+							(parentAmountBridged / totalBridged) * (percentBridged > 100 ? 100 : percentBridged)
+						const percentBridgedBreakdownToDisplay =
+							percentBridgedBreakdown < 100 ? percentBridgedBreakdown.toFixed(2) + '%' : '100%'
 
-					const childData = {
-						...parent,
-						name: `Bridged from ${capitalizeFirstLetter(sourceChain)}`,
-						bridgeInfo: bridgeInfo,
-						bridgedAmount: percentBridgedBreakdownToDisplay,
-						circulating: parentBridges[bridgeID].amount,
-						change_1d: null,
-						change_7d: null,
-						change_1m: null
-					}
-					finalData[parent.name] = {
-						...parent,
-						bridgedAmount: percentBridgedtoDisplay,
-						bridgeInfo: {
-							name: '-'
-						},
-						subRows: [...subChains, childData]
+						const childData = {
+							...parent,
+							name: `Bridged from ${capitalizeFirstLetter(sourceChain)}`,
+							bridgeInfo: bridgeInfo,
+							bridgedAmount: percentBridgedBreakdownToDisplay,
+							circulating: parentAmountBridged,
+							change_1d: null,
+							change_7d: null,
+							change_1m: null
+						}
+						finalData[parent.name] = {
+							...parent,
+							bridgedAmount: percentBridgedtoDisplay,
+							bridgeInfo: {
+								name: '-'
+							},
+							subRows: [...subChains, childData]
+						}
 					}
 				}
 			}
