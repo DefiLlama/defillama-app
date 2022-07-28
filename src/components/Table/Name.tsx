@@ -111,7 +111,7 @@ export function Name({
 export function NameYield({ project, projectslug, rowType, airdrop, ...props }: INameYield) {
 	const iconUrl = tokenIconUrl(project)
 	const tokenUrl = `/yields?project=${projectslug}`
-	const projectName = project + (airdrop?"🪂":"")
+	const projectName = project + (airdrop ? ' 🪂' : '')
 
 	return (
 		<Index {...props}>
