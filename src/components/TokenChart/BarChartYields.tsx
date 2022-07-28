@@ -38,7 +38,6 @@ const Wrapper = styled.div`
 `
 
 export default function BarChartYields({ chartData }: IChartProps) {
-	console.log(chartData)
 	const id = useMemo(() => uuid(), [])
 
 	const [isDark] = useDarkModeManager()
