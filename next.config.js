@@ -41,7 +41,7 @@ const nextConfig = {
 				source: '/recent-noforks',
 				destination: '/recent',
 				permanent: true
-			},
+			}
 		]
 	},
 	images: {
@@ -49,6 +49,10 @@ const nextConfig = {
 	},
 	compiler: {
 		styledComponents: true
+	},
+	experimental: {
+		legacyBrowsers: false,
+		browsersListForSwc: true
 	}
 }
 
