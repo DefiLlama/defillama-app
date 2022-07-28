@@ -35,7 +35,7 @@ const Wrapper = styled.span`
 	padding: 6px;
 	height: 40px;
 	width: 200px;
-	margin: 0 auto;
+	margin: 0 auto 0 0;
 `
 
 interface IAppLink {

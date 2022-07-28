@@ -9,7 +9,12 @@ import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/comp
 import { AreaChart } from '~/components/Charts'
 import { PeggedAssetGroupOptions } from '~/components/Select'
 import { PeggedSearch } from '~/components/Search'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data'
+import {
+	useCalcCirculating,
+	useCreatePeggedCharts,
+	useCalcGroupExtraPeggedByDay,
+	useGroupChainsPegged
+} from '~/hooks/data'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {
 	getRandomColor,
@@ -23,8 +28,8 @@ import {
 	download
 } from '~/utils'
 
-function Chart({ peggedAreaChainData, peggedAreaMcapData, totalMcapLabel, chainNames, aspect }) {
-	const finalChartData = peggedAreaChainData ? peggedAreaChainData : peggedAreaMcapData
+function Chart({ peggedAreaChartData, peggedAreaTotalData, totalMcapLabel, chainNames, aspect }) {
+	const finalChartData = peggedAreaChartData ? peggedAreaChartData : peggedAreaTotalData
 	const labels = chainNames ? chainNames : totalMcapLabel
 	return (
 		<AreaChart
@@ -198,6 +203,15 @@ const PeggedTable = styled(Table)`
 	}
 `
 
+const ChartFilters = styled.div`
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: start;
+	gap: 20px;
+	margin: 0 0 -18px;
+`
+
 const columns = [
 	...columnsToShow('peggedAssetChain', '7dChange'),
 	{
@@ -240,25 +254,28 @@ const columns = [
 ]
 
 function PeggedChainsOverview({
-	title,
 	chainCirculatings,
 	chartData,
-	peggedAreaChainData,
-	peggedAreaMcapData,
-	stackedDataset,
-	peggedChartType,
-	defaultSortingColumn,
+	peggedChartDataByChain,
 	chainList,
 	chainsGroupbyParent
 }) {
-	const [chartType, setChartType] = useState(peggedChartType)
+	const [chartType, setChartType] = useState('Area')
 
 	const belowMed = useMed()
 	const belowXl = useXl()
 	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
+	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useCreatePeggedCharts(
+		chartData,
+		peggedChartDataByChain,
+		chainList,
+		chartType,
+		[...Array(chainList.length).keys()]
+	)
+
 	const filteredPeggedAssets = chainCirculatings
-	const chainTotals = useCalcCirculating(filteredPeggedAssets, defaultSortingColumn)
+	const chainTotals = useCalcCirculating(filteredPeggedAssets)
 
 	const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
@@ -272,9 +289,7 @@ function PeggedChainsOverview({
 		download('peggedAssetsChainTotals.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
-	if (!title) {
-		title = `Stablecoins Market Cap`
-	}
+	const title = `Stablecoins Market Cap`
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
 		const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, 'totalCirculatingUSD')
@@ -325,7 +340,9 @@ function PeggedChainsOverview({
 		<>
 			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains' }} />
 
-			<PeggedViewSwitch />
+			<ChartFilters>
+				<PeggedViewSwitch />
+			</ChartFilters>
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
@@ -363,8 +380,8 @@ function PeggedChainsOverview({
 							</OptionButton>
 						</AutoRow>
 					</RowBetween>
-					{chartType === 'Mcap' && <Chart {...{ peggedAreaMcapData, totalMcapLabel, aspect }} />}
-					{chartType === 'Area' && <Chart {...{ peggedAreaChainData, chainNames: chainList, aspect }} />}
+					{chartType === 'Mcap' && <Chart {...{ peggedAreaTotalData, totalMcapLabel, aspect }} />}
+					{chartType === 'Area' && <Chart {...{ peggedAreaChartData, chainNames: chainList, aspect }} />}
 					{chartType === 'Dominance' && (
 						<PeggedChainResponsiveDominance
 							stackOffset="expand"
