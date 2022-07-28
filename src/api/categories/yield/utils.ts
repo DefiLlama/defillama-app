@@ -7,7 +7,11 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	_pools = _pools.map((p) => ({ ...p, project: p.project === 'aave' ? 'aave-v2' : p.project }))
 
 	// add projectName and audit fields from config to pools array
-	_pools = _pools.map((p) => ({ ...p, projectName: _config[p.project]?.name, audits: _config[p.project]?.audits }))
+	_pools = _pools.map((p) => ({ ...p, 
+		projectName: _config[p.project]?.name,
+		audits: _config[p.project]?.audits,
+		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-'
+	}))
 	// remove potential undefined on projectName
 	const data = _pools.filter((p) => p.projectName)
 
