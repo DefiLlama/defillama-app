@@ -41,13 +41,14 @@ export const allColumns: AllColumns = {
 		header: 'Name',
 		accessor: 'name',
 		disableSortBy: true,
-		Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+		Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
 			<Name
 				type="peggedAssetChain"
 				value={value}
 				symbol={rowValues.symbol}
 				index={rowIndex !== null && rowIndex + 1}
 				rowType={rowType}
+				showRows={showRows}
 			/>
 		)
 	},
