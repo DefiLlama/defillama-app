@@ -78,12 +78,18 @@ const Empty = styled.div`
 	text-align: center;
 `
 
-const OptionsWrapper = styled.div`
+const Div = (props: any) => <div {...props} />
+
+const OptionsWrapper = styled(Div)`
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 8px;
+	border-radius: ${({ hideSearch }) => {
+		console.log(hideSearch)
+		return hideSearch ? '12px' : '0'
+	}};
 	border-bottom-left-radius: 12px;
 	border-bottom-right-radius: 12px;
 	box-shadow: ${({ theme }) => theme.shadowSm};
@@ -132,6 +138,7 @@ interface IStep {
 	name: string
 	route?: string
 	hideOptions?: boolean
+	hideSearch?: boolean
 }
 
 export interface IBaseSearchProps {
@@ -163,13 +170,16 @@ export const BaseSearch = (props: IBaseSearchProps) => {
 
 	return (
 		<Wrapper>
-			<Box
-				state={combobox}
-				placeholder="Search..."
-				style={step && { borderBottomLeftRadius: '0', borderBottomRightRadius: 0 }}
-			/>
-
-			<IconWrapper>{combobox.mounted ? <XIcon /> : <SearchIcon />}</IconWrapper>
+			{step && step.hideSearch ? null : (
+				<>
+					<Box
+						state={combobox}
+						placeholder="Search..."
+						style={step && { borderBottomLeftRadius: '0', borderBottomRightRadius: 0 }}
+					/>
+					<IconWrapper>{combobox.mounted ? <XIcon /> : <SearchIcon />}</IconWrapper>
+				</>
+			)}
 
 			{step && <Options step={step} filters={filters} />}
 
@@ -242,7 +252,7 @@ interface IOptionsProps {
 
 const Options = ({ step, filters }: IOptionsProps) => {
 	return (
-		<OptionsWrapper>
+		<OptionsWrapper hideSearch={step.hideSearch}>
 			<p>
 				<Link href={`/${step.route || step.category.toLowerCase()}`} prefetch={false}>
 					{step.category}
