@@ -39,3 +39,14 @@ export const Stats = styled.span`
 		color: ${({ theme }) => theme.primary1};
 	}
 `
+
+export const Selected = styled.span`
+	position: absolute;
+	top: -8px;
+	right: -8px;
+	font-size: 10px;
+	padding: 2px;
+	min-width: 16px;
+	background: ${({ theme }) => theme.bg4};
+	border-radius: 9999px;
+`

@@ -12,7 +12,7 @@ import {
 	APY_GT0,
 	useLocalStorageContext
 } from '~/contexts/LocalStorage'
-import { Item, Stats } from '../shared'
+import { Item, Selected, Stats } from '../shared'
 
 export const options = [
 	{
@@ -100,6 +100,7 @@ export function YieldAttributes() {
 			<FilterButton state={select}>
 				<span>Filter by Attribute</span>
 				<MenuButtonArrow />
+				{values.length > 0 && <Selected>{values.length}</Selected>}
 			</FilterButton>
 			<FilterPopover state={select}>
 				<Stats>

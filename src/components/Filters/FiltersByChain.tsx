@@ -3,7 +3,7 @@ import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
 import { FilterButton } from '~/components/Select/AriakitSelect'
-import { Dropdown, Item, Stats } from './shared'
+import { Dropdown, Item, Selected, Stats } from './shared'
 
 interface IFiltersByChainProps {
 	chainList: string[]
@@ -77,6 +77,7 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 			<FilterButton state={select}>
 				<span>Filter by Chain</span>
 				<MenuButtonArrow />
+				{selectedChains.length > 0 && <Selected>{selectedChains.length}</Selected>}
 			</FilterButton>
 			<Dropdown state={select}>
 				<Input state={combobox} placeholder="Search for chains..." />
