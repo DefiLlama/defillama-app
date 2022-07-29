@@ -111,16 +111,16 @@ export function Name({
 export function NameYield({ project, projectslug, rowType, airdrop, ...props }: INameYield) {
 	const iconUrl = tokenIconUrl(project)
 	const tokenUrl = `/yields?project=${projectslug}`
-	const projectName = project + (airdrop ? ' 🪂' : '')
 
 	return (
 		<Index {...props}>
+			<div style={{ width: '24px', flexShrink: 0, marginRight: '-12px' }}>{airdrop && '🪂'}</div>
 			<TokenLogo id="table-p-logo" logo={iconUrl} />
 			{rowType === 'accordion' ? (
-				<span id="table-p-name">{projectName}</span>
+				<span id="table-p-name">{project}</span>
 			) : (
 				<CustomLink id="table-p-name" href={tokenUrl}>
-					{projectName}
+					{project}
 				</CustomLink>
 			)}
 		</Index>
