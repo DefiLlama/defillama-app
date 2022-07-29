@@ -1,10 +1,12 @@
 import Layout from '~/layout'
 import PlotsPage from '~/components/YieldsPage/indexPlots'
 import { revalidate } from '~/api'
-import { getYieldPageData } from '~/api/categories/yield'
+import { getYieldPageData, getYieldMedianData } from '~/api/categories/yield'
 
 export async function getStaticProps() {
 	const data = await getYieldPageData()
+	const median = await getYieldMedianData()
+	data['props']['median'] = median.props
 
 	return {
 		...data,
