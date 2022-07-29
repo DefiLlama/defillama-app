@@ -43,10 +43,10 @@ const columns = [
 		}
 	},
 	{
-		header: 'Nb of Audits',
+		header: 'Audits',
 		accessor: 'audits',
 		Cell: ({ value }) => {
-			return <span>{value}</span>
+			return <span>{value?"Yes":"No"}</span>
 		}
 	},
 	{
@@ -76,7 +76,7 @@ export async function getStaticProps() {
 		const x = data.props.pools.filter((p) => p.project === project)
 		const m = median(x.map((el) => el.apy))
 		projects[project]['medianApy'] = m
-		projects[project]['audits'] = x[0].audits
+		projects[project]['audits'] = x[0].audits !== "0"
 	}
 
 	const projArray = Object.entries(projects).map(([slug, details]: [string, any]) => ({

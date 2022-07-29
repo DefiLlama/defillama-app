@@ -18,10 +18,7 @@ export async function getStaticProps() {
 export default function PeggedAssets({
 	chainCirculatings,
 	chartData,
-	peggedAreaChainData,
-	peggedAreaMcapData,
-	stackedDataset,
-	peggedChartType,
+	peggedChartDataByChain,
 	chainList,
 	chainsGroupbyParent
 }) {
@@ -30,10 +27,7 @@ export default function PeggedAssets({
 			<PeggedChainsOverview
 				chainCirculatings={chainCirculatings}
 				chartData={chartData}
-				peggedAreaChainData={peggedAreaChainData}
-				peggedAreaMcapData={peggedAreaMcapData}
-				stackedDataset={stackedDataset}
-				peggedChartType={peggedChartType}
+				peggedChartDataByChain={peggedChartDataByChain}
 				chainList={chainList}
 				chainsGroupbyParent={chainsGroupbyParent}
 			/>

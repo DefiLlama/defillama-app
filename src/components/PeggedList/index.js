@@ -12,23 +12,31 @@ import IconsRow from '~/components/IconsRow'
 import { PeggedSearch } from '~/components/Search'
 import QuestionHelper from '~/components/QuestionHelper'
 import { Text } from 'rebass'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/hooks/data'
+import { useCalcCirculating, useCreatePeggedCharts, useCalcGroupExtraPeggedByDay } from '~/hooks/data'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {
 	getRandomColor,
 	capitalizeFirstLetter,
 	formattedNum,
 	formattedPeggedPrice,
-	getPrevPeggedTotalFromChart,
 	getPercentChange,
 	getPeggedDominance,
 	toNiceMonthlyDate,
 	toNiceCsvDate,
 	download
 } from '~/utils'
+import {
+	usePeggedUSDManager,
+	usePeggedEURManager,
+	usePeggedVARManager,
+	useFiatStablesManager,
+	useCryptoStablesManager,
+	useAlgoStablesManager
+} from '~/contexts/LocalStorage'
+import { PegType, BackingType } from '~/components/Filters'
 
-function Chart({ peggedAreaChartData, peggedAreaMcapData, totalMcapLabel, peggedAssetNames, aspect }) {
-	const finalChartData = peggedAreaChartData ? peggedAreaChartData : peggedAreaMcapData
+function Chart({ peggedAreaChartData, peggedAreaTotalData, totalMcapLabel, peggedAssetNames, aspect }) {
+	const finalChartData = peggedAreaChartData ? peggedAreaChartData : peggedAreaTotalData
 	const labels = peggedAssetNames ? peggedAssetNames : totalMcapLabel
 	return (
 		<AreaChart
@@ -309,6 +317,26 @@ const PeggedTable = styled(Table)`
 	}
 `
 
+const ChartFilters = styled.div`
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: start;
+	gap: 20px;
+	margin: 0 0 -18px;
+`
+
+const Dropdowns = styled.span`
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 20px;
+
+	button {
+		font-weight: 400;
+	}
+`
+
 const columns = [
 	...columnsToShow('peggedAsset'),
 	{
@@ -364,32 +392,109 @@ const columns = [
 ]
 
 function PeggedAssetsOverview({
-	title,
 	selectedChain = 'All',
 	chains = [],
 	filteredPeggedAssets,
 	peggedAssetNames,
+	peggedNameToChartDataIndex,
 	chartData,
-	peggedAreaChartData,
-	peggedAreaMcapData,
-	stackedDataset,
-	peggedChartType,
-	showChainList = true,
-	defaultSortingColumn
+	chartDataByPeggedAsset
 }) {
-	const [chartType, setChartType] = useState(peggedChartType)
+	const [chartType, setChartType] = useState('Area')
 
 	const belowMed = useMed()
 	const belowXl = useXl()
 	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
-	const handleRouting = (chain) => {
-		if (chain === 'All') return `/stablecoins`
-		return `/stablecoins/${chain}`
+	const [filteredIndexes, setFilteredIndexes] = useState([])
+
+	// toggles
+	const [peggedUSD] = usePeggedUSDManager()
+	const [peggedEUR] = usePeggedEURManager()
+	const [peggedVAR] = usePeggedVARManager()
+	const [fiatStables] = useFiatStablesManager()
+	const [cryptoStables] = useCryptoStablesManager()
+	const [algoStables] = useAlgoStablesManager()
+	const toggles = {
+		peggedUSD: peggedUSD,
+		peggedEUR: peggedEUR,
+		peggedVAR: peggedVAR,
+		fiatStables: fiatStables,
+		cryptoStables: cryptoStables,
+		algoStables: algoStables
+	}
+
+	const peggedAssets = useMemo(() => {
+		let chartDataIndexes = []
+		const peggedAssets = filteredPeggedAssets.reduce((acc, curr) => {
+			let toFilter = false
+
+			toFilter =
+				(peggedUSD && curr.pegType === 'peggedUSD') ||
+				(peggedEUR && curr.pegType === 'peggedEUR') ||
+				(peggedVAR && curr.pegType === 'peggedVAR')
+
+			toFilter =
+				toFilter &&
+				((fiatStables && curr.pegMechanism === 'fiat-backed') ||
+					(cryptoStables && curr.pegMechanism === 'crypto-backed') ||
+					(algoStables && curr.pegMechanism === 'algorithmic'))
+
+			if (toFilter) {
+				const chartDataIndex = peggedNameToChartDataIndex[curr.name]
+				chartDataIndexes.push(chartDataIndex)
+				return acc.concat(curr)
+			} else return acc
+		}, [])
+
+		setFilteredIndexes(chartDataIndexes)
+
+		return peggedAssets
+	}, [filteredPeggedAssets, peggedUSD, peggedEUR, peggedVAR, fiatStables, cryptoStables, algoStables])
+
+	const backfilledChains = [
+		'All',
+		'Ethereum',
+		'BSC',
+		'Avalanche',
+		'Arbitrum',
+		'Optimism',
+		'Fantom',
+		'Polygon',
+		'Gnosis',
+		'Celo',
+		'Harmony',
+		'Moonriver',
+		'Aztec',
+		'Loopring',
+		'Starknet',
+		'zkSync',
+		'Boba',
+		'Metis',
+		'Moonbeam',
+		'Syscoin',
+		'OKExChain',
+		'IoTeX',
+		'Heco'
+	]
+	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useCreatePeggedCharts(
+		chartData,
+		chartDataByPeggedAsset,
+		peggedAssetNames,
+		chartType,
+		filteredIndexes,
+		selectedChain,
+		toggles,
+		backfilledChains
+	)
+
+	const handleRouting = (selectedChain) => {
+		if (selectedChain === 'All') return `/stablecoins`
+		return `/stablecoins/${selectedChain}`
 	}
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
 
-	const peggedTotals = useCalcCirculating(filteredPeggedAssets, defaultSortingColumn)
+	const peggedTotals = useCalcCirculating(peggedAssets)
 
 	const chainsCirculatingValues = useMemo(() => {
 		const data = peggedTotals.map((chain) => ({ name: chain.symbol, value: chain.mcap }))
@@ -412,28 +517,31 @@ function PeggedAssetsOverview({
 	const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
 	const downloadCsv = () => {
-		const rows = [['Timestamp', 'Date', ...peggedAssetNames]]
+		const filteredPeggedNames = peggedAssetNames.filter((name, i) => filteredIndexes.includes(i))
+		const rows = [['Timestamp', 'Date', ...filteredPeggedNames]]
 		stackedData
 			.sort((a, b) => a.date - b.date)
 			.forEach((day) => {
-				rows.push([day.date, toNiceCsvDate(day.date), ...peggedAssetNames.map((peggedAsset) => day[peggedAsset] ?? '')])
+				rows.push([
+					day.date,
+					toNiceCsvDate(day.date),
+					...filteredPeggedNames.map((peggedAsset) => day[peggedAsset] ?? '')
+				])
 			})
 		download('peggedAssets.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
-	if (!title) {
-		title = `Stablecoins Market Cap`
-		if (selectedChain !== 'All') {
-			title = `${capitalizeFirstLetter(selectedChain)} Stablecoins Market Cap`
-		}
+	let title = `Stablecoins Market Cap`
+	if (selectedChain !== 'All') {
+		title = `${capitalizeFirstLetter(selectedChain)} Stablecoins Market Cap`
 	}
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
-		const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, 'totalCirculatingUSD')
-		const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 7, 'totalCirculatingUSD')
-		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
+		let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.['Total Stablecoins Market Cap']
+		let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.['Total Stablecoins Market Cap']
+		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
 		return { percentChange, totalMcapCurrent }
-	}, [chartData])
+	}, [chartData, peggedAreaTotalData])
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
@@ -452,7 +560,13 @@ function PeggedAssetsOverview({
 		<>
 			<PeggedSearch step={{ category: 'Stablecoins', name: title }} />
 
-			<PeggedViewSwitch />
+			<ChartFilters>
+				<PeggedViewSwitch />
+				<Dropdowns>
+					<BackingType />
+					<PegType />
+				</Dropdowns>
+			</ChartFilters>
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
@@ -490,7 +604,7 @@ function PeggedAssetsOverview({
 							</OptionButton>
 						</AutoRow>
 					</RowBetween>
-					{chartType === 'Mcap' && <Chart {...{ peggedAreaMcapData, totalMcapLabel, aspect }} />}
+					{chartType === 'Mcap' && <Chart {...{ peggedAreaTotalData, totalMcapLabel, aspect }} />}
 					{chartType === 'Area' && <Chart {...{ peggedAreaChartData, peggedAssetNames, aspect }} />}
 					{chartType === 'Dominance' && (
 						<PeggedChainResponsiveDominance
@@ -509,11 +623,9 @@ function PeggedAssetsOverview({
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 
-			{showChainList && (
-				<LinksWrapper>
-					<RowLinks links={chainOptions} activeLink={selectedChain} />
-				</LinksWrapper>
-			)}
+			<LinksWrapper>
+				<RowLinks links={chainOptions} activeLink={selectedChain} />
+			</LinksWrapper>
 
 			<PeggedTable data={peggedTotals} columns={columns} />
 		</>

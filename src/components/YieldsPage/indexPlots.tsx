@@ -27,8 +27,11 @@ const BoxplotChart = dynamic(() => import('~/components/TokenChart/BoxplotChart'
 const TreemapChart = dynamic(() => import('~/components/TokenChart/TreemapChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
+const BarChartYields = dynamic(() => import('~/components/TokenChart/BarChartYields'), {
+	ssr: false
+}) as React.FC<IChartProps>
 
-const PlotsPage = ({ pools, chainList, projectList }) => {
+const PlotsPage = ({ pools, chainList, projectList, median }) => {
 	const { query } = useRouter()
 	const { minTvl, maxTvl, project, chain, token, excludeToken } = query
 
@@ -184,6 +187,7 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 				</Dropdowns>
 			</ChartFilters>
 
+			<BarChartYields chartData={median} />
 			<TreemapChart chartData={poolsData} />
 			<ScatterChart chartData={poolsData.filter((p) => !p.outlier)} />
 			<BoxplotChart chartData={poolsData.filter((p) => !p.outlier)} />

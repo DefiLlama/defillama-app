@@ -41,7 +41,7 @@ export async function getPeggedOverviewPageData(chain) {
 
 	let chartDataByPeggedAsset = []
 	let peggedAssetNames: string[] = [] // fix name of this variable
-	let peggedNameToIndexObj: object = {}
+	let peggedNameToChartDataIndex: object = {}
 	chartDataByPeggedAsset = await Promise.all(
 		peggedAssets.map(async (elem, i) => {
 			if (peggedAssetNames.includes(elem.symbol)) {
@@ -49,7 +49,7 @@ export async function getPeggedOverviewPageData(chain) {
 			} else {
 				peggedAssetNames.push(elem.symbol)
 			}
-			peggedNameToIndexObj[elem.name] = i
+			peggedNameToChartDataIndex[elem.name] = i
 			for (let i = 0; i < 5; i++) {
 				try {
 					if (!chain) {
@@ -60,76 +60,6 @@ export async function getPeggedOverviewPageData(chain) {
 			}
 			throw new Error(`${CHART_API}/${elem} is broken`)
 		})
-	)
-
-	let peggedAreaChartData = chartDataByPeggedAsset.reduce((total, charts, i) => {
-		if (!charts.length) return total
-		charts.forEach((chart) => {
-			const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
-			if (chart.date > 1596248105 && mcap) {
-				if (!(chain && chart.date < 1652241600)) {
-					// for individual chains data is currently only backfilled to May 11, 2022
-					total[chart.date] = total[chart.date] || {}
-					total[chart.date][peggedAssetNames[i]] = mcap
-				}
-			}
-		})
-		return total
-	}, {})
-
-	peggedAreaChartData = Object.entries(peggedAreaChartData).map(([date, chart]) => {
-		if (typeof chart === 'object') {
-			return {
-				date: date,
-				...chart
-			}
-		}
-	})
-
-	let peggedMcapChartData = []
-	if (chain) {
-		peggedMcapChartData = await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
-	} else {
-		peggedMcapChartData = await fetch(`${PEGGEDCHART_API}/all`).then((resp) => resp.json())
-	}
-
-	let peggedAreaMcapData = {}
-	peggedMcapChartData.map((chart) => {
-		const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
-		if ((!chain && chart.date > 1596248105 && mcap) || (chart.date > 1652241600 && mcap)) {
-			// for individual chains data is currently only backfilled to May 11, 2022
-			peggedAreaMcapData[chart.date] = peggedAreaMcapData[chart.date] || {}
-			peggedAreaMcapData[chart.date]['Total Stablecoins Market Cap'] = mcap
-		}
-	})
-
-	peggedAreaMcapData = Object.keys(peggedAreaMcapData).map((date) => {
-		return {
-			date: date,
-			...peggedAreaMcapData[date]
-		}
-	})
-
-	const stackedDataset = Object.entries(
-		chartDataByPeggedAsset.reduce((total: IStackedDataset, charts, i) => {
-			if (!charts.length) return total
-			charts.forEach((chart) => {
-				const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
-				const peggedName = peggedAssetNames[i]
-				const circulating = mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
-				const date = chart.date
-				if (date < 1596248105) return
-				if (chain && chart.date < 1652241600) return // for individual chains data is currently only backfilled to May 11, 2022
-				if (circulating !== null && circulating !== 0) {
-					if (total[date] == undefined) {
-						total[date] = {}
-					}
-					const b = total[date][peggedName]
-					total[date][peggedName] = { ...b, circulating: circulating ?? 0 }
-				}
-			})
-			return total
-		}, {})
 	)
 
 	const chainList = await chains
@@ -160,21 +90,17 @@ export async function getPeggedOverviewPageData(chain) {
 		chartDataByPeggedAsset,
 		priceData,
 		rateData,
-		peggedNameToIndexObj,
+		peggedNameToChartDataIndex,
 		chain
 	})
-
-	const peggedChartType = stackedDataset.length > 30 ? 'Area' : 'Pie'
 
 	return {
 		chains: chainList.filter((chain) => chainsSet.has(chain)),
 		filteredPeggedAssets,
 		peggedAssetNames,
+		peggedNameToChartDataIndex,
 		chartData,
-		peggedAreaChartData,
-		peggedAreaMcapData,
-		stackedDataset,
-		peggedChartType,
+		chartDataByPeggedAsset,
 		chain: chain ?? 'All'
 	}
 }
@@ -250,47 +176,6 @@ export async function getPeggedChainsPageData() {
 		})
 	)
 
-	let peggedAreaChainData = peggedChartDataByChain.reduce((total, charts, i) => {
-		if (!charts.length) return total
-		charts.forEach((chart) => {
-			const chainName = chainList[i]
-			const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
-			if (chart.date > 1652241600 && mcap) {
-				total[chart.date] = total[chart.date] || {}
-				total[chart.date][chainName] = mcap
-			}
-		})
-		return total
-	}, {})
-
-	peggedAreaChainData = Object.entries(peggedAreaChainData).map(([date, chart]) => {
-		if (typeof chart === 'object') {
-			return {
-				date: date,
-				...chart
-			}
-		}
-	})
-
-	let peggedMcapChartData = []
-	peggedMcapChartData = await fetch(`${PEGGEDCHART_API}/all`).then((resp) => resp.json())
-
-	let peggedAreaMcapData = {}
-	peggedMcapChartData.map((chart) => {
-		const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
-		if (chart.date > 1596248105 && mcap) {
-			peggedAreaMcapData[chart.date] = peggedAreaMcapData[chart.date] || {}
-			peggedAreaMcapData[chart.date]['Total Stablecoins Market Cap'] = mcap
-		}
-	})
-
-	peggedAreaMcapData = Object.keys(peggedAreaMcapData).map((date) => {
-		return {
-			date: date,
-			...peggedAreaMcapData[date]
-		}
-	})
-
 	let peggedDomDataByChain = []
 	peggedDomDataByChain = await Promise.all(
 		chainList.map(async (chain) => {
@@ -313,27 +198,6 @@ export async function getPeggedChainsPageData() {
 		chainDominances[chainName] = greatestChainMcap
 	})
 
-	const stackedDataset = Object.entries(
-		peggedChartDataByChain.reduce((total: IStackedDataset, charts, i) => {
-			if (!charts.length) return total
-			charts.forEach((chart) => {
-				const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
-				const chainName = chainList[i]
-				const circulating = mcap // should rename this variable; useCalcGroupExtraPeggedByDay accesses it
-				const date = chart.date
-				if (date < 1652241600) return
-				if (circulating !== null && circulating !== 0) {
-					if (total[date] == undefined) {
-						total[date] = {}
-					}
-					const b = total[date][chainName]
-					total[date][chainName] = { ...b, circulating: circulating ?? 0 }
-				}
-			})
-			return total
-		}, {})
-	)
-
 	const chainCirculatings = formatPeggedChainsData({
 		chainList,
 		peggedChartDataByChain,
@@ -341,15 +205,10 @@ export async function getPeggedChainsPageData() {
 		chainsData
 	})
 
-	const peggedChartType = stackedDataset.length > 30 ? 'Area' : 'Pie'
-
 	return {
 		chainCirculatings,
 		chartData,
-		peggedAreaChainData,
-		peggedAreaMcapData,
-		stackedDataset,
-		peggedChartType,
+		peggedChartDataByChain,
 		chainList,
 		chainsGroupbyParent
 	}
