@@ -24,12 +24,11 @@ export const TableWrapper = styled(Table)`
 			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;
-			text-decoration: underline;
 		}
 
 		a:hover {
-			transform: scale(1.15);
 			filter: brightness(1.5);
+			text-decoration: underline;
 		}
 	}
 
@@ -53,6 +52,11 @@ export const TableWrapper = styled(Table)`
 			overflow: hidden;
 			white-space: nowrap;
 			text-overflow: ellipsis;
+		}
+
+		a:hover {
+			filter: brightness(1.5);
+			text-decoration: underline;
 		}
 	}
 
