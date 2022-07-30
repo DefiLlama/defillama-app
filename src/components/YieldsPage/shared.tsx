@@ -25,11 +25,6 @@ export const TableWrapper = styled(Table)`
 			text-overflow: ellipsis;
 			white-space: nowrap;
 		}
-
-		a:hover {
-			filter: brightness(1.5);
-			text-decoration: underline;
-		}
 	}
 
 	// PROJECT
