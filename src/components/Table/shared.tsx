@@ -54,6 +54,11 @@ export const RowWrapper = styled.tr`
 		white-space: nowrap;
 		text-overflow: ellipses;
 	}
+
+	a:hover {
+		filter: brightness(1.5);
+		text-decoration: underline;
+	}
 `
 
 export const Cell = styled.td`

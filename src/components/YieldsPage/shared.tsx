@@ -48,6 +48,11 @@ export const TableWrapper = styled(Table)`
 			white-space: nowrap;
 			text-overflow: ellipsis;
 		}
+
+		a:hover {
+			filter: brightness(1.5);
+			text-decoration: underline;
+		}
 	}
 
 	// CHAINS
