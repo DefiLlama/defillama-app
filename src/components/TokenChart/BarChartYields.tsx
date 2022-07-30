@@ -55,6 +55,7 @@ export default function BarChartYields({ chartData }: IChartProps) {
 			color: ['#66c2a5', '#fc8d62'],
 			title: {
 				text: 'Median APY Trend',
+				subtext: 'Caculated over all tracked pools on a given day',
 				textStyle: {
 					fontFamily: 'inter, sans-serif',
 					fontWeight: 600,
