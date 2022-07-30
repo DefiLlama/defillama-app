@@ -2,6 +2,7 @@ import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from '
 import type {
 	IChainData,
 	IChainGeckoId,
+	IDexResponse,
 	IFusedProtocolData,
 	IOracleProtocols,
 	IProtocolResponse,
@@ -11,6 +12,8 @@ import type {
 import {
 	CHART_API,
 	CONFIG_API,
+	DEXS_API,
+	DEX_BASE_API,
 	FORK_API,
 	HOURLY_PROTOCOL_API,
 	ORACLE_API,
@@ -21,27 +24,23 @@ import { BasicPropsToKeep, formatProtocolsData } from './utils'
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
-export const getProtocols = () =>
-	fetch(PROTOCOLS_API)
-		.then((r) => r.json())
-		.then(({ protocols, chains, parentProtocols }) => ({
-			protocolsDict: protocols.reduce((acc, curr) => {
-				acc[standardizeProtocolName(curr.name)] = curr
-				return acc
-			}, {}),
-			protocols,
-			chains,
-			parentProtocols
-		}))
+export const getDexs = () => fetch(DEXS_API).then((r) => r.json())
+fetch(PROTOCOLS_API)
+	.then((r) => r.json())
+	.then(({ protocols, chains, parentProtocols }) => ({
+		protocolsDict: protocols.reduce((acc, curr) => {
+			acc[standardizeProtocolName(curr.name)] = curr
+			return acc
+		}, {}),
+		protocols,
+		chains,
+		parentProtocols
+	}))
 
-export const getProtocol = async (protocolName: string) => {
+export const getDex = async (dexName: string) => {
 	try {
-		const data: IProtocolResponse = await fetch(`${PROTOCOL_API}/${protocolName}`).then((r) => r.json())
-		const tvl = data?.tvl ?? []
-		if (tvl.length < 7) {
-			const hourlyData = await fetch(`${HOURLY_PROTOCOL_API}/${protocolName}`).then((r) => r.json())
-			return { ...hourlyData, isHourlyChart: true }
-		} else return data
+		const data: IDexResponse = await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
+		return data
 	} catch (e) {
 		console.log(e)
 	}
@@ -84,7 +83,7 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 
 // used in /protocols/[category]
 export async function getProtocolsPageData(category?: string, chain?: string) {
-	const { protocols, chains, parentProtocols } = await getProtocols()
+	const { protocols, chains, parentProtocols } = await getDexs()
 
 	const chainsSet = new Set()
 
@@ -139,28 +138,14 @@ export const getVolumeCharts = (data) => {
 	}
 }
 
-// - used in / and /[chain]
-export async function getChainPageData(chain?: string) {
-	const [chartData, { protocols, chains, parentProtocols }] = await Promise.all(
-		[CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
-	)
+const getDexAPI = (dex: string) => `${DEX_BASE_API}/${dex}`
 
-	const filteredProtocols = formatProtocolsData({
-		chain,
-		protocols,
-		removeBridges: true
-	})
-
-	const charts = getVolumeCharts(chartData)
+// - used in /[dex]
+export async function getDexPageData(dex: string) {
+	const dexResponse = await fetch(getDexAPI(dex)).then((r) => r.json())
 
 	return {
-		props: {
-			...(chain && { chain }),
-			chainsSet: chains,
-			filteredProtocols,
-			parentProtocols,
-			...charts
-		}
+		props: dexResponse
 	}
 }
 
