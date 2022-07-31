@@ -28,8 +28,8 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 
 			const projectList =
 				projects?.map((p) => ({
-					name: `Project - ${p.name}`,
-					route: `${pathname}?project=${p.slug}`,
+					name: `Show all ${p.name} pools`,
+					route: `/yields?project=${p.slug}`,
 					logo: tokenIconUrl(p.slug)
 				})) ?? []
 
