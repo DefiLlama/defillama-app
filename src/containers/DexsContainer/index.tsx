@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
 import { DexsSearch } from '~/components/Search'
@@ -7,9 +6,10 @@ import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
 import { useFetchDexsList } from '~/api/categories/dexs/client'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 import dynamic from 'next/dynamic'
 import { formattedNum } from '~/utils'
+import { useInView } from 'react-intersection-observer'
+import { IStackedBarChartProps } from '~/components/TokenChart/StackedBarChart'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -19,10 +19,9 @@ export async function getStaticProps() {
 	}
 }
 
-// tmp fix
-const Chart = dynamic(() => import('~/components/GlobalChart'), {
+const BarChart = dynamic(() => import('~/components/TokenChart/StackedBarChart'), {
 	ssr: false
-}) as any
+}) as React.FC<IStackedBarChartProps>
 
 const ChartsWrapper = styled.section`
 	display: flex;
@@ -40,6 +39,22 @@ const ChartsWrapper = styled.section`
 
 	@media (min-width: 80rem) {
 		flex-direction: row;
+	}
+`
+
+const ChartWrapper = styled.section`
+	grid-column: span 2;
+	min-height: 360px;
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+
+	@media (min-width: 90rem) {
+		grid-column: span 1;
+
+		:last-child:nth-child(2n - 1) {
+			grid-column: span 2;
+		}
 	}
 `
 
@@ -192,7 +207,7 @@ export default function DexsContainer({ category }) {
 		data: { dexs } = {},
 		data: { totalVolume } = {},
 		data: { change_1d } = {},
-		data: { totalDataChart } = {}
+		data: { totalDataChart } = []
 	} = useFetchDexsList()
 
 	return (
@@ -222,14 +237,11 @@ export default function DexsContainer({ category }) {
 					</PanelHiddenMobile>
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
-					<Chart
-						title="Total volume"
-						display="liquidity"
-						dailyData={totalDataChart}
-						unit={'USD'}
-						totalLiquidity={totalVolume}
-						liquidityChange={0}
-					/>
+					<ChartsWrapper>
+						<Chart>
+							<BarChart chartData={totalDataChart} />
+						</Chart>
+					</ChartsWrapper>
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 
@@ -242,4 +254,12 @@ export default function DexsContainer({ category }) {
 			)}
 		</>
 	)
+}
+
+const Chart = ({ children }) => {
+	const { ref, inView } = useInView({
+		triggerOnce: true
+	})
+
+	return <ChartWrapper ref={ref}>{inView && children}</ChartWrapper>
 }
