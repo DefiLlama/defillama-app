@@ -1,6 +1,9 @@
 /* eslint-disable no-unused-vars*/
 import BigNumber from 'bignumber.js'
-import liqs from '../../components/LiquidationsPage/sampleLiqs.json'
+import liquity from './liquity.json'
+import euler from './euler.json'
+import aave_v2 from './aave-v2.json'
+import compound_v2 from './compound-v2.json'
 
 export interface Liq {
 	owner: string
@@ -8,14 +11,12 @@ export interface Liq {
 	collateral: string
 	collateralAmount: string
 }
-const _liqs = liqs as Liq[]
-export { _liqs as liqs }
 
 export interface Position {
 	liqPrice: number
 	collateralValue: number
 	chain: string
-	protocol: string
+	protocol: string // protocol adapter id, like "aave-v2", "liquity"...
 }
 
 export type Price = {
@@ -25,41 +26,14 @@ export type Price = {
 	timestamp: number
 }
 
-/**
- * Transform adapter data of one collateral type to flattened data to be used in chart
- *
- * @param liqs - raw liq data pulled from adapter for a protocol
- * @param collaterals - the same asset on diff chains in format of "ethereum:0x1234..."
- * @param decimals - decimals of the asset
- * @param protocol - protocol adapter id, like "aave-v2", "liquity"...
- * @returns flattened liquidable positions with chain + protocol id
- */
-export function flattenPositions(liqs: Liq[], collaterals: string[], decimals: number, protocol: string): Position[] {
-	return liqs
-		.filter((liq) => collaterals.includes(liq.collateral))
-		.map((liq) => {
-			const collateralValue = new BigNumber(liq.collateralAmount)
-				.times(new BigNumber(liq.liqPrice)) // we calculate the value at the price of liquidation
-				.div(10 ** decimals)
-				.toNumber()
-			const chain = liq.collateral.split(':')[0]
-			return {
-				liqPrice: liq.liqPrice,
-				collateralValue,
-				chain,
-				protocol
-			}
-		})
-}
-
 export type MultiTokenAssetSet = Set<Price>
 
 /**
  * Transform the output of multiple adapters to a single data structure aggregated by assets
  *
  */
-export async function aggregateAdapterDataByAsset(adapterOutput: { [protocol: string]: Liq[] }) {
-	const protocols = Object.keys(adapterOutput)
+export async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: string]: Liq[] }) {
+	const protocols = Object.keys(filteredAdapterOutput)
 	// an asset has unique info "symbol" and that's it - we're assuming no duplicate symbols cuz all are bluechips
 	// would be better to use coingeckoId but didn't find a lookup api for that
 	// might add an option to return coingeckoId to https://coins.llama.fi/prices later
@@ -67,7 +41,7 @@ export async function aggregateAdapterDataByAsset(adapterOutput: { [protocol: st
 	const knownTokens = new Set<string>()
 	// gonna go thru all entries first to find all Collaterals
 	for (const protocol of protocols) {
-		adapterOutput[protocol].forEach((liq) => knownTokens.add(liq.collateral))
+		filteredAdapterOutput[protocol].forEach((liq) => knownTokens.add(liq.collateral))
 	}
 	const prices = await getPrices(Array.from(knownTokens))
 	for (const address in prices) {
@@ -84,7 +58,7 @@ export async function aggregateAdapterDataByAsset(adapterOutput: { [protocol: st
 	// now we have all assets and metadata we can start aggregating into flattenPositions
 	const aggregatedData = new Map<string, { currentPrice: number; positions: Position[] }>() // symbol -> [{liqPrice, collateralValue, chain, protocol}]
 	for (const protocol of protocols) {
-		const liqs = adapterOutput[protocol]
+		const liqs = filteredAdapterOutput[protocol]
 		liqs.forEach(({ liqPrice, collateral, collateralAmount }) => {
 			const chain = collateral.split(':')[0]
 			const { symbol, decimals, currentPrice } = prices[collateral]
@@ -144,10 +118,10 @@ export type ChartData = {
 		[hours: number]: number // 1h, 6h, 12h, 1d, 7d, 30d etc in ratio
 	}
 	totalLiquidable: number
-	positions: Position[]
+	chartDataBins: Map<string, ChartDataBin>
 }
 
-export interface ChartDataBins {
+export interface ChartDataBin {
 	bins: {
 		[bin: number]: number
 	}
@@ -160,7 +134,7 @@ export function getChartDataBins(
 	currentPrice: number,
 	totalBins: number,
 	aggregateBy: 'protocol' | 'chain'
-): Map<string, ChartDataBins> {
+): Map<string, ChartDataBin> {
 	// protocol/chain -> {bins, binSize, price}
 	const aggregatedPositions = new Map<string, Position[]>()
 	const keySet = new Set<string>()
@@ -177,7 +151,7 @@ export function getChartDataBins(
 		}
 	}
 
-	const bins = new Map<string, ChartDataBins>()
+	const bins = new Map<string, ChartDataBin>()
 	// init bins
 	for (const key of keySet) {
 		bins.set(key, {
@@ -203,4 +177,64 @@ export function getChartDataBins(
 	return bins
 }
 
-// usage:
+export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'chain') {
+	const sampleDbResponse: { [protocol: string]: Liq[] } = {
+		liquity,
+		euler,
+		aave_v2,
+		compound_v2
+	}
+	const allAggregated = await aggregateAssetAdapterData(sampleDbResponse)
+	let positions: Position[]
+	if (symbol === 'ETH') {
+		const ethPositions = allAggregated.get('ETH')
+		const wethPositions = allAggregated.get('WETH')
+		positions = [...ethPositions!.positions, ...wethPositions!.positions]
+	}
+	positions = allAggregated.get(symbol)!.positions
+	const currentPrice = allAggregated.get(symbol)!.currentPrice
+
+	const chartDataBins = getChartDataBins(positions, currentPrice, 150, aggregateBy)
+	const chartData: ChartData = {
+		symbol,
+		currentPrice,
+		lendingDominance: await getLendingDominance(symbol),
+		historicalChange: { 168: await getHistoricalChange(symbol, 168) },
+		totalLiquidable: await getTotalLiquidable(symbol),
+		chartDataBins
+	}
+
+	return chartData
+	// example response with ('ETH', 'protocol') could be:
+	// {
+	// 	symbol: 'ETH',
+	// 	currentPrice: 2000,
+	// 	lendingDominance: 0.69,
+	// 	historicalChange: {
+	// 		168: -0.42
+	// 	},
+	// 	totalLiquidable: 69_000_000_000,
+	// 	chartDataBins: {
+	// 		liquity: {
+	// 			bins: {
+	// 				0: 1234,
+	// 				500: 2345,
+	// 				1500: 3456,
+	// 				2000: 4321,
+	//      },
+	//      binSize: 500,
+	//      price: 2000
+	// 		},
+	// 		euler: {
+	// 			bins: {
+	// 				0: 1234,
+	// 				500: 2345,
+	// 				1500: 3456,
+	// 				2000: 4321,
+	//      },
+	//      binSize: 500,
+	//      price: 2000
+	// 		},
+	//  },
+	// }
+}

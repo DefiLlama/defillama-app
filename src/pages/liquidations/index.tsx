@@ -9,7 +9,7 @@ import { ButtonDark } from '~/components/ButtonStyled'
 import Layout from '~/layout'
 // import { revalidate } from '~/api'
 
-import { liqs } from '../../components/LiquidationsPage'
+// import { liqs } from '../../components/LiquidationsPage'
 import { Header } from '~/Theme'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { useCallback, useEffect, useMemo } from 'react'
