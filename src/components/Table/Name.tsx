@@ -6,6 +6,7 @@ import TokenLogo from '~/components/TokenLogo'
 import Bookmark from '~/components/Bookmark'
 import { chainIconUrl, peggedAssetIconUrl, slug, tokenIconUrl } from '~/utils'
 import { INameYield, INameProps, INameYieldPoolProps } from './types'
+import Tooltip from '~/components/Tooltip'
 
 const SaveButton = styled(Bookmark)`
 	position: relative;
@@ -114,7 +115,7 @@ export function NameYield({ project, projectslug, rowType, airdrop, ...props }: 
 
 	return (
 		<Index {...props}>
-			<div style={{ width: '24px', flexShrink: 0, marginRight: '-12px' }}>{airdrop && '🪂'}</div>
+			<Tooltip content="This project has no token and might airdrop one to depositors in the future"><div style={{ width: '24px', flexShrink: 0, marginRight: '-12px' }}>{airdrop && '🪂'}</div></Tooltip>
 			<TokenLogo id="table-p-logo" logo={iconUrl} />
 			{rowType === 'accordion' ? (
 				<span id="table-p-name">{project}</span>
