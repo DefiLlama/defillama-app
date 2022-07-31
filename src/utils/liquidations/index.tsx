@@ -5,34 +5,34 @@ import euler from './euler.json'
 import aave_v2 from './aave-v2.json'
 import compound_v2 from './compound-v2.json'
 
-export interface Liq {
+interface Liq {
 	owner: string
 	liqPrice: number
 	collateral: string
 	collateralAmount: string
 }
 
-export interface Position {
+interface Position {
 	liqPrice: number
 	collateralValue: number
 	chain: string
 	protocol: string // protocol adapter id, like "aave-v2", "liquity"...
 }
 
-export type Price = {
+type Price = {
 	decimals: number
 	currentPrice: number
 	symbol: string
 	timestamp: number
 }
 
-export type MultiTokenAssetSet = Set<Price>
+type MultiTokenAssetSet = Set<Price>
 
 /**
  * Transform the output of multiple adapters to a single data structure aggregated by assets
  *
  */
-export async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: string]: Liq[] }) {
+async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: string]: Liq[] }) {
 	const protocols = Object.keys(filteredAdapterOutput)
 	// an asset has unique info "symbol" and that's it - we're assuming no duplicate symbols cuz all are bluechips
 	// would be better to use coingeckoId but didn't find a lookup api for that
@@ -83,7 +83,7 @@ export async function aggregateAssetAdapterData(filteredAdapterOutput: { [protoc
 	return aggregatedData
 }
 
-export async function getPrices(collaterals: string[]) {
+async function getPrices(collaterals: string[]) {
 	const res = await fetch('https://coins.llama.fi/prices', {
 		method: 'POST',
 		body: JSON.stringify({
@@ -97,20 +97,20 @@ export async function getPrices(collaterals: string[]) {
 	return prices
 }
 
-export async function getLendingDominance(symbol: string) {
+async function getLendingDominance(symbol: string) {
 	// TODO: implement on backend
 	return 0.69
 }
-export async function getHistoricalChange(symbol: string, hours: number) {
+async function getHistoricalChange(symbol: string, hours: number) {
 	// TODO: implement on backend
 	return -0.42
 }
-export async function getTotalLiquidable(symbol: string) {
+async function getTotalLiquidable(symbol: string) {
 	// TODO: implement on backend
 	return 69_000_000_000
 }
 
-export type ChartData = {
+type ChartData = {
 	symbol: string // could change to coingeckoId in the future
 	currentPrice: number
 	lendingDominance: number // in ratio of total collateral amount tracked
@@ -121,7 +121,7 @@ export type ChartData = {
 	chartDataBins: Map<string, ChartDataBin>
 }
 
-export interface ChartDataBin {
+interface ChartDataBin {
 	bins: {
 		[bin: number]: number
 	}
@@ -129,7 +129,7 @@ export interface ChartDataBin {
 	price: number
 }
 
-export function getChartDataBins(
+function getChartDataBins(
 	positions: Position[],
 	currentPrice: number,
 	totalBins: number,
