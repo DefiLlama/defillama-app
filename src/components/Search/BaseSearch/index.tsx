@@ -220,7 +220,7 @@ const Row = ({ index, style, data }) => {
 				if (onItemClick) {
 					onItemClick(item)
 				} else {
-					router.push(item.route)
+					router.push(item.route, undefined, { shallow: true })
 				}
 			}}
 			style={style}
