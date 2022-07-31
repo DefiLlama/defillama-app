@@ -45,7 +45,6 @@ const ChartsWrapper = styled.section`
 const ChartWrapper = styled.section`
 	grid-column: span 2;
 	min-height: 360px;
-	padding: 20px;
 	display: flex;
 	flex-direction: column;
 
@@ -204,9 +203,10 @@ const columns = columnsToShow('dexName', '1dChange', '7dChange', '1mChange', 'to
 
 export default function DexsContainer({ category }) {
 	const {
-		data: { dexs } = {},
-		data: { totalVolume } = {},
-		data: { change_1d } = {},
+		data: { dexs } = [],
+		data: { totalVolume } = 0,
+		data: { change_1d } = 0,
+		data: { change_30d } = 0,
 		data: { totalDataChart } = []
 	} = useFetchDexsList()
 
@@ -234,6 +234,10 @@ export default function DexsContainer({ category }) {
 					<PanelHiddenMobile>
 						<h2>Change (24h)</h2>
 						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {change_1d || 0}%</p>
+					</PanelHiddenMobile>
+					<PanelHiddenMobile>
+						<h2>Change (30d)</h2>
+						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {change_30d || 0}%</p>
 					</PanelHiddenMobile>
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">

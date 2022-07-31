@@ -4,6 +4,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { BarChart, BarChart as EBarChart, LineChart } from 'echarts/charts'
 import {
 	DataZoomComponent,
+	GraphicComponent,
 	GridComponent,
 	LegendComponent,
 	TitleComponent,
@@ -34,7 +35,8 @@ echarts.use([
 	LineChart,
 	CanvasRenderer,
 	UniversalTransition,
-	DataZoomComponent
+	DataZoomComponent,
+	GraphicComponent
 ])
 
 export interface IStackedBarChartProps extends Omit<IChartProps, 'title' | 'chartData'> {
