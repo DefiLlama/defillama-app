@@ -14,13 +14,15 @@ interface IFiltersByChainProps {
 export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFiltersByChainProps) {
 	const router = useRouter()
 
-	const addChain = (chain) => {
+	const { chain, ...queries } = router.query
+
+	const addChain = (newChain) => {
 		router.push(
 			{
 				pathname,
 				query: {
-					...router.query,
-					chain
+					...queries,
+					chain: newChain
 				}
 			},
 			undefined,
@@ -49,7 +51,7 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 			{
 				pathname,
 				query: {
-					...router.query,
+					...queries,
 					chain: 'All'
 				}
 			},
@@ -63,7 +65,7 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 			{
 				pathname,
 				query: {
-					...router.query,
+					...queries,
 					chain: 'None'
 				}
 			},

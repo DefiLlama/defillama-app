@@ -14,12 +14,14 @@ interface IYieldProjectsProps {
 export function YieldProjects({ projectList = [], selectedProjects, pathname }: IYieldProjectsProps) {
 	const router = useRouter()
 
+	const { project, ...queries } = router.query
+
 	const addProject = (project) => {
 		router.push(
 			{
 				pathname,
 				query: {
-					...router.query,
+					...queries,
 					project
 				}
 			},
@@ -50,7 +52,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 			{
 				pathname,
 				query: {
-					...router.query,
+					...queries,
 					project: 'All'
 				}
 			},
@@ -64,7 +66,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 			{
 				pathname,
 				query: {
-					...router.query,
+					...queries,
 					project: []
 				}
 			},
