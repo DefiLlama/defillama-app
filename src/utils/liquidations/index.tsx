@@ -110,7 +110,7 @@ async function getTotalLiquidable(symbol: string) {
 	return 69_000_000_000
 }
 
-type ChartData = {
+export type ChartData = {
 	symbol: string // could change to coingeckoId in the future
 	currentPrice: number
 	lendingDominance: number // in ratio of total collateral amount tracked
@@ -121,7 +121,7 @@ type ChartData = {
 	chartDataBins: Map<string, ChartDataBin>
 }
 
-interface ChartDataBin {
+export interface ChartDataBin {
 	bins: {
 		[bin: number]: number
 	}

@@ -4,6 +4,8 @@ import { useQueryState, queryTypes, TransitionOptions } from 'next-usequerystate
 import styled from 'styled-components'
 import { PlusCircle } from 'react-feather'
 import * as echarts from 'echarts'
+import useSWR from 'swr'
+import { fetcher, arrayFetcher, retrySWR } from '~/utils/useSWR'
 
 import { ButtonDark } from '~/components/ButtonStyled'
 import Layout from '~/layout'
@@ -14,6 +16,7 @@ import { Header } from '~/Theme'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { useCallback, useEffect, useMemo } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { ChartData } from '~/utils/liquidations'
 
 type Chart = {
 	asset: string
@@ -41,6 +44,11 @@ type SetChartsState = (
 
 const LiquidationsPage: NextPage = () => {
 	const [chartsState, setChartsState] = useQueryState('charts', queryTypes.json<Chart[]>().withDefault(defaultCharts))
+	const { data, error } = useSWR<ChartData>(
+		`http://localhost:3000/api/mock-liquidations/?symbol=${'ETH'}&aggregateBy=${'protocol'}`,
+		fetcher
+	)
+	console.log({ data })
 
 	return (
 		<Layout title={`Liquidation Levels - DefiLlama`} defaultSEO>
@@ -134,11 +142,32 @@ const LiquidationsChart = ({ chart, chartData, uid }: { chart: Chart; chartData:
 				}
 			},
 			xAxis: {
+				// bins
+				type: 'category',
+				name: 'Liquidation Price',
+				nameLocation: 'middle',
+				nameGap: 30,
+				nameTextStyle: {
+					fontFamily: 'inter, sans-serif',
+					fontSize: 14,
+					fontWeight: 500,
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				},
+				splitLine: {
+					lineStyle: {
+						color: '#a1a1aa',
+						opacity: 0.1
+					}
+				},
+				axisTick: {
+					alignWithLabel: true
+				},
 				data: ['A', 'B', 'C', 'D', 'E']
 			},
 			yAxis: {},
 			series: [
 				{
+					name: 'Direct',
 					data: [10, 22, 28, 43, 49],
 					type: 'bar',
 					stack: 'x'
