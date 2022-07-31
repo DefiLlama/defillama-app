@@ -43,7 +43,7 @@ export type TColumns =
 	| 'totalVolume24h'
 
 export interface INameProps {
-	type: 'chain' | 'protocol' | 'peggedAsset' | 'peggedAssetChain'
+	type: 'chain' | 'protocol' | 'peggedAsset' | 'peggedAssetChain' | 'dex'
 	value: string
 	symbol?: string
 	index?: number

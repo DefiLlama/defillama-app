@@ -139,7 +139,7 @@ export const allColumns: AllColumns = {
 		disableSortBy: true,
 		Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
 			<Name
-				type="protocol"
+				type="dex"
 				value={value}
 				symbol={rowValues.symbol}
 				index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}

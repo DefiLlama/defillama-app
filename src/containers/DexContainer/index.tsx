@@ -29,16 +29,13 @@ import boboLogo from '~/assets/boboSmug.png'
 import { IDexResponse, IFusedProtocolData } from '~/api/types'
 import { Checkbox2 } from '~/components'
 import { getChartDataFromVolumeHistory } from '~/utils/dexs'
+import { IStackedBarChartProps } from '~/components/TokenChart/StackedBarChart'
 
 defaultFallbackInView(true)
 
-const AreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
+const StackedBarChart = dynamic(() => import('~/components/TokenChart/StackedBarChart'), {
 	ssr: false
-}) as React.FC<IChartProps>
-
-const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
-	ssr: false
-}) as React.FC<IChartProps>
+}) as React.FC<IStackedBarChartProps>
 
 const Stats = styled.section`
 	display: grid;
@@ -425,14 +422,7 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 					</TvlWrapper>
 				</ProtocolDetails>
 
-				<ProtocolTvlChart
-					protocol={dex}
-					tvlChartData={getChartDataFromVolumeHistory(dexData.volumeHistory)}
-					color={backgroundColor}
-					bobo={bobo}
-					historicalChainTvls={{}}
-					chains={[]}
-				/>
+				<StackedBarChart chartData={getChartDataFromVolumeHistory(dexData.volumeHistory)} color={backgroundColor} />
 
 				<Bobo onClick={() => setBobo(!bobo)}>
 					<span className="visually-hidden">Enable Goblin Mode</span>
