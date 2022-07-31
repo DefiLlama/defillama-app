@@ -5,6 +5,8 @@ import euler from './euler.json'
 import aave_v2 from './aave-v2.json'
 import compound_v2 from './compound-v2.json'
 
+const TOTAL_BINS = 150
+
 interface Liq {
 	owner: string
 	liqPrice: number
@@ -21,7 +23,7 @@ interface Position {
 
 type Price = {
 	decimals: number
-	currentPrice: number
+	price: number
 	symbol: string
 	timestamp: number
 }
@@ -61,7 +63,11 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: str
 		const liqs = filteredAdapterOutput[protocol]
 		liqs.forEach(({ liqPrice, collateral, collateralAmount }) => {
 			const chain = collateral.split(':')[0]
-			const { symbol, decimals, currentPrice } = prices[collateral]
+			if (!prices[collateral]) {
+				// console.error(`Token not supported by price API ${collateral}`)
+				return
+			}
+			const { symbol, decimals, price: currentPrice } = prices[collateral]
 			const position: Position = {
 				liqPrice,
 				collateralValue: new BigNumber(collateralAmount)
@@ -72,6 +78,10 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: str
 				protocol
 			}
 			let _positions = aggregatedData.get(symbol)
+			if (position.liqPrice > currentPrice) {
+				// ignore bad debts or positions being liquidated live
+				return
+			}
 			if (!_positions) {
 				_positions = { currentPrice, positions: [position] }
 				aggregatedData.set(symbol, _positions)
@@ -118,7 +128,9 @@ export type ChartData = {
 		[hours: number]: number // 1h, 6h, 12h, 1d, 7d, 30d etc in ratio
 	}
 	totalLiquidable: number
-	chartDataBins: Map<string, ChartDataBin>
+	chartDataBins: { [bin: string]: ChartDataBin }
+	totalBins: number
+	binSize: number
 }
 
 export interface ChartDataBin {
@@ -134,7 +146,7 @@ function getChartDataBins(
 	currentPrice: number,
 	totalBins: number,
 	aggregateBy: 'protocol' | 'chain'
-): Map<string, ChartDataBin> {
+): { [bin: string]: ChartDataBin } {
 	// protocol/chain -> {bins, binSize, price}
 	const aggregatedPositions = new Map<string, Position[]>()
 	const keySet = new Set<string>()
@@ -165,7 +177,7 @@ function getChartDataBins(
 		const binSize = bins.get(key)!.binSize
 		const binsGroup = bins.get(key)!.bins
 		for (const position of positionsGroup) {
-			const bin = Math.floor(position.collateralValue / binSize)
+			const bin = Math.floor(position.liqPrice / binSize)
 			if (!binsGroup[bin]) {
 				binsGroup[bin] = position.collateralValue
 			} else {
@@ -174,7 +186,7 @@ function getChartDataBins(
 		}
 	}
 
-	return bins
+	return Object.fromEntries(bins)
 }
 
 export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'chain') {
@@ -194,14 +206,16 @@ export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'cha
 	positions = allAggregated.get(symbol)!.positions
 	const currentPrice = allAggregated.get(symbol)!.currentPrice
 
-	const chartDataBins = getChartDataBins(positions, currentPrice, 150, aggregateBy)
+	const chartDataBins = getChartDataBins(positions, currentPrice, TOTAL_BINS, aggregateBy)
 	const chartData: ChartData = {
 		symbol,
 		currentPrice,
 		lendingDominance: await getLendingDominance(symbol),
 		historicalChange: { 168: await getHistoricalChange(symbol, 168) },
 		totalLiquidable: await getTotalLiquidable(symbol),
-		chartDataBins
+		chartDataBins,
+		totalBins: TOTAL_BINS,
+		binSize: currentPrice / TOTAL_BINS
 	}
 
 	return chartData

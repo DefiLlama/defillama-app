@@ -16,10 +16,10 @@ import { Header } from '~/Theme'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { useCallback, useEffect, useMemo } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { ChartData } from '~/utils/liquidations'
+import { ChartData, ChartDataBin } from '~/utils/liquidations'
 
 type Chart = {
-	asset: string
+	asset: string // symbol for now
 	mode: 'chain' | 'protocol'
 	filter: FilterChain | FilterProtocol
 }
@@ -30,7 +30,7 @@ type FilterProtocol = 'all' | string
 
 const defaultCharts: Chart[] = [
 	{
-		asset: 'ethereum',
+		asset: 'ETH',
 		mode: 'protocol',
 		filter: 'all'
 	}
@@ -48,7 +48,7 @@ const LiquidationsPage: NextPage = () => {
 		`http://localhost:3000/api/mock-liquidations/?symbol=${'ETH'}&aggregateBy=${'protocol'}`,
 		fetcher
 	)
-	console.log({ data })
+	console.log(data)
 
 	return (
 		<Layout title={`Liquidation Levels - DefiLlama`} defaultSEO>
@@ -57,14 +57,15 @@ const LiquidationsPage: NextPage = () => {
 			/>
 
 			<Header>Liquidation Levels in DeFi 💦</Header>
-			{chartsState.map((chart, i) => (
-				<LiquidationsChart
-					key={`liquidations-${i}-${chart.asset}`}
-					chart={chart}
-					chartData={{}}
-					uid={`liquidations-${i}-${chart.asset}`}
-				/>
-			))}
+			{data &&
+				chartsState.map((chart, i) => (
+					<LiquidationsChart
+						key={`liquidations-${i}-${chart.asset}`}
+						chart={chart}
+						chartData={data}
+						uid={`liquidations-${i}-${chart.asset}`}
+					/>
+				))}
 			<AddChartButton setChartsState={setChartsState} />
 		</Layout>
 	)
@@ -80,6 +81,16 @@ const ButtonDarkStyled = styled(ButtonDark)`
 	text-align: center;
 	user-select: none;
 `
+
+// const fillSparseArrayInPlace = (arr: any[]) => {
+// 	for (let i = 0; i < arr.length; i++) {
+// 		if (arr[i] === undefined) arr[i] = 0
+// 	}
+// }
+const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number) => {
+	const arr = [...Array(totalBins).keys()].map((i) => obj.bins[i] || 0)
+	return arr
+}
 
 const AddChartButton = ({ setChartsState }: { setChartsState: SetChartsState }) => {
 	const addChart = (chart: Chart) => {
@@ -101,7 +112,93 @@ const AddChartButton = ({ setChartsState }: { setChartsState: SetChartsState }) 
 	)
 }
 
-const LiquidationsChart = ({ chart, chartData, uid }: { chart: Chart; chartData: any; uid: string }) => {
+const getOption = (chart: Chart, chartData: ChartData, isDark: boolean) => {
+	const { chartDataBins } = chartData
+	// convert chartDataBins to array
+	const chartDataBinsArray = Object.keys(chartDataBins).map((key) => ({
+		key: key,
+		data: convertChartDataBinsToArray(chartDataBins[key], 150)
+	}))
+	const series = chartDataBinsArray.map((obj) => ({
+		name: obj.key,
+		type: 'bar',
+		data: obj.data,
+		stack: 'x'
+	}))
+
+	const option = {
+		title: {
+			text: `${chart.asset} Liquidation Levels`,
+			textStyle: {
+				fontFamily: 'inter, sans-serif',
+				fontWeight: 600,
+				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+			}
+		},
+		grid: {
+			left: '3%',
+			right: '7%',
+			bottom: '7%',
+			containLabel: true
+		},
+		tooltip: {
+			trigger: 'axis',
+			axisPointer: {
+				type: 'cross'
+			}
+		},
+		xAxis: {
+			// bins
+			type: 'category',
+			name: 'Liquidation Price',
+			nameLocation: 'middle',
+			nameGap: 30,
+			nameTextStyle: {
+				fontFamily: 'inter, sans-serif',
+				fontSize: 14,
+				fontWeight: 500,
+				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+			},
+			splitLine: {
+				lineStyle: {
+					color: '#a1a1aa',
+					opacity: 0.1
+				}
+			},
+			axisTick: {
+				alignWithLabel: true
+			},
+			data: [...Array(chartData.totalBins).keys()].map((x) => x * chartData.binSize)
+		},
+		yAxis: {
+			type: 'value',
+			scale: true,
+			// name: 'Liquidable Amount',
+			// position: 'middle',
+			// nameGap: 40,
+			// nameTextStyle: {
+			// 	fontFamily: 'inter, sans-serif',
+			// 	fontSize: 14,
+			// 	fontWeight: 500,
+			// 	color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+			// },
+			axisLabel: {
+				formatter: '${value}'
+			},
+			splitLine: {
+				lineStyle: {
+					color: '#a1a1aa',
+					opacity: 0.1
+				}
+			}
+		},
+		series
+	}
+
+	return option
+}
+
+const LiquidationsChart = ({ chart, chartData, uid }: { chart: Chart; chartData: ChartData; uid: string }) => {
 	const [isDark] = useDarkModeManager()
 
 	const createInstance = useCallback(() => {
@@ -113,73 +210,7 @@ const LiquidationsChart = ({ chart, chartData, uid }: { chart: Chart; chartData:
 
 	useEffect(() => {
 		const chartInstance = createInstance()
-		const option = {
-			title: {
-				text: 'Ethereum Liquidation Levels',
-				textStyle: {
-					fontFamily: 'inter, sans-serif',
-					fontWeight: 600,
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-				}
-			},
-			grid: {
-				left: '3%',
-				right: '7%',
-				bottom: '7%',
-				containLabel: true
-			},
-			tooltip: {
-				trigger: 'axis',
-				axisPointer: {
-					type: 'cross'
-				}
-			},
-			toolbox: {
-				feature: {
-					dataZoom: {},
-					dataView: {},
-					restore: {}
-				}
-			},
-			xAxis: {
-				// bins
-				type: 'category',
-				name: 'Liquidation Price',
-				nameLocation: 'middle',
-				nameGap: 30,
-				nameTextStyle: {
-					fontFamily: 'inter, sans-serif',
-					fontSize: 14,
-					fontWeight: 500,
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-				},
-				splitLine: {
-					lineStyle: {
-						color: '#a1a1aa',
-						opacity: 0.1
-					}
-				},
-				axisTick: {
-					alignWithLabel: true
-				},
-				data: ['A', 'B', 'C', 'D', 'E']
-			},
-			yAxis: {},
-			series: [
-				{
-					name: 'Direct',
-					data: [10, 22, 28, 43, 49],
-					type: 'bar',
-					stack: 'x'
-				},
-				{
-					data: [5, 4, 3, 5, 10],
-					type: 'bar',
-					stack: 'x'
-				}
-			]
-		}
-
+		const option = getOption(chart, chartData, isDark)
 		chartInstance.setOption(option)
 
 		function resize() {
@@ -192,7 +223,7 @@ const LiquidationsChart = ({ chart, chartData, uid }: { chart: Chart; chartData:
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [uid, chartData, createInstance, isDark])
+	}, [uid, chart, chartData, createInstance, isDark])
 
 	return <div id={uid} style={{ height: '600px', margin: 'auto 0' }} />
 }
