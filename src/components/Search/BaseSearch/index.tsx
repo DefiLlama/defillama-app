@@ -140,7 +140,7 @@ export interface IBaseSearchProps {
 	step?: IStep
 	onSearchTermChange?: (searchValue: string) => void
 	customPath?: (item: string) => string
-	onItemClick?: (item: string) => void
+	onItemClick?: (item: ISearchItem) => void
 	filters?: React.ReactNode
 }
 
@@ -214,7 +214,7 @@ const Row = ({ index, style, data }) => {
 
 	const value = options[index]
 
-	const item = searchData.find((x) => x.name === value)
+	const item: ISearchItem = searchData.find((x) => x.name === value)
 
 	const router = useRouter()
 
@@ -226,7 +226,7 @@ const Row = ({ index, style, data }) => {
 				if (onItemClick) {
 					onItemClick(item)
 				} else {
-					router.push(item.route, undefined, { shallow: true })
+					router.push(item.route)
 				}
 			}}
 			style={style}

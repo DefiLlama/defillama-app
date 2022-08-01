@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useRouter } from 'next/router'
 import { BaseSearch } from '~/components/Search/BaseSearch'
 import type { IBaseSearchProps, ICommonSearchProps } from '~/components/Search/BaseSearch'
 import { useFetchYieldsList, useFetchProjectsList } from '~/api/categories/yield/client'
@@ -12,6 +13,8 @@ interface IYieldSearchProps extends ICommonSearchProps {
 
 export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) {
 	const [advancedSearch, setAdvancedSearch] = React.useState(false)
+
+	const router = useRouter()
 
 	const { data: yields, loading: fetchingYields } = useFetchYieldsList()
 	const { data: projects, loading: fetchingProjects } = useFetchProjectsList()
@@ -50,6 +53,9 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 					<ToggleSearch onClick={() => setAdvancedSearch(true)}>Switch to Advanced Search</ToggleSearch>
 				)
 			}
+			onItemClick={(item) => {
+				router.push(item.route, undefined, { shallow: true })
+			}}
 		/>
 	)
 }
