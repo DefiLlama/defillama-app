@@ -12,16 +12,16 @@ export const getChartDataFromVolumeHistory =
   (volumeHistory: IDexResponse['volumeHistory']): [Date, number][] =>
     volumeHistory.map(({ timestamp, dailyVolume }) => ([new Date(timestamp * 1000), summAllVolumes(dailyVolume)]))
 
-export const formatVolumeHistoryToChartData = (volumeHistory: IDexResponse['volumeHistory']): IStackedBarChartProps['chartData'] => {
+export const formatVolumeHistoryToChartDataByChain = (volumeHistory: IDexResponse['volumeHistory']): IStackedBarChartProps['chartData'] => {
   const chartData = volumeHistory.reduce((acc, { dailyVolume, timestamp }) => {
     //different timestamp
     const rawItems = Object.entries(dailyVolume).reduce((acc, [chain, protVolumes]) => {
       //different chain
       const volumeAccrossProtocols = Object.entries(protVolumes).reduce((acc, [_, volume]) => {
         //different version
-        if (typeof volume !== 'number') return acc
+        if (typeof volume === 'number') return acc += volume
         // return sum accross protocols
-        return acc += volume
+        return acc
       }, 0)
       acc.push({
         name: chain,
@@ -37,7 +37,43 @@ export const formatVolumeHistoryToChartData = (volumeHistory: IDexResponse['volu
     }
     // return all data by chain
     return acc
-  }, {} as IStackedBarChartProps['chartData'][0])
+  }, {})
   return Object.entries(chartData).map(([name, data]) => ({ name: capitalizeFirstLetter(name), data })) as IStackedBarChartProps['chartData']
 }
 
+// TODO: do better
+let ALL_VERSIONS: string[] = []
+export const formatVolumeHistoryToChartDataByProtocol = (volumeHistory: IDexResponse['volumeHistory']): IStackedBarChartProps['chartData'] => {
+  if (ALL_VERSIONS.length === 0)
+    ALL_VERSIONS = getAllVProtocols(volumeHistory)
+  const chartData = volumeHistory.reduce((acc, { dailyVolume, timestamp }) => {
+    //different timestamp
+    const rawItems = Object.entries(dailyVolume).reduce((acc, [_, protVolumes]) => {
+      //different chain
+      for (const version of Object.keys(protVolumes)) {
+        const value = protVolumes[version]
+        if (typeof value === 'number') {
+          if (!ALL_VERSIONS.includes(version)) ALL_VERSIONS.push(version)
+          acc[version] = (acc[version] ?? 0) + value
+        }
+      }
+      // return total volume across chains by version
+      return acc
+    }, {} as { [version: string]: number })
+    for (const key of ALL_VERSIONS) { //all versions should have value
+      if (acc[key])
+        acc[key].push([new Date(timestamp * 1000), rawItems[key] ?? 0]) //default to 0 to avoid buggy chart
+      else acc[key] = [[new Date(timestamp * 1000), rawItems[key] ?? 0]]
+    }
+    // return all data by chain
+    return acc
+  }, {} as { [protName: string]: IStackedBarChartProps['chartData'][0]['data'] })
+  return Object.entries(chartData).map(([name, data]) => ({ name, data })) as IStackedBarChartProps['chartData']
+}
+
+// TODO: Get list of vprotocols from api or improve
+const getAllVProtocols = (volumeHistory: IDexResponse['volumeHistory']): string[] => volumeHistory.reduce((acc, { dailyVolume }) => {
+  for (const key of Object.keys(volumeHistory))
+    if (!acc.includes(key)) acc.push(key)
+  return acc
+}, [] as string[])

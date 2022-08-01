@@ -28,7 +28,11 @@ import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 import { IDexResponse, IFusedProtocolData } from '~/api/types'
 import { Checkbox2 } from '~/components'
-import { formatVolumeHistoryToChartData, getChartDataFromVolumeHistory } from '~/utils/dexs'
+import {
+	formatVolumeHistoryToChartDataByChain,
+	formatVolumeHistoryToChartDataByProtocol,
+	getChartDataFromVolumeHistory
+} from '~/utils/dexs'
 import { IStackedBarChartProps } from '~/components/TokenChart/StackedBarChart'
 
 defaultFallbackInView(true)
@@ -337,8 +341,6 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 
 	const [bobo, setBobo] = React.useState(false)
 
-	const chartData = formatVolumeHistoryToChartData(dexData.volumeHistory)
-
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO
@@ -370,7 +372,12 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 						</Tvl>
 					</TvlWrapper>
 				</ProtocolDetails>
-				<StackedBarChart chartData={chartData} color={backgroundColor} />
+				{/* <StackedBarChart chartData={formatVolumeHistoryToChartDataByChain(dexData.volumeHistory)} color={backgroundColor} /> */}
+
+				<StackedBarChart
+					chartData={formatVolumeHistoryToChartDataByProtocol(dexData.volumeHistory)}
+					color={backgroundColor}
+				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
 					<span className="visually-hidden">Enable Goblin Mode</span>
