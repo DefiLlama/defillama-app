@@ -13,6 +13,8 @@ tags:
     description: Stablecoins data
   - name: yields
     description: Data from our yields/APY dashboard
+  - name: abi-decoder
+    description: Function and event signatures decoded
 servers:
   - url: https://api.llama.fi
 paths:
@@ -302,6 +304,80 @@ paths:
           schema:
             type: string
             example: '0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8'
+      responses:
+        '200':
+          description: successful operation
+  /fetch/signature:
+    get:
+      tags:
+        - abi-decoder
+      summary: Get the ABI for a function or event signature.
+      servers:
+        - url: https://abi-decoder.llama.fi
+      parameters:
+      - name: functions
+        in: query
+        required: false
+        description: function 4 byte signatures, you can add many signatures by joining them with ','
+        schema:
+          type: string
+          example: "0x23b872dd,0x18fccc76,0xb6b55f25,0xf5d07b60"
+      - name: events
+        in: query
+        required: false
+        description: event signatures, you can add many signatures by joining them with ','
+        schema:
+          type: string
+          example: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67,0x4cc7e95e48af62690313a0733e93308ac9a73326bc3c29f1788b1191c376d5b6"
+      responses:
+        '200':
+          description: successful operation
+  /fetch/contract/{chain}/{address}:
+    get:
+      tags:
+        - abi-decoder
+      summary: Get the verbose ABI for a function or event signature for a particular contract
+      servers:
+        - url: https://abi-decoder.llama.fi
+      parameters:
+      - name: chain
+        in: path
+        required: true
+        description: Chain the smart contract is located in
+        schema:
+          type: string
+          enum:
+            - arbitrum
+            - avalanche
+            - bsc
+            - celo
+            - ethereum
+            - fantom
+            - optimism
+            - polygon
+            - tron
+          example: ethereum
+      - name: address
+        in: path
+        required: true
+        description: Address of the smart contract
+        schema:
+          type: string
+          example: "0x02f7bd798e765369a9d204e9095b2a526ef01667"
+      - name: functions
+        in: query
+        required: false
+        description: function 4 byte signatures, you can add many signatures by joining them with ','
+        schema:
+          type: string
+          example: "0xf43f523a,0x95d89b41,0x95d89b41,0x70a08231,0x70a08231"
+      - name: events
+        in: query
+        required: false
+        description: event signatures, you can add many signatures by joining them with ','
+        schema:
+          type: string
+          example: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"
       responses:
         '200':
           description: successful operation

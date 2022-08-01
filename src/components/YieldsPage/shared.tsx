@@ -36,6 +36,11 @@ export const TableWrapper = styled(Table)`
 		& > * {
 			text-align: start;
 			margin-left: 0;
+
+			// LOGO
+			& > *:nth-child(2) {
+				display: none;
+			}
 		}
 
 		a {
@@ -110,14 +115,9 @@ export const TableWrapper = styled(Table)`
 			display: revert;
 
 			& > div {
-				width: 100px;
 				overflow: hidden;
 				white-space: nowrap;
-
-				// HIDE LOGO
-				& > div {
-					display: none;
-				}
+				width: 100px;
 
 				& > a {
 					overflow: hidden;
@@ -128,6 +128,13 @@ export const TableWrapper = styled(Table)`
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+		// PROJECT
+		tr > *:nth-child(2) {
+			& > div {
+				width: 140px;
+			}
+		}
+
 		// TVL
 		tr > *:nth-child(4) {
 			display: revert;
@@ -135,6 +142,18 @@ export const TableWrapper = styled(Table)`
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+		// PROJECT
+		tr > *:nth-child(2) {
+			& > * {
+				// LOGO
+				& > *:nth-child(2) {
+					display: revert;
+					width: 24px;
+					height: 24px;
+				}
+			}
+		}
+
 		// APY
 		tr > *:nth-child(5) {
 			padding-right: 0px;
@@ -147,6 +166,13 @@ export const TableWrapper = styled(Table)`
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpXl}) {
+		// PROJECT
+		tr > *:nth-child(2) {
+			& > div {
+				width: 160px;
+			}
+		}
+
 		// 7D CHANGE
 		tr > *:nth-child(7) {
 			padding-right: 0;
@@ -174,12 +200,7 @@ export const TableWrapper = styled(Table)`
 		// PROJECT
 		tr > *:nth-child(2) {
 			& > div {
-				width: 160px;
-
-				// HIDE LOGO
-				& > div {
-					display: revert;
-				}
+				width: 180px;
 			}
 		}
 

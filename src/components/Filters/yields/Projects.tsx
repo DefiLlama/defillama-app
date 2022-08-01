@@ -3,7 +3,7 @@ import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
 import { FilterButton } from '~/components/Select/AriakitSelect'
-import { Dropdown, Item, Stats } from '../shared'
+import { Dropdown, Item, Selected, Stats } from '../shared'
 
 interface IYieldProjectsProps {
 	projectList: { name: string; slug: string }[]
@@ -14,12 +14,14 @@ interface IYieldProjectsProps {
 export function YieldProjects({ projectList = [], selectedProjects, pathname }: IYieldProjectsProps) {
 	const router = useRouter()
 
+	const { project, ...queries } = router.query
+
 	const addProject = (project) => {
 		router.push(
 			{
 				pathname,
 				query: {
-					...router.query,
+					...queries,
 					project
 				}
 			},
@@ -50,7 +52,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 			{
 				pathname,
 				query: {
-					...router.query,
+					...queries,
 					project: 'All'
 				}
 			},
@@ -64,7 +66,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 			{
 				pathname,
 				query: {
-					...router.query,
+					...queries,
 					project: []
 				}
 			},
@@ -78,6 +80,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 			<FilterButton state={select}>
 				<span>Filter by Project</span>
 				<MenuButtonArrow />
+				{selectedProjects.length > 0 && <Selected>{selectedProjects.length}</Selected>}
 			</FilterButton>
 			<Dropdown state={select}>
 				<Input state={combobox} placeholder="Search for projects..." />

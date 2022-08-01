@@ -1,6 +1,5 @@
 import Layout from '~/layout'
 import YieldPage from '~/components/YieldsPage'
-import { revalidate } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 
 export async function getStaticProps() {
@@ -8,7 +7,7 @@ export async function getStaticProps() {
 
 	return {
 		...data,
-		revalidate: revalidate(23)
+		revalidate: 20 * 60
 	}
 }
 

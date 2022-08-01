@@ -266,6 +266,8 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 
 	const protocolsData = useCalcStakePool2Tvl(data, 'listedAt', 'asc')
 
+	const { pathname } = useRouter()
+
 	return (
 		<Layout title={title} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: name }} />
@@ -273,7 +275,7 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 			<TableFilters>
 				<TableHeader>{header}</TableHeader>
 				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/recent" />
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
 				</Dropdowns>
 				{forkedList && <HideForkedProtocols />}
 			</TableFilters>

@@ -194,7 +194,13 @@ export const BaseSearch = (props: IBaseSearchProps) => {
 						itemSize={50}
 						itemData={{
 							searchData: data,
-							options: combobox.matches,
+							options: combobox.matches.sort((a, b) => {
+								if (b.startsWith('Show all')) {
+									return 1
+								} else if (combobox.value.length > 2) {
+									return -1
+								} else return 0
+							}),
 							onItemClick: props.onItemClick
 						}}
 					>
@@ -230,7 +236,7 @@ const Row = ({ index, style, data }) => {
 				if (onItemClick) {
 					onItemClick(item)
 				} else {
-					router.push(item.route)
+					router.push(item.route, undefined, { shallow: true })
 				}
 			}}
 			style={style}

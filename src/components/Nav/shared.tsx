@@ -206,11 +206,16 @@ Do you still wish to download it?`)){
 						</p>
 					</>
 				) : (
+					<>
+						<Link href="/docs/api" passHref prefetch={false}>
+							<a>API Docs</a>
+						</Link>
 					<Link href="https://datasets.llama.fi/yields/yield_rankings.csv" passHref>
 						<a target="_blank" rel="noopener noreferrer">
 							Download Data
 						</a>
 					</Link>
+					</>
 				)}
 			</FooterWrapper>
 

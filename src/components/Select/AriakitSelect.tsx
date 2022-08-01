@@ -124,6 +124,7 @@ export const FilterPopover = styled(SelectPopover)`
 `
 
 export const FilterButton = styled(AriaSelect)`
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -149,7 +150,7 @@ export const FilterButton = styled(AriaSelect)`
 		outline-offset: 1px;
 	}
 
-	span {
+	span:first-of-type {
 		overflow: hidden;
 		white-space: nowrap;
 		text-overflow: ellipsis;
