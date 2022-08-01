@@ -177,8 +177,18 @@ export async function getPeggedChainsPageData() {
 		chainList.map(async (chain) => {
 			for (let i = 0; i < 5; i++) {
 				try {
-					const res = await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
-					return res
+					const charts = await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
+					const formattedCharts = charts.map((chart) => {
+						return {
+							date: chart.date,
+							totalCirculating: chart.totalCirculating,
+							totalUnreleased: chart.totalUnreleased,
+							mcap: chart.totalCirculatingUSD,
+							totalMintedUSD: chart.totalMintedUSD,
+							totalBridgedToUSD: chart.totalBridgedToUSD,
+						}
+					})
+					return formattedCharts
 				} catch (e) {}
 			}
 			throw new Error(`${PEGGEDCHART_API}/${chain} is broken`)

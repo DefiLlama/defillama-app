@@ -142,13 +142,13 @@ export const formatPeggedChainsData = ({
 
 		chainData.name = chainName
 		chainData.circulating = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculating')
-		chainData.mcap = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculatingUSD')
+		chainData.mcap = getPrevPeggedTotalFromChart(chart, 0, 'mcap')
 		chainData.unreleased = getPrevPeggedTotalFromChart(chart, 0, 'totalUnreleased')
 		chainData.bridgedTo = getPrevPeggedTotalFromChart(chart, 0, 'totalBridgedToUSD')
 		chainData.minted = getPrevPeggedTotalFromChart(chart, 0, 'totalMintedUSD')
-		chainData.mcapPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'totalCirculatingUSD')
-		chainData.mcapPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'totalCirculatingUSD')
-		chainData.mcapPrevMonth = getPrevPeggedTotalFromChart(chart, 30, 'totalCirculatingUSD')
+		chainData.mcapPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'mcap')
+		chainData.mcapPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'mcap')
+		chainData.mcapPrevMonth = getPrevPeggedTotalFromChart(chart, 30, 'mcap')
 
 		chainData.change_1d = getPercentChange(chainData.mcap, chainData.mcapPrevDay)
 		chainData.change_7d = getPercentChange(chainData.mcap, chainData.mcapPrevWeek)
