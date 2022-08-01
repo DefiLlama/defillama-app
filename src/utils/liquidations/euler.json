@@ -1,0 +1,2246 @@
+[
+  {
+    "owner": "0x004f9b9ffdbcc20013cbbf31ab8c06c5178d72a1",
+    "liqPrice": 23.945799504366555,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "27299998966427491"
+  },
+  {
+    "owner": "0x00c08de5c795662f792f1434b207a1451a5a36fe",
+    "liqPrice": 354.0353825709699,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "13023099593682740746"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 103650.28985402882,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "43437880339312"
+  },
+  {
+    "owner": "0x01b2e49f1f3fbf81db90fc9718672900c12dd249",
+    "liqPrice": 0.4930815759765039,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "217101839601"
+  },
+  {
+    "owner": "0x028b2b9adca1bd1263086b0b221713a684968817",
+    "liqPrice": 0.1530889288477731,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "24657683250492442802140"
+  },
+  {
+    "owner": "0x03c7fe14c903e85ba8dcc34baf647dec3a019428",
+    "liqPrice": 1.0048810679917337,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "46221500"
+  },
+  {
+    "owner": "0x044a9c43e95aa9fd28eea25131a62b602d304f1f",
+    "liqPrice": 1641.2067685512923,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "20037308807456905133"
+  },
+  {
+    "owner": "0x0485a925b92f64d195b5f65d0b4c3b72004e98a4",
+    "liqPrice": 1058.532957929636,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "111113199986920140315"
+  },
+  {
+    "owner": "0x04dcaaa85569cbfd5bcae97d7db72d8334fc51e5",
+    "liqPrice": 903.0506608559002,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "45132053693752498"
+  },
+  {
+    "owner": "0x05a027d03f575b14ca292b20ded0ca10032cbf71",
+    "liqPrice": 0.19811117141280965,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "79855649242"
+  },
+  {
+    "owner": "0x072e02b38a9ade4709d3efe66a80f78945fe825f",
+    "liqPrice": 0.8082256034327976,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "12051549"
+  },
+  {
+    "owner": "0x096054a5dc101503da474f204ede96e1411e5f86",
+    "liqPrice": 0.0418711423062155,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "12735971735454779461"
+  },
+  {
+    "owner": "0x09988e9aeb8c0b835619305abfe2ce68fea17722",
+    "liqPrice": 0.23953478342953619,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "282414016086"
+  },
+  {
+    "owner": "0x09988e9aeb8c0b835619305abfe2ce68fea17722",
+    "liqPrice": 0.26442098397169694,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "124968623984482139868414"
+  },
+  {
+    "owner": "0x09fc1031d03a78ed4f60463fa9749870d33439bc",
+    "liqPrice": 19498.832522960154,
+    "collateral": "ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "collateralAmount": "99987111"
+  },
+  {
+    "owner": "0x09fc1031d03a78ed4f60463fa9749870d33439bc",
+    "liqPrice": 0.6650625217805809,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "12148344219"
+  },
+  {
+    "owner": "0x0a911d1ca158b7563a8671fe02fa591170c7778d",
+    "liqPrice": 0.6886683921659532,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "19991056897448670557"
+  },
+  {
+    "owner": "0x0b4509f330ff558090571861a723f71657a26f78",
+    "liqPrice": 0.24740355612547893,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "72035519477315229580"
+  },
+  {
+    "owner": "0x0b971be66f70bfdf3f265a1c5e2e2b904d1d2e78",
+    "liqPrice": 100.72970615413607,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "22395279023020721"
+  },
+  {
+    "owner": "0x0bd091e299f30366eaee17dc57d89a85466bbc33",
+    "liqPrice": 0.7539080393510073,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "6040760257806900545"
+  },
+  {
+    "owner": "0x0c4bfb585c72ec0ef88f3fc7ff9c0d05438ef9e7",
+    "liqPrice": 434.2701673838108,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "145033127616177981"
+  },
+  {
+    "owner": "0x0d0bd6469be80d57893cf1b21434936dfaa35319",
+    "liqPrice": 0.8018149848140684,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "2496594498435328696313"
+  },
+  {
+    "owner": "0x0ebbd88f67222f9bb2d14929a044584da606662e",
+    "liqPrice": 1.1971248366357659,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "993644162008094"
+  },
+  {
+    "owner": "0x0eedf72e23a4a7e7865273adcd0eeeebc262ffc3",
+    "liqPrice": 264.0950710273208,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "5807378149525109265"
+  },
+  {
+    "owner": "0x10bf1dcb5ab7860bab1c3320163c6dddf8dcc0e4",
+    "liqPrice": 0.009787690892294745,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "4916189692469"
+  },
+  {
+    "owner": "0x10caa0054d874799510154f9906e2887602c25ea",
+    "liqPrice": 0.2585928012943696,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "118712495618"
+  },
+  {
+    "owner": "0x10caa0054d874799510154f9906e2887602c25ea",
+    "liqPrice": 192.23762338669394,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "59614818212455377894"
+  },
+  {
+    "owner": "0x1243954b4e6aedf4a07e4282d44fd2e9ac502e93",
+    "liqPrice": 1145.4043094323904,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "198370677312996641"
+  },
+  {
+    "owner": "0x127168570d34e3d19ac3eaa75fe9b841de0f78f9",
+    "liqPrice": 0.6431274969514446,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "99596296"
+  },
+  {
+    "owner": "0x13d0716f2faa2f4e5be56041f713ab5b3c139507",
+    "liqPrice": 880.5387946229744,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "37487508315480666204"
+  },
+  {
+    "owner": "0x14007449b25ff24e7b386b2ee7ddd38847cbb7a2",
+    "liqPrice": 0.1225782299184405,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "56869741"
+  },
+  {
+    "owner": "0x1469038edce33e3efb5d689586f408b6512f8b26",
+    "liqPrice": 0.3484518790826346,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "4888030"
+  },
+  {
+    "owner": "0x14b5eb80797280066665602246b6acbe77bfb90e",
+    "liqPrice": 2.894878318194586,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "18895538822771418052"
+  },
+  {
+    "owner": "0x166ed9f7a56053c7c4e77cb0c91a9e46bbc5e8b0",
+    "liqPrice": 1401.647608545179,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "350058285271975534497"
+  },
+  {
+    "owner": "0x17707e9f7b95569b48600f07f645af4f93faaf3b",
+    "liqPrice": 0.707124794908859,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "19561304911"
+  },
+  {
+    "owner": "0x188bc00c1b322d51bc59d70ba0d69408a46ad8dd",
+    "liqPrice": 1411.3823962933577,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "540539419919776250"
+  },
+  {
+    "owner": "0x188bc00c1b322d51bc59d70ba0d69408a46ad8dd",
+    "liqPrice": 1402.2800000666864,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "2285229138695456420"
+  },
+  {
+    "owner": "0x188bc00c1b322d51bc59d70ba0d69408a46ad8dd",
+    "liqPrice": 1399.4584081311682,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "3277464954835109805"
+  },
+  {
+    "owner": "0x188bc00c1b322d51bc59d70ba0d69408a46ad8dd",
+    "liqPrice": 1410.9588633166863,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "864030154065690869"
+  },
+  {
+    "owner": "0x188bc00c1b322d51bc59d70ba0d69408a46ad8dd",
+    "liqPrice": 1410.9587286072963,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "1390393471900411282"
+  },
+  {
+    "owner": "0x1a3872782cb5b81548326095d888ef02ece19a83",
+    "liqPrice": 0.023265814183080515,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1003859"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 986.6979105006039,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "96716677943"
+  },
+  {
+    "owner": "0x1c5cd27eb040f4305958b2a9eddafa54548fce03",
+    "liqPrice": 589.079303557228,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "10623055741491291057"
+  },
+  {
+    "owner": "0x1d12b894b259c3341d283da83b9c77f5ed5ba163",
+    "liqPrice": 0.2699844144260931,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1308670927144"
+  },
+  {
+    "owner": "0x1e2ceec8e2fb758eca1898538b3b4648441bcafe",
+    "liqPrice": 0.8082960299931973,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "13628736"
+  },
+  {
+    "owner": "0x1e30eee1a69ea39e73ae924e8e74d89f90e28dd3",
+    "liqPrice": 1348.8837950704522,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "913738924929004043"
+  },
+  {
+    "owner": "0x1e34b42f23871aaf6a8bff113d7241ad6b936ee7",
+    "liqPrice": 0.6125469819310027,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "30"
+  },
+  {
+    "owner": "0x1ec0dde402dae69021492e7a9c4cbfdf72ffd84b",
+    "liqPrice": 0.2829618902801029,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "396098153115289064492638"
+  },
+  {
+    "owner": "0x1ee10aeaebc6336b813daf9067248fa90de2b589",
+    "liqPrice": 0.7446499994750897,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "463416274718537503558904"
+  },
+  {
+    "owner": "0x2059a96525c364560a806ca035a40c9f379ebca9",
+    "liqPrice": 265.90452288933756,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "49846306639292095"
+  },
+  {
+    "owner": "0x216ba7f4ee2e468ce73774edda54ef398fba0d6e",
+    "liqPrice": 0.6202766729350548,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "2089005808"
+  },
+  {
+    "owner": "0x222d443436e7f9144a830971c50d44309410e984",
+    "liqPrice": 0.9291389842738224,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "46707716"
+  },
+  {
+    "owner": "0x225d824d4f8a1f393cd3fd22d08e423bbcb79427",
+    "liqPrice": 561.0149313322232,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "95433496752990387489"
+  },
+  {
+    "owner": "0x233be3dc5255e9b3a5ed82fbd74721dbeba8cd27",
+    "liqPrice": 0.8073234706147175,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1854713"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 857.1493295660612,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "40578068225828621"
+  },
+  {
+    "owner": "0x23925074619f5ee37efededa407d3dff09172a9d",
+    "liqPrice": 1400.638649877113,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "76955967369458018943"
+  },
+  {
+    "owner": "0x23b6d8e09cb33b1550de19ac25cc3f41ae4603bb",
+    "liqPrice": 0.9642857488878255,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1362984597"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 163286.63984890006,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "499742989039154"
+  },
+  {
+    "owner": "0x24040d8cd8e8efa6c63d99009988656202a838e8",
+    "liqPrice": 1.1260472877795573,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "135281"
+  },
+  {
+    "owner": "0x242e333b5c84206831e5fddb40f67a8f5726e64d",
+    "liqPrice": 1134.7437075329926,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "15999267963338657876"
+  },
+  {
+    "owner": "0x24777ca8e50c9cec03b89aa65eacdac5279db7a8",
+    "liqPrice": 580.2787232059102,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "4809840724303983963"
+  },
+  {
+    "owner": "0x24bc9913423963e829baf2c6d25169abb78c83af",
+    "liqPrice": 571.2152451822611,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "40071598525998338"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 130432.81391995697,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "92995345416552"
+  },
+  {
+    "owner": "0x2562dd39af7440b63eef5549d9486a4066c328b4",
+    "liqPrice": 0.018465647100107088,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "20515524327"
+  },
+  {
+    "owner": "0x2562dd39af7440b63eef5549d9486a4066c328b4",
+    "liqPrice": 0.0029640812792497994,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "8924842289"
+  },
+  {
+    "owner": "0x2562dd39af7440b63eef5549d9486a4066c328b4",
+    "liqPrice": 235.4317763553347,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "5613301299191251536"
+  },
+  {
+    "owner": "0x25d9d6f36fb3773b98284624e2a58c0cb3c98cd4",
+    "liqPrice": 64.29001044478184,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "39921802191224187937"
+  },
+  {
+    "owner": "0x271adfa12de6894ea3f38e1148aa07d0f21fb9a8",
+    "liqPrice": 0.5582504516789092,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "32311471"
+  },
+  {
+    "owner": "0x276e69cdd336001afef07075859a93078496c3c1",
+    "liqPrice": 873.4381702988946,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "1629939854722589028"
+  },
+  {
+    "owner": "0x27824f56bb0e722bde0a6b1b28dfb2fe9d4285ca",
+    "liqPrice": 0.11484222212212795,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "49948066584"
+  },
+  {
+    "owner": "0x280bf69d522bbcfb3aeb138c59d85a16e449057c",
+    "liqPrice": 922.84459250071,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "43686635259293339758"
+  },
+  {
+    "owner": "0x290deed9fe4c092bf2b0c812bbd981d183af3ca2",
+    "liqPrice": 861.7394852802958,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "79880342298496632118"
+  },
+  {
+    "owner": "0x2999cb7dbb6fe7a39f9b880ec71c7db1a3b906c8",
+    "liqPrice": 0.9501622544150189,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1163455129"
+  },
+  {
+    "owner": "0x29e7eb2ef312613783a86b353377c39b9da73e59",
+    "liqPrice": 1165.889030595131,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "108677790871124174"
+  },
+  {
+    "owner": "0x29fd3afb1612b232150b03c26c2cdff55bc943aa",
+    "liqPrice": 906.9007324948271,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "9930986846677104"
+  },
+  {
+    "owner": "0x7abae896a83d1a892809436c4f26825c5083ea62",
+    "liqPrice": 1109.6282929219662,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "889044450578635836"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 0.8725827516583203,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1639447138"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 408595.5754647007,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "87371985210071"
+  },
+  {
+    "owner": "0x2b7ba0a703ede3923fc00fef818d7537e903ce15",
+    "liqPrice": 275.06983038165856,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "34995665953250120"
+  },
+  {
+    "owner": "0x2bf02f7b9aa48a35b41567c896eed17cf89848e7",
+    "liqPrice": 1529.5742974018656,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "3308988879261727183"
+  },
+  {
+    "owner": "0x2c11ae904565fa3f47ac785860f5ec8c0368258c",
+    "liqPrice": 0.8056051226174228,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "61162010"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 972.7493120096685,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "63066556800"
+  },
+  {
+    "owner": "0x2dbe4402f1cb582f2687faa42d859fe53874557f",
+    "liqPrice": 13.614945409930165,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "3394053111563040246"
+  },
+  {
+    "owner": "0x2fa69db668de82ebb8c37a0b2a5f3ec17ecb5a46",
+    "liqPrice": 0.0000066406875199206,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "29999509905793720042"
+  },
+  {
+    "owner": "0x0a833b7f1ca49cb86ab967daf0e80ac1ab162d14",
+    "liqPrice": 1326.027207013605,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "82977697619224889390"
+  },
+  {
+    "owner": "0x2fc7b4fe18fd4e8d65fb1dad5d56f60adae09e1b",
+    "liqPrice": 1461.4133810607593,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "3704797472238822"
+  },
+  {
+    "owner": "0x2fe59a3d4379a127adb934bcb9fcccf2c770eb97",
+    "liqPrice": 75.22373124047957,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "1027731224262037"
+  },
+  {
+    "owner": "0x30df16cd7d612c5b25beb0331486b127a42ac371",
+    "liqPrice": 858.1559488299611,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "37642023909932822308"
+  },
+  {
+    "owner": "0x31cdb470154238d2d1075a22bb2ef3ce1fb093d4",
+    "liqPrice": 0.18380701094297305,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "6408"
+  },
+  {
+    "owner": "0x31ecb0819346edd4ac31e2c3adacd6629e411a78",
+    "liqPrice": 0.31261356591953704,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "498624565"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 712384.1598374811,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "62108860932319"
+  },
+  {
+    "owner": "0x3337caa19aab2c1339a485999349e3ccdcf9f7a2",
+    "liqPrice": 0.00012033803184425085,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "991408"
+  },
+  {
+    "owner": "0x3390df804b5f1bbe08aac24aa010b62ab729fff4",
+    "liqPrice": 0.8139487330413835,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "4470629684"
+  },
+  {
+    "owner": "0x357db7ab93eef87334f12aa4d02bfaa548c27514",
+    "liqPrice": 1047.514999836473,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "33934996832125817888"
+  },
+  {
+    "owner": "0x372140e9705d6b6f1cf76c28d103637b01e804d9",
+    "liqPrice": 0.9784850921256517,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "6223888137135362029"
+  },
+  {
+    "owner": "0x372140e9705d6b6f1cf76c28d103637b01e804d9",
+    "liqPrice": 0.3970995650572662,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "94645585025"
+  },
+  {
+    "owner": "0x37d9db235ac2452dd7f5bf7500fe81f21b7a7eca",
+    "liqPrice": 0.8073294280282163,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1084642"
+  },
+  {
+    "owner": "0x37feeb6b8067d1185b9e1f25d184dcc61fd2d105",
+    "liqPrice": 0.32138480551547205,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "9035714493526737869050"
+  },
+  {
+    "owner": "0x37feeb6b8067d1185b9e1f25d184dcc61fd2d105",
+    "liqPrice": 513.4747762235826,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "4987005759317852392"
+  },
+  {
+    "owner": "0x38f62b28c019e11d2fc70610a2608a0c12b40cec",
+    "liqPrice": 0.4699954612751244,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "9991790894580762452"
+  },
+  {
+    "owner": "0x3a31d9d9120013a2f1f55ce45068ed9ce4795e9f",
+    "liqPrice": 0.6960580178718336,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "2635524"
+  },
+  {
+    "owner": "0x3a8315e25378ce9fc0d3279b26ec0576de52c0ff",
+    "liqPrice": 14152.488771253087,
+    "collateral": "ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "collateralAmount": "319546763"
+  },
+  {
+    "owner": "0x3a8315e25378ce9fc0d3279b26ec0576de52c0ff",
+    "liqPrice": 11881.484273850943,
+    "collateral": "ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "collateralAmount": "478207777"
+  },
+  {
+    "owner": "0x3a8315e25378ce9fc0d3279b26ec0576de52c0ff",
+    "liqPrice": 1522.1665941326448,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "371768450728525160712"
+  },
+  {
+    "owner": "0x3aabbec9c3364f0565469bff54b80da096f0bd77",
+    "liqPrice": 137.57210710773833,
+    "collateral": "ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "collateralAmount": "99735991"
+  },
+  {
+    "owner": "0x3b1e9b0ff7063ce9b6c3673f6a1a828e147b04d2",
+    "liqPrice": 0.851239321855578,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "23281796"
+  },
+  {
+    "owner": "0x3ba31cb4d00521eabc99aa23783ae768256996e7",
+    "liqPrice": 9889.734742238466,
+    "collateral": "ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "collateralAmount": "2914575160"
+  },
+  {
+    "owner": "0x3cd8e960cbdc51eefe894386fd8abbcf05ede7b3",
+    "liqPrice": 0.8038915384220211,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "647609"
+  },
+  {
+    "owner": "0x3da9d70305b83db1f545a5d50b19208b93cd0c21",
+    "liqPrice": 1099.6911789804249,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "123970056140664734535"
+  },
+  {
+    "owner": "0x3f60008dfd0efc03f476d9b489d6c5b13b3ebf2c",
+    "liqPrice": 1495.830332435425,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "309984346788993583224"
+  },
+  {
+    "owner": "0x3f60cbdcdacf841477f948cba2ac245ac6c0ba72",
+    "liqPrice": 0.8086128392133531,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "47159350"
+  },
+  {
+    "owner": "0x40692724326503b8fdc8472df7ee658f4bdbfc89",
+    "liqPrice": 0.00270529456442813,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "221731"
+  },
+  {
+    "owner": "0x40d89bc5ba54b877d7e8f07569432d884efee029",
+    "liqPrice": 0.742341726321345,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "2677240549"
+  },
+  {
+    "owner": "0x414da4dbc1a4271452cb779f1a01d6ba5f36bee1",
+    "liqPrice": 0.4987898521465488,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "931155436"
+  },
+  {
+    "owner": "0x4213724b30d34768072911aa7a59132540bb5433",
+    "liqPrice": 735.4915195104671,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "3837358200908657125"
+  },
+  {
+    "owner": "0x4299f9f69e6f5e07b12035cdc65c26f2771a1e16",
+    "liqPrice": 45.931022855957224,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "4760779000477695034"
+  },
+  {
+    "owner": "0x42e74f15d5b69cd42abba7a55bb27e35a565e3ae",
+    "liqPrice": 0.8074559995726659,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1902575"
+  },
+  {
+    "owner": "0x44462bbd9cf122ee32e5e436bba46fa7a41d49d9",
+    "liqPrice": 0.9418369963854174,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "28733004"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 3797930.5704835863,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "16132249204136"
+  },
+  {
+    "owner": "0x46b3aa73578b2c63181b26a08997140495003a80",
+    "liqPrice": 0.8071141908916653,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1625209"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 39799.46273000175,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "133190674522"
+  },
+  {
+    "owner": "0x4855ea3738b30192e86d52ca9a3ce4030c3de794",
+    "liqPrice": 1.6175525603169065,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "24759522086100998782"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 64426.34687705495,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "520880439569"
+  },
+  {
+    "owner": "0x4a2d5c05dcab604ea3476de70b989269d354fd92",
+    "liqPrice": 1298.4815999544935,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "995092371297283"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 0.9073071781501647,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "292370541"
+  },
+  {
+    "owner": "0x4c1619f3e13abcad02a1d246704121156f3a1b46",
+    "liqPrice": 0.8959681651078603,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "160604639"
+  },
+  {
+    "owner": "0x4fa76de7e9693973cc1c93efe97e9f63265164f4",
+    "liqPrice": 1497.6697237977417,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "163808997171645149283"
+  },
+  {
+    "owner": "0x502bb5979a85d2721d5025569164516f45c6c01d",
+    "liqPrice": 0.09405955496401622,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "4999610321745312"
+  },
+  {
+    "owner": "0x513990a873c83dee4a7122ce48175ff71cb0a68b",
+    "liqPrice": 794.4794026005336,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "100406732905944443323"
+  },
+  {
+    "owner": "0x51841d9afe10fe55571bdb8f4af1060415003528",
+    "liqPrice": 765.5970231685783,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "262092121384567413634"
+  },
+  {
+    "owner": "0x51d18e5f6fa6534bb2fbaaf90fd6f3336327fd16",
+    "liqPrice": 1734.335350025728,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "145681183774843474800"
+  },
+  {
+    "owner": "0x51d18e5f6fa6534bb2fbaaf90fd6f3336327fd16",
+    "liqPrice": 1445.408403006309,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "285948601554416521"
+  },
+  {
+    "owner": "0x51d73c64ccaf865bdc06276f0a861b5231daf6f9",
+    "liqPrice": 0.0005303183867193166,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "593472"
+  },
+  {
+    "owner": "0xfda462548ce04282f4b6d6619823a7c64fdc0185",
+    "liqPrice": 0.004027471940649238,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "891711192673"
+  },
+  {
+    "owner": "0x5338e35bbc8ff65e7a0c949d82f2bcadcec014c6",
+    "liqPrice": 1382.246265908216,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "2182005937893632429"
+  },
+  {
+    "owner": "0x7ba6cfa3114ff4d964771c961a089c7afc822d9a",
+    "liqPrice": 3446.060276556974,
+    "collateral": "ethereum:0x1f9840a85d5af5bf1d1762f925bdaddc4201f984",
+    "collateralAmount": "23871645519825471"
+  },
+  {
+    "owner": "0x7ba6cfa3114ff4d964771c961a089c7afc822d9a",
+    "liqPrice": 148119.53987734838,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "191046226841765"
+  },
+  {
+    "owner": "0x540df9f7df6668382a9f8a71ea2d205b6c400a27",
+    "liqPrice": 0.5731049703001041,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "9935060680653624"
+  },
+  {
+    "owner": "0x545a31fc87fc6b1db2bcfb6ba0c7b72ef52d6711",
+    "liqPrice": 0.8083046819201499,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "13153301"
+  },
+  {
+    "owner": "0x54b30069daed0ee345d1ab15a8f5657a54508717",
+    "liqPrice": 15518.287773185355,
+    "collateral": "ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "collateralAmount": "73590408"
+  },
+  {
+    "owner": "0x5584cf54ade7c81ab6d6bc870c714f87fc0a7721",
+    "liqPrice": 1101.3709077717342,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "20774305271165648"
+  },
+  {
+    "owner": "0x57812d6a5b4bd0818ed2d7c415f8296d1e3daa53",
+    "liqPrice": 1360.6695216314422,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "1147372059312985125"
+  },
+  {
+    "owner": "0x5853ed4f26a3fcea565b3fbc698bb19cdf6deb85",
+    "liqPrice": 0.8052632659733153,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1193836"
+  },
+  {
+    "owner": "0x59036e2b23134ecbb60dd218e311bfab6eeb39dd",
+    "liqPrice": 0.8073752904802667,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1094540"
+  },
+  {
+    "owner": "0x59120199b71a63f1f7e21f22945a1f2922e4ca8c",
+    "liqPrice": 0.8070686313099728,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1545261"
+  },
+  {
+    "owner": "0x59a327060047aee4fec76f08f687d0fbae5d8821",
+    "liqPrice": 0.7629040541211615,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "39837496"
+  },
+  {
+    "owner": "0xb1ae6893d748db81b7f53494e19d9fda39ba25a7",
+    "liqPrice": 0.11428175943575034,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "55930644"
+  },
+  {
+    "owner": "0x5adf9d5497b0ca119d0333e1cb78be8f62ac94a8",
+    "liqPrice": 805.9742100562006,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "29998416088498225"
+  },
+  {
+    "owner": "0xb1ae6893d748db81b7f53494e19d9fda39ba25a7",
+    "liqPrice": 389.966971241686,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "100000000000000000"
+  },
+  {
+    "owner": "0x5c44368c0ad4c446842738bdbf8f2bbf9876546e",
+    "liqPrice": 0.16721563810621773,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "49716818347"
+  },
+  {
+    "owner": "0x5d6274c88e1461516dc3d28d1111dbca983fb1ac",
+    "liqPrice": 0.8073168788151287,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "2408769"
+  },
+  {
+    "owner": "0x5e46f0d1b3e1cf21d584fb557f98eb3ea4a19059",
+    "liqPrice": 1419.0125123297207,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "34117740901825385008"
+  },
+  {
+    "owner": "0x5f39b0c2f940c1c2a2f9535d30f8998c6d3c0a30",
+    "liqPrice": 25.345051154141977,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "20293171892315071"
+  },
+  {
+    "owner": "0x5fb30d0e53af487bd8e28c326f802e64e676d035",
+    "liqPrice": 0.8082223721985138,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "12755191"
+  },
+  {
+    "owner": "0x61158be08b84175141619472c7134a4193e3747e",
+    "liqPrice": 0.5000253826742779,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "5792867"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 57120.04089424624,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "376306745173904"
+  },
+  {
+    "owner": "0x617c34a9b6f080a0f25988db6c903a8348d41081",
+    "liqPrice": 0.00001647075624639199,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "62500795492"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 111264.20354395437,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "43244114896607"
+  },
+  {
+    "owner": "0x6661d3ceaeaf0c210f2bc5aeff519a00c29277ef",
+    "liqPrice": 0.782959173098898,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "21567078"
+  },
+  {
+    "owner": "0x66fd1b1e8b9e49a8e3897b2803c50674799c9afd",
+    "liqPrice": 0.08984223757154475,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "510715982601867101437"
+  },
+  {
+    "owner": "0x682c4184286415344a35a0ff6699bb8edabddc17",
+    "liqPrice": 588.2743002817994,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "6990214729364724265"
+  },
+  {
+    "owner": "0x68cee3e57bae218780274fb22248f35528b94b6c",
+    "liqPrice": 9805.1590692313,
+    "collateral": "ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "collateralAmount": "17317"
+  },
+  {
+    "owner": "0x6926df2ce8b2628ed15734bff32c237d81eeb5ce",
+    "liqPrice": 149.73724870744772,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "1004346329260176"
+  },
+  {
+    "owner": "0x69d6b7d8c0bf9181f1d715c156b3e0f061f13ffa",
+    "liqPrice": 1518.294908234329,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "150757984188277203"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 1674982.0584894547,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "105994993428472"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 0.8146717867731923,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "91223901"
+  },
+  {
+    "owner": "0x6d27508dd032f2a7095df163e2a0dcc7a2bedaaf",
+    "liqPrice": 0.620149740168576,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "13858129892"
+  },
+  {
+    "owner": "0x6d27508dd032f2a7095df163e2a0dcc7a2bedaaf",
+    "liqPrice": 1294.9383222544632,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "13219965946401584902"
+  },
+  {
+    "owner": "0x6d781fadb18e6ac1ec442d28b498c51df3d1983b",
+    "liqPrice": 1404.7059937506965,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "161866338373505658"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 896.6466560731906,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "1533943631581868251"
+  },
+  {
+    "owner": "0x71ac74028ad23413b9e2b9edaa4a2a7c9e7099a8",
+    "liqPrice": 0.8085395620973636,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "3969786"
+  },
+  {
+    "owner": "0x71f8daa23ba91041c39eaca49efdde88e5f0378c",
+    "liqPrice": 2228.0811986400186,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "267617057186143"
+  },
+  {
+    "owner": "0x72aac494a8ddc9ee354f472adf912bba28fc198e",
+    "liqPrice": 0.35237609352235805,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "35853613"
+  },
+  {
+    "owner": "0x739adc03a7d8cea2f0a64d9622a5c346cb0ca1eb",
+    "liqPrice": 1329.7794695012374,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "4801425170379056628792"
+  },
+  {
+    "owner": "0x74623c7aa2714a37e6dd4160b250e64d312f4f94",
+    "liqPrice": 0.8072986452161203,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1611320"
+  },
+  {
+    "owner": "0x75a24f977a7978e7e1b410863fd601fc31742375",
+    "liqPrice": 0.2516093913410808,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "9948471707662485963"
+  },
+  {
+    "owner": "0x75cdd70cffb62a9cc737d038348b29a2e6240dc6",
+    "liqPrice": 1371.0745795934413,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "1837410897855618223"
+  },
+  {
+    "owner": "0x75cfe4ef963232ae8313ac33e21fc39241338618",
+    "liqPrice": 795.9783687441409,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "29601257771578572"
+  },
+  {
+    "owner": "0x75cfe4ef963232ae8313ac33e21fc39241338618",
+    "liqPrice": 482.1900588626937,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "3038965748879835"
+  },
+  {
+    "owner": "0x75f8405daa5a2b171cada25f8e60c4e8dff1bb35",
+    "liqPrice": 0.2201368696271362,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "476366388909"
+  },
+  {
+    "owner": "0x760c784046f2a5b13bdec9fc00e5b4b31962ec66",
+    "liqPrice": 12.730537388658151,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "7499982721070191460"
+  },
+  {
+    "owner": "0x769a1ef6fbfa918d685ba02f3c2e45cfb902ebf7",
+    "liqPrice": 1560.0721328758632,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "505395724596508646666"
+  },
+  {
+    "owner": "0x76a679257bdcfd4e11d92233fb50907acab9014c",
+    "liqPrice": 1619.0627329196436,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "247081770957072552539"
+  },
+  {
+    "owner": "0x76d2ddce6b781e66c4b184c82fbf4f94346cfb0d",
+    "liqPrice": 1423.1033440520769,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "5042812101830028570"
+  },
+  {
+    "owner": "0x76e69832cced34e4d801fb758bdf3d0ffd54320d",
+    "liqPrice": 0.37525260978899283,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "109326409"
+  },
+  {
+    "owner": "0x7773a2ee2461226000646112331ff43315f1e055",
+    "liqPrice": 0.8047933201290727,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "22410"
+  },
+  {
+    "owner": "0x78ccf421584df401b9c7075205a66d7bb019d892",
+    "liqPrice": 0.8083025509111735,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "10580953"
+  },
+  {
+    "owner": "0x796700d497e0221a601349d5832ad4d92f979b76",
+    "liqPrice": 1382.817261367143,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "49658422590653561"
+  },
+  {
+    "owner": "0x7a34f54b8d7c056e2cce6395b4b2483d0b2ccc1f",
+    "liqPrice": 0.8081372818156578,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "11358623"
+  },
+  {
+    "owner": "0x7b047b6688f4c270fe0d2d1cab7934b4c88e872c",
+    "liqPrice": 1585.7347980089517,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "642882551303133478"
+  },
+  {
+    "owner": "0x7b047b6688f4c270fe0d2d1cab7934b4c88e872c",
+    "liqPrice": 0.08289095836867807,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "983845463"
+  },
+  {
+    "owner": "0x7b93e509d298c352c0f79a58d8a358ec4b14dbf2",
+    "liqPrice": 0.00003402350962214217,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "6529937"
+  },
+  {
+    "owner": "0x7bfee91193d9df2ac0bfe90191d40f23c773c060",
+    "liqPrice": 632.92788270439,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "1543666133633829220712"
+  },
+  {
+    "owner": "0x7e9fc755ca672c2f8c71d23130ddb2baea20a574",
+    "liqPrice": 112.94161814104059,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "554075847402202393356"
+  },
+  {
+    "owner": "0x8073c62366973b9960f4561f6a72c5826b75e828",
+    "liqPrice": 0.14424987503797193,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "114158"
+  },
+  {
+    "owner": "0x809b8362113decd9f045a1b75f777644f1f9dc7d",
+    "liqPrice": 0.808230782815803,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "13532907"
+  },
+  {
+    "owner": "0x8149dc18d39fdba137e43c871e7801e7cf566d41",
+    "liqPrice": 0.4428070575255107,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "314680925"
+  },
+  {
+    "owner": "0x81f7d9e9a7ddd943c4a6bb36117773cc690e4680",
+    "liqPrice": 0.8196395124980882,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "38174235029097"
+  },
+  {
+    "owner": "0x8262267b55ab184f6b303e7e1ef260dc5165b5bf",
+    "liqPrice": 0.49464109771752396,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1954778414"
+  },
+  {
+    "owner": "0x82e4d78c6c62d461251fa5a1d4deb9f0fe378e30",
+    "liqPrice": 0.6841285019481544,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "865801942801"
+  },
+  {
+    "owner": "0x82e8936b187d83fd6eb2b7dab5b19556e9deff1c",
+    "liqPrice": 361.1861984789282,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "31150475687400174571"
+  },
+  {
+    "owner": "0x83a252160b09d3e6ccc7d34dae0a96143cbea2b1",
+    "liqPrice": 0.19338201808932576,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "3625759"
+  },
+  {
+    "owner": "0x83a9dfa748998e040263c0c81b9bf21ec915924a",
+    "liqPrice": 2604.8934747028534,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "478832550126484"
+  },
+  {
+    "owner": "0x844160aa1dd2a140084a3ed91fcba41e508fa233",
+    "liqPrice": 0.8124046890663116,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "153516100"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 134887.3847530732,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "115044630890600"
+  },
+  {
+    "owner": "0x887338a82fd63fb087c5fa156e3f4ebe7c18b7f4",
+    "liqPrice": 0.7886931770686708,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "14443097"
+  },
+  {
+    "owner": "0x8887d6eef2befeed989287f968eb124a7c7f0941",
+    "liqPrice": 0.7414496480299294,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "14231589"
+  },
+  {
+    "owner": "0x88d250d0b8aa228f04963dfba7d44d6a2812dc9a",
+    "liqPrice": 0.030277842844631222,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "894342684"
+  },
+  {
+    "owner": "0x8a9113778f7169bd4962f8af43e19f60aa46817d",
+    "liqPrice": 919.720909981537,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "43835351365942139159"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 2411438.992664919,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "80793111568276"
+  },
+  {
+    "owner": "0x8bd14da4570916c9a90e20d9ab01bdf5223157da",
+    "liqPrice": 0.6166409809301596,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "125402526110461681"
+  },
+  {
+    "owner": "0x8c840fe6a99cb48f5caaa91556954f9b63f481bc",
+    "liqPrice": 1691.3311697337554,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "2707129141820230780"
+  },
+  {
+    "owner": "0x8e7f413a94001b1b5da6b309bd9420240b953d73",
+    "liqPrice": 0.2624144152290482,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "19672094516"
+  },
+  {
+    "owner": "0x8e7f413a94001b1b5da6b309bd9420240b953d73",
+    "liqPrice": 53.48055418461159,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "9000834296234118197"
+  },
+  {
+    "owner": "0x92eebad529815f83348a1cbfd21bba700d8647e2",
+    "liqPrice": 0.8044879194520863,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "994722381249274199218"
+  },
+  {
+    "owner": "0x931292c42a5f600e80d75b7c7743f0164240882c",
+    "liqPrice": 0.22364833785944488,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "4716026153"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 0.8108249354841303,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "204665608"
+  },
+  {
+    "owner": "0x93a0b678674bb2baf5d47b12d33723070d2c8783",
+    "liqPrice": 0.005286710524112455,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "197874418"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 1188505243.5903063,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "55090644550"
+  },
+  {
+    "owner": "0x93f9fa1f3b688ff17f3d5ee41f144bcea39838e9",
+    "liqPrice": 0.00022379301759838948,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "10403274178"
+  },
+  {
+    "owner": "0x95f357ba8de42090daf892c727b8a716fbf418a0",
+    "liqPrice": 0.4218175926747521,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "297867992"
+  },
+  {
+    "owner": "0x96543b042e67baac2fc2281bd539c23c6c47b6c1",
+    "liqPrice": 13043.449065902843,
+    "collateral": "ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "collateralAmount": "894188"
+  },
+  {
+    "owner": "0x972ce6dbc6e10d3d30bdbbf94c8124eef0a4565c",
+    "liqPrice": 0.34560224029396347,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "568791"
+  },
+  {
+    "owner": "0x9730299b10a30bdbaf81815c99b4657c685314ab",
+    "liqPrice": 11301.93611034457,
+    "collateral": "ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "collateralAmount": "69526438"
+  },
+  {
+    "owner": "0x97eda3c9f1e4c7ef743b552ab687aa49fca804c0",
+    "liqPrice": 0.004188213160576011,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "478005"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 176616.8319586269,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "39561452039422"
+  },
+  {
+    "owner": "0x99ed04c212dd3929e9063bd78b26ef41858cb62c",
+    "liqPrice": 12179.238777966224,
+    "collateral": "ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "collateralAmount": "347406047"
+  },
+  {
+    "owner": "0x9a1224836a62789e1256332456e25de31fbe8882",
+    "liqPrice": 1172.8530367412227,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "10131971838355286686"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 146054.49045943763,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "257419127734555"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 107485.72736564223,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "258682179"
+  },
+  {
+    "owner": "0x9bdf1b88cf1e5620a12d78307e4b3613d87db717",
+    "liqPrice": 0.6220205143606735,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "19230209"
+  },
+  {
+    "owner": "0x9cbf099ff424979439dfba03f00b5961784c06ce",
+    "liqPrice": 1665.3773505060162,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "17164318662085492102870"
+  },
+  {
+    "owner": "0x9cf59ecde926cc1b5ff1cb9b247e0fec627091b1",
+    "liqPrice": 1.7190330656141768,
+    "collateral": "ethereum:0x514910771af9ca656af840dff83e8264ecf986ca",
+    "collateralAmount": "131549217658847119088085"
+  },
+  {
+    "owner": "0x9daaad3989d9d3149a8620a8ef8ca5db2cddfc38",
+    "liqPrice": 189.63267533612446,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "15507625098894455"
+  },
+  {
+    "owner": "0x9e22520747a6690ed29694afa98ea29a5436565a",
+    "liqPrice": 0.8084591627200564,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "13073728"
+  },
+  {
+    "owner": "0x9fa10388d2bb8b7d8a2c8586772876d6302d4cb3",
+    "liqPrice": 0.9168607148280599,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "2480324481"
+  },
+  {
+    "owner": "0xa00c99f5f955552742f1089ded88abdc74e67bac",
+    "liqPrice": 0.8704094448592574,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "18652328873683696475456"
+  },
+  {
+    "owner": "0xa01e9a89714b56dea4c7edbf0144c82c76351ae3",
+    "liqPrice": 0.8049651609960089,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1185652354"
+  },
+  {
+    "owner": "0xa188525a74af376c440194d39457a3520d916c24",
+    "liqPrice": 2607.329955121818,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "914685388157855"
+  },
+  {
+    "owner": "0xa193aeeecf09b78328bfbbd3e032253af760925c",
+    "liqPrice": 0.00014524617659916408,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "4982430"
+  },
+  {
+    "owner": "0xa2271d9b6a30c50eaed45dbd4d61f1376a0f0649",
+    "liqPrice": 0.3382128249033864,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "9633012330967195"
+  },
+  {
+    "owner": "0xa6968f5f16d7a1a187457808f7a8022d52c1d89f",
+    "liqPrice": 0.9804844301279526,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1030833787"
+  },
+  {
+    "owner": "0xa6c177dcbd481a3138d858022b3f2fe184793778",
+    "liqPrice": 0.026524059287159948,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "121020810"
+  },
+  {
+    "owner": "0xa7f657727408272c475ebaa28651d6257ff99e38",
+    "liqPrice": 0.8181167527585965,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "934574964412"
+  },
+  {
+    "owner": "0xa7f657727408272c475ebaa28651d6257ff99e38",
+    "liqPrice": 1576.603640081195,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "1384449600526730344411"
+  },
+  {
+    "owner": "0x7abae896a83d1a892809436c4f26825c5083ea62",
+    "liqPrice": 0.9460148809660637,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "10117422"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 866.9520100204999,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "535428888225807812"
+  },
+  {
+    "owner": "0xa932e2c7d88497fdee9d87e5a450bae3874ff1a1",
+    "liqPrice": 4.230171632356096,
+    "collateral": "ethereum:0x1f9840a85d5af5bf1d1762f925bdaddc4201f984",
+    "collateralAmount": "1029230975603041664575"
+  },
+  {
+    "owner": "0xaabfa2f7230ce498800c1cb5c31797fd5839a72a",
+    "liqPrice": 0.8073643865999504,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1416381"
+  },
+  {
+    "owner": "0xaac27a7e079ea4949d558fd1748956eb1b86f70b",
+    "liqPrice": 609.1448848419517,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "19845811982922394"
+  },
+  {
+    "owner": "0xacfd81bfa4e4b6cad0d04c083c3d5897fb40d1b3",
+    "liqPrice": 0.7440948383785325,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "2136389313"
+  },
+  {
+    "owner": "0xad05b50b71d1c05e3309e9f99e633a21741b77d9",
+    "liqPrice": 0.7148617511060799,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "178500186"
+  },
+  {
+    "owner": "0xad24ff5b503be5b6dd3936f842a252b0843ab808",
+    "liqPrice": 0.3891645392654968,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "157137928"
+  },
+  {
+    "owner": "0xad4e245c01d058ffdcf8af33eaae56249e97f6f0",
+    "liqPrice": 0.0001922944511137086,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "4127345109901467034"
+  },
+  {
+    "owner": "0xae2a6ce639c1ec0951655da99e38182c2d81e2e1",
+    "liqPrice": 6.656963713194771,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "996242435275489"
+  },
+  {
+    "owner": "0xae8ec0f2279440c23fa776696198679e4ddce0c7",
+    "liqPrice": 3409.0415059311076,
+    "collateral": "ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "collateralAmount": "2"
+  },
+  {
+    "owner": "0xaef12c4e7dd435eeea388b38832cc678fa5c1c06",
+    "liqPrice": 0.8075642699227261,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1575978"
+  },
+  {
+    "owner": "0xb0221a7f7e37146223eb5fa737391fb930ce9690",
+    "liqPrice": 1.0027054371131536,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "12426735664"
+  },
+  {
+    "owner": "0xb0221a7f7e37146223eb5fa737391fb930ce9690",
+    "liqPrice": 13365365959.45941,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "2572607560"
+  },
+  {
+    "owner": "0xb0e83c2d71a991017e0116d58c5765abc57384af",
+    "liqPrice": 1011.8074777961443,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "536117290955513413794"
+  },
+  {
+    "owner": "0xb11269f9768a60941ac42ec046424ad891147330",
+    "liqPrice": 2604.9050646382284,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "441989028330990"
+  },
+  {
+    "owner": "0xb3430b686daa829162d2aba22c815ad3b5882f00",
+    "liqPrice": 2416.257841509555,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "365587924991634"
+  },
+  {
+    "owner": "0xb55772467171f20b2c0a797719a579cea591be12",
+    "liqPrice": 810.7774342983876,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "7308911312751394736"
+  },
+  {
+    "owner": "0x2a8959132085bfb19b0c51fb6c9a2beacbda27ea",
+    "liqPrice": 1374.6735828371914,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "2426844316183719572704"
+  },
+  {
+    "owner": "0xb84cd93582cf94b0625c740f7ea441e33bc6fd6f",
+    "liqPrice": 0.0021964200508917432,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "29576636060048524672340074"
+  },
+  {
+    "owner": "0xb853ceb4d30ebfc30924db42d90111d51662bb8a",
+    "liqPrice": 1405.7705396249985,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "385474497886171881174"
+  },
+  {
+    "owner": "0xb876e9e9d89998a483dc9fbf83a12ecab172ac9f",
+    "liqPrice": 1618.20363738692,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "74824486705782944"
+  },
+  {
+    "owner": "0xba181deb98afc2202202c9aebf26b18f46d70497",
+    "liqPrice": 0.4875827291469006,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "223109934"
+  },
+  {
+    "owner": "0xba8a69673b6b3934c43998d1e18220b0154950e0",
+    "liqPrice": 0.022816215675520616,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "2929066"
+  },
+  {
+    "owner": "0xbb5fe604c52f6e2dfab768536d05fa3047c952a9",
+    "liqPrice": 0.6021070014880507,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "883085419"
+  },
+  {
+    "owner": "0xbb5fe604c52f6e2dfab768536d05fa3047c952a9",
+    "liqPrice": 1351.6656712691363,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "1025249698232812834"
+  },
+  {
+    "owner": "0xbb72b4fd0e3de5e2794cbf55745102a047aeeb75",
+    "liqPrice": 0.012813421827557249,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "859957"
+  },
+  {
+    "owner": "0xbc1796b4d9d112de8cf29849ee3e732ffd27d4d8",
+    "liqPrice": 243.2137013548272,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "79447075352183785485"
+  },
+  {
+    "owner": "0xbc89a6599c8e078aba50ca49abe2959b8b5671e1",
+    "liqPrice": 0.7035561074467513,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "983430"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 0.8103537710688572,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "158054370"
+  },
+  {
+    "owner": "0xbd41a955a2c49576dabbcd458b199ae1b30679b1",
+    "liqPrice": 23.15135474409957,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "6049993478177053363"
+  },
+  {
+    "owner": "0xbd929843f285905be474191f44585c2f9c14668a",
+    "liqPrice": 1470.8347175689473,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "576754667647217"
+  },
+  {
+    "owner": "0xbdfa4f4492dd7b7cf211209c4791af8d52bf5c50",
+    "liqPrice": 5.4003489523851025,
+    "collateral": "ethereum:0x514910771af9ca656af840dff83e8264ecf986ca",
+    "collateralAmount": "32832131053438481471700"
+  },
+  {
+    "owner": "0xbe255852c4301d6392fb1d65003b7a0e0ef6e6b0",
+    "liqPrice": 22.95241921047411,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "8561970872789912"
+  },
+  {
+    "owner": "0xbe6cce2753c0e99bc9e1b1bea946d35921aabd49",
+    "liqPrice": 242.96696200425924,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "124389081083381681662"
+  },
+  {
+    "owner": "0xbe74daf0930dfab7d8396eead251a4a21106797d",
+    "liqPrice": 562.0902551170889,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "4015386456115320659"
+  },
+  {
+    "owner": "0xc00d8dac46b1f8bceae2477591822b4e5b0a7c6b",
+    "liqPrice": 813.7206557704069,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "148808819694233388092"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 144479.93888029404,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "257418738247667"
+  },
+  {
+    "owner": "0xc0e2324817eaefd075af9f9faf52ffaef45d0c04",
+    "liqPrice": 13043.4982692045,
+    "collateral": "ethereum:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+    "collateralAmount": "356025988"
+  },
+  {
+    "owner": "0xc1ba7b2ca230a58eaed67f07b7475f577c28918e",
+    "liqPrice": 1298.6301816961263,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "30350625093834581026"
+  },
+  {
+    "owner": "0xc200b58a4b620a77df3c4415ed07afacd2fef43a",
+    "liqPrice": 0.0017428887918196612,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "99732"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 167132.82912794218,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "168762320824486"
+  },
+  {
+    "owner": "0xc2b100553bb8ec0dc981413b86464621692c8050",
+    "liqPrice": 427.47874992199263,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "13620443039088056360"
+  },
+  {
+    "owner": "0xc2eb6539e4b351c08c268844cf1bcf44b1ea7494",
+    "liqPrice": 0.008228868548963991,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "19896140065799351769"
+  },
+  {
+    "owner": "0xc31b8413b8bb971763b39168f21126afeb8afd01",
+    "liqPrice": 1220.7644552402837,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "53306041626555616458"
+  },
+  {
+    "owner": "0xc36bcc133edfe4e3bbe0d92af330bd5ca946a258",
+    "liqPrice": 0.003941684289234106,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "98558221111057469"
+  },
+  {
+    "owner": "0xc43f914c4a29901301bb5a889391e2dfdbe948e7",
+    "liqPrice": 2.299320908212944,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "4995977811194490028"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 720380.6479235617,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "99999867097857"
+  },
+  {
+    "owner": "0xc581deb55834fa8aaf8de116c89fac10d405a2cf",
+    "liqPrice": 0.9994121907462503,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "4955423588"
+  },
+  {
+    "owner": "0xc614ca37c10d5c1d1189186ce73c7d69490c3d84",
+    "liqPrice": 0.04148332059093003,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "300986050"
+  },
+  {
+    "owner": "0xc6989d7f3b4a328388d3c12e512035d931528a82",
+    "liqPrice": 0.8074758942407665,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1489033"
+  },
+  {
+    "owner": "0xc6cc2331c15f9c676df2ad13531e8b23a4c57541",
+    "liqPrice": 1487.2784437747446,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "295933778450772777852"
+  },
+  {
+    "owner": "0xc8cd1567acfabfcbecc76776cd92e0b95fb3a806",
+    "liqPrice": 0.00000154510592499877,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "54050"
+  },
+  {
+    "owner": "0xc8f419c20ac3c09773ac2724f4ac76cdef2d06ec",
+    "liqPrice": 0.6130459383810396,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "103042490"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 780.7606154078558,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "294434722125239715"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 986740.0853910736,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "49045142182624"
+  },
+  {
+    "owner": "0xca0073964efe7f9422ceb16901018b1db0cc4785",
+    "liqPrice": 1160.9640383120222,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "92414676261920146987"
+  },
+  {
+    "owner": "0xcbc69eb16fb8d1608ede6da02e261e346cdb1f0c",
+    "liqPrice": 0.8098980974611287,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "9431409488052959425"
+  },
+  {
+    "owner": "0xcc2939843eb9b1739187d79a3aa164f59d6f56de",
+    "liqPrice": 25.669854712382964,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "16716661387628393"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 0.506844554829175,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1046940022"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 968.2016590768274,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "719424741031606915"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 140398.06909830874,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "468510309683"
+  },
+  {
+    "owner": "0xcddf43a07aa11f834ae1c9c4a5cc6454ffeb5c67",
+    "liqPrice": 0.8083655738008598,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "12023597"
+  },
+  {
+    "owner": "0xcdf4f278c469fd3961707d6b4d54b8f244ea5d9e",
+    "liqPrice": 1365.7717143007635,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "2777773622388851"
+  },
+  {
+    "owner": "0xcf743a90d8c34372bfd0f0efa4aacb6e1c486cac",
+    "liqPrice": 922.6742677762286,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "248077883780590561"
+  },
+  {
+    "owner": "0xd03ed048bf24c98ae45ee0c6c0f76f8066b7caac",
+    "liqPrice": 0.8071497602151555,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1678221"
+  },
+  {
+    "owner": "0xd178f2d93b92ac47cf51a899463eca8acc37a8d5",
+    "liqPrice": 0.0015230371124807767,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "6401109293"
+  },
+  {
+    "owner": "0x7251700ae4c7dd70d5b68150d1b8a1b48c780b2a",
+    "liqPrice": 0.8190501038454112,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "9827066"
+  },
+  {
+    "owner": "0xd1818a80dac94fa1db124b9b1a1bb71dc20f228d",
+    "liqPrice": 620.8870701108154,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "98434894623439302515"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 1575.7882149260356,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "984791510591847277"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 0.7518279609856895,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "812949475"
+  },
+  {
+    "owner": "0xd45404b8e15ecfacb7c63d6a60559e460f3ded51",
+    "liqPrice": 18.541064521727296,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "16065990462141605154"
+  },
+  {
+    "owner": "0xd5eda0f579e31df795ad2b0d01d65b7b36a0b0e0",
+    "liqPrice": 0.171621227870417,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1638"
+  },
+  {
+    "owner": "0xd6ec82512cf040654e1b5df7c0b16e1efdbfa260",
+    "liqPrice": 0.5394551006047449,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "16796714528"
+  },
+  {
+    "owner": "0xd6ec82512cf040654e1b5df7c0b16e1efdbfa260",
+    "liqPrice": 1503.2359115722197,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "39768270674076920830"
+  },
+  {
+    "owner": "0xd74803d8b40c6b19f7c0dbc503e4a1c21814d6d0",
+    "liqPrice": 1510.5263571946778,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "29137044605507511300"
+  },
+  {
+    "owner": "0xd7c9569959e7b52d94a65bf083581a62861f0e33",
+    "liqPrice": 0.8085409426935577,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "5159191"
+  },
+  {
+    "owner": "0xd874387ebb001a6b0bea98072f8de05f8965e51e",
+    "liqPrice": 0.3509876671862679,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "5921454"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 136365.87246955495,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "308470118978"
+  },
+  {
+    "owner": "0xda1480828d9efeb694da1809b1bb251cf5eb7441",
+    "liqPrice": 617.3428150499818,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "5997466252471597754"
+  },
+  {
+    "owner": "0x8fd38c1beba11ede111430e86f40bc520b29ae42",
+    "liqPrice": 1409.3194426426448,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "8112870734688046545682"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 0.8353031782570395,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1241763995"
+  },
+  {
+    "owner": "0xdb9e15fcab0a5d7dde2c4a2c015f696179287aa3",
+    "liqPrice": 0.051322626099670594,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "23420637"
+  },
+  {
+    "owner": "0x55a28009ecc4cb9aedfe812ac3320f09ea7aa3c6",
+    "liqPrice": 54604.87051878432,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "111052236380792"
+  },
+  {
+    "owner": "0xdbdfe57ee6ed167d36cdf2306b0cf959912b425c",
+    "liqPrice": 0.0007574768670707703,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "101324017"
+  },
+  {
+    "owner": "0xdc5f094b02f03795a342da297b4d4fed410d7b95",
+    "liqPrice": 0.2671340168532659,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "472944484"
+  },
+  {
+    "owner": "0xdc633707253d118e32632e199a4f9d49720173d7",
+    "liqPrice": 0.8490710631539589,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "297594784"
+  },
+  {
+    "owner": "0xdd84ce1adcb3a4908db61a1dfa3353c3974c5a2b",
+    "liqPrice": 591.4431855291749,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "452599945714002026234"
+  },
+  {
+    "owner": "0xddad9bfc98f537a1b7dcf560a11912a3dd5eeb22",
+    "liqPrice": 1154.3164360621488,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "10585198730016432080"
+  },
+  {
+    "owner": "0xde4aeeb86ed69bacdeb0e92d30c80662ed0c1363",
+    "liqPrice": 6.351995351056655,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "496006813577011002"
+  },
+  {
+    "owner": "0xdeba9cd00120ea0be15955cc3fa4b2d3e66aa65d",
+    "liqPrice": 4.8600090847948945,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "354225827638629590"
+  },
+  {
+    "owner": "0xdf156dae212d744c54d1cd9ae8e3c1c34a1ba34b",
+    "liqPrice": 0.0015587206929256368,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1070722"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 0.8198188508537873,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "44487730"
+  },
+  {
+    "owner": "0xe093ea5f7765a822309a92a5c2123f78dd9fcd0c",
+    "liqPrice": 1498.8066132597398,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "88762664490348254339"
+  },
+  {
+    "owner": "0xe22647c7596c3459154039cfa37cf539c5ca57ef",
+    "liqPrice": 0.0989146681018504,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "1652743762761311205"
+  },
+  {
+    "owner": "0xe27ee5f7bbaf3f6faa29cfe5d4d1cebe28042b81",
+    "liqPrice": 0.9842958517692907,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "2182039590"
+  },
+  {
+    "owner": "0xe37a6e88af2a5dc2a86eeb6a03acfb1ed34969a5",
+    "liqPrice": 0.1789727585996837,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "14211559555"
+  },
+  {
+    "owner": "0xe485f031dee825cc97fbf30a61b1da8291153fe6",
+    "liqPrice": 0.29495776653187306,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "49324016"
+  },
+  {
+    "owner": "0xe831c8903de820137c13681e78a5780afddf7697",
+    "liqPrice": 769.6030292713826,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "21141836317086417539378"
+  },
+  {
+    "owner": "0xe9472fdffaa6792df8ff5faab5866c90dc7f6f22",
+    "liqPrice": 224.9940597864067,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "1126852360093901446"
+  },
+  {
+    "owner": "0xea30bb2ead206375de8a0f030a1f55e50610a73d",
+    "liqPrice": 1218.924756228685,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "108322372539750584170"
+  },
+  {
+    "owner": "0xeaaa61bbc68b61fde867269ddd148a3b8041ef5b",
+    "liqPrice": 642.7816872935796,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "248020388583066389"
+  },
+  {
+    "owner": "0xeb064194ece6f9314a6eb753f3973fd31617011f",
+    "liqPrice": 1202.0994789788729,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "99321797757440372"
+  },
+  {
+    "owner": "0xeb4576fe753dab07635c0bb6c8f0a355e1db5d31",
+    "liqPrice": 222.75418133026523,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "119428155602993013134"
+  },
+  {
+    "owner": "0xec54388ecef4ef40ecff41af0318f130cbd2730a",
+    "liqPrice": 0.8066596422562605,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "2415826434130446824"
+  },
+  {
+    "owner": "0xeca21187d6ad6787b67761a82ed42a38e08ca783",
+    "liqPrice": 0.8071421064516727,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "1079969"
+  },
+  {
+    "owner": "0xee0922a6b0768e32fa66a8aa51e8c0f085a2ed4c",
+    "liqPrice": 1503.722028938389,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "402840275748070372388"
+  },
+  {
+    "owner": "0xee941c84846e543d4b39f890b8968feb75bc25c3",
+    "liqPrice": 329.2664343380018,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "76014730335872974889"
+  },
+  {
+    "owner": "0xeeb5a54551f79b546e8babccade66ba3c9440efc",
+    "liqPrice": 0.9985098417736948,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "17853852"
+  },
+  {
+    "owner": "0xeedd71f2655c45a2488a9562cb3470a7aed55eb1",
+    "liqPrice": 1145.0651142602321,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "896147717696583"
+  },
+  {
+    "owner": "0xef0e1e53323caf268fd891c32a8c995e40ec6df3",
+    "liqPrice": 0.8082364585705573,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "13196177"
+  },
+  {
+    "owner": "0xef2bc65e40ce2c34ebc089d2dd55590933ffc412",
+    "liqPrice": 1281.7029346536294,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "2489278315874700198"
+  },
+  {
+    "owner": "0xf0a82ea8cb867ef4a4252e94a05092a9e450cddd",
+    "liqPrice": 0.8070594638893978,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "2043436"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 248333.1568913847,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "108156672071224"
+  },
+  {
+    "owner": "0xf49d2bcc52f0b46a98204721f98ce9d4e6730bed",
+    "liqPrice": 0.22814625124425392,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "78125633427"
+  },
+  {
+    "owner": "0xf5b5ff17b0adab8006751bd58546a0b25f673c3e",
+    "liqPrice": 0.2594781602034163,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "45328278940692614035244"
+  },
+  {
+    "owner": "0xf5bc69daca4e580d94745f60117cb532666a2def",
+    "liqPrice": 0.3876984238198153,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "1056275658287555651570320"
+  },
+  {
+    "owner": "0xf75088b5870b134e350fd010e449dc4e004d81e2",
+    "liqPrice": 3.7064930031332453,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "438"
+  },
+  {
+    "owner": "0xf75088b5870b134e350fd010e449dc4e004d81e2",
+    "liqPrice": 2191.1153146505335,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "2480251775147"
+  },
+  {
+    "owner": "0xf82ebc8ad2419798bd4554ebb0755fe7311bb70a",
+    "liqPrice": 1445.166194882581,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "101672667385954452"
+  },
+  {
+    "owner": "0x7abae896a83d1a892809436c4f26825c5083ea62",
+    "liqPrice": 1138.1704810016827,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "706201142255906453"
+  },
+  {
+    "owner": "0xfb81d7062ab57134eb6bc81ea2359e8069c3ebd0",
+    "liqPrice": 0.355902841193095,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "3215476"
+  },
+  {
+    "owner": "0xfb9ab85584b6f25cedcc8139fa83c7aa89784cde",
+    "liqPrice": 0.808311815110785,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "13236679"
+  },
+  {
+    "owner": "0xfc58a5406d3ddee527fa63e66811cef7b84693c8",
+    "liqPrice": 0.8589676336196286,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "5047527"
+  },
+  {
+    "owner": "0xfccba075a3f25208439e8f1a9e00a87fb861e248",
+    "liqPrice": 0.38134607507125023,
+    "collateral": "ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "collateralAmount": "59398999"
+  },
+  {
+    "owner": "0x55a28009ecc4cb9aedfe812ac3320f09ea7aa3c6",
+    "liqPrice": 635012.0636973088,
+    "collateral": "ethereum:0x6b175474e89094c44da98b954eedeac495271d0f",
+    "collateralAmount": "1242968774056356661299"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 80847.31155255782,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "764421481390467"
+  },
+  {
+    "owner": "0xd1a7e1d3dc39e7f15613e12dc1b9c458e161b46f",
+    "liqPrice": 1063798.8911887354,
+    "collateral": "ethereum:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "collateralAmount": "105994866969243"
+  },
+  {
+    "owner": "0xffdceb791ff933b813d50771be7d3a31d7e8e076",
+    "liqPrice": 732.2506034317668,
+    "collateral": "ethereum:0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
+    "collateralAmount": "265740009306917554343"
+  }
+]
