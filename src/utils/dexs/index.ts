@@ -7,5 +7,5 @@ const summAllVolumes = (breakdownVolumes: IDexResponse['volumeHistory'][0]['dail
     , 0)
 
 export const getChartDataFromVolumeHistory =
-  (volumeHistory: IDexResponse['volumeHistory']): number[][] =>
-    volumeHistory.map(({ timestamp, dailyVolume }) => ([timestamp, summAllVolumes(dailyVolume)]))
+  (volumeHistory: IDexResponse['volumeHistory']): [Date, number][] =>
+    volumeHistory.map(({ timestamp, dailyVolume }) => ([new Date(timestamp * 1000), summAllVolumes(dailyVolume)]))

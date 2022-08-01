@@ -80,53 +80,6 @@ const Symbol = styled.span`
 	font-weight: 400;
 `
 
-const Table = styled.table`
-	border-collapse: collapse;
-
-	caption,
-	thead th {
-		font-weight: 400;
-		font-size: 0.75rem;
-		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
-	}
-
-	th {
-		font-weight: 600;
-		font-size: 1rem;
-		text-align: start;
-	}
-
-	td {
-		font-weight: 400;
-		font-size: 0.875rem;
-		text-align: right;
-		font-family: var(--font-jetbrains);
-	}
-
-	thead td {
-		> * {
-			width: min-content;
-			background: none;
-			margin-left: auto;
-			color: ${({ theme }) => theme.text1};
-		}
-	}
-
-	thead > tr > *,
-	caption {
-		padding: 0 0 4px;
-	}
-
-	tbody > tr > * {
-		padding: 4px 0;
-	}
-
-	.question-helper {
-		padding: 0 16px;
-	}
-`
-
 const Tvl = styled.p`
 	font-weight: 700;
 	font-size: 2rem;
@@ -421,8 +374,24 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 						</Tvl>
 					</TvlWrapper>
 				</ProtocolDetails>
-
-				<StackedBarChart chartData={getChartDataFromVolumeHistory(dexData.volumeHistory)} color={backgroundColor} />
+				{/* getChartDataFromVolumeHistory(dexData.volumeHistory) */}
+				<StackedBarChart
+					chartData={[
+						{
+							data: getChartDataFromVolumeHistory(dexData.volumeHistory),
+							name: 'dkldkd'
+						},
+						{
+							data: getChartDataFromVolumeHistory(dexData.volumeHistory),
+							name: 'sda'
+						},
+						{
+							data: getChartDataFromVolumeHistory(dexData.volumeHistory),
+							name: 'dd'
+						}
+					]}
+					color={backgroundColor}
+				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
 					<span className="visually-hidden">Enable Goblin Mode</span>

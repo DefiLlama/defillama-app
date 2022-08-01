@@ -43,69 +43,47 @@ export interface IStackedBarChartProps extends Omit<IChartProps, 'title' | 'char
 	title?: string
 	chartData: Array<{
 		name: string
-		timestamp: Date
-		data: number[]
+		data: [Date, number][]
 	}>
 }
 
-export default function StackedBarChart({ chartData, tokensUnique, moneySymbol = '$', title, color }: IChartProps) {
-	const id = useMemo(() => uuid(), [])
+type series = Array<{
+	data: [Date, number][]
+	type: 'bar'
+	stack: 'value'
+}>
 
-	const [legendOptions, setLegendOptions] = useState(tokensUnique)
+export default function StackedBarChart({
+	chartData,
+	tokensUnique,
+	moneySymbol = '$',
+	title,
+	color
+}: IStackedBarChartProps) {
+	const id = useMemo(() => uuid(), [])
 
 	const [isDark] = useDarkModeManager()
 
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
-
-		if (!tokensUnique || tokensUnique?.length === 0) {
-			const series = {
-				name: '',
+		const series: series = chartData.map((cd) => {
+			return {
+				name: cd.name,
 				type: 'bar',
 				stack: 'value',
+				data: cd.data,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
 				},
 				itemStyle: {
 					color: chartColor
-				},
-				data: []
-			}
-
-			chartData.forEach(([date, value]) => {
-				series.data.push([new Date(date * 1000), value])
-			})
-
-			return series
-		} else {
-			const series = tokensUnique.map((token) => {
-				return {
-					name: token,
-					type: 'bar',
-					stack: 'value',
-					emphasis: {
-						focus: 'series',
-						shadowBlur: 10
-					},
-					itemStyle: {
-						color
-					},
-					data: []
 				}
-			})
+			}
+		})
 
-			chartData.forEach(({ date, ...item }) => {
-				tokensUnique.forEach((token) => {
-					if (legendOptions.includes(token)) {
-						series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
-					}
-				})
-			})
-
-			return series
-		}
-	}, [chartData, color, tokensUnique, legendOptions])
+		return series
+	}, [chartData, color])
 
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -275,14 +253,6 @@ export default function StackedBarChart({ chartData, tokensUnique, moneySymbol =
 
 	return (
 		<div style={{ position: 'relative' }}>
-			{tokensUnique?.length > 1 && (
-				<SelectLegendMultiple
-					allOptions={tokensUnique}
-					options={legendOptions}
-					setOptions={setLegendOptions}
-					title={legendOptions.length === 1 ? 'Token' : 'Tokens'}
-				/>
-			)}
 			<div id={id} style={{ height: '360px', margin: 'auto 0' }}></div>
 		</div>
 	)
