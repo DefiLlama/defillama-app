@@ -184,13 +184,7 @@ export const BaseSearch = (props: IBaseSearchProps) => {
 						itemSize={50}
 						itemData={{
 							searchData: data,
-							options: combobox.matches.sort((a, b) => {
-								if (b.startsWith('Show all')) {
-									return 1
-								} else if (combobox.value.length > 2) {
-									return -1
-								} else return 0
-							}),
+							options: combobox.value.length > 2 ? sortResults(combobox.matches) : combobox.matches,
 							onItemClick: props.onItemClick
 						}}
 					>
@@ -202,6 +196,20 @@ export const BaseSearch = (props: IBaseSearchProps) => {
 			</Popover>
 		</Wrapper>
 	)
+}
+
+const sortResults = (results: string[]) => {
+	const { pools, tokens } = results.reduce(
+		(acc, curr) => {
+			if (curr.startsWith('Show all')) {
+				acc.pools.push(curr)
+			} else acc.tokens.push(curr)
+			return acc
+		},
+		{ tokens: [], pools: [] }
+	)
+
+	return [...pools, ...tokens]
 }
 
 const isExternalImage = (imagePath: string) => {

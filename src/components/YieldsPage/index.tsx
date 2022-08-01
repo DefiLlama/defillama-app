@@ -71,11 +71,19 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
 			}
 
-			const tokensInPool = curr.symbol.split('-').map((x) => x.toLowerCase())
+			const tokensInPool: string[] = curr.symbol.split('-').map((x) => x.toLowerCase())
 
 			const includeToken =
 				includeTokens.length > 0
-					? includeTokens.map((t) => t.toLowerCase()).find((token) => tokensInPool.includes(token.toLowerCase()))
+					? includeTokens
+							.map((t) => t.toLowerCase())
+							.find((token) => {
+								if (tokensInPool.includes(token.toLowerCase())) {
+									return true
+								} else if (token === 'eth') {
+									return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
+								} else return false
+							})
 					: true
 
 			const excludeToken = !excludeTokens
