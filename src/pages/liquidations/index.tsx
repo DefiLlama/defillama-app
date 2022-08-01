@@ -112,6 +112,13 @@ const AddChartButton = ({ setChartsState }: { setChartsState: SetChartsState }) 
 	)
 }
 
+function getReadableValue(value: number) {
+	if (value === 0) return '0'
+	const s = ['', 'k', 'm', 'b', 't']
+	const e = Math.floor(Math.log(value) / Math.log(1000))
+	return (value / Math.pow(1000, e)).toFixed(1) + s[e]
+}
+
 const getOption = (chart: Chart, chartData: ChartData, isDark: boolean) => {
 	const { chartDataBins } = chartData
 	// convert chartDataBins to array
@@ -165,6 +172,9 @@ const getOption = (chart: Chart, chartData: ChartData, isDark: boolean) => {
 					opacity: 0.1
 				}
 			},
+			axisLabel: {
+				formatter: (value: string) => `$${Number(value).toFixed(3)}`
+			},
 			axisTick: {
 				alignWithLabel: true
 			},
@@ -183,7 +193,7 @@ const getOption = (chart: Chart, chartData: ChartData, isDark: boolean) => {
 			// 	color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			// },
 			axisLabel: {
-				formatter: '${value}'
+				formatter: (value: string) => `$${getReadableValue(Number(value))}`
 			},
 			splitLine: {
 				lineStyle: {
