@@ -207,30 +207,12 @@ const Bobo = styled.button`
 	}
 `
 
-const DownloadButton = styled(Button)`
-	display: flex;
-	align-items: center;
-	color: inherit;
-	padding: 8px 12px;
-	border-radius: 10px;
-`
-
 const TvlWrapper = styled.section`
 	display: flex;
 	gap: 20px;
 	align-items: flex-end;
 	justify-content: space-between;
 	flex-wrap: wrap;
-`
-
-const ExtraTvlOption = styled.label`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-
-	:hover {
-		cursor: pointer;
-	}
 `
 
 const ChartsWrapper = styled.section`
@@ -258,44 +240,6 @@ const ChartWrapper = styled.section`
 	}
 `
 
-const OtherProtocols = styled.nav`
-	grid-column: span 1;
-	display: flex;
-	overflow-x: auto;
-	background: ${({ theme }) => theme.bg7};
-	font-weight: 500;
-	border-radius: 12px 12px 0 0;
-
-	@media (min-width: 80rem) {
-		grid-column: span 2;
-	}
-`
-
-interface IProtocolLink {
-	active: boolean
-	color: string | null
-}
-
-const ProtocolLink = styled.a<IProtocolLink>`
-	padding: 8px 24px;
-	white-space: nowrap;
-
-	& + & {
-		border-left: ${({ theme }) => '1px solid ' + theme.divider};
-	}
-
-	border-bottom: ${({ active, color, theme }) => '1px solid ' + (active ? color : theme.divider)};
-
-	:first-child {
-		border-top-left-radius: 12px;
-	}
-
-	:hover,
-	:focus-visible {
-		background-color: ${({ color }) => transparentize(0.9, color)};
-	}
-`
-
 interface IProtocolContainerProps {
 	title: string
 	dex: string
@@ -303,9 +247,7 @@ interface IProtocolContainerProps {
 	backgroundColor: string
 }
 
-const isLowerCase = (letter: string) => letter === letter.toLowerCase()
-
-function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolContainerProps) {
+function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContainerProps) {
 	useScrollToTop()
 
 	const {
@@ -322,6 +264,8 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 		volumeAdapter,
 		forkedFrom
 	} = dexData
+
+	const volumeHistory = !!dexData.volumeHistory ? dexData.volumeHistory : []
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
@@ -348,7 +292,7 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 					<ProtocolName>
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
+						{/* <Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol> */}
 					</ProtocolName>
 
 					<TvlWrapper>
@@ -359,15 +303,12 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 					</TvlWrapper>
 				</ProtocolDetails>
 
-				<StackedBarChart
-					chartData={formatVolumeHistoryToChartDataByProtocol(dexData.volumeHistory)}
-					color={backgroundColor}
-				/>
+				<StackedBarChart chartData={formatVolumeHistoryToChartDataByProtocol(volumeHistory)} color={backgroundColor} />
 
-				<Bobo onClick={() => setBobo(!bobo)}>
+				{/* <Bobo onClick={() => setBobo(!bobo)}>
 					<span className="visually-hidden">Enable Goblin Mode</span>
 					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
-				</Bobo>
+				</Bobo> */}
 			</Stats>
 
 			<SectionHeader>Information</SectionHeader>
@@ -468,7 +409,7 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 				<Chart>
 					<StackedBarChart
 						title="By chain all versions"
-						chartData={formatVolumeHistoryToChartDataByChain(dexData.volumeHistory)}
+						chartData={formatVolumeHistoryToChartDataByChain(volumeHistory)}
 					/>
 				</Chart>
 			</ChartsWrapper>
