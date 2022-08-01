@@ -372,7 +372,6 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 						</Tvl>
 					</TvlWrapper>
 				</ProtocolDetails>
-				{/* <StackedBarChart chartData={formatVolumeHistoryToChartDataByChain(dexData.volumeHistory)} color={backgroundColor} /> */}
 
 				<StackedBarChart
 					chartData={formatVolumeHistoryToChartDataByProtocol(dexData.volumeHistory)}
@@ -477,6 +476,17 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 					</LinksWrapper>
 				</Section>
 			</InfoWrapper>
+			<SectionHeader>Charts</SectionHeader>
+
+			<ChartsWrapper>
+				<Chart>
+					<StackedBarChart
+						title="By chain all versions"
+						chartData={formatVolumeHistoryToChartDataByChain(dexData.volumeHistory)}
+						color={backgroundColor}
+					/>
+				</Chart>
+			</ChartsWrapper>
 		</Layout>
 	)
 }
