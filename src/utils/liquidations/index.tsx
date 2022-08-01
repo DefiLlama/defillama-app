@@ -202,8 +202,9 @@ export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'cha
 		const ethPositions = allAggregated.get('ETH')
 		const wethPositions = allAggregated.get('WETH')
 		positions = [...ethPositions!.positions, ...wethPositions!.positions]
+	} else {
+		positions = allAggregated.get(symbol)!.positions
 	}
-	positions = allAggregated.get(symbol)!.positions
 	const currentPrice = allAggregated.get(symbol)!.currentPrice
 
 	const chartDataBins = getChartDataBins(positions, currentPrice, TOTAL_BINS, aggregateBy)
