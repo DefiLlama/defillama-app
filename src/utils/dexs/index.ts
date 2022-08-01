@@ -73,7 +73,8 @@ export const formatVolumeHistoryToChartDataByProtocol = (volumeHistory: IDexResp
 
 // TODO: Get list of vprotocols from api or improve
 const getAllVProtocols = (volumeHistory: IDexResponse['volumeHistory']): string[] => volumeHistory.reduce((acc, { dailyVolume }) => {
-  for (const key of Object.keys(volumeHistory))
-    if (!acc.includes(key)) acc.push(key)
+  for (const protData of Object.values(dailyVolume))
+    for (const [protocolName, value] of Object.entries(protData))
+      if (typeof value === 'number' && !acc.includes(protocolName)) acc.push(protocolName)
   return acc
 }, [] as string[])

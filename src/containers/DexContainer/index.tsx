@@ -2,37 +2,23 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { useInView, defaultFallbackInView } from 'react-intersection-observer'
-import { ArrowUpRight, DownloadCloud } from 'react-feather'
+import { ArrowUpRight } from 'react-feather'
 import Layout from '~/layout'
 import { ButtonLight } from '~/components/ButtonStyled'
 import CopyHelper from '~/components/Copy'
 import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
 import SEO from '~/components/SEO'
-import { DexsSearch, ProtocolsChainsSearch } from '~/components/Search'
+import { DexsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
-import ProtocolTvlChart from '~/components/TokenChart/ProtocolTvlChart'
-import QuestionHelper from '~/components/QuestionHelper'
-import type { IChartProps } from '~/components/TokenChart/types'
-import { extraTvlOptions } from '~/components/SettingsModal'
 import { useScrollToTop } from '~/hooks'
-import { useCalcSingleExtraTvl } from '~/hooks/data'
-import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName, toK } from '~/utils'
-import { useFetchProtocol } from '~/api/categories/protocols/client'
-import { buildProtocolData } from '~/utils/protocolData'
+import { formattedNum, getBlockExplorer } from '~/utils'
 import boboLogo from '~/assets/boboSmug.png'
-import { IDexResponse, IFusedProtocolData } from '~/api/types'
-import { Checkbox2 } from '~/components'
-import {
-	formatVolumeHistoryToChartDataByChain,
-	formatVolumeHistoryToChartDataByProtocol,
-	getChartDataFromVolumeHistory
-} from '~/utils/dexs'
+import { IDexResponse } from '~/api/types'
+import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
 import { IStackedBarChartProps } from '~/components/TokenChart/StackedBarChart'
 
 defaultFallbackInView(true)
@@ -483,7 +469,6 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 					<StackedBarChart
 						title="By chain all versions"
 						chartData={formatVolumeHistoryToChartDataByChain(dexData.volumeHistory)}
-						color={backgroundColor}
 					/>
 				</Chart>
 			</ChartsWrapper>

@@ -203,11 +203,12 @@ const columns = columnsToShow('dexName', '1dChange', '7dChange', '1mChange', 'to
 
 export default function DexsContainer({ category }) {
 	const {
-		data: { dexs } = [],
-		data: { totalVolume } = 0,
-		data: { change_1d } = 0,
-		data: { change_30d } = 0,
-		data: { totalDataChart } = []
+		loading,
+		data: { dexs } = {},
+		data: { totalVolume } = {},
+		data: { change_1d } = {},
+		data: { change_30d } = {},
+		data: { totalDataChart } = {}
 	} = useFetchDexsList()
 
 	return (
@@ -225,43 +226,49 @@ export default function DexsContainer({ category }) {
 			<HeaderWrapper>
 				<span>Volume in all DEXs</span>
 			</HeaderWrapper>
-			<ChartAndValuesWrapper>
-				<BreakpointPanels>
-					<BreakpointPanel>
-						<h1>Total dexs volume (USD)</h1>
-						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>{formattedNum(totalVolume, true)}</p>
-					</BreakpointPanel>
-					<PanelHiddenMobile>
-						<h2>Change (24h)</h2>
-						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {change_1d || 0}%</p>
-					</PanelHiddenMobile>
-					<PanelHiddenMobile>
-						<h2>Change (30d)</h2>
-						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {change_30d || 0}%</p>
-					</PanelHiddenMobile>
-				</BreakpointPanels>
-				<BreakpointPanel id="chartWrapper">
-					<ChartsWrapper>
-						<Chart>
-							<StackedBarChart
-								chartData={[
-									{
-										name: 'All DEXs',
-										data: totalDataChart.map(([date, value]) => [new Date(date * 1000), value])
-									}
-								]}
-							/>
-						</Chart>
-					</ChartsWrapper>
-				</BreakpointPanel>
-			</ChartAndValuesWrapper>
-
-			{dexs && dexs.length > 0 ? (
-				<StyledTable data={dexs} columns={columns} />
+			{loading ? (
+				<>Loading...</>
 			) : (
+				<ChartAndValuesWrapper>
+					<BreakpointPanels>
+						<BreakpointPanel>
+							<h1>Total dexs volume (USD)</h1>
+							<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>{formattedNum(totalVolume, true)}</p>
+						</BreakpointPanel>
+						<PanelHiddenMobile>
+							<h2>Change (24h)</h2>
+							<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {change_1d || 0}%</p>
+						</PanelHiddenMobile>
+						<PanelHiddenMobile>
+							<h2>Change (30d)</h2>
+							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {change_30d || 0}%</p>
+						</PanelHiddenMobile>
+					</BreakpointPanels>
+					<BreakpointPanel id="chartWrapper">
+						<ChartsWrapper>
+							<Chart>
+								<StackedBarChart
+									chartData={[
+										{
+											name: 'All DEXs',
+											data: totalDataChart.map(([date, value]) => [new Date(date * 1000), value])
+										}
+									]}
+								/>
+							</Chart>
+						</ChartsWrapper>
+					</BreakpointPanel>
+				</ChartAndValuesWrapper>
+			)}
+
+			{loading ? (
 				<Panel as="p" style={{ textAlign: 'center', margin: 0 }}>
 					Loading dexs...
 				</Panel>
+			) : dexs && dexs.length > 0 ? (
+				<StyledTable data={dexs} columns={columns} />
+			) : (
+				'Unexpected response'
 			)}
 		</>
 	)
