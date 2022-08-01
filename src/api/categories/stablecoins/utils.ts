@@ -69,10 +69,10 @@ export const formatPeggedAssetsData = ({
 		const chartIndex = peggedNameToChartDataIndex[pegged.name]
 		const chart = chartDataByPeggedAsset[chartIndex] ?? null
 
-		pegged.mcap = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculatingUSD') ?? null
-		const mcapPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'totalCirculatingUSD') ?? null
-		const mcapPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'totalCirculatingUSD') ?? null
-		const mcapPrevMonth = getPrevPeggedTotalFromChart(chart, 30, 'totalCirculatingUSD') ?? null
+		pegged.mcap = getPrevPeggedTotalFromChart(chart, 0, 'mcap') ?? null
+		const mcapPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'mcap') ?? null
+		const mcapPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'mcap') ?? null
+		const mcapPrevMonth = getPrevPeggedTotalFromChart(chart, 30, 'mcap') ?? null
 		pegged.change_1d = getPercentChange(pegged.mcap, mcapPrevDay)
 		pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
 		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)
