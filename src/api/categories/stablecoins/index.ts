@@ -177,18 +177,7 @@ export async function getPeggedChainsPageData() {
 		chainList.map(async (chain) => {
 			for (let i = 0; i < 5; i++) {
 				try {
-					const charts = await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
-					const formattedCharts = charts.map((chart) => {
-						return {
-							date: chart.date,
-							totalCirculating: chart.totalCirculating,
-							totalUnreleased: chart.totalUnreleased,
-							mcap: chart.totalCirculatingUSD,
-							totalMintedUSD: chart.totalMintedUSD,
-							totalBridgedToUSD: chart.totalBridgedToUSD,
-						}
-					})
-					return formattedCharts
+					return await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
 				} catch (e) {}
 			}
 			throw new Error(`${PEGGEDCHART_API}/${chain} is broken`)
@@ -222,6 +211,16 @@ export async function getPeggedChainsPageData() {
 		peggedChartDataByChain,
 		chainDominances,
 		chainsData
+	})
+
+	peggedChartDataByChain = peggedChartDataByChain.map((charts) => {
+		const formattedCharts = charts.map((chart) => {
+			return {
+				date: chart.date,
+				mcap: chart.totalCirculatingUSD
+			}
+		})
+		return formattedCharts
 	})
 
 	return {
