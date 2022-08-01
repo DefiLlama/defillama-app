@@ -108,7 +108,7 @@ export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', t
 					})
 
 					const vals = params
-						.sort((a, b) => b.value[1] - a.value[1])
+						.sort((a, b) => a.value[1] - b.value[1])
 						.reduce((prev, curr) => {
 							if (curr.value[1] !== 0) {
 								return (prev +=
