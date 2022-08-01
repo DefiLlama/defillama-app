@@ -484,7 +484,6 @@ function PeggedAssetsOverview({
 		chartType,
 		filteredIndexes,
 		selectedChain,
-		toggles,
 		backfilledChains
 	)
 
