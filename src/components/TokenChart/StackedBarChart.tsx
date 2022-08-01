@@ -63,7 +63,6 @@ export default function StackedBarChart({
 	const id = useMemo(() => uuid(), [])
 
 	const [isDark] = useDarkModeManager()
-
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
 		const series: series = chartData.map((cd) => {
@@ -76,9 +75,12 @@ export default function StackedBarChart({
 					focus: 'series',
 					shadowBlur: 10
 				},
-				itemStyle: {
-					color: chartColor
-				}
+				itemStyle:
+					chartData.length <= 1
+						? {
+								color: chartColor
+						  }
+						: undefined
 			}
 		})
 

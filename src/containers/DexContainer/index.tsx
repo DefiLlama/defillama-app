@@ -28,7 +28,7 @@ import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 import { IDexResponse, IFusedProtocolData } from '~/api/types'
 import { Checkbox2 } from '~/components'
-import { getChartDataFromVolumeHistory } from '~/utils/dexs'
+import { formatVolumeHistoryToChartData, getChartDataFromVolumeHistory } from '~/utils/dexs'
 import { IStackedBarChartProps } from '~/components/TokenChart/StackedBarChart'
 
 defaultFallbackInView(true)
@@ -330,18 +330,14 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 		twitter,
 		audit_links,
 		volumeAdapter,
-		chains = [],
-		forkedFrom,
-		gecko_id
+		forkedFrom
 	} = dexData
-
-	const router = useRouter()
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
 	const [bobo, setBobo] = React.useState(false)
 
-	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
+	const chartData = formatVolumeHistoryToChartData(dexData.volumeHistory)
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
@@ -374,24 +370,7 @@ function ProtocolContainer({ title, dexData, dex, backgroundColor }: IProtocolCo
 						</Tvl>
 					</TvlWrapper>
 				</ProtocolDetails>
-				{/* getChartDataFromVolumeHistory(dexData.volumeHistory) */}
-				<StackedBarChart
-					chartData={[
-						{
-							data: getChartDataFromVolumeHistory(dexData.volumeHistory),
-							name: 'dkldkd'
-						},
-						{
-							data: getChartDataFromVolumeHistory(dexData.volumeHistory),
-							name: 'sda'
-						},
-						{
-							data: getChartDataFromVolumeHistory(dexData.volumeHistory),
-							name: 'dd'
-						}
-					]}
-					color={backgroundColor}
-				/>
+				<StackedBarChart chartData={chartData} color={backgroundColor} />
 
 				<Bobo onClick={() => setBobo(!bobo)}>
 					<span className="visually-hidden">Enable Goblin Mode</span>
