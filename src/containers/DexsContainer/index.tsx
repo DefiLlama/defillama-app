@@ -19,7 +19,7 @@ export async function getStaticProps() {
 	}
 }
 
-const BarChart = dynamic(() => import('~/components/TokenChart/StackedBarChart'), {
+const StackedBarChart = dynamic(() => import('~/components/TokenChart/StackedBarChart'), {
 	ssr: false
 }) as React.FC<IStackedBarChartProps>
 
@@ -243,7 +243,14 @@ export default function DexsContainer({ category }) {
 				<BreakpointPanel id="chartWrapper">
 					<ChartsWrapper>
 						<Chart>
-							<BarChart chartData={totalDataChart} />
+							<StackedBarChart
+								chartData={[
+									{
+										name: 'All DEXs',
+										data: totalDataChart.map(([date, value]) => [new Date(date * 1000), value])
+									}
+								]}
+							/>
 						</Chart>
 					</ChartsWrapper>
 				</BreakpointPanel>
