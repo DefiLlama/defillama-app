@@ -12,10 +12,15 @@ export const getChartDataFromVolumeHistory =
   (volumeHistory: IDexResponse['volumeHistory']): [Date, number][] =>
     volumeHistory.map(({ timestamp, dailyVolume }) => ([new Date(timestamp * 1000), summAllVolumes(dailyVolume)]))
 
+// TODO: do better
+let ALL_CHAINS: string[] = []
 export const formatVolumeHistoryToChartDataByChain = (volumeHistory: IDexResponse['volumeHistory']): IStackedBarChartProps['chartData'] => {
+  if (ALL_CHAINS.length === 0)
+    ALL_CHAINS = getAllChains(volumeHistory)
   const chartData = volumeHistory.reduce((acc, { dailyVolume, timestamp }) => {
     //different timestamp
-    const rawItems = Object.entries(dailyVolume).reduce((acc, [chain, protVolumes]) => {
+    const rawItems = ALL_CHAINS.reduce((acc, chain) => {
+      const protVolumes = dailyVolume[chain] ?? {}
       //different chain
       const volumeAccrossProtocols = Object.entries(protVolumes).reduce((acc, [_, volume]) => {
         //different version
@@ -76,5 +81,13 @@ const getAllVProtocols = (volumeHistory: IDexResponse['volumeHistory']): string[
   for (const protData of Object.values(dailyVolume))
     for (const [protocolName, value] of Object.entries(protData))
       if (typeof value === 'number' && !acc.includes(protocolName)) acc.push(protocolName)
+  return acc
+}, [] as string[])
+
+// TODO: Get list of chains from api or improve
+const getAllChains = (volumeHistory: IDexResponse['volumeHistory']): string[] => volumeHistory.reduce((acc, { dailyVolume }) => {
+  for (const [chains, protData] of Object.entries(dailyVolume))
+    for (const [protocolName, value] of Object.entries(protData))
+      if (typeof value === 'number' && !acc.includes(chains)) acc.push(chains)
   return acc
 }, [] as string[])
