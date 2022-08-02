@@ -71,6 +71,8 @@ const LiquidationsPage: NextPage = () => {
 	)
 }
 
+const LiquidationsChartContainer = styled.div``
+
 const ButtonDarkStyled = styled(ButtonDark)`
 	display: flex;
 	justify-content: center;
@@ -122,9 +124,15 @@ const getOption = (chart: Chart, chartData: ChartData, isDark: boolean) => {
 		data: convertChartDataBinsToArray(chartDataBins[key], 150)
 	}))
 	const series = chartDataBinsArray.map((obj) => ({
-		name: obj.key,
 		type: 'bar',
+		name: obj.key,
 		data: obj.data,
+		tooltip: {
+			valueFormatter: (value: string) => `$${getReadableValue(Number(value))}`
+		},
+		emphasis: {
+			focus: 'series'
+		},
 		stack: 'x'
 	}))
 
@@ -177,16 +185,18 @@ const getOption = (chart: Chart, chartData: ChartData, isDark: boolean) => {
 		},
 		yAxis: {
 			type: 'value',
-			scale: true,
-			// name: 'Liquidable Amount',
-			// position: 'middle',
-			// nameGap: 40,
-			// nameTextStyle: {
-			// 	fontFamily: 'inter, sans-serif',
-			// 	fontSize: 14,
-			// 	fontWeight: 500,
-			// 	color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			// },
+			// scale: true,
+			name: 'Liquidable Amount',
+			position: 'right',
+			nameGap: 65,
+			nameLocation: 'middle',
+			nameRotate: 270,
+			nameTextStyle: {
+				fontFamily: 'inter, sans-serif',
+				fontSize: 14,
+				fontWeight: 500,
+				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+			},
 			axisLabel: {
 				formatter: (value: string) => `$${getReadableValue(Number(value))}`
 			},
@@ -230,7 +240,7 @@ const LiquidationsChart = ({ chart, chartData, uid }: { chart: Chart; chartData:
 		}
 	}, [uid, chart, chartData, createInstance, isDark])
 
-	return <div id={uid} style={{ height: '600px', margin: 'auto 0' }} />
+	return <div id={uid} style={{ height: '500px', margin: 'auto 0' }} />
 }
 
 export default LiquidationsPage
