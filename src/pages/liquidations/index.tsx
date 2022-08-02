@@ -14,9 +14,18 @@ import Layout from '~/layout'
 // import { liqs } from '../../components/LiquidationsPage'
 import { Header } from '~/Theme'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { useCallback, useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { ChartData, ChartDataBin } from '~/utils/liquidations'
+import {
+	BreakpointPanel,
+	BreakpointPanels,
+	ChartAndValuesWrapper,
+	DownloadButton,
+	DownloadIcon,
+	PanelHiddenMobile
+} from '~/components'
+import { ResponsiveContainer } from 'recharts'
 
 type Chart = {
 	asset: string // symbol for now
@@ -59,11 +68,11 @@ const LiquidationsPage: NextPage = () => {
 			<Header>Liquidation Levels in DeFi 💦</Header>
 			{data &&
 				chartsState.map((chart, i) => (
-					<LiquidationsChart
-						key={`liquidations-${i}-${chart.asset}`}
+					<LiquidationsContainer
 						chart={chart}
 						chartData={data}
 						uid={`liquidations-${i}-${chart.asset}`}
+						key={`liquidations-${i}-${chart.asset}`}
 					/>
 				))}
 			<AddChartButton setChartsState={setChartsState} />
@@ -71,7 +80,41 @@ const LiquidationsPage: NextPage = () => {
 	)
 }
 
-const LiquidationsChartContainer = styled.div``
+const LiquidationsContainer = ({ chart, chartData, uid }: { chart: Chart; chartData: ChartData; uid: string }) => {
+	return (
+		<ResponsiveContainer aspect={60 / 28}>
+			<ChartAndValuesWrapper>
+				<BreakpointPanels>
+					<BreakpointPanel>
+						<h1>Total Liquidable (USD)</h1>
+						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
+							${getReadableValue(chartData.totalLiquidable)}
+						</p>
+						<DownloadButton href={`javascript:alert("TODO: issa not implemented yet");`}>
+							<DownloadIcon />
+							<span>&nbsp;&nbsp;.csv</span>
+						</DownloadButton>
+					</BreakpointPanel>
+					<PanelHiddenMobile>
+						<h2>Change (7d)</h2>
+						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
+							{(chartData.historicalChange[168] * 100).toFixed(1) || 0}%
+						</p>
+					</PanelHiddenMobile>
+					<PanelHiddenMobile>
+						<h2>Lending Market Dominance</h2>
+						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
+							{(chartData.lendingDominance * 100).toFixed(1) || 0}%
+						</p>
+					</PanelHiddenMobile>
+				</BreakpointPanels>
+				<BreakpointPanel>
+					<LiquidationsChart chart={chart} chartData={chartData} uid={uid} />
+				</BreakpointPanel>
+			</ChartAndValuesWrapper>
+		</ResponsiveContainer>
+	)
+}
 
 const ButtonDarkStyled = styled(ButtonDark)`
 	display: flex;
@@ -146,9 +189,9 @@ const getOption = (chart: Chart, chartData: ChartData, isDark: boolean) => {
 			}
 		},
 		grid: {
-			left: '3%',
-			right: '7%',
-			bottom: '7%',
+			left: '2%',
+			right: '2%',
+			bottom: '6%',
 			containLabel: true
 		},
 		tooltip: {
@@ -160,15 +203,15 @@ const getOption = (chart: Chart, chartData: ChartData, isDark: boolean) => {
 		xAxis: {
 			// bins
 			type: 'category',
-			name: 'Liquidation Price',
-			nameLocation: 'middle',
-			nameGap: 30,
-			nameTextStyle: {
-				fontFamily: 'inter, sans-serif',
-				fontSize: 14,
-				fontWeight: 500,
-				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			},
+			// name: 'Liquidation Price',
+			// nameLocation: 'middle',
+			// nameGap: 30,
+			// nameTextStyle: {
+			// 	fontFamily: 'inter, sans-serif',
+			// 	fontSize: 14,
+			// 	fontWeight: 500,
+			// 	color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+			// },
 			splitLine: {
 				lineStyle: {
 					color: '#a1a1aa',
@@ -186,17 +229,17 @@ const getOption = (chart: Chart, chartData: ChartData, isDark: boolean) => {
 		yAxis: {
 			type: 'value',
 			// scale: true,
-			name: 'Liquidable Amount',
+			// name: 'Liquidable Amount',
 			position: 'right',
-			nameGap: 65,
-			nameLocation: 'middle',
-			nameRotate: 270,
-			nameTextStyle: {
-				fontFamily: 'inter, sans-serif',
-				fontSize: 14,
-				fontWeight: 500,
-				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			},
+			// nameGap: 65,
+			// nameLocation: 'middle',
+			// nameRotate: 270,
+			// nameTextStyle: {
+			// 	fontFamily: 'inter, sans-serif',
+			// 	fontSize: 14,
+			// 	fontWeight: 500,
+			// 	color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+			// },
 			axisLabel: {
 				formatter: (value: string) => `$${getReadableValue(Number(value))}`
 			},
@@ -240,7 +283,15 @@ const LiquidationsChart = ({ chart, chartData, uid }: { chart: Chart; chartData:
 		}
 	}, [uid, chart, chartData, createInstance, isDark])
 
-	return <div id={uid} style={{ height: '500px', margin: 'auto 0' }} />
+	return (
+		<div
+			id={uid}
+			style={{
+				minHeight: '320px',
+				margin: 'auto 0'
+			}}
+		/>
+	)
 }
 
 export default LiquidationsPage
