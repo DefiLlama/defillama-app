@@ -18,6 +18,13 @@ export const Panel = styled.div`
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 `
 
+export const PanelNoBorder = styled.div`
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+`
+
 export const ChartAndValuesWrapper = styled.div`
 	flex: 1;
 	isolation: isolate;
@@ -69,7 +76,34 @@ export const BreakpointPanel = styled(Panel)`
 	}
 `
 
+export const BreakpointPanelNoBorder = styled(PanelNoBorder)`
+	flex: 1;
+	gap: 4px;
+	padding: 0 25px;
+	justify-content: center;
+
+	& > h1,
+	& > h2 {
+		min-width: 0;
+		font-weight: 500;
+		font-size: 1rem;
+	}
+
+	& > p {
+		margin: 4px 0 -6px;
+		font-weight: 600;
+		font-size: 2rem;
+		color: var(--tile-text-color);
+	}
+`
+
 export const PanelHiddenMobile = styled(BreakpointPanel)`
+	@media screen and (max-width: 50rem) {
+		display: none;
+	}
+`
+
+export const PanelHiddenMobileNoBorder = styled(BreakpointPanelNoBorder)`
 	@media screen and (max-width: 50rem) {
 		display: none;
 	}

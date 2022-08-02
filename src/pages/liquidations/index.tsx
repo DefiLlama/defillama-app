@@ -20,6 +20,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { ChartData, ChartDataBin } from '~/utils/liquidations'
 import {
 	BreakpointPanel,
+	BreakpointPanelNoBorder,
 	BreakpointPanels,
 	ChartAndValuesWrapper,
 	DownloadButton,
@@ -81,14 +82,33 @@ const LiquidationsPage: NextPage = () => {
 	)
 }
 
+const LiquidationsHeaderWrapper = styled.div`
+	flex: 1;
+	isolation: isolate;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	gap: 10px;
+	position: relative;
+	margin-top: 1rem;
+
+	@media (min-width: 80rem) {
+		flex-direction: row;
+	}
+`
+
 const LiquidationsContainer = ({ chart, chartData, uid }: { chart: Chart; chartData: ChartData; uid: string }) => {
 	return (
 		<>
-			<ProtocolName>
-				<TokenLogo logo={chartData.coingeckoAsset.thumb} size={24} />
-				<FormattedName text={chartData.coingeckoAsset.name} maxCharacters={16} fontWeight={700} />
-				<Symbol>({chartData.symbol})</Symbol>
-			</ProtocolName>
+			<LiquidationsHeaderWrapper>
+				<ProtocolName>
+					<TokenLogo logo={chartData.coingeckoAsset.thumb} size={24} />
+					<FormattedName text={chartData.coingeckoAsset.name} maxCharacters={16} fontWeight={700} />
+					<Symbol>({chartData.symbol})</Symbol>
+				</ProtocolName>
+				<h1>hellllo</h1>
+			</LiquidationsHeaderWrapper>
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
 					<BreakpointPanel>
@@ -134,8 +154,9 @@ const ButtonDarkStyled = styled(ButtonDark)`
 `
 
 const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number) => {
-	// this line below suddenly throws error in browser that the iterator cant iterate??
-	const arr = [...Array(totalBins).keys()].map((i) => obj.bins[i] || 0)
+	// // this line below suddenly throws error in browser that the iterator cant iterate??
+	// const arr = [...Array(totalBins).keys()].map((i) => obj.bins[i] || 0)
+	const arr = Array.from({ length: totalBins }, (_, i) => i).map((i) => obj.bins[i] || 0)
 	return arr
 }
 
@@ -211,7 +232,8 @@ const getOption = (chart: Chart, chartData: ChartData, isDark: boolean) => {
 			axisTick: {
 				alignWithLabel: true
 			},
-			data: [...Array(chartData.totalBins).keys()].map((x) => x * chartData.binSize)
+			// data: [...Array(chartData.totalBins).keys()].map((x) => x * chartData.binSize)
+			data: Array.from({ length: chartData.totalBins }, (_, i) => i).map((x) => x * chartData.binSize)
 		},
 		yAxis: {
 			type: 'value',
