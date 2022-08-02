@@ -253,7 +253,6 @@ function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContain
 	const {
 		address = '',
 		name,
-		symbol,
 		url,
 		description,
 		logo,
@@ -303,7 +302,10 @@ function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContain
 					</TvlWrapper>
 				</ProtocolDetails>
 
-				<StackedBarChart chartData={formatVolumeHistoryToChartDataByProtocol(volumeHistory)} color={backgroundColor} />
+				<StackedBarChart
+					chartData={formatVolumeHistoryToChartDataByProtocol(volumeHistory, name, volumeAdapter)}
+					color={backgroundColor}
+				/>
 
 				{/* <Bobo onClick={() => setBobo(!bobo)}>
 					<span className="visually-hidden">Enable Goblin Mode</span>

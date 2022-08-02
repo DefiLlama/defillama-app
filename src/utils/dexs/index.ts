@@ -1,6 +1,6 @@
 import { IDexResponse } from "~/api/types";
 import type { IStackedBarChartProps } from "~/components/TokenChart/StackedBarChart";
-import { capitalizeFirstLetter } from "..";
+import { capitalizeFirstLetter, slug } from "..";
 
 const summAllVolumes = (breakdownVolumes: IDexResponse['volumeHistory'][0]['dailyVolume']) =>
   Object.values(breakdownVolumes).reduce((acc, volume) =>
@@ -48,7 +48,7 @@ export const formatVolumeHistoryToChartDataByChain = (volumeHistory: IDexRespons
 
 // TODO: do better
 let ALL_VERSIONS: string[] = []
-export const formatVolumeHistoryToChartDataByProtocol = (volumeHistory: IDexResponse['volumeHistory']): IStackedBarChartProps['chartData'] => {
+export const formatVolumeHistoryToChartDataByProtocol = (volumeHistory: IDexResponse['volumeHistory'], dexName: string, adapterName: string): IStackedBarChartProps['chartData'] => {
   if (ALL_VERSIONS.length === 0)
     ALL_VERSIONS = getAllVProtocols(volumeHistory)
   const chartData = volumeHistory.reduce((acc, { dailyVolume, timestamp }) => {
@@ -73,7 +73,7 @@ export const formatVolumeHistoryToChartDataByProtocol = (volumeHistory: IDexResp
     // return all data by chain
     return acc
   }, {} as { [protName: string]: IStackedBarChartProps['chartData'][0]['data'] })
-  return Object.entries(chartData).map(([name, data]) => ({ name, data })) as IStackedBarChartProps['chartData']
+  return Object.entries(chartData).map(([name, data]) => ({ name: name === adapterName ? dexName : name.toUpperCase(), data })) as IStackedBarChartProps['chartData']
 }
 
 // TODO: Get list of vprotocols from api or improve
