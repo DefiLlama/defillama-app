@@ -134,6 +134,7 @@ const ButtonDarkStyled = styled(ButtonDark)`
 `
 
 const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number) => {
+	// this line below suddenly throws error in browser that the iterator cant iterate??
 	const arr = [...Array(totalBins).keys()].map((i) => obj.bins[i] || 0)
 	return arr
 }
