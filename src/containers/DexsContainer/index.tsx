@@ -206,8 +206,8 @@ export default function DexsContainer({ category }) {
 		loading,
 		data: { dexs } = {},
 		data: { totalVolume } = {},
-		data: { change_1d } = {},
-		data: { change_30d } = {},
+		data: { changeVolume1d } = {},
+		data: { changeVolume30d } = {},
 		data: { totalDataChart } = {}
 	} = useFetchDexsList()
 
@@ -237,11 +237,11 @@ export default function DexsContainer({ category }) {
 						</BreakpointPanel>
 						<PanelHiddenMobile>
 							<h2>Change (24h)</h2>
-							<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {change_1d || 0}%</p>
+							<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {changeVolume1d || 0}%</p>
 						</PanelHiddenMobile>
 						<PanelHiddenMobile>
 							<h2>Change (30d)</h2>
-							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {change_30d || 0}%</p>
+							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {changeVolume30d || 0}%</p>
 						</PanelHiddenMobile>
 					</BreakpointPanels>
 					<BreakpointPanel id="chartWrapper">
