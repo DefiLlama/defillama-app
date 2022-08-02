@@ -193,8 +193,8 @@ export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'cha
 	const sampleDbResponse: { [protocol: string]: Liq[] } = {
 		liquity,
 		euler,
-		aave_v2,
-		compound_v2
+		'aave-v2': aave_v2,
+		'compound-v2': compound_v2
 	}
 	const allAggregated = await aggregateAssetAdapterData(sampleDbResponse)
 	let positions: Position[]
@@ -220,36 +220,4 @@ export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'cha
 	}
 
 	return chartData
-	// example response with ('ETH', 'protocol') could be:
-	// {
-	// 	symbol: 'ETH',
-	// 	currentPrice: 2000,
-	// 	lendingDominance: 0.69,
-	// 	historicalChange: {
-	// 		168: -0.42
-	// 	},
-	// 	totalLiquidable: 69_000_000_000,
-	// 	chartDataBins: {
-	// 		liquity: {
-	// 			bins: {
-	// 				0: 1234,
-	// 				500: 2345,
-	// 				1500: 3456,
-	// 				2000: 4321,
-	//      },
-	//      binSize: 500,
-	//      price: 2000
-	// 		},
-	// 		euler: {
-	// 			bins: {
-	// 				0: 1234,
-	// 				500: 2345,
-	// 				1500: 3456,
-	// 				2000: 4321,
-	//      },
-	//      binSize: 500,
-	//      price: 2000
-	// 		},
-	//  },
-	// }
 }

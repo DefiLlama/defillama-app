@@ -82,11 +82,6 @@ const ButtonDarkStyled = styled(ButtonDark)`
 	user-select: none;
 `
 
-// const fillSparseArrayInPlace = (arr: any[]) => {
-// 	for (let i = 0; i < arr.length; i++) {
-// 		if (arr[i] === undefined) arr[i] = 0
-// 	}
-// }
 const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number) => {
 	const arr = [...Array(totalBins).keys()].map((i) => obj.bins[i] || 0)
 	return arr
