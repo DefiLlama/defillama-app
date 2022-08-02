@@ -1,7 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
-import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import {
 	ProtocolsTable,
@@ -9,23 +8,16 @@ import {
 	BreakpointPanels,
 	BreakpointPanel,
 	PanelHiddenMobile,
-	ChartAndValuesWrapper,
-	DownloadButton,
-	DownloadIcon
+	ChartAndValuesWrapper
 } from '~/components'
 import { RowFixed } from '~/components/Row'
-import { ProtocolsChainsSearch } from '~/components/Search'
+import { DexsSearch } from '~/components/Search'
 import { RowLinks, TVLRange } from '~/components/Filters'
 import { BasicLink } from '~/components/Link'
 import SEO from '~/components/SEO'
 import { OptionButton } from '~/components/ButtonStyled'
 import LocalLoader from '~/components/LocalLoader'
 import { columnsToShow } from '~/components/Table'
-import { useCalcProtocolsTvls } from '~/hooks/data'
-import { useDarkModeManager, useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
-import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
-import { chainCoingeckoIds } from '~/constants/chainTokens'
-import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
 
@@ -49,10 +41,6 @@ const Chart = dynamic(() => import('~/components/GlobalChart'), {
 
 const Game = dynamic(() => import('~/game'))
 
-const BASIC_DENOMINATIONS = ['USD']
-
-const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
-
 const columns = columnsToShow(
 	'protocolName',
 	'category',
@@ -64,140 +52,7 @@ const columns = columnsToShow(
 	'mcaptvl'
 )
 
-function GlobalPage({ dex, chainsSet, filteredProtocols, chart, extraVolumesCharts = {}, parentProtocols }) {
-	/* 	const extraTvlsEnabled = useGetExtraTvlEnabled()
-
-	const router = useRouter()
-
-	const denomination = router.query?.currency ?? 'USD'
-
-	const { minTvl, maxTvl } = router.query
-
-	const [easterEgg, setEasterEgg] = React.useState(false)
-	const [darkMode, toggleDarkMode] = useDarkModeManager()
-	const activateEasterEgg = () => {
-		if (easterEgg) {
-			if (!darkMode) {
-				toggleDarkMode()
-			}
-			window.location.reload()
-		} else {
-			if (darkMode) {
-				toggleDarkMode()
-			}
-			setEasterEgg(true)
-		}
-	}
-
-	const { totalVolumeUSD, volumeChangeUSD, globalChart } = React.useMemo(() => {
-		const globalChart = chart.map((data) => {
-			let sum = data[1]
-			Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
-				const stakedData = propCharts.find((x) => x[0] === data[0])
-				if (stakedData) {
-					if (prop === 'doublecounted') {
-						sum -= stakedData[1]
-					}
-
-					if (extraTvlsEnabled[prop.toLowerCase()]) {
-						sum += stakedData[1]
-					}
-				}
-			})
-			return [data[0], sum]
-		})
-
-		const tvl = getPrevTvlFromChart(globalChart, 0)
-		const tvlPrevDay = getPrevTvlFromChart(globalChart, 1)
-		const volumeChangeUSD = getPercentChange(tvl, tvlPrevDay)
-
-		return { totalVolumeUSD: tvl, volumeChangeUSD, globalChart }
-	}, [chart, extraTvlsEnabled, extraVolumesCharts])
-
-	let chainOptions = ['All'].concat(chainsSet).map((label) => ({ label, to: setSelectedChain(label) }))
-
-	const protocolTotals = useCalcProtocolsTvls({ protocols: filteredProtocols, parentProtocols })
-
-	const topToken = { name: 'Uniswap', tvl: 0 }
-	if (protocolTotals.length > 0) {
-		topToken.name = protocolTotals[0]?.name
-		topToken.tvl = protocolTotals[0]?.tvl
-		if (topToken.name === 'AnySwap') {
-			topToken.name = protocolTotals[1]?.name
-			topToken.tvl = protocolTotals[1]?.tvl
-		}
-	}
-
-	const tvl = formattedNum(totalVolumeUSD, true)
-
-	const percentChange = volumeChangeUSD?.toFixed(2)
-
-	const volumeChange = (percentChange > 0 ? '+' : '') + percentChange + '%'
-
-	const [DENOMINATIONS, chainGeckoId] = React.useMemo(() => {
-		let DENOMINATIONS = []
-		let chainGeckoId = null
-		if (selectedChain !== 'All') {
-			let chainDenomination = chainCoingeckoIds[selectedChain] ?? null
-
-			chainGeckoId = chainDenomination?.geckoId ?? null
-
-			if (chainGeckoId && chainDenomination.symbol) {
-				DENOMINATIONS = [...BASIC_DENOMINATIONS, chainDenomination.symbol]
-			}
-		}
-		return [DENOMINATIONS, chainGeckoId]
-	}, [selectedChain])
-
-	const { data: denominationPriceHistory, loading } = useDenominationPriceHistory(chainGeckoId)
-
-	const [finalChartData, chainPriceInUSD] = React.useMemo(() => {
-		if (denomination !== 'USD' && denominationPriceHistory && chainGeckoId) {
-			let priceIndex = 0
-			let prevPriceDate = 0
-			const denominationPrices = denominationPriceHistory.prices
-			const newChartData = []
-			let priceInUSD = 1
-			for (let i = 0; i < globalChart.length; i++) {
-				const date = globalChart[i][0] * 1000
-				while (
-					priceIndex < denominationPrices.length &&
-					Math.abs(date - prevPriceDate) > Math.abs(date - denominationPrices[priceIndex][0])
-				) {
-					prevPriceDate = denominationPrices[priceIndex][0]
-					priceIndex++
-				}
-				priceInUSD = denominationPrices[priceIndex - 1][1]
-				newChartData.push([globalChart[i][0], globalChart[i][1] / priceInUSD])
-			}
-			return [newChartData, priceInUSD]
-		} else return [globalChart, 1]
-	}, [chainGeckoId, globalChart, denominationPriceHistory, denomination])
-
-	const updateRoute = (unit) => {
-		router.push({
-			query: {
-				...router.query,
-				currency: unit
-			}
-		})
-	}
-
-	const totalVolume = totalVolumeUSD / chainPriceInUSD
-
-	const dominance = getTokenDominance(topToken, totalVolumeUSD)
-
-	const isLoading = denomination !== 'USD' && loading
-
-	const finalProtocolTotals = React.useMemo(() => {
-		const isValidTvlRange =
-			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
-
-		return isValidTvlRange
-			? protocolTotals.filter((p) => (minTvl ? p.tvl > minTvl : true) && (maxTvl ? p.tvl < maxTvl : true))
-			: protocolTotals
-	}, [minTvl, maxTvl, protocolTotals]) */
-
+function GlobalPage({ dex }) {
 	return (
 		<>
 			<SEO cardName={dex.name} chain={dex.name} tvl={dex.total1dVolume} volumeChange={volumeChange} />

@@ -15,10 +15,8 @@ import {
 	DEXS_API,
 	DEX_BASE_API,
 	FORK_API,
-	HOURLY_PROTOCOL_API,
 	ORACLE_API,
 	PROTOCOLS_API,
-	PROTOCOL_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 
