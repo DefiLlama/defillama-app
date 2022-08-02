@@ -32,7 +32,7 @@ const TextWrapper = styled.span<WrapperProps>`
 	}
 `
 
-const FormattedName = ({
+export const FormattedName = ({
 	text,
 	maxCharacters,
 	margin = false,

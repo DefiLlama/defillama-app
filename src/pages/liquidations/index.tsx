@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars*/
+// eslint sucks at types
 import { NextPage, GetServerSideProps } from 'next'
-import { useQueryState, queryTypes, TransitionOptions } from 'next-usequerystate'
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { PlusCircle } from 'react-feather'
 import * as echarts from 'echarts'
@@ -25,36 +26,43 @@ import {
 	DownloadIcon,
 	PanelHiddenMobile
 } from '~/components'
+import { ProtocolName, Symbol } from '~/containers/ProtocolContainer'
+import TokenLogo from '~/components/TokenLogo'
+import FormattedName from '~/components/FormattedName'
 // import { ResponsiveContainer } from 'recharts'
 
 type Chart = {
-	asset: string // symbol for now
-	mode: 'chain' | 'protocol'
+	asset: string // TODO: symbol for now, later change to coingeckoId
+	aggregateBy: 'chain' | 'protocol'
 	filter: FilterChain | FilterProtocol
 }
 
 // this should be pulled dynamically
-type FilterChain = 'all' | string
-type FilterProtocol = 'all' | string
+type FilterChain = 'all' | string[]
+type FilterProtocol = 'all' | string[]
 
-const defaultCharts: Chart[] = [
-	{
-		asset: 'ETH',
-		mode: 'protocol',
-		filter: 'all'
-	}
-]
-
-// es-lint sucks at types
-type SetChartsState = (
-	value: Chart[] | ((old: Chart[]) => Chart[]),
-	transitionOptions?: TransitionOptions
-) => Promise<boolean>
+const defaultChart: Chart = {
+	asset: 'ETH',
+	aggregateBy: 'protocol',
+	filter: 'all'
+}
 
 const LiquidationsPage: NextPage = () => {
-	const [chartsState, setChartsState] = useQueryState('charts', queryTypes.json<Chart[]>().withDefault(defaultCharts))
-	const { data, error } = useSWR<ChartData>(
-		`http://localhost:3000/api/mock-liquidations/?symbol=${'ETH'}&aggregateBy=${'protocol'}`,
+	const router = useRouter()
+	const { asset, aggregateBy, filter } = router.query as Chart
+	const _asset = asset || defaultChart.asset
+	const _aggregateBy = aggregateBy || defaultChart.aggregateBy
+	const _filter = filter || defaultChart.filter
+	const chart: Chart = { asset: _asset, aggregateBy: _aggregateBy, filter: _filter }
+
+	console.log('chart')
+	console.log(chart)
+
+	const { data } = useSWR<ChartData>(
+		// TODO: implement the full api
+		`http://localhost:3000/api/mock-liquidations/?symbol=${_asset}&aggregateBy=${_aggregateBy}${
+			_filter === 'all' ? '' : _filter.map((f) => `&filter=${f}`).join('')
+		}`,
 		fetcher
 	)
 	console.log(data)
@@ -66,51 +74,51 @@ const LiquidationsPage: NextPage = () => {
 			/>
 
 			<Header>Liquidation Levels in DeFi 💦</Header>
-			{data &&
-				chartsState.map((chart, i) => (
-					<LiquidationsContainer
-						chart={chart}
-						chartData={data}
-						uid={`liquidations-${i}-${chart.asset}`}
-						key={`liquidations-${i}-${chart.asset}`}
-					/>
-				))}
-			<AddChartButton setChartsState={setChartsState} />
+			{data && (
+				<LiquidationsContainer chart={chart} chartData={data} uid={`liquidations-chart-${defaultChart.asset}`} />
+			)}
 		</Layout>
 	)
 }
 
 const LiquidationsContainer = ({ chart, chartData, uid }: { chart: Chart; chartData: ChartData; uid: string }) => {
 	return (
-		<ChartAndValuesWrapper>
-			<BreakpointPanels>
+		<>
+			<ProtocolName>
+				<TokenLogo logo={chartData.coingeckoAsset.thumb} size={24} />
+				<FormattedName text={chartData.coingeckoAsset.name} maxCharacters={16} fontWeight={700} />
+				<Symbol>({chartData.symbol})</Symbol>
+			</ProtocolName>
+			<ChartAndValuesWrapper>
+				<BreakpointPanels>
+					<BreakpointPanel>
+						<h1>Total Liquidable (USD)</h1>
+						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
+							${getReadableValue(chartData.totalLiquidable)}
+						</p>
+						<DownloadButton href={`javascript:alert("TODO: issa not implemented yet");`}>
+							<DownloadIcon />
+							<span>&nbsp;&nbsp;.csv</span>
+						</DownloadButton>
+					</BreakpointPanel>
+					<PanelHiddenMobile>
+						<h2>Change (7d)</h2>
+						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
+							{(chartData.historicalChange[168] * 100).toFixed(1) || 0}%
+						</p>
+					</PanelHiddenMobile>
+					<PanelHiddenMobile>
+						<h2>Lending Market Dominance</h2>
+						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
+							{(chartData.lendingDominance * 100).toFixed(1) || 0}%
+						</p>
+					</PanelHiddenMobile>
+				</BreakpointPanels>
 				<BreakpointPanel>
-					<h1>Total Liquidable (USD)</h1>
-					<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
-						${getReadableValue(chartData.totalLiquidable)}
-					</p>
-					<DownloadButton href={`javascript:alert("TODO: issa not implemented yet");`}>
-						<DownloadIcon />
-						<span>&nbsp;&nbsp;.csv</span>
-					</DownloadButton>
+					<LiquidationsChart chart={chart} chartData={chartData} uid={uid} />
 				</BreakpointPanel>
-				<PanelHiddenMobile>
-					<h2>Change (7d)</h2>
-					<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
-						{(chartData.historicalChange[168] * 100).toFixed(1) || 0}%
-					</p>
-				</PanelHiddenMobile>
-				<PanelHiddenMobile>
-					<h2>Lending Market Dominance</h2>
-					<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
-						{(chartData.lendingDominance * 100).toFixed(1) || 0}%
-					</p>
-				</PanelHiddenMobile>
-			</BreakpointPanels>
-			<BreakpointPanel>
-				<LiquidationsChart chart={chart} chartData={chartData} uid={uid} />
-			</BreakpointPanel>
-		</ChartAndValuesWrapper>
+			</ChartAndValuesWrapper>
+		</>
 	)
 }
 
@@ -128,26 +136,6 @@ const ButtonDarkStyled = styled(ButtonDark)`
 const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number) => {
 	const arr = [...Array(totalBins).keys()].map((i) => obj.bins[i] || 0)
 	return arr
-}
-
-const AddChartButton = ({ setChartsState }: { setChartsState: SetChartsState }) => {
-	const addChart = (chart: Chart) => {
-		setChartsState((charts) => [...charts, chart])
-	}
-
-	return (
-		<ButtonDarkStyled
-			onClick={() =>
-				addChart({
-					asset: 'bitcoin',
-					mode: 'chain',
-					filter: 'all'
-				})
-			}
-		>
-			<PlusCircle /> <span>Search and add another chart</span>
-		</ButtonDarkStyled>
-	)
 }
 
 function getReadableValue(value: number) {

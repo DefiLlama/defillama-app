@@ -122,6 +122,7 @@ async function getTotalLiquidable(symbol: string) {
 
 export type ChartData = {
 	symbol: string // could change to coingeckoId in the future
+	coingeckoAsset: CoingeckoAsset
 	currentPrice: number
 	lendingDominance: number // in ratio of total collateral amount tracked
 	historicalChange: {
@@ -208,8 +209,10 @@ export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'cha
 	const currentPrice = allAggregated.get(symbol)!.currentPrice
 
 	const chartDataBins = getChartDataBins(positions, currentPrice, TOTAL_BINS, aggregateBy)
+	const coingeckoAsset = await getCoingeckoAssetFromSymbol(symbol)
 	const chartData: ChartData = {
 		symbol,
+		coingeckoAsset,
 		currentPrice,
 		lendingDominance: await getLendingDominance(symbol),
 		historicalChange: { 168: await getHistoricalChange(symbol, 168) },
@@ -220,4 +223,27 @@ export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'cha
 	}
 
 	return chartData
+}
+
+export type CoingeckoAsset = {
+	id: string
+	name: string
+	symbol: string
+	market_cap_rank: number
+	thumb: string
+	large: string
+}
+
+/**
+ * Lookup asset by symbol in coingecko by using the search API. Returns the first result.
+ *
+ * @param symbol e.g. 'ETH'
+ * @returns {CoingeckoAsset}
+ */
+export async function getCoingeckoAssetFromSymbol(symbol: string): Promise<CoingeckoAsset> {
+	// search for the coin using coingecko api
+	const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${symbol}`).then((r) => r.json())
+	const coins = res.coins as CoingeckoAsset[]
+
+	return coins[0] ?? null
 }

@@ -71,14 +71,14 @@ const ProtocolDetails = styled.div`
 	}
 `
 
-const ProtocolName = styled.h1`
+export const ProtocolName = styled.h1`
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	font-size: 1.25rem;
 `
 
-const Symbol = styled.span`
+export const Symbol = styled.span`
 	font-weight: 400;
 `
 
