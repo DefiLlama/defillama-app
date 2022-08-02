@@ -25,7 +25,7 @@ import {
 	DownloadIcon,
 	PanelHiddenMobile
 } from '~/components'
-import { ResponsiveContainer } from 'recharts'
+// import { ResponsiveContainer } from 'recharts'
 
 type Chart = {
 	asset: string // symbol for now
@@ -82,37 +82,35 @@ const LiquidationsPage: NextPage = () => {
 
 const LiquidationsContainer = ({ chart, chartData, uid }: { chart: Chart; chartData: ChartData; uid: string }) => {
 	return (
-		<ResponsiveContainer aspect={60 / 28}>
-			<ChartAndValuesWrapper>
-				<BreakpointPanels>
-					<BreakpointPanel>
-						<h1>Total Liquidable (USD)</h1>
-						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
-							${getReadableValue(chartData.totalLiquidable)}
-						</p>
-						<DownloadButton href={`javascript:alert("TODO: issa not implemented yet");`}>
-							<DownloadIcon />
-							<span>&nbsp;&nbsp;.csv</span>
-						</DownloadButton>
-					</BreakpointPanel>
-					<PanelHiddenMobile>
-						<h2>Change (7d)</h2>
-						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
-							{(chartData.historicalChange[168] * 100).toFixed(1) || 0}%
-						</p>
-					</PanelHiddenMobile>
-					<PanelHiddenMobile>
-						<h2>Lending Market Dominance</h2>
-						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
-							{(chartData.lendingDominance * 100).toFixed(1) || 0}%
-						</p>
-					</PanelHiddenMobile>
-				</BreakpointPanels>
+		<ChartAndValuesWrapper>
+			<BreakpointPanels>
 				<BreakpointPanel>
-					<LiquidationsChart chart={chart} chartData={chartData} uid={uid} />
+					<h1>Total Liquidable (USD)</h1>
+					<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
+						${getReadableValue(chartData.totalLiquidable)}
+					</p>
+					<DownloadButton href={`javascript:alert("TODO: issa not implemented yet");`}>
+						<DownloadIcon />
+						<span>&nbsp;&nbsp;.csv</span>
+					</DownloadButton>
 				</BreakpointPanel>
-			</ChartAndValuesWrapper>
-		</ResponsiveContainer>
+				<PanelHiddenMobile>
+					<h2>Change (7d)</h2>
+					<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
+						{(chartData.historicalChange[168] * 100).toFixed(1) || 0}%
+					</p>
+				</PanelHiddenMobile>
+				<PanelHiddenMobile>
+					<h2>Lending Market Dominance</h2>
+					<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
+						{(chartData.lendingDominance * 100).toFixed(1) || 0}%
+					</p>
+				</PanelHiddenMobile>
+			</BreakpointPanels>
+			<BreakpointPanel>
+				<LiquidationsChart chart={chart} chartData={chartData} uid={uid} />
+			</BreakpointPanel>
+		</ChartAndValuesWrapper>
 	)
 }
 
@@ -190,8 +188,8 @@ const getOption = (chart: Chart, chartData: ChartData, isDark: boolean) => {
 		},
 		grid: {
 			left: '2%',
-			right: '2%',
-			bottom: '6%',
+			right: '1%',
+			bottom: '2%',
 			containLabel: true
 		},
 		tooltip: {
