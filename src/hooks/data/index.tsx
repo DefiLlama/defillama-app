@@ -532,7 +532,7 @@ export const useCreatePeggedCharts = (
 		const stackedDataset = Object.entries(stackedDatasetObject)
 
 		return [peggedAreaChartData, peggedAreaTotalData, stackedDataset]
-	}, [chartDataByPeggedAsset, chartData, filteredIndexes, chartType])
+	}, [chartDataByPeggedAsset, chartData, filteredIndexes, chartType, backfilledChains, peggedAssetNames, selectedChain])
 	return [peggedAreaChartData, peggedAreaTotalData, stackedDataset]
 }
 
