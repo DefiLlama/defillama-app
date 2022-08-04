@@ -126,6 +126,7 @@ function init() {
 		[DARK_MODE]: true,
 		...extraTvlProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...extraPeggedProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+		[BORROWED]: true,
 		[DOUBLE_COUNT]: true,
 		[DISPLAY_USD]: false,
 		[HIDE_LAST_DAY]: false,
