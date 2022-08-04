@@ -121,6 +121,7 @@ export const useCalcStakePool2Tvl = (
 	const protocolTotals = useMemo(() => {
 		const checkExtras = {
 			...extraTvlsEnabled,
+			borrowed: !extraTvlsEnabled.borrowed,
 			doublecounted: !extraTvlsEnabled.doublecounted
 		}
 
@@ -138,14 +139,18 @@ export const useCalcStakePool2Tvl = (
 				Object.entries(extraTvl).forEach(([prop, propValues]) => {
 					const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
 
-					if (prop === 'doublecounted' && applyDoublecounted) {
+					if (prop === 'borrowed' || (prop === 'doublecounted' && applyDoublecounted)) {
 						tvl && (finalTvl = (finalTvl || 0) - tvl)
 						tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
 						tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
 						tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
 					}
 					// convert to lowercase as server response is not consistent in extra-tvl names
-					if (extraTvlsEnabled[prop.toLowerCase()] && (prop.toLowerCase() !== 'doublecounted' || applyDoublecounted)) {
+					if (
+						extraTvlsEnabled[prop.toLowerCase()] &&
+						prop.toLowerCase() !== 'borrowed' &&
+						(prop.toLowerCase() !== 'doublecounted' || applyDoublecounted)
+					) {
 						// check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
 						tvl && (finalTvl = (finalTvl || 0) + tvl)
 						tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
@@ -201,6 +206,7 @@ export const useCalcProtocolsTvls = ({
 	const protocolTotals = useMemo(() => {
 		const checkExtras = {
 			...extraTvlsEnabled,
+			borrowed: !extraTvlsEnabled.borrowed,
 			doublecounted: !extraTvlsEnabled.doublecounted
 		}
 
@@ -216,11 +222,20 @@ export const useCalcProtocolsTvls = ({
 					Object.entries(extraTvl).forEach(([prop, propValues]) => {
 						const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
 
-						if (prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
+						if (prop === 'borrowed') {
+							tvl && (finalTvl = (finalTvl || 0) - tvl)
+							tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
+							tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
+							tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
+						} else if (prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
 							strikeTvl = true
 						} else {
 							// convert to lowercase as server response is not consistent in extra-tvl names
-							if (extraTvlsEnabled[prop.toLowerCase()] && prop.toLowerCase() !== 'doublecounted') {
+							if (
+								extraTvlsEnabled[prop.toLowerCase()] &&
+								prop.toLowerCase() !== 'borrowed' &&
+								prop.toLowerCase() !== 'doublecounted'
+							) {
 								// check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
 								tvl && (finalTvl = (finalTvl || 0) + tvl)
 								tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
@@ -263,7 +278,7 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
 	const protocolTvl = useMemo(() => {
 		let tvl = simpleTvl
 		Object.entries(chainTvls).forEach(([section, sectionTvl]: any) => {
-			if (section === 'doublecounted') {
+			if (section === 'borrowed' || section === 'doublecounted') {
 				tvl -= sectionTvl
 			}
 			// convert to lowercase as server response is not consistent in extra-tvl names
@@ -389,7 +404,7 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 				totalDaySum += chainTvls[tvlKey] || 0
 
 				for (const c in chainTvls) {
-					if (c === 'doublecounted' || c === 'd') {
+					if (c === 'borrowed' || c === 'doublecounted' || c === 'd') {
 						sum -= chainTvls[c]
 						totalDaySum -= chainTvls[c]
 					}
@@ -404,7 +419,7 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 			return { date, ...tvls }
 		})
 		return { data, daySum }
-	}, [chains, extraTvlsEnabled])
+	}, [chains, extraTvlsEnabled, tvlKey])
 
 	return { data, daySum }
 }
@@ -418,7 +433,7 @@ export const useCalcExtraTvlsByDay = (data) => {
 			let sum = values.tvl || 0
 
 			for (const value in values) {
-				if (value === 'doublecounted') {
+				if (value === 'borrowed' || value === 'doublecounted') {
 					sum -= values[value]
 				}
 				if (extraTvlsEnabled[value.toLowerCase()]) {

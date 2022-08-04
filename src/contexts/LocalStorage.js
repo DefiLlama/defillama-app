@@ -226,7 +226,7 @@ export const useGetExtraTvlEnabled = () => {
 	return useMemo(
 		() =>
 			extraTvlProps.reduce((all, prop) => {
-				all[prop] = isClient ? state[prop] : prop === 'doublecounted'
+				all[prop] = isClient ? state[prop] : prop === 'borrowed' || prop === 'doublecounted'
 				return all
 			}, {}),
 		[state, isClient]

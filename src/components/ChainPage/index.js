@@ -102,6 +102,11 @@ function GlobalPage({
 			Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
 				const stakedData = propCharts.find((x) => x[0] === data[0])
 				if (stakedData) {
+					// DEFAULT TOGGLE
+					if (prop === 'borrowed') {
+						sum -= stakedData[1]
+					}
+
 					if (prop === 'doublecounted') {
 						sum -= stakedData[1]
 					}
