@@ -4,6 +4,7 @@ import liquity from './liquity.json'
 import euler from './euler.json'
 import aave_v2 from './aave-v2.json'
 import compound_v2 from './compound-v2.json'
+import { DropdownOption } from '~/pages/liquidations'
 
 const TOTAL_BINS = 150
 
@@ -223,6 +224,35 @@ export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'cha
 	}
 
 	return chartData
+}
+
+export async function getDropdownOptions(aggregateBy: 'protocol' | 'chain') {
+	// TODO: this is mocked
+	const protocols: DropdownOption[] = [
+		{
+			name: 'Liquity',
+			key: 'liquity'
+		},
+		{
+			name: 'Euler',
+			key: 'euler'
+		},
+		{
+			name: 'Aave V2',
+			key: 'aave-v2'
+		},
+		{
+			name: 'Compound V2',
+			key: 'compound-v2'
+		}
+	]
+	const chains: DropdownOption[] = [
+		{
+			name: 'Etheruem',
+			key: 'ethereum'
+		}
+	]
+	return aggregateBy === 'protocol' ? protocols : chains
 }
 
 export type CoingeckoAsset = {

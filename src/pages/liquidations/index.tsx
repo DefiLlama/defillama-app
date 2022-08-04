@@ -7,6 +7,7 @@ import { PlusCircle } from 'react-feather'
 import * as echarts from 'echarts'
 import useSWR from 'swr'
 import { fetcher, arrayFetcher, retrySWR } from '~/utils/useSWR'
+import { Select as AriaSelect, SelectItem, SelectPopover, useSelectState } from 'ariakit/select'
 
 import { ButtonDark } from '~/components/ButtonStyled'
 import Layout from '~/layout'
@@ -15,7 +16,7 @@ import Layout from '~/layout'
 // import { liqs } from '../../components/LiquidationsPage'
 import { Header } from '~/Theme'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import React, { useCallback, useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { ChartData, ChartDataBin } from '~/utils/liquidations'
 import {
@@ -25,11 +26,17 @@ import {
 	ChartAndValuesWrapper,
 	DownloadButton,
 	DownloadIcon,
-	PanelHiddenMobile
+	PanelHiddenMobile,
+	Checkbox
 } from '~/components'
 import { ProtocolName, Symbol } from '~/containers/ProtocolContainer'
 import TokenLogo from '~/components/TokenLogo'
 import FormattedName from '~/components/FormattedName'
+import { RowBetween } from '~/components/Row'
+import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
+import { MenuButtonArrow } from 'ariakit'
+import { Stats, Item } from '~/components/Filters/shared'
+import HeadHelp from '~/components/HeadHelp'
 // import { ResponsiveContainer } from 'recharts'
 
 type Chart = {
@@ -39,8 +46,8 @@ type Chart = {
 }
 
 // this should be pulled dynamically
-type FilterChain = 'all' | string[]
-type FilterProtocol = 'all' | string[]
+type FilterChain = 'all' | string[] | 'none'
+type FilterProtocol = 'all' | string[] | 'none'
 
 const defaultChart: Chart = {
 	asset: 'ETH',
@@ -56,9 +63,6 @@ const LiquidationsPage: NextPage = () => {
 	const _filter = filter || defaultChart.filter
 	const chart: Chart = { asset: _asset, aggregateBy: _aggregateBy, filter: _filter }
 
-	console.log('chart')
-	console.log(chart)
-
 	const { data } = useSWR<ChartData>(
 		// TODO: implement the full api
 		`http://localhost:3000/api/mock-liquidations/?symbol=${_asset}&aggregateBy=${_aggregateBy}${
@@ -66,7 +70,6 @@ const LiquidationsPage: NextPage = () => {
 		}`,
 		fetcher
 	)
-	console.log(data)
 
 	return (
 		<Layout title={`Liquidation Levels - DefiLlama`} defaultSEO>
@@ -76,7 +79,12 @@ const LiquidationsPage: NextPage = () => {
 
 			<Header>Liquidation Levels in DeFi 💦</Header>
 			{data && (
-				<LiquidationsContainer chart={chart} chartData={data} uid={`liquidations-chart-${defaultChart.asset}`} />
+				<LiquidationsContainer
+					chart={chart}
+					chartData={data}
+					uid={`liquidations-chart-${defaultChart.asset}`}
+					aggregateBy={_aggregateBy}
+				/>
 			)}
 		</Layout>
 	)
@@ -98,7 +106,54 @@ const LiquidationsHeaderWrapper = styled.div`
 	}
 `
 
-const LiquidationsContainer = ({ chart, chartData, uid }: { chart: Chart; chartData: ChartData; uid: string }) => {
+const Dropdowns = styled.span`
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 20px;
+
+	button {
+		font-weight: 400;
+	}
+`
+
+export type DropdownOption = {
+	name: string
+	key: string
+	enabled?: boolean
+}
+
+const ProtocolsDropdown = ({ options }: { options: DropdownOption[] }) => {
+	return <h3>Protocols filter</h3>
+}
+
+const ChainsDropdown = ({ options }: { options: DropdownOption[] }) => {
+	return <h3>Chains filter</h3>
+}
+
+const LiquidationsChartFilters = ({ aggregateBy }: { aggregateBy: 'chain' | 'protocol' }) => {
+	const { data } = useSWR<DropdownOption[]>(
+		`http://localhost:3000/api/mock-liquidations-options?aggregateBy${aggregateBy}`,
+		fetcher
+	)
+	return (
+		<Dropdowns>
+			{data && (aggregateBy === 'protocol' ? <ProtocolsDropdown options={data} /> : <ChainsDropdown options={data} />)}
+		</Dropdowns>
+	)
+}
+
+const LiquidationsContainer = ({
+	chart,
+	chartData,
+	uid,
+	aggregateBy
+}: {
+	chart: Chart
+	chartData: ChartData
+	uid: string
+	aggregateBy: 'chain' | 'protocol'
+}) => {
 	return (
 		<>
 			<LiquidationsHeaderWrapper>
@@ -107,7 +162,7 @@ const LiquidationsContainer = ({ chart, chartData, uid }: { chart: Chart; chartD
 					<FormattedName text={chartData.coingeckoAsset.name} maxCharacters={16} fontWeight={700} />
 					<Symbol>({chartData.symbol})</Symbol>
 				</ProtocolName>
-				<h1>hellllo</h1>
+				<LiquidationsChartFilters aggregateBy={aggregateBy} />
 			</LiquidationsHeaderWrapper>
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
@@ -135,10 +190,19 @@ const LiquidationsContainer = ({ chart, chartData, uid }: { chart: Chart; chartD
 					</PanelHiddenMobile>
 				</BreakpointPanels>
 				<BreakpointPanel>
+					<LiquidationsChartHeader assetSymbol={chartData.coingeckoAsset.symbol} />
 					<LiquidationsChart chart={chart} chartData={chartData} uid={uid} />
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 		</>
+	)
+}
+
+const LiquidationsChartHeader = ({ assetSymbol }: { assetSymbol: string }) => {
+	return (
+		<RowBetween>
+			<h2 style={{ userSelect: 'none' }}>{assetSymbol} liquidation levels</h2>
+		</RowBetween>
 	)
 }
 
@@ -188,17 +252,18 @@ const getOption = (chart: Chart, chartData: ChartData, isDark: boolean) => {
 	}))
 
 	const option = {
-		title: {
-			text: `${chart.asset} Liquidation Levels`,
-			textStyle: {
-				fontFamily: 'inter, sans-serif',
-				fontWeight: 600,
-				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			}
-		},
+		// title: {
+		// 	text: `${chart.asset} Liquidation Levels`,
+		// 	textStyle: {
+		// 		fontFamily: 'inter, sans-serif',
+		// 		fontWeight: 600,
+		// 		color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+		// 	}
+		// },
 		grid: {
 			left: '2%',
 			right: '1%',
+			top: '2%',
 			bottom: '2%',
 			containLabel: true
 		},
@@ -296,11 +361,97 @@ const LiquidationsChart = ({ chart, chartData, uid }: { chart: Chart; chartData:
 		<div
 			id={uid}
 			style={{
-				minHeight: '320px',
+				minHeight: '360px',
 				margin: 'auto 0'
 			}}
 		/>
 	)
 }
+
+// function OptionsDropdown({ options }: { options: DropdownOption[] }) {
+// 	const router = useRouter()
+// 	const { asset, aggregateBy, filter } = router.query as Chart
+// 	const _asset = asset || defaultChart.asset
+// 	const _aggregateBy = aggregateBy || defaultChart.aggregateBy
+// 	const _filter = filter || defaultChart.filter
+
+// 	// const updateKey = (key: string, isEnabled: boolean) => {
+// 	// 	const newQuery = { ...router.query }
+// 	// 	if (_filter === 'all') {
+// 	// 		if (!isEnabled) {
+// 	// 			newQuery.filter = options.map(({ key }) => key).filter((x) => x !== key)
+// 	// 		}
+// 	// 	} else {
+// 	// 		if (isEnabled) {
+// 	// 			newQuery.filter = [...new Set([...newQuery.filter, key])]
+// 	// 		} else {
+// 	// 			newQuery.filter = (newQuery.filter as string[]).filter((x) => x !== key)
+// 	// 		}
+// 	// 	}
+// 	// }
+
+// 	const updateAttributes = (updatedValues: string[]) => {
+// 		if (_filter === 'all') {
+// 			options.forEach((option) => {
+// 				option.enabled = true
+// 			})
+// 		} else {
+// 			options.forEach((option) => {
+// 				const isSelected = updatedValues.includes(option.key)
+
+// 				const isEnabled = state[option.key]
+
+// 				// if ((isEnabled && !isSelected) || (!isEnabled && isSelected)) {
+// 				// 	updateKey(option.key, !isEnabled)
+// 				// }
+// 			})
+// 		}
+// 	}
+
+// 	// const values = options.filter((o) => state[o.key]).map((o) => o.key)
+
+// 	const select = useSelectState({
+// 		value: options.map((x) => x.key),
+// 		setValue: updateAttributes,
+// 		gutter: 8
+// 	})
+
+// 	const clear = () => {
+// 		const newQuery = { ...router.query, filter: 'none' }
+// 		router.push({ pathname: router.pathname, query: newQuery }, undefined, {
+// 			shallow: true
+// 		})
+// 	}
+
+// 	const toggleAll = () => {
+// 		const newQuery = { ...router.query }
+// 		delete newQuery.filter
+// 		router.push({ pathname: router.pathname, query: newQuery }, undefined, {
+// 			shallow: true
+// 		})
+// 	}
+
+// 	return (
+// 		<>
+// 			<FilterButton state={select}>
+// 				<span>Filter by {_aggregateBy === 'chain' ? 'protocol' : 'chain'}</span>
+// 				<MenuButtonArrow />
+// 			</FilterButton>
+// 			<FilterPopover state={select}>
+// 				<Stats>
+// 					<button onClick={clear}>clear</button>
+
+// 					<button onClick={toggleAll}>toggle all</button>
+// 				</Stats>
+// 				{options.map((option) => (
+// 					<Item key={option.key} value={option.key}>
+// 						{option.name}
+// 						<Checkbox checked={_filter === 'all' || _filter.includes(option.key)} />
+// 					</Item>
+// 				))}
+// 			</FilterPopover>
+// 		</>
+// 	)
+// }
 
 export default LiquidationsPage

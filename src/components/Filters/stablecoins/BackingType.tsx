@@ -27,6 +27,7 @@ export function BackingType() {
 	const [state, { updateKey }] = useLocalStorageContext()
 
 	const updateAttributes = (updatedValues) => {
+		console.log(updatedValues)
 		options.forEach((option) => {
 			const isSelected = updatedValues.includes(option.key)
 
