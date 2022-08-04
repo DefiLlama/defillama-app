@@ -404,7 +404,7 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 			return { date, ...tvls }
 		})
 		return { data, daySum }
-	}, [chains, extraTvlsEnabled])
+	}, [chains, extraTvlsEnabled, tvlKey])
 
 	return { data, daySum }
 }
