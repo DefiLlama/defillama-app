@@ -1,17 +1,9 @@
-import { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useState } from 'react'
+import { createContext, useContext, useReducer, useMemo, useCallback, useState } from 'react'
 import { trackGoal } from 'fathom-client'
 import { standardizeProtocolName } from '~/utils'
 import { useIsClient } from '~/hooks'
 
-const UNISWAP = 'UNISWAP'
-
-const VERSION = 'VERSION'
-const CURRENT_VERSION = 0
-const LAST_SAVED = 'LAST_SAVED'
-const DISMISSED_PATHS = 'DISMISSED_PATHS'
-const SAVED_ACCOUNTS = 'SAVED_ACCOUNTS'
 const SAVED_TOKENS = 'SAVED_TOKENS'
-const SAVED_PAIRS = 'SAVED_PAIRS'
 const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
 
 export const DARK_MODE = 'DARK_MODE'
@@ -68,14 +60,11 @@ const groupKeys = groupSettings.map((g) => g.key)
 
 const UPDATABLE_KEYS = [
 	DARK_MODE,
-	DISMISSED_PATHS,
-	SAVED_ACCOUNTS,
-	SAVED_PAIRS,
-	SAVED_TOKENS,
 	...extraTvlProps,
 	...extraPeggedProps,
 	DISPLAY_USD,
 	HIDE_LAST_DAY,
+	SAVED_TOKENS,
 	SELECTED_PORTFOLIO,
 	...groupKeys,
 	STABLECOINS,
@@ -122,7 +111,6 @@ function reducer(state, { type, payload }) {
 
 function init() {
 	const defaultLocalStorage = {
-		[VERSION]: CURRENT_VERSION,
 		[DARK_MODE]: true,
 		...extraTvlProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...extraPeggedProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
@@ -143,24 +131,11 @@ function init() {
 		[FIATSTABLES]: true,
 		[CRYPTOSTABLES]: true,
 		[ALGOSTABLES]: true,
-		[DISMISSED_PATHS]: {},
-		[SAVED_ACCOUNTS]: [],
 		[SAVED_TOKENS]: { main: {} },
-		[SAVED_PAIRS]: {},
 		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO
 	}
 
-	try {
-		const parsed = JSON.parse(window.localStorage.getItem(UNISWAP))
-		if (parsed[VERSION] !== CURRENT_VERSION) {
-			// this is where we could run migration logic
-			return defaultLocalStorage
-		} else {
-			return { ...defaultLocalStorage, ...parsed }
-		}
-	} catch {
-		return defaultLocalStorage
-	}
+	return defaultLocalStorage
 }
 
 export default function Provider({ children }) {
@@ -194,16 +169,6 @@ export default function Provider({ children }) {
 			{children}
 		</LocalStorageContext.Provider>
 	)
-}
-
-export function Updater() {
-	const [state] = useLocalStorageContext()
-
-	useEffect(() => {
-		window.localStorage.setItem(UNISWAP, JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000) }))
-	})
-
-	return null
 }
 
 export function useDarkModeManager() {
@@ -457,65 +422,6 @@ export function useAPYManager() {
 	}
 
 	return [apyGT0, toggleAPYGT0]
-}
-
-export function usePathDismissed(path) {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const pathDismissed = state?.[DISMISSED_PATHS]?.[path]
-	function dismiss() {
-		let newPaths = state?.[DISMISSED_PATHS]
-		newPaths[path] = true
-		updateKey(DISMISSED_PATHS, newPaths)
-	}
-
-	return [pathDismissed, dismiss]
-}
-
-export function useSavedAccounts() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const savedAccounts = state?.[SAVED_ACCOUNTS]
-
-	function addAccount(account) {
-		let newAccounts = state?.[SAVED_ACCOUNTS]
-		newAccounts.push(account)
-		updateKey(SAVED_ACCOUNTS, newAccounts)
-	}
-
-	function removeAccount(account) {
-		let newAccounts = state?.[SAVED_ACCOUNTS]
-		let index = newAccounts.indexOf(account)
-		if (index > -1) {
-			newAccounts.splice(index, 1)
-		}
-		updateKey(SAVED_ACCOUNTS, newAccounts)
-	}
-
-	return [savedAccounts, addAccount, removeAccount]
-}
-
-export function useSavedPairs() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const savedPairs = state?.[SAVED_PAIRS]
-
-	function addPair(address, token0Address, token1Address, token0Symbol, token1Symbol) {
-		let newList = state?.[SAVED_PAIRS]
-		newList[address] = {
-			address,
-			token0Address,
-			token1Address,
-			token0Symbol,
-			token1Symbol
-		}
-		updateKey(SAVED_PAIRS, newList)
-	}
-
-	function removePair(address) {
-		let newList = state?.[SAVED_PAIRS]
-		newList[address] = null
-		updateKey(SAVED_PAIRS, newList)
-	}
-
-	return [savedPairs, addPair, removePair]
 }
 
 // Since we are only using protocol name as the unique identifier for the /protcol/:name route, change keys to be unique by name for now.
