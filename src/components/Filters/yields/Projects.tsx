@@ -13,10 +13,12 @@ interface IYieldProjectsProps {
 
 export function YieldProjects({ projectList = [], selectedProjects, pathname }: IYieldProjectsProps) {
 	const router = useRouter()
+	// console.log({ selectedProjects })
 
 	const { project, ...queries } = router.query
 
 	const addProject = (project) => {
+		// console.log(project)
 		router.push(
 			{
 				pathname,

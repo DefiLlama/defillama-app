@@ -35,7 +35,6 @@ const LiquidationsHeaderWrapper = styled.div`
 	}
 `
 export const LiquidationsContainer = ({ chartState, chartData }: { chartState: ChartState; chartData: ChartData }) => {
-	const { aggregateBy } = chartState
 	return (
 		<>
 			<LiquidationsHeaderWrapper>
@@ -65,9 +64,9 @@ export const LiquidationsContainer = ({ chartState, chartData }: { chartState: C
 						</p>
 					</PanelHiddenMobile>
 					<PanelHiddenMobile>
-						<h2>Lending Market Dominance</h2>
+						<h2>Within -20% of current price</h2>
 						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
-							{(chartData.lendingDominance * 100).toFixed(1) || 0}%
+							${getReadableValue(chartData.dangerousPositionsAmount)}
 						</p>
 					</PanelHiddenMobile>
 				</BreakpointPanels>

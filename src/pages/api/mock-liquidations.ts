@@ -3,7 +3,8 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { getResponse } from '../../utils/liquidations'
 
 export default async function liquidationsHandler(req: NextApiRequest, res: NextApiResponse) {
-	const { symbol, aggregateBy } = req.query
+	const { symbol, aggregateBy, filters } = req.query
+	console.log('[mock-liquidations] received these filters but filters are currently handled on the frontend', filters)
 	// if symbol/aggregateBy is an array, get the first one
 	// will make more robust when we have server side
 	const _symbol = Array.isArray(symbol) ? symbol[0] : symbol
@@ -12,13 +13,5 @@ export default async function liquidationsHandler(req: NextApiRequest, res: Next
 		| 'chain'
 		| 'protocol'
 	const chartData = await getResponse(_symbol, __aggregateBy)
-	// {
-	// 	symbol,
-	// 	currentPrice,
-	// 	lendingDominance: await getLendingDominance(symbol),
-	// 	historicalChange: { 168: await getHistoricalChange(symbol, 168) },
-	// 	totalLiquidable: await getTotalLiquidable(symbol),
-	// 	chartDataBins
-	// }
 	res.status(200).json(chartData)
 }

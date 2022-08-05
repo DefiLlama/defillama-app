@@ -110,9 +110,9 @@ async function getPrices(collaterals: string[]) {
 	return prices
 }
 
-async function getLendingDominance(symbol: string) {
+async function getDangerousPositionsAmount(symbol: string) {
 	// TODO: implement on backend
-	return 0.69
+	return 69_000_000
 }
 async function getHistoricalChange(symbol: string, hours: number) {
 	// TODO: implement on backend
@@ -127,7 +127,7 @@ export type ChartData = {
 	symbol: string // could change to coingeckoId in the future
 	coingeckoAsset: CoingeckoAsset
 	currentPrice: number
-	lendingDominance: number // in ratio of total collateral amount tracked
+	dangerousPositionsAmount: number // in ratio of total collateral amount tracked
 	historicalChange: {
 		[hours: number]: number // 1h, 6h, 12h, 1d, 7d, 30d etc in ratio
 	}
@@ -217,7 +217,7 @@ export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'cha
 		symbol,
 		coingeckoAsset,
 		currentPrice,
-		lendingDominance: await getLendingDominance(symbol),
+		dangerousPositionsAmount: await getDangerousPositionsAmount(symbol),
 		historicalChange: { 168: await getHistoricalChange(symbol, 168) },
 		totalLiquidable: await getTotalLiquidable(symbol),
 		chartDataBins,
@@ -290,6 +290,9 @@ export function useLiquidationsState() {
 		parse: (query: string) => {
 			if (!query) {
 				return ['all']
+			}
+			if (query.includes('none')) {
+				return ['none']
 			}
 			const parsed = query.split(',').filter((x) => !!x)
 			const deduped = [...new Set(parsed)]
