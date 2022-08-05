@@ -25,7 +25,7 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 				yields?.map((el) => ({
 					name: `${el.name} (${el.symbol.toUpperCase()})`,
 					symbol: el.symbol.toUpperCase(),
-					route: `${pathname}?token=${el.symbol.toUpperCase()}`,
+					route: `/yields?token=${el.symbol.toUpperCase()}`,
 					logo: el.image
 				})) ?? []
 
@@ -37,7 +37,7 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 				})) ?? []
 
 			return [...yieldsList, ...projectList]
-		}, [yields, projects, pathname]) ?? []
+		}, [yields, projects]) ?? []
 
 	if (!props.step?.hideOptions && advancedSearch) {
 		return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} pathname={pathname || '/yields'} />
