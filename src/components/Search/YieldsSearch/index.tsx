@@ -25,17 +25,14 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 				yields?.map((el) => ({
 					name: `${el.name} (${el.symbol.toUpperCase()})`,
 					symbol: el.symbol.toUpperCase(),
-					route:
-						pathname === '/yields/overview'
-							? `${pathname}?token=${el.symbol.toUpperCase()}`
-							: `/yields?token=${el.symbol.toUpperCase()}`,
+					route: `${pathname}?token=${el.symbol.toUpperCase()}`,
 					logo: el.image
 				})) ?? []
 
 			const projectList =
 				projects?.map((p) => ({
 					name: `Show all ${p.name} pools`,
-					route: pathname === '/yields/overview' ? `${pathname}?project=${p.slug}` : `/yields?project=${p.slug}`,
+					route: `${pathname}?project=${p.slug}`,
 					logo: tokenIconUrl(p.slug)
 				})) ?? []
 

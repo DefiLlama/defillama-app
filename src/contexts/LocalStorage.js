@@ -67,13 +67,6 @@ const UPDATABLE_KEYS = [
 	HIDE_LAST_DAY,
 	SELECTED_PORTFOLIO,
 	...groupKeys,
-	STABLECOINS,
-	SINGLE_EXPOSURE,
-	NO_IL,
-	MILLION_DOLLAR,
-	AUDITED,
-	NO_OUTLIER,
-	APY_GT0,
 	PEGGEDUSD,
 	PEGGEDEUR,
 	PEGGEDVAR,
@@ -116,13 +109,6 @@ function init() {
 		...extraPeggedProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		[DISPLAY_USD]: false,
 		[HIDE_LAST_DAY]: false,
-		[STABLECOINS]: false,
-		[SINGLE_EXPOSURE]: false,
-		[NO_IL]: false,
-		[MILLION_DOLLAR]: false,
-		[AUDITED]: false,
-		[NO_OUTLIER]: false,
-		[APY_GT0]: true,
 		[PEGGEDUSD]: true,
 		[PEGGEDEUR]: true,
 		[PEGGEDVAR]: true,
@@ -343,83 +329,6 @@ export function useHideLastDayManager() {
 	}
 
 	return [hideLastDay, toggleHideLastDay]
-}
-
-export function useStablecoinsManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const stablecoins = state[STABLECOINS]
-
-	const toggleStablecoins = () => {
-		updateKey(STABLECOINS, !stablecoins)
-	}
-
-	return [stablecoins, toggleStablecoins]
-}
-
-export function useSingleExposureManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const singleExposure = state[SINGLE_EXPOSURE]
-
-	const toggleSingleExposure = () => {
-		updateKey(SINGLE_EXPOSURE, !singleExposure)
-	}
-
-	return [singleExposure, toggleSingleExposure]
-}
-
-export function useNoILManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const noIL = state[NO_IL]
-
-	const toggleNoIL = () => {
-		updateKey(NO_IL, !noIL)
-	}
-
-	return [noIL, toggleNoIL]
-}
-
-export function useMillionDollarManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const millionDollar = state[MILLION_DOLLAR]
-
-	const toggleMillionDollar = () => {
-		updateKey(MILLION_DOLLAR, !millionDollar)
-	}
-
-	return [millionDollar, toggleMillionDollar]
-}
-
-export function useAuditedManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const audited = state[AUDITED]
-
-	const toggleAudited = () => {
-		updateKey(AUDITED, !audited)
-	}
-
-	return [audited, toggleAudited]
-}
-
-export function useNoOutlierManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const noOutlier = state[NO_OUTLIER]
-
-	const toggleNoOutlier = () => {
-		updateKey(NO_OUTLIER, !noOutlier)
-	}
-
-	return [noOutlier, toggleNoOutlier]
-}
-
-export function useAPYManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const apyGT0 = state[APY_GT0]
-
-	const toggleAPYGT0 = () => {
-		updateKey(APY_GT0, !apyGT0)
-	}
-
-	return [apyGT0, toggleAPYGT0]
 }
 
 // Since we are only using protocol name as the unique identifier for the /protcol/:name route, change keys to be unique by name for now.
