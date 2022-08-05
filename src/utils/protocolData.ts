@@ -1,6 +1,10 @@
 import { extraTvlProps } from '~/contexts/LocalStorage'
 
 function buildChainBreakdown(chainTvls) {
+	if (!chainTvls) {
+		return []
+	}
+
 	const timeToTvl = {}
 
 	Object.entries(chainTvls).forEach(([chainToAdd, data]) => {
@@ -161,7 +165,6 @@ export const buildProtocolData = (protocolData) => {
 			})
 
 			return {
-				chainsStacked,
 				tokensUnique,
 				tokenBreakdownUSD,
 				tokenBreakdown,
