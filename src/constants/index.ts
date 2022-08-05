@@ -37,5 +37,11 @@ export const YIELD_CHART_API = 'https://yields.llama.fi/chart'
 export const YIELD_CONFIG_API = 'https://api.llama.fi/config/yields?a=1'
 export const YIELD_MEDIAN_API = 'https://yields.llama.fi/median'
 
+export const LIQUIDATIONS_POOLS_API = 'https://yields.llama.fi/pools'
+export const LIQUIDATIONS_POOLS_LAMBDA_API = 'https://yields.llama.fi/poolsEnriched'
+export const LIQUIDATIONS_CHART_API = 'https://yields.llama.fi/chart'
+export const LIQUIDATIONS_CONFIG_API = 'https://api.llama.fi/config/yields?a=1'
+export const LIQUIDATIONS_MEDIAN_API = 'https://yields.llama.fi/median'
+
 export const CG_TOKEN_API =
 	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'

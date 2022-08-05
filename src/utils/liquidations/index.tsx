@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js'
 import liquity from './liquity.json'
 import euler from './euler.json'
 import aave_v2 from './aave-v2.json'
-import compound_v2 from './compound-v2.json'
+import compound from './compound.json'
 import { DropdownOption } from '~/components/LiquidationsPage/Dropdowns'
 import { queryTypes, useQueryState } from 'next-usequerystate'
 import { defaultChartState } from '~/components/LiquidationsPage/utils'
@@ -198,7 +198,7 @@ export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'cha
 		liquity,
 		euler,
 		'aave-v2': aave_v2,
-		'compound-v2': compound_v2
+		compound
 	}
 	const allAggregated = await aggregateAssetAdapterData(sampleDbResponse)
 	let positions: Position[]
