@@ -15,7 +15,7 @@ import { columns, fallbackColumns, fallbackList, TableWrapper } from './shared'
 import { useFormatYieldQueryParams } from './hooks'
 
 const YieldPage = ({ loading, pools, projectList, chainList }) => {
-	const { query } = useRouter()
+	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl } = query
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens } =
@@ -125,16 +125,16 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} pathname="/yields" />
+			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} pathname={pathname} />
 
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>
 				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields" />
-					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname="/yields" />
-					<YieldAttributes pathname="/yields" />
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
+					<YieldAttributes pathname={pathname} />
 					<TVLRange />
-					<ResetAllYieldFilters pathname="/yields" />
+					<ResetAllYieldFilters pathname={pathname} />
 				</Dropdowns>
 			</TableFilters>
 
