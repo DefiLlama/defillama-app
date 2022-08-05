@@ -59,6 +59,14 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 		return pools.reduce((acc, curr) => {
 			let toFilter = true
 
+			attributeOptions.forEach((option) => {
+				// check if this page has default attribute filter function
+				if (option.defaultFilterFnOnPage[pathname]) {
+					// apply default attribute filter function
+					toFilter = toFilter && option.defaultFilterFnOnPage[pathname](curr)
+				}
+			})
+
 			selectedAttributes.forEach((attribute) => {
 				const attributeOption = attributeOptions.find((o) => o.key === attribute)
 
@@ -121,7 +129,17 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 				})
 			} else return acc
 		}, [])
-	}, [minTvl, maxTvl, pools, selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens])
+	}, [
+		minTvl,
+		maxTvl,
+		pools,
+		selectedProjects,
+		selectedChains,
+		selectedAttributes,
+		includeTokens,
+		excludeTokens,
+		pathname
+	])
 
 	return (
 		<>

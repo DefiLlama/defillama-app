@@ -19,43 +19,62 @@ export const attributeOptions = [
 		name: 'Stablecoins',
 		key: STABLECOINS.toLowerCase(),
 		help: 'Select pools consisting of stablecoins only',
-		filterFn: (item) => item.stablecoin === true
+		filterFn: (item) => item.stablecoin === true,
+		defaultFilterFnOnPage: {
+			'/yields/stablecoins': (item) => item.stablecoin === true
+		}
 	},
 	{
 		name: 'Single Exposure',
 		key: SINGLE_EXPOSURE.toLowerCase(),
 		help: 'Select pools with single token exposure only',
-		filterFn: (item) => item.exposure === 'single'
+		filterFn: (item) => item.exposure === 'single',
+		defaultFilterFnOnPage: {}
 	},
 	{
 		name: 'No IL',
 		key: NO_IL.toLowerCase(),
 		help: 'Select pools with no impermanent loss',
-		filterFn: (item) => item.ilRisk === 'no'
+		filterFn: (item) => item.ilRisk === 'no',
+		defaultFilterFnOnPage: {
+			'/yields/stablecoins': (item) => item.ilRisk === 'no'
+		}
 	},
 	{
 		name: 'Million Dollar',
 		key: MILLION_DOLLAR.toLowerCase(),
 		help: 'Select pools with at least one million dollar in TVL',
-		filterFn: (item) => item.tvlUsd >= 1e6
+		filterFn: (item) => item.tvlUsd >= 1e6,
+		defaultFilterFnOnPage: {
+			'/yields/stablecoins': (item) => item.tvlUsd >= 1e6
+		}
 	},
 	{
 		name: 'Audited',
 		key: AUDITED.toLowerCase(),
 		help: 'Select pools from audited projects only',
-		filterFn: (item) => item.audits !== '0'
+		filterFn: (item) => item.audits !== '0',
+		defaultFilterFnOnPage: {
+			'/yields/stablecoins': (item) => item.audits !== '0'
+		}
 	},
 	{
 		name: 'No Outliers',
 		key: NO_OUTLIER.toLowerCase(),
 		help: 'Remove pools which are considered outliers based on their geometric mean of apy values',
-		filterFn: (item) => item.outlier === false
+		filterFn: (item) => item.outlier === false,
+		defaultFilterFnOnPage: {
+			'/yields/stablecoins': (item) => item.outlier === false
+		}
 	},
 	{
 		name: 'APY > 0',
 		key: APY_GT0.toLowerCase(),
 		help: 'Remove pools with apy values of 0',
-		filterFn: (item) => item.apy > 0
+		filterFn: (item) => item.apy > 0,
+		defaultFilterFnOnPage: {
+			'/yields/stablecoins': (item) => item.apy > 0
+		}
 	}
 ]
 
