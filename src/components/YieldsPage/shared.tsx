@@ -259,6 +259,8 @@ export const columns = [
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
 					{rowValues.project === 'Osmosis' ? (
 						<QuestionHelper text={`${rowValues.id.split('-').slice(-1)} lock`} />
+					) : rowValues.project === 'cBridge' ? (
+						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY'} />
 					) : null}
 					{formattedPercent(value, true)}
 				</AutoRow>
