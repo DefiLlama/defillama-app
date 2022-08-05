@@ -36,6 +36,11 @@ const nextConfig = {
 				source: '/yields/chain/:path*',
 				destination: '/yields?chain=:path*',
 				permanent: true
+			},
+			{
+				source: '/recent-noforks',
+				destination: '/recent',
+				permanent: true
 			}
 		]
 	},
@@ -44,6 +49,10 @@ const nextConfig = {
 	},
 	compiler: {
 		styledComponents: true
+	},
+	experimental: {
+		legacyBrowsers: false,
+		browsersListForSwc: true
 	}
 }
 

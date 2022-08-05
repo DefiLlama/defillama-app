@@ -1,17 +1,9 @@
-import { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useState } from 'react'
+import { createContext, useContext, useReducer, useMemo, useCallback, useState } from 'react'
 import { trackGoal } from 'fathom-client'
 import { standardizeProtocolName } from '~/utils'
 import { useIsClient } from '~/hooks'
 
-const UNISWAP = 'UNISWAP'
-
-const VERSION = 'VERSION'
-const CURRENT_VERSION = 0
-const LAST_SAVED = 'LAST_SAVED'
-const DISMISSED_PATHS = 'DISMISSED_PATHS'
-const SAVED_ACCOUNTS = 'SAVED_ACCOUNTS'
 const SAVED_TOKENS = 'SAVED_TOKENS'
-const SAVED_PAIRS = 'SAVED_PAIRS'
 const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
 
 export const DARK_MODE = 'DARK_MODE'
@@ -22,7 +14,6 @@ export const DOUBLE_COUNT = 'doublecounted'
 export const DISPLAY_USD = 'DISPLAY_USD'
 export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
 export const DEFAULT_PORTFOLIO = 'main'
-export const UNRELEASED = 'unreleased'
 export const STABLECOINS = 'STABLECOINS'
 export const SINGLE_EXPOSURE = 'SINGLE_EXPOSURE'
 export const NO_IL = 'NO_IL'
@@ -30,6 +21,13 @@ export const MILLION_DOLLAR = 'MILLION_DOLLAR'
 export const AUDITED = 'AUDITED'
 export const NO_OUTLIER = 'NO_OUTLIER'
 export const APY_GT0 = 'APY_GT0'
+export const UNRELEASED = 'unreleased'
+export const PEGGEDUSD = 'PEGGEDUSD'
+export const PEGGEDEUR = 'PEGGEDEUR'
+export const PEGGEDVAR = 'PEGGEDVAR'
+export const FIATSTABLES = 'FIATSTABLES'
+export const CRYPTOSTABLES = 'CRYPTOSTABLES'
+export const ALGOSTABLES = 'ALGOSTABLES'
 
 export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
 export const extraPeggedProps = [UNRELEASED]
@@ -62,9 +60,6 @@ const groupKeys = groupSettings.map((g) => g.key)
 
 const UPDATABLE_KEYS = [
 	DARK_MODE,
-	DISMISSED_PATHS,
-	SAVED_ACCOUNTS,
-	SAVED_PAIRS,
 	SAVED_TOKENS,
 	...extraTvlProps,
 	...extraPeggedProps,
@@ -78,7 +73,13 @@ const UPDATABLE_KEYS = [
 	MILLION_DOLLAR,
 	AUDITED,
 	NO_OUTLIER,
-	APY_GT0
+	APY_GT0,
+	PEGGEDUSD,
+	PEGGEDEUR,
+	PEGGEDVAR,
+	FIATSTABLES,
+	CRYPTOSTABLES,
+	ALGOSTABLES
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -110,11 +111,9 @@ function reducer(state, { type, payload }) {
 
 function init() {
 	const defaultLocalStorage = {
-		[VERSION]: CURRENT_VERSION,
 		[DARK_MODE]: true,
 		...extraTvlProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...extraPeggedProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		[DOUBLE_COUNT]: true,
 		[DISPLAY_USD]: false,
 		[HIDE_LAST_DAY]: false,
 		[STABLECOINS]: false,
@@ -124,24 +123,17 @@ function init() {
 		[AUDITED]: false,
 		[NO_OUTLIER]: false,
 		[APY_GT0]: true,
-		[DISMISSED_PATHS]: {},
-		[SAVED_ACCOUNTS]: [],
+		[PEGGEDUSD]: true,
+		[PEGGEDEUR]: true,
+		[PEGGEDVAR]: true,
+		[FIATSTABLES]: true,
+		[CRYPTOSTABLES]: true,
+		[ALGOSTABLES]: true,
 		[SAVED_TOKENS]: { main: {} },
-		[SAVED_PAIRS]: {},
 		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO
 	}
 
-	try {
-		const parsed = JSON.parse(window.localStorage.getItem(UNISWAP))
-		if (parsed[VERSION] !== CURRENT_VERSION) {
-			// this is where we could run migration logic
-			return defaultLocalStorage
-		} else {
-			return { ...defaultLocalStorage, ...parsed }
-		}
-	} catch {
-		return defaultLocalStorage
-	}
+	return defaultLocalStorage
 }
 
 export default function Provider({ children }) {
@@ -177,16 +169,6 @@ export default function Provider({ children }) {
 	)
 }
 
-export function Updater() {
-	const [state] = useLocalStorageContext()
-
-	useEffect(() => {
-		window.localStorage.setItem(UNISWAP, JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000) }))
-	})
-
-	return null
-}
-
 export function useDarkModeManager() {
 	const [state, { updateKey }] = useLocalStorageContext()
 	const isClient = useIsClient()
@@ -208,7 +190,7 @@ export const useGetExtraTvlEnabled = () => {
 	return useMemo(
 		() =>
 			extraTvlProps.reduce((all, prop) => {
-				all[prop] = isClient ? state[prop] : prop === 'doublecounted'
+				all[prop] = isClient ? state[prop] : false
 				return all
 			}, {}),
 		[state, isClient]
@@ -249,6 +231,72 @@ export const useGetExtraPeggedEnabled = () => {
 			}, {}),
 		[state, isClient]
 	)
+}
+
+export function usePeggedUSDManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const peggedUSD = state[PEGGEDUSD]
+
+	const togglePeggedUSD = () => {
+		updateKey(PEGGEDUSD, !peggedUSD)
+	}
+
+	return [peggedUSD, togglePeggedUSD]
+}
+
+export function usePeggedEURManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const peggedEUR = state[PEGGEDEUR]
+
+	const togglePeggedEUR = () => {
+		updateKey(PEGGEDEUR, !peggedEUR)
+	}
+
+	return [peggedEUR, togglePeggedEUR]
+}
+
+export function usePeggedVARManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const peggedVAR = state[PEGGEDVAR]
+
+	const togglePeggedVAR = () => {
+		updateKey(PEGGEDVAR, !peggedVAR)
+	}
+
+	return [peggedVAR, togglePeggedVAR]
+}
+
+export function useFiatStablesManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const fiatStables = state[FIATSTABLES]
+
+	const toggleFiatStables = () => {
+		updateKey(FIATSTABLES, !fiatStables)
+	}
+
+	return [fiatStables, toggleFiatStables]
+}
+
+export function useCryptoStablesManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const cryptoStables = state[CRYPTOSTABLES]
+
+	const toggleCryptoStables = () => {
+		updateKey(CRYPTOSTABLES, !cryptoStables)
+	}
+
+	return [cryptoStables, toggleCryptoStables]
+}
+
+export function useAlgoStablesManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const algoStables = state[ALGOSTABLES]
+
+	const toggleAlgoStables = () => {
+		updateKey(ALGOSTABLES, !algoStables)
+	}
+
+	return [algoStables, toggleAlgoStables]
 }
 
 export function useStakingManager() {
@@ -372,65 +420,6 @@ export function useAPYManager() {
 	}
 
 	return [apyGT0, toggleAPYGT0]
-}
-
-export function usePathDismissed(path) {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const pathDismissed = state?.[DISMISSED_PATHS]?.[path]
-	function dismiss() {
-		let newPaths = state?.[DISMISSED_PATHS]
-		newPaths[path] = true
-		updateKey(DISMISSED_PATHS, newPaths)
-	}
-
-	return [pathDismissed, dismiss]
-}
-
-export function useSavedAccounts() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const savedAccounts = state?.[SAVED_ACCOUNTS]
-
-	function addAccount(account) {
-		let newAccounts = state?.[SAVED_ACCOUNTS]
-		newAccounts.push(account)
-		updateKey(SAVED_ACCOUNTS, newAccounts)
-	}
-
-	function removeAccount(account) {
-		let newAccounts = state?.[SAVED_ACCOUNTS]
-		let index = newAccounts.indexOf(account)
-		if (index > -1) {
-			newAccounts.splice(index, 1)
-		}
-		updateKey(SAVED_ACCOUNTS, newAccounts)
-	}
-
-	return [savedAccounts, addAccount, removeAccount]
-}
-
-export function useSavedPairs() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const savedPairs = state?.[SAVED_PAIRS]
-
-	function addPair(address, token0Address, token1Address, token0Symbol, token1Symbol) {
-		let newList = state?.[SAVED_PAIRS]
-		newList[address] = {
-			address,
-			token0Address,
-			token1Address,
-			token0Symbol,
-			token1Symbol
-		}
-		updateKey(SAVED_PAIRS, newList)
-	}
-
-	function removePair(address) {
-		let newList = state?.[SAVED_PAIRS]
-		newList[address] = null
-		updateKey(SAVED_PAIRS, newList)
-	}
-
-	return [savedPairs, addPair, removePair]
 }
 
 // Since we are only using protocol name as the unique identifier for the /protcol/:name route, change keys to be unique by name for now.

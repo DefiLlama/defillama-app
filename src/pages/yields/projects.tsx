@@ -32,6 +32,10 @@ const columns = [
 		}
 	},
 	{
+		header: 'Category',
+		accessor: 'category'
+	},
+	{
 		header: 'Pools',
 		accessor: 'protocols'
 	},
@@ -43,10 +47,10 @@ const columns = [
 		}
 	},
 	{
-		header: 'Nb of Audits',
+		header: 'Audits',
 		accessor: 'audits',
 		Cell: ({ value }) => {
-			return <span>{value}</span>
+			return <span>{value ? 'Yes' : 'No'}</span>
 		}
 	},
 	{
@@ -71,12 +75,13 @@ export async function getStaticProps() {
 		projects[proj].tvl += p.tvlUsd
 	})
 
-	// add median
+	// add other fields
 	for (const project of Object.keys(projects)) {
 		const x = data.props.pools.filter((p) => p.project === project)
 		const m = median(x.map((el) => el.apy))
 		projects[project]['medianApy'] = m
-		projects[project]['audits'] = x[0].audits
+		projects[project]['audits'] = x[0].audits !== '0'
+		projects[project]['category'] = x[0].category
 	}
 
 	const projArray = Object.entries(projects).map(([slug, details]: [string, any]) => ({

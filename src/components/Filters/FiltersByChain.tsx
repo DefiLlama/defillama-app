@@ -3,7 +3,7 @@ import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
 import { FilterButton } from '~/components/Select/AriakitSelect'
-import { Dropdown, Item, Stats } from './shared'
+import { Dropdown, Item, Selected, Stats } from './shared'
 
 interface IFiltersByChainProps {
 	chainList: string[]
@@ -14,13 +14,15 @@ interface IFiltersByChainProps {
 export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFiltersByChainProps) {
 	const router = useRouter()
 
-	const addChain = (chain) => {
+	const { chain, ...queries } = router.query
+
+	const addChain = (newChain) => {
 		router.push(
 			{
 				pathname,
 				query: {
-					...router.query,
-					chain
+					...queries,
+					chain: newChain
 				}
 			},
 			undefined,
@@ -49,7 +51,7 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 			{
 				pathname,
 				query: {
-					...router.query,
+					...queries,
 					chain: 'All'
 				}
 			},
@@ -63,7 +65,7 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 			{
 				pathname,
 				query: {
-					...router.query,
+					...queries,
 					chain: 'None'
 				}
 			},
@@ -77,6 +79,7 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 			<FilterButton state={select}>
 				<span>Filter by Chain</span>
 				<MenuButtonArrow />
+				{selectedChains.length > 0 && <Selected>{selectedChains.length}</Selected>}
 			</FilterButton>
 			<Dropdown state={select}>
 				<Input state={combobox} placeholder="Search for chains..." />

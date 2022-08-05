@@ -7,27 +7,34 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	_pools = _pools.map((p) => ({ ...p, project: p.project === 'aave' ? 'aave-v2' : p.project }))
 
 	// add projectName and audit fields from config to pools array
-	_pools = _pools.map((p) => ({ ...p, projectName: _config[p.project]?.name, audits: _config[p.project]?.audits }))
-	// remove potential undefined on projectName
-	const data = _pools.filter((p) => p.projectName)
+	_pools = _pools.map((p) => ({
+		...p,
+		projectName: _config[p.project]?.name,
+		audits: _config[p.project]?.audits,
+		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-',
+		category: _config[p.project]?.category
+	}))
+
+	const poolsList = []
 
 	const chainList: Set<string> = new Set()
 
 	const projectList: { name: string; slug: string }[] = []
 
-	const projects: string[] = []
+	_pools.forEach((pool) => {
+		// remove potential undefined on projectName
+		if (pool.projectName) {
+			poolsList.push(pool)
+			chainList.add(pool.chain)
 
-	data.forEach((p) => {
-		chainList.add(p.chain)
-
-		if (!projects.includes(p.projectName)) {
-			projects.push(p.projectName)
-			projectList.push({ name: p.projectName, slug: p.project })
+			if (!projectList.find((p) => p.name === pool.projectName)) {
+				projectList.push({ name: pool.projectName, slug: pool.project })
+			}
 		}
 	})
 
 	return {
-		pools: data,
+		pools: poolsList,
 		chainList: Array.from(chainList),
 		projectList
 	}

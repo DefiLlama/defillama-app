@@ -1,18 +1,17 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { YieldAttributes, TVLRange, FiltersByChain, YieldProjects, ResetAllYieldFilters } from '~/components/Filters'
-import { YieldsSearch } from '~/components/Search'
 import {
-	useNoILManager,
-	useSingleExposureManager,
-	useStablecoinsManager,
-	useMillionDollarManager,
-	useAuditedManager,
-	useNoOutlierManager,
-	useAPYManager
-} from '~/contexts/LocalStorage'
+	YieldAttributes,
+	TVLRange,
+	FiltersByChain,
+	YieldProjects,
+	ResetAllYieldFilters,
+	attributeOptions
+} from '~/components/Filters'
+import { YieldsSearch } from '~/components/Search'
 import dynamic from 'next/dynamic'
+import { useFormatYieldQueryParams } from './hooks'
 
 interface IChartProps {
 	chartData: any
@@ -27,97 +26,28 @@ const BoxplotChart = dynamic(() => import('~/components/TokenChart/BoxplotChart'
 const TreemapChart = dynamic(() => import('~/components/TokenChart/TreemapChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
+const BarChartYields = dynamic(() => import('~/components/TokenChart/BarChartYields'), {
+	ssr: false
+}) as React.FC<IChartProps>
 
-const PlotsPage = ({ pools, chainList, projectList }) => {
+const PlotsPage = ({ pools, chainList, projectList, median }) => {
 	const { query } = useRouter()
-	const { minTvl, maxTvl, project, chain, token, excludeToken } = query
+	const { minTvl, maxTvl } = query
 
-	const { selectedProjects, selectedChains, includeTokens, excludeTokens } = React.useMemo(() => {
-		let selectedProjects = [],
-			selectedChains = [],
-			includeTokens = [],
-			excludeTokens = []
-
-		if (project) {
-			if (typeof project === 'string') {
-				selectedProjects = project === 'All' ? projectList.map((p) => p.slug) : [project]
-			} else {
-				selectedProjects = [...project]
-			}
-		}
-
-		if (chain) {
-			if (typeof chain === 'string') {
-				selectedChains = chain === 'All' ? [...chainList] : [chain]
-			} else {
-				selectedChains = [...chain]
-			}
-		} else selectedChains = [...chainList]
-
-		if (token) {
-			if (typeof token === 'string') {
-				includeTokens = [token]
-			} else {
-				includeTokens = [...token]
-			}
-		}
-
-		if (excludeToken) {
-			if (typeof excludeToken === 'string') {
-				excludeTokens = [excludeToken]
-			} else {
-				excludeTokens = [...excludeToken]
-			}
-		}
-
-		return {
-			selectedProjects,
-			selectedChains,
-			includeTokens,
-			excludeTokens
-		}
-	}, [project, chain, projectList, chainList, token, excludeToken])
-
-	// toggles
-	const [stablecoins] = useStablecoinsManager()
-	const [noIL] = useNoILManager()
-	const [singleExposure] = useSingleExposureManager()
-	const [millionDollar] = useMillionDollarManager()
-	const [audited] = useAuditedManager()
-	const [noOutlier] = useNoOutlierManager()
-	const [apyGT0] = useAPYManager()
+	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens } =
+		useFormatYieldQueryParams({ projectList, chainList })
 
 	const poolsData = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
 			let toFilter = true
 
-			if (stablecoins) {
-				toFilter = toFilter && curr.stablecoin === true
-			}
+			selectedAttributes.forEach((attribute) => {
+				const attributeOption = attributeOptions.find((o) => o.key === attribute)
 
-			if (noIL) {
-				toFilter = toFilter && curr.ilRisk === 'no'
-			}
-
-			if (singleExposure) {
-				toFilter = toFilter && curr.exposure === 'single'
-			}
-
-			if (millionDollar) {
-				toFilter = toFilter && curr.tvlUsd >= 1e6
-			}
-
-			if (audited) {
-				toFilter = toFilter && curr.audits !== '0'
-			}
-
-			if (noOutlier) {
-				toFilter = toFilter && curr.outlier === false
-			}
-
-			if (apyGT0) {
-				toFilter = toFilter && curr.apy > 0
-			}
+				if (attributeOption) {
+					toFilter = toFilter && attributeOption.filterFn(curr)
+				}
+			})
 
 			if (selectedProjects.length > 0) {
 				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
@@ -152,22 +82,7 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 				return acc.concat(curr)
 			} else return acc
 		}, [])
-	}, [
-		minTvl,
-		maxTvl,
-		pools,
-		audited,
-		noOutlier,
-		apyGT0,
-		millionDollar,
-		noIL,
-		singleExposure,
-		stablecoins,
-		selectedProjects,
-		selectedChains,
-		includeTokens,
-		excludeTokens
-	])
+	}, [minTvl, maxTvl, pools, selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens])
 
 	return (
 		<>
@@ -178,12 +93,13 @@ const PlotsPage = ({ pools, chainList, projectList }) => {
 				<Dropdowns>
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields/overview" />
 					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname="/yields/overview" />
-					<YieldAttributes />
+					<YieldAttributes pathname="/yields/overview" />
 					<TVLRange />
 					<ResetAllYieldFilters pathname="/yields/overview" />
 				</Dropdowns>
 			</ChartFilters>
 
+			<BarChartYields chartData={median} />
 			<TreemapChart chartData={poolsData} />
 			<ScatterChart chartData={poolsData.filter((p) => !p.outlier)} />
 			<BoxplotChart chartData={poolsData.filter((p) => !p.outlier)} />

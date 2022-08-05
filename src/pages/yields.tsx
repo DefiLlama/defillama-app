@@ -1,7 +1,7 @@
 import Layout from '~/layout'
 import YieldPage from '~/components/YieldsPage'
-import { revalidate } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
+import { revalidate } from '~/api'
 
 export async function getStaticProps() {
 	const data = await getYieldPageData()

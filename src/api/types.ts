@@ -101,7 +101,16 @@ export interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChain
 
 export type LiteProtocol = Pick<
 	IProtocol,
-	'category' | 'chains' | 'oracles' | 'forkedFrom' | 'listedAt' | 'mcap' | 'name' | 'symbol' | 'parentProtocol'
+	| 'category'
+	| 'chains'
+	| 'oracles'
+	| 'forkedFrom'
+	| 'listedAt'
+	| 'mcap'
+	| 'name'
+	| 'symbol'
+	| 'parentProtocol'
+	| 'chainTvls'
 > &
 	ProtocolTvls
 
@@ -158,4 +167,18 @@ export interface IFusedProtocolData extends Omit<IProtocolResponse, 'tvl'> {
 export interface ICategory {
 	label: string
 	to: string
+}
+
+export interface IDexResponse extends Protocol {
+	volumeAdapter: string
+	volumeHistory: Array<{
+		dailyVolume: {
+			[chain: string]: {
+				[protocolVersion: string]: number | string,
+			}
+		};
+		timestamp: number;
+	}> | null
+	total1dVolume: number | null
+	change1dVolume: number | null
 }

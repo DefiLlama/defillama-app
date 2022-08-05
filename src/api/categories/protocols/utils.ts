@@ -95,6 +95,7 @@ export const formatProtocolsData = ({
 					}
 				}
 			})
+
 			return keepNeededProperties(protocol, protocolProps)
 		})
 

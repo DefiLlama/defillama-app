@@ -12,6 +12,7 @@ export const peggedPropertiesToKeep = [
 	'chains',
 	'price',
 	'pegType',
+	'pegMechanism',
 	'change_1d',
 	'change_7d',
 	'change_1m',
@@ -39,7 +40,7 @@ export const formatPeggedAssetsData = ({
 	chartDataByPeggedAsset = [],
 	priceData = [],
 	rateData = [],
-	peggedNameToIndexObj = {},
+	peggedNameToChartDataIndex = {},
 	peggedAssetProps = [...peggedPropertiesToKeep]
 }) => {
 	let filteredPeggedAssets = [...peggedAssets]
@@ -65,13 +66,13 @@ export const formatPeggedAssetsData = ({
 			pegged.circulatingPrevWeek = pegged.circulatingPrevWeek[pegType] ?? null
 			pegged.circulatingPrevMonth = pegged.circulatingPrevMonth[pegType] ?? null
 		}
-		const chartIndex = peggedNameToIndexObj[pegged.name]
+		const chartIndex = peggedNameToChartDataIndex[pegged.name]
 		const chart = chartDataByPeggedAsset[chartIndex] ?? null
 
-		pegged.mcap = getPrevPeggedTotalFromChart(chart, 0, 'totalCirculatingUSD') ?? null
-		const mcapPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'totalCirculatingUSD') ?? null
-		const mcapPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'totalCirculatingUSD') ?? null
-		const mcapPrevMonth = getPrevPeggedTotalFromChart(chart, 30, 'totalCirculatingUSD') ?? null
+		pegged.mcap = getPrevPeggedTotalFromChart(chart, 0, 'mcap') ?? null
+		const mcapPrevDay = getPrevPeggedTotalFromChart(chart, 1, 'mcap') ?? null
+		const mcapPrevWeek = getPrevPeggedTotalFromChart(chart, 7, 'mcap') ?? null
+		const mcapPrevMonth = getPrevPeggedTotalFromChart(chart, 30, 'mcap') ?? null
 		pegged.change_1d = getPercentChange(pegged.mcap, mcapPrevDay)
 		pegged.change_7d = getPercentChange(pegged.mcap, mcapPrevWeek)
 		pegged.change_1m = getPercentChange(pegged.mcap, mcapPrevMonth)

@@ -1,70 +1,25 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import { Panel } from '~/components'
-import { NameYield } from '~/components/Table'
-import { YieldAttributes, TVLRange, FiltersByChain, YieldProjects, ResetAllYieldFilters } from '~/components/Filters'
-import { YieldsSearch } from '~/components/Search'
+import { Dropdowns, NameYield, TableFilters, TableHeader } from '~/components/Table'
 import {
-	useNoILManager,
-	useSingleExposureManager,
-	useStablecoinsManager,
-	useMillionDollarManager,
-	useAuditedManager,
-	useNoOutlierManager,
-	useAPYManager
-} from '~/contexts/LocalStorage'
+	YieldAttributes,
+	TVLRange,
+	FiltersByChain,
+	YieldProjects,
+	ResetAllYieldFilters,
+	attributeOptions
+} from '~/components/Filters'
+import { YieldsSearch } from '~/components/Search'
 import { columns, fallbackColumns, fallbackList, TableWrapper } from './shared'
+import { useFormatYieldQueryParams } from './hooks'
 
 const YieldPage = ({ loading, pools, projectList, chainList }) => {
 	const { query } = useRouter()
-	const { minTvl, maxTvl, project, chain, token, excludeToken } = query
+	const { minTvl, maxTvl } = query
 
-	const { selectedProjects, selectedChains, includeTokens, excludeTokens } = React.useMemo(() => {
-		let selectedProjects = [],
-			selectedChains = [],
-			includeTokens = [],
-			excludeTokens = []
-
-		if (project) {
-			if (typeof project === 'string') {
-				selectedProjects = project === 'All' ? projectList.map((p) => p.slug) : [project]
-			} else {
-				selectedProjects = [...project]
-			}
-		}
-
-		if (chain) {
-			if (typeof chain === 'string') {
-				selectedChains = chain === 'All' ? [...chainList] : [chain]
-			} else {
-				selectedChains = [...chain]
-			}
-		} else selectedChains = [...chainList]
-
-		if (token) {
-			if (typeof token === 'string') {
-				includeTokens = [token]
-			} else {
-				includeTokens = [...token]
-			}
-		}
-
-		if (excludeToken) {
-			if (typeof excludeToken === 'string') {
-				excludeTokens = [excludeToken]
-			} else {
-				excludeTokens = [...excludeToken]
-			}
-		}
-
-		return {
-			selectedProjects,
-			selectedChains,
-			includeTokens,
-			excludeTokens
-		}
-	}, [project, chain, projectList, chainList, token, excludeToken])
+	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens } =
+		useFormatYieldQueryParams({ projectList, chainList })
 
 	// if route query contains 'project' remove project href
 	const idx = columns.findIndex((c) => c.accessor === 'project')
@@ -75,7 +30,13 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 			accessor: 'project',
 			disableSortBy: true,
 			Cell: ({ value, rowValues }) => (
-				<NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} rowType="accordion" />
+				<NameYield
+					value={value}
+					project={rowValues.project}
+					airdrop={rowValues.airdrop}
+					projectslug={rowValues.projectslug}
+					rowType="accordion"
+				/>
 			)
 		}
 	} else {
@@ -84,61 +45,45 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 			accessor: 'project',
 			disableSortBy: true,
 			Cell: ({ value, rowValues }) => (
-				<NameYield value={value} project={rowValues.project} projectslug={rowValues.projectslug} />
+				<NameYield
+					value={value}
+					project={rowValues.project}
+					airdrop={rowValues.airdrop}
+					projectslug={rowValues.projectslug}
+				/>
 			)
 		}
 	}
-
-	// toggles
-	const [stablecoins] = useStablecoinsManager()
-	const [noIL] = useNoILManager()
-	const [singleExposure] = useSingleExposureManager()
-	const [millionDollar] = useMillionDollarManager()
-	const [audited] = useAuditedManager()
-	const [noOutlier] = useNoOutlierManager()
-	const [apyGT0] = useAPYManager()
 
 	const poolsData = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
 			let toFilter = true
 
-			if (stablecoins) {
-				toFilter = toFilter && curr.stablecoin === true
-			}
+			selectedAttributes.forEach((attribute) => {
+				const attributeOption = attributeOptions.find((o) => o.key === attribute)
 
-			if (noIL) {
-				toFilter = toFilter && curr.ilRisk === 'no'
-			}
-
-			if (singleExposure) {
-				toFilter = toFilter && curr.exposure === 'single'
-			}
-
-			if (millionDollar) {
-				toFilter = toFilter && curr.tvlUsd >= 1e6
-			}
-
-			if (audited) {
-				toFilter = toFilter && curr.audits !== '0'
-			}
-
-			if (noOutlier) {
-				toFilter = toFilter && curr.outlier === false
-			}
-
-			if (apyGT0) {
-				toFilter = toFilter && curr.apy > 0
-			}
+				if (attributeOption) {
+					toFilter = toFilter && attributeOption.filterFn(curr)
+				}
+			})
 
 			if (selectedProjects.length > 0) {
 				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
 			}
 
-			const tokensInPool = curr.symbol.split('-').map((x) => x.toLowerCase())
+			const tokensInPool: string[] = curr.symbol.split('-').map((x) => x.toLowerCase())
 
 			const includeToken =
 				includeTokens.length > 0
-					? includeTokens.map((t) => t.toLowerCase()).find((token) => tokensInPool.includes(token.toLowerCase()))
+					? includeTokens
+							.map((t) => t.toLowerCase())
+							.find((token) => {
+								if (tokensInPool.includes(token.toLowerCase())) {
+									return true
+								} else if (token === 'eth') {
+									return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
+								} else return false
+							})
 					: true
 
 			const excludeToken = !excludeTokens
@@ -165,6 +110,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 					pool: curr.symbol,
 					projectslug: curr.project,
 					project: curr.projectName,
+					airdrop: curr.airdrop,
 					chains: [curr.chain],
 					tvl: curr.tvlUsd,
 					apy: curr.apy,
@@ -175,22 +121,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 				})
 			} else return acc
 		}, [])
-	}, [
-		minTvl,
-		maxTvl,
-		pools,
-		audited,
-		noOutlier,
-		apyGT0,
-		millionDollar,
-		noIL,
-		singleExposure,
-		stablecoins,
-		selectedProjects,
-		selectedChains,
-		includeTokens,
-		excludeTokens
-	])
+	}, [minTvl, maxTvl, pools, selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens])
 
 	return (
 		<>
@@ -201,7 +132,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 				<Dropdowns>
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields" />
 					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname="/yields" />
-					<YieldAttributes />
+					<YieldAttributes pathname="/yields" />
 					<TVLRange />
 					<ResetAllYieldFilters pathname="/yields" />
 				</Dropdowns>
@@ -219,26 +150,5 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 		</>
 	)
 }
-
-const TableFilters = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 20px;
-	margin: 0 0 -20px;
-`
-
-const Dropdowns = styled.span`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 20px;
-`
-
-const TableHeader = styled.h1`
-	margin: 0 auto 0 0;
-	font-weight: 500;
-	font-size: 1.125rem;
-`
 
 export default YieldPage

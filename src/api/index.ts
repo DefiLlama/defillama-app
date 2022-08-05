@@ -39,5 +39,5 @@ function next22Minutedate(minutesForRollover: number) {
 export function revalidate(minutesForRollover: number = 22) {
 	const current = Date.now()
 	const secondsTillRevalidation = Math.ceil((next22Minutedate(minutesForRollover).getTime() - current) / 1000)
-	return secondsTillRevalidation > 0? secondsTillRevalidation : 3600;
+	return secondsTillRevalidation > 0 ? secondsTillRevalidation : 3600
 }

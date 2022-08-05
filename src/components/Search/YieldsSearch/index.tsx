@@ -1,10 +1,11 @@
 import * as React from 'react'
+import { useRouter } from 'next/router'
 import { BaseSearch } from '~/components/Search/BaseSearch'
 import type { IBaseSearchProps, ICommonSearchProps } from '~/components/Search/BaseSearch'
-import { useFetchYieldsList } from '~/api/categories/yield/client'
+import { useFetchYieldsList, useFetchProjectsList } from '~/api/categories/yield/client'
 import { AdvancedYieldsSearch } from './Advanced'
 import { ToggleSearch } from './shared'
-import { useRouter } from 'next/router'
+import { tokenIconUrl } from '~/utils'
 
 interface IYieldSearchProps extends ICommonSearchProps {
 	pathname?: string
@@ -15,33 +16,31 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 
 	const router = useRouter()
 
-	const { data, loading } = useFetchYieldsList()
+	const { data: yields, loading: fetchingYields } = useFetchYieldsList()
+	const { data: projects, loading: fetchingProjects } = useFetchProjectsList()
 
 	const searchData: IBaseSearchProps['data'] =
 		React.useMemo(() => {
-			return (
-				data?.map((el) => ({
+			const yieldsList =
+				yields?.map((el) => ({
 					name: `${el.name} (${el.symbol.toUpperCase()})`,
 					symbol: el.symbol.toUpperCase(),
-					route: `${pathname}?token=${el.symbol.toUpperCase()}`,
+					route:
+						pathname === '/yields/overview'
+							? `${pathname}?token=${el.symbol.toUpperCase()}`
+							: `/yields?token=${el.symbol.toUpperCase()}`,
 					logo: el.image
 				})) ?? []
-			)
-		}, [data, pathname]) ?? []
 
-	const handleTokenRoute = (token) => {
-		router.push(
-			{
-				pathname,
-				query: {
-					...router.query,
-					token: token.symbol
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
+			const projectList =
+				projects?.map((p) => ({
+					name: `Show all ${p.name} pools`,
+					route: pathname === '/yields/overview' ? `${pathname}?project=${p.slug}` : `/yields?project=${p.slug}`,
+					logo: tokenIconUrl(p.slug)
+				})) ?? []
+
+			return [...yieldsList, ...projectList]
+		}, [yields, projects, pathname]) ?? []
 
 	if (!props.step?.hideOptions && advancedSearch) {
 		return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} pathname={pathname || '/yields'} />
@@ -51,13 +50,15 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 		<BaseSearch
 			{...props}
 			data={searchData}
-			loading={loading}
-			onItemClick={handleTokenRoute}
+			loading={fetchingYields || fetchingProjects}
 			filters={
 				!props.step?.hideOptions && (
 					<ToggleSearch onClick={() => setAdvancedSearch(true)}>Switch to Advanced Search</ToggleSearch>
 				)
 			}
+			onItemClick={(item) => {
+				router.push(item.route, undefined, { shallow: true })
+			}}
 		/>
 	)
 }

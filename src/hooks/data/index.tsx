@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { IFormattedProtocol, IParentProtocol } from '~/api/types'
 import { useGetExtraTvlEnabled, useGroupEnabled, useGetExtraPeggedEnabled } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, getPercentChange } from '~/utils'
+import { capitalizeFirstLetter, getPercentChange, getPrevPeggedTotalFromChart } from '~/utils'
 import { groupProtocols } from './utils'
 
 // TODO cleanup
@@ -74,8 +74,9 @@ interface IPegged {
 	circulatingPrevMonth: number
 	bridges: {
 		[bridgeID: string]: {
-			amount: number
-			source: string
+			[source: string]: {
+				amount: number
+			}
 		}
 	}
 	dominance: {
@@ -403,7 +404,7 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 			return { date, ...tvls }
 		})
 		return { data, daySum }
-	}, [chains, extraTvlsEnabled])
+	}, [chains, extraTvlsEnabled, tvlKey])
 
 	return { data, daySum }
 }
@@ -431,7 +432,7 @@ export const useCalcExtraTvlsByDay = (data) => {
 }
 
 // PEGGED ASSETS
-export const useCalcCirculating = (filteredPeggedAssets: IPegged[], defaultSortingColumn?: string, dir?: 'asc') => {
+export const useCalcCirculating = (filteredPeggedAssets: IPegged[]) => {
 	const extraPeggedEnabled: ExtraTvls = useGetExtraPeggedEnabled()
 
 	const peggedAssetTotals = useMemo(() => {
@@ -463,18 +464,76 @@ export const useCalcCirculating = (filteredPeggedAssets: IPegged[], defaultSorti
 			}
 		)
 
-		if (defaultSortingColumn === undefined) {
-			return updatedPeggedAssets.sort((a, b) => b.mcap - a.mcap)
-		} else {
-			return updatedPeggedAssets.sort((a, b) => {
-				if (dir === 'asc') {
-					return a[defaultSortingColumn] - b[defaultSortingColumn]
-				} else return b[defaultSortingColumn] - a[defaultSortingColumn]
-			})
-		}
-	}, [filteredPeggedAssets, extraPeggedEnabled, defaultSortingColumn, dir])
+		return updatedPeggedAssets.sort((a, b) => b.mcap - a.mcap)
+	}, [filteredPeggedAssets, extraPeggedEnabled])
 
 	return peggedAssetTotals
+}
+
+export const useCreatePeggedCharts = (
+	chartData,
+	chartDataByPeggedAsset,
+	peggedAssetNames,
+	chartType,
+	filteredIndexes?,
+	selectedChain?,
+	backfilledChains = ['All']
+) => {
+	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useMemo(() => {
+		let unformattedAreaData = {}
+		let unformattedTotalData = {}
+		let stackedDatasetObject = {}
+		chartDataByPeggedAsset.map((charts, i) => {
+			if (!charts.length || !filteredIndexes.includes(i)) return
+			charts.forEach((chart) => {
+				const mcap = getPrevPeggedTotalFromChart([chart], 0, 'mcap')
+				const peggedName = peggedAssetNames[i]
+				const date = chart.date
+				if (date > 1596248105 && mcap) {
+					if (backfilledChains.includes(selectedChain) || date > 1652241600) {
+						// for individual chains data is currently only backfilled to May 11, 2022
+						unformattedAreaData[date] = unformattedAreaData[date] || {}
+						unformattedAreaData[date][peggedAssetNames[i]] = mcap
+
+						unformattedTotalData[date] = unformattedTotalData[date] || {}
+						unformattedTotalData[date]['Total Stablecoins Market Cap'] =
+							(unformattedTotalData[date]['Total Stablecoins Market Cap'] ?? 0) + mcap
+
+						if (mcap !== null && mcap !== 0) {
+							if (stackedDatasetObject[date] == undefined) {
+								stackedDatasetObject[date] = {}
+							}
+							const b = stackedDatasetObject[date][peggedName]
+							stackedDatasetObject[date][peggedName] = { ...b, circulating: mcap ?? 0 }
+						}
+					}
+				}
+			})
+		})
+
+		const peggedAreaChartData = Object.entries(unformattedAreaData).map(([date, chart]) => {
+			if (typeof chart === 'object') {
+				return {
+					date: date,
+					...chart
+				}
+			}
+		})
+
+		const peggedAreaTotalData = Object.entries(unformattedTotalData).map(([date, chart]) => {
+			if (typeof chart === 'object') {
+				return {
+					date: date,
+					...chart
+				}
+			}
+		})
+
+		const stackedDataset = Object.entries(stackedDatasetObject)
+
+		return [peggedAreaChartData, peggedAreaTotalData, stackedDataset]
+	}, [chartDataByPeggedAsset, chartData, filteredIndexes, chartType, backfilledChains, peggedAssetNames, selectedChain])
+	return [peggedAreaChartData, peggedAreaTotalData, stackedDataset]
 }
 
 // returns circulating by day for a group of tokens
@@ -605,7 +664,11 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 						name: '-'
 					}
 				}
-			} else if (Object.keys(parentBridges).length === 1 && parent.bridgedAmount === parent.circulating) {
+			} else if (
+				Object.keys(parentBridges).length === 1 &&
+				Object.keys(parentBridges[Object.keys(parentBridges)[0]]).length === 1 &&
+				parent.bridgedAmount === parent.circulating
+			) {
 				const bridgeID = Object.keys(parentBridges)[0]
 				const bridgeInfo = bridgeInfoObject[bridgeID] ?? { name: 'not-found' }
 				let childData = {}
@@ -618,7 +681,7 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 						name: `Natively Issued`
 					}
 				} else {
-					const sourceChain = parentBridges[bridgeID].source ?? 'not-found'
+					const sourceChain = Object.keys(parentBridges[bridgeID])[0] ?? 'not-found'
 					childData = {
 						...parent,
 						bridgeInfo: bridgeInfo,
@@ -635,38 +698,42 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 			} else {
 				let totalBridged = 0
 				for (const bridgeID in parentBridges) {
-					totalBridged += parentBridges[bridgeID].amount ?? 0
+					for (const sourceChain in parentBridges[bridgeID]) {
+						totalBridged += parentBridges[bridgeID][sourceChain].amount ?? 0
+					}
 				}
 				for (const bridgeID in parentBridges) {
-					const bridgeInfo = bridgeInfoObject[bridgeID] ?? {
-						name: 'not-found'
-					}
-					const subChains = finalData[parent.name].subRows || []
-					const percentBridgedBreakdown =
-						parentBridges[bridgeID].amount &&
-						totalBridged &&
-						(parentBridges[bridgeID].amount / totalBridged) * (percentBridged > 100 ? 100 : percentBridged)
-					const percentBridgedBreakdownToDisplay =
-						percentBridgedBreakdown < 100 ? percentBridgedBreakdown.toFixed(2) + '%' : '100%'
-					const sourceChain = parentBridges[bridgeID].source ?? 'not-found'
+					for (const sourceChain in parentBridges[bridgeID]) {
+						const bridgeInfo = bridgeInfoObject[bridgeID] ?? {
+							name: 'not-found'
+						}
+						const subChains = finalData[parent.name].subRows || []
+						const parentAmountBridged = parentBridges[bridgeID][sourceChain].amount
+						const percentBridgedBreakdown =
+							parentAmountBridged &&
+							totalBridged &&
+							(parentAmountBridged / totalBridged) * (percentBridged > 100 ? 100 : percentBridged)
+						const percentBridgedBreakdownToDisplay =
+							percentBridgedBreakdown < 100 ? percentBridgedBreakdown.toFixed(2) + '%' : '100%'
 
-					const childData = {
-						...parent,
-						name: `Bridged from ${capitalizeFirstLetter(sourceChain)}`,
-						bridgeInfo: bridgeInfo,
-						bridgedAmount: percentBridgedBreakdownToDisplay,
-						circulating: parentBridges[bridgeID].amount,
-						change_1d: null,
-						change_7d: null,
-						change_1m: null
-					}
-					finalData[parent.name] = {
-						...parent,
-						bridgedAmount: percentBridgedtoDisplay,
-						bridgeInfo: {
-							name: '-'
-						},
-						subRows: [...subChains, childData]
+						const childData = {
+							...parent,
+							name: `Bridged from ${capitalizeFirstLetter(sourceChain)}`,
+							bridgeInfo: bridgeInfo,
+							bridgedAmount: percentBridgedBreakdownToDisplay,
+							circulating: parentAmountBridged,
+							change_1d: null,
+							change_7d: null,
+							change_1m: null
+						}
+						finalData[parent.name] = {
+							...parent,
+							bridgedAmount: percentBridgedtoDisplay,
+							bridgeInfo: {
+								name: '-'
+							},
+							subRows: [...subChains, childData]
+						}
 					}
 				}
 			}
