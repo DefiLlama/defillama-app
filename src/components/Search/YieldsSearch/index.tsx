@@ -25,19 +25,29 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 				yields?.map((el) => ({
 					name: `${el.name} (${el.symbol.toUpperCase()})`,
 					symbol: el.symbol.toUpperCase(),
-					route: `${pathname}?token=${el.symbol.toUpperCase()}`,
+					route:
+						router.pathname === '/yields/projects' ||
+						router.pathname === '/yields/watchlist' ||
+						router.pathname.includes('/yields/pool')
+							? `/yields?token=${el.symbol.toUpperCase()}`
+							: `${router.pathname}?token=${el.symbol.toUpperCase()}`,
 					logo: el.image
 				})) ?? []
 
 			const projectList =
 				projects?.map((p) => ({
 					name: `Show all ${p.name} pools`,
-					route: `${pathname}?project=${p.slug}`,
+					route:
+						router.pathname === '/yields/projects' ||
+						router.pathname === '/yields/watchlist' ||
+						router.pathname.includes('/yields/pool')
+							? `/yields?project=${p.slug}`
+							: `${router.pathname}?project=${p.slug}`,
 					logo: tokenIconUrl(p.slug)
 				})) ?? []
 
 			return [...yieldsList, ...projectList]
-		}, [yields, projects, pathname]) ?? []
+		}, [yields, projects, router.pathname]) ?? []
 
 	if (!props.step?.hideOptions && advancedSearch) {
 		return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} pathname={pathname || '/yields'} />
