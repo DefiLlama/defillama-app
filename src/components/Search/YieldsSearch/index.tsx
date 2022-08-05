@@ -25,19 +25,22 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 				yields?.map((el) => ({
 					name: `${el.name} (${el.symbol.toUpperCase()})`,
 					symbol: el.symbol.toUpperCase(),
-					route: `/yields?token=${el.symbol.toUpperCase()}`,
+					route:
+						pathname === '/yields/overview'
+							? `${pathname}?token=${el.symbol.toUpperCase()}`
+							: `/yields?token=${el.symbol.toUpperCase()}`,
 					logo: el.image
 				})) ?? []
 
 			const projectList =
 				projects?.map((p) => ({
 					name: `Show all ${p.name} pools`,
-					route: `/yields?project=${p.slug}`,
+					route: pathname === '/yields/overview' ? `${pathname}?project=${p.slug}` : `/yields?project=${p.slug}`,
 					logo: tokenIconUrl(p.slug)
 				})) ?? []
 
 			return [...yieldsList, ...projectList]
-		}, [yields, projects]) ?? []
+		}, [yields, projects, pathname]) ?? []
 
 	if (!props.step?.hideOptions && advancedSearch) {
 		return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} pathname={pathname || '/yields'} />
