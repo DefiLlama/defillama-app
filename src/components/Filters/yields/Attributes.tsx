@@ -166,7 +166,7 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 				{attributeOptions.map((option) => (
 					<Item key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
-						<Checkbox checked={values.includes(option.key)} />
+						<Checkbox checked={values.includes(option.key) || option.disabledOnPages.includes(router.pathname)} />
 					</Item>
 				))}
 			</FilterPopover>
