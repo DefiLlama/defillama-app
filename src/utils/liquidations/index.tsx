@@ -6,7 +6,7 @@ import aave_v2 from './aave-v2.json'
 import compound_v2 from './compound-v2.json'
 import { DropdownOption } from '~/components/LiquidationsPage/Dropdowns'
 import { queryTypes, useQueryState } from 'next-usequerystate'
-import { defaultChartState } from '~/pages/liquidations'
+import { defaultChartState } from '~/components/LiquidationsPage/utils'
 
 const TOTAL_BINS = 150
 
@@ -298,5 +298,5 @@ export function useLiquidationsState() {
 		serialize: (value: string[]) => value.join(',')
 	})
 
-	return { asset, setAsset, aggregateBy, setAggregateBy, filters, setFilters }
+	return { asset, setAsset, aggregateBy, setAggregateBy, filters: filters ?? ['all'], setFilters }
 }
