@@ -22,14 +22,16 @@ export const attributeOptions = [
 		filterFn: (item) => item.stablecoin === true,
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.stablecoin === true
-		}
+		},
+		disabledOnPages: ['/yields/stablecoins']
 	},
 	{
 		name: 'Single Exposure',
 		key: SINGLE_EXPOSURE.toLowerCase(),
 		help: 'Select pools with single token exposure only',
 		filterFn: (item) => item.exposure === 'single',
-		defaultFilterFnOnPage: {}
+		defaultFilterFnOnPage: {},
+		disabledOnPages: []
 	},
 	{
 		name: 'No IL',
@@ -38,7 +40,8 @@ export const attributeOptions = [
 		filterFn: (item) => item.ilRisk === 'no',
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.ilRisk === 'no'
-		}
+		},
+		disabledOnPages: ['/yields/stablecoins']
 	},
 	{
 		name: 'Million Dollar',
@@ -47,7 +50,8 @@ export const attributeOptions = [
 		filterFn: (item) => item.tvlUsd >= 1e6,
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.tvlUsd >= 1e6
-		}
+		},
+		disabledOnPages: ['/yields/stablecoins']
 	},
 	{
 		name: 'Audited',
@@ -56,7 +60,8 @@ export const attributeOptions = [
 		filterFn: (item) => item.audits !== '0',
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.audits !== '0'
-		}
+		},
+		disabledOnPages: ['/yields/stablecoins']
 	},
 	{
 		name: 'No Outliers',
@@ -65,7 +70,8 @@ export const attributeOptions = [
 		filterFn: (item) => item.outlier === false,
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.outlier === false
-		}
+		},
+		disabledOnPages: ['/yields/stablecoins']
 	},
 	{
 		name: 'APY > 0',
@@ -74,7 +80,8 @@ export const attributeOptions = [
 		filterFn: (item) => item.apy > 0,
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.apy > 0
-		}
+		},
+		disabledOnPages: ['/yields/stablecoins']
 	}
 ]
 
@@ -157,7 +164,7 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 					<button onClick={toggleAll}>toggle all</button>
 				</Stats>
 				{attributeOptions.map((option) => (
-					<Item key={option.key} value={option.key}>
+					<Item key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
 						<Checkbox checked={values.includes(option.key)} />
 					</Item>
