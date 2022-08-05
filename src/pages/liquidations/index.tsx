@@ -46,13 +46,13 @@ type Chart = {
 }
 
 // this should be pulled dynamically
-type FilterChain = 'all' | string[] | 'none'
-type FilterProtocol = 'all' | string[] | 'none'
+type FilterChain = undefined | string[] | ['none']
+type FilterProtocol = undefined | string[] | ['none']
 
 const defaultChart: Chart = {
 	asset: 'ETH',
 	aggregateBy: 'protocol',
-	filter: 'all'
+	filter: undefined
 }
 
 const LiquidationsPage: NextPage = () => {
@@ -60,13 +60,13 @@ const LiquidationsPage: NextPage = () => {
 	const { asset, aggregateBy, filter } = router.query as Chart
 	const _asset = asset || defaultChart.asset
 	const _aggregateBy = aggregateBy || defaultChart.aggregateBy
-	const _filter = filter || defaultChart.filter
-	const chart: Chart = { asset: _asset, aggregateBy: _aggregateBy, filter: _filter }
+	const chart: Chart = { asset: _asset, aggregateBy: _aggregateBy, filter }
 
+	// if no filter, then it's all. if filter is ['something'], then it's a bunch of these filters. if filter is ['none'], then it's none.
 	const { data } = useSWR<ChartData>(
 		// TODO: implement the full api
 		`http://localhost:3000/api/mock-liquidations/?symbol=${_asset}&aggregateBy=${_aggregateBy}${
-			_filter === 'all' ? '' : _filter.map((f) => `&filter=${f}`).join('')
+			!filter ? '' : filter.map((f) => `&filter=${f}`).join('')
 		}`,
 		fetcher
 	)
@@ -120,7 +120,6 @@ const Dropdowns = styled.span`
 export type DropdownOption = {
 	name: string
 	key: string
-	enabled?: boolean
 }
 
 const ProtocolsDropdown = ({ options }: { options: DropdownOption[] }) => {
@@ -205,17 +204,6 @@ const LiquidationsChartHeader = ({ assetSymbol }: { assetSymbol: string }) => {
 		</RowBetween>
 	)
 }
-
-const ButtonDarkStyled = styled(ButtonDark)`
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	flex-direction: row;
-	gap: 12px;
-	width: 16rem;
-	text-align: center;
-	user-select: none;
-`
 
 const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number) => {
 	// // this line below suddenly throws error in browser that the iterator cant iterate??
@@ -368,90 +356,56 @@ const LiquidationsChart = ({ chart, chartData, uid }: { chart: Chart; chartData:
 	)
 }
 
-// function OptionsDropdown({ options }: { options: DropdownOption[] }) {
-// 	const router = useRouter()
-// 	const { asset, aggregateBy, filter } = router.query as Chart
-// 	const _asset = asset || defaultChart.asset
-// 	const _aggregateBy = aggregateBy || defaultChart.aggregateBy
-// 	const _filter = filter || defaultChart.filter
+function OptionsDropdown({ options }: { options: DropdownOption[] }) {
+	const router = useRouter()
+	const { asset, aggregateBy, filter } = router.query as Chart
+	const _asset = asset || defaultChart.asset
+	const _aggregateBy = aggregateBy || defaultChart.aggregateBy
+	const _filter = filter || defaultChart.filter
 
-// 	// const updateKey = (key: string, isEnabled: boolean) => {
-// 	// 	const newQuery = { ...router.query }
-// 	// 	if (_filter === 'all') {
-// 	// 		if (!isEnabled) {
-// 	// 			newQuery.filter = options.map(({ key }) => key).filter((x) => x !== key)
-// 	// 		}
-// 	// 	} else {
-// 	// 		if (isEnabled) {
-// 	// 			newQuery.filter = [...new Set([...newQuery.filter, key])]
-// 	// 		} else {
-// 	// 			newQuery.filter = (newQuery.filter as string[]).filter((x) => x !== key)
-// 	// 		}
-// 	// 	}
-// 	// }
+	const [enabledOptions, setEnabledOptions] = useState<string[]>([])
 
-// 	const updateAttributes = (updatedValues: string[]) => {
-// 		if (_filter === 'all') {
-// 			options.forEach((option) => {
-// 				option.enabled = true
-// 			})
-// 		} else {
-// 			options.forEach((option) => {
-// 				const isSelected = updatedValues.includes(option.key)
+	const select = useSelectState({
+		value: options.map((x) => x.key),
+		gutter: 8
+	})
 
-// 				const isEnabled = state[option.key]
+	const clear = () => {
+		const newQuery = { ...router.query, filter: 'none' }
+		router.push({ pathname: router.pathname, query: newQuery }, undefined, {
+			shallow: true
+		})
+	}
 
-// 				// if ((isEnabled && !isSelected) || (!isEnabled && isSelected)) {
-// 				// 	updateKey(option.key, !isEnabled)
-// 				// }
-// 			})
-// 		}
-// 	}
+	const toggleAll = () => {
+		const newQuery = { ...router.query }
+		delete newQuery.filter
+		router.push({ pathname: router.pathname, query: newQuery }, undefined, {
+			shallow: true
+		})
+	}
 
-// 	// const values = options.filter((o) => state[o.key]).map((o) => o.key)
+	return (
+		<>
+			<FilterButton state={select}>
+				<span>Filter by {_aggregateBy === 'chain' ? 'protocol' : 'chain'}</span>
+				<MenuButtonArrow />
+			</FilterButton>
+			<FilterPopover state={select}>
+				<Stats>
+					<button onClick={clear}>clear</button>
 
-// 	const select = useSelectState({
-// 		value: options.map((x) => x.key),
-// 		setValue: updateAttributes,
-// 		gutter: 8
-// 	})
-
-// 	const clear = () => {
-// 		const newQuery = { ...router.query, filter: 'none' }
-// 		router.push({ pathname: router.pathname, query: newQuery }, undefined, {
-// 			shallow: true
-// 		})
-// 	}
-
-// 	const toggleAll = () => {
-// 		const newQuery = { ...router.query }
-// 		delete newQuery.filter
-// 		router.push({ pathname: router.pathname, query: newQuery }, undefined, {
-// 			shallow: true
-// 		})
-// 	}
-
-// 	return (
-// 		<>
-// 			<FilterButton state={select}>
-// 				<span>Filter by {_aggregateBy === 'chain' ? 'protocol' : 'chain'}</span>
-// 				<MenuButtonArrow />
-// 			</FilterButton>
-// 			<FilterPopover state={select}>
-// 				<Stats>
-// 					<button onClick={clear}>clear</button>
-
-// 					<button onClick={toggleAll}>toggle all</button>
-// 				</Stats>
-// 				{options.map((option) => (
-// 					<Item key={option.key} value={option.key}>
-// 						{option.name}
-// 						<Checkbox checked={_filter === 'all' || _filter.includes(option.key)} />
-// 					</Item>
-// 				))}
-// 			</FilterPopover>
-// 		</>
-// 	)
-// }
+					<button onClick={toggleAll}>toggle all</button>
+				</Stats>
+				{options.map((option) => (
+					<Item key={option.key} value={option.key}>
+						{option.name}
+						<Checkbox checked={!_filter || _filter.includes(option.key)} />
+					</Item>
+				))}
+			</FilterPopover>
+		</>
+	)
+}
 
 export default LiquidationsPage
