@@ -4,7 +4,9 @@ import liquity from './liquity.json'
 import euler from './euler.json'
 import aave_v2 from './aave-v2.json'
 import compound_v2 from './compound-v2.json'
-import { DropdownOption } from '~/pages/liquidations'
+import { DropdownOption } from '~/components/LiquidationsPage/Dropdowns'
+import { queryTypes, useQueryState } from 'next-usequerystate'
+import { defaultChartState } from '~/pages/liquidations'
 
 const TOTAL_BINS = 150
 
@@ -276,4 +278,25 @@ export async function getCoingeckoAssetFromSymbol(symbol: string): Promise<Coing
 	const coins = res.coins as CoingeckoAsset[]
 
 	return coins[0] ?? null
+}
+
+export function useLiquidationsState() {
+	const [asset, setAsset] = useQueryState('asset', queryTypes.string.withDefault(defaultChartState.asset))
+	const [aggregateBy, setAggregateBy] = useQueryState(
+		'aggregateBy',
+		queryTypes.stringEnum(['protocol', 'chain']).withDefault(defaultChartState.aggregateBy)
+	)
+	const [filters, setFilters] = useQueryState('filters', {
+		parse: (query: string) => {
+			if (!query) {
+				return ['all']
+			}
+			const parsed = query.split(',').filter((x) => !!x)
+			const deduped = [...new Set(parsed)]
+			return deduped
+		},
+		serialize: (value: string[]) => value.join(',')
+	})
+
+	return { asset, setAsset, aggregateBy, setAggregateBy, filters, setFilters }
 }
