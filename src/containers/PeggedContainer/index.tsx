@@ -562,7 +562,6 @@ export default function PeggedContainer({
 			name: chain.name,
 			value: chain.circulating
 		}))
-
 		const otherCirculating = data.slice(10).reduce((total, entry) => {
 			return (total += entry.value)
 		}, 0)
@@ -575,6 +574,8 @@ export default function PeggedContainer({
 
 	const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
+	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
+
 	const downloadCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique]]
 		stackedData
@@ -584,8 +585,6 @@ export default function PeggedContainer({
 			})
 		download('peggedAssetChains.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
-
-	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
 
 	return (
 		<Layout
@@ -732,7 +731,13 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={blockExplorerLink} passHref>
-												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+												<Button
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
 													<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
 												</Button>
 											</Link>
@@ -746,7 +751,13 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={url} passHref>
-												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+												<Button
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
 													<span>Website</span>
 													<ArrowUpRight size={14} />
 												</Button>
@@ -761,7 +772,13 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={twitter} passHref>
-												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+												<Button
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
 													<span>Twitter</span>
 													<ArrowUpRight size={14} />
 												</Button>
@@ -776,7 +793,13 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={wiki} passHref>
-												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+												<Button
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
 													<span>DeFiLlama Wiki</span>
 													<ArrowUpRight size={14} />
 												</Button>
@@ -791,7 +814,13 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} passHref>
-												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+												<Button
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
 													<span>CoinGecko</span>
 													<ArrowUpRight size={14} />
 												</Button>
@@ -807,7 +836,13 @@ export default function PeggedContainer({
 										href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
 										passHref
 									>
-										<AlignSelfButton as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+										<AlignSelfButton
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={backgroundColor}
+										>
 											<span>Check the code</span>
 											<ArrowUpRight size={14} />
 										</AlignSelfButton>
