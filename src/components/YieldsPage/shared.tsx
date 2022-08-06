@@ -256,14 +256,14 @@ export const columns = [
 		helperText: 'Total annualised percentage yield',
 		Cell: ({ value, rowValues }) => {
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
+				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 					{rowValues.project === 'Osmosis' ? (
 						<QuestionHelper text={`${rowValues.id.split('-').slice(-1)} lock`} />
 					) : rowValues.project === 'cBridge' ? (
 						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY'} />
 					) : null}
 					{formattedPercent(value, true, 700)}
-				</AutoRow>
+				</span>
 			)
 		}
 	},
@@ -281,12 +281,12 @@ export const columns = [
 		helperText: 'Annualised percentage yield from incentives',
 		Cell: ({ value, rowValues }) => {
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
+				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 					{rowValues.rewardTokensSymbols.length > 0 ? (
 						<QuestionHelper text={`${rowValues.rewardTokensSymbols}`} />
 					) : null}
 					{formattedPercent(value, true)}
-				</AutoRow>
+				</span>
 			)
 		}
 	},
