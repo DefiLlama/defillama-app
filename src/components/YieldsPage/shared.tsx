@@ -290,18 +290,18 @@ export const columns = [
 			)
 		}
 	},
-	{
-		header: '1d Change',
-		accessor: 'change1d',
-		helperText: 'Absolute change in APY',
-		Cell: ({ value }) => <>{formattedPercent(value)}</>
-	},
-	{
-		header: '7d Change',
-		accessor: 'change7d',
-		helperText: 'Absolute change in APY',
-		Cell: ({ value }) => <>{formattedPercent(value)}</>
-	},
+	// {
+	// 	header: '1d Change',
+	// 	accessor: 'change1d',
+	// 	helperText: 'Absolute change in APY',
+	// 	Cell: ({ value }) => <>{formattedPercent(value)}</>
+	// },
+	// {
+	// 	header: '7d Change',
+	// 	accessor: 'change7d',
+	// 	helperText: 'Absolute change in APY',
+	// 	Cell: ({ value }) => <>{formattedPercent(value)}</>
+	// },
 	{
 		header: 'Outlook',
 		accessor: 'outlook',
