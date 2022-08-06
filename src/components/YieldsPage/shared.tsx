@@ -253,7 +253,41 @@ export const columns = [
 	{
 		header: 'APY',
 		accessor: 'apy',
-		helperText: 'Annualised percentage yield',
+		helperText: 'Total annualised percentage yield',
+		Cell: ({ value, rowValues }) => {
+			return (
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
+					{rowValues.project === 'Osmosis' ? (
+						<QuestionHelper text={`${rowValues.id.split('-').slice(-1)} lock`} />
+					) : rowValues.project === 'cBridge' ? (
+						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY'} />
+					) : null}
+					{formattedPercent(value, true, 700)}
+				</AutoRow>
+			)
+		}
+	},
+	{
+		header: 'Base APY',
+		accessor: 'apyBase',
+		helperText: 'Annualised percentage yield from trading fees/supplying',
+		Cell: ({ value, rowValues }) => {
+			return (
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
+					{rowValues.project === 'Osmosis' ? (
+						<QuestionHelper text={`${rowValues.id.split('-').slice(-1)} lock`} />
+					) : rowValues.project === 'cBridge' ? (
+						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY'} />
+					) : null}
+					{formattedPercent(value, true)}
+				</AutoRow>
+			)
+		}
+	},
+	{
+		header: 'Reward APY',
+		accessor: 'apyReward',
+		helperText: 'Annualised percentage yield from incentives',
 		Cell: ({ value, rowValues }) => {
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
