@@ -290,6 +290,9 @@ export const columns = [
 			)
 		}
 	},
+	// NOTE(!) with the new columns, horizontal scrolling would become necessary for which we
+	// experience performance issues. gonna remove the change columns for now to give preference to the
+	// apy split columns
 	// {
 	// 	header: '1d Change',
 	// 	accessor: 'change1d',
