@@ -207,12 +207,13 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
 	let positions: Position[]
 	// handle wrapped gas tokens later dynamically
-	if (
-		WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase()) ||
-		WRAPPABLE_GAS_TOKENS.includes('W' + symbol.toUpperCase())
-	) {
+	if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase())) {
 		const ethPositions = allAggregated.get(symbol.toUpperCase())
 		const wethPositions = allAggregated.get('W' + symbol.toUpperCase())
+		positions = [...ethPositions!.positions, ...wethPositions!.positions]
+	} else if (WRAPPABLE_GAS_TOKENS.includes('W' + symbol.toUpperCase())) {
+		const ethPositions = allAggregated.get(symbol.toUpperCase().substring(1))
+		const wethPositions = allAggregated.get(symbol.toUpperCase())
 		positions = [...ethPositions!.positions, ...wethPositions!.positions]
 	} else {
 		positions = allAggregated.get(symbol)!.positions
