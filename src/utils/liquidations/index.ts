@@ -197,11 +197,10 @@ interface LiquidationsApiResponse {
 
 export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS) {
 	const raw = (await fetch(LIQUIDATIONS_API).then((r) => r.json())) as LiquidationsApiResponse
-	const protocols = raw.data.map((d) => d.protocol)
-	const chains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
 
+	const adapterChains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
 	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
-		(acc, d) => ({ ...acc, [d.protocol]: d.liqs[chains[0]] }),
+		(acc, d) => ({ ...acc, [d.protocol]: d.liqs[adapterChains[0]] }),
 		{}
 	)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
@@ -232,7 +231,9 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 	})
 
 	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')
+	const protocols = Object.keys(chartDataBinsByProtocol)
 	const chartDataBinsByChain = getChartDataBins(validPositions, currentPrice, totalBins, 'chain')
+	const chains = Object.keys(chartDataBinsByChain)
 	const coingeckoAsset = await getCoingeckoAssetFromSymbol(symbol)
 	const chartData: ChartData = {
 		symbol,
