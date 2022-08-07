@@ -117,7 +117,11 @@ export type ChartData = {
 		[hours: number]: number // 1h, 6h, 12h, 1d, 7d, 30d etc in ratio
 	}
 	dangerousPositionsAmount: number // amount of -20% current price
-	chartDataBins: { [bin: string]: ChartDataBin }
+	chartDataBins: {
+		// aggregated by either protocol or chain
+		byProtocol: { [bin: string]: ChartDataBin }
+		byChain: { [bin: string]: ChartDataBin }
+	}
 	totalBins: number
 	binSize: number
 	availability: {
@@ -193,7 +197,7 @@ interface LiquidationsApiResponse {
 	}[]
 }
 
-export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'chain', totalBins = TOTAL_BINS) {
+export async function getResponse(symbol: string, totalBins = TOTAL_BINS) {
 	const raw = (await fetch(`https://coins.llama.fi/liquidations`).then((r) => r.json())) as LiquidationsApiResponse
 	const protocols = raw.data.map((d) => d.protocol)
 	const chains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
@@ -229,7 +233,8 @@ export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'cha
 		return true
 	})
 
-	const chartDataBins = getChartDataBins(validPositions, currentPrice, totalBins, aggregateBy)
+	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')
+	const chartDataBinsByChain = getChartDataBins(validPositions, currentPrice, totalBins, 'chain')
 	const coingeckoAsset = await getCoingeckoAssetFromSymbol(symbol)
 	const chartData: ChartData = {
 		symbol,
@@ -240,7 +245,10 @@ export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'cha
 		historicalChange: { 168: await getHistoricalChange(symbol, 168) },
 		totalLiquidable,
 		totalBins,
-		chartDataBins,
+		chartDataBins: {
+			byProtocol: chartDataBinsByProtocol,
+			byChain: chartDataBinsByChain
+		},
 		binSize: currentPrice / totalBins,
 		availability: {
 			protocols,
