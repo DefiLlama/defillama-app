@@ -8,8 +8,8 @@ import { formattedPercent } from '~/utils'
 export const TableWrapper = styled(Table)`
 	tr > *:not(:first-child) {
 		& > * {
-			width: 100px;
 			font-weight: 400;
+			width: 100px;
 		}
 	}
 
@@ -63,6 +63,10 @@ export const TableWrapper = styled(Table)`
 	// APY
 	tr > *:nth-child(5) {
 		padding-right: 20px;
+
+		& > * {
+			width: 90px;
+		}
 	}
 
 	// BASE APY
@@ -73,17 +77,28 @@ export const TableWrapper = styled(Table)`
 	// REWARD APY
 	tr > *:nth-child(7) {
 		display: none;
-		padding-right: 20px;
+
+		& > * {
+			width: 120px;
+		}
 	}
 
 	// OUTLOOK
 	tr > *:nth-child(8) {
 		display: none;
+
+		& > * {
+			width: 90px;
+		}
 	}
 
 	// CONFIDENCE
 	tr > *:nth-child(9) {
 		display: none;
+
+		& > * {
+			width: 120px;
+		}
 	}
 
 	@media screen and (min-width: 320px) {
