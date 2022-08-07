@@ -198,7 +198,7 @@ interface LiquidationsApiResponse {
 }
 
 export async function getResponse(symbol: string, totalBins = TOTAL_BINS) {
-	const raw = (await fetch(`https://coins.llama.fi/liquidations`).then((r) => r.json())) as LiquidationsApiResponse
+	const raw = (await fetch(`https://api.llama.fi/liquidations`).then((r) => r.json())) as LiquidationsApiResponse
 	const protocols = raw.data.map((d) => d.protocol)
 	const chains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
 
