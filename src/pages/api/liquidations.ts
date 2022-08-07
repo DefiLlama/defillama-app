@@ -1,6 +1,6 @@
 // Next API route for handling liquidation returns
 import { NextApiRequest, NextApiResponse } from 'next'
-import { ChartData, getResponse } from '../../utils/liquidations'
+import { ChartData, getLatestChartData } from '../../utils/liquidations'
 
 export default async function liquidationsHandler(
 	req: NextApiRequest,
@@ -13,7 +13,7 @@ export default async function liquidationsHandler(
 	}
 	// if symbol/aggregateBy is an array (by accident), get the first one
 	const _symbol: string = Array.isArray(symbol) ? symbol[0] : symbol
-	const chartData = await getResponse(_symbol)
+	const chartData = await getLatestChartData(_symbol)
 	res.status(200).json(chartData)
 }
 
