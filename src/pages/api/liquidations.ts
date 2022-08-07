@@ -11,9 +11,15 @@ export default async function liquidationsHandler(
 		res.status(400).json({ error: 'Missing symbol' })
 		return
 	}
-	// if symbol/aggregateBy is an array (by accident), get the first one
-	const _symbol: string = Array.isArray(symbol) ? symbol[0] : symbol
-	const chartData = await getLatestChartData(_symbol)
+	if (Object.keys(req.query).length > 1) {
+		res.status(400).json({ error: 'Too many query params' })
+		return
+	}
+	if (typeof symbol !== 'string') {
+		res.status(400).json({ error: 'Only one symbol supported' })
+		return
+	}
+	const chartData = await getLatestChartData(symbol)
 	res.status(200).json(chartData)
 }
 
