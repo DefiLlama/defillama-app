@@ -1,30 +1,26 @@
 /* eslint-disable no-unused-vars*/
 import BigNumber from 'bignumber.js'
-import liquity from './liquity.json'
-import euler from './euler.json'
-import aave_v2 from './aave-v2.json'
-import compound from './compound.json'
 import { DropdownOption } from '~/components/LiquidationsPage/Dropdowns'
 import { queryTypes, useQueryState } from 'next-usequerystate'
 import { defaultChartState } from '~/components/LiquidationsPage/utils'
 
-const TOTAL_BINS = 150
+const TOTAL_BINS = 120
 
-interface Liq {
+export interface Liq {
 	owner: string
 	liqPrice: number
 	collateral: string
 	collateralAmount: string
 }
 
-interface Position {
+export interface Position {
 	liqPrice: number
 	collateralValue: number
 	chain: string
 	protocol: string // protocol adapter id, like "aave-v2", "liquity"...
 }
 
-type Price = {
+export type Price = {
 	decimals: number
 	price: number
 	symbol: string
@@ -81,10 +77,6 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: str
 				protocol
 			}
 			let _positions = aggregatedData.get(symbol)
-			if (position.liqPrice > currentPrice) {
-				// ignore bad debts or positions being liquidated live
-				return
-			}
 			if (!_positions) {
 				_positions = { currentPrice, positions: [position] }
 				aggregatedData.set(symbol, _positions)
@@ -110,31 +102,29 @@ async function getPrices(collaterals: string[]) {
 	return prices
 }
 
-async function getDangerousPositionsAmount(symbol: string) {
-	// TODO: implement on backend
-	return 69_000_000
-}
 async function getHistoricalChange(symbol: string, hours: number) {
 	// TODO: implement on backend
 	return -0.42
 }
-async function getTotalLiquidable(symbol: string) {
-	// TODO: implement on backend
-	return 69_000_000_000
-}
 
 export type ChartData = {
 	symbol: string // could change to coingeckoId in the future
-	coingeckoAsset: CoingeckoAsset
+	coingeckoAsset: CoingeckoAsset // i know theres repeated data but will improve later
 	currentPrice: number
-	dangerousPositionsAmount: number // in ratio of total collateral amount tracked
+	totalLiquidable: number // including bad debts
+	badDebts: number
 	historicalChange: {
 		[hours: number]: number // 1h, 6h, 12h, 1d, 7d, 30d etc in ratio
 	}
-	totalLiquidable: number
+	dangerousPositionsAmount: number // amount of -20% current price
 	chartDataBins: { [bin: string]: ChartDataBin }
 	totalBins: number
 	binSize: number
+	availability: {
+		protocols: string[]
+		chains: string[]
+	}
+	time: number
 }
 
 export interface ChartDataBin {
@@ -193,15 +183,28 @@ function getChartDataBins(
 	return Object.fromEntries(bins)
 }
 
-export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'chain') {
-	const sampleDbResponse: { [protocol: string]: Liq[] } = {
-		liquity,
-		euler,
-		'aave-v2': aave_v2,
-		compound
-	}
-	const allAggregated = await aggregateAssetAdapterData(sampleDbResponse)
+interface LiquidationsApiResponse {
+	time: number
+	data: {
+		protocol: string
+		liqs: {
+			[chain: string]: Liq[]
+		}
+	}[]
+}
+
+export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'chain', totalBins = TOTAL_BINS) {
+	const raw = (await fetch(`https://coins.llama.fi/liquidations`).then((r) => r.json())) as LiquidationsApiResponse
+	const protocols = raw.data.map((d) => d.protocol)
+	const chains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
+
+	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
+		(acc, d) => ({ ...acc, [d.protocol]: d.liqs[chains[0]] }),
+		{}
+	)
+	const allAggregated = await aggregateAssetAdapterData(adapterData)
 	let positions: Position[]
+	// handle other wrapped gas tokens later dynamically
 	if (symbol === 'ETH') {
 		const ethPositions = allAggregated.get('ETH')
 		const wethPositions = allAggregated.get('WETH')
@@ -211,50 +214,42 @@ export async function getResponse(symbol: string, aggregateBy: 'protocol' | 'cha
 	}
 	const currentPrice = allAggregated.get(symbol)!.currentPrice
 
-	const chartDataBins = getChartDataBins(positions, currentPrice, TOTAL_BINS, aggregateBy)
+	let badDebts = 0
+	let totalLiquidable = 0
+	let dangerousPositionsAmount = 0
+	const validPositions = positions.filter((p) => {
+		totalLiquidable += p.collateralValue
+		if (p.liqPrice > currentPrice) {
+			badDebts += p.collateralValue
+			return false
+		}
+		if (p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice) {
+			dangerousPositionsAmount += p.collateralValue
+		}
+		return true
+	})
+
+	const chartDataBins = getChartDataBins(validPositions, currentPrice, totalBins, aggregateBy)
 	const coingeckoAsset = await getCoingeckoAssetFromSymbol(symbol)
 	const chartData: ChartData = {
 		symbol,
 		coingeckoAsset,
 		currentPrice,
-		dangerousPositionsAmount: await getDangerousPositionsAmount(symbol),
+		badDebts,
+		dangerousPositionsAmount,
 		historicalChange: { 168: await getHistoricalChange(symbol, 168) },
-		totalLiquidable: await getTotalLiquidable(symbol),
+		totalLiquidable,
+		totalBins,
 		chartDataBins,
-		totalBins: TOTAL_BINS,
-		binSize: currentPrice / TOTAL_BINS
+		binSize: currentPrice / totalBins,
+		availability: {
+			protocols,
+			chains
+		},
+		time: raw.time
 	}
 
 	return chartData
-}
-
-export async function getDropdownOptions(aggregateBy: 'protocol' | 'chain') {
-	// TODO: this is mocked
-	const protocols: DropdownOption[] = [
-		{
-			name: 'Liquity',
-			key: 'liquity'
-		},
-		{
-			name: 'Euler',
-			key: 'euler'
-		},
-		{
-			name: 'Aave V2',
-			key: 'aave-v2'
-		},
-		{
-			name: 'Compound V2',
-			key: 'compound-v2'
-		}
-	]
-	const chains: DropdownOption[] = [
-		{
-			name: 'Etheruem',
-			key: 'ethereum'
-		}
-	]
-	return aggregateBy === 'protocol' ? protocols : chains
 }
 
 export type CoingeckoAsset = {
