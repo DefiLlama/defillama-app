@@ -25,6 +25,7 @@
 		"next": "^12.2.3",
 		"node-vibrant": "^3.2.1-alpha.1",
 		"numeral": "^2.0.6",
+		"pako": "^2.0.4",
 		"polished": "^4.2.2",
 		"react": "^17.0.2",
 		"react-dom": "^17.0.2",
