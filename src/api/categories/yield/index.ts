@@ -7,6 +7,43 @@ export async function getYieldPageData() {
 
 	const data = formatYieldsPageData(poolsAndConfig)
 
+	const priceChainMapping = {
+		binance: 'bsc',
+		avalanche: 'avax'
+	}
+
+	// get Price data
+	let pricesList = []
+	for (let p of data.pools) {
+		if (p.rewardTokens) {
+			let priceChainName = p.chain.toLowerCase()
+			priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
+				? priceChainMapping[priceChainName]
+				: priceChainName
+
+			pricesList.push(p.rewardTokens.map((t) => `${priceChainName}:${t.toLowerCase()}`))
+		}
+	}
+	pricesList = [...new Set(pricesList.flat())]
+
+	const prices = (
+		await Promise.all([
+			fetch('https://coins.llama.fi/prices', {
+				method: 'POST',
+				body: JSON.stringify({ coins: pricesList })
+			}).then((res) => res.json())
+		])
+	)[0].coins
+
+	for (let p of data.pools) {
+		let priceChainName = p.chain.toLowerCase()
+		priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
+			? priceChainMapping[priceChainName]
+			: priceChainName
+
+		p['rewardTokensSymbols'] = p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol ?? null)
+	}
+
 	return {
 		props: data
 	}

@@ -65,12 +65,12 @@ export const TableWrapper = styled(Table)`
 		padding-right: 20px;
 	}
 
-	// 1D CHANGE
+	// BASE APY
 	tr > *:nth-child(6) {
 		display: none;
 	}
 
-	// 7D CHANGE
+	// REWARD APY
 	tr > *:nth-child(7) {
 		display: none;
 		padding-right: 20px;
@@ -159,7 +159,7 @@ export const TableWrapper = styled(Table)`
 			padding-right: 0px;
 		}
 
-		// 7D CHANGE
+		// REWARD APY
 		tr > *:nth-child(7) {
 			display: revert;
 		}
@@ -173,7 +173,7 @@ export const TableWrapper = styled(Table)`
 			}
 		}
 
-		// 7D CHANGE
+		// REWARD APY
 		tr > *:nth-child(7) {
 			padding-right: 0;
 		}
@@ -204,7 +204,7 @@ export const TableWrapper = styled(Table)`
 			}
 		}
 
-		// 1D CHANGE
+		// BASE APY
 		tr > *:nth-child(6) {
 			display: revert;
 		}
@@ -253,32 +253,58 @@ export const columns = [
 	{
 		header: 'APY',
 		accessor: 'apy',
-		helperText: 'Annualised percentage yield',
+		helperText: 'Total annualised percentage yield',
 		Cell: ({ value, rowValues }) => {
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>
+				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 					{rowValues.project === 'Osmosis' ? (
 						<QuestionHelper text={`${rowValues.id.split('-').slice(-1)} lock`} />
 					) : rowValues.project === 'cBridge' ? (
 						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY'} />
 					) : null}
-					{formattedPercent(value, true)}
-				</AutoRow>
+					{formattedPercent(value, true, 700)}
+				</span>
 			)
 		}
 	},
 	{
-		header: '1d Change',
-		accessor: 'change1d',
-		helperText: 'Absolute change in APY',
-		Cell: ({ value }) => <>{formattedPercent(value)}</>
+		header: 'Base APY',
+		accessor: 'apyBase',
+		helperText: 'Annualised percentage yield from trading fees/supplying',
+		Cell: ({ value }) => {
+			return <AutoRow sx={{ width: '100%', justifyContent: 'flex-end' }}>{formattedPercent(value, true)}</AutoRow>
+		}
 	},
 	{
-		header: '7d Change',
-		accessor: 'change7d',
-		helperText: 'Absolute change in APY',
-		Cell: ({ value }) => <>{formattedPercent(value)}</>
+		header: 'Reward APY',
+		accessor: 'apyReward',
+		helperText: 'Annualised percentage yield from incentives',
+		Cell: ({ value, rowValues }) => {
+			return (
+				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+					{rowValues.rewardTokensSymbols.length > 0 ? (
+						<QuestionHelper text={`${rowValues.rewardTokensSymbols}`} />
+					) : null}
+					{formattedPercent(value, true)}
+				</span>
+			)
+		}
 	},
+	// NOTE(!) with the new columns, horizontal scrolling would become necessary for which we
+	// experience performance issues. gonna remove the change columns for now to give preference to the
+	// apy split columns
+	// {
+	// 	header: '1d Change',
+	// 	accessor: 'change1d',
+	// 	helperText: 'Absolute change in APY',
+	// 	Cell: ({ value }) => <>{formattedPercent(value)}</>
+	// },
+	// {
+	// 	header: '7d Change',
+	// 	accessor: 'change7d',
+	// 	helperText: 'Absolute change in APY',
+	// 	Cell: ({ value }) => <>{formattedPercent(value)}</>
+	// },
 	{
 		header: 'Outlook',
 		accessor: 'outlook',
