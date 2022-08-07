@@ -24,6 +24,8 @@ export const Item = styled(FilterItem)`
 	&:last-of-type {
 		border-radius: 0;
 	}
+
+	opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
 `
 
 export const Stats = styled.span`

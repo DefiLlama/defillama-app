@@ -11,7 +11,8 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		...p,
 		projectName: _config[p.project]?.name,
 		audits: _config[p.project]?.audits,
-		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-'
+		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-',
+		category: _config[p.project]?.category
 	}))
 
 	const poolsList = []

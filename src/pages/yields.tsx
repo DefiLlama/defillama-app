@@ -2,6 +2,7 @@ import Layout from '~/layout'
 import YieldPage from '~/components/YieldsPage'
 import { getYieldPageData } from '~/api/categories/yield'
 import pako from "pako";
+import { revalidate } from '~/api'
 
 export async function getStaticProps() {
 	const data = await getYieldPageData()
@@ -12,7 +13,7 @@ export async function getStaticProps() {
 
 	return {
 		props:{compressed},
-		revalidate: 20 * 60
+		revalidate: revalidate(23)
 	}
 }
 

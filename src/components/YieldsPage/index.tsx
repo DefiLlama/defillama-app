@@ -15,7 +15,7 @@ import { columns, fallbackColumns, fallbackList, TableWrapper } from './shared'
 import { useFormatYieldQueryParams } from './hooks'
 
 const YieldPage = ({ loading, pools, projectList, chainList }) => {
-	const { query } = useRouter()
+	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl } = query
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens } =
@@ -59,6 +59,14 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 		return pools.reduce((acc, curr) => {
 			let toFilter = true
 
+			attributeOptions.forEach((option) => {
+				// check if this page has default attribute filter function
+				if (option.defaultFilterFnOnPage[pathname]) {
+					// apply default attribute filter function
+					toFilter = toFilter && option.defaultFilterFnOnPage[pathname](curr)
+				}
+			})
+
 			selectedAttributes.forEach((attribute) => {
 				const attributeOption = attributeOptions.find((o) => o.key === attribute)
 
@@ -71,11 +79,19 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
 			}
 
-			const tokensInPool = curr.symbol.split('-').map((x) => x.toLowerCase())
+			const tokensInPool: string[] = curr.symbol.split('-').map((x) => x.toLowerCase())
 
 			const includeToken =
 				includeTokens.length > 0
-					? includeTokens.map((t) => t.toLowerCase()).find((token) => tokensInPool.includes(token.toLowerCase()))
+					? includeTokens
+							.map((t) => t.toLowerCase())
+							.find((token) => {
+								if (tokensInPool.includes(token.toLowerCase())) {
+									return true
+								} else if (token === 'eth') {
+									return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
+								} else return false
+							})
 					: true
 
 			const excludeToken = !excludeTokens
@@ -113,20 +129,30 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 				})
 			} else return acc
 		}, [])
-	}, [minTvl, maxTvl, pools, selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens])
+	}, [
+		minTvl,
+		maxTvl,
+		pools,
+		selectedProjects,
+		selectedChains,
+		selectedAttributes,
+		includeTokens,
+		excludeTokens,
+		pathname
+	])
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} pathname="/yields" />
+			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} pathname={pathname} />
 
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>
 				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields" />
-					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname="/yields" />
-					<YieldAttributes pathname="/yields" />
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
+					<YieldAttributes pathname={pathname} />
 					<TVLRange />
-					<ResetAllYieldFilters pathname="/yields" />
+					<ResetAllYieldFilters pathname={pathname} />
 				</Dropdowns>
 			</TableFilters>
 

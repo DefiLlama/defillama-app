@@ -621,11 +621,13 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					{audits && audit_links && <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />}
 
 					<LinksWrapper>
-						<Link href={url} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-								<span>Website</span> <ArrowUpRight size={14} />
-							</Button>
-						</Link>
+						{url && (
+							<Link href={url} passHref>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+									<span>Website</span> <ArrowUpRight size={14} />
+								</Button>
+							</Link>
+						)}
 
 						{twitter && (
 							<Link href={`https://twitter.com/${twitter}`} passHref>

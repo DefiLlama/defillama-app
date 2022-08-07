@@ -22,10 +22,12 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 	delete protocolRes.tokensInUsd
 	delete protocolRes.tokens
 
-	Object.keys(protocolRes.chainTvls).forEach((chain) => {
-		delete protocolRes.chainTvls[chain].tokensInUsd
-		delete protocolRes.chainTvls[chain].tokens
-	})
+	if (protocolRes.chainTvls) {
+		Object.keys(protocolRes.chainTvls).forEach((chain) => {
+			delete protocolRes.chainTvls[chain].tokensInUsd
+			delete protocolRes.chainTvls[chain].tokens
+		})
+	}
 
 	const protocolData = fuseProtocolData(protocolRes)
 

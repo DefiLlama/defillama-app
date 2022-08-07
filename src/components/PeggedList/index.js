@@ -415,14 +415,6 @@ function PeggedAssetsOverview({
 	const [fiatStables] = useFiatStablesManager()
 	const [cryptoStables] = useCryptoStablesManager()
 	const [algoStables] = useAlgoStablesManager()
-	const toggles = {
-		peggedUSD: peggedUSD,
-		peggedEUR: peggedEUR,
-		peggedVAR: peggedVAR,
-		fiatStables: fiatStables,
-		cryptoStables: cryptoStables,
-		algoStables: algoStables
-	}
 
 	const peggedAssets = useMemo(() => {
 		let chartDataIndexes = []
@@ -450,7 +442,7 @@ function PeggedAssetsOverview({
 		setFilteredIndexes(chartDataIndexes)
 
 		return peggedAssets
-	}, [filteredPeggedAssets, peggedUSD, peggedEUR, peggedVAR, fiatStables, cryptoStables, algoStables])
+	}, [filteredPeggedAssets, peggedNameToChartDataIndex, peggedUSD, peggedEUR, peggedVAR, fiatStables, cryptoStables, algoStables])
 
 	const backfilledChains = [
 		'All',
@@ -484,7 +476,6 @@ function PeggedAssetsOverview({
 		chartType,
 		filteredIndexes,
 		selectedChain,
-		toggles,
 		backfilledChains
 	)
 
@@ -541,7 +532,7 @@ function PeggedAssetsOverview({
 		let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.['Total Stablecoins Market Cap']
 		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
 		return { percentChange, totalMcapCurrent }
-	}, [chartData, peggedAreaTotalData])
+	}, [peggedAreaTotalData])
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 

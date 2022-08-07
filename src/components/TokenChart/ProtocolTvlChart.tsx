@@ -93,9 +93,13 @@ export default function ProtocolTvlChart({
 			const newChartData = []
 
 			chartDataFiltered.forEach(([date, tvl]) => {
-				const priceAtDate = denominationHistory.prices.find(
-					(x) => -432000000 < x[0] - date * 1000 && x[0] - date * 1000 < 432000000
-				)
+				let priceAtDate = denominationHistory.prices.find((x) => x[0] === date * 1000)
+
+				if (!priceAtDate) {
+					priceAtDate = denominationHistory.prices.find(
+						(x) => -432000000 < x[0] - date * 1000 && x[0] - date * 1000 < 432000000
+					)
+				}
 
 				if (priceAtDate) {
 					newChartData.push([date, tvl / priceAtDate[1]])
@@ -130,9 +134,13 @@ export default function ProtocolTvlChart({
 			tokensUnique = ['TVL', 'Mcap']
 
 			tvlData.forEach(([date, tvl]) => {
-				const mcapAtDate = protocolCGData['market_caps'].find(
-					(x) => -432000000 < x[0] - date * 1000 && x[0] - date * 1000 < 432000000
-				)
+				let mcapAtDate = protocolCGData['market_caps'].find((x) => x[0] === date * 1000)
+
+				if (!mcapAtDate) {
+					mcapAtDate = protocolCGData['market_caps'].find(
+						(x) => -432000000 < x[0] - date * 1000 && x[0] - date * 1000 < 432000000
+					)
+				}
 
 				chartData.push({ date, TVL: tvl, Mcap: mcapAtDate ? mcapAtDate[1] : '-' })
 			})
@@ -172,12 +180,13 @@ export default function ProtocolTvlChart({
 					))}
 				</Filters>
 
-				{protocolHasMcap && (
+				{hallmarks?.length > 0 && (
 					<ToggleCharts>
 						<input type="checkbox" value="hideEvents" checked={hideHallmarks} onChange={() => toggleFilter('events')} />
 						<span>Hide Events</span>
 					</ToggleCharts>
 				)}
+
 				{protocolHasMcap && (
 					<ToggleCharts>
 						<input type="checkbox" value="hideMcapChart" checked={hideMcap} onChange={() => toggleFilter('mcap')} />

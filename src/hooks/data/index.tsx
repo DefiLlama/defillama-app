@@ -404,7 +404,7 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 			return { date, ...tvls }
 		})
 		return { data, daySum }
-	}, [chains, extraTvlsEnabled])
+	}, [chains, extraTvlsEnabled, tvlKey])
 
 	return { data, daySum }
 }
@@ -477,18 +477,16 @@ export const useCreatePeggedCharts = (
 	chartType,
 	filteredIndexes?,
 	selectedChain?,
-	toggles?,
 	backfilledChains = ['All']
 ) => {
 	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useMemo(() => {
-		const { peggedUSD, peggedEUR, peggedVAR } = toggles || { peggedUSD: true, peggedEUR: true, peggedVAR: true }
 		let unformattedAreaData = {}
 		let unformattedTotalData = {}
 		let stackedDatasetObject = {}
 		chartDataByPeggedAsset.map((charts, i) => {
 			if (!charts.length || !filteredIndexes.includes(i)) return
 			charts.forEach((chart) => {
-				const mcap = getPrevPeggedTotalFromChart([chart], 0, 'totalCirculatingUSD')
+				const mcap = getPrevPeggedTotalFromChart([chart], 0, 'mcap')
 				const peggedName = peggedAssetNames[i]
 				const date = chart.date
 				if (date > 1596248105 && mcap) {
@@ -534,7 +532,7 @@ export const useCreatePeggedCharts = (
 		const stackedDataset = Object.entries(stackedDatasetObject)
 
 		return [peggedAreaChartData, peggedAreaTotalData, stackedDataset]
-	}, [chartDataByPeggedAsset, chartData, filteredIndexes, chartType])
+	}, [chartDataByPeggedAsset, chartData, filteredIndexes, chartType, backfilledChains, peggedAssetNames, selectedChain])
 	return [peggedAreaChartData, peggedAreaTotalData, stackedDataset]
 }
 

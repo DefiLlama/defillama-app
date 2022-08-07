@@ -9,7 +9,7 @@ import {
 	PEGGEDPRICES_API,
 	PEGGEDRATES_API,
 	PEGGEDS_API,
-	PEGGED_API,
+	PEGGED_API
 } from '~/constants'
 import { formatPeggedAssetsData, formatPeggedChainsData } from './utils'
 
@@ -52,10 +52,19 @@ export async function getPeggedOverviewPageData(chain) {
 			peggedNameToChartDataIndex[elem.name] = i
 			for (let i = 0; i < 5; i++) {
 				try {
+					let charts = []
 					if (!chain) {
-						return await fetch(`${PEGGEDCHART_API}/all?stablecoin=${elem.id}`).then((resp) => resp.json())
+						charts = await fetch(`${PEGGEDCHART_API}/all?stablecoin=${elem.id}`).then((resp) => resp.json())
+					} else {
+						charts = await fetch(`${PEGGEDCHART_API}/${chain}?stablecoin=${elem.id}`).then((resp) => resp.json())
 					}
-					return await fetch(`${PEGGEDCHART_API}/${chain}?stablecoin=${elem.id}`).then((resp) => resp.json())
+					const formattedCharts = charts.map((chart) => {
+						return {
+							date: chart.date,
+							mcap: chart.totalCirculatingUSD
+						}
+					})
+					return formattedCharts
 				} catch (e) {}
 			}
 			throw new Error(`${CHART_API}/${elem} is broken`)
@@ -168,8 +177,7 @@ export async function getPeggedChainsPageData() {
 		chainList.map(async (chain) => {
 			for (let i = 0; i < 5; i++) {
 				try {
-					const res = await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
-					return res
+					return await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
 				} catch (e) {}
 			}
 			throw new Error(`${PEGGEDCHART_API}/${chain} is broken`)
@@ -203,6 +211,16 @@ export async function getPeggedChainsPageData() {
 		peggedChartDataByChain,
 		chainDominances,
 		chainsData
+	})
+
+	peggedChartDataByChain = peggedChartDataByChain.map((charts) => {
+		const formattedCharts = charts.map((chart) => {
+			return {
+				date: chart.date,
+				mcap: chart.totalCirculatingUSD
+			}
+		})
+		return formattedCharts
 	})
 
 	return {

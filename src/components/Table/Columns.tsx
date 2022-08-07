@@ -132,5 +132,25 @@ export const allColumns: AllColumns = {
 	protocols: {
 		header: 'Protocols',
 		accessor: 'protocols'
+	},
+	dexName: {
+		header: 'Name',
+		accessor: 'name',
+		disableSortBy: true,
+		Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
+			<Name
+				type="dex"
+				value={value}
+				symbol={rowValues.symbol}
+				index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
+				rowType={rowType}
+				showRows={showRows}
+			/>
+		)
+	},
+	totalVolume24h: {
+		header: 'Last day volume',
+		accessor: 'totalVolume24h',
+		Cell: ({ value }) => <>{value && formattedNum(value)}</>
 	}
 }

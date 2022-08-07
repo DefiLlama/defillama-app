@@ -69,7 +69,7 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 		} else return true
 	})
 
-	const chains = onlyChains.length === 0 ? protocolData.chains : [onlyChains[0][0]]
+	const chains = onlyChains.length === 0 ? protocolData.chains || [] : [onlyChains[0][0]]
 
 	return {
 		...protocolData,
