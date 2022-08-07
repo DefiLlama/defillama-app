@@ -65,12 +65,12 @@ export const TableWrapper = styled(Table)`
 		padding-right: 20px;
 	}
 
-	// 1D CHANGE
+	// BASE APY
 	tr > *:nth-child(6) {
 		display: none;
 	}
 
-	// 7D CHANGE
+	// REWARD APY
 	tr > *:nth-child(7) {
 		display: none;
 		padding-right: 20px;
@@ -159,7 +159,7 @@ export const TableWrapper = styled(Table)`
 			padding-right: 0px;
 		}
 
-		// 7D CHANGE
+		// REWARD APY
 		tr > *:nth-child(7) {
 			display: revert;
 		}
@@ -173,7 +173,7 @@ export const TableWrapper = styled(Table)`
 			}
 		}
 
-		// 7D CHANGE
+		// REWARD APY
 		tr > *:nth-child(7) {
 			padding-right: 0;
 		}
@@ -204,7 +204,7 @@ export const TableWrapper = styled(Table)`
 			}
 		}
 
-		// 1D CHANGE
+		// BASE APY
 		tr > *:nth-child(6) {
 			display: revert;
 		}
