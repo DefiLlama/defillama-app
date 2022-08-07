@@ -3,6 +3,7 @@ import BigNumber from 'bignumber.js'
 import { LIQUIDATIONS_API } from '~/constants'
 
 const TOTAL_BINS = 120
+const WRAPPABLE_GAS_TOKENS = ['ETH', 'AVAX', 'MATIC', 'FTM']
 
 export interface Liq {
 	owner: string
@@ -205,10 +206,13 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 	)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
 	let positions: Position[]
-	// handle other wrapped gas tokens later dynamically
-	if (symbol === 'ETH') {
-		const ethPositions = allAggregated.get('ETH')
-		const wethPositions = allAggregated.get('WETH')
+	// handle wrapped gas tokens later dynamically
+	if (
+		WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase()) ||
+		WRAPPABLE_GAS_TOKENS.includes('W' + symbol.toUpperCase())
+	) {
+		const ethPositions = allAggregated.get(symbol.toUpperCase())
+		const wethPositions = allAggregated.get('W' + symbol.toUpperCase())
 		positions = [...ethPositions!.positions, ...wethPositions!.positions]
 	} else {
 		positions = allAggregated.get(symbol)!.positions
