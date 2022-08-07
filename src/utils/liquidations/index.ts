@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import BigNumber from 'bignumber.js'
+import { LIQUIDATIONS_API } from '~/constants'
 
 const TOTAL_BINS = 120
 
@@ -195,7 +196,7 @@ interface LiquidationsApiResponse {
 }
 
 export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS) {
-	const raw = (await fetch(`https://api.llama.fi/liquidations`).then((r) => r.json())) as LiquidationsApiResponse
+	const raw = (await fetch(LIQUIDATIONS_API).then((r) => r.json())) as LiquidationsApiResponse
 	const protocols = raw.data.map((d) => d.protocol)
 	const chains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
 
