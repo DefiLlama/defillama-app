@@ -19,8 +19,14 @@ export default async function liquidationsHandler(
 		res.status(400).json({ error: 'Only one symbol supported' })
 		return
 	}
-	const chartData = await getLatestChartData(symbol)
-	res.status(200).json(chartData)
+	try {
+		const chartData = await getLatestChartData(symbol)
+		// cache for 10min
+		res.setHeader('Cache-Control', 'max-age=600, s-maxage=600, stale-while-revalidate').status(200).json(chartData)
+	} catch (err) {
+		res.status(500).json({ error: 'Server error' })
+		console.error(err)
+	}
 }
 
 export type LiquidationsApiQuery = {
