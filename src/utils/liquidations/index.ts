@@ -207,13 +207,15 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
 	let positions: Position[]
 	// handle wrapped gas tokens later dynamically
+	let nativeSymbol = symbol
 	if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase())) {
-		const ethPositions = allAggregated.get(symbol.toUpperCase())
-		const wethPositions = allAggregated.get('W' + symbol.toUpperCase())
+		const ethPositions = allAggregated.get(nativeSymbol)
+		const wethPositions = allAggregated.get('W' + nativeSymbol)
 		positions = [...ethPositions!.positions, ...wethPositions!.positions]
-	} else if (WRAPPABLE_GAS_TOKENS.includes('W' + symbol.toUpperCase())) {
-		const ethPositions = allAggregated.get(symbol.toUpperCase().substring(1))
-		const wethPositions = allAggregated.get(symbol.toUpperCase())
+	} else if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase().substring(1))) {
+		nativeSymbol = symbol.toUpperCase().substring(1)
+		const ethPositions = allAggregated.get(nativeSymbol)
+		const wethPositions = allAggregated.get('W' + nativeSymbol)
 		positions = [...ethPositions!.positions, ...wethPositions!.positions]
 	} else {
 		positions = allAggregated.get(symbol)!.positions
@@ -239,14 +241,14 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 	const protocols = Object.keys(chartDataBinsByProtocol)
 	const chartDataBinsByChain = getChartDataBins(validPositions, currentPrice, totalBins, 'chain')
 	const chains = Object.keys(chartDataBinsByChain)
-	const coingeckoAsset = await getCoingeckoAssetFromSymbol(symbol)
+	const coingeckoAsset = await getCoingeckoAssetFromSymbol(nativeSymbol)
 	const chartData: ChartData = {
-		symbol,
+		symbol: nativeSymbol,
 		coingeckoAsset,
 		currentPrice,
 		badDebts,
 		dangerousPositionsAmount,
-		historicalChange: { 168: await getHistoricalChange(symbol, 168) },
+		historicalChange: { 168: await getHistoricalChange(nativeSymbol, 168) },
 		totalLiquidable,
 		totalBins,
 		chartDataBins: {
