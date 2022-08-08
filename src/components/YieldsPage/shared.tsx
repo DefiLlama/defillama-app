@@ -297,7 +297,7 @@ export const columns = [
 		Cell: ({ value, rowValues }) => {
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{rowValues.rewardTokensSymbols.length > 0 ? (
+					{(rowValues.rewardTokensSymbols || []).length > 0 ? (
 						<QuestionHelper text={`${rowValues.rewardTokensSymbols}`} />
 					) : null}
 					{formattedPercent(value, true)}
