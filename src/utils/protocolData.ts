@@ -51,7 +51,7 @@ function getUniqueTokens(tokensInUsd) {
 	const tokenSet: Set<string> = new Set()
 	let othersCategoryExist = false
 	tokensInUsd.forEach((dayTokens) => {
-		// filters tokens that have no name or their value is near zero and pick top 15 tokens from the list
+		// filters tokens that have no name or their value is near zero and pick top 10 tokens from the list
 		const topTokens = Object.entries(dayTokens.tokens)
 			.filter((t) => !(t[0].startsWith('UNKNOWN') && t[1] < 1))
 			.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
@@ -79,7 +79,7 @@ function buildTokensBreakdown(tokensInUsd, tokensUnique: Array<string>) {
 		const tokensToShow = []
 		let remainingTokensSum = 0
 
-		// split tokens of the day into tokens present in top 15 tokens list and add tvl of remaining tokens into category named 'Others'
+		// split tokens of the day into tokens present in top 10 tokens list and add tvl of remaining tokens into category named 'Others'
 		tokensOfTheDay.forEach((token: [string, number]) => {
 			if (tokensUnique.includes(token[0])) {
 				tokensToShow.push(token)
@@ -117,7 +117,7 @@ function buildInflows({ tokensInUsd, tokens, tokensUnique }) {
 			const diffUsd = price * diff
 
 			if (!Number.isNaN(diffUsd) && isFinite(price)) {
-				// Show only top 15 inflow tokens of the day, add remaining inlfows under "Others" category
+				// Show only top 10 inflow tokens of the day, add remaining inlfows under "Others" category
 				if (tokensUnique.includes(token)) {
 					tokenDayDifference[token] = diffUsd
 				} else {
@@ -165,6 +165,7 @@ export const buildProtocolData = (protocolData) => {
 			})
 
 			return {
+				chainsStacked,
 				tokensUnique,
 				tokenBreakdownUSD,
 				tokenBreakdown,
