@@ -41,7 +41,9 @@ export async function getYieldPageData() {
 			? priceChainMapping[priceChainName]
 			: priceChainName
 
-		p['rewardTokensSymbols'] = p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol ?? null)
+		p['rewardTokensSymbols'] = [
+			...new Set(p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol ?? null))
+		]
 	}
 
 	const protocols = (await arrayFetcher(['https://api.llama.fi/config']))[0].protocols
