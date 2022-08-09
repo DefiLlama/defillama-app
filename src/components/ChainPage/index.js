@@ -106,6 +106,10 @@ function GlobalPage({
 						sum -= stakedData[1]
 					}
 
+					if (prop === 'liquidstaking') {
+						sum -= stakedData[1]
+					}
+
 					if (extraTvlsEnabled[prop.toLowerCase()]) {
 						sum += stakedData[1]
 					}

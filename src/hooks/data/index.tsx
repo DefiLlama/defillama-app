@@ -213,6 +213,11 @@ export const useCalcProtocolsTvls = ({
 					let finalTvlPrevMonth: number | null = tvlPrevMonth
 					let strikeTvl = false
 
+					// keep liquid staking in same positon in table but strike its tvl
+					if (props.category === 'Liquid Staking' && !extraTvlsEnabled['doublecounted']) {
+						strikeTvl = true
+					}
+
 					Object.entries(extraTvl).forEach(([prop, propValues]) => {
 						const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
 

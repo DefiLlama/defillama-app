@@ -122,7 +122,7 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 }
 
 export const getVolumeCharts = (data) => {
-	const { tvl = [], staking = [], borrowed = [], pool2 = [], doublecounted = [] } = data || {}
+	const { tvl = [], staking = [], borrowed = [], pool2 = [], doublecounted = [], liquidstaking = [] } = data || {}
 
 	const chart = tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
 
@@ -130,7 +130,8 @@ export const getVolumeCharts = (data) => {
 		staking: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
 		borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
 		pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-		doublecounted: doublecounted.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
+		doublecounted: doublecounted.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+		liquidstaking: liquidstaking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
 	}
 
 	return {

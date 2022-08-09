@@ -14,7 +14,8 @@ import {
 	DISPLAY_USD,
 	DOUBLE_COUNT,
 	useDarkModeManager,
-	UNRELEASED
+	UNRELEASED,
+	LIQUID_STAKING
 } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import MenuIcon from './MenuSvg'
@@ -129,6 +130,11 @@ export const extraTvlOptions = [
 		name: 'Double Count',
 		key: DOUBLE_COUNT,
 		help: 'Include TVL of protocols which TVL feeds into another protocol'
+	},
+	{
+		name: 'Liquid Staking',
+		key: LIQUID_STAKING,
+		help: 'Include Rewards/Liquidity for staked assets'
 	}
 ]
 
