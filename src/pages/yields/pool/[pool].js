@@ -1,59 +1,38 @@
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { TYPE } from '~/Theme'
+import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
-import {
-	BreakpointPanel,
-	BreakpointPanels,
-	ChartAndValuesWrapper,
-	DownloadButton,
-	DownloadIcon,
-	Panel
-} from '~/components'
-import { AutoColumn } from '~/components/Column'
-import { RowFixed } from '~/components/Row'
-import { BasicLink } from '~/components/Link'
-import FormattedName from '~/components/FormattedName'
 import AuditInfo from '~/components/AuditInfo'
-import { ButtonLight } from '~/components/ButtonStyled'
 import { YieldsSearch } from '~/components/Search'
 import { download, toK } from '~/utils'
 import { useYieldPoolData, useYieldChartData, useYieldConfigData } from '~/api/categories/yield/client'
-
-const TokenDetailsLayout = styled.div`
-	display: inline-grid;
-	width: 100%;
-	grid-template-columns: auto auto auto 1fr;
-	column-gap: 30px;
-	align-items: start;
-
-	&:last-child {
-		align-items: center;
-		justify-items: end;
-	}
-	@media screen and (max-width: 1024px) {
-		grid-template-columns: 1fr;
-		align-items: stretch;
-		> * {
-			grid-column: 1 / 4;
-			margin-bottom: 1rem;
-			display: table-row;
-			> * {
-				margin-bottom: 1rem;
-			}
-		}
-
-		&:last-child {
-			align-items: start;
-			justify-items: start;
-		}
-	}
-`
+import {
+	Button,
+	DownloadButton,
+	FlexRow,
+	InfoWrapper,
+	LinksWrapper,
+	PoolDetails,
+	ProtocolName,
+	Section,
+	Stat,
+	StatsSection,
+	StatWrapper,
+	Symbol
+} from '~/components/ProtocolAndPool'
+import FormattedName from '~/components/FormattedName'
 
 const Chart = dynamic(() => import('~/components/GlobalChart'), {
 	ssr: false
 })
+
+const ChartWrapper = styled.div`
+	padding: 0 0 20px 0;
+	min-height: 380px;
+	grid-column: span 1;
+`
 
 const PageView = () => {
 	const { query } = useRouter()
@@ -64,7 +43,9 @@ const PageView = () => {
 	const poolData = pool?.data ? pool.data[0] : {}
 
 	const project = poolData.project ?? ''
+
 	let { data: config } = useYieldConfigData(project)
+
 	const configData = config ?? {}
 
 	const finalChartData = chart?.data.map((el) => [
@@ -110,47 +91,54 @@ const PageView = () => {
 		<>
 			<YieldsSearch step={{ category: 'Yields', name: poolData.symbol, hideOptions: true }} />
 
-			<h1 style={{ margin: '0 0 -12px', fontWeight: 500, fontSize: '1.5rem' }}>
-				<span>
-					{projectName === 'Osmosis'
-						? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
-						: poolData.symbol ?? 'Loading'}
-				</span>{' '}
-				<span style={{ fontSize: '1rem' }}>
-					({projectName} - {poolData.chain})
-				</span>
-			</h1>
+			<StatsSection>
+				<PoolDetails>
+					<ProtocolName>
+						<FormattedName
+							text={
+								projectName === 'Osmosis'
+									? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
+									: poolData.symbol ?? 'Loading'
+							}
+							maxCharacters={16}
+							fontWeight={700}
+						/>
+						<Symbol>
+							({projectName} - {poolData.chain})
+						</Symbol>
+					</ProtocolName>
 
-			<ChartAndValuesWrapper>
-				<BreakpointPanels>
-					<BreakpointPanel>
-						<h2>APY</h2>
-						<p style={{ '--tile-text-color': '#fd3c99' }}>{apy}%</p>
+					<StatWrapper>
+						<Stat>
+							<span style={{ fontSize: '1rem' }}>APY</span>
+							<span style={{ color: '#fd3c99' }}>{apy}%</span>
+						</Stat>
+					</StatWrapper>
+
+					<StatWrapper>
+						<Stat>
+							<span style={{ fontSize: '1rem' }}>Total Value Locked</span>
+							<span style={{ color: '#4f8fea' }}>${tvlUsd}</span>
+						</Stat>
+
 						<DownloadButton as="button" onClick={downloadCsv}>
-							<DownloadIcon />
+							<DownloadCloud size={14} />
 							<span>&nbsp;&nbsp;.csv</span>
 						</DownloadButton>
-					</BreakpointPanel>
-					<BreakpointPanel>
-						<h2>Total Value Locked</h2>
-						<p style={{ '--tile-text-color': '#4f8fea' }}>${tvlUsd}</p>
-					</BreakpointPanel>
-					<BreakpointPanel>
-						<h2>Outlook</h2>
-						<p
-							style={{
-								'--tile-text-color': '#46acb7',
-								fontSize: '1rem',
-								fontWeight: 400
-							}}
-						>
-							{confidence !== null
-								? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
-								: 'No outlook available'}
-						</p>
-					</BreakpointPanel>
-				</BreakpointPanels>
-				<BreakpointPanel id="chartWrapper">
+					</StatWrapper>
+
+					<StatWrapper>
+						<Stat>
+							<span style={{ fontSize: '1rem' }}>Outlook</span>
+							<span style={{ fontSize: '1rem', fontWeight: '400' }}>
+								{confidence !== null
+									? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
+									: 'No outlook available'}
+							</span>
+						</Stat>
+					</StatWrapper>
+				</PoolDetails>
+				<ChartWrapper>
 					<Chart
 						display="liquidity"
 						dailyData={finalChartData}
@@ -159,40 +147,39 @@ const PageView = () => {
 						title="APY & TVL"
 						dualAxis={true}
 					/>
-				</BreakpointPanel>
-			</ChartAndValuesWrapper>
+				</ChartWrapper>
+			</StatsSection>
 
-			<p style={{ fontSize: '1.125rem', fontWeight: 500, margin: '0 0 -12px' }}>Protocol Information</p>
+			<InfoWrapper>
+				<Section>
+					<h3>Protocol Information</h3>
+					<FlexRow>
+						<span>Category</span>
+						<span>:</span>
+						<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+					</FlexRow>
 
-			<Panel>
-				<TokenDetailsLayout>
-					{typeof category === 'string' && (
-						<AutoColumn>
-							<TYPE.main>Category</TYPE.main>
-							<TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-								<BasicLink href={`/protocols/${category.toLowerCase()}`}>
-									<FormattedName text={category} maxCharacters={16} />
-								</BasicLink>
-							</TYPE.main>
-						</AutoColumn>
-					)}
+					{audits && audit_links && <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />}
 
-					<AuditInfo audits={audits} auditLinks={audit_links} />
+					<LinksWrapper>
+						{url && (
+							<Link href={url} passHref>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+									<span>Website</span> <ArrowUpRight size={14} />
+								</Button>
+							</Link>
+						)}
 
-					<RowFixed>
-						<BasicLink color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
-							<ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
-								Twitter ↗
-							</ButtonLight>
-						</BasicLink>
-						<BasicLink color={backgroundColor} external href={url}>
-							<ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
-								Website ↗
-							</ButtonLight>
-						</BasicLink>
-					</RowFixed>
-				</TokenDetailsLayout>
-			</Panel>
+						{twitter && (
+							<Link href={`https://twitter.com/${twitter}`} passHref>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+									<span>Twitter</span> <ArrowUpRight size={14} />
+								</Button>
+							</Link>
+						)}
+					</LinksWrapper>
+				</Section>
+			</InfoWrapper>
 		</>
 	)
 }
