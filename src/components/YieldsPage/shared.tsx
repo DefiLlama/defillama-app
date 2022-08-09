@@ -277,24 +277,16 @@ export const columns = [
 	},
 	{
 		header: 'Reward APY',
-		accessor: 'apyReward',
-		helperText: 'Annualised percentage yield from incentives',
+		accessor: 'rewards',
+		disableSortBy: false,
 		Cell: ({ value, rowValues }) => {
 			return (
-				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{rowValues.rewardTokensSymbols.length > 0 ? (
-						<QuestionHelper text={`${rowValues.rewardTokensSymbols}`} />
-					) : null}
-					{formattedPercent(value, true)}
-				</span>
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-start', gap: '4px' }}>
+					{formattedPercent(rowValues.apyReward, true)}
+					<IconsRow links={value} url="/yields?project" iconType="token" />
+				</AutoRow>
 			)
 		}
-	},
-	{
-		header: 'Reward Tokens',
-		accessor: 'rewards',
-		disableSortBy: true,
-		Cell: ({ value }) => <IconsRow links={value} url="/yields?project" iconType="token" />
 	},
 	// NOTE(!) with the new columns, horizontal scrolling would become necessary for which we
 	// experience performance issues. gonna remove the change columns for now to give preference to the
