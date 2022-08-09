@@ -46,7 +46,9 @@ export async function getYieldPageData() {
 
 	const protocols = (await arrayFetcher(['https://api.llama.fi/config']))[0].protocols
 	for (let p of data.pools) {
-		p['rewardTokensNames'] = p.rewardTokensSymbols.map((t) => protocols.find((pro) => pro.symbol === t)?.name)
+		p['rewardTokensNames'] = p.rewardTokensSymbols
+			.map((t) => protocols.find((pro) => pro.symbol === t)?.name)
+			.filter((t) => t)
 	}
 
 	return {
