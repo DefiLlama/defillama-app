@@ -35,15 +35,15 @@ const Chart = dynamic(() => import('~/components/GlobalChart'), {
 const PageView = () => {
 	const { query } = useRouter()
 
-	const { data: pool } = useYieldPoolData(query.pool)
+	const { data: pool, loading: fetchingPoolData } = useYieldPoolData(query.pool)
 
-	const { data: chart } = useYieldChartData(query.pool)
+	const { data: chart, loading: fetchingChartData } = useYieldChartData(query.pool)
 
 	const poolData = pool?.data ? pool.data[0] : {}
 
 	const project = poolData.project ?? ''
 
-	const { data: config } = useYieldConfigData(project)
+	const { data: config, loading: fetchingConfigData } = useYieldConfigData(project)
 
 	const configData = config ?? {}
 
@@ -88,6 +88,8 @@ const PageView = () => {
 
 	const backgroundColor = '#696969'
 
+	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData
+
 	return (
 		<>
 			<YieldsSearch step={{ category: 'Yields', name: poolData.symbol, hideOptions: true }} />
@@ -130,11 +132,15 @@ const PageView = () => {
 					<StatWrapper>
 						<Stat>
 							<span style={{ fontSize: '1rem' }}>Outlook</span>
-							<span style={{ fontSize: '1rem', fontWeight: '400' }}>
-								{confidence !== null
-									? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
-									: 'No outlook available'}
-							</span>
+							{isLoading ? (
+								<span style={{ height: '60px' }}></span>
+							) : (
+								<span style={{ fontSize: '1rem', fontWeight: '400' }}>
+									{confidence !== null
+										? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
+										: 'No outlook available'}
+								</span>
+							)}
 						</Stat>
 					</StatWrapper>
 				</PoolDetails>
@@ -159,12 +165,19 @@ const PageView = () => {
 						<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
 					</FlexRow>
 
-					{audits && audit_links && <AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} />}
+					<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} isLoading={isLoading} />
 
 					<LinksWrapper>
-						{url && (
+						{(url || isLoading) && (
 							<Link href={url} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+								<Button
+									as="a"
+									target="_blank"
+									rel="noopener noreferrer"
+									useTextColor={true}
+									color={backgroundColor}
+									disabled={isLoading}
+								>
 									<span>Website</span> <ArrowUpRight size={14} />
 								</Button>
 							</Link>
