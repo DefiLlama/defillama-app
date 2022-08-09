@@ -23,6 +23,7 @@ import {
 	Symbol
 } from '~/components/ProtocolAndPool'
 import FormattedName from '~/components/FormattedName'
+import { BreakpointPanel } from '~/components'
 
 const Chart = dynamic(() => import('~/components/GlobalChart'), {
 	ssr: false
@@ -138,7 +139,7 @@ const PageView = () => {
 						</Stat>
 					</StatWrapper>
 				</PoolDetails>
-				<ChartWrapper>
+				<BreakpointPanel id="chartWrapper" style={{ border: 'none' }}>
 					<Chart
 						display="liquidity"
 						dailyData={finalChartData}
@@ -147,7 +148,7 @@ const PageView = () => {
 						title="APY & TVL"
 						dualAxis={true}
 					/>
-				</ChartWrapper>
+				</BreakpointPanel>
 			</StatsSection>
 
 			<InfoWrapper>
