@@ -6,7 +6,6 @@ import Layout from '~/layout'
 import AuditInfo from '~/components/AuditInfo'
 import { YieldsSearch } from '~/components/Search'
 import { download, toK } from '~/utils'
-import { useYieldConfigData } from '~/api/categories/yield/client'
 import {
 	Button,
 	DownloadButton,
@@ -24,7 +23,7 @@ import {
 import FormattedName from '~/components/FormattedName'
 import { BreakpointPanel } from '~/components'
 import { getYieldPageData } from '~/api/categories/yield'
-import { YIELD_CHART_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
+import { CONFIG_API, YIELD_CHART_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
 import { arrayFetcher } from '~/utils/useSWR'
 import { revalidate } from '~/api'
 
@@ -32,14 +31,8 @@ const Chart = dynamic(() => import('~/components/GlobalChart'), {
 	ssr: false
 })
 
-const PageView = ({ poolData, chart }) => {
+const PageView = ({ poolData, chart, configData }) => {
 	const { query } = useRouter()
-
-	const project = poolData.project ?? ''
-
-	let { data: config } = useYieldConfigData(project)
-
-	const configData = config ?? {}
 
 	const finalChartData = chart?.map((el) => [
 		String(Math.floor(new Date(el.timestamp).getTime() / 1000)),
@@ -106,6 +99,10 @@ const PageView = ({ poolData, chart }) => {
 							<span style={{ fontSize: '1rem' }}>APY</span>
 							<span style={{ color: '#fd3c99' }}>{apy}%</span>
 						</Stat>
+						<DownloadButton as="button" onClick={downloadCsv}>
+							<DownloadCloud size={14} />
+							<span>&nbsp;&nbsp;.csv</span>
+						</DownloadButton>
 					</StatWrapper>
 
 					<StatWrapper>
@@ -113,11 +110,6 @@ const PageView = ({ poolData, chart }) => {
 							<span style={{ fontSize: '1rem' }}>Total Value Locked</span>
 							<span style={{ color: '#4f8fea' }}>${tvlUsd}</span>
 						</Stat>
-
-						<DownloadButton as="button" onClick={downloadCsv}>
-							<DownloadCloud size={14} />
-							<span>&nbsp;&nbsp;.csv</span>
-						</DownloadButton>
 					</StatWrapper>
 
 					<StatWrapper>
@@ -190,7 +182,7 @@ export async function getStaticPaths() {
 
 	const paths = res.props.pools.slice(0, 30).map(({ pool }) => {
 		return {
-			params: { pool: [`/yields/pool/${pool}`] }
+			params: { pool: [pool] }
 		}
 	})
 
@@ -207,10 +199,15 @@ export async function getStaticProps({
 
 	const res = await arrayFetcher([poolUrl, chartUrl])
 
+	const poolData = res[0]?.data?.[0] ?? {}
+
+	const configData = await fetch(`${CONFIG_API}/smol/${poolData.project}`).then((res) => res.json())
+
 	return {
 		props: {
 			poolData: res[0]?.data?.[0] ?? {},
-			chart: res[1]?.data ?? []
+			chart: res[1]?.data ?? [],
+			configData
 		},
 		revalidate: revalidate(23)
 	}
