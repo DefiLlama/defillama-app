@@ -1,55 +1,32 @@
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
-import { TYPE } from '~/Theme'
+import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
-import {
-	BreakpointPanel,
-	BreakpointPanels,
-	ChartAndValuesWrapper,
-	DownloadButton,
-	DownloadIcon,
-	Panel
-} from '~/components'
-import { AutoColumn } from '~/components/Column'
-import { RowFixed } from '~/components/Row'
-import { BasicLink } from '~/components/Link'
-import FormattedName from '~/components/FormattedName'
 import AuditInfo from '~/components/AuditInfo'
-import { ButtonLight } from '~/components/ButtonStyled'
 import { YieldsSearch } from '~/components/Search'
 import { download, toK } from '~/utils'
-import { useYieldPoolData, useYieldChartData, useYieldConfigData } from '~/api/categories/yield/client'
-
-const TokenDetailsLayout = styled.div`
-	display: inline-grid;
-	width: 100%;
-	grid-template-columns: auto auto auto 1fr;
-	column-gap: 30px;
-	align-items: start;
-
-	&:last-child {
-		align-items: center;
-		justify-items: end;
-	}
-	@media screen and (max-width: 1024px) {
-		grid-template-columns: 1fr;
-		align-items: stretch;
-		> * {
-			grid-column: 1 / 4;
-			margin-bottom: 1rem;
-			display: table-row;
-			> * {
-				margin-bottom: 1rem;
-			}
-		}
-
-		&:last-child {
-			align-items: start;
-			justify-items: start;
-		}
-	}
-`
+import {
+	Button,
+	DownloadButton,
+	FlexRow,
+	InfoWrapper,
+	LinksWrapper,
+	PoolDetails,
+	ProtocolName,
+	Section,
+	Stat,
+	StatsSection,
+	StatWrapper,
+	Symbol
+} from '~/components/ProtocolAndPool'
+import FormattedName from '~/components/FormattedName'
+import { BreakpointPanel } from '~/components'
+import { useYieldChartData, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
+// import { getYieldPageData } from '~/api/categories/yield'
+// import { CONFIG_API, YIELD_CHART_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
+// import { arrayFetcher } from '~/utils/useSWR'
+// import { revalidate } from '~/api'
 
 const Chart = dynamic(() => import('~/components/GlobalChart'), {
 	ssr: false
@@ -58,13 +35,16 @@ const Chart = dynamic(() => import('~/components/GlobalChart'), {
 const PageView = () => {
 	const { query } = useRouter()
 
-	let { data: pool } = useYieldPoolData(query.pool)
-	let { data: chart } = useYieldChartData(query.pool)
+	const { data: pool, loading: fetchingPoolData } = useYieldPoolData(query.pool)
+
+	const { data: chart, loading: fetchingChartData } = useYieldChartData(query.pool)
 
 	const poolData = pool?.data ? pool.data[0] : {}
 
 	const project = poolData.project ?? ''
-	let { data: config } = useYieldConfigData(project)
+
+	const { data: config, loading: fetchingConfigData } = useYieldConfigData(project)
+
 	const configData = config ?? {}
 
 	const finalChartData = chart?.data.map((el) => [
@@ -92,9 +72,11 @@ const PageView = () => {
 	const tvlUsd = toK(poolData.tvlUsd ?? 0)
 
 	let confidence = poolData.predictions?.binnedConfidence ?? null
+
 	if (confidence) {
 		confidence = confidence === 1 ? 'Low' : confidence === 2 ? 'Medium' : 'High'
 	}
+
 	const predictedDirection = poolData.predictions?.predictedClass === 'Down' ? '' : 'not'
 
 	const projectName = configData.name ?? ''
@@ -106,51 +88,63 @@ const PageView = () => {
 
 	const backgroundColor = '#696969'
 
+	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData
+
 	return (
 		<>
 			<YieldsSearch step={{ category: 'Yields', name: poolData.symbol, hideOptions: true }} />
 
-			<h1 style={{ margin: '0 0 -12px', fontWeight: 500, fontSize: '1.5rem' }}>
-				<span>
-					{projectName === 'Osmosis'
-						? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
-						: poolData.symbol ?? 'Loading'}
-				</span>{' '}
-				<span style={{ fontSize: '1rem' }}>
-					({projectName} - {poolData.chain})
-				</span>
-			</h1>
+			<StatsSection>
+				<PoolDetails>
+					<ProtocolName>
+						<FormattedName
+							text={
+								projectName === 'Osmosis'
+									? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
+									: poolData.symbol ?? 'Loading'
+							}
+							maxCharacters={16}
+							fontWeight={700}
+						/>
+						<Symbol>
+							({projectName} - {poolData.chain})
+						</Symbol>
+					</ProtocolName>
 
-			<ChartAndValuesWrapper>
-				<BreakpointPanels>
-					<BreakpointPanel>
-						<h2>APY</h2>
-						<p style={{ '--tile-text-color': '#fd3c99' }}>{apy}%</p>
+					<StatWrapper>
+						<Stat>
+							<span style={{ fontSize: '1rem' }}>APY</span>
+							<span style={{ color: '#fd3c99' }}>{apy}%</span>
+						</Stat>
 						<DownloadButton as="button" onClick={downloadCsv}>
-							<DownloadIcon />
+							<DownloadCloud size={14} />
 							<span>&nbsp;&nbsp;.csv</span>
 						</DownloadButton>
-					</BreakpointPanel>
-					<BreakpointPanel>
-						<h2>Total Value Locked</h2>
-						<p style={{ '--tile-text-color': '#4f8fea' }}>${tvlUsd}</p>
-					</BreakpointPanel>
-					<BreakpointPanel>
-						<h2>Outlook</h2>
-						<p
-							style={{
-								'--tile-text-color': '#46acb7',
-								fontSize: '1rem',
-								fontWeight: 400
-							}}
-						>
-							{confidence !== null
-								? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
-								: 'No outlook available'}
-						</p>
-					</BreakpointPanel>
-				</BreakpointPanels>
-				<BreakpointPanel id="chartWrapper">
+					</StatWrapper>
+
+					<StatWrapper>
+						<Stat>
+							<span style={{ fontSize: '1rem' }}>Total Value Locked</span>
+							<span style={{ color: '#4f8fea' }}>${tvlUsd}</span>
+						</Stat>
+					</StatWrapper>
+
+					<StatWrapper>
+						<Stat>
+							<span style={{ fontSize: '1rem' }}>Outlook</span>
+							{isLoading ? (
+								<span style={{ height: '60px' }}></span>
+							) : (
+								<span style={{ fontSize: '1rem', fontWeight: '400' }}>
+									{confidence !== null
+										? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
+										: 'No outlook available'}
+								</span>
+							)}
+						</Stat>
+					</StatWrapper>
+				</PoolDetails>
+				<BreakpointPanel id="chartWrapper" style={{ border: 'none' }}>
 					<Chart
 						display="liquidity"
 						dailyData={finalChartData}
@@ -160,39 +154,45 @@ const PageView = () => {
 						dualAxis={true}
 					/>
 				</BreakpointPanel>
-			</ChartAndValuesWrapper>
+			</StatsSection>
 
-			<p style={{ fontSize: '1.125rem', fontWeight: 500, margin: '0 0 -12px' }}>Protocol Information</p>
+			<InfoWrapper>
+				<Section>
+					<h3>Protocol Information</h3>
+					<FlexRow>
+						<span>Category</span>
+						<span>:</span>
+						<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+					</FlexRow>
 
-			<Panel>
-				<TokenDetailsLayout>
-					{typeof category === 'string' && (
-						<AutoColumn>
-							<TYPE.main>Category</TYPE.main>
-							<TYPE.main style={{ marginTop: '.5rem' }} fontSize={24} fontWeight="500">
-								<BasicLink href={`/protocols/${category.toLowerCase()}`}>
-									<FormattedName text={category} maxCharacters={16} />
-								</BasicLink>
-							</TYPE.main>
-						</AutoColumn>
-					)}
+					<AuditInfo audits={audits} auditLinks={audit_links} color={backgroundColor} isLoading={isLoading} />
 
-					<AuditInfo audits={audits} auditLinks={audit_links} />
+					<LinksWrapper>
+						{(url || isLoading) && (
+							<Link href={url} passHref>
+								<Button
+									as="a"
+									target="_blank"
+									rel="noopener noreferrer"
+									useTextColor={true}
+									color={backgroundColor}
+									disabled={isLoading}
+								>
+									<span>Website</span> <ArrowUpRight size={14} />
+								</Button>
+							</Link>
+						)}
 
-					<RowFixed>
-						<BasicLink color={backgroundColor} external href={`https://twitter.com/${twitter}`}>
-							<ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
-								Twitter ↗
-							</ButtonLight>
-						</BasicLink>
-						<BasicLink color={backgroundColor} external href={url}>
-							<ButtonLight useTextColor={true} color={backgroundColor} style={{ marginRight: '1rem' }}>
-								Website ↗
-							</ButtonLight>
-						</BasicLink>
-					</RowFixed>
-				</TokenDetailsLayout>
-			</Panel>
+						{twitter && (
+							<Link href={`https://twitter.com/${twitter}`} passHref>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+									<span>Twitter</span> <ArrowUpRight size={14} />
+								</Button>
+							</Link>
+						)}
+					</LinksWrapper>
+				</Section>
+			</InfoWrapper>
 		</>
 	)
 }
@@ -204,3 +204,39 @@ export default function YieldPoolPage(props) {
 		</Layout>
 	)
 }
+
+// export async function getStaticPaths() {
+// 	const res = await getYieldPageData()
+
+// 	const paths = res.props.pools.slice(0, 30).map(({ pool }) => {
+// 		return {
+// 			params: { pool: [pool] }
+// 		}
+// 	})
+
+// 	return { paths, fallback: 'blocking' }
+// }
+
+// export async function getStaticProps({
+// 	params: {
+// 		pool: [pool]
+// 	}
+// }) {
+// 	const poolUrl = `${YIELD_POOLS_LAMBDA_API}?pool=${pool}`
+// 	const chartUrl = `${YIELD_CHART_API}/${pool}`
+
+// 	const res = await arrayFetcher([poolUrl, chartUrl])
+
+// 	const poolData = res[0]?.data?.[0] ?? {}
+
+// 	const configData = await fetch(`${CONFIG_API}/smol/${poolData.project}`).then((res) => res.json())
+
+// 	return {
+// 		props: {
+// 			poolData: res[0]?.data?.[0] ?? {},
+// 			chart: res[1]?.data ?? [],
+// 			configData
+// 		},
+// 		revalidate: revalidate(23)
+// 	}
+// }
