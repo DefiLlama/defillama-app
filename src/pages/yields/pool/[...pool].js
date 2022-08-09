@@ -1,13 +1,12 @@
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
 import AuditInfo from '~/components/AuditInfo'
 import { YieldsSearch } from '~/components/Search'
 import { download, toK } from '~/utils'
-import { useYieldPoolData, useYieldChartData, useYieldConfigData } from '~/api/categories/yield/client'
+import { useYieldConfigData } from '~/api/categories/yield/client'
 import {
 	Button,
 	DownloadButton,
@@ -24,24 +23,17 @@ import {
 } from '~/components/ProtocolAndPool'
 import FormattedName from '~/components/FormattedName'
 import { BreakpointPanel } from '~/components'
+import { getYieldPageData } from '~/api/categories/yield'
+import { YIELD_CHART_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
+import { arrayFetcher } from '~/utils/useSWR'
+import { revalidate } from '~/api'
 
 const Chart = dynamic(() => import('~/components/GlobalChart'), {
 	ssr: false
 })
 
-const ChartWrapper = styled.div`
-	padding: 0 0 20px 0;
-	min-height: 380px;
-	grid-column: span 1;
-`
-
-const PageView = () => {
+const PageView = ({ poolData, chart }) => {
 	const { query } = useRouter()
-
-	let { data: pool } = useYieldPoolData(query.pool)
-	let { data: chart } = useYieldChartData(query.pool)
-
-	const poolData = pool?.data ? pool.data[0] : {}
 
 	const project = poolData.project ?? ''
 
@@ -49,7 +41,7 @@ const PageView = () => {
 
 	const configData = config ?? {}
 
-	const finalChartData = chart?.data.map((el) => [
+	const finalChartData = chart?.map((el) => [
 		String(Math.floor(new Date(el.timestamp).getTime() / 1000)),
 		el.tvlUsd,
 		// i format here for the plot in `TradingViewChart`
@@ -191,4 +183,35 @@ export default function YieldPoolPage(props) {
 			<PageView {...props} />
 		</Layout>
 	)
+}
+
+export async function getStaticPaths() {
+	const res = await getYieldPageData()
+
+	const paths = res.props.pools.slice(0, 30).map(({ pool }) => {
+		return {
+			params: { pool: [`/yields/pool/${pool}`] }
+		}
+	})
+
+	return { paths, fallback: 'blocking' }
+}
+
+export async function getStaticProps({
+	params: {
+		pool: [pool]
+	}
+}) {
+	const poolUrl = `${YIELD_POOLS_LAMBDA_API}?pool=${pool}`
+	const chartUrl = `${YIELD_CHART_API}/${pool}`
+
+	const res = await arrayFetcher([poolUrl, chartUrl])
+
+	return {
+		props: {
+			poolData: res[0]?.data?.[0] ?? {},
+			chart: res[1]?.data ?? []
+		},
+		revalidate: revalidate(23)
+	}
 }
