@@ -290,6 +290,12 @@ export const columns = [
 			)
 		}
 	},
+	{
+		header: 'Reward Tokens',
+		accessor: 'rewards',
+		disableSortBy: true,
+		Cell: ({ value }) => <IconsRow links={value} url="" iconType="token" />
+	},
 	// NOTE(!) with the new columns, horizontal scrolling would become necessary for which we
 	// experience performance issues. gonna remove the change columns for now to give preference to the
 	// apy split columns
