@@ -68,7 +68,7 @@ const NavMenu = () => {
 			<Entry url="/stablecoins" name="Stablecoins" Icon={Pocket} newTag />
 			<Entry url="/watchlist" name="Watchlist" Icon={Bookmark} />
 			<Entry url="/top-protocols" name="Top Protocols" Icon={Map} />
-			<Entry url="/liquidations" name="Liquidations" Icon={Droplet} newTag />
+			<Entry url="/liquidations/eth" name="Liquidations" Icon={Droplet} newTag />
 			<Entry url="/categories" name="Categories" Icon={RefreshCcw} />
 			<Entry url="/recent" name="Recent" Icon={Clock} />
 			<Entry url="/comparison" name="Comparison" Icon={Minimize2} />
