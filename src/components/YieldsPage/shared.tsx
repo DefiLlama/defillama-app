@@ -283,7 +283,7 @@ export const columns = [
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-start', gap: '4px' }}>
 					{formattedPercent(rowValues.apyReward, true)}
-					{value.includes('Optimism') ? (
+					{value.includes('Optimism') || value.includes('Avalanche') ? (
 						<IconsRow links={value} url="/yields?chain" iconType="chain" />
 					) : (
 						<IconsRow links={value} url="/yields?project" iconType="token" />

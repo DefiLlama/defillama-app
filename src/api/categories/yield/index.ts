@@ -47,7 +47,12 @@ export async function getYieldPageData() {
 	}
 
 	for (let p of data.pools) {
-		p['rewardTokensNames'] = p.rewardTokensSymbols.map((t) => data.tokenNameMapping[t]).filter((t) => t)
+		// need to map wrapped chain tokens
+		// eg WAVAX -> AVAX
+		const xy = p.rewardTokensSymbols.map((t) => {
+			return t === 'WAVAX' ? data.tokenNameMapping['AVAX'] : data.tokenNameMapping[t]
+		})
+		p['rewardTokensNames'] = xy.filter((t) => t)
 	}
 
 	return {

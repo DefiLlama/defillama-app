@@ -30,14 +30,16 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		}
 	})
 
-	const tokenNameMapping = {}
+	let tokenNameMapping = {}
 	for (const key of Object.keys(_config)) {
 		tokenNameMapping[_config[key].symbol] = _config[key].name
 	}
-	// add the chain symbols too
+	// add chain symbols too
 	for (const chain of _chains) {
 		tokenNameMapping[chain.tokenSymbol] = chain.name
 	}
+	// remove any null keys (where no token)
+	tokenNameMapping = Object.fromEntries(Object.entries(tokenNameMapping).filter(([k, _]) => k !== 'null' || k !== '-'))
 
 	return {
 		pools: poolsList,
