@@ -79,6 +79,10 @@ export const TableWrapper = styled(Table)`
 	// OUTLOOK
 	tr > *:nth-child(8) {
 		display: none;
+
+		& > * {
+			width: 80px;
+		}
 	}
 
 	// CONFIDENCE
@@ -176,6 +180,10 @@ export const TableWrapper = styled(Table)`
 		// REWARD APY
 		tr > *:nth-child(7) {
 			padding-right: 0;
+
+			& > * {
+				width: 140px;
+			}
 		}
 
 		// OUTLOOK
@@ -281,13 +289,13 @@ export const columns = [
 		Cell: ({ value, rowValues }) => {
 			const rewards = rowValues.rewards
 			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-start', gap: '4px' }}>
-					{formattedPercent(value, true)}
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
 					{rewards.includes('Optimism') || rewards.includes('Avalanche') ? (
 						<IconsRow links={rewards} url="/yields?chain" iconType="chain" />
 					) : (
 						<IconsRow links={rewards} url="/yields?project" iconType="token" />
 					)}
+					{formattedPercent(value, true)}
 				</AutoRow>
 			)
 		}
