@@ -44,14 +44,15 @@ export const getOption = (chartData: ChartData, aggregateBy: 'chain' | 'protocol
 	}))
 
 	const option = {
-		// title: {
-		// 	text: `${chart.asset} Liquidation Levels`,
-		// 	textStyle: {
-		// 		fontFamily: 'inter, sans-serif',
-		// 		fontWeight: 600,
-		// 		color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-		// 	}
-		// },
+		legend: {
+			orient: 'vertical',
+			align: 'left',
+			left: 10,
+			textStyle: {
+				color: '#a1a1aa'
+			},
+			inactiveColor: '#a1a1aa90'
+		},
 		grid: {
 			left: '2%',
 			right: '1%',
@@ -68,15 +69,6 @@ export const getOption = (chartData: ChartData, aggregateBy: 'chain' | 'protocol
 		xAxis: {
 			// bins
 			type: 'category',
-			// name: 'Liquidation Price',
-			// nameLocation: 'middle',
-			// nameGap: 30,
-			// nameTextStyle: {
-			// 	fontFamily: 'inter, sans-serif',
-			// 	fontSize: 14,
-			// 	fontWeight: 500,
-			// 	color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			// },
 			splitLine: {
 				lineStyle: {
 					color: '#a1a1aa',
@@ -89,23 +81,11 @@ export const getOption = (chartData: ChartData, aggregateBy: 'chain' | 'protocol
 			axisTick: {
 				alignWithLabel: true
 			},
-			// data: [...Array(chartData.totalBins).keys()].map((x) => x * chartData.binSize)
-			data: Array.from({ length: chartData.totalBins }, (_, i) => i).map((x) => x * chartData.binSize)
+			data: Array.from({ length: chartData.totalBins }, (_, i) => i).map((x) => (x * chartData.binSize).toFixed(3))
 		},
 		yAxis: {
 			type: 'value',
-			// scale: true,
-			// name: 'Liquidable Amount',
 			position: 'right',
-			// nameGap: 65,
-			// nameLocation: 'middle',
-			// nameRotate: 270,
-			// nameTextStyle: {
-			// 	fontFamily: 'inter, sans-serif',
-			// 	fontSize: 14,
-			// 	fontWeight: 500,
-			// 	color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			// },
 			axisLabel: {
 				formatter: (value: string) => `$${getReadableValue(Number(value))}`
 			},

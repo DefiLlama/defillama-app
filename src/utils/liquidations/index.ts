@@ -291,7 +291,13 @@ export async function getCoingeckoAssetFromSymbol(symbol: string): Promise<Coing
 
 export function getReadableValue(value: number) {
 	if (value === 0) return '0'
-	const s = ['', 'k', 'm', 'b', 't']
+	if (Math.abs(value) < 1000) {
+		return value.toPrecision(4)
+	}
+
+	// https://crusaders-of-the-lost-idols.fandom.com/wiki/Large_Number_Abbreviations
+	// llamao issa fun
+	const s = ['', 'k', 'm', 'b', 't', 'q', 'Q', 's', 'S', 'o', 'n', 'd', 'U', 'D', 'T', 'Qt', 'Qd', 'Sd', 'St', 'O', 'N']
 	const e = Math.floor(Math.log(value) / Math.log(1000))
 	return (value / Math.pow(1000, e)).toFixed(1) + s[e]
 }
