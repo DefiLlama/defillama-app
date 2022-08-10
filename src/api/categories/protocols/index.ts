@@ -129,7 +129,7 @@ export const getVolumeCharts = (data) => {
 		pool2 = [],
 		doublecounted = [],
 		liquidstaking = [],
-		dcAndLsOverlap
+		dcAndLsOverlap = []
 	} = data || {}
 
 	const chart = tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
