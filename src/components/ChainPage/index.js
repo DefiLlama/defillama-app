@@ -101,6 +101,7 @@ function GlobalPage({
 			let sum = data[1]
 			Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
 				const stakedData = propCharts.find((x) => x[0] === data[0])
+
 				if (stakedData) {
 					if (prop === 'doublecounted') {
 						sum -= stakedData[1]

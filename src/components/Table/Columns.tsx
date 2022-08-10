@@ -3,6 +3,7 @@ import QuestionHelper from '~/components/QuestionHelper'
 import { Name } from './Name'
 import type { IColumnProps, TColumns } from './types'
 import { formattedNum, formattedPercent } from '~/utils'
+import { useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
 
 type AllColumns = Record<TColumns, IColumnProps>
 
@@ -98,11 +99,30 @@ export const allColumns: AllColumns = {
 		header: 'TVL',
 		accessor: 'tvl',
 		Cell: ({ value, rowValues }) => {
+			const extraTvlsEnabled = useGetExtraTvlEnabled()
+
+			let text = null
+
+			if (rowValues.strikeTvl) {
+				if (!extraTvlsEnabled['doublecounted']) {
+					text =
+						'This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off'
+				}
+
+				if (!extraTvlsEnabled['liquidstaking']) {
+					text =
+						'This protocol is under Liquid Staking category and is subtracted from total TVL because "Liquid Staking" toggle is off'
+				}
+
+				if (!extraTvlsEnabled['doublecounted'] && !extraTvlsEnabled['liquidstaking']) {
+					text =
+						'This protocol is double counted and under Liquid Staking category, so it is subtracted from total TVL because "Liquid Staking" and "Double Count" toggle is off'
+				}
+			}
+
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{rowValues.strikeTvl ? (
-						<QuestionHelper text='This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off' />
-					) : null}
+					{text ? <QuestionHelper text={text} /> : null}
 					<span
 						style={{
 							color: rowValues.strikeTvl ? 'gray' : 'inherit'
