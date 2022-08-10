@@ -262,10 +262,9 @@ export const columns = [
 		)
 	},
 	{
-		header: 'Chains',
+		header: 'Chain',
 		accessor: 'chains',
 		disableSortBy: true,
-		helperText: "Chains are ordered by protocol's highest TVL on each chain",
 		Cell: ({ value }) => <IconsRow links={value} url="/yields?chain" iconType="chain" />
 	},
 	...columnsToShow('tvl'),
@@ -297,6 +296,7 @@ export const columns = [
 	{
 		header: 'Reward APY',
 		accessor: 'apyReward',
+		helperText: 'Annualised percentage yield from incentives',
 		Cell: ({ value, rowValues }) => {
 			const rewards = rowValues.rewards
 			return (
