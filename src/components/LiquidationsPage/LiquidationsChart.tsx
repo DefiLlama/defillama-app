@@ -2,10 +2,10 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import * as echarts from 'echarts'
 import { ChartData } from '~/utils/liquidations'
-import { getOption } from './utils'
+import { getOption, useAggregateBy } from './utils'
 
 export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; uid: string }) => {
-	const [aggregateBy, setAggregateBy] = useState<'chain' | 'protocol'>('chain')
+	const aggregateBy = useAggregateBy()
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(uid))
 

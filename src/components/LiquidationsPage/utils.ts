@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars*/
+import { useRouter } from 'next/router'
 import { ChartData, ChartDataBin, getReadableValue } from '~/utils/liquidations'
 
 export type ChartState = {
@@ -100,4 +101,11 @@ export const getOption = (chartData: ChartData, aggregateBy: 'chain' | 'protocol
 	}
 
 	return option
+}
+
+export const useAggregateBy = () => {
+	const router = useRouter()
+	const { aggregateBy } = router.query as { aggregateBy: 'chain' | 'protocol' }
+	const _aggregateBy = !!aggregateBy ? aggregateBy : 'protocol'
+	return _aggregateBy
 }
