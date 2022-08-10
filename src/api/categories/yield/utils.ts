@@ -39,7 +39,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		tokenNameMapping[chain.tokenSymbol] = chain.name
 	}
 	// remove any null keys (where no token)
-	tokenNameMapping = Object.fromEntries(Object.entries(tokenNameMapping).filter(([k, _]) => k !== 'null' || k !== '-'))
+	tokenNameMapping = Object.fromEntries(Object.entries(tokenNameMapping).filter(([k, _]) => k !== 'null'))
 
 	return {
 		pools: poolsList,
