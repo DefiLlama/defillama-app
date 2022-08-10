@@ -288,3 +288,10 @@ export async function getCoingeckoAssetFromSymbol(symbol: string): Promise<Coing
 
 	return coins[0] ?? null
 }
+
+export function getReadableValue(value: number) {
+	if (value === 0) return '0'
+	const s = ['', 'k', 'm', 'b', 't']
+	const e = Math.floor(Math.log(value) / Math.log(1000))
+	return (value / Math.pow(1000, e)).toFixed(1) + s[e]
+}

@@ -8,6 +8,7 @@ import Layout from '~/layout'
 import { LiquidationsSearch } from '~/components/Search'
 import { Header } from '~/Theme'
 import { LiquidationsHeader } from '../../components/LiquidationsPage/LiquidationsHeader'
+import { LiquidationsContent } from '../../components/LiquidationsPage/LiquidationsContent'
 
 export const getStaticProps: GetStaticProps<ChartData> = async ({ params }) => {
 	const symbol = params.symbol as string
@@ -29,10 +30,11 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 const LiquidationsHomePage: NextPage<ChartData> = (props) => {
 	return (
-		<Layout title={`${props.symbol} Liquidation Levels - DefiLlama`} defaultSEO>
+		<Layout title={`${props.coingeckoAsset.name} Liquidation Levels - DefiLlama`} defaultSEO>
 			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: props.symbol, hideOptions: true }} />
 			<Header>Liquidation levels in DeFi 💦</Header>
 			<LiquidationsHeader {...props} />
+			<LiquidationsContent {...props} />
 		</Layout>
 	)
 }
