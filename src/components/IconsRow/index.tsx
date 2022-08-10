@@ -54,6 +54,8 @@ const StyledTooltip = styled(Tooltip)`
 `
 
 export const ChainLogo = ({ chain, url, iconType }) => {
+	const shallowRoute: boolean = url.includes('/yields?chain') || url.includes('/yields?project')
+
 	return (
 		<StyledTooltip content={chain}>
 			<Link
@@ -65,6 +67,7 @@ export const ChainLogo = ({ chain, url, iconType }) => {
 						? `${url}=${chain.toLowerCase().split(' ').join('-')}`
 						: `${url}/${chain}`
 				}
+				shallow={shallowRoute}
 			>
 				<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
 			</Link>

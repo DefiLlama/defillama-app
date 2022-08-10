@@ -9,6 +9,7 @@ interface BasicLinkProps {
 	href: string
 	style?: React.CSSProperties
 	children: React.ReactNode
+	shallow?: boolean
 }
 
 interface CustomLinkProps extends BasicLinkProps {
@@ -60,8 +61,8 @@ export const CustomLink = ({ href, children, ...props }: CustomLinkProps) => {
 	)
 }
 
-export const BasicLink = ({ href, children, ...props }: BasicLinkProps) => (
-	<RouterLink href={href} passHref prefetch={false}>
+export const BasicLink = ({ href, children, shallow, ...props }: BasicLinkProps) => (
+	<RouterLink href={href} passHref prefetch={false} shallow={shallow}>
 		<a {...props}>{children}</a>
 	</RouterLink>
 )
