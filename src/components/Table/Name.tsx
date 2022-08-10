@@ -147,7 +147,7 @@ export function NameYieldPool({
 				<SaveButton readableProtocolName={poolId} style={{ paddingRight: rowType === 'pinned' ? '1ch' : 0 }} />
 			)}
 			<span>{rowType !== 'pinned' && index}</span>
-			<CustomLink href={tokenUrl}>
+			<CustomLink href={tokenUrl} target="_blank">
 				{project === 'Osmosis' ? `${value} ${poolId.split('-').slice(-1)}` : value}
 			</CustomLink>
 		</Index>

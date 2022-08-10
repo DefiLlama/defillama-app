@@ -38,6 +38,8 @@ export const YIELD_CONFIG_API = 'https://api.llama.fi/config/yields?a=1'
 export const YIELD_MEDIAN_API = 'https://yields.llama.fi/median'
 export const YIELD_CHAIN_API = 'https://api.llama.fi/chains'
 
+export const LIQUIDATIONS_API = 'https://api.llama.fi/liquidations'
+
 export const DEXS_API = 'https://api.llama.fi/dexs'
 export const DEX_BASE_API = 'https://api.llama.fi/dex'
 

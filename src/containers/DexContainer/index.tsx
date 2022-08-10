@@ -300,6 +300,12 @@ function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContain
 							<span>{formattedNum(dexData.total1dVolume || '0', true)}</span>
 						</Tvl>
 					</TvlWrapper>
+					<TvlWrapper>
+						<Tvl>
+							<span>24 change</span>
+							<span>{dexData.change1dVolume || 0}%</span>
+						</Tvl>
+					</TvlWrapper>
 				</ProtocolDetails>
 
 				<StackedBarChart
