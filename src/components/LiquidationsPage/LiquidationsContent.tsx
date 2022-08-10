@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars*/
-import React, { useCallback, useEffect } from 'react'
-import * as echarts from 'echarts'
+import React from 'react'
 import { ChartData, getReadableValue } from '~/utils/liquidations'
 import {
 	BreakpointPanel,
@@ -10,7 +9,7 @@ import {
 	DownloadIcon,
 	PanelHiddenMobile
 } from '~/components'
-import { getOption } from './utils'
+import { LiquidationsChart } from './LiquidationsChart'
 
 export const LiquidationsContent = (props: ChartData) => {
 	return (
@@ -43,42 +42,5 @@ export const LiquidationsContent = (props: ChartData) => {
 				<LiquidationsChart chartData={props} uid={props.symbol} />
 			</BreakpointPanel>
 		</ChartAndValuesWrapper>
-	)
-}
-
-const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; uid: string }) => {
-	const [aggregateBy, setAggregateBy] = React.useState<'chain' | 'protocol'>('chain')
-	const createInstance = useCallback(() => {
-		console.log(uid)
-		const instance = echarts.getInstanceByDom(document.getElementById(uid))
-
-		return instance || echarts.init(document.getElementById(uid))
-	}, [uid])
-
-	useEffect(() => {
-		const chartInstance = createInstance()
-		const option = getOption(chartData, aggregateBy)
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
-		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
-		}
-	}, [uid, chartData, createInstance, aggregateBy])
-
-	return (
-		<div
-			id={uid}
-			style={{
-				minHeight: '360px',
-				margin: 'auto 0'
-			}}
-		/>
 	)
 }
