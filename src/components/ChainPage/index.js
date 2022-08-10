@@ -110,6 +110,11 @@ function GlobalPage({
 						sum -= stakedData[1]
 					}
 
+					// only add tvl of protocols that are both double counted and liquid staking once
+					if (prop === 'dcAndLsOverlap' && !extraTvlsEnabled['doublecounted'] && !extraTvlsEnabled['liquidstaking']) {
+						sum += stakedData[1]
+					}
+
 					if (extraTvlsEnabled[prop.toLowerCase()]) {
 						sum += stakedData[1]
 					}

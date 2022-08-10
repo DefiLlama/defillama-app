@@ -122,7 +122,15 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 }
 
 export const getVolumeCharts = (data) => {
-	const { tvl = [], staking = [], borrowed = [], pool2 = [], doublecounted = [], liquidstaking = [] } = data || {}
+	const {
+		tvl = [],
+		staking = [],
+		borrowed = [],
+		pool2 = [],
+		doublecounted = [],
+		liquidstaking = [],
+		dcAndLsOverlap
+	} = data || {}
 
 	const chart = tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
 
@@ -131,7 +139,8 @@ export const getVolumeCharts = (data) => {
 		borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
 		pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
 		doublecounted: doublecounted.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
-		liquidstaking: liquidstaking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
+		liquidstaking: liquidstaking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
+		dcAndLsOverlap: dcAndLsOverlap.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
 	}
 
 	return {

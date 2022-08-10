@@ -189,6 +189,7 @@ export const useCalcStakePool2Tvl = (
 	return protocolTotals
 }
 
+// used in tables of protocols by chains and categories pages
 export const useCalcProtocolsTvls = ({
 	protocols,
 	parentProtocols
