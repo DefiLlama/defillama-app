@@ -3,22 +3,21 @@
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import Layout from '~/layout'
 import { revalidate } from '~/api'
-import { getLiquidationsPageData } from '~/api/categories/liquidations'
-import { ChartData } from '~/utils/liquidations'
+import { ChartData, getLatestChartData } from '~/utils/liquidations'
 
-export const getStaticProps: GetStaticProps<ChartData | { error: string }> = async ({ params }) => {
+export const getStaticProps: GetStaticProps<ChartData> = async ({ params }) => {
 	const symbol = params.symbol as string
-	const data = await getLiquidationsPageData(symbol)
+	const data = await getLatestChartData(symbol.toUpperCase())
 	// TODO: handle error properly
 	return {
-		...data,
+		props: data,
 		revalidate: revalidate(10)
 	}
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	// TODO: make api for all tracked symbols
-	const paths = ['ETH', 'WBTC', 'USDC', 'USDT', 'DAI', 'YFI', 'UNI', 'WSTETH'].map((x) => ({
+	const paths = ['ETH', 'WBTC', 'USDC', 'DAI', 'YFI', 'UNI'].map((x) => ({
 		params: { symbol: x.toLowerCase() }
 	}))
 	return { paths, fallback: 'blocking' }
