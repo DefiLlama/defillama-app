@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import NextImage from 'next/image'
+import NextImage from 'next/future/image'
 import PlaceHolder from '~/assets/placeholder.png'
 
 interface TokenLogoProps {
@@ -57,8 +57,6 @@ export default function TokenLogo({
 					src={skipApiRoute ? logo : `/api/image?url=${encodeURIComponent(logo)}`}
 					height={size}
 					width={size}
-					layout="fixed"
-					loading="lazy"
 				/>
 			</Inline>
 		)
@@ -67,7 +65,7 @@ export default function TokenLogo({
 	if (error || BAD_IMAGES[logo]) {
 		return (
 			<Inline id={id}>
-				<Image {...rest} alt={''} src={PlaceHolder} height={size} width={size} layout="fixed" loading="lazy" />
+				<Image {...rest} alt={''} src={PlaceHolder} height={size} width={size} />
 			</Inline>
 		)
 	}
@@ -80,13 +78,11 @@ export default function TokenLogo({
 				src={logo}
 				height={size}
 				width={size}
-				layout="fixed"
 				onError={(event) => {
 					BAD_IMAGES[logo] = true
 					setError(true)
 					event.preventDefault()
 				}}
-				loading="lazy"
 			/>
 		</Inline>
 	)
