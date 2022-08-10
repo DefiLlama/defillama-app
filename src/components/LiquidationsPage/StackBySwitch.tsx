@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { Link as LinkIcon, DollarSign } from 'react-feather'
+import { Link as LinkIcon, Map } from 'react-feather'
 import { useRouter } from 'next/router'
 
 export function StackBySwitch() {
@@ -20,7 +20,7 @@ export function StackBySwitch() {
 					})
 				}
 			>
-				<DollarSign size={14} />
+				<Map size={14} />
 				<span>Protocols</span>
 			</Switch>
 			<Switch
@@ -51,7 +51,7 @@ const Wrapper = styled.span`
 	background: ${({ theme }) => theme.bg6};
 	padding: 6px;
 	height: 40px;
-	width: 200px;
+	width: 220px;
 `
 
 interface ISwitch {
