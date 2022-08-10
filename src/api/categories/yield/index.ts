@@ -1,9 +1,9 @@
-import { YIELD_CONFIG_API, YIELD_POOLS_API, YIELD_MEDIAN_API } from '~/constants'
+import { YIELD_CONFIG_API, YIELD_POOLS_API, YIELD_MEDIAN_API, YIELD_CHAIN_API } from '~/constants'
 import { arrayFetcher } from '~/utils/useSWR'
 import { formatYieldsPageData } from './utils'
 
 export async function getYieldPageData() {
-	let poolsAndConfig = await arrayFetcher([YIELD_POOLS_API, YIELD_CONFIG_API])
+	let poolsAndConfig = await arrayFetcher([YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_CHAIN_API])
 
 	const data = formatYieldsPageData(poolsAndConfig)
 
@@ -46,11 +46,8 @@ export async function getYieldPageData() {
 		]
 	}
 
-	const protocols = (await arrayFetcher(['https://api.llama.fi/config']))[0].protocols
 	for (let p of data.pools) {
-		p['rewardTokensNames'] = p.rewardTokensSymbols
-			.map((t) => protocols.find((pro) => pro.symbol === t)?.name)
-			.filter((t) => t)
+		p['rewardTokensNames'] = p.rewardTokensSymbols.map((t) => data.tokenNameMapping[t]).filter((t) => t)
 	}
 
 	return {

@@ -1,6 +1,7 @@
 export function formatYieldsPageData(poolsAndConfig: any) {
 	let _pools = poolsAndConfig[0]?.data ?? []
 	let _config = poolsAndConfig[1]?.protocols ?? []
+	let _chains = poolsAndConfig[2] ?? []
 
 	// add projectName and audit fields from config to pools array
 	_pools = _pools.map((p) => ({
@@ -29,9 +30,19 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		}
 	})
 
+	const tokenNameMapping = {}
+	for (const key of Object.keys(_config)) {
+		tokenNameMapping[_config[key].symbol] = _config[key].name
+	}
+	// add the chain symbols too
+	for (const chain of _chains) {
+		tokenNameMapping[chain.tokenSymbol] = chain.name
+	}
+
 	return {
 		pools: poolsList,
 		chainList: Array.from(chainList),
-		projectList
+		projectList,
+		tokenNameMapping
 	}
 }
