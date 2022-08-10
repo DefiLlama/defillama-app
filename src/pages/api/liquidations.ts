@@ -2,6 +2,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { ChartData, getLatestChartData } from '../../utils/liquidations'
 
+// prolly should move this into an aws lambda after all...
 export default async function liquidationsHandler(
 	req: NextApiRequest,
 	res: NextApiResponse<ChartData | { error: string }>
@@ -22,7 +23,10 @@ export default async function liquidationsHandler(
 	try {
 		const chartData = await getLatestChartData(symbol)
 		// cache for 10min
-		res.setHeader('Cache-Control', 'max-age=600, s-maxage=600, stale-while-revalidate').status(200).json(chartData)
+		res
+			// .setHeader('Cache-Control', 'max-age=600, s-maxage=600, stale-while-revalidate')
+			.status(200)
+			.json(chartData)
 	} catch (err) {
 		res.status(500).json({ error: 'Server error' })
 		console.error(err)
