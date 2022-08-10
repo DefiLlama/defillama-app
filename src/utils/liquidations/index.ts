@@ -186,7 +186,7 @@ function getChartDataBins(
 	return Object.fromEntries(bins)
 }
 
-interface LiquidationsApiResponse {
+export interface LiquidationsApiResponse {
 	time: number
 	data: {
 		protocol: string
@@ -294,4 +294,32 @@ export function getReadableValue(value: number) {
 	const s = ['', 'k', 'm', 'b', 't']
 	const e = Math.floor(Math.log(value) / Math.log(1000))
 	return (value / Math.pow(1000, e)).toFixed(1) + s[e]
+}
+
+export const getLiquidationsCsvData = async (symbol: string) => {
+	const raw = (await fetch(LIQUIDATIONS_API).then((r) => r.json())) as LiquidationsApiResponse
+
+	const adapterChains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
+	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
+		(acc, d) => ({ ...acc, [d.protocol]: d.liqs[adapterChains[0]] }),
+		{}
+	)
+	const allAggregated = await aggregateAssetAdapterData(adapterData)
+
+	const allAssetPositions = allAggregated.get(symbol)!.positions.map((p) => ({
+		...p,
+		symbol
+	}))
+
+	// convert allAssetPositions to comma separated values based on an item's key, with columns: symbol, liqPrice, collateralValue, protocol, chain
+	const csvHeader = Object.keys(allAssetPositions[0]).join(',')
+	const csvData = allAssetPositions
+		.map((p) => {
+			return Object.keys(p)
+				.map((key) => p[key])
+				.join(',')
+		})
+		.reduce((acc, curr) => acc + '\n' + curr, csvHeader)
+
+	return csvData
 }

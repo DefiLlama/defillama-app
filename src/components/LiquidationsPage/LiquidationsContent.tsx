@@ -1,15 +1,21 @@
 /* eslint-disable no-unused-vars*/
 import React from 'react'
-import { ChartData, getReadableValue } from '~/utils/liquidations'
-import {
-	BreakpointPanel,
-	BreakpointPanels,
-	ChartAndValuesWrapper,
-	DownloadButton,
-	DownloadIcon,
-	PanelHiddenMobile
-} from '~/components'
+import { ChartData, getLiquidationsCsvData, getReadableValue } from '~/utils/liquidations'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadIcon, PanelHiddenMobile } from '~/components'
 import { LiquidationsChart } from './LiquidationsChart'
+import styled from 'styled-components'
+import { download } from '~/utils'
+
+export const DownloadButton = styled.button`
+	padding: 4px 6px;
+	border-radius: 6px;
+	background: ${({ theme }) => theme.bg3};
+	position: absolute;
+	bottom: 8px;
+	right: 8px;
+	display: flex;
+	align-items: center;
+`
 
 export const LiquidationsContent = (props: ChartData) => {
 	return (
@@ -20,7 +26,12 @@ export const LiquidationsContent = (props: ChartData) => {
 					<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
 						${getReadableValue(props.totalLiquidable)}
 					</p>
-					<DownloadButton href={`javascript:alert("TODO: issa not implemented yet");`}>
+					<DownloadButton
+						onClick={async () => {
+							const csvString = await getLiquidationsCsvData(props.symbol)
+							download(`${props.symbol}-all-positions.csv`, csvString)
+						}}
+					>
 						<DownloadIcon />
 						<span>&nbsp;&nbsp;.csv</span>
 					</DownloadButton>
