@@ -277,16 +277,16 @@ export const columns = [
 	},
 	{
 		header: 'Reward APY',
-		accessor: 'rewards',
-		disableSortBy: false,
+		accessor: 'apyReward',
 		Cell: ({ value, rowValues }) => {
+			const rewards = rowValues.rewards
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-start', gap: '4px' }}>
-					{formattedPercent(rowValues.apyReward, true)}
-					{value.includes('Optimism') || value.includes('Avalanche') ? (
-						<IconsRow links={value} url="/yields?chain" iconType="chain" />
+					{formattedPercent(value, true)}
+					{rewards.includes('Optimism') || rewards.includes('Avalanche') ? (
+						<IconsRow links={rewards} url="/yields?chain" iconType="chain" />
 					) : (
-						<IconsRow links={value} url="/yields?project" iconType="token" />
+						<IconsRow links={rewards} url="/yields?project" iconType="token" />
 					)}
 				</AutoRow>
 			)
