@@ -3,7 +3,7 @@ import TokenLogo from '~/components/TokenLogo'
 import { ProtocolName, Symbol } from '~/components/ProtocolAndPool'
 import FormattedName from '~/components/FormattedName'
 import styled from 'styled-components'
-import { AggregateBySwitch } from './LiquidationsAggregateBySwitch'
+import { AggregateBySwitch } from './AggregateBySwitch'
 
 const LiquidationsHeaderWrapper = styled.div`
 	flex: 1;
