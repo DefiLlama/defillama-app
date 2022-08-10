@@ -65,7 +65,7 @@ export const TableWrapper = styled(Table)`
 		padding-right: 20px;
 
 		& > * {
-			width: 90px;
+			width: 80px;
 		}
 	}
 
