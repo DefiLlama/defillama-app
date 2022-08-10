@@ -2,7 +2,7 @@
 import BigNumber from 'bignumber.js'
 import { LIQUIDATIONS_API } from '~/constants'
 
-const TOTAL_BINS = 120
+const TOTAL_BINS = 100
 const WRAPPABLE_GAS_TOKENS = ['ETH', 'AVAX', 'MATIC', 'FTM']
 
 export interface Liq {
