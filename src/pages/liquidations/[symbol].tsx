@@ -9,6 +9,7 @@ import { LiquidationsSearch } from '~/components/Search'
 import { Header } from '~/Theme'
 import { LiquidationsHeader } from '../../components/LiquidationsPage/LiquidationsHeader'
 import { LiquidationsContent } from '../../components/LiquidationsPage/LiquidationsContent'
+import styled from 'styled-components'
 
 export const getStaticProps: GetStaticProps<ChartData> = async ({ params }) => {
 	const symbol = params.symbol as string
@@ -35,8 +36,22 @@ const LiquidationsHomePage: NextPage<ChartData> = (props) => {
 			<Header>Liquidation levels in DeFi 💦</Header>
 			<LiquidationsHeader {...props} />
 			<LiquidationsContent {...props} />
+			<SmolHints>
+				<p>
+					🔍
+					<i> To see liquidation levels for other assets, just use the search bar above!</i>
+				</p>
+			</SmolHints>
 		</Layout>
 	)
 }
+
+const SmolHints = styled.div`
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+	margin-top: -1rem;
+	opacity: 0.6;
+`
 
 export default LiquidationsHomePage

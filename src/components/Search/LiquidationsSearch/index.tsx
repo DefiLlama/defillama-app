@@ -39,5 +39,5 @@ export default function LiquidationsSearch(props: ILiquidationsSearchProps) {
 		}
 	]
 
-	return <BaseSearch {...props} data={searchData} loading={loading} />
+	return <BaseSearch {...props} data={searchData} loading={loading} placeholder="Search liquidation levels..." />
 }
