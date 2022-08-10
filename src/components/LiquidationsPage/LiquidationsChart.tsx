@@ -2,10 +2,10 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import * as echarts from 'echarts'
 import { ChartData } from '~/utils/liquidations'
-import { getOption, useAggregateBy } from './utils'
+import { getOption, useStackBy } from './utils'
 
 export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; uid: string }) => {
-	const aggregateBy = useAggregateBy()
+	const stackBy = useStackBy()
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(uid))
 
@@ -14,7 +14,7 @@ export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; ui
 
 	useEffect(() => {
 		const chartInstance = createInstance()
-		const option = getOption(chartData, aggregateBy)
+		const option = getOption(chartData, stackBy)
 		chartInstance.setOption(option)
 
 		function resize() {
@@ -27,7 +27,7 @@ export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; ui
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [uid, chartData, createInstance, aggregateBy])
+	}, [uid, chartData, createInstance, stackBy])
 
 	return (
 		<div

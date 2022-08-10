@@ -142,7 +142,7 @@ function getChartDataBins(
 	positions: Position[],
 	currentPrice: number,
 	totalBins: number,
-	aggregateBy: 'protocol' | 'chain'
+	stackBy: 'protocol' | 'chain'
 ): { [bin: string]: ChartDataBin } {
 	// protocol/chain -> {bins, binSize, price}
 	const aggregatedPositions = new Map<string, Position[]>()
@@ -150,11 +150,11 @@ function getChartDataBins(
 
 	// group positions by protocol or chain
 	for (const position of positions) {
-		keySet.add(position[aggregateBy])
-		let positionsGroup: Position[] = aggregatedPositions.get(position[aggregateBy])
+		keySet.add(position[stackBy])
+		let positionsGroup: Position[] = aggregatedPositions.get(position[stackBy])
 		if (!positionsGroup) {
 			positionsGroup = [position]
-			aggregatedPositions.set(position[aggregateBy], positionsGroup)
+			aggregatedPositions.set(position[stackBy], positionsGroup)
 		} else {
 			positionsGroup.push(position)
 		}

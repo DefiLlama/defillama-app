@@ -3,7 +3,7 @@ import TokenLogo from '~/components/TokenLogo'
 import { ProtocolName, Symbol } from '~/components/ProtocolAndPool'
 import FormattedName from '~/components/FormattedName'
 import styled from 'styled-components'
-import { AggregateBySwitch } from './AggregateBySwitch'
+import { StackBySwitch } from './StackBySwitch'
 
 const LiquidationsHeaderWrapper = styled.div`
 	flex: 1;
@@ -28,7 +28,7 @@ export const LiquidationsHeader = (props: ChartData) => {
 				<FormattedName text={props.coingeckoAsset.name} maxCharacters={16} fontWeight={700} />
 				<Symbol>({props.symbol})</Symbol>
 			</ProtocolName>
-			<AggregateBySwitch />
+			<StackBySwitch />
 		</LiquidationsHeaderWrapper>
 	)
 }

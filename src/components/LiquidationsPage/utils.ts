@@ -4,18 +4,12 @@ import { ChartData, ChartDataBin, getReadableValue } from '~/utils/liquidations'
 
 export type ChartState = {
 	asset: string // TODO: symbol for now, later change to coingeckoId
-	aggregateBy: 'chain' | 'protocol'
+	stackBy: 'chain' | 'protocol'
 	filters: FilterChain | FilterProtocol
 }
 // this should be pulled dynamically
 type FilterChain = ['all'] | ['none'] | string[]
 type FilterProtocol = ['all'] | ['none'] | string[]
-
-export const defaultChartState: ChartState = {
-	asset: 'ETH',
-	aggregateBy: 'protocol',
-	filters: ['all']
-}
 
 export const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number) => {
 	// // this line below suddenly throws error in browser that the iterator cant iterate??
@@ -24,8 +18,8 @@ export const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number
 	return arr
 }
 
-export const getOption = (chartData: ChartData, aggregateBy: 'chain' | 'protocol') => {
-	const chartDataBins = chartData.chartDataBins[aggregateBy === 'chain' ? 'byProtocol' : 'byChain']
+export const getOption = (chartData: ChartData, stackBy: 'chain' | 'protocol') => {
+	const chartDataBins = chartData.chartDataBins[stackBy === 'chain' ? 'byChain' : 'byProtocol']
 	// convert chartDataBins to array
 	const chartDataBinsArray = Object.keys(chartDataBins).map((key) => ({
 		key: key,
@@ -103,9 +97,9 @@ export const getOption = (chartData: ChartData, aggregateBy: 'chain' | 'protocol
 	return option
 }
 
-export const useAggregateBy = () => {
+export const useStackBy = () => {
 	const router = useRouter()
-	const { aggregateBy } = router.query as { aggregateBy: 'chain' | 'protocol' }
-	const _aggregateBy = !!aggregateBy ? aggregateBy : 'protocol'
-	return _aggregateBy
+	const { stackBy } = router.query as { stackBy: 'chain' | 'protocol' }
+	const _stackBy = !!stackBy ? stackBy : 'protocol'
+	return _stackBy
 }

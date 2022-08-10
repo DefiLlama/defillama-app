@@ -2,20 +2,20 @@ import styled from 'styled-components'
 import { Link as LinkIcon, DollarSign } from 'react-feather'
 import { useRouter } from 'next/router'
 
-export function AggregateBySwitch() {
+export function StackBySwitch() {
 	const router = useRouter()
-	const { aggregateBy } = router.query as { aggregateBy: 'chain' | 'protocol' }
-	const _aggregateBy = !!aggregateBy ? aggregateBy : 'protocol'
+	const { stackBy } = router.query as { stackBy: 'chain' | 'protocol' }
+	const _stackBy = !!stackBy ? stackBy : 'protocol'
 
 	return (
 		<Wrapper>
 			<Switch
-				active={_aggregateBy === 'protocol'}
+				active={_stackBy === 'protocol'}
 				onClick={() =>
 					router.push({
 						query: {
 							...router.query,
-							aggregateBy: 'protocol'
+							stackBy: 'protocol'
 						}
 					})
 				}
@@ -24,12 +24,12 @@ export function AggregateBySwitch() {
 				<span>Protocols</span>
 			</Switch>
 			<Switch
-				active={_aggregateBy === 'chain'}
+				active={_stackBy === 'chain'}
 				onClick={() =>
 					router.push({
 						query: {
 							...router.query,
-							aggregateBy: 'chain'
+							stackBy: 'chain'
 						}
 					})
 				}
