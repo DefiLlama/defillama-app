@@ -23,6 +23,7 @@ const Inline = styled.span`
 	background: ${({ theme }) => theme.bg3};
 	border-radius: 50%;
 	box-shadow: ${({ theme }) => theme.shadowSm};
+	flex-shrink: 0;
 `
 
 const Image = styled(NextImage)`
@@ -41,7 +42,6 @@ export default function TokenLogo({
 	...rest
 }: TokenLogoProps) {
 	const [error, setError] = React.useState(false)
-
 	React.useEffect(() => {
 		setError(false)
 	}, [logo])
