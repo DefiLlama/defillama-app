@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js'
 import { LIQUIDATIONS_API } from '~/constants'
 
 const TOTAL_BINS = 100
-const WRAPPABLE_GAS_TOKENS = ['ETH', 'AVAX', 'MATIC', 'FTM']
+const WRAPPABLE_GAS_TOKENS = ['ETH', 'AVAX', 'MATIC', 'FTM', 'BNB', 'CRO', 'ONE']
 
 export interface Liq {
 	owner: string
@@ -248,7 +248,7 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 		currentPrice,
 		badDebts,
 		dangerousPositionsAmount,
-		historicalChange: { 168: await getHistoricalChange(nativeSymbol, 168) },
+		historicalChange: { 24: await getHistoricalChange(nativeSymbol, 24) },
 		totalLiquidable,
 		totalBins,
 		chartDataBins: {

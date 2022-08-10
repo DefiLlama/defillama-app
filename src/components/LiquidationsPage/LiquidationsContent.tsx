@@ -37,9 +37,9 @@ export const LiquidationsContent = (props: ChartData) => {
 					</DownloadButton>
 				</BreakpointPanel>
 				<PanelHiddenMobile>
-					<h2>Change (7d)</h2>
+					<h2>Change (24h)</h2>
 					<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
-						{(props.historicalChange[168] * 100).toFixed(1) || 0}%
+						{(props.historicalChange[24] * 100).toFixed(1) || 0}%
 					</p>
 				</PanelHiddenMobile>
 				<PanelHiddenMobile>
