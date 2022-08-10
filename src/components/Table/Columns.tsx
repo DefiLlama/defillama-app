@@ -116,7 +116,7 @@ export const allColumns: AllColumns = {
 
 				if (!extraTvlsEnabled['doublecounted'] && !extraTvlsEnabled['liquidstaking']) {
 					text =
-						'This protocol is double counted and under Liquid Staking category, so it is subtracted from total TVL because "Liquid Staking" and "Double Count" toggle is off'
+						'This protocol deposits into another protocol and is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggle is off'
 				}
 			}
 
