@@ -4,6 +4,7 @@ import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import Layout from '~/layout'
 import { revalidate } from '~/api'
 import { ChartData, getLatestChartData } from '~/utils/liquidations'
+import { LiquidationsSearch } from '~/components/Search'
 
 export const getStaticProps: GetStaticProps<ChartData> = async ({ params }) => {
 	const symbol = params.symbol as string
@@ -23,17 +24,10 @@ export const getStaticPaths: GetStaticPaths = async () => {
 	return { paths, fallback: 'blocking' }
 }
 
-const LiquidationsHomePage: NextPage<ChartData | { error: string }> = (props) => {
-	if ('error' in props) {
-		return (
-			<Layout title={`Liquidation Levels - DefiLlama`} defaultSEO>
-				<h1>Not found</h1>
-			</Layout>
-		)
-	}
+const LiquidationsHomePage: NextPage<ChartData> = (props) => {
 	return (
-		<Layout title={`Liquidation Levels - DefiLlama`} defaultSEO>
-			<h1>Liquidations {props.symbol}</h1>
+		<Layout title={`${props.symbol} Liquidation Levels - DefiLlama`} defaultSEO>
+			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: props.symbol, hideOptions: true }} />
 		</Layout>
 	)
 }
