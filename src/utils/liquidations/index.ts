@@ -330,11 +330,12 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 		positions = allAggregated.get(symbol)!.positions
 	}
 
-	// TODO: handle wrapped gas tokens here!
-	const allAssetPositions = positions.map((p) => ({
-		...p,
-		symbol
-	}))
+	const allAssetPositions = positions
+		.filter((p) => p.liqPrice < allAggregated.get(symbol)!.currentPrice && p.collateralValue > 0)
+		.map((p) => ({
+			...p,
+			symbol
+		}))
 
 	const csvHeader = ['symbol', 'chain', 'protocol', 'liqPrice', 'collateralValue', 'owner', 'timestamp'].join(',')
 	const csvData = allAssetPositions
