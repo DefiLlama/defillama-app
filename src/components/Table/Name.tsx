@@ -1,6 +1,6 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { ChevronDown, ChevronRight, Link } from 'react-feather'
+import { ChevronDown, ChevronRight, ArrowUpRight } from 'react-feather'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import Bookmark from '~/components/Bookmark'
@@ -160,7 +160,7 @@ export function NameYieldPool({
 			{url ? (
 				<CustomLink href={url} target="_blank" id="icon-link">
 					<Tooltip content={url}>
-						<Link size={13} />
+						<ArrowUpRight size={14} />
 					</Tooltip>
 				</CustomLink>
 			) : (
