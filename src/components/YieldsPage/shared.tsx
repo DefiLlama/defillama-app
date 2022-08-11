@@ -65,7 +65,7 @@ export const TableWrapper = styled(Table)`
 		padding-right: 20px;
 
 		& > * {
-			width: 90px;
+			width: 80px;
 		}
 	}
 
@@ -88,7 +88,7 @@ export const TableWrapper = styled(Table)`
 		display: none;
 
 		& > * {
-			width: 90px;
+			width: 80px;
 		}
 	}
 
@@ -178,6 +178,10 @@ export const TableWrapper = styled(Table)`
 		// REWARD APY
 		tr > *:nth-child(7) {
 			padding-right: 0;
+
+			& > * {
+				width: 140px;
+			}
 		}
 
 		// OUTLOOK
@@ -246,10 +250,9 @@ export const columns = [
 		)
 	},
 	{
-		header: 'Chains',
+		header: 'Chain',
 		accessor: 'chains',
 		disableSortBy: true,
-		helperText: "Chains are ordered by protocol's highest TVL on each chain",
 		Cell: ({ value }) => <IconsRow links={value} url="/yields?chain" iconType="chain" />
 	},
 	...columnsToShow('tvl'),
@@ -283,13 +286,26 @@ export const columns = [
 		accessor: 'apyReward',
 		helperText: 'Annualised percentage yield from incentives',
 		Cell: ({ value, rowValues }) => {
+			const rewards = rowValues.rewards ?? []
 			return (
-				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{(rowValues.rewardTokensSymbols || []).length > 0 ? (
-						<QuestionHelper text={`${rowValues.rewardTokensSymbols}`} />
-					) : null}
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{rewards.includes('Optimism') || rewards.includes('Avalanche') ? (
+						<IconsRow
+							links={rewards}
+							url="/yields?chain"
+							iconType="chain"
+							yieldRewardsSymbols={rowValues.rewardTokensSymbols}
+						/>
+					) : (
+						<IconsRow
+							links={rewards}
+							url="/yields?project"
+							iconType="token"
+							yieldRewardsSymbols={rowValues.rewardTokensSymbols}
+						/>
+					)}
 					{formattedPercent(value, true)}
-				</span>
+				</AutoRow>
 			)
 		}
 	},

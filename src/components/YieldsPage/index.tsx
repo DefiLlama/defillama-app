@@ -125,6 +125,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 					apyBase: curr.apyBase,
 					apyReward: curr.apyReward,
 					rewardTokensSymbols: curr.rewardTokensSymbols,
+					rewards: curr.rewardTokensNames,
 					change1d: curr.apyPct1D,
 					change7d: curr.apyPct7D,
 					outlook: curr.predictions.predictedClass,

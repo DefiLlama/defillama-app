@@ -180,7 +180,8 @@ export function chainIconUrl(chain) {
 }
 
 export function tokenIconUrl(name) {
-	return `/icons/${name.toLowerCase().split(' ').join('-')}.jpg`
+	const x = name ?? ''
+	return `/icons/${x.toLowerCase().split(' ').join('-')}.jpg`
 }
 
 export function peggedAssetIconUrl(name) {

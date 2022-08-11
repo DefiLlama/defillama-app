@@ -53,23 +53,43 @@ const StyledTooltip = styled(Tooltip)`
 	padding: 6px;
 `
 
-export const ChainLogo = ({ chain, url, iconType }) => {
-	return (
-		<StyledTooltip content={chain}>
-			<Link key={chain} href={url.includes('/yields?chain') ? `${url}=${chain}` : `${url}/${chain}`}>
+export const ChainLogo = ({ chain, url, iconType, yieldRewardsSymbol }) => {
+	const shallowRoute: boolean = url.includes('/yields?chain') || url.includes('/yields?project')
+	if (yieldRewardsSymbol) {
+		return (
+			<StyledTooltip content={yieldRewardsSymbol}>
 				<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
-			</Link>
-		</StyledTooltip>
-	)
+			</StyledTooltip>
+		)
+	} else {
+		return (
+			<StyledTooltip content={chain}>
+				<Link
+					key={chain}
+					href={
+						url.includes('/yields?chain')
+							? `${url}=${chain}`
+							: url.includes('/yields?project')
+							? `${url}=${chain.toLowerCase().split(' ').join('-')}`
+							: `${url}/${chain}`
+					}
+					shallow={shallowRoute}
+				>
+					<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
+				</Link>
+			</StyledTooltip>
+		)
+	}
 }
 
 interface IIconsRowProps {
 	links: string[]
 	url: string
 	iconType: 'token' | 'chain'
+	yieldRewardsSymbols?: string[]
 }
 
-const IconsRow = ({ links, url, iconType }: IIconsRowProps) => {
+const IconsRow = ({ links, url, iconType, yieldRewardsSymbols = [] }: IIconsRowProps) => {
 	const [visibleChainIndex, setVisibileChainIndex] = useState(0)
 	const mainWrapEl = useRef(null)
 	const { width: mainWrapWidth } = useResize(mainWrapEl)
@@ -94,10 +114,18 @@ const IconsRow = ({ links, url, iconType }: IIconsRowProps) => {
 
 	const hovercard = useHovercardState()
 
+	yieldRewardsSymbols = yieldRewardsSymbols ?? []
+
 	return (
 		<Row ref={mainWrapEl}>
-			{visibleChains.map((chain) => (
-				<ChainLogo key={chain} chain={chain} url={url} iconType={iconType} />
+			{visibleChains.map((chain, i) => (
+				<ChainLogo
+					key={chain}
+					chain={chain}
+					url={url}
+					iconType={iconType}
+					yieldRewardsSymbol={yieldRewardsSymbols[i]}
+				/>
 			))}
 			{!!hoverChains.length && (
 				<>
@@ -107,8 +135,14 @@ const IconsRow = ({ links, url, iconType }: IIconsRowProps) => {
 					<Popover state={hovercard}>
 						{
 							<Row>
-								{hoverChains.map((chain) => (
-									<ChainLogo key={chain} chain={chain} url={url} iconType={iconType} />
+								{hoverChains.map((chain, i) => (
+									<ChainLogo
+										key={chain}
+										chain={chain}
+										url={url}
+										iconType={iconType}
+										yieldRewardsSymbol={yieldRewardsSymbols[i]}
+									/>
 								))}
 							</Row>
 						}
