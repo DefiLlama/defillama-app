@@ -7,6 +7,7 @@ import Bookmark from '~/components/Bookmark'
 import { chainIconUrl, peggedAssetIconUrl, slug, tokenIconUrl } from '~/utils'
 import { INameYield, INameProps, INameYieldPoolProps } from './types'
 import Tooltip from '~/components/Tooltip'
+import { ButtonYields } from '~/components/ProtocolAndPool'
 
 const SaveButton = styled(Bookmark)`
 	position: relative;
@@ -156,9 +157,9 @@ export function NameYieldPool({
 			<span>{rowType !== 'pinned' && index}</span>
 			{url ? (
 				<CustomLink href={url} target="_blank" id="icon-link">
-					<Tooltip content={url}>
+					<ButtonYields as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 						<ArrowUpRight size={14} />
-					</Tooltip>
+					</ButtonYields>
 				</CustomLink>
 			) : (
 				''
