@@ -10,7 +10,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		audits: _config[p.project]?.audits,
 		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-',
 		category: _config[p.project]?.category,
-		url: _urls[p.project]
+		url: _urls[p.project] ?? ''
 	}))
 
 	const poolsList = []
