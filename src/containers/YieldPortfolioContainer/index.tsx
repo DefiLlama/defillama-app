@@ -65,6 +65,7 @@ function PortfolioContainer({ protocolsDict }) {
 				apyBase: t.apyBase,
 				apyReward: t.apyReward,
 				rewardTokensSymbols: t.rewardTokensSymbols,
+				rewards: t.rewardTokensNames,
 				change1d: t.apyPct1D,
 				change7d: t.apyPct7D,
 				outlook: t.predictions.predictedClass,

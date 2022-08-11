@@ -2,7 +2,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	let _pools = poolsAndConfig[0]?.data ?? []
 	let _config = poolsAndConfig[1]?.protocols ?? []
 	let _urls = poolsAndConfig[2] ?? []
-  let _chains = poolsAndConfig[3] ?? []
+	let _chains = poolsAndConfig[3] ?? []
 
 	// add projectName and audit fields from config to pools array
 	_pools = _pools.map((p) => ({

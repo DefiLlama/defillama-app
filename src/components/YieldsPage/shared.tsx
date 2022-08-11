@@ -286,7 +286,7 @@ export const columns = [
 		accessor: 'apyReward',
 		helperText: 'Annualised percentage yield from incentives',
 		Cell: ({ value, rowValues }) => {
-			const rewards = rowValues.rewards
+			const rewards = rowValues.rewards ?? []
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
 					{rewards.includes('Optimism') || rewards.includes('Avalanche') ? (
