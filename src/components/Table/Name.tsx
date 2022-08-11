@@ -31,6 +31,10 @@ export const Index = styled.div`
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
+
+	#icon-link {
+		flex-shrink: 0;
+	}
 `
 
 export function Name({
@@ -154,7 +158,7 @@ export function NameYieldPool({
 				{project === 'Osmosis' ? `${value} ${poolId.split('-').slice(-1)}` : value}
 			</CustomLink>
 			{url ? (
-				<CustomLink href={url} target="_blank">
+				<CustomLink href={url} target="_blank" id="icon-link">
 					<Tooltip content={url}>
 						<Link size={13} />
 					</Tooltip>

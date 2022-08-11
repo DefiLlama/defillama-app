@@ -16,7 +16,7 @@ export const TableWrapper = styled(Table)`
 	// POOL
 	tr > *:nth-child(1) {
 		& > * {
-			width: 120px;
+			width: 140px;
 			display: flex;
 		}
 
@@ -101,30 +101,16 @@ export const TableWrapper = styled(Table)`
 		}
 	}
 
-	@media screen and (min-width: 320px) {
-		tr > *:nth-child(1) {
-			& > a {
-				width: 140px;
-			}
-		}
-	}
-
 	@media screen and (min-width: 360px) {
-		tr > *:nth-child(1) {
-			& > a {
-				width: 180px;
-			}
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
 		// POOL
 		tr > *:nth-child(1) {
 			& > * {
 				width: 200px;
 			}
 		}
+	}
 
+	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
 		// PROJECT
 		tr > *:nth-child(2) {
 			display: revert;
@@ -177,6 +163,7 @@ export const TableWrapper = styled(Table)`
 		// REWARD APY
 		tr > *:nth-child(7) {
 			display: revert;
+			padding-right: 20px;
 		}
 	}
 
