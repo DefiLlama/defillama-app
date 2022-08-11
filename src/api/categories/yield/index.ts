@@ -1,9 +1,9 @@
-import { YIELD_CONFIG_API, YIELD_POOLS_API, YIELD_MEDIAN_API } from '~/constants'
+import { YIELD_CONFIG_API, YIELD_POOLS_API, YIELD_MEDIAN_API, YIELD_URL_API } from '~/constants'
 import { arrayFetcher } from '~/utils/useSWR'
 import { formatYieldsPageData } from './utils'
 
 export async function getYieldPageData() {
-	let poolsAndConfig = await arrayFetcher([YIELD_POOLS_API, YIELD_CONFIG_API])
+	let poolsAndConfig = await arrayFetcher([YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_URL_API])
 
 	const data = formatYieldsPageData(poolsAndConfig)
 
