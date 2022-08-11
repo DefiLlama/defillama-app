@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars*/
 import { useRouter } from 'next/router'
 import { ChartData, ChartDataBin, getReadableValue } from '~/utils/liquidations'
+import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
+import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 
 export type ChartState = {
 	asset: string // TODO: symbol for now, later change to coingeckoId
@@ -18,7 +20,7 @@ export const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number
 	return arr
 }
 
-export const getOption = (chartData: ChartData, stackBy: 'chain' | 'protocol') => {
+export const getOption = (chartData: ChartData, stackBy: 'chain' | 'protocol', isSmall: boolean, isDark: boolean) => {
 	const chartDataBins = chartData.chartDataBins[stackBy === 'chain' ? 'byChain' : 'byProtocol']
 	// convert chartDataBins to array
 	const chartDataBinsArray = Object.keys(chartDataBins).map((key) => ({
@@ -39,6 +41,17 @@ export const getOption = (chartData: ChartData, stackBy: 'chain' | 'protocol') =
 	}))
 
 	const option = {
+		graphic: {
+			type: 'image',
+			z: 0,
+			style: {
+				image: isDark ? logoLight.src : logoDark.src,
+				height: 40,
+				opacity: 0.3
+			},
+			left: isSmall ? '40%' : '45%',
+			top: '130px'
+		},
 		legend: {
 			orient: 'vertical',
 			align: 'left',
