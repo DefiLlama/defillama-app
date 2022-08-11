@@ -21,8 +21,8 @@ export const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number
 	return arr
 }
 
-export const getOption = (chartData: ChartData, stackBy: 'chain' | 'protocol', isSmall: boolean, isDark: boolean) => {
-	const chartDataBins = chartData.chartDataBins[stackBy === 'chain' ? 'byChain' : 'byProtocol']
+export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols', isSmall: boolean, isDark: boolean) => {
+	const chartDataBins = chartData.chartDataBins[stackBy === 'chains' ? 'byChain' : 'byProtocol']
 	// convert chartDataBins to array
 	const chartDataBinsArray = Object.keys(chartDataBins).map((key) => ({
 		key: key,
@@ -126,7 +126,7 @@ export const getOption = (chartData: ChartData, stackBy: 'chain' | 'protocol', i
 
 export const useStackBy = () => {
 	const router = useRouter()
-	const { stackBy } = router.query as { stackBy: 'chain' | 'protocol' }
-	const _stackBy = !!stackBy ? stackBy : 'protocol'
+	const { stackBy } = router.query as { stackBy: 'chains' | 'protocols' }
+	const _stackBy = !!stackBy ? stackBy : 'protocols'
 	return _stackBy
 }

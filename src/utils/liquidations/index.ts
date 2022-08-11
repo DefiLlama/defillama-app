@@ -112,7 +112,11 @@ export type ChartData = {
 	symbol: string // could change to coingeckoId in the future
 	coingeckoAsset: CoingeckoAsset // i know theres repeated data but will improve later
 	currentPrice: number
-	totalLiquidable: number // including bad debts
+	totalLiquidable: number // excluding bad debts
+	totalLiquidables: {
+		protocols: { [protocol: string]: number }
+		chains: { [chain: string]: number }
+	}
 	badDebts: number
 	historicalChange: {
 		[hours: number]: number // 1h, 6h, 12h, 1d, 7d, 30d etc in ratio
@@ -228,11 +232,11 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 	let totalLiquidable = 0
 	let dangerousPositionsAmount = 0
 	const validPositions = positions.filter((p) => {
-		totalLiquidable += p.collateralValue
 		if (p.liqPrice > currentPrice) {
 			badDebts += p.collateralValue
 			return false
 		}
+		totalLiquidable += p.collateralValue
 		if (p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice) {
 			dangerousPositionsAmount += p.collateralValue
 		}
@@ -241,8 +245,18 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 
 	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')
 	const protocols = Object.keys(chartDataBinsByProtocol)
+	const liquidablesByProtocol = protocols.reduce((acc, protocol) => {
+		acc[protocol] = Object.values(chartDataBinsByProtocol[protocol].bins).reduce((a, b) => a + b, 0)
+		return acc
+	}, {} as { [protocol: string]: number })
+
 	const chartDataBinsByChain = getChartDataBins(validPositions, currentPrice, totalBins, 'chain')
 	const chains = Object.keys(chartDataBinsByChain)
+	const liquidablesByChain = chains.reduce((acc, chain) => {
+		acc[chain] = Object.values(chartDataBinsByChain[chain].bins).reduce((a, b) => a + b, 0)
+		return acc
+	}, {} as { [chain: string]: number })
+
 	const coingeckoAsset = await getCoingeckoAssetFromSymbol(nativeSymbol)
 	const chartData: ChartData = {
 		symbol: nativeSymbol,
@@ -252,10 +266,14 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 		dangerousPositionsAmount,
 		historicalChange: { 24: await getHistoricalChange(nativeSymbol, 24) },
 		totalLiquidable,
+		totalLiquidables: {
+			chains: liquidablesByChain,
+			protocols: liquidablesByProtocol
+		},
 		totalBins,
 		chartDataBins: {
-			byProtocol: chartDataBinsByProtocol,
-			byChain: chartDataBinsByChain
+			byChain: chartDataBinsByChain,
+			byProtocol: chartDataBinsByProtocol
 		},
 		binSize: currentPrice / totalBins,
 		availability: {
