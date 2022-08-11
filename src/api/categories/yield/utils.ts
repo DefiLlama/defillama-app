@@ -20,11 +20,14 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 
 	const projectList: { name: string; slug: string }[] = []
 
+	const categoryList: Set<string> = new Set()
+
 	_pools.forEach((pool) => {
 		// remove potential undefined on projectName
 		if (pool.projectName) {
 			poolsList.push(pool)
 			chainList.add(pool.chain)
+			categoryList.add(pool.category)
 
 			if (!projectList.find((p) => p.name === pool.projectName)) {
 				projectList.push({ name: pool.projectName, slug: pool.project })
@@ -47,6 +50,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		pools: poolsList,
 		chainList: Array.from(chainList),
 		projectList,
+		categoryList: Array.from(categoryList),
 		tokenNameMapping
 	}
 }

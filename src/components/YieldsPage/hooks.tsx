@@ -1,16 +1,17 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 
-export const useFormatYieldQueryParams = ({ projectList, chainList }) => {
+export const useFormatYieldQueryParams = ({ projectList, chainList, categoryList }) => {
 	const router = useRouter()
-	const { project, chain, token, excludeToken, attribute } = router.query
+	const { project, chain, token, excludeToken, attribute, category } = router.query
 
 	return React.useMemo(() => {
 		let selectedProjects = [],
 			selectedChains = [],
 			selectedAttributes = [],
 			includeTokens = [],
-			excludeTokens = []
+			excludeTokens = [],
+			selectedCategories = []
 
 		if (project) {
 			if (typeof project === 'string') {
@@ -19,6 +20,14 @@ export const useFormatYieldQueryParams = ({ projectList, chainList }) => {
 				selectedProjects = [...project]
 			}
 		}
+
+		if (category) {
+			if (typeof category === 'string') {
+				selectedCategories = category === 'All' ? [...categoryList] : [category]
+			} else {
+				selectedCategories = [...category]
+			}
+		} else selectedCategories = [...categoryList]
 
 		if (chain) {
 			if (typeof chain === 'string') {
@@ -57,7 +66,8 @@ export const useFormatYieldQueryParams = ({ projectList, chainList }) => {
 			selectedChains,
 			selectedAttributes,
 			includeTokens,
-			excludeTokens
+			excludeTokens,
+			selectedCategories
 		}
-	}, [attribute, chain, project, token, excludeToken, projectList, chainList])
+	}, [attribute, chain, project, token, excludeToken, category, projectList, chainList, categoryList])
 }
