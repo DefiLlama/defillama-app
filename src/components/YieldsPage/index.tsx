@@ -5,6 +5,7 @@ import { Dropdowns, NameYield, TableFilters, TableHeader } from '~/components/Ta
 import {
 	YieldAttributes,
 	TVLRange,
+	APYRange,
 	FiltersByChain,
 	YieldProjects,
 	ResetAllYieldFilters,
@@ -16,7 +17,7 @@ import { useFormatYieldQueryParams } from './hooks'
 
 const YieldPage = ({ loading, pools, projectList, chainList }) => {
 	const { query, pathname } = useRouter()
-	const { minTvl, maxTvl } = query
+	const { minTvl, maxTvl, minApy, maxApy } = query
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens } =
 		useFormatYieldQueryParams({ projectList, chainList })
@@ -108,8 +109,16 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 				(minTvl !== undefined && !Number.isNaN(Number(minTvl))) ||
 				(maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
+			const isValidApyRange =
+				(minApy !== undefined && !Number.isNaN(Number(minApy))) ||
+				(maxApy !== undefined && !Number.isNaN(Number(maxApy)))
+
 			if (isValidTvlRange) {
 				toFilter = toFilter && (minTvl ? curr.tvlUsd > minTvl : true) && (maxTvl ? curr.tvlUsd < maxTvl : true)
+			}
+
+			if (isValidApyRange) {
+				toFilter = toFilter && (minApy ? curr.apy > minApy : true) && (maxApy ? curr.apy < maxApy : true)
 			}
 
 			if (toFilter) {
@@ -137,6 +146,8 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 	}, [
 		minTvl,
 		maxTvl,
+		minApy,
+		maxApy,
 		pools,
 		selectedProjects,
 		selectedChains,
@@ -157,6 +168,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
 					<YieldAttributes pathname={pathname} />
 					<TVLRange />
+					<APYRange />
 					<ResetAllYieldFilters pathname={pathname} />
 				</Dropdowns>
 			</TableFilters>
