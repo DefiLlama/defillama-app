@@ -4,18 +4,18 @@ import { useRouter } from 'next/router'
 
 export function StackBySwitch() {
 	const router = useRouter()
-	const { stackBy } = router.query as { stackBy: 'chain' | 'protocol' }
-	const _stackBy = !!stackBy ? stackBy : 'protocol'
+	const { stackBy } = router.query as { stackBy: 'chains' | 'protocols' }
+	const _stackBy = !!stackBy ? stackBy : 'protocols'
 
 	return (
 		<Wrapper>
 			<Switch
-				active={_stackBy === 'protocol'}
+				active={_stackBy === 'protocols'}
 				onClick={() =>
 					router.push({
 						query: {
 							...router.query,
-							stackBy: 'protocol'
+							stackBy: 'protocols'
 						}
 					})
 				}
@@ -24,12 +24,12 @@ export function StackBySwitch() {
 				<span>Protocols</span>
 			</Switch>
 			<Switch
-				active={_stackBy === 'chain'}
+				active={_stackBy === 'chains'}
 				onClick={() =>
 					router.push({
 						query: {
 							...router.query,
-							stackBy: 'chain'
+							stackBy: 'chains'
 						}
 					})
 				}
