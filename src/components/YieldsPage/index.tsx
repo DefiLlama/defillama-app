@@ -129,7 +129,8 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 					change1d: curr.apyPct1D,
 					change7d: curr.apyPct7D,
 					outlook: curr.predictions.predictedClass,
-					confidence: curr.predictions.binnedConfidence
+					confidence: curr.predictions.binnedConfidence,
+					url: curr.url
 				})
 			} else return acc
 		}, [])

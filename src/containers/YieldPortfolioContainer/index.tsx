@@ -68,7 +68,8 @@ function PortfolioContainer({ protocolsDict }) {
 				change1d: t.apyPct1D,
 				change7d: t.apyPct7D,
 				outlook: t.predictions.predictedClass,
-				confidence: t.predictions.binnedConfidence
+				confidence: t.predictions.binnedConfidence,
+				url: t.url
 			}))
 		} else return []
 	}, [isClient, portfolio, protocolsDict])
