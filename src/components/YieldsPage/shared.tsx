@@ -243,6 +243,7 @@ export const columns = [
 				value={value}
 				poolId={rowValues.id}
 				project={rowValues.project}
+				url={rowValues.url ?? ''}
 				index={rowIndex !== null && rowIndex + 1}
 				bookmark
 				rowType={rowType}

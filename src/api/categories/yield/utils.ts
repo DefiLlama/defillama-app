@@ -1,6 +1,7 @@
 export function formatYieldsPageData(poolsAndConfig: any) {
 	let _pools = poolsAndConfig[0]?.data ?? []
 	let _config = poolsAndConfig[1]?.protocols ?? []
+	let _urls = poolsAndConfig[2] ?? []
 
 	// add projectName and audit fields from config to pools array
 	_pools = _pools.map((p) => ({
@@ -8,7 +9,8 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		projectName: _config[p.project]?.name,
 		audits: _config[p.project]?.audits,
 		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-',
-		category: _config[p.project]?.category
+		category: _config[p.project]?.category,
+		url: _urls[p.project]
 	}))
 
 	const poolsList = []
