@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import {
 	YieldAttributes,
 	TVLRange,
+	APYRange,
 	FiltersByChain,
 	YieldProjects,
 	FiltersByCategory,
@@ -33,7 +34,7 @@ const BarChartYields = dynamic(() => import('~/components/TokenChart/BarChartYie
 
 const PlotsPage = ({ pools, chainList, projectList, categoryList, median }) => {
 	const { query } = useRouter()
-	const { minTvl, maxTvl } = query
+	const { minTvl, maxTvl, minApy, maxApy } = query
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
 		useFormatYieldQueryParams({ projectList, chainList, categoryList })
@@ -79,8 +80,16 @@ const PlotsPage = ({ pools, chainList, projectList, categoryList, median }) => {
 				(minTvl !== undefined && !Number.isNaN(Number(minTvl))) ||
 				(maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
+			const isValidApyRange =
+				(minApy !== undefined && !Number.isNaN(Number(minApy))) ||
+				(maxApy !== undefined && !Number.isNaN(Number(maxApy)))
+
 			if (isValidTvlRange) {
 				toFilter = toFilter && (minTvl ? curr.tvlUsd > minTvl : true) && (maxTvl ? curr.tvlUsd < maxTvl : true)
+			}
+
+			if (isValidApyRange) {
+				toFilter = toFilter && (minApy ? curr.apy > minApy : true) && (maxApy ? curr.apy < maxApy : true)
 			}
 
 			if (toFilter) {
@@ -90,6 +99,8 @@ const PlotsPage = ({ pools, chainList, projectList, categoryList, median }) => {
 	}, [
 		minTvl,
 		maxTvl,
+		minApy,
+		maxApy,
 		pools,
 		selectedProjects,
 		selectedChains,
@@ -115,6 +126,7 @@ const PlotsPage = ({ pools, chainList, projectList, categoryList, median }) => {
 					/>
 					<YieldAttributes pathname="/yields/overview" />
 					<TVLRange />
+					<APYRange />
 					<ResetAllYieldFilters pathname="/yields/overview" />
 				</Dropdowns>
 			</ChartFilters>
