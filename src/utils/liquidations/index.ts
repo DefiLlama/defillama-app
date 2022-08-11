@@ -312,9 +312,24 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 		{}
 	)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
+	let positions: Position[]
+	// handle wrapped gas tokens later dynamically
+	let nativeSymbol = symbol
+	if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase())) {
+		const ethPositions = allAggregated.get(nativeSymbol)
+		const wethPositions = allAggregated.get('W' + nativeSymbol)
+		positions = [...ethPositions!.positions, ...wethPositions!.positions]
+	} else if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase().substring(1))) {
+		nativeSymbol = symbol.toUpperCase().substring(1)
+		const ethPositions = allAggregated.get(nativeSymbol)
+		const wethPositions = allAggregated.get('W' + nativeSymbol)
+		positions = [...ethPositions!.positions, ...wethPositions!.positions]
+	} else {
+		positions = allAggregated.get(symbol)!.positions
+	}
 
 	// TODO: handle wrapped gas tokens here!
-	const allAssetPositions = allAggregated.get(symbol)!.positions.map((p) => ({
+	const allAssetPositions = positions.map((p) => ({
 		...p,
 		symbol
 	}))
