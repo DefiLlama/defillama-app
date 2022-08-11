@@ -336,7 +336,7 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 		symbol
 	}))
 
-	const csvHeader = ['symbol', 'chain', 'protocol', 'liqPrice', 'collateralValue', 'timestamp', 'owner'].join(',')
+	const csvHeader = ['symbol', 'chain', 'protocol', 'liqPrice', 'collateralValue', 'owner', 'timestamp'].join(',')
 	const csvData = allAssetPositions
 		.map(({ symbol, chain, protocol, liqPrice, collateralValue, owner }) => {
 			return `${symbol},${chain},${protocol},${liqPrice},${collateralValue},${owner},${timestamp}`
