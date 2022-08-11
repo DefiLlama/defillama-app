@@ -3,56 +3,28 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { ApplyFilters } from '~/components'
 import Popover from '~/components/Popover'
+import { TvlFilterForm } from './TVLRange'
 
 const Wrapper = styled(Popover)`
 	padding: 0;
 `
 
-export const TvlFilterForm = styled.form`
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-
-	label {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-		font: inherit;
-		margin: 12px 0 0;
-	}
-
-	input {
-		padding: 8px;
-		border-radius: 4px;
-		border: ${({ theme }) => '1px solid ' + theme.text4};
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
-		color: ${({ theme }) => theme.text1};
-		font: inherit;
-	}
-
-	@media (min-width: 640px) {
-		label {
-			margin: 12px 12px 0;
-		}
-	}
-`
-
-export function TVLRange() {
+export function APYRange() {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
 		e.preventDefault()
 		const form = e.target
-		const minTvl = form.minTvl?.value
-		const maxTvl = form.maxTvl?.value
+		const minApy = form.minApy?.value
+		const maxApy = form.maxApy?.value
 
 		router.push(
 			{
 				pathname: router.pathname,
 				query: {
 					...router.query,
-					minTvl,
-					maxTvl
+					minApy,
+					maxApy
 				}
 			},
 			undefined,
@@ -65,7 +37,7 @@ export function TVLRange() {
 		<Wrapper
 			trigger={
 				<>
-					<span>Filter by TVL</span>
+					<span>Filter by APY</span>
 					<MenuButtonArrow />
 				</>
 			}
@@ -74,11 +46,11 @@ export function TVLRange() {
 					<TvlFilterForm onSubmit={handleSubmit}>
 						<label>
 							<span>Min</span>
-							<input type="number" name="minTvl" />
+							<input type="number" name="minApy" />
 						</label>
 						<label>
 							<span>Max</span>
-							<input type="number" name="maxTvl" />
+							<input type="number" name="maxApy" />
 						</label>
 						<ApplyFilters>Apply Filter</ApplyFilters>
 					</TvlFilterForm>
