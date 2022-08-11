@@ -304,6 +304,7 @@ export function getReadableValue(value: number) {
 
 export const getLiquidationsCsvData = async (symbol: string) => {
 	const raw = (await fetch(LIQUIDATIONS_API).then((r) => r.json())) as LiquidationsApiResponse
+	const timestamp = raw.time
 
 	const adapterChains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
 	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
@@ -312,18 +313,16 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 	)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
 
+	// TODO: handle wrapped gas tokens here!
 	const allAssetPositions = allAggregated.get(symbol)!.positions.map((p) => ({
 		...p,
 		symbol
 	}))
 
-	// convert allAssetPositions to comma separated values based on an item's key, with columns: symbol, liqPrice, collateralValue, protocol, chain
-	const csvHeader = Object.keys(allAssetPositions[0]).join(',')
+	const csvHeader = ['symbol', 'chain', 'protocol', 'liqPrice', 'collateralValue', 'timestamp'].join(',')
 	const csvData = allAssetPositions
-		.map((p) => {
-			return Object.keys(p)
-				.map((key) => p[key])
-				.join(',')
+		.map(({ symbol, chain, protocol, liqPrice, collateralValue }) => {
+			return `${symbol},${chain},${protocol},${liqPrice},${collateralValue},${timestamp}`
 		})
 		.reduce((acc, curr) => acc + '\n' + curr, csvHeader)
 
