@@ -13,6 +13,7 @@ export interface Liq {
 }
 
 export interface Position {
+	owner: string
 	liqPrice: number
 	collateralValue: number
 	chain: string
@@ -59,7 +60,7 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: str
 	const aggregatedData = new Map<string, { currentPrice: number; positions: Position[] }>() // symbol -> [{liqPrice, collateralValue, chain, protocol}]
 	for (const protocol of protocols) {
 		const liqs = filteredAdapterOutput[protocol]
-		liqs.forEach(({ liqPrice, collateral, collateralAmount }) => {
+		liqs.forEach(({ liqPrice, collateral, collateralAmount, owner }) => {
 			const chain = collateral.split(':')[0]
 			if (!prices[collateral]) {
 				// console.error(`Token not supported by price API ${collateral}`)
@@ -67,6 +68,7 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: str
 			}
 			const { symbol, decimals, price: currentPrice } = prices[collateral]
 			const position: Position = {
+				owner,
 				liqPrice,
 				collateralValue: new BigNumber(collateralAmount)
 					.div(10 ** decimals)
@@ -334,10 +336,10 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 		symbol
 	}))
 
-	const csvHeader = ['symbol', 'chain', 'protocol', 'liqPrice', 'collateralValue', 'timestamp'].join(',')
+	const csvHeader = ['symbol', 'chain', 'protocol', 'liqPrice', 'collateralValue', 'timestamp', 'owner'].join(',')
 	const csvData = allAssetPositions
-		.map(({ symbol, chain, protocol, liqPrice, collateralValue }) => {
-			return `${symbol},${chain},${protocol},${liqPrice},${collateralValue},${timestamp}`
+		.map(({ symbol, chain, protocol, liqPrice, collateralValue, owner }) => {
+			return `${symbol},${chain},${protocol},${liqPrice},${collateralValue},${owner},${timestamp}`
 		})
 		.reduce((acc, curr) => acc + '\n' + curr, csvHeader)
 
