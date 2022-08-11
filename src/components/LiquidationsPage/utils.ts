@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { ChartData, ChartDataBin, getReadableValue } from '~/utils/liquidations'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
+import { ECBasicOption } from 'echarts/types/dist/shared'
 
 export type ChartState = {
 	asset: string // TODO: symbol for now, later change to coingeckoId
@@ -40,7 +41,7 @@ export const getOption = (chartData: ChartData, stackBy: 'chain' | 'protocol', i
 		stack: 'x'
 	}))
 
-	const option = {
+	const option: ECBasicOption = {
 		graphic: {
 			type: 'image',
 			z: 0,
@@ -72,6 +73,19 @@ export const getOption = (chartData: ChartData, stackBy: 'chain' | 'protocol', i
 			trigger: 'axis',
 			axisPointer: {
 				type: 'cross'
+			},
+			formatter: (params: any) => {
+				const { name } = params[0]
+				return (
+					`Liquidation Price: <b>~$${name}</b>` +
+					`<br/>` +
+					`<br/>` +
+					params
+						.map(
+							(param: any) => `${param.marker} ${param.seriesName}: <b>$${getReadableValue(Number(param.value))}</b>`
+						)
+						.join('<br/>')
+				)
 			}
 		},
 		xAxis: {
