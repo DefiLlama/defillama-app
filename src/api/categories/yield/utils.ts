@@ -12,7 +12,8 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-',
 		category: _config[p.project]?.category,
 		url: _urls[p.project] ?? '',
-		apyReward: p.apyReward > 0 ? p.apyReward : null
+		apyReward: p.apyReward > 0 ? p.apyReward : null,
+		rewardTokens: p.apyReward > 0 ? p.rewardTokens : []
 	}))
 
 	const poolsList = []
