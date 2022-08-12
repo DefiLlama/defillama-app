@@ -36,7 +36,6 @@ export default function PeggedAssets({
 	filteredPeggedAssets,
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
-	chartData,
 	chartDataByPeggedAsset,
 	chainTVLData,
 	chain
@@ -49,7 +48,6 @@ export default function PeggedAssets({
 				filteredPeggedAssets={filteredPeggedAssets}
 				peggedAssetNames={peggedAssetNames}
 				peggedNameToChartDataIndex={peggedNameToChartDataIndex}
-				chartData={chartData}
 				chartDataByPeggedAsset={chartDataByPeggedAsset}
 				chainTVLData={chainTVLData}
 			/>
