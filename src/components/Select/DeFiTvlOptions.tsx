@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import { SelectLabel, useSelectState, SelectArrow, SelectItemCheck } from 'ariakit/select'
-import { options } from '~/components/Filters/protocols'
+import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
 import { Item, Popover, SelectMenu } from './AriakitSelect'
 
@@ -24,7 +24,7 @@ const Label = styled(SelectLabel)`
 	white-space: nowrap;
 `
 
-const extraTvls = options.map((g) => ({ label: g.name, value: g.key }))
+const extraTvls = protocolsAndChainsOptions.map((g) => ({ label: g.name, value: g.key }))
 
 function renderValue(value: string[]) {
 	if (value.length === 0) return 'No option selected'

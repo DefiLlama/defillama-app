@@ -1,13 +1,13 @@
 import { useSelectState } from 'ariakit'
 import { useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
-import { options } from './options'
+import { protocolsAndChainsOptions } from './options'
 
 export function useProtocolsFilterState(props?: { [key: string]: any }) {
 	const tvlToggles = useTvlToggles()
 
 	const extraTvlsEnabled = useGetExtraTvlEnabled()
 
-	const fitlers = options.map((o) => o.key)
+	const fitlers = protocolsAndChainsOptions.map((o) => o.key)
 
 	const selectedOptions = fitlers.filter((key) => extraTvlsEnabled[key])
 

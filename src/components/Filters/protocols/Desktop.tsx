@@ -6,7 +6,7 @@ import OptionToggle from '~/components/OptionToggle'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
 import { useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
-import { options as extraTvlOptions } from './options'
+import { protocolsAndChainsOptions } from './options'
 import { useProtocolsFilterState } from './useProtocolFilterState'
 
 const Wrapper = styled.section`
@@ -53,7 +53,7 @@ export const DesktopProtocolFilters = ({ options, ...props }) => {
 	const tvlToggles = useTvlToggles()
 	const extraTvlEnabled = useGetExtraTvlEnabled()
 
-	let tvlOptions = options || [...extraTvlOptions]
+	let tvlOptions = options || protocolsAndChainsOptions
 
 	return (
 		<Wrapper>
@@ -83,13 +83,11 @@ export const DesktopProtocolFilters = ({ options, ...props }) => {
 }
 
 interface IAllOptionsProps {
-	options?: { name: string; key: string; help?: string }[]
+	options: { name: string; key: string; help?: string }[]
 }
 
 function AddlOptions({ options, ...props }: IAllOptionsProps) {
 	const select = useProtocolsFilterState()
-
-	const tvlOptions = options || extraTvlOptions
 
 	return (
 		<span {...props}>
@@ -100,7 +98,7 @@ function AddlOptions({ options, ...props }: IAllOptionsProps) {
 			</AddlFiltersButton>
 			{select.mounted && (
 				<FilterPopover state={select}>
-					{tvlOptions.map(({ key, name, help }) => (
+					{options.map(({ key, name, help }) => (
 						<Item key={key} value={key}>
 							{help ? <HeadHelp title={name} text={help} /> : name}
 							<Checkbox checked={select.value.includes(key)} />

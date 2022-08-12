@@ -172,6 +172,34 @@ export function useDarkModeManager() {
 	return [isDarkMode, toggleDarkMode]
 }
 
+// TODO remove all state managers and use this settings manager
+export function useSettingsManager(settings) {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const isClient = useIsClient()
+
+	const toggledSettings = useMemo(
+		() =>
+			settings.reduce((acc, setting) => {
+				let toggled = false
+				if (isClient) {
+					toggled = state[setting]
+				} else if (setting === 'emulator') {
+					toggled = true
+				} else toggled = false
+
+				acc[setting] = toggled
+				return acc
+			}, {}),
+		[state, isClient, settings]
+	)
+
+	const updater = (key) => () => {
+		updateKey(key, !state[key])
+	}
+
+	return [toggledSettings, updater]
+}
+
 export const useGetExtraTvlEnabled = () => {
 	const [state] = useLocalStorageContext()
 	const isClient = useIsClient()

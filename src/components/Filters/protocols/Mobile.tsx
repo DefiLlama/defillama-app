@@ -3,7 +3,7 @@ import { SelectLabel, SelectArrow } from 'ariakit/select'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
 import { FilterPopover, SelectMenu } from '~/components/Select/AriakitSelect'
-import { options as extraTvlOptions } from './options'
+import { protocolsAndChainsOptions } from './options'
 import { Item } from '../shared'
 import { useProtocolsFilterState } from './useProtocolFilterState'
 
@@ -29,7 +29,7 @@ const Label = styled(SelectLabel)`
 
 function renderValue(value: string[]) {
 	if (value.length === 0) return 'No option selected'
-	if (value.length === 1) return extraTvlOptions.find((e) => e.key === value[0])?.name ?? value[0]
+	if (value.length === 1) return protocolsAndChainsOptions.find((e) => e.key === value[0])?.name ?? value[0]
 	return `${value.length} options selected`
 }
 
@@ -40,7 +40,7 @@ interface IProps {
 export function MobileProtocolFilters({ options, ...props }: IProps) {
 	const select = useProtocolsFilterState({ sameWidth: true })
 
-	const tvlOptions = options || extraTvlOptions
+	const tvlOptions = options || protocolsAndChainsOptions
 
 	return (
 		<WrapperWithLabel {...props}>

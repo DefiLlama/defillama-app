@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import styled from 'styled-components'
 import OptionToggle from '~/components/OptionToggle'
-import { options as extraTvlOptions } from '~/components/Filters/protocols'
+import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import {
 	useDisplayUsdManager,
 	useHideLastDayManager,
@@ -136,7 +136,7 @@ export default function Menu({ type = 'defi', ...props }) {
 
 	const toggleSettings = {
 		defi: [
-			...extraTvlOptions,
+			...protocolsAndChainsOptions,
 			{
 				name: 'Dark mode',
 				key: DARK_MODE

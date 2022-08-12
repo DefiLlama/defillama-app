@@ -1,6 +1,6 @@
 import { STAKING, POOL2, BORROWED, DOUBLE_COUNT, LIQUID_STAKING } from '~/contexts/LocalStorage'
 
-export const options = [
+export const protocolsAndChainsOptions = [
 	{
 		name: 'Staking',
 		key: STAKING,
