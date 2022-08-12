@@ -36,8 +36,6 @@ const TotalLiquidable = (props: ChartData) => {
 		totalLiquidable = getReadableValue(_totalLiquidable)
 	}
 
-	// totalLiquidable = getReadableValue(props.totalLiquidable)
-
 	return (
 		<>
 			<h1>Total Liquidable (USD)</h1>
@@ -65,7 +63,8 @@ export const LiquidationsContent = (props: ChartData) => {
 				<PanelHiddenMobile>
 					<h2>Change (24h)</h2>
 					<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
-						{(props.historicalChange[24] * 100).toFixed(1) || 0}%
+						{/* {(props.historicalChange[24] * 100).toFixed(1) || 0}% */}
+						TODO: WIP
 					</p>
 				</PanelHiddenMobile>
 				<PanelHiddenMobile>

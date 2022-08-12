@@ -103,11 +103,6 @@ async function getPrices(collaterals: string[]) {
 	return prices
 }
 
-async function getHistoricalChange(symbol: string, hours: number) {
-	// TODO: implement on backend
-	return -0.42
-}
-
 export type ChartData = {
 	symbol: string // could change to coingeckoId in the future
 	coingeckoAsset: CoingeckoAsset // i know theres repeated data but will improve later
@@ -118,9 +113,6 @@ export type ChartData = {
 		chains: { [chain: string]: number }
 	}
 	badDebts: number
-	historicalChange: {
-		[hours: number]: number // 1h, 6h, 12h, 1d, 7d, 30d etc in ratio
-	}
 	dangerousPositionsAmount: number // amount of -20% current price
 	chartDataBins: {
 		// aggregated by either protocol or chain
@@ -278,7 +270,6 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		currentPrice,
 		badDebts,
 		dangerousPositionsAmount,
-		historicalChange: { 24: await getHistoricalChange(nativeSymbol, 24) },
 		totalLiquidable,
 		totalLiquidables: {
 			chains: liquidablesByChain,

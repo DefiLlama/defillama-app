@@ -15,7 +15,6 @@ import React, { useState } from 'react'
 export const getStaticProps: GetStaticProps<ChartData> = async ({ params }) => {
 	const symbol = params.symbol as string
 	const data = await getLatestChartData(symbol.toUpperCase())
-	// TODO: handle error properly
 	return {
 		props: data,
 		revalidate: revalidate(5)
