@@ -235,7 +235,7 @@ export const useCalcProtocolsTvls = ({
 					let strikeTvl = false
 
 					// keep liquid staking in same positon in table but strike its tvl
-					if (props.category === 'Liquid Staking' && !extraTvlsEnabled['doublecounted']) {
+					if (props.category === 'Liquid Staking' && !extraTvlsEnabled['liquidstaking']) {
 						strikeTvl = true
 					}
 
@@ -419,11 +419,24 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 				totalDaySum += chainTvls[tvlKey] || 0
 
 				for (const c in chainTvls) {
-					if (c === 'doublecounted' || c === 'd') {
+					if ((c === 'doublecounted' || c === 'd') && !extraTvlsEnabled['doublecounted']) {
 						sum -= chainTvls[c]
 						totalDaySum -= chainTvls[c]
 					}
-					if (extraTvlsEnabled[c.toLowerCase()]) {
+
+					if ((c === 'liquidstaking' || c === 'l') && !extraTvlsEnabled['liquidstaking']) {
+						sum -= chainTvls[c]
+						totalDaySum -= chainTvls[c]
+					}
+
+					if (c.toLowerCase() === 'dcandlsoverlap' || c === 'dl') {
+						if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
+							sum += chainTvls[c]
+							totalDaySum += chainTvls[c]
+						}
+					}
+
+					if (extraTvlsEnabled[c.toLowerCase()] && c !== 'doublecounted' && c !== 'liquidstaking') {
 						sum += chainTvls[c]
 						totalDaySum += chainTvls[c]
 					}
@@ -448,10 +461,21 @@ export const useCalcExtraTvlsByDay = (data) => {
 			let sum = values.tvl || 0
 
 			for (const value in values) {
-				if (value === 'doublecounted') {
+				if (value === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
 					sum -= values[value]
 				}
-				if (extraTvlsEnabled[value.toLowerCase()]) {
+
+				if ((value === 'liquidstaking' || value === 'd') && !extraTvlsEnabled['liquidstaking']) {
+					sum -= values[value]
+				}
+
+				if (value.toLowerCase() === 'dcandlsoverlap') {
+					if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
+						sum += values[value]
+					}
+				}
+
+				if (extraTvlsEnabled[value.toLowerCase()] && value !== 'doublecounted' && value !== 'liquidstaking') {
 					sum += values[value]
 				}
 			}
