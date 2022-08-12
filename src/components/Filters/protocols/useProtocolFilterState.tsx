@@ -2,7 +2,7 @@ import { useSelectState } from 'ariakit'
 import { useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
 import { options } from './options'
 
-export function useProtocolsFilterState() {
+export function useProtocolsFilterState(props?: { [key: string]: any }) {
 	const tvlToggles = useTvlToggles()
 
 	const extraTvlsEnabled = useGetExtraTvlEnabled()
@@ -25,7 +25,8 @@ export function useProtocolsFilterState() {
 		value: selectedOptions,
 		setValue: onChange,
 		defaultValue: selectedOptions,
-		gutter: 6
+		gutter: 6,
+		...props
 	})
 
 	return select

@@ -2,8 +2,9 @@ import styled from 'styled-components'
 import { SelectLabel, SelectArrow } from 'ariakit/select'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
-import { Item, FilterPopover, SelectMenu } from '~/components/Select/AriakitSelect'
-import { options } from './options'
+import { FilterPopover, SelectMenu } from '~/components/Select/AriakitSelect'
+import { options as extraTvlOptions } from './options'
+import { Item } from '../shared'
 import { useProtocolsFilterState } from './useProtocolFilterState'
 
 const WrapperWithLabel = styled.div`
@@ -28,7 +29,7 @@ const Label = styled(SelectLabel)`
 
 function renderValue(value: string[]) {
 	if (value.length === 0) return 'No option selected'
-	if (value.length === 1) return options.find((e) => e.key === value[0])?.name ?? value[0]
+	if (value.length === 1) return extraTvlOptions.find((e) => e.key === value[0])?.name ?? value[0]
 	return `${value.length} options selected`
 }
 
@@ -37,7 +38,9 @@ interface IProps {
 }
 
 export function MobileProtocolFilters({ options, ...props }: IProps) {
-	const select = useProtocolsFilterState()
+	const select = useProtocolsFilterState({ sameWidth: true })
+
+	const tvlOptions = options || extraTvlOptions
 
 	return (
 		<WrapperWithLabel {...props}>
@@ -48,7 +51,7 @@ export function MobileProtocolFilters({ options, ...props }: IProps) {
 			</SelectMenu>
 			{select.mounted && (
 				<FilterPopover state={select}>
-					{options.map(({ key, name, help }) => (
+					{tvlOptions.map(({ key, name, help }) => (
 						<Item key={key} value={key}>
 							{help ? <HeadHelp title={name} text={help} /> : name}
 							<Checkbox checked={select.value.includes(key)} />

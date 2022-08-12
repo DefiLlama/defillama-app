@@ -5,7 +5,6 @@ import { Item, Selected } from '../shared'
 import OptionToggle from '~/components/OptionToggle'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
-
 import { useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
 import { options as extraTvlOptions } from './options'
 import { useProtocolsFilterState } from './useProtocolFilterState'
@@ -90,6 +89,8 @@ interface IAllOptionsProps {
 function AddlOptions({ options, ...props }: IAllOptionsProps) {
 	const select = useProtocolsFilterState()
 
+	const tvlOptions = options || extraTvlOptions
+
 	return (
 		<span {...props}>
 			<AddlFiltersButton state={select}>
@@ -99,7 +100,7 @@ function AddlOptions({ options, ...props }: IAllOptionsProps) {
 			</AddlFiltersButton>
 			{select.mounted && (
 				<FilterPopover state={select}>
-					{options.map(({ key, name, help }) => (
+					{tvlOptions.map(({ key, name, help }) => (
 						<Item key={key} value={key}>
 							{help ? <HeadHelp title={name} text={help} /> : name}
 							<Checkbox checked={select.value.includes(key)} />
