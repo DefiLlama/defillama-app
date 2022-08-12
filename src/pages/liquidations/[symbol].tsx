@@ -53,6 +53,7 @@ const LiquidationsProvider = ({ children }) => {
 
 const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> = (props) => {
 	const { data, prevData } = props
+	const minutesAgo = Math.round((Date.now() - data.time * 1000) / 1000 / 60)
 	return (
 		<Layout title={`${data.coingeckoAsset.name} (${data.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
 			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: data.symbol, hideOptions: true }} />
@@ -62,10 +63,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 				<LiquidationsContent data={data} prevData={prevData} />
 			</LiquidationsProvider>
 			<SmolHints>
-				<p>
-					🔍
-					<i> To see liquidation levels for other assets, just use the search bar above!</i>
-				</p>
+				<i>Last updated {minutesAgo}min ago</i>
 			</SmolHints>
 		</Layout>
 	)
