@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import BigNumber from 'bignumber.js'
-import { LIQUIDATIONS_API } from '~/constants'
+import { LIQUIDATIONS_API, LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
 
 const TOTAL_BINS = 100
 const WRAPPABLE_GAS_TOKENS = ['ETH', 'AVAX', 'MATIC', 'FTM', 'BNB', 'CRO', 'ONE']
@@ -202,8 +202,22 @@ export interface LiquidationsApiResponse {
 	}[]
 }
 
-export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS) {
-	const raw = (await fetch(LIQUIDATIONS_API).then((r) => r.json())) as LiquidationsApiResponse
+export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, timePassed = 0) {
+	const now = Math.round(Date.now() / 1000) // in seconds
+	const LIQUIDATIONS_DATA_URL =
+		timePassed === 0
+			? LIQUIDATIONS_API
+			: LIQUIDATIONS_HISTORICAL_S3_PATH + `/${Math.floor((now - timePassed) / 3600)}.json`
+
+	let raw: LiquidationsApiResponse
+	try {
+		const res = await fetch(LIQUIDATIONS_DATA_URL)
+		raw = await res.json()
+	} catch (e) {
+		// fallback to current
+		const res = await fetch(LIQUIDATIONS_API)
+		raw = await res.json()
+	}
 
 	const adapterChains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
 	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
@@ -284,6 +298,10 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 	}
 
 	return chartData
+}
+
+export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS) {
+	return await getPrevChartData(symbol, totalBins)
 }
 
 export type CoingeckoAsset = {
