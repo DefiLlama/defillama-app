@@ -253,7 +253,7 @@ export default function ChainsContainer({
 				<ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
 			</HeaderWrapper>
 
-			{/* <ChartsWrapper>
+			<ChartsWrapper>
 				<ChainPieChart data={chainsTvlValues} chainColor={chainColor} />
 				<ChainDominanceChart
 					stackOffset="expand"
@@ -263,7 +263,7 @@ export default function ChainsContainer({
 					chainColor={chainColor}
 					daySum={daySum}
 				/>
-			</ChartsWrapper> */}
+			</ChartsWrapper>
 
 			<ChainTvlsFilter>
 				<h2>Filters</h2>

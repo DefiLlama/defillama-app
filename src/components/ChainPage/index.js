@@ -103,7 +103,7 @@ function GlobalPage({
 	// console.log(['doublecounted', 'liquidstaking', 'total'])
 	// console.log(['on', 'on', initialTvl])
 	// console.log(['on', 'off', initialTvl - liquidstaking + overlap])
-	// console.log(['off', 'on', initialTvl - doublecounted + overalap])
+	// console.log(['off', 'on', initialTvl - doublecounted + overlap])
 	// console.log(['off', 'off', initialTvl - doublecounted - liquidstaking + overlap])
 
 	const { totalVolumeUSD, volumeChangeUSD, globalChart } = React.useMemo(() => {
