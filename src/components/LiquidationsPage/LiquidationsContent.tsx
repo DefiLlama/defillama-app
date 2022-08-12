@@ -31,12 +31,11 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 }
 
 const DangerousPositionsAmount = (props: { data: ChartData }) => {
-	const { data } = props
 	const stackBy = useStackBy()
 	const { selectedSeries } = useContext(LiquidationsContext)
 	const dangerousPositionsAmount = useMemo(
-		() => getDangerousPositionsAmount(data, stackBy, selectedSeries),
-		[data, stackBy, selectedSeries]
+		() => getDangerousPositionsAmount(props.data, stackBy, selectedSeries),
+		[props.data, stackBy, selectedSeries]
 	)
 	return (
 		<>
@@ -61,23 +60,23 @@ const getDangerousPositionsAmount = (
 	if (!selectedSeries) {
 		dangerousPositionsAmount = data.dangerousPositionsAmount
 	} else if (stackBy === 'chains') {
-		const selectedChains = Object.keys(selectedSeries).filter((chain) => selectedSeries[chain])
-		selectedChains.forEach((chain) => {
-			console.log(chain)
-			const binSize = data.chartDataBins.byChain[chain].binSize
-			dangerousPositionsAmount += Object.entries(data.chartDataBins.byChain[chain].bins)
-				.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
-				.reduce((acc, [, value]) => acc + value, 0)
-		})
+		Object.keys(selectedSeries)
+			.filter((chain) => selectedSeries[chain])
+			.forEach((chain) => {
+				const binSize = data.chartDataBins.byChain[chain]?.binSize ?? 0
+				dangerousPositionsAmount += Object.entries(data.chartDataBins.byChain[chain]?.bins ?? {})
+					.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
+					.reduce((acc, [, value]) => acc + value, 0)
+			})
 	} else {
-		const selectedProtocols = Object.keys(selectedSeries).filter((protocol) => selectedSeries[protocol])
-		selectedProtocols.forEach((protocol) => {
-			console.log(protocol)
-			const binSize = data.chartDataBins.byProtocol[protocol].binSize
-			dangerousPositionsAmount += Object.entries(data.chartDataBins.byProtocol[protocol].bins)
-				.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
-				.reduce((acc, [, value]) => acc + value, 0)
-		})
+		Object.keys(selectedSeries)
+			.filter((protocol) => selectedSeries[protocol])
+			.forEach((protocol) => {
+				const binSize = data.chartDataBins.byProtocol[protocol]?.binSize ?? 0
+				dangerousPositionsAmount += Object.entries(data.chartDataBins.byProtocol[protocol]?.bins ?? {})
+					.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
+					.reduce((acc, [, value]) => acc + value, 0)
+			})
 	}
 	return dangerousPositionsAmount
 }
