@@ -533,8 +533,8 @@ function PeggedAssetsOverview({
 	}
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
-		let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1].Mcap
-		let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8].Mcap
+		let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
+		let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
 		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
 		return { percentChange, totalMcapCurrent }
 	}, [peggedAreaTotalData])
