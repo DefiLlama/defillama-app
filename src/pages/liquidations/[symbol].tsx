@@ -10,7 +10,7 @@ import { Header } from '~/Theme'
 import { LiquidationsHeader } from '../../components/LiquidationsPage/LiquidationsHeader'
 import { LiquidationsContent } from '../../components/LiquidationsPage/LiquidationsContent'
 import styled from 'styled-components'
-import { useState } from 'react'
+import React, { useState } from 'react'
 
 export const getStaticProps: GetStaticProps<ChartData> = async ({ params }) => {
 	const symbol = params.symbol as string
@@ -30,15 +30,36 @@ export const getStaticPaths: GetStaticPaths = async () => {
 	return { paths, fallback: 'blocking' }
 }
 
-const LiquidationsHomePage: NextPage<ChartData> = (props) => {
-	// const [selectedSeries, setSelectedSeries] = useState<string[]>(['all'])
+export const LiquidationsContext = React.createContext<{
+	selectedSeries: {
+		[key: string]: boolean
+	}
+	setSelectedSeries: React.Dispatch<
+		React.SetStateAction<{
+			[key: string]: boolean
+		}>
+	>
+}>(null)
 
+const LiquidationsProvider = ({ children }) => {
+	const [selectedSeries, setSelectedSeries] = useState<{ [key: string]: boolean }>({})
+
+	return (
+		<LiquidationsContext.Provider value={{ selectedSeries, setSelectedSeries }}>
+			{children}
+		</LiquidationsContext.Provider>
+	)
+}
+
+const LiquidationsHomePage: NextPage<ChartData> = (props) => {
 	return (
 		<Layout title={`${props.coingeckoAsset.name} (${props.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
 			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: props.symbol, hideOptions: true }} />
 			<Header>Liquidation levels in DeFi 💦</Header>
 			<LiquidationsHeader {...props} />
-			<LiquidationsContent {...props} />
+			<LiquidationsProvider>
+				<LiquidationsContent {...props} />
+			</LiquidationsProvider>
 			<SmolHints>
 				<p>
 					🔍

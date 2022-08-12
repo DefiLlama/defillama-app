@@ -1,12 +1,15 @@
 /* eslint-disable no-unused-vars*/
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import * as echarts from 'echarts'
 import { ChartData } from '~/utils/liquidations'
 import { getOption, useStackBy } from './utils'
 import { useMedia } from '~/hooks'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
 
 export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; uid: string }) => {
+	const { setSelectedSeries } = useContext(LiquidationsContext)
+
 	const stackBy = useStackBy()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const [isDark] = useDarkModeManager()
@@ -17,14 +20,11 @@ export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; ui
 	}, [uid])
 
 	useEffect(() => {
+		setSelectedSeries(null)
 		const chartInstance = createInstance()
 		const option = getOption(chartData, stackBy, isSmall, isDark)
 		chartInstance.on('legendselectchanged', (params: any) => {
-			const _selectedSeries = Object.entries(params.selected)
-				.filter((x) => x[1])
-				.map((x) => x[0])
-			console.log(params.selected)
-			console.log(_selectedSeries)
+			setSelectedSeries(params.selected)
 		})
 		chartInstance.setOption(option)
 
@@ -38,7 +38,7 @@ export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; ui
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [uid, chartData, createInstance, stackBy, isSmall, isDark])
+	}, [uid, chartData, createInstance, stackBy, isSmall, isDark, setSelectedSeries])
 
 	return (
 		<div

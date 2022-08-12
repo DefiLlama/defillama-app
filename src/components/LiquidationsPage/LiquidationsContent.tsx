@@ -1,11 +1,12 @@
 /* eslint-disable no-unused-vars*/
-import React from 'react'
+import React, { useContext } from 'react'
 import { ChartData, getLiquidationsCsvData, getReadableValue } from '~/utils/liquidations'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadIcon, PanelHiddenMobile } from '~/components'
 import { LiquidationsChart } from './LiquidationsChart'
 import styled from 'styled-components'
 import { download } from '~/utils'
 import { useStackBy } from './utils'
+import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
 
 export const DownloadButton = styled.button`
 	padding: 4px 6px;
@@ -20,19 +21,22 @@ export const DownloadButton = styled.button`
 
 const TotalLiquidable = (props: ChartData) => {
 	const stackBy = useStackBy()
+	const { selectedSeries } = useContext(LiquidationsContext)
 
 	let totalLiquidable: string
-	// if (props.selectedSeries.length === 1 && props.selectedSeries[0] === 'all') {
-	// 	totalLiquidable = getReadableValue(props.totalLiquidable)
-	// } else {
-	// 	totalLiquidable = getReadableValue(
-	// 		(props.selectedSeries.length === 0 ? props.availability[stackBy] : props.selectedSeries).reduce(
-	// 			(acc, cur) => acc + props.totalLiquidables[stackBy][cur],
-	// 			0
-	// 		)
-	// 	)
-	// }
-	totalLiquidable = getReadableValue(props.totalLiquidable)
+	if (!selectedSeries) {
+		totalLiquidable = getReadableValue(props.totalLiquidable)
+	} else {
+		const _totalLiquidable = Object.entries(selectedSeries)
+			.filter((x) => x[1])
+			.map((x) => x[0])
+			.reduce((acc, cur) => {
+				return acc + props.totalLiquidables[stackBy][cur]
+			}, 0)
+		totalLiquidable = getReadableValue(_totalLiquidable)
+	}
+
+	// totalLiquidable = getReadableValue(props.totalLiquidable)
 
 	return (
 		<>

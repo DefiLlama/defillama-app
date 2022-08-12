@@ -310,7 +310,8 @@ export async function getCoingeckoAssetFromSymbol(symbol: string): Promise<Coing
 }
 
 export function getReadableValue(value: number) {
-	if (value === 0) return '0'
+	if (typeof value !== 'number' || isNaN(value) || value === 0) return '0'
+
 	if (Math.abs(value) < 1000) {
 		return value.toPrecision(4)
 	}
