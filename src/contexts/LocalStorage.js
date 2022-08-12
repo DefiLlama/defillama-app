@@ -11,6 +11,7 @@ export const POOL2 = 'pool2'
 export const STAKING = 'staking'
 export const BORROWED = 'borrowed'
 export const DOUBLE_COUNT = 'doublecounted'
+export const LIQUID_STAKING = 'liquidstaking'
 export const DISPLAY_USD = 'DISPLAY_USD'
 export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
 export const DEFAULT_PORTFOLIO = 'main'
@@ -31,7 +32,7 @@ export const FIATSTABLES = 'FIATSTABLES'
 export const CRYPTOSTABLES = 'CRYPTOSTABLES'
 export const ALGOSTABLES = 'ALGOSTABLES'
 
-export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
+export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING]
 export const extraPeggedProps = [UNRELEASED]
 
 export const groupSettings = [
@@ -285,30 +286,6 @@ export function useAlgoStablesManager() {
 	}
 
 	return [algoStables, toggleAlgoStables]
-}
-
-export function useStakingManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	let stakingEnabled = state[STAKING]
-	const toggleStaking = useCallback(
-		(value) => {
-			updateKey(STAKING, value === false || value === true ? value : !stakingEnabled)
-		},
-		[updateKey, stakingEnabled]
-	)
-	return [stakingEnabled, toggleStaking]
-}
-
-export function useBorrowedManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	let borrowedEnabled = state[BORROWED]
-	const toggleBorrowed = useCallback(
-		(value) => {
-			updateKey(BORROWED, value === false || value === true ? value : !borrowedEnabled)
-		},
-		[updateKey, borrowedEnabled]
-	)
-	return [borrowedEnabled, toggleBorrowed]
 }
 
 export function useDisplayUsdManager() {
