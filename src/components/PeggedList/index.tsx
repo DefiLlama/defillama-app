@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import styled from 'styled-components'
+import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
 import { OptionButton } from '~/components/ButtonStyled'
 import { RowBetween, AutoRow } from '~/components/Row'
@@ -34,22 +35,11 @@ import {
 	useAlgoStablesManager
 } from '~/contexts/LocalStorage'
 import { PegType, BackingType } from '~/components/Filters'
+import { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
 
-function Chart({ peggedAreaChartData, peggedAreaTotalData, totalMcapLabel, peggedAssetNames, aspect }) {
-	const finalChartData = peggedAreaChartData ? peggedAreaChartData : peggedAreaTotalData
-	const labels = peggedAssetNames ? peggedAssetNames : totalMcapLabel
-	return (
-		<AreaChart
-			aspect={aspect}
-			finalChartData={finalChartData}
-			tokensUnique={labels}
-			color={'blue'}
-			moneySymbol="$"
-			formatDate={toNiceMonthlyDate}
-			hallmarks={[]}
-		/>
-	)
-}
+const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/PeggedAreaChart'), {
+	ssr: false
+}) as React.FC<IProtocolMcapTVLChartProps>
 
 function formattedPeggedPercent(percent, noSign = false) {
 	if (percent === null) {
@@ -398,8 +388,8 @@ function PeggedAssetsOverview({
 	filteredPeggedAssets,
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
-	chartData,
-	chartDataByPeggedAsset
+	chartDataByPeggedAsset,
+	chainTVLData
 }) {
 	const [chartType, setChartType] = useState('Area')
 
@@ -443,7 +433,16 @@ function PeggedAssetsOverview({
 		setFilteredIndexes(chartDataIndexes)
 
 		return peggedAssets
-	}, [filteredPeggedAssets, peggedNameToChartDataIndex, peggedUSD, peggedEUR, peggedVAR, fiatStables, cryptoStables, algoStables])
+	}, [
+		filteredPeggedAssets,
+		peggedNameToChartDataIndex,
+		peggedUSD,
+		peggedEUR,
+		peggedVAR,
+		fiatStables,
+		cryptoStables,
+		algoStables
+	])
 
 	const backfilledChains = [
 		'All',
@@ -471,11 +470,11 @@ function PeggedAssetsOverview({
 		'Heco'
 	]
 	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useCreatePeggedCharts(
-		chartData,
 		chartDataByPeggedAsset,
 		peggedAssetNames,
-		chartType,
 		filteredIndexes,
+		'mcap',
+		chainTVLData,
 		selectedChain,
 		backfilledChains
 	)
@@ -502,7 +501,12 @@ function PeggedAssetsOverview({
 	}, [peggedTotals])
 
 	const chainColor = useMemo(
-		() => Object.fromEntries([...peggedTotals, 'Others'].map((peggedAsset) => [peggedAsset.symbol, getRandomColor()])),
+		() =>
+			Object.fromEntries(
+				[...peggedTotals, 'Others'].map((peggedAsset) => {
+					return typeof peggedAsset === 'string' ? ['-', getRandomColor()] : [peggedAsset.symbol, getRandomColor()]
+				})
+			),
 		[peggedTotals]
 	)
 
@@ -529,8 +533,8 @@ function PeggedAssetsOverview({
 	}
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
-		let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.['Total Stablecoins Market Cap']
-		let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.['Total Stablecoins Market Cap']
+		let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1].Mcap
+		let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8].Mcap
 		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
 		return { percentChange, totalMcapCurrent }
 	}, [peggedAreaTotalData])
@@ -546,7 +550,7 @@ function PeggedAssetsOverview({
 
 	const dominance = getPeggedDominance(topToken, totalMcapCurrent)
 
-	const totalMcapLabel = ['Total Stablecoins Market Cap']
+	const totalMcapLabel = ['Mcap', 'TVL']
 
 	return (
 		<>
@@ -564,7 +568,7 @@ function PeggedAssetsOverview({
 				<BreakpointPanels>
 					<BreakpointPanel>
 						<h1>Total {title}</h1>
-						<p style={{ '--tile-text-color': '#4f8fea' }}>{mcapToDisplay}</p>
+						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>{mcapToDisplay}</p>
 						<DownloadButton as="button" onClick={downloadCsv}>
 							<DownloadIcon />
 							<span>&nbsp;&nbsp;.csv</span>
@@ -572,11 +576,11 @@ function PeggedAssetsOverview({
 					</BreakpointPanel>
 					<BreakpointPanel>
 						<h2>Change (7d)</h2>
-						<p style={{ '--tile-text-color': '#fd3c99' }}> {percentChange || 0}%</p>
+						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {percentChange || 0}%</p>
 					</BreakpointPanel>
 					<BreakpointPanel>
 						<h2>{topToken.symbol} Dominance</h2>
-						<p style={{ '--tile-text-color': '#46acb7' }}> {dominance}%</p>
+						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {dominance}%</p>
 					</BreakpointPanel>
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
@@ -596,8 +600,27 @@ function PeggedAssetsOverview({
 							</OptionButton>
 						</AutoRow>
 					</RowBetween>
-					{chartType === 'Mcap' && <Chart {...{ peggedAreaTotalData, totalMcapLabel, aspect }} />}
-					{chartType === 'Area' && <Chart {...{ peggedAreaChartData, peggedAssetNames, aspect }} />}
+					{chartType === 'Mcap' && (
+						<PeggedAreaChart
+							title={`Total ${title}`}
+							chartData={peggedAreaTotalData}
+							tokensUnique={totalMcapLabel}
+							moneySymbol="$"
+							hideLegend={true}
+							hallmarks={[]}
+						/>
+					)}
+					{chartType === 'Area' && (
+						<AreaChart
+							aspect={aspect}
+							finalChartData={peggedAreaChartData}
+							tokensUnique={peggedAssetNames}
+							color={'blue'}
+							moneySymbol="$"
+							formatDate={toNiceMonthlyDate}
+							hallmarks={[]}
+						/>
+					)}
 					{chartType === 'Dominance' && (
 						<PeggedChainResponsiveDominance
 							stackOffset="expand"
