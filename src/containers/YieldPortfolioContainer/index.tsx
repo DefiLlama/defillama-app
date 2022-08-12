@@ -62,10 +62,16 @@ function PortfolioContainer({ protocolsDict }) {
 				chains: [t.chain],
 				tvl: t.tvlUsd,
 				apy: t.apy,
+				apyBase: t.apyBase,
+				apyReward: t.apyReward,
+				rewardTokensSymbols: t.rewardTokensSymbols,
+				rewards: t.rewardTokensNames,
 				change1d: t.apyPct1D,
 				change7d: t.apyPct7D,
 				outlook: t.predictions.predictedClass,
-				confidence: t.predictions.binnedConfidence
+				confidence: t.predictions.binnedConfidence,
+				url: t.url,
+				category: t.category
 			}))
 		} else return []
 	}, [isClient, portfolio, protocolsDict])

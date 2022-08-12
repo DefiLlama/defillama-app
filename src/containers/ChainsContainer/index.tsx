@@ -198,7 +198,7 @@ export default function ChainsContainer({
 	category,
 	categories,
 	chainsGroupbyParent,
-	tvlTypes,
+	tvlTypes
 }) {
 	const chainColor = useMemo(
 		() => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),

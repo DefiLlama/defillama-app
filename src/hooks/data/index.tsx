@@ -114,20 +114,11 @@ export const useCalcStakePool2Tvl = (
 	filteredProtocols: Readonly<IProtocol[]>,
 	defaultSortingColumn?: string,
 	dir?: 'asc',
-	applyDoublecounted = false
+	applyLqAndDc = false
 ) => {
 	const extraTvlsEnabled: ExtraTvls = useGetExtraTvlEnabled()
 
 	const protocolTotals = useMemo(() => {
-		const checkExtras = {
-			...extraTvlsEnabled,
-			doublecounted: !extraTvlsEnabled.doublecounted
-		}
-
-		if (Object.values(checkExtras).every((t) => !t)) {
-			return filteredProtocols
-		}
-
 		const updatedProtocols = filteredProtocols.map(
 			({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, ...props }) => {
 				let finalTvl: number | null = tvl
@@ -135,17 +126,46 @@ export const useCalcStakePool2Tvl = (
 				let finalTvlPrevWeek: number | null = tvlPrevWeek
 				let finalTvlPrevMonth: number | null = tvlPrevMonth
 
+				// if (props.name === 'Ethereum') {
+				// 	const initialTvl = tvl
+				// 	const doublecounted = extraTvl['doublecounted'].tvl
+				// 	const liquidstaking = extraTvl['liquidstaking'].tvl
+				// 	const overlap = extraTvl['dcandlsoverlap'].tvl
+				// 	console.log(['doublecounted', 'liquidstaking', 'total'])
+				// 	console.log(['on', 'on', initialTvl])
+				// 	console.log(['on', 'off', initialTvl - liquidstaking + overlap])
+				// 	console.log(['off', 'on', initialTvl - doublecounted + overlap])
+				// 	console.log(['off', 'off', initialTvl - doublecounted - liquidstaking + overlap])
+				// }
+
 				Object.entries(extraTvl).forEach(([prop, propValues]) => {
 					const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
 
-					if (prop === 'doublecounted' && applyDoublecounted) {
+					if (applyLqAndDc && prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
 						tvl && (finalTvl = (finalTvl || 0) - tvl)
 						tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
 						tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
 						tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
 					}
+
+					if (applyLqAndDc && prop === 'liquidstaking' && !extraTvlsEnabled['liquidstaking']) {
+						tvl && (finalTvl = (finalTvl || 0) - tvl)
+						tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
+						tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
+						tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
+					}
+
+					if (applyLqAndDc && prop.toLowerCase() === 'dcandlsoverlap') {
+						if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
+							tvl && (finalTvl = (finalTvl || 0) + tvl)
+							tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
+							tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
+							tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
+						}
+					}
+
 					// convert to lowercase as server response is not consistent in extra-tvl names
-					if (extraTvlsEnabled[prop.toLowerCase()] && (prop.toLowerCase() !== 'doublecounted' || applyDoublecounted)) {
+					if (extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') {
 						// check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
 						tvl && (finalTvl = (finalTvl || 0) + tvl)
 						tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
@@ -184,11 +204,12 @@ export const useCalcStakePool2Tvl = (
 				} else return b[defaultSortingColumn] - a[defaultSortingColumn]
 			})
 		}
-	}, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn, dir, applyDoublecounted])
+	}, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn, dir, applyLqAndDc])
 
 	return protocolTotals
 }
 
+// used in tables of protocols by chain and categories pages
 export const useCalcProtocolsTvls = ({
 	protocols,
 	parentProtocols
@@ -213,6 +234,11 @@ export const useCalcProtocolsTvls = ({
 					let finalTvlPrevMonth: number | null = tvlPrevMonth
 					let strikeTvl = false
 
+					// keep liquid staking in same positon in table but strike its tvl
+					if (props.category === 'Liquid Staking' && !extraTvlsEnabled['liquidstaking']) {
+						strikeTvl = true
+					}
+
 					Object.entries(extraTvl).forEach(([prop, propValues]) => {
 						const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
 
@@ -220,7 +246,11 @@ export const useCalcProtocolsTvls = ({
 							strikeTvl = true
 						} else {
 							// convert to lowercase as server response is not consistent in extra-tvl names
-							if (extraTvlsEnabled[prop.toLowerCase()] && prop.toLowerCase() !== 'doublecounted') {
+							if (
+								extraTvlsEnabled[prop.toLowerCase()] &&
+								prop.toLowerCase() !== 'doublecounted' &&
+								prop.toLowerCase() !== 'liquidstaking'
+							) {
 								// check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
 								tvl && (finalTvl = (finalTvl || 0) + tvl)
 								tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
@@ -389,11 +419,24 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 				totalDaySum += chainTvls[tvlKey] || 0
 
 				for (const c in chainTvls) {
-					if (c === 'doublecounted' || c === 'd') {
+					if ((c === 'doublecounted' || c === 'd') && !extraTvlsEnabled['doublecounted']) {
 						sum -= chainTvls[c]
 						totalDaySum -= chainTvls[c]
 					}
-					if (extraTvlsEnabled[c.toLowerCase()]) {
+
+					if ((c === 'liquidstaking' || c === 'l') && !extraTvlsEnabled['liquidstaking']) {
+						sum -= chainTvls[c]
+						totalDaySum -= chainTvls[c]
+					}
+
+					if (c.toLowerCase() === 'dcandlsoverlap' || c === 'dl') {
+						if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
+							sum += chainTvls[c]
+							totalDaySum += chainTvls[c]
+						}
+					}
+
+					if (extraTvlsEnabled[c.toLowerCase()] && c !== 'doublecounted' && c !== 'liquidstaking') {
 						sum += chainTvls[c]
 						totalDaySum += chainTvls[c]
 					}
@@ -418,10 +461,21 @@ export const useCalcExtraTvlsByDay = (data) => {
 			let sum = values.tvl || 0
 
 			for (const value in values) {
-				if (value === 'doublecounted') {
+				if (value === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
 					sum -= values[value]
 				}
-				if (extraTvlsEnabled[value.toLowerCase()]) {
+
+				if ((value === 'liquidstaking' || value === 'd') && !extraTvlsEnabled['liquidstaking']) {
+					sum -= values[value]
+				}
+
+				if (value.toLowerCase() === 'dcandlsoverlap') {
+					if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
+						sum += values[value]
+					}
+				}
+
+				if (extraTvlsEnabled[value.toLowerCase()] && value !== 'doublecounted' && value !== 'liquidstaking') {
 					sum += values[value]
 				}
 			}

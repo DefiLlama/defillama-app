@@ -1,12 +1,14 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { ChevronDown, ChevronRight } from 'react-feather'
+import { ChevronDown, ChevronRight, ArrowUpRight } from 'react-feather'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import Bookmark from '~/components/Bookmark'
+import FormattedName from '~/components/FormattedName'
 import { chainIconUrl, peggedAssetIconUrl, slug, tokenIconUrl } from '~/utils'
 import { INameYield, INameProps, INameYieldPoolProps } from './types'
 import Tooltip from '~/components/Tooltip'
+import { ButtonYields } from '~/components/ProtocolAndPool'
 
 const SaveButton = styled(Bookmark)`
 	position: relative;
@@ -30,6 +32,10 @@ export const Index = styled.div`
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	#icon-link {
+		flex-shrink: 0;
 	}
 `
 
@@ -115,7 +121,9 @@ export function NameYield({ project, projectslug, rowType, airdrop, ...props }: 
 
 	return (
 		<Index {...props}>
-			<Tooltip content="This project has no token and might airdrop one to depositors in the future"><div style={{ width: '24px', flexShrink: 0, marginRight: '-12px' }}>{airdrop && '🪂'}</div></Tooltip>
+			<Tooltip content="This project has no token and might airdrop one to depositors in the future">
+				<div style={{ width: '24px', flexShrink: 0, marginRight: '-12px' }}>{airdrop && '🪂'}</div>
+			</Tooltip>
 			<TokenLogo id="table-p-logo" logo={iconUrl} />
 			{rowType === 'accordion' ? (
 				<span id="table-p-name">{project}</span>
@@ -132,6 +140,7 @@ export function NameYieldPool({
 	value,
 	poolId,
 	project,
+	url,
 	index,
 	bookmark,
 	rowType = 'default',
@@ -147,8 +156,22 @@ export function NameYieldPool({
 				<SaveButton readableProtocolName={poolId} style={{ paddingRight: rowType === 'pinned' ? '1ch' : 0 }} />
 			)}
 			<span>{rowType !== 'pinned' && index}</span>
-			<CustomLink href={tokenUrl}>
-				{project === 'Osmosis' ? `${value} ${poolId.split('-').slice(-1)}` : value}
+			{url ? (
+				<CustomLink href={url} target="_blank" id="icon-link">
+					<ButtonYields as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+						<ArrowUpRight size={14} />
+					</ButtonYields>
+				</CustomLink>
+			) : (
+				''
+			)}
+			<CustomLink href={tokenUrl} target="_blank">
+				<FormattedName
+					text={project === 'Osmosis' ? `${value} ${poolId.split('-').slice(-1)}` : value}
+					maxCharacters={16}
+					link
+					fontWeight={500}
+				/>
 			</CustomLink>
 		</Index>
 	)

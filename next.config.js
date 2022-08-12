@@ -52,7 +52,10 @@ const nextConfig = {
 	},
 	experimental: {
 		legacyBrowsers: false,
-		browsersListForSwc: true
+		browsersListForSwc: true,
+		images: {
+			allowFutureImage: true
+		}
 	}
 }
 

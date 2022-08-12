@@ -9,11 +9,13 @@ interface BasicLinkProps {
 	href: string
 	style?: React.CSSProperties
 	children: React.ReactNode
+	shallow?: boolean
 }
 
 interface CustomLinkProps extends BasicLinkProps {
 	id?: string
 	style?: React.CSSProperties
+	target?: React.HTMLAttributeAnchorTarget
 }
 
 const WrappedLink = ({ external, children, ...rest }) => (
@@ -51,17 +53,17 @@ export const CustomLinkStyle = styled.a`
 	}
 `
 
-export const CustomLink = ({ href, children, ...props }: CustomLinkProps) => {
+export const CustomLink = ({ href, children, target, ...props }: CustomLinkProps) => {
 	// Must add passHref to Link
 	return (
 		<RouterLink href={href} passHref prefetch={false}>
-			<CustomLinkStyle {...props}>{children}</CustomLinkStyle>
+			<CustomLinkStyle target={target} {...props}>{children}</CustomLinkStyle>
 		</RouterLink>
 	)
 }
 
-export const BasicLink = ({ href, children, ...props }: BasicLinkProps) => (
-	<RouterLink href={href} passHref prefetch={false}>
+export const BasicLink = ({ href, children, shallow, ...props }: BasicLinkProps) => (
+	<RouterLink href={href} passHref prefetch={false} shallow={shallow}>
 		<a {...props}>{children}</a>
 	</RouterLink>
 )

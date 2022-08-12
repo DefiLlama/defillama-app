@@ -9,18 +9,31 @@ const Audits = styled.section`
 	gap: 8px;
 `
 
+const Info = styled.span`
+	min-height: 32px;
+	display: flex;
+	align-items: center;
+`
+
 interface IProps {
 	audits: number | string
 	auditLinks: string[]
 	color?: string
+	isLoading?: boolean
 }
 
-const AuditInfo = ({ audits, auditLinks = [], color, ...props }: IProps) => {
+const AuditInfo = ({ audits, auditLinks = [], color, isLoading, ...props }: IProps) => {
 	return (
 		<Audits {...props}>
 			<HeadHelp title="Audits" text="Audits are not a guarantee of security." />
 			<span>:</span>
-			{audits > 0 ? <Menu name="Yes" options={auditLinks} color={color} isExternal /> : <span>No</span>}
+			<Info>
+				{isLoading ? null : audits > 0 ? (
+					<Menu name="Yes" options={auditLinks} color={color} isExternal />
+				) : (
+					<span>No</span>
+				)}
+			</Info>
 		</Audits>
 	)
 }

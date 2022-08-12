@@ -11,6 +11,7 @@ export const POOL2 = 'pool2'
 export const STAKING = 'staking'
 export const BORROWED = 'borrowed'
 export const DOUBLE_COUNT = 'doublecounted'
+export const LIQUID_STAKING = 'liquidstaking'
 export const DISPLAY_USD = 'DISPLAY_USD'
 export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
 export const DEFAULT_PORTFOLIO = 'main'
@@ -21,6 +22,8 @@ export const MILLION_DOLLAR = 'MILLION_DOLLAR'
 export const AUDITED = 'AUDITED'
 export const NO_OUTLIER = 'NO_OUTLIER'
 export const APY_GT0 = 'APY_GT0'
+export const STABLE_OUTLOOK = 'STABLE_OUTLOOK'
+export const HIGH_CONFIDENCE = 'HIGH_CONFIDENCE'
 export const UNRELEASED = 'unreleased'
 export const PEGGEDUSD = 'PEGGEDUSD'
 export const PEGGEDEUR = 'PEGGEDEUR'
@@ -29,7 +32,7 @@ export const FIATSTABLES = 'FIATSTABLES'
 export const CRYPTOSTABLES = 'CRYPTOSTABLES'
 export const ALGOSTABLES = 'ALGOSTABLES'
 
-export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
+export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING]
 export const extraPeggedProps = [UNRELEASED]
 
 export const groupSettings = [
@@ -169,6 +172,34 @@ export function useDarkModeManager() {
 	return [isDarkMode, toggleDarkMode]
 }
 
+// TODO remove all state managers and use this settings manager
+export function useSettingsManager(settings) {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const isClient = useIsClient()
+
+	const toggledSettings = useMemo(
+		() =>
+			settings.reduce((acc, setting) => {
+				let toggled = false
+				if (isClient) {
+					toggled = state[setting]
+				} else if (setting === 'emulator') {
+					toggled = true
+				} else toggled = false
+
+				acc[setting] = toggled
+				return acc
+			}, {}),
+		[state, isClient, settings]
+	)
+
+	const updater = (key) => () => {
+		updateKey(key, !state[key])
+	}
+
+	return [toggledSettings, updater]
+}
+
 export const useGetExtraTvlEnabled = () => {
 	const [state] = useLocalStorageContext()
 	const isClient = useIsClient()
@@ -283,30 +314,6 @@ export function useAlgoStablesManager() {
 	}
 
 	return [algoStables, toggleAlgoStables]
-}
-
-export function useStakingManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	let stakingEnabled = state[STAKING]
-	const toggleStaking = useCallback(
-		(value) => {
-			updateKey(STAKING, value === false || value === true ? value : !stakingEnabled)
-		},
-		[updateKey, stakingEnabled]
-	)
-	return [stakingEnabled, toggleStaking]
-}
-
-export function useBorrowedManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	let borrowedEnabled = state[BORROWED]
-	const toggleBorrowed = useCallback(
-		(value) => {
-			updateKey(BORROWED, value === false || value === true ? value : !borrowedEnabled)
-		},
-		[updateKey, borrowedEnabled]
-	)
-	return [borrowedEnabled, toggleBorrowed]
 }
 
 export function useDisplayUsdManager() {

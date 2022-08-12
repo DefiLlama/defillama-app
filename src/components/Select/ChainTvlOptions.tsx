@@ -1,10 +1,10 @@
 import { ActionMeta, components, GroupProps } from 'react-select'
-import { extraTvlOptions } from '~/components/SettingsModal'
+import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { groupSettings, useGetExtraTvlEnabled, useGroupEnabled, useTvlToggles } from '~/contexts/LocalStorage'
 import ReactSelect from './ReactSelect'
 
 const chainAggr = groupSettings.map((g) => ({ label: g.name, value: g.key }))
-const extraTvls = extraTvlOptions.map((g) => ({ label: g.name, value: g.key }))
+const extraTvls = protocolsAndChainsOptions.map((g) => ({ label: g.name, value: g.key }))
 const tvlOptions = [...chainAggr, ...extraTvls]
 
 const groupOptions = [

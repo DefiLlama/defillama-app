@@ -2,7 +2,6 @@ import useSWR from 'swr'
 import { fetcher, arrayFetcher, retrySWR } from '~/utils/useSWR'
 import { getCGMarketsDataURLs } from '~/api'
 import { CONFIG_API, YIELD_CONFIG_API, YIELD_CHART_API, YIELD_POOLS_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
-import { tokenIconUrl } from '~/utils'
 import { formatYieldsPageData } from './utils'
 
 interface IResponseCGMarketsAPI {

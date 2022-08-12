@@ -4,8 +4,10 @@ import styled from 'styled-components'
 import {
 	YieldAttributes,
 	TVLRange,
+	APYRange,
 	FiltersByChain,
 	YieldProjects,
+	FiltersByCategory,
 	ResetAllYieldFilters,
 	attributeOptions
 } from '~/components/Filters'
@@ -30,12 +32,12 @@ const BarChartYields = dynamic(() => import('~/components/TokenChart/BarChartYie
 	ssr: false
 }) as React.FC<IChartProps>
 
-const PlotsPage = ({ pools, chainList, projectList, median }) => {
+const PlotsPage = ({ pools, chainList, projectList, categoryList, median }) => {
 	const { query } = useRouter()
-	const { minTvl, maxTvl } = query
+	const { minTvl, maxTvl, minApy, maxApy } = query
 
-	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens } =
-		useFormatYieldQueryParams({ projectList, chainList })
+	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
+		useFormatYieldQueryParams({ projectList, chainList, categoryList })
 
 	const poolsData = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
@@ -51,6 +53,10 @@ const PlotsPage = ({ pools, chainList, projectList, median }) => {
 
 			if (selectedProjects.length > 0) {
 				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
+			}
+
+			if (selectedCategories.length > 0) {
+				toFilter = toFilter && selectedCategories.map((p) => p.toLowerCase()).includes(curr.category.toLowerCase())
 			}
 
 			const tokensInPool = curr.symbol.split('-').map((x) => x.toLowerCase())
@@ -74,15 +80,35 @@ const PlotsPage = ({ pools, chainList, projectList, median }) => {
 				(minTvl !== undefined && !Number.isNaN(Number(minTvl))) ||
 				(maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
+			const isValidApyRange =
+				(minApy !== undefined && !Number.isNaN(Number(minApy))) ||
+				(maxApy !== undefined && !Number.isNaN(Number(maxApy)))
+
 			if (isValidTvlRange) {
 				toFilter = toFilter && (minTvl ? curr.tvlUsd > minTvl : true) && (maxTvl ? curr.tvlUsd < maxTvl : true)
+			}
+
+			if (isValidApyRange) {
+				toFilter = toFilter && (minApy ? curr.apy > minApy : true) && (maxApy ? curr.apy < maxApy : true)
 			}
 
 			if (toFilter) {
 				return acc.concat(curr)
 			} else return acc
 		}, [])
-	}, [minTvl, maxTvl, pools, selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens])
+	}, [
+		minTvl,
+		maxTvl,
+		minApy,
+		maxApy,
+		pools,
+		selectedProjects,
+		selectedChains,
+		selectedAttributes,
+		includeTokens,
+		excludeTokens,
+		selectedCategories
+	])
 
 	return (
 		<>
@@ -93,8 +119,14 @@ const PlotsPage = ({ pools, chainList, projectList, median }) => {
 				<Dropdowns>
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields/overview" />
 					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname="/yields/overview" />
+					<FiltersByCategory
+						categoryList={categoryList}
+						selectedCategories={selectedCategories}
+						pathname="/yields/overview"
+					/>
 					<YieldAttributes pathname="/yields/overview" />
 					<TVLRange />
+					<APYRange />
 					<ResetAllYieldFilters pathname="/yields/overview" />
 				</Dropdowns>
 			</ChartFilters>

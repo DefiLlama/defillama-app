@@ -1,20 +1,16 @@
 import { useRef, useState, useEffect } from 'react'
 import styled from 'styled-components'
 import OptionToggle from '~/components/OptionToggle'
+import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import {
 	useDisplayUsdManager,
 	useHideLastDayManager,
 	useTvlToggles,
 	useGetExtraTvlEnabled,
-	STAKING,
-	POOL2,
-	BORROWED,
 	DARK_MODE,
 	HIDE_LAST_DAY,
 	DISPLAY_USD,
-	DOUBLE_COUNT,
-	useDarkModeManager,
-	UNRELEASED
+	useDarkModeManager
 } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import MenuIcon from './MenuSvg'
@@ -100,6 +96,7 @@ const MenuItem = styled(StyledLink)`
 
 const ListWrapper = styled.ul`
 	display: flex;
+	align-items: center;
 	padding: 0;
 	list-style: none;
 `
@@ -108,37 +105,6 @@ const ListItem = styled.li`
 		margin-left: 12px;
 	}
 `
-
-export const extraTvlOptions = [
-	{
-		name: 'Staking',
-		key: STAKING,
-		help: 'Include governance tokens staked in the protocol'
-	},
-	{
-		name: 'Pool2',
-		key: POOL2,
-		help: 'Include staked lp tokens where one of the coins in the pair is the governance token'
-	},
-	{
-		name: 'Borrows',
-		key: BORROWED,
-		help: 'Include borrowed coins in lending protocols'
-	},
-	{
-		name: 'Double Count',
-		key: DOUBLE_COUNT,
-		help: 'Include TVL of protocols which TVL feeds into another protocol'
-	}
-]
-
-export const extraPeggedOptions = [
-	{
-		name: 'Unreleased',
-		key: UNRELEASED,
-		help: 'Include tokens that were minted but have never been circulating.'
-	}
-]
 
 export default function Menu({ type = 'defi', ...props }) {
 	const node = useRef()
@@ -170,7 +136,7 @@ export default function Menu({ type = 'defi', ...props }) {
 
 	const toggleSettings = {
 		defi: [
-			...extraTvlOptions,
+			...protocolsAndChainsOptions,
 			{
 				name: 'Dark mode',
 				key: DARK_MODE
@@ -215,23 +181,6 @@ export default function Menu({ type = 'defi', ...props }) {
 
 			{open && <MenuFlyout>{renderSettingsToggles()}</MenuFlyout>}
 		</StyledMenu>
-	)
-}
-
-export const DefiTvlSwitches = ({ options, ...props }) => {
-	const tvlToggles = useTvlToggles()
-	const extraTvlEnabled = useGetExtraTvlEnabled()
-
-	let tvlOptions = options || [...extraTvlOptions]
-
-	return (
-		<ListWrapper {...props}>
-			{tvlOptions.map((option) => (
-				<ListItem key={option.key}>
-					<OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
-				</ListItem>
-			))}
-		</ListWrapper>
 	)
 }
 

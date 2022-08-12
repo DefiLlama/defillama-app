@@ -115,7 +115,8 @@ const formatPriceSource = {
 	curve: 'a Curve pool oracle',
 	coingecko: 'CoinGecko',
 	birdeye: 'Birdeye',
-	kucoin: 'KuCoin Exchange'
+	kucoin: 'KuCoin Exchange',
+	defillama: 'DefiLlama'
 }
 
 function pegDeviationText(pegDeviationInfo) {

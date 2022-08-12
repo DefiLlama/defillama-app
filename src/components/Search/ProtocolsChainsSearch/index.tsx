@@ -1,13 +1,11 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
-import { DeFiTvlOptions } from '~/components/Select'
 import { BaseSearch } from '~/components/Search/BaseSearch'
 import type { IBaseSearchProps, ICommonSearchProps } from '~/components/Search/BaseSearch'
-import { DefiTvlSwitches } from '~/components/SettingsModal'
 import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from '~/utils'
 import { useFetchProtocolsList } from '~/api/categories/protocols/client'
 import placeholderImg from '~/assets/placeholder.png'
+import { DesktopProtocolFilters, MobileProtocolFilters } from '~/components/Filters/protocols'
 
 const groupedChains = [
 	{ name: 'Non-EVM', route: '/chains/Non-EVM', logo: placeholderImg.src },
@@ -94,38 +92,9 @@ const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) 
 
 	return (
 		<>
-			<Filters>
-				<label>INCLUDE IN TVL:</label>
-				<Switches options={options} />
-			</Filters>
+			<DesktopProtocolFilters options={options} />
 
-			<DeFiTvlOptions options={options} />
+			<MobileProtocolFilters options={options} />
 		</>
 	)
 }
-
-const Switches = styled(DefiTvlSwitches)`
-	display: flex;
-	justify-content: flex-end;
-	margin: 0;
-	font-size: 0.875rem;
-`
-
-const Filters = styled.section`
-	color: ${({ theme }) => theme.text1};
-	font-weight: 400;
-	font-size: 0.75rem;
-	display: none;
-	gap: 8px;
-	align-items: center;
-	margin-left: auto;
-	padding: 0 16px;
-
-	label {
-		opacity: 0.8;
-	}
-
-	@media (min-width: 96.0625rem) {
-		display: flex;
-	}
-`
