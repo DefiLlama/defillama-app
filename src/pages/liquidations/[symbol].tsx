@@ -18,7 +18,7 @@ export const getStaticProps: GetStaticProps<ChartData> = async ({ params }) => {
 	// TODO: handle error properly
 	return {
 		props: data,
-		revalidate: revalidate(10)
+		revalidate: revalidate(5)
 	}
 }
 
