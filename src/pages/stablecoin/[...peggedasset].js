@@ -12,7 +12,6 @@ export async function getStaticProps({
 }) {
 	const data = await getPeggedAssetPageData(peggedasset)
 	const {
-		chainsData,
 		chainsUnique,
 		chainCirculatings,
 		peggedAssetData,
@@ -27,7 +26,6 @@ export async function getStaticProps({
 	})
 	return {
 		props: {
-			chainsData,
 			chainsUnique,
 			chainCirculatings,
 			peggedAssetData,

@@ -520,7 +520,6 @@ const columns = [
 ]
 
 export default function PeggedContainer({
-	chainsData,
 	chainsUnique,
 	chainCirculatings,
 	peggedAssetData,
@@ -557,6 +556,11 @@ export default function PeggedContainer({
 	const belowMed = useMed()
 	const belowXl = useXl()
 	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
+
+	const chainsData: any[] = 
+		chainsUnique.map((elem: string) => {
+			return peggedAssetData.chainBalances[elem].tokens
+		})
 
 	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useCreatePeggedCharts(
 		chainsData,

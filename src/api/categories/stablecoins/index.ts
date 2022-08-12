@@ -303,33 +303,10 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 		})
 		.sort((a, b) => b.circulating - a.circulating)
 
-		/*
-	const stackedDataset = Object.entries(
-		chainsData.reduce((total: IStackedDataset, chains, i) => {
-			const chainName = chainsUnique[i]
-			chains.forEach((circulating) => {
-				const date = circulating.date
-				if (date < 1652932800) return // data on all chains for an asset is on only backfilled to May 20, 2022
-				if (total[date] === undefined) {
-					total[date] = {}
-				}
-				const b = total[date][chainName]
-				total[date][chainName] = {
-					...b,
-					circulating: circulating.circulating ? circulating.circulating[pegType] ?? 0 : 0,
-					unreleased: circulating.unreleased ? circulating.unreleased[pegType] ?? 0 : 0
-				}
-			})
-			return total
-		}, {})
-	)
-	*/
-
-	const peggedChartType = 'Area'
+	const peggedChartType = 'Dominance'
 
 	return {
 		props: {
-			chainsData,
 			chainsUnique,
 			chainCirculatings,
 			peggedAssetData: res,
