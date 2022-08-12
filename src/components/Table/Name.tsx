@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, ArrowUpRight } from 'react-feather'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import Bookmark from '~/components/Bookmark'
+import FormattedName from '~/components/FormattedName'
 import { chainIconUrl, peggedAssetIconUrl, slug, tokenIconUrl } from '~/utils'
 import { INameYield, INameProps, INameYieldPoolProps } from './types'
 import Tooltip from '~/components/Tooltip'
@@ -165,7 +166,12 @@ export function NameYieldPool({
 				''
 			)}
 			<CustomLink href={tokenUrl} target="_blank">
-				{project === 'Osmosis' ? `${value} ${poolId.split('-').slice(-1)}` : value}
+				<FormattedName
+					text={project === 'Osmosis' ? `${value} ${poolId.split('-').slice(-1)}` : value}
+					maxCharacters={16}
+					link
+					fontWeight={500}
+				/>
 			</CustomLink>
 		</Index>
 	)
