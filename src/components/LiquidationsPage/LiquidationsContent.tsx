@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars*/
-import React, { useState } from 'react'
+import React from 'react'
 import { ChartData, getLiquidationsCsvData, getReadableValue } from '~/utils/liquidations'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadIcon, PanelHiddenMobile } from '~/components'
 import { LiquidationsChart } from './LiquidationsChart'
@@ -18,20 +18,21 @@ export const DownloadButton = styled.button`
 	align-items: center;
 `
 
-const TotalLiquidable = (props: ChartData & { selectedSeries: string[] }) => {
+const TotalLiquidable = (props: ChartData) => {
 	const stackBy = useStackBy()
 
 	let totalLiquidable: string
-	if (props.selectedSeries.length === 1 && props.selectedSeries[0] === 'all') {
-		totalLiquidable = getReadableValue(props.totalLiquidable)
-	} else {
-		totalLiquidable = getReadableValue(
-			(props.selectedSeries.length === 0 ? props.availability[stackBy] : props.selectedSeries).reduce(
-				(acc, cur) => acc + props.totalLiquidables[stackBy][cur],
-				0
-			)
-		)
-	}
+	// if (props.selectedSeries.length === 1 && props.selectedSeries[0] === 'all') {
+	// 	totalLiquidable = getReadableValue(props.totalLiquidable)
+	// } else {
+	// 	totalLiquidable = getReadableValue(
+	// 		(props.selectedSeries.length === 0 ? props.availability[stackBy] : props.selectedSeries).reduce(
+	// 			(acc, cur) => acc + props.totalLiquidables[stackBy][cur],
+	// 			0
+	// 		)
+	// 	)
+	// }
+	totalLiquidable = getReadableValue(props.totalLiquidable)
 
 	return (
 		<>
@@ -50,9 +51,7 @@ const TotalLiquidable = (props: ChartData & { selectedSeries: string[] }) => {
 	)
 }
 
-export const LiquidationsContent = (
-	props: ChartData & { selectedSeries: string[]; setSelectedSeries: React.Dispatch<React.SetStateAction<string[]>> }
-) => {
+export const LiquidationsContent = (props: ChartData) => {
 	return (
 		<ChartAndValuesWrapper>
 			<BreakpointPanels>
@@ -73,7 +72,7 @@ export const LiquidationsContent = (
 				</PanelHiddenMobile>
 			</BreakpointPanels>
 			<BreakpointPanel>
-				<LiquidationsChart chartData={props} uid={props.symbol} setSelectedSeries={props.setSelectedSeries} />
+				<LiquidationsChart chartData={props} uid={props.symbol} />
 			</BreakpointPanel>
 		</ChartAndValuesWrapper>
 	)

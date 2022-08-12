@@ -3,11 +3,10 @@ import styled from 'styled-components'
 import { Link as LinkIcon, Map } from 'react-feather'
 import { useRouter } from 'next/router'
 
-export const StackBySwitch = (props: { setSelectedSeries: React.Dispatch<React.SetStateAction<string[]>> }) => {
+export const StackBySwitch = () => {
 	const router = useRouter()
 	const { stackBy } = router.query as { stackBy: 'chains' | 'protocols' }
 	const _stackBy = !!stackBy ? stackBy : 'protocols'
-	const { setSelectedSeries } = props
 
 	return (
 		<Wrapper>
@@ -20,7 +19,6 @@ export const StackBySwitch = (props: { setSelectedSeries: React.Dispatch<React.S
 							stackBy: 'protocols'
 						}
 					})
-					setSelectedSeries(['all'])
 				}}
 			>
 				<Map size={14} />
@@ -35,7 +33,6 @@ export const StackBySwitch = (props: { setSelectedSeries: React.Dispatch<React.S
 							stackBy: 'chains'
 						}
 					})
-					setSelectedSeries(['all'])
 				}}
 			>
 				<LinkIcon size={14} />

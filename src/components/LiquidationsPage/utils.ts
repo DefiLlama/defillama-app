@@ -4,6 +4,7 @@ import { ChartData, ChartDataBin, getReadableValue } from '~/utils/liquidations'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { ECBasicOption } from 'echarts/types/dist/shared'
+import { useState } from 'react'
 
 export type ChartState = {
 	asset: string // TODO: symbol for now, later change to coingeckoId

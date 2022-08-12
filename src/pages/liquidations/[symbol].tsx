@@ -31,14 +31,14 @@ export const getStaticPaths: GetStaticPaths = async () => {
 }
 
 const LiquidationsHomePage: NextPage<ChartData> = (props) => {
-	const [selectedSeries, setSelectedSeries] = useState<string[]>(['all'])
+	// const [selectedSeries, setSelectedSeries] = useState<string[]>(['all'])
 
 	return (
 		<Layout title={`${props.coingeckoAsset.name} (${props.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
 			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: props.symbol, hideOptions: true }} />
 			<Header>Liquidation levels in DeFi 💦</Header>
-			<LiquidationsHeader {...props} setSelectedSeries={setSelectedSeries} />
-			<LiquidationsContent {...props} setSelectedSeries={setSelectedSeries} selectedSeries={selectedSeries} />
+			<LiquidationsHeader {...props} />
+			<LiquidationsContent {...props} />
 			<SmolHints>
 				<p>
 					🔍
