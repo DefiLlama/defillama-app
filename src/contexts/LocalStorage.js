@@ -286,30 +286,6 @@ export function useAlgoStablesManager() {
 	return [algoStables, toggleAlgoStables]
 }
 
-export function useStakingManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	let stakingEnabled = state[STAKING]
-	const toggleStaking = useCallback(
-		(value) => {
-			updateKey(STAKING, value === false || value === true ? value : !stakingEnabled)
-		},
-		[updateKey, stakingEnabled]
-	)
-	return [stakingEnabled, toggleStaking]
-}
-
-export function useBorrowedManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	let borrowedEnabled = state[BORROWED]
-	const toggleBorrowed = useCallback(
-		(value) => {
-			updateKey(BORROWED, value === false || value === true ? value : !borrowedEnabled)
-		},
-		[updateKey, borrowedEnabled]
-	)
-	return [borrowedEnabled, toggleBorrowed]
-}
-
 export function useDisplayUsdManager() {
 	const [state, { updateKey }] = useLocalStorageContext()
 	const displayUsd = state[DISPLAY_USD]
