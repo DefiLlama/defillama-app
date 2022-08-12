@@ -1,38 +1,42 @@
+import React from 'react'
 import styled from 'styled-components'
 import { Link as LinkIcon, Map } from 'react-feather'
 import { useRouter } from 'next/router'
 
-export function StackBySwitch() {
+export const StackBySwitch = (props: { setSelectedSeries: React.Dispatch<React.SetStateAction<string[]>> }) => {
 	const router = useRouter()
 	const { stackBy } = router.query as { stackBy: 'chains' | 'protocols' }
 	const _stackBy = !!stackBy ? stackBy : 'protocols'
+	const { setSelectedSeries } = props
 
 	return (
 		<Wrapper>
 			<Switch
 				active={_stackBy === 'protocols'}
-				onClick={() =>
+				onClick={() => {
 					router.push({
 						query: {
 							...router.query,
 							stackBy: 'protocols'
 						}
 					})
-				}
+					setSelectedSeries(['all'])
+				}}
 			>
 				<Map size={14} />
 				<span>Protocols</span>
 			</Switch>
 			<Switch
 				active={_stackBy === 'chains'}
-				onClick={() =>
+				onClick={() => {
 					router.push({
 						query: {
 							...router.query,
 							stackBy: 'chains'
 						}
 					})
-				}
+					setSelectedSeries(['all'])
+				}}
 			>
 				<LinkIcon size={14} />
 				<span>Chains</span>

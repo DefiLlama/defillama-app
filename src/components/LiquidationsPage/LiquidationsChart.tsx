@@ -6,14 +6,21 @@ import { getOption, useStackBy } from './utils'
 import { useMedia } from '~/hooks'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
-export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; uid: string }) => {
+export const LiquidationsChart = ({
+	chartData,
+	uid,
+	setSelectedSeries
+}: {
+	chartData: ChartData
+	uid: string
+	setSelectedSeries: React.Dispatch<React.SetStateAction<string[]>>
+}) => {
 	const stackBy = useStackBy()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const [isDark] = useDarkModeManager()
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(uid))
-
 		return instance || echarts.init(document.getElementById(uid))
 	}, [uid])
 
@@ -21,6 +28,12 @@ export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; ui
 		const chartInstance = createInstance()
 		const option = getOption(chartData, stackBy, isSmall, isDark)
 		chartInstance.setOption(option)
+		chartInstance.on('legendselectchanged', (params: any) => {
+			const _selectedSeries = Object.entries(params.selected)
+				.filter((x) => x[1])
+				.map((x) => x[0])
+			setSelectedSeries(_selectedSeries)
+		})
 
 		function resize() {
 			chartInstance.resize()
@@ -32,7 +45,7 @@ export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; ui
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [uid, chartData, createInstance, stackBy, isSmall, isDark])
+	}, [uid, chartData, createInstance, stackBy, isSmall, isDark, setSelectedSeries])
 
 	return (
 		<div

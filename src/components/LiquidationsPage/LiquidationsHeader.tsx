@@ -4,6 +4,8 @@ import { ProtocolName, Symbol } from '~/components/ProtocolAndPool'
 import FormattedName from '~/components/FormattedName'
 import styled from 'styled-components'
 import { StackBySwitch } from './StackBySwitch'
+import { useStackBy } from './utils'
+import React, { useState } from 'react'
 
 const LiquidationsHeaderWrapper = styled.div`
 	flex: 1;
@@ -20,7 +22,9 @@ const LiquidationsHeaderWrapper = styled.div`
 		flex-direction: row;
 	}
 `
-export const LiquidationsHeader = (props: ChartData) => {
+export const LiquidationsHeader = (
+	props: ChartData & { setSelectedSeries: React.Dispatch<React.SetStateAction<string[]>> }
+) => {
 	return (
 		<LiquidationsHeaderWrapper>
 			<ProtocolName>
@@ -28,7 +32,7 @@ export const LiquidationsHeader = (props: ChartData) => {
 				<FormattedName text={props.coingeckoAsset.name} maxCharacters={16} fontWeight={700} />
 				<Symbol>({props.symbol})</Symbol>
 			</ProtocolName>
-			<StackBySwitch />
+			<StackBySwitch setSelectedSeries={props.setSelectedSeries} />
 		</LiquidationsHeaderWrapper>
 	)
 }

@@ -1,10 +1,11 @@
 /* eslint-disable no-unused-vars*/
-import React from 'react'
+import React, { useState } from 'react'
 import { ChartData, getLiquidationsCsvData, getReadableValue } from '~/utils/liquidations'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadIcon, PanelHiddenMobile } from '~/components'
 import { LiquidationsChart } from './LiquidationsChart'
 import styled from 'styled-components'
 import { download } from '~/utils'
+import { useStackBy } from './utils'
 
 export const DownloadButton = styled.button`
 	padding: 4px 6px;
@@ -17,24 +18,46 @@ export const DownloadButton = styled.button`
 	align-items: center;
 `
 
-export const LiquidationsContent = (props: ChartData) => {
+const TotalLiquidable = (props: ChartData & { selectedSeries: string[] }) => {
+	const stackBy = useStackBy()
+
+	let totalLiquidable: string
+	if (props.selectedSeries.length === 1 && props.selectedSeries[0] === 'all') {
+		totalLiquidable = getReadableValue(props.totalLiquidable)
+	} else {
+		totalLiquidable = getReadableValue(
+			(props.selectedSeries.length === 0 ? props.availability[stackBy] : props.selectedSeries).reduce(
+				(acc, cur) => acc + props.totalLiquidables[stackBy][cur],
+				0
+			)
+		)
+	}
+
+	return (
+		<>
+			<h1>Total Liquidable (USD)</h1>
+			<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>${totalLiquidable}</p>
+			<DownloadButton
+				onClick={async () => {
+					const csvString = await getLiquidationsCsvData(props.symbol)
+					download(`${props.symbol}-all-positions.csv`, csvString)
+				}}
+			>
+				<DownloadIcon />
+				<span>&nbsp;&nbsp;.csv</span>
+			</DownloadButton>
+		</>
+	)
+}
+
+export const LiquidationsContent = (
+	props: ChartData & { selectedSeries: string[]; setSelectedSeries: React.Dispatch<React.SetStateAction<string[]>> }
+) => {
 	return (
 		<ChartAndValuesWrapper>
 			<BreakpointPanels>
 				<BreakpointPanel>
-					<h1>Total Liquidable (USD)</h1>
-					<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
-						${getReadableValue(props.totalLiquidable)}
-					</p>
-					<DownloadButton
-						onClick={async () => {
-							const csvString = await getLiquidationsCsvData(props.symbol)
-							download(`${props.symbol}-all-positions.csv`, csvString)
-						}}
-					>
-						<DownloadIcon />
-						<span>&nbsp;&nbsp;.csv</span>
-					</DownloadButton>
+					<TotalLiquidable {...props} />
 				</BreakpointPanel>
 				<PanelHiddenMobile>
 					<h2>Change (24h)</h2>
@@ -50,7 +73,7 @@ export const LiquidationsContent = (props: ChartData) => {
 				</PanelHiddenMobile>
 			</BreakpointPanels>
 			<BreakpointPanel>
-				<LiquidationsChart chartData={props} uid={props.symbol} />
+				<LiquidationsChart chartData={props} uid={props.symbol} setSelectedSeries={props.setSelectedSeries} />
 			</BreakpointPanel>
 		</ChartAndValuesWrapper>
 	)

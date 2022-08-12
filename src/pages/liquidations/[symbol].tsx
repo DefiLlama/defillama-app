@@ -10,6 +10,7 @@ import { Header } from '~/Theme'
 import { LiquidationsHeader } from '../../components/LiquidationsPage/LiquidationsHeader'
 import { LiquidationsContent } from '../../components/LiquidationsPage/LiquidationsContent'
 import styled from 'styled-components'
+import { useState } from 'react'
 
 export const getStaticProps: GetStaticProps<ChartData> = async ({ params }) => {
 	const symbol = params.symbol as string
@@ -30,12 +31,14 @@ export const getStaticPaths: GetStaticPaths = async () => {
 }
 
 const LiquidationsHomePage: NextPage<ChartData> = (props) => {
+	const [selectedSeries, setSelectedSeries] = useState<string[]>(['all'])
+
 	return (
 		<Layout title={`${props.coingeckoAsset.name} (${props.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
 			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: props.symbol, hideOptions: true }} />
 			<Header>Liquidation levels in DeFi 💦</Header>
-			<LiquidationsHeader {...props} />
-			<LiquidationsContent {...props} />
+			<LiquidationsHeader {...props} setSelectedSeries={setSelectedSeries} />
+			<LiquidationsContent {...props} setSelectedSeries={setSelectedSeries} selectedSeries={selectedSeries} />
 			<SmolHints>
 				<p>
 					🔍
