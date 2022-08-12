@@ -7,6 +7,8 @@ export const timeframeOptions = {
 }
 
 // API endpoints
+export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com/'
+
 export const CHART_API = 'https://api.llama.fi/lite/charts'
 export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2'
 export const PROTOCOL_API = 'https://api.llama.fi/updatedProtocol'
@@ -38,9 +40,7 @@ export const YIELD_CONFIG_API = 'https://api.llama.fi/config/yields?a=1'
 export const YIELD_MEDIAN_API = 'https://yields.llama.fi/median'
 
 export const LIQUIDATIONS_API = 'https://api.llama.fi/liquidations'
-export const LIQUIDATIONS_CHART_API = !!process.env.VERCEL_URL
-	? `https://${process.env.VERCEL_URL}/api/liquidations`
-	: 'http://localhost:3000/api/liquidations'
+export const LIQUIDATIONS_HISTORICAL_S3_PATH = DATASETS_S3_PATH + '/liqs'
 
 export const DEXS_API = 'https://api.llama.fi/dexs'
 export const DEX_BASE_API = 'https://api.llama.fi/dex'
