@@ -100,11 +100,10 @@ function GlobalPage({
 	// const doublecounted = extraVolumesCharts['doublecounted'][extraVolumesCharts['doublecounted'].length - 1][1]
 	// const liquidstaking = extraVolumesCharts['liquidstaking'][extraVolumesCharts['liquidstaking'].length - 1][1]
 	// const overlap = extraVolumesCharts['dcAndLsOverlap'][extraVolumesCharts['dcAndLsOverlap'].length - 1][1]
-
 	// console.log(['doublecounted', 'liquidstaking', 'total'])
 	// console.log(['on', 'on', initialTvl])
-	// console.log(['on', 'off', initialTvl - liquidstaking])
-	// console.log(['off', 'on', initialTvl - doublecounted])
+	// console.log(['on', 'off', initialTvl - liquidstaking + overlap])
+	// console.log(['off', 'on', initialTvl - doublecounted + overalap])
 	// console.log(['off', 'off', initialTvl - doublecounted - liquidstaking + overlap])
 
 	const { totalVolumeUSD, volumeChangeUSD, globalChart } = React.useMemo(() => {
@@ -124,7 +123,7 @@ function GlobalPage({
 					}
 
 					if (prop === 'dcAndLsOverlap') {
-						if (!extraTvlsEnabled['doublecounted'] && !extraTvlsEnabled['liquidstaking']) {
+						if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
 							sum += stakedData[1]
 						}
 					}
