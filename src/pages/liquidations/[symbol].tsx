@@ -2,7 +2,7 @@
 // eslint sucks at types
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import { revalidate } from '~/api'
-import { ChartData, getLatestChartData } from '~/utils/liquidations'
+import { ChartData, getLatestChartData, getPrevChartData } from '~/utils/liquidations'
 
 import Layout from '~/layout'
 import { LiquidationsSearch } from '~/components/Search'
@@ -12,11 +12,12 @@ import { LiquidationsContent } from '../../components/LiquidationsPage/Liquidati
 import styled from 'styled-components'
 import React, { useState } from 'react'
 
-export const getStaticProps: GetStaticProps<ChartData> = async ({ params }) => {
+export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = params.symbol as string
-	const data = await getLatestChartData(symbol.toUpperCase())
+	const data = await getLatestChartData(symbol.toUpperCase(), 100)
+	const prevData = await getPrevChartData(symbol.toUpperCase(), 100, 3600 * 24)
 	return {
-		props: data,
+		props: { data, prevData },
 		revalidate: revalidate(5)
 	}
 }
@@ -50,14 +51,15 @@ const LiquidationsProvider = ({ children }) => {
 	)
 }
 
-const LiquidationsHomePage: NextPage<ChartData> = (props) => {
+const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> = (props) => {
+	const { data, prevData } = props
 	return (
-		<Layout title={`${props.coingeckoAsset.name} (${props.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
-			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: props.symbol, hideOptions: true }} />
+		<Layout title={`${data.coingeckoAsset.name} (${data.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
+			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: data.symbol, hideOptions: true }} />
 			<Header>Liquidation levels in DeFi 💦</Header>
-			<LiquidationsHeader {...props} />
+			<LiquidationsHeader {...data} />
 			<LiquidationsProvider>
-				<LiquidationsContent {...props} />
+				<LiquidationsContent data={data} prevData={prevData} />
 			</LiquidationsProvider>
 			<SmolHints>
 				<p>
