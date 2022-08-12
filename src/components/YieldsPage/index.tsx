@@ -8,6 +8,7 @@ import {
 	APYRange,
 	FiltersByChain,
 	YieldProjects,
+	FiltersByCategory,
 	ResetAllYieldFilters,
 	attributeOptions
 } from '~/components/Filters'
@@ -15,12 +16,12 @@ import { YieldsSearch } from '~/components/Search'
 import { columns, fallbackColumns, fallbackList, TableWrapper } from './shared'
 import { useFormatYieldQueryParams } from './hooks'
 
-const YieldPage = ({ loading, pools, projectList, chainList }) => {
+const YieldPage = ({ loading, pools, projectList, chainList, categoryList }) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
-	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens } =
-		useFormatYieldQueryParams({ projectList, chainList })
+	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
+		useFormatYieldQueryParams({ projectList, chainList, categoryList })
 
 	// if route query contains 'project' remove project href
 	const idx = columns.findIndex((c) => c.accessor === 'project')
@@ -78,6 +79,10 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 
 			if (selectedProjects.length > 0) {
 				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
+			}
+
+			if (selectedCategories.length > 0) {
+				toFilter = toFilter && selectedCategories.map((p) => p.toLowerCase()).includes(curr.category.toLowerCase())
 			}
 
 			const tokensInPool: string[] = curr.symbol.split('-').map((x) => x.toLowerCase())
@@ -139,7 +144,8 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 					change7d: curr.apyPct7D,
 					outlook: curr.predictions.predictedClass,
 					confidence: curr.predictions.binnedConfidence,
-					url: curr.url
+					url: curr.url,
+					category: curr.category
 				})
 			} else return acc
 		}, [])
@@ -150,6 +156,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 		maxApy,
 		pools,
 		selectedProjects,
+		selectedCategories,
 		selectedChains,
 		selectedAttributes,
 		includeTokens,
@@ -166,6 +173,7 @@ const YieldPage = ({ loading, pools, projectList, chainList }) => {
 				<Dropdowns>
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
 					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
+					<FiltersByCategory categoryList={categoryList} selectedCategories={selectedCategories} pathname={pathname} />
 					<YieldAttributes pathname={pathname} />
 					<TVLRange />
 					<APYRange />

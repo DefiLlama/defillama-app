@@ -70,7 +70,8 @@ function PortfolioContainer({ protocolsDict }) {
 				change7d: t.apyPct7D,
 				outlook: t.predictions.predictedClass,
 				confidence: t.predictions.binnedConfidence,
-				url: t.url
+				url: t.url,
+				category: t.category
 			}))
 		} else return []
 	}, [isClient, portfolio, protocolsDict])
