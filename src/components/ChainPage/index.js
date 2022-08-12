@@ -96,27 +96,40 @@ function GlobalPage({
 		}
 	}
 
+	// const initialTvl = chart[chart.length - 1][1]
+	// const doublecounted = extraVolumesCharts['doublecounted'][extraVolumesCharts['doublecounted'].length - 1][1]
+	// const liquidstaking = extraVolumesCharts['liquidstaking'][extraVolumesCharts['liquidstaking'].length - 1][1]
+	// const overlap = extraVolumesCharts['dcAndLsOverlap'][extraVolumesCharts['dcAndLsOverlap'].length - 1][1]
+
+	// console.log(['doublecounted', 'liquidstaking', 'total'])
+	// console.log(['on', 'on', initialTvl])
+	// console.log(['on', 'off', initialTvl - liquidstaking])
+	// console.log(['off', 'on', initialTvl - doublecounted])
+	// console.log(['off', 'off', initialTvl - doublecounted - liquidstaking + overlap])
+
 	const { totalVolumeUSD, volumeChangeUSD, globalChart } = React.useMemo(() => {
 		const globalChart = chart.map((data) => {
 			let sum = data[1]
 			Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
 				const stakedData = propCharts.find((x) => x[0] === data[0])
 
+				// find current date and only add values on that date in "data" above
 				if (stakedData) {
-					if (prop === 'doublecounted') {
+					if (prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
 						sum -= stakedData[1]
 					}
 
-					if (prop === 'liquidstaking') {
+					if (prop === 'liquidstaking' && !extraTvlsEnabled['liquidstaking']) {
 						sum -= stakedData[1]
 					}
 
-					// only add tvl of protocols that are both double counted and liquid staking once
-					if (prop === 'dcAndLsOverlap' && !extraTvlsEnabled['doublecounted'] && !extraTvlsEnabled['liquidstaking']) {
-						sum += stakedData[1]
+					if (prop === 'dcAndLsOverlap') {
+						if (!extraTvlsEnabled['doublecounted'] && !extraTvlsEnabled['liquidstaking']) {
+							sum += stakedData[1]
+						}
 					}
 
-					if (extraTvlsEnabled[prop.toLowerCase()]) {
+					if (extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') {
 						sum += stakedData[1]
 					}
 				}

@@ -144,6 +144,14 @@ export const useCalcStakePool2Tvl = (
 						tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
 						tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
 					}
+
+					// if (prop === 'liquidstaking') {
+					// 	tvl && (finalTvl = (finalTvl || 0) - tvl)
+					// 	tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
+					// 	tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
+					// 	tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
+					// }
+
 					// convert to lowercase as server response is not consistent in extra-tvl names
 					if (extraTvlsEnabled[prop.toLowerCase()] && (prop.toLowerCase() !== 'doublecounted' || applyDoublecounted)) {
 						// check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
@@ -189,7 +197,7 @@ export const useCalcStakePool2Tvl = (
 	return protocolTotals
 }
 
-// used in tables of protocols by chains and categories pages
+// used in tables of protocols by chain and categories pages
 export const useCalcProtocolsTvls = ({
 	protocols,
 	parentProtocols
@@ -226,7 +234,11 @@ export const useCalcProtocolsTvls = ({
 							strikeTvl = true
 						} else {
 							// convert to lowercase as server response is not consistent in extra-tvl names
-							if (extraTvlsEnabled[prop.toLowerCase()] && prop.toLowerCase() !== 'doublecounted') {
+							if (
+								extraTvlsEnabled[prop.toLowerCase()] &&
+								prop.toLowerCase() !== 'doublecounted' &&
+								prop.toLowerCase() !== 'liquidstaking'
+							) {
 								// check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
 								tvl && (finalTvl = (finalTvl || 0) + tvl)
 								tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
