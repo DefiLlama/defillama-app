@@ -1,4 +1,4 @@
-import PortfolioContainer from '~/containers/PortfolioContainer'
+import { DefiWatchlistContainer } from '~/containers/Watchlist'
 import Layout from '~/layout'
 import { revalidate } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
@@ -16,7 +16,7 @@ export async function getStaticProps() {
 export default function Portfolio({ protocols }) {
 	return (
 		<Layout title={`Saved TVL Rankings - DefiLlama`} defaultSEO>
-			<PortfolioContainer protocolsDict={protocols} />
+			<DefiWatchlistContainer protocolsDict={protocols} />
 		</Layout>
 	)
 }

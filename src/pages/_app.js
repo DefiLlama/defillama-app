@@ -1,4 +1,4 @@
-import LocalStorageContextProvider from '~/contexts/LocalStorage'
+import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from '~/contexts/LocalStorage'
 import { useAnalytics } from '~/hooks'
 import '~/Theme/globals.css'
 
@@ -7,6 +7,7 @@ function App({ Component, pageProps }) {
 
 	return (
 		<LocalStorageContextProvider>
+			<LocalStorageContextUpdater />
 			<Component {...pageProps} />
 		</LocalStorageContextProvider>
 	)
