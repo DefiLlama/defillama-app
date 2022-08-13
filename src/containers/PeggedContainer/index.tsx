@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
 import { transparentize } from 'polished'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
@@ -10,19 +11,25 @@ import { PeggedSearch } from '~/components/Search'
 import { OptionButton } from '~/components/ButtonStyled'
 import { AutoRow, RowBetween } from '~/components/Row'
 import { ButtonLight } from '~/components/ButtonStyled'
-import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
+import { PeggedChainResponsivePie, PeggedChainResponsiveDominance, AreaChart } from '~/components/Charts'
 import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
 import AuditInfo from '~/components/AuditInfo'
 import { columnsToShow, FullTable } from '~/components/Table'
 import SEO from '~/components/SEO'
 import QuestionHelper from '~/components/QuestionHelper'
-import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data'
+import {
+	useCalcGroupExtraPeggedByDay,
+	useCalcCirculating,
+	useGroupBridgeData,
+	useCreatePeggedCharts
+} from '~/hooks/data'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import { extraPeggedProps, useGetExtraPeggedEnabled, useTvlToggles } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
 	toNiceCsvDate,
+	toNiceMonthlyDate,
 	getRandomColor,
 	formattedNum,
 	download,
@@ -31,6 +38,11 @@ import {
 	peggedAssetIconUrl,
 	formattedPeggedPrice
 } from '~/utils'
+import { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
+
+const TokenAreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
+	ssr: false
+}) as React.FC<IProtocolMcapTVLChartProps>
 
 const risksHelperTexts = {
 	algorithmic:
@@ -50,6 +62,7 @@ const Stats = styled.section`
 	box-shadow: ${({ theme }) => theme.shadowSm};
 	position: relative;
 	isolation: isolate;
+	z-index: 1;
 
 	@media (min-width: 80rem) {
 		flex-direction: row;
@@ -510,7 +523,6 @@ const columns = [
 export default function PeggedContainer({
 	chainsUnique,
 	chainCirculatings,
-	stackedDataset,
 	peggedAssetData,
 	totalCirculating,
 	unreleased,
@@ -546,6 +558,17 @@ export default function PeggedContainer({
 	const belowXl = useXl()
 	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
+	const chainsData: any[] = chainsUnique.map((elem: string) => {
+		return peggedAssetData.chainBalances[elem].tokens
+	})
+
+	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useCreatePeggedCharts(
+		chainsData,
+		chainsUnique,
+		[...Array(chainsUnique.length).keys()],
+		'circulating'
+	)
+
 	const extraPeggeds = [...extraPeggedProps]
 	const tvlToggles = useTvlToggles()
 	const extraPeggedsEnabled = useGetExtraPeggedEnabled()
@@ -562,7 +585,6 @@ export default function PeggedContainer({
 			name: chain.name,
 			value: chain.circulating
 		}))
-
 		const otherCirculating = data.slice(10).reduce((total, entry) => {
 			return (total += entry.value)
 		}, 0)
@@ -575,6 +597,8 @@ export default function PeggedContainer({
 
 	const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
+	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
+
 	const downloadCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique]]
 		stackedData
@@ -585,7 +609,7 @@ export default function PeggedContainer({
 		download('peggedAssetChains.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
-	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
+	const totalMcapLabel = ['Mcap']
 
 	return (
 		<Layout
@@ -732,7 +756,13 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={blockExplorerLink} passHref>
-												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+												<Button
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
 													<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
 												</Button>
 											</Link>
@@ -746,7 +776,13 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={url} passHref>
-												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+												<Button
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
 													<span>Website</span>
 													<ArrowUpRight size={14} />
 												</Button>
@@ -761,7 +797,13 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={twitter} passHref>
-												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+												<Button
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
 													<span>Twitter</span>
 													<ArrowUpRight size={14} />
 												</Button>
@@ -776,7 +818,13 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={wiki} passHref>
-												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+												<Button
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
 													<span>DeFiLlama Wiki</span>
 													<ArrowUpRight size={14} />
 												</Button>
@@ -791,7 +839,13 @@ export default function PeggedContainer({
 									<>
 										<span>
 											<Link href={`https://www.coingecko.com/en/coins/${gecko_id}`} passHref>
-												<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+												<Button
+													as="a"
+													target="_blank"
+													rel="noopener noreferrer"
+													useTextColor={true}
+													color={backgroundColor}
+												>
 													<span>CoinGecko</span>
 													<ArrowUpRight size={14} />
 												</Button>
@@ -807,7 +861,13 @@ export default function PeggedContainer({
 										href={`https://github.com/DefiLlama/peggedassets-server/tree/master/src/adapters/peggedAssets/${gecko_id}`}
 										passHref
 									>
-										<AlignSelfButton as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+										<AlignSelfButton
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={backgroundColor}
+										>
 											<span>Check the code</span>
 											<ArrowUpRight size={14} />
 										</AlignSelfButton>
@@ -830,6 +890,12 @@ export default function PeggedContainer({
 				>
 					<RowBetween my={useMed ? 20 : 0} mx={useMed ? 10 : 0} align="flex-start">
 						<AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
+							<OptionButton active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
+								Total Mcap
+							</OptionButton>
+							<OptionButton active={chartType === 'Area'} onClick={() => setChartType('Area')}>
+								Area
+							</OptionButton>
 							<OptionButton active={chartType === 'Dominance'} onClick={() => setChartType('Dominance')}>
 								Dominance
 							</OptionButton>
@@ -838,13 +904,33 @@ export default function PeggedContainer({
 							</OptionButton>
 						</AutoRow>
 					</RowBetween>
-
+					{chartType === 'Mcap' && (
+						<TokenAreaChart
+							title={`Total ${symbol} Market Cap`}
+							chartData={peggedAreaTotalData}
+							tokensUnique={totalMcapLabel}
+							color={backgroundColor}
+							moneySymbol="$"
+							hideLegend={true}
+							hallmarks={[]}
+						/>
+					)}
+					{chartType === 'Area' && (
+						<AreaChart
+							aspect={aspect}
+							finalChartData={peggedAreaChartData}
+							tokensUnique={chainsUnique}
+							color={'blue'}
+							moneySymbol="$"
+							formatDate={toNiceMonthlyDate}
+							hallmarks={[]}
+						/>
+					)}
 					{chartType === 'Dominance' && (
 						<PeggedChainResponsiveDominance
 							stackOffset="expand"
 							formatPercent={true}
 							stackedDataset={stackedData}
-							asset={symbol}
 							chainsUnique={chainsUnique}
 							chainColor={chainColor}
 							daySum={daySum}
