@@ -303,7 +303,7 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 		})
 		.sort((a, b) => b.circulating - a.circulating)
 
-	const peggedChartType = 'Dominance'
+	const peggedChartType = 'Area'
 
 	return {
 		props: {
