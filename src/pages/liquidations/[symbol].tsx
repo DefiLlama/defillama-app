@@ -11,6 +11,7 @@ import { LiquidationsHeader } from '../../components/LiquidationsPage/Liquidatio
 import { LiquidationsContent } from '../../components/LiquidationsPage/LiquidationsContent'
 import styled from 'styled-components'
 import React, { useState } from 'react'
+import { Clock } from 'react-feather'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = params.symbol as string
@@ -63,6 +64,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 				<LiquidationsContent data={data} prevData={prevData} />
 			</LiquidationsProvider>
 			<SmolHints>
+				<Clock size={12} />
 				<i>Last updated {minutesAgo}min ago</i>
 			</SmolHints>
 		</Layout>
@@ -71,8 +73,10 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 
 const SmolHints = styled.div`
 	display: flex;
+	gap: 6px;
 	flex-direction: row;
 	justify-content: flex-end;
+	align-items: center;
 	margin-top: -1rem;
 	opacity: 0.6;
 `
