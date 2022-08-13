@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { Bookmark as BookmarkIcon } from 'react-feather'
 import styled from 'styled-components'
-import { useSavedProtocols } from '~/contexts/LocalStorage'
+import { useWatchlist } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import { standardizeProtocolName } from '~/utils'
 
@@ -23,14 +23,15 @@ const Wrapper = styled.button<IWrapperProps>`
 // readableProtocolName has proper caps and spaces
 function Bookmark({ readableProtocolName, ...props }) {
 	const bookmarkRef = useRef(null)
-	const { savedProtocols, addProtocol, removeProtocol } = useSavedProtocols()
+	const { savedProtocols, addProtocol, removeProtocol } = useWatchlist()
 	// isClient for local storage
 	const isClient = useIsClient()
 
-	const portfolios = Object.keys(savedProtocols)
+	const portfolio = Object.keys(savedProtocols) || []
+
 	const protocolName = standardizeProtocolName(readableProtocolName)
 
-	const isSaved: boolean = portfolios.some((portfolio) => savedProtocols[portfolio][protocolName]) && isClient
+	const isSaved: boolean = portfolio?.includes(protocolName) && isClient
 
 	const onClick = isSaved ? () => removeProtocol(readableProtocolName) : () => addProtocol(readableProtocolName)
 
