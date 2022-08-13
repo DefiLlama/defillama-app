@@ -605,6 +605,7 @@ function PeggedAssetsOverview({
 							title={`Total ${title}`}
 							chartData={peggedAreaTotalData}
 							tokensUnique={totalMcapLabel}
+							color={'lightcoral'}
 							moneySymbol="$"
 							hideLegend={true}
 							hallmarks={[]}

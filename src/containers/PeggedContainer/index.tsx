@@ -909,6 +909,7 @@ export default function PeggedContainer({
 							title={`Total ${symbol} Market Cap`}
 							chartData={peggedAreaTotalData}
 							tokensUnique={totalMcapLabel}
+							color={backgroundColor}
 							moneySymbol="$"
 							hideLegend={true}
 							hallmarks={[]}
