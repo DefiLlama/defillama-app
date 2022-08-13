@@ -62,6 +62,7 @@ const Stats = styled.section`
 	box-shadow: ${({ theme }) => theme.shadowSm};
 	position: relative;
 	isolation: isolate;
+	z-index: 1;
 
 	@media (min-width: 80rem) {
 		flex-direction: row;
