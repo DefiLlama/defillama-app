@@ -61,5 +61,10 @@ const formatUniUrl = (p) => {
 	const token0 = p.underlyingTokens === undefined ? '' : p.underlyingTokens[0]
 	const token1 = p.underlyingTokens === undefined ? '' : p.underlyingTokens[1]
 	const chain = p.chain.toLowerCase() === 'ethereum' ? 'mainnet' : p.chain.toLowerCase()
-	return `https://app.uniswap.org/#/add/${token0}/${token1}?chain=${chain}`
+	if (p.poolMeta) {
+		const feeTier = Number(p.poolMeta.replace('%', '')) * 10000
+		return `https://app.uniswap.org/#/add/${token0}/${token1}/${feeTier}?chain=${chain}`
+	} else {
+		return `https://app.uniswap.org/#/add/v2/${token0}/${token1}?chain=${chain}`
+	}
 }
