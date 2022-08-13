@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { useTabState, Tab, TabList, TabPanel } from 'ariakit'
@@ -557,10 +557,9 @@ export default function PeggedContainer({
 	const belowXl = useXl()
 	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
-	const chainsData: any[] = 
-		chainsUnique.map((elem: string) => {
-			return peggedAssetData.chainBalances[elem].tokens
-		})
+	const chainsData: any[] = chainsUnique.map((elem: string) => {
+		return peggedAssetData.chainBalances[elem].tokens
+	})
 
 	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useCreatePeggedCharts(
 		chainsData,

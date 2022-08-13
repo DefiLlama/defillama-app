@@ -1,5 +1,5 @@
 import { getPercentChange, getPrevPeggedTotalFromChart, standardizeProtocolName } from '~/utils'
-import type { IChainData, IStackedDataset } from '~/api/types'
+import type { IChainData } from '~/api/types'
 import {
 	CHART_API,
 	CONFIG_API,
