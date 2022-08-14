@@ -906,11 +906,11 @@ export default function PeggedContainer({
 					</RowBetween>
 					{chartType === 'Mcap' && (
 						<TokenAreaChart
-							title={`Total ${symbol} Market Cap`}
+							title={`Total ${symbol} Circulating`}
 							chartData={peggedAreaTotalData}
 							tokensUnique={totalMcapLabel}
 							color={backgroundColor}
-							moneySymbol="$"
+							moneySymbol=""
 							hideLegend={true}
 							hallmarks={[]}
 						/>
@@ -921,7 +921,7 @@ export default function PeggedContainer({
 							finalChartData={peggedAreaChartData}
 							tokensUnique={chainsUnique}
 							color={'blue'}
-							moneySymbol="$"
+							moneySymbol=""
 							formatDate={toNiceMonthlyDate}
 							hallmarks={[]}
 						/>
