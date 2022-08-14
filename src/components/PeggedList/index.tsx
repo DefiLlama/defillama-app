@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
 import { OptionButton } from '~/components/ButtonStyled'
 import { RowBetween, AutoRow } from '~/components/Row'
-import PeggedViewSwitch from '~/components/PeggedViewSwitch'
 import Table, { columnsToShow } from '~/components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
 import { RowLinks, LinksWrapper } from '~/components/Filters'
@@ -557,7 +556,7 @@ function PeggedAssetsOverview({
 			<PeggedSearch step={{ category: 'Stablecoins', name: title }} />
 
 			<ChartFilters>
-				<PeggedViewSwitch />
+				{/* <PeggedViewSwitch /> */}
 				<Dropdowns>
 					<BackingType />
 					<PegType />

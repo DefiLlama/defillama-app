@@ -1,23 +1,30 @@
 import Link from 'next/link'
 import styled from 'styled-components'
-import { BarChart2, Percent } from 'react-feather'
-import { useYieldApp } from '~/hooks'
+import { BarChart2, Percent, DollarSign } from 'react-feather'
+import { usePeggedApp, useYieldApp } from '~/hooks'
 
 export default function AppSwitch() {
 	const isYieldApp = useYieldApp()
+	const isStableCoinsApp = usePeggedApp()
 
 	return (
 		<Wrapper>
 			<Link href="/" passHref>
-				<AppLink active={!isYieldApp}>
+				<AppLink active={!isYieldApp && !isStableCoinsApp}>
 					<BarChart2 size={14} />
 					<span>DeFi</span>
 				</AppLink>
 			</Link>
 			<Link href="/yields" passHref>
-				<AppLink active={isYieldApp}>
+				<AppLink active={isYieldApp && !isStableCoinsApp}>
 					<Percent size={14} />
 					<span>Yields</span>
+				</AppLink>
+			</Link>
+			<Link href="/stablecoins" passHref>
+				<AppLink active={isStableCoinsApp && !isYieldApp}>
+					<DollarSign size={14} />
+					<span>Stablecoins</span>
 				</AppLink>
 			</Link>
 		</Wrapper>
@@ -26,13 +33,11 @@ export default function AppSwitch() {
 
 const Wrapper = styled.span`
 	display: none;
-	align-items: center;
-	justify-content: space-between;
+	flex-direction: column;
 	gap: 8px;
 	border-radius: 6px;
 	background: #000;
 	padding: 6px;
-	height: 40px;
 	width: 160px;
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
@@ -46,9 +51,8 @@ interface IAppLink {
 
 const AppLink = styled.a<IAppLink>`
 	display: flex;
-	justify-content: center;
 	align-items: center;
-	gap: 4px;
+	gap: 12px;
 	color: ${({ theme }) => theme.white};
 	font-size: 14px;
 	white-space: nowrap;

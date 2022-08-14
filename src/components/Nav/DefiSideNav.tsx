@@ -15,8 +15,7 @@ import {
 	List,
 	Percent,
 	Book,
-	Pocket,
-	Droplet
+	DollarSign
 } from 'react-feather'
 import { Entry, Footer, MobileOnlyEntry } from './shared'
 
@@ -57,6 +56,7 @@ const NavMenu = () => {
 	return (
 		<>
 			<MobileOnlyEntry url="/yields" name="Yields" Icon={Percent} style={{ marginTop: '20px' }} />
+			<MobileOnlyEntry url="/stablecoins" name="Stablecoins" Icon={DollarSign} style={{ marginTop: '20px' }} />
 
 			<Entry url="/" name="Overview" Icon={TrendingUp} />
 			<Entry url="/chains" name="Chains" Icon={LinkLogo} />
@@ -65,7 +65,6 @@ const NavMenu = () => {
 			<Entry url="/airdrops" name="Airdrops" Icon={CloudDrizzle} />
 			<Entry url="/oracles" name="Oracles" Icon={Shield} />
 			<Entry url="/forks" name="Forks" Icon={Share2} />
-			<Entry url="/stablecoins" name="Stablecoins" Icon={Pocket} newTag />
 			<Entry url="/watchlist" name="Watchlist" Icon={Bookmark} />
 			<Entry url="/top-protocols" name="Top Protocols" Icon={Map} />
 			{/* <Entry url="/liquidations/eth" name="Liquidations" Icon={Droplet} newTag /> */}

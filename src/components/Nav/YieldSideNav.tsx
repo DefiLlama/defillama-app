@@ -1,11 +1,12 @@
 import * as React from 'react'
-import { TrendingUp, BarChart2, PlusCircle, List, Bookmark, PieChart, Pocket } from 'react-feather'
+import { TrendingUp, BarChart2, PlusCircle, List, Bookmark, PieChart, Pocket, DollarSign } from 'react-feather'
 import { Entry, MobileOnlyEntry, Footer } from './shared'
 
 const NavMenu = () => {
 	return (
 		<>
 			<MobileOnlyEntry url="/" name="DeFi" Icon={BarChart2} style={{ marginTop: '20px' }} />
+			<MobileOnlyEntry url="/stablecoins" name="Stablecoins" Icon={DollarSign} style={{ marginTop: '20px' }} />
 
 			<Entry url="/yields/overview" name="Overview" Icon={PieChart} />
 			<Entry url="/yields" name="Pools" Icon={TrendingUp} />

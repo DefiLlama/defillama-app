@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
 import { OptionButton } from '~/components/ButtonStyled'
 import { RowBetween, AutoRow } from '~/components/Row'
-import PeggedViewSwitch from '~/components/PeggedViewSwitch'
 import Table, { columnsToShow } from '~/components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
 import { AreaChart } from '~/components/Charts'
@@ -197,14 +196,14 @@ const PeggedTable = styled(Table)`
 	}
 `
 
-const ChartFilters = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: start;
-	gap: 20px;
-	margin: 0 0 -18px;
-`
+// const ChartFilters = styled.div`
+// 	display: flex;
+// 	flex-wrap: wrap;
+// 	align-items: center;
+// 	justify-content: start;
+// 	gap: 20px;
+// 	margin: 0 0 -18px;
+// `
 
 const columns = [
 	...columnsToShow('peggedAssetChain', '7dChange'),
@@ -344,10 +343,10 @@ function PeggedChainsOverview({
 	return (
 		<>
 			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains' }} />
-
+			{/* 
 			<ChartFilters>
 				<PeggedViewSwitch />
-			</ChartFilters>
+			</ChartFilters> */}
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
