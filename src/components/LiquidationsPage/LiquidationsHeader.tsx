@@ -42,7 +42,7 @@ interface IProps {
 }
 
 export function AssetSelector({ options, symbol }: IProps) {
-	const defaultList = options.map(({ name, symbol, route }) => `${name} - ${symbol} - ${route}`)
+	const defaultList = options.map(({ name, symbol }) => `${name} - ${symbol}`)
 	const combobox = useComboboxState({ defaultList, gutter: 8 })
 	const menu = useMenuState(combobox)
 
@@ -80,7 +80,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 }
 
 const getMatchingOption = (options: ISearchItem[], value: string): ISearchItem => {
-	return options.find(({ name, symbol, route }) => `${name} - ${symbol} - ${route}` === value)
+	return options.find(({ name, symbol }) => `${name} - ${symbol}` === value)
 }
 
 const AssetButtonLink = (props: { options: ISearchItem[]; value: string }) => {
