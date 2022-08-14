@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { Panel } from '~/components'
-import { Dropdowns, NameYield, TableFilters, TableHeader } from '~/components/Table'
+import { FallbackMessage } from '~/components'
+import { Dropdowns, TableFilters, TableHeader } from '~/components/Table'
 import {
 	YieldAttributes,
 	TVLRange,
@@ -13,10 +13,11 @@ import {
 	attributeOptions
 } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
-import { columns, fallbackColumns, fallbackList, TableWrapper } from './shared'
+import { YieldsTable } from '~/components/VirtualTable'
 import { useFormatYieldQueryParams } from './hooks'
+import type { IYieldTableRow } from '~/components/VirtualTable/types'
 
-const YieldPage = ({ loading, pools, projectList, chainList, categoryList }) => {
+const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
@@ -24,40 +25,40 @@ const YieldPage = ({ loading, pools, projectList, chainList, categoryList }) => 
 		useFormatYieldQueryParams({ projectList, chainList, categoryList })
 
 	// if route query contains 'project' remove project href
-	const idx = columns.findIndex((c) => c.accessor === 'project')
+	// const idx = columns.findIndex((c) => c.accessor === 'project')
 
-	if (query.projectName) {
-		columns[idx] = {
-			header: 'Project',
-			accessor: 'project',
-			disableSortBy: true,
-			Cell: ({ value, rowValues }) => (
-				<NameYield
-					value={value}
-					project={rowValues.project}
-					airdrop={rowValues.airdrop}
-					projectslug={rowValues.projectslug}
-					rowType="accordion"
-				/>
-			)
-		}
-	} else {
-		columns[idx] = {
-			header: 'Project',
-			accessor: 'project',
-			disableSortBy: true,
-			Cell: ({ value, rowValues }) => (
-				<NameYield
-					value={value}
-					project={rowValues.project}
-					airdrop={rowValues.airdrop}
-					projectslug={rowValues.projectslug}
-				/>
-			)
-		}
-	}
+	// if (query.projectName) {
+	// 	columns[idx] = {
+	// 		header: 'Project',
+	// 		accessor: 'project',
+	// 		disableSortBy: true,
+	// 		Cell: ({ value, rowValues }) => (
+	// 			<NameYield
+	// 				value={value}
+	// 				project={rowValues.project}
+	// 				airdrop={rowValues.airdrop}
+	// 				projectslug={rowValues.projectslug}
+	// 				rowType="accordion"
+	// 			/>
+	// 		)
+	// 	}
+	// } else {
+	// 	columns[idx] = {
+	// 		header: 'Project',
+	// 		accessor: 'project',
+	// 		disableSortBy: true,
+	// 		Cell: ({ value, rowValues }) => (
+	// 			<NameYield
+	// 				value={value}
+	// 				project={rowValues.project}
+	// 				airdrop={rowValues.airdrop}
+	// 				projectslug={rowValues.projectslug}
+	// 			/>
+	// 		)
+	// 	}
+	// }
 
-	const poolsData = React.useMemo(() => {
+	const poolsData: Array<IYieldTableRow> = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
 			let toFilter = true
 
@@ -181,14 +182,10 @@ const YieldPage = ({ loading, pools, projectList, chainList, categoryList }) => 
 				</Dropdowns>
 			</TableFilters>
 
-			{loading ? (
-				<TableWrapper data={fallbackList} columns={fallbackColumns} />
-			) : poolsData.length > 0 ? (
-				<TableWrapper data={poolsData} columns={columns} />
+			{poolsData.length > 0 ? (
+				<YieldsTable data={poolsData} />
 			) : (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					Couldn't find any pools for these filters
-				</Panel>
+				<FallbackMessage>Couldn't find any pools for these filters</FallbackMessage>
 			)}
 		</>
 	)

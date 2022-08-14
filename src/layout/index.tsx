@@ -12,6 +12,7 @@ const Center = styled.main`
 	gap: 28px;
 	max-width: 90rem;
 	width: 100%;
+	min-height: 100%;
 	margin: 0 auto;
 	padding: 0 32px 32px;
 	color: ${({ theme }) => theme.text1};

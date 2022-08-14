@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from '~/components'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, FallbackMessage, Panel } from '~/components'
 import { RowLinks } from '~/components/Filters'
 import { NFTSwitches } from '~/components/SettingsModal'
 import { NFTsSearch } from '~/components/Search'
@@ -97,9 +97,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 
 			<NFTsSearch preLoadedSearch={collections} step={{ category: 'NFTs', name: 'All collections' }} />
 
-			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
-				Data is currently incorrect and we are fixing it, please don't use it
-			</Panel>
+			<FallbackMessage>Data is currently incorrect and we are fixing it, please don't use it</FallbackMessage>
 
 			<NFTSwitches />
 

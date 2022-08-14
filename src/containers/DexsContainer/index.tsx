@@ -1,3 +1,4 @@
+import * as React from 'react'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
 import { DexsSearch } from '~/components/Search'
@@ -5,7 +6,13 @@ import { columnsToShow, FullTable } from '~/components/Table'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
 import { useFetchDexsList } from '~/api/categories/dexs/client'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
+import {
+	BreakpointPanel,
+	BreakpointPanels,
+	ChartAndValuesWrapper,
+	FallbackMessage,
+	PanelHiddenMobile
+} from '~/components'
 import dynamic from 'next/dynamic'
 import { formattedNum } from '~/utils'
 import { useInView } from 'react-intersection-observer'
@@ -213,9 +220,7 @@ export default function DexsContainer({ category }) {
 
 	return (
 		<>
-			<Panel as="p" style={{ textAlign: 'center', margin: 0 }}>
-				Dashboard under developement, data might be incorrect.
-			</Panel>
+			<FallbackMessage>Dashboard under developement, data might be incorrect.</FallbackMessage>
 
 			<DexsSearch
 				step={{
@@ -262,9 +267,7 @@ export default function DexsContainer({ category }) {
 			)}
 
 			{loading ? (
-				<Panel as="p" style={{ textAlign: 'center', margin: 0 }}>
-					Loading dexs...
-				</Panel>
+				<FallbackMessage>Loading dexs...</FallbackMessage>
 			) : dexs && dexs.length > 0 ? (
 				<StyledTable data={dexs} columns={columns} />
 			) : (

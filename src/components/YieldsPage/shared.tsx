@@ -4,6 +4,7 @@ import { AutoRow } from '~/components/Row'
 import QuestionHelper from '~/components/QuestionHelper'
 import IconsRow from '~/components/IconsRow'
 import { formattedPercent } from '~/utils'
+import { Panel } from '..'
 
 export const TableWrapper = styled(Table)`
 	tr > *:not(:first-child) {

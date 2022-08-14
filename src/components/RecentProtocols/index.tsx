@@ -2,13 +2,13 @@ import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import Layout from '~/layout'
+import { FallbackMessage } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import Table, { columnsToShow, Dropdowns, TableFilters, TableHeader } from '~/components/Table'
+import { FiltersByChain } from '~/components//Filters'
+import HideForkedProtocols from '~/components/Filters/HideForkedProtocols'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
-import { FiltersByChain } from '../Filters'
 import { getPercentChange } from '~/utils'
-import HideForkedProtocols from '../Filters/HideForkedProtocols'
-import { Panel } from '..'
 
 const TableWrapper = styled(Table)`
 	tr > *:not(:first-child) {
@@ -283,9 +283,7 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 			{protocolsData.length > 0 ? (
 				<TableWrapper data={protocolsData} columns={columns} />
 			) : (
-				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					Couldn't find any protocols for these filters
-				</Panel>
+				<FallbackMessage>Couldn't find any protocols for these filters</FallbackMessage>
 			)}
 		</Layout>
 	)

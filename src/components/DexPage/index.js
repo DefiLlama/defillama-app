@@ -4,11 +4,11 @@ import Image from 'next/image'
 import styled from 'styled-components'
 import {
 	ProtocolsTable,
-	Panel,
 	BreakpointPanels,
 	BreakpointPanel,
 	PanelHiddenMobile,
-	ChartAndValuesWrapper
+	ChartAndValuesWrapper,
+	FallbackMessage
 } from '~/components'
 import { RowFixed } from '~/components/Row'
 import { DexsSearch } from '~/components/Search'
@@ -64,13 +64,13 @@ function GlobalPage({ dex }) {
 				}}
 			/>
 
-			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
+			<FallbackMessage>
 				<span> We've launched a multi-chain stablecoin dashboard. Check it out</span>{' '}
 				<BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/stablecoins">
 					here
 				</BasicLink>
 				<span>!</span>
-			</Panel>
+			</FallbackMessage>
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
@@ -128,10 +128,7 @@ function GlobalPage({ dex }) {
 			{finalProtocolTotals.length > 0 ? (
 				<ProtocolsTable data={finalProtocolTotals} columns={columns} />
 			) : (
-				<Panel
-					as="p"
-					style={{ textAlign: 'center', margin: 0 }}
-				>{`${selectedChain} chain has no protocols listed`}</Panel>
+				<FallbackMessage>{`${selectedChain} chain has no protocols listed`}</FallbackMessage>
 			)}
 		</>
 	)
