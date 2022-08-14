@@ -125,11 +125,7 @@ export const LiquidationsTable = (props: { data: ChartData; prevData: ChartData 
 		}
 	})
 
-	return (
-		<div>
-			<Table columns={COLUMNS} data={rows} />
-		</div>
-	)
+	return <Table columns={COLUMNS} data={rows} />
 }
 
 type RowValues = {
