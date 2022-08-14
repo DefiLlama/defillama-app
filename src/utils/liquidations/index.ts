@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import BigNumber from 'bignumber.js'
+import { IBaseSearchProps } from '~/components/Search/BaseSearch'
 import { LIQUIDATIONS_API, LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
 
 const TOTAL_BINS = 100
@@ -374,3 +375,36 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 
 	return csvData
 }
+
+export const DEFAULT_ASSETS_LIST: IBaseSearchProps['data'] = [
+	{
+		logo: 'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png',
+		route: '/liquidations/eth',
+		name: 'Ethereum (ETH)'
+	},
+	{
+		logo: 'https://assets.coingecko.com/coins/images/7598/thumb/wrapped_bitcoin_wbtc.png',
+		route: '/liquidations/wbtc',
+		name: 'Wrapped Bitcoin (WBTC)'
+	},
+	{
+		logo: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+		route: '/liquidations/usdc',
+		name: 'USD Coin (USDC)'
+	},
+	{
+		logo: 'https://assets.coingecko.com/coins/images/9956/thumb/4943.png',
+		route: '/liquidations/dai',
+		name: 'Dai (DAI)'
+	},
+	{
+		logo: 'https://assets.coingecko.com/coins/images/11849/thumb/yfi-192x192.png',
+		route: '/liquidations/yfi',
+		name: 'yearn.finance (YFI)'
+	},
+	{
+		logo: 'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png',
+		route: '/liquidations/uni',
+		name: 'Uniswap (UNI)'
+	}
+]

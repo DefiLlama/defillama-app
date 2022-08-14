@@ -2,7 +2,7 @@
 // eslint sucks at types
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import { revalidate } from '~/api'
-import { ChartData, getLatestChartData, getPrevChartData } from '~/utils/liquidations'
+import { ChartData, DEFAULT_ASSETS_LIST, getLatestChartData, getPrevChartData } from '~/utils/liquidations'
 
 import Layout from '~/layout'
 import { LiquidationsSearch } from '~/components/Search'
@@ -25,7 +25,7 @@ export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartDa
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	// TODO: make api for all tracked symbols
-	const paths = ['ETH', 'WBTC', 'USDC', 'DAI', 'YFI', 'UNI'].map((x) => ({
+	const paths = DEFAULT_ASSETS_LIST.map((x) => x.route.split('/').at(-1)).map((x) => ({
 		params: { symbol: x.toLowerCase() }
 	}))
 	return { paths, fallback: 'blocking' }
