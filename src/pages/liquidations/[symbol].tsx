@@ -27,7 +27,7 @@ export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartDa
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	// TODO: make api for all tracked symbols
-	const paths = DEFAULT_ASSETS_LIST.map((x) => x.route.split('/').at(-1)).map((x) => ({
+	const paths = DEFAULT_ASSETS_LIST.map((x) => x.route.split('/').pop()).map((x) => ({
 		params: { symbol: x.toLowerCase() }
 	}))
 	return { paths, fallback: 'blocking' }
