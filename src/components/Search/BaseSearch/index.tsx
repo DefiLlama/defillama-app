@@ -119,7 +119,7 @@ const IconWrapper = styled.div`
 	}
 `
 
-interface ISearchItem {
+export interface ISearchItem {
 	name: string
 	route: string
 	logo?: string
@@ -142,10 +142,11 @@ export interface IBaseSearchProps {
 	customPath?: (item: string) => string
 	onItemClick?: (item: ISearchItem) => void
 	filters?: React.ReactNode
+	placeholder?: string
 }
 
 export const BaseSearch = (props: IBaseSearchProps) => {
-	const { data, loading = false, step, onSearchTermChange, filters } = props
+	const { data, loading = false, step, onSearchTermChange, filters, placeholder = 'Search...' } = props
 	const combobox = useComboboxState({
 		gutter: 6,
 		sameWidth: true,
@@ -165,7 +166,7 @@ export const BaseSearch = (props: IBaseSearchProps) => {
 		<Wrapper>
 			<Box
 				state={combobox}
-				placeholder="Search..."
+				placeholder={placeholder}
 				style={step && { borderBottomLeftRadius: '0', borderBottomRightRadius: 0 }}
 			/>
 

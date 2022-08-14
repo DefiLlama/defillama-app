@@ -1,5 +1,5 @@
 import { getPercentChange, getPrevPeggedTotalFromChart, standardizeProtocolName } from '~/utils'
-import type { IChainData, IStackedDataset } from '~/api/types'
+import type { IChainData } from '~/api/types'
 import {
 	CHART_API,
 	CONFIG_API,
@@ -32,10 +32,23 @@ export const getPeggedRates = () => fetch(PEGGEDRATES_API).then((r) => r.json())
 export const getPeggedBridgeInfo = () =>
 	fetch('https://llama-stablecoins-data.s3.eu-central-1.amazonaws.com/bridgeInfo.json').then((r) => r.json())
 
+const getChainTVLData = async (chain: string, chainCoingeckoIds) => {
+	if (chain) {
+		if (chainCoingeckoIds[chain]) {
+			for (let i = 0; i < 5; i++) {
+				try {
+					return await fetch(`${CHART_API}/${chain}`).then((resp) => resp.json())
+				} catch (e) {}
+			}
+			throw new Error(`${CHART_API}/${chain} is broken`)
+		} else return null
+	} else return await fetch(CHART_API).then((resp) => resp.json())
+}
+
 export async function getPeggedOverviewPageData(chain) {
 	const { peggedAssets, chains } = await getPeggedAssets()
+	const { chainCoingeckoIds } = await fetch(CONFIG_API).then((r) => r.json())
 
-	const chartData = await fetch(PEGGEDCHART_API + (chain ? '/' + chain : '/all')).then((r) => r.json())
 	const priceData = await getPeggedPrices()
 	const rateData = await getPeggedRates()
 
@@ -94,6 +107,8 @@ export async function getPeggedOverviewPageData(chain) {
 		})
 	})
 
+	const chainTVLData: IChainData[] = await getChainTVLData(chain, chainCoingeckoIds)
+
 	const filteredPeggedAssets = formatPeggedAssetsData({
 		peggedAssets,
 		chartDataByPeggedAsset,
@@ -108,8 +123,8 @@ export async function getPeggedOverviewPageData(chain) {
 		filteredPeggedAssets,
 		peggedAssetNames,
 		peggedNameToChartDataIndex,
-		chartData,
 		chartDataByPeggedAsset,
+		chainTVLData,
 		chain: chain ?? 'All'
 	}
 }
@@ -131,7 +146,7 @@ export async function getPeggedChainsPageData() {
 		.map((chain) => chain.name)
 	const chainsSet = new Set()
 
-	const chainsData: IChainData[] = await Promise.all(
+	const chainsTVLData: IChainData[] = await Promise.all(
 		chainList.map(async (elem: string) => {
 			if (chainCoingeckoIds[elem]) {
 				for (let i = 0; i < 5; i++) {
@@ -210,7 +225,7 @@ export async function getPeggedChainsPageData() {
 		chainList,
 		peggedChartDataByChain,
 		chainDominances,
-		chainsData
+		chainsTVLData
 	})
 
 	peggedChartDataByChain = peggedChartDataByChain.map((charts) => {
@@ -223,12 +238,15 @@ export async function getPeggedChainsPageData() {
 		return formattedCharts
 	})
 
+	const chainTVLData: IChainData[] = await getChainTVLData(undefined, undefined)
+
 	return {
 		chainCirculatings,
 		chartData,
 		peggedChartDataByChain,
 		chainList,
-		chainsGroupbyParent
+		chainsGroupbyParent,
+		chainTVLData
 	}
 }
 
@@ -285,33 +303,12 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 		})
 		.sort((a, b) => b.circulating - a.circulating)
 
-	const stackedDataset = Object.entries(
-		chainsData.reduce((total: IStackedDataset, chains, i) => {
-			const chainName = chainsUnique[i]
-			chains.forEach((circulating) => {
-				const date = circulating.date
-				if (date < 1652932800) return // data on all chains for an asset is on only backfilled to May 20, 2022
-				if (total[date] === undefined) {
-					total[date] = {}
-				}
-				const b = total[date][chainName]
-				total[date][chainName] = {
-					...b,
-					circulating: circulating.circulating ? circulating.circulating[pegType] ?? 0 : 0,
-					unreleased: circulating.unreleased ? circulating.unreleased[pegType] ?? 0 : 0
-				}
-			})
-			return total
-		}, {})
-	)
-
-	const peggedChartType = 'Dominance'
+	const peggedChartType = 'Area'
 
 	return {
 		props: {
 			chainsUnique,
 			chainCirculatings,
-			stackedDataset,
 			peggedAssetData: res,
 			totalCirculating,
 			unreleased,

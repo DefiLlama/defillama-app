@@ -42,7 +42,9 @@ export async function getYieldPageData() {
 			: priceChainName
 
 		p['rewardTokensSymbols'] = [
-			...new Set(p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol ?? null))
+			...new Set(
+				p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
+			)
 		]
 	}
 

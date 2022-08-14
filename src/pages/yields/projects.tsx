@@ -5,6 +5,7 @@ import { YieldsSearch } from '~/components/Search'
 import { toK, formattedPercent } from '~/utils'
 import { revalidate } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
+import pako from 'pako'
 
 function median(numbers) {
 	const sorted: any = Array.from(numbers).sort((a: number, b: number) => a - b)
@@ -89,20 +90,29 @@ export async function getStaticProps() {
 		...details
 	}))
 
-	return {
+	// compress
+	const strData = JSON.stringify({
 		props: {
 			projects: projArray.sort((a, b) => b.tvl - a.tvl)
-		},
+		}
+	})
+	const a = pako.deflate(strData)
+	const compressed = Buffer.from(a).toString('base64')
+
+	return {
+		props: { compressed },
 		revalidate: revalidate(23)
 	}
 }
 
-export default function Protocols({ projects }) {
+export default function Protocols(compressedProps) {
+	const b = new Uint8Array(Buffer.from(compressedProps.compressed, 'base64'))
+	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
 	return (
 		<Layout title={`Projects - DefiLlama Yield`} defaultSEO>
 			<YieldsSearch step={{ category: 'Yields', name: 'All projects', hideOptions: true }} />
 			<PageHeader title="Projects" />
-			<Table data={projects} columns={columns} gap="40px" />
+			<Table data={data.props.projects} columns={columns} gap="40px" />
 		</Layout>
 	)
 }

@@ -282,7 +282,7 @@ function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContain
 			<DexsSearch
 				step={{
 					category: 'DEXs',
-					name: category === 'All' ? 'All DEXs' : category
+					name: dexData.name
 				}}
 			/>
 

@@ -126,7 +126,7 @@ export const formatPeggedChainsData = ({
 	chainList = [],
 	peggedChartDataByChain = [],
 	chainDominances = {},
-	chainsData = []
+	chainsTVLData = []
 }) => {
 	let filteredPeggedAssets = peggedChartDataByChain.map((chart, i) => {
 		let chainData = {} as any
@@ -135,7 +135,7 @@ export const formatPeggedChainsData = ({
 
 		const currentTimestamp = Date.now() / 1000
 		const secondsInMonth = 2592000
-		const latestChainTVLCharts = chainsData?.[i]?.tvl ?? null
+		const latestChainTVLCharts = chainsTVLData?.[i]?.tvl ?? null
 		const latestChainTVLItem = latestChainTVLCharts?.[latestChainTVLCharts.length - 1]
 		const latestChainTVL =
 			currentTimestamp - secondsInMonth < (latestChainTVLItem?.[0] ?? 0) ? latestChainTVLItem[1] : null

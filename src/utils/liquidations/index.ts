@@ -1,9 +1,10 @@
 /* eslint-disable no-unused-vars*/
 import BigNumber from 'bignumber.js'
-import { LIQUIDATIONS_API } from '~/constants'
+import { IBaseSearchProps, ISearchItem } from '~/components/Search/BaseSearch'
+import { LIQUIDATIONS_API, LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
 
-const TOTAL_BINS = 120
-const WRAPPABLE_GAS_TOKENS = ['ETH', 'AVAX', 'MATIC', 'FTM']
+const TOTAL_BINS = 100
+const WRAPPABLE_GAS_TOKENS = ['ETH', 'AVAX', 'MATIC', 'FTM', 'BNB', 'CRO', 'ONE']
 
 export interface Liq {
 	owner: string
@@ -13,6 +14,7 @@ export interface Liq {
 }
 
 export interface Position {
+	owner: string
 	liqPrice: number
 	collateralValue: number
 	chain: string
@@ -59,7 +61,7 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: str
 	const aggregatedData = new Map<string, { currentPrice: number; positions: Position[] }>() // symbol -> [{liqPrice, collateralValue, chain, protocol}]
 	for (const protocol of protocols) {
 		const liqs = filteredAdapterOutput[protocol]
-		liqs.forEach(({ liqPrice, collateral, collateralAmount }) => {
+		liqs.forEach(({ liqPrice, collateral, collateralAmount, owner }) => {
 			const chain = collateral.split(':')[0]
 			if (!prices[collateral]) {
 				// console.error(`Token not supported by price API ${collateral}`)
@@ -67,6 +69,7 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: str
 			}
 			const { symbol, decimals, price: currentPrice } = prices[collateral]
 			const position: Position = {
+				owner,
 				liqPrice,
 				collateralValue: new BigNumber(collateralAmount)
 					.div(10 ** decimals)
@@ -101,20 +104,16 @@ async function getPrices(collaterals: string[]) {
 	return prices
 }
 
-async function getHistoricalChange(symbol: string, hours: number) {
-	// TODO: implement on backend
-	return -0.42
-}
-
 export type ChartData = {
 	symbol: string // could change to coingeckoId in the future
 	coingeckoAsset: CoingeckoAsset // i know theres repeated data but will improve later
 	currentPrice: number
-	totalLiquidable: number // including bad debts
-	badDebts: number
-	historicalChange: {
-		[hours: number]: number // 1h, 6h, 12h, 1d, 7d, 30d etc in ratio
+	totalLiquidable: number // excluding bad debts
+	totalLiquidables: {
+		protocols: { [protocol: string]: number }
+		chains: { [chain: string]: number }
 	}
+	badDebts: number
 	dangerousPositionsAmount: number // amount of -20% current price
 	chartDataBins: {
 		// aggregated by either protocol or chain
@@ -142,7 +141,7 @@ function getChartDataBins(
 	positions: Position[],
 	currentPrice: number,
 	totalBins: number,
-	aggregateBy: 'protocol' | 'chain'
+	stackBy: 'protocol' | 'chain'
 ): { [bin: string]: ChartDataBin } {
 	// protocol/chain -> {bins, binSize, price}
 	const aggregatedPositions = new Map<string, Position[]>()
@@ -150,11 +149,11 @@ function getChartDataBins(
 
 	// group positions by protocol or chain
 	for (const position of positions) {
-		keySet.add(position[aggregateBy])
-		let positionsGroup: Position[] = aggregatedPositions.get(position[aggregateBy])
+		keySet.add(position[stackBy])
+		let positionsGroup: Position[] = aggregatedPositions.get(position[stackBy])
 		if (!positionsGroup) {
 			positionsGroup = [position]
-			aggregatedPositions.set(position[aggregateBy], positionsGroup)
+			aggregatedPositions.set(position[stackBy], positionsGroup)
 		} else {
 			positionsGroup.push(position)
 		}
@@ -186,7 +185,7 @@ function getChartDataBins(
 	return Object.fromEntries(bins)
 }
 
-interface LiquidationsApiResponse {
+export interface LiquidationsApiResponse {
 	time: number
 	data: {
 		protocol: string
@@ -196,8 +195,22 @@ interface LiquidationsApiResponse {
 	}[]
 }
 
-export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS) {
-	const raw = (await fetch(LIQUIDATIONS_API).then((r) => r.json())) as LiquidationsApiResponse
+export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, timePassed = 0) {
+	const now = Math.round(Date.now() / 1000) // in seconds
+	const LIQUIDATIONS_DATA_URL =
+		timePassed === 0
+			? LIQUIDATIONS_API
+			: LIQUIDATIONS_HISTORICAL_S3_PATH + `/${Math.floor((now - timePassed) / 3600)}.json`
+
+	let raw: LiquidationsApiResponse
+	try {
+		const res = await fetch(LIQUIDATIONS_DATA_URL)
+		raw = await res.json()
+	} catch (e) {
+		// fallback to current
+		const res = await fetch(LIQUIDATIONS_API)
+		raw = await res.json()
+	}
 
 	const adapterChains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
 	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
@@ -226,11 +239,11 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 	let totalLiquidable = 0
 	let dangerousPositionsAmount = 0
 	const validPositions = positions.filter((p) => {
-		totalLiquidable += p.collateralValue
 		if (p.liqPrice > currentPrice) {
 			badDebts += p.collateralValue
 			return false
 		}
+		totalLiquidable += p.collateralValue
 		if (p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice) {
 			dangerousPositionsAmount += p.collateralValue
 		}
@@ -239,8 +252,18 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 
 	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')
 	const protocols = Object.keys(chartDataBinsByProtocol)
+	const liquidablesByProtocol = protocols.reduce((acc, protocol) => {
+		acc[protocol] = Object.values(chartDataBinsByProtocol[protocol].bins).reduce((a, b) => a + b, 0)
+		return acc
+	}, {} as { [protocol: string]: number })
+
 	const chartDataBinsByChain = getChartDataBins(validPositions, currentPrice, totalBins, 'chain')
 	const chains = Object.keys(chartDataBinsByChain)
+	const liquidablesByChain = chains.reduce((acc, chain) => {
+		acc[chain] = Object.values(chartDataBinsByChain[chain].bins).reduce((a, b) => a + b, 0)
+		return acc
+	}, {} as { [chain: string]: number })
+
 	const coingeckoAsset = await getCoingeckoAssetFromSymbol(nativeSymbol)
 	const chartData: ChartData = {
 		symbol: nativeSymbol,
@@ -248,12 +271,15 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 		currentPrice,
 		badDebts,
 		dangerousPositionsAmount,
-		historicalChange: { 168: await getHistoricalChange(nativeSymbol, 168) },
 		totalLiquidable,
+		totalLiquidables: {
+			chains: liquidablesByChain,
+			protocols: liquidablesByProtocol
+		},
 		totalBins,
 		chartDataBins: {
-			byProtocol: chartDataBinsByProtocol,
-			byChain: chartDataBinsByChain
+			byChain: chartDataBinsByChain,
+			byProtocol: chartDataBinsByProtocol
 		},
 		binSize: currentPrice / totalBins,
 		availability: {
@@ -264,6 +290,10 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 	}
 
 	return chartData
+}
+
+export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS) {
+	return await getPrevChartData(symbol, totalBins)
 }
 
 export type CoingeckoAsset = {
@@ -288,3 +318,99 @@ export async function getCoingeckoAssetFromSymbol(symbol: string): Promise<Coing
 
 	return coins[0] ?? null
 }
+
+export function getReadableValue(value: number) {
+	if (typeof value !== 'number' || isNaN(value) || value === 0) return '0'
+
+	if (Math.abs(value) < 1000) {
+		return value.toPrecision(4)
+	}
+
+	// https://crusaders-of-the-lost-idols.fandom.com/wiki/Large_Number_Abbreviations
+	// llamao issa fun
+	const s = ['', 'k', 'm', 'b', 't', 'q', 'Q', 's', 'S', 'o', 'n', 'd', 'U', 'D', 'T', 'Qt', 'Qd', 'Sd', 'St', 'O', 'N']
+	const e = Math.floor(Math.log(value) / Math.log(1000))
+	return (value / Math.pow(1000, e)).toFixed(1) + s[e]
+}
+
+export const getLiquidationsCsvData = async (symbol: string) => {
+	const raw = (await fetch(LIQUIDATIONS_API).then((r) => r.json())) as LiquidationsApiResponse
+	const timestamp = raw.time
+
+	const adapterChains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
+	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
+		(acc, d) => ({ ...acc, [d.protocol]: d.liqs[adapterChains[0]] }),
+		{}
+	)
+	const allAggregated = await aggregateAssetAdapterData(adapterData)
+	let positions: Position[]
+	// handle wrapped gas tokens later dynamically
+	let nativeSymbol = symbol
+	if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase())) {
+		const ethPositions = allAggregated.get(nativeSymbol)
+		const wethPositions = allAggregated.get('W' + nativeSymbol)
+		positions = [...ethPositions!.positions, ...wethPositions!.positions]
+	} else if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase().substring(1))) {
+		nativeSymbol = symbol.toUpperCase().substring(1)
+		const ethPositions = allAggregated.get(nativeSymbol)
+		const wethPositions = allAggregated.get('W' + nativeSymbol)
+		positions = [...ethPositions!.positions, ...wethPositions!.positions]
+	} else {
+		positions = allAggregated.get(symbol)!.positions
+	}
+
+	const allAssetPositions = positions
+		.filter((p) => p.liqPrice < allAggregated.get(symbol)!.currentPrice && p.collateralValue > 0)
+		.map((p) => ({
+			...p,
+			symbol
+		}))
+
+	const csvHeader = ['symbol', 'chain', 'protocol', 'liqPrice', 'collateralValue', 'owner', 'timestamp'].join(',')
+	const csvData = allAssetPositions
+		.map(({ symbol, chain, protocol, liqPrice, collateralValue, owner }) => {
+			return `${symbol},${chain},${protocol},${liqPrice},${collateralValue},${owner},${timestamp}`
+		})
+		.reduce((acc, curr) => acc + '\n' + curr, csvHeader)
+
+	return csvData
+}
+
+export const DEFAULT_ASSETS_LIST: ISearchItem[] = [
+	{
+		logo: 'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png',
+		route: '/liquidations/eth',
+		name: 'Ethereum',
+		symbol: 'ETH'
+	},
+	{
+		logo: 'https://assets.coingecko.com/coins/images/7598/thumb/wrapped_bitcoin_wbtc.png',
+		route: '/liquidations/wbtc',
+		name: 'Wrapped Bitcoin',
+		symbol: 'WBTC'
+	},
+	{
+		logo: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
+		route: '/liquidations/usdc',
+		name: 'USD Coin',
+		symbol: 'USDC'
+	},
+	{
+		logo: 'https://assets.coingecko.com/coins/images/9956/thumb/4943.png',
+		route: '/liquidations/dai',
+		name: 'Dai',
+		symbol: 'DAI'
+	},
+	{
+		logo: 'https://assets.coingecko.com/coins/images/11849/thumb/yfi-192x192.png',
+		route: '/liquidations/yfi',
+		name: 'yearn.finance',
+		symbol: 'YFI'
+	},
+	{
+		logo: 'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png',
+		route: '/liquidations/uni',
+		name: 'Uniswap',
+		symbol: 'UNI'
+	}
+]
