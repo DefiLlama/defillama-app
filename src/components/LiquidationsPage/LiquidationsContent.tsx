@@ -7,11 +7,12 @@ import { TotalLiquidable } from './TotalLiquidable'
 import { LiquidableChanges24H } from './LiquidableChanges24H'
 import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
 import { useStackBy } from './utils'
+import styled from 'styled-components'
 
 export const LiquidationsContent = (props: { data: ChartData; prevData: ChartData }) => {
 	const { data, prevData } = props
 	return (
-		<ChartAndValuesWrapper>
+		<Wrapper>
 			<BreakpointPanels>
 				<BreakpointPanel>
 					<TotalLiquidable {...data} />
@@ -26,7 +27,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 			<BreakpointPanel>
 				<LiquidationsChart chartData={data} uid={data.symbol} />
 			</BreakpointPanel>
-		</ChartAndValuesWrapper>
+		</Wrapper>
 	)
 }
 
@@ -80,3 +81,7 @@ const getDangerousPositionsAmount = (
 	}
 	return dangerousPositionsAmount
 }
+
+const Wrapper = styled(ChartAndValuesWrapper)`
+	z-index: 0;
+`
