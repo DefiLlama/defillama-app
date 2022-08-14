@@ -9,7 +9,7 @@ const useAnalytics = () => {
 		if (process.env.NODE_ENV === 'production') {
 			Fathom.load('OANJVQNZ', {
 				includedDomains: ['defillama.com', 'www.defillama.com'],
-				url: 'https://gold-six.llama.fi/script.js'
+				url: '/script.js'
 			})
 		}
 

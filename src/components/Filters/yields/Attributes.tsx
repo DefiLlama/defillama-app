@@ -10,7 +10,9 @@ import {
 	SINGLE_EXPOSURE,
 	STABLECOINS,
 	NO_OUTLIER,
-	APY_GT0
+	APY_GT0,
+	STABLE_OUTLOOK,
+	HIGH_CONFIDENCE
 } from '~/contexts/LocalStorage'
 import { Item, Selected, Stats } from '../shared'
 
@@ -82,6 +84,22 @@ export const attributeOptions = [
 			'/yields/stablecoins': (item) => item.apy > 0
 		},
 		disabledOnPages: ['/yields/stablecoins']
+	},
+	{
+		name: 'Stable Outlook',
+		key: STABLE_OUTLOOK.toLowerCase(),
+		help: 'Select pools with "Stable/Up" Outlook only',
+		filterFn: (item) => item.predictions.predictedClass === 'Stable/Up',
+		defaultFilterFnOnPage: {},
+		disabledOnPages: []
+	},
+	{
+		name: 'High Confidence',
+		key: HIGH_CONFIDENCE.toLowerCase(),
+		help: 'Select pools with "High" predicted outlook confidence',
+		filterFn: (item) => item.predictions.binnedConfidence === 3,
+		defaultFilterFnOnPage: {},
+		disabledOnPages: []
 	}
 ]
 

@@ -8,7 +8,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { columnsToShow } from '~/components/Table'
 import { Menu } from '~/components/DropdownMenu'
 import { useIsClient } from '~/hooks'
-import { DEFAULT_PORTFOLIO, useSavedProtocols } from '~/contexts/LocalStorage'
+import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
 
 interface IFolder {
 	isSaved?: boolean
@@ -36,37 +36,19 @@ const columns = columnsToShow(
 	'mcaptvl'
 )
 
-function PortfolioContainer({ protocolsDict }) {
+export function DefiWatchlistContainer({ protocolsDict }) {
 	const isClient = useIsClient()
 
-	const { addPortfolio, removePortfolio, savedProtocols, selectedPortfolio, setSelectedPortfolio } = useSavedProtocols()
+	const { addPortfolio, removePortfolio, savedProtocols, portfolios, selectedPortfolio, setSelectedPortfolio } =
+		useWatchlist()
 
-	const portfolios: string[] = Object.keys(savedProtocols).filter((portfolio) => portfolio !== selectedPortfolio)
-
-	const selectedPortfolioProtocols = savedProtocols[selectedPortfolio]
-
-	const onFolderClick = () => {
-		const newPortfolio = window.prompt('New Portfolio')
-		if (newPortfolio) {
-			addPortfolio(newPortfolio)
-		}
-	}
-
-	const onTrashClick = () => {
-		const deletedPortfolio = window.confirm(`Do you really want to delete "${selectedPortfolio}"?`)
-		if (deletedPortfolio) {
-			setSelectedPortfolio(DEFAULT_PORTFOLIO)
-			removePortfolio(selectedPortfolio)
-		}
-	}
-
-	const portfolio = Object.values(selectedPortfolioProtocols)
+	const savedProtocolsInWatchlist = Object.values(savedProtocols)
 
 	const filteredProtocols = useMemo(() => {
 		if (isClient) {
-			return protocolsDict.filter((p) => portfolio.includes(p.name))
+			return protocolsDict.filter((p) => savedProtocolsInWatchlist.includes(p.name))
 		} else return []
-	}, [isClient, portfolio, protocolsDict])
+	}, [isClient, protocolsDict, savedProtocolsInWatchlist])
 
 	return (
 		<>
@@ -77,11 +59,11 @@ function PortfolioContainer({ protocolsDict }) {
 			<Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
 				<TYPE.main>Current portfolio:</TYPE.main>
 				<Menu name={selectedPortfolio} options={portfolios} onItemClick={(value) => setSelectedPortfolio(value)} />
-				<Action onClick={onFolderClick}>
+				<Action onClick={addPortfolio}>
 					<FolderPlus />
 				</Action>
-				{selectedPortfolio !== DEFAULT_PORTFOLIO && (
-					<Action onClick={onTrashClick}>
+				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
+					<Action onClick={removePortfolio}>
 						<Trash2 />
 					</Action>
 				)}
@@ -97,5 +79,3 @@ function PortfolioContainer({ protocolsDict }) {
 		</>
 	)
 }
-
-export default PortfolioContainer

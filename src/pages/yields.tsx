@@ -6,7 +6,6 @@ import { revalidate } from '~/api'
 
 export async function getStaticProps() {
 	const data = await getYieldPageData()
-	console.log({ data })
 	const strData = JSON.stringify(data)
 
 	const a = pako.deflate(strData)

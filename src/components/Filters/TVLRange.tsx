@@ -8,7 +8,7 @@ const Wrapper = styled(Popover)`
 	padding: 0;
 `
 
-const TvlFilterForm = styled.form`
+export const TvlFilterForm = styled.form`
 	display: flex;
 	flex-direction: column;
 	gap: 8px;

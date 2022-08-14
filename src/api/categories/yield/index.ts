@@ -1,9 +1,9 @@
-import { YIELD_CONFIG_API, YIELD_POOLS_API, YIELD_MEDIAN_API } from '~/constants'
+import { YIELD_CONFIG_API, YIELD_POOLS_API, YIELD_MEDIAN_API, YIELD_URL_API, YIELD_CHAIN_API } from '~/constants'
 import { arrayFetcher } from '~/utils/useSWR'
 import { formatYieldsPageData } from './utils'
 
 export async function getYieldPageData() {
-	let poolsAndConfig = await arrayFetcher([YIELD_POOLS_API, YIELD_CONFIG_API])
+	let poolsAndConfig = await arrayFetcher([YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_URL_API, YIELD_CHAIN_API])
 
 	const data = formatYieldsPageData(poolsAndConfig)
 
@@ -41,7 +41,25 @@ export async function getYieldPageData() {
 			? priceChainMapping[priceChainName]
 			: priceChainName
 
-		p['rewardTokensSymbols'] = p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol ?? null)
+		p['rewardTokensSymbols'] = [
+			...new Set(
+				p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
+			)
+		]
+	}
+
+	for (let p of data.pools) {
+		// need to map wrapped chain tokens
+		// eg WAVAX -> AVAX
+		// eg WFTM -> FTM
+		const xy = p.rewardTokensSymbols.map((t) => {
+			return t === 'WAVAX'
+				? data.tokenNameMapping['AVAX']
+				: t === 'WFTM'
+				? data.tokenNameMapping['FTM']
+				: data.tokenNameMapping[t]
+		})
+		p['rewardTokensNames'] = xy.filter((t) => t)
 	}
 
 	return {

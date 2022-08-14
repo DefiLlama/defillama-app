@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
+import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
 import { OptionButton } from '~/components/ButtonStyled'
 import { RowBetween, AutoRow } from '~/components/Row'
@@ -27,22 +28,11 @@ import {
 	toNiceCsvDate,
 	download
 } from '~/utils'
+import { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
 
-function Chart({ peggedAreaChartData, peggedAreaTotalData, totalMcapLabel, chainNames, aspect }) {
-	const finalChartData = peggedAreaChartData ? peggedAreaChartData : peggedAreaTotalData
-	const labels = chainNames ? chainNames : totalMcapLabel
-	return (
-		<AreaChart
-			aspect={aspect}
-			finalChartData={finalChartData}
-			tokensUnique={labels}
-			color={'blue'}
-			moneySymbol="$"
-			formatDate={toNiceMonthlyDate}
-			hallmarks={[]}
-		/>
-	)
-}
+const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/PeggedAreaChart'), {
+	ssr: false
+}) as React.FC<IProtocolMcapTVLChartProps>
 
 const AssetFilters = styled.div`
 	margin: 12px 0 16px;
@@ -59,7 +49,7 @@ const PeggedTable = styled(Table)`
 	tr > :first-child {
 		padding-left: 40px;
 	}
-	
+
 	// PEGGED NAME
 	tr > *:nth-child(1) {
 		& > * {
@@ -262,7 +252,8 @@ function PeggedChainsOverview({
 	chartData,
 	peggedChartDataByChain,
 	chainList,
-	chainsGroupbyParent
+	chainsGroupbyParent,
+	chainTVLData
 }) {
 	const [chartType, setChartType] = useState('Area')
 
@@ -271,11 +262,11 @@ function PeggedChainsOverview({
 	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
 	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useCreatePeggedCharts(
-		chartData,
 		peggedChartDataByChain,
 		chainList,
-		chartType,
-		[...Array(chainList.length).keys()]
+		[...Array(chainList.length).keys()],
+		'mcap',
+		chainTVLData
 	)
 
 	const filteredPeggedAssets = chainCirculatings
@@ -313,7 +304,7 @@ function PeggedChainsOverview({
 
 	const dominance = getPeggedDominance(topChain, totalMcapCurrent)
 
-	const totalMcapLabel = ['Total Stablecoins Market Cap']
+	const totalMcapLabel = ['Mcap', 'TVL']
 
 	const groupedChains = useGroupChainsPegged(chainTotals, chainsGroupbyParent)
 
@@ -331,12 +322,22 @@ function PeggedChainsOverview({
 	}, [groupedChains])
 
 	const chainColor = useMemo(
-		() => Object.fromEntries([...chainTotals, 'Others'].map((chain) => [chain.name, getRandomColor()])),
+		() =>
+			Object.fromEntries(
+				[...chainTotals, 'Others'].map((chain) => {
+					return typeof chain === 'string' ? ['-', getRandomColor()] : [chain.name, getRandomColor()]
+				})
+			),
 		[chainTotals]
 	)
 
 	const groupedChainColor = useMemo(
-		() => Object.fromEntries([...groupedChains, 'Others'].map((chain) => [chain.name, getRandomColor()])),
+		() =>
+			Object.fromEntries(
+				[...groupedChains, 'Others'].map((chain) => {
+					return typeof chain === 'string' ? ['-', getRandomColor()] : [chain.name, getRandomColor()]
+				})
+			),
 		[groupedChains]
 	)
 
@@ -352,7 +353,7 @@ function PeggedChainsOverview({
 				<BreakpointPanels>
 					<BreakpointPanel>
 						<h1>Total {title}</h1>
-						<p style={{ '--tile-text-color': '#4f8fea' }}>{mcapToDisplay}</p>
+						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>{mcapToDisplay}</p>
 						<DownloadButton as="button" onClick={downloadCsv}>
 							<DownloadIcon />
 							<span>&nbsp;&nbsp;.csv</span>
@@ -360,11 +361,11 @@ function PeggedChainsOverview({
 					</BreakpointPanel>
 					<BreakpointPanel>
 						<h2>Change (7d)</h2>
-						<p style={{ '--tile-text-color': '#fd3c99' }}> {percentChange || 0}%</p>
+						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {percentChange || 0}%</p>
 					</BreakpointPanel>
 					<BreakpointPanel>
 						<h2>{topChain.name} Dominance</h2>
-						<p style={{ '--tile-text-color': '#46acb7' }}> {dominance}%</p>
+						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {dominance}%</p>
 					</BreakpointPanel>
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
@@ -384,8 +385,28 @@ function PeggedChainsOverview({
 							</OptionButton>
 						</AutoRow>
 					</RowBetween>
-					{chartType === 'Mcap' && <Chart {...{ peggedAreaTotalData, totalMcapLabel, aspect }} />}
-					{chartType === 'Area' && <Chart {...{ peggedAreaChartData, chainNames: chainList, aspect }} />}
+					{chartType === 'Mcap' && (
+						<PeggedAreaChart
+							title={`Total ${title}`}
+							chartData={peggedAreaTotalData}
+							tokensUnique={totalMcapLabel}
+							color={'lightcoral'}
+							moneySymbol="$"
+							hideLegend={true}
+							hallmarks={[]}
+						/>
+					)}
+					{chartType === 'Area' && (
+						<AreaChart
+							aspect={aspect}
+							finalChartData={peggedAreaChartData}
+							tokensUnique={chainList}
+							color={'blue'}
+							moneySymbol="$"
+							formatDate={toNiceMonthlyDate}
+							hallmarks={[]}
+						/>
+					)}
 					{chartType === 'Dominance' && (
 						<PeggedChainResponsiveDominance
 							stackOffset="expand"

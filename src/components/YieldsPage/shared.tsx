@@ -16,7 +16,7 @@ export const TableWrapper = styled(Table)`
 	// POOL
 	tr > *:nth-child(1) {
 		& > * {
-			width: 120px;
+			width: 140px;
 			display: flex;
 		}
 
@@ -65,7 +65,7 @@ export const TableWrapper = styled(Table)`
 		padding-right: 20px;
 
 		& > * {
-			width: 90px;
+			width: 80px;
 		}
 	}
 
@@ -88,7 +88,7 @@ export const TableWrapper = styled(Table)`
 		display: none;
 
 		& > * {
-			width: 90px;
+			width: 80px;
 		}
 	}
 
@@ -101,30 +101,16 @@ export const TableWrapper = styled(Table)`
 		}
 	}
 
-	@media screen and (min-width: 320px) {
-		tr > *:nth-child(1) {
-			& > a {
-				width: 140px;
-			}
-		}
-	}
-
 	@media screen and (min-width: 360px) {
-		tr > *:nth-child(1) {
-			& > a {
-				width: 180px;
-			}
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
 		// POOL
 		tr > *:nth-child(1) {
 			& > * {
 				width: 200px;
 			}
 		}
+	}
 
+	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
 		// PROJECT
 		tr > *:nth-child(2) {
 			display: revert;
@@ -177,6 +163,7 @@ export const TableWrapper = styled(Table)`
 		// REWARD APY
 		tr > *:nth-child(7) {
 			display: revert;
+			padding-right: 20px;
 		}
 	}
 
@@ -191,6 +178,10 @@ export const TableWrapper = styled(Table)`
 		// REWARD APY
 		tr > *:nth-child(7) {
 			padding-right: 0;
+
+			& > * {
+				width: 140px;
+			}
 		}
 
 		// OUTLOOK
@@ -243,6 +234,7 @@ export const columns = [
 				value={value}
 				poolId={rowValues.id}
 				project={rowValues.project}
+				url={rowValues.url ?? ''}
 				index={rowIndex !== null && rowIndex + 1}
 				bookmark
 				rowType={rowType}
@@ -258,10 +250,9 @@ export const columns = [
 		)
 	},
 	{
-		header: 'Chains',
+		header: 'Chain',
 		accessor: 'chains',
 		disableSortBy: true,
-		helperText: "Chains are ordered by protocol's highest TVL on each chain",
 		Cell: ({ value }) => <IconsRow links={value} url="/yields?chain" iconType="chain" />
 	},
 	...columnsToShow('tvl'),
@@ -272,8 +263,8 @@ export const columns = [
 		Cell: ({ value, rowValues }) => {
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{rowValues.project === 'Osmosis' ? (
-						<QuestionHelper text={`${rowValues.id.split('-').slice(-1)} lock`} />
+					{rowValues.project === 'Alpaca Finance' ? (
+						<QuestionHelper text={'Lowest Leverage'} />
 					) : rowValues.project === 'cBridge' ? (
 						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY'} />
 					) : null}
@@ -295,13 +286,26 @@ export const columns = [
 		accessor: 'apyReward',
 		helperText: 'Annualised percentage yield from incentives',
 		Cell: ({ value, rowValues }) => {
+			const rewards = rowValues.rewards ?? []
 			return (
-				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{(rowValues.rewardTokensSymbols || []).length > 0 ? (
-						<QuestionHelper text={`${rowValues.rewardTokensSymbols}`} />
-					) : null}
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{rewards.includes('Optimism') || rewards.includes('Avalanche') ? (
+						<IconsRow
+							links={rewards}
+							url="/yields?chain"
+							iconType="chain"
+							yieldRewardsSymbols={rowValues.rewardTokensSymbols}
+						/>
+					) : (
+						<IconsRow
+							links={rewards}
+							url="/yields?project"
+							iconType="token"
+							yieldRewardsSymbols={rowValues.rewardTokensSymbols}
+						/>
+					)}
 					{formattedPercent(value, true)}
-				</span>
+				</AutoRow>
 			)
 		}
 	},

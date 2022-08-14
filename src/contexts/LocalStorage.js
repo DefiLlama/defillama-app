@@ -1,19 +1,18 @@
-import { createContext, useContext, useReducer, useMemo, useCallback, useState } from 'react'
+import { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
 import { trackGoal } from 'fathom-client'
 import { standardizeProtocolName } from '~/utils'
 import { useIsClient } from '~/hooks'
+import { useRouter } from 'next/router'
 
-const SAVED_TOKENS = 'SAVED_TOKENS'
-const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
-
+const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'
 export const POOL2 = 'pool2'
 export const STAKING = 'staking'
 export const BORROWED = 'borrowed'
 export const DOUBLE_COUNT = 'doublecounted'
+export const LIQUID_STAKING = 'liquidstaking'
 export const DISPLAY_USD = 'DISPLAY_USD'
 export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
-export const DEFAULT_PORTFOLIO = 'main'
 export const STABLECOINS = 'STABLECOINS'
 export const SINGLE_EXPOSURE = 'SINGLE_EXPOSURE'
 export const NO_IL = 'NO_IL'
@@ -21,6 +20,8 @@ export const MILLION_DOLLAR = 'MILLION_DOLLAR'
 export const AUDITED = 'AUDITED'
 export const NO_OUTLIER = 'NO_OUTLIER'
 export const APY_GT0 = 'APY_GT0'
+export const STABLE_OUTLOOK = 'STABLE_OUTLOOK'
+export const HIGH_CONFIDENCE = 'HIGH_CONFIDENCE'
 export const UNRELEASED = 'unreleased'
 export const PEGGEDUSD = 'PEGGEDUSD'
 export const PEGGEDEUR = 'PEGGEDEUR'
@@ -29,7 +30,12 @@ export const FIATSTABLES = 'FIATSTABLES'
 export const CRYPTOSTABLES = 'CRYPTOSTABLES'
 export const ALGOSTABLES = 'ALGOSTABLES'
 
-export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT]
+export const DEFI_WATCHLIST = 'DEFI_WATCHLIST'
+export const YIELDS_WATCHLIST = 'YIELDS_WATCHLIST'
+export const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
+export const DEFAULT_PORTFOLIO_NAME = 'main'
+
+export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING]
 export const extraPeggedProps = [UNRELEASED]
 
 export const groupSettings = [
@@ -60,12 +66,13 @@ const groupKeys = groupSettings.map((g) => g.key)
 
 const UPDATABLE_KEYS = [
 	DARK_MODE,
-	SAVED_TOKENS,
+	DEFI_WATCHLIST,
+	YIELDS_WATCHLIST,
+	SELECTED_PORTFOLIO,
 	...extraTvlProps,
 	...extraPeggedProps,
 	DISPLAY_USD,
 	HIDE_LAST_DAY,
-	SELECTED_PORTFOLIO,
 	...groupKeys,
 	PEGGEDUSD,
 	PEGGEDEUR,
@@ -115,11 +122,21 @@ function init() {
 		[FIATSTABLES]: true,
 		[CRYPTOSTABLES]: true,
 		[ALGOSTABLES]: true,
-		[SAVED_TOKENS]: { main: {} },
-		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO
+		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
+		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
+		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME
 	}
 
-	return defaultLocalStorage
+	try {
+		const parsed = JSON.parse(window.localStorage.getItem(DEFILLAMA))
+		if (!parsed) {
+			return defaultLocalStorage
+		} else {
+			return { ...defaultLocalStorage, ...parsed }
+		}
+	} catch {
+		return defaultLocalStorage
+	}
 }
 
 export default function Provider({ children }) {
@@ -130,29 +147,47 @@ export default function Provider({ children }) {
 	}, [])
 
 	// Change format from save addresses to save protocol names, so backwards compatible
+	const savedDefiProtocols = state[DEFI_WATCHLIST]
+	const savedYieldsProtocols = state[YIELDS_WATCHLIST]
 
-	const savedProtocols = state[SAVED_TOKENS]
+	let newSavedDefiProtocols = savedDefiProtocols
+	let newSavedYieldsProtocols = savedYieldsProtocols
 
-	let newSavedProtocols = savedProtocols
-
-	if (!newSavedProtocols?.main) {
-		const oldAddresses = Object.entries(savedProtocols)
+	if (!newSavedDefiProtocols?.main) {
+		const oldAddresses = Object.entries(savedDefiProtocols)
 			.map(([, value]) => (value?.protocol ? [standardizeProtocolName(value?.protocol), value?.protocol] : []))
 			.filter((validPairs) => validPairs.length)
 
-		newSavedProtocols = oldAddresses.length ? { main: Object.fromEntries(oldAddresses) } : { main: {} }
+		newSavedDefiProtocols = oldAddresses.length ? { main: Object.fromEntries(oldAddresses) } : { main: {} }
 	}
 
-	return (
-		<LocalStorageContext.Provider
-			value={useMemo(
-				() => [{ ...state, [SAVED_TOKENS]: newSavedProtocols }, { updateKey }],
-				[state, updateKey, newSavedProtocols]
-			)}
-		>
-			{children}
-		</LocalStorageContext.Provider>
+	if (!newSavedYieldsProtocols?.main) {
+		const oldAddresses = Object.entries(savedYieldsProtocols)
+			.map(([, value]) => (value?.protocol ? [standardizeProtocolName(value?.protocol), value?.protocol] : []))
+			.filter((validPairs) => validPairs.length)
+
+		newSavedYieldsProtocols = oldAddresses.length ? { main: Object.fromEntries(oldAddresses) } : { main: {} }
+	}
+
+	const values = useMemo(
+		() => [
+			{ ...state, [DEFI_WATCHLIST]: newSavedDefiProtocols, [YIELDS_WATCHLIST]: newSavedYieldsProtocols },
+			{ updateKey }
+		],
+		[state, updateKey, newSavedDefiProtocols, newSavedYieldsProtocols]
 	)
+
+	return <LocalStorageContext.Provider value={values}>{children}</LocalStorageContext.Provider>
+}
+
+export function Updater() {
+	const [state] = useLocalStorageContext()
+
+	useEffect(() => {
+		window.localStorage.setItem(DEFILLAMA, JSON.stringify(state))
+	})
+
+	return null
 }
 
 export function useDarkModeManager() {
@@ -167,6 +202,34 @@ export function useDarkModeManager() {
 		[updateKey, isDarkMode]
 	)
 	return [isDarkMode, toggleDarkMode]
+}
+
+// TODO remove all state managers and use this settings manager
+export function useSettingsManager(settings) {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const isClient = useIsClient()
+
+	const toggledSettings = useMemo(
+		() =>
+			settings.reduce((acc, setting) => {
+				let toggled = false
+				if (isClient) {
+					toggled = state[setting]
+				} else if (setting === 'emulator') {
+					toggled = true
+				} else toggled = false
+
+				acc[setting] = toggled
+				return acc
+			}, {}),
+		[state, isClient, settings]
+	)
+
+	const updater = (key) => () => {
+		updateKey(key, !state[key])
+	}
+
+	return [toggledSettings, updater]
 }
 
 export const useGetExtraTvlEnabled = () => {
@@ -285,30 +348,6 @@ export function useAlgoStablesManager() {
 	return [algoStables, toggleAlgoStables]
 }
 
-export function useStakingManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	let stakingEnabled = state[STAKING]
-	const toggleStaking = useCallback(
-		(value) => {
-			updateKey(STAKING, value === false || value === true ? value : !stakingEnabled)
-		},
-		[updateKey, stakingEnabled]
-	)
-	return [stakingEnabled, toggleStaking]
-}
-
-export function useBorrowedManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	let borrowedEnabled = state[BORROWED]
-	const toggleBorrowed = useCallback(
-		(value) => {
-			updateKey(BORROWED, value === false || value === true ? value : !borrowedEnabled)
-		},
-		[updateKey, borrowedEnabled]
-	)
-	return [borrowedEnabled, toggleBorrowed]
-}
-
 export function useDisplayUsdManager() {
 	const [state, { updateKey }] = useLocalStorageContext()
 	const displayUsd = state[DISPLAY_USD]
@@ -331,42 +370,55 @@ export function useHideLastDayManager() {
 	return [hideLastDay, toggleHideLastDay]
 }
 
-// Since we are only using protocol name as the unique identifier for the /protcol/:name route, change keys to be unique by name for now.
-export function useSavedProtocols() {
-	const [pinnedOpen, setPinnedOpen] = useState(false)
-	const [state, { updateKey }] = useLocalStorageContext()
-	const savedProtocols = state?.[SAVED_TOKENS]
-	const selectedPortfolio = state?.[SELECTED_PORTFOLIO]
+export function useWatchlist() {
+	const router = useRouter()
+	const WATCHLIST = router.pathname.startsWith('/yields') ? YIELDS_WATCHLIST : DEFI_WATCHLIST
 
-	function addPortfolio(portfolio) {
-		const newList = state?.[SAVED_TOKENS]
-		newList[portfolio] = {}
-		updateKey(SAVED_TOKENS, newList)
+	const [state, { updateKey }] = useLocalStorageContext()
+
+	const selectedPortfolio = state?.[SELECTED_PORTFOLIO] ?? DEFAULT_PORTFOLIO_NAME
+	const savedProtocols = state?.[WATCHLIST]?.[selectedPortfolio] ?? {}
+	const watchlistPortfolios = Object.keys(state?.[WATCHLIST] ?? {})
+
+	function addPortfolio() {
+		const newPortfolio = window.prompt('New Portfolio name')
+
+		if (newPortfolio) {
+			const newList = state?.[WATCHLIST]
+			newList[newPortfolio] = {}
+			updateKey(WATCHLIST, newList)
+		}
 	}
 
 	function removePortfolio(portfolio) {
-		const newList = state?.[SAVED_TOKENS]
-		delete newList?.[portfolio]
-		updateKey(SAVED_TOKENS, newList)
+		const confirmed = window.confirm(`Do you really want to delete "${selectedPortfolio}"?`)
+
+		if (confirmed) {
+			setSelectedPortfolio(DEFAULT_PORTFOLIO_NAME)
+
+			const newList = state?.[WATCHLIST]
+			delete newList?.[portfolio]
+			updateKey(WATCHLIST, newList)
+		}
 	}
 
 	function addProtocol(readableProtocolName) {
-		let newList = state?.[SAVED_TOKENS]
+		let newList = state?.[WATCHLIST]
 		const standardProtocol = standardizeProtocolName(readableProtocolName)
 		newList[selectedPortfolio] = {
 			...(newList[selectedPortfolio] || {}),
 			[standardProtocol]: readableProtocolName
 		}
 		trackGoal('VQ0TO7CU', standardProtocol)
-		updateKey(SAVED_TOKENS, newList)
+		updateKey(WATCHLIST, newList)
 	}
 
 	function removeProtocol(protocol) {
-		let newList = state?.[SAVED_TOKENS]
+		let newList = state?.[WATCHLIST]
 		const standardProtocol = standardizeProtocolName(protocol)
 		delete newList?.[selectedPortfolio]?.[standardProtocol]
 		trackGoal('6SL0NZYJ', standardProtocol)
-		updateKey(SAVED_TOKENS, newList)
+		updateKey(WATCHLIST, newList)
 	}
 
 	function setSelectedPortfolio(name) {
@@ -379,8 +431,7 @@ export function useSavedProtocols() {
 		removeProtocol,
 		addPortfolio,
 		removePortfolio,
-		pinnedOpen,
-		setPinnedOpen,
+		portfolios: watchlistPortfolios,
 		selectedPortfolio,
 		setSelectedPortfolio
 	}

@@ -114,20 +114,11 @@ export const useCalcStakePool2Tvl = (
 	filteredProtocols: Readonly<IProtocol[]>,
 	defaultSortingColumn?: string,
 	dir?: 'asc',
-	applyDoublecounted = false
+	applyLqAndDc = false
 ) => {
 	const extraTvlsEnabled: ExtraTvls = useGetExtraTvlEnabled()
 
 	const protocolTotals = useMemo(() => {
-		const checkExtras = {
-			...extraTvlsEnabled,
-			doublecounted: !extraTvlsEnabled.doublecounted
-		}
-
-		if (Object.values(checkExtras).every((t) => !t)) {
-			return filteredProtocols
-		}
-
 		const updatedProtocols = filteredProtocols.map(
 			({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, ...props }) => {
 				let finalTvl: number | null = tvl
@@ -135,17 +126,46 @@ export const useCalcStakePool2Tvl = (
 				let finalTvlPrevWeek: number | null = tvlPrevWeek
 				let finalTvlPrevMonth: number | null = tvlPrevMonth
 
+				// if (props.name === 'Ethereum') {
+				// 	const initialTvl = tvl
+				// 	const doublecounted = extraTvl['doublecounted'].tvl
+				// 	const liquidstaking = extraTvl['liquidstaking'].tvl
+				// 	const overlap = extraTvl['dcandlsoverlap'].tvl
+				// 	console.log(['doublecounted', 'liquidstaking', 'total'])
+				// 	console.log(['on', 'on', initialTvl])
+				// 	console.log(['on', 'off', initialTvl - liquidstaking + overlap])
+				// 	console.log(['off', 'on', initialTvl - doublecounted + overlap])
+				// 	console.log(['off', 'off', initialTvl - doublecounted - liquidstaking + overlap])
+				// }
+
 				Object.entries(extraTvl).forEach(([prop, propValues]) => {
 					const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
 
-					if (prop === 'doublecounted' && applyDoublecounted) {
+					if (applyLqAndDc && prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
 						tvl && (finalTvl = (finalTvl || 0) - tvl)
 						tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
 						tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
 						tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
 					}
+
+					if (applyLqAndDc && prop === 'liquidstaking' && !extraTvlsEnabled['liquidstaking']) {
+						tvl && (finalTvl = (finalTvl || 0) - tvl)
+						tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
+						tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
+						tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
+					}
+
+					if (applyLqAndDc && prop.toLowerCase() === 'dcandlsoverlap') {
+						if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
+							tvl && (finalTvl = (finalTvl || 0) + tvl)
+							tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
+							tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
+							tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
+						}
+					}
+
 					// convert to lowercase as server response is not consistent in extra-tvl names
-					if (extraTvlsEnabled[prop.toLowerCase()] && (prop.toLowerCase() !== 'doublecounted' || applyDoublecounted)) {
+					if (extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') {
 						// check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
 						tvl && (finalTvl = (finalTvl || 0) + tvl)
 						tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
@@ -184,11 +204,12 @@ export const useCalcStakePool2Tvl = (
 				} else return b[defaultSortingColumn] - a[defaultSortingColumn]
 			})
 		}
-	}, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn, dir, applyDoublecounted])
+	}, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn, dir, applyLqAndDc])
 
 	return protocolTotals
 }
 
+// used in tables of protocols by chain and categories pages
 export const useCalcProtocolsTvls = ({
 	protocols,
 	parentProtocols
@@ -213,6 +234,11 @@ export const useCalcProtocolsTvls = ({
 					let finalTvlPrevMonth: number | null = tvlPrevMonth
 					let strikeTvl = false
 
+					// keep liquid staking in same positon in table but strike its tvl
+					if (props.category === 'Liquid Staking' && !extraTvlsEnabled['liquidstaking']) {
+						strikeTvl = true
+					}
+
 					Object.entries(extraTvl).forEach(([prop, propValues]) => {
 						const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
 
@@ -220,7 +246,11 @@ export const useCalcProtocolsTvls = ({
 							strikeTvl = true
 						} else {
 							// convert to lowercase as server response is not consistent in extra-tvl names
-							if (extraTvlsEnabled[prop.toLowerCase()] && prop.toLowerCase() !== 'doublecounted') {
+							if (
+								extraTvlsEnabled[prop.toLowerCase()] &&
+								prop.toLowerCase() !== 'doublecounted' &&
+								prop.toLowerCase() !== 'liquidstaking'
+							) {
 								// check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
 								tvl && (finalTvl = (finalTvl || 0) + tvl)
 								tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
@@ -389,11 +419,24 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 				totalDaySum += chainTvls[tvlKey] || 0
 
 				for (const c in chainTvls) {
-					if (c === 'doublecounted' || c === 'd') {
+					if ((c === 'doublecounted' || c === 'd') && !extraTvlsEnabled['doublecounted']) {
 						sum -= chainTvls[c]
 						totalDaySum -= chainTvls[c]
 					}
-					if (extraTvlsEnabled[c.toLowerCase()]) {
+
+					if ((c === 'liquidstaking' || c === 'l') && !extraTvlsEnabled['liquidstaking']) {
+						sum -= chainTvls[c]
+						totalDaySum -= chainTvls[c]
+					}
+
+					if (c.toLowerCase() === 'dcandlsoverlap' || c === 'dl') {
+						if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
+							sum += chainTvls[c]
+							totalDaySum += chainTvls[c]
+						}
+					}
+
+					if (extraTvlsEnabled[c.toLowerCase()] && c !== 'doublecounted' && c !== 'liquidstaking') {
 						sum += chainTvls[c]
 						totalDaySum += chainTvls[c]
 					}
@@ -418,10 +461,21 @@ export const useCalcExtraTvlsByDay = (data) => {
 			let sum = values.tvl || 0
 
 			for (const value in values) {
-				if (value === 'doublecounted') {
+				if (value === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
 					sum -= values[value]
 				}
-				if (extraTvlsEnabled[value.toLowerCase()]) {
+
+				if ((value === 'liquidstaking' || value === 'd') && !extraTvlsEnabled['liquidstaking']) {
+					sum -= values[value]
+				}
+
+				if (value.toLowerCase() === 'dcandlsoverlap') {
+					if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
+						sum += values[value]
+					}
+				}
+
+				if (extraTvlsEnabled[value.toLowerCase()] && value !== 'doublecounted' && value !== 'liquidstaking') {
 					sum += values[value]
 				}
 			}
@@ -471,11 +525,11 @@ export const useCalcCirculating = (filteredPeggedAssets: IPegged[]) => {
 }
 
 export const useCreatePeggedCharts = (
-	chartData,
-	chartDataByPeggedAsset,
-	peggedAssetNames,
-	chartType,
+	chartDataByAssetOrChain,
+	assetSymbolsOrChainsList,
 	filteredIndexes?,
+	issuanceType = 'mcap',
+	chainTVLData?,
 	selectedChain?,
 	backfilledChains = ['All']
 ) => {
@@ -483,28 +537,26 @@ export const useCreatePeggedCharts = (
 		let unformattedAreaData = {}
 		let unformattedTotalData = {}
 		let stackedDatasetObject = {}
-		chartDataByPeggedAsset.map((charts, i) => {
+		chartDataByAssetOrChain.map((charts, i) => {
 			if (!charts.length || !filteredIndexes.includes(i)) return
 			charts.forEach((chart) => {
-				const mcap = getPrevPeggedTotalFromChart([chart], 0, 'mcap')
-				const peggedName = peggedAssetNames[i]
+				const mcap = getPrevPeggedTotalFromChart([chart], 0, issuanceType)
+				const assetOrChain = assetSymbolsOrChainsList[i]
 				const date = chart.date
 				if (date > 1596248105 && mcap) {
 					if (backfilledChains.includes(selectedChain) || date > 1652241600) {
 						// for individual chains data is currently only backfilled to May 11, 2022
 						unformattedAreaData[date] = unformattedAreaData[date] || {}
-						unformattedAreaData[date][peggedAssetNames[i]] = mcap
+						unformattedAreaData[date][assetSymbolsOrChainsList[i]] = mcap
 
-						unformattedTotalData[date] = unformattedTotalData[date] || {}
-						unformattedTotalData[date]['Total Stablecoins Market Cap'] =
-							(unformattedTotalData[date]['Total Stablecoins Market Cap'] ?? 0) + mcap
+						unformattedTotalData[date] = (unformattedTotalData[date] ?? 0) + mcap
 
 						if (mcap !== null && mcap !== 0) {
 							if (stackedDatasetObject[date] == undefined) {
 								stackedDatasetObject[date] = {}
 							}
-							const b = stackedDatasetObject[date][peggedName]
-							stackedDatasetObject[date][peggedName] = { ...b, circulating: mcap ?? 0 }
+							const b = stackedDatasetObject[date][assetOrChain]
+							stackedDatasetObject[date][assetOrChain] = { ...b, circulating: mcap ?? 0 }
 						}
 					}
 				}
@@ -520,19 +572,38 @@ export const useCreatePeggedCharts = (
 			}
 		})
 
-		const peggedAreaTotalData = Object.entries(unformattedTotalData).map(([date, chart]) => {
-			if (typeof chart === 'object') {
-				return {
-					date: date,
-					...chart
-				}
-			}
-		})
+		const peggedAreaTotalData = chainTVLData
+			? chainTVLData.tvl
+					.map(([date, tvl]) => {
+						if (date < 1609372800) return
+						if (!backfilledChains.includes(selectedChain) && date < 1652241600) return
+						const mcap = unformattedTotalData[date] ?? 0
+						return {
+							date: date,
+							Mcap: mcap,
+							TVL: tvl
+						}
+					})
+					.filter((entry) => entry)
+			: Object.entries(unformattedTotalData).map(([date, mcap]) => {
+					return {
+						date: date,
+						Mcap: mcap
+					}
+			  })
 
 		const stackedDataset = Object.entries(stackedDatasetObject)
 
 		return [peggedAreaChartData, peggedAreaTotalData, stackedDataset]
-	}, [chartDataByPeggedAsset, chartData, filteredIndexes, chartType, backfilledChains, peggedAssetNames, selectedChain])
+	}, [
+		chartDataByAssetOrChain,
+		filteredIndexes,
+		backfilledChains,
+		assetSymbolsOrChainsList,
+		selectedChain,
+		chainTVLData,
+		issuanceType
+	])
 	return [peggedAreaChartData, peggedAreaTotalData, stackedDataset]
 }
 
@@ -657,82 +728,86 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 			const percentBridged =
 				parent.circulating && parent.bridgedAmount && (parent.bridgedAmount / parent.circulating) * 100.0
 			const percentBridgedtoDisplay = percentBridged < 100 ? percentBridged.toFixed(2) + '%' : '100%'
-			if (!parentBridges) {
+			if (!parentBridges || Object.keys(parentBridges).length === 0) {
 				finalData[parent.name] = {
 					...parent,
 					bridgeInfo: {
 						name: '-'
 					}
 				}
-			} else if (
-				Object.keys(parentBridges).length === 1 &&
-				Object.keys(parentBridges[Object.keys(parentBridges)[0]]).length === 1 &&
-				parent.bridgedAmount === parent.circulating
-			) {
-				const bridgeID = Object.keys(parentBridges)[0]
-				const bridgeInfo = bridgeInfoObject[bridgeID] ?? { name: 'not-found' }
-				let childData = {}
-				if (bridgeInfo.name === 'Natively Issued') {
-					bridgeInfo.name = '-'
-					childData = {
+			} else {
+				const parentBridgeIDsArray = Object.keys(parentBridges)
+				const parentFirstBridgeID = parentBridgeIDsArray[0]
+				const parentFirstBridgeInfo = bridgeInfoObject[parentFirstBridgeID] ?? { name: 'not-found' }
+				const parentFirstBridgeSourcesArray = Object.keys(parentBridges[parentFirstBridgeID])
+				if (
+					parentBridgeIDsArray.length === 1 &&
+					parentFirstBridgeSourcesArray.length === 1 &&
+					parent.bridgedAmount === parent.circulating
+				) {
+					let childData = {}
+					if (parentFirstBridgeInfo.name === 'Natively Issued') {
+						parentFirstBridgeInfo.name = '-'
+						childData = {
+							...parent,
+							bridgeInfo: parentFirstBridgeInfo,
+							bridgedAmount: percentBridgedtoDisplay,
+							name: `Natively Issued`
+						}
+					} else {
+						const sourceChain = parentFirstBridgeSourcesArray[0] ?? 'not-found'
+						childData = {
+							...parent,
+							bridgeInfo: parentFirstBridgeInfo,
+							bridgedAmount: percentBridgedtoDisplay,
+							name: `Bridged from ${capitalizeFirstLetter(sourceChain)}`
+						}
+					}
+					finalData[parent.name] = {
 						...parent,
-						bridgeInfo: bridgeInfo,
+						bridgeInfo: parentFirstBridgeInfo,
 						bridgedAmount: percentBridgedtoDisplay,
-						name: `Natively Issued`
+						subRows: [childData]
 					}
 				} else {
-					const sourceChain = Object.keys(parentBridges[bridgeID])[0] ?? 'not-found'
-					childData = {
-						...parent,
-						bridgeInfo: bridgeInfo,
-						bridgedAmount: percentBridgedtoDisplay,
-						name: `Bridged from ${capitalizeFirstLetter(sourceChain)}`
-					}
-				}
-				finalData[parent.name] = {
-					...parent,
-					bridgeInfo: bridgeInfo,
-					bridgedAmount: percentBridgedtoDisplay,
-					subRows: [childData]
-				}
-			} else {
-				let totalBridged = 0
-				for (const bridgeID in parentBridges) {
-					for (const sourceChain in parentBridges[bridgeID]) {
-						totalBridged += parentBridges[bridgeID][sourceChain].amount ?? 0
-					}
-				}
-				for (const bridgeID in parentBridges) {
-					for (const sourceChain in parentBridges[bridgeID]) {
-						const bridgeInfo = bridgeInfoObject[bridgeID] ?? {
-							name: 'not-found'
+					let totalBridged = 0
+					for (const bridgeID in parentBridges) {
+						for (const sourceChain in parentBridges[bridgeID]) {
+							totalBridged += parentBridges[bridgeID][sourceChain].amount ?? 0
 						}
-						const subChains = finalData[parent.name].subRows || []
-						const parentAmountBridged = parentBridges[bridgeID][sourceChain].amount
-						const percentBridgedBreakdown =
-							parentAmountBridged &&
-							totalBridged &&
-							(parentAmountBridged / totalBridged) * (percentBridged > 100 ? 100 : percentBridged)
-						const percentBridgedBreakdownToDisplay =
-							percentBridgedBreakdown < 100 ? percentBridgedBreakdown.toFixed(2) + '%' : '100%'
+					}
+					for (const bridgeID in parentBridges) {
+						for (const sourceChain in parentBridges[bridgeID]) {
+							const bridgeInfo = bridgeInfoObject[bridgeID] ?? {
+								name: 'not-found'
+							}
+							const subChains = finalData[parent.name].subRows || []
+							const parentAmountBridged = parentBridges[bridgeID][sourceChain].amount
+							const percentBridgedBreakdown =
+								parentAmountBridged &&
+								totalBridged &&
+								(parentAmountBridged / totalBridged) * (percentBridged > 100 ? 100 : percentBridged)
+							const percentBridgedBreakdownToDisplay =
+								percentBridgedBreakdown < 100 ? percentBridgedBreakdown.toFixed(2) + '%' : '100%'
 
-						const childData = {
-							...parent,
-							name: `Bridged from ${capitalizeFirstLetter(sourceChain)}`,
-							bridgeInfo: bridgeInfo,
-							bridgedAmount: percentBridgedBreakdownToDisplay,
-							circulating: parentAmountBridged,
-							change_1d: null,
-							change_7d: null,
-							change_1m: null
-						}
-						finalData[parent.name] = {
-							...parent,
-							bridgedAmount: percentBridgedtoDisplay,
-							bridgeInfo: {
-								name: '-'
-							},
-							subRows: [...subChains, childData]
+							const childData = {
+								...parent,
+								name: `Bridged from ${capitalizeFirstLetter(sourceChain)}`,
+								bridgeInfo: bridgeInfo,
+								bridgedAmount: percentBridgedBreakdownToDisplay,
+								circulating: parentAmountBridged,
+								change_1d: null,
+								change_7d: null,
+								change_1m: null
+							}
+							finalData[parent.name] = {
+								...parent,
+								bridgedAmount: percentBridgedtoDisplay,
+								bridgeInfo: {
+									name: '-'
+								},
+								subRows: [...subChains, childData]
+							}
 						}
 					}
 				}

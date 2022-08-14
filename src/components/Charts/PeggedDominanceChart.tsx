@@ -17,7 +17,6 @@ interface IProps {
 	chainsUnique: string[]
 	chainColor: IChainColor
 	daySum: IDaySum
-	asset: string
 }
 
 interface IResponsiveProps {
@@ -27,7 +26,6 @@ interface IResponsiveProps {
 	chainsUnique: string[]
 	chainColor: IChainColor
 	daySum: IDaySum
-	asset: string
 	aspect: number
 }
 

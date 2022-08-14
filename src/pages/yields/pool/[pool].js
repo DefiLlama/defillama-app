@@ -99,8 +99,8 @@ const PageView = () => {
 					<ProtocolName>
 						<FormattedName
 							text={
-								projectName === 'Osmosis'
-									? `${poolData.symbol} ${poolData.pool.split('-').slice(-1)}-lock`
+								poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
+									? `${poolData.symbol} (${poolData.poolMeta})`
 									: poolData.symbol ?? 'Loading'
 							}
 							maxCharacters={16}

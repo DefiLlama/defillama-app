@@ -17,7 +17,7 @@ import AuditInfo from '~/components/AuditInfo'
 import ProtocolTvlChart from '~/components/TokenChart/ProtocolTvlChart'
 import QuestionHelper from '~/components/QuestionHelper'
 import type { IChartProps } from '~/components/TokenChart/types'
-import { extraTvlOptions } from '~/components/SettingsModal'
+import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
 import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
@@ -253,7 +253,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			// check if tvl name is addl tvl type and is toggled
 			if (isLowerCase(name[0]) && extraTvlProps.includes(name) && tvl !== 0) {
 				acc.extraTvls.push([name, tvl])
-				acc.tvlOptions.push(extraTvlOptions.find((e) => e.key === name))
+				acc.tvlOptions.push(protocolsAndChainsOptions.find((e) => e.key === name))
 			} else {
 				// only include total tvl of each chain skip breakdown of addl tvls if extra tvl type is not toggled
 				if (!name.includes('-')) {

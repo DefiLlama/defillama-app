@@ -8,7 +8,7 @@ import { Menu } from '~/components/DropdownMenu'
 import { columns, TableWrapper } from '~/components/YieldsPage/shared'
 import { YieldsSearch } from '~/components/Search'
 import { useIsClient } from '~/hooks'
-import { DEFAULT_PORTFOLIO, useSavedProtocols } from '~/contexts/LocalStorage'
+import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
 
 interface IFolder {
 	isSaved?: boolean
@@ -25,35 +25,17 @@ const Action = styled.button<IFolder>`
 	}
 `
 
-function PortfolioContainer({ protocolsDict }) {
+export function YieldsWatchlistContainer({ protocolsDict }) {
 	const isClient = useIsClient()
 
-	const { addPortfolio, removePortfolio, savedProtocols, selectedPortfolio, setSelectedPortfolio } = useSavedProtocols()
+	const { addPortfolio, removePortfolio, savedProtocols, portfolios, selectedPortfolio, setSelectedPortfolio } =
+		useWatchlist()
 
-	const portfolios: string[] = Object.keys(savedProtocols).filter((portfolio) => portfolio !== selectedPortfolio)
-
-	const selectedPortfolioProtocols = savedProtocols[selectedPortfolio]
-
-	const onFolderClick = () => {
-		const newPortfolio = window.prompt('New Portfolio')
-		if (newPortfolio) {
-			addPortfolio(newPortfolio)
-		}
-	}
-
-	const onTrashClick = () => {
-		const deletedPortfolio = window.confirm(`Do you really want to delete "${selectedPortfolio}"?`)
-		if (deletedPortfolio) {
-			setSelectedPortfolio(DEFAULT_PORTFOLIO)
-			removePortfolio(selectedPortfolio)
-		}
-	}
-
-	const portfolio = Object.values(selectedPortfolioProtocols)
+	const savedProtocolsInWatchlist = Object.values(savedProtocols)
 
 	const filteredProtocols = useMemo(() => {
 		if (isClient) {
-			const list = protocolsDict.filter((p) => portfolio.includes(p.pool))
+			const list = protocolsDict.filter((p) => savedProtocolsInWatchlist.includes(p.pool))
 			return list.map((t) => ({
 				id: t.pool,
 				pool: t.symbol,
@@ -65,13 +47,16 @@ function PortfolioContainer({ protocolsDict }) {
 				apyBase: t.apyBase,
 				apyReward: t.apyReward,
 				rewardTokensSymbols: t.rewardTokensSymbols,
+				rewards: t.rewardTokensNames,
 				change1d: t.apyPct1D,
 				change7d: t.apyPct7D,
 				outlook: t.predictions.predictedClass,
-				confidence: t.predictions.binnedConfidence
+				confidence: t.predictions.binnedConfidence,
+				url: t.url,
+				category: t.category
 			}))
 		} else return []
-	}, [isClient, portfolio, protocolsDict])
+	}, [isClient, savedProtocolsInWatchlist, protocolsDict])
 
 	return (
 		<>
@@ -82,11 +67,11 @@ function PortfolioContainer({ protocolsDict }) {
 			<Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
 				<TYPE.main>Current portfolio:</TYPE.main>
 				<Menu name={selectedPortfolio} options={portfolios} onItemClick={(value) => setSelectedPortfolio(value)} />
-				<Action onClick={onFolderClick}>
+				<Action onClick={addPortfolio}>
 					<FolderPlus />
 				</Action>
-				{selectedPortfolio !== DEFAULT_PORTFOLIO && (
-					<Action onClick={onTrashClick}>
+				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
+					<Action onClick={removePortfolio}>
 						<Trash2 />
 					</Action>
 				)}
@@ -102,5 +87,3 @@ function PortfolioContainer({ protocolsDict }) {
 		</>
 	)
 }
-
-export default PortfolioContainer
