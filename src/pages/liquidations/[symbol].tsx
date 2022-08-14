@@ -13,6 +13,7 @@ import styled from 'styled-components'
 import React, { useState } from 'react'
 import { Clock } from 'react-feather'
 import { Panel } from '~/components'
+import { LiquidationsTable } from '../../components/LiquidationsPage/LiquidationsTable'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = params.symbol as string
@@ -71,6 +72,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 				<Clock size={12} />
 				<i>Last updated {minutesAgo}min ago</i>
 			</SmolHints>
+			<LiquidationsTable data={data} prevData={prevData} />
 		</Layout>
 	)
 }

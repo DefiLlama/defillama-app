@@ -42,6 +42,8 @@ export const YIELD_MEDIAN_API = 'https://yields.llama.fi/median'
 export const LIQUIDATIONS_API = 'https://api.llama.fi/liquidations'
 export const LIQUIDATIONS_HISTORICAL_S3_PATH = DATASETS_S3_PATH + '/liqs'
 
+export const CHAINS_API = 'https://api.llama.fi/chains'
+
 export const DEXS_API = 'https://api.llama.fi/dexs'
 export const DEX_BASE_API = 'https://api.llama.fi/dex'
 
