@@ -82,8 +82,8 @@ export default function VirtualTable({ instance }: ITableProps) {
 
 const Wrapper = styled.div`
 	background: #000;
-	overflow: auto;
 	border-radius: 12px;
+	overflow: auto;
 
 	table {
 		border-collapse: collapse;
@@ -96,6 +96,7 @@ const Wrapper = styled.div`
 		margin: 0;
 		position: sticky;
 		top: 0;
+		border-radius: 12px 12px 0 0;
 	}
 
 	th,
@@ -104,7 +105,15 @@ const Wrapper = styled.div`
 	}
 
 	th {
-		background: #000;
+		background: orange;
+
+		:first-of-type {
+			border-radius: 12px 0 0 0;
+		}
+
+		:last-of-type {
+			border-radius: 0 12px 0 0;
+		}
 	}
 
 	td {

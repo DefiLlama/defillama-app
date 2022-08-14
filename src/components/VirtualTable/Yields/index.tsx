@@ -15,8 +15,7 @@ export function YieldsTable({ data }: { data: IYieldTableRow[] }) {
 		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		debugTable: true
+		getSortedRowModel: getSortedRowModel()
 	})
 
 	return <VirtualTable instance={instance} />
