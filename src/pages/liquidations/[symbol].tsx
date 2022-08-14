@@ -58,7 +58,8 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 	const { data, prevData } = props
 	const minutesAgo = Math.round((Date.now() - data.time * 1000) / 1000 / 60)
 	return (
-		<Layout title={`${data.coingeckoAsset.name} (${data.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
+		// <Layout title={`${data.coingeckoAsset.name} (${data.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
+		<Layout title={`(${data.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
 			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: data.symbol, hideOptions: true }} />
 			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
 				<span>The liquidation levels dashboard is still under development. You're so early, anon!</span>
