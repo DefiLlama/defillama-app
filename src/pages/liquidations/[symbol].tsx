@@ -12,6 +12,7 @@ import { LiquidationsContent } from '../../components/LiquidationsPage/Liquidati
 import styled from 'styled-components'
 import React, { useState } from 'react'
 import { Clock } from 'react-feather'
+import { Panel } from '~/components'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = params.symbol as string
@@ -58,6 +59,9 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 	return (
 		<Layout title={`${data.coingeckoAsset.name} (${data.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
 			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: data.symbol, hideOptions: true }} />
+			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
+				<span>The liquidation levels dashboard is still under development. You're so early, anon!</span>
+			</Panel>
 			<Header>Liquidation levels in DeFi 💦</Header>
 			<LiquidationsHeader {...data} />
 			<LiquidationsProvider>

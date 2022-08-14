@@ -1,10 +1,16 @@
-import { ChartData } from '~/utils/liquidations'
+import { ChartData, DEFAULT_ASSETS_LIST } from '~/utils/liquidations'
 import TokenLogo from '~/components/TokenLogo'
 import { ProtocolName, Symbol } from '~/components/ProtocolAndPool'
 import FormattedName from '~/components/FormattedName'
 import styled from 'styled-components'
 import { StackBySwitch } from './StackBySwitch'
-import React from 'react'
+import React, { useMemo } from 'react'
+
+import { MenuButtonArrow, useComboboxState, useMenuState } from 'ariakit'
+import { Button, Popover } from '~/components/DropdownMenu'
+import { Input, Item, List } from '~/components/Combobox'
+import Link from 'next/link'
+import { ISearchItem } from '../Search/BaseSearch'
 
 const LiquidationsHeaderWrapper = styled.div`
 	flex: 1;
@@ -24,12 +30,77 @@ const LiquidationsHeaderWrapper = styled.div`
 export const LiquidationsHeader = (props: ChartData) => {
 	return (
 		<LiquidationsHeaderWrapper>
-			<ProtocolName>
-				<TokenLogo logo={props.coingeckoAsset.thumb} size={24} />
-				<FormattedName text={props.coingeckoAsset.name} maxCharacters={16} fontWeight={700} />
-				<Symbol>({props.symbol})</Symbol>
-			</ProtocolName>
+			<AssetSelector symbol={props.symbol} options={DEFAULT_ASSETS_LIST} />
 			<StackBySwitch />
 		</LiquidationsHeaderWrapper>
 	)
 }
+
+interface IProps {
+	options: ISearchItem[]
+	symbol: string
+}
+
+export function AssetSelector({ options, symbol }: IProps) {
+	const defaultList = options.map(({ name, symbol, route }) => `${name} - ${symbol} - ${route}`)
+	const combobox = useComboboxState({ defaultList, gutter: 8 })
+	const menu = useMenuState(combobox)
+
+	// Resets combobox value when menu is closed
+	if (!menu.mounted && combobox.value) {
+		combobox.setValue('')
+	}
+
+	const selectedAsset = useMemo(() => options.find((x) => x.symbol === symbol), [symbol, options])
+
+	return (
+		<>
+			<Button state={menu} style={{ fontWeight: 600 }}>
+				<ProtocolName>
+					<TokenLogo logo={selectedAsset.logo} size={24} />
+					<FormattedName text={selectedAsset.name} maxCharacters={16} fontWeight={700} />
+					<Symbol>({selectedAsset.symbol})</Symbol>
+				</ProtocolName>
+				<MenuButtonArrow />
+			</Button>
+			<Popover state={menu} composite={false}>
+				<Input state={combobox} placeholder="Search..." />
+				{combobox.matches.length > 0 ? (
+					<List state={combobox}>
+						{combobox.matches.map((value, i) => (
+							<AssetButtonLink options={options} value={value} key={value + i} />
+						))}
+					</List>
+				) : (
+					<p id="no-results">No results</p>
+				)}
+			</Popover>
+		</>
+	)
+}
+
+const getMatchingOption = (options: ISearchItem[], value: string): ISearchItem => {
+	return options.find(({ name, symbol, route }) => `${name} - ${symbol} - ${route}` === value)
+}
+
+const AssetButtonLink = (props: { options: ISearchItem[]; value: string }) => {
+	const { options, value } = props
+	const matchingOption = getMatchingOption(options, value)
+	return (
+		<Link href={matchingOption.route} passHref>
+			<Item value={value} focusOnHover setValueOnClick={false} role="link">
+				<MatchingOptionWrapper>
+					<TokenLogo logo={matchingOption.logo} size={20} />
+					{matchingOption.name} ({matchingOption.symbol})
+				</MatchingOptionWrapper>
+			</Item>
+		</Link>
+	)
+}
+
+const MatchingOptionWrapper = styled.div`
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 10px;
+`

@@ -119,7 +119,7 @@ const IconWrapper = styled.div`
 	}
 `
 
-interface ISearchItem {
+export interface ISearchItem {
 	name: string
 	route: string
 	logo?: string
