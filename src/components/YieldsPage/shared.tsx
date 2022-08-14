@@ -263,8 +263,8 @@ export const columns = [
 		Cell: ({ value, rowValues }) => {
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{rowValues.project === 'Osmosis' ? (
-						<QuestionHelper text={`${rowValues.id.split('-').slice(-1)} lock`} />
+					{rowValues.project === 'Alpaca Finance' ? (
+						<QuestionHelper text={'Lowest Leverage'} />
 					) : rowValues.project === 'cBridge' ? (
 						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY'} />
 					) : null}

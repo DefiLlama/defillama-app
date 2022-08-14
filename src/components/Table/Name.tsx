@@ -166,12 +166,7 @@ export function NameYieldPool({
 				''
 			)}
 			<CustomLink href={tokenUrl} target="_blank">
-				<FormattedName
-					text={project === 'Osmosis' ? `${value} ${poolId.split('-').slice(-1)}` : value}
-					maxCharacters={16}
-					link
-					fontWeight={500}
-				/>
+				<FormattedName text={value} maxCharacters={16} link fontWeight={500} />
 			</CustomLink>
 		</Index>
 	)
