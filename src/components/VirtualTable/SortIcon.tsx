@@ -11,10 +11,9 @@ export default function SortIcon({ dir }: { dir: string | boolean }) {
 			<Caret role="img" aria-label="caret-up">
 				<svg
 					viewBox="0 0 1024 1024"
+					width="10px"
 					focusable="false"
 					data-icon="caret-up"
-					width="1em"
-					height="1em"
 					fill="currentColor"
 					aria-hidden="true"
 				>
@@ -24,10 +23,9 @@ export default function SortIcon({ dir }: { dir: string | boolean }) {
 			<Caret role="img" aria-label="caret-down">
 				<svg
 					viewBox="0 0 1024 1024"
+					width="10px"
 					focusable="false"
 					data-icon="caret-down"
-					width="1em"
-					height="1em"
 					fill="currentColor"
 					aria-hidden="true"
 				>
@@ -41,7 +39,8 @@ export default function SortIcon({ dir }: { dir: string | boolean }) {
 const Wrapper = styled.span`
 	display: flex;
 	flex-direction: column;
-	font-size: 11px;
+	flex-shrink: 0;
+	position: relative;
 `
 
 const Caret = styled.span`
@@ -50,10 +49,10 @@ const Caret = styled.span`
 	position: relative;
 
 	:first-of-type {
-		top: 1px;
+		top: 2px;
 	}
 
 	:last-of-type {
-		bottom: 1px;
+		bottom: 2px;
 	}
 `

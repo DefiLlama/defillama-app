@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Table, flexRender } from '@tanstack/react-table'
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import SortIcon from './SortIcon'
 import styled from 'styled-components'
 
@@ -13,16 +13,20 @@ export default function VirtualTable({ instance }: ITableProps) {
 
 	const { rows } = instance.getRowModel()
 
-	const rowVirtualizer = useVirtualizer({
+	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
-		getScrollElement: () => tableContainerRef.current,
 		estimateSize: () => 50
 	})
 
-	const paddingTop = rowVirtualizer.getVirtualItems().length > 0 ? rowVirtualizer.getVirtualItems()?.[0]?.start || 0 : 0
+	const virtualItems = rowVirtualizer.getVirtualItems()
+
+	const paddingTop = virtualItems.length > 0 ? virtualItems?.[0]?.start || 0 : 0
+
+	const paddingBottom =
+		virtualItems.length > 0 ? rowVirtualizer.getTotalSize() - (virtualItems?.[virtualItems.length - 1]?.end || 0) : 0
 
 	return (
-		<Wrapper ref={tableContainerRef} className="container">
+		<Wrapper ref={tableContainerRef}>
 			<table>
 				<thead>
 					{instance.getHeaderGroups().map((headerGroup) => (
@@ -53,7 +57,7 @@ export default function VirtualTable({ instance }: ITableProps) {
 						</tr>
 					)}
 
-					{rowVirtualizer.getVirtualItems().map((virtualRow) => {
+					{virtualItems.map((virtualRow) => {
 						const row = rows[virtualRow.index]
 
 						return (
@@ -64,6 +68,12 @@ export default function VirtualTable({ instance }: ITableProps) {
 							</tr>
 						)
 					})}
+
+					{paddingBottom > 0 && (
+						<tr>
+							<td style={{ height: `${paddingBottom}px` }} />
+						</tr>
+					)}
 				</tbody>
 			</table>
 		</Wrapper>
@@ -73,14 +83,34 @@ export default function VirtualTable({ instance }: ITableProps) {
 const Wrapper = styled.div`
 	background: #000;
 	overflow: auto;
+	border-radius: 12px;
+
+	table {
+		border-collapse: collapse;
+		border-spacing: 0;
+		table-layout: fixed;
+		width: 100%;
+	}
+
+	thead {
+		margin: 0;
+		position: sticky;
+		top: 0;
+	}
 
 	th,
 	td {
 		padding: 12px;
 	}
 
+	th {
+		background: #000;
+	}
+
 	td {
 		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 `
 

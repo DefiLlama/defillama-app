@@ -61,6 +61,11 @@ export default function Layout({ title, children, defaultSEO = false, background
 
 			<ThemeProvider>
 				<GlobalStyle />
+				{/* <Nav />
+				<PageWrapper>
+					<Background backgroundColor={backgroundColor || transparentize(0.8, '#445ed0')} />
+					<Center {...props}>{children}</Center>
+				</PageWrapper> */}
 				<Nav />
 				<PageWrapper>
 					<Background backgroundColor={backgroundColor || transparentize(0.8, '#445ed0')} />

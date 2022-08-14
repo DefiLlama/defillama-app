@@ -5,7 +5,7 @@ export const HeaderWithHelperText = ({ value, helperText }: { value: string; hel
 	return (
 		<Wrapper>
 			<span>{value}</span>
-			<QuestionHelper text={helperText} />
+			{/* <QuestionHelper text={helperText} /> */}
 		</Wrapper>
 	)
 }

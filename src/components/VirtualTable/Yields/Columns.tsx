@@ -10,19 +10,23 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: 'Pool',
 		accessorKey: 'pool',
-		enableSorting: false
+		enableSorting: false,
+		cell: (info) => <>{`${info.row.index + 1} ${info.getValue()}`}</>,
+		size: 160
 	},
 	{
 		header: 'Project',
 		accessorKey: 'project',
-		enableSorting: false
-	},
-	{
-		header: 'Chain',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields?chain" iconType="chain" />
+		size: 128
 	},
+	// {
+	// 	header: 'Chain',
+	// 	accessorKey: 'chains',
+	// 	enableSorting: false,
+	// 	cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields?chain" iconType="chain" />,
+	// 	size: 60
+	// },
 	{
 		header: 'TVL',
 		accessorKey: 'tvl',
@@ -39,7 +43,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 					</span>
 				</span>
 			)
-		}
+		},
+		size: 100
 	},
 	{
 		header: () => <HeaderWithHelperText value="APY" helperText="Total annualised percentage yield" />,
@@ -56,7 +61,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 					{formattedPercent(info.getValue(), true, 700)}
 				</span>
 			)
-		}
+		},
+		size: 100
 	},
 	{
 		header: () => (
@@ -66,45 +72,49 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return <>{formattedPercent(info.getValue(), true)}</>
-		}
+		},
+		size: 100
 	},
-	{
-		header: () => <HeaderWithHelperText value="Reward APY" helperText="Annualised percentage yield from incentives" />,
-		accessorKey: 'apyReward',
-		enableSorting: true,
-		cell: (info) => {
-			const rewards = info.row.original.rewards ?? []
-			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{rewards.includes('Optimism') || rewards.includes('Avalanche') ? (
-						<IconsRow
-							links={rewards}
-							url="/yields?chain"
-							iconType="chain"
-							yieldRewardsSymbols={info.row.original.rewardTokensSymbols}
-						/>
-					) : (
-						<IconsRow
-							links={rewards}
-							url="/yields?project"
-							iconType="token"
-							yieldRewardsSymbols={info.row.original.rewardTokensSymbols}
-						/>
-					)}
-					{formattedPercent(info.getValue(), true)}
-				</AutoRow>
-			)
-		}
-	},
+	// {
+	// 	header: () => <HeaderWithHelperText value="Reward APY" helperText="Annualised percentage yield from incentives" />,
+	// 	accessorKey: 'apyReward',
+	// 	enableSorting: true,
+	// 	cell: (info) => {
+	// 		const rewards = info.row.original.rewards ?? []
+	// 		return (
+	// 			<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+	// 				{rewards.includes('Optimism') || rewards.includes('Avalanche') ? (
+	// 					<IconsRow
+	// 						links={rewards}
+	// 						url="/yields?chain"
+	// 						iconType="chain"
+	// 						yieldRewardsSymbols={info.row.original.rewardTokensSymbols}
+	// 					/>
+	// 				) : (
+	// 					<IconsRow
+	// 						links={rewards}
+	// 						url="/yields?project"
+	// 						iconType="token"
+	// 						yieldRewardsSymbols={info.row.original.rewardTokensSymbols}
+	// 					/>
+	// 				)}
+	// 				{formattedPercent(info.getValue(), true)}
+	// 			</AutoRow>
+	// 		)
+	// 	},
+	// 	size: 100
+	// },
 	{
 		header: () => <HeaderWithHelperText value="1d Change" helperText="Absolute change in APY" />,
 		accessorKey: 'change1d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		size: 100
 	},
 	{
 		header: () => <HeaderWithHelperText value="7d Change" helperText="Absolute change in APY" />,
 		accessorKey: 'change7d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		size: 100
 	},
 	{
 		header: () => (
@@ -113,13 +123,15 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				helperText="The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY."
 			/>
 		),
-		accessorKey: 'outlook'
+		accessorKey: 'outlook',
+		size: 100
 	},
 	{
 		header: () => <HeaderWithHelperText value="Confidence" helperText="Predicted outlook confidence" />,
 		accessorKey: 'confidence',
 		cell: (info) => (
 			<>{info.getValue() === null ? null : info.getValue() === 1 ? 'Low' : info.getValue() === 2 ? 'Medium' : 'High'}</>
-		)
+		),
+		size: 100
 	}
 ]
