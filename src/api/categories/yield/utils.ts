@@ -43,6 +43,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 
 	let tokenNameMapping = {}
 	for (const key of Object.keys(_config)) {
+		if (key === 'cakedao') continue
 		tokenNameMapping[_config[key].symbol] = _config[key].name
 	}
 	// add chain symbols too
