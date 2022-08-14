@@ -106,7 +106,6 @@ async function getPrices(collaterals: string[]) {
 
 export type ChartData = {
 	symbol: string // could change to coingeckoId in the future
-	coingeckoAsset: CoingeckoAsset // i know theres repeated data but will improve later
 	currentPrice: number
 	totalLiquidable: number // excluding bad debts
 	totalLiquidables: {
@@ -264,10 +263,8 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		return acc
 	}, {} as { [chain: string]: number })
 
-	const coingeckoAsset = await getCoingeckoAssetFromSymbol(nativeSymbol)
 	const chartData: ChartData = {
 		symbol: nativeSymbol,
-		coingeckoAsset,
 		currentPrice,
 		badDebts,
 		dangerousPositionsAmount,
@@ -294,29 +291,6 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 
 export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS) {
 	return await getPrevChartData(symbol, totalBins)
-}
-
-export type CoingeckoAsset = {
-	id: string
-	name: string
-	symbol: string
-	market_cap_rank: number
-	thumb: string
-	large: string
-}
-
-/**
- * Lookup asset by symbol in coingecko by using the search API. Returns the first result.
- *
- * @param symbol e.g. 'ETH'
- * @returns {CoingeckoAsset}
- */
-export async function getCoingeckoAssetFromSymbol(symbol: string): Promise<CoingeckoAsset> {
-	// search for the coin using coingecko api
-	const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${symbol}`).then((r) => r.json())
-	const coins = res.coins as CoingeckoAsset[]
-
-	return coins[0] ?? null
 }
 
 export function getReadableValue(value: number) {
