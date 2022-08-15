@@ -115,10 +115,14 @@ export type ChartData = {
 	}
 	badDebts: number
 	dangerousPositionsAmount: number // amount of -20% current price
+	// dangerousPositionsAmounts: {
+	// 	protocols: { [protocol: string]: number }
+	// 	chains: { [chain: string]: number }
+	// }
 	chartDataBins: {
 		// aggregated by either protocol or chain
-		protocols: { [key: string]: ChartDataBins }
-		chains: { [key: string]: ChartDataBins }
+		protocols: { [protocol: string]: ChartDataBins }
+		chains: { [chain: string]: ChartDataBins }
 	}
 	totalBins: number
 	binSize: number
