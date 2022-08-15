@@ -184,6 +184,14 @@ export function tokenIconUrl(name) {
 	return `/icons/${x.toLowerCase().split(' ').join('-')}.jpg`
 }
 
+/**
+ * @param {string} symbol Asset symbol
+ * @returns {string} URL to the asset icon
+ */
+export function assetIconUrl(symbol) {
+	return `/asset-icons/${symbol.toLowerCase()}.png`
+}
+
 export function peggedAssetIconUrl(name) {
 	return `/pegged-icons/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}.jpg`
 }

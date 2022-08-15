@@ -10,10 +10,11 @@ import { Header } from '~/Theme'
 import { LiquidationsHeader } from '../../components/LiquidationsPage/LiquidationsHeader'
 import { LiquidationsContent } from '../../components/LiquidationsPage/LiquidationsContent'
 import styled from 'styled-components'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Clock } from 'react-feather'
 import { Panel } from '~/components'
 import { LiquidationsTable } from '../../components/LiquidationsPage/LiquidationsTable'
+import { useAssetsList } from '~/utils/liquidations/useAssetsList'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = params.symbol as string
@@ -56,10 +57,18 @@ const LiquidationsProvider = ({ children }) => {
 
 const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> = (props) => {
 	const { data, prevData } = props
-	const minutesAgo = Math.round((Date.now() - data.time * 1000) / 1000 / 60)
+	const asset = DEFAULT_ASSETS_LIST.find((x) => x.symbol.toLowerCase() === data.symbol.toLowerCase())
+
+	const [minutesAgo, setMinutesAgo] = useState(Math.round((Date.now() - data.time * 1000) / 1000 / 60))
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setMinutesAgo((x) => x + 1)
+		}, 1000 * 60)
+		return () => clearInterval(interval)
+	}, [])
+
 	return (
-		// <Layout title={`${data.coingeckoAsset.name} (${data.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
-		<Layout title={`(${data.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
+		<Layout title={`${asset?.name} (${asset?.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
 			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: data.symbol, hideOptions: true }} />
 			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
 				<span>The liquidation levels dashboard is still under development. You're so early, anon!</span>

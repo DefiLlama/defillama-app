@@ -102,9 +102,69 @@ const COLUMNS: IColumnProps[] = [
 	{
 		accessor: 'dangerousAmount',
 		header: 'Amount within -20%',
-		helperText: 'Amount of liquidable positions that are within -20% of liquidation price.'
+		helperText: 'Amount of liquidable positions that are within -20% of liquidation price.',
+		Cell: ({ value }: CellProps) => {
+			const _value = getReadableValue(value as number)
+			return <span>${_value}</span>
+		}
 	}
 ]
+
+const TableStyled = styled(Table)`
+	tr > *:not(:first-child) {
+		& > * {
+			width: 10rem;
+			white-space: nowrap;
+			overflow: hidden;
+			font-weight: 400;
+			margin-left: auto;
+		}
+	}
+
+	// ASSET NAME
+	tr > *:nth-child(1) {
+		& > * {
+			/* width: 20px; */
+			overflow: hidden;
+			white-space: nowrap;
+
+			/* // HIDE LOGO
+			& > *:nth-child(1) {
+				display: none;
+			} */
+		}
+	}
+
+	// 1D CHANGE
+	tr > *:nth-child(2) {
+		display: none;
+	}
+
+	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+		// 1D CHANGE
+		tr > *:nth-child(2) {
+			display: revert;
+		}
+	}
+
+	// LIQUIABLE AMOUNT
+	tr > *:nth-child(3) {
+		margin-left: -1rem;
+		padding-right: 1rem;
+	}
+
+	// DANGEROUS AMOUNT
+	tr > *:nth-child(4) {
+		display: none;
+	}
+
+	@media screen and (min-width: 900px) {
+		// DANGEROUS AMOUNT
+		tr > *:nth-child(4) {
+			display: revert;
+		}
+	}
+`
 
 export const LiquidationsTable = (props: { data: ChartData; prevData: ChartData }) => {
 	const stackBy = useStackBy()
@@ -114,7 +174,7 @@ export const LiquidationsTable = (props: { data: ChartData; prevData: ChartData 
 		const prev = props.prevData.totalLiquidables[stackBy][name]
 		const changes24h = ((current - prev) / prev) * 100
 		const liquidableAmount = current
-		const dangerousAmount = 233
+		const dangerousAmount = props.data.dangerousPositionsAmounts[stackBy][name]
 		// const positionsCount = props.data.positionsCount[stackBy][name]
 		return {
 			name,
@@ -125,7 +185,7 @@ export const LiquidationsTable = (props: { data: ChartData; prevData: ChartData 
 		}
 	})
 
-	return <Table columns={COLUMNS} data={rows} />
+	return <TableStyled columns={COLUMNS} data={rows} gap={'8px'} />
 }
 
 type RowValues = {

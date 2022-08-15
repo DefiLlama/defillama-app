@@ -2,6 +2,7 @@
 import BigNumber from 'bignumber.js'
 import { IBaseSearchProps, ISearchItem } from '~/components/Search/BaseSearch'
 import { LIQUIDATIONS_API, LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
+import { assetIconUrl } from '..'
 
 const TOTAL_BINS = 100
 const WRAPPABLE_GAS_TOKENS = ['ETH', 'AVAX', 'MATIC', 'FTM', 'BNB', 'CRO', 'ONE']
@@ -114,10 +115,14 @@ export type ChartData = {
 	}
 	badDebts: number
 	dangerousPositionsAmount: number // amount of -20% current price
+	dangerousPositionsAmounts: {
+		protocols: { [protocol: string]: number }
+		chains: { [chain: string]: number }
+	}
 	chartDataBins: {
 		// aggregated by either protocol or chain
-		byProtocol: { [bin: string]: ChartDataBin }
-		byChain: { [bin: string]: ChartDataBin }
+		protocols: { [protocol: string]: ChartDataBins }
+		chains: { [chain: string]: ChartDataBins }
 	}
 	totalBins: number
 	binSize: number
@@ -128,7 +133,7 @@ export type ChartData = {
 	time: number
 }
 
-export interface ChartDataBin {
+export interface ChartDataBins {
 	bins: {
 		[bin: number]: number
 	}
@@ -141,7 +146,7 @@ function getChartDataBins(
 	currentPrice: number,
 	totalBins: number,
 	stackBy: 'protocol' | 'chain'
-): { [bin: string]: ChartDataBin } {
+): { [key: string]: ChartDataBins } {
 	// protocol/chain -> {bins, binSize, price}
 	const aggregatedPositions = new Map<string, Position[]>()
 	const keySet = new Set<string>()
@@ -158,7 +163,7 @@ function getChartDataBins(
 		}
 	}
 
-	const bins = new Map<string, ChartDataBin>()
+	const bins = new Map<string, ChartDataBins>()
 	// init bins
 	for (const key of keySet) {
 		bins.set(key, {
@@ -234,20 +239,11 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	}
 	const currentPrice = allAggregated.get(symbol)!.currentPrice
 
-	let badDebts = 0
-	let totalLiquidable = 0
-	let dangerousPositionsAmount = 0
-	const validPositions = positions.filter((p) => {
-		if (p.liqPrice > currentPrice) {
-			badDebts += p.collateralValue
-			return false
-		}
-		totalLiquidable += p.collateralValue
-		if (p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice) {
-			dangerousPositionsAmount += p.collateralValue
-		}
-		return true
-	})
+	const badDebtsPositions = positions.filter((p) => p.liqPrice > currentPrice)
+	const badDebts = badDebtsPositions.reduce((acc, p) => acc + p.collateralValue, 0)
+
+	const validPositions = positions.filter((p) => p.liqPrice <= currentPrice)
+	const totalLiquidable = validPositions.reduce((acc, p) => acc + p.collateralValue, 0)
 
 	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')
 	const protocols = Object.keys(chartDataBinsByProtocol)
@@ -263,11 +259,26 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		return acc
 	}, {} as { [chain: string]: number })
 
+	const dangerousPositions = positions.filter((p) => p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice)
+	const dangerousPositionsAmount = dangerousPositions.reduce((acc, p) => acc + p.collateralValue, 0)
+	const dangerousPositionsAmountByProtocol = protocols.reduce((acc, protocol) => {
+		acc[protocol] = dangerousPositions.filter((p) => p.protocol === protocol).reduce((a, p) => a + p.collateralValue, 0)
+		return acc
+	}, {} as { [protocol: string]: number })
+	const dangerousPositionsAmountByChain = chains.reduce((acc, chain) => {
+		acc[chain] = dangerousPositions.filter((p) => p.chain === chain).reduce((a, p) => a + p.collateralValue, 0)
+		return acc
+	}, {} as { [chain: string]: number })
+
 	const chartData: ChartData = {
 		symbol: nativeSymbol,
 		currentPrice,
 		badDebts,
 		dangerousPositionsAmount,
+		dangerousPositionsAmounts: {
+			chains: dangerousPositionsAmountByChain,
+			protocols: dangerousPositionsAmountByProtocol
+		},
 		totalLiquidable,
 		totalLiquidables: {
 			chains: liquidablesByChain,
@@ -275,8 +286,8 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		},
 		totalBins,
 		chartDataBins: {
-			byChain: chartDataBinsByChain,
-			byProtocol: chartDataBinsByProtocol
+			chains: chartDataBinsByChain,
+			protocols: chartDataBinsByProtocol
 		},
 		binSize: currentPrice / totalBins,
 		availability: {
@@ -350,161 +361,116 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 	return csvData
 }
 
-export const DEFAULT_ASSETS_LIST: ISearchItem[] = [
+export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 	{
-		logo: 'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png',
-		route: '/liquidations/eth',
 		name: 'Ethereum',
 		symbol: 'ETH'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/7598/thumb/wrapped_bitcoin_wbtc.png',
-		route: '/liquidations/wbtc',
 		name: 'Wrapped Bitcoin',
 		symbol: 'WBTC'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
-		route: '/liquidations/usdc',
 		name: 'USD Coin',
 		symbol: 'USDC'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/9956/thumb/4943.png',
-		route: '/liquidations/dai',
 		name: 'Dai',
 		symbol: 'DAI'
 	},
 	// {
-	// 	logo: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
-	// 	route: '/liquidations/usdt',
 	// 	name: 'Tether',
 	// 	symbol: 'USDT'
 	// },
 	{
-		logo: 'https://assets.coingecko.com/coins/images/11849/thumb/yfi-192x192.png',
-		route: '/liquidations/yfi',
 		name: 'yearn.finance',
 		symbol: 'YFI'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/10775/thumb/COMP.png',
-		route: '/liquidations/comp',
 		name: 'Compound',
 		symbol: 'COMP'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png',
-		route: '/liquidations/uni',
 		name: 'Uniswap',
 		symbol: 'UNI'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/677/thumb/basic-attention-token.png',
-		route: '/liquidations/bat',
 		name: 'Basic Attention',
 		symbol: 'BAT'
 	},
 	// {
-	// 	logo: 'https://assets.coingecko.com/coins/images/9576/thumb/BUSD.png',
-	// 	route: '/liquidations/busd',
 	// 	name: 'Binance USD',
 	// 	symbol: 'BUSD'
 	// },
 	{
-		logo: 'https://assets.coingecko.com/coins/images/12124/thumb/Curve.png',
-		route: '/liquidations/crv',
 		name: 'Curve DAO',
 		symbol: 'CRV'
 	},
 	// {
-	// 	logo: 'https://assets.coingecko.com/coins/images/4708/thumb/Ampleforth.png',
-	// 	route: '/liquidations/ampl',
 	// 	name: 'Ampleforth',
 	// 	symbol: 'AMPL'
 	// },
 	{
-		logo: 'https://assets.coingecko.com/coins/images/877/thumb/chainlink-new-logo.png',
-		route: '/liquidations/link',
 		name: 'ChainLink',
 		symbol: 'LINK'
 	},
 	// {
-	// 	logo: 'https://assets.coingecko.com/coins/images/13422/thumb/frax_logo.png',
-	// 	route: '/liquidations/frax',
 	// 	name: 'Frax',
 	// 	symbol: 'FRAX'
 	// },
 	// {
-	// 	logo: 'https://assets.coingecko.com/coins/images/14570/thumb/ZqsF51Re_400x400.png',
-	// 	route: '/liquidations/fei',
 	// 	name: 'Fei USD',
 	// 	symbol: 'FEI'
 	// },
 	{
-		logo: 'https://assets.coingecko.com/coins/images/3449/thumb/tusd.png',
-		route: '/liquidations/tusd',
 		name: 'TrueUSD',
 		symbol: 'TUSD'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/12645/thumb/AAVE.png',
-		route: '/liquidations/aave',
 		name: 'Aave',
 		symbol: 'AAVE'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/1364/thumb/Mark_Maker.png',
-		route: '/liquidations/mkr',
 		name: 'MakerDAO',
 		symbol: 'MKR'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/12271/thumb/512x512_Logo_no_chop.png',
-		route: '/liquidations/sushi',
 		name: 'SushiSwap',
 		symbol: 'SUSHI'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/3406/thumb/SNX.png',
-		route: '/liquidations/snx',
 		name: 'Synthetix',
 		symbol: 'SNX'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/863/thumb/0x.png',
-		route: '/liquidations/zrx',
 		name: '0x',
 		symbol: 'ZRX'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/1102/thumb/enjin-coin-logo.png',
-		route: '/liquidations/enj',
 		name: 'Enjin Coin',
 		symbol: 'ENJ'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/878/thumb/decentraland-mana.png',
-		route: '/liquidations/mana',
 		name: 'Decentraland',
 		symbol: 'MANA'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/13469/thumb/1inch-token.png',
-		route: '/liquidations/1inch',
 		name: '1inch',
 		symbol: '1INCH'
 	},
+	// {
+	// 	name: 'Rai Reflex Index',
+	// 	symbol: 'RAI'
+	// },
 	{
-		logo: 'https://assets.coingecko.com/coins/images/3139/thumb/REN.png',
-		route: '/liquidations/ren',
 		name: 'REN',
 		symbol: 'REN'
 	}
-	// {
-	// 	logo: 'https://assets.coingecko.com/coins/images/14004/thumb/RAI-logo-coin.png',
-	// 	route: '/liquidations/rai',
-	// 	name: 'Rai Reflex Index',
-	// 	symbol: 'RAI'
-	// }
 ]
+
+export const DEFAULT_ASSETS_LIST: ISearchItem[] = DEFAULT_ASSETS_LIST_RAW.map(({ name, symbol }) => ({
+	name,
+	symbol,
+	route: `/liquidations/${symbol}`,
+	logo: assetIconUrl(symbol)
+}))
