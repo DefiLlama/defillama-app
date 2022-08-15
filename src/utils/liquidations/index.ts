@@ -375,12 +375,12 @@ export const DEFAULT_ASSETS_LIST: ISearchItem[] = [
 		name: 'Dai',
 		symbol: 'DAI'
 	},
-	{
-		logo: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
-		route: '/liquidations/usdt',
-		name: 'Tether',
-		symbol: 'USDT'
-	},
+	// {
+	// 	logo: 'https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png',
+	// 	route: '/liquidations/usdt',
+	// 	name: 'Tether',
+	// 	symbol: 'USDT'
+	// },
 	{
 		logo: 'https://assets.coingecko.com/coins/images/11849/thumb/yfi-192x192.png',
 		route: '/liquidations/yfi',
@@ -405,42 +405,42 @@ export const DEFAULT_ASSETS_LIST: ISearchItem[] = [
 		name: 'Basic Attention',
 		symbol: 'BAT'
 	},
-	{
-		logo: 'https://assets.coingecko.com/coins/images/9576/thumb/BUSD.png',
-		route: '/liquidations/busd',
-		name: 'Binance USD',
-		symbol: 'BUSD'
-	},
+	// {
+	// 	logo: 'https://assets.coingecko.com/coins/images/9576/thumb/BUSD.png',
+	// 	route: '/liquidations/busd',
+	// 	name: 'Binance USD',
+	// 	symbol: 'BUSD'
+	// },
 	{
 		logo: 'https://assets.coingecko.com/coins/images/12124/thumb/Curve.png',
 		route: '/liquidations/crv',
 		name: 'Curve DAO',
 		symbol: 'CRV'
 	},
-	{
-		logo: 'https://assets.coingecko.com/coins/images/4708/thumb/Ampleforth.png',
-		route: '/liquidations/ampl',
-		name: 'Ampleforth',
-		symbol: 'AMPL'
-	},
+	// {
+	// 	logo: 'https://assets.coingecko.com/coins/images/4708/thumb/Ampleforth.png',
+	// 	route: '/liquidations/ampl',
+	// 	name: 'Ampleforth',
+	// 	symbol: 'AMPL'
+	// },
 	{
 		logo: 'https://assets.coingecko.com/coins/images/877/thumb/chainlink-new-logo.png',
 		route: '/liquidations/link',
 		name: 'ChainLink',
 		symbol: 'LINK'
 	},
-	{
-		logo: 'https://assets.coingecko.com/coins/images/13422/thumb/frax_logo.png',
-		route: '/liquidations/frax',
-		name: 'Frax',
-		symbol: 'FRAX'
-	},
-	{
-		logo: 'https://assets.coingecko.com/coins/images/14570/thumb/ZqsF51Re_400x400.png',
-		route: '/liquidations/fei',
-		name: 'Fei USD',
-		symbol: 'FEI'
-	},
+	// {
+	// 	logo: 'https://assets.coingecko.com/coins/images/13422/thumb/frax_logo.png',
+	// 	route: '/liquidations/frax',
+	// 	name: 'Frax',
+	// 	symbol: 'FRAX'
+	// },
+	// {
+	// 	logo: 'https://assets.coingecko.com/coins/images/14570/thumb/ZqsF51Re_400x400.png',
+	// 	route: '/liquidations/fei',
+	// 	name: 'Fei USD',
+	// 	symbol: 'FEI'
+	// },
 	{
 		logo: 'https://assets.coingecko.com/coins/images/3449/thumb/tusd.png',
 		route: '/liquidations/tusd',
@@ -468,7 +468,7 @@ export const DEFAULT_ASSETS_LIST: ISearchItem[] = [
 	{
 		logo: 'https://assets.coingecko.com/coins/images/3406/thumb/SNX.png',
 		route: '/liquidations/snx',
-		name: 'Synthetix Network',
+		name: 'Synthetix',
 		symbol: 'SNX'
 	},
 	{
@@ -500,11 +500,11 @@ export const DEFAULT_ASSETS_LIST: ISearchItem[] = [
 		route: '/liquidations/ren',
 		name: 'REN',
 		symbol: 'REN'
-	},
-	{
-		logo: 'https://assets.coingecko.com/coins/images/14004/thumb/RAI-logo-coin.png',
-		route: '/liquidations/rai',
-		name: 'Rai Reflex Index',
-		symbol: 'RAI'
 	}
+	// {
+	// 	logo: 'https://assets.coingecko.com/coins/images/14004/thumb/RAI-logo-coin.png',
+	// 	route: '/liquidations/rai',
+	// 	name: 'Rai Reflex Index',
+	// 	symbol: 'RAI'
+	// }
 ]
