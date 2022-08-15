@@ -45,7 +45,7 @@ const ListItem = styled.li`
 `
 
 const AddlFiltersButton = styled(FilterButton)`
-	background: #000;
+	background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#f5f5f5')};
 	font-size: 0.875rem;
 `
 
