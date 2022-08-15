@@ -117,8 +117,8 @@ export type ChartData = {
 	dangerousPositionsAmount: number // amount of -20% current price
 	chartDataBins: {
 		// aggregated by either protocol or chain
-		byProtocol: { [bin: string]: ChartDataBin }
-		byChain: { [bin: string]: ChartDataBin }
+		protocols: { [key: string]: ChartDataBins }
+		chains: { [key: string]: ChartDataBins }
 	}
 	totalBins: number
 	binSize: number
@@ -129,7 +129,7 @@ export type ChartData = {
 	time: number
 }
 
-export interface ChartDataBin {
+export interface ChartDataBins {
 	bins: {
 		[bin: number]: number
 	}
@@ -142,7 +142,7 @@ function getChartDataBins(
 	currentPrice: number,
 	totalBins: number,
 	stackBy: 'protocol' | 'chain'
-): { [bin: string]: ChartDataBin } {
+): { [key: string]: ChartDataBins } {
 	// protocol/chain -> {bins, binSize, price}
 	const aggregatedPositions = new Map<string, Position[]>()
 	const keySet = new Set<string>()
@@ -159,7 +159,7 @@ function getChartDataBins(
 		}
 	}
 
-	const bins = new Map<string, ChartDataBin>()
+	const bins = new Map<string, ChartDataBins>()
 	// init bins
 	for (const key of keySet) {
 		bins.set(key, {
@@ -276,8 +276,8 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		},
 		totalBins,
 		chartDataBins: {
-			byChain: chartDataBinsByChain,
-			byProtocol: chartDataBinsByProtocol
+			chains: chartDataBinsByChain,
+			protocols: chartDataBinsByProtocol
 		},
 		binSize: currentPrice / totalBins,
 		availability: {

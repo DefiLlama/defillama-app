@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import { useRouter } from 'next/router'
-import { ChartData, ChartDataBin, getReadableValue } from '~/utils/liquidations'
+import { ChartData, ChartDataBins, getReadableValue } from '~/utils/liquidations'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { ECBasicOption } from 'echarts/types/dist/shared'
@@ -15,7 +15,7 @@ export type ChartState = {
 type FilterChain = ['all'] | ['none'] | string[]
 type FilterProtocol = ['all'] | ['none'] | string[]
 
-export const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number) => {
+export const convertChartDataBinsToArray = (obj: ChartDataBins, totalBins: number) => {
 	// // this line below suddenly throws error in browser that the iterator cant iterate??
 	// const arr = [...Array(totalBins).keys()].map((i) => obj.bins[i] || 0)
 	const arr = Array.from({ length: totalBins }, (_, i) => i).map((i) => obj.bins[i] || 0)
@@ -23,7 +23,7 @@ export const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number
 }
 
 export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols', isSmall: boolean, isDark: boolean) => {
-	const chartDataBins = chartData.chartDataBins[stackBy === 'chains' ? 'byChain' : 'byProtocol']
+	const chartDataBins = chartData.chartDataBins[stackBy]
 	// convert chartDataBins to array
 	const chartDataBinsArray = Object.keys(chartDataBins).map((key) => ({
 		key: key,
