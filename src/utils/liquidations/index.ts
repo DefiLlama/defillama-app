@@ -115,10 +115,10 @@ export type ChartData = {
 	}
 	badDebts: number
 	dangerousPositionsAmount: number // amount of -20% current price
-	// dangerousPositionsAmounts: {
-	// 	protocols: { [protocol: string]: number }
-	// 	chains: { [chain: string]: number }
-	// }
+	dangerousPositionsAmounts: {
+		protocols: { [protocol: string]: number }
+		chains: { [chain: string]: number }
+	}
 	chartDataBins: {
 		// aggregated by either protocol or chain
 		protocols: { [protocol: string]: ChartDataBins }
@@ -239,20 +239,11 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	}
 	const currentPrice = allAggregated.get(symbol)!.currentPrice
 
-	let badDebts = 0
-	let totalLiquidable = 0
-	let dangerousPositionsAmount = 0
-	const validPositions = positions.filter((p) => {
-		if (p.liqPrice > currentPrice) {
-			badDebts += p.collateralValue
-			return false
-		}
-		totalLiquidable += p.collateralValue
-		if (p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice) {
-			dangerousPositionsAmount += p.collateralValue
-		}
-		return true
-	})
+	const badDebtsPositions = positions.filter((p) => p.liqPrice > currentPrice)
+	const badDebts = badDebtsPositions.reduce((acc, p) => acc + p.collateralValue, 0)
+
+	const validPositions = positions.filter((p) => p.liqPrice <= currentPrice)
+	const totalLiquidable = validPositions.reduce((acc, p) => acc + p.collateralValue, 0)
 
 	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')
 	const protocols = Object.keys(chartDataBinsByProtocol)
@@ -268,11 +259,26 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		return acc
 	}, {} as { [chain: string]: number })
 
+	const dangerousPositions = positions.filter((p) => p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice)
+	const dangerousPositionsAmount = dangerousPositions.reduce((acc, p) => acc + p.collateralValue, 0)
+	const dangerousPositionsAmountByProtocol = protocols.reduce((acc, protocol) => {
+		acc[protocol] = dangerousPositions.filter((p) => p.protocol === protocol).reduce((a, p) => a + p.collateralValue, 0)
+		return acc
+	}, {} as { [protocol: string]: number })
+	const dangerousPositionsAmountByChain = chains.reduce((acc, chain) => {
+		acc[chain] = dangerousPositions.filter((p) => p.chain === chain).reduce((a, p) => a + p.collateralValue, 0)
+		return acc
+	}, {} as { [chain: string]: number })
+
 	const chartData: ChartData = {
 		symbol: nativeSymbol,
 		currentPrice,
 		badDebts,
 		dangerousPositionsAmount,
+		dangerousPositionsAmounts: {
+			chains: dangerousPositionsAmountByChain,
+			protocols: dangerousPositionsAmountByProtocol
+		},
 		totalLiquidable,
 		totalLiquidables: {
 			chains: liquidablesByChain,
