@@ -102,7 +102,11 @@ const COLUMNS: IColumnProps[] = [
 	{
 		accessor: 'dangerousAmount',
 		header: 'Amount within -20%',
-		helperText: 'Amount of liquidable positions that are within -20% of liquidation price.'
+		helperText: 'Amount of liquidable positions that are within -20% of liquidation price.',
+		Cell: ({ value }: CellProps) => {
+			const _value = getReadableValue(value as number)
+			return <span>${_value}</span>
+		}
 	}
 ]
 
@@ -114,7 +118,7 @@ export const LiquidationsTable = (props: { data: ChartData; prevData: ChartData 
 		const prev = props.prevData.totalLiquidables[stackBy][name]
 		const changes24h = ((current - prev) / prev) * 100
 		const liquidableAmount = current
-		const dangerousAmount = 233
+		const dangerousAmount = props.data.dangerousPositionsAmounts[stackBy][name]
 		// const positionsCount = props.data.positionsCount[stackBy][name]
 		return {
 			name,
