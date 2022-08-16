@@ -80,7 +80,7 @@ const COLUMNS: IColumnProps[] = [
 			const isZero = value === 0
 			const isSmol = Math.abs(value as number) < 0.01
 
-			if (isZero) {
+			if (isZero || !value) {
 				return <span>-</span>
 			}
 
