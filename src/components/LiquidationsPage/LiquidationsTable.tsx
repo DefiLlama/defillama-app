@@ -12,11 +12,12 @@ import TokenLogo from '../TokenLogo'
 import Link from 'next/link'
 
 const ProtocolNameCell = ({ value }: CellProps) => {
-	const { data } = useSWR<ProtocolSmolPartial>(`${CONFIG_API}/smol/${value}`, fetcher)
+	const _value = value === 'traderjoe' ? 'trader-joe' : value
+	const { data } = useSWR<ProtocolSmolPartial>(`${CONFIG_API}/smol/${_value}`, fetcher)
 
-	if (!data) return <span>{value}</span>
+	if (!data) return <span>{_value}</span>
 	return (
-		<Link href={`/protocol/${value}`} passHref>
+		<Link href={`/protocol/${_value}`} passHref>
 			<a>
 				<NameCellWrapper>
 					<TokenLogo logo={data.logo} />
