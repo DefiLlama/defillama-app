@@ -7,26 +7,36 @@ import { assetIconUrl } from '..'
 const TOTAL_BINS = 100
 const WRAPPABLE_GAS_TOKENS = ['ETH', 'AVAX', 'MATIC', 'FTM', 'BNB', 'CRO', 'ONE']
 
+// making aliases so the hints are more readable
+type Address = string
+type PrefixAddress = string
+type Chain = string
+type Protocol = string
+type Symbol = string
+
 export interface Liq {
-	owner: string
+	owner: Address
 	liqPrice: number
-	collateral: string
+	collateral: PrefixAddress
 	collateralAmount: string
 }
 
 export interface Position {
-	owner: string
+	owner: Address
 	liqPrice: number
 	collateralValue: number
-	chain: string
-	protocol: string // protocol adapter id, like "aave-v2", "liquity"...
+	chain: Chain
+	protocol: Protocol // protocol adapter id, like "aave-v2", "liquity"...
+	collateral: PrefixAddress // token address formatted as "ethereum:0x1234..."
 }
 
 export type Price = {
 	decimals: number
 	price: number
-	symbol: string
+	symbol: Symbol
 	timestamp: number
+	address: PrefixAddress
+	chain: Chain
 }
 
 type MultiTokenAssetSet = Set<Price>
