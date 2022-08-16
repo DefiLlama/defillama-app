@@ -76,12 +76,25 @@ const COLUMNS: IColumnProps[] = [
 		header: '24h Change',
 		helperText: 'Liquidable amount change in the last 24 hours.',
 		Cell: ({ value }: CellProps) => {
-			const _value = (value as number).toFixed(1)
-			const isZero = Math.abs(value as number) < 0.1
-			if (isZero) {
-				return <span>{_value}%</span>
-			}
 			const isNegative = value < 0
+			const isZero = value === 0
+			const isSmol = Math.abs(value as number) < 0.01
+
+			if (isZero) {
+				return <span>-</span>
+			}
+
+			if (isSmol) {
+				return (
+					<span style={{ color: isNegative ? '#F56565' : '#48BB78' }}>
+						{'<'}
+						{isNegative ? '-' : '+'}
+						{'0.01%'}
+					</span>
+				)
+			}
+
+			const _value = (value as number).toFixed(2)
 			return (
 				<span style={{ color: isNegative ? '#F56565' : '#48BB78' }}>
 					{isNegative ? '' : '+'}
