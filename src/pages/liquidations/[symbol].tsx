@@ -14,7 +14,6 @@ import React, { useEffect, useState } from 'react'
 import { Clock } from 'react-feather'
 import { Panel } from '~/components'
 import { LiquidationsTable } from '../../components/LiquidationsPage/LiquidationsTable'
-import { useAssetsList } from '~/utils/liquidations/useAssetsList'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = params.symbol as string
