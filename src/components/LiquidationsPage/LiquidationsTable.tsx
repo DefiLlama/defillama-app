@@ -12,11 +12,12 @@ import TokenLogo from '../TokenLogo'
 import Link from 'next/link'
 
 const ProtocolNameCell = ({ value }: CellProps) => {
-	const { data } = useSWR<ProtocolSmolPartial>(`${CONFIG_API}/smol/${value}`, fetcher)
+	const _value = value === 'traderjoe' ? 'trader-joe' : value
+	const { data } = useSWR<ProtocolSmolPartial>(`${CONFIG_API}/smol/${_value}`, fetcher)
 
-	if (!data) return <span>{value}</span>
+	if (!data) return <span>{_value}</span>
 	return (
-		<Link href={`/protocol/${value}`} passHref>
+		<Link href={`/protocol/${_value}`} passHref>
 			<a>
 				<NameCellWrapper>
 					<TokenLogo logo={data.logo} />
@@ -29,7 +30,6 @@ const ProtocolNameCell = ({ value }: CellProps) => {
 
 const ChainNameCell = ({ value }: CellProps) => {
 	const { data } = useSWR<ChainPartial[]>(`${CHAINS_API}`, fetcher)
-	console.log(data)
 	if (!data) return <span>{value}</span>
 	const { name } = data.find((chain) => chain.name.toLowerCase() === (value as string).toLowerCase()) || {}
 	return (
@@ -76,15 +76,28 @@ const COLUMNS: IColumnProps[] = [
 		header: '24h Change',
 		helperText: 'Liquidable amount change in the last 24 hours.',
 		Cell: ({ value }: CellProps) => {
-			const _value = (value as number).toFixed(1)
-			const isZero = value === 0
-			if (isZero) {
-				return <span>{_value}%</span>
-			}
 			const isNegative = value < 0
+			const isZero = value === 0
+			const isSmol = Math.abs(value as number) < 0.01
+
+			if (isZero || !value) {
+				return <span>-</span>
+			}
+
+			if (isSmol) {
+				return (
+					<span style={{ color: isNegative ? '#F56565' : '#48BB78' }}>
+						{'<'}
+						{isNegative ? '-' : '+'}
+						{'0.01%'}
+					</span>
+				)
+			}
+
+			const _value = (value as number).toFixed(2)
 			return (
 				<span style={{ color: isNegative ? '#F56565' : '#48BB78' }}>
-					{isNegative ? '-' : '+'}
+					{isNegative ? '' : '+'}
 					{_value}%
 				</span>
 			)

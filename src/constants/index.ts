@@ -7,7 +7,7 @@ export const timeframeOptions = {
 }
 
 // API endpoints
-export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com/'
+export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com'
 
 export const CHART_API = 'https://api.llama.fi/lite/charts'
 export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2'
