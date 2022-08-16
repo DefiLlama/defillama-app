@@ -39,8 +39,6 @@ export type Price = {
 	chain: Chain
 }
 
-type MultiTokenAssetSet = Set<Price>
-
 /**
  * Transform the output of multiple adapters to a single data structure aggregated by assets
  *
