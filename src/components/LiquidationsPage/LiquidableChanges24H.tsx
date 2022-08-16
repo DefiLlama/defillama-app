@@ -32,28 +32,45 @@ const getLiquidableChangesRatio = (
 	let current = 0
 	let prev = 0
 	if (!selectedSeries) {
-		current = data.totalLiquidable
-		prev = prevData.totalLiquidable
-	} else if (stackBy === 'chains') {
-		Object.keys(selectedSeries)
-			.filter((chain) => selectedSeries[chain])
-			.forEach((chain) => {
+		if (stackBy === 'chains') {
+			Object.keys(data.totalLiquidables.chains).forEach((chain) => {
 				if (!prevData.totalLiquidables.chains[chain]) {
 					return
 				}
 				current += data.totalLiquidables.chains[chain]
 				prev += prevData.totalLiquidables.chains[chain]
 			})
-	} else {
-		Object.keys(selectedSeries)
-			.filter((protocol) => selectedSeries[protocol])
-			.forEach((protocol) => {
+		} else {
+			Object.keys(data.totalLiquidables.protocols).forEach((protocol) => {
 				if (!prevData.totalLiquidables.protocols[protocol]) {
 					return
 				}
 				current += data.totalLiquidables.protocols[protocol]
 				prev += prevData.totalLiquidables.protocols[protocol]
 			})
+		}
+	} else {
+		if (stackBy === 'chains') {
+			Object.keys(selectedSeries)
+				.filter((chain) => selectedSeries[chain])
+				.forEach((chain) => {
+					if (!prevData.totalLiquidables.chains[chain]) {
+						return
+					}
+					current += data.totalLiquidables.chains[chain]
+					prev += prevData.totalLiquidables.chains[chain]
+				})
+		} else {
+			Object.keys(selectedSeries)
+				.filter((protocol) => selectedSeries[protocol])
+				.forEach((protocol) => {
+					if (!prevData.totalLiquidables.protocols[protocol]) {
+						return
+					}
+					current += data.totalLiquidables.protocols[protocol]
+					prev += prevData.totalLiquidables.protocols[protocol]
+				})
+		}
 	}
 
 	const changesRatio = (current - prev) / prev
