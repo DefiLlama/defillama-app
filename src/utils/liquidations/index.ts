@@ -70,7 +70,6 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: Pro
 			})
 		}
 	}
-	console.log(aggregatedData.keys())
 
 	for (const protocol of protocols) {
 		const adapterData = filteredAdapterOutput[protocol]
@@ -221,11 +220,13 @@ export interface LiquidationsApiResponse {
 }
 
 export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, timePassed = 0) {
+	console.log({ timePassed })
 	const now = Math.round(Date.now() / 1000) // in seconds
 	const LIQUIDATIONS_DATA_URL =
 		timePassed === 0
 			? LIQUIDATIONS_API
 			: LIQUIDATIONS_HISTORICAL_S3_PATH + `/${Math.floor((now - timePassed) / 3600)}.json`
+	console.log({ LIQUIDATIONS_DATA_URL })
 
 	let raw: LiquidationsApiResponse
 	try {
