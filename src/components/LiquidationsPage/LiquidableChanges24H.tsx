@@ -38,6 +38,9 @@ const getLiquidableChangesRatio = (
 		Object.keys(selectedSeries)
 			.filter((chain) => selectedSeries[chain])
 			.forEach((chain) => {
+				if (!prevData.totalLiquidables.chains[chain]) {
+					return
+				}
 				current += data.totalLiquidables.chains[chain]
 				prev += prevData.totalLiquidables.chains[chain]
 			})
@@ -45,6 +48,9 @@ const getLiquidableChangesRatio = (
 		Object.keys(selectedSeries)
 			.filter((protocol) => selectedSeries[protocol])
 			.forEach((protocol) => {
+				if (!prevData.totalLiquidables.protocols[protocol]) {
+					return
+				}
 				current += data.totalLiquidables.protocols[protocol]
 				prev += prevData.totalLiquidables.protocols[protocol]
 			})
