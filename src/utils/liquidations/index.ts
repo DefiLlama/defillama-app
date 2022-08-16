@@ -41,15 +41,9 @@ export type Price = {
 }
 
 const getNativeSymbol = (symbol: string) => {
-	let _symbol: string
-	if (WRAPPED_GAS_TOKENS.includes(symbol)) {
-		_symbol = symbol.substring(1)
-	} else if (symbol.endsWith('.e') || symbol.endsWith('.b')) {
-		_symbol = symbol.slice(0, -2)
-	} else {
-		_symbol = symbol
-	}
-	return _symbol
+	const originSymbol = symbol.endsWith('.e') || symbol.endsWith('.b') ? symbol.slice(0, -2) : symbol
+	const nativeSymbol = WRAPPED_GAS_TOKENS.includes(originSymbol) ? originSymbol.substring(1) : originSymbol
+	return nativeSymbol
 }
 
 /**
