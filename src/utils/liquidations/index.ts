@@ -216,9 +216,8 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		raw = await res.json()
 	}
 
-	const adapterChains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
 	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
-		(acc, d) => ({ ...acc, [d.protocol]: d.liqs[adapterChains[0]] }),
+		(acc, d) => ({ ...acc, [d.protocol]: Object.values(d.liqs).flat() }),
 		{}
 	)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
@@ -322,9 +321,8 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 	const raw = (await fetch(LIQUIDATIONS_API).then((r) => r.json())) as LiquidationsApiResponse
 	const timestamp = raw.time
 
-	const adapterChains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
 	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
-		(acc, d) => ({ ...acc, [d.protocol]: d.liqs[adapterChains[0]] }),
+		(acc, d) => ({ ...acc, [d.protocol]: Object.values(d.liqs).flat() }),
 		{}
 	)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
