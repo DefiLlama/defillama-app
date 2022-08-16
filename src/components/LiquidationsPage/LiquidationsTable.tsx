@@ -30,7 +30,6 @@ const ProtocolNameCell = ({ value }: CellProps) => {
 
 const ChainNameCell = ({ value }: CellProps) => {
 	const { data } = useSWR<ChainPartial[]>(`${CHAINS_API}`, fetcher)
-	console.log(data)
 	if (!data) return <span>{value}</span>
 	const { name } = data.find((chain) => chain.name.toLowerCase() === (value as string).toLowerCase()) || {}
 	return (
@@ -78,14 +77,14 @@ const COLUMNS: IColumnProps[] = [
 		helperText: 'Liquidable amount change in the last 24 hours.',
 		Cell: ({ value }: CellProps) => {
 			const _value = (value as number).toFixed(1)
-			const isZero = value === 0
+			const isZero = Math.abs(value as number) < 0.1
 			if (isZero) {
 				return <span>{_value}%</span>
 			}
 			const isNegative = value < 0
 			return (
 				<span style={{ color: isNegative ? '#F56565' : '#48BB78' }}>
-					{isNegative ? '-' : '+'}
+					{isNegative ? '' : '+'}
 					{_value}%
 				</span>
 			)
