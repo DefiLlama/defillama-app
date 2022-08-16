@@ -76,11 +76,15 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: Pro
 			})
 		}
 	}
+	console.log(aggregatedData.keys())
 
 	for (const protocol of protocols) {
 		const adapterData = filteredAdapterOutput[protocol]
 		for (const liq of adapterData) {
-			const price = prices.find((price) => price.address === liq.collateral)!
+			const price = prices.find((price) => price.address === liq.collateral)
+			if (!price) {
+				continue
+			}
 
 			const symbol = getNativeSymbol(price.symbol)
 			aggregatedData.get(symbol)!.positions.push({
@@ -244,22 +248,8 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		{}
 	)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
-	let positions: Position[]
-	// handle wrapped gas tokens later dynamically
-	let nativeSymbol = symbol
-	if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase())) {
-		const ethPositions = allAggregated.get(nativeSymbol)
-		const wethPositions = allAggregated.get('W' + nativeSymbol)
-		positions = [...ethPositions!.positions, ...wethPositions!.positions]
-	} else if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase().substring(1))) {
-		nativeSymbol = symbol.toUpperCase().substring(1)
-		const ethPositions = allAggregated.get(nativeSymbol)
-		const wethPositions = allAggregated.get('W' + nativeSymbol)
-		positions = [...ethPositions!.positions, ...wethPositions!.positions]
-	} else {
-		positions = allAggregated.get(symbol)!.positions
-	}
 	const currentPrice = allAggregated.get(symbol)!.currentPrice
+	const positions = allAggregated.get(symbol)!.positions
 
 	const badDebtsPositions = positions.filter((p) => p.liqPrice > currentPrice)
 	const badDebts = badDebtsPositions.reduce((acc, p) => acc + p.collateralValue, 0)
@@ -293,7 +283,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	}, {} as { [chain: string]: number })
 
 	const chartData: ChartData = {
-		symbol: nativeSymbol,
+		symbol,
 		currentPrice,
 		badDebts,
 		dangerousPositionsAmount,
