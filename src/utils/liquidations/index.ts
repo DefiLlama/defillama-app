@@ -241,6 +241,11 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		{}
 	)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
+	if (!allAggregated.has(symbol)) {
+		// no data for this symbol, will happen when historical data is not available for this asset
+		return null
+	}
+
 	const currentPrice = allAggregated.get(symbol)!.currentPrice
 	const positions = allAggregated.get(symbol)!.positions
 
@@ -465,7 +470,7 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		symbol: 'JOE'
 	},
 	{
-		name: 'MagicInternetMoney',
+		name: 'Magic Internet Money',
 		symbol: 'MIM'
 	},
 	{

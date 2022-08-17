@@ -18,7 +18,7 @@ import { LiquidationsTable } from '../../components/LiquidationsPage/Liquidation
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = params.symbol as string
 	const data = await getLatestChartData(symbol.toUpperCase(), 100)
-	const prevData = await getPrevChartData(symbol.toUpperCase(), 100, 3600 * 24)
+	const prevData = (await getPrevChartData(symbol.toUpperCase(), 100, 3600 * 24)) ?? data
 	return {
 		props: { data, prevData },
 		revalidate: revalidate(5)
