@@ -134,7 +134,7 @@ function init() {
 	const defaultLocalStorage = {
 		[DARK_MODE]: true,
 		...DEFI_SETTINGS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...STABLECOINS_SETTINGS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+		...STABLECOINS_SETTINGS.reduce((o, prop) => ({ ...o, [prop]: true }), {}),
 		...NFT_SETTINGS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
