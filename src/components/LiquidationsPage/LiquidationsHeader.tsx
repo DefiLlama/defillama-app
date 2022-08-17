@@ -54,11 +54,11 @@ export function AssetSelector({ options, symbol }: IProps) {
 	const selectedAsset = useMemo(() => options.find((x) => x.symbol === symbol), [symbol, options])
 
 	return (
-		<>
+		<div>
 			<Button state={menu} style={{ fontWeight: 600 }}>
 				<ProtocolName>
 					<TokenLogo logo={selectedAsset.logo} size={24} />
-					<FormattedName text={selectedAsset.name} maxCharacters={16} fontWeight={700} />
+					<FormattedName text={selectedAsset.name} maxCharacters={20} fontWeight={700} />
 					<Symbol>({selectedAsset.symbol})</Symbol>
 				</ProtocolName>
 				<MenuButtonArrow />
@@ -75,7 +75,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 					<p id="no-results">No results</p>
 				)}
 			</Popover>
-		</>
+		</div>
 	)
 }
 

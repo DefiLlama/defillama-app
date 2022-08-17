@@ -470,7 +470,7 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		symbol: 'JOE'
 	},
 	{
-		name: 'MagicInternetMoney',
+		name: 'Magic Internet Money',
 		symbol: 'MIM'
 	},
 	{
