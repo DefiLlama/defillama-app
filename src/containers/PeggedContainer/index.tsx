@@ -25,7 +25,7 @@ import {
 	useCreatePeggedCharts
 } from '~/hooks/data'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
-import { extraPeggedProps, useGetExtraPeggedEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { UNRELEASED, useStablecoinsManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
 	toNiceCsvDate,
@@ -569,9 +569,8 @@ export default function PeggedContainer({
 		'circulating'
 	)
 
-	const extraPeggeds = [...extraPeggedProps]
-	const tvlToggles = useTvlToggles()
-	const extraPeggedsEnabled = useGetExtraPeggedEnabled()
+	const extraPeggeds = [UNRELEASED]
+	const [extraPeggedsEnabled, updater] = useStablecoinsManager()
 
 	const chainColor = useMemo(
 		() => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
@@ -698,7 +697,7 @@ export default function PeggedContainer({
 															type="checkbox"
 															value={option}
 															checked={extraPeggedsEnabled[option]}
-															onChange={tvlToggles(option)}
+															onChange={updater(option)}
 														/>
 														<span>{capitalizeFirstLetter(option)}</span>
 													</ExtraPeggedOption>

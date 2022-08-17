@@ -6,39 +6,68 @@ import { useRouter } from 'next/router'
 
 const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'
-export const POOL2 = 'pool2'
-export const STAKING = 'staking'
-export const BORROWED = 'borrowed'
-export const DOUBLE_COUNT = 'doublecounted'
-export const LIQUID_STAKING = 'liquidstaking'
-export const DISPLAY_USD = 'DISPLAY_USD'
-export const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
-export const STABLECOINS = 'STABLECOINS'
-export const SINGLE_EXPOSURE = 'SINGLE_EXPOSURE'
-export const NO_IL = 'NO_IL'
-export const MILLION_DOLLAR = 'MILLION_DOLLAR'
-export const AUDITED = 'AUDITED'
-export const NO_OUTLIER = 'NO_OUTLIER'
-export const APY_GT0 = 'APY_GT0'
-export const STABLE_OUTLOOK = 'STABLE_OUTLOOK'
-export const HIGH_CONFIDENCE = 'HIGH_CONFIDENCE'
-export const UNRELEASED = 'unreleased'
-export const PEGGEDUSD = 'PEGGEDUSD'
-export const PEGGEDEUR = 'PEGGEDEUR'
-export const PEGGEDVAR = 'PEGGEDVAR'
-export const FIATSTABLES = 'FIATSTABLES'
-export const CRYPTOSTABLES = 'CRYPTOSTABLES'
-export const ALGOSTABLES = 'ALGOSTABLES'
 
-export const DEFI_WATCHLIST = 'DEFI_WATCHLIST'
-export const YIELDS_WATCHLIST = 'YIELDS_WATCHLIST'
-export const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
+// DEFI
+const POOL2 = 'pool2'
+const STAKING = 'staking'
+const BORROWED = 'borrowed'
+const DOUBLE_COUNT = 'doublecounted'
+const LIQUID_STAKING = 'liquidstaking'
+
+// NFT
+const DISPLAY_USD = 'DISPLAY_USD'
+const HIDE_LAST_DAY = 'HIDE_LAST_DAY'
+
+// YIELDS
+const STABLECOINS = 'STABLECOINS'
+const SINGLE_EXPOSURE = 'SINGLE_EXPOSURE'
+const NO_IL = 'NO_IL'
+const MILLION_DOLLAR = 'MILLION_DOLLAR'
+const AUDITED = 'AUDITED'
+const NO_OUTLIER = 'NO_OUTLIER'
+const APY_GT0 = 'APY_GT0'
+const STABLE_OUTLOOK = 'STABLE_OUTLOOK'
+const HIGH_CONFIDENCE = 'HIGH_CONFIDENCE'
+
+// STABLECOINS
+export const UNRELEASED = 'unreleased'
+const PEGGEDUSD = 'PEGGEDUSD'
+const PEGGEDEUR = 'PEGGEDEUR'
+const PEGGEDVAR = 'PEGGEDVAR'
+const FIATSTABLES = 'FIATSTABLES'
+const CRYPTOSTABLES = 'CRYPTOSTABLES'
+const ALGOSTABLES = 'ALGOSTABLES'
+
+// WATCHLISTS
+const DEFI_WATCHLIST = 'DEFI_WATCHLIST'
+const YIELDS_WATCHLIST = 'YIELDS_WATCHLIST'
+const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
 export const DEFAULT_PORTFOLIO_NAME = 'main'
 
-export const extraTvlProps = [POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING]
-export const extraPeggedProps = [UNRELEASED]
+export const DEFI_SETTINGS = [POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING]
+export const YIELDS_SETTINGS = [
+	AUDITED,
+	MILLION_DOLLAR,
+	NO_IL,
+	SINGLE_EXPOSURE,
+	STABLECOINS,
+	NO_OUTLIER,
+	APY_GT0,
+	STABLE_OUTLOOK,
+	HIGH_CONFIDENCE
+]
+export const STABLECOINS_SETTINGS = [
+	UNRELEASED,
+	PEGGEDUSD,
+	PEGGEDEUR,
+	PEGGEDVAR,
+	FIATSTABLES,
+	CRYPTOSTABLES,
+	ALGOSTABLES
+]
+export const NFT_SETTINGS = [DISPLAY_USD, HIDE_LAST_DAY]
 
-export const groupSettings = [
+export const DEFI_CHAINS_SETTINGS = [
 	{
 		name: 'L2',
 		key: 'L2'
@@ -59,27 +88,19 @@ export const groupSettings = [
 		name: 'Subnets',
 		key: 'subnet'
 	}
-	// skale
 ]
 
-const groupKeys = groupSettings.map((g) => g.key)
+const DEFI_CHAINS_KEYS = DEFI_CHAINS_SETTINGS.map((g) => g.key)
 
 const UPDATABLE_KEYS = [
 	DARK_MODE,
 	DEFI_WATCHLIST,
 	YIELDS_WATCHLIST,
 	SELECTED_PORTFOLIO,
-	...extraTvlProps,
-	...extraPeggedProps,
-	DISPLAY_USD,
-	HIDE_LAST_DAY,
-	...groupKeys,
-	PEGGEDUSD,
-	PEGGEDEUR,
-	PEGGEDVAR,
-	FIATSTABLES,
-	CRYPTOSTABLES,
-	ALGOSTABLES
+	...DEFI_SETTINGS,
+	...DEFI_CHAINS_KEYS,
+	...STABLECOINS_SETTINGS,
+	...NFT_SETTINGS
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -112,16 +133,9 @@ function reducer(state, { type, payload }) {
 function init() {
 	const defaultLocalStorage = {
 		[DARK_MODE]: true,
-		...extraTvlProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...extraPeggedProps.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		[DISPLAY_USD]: false,
-		[HIDE_LAST_DAY]: false,
-		[PEGGEDUSD]: true,
-		[PEGGEDEUR]: true,
-		[PEGGEDVAR]: true,
-		[FIATSTABLES]: true,
-		[CRYPTOSTABLES]: true,
-		[ALGOSTABLES]: true,
+		...DEFI_SETTINGS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+		...STABLECOINS_SETTINGS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+		...NFT_SETTINGS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME
@@ -204,8 +218,8 @@ export function useDarkModeManager() {
 	return [isDarkMode, toggleDarkMode]
 }
 
-// TODO remove all state managers and use this settings manager
-export function useSettingsManager(settings) {
+// TODO typescript
+function useSettingsManager(settings) {
 	const [state, { updateKey }] = useLocalStorageContext()
 	const isClient = useIsClient()
 
@@ -215,7 +229,8 @@ export function useSettingsManager(settings) {
 				let toggled = false
 				if (isClient) {
 					toggled = state[setting]
-				} else if (setting === 'emulator') {
+					// prevent flash of these toggles when page loads intially
+				} else if (setting === 'emulator' || setting === 'unreleased') {
 					toggled = true
 				} else toggled = false
 
@@ -232,142 +247,24 @@ export function useSettingsManager(settings) {
 	return [toggledSettings, updater]
 }
 
-export const useGetExtraTvlEnabled = () => {
-	const [state] = useLocalStorageContext()
-	const isClient = useIsClient()
-
-	return useMemo(
-		() =>
-			extraTvlProps.reduce((all, prop) => {
-				all[prop] = isClient ? state[prop] : false
-				return all
-			}, {}),
-		[state, isClient]
-	)
+// DEFI
+export function useDefiManager() {
+	return useSettingsManager(DEFI_SETTINGS)
 }
 
-// TODO: Remove code duplication with useGetExtraTvlEnabled
-export const useGroupEnabled = () => {
-	const [state] = useLocalStorageContext()
-	const isClient = useIsClient()
-
-	return useMemo(
-		() =>
-			groupKeys.reduce((all, prop) => {
-				all[prop] = isClient ? state[prop] : prop === 'emulator'
-				return all
-			}, {}),
-		[state, isClient]
-	)
+// DEFI_CHAINS
+export function useDefiChainsManager() {
+	return useSettingsManager(DEFI_CHAINS_KEYS)
 }
 
-export function useTvlToggles() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	return (key) => () => {
-		updateKey(key, !state[key])
-	}
+// STABLECOINS
+export function useStablecoinsManager() {
+	return useSettingsManager(STABLECOINS_SETTINGS)
 }
 
-export const useGetExtraPeggedEnabled = () => {
-	const [state] = useLocalStorageContext()
-	const isClient = useIsClient()
-
-	return useMemo(
-		() =>
-			extraPeggedProps.reduce((all, prop) => {
-				all[prop] = isClient ? state[prop] : prop === 'unreleased'
-				return all
-			}, {}),
-		[state, isClient]
-	)
-}
-
-export function usePeggedUSDManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const peggedUSD = state[PEGGEDUSD]
-
-	const togglePeggedUSD = () => {
-		updateKey(PEGGEDUSD, !peggedUSD)
-	}
-
-	return [peggedUSD, togglePeggedUSD]
-}
-
-export function usePeggedEURManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const peggedEUR = state[PEGGEDEUR]
-
-	const togglePeggedEUR = () => {
-		updateKey(PEGGEDEUR, !peggedEUR)
-	}
-
-	return [peggedEUR, togglePeggedEUR]
-}
-
-export function usePeggedVARManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const peggedVAR = state[PEGGEDVAR]
-
-	const togglePeggedVAR = () => {
-		updateKey(PEGGEDVAR, !peggedVAR)
-	}
-
-	return [peggedVAR, togglePeggedVAR]
-}
-
-export function useFiatStablesManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const fiatStables = state[FIATSTABLES]
-
-	const toggleFiatStables = () => {
-		updateKey(FIATSTABLES, !fiatStables)
-	}
-
-	return [fiatStables, toggleFiatStables]
-}
-
-export function useCryptoStablesManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const cryptoStables = state[CRYPTOSTABLES]
-
-	const toggleCryptoStables = () => {
-		updateKey(CRYPTOSTABLES, !cryptoStables)
-	}
-
-	return [cryptoStables, toggleCryptoStables]
-}
-
-export function useAlgoStablesManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const algoStables = state[ALGOSTABLES]
-
-	const toggleAlgoStables = () => {
-		updateKey(ALGOSTABLES, !algoStables)
-	}
-
-	return [algoStables, toggleAlgoStables]
-}
-
-export function useDisplayUsdManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const displayUsd = state[DISPLAY_USD]
-
-	const toggleDisplayUsd = () => {
-		updateKey(DISPLAY_USD, !displayUsd)
-	}
-
-	return [displayUsd, toggleDisplayUsd]
-}
-
-export function useHideLastDayManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const hideLastDay = state[HIDE_LAST_DAY]
-
-	const toggleHideLastDay = () => {
-		updateKey(HIDE_LAST_DAY, !hideLastDay)
-	}
-
-	return [hideLastDay, toggleHideLastDay]
+// NFTS
+export function useNftsManager() {
+	return useSettingsManager(NFT_SETTINGS)
 }
 
 export function useWatchlist() {

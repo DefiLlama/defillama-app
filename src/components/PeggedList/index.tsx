@@ -25,14 +25,7 @@ import {
 	toNiceCsvDate,
 	download
 } from '~/utils'
-import {
-	usePeggedUSDManager,
-	usePeggedEURManager,
-	usePeggedVARManager,
-	useFiatStablesManager,
-	useCryptoStablesManager,
-	useAlgoStablesManager
-} from '~/contexts/LocalStorage'
+import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
 import { PegType, BackingType } from '~/components/Filters'
 import { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
 
@@ -311,7 +304,7 @@ const ChartFilters = styled.div`
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	justify-content: start;
+	justify-content: flex-end;
 	gap: 20px;
 	margin: 0 0 -18px;
 `
@@ -399,28 +392,25 @@ function PeggedAssetsOverview({
 	const [filteredIndexes, setFilteredIndexes] = useState([])
 
 	// toggles
-	const [peggedUSD] = usePeggedUSDManager()
-	const [peggedEUR] = usePeggedEURManager()
-	const [peggedVAR] = usePeggedVARManager()
-	const [fiatStables] = useFiatStablesManager()
-	const [cryptoStables] = useCryptoStablesManager()
-	const [algoStables] = useAlgoStablesManager()
+	const [stablecoinsSettings] = useStablecoinsManager()
 
 	const peggedAssets = useMemo(() => {
+		const [PEGGEDUSD, PEGGEDEUR, PEGGEDVAR, FIATSTABLES, CRYPTOSTABLES, ALGOSTABLES] = STABLECOINS_SETTINGS
+
 		let chartDataIndexes = []
 		const peggedAssets = filteredPeggedAssets.reduce((acc, curr) => {
 			let toFilter = false
 
 			toFilter =
-				(peggedUSD && curr.pegType === 'peggedUSD') ||
-				(peggedEUR && curr.pegType === 'peggedEUR') ||
-				(peggedVAR && curr.pegType === 'peggedVAR')
+				(stablecoinsSettings[PEGGEDUSD] && curr.pegType === 'peggedUSD') ||
+				(stablecoinsSettings[PEGGEDEUR] && curr.pegType === 'peggedEUR') ||
+				(stablecoinsSettings[PEGGEDVAR] && curr.pegType === 'peggedVAR')
 
 			toFilter =
 				toFilter &&
-				((fiatStables && curr.pegMechanism === 'fiat-backed') ||
-					(cryptoStables && curr.pegMechanism === 'crypto-backed') ||
-					(algoStables && curr.pegMechanism === 'algorithmic'))
+				((stablecoinsSettings[FIATSTABLES] && curr.pegMechanism === 'fiat-backed') ||
+					(stablecoinsSettings[CRYPTOSTABLES] && curr.pegMechanism === 'crypto-backed') ||
+					(stablecoinsSettings[ALGOSTABLES] && curr.pegMechanism === 'algorithmic'))
 
 			if (toFilter) {
 				const chartDataIndex = peggedNameToChartDataIndex[curr.name]
@@ -432,16 +422,7 @@ function PeggedAssetsOverview({
 		setFilteredIndexes(chartDataIndexes)
 
 		return peggedAssets
-	}, [
-		filteredPeggedAssets,
-		peggedNameToChartDataIndex,
-		peggedUSD,
-		peggedEUR,
-		peggedVAR,
-		fiatStables,
-		cryptoStables,
-		algoStables
-	])
+	}, [filteredPeggedAssets, peggedNameToChartDataIndex, stablecoinsSettings])
 
 	const backfilledChains = [
 		'All',

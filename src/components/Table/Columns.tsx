@@ -3,7 +3,7 @@ import QuestionHelper from '~/components/QuestionHelper'
 import { Name } from './Name'
 import type { IColumnProps, TColumns } from './types'
 import { formattedNum, formattedPercent } from '~/utils'
-import { useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
+import { useDefiManager } from '~/contexts/LocalStorage'
 
 type AllColumns = Record<TColumns, IColumnProps>
 
@@ -99,7 +99,7 @@ export const allColumns: AllColumns = {
 		header: 'TVL',
 		accessor: 'tvl',
 		Cell: ({ value, rowValues }) => {
-			const extraTvlsEnabled = useGetExtraTvlEnabled()
+			const [extraTvlsEnabled] = useDefiManager()
 
 			let text = null
 

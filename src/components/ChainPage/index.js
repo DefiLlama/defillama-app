@@ -22,7 +22,7 @@ import { OptionButton } from '~/components/ButtonStyled'
 import LocalLoader from '~/components/LocalLoader'
 import { columnsToShow } from '~/components/Table'
 import { useCalcProtocolsTvls } from '~/hooks/data'
-import { useDarkModeManager, useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
@@ -72,7 +72,7 @@ function GlobalPage({
 	extraVolumesCharts = {},
 	parentProtocols
 }) {
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const [extraTvlsEnabled] = useDefiManager()
 
 	const router = useRouter()
 

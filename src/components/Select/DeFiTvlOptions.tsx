@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import { SelectLabel, useSelectState, SelectArrow, SelectItemCheck } from 'ariakit/select'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
-import { useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { useDefiManager } from '~/contexts/LocalStorage'
 import { Item, Popover, SelectMenu } from './AriakitSelect'
 
 const WrapperWithLabel = styled.div`
@@ -37,9 +37,7 @@ interface IProps {
 }
 
 export function DeFiTvlOptions({ options, ...props }: IProps) {
-	const tvlToggles = useTvlToggles()
-
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const [extraTvlsEnabled, updater] = useDefiManager()
 
 	const fitlers = { ...extraTvlsEnabled }
 
@@ -50,10 +48,10 @@ export function DeFiTvlOptions({ options, ...props }: IProps) {
 	const onChange = (values) => {
 		if (values.length < selectedOptions.length) {
 			const off = selectedOptions.find((o) => !values.includes(o))
-			tvlToggles(off)()
+			updater(off)()
 		} else {
 			const on = values.find((o) => !selectedOptions.includes(o))
-			tvlToggles(on)()
+			updater(on)()
 		}
 	}
 

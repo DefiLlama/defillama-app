@@ -3,7 +3,10 @@ import { useRouter } from 'next/router'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
-import {
+import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
+import { Item, Selected, Stats } from '../shared'
+
+const [
 	AUDITED,
 	MILLION_DOLLAR,
 	NO_IL,
@@ -13,8 +16,7 @@ import {
 	APY_GT0,
 	STABLE_OUTLOOK,
 	HIGH_CONFIDENCE
-} from '~/contexts/LocalStorage'
-import { Item, Selected, Stats } from '../shared'
+] = YIELDS_SETTINGS
 
 export const attributeOptions = [
 	{

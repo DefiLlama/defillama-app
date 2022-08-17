@@ -11,7 +11,7 @@ import SEO from '~/components/SEO'
 import { ListHeader, ListOptions } from '~/components/ChainPage/shared'
 import { useMedia } from '~/hooks'
 import { formattedNum } from '~/utils'
-import { useDisplayUsdManager, useHideLastDayManager } from '~/contexts/LocalStorage'
+import { NFT_SETTINGS, useNftsManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds, chainMarketplaceMappings } from '~/constants/chainTokens'
 
 const defaultTab = {
@@ -27,7 +27,8 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 	useEffect(() => window.scrollTo(0, 0), [])
 
 	const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics
-	const [hideLastDay] = useHideLastDayManager()
+	const [nftsSettings] = useNftsManager()
+	const [DISPLAY_USD, HIDE_LAST_DAY] = NFT_SETTINGS
 	const below800 = useMedia('(max-width: 800px)')
 
 	const isChain = chainData ? true : false
@@ -46,7 +47,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 	]
 
 	let shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit
-	let [displayUsd] = useDisplayUsdManager()
+	let displayUsd = nftsSettings[DISPLAY_USD]
 
 	const isHomePage = selectedTab === 'All'
 	if (isHomePage || displayUsd) {
@@ -70,7 +71,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 		]
 	}
 
-	if (hideLastDay) {
+	if (nftsSettings[HIDE_LAST_DAY]) {
 		if (chart.length >= 3 && displayUsd) {
 			;[shownTotalVolume, shownDailyVolume, shownDailyChange] = [
 				totalVolumeUSD - chart[chart.length - 1].volumeUSD,

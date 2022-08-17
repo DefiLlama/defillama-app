@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { IFormattedProtocol, IParentProtocol } from '~/api/types'
-import { useGetExtraTvlEnabled, useGroupEnabled, useGetExtraPeggedEnabled } from '~/contexts/LocalStorage'
+import { useDefiChainsManager, useDefiManager, useStablecoinsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, getPercentChange, getPrevPeggedTotalFromChart } from '~/utils'
 import { groupProtocols } from './utils'
 
@@ -106,9 +106,6 @@ type BridgeInfo = {
 	[bridgeID: string]: Bridge
 }
 
-// TODO update types in localstorage file and refer them here
-type ExtraTvls = { [key: string]: boolean }
-
 // PROTOCOLS
 export const useCalcStakePool2Tvl = (
 	filteredProtocols: Readonly<IProtocol[]>,
@@ -116,7 +113,7 @@ export const useCalcStakePool2Tvl = (
 	dir?: 'asc',
 	applyLqAndDc = false
 ) => {
-	const extraTvlsEnabled: ExtraTvls = useGetExtraTvlEnabled()
+	const [extraTvlsEnabled] = useDefiManager()
 
 	const protocolTotals = useMemo(() => {
 		const updatedProtocols = filteredProtocols.map(
@@ -217,7 +214,7 @@ export const useCalcProtocolsTvls = ({
 	protocols: IFormattedProtocol[]
 	parentProtocols: IParentProtocol[]
 }) => {
-	const extraTvlsEnabled: ExtraTvls = useGetExtraTvlEnabled()
+	const [extraTvlsEnabled] = useDefiManager()
 
 	const protocolTotals = useMemo(() => {
 		const checkExtras = {
@@ -288,7 +285,7 @@ export const useCalcProtocolsTvls = ({
 }
 
 export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const [extraTvlsEnabled] = useDefiManager()
 
 	const protocolTvl = useMemo(() => {
 		let tvl = simpleTvl
@@ -306,7 +303,8 @@ export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
 }
 
 export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IGroupData): GroupChain[] => {
-	const groupsEnabled = useGroupEnabled()
+	const [groupsEnabled] = useDefiChainsManager()
+
 	const data: GroupChain[] = useMemo(() => {
 		const finalData = {}
 		const addedChains = []
@@ -399,7 +397,10 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
 
 // returns tvl by day for a group of tokens
 export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
-	let extraTvlsEnabled = useGetExtraTvlEnabled()
+	const [extraTvls] = useDefiManager()
+
+	let extraTvlsEnabled = extraTvls
+
 	let tvlKey = 'tvl'
 	if (tvlTypes !== null) {
 		tvlKey = tvlTypes[tvlKey]
@@ -454,7 +455,7 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 
 // returns tvl by day for a single token
 export const useCalcExtraTvlsByDay = (data) => {
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const [extraTvlsEnabled] = useDefiManager()
 
 	return useMemo(() => {
 		return data.map(([date, values]) => {
@@ -487,7 +488,7 @@ export const useCalcExtraTvlsByDay = (data) => {
 
 // PEGGED ASSETS
 export const useCalcCirculating = (filteredPeggedAssets: IPegged[]) => {
-	const extraPeggedEnabled: ExtraTvls = useGetExtraPeggedEnabled()
+	const [extraPeggedEnabled] = useStablecoinsManager()
 
 	const peggedAssetTotals = useMemo(() => {
 		const updatedPeggedAssets = filteredPeggedAssets.map(
@@ -609,7 +610,7 @@ export const useCreatePeggedCharts = (
 
 // returns circulating by day for a group of tokens
 export const useCalcGroupExtraPeggedByDay = (chains) => {
-	const extraPeggedEnabled = useGetExtraPeggedEnabled()
+	const [extraPeggedEnabled] = useStablecoinsManager()
 
 	const { data, daySum } = useMemo(() => {
 		const daySum = {}
@@ -637,7 +638,7 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 }
 
 export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainPegged[] => {
-	const groupsEnabled = useGroupEnabled()
+	const [groupsEnabled] = useDefiChainsManager()
 	const data: GroupChainPegged[] = useMemo(() => {
 		const finalData = {}
 		const addedChains = []

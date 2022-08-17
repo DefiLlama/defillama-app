@@ -5,7 +5,7 @@ import { Item, Selected } from '../shared'
 import OptionToggle from '~/components/OptionToggle'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
-import { useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { useDefiManager } from '~/contexts/LocalStorage'
 import { protocolsAndChainsOptions } from './options'
 import { useProtocolsFilterState } from './useProtocolFilterState'
 
@@ -50,8 +50,7 @@ const AddlFiltersButton = styled(FilterButton)`
 `
 
 export const DesktopProtocolFilters = ({ options, ...props }) => {
-	const tvlToggles = useTvlToggles()
-	const extraTvlEnabled = useGetExtraTvlEnabled()
+	const [extraTvlEnabled, updater] = useDefiManager()
 
 	let tvlOptions = options || protocolsAndChainsOptions
 
@@ -63,7 +62,7 @@ export const DesktopProtocolFilters = ({ options, ...props }) => {
 					<>
 						{tvlOptions.slice(0, 3).map((option) => (
 							<ListItem key={option.key}>
-								<OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
+								<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
 							</ListItem>
 						))}
 						<ListItem>
@@ -73,7 +72,7 @@ export const DesktopProtocolFilters = ({ options, ...props }) => {
 				) : (
 					tvlOptions.map((option) => (
 						<ListItem key={option.key}>
-							<OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
+							<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
 						</ListItem>
 					))
 				)}
@@ -89,12 +88,20 @@ interface IAllOptionsProps {
 function AddlOptions({ options, ...props }: IAllOptionsProps) {
 	const select = useProtocolsFilterState()
 
+	let totalSelected = 0
+
+	options.forEach((option) => {
+		if (select.value.includes(option.key)) {
+			totalSelected += 1
+		}
+	})
+
 	return (
 		<span {...props}>
 			<AddlFiltersButton state={select}>
 				<span>Others</span>
 				<SelectArrow />
-				{select.value.length > 0 && <Selected>{select.value.length}</Selected>}
+				{totalSelected > 0 && <Selected>{totalSelected}</Selected>}
 			</AddlFiltersButton>
 			{select.mounted && (
 				<FilterPopover state={select}>

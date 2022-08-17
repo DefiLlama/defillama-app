@@ -1,4 +1,6 @@
-import { STAKING, POOL2, BORROWED, DOUBLE_COUNT, LIQUID_STAKING } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+
+const [POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING] = DEFI_SETTINGS
 
 export const protocolsAndChainsOptions = [
 	{

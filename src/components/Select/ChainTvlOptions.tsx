@@ -1,9 +1,9 @@
 import { ActionMeta, components, GroupProps } from 'react-select'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
-import { groupSettings, useGetExtraTvlEnabled, useGroupEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { DEFI_CHAINS_SETTINGS, useDefiChainsManager, useDefiManager } from '~/contexts/LocalStorage'
 import ReactSelect from './ReactSelect'
 
-const chainAggr = groupSettings.map((g) => ({ label: g.name, value: g.key }))
+const chainAggr = DEFI_CHAINS_SETTINGS.map((g) => ({ label: g.name, value: g.key }))
 const extraTvls = protocolsAndChainsOptions.map((g) => ({ label: g.name, value: g.key }))
 const tvlOptions = [...chainAggr, ...extraTvls]
 
@@ -19,10 +19,8 @@ const groupOptions = [
 ]
 
 export function ChainTvlOptions({ label }: { label?: string }) {
-	const tvlToggles = useTvlToggles()
-
-	const groupTvls = useGroupEnabled()
-	const extraTvls = useGetExtraTvlEnabled()
+	const [groupTvls] = useDefiChainsManager()
+	const [extraTvls, updater] = useDefiManager()
 
 	const fitlers = { ...groupTvls, ...extraTvls }
 
@@ -32,10 +30,10 @@ export function ChainTvlOptions({ label }: { label?: string }) {
 
 	const toggle = (_, s: ActionMeta<any>) => {
 		if (s.removedValues) {
-			s.removedValues?.forEach((option) => tvlToggles(option.value)())
+			s.removedValues?.forEach((option) => updater(option.value)())
 		} else if (s.removedValue) {
-			tvlToggles(s.removedValue.value)()
-		} else tvlToggles(s.option.value)()
+			updater(s.removedValue.value)()
+		} else updater(s.option.value)()
 	}
 
 	const Group = (props: GroupProps) => (

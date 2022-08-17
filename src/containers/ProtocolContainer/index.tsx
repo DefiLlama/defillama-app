@@ -20,7 +20,7 @@ import type { IChartProps } from '~/components/TokenChart/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
-import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS, useDefiManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName, toK } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
@@ -237,9 +237,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const [bobo, setBobo] = React.useState(false)
 
-	const tvlToggles = useTvlToggles()
-
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const [extraTvlsEnabled, updater] = useDefiManager()
 
 	const {
 		tvls: tvlsByChain,
@@ -251,7 +249,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			if (name === 'masterchef') return acc
 
 			// check if tvl name is addl tvl type and is toggled
-			if (isLowerCase(name[0]) && extraTvlProps.includes(name) && tvl !== 0) {
+			if (isLowerCase(name[0]) && DEFI_SETTINGS.includes(name) && tvl !== 0) {
 				acc.extraTvls.push([name, tvl])
 				acc.tvlOptions.push(protocolsAndChainsOptions.find((e) => e.key === name))
 			} else {
@@ -395,7 +393,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 													type="checkbox"
 													value={option}
 													checked={extraTvlsEnabled[option]}
-													onChange={tvlToggles(option)}
+													onChange={updater(option)}
 												/>
 												<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
 													{capitalizeFirstLetter(option)}

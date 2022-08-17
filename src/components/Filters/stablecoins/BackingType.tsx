@@ -2,8 +2,10 @@ import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
-import { FIATSTABLES, CRYPTOSTABLES, ALGOSTABLES, useLocalStorageContext } from '~/contexts/LocalStorage'
+import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
 import { Item, Stats } from '../shared'
+
+const [FIATSTABLES, CRYPTOSTABLES, ALGOSTABLES] = STABLECOINS_SETTINGS
 
 export const options = [
 	{
@@ -24,7 +26,7 @@ export const options = [
 ]
 
 export function BackingType() {
-	const [state, { updateKey }] = useLocalStorageContext()
+	const [state, updater] = useStablecoinsManager()
 
 	const updateAttributes = (updatedValues) => {
 		options.forEach((option) => {
@@ -33,7 +35,7 @@ export function BackingType() {
 			const isEnabled = state[option.key]
 
 			if ((isEnabled && !isSelected) || (!isEnabled && isSelected)) {
-				updateKey(option.key, !isEnabled)
+				updater(option.key)()
 			}
 		})
 	}
@@ -51,7 +53,7 @@ export function BackingType() {
 			const isEnabled = state[option.key]
 
 			if (!isEnabled) {
-				updateKey(option.key, true)
+				updater(option.key)()
 			}
 		})
 	}
@@ -61,7 +63,7 @@ export function BackingType() {
 			const isEnabled = state[option.key]
 
 			if (isEnabled) {
-				updateKey(option.key, false)
+				updater(option.key)()
 			}
 		})
 	}

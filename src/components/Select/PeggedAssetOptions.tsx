@@ -1,6 +1,6 @@
 import { ActionMeta, components, GroupProps } from 'react-select'
 import ReactSelect from './ReactSelect'
-import { groupSettings, useTvlToggles, useGroupEnabled, useGetExtraPeggedEnabled } from '~/contexts/LocalStorage'
+import { useDefiChainsManager, DEFI_CHAINS_SETTINGS } from '~/contexts/LocalStorage'
 
 const tvlOptions = [{ label: 'Unreleased', value: 'unreleased' }]
 
@@ -12,9 +12,7 @@ const tvlOptionsLabel = [
 ]
 
 export default function PeggedAssetTvlOptions({ label }: { label?: string }) {
-	const tvlToggles = useTvlToggles()
-
-	const extraPeggedEnabled = useGetExtraPeggedEnabled()
+	const [extraPeggedEnabled, updater] = useDefiChainsManager()
 
 	const filters = extraPeggedEnabled
 
@@ -24,10 +22,10 @@ export default function PeggedAssetTvlOptions({ label }: { label?: string }) {
 
 	const toggle = (_, s: ActionMeta<any>) => {
 		if (s.removedValues) {
-			s.removedValues?.forEach((option) => tvlToggles(option.value)())
+			s.removedValues?.forEach((option) => updater(option.value)())
 		} else if (s.removedValue) {
-			tvlToggles(s.removedValue.value)()
-		} else tvlToggles(s.option.value)()
+			updater(s.removedValue.value)()
+		} else updater(s.option.value)()
 	}
 
 	const Group = (props: GroupProps) => (
@@ -48,7 +46,7 @@ export default function PeggedAssetTvlOptions({ label }: { label?: string }) {
 	)
 }
 
-const chainAggr = groupSettings.map((g) => ({ label: g.name, value: g.key }))
+const chainAggr = DEFI_CHAINS_SETTINGS.map((g) => ({ label: g.name, value: g.key }))
 
 const chainAggrOptions = [...chainAggr]
 
@@ -60,9 +58,7 @@ const groupOptionsLabel = [
 ]
 
 export function PeggedAssetGroupOptions({ label }: { label?: string }) {
-	const tvlToggles = useTvlToggles()
-
-	const groupTvls = useGroupEnabled()
+	const [groupTvls, updater] = useDefiChainsManager()
 
 	const filters = { ...groupTvls }
 
@@ -72,10 +68,10 @@ export function PeggedAssetGroupOptions({ label }: { label?: string }) {
 
 	const toggle = (_, s: ActionMeta<any>) => {
 		if (s.removedValues) {
-			s.removedValues?.forEach((option) => tvlToggles(option.value)())
+			s.removedValues?.forEach((option) => updater(option.value)())
 		} else if (s.removedValue) {
-			tvlToggles(s.removedValue.value)()
-		} else tvlToggles(s.option.value)()
+			updater(s.removedValue.value)()
+		} else updater(s.option.value)()
 	}
 
 	const Group = (props: GroupProps) => (
