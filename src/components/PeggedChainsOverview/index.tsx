@@ -248,7 +248,7 @@ const columns = [
 
 function PeggedChainsOverview({
 	chainCirculatings,
-	chartData,
+	allChartData,
 	peggedChartDataByChain,
 	chainList,
 	chainsGroupbyParent,
@@ -286,11 +286,11 @@ function PeggedChainsOverview({
 	const title = `Stablecoins Market Cap`
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
-		const totalMcapCurrent = getPrevPeggedTotalFromChart(chartData, 0, 'totalCirculatingUSD')
-		const totalMcapPrevDay = getPrevPeggedTotalFromChart(chartData, 7, 'totalCirculatingUSD')
+		const totalMcapCurrent = getPrevPeggedTotalFromChart(allChartData, 0, 'totalCirculatingUSD')
+		const totalMcapPrevDay = getPrevPeggedTotalFromChart(allChartData, 7, 'totalCirculatingUSD')
 		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
 		return { percentChange, totalMcapCurrent }
-	}, [chartData])
+	}, [allChartData])
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
