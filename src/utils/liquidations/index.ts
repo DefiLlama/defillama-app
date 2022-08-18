@@ -489,3 +489,12 @@ export const DEFAULT_ASSETS_LIST: ISearchItem[] = DEFAULT_ASSETS_LIST_RAW.map(({
 	route: `/liquidations/${symbol}`,
 	logo: assetIconUrl(symbol)
 }))
+
+export const PROTOCOL_NAMES_MAP: { [protocol: string]: string } = {
+	'aave-v2': 'Aave V2',
+	compound: 'Compound',
+	euler: 'Euler',
+	liquity: 'Liquity',
+	maker: 'MakerDAO',
+	traderjoe: 'Trader Joe'
+}

@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import { useRouter } from 'next/router'
-import { ChartData, ChartDataBins, getReadableValue } from '~/utils/liquidations'
+import { ChartData, ChartDataBins, getReadableValue, PROTOCOL_NAMES_MAP } from '~/utils/liquidations'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { ECBasicOption } from 'echarts/types/dist/shared'
@@ -31,7 +31,7 @@ export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols',
 	}))
 	const series = chartDataBinsArray.map((obj) => ({
 		type: 'bar',
-		name: obj.key,
+		name: PROTOCOL_NAMES_MAP[obj.key],
 		data: obj.data,
 		tooltip: {
 			valueFormatter: (value: string) => `$${getReadableValue(Number(value))}`
