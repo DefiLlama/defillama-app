@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import BigNumber from 'bignumber.js'
-import { IBaseSearchProps, ISearchItem } from '~/components/Search/BaseSearch'
+import { ISearchItem } from '~/components/Search/BaseSearch'
 import { LIQUIDATIONS_API, LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
 import { assetIconUrl } from '..'
 
@@ -56,7 +56,7 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: Pro
 	// go thru all entries first to find all Collaterals (can be optimized but will be fine for now)
 	const knownTokens = new Set<PrefixAddress>()
 	for (const protocol of protocols) {
-		filteredAdapterOutput[protocol].forEach((liq) => knownTokens.add(liq.collateral))
+		filteredAdapterOutput[protocol].forEach((liq) => knownTokens.add(liq.collateral.toLowerCase()))
 	}
 
 	const prices = await getPrices(Array.from(knownTokens))
@@ -74,7 +74,7 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: Pro
 	for (const protocol of protocols) {
 		const adapterData = filteredAdapterOutput[protocol]
 		for (const liq of adapterData) {
-			const price = prices.find((price) => price.address === liq.collateral)
+			const price = prices.find((price) => price.address === liq.collateral.toLowerCase())
 			if (!price) {
 				continue
 			}
@@ -89,7 +89,7 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: Pro
 					.toNumber(),
 				chain: price.chain,
 				protocol: protocol,
-				collateral: liq.collateral
+				collateral: liq.collateral.toLowerCase()
 			})
 		}
 	}
