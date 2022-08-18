@@ -340,6 +340,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					</OtherProtocols>
 				)}
 				<ProtocolDetails style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
+					{(name === "Drachma Exchange" &&<p>There's been multiple hack reports in this protocol</p>)}
 					<ProtocolName>
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
