@@ -79,7 +79,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 			<SEO
 				liqsPage
 				cardName={`${asset?.name} (${asset?.symbol})`}
-				logo={'https://defillama.com' + assetIconUrl(asset?.symbol)}
+				logo={'https://defillama.com' + assetIconUrl(asset?.symbol, true)}
 				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>
 
