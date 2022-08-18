@@ -18,7 +18,6 @@ import { LiquidationsContent } from '../../components/LiquidationsPage/Liquidati
 import styled from 'styled-components'
 import React, { useEffect, useState } from 'react'
 import { Clock } from 'react-feather'
-import { Panel } from '~/components'
 import { LiquidationsTable } from '../../components/LiquidationsPage/LiquidationsTable'
 import SEO from '~/components/SEO'
 import { assetIconUrl } from '~/utils'
@@ -84,9 +83,6 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 			/>
 
 			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: data.symbol, hideOptions: true }} />
-			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
-				<span>The liquidation levels dashboard is still under development. You're so early, anon!</span>
-			</Panel>
 			<Header>Liquidation levels in DeFi 💦</Header>
 			<LiquidationsHeader {...data} />
 			<LiquidationsProvider>
