@@ -2,23 +2,25 @@ import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
-import { useStablecoinsManager } from '~/contexts/LocalStorage'
+import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
 import { Item, Stats } from '../shared'
+
+const { PEGGEDUSD, PEGGEDEUR, PEGGEDVAR } = STABLECOINS_SETTINGS
 
 export const options = [
 	{
 		name: 'USD',
-		key: 'PEGGEDUSD',
+		key: PEGGEDUSD,
 		help: 'Show stablecoins pegged to USD'
 	},
 	{
 		name: 'EUR',
-		key: 'PEGGEDEUR',
+		key: PEGGEDEUR,
 		help: 'Show stablecoins pegged to EUR'
 	},
 	{
 		name: 'Variable',
-		key: 'PEGGEDVAR',
+		key: PEGGEDVAR,
 		help: 'Show stablecoins with a variable or floating peg'
 	}
 ]

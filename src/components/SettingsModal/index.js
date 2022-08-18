@@ -5,7 +5,7 @@ import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { DARK_MODE, NFT_SETTINGS, useDarkModeManager, useDefiManager, useNftsManager } from '~/contexts/LocalStorage'
 import MenuIcon from './MenuSvg'
 
-const [DISPLAY_USD, HIDE_LAST_DAY] = NFT_SETTINGS
+const { DISPLAY_USD, HIDE_LAST_DAY } = NFT_SETTINGS
 
 const StyledMenuIcon = styled(MenuIcon)`
 	svg {

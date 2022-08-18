@@ -1,4 +1,4 @@
-import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 
 function buildChainBreakdown(chainTvls) {
 	if (!chainTvls) {
@@ -8,9 +8,9 @@ function buildChainBreakdown(chainTvls) {
 	const timeToTvl = {}
 
 	Object.entries(chainTvls).forEach(([chainToAdd, data]) => {
-		if (DEFI_SETTINGS.includes(chainToAdd?.toLowerCase())) return
+		if (DEFI_SETTINGS_KEYS.includes(chainToAdd?.toLowerCase())) return
 
-		if (chainToAdd.includes('-') && DEFI_SETTINGS.includes(chainToAdd.split('-')[1])) {
+		if (chainToAdd.includes('-') && DEFI_SETTINGS_KEYS.includes(chainToAdd.split('-')[1])) {
 			;(data as any).tvl.forEach((dayTvl) => {
 				timeToTvl[dayTvl.date] = {
 					...timeToTvl[dayTvl.date],

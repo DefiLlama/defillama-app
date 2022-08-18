@@ -20,7 +20,7 @@ import type { IChartProps } from '~/components/TokenChart/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
-import { DEFI_SETTINGS, useDefiManager } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName, toK } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
@@ -249,7 +249,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			if (name === 'masterchef') return acc
 
 			// check if tvl name is addl tvl type and is toggled
-			if (isLowerCase(name[0]) && DEFI_SETTINGS.includes(name) && tvl !== 0) {
+			if (isLowerCase(name[0]) && DEFI_SETTINGS_KEYS.includes(name) && tvl !== 0) {
 				acc.extraTvls.push([name, tvl])
 				acc.tvlOptions.push(protocolsAndChainsOptions.find((e) => e.key === name))
 			} else {
@@ -340,7 +340,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					</OtherProtocols>
 				)}
 				<ProtocolDetails style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
-					{(name === "Drachma Exchange" &&<p>There's been multiple hack reports in this protocol</p>)}
+					{name === 'Drachma Exchange' && <p>There's been multiple hack reports in this protocol</p>}
 					<ProtocolName>
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />

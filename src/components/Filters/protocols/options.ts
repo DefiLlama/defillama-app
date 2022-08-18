@@ -1,6 +1,6 @@
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
 
-const [POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING] = DEFI_SETTINGS
+const { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING } = DEFI_SETTINGS
 
 export const protocolsAndChainsOptions = [
 	{

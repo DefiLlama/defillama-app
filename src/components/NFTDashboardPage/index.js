@@ -28,7 +28,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 
 	const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics
 	const [nftsSettings] = useNftsManager()
-	const [DISPLAY_USD, HIDE_LAST_DAY] = NFT_SETTINGS
+	const { DISPLAY_USD, HIDE_LAST_DAY } = NFT_SETTINGS
 	const below800 = useMedia('(max-width: 800px)')
 
 	const isChain = chainData ? true : false

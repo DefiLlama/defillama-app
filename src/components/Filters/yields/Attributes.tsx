@@ -6,7 +6,7 @@ import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { Item, Selected, Stats } from '../shared'
 
-const [
+const {
 	AUDITED,
 	MILLION_DOLLAR,
 	NO_IL,
@@ -16,7 +16,7 @@ const [
 	APY_GT0,
 	STABLE_OUTLOOK,
 	HIGH_CONFIDENCE
-] = YIELDS_SETTINGS
+} = YIELDS_SETTINGS
 
 export const attributeOptions = [
 	{

@@ -45,8 +45,8 @@ const YIELDS_WATCHLIST = 'YIELDS_WATCHLIST'
 const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
 export const DEFAULT_PORTFOLIO_NAME = 'main'
 
-export const DEFI_SETTINGS = [POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING]
-export const YIELDS_SETTINGS = [
+export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING }
+export const YIELDS_SETTINGS = {
 	AUDITED,
 	MILLION_DOLLAR,
 	NO_IL,
@@ -56,17 +56,19 @@ export const YIELDS_SETTINGS = [
 	APY_GT0,
 	STABLE_OUTLOOK,
 	HIGH_CONFIDENCE
-]
-export const STABLECOINS_SETTINGS = [
+}
+
+export const STABLECOINS_SETTINGS = {
 	PEGGEDUSD,
 	PEGGEDEUR,
 	PEGGEDVAR,
 	FIATSTABLES,
 	CRYPTOSTABLES,
 	ALGOSTABLES,
-	UNRELEASED,
-]
-export const NFT_SETTINGS = [DISPLAY_USD, HIDE_LAST_DAY]
+	UNRELEASED
+}
+
+export const NFT_SETTINGS = { DISPLAY_USD, HIDE_LAST_DAY }
 
 export const DEFI_CHAINS_SETTINGS = [
 	{
@@ -92,16 +94,19 @@ export const DEFI_CHAINS_SETTINGS = [
 ]
 
 const DEFI_CHAINS_KEYS = DEFI_CHAINS_SETTINGS.map((g) => g.key)
+export const DEFI_SETTINGS_KEYS = Object.values(DEFI_SETTINGS)
+export const STABLECOINS_SETTINGS_KEYS = Object.values(STABLECOINS_SETTINGS)
+export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
 
 const UPDATABLE_KEYS = [
 	DARK_MODE,
 	DEFI_WATCHLIST,
 	YIELDS_WATCHLIST,
 	SELECTED_PORTFOLIO,
-	...DEFI_SETTINGS,
+	...DEFI_SETTINGS_KEYS,
 	...DEFI_CHAINS_KEYS,
-	...STABLECOINS_SETTINGS,
-	...NFT_SETTINGS
+	...STABLECOINS_SETTINGS_KEYS,
+	...NFT_SETTINGS_KEYS
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -134,9 +139,9 @@ function reducer(state, { type, payload }) {
 function init() {
 	const defaultLocalStorage = {
 		[DARK_MODE]: true,
-		...DEFI_SETTINGS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...STABLECOINS_SETTINGS.reduce((o, prop) => ({ ...o, [prop]: true }), {}),
-		...NFT_SETTINGS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+		...DEFI_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: true }), {}),
+		...NFT_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME
@@ -249,7 +254,7 @@ function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
 
 // DEFI
 export function useDefiManager() {
-	return useSettingsManager(DEFI_SETTINGS)
+	return useSettingsManager(DEFI_SETTINGS_KEYS)
 }
 
 // DEFI_CHAINS
@@ -259,12 +264,12 @@ export function useDefiChainsManager() {
 
 // STABLECOINS
 export function useStablecoinsManager() {
-	return useSettingsManager(STABLECOINS_SETTINGS)
+	return useSettingsManager(STABLECOINS_SETTINGS_KEYS)
 }
 
 // NFTS
 export function useNftsManager() {
-	return useSettingsManager(NFT_SETTINGS)
+	return useSettingsManager(NFT_SETTINGS_KEYS)
 }
 
 // DEFI AND YIELDS WATCHLIST

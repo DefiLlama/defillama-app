@@ -150,7 +150,7 @@ const GlobalNFTChart = dynamic(() => import('~/components/GlobalNFTChart'), {
 
 function NFTCollectionPage({ collection, chart, statistics, title, backgroundColor }) {
 	const [nftsSettings] = useNftsManager()
-	const [DISPLAY_USD, HIDE_LAST_DAY] = NFT_SETTINGS
+	const { DISPLAY_USD, HIDE_LAST_DAY } = NFT_SETTINGS
 
 	const displayUsd = nftsSettings[DISPLAY_USD]
 	const hideLastDay = nftsSettings[HIDE_LAST_DAY]
