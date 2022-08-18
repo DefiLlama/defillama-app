@@ -12,7 +12,19 @@ import TokenLogo from '../TokenLogo'
 import Link from 'next/link'
 
 const ProtocolNameCell = ({ value }: CellProps) => {
-	const _value = value === 'traderjoe' ? 'trader-joe' : value
+	let _value: string
+	// alue === 'traderjoe' ? 'trader-joe' : value
+	switch (value) {
+		case 'traderjoe':
+			_value = 'trader-joe'
+			break
+		case 'maker':
+			_value = 'makerdao'
+			break
+		default:
+			_value = value as string
+	}
+
 	const { data } = useSWR<ProtocolSmolPartial>(`${CONFIG_API}/smol/${_value}`, fetcher)
 
 	if (!data) return <span>{_value}</span>
