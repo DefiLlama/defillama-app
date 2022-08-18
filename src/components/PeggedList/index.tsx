@@ -395,7 +395,7 @@ function PeggedAssetsOverview({
 	const [stablecoinsSettings] = useStablecoinsManager()
 
 	const peggedAssets = useMemo(() => {
-		const [PEGGEDUSD, PEGGEDEUR, PEGGEDVAR, FIATSTABLES, CRYPTOSTABLES, ALGOSTABLES] = STABLECOINS_SETTINGS
+		const [PEGGEDUSD, PEGGEDEUR, PEGGEDVAR, FIATSTABLES, CRYPTOSTABLES, ALGOSTABLES] = STABLECOINS_SETTINGS // destructures based on order in STABLECOINS_SETTINGS array
 
 		let chartDataIndexes = []
 		const peggedAssets = filteredPeggedAssets.reduce((acc, curr) => {

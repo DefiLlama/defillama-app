@@ -2,25 +2,23 @@ import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
-import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
+import { useStablecoinsManager } from '~/contexts/LocalStorage'
 import { Item, Stats } from '../shared'
-
-const [FIATSTABLES, CRYPTOSTABLES, ALGOSTABLES] = STABLECOINS_SETTINGS
 
 export const options = [
 	{
 		name: 'Fiat',
-		key: FIATSTABLES,
+		key: 'FIATSTABLES',
 		help: 'Show stablecoins backed by fiat'
 	},
 	{
 		name: 'Crypto',
-		key: CRYPTOSTABLES,
+		key: 'CRYPTOSTABLES',
 		help: 'Show stablecoins backed by crypto'
 	},
 	{
 		name: 'Algorithmic',
-		key: ALGOSTABLES,
+		key: 'ALGOSTABLES',
 		help: 'Show algorithmic stablecoins'
 	}
 ]
