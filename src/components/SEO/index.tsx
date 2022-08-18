@@ -37,7 +37,7 @@ const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false,
 		if (nftPage) {
 			valueHeader = 'Total Volume'
 		} else if (liqsPage) {
-			valueHeader = 'Liquidable Amount'
+			valueHeader = 'Total Liquidable Amount'
 		} else {
 			valueHeader = 'Total Value Locked'
 		}
