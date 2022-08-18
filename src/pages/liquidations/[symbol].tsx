@@ -2,7 +2,13 @@
 // eslint sucks at types
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import { revalidate } from '~/api'
-import { ChartData, DEFAULT_ASSETS_LIST, getLatestChartData, getPrevChartData } from '~/utils/liquidations'
+import {
+	ChartData,
+	DEFAULT_ASSETS_LIST,
+	getLatestChartData,
+	getPrevChartData,
+	getReadableValue
+} from '~/utils/liquidations'
 
 import Layout from '~/layout'
 import { LiquidationsSearch } from '~/components/Search'
@@ -14,6 +20,8 @@ import React, { useEffect, useState } from 'react'
 import { Clock } from 'react-feather'
 import { Panel } from '~/components'
 import { LiquidationsTable } from '../../components/LiquidationsPage/LiquidationsTable'
+import SEO from '~/components/SEO'
+import { assetIconUrl } from '~/utils'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = params.symbol as string
@@ -67,7 +75,14 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 	}, [])
 
 	return (
-		<Layout title={`${asset?.name} (${asset?.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
+		<Layout title={`${asset?.name} (${asset?.symbol}) Liquidation Levels - DefiLlama`}>
+			<SEO
+				liqsPage
+				cardName={`${asset?.name} (${asset?.symbol})`}
+				logo={'https://defillama.com' + assetIconUrl(asset?.symbol)}
+				tvl={'$' + getReadableValue(data.totalLiquidable)}
+			/>
+
 			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: data.symbol, hideOptions: true }} />
 			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
 				<span>The liquidation levels dashboard is still under development. You're so early, anon!</span>
