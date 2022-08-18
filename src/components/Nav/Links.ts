@@ -20,7 +20,8 @@ import {
 	Share2,
 	Shield,
 	ShoppingCart,
-	TrendingUp
+	TrendingUp,
+	Droplet
 } from 'react-feather'
 import { PaperIcon } from './shared'
 
@@ -62,6 +63,7 @@ export const navLinks: ILinks = {
 			{ name: 'Airdrops', path: '/airdrops', icon: CloudDrizzle },
 			{ name: 'Oracles', path: '/oracles', icon: Shield },
 			{ name: 'Forks', path: '/forks', icon: Share2 },
+			{ name: 'Liquidations', path: '/liquidations/eth', icon: Droplet },
 			{ name: 'Watchlist', path: '/watchlist', icon: Bookmark },
 			{ name: 'Top Protocols', path: '/top-protocols', icon: Map },
 			{ name: 'Categories', path: '/categories', icon: RefreshCcw },
