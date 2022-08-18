@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import React, { useContext, useMemo } from 'react'
-import { ChartData, getReadableValue } from '~/utils/liquidations'
+import { ChartData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import { LiquidationsChart } from './LiquidationsChart'
 import { TotalLiquidable } from './TotalLiquidable'
@@ -64,8 +64,9 @@ const getDangerousPositionsAmount = (
 		Object.keys(selectedSeries)
 			.filter((chain) => selectedSeries[chain])
 			.forEach((chain) => {
-				const binSize = data.chartDataBins.chains[chain]?.binSize ?? 0
-				dangerousPositionsAmount += Object.entries(data.chartDataBins.chains[chain]?.bins ?? {})
+				const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
+				const binSize = data.chartDataBins.chains[_chain]?.binSize ?? 0
+				dangerousPositionsAmount += Object.entries(data.chartDataBins.chains[_chain]?.bins ?? {})
 					.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
 					.reduce((acc, [, value]) => acc + value, 0)
 			})
@@ -73,8 +74,9 @@ const getDangerousPositionsAmount = (
 		Object.keys(selectedSeries)
 			.filter((protocol) => selectedSeries[protocol])
 			.forEach((protocol) => {
-				const binSize = data.chartDataBins.protocols[protocol]?.binSize ?? 0
-				dangerousPositionsAmount += Object.entries(data.chartDataBins.protocols[protocol]?.bins ?? {})
+				const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
+				const binSize = data.chartDataBins.protocols[_protocol]?.binSize ?? 0
+				dangerousPositionsAmount += Object.entries(data.chartDataBins.protocols[_protocol]?.bins ?? {})
 					.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
 					.reduce((acc, [, value]) => acc + value, 0)
 			})

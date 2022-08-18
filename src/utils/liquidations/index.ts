@@ -496,5 +496,13 @@ export const PROTOCOL_NAMES_MAP: { [protocol: string]: string } = {
 	euler: 'Euler',
 	liquity: 'Liquity',
 	maker: 'MakerDAO',
-	traderjoe: 'Trader Joe'
+	traderjoe: 'Trader Joe',
+	polygon: 'Polygon',
+	ethereum: 'Ethereum',
+	avalanche: 'Avalanche'
 }
+
+export const PROTOCOL_NAMES_MAP_REVERSE: { [name: string]: string } = Object.entries(PROTOCOL_NAMES_MAP).reduce(
+	(acc, [key, value]) => ({ ...acc, [value]: key }),
+	{}
+)
