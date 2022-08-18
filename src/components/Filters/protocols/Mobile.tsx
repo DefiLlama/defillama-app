@@ -27,6 +27,10 @@ const Label = styled(SelectLabel)`
 	white-space: nowrap;
 `
 
+const Menu = styled(SelectMenu)`
+	background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#f5f5f5')};
+`
+
 function renderValue(value: string[]) {
 	if (value.length === 0) return 'No option selected'
 	if (value.length === 1) return protocolsAndChainsOptions.find((e) => e.key === value[0])?.name ?? value[0]
@@ -45,10 +49,10 @@ export function MobileProtocolFilters({ options, ...props }: IProps) {
 	return (
 		<WrapperWithLabel {...props}>
 			<Label state={select}>INCLUDE IN TVL: </Label>
-			<SelectMenu state={select}>
+			<Menu state={select}>
 				<span>{renderValue(select.value)}</span>
 				<SelectArrow />
-			</SelectMenu>
+			</Menu>
 			{select.mounted && (
 				<FilterPopover state={select}>
 					{tvlOptions.map(({ key, name, help }) => (
