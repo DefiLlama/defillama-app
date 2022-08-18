@@ -186,10 +186,15 @@ export function tokenIconUrl(name) {
 
 /**
  * @param {string} symbol Asset symbol
+ * @param {boolean} hd Return HD icon if true
  * @returns {string} URL to the asset icon
  */
-export function assetIconUrl(symbol) {
-	return `/asset-icons/${symbol.toLowerCase()}.png`
+export function assetIconUrl(symbol, hd = false) {
+	if (hd) {
+		return `/asset-icons/hd/${symbol.toLowerCase()}.png`
+	} else {
+		return `/asset-icons/${symbol.toLowerCase()}.png`
+	}
 }
 
 export function peggedAssetIconUrl(name) {

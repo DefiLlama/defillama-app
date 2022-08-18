@@ -11,9 +11,10 @@ interface SEOProps {
 	volumeChange?: string
 	logo?: string
 	nftPage?: boolean
+	liqsPage?: boolean
 }
 
-const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false }: SEOProps) => {
+const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false, liqsPage = false }: SEOProps) => {
 	const isClient = useIsClient()
 
 	const windowURL = isClient && window.location.href ? window.location.href : ''
@@ -32,7 +33,16 @@ const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false 
 
 		cardSrc.searchParams.append('theme', 'dark')
 
-		cardSrc.searchParams.append('valueHeader', nftPage ? 'Total Volume' : 'Total Value Locked')
+		let valueHeader: string
+		if (nftPage) {
+			valueHeader = 'Total Volume'
+		} else if (liqsPage) {
+			valueHeader = 'Total Liquidable Amount'
+		} else {
+			valueHeader = 'Total Value Locked'
+		}
+
+		cardSrc.searchParams.append('valueHeader', valueHeader)
 
 		isTvlValid && cardSrc.searchParams.append('tvl', tvl)
 
