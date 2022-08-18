@@ -337,28 +337,12 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 		{}
 	)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
-	let positions: Position[]
-	// handle wrapped gas tokens later dynamically
-	let nativeSymbol = symbol
-	if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase())) {
-		const ethPositions = allAggregated.get(nativeSymbol)
-		const wethPositions = allAggregated.get('W' + nativeSymbol)
-		positions = [...ethPositions!.positions, ...wethPositions!.positions]
-	} else if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase().substring(1))) {
-		nativeSymbol = symbol.toUpperCase().substring(1)
-		const ethPositions = allAggregated.get(nativeSymbol)
-		const wethPositions = allAggregated.get('W' + nativeSymbol)
-		positions = [...ethPositions!.positions, ...wethPositions!.positions]
-		// } else if (symbol.toUpperCase().endsWith('.E')) {
-		// 	// avax bridged token
-		// 	nativeSymbol = symbol.toUpperCase().split('.')[0]
-		// 	const nativePositions = allAggregated.get(nativeSymbol)
-		// 	const bridgedPositions = allAggregated.get(nativeSymbol + '.e')
-		// 	positions = [...nativePositions!.positions, ...bridgedPositions!.positions]
-	} else {
-		positions = allAggregated.get(symbol)!.positions
+	if (!allAggregated.has(symbol)) {
+		// no data for this symbol, will happen when historical data is not available for this asset
+		return null
 	}
 
+	const positions = allAggregated.get(symbol)!.positions
 	const allAssetPositions = positions
 		.filter((p) => p.liqPrice < allAggregated.get(symbol)!.currentPrice && p.collateralValue > 0)
 		.map((p) => ({
