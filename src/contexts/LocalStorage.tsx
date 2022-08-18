@@ -3,6 +3,7 @@ import { trackGoal } from 'fathom-client'
 import { standardizeProtocolName } from '~/utils'
 import { useIsClient } from '~/hooks'
 import { useRouter } from 'next/router'
+import { ISettings, IWatchlist, TUpdater } from './types'
 
 const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'
@@ -105,7 +106,7 @@ const UPDATABLE_KEYS = [
 
 const UPDATE_KEY = 'UPDATE_KEY'
 
-const LocalStorageContext = createContext()
+const LocalStorageContext = createContext(null)
 
 export function useLocalStorageContext() {
 	return useContext(LocalStorageContext)
@@ -161,8 +162,8 @@ export default function Provider({ children }) {
 	}, [])
 
 	// Change format from save addresses to save protocol names, so backwards compatible
-	const savedDefiProtocols = state[DEFI_WATCHLIST]
-	const savedYieldsProtocols = state[YIELDS_WATCHLIST]
+	const savedDefiProtocols: IWatchlist = state[DEFI_WATCHLIST]
+	const savedYieldsProtocols: IWatchlist = state[YIELDS_WATCHLIST]
 
 	let newSavedDefiProtocols = savedDefiProtocols
 	let newSavedYieldsProtocols = savedYieldsProtocols
@@ -218,12 +219,11 @@ export function useDarkModeManager() {
 	return [isDarkMode, toggleDarkMode]
 }
 
-// TODO typescript
-function useSettingsManager(settings) {
+function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
 	const [state, { updateKey }] = useLocalStorageContext()
 	const isClient = useIsClient()
 
-	const toggledSettings = useMemo(
+	const toggledSettings: ISettings = useMemo(
 		() =>
 			settings.reduce((acc, setting) => {
 				let toggled = false
@@ -240,7 +240,7 @@ function useSettingsManager(settings) {
 		[state, isClient, settings]
 	)
 
-	const updater = (key) => () => {
+	const updater = (key: string) => () => {
 		updateKey(key, !state[key])
 	}
 
@@ -267,6 +267,7 @@ export function useNftsManager() {
 	return useSettingsManager(NFT_SETTINGS)
 }
 
+// DEFI AND YIELDS WATCHLIST
 export function useWatchlist() {
 	const router = useRouter()
 	const WATCHLIST = router.pathname.startsWith('/yields') ? YIELDS_WATCHLIST : DEFI_WATCHLIST
@@ -301,7 +302,7 @@ export function useWatchlist() {
 
 	function addProtocol(readableProtocolName) {
 		let newList = state?.[WATCHLIST]
-		const standardProtocol = standardizeProtocolName(readableProtocolName)
+		const standardProtocol: any = standardizeProtocolName(readableProtocolName)
 		newList[selectedPortfolio] = {
 			...(newList[selectedPortfolio] || {}),
 			[standardProtocol]: readableProtocolName
@@ -312,7 +313,7 @@ export function useWatchlist() {
 
 	function removeProtocol(protocol) {
 		let newList = state?.[WATCHLIST]
-		const standardProtocol = standardizeProtocolName(protocol)
+		const standardProtocol: any = standardizeProtocolName(protocol)
 		delete newList?.[selectedPortfolio]?.[standardProtocol]
 		trackGoal('6SL0NZYJ', standardProtocol)
 		updateKey(WATCHLIST, newList)
