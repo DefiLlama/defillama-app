@@ -170,12 +170,16 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		)
 	}
 
+	const defaultValues = attributeOptions.filter((option) => option.defaultFilterFnOnPage[router.pathname]).length
+
+	const totalSelected = defaultValues ? defaultValues + values.length : values.length
+
 	return (
 		<>
 			<FilterButton state={select}>
 				<span>Filter by Attribute</span>
 				<MenuButtonArrow />
-				{values.length > 0 && <Selected>{values.length}</Selected>}
+				{totalSelected > 0 && <Selected>{totalSelected}</Selected>}
 			</FilterButton>
 			<FilterPopover state={select}>
 				<Stats>
