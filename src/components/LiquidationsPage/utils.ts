@@ -78,12 +78,14 @@ export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols',
 			formatter: (params: any) => {
 				const { name } = params[0]
 				return (
-					`Liquidation Price: <b>~$${name}</b>` +
-					`<br/>` +
-					`<br/>` +
+					`<div style="margin-bottom: 8px"><b>Liquidations at ~$${name}</b></div>` +
+					// `<br/>` +
 					params
 						.map(
-							(param: any) => `${param.marker} ${param.seriesName}: <b>$${getReadableValue(Number(param.value))}</b>`
+							(param: any) =>
+								`<span style="color: ${param.color}; margin-bottom: 2px">  <b>${
+									param.seriesName
+								} :</b> $${getReadableValue(Number(param.value))}</span>`
 						)
 						.join('<br/>')
 				)
