@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import { ChartData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { useStackBy } from './utils'
 import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
-import { DownloadButton, DownloadButtonSmol } from './DownloadButton'
+import { DownloadButtonSmol } from './DownloadButton'
 
 export const TotalLiquidable = (props: ChartData) => {
 	const stackBy = useStackBy()
