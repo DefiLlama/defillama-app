@@ -1,13 +1,12 @@
 import * as React from 'react'
-import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { FixedSizeList } from 'react-window'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
-import { Combobox, ComboboxItem, ComboboxPopover, useComboboxState } from 'ariakit/combobox'
-import TokenLogo from '~/components/TokenLogo'
-import type { IBaseSearchProps, ISearchItem } from '../types'
+import { Combobox, useComboboxState } from 'ariakit/combobox'
+import type { IBaseSearchProps } from '../types'
+
+import { Results } from './Results'
 
 const Wrapper = styled.div`
 	display: none;
@@ -19,7 +18,7 @@ const Wrapper = styled.div`
 	}
 `
 
-const Box = styled(Combobox)`
+const Input = styled(Combobox)`
 	padding: 14px 16px;
 	padding-top: 16px;
 	background: ${({ theme }) => theme.bg6};
@@ -37,50 +36,6 @@ const Box = styled(Combobox)`
 	&[data-focus-visible] {
 		outline: ${({ theme }) => '1px solid ' + theme.text4};
 	}
-`
-
-const Popover = styled(ComboboxPopover)`
-	height: 100%;
-	max-height: 240px;
-	overflow-y: auto;
-	background: ${({ theme }) => theme.bg6};
-	border-bottom-left-radius: 12px;
-	border-bottom-right-radius: 12px;
-	outline: ${({ theme }) => '1px solid ' + theme.text5};
-	box-shadow: ${({ theme }) => theme.shadowLg};
-	transform: translate(0px, -5px);
-	z-index: 11;
-	${({ theme: { minLg } }) => minLg} {
-		max-height: 320px;
-	}
-`
-
-const Item = styled(ComboboxItem)`
-	padding: 12px 14px;
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	font-size: 0.85rem;
-	color: ${({ theme }) => theme.text1};
-
-	& > * {
-		margin-right: 6px;
-	}
-
-	:hover {
-		cursor: pointer;
-		background-color: ${({ theme }) => theme.bg2};
-	}
-
-	&[data-active-item] {
-		background-color: ${({ theme }) => theme.bg2};
-	}
-`
-
-const Empty = styled.div`
-	padding: 24px 12px;
-	color: ${({ theme }) => theme.text1};
-	text-align: center;
 `
 
 const OptionsWrapper = styled.div`
@@ -143,7 +98,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 
 	return (
 		<Wrapper>
-			<Box
+			<Input
 				state={combobox}
 				placeholder={placeholder}
 				style={step && { borderBottomLeftRadius: '0', borderBottomRightRadius: 0 }}
@@ -153,79 +108,8 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 
 			{step && <Options step={step} filters={filters} />}
 
-			<Popover state={combobox}>
-				{loading || !combobox.mounted ? (
-					<Empty>Loading...</Empty>
-				) : combobox.matches.length ? (
-					<FixedSizeList
-						height={combobox.matches.length * 50 > 240 ? 240 : combobox.matches.length * 50}
-						width="100%"
-						itemCount={combobox.matches.length}
-						itemSize={50}
-						itemData={{
-							searchData: data,
-							options: combobox.value.length > 2 ? sortResults(combobox.matches) : combobox.matches,
-							onItemClick: props.onItemClick
-						}}
-					>
-						{Row}
-					</FixedSizeList>
-				) : (
-					<Empty>No results found</Empty>
-				)}
-			</Popover>
+			<Results state={combobox} data={data} loading={loading} onItemClick={props.onItemClick} />
 		</Wrapper>
-	)
-}
-
-const sortResults = (results: string[]) => {
-	const { pools, tokens } = results.reduce(
-		(acc, curr) => {
-			if (curr.startsWith('Show all')) {
-				acc.pools.push(curr)
-			} else acc.tokens.push(curr)
-			return acc
-		},
-		{ tokens: [], pools: [] }
-	)
-
-	return [...pools, ...tokens]
-}
-
-const isExternalImage = (imagePath: string) => {
-	return imagePath?.includes('http')
-}
-
-// Virtualized Row
-const Row = ({ index, style, data }) => {
-	const { searchData, options, onItemClick } = data
-
-	const value = options[index]
-
-	const item: ISearchItem = searchData.find((x) => x.name === value)
-
-	const router = useRouter()
-
-	return (
-		<Item
-			key={value}
-			value={value}
-			onClick={() => {
-				if (onItemClick) {
-					onItemClick(item)
-				} else {
-					router.push(item.route)
-				}
-			}}
-			style={style}
-		>
-			<TokenLogo
-				logo={item?.logo}
-				external={isExternalImage(item.logo)}
-				skipApiRoute={router.pathname.includes('/yield')}
-			/>
-			<span>{value}</span>
-		</Item>
 	)
 }
 
