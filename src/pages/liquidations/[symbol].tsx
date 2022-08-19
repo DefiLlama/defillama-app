@@ -82,7 +82,9 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>
 
-			<LiquidationsSearch step={{ category: 'Home', name: `${data.symbol} Liquidation Levels`, hideOptions: true }} />
+			<LiquidationsSearch
+				step={{ category: 'Home', name: `${data.symbol.toUpperCase()} Liquidation Levels`, hideOptions: true }}
+			/>
 			<Header>Liquidation levels in DeFi 💦</Header>
 			<LiquidationsHeader {...data} />
 			<LiquidationsProvider>
