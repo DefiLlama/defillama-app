@@ -70,6 +70,13 @@ export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols',
 			bottom: '2%',
 			containLabel: true
 		},
+		dataZoom: [
+			{
+				type: 'inside',
+				start: 0,
+				end: 100
+			}
+		],
 		tooltip: {
 			trigger: 'axis',
 			axisPointer: {
