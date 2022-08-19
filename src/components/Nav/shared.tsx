@@ -4,10 +4,8 @@ import styled from 'styled-components'
 import { Icon } from 'react-feather'
 import { BasicLink } from '~/components/Link'
 
-export const Wrapper = styled.header`
+export const Header = styled.header`
 	min-width: 220px;
-	display: flex;
-	flex-direction: column;
 	gap: 20px;
 	padding: 16px;
 	z-index: 1;
@@ -19,6 +17,7 @@ export const Wrapper = styled.header`
 	}
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		flex-direction: column;
 		padding: 24px;
 		position: fixed;
 		top: 0;
@@ -30,24 +29,6 @@ export const Wrapper = styled.header`
 	}
 `
 
-export const TitleWrapper = styled.span`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
-
-	& > *:first-child {
-		flex: 1;
-	}
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		& > *:not(:first-child) {
-			display: none;
-		}
-	}
-`
-
 export const LogoWrapper = styled.a`
 	transition: transform 0.3s ease;
 
@@ -55,21 +36,31 @@ export const LogoWrapper = styled.a`
 		outline: 1px solid white;
 	}
 
+	img {
+		height: 36px;
+		object-fit: contain;
+		object-position: left;
+		width: min-content;
+	}
+
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		:hover {
 			transform: rotate(-5deg);
+		}
+
+		img {
+			height: 53px;
 		}
 	}
 `
 
 export const Nav = styled.nav`
 	flex: 1;
-	display: var(--mobile-display);
-	flex-direction: column;
+	display: flex;
 	gap: 20px;
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		display: flex;
+		flex-direction: column;
 	}
 `
 
