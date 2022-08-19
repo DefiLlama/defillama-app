@@ -1,5 +1,5 @@
 import React, { useContext } from 'react'
-import { ChartData, getLiquidationsCsvData, getReadableValue } from '~/utils/liquidations'
+import { ChartData, getLiquidationsCsvData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { DownloadIcon } from '~/components'
 import styled from 'styled-components'
 import { download } from '~/utils'
@@ -42,7 +42,7 @@ export const TotalLiquidable = (props: ChartData) => {
 			.filter((x) => x[1])
 			.map((x) => x[0])
 			.reduce((acc, cur) => {
-				return acc + props.totalLiquidables[stackBy][cur]
+				return acc + props.totalLiquidables[stackBy][PROTOCOL_NAMES_MAP_REVERSE[cur]]
 			}, 0)
 		totalLiquidable = getReadableValue(_totalLiquidable)
 	}
