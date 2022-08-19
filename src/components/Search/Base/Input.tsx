@@ -49,7 +49,7 @@ export function Input({ state, placeholder, breadCrumbs, ...props }: IInputProps
 			<InputField
 				state={state}
 				placeholder={placeholder}
-				style={breadCrumbs && { borderBottomLeftRadius: '0', borderBottomRightRadius: 0 }}
+				style={breadCrumbs ? { borderBottomLeftRadius: '0', borderBottomRightRadius: 0 } : {}}
 				{...props}
 			/>
 

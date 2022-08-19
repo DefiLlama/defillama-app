@@ -50,7 +50,10 @@ export function AssetSelector({ options, symbol }: IProps) {
 		combobox.setValue('')
 	}
 
-	const selectedAsset = React.useMemo(() => options.find((x) => x.symbol === symbol), [symbol, options])
+	const selectedAsset = React.useMemo(
+		() => options.find((x) => x.symbol.toLowerCase() === symbol.toLowerCase()),
+		[symbol, options]
+	)
 
 	return (
 		<div>
