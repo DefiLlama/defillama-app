@@ -2,11 +2,12 @@ import * as React from 'react'
 import Link from 'next/link'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
-import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
-import { Combobox, useComboboxState } from 'ariakit/combobox'
+import { ArrowRight } from 'react-feather'
+import { useComboboxState } from 'ariakit/combobox'
 import type { IBaseSearchProps } from '../types'
 
 import { Results } from './Results'
+import { Input } from './Input'
 
 const Wrapper = styled.div`
 	display: none;
@@ -15,26 +16,6 @@ const Wrapper = styled.div`
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
 		display: flex;
-	}
-`
-
-const Input = styled(Combobox)`
-	padding: 14px 16px;
-	padding-top: 16px;
-	background: ${({ theme }) => theme.bg6};
-	color: ${({ theme }) => theme.text1};
-	font-size: 1rem;
-	border: none;
-	border-radius: 12px;
-	outline: none;
-
-	::placeholder {
-		color: ${({ theme }) => theme.text3};
-		font-size: 1rem;
-	}
-
-	&[data-focus-visible] {
-		outline: ${({ theme }) => '1px solid ' + theme.text4};
 	}
 `
 
@@ -67,20 +48,9 @@ const OptionsWrapper = styled.div`
 	}
 `
 
-const IconWrapper = styled.div`
-	position: absolute;
-	top: 14px;
-	right: 16px;
-
-	& > svg {
-		color: ${({ theme }) => theme.text3};
-		height: 20px;
-		width: 20px;
-	}
-`
-
 export const DesktopSearch = (props: IBaseSearchProps) => {
 	const { data, loading = false, step, onSearchTermChange, filters, placeholder = 'Search...' } = props
+
 	const combobox = useComboboxState({
 		gutter: 6,
 		sameWidth: true,
@@ -98,13 +68,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 
 	return (
 		<Wrapper>
-			<Input
-				state={combobox}
-				placeholder={placeholder}
-				style={step && { borderBottomLeftRadius: '0', borderBottomRightRadius: 0 }}
-			/>
-
-			<IconWrapper>{combobox.mounted ? <XIcon /> : <SearchIcon />}</IconWrapper>
+			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} />
 
 			{step && <Options step={step} filters={filters} />}
 

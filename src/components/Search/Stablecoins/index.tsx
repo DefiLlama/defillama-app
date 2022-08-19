@@ -1,12 +1,11 @@
 import { DesktopSearch } from '../Base'
 import type { ICommonSearchProps } from '../types'
-import { usePeggedSearchList } from './hooks'
+import { useGetStablecoinsSearchList } from './hooks'
 
 interface IPeggedSearchProps extends ICommonSearchProps {}
 
-// TODO add pegged chains list
 export default function PeggedSearch(props: IPeggedSearchProps) {
-	const { data, loading } = usePeggedSearchList()
+	const { data, loading } = useGetStablecoinsSearchList()
 
 	return <DesktopSearch {...props} data={data} loading={loading} />
 }

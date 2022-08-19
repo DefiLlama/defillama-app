@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { Dispatch, ReactNode } from 'react'
 
 export interface ISearchItem {
 	name: string
@@ -35,4 +35,11 @@ export enum SETS {
 	PROTOCOLS = 'protocols',
 	CHAINS = 'chains',
 	GROUPED_CHAINS = 'grouped_chains'
+}
+
+export interface IGetSearchList {
+	data: ISearchItem[]
+	loading: boolean
+	error?: boolean
+	onSearchTermChange?: Dispatch<any>
 }

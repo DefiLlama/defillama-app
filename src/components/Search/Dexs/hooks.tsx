@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { useFetchDexsList } from '~/api/categories/dexs/client'
 import { standardizeProtocolName, tokenIconUrl } from '~/utils'
-import type { IBaseSearchProps } from '../types'
+import type { IBaseSearchProps, IGetSearchList } from '../types'
 
-export function useGetDexesSearchList() {
+export function useGetDexesSearchList(): IGetSearchList {
 	const { data, loading } = useFetchDexsList()
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(

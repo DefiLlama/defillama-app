@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { useFetchPeggedList } from '~/api/categories/stablecoins/client'
 import { peggedAssetIconUrl, standardizeProtocolName } from '~/utils'
-import type { IBaseSearchProps } from '../types'
+import type { IBaseSearchProps, IGetSearchList } from '../types'
 
-export function usePeggedSearchList() {
+// TODO add pegged chains list
+export function useGetStablecoinsSearchList(): IGetSearchList {
 	const { data, loading } = useFetchPeggedList()
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(

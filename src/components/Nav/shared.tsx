@@ -57,10 +57,12 @@ export const LogoWrapper = styled.a`
 export const Nav = styled.nav`
 	flex: 1;
 	display: flex;
+	justify-content: flex-end;
 	gap: 20px;
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		flex-direction: column;
+		justify-content: flex-start;
 	}
 `
 

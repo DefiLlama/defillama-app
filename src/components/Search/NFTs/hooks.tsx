@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { useFetchNFTsList } from '~/api/categories/nfts'
-import { IBaseSearchProps } from '../types'
+import type { IBaseSearchProps, IGetSearchList } from '../types'
 
-export function useGetNftsSearchList() {
+export function useGetNftsSearchList(): IGetSearchList {
 	const [searchValue, setSearchValue] = React.useState(null)
 
 	const { data, loading } = useFetchNFTsList(searchValue)
