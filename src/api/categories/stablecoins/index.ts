@@ -52,13 +52,6 @@ export async function getPeggedOverviewPageData(chain) {
 	const priceData = await getPeggedPrices()
 	const rateData = await getPeggedRates()
 
-	let allChartData = []
-	if (!chain) {
-		allChartData = await fetch(`${PEGGEDCHART_API}/all`).then((resp) => resp.json())
-	} else {
-		allChartData = await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
-	}
-
 	let chartDataByPeggedAsset = []
 	let peggedAssetNames: string[] = [] // fix name of this variable
 	let peggedNameToChartDataIndex: object = {}
@@ -132,7 +125,6 @@ export async function getPeggedOverviewPageData(chain) {
 		peggedNameToChartDataIndex,
 		chartDataByPeggedAsset,
 		chainTVLData,
-		allChartData: allChartData.slice(-10),
 		chain: chain ?? 'All'
 	}
 }
@@ -141,7 +133,7 @@ export async function getPeggedChainsPageData() {
 	const { peggedAssets, chains } = await getPeggedAssets()
 	const { chainCoingeckoIds } = await fetch(CONFIG_API).then((r) => r.json())
 
-	const allChartData = await fetch(`${PEGGEDCHART_API}/all`).then((r) => r.json())
+	const chartData = await fetch(`${PEGGEDCHART_API}/all`).then((r) => r.json())
 
 	const chainList = await chains
 		.sort((a, b) => {
@@ -250,11 +242,11 @@ export async function getPeggedChainsPageData() {
 
 	return {
 		chainCirculatings,
+		chartData,
 		peggedChartDataByChain,
 		chainList,
 		chainsGroupbyParent,
-		chainTVLData,
-		allChartData: allChartData.slice(-10)
+		chainTVLData
 	}
 }
 

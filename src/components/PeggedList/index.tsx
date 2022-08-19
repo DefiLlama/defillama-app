@@ -20,7 +20,6 @@ import {
 	formattedNum,
 	formattedPeggedPrice,
 	getPercentChange,
-	getPrevPeggedTotalFromChart,
 	getPeggedDominance,
 	toNiceMonthlyDate,
 	toNiceCsvDate,
@@ -382,8 +381,7 @@ function PeggedAssetsOverview({
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
-	chainTVLData,
-	allChartData
+	chainTVLData
 }) {
 	const [chartType, setChartType] = useState('Area')
 
@@ -515,11 +513,11 @@ function PeggedAssetsOverview({
 	}
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
-		const totalMcapCurrent = getPrevPeggedTotalFromChart(allChartData, 0, 'totalCirculatingUSD')
-		const totalMcapPrevDay = getPrevPeggedTotalFromChart(allChartData, 7, 'totalCirculatingUSD')
-		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
+		let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
+		let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
+		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
 		return { percentChange, totalMcapCurrent }
-	}, [allChartData])
+	}, [peggedAreaTotalData])
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 

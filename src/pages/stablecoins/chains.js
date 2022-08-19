@@ -17,21 +17,21 @@ export async function getStaticProps() {
 
 export default function PeggedAssets({
 	chainCirculatings,
+	chartData,
 	peggedChartDataByChain,
 	chainList,
 	chainsGroupbyParent,
-	chainTVLData,
-	allChartData,
+	chainTVLData
 }) {
 	return (
 		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO>
 			<PeggedChainsOverview
 				chainCirculatings={chainCirculatings}
+				chartData={chartData}
 				peggedChartDataByChain={peggedChartDataByChain}
 				chainList={chainList}
 				chainsGroupbyParent={chainsGroupbyParent}
 				chainTVLData={chainTVLData}
-				allChartData={allChartData}
 			/>
 		</Layout>
 	)
