@@ -41,9 +41,10 @@ export type Price = {
 }
 
 const getNativeSymbol = (symbol: string) => {
-	const originSymbol = symbol.endsWith('.e') || symbol.endsWith('.b') ? symbol.slice(0, -2) : symbol
+	const originSymbol =
+		symbol.toLowerCase().endsWith('.e') || symbol.toLowerCase().endsWith('.b') ? symbol.slice(0, -2) : symbol
 	const nativeSymbol = WRAPPED_GAS_TOKENS.includes(originSymbol) ? originSymbol.substring(1) : originSymbol
-	return nativeSymbol
+	return nativeSymbol.toLowerCase()
 }
 
 /**
@@ -353,7 +354,7 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 	const csvHeader = ['symbol', 'chain', 'protocol', 'liqPrice', 'collateralValue', 'owner', 'timestamp'].join(',')
 	const csvData = allAssetPositions
 		.map(({ symbol, chain, protocol, liqPrice, collateralValue, owner }) => {
-			return `${symbol},${chain},${protocol},${liqPrice},${collateralValue},${owner},${timestamp}`
+			return `${symbol.toUpperCase()},${chain},${protocol},${liqPrice},${collateralValue},${owner},${timestamp}`
 		})
 		.reduce((acc, curr) => acc + '\n' + curr, csvHeader)
 
@@ -370,12 +371,16 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		symbol: 'WBTC'
 	},
 	{
+		name: 'Dai',
+		symbol: 'DAI'
+	},
+	{
 		name: 'USD Coin',
 		symbol: 'USDC'
 	},
 	{
-		name: 'Dai',
-		symbol: 'DAI'
+		name: 'Lido Wrapped stETH',
+		symbol: 'WSTETH'
 	},
 	// {
 	// 	name: 'Tether',

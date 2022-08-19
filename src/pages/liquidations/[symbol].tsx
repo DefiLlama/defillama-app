@@ -23,9 +23,9 @@ import SEO from '~/components/SEO'
 import { assetIconUrl } from '~/utils'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
-	const symbol = params.symbol as string
-	const data = await getLatestChartData(symbol.toUpperCase(), 100)
-	const prevData = (await getPrevChartData(symbol.toUpperCase(), 100, 3600 * 24)) ?? data
+	const symbol = (params.symbol as string).toLowerCase()
+	const data = await getLatestChartData(symbol, 100)
+	const prevData = (await getPrevChartData(symbol, 100, 3600 * 24)) ?? data
 	return {
 		props: { data, prevData },
 		revalidate: revalidate(5)
@@ -63,6 +63,7 @@ const LiquidationsProvider = ({ children }) => {
 
 const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> = (props) => {
 	const { data, prevData } = props
+	console.log(data)
 	const asset = DEFAULT_ASSETS_LIST.find((x) => x.symbol.toLowerCase() === data.symbol.toLowerCase())
 
 	const [minutesAgo, setMinutesAgo] = useState(Math.round((Date.now() - data.time * 1000) / 1000 / 60))

@@ -51,7 +51,10 @@ export function AssetSelector({ options, symbol }: IProps) {
 		combobox.setValue('')
 	}
 
-	const selectedAsset = useMemo(() => options.find((x) => x.symbol === symbol), [symbol, options])
+	const selectedAsset = useMemo(
+		() => options.find((x) => x.symbol.toLowerCase() === symbol.toLowerCase()),
+		[symbol, options]
+	)
 
 	return (
 		<div>
