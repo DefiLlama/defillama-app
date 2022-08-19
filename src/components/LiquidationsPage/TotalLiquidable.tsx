@@ -49,7 +49,7 @@ export const TotalLiquidable = (props: ChartData) => {
 
 	return (
 		<>
-			<h1>Total Liquidable (USD)</h1>
+			<h1>Total Liquidatable (USD)</h1>
 			<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>${totalLiquidable}</p>
 			<DownloadButton symbol={props.symbol} />
 		</>
