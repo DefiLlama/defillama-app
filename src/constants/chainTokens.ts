@@ -534,7 +534,7 @@ export const chainCoingeckoIds = {
 		symbol: 'BOBA',
 		cmcId: '14556'
 	},
-	BitGert: {
+	Bitgert: {
 		geckoId: 'bitrise-token',
 		symbol: 'BRISE',
 		cmcId: '11079'
