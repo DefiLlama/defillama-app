@@ -82,8 +82,9 @@ const Button = styled.button`
 
 const InputField = styled(Input)`
 	position: absolute;
-	top: 6px;
-	left: 6px;
-	right: 6px;
+	top: 8px;
+	left: 8px;
+	right: 8px;
+	border-radius: 4px;
 	z-index: 1;
 `
