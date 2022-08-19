@@ -86,4 +86,5 @@ const getDangerousPositionsAmount = (
 
 const Wrapper = styled(ChartAndValuesWrapper)`
 	z-index: 0;
+	margin-top: -1rem;
 `

@@ -1,34 +1,8 @@
 import React, { useContext } from 'react'
-import { ChartData, getLiquidationsCsvData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
-import { DownloadIcon } from '~/components'
-import styled from 'styled-components'
-import { download } from '~/utils'
+import { ChartData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { useStackBy } from './utils'
 import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
-
-const DownloadButtonContainer = styled.button`
-	padding: 4px 6px;
-	border-radius: 6px;
-	background: ${({ theme }) => theme.bg3};
-	position: absolute;
-	bottom: 8px;
-	right: 8px;
-	display: flex;
-	align-items: center;
-`
-const DownloadButton = ({ symbol }: { symbol: string }) => {
-	return (
-		<DownloadButtonContainer
-			onClick={async () => {
-				const csvString = await getLiquidationsCsvData(symbol)
-				download(`${symbol}-all-positions.csv`, csvString)
-			}}
-		>
-			<DownloadIcon />
-			<span>&nbsp;&nbsp;.csv</span>
-		</DownloadButtonContainer>
-	)
-}
+import { DownloadButtonSmol } from './DownloadButton'
 
 export const TotalLiquidable = (props: ChartData) => {
 	const stackBy = useStackBy()
@@ -51,7 +25,7 @@ export const TotalLiquidable = (props: ChartData) => {
 		<>
 			<h1>Total Liquidatable (USD)</h1>
 			<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>${totalLiquidable}</p>
-			<DownloadButton symbol={props.symbol} />
+			<DownloadButtonSmol symbol={props.symbol} />
 		</>
 	)
 }
