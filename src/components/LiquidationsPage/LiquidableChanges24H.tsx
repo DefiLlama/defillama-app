@@ -1,5 +1,5 @@
 import React, { useContext, useMemo } from 'react'
-import { ChartData } from '~/utils/liquidations'
+import { ChartData, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { useStackBy } from './utils'
 import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
 
@@ -54,21 +54,23 @@ const getLiquidableChangesRatio = (
 			Object.keys(selectedSeries)
 				.filter((chain) => selectedSeries[chain])
 				.forEach((chain) => {
-					if (!prevData.totalLiquidables.chains[chain]) {
+					const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
+					if (!prevData.totalLiquidables.chains[_chain]) {
 						return
 					}
-					current += data.totalLiquidables.chains[chain]
-					prev += prevData.totalLiquidables.chains[chain]
+					current += data.totalLiquidables.chains[_chain]
+					prev += prevData.totalLiquidables.chains[_chain]
 				})
 		} else {
 			Object.keys(selectedSeries)
 				.filter((protocol) => selectedSeries[protocol])
 				.forEach((protocol) => {
-					if (!prevData.totalLiquidables.protocols[protocol]) {
+					const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
+					if (!prevData.totalLiquidables.protocols[_protocol]) {
 						return
 					}
-					current += data.totalLiquidables.protocols[protocol]
-					prev += prevData.totalLiquidables.protocols[protocol]
+					current += data.totalLiquidables.protocols[_protocol]
+					prev += prevData.totalLiquidables.protocols[_protocol]
 				})
 		}
 	}
