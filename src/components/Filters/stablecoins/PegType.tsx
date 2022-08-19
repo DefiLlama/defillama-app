@@ -5,22 +5,20 @@ import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
 import { Item, Stats } from '../shared'
 
-const { PEGGEDUSD, PEGGEDEUR, PEGGEDVAR } = STABLECOINS_SETTINGS
-
 export const options = [
 	{
 		name: 'USD',
-		key: PEGGEDUSD,
+		key: STABLECOINS_SETTINGS.PEGGEDUSD,
 		help: 'Show stablecoins pegged to USD'
 	},
 	{
 		name: 'EUR',
-		key: PEGGEDEUR,
+		key: STABLECOINS_SETTINGS.PEGGEDEUR,
 		help: 'Show stablecoins pegged to EUR'
 	},
 	{
 		name: 'Variable',
-		key: PEGGEDVAR,
+		key: STABLECOINS_SETTINGS.PEGGEDVAR,
 		help: 'Show stablecoins with a variable or floating peg'
 	}
 ]
