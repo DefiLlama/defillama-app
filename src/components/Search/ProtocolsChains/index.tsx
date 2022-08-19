@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
-import { BaseSearch } from '~/components/Search/BaseSearch'
-import type { IBaseSearchProps, ICommonSearchProps } from '~/components/Search/BaseSearch'
+import { DesktopSearch } from '../Base'
+import { IBaseSearchProps, ICommonSearchProps, SETS } from '../types'
 import { chainIconUrl, standardizeProtocolName, tokenIconUrl } from '~/utils'
 import { useFetchProtocolsList } from '~/api/categories/protocols/client'
 import placeholderImg from '~/assets/placeholder.png'
-import { DesktopProtocolFilters, MobileProtocolFilters } from '~/components/Filters/protocols'
+import { DesktopProtocolFilters, TabletProtocolsFilters } from '~/components/Filters/protocols'
 
 const groupedChains = [
 	{ name: 'Non-EVM', route: '/chains/Non-EVM', logo: placeholderImg.src },
@@ -16,12 +16,6 @@ const groupedChains = [
 	{ name: 'Chains - Polkadot', route: '/chains/Polkadot', logo: chainIconUrl('polkadot') },
 	{ name: 'Chains - Kusama', route: '/chains/Kusama', logo: chainIconUrl('kusama') }
 ]
-
-export enum SETS {
-	PROTOCOLS = 'protocols',
-	CHAINS = 'chains',
-	GROUPED_CHAINS = 'grouped_chains'
-}
 
 interface IProtocolsChainsSearch extends ICommonSearchProps {
 	includedSets?: SETS[]
@@ -82,7 +76,7 @@ export default function ProtocolsChainsSearch(props: IProtocolsChainsSearch) {
 		return sets
 	}, [data, pathname, customPath, includedSets])
 
-	return <BaseSearch {...props} data={searchData} loading={loading} filters={<TvlOptions options={options} />} />
+	return <DesktopSearch {...props} data={searchData} loading={loading} filters={<TvlOptions options={options} />} />
 }
 
 const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) => {
@@ -94,7 +88,7 @@ const TvlOptions = ({ options }: { options?: { name: string; key: string }[] }) 
 		<>
 			<DesktopProtocolFilters options={options} />
 
-			<MobileProtocolFilters options={options} />
+			<TabletProtocolsFilters options={options} />
 		</>
 	)
 }

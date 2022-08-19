@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import BigNumber from 'bignumber.js'
-import { ISearchItem } from '~/components/Search/BaseSearch'
+import type { ISearchItem } from '~/components/Search/types'
 import { LIQUIDATIONS_API, LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
 import { assetIconUrl } from '..'
 

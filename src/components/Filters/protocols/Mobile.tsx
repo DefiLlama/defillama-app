@@ -41,7 +41,7 @@ interface IProps {
 	options?: { name: string; key: string; help?: string }[]
 }
 
-export function MobileProtocolFilters({ options, ...props }: IProps) {
+export function TabletProtocolsFilters({ options, ...props }: IProps) {
 	const select = useProtocolsFilterState({ sameWidth: true })
 
 	const tvlOptions = options || protocolsAndChainsOptions

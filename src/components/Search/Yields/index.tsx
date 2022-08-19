@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { BaseSearch } from '~/components/Search/BaseSearch'
-import type { IBaseSearchProps, ICommonSearchProps } from '~/components/Search/BaseSearch'
+import { DesktopSearch } from '../Base'
+import type { IBaseSearchProps, ICommonSearchProps } from '../types'
 import { useFetchYieldsList, useFetchProjectsList } from '~/api/categories/yield/client'
 import { AdvancedYieldsSearch } from './Advanced'
 import { ToggleSearch } from './shared'
@@ -54,7 +54,7 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 	}
 
 	return (
-		<BaseSearch
+		<DesktopSearch
 			{...props}
 			data={searchData}
 			loading={fetchingYields || fetchingProjects}

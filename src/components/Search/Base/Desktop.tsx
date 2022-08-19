@@ -7,11 +7,16 @@ import styled from 'styled-components'
 import { ArrowRight, Search as SearchIcon, X as XIcon } from 'react-feather'
 import { Combobox, ComboboxItem, ComboboxPopover, useComboboxState } from 'ariakit/combobox'
 import TokenLogo from '~/components/TokenLogo'
+import type { IBaseSearchProps, ISearchItem } from '../types'
 
-const Wrapper = styled.nav`
-	display: flex;
+const Wrapper = styled.div`
+	display: none;
 	flex-direction: column;
 	position: relative;
+
+	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+		display: flex;
+	}
 `
 
 const Box = styled(Combobox)`
@@ -119,33 +124,7 @@ const IconWrapper = styled.div`
 	}
 `
 
-export interface ISearchItem {
-	name: string
-	route: string
-	logo?: string
-	symbol?: string
-}
-
-// Define breadcrumb of the search
-interface IStep {
-	category: string
-	name: string
-	route?: string
-	hideOptions?: boolean
-}
-
-export interface IBaseSearchProps {
-	data: ISearchItem[]
-	loading?: boolean
-	step?: IStep
-	onSearchTermChange?: (searchValue: string) => void
-	customPath?: (item: string) => string
-	onItemClick?: (item: ISearchItem) => void
-	filters?: React.ReactNode
-	placeholder?: string
-}
-
-export const BaseSearch = (props: IBaseSearchProps) => {
+export const DesktopSearch = (props: IBaseSearchProps) => {
 	const { data, loading = false, step, onSearchTermChange, filters, placeholder = 'Search...' } = props
 	const combobox = useComboboxState({
 		gutter: 6,
@@ -269,9 +248,4 @@ const Options = ({ step, filters }: IOptionsProps) => {
 			{!step.hideOptions && filters && <>{filters}</>}
 		</OptionsWrapper>
 	)
-}
-
-export interface ICommonSearchProps {
-	step?: IBaseSearchProps['step']
-	onItemClick?: IBaseSearchProps['onItemClick']
 }

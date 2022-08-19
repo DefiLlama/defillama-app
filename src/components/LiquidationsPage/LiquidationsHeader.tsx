@@ -1,16 +1,15 @@
-import { ChartData, DEFAULT_ASSETS_LIST } from '~/utils/liquidations'
+import * as React from 'react'
+import Link from 'next/link'
+import { MenuButtonArrow, useComboboxState, useMenuState } from 'ariakit'
+import styled from 'styled-components'
 import TokenLogo from '~/components/TokenLogo'
 import { ProtocolName, Symbol } from '~/components/ProtocolAndPool'
 import FormattedName from '~/components/FormattedName'
-import styled from 'styled-components'
-import { StackBySwitch } from './StackBySwitch'
-import React, { useMemo } from 'react'
-
-import { MenuButtonArrow, useComboboxState, useMenuState } from 'ariakit'
 import { Button, Popover } from '~/components/DropdownMenu'
 import { Input, Item, List } from '~/components/Combobox'
-import Link from 'next/link'
-import { ISearchItem } from '../Search/BaseSearch'
+import { StackBySwitch } from './StackBySwitch'
+import { ChartData, DEFAULT_ASSETS_LIST } from '~/utils/liquidations'
+import type { ISearchItem } from '../Search/types'
 
 const LiquidationsHeaderWrapper = styled.div`
 	flex: 1;
@@ -51,7 +50,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 		combobox.setValue('')
 	}
 
-	const selectedAsset = useMemo(() => options.find((x) => x.symbol === symbol), [symbol, options])
+	const selectedAsset = React.useMemo(() => options.find((x) => x.symbol === symbol), [symbol, options])
 
 	return (
 		<div>

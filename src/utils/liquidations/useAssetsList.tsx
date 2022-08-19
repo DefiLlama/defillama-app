@@ -1,4 +1,4 @@
-import { IBaseSearchProps } from '~/components/Search/BaseSearch'
+import type { IBaseSearchProps } from '~/components/Search/types'
 import { useEffect, useState } from 'react'
 import { DEFAULT_ASSETS_LIST } from '~/utils/liquidations'
 

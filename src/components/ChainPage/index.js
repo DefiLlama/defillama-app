@@ -270,7 +270,7 @@ function GlobalPage({
 						<p style={{ '--tile-text-color': '#46acb7' }}> {dominance}%</p>
 					</PanelHiddenMobile>
 				</BreakpointPanels>
-				{/* <BreakpointPanel id="chartWrapper">
+				<BreakpointPanel id="chartWrapper">
 					<RowFixed>
 						{DENOMINATIONS.map((option) => (
 							<OptionButton
@@ -296,7 +296,7 @@ function GlobalPage({
 							liquidityChange={volumeChangeUSD}
 						/>
 					)}
-				</BreakpointPanel> */}
+				</BreakpointPanel>
 				<EasterLlama onClick={activateEasterEgg}>
 					<Image src={llamaLogo} width="41px" height="34px" alt="Activate Easter Egg" />
 				</EasterLlama>
