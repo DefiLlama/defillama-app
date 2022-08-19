@@ -239,11 +239,11 @@ function GlobalPage({
 			/>
 
 			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
-				<span> We've launched a multi-chain stablecoin dashboard. Check it out</span>{' '}
-				<BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/stablecoins">
-					here
+				<span>New </span>{' '}
+				<BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/liquidations/eth">
+					liquidation levels dashboard
 				</BasicLink>
-				<span>!</span>
+				<span> is live!</span>
 			</Panel>
 
 			<ChartAndValuesWrapper>
