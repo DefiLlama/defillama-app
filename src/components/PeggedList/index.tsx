@@ -26,7 +26,7 @@ import {
 	download
 } from '~/utils'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
-import { PegType, BackingType } from '~/components/Filters'
+import { Attribute, PegType, BackingType } from '~/components/Filters'
 import { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
 
 const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/PeggedAreaChart'), {
@@ -395,14 +395,17 @@ function PeggedAssetsOverview({
 	const [stablecoinsSettings] = useStablecoinsManager()
 
 	const peggedAssets = useMemo(() => {
-		const { PEGGEDUSD, PEGGEDEUR, PEGGEDVAR, FIATSTABLES, CRYPTOSTABLES, ALGOSTABLES } = STABLECOINS_SETTINGS
+		const { PEGGEDUSD, PEGGEDEUR, PEGGEDVAR, FIATSTABLES, CRYPTOSTABLES, ALGOSTABLES, DEPEGGED } = STABLECOINS_SETTINGS
 
 		let chartDataIndexes = []
 		const peggedAssets = filteredPeggedAssets.reduce((acc, curr) => {
 			let toFilter = false
 
 			toFilter =
-				(stablecoinsSettings[PEGGEDUSD] && curr.pegType === 'peggedUSD') ||
+				stablecoinsSettings[DEPEGGED] || Math.abs(curr.pegDeviation) < 10 || !(typeof curr.pegDeviation === 'number')
+
+			toFilter =
+				(toFilter && stablecoinsSettings[PEGGEDUSD] && curr.pegType === 'peggedUSD') ||
 				(stablecoinsSettings[PEGGEDEUR] && curr.pegType === 'peggedEUR') ||
 				(stablecoinsSettings[PEGGEDVAR] && curr.pegType === 'peggedVAR')
 
@@ -539,6 +542,7 @@ function PeggedAssetsOverview({
 			<ChartFilters>
 				{/* <PeggedViewSwitch /> */}
 				<Dropdowns>
+					<Attribute />
 					<BackingType />
 					<PegType />
 				</Dropdowns>
