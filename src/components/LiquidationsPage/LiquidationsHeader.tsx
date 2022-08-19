@@ -11,6 +11,7 @@ import { Button, Popover } from '~/components/DropdownMenu'
 import { Input, Item, List } from '~/components/Combobox'
 import Link from 'next/link'
 import { ISearchItem } from '../Search/BaseSearch'
+import { DownloadButton } from './DownloadButton'
 
 const LiquidationsHeaderWrapper = styled.div`
 	flex: 1;
@@ -19,19 +20,35 @@ const LiquidationsHeaderWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
+	align-items: center;
 	gap: 10px;
 	position: relative;
 	margin-top: 1rem;
 
 	@media (min-width: 80rem) {
 		flex-direction: row;
+		align-items: flex-start;
 	}
 `
+const ButtonsGroup = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+
+	@media (min-width: 80rem) {
+		align-items: flex-end;
+	}
+`
+
 export const LiquidationsHeader = (props: ChartData) => {
 	return (
 		<LiquidationsHeaderWrapper>
 			<AssetSelector symbol={props.symbol} options={DEFAULT_ASSETS_LIST} />
-			<StackBySwitch />
+			<ButtonsGroup>
+				<StackBySwitch />
+				<DownloadButton symbol={props.symbol} />
+			</ButtonsGroup>
 		</LiquidationsHeaderWrapper>
 	)
 }
