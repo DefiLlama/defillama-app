@@ -20,14 +20,13 @@ import {
 	formattedNum,
 	formattedPeggedPrice,
 	getPercentChange,
-	getPrevPeggedTotalFromChart,
 	getPeggedDominance,
 	toNiceMonthlyDate,
 	toNiceCsvDate,
 	download
 } from '~/utils'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
-import { PegType, BackingType } from '~/components/Filters'
+import { Attribute, PegType, BackingType } from '~/components/Filters'
 import { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
 
 const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/PeggedAreaChart'), {
@@ -382,8 +381,7 @@ function PeggedAssetsOverview({
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
-	chainTVLData,
-	allChartData
+	chainTVLData
 }) {
 	const [chartType, setChartType] = useState('Area')
 
@@ -397,14 +395,17 @@ function PeggedAssetsOverview({
 	const [stablecoinsSettings] = useStablecoinsManager()
 
 	const peggedAssets = useMemo(() => {
-		const { PEGGEDUSD, PEGGEDEUR, PEGGEDVAR, FIATSTABLES, CRYPTOSTABLES, ALGOSTABLES } = STABLECOINS_SETTINGS
+		const { PEGGEDUSD, PEGGEDEUR, PEGGEDVAR, FIATSTABLES, CRYPTOSTABLES, ALGOSTABLES, DEPEGGED } = STABLECOINS_SETTINGS
 
 		let chartDataIndexes = []
 		const peggedAssets = filteredPeggedAssets.reduce((acc, curr) => {
 			let toFilter = false
 
 			toFilter =
-				(stablecoinsSettings[PEGGEDUSD] && curr.pegType === 'peggedUSD') ||
+				stablecoinsSettings[DEPEGGED] || Math.abs(curr.pegDeviation) < 10 || !(typeof curr.pegDeviation === 'number')
+
+			toFilter =
+				(toFilter && stablecoinsSettings[PEGGEDUSD] && curr.pegType === 'peggedUSD') ||
 				(stablecoinsSettings[PEGGEDEUR] && curr.pegType === 'peggedEUR') ||
 				(stablecoinsSettings[PEGGEDVAR] && curr.pegType === 'peggedVAR')
 
@@ -515,11 +516,11 @@ function PeggedAssetsOverview({
 	}
 
 	const { percentChange, totalMcapCurrent } = useMemo(() => {
-		const totalMcapCurrent = getPrevPeggedTotalFromChart(allChartData, 0, 'totalCirculatingUSD')
-		const totalMcapPrevDay = getPrevPeggedTotalFromChart(allChartData, 7, 'totalCirculatingUSD')
-		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2)
+		let totalMcapCurrent = peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap
+		let totalMcapPrevWeek = peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap
+		const percentChange = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
 		return { percentChange, totalMcapCurrent }
-	}, [allChartData])
+	}, [peggedAreaTotalData])
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
@@ -541,6 +542,7 @@ function PeggedAssetsOverview({
 			<ChartFilters>
 				{/* <PeggedViewSwitch /> */}
 				<Dropdowns>
+					<Attribute />
 					<BackingType />
 					<PegType />
 				</Dropdowns>

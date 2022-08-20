@@ -4,16 +4,6 @@ import { ChartData, ChartDataBins, getReadableValue, PROTOCOL_NAMES_MAP } from '
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { ECBasicOption } from 'echarts/types/dist/shared'
-import { useState } from 'react'
-
-export type ChartState = {
-	asset: string // TODO: symbol for now, later change to coingeckoId
-	stackBy: 'chain' | 'protocol'
-	filters: FilterChain | FilterProtocol
-}
-// this should be pulled dynamically
-type FilterChain = ['all'] | ['none'] | string[]
-type FilterProtocol = ['all'] | ['none'] | string[]
 
 export const convertChartDataBinsToArray = (obj: ChartDataBins, totalBins: number) => {
 	// // this line below suddenly throws error in browser that the iterator cant iterate??
@@ -70,6 +60,13 @@ export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols',
 			bottom: '2%',
 			containLabel: true
 		},
+		dataZoom: [
+			{
+				type: 'inside',
+				start: 0,
+				end: 100
+			}
+		],
 		tooltip: {
 			trigger: 'axis',
 			axisPointer: {

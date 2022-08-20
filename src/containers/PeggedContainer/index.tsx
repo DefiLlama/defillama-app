@@ -833,7 +833,7 @@ export default function PeggedContainer({
 								</FlexRow>
 							)}
 
-							{onCoinGecko && (
+							{onCoinGecko === 'true' && (
 								<FlexRow>
 									<>
 										<span>

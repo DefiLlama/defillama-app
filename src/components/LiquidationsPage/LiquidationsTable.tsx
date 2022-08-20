@@ -86,7 +86,7 @@ const COLUMNS: IColumnProps[] = [
 	{
 		accessor: 'changes24h',
 		header: '24h Change',
-		helperText: 'Liquidable amount change in the last 24 hours.',
+		helperText: 'Liquidatable amount change in the last 24 hours.',
 		Cell: ({ value }: CellProps) => {
 			const isNegative = value < 0
 			const isZero = value === 0
@@ -117,7 +117,7 @@ const COLUMNS: IColumnProps[] = [
 	},
 	{
 		accessor: 'liquidableAmount',
-		header: 'Liquidable Amount',
+		header: 'Liquidatable Amount',
 		helperText: 'Total amount of liquidatable assets.',
 		Cell: ({ value }: CellProps) => {
 			const _value = getReadableValue(value as number)

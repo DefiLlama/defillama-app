@@ -38,7 +38,6 @@ export default function PeggedAssets({
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
 	chainTVLData,
-	allChartData,
 	chain
 }) {
 	return (
@@ -51,7 +50,6 @@ export default function PeggedAssets({
 				peggedNameToChartDataIndex={peggedNameToChartDataIndex}
 				chartDataByPeggedAsset={chartDataByPeggedAsset}
 				chainTVLData={chainTVLData}
-				allChartData={allChartData}
 			/>
 		</Layout>
 	)
