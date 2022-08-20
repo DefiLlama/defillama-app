@@ -2,9 +2,8 @@ import styled from 'styled-components'
 import { SelectLabel, SelectArrow } from 'ariakit/select'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
-import { FilterPopover, SelectMenu } from '~/components/Select/AriakitSelect'
 import { protocolsAndChainsOptions } from './options'
-import { Item } from '../shared'
+import { Item, FilterPopover, BaseSelect } from '../shared'
 import { useProtocolsFilterState } from './useProtocolFilterState'
 
 const WrapperWithLabel = styled.div`
@@ -27,7 +26,7 @@ const Label = styled(SelectLabel)`
 	white-space: nowrap;
 `
 
-const Menu = styled(SelectMenu)`
+const Menu = styled(BaseSelect)`
 	background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#f5f5f5')};
 `
 

@@ -57,7 +57,7 @@ const groupOptionsLabel = [
 	}
 ]
 
-export function PeggedAssetGroupOptions({ label }: { label?: string }) {
+export function GroupStablecoins({ label }: { label?: string }) {
 	const [groupTvls, updater] = useDefiChainsManager()
 
 	const filters = { ...groupTvls }

@@ -1,6 +1,6 @@
 import { transparentize } from 'polished'
 import styled from 'styled-components'
-import { FilterItem, FilterPopover } from '~/components/Select/AriakitSelect'
+import { FilterItem, FilterPopover } from '../shared'
 
 export const Dropdown = styled(FilterPopover)`
 	max-height: 320px;
@@ -18,6 +18,8 @@ export const Dropdown = styled(FilterPopover)`
 		max-width: 280px;
 	}
 `
+
+export const MobileDropdown = styled(FilterPopover)``
 
 export const Item = styled(FilterItem)`
 	&:first-of-type,

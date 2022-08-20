@@ -1,9 +1,8 @@
 import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
-import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
-import { Item, Stats } from '../shared'
+import { Item, Stats, FilterButton, FilterPopover } from '../shared'
 
 export const options = [
 	{

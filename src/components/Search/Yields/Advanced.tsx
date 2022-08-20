@@ -2,7 +2,7 @@ import * as React from 'react'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { ToggleSearch } from './shared'
-import ReactSelect from '~/components/Select/ReactSelect'
+import ReactSelect from '~/components/MultiSelect/ReactSelect'
 import { useFetchYieldsList } from '~/api/categories/yield/client'
 import { useRouter } from 'next/router'
 

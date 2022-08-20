@@ -2,7 +2,7 @@ import { Select as AriaSelect, SelectItem, SelectPopover } from 'ariakit/select'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 
-export const SelectMenu = styled(AriaSelect)`
+export const BaseSelect = styled(AriaSelect)`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;

@@ -5,7 +5,6 @@ import styled, { keyframes } from 'styled-components'
 import { Entry } from '../shared'
 import { IMainLink, navLinks } from '../Links'
 import { usePeggedApp, useYieldApp } from '~/hooks'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { Button, Close } from './shared'
 
 const slideIn = keyframes`
@@ -57,7 +56,6 @@ export function Menu() {
 
 	const isYieldApp = useYieldApp()
 	const isPeggedApp = usePeggedApp()
-	const [darkMode, toggleDarkMode] = useDarkModeManager()
 
 	const links = isYieldApp ? navLinks.yields : isPeggedApp ? navLinks.stablecoins : navLinks.defi
 
@@ -126,11 +124,6 @@ export function Menu() {
 						)
 					}
 				})}
-
-				<button onClick={toggleDarkMode}>
-					<div style={{ width: '32px', display: 'inline-block' }}></div>
-					{`Toggle ${darkMode ? 'light' : 'dark'} mode`}
-				</button>
 			</Nav>
 		</>
 	)

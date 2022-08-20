@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { useRouter } from 'next/router'
 import { DesktopSearch } from '../Base'
 import type { ICommonSearchProps } from '../types'
 import { AdvancedYieldsSearch } from './Advanced'
@@ -13,9 +12,7 @@ interface IYieldSearchProps extends ICommonSearchProps {
 export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) {
 	const [advancedSearch, setAdvancedSearch] = React.useState(false)
 
-	const router = useRouter()
-
-	const { data, loading } = useGetYieldsSearchList()
+	const { data, loading, onItemClick } = useGetYieldsSearchList()
 
 	if (!props.step?.hideOptions && advancedSearch) {
 		return <AdvancedYieldsSearch setAdvancedSearch={setAdvancedSearch} pathname={pathname || '/yields'} />
@@ -31,9 +28,7 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 					<ToggleSearch onClick={() => setAdvancedSearch(true)}>Switch to Advanced Search</ToggleSearch>
 				)
 			}
-			onItemClick={(item) => {
-				router.push(item.route, undefined, { shallow: true })
-			}}
+			onItemClick={onItemClick}
 		/>
 	)
 }

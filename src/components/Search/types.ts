@@ -42,4 +42,5 @@ export interface IGetSearchList {
 	loading: boolean
 	error?: boolean
 	onSearchTermChange?: Dispatch<any>
+	onItemClick?: (item: any) => void
 }

@@ -1,9 +1,9 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import { useSelectState, SelectArrow, SelectItemCheck } from 'ariakit/select'
-import { Item, Popover, SelectMenu } from '~/components/Select/AriakitSelect'
+import { Item, Popover, BaseSelect } from '~/components/Filters/shared'
 
-const Menu = styled(SelectMenu)`
+const Menu = styled(BaseSelect)`
 	position: absolute;
 	right: 0;
 	top: -3px;

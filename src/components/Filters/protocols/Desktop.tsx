@@ -1,7 +1,6 @@
 import styled from 'styled-components'
 import { SelectArrow } from 'ariakit/select'
-import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
-import { Item, Selected } from '../shared'
+import { Item, Selected, FilterButton, FilterPopover } from '../shared'
 import OptionToggle from '~/components/OptionToggle'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'

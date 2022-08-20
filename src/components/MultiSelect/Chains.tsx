@@ -18,7 +18,7 @@ const groupOptions = [
 	}
 ]
 
-export function ChainTvlOptions({ label }: { label?: string }) {
+export function GroupChains({ label }: { label?: string }) {
 	const [groupTvls] = useDefiChainsManager()
 	const [extraTvls, updater] = useDefiManager()
 

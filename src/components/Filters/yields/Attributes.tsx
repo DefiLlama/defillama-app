@@ -2,9 +2,8 @@ import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { useRouter } from 'next/router'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
-import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
-import { Item, Selected, Stats } from '../shared'
+import { Item, Selected, Stats, FilterButton, FilterPopover } from '../shared'
 
 export const attributeOptions = [
 	{

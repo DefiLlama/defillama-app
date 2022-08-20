@@ -38,5 +38,9 @@ export function useGetYieldsSearchList(): IGetSearchList {
 		return [...yieldsList, ...projectList]
 	}, [yields, projects, router.pathname])
 
-	return { data: searchData || [], loading: fetchingProjects || fetchingYields }
+	const onItemClick = (item) => {
+		router.push(item.route, undefined, { shallow: true })
+	}
+
+	return { data: searchData || [], loading: fetchingProjects || fetchingYields, onItemClick }
 }

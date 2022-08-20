@@ -13,7 +13,7 @@ import { Input } from './Input'
 import { Results } from './Results'
 
 export default function MobileSearch() {
-	const { data, loading, onSearchTermChange } = useMobileSearchResult()({})
+	const { data, loading, onSearchTermChange, onItemClick } = useMobileSearchResult()({})
 
 	const combobox = useComboboxState({
 		gutter: 6,
@@ -41,13 +41,12 @@ export default function MobileSearch() {
 					<Search height={16} width={16} />
 				</Button>
 			)}
-			{/* TODO handle onItemClick */}
-			<Results state={combobox} data={data} loading={loading} />
+
+			<Results state={combobox} data={data} loading={loading} onItemClick={onItemClick} />
 		</>
 	)
 }
 
-// TODO check for custom fns on nfts and yields page
 const useMobileSearchResult = () => {
 	const router = useRouter()
 
