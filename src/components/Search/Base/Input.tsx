@@ -19,6 +19,10 @@ const InputField = styled(Combobox)`
 	&[data-focus-visible] {
 		outline: ${({ theme }) => '1px solid ' + theme.text4};
 	}
+
+	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+		border-radius: 12px;
+	}
 `
 
 interface IInputProps {
@@ -27,10 +31,11 @@ interface IInputProps {
 	breadCrumbs?: boolean
 }
 
-const IconWrapper = styled.div`
+const IconWrapper = styled.button`
 	position: absolute;
-	top: 8px;
-	right: 10px;
+	top: 22px;
+	right: 20px;
+	z-index: 1;
 
 	& > svg {
 		color: ${({ theme }) => theme.text3};
@@ -53,7 +58,7 @@ export function Input({ state, placeholder, breadCrumbs, ...props }: IInputProps
 				{...props}
 			/>
 
-			<IconWrapper>{state.mounted ? <XIcon /> : <SearchIcon />}</IconWrapper>
+			<IconWrapper onClick={() => state.toggle()}>{state.mounted ? <XIcon /> : <SearchIcon />}</IconWrapper>
 		</>
 	)
 }

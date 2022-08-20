@@ -37,7 +37,7 @@ export default function MobileSearch() {
 					<InputField state={combobox} placeholder="Search..." breadCrumbs={true} />
 				</>
 			) : (
-				<Button onClick={() => combobox.show()}>
+				<Button onClick={() => combobox.toggle()}>
 					<Search height={16} width={16} />
 				</Button>
 			)}

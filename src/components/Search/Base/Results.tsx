@@ -6,7 +6,7 @@ import type { ISearchItem } from '../types'
 
 const Popover = styled(ComboboxPopover)`
 	height: 100%;
-	max-height: 240px;
+	max-height: 320px;
 	overflow-y: auto;
 	background: ${({ theme }) => theme.bg6};
 	border-bottom-left-radius: 12px;
@@ -15,9 +15,6 @@ const Popover = styled(ComboboxPopover)`
 	box-shadow: ${({ theme }) => theme.shadowLg};
 	transform: translate(0px, -5px);
 	z-index: 11;
-	${({ theme: { minLg } }) => minLg} {
-		max-height: 320px;
-	}
 `
 
 const Empty = styled.div`
