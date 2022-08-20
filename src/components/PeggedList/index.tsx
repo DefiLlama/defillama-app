@@ -6,7 +6,7 @@ import { OptionButton } from '~/components/ButtonStyled'
 import { RowBetween, AutoRow } from '~/components/Row'
 import Table, { columnsToShow } from '~/components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
-import { RowLinks, LinksWrapper } from '~/components/Filters'
+import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { AreaChart } from '~/components/Charts'
 import IconsRow from '~/components/IconsRow'
 import { PeggedSearch } from '~/components/Search'
@@ -623,9 +623,9 @@ function PeggedAssetsOverview({
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 
-			<LinksWrapper>
-				<RowLinks links={chainOptions} activeLink={selectedChain} />
-			</LinksWrapper>
+			<RowLinksWrapper>
+				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
+			</RowLinksWrapper>
 
 			<PeggedTable data={peggedTotals} columns={columns} />
 		</>

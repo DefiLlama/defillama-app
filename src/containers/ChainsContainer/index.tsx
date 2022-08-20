@@ -5,7 +5,7 @@ import { ButtonDark } from '~/components/ButtonStyled'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
 import { columnsToShow, FullTable } from '~/components/Table'
-import { RowLinks, LinksWrapper } from '~/components/Filters'
+import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { ChainTvlOptions } from '~/components/Select'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from '~/hooks/data'
 import { toNiceCsvDate, getRandomColor, download } from '~/utils'
@@ -270,9 +270,9 @@ export default function ChainsContainer({
 				<ChainTvlOptions label="Filters" />
 			</ChainTvlsFilter>
 
-			<LinksWrapper>
-				<RowLinks links={categories} activeLink={category} />
-			</LinksWrapper>
+			<RowLinksWrapper>
+				<RowLinksWithDropdown links={categories} activeLink={category} />
+			</RowLinksWrapper>
 
 			<StyledTable data={groupedChains} columns={columns} />
 		</>

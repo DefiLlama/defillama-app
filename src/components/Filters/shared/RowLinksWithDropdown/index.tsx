@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import styled from 'styled-components'
 import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
-import { OtherLinks } from './OtherLinksDropdown'
+import { OtherLinks } from './OtherLinks'
 
 interface ILink {
 	label: string
@@ -35,7 +35,7 @@ const Wrapper = styled.ul`
 	}
 `
 
-export const LinksWrapper = styled.nav`
+export const RowLinksWrapper = styled.nav`
 	display: flex;
 	align-items: center;
 	gap: 20px;
@@ -47,7 +47,8 @@ export const LinksWrapper = styled.nav`
 	}
 `
 
-export const RowLinks = ({ links = [], activeLink, ...props }: IRowLinksProps) => {
+// Renders a row of links and overflow links / links that not fit in viewport are shown in a dropdown
+export const RowLinksWithDropdown = ({ links = [], activeLink, ...props }: IRowLinksProps) => {
 	const [lastIndexToRender, setLastIndexToRender] = useState<number | null | 'renderMenu'>(null)
 
 	const calcFiltersToRender = useCallback(() => {

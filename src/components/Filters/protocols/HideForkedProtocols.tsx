@@ -1,8 +1,8 @@
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { Checkbox2 } from '..'
+import { Checkbox2 } from '~/components'
 
-export default function HideForkedProtocols() {
+export function HideForkedProtocols() {
 	const router = useRouter()
 
 	const { hideForks } = router.query

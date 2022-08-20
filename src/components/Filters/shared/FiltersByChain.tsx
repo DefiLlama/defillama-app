@@ -3,7 +3,7 @@ import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
 import { FilterButton } from '~/components/Select/AriakitSelect'
-import { Dropdown, Item, Selected, Stats } from './shared'
+import { Dropdown, Item, Selected, Stats } from './Dropdown'
 
 interface IFiltersByChainProps {
 	chainList: string[]

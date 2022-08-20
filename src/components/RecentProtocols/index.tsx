@@ -5,9 +5,8 @@ import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import Table, { columnsToShow, Dropdowns, TableFilters, TableHeader } from '~/components/Table'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
-import { FiltersByChain } from '../Filters'
+import { FiltersByChain, HideForkedProtocols } from '../Filters'
 import { getPercentChange } from '~/utils'
-import HideForkedProtocols from '../Filters/HideForkedProtocols'
 import { Panel } from '..'
 
 const TableWrapper = styled(Table)`

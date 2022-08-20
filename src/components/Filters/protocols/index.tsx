@@ -1,3 +1,5 @@
 export { protocolsAndChainsOptions } from './options'
 export { DesktopProtocolFilters } from './Desktop'
 export { TabletProtocolsFilters } from './Mobile'
+export { TVLRange } from './TVLRange'
+export { HideForkedProtocols } from './HideForkedProtocols'
