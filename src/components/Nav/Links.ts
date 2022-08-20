@@ -25,12 +25,13 @@ import {
 } from 'react-feather'
 import { PaperIcon } from './shared'
 
-interface IMainLink {
+export interface IMainLink {
 	name: string
 	path: string
 	icon: Icon
 	newTag?: boolean
-	mobileOnly?: boolean
+	subMenuHeader?: boolean
+	hideOnMobile?: boolean
 }
 
 interface IFooterLink {
@@ -54,9 +55,9 @@ interface ILinks {
 export const navLinks: ILinks = {
 	defi: {
 		main: [
-			{ name: 'Yields', path: '/yields', icon: Percent, mobileOnly: true },
-			{ name: 'Stablecoins', path: '/stablecoins', icon: DollarSign, mobileOnly: true },
-			{ name: 'Overview', path: '/', icon: TrendingUp },
+			{ name: 'Yields', path: '/yields', icon: Percent, subMenuHeader: true },
+			{ name: 'Stablecoins', path: '/stablecoins', icon: DollarSign, subMenuHeader: true },
+			{ name: 'Overview', path: '/', icon: TrendingUp, hideOnMobile: true },
 			{ name: 'Chains', path: '/chains', icon: Link },
 			{ name: 'Roundup', path: '/roundup', icon: PaperIcon, newTag: true },
 			{ name: 'Wiki', path: 'https://wiki.defillama.com/wiki/Main_Page', icon: Book, newTag: true },
@@ -115,8 +116,8 @@ export const navLinks: ILinks = {
 	},
 	yields: {
 		main: [
-			{ name: 'DeFi', path: '/', icon: BarChart2, mobileOnly: true },
-			{ name: 'Stablecoins', path: '/stablecoins', icon: DollarSign, mobileOnly: true },
+			{ name: 'DeFi', path: '/', icon: BarChart2, subMenuHeader: true, hideOnMobile: true },
+			{ name: 'Stablecoins', path: '/stablecoins', icon: DollarSign, subMenuHeader: true, hideOnMobile: true },
 			{ name: 'Overview', path: '/yields/overview', icon: PieChart },
 			{ name: 'Pools', path: '/yields', icon: TrendingUp },
 			{ name: 'Stablecoin Pools', path: '/yields/stablecoins', icon: Pocket },
@@ -138,8 +139,8 @@ export const navLinks: ILinks = {
 	},
 	stablecoins: {
 		main: [
-			{ name: 'DeFi', path: '/', icon: BarChart2, mobileOnly: true },
-			{ name: 'Yields', path: '/yields', icon: Percent, mobileOnly: true },
+			{ name: 'DeFi', path: '/', icon: BarChart2, subMenuHeader: true, hideOnMobile: true },
+			{ name: 'Yields', path: '/yields', icon: Percent, subMenuHeader: true, hideOnMobile: true },
 			{ name: 'Overview', path: '/stablecoins', icon: PieChart },
 			{ name: 'Chains', path: '/stablecoins/chains', icon: Link }
 		],
@@ -152,7 +153,7 @@ export const navLinks: ILinks = {
 	},
 	nfts: {
 		main: [
-			{ name: 'DeFi', path: '/', icon: BarChart2, mobileOnly: true },
+			{ name: 'DeFi', path: '/', icon: BarChart2, subMenuHeader: true, hideOnMobile: true },
 			{ name: 'Overview', path: '/nfts', icon: TrendingUp },
 			{ name: 'Chains', path: '/nfts/chains', icon: Link },
 			{ name: 'Marketplaces', path: '/nfts/marketplaces', icon: ShoppingCart },

@@ -31,6 +31,7 @@ export const Header = styled.header`
 
 export const LogoWrapper = styled.a`
 	transition: transform 0.3s ease;
+	margin-right: auto;
 
 	:focus-visible {
 		outline: 1px solid white;
@@ -54,18 +55,6 @@ export const LogoWrapper = styled.a`
 	}
 `
 
-export const Nav = styled.nav`
-	flex: 1;
-	display: flex;
-	justify-content: flex-end;
-	gap: 20px;
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		flex-direction: column;
-		justify-content: flex-start;
-	}
-`
-
 export const NavLink = styled(BasicLink)`
 	font-weight: 500;
 	font-size: 14px;
@@ -73,6 +62,11 @@ export const NavLink = styled(BasicLink)`
 	display: flex;
 	align-items: center;
 	gap: 12px;
+	opacity: 0.7;
+
+	&[data-active='true'] {
+		opacity: 1;
+	}
 
 	:hover {
 		opacity: 1;
@@ -81,6 +75,14 @@ export const NavLink = styled(BasicLink)`
 	:focus-visible {
 		outline: 1px solid white;
 		opacity: 1;
+	}
+
+	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		opacity: 0.6;
+
+		&[data-active='true'] {
+			opacity: 1;
+		}
 	}
 `
 
@@ -125,7 +127,7 @@ export const Entry = ({ url, name, Icon, newTag, ...props }: IEntryProps) => {
 	const router = useRouter()
 
 	return (
-		<NavLink href={url} {...props} style={{ opacity: router.pathname === url ? 1 : 0.6 }}>
+		<NavLink href={url} {...props} data-active={router.pathname === url}>
 			<Icon size={20} />
 			<span>{name}</span>
 			{newTag === true && (
@@ -147,12 +149,6 @@ export const Entry = ({ url, name, Icon, newTag, ...props }: IEntryProps) => {
 		</NavLink>
 	)
 }
-
-export const MobileOnlyEntry = styled(Entry)`
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		display: none;
-	}
-`
 
 export const PaperIcon = () => (
 	<svg

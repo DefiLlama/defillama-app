@@ -4,7 +4,7 @@ import Image from 'next/future/image'
 import styled from 'styled-components'
 import AppSwitch from '~/components/AppSwitch'
 import { usePeggedApp, useYieldApp } from '~/hooks'
-import { Nav, LogoWrapper, MobileOnlyEntry, Entry, FooterWrapper, Header } from '../shared'
+import { LogoWrapper, Entry, FooterWrapper, Header } from '../shared'
 import { navLinks } from '../Links'
 import ThemeSwitch from '../ThemeSwitch'
 import Logo from '~/assets/logo_white_long.png'
@@ -29,15 +29,13 @@ export default function DesktopNav() {
 			<AppSwitch />
 
 			<Nav>
-				{links.main.map((link) => (
-					<React.Fragment key={link.path}>
-						{link.mobileOnly ? (
-							<MobileOnlyEntry name={link.name} url={link.path} Icon={link.icon} style={{ marginTop: '20px' }} />
-						) : (
+				{links.main
+					.filter((l) => !l.subMenuHeader)
+					.map((link) => (
+						<React.Fragment key={link.path}>
 							<Entry name={link.name} url={link.path} Icon={link.icon} newTag={link.newTag} />
-						)}
-					</React.Fragment>
-				))}
+						</React.Fragment>
+					))}
 
 				<FooterWrapper>
 					{links.footer.map((link) => {
@@ -73,4 +71,12 @@ const Wrapper = styled(Header)`
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		display: flex;
 	}
+`
+
+const Nav = styled.nav`
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	gap: 20px;
 `

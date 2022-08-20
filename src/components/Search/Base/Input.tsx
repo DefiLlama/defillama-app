@@ -58,7 +58,19 @@ export function Input({ state, placeholder, breadCrumbs, ...props }: IInputProps
 				{...props}
 			/>
 
-			<IconWrapper onClick={() => state.toggle()}>{state.mounted ? <XIcon /> : <SearchIcon />}</IconWrapper>
+			<IconWrapper onClick={() => state.toggle()}>
+				{state.mounted ? (
+					<>
+						<span className="visually-hidden">Close Search</span>
+						<XIcon />
+					</>
+				) : (
+					<>
+						<span className="visually-hidden">Open Search</span>
+						<SearchIcon />
+					</>
+				)}
+			</IconWrapper>
 		</>
 	)
 }
