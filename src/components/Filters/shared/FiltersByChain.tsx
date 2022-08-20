@@ -3,7 +3,7 @@ import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
 import { FilterButton } from './Base'
-import { Dropdown, Item, Selected, Stats } from './Dropdown'
+import { Dropdown, DropdownItem, ItemsSelected, FilterFnsGroup } from './Dropdown'
 
 interface IFiltersByChainProps {
 	chainList: string[]
@@ -79,24 +79,24 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 			<FilterButton state={select}>
 				<span>Filter by Chain</span>
 				<MenuButtonArrow />
-				{selectedChains.length > 0 && <Selected>{selectedChains.length}</Selected>}
+				{selectedChains.length > 0 && <ItemsSelected>{selectedChains.length}</ItemsSelected>}
 			</FilterButton>
 			<Dropdown state={select}>
 				<Input state={combobox} placeholder="Search for chains..." />
 
 				{combobox.matches.length > 0 ? (
 					<>
-						<Stats>
+						<FilterFnsGroup>
 							<button onClick={clear}>clear</button>
 
 							<button onClick={toggleAll}>toggle all</button>
-						</Stats>
+						</FilterFnsGroup>
 						<List state={combobox} className="filter-by-list">
 							{combobox.matches.map((value, i) => (
-								<Item value={value} key={value + i} focusOnHover>
+								<DropdownItem value={value} key={value + i} focusOnHover>
 									<span>{value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
-								</Item>
+								</DropdownItem>
 							))}
 						</List>
 					</>

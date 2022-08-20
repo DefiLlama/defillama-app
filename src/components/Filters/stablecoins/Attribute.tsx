@@ -2,7 +2,7 @@ import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
-import { Item, Stats, FilterButton, FilterPopover } from '../shared'
+import { DropdownItem, FilterFnsGroup, FilterButton, FilterPopover } from '../shared'
 
 const { DEPEGGED } = STABLECOINS_SETTINGS
 
@@ -64,16 +64,16 @@ export function Attribute() {
 				<MenuButtonArrow />
 			</FilterButton>
 			<FilterPopover state={select}>
-				<Stats>
+				<FilterFnsGroup>
 					<button onClick={clear}>clear</button>
 
 					<button onClick={toggleAll}>toggle all</button>
-				</Stats>
+				</FilterFnsGroup>
 				{options.map((option) => (
-					<Item key={option.key} value={option.key}>
+					<DropdownItem key={option.key} value={option.key}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
 						<Checkbox checked={values.includes(option.key)} />
-					</Item>
+					</DropdownItem>
 				))}
 			</FilterPopover>
 		</>

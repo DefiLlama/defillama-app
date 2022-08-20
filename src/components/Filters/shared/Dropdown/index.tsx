@@ -1,6 +1,7 @@
+import { SelectItem } from 'ariakit/select'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
-import { FilterItem, FilterPopover } from '../shared'
+import { FilterPopover } from '../Base'
 
 export const Dropdown = styled(FilterPopover)`
 	max-height: 320px;
@@ -21,16 +22,47 @@ export const Dropdown = styled(FilterPopover)`
 
 export const MobileDropdown = styled(FilterPopover)``
 
-export const Item = styled(FilterItem)`
+export const DropdownItem = styled(SelectItem)`
+	padding: 8px 12px;
+	color: ${({ theme }) => theme.text1};
+	cursor: pointer;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	background: none;
+	border: none;
+	text-align: start;
+	display: flex;
+	align-items: center;
+	border-bottom: ${({ theme }) => '1px solid ' + transparentize(0.9, theme.text1)};
+
+	&:first-of-type {
+		padding-top: 12px;
+		border-radius: 8px 8px 0 0;
+	}
+
+	&:last-of-type {
+		padding-bottom: 12px;
+		border-radius: 0 0 8px 8px;
+		border: none;
+	}
+
 	&:first-of-type,
 	&:last-of-type {
 		border-radius: 0;
 	}
 
+	:hover,
+	:focus-visible,
+	&[data-active-item] {
+		outline: none;
+		background-color: ${({ theme }) => transparentize(0.8, theme.primary1)};
+	}
+
 	opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
 `
 
-export const Stats = styled.span`
+export const FilterFnsGroup = styled.span`
 	display: flex;
 	justify-content: space-between;
 	flex-wrap: wrap;
@@ -44,7 +76,7 @@ export const Stats = styled.span`
 	}
 `
 
-export const Selected = styled.span`
+export const ItemsSelected = styled.span`
 	position: absolute;
 	top: -8px;
 	right: -8px;

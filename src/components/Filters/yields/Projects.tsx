@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
-import { Dropdown, Item, Selected, Stats, FilterButton } from '../shared'
+import { Dropdown, DropdownItem, ItemsSelected, FilterFnsGroup, FilterButton } from '../shared'
 
 interface IYieldProjectsProps {
 	projectList: { name: string; slug: string }[]
@@ -79,24 +79,24 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 			<FilterButton state={select}>
 				<span>Filter by Project</span>
 				<MenuButtonArrow />
-				{selectedProjects.length > 0 && <Selected>{selectedProjects.length}</Selected>}
+				{selectedProjects.length > 0 && <ItemsSelected>{selectedProjects.length}</ItemsSelected>}
 			</FilterButton>
 			<Dropdown state={select}>
 				<Input state={combobox} placeholder="Search for projects..." />
 
 				{combobox.matches.length > 0 ? (
 					<>
-						<Stats>
+						<FilterFnsGroup>
 							<button onClick={clear}>clear</button>
 
 							<button onClick={toggleAll}>toggle all</button>
-						</Stats>
+						</FilterFnsGroup>
 						<List state={combobox} className="filter-by-list">
 							{combobox.matches.map((value, i) => (
-								<Item value={value} key={value + i} focusOnHover>
+								<DropdownItem value={value} key={value + i} focusOnHover>
 									<span>{projectList.find((p) => p.slug === value)?.name ?? value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
-								</Item>
+								</DropdownItem>
 							))}
 						</List>
 					</>

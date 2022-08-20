@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import { SelectArrow } from 'ariakit/select'
-import { Item, Selected, FilterButton, FilterPopover } from '../shared'
+import { DropdownItem, ItemsSelected, FilterButton, FilterPopover } from '../shared'
 import OptionToggle from '~/components/OptionToggle'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
@@ -100,15 +100,15 @@ function AddlOptions({ options, ...props }: IAllOptionsProps) {
 			<AddlFiltersButton state={select}>
 				<span>Others</span>
 				<SelectArrow />
-				{totalSelected > 0 && <Selected>{totalSelected}</Selected>}
+				{totalSelected > 0 && <ItemsSelected>{totalSelected}</ItemsSelected>}
 			</AddlFiltersButton>
 			{select.mounted && (
 				<FilterPopover state={select}>
 					{options.map(({ key, name, help }) => (
-						<Item key={key} value={key}>
+						<DropdownItem key={key} value={key}>
 							{help ? <HeadHelp title={name} text={help} /> : name}
 							<Checkbox checked={select.value.includes(key)} />
-						</Item>
+						</DropdownItem>
 					))}
 				</FilterPopover>
 			)}

@@ -1,4 +1,4 @@
-import { Select as AriaSelect, SelectItem, SelectPopover } from 'ariakit/select'
+import { Select as AriaSelect, SelectPopover } from 'ariakit/select'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 
@@ -24,75 +24,6 @@ export const BaseSelect = styled(AriaSelect)`
 	:focus-visible,
 	&[data-focus-visible] {
 		outline: ${({ theme }) => '1px solid ' + theme.text1};
-	}
-`
-export const Popover = styled(SelectPopover)`
-	display: flex;
-	flex-direction: column;
-	overscroll-behavior: contain;
-	filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 15%));
-	overflow: auto;
-	background: ${({ theme }) => theme.bg6};
-	color: ${({ theme }) => theme.text1};
-	border-bottom-left-radius: 12px;
-	border-bottom-right-radius: 12px;
-	box-shadow: ${({ theme }) => theme.shadowLg};
-	margin: 0;
-	z-index: 10;
-	outline: ${({ theme }) => '1px solid ' + theme.text5};
-	color: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(0, 0%, 100%)' : 'hsl(204, 10%, 10%)')};
-	background: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 12%)' : 'hsl(204, 20%, 100%)')};
-	border-radius: 8px;
-	filter: ${({ theme }) =>
-		theme.mode === 'dark' ? 'drop-shadow(0 4px 6px rgba(0, 0, 0, 40%))' : 'drop-shadow(0 4px 6px rgba(0, 0, 0, 15%))'};
-`
-export const Item = styled(SelectItem)`
-	padding: 12px 4px;
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	cursor: pointer;
-
-	:hover,
-	&[data-focus-visible] {
-		outline: none;
-		background: ${({ theme }) => theme.bg3};
-	}
-
-	&:last-of-type {
-		border-radius: 0 0 12px 12px;
-	}
-`
-
-export const FilterItem = styled(SelectItem)`
-	padding: 8px 12px;
-	color: ${({ theme }) => theme.text1};
-	cursor: pointer;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	background: none;
-	border: none;
-	text-align: start;
-	display: flex;
-	align-items: center;
-	border-bottom: ${({ theme }) => '1px solid ' + transparentize(0.9, theme.text1)};
-
-	&:first-of-type {
-		padding-top: 12px;
-		border-radius: 8px 8px 0 0;
-	}
-	&:last-of-type {
-		padding-bottom: 12px;
-		border-radius: 0 0 8px 8px;
-		border: none;
-	}
-
-	:hover,
-	:focus-visible,
-	&[data-active-item] {
-		outline: none;
-		background-color: ${({ theme }) => transparentize(0.8, theme.primary1)};
 	}
 `
 

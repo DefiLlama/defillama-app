@@ -3,7 +3,7 @@ import { SelectLabel, SelectArrow } from 'ariakit/select'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
 import { protocolsAndChainsOptions } from './options'
-import { Item, FilterPopover, BaseSelect } from '../shared'
+import { DropdownItem, FilterPopover, BaseSelect } from '../shared'
 import { useProtocolsFilterState } from './useProtocolFilterState'
 
 const WrapperWithLabel = styled.div`
@@ -55,10 +55,10 @@ export function TabletProtocolsFilters({ options, ...props }: IProps) {
 			{select.mounted && (
 				<FilterPopover state={select}>
 					{tvlOptions.map(({ key, name, help }) => (
-						<Item key={key} value={key}>
+						<DropdownItem key={key} value={key}>
 							{help ? <HeadHelp title={name} text={help} /> : name}
 							<Checkbox checked={select.value.includes(key)} />
-						</Item>
+						</DropdownItem>
 					))}
 				</FilterPopover>
 			)}
