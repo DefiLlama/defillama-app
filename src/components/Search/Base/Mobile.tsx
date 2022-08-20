@@ -75,9 +75,11 @@ const useMobileSearchResult = () => {
 }
 
 const Button = styled.button`
-	background-color: ${({ theme }) => theme.bg3};
+	background: #445ed0;
+	color: #ffffff;
 	padding: 6px 10px;
 	border-radius: 8px;
+	filter: drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%));
 `
 
 const InputField = styled(Input)`

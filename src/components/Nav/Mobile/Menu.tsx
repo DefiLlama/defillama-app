@@ -6,21 +6,7 @@ import { Entry } from '../shared'
 import { IMainLink, navLinks } from '../Links'
 import { usePeggedApp, useYieldApp } from '~/hooks'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-
-const Button = styled.button`
-	background-color: ${({ theme }) => theme.bg3};
-	padding: 6px 10px;
-	border-radius: 8px;
-`
-
-const Close = styled(Button)`
-	margin-left: auto;
-	background: none;
-	color: ${({ theme }) => theme.text1};
-	position: relative;
-	top: 6px;
-	right: 10px;
-`
+import { Button, Close } from './shared'
 
 const slideIn = keyframes`
   0% {
@@ -44,7 +30,7 @@ const Nav = styled.nav`
 	padding: 16px 16px 40px;
 	width: 100%;
 	max-width: 300px;
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
+	background: ${({ theme }) => theme.bg1};
 
 	& > * {
 		color: ${({ theme }) => theme.text1};

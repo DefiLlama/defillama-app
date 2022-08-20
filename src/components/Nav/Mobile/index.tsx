@@ -5,6 +5,7 @@ import { Header, LogoWrapper } from '../shared'
 import Logo from '~/assets/logo_white_long.png'
 import MobileSearch from '~/components/Search/Base/Mobile'
 import { Menu } from './Menu'
+import { Settings } from './Settings'
 
 export default function MobileNav() {
 	return (
@@ -17,6 +18,7 @@ export default function MobileNav() {
 			</Link>
 
 			<MobileSearch />
+			<Settings />
 			<Menu />
 		</Wrapper>
 	)
@@ -26,6 +28,7 @@ const Wrapper = styled(Header)`
 	justify-content: space-between;
 	padding: 8px;
 	display: flex;
+	gap: 10px;
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		display: none;
