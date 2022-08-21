@@ -12,10 +12,12 @@ export async function getStaticProps() {
 	}
 }
 
-export default function Chains(props) {
+const Chains: React.FC<any> = (props) => {
 	return (
-		<Layout title={`All DEX volumes - DefiLlama`} defaultSEO>
+		<Layout title={'All DEX volumes - DefiLlama'} defaultSEO>
 			<DexsContainer {...props} />
 		</Layout>
 	)
 }
+
+export default Chains
