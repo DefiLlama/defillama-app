@@ -29,6 +29,7 @@ interface IInputProps {
 	state: ComboboxState
 	placeholder: string
 	breadCrumbs?: boolean
+	autoFocus?: boolean
 }
 
 const IconWrapper = styled.button`
