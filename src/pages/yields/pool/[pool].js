@@ -13,7 +13,7 @@ import {
 	InfoWrapper,
 	LinksWrapper,
 	PoolDetails,
-	ProtocolName,
+	Name,
 	Section,
 	Stat,
 	StatsSection,
@@ -96,7 +96,7 @@ const PageView = () => {
 
 			<StatsSection>
 				<PoolDetails>
-					<ProtocolName>
+					<Name>
 						<FormattedName
 							text={
 								poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
@@ -109,7 +109,7 @@ const PageView = () => {
 						<Symbol>
 							({projectName} - {poolData.chain})
 						</Symbol>
-					</ProtocolName>
+					</Name>
 
 					<StatWrapper>
 						<Stat>
@@ -144,7 +144,7 @@ const PageView = () => {
 						</Stat>
 					</StatWrapper>
 				</PoolDetails>
-				<BreakpointPanel id="chartWrapper" style={{ border: 'none' }}>
+				<BreakpointPanel id="chartWrapper" style={{ border: 'none', borderRadius: '0 12px 12px 0' }}>
 					<Chart
 						display="liquidity"
 						dailyData={finalChartData}
