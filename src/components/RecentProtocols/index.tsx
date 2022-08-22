@@ -2,13 +2,12 @@ import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import Layout from '~/layout'
+import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import Table, { columnsToShow, Dropdowns, TableFilters, TableHeader } from '~/components/Table'
+import { FiltersByChain, HideForkedProtocols } from '~/components/Filters'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
-import { FiltersByChain } from '../Filters'
 import { getPercentChange } from '~/utils'
-import HideForkedProtocols from '../Filters/HideForkedProtocols'
-import { Panel } from '..'
 
 const TableWrapper = styled(Table)`
 	tr > *:not(:first-child) {

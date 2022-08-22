@@ -7,7 +7,7 @@ import Table, { Index } from '~/components/Table'
 import { CustomLink } from '~/components/Link'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { ChainDominanceChart, ChainPieChart } from '~/components/Charts'
-import { RowLinks, LinksWrapper } from '~/components/Filters'
+import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { getRandomColor, toK } from '~/utils'
 import { revalidate } from '~/api'
@@ -120,9 +120,9 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 				/>
 			</ChartsWrapper>
 
-			<LinksWrapper>
-				<RowLinks links={tokenLinks} activeLink="All" />
-			</LinksWrapper>
+			<RowLinksWrapper>
+				<RowLinksWithDropdown links={tokenLinks} activeLink="All" />
+			</RowLinksWrapper>
 
 			<Table columns={columns} data={tokensList} />
 		</>

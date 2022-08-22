@@ -1,26 +1,23 @@
 import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
-import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
-import { Item, Stats } from '../shared'
-
-const { FIATSTABLES, CRYPTOSTABLES, ALGOSTABLES } = STABLECOINS_SETTINGS
+import { DropdownItem, FilterFnsGroup, FilterButton, FilterPopover } from '../shared'
 
 export const options = [
 	{
 		name: 'Fiat',
-		key: FIATSTABLES,
+		key: STABLECOINS_SETTINGS.FIATSTABLES,
 		help: 'Show stablecoins backed by fiat'
 	},
 	{
 		name: 'Crypto',
-		key: CRYPTOSTABLES,
+		key: STABLECOINS_SETTINGS.CRYPTOSTABLES,
 		help: 'Show stablecoins backed by crypto'
 	},
 	{
 		name: 'Algorithmic',
-		key: ALGOSTABLES,
+		key: STABLECOINS_SETTINGS.ALGOSTABLES,
 		help: 'Show algorithmic stablecoins'
 	}
 ]
@@ -75,16 +72,16 @@ export function BackingType() {
 				<MenuButtonArrow />
 			</FilterButton>
 			<FilterPopover state={select}>
-				<Stats>
+				<FilterFnsGroup>
 					<button onClick={clear}>clear</button>
 
 					<button onClick={toggleAll}>toggle all</button>
-				</Stats>
+				</FilterFnsGroup>
 				{options.map((option) => (
-					<Item key={option.key} value={option.key}>
+					<DropdownItem key={option.key} value={option.key}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
 						<Checkbox checked={values.includes(option.key)} />
-					</Item>
+					</DropdownItem>
 				))}
 			</FilterPopover>
 		</>

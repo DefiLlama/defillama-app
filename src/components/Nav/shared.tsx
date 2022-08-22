@@ -4,14 +4,12 @@ import styled from 'styled-components'
 import { Icon } from 'react-feather'
 import { BasicLink } from '~/components/Link'
 
-export const Wrapper = styled.header`
+export const Header = styled.header`
 	min-width: 220px;
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
-	padding: 16px;
-	z-index: 1;
+	gap: 10px;
+	padding: 8px;
 	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
+	z-index: 1;
 
 	scrollbar-width: none;
 	::-webkit-scrollbar {
@@ -19,67 +17,57 @@ export const Wrapper = styled.header`
 	}
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		padding: 24px;
 		position: fixed;
 		top: 0;
 		bottom: 0;
 		left: 0;
+		flex-direction: column;
+		gap: 20px;
+		padding: 24px;
 		width: revert;
 		height: 100vh;
 		overflow-y: auto;
 	}
 `
 
-export const TitleWrapper = styled.span`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
-
-	& > *:first-child {
-		flex: 1;
-	}
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		& > *:not(:first-child) {
-			display: none;
-		}
-	}
-`
-
 export const LogoWrapper = styled.a`
 	transition: transform 0.3s ease;
+	margin-right: auto;
 
 	:focus-visible {
 		outline: 1px solid white;
+	}
+
+	img {
+		height: 36px;
+		object-fit: contain;
+		object-position: left;
+		width: min-content;
 	}
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		:hover {
 			transform: rotate(-5deg);
 		}
-	}
-`
 
-export const Nav = styled.nav`
-	flex: 1;
-	display: var(--mobile-display);
-	flex-direction: column;
-	gap: 20px;
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		display: flex;
+		img {
+			height: 53px;
+		}
 	}
 `
 
 export const NavLink = styled(BasicLink)`
 	font-weight: 500;
 	font-size: 14px;
-	color: ${({ theme }) => theme.white};
+	color: ${({ theme }) => theme.text1};
 	display: flex;
 	align-items: center;
 	gap: 12px;
+	opacity: 0.7;
+
+	&[data-active='true'] {
+		opacity: 1;
+	}
 
 	:hover {
 		opacity: 1;
@@ -88,6 +76,15 @@ export const NavLink = styled(BasicLink)`
 	:focus-visible {
 		outline: 1px solid white;
 		opacity: 1;
+	}
+
+	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		color: ${({ theme }) => theme.white};
+		opacity: 0.6;
+
+		&[data-active='true'] {
+			opacity: 1;
+		}
 	}
 `
 
@@ -132,7 +129,7 @@ export const Entry = ({ url, name, Icon, newTag, ...props }: IEntryProps) => {
 	const router = useRouter()
 
 	return (
-		<NavLink href={url} {...props} style={{ opacity: router.pathname === url ? 1 : 0.6 }}>
+		<NavLink href={url} {...props} data-active={router.pathname === url}>
 			<Icon size={20} />
 			<span>{name}</span>
 			{newTag === true && (
@@ -154,12 +151,6 @@ export const Entry = ({ url, name, Icon, newTag, ...props }: IEntryProps) => {
 		</NavLink>
 	)
 }
-
-export const MobileOnlyEntry = styled(Entry)`
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		display: none;
-	}
-`
 
 export const PaperIcon = () => (
 	<svg

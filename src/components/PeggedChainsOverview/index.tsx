@@ -7,7 +7,7 @@ import { RowBetween, AutoRow } from '~/components/Row'
 import Table, { columnsToShow } from '~/components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
 import { AreaChart } from '~/components/Charts'
-import { PeggedAssetGroupOptions } from '~/components/Select'
+import { GroupStablecoins } from '~/components/MultiSelect'
 import { PeggedSearch } from '~/components/Search'
 import {
 	useCalcCirculating,
@@ -425,7 +425,7 @@ function PeggedChainsOverview({
 
 			<AssetFilters>
 				<h2>Filters</h2>
-				<PeggedAssetGroupOptions label="Filters" />
+				<GroupStablecoins label="Filters" />
 			</AssetFilters>
 
 			<PeggedTable data={groupedChains} columns={columns} />

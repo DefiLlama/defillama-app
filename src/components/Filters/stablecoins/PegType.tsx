@@ -1,26 +1,23 @@
 import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
-import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
-import { Item, Stats } from '../shared'
-
-const { PEGGEDUSD, PEGGEDEUR, PEGGEDVAR } = STABLECOINS_SETTINGS
+import { DropdownItem, FilterFnsGroup, FilterButton, FilterPopover } from '../shared'
 
 export const options = [
 	{
 		name: 'USD',
-		key: PEGGEDUSD,
+		key: STABLECOINS_SETTINGS.PEGGEDUSD,
 		help: 'Show stablecoins pegged to USD'
 	},
 	{
 		name: 'EUR',
-		key: PEGGEDEUR,
+		key: STABLECOINS_SETTINGS.PEGGEDEUR,
 		help: 'Show stablecoins pegged to EUR'
 	},
 	{
 		name: 'Variable',
-		key: PEGGEDVAR,
+		key: STABLECOINS_SETTINGS.PEGGEDVAR,
 		help: 'Show stablecoins with a variable or floating peg'
 	}
 ]
@@ -75,16 +72,16 @@ export function PegType() {
 				<MenuButtonArrow />
 			</FilterButton>
 			<FilterPopover state={select}>
-				<Stats>
+				<FilterFnsGroup>
 					<button onClick={clear}>clear</button>
 
 					<button onClick={toggleAll}>toggle all</button>
-				</Stats>
+				</FilterFnsGroup>
 				{options.map((option) => (
-					<Item key={option.key} value={option.key}>
+					<DropdownItem key={option.key} value={option.key}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
 						<Checkbox checked={values.includes(option.key)} />
-					</Item>
+					</DropdownItem>
 				))}
 			</FilterPopover>
 		</>
