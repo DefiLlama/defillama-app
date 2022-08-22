@@ -217,6 +217,7 @@ export function useDarkModeManager() {
 	const isClient = useIsClient()
 	let darkMode = state[DARK_MODE]
 	let isDarkMode = isClient ? darkMode : true
+
 	const toggleDarkMode = useCallback(
 		(value) => {
 			updateKey(DARK_MODE, value === false || value === true ? value : !isDarkMode)

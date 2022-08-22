@@ -8,7 +8,7 @@ import {
 import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { useMedia } from '~/hooks'
-import assignStyle from './assign-style'
+import { applyMobileStyles } from './utils'
 
 const Trigger = styled(PopoverDisclosure)`
 	display: flex;
@@ -38,8 +38,7 @@ const Trigger = styled(PopoverDisclosure)`
 	}
 `
 
-const PopoverWrapper = styled(AriaPopover)`
-	z-index: 1;
+export const PopoverWrapper = styled(AriaPopover)`
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
@@ -56,6 +55,7 @@ const PopoverWrapper = styled(AriaPopover)`
 	width: 100%;
 	max-width: none;
 	padding-top: 10%;
+	z-index: 1;
 
 	:focus-visible,
 	[data-focus-visible] {
@@ -67,21 +67,9 @@ const PopoverWrapper = styled(AriaPopover)`
 		min-height: 0;
 		padding: 0;
 		max-width: min(calc(100vw - 16px), 320px);
+		border-radius: 8px;
 	}
 `
-
-function applyMobileStyles(popover: HTMLElement) {
-	const restorePopoverStyle = assignStyle(popover, {
-		position: 'fixed',
-		bottom: '0',
-		width: '100%'
-	})
-
-	const restoreDesktopStyles = () => {
-		restorePopoverStyle()
-	}
-	return restoreDesktopStyles
-}
 
 interface IProps {
 	trigger: React.ReactNode
