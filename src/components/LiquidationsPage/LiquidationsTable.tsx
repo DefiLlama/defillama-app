@@ -138,7 +138,7 @@ const COLUMNS: IColumnProps[] = [
 const TableStyled = styled(Table)`
 	tr > *:not(:first-child) {
 		& > * {
-			width: 10rem;
+			width: 11rem;
 			white-space: nowrap;
 			overflow: hidden;
 			font-weight: 400;
