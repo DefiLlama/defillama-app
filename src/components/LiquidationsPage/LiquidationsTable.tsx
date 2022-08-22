@@ -1,5 +1,5 @@
 import { ChartData, getReadableValue } from '~/utils/liquidations'
-import React from 'react'
+import React, { useMemo } from 'react'
 import styled from 'styled-components'
 import Table from '../Table'
 import { IColumnProps } from '../Table/types'
@@ -138,7 +138,7 @@ const COLUMNS: IColumnProps[] = [
 const TableStyled = styled(Table)`
 	tr > *:not(:first-child) {
 		& > * {
-			width: 10rem;
+			width: 11rem;
 			white-space: nowrap;
 			overflow: hidden;
 			font-weight: 400;
@@ -194,23 +194,29 @@ const TableStyled = styled(Table)`
 export const LiquidationsTable = (props: { data: ChartData; prevData: ChartData }) => {
 	const stackBy = useStackBy()
 
-	const rows: RowValues[] = Object.keys(props.data.totalLiquidables[stackBy]).map((name) => {
-		const current = props.data.totalLiquidables[stackBy][name]
-		const prev = props.prevData.totalLiquidables[stackBy][name]
-		const changes24h = ((current - prev) / prev) * 100
-		const liquidableAmount = current
-		const dangerousAmount = props.data.dangerousPositionsAmounts[stackBy][name]
-		// const positionsCount = props.data.positionsCount[stackBy][name]
-		return {
-			name,
-			changes24h,
-			liquidableAmount,
-			dangerousAmount
-			// positionsCount
-		}
-	})
+	const rowsSorted = useMemo(() => {
+		const rows: RowValues[] = Object.keys(props.data.totalLiquidables[stackBy]).map((name) => {
+			const current = props.data.totalLiquidables[stackBy][name]
+			const prev = props.prevData.totalLiquidables[stackBy][name]
+			const changes24h = ((current - prev) / prev) * 100
+			const liquidableAmount = current
+			const dangerousAmount = props.data.dangerousPositionsAmounts[stackBy][name]
+			// const positionsCount = props.data.positionsCount[stackBy][name]
+			return {
+				name,
+				changes24h,
+				liquidableAmount,
+				dangerousAmount
+				// positionsCount
+			}
+		})
 
-	return <TableStyled columns={COLUMNS} data={rows} gap={'8px'} />
+		return rows.sort((a, b) => {
+			return b.liquidableAmount - a.liquidableAmount
+		})
+	}, [props.data.totalLiquidables, props.prevData.totalLiquidables, props.data.dangerousPositionsAmounts, stackBy])
+
+	return <TableStyled columns={COLUMNS} data={rowsSorted} gap={'8px'} />
 }
 
 type RowValues = {

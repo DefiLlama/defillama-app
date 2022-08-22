@@ -41,6 +41,11 @@ const nextConfig = {
 				source: '/recent-noforks',
 				destination: '/recent',
 				permanent: true
+			},
+			{
+				source: '/liquidations',
+				destination: '/liquidations/eth',
+				permanent: false
 			}
 		]
 	},
