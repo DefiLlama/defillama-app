@@ -297,8 +297,14 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		},
 		totalBins,
 		chartDataBins: {
-			chains: chartDataBinsByChain,
-			protocols: chartDataBinsByProtocol
+			chains: sortObject(
+				chartDataBinsByChain,
+				([keyA, a], [keyB, b]) => liquidablesByChain[keyB] - liquidablesByChain[keyA]
+			),
+			protocols: sortObject(
+				chartDataBinsByProtocol,
+				([keyA, a], [keyB, b]) => liquidablesByProtocol[keyB] - liquidablesByProtocol[keyA]
+			)
 		},
 		binSize: currentPrice / totalBins,
 		availability: {
@@ -511,3 +517,12 @@ export const PROTOCOL_NAMES_MAP_REVERSE: { [name: string]: string } = Object.ent
 	(acc, [key, value]) => ({ ...acc, [value]: key }),
 	{}
 )
+
+export const sortObject = <T>(
+	unordered: { [key: string]: T },
+	compareFn: (a: [string, T], b: [string, T]) => number
+) => {
+	return Object.entries(unordered)
+		.sort(([keyA, valueA], [keyB, valueB]) => compareFn([keyA, valueA], [keyB, valueB]))
+		.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
+}
