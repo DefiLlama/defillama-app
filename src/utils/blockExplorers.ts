@@ -44,7 +44,8 @@ const blockExplorers = {
 	rei: ['https://scan.rei.network/address/', 'ReiScan'],
 	nova: ['https://explorer.novanetwork.io/address/', 'NovaExplorer'],
 	dogechain: ['https://explorer.dogechain.dog/address/', 'Doge Chain Explorer'],
-	hedera: ['https://hashscan.io/#/mainnet/token/', 'HashScan']
+	hedera: ['https://hashscan.io/#/mainnet/token/', 'HashScan'],
+	carbon: ['https://scan.carbon.network/token/', 'Carbonscan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
