@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/future/image'
 import styled from 'styled-components'
-import { Header, LogoWrapper } from '../shared'
+import { LogoWrapper } from '../shared'
 import Logo from '~/assets/logo_white_long.png'
 import MobileSearch from '~/components/Search/Base/Mobile'
 import { Menu } from './Menu'
@@ -24,11 +24,13 @@ export default function MobileNav() {
 	)
 }
 
-const Wrapper = styled(Header)`
-	justify-content: space-between;
-	padding: 8px;
+const Wrapper = styled.header`
 	display: flex;
+	justify-content: space-between;
 	gap: 10px;
+	min-width: 220px;
+	padding: 8px;
+	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		display: none;

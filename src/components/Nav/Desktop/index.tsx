@@ -4,7 +4,7 @@ import Image from 'next/future/image'
 import styled from 'styled-components'
 import AppSwitch from '~/components/AppSwitch'
 import { usePeggedApp, useYieldApp } from '~/hooks'
-import { LogoWrapper, Entry, FooterWrapper, Header } from '../shared'
+import { LogoWrapper, Entry, FooterWrapper } from '../shared'
 import { navLinks } from '../Links'
 import ThemeSwitch from '../ThemeSwitch'
 import Logo from '~/assets/logo_white_long.png'
@@ -65,8 +65,25 @@ export default function DesktopNav() {
 	)
 }
 
-const Wrapper = styled(Header)`
+export const Wrapper = styled.aside`
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
 	display: none;
+	flex-direction: column;
+	gap: 20px;
+	padding: 24px;
+	min-width: 220px;
+	height: 100vh;
+	overflow-y: auto;
+	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
+	z-index: 1;
+
+	scrollbar-width: none;
+	::-webkit-scrollbar {
+		display: none;
+	}
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		display: flex;

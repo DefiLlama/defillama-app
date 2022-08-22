@@ -24,12 +24,12 @@ const Nav = styled.nav`
 	right: 0;
 	bottom: 0;
 	overflow: auto;
-	background: red;
 	display: none;
 	padding: 16px 16px 40px;
 	width: 100%;
 	max-width: 300px;
 	background: ${({ theme }) => theme.bg1};
+	z-index: 1;
 
 	& > * {
 		color: ${({ theme }) => theme.text1};
