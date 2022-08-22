@@ -95,7 +95,7 @@ const Popover = styled(SelectPopover)`
 	flex-direction: column;
 	gap: 16px;
 	color: ${({ theme }) => theme.text1};
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
+	background: ${({ theme }) => theme.bg1};
 	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
 	filter: ${({ theme }) =>
 		theme.mode === 'dark'

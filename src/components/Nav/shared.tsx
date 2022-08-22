@@ -4,6 +4,32 @@ import styled from 'styled-components'
 import { Icon } from 'react-feather'
 import { BasicLink } from '~/components/Link'
 
+export const Header = styled.header`
+	min-width: 220px;
+	gap: 10px;
+	padding: 8px;
+	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
+	z-index: 1;
+
+	scrollbar-width: none;
+	::-webkit-scrollbar {
+		display: none;
+	}
+
+	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		position: fixed;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		flex-direction: column;
+		gap: 20px;
+		padding: 24px;
+		width: revert;
+		height: 100vh;
+		overflow-y: auto;
+	}
+`
+
 export const LogoWrapper = styled.a`
 	transition: transform 0.3s ease;
 	margin-right: auto;
