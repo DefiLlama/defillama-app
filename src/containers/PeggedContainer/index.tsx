@@ -468,9 +468,9 @@ export default function PeggedContainer({
 
 			<PeggedSearch
 				step={{
-					category: 'Pegged Asset',
+					category: 'Stablecoin',
 					name: Capitalize(symbol),
-					route: 'peggedassets',
+					route: 'stablecoins',
 					hideOptions: true
 				}}
 			/>
