@@ -59,7 +59,7 @@ export const LogoWrapper = styled.a`
 export const NavLink = styled(BasicLink)`
 	font-weight: 500;
 	font-size: 14px;
-	color: ${({ theme }) => theme.white};
+	color: ${({ theme }) => theme.text1};
 	display: flex;
 	align-items: center;
 	gap: 12px;
@@ -79,6 +79,7 @@ export const NavLink = styled(BasicLink)`
 	}
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		color: ${({ theme }) => theme.white};
 		opacity: 0.6;
 
 		&[data-active='true'] {

@@ -35,6 +35,7 @@ const Nav = styled.nav`
 		color: ${({ theme }) => theme.text1};
 		opacity: 0.7;
 		padding: 0;
+		font-weight: 500;
 	}
 
 	button {
