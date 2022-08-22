@@ -29,12 +29,14 @@ import { IFusedProtocolData } from '~/api/types'
 import { Checkbox2 } from '~/components'
 import {
 	Button,
+	DetailsTable,
 	DownloadButton,
+	ExtraOption,
 	FlexRow,
 	InfoWrapper,
 	LinksWrapper,
-	ProtocolDetails,
-	ProtocolName,
+	DetailsWrapper,
+	Name,
 	Section,
 	SectionHeader,
 	Stat,
@@ -53,53 +55,6 @@ const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-const Table = styled.table`
-	border-collapse: collapse;
-
-	caption,
-	thead th {
-		font-weight: 400;
-		font-size: 0.75rem;
-		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
-	}
-
-	th {
-		font-weight: 600;
-		font-size: 1rem;
-		text-align: start;
-	}
-
-	td {
-		font-weight: 400;
-		font-size: 0.875rem;
-		text-align: right;
-		font-family: var(--font-jetbrains);
-	}
-
-	thead td {
-		> * {
-			width: min-content;
-			background: none;
-			margin-left: auto;
-			color: ${({ theme }) => theme.text1};
-		}
-	}
-
-	thead > tr > *,
-	caption {
-		padding: 0 0 4px;
-	}
-
-	tbody > tr > * {
-		padding: 4px 0;
-	}
-
-	.question-helper {
-		padding: 0 16px;
-	}
-`
-
 const Bobo = styled.button`
 	position: absolute;
 	bottom: -36px;
@@ -116,16 +71,6 @@ const Bobo = styled.button`
 		bottom: initial;
 		left: initial;
 		z-index: 1;
-	}
-`
-
-const ExtraTvlOption = styled.label`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-
-	:hover {
-		cursor: pointer;
 	}
 `
 
@@ -339,13 +284,15 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						))}
 					</OtherProtocols>
 				)}
-				<ProtocolDetails style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
+
+				<DetailsWrapper style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
 					{name === 'Drachma Exchange' && <p>There's been multiple hack reports in this protocol</p>}
-					<ProtocolName>
+
+					<Name>
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
-					</ProtocolName>
+					</Name>
 
 					<StatWrapper>
 						<Stat>
@@ -362,7 +309,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					</StatWrapper>
 
 					{tvls.length > 1 && (
-						<Table>
+						<DetailsTable>
 							<caption>Chain Breakdown</caption>
 							<tbody>
 								{tvls.map((chainTvl) => (
@@ -372,11 +319,11 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 									</tr>
 								))}
 							</tbody>
-						</Table>
+						</DetailsTable>
 					)}
 
 					{extraTvls.length > 0 && (
-						<Table>
+						<DetailsTable>
 							<thead>
 								<tr>
 									<th>Include in TVL (optional)</th>
@@ -389,7 +336,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 								{extraTvls.map(([option, value]) => (
 									<tr key={option}>
 										<th>
-											<ExtraTvlOption>
+											<ExtraOption>
 												<Checkbox2
 													type="checkbox"
 													value={option}
@@ -399,15 +346,15 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 												<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
 													{capitalizeFirstLetter(option)}
 												</span>
-											</ExtraTvlOption>
+											</ExtraOption>
 										</th>
 										<td>${toK(value)}</td>
 									</tr>
 								))}
 							</tbody>
-						</Table>
+						</DetailsTable>
 					)}
-				</ProtocolDetails>
+				</DetailsWrapper>
 
 				<ProtocolTvlChart
 					protocol={protocol}
@@ -435,7 +382,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					{category && (
 						<FlexRow>
 							<span>Category</span>
-							<span>:</span>
+							<span>: </span>
 							<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
 						</FlexRow>
 					)}

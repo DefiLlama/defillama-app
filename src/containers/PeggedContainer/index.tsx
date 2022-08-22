@@ -19,6 +19,19 @@ import { columnsToShow, FullTable } from '~/components/Table'
 import SEO from '~/components/SEO'
 import QuestionHelper from '~/components/QuestionHelper'
 import {
+	Button,
+	DetailsTable,
+	DownloadButton,
+	ExtraOption,
+	FlexRow,
+	DetailsWrapper,
+	Name,
+	Stat,
+	StatsSection,
+	StatWrapper,
+	Symbol
+} from '~/components/ProtocolAndPool'
+import {
 	useCalcGroupExtraPeggedByDay,
 	useCalcCirculating,
 	useGroupBridgeData,
@@ -38,7 +51,8 @@ import {
 	peggedAssetIconUrl,
 	formattedPeggedPrice
 } from '~/utils'
-import { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
+import type { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
+import { Checkbox2 } from '~/components'
 
 const TokenAreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
 	ssr: false
@@ -53,22 +67,6 @@ const risksHelperTexts = {
 		'Crypto-backed assets are backed by cryptoassets locked in a smart contract as collateral. Risks of crypto-backed assets include smart contract risk, collateral volatility and liquidation, and de-pegging.'
 }
 
-const Stats = styled.section`
-	display: flex;
-	flex-direction: column;
-	border-radius: 12px;
-	background: ${({ theme }) => theme.bg6};
-	border: ${({ theme }) => '0px solid ' + theme.divider};
-	box-shadow: ${({ theme }) => theme.shadowSm};
-	position: relative;
-	isolation: isolate;
-	z-index: 1;
-
-	@media (min-width: 80rem) {
-		flex-direction: row;
-	}
-`
-
 const PeggedDetails = styled.div`
 	display: flex;
 	flex-direction: column;
@@ -77,17 +75,6 @@ const PeggedDetails = styled.div`
 	padding-bottom: calc(24px + 0.4375rem);
 	color: ${({ theme }) => theme.text1};
 	overflow: auto;
-`
-
-const PeggedName = styled.h1`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	font-size: 1.25rem;
-`
-
-const Symbol = styled.span`
-	font-weight: 400;
 `
 
 const Table = styled(FullTable)`
@@ -267,64 +254,6 @@ const Table = styled(FullTable)`
 	}
 `
 
-const DetailsTable = styled.table`
-	border-collapse: collapse;
-
-	caption,
-	thead th {
-		font-weight: 400;
-		font-size: 0.75rem;
-		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
-	}
-
-	th {
-		font-weight: 600;
-		font-size: 1rem;
-		text-align: start;
-	}
-
-	td {
-		font-weight: 400;
-		font-size: 0.875rem;
-		text-align: right;
-		font-family: var(--font-jetbrains);
-	}
-
-	thead td {
-		> * {
-			width: min-content;
-			background: none;
-			margin-left: auto;
-			color: ${({ theme }) => theme.text1};
-		}
-	}
-
-	thead > tr > *,
-	caption {
-		padding: 0 0 4px;
-	}
-
-	tbody > tr > * {
-		padding: 4px 0;
-	}
-`
-
-const Mcap = styled.p`
-	font-weight: 700;
-	font-size: 2rem;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-
-	& > *:first-child {
-		font-weight: 400;
-		font-size: 0.75rem;
-		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
-	}
-`
-
 const TabContainer = styled(TabList)`
 	display: flex;
 
@@ -399,74 +328,6 @@ const PeggedDescription = styled.p`
 	}
 `
 
-const McapWrapper = styled.section`
-	display: flex;
-	gap: 20px;
-	align-items: flex-end;
-	justify-content: space-between;
-	flex-wrap: wrap;
-`
-
-const ExtraPeggedOption = styled.label`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-
-	input {
-		position: relative;
-		top: 1px;
-		padding: 0;
-		-webkit-appearance: none;
-		appearance: none;
-		background-color: transparent;
-		width: 1em;
-		height: 1em;
-		border: ${({ theme }) => '1px solid ' + theme.text4};
-		border-radius: 0.15em;
-		transform: translateY(-0.075em);
-		display: grid;
-		place-content: center;
-
-		::before {
-			content: '';
-			width: 0.5em;
-			height: 0.5em;
-			transform: scale(0);
-			transition: 120ms transform ease-in-out;
-			box-shadow: ${({ theme }) => 'inset 1em 1em ' + theme.text1};
-			transform-origin: bottom left;
-			clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-		}
-
-		:checked::before {
-			transform: scale(1);
-		}
-
-		:focus-visible {
-			outline-offset: max(2px, 0.15em);
-		}
-
-		:hover {
-			cursor: pointer;
-		}
-	}
-
-	:hover {
-		cursor: pointer;
-	}
-`
-
-const Button = styled(ButtonLight)`
-	display: flex;
-	gap: 4px;
-	align-items: center;
-	padding: 8px 12px;
-	font-size: 0.875rem;
-	font-weight: 400;
-	white-space: nowrap;
-	font-family: var(--font-inter);
-`
-
 const AlignSelfButton = styled(ButtonLight)`
 	display: flex;
 	gap: 4px;
@@ -477,19 +338,6 @@ const AlignSelfButton = styled(ButtonLight)`
 	font-weight: 400;
 	white-space: nowrap;
 	font-family: var(--font-inter);
-`
-
-const DownloadButton = styled(Button)`
-	display: flex;
-	align-items: center;
-	padding: 8px 12px;
-	border-radius: 10px;
-`
-
-const FlexRow = styled.p`
-	display: flex;
-	align-items: center;
-	gap: 8px;
 `
 
 const Capitalize = (str) => {
@@ -627,7 +475,7 @@ export default function PeggedContainer({
 				}}
 			/>
 
-			<Stats>
+			<StatsSection>
 				<TabWrapper>
 					<TabContainer state={tab} className="tab-list" aria-label="Pegged Tabs">
 						<PeggedTab className="tab" id={defaultSelectedId}>
@@ -638,29 +486,29 @@ export default function PeggedContainer({
 					</TabContainer>
 
 					<TabPanel state={tab} tabId={defaultSelectedId}>
-						<PeggedDetails>
-							<PeggedName>
+						<DetailsWrapper>
+							<Name>
 								<TokenLogo logo={logo} size={24} />
 								<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-								<Symbol>{symbol !== '-' ? `(${symbol})` : ''}</Symbol>
-							</PeggedName>
+								<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
+							</Name>
 
-							<McapWrapper>
-								<Mcap>
+							<StatWrapper>
+								<Stat>
 									<span>Market Cap</span>
 									<span>{formattedNum(mcap || '0', true)}</span>
-								</Mcap>
+								</Stat>
 
 								<DownloadButton onClick={downloadCsv}>
 									<DownloadCloud size={14} />
 									<span>&nbsp;&nbsp;.csv</span>
 								</DownloadButton>
-							</McapWrapper>
+							</StatWrapper>
 
 							<DetailsTable>
 								<tbody>
-									<tr key={'Price'}>
-										<th>{'Price'}</th>
+									<tr>
+										<th>Price</th>
 										<td>{price === null ? '-' : formattedPeggedPrice(price, true)}</td>
 									</tr>
 								</tbody>
@@ -670,8 +518,8 @@ export default function PeggedContainer({
 								<DetailsTable>
 									<caption>Issuance Stats</caption>
 									<tbody>
-										<tr key={'Total Circulating'}>
-											<th>{'Total Circulating'}</th>
+										<tr>
+											<th>Total Circulating</th>
 											<td>{toK(totalCirculating)}</td>
 										</tr>
 									</tbody>
@@ -683,7 +531,7 @@ export default function PeggedContainer({
 									<thead>
 										<tr>
 											<th>Optional Circulating Counts</th>
-											<td>
+											<td className="question-helper">
 												<QuestionHelper text="Use this option to choose whether to include coins that have been minted but have never been circulating." />
 											</td>
 										</tr>
@@ -692,15 +540,17 @@ export default function PeggedContainer({
 										{extraPeggeds.map((option) => (
 											<tr key={option}>
 												<th>
-													<ExtraPeggedOption>
-														<input
+													<ExtraOption>
+														<Checkbox2
 															type="checkbox"
 															value={option}
 															checked={extraPeggedsEnabled[option]}
 															onChange={updater(option)}
 														/>
-														<span>{capitalizeFirstLetter(option)}</span>
-													</ExtraPeggedOption>
+														<span style={{ opacity: extraPeggedsEnabled[option] ? 1 : 0.7 }}>
+															{capitalizeFirstLetter(option)}
+														</span>
+													</ExtraOption>
 												</th>
 												<td>{toK(unreleased)}</td>
 											</tr>
@@ -708,7 +558,7 @@ export default function PeggedContainer({
 									</tbody>
 								</DetailsTable>
 							)}
-						</PeggedDetails>
+						</DetailsWrapper>
 					</TabPanel>
 
 					<TabPanel state={tab}>
@@ -940,7 +790,7 @@ export default function PeggedContainer({
 						<PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />
 					)}
 				</div>
-			</Stats>
+			</StatsSection>
 
 			<Table data={groupedChains} columns={columns} />
 		</Layout>

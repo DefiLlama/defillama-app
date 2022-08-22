@@ -43,7 +43,7 @@ export const PopoverWrapper = styled(AriaPopover)`
 	flex-direction: column;
 	gap: 16px;
 	color: ${({ theme }) => theme.text1};
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
+	background: ${({ theme }) => theme.bg1};
 	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
 	filter: ${({ theme }) =>
 		theme.mode === 'dark'
@@ -54,7 +54,7 @@ export const PopoverWrapper = styled(AriaPopover)`
 	max-height: calc(100vh - 200px);
 	width: 100%;
 	max-width: none;
-	padding-top: 10%;
+	padding-top: 20px;
 	z-index: 1;
 
 	:focus-visible,
@@ -67,6 +67,7 @@ export const PopoverWrapper = styled(AriaPopover)`
 		min-height: 0;
 		padding: 0;
 		max-width: min(calc(100vw - 16px), 320px);
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
 		border-radius: 8px;
 	}
 `

@@ -40,7 +40,7 @@ export const Stat = styled.p`
 	}
 `
 
-export const ProtocolDetails = styled.div`
+export const DetailsWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 36px;
@@ -57,7 +57,7 @@ export const ProtocolDetails = styled.div`
 	}
 `
 
-export const PoolDetails = styled(ProtocolDetails)`
+export const PoolDetails = styled(DetailsWrapper)`
 	border-top-left-radius: 12px;
 
 	@media (min-width: 80rem) {
@@ -65,7 +65,7 @@ export const PoolDetails = styled(ProtocolDetails)`
 	}
 `
 
-export const ProtocolName = styled.h1`
+export const Name = styled.h1`
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -196,4 +196,61 @@ export const ButtonYields = styled(ButtonLight)`
 	font-weight: 400;
 	white-space: nowrap;
 	font-family: var(--font-inter);
+`
+
+export const DetailsTable = styled.table`
+	border-collapse: collapse;
+
+	caption,
+	thead th {
+		font-weight: 400;
+		font-size: 0.75rem;
+		text-align: left;
+		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
+	}
+
+	th {
+		font-weight: 600;
+		font-size: 1rem;
+		text-align: start;
+	}
+
+	td {
+		font-weight: 400;
+		font-size: 0.875rem;
+		text-align: right;
+		font-family: var(--font-jetbrains);
+	}
+
+	thead td {
+		> * {
+			width: min-content;
+			background: none;
+			margin-left: auto;
+			color: ${({ theme }) => theme.text1};
+		}
+	}
+
+	thead > tr > *,
+	caption {
+		padding: 0 0 4px;
+	}
+
+	tbody > tr > * {
+		padding: 4px 0;
+	}
+
+	.question-helper {
+		padding: 0 16px;
+	}
+`
+
+export const ExtraOption = styled.label`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+
+	:hover {
+		cursor: pointer;
+	}
 `
