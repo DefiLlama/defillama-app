@@ -42,8 +42,8 @@ const blockExplorers = {
 	dfk: ['https://subnets.avax.network/defi-kingdoms/dfk-chain/explorer/token/', 'DFK Chain Explorer'],
 	findora: ['https://evm.findorascan.io/token/', 'Findorascan'],
 	rei: ['https://scan.rei.network/address/', 'ReiScan'],
-	nova: ['https://explorer.novanetwork.io/', 'NovaExplorer'],
-	dogechain: ['https://explorer.dogechain.dog/', 'Doge Chain Explorer'],
+	nova: ['https://explorer.novanetwork.io/address/', 'NovaExplorer'],
+	dogechain: ['https://explorer.dogechain.dog/address/', 'Doge Chain Explorer'],
 	hedera: ['https://hashscan.io/#/mainnet/token/', 'HashScan']
 }
 
