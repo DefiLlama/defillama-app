@@ -73,9 +73,9 @@ export function BackingType() {
 			</FilterButton>
 			<FilterPopover state={select}>
 				<FilterFnsGroup>
-					<button onClick={clear}>clear</button>
+					<button onClick={clear}>Clear</button>
 
-					<button onClick={toggleAll}>toggle all</button>
+					<button onClick={toggleAll}>Toggle all</button>
 				</FilterFnsGroup>
 				{options.map((option) => (
 					<DropdownItem key={option.key} value={option.key}>

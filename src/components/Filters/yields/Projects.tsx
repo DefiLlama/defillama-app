@@ -87,9 +87,9 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 				{combobox.matches.length > 0 ? (
 					<>
 						<FilterFnsGroup>
-							<button onClick={clear}>clear</button>
+							<button onClick={clear}>Clear</button>
 
-							<button onClick={toggleAll}>toggle all</button>
+							<button onClick={toggleAll}>Toggle all</button>
 						</FilterFnsGroup>
 						<List state={combobox} className="filter-by-list">
 							{combobox.matches.map((value, i) => (
