@@ -162,6 +162,11 @@ const Details = styled.details`
 		display: flex;
 		gap: 12px;
 		list-style: none;
+		list-style-type: none;
+	}
+
+	& > summary::-webkit-details-marker {
+		display: none;
 	}
 `
 

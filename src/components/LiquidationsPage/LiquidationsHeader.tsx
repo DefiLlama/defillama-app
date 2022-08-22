@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { MenuButtonArrow, useComboboxState, useMenuState } from 'ariakit'
 import styled from 'styled-components'
 import TokenLogo from '~/components/TokenLogo'
-import { ProtocolName, Symbol } from '~/components/ProtocolAndPool'
+import { Name, Symbol } from '~/components/ProtocolAndPool'
 import FormattedName from '~/components/FormattedName'
 import { Button, Popover } from '~/components/DropdownMenu'
 import { Input, Item, List } from '~/components/Combobox'
@@ -75,11 +75,11 @@ export function AssetSelector({ options, symbol }: IProps) {
 	return (
 		<div>
 			<Button state={menu} style={{ fontWeight: 600 }}>
-				<ProtocolName>
+				<Name>
 					<TokenLogo logo={selectedAsset.logo} size={24} />
 					<FormattedName text={selectedAsset.name} maxCharacters={20} fontWeight={700} />
 					<Symbol>({selectedAsset.symbol})</Symbol>
-				</ProtocolName>
+				</Name>
 				<MenuButtonArrow />
 			</Button>
 			<Popover state={menu} composite={false}>
