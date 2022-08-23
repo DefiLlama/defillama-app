@@ -14,7 +14,7 @@ const Popover = styled(ComboboxPopover)`
 	outline: ${({ theme }) => '1px solid ' + theme.text5};
 	box-shadow: ${({ theme }) => theme.shadowLg};
 	transform: translate(0px, -5px);
-	z-index: 11;
+	z-index: 10;
 `
 
 const Empty = styled.div`

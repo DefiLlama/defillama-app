@@ -4,10 +4,11 @@ import { PopoverStateRenderCallbackProps } from 'ariakit/popover'
 import styled from 'styled-components'
 import { Settings as SettingsIcon } from 'react-feather'
 import { applyMobileStyles } from '~/components/Popover/utils'
-import { useMedia, useNFTApp } from '~/hooks'
+import { useMedia } from '~/hooks'
 import { DARK_MODE, useDarkModeManager, useDefiManager, useNftsManager } from '~/contexts/LocalStorage'
 import { protocolsAndChainsOptions } from '~/components/Filters'
 import { nftOptions } from '~/components/Filters/nfts/options'
+import { useRouter } from 'next/router'
 
 export function Settings() {
 	const [darkMode] = useDarkModeManager()
@@ -57,6 +58,7 @@ export function Settings() {
 			</Trigger>
 
 			<Popover state={select}>
+				<PopoverHeader>Settings</PopoverHeader>
 				{options.map((option) => (
 					<Item value={option.key} key={option.key}>
 						{option.name}
@@ -73,9 +75,25 @@ export function Settings() {
 }
 
 const useAppSettings = () => {
-	const isNftApp = useNFTApp()
+	const router = useRouter()
 
-	if (isNftApp) {
+	if (router.pathname.startsWith('/yields')) {
+		return { options: [], useSettings: useDefiManager }
+	}
+
+	if (router.pathname.startsWith('/stablecoin')) {
+		return { options: [], useSettings: useDefiManager }
+	}
+
+	if (router.pathname.startsWith('/liquidations')) {
+		return { options: [], useSettings: useDefiManager }
+	}
+
+	if (router.pathname.startsWith('/dex')) {
+		return { options: [], useSettings: useDefiManager }
+	}
+
+	if (router.pathname.startsWith('/nfts')) {
 		return { options: nftOptions, useSettings: useNftsManager }
 	}
 
@@ -94,6 +112,8 @@ const Trigger = styled(Select)`
 const Popover = styled(SelectPopover)`
 	display: flex;
 	flex-direction: column;
+	font-size: 1rem;
+	font-weight: 500;
 	color: ${({ theme }) => theme.text1};
 	background: ${({ theme }) => theme.bg1};
 	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
@@ -128,6 +148,8 @@ const Popover = styled(SelectPopover)`
 	}
 
 	@media screen and (min-width: 640px) {
+		font-size: 0.875rem;
+		font-weight: 400;
 		padding: 4px 0;
 		min-height: 0;
 		max-width: min(calc(100vw - 16px), 320px);
@@ -137,8 +159,18 @@ const Popover = styled(SelectPopover)`
 	}
 `
 
+const PopoverHeader = styled.div`
+	color: ${({ theme }) => theme.text2};
+	font-size: 0.875rem;
+	padding: 8px 12px;
+
+	@media screen and (min-width: 640px) {
+		display: none;
+	}
+`
+
 const Item = styled(SelectItem)`
-	padding: 12px 16px;
+	padding: 8px 12px;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
