@@ -47,17 +47,31 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 	}
 
 	const toggleAll = () => {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					chain: 'All'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+		if (!chain || chain === 'All') {
+			router.push(
+				{
+					pathname,
+					query: {
+						...queries,
+						chain: 'None'
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		} else {
+			router.push(
+				{
+					pathname,
+					query: {
+						...queries,
+						chain: 'All'
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		}
 	}
 
 	const clear = () => {
