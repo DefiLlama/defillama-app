@@ -1,10 +1,7 @@
-import { useCallback } from 'react'
 import { Select, SelectItem, SelectItemCheck, SelectPopover, useSelectState } from 'ariakit/select'
-import { PopoverStateRenderCallbackProps } from 'ariakit/popover'
 import styled from 'styled-components'
 import { Settings as SettingsIcon } from 'react-feather'
-import { applyMobileStyles } from '~/components/Popover/utils'
-import { useMedia } from '~/hooks'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { DARK_MODE, useDarkModeManager, useDefiManager, useNftsManager } from '~/contexts/LocalStorage'
 import { protocolsAndChainsOptions } from '~/components/Filters'
 import { nftOptions } from '~/components/Filters/nfts/options'
@@ -32,16 +29,7 @@ export function Settings() {
 		}
 	}
 
-	const isLarge = useMedia('(min-width: 640px)', true)
-
-	const renderCallback = useCallback(
-		(props: PopoverStateRenderCallbackProps) => {
-			const { popover, defaultRenderCallback } = props
-			if (isLarge) return defaultRenderCallback()
-			return applyMobileStyles(popover)
-		},
-		[isLarge]
-	)
+	const [isLarge, renderCallback] = useSetPopoverStyles()
 
 	const select = useSelectState({
 		value: selectedOptions,
@@ -57,7 +45,7 @@ export function Settings() {
 				<SettingsIcon height={16} width={16} />
 			</Trigger>
 
-			<Popover state={select}>
+			<Popover state={select} modal={!isLarge}>
 				<PopoverHeader>Settings</PopoverHeader>
 				{options.map((option) => (
 					<Item value={option.key} key={option.key}>

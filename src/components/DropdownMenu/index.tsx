@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Menu as AriakitMenu, MenuButton, MenuItem, MenuButtonArrow, useMenuState } from 'ariakit/menu'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 interface IMenuProps {
 	options: string[]
@@ -12,15 +13,17 @@ interface IMenuProps {
 }
 
 export function Menu({ options, name, color, isExternal, onItemClick }: IMenuProps) {
-	const menu = useMenuState({ gutter: 8 })
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
+	const menu = useMenuState({ gutter: 8, renderCallback })
 
 	return (
 		<>
-			<Button state={menu} className="button" color={color}>
+			<Button state={menu} color={color}>
 				{name}
 				<MenuButtonArrow />
 			</Button>
-			<Popover state={menu} className="menu">
+			<Popover state={menu} modal={!isLarge}>
 				{options.map((value, i) => {
 					return onItemClick ? (
 						<Item as="button" key={value + i} onClick={() => onItemClick(value)}>

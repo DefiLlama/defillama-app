@@ -1,14 +1,8 @@
 import * as React from 'react'
-import {
-	Popover as AriaPopover,
-	PopoverDisclosure,
-	PopoverStateRenderCallbackProps,
-	usePopoverState
-} from 'ariakit/popover'
+import { Popover as AriaPopover, PopoverDisclosure, usePopoverState } from 'ariakit/popover'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
-import { useMedia } from '~/hooks'
-import { applyMobileStyles } from './utils'
+import { useSetPopoverStyles } from './utils'
 
 const Trigger = styled(PopoverDisclosure)`
 	display: flex;
@@ -93,16 +87,7 @@ interface IProps {
 }
 
 export default function Popover({ trigger, content, ...props }: IProps) {
-	const isLarge = useMedia('(min-width: 640px)', true)
-
-	const renderCallback = React.useCallback(
-		(props: PopoverStateRenderCallbackProps) => {
-			const { popover, defaultRenderCallback } = props
-			if (isLarge) return defaultRenderCallback()
-			return applyMobileStyles(popover)
-		},
-		[isLarge]
-	)
+	const [isLarge, renderCallback] = useSetPopoverStyles()
 
 	const popover = usePopoverState({ renderCallback, gutter: 8, animated: true })
 

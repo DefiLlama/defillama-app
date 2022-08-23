@@ -1,3 +1,7 @@
+import { PopoverStateRenderCallbackProps } from 'ariakit'
+import { useCallback } from 'react'
+import { useMedia } from '~/hooks'
+
 export function assignStyle(element: HTMLElement | null | undefined, style: Partial<CSSStyleDeclaration>) {
 	if (!element) return () => {}
 
@@ -24,4 +28,19 @@ export function applyMobileStyles(popover: HTMLElement) {
 		restorePopoverStyle()
 	}
 	return restoreDesktopStyles
+}
+
+export function useSetPopoverStyles(): [boolean, (props: PopoverStateRenderCallbackProps) => () => void] {
+	const isLarge = useMedia('(min-width: 640px)', true)
+
+	const renderCallback = useCallback(
+		(props: PopoverStateRenderCallbackProps) => {
+			const { popover, defaultRenderCallback } = props
+			if (isLarge) return defaultRenderCallback()
+			return applyMobileStyles(popover)
+		},
+		[isLarge]
+	)
+
+	return [isLarge, renderCallback]
 }
