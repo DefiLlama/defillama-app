@@ -18,18 +18,35 @@ const slideIn = keyframes`
   }
 `
 
+const Backdrop = styled.div`
+	display: none;
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background-color: rgb(0 0 0 / 10%);
+
+	&[data-acitve='true'] {
+		display: block;
+	}
+`
+
 const Nav = styled.nav`
 	position: fixed;
 	top: 0;
 	right: 0;
 	bottom: 0;
 	overflow: auto;
-	display: none;
+	display: flex;
 	padding: 16px 16px 40px;
 	width: 100%;
 	max-width: 300px;
 	background: ${({ theme }) => theme.bg1};
 	z-index: 1;
+	flex-direction: column;
+	gap: 20px;
+	animation: 0.2s ${slideIn} ease;
 
 	& > * {
 		color: ${({ theme }) => theme.text1};
@@ -40,13 +57,6 @@ const Nav = styled.nav`
 
 	button {
 		text-align: start;
-	}
-
-	&[data-acitve='true'] {
-		display: flex;
-		flex-direction: column;
-		gap: 20px;
-		animation: 0.2s ${slideIn} ease;
 	}
 `
 
@@ -88,44 +98,46 @@ export function Menu() {
 				<span className="visually-hidden">Open Navigation Menu</span>
 				<MenuIcon height={16} width={16} />
 			</Button>
-			<Nav data-acitve={show} ref={navEl}>
-				<Close onClick={() => setShow(!show)}>
-					<span className="visually-hidden">Close Navigation Menu</span>
-					<X height={20} width={20} strokeWidth="4px" />
-				</Close>
+			<Backdrop data-acitve={show}>
+				<Nav ref={navEl}>
+					<Close onClick={() => setShow(!show)}>
+						<span className="visually-hidden">Close Navigation Menu</span>
+						<X height={20} width={20} strokeWidth="4px" />
+					</Close>
 
-				{links.main.map((link) => (
-					<Fragment key={link.path}>
-						{link.subMenuHeader && navLinks[link.name.toLowerCase()] ? (
-							<SubMenu parentLink={link} />
-						) : (
-							<Entry name={link.name} url={link.path} Icon={link.icon} newTag={link.newTag} />
-						)}
-					</Fragment>
-				))}
+					{links.main.map((link) => (
+						<Fragment key={link.path}>
+							{link.subMenuHeader && navLinks[link.name.toLowerCase()] ? (
+								<SubMenu parentLink={link} />
+							) : (
+								<Entry name={link.name} url={link.path} Icon={link.icon} newTag={link.newTag} />
+							)}
+						</Fragment>
+					))}
 
-				{links.footer.map((link) => {
-					if ('onClick' in link) {
-						return (
-							<button key={link.name} onClick={link.onClick}>
-								<div style={{ width: '32px', display: 'inline-block' }}></div>
-								{link.name}
-							</button>
-						)
-					} else {
-						return (
-							<Fragment key={link.name}>
-								<Link href={link.path} key={link.path} prefetch={false} passHref>
-									<a target="_blank" rel="noopener noreferrer">
-										<div style={{ width: '32px', display: 'inline-block' }}></div>
-										<span>{link.name}</span>
-									</a>
-								</Link>
-							</Fragment>
-						)
-					}
-				})}
-			</Nav>
+					{links.footer.map((link) => {
+						if ('onClick' in link) {
+							return (
+								<button key={link.name} onClick={link.onClick}>
+									<div style={{ width: '32px', display: 'inline-block' }}></div>
+									{link.name}
+								</button>
+							)
+						} else {
+							return (
+								<Fragment key={link.name}>
+									<Link href={link.path} key={link.path} prefetch={false} passHref>
+										<a target="_blank" rel="noopener noreferrer">
+											<div style={{ width: '32px', display: 'inline-block' }}></div>
+											<span>{link.name}</span>
+										</a>
+									</Link>
+								</Fragment>
+							)
+						}
+					})}
+				</Nav>
+			</Backdrop>
 		</>
 	)
 }

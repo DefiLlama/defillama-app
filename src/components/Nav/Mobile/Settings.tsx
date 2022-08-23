@@ -45,7 +45,8 @@ export function Settings() {
 	const select = useSelectState({
 		value: selectedOptions,
 		setValue: onChange,
-		renderCallback
+		renderCallback,
+		animated: true
 	})
 
 	return (
@@ -87,13 +88,12 @@ const Trigger = styled(Select)`
 	color: #ffffff;
 	padding: 6px 10px;
 	border-radius: 8px;
-	filter: drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%));
+	box-shadow: ${({ theme }) => theme.shadow};
 `
 
 const Popover = styled(SelectPopover)`
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
 	color: ${({ theme }) => theme.text1};
 	background: ${({ theme }) => theme.bg1};
 	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
@@ -105,8 +105,21 @@ const Popover = styled(SelectPopover)`
 	max-height: calc(100vh - 200px);
 	width: 100%;
 	max-width: none;
-	padding: 10% 0;
+	padding: 12px 8px;
 	z-index: 1;
+
+	opacity: 0;
+	transform: translateY(100%);
+	transition: 0.2s ease;
+
+	&[data-enter] {
+		transform: translateY(0%);
+		opacity: 1;
+	}
+
+	&[data-leave] {
+		transition: 0.1s ease;
+	}
 
 	:focus-visible,
 	[data-focus-visible] {
@@ -115,18 +128,24 @@ const Popover = styled(SelectPopover)`
 	}
 
 	@media screen and (min-width: 640px) {
+		padding: 4px 0;
 		min-height: 0;
-		padding: 0;
 		max-width: min(calc(100vw - 16px), 320px);
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
 		border-radius: 8px;
+		transform: translateY(-5%);
 	}
 `
 
 const Item = styled(SelectItem)`
-	padding: 8px 12px;
+	padding: 12px 16px;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 16px;
 	min-width: 160px;
+
+	@media screen and (min-width: 640px) {
+		padding: 8px 12px;
+	}
 `

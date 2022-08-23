@@ -5,7 +5,7 @@ export const Button = styled.button`
 	color: #ffffff;
 	padding: 6px 10px;
 	border-radius: 8px;
-	filter: drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%));
+	box-shadow: ${({ theme }) => theme.shadow};
 `
 
 export const Close = styled.button`

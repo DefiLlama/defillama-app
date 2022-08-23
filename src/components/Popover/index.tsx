@@ -54,8 +54,21 @@ export const PopoverWrapper = styled(AriaPopover)`
 	max-height: calc(100vh - 200px);
 	width: 100%;
 	max-width: none;
-	padding-top: 20px;
 	z-index: 1;
+	padding: 20px 0 0 0;
+
+	opacity: 0;
+	transform: translateY(100%);
+	transition: 0.2s ease;
+
+	&[data-enter] {
+		opacity: 1;
+		transform: translateY(0%);
+	}
+
+	&[data-leave] {
+		transition: 0.1s ease;
+	}
 
 	:focus-visible,
 	[data-focus-visible] {
@@ -69,6 +82,7 @@ export const PopoverWrapper = styled(AriaPopover)`
 		max-width: min(calc(100vw - 16px), 320px);
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
 		border-radius: 8px;
+		transform: translateY(-5%);
 	}
 `
 
@@ -89,7 +103,7 @@ export default function Popover({ trigger, content, ...props }: IProps) {
 		[isLarge]
 	)
 
-	const popover = usePopoverState({ renderCallback, gutter: 8 })
+	const popover = usePopoverState({ renderCallback, gutter: 8, animated: true })
 
 	return (
 		<>

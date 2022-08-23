@@ -127,3 +127,15 @@ h6 {
 [data-backdrop] {
 	background-color: rgb(0 0 0 / 10%);
 }
+
+@keyframes slide-up {
+	0% {
+		opacity: 0;
+		bottom: -100%;
+	}
+
+	100% {
+		opacity: 0;
+		bottom: -100%;
+	}
+}
