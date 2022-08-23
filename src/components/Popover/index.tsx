@@ -42,22 +42,23 @@ export const PopoverWrapper = styled(AriaPopover)`
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
+	padding: 20px 0 32px;
+	width: 100%;
+	max-width: none;
+	max-height: 50vh;
 	color: ${({ theme }) => theme.text1};
 	background: ${({ theme }) => theme.bg1};
 	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
+	border-radius: 8px 8px 0 0;
 	filter: ${({ theme }) =>
 		theme.mode === 'dark'
 			? 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 40%))'
 			: 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%))'};
-	border-radius: 8px 8px 0 0;
-	min-height: 40vh;
-	max-height: calc(100vh - 200px);
-	width: 100%;
-	max-width: none;
-	z-index: 1;
-	padding: 20px 0 0 0;
-
+	overflow: auto;
+	overscroll-behavior: contain;
 	opacity: 0;
+	z-index: 10;
+
 	transform: translateY(100%);
 	transition: 0.2s ease;
 
@@ -77,12 +78,12 @@ export const PopoverWrapper = styled(AriaPopover)`
 	}
 
 	@media (min-width: 640px) {
-		min-height: 0;
 		padding: 0;
 		max-width: min(calc(100vw - 16px), 320px);
+		max-height: calc(100vh - 200px);
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
 		border-radius: 8px;
-		transform: translateY(-5%);
+		transform: translateY(0%);
 	}
 `
 

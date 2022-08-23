@@ -112,21 +112,24 @@ const Trigger = styled(Select)`
 const Popover = styled(SelectPopover)`
 	display: flex;
 	flex-direction: column;
-	font-size: 1rem;
+	gap: 8px;
+	padding: 12px 8px;
+	width: 100%;
+	max-width: none;
+	max-height: calc(50vh);
+	font-size: 0.875rem;
 	font-weight: 500;
 	color: ${({ theme }) => theme.text1};
 	background: ${({ theme }) => theme.bg1};
 	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
+	border-radius: 8px 8px 0 0;
 	filter: ${({ theme }) =>
 		theme.mode === 'dark'
 			? 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 40%))'
 			: 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%))'};
-	border-radius: 8px 8px 0 0;
-	max-height: calc(100vh - 200px);
-	width: 100%;
-	max-width: none;
-	padding: 12px 8px;
-	z-index: 1;
+	overflow: auto;
+	overscroll-behavior: contain;
+	z-index: 10;
 
 	opacity: 0;
 	transform: translateY(100%);
@@ -148,11 +151,10 @@ const Popover = styled(SelectPopover)`
 	}
 
 	@media screen and (min-width: 640px) {
-		font-size: 0.875rem;
-		font-weight: 400;
 		padding: 4px 0;
-		min-height: 0;
+		max-height: calc(100vh - 200px);
 		max-width: min(calc(100vw - 16px), 320px);
+		font-weight: 400;
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
 		border-radius: 8px;
 		transform: translateY(-5%);
@@ -161,8 +163,9 @@ const Popover = styled(SelectPopover)`
 
 const PopoverHeader = styled.div`
 	color: ${({ theme }) => theme.text2};
-	font-size: 0.875rem;
-	padding: 8px 12px;
+	margin: 8px 12px 4px;
+	padding-bottom: 4px;
+	border-bottom: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
 
 	@media screen and (min-width: 640px) {
 		display: none;

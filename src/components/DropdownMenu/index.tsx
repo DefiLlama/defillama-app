@@ -78,7 +78,7 @@ export const Button = styled(MenuButton)<IButtonProps>`
 		top: 1px;
 	}
 `
-
+// TODO remove repeated styles
 export const Popover = styled(AriakitMenu)`
 	min-width: 180px;
 	outline: none !important;
@@ -101,7 +101,7 @@ export const Popover = styled(AriakitMenu)`
 	overflow: visible;
 
 	#no-results {
-		padding: 0 12px 8px;
+		margin: 24px 0;
 		text-align: center;
 	}
 `
