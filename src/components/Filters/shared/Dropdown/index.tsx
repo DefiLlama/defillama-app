@@ -1,50 +1,20 @@
-import { SelectItem, SelectPopover } from 'ariakit/select'
+import { SelectItem } from 'ariakit/select'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
+import { FilterPopover } from '../Base'
 
-export const Dropdown = styled(SelectPopover)`
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	min-width: 180px;
-	max-height: calc(100vh - 200px);
-	font-size: 0.875rem;
-	font-weight: 500;
-	color: ${({ theme }) => theme.text1};
-	background: ${({ theme }) => theme.bg1};
-	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
-	border-radius: 8px;
-	filter: ${({ theme }) =>
-		theme.mode === 'dark'
-			? 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 40%))'
-			: 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%))'};
-	overflow: auto;
-	overscroll-behavior: contain;
-	outline: none !important;
-	z-index: 10;
-
+export const ComboboxDropdown = styled(FilterPopover)`
+	height: 60vh;
 	#no-results {
-		padding: 0 12px 8px;
-		text-align: center;
-	}
-
-	#no-results {
-		margin: 24px 0 16px;
+		margin: 24px 0;
 	}
 
 	.filter-by-list {
 		padding: 0;
 	}
 
-	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		font-size: 0.825rem;
-		font-weight: 400;
-		gap: 0px;
-		width: 100%;
-		max-width: 280px;
-		max-height: 400px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
-		border-radius: 8px;
+	@media screen and (min-width: 640px) {
+		height: unset;
 	}
 `
 

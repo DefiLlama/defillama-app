@@ -2,7 +2,8 @@ import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
-import { Dropdown, DropdownItem, ItemsSelected, FilterFnsGroup, FilterButton } from '../shared'
+import { ComboboxDropdown, DropdownItem, ItemsSelected, FilterFnsGroup, FilterButton } from '../shared'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 interface IYieldProjectsProps {
 	projectList: { name: string; slug: string }[]
@@ -34,11 +35,15 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 	// select value and the combobox value are different things.
 	const { value, setValue, ...selectProps } = combobox
 
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
 	const select = useSelectState({
 		...selectProps,
 		value: selectedProjects,
 		setValue: addProject,
-		gutter: 8
+		gutter: 8,
+		animated: true,
+		renderCallback
 	})
 
 	// Resets combobox value when popover is collapsed
@@ -81,7 +86,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 				<MenuButtonArrow />
 				{selectedProjects.length > 0 && <ItemsSelected>{selectedProjects.length}</ItemsSelected>}
 			</FilterButton>
-			<Dropdown state={select}>
+			<ComboboxDropdown state={select} modal={!isLarge}>
 				<Input state={combobox} placeholder="Search for projects..." />
 
 				{combobox.matches.length > 0 ? (
@@ -103,7 +108,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 				) : (
 					<p id="no-results">No results</p>
 				)}
-			</Dropdown>
+			</ComboboxDropdown>
 		</>
 	)
 }

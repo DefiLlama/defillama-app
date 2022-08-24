@@ -3,7 +3,8 @@ import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
 import { FilterButton } from './Base'
-import { Dropdown, DropdownItem, ItemsSelected, FilterFnsGroup } from './Dropdown'
+import { ComboboxDropdown, DropdownItem, ItemsSelected, FilterFnsGroup } from './Dropdown'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 interface IFiltersByChainProps {
 	chainList: string[]
@@ -34,11 +35,16 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 	// value and setValue shouldn't be passed to the select state because the
 	// select value and the combobox value are different things.
 	const { value, setValue, ...selectProps } = combobox
+
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
 	const select = useSelectState({
 		...selectProps,
 		value: selectedChains,
 		setValue: addChain,
-		gutter: 8
+		gutter: 8,
+		animated: true,
+		renderCallback
 	})
 
 	// Resets combobox value when popover is collapsed
@@ -95,7 +101,7 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 				<MenuButtonArrow />
 				{selectedChains.length > 0 && <ItemsSelected>{selectedChains.length}</ItemsSelected>}
 			</FilterButton>
-			<Dropdown state={select}>
+			<ComboboxDropdown state={select} modal={!isLarge}>
 				<Input state={combobox} placeholder="Search for chains..." />
 
 				{combobox.matches.length > 0 ? (
@@ -117,7 +123,7 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 				) : (
 					<p id="no-results">No results</p>
 				)}
-			</Dropdown>
+			</ComboboxDropdown>
 		</>
 	)
 }
