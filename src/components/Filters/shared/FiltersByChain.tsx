@@ -2,8 +2,7 @@ import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
-import { FilterButton } from './Base'
-import { ComboboxDropdown, DropdownItem, ItemsSelected, FilterFnsGroup } from './Dropdown'
+import { SelectButton, ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup } from './Base'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 interface IFiltersByChainProps {
@@ -96,12 +95,12 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 
 	return (
 		<>
-			<FilterButton state={select}>
+			<SelectButton state={select}>
 				<span>Filter by Chain</span>
 				<MenuButtonArrow />
 				{selectedChains.length > 0 && <ItemsSelected>{selectedChains.length}</ItemsSelected>}
-			</FilterButton>
-			<ComboboxDropdown state={select} modal={!isLarge}>
+			</SelectButton>
+			<ComboboxSelectPopover state={select} modal={!isLarge}>
 				<Input state={combobox} placeholder="Search for chains..." />
 
 				{combobox.matches.length > 0 ? (
@@ -113,17 +112,17 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 						</FilterFnsGroup>
 						<List state={combobox} className="filter-by-list">
 							{combobox.matches.map((value, i) => (
-								<DropdownItem value={value} key={value + i} focusOnHover>
+								<SelectItem value={value} key={value + i} focusOnHover>
 									<span>{value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
-								</DropdownItem>
+								</SelectItem>
 							))}
 						</List>
 					</>
 				) : (
 					<p id="no-results">No results</p>
 				)}
-			</ComboboxDropdown>
+			</ComboboxSelectPopover>
 		</>
 	)
 }

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import styled from 'styled-components'
 import { useSelectState, SelectArrow, SelectItemCheck, SelectPopover, SelectItem } from 'ariakit/select'
-import { BaseSelect } from '~/components/Filters'
+import { Select } from '~/components/Filters'
 
 export const Item = styled(SelectItem)`
 	padding: 12px 4px;
@@ -21,7 +21,7 @@ export const Item = styled(SelectItem)`
 	}
 `
 
-const Menu = styled(BaseSelect)`
+const Menu = styled(Select)`
 	position: absolute;
 	right: 0;
 	top: -3px;

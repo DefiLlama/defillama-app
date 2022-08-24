@@ -2,7 +2,7 @@ import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
-import { DropdownItem, FilterFnsGroup, FilterButton, FilterPopover } from '../shared'
+import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover } from '../shared'
 
 export const options = [
 	{
@@ -67,23 +67,23 @@ export function BackingType() {
 
 	return (
 		<>
-			<FilterButton state={select}>
+			<SelectButton state={select}>
 				<span>Filter by Backing</span>
 				<MenuButtonArrow />
-			</FilterButton>
-			<FilterPopover state={select}>
+			</SelectButton>
+			<SelectPopover state={select}>
 				<FilterFnsGroup>
 					<button onClick={clear}>clear</button>
 
 					<button onClick={toggleAll}>toggle all</button>
 				</FilterFnsGroup>
 				{options.map((option) => (
-					<DropdownItem key={option.key} value={option.key}>
+					<SelectItem key={option.key} value={option.key}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
 						<Checkbox checked={values.includes(option.key)} />
-					</DropdownItem>
+					</SelectItem>
 				))}
-			</FilterPopover>
+			</SelectPopover>
 		</>
 	)
 }

@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import { SelectArrow } from 'ariakit/select'
-import { DropdownItem, ItemsSelected, FilterButton, FilterPopover } from '../shared'
+import { SelectItem, ItemsSelected, SelectButton, SelectPopover } from '../shared'
 import OptionToggle from '~/components/OptionToggle'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
@@ -43,7 +43,7 @@ const ListItem = styled.li`
 	}
 `
 
-const AddlFiltersButton = styled(FilterButton)`
+const AddlFiltersButton = styled(SelectButton)`
 	background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#f5f5f5')};
 	font-size: 0.875rem;
 `
@@ -103,14 +103,14 @@ function AddlOptions({ options, ...props }: IAllOptionsProps) {
 				{totalSelected > 0 && <ItemsSelected>{totalSelected}</ItemsSelected>}
 			</AddlFiltersButton>
 			{select.mounted && (
-				<FilterPopover state={select}>
+				<SelectPopover state={select}>
 					{options.map(({ key, name, help }) => (
-						<DropdownItem key={key} value={key}>
+						<SelectItem key={key} value={key}>
 							{help ? <HeadHelp title={name} text={help} /> : name}
 							<Checkbox checked={select.value.includes(key)} />
-						</DropdownItem>
+						</SelectItem>
 					))}
-				</FilterPopover>
+				</SelectPopover>
 			)}
 		</span>
 	)

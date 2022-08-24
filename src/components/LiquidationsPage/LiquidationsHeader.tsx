@@ -11,6 +11,7 @@ import { StackBySwitch } from './StackBySwitch'
 import { ChartData, DEFAULT_ASSETS_LIST } from '~/utils/liquidations'
 import type { ISearchItem } from '../Search/types'
 import { DownloadButton } from './DownloadButton'
+import { useSetPopoverStyles } from '../Popover/utils'
 
 const LiquidationsHeaderWrapper = styled.div`
 	flex: 1;
@@ -59,7 +60,11 @@ interface IProps {
 
 export function AssetSelector({ options, symbol }: IProps) {
 	const defaultList = options.map(({ name, symbol }) => `${name} - ${symbol}`)
-	const combobox = useComboboxState({ defaultList, gutter: 8 })
+
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
+	const combobox = useComboboxState({ defaultList, gutter: 8, animated: true, renderCallback })
+
 	const menu = useMenuState(combobox)
 
 	// Resets combobox value when menu is closed
@@ -82,7 +87,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 				</Name>
 				<MenuButtonArrow />
 			</Button>
-			<Popover state={menu} composite={false}>
+			<Popover state={menu} composite={false} modal={!isLarge}>
 				<Input state={combobox} placeholder="Search..." />
 				{combobox.matches.length > 0 ? (
 					<List state={combobox}>

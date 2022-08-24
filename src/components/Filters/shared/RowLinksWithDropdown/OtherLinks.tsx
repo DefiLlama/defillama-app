@@ -3,6 +3,7 @@ import { MenuButtonArrow, useMenuState } from 'ariakit/menu'
 import Link from 'next/link'
 import { Button, Popover } from '~/components/DropdownMenu'
 import { Input, Item, List } from '~/components/Combobox'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 interface IProps {
 	options: { label: string; to: string }[]
@@ -11,7 +12,11 @@ interface IProps {
 
 export function OtherLinks({ options, name }: IProps) {
 	const defaultList = options.map((l) => l.to)
-	const combobox = useComboboxState({ defaultList, gutter: 8 })
+
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
+	const combobox = useComboboxState({ defaultList, gutter: 8, animated: true, renderCallback })
+
 	const menu = useMenuState(combobox)
 
 	// Resets combobox value when menu is closed
@@ -25,7 +30,7 @@ export function OtherLinks({ options, name }: IProps) {
 				<span>{name}</span>
 				<MenuButtonArrow />
 			</Button>
-			<Popover state={menu} composite={false}>
+			<Popover state={menu} composite={false} modal={!isLarge}>
 				<Input state={combobox} placeholder="Search..." />
 				{combobox.matches.length > 0 ? (
 					<List state={combobox}>
