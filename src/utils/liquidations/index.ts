@@ -392,10 +392,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		name: 'Lido Wrapped stETH',
 		symbol: 'WSTETH'
 	},
-	// {
-	// 	name: 'Tether',
-	// 	symbol: 'USDT'
-	// },
+	{
+		name: 'Tether',
+		symbol: 'USDT'
+	},
 	{
 		name: 'yearn.finance',
 		symbol: 'YFI'
