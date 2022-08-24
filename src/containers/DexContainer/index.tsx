@@ -37,7 +37,7 @@ const Stats = styled.section`
 	position: relative;
 	isolation: isolate;
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		grid-template-columns: auto 1fr;
 	}
 `
@@ -53,7 +53,7 @@ const ProtocolDetails = styled.div`
 	grid-column: span 1;
 	border-radius: 12px 12px 0 0;
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		min-width: 380px;
 		border-radius: 0 0 0 12px;
 	}
@@ -102,7 +102,7 @@ const InfoWrapper = styled.section`
 	grid-template-rows: repeat(3, auto);
 	box-shadow: ${({ theme }) => theme.shadowSm};
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		grid-template-rows: repeat(2, auto);
 	}
 `
@@ -137,7 +137,7 @@ const Section = styled.section`
 		line-height: 1.5rem;
 	}
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		h3:not(:first-of-type) {
 			margin-top: 24px;
 		}
@@ -198,7 +198,7 @@ const Bobo = styled.button`
 		height: 34px !important;
 	}
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		top: 0;
 		right: 0;
 		bottom: initial;
@@ -231,7 +231,7 @@ const ChartWrapper = styled.section`
 	display: flex;
 	flex-direction: column;
 
-	@media (min-width: 90rem) {
+	@media screen and (min-width: 90rem) {
 		grid-column: span 1;
 
 		:last-child:nth-child(2n - 1) {

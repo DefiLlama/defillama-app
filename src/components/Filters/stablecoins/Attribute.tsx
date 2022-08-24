@@ -1,8 +1,9 @@
 import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
-import { DropdownItem, FilterFnsGroup, FilterButton, FilterPopover } from '../shared'
+import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover } from '../shared'
 
 const { DEPEGGED } = STABLECOINS_SETTINGS
 
@@ -31,10 +32,14 @@ export function Attribute() {
 
 	const values = options.filter((o) => state[o.key]).map((o) => o.key)
 
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
 	const select = useSelectState({
 		value: values,
 		setValue: updateAttributes,
-		gutter: 8
+		gutter: 8,
+		animated: true,
+		renderCallback
 	})
 
 	const toggleAll = () => {
@@ -59,23 +64,23 @@ export function Attribute() {
 
 	return (
 		<>
-			<FilterButton state={select}>
+			<SelectButton state={select}>
 				<span>Filter by Attribute</span>
 				<MenuButtonArrow />
-			</FilterButton>
-			<FilterPopover state={select}>
+			</SelectButton>
+			<SelectPopover state={select} modal={!isLarge}>
 				<FilterFnsGroup>
 					<button onClick={clear}>clear</button>
 
 					<button onClick={toggleAll}>toggle all</button>
 				</FilterFnsGroup>
 				{options.map((option) => (
-					<DropdownItem key={option.key} value={option.key}>
+					<SelectItem key={option.key} value={option.key}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
 						<Checkbox checked={values.includes(option.key)} />
-					</DropdownItem>
+					</SelectItem>
 				))}
-			</FilterPopover>
+			</SelectPopover>
 		</>
 	)
 }

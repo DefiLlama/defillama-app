@@ -3,8 +3,9 @@ import { SelectLabel, SelectArrow } from 'ariakit/select'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
 import { protocolsAndChainsOptions } from './options'
-import { DropdownItem, FilterPopover, BaseSelect } from '../shared'
+import { SelectItem, SelectPopover, Select } from '../shared'
 import { useProtocolsFilterState } from './useProtocolFilterState'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 const WrapperWithLabel = styled.div`
 	display: none;
@@ -12,7 +13,7 @@ const WrapperWithLabel = styled.div`
 	align-items: center;
 	margin-left: auto;
 
-	@media (min-width: ${({ theme }) => theme.bpLg}) and (max-width: ${({ theme }) => theme.bp2Xl}) {
+	@media screen and (min-width: ${({ theme }) => theme.bpLg}) and (max-width: ${({ theme }) => theme.bp2Xl}) {
 		display: flex;
 		padding: 0 4px;
 	}
@@ -26,7 +27,7 @@ const Label = styled(SelectLabel)`
 	white-space: nowrap;
 `
 
-const Menu = styled(BaseSelect)`
+const Menu = styled(Select)`
 	background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#f5f5f5')};
 `
 
@@ -43,6 +44,8 @@ interface IProps {
 export function TabletProtocolsFilters({ options, ...props }: IProps) {
 	const select = useProtocolsFilterState({ sameWidth: true })
 
+	const [isLarge] = useSetPopoverStyles()
+
 	const tvlOptions = options || protocolsAndChainsOptions
 
 	return (
@@ -53,14 +56,14 @@ export function TabletProtocolsFilters({ options, ...props }: IProps) {
 				<SelectArrow />
 			</Menu>
 			{select.mounted && (
-				<FilterPopover state={select}>
+				<SelectPopover state={select} modal={!isLarge}>
 					{tvlOptions.map(({ key, name, help }) => (
-						<DropdownItem key={key} value={key}>
+						<SelectItem key={key} value={key}>
 							{help ? <HeadHelp title={name} text={help} /> : name}
 							<Checkbox checked={select.value.includes(key)} />
-						</DropdownItem>
+						</SelectItem>
 					))}
-				</FilterPopover>
+				</SelectPopover>
 			)}
 		</WrapperWithLabel>
 	)

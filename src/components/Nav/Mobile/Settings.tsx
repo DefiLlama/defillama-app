@@ -1,10 +1,7 @@
-import { useCallback } from 'react'
 import { Select, SelectItem, SelectItemCheck, SelectPopover, useSelectState } from 'ariakit/select'
-import { PopoverStateRenderCallbackProps } from 'ariakit/popover'
 import styled from 'styled-components'
 import { Settings as SettingsIcon } from 'react-feather'
-import { applyMobileStyles } from '~/components/Popover/utils'
-import { useMedia } from '~/hooks'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { DARK_MODE, useDarkModeManager, useDefiManager, useNftsManager } from '~/contexts/LocalStorage'
 import { protocolsAndChainsOptions } from '~/components/Filters'
 import { nftOptions } from '~/components/Filters/nfts/options'
@@ -32,22 +29,13 @@ export function Settings() {
 		}
 	}
 
-	const isLarge = useMedia('(min-width: 640px)', true)
-
-	const renderCallback = useCallback(
-		(props: PopoverStateRenderCallbackProps) => {
-			const { popover, defaultRenderCallback } = props
-			if (isLarge) return defaultRenderCallback()
-			return applyMobileStyles(popover)
-		},
-		[isLarge]
-	)
+	const [isLarge, renderCallback] = useSetPopoverStyles()
 
 	const select = useSelectState({
 		value: selectedOptions,
 		setValue: onChange,
-		renderCallback,
-		animated: true
+		animated: true,
+		renderCallback
 	})
 
 	return (
@@ -57,7 +45,7 @@ export function Settings() {
 				<SettingsIcon height={16} width={16} />
 			</Trigger>
 
-			<Popover state={select}>
+			<Popover state={select} modal={!isLarge}>
 				<PopoverHeader>Settings</PopoverHeader>
 				{options.map((option) => (
 					<Item value={option.key} key={option.key}>
@@ -116,7 +104,7 @@ const Popover = styled(SelectPopover)`
 	padding: 12px 8px;
 	width: 100%;
 	max-width: none;
-	max-height: calc(50vh);
+	max-height: calc(100vh - 200px);
 	font-size: 0.875rem;
 	font-weight: 500;
 	color: ${({ theme }) => theme.text1};
@@ -152,7 +140,7 @@ const Popover = styled(SelectPopover)`
 
 	@media screen and (min-width: 640px) {
 		padding: 4px 0;
-		max-height: calc(100vh - 200px);
+		max-height: 400px;
 		max-width: min(calc(100vw - 16px), 320px);
 		font-weight: 400;
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};

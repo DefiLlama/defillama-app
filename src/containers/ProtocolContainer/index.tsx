@@ -65,7 +65,7 @@ const Bobo = styled.button`
 		height: 34px !important;
 	}
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		top: 0;
 		right: 0;
 		bottom: initial;
@@ -90,7 +90,7 @@ const ChartWrapper = styled.section`
 	display: flex;
 	flex-direction: column;
 
-	@media (min-width: 90rem) {
+	@media screen and (min-width: 90rem) {
 		grid-column: span 1;
 
 		:last-child:nth-child(2n - 1) {
@@ -107,7 +107,7 @@ const OtherProtocols = styled.nav`
 	font-weight: 500;
 	border-radius: 12px 12px 0 0;
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		grid-column: span 2;
 	}
 `

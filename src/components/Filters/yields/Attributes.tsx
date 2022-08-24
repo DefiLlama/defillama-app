@@ -2,8 +2,9 @@ import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { useRouter } from 'next/router'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
-import { DropdownItem, ItemsSelected, FilterFnsGroup, FilterButton, FilterPopover } from '../shared'
+import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup } from '../shared'
 
 export const attributeOptions = [
 	{
@@ -123,10 +124,14 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		)
 	}
 
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
 	const select = useSelectState({
 		value: values,
 		setValue: updateAttributes,
-		gutter: 8
+		gutter: 8,
+		renderCallback,
+		animated: true
 	})
 
 	const toggleAll = () => {
@@ -163,24 +168,24 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 
 	return (
 		<>
-			<FilterButton state={select}>
+			<SelectButton state={select}>
 				<span>Filter by Attribute</span>
 				<MenuButtonArrow />
 				{totalSelected > 0 && <ItemsSelected>{totalSelected}</ItemsSelected>}
-			</FilterButton>
-			<FilterPopover state={select}>
+			</SelectButton>
+			<SelectPopover state={select} modal={!isLarge}>
 				<FilterFnsGroup>
 					<button onClick={clear}>clear</button>
 
 					<button onClick={toggleAll}>toggle all</button>
 				</FilterFnsGroup>
 				{attributeOptions.map((option) => (
-					<DropdownItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
+					<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
 						<Checkbox checked={values.includes(option.key) || option.disabledOnPages.includes(router.pathname)} />
-					</DropdownItem>
+					</SelectItem>
 				))}
-			</FilterPopover>
+			</SelectPopover>
 		</>
 	)
 }

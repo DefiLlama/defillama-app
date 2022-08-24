@@ -1,12 +1,13 @@
 import styled from 'styled-components'
 import { SelectArrow } from 'ariakit/select'
-import { DropdownItem, ItemsSelected, FilterButton, FilterPopover } from '../shared'
+import { SelectItem, ItemsSelected, SelectButton, SelectPopover } from '../shared'
 import OptionToggle from '~/components/OptionToggle'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { protocolsAndChainsOptions } from './options'
 import { useProtocolsFilterState } from './useProtocolFilterState'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 const Wrapper = styled.section`
 	color: ${({ theme }) => theme.text1};
@@ -22,7 +23,7 @@ const Wrapper = styled.section`
 		opacity: 0.8;
 	}
 
-	@media (min-width: 96.0625rem) {
+	@media screen and (min-width: 96.0625rem) {
 		display: flex;
 	}
 `
@@ -43,7 +44,7 @@ const ListItem = styled.li`
 	}
 `
 
-const AddlFiltersButton = styled(FilterButton)`
+const AddlFiltersButton = styled(SelectButton)`
 	background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#f5f5f5')};
 	font-size: 0.875rem;
 `
@@ -87,6 +88,8 @@ interface IAllOptionsProps {
 function AddlOptions({ options, ...props }: IAllOptionsProps) {
 	const select = useProtocolsFilterState()
 
+	const [isLarge] = useSetPopoverStyles()
+
 	let totalSelected = 0
 
 	options.forEach((option) => {
@@ -103,14 +106,14 @@ function AddlOptions({ options, ...props }: IAllOptionsProps) {
 				{totalSelected > 0 && <ItemsSelected>{totalSelected}</ItemsSelected>}
 			</AddlFiltersButton>
 			{select.mounted && (
-				<FilterPopover state={select}>
+				<SelectPopover state={select} modal={!isLarge}>
 					{options.map(({ key, name, help }) => (
-						<DropdownItem key={key} value={key}>
+						<SelectItem key={key} value={key}>
 							{help ? <HeadHelp title={name} text={help} /> : name}
 							<Checkbox checked={select.value.includes(key)} />
-						</DropdownItem>
+						</SelectItem>
 					))}
-				</FilterPopover>
+				</SelectPopover>
 			)}
 		</span>
 	)

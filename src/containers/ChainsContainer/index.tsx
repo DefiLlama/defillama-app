@@ -34,7 +34,7 @@ const ChartsWrapper = styled.section`
 		margin: 0 !important;
 	}
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		flex-direction: row;
 	}
 `

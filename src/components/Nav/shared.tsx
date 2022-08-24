@@ -16,7 +16,7 @@ export const Header = styled.header`
 		display: none;
 	}
 
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		position: fixed;
 		top: 0;
 		bottom: 0;
@@ -45,7 +45,7 @@ export const LogoWrapper = styled.a`
 		width: min-content;
 	}
 
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		:hover {
 			transform: rotate(-5deg);
 		}
@@ -78,7 +78,7 @@ export const NavLink = styled(BasicLink)`
 		opacity: 1;
 	}
 
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		color: ${({ theme }) => theme.white};
 		opacity: 0.6;
 

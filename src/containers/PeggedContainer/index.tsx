@@ -265,7 +265,7 @@ const TabContainer = styled(TabList)`
 		border-top-right-radius: 12px;
 	}
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		& > :nth-child(3) {
 			border-top-right-radius: 0px;
 		}
@@ -305,7 +305,7 @@ const TabWrapper = styled.section`
 	border-top-left-radius: 12px;
 	border-top-right-radius: 12px;
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		width: 380px;
 		border-top-right-radius: 0;
 		border-bottom-right-radius: 0;

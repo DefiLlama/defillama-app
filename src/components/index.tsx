@@ -32,7 +32,7 @@ export const ChartAndValuesWrapper = styled.div`
 		min-height: 381px;
 	}
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		flex-direction: row;
 	}
 `
@@ -43,7 +43,7 @@ export const BreakpointPanels = styled.div`
 	gap: 10px;
 	flex: 1;
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		max-width: 350px;
 	}
 `
@@ -392,7 +392,7 @@ export const ApplyFilters = styled.button`
 		background: #4190ff;
 	}
 
-	@media (min-width: 640px) {
+	@media screen and (min-width: 640px) {
 		border-radius: 0 0 8px 8px;
 	}
 `
