@@ -63,7 +63,7 @@ export const Form = styled.form`
 		font: inherit;
 	}
 
-	@media (min-width: 640px) {
+	@media screen and (min-width: 640px) {
 		label {
 			margin: 12px 12px 0;
 		}

@@ -40,7 +40,7 @@ const Wrapper = styled.span`
 	padding: 6px;
 	width: 160px;
 
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		display: flex;
 	}
 `

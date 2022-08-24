@@ -11,7 +11,7 @@ export const StatsSection = styled.section`
 	position: relative;
 	isolation: isolate;
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		grid-template-columns: auto 1fr;
 	}
 `
@@ -51,7 +51,7 @@ export const DetailsWrapper = styled.div`
 	grid-column: span 1;
 	border-radius: 12px 12px 0 0;
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		min-width: 380px;
 		border-radius: 0 0 0 12px;
 	}
@@ -60,7 +60,7 @@ export const DetailsWrapper = styled.div`
 export const PoolDetails = styled(DetailsWrapper)`
 	border-top-left-radius: 12px;
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		max-width: 380px;
 	}
 `
@@ -93,7 +93,7 @@ export const InfoWrapper = styled.section`
 	grid-template-rows: repeat(3, auto);
 	box-shadow: ${({ theme }) => theme.shadowSm};
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		grid-template-rows: repeat(2, auto);
 	}
 `
@@ -128,7 +128,7 @@ export const Section = styled.section`
 		line-height: 1.5rem;
 	}
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		h3:not(:first-of-type) {
 			margin-top: 24px;
 		}

@@ -12,7 +12,7 @@ const WrapperWithLabel = styled.div`
 	align-items: center;
 	margin-left: auto;
 
-	@media (min-width: ${({ theme }) => theme.bpLg}) and (max-width: ${({ theme }) => theme.bp2Xl}) {
+	@media screen and (min-width: ${({ theme }) => theme.bpLg}) and (max-width: ${({ theme }) => theme.bp2Xl}) {
 		display: flex;
 		padding: 0 4px;
 	}

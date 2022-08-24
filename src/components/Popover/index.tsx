@@ -71,7 +71,7 @@ export const PopoverWrapper = styled(AriaPopover)`
 		outline-offset: 1px;
 	}
 
-	@media (min-width: 640px) {
+	@media screen and (min-width: 640px) {
 		padding: 0;
 		max-width: min(calc(100vw - 16px), 320px);
 		max-height: calc(100vh - 200px);

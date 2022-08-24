@@ -22,7 +22,7 @@ const Wrapper = styled.section`
 		opacity: 0.8;
 	}
 
-	@media (min-width: 96.0625rem) {
+	@media screen and (min-width: 96.0625rem) {
 		display: flex;
 	}
 `

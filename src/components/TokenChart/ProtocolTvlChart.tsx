@@ -234,7 +234,7 @@ const FiltersWrapper = styled.div`
 	gap: 16px;
 	margin: 16px 16px 0;
 
-	@media (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
 		flex-wrap: wrap;
 		flex-direction: row;
 		align-items: center;
@@ -261,7 +261,7 @@ export const ToggleCharts = styled.label`
 		cursor: pointer;
 	}
 
-	@media (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
 		:first-of-type {
 			margin-left: auto;
 		}

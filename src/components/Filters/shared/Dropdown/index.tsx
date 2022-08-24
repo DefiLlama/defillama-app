@@ -14,7 +14,7 @@ export const Dropdown = styled(FilterPopover)`
 		padding: 0;
 	}
 
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		width: 100%;
 		max-width: 280px;
 	}
