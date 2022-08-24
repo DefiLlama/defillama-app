@@ -104,7 +104,7 @@ const Popover = styled(SelectPopover)`
 	padding: 12px 8px;
 	width: 100%;
 	max-width: none;
-	max-height: calc(50vh);
+	max-height: 50vh;
 	font-size: 0.875rem;
 	font-weight: 500;
 	color: ${({ theme }) => theme.text1};

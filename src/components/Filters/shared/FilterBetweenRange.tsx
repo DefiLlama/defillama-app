@@ -11,7 +11,7 @@ interface IFilterBetweenRange {
 
 export function FilterBetweenRange({ header, onSubmit }: IFilterBetweenRange) {
 	return (
-		<Wrapper
+		<Popover
 			trigger={
 				<>
 					<span>{header}</span>
@@ -36,10 +36,6 @@ export function FilterBetweenRange({ header, onSubmit }: IFilterBetweenRange) {
 		/>
 	)
 }
-
-const Wrapper = styled(Popover)`
-	padding: 0;
-`
 
 export const Form = styled.form`
 	display: flex;

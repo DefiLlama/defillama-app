@@ -2,6 +2,7 @@ import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { useRouter } from 'next/router'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { DropdownItem, ItemsSelected, FilterFnsGroup, FilterButton, FilterPopover } from '../shared'
 
@@ -123,10 +124,14 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		)
 	}
 
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
 	const select = useSelectState({
 		value: values,
 		setValue: updateAttributes,
-		gutter: 8
+		gutter: 8,
+		renderCallback,
+		animated: true
 	})
 
 	const toggleAll = () => {
@@ -168,7 +173,7 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 				<MenuButtonArrow />
 				{totalSelected > 0 && <ItemsSelected>{totalSelected}</ItemsSelected>}
 			</FilterButton>
-			<FilterPopover state={select}>
+			<FilterPopover state={select} modal={!isLarge}>
 				<FilterFnsGroup>
 					<button onClick={clear}>clear</button>
 

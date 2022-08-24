@@ -1,10 +1,32 @@
-import { SelectItem } from 'ariakit/select'
+import { SelectItem, SelectPopover } from 'ariakit/select'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
-import { FilterPopover } from '../Base'
 
-export const Dropdown = styled(FilterPopover)`
-	max-height: 320px;
+export const Dropdown = styled(SelectPopover)`
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 180px;
+	max-height: 400px;
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: ${({ theme }) => theme.text1};
+	background: ${({ theme }) => theme.bg1};
+	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
+	border-radius: 8px;
+	filter: ${({ theme }) =>
+		theme.mode === 'dark'
+			? 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 40%))'
+			: 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%))'};
+	overflow: auto;
+	overscroll-behavior: contain;
+	outline: none !important;
+	z-index: 10;
+
+	#no-results {
+		padding: 0 12px 8px;
+		text-align: center;
+	}
 
 	#no-results {
 		margin: 24px 0 16px;
@@ -15,12 +37,15 @@ export const Dropdown = styled(FilterPopover)`
 	}
 
 	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		font-size: 0.825rem;
+		font-weight: 400;
+		gap: 0px;
 		width: 100%;
 		max-width: 280px;
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
+		border-radius: 8px;
 	}
 `
-
-export const MobileDropdown = styled(FilterPopover)``
 
 export const DropdownItem = styled(SelectItem)`
 	padding: 8px 12px;
@@ -34,17 +59,13 @@ export const DropdownItem = styled(SelectItem)`
 	text-align: start;
 	display: flex;
 	align-items: center;
-	border-bottom: ${({ theme }) => '1px solid ' + transparentize(0.9, theme.text1)};
 
 	&:first-of-type {
-		padding-top: 12px;
-		border-radius: 8px 8px 0 0;
+		padding-top: 16px;
 	}
 
 	&:last-of-type {
-		padding-bottom: 12px;
-		border-radius: 0 0 8px 8px;
-		border: none;
+		padding-bottom: 24px;
 	}
 
 	&:first-of-type,
@@ -52,14 +73,27 @@ export const DropdownItem = styled(SelectItem)`
 		border-radius: 0;
 	}
 
-	:hover,
-	:focus-visible,
-	&[data-active-item] {
-		outline: none;
-		background-color: ${({ theme }) => transparentize(0.8, theme.primary1)};
-	}
-
 	opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
+
+	@media screen and (min-width: 640px) {
+		border-bottom: ${({ theme }) => '1px solid ' + transparentize(0.9, theme.text1)};
+
+		:hover,
+		:focus-visible,
+		&[data-active-item] {
+			outline: none;
+			background-color: ${({ theme }) => transparentize(0.8, theme.primary1)};
+		}
+
+		&:first-of-type {
+			padding-top: 12px;
+		}
+
+		&:last-of-type {
+			padding-bottom: 12px;
+			border: none;
+		}
+	}
 `
 
 export const FilterFnsGroup = styled.span`

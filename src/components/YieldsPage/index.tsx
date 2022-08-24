@@ -180,7 +180,7 @@ const YieldPage = ({ loading, pools, projectList, chainList, categoryList }) => 
 					<ResetAllYieldFilters pathname={pathname} />
 				</Dropdowns>
 			</TableFilters>
-
+			{/* 
 			{loading ? (
 				<TableWrapper data={fallbackList} columns={fallbackColumns} />
 			) : poolsData.length > 0 ? (
@@ -189,7 +189,7 @@ const YieldPage = ({ loading, pools, projectList, chainList, categoryList }) => 
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
 					Couldn't find any pools for these filters
 				</Panel>
-			)}
+			)} */}
 		</>
 	)
 }
