@@ -175,9 +175,9 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 			</SelectButton>
 			<SelectPopover state={select} modal={!isLarge}>
 				<FilterFnsGroup>
-					<button onClick={clear}>clear</button>
+					<button onClick={clear}>Clear</button>
 
-					<button onClick={toggleAll}>toggle all</button>
+					<button onClick={toggleAll}>Toggle all</button>
 				</FilterFnsGroup>
 				{attributeOptions.map((option) => (
 					<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
