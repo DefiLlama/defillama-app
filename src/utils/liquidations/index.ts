@@ -381,6 +381,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		symbol: 'DAI'
 	},
 	{
+		name: 'Solana',
+		symbol: 'SOL'
+	},
+	{
 		name: 'USD Coin',
 		symbol: 'USDC'
 	},
@@ -510,7 +514,9 @@ export const PROTOCOL_NAMES_MAP: { [protocol: string]: string } = {
 	traderjoe: 'Trader Joe',
 	polygon: 'Polygon',
 	ethereum: 'Ethereum',
-	avalanche: 'Avalanche'
+	avalanche: 'Avalanche',
+	solend: 'Solend',
+	solana: 'Solana'
 }
 
 export const PROTOCOL_NAMES_MAP_REVERSE: { [name: string]: string } = Object.entries(PROTOCOL_NAMES_MAP).reduce(
