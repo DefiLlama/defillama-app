@@ -7,7 +7,7 @@ export const Dropdown = styled(SelectPopover)`
 	flex-direction: column;
 	gap: 8px;
 	min-width: 180px;
-	max-height: 400px;
+	max-height: calc(100vh - 200px);
 	font-size: 0.875rem;
 	font-weight: 500;
 	color: ${({ theme }) => theme.text1};
@@ -42,12 +42,14 @@ export const Dropdown = styled(SelectPopover)`
 		gap: 0px;
 		width: 100%;
 		max-width: 280px;
+		max-height: 400px;
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
 		border-radius: 8px;
 	}
 `
 
 export const DropdownItem = styled(SelectItem)`
+	flex-shrink: 0;
 	padding: 8px 12px;
 	color: ${({ theme }) => theme.text1};
 	cursor: pointer;
@@ -97,16 +99,24 @@ export const DropdownItem = styled(SelectItem)`
 `
 
 export const FilterFnsGroup = styled.span`
+	position: sticky;
+	top: 0;
 	display: flex;
 	justify-content: space-between;
 	flex-wrap: wrap;
 	padding: 12px;
 	font-size: 0.75rem;
+	background: ${({ theme }) => theme.bg1};
 	border-bottom: ${({ theme }) => '1px solid ' + transparentize(0.9, theme.text1)};
+	z-index: 1;
 
 	button {
 		padding: 4px 0;
 		color: ${({ theme }) => theme.primary1};
+	}
+
+	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
 	}
 `
 

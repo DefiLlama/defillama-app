@@ -131,7 +131,8 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		setValue: updateAttributes,
 		gutter: 8,
 		renderCallback,
-		animated: true
+		animated: true,
+		placement: 'bottom'
 	})
 
 	const toggleAll = () => {

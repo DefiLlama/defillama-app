@@ -15,17 +15,17 @@ export function assignStyle(element: HTMLElement | null | undefined, style: Part
 	return restorePreviousStyle
 }
 
-export function applyMobileStyles(popover: HTMLElement) {
+export function applyMobileStyles(popover: HTMLElement, arrow?: HTMLElement | null) {
 	const restorePopoverStyle = assignStyle(popover, {
 		position: 'fixed',
 		bottom: '0',
-		left: '0',
-		right: '0',
-		width: '100%'
+		width: '100%',
+		top: 'unset'
 	})
-
+	const restoreArrowStyle = assignStyle(arrow, { display: 'none' })
 	const restoreDesktopStyles = () => {
 		restorePopoverStyle()
+		restoreArrowStyle()
 	}
 	return restoreDesktopStyles
 }

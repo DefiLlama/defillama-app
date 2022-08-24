@@ -39,7 +39,7 @@ export const PopoverWrapper = styled(AriaPopover)`
 	padding: 20px 0 32px;
 	width: 100%;
 	max-width: none;
-	max-height: 50vh;
+	max-height: calc(100vh - 200px);
 	color: ${({ theme }) => theme.text1};
 	background: ${({ theme }) => theme.bg1};
 	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
@@ -74,7 +74,6 @@ export const PopoverWrapper = styled(AriaPopover)`
 	@media screen and (min-width: 640px) {
 		padding: 0;
 		max-width: min(calc(100vw - 16px), 320px);
-		max-height: calc(100vh - 200px);
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
 		border-radius: 8px;
 		transform: translateY(0%);
