@@ -134,6 +134,7 @@ export const Popover = styled(AriakitMenu)`
 `
 
 export const Item = styled(MenuItem)`
+	flex-shrink: 0;
 	padding: 8px 12px;
 	color: ${({ theme }) => theme.text1};
 	cursor: pointer;
