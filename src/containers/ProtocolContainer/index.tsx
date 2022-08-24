@@ -44,6 +44,8 @@ import {
 	StatWrapper,
 	Symbol
 } from '~/components/ProtocolAndPool'
+import Bookmark from '~/components/Bookmark'
+import Tooltip from '~/components/Tooltip'
 
 defaultFallbackInView(true)
 
@@ -292,6 +294,9 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
+						<Tooltip content="Bookmark" style={{ padding: '6px' }}>
+							<Bookmark readableProtocolName={name} />
+						</Tooltip>
 					</Name>
 
 					<StatWrapper>

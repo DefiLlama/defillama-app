@@ -74,6 +74,7 @@ export const Name = styled.h1`
 
 export const Symbol = styled.span`
 	font-weight: 400;
+	margin-right: auto;
 `
 
 export const SectionHeader = styled.h2`
