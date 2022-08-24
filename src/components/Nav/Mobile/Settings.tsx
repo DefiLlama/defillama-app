@@ -34,8 +34,8 @@ export function Settings() {
 	const select = useSelectState({
 		value: selectedOptions,
 		setValue: onChange,
-		renderCallback,
-		animated: true
+		animated: true,
+		renderCallback
 	})
 
 	return (

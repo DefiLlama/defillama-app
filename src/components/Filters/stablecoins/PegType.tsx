@@ -1,6 +1,7 @@
 import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
 import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover } from '../shared'
 
@@ -39,10 +40,14 @@ export function PegType() {
 
 	const values = options.filter((o) => state[o.key]).map((o) => o.key)
 
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
 	const select = useSelectState({
 		value: values,
 		setValue: updateAttributes,
-		gutter: 8
+		gutter: 8,
+		animated: true,
+		renderCallback
 	})
 
 	const toggleAll = () => {
@@ -71,7 +76,7 @@ export function PegType() {
 				<span>Filter by Peg Type</span>
 				<MenuButtonArrow />
 			</SelectButton>
-			<SelectPopover state={select}>
+			<SelectPopover state={select} modal={!isLarge}>
 				<FilterFnsGroup>
 					<button onClick={clear}>clear</button>
 

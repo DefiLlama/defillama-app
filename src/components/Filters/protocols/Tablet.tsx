@@ -5,6 +5,7 @@ import { Checkbox } from '~/components'
 import { protocolsAndChainsOptions } from './options'
 import { SelectItem, SelectPopover, Select } from '../shared'
 import { useProtocolsFilterState } from './useProtocolFilterState'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 const WrapperWithLabel = styled.div`
 	display: none;
@@ -43,6 +44,8 @@ interface IProps {
 export function TabletProtocolsFilters({ options, ...props }: IProps) {
 	const select = useProtocolsFilterState({ sameWidth: true })
 
+	const [isLarge] = useSetPopoverStyles()
+
 	const tvlOptions = options || protocolsAndChainsOptions
 
 	return (
@@ -53,7 +56,7 @@ export function TabletProtocolsFilters({ options, ...props }: IProps) {
 				<SelectArrow />
 			</Menu>
 			{select.mounted && (
-				<SelectPopover state={select}>
+				<SelectPopover state={select} modal={!isLarge}>
 					{tvlOptions.map(({ key, name, help }) => (
 						<SelectItem key={key} value={key}>
 							{help ? <HeadHelp title={name} text={help} /> : name}

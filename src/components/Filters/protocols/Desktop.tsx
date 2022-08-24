@@ -7,6 +7,7 @@ import { Checkbox } from '~/components'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { protocolsAndChainsOptions } from './options'
 import { useProtocolsFilterState } from './useProtocolFilterState'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 const Wrapper = styled.section`
 	color: ${({ theme }) => theme.text1};
@@ -87,6 +88,8 @@ interface IAllOptionsProps {
 function AddlOptions({ options, ...props }: IAllOptionsProps) {
 	const select = useProtocolsFilterState()
 
+	const [isLarge] = useSetPopoverStyles()
+
 	let totalSelected = 0
 
 	options.forEach((option) => {
@@ -103,7 +106,7 @@ function AddlOptions({ options, ...props }: IAllOptionsProps) {
 				{totalSelected > 0 && <ItemsSelected>{totalSelected}</ItemsSelected>}
 			</AddlFiltersButton>
 			{select.mounted && (
-				<SelectPopover state={select}>
+				<SelectPopover state={select} modal={!isLarge}>
 					{options.map(({ key, name, help }) => (
 						<SelectItem key={key} value={key}>
 							{help ? <HeadHelp title={name} text={help} /> : name}

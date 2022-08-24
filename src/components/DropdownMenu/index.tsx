@@ -15,7 +15,7 @@ interface IMenuProps {
 export function Menu({ options, name, color, isExternal, onItemClick }: IMenuProps) {
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const menu = useMenuState({ gutter: 8, renderCallback })
+	const menu = useMenuState({ gutter: 8, animated: true, renderCallback })
 
 	return (
 		<>
