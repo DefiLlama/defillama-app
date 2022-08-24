@@ -393,12 +393,24 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		symbol: 'WSTETH'
 	},
 	{
+		name: 'Lido Staked SOL',
+		symbol: 'STSOL'
+	},
+	{
+		name: 'Marinade Staked SOL',
+		symbol: 'MSOL'
+	},
+	{
 		name: 'Tether',
 		symbol: 'USDT'
 	},
 	{
 		name: 'yearn.finance',
 		symbol: 'YFI'
+	},
+	{
+		name: 'FTX Token',
+		symbol: 'FTT'
 	},
 	{
 		name: 'Compound',
