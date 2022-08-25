@@ -266,7 +266,7 @@ export default function DexsContainer({ category }) {
 					Loading dexs...
 				</Panel>
 			) : dexs && dexs.length > 0 ? (
-				<StyledTable data={dexs} columns={columns} />
+				<StyledTable data={dexs} columns={columns} columnToSort={'totalVolume24h'} sortDirection={1} />
 			) : (
 				'Unexpected response'
 			)}
