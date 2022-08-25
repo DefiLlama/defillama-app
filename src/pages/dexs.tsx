@@ -5,7 +5,7 @@ import { revalidate } from '~/api'
 import { getNewDexsPageData } from '~/api/categories/dexs'
 
 export async function getStaticProps() {
-	const data = await getNewDexsPageData('All')
+	const data = await getNewDexsPageData()
 	return {
 		...data,
 		revalidate: revalidate()
