@@ -161,7 +161,6 @@ export const allColumns: AllColumns = {
 			<Name
 				type="dex"
 				value={value}
-				symbol={rowValues.symbol}
 				index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
 				rowType={rowType}
 				showRows={showRows}
