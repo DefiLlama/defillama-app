@@ -274,13 +274,20 @@ function PeggedChainsOverview({
 	const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
 	const downloadCsv = () => {
-		const rows = [['Timestamp', 'Date', ...chainList]]
+		const rows = [['Timestamp', 'Date', ...chainList, 'Total']]
 		stackedData
 			.sort((a, b) => a.date - b.date)
 			.forEach((day) => {
-				rows.push([day.date, toNiceCsvDate(day.date), ...chainList.map((chain) => day[chain] ?? '')])
+				rows.push([
+					day.date,
+					toNiceCsvDate(day.date),
+					...chainList.map((chain) => day[chain] ?? ''),
+					chainList.reduce((acc, curr) => {
+						return (acc += day[curr] ?? 0)
+					}, 0)
+				])
 			})
-		download('peggedAssetsChainTotals.csv', rows.map((r) => r.join(',')).join('\n'))
+		download('stablecoinsChainTotals.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
 	const title = `Stablecoins Market Cap`

@@ -447,13 +447,20 @@ export default function PeggedContainer({
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
 
 	const downloadCsv = () => {
-		const rows = [['Timestamp', 'Date', ...chainsUnique]]
+		const rows = [['Timestamp', 'Date', ...chainsUnique, 'Total']]
 		stackedData
 			.sort((a, b) => a.date - b.date)
 			.forEach((day) => {
-				rows.push([day.date, toNiceCsvDate(day.date), ...chainsUnique.map((chain) => day[chain] ?? '')])
+				rows.push([
+					day.date,
+					toNiceCsvDate(day.date),
+					...chainsUnique.map((chain) => day[chain] ?? ''),
+					chainsUnique.reduce((acc, curr) => {
+						return (acc += day[curr] ?? 0)
+					}, 0)
+				])
 			})
-		download('peggedAssetChains.csv', rows.map((r) => r.join(',')).join('\n'))
+		download('stablecoinsChains.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
 
 	const totalMcapLabel = ['Mcap']
