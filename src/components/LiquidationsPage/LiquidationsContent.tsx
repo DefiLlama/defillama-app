@@ -104,7 +104,7 @@ const getDangerousPositionsAmount = (
 				const binSize = data.chartDataBins.chains[_chain]?.binSize ?? 0
 				dangerousPositionsAmount += Object.entries(data.chartDataBins.chains[_chain]?.bins ?? {})
 					.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
-					.reduce((acc, [, value]) => acc + value, 0)
+					.reduce((acc, [, value]) => acc + value['usd'], 0)
 			})
 	} else {
 		Object.keys(selectedSeries)
@@ -114,7 +114,7 @@ const getDangerousPositionsAmount = (
 				const binSize = data.chartDataBins.protocols[_protocol]?.binSize ?? 0
 				dangerousPositionsAmount += Object.entries(data.chartDataBins.protocols[_protocol]?.bins ?? {})
 					.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
-					.reduce((acc, [, value]) => acc + value, 0)
+					.reduce((acc, [, value]) => acc + value['usd'], 0)
 			})
 	}
 	return dangerousPositionsAmount
