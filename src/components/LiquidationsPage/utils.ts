@@ -19,6 +19,7 @@ export const getOption = (
 	isDark: boolean,
 	isLiqsUsingUsd: boolean
 ) => {
+	const { currentPrice } = chartData
 	const chartDataBins = chartData.chartDataBins[stackBy]
 	// convert chartDataBins to array
 	const chartDataBinsArray = Object.keys(chartDataBins).map((key) => ({
@@ -28,7 +29,7 @@ export const getOption = (
 	const series = chartDataBinsArray.map((obj) => ({
 		type: 'bar',
 		name: PROTOCOL_NAMES_MAP[obj.key],
-		data: obj.data,
+		data: isLiqsUsingUsd ? obj.data : obj.data.map((value) => value / currentPrice),
 		emphasis: {
 			focus: 'series'
 		},
@@ -83,9 +84,11 @@ export const getOption = (
 					params
 						.map(
 							(param: any) =>
-								`<span style="color: ${param.color}; margin-bottom: 2px">  <b>${
-									param.seriesName
-								} :</b> $${getReadableValue(Number(param.value))}</span>`
+								`<span style="color: ${param.color}; margin-bottom: 2px">  <b>${param.seriesName} :</b> ${
+									isLiqsUsingUsd
+										? `$${getReadableValue(Number(param.value))}`
+										: `${getReadableValue(Number(param.value))} ${chartData.symbol.toUpperCase()}`
+								}</span>`
 						)
 						.join('<br/>')
 				)
@@ -112,7 +115,8 @@ export const getOption = (
 			type: 'value',
 			position: 'right',
 			axisLabel: {
-				formatter: (value: string) => `$${getReadableValue(Number(value))}`
+				formatter: (value: string) =>
+					isLiqsUsingUsd ? `$${getReadableValue(Number(value))}` : `${getReadableValue(Number(value))}`
 			},
 			splitLine: {
 				lineStyle: {
