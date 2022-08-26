@@ -8,11 +8,18 @@ import { ECBasicOption } from 'echarts/types/dist/shared'
 export const convertChartDataBinsToArray = (obj: ChartDataBins, totalBins: number) => {
 	// // this line below suddenly throws error in browser that the iterator cant iterate??
 	// const arr = [...Array(totalBins).keys()].map((i) => obj.bins[i] || 0)
-	const arr = Array.from({ length: totalBins }, (_, i) => i).map((i) => obj.bins[i] || 0)
+	const arr = Array.from({ length: totalBins }, (_, i) => i).map((i) => obj.bins[i] || { native: 0, usd: 0 })
 	return arr
 }
 
-export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols', isSmall: boolean, isDark: boolean) => {
+export const getOption = (
+	chartData: ChartData,
+	stackBy: 'chains' | 'protocols',
+	isSmall: boolean,
+	isDark: boolean,
+	isLiqsUsingUsd: boolean
+) => {
+	const { currentPrice } = chartData
 	const chartDataBins = chartData.chartDataBins[stackBy]
 	// convert chartDataBins to array
 	const chartDataBinsArray = Object.keys(chartDataBins).map((key) => ({
@@ -22,10 +29,7 @@ export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols',
 	const series = chartDataBinsArray.map((obj) => ({
 		type: 'bar',
 		name: PROTOCOL_NAMES_MAP[obj.key],
-		data: obj.data,
-		tooltip: {
-			valueFormatter: (value: string) => `$${getReadableValue(Number(value))}`
-		},
+		data: obj.data.map((value) => (isLiqsUsingUsd ? value['usd'] : value['native'])),
 		emphasis: {
 			focus: 'series'
 		},
@@ -80,9 +84,11 @@ export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols',
 					params
 						.map(
 							(param: any) =>
-								`<span style="color: ${param.color}; margin-bottom: 2px">  <b>${
-									param.seriesName
-								} :</b> $${getReadableValue(Number(param.value))}</span>`
+								`<span style="color: ${param.color}; margin-bottom: 2px">  <b>${param.seriesName} :</b> ${
+									isLiqsUsingUsd
+										? `$${getReadableValue(Number(param.value))}`
+										: `${getReadableValue(Number(param.value))}`
+								}</span>`
 						)
 						.join('<br/>')
 				)
@@ -109,7 +115,8 @@ export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols',
 			type: 'value',
 			position: 'right',
 			axisLabel: {
-				formatter: (value: string) => `$${getReadableValue(Number(value))}`
+				formatter: (value: string) =>
+					isLiqsUsingUsd ? `$${getReadableValue(Number(value))}` : `${getReadableValue(Number(value))}`
 			},
 			splitLine: {
 				lineStyle: {

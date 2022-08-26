@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars*/
 import { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
 import { trackGoal } from 'fathom-client'
 import { standardizeProtocolName } from '~/utils'
@@ -45,6 +46,9 @@ const DEFI_WATCHLIST = 'DEFI_WATCHLIST'
 const YIELDS_WATCHLIST = 'YIELDS_WATCHLIST'
 const SELECTED_PORTFOLIO = 'SELECTED_PORTFOLIO'
 export const DEFAULT_PORTFOLIO_NAME = 'main'
+
+// LIQUIDATIONS
+const LIQS_USING_USD = 'LIQS_USING_USD'
 
 export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING }
 export const YIELDS_SETTINGS = {
@@ -95,10 +99,13 @@ export const DEFI_CHAINS_SETTINGS = [
 	}
 ]
 
+export const LIQS_SETTINGS = { LIQS_USING_USD }
+
 const DEFI_CHAINS_KEYS = DEFI_CHAINS_SETTINGS.map((g) => g.key)
 export const DEFI_SETTINGS_KEYS = Object.values(DEFI_SETTINGS)
 export const STABLECOINS_SETTINGS_KEYS = Object.values(STABLECOINS_SETTINGS)
 export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
+export const LIQS_SETTINGS_KEYS = Object.values(LIQS_SETTINGS)
 
 const UPDATABLE_KEYS = [
 	DARK_MODE,
@@ -108,7 +115,8 @@ const UPDATABLE_KEYS = [
 	...DEFI_SETTINGS_KEYS,
 	...DEFI_CHAINS_KEYS,
 	...STABLECOINS_SETTINGS_KEYS,
-	...NFT_SETTINGS_KEYS
+	...NFT_SETTINGS_KEYS,
+	...LIQS_SETTINGS_KEYS
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -225,6 +233,18 @@ export function useDarkModeManager() {
 		[updateKey, isDarkMode]
 	)
 	return [isDarkMode, toggleDarkMode]
+}
+
+export function useLiqsManager() {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const isClient = useIsClient()
+	let liqsUsingUsd = state[LIQS_USING_USD] === undefined ? true : state[LIQS_USING_USD]
+	let isLiqsUsingUsd = isClient ? liqsUsingUsd : true
+
+	const toggleLiqsUsingUsd = useCallback(() => {
+		updateKey(LIQS_USING_USD, !isLiqsUsingUsd)
+	}, [updateKey, isLiqsUsingUsd])
+	return [isLiqsUsingUsd, toggleLiqsUsingUsd] as [boolean, () => void]
 }
 
 function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {

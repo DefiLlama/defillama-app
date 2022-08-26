@@ -5,7 +5,6 @@ import { LIQUIDATIONS_API, LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
 import { assetIconUrl } from '..'
 
 const TOTAL_BINS = 100
-const WRAPPABLE_GAS_TOKENS = ['ETH', 'AVAX', 'MATIC', 'FTM', 'BNB', 'CRO', 'ONE']
 const WRAPPED_GAS_TOKENS = ['WETH', 'WAVAX', 'WMATIC', 'WFTM', 'WBNB', 'WCRO', 'WONE']
 
 // making aliases so the hints are more readable
@@ -26,6 +25,7 @@ export interface Position {
 	owner: Address
 	liqPrice: number
 	collateralValue: number
+	collateralAmount: number
 	chain: Chain
 	protocol: Protocol // protocol adapter id, like "aave-v2", "liquity"...
 	collateral: PrefixAddress // token address formatted as "ethereum:0x1234..."
@@ -80,14 +80,14 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: Pro
 				continue
 			}
 
+			const collateralAmountRaw = new BigNumber(liq.collateralAmount).div(10 ** price.decimals)
+
 			const symbol = getNativeSymbol(price.symbol)
 			aggregatedData.get(symbol)!.positions.push({
 				owner: liq.owner,
 				liqPrice: liq.liqPrice,
-				collateralValue: new BigNumber(liq.collateralAmount)
-					.div(10 ** price.decimals)
-					.times(liq.liqPrice)
-					.toNumber(),
+				collateralValue: collateralAmountRaw.times(liq.liqPrice).toNumber(),
+				collateralAmount: collateralAmountRaw.toNumber(),
 				chain: price.chain,
 				protocol: protocol,
 				collateral: liq.collateral.toLowerCase()
@@ -156,7 +156,7 @@ export type ChartData = {
 
 export interface ChartDataBins {
 	bins: {
-		[bin: number]: number
+		[bin: number]: { native: number; usd: number }
 	}
 	binSize: number
 	price: number
@@ -200,9 +200,11 @@ function getChartDataBins(
 		for (const position of positionsGroup) {
 			const bin = Math.floor(position.liqPrice / binSize)
 			if (!binsGroup[bin]) {
-				binsGroup[bin] = position.collateralValue
-			} else {
-				binsGroup[bin] += position.collateralValue
+				binsGroup[bin] = { native: 0, usd: 0 }
+			}
+			binsGroup[bin] = {
+				native: binsGroup[bin].native + position.collateralAmount,
+				usd: binsGroup[bin].usd + position.collateralValue
 			}
 		}
 	}
@@ -259,14 +261,14 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')
 	const protocols = Object.keys(chartDataBinsByProtocol)
 	const liquidablesByProtocol = protocols.reduce((acc, protocol) => {
-		acc[protocol] = Object.values(chartDataBinsByProtocol[protocol].bins).reduce((a, b) => a + b, 0)
+		acc[protocol] = Object.values(chartDataBinsByProtocol[protocol].bins).reduce((a, b) => a + b['usd'], 0)
 		return acc
 	}, {} as { [protocol: string]: number })
 
 	const chartDataBinsByChain = getChartDataBins(validPositions, currentPrice, totalBins, 'chain')
 	const chains = Object.keys(chartDataBinsByChain)
 	const liquidablesByChain = chains.reduce((acc, chain) => {
-		acc[chain] = Object.values(chartDataBinsByChain[chain].bins).reduce((a, b) => a + b, 0)
+		acc[chain] = Object.values(chartDataBinsByChain[chain].bins).reduce((a, b) => a + b['usd'], 0)
 		return acc
 	}, {} as { [chain: string]: number })
 
