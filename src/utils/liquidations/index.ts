@@ -255,7 +255,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	const badDebtsPositions = positions.filter((p) => p.liqPrice > currentPrice)
 	const badDebts = badDebtsPositions.reduce((acc, p) => acc + p.collateralValue, 0)
 
-	const validPositions = positions.filter((p) => p.liqPrice <= currentPrice)
+	const validPositions = positions.filter((p) => p.liqPrice <= currentPrice && p.liqPrice > currentPrice / 1000000)
 	const totalLiquidable = validPositions.reduce((acc, p) => acc + p.collateralValue, 0)
 
 	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')
@@ -359,10 +359,19 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 			symbol
 		}))
 
-	const csvHeader = ['symbol', 'chain', 'protocol', 'liqPrice', 'collateralValue', 'owner', 'timestamp'].join(',')
+	const csvHeader = [
+		'symbol',
+		'chain',
+		'protocol',
+		'liqPrice',
+		'collateralValue',
+		'collateralAmount',
+		'owner',
+		'timestamp'
+	].join(',')
 	const csvData = allAssetPositions
-		.map(({ symbol, chain, protocol, liqPrice, collateralValue, owner }) => {
-			return `${symbol.toUpperCase()},${chain},${protocol},${liqPrice},${collateralValue},${owner},${timestamp}`
+		.map(({ symbol, chain, protocol, liqPrice, collateralValue, collateralAmount, owner }) => {
+			return `${symbol.toUpperCase()},${chain},${protocol},${liqPrice},${collateralValue},${collateralAmount},${owner},${timestamp}`
 		})
 		.reduce((acc, curr) => acc + '\n' + curr, csvHeader)
 
