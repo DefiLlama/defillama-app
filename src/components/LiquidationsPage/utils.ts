@@ -12,7 +12,13 @@ export const convertChartDataBinsToArray = (obj: ChartDataBins, totalBins: numbe
 	return arr
 }
 
-export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols', isSmall: boolean, isDark: boolean) => {
+export const getOption = (
+	chartData: ChartData,
+	stackBy: 'chains' | 'protocols',
+	isSmall: boolean,
+	isDark: boolean,
+	isLiqsUsingUsd: boolean
+) => {
 	const chartDataBins = chartData.chartDataBins[stackBy]
 	// convert chartDataBins to array
 	const chartDataBinsArray = Object.keys(chartDataBins).map((key) => ({
@@ -23,9 +29,6 @@ export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols',
 		type: 'bar',
 		name: PROTOCOL_NAMES_MAP[obj.key],
 		data: obj.data,
-		tooltip: {
-			valueFormatter: (value: string) => `$${getReadableValue(Number(value))}`
-		},
 		emphasis: {
 			focus: 'series'
 		},
