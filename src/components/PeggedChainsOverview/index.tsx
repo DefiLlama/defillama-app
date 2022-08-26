@@ -27,11 +27,11 @@ import {
 	toNiceCsvDate,
 	download
 } from '~/utils'
-import { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
+import { IChartProps } from '~/components/TokenChart/types'
 
 const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/PeggedAreaChart'), {
 	ssr: false
-}) as React.FC<IProtocolMcapTVLChartProps>
+}) as React.FC<IChartProps>
 
 const AssetFilters = styled.div`
 	margin: 12px 0 16px;

@@ -53,7 +53,7 @@ export const DetailsWrapper = styled.div`
 
 	@media screen and (min-width: 80rem) {
 		min-width: 380px;
-		border-radius: 0 0 0 12px;
+		border-radius: 12px 0 0 12px;
 	}
 `
 

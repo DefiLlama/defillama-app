@@ -7,11 +7,11 @@ import { transparentize } from 'polished'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
-import { IProtocolMcapTVLChartProps } from './types'
+import type { IChartProps } from './types'
 
 const AreaChart = dynamic(() => import('./AreaChart'), {
 	ssr: false
-}) as React.FC<IProtocolMcapTVLChartProps>
+}) as React.FC<IChartProps>
 
 interface IProps {
 	protocol: string

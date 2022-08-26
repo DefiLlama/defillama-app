@@ -27,11 +27,11 @@ import {
 } from '~/utils'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
 import { Attribute, PegType, BackingType } from '~/components/Filters'
-import { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
+import { IChartProps } from '~/components/TokenChart/types'
 
 const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/PeggedAreaChart'), {
 	ssr: false
-}) as React.FC<IProtocolMcapTVLChartProps>
+}) as React.FC<IChartProps>
 
 function formattedPeggedPercent(percent, noSign = false) {
 	if (percent === null) {

@@ -51,12 +51,12 @@ import {
 	peggedAssetIconUrl,
 	formattedPeggedPrice
 } from '~/utils'
-import type { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
+import type { IChartProps } from '~/components/TokenChart/types'
 import { Checkbox2 } from '~/components'
 
 const TokenAreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
 	ssr: false
-}) as React.FC<IProtocolMcapTVLChartProps>
+}) as React.FC<IChartProps>
 
 const risksHelperTexts = {
 	algorithmic:

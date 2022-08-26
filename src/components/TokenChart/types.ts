@@ -10,7 +10,3 @@ export interface IChartProps {
 	hideLegend?: boolean
 	style?: React.CSSProperties
 }
-
-export interface IProtocolMcapTVLChartProps extends IChartProps {
-	geckoId?: string | null
-}
