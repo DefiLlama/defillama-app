@@ -65,12 +65,28 @@ const LiquidationsProvider = ({ children }) => {
 	)
 }
 
-const PanelStyled = styled(Panel)`
+const PanelThicc = styled(Panel)`
+	display: none;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+
+	@media (min-width: 80rem) {
+		display: flex;
+	}
+`
+
+const PanelSmol = styled(Panel)`
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: center;
 	text-align: center;
+
+	@media (min-width: 80rem) {
+		display: none;
+	}
 `
 
 const StyledAnchor = styled.a`
@@ -79,9 +95,12 @@ const StyledAnchor = styled.a`
 	align-items: center;
 	gap: 0.2rem;
 	margin-left: 0.2rem;
-	margin-right: 0.2rem;
 	:hover {
 		text-decoration: underline;
+	}
+
+	@media (min-width: 80rem) {
+		margin-right: 0.2rem;
 	}
 `
 
@@ -111,16 +130,28 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 			/>
 
 			{!['SOL', 'MSOL', 'STSOL'].includes(data.symbol.toUpperCase()) && (
-				<PanelStyled as="p">
-					We are now tracking
-					<Link href={`/liquidations/sol`} passHref>
-						<StyledAnchor>
-							<Image src={`/asset-icons/sol.png`} width={24} height={24} alt={'SOL'} style={{ borderRadius: 12 }} />
-							<b>Solana</b>
-						</StyledAnchor>
-					</Link>
-					ecosystem assets! Choose one from the asset picker dropdown menu!
-				</PanelStyled>
+				<>
+					<PanelThicc as="p">
+						We are now tracking
+						<Link href={`/liquidations/sol`} passHref>
+							<StyledAnchor>
+								<Image src={`/asset-icons/sol.png`} width={24} height={24} alt={'SOL'} style={{ borderRadius: 12 }} />
+								<b>Solana</b>
+							</StyledAnchor>
+						</Link>
+						ecosystem assets! Choose one from the asset picker dropdown menu!
+					</PanelThicc>
+					<PanelSmol as="p">
+						We are now tracking
+						<Link href={`/liquidations/sol`} passHref>
+							<StyledAnchor>
+								<Image src={`/asset-icons/sol.png`} width={24} height={24} alt={'SOL'} style={{ borderRadius: 12 }} />
+								<b>Solana</b>
+							</StyledAnchor>
+						</Link>
+						!
+					</PanelSmol>
+				</>
 			)}
 
 			<Header>Liquidation levels in DeFi 💦</Header>
