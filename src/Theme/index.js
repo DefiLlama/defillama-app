@@ -181,7 +181,7 @@ export const GlobalStyle = createGlobalStyle`
     }
   }
 
-  a, input, button, textarea, select, {
+  a, input, button, textarea, select {
     &:focus-visible {
       outline: 1px solid ${({ theme }) => theme.text1};
     }
