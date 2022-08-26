@@ -56,7 +56,7 @@ const CurrencyToggle = (props: { symbol: string }) => {
 				}}
 				checked={isLiqsUsingUsd}
 				onColor="#0A71F1"
-				offColor="#F18909"
+				offColor="#0A71F1"
 				height={20}
 				width={40}
 				uncheckedIcon={false}
