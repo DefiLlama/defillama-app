@@ -87,7 +87,7 @@ export const getOption = (
 								`<span style="color: ${param.color}; margin-bottom: 2px">  <b>${param.seriesName} :</b> ${
 									isLiqsUsingUsd
 										? `$${getReadableValue(Number(param.value))}`
-										: `${getReadableValue(Number(param.value))} ${chartData.symbol.toUpperCase()}`
+										: `${getReadableValue(Number(param.value))}`
 								}</span>`
 						)
 						.join('<br/>')
