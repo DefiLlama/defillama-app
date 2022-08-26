@@ -255,7 +255,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	const badDebtsPositions = positions.filter((p) => p.liqPrice > currentPrice)
 	const badDebts = badDebtsPositions.reduce((acc, p) => acc + p.collateralValue, 0)
 
-	const validPositions = positions.filter((p) => p.liqPrice <= currentPrice)
+	const validPositions = positions.filter((p) => p.liqPrice <= currentPrice && p.liqPrice > currentPrice / 1000000)
 	const totalLiquidable = validPositions.reduce((acc, p) => acc + p.collateralValue, 0)
 
 	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')

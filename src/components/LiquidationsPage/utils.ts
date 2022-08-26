@@ -19,7 +19,6 @@ export const getOption = (
 	isDark: boolean,
 	isLiqsUsingUsd: boolean
 ) => {
-	const { currentPrice } = chartData
 	const chartDataBins = chartData.chartDataBins[stackBy]
 	// convert chartDataBins to array
 	const chartDataBinsArray = Object.keys(chartDataBins).map((key) => ({
