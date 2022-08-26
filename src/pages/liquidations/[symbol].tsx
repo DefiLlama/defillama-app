@@ -89,6 +89,13 @@ const PanelSmol = styled(Panel)`
 	}
 `
 
+const ResponsiveHeader = styled(Header)`
+	text-align: center;
+	@media (min-width: 80rem) {
+		text-align: revert;
+	}
+`
+
 const StyledAnchor = styled.a`
 	display: flex;
 	flex-direction: row;
@@ -154,7 +161,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 				</>
 			)}
 
-			<Header>Liquidation levels in DeFi 💦</Header>
+			<ResponsiveHeader>Liquidation levels in DeFi 💦</ResponsiveHeader>
 			<LiquidationsHeader {...data} />
 			<LiquidationsProvider>
 				<LiquidationsContent data={data} prevData={prevData} />
