@@ -1,36 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { LineChart } from 'echarts/charts'
-import {
-	TooltipComponent,
-	TitleComponent,
-	GridComponent,
-	DataZoomComponent,
-	GraphicComponent,
-	MarkLineComponent
-} from 'echarts/components'
 import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import { useMedia } from '~/hooks'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { toK } from '~/utils'
 import { stringToColour } from './utils'
 import { SelectLegendMultiple } from './shared'
 import { IChartProps } from './types'
-
-echarts.use([
-	CanvasRenderer,
-	LineChart,
-	TooltipComponent,
-	TitleComponent,
-	GridComponent,
-	DataZoomComponent,
-	GraphicComponent,
-	MarkLineComponent
-])
+import { useDefaults } from './useDefaults'
 
 const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
@@ -44,6 +20,7 @@ export default function AreaChart({
 	color,
 	hallmarks,
 	hideLegend,
+	tooltipSort = true,
 	...props
 }: IChartProps) {
 	// For Tokens Chart
@@ -52,6 +29,13 @@ export default function AreaChart({
 	const id = useMemo(() => uuid(), [])
 
 	const [isDark] = useDarkModeManager()
+
+	const defaultChartSettings = useDefaults({
+		color,
+		title,
+		valueSymbol: moneySymbol,
+		tooltipSort
+	})
 
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
@@ -178,8 +162,6 @@ export default function AreaChart({
 		}
 	}, [chartData, tokensUnique, color, isDark, legendOptions, hallmarks, hideLegend])
 
-	const isSmall = useMedia(`(max-width: 37.5rem)`)
-
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
 
@@ -190,145 +172,26 @@ export default function AreaChart({
 		// create instance
 		const chartInstance = createInstance()
 
+		const { graphic, titleDefaults, grid, tooltip, timeAsXAxis, valueAsYAxis, dataZoom } = defaultChartSettings
+
 		chartInstance.setOption({
-			graphic: {
-				type: 'image',
-				z: 0,
-				style: {
-					image: isDark ? logoLight.src : logoDark.src,
-					height: 40,
-					opacity: 0.3
-				},
-				left: isSmall ? '40%' : '45%',
-				top: '130px'
-			},
+			graphic: { ...graphic },
 			tooltip: {
-				trigger: 'axis',
-				formatter: function (params) {
-					const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
-						year: 'numeric',
-						month: 'short',
-						day: 'numeric'
-					})
-
-					const vals = params
-						.sort((a, b) => (hideLegend ? 0 : a.value[1] - b.value[1])) // skip sort for mcap and tvl charts
-						.reduce((prev, curr) => {
-							if (curr.value[1] !== 0 && curr.value[1] !== '-') {
-								return (prev +=
-									'<li style="list-style:none">' +
-									curr.marker +
-									curr.seriesName +
-									'&nbsp;&nbsp;' +
-									moneySymbol +
-									toK(curr.value[1]) +
-									'</li>')
-							} else return prev
-						}, '')
-
-					return chartdate + vals
-				}
+				...tooltip
 			},
 			title: {
-				text: title,
-				textStyle: {
-					fontFamily: 'inter, sans-serif',
-					fontWeight: 600,
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-				}
+				...titleDefaults
 			},
 			grid: {
-				left: 20,
-				containLabel: true,
-				bottom: 60,
-				top: title === '' ? 20 : 48,
-				right: 20
+				...grid
 			},
 			xAxis: {
-				type: 'time',
-				boundaryGap: false,
-				nameTextStyle: {
-					fontFamily: 'inter, sans-serif',
-					fontSize: 14,
-					fontWeight: 400
-				},
-				axisLine: {
-					lineStyle: {
-						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-						opacity: 0.2
-					}
-				}
+				...timeAsXAxis
 			},
 			yAxis: {
-				type: 'value',
-				axisLabel: {
-					formatter: (value) => moneySymbol + toK(value)
-				},
-				axisLine: {
-					lineStyle: {
-						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-						opacity: 0.1
-					}
-				},
-				boundaryGap: false,
-				nameTextStyle: {
-					fontFamily: 'inter, sans-serif',
-					fontSize: 14,
-					fontWeight: 400,
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-				},
-				splitLine: {
-					lineStyle: {
-						color: '#a1a1aa',
-						opacity: 0.1
-					}
-				}
+				...valueAsYAxis
 			},
-			dataZoom: [
-				{
-					type: 'inside',
-					start: 0,
-					end: 100
-				},
-				{
-					start: 0,
-					end: 100,
-					textStyle: {
-						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-					},
-					borderColor: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
-					handleStyle: {
-						borderColor: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
-						color: isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.4)'
-					},
-					moveHandleStyle: {
-						color: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)'
-					},
-					selectedDataBackground: {
-						lineStyle: {
-							color
-						},
-						areaStyle: {
-							color
-						}
-					},
-					emphasis: {
-						handleStyle: {
-							borderColor: isDark ? 'rgba(255, 255, 255, 1)' : '#000',
-							color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
-						},
-						moveHandleStyle: {
-							borderColor: isDark ? 'rgba(255, 255, 255, 1)' : '#000',
-							color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'
-						}
-					},
-					fillerColor: isDark ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)',
-					labelFormatter: (val) => {
-						const date = new Date(val)
-						return date.toLocaleDateString()
-					}
-				}
-			],
+			dataZoom: [...dataZoom],
 			series
 		})
 
@@ -342,9 +205,9 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance, hideLegend])
+	}, [createInstance, defaultChartSettings, series])
 
-	const legendTitle = title === 'Chains' ? 'Chain' : 'Token'
+	const legendName = title === 'Chains' ? 'Chain' : 'Token'
 
 	return (
 		<div style={{ position: 'relative' }} {...props}>
@@ -353,7 +216,7 @@ export default function AreaChart({
 					allOptions={tokensUnique}
 					options={legendOptions}
 					setOptions={setLegendOptions}
-					title={legendTitle + (legendOptions.length !== 1 ? 's' : '')}
+					title={legendOptions.length === 1 ? legendName : legendName + 's'}
 				/>
 			)}
 			<Wrapper id={id} style={{ height: '360px', margin: 'auto 0' }}></Wrapper>

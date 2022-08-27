@@ -120,7 +120,7 @@ export default function Protocol() {
 }
 
 const ChartWrapper = styled.div`
-	padding: 20px;
+	padding: 20px 20px 0 0;
 	min-height: 400px;
 	grid-column: span 1;
 `

@@ -29,7 +29,7 @@ import {
 } from '~/utils'
 import { IChartProps } from '~/components/TokenChart/types'
 
-const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/PeggedAreaChart'), {
+const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 

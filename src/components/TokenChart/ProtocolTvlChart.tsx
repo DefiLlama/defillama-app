@@ -204,6 +204,7 @@ export default function ProtocolTvlChart({
 					tokensUnique={tokensUnique}
 					hideLegend={true}
 					hallmarks={!hideHallmarks && hallmarks}
+					tooltipSort={false}
 					style={{
 						...(bobo && {
 							backgroundImage: 'url("/bobo.png")',

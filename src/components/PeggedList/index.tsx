@@ -29,7 +29,7 @@ import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalSto
 import { Attribute, PegType, BackingType } from '~/components/Filters'
 import { IChartProps } from '~/components/TokenChart/types'
 
-const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/PeggedAreaChart'), {
+const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 

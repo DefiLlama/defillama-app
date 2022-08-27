@@ -10,4 +10,5 @@ export interface IChartProps {
 	hideLegend?: boolean
 	style?: React.CSSProperties
 	legendName?: string
+	tooltipSort?: boolean
 }
