@@ -47,7 +47,7 @@ const blockExplorers = {
 	hedera: ['https://hashscan.io/#/mainnet/token/', 'HashScan'],
 	carbon: ['https://scan.carbon.network/token/', 'Carbonscan'],
 	starcoin: ['https://stcscan.io/main/address/', 'Stcscan'],
-	'arbitrum_nova': ['https://nova-explorer.arbitrum.io/address/', 'NovaExplorer']
+	arbitrum_nova: ['https://nova-explorer.arbitrum.io/address/', 'NovaExplorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
