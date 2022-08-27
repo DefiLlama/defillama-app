@@ -11,7 +11,7 @@ import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
 import type { IChartProps } from '~/components/TokenChart/types'
 
-const AreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
+const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
@@ -105,12 +105,12 @@ export default function Protocol() {
 				</DetailsWrapper>
 				<ChartWrapper>
 					{!loading && data && (
-						<AreaChart
+						<BarChart
 							chartData={allChains}
 							title=""
 							moneySymbol=""
 							tokensUnique={['Total Users', 'Unique Users']}
-							hideLegend={true}
+							legendName="User"
 						/>
 					)}
 				</ChartWrapper>
@@ -120,7 +120,7 @@ export default function Protocol() {
 }
 
 const ChartWrapper = styled.div`
-	padding: 0 0 20px 0;
-	min-height: 360px;
+	padding: 20px;
+	min-height: 400px;
 	grid-column: span 1;
 `

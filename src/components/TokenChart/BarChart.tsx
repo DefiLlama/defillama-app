@@ -2,7 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { BarChart as EBarChart } from 'echarts/charts'
-import { TitleComponent } from 'echarts/components'
+import {
+	TitleComponent,
+	GraphicComponent,
+	TooltipComponent,
+	DataZoomComponent,
+	GridComponent
+} from 'echarts/components'
 import { v4 as uuid } from 'uuid'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
@@ -13,9 +19,24 @@ import { stringToColour } from './utils'
 import { IChartProps } from './types'
 import { SelectLegendMultiple } from './shared'
 
-echarts.use([EBarChart, CanvasRenderer, TitleComponent])
+echarts.use([
+	EBarChart,
+	CanvasRenderer,
+	TitleComponent,
+	GraphicComponent,
+	TooltipComponent,
+	DataZoomComponent,
+	GridComponent
+])
 
-export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', title, color }: IChartProps) {
+export default function BarChart({
+	chartData,
+	tokensUnique,
+	moneySymbol = '$',
+	title,
+	color,
+	legendName = 'Token'
+}: IChartProps) {
 	const id = useMemo(() => uuid(), [])
 
 	const [legendOptions, setLegendOptions] = useState(tokensUnique)
@@ -247,7 +268,7 @@ export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', t
 					allOptions={tokensUnique}
 					options={legendOptions}
 					setOptions={setLegendOptions}
-					title={legendOptions.length === 1 ? 'Token' : 'Tokens'}
+					title={legendOptions.length === 1 ? legendName : legendName + 's'}
 				/>
 			)}
 			<div id={id} style={{ height: '360px', margin: 'auto 0' }}></div>

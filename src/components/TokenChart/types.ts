@@ -9,4 +9,5 @@ export interface IChartProps {
 	hallmarks?: [number, string][]
 	hideLegend?: boolean
 	style?: React.CSSProperties
+	legendName?: string
 }
