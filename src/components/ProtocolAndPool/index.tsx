@@ -10,6 +10,7 @@ export const StatsSection = styled.section`
 	box-shadow: ${({ theme }) => theme.shadowSm};
 	position: relative;
 	isolation: isolate;
+	z-index: 1;
 
 	@media screen and (min-width: 80rem) {
 		grid-template-columns: auto 1fr;
