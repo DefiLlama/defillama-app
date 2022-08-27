@@ -263,6 +263,7 @@ export const columns = [
 		...columnToShow('tvl'),
 		Cell: ({ value, rowValues }) => {
 			const text = TVL_PROJECT_TEXT[rowValues.project]
+
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 					{text ? <QuestionHelper text={text} /> : null}
