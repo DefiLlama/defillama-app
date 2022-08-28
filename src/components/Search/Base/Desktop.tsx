@@ -58,7 +58,8 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 		filters,
 		placeholder = 'Search...',
 		defaultOpen = false,
-		autoFocus
+		autoFocus,
+		...extra
 	} = props
 
 	const combobox = useComboboxState({
@@ -86,7 +87,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	}
 
 	return (
-		<Wrapper>
+		<Wrapper {...extra}>
 			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} autoFocus={autoFocus} />
 
 			{step && <Options step={step} filters={filters} />}
