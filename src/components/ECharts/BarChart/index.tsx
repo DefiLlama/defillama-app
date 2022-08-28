@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
 import { stringToColour } from '../utils'
-import { IChartProps } from '../types'
+import type { IChartProps } from '../types'
 import { SelectLegendMultiple } from '../shared'
 import { useDefaults } from '../useDefaults'
 

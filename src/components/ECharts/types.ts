@@ -12,3 +12,7 @@ export interface IChartProps {
 	legendName?: string
 	tooltipSort?: boolean
 }
+
+export interface IStackedChartProps extends Omit<IChartProps, 'tokensUnique'> {
+	stacks?: string[]
+}

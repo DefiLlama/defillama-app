@@ -18,7 +18,7 @@ import { useMedia } from '~/hooks'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { toK } from '~/utils'
 import { stringToColour } from '../utils'
-import { IChartProps } from '../types'
+import type { IChartProps } from '../types'
 import 'echarts/lib/component/grid'
 import { UniversalTransition } from 'echarts/features'
 

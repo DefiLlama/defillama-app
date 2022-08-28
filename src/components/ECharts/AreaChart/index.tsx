@@ -5,7 +5,7 @@ import styled from 'styled-components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { stringToColour } from '../utils'
 import { SelectLegendMultiple } from '../shared'
-import { IChartProps } from '../types'
+import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 
 const Wrapper = styled.div`

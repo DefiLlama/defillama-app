@@ -9,11 +9,11 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
 import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
-import type { IChartProps } from '~/components/ECharts/types'
+import type { IStackedChartProps } from '~/components/ECharts/types'
 
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+const VerticalStackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/VerticalStacked'), {
 	ssr: false
-}) as React.FC<IChartProps>
+}) as React.FC<IStackedChartProps>
 
 interface IAllChains {
 	date: string | number
@@ -105,12 +105,11 @@ export default function Protocol() {
 				</DetailsWrapper>
 				<ChartWrapper>
 					{!loading && data && (
-						<BarChart
+						<VerticalStackedBarChart
 							chartData={allChains}
 							title=""
 							moneySymbol=""
-							tokensUnique={['Total Users', 'Unique Users']}
-							legendName="User"
+							stacks={['Total Users', 'Unique Users']}
 						/>
 					)}
 				</ChartWrapper>
