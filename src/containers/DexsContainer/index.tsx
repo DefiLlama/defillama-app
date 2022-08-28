@@ -1,15 +1,15 @@
+import * as React from 'react'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
 import { DexsSearch } from '~/components/Search'
 import { columnsToShow, FullTable } from '~/components/Table'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
-import { useFetchDexsList } from '~/api/categories/dexs/client'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
 import dynamic from 'next/dynamic'
 import { formattedNum } from '~/utils'
 import { useInView } from 'react-intersection-observer'
-import { IStackedBarChartProps } from '~/components/TokenChart/StackedBarChart'
+import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -19,7 +19,7 @@ export async function getStaticProps() {
 	}
 }
 
-const StackedBarChart = dynamic(() => import('~/components/TokenChart/StackedBarChart'), {
+const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false
 }) as React.FC<IStackedBarChartProps>
 

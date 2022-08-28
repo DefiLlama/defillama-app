@@ -3,10 +3,10 @@ import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { stringToColour } from './utils'
-import { SelectLegendMultiple } from './shared'
-import { IChartProps } from './types'
-import { useDefaults } from './useDefaults'
+import { stringToColour } from '../utils'
+import { SelectLegendMultiple } from '../shared'
+import { IChartProps } from '../types'
+import { useDefaults } from '../useDefaults'
 
 const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};

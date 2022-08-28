@@ -51,10 +51,10 @@ import {
 	peggedAssetIconUrl,
 	formattedPeggedPrice
 } from '~/utils'
-import type { IChartProps } from '~/components/TokenChart/types'
+import type { IChartProps } from '~/components/ECharts/types'
 import { Checkbox2 } from '~/components'
 
-const TokenAreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
+const TokenAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 

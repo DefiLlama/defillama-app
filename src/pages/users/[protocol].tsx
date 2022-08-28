@@ -9,9 +9,9 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
 import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
-import type { IChartProps } from '~/components/TokenChart/types'
+import type { IChartProps } from '~/components/ECharts/types'
 
-const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
@@ -28,7 +28,7 @@ export default function Protocol() {
 
 	const { data, loading } = useFetchProtocolUserMetrics(protocolName)
 
-	const { chains, allChains, totalUsers, uniqueUsers } = React.useMemo(() => {
+	const { allChains, totalUsers, uniqueUsers } = React.useMemo(() => {
 		const sortedData = data?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime())
 
 		// get unique chains

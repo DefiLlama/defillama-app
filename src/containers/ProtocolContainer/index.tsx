@@ -14,9 +14,9 @@ import TokenLogo from '~/components/TokenLogo'
 import SEO from '~/components/SEO'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
-import ProtocolTvlChart from '~/components/TokenChart/ProtocolTvlChart'
+import ProtocolTvlChart from '~/components/ECharts/AreaChart/ProtocolTvl'
 import QuestionHelper from '~/components/QuestionHelper'
-import type { IChartProps } from '~/components/TokenChart/types'
+import type { IChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
@@ -49,11 +49,11 @@ import Tooltip from '~/components/Tooltip'
 
 defaultFallbackInView(true)
 
-const AreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 

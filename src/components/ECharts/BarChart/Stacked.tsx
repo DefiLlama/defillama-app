@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { BarChart, BarChart as EBarChart, LineChart } from 'echarts/charts'
@@ -17,9 +17,8 @@ import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutr
 import { useMedia } from '~/hooks'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { toK } from '~/utils'
-import { stringToColour } from './utils'
-import { IChartProps } from './types'
-import { SelectLegendMultiple } from './shared'
+import { stringToColour } from '../utils'
+import { IChartProps } from '../types'
 import 'echarts/lib/component/grid'
 import { UniversalTransition } from 'echarts/features'
 

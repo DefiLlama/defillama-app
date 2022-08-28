@@ -17,7 +17,7 @@ import {
 	TransformComponent
 } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { YieldsChartWrapper } from './shared'
+import { YieldsChartWrapper } from '../shared'
 
 echarts.use([
 	CanvasRenderer,
