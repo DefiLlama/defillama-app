@@ -20,6 +20,7 @@ import {
 	Shield,
 	ShoppingCart,
 	TrendingUp,
+	Compass,
 	Droplet
 } from 'react-feather'
 import { PaperIcon } from './shared'
@@ -58,18 +59,19 @@ export const navLinks: ILinks = {
 			{ name: 'Stablecoins', path: '/stablecoins', icon: DollarSign, subMenuHeader: true },
 			{ name: 'Overview', path: '/', icon: TrendingUp, hideOnMobile: true },
 			{ name: 'Chains', path: '/chains', icon: Link },
-			{ name: 'Roundup', path: '/roundup', icon: PaperIcon, newTag: true },
-			{ name: 'Wiki', path: 'https://wiki.defillama.com/wiki/Main_Page', icon: Book, newTag: true },
+			{ name: 'Directory', path: '/directory', icon: Compass, newTag: true },
+			{ name: 'Liquidations', path: '/liquidations/eth', icon: Droplet, newTag: true },
+			{ name: 'Roundup', path: '/roundup', icon: PaperIcon },
+			{ name: 'Wiki', path: 'https://wiki.defillama.com/wiki/Main_Page', icon: Book },
 			{ name: 'Airdrops', path: '/airdrops', icon: CloudDrizzle },
 			{ name: 'Oracles', path: '/oracles', icon: Shield },
 			{ name: 'Forks', path: '/forks', icon: Share2 },
-			{ name: 'Liquidations', path: '/liquidations/eth', icon: Droplet, newTag: true },
 			{ name: 'Watchlist', path: '/watchlist', icon: Bookmark },
 			{ name: 'Top Protocols', path: '/top-protocols', icon: Map },
 			{ name: 'Categories', path: '/categories', icon: RefreshCcw },
 			{ name: 'Recent', path: '/recent', icon: Clock },
 			{ name: 'Languages', path: '/languages', icon: Code },
-			{ name: 'About', path: '/about', icon: HelpCircle }
+			{ name: 'About', path: '/about', icon: HelpCircle },
 		],
 		footer: [
 			{
