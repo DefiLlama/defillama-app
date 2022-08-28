@@ -51,6 +51,7 @@ export const Row = ({ index, style, data }) => {
 				}
 			}}
 			style={style}
+			focusOnHover
 		>
 			<TokenLogo
 				logo={item?.logo}

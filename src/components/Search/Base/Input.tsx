@@ -56,6 +56,7 @@ export function Input({ state, placeholder, breadCrumbs, ...props }: IInputProps
 				state={state}
 				placeholder={placeholder}
 				style={breadCrumbs ? { borderBottomLeftRadius: '0', borderBottomRightRadius: 0 } : {}}
+				autoSelect
 				{...props}
 			/>
 

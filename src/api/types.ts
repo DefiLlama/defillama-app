@@ -109,6 +109,8 @@ export type LiteProtocol = Pick<
 	| 'mcap'
 	| 'name'
 	| 'symbol'
+	| 'logo'
+	| 'url'
 	| 'parentProtocol'
 	| 'chainTvls'
 > &
@@ -174,10 +176,10 @@ export interface IDexResponse extends Protocol {
 	volumeHistory: Array<{
 		dailyVolume: {
 			[chain: string]: {
-				[protocolVersion: string]: number | string,
+				[protocolVersion: string]: number | string
 			}
-		};
-		timestamp: number;
+		}
+		timestamp: number
 	}> | null
 	total1dVolume: number | null
 	change1dVolume: number | null
