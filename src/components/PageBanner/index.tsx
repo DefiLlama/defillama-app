@@ -12,6 +12,10 @@ export const Banner = styled.p`
 		text-decoration: underline;
 	}
 
+	@media screen and (min-width: 37.5rem) {
+		margin: -36px -32px 0;
+	}
+
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
 		margin: 0;
 		position: fixed;
