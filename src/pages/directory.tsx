@@ -24,7 +24,7 @@ export default function Protocols({ protocols }) {
 	}
 
 	return (
-		<Layout title={`Search Protocols - DefiLlama`} defaultSEO>
+		<Layout title={`Protocols Directory - DefiLlama`} defaultSEO>
 			<DesktopSearch data={protocols} defaultOpen={true} onItemClick={onItemClick} autoFocus />
 		</Layout>
 	)
