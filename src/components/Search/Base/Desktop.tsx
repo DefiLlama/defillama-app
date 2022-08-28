@@ -8,6 +8,7 @@ import type { IBaseSearchProps } from '../types'
 
 import { Results } from './Results'
 import { Input } from './Input'
+import { findActiveItem } from './utils'
 
 const Wrapper = styled.div`
 	display: none;
@@ -49,13 +50,30 @@ const OptionsWrapper = styled.div`
 `
 
 export const DesktopSearch = (props: IBaseSearchProps) => {
-	const { data, loading = false, step, onSearchTermChange, filters, placeholder = 'Search...' } = props
+	const {
+		data,
+		loading = false,
+		step,
+		onSearchTermChange,
+		filters,
+		placeholder = 'Search...',
+		defaultOpen = false
+	} = props
 
 	const combobox = useComboboxState({
 		gutter: 6,
 		sameWidth: true,
-		list: data.map((x) => x.name)
+		list: data.map((x) => x.name),
+		defaultOpen
 	})
+
+	// select first item on open
+	const item = findActiveItem(combobox)
+	const firstId = combobox.first()
+
+	if (combobox.open && !item && firstId) {
+		combobox.setActiveId(firstId)
+	}
 
 	React.useEffect(() => {
 		if (onSearchTermChange) onSearchTermChange(combobox.value)
