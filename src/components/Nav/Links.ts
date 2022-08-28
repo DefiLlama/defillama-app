@@ -11,7 +11,6 @@ import {
 	Link,
 	List,
 	Map,
-	Minimize2,
 	Percent,
 	PieChart,
 	PlusCircle,
@@ -69,10 +68,8 @@ export const navLinks: ILinks = {
 			{ name: 'Top Protocols', path: '/top-protocols', icon: Map },
 			{ name: 'Categories', path: '/categories', icon: RefreshCcw },
 			{ name: 'Recent', path: '/recent', icon: Clock },
-			{ name: 'Comparison', path: '/comparison', icon: Minimize2 },
 			{ name: 'Languages', path: '/languages', icon: Code },
-			{ name: 'About', path: '/about', icon: HelpCircle },
-			{ name: 'Chainlist', path: 'https://chainlist.org/', icon: List }
+			{ name: 'About', path: '/about', icon: HelpCircle }
 		],
 		footer: [
 			{
@@ -83,11 +80,6 @@ export const navLinks: ILinks = {
 			{
 				name: 'Discord',
 				path: 'https://discord.gg/buPFYXzDDd',
-				external: true
-			},
-			{
-				name: 'Daily news',
-				path: 'https://t.me/defillama_tg',
 				external: true
 			},
 			{

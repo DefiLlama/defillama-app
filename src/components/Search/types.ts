@@ -25,6 +25,7 @@ export interface IBaseSearchProps {
 	filters?: ReactNode
 	placeholder?: string
 	defaultOpen?: boolean
+	autoFocus?: boolean
 }
 
 export interface ICommonSearchProps {
