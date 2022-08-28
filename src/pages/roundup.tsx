@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import ReactMarkdown from 'react-markdown'
 import Layout from '~/layout'
 import { revalidate } from '~/api'
+import { Banner } from '~/components/PageBanner'
 
 const Header = styled.h1`
 	color: ${({ theme }) => theme.text1};
@@ -42,27 +43,6 @@ const Text = styled.div`
 
 	h3 {
 		margin: 1rem 0 0.6rem 0;
-	}
-`
-
-const Banner = styled.p`
-	background: #445ed0;
-	text-align: center;
-	margin: -36px -12px 0;
-	padding: 6px;
-	color: white;
-
-	a {
-		color: inherit;
-		text-decoration: underline;
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		margin: 0;
-		position: fixed;
-		top: 0;
-		left: 220px;
-		right: 0;
 	}
 `
 

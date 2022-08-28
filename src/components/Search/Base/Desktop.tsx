@@ -57,7 +57,9 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 		onSearchTermChange,
 		filters,
 		placeholder = 'Search...',
-		defaultOpen = false
+		defaultOpen = false,
+		autoFocus,
+		...extra
 	} = props
 
 	const combobox = useComboboxState({
@@ -85,8 +87,8 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	}
 
 	return (
-		<Wrapper>
-			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} />
+		<Wrapper {...extra}>
+			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} autoFocus={autoFocus} />
 
 			{step && <Options step={step} filters={filters} />}
 
