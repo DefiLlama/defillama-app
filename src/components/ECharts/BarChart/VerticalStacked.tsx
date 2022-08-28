@@ -33,8 +33,8 @@ export default function BarChart({ chartData, stacks, moneySymbol = '$', title, 
 			}
 		})
 
-		chartData.forEach(({ date, ...item }) => {
-			xAxisDates.push(new Date(date * 1000))
+		chartData.forEach(({ date, ...item }, i) => {
+			xAxisDates.push(i)
 
 			stacks.forEach((token) => {
 				series.find((t) => t.name === token)?.data.push(item[token] || null)
@@ -98,7 +98,7 @@ export default function BarChart({ chartData, stacks, moneySymbol = '$', title, 
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, xAxisDates])
+	}, [createInstance, defaultChartSettings, series, xAxisDates, stacks])
 
 	return (
 		<div style={{ position: 'relative' }}>
