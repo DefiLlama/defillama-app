@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import * as echarts from 'echarts/core'
+import { LegendComponent } from 'echarts/components'
 import { v4 as uuid } from 'uuid'
 import type { IStackedChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
+
+echarts.use([LegendComponent])
 
 export default function BarChart({ chartData, stacks, moneySymbol = '$', title, color }: IStackedChartProps) {
 	const id = useMemo(() => uuid(), [])
@@ -78,6 +81,9 @@ export default function BarChart({ chartData, stacks, moneySymbol = '$', title, 
 					...valueAsYAxis
 				}
 			],
+			legend: {
+				data: stacks
+			},
 			dataZoom: [...dataZoom],
 			series
 		})
