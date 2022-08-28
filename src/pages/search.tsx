@@ -24,7 +24,7 @@ export default function Protocols({ protocols }) {
 	}
 
 	return (
-		<Layout title={`TVL Rankings - DefiLlama`} defaultSEO>
+		<Layout title={`Search Protocols - DefiLlama`} defaultSEO>
 			<DesktopSearch data={protocols} defaultOpen={true} onItemClick={onItemClick} />
 		</Layout>
 	)
