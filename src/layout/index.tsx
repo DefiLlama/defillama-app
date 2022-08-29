@@ -7,6 +7,7 @@ import SEO from '~/components/SEO'
 import Nav from '~/components/Nav'
 
 const Center = styled.main`
+	flex: 1;
 	display: flex;
 	flex-direction: column;
 	gap: 28px;
@@ -18,11 +19,12 @@ const Center = styled.main`
 `
 
 const PageWrapper = styled.div`
-	padding: 36px 0 80px;
 	flex: 1;
-	z-index: 0;
-	transition: width 0.25s ease;
+	padding: 36px 0 80px;
+	display: flex;
+	flex-direction: column;
 	background-color: ${({ theme }) => theme.onlyLight};
+	isolation: isolate;
 
 	@media screen and (max-width: 37.5rem) {
 		& > * {
