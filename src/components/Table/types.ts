@@ -43,6 +43,8 @@ export type TColumns =
 	| 'protocols'
 	| 'dexName'
 	| 'totalVolume24h'
+	| 'fees'
+	| 'revenue'
 
 export interface INameProps {
 	type: 'chain' | 'protocol' | 'peggedAsset' | 'peggedAssetChain' | 'dex'
