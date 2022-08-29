@@ -33,11 +33,9 @@ export default function BarChart({ chartData, stacks, moneySymbol = '$', title, 
 			}
 		})
 
-		chartData.forEach(({ date, ...item }, i) => {
-			xAxisDates.push(i)
-
+		chartData.forEach(({ date, ...item }) => {
 			stacks.forEach((token) => {
-				series.find((t) => t.name === token)?.data.push(item[token] || null)
+				series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
 			})
 		})
 
@@ -54,14 +52,14 @@ export default function BarChart({ chartData, stacks, moneySymbol = '$', title, 
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, timeAsXAxis, valueAsYAxis, dataZoom } = defaultChartSettings
+		const { graphic, titleDefaults, tooltip, grid, timeAsXAxis, valueAsYAxis, dataZoom } = defaultChartSettings
 
 		chartInstance.setOption({
 			graphic: {
 				...graphic
 			},
 			tooltip: {
-				trigger: 'axis'
+				...tooltip
 			},
 			title: {
 				...titleDefaults
@@ -71,9 +69,7 @@ export default function BarChart({ chartData, stacks, moneySymbol = '$', title, 
 			},
 			xAxis: [
 				{
-					...timeAsXAxis,
-					type: 'category',
-					data: xAxisDates
+					...timeAsXAxis
 				}
 			],
 			yAxis: [
