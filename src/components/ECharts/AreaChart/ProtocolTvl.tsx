@@ -85,7 +85,7 @@ export default function ProtocolTvlChart({
 	}, [historicalChainTvls, extraTvlEnabled, tvlChartData])
 
 	// calc y-axis based on denomination
-	const { tvlData, moneySymbol } = React.useMemo(() => {
+	const { tvlData, valueSymbol } = React.useMemo(() => {
 		const isValidDenomination =
 			denomination && denomination !== 'USD' && DENOMINATIONS.find((d) => d.symbol === denomination)
 
@@ -106,16 +106,16 @@ export default function ProtocolTvlChart({
 				}
 			})
 
-			let moneySymbol = '$'
+			let valueSymbol = '$'
 
 			const d = DENOMINATIONS.find((d) => d.symbol === denomination)
 
 			if (d.symbol === 'ETH') {
-				moneySymbol = 'Ξ'
-			} else moneySymbol = d.symbol.slice(0, 1)
+				valueSymbol = 'Ξ'
+			} else valueSymbol = d.symbol.slice(0, 1)
 
-			return { tvlData: newChartData, moneySymbol }
-		} else return { tvlData: chartDataFiltered, moneySymbol: '$' }
+			return { tvlData: newChartData, valueSymbol }
+		} else return { tvlData: chartDataFiltered, valueSymbol: '$' }
 	}, [denomination, denominationHistory, chartDataFiltered, DENOMINATIONS])
 
 	const protocolHasMcap =
@@ -200,7 +200,7 @@ export default function ProtocolTvlChart({
 					chartData={finalData}
 					color={color}
 					title=""
-					moneySymbol={moneySymbol}
+					valueSymbol={valueSymbol}
 					stacks={tokensUnique}
 					hideLegend={true}
 					hallmarks={!hideHallmarks && hallmarks}

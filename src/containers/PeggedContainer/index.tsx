@@ -766,9 +766,7 @@ export default function PeggedContainer({
 							chartData={peggedAreaTotalData}
 							stacks={totalMcapLabel}
 							color={backgroundColor}
-							moneySymbol=""
 							hideLegend={true}
-							hallmarks={[]}
 						/>
 					)}
 					{chartType === 'Area' && (

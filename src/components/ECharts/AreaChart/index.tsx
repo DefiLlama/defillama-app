@@ -15,13 +15,14 @@ const Wrapper = styled.div`
 export default function AreaChart({
 	chartData,
 	stacks,
-	moneySymbol = '$',
+	valueSymbol = '',
 	title,
 	color,
 	hallmarks,
 	hideLegend,
 	customLegendName,
 	tooltipSort = true,
+	chartOptions,
 	...props
 }: IChartProps) {
 	// For Tokens Chart
@@ -34,7 +35,7 @@ export default function AreaChart({
 	const defaultChartSettings = useDefaults({
 		color,
 		title,
-		valueSymbol: moneySymbol,
+		valueSymbol,
 		tooltipSort
 	})
 
@@ -175,6 +176,14 @@ export default function AreaChart({
 
 		const { graphic, titleDefaults, grid, tooltip, timeAsXAxis, valueAsYAxis, dataZoom } = defaultChartSettings
 
+		for (const option in chartOptions) {
+			if (defaultChartSettings[option]) {
+				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+			} else {
+				defaultChartSettings[option] = { ...chartOptions[option] }
+			}
+		}
+
 		chartInstance.setOption({
 			graphic: { ...graphic },
 			tooltip: {
@@ -206,7 +215,7 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series])
+	}, [createInstance, defaultChartSettings, series, chartOptions])
 
 	const legendName = title === 'Chains' ? 'Chain' : 'Token'
 

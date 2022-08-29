@@ -593,7 +593,7 @@ function PeggedAssetsOverview({
 							chartData={peggedAreaTotalData}
 							stacks={totalMcapLabel}
 							color={'lightcoral'}
-							moneySymbol="$"
+							valueSymbol="$"
 							hideLegend={true}
 							hallmarks={[]}
 						/>

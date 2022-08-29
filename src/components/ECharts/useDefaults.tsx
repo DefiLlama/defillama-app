@@ -145,7 +145,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 		const legend = {
 			textStyle: {
 				fontFamily: 'inter, sans-serif',
-				fontSize: 14,
+				fontSize: 12,
 				fontWeight: 400,
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			}

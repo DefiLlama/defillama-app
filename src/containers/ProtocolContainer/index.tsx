@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { useInView, defaultFallbackInView } from 'react-intersection-observer'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
 import CopyHelper from '~/components/Copy'
@@ -42,12 +41,13 @@ import {
 	Stat,
 	StatsSection,
 	StatWrapper,
-	Symbol
+	Symbol,
+	ChartsWrapper,
+	LazyChart,
+	ChartsPlaceholder
 } from '~/components/ProtocolAndPool'
 import Bookmark from '~/components/Bookmark'
 import Tooltip from '~/components/Tooltip'
-
-defaultFallbackInView(true)
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -73,31 +73,6 @@ const Bobo = styled.button`
 		bottom: initial;
 		left: initial;
 		z-index: 1;
-	}
-`
-
-const ChartsWrapper = styled.section`
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	border-radius: 12px;
-	background: ${({ theme }) => theme.bg6};
-	border: ${({ theme }) => '1px solid ' + theme.divider};
-	box-shadow: ${({ theme }) => theme.shadowSm};
-`
-
-const ChartWrapper = styled.section`
-	grid-column: span 2;
-	min-height: 360px;
-	padding: 20px;
-	display: flex;
-	flex-direction: column;
-
-	@media screen and (min-width: 90rem) {
-		grid-column: span 1;
-
-		:last-child:nth-child(2n - 1) {
-			grid-column: span 2;
-		}
 	}
 `
 
@@ -483,59 +458,56 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 					<ChartsWrapper>
 						{loading ? (
-							<span
-								style={{
-									height: '360px',
-									display: 'flex',
-									justifyContent: 'center',
-									alignItems: 'center',
-									gridColumn: '1 / -1'
-								}}
-							>
-								Loading...
-							</span>
+							<ChartsPlaceholder>Loading...</ChartsPlaceholder>
 						) : (
 							<>
 								{chainsSplit && chainsUnique?.length > 1 && (
-									<Chart>
-										<AreaChart chartData={chainsSplit} stacks={chainsUnique} title="Chains" customLegendName="Chain" />
-									</Chart>
+									<LazyChart>
+										<AreaChart
+											chartData={chainsSplit}
+											stacks={chainsUnique}
+											title="Chains"
+											customLegendName="Chain"
+											valueSymbol="$"
+										/>
+									</LazyChart>
 								)}
 								{tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
-									<Chart>
+									<LazyChart>
 										<AreaChart
 											chartData={tokenBreakdown}
 											title="Tokens"
 											stacks={tokensUnique}
-											moneySymbol=""
 											customLegendName="Token"
 										/>
-									</Chart>
+									</LazyChart>
 								)}
 								{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
-									<Chart>
+									<LazyChart>
 										<AreaChart
 											chartData={tokenBreakdownUSD}
 											title="Tokens (USD)"
 											stacks={tokensUnique}
 											customLegendName="Token"
+											valueSymbol="$"
 										/>
-									</Chart>
+									</LazyChart>
 								)}
 								{usdInflows && (
-									<Chart>
-										<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" />
-									</Chart>
+									<LazyChart>
+										<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />
+									</LazyChart>
 								)}
 								{tokenInflows && (
-									<Chart>
+									<LazyChart>
 										<BarChart
 											chartData={tokenInflows}
 											title="Token Inflows"
 											stacks={barChartStacks}
 											customLegendName="Token"
+											valueSymbol="$"
 										/>
-									</Chart>
+									</LazyChart>
 								)}
 							</>
 						)}
@@ -544,14 +516,6 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			)}
 		</Layout>
 	)
-}
-
-const Chart = ({ children }) => {
-	const { ref, inView } = useInView({
-		triggerOnce: true
-	})
-
-	return <ChartWrapper ref={ref}>{inView && children}</ChartWrapper>
 }
 
 export default ProtocolContainer

@@ -9,11 +9,12 @@ import { useDefaults } from '../useDefaults'
 export default function BarChart({
 	chartData,
 	stacks,
-	moneySymbol = '$',
+	valueSymbol = '',
 	title,
 	color,
 	hideLegend,
-	customLegendName
+	customLegendName,
+	chartOptions
 }: IBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
@@ -24,7 +25,7 @@ export default function BarChart({
 	const defaultChartSettings = useDefaults({
 		color,
 		title,
-		valueSymbol: moneySymbol
+		valueSymbol
 	})
 
 	const series = useMemo(() => {
@@ -91,6 +92,14 @@ export default function BarChart({
 
 		const { graphic, titleDefaults, grid, tooltip, timeAsXAxis, valueAsYAxis, legend, dataZoom } = defaultChartSettings
 
+		for (const option in chartOptions) {
+			if (defaultChartSettings[option]) {
+				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+			} else {
+				defaultChartSettings[option] = { ...chartOptions[option] }
+			}
+		}
+
 		chartInstance.setOption({
 			graphic: {
 				...graphic
@@ -130,7 +139,7 @@ export default function BarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, hideLegend, customLegendName, stackKeys])
+	}, [createInstance, defaultChartSettings, series, hideLegend, customLegendName, stackKeys, chartOptions])
 
 	return (
 		<div style={{ position: 'relative' }}>

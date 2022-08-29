@@ -1,15 +1,23 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import { useFetchProtocolUserMetrics } from '~/api/categories/users/client'
 import FormattedName from '~/components/FormattedName'
-import { DetailsWrapper, Name, StatsSection } from '~/components/ProtocolAndPool'
+import {
+	DetailsWrapper,
+	Name,
+	StatsSection,
+	ChartsWrapper,
+	LazyChart,
+	ChartWrapper,
+	ChartsPlaceholder
+} from '~/components/ProtocolAndPool'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
 import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
+import styled from 'styled-components'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -81,7 +89,7 @@ export default function Protocol() {
 	}, [data])
 
 	return (
-		<Layout title="DefiLlama" defaultSEO>
+		<Layout title={`${protocolName} User Metrics - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
 
 			<StatsSection>
@@ -100,21 +108,51 @@ export default function Protocol() {
 				</DetailsWrapper>
 				<ChartWrapper>
 					{!loading && data && (
-						<BarChart
-							chartData={allChains}
-							title=""
-							moneySymbol=""
-							stacks={{ 'Total Users': 'stackA', 'Unique Users': 'stackB' }}
-						/>
+						<BarChart chartData={allChains} title="" stacks={{ 'Unique Users': 'stackA', 'Total Users': 'stackB' }} />
 					)}
 				</ChartWrapper>
 			</StatsSection>
+
+			<ChartsWrapper>
+				{loading ? (
+					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+				) : (
+					<>
+						<LazyChartWrapper>
+							<BarChart
+								chartData={allChains}
+								title="Unique Users"
+								stacks={{ 'Unique Users': 'stackA' }}
+								chartOptions={chartOptions}
+							/>
+						</LazyChartWrapper>
+						<LazyChartWrapper>
+							<BarChart
+								chartData={allChains}
+								title="Total Users"
+								stacks={{ 'Total Users': 'stackA' }}
+								chartOptions={chartOptions}
+							/>
+						</LazyChartWrapper>
+					</>
+				)}
+			</ChartsWrapper>
 		</Layout>
 	)
 }
 
-const ChartWrapper = styled.div`
-	padding: 20px 20px 0 0;
-	min-height: 400px;
-	grid-column: span 1;
+const chartOptions = {
+	legend: {
+		orient: 'vertical',
+		align: 'left',
+		top: 30,
+		left: 0
+	},
+	valueAsYAxis: {
+		position: 'right'
+	}
+}
+
+const LazyChartWrapper = styled(LazyChart)`
+	grid-column: 1 / -1;
 `
