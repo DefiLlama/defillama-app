@@ -7,7 +7,8 @@ import {
 	GridComponent,
 	DataZoomComponent,
 	GraphicComponent,
-	MarkLineComponent
+	MarkLineComponent,
+	LegendComponent
 } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks'
@@ -25,7 +26,8 @@ echarts.use([
 	GridComponent,
 	DataZoomComponent,
 	GraphicComponent,
-	MarkLineComponent
+	MarkLineComponent,
+	LegendComponent
 ])
 
 interface IUseDefaultsProps {

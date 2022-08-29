@@ -764,7 +764,7 @@ export default function PeggedContainer({
 						<TokenAreaChart
 							title={`Total ${symbol} Circulating`}
 							chartData={peggedAreaTotalData}
-							tokensUnique={totalMcapLabel}
+							stacks={totalMcapLabel}
 							color={backgroundColor}
 							moneySymbol=""
 							hideLegend={true}

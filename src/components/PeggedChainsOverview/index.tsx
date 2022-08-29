@@ -395,11 +395,10 @@ function PeggedChainsOverview({
 						<PeggedAreaChart
 							title={`Total ${title}`}
 							chartData={peggedAreaTotalData}
-							tokensUnique={totalMcapLabel}
+							stacks={totalMcapLabel}
 							color={'lightcoral'}
-							moneySymbol="$"
 							hideLegend={true}
-							hallmarks={[]}
+							moneySymbol="$"
 						/>
 					)}
 					{chartType === 'Area' && (

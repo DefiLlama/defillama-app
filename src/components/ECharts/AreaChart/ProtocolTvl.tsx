@@ -201,7 +201,7 @@ export default function ProtocolTvlChart({
 					color={color}
 					title=""
 					moneySymbol={moneySymbol}
-					tokensUnique={tokensUnique}
+					stacks={tokensUnique}
 					hideLegend={true}
 					hallmarks={!hideHallmarks && hallmarks}
 					tooltipSort={false}

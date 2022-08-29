@@ -52,13 +52,7 @@ type series = Array<{
 	stack: 'value'
 }>
 
-export default function StackedBarChart({
-	chartData,
-	tokensUnique,
-	moneySymbol = '$',
-	title,
-	color
-}: IStackedBarChartProps) {
+export default function StackedBarChart({ chartData, moneySymbol = '$', title, color }: IStackedBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
 	const [isDark] = useDarkModeManager()

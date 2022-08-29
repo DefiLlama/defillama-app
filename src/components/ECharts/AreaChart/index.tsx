@@ -14,17 +14,18 @@ const Wrapper = styled.div`
 
 export default function AreaChart({
 	chartData,
-	tokensUnique,
+	stacks,
 	moneySymbol = '$',
 	title,
 	color,
 	hallmarks,
 	hideLegend,
+	customLegendName,
 	tooltipSort = true,
 	...props
 }: IChartProps) {
 	// For Tokens Chart
-	const [legendOptions, setLegendOptions] = useState<string[]>(tokensUnique)
+	const [legendOptions, setLegendOptions] = useState<string[]>(stacks)
 
 	const id = useMemo(() => uuid(), [])
 
@@ -40,7 +41,7 @@ export default function AreaChart({
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
 
-		if (!tokensUnique || tokensUnique?.length === 0) {
+		if (!stacks || stacks?.length === 0) {
 			const series = {
 				name: '',
 				type: 'line',
@@ -97,7 +98,7 @@ export default function AreaChart({
 
 			return series
 		} else {
-			const series = tokensUnique.map((token, index) => {
+			const series = stacks.map((token, index) => {
 				return {
 					name: token,
 					type: 'line',
@@ -110,7 +111,7 @@ export default function AreaChart({
 						color: index === 0 ? chartColor : null
 					},
 					areaStyle: {
-						color: hideLegend
+						color: !customLegendName
 							? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
 									{
 										offset: 0,
@@ -151,8 +152,8 @@ export default function AreaChart({
 			})
 
 			chartData.forEach(({ date, ...item }) => {
-				tokensUnique.forEach((token) => {
-					if (legendOptions.includes(token) || hideLegend) {
+				stacks.forEach((token) => {
+					if (legendOptions.includes(token) || !customLegendName) {
 						series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
 					}
 				})
@@ -160,7 +161,7 @@ export default function AreaChart({
 
 			return series
 		}
-	}, [chartData, tokensUnique, color, isDark, legendOptions, hallmarks, hideLegend])
+	}, [chartData, stacks, color, isDark, legendOptions, hallmarks, customLegendName])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -211,9 +212,9 @@ export default function AreaChart({
 
 	return (
 		<div style={{ position: 'relative' }} {...props}>
-			{tokensUnique?.length > 1 && !hideLegend && (
+			{stacks?.length > 1 && !hideLegend && customLegendName && (
 				<SelectLegendMultiple
-					allOptions={tokensUnique}
+					allOptions={stacks}
 					options={legendOptions}
 					setOptions={setLegendOptions}
 					title={legendOptions.length === 1 ? legendName : legendName + 's'}

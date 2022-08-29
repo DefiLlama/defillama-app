@@ -16,7 +16,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
 import ProtocolTvlChart from '~/components/ECharts/AreaChart/ProtocolTvl'
 import QuestionHelper from '~/components/QuestionHelper'
-import type { IChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
@@ -55,7 +55,7 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
-}) as React.FC<IChartProps>
+}) as React.FC<IBarChartProps>
 
 const Bobo = styled.button`
 	position: absolute;
@@ -264,6 +264,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			: false
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
+
+	const barChartStacks =
+		tokensUnique?.reduce((acc, curr) => {
+			acc[curr] = 'stackA'
+			return acc
+		}, {}) ?? {}
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
@@ -492,17 +498,28 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 							<>
 								{chainsSplit && chainsUnique?.length > 1 && (
 									<Chart>
-										<AreaChart chartData={chainsSplit} tokensUnique={chainsUnique} title="Chains" />
+										<AreaChart chartData={chainsSplit} stacks={chainsUnique} title="Chains" customLegendName="Chain" />
 									</Chart>
 								)}
 								{tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
 									<Chart>
-										<AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} moneySymbol="" />
+										<AreaChart
+											chartData={tokenBreakdown}
+											title="Tokens"
+											stacks={tokensUnique}
+											moneySymbol=""
+											customLegendName="Token"
+										/>
 									</Chart>
 								)}
 								{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
 									<Chart>
-										<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" tokensUnique={tokensUnique} />
+										<AreaChart
+											chartData={tokenBreakdownUSD}
+											title="Tokens (USD)"
+											stacks={tokensUnique}
+											customLegendName="Token"
+										/>
 									</Chart>
 								)}
 								{usdInflows && (
@@ -512,7 +529,12 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 								)}
 								{tokenInflows && (
 									<Chart>
-										<BarChart chartData={tokenInflows} title="Token Inflows" tokensUnique={tokensUnique} />
+										<BarChart
+											chartData={tokenInflows}
+											title="Token Inflows"
+											stacks={barChartStacks}
+											customLegendName="Token"
+										/>
 									</Chart>
 								)}
 							</>

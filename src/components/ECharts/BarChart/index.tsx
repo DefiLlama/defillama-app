@@ -2,21 +2,24 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
 import { stringToColour } from '../utils'
-import type { IChartProps } from '../types'
+import type { IBarChartProps } from '../types'
 import { SelectLegendMultiple } from '../shared'
 import { useDefaults } from '../useDefaults'
 
 export default function BarChart({
 	chartData,
-	tokensUnique,
+	stacks,
 	moneySymbol = '$',
 	title,
 	color,
-	legendName = 'Token'
-}: IChartProps) {
+	hideLegend,
+	customLegendName
+}: IBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
-	const [legendOptions, setLegendOptions] = useState(tokensUnique)
+	const stackKeys = stacks && Object.keys(stacks)
+
+	const [legendOptions, setLegendOptions] = useState(stackKeys)
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -27,11 +30,11 @@ export default function BarChart({
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
 
-		if (!tokensUnique || tokensUnique?.length === 0) {
+		if (!stackKeys || stackKeys?.length === 0) {
 			const series = {
 				name: '',
 				type: 'bar',
-				stack: 'value',
+				stack: 'stackA',
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
@@ -48,11 +51,11 @@ export default function BarChart({
 
 			return series
 		} else {
-			const series = tokensUnique.map((token) => {
+			const series = stackKeys.map((stack) => {
 				return {
-					name: token,
+					name: stack,
 					type: 'bar',
-					stack: 'value',
+					stack: stacks[stack],
 					emphasis: {
 						focus: 'series',
 						shadowBlur: 10
@@ -65,16 +68,16 @@ export default function BarChart({
 			})
 
 			chartData.forEach(({ date, ...item }) => {
-				tokensUnique.forEach((token) => {
-					if (legendOptions.includes(token)) {
-						series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
+				stackKeys.forEach((stack) => {
+					if (legendOptions.includes(stack)) {
+						series.find((t) => t.name === stack)?.data.push([new Date(date * 1000), item[stack] || 0])
 					}
 				})
 			})
 
 			return series
 		}
-	}, [chartData, color, tokensUnique, legendOptions])
+	}, [chartData, color, stacks, stackKeys, legendOptions])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -107,6 +110,11 @@ export default function BarChart({
 			yAxis: {
 				...valueAsYAxis
 			},
+			...((hideLegend || !customLegendName) && {
+				legend: {
+					data: stackKeys
+				}
+			}),
 			dataZoom: [...dataZoom],
 			series
 		})
@@ -121,16 +129,16 @@ export default function BarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series])
+	}, [createInstance, defaultChartSettings, series, hideLegend, customLegendName, stackKeys])
 
 	return (
 		<div style={{ position: 'relative' }}>
-			{tokensUnique?.length > 1 && (
+			{stackKeys?.length > 1 && !hideLegend && customLegendName && (
 				<SelectLegendMultiple
-					allOptions={tokensUnique}
+					allOptions={stackKeys}
 					options={legendOptions}
 					setOptions={setLegendOptions}
-					title={legendOptions.length === 1 ? legendName : legendName + 's'}
+					title={legendOptions.length === 1 ? customLegendName : customLegendName + 's'}
 				/>
 			)}
 			<div id={id} style={{ height: '360px', margin: 'auto 0' }}></div>

@@ -2,17 +2,19 @@ import * as React from 'react'
 
 export interface IChartProps {
 	chartData: any
-	tokensUnique?: string[]
+	stacks?: Array<string>
 	moneySymbol?: string
 	title: string
 	color?: string
 	hallmarks?: [number, string][]
-	hideLegend?: boolean
 	style?: React.CSSProperties
-	legendName?: string
+	hideLegend?: boolean
+	customLegendName?: string
 	tooltipSort?: boolean
 }
 
-export interface IStackedChartProps extends Omit<IChartProps, 'tokensUnique'> {
-	stacks?: string[]
+export interface IBarChartProps extends Omit<IChartProps, 'stacks'> {
+	stacks?: {
+		[stack: string]: string
+	}
 }
