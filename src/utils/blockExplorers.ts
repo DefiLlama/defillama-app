@@ -46,7 +46,7 @@ const blockExplorers = {
 	dogechain: ['https://explorer.dogechain.dog/address/', 'Doge Chain Explorer'],
 	hedera: ['https://hashscan.io/#/mainnet/token/', 'HashScan'],
 	carbon: ['https://scan.carbon.network/token/', 'Carbonscan'],
-	starcoin: ['https://stcscan.io/main/address/', 'Stcscan'],
+	starcoin: ['https://stcscan.io/main/tokens/', 'Stcscan'],
 	arbitrum_nova: ['https://nova-explorer.arbitrum.io/address/', 'NovaExplorer']
 }
 
