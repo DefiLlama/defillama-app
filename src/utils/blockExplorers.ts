@@ -48,7 +48,7 @@ const blockExplorers = {
 	carbon: ['https://scan.carbon.network/token/', 'Carbonscan'],
 	starcoin: ['https://stcscan.io/main/tokens/', 'Stcscan'],
 	arbitrum_nova: ['https://nova-explorer.arbitrum.io/address/', 'NovaExplorer'],
-	ultron: ['https://ulxscan.com/assets/', 'ulxscan']
+	ultron: ['https://ulxscan.com/address/', 'ulxscan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
