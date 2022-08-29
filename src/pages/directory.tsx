@@ -32,20 +32,37 @@ export default function Protocols({ protocols }) {
 				better access and security
 			</Banner>
 
-			<Search data={protocols} defaultOpen={true} onItemClick={onItemClick} autoFocus />
+			<Search data={protocols} open={true} flip={false} onItemClick={onItemClick} autoFocus />
 		</Layout>
 	)
 }
 
 const Search = styled(DesktopSearch)`
-	margin: 20px 0;
-	display: flex;
+	display: flex !important;
+	max-width: 60rem;
+	width: 100%;
+	margin: -16px auto;
 
-	input[data-focus-visible] {
-		border-radius: 12px 12px 0 0;
+	input {
+		box-shadow: ${({ theme }) => theme.shadow};
+		border-radius: 6px;
+	}
+
+	input + button {
+		display: none;
+	}
+
+	div[role='presentation'] {
+		& > * {
+			border-radius: 6px !important;
+		}
+
+		& > div[data-dialog] {
+			top: 6px;
+		}
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		margin: 60px 0;
+		margin: 60px auto;
 	}
 `

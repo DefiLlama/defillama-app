@@ -57,7 +57,8 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 		onSearchTermChange,
 		filters,
 		placeholder = 'Search...',
-		defaultOpen = false,
+		open,
+		flip,
 		autoFocus,
 		...extra
 	} = props
@@ -66,7 +67,8 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 		gutter: 6,
 		sameWidth: true,
 		list: data.map((x) => x.name),
-		...(defaultOpen && { open: true })
+		...(open && { open: true }),
+		...((flip || flip === false) && { flip })
 	})
 
 	// select first item on open
