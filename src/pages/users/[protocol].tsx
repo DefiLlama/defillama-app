@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { useFetchProtocolUserMetrics } from '~/api/categories/users/client'
 import FormattedName from '~/components/FormattedName'
-import { DetailsWrapper, Name, Stat, StatsSection, StatWrapper } from '~/components/ProtocolAndPool'
+import { DetailsWrapper, Name, StatsSection } from '~/components/ProtocolAndPool'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
 import Layout from '~/layout'
@@ -29,7 +29,7 @@ export default function Protocol() {
 
 	const { data, loading } = useFetchProtocolUserMetrics(protocolName)
 
-	const { allChains, totalUsers, uniqueUsers } = React.useMemo(() => {
+	const { allChains } = React.useMemo(() => {
 		const sortedData = data?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime())
 
 		// get unique chains
@@ -91,18 +91,12 @@ export default function Protocol() {
 						<FormattedName text={protocolName ? protocolName + ' ' : ''} maxCharacters={16} fontWeight={700} />
 					</Name>
 
-					<StatWrapper>
+					{/* <StatWrapper>
 						<Stat>
 							<span>Total Users</span>
-							<span>{data && totalUsers}</span>
+							<span></span>
 						</Stat>
-					</StatWrapper>
-					<StatWrapper>
-						<Stat>
-							<span>Unique Users</span>
-							<span>{data && uniqueUsers}</span>
-						</Stat>
-					</StatWrapper>
+					</StatWrapper> */}
 				</DetailsWrapper>
 				<ChartWrapper>
 					{!loading && data && (

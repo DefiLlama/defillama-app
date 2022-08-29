@@ -142,6 +142,15 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 			}
 		}
 
+		const legend = {
+			textStyle: {
+				fontFamily: 'inter, sans-serif',
+				fontSize: 14,
+				fontWeight: 400,
+				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+			}
+		}
+
 		const dataZoom = [
 			{
 				type: 'inside',
@@ -188,7 +197,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 			}
 		]
 
-		return { graphic, grid, titleDefaults, tooltip, timeAsXAxis, valueAsYAxis, dataZoom }
+		return { graphic, grid, titleDefaults, tooltip, timeAsXAxis, valueAsYAxis, legend, dataZoom }
 	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol])
 
 	return defaults

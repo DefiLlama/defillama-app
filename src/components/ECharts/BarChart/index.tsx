@@ -89,7 +89,7 @@ export default function BarChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, tooltip, timeAsXAxis, valueAsYAxis, dataZoom } = defaultChartSettings
+		const { graphic, titleDefaults, grid, tooltip, timeAsXAxis, valueAsYAxis, legend, dataZoom } = defaultChartSettings
 
 		chartInstance.setOption({
 			graphic: {
@@ -112,6 +112,7 @@ export default function BarChart({
 			},
 			...((hideLegend || !customLegendName) && {
 				legend: {
+					...legend,
 					data: stackKeys
 				}
 			}),
