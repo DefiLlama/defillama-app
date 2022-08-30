@@ -1,10 +1,12 @@
 import Layout from '~/layout'
 import { revalidate } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
-import { DesktopSearch } from '~/components/Search/Base'
 import { tokenIconUrl } from '~/utils'
 import { Banner } from '~/components/PageBanner'
 import styled from 'styled-components'
+import { useComboboxState } from 'ariakit'
+import { Input } from '~/components/Search/Base/Input'
+import { Results } from '~/components/Search/Base/Results'
 
 export async function getStaticProps() {
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo', 'url'])
@@ -21,6 +23,14 @@ export async function getStaticProps() {
 }
 
 export default function Protocols({ protocols }) {
+	const combobox = useComboboxState({
+		gutter: 6,
+		sameWidth: true,
+		list: protocols.map((x) => x.name),
+		flip: false,
+		open: true
+	})
+
 	const onItemClick = (item) => {
 		typeof window !== undefined && window.open(item.route, '_blank')
 	}
@@ -32,37 +42,28 @@ export default function Protocols({ protocols }) {
 				better access and security
 			</Banner>
 
-			<Search data={protocols} flip={false} onItemClick={onItemClick} autoFocus />
+			<InputField state={combobox} placeholder="Search..." autoFocus />
+			<Popover state={combobox} data={protocols} loading={false} onItemClick={onItemClick} />
 		</Layout>
 	)
 }
 
-const Search = styled(DesktopSearch)`
-	display: flex !important;
+const InputField = styled(Input)`
 	max-width: 60rem;
 	width: 100%;
 	margin: -16px auto;
+	box-shadow: ${({ theme }) => theme.shadow};
+	border-radius: 12px 12px 0 0;
 
-	input {
-		box-shadow: ${({ theme }) => theme.shadow};
-		border-radius: 6px;
-	}
-
-	input + button {
+	& + button {
 		display: none;
-	}
-
-	div[role='presentation'] {
-		& > * {
-			border-radius: 6px !important;
-		}
-
-		& > div[data-dialog] {
-			top: 6px;
-		}
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
 		margin: 60px auto;
 	}
+`
+
+const Popover = styled(Results)`
+	top: 1px;
 `

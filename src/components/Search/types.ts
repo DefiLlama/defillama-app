@@ -24,9 +24,6 @@ export interface IBaseSearchProps {
 	onItemClick?: (item: ISearchItem) => void
 	filters?: ReactNode
 	placeholder?: string
-	open?: boolean
-	flip?: boolean
-	autoFocus?: boolean
 }
 
 export interface ICommonSearchProps {

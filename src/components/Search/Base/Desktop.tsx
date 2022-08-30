@@ -50,25 +50,12 @@ const OptionsWrapper = styled.div`
 `
 
 export const DesktopSearch = (props: IBaseSearchProps) => {
-	const {
-		data,
-		loading = false,
-		step,
-		onSearchTermChange,
-		filters,
-		placeholder = 'Search...',
-		open,
-		flip,
-		autoFocus,
-		...extra
-	} = props
+	const { data, loading = false, step, onSearchTermChange, filters, placeholder = 'Search...', ...extra } = props
 
 	const combobox = useComboboxState({
 		gutter: 6,
 		sameWidth: true,
-		list: data.map((x) => x.name),
-		...(open && { open: true }),
-		...((flip || flip === false) && { flip })
+		list: data.map((x) => x.name)
 	})
 
 	// select first item on open
@@ -90,7 +77,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 
 	return (
 		<Wrapper {...extra}>
-			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} autoFocus={autoFocus} />
+			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} />
 
 			{step && <Options step={step} filters={filters} />}
 
