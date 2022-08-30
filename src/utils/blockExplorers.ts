@@ -49,7 +49,8 @@ const blockExplorers = {
 	starcoin: ['https://stcscan.io/main/tokens/', 'Stcscan'],
 	arbitrum_nova: ['https://nova-explorer.arbitrum.io/address/', 'NovaExplorer'],
 	ultron: ['https://ulxscan.com/address/', 'ulxscan'],
-	juno: ['https://www.mintscan.io/juno/assets/', 'Mintscan Juno']
+	juno: ['https://www.mintscan.io/juno/assets/', 'Mintscan Juno'],
+	tombchain: ['https://tombscout.com/address/', 'Tombchain Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
