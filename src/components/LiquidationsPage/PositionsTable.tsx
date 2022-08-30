@@ -1,15 +1,15 @@
-import { ChartData, getReadableValue } from '~/utils/liquidations'
-import React, { useMemo } from 'react'
+import { ChartData } from '~/utils/liquidations'
+import React from 'react'
 import styled from 'styled-components'
 import Table from '../Table'
 import { IColumnProps } from '../Table/types'
-import { useStackBy } from './utils'
 import useSWR from 'swr'
 import { fetcher } from '~/utils/useSWR'
 import { CHAINS_API, CONFIG_API } from '~/constants'
 import { chainIconUrl } from '~/utils'
 import TokenLogo from '../TokenLogo'
 import Link from 'next/link'
+import { ExternalLink } from 'react-feather'
 
 const ProtocolNameCell = ({ value }: CellProps) => {
 	let _value: string
@@ -63,6 +63,14 @@ const NameCellWrapper = styled.div`
 	gap: 0.5rem;
 `
 
+const LinkCellWrapper = styled.div`
+	display: flex;
+	align-items: flex-start;
+	justify-content: flex-end;
+	flex-direction: row;
+	gap: 0.2rem;
+`
+
 const COLUMNS: IColumnProps[] = [
 	{
 		accessor: 'protocolName',
@@ -91,9 +99,12 @@ const COLUMNS: IColumnProps[] = [
 			// cut middle, leave only first 6 and last 4 letters
 			return (
 				<a href={value.url} target="_blank" rel="noopener noreferrer">
-					{value.displayName.length > 13
-						? `${value.displayName.substring(0, 6)}...${value.displayName.substring(value.displayName.length - 4)}`
-						: value.displayName}
+					<LinkCellWrapper>
+						{value.displayName.length > 13
+							? `${value.displayName.substring(0, 6)}...${value.displayName.substring(value.displayName.length - 4)}`
+							: value.displayName}
+						<ExternalLink size={10} />
+					</LinkCellWrapper>
 				</a>
 			)
 		}
