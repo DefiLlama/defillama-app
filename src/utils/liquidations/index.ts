@@ -299,6 +299,21 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		return acc
 	}, {} as { [chain: string]: number })
 
+	const topPositions = [
+		...allAggregated.get(symbol)!.positions.filter((p) => p.liqPrice < currentPrice && p.collateralValue > 0)
+	]
+		.sort((a, b) => b.collateralValue - a.collateralValue)
+		.slice(0, 100) // hardcoded to first 100
+		.map((p) => ({
+			liqPrice: p.liqPrice,
+			collateralAmount: p.collateralAmount,
+			collateralValue: p.collateralValue,
+			protocol: p.protocol,
+			chain: p.chain,
+			url: p?.url ?? null,
+			displayName: p?.displayName ?? null
+		}))
+
 	const chartData: ChartData = {
 		symbol,
 		currentPrice,
@@ -330,18 +345,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 			chains
 		},
 		time: raw.time,
-		topPositions: allAggregated
-			.get(symbol)!
-			.positions.slice(0, 80) // hardcoded to first 200
-			.map((p) => ({
-				liqPrice: p.liqPrice,
-				collateralAmount: p.collateralAmount,
-				collateralValue: p.collateralValue,
-				protocol: p.protocol,
-				chain: p.chain,
-				url: p?.url ?? null,
-				displayName: p?.displayName ?? null
-			}))
+		topPositions
 	}
 
 	return chartData
