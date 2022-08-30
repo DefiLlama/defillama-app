@@ -52,7 +52,7 @@ type series = Array<{
 	stack: 'value'
 }>
 
-export default function StackedBarChart({ chartData, moneySymbol = '$', title, color }: IStackedBarChartProps) {
+export default function StackedBarChart({ chartData, valueSymbol = '$', title, color }: IStackedBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
 	const [isDark] = useDarkModeManager()
@@ -122,7 +122,7 @@ export default function StackedBarChart({ chartData, moneySymbol = '$', title, c
 									curr.marker +
 									curr.seriesName +
 									'&nbsp;&nbsp;' +
-									moneySymbol +
+									valueSymbol +
 									toK(curr.value[1]) +
 									'</li>')
 							} else return prev
@@ -164,7 +164,7 @@ export default function StackedBarChart({ chartData, moneySymbol = '$', title, c
 			yAxis: {
 				type: 'value',
 				axisLabel: {
-					formatter: (value) => moneySymbol + toK(value)
+					formatter: (value) => valueSymbol + toK(value)
 				},
 				axisLine: {
 					lineStyle: {
@@ -244,7 +244,7 @@ export default function StackedBarChart({ chartData, moneySymbol = '$', title, c
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, moneySymbol, title, createInstance, series, isDark, color, isSmall])
+	}, [id, valueSymbol, title, createInstance, series, isDark, color, isSmall])
 
 	return (
 		<div style={{ position: 'relative' }}>
