@@ -30,9 +30,9 @@ interface IResultsProps {
 	onItemClick?: (item: ISearchItem) => void
 }
 
-export function Results({ state, data, loading, onItemClick }: IResultsProps) {
+export function Results({ state, data, loading, onItemClick, ...props }: IResultsProps) {
 	return (
-		<Popover state={state}>
+		<Popover state={state} {...props}>
 			{loading || !state.mounted ? (
 				<Empty>Loading...</Empty>
 			) : state.matches.length ? (
