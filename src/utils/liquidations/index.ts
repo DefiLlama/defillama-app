@@ -19,6 +19,10 @@ export interface Liq {
 	liqPrice: number
 	collateral: PrefixAddress
 	collateralAmount: string
+	extra?: {
+		displayName?: string
+		url: string
+	}
 }
 
 export interface Position {
@@ -29,7 +33,11 @@ export interface Position {
 	chain: Chain
 	protocol: Protocol // protocol adapter id, like "aave-v2", "liquity"...
 	collateral: PrefixAddress // token address formatted as "ethereum:0x1234..."
+	displayName?: string
+	url: string
 }
+
+export type PositionSmol = Omit<Position, 'collateral' | 'owner'>
 
 export type Price = {
 	decimals: number
@@ -90,9 +98,16 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: Pro
 				collateralAmount: collateralAmountRaw.toNumber(),
 				chain: price.chain,
 				protocol: protocol,
-				collateral: liq.collateral.toLowerCase()
+				collateral: liq.collateral.toLowerCase(),
+				displayName: liq.extra?.displayName ?? liq.owner,
+				url: liq.extra?.url
 			})
 		}
+	}
+
+	for (const symbol in aggregatedData.keys()) {
+		// array.sort is in place
+		aggregatedData.get(symbol)!.positions.sort((a, b) => b.collateralValue - a.collateralValue)
 	}
 
 	return aggregatedData
@@ -152,6 +167,7 @@ export type ChartData = {
 		chains: string[]
 	}
 	time: number
+	topPositions: PositionSmol[]
 }
 
 export interface ChartDataBins {
@@ -313,7 +329,19 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 			protocols,
 			chains
 		},
-		time: raw.time
+		time: raw.time,
+		topPositions: allAggregated
+			.get(symbol)!
+			.positions.slice(0, 200) // hardcoded to first 200
+			.map((p) => ({
+				liqPrice: p.liqPrice,
+				collateralAmount: p.collateralAmount,
+				collateralValue: p.collateralValue,
+				protocol: p.protocol,
+				chain: p.chain,
+				url: p.url,
+				displayName: p.displayName
+			}))
 	}
 
 	return chartData

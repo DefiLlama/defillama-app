@@ -23,7 +23,6 @@ import { ProtocolsTable } from '../../components/LiquidationsPage/ProtocolsTable
 import SEO from '~/components/SEO'
 import { assetIconUrl } from '~/utils'
 import { Panel } from '~/components'
-import TokenLogo from '~/components/TokenLogo'
 import Image from 'next/image'
 import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
