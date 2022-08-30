@@ -25,6 +25,7 @@ import { assetIconUrl } from '~/utils'
 import { Panel } from '~/components'
 import TokenLogo from '~/components/TokenLogo'
 import Image from 'next/image'
+import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = (params.symbol as string).toLowerCase()
@@ -170,6 +171,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 				<Clock size={12} />
 				<i>Last updated {minutesAgo}min ago</i>
 			</SmolHints>
+			<TableSwitch />
 			<ProtocolsTable data={data} prevData={prevData} />
 		</Layout>
 	)
