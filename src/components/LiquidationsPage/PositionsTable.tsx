@@ -120,7 +120,11 @@ const COLUMNS: IColumnProps[] = [
 		helperText: 'Liquidation price in USD.',
 		Cell: ({ value }: CellProps) => {
 			const _value = (value as number).toLocaleString()
-			return <span>${_value}</span>
+			return (
+				<span>
+					<b>${_value}</b>
+				</span>
+			)
 		}
 	}
 ]
@@ -128,7 +132,7 @@ const COLUMNS: IColumnProps[] = [
 const TableStyled = styled(Table)`
 	tr > *:not(:first-child) {
 		& > * {
-			width: 11rem;
+			width: 10rem;
 			white-space: nowrap;
 			overflow: hidden;
 			font-weight: 400;
@@ -136,46 +140,54 @@ const TableStyled = styled(Table)`
 		}
 	}
 
-	// ASSET NAME
 	tr > *:nth-child(1) {
+		display: none;
 		& > * {
-			/* width: 20px; */
 			overflow: hidden;
 			white-space: nowrap;
-
-			/* // HIDE LOGO
-			& > *:nth-child(1) {
-				display: none;
-			} */
 		}
 	}
 
-	// 1D CHANGE
-	tr > *:nth-child(2) {
-		display: none;
+	@media screen and (min-width: 80rem) {
+		tr > *:nth-child(1) {
+			display: revert;
+		}
 	}
 
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		// 1D CHANGE
+	tr > *:nth-child(2) {
+		display: none;
+		text-align: start;
+	}
+
+	@media screen and (min-width: 80rem) {
 		tr > *:nth-child(2) {
 			display: revert;
 		}
 	}
 
-	// LIQUIABLE AMOUNT
 	tr > *:nth-child(3) {
 		margin-left: -1rem;
 		padding-right: 1rem;
 	}
 
-	// DANGEROUS AMOUNT
 	tr > *:nth-child(4) {
+		margin-left: -6rem;
 		display: none;
 	}
 
-	@media screen and (min-width: 900px) {
-		// DANGEROUS AMOUNT
+	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
 		tr > *:nth-child(4) {
+			display: revert;
+		}
+	}
+
+	tr > *:nth-child(5) {
+		display: none;
+		margin-left: -1rem;
+	}
+
+	@media screen and (min-width: 50rem) {
+		tr > *:nth-child(5) {
 			display: revert;
 		}
 	}
@@ -194,7 +206,7 @@ export const PositionsTable = (props: { data: ChartData; prevData: ChartData }) 
 		}
 	})) as RowValues[]
 
-	return <TableStyled columns={COLUMNS} data={rows} gap={'8px'} />
+	return <TableStyled columns={COLUMNS} data={rows} gap={'2px'} />
 	// return <pre>{JSON.stringify(rows[0], null, 2)}</pre>
 }
 
