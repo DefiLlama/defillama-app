@@ -26,6 +26,8 @@ import { Panel } from '~/components'
 import TokenLogo from '~/components/TokenLogo'
 import Image from 'next/image'
 import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
+import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
+import { PositionsTable } from '~/components/LiquidationsPage/PositionsTable'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = (params.symbol as string).toLowerCase()
@@ -114,6 +116,10 @@ const StyledAnchor = styled.a`
 
 const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> = (props) => {
 	const { data, prevData } = props
+	const [liqsSettings] = useLiqsManager()
+	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
+	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
+
 	const asset = DEFAULT_ASSETS_LIST.find((x) => x.symbol.toLowerCase() === data.symbol.toLowerCase())
 
 	const [minutesAgo, setMinutesAgo] = useState(Math.round((Date.now() - data.time * 1000) / 1000 / 60))
@@ -172,7 +178,8 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 				<i>Last updated {minutesAgo}min ago</i>
 			</SmolHints>
 			<TableSwitch />
-			<ProtocolsTable data={data} prevData={prevData} />
+			{isLiqsShowingInspector && <PositionsTable data={data} prevData={prevData} />}
+			{!isLiqsShowingInspector && <ProtocolsTable data={data} prevData={prevData} />}
 		</Layout>
 	)
 }
