@@ -339,8 +339,8 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 				collateralValue: p.collateralValue,
 				protocol: p.protocol,
 				chain: p.chain,
-				url: p.url,
-				displayName: p.displayName
+				url: p?.url ?? null,
+				displayName: p?.displayName ?? null
 			}))
 	}
 
