@@ -332,7 +332,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		time: raw.time,
 		topPositions: allAggregated
 			.get(symbol)!
-			.positions.slice(0, 200) // hardcoded to first 200
+			.positions.slice(0, 80) // hardcoded to first 200
 			.map((p) => ({
 				liqPrice: p.liqPrice,
 				collateralAmount: p.collateralAmount,

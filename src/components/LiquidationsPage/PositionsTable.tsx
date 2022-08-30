@@ -65,69 +65,59 @@ const NameCellWrapper = styled.div`
 
 const COLUMNS: IColumnProps[] = [
 	{
-		accessor: 'name',
-		header: 'Name',
+		accessor: 'protocolName',
+		header: 'Protocol',
 		disableSortBy: true,
 		Cell: (props: CellProps) => {
-			const stackBy = useStackBy()
-			if (stackBy === 'protocols') {
-				return <ProtocolNameCell {...props} />
-			} else {
-				return <ChainNameCell {...props} />
-			}
+			return <ProtocolNameCell {...props} />
 		}
 	},
-	// {
-	// 	accessor: 'positionsCount',
-	// 	header: 'Open Positions',
-	// 	helperText:
-	// 		'Number of open positions on lending protocols that are liquidatable, meaning that the deposits are used as collateral to borrow assets.'
-	// },
 	{
-		accessor: 'changes24h',
-		header: '24h Change',
-		helperText: 'Liquidatable amount change in the last 24 hours.',
+		accessor: 'chainName',
+		header: 'Chain',
+		disableSortBy: true,
+		Cell: (props: CellProps) => {
+			return <ChainNameCell {...props} />
+		}
+	},
+	{
+		accessor: 'owner',
+		header: 'Owner',
 		Cell: ({ value }: CellProps) => {
-			const isNegative = value < 0
-			const isZero = value === 0
-			const isSmol = Math.abs(value as number) < 0.01
-
-			if (isZero || !value) {
-				return <span>-</span>
+			if (typeof value !== 'object') {
+				return <span>{value}</span>
 			}
-
-			if (isSmol) {
-				return (
-					<span style={{ color: isNegative ? '#F56565' : '#48BB78' }}>
-						{'<'}
-						{isNegative ? '-' : '+'}
-						{'0.01%'}
-					</span>
-				)
-			}
-
-			const _value = (value as number).toFixed(2)
+			// cut middle, leave only first 6 and last 4 letters
 			return (
-				<span style={{ color: isNegative ? '#F56565' : '#48BB78' }}>
-					{isNegative ? '' : '+'}
-					{_value}%
-				</span>
+				<a href={value.url} target="_blank" rel="noopener noreferrer">
+					{value.displayName.length > 13
+						? `${value.displayName.substring(0, 6)}...${value.displayName.substring(value.displayName.length - 4)}`
+						: value.displayName}
+				</a>
 			)
 		}
 	},
 	{
-		accessor: 'liquidableAmount',
-		header: 'Liquidatable Amount',
-		helperText: 'Total amount of liquidatable assets.',
+		accessor: 'value',
+		header: 'Value',
+		helperText: 'USD worth of liquidatable assets.',
 		Cell: ({ value }: CellProps) => {
 			const _value = getReadableValue(value as number)
 			return <span>${_value}</span>
 		}
 	},
 	{
-		accessor: 'dangerousAmount',
-		header: 'Amount within -20%',
-		helperText: 'Amount of liquidable positions that are within -20% of liquidation price.',
+		accessor: 'amount',
+		header: 'Amount',
+		helperText: 'Token amount of liquidatable assets.',
+		Cell: ({ value }: CellProps) => {
+			const _value = getReadableValue(value as number)
+			return <span>${_value}</span>
+		}
+	},
+	{
+		accessor: 'liqPrice',
+		header: 'Liquidation Price',
 		Cell: ({ value }: CellProps) => {
 			const _value = getReadableValue(value as number)
 			return <span>${_value}</span>
@@ -192,45 +182,44 @@ const TableStyled = styled(Table)`
 `
 
 export const PositionsTable = (props: { data: ChartData; prevData: ChartData }) => {
-	const stackBy = useStackBy()
+	const rows = props.data.topPositions.map((p) => ({
+		chainName: p.chain,
+		protocolName: p.protocol,
+		value: p.collateralValue,
+		amount: p.collateralAmount,
+		liqPrice: p.liqPrice,
+		owner: {
+			displayName: p.displayName,
+			url: p.url
+		}
+	})) as RowValues[]
 
-	const rowsSorted = useMemo(() => {
-		const rows: RowValues[] = Object.keys(props.data.totalLiquidables[stackBy]).map((name) => {
-			const current = props.data.totalLiquidables[stackBy][name]
-			const prev = props.prevData.totalLiquidables[stackBy][name]
-			const changes24h = ((current - prev) / prev) * 100
-			const liquidableAmount = current
-			const dangerousAmount = props.data.dangerousPositionsAmounts[stackBy][name]
-			// const positionsCount = props.data.positionsCount[stackBy][name]
-			return {
-				name,
-				changes24h,
-				liquidableAmount,
-				dangerousAmount
-				// positionsCount
-			}
-		})
-
-		return rows.sort((a, b) => {
-			return b.liquidableAmount - a.liquidableAmount
-		})
-	}, [props.data.totalLiquidables, props.prevData.totalLiquidables, props.data.dangerousPositionsAmounts, stackBy])
-
-	return <TableStyled columns={COLUMNS} data={rowsSorted} gap={'8px'} />
+	return <TableStyled columns={COLUMNS} data={rows} gap={'8px'} />
+	// return <pre>{JSON.stringify(rows[0], null, 2)}</pre>
 }
 
 type RowValues = {
-	name: string
-	// positionsCount: number
-	changes24h: number
-	liquidableAmount: number
-	dangerousAmount: number
+	chainName: string
+	protocolName: string
+	value: number
+	amount: number
+	liqPrice: number
+	owner: {
+		displayName: string
+		url: string
+	}
 }
 
 type CellProps = {
 	rowIndex: number
 	rowValues: RowValues
-	value: number | string
+	value:
+		| number
+		| string
+		| {
+				displayName: string
+				url: string
+		  }
 }
 
 type ProtocolSmolPartial = {
