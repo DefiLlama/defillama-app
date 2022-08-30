@@ -579,6 +579,7 @@ export const useCreatePeggedCharts = (
 						if (date < 1609372800) return
 						if (!backfilledChains.includes(selectedChain) && date < 1652241600) return
 						const mcap = unformattedTotalData[date] ?? 0
+						if (mcap === 0) return
 						return {
 							date: date,
 							Mcap: mcap,
