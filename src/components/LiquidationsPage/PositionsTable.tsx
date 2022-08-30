@@ -10,10 +10,10 @@ import { chainIconUrl } from '~/utils'
 import TokenLogo from '../TokenLogo'
 import Link from 'next/link'
 import { ExternalLink } from 'react-feather'
+import { SmolHints } from '~/pages/liquidations/[symbol]'
 
 const ProtocolNameCell = ({ value }: CellProps) => {
 	let _value: string
-	// alue === 'traderjoe' ? 'trader-joe' : value
 	switch (value) {
 		case 'traderjoe':
 			_value = 'trader-joe'
@@ -204,6 +204,10 @@ const TableStyled = styled(Table)`
 	}
 `
 
+const TableNoticeWrapper = styled.div`
+	margin-bottom: -1rem;
+`
+
 export const PositionsTable = (props: { data: ChartData; prevData: ChartData }) => {
 	const rows = props.data.topPositions.map((p) => ({
 		chainName: p.chain,
@@ -217,8 +221,18 @@ export const PositionsTable = (props: { data: ChartData; prevData: ChartData }) 
 		}
 	})) as RowValues[]
 
-	return <TableStyled columns={COLUMNS} data={rows} gap={'2px'} />
-	// return <pre>{JSON.stringify(rows[0], null, 2)}</pre>
+	return (
+		<>
+			<TableNoticeWrapper>
+				<SmolHints>
+					<i>
+						Displaying the largest {rows.length} positions out of {props.data.totalPositions} in total
+					</i>
+				</SmolHints>
+			</TableNoticeWrapper>
+			<TableStyled columns={COLUMNS} data={rows} gap={'2px'} />
+		</>
+	)
 }
 
 type RowValues = {

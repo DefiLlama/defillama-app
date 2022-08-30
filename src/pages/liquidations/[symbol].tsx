@@ -183,7 +183,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 	)
 }
 
-const SmolHints = styled.div`
+export const SmolHints = styled.div`
 	display: flex;
 	gap: 6px;
 	flex-direction: row;
