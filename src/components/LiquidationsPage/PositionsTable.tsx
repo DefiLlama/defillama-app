@@ -83,6 +83,7 @@ const COLUMNS: IColumnProps[] = [
 	{
 		accessor: 'owner',
 		header: 'Owner',
+		disableSortBy: true,
 		Cell: ({ value }: CellProps) => {
 			if (typeof value !== 'object') {
 				return <span>{value}</span>
@@ -99,27 +100,26 @@ const COLUMNS: IColumnProps[] = [
 	},
 	{
 		accessor: 'value',
-		header: 'Value',
-		helperText: 'USD worth of liquidatable assets.',
+		header: 'Value in USD',
 		Cell: ({ value }: CellProps) => {
-			const _value = getReadableValue(value as number)
+			const _value = (value as number).toLocaleString()
 			return <span>${_value}</span>
 		}
 	},
 	{
 		accessor: 'amount',
-		header: 'Amount',
-		helperText: 'Token amount of liquidatable assets.',
+		header: 'Token Amount',
 		Cell: ({ value }: CellProps) => {
-			const _value = getReadableValue(value as number)
-			return <span>${_value}</span>
+			const _value = (value as number).toLocaleString()
+			return <span>{_value}</span>
 		}
 	},
 	{
 		accessor: 'liqPrice',
 		header: 'Liquidation Price',
+		helperText: 'Liquidation price in USD.',
 		Cell: ({ value }: CellProps) => {
-			const _value = getReadableValue(value as number)
+			const _value = (value as number).toLocaleString()
 			return <span>${_value}</span>
 		}
 	}
