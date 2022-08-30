@@ -32,7 +32,7 @@ export default function Protocols({ protocols }) {
 				better access and security
 			</Banner>
 
-			<Search data={protocols} open={true} flip={false} onItemClick={onItemClick} autoFocus />
+			<Search data={protocols} flip={false} onItemClick={onItemClick} autoFocus />
 		</Layout>
 	)
 }
