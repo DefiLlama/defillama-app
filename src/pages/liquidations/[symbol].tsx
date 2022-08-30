@@ -19,7 +19,7 @@ import { LiquidationsContent } from '../../components/LiquidationsPage/Liquidati
 import styled from 'styled-components'
 import React, { useEffect, useState } from 'react'
 import { Clock } from 'react-feather'
-import { LiquidationsTable } from '../../components/LiquidationsPage/LiquidationsTable'
+import { ProtocolsTable } from '../../components/LiquidationsPage/ProtocolsTable'
 import SEO from '~/components/SEO'
 import { assetIconUrl } from '~/utils'
 import { Panel } from '~/components'
@@ -170,7 +170,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 				<Clock size={12} />
 				<i>Last updated {minutesAgo}min ago</i>
 			</SmolHints>
-			<LiquidationsTable data={data} prevData={prevData} />
+			<ProtocolsTable data={data} prevData={prevData} />
 		</Layout>
 	)
 }
