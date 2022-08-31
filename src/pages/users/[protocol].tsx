@@ -82,13 +82,13 @@ export default function Protocol({ data }) {
 					// -------------------------------- //
 					if (!allUsersByDate[day]) {
 						allUsersByDate[day] = {
-							'Total Users': 0,
+							'Daily Transactions': 0,
 							'Unique Users': 0
 						}
 					}
 
 					// -------------------------------- //
-					allUsersByDate[day]['Total Users'] += value.total_users
+					allUsersByDate[day]['Daily Transactions'] += value.total_users
 					allUsersByDate[day]['Unique Users'] += value.unique_users
 				})
 
@@ -195,7 +195,7 @@ export default function Protocol({ data }) {
 						<BarChart
 							chartData={allUserTypes}
 							title="All Users"
-							stacks={{ 'Unique Users': 'stackA', 'Total Users': 'stackB' }}
+							stacks={{ 'Daily Transactions': 'stackA', 'Unique Users': 'stackB' }}
 							height="400px"
 						/>
 					</LazyChartWrapper>
@@ -205,16 +205,14 @@ export default function Protocol({ data }) {
 							title="Unique Users"
 							stacks={uniqueUsersChartStacks}
 							height="400px"
-							barWidths={{ stackB: 5 }}
 						/>
 					</LazyChartWrapper>
 					<LazyChartWrapper>
 						<BarChart
 							chartData={totalUsersChart}
-							title="Total Users"
+							title="Daily Transactions"
 							stacks={totalUsersChartStacks}
 							height="400px"
-							barWidths={{ stackB: 5 }}
 						/>
 					</LazyChartWrapper>
 				</>
@@ -249,5 +247,5 @@ function sortBarChartStacks(stacks: { [key: string]: 'string' }) {
 		}
 	}
 
-	return { All: stacks['All'], ...sorted, Others: stacks['Others'] }
+	return { ...sorted, Others: stacks['Others'] }
 }
