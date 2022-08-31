@@ -21,7 +21,9 @@ export default function BarChart({
 }: IBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
-	const defaultStacks = useMemo(() => {
+	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
+
+	const { defaultStacks, stackKeys } = useMemo(() => {
 		const values = stacks || {}
 
 		if ((!values || Object.keys(values).length === 0) && customLegendOptions) {
@@ -30,12 +32,8 @@ export default function BarChart({
 			})
 		}
 
-		return values
+		return { defaultStacks: values, stackKeys: Object.keys(values) }
 	}, [stacks, customLegendOptions])
-
-	const stackKeys = Object.keys(defaultStacks)
-
-	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 
 	const defaultChartSettings = useDefaults({
 		color,
