@@ -455,10 +455,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		name: 'FTX Token',
 		symbol: 'FTT'
 	},
-	{
-		name: 'Compound',
-		symbol: 'COMP'
-	},
+	// {
+	// 	name: 'Compound',
+	// 	symbol: 'COMP'
+	// },
 	{
 		name: 'Uniswap',
 		symbol: 'UNI'
