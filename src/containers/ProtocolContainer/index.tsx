@@ -240,12 +240,6 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const queryParams = router.asPath.split('?')[1] ? `?${router.asPath.split('?')[1]}` : ''
 
-	const barChartStacks =
-		tokensUnique?.reduce((acc, curr) => {
-			acc[curr] = 'stackA'
-			return acc
-		}, {}) ?? {}
-
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />

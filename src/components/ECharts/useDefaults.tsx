@@ -35,9 +35,10 @@ interface IUseDefaultsProps {
 	title: string
 	tooltipSort?: boolean
 	valueSymbol?: string
+	hideLegend?: boolean
 }
 
-export function useDefaults({ color, title, tooltipSort = true, valueSymbol = '' }: IUseDefaultsProps) {
+export function useDefaults({ color, title, tooltipSort = true, valueSymbol = '', hideLegend }: IUseDefaultsProps) {
 	const [isDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -63,7 +64,15 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 			}
 		}
 
-		const grid = { left: 20, containLabel: true, bottom: 60, top: title === '' ? 20 : 48, right: 20 }
+		const gridTop = !hideLegend && isSmall ? 48 : 0
+
+		const grid = {
+			left: 20,
+			containLabel: true,
+			bottom: 60,
+			top: title === '' ? gridTop + 20 : gridTop + 48,
+			right: 20
+		}
 
 		const tooltip = {
 			trigger: 'axis',
@@ -148,7 +157,8 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 				fontSize: 12,
 				fontWeight: 400,
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			}
+			},
+			top: !hideLegend && isSmall ? 30 : 0
 		}
 
 		const dataZoom = [
@@ -198,7 +208,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 		]
 
 		return { graphic, grid, titleDefaults, tooltip, xAxis, yAxis, legend, dataZoom }
-	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol])
+	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol, hideLegend])
 
 	return defaults
 }

@@ -12,7 +12,7 @@ export default function BarChart({
 	valueSymbol = '',
 	title,
 	color,
-	hideDefaultLegend,
+	hideDefaultLegend = false,
 	customLegendName,
 	customLegendOptions,
 	chartOptions,
@@ -38,7 +38,8 @@ export default function BarChart({
 	const defaultChartSettings = useDefaults({
 		color,
 		title,
-		valueSymbol
+		valueSymbol,
+		hideLegend: hideDefaultLegend
 	})
 
 	const series = useMemo(() => {
@@ -104,8 +105,7 @@ export default function BarChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, legend, dataZoom } = defaultChartSettings
-
+		// override default chart settings
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
 				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
@@ -113,6 +113,8 @@ export default function BarChart({
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
+
+		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, legend, dataZoom } = defaultChartSettings
 
 		chartInstance.setOption({
 			graphic: {

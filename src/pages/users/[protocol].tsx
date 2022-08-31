@@ -1,9 +1,8 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
-import { useFetchProtocolUserMetrics } from '~/api/categories/users/client'
 import FormattedName from '~/components/FormattedName'
-import { Name, ChartsWrapper, LazyChart, ChartsPlaceholder } from '~/components/ProtocolAndPool'
+import { Name, ChartsWrapper, LazyChart } from '~/components/ProtocolAndPool'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
 import Layout from '~/layout'
@@ -11,6 +10,8 @@ import { capitalizeFirstLetter, tokenIconUrl } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import styled from 'styled-components'
 import { SelectLegendMultiple } from '~/components/ECharts/shared'
+import { revalidate } from '~/api'
+import { USER_METRICS_PROTOCOL_API } from '~/constants'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -26,15 +27,28 @@ interface IAllChains {
 	'Unique Users': number
 }
 
-// TODO add comments
+export async function getStaticPaths() {
+	const paths = []
 
-// generate this page statically and use color based on protocol logo
-export default function Protocol() {
+	return { paths, fallback: 'blocking' }
+}
+
+export async function getStaticProps({ params }) {
+	const data = await fetch(`${USER_METRICS_PROTOCOL_API}/${params.protocol}`).then((res) => res.json())
+
+	return {
+		props: {
+			data,
+			revalidate: revalidate()
+		}
+	}
+}
+
+// TODO add comments
+export default function Protocol({ data }) {
 	const { query } = useRouter()
 
 	const protocolName = typeof query.protocol === 'string' ? query.protocol : null
-
-	const { data, loading } = useFetchProtocolUserMetrics(protocolName)
 
 	// get unique chains
 	const chains = React.useMemo(() => {
@@ -176,56 +190,37 @@ export default function Protocol() {
 			</SectionHeaderWrapper>
 
 			<ChartsWrapper>
-				{loading ? (
-					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
-				) : (
-					<>
-						<LazyChartWrapper>
-							<BarChart
-								chartData={allUserTypes}
-								title="All Users"
-								stacks={{ 'Unique Users': 'stackA', 'Total Users': 'stackB' }}
-							/>
-						</LazyChartWrapper>
-						<LazyChartWrapper>
-							<BarChart
-								chartData={uniqueUsersChart}
-								title="Unique Users"
-								stacks={uniqueUsersChartStacks}
-								chartOptions={chartOptions}
-								height="400px"
-								barWidths={{ stackB: 5 }}
-							/>
-						</LazyChartWrapper>
-						<LazyChartWrapper>
-							<BarChart
-								chartData={totalUsersChart}
-								title="Total Users"
-								stacks={totalUsersChartStacks}
-								chartOptions={chartOptions}
-								height="400px"
-								barWidths={{ stackB: 5 }}
-							/>
-						</LazyChartWrapper>
-					</>
-				)}
+				<>
+					<LazyChartWrapper>
+						<BarChart
+							chartData={allUserTypes}
+							title="All Users"
+							stacks={{ 'Unique Users': 'stackA', 'Total Users': 'stackB' }}
+							height="400px"
+						/>
+					</LazyChartWrapper>
+					<LazyChartWrapper>
+						<BarChart
+							chartData={uniqueUsersChart}
+							title="Unique Users"
+							stacks={uniqueUsersChartStacks}
+							height="400px"
+							barWidths={{ stackB: 5 }}
+						/>
+					</LazyChartWrapper>
+					<LazyChartWrapper>
+						<BarChart
+							chartData={totalUsersChart}
+							title="Total Users"
+							stacks={totalUsersChartStacks}
+							height="400px"
+							barWidths={{ stackB: 5 }}
+						/>
+					</LazyChartWrapper>
+				</>
 			</ChartsWrapper>
 		</Layout>
 	)
-}
-
-const chartOptions = {
-	grid: {
-		top: '80px'
-	},
-	yAxis: {
-		position: 'right'
-	},
-	legend: {
-		align: 'left',
-		top: 30,
-		left: 0
-	}
 }
 
 const LazyChartWrapper = styled(LazyChart)`
