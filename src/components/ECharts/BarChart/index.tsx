@@ -12,17 +12,30 @@ export default function BarChart({
 	valueSymbol = '',
 	title,
 	color,
-	hideLegend,
+	hideDefaultLegend,
 	customLegendName,
+	customLegendOptions,
 	chartOptions,
 	height = '360px',
 	barWidths
 }: IBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
-	const stackKeys = stacks && Object.keys(stacks)
+	const defaultStacks = useMemo(() => {
+		const values = stacks || {}
 
-	const [legendOptions, setLegendOptions] = useState(stackKeys)
+		if ((!values || Object.keys(values).length === 0) && customLegendOptions) {
+			customLegendOptions.forEach((name) => {
+				values[name] = 'stackA'
+			})
+		}
+
+		return values
+	}, [stacks, customLegendOptions])
+
+	const stackKeys = Object.keys(defaultStacks)
+
+	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -58,8 +71,8 @@ export default function BarChart({
 				return {
 					name: stack,
 					type: 'bar',
-					stack: stacks[stack],
-					...(barWidths?.[stacks[stack]] && { barWidth: barWidths[stacks[stack]] }),
+					stack: defaultStacks[stack],
+					...(barWidths?.[defaultStacks[stack]] && { barMaxWidth: barWidths[defaultStacks[stack]] }),
 					emphasis: {
 						focus: 'series',
 						shadowBlur: 10
@@ -73,7 +86,7 @@ export default function BarChart({
 
 			chartData.forEach(({ date, ...item }) => {
 				stackKeys.forEach((stack) => {
-					if (legendOptions.includes(stack)) {
+					if (legendOptions && customLegendName ? legendOptions.includes(stack) : true) {
 						series.find((t) => t.name === stack)?.data.push([new Date(date * 1000), item[stack] || 0])
 					}
 				})
@@ -81,7 +94,7 @@ export default function BarChart({
 
 			return series
 		}
-	}, [chartData, color, stacks, stackKeys, legendOptions, barWidths])
+	}, [barWidths, chartData, color, customLegendName, defaultStacks, legendOptions, stackKeys])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -122,7 +135,7 @@ export default function BarChart({
 			yAxis: {
 				...yAxis
 			},
-			...((hideLegend || !customLegendName) && {
+			...(!hideDefaultLegend && {
 				legend: {
 					...legend,
 					data: stackKeys
@@ -142,13 +155,13 @@ export default function BarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, hideLegend, customLegendName, stackKeys, chartOptions])
+	}, [createInstance, defaultChartSettings, series, hideDefaultLegend, stackKeys, chartOptions])
 
 	return (
 		<div style={{ position: 'relative' }}>
-			{stackKeys?.length > 1 && !hideLegend && customLegendName && (
+			{customLegendName && customLegendOptions?.length > 1 && (
 				<SelectLegendMultiple
-					allOptions={stackKeys}
+					allOptions={customLegendOptions}
 					options={legendOptions}
 					setOptions={setLegendOptions}
 					title={legendOptions.length === 1 ? customLegendName : customLegendName + 's'}

@@ -465,9 +465,9 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 									<LazyChart>
 										<AreaChart
 											chartData={chainsSplit}
-											stacks={chainsUnique}
 											title="Chains"
 											customLegendName="Chain"
+											customLegendOptions={chainsUnique}
 											valueSymbol="$"
 										/>
 									</LazyChart>
@@ -477,8 +477,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 										<AreaChart
 											chartData={tokenBreakdown}
 											title="Tokens"
-											stacks={tokensUnique}
 											customLegendName="Token"
+											customLegendOptions={tokensUnique}
 										/>
 									</LazyChart>
 								)}
@@ -487,8 +487,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 										<AreaChart
 											chartData={tokenBreakdownUSD}
 											title="Tokens (USD)"
-											stacks={tokensUnique}
 											customLegendName="Token"
+											customLegendOptions={tokensUnique}
 											valueSymbol="$"
 										/>
 									</LazyChart>
@@ -503,8 +503,9 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 										<BarChart
 											chartData={tokenInflows}
 											title="Token Inflows"
-											stacks={barChartStacks}
 											customLegendName="Token"
+											customLegendOptions={tokensUnique}
+											hideDefaultLegend={true}
 											valueSymbol="$"
 										/>
 									</LazyChart>

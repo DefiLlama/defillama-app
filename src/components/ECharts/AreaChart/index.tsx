@@ -19,17 +19,18 @@ export default function AreaChart({
 	title,
 	color,
 	hallmarks,
-	hideLegend,
 	customLegendName,
+	customLegendOptions,
 	tooltipSort = true,
 	chartOptions,
 	height = '360px',
 	...props
 }: IChartProps) {
-	// For Tokens Chart
-	const [legendOptions, setLegendOptions] = useState<string[]>(stacks)
-
 	const id = useMemo(() => uuid(), [])
+
+	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
+
+	const chartsStack = stacks || customLegendOptions
 
 	const [isDark] = useDarkModeManager()
 
@@ -43,7 +44,7 @@ export default function AreaChart({
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
 
-		if (!stacks || stacks?.length === 0) {
+		if (!chartsStack || chartsStack.length === 0) {
 			const series = {
 				name: '',
 				type: 'line',
@@ -100,7 +101,7 @@ export default function AreaChart({
 
 			return series
 		} else {
-			const series = stacks.map((token, index) => {
+			const series = chartsStack.map((token, index) => {
 				return {
 					name: token,
 					type: 'line',
@@ -154,16 +155,16 @@ export default function AreaChart({
 			})
 
 			chartData.forEach(({ date, ...item }) => {
-				stacks.forEach((token) => {
-					if (legendOptions.includes(token) || !customLegendName) {
-						series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
+				chartsStack.forEach((stack) => {
+					if (legendOptions && customLegendName ? legendOptions.includes(stack) : true) {
+						series.find((t) => t.name === stack)?.data.push([new Date(date * 1000), item[stack] || 0])
 					}
 				})
 			})
 
 			return series
 		}
-	}, [chartData, stacks, color, isDark, legendOptions, hallmarks, customLegendName])
+	}, [chartData, chartsStack, color, customLegendName, hallmarks, isDark, legendOptions])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -218,16 +219,14 @@ export default function AreaChart({
 		}
 	}, [createInstance, defaultChartSettings, series, chartOptions])
 
-	const legendName = title === 'Chains' ? 'Chain' : 'Token'
-
 	return (
 		<div style={{ position: 'relative' }} {...props}>
-			{stacks?.length > 1 && !hideLegend && customLegendName && (
+			{customLegendName && customLegendOptions?.length > 1 && (
 				<SelectLegendMultiple
-					allOptions={stacks}
+					allOptions={customLegendOptions}
 					options={legendOptions}
 					setOptions={setLegendOptions}
-					title={legendOptions.length === 1 ? legendName : legendName + 's'}
+					title={legendOptions.length === 1 ? customLegendName : customLegendName + 's'}
 				/>
 			)}
 			<Wrapper id={id} style={{ height, margin: 'auto 0' }}></Wrapper>

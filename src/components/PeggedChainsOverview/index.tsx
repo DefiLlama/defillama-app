@@ -397,7 +397,7 @@ function PeggedChainsOverview({
 							chartData={peggedAreaTotalData}
 							stacks={totalMcapLabel}
 							color={'lightcoral'}
-							hideLegend={true}
+							hideDefaultLegend={true}
 							valueSymbol="$"
 						/>
 					)}

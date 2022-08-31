@@ -43,7 +43,7 @@ export default function Protocol() {
 
 	const { data, loading } = useFetchProtocolUserMetrics(protocolName)
 
-	const { allUserTypes, uniqueUsersChart, uniqueUsersChartStacks, totalUsersChart, totalUsersChartStacks } =
+	const { chains, allUserTypes, uniqueUsersChart, uniqueUsersChartStacks, totalUsersChart, totalUsersChartStacks } =
 		React.useMemo(() => {
 			const sortedData = data?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime())
 
@@ -53,8 +53,8 @@ export default function Protocol() {
 					acc.add(curr.chain)
 
 					return acc
-				}, new Set()) ?? []
-			)
+				}, new Set()) ?? new Set()
+			) as Array<string>
 
 			const allUsersByDate = {}
 			const uniqueUsersByDate = {}
