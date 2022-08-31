@@ -254,7 +254,7 @@ function PeggedChainsOverview({
 	chainsGroupbyParent,
 	chainTVLData
 }) {
-	const [chartType, setChartType] = useState('Area')
+	const [chartType, setChartType] = useState('Pie')
 
 	const belowMed = useMed()
 	const belowXl = useXl()

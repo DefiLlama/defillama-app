@@ -227,7 +227,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	const LIQUIDATIONS_DATA_URL =
 		timePassed === 0
 			? LIQUIDATIONS_API
-			: LIQUIDATIONS_HISTORICAL_S3_PATH + `/${Math.floor((now - timePassed) / 3600)}.json`
+			: LIQUIDATIONS_HISTORICAL_S3_PATH + `/${Math.floor((now - timePassed) / 3600 / 6) * 6}.json`
 
 	let raw: LiquidationsApiResponse
 	try {
