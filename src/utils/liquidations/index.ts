@@ -19,6 +19,10 @@ export interface Liq {
 	liqPrice: number
 	collateral: PrefixAddress
 	collateralAmount: string
+	extra?: {
+		displayName?: string
+		url: string
+	}
 }
 
 export interface Position {
@@ -29,7 +33,11 @@ export interface Position {
 	chain: Chain
 	protocol: Protocol // protocol adapter id, like "aave-v2", "liquity"...
 	collateral: PrefixAddress // token address formatted as "ethereum:0x1234..."
+	displayName?: string
+	url: string
 }
+
+export type PositionSmol = Omit<Position, 'collateral' | 'owner'>
 
 export type Price = {
 	decimals: number
@@ -90,9 +98,16 @@ async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: Pro
 				collateralAmount: collateralAmountRaw.toNumber(),
 				chain: price.chain,
 				protocol: protocol,
-				collateral: liq.collateral.toLowerCase()
+				collateral: liq.collateral.toLowerCase(),
+				displayName: liq.extra?.displayName ?? liq.owner,
+				url: liq.extra?.url
 			})
 		}
+	}
+
+	for (const symbol in aggregatedData.keys()) {
+		// array.sort is in place
+		aggregatedData.get(symbol)!.positions.sort((a, b) => b.collateralValue - a.collateralValue)
 	}
 
 	return aggregatedData
@@ -152,6 +167,8 @@ export type ChartData = {
 		chains: string[]
 	}
 	time: number
+	topPositions: PositionSmol[]
+	totalPositions: number
 }
 
 export interface ChartDataBins {
@@ -272,7 +289,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		return acc
 	}, {} as { [chain: string]: number })
 
-	const dangerousPositions = positions.filter((p) => p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice)
+	const dangerousPositions = validPositions.filter((p) => p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice)
 	const dangerousPositionsAmount = dangerousPositions.reduce((acc, p) => acc + p.collateralValue, 0)
 	const dangerousPositionsAmountByProtocol = protocols.reduce((acc, protocol) => {
 		acc[protocol] = dangerousPositions.filter((p) => p.protocol === protocol).reduce((a, p) => a + p.collateralValue, 0)
@@ -282,6 +299,19 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		acc[chain] = dangerousPositions.filter((p) => p.chain === chain).reduce((a, p) => a + p.collateralValue, 0)
 		return acc
 	}, {} as { [chain: string]: number })
+
+	const topPositions = [...validPositions]
+		.sort((a, b) => b.collateralValue - a.collateralValue)
+		.slice(0, 100) // hardcoded to first 100
+		.map((p) => ({
+			liqPrice: p.liqPrice,
+			collateralAmount: p.collateralAmount,
+			collateralValue: p.collateralValue,
+			protocol: p.protocol,
+			chain: p.chain,
+			url: p?.url ?? null,
+			displayName: p?.displayName ?? null
+		}))
 
 	const chartData: ChartData = {
 		symbol,
@@ -313,7 +343,9 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 			protocols,
 			chains
 		},
-		time: raw.time
+		time: raw.time,
+		topPositions,
+		totalPositions: validPositions.length
 	}
 
 	return chartData

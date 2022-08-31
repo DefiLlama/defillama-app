@@ -19,12 +19,14 @@ import { LiquidationsContent } from '../../components/LiquidationsPage/Liquidati
 import styled from 'styled-components'
 import React, { useEffect, useState } from 'react'
 import { Clock } from 'react-feather'
-import { LiquidationsTable } from '../../components/LiquidationsPage/LiquidationsTable'
+import { ProtocolsTable } from '../../components/LiquidationsPage/ProtocolsTable'
 import SEO from '~/components/SEO'
 import { assetIconUrl } from '~/utils'
 import { Panel } from '~/components'
-import TokenLogo from '~/components/TokenLogo'
 import Image from 'next/image'
+import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
+import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
+import { PositionsTable } from '~/components/LiquidationsPage/PositionsTable'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = (params.symbol as string).toLowerCase()
@@ -113,6 +115,10 @@ const StyledAnchor = styled.a`
 
 const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> = (props) => {
 	const { data, prevData } = props
+	const [liqsSettings] = useLiqsManager()
+	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
+	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
+
 	const asset = DEFAULT_ASSETS_LIST.find((x) => x.symbol.toLowerCase() === data.symbol.toLowerCase())
 
 	const [minutesAgo, setMinutesAgo] = useState(Math.round((Date.now() - data.time * 1000) / 1000 / 60))
@@ -170,12 +176,14 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 				<Clock size={12} />
 				<i>Last updated {minutesAgo}min ago</i>
 			</SmolHints>
-			<LiquidationsTable data={data} prevData={prevData} />
+			<TableSwitch />
+			{isLiqsShowingInspector && <PositionsTable data={data} prevData={prevData} />}
+			{!isLiqsShowingInspector && <ProtocolsTable data={data} prevData={prevData} />}
 		</Layout>
 	)
 }
 
-const SmolHints = styled.div`
+export const SmolHints = styled.div`
 	display: flex;
 	gap: 6px;
 	flex-direction: row;
