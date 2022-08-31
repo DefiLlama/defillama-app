@@ -75,7 +75,7 @@ const COLUMNS: IColumnProps[] = [
 	{
 		accessor: 'protocolName',
 		header: 'Protocol',
-		disableSortBy: true,
+		// disableSortBy: true,
 		Cell: (props: CellProps) => {
 			return <ProtocolNameCell {...props} />
 		}
@@ -83,7 +83,7 @@ const COLUMNS: IColumnProps[] = [
 	{
 		accessor: 'chainName',
 		header: 'Chain',
-		disableSortBy: true,
+		// disableSortBy: true,
 		Cell: (props: CellProps) => {
 			return <ChainNameCell {...props} />
 		}
@@ -153,7 +153,16 @@ const TableStyled = styled(Table)`
 
 	tr > *:nth-child(1) {
 		display: none;
+		width: 10rem;
 		& > * {
+			justify-content: flex-start;
+			text-align: start;
+			overflow: hidden;
+			white-space: nowrap;
+		}
+		& > * > button {
+			width: revert;
+			justify-content: flex-start;
 			overflow: hidden;
 			white-space: nowrap;
 		}
@@ -167,7 +176,19 @@ const TableStyled = styled(Table)`
 
 	tr > *:nth-child(2) {
 		display: none;
-		text-align: start;
+		width: 10rem;
+		& > * {
+			justify-content: flex-start;
+			text-align: start;
+			overflow: hidden;
+			white-space: nowrap;
+		}
+		& > * > button {
+			width: revert;
+			justify-content: flex-start;
+			overflow: hidden;
+			white-space: nowrap;
+		}
 	}
 
 	@media screen and (min-width: 80rem) {
