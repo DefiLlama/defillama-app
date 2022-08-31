@@ -3,21 +3,14 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useFetchProtocolUserMetrics } from '~/api/categories/users/client'
 import FormattedName from '~/components/FormattedName'
-import {
-	DetailsWrapper,
-	Name,
-	StatsSection,
-	ChartsWrapper,
-	LazyChart,
-	ChartWrapper,
-	ChartsPlaceholder
-} from '~/components/ProtocolAndPool'
+import { Name, ChartsWrapper, LazyChart, ChartsPlaceholder } from '~/components/ProtocolAndPool'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
 import Layout from '~/layout'
 import { capitalizeFirstLetter, tokenIconUrl } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import styled from 'styled-components'
+import { SelectLegendMultiple } from '~/components/ECharts/shared'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -43,18 +36,22 @@ export default function Protocol() {
 
 	const { data, loading } = useFetchProtocolUserMetrics(protocolName)
 
-	const { chains, allUserTypes, uniqueUsersChart, uniqueUsersChartStacks, totalUsersChart, totalUsersChartStacks } =
+	// get unique chains
+	const chains = React.useMemo(() => {
+		return Array.from(
+			data?.reduce((acc, curr) => {
+				acc.add(curr.chain)
+
+				return acc
+			}, new Set()) ?? new Set()
+		) as Array<string>
+	}, [data])
+
+	const [selectedChains, setSelectedChains] = React.useState(chains)
+
+	const { allUserTypes, uniqueUsersChart, uniqueUsersChartStacks, totalUsersChart, totalUsersChartStacks } =
 		React.useMemo(() => {
 			const sortedData = data?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime())
-
-			// get unique chains
-			const chains = Array.from(
-				sortedData?.reduce((acc, curr) => {
-					acc.add(curr.chain)
-
-					return acc
-				}, new Set()) ?? new Set()
-			) as Array<string>
 
 			const allUsersByDate = {}
 			const uniqueUsersByDate = {}
@@ -62,7 +59,7 @@ export default function Protocol() {
 			const totalUsersByDate = {}
 			const totalUsersChartStacks = {}
 
-			chains?.forEach((chain) => {
+			selectedChains?.forEach((chain) => {
 				const allUsers = sortedData?.filter((item) => item.chain === chain && item.column_type === 'all')
 
 				allUsers.forEach((value) => {
@@ -89,13 +86,13 @@ export default function Protocol() {
 					// -------------------------------- //
 					if (!uniqueUsersByDate[day]) {
 						uniqueUsersByDate[day] = {
-							Remaining: 0
+							Others: 0
 						}
 					}
 
 					if (!totalUsersByDate[day]) {
 						totalUsersByDate[day] = {
-							Remaining: 0
+							Others: 0
 						}
 					}
 
@@ -107,19 +104,19 @@ export default function Protocol() {
 						totalUsersChartStacks[columnType] = 'stackA'
 
 						// -------------------------------- //
-						uniqueUsersByDate[day]['Remaining'] += value.unique_users
-						totalUsersByDate[day]['Remaining'] += value.total_users
+						uniqueUsersByDate[day]['Others'] += value.unique_users
+						totalUsersByDate[day]['Others'] += value.total_users
 					} else {
 						uniqueUsersChartStacks[columnType] = 'stackB'
 						totalUsersChartStacks[columnType] = 'stackB'
 
 						// -------------------------------- //
-						uniqueUsersChartStacks['Remaining'] = 'stackB'
-						totalUsersChartStacks['Remaining'] = 'stackB'
+						uniqueUsersChartStacks['Others'] = 'stackB'
+						totalUsersChartStacks['Others'] = 'stackB'
 
 						// -------------------------------- //
-						uniqueUsersByDate[day]['Remaining'] -= value.unique_users
-						totalUsersByDate[day]['Remaining'] -= value.total_users
+						uniqueUsersByDate[day]['Others'] -= value.unique_users
+						totalUsersByDate[day]['Others'] -= value.total_users
 					}
 
 					// -------------------------------- //
@@ -153,49 +150,43 @@ export default function Protocol() {
 			}))
 
 			return {
-				chains,
 				allUserTypes,
 				uniqueUsersChart,
 				uniqueUsersChartStacks: sortBarChartStacks(uniqueUsersChartStacks),
 				totalUsersChart,
 				totalUsersChartStacks: sortBarChartStacks(totalUsersChartStacks)
 			}
-		}, [data])
+		}, [data, selectedChains])
 
 	return (
 		<Layout title={`${protocolName} User Metrics - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch />
 
-			<StatsSection>
-				<DetailsWrapper>
-					<Name>
-						<TokenLogo logo={tokenIconUrl(protocolName)} size={24} />
-						<FormattedName text={protocolName ? protocolName + ' ' : ''} maxCharacters={16} fontWeight={700} />
-					</Name>
-
-					{/* <StatWrapper>
-						<Stat>
-							<span>Total Users</span>
-							<span></span>
-						</Stat>
-					</StatWrapper> */}
-				</DetailsWrapper>
-				<ChartWrapper>
-					{!loading && data && (
-						<BarChart
-							chartData={allUserTypes}
-							title=""
-							stacks={{ 'Unique Users': 'stackA', 'Total Users': 'stackB' }}
-						/>
-					)}
-				</ChartWrapper>
-			</StatsSection>
+			<SectionHeaderWrapper>
+				<Name>
+					<TokenLogo logo={tokenIconUrl(protocolName)} size={24} />
+					<FormattedName text={protocolName ? protocolName + ' ' : ''} maxCharacters={16} fontWeight={700} />
+				</Name>
+				<SelectLegendMultiple
+					allOptions={chains}
+					options={selectedChains}
+					setOptions={setSelectedChains}
+					title={selectedChains.length === 1 ? 'Chain' : 'Chains'}
+				/>
+			</SectionHeaderWrapper>
 
 			<ChartsWrapper>
 				{loading ? (
 					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
 				) : (
 					<>
+						<LazyChartWrapper>
+							<BarChart
+								chartData={allUserTypes}
+								title="All Users"
+								stacks={{ 'Unique Users': 'stackA', 'Total Users': 'stackB' }}
+							/>
+						</LazyChartWrapper>
 						<LazyChartWrapper>
 							<BarChart
 								chartData={uniqueUsersChart}
@@ -242,14 +233,26 @@ const LazyChartWrapper = styled(LazyChart)`
 	min-height: 400px;
 `
 
+const SectionHeaderWrapper = styled.div`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	position: relative;
+
+	& > *:first-child {
+		margin-bottom: -16px;
+	}
+`
+
 function sortBarChartStacks(stacks: { [key: string]: 'string' }) {
 	const sorted = {}
 
 	for (const stack in stacks) {
-		if (stack !== 'All' && stack !== 'Remaining') {
+		if (stack !== 'All' && stack !== 'Others') {
 			sorted[stack] = stacks[stack]
 		}
 	}
 
-	return { All: stacks['All'], ...sorted, Remaining: stacks['Remaining'] }
+	return { All: stacks['All'], ...sorted, Others: stacks['Others'] }
 }
