@@ -50,7 +50,8 @@ const blockExplorers = {
 	arbitrum_nova: ['https://nova-explorer.arbitrum.io/address/', 'NovaExplorer'],
 	ultron: ['https://ulxscan.com/address/', 'ulxscan'],
 	juno: ['https://www.mintscan.io/juno/assets/', 'Mintscan Juno'],
-	tombchain: ['https://tombscout.com/address/', 'Tombchain Explorer']
+	tombchain: ['https://tombscout.com/address/', 'Tombchain Explorer'],
+	canto: ['https://evm.explorer.canto.io/tokens/', 'Canto Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {

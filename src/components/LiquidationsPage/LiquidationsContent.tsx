@@ -9,7 +9,7 @@ import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
 import { useStackBy } from './utils'
 import styled from 'styled-components'
 import ReactSwitch from 'react-switch'
-import { useLiqsManager } from '~/contexts/LocalStorage'
+import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 
 export const LiquidationsContent = (props: { data: ChartData; prevData: ChartData }) => {
 	const { data, prevData } = props
@@ -44,16 +44,16 @@ const CurrencyToggleWrapper = styled.div`
 `
 
 const CurrencyToggle = (props: { symbol: string }) => {
-	const [isLiqsUsingUsd, toggleLiqsUsingUsd] = useLiqsManager()
+	const [liqsSettings, toggleLiqsSettings] = useLiqsManager()
+	const { LIQS_USING_USD } = LIQS_SETTINGS
+	const isLiqsUsingUsd = liqsSettings[LIQS_USING_USD]
 
 	return (
 		<CurrencyToggleWrapper>
 			{props.symbol.toUpperCase()}
 			{/* @ts-ignore:next-line */}
 			<ReactSwitch
-				onChange={() => {
-					toggleLiqsUsingUsd()
-				}}
+				onChange={toggleLiqsSettings(LIQS_USING_USD)}
 				checked={isLiqsUsingUsd}
 				onColor="#0A71F1"
 				offColor="#0A71F1"
