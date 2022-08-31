@@ -16,10 +16,14 @@ export interface IChartProps {
 			[key: string]: string | number | boolean
 		}
 	}
+	height?: string
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks'> {
 	stacks?: {
 		[stack: string]: string
+	}
+	barWidths?: {
+		[stack: string]: number
 	}
 }

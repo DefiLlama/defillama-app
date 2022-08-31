@@ -100,7 +100,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 			}
 		}
 
-		const timeAsXAxis = {
+		const xAxis = {
 			type: 'time',
 			boundaryGap: false,
 			nameTextStyle: {
@@ -116,7 +116,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 			}
 		}
 
-		const valueAsYAxis = {
+		const yAxis = {
 			type: 'value',
 			axisLabel: {
 				formatter: (value) => valueSymbol + toK(value)
@@ -197,7 +197,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 			}
 		]
 
-		return { graphic, grid, titleDefaults, tooltip, timeAsXAxis, valueAsYAxis, legend, dataZoom }
+		return { graphic, grid, titleDefaults, tooltip, xAxis, yAxis, legend, dataZoom }
 	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol])
 
 	return defaults

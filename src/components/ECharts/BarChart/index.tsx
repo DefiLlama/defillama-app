@@ -14,7 +14,9 @@ export default function BarChart({
 	color,
 	hideLegend,
 	customLegendName,
-	chartOptions
+	chartOptions,
+	height = '360px',
+	barWidths
 }: IBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
@@ -57,6 +59,7 @@ export default function BarChart({
 					name: stack,
 					type: 'bar',
 					stack: stacks[stack],
+					...(barWidths?.[stacks[stack]] && { barWidth: barWidths[stacks[stack]] }),
 					emphasis: {
 						focus: 'series',
 						shadowBlur: 10
@@ -78,7 +81,7 @@ export default function BarChart({
 
 			return series
 		}
-	}, [chartData, color, stacks, stackKeys, legendOptions])
+	}, [chartData, color, stacks, stackKeys, legendOptions, barWidths])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -90,7 +93,7 @@ export default function BarChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, tooltip, timeAsXAxis, valueAsYAxis, legend, dataZoom } = defaultChartSettings
+		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, legend, dataZoom } = defaultChartSettings
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
@@ -114,10 +117,10 @@ export default function BarChart({
 				...grid
 			},
 			xAxis: {
-				...timeAsXAxis
+				...xAxis
 			},
 			yAxis: {
-				...valueAsYAxis
+				...yAxis
 			},
 			...((hideLegend || !customLegendName) && {
 				legend: {
@@ -151,7 +154,7 @@ export default function BarChart({
 					title={legendOptions.length === 1 ? customLegendName : customLegendName + 's'}
 				/>
 			)}
-			<div id={id} style={{ height: '360px', margin: 'auto 0' }}></div>
+			<div id={id} style={{ height, margin: 'auto 0' }}></div>
 		</div>
 	)
 }

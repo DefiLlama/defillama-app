@@ -23,6 +23,7 @@ export default function AreaChart({
 	customLegendName,
 	tooltipSort = true,
 	chartOptions,
+	height = '360px',
 	...props
 }: IChartProps) {
 	// For Tokens Chart
@@ -174,7 +175,7 @@ export default function AreaChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, tooltip, timeAsXAxis, valueAsYAxis, dataZoom } = defaultChartSettings
+		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
@@ -196,10 +197,10 @@ export default function AreaChart({
 				...grid
 			},
 			xAxis: {
-				...timeAsXAxis
+				...xAxis
 			},
 			yAxis: {
-				...valueAsYAxis
+				...yAxis
 			},
 			dataZoom: [...dataZoom],
 			series
@@ -229,7 +230,7 @@ export default function AreaChart({
 					title={legendOptions.length === 1 ? legendName : legendName + 's'}
 				/>
 			)}
-			<Wrapper id={id} style={{ height: '360px', margin: 'auto 0' }}></Wrapper>
+			<Wrapper id={id} style={{ height, margin: 'auto 0' }}></Wrapper>
 		</div>
 	)
 }
