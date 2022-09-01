@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import PeggedChainsOverview from '~/components/PeggedChainsOverview'
+import PeggedChainsOverview from '~/components/PeggedPage/PeggedChainsOverview'
 import { revalidate } from '~/api'
 import { getPeggedChainsPageData } from '~/api/categories/stablecoins'
 
