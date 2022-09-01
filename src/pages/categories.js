@@ -61,7 +61,8 @@ const descriptions = {
 	'Prediction Market': 'Protocols that allow you to wager/bet/buy in future results',
 	'Algo-Stables': 'From algorithmic coins to stablecoins',
 	'NFT Marketplace': 'Protocols where users can buy/sell/rent NFTs',
-	'NFT Lending': 'Protocols that allow you too colletarize your NFT for a loan',
+	'NFT Lending': 'Protocols that allow you too collateralize your NFT for a loan',
+	'RWA': 'Protocols that involve Real World Assets, such as house tokenization',
 	Farm: 'Lock money in exchange for their token',
 	'Liquid Staking': 'Rewards/Liquidity for staked assets',
 	Oracle: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)'
