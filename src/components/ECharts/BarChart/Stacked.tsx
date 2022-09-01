@@ -1,182 +1,84 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { LineChart } from 'echarts/charts'
+import { BarChart, BarChart as EBarChart, LineChart } from 'echarts/charts'
 import {
-	TooltipComponent,
-	TitleComponent,
-	GridComponent,
 	DataZoomComponent,
 	GraphicComponent,
-	MarkLineComponent
+	GridComponent,
+	LegendComponent,
+	TitleComponent,
+	ToolboxComponent,
+	TooltipComponent
 } from 'echarts/components'
 import { v4 as uuid } from 'uuid'
-import styled from 'styled-components'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { useMedia } from '~/hooks'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { toK } from '~/utils'
-import { stringToColour } from './utils'
-import { SelectLegendMultiple } from './shared'
-import { IChartProps } from './types'
+import { stringToColour } from '../utils'
+import type { IChartProps } from '../types'
+import 'echarts/lib/component/grid'
+import { UniversalTransition } from 'echarts/features'
 
 echarts.use([
+	EBarChart,
 	CanvasRenderer,
-	LineChart,
-	TooltipComponent,
 	TitleComponent,
+	ToolboxComponent,
+	TooltipComponent,
 	GridComponent,
+	LegendComponent,
+	BarChart,
+	LineChart,
+	CanvasRenderer,
+	UniversalTransition,
 	DataZoomComponent,
-	GraphicComponent,
-	MarkLineComponent
+	GraphicComponent
 ])
 
-const Wrapper = styled.div`
-	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
-`
+export interface IStackedBarChartProps extends Omit<IChartProps, 'title' | 'chartData'> {
+	title?: string
+	chartData: Array<{
+		name: string
+		data: [Date, number][]
+	}>
+}
 
-export default function AreaChart({
-	chartData,
-	tokensUnique,
-	moneySymbol = '$',
-	title,
-	color,
-	hallmarks,
-	hideLegend,
-	...props
-}: IChartProps) {
-	// For Tokens Chart
-	const [legendOptions, setLegendOptions] = useState<string[]>(tokensUnique)
+type series = Array<{
+	data: [Date, number][]
+	type: 'bar'
+	stack: 'value'
+}>
 
+export default function StackedBarChart({ chartData, valueSymbol = '$', title, color }: IStackedBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
 	const [isDark] = useDarkModeManager()
-
 	const series = useMemo(() => {
 		const chartColor = color || stringToColour()
-
-		if (!tokensUnique || tokensUnique?.length === 0) {
-			const series = {
-				name: '',
-				type: 'line',
+		const series: series = chartData.map((cd) => {
+			return {
+				name: cd.name,
+				type: 'bar',
 				stack: 'value',
+				data: cd.data,
 				emphasis: {
 					focus: 'series',
 					shadowBlur: 10
 				},
-				symbol: 'none',
-				itemStyle: {
-					color: chartColor
-				},
-				areaStyle: {
-					color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-						{
-							offset: 0,
-							color: chartColor
-						},
-						{
-							offset: 1,
-							color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-						}
-					])
-				},
-				data: [],
-				...(hallmarks && {
-					markLine: {
-						data: hallmarks.map(([date, event], index) => [
-							{
-								name: event,
-								xAxis: new Date(date * 1000),
-								yAxis: 0,
-								label: {
-									color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-									fontFamily: 'inter, sans-serif',
-									fontSize: 14,
-									fontWeight: 500
-								}
-							},
-							{
-								name: 'end',
-								xAxis: new Date(date * 1000),
-								yAxis: 'max',
-								y: Math.max(hallmarks.length * 40 - index * 40, 40)
-							}
-						])
-					}
-				})
+				itemStyle:
+					chartData.length <= 1
+						? {
+								color: chartColor
+						  }
+						: undefined
 			}
+		})
 
-			chartData.forEach(([date, value]) => {
-				series.data.push([new Date(date * 1000), value])
-			})
-
-			return series
-		} else {
-			const series = tokensUnique.map((token, index) => {
-				return {
-					name: token,
-					type: 'line',
-					emphasis: {
-						focus: 'series',
-						shadowBlur: 10
-					},
-					symbol: 'none',
-					itemStyle: {
-						color: index === 0 ? chartColor : null
-					},
-					areaStyle: {
-						color: hideLegend
-							? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-									{
-										offset: 0,
-										color: index === 0 ? chartColor : 'transparent'
-									},
-									{
-										offset: 1,
-										color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-									}
-							  ])
-							: null
-					},
-					data: [],
-					...(hallmarks && {
-						markLine: {
-							data: hallmarks.map(([date, event], index) => [
-								{
-									name: event,
-									xAxis: new Date(date * 1000),
-									yAxis: 0,
-									label: {
-										color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-										fontFamily: 'inter, sans-serif',
-										fontSize: 14,
-										fontWeight: 500
-									}
-								},
-								{
-									name: 'end',
-									xAxis: new Date(date * 1000),
-									yAxis: 'max',
-									y: Math.max(hallmarks.length * 40 - index * 40, 40)
-								}
-							])
-						}
-					})
-				}
-			})
-
-			chartData.forEach(({ date, ...item }) => {
-				tokensUnique.forEach((token) => {
-					if (legendOptions.includes(token) || hideLegend) {
-						series.find((t) => t.name === token)?.data.push([new Date(date * 1000), item[token] || 0])
-					}
-				})
-			})
-
-			return series
-		}
-	}, [chartData, tokensUnique, color, isDark, legendOptions, hallmarks, hideLegend])
+		return series
+	}, [chartData, color])
 
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -212,15 +114,15 @@ export default function AreaChart({
 					})
 
 					const vals = params
-						.sort((a, b) => (hideLegend ? 0 : a.value[1] - b.value[1])) // skip sort for mcap and tvl charts
+						.sort((a, b) => b.value[1] - a.value[1])
 						.reduce((prev, curr) => {
-							if (curr.value[1] !== 0 && curr.value[1] !== '-') {
+							if (curr.value[1] !== 0) {
 								return (prev +=
 									'<li style="list-style:none">' +
 									curr.marker +
 									curr.seriesName +
 									'&nbsp;&nbsp;' +
-									moneySymbol +
+									valueSymbol +
 									toK(curr.value[1]) +
 									'</li>')
 							} else return prev
@@ -241,7 +143,7 @@ export default function AreaChart({
 				left: 20,
 				containLabel: true,
 				bottom: 60,
-				top: title === '' ? 20 : 48,
+				top: 48,
 				right: 20
 			},
 			xAxis: {
@@ -262,7 +164,7 @@ export default function AreaChart({
 			yAxis: {
 				type: 'value',
 				axisLabel: {
-					formatter: (value) => moneySymbol + toK(value)
+					formatter: (value) => valueSymbol + toK(value)
 				},
 				axisLine: {
 					lineStyle: {
@@ -284,6 +186,7 @@ export default function AreaChart({
 					}
 				}
 			},
+			series,
 			dataZoom: [
 				{
 					type: 'inside',
@@ -328,8 +231,7 @@ export default function AreaChart({
 						return date.toLocaleDateString()
 					}
 				}
-			],
-			series
+			]
 		})
 
 		function resize() {
@@ -342,21 +244,11 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [color, id, isDark, isSmall, moneySymbol, series, title, createInstance, hideLegend])
-
-	const legendTitle = title === 'Chains' ? 'Chain' : 'Token'
+	}, [id, valueSymbol, title, createInstance, series, isDark, color, isSmall])
 
 	return (
-		<div style={{ position: 'relative' }} {...props}>
-			{tokensUnique?.length > 1 && !hideLegend && (
-				<SelectLegendMultiple
-					allOptions={tokensUnique}
-					options={legendOptions}
-					setOptions={setLegendOptions}
-					title={legendTitle + (legendOptions.length !== 1 ? 's' : '')}
-				/>
-			)}
-			<Wrapper id={id} style={{ height: '360px', margin: 'auto 0' }}></Wrapper>
+		<div style={{ position: 'relative' }}>
+			<div id={id} style={{ height: '360px', margin: 'auto 0' }}></div>
 		</div>
 	)
 }

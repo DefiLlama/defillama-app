@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { useInView, defaultFallbackInView } from 'react-intersection-observer'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
 import CopyHelper from '~/components/Copy'
@@ -14,9 +13,9 @@ import TokenLogo from '~/components/TokenLogo'
 import SEO from '~/components/SEO'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
-import ProtocolTvlChart from '~/components/TokenChart/ProtocolTvlChart'
+import ProtocolTvlChart from '~/components/ECharts/AreaChart/ProtocolTvl'
 import QuestionHelper from '~/components/QuestionHelper'
-import type { IChartProps } from '~/components/TokenChart/types'
+import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
@@ -42,20 +41,21 @@ import {
 	Stat,
 	StatsSection,
 	StatWrapper,
-	Symbol
+	Symbol,
+	ChartsWrapper,
+	LazyChart,
+	ChartsPlaceholder
 } from '~/components/ProtocolAndPool'
 import Bookmark from '~/components/Bookmark'
 import Tooltip from '~/components/Tooltip'
 
-defaultFallbackInView(true)
-
-const AreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
-}) as React.FC<IChartProps>
+}) as React.FC<IBarChartProps>
 
 const Bobo = styled.button`
 	position: absolute;
@@ -73,31 +73,6 @@ const Bobo = styled.button`
 		bottom: initial;
 		left: initial;
 		z-index: 1;
-	}
-`
-
-const ChartsWrapper = styled.section`
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	border-radius: 12px;
-	background: ${({ theme }) => theme.bg6};
-	border: ${({ theme }) => '1px solid ' + theme.divider};
-	box-shadow: ${({ theme }) => theme.shadowSm};
-`
-
-const ChartWrapper = styled.section`
-	grid-column: span 2;
-	min-height: 360px;
-	padding: 20px;
-	display: flex;
-	flex-direction: column;
-
-	@media screen and (min-width: 90rem) {
-		grid-column: span 1;
-
-		:last-child:nth-child(2n - 1) {
-			grid-column: span 2;
-		}
 	}
 `
 
@@ -294,9 +269,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
-						<Tooltip content="Bookmark" style={{ padding: '6px' }}>
-							<Bookmark readableProtocolName={name} />
-						</Tooltip>
+
+						<Bookmark readableProtocolName={name} />
 					</Name>
 
 					<StatWrapper>
@@ -477,43 +451,57 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 					<ChartsWrapper>
 						{loading ? (
-							<span
-								style={{
-									height: '360px',
-									display: 'flex',
-									justifyContent: 'center',
-									alignItems: 'center',
-									gridColumn: '1 / -1'
-								}}
-							>
-								Loading...
-							</span>
+							<ChartsPlaceholder>Loading...</ChartsPlaceholder>
 						) : (
 							<>
 								{chainsSplit && chainsUnique?.length > 1 && (
-									<Chart>
-										<AreaChart chartData={chainsSplit} tokensUnique={chainsUnique} title="Chains" />
-									</Chart>
+									<LazyChart>
+										<AreaChart
+											chartData={chainsSplit}
+											title="Chains"
+											customLegendName="Chain"
+											customLegendOptions={chainsUnique}
+											valueSymbol="$"
+										/>
+									</LazyChart>
 								)}
 								{tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
-									<Chart>
-										<AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} moneySymbol="" />
-									</Chart>
+									<LazyChart>
+										<AreaChart
+											chartData={tokenBreakdown}
+											title="Tokens"
+											customLegendName="Token"
+											customLegendOptions={tokensUnique}
+										/>
+									</LazyChart>
 								)}
 								{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
-									<Chart>
-										<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" tokensUnique={tokensUnique} />
-									</Chart>
+									<LazyChart>
+										<AreaChart
+											chartData={tokenBreakdownUSD}
+											title="Tokens (USD)"
+											customLegendName="Token"
+											customLegendOptions={tokensUnique}
+											valueSymbol="$"
+										/>
+									</LazyChart>
 								)}
 								{usdInflows && (
-									<Chart>
-										<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" />
-									</Chart>
+									<LazyChart>
+										<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />
+									</LazyChart>
 								)}
 								{tokenInflows && (
-									<Chart>
-										<BarChart chartData={tokenInflows} title="Token Inflows" tokensUnique={tokensUnique} />
-									</Chart>
+									<LazyChart>
+										<BarChart
+											chartData={tokenInflows}
+											title="Token Inflows"
+											customLegendName="Token"
+											customLegendOptions={tokensUnique}
+											hidedefaultlegend={true}
+											valueSymbol="$"
+										/>
+									</LazyChart>
 								)}
 							</>
 						)}
@@ -522,14 +510,6 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			)}
 		</Layout>
 	)
-}
-
-const Chart = ({ children }) => {
-	const { ref, inView } = useInView({
-		triggerOnce: true
-	})
-
-	return <ChartWrapper ref={ref}>{inView && children}</ChartWrapper>
 }
 
 export default ProtocolContainer

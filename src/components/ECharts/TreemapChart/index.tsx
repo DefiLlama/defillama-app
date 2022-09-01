@@ -7,7 +7,7 @@ import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { TooltipComponent, ToolboxComponent, DataZoomComponent, TitleComponent } from 'echarts/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { toK } from '~/utils'
-import { YieldsChartWrapper } from './shared'
+import { YieldsChartWrapper } from '../shared'
 
 echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, DataZoomComponent, EChartTreemap, CanvasRenderer])
 

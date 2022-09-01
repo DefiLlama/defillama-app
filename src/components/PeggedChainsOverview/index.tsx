@@ -27,11 +27,11 @@ import {
 	toNiceCsvDate,
 	download
 } from '~/utils'
-import { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
+import { IChartProps } from '~/components/ECharts/types'
 
-const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/PeggedAreaChart'), {
+const PeggedAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
-}) as React.FC<IProtocolMcapTVLChartProps>
+}) as React.FC<IChartProps>
 
 const AssetFilters = styled.div`
 	margin: 12px 0 16px;
@@ -395,11 +395,10 @@ function PeggedChainsOverview({
 						<PeggedAreaChart
 							title={`Total ${title}`}
 							chartData={peggedAreaTotalData}
-							tokensUnique={totalMcapLabel}
+							stacks={totalMcapLabel}
 							color={'lightcoral'}
-							moneySymbol="$"
-							hideLegend={true}
-							hallmarks={[]}
+							hidedefaultlegend={true}
+							valueSymbol="$"
 						/>
 					)}
 					{chartType === 'Area' && (
