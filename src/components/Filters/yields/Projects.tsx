@@ -86,8 +86,8 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 				<MenuButtonArrow />
 				{selectedProjects.length > 0 && <ItemsSelected>{selectedProjects.length}</ItemsSelected>}
 			</SelectButton>
-			<ComboboxSelectPopover state={select} modal={!isLarge}>
-				<Input state={combobox} placeholder="Search for projects..." />
+			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false}>
+				<Input state={combobox} placeholder="Search for projects..." autoFocus />
 
 				{combobox.matches.length > 0 ? (
 					<>

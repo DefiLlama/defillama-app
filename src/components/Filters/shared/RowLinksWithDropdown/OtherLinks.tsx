@@ -30,8 +30,8 @@ export function OtherLinks({ options, name }: IProps) {
 				<span>{name}</span>
 				<MenuButtonArrow />
 			</Button>
-			<Popover state={menu} composite={false} modal={!isLarge}>
-				<Input state={combobox} placeholder="Search..." />
+			<Popover state={menu} modal={!isLarge} composite={false}>
+				<Input state={combobox} placeholder="Search..." autoFocus />
 				{combobox.matches.length > 0 ? (
 					<List state={combobox}>
 						{combobox.matches.map((value, i) => (
