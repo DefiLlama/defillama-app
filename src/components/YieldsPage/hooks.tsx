@@ -15,7 +15,7 @@ export const useFormatYieldQueryParams = ({ projectList, chainList, categoryList
 
 		if (project) {
 			if (typeof project === 'string') {
-				selectedProjects = project === 'All' ? projectList.map((p) => p.slug) : [project]
+				selectedProjects = project === 'All' ? projectList.map((p) => p.slug) : project === 'None' ? [] : [project]
 			} else {
 				selectedProjects = [...project]
 			}
@@ -23,7 +23,7 @@ export const useFormatYieldQueryParams = ({ projectList, chainList, categoryList
 
 		if (category) {
 			if (typeof category === 'string') {
-				selectedCategories = category === 'All' ? [...categoryList] : [category]
+				selectedCategories = category === 'All' ? [...categoryList] : category === 'None' ? [] : [category]
 			} else {
 				selectedCategories = [...category]
 			}
@@ -31,7 +31,7 @@ export const useFormatYieldQueryParams = ({ projectList, chainList, categoryList
 
 		if (chain) {
 			if (typeof chain === 'string') {
-				selectedChains = chain === 'All' ? [...chainList] : [chain]
+				selectedChains = chain === 'All' ? [...chainList] : chain === 'None' ? [] : [chain]
 			} else {
 				selectedChains = [...chain]
 			}

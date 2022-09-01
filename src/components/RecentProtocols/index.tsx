@@ -155,7 +155,7 @@ const columns = columnsToShow(
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
 		if (typeof chainQueryParam === 'string') {
-			return chainQueryParam === 'All' ? [...allChains] : [chainQueryParam]
+			return chainQueryParam === 'All' ? [...allChains] : chainQueryParam === 'None' ? [] : [chainQueryParam]
 		} else {
 			return [...chainQueryParam]
 		}
