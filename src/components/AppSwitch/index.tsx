@@ -21,7 +21,7 @@ export default function AppSwitch() {
 					<span>Yields</span>
 				</AppLink>
 			</Link>
-			<Link href="/stablecoins" passHref>
+			<Link href="/stablecoins/chains" passHref>
 				<AppLink active={isStableCoinsApp && !isYieldApp}>
 					<DollarSign size={14} />
 					<span>Stablecoins</span>
