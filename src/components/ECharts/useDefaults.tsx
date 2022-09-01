@@ -16,7 +16,6 @@ import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neu
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { toK } from '~/utils'
 import { useMemo } from 'react'
-import { useRouter } from 'next/router'
 
 echarts.use([
 	CanvasRenderer,
@@ -42,7 +41,6 @@ interface IUseDefaultsProps {
 export function useDefaults({ color, title, tooltipSort = true, valueSymbol = '', hideLegend }: IUseDefaultsProps) {
 	const [isDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
-	const router = useRouter()
 
 	const defaults = useMemo(() => {
 		const graphic = {
@@ -107,11 +105,36 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 					vals += '<li style="list-style:none">' + 'Mcap/TVL' + '&nbsp;&nbsp;' + Number(mcap / tvl).toFixed(3) + '</li>'
 				}
 
-				if (title === 'Token Inflows' && router.pathname === '/stablecoins/[...chain]') {
-					const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
-					vals +=
-						'<li style="list-style:none;font-weight:600">' + 'Total Inflows' + '&nbsp;&nbsp;' + toK(total) + '</li>'
-				}
+				return chartdate + vals
+			}
+		}
+
+		const inflowsTooltip = {
+			trigger: 'axis',
+			formatter: function (params) {
+				const chartdate = new Date(params[0].value[0]).toLocaleDateString(undefined, {
+					year: 'numeric',
+					month: 'short',
+					day: 'numeric'
+				})
+
+				let vals = params
+					.sort((a, b) => (tooltipSort ? a.value[1] - b.value[1] : 0))
+					.reduce((prev, curr) => {
+						if (curr.value[1] !== 0 && curr.value[1] !== '-') {
+							return (prev +=
+								'<li style="list-style:none">' +
+								curr.marker +
+								curr.seriesName +
+								'&nbsp;&nbsp;' +
+								valueSymbol +
+								toK(curr.value[1]) +
+								'</li>')
+						} else return prev
+					}, '')
+
+				const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
+				vals += '<li style="list-style:none;font-weight:600">' + 'Total Inflows' + '&nbsp;&nbsp;' + toK(total) + '</li>'
 
 				return chartdate + vals
 			}
@@ -215,8 +238,8 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 			}
 		]
 
-		return { graphic, grid, titleDefaults, tooltip, xAxis, yAxis, legend, dataZoom }
-	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol, hideLegend, router])
+		return { graphic, grid, titleDefaults, tooltip, xAxis, yAxis, legend, dataZoom, inflowsTooltip }
+	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol, hideLegend])
 
 	return defaults
 }

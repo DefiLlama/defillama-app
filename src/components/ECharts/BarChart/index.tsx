@@ -21,7 +21,7 @@ export default function BarChart({
 }: IBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
-	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
+	const [legendOptions, setLegendOptions] = useState(customLegendOptions ? [...customLegendOptions] : [])
 
 	const { defaultStacks, stackKeys } = useMemo(() => {
 		const values = stacks || {}
@@ -109,7 +109,10 @@ export default function BarChart({
 
 		// override default chart settings
 		for (const option in chartOptions) {
-			if (defaultChartSettings[option]) {
+			if (option === 'overrides') {
+				// update tooltip formatter
+				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
+			} else if (defaultChartSettings[option]) {
 				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
