@@ -136,7 +136,7 @@ export function NameFees({
 				<span id="table-p-symbol">{` (${symbol})`}</span>
 			</>
 		)
-	const tokenUrl = type === 'chain' ? `/${type}/${value}` : `/${type}/${slug(value)}`
+	const tokenUrl = type === 'chain' ? `/fees/${value}` : `/${type}/${slug(value)}`
 	const iconUrl = type === 'chain' ? chainIconUrl(value) : tokenIconUrl(value)
 
 	let leftSpace: string = '30px'
