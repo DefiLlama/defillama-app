@@ -52,6 +52,7 @@ export async function getStaticProps() {
 			const subRows = Object.keys(feeBreakdown).map(version => {
 				return {
 					...fee,
+					version: version.toUpperCase(),
 					total1dFees: feeBreakdown[version],
 					total1dRevenue: revenueBreakdown[version],
 				}
@@ -75,8 +76,9 @@ export async function getStaticProps() {
 
 const columns = columnsToShow(
 	'feesProtocol',
+	'category',
 	'fees',
-  'revenue'
+  	'revenue'
 )
 
 export default function Fees(props) {

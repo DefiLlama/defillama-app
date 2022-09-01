@@ -57,6 +57,10 @@ export interface INameProps {
 	showRows?: boolean
 }
 
+export interface INameFees extends INameProps{
+	version?: string
+}
+
 export interface INameYield extends Omit<INameProps, 'type'> {
 	project: string
 	projectslug: string

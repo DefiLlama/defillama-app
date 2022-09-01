@@ -6,7 +6,7 @@ import TokenLogo from '~/components/TokenLogo'
 import Bookmark from '~/components/Bookmark'
 import FormattedName from '~/components/FormattedName'
 import { chainIconUrl, peggedAssetIconUrl, slug, tokenIconUrl } from '~/utils'
-import { INameYield, INameProps, INameYieldPoolProps } from './types'
+import { INameYield, INameFees, INameProps, INameYieldPoolProps } from './types'
 import Tooltip from '~/components/Tooltip'
 import { ButtonYields } from '~/components/ProtocolAndPool'
 
@@ -58,6 +58,7 @@ export function Name({
 				<span id="table-p-symbol">{` (${symbol})`}</span>
 			</>
 		)
+
 	const { iconUrl, tokenUrl } = React.useMemo(() => {
 		let iconUrl, tokenUrl
 		if (type === 'chain') {
@@ -109,6 +110,58 @@ export function Name({
 			) : (
 				<CustomLink href={tokenUrl} id="table-p-name">
 					{name}
+				</CustomLink>
+			)}
+		</Index>
+	)
+}
+
+export function NameFees({
+	type,
+	value,
+	symbol = '-',
+	index,
+	bookmark,
+	rowType = 'default',
+	showRows,
+	version,
+	...props
+}: INameFees) {
+	const name =
+		symbol === '-' ? (
+			value
+		) : (
+			<>
+				<span>{value}</span>
+				<span id="table-p-symbol">{` (${symbol})`}</span>
+			</>
+		)
+	const tokenUrl = type === 'chain' ? `/${type}/${value}` : `/${type}/${slug(value)}`
+	const iconUrl = type === 'chain' ? chainIconUrl(value) : tokenIconUrl(value)
+
+	let leftSpace: number | string = 0
+
+	if (rowType === 'accordion') {
+		leftSpace = bookmark ? '0px' : '-30px'
+	}
+
+	if (rowType === 'child') {
+		leftSpace = '30px'
+	}
+
+	return (
+		<Index {...props} style={{ left: leftSpace }}>
+			{rowType !== 'accordion' && bookmark && (
+				<SaveButton readableProtocolName={value} style={{ paddingRight: rowType === 'pinned' ? '1ch' : 0 }} />
+			)}
+			{rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
+			<span>{rowType !== 'pinned' && index}</span>
+			<TokenLogo id="table-p-logo" logo={iconUrl} />
+			{rowType === 'accordion' ? (
+				<span id="table-p-name">{version ? `${name} ${version}` : name}</span>
+			) : (
+				<CustomLink href={tokenUrl} id="table-p-name">
+					{version ? `${name} ${version}` : name}
 				</CustomLink>
 			)}
 		</Index>

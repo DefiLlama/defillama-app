@@ -1,6 +1,6 @@
 import IconsRow from '~/components/IconsRow'
 import QuestionHelper from '~/components/QuestionHelper'
-import { Name } from './Name'
+import { Name, NameFees } from './Name'
 import type { IColumnProps, TColumns } from './types'
 import { formattedNum, formattedPercent } from '~/utils'
 import { useDefiManager } from '~/contexts/LocalStorage'
@@ -58,12 +58,13 @@ export const allColumns: AllColumns = {
 		accessor: 'name',
 		disableSortBy: true,
 		Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
-			<Name
-				type="fees"
+			<NameFees
+				type={rowValues.logo ? "fees" : "chain"}
 				value={value}
-				symbol={rowValues.symbol}
+				symbol={rowType === 'child' ? '-' : rowValues.symbol}
 				index={rowIndex !== null && rowIndex + 1}
 				rowType={rowType}
+				version={rowValues.version}
 			/>
 		)
 	},
