@@ -25,7 +25,7 @@ const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stac
 	ssr: false
 }) as React.FC<IStackedBarChartProps>
 
-const Stats = styled.section`
+export const Stats = styled.section`
 	display: grid;
 	grid-template-columns: 1fr;
 	border-radius: 12px;
@@ -40,7 +40,7 @@ const Stats = styled.section`
 	}
 `
 
-const ProtocolDetails = styled.div`
+export const ProtocolDetails = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 36px;
@@ -57,7 +57,7 @@ const ProtocolDetails = styled.div`
 	}
 `
 
-const ProtocolName = styled.h1`
+export const ProtocolName = styled.h1`
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -68,7 +68,7 @@ const Symbol = styled.span`
 	font-weight: 400;
 `
 
-const Tvl = styled.p`
+export const Tvl = styled.p`
 	font-weight: 700;
 	font-size: 2rem;
 	display: flex;
@@ -205,7 +205,7 @@ const Bobo = styled.button`
 	}
 `
 
-const TvlWrapper = styled.section`
+export const TvlWrapper = styled.section`
 	display: flex;
 	gap: 20px;
 	align-items: flex-end;

@@ -53,6 +53,20 @@ export const allColumns: AllColumns = {
 			/>
 		)
 	},
+	feesProtocol: {
+		header: 'Name',
+		accessor: 'name',
+		disableSortBy: true,
+		Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+			<Name
+				type="fees"
+				value={value}
+				symbol={rowValues.symbol}
+				index={rowIndex !== null && rowIndex + 1}
+				rowType={rowType}
+			/>
+		)
+	},
 	category: {
 		header: 'Category',
 		accessor: 'category',

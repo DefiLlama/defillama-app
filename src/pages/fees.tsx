@@ -74,9 +74,9 @@ export async function getStaticProps() {
 }
 
 const columns = columnsToShow(
-	'protocolName',
+	'feesProtocol',
 	'fees',
-  	'revenue'
+  'revenue'
 )
 
 export default function Fees(props) {

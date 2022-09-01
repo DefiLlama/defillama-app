@@ -45,9 +45,10 @@ export type TColumns =
 	| 'totalVolume24h'
 	| 'fees'
 	| 'revenue'
+	| 'feesProtocol'
 
 export interface INameProps {
-	type: 'chain' | 'protocol' | 'peggedAsset' | 'peggedAssetChain' | 'dex'
+	type: 'chain' | 'protocol' | 'peggedAsset' | 'peggedAssetChain' | 'dex' | 'fees'
 	value: string
 	symbol?: string
 	index?: number
