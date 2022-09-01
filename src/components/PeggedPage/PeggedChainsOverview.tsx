@@ -251,7 +251,7 @@ function PeggedChainsOverview({
 	chainTVLData
 }) {
 	const [chartType, setChartType] = useState('Pie')
-	const chartTypeList = ['Total Market Cap', 'Pie', 'Dominance', 'Token Market Caps']
+	const chartTypeList = ['Total Market Cap', 'Pie', 'Dominance', 'Chain Market Caps']
 
 	const belowMed = useMed()
 	const belowXl = useXl()
@@ -384,7 +384,7 @@ function PeggedChainsOverview({
 							hallmarks={[]}
 						/>
 					)}
-					{chartType === 'Token Market Caps' && (
+					{chartType === 'Chain Market Caps' && (
 						<AreaChart
 							aspect={aspect}
 							finalChartData={peggedAreaChartData}
