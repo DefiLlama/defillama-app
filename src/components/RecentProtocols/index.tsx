@@ -172,7 +172,7 @@ interface IRecentProtocolProps {
 }
 
 export function RecentProtocols({ title, name, header, protocols, chainList, forkedList }: IRecentProtocolProps) {
-	const { query } = useRouter()
+	const { query, isReady } = useRouter()
 	const { chain, hideForks } = query
 
 	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? true : false
@@ -273,13 +273,17 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 
 			<TableFilters>
 				<TableHeader>{header}</TableHeader>
-				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
-				</Dropdowns>
-				{forkedList && <HideForkedProtocols />}
+				{isReady && (
+					<>
+						<Dropdowns>
+							<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+						</Dropdowns>
+						{forkedList && <HideForkedProtocols />}
+					</>
+				)}
 			</TableFilters>
 
-			{protocolsData.length > 0 ? (
+			{!isReady ? null : protocolsData.length > 0 ? (
 				<TableWrapper data={protocolsData} columns={columns} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>

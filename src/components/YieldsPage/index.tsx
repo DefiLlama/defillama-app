@@ -13,11 +13,11 @@ import {
 	attributeOptions
 } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
-import { columns, fallbackColumns, fallbackList, TableWrapper } from './shared'
+import { columns, TableWrapper } from './shared'
 import { useFormatYieldQueryParams } from './hooks'
 
-const YieldPage = ({ loading, pools, projectList, chainList, categoryList }) => {
-	const { query, pathname } = useRouter()
+const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
+	const { query, pathname, isReady } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
@@ -170,19 +170,25 @@ const YieldPage = ({ loading, pools, projectList, chainList, categoryList }) => 
 
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>
-				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
-					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
-					<FiltersByCategory categoryList={categoryList} selectedCategories={selectedCategories} pathname={pathname} />
-					<YieldAttributes pathname={pathname} />
-					<TVLRange />
-					<APYRange />
-					<ResetAllYieldFilters pathname={pathname} />
-				</Dropdowns>
+				{isReady && (
+					<Dropdowns>
+						<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+						<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
+						<FiltersByCategory
+							categoryList={categoryList}
+							selectedCategories={selectedCategories}
+							pathname={pathname}
+						/>
+						<YieldAttributes pathname={pathname} />
+						<TVLRange />
+						<APYRange />
+						<ResetAllYieldFilters pathname={pathname} />
+					</Dropdowns>
+				)}
 			</TableFilters>
 
-			{loading ? (
-				<TableWrapper data={fallbackList} columns={fallbackColumns} />
+			{!isReady ? (
+				<></>
 			) : poolsData.length > 0 ? (
 				<TableWrapper data={poolsData} columns={columns} />
 			) : (

@@ -86,8 +86,8 @@ export function FiltersByCategory({ categoryList = [], selectedCategories, pathn
 				<MenuButtonArrow />
 				{selectedCategories.length > 0 && <ItemsSelected>{selectedCategories.length}</ItemsSelected>}
 			</SelectButton>
-			<ComboboxSelectPopover state={select} modal={!isLarge}>
-				<Input state={combobox} placeholder="Search for category..." />
+			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false}>
+				<Input state={combobox} placeholder="Search for category..." autoFocus />
 
 				{combobox.matches.length > 0 ? (
 					<>
