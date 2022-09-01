@@ -9,7 +9,8 @@ import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
 
 export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; uid: string }) => {
 	const { setSelectedSeries } = useContext(LiquidationsContext)
-	const [isLiqsUsingUsd] = useLiqsManager()
+	const [liqsSettings] = useLiqsManager()
+	const isLiqsUsingUsd = liqsSettings['LIQS_USING_USD']
 
 	const stackBy = useStackBy()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)

@@ -191,7 +191,7 @@ const TableStyled = styled(Table)`
 	}
 `
 
-export const LiquidationsTable = (props: { data: ChartData; prevData: ChartData }) => {
+export const ProtocolsTable = (props: { data: ChartData; prevData: ChartData }) => {
 	const stackBy = useStackBy()
 
 	const rowsSorted = useMemo(() => {

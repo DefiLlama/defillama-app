@@ -49,6 +49,7 @@ export const DEFAULT_PORTFOLIO_NAME = 'main'
 
 // LIQUIDATIONS
 const LIQS_USING_USD = 'LIQS_USING_USD'
+const LIQS_SHOWING_INSPECTOR = 'LIQS_SHOWING_INSPECTOR'
 
 export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING }
 export const YIELDS_SETTINGS = {
@@ -99,7 +100,7 @@ export const DEFI_CHAINS_SETTINGS = [
 	}
 ]
 
-export const LIQS_SETTINGS = { LIQS_USING_USD }
+export const LIQS_SETTINGS = { LIQS_USING_USD, LIQS_SHOWING_INSPECTOR }
 
 const DEFI_CHAINS_KEYS = DEFI_CHAINS_SETTINGS.map((g) => g.key)
 export const DEFI_SETTINGS_KEYS = Object.values(DEFI_SETTINGS)
@@ -152,6 +153,7 @@ function init() {
 		...DEFI_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: true }), {}),
 		...NFT_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+		...LIQS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME
@@ -235,18 +237,6 @@ export function useDarkModeManager() {
 	return [isDarkMode, toggleDarkMode]
 }
 
-export function useLiqsManager() {
-	const [state, { updateKey }] = useLocalStorageContext()
-	const isClient = useIsClient()
-	let liqsUsingUsd = state[LIQS_USING_USD] === undefined ? true : state[LIQS_USING_USD]
-	let isLiqsUsingUsd = isClient ? liqsUsingUsd : true
-
-	const toggleLiqsUsingUsd = useCallback(() => {
-		updateKey(LIQS_USING_USD, !isLiqsUsingUsd)
-	}, [updateKey, isLiqsUsingUsd])
-	return [isLiqsUsingUsd, toggleLiqsUsingUsd] as [boolean, () => void]
-}
-
 function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
 	const [state, { updateKey }] = useLocalStorageContext()
 	const isClient = useIsClient()
@@ -293,6 +283,11 @@ export function useStablecoinsManager() {
 // NFTS
 export function useNftsManager() {
 	return useSettingsManager(NFT_SETTINGS_KEYS)
+}
+
+// LIQUIDATIONS
+export function useLiqsManager() {
+	return useSettingsManager(LIQS_SETTINGS_KEYS)
 }
 
 // DEFI AND YIELDS WATCHLIST

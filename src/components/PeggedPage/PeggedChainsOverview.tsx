@@ -251,7 +251,6 @@ function PeggedChainsOverview({
 	chainTVLData
 }) {
 	const [chartType, setChartType] = useState('Pie')
-
 	const chartTypeList = ['Total Market Cap', 'Pie', 'Dominance', 'Token Market Caps']
 
 	const belowMed = useMed()
