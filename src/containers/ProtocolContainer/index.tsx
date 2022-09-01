@@ -269,9 +269,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
-						<Tooltip content="Bookmark" style={{ padding: '6px' }}>
-							<Bookmark readableProtocolName={name} />
-						</Tooltip>
+
+						<Bookmark readableProtocolName={name} />
 					</Name>
 
 					<StatWrapper>
@@ -499,7 +498,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 											title="Token Inflows"
 											customLegendName="Token"
 											customLegendOptions={tokensUnique}
-											hideDefaultLegend={true}
+											hidedefaultlegend={true}
 											valueSymbol="$"
 										/>
 									</LazyChart>

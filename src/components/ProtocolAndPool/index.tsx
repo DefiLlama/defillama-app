@@ -38,7 +38,7 @@ export const Stat = styled.p`
 		font-weight: 400;
 		font-size: 0.75rem;
 		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
+		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
 	}
 `
 
@@ -209,7 +209,7 @@ export const DetailsTable = styled.table`
 		font-weight: 400;
 		font-size: 0.75rem;
 		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
+		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
 	}
 
 	th {

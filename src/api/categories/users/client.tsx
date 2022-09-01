@@ -9,7 +9,7 @@ interface IData {
 	day: string
 	new_users: number | null
 	sticky_users: number | null
-	total_users: number | null
+	total_txs: number | null
 	unique_users: number | null
 }
 

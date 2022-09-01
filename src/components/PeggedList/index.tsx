@@ -594,7 +594,7 @@ function PeggedAssetsOverview({
 							stacks={totalMcapLabel}
 							color={'lightcoral'}
 							valueSymbol="$"
-							hideDefaultLegend={true}
+							hidedefaultlegend={true}
 							hallmarks={[]}
 						/>
 					)}

@@ -8,7 +8,7 @@ export interface IChartProps {
 	color?: string
 	hallmarks?: [number, string][]
 	style?: React.CSSProperties
-	hideDefaultLegend?: boolean
+	hidedefaultlegend?: boolean
 	customLegendName?: string
 	customLegendOptions?: Array<string>
 	tooltipSort?: boolean

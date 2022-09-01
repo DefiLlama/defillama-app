@@ -12,7 +12,7 @@ export default function BarChart({
 	valueSymbol = '',
 	title,
 	color,
-	hideDefaultLegend = false,
+	hidedefaultlegend = false,
 	customLegendName,
 	customLegendOptions,
 	chartOptions,
@@ -35,11 +35,13 @@ export default function BarChart({
 		return { defaultStacks: values, stackKeys: Object.keys(values) }
 	}, [stacks, customLegendOptions])
 
+	const hideLegend = hidedefaultlegend || stackKeys.length < 2
+
 	const defaultChartSettings = useDefaults({
 		color,
 		title,
 		valueSymbol,
-		hideLegend: hideDefaultLegend
+		hideLegend
 	})
 
 	const series = useMemo(() => {
@@ -135,7 +137,7 @@ export default function BarChart({
 			yAxis: {
 				...yAxis
 			},
-			...(!hideDefaultLegend && {
+			...(!hideLegend && {
 				legend: {
 					...legend,
 					data: stackKeys
@@ -155,7 +157,7 @@ export default function BarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, hideDefaultLegend, stackKeys, chartOptions])
+	}, [createInstance, defaultChartSettings, series, stackKeys, hideLegend, chartOptions])
 
 	return (
 		<div style={{ position: 'relative' }}>

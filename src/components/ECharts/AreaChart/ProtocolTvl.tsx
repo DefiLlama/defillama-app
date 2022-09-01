@@ -202,7 +202,7 @@ export default function ProtocolTvlChart({
 					title=""
 					valueSymbol={valueSymbol}
 					stacks={tokensUnique}
-					hideDefaultLegend={true}
+					hidedefaultlegend={true}
 					hallmarks={!hideHallmarks && hallmarks}
 					tooltipSort={false}
 					style={{
