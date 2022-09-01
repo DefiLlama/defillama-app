@@ -644,6 +644,7 @@ function PeggedAssetsOverview({
 						<BarChart
 							chartData={tokenInflows}
 							title="Token Inflows"
+							hidedefaultlegend={true}
 							customLegendName="Token Inflow"
 							customLegendOptions={tokenInflowNames}
 						/>

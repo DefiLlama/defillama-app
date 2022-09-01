@@ -16,6 +16,7 @@ import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neu
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { toK } from '~/utils'
 import { useMemo } from 'react'
+import { useRouter } from 'next/router'
 
 echarts.use([
 	CanvasRenderer,
@@ -41,6 +42,7 @@ interface IUseDefaultsProps {
 export function useDefaults({ color, title, tooltipSort = true, valueSymbol = '', hideLegend }: IUseDefaultsProps) {
 	const [isDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
+	const router = useRouter()
 
 	const defaults = useMemo(() => {
 		const graphic = {
@@ -103,6 +105,12 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 
 				if (mcap && tvl) {
 					vals += '<li style="list-style:none">' + 'Mcap/TVL' + '&nbsp;&nbsp;' + Number(mcap / tvl).toFixed(3) + '</li>'
+				}
+
+				if (title === 'Token Inflows' && router.pathname === '/stablecoins/[...chain]') {
+					const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
+					vals +=
+						'<li style="list-style:none;font-weight:600">' + 'Total Inflows' + '&nbsp;&nbsp;' + toK(total) + '</li>'
 				}
 
 				return chartdate + vals
@@ -208,7 +216,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 		]
 
 		return { graphic, grid, titleDefaults, tooltip, xAxis, yAxis, legend, dataZoom }
-	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol, hideLegend])
+	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol, hideLegend, router])
 
 	return defaults
 }
