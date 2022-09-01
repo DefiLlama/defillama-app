@@ -7,7 +7,7 @@ import { RowBetween, AutoRow } from '~/components/Row'
 import Table, { columnsToShow } from '~/components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance, AreaChart } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
-import type { IChartProps } from '~/components/TokenChart/types'
+import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import IconsRow from '~/components/IconsRow'
 import { PeggedSearch } from '~/components/Search'
 import QuestionHelper from '~/components/QuestionHelper'
@@ -28,16 +28,16 @@ import {
 	download
 } from '~/utils'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
+
 import { Attribute, PegType, BackingType, McapRange, ResetAllStablecoinFilters } from '~/components/Filters'
-import { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
 
-const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/PeggedAreaChart'), {
-	ssr: false
-}) as React.FC<IProtocolMcapTVLChartProps>
-
-const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
+const PeggedAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
+
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+	ssr: false
+}) as React.FC<IBarChartProps>
 
 function formattedPeggedPercent(percent, noSign = false) {
 	if (percent === null) {
@@ -608,10 +608,10 @@ function PeggedAssetsOverview({
 						<PeggedAreaChart
 							title={`Total ${title}`}
 							chartData={peggedAreaTotalData}
-							tokensUnique={totalMcapLabel}
-							color={backgroundColor}
-							moneySymbol="$"
-							hideLegend={true}
+							stacks={totalMcapLabel}
+							color={'lightcoral'}
+							valueSymbol="$"
+							hidedefaultlegend={true}
 							hallmarks={[]}
 						/>
 					)}
@@ -641,7 +641,12 @@ function PeggedAssetsOverview({
 						<PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />
 					)}
 					{chartType === 'Token Inflows' && selectedChain !== 'All' && tokenInflowNames.length > 0 && (
-						<BarChart chartData={tokenInflows} title="Token Inflows" tokensUnique={tokenInflowNames} />
+						<BarChart
+							chartData={tokenInflows}
+							title="Token Inflows"
+							customLegendName="Token Inflow"
+							customLegendOptions={tokenInflowNames}
+						/>
 					)}
 					{chartType === 'USD Inflows' && selectedChain !== 'All' && tokenInflowNames.length > 0 && (
 						<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" />

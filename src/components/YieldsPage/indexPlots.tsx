@@ -19,16 +19,16 @@ interface IChartProps {
 	chartData: any
 }
 
-const ScatterChart = dynamic(() => import('~/components/TokenChart/ScatterChart'), {
+const ScatterChart = dynamic(() => import('~/components/ECharts/ScatterChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
-const BoxplotChart = dynamic(() => import('~/components/TokenChart/BoxplotChart'), {
+const BoxplotChart = dynamic(() => import('~/components/ECharts/BoxplotChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
-const TreemapChart = dynamic(() => import('~/components/TokenChart/TreemapChart'), {
+const TreemapChart = dynamic(() => import('~/components/ECharts/TreemapChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
-const BarChartYields = dynamic(() => import('~/components/TokenChart/BarChartYields'), {
+const BarChartYields = dynamic(() => import('~/components/ECharts/BarChart/Yields'), {
 	ssr: false
 }) as React.FC<IChartProps>
 

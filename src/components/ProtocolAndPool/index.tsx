@@ -1,7 +1,8 @@
+import { useInView, defaultFallbackInView } from 'react-intersection-observer'
 import styled from 'styled-components'
 import { ButtonLight } from '~/components/ButtonStyled'
 
-export const StatsSection = styled.section`
+export const StatsSection = styled.div`
 	display: grid;
 	grid-template-columns: 1fr;
 	border-radius: 12px;
@@ -17,7 +18,7 @@ export const StatsSection = styled.section`
 	}
 `
 
-export const StatWrapper = styled.section`
+export const StatWrapper = styled.div`
 	position: relative;
 	display: flex;
 	gap: 20px;
@@ -37,7 +38,7 @@ export const Stat = styled.p`
 		font-weight: 400;
 		font-size: 0.75rem;
 		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
+		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
 	}
 `
 
@@ -54,7 +55,7 @@ export const DetailsWrapper = styled.div`
 
 	@media screen and (min-width: 80rem) {
 		min-width: 380px;
-		border-radius: 0 0 0 12px;
+		border-radius: 12px 0 0 12px;
 	}
 `
 
@@ -85,7 +86,7 @@ export const SectionHeader = styled.h2`
 	border-left: 1px solid transparent;
 `
 
-export const InfoWrapper = styled.section`
+export const InfoWrapper = styled.div`
 	padding: 24px;
 	background: ${({ theme }) => theme.bg7};
 	border: ${({ theme }) => '1px solid ' + theme.divider};
@@ -100,7 +101,7 @@ export const InfoWrapper = styled.section`
 	}
 `
 
-export const Section = styled.section`
+export const Section = styled.div`
 	grid-column: 1 / -1;
 	display: flex;
 	flex-direction: column;
@@ -158,7 +159,7 @@ export const Section = styled.section`
 	}
 `
 
-export const LinksWrapper = styled.section`
+export const LinksWrapper = styled.div`
 	display: flex;
 	gap: 16px;
 	flex-wrap: wrap;
@@ -208,7 +209,7 @@ export const DetailsTable = styled.table`
 		font-weight: 400;
 		font-size: 0.75rem;
 		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
+		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
 	}
 
 	th {
@@ -256,3 +257,50 @@ export const ExtraOption = styled.label`
 		cursor: pointer;
 	}
 `
+
+export const ChartsPlaceholder = styled.div`
+	height: 400px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	grid-column: 1 / -1;
+`
+
+export const ChartsWrapper = styled.div`
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	border-radius: 12px;
+	background: ${({ theme }) => theme.bg6};
+	border: ${({ theme }) => '1px solid ' + theme.divider};
+	box-shadow: ${({ theme }) => theme.shadowSm};
+`
+
+export const ChartWrapper = styled.div`
+	grid-column: span 2;
+	min-height: 360px;
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+
+	@media screen and (min-width: 90rem) {
+		grid-column: span 1;
+
+		:last-child:nth-child(2n - 1) {
+			grid-column: span 2;
+		}
+	}
+`
+
+defaultFallbackInView(true)
+
+export const LazyChart = ({ children, ...props }) => {
+	const { ref, inView } = useInView({
+		triggerOnce: true
+	})
+
+	return (
+		<ChartWrapper ref={ref} {...props}>
+			{inView && children}
+		</ChartWrapper>
+	)
+}

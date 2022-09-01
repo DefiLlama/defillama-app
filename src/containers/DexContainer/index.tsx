@@ -1,6 +1,5 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
 import Link from 'next/link'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
@@ -16,14 +15,13 @@ import { DexsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
 import { formattedNum, getBlockExplorer } from '~/utils'
-import boboLogo from '~/assets/boboSmug.png'
 import { IDexResponse } from '~/api/types'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { IStackedBarChartProps } from '~/components/TokenChart/StackedBarChart'
+import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 
 defaultFallbackInView(true)
 
-const StackedBarChart = dynamic(() => import('~/components/TokenChart/StackedBarChart'), {
+const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false
 }) as React.FC<IStackedBarChartProps>
 

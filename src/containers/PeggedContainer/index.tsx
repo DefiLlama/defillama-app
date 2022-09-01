@@ -47,12 +47,12 @@ import {
 	peggedAssetIconUrl,
 	formattedPeggedPrice
 } from '~/utils'
-import type { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
+import type { IChartProps } from '~/components/ECharts/types'
 import { Checkbox2 } from '~/components'
 
-const TokenAreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
+const TokenAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
-}) as React.FC<IProtocolMcapTVLChartProps>
+}) as React.FC<IChartProps>
 
 const risksHelperTexts = {
 	algorithmic:
@@ -759,11 +759,9 @@ export default function PeggedContainer({
 						<TokenAreaChart
 							title={`Total ${symbol} Circulating`}
 							chartData={peggedAreaTotalData}
-							tokensUnique={totalMcapLabel}
+							stacks={totalMcapLabel}
 							color={backgroundColor}
-							moneySymbol=""
-							hideLegend={true}
-							hallmarks={[]}
+							hidedefaultlegend={true}
 						/>
 					)}
 					{chartType === 'Chain Mcaps' && (
