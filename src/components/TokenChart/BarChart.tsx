@@ -12,8 +12,9 @@ import { toK } from '~/utils'
 import { stringToColour } from './utils'
 import { IChartProps } from './types'
 import { SelectLegendMultiple } from './shared'
+import { GridComponent, GraphicComponent, TooltipComponent, DataZoomComponent } from 'echarts/components'
 
-echarts.use([EBarChart, CanvasRenderer, TitleComponent])
+echarts.use([EBarChart, CanvasRenderer, TitleComponent, GridComponent, GraphicComponent, TooltipComponent, DataZoomComponent])
 
 export default function BarChart({ chartData, tokensUnique, moneySymbol = '$', title, color }: IChartProps) {
 	const id = useMemo(() => uuid(), [])

@@ -1,18 +1,20 @@
 import React, { useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
-import { OptionButton } from '~/components/ButtonStyled'
 import { RowBetween, AutoRow } from '~/components/Row'
 import Table, { columnsToShow } from '~/components/Table'
-import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
+import { PeggedChainResponsivePie, PeggedChainResponsiveDominance, AreaChart } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
-import { AreaChart } from '~/components/Charts'
+import type { IChartProps } from '~/components/TokenChart/types'
 import IconsRow from '~/components/IconsRow'
 import { PeggedSearch } from '~/components/Search'
 import QuestionHelper from '~/components/QuestionHelper'
+import { ChartSelector } from '~/components/PeggedPage/.'
 import { Text } from 'rebass'
-import { useCalcCirculating, useCreatePeggedCharts, useCalcGroupExtraPeggedByDay } from '~/hooks/data'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/hooks/data'
+import { buildPeggedChartData } from '~/utils/stablecoins'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {
 	getRandomColor,
@@ -26,12 +28,16 @@ import {
 	download
 } from '~/utils'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
-import { Attribute, PegType, BackingType } from '~/components/Filters'
+import { Attribute, PegType, BackingType, McapRange, ResetAllStablecoinFilters } from '~/components/Filters'
 import { IProtocolMcapTVLChartProps } from '~/components/TokenChart/types'
 
 const PeggedAreaChart = dynamic(() => import('~/components/TokenChart/PeggedAreaChart'), {
 	ssr: false
 }) as React.FC<IProtocolMcapTVLChartProps>
+
+const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
 
 function formattedPeggedPercent(percent, noSign = false) {
 	if (percent === null) {
@@ -381,9 +387,15 @@ function PeggedAssetsOverview({
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
-	chainTVLData
+	chainTVLData,
+	backgroundColor
 }) {
-	const [chartType, setChartType] = useState('Area')
+	const [chartType, setChartType] = useState(selectedChain === 'All' ? 'Token Market Caps' : 'USD Inflows')
+
+	const chartTypeList =
+		selectedChain !== 'All'
+			? ['USD Inflows', 'Total Market Cap', 'Pie', 'Dominance', 'Token Market Caps', 'Token Inflows']
+			: ['Total Market Cap', 'Pie', 'Dominance', 'Token Market Caps']
 
 	const belowMed = useMed()
 	const belowXl = useXl()
@@ -393,6 +405,9 @@ function PeggedAssetsOverview({
 
 	// toggles
 	const [stablecoinsSettings] = useStablecoinsManager()
+
+	const router = useRouter()
+	const { minMcap, maxMcap } = router.query
 
 	const peggedAssets = useMemo(() => {
 		const { PEGGEDUSD, PEGGEDEUR, PEGGEDVAR, FIATSTABLES, CRYPTOSTABLES, ALGOSTABLES, DEPEGGED } = STABLECOINS_SETTINGS
@@ -415,6 +430,14 @@ function PeggedAssetsOverview({
 					(stablecoinsSettings[CRYPTOSTABLES] && curr.pegMechanism === 'crypto-backed') ||
 					(stablecoinsSettings[ALGOSTABLES] && curr.pegMechanism === 'algorithmic'))
 
+			const isValidMcapRange =
+				(minMcap !== undefined && !Number.isNaN(Number(minMcap))) ||
+				(maxMcap !== undefined && !Number.isNaN(Number(maxMcap)))
+
+			if (isValidMcapRange) {
+				toFilter = toFilter && (minMcap ? curr.mcap > minMcap : true) && (maxMcap ? curr.mcap < maxMcap : true)
+			}
+
 			if (toFilter) {
 				const chartDataIndex = peggedNameToChartDataIndex[curr.name]
 				chartDataIndexes.push(chartDataIndex)
@@ -425,42 +448,45 @@ function PeggedAssetsOverview({
 		setFilteredIndexes(chartDataIndexes)
 
 		return peggedAssets
-	}, [filteredPeggedAssets, peggedNameToChartDataIndex, stablecoinsSettings])
+	}, [filteredPeggedAssets, peggedNameToChartDataIndex, stablecoinsSettings, minMcap, maxMcap])
 
-	const backfilledChains = [
-		'All',
-		'Ethereum',
-		'BSC',
-		'Avalanche',
-		'Arbitrum',
-		'Optimism',
-		'Fantom',
-		'Polygon',
-		'Gnosis',
-		'Celo',
-		'Harmony',
-		'Moonriver',
-		'Aztec',
-		'Loopring',
-		'Starknet',
-		'zkSync',
-		'Boba',
-		'Metis',
-		'Moonbeam',
-		'Syscoin',
-		'OKExChain',
-		'IoTeX',
-		'Heco'
-	]
-	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useCreatePeggedCharts(
-		chartDataByPeggedAsset,
-		peggedAssetNames,
-		filteredIndexes,
-		'mcap',
-		chainTVLData,
-		selectedChain,
-		backfilledChains
-	)
+	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows] =
+		React.useMemo(() => {
+			const backfilledChains = [
+				'All',
+				'Ethereum',
+				'BSC',
+				'Avalanche',
+				'Arbitrum',
+				'Optimism',
+				'Fantom',
+				'Polygon',
+				'Gnosis',
+				'Celo',
+				'Harmony',
+				'Moonriver',
+				'Aztec',
+				'Loopring',
+				'Starknet',
+				'zkSync',
+				'Boba',
+				'Metis',
+				'Moonbeam',
+				'Syscoin',
+				'OKExChain',
+				'IoTeX',
+				'Heco'
+			]
+			return buildPeggedChartData(
+				chartDataByPeggedAsset,
+				peggedAssetNames,
+				filteredIndexes,
+				'mcap',
+				chainTVLData,
+				selectedChain,
+				backfilledChains
+			)
+		}, [chartDataByPeggedAsset, peggedAssetNames, filteredIndexes, chainTVLData, selectedChain])
 
 	const handleRouting = (selectedChain) => {
 		if (selectedChain === 'All') return `/stablecoins`
@@ -541,13 +567,15 @@ function PeggedAssetsOverview({
 	return (
 		<>
 			<PeggedSearch step={{ category: 'Stablecoins', name: title }} />
-
 			<ChartFilters>
-				{/* <PeggedViewSwitch /> */}
 				<Dropdowns>
 					<Attribute />
 					<BackingType />
 					<PegType />
+					<McapRange />
+					<ResetAllStablecoinFilters
+						pathname={selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`}
+					/>
 				</Dropdowns>
 			</ChartFilters>
 
@@ -573,37 +601,26 @@ function PeggedAssetsOverview({
 				<BreakpointPanel id="chartWrapper">
 					<RowBetween mb={useMed ? 40 : 0} align="flex-start">
 						<AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
-							<OptionButton active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
-								Total Mcap
-							</OptionButton>
-							<OptionButton active={chartType === 'Area'} onClick={() => setChartType('Area')}>
-								Area
-							</OptionButton>
-							<OptionButton active={chartType === 'Dominance'} onClick={() => setChartType('Dominance')}>
-								Dominance
-							</OptionButton>
-							<OptionButton active={chartType === 'Pie'} onClick={() => setChartType('Pie')}>
-								Pie
-							</OptionButton>
+							<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 						</AutoRow>
 					</RowBetween>
-					{chartType === 'Mcap' && (
+					{chartType === 'Total Market Cap' && (
 						<PeggedAreaChart
 							title={`Total ${title}`}
 							chartData={peggedAreaTotalData}
 							tokensUnique={totalMcapLabel}
-							color={'lightcoral'}
+							color={backgroundColor}
 							moneySymbol="$"
 							hideLegend={true}
 							hallmarks={[]}
 						/>
 					)}
-					{chartType === 'Area' && (
+					{chartType === 'Token Market Caps' && (
 						<AreaChart
 							aspect={aspect}
 							finalChartData={peggedAreaChartData}
 							tokensUnique={peggedAssetNames}
-							color={'blue'}
+							color={backgroundColor}
 							moneySymbol="$"
 							formatDate={toNiceMonthlyDate}
 							hallmarks={[]}
@@ -622,6 +639,12 @@ function PeggedAssetsOverview({
 					)}
 					{chartType === 'Pie' && (
 						<PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />
+					)}
+					{chartType === 'Token Inflows' && selectedChain !== 'All' && tokenInflowNames.length > 0 && (
+						<BarChart chartData={tokenInflows} title="Token Inflows" tokensUnique={tokenInflowNames} />
+					)}
+					{chartType === 'USD Inflows' && selectedChain !== 'All' && tokenInflowNames.length > 0 && (
+						<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" />
 					)}
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>

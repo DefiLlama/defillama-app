@@ -3,7 +3,7 @@ import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
-import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover } from '../shared'
+import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover, ItemsSelected } from '../shared'
 
 export const options = [
 	{
@@ -70,11 +70,14 @@ export function BackingType() {
 		})
 	}
 
+	const totalSelected = values.length
+
 	return (
 		<>
 			<SelectButton state={select}>
 				<span>Filter by Backing</span>
 				<MenuButtonArrow />
+				{totalSelected > 0 && <ItemsSelected>{totalSelected}</ItemsSelected>}
 			</SelectButton>
 			<SelectPopover state={select} modal={!isLarge}>
 				<FilterFnsGroup>

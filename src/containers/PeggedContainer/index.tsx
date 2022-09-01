@@ -31,12 +31,8 @@ import {
 	StatWrapper,
 	Symbol
 } from '~/components/ProtocolAndPool'
-import {
-	useCalcGroupExtraPeggedByDay,
-	useCalcCirculating,
-	useGroupBridgeData,
-	useCreatePeggedCharts
-} from '~/hooks/data'
+import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data'
+import { buildPeggedChartData } from '~/utils/stablecoins'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import { UNRELEASED, useStablecoinsManager } from '~/contexts/LocalStorage'
 import {
@@ -376,7 +372,6 @@ export default function PeggedContainer({
 	unreleased,
 	mcap,
 	bridgeInfo,
-	peggedChartType,
 	backgroundColor
 }) {
 	let {
@@ -398,7 +393,7 @@ export default function PeggedContainer({
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
-	const [chartType, setChartType] = useState(peggedChartType)
+	const [chartType, setChartType] = useState('Pie')
 	const defaultSelectedId = 'default-selected-tab'
 	const tab = useTabState({ defaultSelectedId })
 
@@ -410,7 +405,7 @@ export default function PeggedContainer({
 		return peggedAssetData.chainBalances[elem].tokens
 	})
 
-	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useCreatePeggedCharts(
+	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = buildPeggedChartData(
 		chainsData,
 		chainsUnique,
 		[...Array(chainsUnique.length).keys()],
@@ -749,14 +744,14 @@ export default function PeggedContainer({
 							<OptionButton active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
 								Total Mcap
 							</OptionButton>
-							<OptionButton active={chartType === 'Area'} onClick={() => setChartType('Area')}>
-								Area
+							<OptionButton active={chartType === 'Pie'} onClick={() => setChartType('Pie')}>
+								Pie
 							</OptionButton>
 							<OptionButton active={chartType === 'Dominance'} onClick={() => setChartType('Dominance')}>
 								Dominance
 							</OptionButton>
-							<OptionButton active={chartType === 'Pie'} onClick={() => setChartType('Pie')}>
-								Pie
+							<OptionButton active={chartType === 'Chain Mcaps'} onClick={() => setChartType('Chain Mcaps')}>
+								Chain Mcaps
 							</OptionButton>
 						</AutoRow>
 					</RowBetween>
@@ -771,7 +766,7 @@ export default function PeggedContainer({
 							hallmarks={[]}
 						/>
 					)}
-					{chartType === 'Area' && (
+					{chartType === 'Chain Mcaps' && (
 						<AreaChart
 							aspect={aspect}
 							finalChartData={peggedAreaChartData}

@@ -1,13 +1,20 @@
 import Layout from '~/layout'
-import PeggedList from '~/components/PeggedList'
+import PeggedList from '~/components/PeggedPage/PeggedList'
+import { getPeggedColor } from '~/utils/getColor'
 import { revalidate } from '~/api'
 import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 
 export async function getStaticProps({}) {
 	const props = await getPeggedOverviewPageData(null)
 
+	const backgroundColor = await getPeggedColor({
+		peggedAsset: props.filteredPeggedAssets[0]?.name
+	})
 	return {
-		props,
+		props: {
+			...props,
+			backgroundColor
+		},
 		revalidate: revalidate()
 	}
 }
@@ -19,7 +26,8 @@ export default function PeggedAssets({
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
 	chainTVLData,
-	chain
+	chain,
+	backgroundColor
 }) {
 	return (
 		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO>
@@ -31,6 +39,7 @@ export default function PeggedAssets({
 				peggedNameToChartDataIndex={peggedNameToChartDataIndex}
 				chartDataByPeggedAsset={chartDataByPeggedAsset}
 				chainTVLData={chainTVLData}
+				backgroundColor={backgroundColor}
 			/>
 		</Layout>
 	)

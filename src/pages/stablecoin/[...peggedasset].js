@@ -19,7 +19,6 @@ export async function getStaticProps({
 		unreleased,
 		mcap,
 		bridgeInfo,
-		peggedChartType
 	} = data.props
 	const backgroundColor = await getPeggedColor({
 		peggedAsset: peggedAssetData.name
@@ -33,7 +32,6 @@ export async function getStaticProps({
 			unreleased,
 			mcap,
 			bridgeInfo,
-			peggedChartType,
 			backgroundColor
 		},
 		revalidate: revalidate()
