@@ -95,6 +95,16 @@ export const allColumns: AllColumns = {
 		accessor: 'change_1m',
 		Cell: ({ value }) => <>{formattedPercent(value)}</>
 	},
+	'fees': {
+		header: 'Fees (24h)',
+		accessor: 'total1dFees',
+		Cell: ({ value }) => <>{'$' + formattedNum(value)}</>
+	},
+	'revenue': {
+		header: 'Revenue (24h)',
+		accessor: 'total1dRevenue',
+		Cell: ({ value }) => <>{'$' + formattedNum(value)}</>
+	},
 	tvl: {
 		header: 'TVL',
 		accessor: 'tvl',
@@ -161,7 +171,6 @@ export const allColumns: AllColumns = {
 			<Name
 				type="dex"
 				value={value}
-				symbol={rowValues.symbol}
 				index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
 				rowType={rowType}
 				showRows={showRows}

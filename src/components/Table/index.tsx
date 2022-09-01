@@ -249,8 +249,8 @@ function Table({ columns = [], data = [], align, gap, pinnedRow, ...props }: ITa
 }
 
 export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...props }: ITableProps) {
-	const [columnToSort, setColumnToSort] = React.useState<string | null>(null)
-	const [sortDirection, setDirection] = React.useState<-1 | 0 | 1>(0)
+	const [columnToSort, setColumnToSort] = React.useState<string | null>(props.columnToSort || null)
+	const [sortDirection, setDirection] = React.useState<-1 | 0 | 1>(props.sortDirection || 0)
 
 	const handleClick = (name: string) => {
 		if (sortDirection === 0 || name !== columnToSort) {

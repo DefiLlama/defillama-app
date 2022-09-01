@@ -22,6 +22,8 @@ export interface ITableProps {
 	gap?: string
 	pinnedRow?: unknown
 	style?: React.CSSProperties
+	columnToSort?: string
+	sortDirection?: -1 | 0 | 1
 }
 
 export type TColumns =
@@ -41,6 +43,8 @@ export type TColumns =
 	| 'protocols'
 	| 'dexName'
 	| 'totalVolume24h'
+	| 'fees'
+	| 'revenue'
 
 export interface INameProps {
 	type: 'chain' | 'protocol' | 'peggedAsset' | 'peggedAssetChain' | 'dex'

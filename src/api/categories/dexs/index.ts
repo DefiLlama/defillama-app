@@ -287,21 +287,23 @@ export async function getForkPageData(fork = null) {
 	}
 }
 
-export const getNewDexsPageData = async (category: string) => {
-	const { categories, ...rest } = await fetch(`https://api.llama.fi/chains2/${category}`).then((res) => res.json())
-
-	const categoryLinks = [
-		{ label: 'All', to: '/chains' },
-		{ label: 'Non-EVM', to: '/chains/Non-EVM' }
-	].concat(
-		categories.map((category) => ({
-			label: category,
-			to: `/chains/${category}`
-		}))
-	)
+export const getNewDexsPageData = async () => {
+	const {
+		dexs,
+		totalVolume,
+		changeVolume1d,
+		changeVolume30d,
+		totalDataChart
+	} = await fetch(DEXS_API).then((res) => res.json())
 
 	return {
-		props: { ...rest, category, categories: categoryLinks }
+		props: {
+			dexs,
+			totalVolume,
+			changeVolume1d,
+			changeVolume30d,
+			totalDataChart
+		}
 	}
 }
 

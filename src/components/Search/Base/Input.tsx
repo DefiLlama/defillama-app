@@ -19,10 +19,6 @@ const InputField = styled(Combobox)`
 	&[data-focus-visible] {
 		outline: ${({ theme }) => '1px solid ' + theme.text4};
 	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		border-radius: 12px;
-	}
 `
 
 interface IInputProps {
@@ -56,6 +52,7 @@ export function Input({ state, placeholder, breadCrumbs, ...props }: IInputProps
 				state={state}
 				placeholder={placeholder}
 				style={breadCrumbs ? { borderBottomLeftRadius: '0', borderBottomRightRadius: 0 } : {}}
+				autoSelect
 				{...props}
 			/>
 

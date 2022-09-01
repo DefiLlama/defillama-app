@@ -33,6 +33,8 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 
 	return {
 		name: parent.name,
+		logo: parent.logo,
+		url: parent.url,
 		chains: parent.chains,
 		tvl,
 		tvlPrevDay,
