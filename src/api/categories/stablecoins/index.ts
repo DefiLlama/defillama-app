@@ -303,8 +303,6 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 		})
 		.sort((a, b) => b.circulating - a.circulating)
 
-	const peggedChartType = 'Area'
-
 	return {
 		props: {
 			chainsUnique,
@@ -314,7 +312,6 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 			unreleased,
 			mcap,
 			bridgeInfo,
-			peggedChartType
 		}
 	}
 }
