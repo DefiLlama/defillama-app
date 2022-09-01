@@ -80,6 +80,7 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 	}
 
 	const clear = () => {
+		select.up(1)
 		router.push(
 			{
 				pathname,
@@ -100,8 +101,8 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 				<MenuButtonArrow />
 				{selectedChains.length > 0 && <ItemsSelected>{selectedChains.length}</ItemsSelected>}
 			</SelectButton>
-			<ComboboxSelectPopover state={select} modal={!isLarge}>
-				<Input state={combobox} placeholder="Search for chains..." />
+			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false}>
+				<Input state={combobox} placeholder="Search for chains..." autoFocus />
 
 				{combobox.matches.length > 0 ? (
 					<>
