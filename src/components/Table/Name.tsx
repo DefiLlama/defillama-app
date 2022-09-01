@@ -139,23 +139,19 @@ export function NameFees({
 	const tokenUrl = type === 'chain' ? `/${type}/${value}` : `/${type}/${slug(value)}`
 	const iconUrl = type === 'chain' ? chainIconUrl(value) : tokenIconUrl(value)
 
-	let leftSpace: number | string = 0
+	let leftSpace: string = '30px'
 
 	if (rowType === 'accordion') {
-		leftSpace = bookmark ? '0px' : '-30px'
+		leftSpace = '0px'
 	}
 
 	if (rowType === 'child') {
-		leftSpace = '30px'
+		leftSpace = '60px'
 	}
 
 	return (
 		<Index {...props} style={{ left: leftSpace }}>
-			{rowType !== 'accordion' && bookmark && (
-				<SaveButton readableProtocolName={value} style={{ paddingRight: rowType === 'pinned' ? '1ch' : 0 }} />
-			)}
 			{rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
-			<span>{rowType !== 'pinned' && index}</span>
 			<TokenLogo id="table-p-logo" logo={iconUrl} />
 			{rowType === 'accordion' ? (
 				<span id="table-p-name">{version ? `${name} ${version}` : name}</span>
