@@ -7,9 +7,11 @@ import Popover from '~/components/Popover'
 interface IFilterBetweenRange {
 	header: string
 	onSubmit: FormEventHandler<HTMLFormElement>
+	minName?: string
+	maxName?: string
 }
 
-export function FilterBetweenRange({ header, onSubmit }: IFilterBetweenRange) {
+export function FilterBetweenRange({ header, onSubmit, minName='minTvl', maxName='maxTvl'}: IFilterBetweenRange) {
 	return (
 		<Popover
 			trigger={
@@ -23,11 +25,11 @@ export function FilterBetweenRange({ header, onSubmit }: IFilterBetweenRange) {
 					<Form onSubmit={onSubmit}>
 						<label>
 							<span>Min</span>
-							<input type="number" name="minTvl" />
+							<input type="number" name={minName} />
 						</label>
 						<label>
 							<span>Max</span>
-							<input type="number" name="maxTvl" />
+							<input type="number" name={maxName} />
 						</label>
 						<ApplyFilters>Apply Filter</ApplyFilters>
 					</Form>
