@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { IFormattedProtocol, IParentProtocol } from '~/api/types'
 import { useDefiChainsManager, useDefiManager, useStablecoinsManager } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, getPercentChange, getPrevPeggedTotalFromChart } from '~/utils'
+import { capitalizeFirstLetter, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
 
 // TODO cleanup
@@ -523,89 +523,6 @@ export const useCalcCirculating = (filteredPeggedAssets: IPegged[]) => {
 	}, [filteredPeggedAssets, extraPeggedEnabled])
 
 	return peggedAssetTotals
-}
-
-export const useCreatePeggedCharts = (
-	chartDataByAssetOrChain,
-	assetSymbolsOrChainsList,
-	filteredIndexes?,
-	issuanceType = 'mcap',
-	chainTVLData?,
-	selectedChain?,
-	backfilledChains = ['All']
-) => {
-	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useMemo(() => {
-		let unformattedAreaData = {}
-		let unformattedTotalData = {}
-		let stackedDatasetObject = {}
-		chartDataByAssetOrChain.map((charts, i) => {
-			if (!charts.length || !filteredIndexes.includes(i)) return
-			charts.forEach((chart) => {
-				const mcap = getPrevPeggedTotalFromChart([chart], 0, issuanceType)
-				const assetOrChain = assetSymbolsOrChainsList[i]
-				const date = chart.date
-				if (date > 1596248105 && mcap) {
-					if (backfilledChains.includes(selectedChain) || date > 1652241600) {
-						// for individual chains data is currently only backfilled to May 11, 2022
-						unformattedAreaData[date] = unformattedAreaData[date] || {}
-						unformattedAreaData[date][assetSymbolsOrChainsList[i]] = mcap
-
-						unformattedTotalData[date] = (unformattedTotalData[date] ?? 0) + mcap
-
-						if (mcap !== null && mcap !== 0) {
-							if (stackedDatasetObject[date] == undefined) {
-								stackedDatasetObject[date] = {}
-							}
-							const b = stackedDatasetObject[date][assetOrChain]
-							stackedDatasetObject[date][assetOrChain] = { ...b, circulating: mcap ?? 0 }
-						}
-					}
-				}
-			})
-		})
-
-		const peggedAreaChartData = Object.entries(unformattedAreaData).map(([date, chart]) => {
-			if (typeof chart === 'object') {
-				return {
-					date: date,
-					...chart
-				}
-			}
-		})
-
-		const peggedAreaTotalData = chainTVLData
-			? chainTVLData.tvl
-					.map(([date, tvl]) => {
-						if (date < 1609372800) return
-						if (!backfilledChains.includes(selectedChain) && date < 1652241600) return
-						const mcap = unformattedTotalData[date] ?? 0
-						return {
-							date: date,
-							Mcap: mcap,
-							TVL: tvl
-						}
-					})
-					.filter((entry) => entry)
-			: Object.entries(unformattedTotalData).map(([date, mcap]) => {
-					return {
-						date: date,
-						Mcap: mcap
-					}
-			  })
-
-		const stackedDataset = Object.entries(stackedDatasetObject)
-
-		return [peggedAreaChartData, peggedAreaTotalData, stackedDataset]
-	}, [
-		chartDataByAssetOrChain,
-		filteredIndexes,
-		backfilledChains,
-		assetSymbolsOrChainsList,
-		selectedChain,
-		chainTVLData,
-		issuanceType
-	])
-	return [peggedAreaChartData, peggedAreaTotalData, stackedDataset]
 }
 
 // returns circulating by day for a group of tokens

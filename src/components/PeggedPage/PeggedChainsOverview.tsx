@@ -2,19 +2,15 @@ import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
-import { OptionButton } from '~/components/ButtonStyled'
 import { RowBetween, AutoRow } from '~/components/Row'
 import Table, { columnsToShow } from '~/components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
 import { AreaChart } from '~/components/Charts'
 import { GroupStablecoins } from '~/components/MultiSelect'
 import { PeggedSearch } from '~/components/Search'
-import {
-	useCalcCirculating,
-	useCreatePeggedCharts,
-	useCalcGroupExtraPeggedByDay,
-	useGroupChainsPegged
-} from '~/hooks/data'
+import { ChartSelector } from '~/components/PeggedPage/.'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data'
+import { buildPeggedChartData } from '~/utils/stablecoins'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {
 	getRandomColor,
@@ -254,13 +250,15 @@ function PeggedChainsOverview({
 	chainsGroupbyParent,
 	chainTVLData
 }) {
-	const [chartType, setChartType] = useState('Area')
+	const [chartType, setChartType] = useState('Pie')
+
+	const chartTypeList = ['Total Market Cap', 'Pie', 'Dominance', 'Token Market Caps']
 
 	const belowMed = useMed()
 	const belowXl = useXl()
 	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
-	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = useCreatePeggedCharts(
+	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = buildPeggedChartData(
 		peggedChartDataByChain,
 		chainList,
 		[...Array(chainList.length).keys()],
@@ -350,10 +348,6 @@ function PeggedChainsOverview({
 	return (
 		<>
 			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains' }} />
-			{/* 
-			<ChartFilters>
-				<PeggedViewSwitch />
-			</ChartFilters> */}
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
@@ -377,21 +371,10 @@ function PeggedChainsOverview({
 				<BreakpointPanel id="chartWrapper">
 					<RowBetween mb={useMed ? 40 : 0} align="flex-start">
 						<AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
-							<OptionButton active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
-								Total Mcap
-							</OptionButton>
-							<OptionButton active={chartType === 'Area'} onClick={() => setChartType('Area')}>
-								Area
-							</OptionButton>
-							<OptionButton active={chartType === 'Dominance'} onClick={() => setChartType('Dominance')}>
-								Dominance
-							</OptionButton>
-							<OptionButton active={chartType === 'Pie'} onClick={() => setChartType('Pie')}>
-								Pie
-							</OptionButton>
+							<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 						</AutoRow>
 					</RowBetween>
-					{chartType === 'Mcap' && (
+					{chartType === 'Total Market Cap' && (
 						<PeggedAreaChart
 							title={`Total ${title}`}
 							chartData={peggedAreaTotalData}
@@ -402,7 +385,7 @@ function PeggedChainsOverview({
 							hallmarks={[]}
 						/>
 					)}
-					{chartType === 'Area' && (
+					{chartType === 'Token Market Caps' && (
 						<AreaChart
 							aspect={aspect}
 							finalChartData={peggedAreaChartData}
