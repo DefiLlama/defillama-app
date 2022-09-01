@@ -450,45 +450,43 @@ function PeggedAssetsOverview({
 		return peggedAssets
 	}, [filteredPeggedAssets, peggedNameToChartDataIndex, stablecoinsSettings, minMcap, maxMcap])
 
-	const backfilledChains = [
-		'All',
-		'Ethereum',
-		'BSC',
-		'Avalanche',
-		'Arbitrum',
-		'Optimism',
-		'Fantom',
-		'Polygon',
-		'Gnosis',
-		'Celo',
-		'Harmony',
-		'Moonriver',
-		'Aztec',
-		'Loopring',
-		'Starknet',
-		'zkSync',
-		'Boba',
-		'Metis',
-		'Moonbeam',
-		'Syscoin',
-		'OKExChain',
-		'IoTeX',
-		'Heco'
-	]
 	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows] =
-		React.useMemo(
-			() =>
-				buildPeggedChartData(
-					chartDataByPeggedAsset,
-					peggedAssetNames,
-					filteredIndexes,
-					'mcap',
-					chainTVLData,
-					selectedChain,
-					backfilledChains
-				),
-			[chartDataByPeggedAsset, peggedAssetNames, filteredIndexes, chainTVLData, selectedChain, backfilledChains]
-		)
+		React.useMemo(() => {
+			const backfilledChains = [
+				'All',
+				'Ethereum',
+				'BSC',
+				'Avalanche',
+				'Arbitrum',
+				'Optimism',
+				'Fantom',
+				'Polygon',
+				'Gnosis',
+				'Celo',
+				'Harmony',
+				'Moonriver',
+				'Aztec',
+				'Loopring',
+				'Starknet',
+				'zkSync',
+				'Boba',
+				'Metis',
+				'Moonbeam',
+				'Syscoin',
+				'OKExChain',
+				'IoTeX',
+				'Heco'
+			]
+			return buildPeggedChartData(
+				chartDataByPeggedAsset,
+				peggedAssetNames,
+				filteredIndexes,
+				'mcap',
+				chainTVLData,
+				selectedChain,
+				backfilledChains
+			)
+		}, [chartDataByPeggedAsset, peggedAssetNames, filteredIndexes, chainTVLData, selectedChain])
 
 	const handleRouting = (selectedChain) => {
 		if (selectedChain === 'All') return `/stablecoins`
@@ -575,7 +573,9 @@ function PeggedAssetsOverview({
 					<BackingType />
 					<PegType />
 					<McapRange />
-					<ResetAllStablecoinFilters pathname={selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`} />
+					<ResetAllStablecoinFilters
+						pathname={selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`}
+					/>
 				</Dropdowns>
 			</ChartFilters>
 

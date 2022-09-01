@@ -28,9 +28,9 @@ export function ChartSelector({ options, selectedChart, onClick }: IProps) {
 
 	const menu = useMenuState(combobox)
 
-    const onItemClick = (chartType: string) => {
-        onClick(chartType)
-    }
+	const onItemClick = (chartType: string) => {
+		onClick(chartType)
+	}
 
 	// Resets combobox value when menu is closed
 	if (!menu.mounted && combobox.value) {
@@ -58,12 +58,10 @@ export function ChartSelector({ options, selectedChart, onClick }: IProps) {
 
 const ChartButtonLink = ({ value, onItemClick }) => {
 	return (
-        <Button onClick={e => onItemClick(value)}>
-		<Item value={value} focusOnHover setValueOnClick={false} role="link">
-			<OptionWrapper>
-				{value}
-			</OptionWrapper>
-		</Item>
-        </Button>
+		<Button onClick={(e) => onItemClick(value)}>
+			<Item value={value} focusOnHover setValueOnClick={false} role="link">
+				<OptionWrapper>{value}</OptionWrapper>
+			</Item>
+		</Button>
 	)
 }
