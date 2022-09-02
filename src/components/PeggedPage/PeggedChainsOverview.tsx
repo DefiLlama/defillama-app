@@ -251,13 +251,13 @@ function PeggedChainsOverview({
 	chainTVLData
 }) {
 	const [chartType, setChartType] = useState('Pie')
-	const chartTypeList = ['Total Market Cap', 'Pie', 'Dominance', 'Chain Market Caps']
+	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
 
 	const belowMed = useMed()
 	const belowXl = useXl()
 	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
-	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = buildPeggedChartData(
+	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = buildPeggedChartData(
 		peggedChartDataByChain,
 		chainList,
 		[...Array(chainList.length).keys()],

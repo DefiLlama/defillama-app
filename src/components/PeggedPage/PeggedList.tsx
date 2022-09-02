@@ -326,6 +326,32 @@ const Dropdowns = styled.span`
 	}
 `
 
+const backfilledChains = [
+	'All',
+	'Ethereum',
+	'BSC',
+	'Avalanche',
+	'Arbitrum',
+	'Optimism',
+	'Fantom',
+	'Polygon',
+	'Gnosis',
+	'Celo',
+	'Harmony',
+	'Moonriver',
+	'Aztec',
+	'Loopring',
+	'Starknet',
+	'zkSync',
+	'Boba',
+	'Metis',
+	'Moonbeam',
+	'Syscoin',
+	'OKExChain',
+	'IoTeX',
+	'Heco'
+]
+
 const columns = [
 	...columnsToShow('peggedAsset'),
 	{
@@ -394,8 +420,8 @@ function PeggedAssetsOverview({
 
 	const chartTypeList =
 		selectedChain !== 'All'
-			? ['USD Inflows', 'Total Market Cap', 'Pie', 'Dominance', 'Token Market Caps', 'Token Inflows']
-			: ['Total Market Cap', 'Pie', 'Dominance', 'Token Market Caps']
+			? ['USD Inflows', 'Total Market Cap', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
+			: ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance']
 
 	const belowMed = useMed()
 	const belowXl = useXl()
@@ -450,43 +476,16 @@ function PeggedAssetsOverview({
 		return peggedAssets
 	}, [filteredPeggedAssets, peggedNameToChartDataIndex, stablecoinsSettings, minMcap, maxMcap])
 
-	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows] =
-		React.useMemo(() => {
-			const backfilledChains = [
-				'All',
-				'Ethereum',
-				'BSC',
-				'Avalanche',
-				'Arbitrum',
-				'Optimism',
-				'Fantom',
-				'Polygon',
-				'Gnosis',
-				'Celo',
-				'Harmony',
-				'Moonriver',
-				'Aztec',
-				'Loopring',
-				'Starknet',
-				'zkSync',
-				'Boba',
-				'Metis',
-				'Moonbeam',
-				'Syscoin',
-				'OKExChain',
-				'IoTeX',
-				'Heco'
-			]
-			return buildPeggedChartData(
-				chartDataByPeggedAsset,
-				peggedAssetNames,
-				filteredIndexes,
-				'mcap',
-				chainTVLData,
-				selectedChain,
-				backfilledChains
-			)
-		}, [chartDataByPeggedAsset, peggedAssetNames, filteredIndexes, chainTVLData, selectedChain])
+	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows } =
+		buildPeggedChartData(
+			chartDataByPeggedAsset,
+			peggedAssetNames,
+			filteredIndexes,
+			'mcap',
+			chainTVLData,
+			selectedChain,
+			backfilledChains
+		)
 
 	const handleRouting = (selectedChain) => {
 		if (selectedChain === 'All') return `/stablecoins`
@@ -637,7 +636,7 @@ function PeggedAssetsOverview({
 					{chartType === 'Pie' && (
 						<PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />
 					)}
-					{chartType === 'Token Inflows' && selectedChain !== 'All' && tokenInflowNames.length > 0 && (
+					{chartType === 'Token Inflows' && selectedChain !== 'All' && tokenInflows && (
 						<BarChart
 							chartData={tokenInflows}
 							title=""
@@ -648,7 +647,7 @@ function PeggedAssetsOverview({
 							chartOptions={inflowsChartOptions}
 						/>
 					)}
-					{chartType === 'USD Inflows' && selectedChain !== 'All' && tokenInflowNames.length > 0 && (
+					{chartType === 'USD Inflows' && selectedChain !== 'All' && usdInflows && (
 						<BarChart chartData={usdInflows} color={backgroundColor} title="" />
 					)}
 				</BreakpointPanel>

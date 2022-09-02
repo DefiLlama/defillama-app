@@ -405,11 +405,17 @@ export default function PeggedContainer({
 		return peggedAssetData.chainBalances[elem].tokens
 	})
 
-	const [peggedAreaChartData, peggedAreaTotalData, stackedDataset] = buildPeggedChartData(
+	const totalChartTooltipLabel = ['Circulating']
+
+	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = buildPeggedChartData(
 		chainsData,
 		chainsUnique,
 		[...Array(chainsUnique.length).keys()],
-		'circulating'
+		'circulating',
+		undefined,
+		undefined,
+		undefined,
+		totalChartTooltipLabel[0]
 	)
 
 	const extraPeggeds = [UNRELEASED]
@@ -457,8 +463,6 @@ export default function PeggedContainer({
 			})
 		download('stablecoinsChains.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
-
-	const totalMcapLabel = ['Mcap']
 
 	return (
 		<Layout
@@ -742,7 +746,7 @@ export default function PeggedContainer({
 					<RowBetween my={useMed ? 20 : 0} mx={useMed ? 10 : 0} align="flex-start">
 						<AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
 							<OptionButton active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
-								Total Mcap
+								Total Circ
 							</OptionButton>
 							<OptionButton active={chartType === 'Pie'} onClick={() => setChartType('Pie')}>
 								Pie
@@ -751,7 +755,7 @@ export default function PeggedContainer({
 								Dominance
 							</OptionButton>
 							<OptionButton active={chartType === 'Chain Mcaps'} onClick={() => setChartType('Chain Mcaps')}>
-								Chain Mcaps
+								Area
 							</OptionButton>
 						</AutoRow>
 					</RowBetween>
@@ -759,7 +763,7 @@ export default function PeggedContainer({
 						<TokenAreaChart
 							title={`Total ${symbol} Circulating`}
 							chartData={peggedAreaTotalData}
-							stacks={totalMcapLabel}
+							stacks={totalChartTooltipLabel}
 							color={backgroundColor}
 							hidedefaultlegend={true}
 						/>
