@@ -3,10 +3,11 @@ import styled from 'styled-components'
 import { Button } from 'ariakit/button'
 import { Tooltip as AriaTooltip, TooltipAnchor, useTooltipState } from 'ariakit/tooltip'
 
-interface ITooltip {
+interface ITooltip<As = any> {
 	content: string | null
 	style?: {}
 	children: React.ReactNode
+	as?: As
 }
 
 const TooltipTrigger = styled(Button)`
@@ -16,7 +17,7 @@ const TooltipTrigger = styled(Button)`
 	padding: 0;
 `
 
-const TooltipPopver = styled(AriaTooltip)`
+const TooltipPopover = styled(AriaTooltip)`
 	font-size: 0.85rem;
 	padding: 1em;
 	color: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(0, 0%, 100%)' : 'hsl(204, 10%, 10%)')};
@@ -28,19 +29,19 @@ const TooltipPopver = styled(AriaTooltip)`
 	max-width: 228px;
 `
 
-export default function Tooltip({ content, children, ...props }: ITooltip) {
+export default function Tooltip({ content, children, as: asFromProps, ...props }: ITooltip) {
 	const tooltip = useTooltipState()
 
 	if (!content || content === '') return <>{children}</>
 
 	return (
 		<>
-			<TooltipAnchor state={tooltip} as={TooltipTrigger}>
+			<TooltipAnchor state={tooltip} as={asFromProps ?? TooltipTrigger}>
 				{children}
 			</TooltipAnchor>
-			<TooltipPopver state={tooltip} {...props}>
+			<TooltipPopover state={tooltip} {...props}>
 				{content}
-			</TooltipPopver>
+			</TooltipPopover>
 		</>
 	)
 }

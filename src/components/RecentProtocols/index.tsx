@@ -178,9 +178,6 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? true : false
 
 	const { selectedChains, data } = useMemo(() => {
-		const currentTimestamp = Date.now() / 1000
-		const secondsInDay = 3600 * 24
-
 		const selectedChains = getSelectedChainFilters(chain, chainList)
 
 		const _chainsToSelect = selectedChains.map((t) => t.toLowerCase())
@@ -255,15 +252,14 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 					tvlPrevMonth,
 					change_1d: getPercentChange(tvl, tvlPrevDay),
 					change_7d: getPercentChange(tvl, tvlPrevWeek),
-					change_1m: getPercentChange(tvl, tvlPrevMonth),
-					listedAt: Number(((currentTimestamp - p.listedAt) / secondsInDay).toFixed(2))
+					change_1m: getPercentChange(tvl, tvlPrevMonth)
 				}
 			})
 
 		return { data, selectedChains }
 	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols])
 
-	const protocolsData = useCalcStakePool2Tvl(data, 'listedAt', 'asc')
+	const protocolsData = useCalcStakePool2Tvl(data, 'listedAt', 'desc')
 
 	const { pathname } = useRouter()
 

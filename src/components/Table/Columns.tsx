@@ -2,8 +2,9 @@ import IconsRow from '~/components/IconsRow'
 import QuestionHelper from '~/components/QuestionHelper'
 import { Name, NameFees } from './Name'
 import type { IColumnProps, TColumns } from './types'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum, formattedPercent, toNiceDayAndHour, toNiceDaysAgo } from '~/utils'
 import { useDefiManager } from '~/contexts/LocalStorage'
+import Tooltip from '../Tooltip'
 
 type AllColumns = Record<TColumns, IColumnProps>
 
@@ -59,7 +60,7 @@ export const allColumns: AllColumns = {
 		disableSortBy: true,
 		Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
 			<NameFees
-				type={rowValues.logo ? "fees" : "chain"}
+				type={rowValues.logo ? 'fees' : 'chain'}
 				value={value}
 				symbol={rowType === 'child' ? '-' : rowValues.symbol}
 				index={rowIndex !== null && rowIndex + 1}
@@ -110,12 +111,12 @@ export const allColumns: AllColumns = {
 		accessor: 'change_1m',
 		Cell: ({ value }) => <>{formattedPercent(value)}</>
 	},
-	'fees': {
+	fees: {
 		header: 'Fees (24h)',
 		accessor: 'total1dFees',
 		Cell: ({ value }) => <>{'$' + formattedNum(value)}</>
 	},
-	'revenue': {
+	revenue: {
 		header: 'Revenue (24h)',
 		accessor: 'total1dRevenue',
 		Cell: ({ value }) => <>{'$' + formattedNum(value)}</>
@@ -172,7 +173,11 @@ export const allColumns: AllColumns = {
 	listedAt: {
 		header: 'Listed',
 		accessor: 'listedAt',
-		Cell: ({ value }) => <span style={{ whiteSpace: 'nowrap' }}>{value} days ago</span>
+		Cell: ({ value: listingDate }: { value: Date }) => (
+			<Tooltip as="span" content={`at ${toNiceDayAndHour(listingDate)}`} style={{ whiteSpace: 'nowrap' }}>
+				{toNiceDaysAgo(listingDate)}
+			</Tooltip>
+		)
 	},
 	protocols: {
 		header: 'Protocols',
@@ -182,7 +187,7 @@ export const allColumns: AllColumns = {
 		header: 'Name',
 		accessor: 'name',
 		disableSortBy: true,
-		Cell: ({ value, rowValues, rowIndex = null, rowType, showRows }) => (
+		Cell: ({ value, rowIndex = null, rowType, showRows }) => (
 			<Name
 				type="dex"
 				value={value}

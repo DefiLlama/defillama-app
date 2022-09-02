@@ -2,6 +2,7 @@ import * as React from 'react'
 import { BigNumber } from 'bignumber.js'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import { Text } from 'rebass'
 import Numeral from 'numeral'
 import { timeframeOptions } from '~/constants'
@@ -9,6 +10,7 @@ export * from './blockExplorers'
 
 BigNumber.set({ EXPONENTIAL_AT: 50 })
 dayjs.extend(utc)
+dayjs.extend(relativeTime)
 
 export function getTimeframe(timeWindow) {
 	const utcEndTime = dayjs.utc()
@@ -59,6 +61,9 @@ export const toNiceCsvDate = (date) => {
 }
 
 export const toNiceDateYear = (date) => dayjs.utc(dayjs.unix(date)).format('MMMM DD, YYYY')
+
+/** gives output like `5 days ago` or `17 hours ago` from a timestamp, https://day.js.org/docs/en/plugin/relative-time */
+export const toNiceDaysAgo = (date) => dayjs().to(dayjs.utc(dayjs.unix(date)))
 
 export const toK = (num) => {
 	return Numeral(num).format('0.[00]a')

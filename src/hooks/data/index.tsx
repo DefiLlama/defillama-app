@@ -110,7 +110,7 @@ type BridgeInfo = {
 export const useCalcStakePool2Tvl = (
 	filteredProtocols: Readonly<IProtocol[]>,
 	defaultSortingColumn?: string,
-	dir?: 'asc',
+	dir?: 'asc' | 'desc',
 	applyLqAndDc = false
 ) => {
 	const [extraTvlsEnabled] = useDefiManager()
