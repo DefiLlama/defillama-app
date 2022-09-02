@@ -42,5 +42,5 @@ export async function getStaticPaths() {
 }
 
 export default function Dexs({ dexData, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {
-	return <DexContainer title={`${dexData.name} DEX - DefiLlama`} dexData={dexData} dex={dexData.name} {...props} />
+	return <DexContainer title={`${dexData.name} Volume - DefiLlama`} dexData={dexData} dex={dexData.name} {...props} />
 }
