@@ -10,7 +10,7 @@ import { GroupStablecoins } from '~/components/MultiSelect'
 import { PeggedSearch } from '~/components/Search'
 import { ChartSelector } from '~/components/PeggedPage/.'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data'
-import { buildPeggedChartData } from '~/utils/stablecoins'
+import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {
 	getRandomColor,
@@ -257,7 +257,7 @@ function PeggedChainsOverview({
 	const belowXl = useXl()
 	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
-	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = buildPeggedChartData(
+	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = useBuildPeggedChartData(
 		peggedChartDataByChain,
 		chainList,
 		[...Array(chainList.length).keys()],

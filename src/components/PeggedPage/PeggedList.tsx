@@ -14,7 +14,7 @@ import QuestionHelper from '~/components/QuestionHelper'
 import { ChartSelector } from '~/components/PeggedPage/.'
 import { Text } from 'rebass'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/hooks/data'
-import { buildPeggedChartData } from '~/utils/stablecoins'
+import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {
 	getRandomColor,
@@ -477,7 +477,7 @@ function PeggedAssetsOverview({
 	}, [filteredPeggedAssets, peggedNameToChartDataIndex, stablecoinsSettings, minMcap, maxMcap])
 
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows } =
-		buildPeggedChartData(
+		useBuildPeggedChartData(
 			chartDataByPeggedAsset,
 			peggedAssetNames,
 			filteredIndexes,

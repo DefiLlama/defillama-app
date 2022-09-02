@@ -1,7 +1,7 @@
 import { getPrevPeggedTotalFromChart } from '~/utils'
 import { useMemo } from 'react'
 
-export const buildPeggedChartData = (
+export const useBuildPeggedChartData = (
 	chartDataByAssetOrChain,
 	assetsOrChainsList,
 	filteredIndexes?,

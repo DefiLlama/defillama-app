@@ -32,7 +32,7 @@ import {
 	Symbol
 } from '~/components/ProtocolAndPool'
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data'
-import { buildPeggedChartData } from '~/utils/stablecoins'
+import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import { UNRELEASED, useStablecoinsManager } from '~/contexts/LocalStorage'
 import {
@@ -407,7 +407,7 @@ export default function PeggedContainer({
 
 	const totalChartTooltipLabel = ['Circulating']
 
-	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = buildPeggedChartData(
+	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = useBuildPeggedChartData(
 		chainsData,
 		chainsUnique,
 		[...Array(chainsUnique.length).keys()],
