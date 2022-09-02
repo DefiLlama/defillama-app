@@ -277,7 +277,7 @@ export const ChartsWrapper = styled.div`
 
 export const ChartWrapper = styled.div`
 	grid-column: span 2;
-	min-height: 360px;
+	min-height: 400px;
 	padding: 20px;
 	display: flex;
 	flex-direction: column;

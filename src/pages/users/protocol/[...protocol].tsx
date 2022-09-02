@@ -21,9 +21,9 @@ import type { IBarChartProps } from '~/components/ECharts/types'
 import { SelectLegendMultiple } from '~/components/ECharts/shared'
 import { revalidate } from '~/api'
 import { getProtocol } from '~/api/categories/protocols'
-import { capitalizeFirstLetter, formattedNum, tokenIconUrl } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, standardizeProtocolName, tokenIconUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
-import { USER_METRICS_PROTOCOL_API } from '~/constants'
+import { USER_METRICS_CHAIN_API_BY_DATE, USER_METRICS_PROTOCOL_API } from '~/constants'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -34,7 +34,12 @@ interface IChainData {
 }
 
 export async function getStaticPaths() {
-	const paths = []
+	// TODO replace chain and date
+	const res = await fetch(`${USER_METRICS_CHAIN_API_BY_DATE}/ethereum?day=2022-08-20`).then((res) => res.json())
+
+	const paths: string[] = res.protocols.slice(0, 30).map(({ adaptor }) => ({
+		params: { protocol: [standardizeProtocolName(adaptor)] }
+	}))
 
 	return { paths, fallback: 'blocking' }
 }
@@ -241,10 +246,10 @@ const Charts = ({ data, chains, columns }) => {
 			<ChartsWrapper>
 				<>
 					<LazyChartWrapper>
-						<BarChart chartData={dailyTxsChart} title="Daily Transactions" stacks={dailyTxsStack} height="400px" />
+						<BarChart chartData={dailyTxsChart} title="Daily Transactions" stacks={dailyTxsStack} />
 					</LazyChartWrapper>
 					<LazyChartWrapper>
-						<BarChart chartData={uniqueUsersChart} title="Unique Users" stacks={uniqueUsersStack} height="400px" />
+						<BarChart chartData={uniqueUsersChart} title="Unique Users" stacks={uniqueUsersStack} />
 					</LazyChartWrapper>
 				</>
 			</ChartsWrapper>
@@ -254,7 +259,6 @@ const Charts = ({ data, chains, columns }) => {
 
 const LazyChartWrapper = styled(LazyChart)`
 	grid-column: 1 / -1;
-	min-height: 400px;
 `
 
 const SectionHeaderWrapper = styled.div`

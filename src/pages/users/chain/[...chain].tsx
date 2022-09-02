@@ -39,7 +39,7 @@ export async function getStaticProps({
 
 		return {
 			props: {
-				data: userMetrics?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime()),
+				data: userMetrics?.chart?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime()),
 				name: chains.find((c) => c.toLowerCase() === chain) || chain,
 				logo: logoUrl,
 				backgroundColor,
