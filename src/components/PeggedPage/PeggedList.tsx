@@ -326,32 +326,6 @@ const Dropdowns = styled.span`
 	}
 `
 
-const backfilledChains = [
-	'All',
-	'Ethereum',
-	'BSC',
-	'Avalanche',
-	'Arbitrum',
-	'Optimism',
-	'Fantom',
-	'Polygon',
-	'Gnosis',
-	'Celo',
-	'Harmony',
-	'Moonriver',
-	'Aztec',
-	'Loopring',
-	'Starknet',
-	'zkSync',
-	'Boba',
-	'Metis',
-	'Moonbeam',
-	'Syscoin',
-	'OKExChain',
-	'IoTeX',
-	'Heco'
-]
-
 const columns = [
 	...columnsToShow('peggedAsset'),
 	{
@@ -483,8 +457,7 @@ function PeggedAssetsOverview({
 			filteredIndexes,
 			'mcap',
 			chainTVLData,
-			selectedChain,
-			backfilledChains
+			selectedChain
 		)
 
 	const handleRouting = (selectedChain) => {

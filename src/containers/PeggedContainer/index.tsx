@@ -414,7 +414,6 @@ export default function PeggedContainer({
 		'circulating',
 		undefined,
 		undefined,
-		undefined,
 		totalChartTooltipLabel[0]
 	)
 
