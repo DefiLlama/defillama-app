@@ -174,7 +174,7 @@ export const allColumns: AllColumns = {
 		header: 'Listed',
 		accessor: 'listedAt',
 		Cell: ({ value: listingDate }: { value: Date }) => (
-			<Tooltip as="span" content={`at ${toNiceDayAndHour(listingDate)}`} style={{ whiteSpace: 'nowrap' }}>
+			<Tooltip as="span" content={`at ${toNiceDayAndHour(listingDate)}`}>
 				{toNiceDaysAgo(listingDate)}
 			</Tooltip>
 		)
