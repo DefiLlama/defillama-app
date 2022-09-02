@@ -272,7 +272,7 @@ function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContain
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO
 				cardName={dexData.name}
-				chain={dexData.name}
+				token={dexData.name}
 				tvl={formattedNum(dexData.total1dVolume)?.toString()}
 				volumeChange={`${dexData.change1dVolume}`}
 			/>
