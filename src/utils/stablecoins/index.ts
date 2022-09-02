@@ -10,33 +10,33 @@ export const useBuildPeggedChartData = (
 	selectedChain?,
 	totalChartTooltipLabel = 'Mcap'
 ) => {
-	const backfilledChains = [
-		'All',
-		'Ethereum',
-		'BSC',
-		'Avalanche',
-		'Arbitrum',
-		'Optimism',
-		'Fantom',
-		'Polygon',
-		'Gnosis',
-		'Celo',
-		'Harmony',
-		'Moonriver',
-		'Aztec',
-		'Loopring',
-		'Starknet',
-		'zkSync',
-		'Boba',
-		'Metis',
-		'Moonbeam',
-		'Syscoin',
-		'OKExChain',
-		'IoTeX',
-		'Heco'
-	]
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows } =
 		useMemo(() => {
+			const backfilledChains = [
+				'All',
+				'Ethereum',
+				'BSC',
+				'Avalanche',
+				'Arbitrum',
+				'Optimism',
+				'Fantom',
+				'Polygon',
+				'Gnosis',
+				'Celo',
+				'Harmony',
+				'Moonriver',
+				'Aztec',
+				'Loopring',
+				'Starknet',
+				'zkSync',
+				'Boba',
+				'Metis',
+				'Moonbeam',
+				'Syscoin',
+				'OKExChain',
+				'IoTeX',
+				'Heco'
+			]
 			let unformattedAreaData = {}
 			let unformattedTotalData = {}
 			let stackedDatasetObject = {}
@@ -154,7 +154,7 @@ export const useBuildPeggedChartData = (
 			tokenInflows = zeroTokenInflows === tokenInflows.length ? [{ USDT: 0, date: '1652486400' }] : tokenInflows
 			usdInflows = zeroUsdInfows === usdInflows.length ? [['1652486400', 0]] : usdInflows
 
-			const tokenInflowNames = tokenInflows.length ? ['USDT'] : Array.from(tokenSet) as any
+			const tokenInflowNames = tokenInflows.length ? Array.from(tokenSet) : ['USDT'] as any
 
 			return { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows }
 		}, [
@@ -164,7 +164,6 @@ export const useBuildPeggedChartData = (
 			issuanceType,
 			chainTVLData,
 			selectedChain,
-			backfilledChains,
 			totalChartTooltipLabel
 		])
 	return { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows }
