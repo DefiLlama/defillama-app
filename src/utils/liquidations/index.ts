@@ -432,6 +432,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		symbol: 'USDC'
 	},
 	{
+		name: 'Lido Staked ETH',
+		symbol: 'STETH'
+	},
+	{
 		name: 'Lido Wrapped stETH',
 		symbol: 'WSTETH'
 	},
