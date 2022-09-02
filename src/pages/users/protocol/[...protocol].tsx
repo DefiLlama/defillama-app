@@ -1,5 +1,8 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
+import styled from 'styled-components'
+import { transparentize } from 'polished'
+import Layout from '~/layout'
 import FormattedName from '~/components/FormattedName'
 import {
 	Name,
@@ -8,20 +11,19 @@ import {
 	SectionHeader,
 	StatsSection,
 	DetailsWrapper,
-	ChartWrapper
+	ChartWrapper,
+	StatWrapper,
+	Stat
 } from '~/components/ProtocolAndPool'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
-import Layout from '~/layout'
-import { capitalizeFirstLetter, tokenIconUrl } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
-import styled from 'styled-components'
 import { SelectLegendMultiple } from '~/components/ECharts/shared'
 import { revalidate } from '~/api'
-import { USER_METRICS_PROTOCOL_API } from '~/constants'
 import { getProtocol } from '~/api/categories/protocols'
+import { capitalizeFirstLetter, formattedNum, tokenIconUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
-import { transparentize } from 'polished'
+import { USER_METRICS_PROTOCOL_API } from '~/constants'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -42,32 +44,40 @@ export async function getStaticProps({
 		protocol: [protocol]
 	}
 }) {
-	const [userMetrics, protocolData] = await Promise.all([
-		fetch(`${USER_METRICS_PROTOCOL_API}/${protocol}`).then((res) => res.json()),
-		getProtocol(protocol)
-	])
+	try {
+		const [userMetrics, protocolData] = await Promise.all([
+			fetch(`${USER_METRICS_PROTOCOL_API}/${protocol}`).then((res) => res.json()),
+			getProtocol(protocol)
+		])
 
-	const backgroundColor = await getColor(protocol, protocolData.logo || tokenIconUrl(protocol))
+		const logoUrl = protocolData.logo || tokenIconUrl(protocol)
 
-	const { uniqueChains, uniqueColumns } = userMetrics?.reduce(
-		(acc, curr) => {
-			acc.uniqueChains.add(capitalizeFirstLetter(curr.chain))
-			acc.uniqueColumns.add(curr.column_type)
+		const backgroundColor = await getColor(protocol, logoUrl)
 
-			return acc
-		},
-		{ uniqueChains: new Set(), uniqueColumns: new Set() }
-	)
+		const { uniqueChains, uniqueColumns } = userMetrics?.reduce(
+			(acc, curr) => {
+				acc.uniqueChains.add(capitalizeFirstLetter(curr.chain))
+				acc.uniqueColumns.add(curr.column_type)
 
-	return {
-		props: {
-			data: userMetrics?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime()),
-			name: protocolData.name || protocol,
-			logo: protocolData.logo || tokenIconUrl(protocol),
-			uniqueChains: Array.from(uniqueChains),
-			uniqueColumns: Array.from(uniqueColumns),
-			backgroundColor,
-			revalidate: revalidate()
+				return acc
+			},
+			{ uniqueChains: new Set(), uniqueColumns: new Set() }
+		)
+
+		return {
+			props: {
+				data: userMetrics?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime()),
+				name: protocolData.name || protocol,
+				logo: logoUrl,
+				uniqueChains: Array.from(uniqueChains),
+				uniqueColumns: Array.from(uniqueColumns),
+				backgroundColor,
+				revalidate: revalidate()
+			}
+		}
+	} catch (error) {
+		return {
+			notFound: true
 		}
 	}
 }
@@ -99,6 +109,8 @@ export default function Protocol({ name, logo, backgroundColor, data, uniqueChai
 		}))
 	}, [data])
 
+	const recentMetrics = allTxsChart[allTxsChart.length - 1]
+
 	return (
 		<Layout
 			title={`${name}: User Metrics - DefiLlama`}
@@ -115,12 +127,18 @@ export default function Protocol({ name, logo, backgroundColor, data, uniqueChai
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 					</Name>
 
-					{/* <StatWrapper>
+					<StatWrapper>
 						<Stat>
-							<span>Transactions</span>
-							<span></span>
+							<span>24h Users</span>
+							<span>{formattedNum(recentMetrics?.['Unique Users'])}</span>
 						</Stat>
-					</StatWrapper> */}
+					</StatWrapper>
+					<StatWrapper>
+						<Stat>
+							<span>24h Transactions</span>
+							<span>{formattedNum(recentMetrics?.['Daily Transactions'])}</span>
+						</Stat>
+					</StatWrapper>
 				</DetailsWrapper>
 				<ChartWrapper>
 					<BarChart chartData={allTxsChart} stacks={{ 'Unique Users': 'stackA' }} title="" color={backgroundColor} />
