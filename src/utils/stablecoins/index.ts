@@ -151,10 +151,10 @@ export const useBuildPeggedChartData = (
 				}
 			})
 
+			const tokenInflowNames = tokenInflows.length ? Array.from(tokenSet) : ['USDT'] as any
+
 			tokenInflows = zeroTokenInflows === tokenInflows.length ? [{ USDT: 0, date: '1652486400' }] : tokenInflows
 			usdInflows = zeroUsdInfows === usdInflows.length ? [['1652486400', 0]] : usdInflows
-
-			const tokenInflowNames = tokenInflows.length ? Array.from(tokenSet) : ['USDT'] as any
 
 			return { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows }
 		}, [
