@@ -414,8 +414,8 @@ function PeggedAssetsOverview({
 
 	const [filteredIndexes, setFilteredIndexes] = useState([])
 
-	const router = useRouter()
-	const { minMcap, maxMcap } = router.query
+	const { query } = useRouter()
+	const { minMcap, maxMcap } = query
 
 	const { selectedAttributes, selectedPegTypes, selectedBackings } = useFormatStablecoinQueryParams({
 		stablecoinAttributeOptions,
@@ -494,11 +494,7 @@ function PeggedAssetsOverview({
 			selectedChain
 		)
 
-	const handleRouting = (selectedChain) => {
-		if (selectedChain === 'All') return `/stablecoins`
-		return `/stablecoins/${selectedChain}`
-	}
-	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
+	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, query) }))
 
 	const peggedTotals = useCalcCirculating(peggedAssets)
 
@@ -667,6 +663,35 @@ function PeggedAssetsOverview({
 			<PeggedTable data={peggedTotals} columns={columns} />
 		</>
 	)
+}
+
+function handleRouting(selectedChain, queryParams) {
+	const { chain, ...filters } = queryParams
+
+	let params = ''
+
+	Object.keys(filters).forEach((filter, index) => {
+		// append '?' before all query params and '&' bertween diff params
+		if (index === 0) {
+			params += '?'
+		} else params += '&'
+
+		// query params of same query like pegType will return in array form - pegType=['USD','EUR'], expected output is pegType=USD&pegType=EUR
+		if (Array.isArray(filters[filter])) {
+			filters[filter].forEach((f, i) => {
+				if (i > 0) {
+					params += '&'
+				}
+
+				params += `${filter}=${f}`
+			})
+		} else {
+			params += `${filter}=${filters[filter]}`
+		}
+	})
+
+	if (selectedChain === 'All') return `/stablecoins${params}`
+	return `/stablecoins/${selectedChain}${params}`
 }
 
 const inflowsChartOptions = {
