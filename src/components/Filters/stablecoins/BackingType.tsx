@@ -104,7 +104,7 @@ const updateBackings = (newFilters) => {
 				pathname,
 				query: {
 					...queries,
-					backing: []
+					backing: 'None'
 				}
 			},
 			undefined,

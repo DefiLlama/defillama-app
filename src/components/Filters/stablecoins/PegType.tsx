@@ -104,7 +104,7 @@ const updatePegTypes = (newFilters) => {
 				pathname,
 				query: {
 					...queries,
-					pegtype: []
+					pegtype: 'None'
 				}
 			},
 			undefined,

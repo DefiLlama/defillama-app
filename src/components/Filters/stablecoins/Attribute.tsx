@@ -94,7 +94,7 @@ export function Attribute({ pathname }: { pathname: string }) {
 				pathname,
 				query: {
 					...queries,
-					attribute: []
+					attribute: 'None'
 				}
 			},
 			undefined,
