@@ -75,6 +75,13 @@ const PageView = () => {
 
 	if (confidence) {
 		confidence = confidence === 1 ? 'Low' : confidence === 2 ? 'Medium' : 'High'
+		// on the frontend we round numerical values; eg values < 0.005 are displayed as 0.00;
+		// in the context of apy and predictions this sometimes can lead to the following:
+		// an apy is displayed as 0.00% and the outlook on /pool would read:
+		// "The algorithm predicts the current APY of 0.00% to not fall below 0.00% within the next 4 weeks. Confidence: High`"
+		// which is useless.
+		// solution: suppress the outlook and confidence values if apy < 0.005
+		confidence = apy >= 0.005 ? confidence : null
 	}
 
 	const predictedDirection = poolData.predictions?.predictedClass === 'Down' ? '' : 'not'
