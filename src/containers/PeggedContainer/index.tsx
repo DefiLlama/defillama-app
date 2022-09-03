@@ -31,7 +31,7 @@ import {
 	StatWrapper,
 	Symbol
 } from '~/components/ProtocolAndPool'
-import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data'
+import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import { UNRELEASED, useStablecoinsManager } from '~/contexts/LocalStorage'
