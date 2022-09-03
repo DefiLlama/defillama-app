@@ -12,9 +12,10 @@ interface SEOProps {
 	logo?: string
 	nftPage?: boolean
 	liqsPage?: boolean
+	dexsPage?: boolean
 }
 
-const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false, liqsPage = false }: SEOProps) => {
+const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false, liqsPage = false, dexsPage = false }: SEOProps) => {
 	const isClient = useIsClient()
 
 	const windowURL = isClient && window.location.href ? window.location.href : ''
@@ -38,6 +39,8 @@ const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false,
 			valueHeader = 'Total Volume'
 		} else if (liqsPage) {
 			valueHeader = 'Total Liquidable Amount'
+		} else if (dexsPage) {
+			valueHeader = 'Total Volume'
 		} else {
 			valueHeader = 'Total Value Locked'
 		}

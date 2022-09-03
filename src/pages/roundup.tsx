@@ -51,7 +51,11 @@ const Content = ({ text }: { text: string }) => {
 		<>
 			<ReactMarkdown
 				components={{
-					a: ({ node, ...props }) => <a target="_blank" rel="noopener noreferrer" {...props} />
+					a: ({ node, ...props }) => (
+						<span>
+							&gt; <a target="_blank" rel="noopener noreferrer" {...props} />
+						</span>
+					)
 				}}
 			>
 				{text}

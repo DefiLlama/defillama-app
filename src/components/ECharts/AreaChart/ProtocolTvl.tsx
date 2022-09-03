@@ -38,9 +38,9 @@ export default function ProtocolTvlChart({
 
 	const [extraTvlEnabled] = useDefiManager()
 
-	const { denomination, hideMcapChart, hideEvents } = router.query
+	const { denomination, showMcapChart, hideEvents } = router.query
 
-	const hideMcap = hideMcapChart === 'true'
+	const showMcap = showMcapChart === 'true'
 	const hideHallmarks = hideEvents === 'true'
 
 	const DENOMINATIONS = React.useMemo(() => {
@@ -130,7 +130,7 @@ export default function ProtocolTvlChart({
 		let chartData = []
 		let tokensUnique = ['TVL']
 
-		if (protocolHasMcap && !hideMcap) {
+		if (protocolHasMcap && showMcap) {
 			tokensUnique = ['TVL', 'Mcap']
 
 			tvlData.forEach(([date, tvl]) => {
@@ -149,10 +149,10 @@ export default function ProtocolTvlChart({
 		}
 
 		return { finalData: chartData, tokensUnique }
-	}, [tvlData, protocolCGData, hideMcap, protocolHasMcap])
+	}, [tvlData, protocolCGData, showMcap, protocolHasMcap])
 
 	const toggleFilter = (type: 'mcap' | 'events') => {
-		const param = type === 'mcap' ? { hideMcapChart: !hideMcap } : { hideEvents: !hideHallmarks }
+		const param = type === 'mcap' ? { showMcapChart: !showMcap } : { hideEvents: !hideHallmarks }
 
 		router.push(
 			{
@@ -189,8 +189,8 @@ export default function ProtocolTvlChart({
 
 				{protocolHasMcap && (
 					<ToggleCharts>
-						<input type="checkbox" value="hideMcapChart" checked={hideMcap} onChange={() => toggleFilter('mcap')} />
-						<span>Hide MCap Chart</span>
+						<input type="checkbox" value="showMcapChart" checked={showMcap} onChange={() => toggleFilter('mcap')} />
+						<span>Show MCap Chart</span>
 					</ToggleCharts>
 				)}
 			</FiltersWrapper>
