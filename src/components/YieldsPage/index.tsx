@@ -142,8 +142,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 					rewards: curr.rewardTokensNames,
 					change1d: curr.apyPct1D,
 					change7d: curr.apyPct7D,
-					outlook: curr.predictions.predictedClass,
-					confidence: curr.predictions.binnedConfidence,
+					outlook: curr.apy >= 0.005 ? curr.predictions.predictedClass : null,
+					confidence: curr.apy >= 0.005 ? curr.predictions.binnedConfidence : null,
 					url: curr.url,
 					category: curr.category
 				})
