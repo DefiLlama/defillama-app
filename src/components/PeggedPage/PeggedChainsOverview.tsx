@@ -9,7 +9,7 @@ import { AreaChart } from '~/components/Charts'
 import { GroupStablecoins } from '~/components/MultiSelect'
 import { PeggedSearch } from '~/components/Search'
 import { ChartSelector } from '~/components/PeggedPage/.'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {

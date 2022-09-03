@@ -1,36 +1,68 @@
 import { MenuButtonArrow, useSelectState } from 'ariakit'
+import { useRouter } from 'next/router'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { STABLECOINS_SETTINGS, useStablecoinsManager } from '~/contexts/LocalStorage'
+import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover, ItemsSelected } from '../shared'
 
 const { DEPEGGED } = STABLECOINS_SETTINGS
 
-export const options = [
+export const stablecoinAttributeOptions = [
 	{
 		name: 'Depegged',
 		key: DEPEGGED,
+		filterFn: (item) => true,
 		help: 'Show stablecoins depegged by 10% or more'
 	}
 ]
 
-export function Attribute() {
-	const [state, updater] = useStablecoinsManager()
+export function Attribute({ pathname }: { pathname: string }) {
+	const router = useRouter()
 
-	const updateAttributes = (updatedValues) => {
-		options.forEach((option) => {
-			const isSelected = updatedValues.includes(option.key)
+	const { attribute = [], chain, ...queries } = router.query
 
-			const isEnabled = state[option.key]
-
-			if ((isEnabled && !isSelected) || (!isEnabled && isSelected)) {
-				updater(option.key)()
+	const values = stablecoinAttributeOptions
+		.filter((o) => {
+			if (attribute) {
+				if (attribute.length === 0) {
+					return true
+				} else if (typeof attribute === 'string') {
+					return o.key === attribute
+				} else {
+					return attribute.includes(o.key)
+				}
 			}
 		})
-	}
+		.map((o) => o.key)
 
-	const values = options.filter((o) => state[o.key]).map((o) => o.key)
+	const updateAttributes = (newFilters) => {
+		if (values.length === 1 && newFilters.length === 0) {
+			router.push(
+				{
+					pathname,
+					query: {
+						...queries,
+						attribute: 'None'
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		} else {
+			router.push(
+				{
+					pathname,
+					query: {
+						...queries,
+						attribute: newFilters
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		}
+	}
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
@@ -43,23 +75,31 @@ export function Attribute() {
 	})
 
 	const toggleAll = () => {
-		options.forEach((option) => {
-			const isEnabled = state[option.key]
-
-			if (!isEnabled) {
-				updater(option.key)()
-			}
-		})
+		router.push(
+			{
+				pathname,
+				query: {
+					...queries,
+					attribute: stablecoinAttributeOptions.map((o) => o.key)
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
 	}
 
 	const clear = () => {
-		options.forEach((option) => {
-			const isEnabled = state[option.key]
-
-			if (isEnabled) {
-				updater(option.key)()
-			}
-		})
+		router.push(
+			{
+				pathname,
+				query: {
+					...queries,
+					attribute: 'None'
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
 	}
 
 	const totalSelected = values.length
@@ -77,7 +117,7 @@ export function Attribute() {
 
 					<button onClick={toggleAll}>Toggle all</button>
 				</FilterFnsGroup>
-				{options.map((option) => (
+				{stablecoinAttributeOptions.map((option) => (
 					<SelectItem key={option.key} value={option.key}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
 						<Checkbox checked={values.includes(option.key)} />
