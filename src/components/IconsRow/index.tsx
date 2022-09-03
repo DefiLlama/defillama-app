@@ -89,6 +89,7 @@ interface IIconsRowProps {
 	yieldRewardsSymbols?: string[]
 }
 
+// todo update links prop to {name: string, iconType: string}
 const IconsRow = ({ links, url, iconType, yieldRewardsSymbols = [] }: IIconsRowProps) => {
 	const [visibleChainIndex, setVisibileChainIndex] = useState(0)
 	const mainWrapEl = useRef(null)
@@ -123,7 +124,7 @@ const IconsRow = ({ links, url, iconType, yieldRewardsSymbols = [] }: IIconsRowP
 					key={chain}
 					chain={chain}
 					url={url}
-					iconType={iconType}
+					iconType={chain === 'Ethereum' ? 'chain' : iconType}
 					yieldRewardsSymbol={yieldRewardsSymbols[i]}
 				/>
 			))}
