@@ -30,7 +30,7 @@ export const stablecoinBackingOptions = [
 export function BackingType({ pathname }: { pathname: string }) {
 	const router = useRouter()
 
-	const { backing = [], ...queries } = router.query
+	const { backing = [], chain, ...queries } = router.query
 
 	const values = stablecoinBackingOptions
 	.filter((o) => {

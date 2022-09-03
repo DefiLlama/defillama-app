@@ -20,7 +20,7 @@ export const stablecoinAttributeOptions = [
 export function Attribute({ pathname }: { pathname: string }) {
 	const router = useRouter()
 
-	const { attribute = [], ...queries } = router.query
+	const { attribute = [], chain, ...queries } = router.query
 
 	const values = stablecoinAttributeOptions
 		.filter((o) => {

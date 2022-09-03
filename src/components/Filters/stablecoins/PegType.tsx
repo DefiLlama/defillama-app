@@ -30,7 +30,7 @@ export const stablecoinPegTypeOptions = [
 export function PegType({ pathname }: { pathname: string }) {
 	const router = useRouter()
 
-	const { pegtype = [], ...queries } = router.query
+	const { pegtype = [], chain, ...queries } = router.query
 
 	const values = stablecoinPegTypeOptions
 	.filter((o) => {
