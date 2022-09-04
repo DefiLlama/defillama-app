@@ -9,6 +9,7 @@ import { useDefaults } from '../useDefaults'
 export default function BarChart({
 	chartData,
 	stacks,
+	seriesConfig,
 	valueSymbol = '',
 	title,
 	color,
@@ -72,6 +73,7 @@ export default function BarChart({
 				return {
 					name: stack,
 					type: 'bar',
+
 					stack: defaultStacks[stack],
 					...(barWidths?.[defaultStacks[stack]] && { barMaxWidth: barWidths[defaultStacks[stack]] }),
 					emphasis: {
@@ -81,6 +83,7 @@ export default function BarChart({
 					itemStyle: {
 						color
 					},
+					...(seriesConfig?.[defaultStacks[stack]] && seriesConfig?.[defaultStacks[stack]]),
 					data: []
 				}
 			})
@@ -95,7 +98,7 @@ export default function BarChart({
 
 			return series
 		}
-	}, [barWidths, chartData, color, customLegendName, defaultStacks, legendOptions, stackKeys])
+	}, [barWidths, chartData, color, customLegendName, defaultStacks, legendOptions, stackKeys, seriesConfig])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

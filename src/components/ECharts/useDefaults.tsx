@@ -153,6 +153,12 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 					opacity: 0.2
 				}
+			},
+			splitLine: {
+				lineStyle: {
+					color: '#a1a1aa',
+					opacity: 0.1
+				}
 			}
 		}
 

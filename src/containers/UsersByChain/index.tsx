@@ -19,7 +19,7 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 interface IUsersByChainsProps {
 	chart: Array<{
 		day: string
-		total_txs: number
+		new_users: number
 		unique_users: number
 	}>
 	backgroundColor?: string
@@ -40,13 +40,13 @@ export default function UsersByChain({ chart, backgroundColor, logo, name, chain
 			// intialize object with date and column type props
 			if (!allTxsByDate[day]) {
 				allTxsByDate[day] = {
-					'Daily Transactions': 0,
+					'New Users': 0,
 					'Unique Users': 0
 				}
 			}
 
 			// sum all values of same category on same date
-			allTxsByDate[day]['Daily Transactions'] += value.total_txs
+			allTxsByDate[day]['New Users'] += value.new_users
 			allTxsByDate[day]['Unique Users'] += value.unique_users
 		})
 
@@ -94,7 +94,22 @@ export default function UsersByChain({ chart, backgroundColor, logo, name, chain
 					</StatWrapper>
 				</DetailsWrapper>
 				<ChartWrapper>
-					<BarChart chartData={allTxsChart} stacks={{ 'Unique Users': 'stackA' }} title="" color={backgroundColor} />
+					<BarChart
+						chartData={allTxsChart}
+						stacks={{ 'Unique Users': 'stackA', 'New Users': 'stackB' }}
+						seriesConfig={{
+							stackA: {
+								color: '#66c2a5'
+							},
+							stackB: {
+								type: 'line',
+								symbol: 'none',
+								color: '#fc8d62'
+							}
+						}}
+						title=""
+						color={backgroundColor}
+					/>
 				</ChartWrapper>
 			</StatsSection>
 

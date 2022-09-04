@@ -1,5 +1,7 @@
 import * as React from 'react'
 
+type Value = string | number | boolean
+
 export interface IChartProps {
 	chartData: any
 	stacks?: Array<string>
@@ -14,7 +16,7 @@ export interface IChartProps {
 	tooltipSort?: boolean
 	chartOptions?: {
 		[key: string]: {
-			[key: string]: string | number | boolean
+			[key: string]: Value | Array<Value>
 		}
 	}
 	height?: string
@@ -23,6 +25,11 @@ export interface IChartProps {
 export interface IBarChartProps extends Omit<IChartProps, 'stacks'> {
 	stacks?: {
 		[stack: string]: string
+	}
+	seriesConfig?: {
+		[stack: string]: {
+			[option: string]: Value | Array<Value>
+		}
 	}
 	barWidths?: {
 		[stack: string]: number
