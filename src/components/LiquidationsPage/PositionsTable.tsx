@@ -18,6 +18,9 @@ const ProtocolNameCell = ({ value }: CellProps) => {
 		case 'traderjoe':
 			_value = 'trader-joe'
 			break
+		case 'benqi':
+			_value = 'benqi-lending'
+			break
 		case 'maker':
 			_value = 'makerdao'
 			break
