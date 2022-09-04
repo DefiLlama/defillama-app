@@ -8,7 +8,7 @@ import FormattedName from '~/components/FormattedName'
 import { chainIconUrl, peggedAssetIconUrl, slug, tokenIconUrl } from '~/utils'
 import { INameYield, INameFees, INameProps, INameYieldPoolProps } from './types'
 import Tooltip from '~/components/Tooltip'
-import { ButtonYields } from '~/components/ProtocolAndPool'
+import { ButtonYields } from '~/layout/Pool'
 
 const SaveButton = styled(Bookmark)`
 	position: relative;

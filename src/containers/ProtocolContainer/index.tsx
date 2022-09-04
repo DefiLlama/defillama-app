@@ -45,9 +45,8 @@ import {
 	ChartsWrapper,
 	LazyChart,
 	ChartsPlaceholder
-} from '~/components/ProtocolAndPool'
+} from '~/layout/ProtocolAndPool'
 import Bookmark from '~/components/Bookmark'
-import Tooltip from '~/components/Tooltip'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false

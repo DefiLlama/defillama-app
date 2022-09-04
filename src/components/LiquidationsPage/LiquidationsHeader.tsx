@@ -3,15 +3,15 @@ import Link from 'next/link'
 import { MenuButtonArrow, useComboboxState, useMenuState } from 'ariakit'
 import styled from 'styled-components'
 import TokenLogo from '~/components/TokenLogo'
-import { Name, Symbol } from '~/components/ProtocolAndPool'
+import { Name, Symbol } from '~/layout/ProtocolAndPool'
 import FormattedName from '~/components/FormattedName'
 import { Button, Popover } from '~/components/DropdownMenu'
 import { Input, Item, List } from '~/components/Combobox'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
+import type { ISearchItem } from '~/components/Search/types'
 import { StackBySwitch } from './StackBySwitch'
 import { ChartData, DEFAULT_ASSETS_LIST } from '~/utils/liquidations'
-import type { ISearchItem } from '../Search/types'
 import { DownloadButton } from './DownloadButton'
-import { useSetPopoverStyles } from '../Popover/utils'
 
 const LiquidationsHeaderWrapper = styled.div`
 	flex: 1;

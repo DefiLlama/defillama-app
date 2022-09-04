@@ -1,16 +1,21 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
-import FormattedName from '~/components/FormattedName'
-import { Name, StatsSection, DetailsWrapper, ChartWrapper, StatWrapper, Stat } from '~/components/ProtocolAndPool'
-import { ProtocolsChainsSearch } from '~/components/Search'
-import TokenLogo from '~/components/TokenLogo'
 import Layout from '~/layout'
+import {
+	Wrapper,
+	StatsSection,
+	StatsWrapper,
+	Stat,
+	ChartWrapper,
+	LinksWrapper,
+	TableHeader,
+	Fallback
+} from '~/layout/Chain'
+import { ProtocolsChainsSearch } from '~/components/Search'
 import { formattedNum } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
-import { ListHeader, ListOptions } from '~/components/ChainPage/shared'
 import { RowLinksWithDropdown } from '~/components/Filters'
-import { Panel } from '~/components'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -19,6 +24,7 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 interface IUsersByChainsProps {
 	chart: Array<{
 		day: string
+		total_txs: number
 		new_users: number
 		unique_users: number
 	}>
@@ -30,7 +36,7 @@ interface IUsersByChainsProps {
 	protocols: Array<string>
 }
 
-export default function UsersByChain({ chart, backgroundColor, logo, name, chains, chain }: IUsersByChainsProps) {
+export default function UsersByChain({ chart, backgroundColor, name, chains, chain }: IUsersByChainsProps) {
 	const allTxsChart = React.useMemo(() => {
 		const allTxsByDate = {}
 
@@ -41,13 +47,15 @@ export default function UsersByChain({ chart, backgroundColor, logo, name, chain
 			if (!allTxsByDate[day]) {
 				allTxsByDate[day] = {
 					'New Users': 0,
-					'Unique Users': 0
+					'Unique Users': 0,
+					'Daily Transactions': 0
 				}
 			}
 
 			// sum all values of same category on same date
 			allTxsByDate[day]['New Users'] += value.new_users
 			allTxsByDate[day]['Unique Users'] += value.unique_users
+			allTxsByDate[day]['Daily Transactions'] += value.total_txs
 		})
 
 		return Object.keys(allTxsByDate).map((date) => ({
@@ -65,60 +73,52 @@ export default function UsersByChain({ chart, backgroundColor, logo, name, chain
 			backgroundColor={backgroundColor && transparentize(0.6, backgroundColor)}
 			style={{ gap: '36px' }}
 		>
-			<ProtocolsChainsSearch />
+			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Users', hideOptions: true }} />
 
-			<StatsSection>
-				<DetailsWrapper>
-					<Name>
-						{logo ? (
-							<>
-								<TokenLogo logo={logo} size={24} />
-								<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-							</>
-						) : (
-							name
-						)}
-					</Name>
+			<Wrapper>
+				<LinksWrapper>
+					<RowLinksWithDropdown links={chains} activeLink={chain} />
+				</LinksWrapper>
 
-					<StatWrapper>
+				<StatsSection>
+					<StatsWrapper>
 						<Stat>
-							<span>24h Users</span>
+							<span>24h Unique Users</span>
 							<span>{formattedNum(recentMetrics?.['Unique Users'])}</span>
 						</Stat>
-					</StatWrapper>
-					<StatWrapper>
+
+						<Stat>
+							<span>24h New Users</span>
+							<span>{formattedNum(recentMetrics?.['New Users'])}</span>
+						</Stat>
+
 						<Stat>
 							<span>24h Transactions</span>
 							<span>{formattedNum(recentMetrics?.['Daily Transactions'])}</span>
 						</Stat>
-					</StatWrapper>
-				</DetailsWrapper>
-				<ChartWrapper>
-					<BarChart
-						chartData={allTxsChart}
-						stacks={{ 'Unique Users': 'stackA', 'New Users': 'stackB' }}
-						seriesConfig={{
-							stackA: {
-								color: '#66c2a5'
-							},
-							stackB: {
-								type: 'line',
-								symbol: 'none',
-								color: '#fc8d62'
-							}
-						}}
-						title=""
-						color={backgroundColor}
-					/>
-				</ChartWrapper>
-			</StatsSection>
+					</StatsWrapper>
+					<ChartWrapper>
+						<BarChart
+							chartData={allTxsChart}
+							stacks={{ 'Unique Users': 'stackA', 'New Users': 'stackB' }}
+							seriesConfig={{
+								stackA: {
+									color: '#66c2a5'
+								},
+								stackB: {
+									type: 'line',
+									symbol: 'none',
+									color: '#fc8d62'
+								}
+							}}
+							title=""
+						/>
+					</ChartWrapper>
+				</StatsSection>
 
-			<ListOptions>
-				<ListHeader>User Rankings</ListHeader>
-				<RowLinksWithDropdown links={chains} activeLink={chain} />
-			</ListOptions>
-
-			<Panel as="p" style={{ textAlign: 'center', margin: 0 }}>{`No protocols tracked on this chain`}</Panel>
+				<TableHeader>User Rankings</TableHeader>
+				<Fallback>{`No protocols tracked on this chain`}</Fallback>
+			</Wrapper>
 		</Layout>
 	)
 }

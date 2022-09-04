@@ -30,7 +30,7 @@ import {
 	StatsSection,
 	StatWrapper,
 	Symbol
-} from '~/components/ProtocolAndPool'
+} from '~/layout/ProtocolAndPool'
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { useXl, useMed } from '~/hooks/useBreakpoints'

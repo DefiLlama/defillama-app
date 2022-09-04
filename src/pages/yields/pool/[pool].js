@@ -19,7 +19,7 @@ import {
 	StatsSection,
 	StatWrapper,
 	Symbol
-} from '~/components/ProtocolAndPool'
+} from '~/layout/ProtocolAndPool'
 import FormattedName from '~/components/FormattedName'
 import { BreakpointPanel } from '~/components'
 import { useYieldChartData, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'

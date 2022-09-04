@@ -1,8 +1,7 @@
 import * as React from 'react'
-import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
+import { capitalizeFirstLetter } from '~/utils'
 import { revalidate } from '~/api'
 import { USER_METRICS_ALL_API, USER_METRICS_CHAIN_API } from '~/constants'
-import { getColor } from '~/utils/getColor'
 import { arrayFetcher } from '~/utils/useSWR'
 import UsersByChain from '~/containers/UsersByChain'
 
@@ -29,16 +28,10 @@ export async function getStaticProps({
 
 		const chainName = capitalizeFirstLetter(chain === 'avax' ? 'avalanche' : chain)
 
-		const logoUrl = chainIconUrl(chainName)
-
-		const backgroundColor = await getColor(chain, logoUrl)
-
 		return {
 			props: {
 				chart: userMetrics?.chart?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime()),
 				name: chainName,
-				logo: logoUrl,
-				backgroundColor,
 				chains: ['All'].concat(chains).map((chain) => ({
 					label: chain === 'avax' ? 'Avalanche' : capitalizeFirstLetter(chain),
 					to: chain === 'All' ? '/users' : `/users/chain/${chain}`

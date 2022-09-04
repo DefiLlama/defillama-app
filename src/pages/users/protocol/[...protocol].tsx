@@ -14,7 +14,7 @@ import {
 	ChartWrapper,
 	StatWrapper,
 	Stat
-} from '~/components/ProtocolAndPool'
+} from '~/layout/ProtocolAndPool'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
 import type { IBarChartProps } from '~/components/ECharts/types'
