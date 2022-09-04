@@ -1,23 +1,17 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
-import FormattedName from '~/components/FormattedName'
-import { Name, StatsSection, DetailsWrapper, ChartWrapper, StatWrapper, Stat } from '~/components/ProtocolAndPool'
-import { ProtocolsChainsSearch } from '~/components/Search'
-import TokenLogo from '~/components/TokenLogo'
-import Layout from '~/layout'
-import { chainIconUrl, formattedNum } from '~/utils'
-import type { IBarChartProps } from '~/components/ECharts/types'
+import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { revalidate } from '~/api'
-import { PROTOCOLS_API, USER_METRICS_CHAIN_API } from '~/constants'
+import { USER_METRICS_ALL_API, USER_METRICS_CHAIN_API } from '~/constants'
 import { getColor } from '~/utils/getColor'
-import { transparentize } from 'polished'
-
-const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+import { arrayFetcher } from '~/utils/useSWR'
+import UsersByChain from '~/containers/UsersByChain'
 
 export async function getStaticPaths() {
-	const paths = []
+	const res = await fetch(`${USER_METRICS_ALL_API}`).then((res) => res.json())
+
+	const paths: string[] = res.chains.slice(0, 30).map((chain) => ({
+		params: { chain: [chain] }
+	}))
 
 	return { paths, fallback: 'blocking' }
 }
@@ -28,21 +22,29 @@ export async function getStaticProps({
 	}
 }) {
 	try {
-		const [userMetrics, { chains }] = await Promise.all([
-			fetch(`${USER_METRICS_CHAIN_API}/${chain}`).then((res) => res.json()),
-			fetch(`${PROTOCOLS_API}`).then((res) => res.json())
+		const [userMetrics, { chains }] = await arrayFetcher([
+			`${USER_METRICS_CHAIN_API}/${chain}`,
+			`${USER_METRICS_ALL_API}`
 		])
 
-		const logoUrl = chainIconUrl(chain)
+		const chainName = capitalizeFirstLetter(chain === 'avax' ? 'avalanche' : chain)
+
+		const logoUrl = chainIconUrl(chainName)
 
 		const backgroundColor = await getColor(chain, logoUrl)
 
 		return {
 			props: {
-				data: userMetrics?.chart?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime()),
-				name: chains.find((c) => c.toLowerCase() === chain) || chain,
+				chart: userMetrics?.chart?.sort((a, b) => new Date(a.day).getTime() - new Date(b.day).getTime()),
+				name: chainName,
 				logo: logoUrl,
 				backgroundColor,
+				chains: ['All'].concat(chains).map((chain) => ({
+					label: chain === 'avax' ? 'Avalanche' : capitalizeFirstLetter(chain),
+					to: chain === 'All' ? '/users' : `/users/chain/${chain}`
+				})),
+				protocols: userMetrics.protocols || [],
+				chain: chainName,
 				revalidate: revalidate()
 			}
 		}
@@ -53,67 +55,6 @@ export async function getStaticProps({
 	}
 }
 
-export default function Protocol({ name, logo, backgroundColor, data }) {
-	const allTxsChart = React.useMemo(() => {
-		const allTxsByDate = {}
-
-		data.forEach((value) => {
-			const day = new Date(value.day).getTime() / 1000
-
-			// intialize object with date and column type props
-			if (!allTxsByDate[day]) {
-				allTxsByDate[day] = {
-					'Daily Transactions': 0,
-					'Unique Users': 0
-				}
-			}
-
-			// sum all values of same category on same date
-			allTxsByDate[day]['Daily Transactions'] += value.total_txs
-			allTxsByDate[day]['Unique Users'] += value.unique_users
-		})
-
-		return Object.keys(allTxsByDate).map((date) => ({
-			date,
-			...allTxsByDate[date]
-		}))
-	}, [data])
-
-	const recentMetrics = allTxsChart[allTxsChart.length - 1]
-
-	return (
-		<Layout
-			title={`${name}: User Metrics - DefiLlama`}
-			defaultSEO
-			backgroundColor={transparentize(0.6, backgroundColor)}
-			style={{ gap: '36px' }}
-		>
-			<ProtocolsChainsSearch />
-
-			<StatsSection>
-				<DetailsWrapper>
-					<Name>
-						<TokenLogo logo={logo} size={24} />
-						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-					</Name>
-
-					<StatWrapper>
-						<Stat>
-							<span>24h Users</span>
-							<span>{formattedNum(recentMetrics?.['Unique Users'])}</span>
-						</Stat>
-					</StatWrapper>
-					<StatWrapper>
-						<Stat>
-							<span>24h Transactions</span>
-							<span>{formattedNum(recentMetrics?.['Daily Transactions'])}</span>
-						</Stat>
-					</StatWrapper>
-				</DetailsWrapper>
-				<ChartWrapper>
-					<BarChart chartData={allTxsChart} stacks={{ 'Unique Users': 'stackA' }} title="" color={backgroundColor} />
-				</ChartWrapper>
-			</StatsSection>
-		</Layout>
-	)
+export default function Protocol({ name, logo, backgroundColor, chart, chains, protocols, chain }) {
+	return <UsersByChain {...{ name, logo, backgroundColor, chart, chains, protocols, chain }} />
 }
