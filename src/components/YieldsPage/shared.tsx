@@ -312,21 +312,12 @@ export const columns = [
 
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{rewards.includes('Optimism') || rewards.includes('Avalanche') ? (
-						<IconsRow
-							links={rewards}
-							url="/yields?chain"
-							iconType="chain"
-							yieldRewardsSymbols={rowValues.rewardTokensSymbols}
-						/>
-					) : (
-						<IconsRow
-							links={rewards}
-							url="/yields?project"
-							iconType="token"
-							yieldRewardsSymbols={rowValues.rewardTokensSymbols}
-						/>
-					)}
+					<IconsRow
+						links={rewards}
+						url="/yields?project"
+						iconType="token"
+						yieldRewardsSymbols={rowValues.rewardTokensSymbols}
+					/>
 					{formattedPercent(value, true)}
 				</AutoRow>
 			)

@@ -89,6 +89,10 @@ interface IIconsRowProps {
 	yieldRewardsSymbols?: string[]
 }
 
+const isChain = (chain) => {
+	return ['Ethereum', 'Avalanche', 'Optimism'].includes(chain)
+}
+
 // todo update links prop to {name: string, iconType: string}
 const IconsRow = ({ links, url, iconType, yieldRewardsSymbols = [] }: IIconsRowProps) => {
 	const [visibleChainIndex, setVisibileChainIndex] = useState(0)
@@ -123,8 +127,8 @@ const IconsRow = ({ links, url, iconType, yieldRewardsSymbols = [] }: IIconsRowP
 				<ChainLogo
 					key={chain}
 					chain={chain}
-					url={url}
-					iconType={chain === 'Ethereum' ? 'chain' : iconType}
+					url={url === '/yields?project' ? (isChain(chain) ? '/yields?chain' : url) : url}
+					iconType={isChain(chain) ? 'chain' : iconType}
 					yieldRewardsSymbol={yieldRewardsSymbols[i]}
 				/>
 			))}
