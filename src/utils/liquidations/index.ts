@@ -575,7 +575,8 @@ export const PROTOCOL_NAMES_MAP: { [protocol: string]: string } = {
 	ethereum: 'Ethereum',
 	avalanche: 'Avalanche',
 	solend: 'Solend',
-	solana: 'Solana'
+	solana: 'Solana',
+	benqi: 'Benqi'
 }
 
 export const PROTOCOL_NAMES_MAP_REVERSE: { [name: string]: string } = Object.entries(PROTOCOL_NAMES_MAP).reduce(
