@@ -367,15 +367,12 @@ function PeggedChainsOverview({
 						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {dominance}%</p>
 					</BreakpointPanel>
 				</BreakpointPanels>
-				<BreakpointPanel id="chartWrapper">
-					<RowBetween mb={useMed ? 40 : 0} align="flex-start">
-						<AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
-							<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-						</AutoRow>
-					</RowBetween>
+				<BreakpointPanel id="chartWrapper" style={{ gap: '16px', minHeight: '450px', justifyContent: 'space-between' }}>
+					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+
 					{chartType === 'Total Market Cap' && (
 						<PeggedAreaChart
-							title={`Total ${title}`}
+							title=""
 							chartData={peggedAreaTotalData}
 							stacks={totalMcapLabel}
 							color={'lightcoral'}
