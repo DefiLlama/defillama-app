@@ -2,16 +2,7 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
-import {
-	Wrapper,
-	StatsSection,
-	StatsWrapper,
-	Stat,
-	ChartWrapper,
-	LinksWrapper,
-	TableHeader,
-	Fallback
-} from '~/layout/Chain'
+import { Wrapper, StatsWrapper, Stat, ChartWrapper, LinksWrapper, TableHeader, Fallback } from '~/layout/Chain'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { formattedNum } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
@@ -80,41 +71,48 @@ export default function UsersByChain({ chart, backgroundColor, name, chains, cha
 					<RowLinksWithDropdown links={chains} activeLink={chain} />
 				</LinksWrapper>
 
-				<StatsSection>
-					<StatsWrapper>
-						<Stat>
-							<span>24h Unique Users</span>
-							<span>{formattedNum(recentMetrics?.['Unique Users'])}</span>
-						</Stat>
+				<StatsWrapper>
+					<Stat>
+						<span>24h Unique Users</span>
+						<span>{formattedNum(recentMetrics?.['Unique Users'])}</span>
+					</Stat>
 
-						<Stat>
-							<span>24h New Users</span>
-							<span>{formattedNum(recentMetrics?.['New Users'])}</span>
-						</Stat>
+					<hr />
 
-						<Stat>
-							<span>24h Transactions</span>
-							<span>{formattedNum(recentMetrics?.['Daily Transactions'])}</span>
-						</Stat>
-					</StatsWrapper>
-					<ChartWrapper>
-						<BarChart
-							chartData={allTxsChart}
-							stacks={{ 'Unique Users': 'stackA', 'New Users': 'stackB' }}
-							seriesConfig={{
-								stackA: {
-									color: '#66c2a5'
-								},
-								stackB: {
-									type: 'line',
-									symbol: 'none',
-									color: '#fc8d62'
-								}
-							}}
-							title=""
-						/>
-					</ChartWrapper>
-				</StatsSection>
+					<Stat>
+						<span>24h New Users</span>
+						<span>{formattedNum(recentMetrics?.['New Users'])}</span>
+					</Stat>
+
+					<hr />
+
+					<Stat>
+						<span>24h Transactions</span>
+						<span>{formattedNum(recentMetrics?.['Daily Transactions'])}</span>
+					</Stat>
+				</StatsWrapper>
+				<ChartWrapper>
+					<BarChart
+						chartData={allTxsChart}
+						stacks={{ 'Unique Users': 'stackA', 'New Users': 'stackB' }}
+						seriesConfig={{
+							stackA: {
+								color: '#66c2a5'
+							},
+							stackB: {
+								type: 'line',
+								symbol: 'none',
+								color: '#fc8d62'
+							}
+						}}
+						title=""
+						chartOptions={{
+							legend: {
+								right: null // set legend to center, default is right on larger screens
+							}
+						}}
+					/>
+				</ChartWrapper>
 
 				<TableHeader>User Rankings</TableHeader>
 				<Fallback>{`No protocols tracked on this chain`}</Fallback>

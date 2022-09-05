@@ -64,7 +64,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 			}
 		}
 
-		const gridTop = !hideLegend && isSmall ? 48 : 0
+		const gridTop = hideLegend ? 0 : isSmall ? 60 : 10
 
 		const grid = {
 			left: 20,
@@ -195,7 +195,8 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 				fontWeight: 400,
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			},
-			top: !hideLegend && isSmall ? 30 : 0
+			top: !hideLegend && isSmall ? 30 : 0,
+			right: !hideLegend && isSmall ? null : 0
 		}
 
 		const dataZoom = [

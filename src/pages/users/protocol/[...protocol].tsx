@@ -257,14 +257,19 @@ const Charts = ({ data, chains, columns }) => {
 	)
 }
 
-const LazyChartWrapper = styled(LazyChart)`
-	grid-column: 1 / -1;
-`
-
 const SectionHeaderWrapper = styled.div`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: 24px;
 	position: relative;
+`
+
+const LazyChartWrapper = styled(LazyChart)`
+	@media screen and (min-width: 80rem) {
+		grid-column: 1 / -1;
+	}
+	@media screen and (min-width: 90rem) {
+		grid-column: span 1;
+	}
 `

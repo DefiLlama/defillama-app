@@ -271,7 +271,7 @@ export const ChartWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 
-	@media screen and (min-width: 90rem) {
+	@media screen and (min-width: 80rem) {
 		grid-column: span 1;
 
 		:last-child:nth-child(2n - 1) {

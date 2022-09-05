@@ -27,6 +27,10 @@ export default function MobileNav() {
 const Wrapper = styled(Header)`
 	display: flex;
 
+	button {
+		flex-shrink: 0;
+	}
+
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		display: none;
 	}

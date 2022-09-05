@@ -7,7 +7,7 @@ import { BasicLink } from '~/components/Link'
 export const Header = styled.header`
 	min-width: 220px;
 	gap: 10px;
-	padding: 8px;
+	padding: 12px 16px;
 	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
 	z-index: 1;
 
@@ -31,6 +31,7 @@ export const Header = styled.header`
 `
 
 export const LogoWrapper = styled.a`
+	flex-shrink: 0;
 	transition: transform 0.3s ease;
 	margin-right: auto;
 

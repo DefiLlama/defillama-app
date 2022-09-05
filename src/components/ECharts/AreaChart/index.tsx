@@ -38,7 +38,8 @@ export default function AreaChart({
 		color,
 		title,
 		valueSymbol,
-		tooltipSort
+		tooltipSort,
+		hideLegend: true
 	})
 
 	const series = useMemo(() => {
