@@ -29,24 +29,22 @@ export const StatsWrapper = styled.div`
 	flex-direction: column;
 	color: ${({ theme }) => theme.text1};
 	grid-column: span 1;
-	padding: 0 24px 0 36px;
+	padding: 0 16px;
 
 	@media screen and (min-width: 80rem) {
 		min-width: 380px;
+		padding: 0 24px 0 36px;
 	}
 `
 
 export const Stat = styled.p`
-	font-family: var(--font-jetbrains);
-	font-weight: 800;
-	font-size: 36px;
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
-	padding-bottom: 32px;
+	gap: 16px;
+	padding-bottom: 28px;
 
 	& + & {
-		padding-top: 32px;
+		padding-top: 28px;
 		border-top: 1px solid rgba(129, 133, 133, 0.2);
 	}
 
@@ -56,12 +54,32 @@ export const Stat = styled.p`
 		font-size: 0.875rem;
 		text-align: left;
 		color: ${({ theme }) => (theme.mode === 'dark' ? '#a9a9a9' : '#737373')};
+		margin: -2px 0;
+	}
+
+	& > *:nth-child(2) {
+		font-family: var(--font-jetbrains);
+		font-weight: 800;
+		font-size: 36px;
+		margin: -10px 0;
+	}
+
+	@media screen and (min-width: 80rem) {
+		padding-bottom: 32px;
+
+		& + & {
+			padding-top: 32px;
+		}
 	}
 `
 
 export const LinksWrapper = styled(RowLinksWrapper)`
 	grid-column: 1 / -1;
-	margin: -4px 0 32px;
+	margin: -4px 0 0;
+
+	@media screen and (min-width: 80rem) {
+		margin: -4px 0 32px;
+	}
 `
 
 export const ChartWrapper = styled.div`
@@ -69,10 +87,10 @@ export const ChartWrapper = styled.div`
 	min-height: 360px;
 	display: flex;
 	flex-direction: column;
-	padding-left: 16px;
 
 	@media screen and (min-width: 80rem) {
 		grid-column: span 1;
+		padding-left: 16px;
 	}
 `
 
