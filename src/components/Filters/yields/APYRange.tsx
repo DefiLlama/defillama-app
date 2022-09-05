@@ -7,8 +7,8 @@ export function APYRange() {
 	const handleSubmit = (e) => {
 		e.preventDefault()
 		const form = e.target
-		const minApy = form.minApy?.value
-		const maxApy = form.maxApy?.value
+		const minApy = form.min?.value
+		const maxApy = form.max?.value
 
 		router.push(
 			{

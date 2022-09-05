@@ -7,8 +7,8 @@ export function TVLRange() {
 	const handleSubmit = (e) => {
 		e.preventDefault()
 		const form = e.target
-		const minTvl = form.minTvl?.value
-		const maxTvl = form.maxTvl?.value
+		const minTvl = form.min?.value
+		const maxTvl = form.max?.value
 
 		router.push(
 			{

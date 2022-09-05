@@ -7,8 +7,8 @@ export function McapRange() {
 	const handleSubmit = (e) => {
 		e.preventDefault()
 		const form = e.target
-		const minMcap = form.minMcap?.value
-		const maxMcap = form.maxMcap?.value
+		const minMcap = form.min?.value
+		const maxMcap = form.max?.value
 
 		router.push(
 			{
@@ -25,5 +25,5 @@ export function McapRange() {
 			}
 		)
 	}
-	return <FilterBetweenRange header="Filter by Mcap" onSubmit={handleSubmit} minName={'minMcap'} maxName={'maxMcap'}/>
+	return <FilterBetweenRange header="Filter by Mcap" onSubmit={handleSubmit} />
 }
