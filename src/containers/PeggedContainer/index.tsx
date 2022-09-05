@@ -6,6 +6,18 @@ import { transparentize } from 'polished'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import styled from 'styled-components'
 import Layout from '~/layout'
+import {
+	Button,
+	DetailsTable,
+	DownloadButton,
+	ExtraOption,
+	FlexRow,
+	DetailsWrapper,
+	Name,
+	Symbol
+} from '~/layout/ProtocolAndPool'
+import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
+import { Checkbox2 } from '~/components'
 import { CustomLink } from '~/components/Link'
 import { PeggedSearch } from '~/components/Search'
 import { OptionButton } from '~/components/ButtonStyled'
@@ -18,19 +30,7 @@ import AuditInfo from '~/components/AuditInfo'
 import { columnsToShow, FullTable } from '~/components/Table'
 import SEO from '~/components/SEO'
 import QuestionHelper from '~/components/QuestionHelper'
-import {
-	Button,
-	DetailsTable,
-	DownloadButton,
-	ExtraOption,
-	FlexRow,
-	DetailsWrapper,
-	Name,
-	Stat,
-	StatsSection,
-	StatWrapper,
-	Symbol
-} from '~/layout/ProtocolAndPool'
+
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
@@ -48,7 +48,6 @@ import {
 	formattedPeggedPrice
 } from '~/utils'
 import type { IChartProps } from '~/components/ECharts/types'
-import { Checkbox2 } from '~/components'
 
 const TokenAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false

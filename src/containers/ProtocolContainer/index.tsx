@@ -7,6 +7,26 @@ import styled from 'styled-components'
 import { transparentize } from 'polished'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
+import {
+	Button,
+	DetailsTable,
+	DownloadButton,
+	ExtraOption,
+	FlexRow,
+	InfoWrapper,
+	LinksWrapper,
+	DetailsWrapper,
+	Name,
+	Section,
+	SectionHeader,
+	Symbol,
+	ChartsWrapper,
+	LazyChart,
+	ChartsPlaceholder
+} from '~/layout/ProtocolAndPool'
+import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
+import { Checkbox2 } from '~/components'
+import Bookmark from '~/components/Bookmark'
 import CopyHelper from '~/components/Copy'
 import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
@@ -25,28 +45,6 @@ import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 import { IFusedProtocolData } from '~/api/types'
-import { Checkbox2 } from '~/components'
-import {
-	Button,
-	DetailsTable,
-	DownloadButton,
-	ExtraOption,
-	FlexRow,
-	InfoWrapper,
-	LinksWrapper,
-	DetailsWrapper,
-	Name,
-	Section,
-	SectionHeader,
-	Stat,
-	StatsSection,
-	StatWrapper,
-	Symbol,
-	ChartsWrapper,
-	LazyChart,
-	ChartsPlaceholder
-} from '~/layout/ProtocolAndPool'
-import Bookmark from '~/components/Bookmark'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false

@@ -1,8 +1,10 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
+import styled from 'styled-components'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
-import { Wrapper, StatsWrapper, Stat, ChartWrapper, LinksWrapper, TableHeader, Fallback } from '~/layout/Chain'
+import { Wrapper, ChartWrapper, LinksWrapper, TableHeader, Fallback } from '~/layout/Chain'
+import { StatsWrapper, Stat } from '~/layout/Stats/Large'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { formattedNum } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
@@ -91,7 +93,7 @@ export default function UsersByChain({ chart, backgroundColor, name, chains, cha
 						<span>{formattedNum(recentMetrics?.['Daily Transactions'])}</span>
 					</Stat>
 				</StatsWrapper>
-				<ChartWrapper>
+				<ChartContainer>
 					<BarChart
 						chartData={allTxsChart}
 						stacks={{ 'Unique Users': 'stackA', 'New Users': 'stackB' }}
@@ -112,7 +114,7 @@ export default function UsersByChain({ chart, backgroundColor, name, chains, cha
 							}
 						}}
 					/>
-				</ChartWrapper>
+				</ChartContainer>
 
 				<TableHeader>User Rankings</TableHeader>
 				<Fallback>{`No protocols tracked on this chain`}</Fallback>
@@ -120,3 +122,11 @@ export default function UsersByChain({ chart, backgroundColor, name, chains, cha
 		</Layout>
 	)
 }
+
+const ChartContainer = styled(ChartWrapper)`
+	margin-top: -32px;
+
+	@media screen and (min-width: 80rem) {
+		margin-top: 0;
+	}
+`

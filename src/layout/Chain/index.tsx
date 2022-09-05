@@ -22,50 +22,6 @@ export const Wrapper = styled.div`
 	}
 `
 
-export const StatsWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	color: ${({ theme }) => theme.text1};
-	grid-column: span 1;
-	padding: 0 16px;
-
-	hr {
-		margin: 20px 0;
-		border: 1px solid rgba(129, 133, 133, 0.2);
-	}
-
-	@media screen and (min-width: 80rem) {
-		min-width: 380px;
-		padding: 0 0 0 36px;
-
-		hr {
-			margin: 32px 0;
-		}
-	}
-`
-
-export const Stat = styled.p`
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-
-	& > *:nth-child(1) {
-		font-family: var(--font-inter);
-		font-weight: 600;
-		font-size: 0.875rem;
-		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#a9a9a9' : '#737373')};
-		margin: -2px 0;
-	}
-
-	& > *:nth-child(2) {
-		font-family: var(--font-jetbrains);
-		font-weight: 800;
-		font-size: 36px;
-		margin: -10px 0;
-	}
-`
-
 export const LinksWrapper = styled(RowLinksWrapper)`
 	grid-column: 1 / -1;
 	margin-bottom: 0;

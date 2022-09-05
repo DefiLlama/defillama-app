@@ -4,17 +4,9 @@ import styled from 'styled-components'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
 import FormattedName from '~/components/FormattedName'
-import {
-	Name,
-	ChartsWrapper,
-	LazyChart,
-	SectionHeader,
-	StatsSection,
-	DetailsWrapper,
-	ChartWrapper,
-	StatWrapper,
-	Stat
-} from '~/layout/ProtocolAndPool'
+import { Name, ChartsWrapper, LazyChart, SectionHeader, DetailsWrapper, ChartWrapper } from '~/layout/ProtocolAndPool'
+import { StatsSection } from '~/layout/Stats/Medium'
+import { Stat } from '~/layout/Stats/Large'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
 import type { IBarChartProps } from '~/components/ECharts/types'
@@ -123,7 +115,7 @@ export default function Protocol({ name, logo, backgroundColor, data, uniqueChai
 			backgroundColor={transparentize(0.6, backgroundColor)}
 			style={{ gap: '36px' }}
 		>
-			<ProtocolsChainsSearch />
+			<ProtocolsChainsSearch step={{ category: 'Users', name, hideOptions: true }} />
 
 			<StatsSection>
 				<DetailsWrapper>
@@ -132,18 +124,15 @@ export default function Protocol({ name, logo, backgroundColor, data, uniqueChai
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 					</Name>
 
-					<StatWrapper>
-						<Stat>
-							<span>24h Users</span>
-							<span>{formattedNum(recentMetrics?.['Unique Users'])}</span>
-						</Stat>
-					</StatWrapper>
-					<StatWrapper>
-						<Stat>
-							<span>24h Transactions</span>
-							<span>{formattedNum(recentMetrics?.['Daily Transactions'])}</span>
-						</Stat>
-					</StatWrapper>
+					<Stat>
+						<span>24h Users</span>
+						<span>{formattedNum(recentMetrics?.['Unique Users'])}</span>
+					</Stat>
+
+					<Stat>
+						<span>24h Transactions</span>
+						<span>{formattedNum(recentMetrics?.['Daily Transactions'])}</span>
+					</Stat>
 				</DetailsWrapper>
 				<ChartWrapper>
 					<BarChart chartData={allTxsChart} stacks={{ 'Unique Users': 'stackA' }} title="" color={backgroundColor} />

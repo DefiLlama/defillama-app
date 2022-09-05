@@ -1068,10 +1068,10 @@ ariakit-utils@0.17.0-next.26:
   resolved "https://registry.yarnpkg.com/ariakit-utils/-/ariakit-utils-0.17.0-next.26.tgz#585ccf021f9271c4ac0be2753ccf49bbd88bfaae"
   integrity sha512-Su1MA0nWcMKI/lPS++jgkXek6Z+Az4SGOTIjGz2mn7kN6pSRO3Xm4gW/6gLpbu0kmVd+MYNSpmEvFnJUf/udhA==
 
-ariakit@2.0.0-next.40:
-  version "2.0.0-next.40"
-  resolved "https://registry.yarnpkg.com/ariakit/-/ariakit-2.0.0-next.40.tgz#f5966f20dc6a79c2852ca4fba2bc049475b041c4"
-  integrity sha512-MGZkWrkyb1rmRJRwxhqh1eOSkJE9KFmyaszoYgGLVCxsJQ+WkJpjodB4Wt5t5A9hQlj3vnRzfW0q+reS4yWXdg==
+ariakit@^2.0.0-next.41:
+  version "2.0.0-next.41"
+  resolved "https://registry.yarnpkg.com/ariakit/-/ariakit-2.0.0-next.41.tgz#ea23521c18c30dd5daf3f48976f879710d968dca"
+  integrity sha512-79ACgnIofsC7ULirjz/dqjNCwUW9TmX7ULdCqHHrpJP1H+lw9vtpWv4eeuRAII2lsyfNtXmLnY6qZ1ZV3ucxmA==
   dependencies:
     "@floating-ui/dom" "^1.0.0"
     ariakit-utils "0.17.0-next.26"
@@ -1627,13 +1627,13 @@ echarts-simple-transform@^1.0.0:
   dependencies:
     tslib "2.0.3"
 
-echarts@^5.3.2:
-  version "5.3.2"
-  resolved "https://registry.yarnpkg.com/echarts/-/echarts-5.3.2.tgz#0a7b3be8c48a48b2e7cb1b82121df0c208d42d2c"
-  integrity sha512-LWCt7ohOKdJqyiBJ0OGBmE9szLdfA9sGcsMEi+GGoc6+Xo75C+BkcT/6NNGRHAWtnQl2fNow05AQjznpap28TQ==
+echarts@^5.3.3:
+  version "5.3.3"
+  resolved "https://registry.yarnpkg.com/echarts/-/echarts-5.3.3.tgz#df97b09c4c0e2ffcdfb44acf518d50c50e0b838e"
+  integrity sha512-BRw2serInRwO5SIwRviZ6Xgm5Lb7irgz+sLiFMmy/HOaf4SQ+7oYqxKzRHAKp4xHQ05AuHw1xvoQWJjDQq/FGw==
   dependencies:
     tslib "2.3.0"
-    zrender "5.3.1"
+    zrender "5.3.2"
 
 emoji-regex@^9.2.2:
   version "9.2.2"
@@ -4532,9 +4532,9 @@ zenscroll@^4.0.2:
   resolved "https://registry.yarnpkg.com/zenscroll/-/zenscroll-4.0.2.tgz#e8d5774d1c0738a47bcfa8729f3712e2deddeb25"
   integrity sha1-6NV3TRwHOKR7z6hynzcS4t7d6yU=
 
-zrender@5.3.1:
-  version "5.3.1"
-  resolved "https://registry.yarnpkg.com/zrender/-/zrender-5.3.1.tgz#fa8e63ac7e719cfd563831fe8c42a9756c5af384"
-  integrity sha512-7olqIjy0gWfznKr6vgfnGBk7y4UtdMvdwFmK92vVQsQeDPyzkHW1OlrLEKg6GHz1W5ePf0FeN1q2vkl/HFqhXw==
+zrender@5.3.2:
+  version "5.3.2"
+  resolved "https://registry.yarnpkg.com/zrender/-/zrender-5.3.2.tgz#f67b11d36d3d020d62411d3bb123eb1c93cccd69"
+  integrity sha512-8IiYdfwHj2rx0UeIGZGGU4WEVSDEdeVCaIg/fomejg1Xu6OifAL1GVzIPHg2D+MyUkbNgPWji90t0a8IDk+39w==
   dependencies:
     tslib "2.3.0"

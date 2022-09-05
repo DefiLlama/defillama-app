@@ -2,46 +2,6 @@ import { useInView, defaultFallbackInView } from 'react-intersection-observer'
 import styled from 'styled-components'
 import { ButtonLight } from '~/components/ButtonStyled'
 
-export const StatsSection = styled.div`
-	display: grid;
-	grid-template-columns: 1fr;
-	border-radius: 12px;
-	background: ${({ theme }) => theme.bg6};
-	border: ${({ theme }) => '1px solid ' + theme.divider};
-	box-shadow: ${({ theme }) => theme.shadowSm};
-	position: relative;
-	isolation: isolate;
-	z-index: 1;
-
-	@media screen and (min-width: 80rem) {
-		grid-template-columns: auto 1fr;
-	}
-`
-
-export const StatWrapper = styled.div`
-	position: relative;
-	display: flex;
-	gap: 20px;
-	align-items: flex-end;
-	justify-content: space-between;
-	flex-wrap: wrap;
-`
-
-export const Stat = styled.p`
-	font-weight: 700;
-	font-size: 2rem;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-
-	& > *:first-child {
-		font-weight: 400;
-		font-size: 0.75rem;
-		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#cccccc' : '#545757')};
-	}
-`
-
 export const DetailsWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
@@ -56,14 +16,6 @@ export const DetailsWrapper = styled.div`
 	@media screen and (min-width: 80rem) {
 		min-width: 380px;
 		border-radius: 12px 0 0 12px;
-	}
-`
-
-export const PoolDetails = styled(DetailsWrapper)`
-	border-top-left-radius: 12px;
-
-	@media screen and (min-width: 80rem) {
-		max-width: 380px;
 	}
 `
 
