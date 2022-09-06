@@ -199,7 +199,7 @@ const StyledTable = styled(FullTable)`
 	}
 `
 
-const columns = columnsToShow('dexName', '1dChange', '7dChange', '1mChange', 'totalVolume24h')
+const columns = columnsToShow('dexName', 'chainsVolume', '1dChange', '7dChange', '1mChange', 'totalVolume24h')
 
 export default function DexsContainer({
 	category,

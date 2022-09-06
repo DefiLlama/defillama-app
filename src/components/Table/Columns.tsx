@@ -196,5 +196,11 @@ export const allColumns: AllColumns = {
 		header: 'Last day volume',
 		accessor: 'totalVolume24h',
 		Cell: ({ value }) => <>{value && formattedNum(value)}</>
-	}
+	},
+	chainsVolume: {
+		header: 'Chains',
+		accessor: 'chains',
+		disableSortBy: true,
+		Cell: ({ value }) => <IconsRow links={value} url="/chain" iconType="chain" />
+	},
 }
