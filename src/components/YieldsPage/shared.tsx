@@ -236,8 +236,7 @@ export const columns = [
 		Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
 			<NameYieldPool
 				value={value}
-				poolId={rowValues.id}
-				project={rowValues.project}
+				poolId={rowValues.configID}
 				url={rowValues.url ?? ''}
 				index={rowIndex !== null && rowIndex + 1}
 				bookmark

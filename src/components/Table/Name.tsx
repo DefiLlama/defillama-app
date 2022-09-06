@@ -189,7 +189,6 @@ export function NameYield({ project, projectslug, rowType, airdrop, ...props }: 
 export function NameYieldPool({
 	value,
 	poolId,
-	project,
 	url,
 	index,
 	bookmark,
