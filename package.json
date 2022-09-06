@@ -14,6 +14,8 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
+		"@tanstack/react-table": "^8.5.13",
+		"@tanstack/react-virtual": "^3.0.0-alpha.0",
 		"ariakit": "^2.0.0-next.41",
 		"bignumber.js": "^9.0.2",
 		"dayjs": "^1.11.3",
