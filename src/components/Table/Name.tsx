@@ -110,10 +110,12 @@ export function Name({
 			{rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
 			<span>{rowType !== 'pinned' && index}</span>
 			<TokenLogo id="table-p-logo" logo={iconUrl} />
-			{rowType === 'accordion' ? (
+			{rowType === 'accordion' && type!=='dex' ? (
 				<span id="table-p-name">{name}</span>
 			) : (
-				<CustomLink href={tokenUrl} id="table-p-name">
+				<CustomLink onClick={(e)=>{
+					e.stopPropagation();
+				}} href={tokenUrl} id="table-p-name">
 					{name}
 				</CustomLink>
 			)}

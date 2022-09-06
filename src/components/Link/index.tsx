@@ -16,6 +16,7 @@ interface CustomLinkProps extends BasicLinkProps {
 	id?: string
 	style?: React.CSSProperties
 	target?: React.HTMLAttributeAnchorTarget
+	onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }
 
 const WrappedLink = ({ external, children, ...rest }) => (
