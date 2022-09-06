@@ -69,7 +69,7 @@ export interface INameYield extends Omit<INameProps, 'type'> {
 
 export interface INameYieldPoolProps {
 	value: string
-	poolId: string
+	configID: string
 	url: string
 	index?: number
 	bookmark?: boolean
