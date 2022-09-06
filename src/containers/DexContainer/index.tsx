@@ -397,7 +397,7 @@ function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContain
 					<LinksWrapper>
 						{volumeAdapter && (
 							<Link
-								href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/dexVolumes/${volumeAdapter}`}
+								href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/volumes/adapters/${volumeAdapter}`}
 								passHref
 							>
 								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
