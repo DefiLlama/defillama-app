@@ -5,100 +5,54 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { useInView, defaultFallbackInView } from 'react-intersection-observer'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
+import {
+	Button,
+	DetailsTable,
+	DownloadButton,
+	ExtraOption,
+	FlexRow,
+	InfoWrapper,
+	LinksWrapper,
+	DetailsWrapper,
+	Name,
+	Section,
+	SectionHeader,
+	Symbol,
+	ChartsWrapper,
+	LazyChart,
+	ChartsPlaceholder
+} from '~/layout/ProtocolAndPool'
+import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
+import { Checkbox2 } from '~/components'
+import Bookmark from '~/components/Bookmark'
 import CopyHelper from '~/components/Copy'
 import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
 import SEO from '~/components/SEO'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
-import ProtocolTvlChart from '~/components/TokenChart/ProtocolTvlChart'
+import ProtocolTvlChart from '~/components/ECharts/AreaChart/ProtocolTvl'
 import QuestionHelper from '~/components/QuestionHelper'
-import type { IChartProps } from '~/components/TokenChart/types'
+import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
-import { extraTvlProps, useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName, toK } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 import { IFusedProtocolData } from '~/api/types'
-import { Checkbox2 } from '~/components'
-import {
-	Button,
-	DownloadButton,
-	FlexRow,
-	InfoWrapper,
-	LinksWrapper,
-	ProtocolDetails,
-	ProtocolName,
-	Section,
-	SectionHeader,
-	Stat,
-	StatsSection,
-	StatWrapper,
-	Symbol
-} from '~/components/ProtocolAndPool'
 
-defaultFallbackInView(true)
-
-const AreaChart = dynamic(() => import('~/components/TokenChart/AreaChart'), {
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-const BarChart = dynamic(() => import('~/components/TokenChart/BarChart'), {
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
-}) as React.FC<IChartProps>
-
-const Table = styled.table`
-	border-collapse: collapse;
-
-	caption,
-	thead th {
-		font-weight: 400;
-		font-size: 0.75rem;
-		text-align: left;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#969b9b' : '#545757')};
-	}
-
-	th {
-		font-weight: 600;
-		font-size: 1rem;
-		text-align: start;
-	}
-
-	td {
-		font-weight: 400;
-		font-size: 0.875rem;
-		text-align: right;
-		font-family: var(--font-jetbrains);
-	}
-
-	thead td {
-		> * {
-			width: min-content;
-			background: none;
-			margin-left: auto;
-			color: ${({ theme }) => theme.text1};
-		}
-	}
-
-	thead > tr > *,
-	caption {
-		padding: 0 0 4px;
-	}
-
-	tbody > tr > * {
-		padding: 4px 0;
-	}
-
-	.question-helper {
-		padding: 0 16px;
-	}
-`
+}) as React.FC<IBarChartProps>
 
 const Bobo = styled.button`
 	position: absolute;
@@ -110,47 +64,12 @@ const Bobo = styled.button`
 		height: 34px !important;
 	}
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		top: 0;
 		right: 0;
 		bottom: initial;
 		left: initial;
 		z-index: 1;
-	}
-`
-
-const ExtraTvlOption = styled.label`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-
-	:hover {
-		cursor: pointer;
-	}
-`
-
-const ChartsWrapper = styled.section`
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	border-radius: 12px;
-	background: ${({ theme }) => theme.bg6};
-	border: ${({ theme }) => '1px solid ' + theme.divider};
-	box-shadow: ${({ theme }) => theme.shadowSm};
-`
-
-const ChartWrapper = styled.section`
-	grid-column: span 2;
-	min-height: 360px;
-	padding: 20px;
-	display: flex;
-	flex-direction: column;
-
-	@media (min-width: 90rem) {
-		grid-column: span 1;
-
-		:last-child:nth-child(2n - 1) {
-			grid-column: span 2;
-		}
 	}
 `
 
@@ -162,7 +81,7 @@ const OtherProtocols = styled.nav`
 	font-weight: 500;
 	border-radius: 12px 12px 0 0;
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		grid-column: span 2;
 	}
 `
@@ -237,9 +156,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 	const [bobo, setBobo] = React.useState(false)
 
-	const tvlToggles = useTvlToggles()
-
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const [extraTvlsEnabled, updater] = useDefiManager()
 
 	const {
 		tvls: tvlsByChain,
@@ -251,7 +168,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			if (name === 'masterchef') return acc
 
 			// check if tvl name is addl tvl type and is toggled
-			if (isLowerCase(name[0]) && extraTvlProps.includes(name) && tvl !== 0) {
+			if (isLowerCase(name[0]) && DEFI_SETTINGS_KEYS.includes(name) && tvl !== 0) {
 				acc.extraTvls.push([name, tvl])
 				acc.tvlOptions.push(protocolsAndChainsOptions.find((e) => e.key === name))
 			} else {
@@ -341,12 +258,17 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						))}
 					</OtherProtocols>
 				)}
-				<ProtocolDetails style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
-					<ProtocolName>
+
+				<DetailsWrapper style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
+					{name === 'Drachma Exchange' && <p>There's been multiple hack reports in this protocol</p>}
+
+					<Name>
 						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
-					</ProtocolName>
+
+						<Bookmark readableProtocolName={name} />
+					</Name>
 
 					<StatWrapper>
 						<Stat>
@@ -363,7 +285,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					</StatWrapper>
 
 					{tvls.length > 1 && (
-						<Table>
+						<DetailsTable>
 							<caption>Chain Breakdown</caption>
 							<tbody>
 								{tvls.map((chainTvl) => (
@@ -373,11 +295,11 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 									</tr>
 								))}
 							</tbody>
-						</Table>
+						</DetailsTable>
 					)}
 
 					{extraTvls.length > 0 && (
-						<Table>
+						<DetailsTable>
 							<thead>
 								<tr>
 									<th>Include in TVL (optional)</th>
@@ -390,25 +312,25 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 								{extraTvls.map(([option, value]) => (
 									<tr key={option}>
 										<th>
-											<ExtraTvlOption>
+											<ExtraOption>
 												<Checkbox2
 													type="checkbox"
 													value={option}
 													checked={extraTvlsEnabled[option]}
-													onChange={tvlToggles(option)}
+													onChange={updater(option)}
 												/>
 												<span style={{ opacity: extraTvlsEnabled[option] ? 1 : 0.7 }}>
 													{capitalizeFirstLetter(option)}
 												</span>
-											</ExtraTvlOption>
+											</ExtraOption>
 										</th>
 										<td>${toK(value)}</td>
 									</tr>
 								))}
 							</tbody>
-						</Table>
+						</DetailsTable>
 					)}
-				</ProtocolDetails>
+				</DetailsWrapper>
 
 				<ProtocolTvlChart
 					protocol={protocol}
@@ -436,7 +358,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					{category && (
 						<FlexRow>
 							<span>Category</span>
-							<span>:</span>
+							<span>: </span>
 							<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
 						</FlexRow>
 					)}
@@ -526,43 +448,57 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 
 					<ChartsWrapper>
 						{loading ? (
-							<span
-								style={{
-									height: '360px',
-									display: 'flex',
-									justifyContent: 'center',
-									alignItems: 'center',
-									gridColumn: '1 / -1'
-								}}
-							>
-								Loading...
-							</span>
+							<ChartsPlaceholder>Loading...</ChartsPlaceholder>
 						) : (
 							<>
 								{chainsSplit && chainsUnique?.length > 1 && (
-									<Chart>
-										<AreaChart chartData={chainsSplit} tokensUnique={chainsUnique} title="Chains" />
-									</Chart>
+									<LazyChart>
+										<AreaChart
+											chartData={chainsSplit}
+											title="Chains"
+											customLegendName="Chain"
+											customLegendOptions={chainsUnique}
+											valueSymbol="$"
+										/>
+									</LazyChart>
 								)}
 								{tokenBreakdown?.length > 1 && tokensUnique?.length > 1 && (
-									<Chart>
-										<AreaChart chartData={tokenBreakdown} title="Tokens" tokensUnique={tokensUnique} moneySymbol="" />
-									</Chart>
+									<LazyChart>
+										<AreaChart
+											chartData={tokenBreakdown}
+											title="Tokens"
+											customLegendName="Token"
+											customLegendOptions={tokensUnique}
+										/>
+									</LazyChart>
 								)}
 								{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
-									<Chart>
-										<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" tokensUnique={tokensUnique} />
-									</Chart>
+									<LazyChart>
+										<AreaChart
+											chartData={tokenBreakdownUSD}
+											title="Tokens (USD)"
+											customLegendName="Token"
+											customLegendOptions={tokensUnique}
+											valueSymbol="$"
+										/>
+									</LazyChart>
 								)}
 								{usdInflows && (
-									<Chart>
-										<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" />
-									</Chart>
+									<LazyChart>
+										<BarChart chartData={usdInflows} color={backgroundColor} title="USD Inflows" valueSymbol="$" />
+									</LazyChart>
 								)}
 								{tokenInflows && (
-									<Chart>
-										<BarChart chartData={tokenInflows} title="Token Inflows" tokensUnique={tokensUnique} />
-									</Chart>
+									<LazyChart>
+										<BarChart
+											chartData={tokenInflows}
+											title="Token Inflows"
+											customLegendName="Token"
+											customLegendOptions={tokensUnique}
+											hidedefaultlegend={true}
+											valueSymbol="$"
+										/>
+									</LazyChart>
 								)}
 							</>
 						)}
@@ -571,14 +507,6 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 			)}
 		</Layout>
 	)
-}
-
-const Chart = ({ children }) => {
-	const { ref, inView } = useInView({
-		triggerOnce: true
-	})
-
-	return <ChartWrapper ref={ref}>{inView && children}</ChartWrapper>
 }
 
 export default ProtocolContainer

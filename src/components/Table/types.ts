@@ -22,6 +22,8 @@ export interface ITableProps {
 	gap?: string
 	pinnedRow?: unknown
 	style?: React.CSSProperties
+	columnToSort?: string
+	sortDirection?: -1 | 0 | 1
 }
 
 export type TColumns =
@@ -41,15 +43,23 @@ export type TColumns =
 	| 'protocols'
 	| 'dexName'
 	| 'totalVolume24h'
+	| 'fees'
+	| 'revenue'
+	| 'feesProtocol'
+	| 'chainsVolume'
 
 export interface INameProps {
-	type: 'chain' | 'protocol' | 'peggedAsset' | 'peggedAssetChain' | 'dex'
+	type: 'chain' | 'protocol' | 'peggedAsset' | 'peggedAssetChain' | 'dex' | 'fees'
 	value: string
 	symbol?: string
 	index?: number
 	bookmark?: boolean
 	rowType?: 'pinned' | 'accordion' | 'child' | 'default'
 	showRows?: boolean
+}
+
+export interface INameFees extends INameProps{
+	version?: string
 }
 
 export interface INameYield extends Omit<INameProps, 'type'> {

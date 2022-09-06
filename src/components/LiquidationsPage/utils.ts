@@ -1,29 +1,25 @@
 /* eslint-disable no-unused-vars*/
 import { useRouter } from 'next/router'
-import { ChartData, ChartDataBin, getReadableValue } from '~/utils/liquidations'
+import { ChartData, ChartDataBins, getReadableValue, PROTOCOL_NAMES_MAP } from '~/utils/liquidations'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 import { ECBasicOption } from 'echarts/types/dist/shared'
-import { useState } from 'react'
 
-export type ChartState = {
-	asset: string // TODO: symbol for now, later change to coingeckoId
-	stackBy: 'chain' | 'protocol'
-	filters: FilterChain | FilterProtocol
-}
-// this should be pulled dynamically
-type FilterChain = ['all'] | ['none'] | string[]
-type FilterProtocol = ['all'] | ['none'] | string[]
-
-export const convertChartDataBinsToArray = (obj: ChartDataBin, totalBins: number) => {
+export const convertChartDataBinsToArray = (obj: ChartDataBins, totalBins: number) => {
 	// // this line below suddenly throws error in browser that the iterator cant iterate??
 	// const arr = [...Array(totalBins).keys()].map((i) => obj.bins[i] || 0)
-	const arr = Array.from({ length: totalBins }, (_, i) => i).map((i) => obj.bins[i] || 0)
+	const arr = Array.from({ length: totalBins }, (_, i) => i).map((i) => obj.bins[i] || { native: 0, usd: 0 })
 	return arr
 }
 
-export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols', isSmall: boolean, isDark: boolean) => {
-	const chartDataBins = chartData.chartDataBins[stackBy === 'chains' ? 'byChain' : 'byProtocol']
+export const getOption = (
+	chartData: ChartData,
+	stackBy: 'chains' | 'protocols',
+	isSmall: boolean,
+	isDark: boolean,
+	isLiqsUsingUsd: boolean
+) => {
+	const chartDataBins = chartData.chartDataBins[stackBy]
 	// convert chartDataBins to array
 	const chartDataBinsArray = Object.keys(chartDataBins).map((key) => ({
 		key: key,
@@ -31,11 +27,8 @@ export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols',
 	}))
 	const series = chartDataBinsArray.map((obj) => ({
 		type: 'bar',
-		name: obj.key,
-		data: obj.data,
-		tooltip: {
-			valueFormatter: (value: string) => `$${getReadableValue(Number(value))}`
-		},
+		name: PROTOCOL_NAMES_MAP[obj.key],
+		data: obj.data.map((value) => (isLiqsUsingUsd ? value['usd'] : value['native'])),
 		emphasis: {
 			focus: 'series'
 		},
@@ -70,6 +63,13 @@ export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols',
 			bottom: '2%',
 			containLabel: true
 		},
+		dataZoom: [
+			{
+				type: 'inside',
+				start: 0,
+				end: 100
+			}
+		],
 		tooltip: {
 			trigger: 'axis',
 			axisPointer: {
@@ -78,12 +78,16 @@ export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols',
 			formatter: (params: any) => {
 				const { name } = params[0]
 				return (
-					`Liquidation Price: <b>~$${name}</b>` +
-					`<br/>` +
-					`<br/>` +
+					`<div style="margin-bottom: 8px"><b>Liquidations at ~$${name}</b></div>` +
+					// `<br/>` +
 					params
 						.map(
-							(param: any) => `${param.marker} ${param.seriesName}: <b>$${getReadableValue(Number(param.value))}</b>`
+							(param: any) =>
+								`<span style="color: ${param.color}; margin-bottom: 2px">  <b>${param.seriesName} :</b> ${
+									isLiqsUsingUsd
+										? `$${getReadableValue(Number(param.value))}`
+										: `${getReadableValue(Number(param.value))}`
+								}</span>`
 						)
 						.join('<br/>')
 				)
@@ -110,7 +114,8 @@ export const getOption = (chartData: ChartData, stackBy: 'chains' | 'protocols',
 			type: 'value',
 			position: 'right',
 			axisLabel: {
-				formatter: (value: string) => `$${getReadableValue(Number(value))}`
+				formatter: (value: string) =>
+					isLiqsUsingUsd ? `$${getReadableValue(Number(value))}` : `${getReadableValue(Number(value))}`
 			},
 			splitLine: {
 				lineStyle: {

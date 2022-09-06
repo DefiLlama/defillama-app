@@ -1,10 +1,9 @@
 import styled from 'styled-components'
-import Table, { columnsToShow, NameYield, NameYieldPool } from '~/components/Table'
+import Table, { columnToShow, NameYield, NameYieldPool } from '~/components/Table'
 import { AutoRow } from '~/components/Row'
 import QuestionHelper from '~/components/QuestionHelper'
 import IconsRow from '~/components/IconsRow'
-import { formattedPercent } from '~/utils'
-import { Panel } from '..'
+import { formattedNum, formattedPercent } from '~/utils'
 
 export const TableWrapper = styled(Table)`
 	tr > *:not(:first-child) {
@@ -225,6 +224,10 @@ export const TableWrapper = styled(Table)`
 	}
 `
 
+const TVL_PROJECT_TEXT = {
+	Morpho: 'TVL for this project includes Borrowed coins'
+}
+
 export const columns = [
 	{
 		header: 'Pool',
@@ -256,7 +259,25 @@ export const columns = [
 		disableSortBy: true,
 		Cell: ({ value }) => <IconsRow links={value} url="/yields?chain" iconType="chain" />
 	},
-	...columnsToShow('tvl'),
+	{
+		...columnToShow('tvl'),
+		Cell: ({ value, rowValues }) => {
+			const text = TVL_PROJECT_TEXT[rowValues.project]
+
+			return (
+				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+					{text ? <QuestionHelper text={text} /> : null}
+					<span
+						style={{
+							color: rowValues.strikeTvl ? 'gray' : 'inherit'
+						}}
+					>
+						{'$' + formattedNum(value)}
+					</span>
+				</span>
+			)
+		}
+	},
 	{
 		header: 'APY',
 		accessor: 'apy',
@@ -288,23 +309,15 @@ export const columns = [
 		helperText: 'Annualised percentage yield from incentives',
 		Cell: ({ value, rowValues }) => {
 			const rewards = rowValues.rewards ?? []
+
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{rewards.includes('Optimism') || rewards.includes('Avalanche') ? (
-						<IconsRow
-							links={rewards}
-							url="/yields?chain"
-							iconType="chain"
-							yieldRewardsSymbols={rowValues.rewardTokensSymbols}
-						/>
-					) : (
-						<IconsRow
-							links={rewards}
-							url="/yields?project"
-							iconType="token"
-							yieldRewardsSymbols={rowValues.rewardTokensSymbols}
-						/>
-					)}
+					<IconsRow
+						links={rewards}
+						url="/yields?project"
+						iconType="token"
+						yieldRewardsSymbols={rowValues.rewardTokensSymbols}
+					/>
 					{formattedPercent(value, true)}
 				</AutoRow>
 			)

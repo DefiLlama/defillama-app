@@ -15,7 +15,7 @@ import SEO from '~/components/SEO'
 import { NFTsSearch } from '~/components/Search'
 import Section from './Section'
 import Links from './Links'
-import { useHideLastDayManager, useDisplayUsdManager } from '~/contexts/LocalStorage'
+import { NFT_SETTINGS, useNftsManager } from '~/contexts/LocalStorage'
 import { formattedNum, capitalizeFirstLetter } from '~/utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 
@@ -149,8 +149,11 @@ const GlobalNFTChart = dynamic(() => import('~/components/GlobalNFTChart'), {
 })
 
 function NFTCollectionPage({ collection, chart, statistics, title, backgroundColor }) {
-	const [hideLastDay] = useHideLastDayManager()
-	const [displayUsd] = useDisplayUsdManager()
+	const [nftsSettings] = useNftsManager()
+	const { DISPLAY_USD, HIDE_LAST_DAY } = NFT_SETTINGS
+
+	const displayUsd = nftsSettings[DISPLAY_USD]
+	const hideLastDay = nftsSettings[HIDE_LAST_DAY]
 
 	const {
 		chains,

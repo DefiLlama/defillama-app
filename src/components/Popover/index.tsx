@@ -1,14 +1,8 @@
 import * as React from 'react'
-import {
-	Popover as AriaPopover,
-	PopoverDisclosure,
-	PopoverStateRenderCallbackProps,
-	usePopoverState
-} from 'ariakit/popover'
+import { Popover as AriaPopover, PopoverDisclosure, usePopoverState } from 'ariakit/popover'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
-import { useMedia } from '~/hooks'
-import assignStyle from './assign-style'
+import { useSetPopoverStyles } from './utils'
 
 const Trigger = styled(PopoverDisclosure)`
 	display: flex;
@@ -38,23 +32,38 @@ const Trigger = styled(PopoverDisclosure)`
 	}
 `
 
-const PopoverWrapper = styled(AriaPopover)`
-	z-index: 1;
+export const PopoverWrapper = styled(AriaPopover)`
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
+	padding: 20px 0 32px;
+	width: 100%;
+	max-width: none;
+	max-height: calc(100vh - 200px);
 	color: ${({ theme }) => theme.text1};
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
+	background: ${({ theme }) => theme.bg1};
 	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
+	border-radius: 8px 8px 0 0;
 	filter: ${({ theme }) =>
 		theme.mode === 'dark'
 			? 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 40%))'
 			: 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%))'};
-	border-radius: 8px;
-	max-height: calc(100vh - 200px);
-	width: 100%;
-	max-width: none;
-	padding-bottom: 16px;
+	overflow: auto;
+	overscroll-behavior: contain;
+	opacity: 0;
+	z-index: 10;
+
+	transform: translateY(100%);
+	transition: 0.2s ease;
+
+	&[data-enter] {
+		opacity: 1;
+		transform: translateY(0%);
+	}
+
+	&[data-leave] {
+		transition: 0.1s ease;
+	}
 
 	:focus-visible,
 	[data-focus-visible] {
@@ -63,24 +72,13 @@ const PopoverWrapper = styled(AriaPopover)`
 	}
 
 	@media screen and (min-width: 640px) {
-		padding-bottom: 0;
+		padding: 0;
 		max-width: min(calc(100vw - 16px), 320px);
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
+		border-radius: 8px;
+		transform: translateY(0%);
 	}
 `
-
-function applyMobileStyles(popover: HTMLElement) {
-	const restorePopoverStyle = assignStyle(popover, {
-		position: 'fixed',
-		bottom: '0',
-		width: '100%',
-		padding: '12px'
-	})
-
-	const restoreDesktopStyles = () => {
-		restorePopoverStyle()
-	}
-	return restoreDesktopStyles
-}
 
 interface IProps {
 	trigger: React.ReactNode
@@ -88,18 +86,9 @@ interface IProps {
 }
 
 export default function Popover({ trigger, content, ...props }: IProps) {
-	const isLarge = useMedia('(min-width: 640px)', true)
+	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const renderCallback = React.useCallback(
-		(props: PopoverStateRenderCallbackProps) => {
-			const { popover, defaultRenderCallback } = props
-			if (isLarge) return defaultRenderCallback()
-			return applyMobileStyles(popover)
-		},
-		[isLarge]
-	)
-
-	const popover = usePopoverState({ renderCallback, gutter: 8 })
+	const popover = usePopoverState({ renderCallback, gutter: 8, animated: true })
 
 	return (
 		<>

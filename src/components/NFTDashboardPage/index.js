@@ -2,8 +2,8 @@ import { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { transparentize } from 'polished'
 import Layout from '~/layout'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, FallbackMessage, Panel } from '~/components'
-import { RowLinks } from '~/components/Filters'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from '~/components'
+import { RowLinksWithDropdown } from '~/components/Filters'
 import { NFTSwitches } from '~/components/SettingsModal'
 import { NFTsSearch } from '~/components/Search'
 import NFTCollectionList from '~/components/NFTCollectionList'
@@ -11,7 +11,7 @@ import SEO from '~/components/SEO'
 import { ListHeader, ListOptions } from '~/components/ChainPage/shared'
 import { useMedia } from '~/hooks'
 import { formattedNum } from '~/utils'
-import { useDisplayUsdManager, useHideLastDayManager } from '~/contexts/LocalStorage'
+import { NFT_SETTINGS, useNftsManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds, chainMarketplaceMappings } from '~/constants/chainTokens'
 
 const defaultTab = {
@@ -27,7 +27,8 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 	useEffect(() => window.scrollTo(0, 0), [])
 
 	const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics
-	const [hideLastDay] = useHideLastDayManager()
+	const [nftsSettings] = useNftsManager()
+	const { DISPLAY_USD, HIDE_LAST_DAY } = NFT_SETTINGS
 	const below800 = useMedia('(max-width: 800px)')
 
 	const isChain = chainData ? true : false
@@ -46,7 +47,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 	]
 
 	let shownTotalVolume, shownDailyVolume, shownDailyChange, symbol, unit
-	let [displayUsd] = useDisplayUsdManager()
+	let displayUsd = nftsSettings[DISPLAY_USD]
 
 	const isHomePage = selectedTab === 'All'
 	if (isHomePage || displayUsd) {
@@ -70,7 +71,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 		]
 	}
 
-	if (hideLastDay) {
+	if (nftsSettings[HIDE_LAST_DAY]) {
 		if (chart.length >= 3 && displayUsd) {
 			;[shownTotalVolume, shownDailyVolume, shownDailyChange] = [
 				totalVolumeUSD - chart[chart.length - 1].volumeUSD,
@@ -97,7 +98,9 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 
 			<NFTsSearch preLoadedSearch={collections} step={{ category: 'NFTs', name: 'All collections' }} />
 
-			<FallbackMessage>Data is currently incorrect and we are fixing it, please don't use it</FallbackMessage>
+			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
+				Data is currently incorrect and we are fixing it, please don't use it
+			</Panel>
 
 			<NFTSwitches />
 
@@ -130,7 +133,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 
 			<ListOptions>
 				<ListHeader>NFT Rankings</ListHeader>
-				<RowLinks links={tabOptions} activeLink={selectedTab} />
+				<RowLinksWithDropdown links={tabOptions} activeLink={selectedTab} />
 			</ListOptions>
 
 			<Panel style={{ padding: below800 && '1rem 0 0 0 ' }}>

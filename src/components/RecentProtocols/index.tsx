@@ -2,11 +2,10 @@ import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import Layout from '~/layout'
-import { FallbackMessage } from '~/components'
+import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import Table, { columnsToShow, Dropdowns, TableFilters, TableHeader } from '~/components/Table'
-import { FiltersByChain } from '~/components//Filters'
-import HideForkedProtocols from '~/components/Filters/HideForkedProtocols'
+import { FiltersByChain, HideForkedProtocols } from '~/components/Filters'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { getPercentChange } from '~/utils'
 
@@ -156,7 +155,7 @@ const columns = columnsToShow(
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
 		if (typeof chainQueryParam === 'string') {
-			return chainQueryParam === 'All' ? [...allChains] : [chainQueryParam]
+			return chainQueryParam === 'All' ? [...allChains] : chainQueryParam === 'None' ? [] : [chainQueryParam]
 		} else {
 			return [...chainQueryParam]
 		}
@@ -173,7 +172,7 @@ interface IRecentProtocolProps {
 }
 
 export function RecentProtocols({ title, name, header, protocols, chainList, forkedList }: IRecentProtocolProps) {
-	const { query } = useRouter()
+	const { query, isReady } = useRouter()
 	const { chain, hideForks } = query
 
 	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? true : false
@@ -274,16 +273,22 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 
 			<TableFilters>
 				<TableHeader>{header}</TableHeader>
-				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
-				</Dropdowns>
-				{forkedList && <HideForkedProtocols />}
+				{isReady && (
+					<>
+						<Dropdowns>
+							<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+						</Dropdowns>
+						{forkedList && <HideForkedProtocols />}
+					</>
+				)}
 			</TableFilters>
 
-			{protocolsData.length > 0 ? (
+			{!isReady ? null : protocolsData.length > 0 ? (
 				<TableWrapper data={protocolsData} columns={columns} />
 			) : (
-				<FallbackMessage>Couldn't find any protocols for these filters</FallbackMessage>
+				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
+					Couldn't find any protocols for these filters
+				</Panel>
 			)}
 		</Layout>
 	)

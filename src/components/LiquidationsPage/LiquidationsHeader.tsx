@@ -1,16 +1,17 @@
-import { ChartData, DEFAULT_ASSETS_LIST } from '~/utils/liquidations'
-import TokenLogo from '~/components/TokenLogo'
-import { ProtocolName, Symbol } from '~/components/ProtocolAndPool'
-import FormattedName from '~/components/FormattedName'
-import styled from 'styled-components'
-import { StackBySwitch } from './StackBySwitch'
-import React, { useMemo } from 'react'
-
+import * as React from 'react'
+import Link from 'next/link'
 import { MenuButtonArrow, useComboboxState, useMenuState } from 'ariakit'
+import styled from 'styled-components'
+import TokenLogo from '~/components/TokenLogo'
+import { Name, Symbol } from '~/layout/ProtocolAndPool'
+import FormattedName from '~/components/FormattedName'
 import { Button, Popover } from '~/components/DropdownMenu'
 import { Input, Item, List } from '~/components/Combobox'
-import Link from 'next/link'
-import { ISearchItem } from '../Search/BaseSearch'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
+import type { ISearchItem } from '~/components/Search/types'
+import { StackBySwitch } from './StackBySwitch'
+import { ChartData, DEFAULT_ASSETS_LIST } from '~/utils/liquidations'
+import { DownloadButton } from './DownloadButton'
 
 const LiquidationsHeaderWrapper = styled.div`
 	flex: 1;
@@ -19,19 +20,35 @@ const LiquidationsHeaderWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
+	align-items: center;
 	gap: 10px;
 	position: relative;
 	margin-top: 1rem;
 
 	@media (min-width: 80rem) {
 		flex-direction: row;
+		align-items: flex-start;
 	}
 `
+const ButtonsGroup = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+
+	@media (min-width: 80rem) {
+		align-items: flex-end;
+	}
+`
+
 export const LiquidationsHeader = (props: ChartData) => {
 	return (
 		<LiquidationsHeaderWrapper>
 			<AssetSelector symbol={props.symbol} options={DEFAULT_ASSETS_LIST} />
-			<StackBySwitch />
+			<ButtonsGroup>
+				<StackBySwitch />
+				<DownloadButton symbol={props.symbol} />
+			</ButtonsGroup>
 		</LiquidationsHeaderWrapper>
 	)
 }
@@ -43,7 +60,11 @@ interface IProps {
 
 export function AssetSelector({ options, symbol }: IProps) {
 	const defaultList = options.map(({ name, symbol }) => `${name} - ${symbol}`)
-	const combobox = useComboboxState({ defaultList, gutter: 8 })
+
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
+	const combobox = useComboboxState({ defaultList, gutter: 8, animated: true, renderCallback })
+
 	const menu = useMenuState(combobox)
 
 	// Resets combobox value when menu is closed
@@ -51,20 +72,23 @@ export function AssetSelector({ options, symbol }: IProps) {
 		combobox.setValue('')
 	}
 
-	const selectedAsset = useMemo(() => options.find((x) => x.symbol === symbol), [symbol, options])
+	const selectedAsset = React.useMemo(
+		() => options.find((x) => x.symbol.toLowerCase() === symbol.toLowerCase()),
+		[symbol, options]
+	)
 
 	return (
-		<>
+		<div>
 			<Button state={menu} style={{ fontWeight: 600 }}>
-				<ProtocolName>
+				<Name>
 					<TokenLogo logo={selectedAsset.logo} size={24} />
-					<FormattedName text={selectedAsset.name} maxCharacters={16} fontWeight={700} />
+					<FormattedName text={selectedAsset.name} maxCharacters={20} fontWeight={700} />
 					<Symbol>({selectedAsset.symbol})</Symbol>
-				</ProtocolName>
+				</Name>
 				<MenuButtonArrow />
 			</Button>
-			<Popover state={menu} composite={false}>
-				<Input state={combobox} placeholder="Search..." />
+			<Popover state={menu} modal={!isLarge} composite={false}>
+				<Input state={combobox} placeholder="Search..." autoFocus />
 				{combobox.matches.length > 0 ? (
 					<List state={combobox}>
 						{combobox.matches.map((value, i) => (
@@ -75,7 +99,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 					<p id="no-results">No results</p>
 				)}
 			</Popover>
-		</>
+		</div>
 	)
 }
 

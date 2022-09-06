@@ -2,7 +2,14 @@
 // eslint sucks at types
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import { revalidate } from '~/api'
-import { ChartData, DEFAULT_ASSETS_LIST, getLatestChartData, getPrevChartData } from '~/utils/liquidations'
+import {
+	ChartData,
+	DEFAULT_ASSETS_LIST,
+	getLatestChartData,
+	getPrevChartData,
+	getReadableValue
+} from '~/utils/liquidations'
+import Link from 'next/link'
 
 import Layout from '~/layout'
 import { LiquidationsSearch } from '~/components/Search'
@@ -10,15 +17,21 @@ import { Header } from '~/Theme'
 import { LiquidationsHeader } from '../../components/LiquidationsPage/LiquidationsHeader'
 import { LiquidationsContent } from '../../components/LiquidationsPage/LiquidationsContent'
 import styled from 'styled-components'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Clock } from 'react-feather'
+import { ProtocolsTable } from '../../components/LiquidationsPage/ProtocolsTable'
+import SEO from '~/components/SEO'
+import { assetIconUrl } from '~/utils'
 import { Panel } from '~/components'
-import { LiquidationsTable } from '../../components/LiquidationsPage/LiquidationsTable'
+import Image from 'next/image'
+import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
+import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
+import { PositionsTable } from '~/components/LiquidationsPage/PositionsTable'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
-	const symbol = params.symbol as string
-	const data = await getLatestChartData(symbol.toUpperCase(), 100)
-	const prevData = await getPrevChartData(symbol.toUpperCase(), 100, 3600 * 24)
+	const symbol = (params.symbol as string).toLowerCase()
+	const data = await getLatestChartData(symbol, 100)
+	const prevData = (await getPrevChartData(symbol, 100, 3600 * 24)) ?? data
 	return {
 		props: { data, prevData },
 		revalidate: revalidate(5)
@@ -54,16 +67,107 @@ const LiquidationsProvider = ({ children }) => {
 	)
 }
 
+const PanelThicc = styled(Panel)`
+	display: none;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+
+	@media (min-width: 80rem) {
+		display: flex;
+	}
+`
+
+const PanelSmol = styled(Panel)`
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+
+	@media (min-width: 80rem) {
+		display: none;
+	}
+`
+
+const ResponsiveHeader = styled(Header)`
+	text-align: center;
+	@media (min-width: 80rem) {
+		text-align: revert;
+	}
+`
+
+const StyledAnchor = styled.a`
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 0.2rem;
+	margin-left: 0.2rem;
+	:hover {
+		text-decoration: underline;
+	}
+
+	@media (min-width: 80rem) {
+		margin-right: 0.2rem;
+	}
+`
+
 const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> = (props) => {
 	const { data, prevData } = props
-	const minutesAgo = Math.round((Date.now() - data.time * 1000) / 1000 / 60)
+	const [liqsSettings] = useLiqsManager()
+	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
+	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
+
+	const asset = DEFAULT_ASSETS_LIST.find((x) => x.symbol.toLowerCase() === data.symbol.toLowerCase())
+
+	const [minutesAgo, setMinutesAgo] = useState(Math.round((Date.now() - data.time * 1000) / 1000 / 60))
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setMinutesAgo((x) => x + 1)
+		}, 1000 * 60)
+		return () => clearInterval(interval)
+	}, [])
+
 	return (
-		<Layout title={`${data.coingeckoAsset.name} (${data.symbol}) Liquidation Levels - DefiLlama`} defaultSEO>
-			<LiquidationsSearch step={{ category: 'Liquidation Levels', name: data.symbol, hideOptions: true }} />
-			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
-				<span>The liquidation levels dashboard is still under development. You're so early, anon!</span>
-			</Panel>
-			<Header>Liquidation levels in DeFi 💦</Header>
+		<Layout title={`${asset?.name} (${asset?.symbol}) Liquidation Levels - DefiLlama`}>
+			<SEO
+				liqsPage
+				cardName={`${asset?.name} (${asset?.symbol})`}
+				logo={'https://defillama.com' + assetIconUrl(asset?.symbol, true)}
+				tvl={'$' + getReadableValue(data.totalLiquidable)}
+			/>
+
+			<LiquidationsSearch
+				step={{ category: 'Home', name: `${data.symbol.toUpperCase()} Liquidation Levels`, hideOptions: true }}
+			/>
+
+			{!['SOL', 'MSOL', 'STSOL'].includes(data.symbol.toUpperCase()) && (
+				<>
+					<PanelThicc as="p">
+						We are now tracking
+						<Link href={`/liquidations/sol`} passHref>
+							<StyledAnchor>
+								<Image src={`/asset-icons/sol.png`} width={24} height={24} alt={'SOL'} style={{ borderRadius: 12 }} />
+								<b>Solana</b>
+							</StyledAnchor>
+						</Link>
+						ecosystem assets! Choose one from the asset picker dropdown menu!
+					</PanelThicc>
+					<PanelSmol as="p">
+						We are now tracking
+						<Link href={`/liquidations/sol`} passHref>
+							<StyledAnchor>
+								<Image src={`/asset-icons/sol.png`} width={24} height={24} alt={'SOL'} style={{ borderRadius: 12 }} />
+								<b>Solana</b>
+							</StyledAnchor>
+						</Link>
+						!
+					</PanelSmol>
+				</>
+			)}
+
+			<ResponsiveHeader>Liquidation levels in DeFi 💦</ResponsiveHeader>
 			<LiquidationsHeader {...data} />
 			<LiquidationsProvider>
 				<LiquidationsContent data={data} prevData={prevData} />
@@ -72,12 +176,14 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 				<Clock size={12} />
 				<i>Last updated {minutesAgo}min ago</i>
 			</SmolHints>
-			<LiquidationsTable data={data} prevData={prevData} />
+			<TableSwitch />
+			{isLiqsShowingInspector && <PositionsTable data={data} prevData={prevData} />}
+			{!isLiqsShowingInspector && <ProtocolsTable data={data} prevData={prevData} />}
 		</Layout>
 	)
 }
 
-const SmolHints = styled.div`
+export const SmolHints = styled.div`
 	display: flex;
 	gap: 6px;
 	flex-direction: row;

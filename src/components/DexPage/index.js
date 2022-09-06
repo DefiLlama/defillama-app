@@ -12,7 +12,7 @@ import {
 } from '~/components'
 import { RowFixed } from '~/components/Row'
 import { DexsSearch } from '~/components/Search'
-import { RowLinks, TVLRange } from '~/components/Filters'
+import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
 import { BasicLink } from '~/components/Link'
 import SEO from '~/components/SEO'
 import { OptionButton } from '~/components/ButtonStyled'
@@ -121,7 +121,7 @@ function GlobalPage({ dex }) {
 
 			<ListOptions>
 				<ListHeader>TVL Rankings</ListHeader>
-				<RowLinks links={chainOptions} activeLink={selectedChain} />
+				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 				<TVLRange />
 			</ListOptions>
 

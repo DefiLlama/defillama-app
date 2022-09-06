@@ -1,92 +1,115 @@
 /* eslint-disable no-unused-vars*/
 import BigNumber from 'bignumber.js'
-import { IBaseSearchProps, ISearchItem } from '~/components/Search/BaseSearch'
+import type { ISearchItem } from '~/components/Search/types'
 import { LIQUIDATIONS_API, LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
+import { assetIconUrl } from '..'
 
 const TOTAL_BINS = 100
-const WRAPPABLE_GAS_TOKENS = ['ETH', 'AVAX', 'MATIC', 'FTM', 'BNB', 'CRO', 'ONE']
+const WRAPPED_GAS_TOKENS = ['WETH', 'WAVAX', 'WMATIC', 'WFTM', 'WBNB', 'WCRO', 'WONE']
+
+// making aliases so the hints are more readable
+type Address = string
+type PrefixAddress = string
+type Chain = string
+type Protocol = string
+type Symbol = string
 
 export interface Liq {
-	owner: string
+	owner: Address
 	liqPrice: number
-	collateral: string
+	collateral: PrefixAddress
 	collateralAmount: string
+	extra?: {
+		displayName?: string
+		url: string
+	}
 }
 
 export interface Position {
-	owner: string
+	owner: Address
 	liqPrice: number
 	collateralValue: number
-	chain: string
-	protocol: string // protocol adapter id, like "aave-v2", "liquity"...
+	collateralAmount: number
+	chain: Chain
+	protocol: Protocol // protocol adapter id, like "aave-v2", "liquity"...
+	collateral: PrefixAddress // token address formatted as "ethereum:0x1234..."
+	displayName?: string
+	url: string
 }
+
+export type PositionSmol = Omit<Position, 'collateral' | 'owner'>
 
 export type Price = {
 	decimals: number
 	price: number
-	symbol: string
+	symbol: Symbol
 	timestamp: number
+	address: PrefixAddress
+	chain: Chain
 }
 
-type MultiTokenAssetSet = Set<Price>
+const getNativeSymbol = (symbol: string) => {
+	const originSymbol =
+		symbol.toLowerCase().endsWith('.e') || symbol.toLowerCase().endsWith('.b') ? symbol.slice(0, -2) : symbol
+	const nativeSymbol = WRAPPED_GAS_TOKENS.includes(originSymbol) ? originSymbol.substring(1) : originSymbol
+	return nativeSymbol.toLowerCase()
+}
 
 /**
  * Transform the output of multiple adapters to a single data structure aggregated by assets
  *
  */
-async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: string]: Liq[] }) {
+async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: Protocol]: Liq[] }) {
 	const protocols = Object.keys(filteredAdapterOutput)
-	// an asset has unique info "symbol" and that's it - we're assuming no duplicate symbols cuz all are bluechips
-	// would be better to use coingeckoId but didn't find a lookup api for that
-	// might add an option to return coingeckoId to https://coins.llama.fi/prices later
-	const knownAssets = new Map<string, MultiTokenAssetSet>() // symbol -> ['ethereum:0x1234...']
-	const knownTokens = new Set<string>()
-	// gonna go thru all entries first to find all Collaterals
+
+	// go thru all entries first to find all Collaterals (can be optimized but will be fine for now)
+	const knownTokens = new Set<PrefixAddress>()
 	for (const protocol of protocols) {
-		filteredAdapterOutput[protocol].forEach((liq) => knownTokens.add(liq.collateral))
+		filteredAdapterOutput[protocol].forEach((liq) => knownTokens.add(liq.collateral.toLowerCase()))
 	}
+
 	const prices = await getPrices(Array.from(knownTokens))
-	for (const address in prices) {
-		const price = prices[address]
-		let collateralSet: MultiTokenAssetSet = knownAssets.get(price.symbol)
-		if (!collateralSet) {
-			collateralSet = new Set<Price>()
-			collateralSet.add(price)
-			knownAssets.set(price.symbol, collateralSet)
-		} else {
-			collateralSet.add(price)
+	const aggregatedData: Map<Symbol, { currentPrice: number; positions: Position[] }> = new Map()
+	for (const price of prices) {
+		const symbol = getNativeSymbol(price.symbol)
+		if (!aggregatedData.has(symbol)) {
+			aggregatedData.set(symbol, {
+				currentPrice: price.price,
+				positions: []
+			})
 		}
 	}
-	// now we have all assets and metadata we can start aggregating into flattenPositions
-	const aggregatedData = new Map<string, { currentPrice: number; positions: Position[] }>() // symbol -> [{liqPrice, collateralValue, chain, protocol}]
+
 	for (const protocol of protocols) {
-		const liqs = filteredAdapterOutput[protocol]
-		liqs.forEach(({ liqPrice, collateral, collateralAmount, owner }) => {
-			const chain = collateral.split(':')[0]
-			if (!prices[collateral]) {
-				// console.error(`Token not supported by price API ${collateral}`)
-				return
+		const adapterData = filteredAdapterOutput[protocol]
+		for (const liq of adapterData) {
+			const price = prices.find((price) => price.address === liq.collateral.toLowerCase())
+			if (!price) {
+				continue
 			}
-			const { symbol, decimals, price: currentPrice } = prices[collateral]
-			const position: Position = {
-				owner,
-				liqPrice,
-				collateralValue: new BigNumber(collateralAmount)
-					.div(10 ** decimals)
-					.times(liqPrice)
-					.toNumber(),
-				chain,
-				protocol
-			}
-			let _positions = aggregatedData.get(symbol)
-			if (!_positions) {
-				_positions = { currentPrice, positions: [position] }
-				aggregatedData.set(symbol, _positions)
-			} else {
-				_positions.positions.push(position)
-			}
-		})
+
+			const collateralAmountRaw = new BigNumber(liq.collateralAmount).div(10 ** price.decimals)
+
+			const symbol = getNativeSymbol(price.symbol)
+			aggregatedData.get(symbol)!.positions.push({
+				owner: liq.owner,
+				liqPrice: liq.liqPrice,
+				collateralValue: collateralAmountRaw.times(liq.liqPrice).toNumber(),
+				collateralAmount: collateralAmountRaw.toNumber(),
+				chain: price.chain,
+				protocol: protocol,
+				collateral: liq.collateral.toLowerCase(),
+				displayName: liq.extra?.displayName ?? liq.owner,
+				url: liq.extra?.url
+			})
+		}
 	}
+
+	for (const symbol in aggregatedData.keys()) {
+		// array.sort is in place
+		aggregatedData.get(symbol)!.positions.sort((a, b) => b.collateralValue - a.collateralValue)
+	}
+
 	return aggregatedData
 }
 
@@ -98,15 +121,28 @@ async function getPrices(collaterals: string[]) {
 		})
 	})
 	const data = await res.json()
-	const prices = data.coins as {
-		[address: string]: Price
+	const _prices = data.coins as {
+		[address: string]: {
+			decimals: number
+			price: number
+			symbol: string
+			timestamp: number
+		}
 	}
+	const prices: Price[] = Object.entries(_prices).map(([address, price]) => {
+		const _chain = address.split(':')[0]
+		const chain = _chain === 'avax' ? 'avalanche' : _chain
+		return {
+			...price,
+			address,
+			chain
+		}
+	})
 	return prices
 }
 
 export type ChartData = {
 	symbol: string // could change to coingeckoId in the future
-	coingeckoAsset: CoingeckoAsset // i know theres repeated data but will improve later
 	currentPrice: number
 	totalLiquidable: number // excluding bad debts
 	totalLiquidables: {
@@ -115,10 +151,14 @@ export type ChartData = {
 	}
 	badDebts: number
 	dangerousPositionsAmount: number // amount of -20% current price
+	dangerousPositionsAmounts: {
+		protocols: { [protocol: string]: number }
+		chains: { [chain: string]: number }
+	}
 	chartDataBins: {
 		// aggregated by either protocol or chain
-		byProtocol: { [bin: string]: ChartDataBin }
-		byChain: { [bin: string]: ChartDataBin }
+		protocols: { [protocol: string]: ChartDataBins }
+		chains: { [chain: string]: ChartDataBins }
 	}
 	totalBins: number
 	binSize: number
@@ -127,11 +167,13 @@ export type ChartData = {
 		chains: string[]
 	}
 	time: number
+	topPositions: PositionSmol[]
+	totalPositions: number
 }
 
-export interface ChartDataBin {
+export interface ChartDataBins {
 	bins: {
-		[bin: number]: number
+		[bin: number]: { native: number; usd: number }
 	}
 	binSize: number
 	price: number
@@ -142,7 +184,7 @@ function getChartDataBins(
 	currentPrice: number,
 	totalBins: number,
 	stackBy: 'protocol' | 'chain'
-): { [bin: string]: ChartDataBin } {
+): { [key: string]: ChartDataBins } {
 	// protocol/chain -> {bins, binSize, price}
 	const aggregatedPositions = new Map<string, Position[]>()
 	const keySet = new Set<string>()
@@ -159,7 +201,7 @@ function getChartDataBins(
 		}
 	}
 
-	const bins = new Map<string, ChartDataBin>()
+	const bins = new Map<string, ChartDataBins>()
 	// init bins
 	for (const key of keySet) {
 		bins.set(key, {
@@ -175,9 +217,11 @@ function getChartDataBins(
 		for (const position of positionsGroup) {
 			const bin = Math.floor(position.liqPrice / binSize)
 			if (!binsGroup[bin]) {
-				binsGroup[bin] = position.collateralValue
-			} else {
-				binsGroup[bin] += position.collateralValue
+				binsGroup[bin] = { native: 0, usd: 0 }
+			}
+			binsGroup[bin] = {
+				native: binsGroup[bin].native + position.collateralAmount,
+				usd: binsGroup[bin].usd + position.collateralValue
 			}
 		}
 	}
@@ -200,7 +244,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	const LIQUIDATIONS_DATA_URL =
 		timePassed === 0
 			? LIQUIDATIONS_API
-			: LIQUIDATIONS_HISTORICAL_S3_PATH + `/${Math.floor((now - timePassed) / 3600)}.json`
+			: LIQUIDATIONS_HISTORICAL_S3_PATH + `/${Math.floor((now - timePassed) / 3600 / 6) * 6}.json`
 
 	let raw: LiquidationsApiResponse
 	try {
@@ -212,65 +256,72 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		raw = await res.json()
 	}
 
-	const adapterChains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
 	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
-		(acc, d) => ({ ...acc, [d.protocol]: d.liqs[adapterChains[0]] }),
+		(acc, d) => ({ ...acc, [d.protocol]: Object.values(d.liqs).flat() }),
 		{}
 	)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
-	let positions: Position[]
-	// handle wrapped gas tokens later dynamically
-	let nativeSymbol = symbol
-	if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase())) {
-		const ethPositions = allAggregated.get(nativeSymbol)
-		const wethPositions = allAggregated.get('W' + nativeSymbol)
-		positions = [...ethPositions!.positions, ...wethPositions!.positions]
-	} else if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase().substring(1))) {
-		nativeSymbol = symbol.toUpperCase().substring(1)
-		const ethPositions = allAggregated.get(nativeSymbol)
-		const wethPositions = allAggregated.get('W' + nativeSymbol)
-		positions = [...ethPositions!.positions, ...wethPositions!.positions]
-	} else {
-		positions = allAggregated.get(symbol)!.positions
+	if (!allAggregated.has(symbol)) {
+		// no data for this symbol, will happen when historical data is not available for this asset
+		return null
 	}
-	const currentPrice = allAggregated.get(symbol)!.currentPrice
 
-	let badDebts = 0
-	let totalLiquidable = 0
-	let dangerousPositionsAmount = 0
-	const validPositions = positions.filter((p) => {
-		if (p.liqPrice > currentPrice) {
-			badDebts += p.collateralValue
-			return false
-		}
-		totalLiquidable += p.collateralValue
-		if (p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice) {
-			dangerousPositionsAmount += p.collateralValue
-		}
-		return true
-	})
+	const currentPrice = allAggregated.get(symbol)!.currentPrice
+	const positions = allAggregated.get(symbol)!.positions
+
+	const badDebtsPositions = positions.filter((p) => p.liqPrice > currentPrice)
+	const badDebts = badDebtsPositions.reduce((acc, p) => acc + p.collateralValue, 0)
+
+	const validPositions = positions.filter((p) => p.liqPrice <= currentPrice && p.liqPrice > currentPrice / 1000000)
+	const totalLiquidable = validPositions.reduce((acc, p) => acc + p.collateralValue, 0)
 
 	const chartDataBinsByProtocol = getChartDataBins(validPositions, currentPrice, totalBins, 'protocol')
 	const protocols = Object.keys(chartDataBinsByProtocol)
 	const liquidablesByProtocol = protocols.reduce((acc, protocol) => {
-		acc[protocol] = Object.values(chartDataBinsByProtocol[protocol].bins).reduce((a, b) => a + b, 0)
+		acc[protocol] = Object.values(chartDataBinsByProtocol[protocol].bins).reduce((a, b) => a + b['usd'], 0)
 		return acc
 	}, {} as { [protocol: string]: number })
 
 	const chartDataBinsByChain = getChartDataBins(validPositions, currentPrice, totalBins, 'chain')
 	const chains = Object.keys(chartDataBinsByChain)
 	const liquidablesByChain = chains.reduce((acc, chain) => {
-		acc[chain] = Object.values(chartDataBinsByChain[chain].bins).reduce((a, b) => a + b, 0)
+		acc[chain] = Object.values(chartDataBinsByChain[chain].bins).reduce((a, b) => a + b['usd'], 0)
 		return acc
 	}, {} as { [chain: string]: number })
 
-	const coingeckoAsset = await getCoingeckoAssetFromSymbol(nativeSymbol)
+	const dangerousPositions = validPositions.filter((p) => p.liqPrice > currentPrice * 0.8 && p.liqPrice <= currentPrice)
+	const dangerousPositionsAmount = dangerousPositions.reduce((acc, p) => acc + p.collateralValue, 0)
+	const dangerousPositionsAmountByProtocol = protocols.reduce((acc, protocol) => {
+		acc[protocol] = dangerousPositions.filter((p) => p.protocol === protocol).reduce((a, p) => a + p.collateralValue, 0)
+		return acc
+	}, {} as { [protocol: string]: number })
+	const dangerousPositionsAmountByChain = chains.reduce((acc, chain) => {
+		acc[chain] = dangerousPositions.filter((p) => p.chain === chain).reduce((a, p) => a + p.collateralValue, 0)
+		return acc
+	}, {} as { [chain: string]: number })
+
+	const topPositions = [...validPositions]
+		.sort((a, b) => b.collateralValue - a.collateralValue)
+		.slice(0, 100) // hardcoded to first 100
+		.map((p) => ({
+			liqPrice: p.liqPrice,
+			collateralAmount: p.collateralAmount,
+			collateralValue: p.collateralValue,
+			protocol: p.protocol,
+			chain: p.chain,
+			url: p?.url ?? null,
+			displayName: p?.displayName ?? null
+		}))
+
 	const chartData: ChartData = {
-		symbol: nativeSymbol,
-		coingeckoAsset,
+		symbol,
 		currentPrice,
 		badDebts,
 		dangerousPositionsAmount,
+		dangerousPositionsAmounts: {
+			chains: dangerousPositionsAmountByChain,
+			protocols: dangerousPositionsAmountByProtocol
+		},
 		totalLiquidable,
 		totalLiquidables: {
 			chains: liquidablesByChain,
@@ -278,15 +329,23 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		},
 		totalBins,
 		chartDataBins: {
-			byChain: chartDataBinsByChain,
-			byProtocol: chartDataBinsByProtocol
+			chains: sortObject(
+				chartDataBinsByChain,
+				([keyA, a], [keyB, b]) => liquidablesByChain[keyB] - liquidablesByChain[keyA]
+			),
+			protocols: sortObject(
+				chartDataBinsByProtocol,
+				([keyA, a], [keyB, b]) => liquidablesByProtocol[keyB] - liquidablesByProtocol[keyA]
+			)
 		},
 		binSize: currentPrice / totalBins,
 		availability: {
 			protocols,
 			chains
 		},
-		time: raw.time
+		time: raw.time,
+		topPositions,
+		totalPositions: validPositions.length
 	}
 
 	return chartData
@@ -294,29 +353,6 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 
 export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS) {
 	return await getPrevChartData(symbol, totalBins)
-}
-
-export type CoingeckoAsset = {
-	id: string
-	name: string
-	symbol: string
-	market_cap_rank: number
-	thumb: string
-	large: string
-}
-
-/**
- * Lookup asset by symbol in coingecko by using the search API. Returns the first result.
- *
- * @param symbol e.g. 'ETH'
- * @returns {CoingeckoAsset}
- */
-export async function getCoingeckoAssetFromSymbol(symbol: string): Promise<CoingeckoAsset> {
-	// search for the coin using coingecko api
-	const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${symbol}`).then((r) => r.json())
-	const coins = res.coins as CoingeckoAsset[]
-
-	return coins[0] ?? null
 }
 
 export function getReadableValue(value: number) {
@@ -337,28 +373,17 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 	const raw = (await fetch(LIQUIDATIONS_API).then((r) => r.json())) as LiquidationsApiResponse
 	const timestamp = raw.time
 
-	const adapterChains = [...new Set(raw.data.flatMap((d) => Object.keys(d.liqs)))]
 	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
-		(acc, d) => ({ ...acc, [d.protocol]: d.liqs[adapterChains[0]] }),
+		(acc, d) => ({ ...acc, [d.protocol]: Object.values(d.liqs).flat() }),
 		{}
 	)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
-	let positions: Position[]
-	// handle wrapped gas tokens later dynamically
-	let nativeSymbol = symbol
-	if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase())) {
-		const ethPositions = allAggregated.get(nativeSymbol)
-		const wethPositions = allAggregated.get('W' + nativeSymbol)
-		positions = [...ethPositions!.positions, ...wethPositions!.positions]
-	} else if (WRAPPABLE_GAS_TOKENS.includes(symbol.toUpperCase().substring(1))) {
-		nativeSymbol = symbol.toUpperCase().substring(1)
-		const ethPositions = allAggregated.get(nativeSymbol)
-		const wethPositions = allAggregated.get('W' + nativeSymbol)
-		positions = [...ethPositions!.positions, ...wethPositions!.positions]
-	} else {
-		positions = allAggregated.get(symbol)!.positions
+	if (!allAggregated.has(symbol)) {
+		// no data for this symbol, will happen when historical data is not available for this asset
+		return null
 	}
 
+	const positions = allAggregated.get(symbol)!.positions
 	const allAssetPositions = positions
 		.filter((p) => p.liqPrice < allAggregated.get(symbol)!.currentPrice && p.collateralValue > 0)
 		.map((p) => ({
@@ -366,51 +391,204 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 			symbol
 		}))
 
-	const csvHeader = ['symbol', 'chain', 'protocol', 'liqPrice', 'collateralValue', 'owner', 'timestamp'].join(',')
+	const csvHeader = [
+		'symbol',
+		'chain',
+		'protocol',
+		'liqPrice',
+		'collateralValue',
+		'collateralAmount',
+		'owner',
+		'timestamp'
+	].join(',')
 	const csvData = allAssetPositions
-		.map(({ symbol, chain, protocol, liqPrice, collateralValue, owner }) => {
-			return `${symbol},${chain},${protocol},${liqPrice},${collateralValue},${owner},${timestamp}`
+		.map(({ symbol, chain, protocol, liqPrice, collateralValue, collateralAmount, owner }) => {
+			return `${symbol.toUpperCase()},${chain},${protocol},${liqPrice},${collateralValue},${collateralAmount},${owner},${timestamp}`
 		})
 		.reduce((acc, curr) => acc + '\n' + curr, csvHeader)
 
 	return csvData
 }
 
-export const DEFAULT_ASSETS_LIST: ISearchItem[] = [
+export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 	{
-		logo: 'https://assets.coingecko.com/coins/images/279/thumb/ethereum.png',
-		route: '/liquidations/eth',
 		name: 'Ethereum',
 		symbol: 'ETH'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/7598/thumb/wrapped_bitcoin_wbtc.png',
-		route: '/liquidations/wbtc',
 		name: 'Wrapped Bitcoin',
 		symbol: 'WBTC'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/6319/thumb/USD_Coin_icon.png',
-		route: '/liquidations/usdc',
-		name: 'USD Coin',
-		symbol: 'USDC'
-	},
-	{
-		logo: 'https://assets.coingecko.com/coins/images/9956/thumb/4943.png',
-		route: '/liquidations/dai',
 		name: 'Dai',
 		symbol: 'DAI'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/11849/thumb/yfi-192x192.png',
-		route: '/liquidations/yfi',
+		name: 'Solana',
+		symbol: 'SOL'
+	},
+	{
+		name: 'USD Coin',
+		symbol: 'USDC'
+	},
+	{
+		name: 'Lido Staked ETH',
+		symbol: 'STETH'
+	},
+	{
+		name: 'Lido Wrapped stETH',
+		symbol: 'WSTETH'
+	},
+	{
+		name: 'Lido Staked SOL',
+		symbol: 'STSOL'
+	},
+	{
+		name: 'Marinade Staked SOL',
+		symbol: 'MSOL'
+	},
+	{
+		name: 'Tether',
+		symbol: 'USDT'
+	},
+	{
 		name: 'yearn.finance',
 		symbol: 'YFI'
 	},
 	{
-		logo: 'https://assets.coingecko.com/coins/images/12504/thumb/uniswap-uni.png',
-		route: '/liquidations/uni',
+		name: 'FTX Token',
+		symbol: 'FTT'
+	},
+	// {
+	// 	name: 'Compound',
+	// 	symbol: 'COMP'
+	// },
+	{
 		name: 'Uniswap',
 		symbol: 'UNI'
+	},
+	{
+		name: 'Basic Attention',
+		symbol: 'BAT'
+	},
+	// {
+	// 	name: 'Binance USD',
+	// 	symbol: 'BUSD'
+	// },
+	{
+		name: 'Curve DAO',
+		symbol: 'CRV'
+	},
+	// {
+	// 	name: 'Ampleforth',
+	// 	symbol: 'AMPL'
+	// },
+	{
+		name: 'ChainLink',
+		symbol: 'LINK'
+	},
+	// {
+	// 	name: 'Frax',
+	// 	symbol: 'FRAX'
+	// },
+	// {
+	// 	name: 'Fei USD',
+	// 	symbol: 'FEI'
+	// },
+	{
+		name: 'TrueUSD',
+		symbol: 'TUSD'
+	},
+	{
+		name: 'Aave',
+		symbol: 'AAVE'
+	},
+	{
+		name: 'MakerDAO',
+		symbol: 'MKR'
+	},
+	{
+		name: 'Avalanche',
+		symbol: 'AVAX'
+	},
+	{
+		name: 'Polygon',
+		symbol: 'MATIC'
+	},
+	{
+		name: 'SushiSwap',
+		symbol: 'SUSHI'
+	},
+	{
+		name: 'Synthetix',
+		symbol: 'SNX'
+	},
+	{
+		name: 'Trader Joe',
+		symbol: 'JOE'
+	},
+	{
+		name: 'Magic Internet Money',
+		symbol: 'MIM'
+	},
+	{
+		name: '0x',
+		symbol: 'ZRX'
+	},
+	{
+		name: 'Enjin Coin',
+		symbol: 'ENJ'
+	},
+	{
+		name: 'Decentraland',
+		symbol: 'MANA'
+	},
+	{
+		name: '1inch',
+		symbol: '1INCH'
+	},
+	// {
+	// 	name: 'Rai Reflex Index',
+	// 	symbol: 'RAI'
+	// },
+	{
+		name: 'REN',
+		symbol: 'REN'
 	}
 ]
+
+export const DEFAULT_ASSETS_LIST: ISearchItem[] = DEFAULT_ASSETS_LIST_RAW.map(({ name, symbol }) => ({
+	name,
+	symbol,
+	route: `/liquidations/${symbol}`,
+	logo: assetIconUrl(symbol)
+}))
+
+export const PROTOCOL_NAMES_MAP: { [protocol: string]: string } = {
+	'aave-v2': 'Aave V2',
+	compound: 'Compound',
+	euler: 'Euler',
+	liquity: 'Liquity',
+	maker: 'MakerDAO',
+	traderjoe: 'Trader Joe',
+	polygon: 'Polygon',
+	ethereum: 'Ethereum',
+	avalanche: 'Avalanche',
+	solend: 'Solend',
+	solana: 'Solana',
+	benqi: 'Benqi'
+}
+
+export const PROTOCOL_NAMES_MAP_REVERSE: { [name: string]: string } = Object.entries(PROTOCOL_NAMES_MAP).reduce(
+	(acc, [key, value]) => ({ ...acc, [value]: key }),
+	{}
+)
+
+export const sortObject = <T>(
+	unordered: { [key: string]: T },
+	compareFn: (a: [string, T], b: [string, T]) => number
+) => {
+	return Object.entries(unordered)
+		.sort(([keyA, valueA], [keyB, valueB]) => compareFn([keyA, valueA], [keyB, valueB]))
+		.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
+}

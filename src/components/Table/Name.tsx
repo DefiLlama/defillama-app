@@ -6,9 +6,9 @@ import TokenLogo from '~/components/TokenLogo'
 import Bookmark from '~/components/Bookmark'
 import FormattedName from '~/components/FormattedName'
 import { chainIconUrl, peggedAssetIconUrl, slug, tokenIconUrl } from '~/utils'
-import { INameYield, INameProps, INameYieldPoolProps } from './types'
+import { INameYield, INameFees, INameProps, INameYieldPoolProps } from './types'
 import Tooltip from '~/components/Tooltip'
-import { ButtonYields } from '~/components/ProtocolAndPool'
+import { ButtonYields } from '~/layout/Pool'
 
 const SaveButton = styled(Bookmark)`
 	position: relative;
@@ -58,6 +58,7 @@ export function Name({
 				<span id="table-p-symbol">{` (${symbol})`}</span>
 			</>
 		)
+
 	const { iconUrl, tokenUrl } = React.useMemo(() => {
 		let iconUrl, tokenUrl
 		if (type === 'chain') {
@@ -69,6 +70,11 @@ export function Name({
 		} else if (type === 'peggedAsset') {
 			tokenUrl = `/stablecoin/${slug(value)}`
 			iconUrl = peggedAssetIconUrl(value)
+		} else if (type === 'dex') {
+			const splittedName = value.split(' - ')
+			const name = splittedName.length > 1 ? splittedName.slice(0, splittedName.length - 1).join('') : value
+			tokenUrl = `/dex/${slug(name)}`
+			iconUrl = tokenIconUrl(name)
 		} else {
 			tokenUrl = `/${type}/${slug(value)}`
 			iconUrl = tokenIconUrl(value)
@@ -109,6 +115,55 @@ export function Name({
 			) : (
 				<CustomLink href={tokenUrl} id="table-p-name">
 					{name}
+				</CustomLink>
+			)}
+		</Index>
+	)
+}
+
+export function NameFees({
+	type,
+	value,
+	symbol = '-',
+	index,
+	bookmark,
+	rowType = 'default',
+	showRows,
+	version,
+	...props
+}: INameFees) {
+	const name =
+		symbol === '-' ? (
+			value
+		) : (
+			<>
+				<span>{value}</span>
+				<span id="table-p-symbol">{` (${symbol})`}</span>
+			</>
+		)
+	const tokenUrl = type === 'chain' ? `/fees/${value}` : `/${type}/${slug(value)}`
+	const iconUrl = type === 'chain' ? chainIconUrl(value) : tokenIconUrl(value)
+
+	let leftSpace: string = '30px'
+
+	if (rowType === 'accordion') {
+		leftSpace = '0px'
+	}
+
+	if (rowType === 'child') {
+		leftSpace = '60px'
+	}
+
+	return (
+		<Index {...props} style={{ left: leftSpace }}>
+			{rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
+			<span>{rowType !== 'pinned' && index}</span>
+			<TokenLogo id="table-p-logo" logo={iconUrl} />
+			{rowType === 'accordion' ? (
+				<span id="table-p-name">{version ? `${name} ${version}` : name}</span>
+			) : (
+				<CustomLink href={tokenUrl} id="table-p-name">
+					{version ? `${name} ${version}` : name}
 				</CustomLink>
 			)}
 		</Index>

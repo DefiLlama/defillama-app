@@ -4,11 +4,13 @@ import * as echarts from 'echarts'
 import { ChartData } from '~/utils/liquidations'
 import { getOption, useStackBy } from './utils'
 import { useMedia } from '~/hooks'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useLiqsManager } from '~/contexts/LocalStorage'
 import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
 
 export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; uid: string }) => {
 	const { setSelectedSeries } = useContext(LiquidationsContext)
+	const [liqsSettings] = useLiqsManager()
+	const isLiqsUsingUsd = liqsSettings['LIQS_USING_USD']
 
 	const stackBy = useStackBy()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
@@ -22,7 +24,7 @@ export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; ui
 	useEffect(() => {
 		setSelectedSeries(null)
 		const chartInstance = createInstance()
-		const option = getOption(chartData, stackBy, isSmall, isDark)
+		const option = getOption(chartData, stackBy, isSmall, isDark, isLiqsUsingUsd)
 		chartInstance.on('legendselectchanged', (params: any) => {
 			setSelectedSeries(params.selected)
 		})
@@ -38,7 +40,7 @@ export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; ui
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [uid, chartData, createInstance, stackBy, isSmall, isDark, setSelectedSeries])
+	}, [uid, chartData, createInstance, stackBy, isSmall, isDark, setSelectedSeries, isLiqsUsingUsd])
 
 	return (
 		<div

@@ -4,7 +4,7 @@ import Layout from '~/layout'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, ProtocolsTable } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { columnsToShow } from '~/components/Table'
-import { RowLinks, LinksWrapper } from '~/components/Filters'
+import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
 import { revalidate } from '~/api'
@@ -103,9 +103,9 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 
-			<LinksWrapper>
-				<RowLinks links={tokenLinks} activeLink={token} />
-			</LinksWrapper>
+			<RowLinksWrapper>
+				<RowLinksWithDropdown links={tokenLinks} activeLink={token} />
+			</RowLinksWrapper>
 
 			<ProtocolsTable columns={columns} data={protocolsData} />
 		</>

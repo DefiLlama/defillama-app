@@ -7,7 +7,8 @@ import type {
 	IOracleProtocols,
 	IProtocolResponse,
 	IStackedDataset,
-	LiteProtocol
+	LiteProtocol,
+	Protocol
 } from '~/api/types'
 import {
 	CHART_API,
@@ -287,21 +288,54 @@ export async function getForkPageData(fork = null) {
 	}
 }
 
-export const getNewDexsPageData = async (category: string) => {
-	const { categories, ...rest } = await fetch(`https://api.llama.fi/chains2/${category}`).then((res) => res.json())
+//TODO: import from generic types
+export interface VolumeSummaryDex extends Protocol {
+	totalVolume24h: number | null
+	volume24hBreakdown: {
+		[chain: string]: {
+			[protocolVersion: string]: number | string,
+		}
+	} | null
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	protocolVersions: {
+		[protVersion: string]: {
+				totalVolume24h: number | null
+				change_1d: number | null
+				change_7d: number | null
+				change_1m: number | null
+				chains: string[] | null
+		} | null
+} | null
+}
 
-	const categoryLinks = [
-		{ label: 'All', to: '/chains' },
-		{ label: 'Non-EVM', to: '/chains/Non-EVM' }
-	].concat(
-		categories.map((category) => ({
-			label: category,
-			to: `/chains/${category}`
-		}))
-	)
+export interface IGetDexsResponseBody {
+	totalVolume: number;
+	changeVolume1d: number;
+	changeVolume7d: number;
+	changeVolume30d: number;
+	totalDataChart: [[string, number]],
+	dexs: VolumeSummaryDex[]
+}
+
+export const getNewDexsPageData = async () => {
+	const {
+		dexs,
+		totalVolume,
+		changeVolume1d,
+		changeVolume30d,
+		totalDataChart
+	} = await fetch(DEXS_API).then((res) => res.json()) as IGetDexsResponseBody
 
 	return {
-		props: { ...rest, category, categories: categoryLinks }
+		props: {
+			dexs,
+			totalVolume,
+			changeVolume1d,
+			changeVolume30d,
+			totalDataChart
+		}
 	}
 }
 

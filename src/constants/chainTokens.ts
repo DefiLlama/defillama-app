@@ -534,7 +534,7 @@ export const chainCoingeckoIds = {
 		symbol: 'BOBA',
 		cmcId: '14556'
 	},
-	BitGert: {
+	Bitgert: {
 		geckoId: 'bitrise-token',
 		symbol: 'BRISE',
 		cmcId: '11079'
@@ -580,12 +580,12 @@ export const chainCoingeckoIds = {
 		cmcId: '1831'
 	},
 	Litecoin: {
-		geckoId: 'coti',
+		geckoId: 'litecoin',
 		symbol: 'LTC',
 		cmcId: '2'
 	},
 	Doge: {
-		geckoId: 'coti',
+		geckoId: 'dogecoin',
 		symbol: 'DOGE',
 		cmcId: '74'
 	},
@@ -639,7 +639,7 @@ export const chainCoingeckoIds = {
 		symbol: 'ICP',
 		cmcId: '8916'
 	},
-	"Nova": {
+	"Nova Network": {
     geckoId: "supernova",
     symbol: "SNT",
     cmcId: "15399"
@@ -648,6 +648,21 @@ export const chainCoingeckoIds = {
     geckoId: "kintsugi",
     symbol: "KINT",
     cmcId: "13675"
+  },
+	"Interlay": {
+    geckoId: "interlay",
+    symbol: "INTR",
+    cmcId: "20366"
+  },
+	"Ultron": {
+    geckoId: "ultron",
+    symbol: "ULX",
+    cmcId: "21524"
+  },
+	"Dogechain": {
+    geckoId: "dogechain",
+    symbol: "DC",
+    cmcId: "21414"
   }
 }
 

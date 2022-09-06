@@ -1,41 +1,21 @@
 import * as React from 'react'
-import styled from 'styled-components'
-import AppSwitch from '~/components/AppSwitch'
-import SettingsMenu from '~/components/SettingsModal'
-import { useYieldApp } from '~/hooks'
-import { Nav, TitleWrapper, Wrapper } from './shared'
-import NavMenuButton from './NavMenuButton'
-import DefiSideNav from './DefiSideNav'
-import YieldSideNav from './YieldSideNav'
-import Title from './Title'
+import dynamic from 'next/dynamic'
+import { Header } from './shared'
 
-export default function SideNav() {
-	const isYieldApp = useYieldApp()
-	const [showMobileNavMenu, setShowMobileNavMenu] = React.useState(false)
+// TODO update types/react package and remvoe 'any' type
+const Desktop: any = dynamic<React.ReactNode>(() => import('./Desktop'), {
+	loading: () => <Header />
+})
 
-	const style = {
-		'--mobile-display': showMobileNavMenu ? 'flex' : 'none'
-	} as React.CSSProperties
+const Mobile: any = dynamic<React.ReactNode>(() => import('./Mobile'), {
+	loading: () => <Header />
+})
 
+export default function Nav() {
 	return (
-		<Wrapper>
-			<TitleWrapper>
-				<Title homePath="/" />
-
-				<Settings />
-
-				<NavMenuButton show={showMobileNavMenu} setShow={setShowMobileNavMenu} />
-			</TitleWrapper>
-
-			<AppSwitch />
-
-			<Nav style={style}>{isYieldApp ? <YieldSideNav /> : <DefiSideNav />}</Nav>
-		</Wrapper>
+		<>
+			<Mobile />
+			<Desktop />
+		</>
 	)
 }
-
-const Settings = styled(SettingsMenu)`
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		display: none !important;
-	}
-`

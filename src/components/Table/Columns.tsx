@@ -1,9 +1,9 @@
 import IconsRow from '~/components/IconsRow'
 import QuestionHelper from '~/components/QuestionHelper'
-import { Name } from './Name'
+import { Name, NameFees } from './Name'
 import type { IColumnProps, TColumns } from './types'
 import { formattedNum, formattedPercent } from '~/utils'
-import { useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
+import { useDefiManager } from '~/contexts/LocalStorage'
 
 type AllColumns = Record<TColumns, IColumnProps>
 
@@ -53,6 +53,21 @@ export const allColumns: AllColumns = {
 			/>
 		)
 	},
+	feesProtocol: {
+		header: 'Name',
+		accessor: 'name',
+		disableSortBy: true,
+		Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
+			<NameFees
+				type={rowValues.logo ? "fees" : "chain"}
+				value={value}
+				symbol={rowType === 'child' ? '-' : rowValues.symbol}
+				index={rowIndex !== null && rowIndex + 1}
+				rowType={rowType}
+				version={rowValues.version}
+			/>
+		)
+	},
 	category: {
 		header: 'Category',
 		accessor: 'category',
@@ -95,11 +110,21 @@ export const allColumns: AllColumns = {
 		accessor: 'change_1m',
 		Cell: ({ value }) => <>{formattedPercent(value)}</>
 	},
+	'fees': {
+		header: 'Fees (24h)',
+		accessor: 'total1dFees',
+		Cell: ({ value }) => <>{'$' + formattedNum(value)}</>
+	},
+	'revenue': {
+		header: 'Revenue (24h)',
+		accessor: 'total1dRevenue',
+		Cell: ({ value }) => <>{'$' + formattedNum(value)}</>
+	},
 	tvl: {
 		header: 'TVL',
 		accessor: 'tvl',
 		Cell: ({ value, rowValues }) => {
-			const extraTvlsEnabled = useGetExtraTvlEnabled()
+			const [extraTvlsEnabled] = useDefiManager()
 
 			let text = null
 
@@ -116,7 +141,7 @@ export const allColumns: AllColumns = {
 
 				if (!extraTvlsEnabled['doublecounted'] && !extraTvlsEnabled['liquidstaking']) {
 					text =
-						'This protocol deposits into another protocol and is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggle is off'
+						'This protocol deposits into another protocol or is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggles are off'
 				}
 			}
 
@@ -161,7 +186,6 @@ export const allColumns: AllColumns = {
 			<Name
 				type="dex"
 				value={value}
-				symbol={rowValues.symbol}
 				index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
 				rowType={rowType}
 				showRows={showRows}
@@ -172,5 +196,11 @@ export const allColumns: AllColumns = {
 		header: 'Last day volume',
 		accessor: 'totalVolume24h',
 		Cell: ({ value }) => <>{value && formattedNum(value)}</>
-	}
+	},
+	chainsVolume: {
+		header: 'Chains',
+		accessor: 'chains',
+		disableSortBy: true,
+		Cell: ({ value }) => <IconsRow links={value} url="/chain" iconType="chain" />
+	},
 }

@@ -2,8 +2,8 @@ import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
-import { FilterButton } from '~/components/Select/AriakitSelect'
-import { Dropdown, Item, Selected, Stats } from '../shared'
+import { ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup, SelectButton } from '../shared'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 interface IFiltersByCategoryProps {
 	categoryList: string[]
@@ -34,11 +34,16 @@ export function FiltersByCategory({ categoryList = [], selectedCategories, pathn
 	// value and setValue shouldn't be passed to the select state because the
 	// select value and the combobox value are different things.
 	const { value, setValue, ...selectProps } = combobox
+
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
 	const select = useSelectState({
 		...selectProps,
 		value: selectedCategories,
 		setValue: addCategory,
-		gutter: 8
+		gutter: 8,
+		animated: true,
+		renderCallback
 	})
 
 	// Resets combobox value when popover is collapsed
@@ -76,34 +81,34 @@ export function FiltersByCategory({ categoryList = [], selectedCategories, pathn
 
 	return (
 		<>
-			<FilterButton state={select}>
+			<SelectButton state={select}>
 				<span>Filter by Category</span>
 				<MenuButtonArrow />
-				{selectedCategories.length > 0 && <Selected>{selectedCategories.length}</Selected>}
-			</FilterButton>
-			<Dropdown state={select}>
-				<Input state={combobox} placeholder="Search for category..." />
+				{selectedCategories.length > 0 && <ItemsSelected>{selectedCategories.length}</ItemsSelected>}
+			</SelectButton>
+			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false}>
+				<Input state={combobox} placeholder="Search for category..." autoFocus />
 
 				{combobox.matches.length > 0 ? (
 					<>
-						<Stats>
-							<button onClick={clear}>clear</button>
+						<FilterFnsGroup>
+							<button onClick={clear}>Clear</button>
 
-							<button onClick={toggleAll}>toggle all</button>
-						</Stats>
+							<button onClick={toggleAll}>Toggle all</button>
+						</FilterFnsGroup>
 						<List state={combobox} className="filter-by-list">
 							{combobox.matches.map((value, i) => (
-								<Item value={value} key={value + i} focusOnHover>
+								<SelectItem value={value} key={value + i} focusOnHover>
 									<span>{value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
-								</Item>
+								</SelectItem>
 							))}
 						</List>
 					</>
 				) : (
 					<p id="no-results">No results</p>
 				)}
-			</Dropdown>
+			</ComboboxSelectPopover>
 		</>
 	)
 }

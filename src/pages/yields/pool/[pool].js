@@ -12,14 +12,13 @@ import {
 	FlexRow,
 	InfoWrapper,
 	LinksWrapper,
-	PoolDetails,
-	ProtocolName,
+	Name,
 	Section,
-	Stat,
-	StatsSection,
-	StatWrapper,
 	Symbol
-} from '~/components/ProtocolAndPool'
+} from '~/layout/ProtocolAndPool'
+import { PoolDetails } from '~/layout/Pool'
+import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
+import { Stat } from '~/layout/Stats/Large'
 import FormattedName from '~/components/FormattedName'
 import { BreakpointPanel } from '~/components'
 import { useYieldChartData, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
@@ -75,6 +74,13 @@ const PageView = () => {
 
 	if (confidence) {
 		confidence = confidence === 1 ? 'Low' : confidence === 2 ? 'Medium' : 'High'
+		// on the frontend we round numerical values; eg values < 0.005 are displayed as 0.00;
+		// in the context of apy and predictions this sometimes can lead to the following:
+		// an apy is displayed as 0.00% and the outlook on /pool would read:
+		// "The algorithm predicts the current APY of 0.00% to not fall below 0.00% within the next 4 weeks. Confidence: High`"
+		// which is useless.
+		// solution: suppress the outlook and confidence values if apy < 0.005
+		confidence = apy >= 0.005 ? confidence : null
 	}
 
 	const predictedDirection = poolData.predictions?.predictedClass === 'Down' ? '' : 'not'
@@ -96,7 +102,7 @@ const PageView = () => {
 
 			<StatsSection>
 				<PoolDetails>
-					<ProtocolName>
+					<Name>
 						<FormattedName
 							text={
 								poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
@@ -109,11 +115,11 @@ const PageView = () => {
 						<Symbol>
 							({projectName} - {poolData.chain})
 						</Symbol>
-					</ProtocolName>
+					</Name>
 
 					<StatWrapper>
 						<Stat>
-							<span style={{ fontSize: '1rem' }}>APY</span>
+							<span>APY</span>
 							<span style={{ color: '#fd3c99' }}>{apy}%</span>
 						</Stat>
 						<DownloadButton as="button" onClick={downloadCsv}>
@@ -122,29 +128,25 @@ const PageView = () => {
 						</DownloadButton>
 					</StatWrapper>
 
-					<StatWrapper>
-						<Stat>
-							<span style={{ fontSize: '1rem' }}>Total Value Locked</span>
-							<span style={{ color: '#4f8fea' }}>${tvlUsd}</span>
-						</Stat>
-					</StatWrapper>
+					<Stat>
+						<span>Total Value Locked</span>
+						<span style={{ color: '#4f8fea' }}>${tvlUsd}</span>
+					</Stat>
 
-					<StatWrapper>
-						<Stat>
-							<span style={{ fontSize: '1rem' }}>Outlook</span>
-							{isLoading ? (
-								<span style={{ height: '60px' }}></span>
-							) : (
-								<span style={{ fontSize: '1rem', fontWeight: '400' }}>
-									{confidence !== null
-										? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
-										: 'No outlook available'}
-								</span>
-							)}
-						</Stat>
-					</StatWrapper>
+					<Stat>
+						<span>Outlook</span>
+						{isLoading ? (
+							<span style={{ height: '60px' }}></span>
+						) : (
+							<span data-default-style>
+								{confidence !== null
+									? `The algorithm predicts the current APY of ${apy}% to ${predictedDirection} fall below ${apyDelta20pct}% within the next 4 weeks. Confidence: ${confidence}`
+									: 'No outlook available'}
+							</span>
+						)}
+					</Stat>
 				</PoolDetails>
-				<BreakpointPanel id="chartWrapper" style={{ border: 'none' }}>
+				<BreakpointPanel id="chartWrapper" style={{ border: 'none', borderRadius: '0 12px 12px 0', boxShadow: 'none' }}>
 					<Chart
 						display="liquidity"
 						dailyData={finalChartData}

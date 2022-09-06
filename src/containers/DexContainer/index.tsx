@@ -1,6 +1,5 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
 import Link from 'next/link'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
@@ -16,18 +15,17 @@ import { DexsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
 import { formattedNum, getBlockExplorer } from '~/utils'
-import boboLogo from '~/assets/boboSmug.png'
 import { IDexResponse } from '~/api/types'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { IStackedBarChartProps } from '~/components/TokenChart/StackedBarChart'
+import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 
 defaultFallbackInView(true)
 
-const StackedBarChart = dynamic(() => import('~/components/TokenChart/StackedBarChart'), {
+const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false
 }) as React.FC<IStackedBarChartProps>
 
-const Stats = styled.section`
+export const Stats = styled.section`
 	display: grid;
 	grid-template-columns: 1fr;
 	border-radius: 12px;
@@ -37,12 +35,12 @@ const Stats = styled.section`
 	position: relative;
 	isolation: isolate;
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		grid-template-columns: auto 1fr;
 	}
 `
 
-const ProtocolDetails = styled.div`
+export const ProtocolDetails = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 36px;
@@ -53,13 +51,13 @@ const ProtocolDetails = styled.div`
 	grid-column: span 1;
 	border-radius: 12px 12px 0 0;
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		min-width: 380px;
 		border-radius: 0 0 0 12px;
 	}
 `
 
-const ProtocolName = styled.h1`
+export const ProtocolName = styled.h1`
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -70,7 +68,7 @@ const Symbol = styled.span`
 	font-weight: 400;
 `
 
-const Tvl = styled.p`
+export const Tvl = styled.p`
 	font-weight: 700;
 	font-size: 2rem;
 	display: flex;
@@ -102,7 +100,7 @@ const InfoWrapper = styled.section`
 	grid-template-rows: repeat(3, auto);
 	box-shadow: ${({ theme }) => theme.shadowSm};
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		grid-template-rows: repeat(2, auto);
 	}
 `
@@ -137,7 +135,7 @@ const Section = styled.section`
 		line-height: 1.5rem;
 	}
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		h3:not(:first-of-type) {
 			margin-top: 24px;
 		}
@@ -198,7 +196,7 @@ const Bobo = styled.button`
 		height: 34px !important;
 	}
 
-	@media (min-width: 80rem) {
+	@media screen and (min-width: 80rem) {
 		top: 0;
 		right: 0;
 		bottom: initial;
@@ -207,7 +205,7 @@ const Bobo = styled.button`
 	}
 `
 
-const TvlWrapper = styled.section`
+export const TvlWrapper = styled.section`
 	display: flex;
 	gap: 20px;
 	align-items: flex-end;
@@ -231,7 +229,7 @@ const ChartWrapper = styled.section`
 	display: flex;
 	flex-direction: column;
 
-	@media (min-width: 90rem) {
+	@media screen and (min-width: 90rem) {
 		grid-column: span 1;
 
 		:last-child:nth-child(2n - 1) {
@@ -274,7 +272,7 @@ function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContain
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO
 				cardName={dexData.name}
-				chain={dexData.name}
+				token={dexData.name}
 				tvl={formattedNum(dexData.total1dVolume)?.toString()}
 				volumeChange={`${dexData.change1dVolume}`}
 			/>

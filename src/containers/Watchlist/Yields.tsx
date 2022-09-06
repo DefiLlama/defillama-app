@@ -50,8 +50,8 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				rewards: t.rewardTokensNames,
 				change1d: t.apyPct1D,
 				change7d: t.apyPct7D,
-				outlook: t.predictions.predictedClass,
-				confidence: t.predictions.binnedConfidence,
+				outlook: t.apy >= 0.005 ? t.predictions.predictedClass : null,
+				confidence: t.apy >= 0.005 ? t.predictions.binnedConfidence : null,
 				url: t.url,
 				category: t.category
 			}))

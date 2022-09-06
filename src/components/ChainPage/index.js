@@ -5,7 +5,7 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import {
 	ProtocolsTable,
-	FallbackMessage,
+	Panel,
 	BreakpointPanels,
 	BreakpointPanel,
 	PanelHiddenMobile,
@@ -15,14 +15,14 @@ import {
 } from '~/components'
 import { RowFixed } from '~/components/Row'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { RowLinks, TVLRange } from '~/components/Filters'
+import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
 import { BasicLink } from '~/components/Link'
 import SEO from '~/components/SEO'
 import { OptionButton } from '~/components/ButtonStyled'
 import LocalLoader from '~/components/LocalLoader'
 import { columnsToShow } from '~/components/Table'
 import { useCalcProtocolsTvls } from '~/hooks/data'
-import { useDarkModeManager, useGetExtraTvlEnabled } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
@@ -72,7 +72,7 @@ function GlobalPage({
 	extraVolumesCharts = {},
 	parentProtocols
 }) {
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const [extraTvlsEnabled] = useDefiManager()
 
 	const router = useRouter()
 
@@ -238,13 +238,13 @@ function GlobalPage({
 				}}
 			/>
 
-			<FallbackMessage>
-				<span> We've launched a multi-chain stablecoin dashboard. Check it out</span>{' '}
-				<BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/stablecoins">
-					here
+			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
+				<span>New </span>{' '}
+				<BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/liquidations/eth">
+					liquidation levels dashboard
 				</BasicLink>
-				<span>!</span>
-			</FallbackMessage>
+				<span> is live!</span>
+			</Panel>
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
@@ -304,14 +304,17 @@ function GlobalPage({
 
 			<ListOptions>
 				<ListHeader>TVL Rankings</ListHeader>
-				<RowLinks links={chainOptions} activeLink={selectedChain} />
+				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 				<TVLRange />
 			</ListOptions>
 
 			{finalProtocolTotals.length > 0 ? (
 				<ProtocolsTable data={finalProtocolTotals} columns={columns} />
 			) : (
-				<FallbackMessage>{`${selectedChain} chain has no protocols listed`}</FallbackMessage>
+				<Panel
+					as="p"
+					style={{ textAlign: 'center', margin: 0 }}
+				>{`${selectedChain} chain has no protocols listed`}</Panel>
 			)}
 		</>
 	)

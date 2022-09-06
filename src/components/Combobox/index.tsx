@@ -10,6 +10,7 @@ export const Input = styled(Combobox)`
 	border: ${({ theme }) => '1px solid ' + theme.text4};
 	border-radius: 8px;
 	margin: 12px 12px 0;
+	z-index: 2;
 
 	:focus-visible {
 		outline: ${({ theme }) => '1px solid ' + theme.text1};
@@ -17,12 +18,21 @@ export const Input = styled(Combobox)`
 `
 
 export const List = styled(ComboboxList)`
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 	overflow: auto;
 	overscroll-behavior: contain;
-	padding: 8px 0;
+	padding: 16px 0;
+
+	@media screen and (min-width: 640px) {
+		padding: 8px 0;
+		gap: 0;
+	}
 `
 
 export const Item = styled(ComboboxItem)`
+	flex-shrink: 0;
 	padding: 8px 12px;
 	color: ${({ theme }) => theme.text1};
 	cursor: pointer;
@@ -33,10 +43,12 @@ export const Item = styled(ComboboxItem)`
 	border: none;
 	text-align: start;
 
-	:hover,
-	:focus-visible,
-	&[data-active-item] {
-		outline: none;
-		background-color: ${({ theme }) => transparentize(0.8, theme.primary1)};
+	@media screen and (min-width: 640px) {
+		:hover,
+		:focus-visible,
+		&[data-active-item] {
+			outline: none;
+			background-color: ${({ theme }) => transparentize(0.8, theme.primary1)};
+		}
 	}
 `

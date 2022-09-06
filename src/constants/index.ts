@@ -7,7 +7,7 @@ export const timeframeOptions = {
 }
 
 // API endpoints
-export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com/'
+export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com'
 
 export const CHART_API = 'https://api.llama.fi/lite/charts'
 export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2'
@@ -48,6 +48,11 @@ export const CHAINS_API = 'https://api.llama.fi/chains'
 
 export const DEXS_API = 'https://api.llama.fi/dexs'
 export const DEX_BASE_API = 'https://api.llama.fi/dex'
+
+export const USER_METRICS_PROTOCOL_API = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/stats'
+export const USER_METRICS_CHAIN_API = 'https://users.llama.fi/chain'
+export const USER_METRICS_CHAIN_API_BY_DATE = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/chain'
+export const USER_METRICS_ALL_API = 'https://users.llama.fi/all'
 
 export const CG_TOKEN_API =
 	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'

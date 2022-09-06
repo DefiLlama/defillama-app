@@ -6,34 +6,28 @@ import ThemeProvider, { GlobalStyle, ThemedBackground } from '~/Theme'
 import SEO from '~/components/SEO'
 import Nav from '~/components/Nav'
 
+const PageWrapper = styled.div`
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	margin: 16px;
+	isolation: isolate;
+
+	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+		margin: 28px 28px 28px 248px;
+	}
+`
+
 const Center = styled.main`
+	flex: 1;
 	display: flex;
 	flex-direction: column;
 	gap: 28px;
-	max-width: 90rem;
+	max-width: 86rem;
 	width: 100%;
 	min-height: 100%;
 	margin: 0 auto;
-	padding: 0 32px 32px;
 	color: ${({ theme }) => theme.text1};
-`
-
-const PageWrapper = styled.div`
-	padding: 36px 0 80px;
-	flex: 1;
-	z-index: 0;
-	transition: width 0.25s ease;
-	background-color: ${({ theme }) => theme.onlyLight};
-
-	@media screen and (max-width: 37.5rem) {
-		& > * {
-			padding: 0 12px;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		padding-left: 220px;
-	}
 `
 
 interface ILayoutProps {

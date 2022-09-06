@@ -2,24 +2,14 @@ import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { useRouter } from 'next/router'
 import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
-import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
-import {
-	AUDITED,
-	MILLION_DOLLAR,
-	NO_IL,
-	SINGLE_EXPOSURE,
-	STABLECOINS,
-	NO_OUTLIER,
-	APY_GT0,
-	STABLE_OUTLOOK,
-	HIGH_CONFIDENCE
-} from '~/contexts/LocalStorage'
-import { Item, Selected, Stats } from '../shared'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
+import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
+import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup } from '../shared'
 
 export const attributeOptions = [
 	{
 		name: 'Stablecoins',
-		key: STABLECOINS.toLowerCase(),
+		key: YIELDS_SETTINGS.STABLECOINS.toLowerCase(),
 		help: 'Select pools consisting of stablecoins only',
 		filterFn: (item) => item.stablecoin === true,
 		defaultFilterFnOnPage: {
@@ -29,7 +19,7 @@ export const attributeOptions = [
 	},
 	{
 		name: 'Single Exposure',
-		key: SINGLE_EXPOSURE.toLowerCase(),
+		key: YIELDS_SETTINGS.SINGLE_EXPOSURE.toLowerCase(),
 		help: 'Select pools with single token exposure only',
 		filterFn: (item) => item.exposure === 'single',
 		defaultFilterFnOnPage: {},
@@ -37,7 +27,7 @@ export const attributeOptions = [
 	},
 	{
 		name: 'No IL',
-		key: NO_IL.toLowerCase(),
+		key: YIELDS_SETTINGS.NO_IL.toLowerCase(),
 		help: 'Select pools with no impermanent loss',
 		filterFn: (item) => item.ilRisk === 'no',
 		defaultFilterFnOnPage: {
@@ -47,7 +37,7 @@ export const attributeOptions = [
 	},
 	{
 		name: 'Million Dollar',
-		key: MILLION_DOLLAR.toLowerCase(),
+		key: YIELDS_SETTINGS.MILLION_DOLLAR.toLowerCase(),
 		help: 'Select pools with at least one million dollar in TVL',
 		filterFn: (item) => item.tvlUsd >= 1e6,
 		defaultFilterFnOnPage: {
@@ -57,7 +47,7 @@ export const attributeOptions = [
 	},
 	{
 		name: 'Audited',
-		key: AUDITED.toLowerCase(),
+		key: YIELDS_SETTINGS.AUDITED.toLowerCase(),
 		help: 'Select pools from audited projects only',
 		filterFn: (item) => item.audits !== '0',
 		defaultFilterFnOnPage: {
@@ -67,7 +57,7 @@ export const attributeOptions = [
 	},
 	{
 		name: 'No Outliers',
-		key: NO_OUTLIER.toLowerCase(),
+		key: YIELDS_SETTINGS.NO_OUTLIER.toLowerCase(),
 		help: 'Remove pools which are considered outliers based on their geometric mean of apy values',
 		filterFn: (item) => item.outlier === false,
 		defaultFilterFnOnPage: {
@@ -77,7 +67,7 @@ export const attributeOptions = [
 	},
 	{
 		name: 'APY > 0',
-		key: APY_GT0.toLowerCase(),
+		key: YIELDS_SETTINGS.APY_GT0.toLowerCase(),
 		help: 'Remove pools with apy values of 0',
 		filterFn: (item) => item.apy > 0,
 		defaultFilterFnOnPage: {
@@ -87,7 +77,7 @@ export const attributeOptions = [
 	},
 	{
 		name: 'Stable Outlook',
-		key: STABLE_OUTLOOK.toLowerCase(),
+		key: YIELDS_SETTINGS.STABLE_OUTLOOK.toLowerCase(),
 		help: 'Select pools with "Stable/Up" Outlook only',
 		filterFn: (item) => item.predictions.predictedClass === 'Stable/Up',
 		defaultFilterFnOnPage: {},
@@ -95,7 +85,7 @@ export const attributeOptions = [
 	},
 	{
 		name: 'High Confidence',
-		key: HIGH_CONFIDENCE.toLowerCase(),
+		key: YIELDS_SETTINGS.HIGH_CONFIDENCE.toLowerCase(),
 		help: 'Select pools with "High" predicted outlook confidence',
 		filterFn: (item) => item.predictions.binnedConfidence === 3,
 		defaultFilterFnOnPage: {},
@@ -134,10 +124,14 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		)
 	}
 
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
 	const select = useSelectState({
 		value: values,
 		setValue: updateAttributes,
-		gutter: 8
+		gutter: 8,
+		renderCallback,
+		animated: true
 	})
 
 	const toggleAll = () => {
@@ -168,26 +162,30 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		)
 	}
 
+	const defaultValues = attributeOptions.filter((option) => option.defaultFilterFnOnPage[router.pathname]).length
+
+	const totalSelected = defaultValues ? defaultValues + values.length : values.length
+
 	return (
 		<>
-			<FilterButton state={select}>
+			<SelectButton state={select}>
 				<span>Filter by Attribute</span>
 				<MenuButtonArrow />
-				{values.length > 0 && <Selected>{values.length}</Selected>}
-			</FilterButton>
-			<FilterPopover state={select}>
-				<Stats>
-					<button onClick={clear}>clear</button>
+				{totalSelected > 0 && <ItemsSelected>{totalSelected}</ItemsSelected>}
+			</SelectButton>
+			<SelectPopover state={select} modal={!isLarge}>
+				<FilterFnsGroup>
+					<button onClick={clear}>Clear</button>
 
-					<button onClick={toggleAll}>toggle all</button>
-				</Stats>
+					<button onClick={toggleAll}>Toggle all</button>
+				</FilterFnsGroup>
 				{attributeOptions.map((option) => (
-					<Item key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
+					<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
 						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
 						<Checkbox checked={values.includes(option.key) || option.disabledOnPages.includes(router.pathname)} />
-					</Item>
+					</SelectItem>
 				))}
-			</FilterPopover>
+			</SelectPopover>
 		</>
 	)
 }

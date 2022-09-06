@@ -1,13 +1,13 @@
 import styled from 'styled-components'
 import { SelectArrow } from 'ariakit/select'
-import { FilterButton, FilterPopover } from '~/components/Select/AriakitSelect'
-import { Item, Selected } from '../shared'
+import { SelectItem, ItemsSelected, SelectButton, SelectPopover } from '../shared'
 import OptionToggle from '~/components/OptionToggle'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
-import { useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { useDefiManager } from '~/contexts/LocalStorage'
 import { protocolsAndChainsOptions } from './options'
 import { useProtocolsFilterState } from './useProtocolFilterState'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 const Wrapper = styled.section`
 	color: ${({ theme }) => theme.text1};
@@ -23,7 +23,7 @@ const Wrapper = styled.section`
 		opacity: 0.8;
 	}
 
-	@media (min-width: 96.0625rem) {
+	@media screen and (min-width: 96.0625rem) {
 		display: flex;
 	}
 `
@@ -44,14 +44,13 @@ const ListItem = styled.li`
 	}
 `
 
-const AddlFiltersButton = styled(FilterButton)`
-	background: #000;
+const AddlFiltersButton = styled(SelectButton)`
+	background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#f5f5f5')};
 	font-size: 0.875rem;
 `
 
 export const DesktopProtocolFilters = ({ options, ...props }) => {
-	const tvlToggles = useTvlToggles()
-	const extraTvlEnabled = useGetExtraTvlEnabled()
+	const [extraTvlEnabled, updater] = useDefiManager()
 
 	let tvlOptions = options || protocolsAndChainsOptions
 
@@ -63,7 +62,7 @@ export const DesktopProtocolFilters = ({ options, ...props }) => {
 					<>
 						{tvlOptions.slice(0, 3).map((option) => (
 							<ListItem key={option.key}>
-								<OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
+								<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
 							</ListItem>
 						))}
 						<ListItem>
@@ -73,7 +72,7 @@ export const DesktopProtocolFilters = ({ options, ...props }) => {
 				) : (
 					tvlOptions.map((option) => (
 						<ListItem key={option.key}>
-							<OptionToggle {...option} toggle={tvlToggles(option.key)} enabled={extraTvlEnabled[option.key]} />
+							<OptionToggle {...option} toggle={updater(option.key)} enabled={extraTvlEnabled[option.key]} />
 						</ListItem>
 					))
 				)}
@@ -89,22 +88,32 @@ interface IAllOptionsProps {
 function AddlOptions({ options, ...props }: IAllOptionsProps) {
 	const select = useProtocolsFilterState()
 
+	const [isLarge] = useSetPopoverStyles()
+
+	let totalSelected = 0
+
+	options.forEach((option) => {
+		if (select.value.includes(option.key)) {
+			totalSelected += 1
+		}
+	})
+
 	return (
 		<span {...props}>
 			<AddlFiltersButton state={select}>
 				<span>Others</span>
 				<SelectArrow />
-				{select.value.length > 0 && <Selected>{select.value.length}</Selected>}
+				{totalSelected > 0 && <ItemsSelected>{totalSelected}</ItemsSelected>}
 			</AddlFiltersButton>
 			{select.mounted && (
-				<FilterPopover state={select}>
+				<SelectPopover state={select} modal={!isLarge}>
 					{options.map(({ key, name, help }) => (
-						<Item key={key} value={key}>
+						<SelectItem key={key} value={key}>
 							{help ? <HeadHelp title={name} text={help} /> : name}
 							<Checkbox checked={select.value.includes(key)} />
-						</Item>
+						</SelectItem>
 					))}
-				</FilterPopover>
+				</SelectPopover>
 			)}
 		</span>
 	)

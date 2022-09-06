@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Header } from '~/Theme'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import Table, { columnsToShow } from '~/components/Table'
-import { RowLinks, LinksWrapper } from '~/components/Filters'
+import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcProtocolsTvls } from '~/hooks/data'
 import { IParentProtocol } from '~/api/types'
 
@@ -85,9 +85,9 @@ function ProtocolList({
 			<Header>{title}</Header>
 
 			{showChainList && (
-				<LinksWrapper>
-					<RowLinks links={chainOptions} activeLink={chain} />
-				</LinksWrapper>
+				<RowLinksWrapper>
+					<RowLinksWithDropdown links={chainOptions} activeLink={chain} />
+				</RowLinksWrapper>
 			)}
 
 			<Table data={protocolTotals} columns={columns} />

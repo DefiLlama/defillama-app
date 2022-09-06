@@ -1,74 +1,74 @@
 import * as React from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { Icon } from 'react-feather'
 import { BasicLink } from '~/components/Link'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
-import ThemeSwitch from './ThemeSwitch'
 
-export const Wrapper = styled.header`
+export const Header = styled.header`
 	min-width: 220px;
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
-	padding: 16px;
-	z-index: 1;
+	gap: 10px;
+	padding: 12px 16px;
 	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
+	z-index: 1;
 
 	scrollbar-width: none;
 	::-webkit-scrollbar {
 		display: none;
 	}
 
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		padding: 32px 24px;
+	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		position: fixed;
 		top: 0;
 		bottom: 0;
 		left: 0;
+		flex-direction: column;
+		gap: 20px;
+		padding: 24px;
 		width: revert;
 		height: 100vh;
 		overflow-y: auto;
 	}
 `
 
-export const TitleWrapper = styled.span`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
+export const LogoWrapper = styled.a`
+	flex-shrink: 0;
+	transition: transform 0.3s ease;
+	margin-right: auto;
 
-	& > *:first-child {
-		flex: 1;
+	:focus-visible {
+		outline: 1px solid white;
 	}
 
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		& > *:not(:first-child) {
-			display: none;
+	img {
+		height: 36px;
+		object-fit: contain;
+		object-position: left;
+		width: min-content;
+	}
+
+	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		:hover {
+			transform: rotate(-5deg);
 		}
-	}
-`
 
-export const Nav = styled.nav`
-	flex: 1;
-	display: var(--mobile-display);
-	flex-direction: column;
-	gap: 20px;
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		display: flex;
+		img {
+			height: 53px;
+		}
 	}
 `
 
 export const NavLink = styled(BasicLink)`
 	font-weight: 500;
 	font-size: 14px;
-	color: ${({ theme }) => theme.white};
+	color: ${({ theme }) => theme.text1};
 	display: flex;
 	align-items: center;
 	gap: 12px;
+	opacity: 0.7;
+
+	&[data-active='true'] {
+		opacity: 1;
+	}
 
 	:hover {
 		opacity: 1;
@@ -78,15 +78,25 @@ export const NavLink = styled(BasicLink)`
 		outline: 1px solid white;
 		opacity: 1;
 	}
+
+	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
+		color: ${({ theme }) => theme.white};
+		opacity: 0.6;
+
+		&[data-active='true'] {
+			opacity: 1;
+		}
+	}
 `
 
-const FooterWrapper = styled.section`
+export const FooterWrapper = styled.section`
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 	margin-top: auto;
 
-	& a {
+	a,
+	button {
 		display: inline-block;
 		color: ${({ theme }) => theme.white};
 		opacity: 0.8;
@@ -99,6 +109,11 @@ const FooterWrapper = styled.section`
 			outline: 1px solid white;
 			opacity: 1;
 		}
+	}
+
+	button {
+		text-align: start;
+		padding: 0;
 	}
 `
 
@@ -115,7 +130,7 @@ export const Entry = ({ url, name, Icon, newTag, ...props }: IEntryProps) => {
 	const router = useRouter()
 
 	return (
-		<NavLink href={url} {...props} style={{ opacity: router.pathname === url ? 1 : 0.6 }}>
+		<NavLink href={url} {...props} data-active={router.pathname === url}>
 			<Icon size={20} />
 			<span>{name}</span>
 			{newTag === true && (
@@ -138,88 +153,35 @@ export const Entry = ({ url, name, Icon, newTag, ...props }: IEntryProps) => {
 	)
 }
 
-export const MobileOnlyEntry = styled(Entry)`
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		display: none;
-	}
-`
-
-export const Footer = ({ app }: { app: 'defi' | 'yields' }) => {
-	const [darkMode, toggleDarkMode] = useDarkModeManager()
-
-	const downloadAll = ()=>{
-		if(confirm(`This data export contains a lot of data and is not well suited for most types of analysis.
-We heavily recommend to use the csv exports available on other pages through the ".csv" buttons, since this export is hard to analyze unless you make heavy use of code.
-
-Do you still wish to download it?`)){
-			window.location.href = "https://datasets.llama.fi/all.csv"
-		}
-	}
-
-	return (
-		<>
-			<FooterWrapper>
-				{app === 'defi' ? (
-					<>
-						<Link href="https://twitter.com/DefiLlama" passHref>
-							<a target="_blank" rel="noopener noreferrer">
-								Twitter
-							</a>
-						</Link>
-
-						<Link href="https://discord.gg/buPFYXzDDd" passHref>
-							<a target="_blank" rel="noopener noreferrer">
-								Discord
-							</a>
-						</Link>
-
-						<Link href="https://t.me/defillama_tg" passHref>
-							<a target="_blank" rel="noopener noreferrer">
-								Daily news
-							</a>
-						</Link>
-
-						<Link href="https://etherscan.io/address/0x08a3c2A819E3de7ACa384c798269B3Ce1CD0e437" passHref>
-							<a target="_blank" rel="noopener noreferrer">
-								Donate
-							</a>
-						</Link>
-
-						<Link href="/press" passHref prefetch={false}>
-							<a>Press / Media</a>
-						</Link>
-
-						<Link href="/docs/api" passHref prefetch={false}>
-							<a>API Docs</a>
-						</Link>
-
-						<Link href="https://docs.llama.fi/list-your-project/submit-a-project" passHref>
-							<a target="_blank" rel="noopener noreferrer">
-								List Your Project
-							</a>
-						</Link>
-
-						<p onClick={downloadAll}>
-							<a target="_blank" rel="noopener noreferrer">
-								Download Data
-							</a>
-						</p>
-					</>
-				) : (
-					<>
-						<Link href="/docs/api" passHref prefetch={false}>
-							<a>API Docs</a>
-						</Link>
-					<Link href="https://datasets.llama.fi/yields/yield_rankings.csv" passHref>
-						<a target="_blank" rel="noopener noreferrer">
-							Download Data
-						</a>
-					</Link>
-					</>
-				)}
-			</FooterWrapper>
-
-			<ThemeSwitch isActive={darkMode} toggle={toggleDarkMode} />
-		</>
-	)
-}
+export const PaperIcon = () => (
+	<svg
+		stroke="currentColor"
+		fill="currentColor"
+		strokeWidth="0"
+		viewBox="0 0 512 512"
+		height="20px"
+		width="20px"
+		xmlns="http://www.w3.org/2000/svg"
+	>
+		<path
+			fill="none"
+			strokeLinejoin="round"
+			strokeWidth="32"
+			d="M368 415.86V72a24.07 24.07 0 00-24-24H72a24.07 24.07 0 00-24 24v352a40.12 40.12 0 0040 40h328"
+		></path>
+		<path
+			fill="none"
+			strokeLinejoin="round"
+			strokeWidth="32"
+			d="M416 464h0a48 48 0 01-48-48V128h72a24 24 0 0124 24v264a48 48 0 01-48 48z"
+		></path>
+		<path
+			fill="none"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			strokeWidth="32"
+			d="M240 128h64m-64 64h64m-192 64h192m-192 64h192m-192 64h192"
+		></path>
+		<path d="M176 208h-64a16 16 0 01-16-16v-64a16 16 0 0116-16h64a16 16 0 0116 16v64a16 16 0 01-16 16z"></path>
+	</svg>
+)

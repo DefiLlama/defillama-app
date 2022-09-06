@@ -2,18 +2,10 @@ import { useRef, useState, useEffect } from 'react'
 import styled from 'styled-components'
 import OptionToggle from '~/components/OptionToggle'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
-import {
-	useDisplayUsdManager,
-	useHideLastDayManager,
-	useTvlToggles,
-	useGetExtraTvlEnabled,
-	DARK_MODE,
-	HIDE_LAST_DAY,
-	DISPLAY_USD,
-	useDarkModeManager
-} from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks'
+import { DARK_MODE, NFT_SETTINGS, useDarkModeManager, useDefiManager, useNftsManager } from '~/contexts/LocalStorage'
 import MenuIcon from './MenuSvg'
+
+const { DISPLAY_USD, HIDE_LAST_DAY } = NFT_SETTINGS
 
 const StyledMenuIcon = styled(MenuIcon)`
 	svg {
@@ -128,8 +120,7 @@ export default function Menu({ type = 'defi', ...props }) {
 		}
 	}, [])
 
-	const tvlToggles = useTvlToggles()
-	const extraTvlEnabled = useGetExtraTvlEnabled()
+	const [extraTvlEnabled, updater] = useDefiManager()
 	const [darkMode] = useDarkModeManager()
 
 	const togglesEnabled = { ...extraTvlEnabled, DARK_MODE: darkMode }
@@ -165,7 +156,7 @@ export default function Menu({ type = 'defi', ...props }) {
 			<MenuItem key={toggleSetting.name}>
 				<OptionToggle
 					{...toggleSetting}
-					toggle={tvlToggles(toggleSetting.key)}
+					toggle={updater(toggleSetting.key)}
 					enabled={togglesEnabled[toggleSetting.key]}
 				/>
 			</MenuItem>
@@ -185,21 +176,19 @@ export default function Menu({ type = 'defi', ...props }) {
 }
 
 export function NFTSwitches(props) {
-	const [displayUsd, toggleDisplayUsd] = useDisplayUsdManager()
-	const [hideLastDay, toggleHideLastDay] = useHideLastDayManager()
-	const isClient = useIsClient()
+	const [extraNftSettings, updater] = useNftsManager()
 
 	const toggleSettings = [
 		{
 			name: 'Display in USD',
-			toggle: toggleDisplayUsd,
-			enabled: displayUsd && isClient,
+			toggle: updater(DISPLAY_USD),
+			enabled: extraNftSettings[DISPLAY_USD],
 			help: 'Display metrics in USD'
 		},
 		{
 			name: 'Hide last day',
-			toggle: toggleHideLastDay,
-			enabled: hideLastDay && isClient,
+			toggle: updater(HIDE_LAST_DAY),
+			enabled: extraNftSettings[HIDE_LAST_DAY],
 			help: 'Hide the last day of data'
 		}
 	]

@@ -42,7 +42,16 @@ const blockExplorers = {
 	dfk: ['https://subnets.avax.network/defi-kingdoms/dfk-chain/explorer/token/', 'DFK Chain Explorer'],
 	findora: ['https://evm.findorascan.io/token/', 'Findorascan'],
 	rei: ['https://scan.rei.network/address/', 'ReiScan'],
-	nova: ['https://explorer.novanetwork.io/', 'NovaExplorer']
+	nova: ['https://explorer.novanetwork.io/address/', 'NovaExplorer'],
+	dogechain: ['https://explorer.dogechain.dog/address/', 'Doge Chain Explorer'],
+	hedera: ['https://hashscan.io/#/mainnet/token/', 'HashScan'],
+	carbon: ['https://scan.carbon.network/token/', 'Carbonscan'],
+	starcoin: ['https://stcscan.io/main/tokens/', 'Stcscan'],
+	arbitrum_nova: ['https://nova-explorer.arbitrum.io/address/', 'NovaExplorer'],
+	ultron: ['https://ulxscan.com/address/', 'ulxscan'],
+	juno: ['https://www.mintscan.io/juno/assets/', 'Mintscan Juno'],
+	tombchain: ['https://tombscout.com/address/', 'Tombchain Explorer'],
+	canto: ['https://evm.explorer.canto.io/tokens/', 'Canto Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {

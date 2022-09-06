@@ -1,5 +1,5 @@
 import React, { useContext, useMemo } from 'react'
-import { ChartData } from '~/utils/liquidations'
+import { ChartData, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { useStackBy } from './utils'
 import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
 
@@ -13,7 +13,7 @@ export const LiquidableChanges24H = (props: { data: ChartData; prevData: ChartDa
 	)
 	return (
 		<>
-			<h2>Liquidable value change (24h)</h2>
+			<h2>Liquidatable value change (24h)</h2>
 			<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
 				{(liquidableChanges * 100).toFixed(1) || 0}%
 			</p>
@@ -32,22 +32,47 @@ const getLiquidableChangesRatio = (
 	let current = 0
 	let prev = 0
 	if (!selectedSeries) {
-		current = data.totalLiquidable
-		prev = prevData.totalLiquidable
-	} else if (stackBy === 'chains') {
-		Object.keys(selectedSeries)
-			.filter((chain) => selectedSeries[chain])
-			.forEach((chain) => {
+		if (stackBy === 'chains') {
+			Object.keys(data.totalLiquidables.chains).forEach((chain) => {
+				if (!prevData.totalLiquidables.chains[chain]) {
+					return
+				}
 				current += data.totalLiquidables.chains[chain]
 				prev += prevData.totalLiquidables.chains[chain]
 			})
-	} else {
-		Object.keys(selectedSeries)
-			.filter((protocol) => selectedSeries[protocol])
-			.forEach((protocol) => {
+		} else {
+			Object.keys(data.totalLiquidables.protocols).forEach((protocol) => {
+				if (!prevData.totalLiquidables.protocols[protocol]) {
+					return
+				}
 				current += data.totalLiquidables.protocols[protocol]
 				prev += prevData.totalLiquidables.protocols[protocol]
 			})
+		}
+	} else {
+		if (stackBy === 'chains') {
+			Object.keys(selectedSeries)
+				.filter((chain) => selectedSeries[chain])
+				.forEach((chain) => {
+					const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
+					if (!prevData.totalLiquidables.chains[_chain]) {
+						return
+					}
+					current += data.totalLiquidables.chains[_chain]
+					prev += prevData.totalLiquidables.chains[_chain]
+				})
+		} else {
+			Object.keys(selectedSeries)
+				.filter((protocol) => selectedSeries[protocol])
+				.forEach((protocol) => {
+					const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
+					if (!prevData.totalLiquidables.protocols[_protocol]) {
+						return
+					}
+					current += data.totalLiquidables.protocols[_protocol]
+					prev += prevData.totalLiquidables.protocols[_protocol]
+				})
+		}
 	}
 
 	const changesRatio = (current - prev) / prev

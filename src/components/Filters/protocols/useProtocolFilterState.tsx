@@ -1,11 +1,10 @@
 import { useSelectState } from 'ariakit'
-import { useGetExtraTvlEnabled, useTvlToggles } from '~/contexts/LocalStorage'
+import { useSetPopoverStyles } from '~/components/Popover/utils'
+import { useDefiManager } from '~/contexts/LocalStorage'
 import { protocolsAndChainsOptions } from './options'
 
 export function useProtocolsFilterState(props?: { [key: string]: any }) {
-	const tvlToggles = useTvlToggles()
-
-	const extraTvlsEnabled = useGetExtraTvlEnabled()
+	const [extraTvlsEnabled, updater] = useDefiManager()
 
 	const fitlers = protocolsAndChainsOptions.map((o) => o.key)
 
@@ -14,18 +13,22 @@ export function useProtocolsFilterState(props?: { [key: string]: any }) {
 	const onChange = (values) => {
 		if (values.length < selectedOptions.length) {
 			const off = selectedOptions.find((o) => !values.includes(o))
-			tvlToggles(off)()
+			updater(off)()
 		} else {
 			const on = values.find((o) => !selectedOptions.includes(o))
-			tvlToggles(on)()
+			updater(on)()
 		}
 	}
+
+	const [, renderCallback] = useSetPopoverStyles()
 
 	const select = useSelectState({
 		value: selectedOptions,
 		setValue: onChange,
 		defaultValue: selectedOptions,
 		gutter: 6,
+		animated: true,
+		renderCallback,
 		...props
 	})
 
