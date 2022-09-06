@@ -236,7 +236,7 @@ export default function DexsContainer({
 			<DexsSearch
 				step={{
 					category: 'DEXs',
-					name: category === 'All' ? 'All DEXs' : category
+					name: "All DEXs"
 				}}
 			/>
 			<HeaderWrapper>
