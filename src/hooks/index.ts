@@ -66,6 +66,11 @@ export function usePeggedApp() {
 	return router.pathname.startsWith('/stablecoin') || router.pathname.startsWith('/stablecoins')
 }
 
+export function useDexsApp() {
+	const router = useRouter()
+	return router.pathname.startsWith('/dex')
+}
+
 export function usePeggedChainOverview() {
 	const router = useRouter()
 	return router.pathname.startsWith('/stablecoins/chains')
