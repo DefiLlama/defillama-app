@@ -7,7 +7,8 @@ import type {
 	IOracleProtocols,
 	IProtocolResponse,
 	IStackedDataset,
-	LiteProtocol
+	LiteProtocol,
+	Protocol
 } from '~/api/types'
 import {
 	CHART_API,
@@ -287,6 +288,37 @@ export async function getForkPageData(fork = null) {
 	}
 }
 
+//TODO: import from generic types
+export interface VolumeSummaryDex extends Protocol {
+	totalVolume24h: number | null
+	volume24hBreakdown: {
+		[chain: string]: {
+			[protocolVersion: string]: number | string,
+		}
+	} | null
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	protocolVersions: {
+		[protVersion: string]: {
+				totalVolume24h: number | null
+				change_1d: number | null
+				change_7d: number | null
+				change_1m: number | null
+				chains: string[] | null
+		} | null
+} | null
+}
+
+export interface IGetDexsResponseBody {
+	totalVolume: number;
+	changeVolume1d: number;
+	changeVolume7d: number;
+	changeVolume30d: number;
+	totalDataChart: [[string, number]],
+	dexs: VolumeSummaryDex[]
+}
+
 export const getNewDexsPageData = async () => {
 	const {
 		dexs,
@@ -294,7 +326,7 @@ export const getNewDexsPageData = async () => {
 		changeVolume1d,
 		changeVolume30d,
 		totalDataChart
-	} = await fetch(DEXS_API).then((res) => res.json())
+	} = await fetch(DEXS_API).then((res) => res.json()) as IGetDexsResponseBody
 
 	return {
 		props: {

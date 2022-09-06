@@ -70,6 +70,11 @@ export function Name({
 		} else if (type === 'peggedAsset') {
 			tokenUrl = `/stablecoin/${slug(value)}`
 			iconUrl = peggedAssetIconUrl(value)
+		} else if (type === 'dex') {
+			const splittedName = value.split(' - ')
+			const name = splittedName.length > 1 ? splittedName.slice(0, splittedName.length - 1).join('') : value
+			tokenUrl = `/dex/${slug(name)}`
+			iconUrl = tokenIconUrl(name)
 		} else {
 			tokenUrl = `/${type}/${slug(value)}`
 			iconUrl = tokenIconUrl(value)

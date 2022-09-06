@@ -10,6 +10,8 @@ import dynamic from 'next/dynamic'
 import { formattedNum } from '~/utils'
 import { useInView } from 'react-intersection-observer'
 import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
+import { IGetDexsResponseBody } from '~/api/categories/dexs'
+import { Protocol } from '~/api/types'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -201,14 +203,30 @@ const StyledTable = styled(FullTable)`
 
 const columns = columnsToShow('dexName', 'chainsVolume', '1dChange', '7dChange', '1mChange', 'totalVolume24h')
 
+interface IDexsContainer extends IGetDexsResponseBody {
+	category: Protocol['category']
+}
+
 export default function DexsContainer({
 	category,
-	dexs = [],
-	totalVolume = {},
-	changeVolume1d = {},
-	changeVolume30d = {},
-	totalDataChart = []
-}) {
+	dexs,
+	totalVolume,
+	changeVolume1d,
+	changeVolume30d,
+	totalDataChart
+}: IDexsContainer) {
+	const dexWithSubrows = React.useMemo(() => {
+		return dexs.map(dex => {
+			return {
+				...dex,
+				subRows: dex.protocolVersions ? Object.entries(dex.protocolVersions).map(([versionName, summary]) => ({
+					...dex,
+					name: `${dex.name} - ${versionName.toUpperCase()}`,
+					...summary,
+				})).sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1)) : null
+			}
+		})
+	}, [dexs])
 	return (
 		<>
 			<Panel as="p" style={{ textAlign: 'center', margin: 0 }}>
@@ -246,7 +264,7 @@ export default function DexsContainer({
 								chartData={[
 									{
 										name: 'All DEXs',
-										data: totalDataChart.map(([date, value]) => [new Date(date * 1000), value])
+										data: totalDataChart.map(([date, value]) => [new Date(+date * 1000), value])
 									}
 								]}
 							/>
@@ -255,7 +273,7 @@ export default function DexsContainer({
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 			{dexs && dexs.length > 0 ? (
-				<StyledTable data={dexs} columns={columns} columnToSort={'totalVolume24h'} sortDirection={1} />
+				<StyledTable data={dexWithSubrows} columns={columns} columnToSort={'totalVolume24h'} sortDirection={1} />
 			) : (
 				'Unexpected response'
 			)}
