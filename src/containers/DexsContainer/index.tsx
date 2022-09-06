@@ -229,10 +229,6 @@ export default function DexsContainer({
 	}, [dexs])
 	return (
 		<>
-			<Panel as="p" style={{ textAlign: 'center', margin: 0 }}>
-				Dashboard under developement, data might be incorrect.
-			</Panel>
-
 			<DexsSearch
 				step={{
 					category: 'DEXs',
