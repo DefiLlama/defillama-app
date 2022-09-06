@@ -33,12 +33,12 @@ export const PEGGEDDOMINANCE_API = 'https://stablecoins.llama.fi/stablecoindomin
 export const PEGGEDPRICES_API = 'https://stablecoins.llama.fi/stablecoinprices'
 export const PEGGEDRATES_API = 'https://stablecoins.llama.fi/rates'
 
-export const YIELD_POOLS_API = 'https://f8vsr18767.execute-api.eu-central-1.amazonaws.com/pools'
-export const YIELD_POOLS_LAMBDA_API = 'https://f8vsr18767.execute-api.eu-central-1.amazonaws.com/poolsEnriched'
-export const YIELD_CHART_API = 'https://f8vsr18767.execute-api.eu-central-1.amazonaws.com/chart'
+export const YIELD_POOLS_API = 'https://yields.llama.fi/pools'
+export const YIELD_POOLS_LAMBDA_API = 'https://yields.llama.fi/poolsEnriched'
+export const YIELD_CHART_API = 'https://yields.llama.fi/chart'
 export const YIELD_CONFIG_API = 'https://api.llama.fi/config/yields?a=1'
-export const YIELD_MEDIAN_API = 'https://f8vsr18767.execute-api.eu-central-1.amazonaws.com/median'
-export const YIELD_URL_API = 'https://f8vsr18767.execute-api.eu-central-1.amazonaws.com/url'
+export const YIELD_MEDIAN_API = 'https://yields.llama.fi/median'
+export const YIELD_URL_API = 'https://yields.llama.fi/url'
 export const YIELD_CHAIN_API = 'https://api.llama.fi/chains'
 
 export const LIQUIDATIONS_API = 'https://api.llama.fi/liquidations'
