@@ -37,7 +37,6 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 		if (isClient) {
 			const list = protocolsDict.filter((p) => savedProtocolsInWatchlist.includes(p.configID))
 			return list.map((t) => ({
-				id: t.pool,
 				pool: t.symbol,
 				configID: t.pool,
 				projectslug: t.project,
