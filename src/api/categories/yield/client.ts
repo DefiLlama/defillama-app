@@ -35,7 +35,7 @@ interface IResponseCGMarketsAPI {
 
 // single pool
 export const useYieldPoolData = (configID) => {
-	const url = `${YIELD_POOLS_LAMBDA_API}?configID=${configID}`
+	const url = `${YIELD_POOLS_LAMBDA_API}?pool=${configID}`
 	const { data, error } = useSWR(configID ? url : null, fetcher)
 	return { data, error, loading: !data && !error }
 }
