@@ -8,7 +8,7 @@ export function YieldsTable({ data }: { data: IYieldTableRow[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 
 	const instance = useReactTable({
-		data: data.slice(0, 50),
+		data,
 		columns,
 		state: {
 			sorting

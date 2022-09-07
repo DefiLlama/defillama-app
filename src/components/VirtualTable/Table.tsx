@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Table, flexRender } from '@tanstack/react-table'
-import { useWindowVirtualizer } from '@tanstack/react-virtual'
+import { defaultRangeExtractor, useWindowVirtualizer } from '@tanstack/react-virtual'
 import SortIcon from './SortIcon'
 import styled from 'styled-components'
 
@@ -15,7 +15,21 @@ export default function VirtualTable({ instance }: ITableProps) {
 
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
-		estimateSize: () => 40
+		estimateSize: () => 40,
+		rangeExtractor: React.useCallback((range) => {
+			let startIndex = range.startIndex
+
+			if (range.startIndex <= 5) {
+				startIndex = 1
+			}
+
+			if (range.startIndex - 5 > 0) {
+				startIndex = range.startIndex - 5
+			}
+
+			// console.log(defaultRangeExtractor(range))
+			return defaultRangeExtractor({ ...range, startIndex })
+		}, [])
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
@@ -54,7 +68,6 @@ export default function VirtualTable({ instance }: ITableProps) {
 					))}
 				</thead>
 				<tbody>
-					{/* space for sticky headers */}
 					{paddingTop > 0 && (
 						<tr>
 							<td style={{ height: `${paddingTop}px` }} />

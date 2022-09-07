@@ -13,7 +13,7 @@ import {
 	attributeOptions
 } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
-import { columns, TableWrapper } from './shared'
+import { columns } from './shared'
 import { useFormatYieldQueryParams } from './hooks'
 import { YieldsTable } from '../VirtualTable'
 

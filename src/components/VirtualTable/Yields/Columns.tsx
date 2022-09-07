@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import IconsRow from '~/components/IconsRow'
 import QuestionHelper from '~/components/QuestionHelper'
-import { AutoRow } from '~/components/Row'
 import { formattedNum, formattedPercent } from '~/utils'
 import { HeaderWithHelperText } from '../Header'
 import { IYieldTableRow } from './types'
@@ -54,7 +53,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 					{info.row.original.project === 'Osmosis' ? (
-						<QuestionHelper text={`${info.row.original.id.split('-').slice(-1)} lock`} />
+						<QuestionHelper text={`${info.row.original.id?.split('-').slice(-1)} lock`} />
 					) : info.row.original.project === 'cBridge' ? (
 						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY'} />
 					) : null}
