@@ -201,6 +201,6 @@ export const allColumns: AllColumns = {
 		header: 'Chains',
 		accessor: 'chains',
 		disableSortBy: true,
-		Cell: ({ value }) => <IconsRow links={value} url="/chain" iconType="chain" yieldRewardsSymbols={value} />
+		Cell: ({ value }) => <IconsRow links={value} url="/chain" iconType="chain" disableLinks/>
 	},
 }

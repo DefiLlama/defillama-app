@@ -113,9 +113,7 @@ export function Name({
 			{rowType === 'accordion' && type!=='dex' ? (
 				<span id="table-p-name">{name}</span>
 			) : (
-				<CustomLink onClick={(e)=>{
-					e.stopPropagation();
-				}} href={tokenUrl} id="table-p-name">
+				<CustomLink onClick={ (e)=> e.stopPropagation() } href={tokenUrl} id="table-p-name">
 					{name}
 				</CustomLink>
 			)}
