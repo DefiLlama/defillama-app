@@ -15,7 +15,7 @@ export default function VirtualTable({ instance }: ITableProps) {
 
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
-		estimateSize: () => 50
+		estimateSize: () => 40
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
@@ -33,7 +33,11 @@ export default function VirtualTable({ instance }: ITableProps) {
 						<tr key={headerGroup.id}>
 							{headerGroup.headers.map((header) => {
 								return (
-									<th key={header.id} colSpan={header.colSpan} style={{ width: header.getSize() }}>
+									<th
+										key={header.id}
+										colSpan={header.colSpan}
+										style={{ width: header.getSize(), position: 'sticky', top: 0 }}
+									>
 										{header.isPlaceholder ? null : (
 											<TableHeader
 												canSort={header.column.getCanSort()}

@@ -15,6 +15,7 @@ import {
 import { YieldsSearch } from '~/components/Search'
 import { columns, TableWrapper } from './shared'
 import { useFormatYieldQueryParams } from './hooks'
+import { YieldsTable } from '../VirtualTable'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 	const { query, pathname, isReady } = useRouter()
@@ -190,7 +191,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 			{!isReady ? (
 				<></>
 			) : poolsData.length > 0 ? (
-				<TableWrapper data={poolsData} columns={columns} />
+				<YieldsTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
 					Couldn't find any pools for these filters
