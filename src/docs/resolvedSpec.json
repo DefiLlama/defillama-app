@@ -484,7 +484,7 @@
             "description": "pool id, can be retrieved from /pools (property is called pool)",
             "schema": {
               "type": "string",
-              "example": "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8"
+              "example": "747c1d2a-c668-4682-b9f9-296708a3dd90"
             }
           }
         ],
