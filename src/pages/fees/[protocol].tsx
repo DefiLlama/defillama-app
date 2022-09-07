@@ -7,6 +7,7 @@ import TokenLogo from '~/components/TokenLogo'
 import FormattedName from '~/components/FormattedName'
 import { formattedNum } from '~/utils'
 import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
+import { BreakpointPanel } from '~/components'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false
@@ -25,8 +26,14 @@ export const getStaticProps = async ({
 	}
 }) => {
 	const data = await fetch(`https://fees.llama.fi/fees/${mapProtocolName(protocol)}`).then(r=>r.json())
-  	const feesData = data.feesHistory.map(t => [new Date(t.timestamp * 1000).toISOString(), Object.values(t.dailyFees).reduce((sum:number, curr:number) => curr[data.adapterKey] + sum, 0)])
-  	const revenueData = data.revenueHistory.map(t => [new Date(t.timestamp * 1000).toISOString(), Object.values(t.dailyRevenue).reduce((sum:number, curr:number) => curr[data.adapterKey] + sum, 0)])
+  	const feesData = data.feesHistory.map(t => [
+		new Date(t.timestamp * 1000).toISOString(), 
+		Object.values(t.dailyFees).reduce(
+			(sum:number, curr:number) => Object.values(curr).reduce((item1: number, item2: number) => item1 + item2, 0) + sum, 0)])
+  	const revenueData = data.revenueHistory.map(t => [
+		new Date(t.timestamp * 1000).toISOString(), 
+		Object.values(t.dailyRevenue).reduce(
+			(sum:number, curr:number) => Object.values(curr).reduce((item1: number, item2: number) => item1 + item2, 0) + sum, 0)])
 
 	let chartData = [
 		{ name: "Fees", data: feesData },
@@ -69,10 +76,37 @@ export default function FeeProtocol({ data, chartData }: InferGetStaticPropsType
 				</TvlWrapper>
 			</ProtocolDetails>
 
-			<StackedChart
-				chartData={chartData}
-				title="Fees And Revenue"
-			/>
+			<BreakpointPanel id="chartWrapper">
+				<StackedChart
+					chartData={chartData}
+					title="Fees And Revenue"
+				/>
+			</BreakpointPanel>
 		</Stats>
+
+{/* 
+		<BreakpointPanel id="chartWrapper">
+					<RowFixed>
+						{DENOMINATIONS.map((option) => (
+							<OptionButton
+								active={denomination === option}
+								onClick={() => updateRoute(option)}
+								style={{ margin: '0 8px 8px 0' }}
+								key={option}
+							>
+								{option}
+							</OptionButton>
+						))}
+					</RowFixed>
+					{(
+						<Chart
+							display="liquidity"
+							dailyData={finalChartData}
+							unit={denomination}
+							totalLiquidity={totalVolume}
+							liquidityChange={volumeChangeUSD}
+						/>
+					)}
+				</BreakpointPanel> */}
 	</Layout>
 }
