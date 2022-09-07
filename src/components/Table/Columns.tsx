@@ -193,7 +193,7 @@ export const allColumns: AllColumns = {
 		)
 	},
 	totalVolume24h: {
-		header: 'Last day volume',
+		header: '24h volume',
 		accessor: 'totalVolume24h',
 		Cell: ({ value }) => <>{value && formattedNum(value)}</>
 	},
