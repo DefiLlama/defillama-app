@@ -110,10 +110,10 @@ export function Name({
 			{rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
 			<span>{rowType !== 'pinned' && index}</span>
 			<TokenLogo id="table-p-logo" logo={iconUrl} />
-			{rowType === 'accordion' ? (
+			{rowType === 'accordion' && type!=='dex' ? (
 				<span id="table-p-name">{name}</span>
 			) : (
-				<CustomLink href={tokenUrl} id="table-p-name">
+				<CustomLink onClick={ (e)=> e.stopPropagation() } href={tokenUrl} id="table-p-name">
 					{name}
 				</CustomLink>
 			)}
@@ -193,22 +193,21 @@ export function NameYield({ project, projectslug, rowType, airdrop, ...props }: 
 
 export function NameYieldPool({
 	value,
-	poolId,
-	project,
+	configID,
 	url,
 	index,
 	bookmark,
 	rowType = 'default',
 	...props
 }: INameYieldPoolProps) {
-	const tokenUrl = `/yields/pool/${poolId}`
+	const tokenUrl = `/yields/pool/${configID}`
 
 	let leftSpace: number | string = 0
 
 	return (
 		<Index {...props} style={{ left: leftSpace }}>
 			{bookmark && (
-				<SaveButton readableProtocolName={poolId} style={{ paddingRight: rowType === 'pinned' ? '1ch' : 0 }} />
+				<SaveButton readableProtocolName={configID} style={{ paddingRight: rowType === 'pinned' ? '1ch' : 0 }} />
 			)}
 			<span>{rowType !== 'pinned' && index}</span>
 			{url ? (

@@ -663,7 +663,27 @@ export const chainCoingeckoIds = {
     geckoId: "dogechain",
     symbol: "DC",
     cmcId: "21414"
-  }
+  },
+	"Juno": {
+    geckoId: "juno-network",
+    symbol: "JUNO",
+    cmcId: "14299"
+  },
+  "Tombchain": {
+    geckoId: "tomb",
+    symbol: "TOMB",
+    cmcId: "11495"
+  },
+	"Crescent": {
+    geckoId: "crescent-network",
+    symbol: "CRE",
+    cmcId: null,
+  },
+	"Vision": {
+		geckoId: "vision-metaverse",
+		symbol: "VS",
+		cmcId: "19083"
+	}
 }
 
 export const chainMarketplaceMappings = {

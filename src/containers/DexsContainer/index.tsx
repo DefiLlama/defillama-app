@@ -229,10 +229,6 @@ export default function DexsContainer({
 	}, [dexs])
 	return (
 		<>
-			<Panel as="p" style={{ textAlign: 'center', margin: 0 }}>
-				Dashboard under developement, data might be incorrect.
-			</Panel>
-
 			<DexsSearch
 				step={{
 					category: 'DEXs',
@@ -245,7 +241,7 @@ export default function DexsContainer({
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
 					<BreakpointPanel>
-						<h1>Total dexs volume (USD)</h1>
+						<h1>Total 24h DEX volume (USD)</h1>
 						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>{formattedNum(totalVolume, true)}</p>
 					</BreakpointPanel>
 					<PanelHiddenMobile>

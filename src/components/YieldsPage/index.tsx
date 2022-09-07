@@ -129,8 +129,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 
 			if (toFilter) {
 				return acc.concat({
-					id: curr.pool,
 					pool: curr.symbol,
+					configID: curr.pool,
 					projectslug: curr.project,
 					project: curr.projectName,
 					airdrop: curr.airdrop,

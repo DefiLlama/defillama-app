@@ -5,11 +5,17 @@ import { formatYieldsPageData } from './utils'
 export async function getYieldPageData() {
 	let poolsAndConfig = await arrayFetcher([YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_URL_API, YIELD_CHAIN_API])
 
-	const data = formatYieldsPageData(poolsAndConfig)
+	let data = formatYieldsPageData(poolsAndConfig)
+	data.pools = data.pools.map((p) => ({
+		...p,
+		underlyingTokens: p.underlyingTokens ?? [],
+		rewardTokens: p.rewardTokens ?? []
+	}))
 
 	const priceChainMapping = {
 		binance: 'bsc',
-		avalanche: 'avax'
+		avalanche: 'avax',
+		gnosis: 'xdai'
 	}
 
 	// get Price data
@@ -68,7 +74,7 @@ export async function getYieldPageData() {
 }
 
 export async function getYieldMedianData() {
-	let data = (await arrayFetcher([YIELD_MEDIAN_API]))[0].data
+	let data = (await arrayFetcher([YIELD_MEDIAN_API]))[0]
 	// for the 4th of june we have low nb of datapoints which is skewing the median/
 	// hence why we remove it from the plot
 	data = data.filter((p) => p.timestamp !== '2022-06-04T00:00:00.000Z')

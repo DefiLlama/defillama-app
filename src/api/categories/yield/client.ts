@@ -34,16 +34,16 @@ interface IResponseCGMarketsAPI {
 }
 
 // single pool
-export const useYieldPoolData = (poolId) => {
-	const url = `${YIELD_POOLS_LAMBDA_API}?pool=${poolId}`
-	const { data, error } = useSWR(poolId ? url : null, fetcher)
+export const useYieldPoolData = (configID) => {
+	const url = `${YIELD_POOLS_LAMBDA_API}?pool=${configID}`
+	const { data, error } = useSWR(configID ? url : null, fetcher)
 	return { data, error, loading: !data && !error }
 }
 
 // single pool chart data
-export const useYieldChartData = (poolId) => {
-	const url = `${YIELD_CHART_API}/${poolId}`
-	const { data, error } = useSWR(poolId ? url : null, fetcher)
+export const useYieldChartData = (configID) => {
+	const url = `${YIELD_CHART_API}/${configID}`
+	const { data, error } = useSWR(configID ? url : null, fetcher)
 	return { data, error, loading: !data && !error }
 }
 // single pool config data

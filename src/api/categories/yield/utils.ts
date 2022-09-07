@@ -48,7 +48,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	}
 	// add chain symbols too
 	for (const chain of _chains) {
-		tokenNameMapping[chain.tokenSymbol] = chain.name
+		tokenNameMapping[chain.tokenSymbol] = chain.name === 'xDai' ? 'Gnosis' : chain.name
 	}
 	// remove any null keys (where no token)
 	tokenNameMapping = Object.fromEntries(Object.entries(tokenNameMapping).filter(([k, _]) => k !== 'null'))

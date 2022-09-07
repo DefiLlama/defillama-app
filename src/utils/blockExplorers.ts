@@ -51,7 +51,8 @@ const blockExplorers = {
 	ultron: ['https://ulxscan.com/address/', 'ulxscan'],
 	juno: ['https://www.mintscan.io/juno/assets/', 'Mintscan Juno'],
 	tombchain: ['https://tombscout.com/address/', 'Tombchain Explorer'],
-	canto: ['https://evm.explorer.canto.io/tokens/', 'Canto Explorer']
+	canto: ['https://evm.explorer.canto.io/tokens/', 'Canto Explorer'],
+	vision: ['https://www.visionscan.org/contract/', 'Visionscan']
 }
 
 export const getBlockExplorer = (address: string = '') => {

@@ -99,12 +99,12 @@ export default function UsersByChain({ chart, backgroundColor, name, chains, cha
 						stacks={{ 'Unique Users': 'stackA', 'New Users': 'stackB' }}
 						seriesConfig={{
 							stackA: {
-								color: '#66c2a5'
+								color: '#2172E5'
 							},
 							stackB: {
 								type: 'line',
 								symbol: 'none',
-								color: '#fc8d62'
+								color: '#E59421'
 							}
 						}}
 						title=""
@@ -117,7 +117,7 @@ export default function UsersByChain({ chart, backgroundColor, name, chains, cha
 				</ChartContainer>
 
 				<TableHeader>User Rankings</TableHeader>
-				<Fallback>{`No protocols tracked on this chain`}</Fallback>
+				<Fallback>{`No protocols being tracked on this chain`}</Fallback>
 			</Wrapper>
 		</Layout>
 	)

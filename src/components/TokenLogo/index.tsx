@@ -12,6 +12,7 @@ interface TokenLogoProps {
 	address?: string
 	skipApiRoute?: boolean
 	id?: string
+	onClick?: React.MouseEventHandler;
 }
 
 const BAD_IMAGES = {}

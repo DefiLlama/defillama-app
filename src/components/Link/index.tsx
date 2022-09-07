@@ -10,6 +10,7 @@ interface BasicLinkProps {
 	style?: React.CSSProperties
 	children: React.ReactNode
 	shallow?: boolean
+	onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 }
 
 interface CustomLinkProps extends BasicLinkProps {
