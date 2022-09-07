@@ -130,7 +130,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 				return acc.concat({
 					id: curr.pool,
 					pool: curr.symbol,
-					configID: curr.configID,
+					configID: curr.pool,
 					projectslug: curr.project,
 					project: curr.projectName,
 					airdrop: curr.airdrop,

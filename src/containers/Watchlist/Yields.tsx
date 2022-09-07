@@ -39,7 +39,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 			return list.map((t) => ({
 				id: t.pool,
 				pool: t.symbol,
-				configID: t.configID,
+				configID: t.pool,
 				projectslug: t.project,
 				project: t.projectName,
 				chains: [t.chain],
