@@ -5,25 +5,32 @@ import dynamic from 'next/dynamic'
 import { ProtocolDetails, ProtocolName, Stats, Tvl, TvlWrapper } from '~/containers/DexContainer'
 import TokenLogo from '~/components/TokenLogo'
 import FormattedName from '~/components/FormattedName'
-import { formattedNum } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { IBarChartProps } from '~/components/ECharts/types'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
+const mapProtocolName = (protocolName: string) => {
+	if (protocolName === 'trader-joe') {
+		return 'traderjoe'
+	}
+	return protocolName
+}
+
 export const getStaticProps = async ({
 	params: {
 		protocol
 	}
 }) => {
-	const data = await fetch(`https://fees.llama.fi/fees/${protocol}`).then(r=>r.json())
-  const chart = data.feesHistory.map(t=>[t.timestamp, Object.values(t.dailyFees).reduce((sum:number, curr:number)=>curr[data.adapterKey]+sum, 0)])
+	const data = await fetch(`https://fees.llama.fi/fees/${mapProtocolName(protocol)}`).then(r=>r.json())
+  	const chart = data.feesHistory.map(t=>[t.timestamp, Object.values(t.dailyFees).reduce((sum:number, curr:number)=>curr[data.adapterKey]+sum, 0)])
 
 	return {
 		props: {
 			data,
-      chart
+      		chart
 		},
 		revalidate: revalidate()
 	}
