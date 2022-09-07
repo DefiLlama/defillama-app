@@ -35,7 +35,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 
 	const filteredProtocols = useMemo(() => {
 		if (isClient) {
-			const list = protocolsDict.filter((p) => savedProtocolsInWatchlist.includes(p.configID))
+			const list = protocolsDict.filter((p) => savedProtocolsInWatchlist.includes(p.pool))
 			return list.map((t) => ({
 				pool: t.symbol,
 				configID: t.pool,
