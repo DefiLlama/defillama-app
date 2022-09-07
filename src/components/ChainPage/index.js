@@ -239,11 +239,11 @@ function GlobalPage({
 			/>
 
 			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
-				<span>New </span>{' '}
-				<BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/liquidations/eth">
-					liquidation levels dashboard
+				<span>We just launched our new </span>{' '}
+				<BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/dexs">
+					DEX volume dashboard
 				</BasicLink>
-				<span> is live!</span>
+				<span>! Check it out now!</span>
 			</Panel>
 
 			<ChartAndValuesWrapper>
