@@ -20,6 +20,10 @@ export const TableWrapper = styled(Table)`
 			display: flex;
 		}
 
+		div > *:nth-child(-n + 3) {
+			display: none;
+		}
+
 		a {
 			overflow: hidden;
 			text-overflow: ellipsis;
@@ -105,12 +109,26 @@ export const TableWrapper = styled(Table)`
 		// POOL
 		tr > *:nth-child(1) {
 			& > * {
-				width: 200px;
+				width: 100px;
 			}
+		}
+
+		tr > *:nth-child(2) {
+			display: revert;
 		}
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+		// POOL
+		tr > *:nth-child(1) {
+			& > * {
+				width: 140px;
+			}
+
+			div > *:nth-child(-n + 3) {
+				display: block;
+			}
+		}
 		// PROJECT
 		tr > *:nth-child(2) {
 			display: revert;
