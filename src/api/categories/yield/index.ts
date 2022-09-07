@@ -14,7 +14,8 @@ export async function getYieldPageData() {
 
 	const priceChainMapping = {
 		binance: 'bsc',
-		avalanche: 'avax'
+		avalanche: 'avax',
+		gnosis: 'xdai'
 	}
 
 	// get Price data
