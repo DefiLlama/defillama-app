@@ -99,7 +99,9 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 			<SelectButton state={select}>
 				<span>Filter by Chain</span>
 				<MenuButtonArrow />
-				{selectedChains.length > 0 && <ItemsSelected>{selectedChains.length}</ItemsSelected>}
+				{selectedChains.length > 0 && selectedChains.length !== chainList.length && (
+					<ItemsSelected>{selectedChains.length}</ItemsSelected>
+				)}
 			</SelectButton>
 			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false}>
 				<Input state={combobox} placeholder="Search for chains..." autoFocus />
