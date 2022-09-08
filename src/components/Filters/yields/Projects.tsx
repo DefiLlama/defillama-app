@@ -84,7 +84,9 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 			<SelectButton state={select}>
 				<span>Filter by Project</span>
 				<MenuButtonArrow />
-				{selectedProjects.length > 0 && <ItemsSelected>{selectedProjects.length}</ItemsSelected>}
+				{selectedProjects.length > 0 && selectedProjects.length !== projectList.length && (
+					<ItemsSelected>{selectedProjects.length}</ItemsSelected>
+				)}
 			</SelectButton>
 			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false}>
 				<Input state={combobox} placeholder="Search for projects..." autoFocus />

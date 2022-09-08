@@ -111,13 +111,6 @@ const StyledTable = styled(FullTable)`
 		display: none;
 	}
 
-	// TVL
-	tr > :nth-child(6) {
-		& > * {
-			padding-right: 20px;
-		}
-	}
-
 	// MCAPTVL
 	tr > :nth-child(7) {
 		width: 100px;

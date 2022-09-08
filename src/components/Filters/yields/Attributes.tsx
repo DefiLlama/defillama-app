@@ -171,7 +171,9 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 			<SelectButton state={select}>
 				<span>Filter by Attribute</span>
 				<MenuButtonArrow />
-				{totalSelected > 0 && <ItemsSelected>{totalSelected}</ItemsSelected>}
+				{totalSelected > 0 && totalSelected !== attributeOptions.length && (
+					<ItemsSelected>{totalSelected}</ItemsSelected>
+				)}
 			</SelectButton>
 			<SelectPopover state={select} modal={!isLarge}>
 				<FilterFnsGroup>
