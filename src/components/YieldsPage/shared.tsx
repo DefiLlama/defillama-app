@@ -31,6 +31,10 @@ export const TableWrapper = styled(Table)`
 		}
 	}
 
+	tr > th:nth-child(2) {
+		padding-left: 48px !important;
+	}
+
 	// PROJECT
 	tr > *:nth-child(2) {
 		display: none;
