@@ -99,7 +99,7 @@ interface IIconsRowProps {
 }
 
 const isChain = (chain) => {
-	return ['Ethereum', 'Avalanche', 'Optimism'].includes(chain)
+	return ['Ethereum', 'Avalanche', 'Optimism', 'Near', 'Metis', 'Aurora'].includes(chain)
 }
 
 // todo update links prop to {name: string, iconType: string}
