@@ -11,7 +11,8 @@ import { formattedNum } from '~/utils'
 import { useInView } from 'react-intersection-observer'
 import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { IGetDexsResponseBody } from '~/api/categories/dexs'
-import { Protocol } from '~/api/types'
+import { LiteProtocol, Protocol } from '~/api/types'
+import { useFetchProtocolsList } from '~/api/categories/protocols/client'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -194,7 +195,7 @@ const StyledTable = styled(FullTable)`
 	}
 `
 
-const columns = columnsToShow('dexName', 'chainsVolume', '1dChange', '7dChange', '1mChange', 'totalVolume24h')
+const columns = columnsToShow('dexName', 'chainsVolume', '1dChange', '7dChange', '1mChange', 'totalVolume24h', 'volumetvl')
 
 interface IDexsContainer extends IGetDexsResponseBody {
 	category: Protocol['category']
@@ -208,10 +209,12 @@ export default function DexsContainer({
 	changeVolume30d,
 	totalDataChart
 }: IDexsContainer) {
+	const { data, loading }: {data: {protocols: LiteProtocol[]}, loading: boolean} = useFetchProtocolsList()
 	const dexWithSubrows = React.useMemo(() => {
 		return dexs.map(dex => {
 			return {
 				...dex,
+				volumetvl: !loading ? data.protocols.find(p=>p.name===dex.name).tvlPrevDay: undefined,
 				subRows: dex.protocolVersions ? Object.entries(dex.protocolVersions).map(([versionName, summary]) => ({
 					...dex,
 					name: `${dex.name} - ${versionName.toUpperCase()}`,
@@ -219,7 +222,7 @@ export default function DexsContainer({
 				})).sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1)) : null
 			}
 		})
-	}, [dexs])
+	}, [dexs, loading, data])
 	return (
 		<>
 			<DexsSearch
