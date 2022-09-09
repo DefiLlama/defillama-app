@@ -195,40 +195,51 @@ const StyledTable = styled(FullTable)`
 	}
 `
 
-const columns = columnsToShow('dexName', 'chainsVolume', '1dChange', '7dChange', '1mChange', 'totalVolume24h', 'volumetvl')
+const columns = columnsToShow(
+	'dexName',
+	'chainsVolume',
+	'1dChange',
+	'7dChange',
+	'1mChange',
+	'totalVolume24h',
+	'volumetvl'
+)
 
 interface IDexsContainer extends IGetDexsResponseBody {
-	category: Protocol['category']
+	tvlData: { [name: string]: number }
 }
 
 export default function DexsContainer({
-	category,
+	tvlData,
 	dexs,
 	totalVolume,
 	changeVolume1d,
 	changeVolume30d,
 	totalDataChart
 }: IDexsContainer) {
-	const { data, loading }: {data: {protocols: LiteProtocol[]}, loading: boolean} = useFetchProtocolsList()
 	const dexWithSubrows = React.useMemo(() => {
-		return dexs.map(dex => {
+		return dexs.map((dex) => {
 			return {
 				...dex,
-				volumetvl: !loading ? dex.totalVolume24h/data.protocols.find(p=>p.name===dex.name).tvlPrevDay: undefined,
-				subRows: dex.protocolVersions ? Object.entries(dex.protocolVersions).map(([versionName, summary]) => ({
-					...dex,
-					name: `${dex.name} - ${versionName.toUpperCase()}`,
-					...summary,
-				})).sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1)) : null
+				volumetvl: dex.totalVolume24h / tvlData[dex.name],
+				subRows: dex.protocolVersions
+					? Object.entries(dex.protocolVersions)
+							.map(([versionName, summary]) => ({
+								...dex,
+								name: `${dex.name} - ${versionName.toUpperCase()}`,
+								...summary
+							}))
+							.sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1))
+					: null
 			}
 		})
-	}, [dexs, loading, data])
+	}, [dexs])
 	return (
 		<>
 			<DexsSearch
 				step={{
 					category: 'DEXs',
-					name: "All DEXs"
+					name: 'All DEXs'
 				}}
 			/>
 			<HeaderWrapper>
