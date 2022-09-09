@@ -5,13 +5,12 @@ import { DexsSearch } from '~/components/Search'
 import { columnsToShow, FullTable } from '~/components/Table'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import dynamic from 'next/dynamic'
 import { formattedNum } from '~/utils'
 import { useInView } from 'react-intersection-observer'
 import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { IGetDexsResponseBody } from '~/api/categories/dexs'
-import { Protocol } from '~/api/types'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -194,14 +193,22 @@ const StyledTable = styled(FullTable)`
 	}
 `
 
-const columns = columnsToShow('dexName', 'chainsVolume', '1dChange', '7dChange', '1mChange', 'totalVolume24h')
+const columns = columnsToShow(
+	'dexName',
+	'chainsVolume',
+	'1dChange',
+	'7dChange',
+	'1mChange',
+	'totalVolume24h',
+	'volumetvl'
+)
 
 interface IDexsContainer extends IGetDexsResponseBody {
-	category: Protocol['category']
+	tvlData: { [name: string]: number }
 }
 
 export default function DexsContainer({
-	category,
+	tvlData,
 	dexs,
 	totalVolume,
 	changeVolume1d,
@@ -209,23 +216,28 @@ export default function DexsContainer({
 	totalDataChart
 }: IDexsContainer) {
 	const dexWithSubrows = React.useMemo(() => {
-		return dexs.map(dex => {
+		return dexs.map((dex) => {
 			return {
 				...dex,
-				subRows: dex.protocolVersions ? Object.entries(dex.protocolVersions).map(([versionName, summary]) => ({
-					...dex,
-					name: `${dex.name} - ${versionName.toUpperCase()}`,
-					...summary,
-				})).sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1)) : null
+				volumetvl: dex.totalVolume24h / tvlData[dex.name],
+				subRows: dex.protocolVersions
+					? Object.entries(dex.protocolVersions)
+							.map(([versionName, summary]) => ({
+								...dex,
+								name: `${dex.name} - ${versionName.toUpperCase()}`,
+								...summary
+							}))
+							.sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1))
+					: null
 			}
 		})
-	}, [dexs])
+	}, [dexs, tvlData])
 	return (
 		<>
 			<DexsSearch
 				step={{
 					category: 'DEXs',
-					name: "All DEXs"
+					name: 'All DEXs'
 				}}
 			/>
 			<HeaderWrapper>

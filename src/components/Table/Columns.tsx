@@ -203,4 +203,9 @@ export const allColumns: AllColumns = {
 		disableSortBy: true,
 		Cell: ({ value }) => <IconsRow links={value} url="/chain" iconType="chain" disableLinks/>
 	},
+	volumetvl: {
+		header: 'Volume/TVL',
+		accessor: 'volumetvl',
+		Cell: ({ value }) => <>{value && formattedNum(value)}</>
+	},
 }
