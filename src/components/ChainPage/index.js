@@ -11,7 +11,10 @@ import {
 	PanelHiddenMobile,
 	ChartAndValuesWrapper,
 	DownloadButton,
-	DownloadIcon
+	DownloadIcon,
+	PanelThicc,
+	PanelSmol,
+	StyledAnchor
 } from '~/components'
 import { RowFixed } from '~/components/Row'
 import { ProtocolsChainsSearch } from '~/components/Search'
@@ -28,6 +31,8 @@ import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
+import Link from 'next/link'
+import { BarChart } from 'react-feather'
 
 const EasterLlama = styled.button`
 	padding: 0;
@@ -238,13 +243,28 @@ function GlobalPage({
 				}}
 			/>
 
-			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
-				<span>We just launched our new </span>{' '}
-				<BasicLink style={{ textDecoration: 'underline' }} href="https://defillama.com/dexs">
-					DEX volume dashboard
-				</BasicLink>
-				<span>! Check it out now!</span>
-			</Panel>
+			<>
+				<PanelThicc as="p">
+					We just launched our new
+					<Link href={`/dexs`} passHref>
+						<StyledAnchor>
+							<BarChart size={18} />
+							<b>DEX volume dashboard</b>
+						</StyledAnchor>
+					</Link>
+					! Check it out now!
+				</PanelThicc>
+				<PanelSmol as="p">
+					Check out our new
+					<Link href={`/dexs`} passHref>
+						<StyledAnchor>
+							<BarChart size={18} />
+							<b>DEX dashboard</b>
+						</StyledAnchor>
+					</Link>
+					!
+				</PanelSmol>
+			</>
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>

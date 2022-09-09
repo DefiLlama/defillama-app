@@ -22,7 +22,7 @@ import { Clock } from 'react-feather'
 import { ProtocolsTable } from '../../components/LiquidationsPage/ProtocolsTable'
 import SEO from '~/components/SEO'
 import { assetIconUrl } from '~/utils'
-import { Panel } from '~/components'
+import { Panel, PanelSmol, PanelThicc, StyledAnchor } from '~/components'
 import Image from 'next/image'
 import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
@@ -67,49 +67,10 @@ const LiquidationsProvider = ({ children }) => {
 	)
 }
 
-const PanelThicc = styled(Panel)`
-	display: none;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-
-	@media (min-width: 80rem) {
-		display: flex;
-	}
-`
-
-const PanelSmol = styled(Panel)`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-
-	@media (min-width: 80rem) {
-		display: none;
-	}
-`
-
 const ResponsiveHeader = styled(Header)`
 	text-align: center;
 	@media (min-width: 80rem) {
 		text-align: revert;
-	}
-`
-
-const StyledAnchor = styled.a`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	gap: 0.2rem;
-	margin-left: 0.2rem;
-	:hover {
-		text-decoration: underline;
-	}
-
-	@media (min-width: 80rem) {
-		margin-right: 0.2rem;
 	}
 `
 
