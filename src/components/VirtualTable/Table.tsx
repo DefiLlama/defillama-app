@@ -9,27 +9,43 @@ interface ITableProps {
 }
 
 export default function VirtualTable({ instance }: ITableProps) {
+	const [tableTop, setTableTop] = React.useState(null)
 	const tableContainerRef = React.useRef<HTMLDivElement>(null)
 
 	const { rows } = instance.getRowModel()
 
+	React.useEffect(() => {
+		if (tableContainerRef?.current) {
+			console.log(tableContainerRef.current.offsetTop)
+			setTableTop(tableContainerRef.current.offsetTop)
+		}
+	}, [])
+
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
 		estimateSize: () => 40,
-		rangeExtractor: React.useCallback((range) => {
-			let startIndex = range.startIndex
+		rangeExtractor: React.useCallback(
+			(range) => {
+				if (!tableTop) {
+					return defaultRangeExtractor(range)
+				}
 
-			if (range.startIndex <= 5) {
-				startIndex = 1
-			}
+				const cutoff = tableTop / 40
 
-			if (range.startIndex - 5 > 0) {
-				startIndex = range.startIndex - 5
-			}
+				let startIndex = range.startIndex
 
-			// console.log(defaultRangeExtractor(range))
-			return defaultRangeExtractor({ ...range, startIndex })
-		}, [])
+				if (range.startIndex <= cutoff) {
+					startIndex = 1
+				}
+
+				if (range.startIndex - cutoff > 0) {
+					startIndex = range.startIndex - Math.round(cutoff)
+				}
+
+				return defaultRangeExtractor({ ...range, startIndex })
+			},
+			[tableTop]
+		)
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
