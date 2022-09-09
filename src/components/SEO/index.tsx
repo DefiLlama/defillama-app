@@ -15,7 +15,17 @@ interface SEOProps {
 	dexsPage?: boolean
 }
 
-const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false, liqsPage = false, dexsPage = false }: SEOProps) => {
+const SEO = ({
+	cardName,
+	chain,
+	token,
+	tvl,
+	volumeChange,
+	logo,
+	nftPage = false,
+	liqsPage = false,
+	dexsPage = false
+}: SEOProps) => {
 	const isClient = useIsClient()
 
 	const windowURL = isClient && window.location.href ? window.location.href : ''
@@ -74,7 +84,20 @@ const SEO = ({ cardName, chain, token, tvl, volumeChange, logo, nftPage = false,
 		}
 
 		return cardSrc.toString()
-	}, [cardName, chain, token, tvl, volumeChange, logo, nftPage, windowURL, isTvlValid, isVolumeChangeValid])
+	}, [
+		cardName,
+		chain,
+		token,
+		tvl,
+		volumeChange,
+		logo,
+		nftPage,
+		windowURL,
+		isTvlValid,
+		isVolumeChangeValid,
+		dexsPage,
+		liqsPage
+	])
 
 	return (
 		<Head>

@@ -5,14 +5,12 @@ import { DexsSearch } from '~/components/Search'
 import { columnsToShow, FullTable } from '~/components/Table'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import dynamic from 'next/dynamic'
 import { formattedNum } from '~/utils'
 import { useInView } from 'react-intersection-observer'
 import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { IGetDexsResponseBody } from '~/api/categories/dexs'
-import { LiteProtocol, Protocol } from '~/api/types'
-import { useFetchProtocolsList } from '~/api/categories/protocols/client'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -233,7 +231,7 @@ export default function DexsContainer({
 					: null
 			}
 		})
-	}, [dexs])
+	}, [dexs, tvlData])
 	return (
 		<>
 			<DexsSearch
