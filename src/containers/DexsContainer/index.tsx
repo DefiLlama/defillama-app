@@ -214,7 +214,7 @@ export default function DexsContainer({
 		return dexs.map(dex => {
 			return {
 				...dex,
-				volumetvl: !loading ? data.protocols.find(p=>p.name===dex.name).tvlPrevDay: undefined,
+				volumetvl: !loading ? dex.totalVolume24h/data.protocols.find(p=>p.name===dex.name).tvlPrevDay: undefined,
 				subRows: dex.protocolVersions ? Object.entries(dex.protocolVersions).map(([versionName, summary]) => ({
 					...dex,
 					name: `${dex.name} - ${versionName.toUpperCase()}`,
