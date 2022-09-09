@@ -18,6 +18,45 @@ export const Panel = styled.div`
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 `
 
+export const PanelThicc = styled(Panel)`
+	display: none;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+
+	@media (min-width: 80rem) {
+		display: flex;
+	}
+`
+
+export const PanelSmol = styled(Panel)`
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+
+	@media (min-width: 80rem) {
+		display: none;
+	}
+`
+
+export const StyledAnchor = styled.a`
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 0.2rem;
+	margin-left: 0.2rem;
+	:hover {
+		text-decoration: underline;
+	}
+
+	@media (min-width: 80rem) {
+		margin-right: 0.2rem;
+	}
+`
+
 export const ChartAndValuesWrapper = styled.div`
 	flex: 1;
 	isolation: isolate;
