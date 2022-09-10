@@ -449,6 +449,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		symbol: 'WSTETH'
 	},
 	{
+		name: 'Binance Beacon ETH',
+		symbol: 'BETH'
+	},
+	{
 		name: 'Lido Staked SOL',
 		symbol: 'STSOL'
 	},
@@ -459,6 +463,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 	{
 		name: 'Tether',
 		symbol: 'USDT'
+	},
+	{
+		name: 'Solar Network',
+		symbol: 'SXP'
 	},
 	{
 		name: 'yearn.finance',
@@ -475,6 +483,14 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 	{
 		name: 'Uniswap',
 		symbol: 'UNI'
+	},
+	{
+		name: 'PancakeSwap',
+		symbol: 'CAKE'
+	},
+	{
+		name: 'Cardano',
+		symbol: 'ADA'
 	},
 	{
 		name: 'Basic Attention',
