@@ -57,7 +57,7 @@ const ChainNameCell = ({ value }: CellProps) => {
 	}
 
 	return (
-		<Link href={`/chain/${name}`} passHref>
+		<Link href={`/chain/${_name}`} passHref>
 			<a>
 				<NameCellWrapper>
 					<TokenLogo logo={chainIconUrl(name)} />
