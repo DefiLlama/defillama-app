@@ -496,10 +496,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		name: 'Basic Attention',
 		symbol: 'BAT'
 	},
-	// {
-	// 	name: 'Binance USD',
-	// 	symbol: 'BUSD'
-	// },
+	{
+		name: 'Binance USD',
+		symbol: 'BUSD'
+	},
 	{
 		name: 'Curve DAO',
 		symbol: 'CRV'
