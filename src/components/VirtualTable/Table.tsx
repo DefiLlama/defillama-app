@@ -16,7 +16,6 @@ export default function VirtualTable({ instance }: ITableProps) {
 
 	React.useEffect(() => {
 		if (tableContainerRef?.current) {
-			console.log(tableContainerRef.current.offsetTop)
 			setTableTop(tableContainerRef.current.offsetTop)
 		}
 	}, [])
@@ -63,11 +62,7 @@ export default function VirtualTable({ instance }: ITableProps) {
 						<tr key={headerGroup.id}>
 							{headerGroup.headers.map((header) => {
 								return (
-									<th
-										key={header.id}
-										colSpan={header.colSpan}
-										style={{ width: header.getSize(), position: 'sticky', top: 0 }}
-									>
+									<th key={header.id} colSpan={header.colSpan} style={{ width: header.getSize() }}>
 										{header.isPlaceholder ? null : (
 											<TableHeader
 												canSort={header.column.getCanSort()}
@@ -96,7 +91,11 @@ export default function VirtualTable({ instance }: ITableProps) {
 						return (
 							<tr key={row.id}>
 								{row.getVisibleCells().map((cell) => {
-									return <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+									return (
+										<td key={cell.id} style={{ width: cell.column.getSize() }}>
+											{flexRender(cell.column.columnDef.cell, cell.getContext())}
+										</td>
+									)
 								})}
 							</tr>
 						)
@@ -114,45 +113,50 @@ export default function VirtualTable({ instance }: ITableProps) {
 }
 
 const Wrapper = styled.div`
+	position: relative;
 	background: #000;
 	border-radius: 12px;
-	overflow: auto;
+	max-width: calc(100vw - 32px);
+	overflow-x: auto;
+	overscroll-behavior: contain;
 
 	table {
-		border-collapse: collapse;
-		border-spacing: 0;
 		table-layout: fixed;
 		width: 100%;
+
+		border-collapse: collapse;
 	}
 
 	thead {
-		margin: 0;
 		position: sticky;
 		top: 0;
+		margin: 0;
 		border-radius: 12px 12px 0 0;
+
+		th {
+			z-index: 1;
+			background: orange;
+
+			:first-of-type {
+				border-radius: 12px 0 0 0;
+			}
+
+			:last-of-type {
+				border-radius: 0 12px 0 0;
+			}
+		}
 	}
 
 	th,
 	td {
 		padding: 12px;
-	}
-
-	th {
-		background: orange;
-
-		:first-of-type {
-			border-radius: 12px 0 0 0;
-		}
-
-		:last-of-type {
-			border-radius: 0 12px 0 0;
-		}
-	}
-
-	td {
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+		max-width: calc(100vw - 248px - 28px);
 	}
 `
 

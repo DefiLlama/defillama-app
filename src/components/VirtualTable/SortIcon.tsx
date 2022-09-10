@@ -41,10 +41,11 @@ const Wrapper = styled.span`
 	flex-direction: column;
 	flex-shrink: 0;
 	position: relative;
+	top: 1px;
 `
 
 const Caret = styled.span`
-	color: --var(--active-caret);
+	color: var(--active-caret);
 	flex-shrink: 0;
 	position: relative;
 
