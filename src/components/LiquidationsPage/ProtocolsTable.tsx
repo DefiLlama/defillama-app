@@ -46,13 +46,22 @@ const ProtocolNameCell = ({ value }: CellProps) => {
 const ChainNameCell = ({ value }: CellProps) => {
 	const { data } = useSWR<ChainPartial[]>(`${CHAINS_API}`, fetcher)
 	if (!data) return <span>{value}</span>
-	const { name } = data.find((chain) => chain.name.toLowerCase() === (value as string).toLowerCase()) || {}
+	let _value = value as string
+	if (value === 'bsc') {
+		_value = 'binance'
+	}
+	const { name } = data.find((chain) => chain.name.toLowerCase() === _value.toLowerCase()) || {}
+	let _name = name
+	if (value === 'bsc') {
+		_name = 'BSC'
+	}
+
 	return (
 		<Link href={`/chain/${name}`} passHref>
 			<a>
 				<NameCellWrapper>
 					<TokenLogo logo={chainIconUrl(name)} />
-					<span>{name}</span>
+					<span>{_name}</span>
 				</NameCellWrapper>
 			</a>
 		</Link>

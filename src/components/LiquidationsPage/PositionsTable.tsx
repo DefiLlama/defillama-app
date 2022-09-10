@@ -51,13 +51,17 @@ const ChainNameCell = ({ value }: CellProps) => {
 		_value = 'binance'
 	}
 	const { name } = data.find((chain) => chain.name.toLowerCase() === _value.toLowerCase()) || {}
+	let _name = name
+	if (value === 'bsc') {
+		_name = 'BSC'
+	}
 
 	return (
 		<Link href={`/chain/${name}`} passHref>
 			<a>
 				<NameCellWrapper>
 					<TokenLogo logo={chainIconUrl(name)} />
-					<span>{name}</span>
+					<span>{_name}</span>
 				</NameCellWrapper>
 			</a>
 		</Link>
