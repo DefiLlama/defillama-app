@@ -6,6 +6,7 @@ import { assetIconUrl } from '..'
 
 const TOTAL_BINS = 100
 const WRAPPED_GAS_TOKENS = ['WETH', 'WAVAX', 'WMATIC', 'WFTM', 'WBNB', 'WCRO', 'WONE']
+const SYMBOL_MAP: { [originSymbol: string]: string } = { BTCB: 'WBTC' }
 
 // making aliases so the hints are more readable
 type Address = string
@@ -49,6 +50,10 @@ export type Price = {
 }
 
 const getNativeSymbol = (symbol: string) => {
+	if (symbol in SYMBOL_MAP) {
+		return SYMBOL_MAP[symbol]
+	}
+
 	const originSymbol =
 		symbol.toLowerCase().endsWith('.e') || symbol.toLowerCase().endsWith('.b') ? symbol.slice(0, -2) : symbol
 	const nativeSymbol = WRAPPED_GAS_TOKENS.includes(originSymbol) ? originSymbol.substring(1) : originSymbol
@@ -428,6 +433,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		symbol: 'SOL'
 	},
 	{
+		name: 'Binance Coin',
+		symbol: 'BNB'
+	},
+	{
 		name: 'USD Coin',
 		symbol: 'USDC'
 	},
@@ -576,7 +585,9 @@ export const PROTOCOL_NAMES_MAP: { [protocol: string]: string } = {
 	avalanche: 'Avalanche',
 	solend: 'Solend',
 	solana: 'Solana',
-	benqi: 'Benqi'
+	benqi: 'Benqi',
+	venus: 'Venus',
+	bsc: 'Binance'
 }
 
 export const PROTOCOL_NAMES_MAP_REVERSE: { [name: string]: string } = Object.entries(PROTOCOL_NAMES_MAP).reduce(
