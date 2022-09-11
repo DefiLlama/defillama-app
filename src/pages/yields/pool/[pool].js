@@ -95,11 +95,11 @@ const PageView = () => {
 	const twitter = configData.twitter ?? ''
 	const category = configData.category ?? ''
 
-	const backgroundColor = '#696969'
+	const backgroundColor = '#4f8fea'
 
 	const stackedBarChartColors = {
 		Base: backgroundColor,
-		Reward: '#4f8fea'
+		Reward: '#E59421'
 	}
 
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData
