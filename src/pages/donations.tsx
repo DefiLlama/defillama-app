@@ -54,7 +54,7 @@ function PressPage({protocols}) {
 						["LlamaPay (preferred)", "https://gitcoin.co/grants/7077/llamapay"],
 						["DefiLlama", "https://gitcoin.co/grants/3591/defillama"],
 						["DefiLlama APIs", "https://gitcoin.co/grants/7087/defillama-apis"],
-					].map(el=><li key={el[0]}><Link href={el[1]}>{el[0]}</Link></li>)}
+					].map(el=><li key={el[0]}><Link href={el[1]} external>{el[0]}</Link></li>)}
 					</ul>
 					</Section>
 
@@ -63,7 +63,7 @@ function PressPage({protocols}) {
 					<Section title="Affiliate links" >
 					DefiLlama has referral links for all these protocols, using them with our referral sends us some rewards:
 					<ul>
-					{protocols.map(p=><li key={p.name}><Link href={p.url}>{p.name}</Link></li>)}
+					{protocols.map(p=><li key={p.name}><Link href={p.url} external>{p.name}</Link></li>)}
 					</ul>
 					</Section>
 
