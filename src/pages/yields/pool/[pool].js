@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -56,32 +57,6 @@ const PageView = () => {
 
 	const configData = config ?? {}
 
-	// prepare chart data
-	let finalChartData = chart?.data
-	// - calc 7day APY moving average
-	const windowSize = 7
-	const apyValues = finalChartData?.map((m) => m.apy)
-	const avg = []
-	for (let i = 0; i < apyValues?.length; i++) {
-		if (i + 1 < windowSize) {
-			avg[i] = null
-		} else {
-			avg[i] = apyValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
-		}
-	}
-	finalChartData = finalChartData?.map((m, i) => ({ ...m, avg7day: avg[i] }))
-
-	// - format for chart components
-	finalChartData = finalChartData?.map((el) => [
-		// round time to day
-		Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
-		el.tvlUsd,
-		el.apy?.toFixed(2) ?? null,
-		el.apyBase?.toFixed(2) ?? null,
-		el.apyReward?.toFixed(2) ?? null,
-		el.avg7day?.toFixed(2) ?? null
-	])
-
 	// prepare csv data
 	const downloadCsv = () => {
 		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
@@ -129,6 +104,53 @@ const PageView = () => {
 	}
 
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData
+
+	const { finalChartData, barChartData, areaChartData } = useMemo(() => {
+		// prepare chart data
+		let finalChartData = chart?.data
+		// - calc 7day APY moving average
+		const windowSize = 7
+		const apyValues = finalChartData?.map((m) => m.apy)
+		const avg = []
+		for (let i = 0; i < apyValues?.length; i++) {
+			if (i + 1 < windowSize) {
+				avg[i] = null
+			} else {
+				avg[i] = apyValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
+			}
+		}
+		finalChartData = finalChartData?.map((m, i) => ({ ...m, avg7day: avg[i] }))
+
+		// - format for chart components
+		finalChartData = finalChartData?.map((el) => [
+			// round time to day
+			Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
+			el.tvlUsd,
+			el.apy?.toFixed(2) ?? null,
+			el.apyBase?.toFixed(2) ?? null,
+			el.apyReward?.toFixed(2) ?? null,
+			el.avg7day?.toFixed(2) ?? null
+		])
+
+		const barChartData = [
+			{
+				name: 'Base',
+				// remove entries with Base apy === null
+				data: finalChartData?.length ? finalChartData.filter((t) => t[3] !== null).map((d) => [d[0] * 1000, d[3]]) : []
+			},
+			{
+				name: 'Reward',
+				// remove entries with Reward apy === null
+				data: finalChartData?.length ? finalChartData.filter((t) => t[4] !== null).map((t) => [t[0] * 1000, t[4]]) : []
+			}
+		]
+
+		const areaChartData = finalChartData?.length
+			? finalChartData.filter((t) => t[5] !== null).map((t) => [t[0], t[5]])
+			: []
+
+		return { finalChartData, barChartData, areaChartData }
+	}, [chart])
 
 	return (
 		<>
@@ -196,22 +218,7 @@ const PageView = () => {
 				<LazyChart>
 					<StackedBarChart
 						title="Base and Reward APY"
-						chartData={[
-							{
-								name: 'Base',
-								// remove entries with Base apy === null
-								data: finalChartData?.length
-									? finalChartData.filter((t) => t[3] !== null).map((d) => [d[0] * 1000, d[3]])
-									: []
-							},
-							{
-								name: 'Reward',
-								// remove entries with Reward apy === null
-								data: finalChartData?.length
-									? finalChartData.filter((t) => t[4] !== null).map((t) => [t[0] * 1000, t[4]])
-									: []
-							}
-						]}
+						chartData={barChartData}
 						color={backgroundColor}
 						stackColors={stackedBarChartColors}
 						showLegend={true}
@@ -222,9 +229,7 @@ const PageView = () => {
 				<LazyChart>
 					<AreaChart
 						title="7 day moving average of total APY"
-						chartData={
-							finalChartData?.length ? finalChartData.filter((t) => t[5] !== null).map((t) => [t[0], t[5]]) : []
-						}
+						chartData={areaChartData}
 						color={backgroundColor}
 						valueSymbol={'%'}
 					></AreaChart>
