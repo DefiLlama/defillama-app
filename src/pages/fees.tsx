@@ -1,22 +1,6 @@
-import { RecentProtocols } from '~/components/RecentProtocols'
 import { revalidate } from '~/api'
-import Table, { columnsToShow, Dropdowns, TableFilters, TableHeader } from '~/components/Table'
+import Table, { columnsToShow } from '~/components/Table'
 import Layout from '~/layout'
-
-
-interface FeeItem {
-	id: string,
-	name: string,
-	symbol: string | null,
-	gecko_id: string | null,
-	cmcId: string | null,
-	adapterType: string,
-	adapterKey: string,
-	feesHistory: Array<any>,
-	revenueHistory: Array<any>,
-	total1dFees: number,
-	total1dRevenue: number
-}
 
 export async function getStaticProps() {
 	const feeResults = await fetch("https://fees.llama.fi/fees").then(r=>r.json())
