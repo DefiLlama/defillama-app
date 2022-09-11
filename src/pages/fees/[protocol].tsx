@@ -16,6 +16,8 @@ const StackedChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked
 const mapProtocolName = (protocolName: string) => {
 	if (protocolName === 'trader-joe') {
 		return 'traderjoe'
+	} else if (protocolName === 'aave') {
+		return 'AAVE'
 	}
 	return protocolName
 }
@@ -42,7 +44,7 @@ export const getStaticProps = async ({
 
 	return {
 		props: {
-			data,
+			data: { ...data, name: mapProtocolName(protocol) },
 			chartData
 		},
 		revalidate: revalidate()

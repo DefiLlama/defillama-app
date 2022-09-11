@@ -37,7 +37,7 @@ export async function getStaticProps() {
 				for (const [version, value] of Object.entries(latestFee[chain])) {
 					if (!feeBreakdown[version]) {
 						feeBreakdown[version] = value as number
-					} else {	
+					} else {
 						feeBreakdown[version] += value as number
 					}
 				}
