@@ -105,51 +105,53 @@ const PageView = () => {
 
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData
 
-	const { finalChartData, barChartData, areaChartData } = useMemo(() => {
-		// prepare chart data
-		let finalChartData = chart?.data
+	const {
+		finalChartData = [],
+		barChartData = [],
+		areaChartData = []
+	} = useMemo(() => {
+		if (!chart) return {}
+
 		// - calc 7day APY moving average
 		const windowSize = 7
-		const apyValues = finalChartData?.map((m) => m.apy)
-		const avg = []
+		const apyValues = chart?.data?.map((m) => m.apy)
+		const avg7Days = []
+
 		for (let i = 0; i < apyValues?.length; i++) {
 			if (i + 1 < windowSize) {
-				avg[i] = null
+				avg7Days[i] = null
 			} else {
-				avg[i] = apyValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
+				avg7Days[i] = apyValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
 			}
 		}
-		finalChartData = finalChartData?.map((m, i) => ({ ...m, avg7day: avg[i] }))
 
 		// - format for chart components
-		finalChartData = finalChartData?.map((el) => [
+		const data = chart?.data?.map((el, i) => [
 			// round time to day
 			Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
 			el.tvlUsd,
 			el.apy?.toFixed(2) ?? null,
 			el.apyBase?.toFixed(2) ?? null,
 			el.apyReward?.toFixed(2) ?? null,
-			el.avg7day?.toFixed(2) ?? null
+			avg7Days[i]?.toFixed(2) ?? null
 		])
 
 		const barChartData = [
 			{
 				name: 'Base',
 				// remove entries with Base apy === null
-				data: finalChartData?.length ? finalChartData.filter((t) => t[3] !== null).map((d) => [d[0] * 1000, d[3]]) : []
+				data: data?.length ? data.filter((t) => t[3] !== null).map((d) => [d[0] * 1000, d[3]]) : []
 			},
 			{
 				name: 'Reward',
 				// remove entries with Reward apy === null
-				data: finalChartData?.length ? finalChartData.filter((t) => t[4] !== null).map((t) => [t[0] * 1000, t[4]]) : []
+				data: data?.length ? data.filter((t) => t[4] !== null).map((t) => [t[0] * 1000, t[4]]) : []
 			}
 		]
 
-		const areaChartData = finalChartData?.length
-			? finalChartData.filter((t) => t[5] !== null).map((t) => [t[0], t[5]])
-			: []
+		const areaChartData = data?.length ? data.filter((t) => t[5] !== null).map((t) => [t[0], t[5]]) : []
 
-		return { finalChartData, barChartData, areaChartData }
+		return { finalChartData: data, barChartData, areaChartData }
 	}, [chart])
 
 	return (
@@ -224,7 +226,7 @@ const PageView = () => {
 						showLegend={true}
 						yields={true}
 						valueSymbol={'%'}
-					></StackedBarChart>
+					/>
 				</LazyChart>
 				<LazyChart>
 					<AreaChart
@@ -232,7 +234,7 @@ const PageView = () => {
 						chartData={areaChartData}
 						color={backgroundColor}
 						valueSymbol={'%'}
-					></AreaChart>
+					/>
 				</LazyChart>
 			</ChartsWrapper>
 
