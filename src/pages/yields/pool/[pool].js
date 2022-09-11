@@ -22,7 +22,6 @@ import {
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
-import FormattedName from '~/components/FormattedName'
 import { BreakpointPanel } from '~/components'
 import { useYieldChartData, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
 // import { getYieldPageData } from '~/api/categories/yield'
@@ -160,16 +159,11 @@ const PageView = () => {
 
 			<StatsSection>
 				<PoolDetails>
-					<Name>
-						<FormattedName
-							text={
-								poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
-									? `${poolData.symbol} (${poolData.poolMeta})`
-									: poolData.symbol ?? 'Loading'
-							}
-							maxCharacters={16}
-							fontWeight={700}
-						/>
+					<Name style={{ flexWrap: 'wrap' }}>
+						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
+							? `${poolData.symbol} (${poolData.poolMeta})`
+							: poolData.symbol ?? 'Loading'}
+
 						<Symbol>
 							({projectName} - {poolData.chain})
 						</Symbol>
