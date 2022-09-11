@@ -32,7 +32,7 @@ const pressList = [
 	'yahoo.png'
 ]
 
-const DashGrid = styled.div`
+export const DashGrid = styled.div`
 	display: grid;
 	grid-gap: 1em;
 	grid-template-columns: 1fr;
@@ -68,7 +68,7 @@ const PanelWrapper = styled(Box)`
 
 function PressPage() {
 	return (
-		<Layout title="DefiLlama - DeFi Dashboard" defaultSEO>
+		<Layout title="Press - DefiLlama" defaultSEO>
 			<RowBetween>
 				<TYPE.largeHeader>Press & Media</TYPE.largeHeader>
 			</RowBetween>
