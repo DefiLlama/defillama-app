@@ -82,15 +82,12 @@ const PageView = () => {
 		el.avg7day?.toFixed(2) ?? null
 	])
 
-	let rewardChartData = finalChartData ?? []
-	rewardChartData = rewardChartData?.filter((t) => t[2] !== null && t[3] !== null)
-
 	// prepare csv data
 	const downloadCsv = () => {
-		const rows = [['APY', 'TVL', 'DATE']]
+		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
 		chart.data?.forEach((item) => {
-			rows.push([item.apy, item.tvlUsd, item.timestamp])
+			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
 		})
 
 		download(`${query.pool}.csv`, rows.map((r) => r.join(',')).join('\n'))
@@ -202,12 +199,17 @@ const PageView = () => {
 						chartData={[
 							{
 								name: 'Base',
-
-								data: rewardChartData?.length ? rewardChartData.map((d) => [d[0] * 1000, d[3]]) : []
+								// remove entries with Base apy === null
+								data: finalChartData?.length
+									? finalChartData.filter((t) => t[3] !== null).map((d) => [d[0] * 1000, d[3]])
+									: []
 							},
 							{
 								name: 'Reward',
-								data: rewardChartData?.length ? rewardChartData.map((t) => [t[0] * 1000, t[4]]) : []
+								// remove entries with Reward apy === null
+								data: finalChartData?.length
+									? finalChartData.filter((t) => t[4] !== null).map((t) => [t[0] * 1000, t[4]])
+									: []
 							}
 						]}
 						color={backgroundColor}
