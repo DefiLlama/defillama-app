@@ -14,7 +14,9 @@ import {
 	LinksWrapper,
 	Name,
 	Section,
-	Symbol
+	Symbol,
+	ChartsWrapper,
+	LazyChart
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
@@ -26,6 +28,14 @@ import { useYieldChartData, useYieldConfigData, useYieldPoolData } from '~/api/c
 // import { CONFIG_API, YIELD_CHART_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
 // import { arrayFetcher } from '~/utils/useSWR'
 // import { revalidate } from '~/api'
+
+const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
+	ssr: false
+})
+
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart/index'), {
+	ssr: false
+})
 
 const Chart = dynamic(() => import('~/components/GlobalChart'), {
 	ssr: false
@@ -46,12 +56,34 @@ const PageView = () => {
 
 	const configData = config ?? {}
 
-	const finalChartData = chart?.data.map((el) => [
-		String(Math.floor(new Date(el.timestamp).getTime() / 1000)),
+	// prepare chart data
+	let finalChartData = chart?.data
+	// - calc 7day APY moving average
+	const windowSize = 7
+	const apyValues = finalChartData?.map((m) => m.apy)
+	const avg = []
+	for (let i = 0; i < apyValues?.length; i++) {
+		if (i + 1 < windowSize) {
+			avg[i] = null
+		} else {
+			avg[i] = apyValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
+		}
+	}
+	finalChartData = finalChartData?.map((m, i) => ({ ...m, avg7day: avg[i] }))
+
+	// - format for chart components
+	finalChartData = finalChartData?.map((el) => [
+		// round time to day
+		Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
 		el.tvlUsd,
-		// i format here for the plot in `TradingViewChart`
-		el.apy?.toFixed(2) ?? 0
+		el.apy?.toFixed(2) ?? null,
+		el.apyBase?.toFixed(2) ?? null,
+		el.apyReward?.toFixed(2) ?? null,
+		el.avg7day?.toFixed(2) ?? null
 	])
+
+	let rewardChartData = finalChartData ?? []
+	rewardChartData = rewardChartData?.filter((t) => t[2] !== null && t[3] !== null)
 
 	// prepare csv data
 	const downloadCsv = () => {
@@ -94,6 +126,11 @@ const PageView = () => {
 
 	const backgroundColor = '#696969'
 
+	const stackedBarChartColors = {
+		Base: backgroundColor,
+		Reward: '#4f8fea'
+	}
+
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData
 
 	return (
@@ -119,7 +156,7 @@ const PageView = () => {
 
 					<StatWrapper>
 						<Stat>
-							<span>APY</span>
+							<span>Total APY</span>
 							<span style={{ color: '#fd3c99' }}>{apy}%</span>
 						</Stat>
 						<DownloadButton as="button" onClick={downloadCsv}>
@@ -157,6 +194,40 @@ const PageView = () => {
 					/>
 				</BreakpointPanel>
 			</StatsSection>
+
+			<ChartsWrapper>
+				<LazyChart>
+					<StackedBarChart
+						title="Base and Reward APY"
+						chartData={[
+							{
+								name: 'Base',
+
+								data: rewardChartData?.length ? rewardChartData.map((d) => [d[0] * 1000, d[3]]) : []
+							},
+							{
+								name: 'Reward',
+								data: rewardChartData?.length ? rewardChartData.map((t) => [t[0] * 1000, t[4]]) : []
+							}
+						]}
+						color={backgroundColor}
+						stackColors={stackedBarChartColors}
+						showLegend={true}
+						yields={true}
+						valueSymbol={'%'}
+					></StackedBarChart>
+				</LazyChart>
+				<LazyChart>
+					<AreaChart
+						title="7 day moving average of total APY"
+						chartData={
+							finalChartData?.length ? finalChartData.filter((t) => t[5] !== null).map((t) => [t[0], t[5]]) : []
+						}
+						color={backgroundColor}
+						valueSymbol={'%'}
+					></AreaChart>
+				</LazyChart>
+			</ChartsWrapper>
 
 			<InfoWrapper>
 				<Section>
