@@ -83,20 +83,38 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 					day: 'numeric'
 				})
 
-				let vals = params
-					.sort((a, b) => (tooltipSort ? a.value[1] - b.value[1] : 0))
-					.reduce((prev, curr) => {
-						if (curr.value[1] !== 0 && curr.value[1] !== '-') {
-							return (prev +=
-								'<li style="list-style:none">' +
-								curr.marker +
-								curr.seriesName +
-								'&nbsp;&nbsp;' +
-								valueSymbol +
-								toK(curr.value[1]) +
-								'</li>')
-						} else return prev
-					}, '')
+				let vals
+				if (valueSymbol !== '%') {
+					vals = params
+						.sort((a, b) => (tooltipSort ? a.value[1] - b.value[1] : 0))
+						.reduce((prev, curr) => {
+							if (curr.value[1] !== 0 && curr.value[1] !== '-') {
+								return (prev +=
+									'<li style="list-style:none">' +
+									curr.marker +
+									curr.seriesName +
+									'&nbsp;&nbsp;' +
+									valueSymbol +
+									toK(curr.value[1]) +
+									'</li>')
+							} else return prev
+						}, '')
+				} else {
+					vals = params
+						.sort((a, b) => (tooltipSort ? a.value[1] - b.value[1] : 0))
+						.reduce((prev, curr) => {
+							if (curr.value[1] !== 0 && curr.value[1] !== '-') {
+								return (prev +=
+									'<li style="list-style:none">' +
+									curr.marker +
+									curr.seriesName +
+									'&nbsp;&nbsp;' +
+									curr.value[1] +
+									valueSymbol +
+									'</li>')
+							} else return prev
+						}, '')
+				}
 
 				const mcap = params.filter((param) => param.seriesName === 'Mcap')?.[0]?.value[1]
 				const tvl = params.filter((param) => param.seriesName === 'TVL')?.[0]?.value[1]
@@ -165,7 +183,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 		const yAxis = {
 			type: 'value',
 			axisLabel: {
-				formatter: (value) => valueSymbol + toK(value)
+				formatter: (value) => (valueSymbol === '%' ? value + valueSymbol : valueSymbol + toK(value))
 			},
 			axisLine: {
 				lineStyle: {
