@@ -159,14 +159,10 @@ export function NameFees({
 		<Index {...props} style={{ left: leftSpace }}>
 			{rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
 			<span>{rowType !== 'pinned' && index}</span>
-			<TokenLogo id="table-p-logo" logo={iconUrl} />
-			{rowType === 'accordion' ? (
-				<span id="table-p-name">{version ? `${name} ${version}` : name}</span>
-			) : (
-				<CustomLink href={tokenUrl} id="table-p-name">
-					{version ? `${name} ${version}` : name}
-				</CustomLink>
-			)}
+			<TokenLogo id="table-p-logo" logo={iconUrl} />		
+			<CustomLink href={tokenUrl} id="table-p-name">
+				{version ? `${name} ${version}` : name}
+			</CustomLink>
 		</Index>
 	)
 }
