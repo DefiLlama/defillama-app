@@ -46,9 +46,6 @@ export const getStaticPaths: GetStaticPaths = async () => {
 		.map((x) => ({
 			params: { symbol: x.toLowerCase() }
 		}))
-	for (const path of paths) {
-		console.log(path)
-	}
 	return { paths, fallback: 'blocking' }
 }
 
