@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
@@ -79,6 +80,8 @@ export function FiltersByCategory({ categoryList = [], selectedCategories, pathn
 		)
 	}
 
+	const focusItemRef = useRef(null)
+
 	return (
 		<>
 			<SelectButton state={select}>
@@ -100,7 +103,12 @@ export function FiltersByCategory({ categoryList = [], selectedCategories, pathn
 						</FilterFnsGroup>
 						<List state={combobox} className="filter-by-list">
 							{combobox.matches.map((value, i) => (
-								<SelectItem value={value} key={value + i} focusOnHover>
+								<SelectItem
+									value={value}
+									key={value + i}
+									ref={i === 1 && selectedCategories.length === categoryList.length ? focusItemRef : null}
+									focusOnHover
+								>
 									<span>{value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
 								</SelectItem>
