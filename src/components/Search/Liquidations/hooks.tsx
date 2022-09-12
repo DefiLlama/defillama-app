@@ -1,6 +1,19 @@
-import { DEFAULT_ASSETS_LIST } from '~/utils/liquidations'
+import { useEffect, useState } from 'react'
+import { getAvailableAssetsList } from '~/utils/liquidations'
 import type { IGetSearchList } from '../types'
 
 export function useGetLiquidationSearchList(): IGetSearchList {
-	return { data: DEFAULT_ASSETS_LIST, loading: false }
+	const [searchList, setSearchList] = useState<IGetSearchList>({ data: null, loading: true })
+	useEffect(() => {
+		const fetchAssetsList = async () => {
+			const availableAssetsList = await getAvailableAssetsList()
+			setSearchList({ data: availableAssetsList, loading: false })
+		}
+
+		fetchAssetsList().catch((err) => {
+			console.error(err)
+			setSearchList({ ...searchList, loading: false, error: err })
+		})
+	}, [searchList])
+	return searchList
 }
