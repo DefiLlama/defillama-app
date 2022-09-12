@@ -174,6 +174,9 @@ export type ChartData = {
 	time: number
 	topPositions: PositionSmol[]
 	totalPositions: number
+
+	availableAssetsList: ISearchItem[]
+	asset: ISearchItem
 }
 
 export interface ChartDataBins {
@@ -244,6 +247,19 @@ export interface LiquidationsApiResponse {
 	}[]
 }
 
+export async function getAvailableAssetsList() {
+	const res = await fetch(LIQUIDATIONS_API)
+	const raw = (await res.json()) as LiquidationsApiResponse
+	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
+		(acc, d) => ({ ...acc, [d.protocol]: Object.values(d.liqs).flat() }),
+		{}
+	)
+	const allAggregated = await aggregateAssetAdapterData(adapterData)
+	const symbols = Array.from(allAggregated.keys()).map((a) => a.toLowerCase())
+	const availableAssetsList = DEFAULT_ASSETS_LIST.filter((asset) => symbols.includes(asset.symbol.toLowerCase()))
+	return availableAssetsList
+}
+
 export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, timePassed = 0) {
 	const now = Math.round(Date.now() / 1000) // in seconds
 	const LIQUIDATIONS_DATA_URL =
@@ -270,6 +286,8 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		// no data for this symbol, will happen when historical data is not available for this asset
 		return null
 	}
+	const symbols = Array.from(allAggregated.keys()).map((a) => a.toLowerCase())
+	const availableAssetsList = DEFAULT_ASSETS_LIST.filter((asset) => symbols.includes(asset.symbol.toLowerCase()))
 
 	const currentPrice = allAggregated.get(symbol)!.currentPrice
 	const positions = allAggregated.get(symbol)!.positions
@@ -350,7 +368,10 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		},
 		time: raw.time,
 		topPositions,
-		totalPositions: validPositions.length
+		totalPositions: validPositions.length,
+
+		availableAssetsList,
+		asset: availableAssetsList.find((a) => a.symbol.toLowerCase() === symbol.toLowerCase())
 	}
 
 	return chartData
@@ -416,6 +437,10 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 }
 
 export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
+	{
+		name: 'Fun',
+		symbol: 'FUN'
+	},
 	{
 		name: 'Ethereum',
 		symbol: 'ETH'
