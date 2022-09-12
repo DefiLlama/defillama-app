@@ -100,7 +100,7 @@ function PressPage() {
 					</TYPE.main>
 					<PanelWrapper mt={[0, 0, '1rem']} style={{ gridTemplateRows: 'auto' }}>
 						{pressList.map((imageFilename) => (
-							<Link href={imageFilename[1]}><PressPanel imageFilename={imageFilename[0]} key={imageFilename[0]} /></Link>
+							<Link href={imageFilename[1]} key={imageFilename[0]}><PressPanel imageFilename={imageFilename[0]} /></Link>
 						))}
 					</PanelWrapper>
 				</DashGrid>
