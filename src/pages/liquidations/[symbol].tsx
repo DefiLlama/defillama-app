@@ -4,7 +4,7 @@ import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import { revalidate } from '~/api'
 import {
 	ChartData,
-	DEFAULT_ASSETS_LIST,
+	getAvailableAssetsList,
 	getLatestChartData,
 	getPrevChartData,
 	getReadableValue
@@ -40,9 +40,12 @@ export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartDa
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	// TODO: make api for all tracked symbols
-	const paths = DEFAULT_ASSETS_LIST.map((x) => x.route.split('/').pop()).map((x) => ({
-		params: { symbol: x.toLowerCase() }
-	}))
+	const availableAssetsList = await getAvailableAssetsList()
+	const paths = availableAssetsList
+		.map((x) => x.route.split('/').pop())
+		.map((x) => ({
+			params: { symbol: x.toLowerCase() }
+		}))
 	return { paths, fallback: 'blocking' }
 }
 
@@ -80,8 +83,6 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
 	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
 
-	const asset = DEFAULT_ASSETS_LIST.find((x) => x.symbol.toLowerCase() === data.symbol.toLowerCase())
-
 	const [minutesAgo, setMinutesAgo] = useState(Math.round((Date.now() - data.time * 1000) / 1000 / 60))
 	useEffect(() => {
 		const interval = setInterval(() => {
@@ -91,11 +92,11 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 	}, [])
 
 	return (
-		<Layout title={`${asset?.name} (${asset?.symbol}) Liquidation Levels - DefiLlama`}>
+		<Layout title={`${data.asset?.name} (${data.asset?.symbol}) Liquidation Levels - DefiLlama`}>
 			<SEO
 				liqsPage
-				cardName={`${asset?.name} (${asset?.symbol})`}
-				logo={'https://defillama.com' + assetIconUrl(asset?.symbol, true)}
+				cardName={`${data.asset?.name} (${data.asset?.symbol})`}
+				logo={'https://defillama.com' + assetIconUrl(data.asset?.symbol, true)}
 				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>
 

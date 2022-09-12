@@ -1,12 +1,13 @@
 import type { IBaseSearchProps } from '~/components/Search/types'
 import { useEffect, useState } from 'react'
-import { DEFAULT_ASSETS_LIST } from '~/utils/liquidations'
+import { getAvailableAssetsList } from '~/utils/liquidations'
 
 export const useAssetsList = () => {
 	const [assetsList, setAssetsList] = useState<IBaseSearchProps['data']>([])
 	useEffect(() => {
 		const fetchAssetsList = async () => {
-			setAssetsList(DEFAULT_ASSETS_LIST)
+			const availableAssetsList = await getAvailableAssetsList()
+			setAssetsList(availableAssetsList)
 		}
 
 		fetchAssetsList().catch(console.error)
