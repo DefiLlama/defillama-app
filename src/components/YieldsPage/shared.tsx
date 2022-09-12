@@ -61,6 +61,9 @@ export const TableWrapper = styled(Table)`
 	// CHAINS
 	tr > *:nth-child(3) {
 		display: none;
+		& > * {
+			width: 24px;
+		}
 	}
 
 	// TVL
@@ -126,7 +129,7 @@ export const TableWrapper = styled(Table)`
 		// POOL
 		tr > *:nth-child(1) {
 			& > * {
-				width: 140px;
+				width: 240px;
 			}
 
 			div > *:nth-child(-n + 3) {
@@ -189,6 +192,13 @@ export const TableWrapper = styled(Table)`
 		}
 	}
 
+	// CHAINS
+	@media screen and (min-width: 1160px) {
+		tr > *:nth-child(3) {
+			display: revert;
+		}
+	}
+
 	@media screen and (min-width: ${({ theme }) => theme.bpXl}) {
 		// PROJECT
 		tr > *:nth-child(2) {
@@ -234,13 +244,6 @@ export const TableWrapper = styled(Table)`
 
 		// BASE APY
 		tr > *:nth-child(6) {
-			display: revert;
-		}
-	}
-
-	// CHAINS
-	@media screen and (min-width: 1680px) {
-		tr > *:nth-child(3) {
 			display: revert;
 		}
 	}
