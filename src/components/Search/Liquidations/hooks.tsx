@@ -3,7 +3,7 @@ import { getAvailableAssetsList } from '~/utils/liquidations'
 import type { IGetSearchList } from '../types'
 
 export function useGetLiquidationSearchList(): IGetSearchList {
-	const [searchList, setSearchList] = useState<IGetSearchList>({ data: null, loading: true })
+	const [searchList, setSearchList] = useState<IGetSearchList>({ data: [], loading: true })
 	useEffect(() => {
 		const fetchAssetsList = async () => {
 			const availableAssetsList = await getAvailableAssetsList()
