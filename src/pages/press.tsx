@@ -18,18 +18,19 @@ const PressPanel = ({ imageFilename }) => (
 )
 
 const pressList = [
-	'bloomberg.png',
-	'boa.png',
-	'bi.png',
-	'cmc.png',
-	'coindesk.png',
-	'ct.png',
-	'gs.png',
-	'coingecko.png',
-	'ms.png',
-	'nasdaq.png',
-	'wsj.png',
-	'yahoo.png'
+	['ft.png', 'https://www.ft.com/content/b0c581c8-96b2-4c34-abcc-5189d7283891'],
+	['ecb.png', 'https://www.ecb.europa.eu/pub/financial-stability/macroprudential-bulletin/focus/2022/html/ecb.mpbu202207_focus1.en.html'],
+	['bloomberg.png', 'https://www.bloomberg.com/news/articles/2022-09-07/the-blockchain-trilemma-that-s-holding-back-crypto-quicktake'],
+	['gs.png', 'https://www.gspublishing.com/content/research/en/reports/2021/10/22/3094e0f0-379e-4f11-8dce-7f74a7718eb7.html'],
+	['boa.png', 'https://business.bofa.com/content/dam/flagship/bank-of-america-institute/transformation/web3-only-the-first-inning-may-2022.pdf'],
+	['ms.png', 'https://advisor.morganstanley.com/scott.altemose/documents/field/s/sc/scott-a--altemose/DeFi_Apr.pdf'],
+	['nasdaq.png', 'https://www.nasdaq.com/articles/is-all-defi-doomed'],
+	['wsj.png', 'https://www.wsj.com/articles/why-the-worlds-biggest-traders-are-betting-on-blockchain-data-11638803023'],
+	//['yahoo.png', 'https://finance.yahoo.com/news/defi-total-value-locked-reaches-092546041.html'],
+	['techcrunch.png', 'https://techcrunch.com/2022/03/23/despite-declines-the-value-of-crypto-assets-in-defi-protocols-is-up-3x-from-a-year-ago/'],
+	['bi.png', 'https://www.businessinsider.com/free-crypto-airdrops-experts-risks-rewards-defi-dydx-ens-paraswap-2021-11'],
+	['coindesk.png', 'https://www.coindesk.com/learn/why-tvl-matters-in-defi-total-value-locked-explained/'],
+	['ct.png', 'https://decrypt.co/94370/terra-defis-network-choice-ethereum'],
 ]
 
 export const DashGrid = styled.div`
@@ -99,7 +100,7 @@ function PressPage() {
 					</TYPE.main>
 					<PanelWrapper mt={[0, 0, '1rem']} style={{ gridTemplateRows: 'auto' }}>
 						{pressList.map((imageFilename) => (
-							<PressPanel imageFilename={imageFilename} key={imageFilename} />
+							<Link href={imageFilename[1]}><PressPanel imageFilename={imageFilename[0]} key={imageFilename[0]} /></Link>
 						))}
 					</PanelWrapper>
 				</DashGrid>
