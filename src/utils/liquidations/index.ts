@@ -438,10 +438,6 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 
 export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 	{
-		name: 'Fun',
-		symbol: 'FUN'
-	},
-	{
 		name: 'Ethereum',
 		symbol: 'ETH'
 	},
