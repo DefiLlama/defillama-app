@@ -17,7 +17,7 @@ import {
 	Section,
 	Symbol,
 	ChartsWrapper,
-	LazyChart
+	ChartWrapper
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
@@ -30,15 +30,18 @@ import { useYieldChartData, useYieldConfigData, useYieldPoolData } from '~/api/c
 // import { revalidate } from '~/api'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
-	ssr: false
+	ssr: false,
+	loading: () => <></>
 })
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart/index'), {
-	ssr: false
+	ssr: false,
+	loading: () => <></>
 })
 
 const Chart = dynamic(() => import('~/components/GlobalChart'), {
-	ssr: false
+	ssr: false,
+	loading: () => <></>
 })
 
 const PageView = () => {
@@ -211,7 +214,7 @@ const PageView = () => {
 			</StatsSection>
 
 			<ChartsWrapper>
-				<LazyChart>
+				<ChartWrapper>
 					<StackedBarChart
 						title="Base and Reward APY"
 						chartData={barChartData}
@@ -221,15 +224,16 @@ const PageView = () => {
 						yields={true}
 						valueSymbol={'%'}
 					/>
-				</LazyChart>
-				<LazyChart>
+				</ChartWrapper>
+
+				<ChartWrapper>
 					<AreaChart
 						title="7 day moving average of total APY"
 						chartData={areaChartData}
 						color={backgroundColor}
 						valueSymbol={'%'}
 					/>
-				</LazyChart>
+				</ChartWrapper>
 			</ChartsWrapper>
 
 			<InfoWrapper>
