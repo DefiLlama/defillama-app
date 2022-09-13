@@ -17,7 +17,7 @@ import {
 	Section,
 	Symbol,
 	ChartsWrapper,
-	ChartWrapper
+	LazyChart
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
@@ -160,7 +160,7 @@ const PageView = () => {
 		<>
 			<YieldsSearch step={{ category: 'Yields', name: poolData.symbol, hideOptions: true }} />
 
-			<StatsSection>
+			{/* <StatsSection>
 				<PoolDetails>
 					<Name style={{ flexWrap: 'wrap' }}>
 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
@@ -201,6 +201,7 @@ const PageView = () => {
 						)}
 					</Stat>
 				</PoolDetails>
+
 				<BreakpointPanel id="chartWrapper" style={{ border: 'none', borderRadius: '0 12px 12px 0', boxShadow: 'none' }}>
 					<Chart
 						display="liquidity"
@@ -211,10 +212,10 @@ const PageView = () => {
 						dualAxis={true}
 					/>
 				</BreakpointPanel>
-			</StatsSection>
+			</StatsSection> */}
 
 			<ChartsWrapper>
-				<ChartWrapper>
+				<LazyChart>
 					<StackedBarChart
 						title="Base and Reward APY"
 						chartData={barChartData}
@@ -224,16 +225,16 @@ const PageView = () => {
 						yields={true}
 						valueSymbol={'%'}
 					/>
-				</ChartWrapper>
+				</LazyChart>
 
-				<ChartWrapper>
+				<LazyChart>
 					<AreaChart
 						title="7 day moving average of total APY"
 						chartData={areaChartData}
 						color={backgroundColor}
 						valueSymbol={'%'}
 					/>
-				</ChartWrapper>
+				</LazyChart>
 			</ChartsWrapper>
 
 			<InfoWrapper>
