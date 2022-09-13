@@ -35,14 +35,29 @@
         "logo":"okx-exchange.jpg"
     },
     {
+        "name": "Gemini Exchange",
+        "url": "https://www.gemini.com/",
+        "logo":"gemini-exchange.jpg"
+    },
+    {
+        "name": "Kraken Exchange",
+        "url": "https://www.kraken.com/",
+        "logo":"kraken-exchange.jpg"
+    },
+    {
+        "name": "Gate.io",
+        "url": "https://www.gate.io/",
+        "logo":"gate.io.jpg"
+    },
+    {
         "name": "Bybit Exchange",
         "url": "https://www.bybit.com/",
         "logo":"bybit-exchange.jpg"
     },
     {
-        "name": "OpenSea",
-        "url": "https://opensea.io/",
-        "logo":"opensea.jpg"
+        "name": "Phemex",
+        "url": "https://phemex.com/",
+        "logo":"phemex.jpg"
     },
     {
         "name": "CoinGecko",
@@ -53,6 +68,11 @@
         "name": "CoinMarketCap",
         "url": "https://coinmarketcap.com/",
         "logo":"coinmarketcap.jpg"
+    },
+    {
+        "name": "OpenSea",
+        "url": "https://opensea.io/",
+        "logo":"opensea.jpg"
     },
     {
         "name": "LooksRare",
@@ -98,11 +118,6 @@
         "name": "NBA Top Shot",
         "url": "https://nbatopshot.com/",
         "logo":"nba-top-shot.jpg"
-    },
-    {
-        "name": "TradingView",
-        "url": "https://www.tradingview.com/",
-        "logo":"tradingview.jpg"
     },
     {
         "name": "jgp.store",
@@ -185,13 +200,38 @@
         "logo":"gitcoin.jpg"
     },
     {
-        "name": "Phemex",
-        "url": "https://phemex.com/",
-        "logo":"phemex.jpg"
+        "name": "Chainlist",
+        "url": "https://chainlist.org/",
+        "logo":"chainlist.jpg"
     },
     {
-        "name": "Gate.io",
-        "url": "https://www.gate.io/",
-        "logo":"gate.io.jpg"
+        "name": "Zapper",
+        "url": "https://zapper.fi/",
+        "logo":"zapper.jpg"
+    },
+    {
+        "name": "Zerion",
+        "url": "https://zerion.io/",
+        "logo":"zerion.jpg"
+    },
+    {
+        "name": "Gala Games",
+        "url": "https://app.gala.games/",
+        "logo":"gala-games.jpg"
+    },
+    {
+        "name": "Axie Infinity",
+        "url": "https://axieinfinity.com/",
+        "logo":"axie-infinity.jpg"
+    },
+    {
+        "name": "ENS",
+        "url": "https://ens.domains/",
+        "logo":"ens.jpg"
+    },
+    {
+        "name": "TradingView",
+        "url": "https://www.tradingview.com/",
+        "logo":"tradingview.jpg"
     }
 ]
