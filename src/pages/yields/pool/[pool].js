@@ -17,28 +17,28 @@ import {
 	Section,
 	Symbol,
 	ChartsWrapper,
-	LazyChart
+	LazyChart,
+	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
 import { BreakpointPanel } from '~/components'
 import { useYieldChartData, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
-// import { getYieldPageData } from '~/api/categories/yield'
-// import { CONFIG_API, YIELD_CHART_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
-// import { arrayFetcher } from '~/utils/useSWR'
-// import { revalidate } from '~/api'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
-	ssr: false
+	ssr: false,
+	loading: () => <></>
 })
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart/index'), {
-	ssr: false
+	ssr: false,
+	loading: () => <></>
 })
 
 const Chart = dynamic(() => import('~/components/GlobalChart'), {
-	ssr: false
+	ssr: false,
+	loading: () => <></>
 })
 
 const PageView = () => {
@@ -50,11 +50,7 @@ const PageView = () => {
 
 	const poolData = pool?.data ? pool.data[0] : {}
 
-	const project = poolData.project ?? ''
-
-	const { data: config, loading: fetchingConfigData } = useYieldConfigData(project)
-
-	const configData = config ?? {}
+	const { data: config, loading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
 	// prepare csv data
 	const downloadCsv = () => {
@@ -88,19 +84,12 @@ const PageView = () => {
 
 	const predictedDirection = poolData.predictions?.predictedClass === 'Down' ? '' : 'not'
 
-	const projectName = configData.name ?? ''
-	const audits = configData.audits ?? ''
-	const audit_links = configData.audit_links ?? []
-	const url = configData.url ?? ''
-	const twitter = configData.twitter ?? ''
-	const category = configData.category ?? ''
-
-	const backgroundColor = '#4f8fea'
-
-	const stackedBarChartColors = {
-		Base: backgroundColor,
-		Reward: '#E59421'
-	}
+	const projectName = config?.name ?? ''
+	const audits = config?.audits ?? ''
+	const audit_links = config?.audit_links ?? []
+	const url = config?.url ?? ''
+	const twitter = config?.twitter ?? ''
+	const category = config?.category ?? ''
 
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData
 
@@ -198,6 +187,7 @@ const PageView = () => {
 						)}
 					</Stat>
 				</PoolDetails>
+
 				<BreakpointPanel id="chartWrapper" style={{ border: 'none', borderRadius: '0 12px 12px 0', boxShadow: 'none' }}>
 					<Chart
 						display="liquidity"
@@ -211,25 +201,34 @@ const PageView = () => {
 			</StatsSection>
 
 			<ChartsWrapper>
-				<LazyChart>
-					<StackedBarChart
-						title="Base and Reward APY"
-						chartData={barChartData}
-						color={backgroundColor}
-						stackColors={stackedBarChartColors}
-						showLegend={true}
-						yields={true}
-						valueSymbol={'%'}
-					/>
-				</LazyChart>
-				<LazyChart>
-					<AreaChart
-						title="7 day moving average of total APY"
-						chartData={areaChartData}
-						color={backgroundColor}
-						valueSymbol={'%'}
-					/>
-				</LazyChart>
+				{fetchingChartData ? (
+					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+				) : (
+					chart?.data?.length && (
+						<>
+							<LazyChart>
+								<StackedBarChart
+									title="Base and Reward APY"
+									chartData={barChartData}
+									color={backgroundColor}
+									stackColors={stackedBarChartColors}
+									showLegend={true}
+									yields={true}
+									valueSymbol={'%'}
+								/>
+							</LazyChart>
+
+							<LazyChart>
+								<AreaChart
+									title="7 day moving average of total APY"
+									chartData={areaChartData}
+									color={backgroundColor}
+									valueSymbol={'%'}
+								/>
+							</LazyChart>
+						</>
+					)
+				)}
 			</ChartsWrapper>
 
 			<InfoWrapper>
@@ -271,6 +270,13 @@ const PageView = () => {
 			</InfoWrapper>
 		</>
 	)
+}
+
+const backgroundColor = '#4f8fea'
+
+const stackedBarChartColors = {
+	Base: backgroundColor,
+	Reward: '#E59421'
 }
 
 export default function YieldPoolPage(props) {
