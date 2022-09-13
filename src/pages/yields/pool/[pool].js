@@ -146,7 +146,7 @@ const PageView = () => {
 		<>
 			<YieldsSearch step={{ category: 'Yields', name: poolData.symbol, hideOptions: true }} />
 
-			{/* <StatsSection>
+			<StatsSection>
 				<PoolDetails>
 					<Name style={{ flexWrap: 'wrap' }}>
 						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
@@ -198,7 +198,7 @@ const PageView = () => {
 						dualAxis={true}
 					/>
 				</BreakpointPanel>
-			</StatsSection> */}
+			</StatsSection>
 
 			<ChartsWrapper>
 				{fetchingChartData ? (
