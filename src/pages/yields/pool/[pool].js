@@ -17,7 +17,8 @@ import {
 	Section,
 	Symbol,
 	ChartsWrapper,
-	LazyChart
+	LazyChart,
+	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
@@ -215,26 +216,34 @@ const PageView = () => {
 			</StatsSection> */}
 
 			<ChartsWrapper>
-				<LazyChart>
-					<StackedBarChart
-						title="Base and Reward APY"
-						chartData={barChartData}
-						color={backgroundColor}
-						stackColors={stackedBarChartColors}
-						showLegend={true}
-						yields={true}
-						valueSymbol={'%'}
-					/>
-				</LazyChart>
+				{fetchingChartData ? (
+					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+				) : (
+					chart?.data?.length > 0 && (
+						<>
+							<LazyChart>
+								<StackedBarChart
+									title="Base and Reward APY"
+									chartData={barChartData}
+									color={backgroundColor}
+									stackColors={stackedBarChartColors}
+									showLegend={true}
+									yields={true}
+									valueSymbol={'%'}
+								/>
+							</LazyChart>
 
-				<LazyChart>
-					<AreaChart
-						title="7 day moving average of total APY"
-						chartData={areaChartData}
-						color={backgroundColor}
-						valueSymbol={'%'}
-					/>
-				</LazyChart>
+							<LazyChart>
+								<AreaChart
+									title="7 day moving average of total APY"
+									chartData={areaChartData}
+									color={backgroundColor}
+									valueSymbol={'%'}
+								/>
+							</LazyChart>
+						</>
+					)
+				)}
 			</ChartsWrapper>
 
 			<InfoWrapper>
