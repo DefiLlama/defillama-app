@@ -55,7 +55,7 @@ const columns = columnsToShow(
 function GlobalPage({ dex }) {
 	return (
 		<>
-			<SEO cardName={dex.name} chain={dex.name} tvl={dex.total1dVolume} volumeChange={volumeChange} />
+			<SEO cardName={dex.name} chain={dex.name} tvl={dex.total1dVolume} volumeChange={volumeChange} dexsPage />
 
 			<DexsSearch
 				step={{

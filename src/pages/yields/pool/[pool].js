@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -14,21 +15,30 @@ import {
 	LinksWrapper,
 	Name,
 	Section,
-	Symbol
+	Symbol,
+	ChartsWrapper,
+	LazyChart,
+	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
-import FormattedName from '~/components/FormattedName'
 import { BreakpointPanel } from '~/components'
 import { useYieldChartData, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
-// import { getYieldPageData } from '~/api/categories/yield'
-// import { CONFIG_API, YIELD_CHART_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
-// import { arrayFetcher } from '~/utils/useSWR'
-// import { revalidate } from '~/api'
+
+const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
+	ssr: false,
+	loading: () => <></>
+})
+
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart/index'), {
+	ssr: false,
+	loading: () => <></>
+})
 
 const Chart = dynamic(() => import('~/components/GlobalChart'), {
-	ssr: false
+	ssr: false,
+	loading: () => <></>
 })
 
 const PageView = () => {
@@ -40,25 +50,14 @@ const PageView = () => {
 
 	const poolData = pool?.data ? pool.data[0] : {}
 
-	const project = poolData.project ?? ''
-
-	const { data: config, loading: fetchingConfigData } = useYieldConfigData(project)
-
-	const configData = config ?? {}
-
-	const finalChartData = chart?.data.map((el) => [
-		String(Math.floor(new Date(el.timestamp).getTime() / 1000)),
-		el.tvlUsd,
-		// i format here for the plot in `TradingViewChart`
-		el.apy?.toFixed(2) ?? 0
-	])
+	const { data: config, loading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
 	// prepare csv data
 	const downloadCsv = () => {
-		const rows = [['APY', 'TVL', 'DATE']]
+		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
 		chart.data?.forEach((item) => {
-			rows.push([item.apy, item.tvlUsd, item.timestamp])
+			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
 		})
 
 		download(`${query.pool}.csv`, rows.map((r) => r.join(',')).join('\n'))
@@ -85,16 +84,63 @@ const PageView = () => {
 
 	const predictedDirection = poolData.predictions?.predictedClass === 'Down' ? '' : 'not'
 
-	const projectName = configData.name ?? ''
-	const audits = configData.audits ?? ''
-	const audit_links = configData.audit_links ?? []
-	const url = configData.url ?? ''
-	const twitter = configData.twitter ?? ''
-	const category = configData.category ?? ''
-
-	const backgroundColor = '#696969'
+	const projectName = config?.name ?? ''
+	const audits = config?.audits ?? ''
+	const audit_links = config?.audit_links ?? []
+	const url = config?.url ?? ''
+	const twitter = config?.twitter ?? ''
+	const category = config?.category ?? ''
 
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData
+
+	const {
+		finalChartData = [],
+		barChartData = [],
+		areaChartData = []
+	} = useMemo(() => {
+		if (!chart) return {}
+
+		// - calc 7day APY moving average
+		const windowSize = 7
+		const apyValues = chart?.data?.map((m) => m.apy)
+		const avg7Days = []
+
+		for (let i = 0; i < apyValues?.length; i++) {
+			if (i + 1 < windowSize) {
+				avg7Days[i] = null
+			} else {
+				avg7Days[i] = apyValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
+			}
+		}
+
+		// - format for chart components
+		const data = chart?.data?.map((el, i) => [
+			// round time to day
+			Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
+			el.tvlUsd,
+			el.apy?.toFixed(2) ?? null,
+			el.apyBase?.toFixed(2) ?? null,
+			el.apyReward?.toFixed(2) ?? null,
+			avg7Days[i]?.toFixed(2) ?? null
+		])
+
+		const barChartData = [
+			{
+				name: 'Base',
+				// remove entries with Base apy === null
+				data: data?.length ? data.filter((t) => t[3] !== null).map((d) => [d[0] * 1000, d[3]]) : []
+			},
+			{
+				name: 'Reward',
+				// remove entries with Reward apy === null
+				data: data?.length ? data.filter((t) => t[4] !== null).map((t) => [t[0] * 1000, t[4]]) : []
+			}
+		]
+
+		const areaChartData = data?.length ? data.filter((t) => t[5] !== null).map((t) => [t[0], t[5]]) : []
+
+		return { finalChartData: data, barChartData, areaChartData }
+	}, [chart])
 
 	return (
 		<>
@@ -102,16 +148,11 @@ const PageView = () => {
 
 			<StatsSection>
 				<PoolDetails>
-					<Name>
-						<FormattedName
-							text={
-								poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
-									? `${poolData.symbol} (${poolData.poolMeta})`
-									: poolData.symbol ?? 'Loading'
-							}
-							maxCharacters={16}
-							fontWeight={700}
-						/>
+					<Name style={{ flexWrap: 'wrap' }}>
+						{poolData.poolMeta !== undefined && poolData.poolMeta !== null && poolData.poolMeta.length > 1
+							? `${poolData.symbol} (${poolData.poolMeta})`
+							: poolData.symbol ?? 'Loading'}
+
 						<Symbol>
 							({projectName} - {poolData.chain})
 						</Symbol>
@@ -119,7 +160,7 @@ const PageView = () => {
 
 					<StatWrapper>
 						<Stat>
-							<span>APY</span>
+							<span>Total APY</span>
 							<span style={{ color: '#fd3c99' }}>{apy}%</span>
 						</Stat>
 						<DownloadButton as="button" onClick={downloadCsv}>
@@ -146,6 +187,7 @@ const PageView = () => {
 						)}
 					</Stat>
 				</PoolDetails>
+
 				<BreakpointPanel id="chartWrapper" style={{ border: 'none', borderRadius: '0 12px 12px 0', boxShadow: 'none' }}>
 					<Chart
 						display="liquidity"
@@ -157,6 +199,37 @@ const PageView = () => {
 					/>
 				</BreakpointPanel>
 			</StatsSection>
+
+			<ChartsWrapper>
+				{fetchingChartData ? (
+					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+				) : (
+					chart?.data?.length && (
+						<>
+							<LazyChart>
+								<StackedBarChart
+									title="Base and Reward APY"
+									chartData={barChartData}
+									color={backgroundColor}
+									stackColors={stackedBarChartColors}
+									showLegend={true}
+									yields={true}
+									valueSymbol={'%'}
+								/>
+							</LazyChart>
+
+							<LazyChart>
+								<AreaChart
+									title="7 day moving average of total APY"
+									chartData={areaChartData}
+									color={backgroundColor}
+									valueSymbol={'%'}
+								/>
+							</LazyChart>
+						</>
+					)
+				)}
+			</ChartsWrapper>
 
 			<InfoWrapper>
 				<Section>
@@ -197,6 +270,13 @@ const PageView = () => {
 			</InfoWrapper>
 		</>
 	)
+}
+
+const backgroundColor = '#4f8fea'
+
+const stackedBarChartColors = {
+	Base: backgroundColor,
+	Reward: '#E59421'
 }
 
 export default function YieldPoolPage(props) {

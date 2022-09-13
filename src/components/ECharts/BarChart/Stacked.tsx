@@ -44,6 +44,8 @@ export interface IStackedBarChartProps extends Omit<IChartProps, 'title' | 'char
 		name: string
 		data: [Date, number][]
 	}>
+	stackColors?: { name: string; color: string }
+	showLegend?: boolean
 }
 
 type series = Array<{
@@ -52,7 +54,14 @@ type series = Array<{
 	stack: 'value'
 }>
 
-export default function StackedBarChart({ chartData, valueSymbol = '$', title, color }: IStackedBarChartProps) {
+export default function StackedBarChart({
+	chartData,
+	valueSymbol = '$',
+	title,
+	color,
+	stackColors,
+	showLegend
+}: IStackedBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
 	const [isDark] = useDarkModeManager()
@@ -68,17 +77,20 @@ export default function StackedBarChart({ chartData, valueSymbol = '$', title, c
 					focus: 'series',
 					shadowBlur: 10
 				},
-				itemStyle:
-					chartData.length <= 1
-						? {
-								color: chartColor
-						  }
-						: undefined
+				itemStyle: stackColors
+					? {
+							color: stackColors[cd.name]
+					  }
+					: chartData.length <= 1
+					? {
+							color: chartColor
+					  }
+					: undefined
 			}
 		})
 
 		return series
-	}, [chartData, color])
+	}, [chartData, color, stackColors])
 
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -104,6 +116,16 @@ export default function StackedBarChart({ chartData, valueSymbol = '$', title, c
 				left: isSmall ? '40%' : '45%',
 				top: '130px'
 			},
+			legend: showLegend
+				? {
+						right: '2%',
+						textStyle: {
+							fontFamily: 'inter, sans-serif',
+							fontWeight: 600,
+							color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+						}
+				  }
+				: false,
 			tooltip: {
 				trigger: 'axis',
 				formatter: function (params) {
@@ -113,20 +135,38 @@ export default function StackedBarChart({ chartData, valueSymbol = '$', title, c
 						day: 'numeric'
 					})
 
-					const vals = params
-						.sort((a, b) => b.value[1] - a.value[1])
-						.reduce((prev, curr) => {
-							if (curr.value[1] !== 0) {
-								return (prev +=
-									'<li style="list-style:none">' +
-									curr.marker +
-									curr.seriesName +
-									'&nbsp;&nbsp;' +
-									valueSymbol +
-									toK(curr.value[1]) +
-									'</li>')
-							} else return prev
-						}, '')
+					let vals
+					if (valueSymbol !== '%') {
+						vals = params
+							.sort((a, b) => b.value[1] - a.value[1])
+							.reduce((prev, curr) => {
+								if (curr.value[1] !== 0) {
+									return (prev +=
+										'<li style="list-style:none">' +
+										curr.marker +
+										curr.seriesName +
+										'&nbsp;&nbsp;' +
+										valueSymbol +
+										toK(curr.value[1]) +
+										'</li>')
+								} else return prev
+							}, '')
+					} else {
+						vals = params
+							.sort((a, b) => b.value[1] - a.value[1])
+							.reduce((prev, curr) => {
+								if (curr.value[1] !== 0) {
+									return (prev +=
+										'<li style="list-style:none">' +
+										curr.marker +
+										curr.seriesName +
+										'&nbsp;&nbsp;' +
+										curr.value[1] +
+										valueSymbol +
+										'</li>')
+								} else return prev
+							}, '')
+					}
 
 					return chartdate + vals
 				}
@@ -164,7 +204,7 @@ export default function StackedBarChart({ chartData, valueSymbol = '$', title, c
 			yAxis: {
 				type: 'value',
 				axisLabel: {
-					formatter: (value) => valueSymbol + toK(value)
+					formatter: (value) => (valueSymbol === '%' ? value + valueSymbol : valueSymbol + toK(value))
 				},
 				axisLine: {
 					lineStyle: {
@@ -244,7 +284,7 @@ export default function StackedBarChart({ chartData, valueSymbol = '$', title, c
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, valueSymbol, title, createInstance, series, isDark, color, isSmall])
+	}, [id, valueSymbol, title, createInstance, series, isDark, color, isSmall, stackColors, showLegend])
 
 	return (
 		<div style={{ position: 'relative' }}>

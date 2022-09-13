@@ -132,17 +132,18 @@ export function NameFees({
 	version,
 	...props
 }: INameFees) {
+	const mappedValue = (value === 'AAVE V2') ? 'AAVE' : value;
 	const name =
 		symbol === '-' ? (
-			value
+			mappedValue
 		) : (
 			<>
-				<span>{value}</span>
+				<span>{mappedValue}</span>
 				<span id="table-p-symbol">{` (${symbol})`}</span>
 			</>
 		)
-	const tokenUrl = type === 'chain' ? `/fees/${value}` : `/${type}/${slug(value)}`
-	const iconUrl = type === 'chain' ? chainIconUrl(value) : tokenIconUrl(value)
+	const tokenUrl = type === 'chain' ? `/fees/${mappedValue}` : `/${type}/${slug(mappedValue)}`
+	const iconUrl = type === 'chain' ? chainIconUrl(mappedValue) : tokenIconUrl(mappedValue)
 
 	let leftSpace: string = '30px'
 
@@ -158,14 +159,10 @@ export function NameFees({
 		<Index {...props} style={{ left: leftSpace }}>
 			{rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
 			<span>{rowType !== 'pinned' && index}</span>
-			<TokenLogo id="table-p-logo" logo={iconUrl} />
-			{rowType === 'accordion' ? (
-				<span id="table-p-name">{version ? `${name} ${version}` : name}</span>
-			) : (
-				<CustomLink href={tokenUrl} id="table-p-name">
-					{version ? `${name} ${version}` : name}
-				</CustomLink>
-			)}
+			<TokenLogo id="table-p-logo" logo={iconUrl} />		
+			<CustomLink href={tokenUrl} id="table-p-name">
+				{version ? `${name} ${version}` : name}
+			</CustomLink>
 		</Index>
 	)
 }

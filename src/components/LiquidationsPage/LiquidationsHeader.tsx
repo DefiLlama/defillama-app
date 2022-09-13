@@ -10,7 +10,7 @@ import { Input, Item, List } from '~/components/Combobox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import type { ISearchItem } from '~/components/Search/types'
 import { StackBySwitch } from './StackBySwitch'
-import { ChartData, DEFAULT_ASSETS_LIST } from '~/utils/liquidations'
+import { ChartData } from '~/utils/liquidations'
 import { DownloadButton } from './DownloadButton'
 
 const LiquidationsHeaderWrapper = styled.div`
@@ -44,7 +44,7 @@ const ButtonsGroup = styled.div`
 export const LiquidationsHeader = (props: ChartData) => {
 	return (
 		<LiquidationsHeaderWrapper>
-			<AssetSelector symbol={props.symbol} options={DEFAULT_ASSETS_LIST} />
+			<AssetSelector symbol={props.symbol} options={props.availableAssetsList} />
 			<ButtonsGroup>
 				<StackBySwitch />
 				<DownloadButton symbol={props.symbol} />

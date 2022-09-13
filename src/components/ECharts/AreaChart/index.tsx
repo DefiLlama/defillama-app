@@ -3,7 +3,7 @@ import * as echarts from 'echarts/core'
 import { v4 as uuid } from 'uuid'
 import styled from 'styled-components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { stringToColour } from '../utils'
+import { getUtcDateObject, stringToColour } from '../utils'
 import { SelectLegendMultiple } from '../shared'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
@@ -76,7 +76,7 @@ export default function AreaChart({
 						data: hallmarks.map(([date, event], index) => [
 							{
 								name: event,
-								xAxis: new Date(date * 1000),
+								xAxis: getUtcDateObject(date),
 								yAxis: 0,
 								label: {
 									color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -87,7 +87,7 @@ export default function AreaChart({
 							},
 							{
 								name: 'end',
-								xAxis: new Date(date * 1000),
+								xAxis: getUtcDateObject(date),
 								yAxis: 'max',
 								y: Math.max(hallmarks.length * 40 - index * 40, 40)
 							}
@@ -97,7 +97,7 @@ export default function AreaChart({
 			}
 
 			chartData.forEach(([date, value]) => {
-				series.data.push([new Date(date * 1000), value])
+				series.data.push([getUtcDateObject(date), value])
 			})
 
 			return series
@@ -134,7 +134,7 @@ export default function AreaChart({
 							data: hallmarks.map(([date, event], index) => [
 								{
 									name: event,
-									xAxis: new Date(date * 1000),
+									xAxis: getUtcDateObject(date),
 									yAxis: 0,
 									label: {
 										color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
@@ -145,7 +145,7 @@ export default function AreaChart({
 								},
 								{
 									name: 'end',
-									xAxis: new Date(date * 1000),
+									xAxis: getUtcDateObject(date),
 									yAxis: 'max',
 									y: Math.max(hallmarks.length * 40 - index * 40, 40)
 								}
@@ -158,7 +158,7 @@ export default function AreaChart({
 			chartData.forEach(({ date, ...item }) => {
 				chartsStack.forEach((stack) => {
 					if (legendOptions && customLegendName ? legendOptions.includes(stack) : true) {
-						series.find((t) => t.name === stack)?.data.push([new Date(date * 1000), item[stack] || 0])
+						series.find((t) => t.name === stack)?.data.push([getUtcDateObject(date), item[stack] || 0])
 					}
 				})
 			})

@@ -22,6 +22,7 @@ export interface Protocol {
 	listedAt?: number
 	openSource?: boolean
 	parentProtocol?: string
+	referralUrl?: string
 }
 
 // TODO cleanup
@@ -113,6 +114,7 @@ export type LiteProtocol = Pick<
 	| 'url'
 	| 'parentProtocol'
 	| 'chainTvls'
+	| 'referralUrl'
 > &
 	ProtocolTvls
 
