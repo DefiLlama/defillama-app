@@ -123,7 +123,6 @@ const Wrapper = styled.div`
 	table {
 		table-layout: fixed;
 		width: 100%;
-
 		border-collapse: collapse;
 	}
 
@@ -153,6 +152,12 @@ const Wrapper = styled.div`
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		background: #000;
+	}
+
+	tr > *:first-child {
+		position: sticky;
+		left: 0;
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
