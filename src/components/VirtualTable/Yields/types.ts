@@ -19,3 +19,7 @@ export interface IYieldTableRow {
 	category: string
 	strikeTvl?: boolean
 }
+
+export interface IYieldsTableProps {
+	data: Array<IYieldTableRow>
+}

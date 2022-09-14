@@ -1,2 +1,2 @@
-export { YieldsTable } from './Yields'
-export type { IYieldTableRow } from './Yields/types'
+export { default as YieldsTable } from './Yields'
+export type { IYieldsTableProps } from './Yields/types'

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
 import { Dropdowns, NameYield, TableFilters, TableHeader } from '~/components/Table'
@@ -15,7 +16,12 @@ import {
 import { YieldsSearch } from '~/components/Search'
 import { columns } from './shared'
 import { useFormatYieldQueryParams } from './hooks'
-import { YieldsTable } from '../VirtualTable'
+import { IYieldsTableProps } from '../VirtualTable'
+
+const YieldsTable = dynamic(() => import('~/components/VirtualTable/Yields'), {
+	ssr: false,
+	loading: () => <></>
+}) as React.FC<IYieldsTableProps>
 
 const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 	const { query, pathname, isReady } = useRouter()
