@@ -51,7 +51,7 @@ export type Price = {
 
 const getNativeSymbol = (symbol: string) => {
 	if (symbol in SYMBOL_MAP) {
-		return SYMBOL_MAP[symbol]
+		return SYMBOL_MAP[symbol].toLowerCase()
 	}
 
 	const originSymbol =
