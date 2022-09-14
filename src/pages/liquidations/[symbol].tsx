@@ -83,7 +83,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
 	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
 
-	const [minutesAgo, setMinutesAgo] = useState(Math.round((Date.now() - data.time * 1000) / 1000 / 60))
+	const [minutesAgo, setMinutesAgo] = useState(Math.round((Date.now() - data?.time * 1000) / 1000 / 60))
 	useEffect(() => {
 		const interval = setInterval(() => {
 			setMinutesAgo((x) => x + 1)
@@ -92,19 +92,19 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 	}, [])
 
 	return (
-		<Layout title={`${data.asset?.name} (${data.asset?.symbol}) Liquidation Levels - DefiLlama`}>
+		<Layout title={`${data?.asset?.name} (${data?.asset?.symbol}) Liquidation Levels - DefiLlama`}>
 			<SEO
 				liqsPage
-				cardName={`${data.asset?.name} (${data.asset?.symbol})`}
-				logo={'https://defillama.com' + assetIconUrl(data.asset?.symbol, true)}
-				tvl={'$' + getReadableValue(data.totalLiquidable)}
+				cardName={`${data?.asset?.name} (${data?.asset?.symbol})`}
+				logo={'https://defillama.com' + assetIconUrl(data?.asset?.symbol, true)}
+				tvl={'$' + getReadableValue(data?.totalLiquidable)}
 			/>
 
 			<LiquidationsSearch
-				step={{ category: 'Home', name: `${data.symbol.toUpperCase()} Liquidation Levels`, hideOptions: true }}
+				step={{ category: 'Home', name: `${data?.symbol?.toUpperCase()} Liquidation Levels`, hideOptions: true }}
 			/>
 
-			{!['SOL', 'MSOL', 'STSOL'].includes(data.symbol.toUpperCase()) && (
+			{!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data?.symbol?.toUpperCase()) && (
 				<>
 					<PanelThicc as="p">
 						We are now tracking
