@@ -6,7 +6,7 @@ import { assetIconUrl } from '..'
 
 const TOTAL_BINS = 100
 const WRAPPED_GAS_TOKENS = ['WETH', 'WAVAX', 'WMATIC', 'WFTM', 'WBNB', 'WCRO', 'WONE']
-const SYMBOL_MAP: { [originSymbol: string]: string } = { BTCB: 'WBTC' }
+const SYMBOL_MAP: { [originSymbol: string]: string } = { BTCB: 'WBTC', BTC: 'WBTC' }
 
 // making aliases so the hints are more readable
 type Address = string
@@ -51,7 +51,7 @@ export type Price = {
 
 const getNativeSymbol = (symbol: string) => {
 	if (symbol in SYMBOL_MAP) {
-		return SYMBOL_MAP[symbol]
+		return SYMBOL_MAP[symbol].toLowerCase()
 	}
 
 	const originSymbol =
@@ -256,7 +256,16 @@ export async function getAvailableAssetsList() {
 	)
 	const allAggregated = await aggregateAssetAdapterData(adapterData)
 	const symbols = Array.from(allAggregated.keys()).map((a) => a.toLowerCase())
-	const availableAssetsList = DEFAULT_ASSETS_LIST.filter((asset) => symbols.includes(asset.symbol.toLowerCase()))
+	const availableAssetsList = symbols
+		.map((symbol) => {
+			const asset = DEFAULT_ASSETS_LIST.find((a) => a.symbol.toLowerCase() === symbol)
+			if (!asset) {
+				// console.log('Asset hidden', symbol)
+				return null
+			}
+			return asset
+		})
+		.filter((a) => a !== null)
 	return availableAssetsList
 }
 

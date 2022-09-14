@@ -124,16 +124,17 @@ const PageView = () => {
 			avg7Days[i]?.toFixed(2) ?? null
 		])
 
+		const dataBar = data?.filter((t) => t[3] !== null || t[4] !== null) ?? []
 		const barChartData = [
 			{
 				name: 'Base',
 				// remove entries with Base apy === null
-				data: data?.length ? data.filter((t) => t[3] !== null).map((d) => [d[0] * 1000, d[3]]) : []
+				data: dataBar.length ? dataBar.map((d) => [d[0] * 1000, d[3]]) : dataBar
 			},
 			{
 				name: 'Reward',
 				// remove entries with Reward apy === null
-				data: data?.length ? data.filter((t) => t[4] !== null).map((t) => [t[0] * 1000, t[4]]) : []
+				data: dataBar.length ? dataBar.map((d) => [d[0] * 1000, d[4]]) : dataBar
 			}
 		]
 

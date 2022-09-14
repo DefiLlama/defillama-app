@@ -155,7 +155,7 @@ export default function StackedBarChart({
 						vals = params
 							.sort((a, b) => b.value[1] - a.value[1])
 							.reduce((prev, curr) => {
-								if (curr.value[1] !== 0) {
+								if (curr.value[1] !== 0 && curr.value[1] !== null) {
 									return (prev +=
 										'<li style="list-style:none">' +
 										curr.marker +
