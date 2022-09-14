@@ -104,7 +104,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 				step={{ category: 'Home', name: `${data.symbol.toUpperCase()} Liquidation Levels`, hideOptions: true }}
 			/>
 
-			{!['SOL', 'MSOL', 'STSOL'].includes(data.symbol.toUpperCase()) && (
+			{!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data.symbol.toUpperCase()) && (
 				<>
 					<PanelThicc as="p">
 						We are now tracking
