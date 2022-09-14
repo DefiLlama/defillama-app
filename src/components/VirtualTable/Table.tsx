@@ -151,14 +151,16 @@ const Wrapper = styled.div`
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		backdrop-filter: blur(20px);
 	}
 
 	tr > *:first-child {
 		position: sticky;
 		left: 0;
 		z-index: 1;
-		backdrop-filter: blur(100px) grayscale(1);
+	}
+
+	td:first-child {
+		backdrop-filter: blur(40px) grayscale(1);
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
