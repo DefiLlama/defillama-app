@@ -1,3 +1,4 @@
+// adadpted from https://github.com/ariakit/ariakit
 import { useEffect, useState } from 'react'
 
 function getInitialState(query: string, defaultState?: boolean) {

@@ -3,6 +3,7 @@ import IconsRow from '~/components/IconsRow'
 import QuestionHelper from '~/components/QuestionHelper'
 import { formattedNum, formattedPercent } from '~/utils'
 import { HeaderWithHelperText } from '../Header'
+import { formatColumnOrder } from '../utils'
 import { IYieldTableRow } from './types'
 
 export const columns: ColumnDef<IYieldTableRow>[] = [
@@ -17,15 +18,15 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		header: 'Project',
 		accessorKey: 'project',
 		enableSorting: false,
-		size: 128
+		size: 132
 	},
-	// {
-	// 	header: 'Chain',
-	// 	accessorKey: 'chains',
-	// 	enableSorting: false,
-	// 	cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields?chain" iconType="chain" />,
-	// 	size: 60
-	// },
+	{
+		header: 'Chain',
+		accessorKey: 'chains',
+		enableSorting: false,
+		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields?chain" iconType="chain" />,
+		size: 60
+	},
 	{
 		header: 'TVL',
 		accessorKey: 'tvl',
@@ -74,35 +75,15 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		},
 		size: 100
 	},
-	// {
-	// 	header: () => <HeaderWithHelperText value="Reward APY" helperText="Annualised percentage yield from incentives" />,
-	// 	accessorKey: 'apyReward',
-	// 	enableSorting: true,
-	// 	cell: (info) => {
-	// 		const rewards = info.row.original.rewards ?? []
-	// 		return (
-	// 			<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-	// 				{rewards.includes('Optimism') || rewards.includes('Avalanche') ? (
-	// 					<IconsRow
-	// 						links={rewards}
-	// 						url="/yields?chain"
-	// 						iconType="chain"
-	// 						yieldRewardsSymbols={info.row.original.rewardTokensSymbols}
-	// 					/>
-	// 				) : (
-	// 					<IconsRow
-	// 						links={rewards}
-	// 						url="/yields?project"
-	// 						iconType="token"
-	// 						yieldRewardsSymbols={info.row.original.rewardTokensSymbols}
-	// 					/>
-	// 				)}
-	// 				{formattedPercent(info.getValue(), true)}
-	// 			</AutoRow>
-	// 		)
-	// 	},
-	// 	size: 100
-	// },
+	{
+		header: () => <HeaderWithHelperText value="Reward APY" helperText="Annualised percentage yield from incentives" />,
+		accessorKey: 'apyReward',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true)}</>
+		},
+		size: 100
+	},
 	{
 		header: () => <HeaderWithHelperText value="1d Change" helperText="Absolute change in APY" />,
 		accessorKey: 'change1d',
@@ -134,3 +115,62 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 100
 	}
 ]
+
+// key: min width of window/screen
+// values: table columns order
+const columnOrders = {
+	0: [
+		'pool',
+		'apy',
+		'tvl',
+		'project',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'change1d',
+		'change7d',
+		'outlook',
+		'confidence'
+	],
+	360: [
+		'pool',
+		'project',
+		'apy',
+		'tvl',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'change1d',
+		'change7d',
+		'outlook',
+		'confidence'
+	],
+	640: [
+		'pool',
+		'project',
+		'tvl',
+		'apy',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'change1d',
+		'change7d',
+		'outlook',
+		'confidence'
+	],
+	1280: [
+		'pool',
+		'project',
+		'chains',
+		'tvl',
+		'apy',
+		'apyBase',
+		'apyReward',
+		'change1d',
+		'change7d',
+		'outlook',
+		'confidence'
+	]
+}
+
+export const yieldsColumnOrders = formatColumnOrder(columnOrders)

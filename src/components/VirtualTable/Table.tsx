@@ -118,7 +118,6 @@ const Wrapper = styled.div`
 	border-radius: 12px;
 	max-width: calc(100vw - 32px);
 	overflow-x: auto;
-	overscroll-behavior: contain;
 
 	table {
 		table-layout: fixed;
