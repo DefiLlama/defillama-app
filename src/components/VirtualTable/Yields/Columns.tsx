@@ -18,7 +18,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		header: 'Project',
 		accessorKey: 'project',
 		enableSorting: false,
-		size: 132
+		size: 140
 	},
 	{
 		header: 'Chain',
@@ -44,7 +44,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				</span>
 			)
 		},
-		size: 100
+		size: 120
 	},
 	{
 		header: () => <HeaderWithHelperText value="APY" helperText="Total annualised percentage yield" />,
@@ -62,7 +62,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				</span>
 			)
 		},
-		size: 100
+		size: 120
 	},
 	{
 		header: () => (
@@ -73,7 +73,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: (info) => {
 			return <>{formattedPercent(info.getValue(), true)}</>
 		},
-		size: 100
+		size: 120
 	},
 	{
 		header: () => <HeaderWithHelperText value="Reward APY" helperText="Annualised percentage yield from incentives" />,
@@ -82,19 +82,19 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: (info) => {
 			return <>{formattedPercent(info.getValue(), true)}</>
 		},
-		size: 100
+		size: 120
 	},
 	{
 		header: () => <HeaderWithHelperText value="1d Change" helperText="Absolute change in APY" />,
 		accessorKey: 'change1d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 100
+		size: 120
 	},
 	{
 		header: () => <HeaderWithHelperText value="7d Change" helperText="Absolute change in APY" />,
 		accessorKey: 'change7d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 100
+		size: 120
 	},
 	{
 		header: () => (
@@ -104,7 +104,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			/>
 		),
 		accessorKey: 'outlook',
-		size: 100
+		size: 120
 	},
 	{
 		header: () => <HeaderWithHelperText value="Confidence" helperText="Predicted outlook confidence" />,
@@ -112,7 +112,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: (info) => (
 			<>{info.getValue() === null ? null : info.getValue() === 1 ? 'Low' : info.getValue() === 2 ? 'Medium' : 'High'}</>
 		),
-		size: 100
+		size: 120
 	}
 ]
 

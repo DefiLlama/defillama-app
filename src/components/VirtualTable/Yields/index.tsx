@@ -30,7 +30,6 @@ export function YieldsTable({ data }: { data: IYieldTableRow[] }) {
 	})
 
 	React.useEffect(() => {
-		console.log(windowSize.width)
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = windowSize.width
