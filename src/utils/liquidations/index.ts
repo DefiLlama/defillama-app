@@ -260,7 +260,7 @@ export async function getAvailableAssetsList() {
 		.map((symbol) => {
 			const asset = DEFAULT_ASSETS_LIST.find((a) => a.symbol.toLowerCase() === symbol)
 			if (!asset) {
-				console.error('Asset hidden', symbol)
+				// console.log('Asset hidden', symbol)
 				return null
 			}
 			return asset
