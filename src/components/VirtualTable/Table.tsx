@@ -1,11 +1,17 @@
 import * as React from 'react'
-import { Table, flexRender } from '@tanstack/react-table'
+import { Table, flexRender, RowData } from '@tanstack/react-table'
 import { defaultRangeExtractor, useWindowVirtualizer } from '@tanstack/react-virtual'
 import SortIcon from './SortIcon'
 import styled from 'styled-components'
 
 interface ITableProps {
 	instance: Table<any>
+}
+
+declare module '@tanstack/table-core' {
+	interface ColumnMeta<TData extends RowData, TValue> {
+		align: 'start' | 'end'
+	}
 }
 
 export default function VirtualTable({ instance }: ITableProps) {
@@ -61,14 +67,18 @@ export default function VirtualTable({ instance }: ITableProps) {
 					{instance.getHeaderGroups().map((headerGroup) => (
 						<tr key={headerGroup.id}>
 							{headerGroup.headers.map((header) => {
+								// get header text alignment
+								const align = header.column.columnDef.meta?.align ?? 'start'
+
 								return (
 									<th key={header.id} colSpan={header.colSpan} style={{ width: header.getSize() }}>
 										{header.isPlaceholder ? null : (
 											<TableHeader
 												canSort={header.column.getCanSort()}
 												onClick={() => header.column.getToggleSortingHandler()}
+												align={align}
 											>
-												<span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
+												<>{flexRender(header.column.columnDef.header, header.getContext())}</>
 												{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
 											</TableHeader>
 										)}
@@ -91,8 +101,11 @@ export default function VirtualTable({ instance }: ITableProps) {
 						return (
 							<tr key={row.id}>
 								{row.getVisibleCells().map((cell) => {
+									// get header text alignment
+									const textAlign = cell.column.columnDef.meta?.align ?? 'start'
+
 									return (
-										<td key={cell.id} style={{ width: cell.column.getSize() }}>
+										<td key={cell.id} style={{ width: cell.column.getSize(), textAlign }}>
 											{flexRender(cell.column.columnDef.cell, cell.getContext())}
 										</td>
 									)
@@ -113,10 +126,14 @@ export default function VirtualTable({ instance }: ITableProps) {
 }
 
 const Wrapper = styled.div`
+	--table-bg: ${({ theme }) => (theme.mode === 'dark' ? '#1f222a' : '#fff')};
 	position: relative;
-	background: #000;
-	border-radius: 12px;
 	max-width: calc(100vw - 32px);
+	color: ${({ theme }) => theme.text1};
+	background-color: var(--table-bg);
+	border: 1px solid ${({ theme }) => theme.bg3};
+	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
+	border-radius: 12px;
 	overflow-x: auto;
 
 	table {
@@ -129,11 +146,9 @@ const Wrapper = styled.div`
 		position: sticky;
 		top: 0;
 		margin: 0;
-		border-radius: 12px 12px 0 0;
 
 		th {
 			z-index: 1;
-			background: orange;
 
 			:first-of-type {
 				border-radius: 12px 0 0 0;
@@ -143,6 +158,10 @@ const Wrapper = styled.div`
 				border-radius: 0 12px 0 0;
 			}
 		}
+	}
+
+	tr {
+		border-bottom: 1px solid ${({ theme }) => theme.divider};
 	}
 
 	th,
@@ -157,10 +176,7 @@ const Wrapper = styled.div`
 		position: sticky;
 		left: 0;
 		z-index: 1;
-	}
-
-	td:first-child {
-		backdrop-filter: blur(40px) grayscale(1);
+		background-color: var(--table-bg);
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
@@ -170,17 +186,24 @@ const Wrapper = styled.div`
 
 interface ITableHeader {
 	canSort: boolean
+	align: 'start' | 'end'
 }
 
-const TableHeader = styled.div<ITableHeader>`
+const TableHeader = styled.span<ITableHeader>`
 	display: flex;
+	justify-content: ${({ align }) => (align === 'end' ? 'flex-end' : 'flex-start')};
 	align-items: center;
 	flex-wrap: nowrap;
 	gap: 4px;
+	font-weight: 500;
 	cursor: ${({ canSort }) => (canSort ? 'pointer' : 'default')};
 	user-select: ${({ canSort }) => (canSort ? 'none' : 'initial')};
 
 	& > * {
 		white-space: nowrap;
+	}
+
+	svg {
+		flex-shrink: 0;
 	}
 `

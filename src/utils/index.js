@@ -214,13 +214,18 @@ export function formattedPercent(percent, noSign = false, fontWeight = 500) {
 	}
 
 	percent = parseFloat(percent)
+
 	if (!percent || percent === 0) {
-		return <Text fontWeight={fontWeight}>0%</Text>
+		return (
+			<Text as="span" fontWeight={fontWeight}>
+				0%
+			</Text>
+		)
 	}
 
 	if (percent < 0.0001 && percent > 0) {
 		return (
-			<Text fontWeight={fontWeight} color={up}>
+			<Text as="span" fontWeight={fontWeight} color={up}>
 				{'< 0.0001%'}
 			</Text>
 		)
@@ -228,7 +233,7 @@ export function formattedPercent(percent, noSign = false, fontWeight = 500) {
 
 	if (percent < 0 && percent > -0.0001) {
 		return (
-			<Text fontWeight={fontWeight} color={down}>
+			<Text as="span" fontWeight={fontWeight} color={down}>
 				{'< 0.0001%'}
 			</Text>
 		)
@@ -241,12 +246,14 @@ export function formattedPercent(percent, noSign = false, fontWeight = 500) {
 	const prefix = noSign ? '' : '+'
 	if (fixedPercent > 0) {
 		if (fixedPercent > 100) {
-			return <Text fontWeight={fontWeight} color={up}>{`${prefix}${percent?.toFixed(0).toLocaleString()}%`}</Text>
+			return (
+				<Text as="span" fontWeight={fontWeight} color={up}>{`${prefix}${percent?.toFixed(0).toLocaleString()}%`}</Text>
+			)
 		} else {
-			return <Text fontWeight={fontWeight} color={up}>{`${prefix}${fixedPercent}%`}</Text>
+			return <Text as="span" fontWeight={fontWeight} color={up}>{`${prefix}${fixedPercent}%`}</Text>
 		}
 	} else {
-		return <Text fontWeight={fontWeight} color={down}>{`${fixedPercent}%`}</Text>
+		return <Text as="span" fontWeight={fontWeight} color={down}>{`${fixedPercent}%`}</Text>
 	}
 }
 
