@@ -4,6 +4,24 @@ import type { ISearchItem } from '~/components/Search/types'
 import { LIQUIDATIONS_API, LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
 import { assetIconUrl } from '..'
 
+/**
+ * Format the URL to the liquidations data payload
+ *
+ * @param symbol The symbol of the asset to fetch liquidations for
+ * @param timestamp UNIX timestamp in **seconds**
+ * @returns The URL to the liquidations data payload
+ */
+const getDataUrl = (symbol: string, timestamp: number) => {
+	const hourId = Math.floor(timestamp / 3600 / 6) * 6
+	return `${LIQUIDATIONS_HISTORICAL_S3_PATH}/${symbol.toLowerCase()}/${hourId}.json`
+}
+
+const getAvailability = async () => {
+	const res = await fetch(`${LIQUIDATIONS_HISTORICAL_S3_PATH}/availability.json`)
+	const data = await res.json()
+	return data as { availability: { [symbol: string]: number }; time: number }
+}
+
 const TOTAL_BINS = 100
 const WRAPPED_GAS_TOKENS = ['WETH', 'WAVAX', 'WMATIC', 'WFTM', 'WBNB', 'WCRO', 'WONE']
 const SYMBOL_MAP: { [originSymbol: string]: string } = { BTCB: 'WBTC', BTC: 'WBTC' }
@@ -147,6 +165,7 @@ async function getPrices(collaterals: string[]) {
 }
 
 export type ChartData = {
+	name: string
 	symbol: string // could change to coingeckoId in the future
 	currentPrice: number
 	totalLiquidable: number // excluding bad debts
@@ -174,9 +193,6 @@ export type ChartData = {
 	time: number
 	topPositions: PositionSmol[]
 	totalPositions: number
-
-	availableAssetsList: ISearchItem[]
-	asset: ISearchItem
 }
 
 export interface ChartDataBins {
@@ -237,69 +253,39 @@ function getChartDataBins(
 	return Object.fromEntries(bins)
 }
 
-export interface LiquidationsApiResponse {
-	time: number
-	data: {
-		protocol: string
-		liqs: {
-			[chain: string]: Liq[]
-		}
-	}[]
+export async function getAvailableAssetsList() {
+	const { availability, time } = await getAvailability()
+	const assets = DEFAULT_ASSETS_LIST.filter((asset) => {
+		return !!availability[asset.symbol.toLowerCase()]
+	})
+
+	return { assets, time }
 }
 
-export async function getAvailableAssetsList() {
-	const res = await fetch(LIQUIDATIONS_API)
-	const raw = (await res.json()) as LiquidationsApiResponse
-	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
-		(acc, d) => ({ ...acc, [d.protocol]: Object.values(d.liqs).flat() }),
-		{}
-	)
-	const allAggregated = await aggregateAssetAdapterData(adapterData)
-	const symbols = Array.from(allAggregated.keys()).map((a) => a.toLowerCase())
-	const availableAssetsList = symbols
-		.map((symbol) => {
-			const asset = DEFAULT_ASSETS_LIST.find((a) => a.symbol.toLowerCase() === symbol)
-			if (!asset) {
-				// console.log('Asset hidden', symbol)
-				return null
-			}
-			return asset
-		})
-		.filter((a) => a !== null)
-	return availableAssetsList
+interface LiquidationsData {
+	symbol: string
+	currentPrice: number
+	positions: Position[]
+	time: number
 }
 
 export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, timePassed = 0) {
 	const now = Math.round(Date.now() / 1000) // in seconds
-	const LIQUIDATIONS_DATA_URL =
-		timePassed === 0
-			? LIQUIDATIONS_API
-			: LIQUIDATIONS_HISTORICAL_S3_PATH + `/${Math.floor((now - timePassed) / 3600 / 6) * 6}.json`
+	const LIQUIDATIONS_DATA_URL = getDataUrl(symbol, now - timePassed)
+	const LIQUIDATIONS_DATA_URL_FALLBACK = getDataUrl(symbol, now)
 
-	let raw: LiquidationsApiResponse
+	let data: LiquidationsData
 	try {
 		const res = await fetch(LIQUIDATIONS_DATA_URL)
-		raw = await res.json()
+		data = await res.json()
 	} catch (e) {
 		// fallback to current
-		const res = await fetch(LIQUIDATIONS_API)
-		raw = await res.json()
+		const res = await fetch(`${LIQUIDATIONS_HISTORICAL_S3_PATH}/${symbol.toLowerCase()}/latest.json`)
+		data = await res.json()
 	}
 
-	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
-		(acc, d) => ({ ...acc, [d.protocol]: Object.values(d.liqs).flat() }),
-		{}
-	)
-	const allAggregated = await aggregateAssetAdapterData(adapterData)
-	if (!allAggregated.has(symbol)) {
-		// no data for this symbol, will happen when historical data is not available for this asset
-		return null
-	}
-	const symbols = Array.from(allAggregated.keys()).map((a) => a.toLowerCase())
-	const availableAssetsList = DEFAULT_ASSETS_LIST.filter((asset) => symbols.includes(asset.symbol.toLowerCase()))
-
-	const currentPrice = allAggregated.get(symbol)!.currentPrice
-	const positions = allAggregated.get(symbol)!.positions
+	const currentPrice = data.currentPrice
+	const positions = data.positions
 
 	const badDebtsPositions = positions.filter((p) => p.liqPrice > currentPrice)
 	const badDebts = badDebtsPositions.reduce((acc, p) => acc + p.collateralValue, 0)
@@ -346,6 +332,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		}))
 
 	const chartData: ChartData = {
+		name: DEFAULT_ASSETS_LIST.find((a) => a.symbol.toLowerCase() === symbol.toLowerCase())?.name ?? symbol,
 		symbol,
 		currentPrice,
 		badDebts,
@@ -375,12 +362,9 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 			protocols,
 			chains
 		},
-		time: raw.time,
+		time: data.time,
 		topPositions,
-		totalPositions: validPositions.length,
-
-		availableAssetsList,
-		asset: availableAssetsList.find((a) => a.symbol.toLowerCase() === symbol.toLowerCase())
+		totalPositions: validPositions.length
 	}
 
 	return chartData
@@ -405,22 +389,16 @@ export function getReadableValue(value: number) {
 }
 
 export const getLiquidationsCsvData = async (symbol: string) => {
-	const raw = (await fetch(LIQUIDATIONS_API).then((r) => r.json())) as LiquidationsApiResponse
-	const timestamp = raw.time
+	const now = Math.round(Date.now() / 1000) // in seconds
+	const LIQUIDATIONS_DATA_URL = getDataUrl(symbol, now)
 
-	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
-		(acc, d) => ({ ...acc, [d.protocol]: Object.values(d.liqs).flat() }),
-		{}
-	)
-	const allAggregated = await aggregateAssetAdapterData(adapterData)
-	if (!allAggregated.has(symbol)) {
-		// no data for this symbol, will happen when historical data is not available for this asset
-		return null
-	}
+	const res = await fetch(LIQUIDATIONS_DATA_URL)
+	const data = (await res.json()) as LiquidationsData
 
-	const positions = allAggregated.get(symbol)!.positions
+	const timestamp = data.time
+	const positions = data.positions
 	const allAssetPositions = positions
-		.filter((p) => p.liqPrice < allAggregated.get(symbol)!.currentPrice && p.collateralValue > 0)
+		.filter((p) => p.liqPrice < data.currentPrice && p.collateralValue > 0)
 		.map((p) => ({
 			...p,
 			symbol
@@ -615,8 +593,8 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 export const DEFAULT_ASSETS_LIST: ISearchItem[] = DEFAULT_ASSETS_LIST_RAW.map(({ name, symbol }) => ({
 	name,
 	symbol,
-	route: `/liquidations/${symbol}`,
-	logo: assetIconUrl(symbol)
+	route: `/liquidations/${symbol.toLowerCase()}`,
+	logo: assetIconUrl(symbol.toLowerCase())
 }))
 
 export const PROTOCOL_NAMES_MAP: { [protocol: string]: string } = {
