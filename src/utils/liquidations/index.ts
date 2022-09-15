@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars*/
 import BigNumber from 'bignumber.js'
 import type { ISearchItem } from '~/components/Search/types'
-import { LIQUIDATIONS_API, LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
+import { LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
 import { assetIconUrl } from '..'
 
 /**
@@ -76,92 +76,6 @@ const getNativeSymbol = (symbol: string) => {
 		symbol.toLowerCase().endsWith('.e') || symbol.toLowerCase().endsWith('.b') ? symbol.slice(0, -2) : symbol
 	const nativeSymbol = WRAPPED_GAS_TOKENS.includes(originSymbol) ? originSymbol.substring(1) : originSymbol
 	return nativeSymbol.toLowerCase()
-}
-
-/**
- * Transform the output of multiple adapters to a single data structure aggregated by assets
- *
- */
-async function aggregateAssetAdapterData(filteredAdapterOutput: { [protocol: Protocol]: Liq[] }) {
-	const protocols = Object.keys(filteredAdapterOutput)
-
-	// go thru all entries first to find all Collaterals (can be optimized but will be fine for now)
-	const knownTokens = new Set<PrefixAddress>()
-	for (const protocol of protocols) {
-		filteredAdapterOutput[protocol].forEach((liq) => knownTokens.add(liq.collateral.toLowerCase()))
-	}
-
-	const prices = await getPrices(Array.from(knownTokens))
-	const aggregatedData: Map<Symbol, { currentPrice: number; positions: Position[] }> = new Map()
-	for (const price of prices) {
-		const symbol = getNativeSymbol(price.symbol)
-		if (!aggregatedData.has(symbol)) {
-			aggregatedData.set(symbol, {
-				currentPrice: price.price,
-				positions: []
-			})
-		}
-	}
-
-	for (const protocol of protocols) {
-		const adapterData = filteredAdapterOutput[protocol]
-		for (const liq of adapterData) {
-			const price = prices.find((price) => price.address === liq.collateral.toLowerCase())
-			if (!price) {
-				continue
-			}
-
-			const collateralAmountRaw = new BigNumber(liq.collateralAmount).div(10 ** price.decimals)
-
-			const symbol = getNativeSymbol(price.symbol)
-			aggregatedData.get(symbol)!.positions.push({
-				owner: liq.owner,
-				liqPrice: liq.liqPrice,
-				collateralValue: collateralAmountRaw.times(liq.liqPrice).toNumber(),
-				collateralAmount: collateralAmountRaw.toNumber(),
-				chain: price.chain,
-				protocol: protocol,
-				collateral: liq.collateral.toLowerCase(),
-				displayName: liq.extra?.displayName ?? liq.owner,
-				url: liq.extra?.url
-			})
-		}
-	}
-
-	for (const symbol in aggregatedData.keys()) {
-		// array.sort is in place
-		aggregatedData.get(symbol)!.positions.sort((a, b) => b.collateralValue - a.collateralValue)
-	}
-
-	return aggregatedData
-}
-
-async function getPrices(collaterals: string[]) {
-	const res = await fetch('https://coins.llama.fi/prices', {
-		method: 'POST',
-		body: JSON.stringify({
-			coins: collaterals
-		})
-	})
-	const data = await res.json()
-	const _prices = data.coins as {
-		[address: string]: {
-			decimals: number
-			price: number
-			symbol: string
-			timestamp: number
-		}
-	}
-	const prices: Price[] = Object.entries(_prices).map(([address, price]) => {
-		const _chain = address.split(':')[0]
-		const chain = _chain === 'avax' ? 'avalanche' : _chain
-		return {
-			...price,
-			address,
-			chain
-		}
-	})
-	return prices
 }
 
 export type ChartData = {
@@ -272,7 +186,6 @@ interface LiquidationsData {
 export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, timePassed = 0) {
 	const now = Math.round(Date.now() / 1000) // in seconds
 	const LIQUIDATIONS_DATA_URL = getDataUrl(symbol, now - timePassed)
-	const LIQUIDATIONS_DATA_URL_FALLBACK = getDataUrl(symbol, now)
 
 	let data: LiquidationsData
 	try {
