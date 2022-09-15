@@ -280,7 +280,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		data = await res.json()
 	} catch (e) {
 		// fallback to current
-		const res = await fetch(LIQUIDATIONS_DATA_URL_FALLBACK)
+		const res = await fetch(`${LIQUIDATIONS_HISTORICAL_S3_PATH}/${symbol.toLowerCase()}/latest.json`)
 		data = await res.json()
 	}
 
