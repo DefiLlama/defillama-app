@@ -22,7 +22,7 @@ import { Clock } from 'react-feather'
 import { ProtocolsTable } from '../../components/LiquidationsPage/ProtocolsTable'
 import SEO from '~/components/SEO'
 import { assetIconUrl } from '~/utils'
-import { Panel, PanelSmol, PanelThicc, StyledAnchor } from '~/components'
+import { PanelSmol, PanelThicc, StyledAnchor } from '~/components'
 import Image from 'next/image'
 import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
@@ -91,19 +91,19 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 	}, [])
 
 	return (
-		<Layout title={`${data?.asset?.name} (${data?.asset?.symbol}) Liquidation Levels - DefiLlama`}>
+		<Layout title={`${data.name} (${data.symbol}) Liquidation Levels - DefiLlama`}>
 			<SEO
 				liqsPage
-				cardName={`${data?.asset?.name} (${data?.asset?.symbol})`}
-				logo={'https://defillama.com' + assetIconUrl(data?.asset?.symbol, true)}
-				tvl={'$' + getReadableValue(data?.totalLiquidable)}
+				cardName={`${data.name} (${data.symbol})`}
+				logo={'https://defillama.com' + assetIconUrl(data.symbol.toLowerCase(), true)}
+				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>
 
 			<LiquidationsSearch
-				step={{ category: 'Home', name: `${data?.symbol?.toUpperCase()} Liquidation Levels`, hideOptions: true }}
+				step={{ category: 'Home', name: `${data.symbol.toUpperCase()} Liquidation Levels`, hideOptions: true }}
 			/>
 
-			{!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data?.symbol?.toUpperCase()) && (
+			{!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data.symbol.toUpperCase()) && (
 				<>
 					<PanelThicc as="p">
 						We are now tracking

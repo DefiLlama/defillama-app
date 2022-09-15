@@ -10,8 +10,9 @@ import { Input, Item, List } from '~/components/Combobox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import type { ISearchItem } from '~/components/Search/types'
 import { StackBySwitch } from './StackBySwitch'
-import { ChartData } from '~/utils/liquidations'
+import { ChartData, getAvailableAssetsList } from '~/utils/liquidations'
 import { DownloadButton } from './DownloadButton'
+import { assetIconUrl } from '~/utils'
 
 const LiquidationsHeaderWrapper = styled.div`
 	flex: 1;
@@ -42,9 +43,28 @@ const ButtonsGroup = styled.div`
 `
 
 export const LiquidationsHeader = (props: ChartData) => {
+	const [availableAssetsList, setAvailableAssetsList] = React.useState<ISearchItem[]>([
+		{
+			name: props.name,
+			symbol: props.symbol,
+			route: `/liquidations/${props.symbol.toLowerCase()}`,
+			logo: assetIconUrl(props.symbol.toLowerCase())
+		}
+	])
+
+	React.useEffect(() => {
+		const fetchAssetsList = async () => {
+			const availableAssetsList = await getAvailableAssetsList()
+			console.log(availableAssetsList)
+			setAvailableAssetsList(availableAssetsList.assets)
+		}
+
+		fetchAssetsList().catch(console.error)
+	}, [])
+
 	return (
 		<LiquidationsHeaderWrapper>
-			<AssetSelector symbol={props.symbol} options={props.availableAssetsList} />
+			<AssetSelector symbol={props.symbol} options={availableAssetsList} />
 			<ButtonsGroup>
 				<StackBySwitch />
 				<DownloadButton symbol={props.symbol} />
@@ -59,6 +79,8 @@ interface IProps {
 }
 
 export function AssetSelector({ options, symbol }: IProps) {
+	console.log('options', options)
+	console.log('symbol', symbol)
 	const defaultList = options.map(({ name, symbol }) => `${name} - ${symbol}`)
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()

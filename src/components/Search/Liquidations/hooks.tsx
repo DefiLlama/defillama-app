@@ -7,7 +7,7 @@ export function useGetLiquidationSearchList(): IGetSearchList {
 	useEffect(() => {
 		const fetchAssetsList = async () => {
 			const availableAssetsList = await getAvailableAssetsList()
-			setSearchList({ data: availableAssetsList, loading: false })
+			setSearchList({ data: availableAssetsList.assets, loading: false })
 		}
 
 		fetchAssetsList().catch((err) => {

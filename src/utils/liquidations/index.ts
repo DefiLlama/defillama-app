@@ -165,6 +165,7 @@ async function getPrices(collaterals: string[]) {
 }
 
 export type ChartData = {
+	name: string
 	symbol: string // could change to coingeckoId in the future
 	currentPrice: number
 	totalLiquidable: number // excluding bad debts
@@ -255,7 +256,7 @@ function getChartDataBins(
 export async function getAvailableAssetsList() {
 	const { availability, time } = await getAvailability()
 	const assets = DEFAULT_ASSETS_LIST.filter((asset) => {
-		return !!availability[asset.symbol]
+		return !!availability[asset.symbol.toLowerCase()]
 	})
 
 	return { assets, time }
@@ -331,6 +332,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		}))
 
 	const chartData: ChartData = {
+		name: DEFAULT_ASSETS_LIST.find((a) => a.symbol.toLowerCase() === symbol.toLowerCase())?.name ?? symbol,
 		symbol,
 		currentPrice,
 		badDebts,
@@ -387,19 +389,13 @@ export function getReadableValue(value: number) {
 }
 
 export const getLiquidationsCsvData = async (symbol: string) => {
-	const raw = (await fetch(LIQUIDATIONS_API).then((r) => r.json())) as LiquidationsApiResponse
-	const timestamp = raw.time
+	const now = Math.round(Date.now() / 1000) // in seconds
+	const LIQUIDATIONS_DATA_URL = getDataUrl(symbol, now)
 
-	const adapterData: { [protocol: string]: Liq[] } = raw.data.reduce(
-		(acc, d) => ({ ...acc, [d.protocol]: Object.values(d.liqs).flat() }),
-		{}
-	)
-	const allAggregated = await aggregateAssetAdapterData(adapterData)
-	if (!allAggregated.has(symbol)) {
-		// no data for this symbol, will happen when historical data is not available for this asset
-		return null
-	}
+	const res = await fetch(LIQUIDATIONS_DATA_URL)
+	const data = (await res.json()) as LiquidationsData
 
+	const timestamp = data.time
 	const positions = data.positions
 	const allAssetPositions = positions
 		.filter((p) => p.liqPrice < data.currentPrice && p.collateralValue > 0)
@@ -597,8 +593,8 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 export const DEFAULT_ASSETS_LIST: ISearchItem[] = DEFAULT_ASSETS_LIST_RAW.map(({ name, symbol }) => ({
 	name,
 	symbol,
-	route: `/liquidations/${symbol}`,
-	logo: assetIconUrl(symbol)
+	route: `/liquidations/${symbol.toLowerCase()}`,
+	logo: assetIconUrl(symbol.toLowerCase())
 }))
 
 export const PROTOCOL_NAMES_MAP: { [protocol: string]: string } = {
