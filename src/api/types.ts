@@ -172,17 +172,3 @@ export interface ICategory {
 	label: string
 	to: string
 }
-
-export interface IDexResponse extends Protocol {
-	volumeAdapter: string
-	volumeHistory: Array<{
-		dailyVolume: {
-			[chain: string]: {
-				[protocolVersion: string]: number | string
-			}
-		}
-		timestamp: number
-	}> | null
-	total1dVolume: number | null
-	change1dVolume: number | null
-}

@@ -10,7 +10,7 @@ import dynamic from 'next/dynamic'
 import { formattedNum } from '~/utils'
 import { useInView } from 'react-intersection-observer'
 import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
-import { VolumeSummaryDex } from '~/api/categories/dexs'
+import { VolumeSummaryDex } from '~/api/categories/dexs/types'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')

@@ -4,7 +4,7 @@ import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { revalidate } from '~/api'
 import { getDexs, getDex } from '~/api/categories/dexs'
-import { IDexResponse } from '~/api/types'
+import { IDexResponse } from '~/api/categories/dexs/types'
 
 type PageParams = {
 	dex: string
@@ -34,7 +34,7 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 export async function getStaticPaths() {
 	const res = await getDexs()
 
-	const paths: string[] = res.dexs.map((dex) => ({
+	const paths = res.dexs.map((dex) => ({
 		params: { dex: [standardizeProtocolName(dex.name)] }
 	}))
 

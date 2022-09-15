@@ -2,10 +2,10 @@ import * as React from 'react'
 import Layout from '~/layout'
 import DexsContainer, { IDexsContainer } from '~/containers/DexsContainer'
 import { revalidate } from '~/api'
-import { getNewDexsPageData } from '~/api/categories/dexs'
+import { getDexsPageData } from '~/api/categories/dexs'
 
 export async function getStaticProps() {
-	const { props } = await getNewDexsPageData()
+	const { props } = await getDexsPageData()
 
 	return {
 		props,
