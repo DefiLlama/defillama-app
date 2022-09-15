@@ -54,9 +54,8 @@ export const LiquidationsHeader = (props: ChartData) => {
 
 	React.useEffect(() => {
 		const fetchAssetsList = async () => {
-			const availableAssetsList = await getAvailableAssetsList()
-			console.log(availableAssetsList)
-			setAvailableAssetsList(availableAssetsList.assets)
+			const _availableAssetsList = await getAvailableAssetsList()
+			setAvailableAssetsList(_availableAssetsList.assets)
 		}
 
 		fetchAssetsList().catch(console.error)
@@ -79,9 +78,14 @@ interface IProps {
 }
 
 export function AssetSelector({ options, symbol }: IProps) {
-	console.log('options', options)
-	console.log('symbol', symbol)
-	const defaultList = options.map(({ name, symbol }) => `${name} - ${symbol}`)
+	const [defaultList, setDefaultList] = React.useState<string[]>(
+		options.map(({ name, symbol }) => `${name.toLowerCase()} - ${symbol.toLowerCase()}`)
+	)
+	console.log({ defaultList })
+
+	React.useEffect(() => {
+		setDefaultList(options.map(({ name, symbol }) => `${name.toLowerCase()} - ${symbol.toLowerCase()}`))
+	}, [options])
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
@@ -93,6 +97,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 	if (!menu.mounted && combobox.value) {
 		combobox.setValue('')
 	}
+	console.log({ combobox })
 
 	const selectedAsset = React.useMemo(
 		() => options.find((x) => x.symbol.toLowerCase() === symbol.toLowerCase()),
@@ -126,7 +131,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 }
 
 const getMatchingOption = (options: ISearchItem[], value: string): ISearchItem => {
-	return options.find(({ name, symbol }) => `${name} - ${symbol}` === value)
+	return options.find(({ name, symbol }) => `${name.toLowerCase()} - ${symbol.toLowerCase()}` === value)
 }
 
 const AssetButtonLink = (props: { options: ISearchItem[]; value: string }) => {
