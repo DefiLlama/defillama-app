@@ -42,31 +42,14 @@ const ButtonsGroup = styled.div`
 	}
 `
 
-export const LiquidationsHeader = (props: ChartData) => {
-	const [availableAssetsList, setAvailableAssetsList] = React.useState<ISearchItem[]>([
-		{
-			name: props.name,
-			symbol: props.symbol,
-			route: `/liquidations/${props.symbol.toLowerCase()}`,
-			logo: assetIconUrl(props.symbol.toLowerCase())
-		}
-	])
-
-	React.useEffect(() => {
-		const fetchAssetsList = async () => {
-			const _availableAssetsList = await getAvailableAssetsList()
-			setAvailableAssetsList(_availableAssetsList.assets)
-		}
-
-		fetchAssetsList().catch(console.error)
-	}, [])
-
+export const LiquidationsHeader = (props: { data: ChartData; options: ISearchItem[] }) => {
+	const { data, options } = props
 	return (
 		<LiquidationsHeaderWrapper>
-			<AssetSelector symbol={props.symbol} options={availableAssetsList} />
+			<AssetSelector symbol={data.symbol} options={options} />
 			<ButtonsGroup>
 				<StackBySwitch />
-				<DownloadButton symbol={props.symbol} />
+				<DownloadButton symbol={data.symbol} />
 			</ButtonsGroup>
 		</LiquidationsHeaderWrapper>
 	)

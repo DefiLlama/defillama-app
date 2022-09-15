@@ -27,13 +27,15 @@ import Image from 'next/image'
 import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import { PositionsTable } from '~/components/LiquidationsPage/PositionsTable'
+import { ISearchItem } from '~/components/Search/types'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = (params.symbol as string).toLowerCase()
+	const { assets: options } = await getAvailableAssetsList()
 	const data = await getLatestChartData(symbol, 100)
 	const prevData = (await getPrevChartData(symbol, 100, 3600 * 24)) ?? data
 	return {
-		props: { data, prevData },
+		props: { data, prevData, options },
 		revalidate: revalidate(5)
 	}
 }
@@ -76,8 +78,8 @@ const ResponsiveHeader = styled(Header)`
 	}
 `
 
-const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> = (props) => {
-	const { data, prevData } = props
+const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; options: ISearchItem[] }> = (props) => {
+	const { data, prevData, options } = props
 	const [liqsSettings] = useLiqsManager()
 	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
 	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
@@ -129,7 +131,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 			)}
 
 			<ResponsiveHeader>Liquidation levels in DeFi 💦</ResponsiveHeader>
-			<LiquidationsHeader {...data} />
+			<LiquidationsHeader data={data} options={options} />
 			<LiquidationsProvider>
 				<LiquidationsContent data={data} prevData={prevData} />
 			</LiquidationsProvider>
