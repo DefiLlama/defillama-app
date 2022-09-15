@@ -301,13 +301,13 @@ export interface VolumeSummaryDex extends Protocol {
 	change_1m: number | null
 	protocolVersions: {
 		[protVersion: string]: {
-				totalVolume24h: number | null
-				change_1d: number | null
-				change_7d: number | null
-				change_1m: number | null
-				chains: string[] | null
+			totalVolume24h: number | null
+			change_1d: number | null
+			change_7d: number | null
+			change_1m: number | null
+			chains: string[] | null
 		} | null
-} | null
+	} | null
 }
 
 export interface IGetDexsResponseBody {
@@ -328,13 +328,19 @@ export const getNewDexsPageData = async () => {
 		totalDataChart
 	} = await fetch(DEXS_API).then((res) => res.json()) as IGetDexsResponseBody
 
+	const protocolsData = (await getProtocolsRaw()) as { protocols: LiteProtocol[] }
+
 	return {
 		props: {
 			dexs,
 			totalVolume,
 			changeVolume1d,
 			changeVolume30d,
-			totalDataChart
+			totalDataChart,
+			tvlData: protocolsData.protocols.reduce((acc, pd) => {
+				acc[pd.name] = pd.tvlPrevDay
+				return acc
+			}, {})
 		}
 	}
 }
