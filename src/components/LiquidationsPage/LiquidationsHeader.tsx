@@ -78,14 +78,7 @@ interface IProps {
 }
 
 export function AssetSelector({ options, symbol }: IProps) {
-	const [defaultList, setDefaultList] = React.useState<string[]>(
-		options.map(({ name, symbol }) => `${name.toLowerCase()} - ${symbol.toLowerCase()}`)
-	)
-	console.log({ defaultList })
-
-	React.useEffect(() => {
-		setDefaultList(options.map(({ name, symbol }) => `${name.toLowerCase()} - ${symbol.toLowerCase()}`))
-	}, [options])
+	const defaultList = options.map(({ name, symbol }) => `${name.toLowerCase()} - ${symbol.toLowerCase()}`)
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
