@@ -39,9 +39,8 @@ export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartDa
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-	// TODO: make api for all tracked symbols
-	const availableAssetsList = await getAvailableAssetsList()
-	const paths = availableAssetsList
+	const { assets } = await getAvailableAssetsList()
+	const paths = assets
 		.map((x) => x.route.split('/').pop())
 		.map((x) => ({
 			params: { symbol: x.toLowerCase() }
