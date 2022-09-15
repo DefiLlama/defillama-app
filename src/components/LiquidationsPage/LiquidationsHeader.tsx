@@ -10,9 +10,8 @@ import { Input, Item, List } from '~/components/Combobox'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import type { ISearchItem } from '~/components/Search/types'
 import { StackBySwitch } from './StackBySwitch'
-import { ChartData, getAvailableAssetsList } from '~/utils/liquidations'
+import { ChartData } from '~/utils/liquidations'
 import { DownloadButton } from './DownloadButton'
-import { assetIconUrl } from '~/utils'
 
 const LiquidationsHeaderWrapper = styled.div`
 	flex: 1;
@@ -73,7 +72,6 @@ export function AssetSelector({ options, symbol }: IProps) {
 	if (!menu.mounted && combobox.value) {
 		combobox.setValue('')
 	}
-	console.log({ combobox })
 
 	const selectedAsset = React.useMemo(
 		() => options.find((x) => x.symbol.toLowerCase() === symbol.toLowerCase()),
