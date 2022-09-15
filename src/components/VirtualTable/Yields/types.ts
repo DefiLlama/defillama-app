@@ -18,6 +18,7 @@ export interface IYieldTableRow {
 	url: string
 	category: string
 	strikeTvl?: boolean
+	configID: string
 }
 
 export interface IYieldsTableProps {

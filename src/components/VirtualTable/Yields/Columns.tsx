@@ -1,24 +1,36 @@
 import { ColumnDef } from '@tanstack/react-table'
 import IconsRow from '~/components/IconsRow'
 import QuestionHelper from '~/components/QuestionHelper'
+import { AutoRow } from '~/components/Row'
 import { formattedNum, formattedPercent } from '~/utils'
 import { HeaderWithHelperText } from '../Header'
+import { NameYield, NameYieldPool } from './Name'
 import { formatColumnOrder } from '../utils'
-import { IYieldTableRow } from './types'
+import type { IYieldTableRow } from './types'
 
 export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: 'Pool',
 		accessorKey: 'pool',
 		enableSorting: false,
-		cell: (info) => <>{`${info.row.index + 1} ${info.getValue()}`}</>,
-		size: 160
+		cell: ({ getValue, row }) => (
+			<NameYieldPool
+				value={getValue() as string}
+				configID={row.original.configID}
+				url={row.original.url}
+				index={row.index + 1}
+			/>
+		),
+		size: 200
 	},
 	{
-		header: 'Project',
+		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
 		accessorKey: 'project',
 		enableSorting: false,
-		size: 140
+		cell: ({ row }) => (
+			<NameYield project={row.original.project} projectslug={row.original.projectslug} airdrop={row.original.airdrop} />
+		),
+		size: 200
 	},
 	{
 		header: 'Chain',
@@ -47,7 +59,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				</span>
 			)
 		},
-		size: 100,
+		size: 120,
 		meta: {
 			align: 'end'
 		}
@@ -91,8 +103,20 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		header: () => <HeaderWithHelperText value="Reward APY" helperText="Annualised percentage yield from incentives" />,
 		accessorKey: 'apyReward',
 		enableSorting: true,
-		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true, 400)}</>
+		cell: ({ getValue, row }) => {
+			const rewards = row.original.rewards ?? []
+
+			return (
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					<IconsRow
+						links={rewards}
+						url="/yields?project"
+						iconType="token"
+						yieldRewardsSymbols={row.original.rewardTokensSymbols}
+					/>
+					{formattedPercent(getValue(), true)}
+				</AutoRow>
+			)
 		},
 		size: 140,
 		meta: {
