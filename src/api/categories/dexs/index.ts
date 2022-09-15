@@ -315,11 +315,11 @@ export interface IGetDexsResponseBody {
 	changeVolume1d: number;
 	changeVolume7d: number;
 	changeVolume30d: number;
-	totalDataChart: [[string, number]],
+	totalDataChart: Array<[string, { [dex: string]: number }]>,
 	dexs: VolumeSummaryDex[]
 }
 
-export const getNewDexsPageData = async () => {
+export const getNewDexsPageData = async (aggregateChart: boolean = true) => {
 	const {
 		dexs,
 		totalVolume,
@@ -336,7 +336,12 @@ export const getNewDexsPageData = async () => {
 			totalVolume,
 			changeVolume1d,
 			changeVolume30d,
-			totalDataChart,
+			totalDataChart:
+				aggregateChart
+					? totalDataChart
+						.map(([timestamp, dexsData]) =>
+							[timestamp, Object.values(dexsData).reduce((acc, volume) => acc += volume, 0)])
+					: totalDataChart,
 			tvlData: protocolsData.protocols.reduce((acc, pd) => {
 				acc[pd.name] = pd.tvlPrevDay
 				return acc

@@ -10,7 +10,7 @@ import dynamic from 'next/dynamic'
 import { formattedNum } from '~/utils'
 import { useInView } from 'react-intersection-observer'
 import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
-import { IGetDexsResponseBody } from '~/api/categories/dexs'
+import { VolumeSummaryDex } from '~/api/categories/dexs'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -203,7 +203,13 @@ const columns = columnsToShow(
 	'volumetvl'
 )
 
-interface IDexsContainer extends IGetDexsResponseBody {
+export interface IDexsContainer {
+	totalVolume: number
+	changeVolume1d: number
+	changeVolume7d: number
+	changeVolume30d: number
+	totalDataChart: Array<[string, number]>
+	dexs: VolumeSummaryDex[]
 	tvlData: { [name: string]: number }
 }
 

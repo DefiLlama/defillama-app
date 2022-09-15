@@ -1,19 +1,19 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import DexsContainer from '~/containers/DexsContainer'
+import DexsContainer, { IDexsContainer } from '~/containers/DexsContainer'
 import { revalidate } from '~/api'
 import { getNewDexsPageData } from '~/api/categories/dexs'
 
 export async function getStaticProps() {
-	const dexsData = await getNewDexsPageData()
+	const { props } = await getNewDexsPageData()
 
 	return {
-		props: dexsData.props,
+		props,
 		revalidate: revalidate()
 	}
 }
 
-const Chains: React.FC<any> = (props) => {
+const Chains: React.FC<IDexsContainer> = (props) => {
 	return (
 		<Layout title={'All DEX volumes - DefiLlama'} defaultSEO>
 			<DexsContainer {...props} />
