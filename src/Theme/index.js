@@ -47,7 +47,7 @@ const theme = (darkMode, color) => ({
 	//specialty colors
 	modalBG: darkMode ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.6)',
 	advancedBG: darkMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.4)',
-	onlyLight: darkMode ? '#22242a' : '#ffffff',
+	onlyLight: darkMode ? '#1f222a' : '#ffffff',
 	divider: darkMode ? 'rgba(43, 43, 43, 0.435)' : 'rgba(43, 43, 43, 0.035)',
 
 	//primary colors
