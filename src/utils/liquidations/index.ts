@@ -353,10 +353,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		name: 'Solana',
 		symbol: 'SOL'
 	},
-	// {
-	// 	name: 'Binance Coin',
-	// 	symbol: 'BNB'
-	// },
+	{
+		name: 'Binance Coin',
+		symbol: 'BNB'
+	},
 	{
 		name: 'USD Coin',
 		symbol: 'USDC'
@@ -385,10 +385,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		name: 'Tether',
 		symbol: 'USDT'
 	},
-	// {
-	// 	name: 'Solar Network',
-	// 	symbol: 'SXP'
-	// },
+	{
+		name: 'Solar Network',
+		symbol: 'SXP'
+	},
 	{
 		name: 'yearn.finance',
 		symbol: 'YFI'
@@ -405,14 +405,14 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		name: 'Uniswap',
 		symbol: 'UNI'
 	},
-	// {
-	// 	name: 'PancakeSwap',
-	// 	symbol: 'CAKE'
-	// },
-	// {
-	// 	name: 'Cardano',
-	// 	symbol: 'ADA'
-	// },
+	{
+		name: 'PancakeSwap',
+		symbol: 'CAKE'
+	},
+	{
+		name: 'Cardano',
+		symbol: 'ADA'
+	},
 	{
 		name: 'Basic Attention',
 		symbol: 'BAT'
