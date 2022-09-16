@@ -8,10 +8,10 @@ import {
 } from '@tanstack/react-table'
 import VirtualTable from '../../Table'
 import { yieldsColumnOrders, columns } from './Columns'
-import { IYieldsTableProps } from '../types'
 import useWindowSize from '~/hooks/useWindowSize'
+import type { IYieldsTableProps } from '../types'
 
-export default function YieldsTable({ data }: IYieldsTableProps) {
+export default function YieldsPoolsTable({ data }: IYieldsTableProps) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const windowSize = useWindowSize()

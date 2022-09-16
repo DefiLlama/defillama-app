@@ -21,6 +21,16 @@ export interface IYieldTableRow {
 	configID: string
 }
 
+export interface IYieldsProjectsTableRow {
+	audits: boolean
+	category: string
+	medianApy: number
+	name: string
+	protocols: number
+	slug: string
+	tvl: number
+}
+
 export interface IYieldsTableProps {
 	data: Array<IYieldTableRow>
 }

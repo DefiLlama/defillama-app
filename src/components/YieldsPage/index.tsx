@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
 import { Dropdowns, TableFilters, TableHeader } from '~/components/Table'
-import { YieldsTable } from '~/components/VirtualTable'
+import { YieldsPoolsTable } from '~/components/VirtualTable'
 import {
 	YieldAttributes,
 	TVLRange,
@@ -156,7 +156,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 			{!isReady ? (
 				<></>
 			) : poolsData.length > 0 ? (
-				<YieldsTable data={poolsData} />
+				<YieldsPoolsTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
 					Couldn't find any pools for these filters

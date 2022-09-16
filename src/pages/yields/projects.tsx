@@ -1,11 +1,10 @@
 import Layout from '~/layout'
-import Table, { Index, NameYield } from '~/components/Table'
 import PageHeader from '~/components/PageHeader'
 import { YieldsSearch } from '~/components/Search'
-import { toK, formattedPercent } from '~/utils'
 import { revalidate } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 import pako from 'pako'
+import { YieldsProjectsTable } from '~/components/VirtualTable'
 
 function median(numbers) {
 	const sorted: any = Array.from(numbers).sort((a: number, b: number) => a - b)
@@ -17,51 +16,6 @@ function median(numbers) {
 
 	return sorted[middle]
 }
-
-const columns = [
-	{
-		header: 'Project',
-		accessor: 'name',
-		disableSortBy: true,
-		Cell: ({ value, rowIndex, rowValues }) => {
-			return (
-				<Index>
-					<span>{rowIndex + 1}</span>
-					<NameYield value={value} project={value} projectslug={rowValues.slug} />
-				</Index>
-			)
-		}
-	},
-	{
-		header: 'Category',
-		accessor: 'category'
-	},
-	{
-		header: 'Pools',
-		accessor: 'protocols'
-	},
-	{
-		header: 'Combined TVL',
-		accessor: 'tvl',
-		Cell: ({ value }) => {
-			return <span>{'$' + toK(value)}</span>
-		}
-	},
-	{
-		header: 'Audits',
-		accessor: 'audits',
-		Cell: ({ value }) => {
-			return <span>{value ? 'Yes' : 'No'}</span>
-		}
-	},
-	{
-		header: 'Median APY',
-		accessor: 'medianApy',
-		Cell: ({ value }) => {
-			return <span>{formattedPercent(value, true)}</span>
-		}
-	}
-]
 
 export async function getStaticProps() {
 	const data = await getYieldPageData()
@@ -112,7 +66,7 @@ export default function Protocols(compressedProps) {
 		<Layout title={`Projects - DefiLlama Yield`} defaultSEO>
 			<YieldsSearch step={{ category: 'Yields', name: 'All projects', hideOptions: true }} />
 			<PageHeader title="Projects" />
-			<Table data={data.props.projects} columns={columns} gap="40px" />
+			<YieldsProjectsTable data={data.props.projects} />
 		</Layout>
 	)
 }
