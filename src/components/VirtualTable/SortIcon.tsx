@@ -2,13 +2,9 @@ import * as React from 'react'
 import styled from 'styled-components'
 
 export default function SortIcon({ dir }: { dir: string | boolean }) {
-	const activeCaret = {
-		'--active-caret': dir === 'asc' ? '#23BD8F' : 'gray'
-	} as React.CSSProperties
-
 	return (
-		<Wrapper style={activeCaret}>
-			<Caret role="img" aria-label="caret-up">
+		<Wrapper>
+			<Caret role="img" aria-label="caret-up" active={dir === 'asc'}>
 				<svg
 					viewBox="0 0 1024 1024"
 					width="10px"
@@ -20,7 +16,7 @@ export default function SortIcon({ dir }: { dir: string | boolean }) {
 					<path d="M858.9 689L530.5 308.2c-9.4-10.9-27.5-10.9-37 0L165.1 689c-12.2 14.2-1.2 35 18.5 35h656.8c19.7 0 30.7-20.8 18.5-35z"></path>
 				</svg>
 			</Caret>
-			<Caret role="img" aria-label="caret-down">
+			<Caret role="img" aria-label="caret-down" active={dir === 'desc'}>
 				<svg
 					viewBox="0 0 1024 1024"
 					width="10px"
@@ -44,8 +40,12 @@ const Wrapper = styled.span`
 	top: 1px;
 `
 
-const Caret = styled.span`
-	color: var(--active-caret);
+interface ICaret {
+	active: boolean
+}
+
+const Caret = styled.span<ICaret>`
+	color: ${({ active, theme }) => (active ? theme.blue : 'gray')};
 	flex-shrink: 0;
 	position: relative;
 

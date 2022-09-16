@@ -79,7 +79,7 @@ export default function VirtualTable({ instance }: ITableProps) {
 											{header.isPlaceholder ? null : (
 												<>
 													{header.column.getCanSort() ? (
-														<button onClick={() => header.column.getToggleSortingHandler()}>{value}</button>
+														<button onClick={() => header.column.toggleSorting()}>{value}</button>
 													) : (
 														value
 													)}

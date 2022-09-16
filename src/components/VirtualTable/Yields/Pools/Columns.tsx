@@ -44,7 +44,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: 'TVL',
 		accessorKey: 'tvl',
-		enableMultiSort: true,
+		enableSorting: true,
 		cell: (info) => {
 			return (
 				<span>
@@ -66,7 +66,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: 'APY',
 		accessorKey: 'apy',
-		enableMultiSort: true,
+		enableSorting: true,
 		cell: (info) => {
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
@@ -88,7 +88,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: 'Base APY',
 		accessorKey: 'apyBase',
-		enableMultiSort: true,
+		enableSorting: true,
 		cell: (info) => {
 			return <>{formattedPercent(info.getValue(), true, 400)}</>
 		},
@@ -101,7 +101,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: 'Reward APY',
 		accessorKey: 'apyReward',
-		enableMultiSort: true,
+		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			const rewards = row.original.rewards ?? []
 
@@ -126,7 +126,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: '1d Change',
 		accessorKey: 'change1d',
-		enableMultiSort: true,
+		enableSorting: true,
 		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
 		size: 140,
 		meta: {
@@ -137,7 +137,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'change7d',
-		enableMultiSort: true,
+		enableSorting: true,
 		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
 		size: 140,
 		meta: {
@@ -148,7 +148,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: 'Outlook',
 		accessorKey: 'outlook',
-		enableMultiSort: true,
+		enableSorting: true,
 		size: 120,
 		meta: {
 			align: 'end',
@@ -159,7 +159,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: 'Confidence',
 		accessorKey: 'confidence',
-		enableMultiSort: true,
+		enableSorting: true,
 		cell: (info) => (
 			<>{info.getValue() === null ? null : info.getValue() === 1 ? 'Low' : info.getValue() === 2 ? 'Medium' : 'High'}</>
 		),
