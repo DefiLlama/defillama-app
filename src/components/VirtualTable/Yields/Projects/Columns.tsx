@@ -5,7 +5,7 @@ import type { IYieldsProjectsTableRow } from '../types'
 
 export const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 	{
-		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
+		header: 'Project',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
