@@ -187,7 +187,7 @@ const columnOrders = {
 		'outlook',
 		'confidence'
 	],
-	360: [
+	400: [
 		'pool',
 		'project',
 		'apy',

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Table, flexRender, RowData } from '@tanstack/react-table'
-import { defaultRangeExtractor, useWindowVirtualizer } from '@tanstack/react-virtual'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import SortIcon from './SortIcon'
 import styled from 'styled-components'
 import QuestionHelper from '../QuestionHelper'
@@ -17,16 +17,15 @@ declare module '@tanstack/table-core' {
 }
 
 export default function VirtualTable({ instance }: ITableProps) {
-	const [tableTop, setTableTop] = React.useState(null)
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
 
 	const { rows } = instance.getRowModel()
 
-	React.useEffect(() => {
-		if (tableContainerRef?.current) {
-			setTableTop(tableContainerRef.current.offsetTop)
-		}
-	}, [])
+	// React.useEffect(() => {
+	// 	if (tableContainerRef?.current) {
+	// 		setTableTop(tableContainerRef.current.offsetTop)
+	// 	}
+	// }, [])
 
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
@@ -135,13 +134,14 @@ export default function VirtualTable({ instance }: ITableProps) {
 const Wrapper = styled.div`
 	--table-bg: ${({ theme }) => (theme.mode === 'dark' ? '#1f222a' : '#fff')};
 	position: relative;
+	width: 100%;
 	max-width: calc(100vw - 32px);
 	color: ${({ theme }) => theme.text1};
 	background-color: var(--table-bg);
 	border: 1px solid ${({ theme }) => theme.bg3};
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 	border-radius: 12px;
-	width: 100%;
+
 	overflow-x: auto;
 	z-index: 1;
 
@@ -189,7 +189,7 @@ const Wrapper = styled.div`
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		max-width: calc(100vw - 248px - 28px);
+		max-width: calc(100vw - 236px - 28px - 28px);
 	}
 `
 

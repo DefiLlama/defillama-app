@@ -162,6 +162,10 @@ export const ThemedBackground = styled.div`
 		} 0%, rgba(255, 255, 255, 0) 100%)`};
 	z-index: -100;
 	transform: translateY(-110vh);
+
+	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+		left: 248px;
+	}
 `
 
 export const GlobalStyle = createGlobalStyle`
