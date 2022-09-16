@@ -3,10 +3,10 @@ import IconsRow from '~/components/IconsRow'
 import QuestionHelper from '~/components/QuestionHelper'
 import { AutoRow } from '~/components/Row'
 import { formattedNum, formattedPercent } from '~/utils'
-import { HeaderWithHelperText } from '../Header'
-import { NameYield, NameYieldPool } from './Name'
-import { formatColumnOrder } from '../utils'
-import type { IYieldTableRow } from './types'
+import { HeaderWithHelperText } from '../../Header'
+import { NameYield, NameYieldPool } from '../Name'
+import { formatColumnOrder } from '../../utils'
+import type { IYieldTableRow } from '../types'
 
 export const columns: ColumnDef<IYieldTableRow>[] = [
 	{

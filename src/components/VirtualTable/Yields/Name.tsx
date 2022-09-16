@@ -71,7 +71,6 @@ const Wrapper = styled.span`
 
 	a:last-of-type {
 		flex-shrink: 1;
-		margin-left: 8px;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -82,6 +81,10 @@ const AirdropWrapper = styled(Wrapper)`
 	gap: 0px;
 	position: relative;
 	padding-left: 32px;
+
+	a:last-of-type {
+		margin-left: 8px;
+	}
 `
 
 const Airdrop = styled.span`

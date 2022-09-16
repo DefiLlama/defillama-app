@@ -6,9 +6,9 @@ import {
 	getSortedRowModel,
 	ColumnOrderState
 } from '@tanstack/react-table'
-import VirtualTable from '../Table'
+import VirtualTable from '../../Table'
 import { yieldsColumnOrders, columns } from './Columns'
-import { IYieldsTableProps } from './types'
+import { IYieldsTableProps } from '../types'
 import useWindowSize from '~/hooks/useWindowSize'
 
 export default function YieldsTable({ data }: IYieldsTableProps) {

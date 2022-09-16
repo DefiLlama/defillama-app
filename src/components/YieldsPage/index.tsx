@@ -1,8 +1,8 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
-import { Dropdowns, NameYield, TableFilters, TableHeader } from '~/components/Table'
+import { Dropdowns, TableFilters, TableHeader } from '~/components/Table'
+import { YieldsTable } from '~/components/VirtualTable'
 import {
 	YieldAttributes,
 	TVLRange,
@@ -14,14 +14,7 @@ import {
 	attributeOptions
 } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
-import { columns } from './shared'
 import { useFormatYieldQueryParams } from './hooks'
-import { IYieldsTableProps } from '../VirtualTable'
-
-const YieldsTable = dynamic(() => import('~/components/VirtualTable/Yields'), {
-	ssr: false,
-	loading: () => <></>
-}) as React.FC<IYieldsTableProps>
 
 const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 	const { query, pathname, isReady } = useRouter()
@@ -29,40 +22,6 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
 		useFormatYieldQueryParams({ projectList, chainList, categoryList })
-
-	// if route query contains 'project' remove project href
-	const idx = columns.findIndex((c) => c.accessor === 'project')
-
-	if (query.projectName) {
-		columns[idx] = {
-			header: 'Project',
-			accessor: 'project',
-			disableSortBy: true,
-			Cell: ({ value, rowValues }) => (
-				<NameYield
-					value={value}
-					project={rowValues.project}
-					airdrop={rowValues.airdrop}
-					projectslug={rowValues.projectslug}
-					rowType="accordion"
-				/>
-			)
-		}
-	} else {
-		columns[idx] = {
-			header: 'Project',
-			accessor: 'project',
-			disableSortBy: true,
-			Cell: ({ value, rowValues }) => (
-				<NameYield
-					value={value}
-					project={rowValues.project}
-					airdrop={rowValues.airdrop}
-					projectslug={rowValues.projectslug}
-				/>
-			)
-		}
-	}
 
 	const poolsData = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
