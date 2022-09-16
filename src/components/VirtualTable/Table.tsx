@@ -3,6 +3,7 @@ import { Table, flexRender, RowData } from '@tanstack/react-table'
 import { defaultRangeExtractor, useWindowVirtualizer } from '@tanstack/react-virtual'
 import SortIcon from './SortIcon'
 import styled from 'styled-components'
+import QuestionHelper from '../QuestionHelper'
 
 interface ITableProps {
 	instance: Table<any>
@@ -10,7 +11,8 @@ interface ITableProps {
 
 declare module '@tanstack/table-core' {
 	interface ColumnMeta<TData extends RowData, TValue> {
-		align: 'start' | 'end'
+		align?: 'start' | 'end'
+		headerHelperText?: string
 	}
 }
 
@@ -68,20 +70,24 @@ export default function VirtualTable({ instance }: ITableProps) {
 						<tr key={headerGroup.id}>
 							{headerGroup.headers.map((header) => {
 								// get header text alignment
-								const align = header.column.columnDef.meta?.align ?? 'start'
+								const meta = header.column.columnDef.meta
+								const value = flexRender(header.column.columnDef.header, header.getContext())
 
 								return (
 									<th key={header.id} colSpan={header.colSpan} style={{ width: header.getSize() }}>
-										{header.isPlaceholder ? null : (
-											<TableHeader
-												canSort={header.column.getCanSort()}
-												onClick={() => header.column.getToggleSortingHandler()}
-												align={align}
-											>
-												<>{flexRender(header.column.columnDef.header, header.getContext())}</>
-												{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
-											</TableHeader>
-										)}
+										<TableHeader align={meta?.align ?? 'start'}>
+											{header.isPlaceholder ? null : (
+												<>
+													{header.column.getCanSort() ? (
+														<button onClick={() => header.column.getToggleSortingHandler()}>{value}</button>
+													) : (
+														value
+													)}
+												</>
+											)}
+											{meta?.headerHelperText && <Helper text={meta?.headerHelperText} />}
+											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
+										</TableHeader>
 									</th>
 								)
 							})}
@@ -185,7 +191,6 @@ const Wrapper = styled.div`
 `
 
 interface ITableHeader {
-	canSort: boolean
 	align: 'start' | 'end'
 }
 
@@ -196,8 +201,6 @@ const TableHeader = styled.span<ITableHeader>`
 	flex-wrap: nowrap;
 	gap: 4px;
 	font-weight: 500;
-	cursor: ${({ canSort }) => (canSort ? 'pointer' : 'default')};
-	user-select: ${({ canSort }) => (canSort ? 'none' : 'initial')};
 
 	& > * {
 		white-space: nowrap;
@@ -206,4 +209,12 @@ const TableHeader = styled.span<ITableHeader>`
 	svg {
 		flex-shrink: 0;
 	}
+
+	button {
+		padding: 0;
+	}
+`
+
+const Helper = styled(QuestionHelper)`
+	color: ${({ theme }) => theme.text1};
 `

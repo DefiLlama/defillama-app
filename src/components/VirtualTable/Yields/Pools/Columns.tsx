@@ -3,7 +3,6 @@ import IconsRow from '~/components/IconsRow'
 import QuestionHelper from '~/components/QuestionHelper'
 import { AutoRow } from '~/components/Row'
 import { formattedNum, formattedPercent } from '~/utils'
-import { HeaderWithHelperText } from '../../Header'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
@@ -45,7 +44,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: 'TVL',
 		accessorKey: 'tvl',
-		enableSorting: true,
+		enableMultiSort: true,
 		cell: (info) => {
 			return (
 				<span>
@@ -65,9 +64,9 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		}
 	},
 	{
-		header: () => <HeaderWithHelperText value="APY" helperText="Total annualised percentage yield" />,
+		header: 'APY',
 		accessorKey: 'apy',
-		enableSorting: true,
+		enableMultiSort: true,
 		cell: (info) => {
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
@@ -82,27 +81,27 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		},
 		size: 100,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Total annualised percentage yield'
 		}
 	},
 	{
-		header: () => (
-			<HeaderWithHelperText value="Base APY" helperText="Annualised percentage yield from trading fees/supplying" />
-		),
+		header: 'Base APY',
 		accessorKey: 'apyBase',
-		enableSorting: true,
+		enableMultiSort: true,
 		cell: (info) => {
 			return <>{formattedPercent(info.getValue(), true, 400)}</>
 		},
 		size: 140,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Annualised percentage yield from trading fees/supplying'
 		}
 	},
 	{
-		header: () => <HeaderWithHelperText value="Reward APY" helperText="Annualised percentage yield from incentives" />,
+		header: 'Reward APY',
 		accessorKey: 'apyReward',
-		enableSorting: true,
+		enableMultiSort: true,
 		cell: ({ getValue, row }) => {
 			const rewards = row.original.rewards ?? []
 
@@ -120,49 +119,54 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		},
 		size: 140,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Annualised percentage yield from incentives'
 		}
 	},
 	{
-		header: () => <HeaderWithHelperText value="1d Change" helperText="Absolute change in APY" />,
+		header: '1d Change',
 		accessorKey: 'change1d',
+		enableMultiSort: true,
 		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
 		size: 140,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Absolute change in APY'
 		}
 	},
 	{
-		header: () => <HeaderWithHelperText value="7d Change" helperText="Absolute change in APY" />,
+		header: '7d Change',
 		accessorKey: 'change7d',
+		enableMultiSort: true,
 		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
 		size: 140,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Absolute change in APY'
 		}
 	},
 	{
-		header: () => (
-			<HeaderWithHelperText
-				value="Outlook"
-				helperText="The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY."
-			/>
-		),
+		header: 'Outlook',
 		accessorKey: 'outlook',
+		enableMultiSort: true,
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText:
+				'The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY.'
 		}
 	},
 	{
-		header: () => <HeaderWithHelperText value="Confidence" helperText="Predicted outlook confidence" />,
+		header: 'Confidence',
 		accessorKey: 'confidence',
+		enableMultiSort: true,
 		cell: (info) => (
 			<>{info.getValue() === null ? null : info.getValue() === 1 ? 'Low' : info.getValue() === 2 ? 'Medium' : 'High'}</>
 		),
 		size: 140,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Predicted outlook confidence'
 		}
 	}
 ]
