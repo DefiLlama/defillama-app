@@ -7,7 +7,7 @@ export const useAssetsList = () => {
 	useEffect(() => {
 		const fetchAssetsList = async () => {
 			const availableAssetsList = await getAvailableAssetsList()
-			setAssetsList(availableAssetsList)
+			setAssetsList(availableAssetsList.assets)
 		}
 
 		fetchAssetsList().catch(console.error)

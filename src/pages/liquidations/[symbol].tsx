@@ -22,26 +22,27 @@ import { Clock } from 'react-feather'
 import { ProtocolsTable } from '../../components/LiquidationsPage/ProtocolsTable'
 import SEO from '~/components/SEO'
 import { assetIconUrl } from '~/utils'
-import { Panel, PanelSmol, PanelThicc, StyledAnchor } from '~/components'
+import { PanelSmol, PanelThicc, StyledAnchor } from '~/components'
 import Image from 'next/image'
 import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import { PositionsTable } from '~/components/LiquidationsPage/PositionsTable'
+import { ISearchItem } from '~/components/Search/types'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = (params.symbol as string).toLowerCase()
+	const { assets: options } = await getAvailableAssetsList()
 	const data = await getLatestChartData(symbol, 100)
 	const prevData = (await getPrevChartData(symbol, 100, 3600 * 24)) ?? data
 	return {
-		props: { data, prevData },
+		props: { data, prevData, options },
 		revalidate: revalidate(5)
 	}
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-	// TODO: make api for all tracked symbols
-	const availableAssetsList = await getAvailableAssetsList()
-	const paths = availableAssetsList
+	const { assets } = await getAvailableAssetsList()
+	const paths = assets
 		.map((x) => x.route.split('/').pop())
 		.map((x) => ({
 			params: { symbol: x.toLowerCase() }
@@ -77,8 +78,8 @@ const ResponsiveHeader = styled(Header)`
 	}
 `
 
-const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> = (props) => {
-	const { data, prevData } = props
+const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; options: ISearchItem[] }> = (props) => {
+	const { data, prevData, options } = props
 	const [liqsSettings] = useLiqsManager()
 	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
 	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
@@ -92,19 +93,19 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 	}, [])
 
 	return (
-		<Layout title={`${data?.asset?.name} (${data?.asset?.symbol}) Liquidation Levels - DefiLlama`}>
+		<Layout title={`${data.name} (${data.symbol}) Liquidation Levels - DefiLlama`}>
 			<SEO
 				liqsPage
-				cardName={`${data?.asset?.name} (${data?.asset?.symbol})`}
-				logo={'https://defillama.com' + assetIconUrl(data?.asset?.symbol, true)}
-				tvl={'$' + getReadableValue(data?.totalLiquidable)}
+				cardName={`${data.name} (${data.symbol})`}
+				logo={'https://defillama.com' + assetIconUrl(data.symbol.toLowerCase(), true)}
+				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>
 
 			<LiquidationsSearch
-				step={{ category: 'Home', name: `${data?.symbol?.toUpperCase()} Liquidation Levels`, hideOptions: true }}
+				step={{ category: 'Home', name: `${data.symbol.toUpperCase()} Liquidation Levels`, hideOptions: true }}
 			/>
 
-			{!['SOL', 'MSOL', 'STSOL'].includes(data?.symbol?.toUpperCase()) && (
+			{!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data.symbol.toUpperCase()) && (
 				<>
 					<PanelThicc as="p">
 						We are now tracking
@@ -130,7 +131,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData }> =
 			)}
 
 			<ResponsiveHeader>Liquidation levels in DeFi 💦</ResponsiveHeader>
-			<LiquidationsHeader {...data} />
+			<LiquidationsHeader data={data} options={options} />
 			<LiquidationsProvider>
 				<LiquidationsContent data={data} prevData={prevData} />
 			</LiquidationsProvider>

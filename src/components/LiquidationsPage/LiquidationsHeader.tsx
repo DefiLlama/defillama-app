@@ -41,13 +41,14 @@ const ButtonsGroup = styled.div`
 	}
 `
 
-export const LiquidationsHeader = (props: ChartData) => {
+export const LiquidationsHeader = (props: { data: ChartData; options: ISearchItem[] }) => {
+	const { data, options } = props
 	return (
 		<LiquidationsHeaderWrapper>
-			<AssetSelector symbol={props.symbol} options={props.availableAssetsList} />
+			<AssetSelector symbol={data.symbol} options={options} />
 			<ButtonsGroup>
 				<StackBySwitch />
-				<DownloadButton symbol={props.symbol} />
+				<DownloadButton symbol={data.symbol} />
 			</ButtonsGroup>
 		</LiquidationsHeaderWrapper>
 	)
@@ -59,7 +60,7 @@ interface IProps {
 }
 
 export function AssetSelector({ options, symbol }: IProps) {
-	const defaultList = options.map(({ name, symbol }) => `${name} - ${symbol}`)
+	const defaultList = options.map(({ name, symbol }) => `${name.toLowerCase()} - ${symbol.toLowerCase()}`)
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
@@ -104,7 +105,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 }
 
 const getMatchingOption = (options: ISearchItem[], value: string): ISearchItem => {
-	return options.find(({ name, symbol }) => `${name} - ${symbol}` === value)
+	return options.find(({ name, symbol }) => `${name.toLowerCase()} - ${symbol.toLowerCase()}` === value)
 }
 
 const AssetButtonLink = (props: { options: ISearchItem[]; value: string }) => {
