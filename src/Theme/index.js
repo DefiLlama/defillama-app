@@ -47,7 +47,7 @@ const theme = (darkMode, color) => ({
 	//specialty colors
 	modalBG: darkMode ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.6)',
 	advancedBG: darkMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.4)',
-	onlyLight: darkMode ? '#22242a' : 'transparent',
+	onlyLight: darkMode ? '#22242a' : '#ffffff',
 	divider: darkMode ? 'rgba(43, 43, 43, 0.435)' : 'rgba(43, 43, 43, 0.035)',
 
 	//primary colors
@@ -165,6 +165,10 @@ export const ThemedBackground = styled.div`
 `
 
 export const GlobalStyle = createGlobalStyle`
+	body, #__next {
+		background-color: ${({ theme }) => theme.onlyLight};
+	}
+
   #__next {
     display: flex;
     flex-direction: column;
@@ -172,7 +176,6 @@ export const GlobalStyle = createGlobalStyle`
     min-height: 100%;
     position: relative;
     color: ${({ theme }) => theme.text1};
-    background-color: ${({ theme }) => theme.onlyLight};
     isolation: isolate;
 
     ${({ theme: { minLg } }) => minLg} {

@@ -31,6 +31,7 @@ export default function VirtualTable({ instance }: ITableProps) {
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
 		estimateSize: () => 40,
+		overscan: 10,
 		rangeExtractor: React.useCallback(
 			(range) => {
 				if (!tableTop) {
@@ -140,6 +141,7 @@ const Wrapper = styled.div`
 	border: 1px solid ${({ theme }) => theme.bg3};
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 	border-radius: 12px;
+	width: 100%;
 	overflow-x: auto;
 
 	table {
@@ -176,13 +178,13 @@ const Wrapper = styled.div`
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		background-color: var(--table-bg);
 	}
 
 	tr > *:first-child {
 		position: sticky;
 		left: 0;
 		z-index: 1;
-		background-color: var(--table-bg);
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {

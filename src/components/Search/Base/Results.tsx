@@ -1,7 +1,8 @@
-import { Row } from './Row'
-import { FixedSizeList } from 'react-window'
+import { useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { ComboboxPopover, ComboboxState } from 'ariakit/combobox'
 import styled from 'styled-components'
+import { Row } from './Row'
 import type { ISearchItem } from '../types'
 
 const Popover = styled(ComboboxPopover)`
@@ -31,24 +32,31 @@ interface IResultsProps {
 }
 
 export function Results({ state, data, loading, onItemClick, ...props }: IResultsProps) {
+	const parentRef = useRef()
+
+	const rowVirtualizer = useVirtualizer({
+		count: state.matches.length,
+		getScrollElement: () => parentRef.current,
+		estimateSize: () => 50,
+		overscan: 5
+	})
+
 	return (
 		<Popover state={state} {...props}>
 			{loading || !state.mounted ? (
 				<Empty>Loading...</Empty>
 			) : state.matches.length ? (
-				<FixedSizeList
-					height={state.matches.length * 50 > 240 ? 240 : state.matches.length * 50}
-					width="100%"
-					itemCount={state.matches.length}
-					itemSize={50}
-					itemData={{
-						searchData: data,
-						options: state.value.length > 2 ? sortResults(state.matches) : state.matches,
-						onItemClick: onItemClick
+				<div
+					ref={parentRef}
+					style={{
+						height: state.matches.length * 50 > 240 ? 240 : state.matches.length * 50,
+						width: '100%'
 					}}
 				>
-					{Row}
-				</FixedSizeList>
+					{sortResults(rowVirtualizer.getVirtualItems().map((item) => state.matches[item.index])).map((item) => (
+						<span key={item}>{item}</span>
+					))}
+				</div>
 			) : (
 				<Empty>No results found</Empty>
 			)}
