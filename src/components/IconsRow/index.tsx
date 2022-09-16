@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Hovercard, HovercardAnchor, useHovercardState } from 'ariakit/hovercard'
 import styled from 'styled-components'
 import TokenLogo from '~/components/TokenLogo'
-import Tooltip from '~/components/Tooltip'
+import AriaTooltip from '~/components/Tooltip'
 import { useResize } from '~/hooks'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 
@@ -39,6 +39,10 @@ const Popover = styled(Hovercard)`
 	color: ${({ theme }) => theme.text1};
 	border-radius: 8px;
 	box-shadow: ${({ theme }) => theme.shadowMd};
+`
+
+const Tooltip = styled(AriaTooltip)`
+	padding: 6px;
 `
 
 interface IChainLogo {

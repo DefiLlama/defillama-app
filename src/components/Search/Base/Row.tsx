@@ -30,14 +30,19 @@ const isExternalImage = (imagePath: string) => {
 	return imagePath?.includes('http')
 }
 
-export const Row = ({ name, onItemClick, searchData }) => {
-	const item: ISearchItem = searchData.find((x) => x === name)
+export const Row = ({ index, style, data }) => {
+	const { searchData, options, onItemClick } = data
+
+	const value = options[index]
+
+	const item: ISearchItem = searchData.find((x) => x.name === value)
 
 	const router = useRouter()
 
 	return (
 		<Item
-			value={name}
+			key={value}
+			value={value}
 			onClick={() => {
 				if (onItemClick) {
 					onItemClick(item)
@@ -45,14 +50,15 @@ export const Row = ({ name, onItemClick, searchData }) => {
 					router.push(item.route)
 				}
 			}}
+			style={style}
 			focusOnHover
 		>
 			<TokenLogo
 				logo={item?.logo}
-				external={isExternalImage(item?.logo)}
+				external={isExternalImage(item.logo)}
 				skipApiRoute={router.pathname.includes('/yield')}
 			/>
-			<span>{name}</span>
+			<span>{value}</span>
 		</Item>
 	)
 }
