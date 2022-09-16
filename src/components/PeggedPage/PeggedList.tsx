@@ -115,7 +115,8 @@ const formatPriceSource = {
 	coingecko: 'CoinGecko',
 	birdeye: 'Birdeye',
 	kucoin: 'KuCoin Exchange',
-	defillama: 'DefiLlama'
+	defillama: 'DefiLlama',
+	kaddex: 'Kaddex'
 }
 
 function pegDeviationText(pegDeviationInfo) {
