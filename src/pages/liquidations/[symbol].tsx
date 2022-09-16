@@ -111,7 +111,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 						We are now tracking
 						<Link href={`/liquidations/bnb`} passHref>
 							<StyledAnchor>
-								<Image src={`/asset-icons/sol.png`} width={24} height={24} alt={'BNB'} style={{ borderRadius: 12 }} />
+								<Image src={`/asset-icons/bnb.png`} width={24} height={24} alt={'BNB'} style={{ borderRadius: 12 }} />
 								<b>BSC</b>
 							</StyledAnchor>
 						</Link>
