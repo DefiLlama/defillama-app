@@ -109,20 +109,20 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				<>
 					<PanelThicc as="p">
 						We are now tracking
-						<Link href={`/liquidations/sol`} passHref>
+						<Link href={`/liquidations/bnb`} passHref>
 							<StyledAnchor>
-								<Image src={`/asset-icons/sol.png`} width={24} height={24} alt={'SOL'} style={{ borderRadius: 12 }} />
-								<b>Solana</b>
+								<Image src={`/asset-icons/bnb.png`} width={24} height={24} alt={'BNB'} style={{ borderRadius: 12 }} />
+								<b>BSC</b>
 							</StyledAnchor>
 						</Link>
 						ecosystem assets! Choose one from the asset picker dropdown menu!
 					</PanelThicc>
 					<PanelSmol as="p">
 						We are now tracking
-						<Link href={`/liquidations/sol`} passHref>
+						<Link href={`/liquidations/bnb`} passHref>
 							<StyledAnchor>
-								<Image src={`/asset-icons/sol.png`} width={24} height={24} alt={'SOL'} style={{ borderRadius: 12 }} />
-								<b>Solana</b>
+								<Image src={`/asset-icons/bnb.png`} width={24} height={24} alt={'BNB'} style={{ borderRadius: 12 }} />
+								<b>BSC</b>
 							</StyledAnchor>
 						</Link>
 						!
