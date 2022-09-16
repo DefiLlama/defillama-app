@@ -54,7 +54,7 @@ export function Results({ state, data, loading, onItemClick, ...props }: IResult
 					}}
 				>
 					{sortResults(rowVirtualizer.getVirtualItems().map((item) => state.matches[item.index])).map((item) => (
-						<span key={item}>{item}</span>
+						<Row key={item} name={item} searchData={state.matches} onItemClick={onItemClick} />
 					))}
 				</div>
 			) : (

@@ -153,9 +153,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 				)}
 			</TableFilters>
 
-			{!isReady ? (
-				<></>
-			) : poolsData.length > 0 ? (
+			{poolsData.length > 0 ? (
 				<YieldsPoolsTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
