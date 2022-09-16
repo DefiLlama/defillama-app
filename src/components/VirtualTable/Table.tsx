@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { Table, flexRender, RowData } from '@tanstack/react-table'
-import { useWindowVirtualizer } from '@tanstack/react-virtual'
-import SortIcon from './SortIcon'
+import { defaultRangeExtractor, useWindowVirtualizer } from '@tanstack/react-virtual'
 import styled from 'styled-components'
+import SortIcon from './SortIcon'
 import QuestionHelper from '../QuestionHelper'
 
 interface ITableProps {
@@ -17,42 +17,43 @@ declare module '@tanstack/table-core' {
 }
 
 export default function VirtualTable({ instance }: ITableProps) {
+	const [tableTop, setTableTop] = React.useState(0)
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
 
 	const { rows } = instance.getRowModel()
 
-	// React.useEffect(() => {
-	// 	if (tableContainerRef?.current) {
-	// 		setTableTop(tableContainerRef.current.offsetTop)
-	// 	}
-	// }, [])
+	React.useEffect(() => {
+		if (tableContainerRef?.current) {
+			setTableTop(tableContainerRef.current.offsetTop)
+		}
+	}, [])
 
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
-		estimateSize: () => 40,
-		overscan: 10
-		// rangeExtractor: React.useCallback(
-		// 	(range) => {
-		// 		if (!tableTop) {
-		// 			return defaultRangeExtractor(range)
-		// 		}
+		estimateSize: () => 50,
+		overscan: 20,
+		rangeExtractor: React.useCallback(
+			(range) => {
+				if (!tableTop) {
+					return defaultRangeExtractor(range)
+				}
 
-		// 		const cutoff = tableTop / 40
+				const cutoff = tableTop / 40
 
-		// 		let startIndex = range.startIndex
+				let startIndex = range.startIndex
 
-		// 		if (range.startIndex <= cutoff) {
-		// 			startIndex = 1
-		// 		}
+				if (range.startIndex <= cutoff) {
+					startIndex = 1
+				}
 
-		// 		if (range.startIndex - cutoff > 0) {
-		// 			startIndex = range.startIndex - Math.round(cutoff)
-		// 		}
+				if (range.startIndex - cutoff > 0) {
+					startIndex = range.startIndex - Math.round(cutoff)
+				}
 
-		// 		return defaultRangeExtractor({ ...range, startIndex })
-		// 	},
-		// 	[tableTop]
-		// )
+				return defaultRangeExtractor({ ...range, startIndex })
+			},
+			[tableTop]
+		)
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
@@ -63,7 +64,7 @@ export default function VirtualTable({ instance }: ITableProps) {
 		virtualItems.length > 0 ? rowVirtualizer.getTotalSize() - (virtualItems?.[virtualItems.length - 1]?.end || 0) : 0
 
 	return (
-		<Wrapper>
+		<Wrapper ref={tableContainerRef}>
 			<table>
 				<thead>
 					{instance.getHeaderGroups().map((headerGroup) => (
@@ -94,7 +95,7 @@ export default function VirtualTable({ instance }: ITableProps) {
 						</tr>
 					))}
 				</thead>
-				<tbody ref={tableContainerRef}>
+				<tbody>
 					{paddingTop > 0 && (
 						<tr>
 							<td style={{ height: `${paddingTop}px` }} />

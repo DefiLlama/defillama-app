@@ -92,7 +92,7 @@ interface IIconsRowProps {
 }
 
 const isChain = (chain) => {
-	return ['Ethereum', 'Avalanche', 'Optimism', 'Near', 'Metis', 'Aurora'].includes(chain)
+	return ['ethereum', 'avalanche', 'optimism', 'near', 'metis', 'aurora'].includes(chain.toLowerCase())
 }
 
 // todo update links prop to {name: string, iconType: string}
@@ -116,7 +116,8 @@ const IconsRow = ({ links, url, iconType, yieldRewardsSymbols = [], disableLinks
 
 	const tooManyChainsIndex = visibleChainIndex < links.length ? visibleChainIndex - 1 : visibleChainIndex
 
-	const visibleChains = links.slice(0, tooManyChainsIndex)
+	const visibleChains = links.length > 2 ? links.slice(0, tooManyChainsIndex) : links
+
 	const hoverChains = tooManyChainsIndex !== visibleChainIndex ? links.slice(tooManyChainsIndex, links.length) : []
 
 	const hovercard = useHovercardState()
@@ -133,7 +134,7 @@ const IconsRow = ({ links, url, iconType, yieldRewardsSymbols = [], disableLinks
 					disableLink={disableLinks}
 				/>
 			))}
-			{!!hoverChains.length && (
+			{!!hoverChains.length && links.length > 2 && (
 				<>
 					<HovercardAnchor state={hovercard}>
 						<TokenCounter>{`+${hoverChains.length}`}</TokenCounter>
