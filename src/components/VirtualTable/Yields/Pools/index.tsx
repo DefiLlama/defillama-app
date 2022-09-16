@@ -26,8 +26,7 @@ export default function YieldsPoolsTable({ data }: IYieldsTableProps) {
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
 		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		debugTable: true
+		getSortedRowModel: getSortedRowModel()
 	})
 
 	React.useEffect(() => {

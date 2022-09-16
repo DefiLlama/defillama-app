@@ -17,7 +17,7 @@ import { YieldsSearch } from '~/components/Search'
 import { useFormatYieldQueryParams } from './hooks'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
-	const { query, pathname, isReady } = useRouter()
+	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
@@ -136,21 +136,16 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>
-				{isReady && (
-					<Dropdowns>
-						<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
-						<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
-						<FiltersByCategory
-							categoryList={categoryList}
-							selectedCategories={selectedCategories}
-							pathname={pathname}
-						/>
-						<YieldAttributes pathname={pathname} />
-						<TVLRange />
-						<APYRange />
-						<ResetAllYieldFilters pathname={pathname} />
-					</Dropdowns>
-				)}
+
+				<Dropdowns>
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
+					<FiltersByCategory categoryList={categoryList} selectedCategories={selectedCategories} pathname={pathname} />
+					<YieldAttributes pathname={pathname} />
+					<TVLRange />
+					<APYRange />
+					<ResetAllYieldFilters pathname={pathname} />
+				</Dropdowns>
 			</TableFilters>
 
 			{poolsData.length > 0 ? (

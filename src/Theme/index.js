@@ -204,4 +204,19 @@ export const GlobalStyle = createGlobalStyle`
     white-space: nowrap;
     border-width: 0;
   }
+
+	.tooltip-trigger {
+		color: ${({ theme }) => theme.text1};
+		display: flex;
+		align-items: center;
+		padding: 0;
+
+		:focus-visible {
+			outline-offset: 2px;
+		}
+	}
+
+	.tooltip-trigger a {
+		display: flex;
+	}
 `

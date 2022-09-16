@@ -1,24 +1,20 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { Button } from 'ariakit/button'
 import { Tooltip as AriaTooltip, TooltipAnchor, useTooltipState } from 'ariakit/tooltip'
+import Link from 'next/link'
 
 interface ITooltip {
 	content: string | null
+	href?: string
+	shallow?: boolean
+	onClick?: (e: any) => any
 	style?: {}
 	children: React.ReactNode
 }
 
-const TooltipTrigger = styled(Button)`
-	color: ${({ theme }) => theme.text1};
-	display: flex;
-	align-items: center;
-	padding: 0;
-`
-
 const TooltipPopver = styled(AriaTooltip)`
 	font-size: 0.85rem;
-	padding: 1em;
+	padding: 1rem;
 	color: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(0, 0%, 100%)' : 'hsl(204, 10%, 10%)')};
 	background: ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 12%)' : 'hsl(204, 20%, 100%)')};
 	border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? 'hsl(204, 3%, 32%)' : 'hsl(204, 20%, 88%)')};
@@ -28,15 +24,25 @@ const TooltipPopver = styled(AriaTooltip)`
 	max-width: 228px;
 `
 
-export default function Tooltip({ content, children, ...props }: ITooltip) {
+export default function Tooltip({ content, href, shallow, onClick, children, ...props }: ITooltip) {
 	const tooltip = useTooltipState()
 
 	if (!content || content === '') return <>{children}</>
 
+	const triggerProps = {
+		...(onClick && { onClick })
+	}
+
 	return (
 		<>
-			<TooltipAnchor state={tooltip} as={TooltipTrigger}>
-				{children}
+			<TooltipAnchor state={tooltip} as={href ? 'div' : 'button'} className="tooltip-trigger" {...triggerProps}>
+				{href ? (
+					<Link href={href} shallow={shallow} passHref>
+						<a>{children}</a>
+					</Link>
+				) : (
+					children
+				)}
 			</TooltipAnchor>
 			<TooltipPopver state={tooltip} {...props}>
 				{content}

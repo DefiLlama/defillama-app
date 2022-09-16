@@ -48,7 +48,7 @@ export function NameYield({ project, projectslug, airdrop, ...props }: INameYiel
 	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
-		<AirdropWrapper {...props} paddingLeft={airdrop ? '32px' : 0}>
+		<AirdropWrapper {...props}>
 			{airdrop && (
 				<Tooltip content="This project has no token and might airdrop one to depositors in the future">
 					<Airdrop>🪂</Airdrop>
@@ -77,14 +77,10 @@ const Wrapper = styled.span`
 	}
 `
 
-interface IAirdropWrapper {
-	paddingLeft: string | number
-}
-
-const AirdropWrapper = styled(Wrapper)<IAirdropWrapper>`
+const AirdropWrapper = styled(Wrapper)`
 	gap: 0px;
 	position: relative;
-	padding-left: ${({ paddingLeft }) => paddingLeft};
+	padding-left: 32px;
 
 	a:last-of-type {
 		margin-left: 8px;

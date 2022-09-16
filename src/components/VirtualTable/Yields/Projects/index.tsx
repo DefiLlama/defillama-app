@@ -15,8 +15,7 @@ export default function YieldsProjectsTable({ data }: { data: Array<IYieldsProje
 		},
 		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		debugTable: true
+		getSortedRowModel: getSortedRowModel()
 	})
 
 	return <VirtualTable instance={instance} />
