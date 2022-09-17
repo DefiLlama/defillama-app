@@ -19,7 +19,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				url={row.original.url}
 				index={row.index + 1}
 			/>
-		)
+		),
+		size: 200
 	},
 	{
 		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
@@ -27,7 +28,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: false,
 		cell: ({ row }) => (
 			<NameYield project={row.original.project} projectslug={row.original.projectslug} airdrop={row.original.airdrop} />
-		)
+		),
+		size: 200
 	},
 	{
 		header: 'Chain',
@@ -36,7 +38,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields?chain" iconType="chain" />,
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 60
 	},
 	{
 		header: 'TVL',
@@ -55,6 +58,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				</span>
 			)
 		},
+		size: 120,
 		meta: {
 			align: 'end'
 		}
@@ -75,6 +79,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				</span>
 			)
 		},
+		size: 100,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total annualised percentage yield'
@@ -87,6 +92,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: (info) => {
 			return <>{formattedPercent(info.getValue(), true, 400)}</>
 		},
+		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Annualised percentage yield from trading fees/supplying'
@@ -111,6 +117,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				</AutoRow>
 			)
 		},
+		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Annualised percentage yield from incentives'
@@ -121,6 +128,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'change1d',
 		enableSorting: true,
 		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Absolute change in APY'
@@ -131,6 +139,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'change7d',
 		enableSorting: true,
 		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Absolute change in APY'
@@ -140,6 +149,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		header: 'Outlook',
 		accessorKey: 'outlook',
 		enableSorting: true,
+		size: 120,
 		meta: {
 			align: 'end',
 			headerHelperText:
@@ -153,6 +163,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: (info) => (
 			<>{info.getValue() === null ? null : info.getValue() === 1 ? 'Low' : info.getValue() === 2 ? 'Medium' : 'High'}</>
 		),
+		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Predicted outlook confidence'

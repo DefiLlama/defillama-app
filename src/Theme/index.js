@@ -164,7 +164,7 @@ export const ThemedBackground = styled.div`
 	transform: translateY(-110vh);
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		left: 248px;
+		left: 220px;
 	}
 `
 
