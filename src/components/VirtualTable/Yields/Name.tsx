@@ -6,6 +6,7 @@ import styled from 'styled-components'
 import TokenLogo from '~/components/TokenLogo'
 import { tokenIconUrl } from '~/utils'
 import Tooltip from '~/components/Tooltip'
+import FormattedName from '~/components/FormattedName'
 
 interface INameYieldPoolProps {
 	value: string
@@ -45,7 +46,7 @@ export function NameYieldPool({ value, configID, url, index }: INameYieldPoolPro
 			)}
 
 			<CustomLink href={tokenUrl} target="_blank">
-				{value}
+				<FormattedName text={value} maxCharacters={10} link fontWeight={500} />
 			</CustomLink>
 		</Wrapper>
 	)
