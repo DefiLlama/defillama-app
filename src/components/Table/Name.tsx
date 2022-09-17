@@ -1,14 +1,11 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import { ChevronDown, ChevronRight, ArrowUpRight } from 'react-feather'
+import { ChevronDown, ChevronRight } from 'react-feather'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import Bookmark from '~/components/Bookmark'
-import FormattedName from '~/components/FormattedName'
 import { chainIconUrl, peggedAssetIconUrl, slug, tokenIconUrl } from '~/utils'
-import { INameYield, INameFees, INameProps, INameYieldPoolProps } from './types'
-import Tooltip from '~/components/Tooltip'
-import { ButtonYields } from '~/layout/Pool'
+import { INameFees, INameProps } from './types'
 
 const SaveButton = styled(Bookmark)`
 	position: relative;
@@ -110,10 +107,10 @@ export function Name({
 			{rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
 			<span>{rowType !== 'pinned' && index}</span>
 			<TokenLogo id="table-p-logo" logo={iconUrl} />
-			{rowType === 'accordion' && type!=='dex' ? (
+			{rowType === 'accordion' && type !== 'dex' ? (
 				<span id="table-p-name">{name}</span>
 			) : (
-				<CustomLink onClick={ (e)=> e.stopPropagation() } href={tokenUrl} id="table-p-name">
+				<CustomLink onClick={(e) => e.stopPropagation()} href={tokenUrl} id="table-p-name">
 					{name}
 				</CustomLink>
 			)}
@@ -126,13 +123,12 @@ export function NameFees({
 	value,
 	symbol = '-',
 	index,
-	bookmark,
 	rowType = 'default',
 	showRows,
 	version,
 	...props
 }: INameFees) {
-	const mappedValue = (value === 'AAVE V2') ? 'AAVE' : value;
+	const mappedValue = value === 'AAVE V2' ? 'AAVE' : value
 	const name =
 		symbol === '-' ? (
 			mappedValue
@@ -159,65 +155,9 @@ export function NameFees({
 		<Index {...props} style={{ left: leftSpace }}>
 			{rowType === 'accordion' && (showRows ? <ChevronDown size={16} /> : <ChevronRight size={16} />)}
 			<span>{rowType !== 'pinned' && index}</span>
-			<TokenLogo id="table-p-logo" logo={iconUrl} />		
+			<TokenLogo id="table-p-logo" logo={iconUrl} />
 			<CustomLink href={tokenUrl} id="table-p-name">
 				{version ? `${name} ${version}` : name}
-			</CustomLink>
-		</Index>
-	)
-}
-
-export function NameYield({ project, projectslug, rowType, airdrop, ...props }: INameYield) {
-	const iconUrl = tokenIconUrl(project)
-	const tokenUrl = `/yields?project=${projectslug}`
-
-	return (
-		<Index {...props}>
-			<Tooltip content="This project has no token and might airdrop one to depositors in the future">
-				<div style={{ width: '24px', flexShrink: 0, marginRight: '-12px' }}>{airdrop && '🪂'}</div>
-			</Tooltip>
-			<TokenLogo id="table-p-logo" logo={iconUrl} />
-			{rowType === 'accordion' ? (
-				<span id="table-p-name">{project}</span>
-			) : (
-				<CustomLink id="table-p-name" href={tokenUrl}>
-					{project}
-				</CustomLink>
-			)}
-		</Index>
-	)
-}
-
-export function NameYieldPool({
-	value,
-	configID,
-	url,
-	index,
-	bookmark,
-	rowType = 'default',
-	...props
-}: INameYieldPoolProps) {
-	const tokenUrl = `/yields/pool/${configID}`
-
-	let leftSpace: number | string = 0
-
-	return (
-		<Index {...props} style={{ left: leftSpace }}>
-			{bookmark && (
-				<SaveButton readableProtocolName={configID} style={{ paddingRight: rowType === 'pinned' ? '1ch' : 0 }} />
-			)}
-			<span>{rowType !== 'pinned' && index}</span>
-			{url ? (
-				<CustomLink href={url} target="_blank" id="icon-link">
-					<ButtonYields as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
-						<ArrowUpRight size={14} />
-					</ButtonYields>
-				</CustomLink>
-			) : (
-				''
-			)}
-			<CustomLink href={tokenUrl} target="_blank">
-				<FormattedName text={value} maxCharacters={16} link fontWeight={500} />
 			</CustomLink>
 		</Index>
 	)

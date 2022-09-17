@@ -12,25 +12,18 @@ interface TokenLogoProps {
 	address?: string
 	skipApiRoute?: boolean
 	id?: string
-	onClick?: React.MouseEventHandler;
+	onClick?: React.MouseEventHandler
 }
 
 const BAD_IMAGES = {}
 
-const Inline = styled.span`
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: ${({ theme }) => theme.bg3};
-	border-radius: 50%;
-	box-shadow: ${({ theme }) => theme.shadowSm};
-	flex-shrink: 0;
-`
-
 const Image = styled(NextImage)`
 	display: inline-block;
-	background: transparent;
+	object-fit: cover;
+	aspect-ratio: 1;
+	background: ${({ theme }) => theme.bg3};
 	border-radius: 50%;
+	flex-shrink: 0;
 `
 // next/image won't work, idk why
 export default function TokenLogo({
@@ -43,48 +36,30 @@ export default function TokenLogo({
 	...rest
 }: TokenLogoProps) {
 	const [error, setError] = React.useState(false)
-	React.useEffect(() => {
-		setError(false)
-	}, [logo])
 
-	if (!logo) return <></> //if no src is set, no logo is displayed
-
-	if (external) {
-		return (
-			<Inline id={id}>
-				<Image
-					{...rest}
-					alt={''}
-					src={skipApiRoute ? logo : `/api/image?url=${encodeURIComponent(logo)}`}
-					height={size}
-					width={size}
-				/>
-			</Inline>
-		)
-	}
-
-	if (error || BAD_IMAGES[logo]) {
-		return (
-			<Inline id={id}>
-				<Image {...rest} alt={''} src={PlaceHolder} height={size} width={size} />
-			</Inline>
-		)
-	}
+	const isError = error || !logo || BAD_IMAGES[logo]
+	const imgSrc = isError
+		? PlaceHolder
+		: external
+		? skipApiRoute
+			? logo
+			: `/api/image?url=${encodeURIComponent(logo)}`
+		: logo
 
 	return (
-		<Inline id={id} style={style}>
-			<Image
-				{...rest}
-				alt={''}
-				src={logo}
-				height={size}
-				width={size}
-				onError={(event) => {
-					BAD_IMAGES[logo] = true
-					setError(true)
-					event.preventDefault()
-				}}
-			/>
-		</Inline>
+		<Image
+			{...rest}
+			alt={''}
+			src={imgSrc}
+			onError={(e) => {
+				e.preventDefault()
+				BAD_IMAGES[logo] = true
+				setError(true)
+			}}
+			height={size}
+			width={size}
+			id={id}
+			style={style}
+		/>
 	)
 }

@@ -52,7 +52,7 @@ export const RowWrapper = styled.tr`
 	td:not(:first-child) > * {
 		overflow: hidden;
 		white-space: nowrap;
-		text-overflow: ellipses;
+		text-overflow: ellipsis;
 	}
 
 	a:hover {

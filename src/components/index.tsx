@@ -505,4 +505,13 @@ export const Checkbox2 = styled.input`
 	}
 `
 
+export const FallbackMessage = styled.p`
+	padding: 1.25rem;
+	text-align: center;
+	background-color: ${({ theme }) => theme.advancedBG};
+	border-radius: 8px;
+	border: 1px solid ${({ theme }) => theme.bg3};
+	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
+`
+
 export { Hint, Divider, EmptyCard }

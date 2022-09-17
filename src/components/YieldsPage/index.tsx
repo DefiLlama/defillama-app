@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
-import { Dropdowns, NameYield, TableFilters, TableHeader } from '~/components/Table'
+import { Dropdowns, TableFilters, TableHeader } from '~/components/Table'
+import { YieldsPoolsTable } from '~/components/VirtualTable'
 import {
 	YieldAttributes,
 	TVLRange,
@@ -13,49 +14,14 @@ import {
 	attributeOptions
 } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
-import { columns, TableWrapper } from './shared'
 import { useFormatYieldQueryParams } from './hooks'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
-	const { query, pathname, isReady } = useRouter()
+	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
 		useFormatYieldQueryParams({ projectList, chainList, categoryList })
-
-	// if route query contains 'project' remove project href
-	const idx = columns.findIndex((c) => c.accessor === 'project')
-
-	if (query.projectName) {
-		columns[idx] = {
-			header: 'Project',
-			accessor: 'project',
-			disableSortBy: true,
-			Cell: ({ value, rowValues }) => (
-				<NameYield
-					value={value}
-					project={rowValues.project}
-					airdrop={rowValues.airdrop}
-					projectslug={rowValues.projectslug}
-					rowType="accordion"
-				/>
-			)
-		}
-	} else {
-		columns[idx] = {
-			header: 'Project',
-			accessor: 'project',
-			disableSortBy: true,
-			Cell: ({ value, rowValues }) => (
-				<NameYield
-					value={value}
-					project={rowValues.project}
-					airdrop={rowValues.airdrop}
-					projectslug={rowValues.projectslug}
-				/>
-			)
-		}
-	}
 
 	const poolsData = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
@@ -170,27 +136,20 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>
-				{isReady && (
-					<Dropdowns>
-						<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
-						<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
-						<FiltersByCategory
-							categoryList={categoryList}
-							selectedCategories={selectedCategories}
-							pathname={pathname}
-						/>
-						<YieldAttributes pathname={pathname} />
-						<TVLRange />
-						<APYRange />
-						<ResetAllYieldFilters pathname={pathname} />
-					</Dropdowns>
-				)}
+
+				<Dropdowns>
+					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
+					<FiltersByCategory categoryList={categoryList} selectedCategories={selectedCategories} pathname={pathname} />
+					<YieldAttributes pathname={pathname} />
+					<TVLRange />
+					<APYRange />
+					<ResetAllYieldFilters pathname={pathname} />
+				</Dropdowns>
 			</TableFilters>
 
-			{!isReady ? (
-				<></>
-			) : poolsData.length > 0 ? (
-				<TableWrapper data={poolsData} columns={columns} />
+			{poolsData.length > 0 ? (
+				<YieldsPoolsTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
 					Couldn't find any pools for these filters

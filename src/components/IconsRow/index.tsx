@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Hovercard, HovercardAnchor, useHovercardState } from 'ariakit/hovercard'
 import styled from 'styled-components'
-import { BasicLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
-import Tooltip from '~/components/Tooltip'
+import AriaTooltip from '~/components/Tooltip'
 import { useResize } from '~/hooks'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 
@@ -42,50 +41,48 @@ const Popover = styled(Hovercard)`
 	box-shadow: ${({ theme }) => theme.shadowMd};
 `
 
-const Link = styled(BasicLink)`
-	border-radius: 50%;
-	:focus-visible {
-		outline-offset: 2px;
-	}
-`
-
-const StyledTooltip = styled(Tooltip)`
+const Tooltip = styled(AriaTooltip)`
 	padding: 6px;
 `
 
 interface IChainLogo {
 	chain: string
 	url: string
-	iconType:string
+	iconType: string
 	yieldRewardsSymbol: string
 	disableLink?: boolean
 }
 
-export const ChainLogo = ({ chain, url, iconType, yieldRewardsSymbol, disableLink: disableLinks = false }: IChainLogo) => {
+export const ChainLogo = ({
+	chain,
+	url,
+	iconType,
+	yieldRewardsSymbol,
+	disableLink: disableLinks = false
+}: IChainLogo) => {
 	const shallowRoute: boolean = url.includes('/yields?chain') || url.includes('/yields?project')
+
 	if (yieldRewardsSymbol || disableLinks) {
 		return (
-			<StyledTooltip content={disableLinks ? chain : yieldRewardsSymbol}>
-				<TokenLogo onClick={ e=> e.stopPropagation() } address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
-			</StyledTooltip>
+			<Tooltip content={disableLinks ? chain : yieldRewardsSymbol}>
+				<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
+			</Tooltip>
 		)
 	} else {
 		return (
-			<StyledTooltip content={chain}>
-				<Link
-					key={chain}
-					href={
-						url.includes('/yields?chain')
-							? `${url}=${chain}`
-							: url.includes('/yields?project')
-							? `${url}=${chain.toLowerCase().split(' ').join('-')}`
-							: `${url}/${chain}`
-					}
-					shallow={shallowRoute}
-				>
-					<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
-				</Link>
-			</StyledTooltip>
+			<Tooltip
+				content={chain}
+				href={
+					url.includes('/yields?chain')
+						? `${url}=${chain}`
+						: url.includes('/yields?project')
+						? `${url}=${chain.toLowerCase().split(' ').join('-')}`
+						: `${url}/${chain}`
+				}
+				shallow={shallowRoute}
+			>
+				<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
+			</Tooltip>
 		)
 	}
 }
@@ -99,11 +96,11 @@ interface IIconsRowProps {
 }
 
 const isChain = (chain) => {
-	return ['Ethereum', 'Avalanche', 'Optimism', 'Near', 'Metis', 'Aurora'].includes(chain)
+	return ['ethereum', 'avalanche', 'optimism', 'near', 'metis', 'aurora'].includes(chain.toLowerCase())
 }
 
 // todo update links prop to {name: string, iconType: string}
-const IconsRow = ({ links, url, iconType, yieldRewardsSymbols = [], disableLinks=false }: IIconsRowProps) => {
+const IconsRow = ({ links, url, iconType, yieldRewardsSymbols = [], disableLinks = false }: IIconsRowProps) => {
 	const [visibleChainIndex, setVisibileChainIndex] = useState(0)
 	const mainWrapEl = useRef(null)
 	const { width: mainWrapWidth } = useResize(mainWrapEl)
@@ -118,17 +115,16 @@ const IconsRow = ({ links, url, iconType, yieldRewardsSymbols = [], disableLinks
 			lastIndexOfFilters += 1
 		})
 
-		setVisibileChainIndex(lastIndexOfFilters)
+		setVisibileChainIndex(links.length > 2 ? lastIndexOfFilters : links.length)
 	}, [mainWrapWidth, links])
 
 	const tooManyChainsIndex = visibleChainIndex < links.length ? visibleChainIndex - 1 : visibleChainIndex
 
-	const visibleChains = links.slice(0, tooManyChainsIndex)
+	const visibleChains = links.length > 2 ? links.slice(0, tooManyChainsIndex) : links
+
 	const hoverChains = tooManyChainsIndex !== visibleChainIndex ? links.slice(tooManyChainsIndex, links.length) : []
 
 	const hovercard = useHovercardState()
-
-	yieldRewardsSymbols = yieldRewardsSymbols ?? []
 
 	return (
 		<Row ref={mainWrapEl}>
@@ -142,7 +138,7 @@ const IconsRow = ({ links, url, iconType, yieldRewardsSymbols = [], disableLinks
 					disableLink={disableLinks}
 				/>
 			))}
-			{!!hoverChains.length && (
+			{!!hoverChains.length && links.length > 2 && (
 				<>
 					<HovercardAnchor state={hovercard}>
 						<TokenCounter>{`+${hoverChains.length}`}</TokenCounter>
