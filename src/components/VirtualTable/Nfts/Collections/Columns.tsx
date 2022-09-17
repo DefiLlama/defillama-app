@@ -68,6 +68,9 @@ export const columns: ColumnDef<INftsCollectionRow>[] = [
 		header: 'Daily Volume',
 		accessorKey: 'dailyVolumeUSD',
 		enableSorting: true,
+		cell: ({ getValue }) => {
+			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
+		},
 		meta: {
 			align: 'end'
 		},
@@ -102,7 +105,7 @@ export const columns: ColumnDef<INftsCollectionRow>[] = [
 		accessorKey: 'owners',
 		enableSorting: true,
 		cell: ({ getValue }) => {
-			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
+			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), false)}</>
 		},
 		meta: {
 			align: 'end'

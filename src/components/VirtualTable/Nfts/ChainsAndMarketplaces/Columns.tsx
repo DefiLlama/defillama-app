@@ -49,7 +49,7 @@ export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
 		accessorKey: 'collections',
 		enableSorting: true,
 		cell: ({ getValue }) => {
-			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
+			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), false)}</>
 		},
 		meta: {
 			align: 'end'
@@ -121,7 +121,7 @@ export const marketplacesColumns: ColumnDef<INftsCollectionRow>[] = [
 		accessorKey: 'collections',
 		enableSorting: true,
 		cell: ({ getValue }) => {
-			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
+			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), false)}</>
 		},
 		meta: {
 			align: 'end'
