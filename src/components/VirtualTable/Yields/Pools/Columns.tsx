@@ -124,28 +124,6 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		}
 	},
 	{
-		header: '1d Change',
-		accessorKey: 'change1d',
-		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Absolute change in APY'
-		}
-	},
-	{
-		header: '7d Change',
-		accessorKey: 'change7d',
-		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Absolute change in APY'
-		}
-	},
-	{
 		header: 'Outlook',
 		accessorKey: 'outlook',
 		enableSorting: true,
