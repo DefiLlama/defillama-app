@@ -146,6 +146,17 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Predicted outlook confidence'
 		}
+	},
+	{
+		header: '7d Change',
+		accessorKey: 'change7d',
+		enableSorting: true,
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Absolute change in APY'
+		}
 	}
 ]
 
@@ -160,10 +171,9 @@ const columnOrders = {
 		'chains',
 		'apyBase',
 		'apyReward',
-		'change1d',
-		'change7d',
 		'outlook',
-		'confidence'
+		'confidence',
+		'change7d'
 	],
 	400: [
 		'pool',
@@ -173,10 +183,9 @@ const columnOrders = {
 		'chains',
 		'apyBase',
 		'apyReward',
-		'change1d',
-		'change7d',
 		'outlook',
-		'confidence'
+		'confidence',
+		'change7d'
 	],
 	640: [
 		'pool',
@@ -186,10 +195,9 @@ const columnOrders = {
 		'chains',
 		'apyBase',
 		'apyReward',
-		'change1d',
-		'change7d',
 		'outlook',
-		'confidence'
+		'confidence',
+		'change7d'
 	],
 	1280: [
 		'pool',
@@ -199,10 +207,9 @@ const columnOrders = {
 		'apy',
 		'apyBase',
 		'apyReward',
-		'change1d',
-		'change7d',
 		'outlook',
-		'confidence'
+		'confidence',
+		'change7d'
 	]
 }
 
@@ -215,7 +222,7 @@ export const columnSizes = {
 		apy: 100,
 		apyBase: 140,
 		apyReward: 140,
-		change1d: 140,
+		change7d: 140,
 		outlook: 120,
 		confidence: 140
 	},
@@ -227,7 +234,7 @@ export const columnSizes = {
 		apy: 100,
 		apyBase: 140,
 		apyReward: 140,
-		change1d: 140,
+		change7d: 140,
 		outlook: 120,
 		confidence: 140
 	}
