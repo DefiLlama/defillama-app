@@ -106,7 +106,7 @@ export function FiltersByCategory({ categoryList = [], selectedCategories, pathn
 								<SelectItem
 									value={value}
 									key={value + i}
-									ref={i === 1 && selectedCategories.length === categoryList.length ? focusItemRef : null}
+									ref={i === 0 && selectedCategories.length === categoryList.length ? focusItemRef : null}
 									focusOnHover
 								>
 									<span>{value}</span>
