@@ -2,6 +2,7 @@ import * as React from 'react'
 import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel, ColumnDef } from '@tanstack/react-table'
 import VirtualTable from '~/components/VirtualTable/Table'
 import { INftsCollectionRow } from '../types'
+import { chainsColumns, marketplacesColumns } from './Columns'
 
 export default function NftsChainsAndMarketplacesTable({
 	data,
@@ -25,3 +26,8 @@ export default function NftsChainsAndMarketplacesTable({
 
 	return <VirtualTable instance={instance} />
 }
+
+export const NftChainsTable = ({ data }) => <NftsChainsAndMarketplacesTable data={data} columns={chainsColumns} />
+export const NftMarketplacesTable = ({ data }) => (
+	<NftsChainsAndMarketplacesTable data={data} columns={marketplacesColumns} />
+)

@@ -8,8 +8,7 @@ import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
 import { getRandomColor } from '~/utils'
 import { revalidate } from '~/api'
 import { getNFTChainChartData, getNFTChainsData } from '~/api/categories/nfts'
-import { chainsColumns } from '~/components/VirtualTable/Nfts/ChainsAndMarketplaces/Columns'
-import { NftsChainsAndMarketplacesTable } from '~/components/VirtualTable'
+import { NftChainsTable } from '~/components/VirtualTable'
 
 export async function getStaticProps() {
 	const chainData = await getNFTChainsData()
@@ -93,7 +92,7 @@ const ChainsView = ({ chainData, currentData, chainsUnique, stackedDataset, dayS
 				/>
 			</ChartsWrapper>
 
-			<NftsChainsAndMarketplacesTable data={chainData} columns={chainsColumns} />
+			<NftChainsTable data={chainData} />
 		</>
 	)
 }

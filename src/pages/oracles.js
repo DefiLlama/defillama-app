@@ -3,13 +3,12 @@ import styled from 'styled-components'
 import { Box } from 'rebass'
 import Layout from '~/layout'
 import { Header } from '~/Theme'
-import { CustomLink } from '~/components/Link'
+import { OraclesTable } from '~/components/VirtualTable'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { ChainDominanceChart, ChainPieChart } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
-import Table, { Index } from '~/components/Table'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
-import { getRandomColor, toK } from '~/utils'
+import { getRandomColor } from '~/utils'
 import { revalidate } from '~/api'
 import { getOraclePageData } from '~/api/categories/protocols'
 
@@ -34,34 +33,6 @@ const ChartsWrapper = styled(Box)`
 		grid-auto-rows: auto;
 	}
 `
-
-const columns = [
-	{
-		header: 'Name',
-		accessor: 'name',
-		disableSortBy: true,
-		Cell: ({ value, rowIndex }) => {
-			return (
-				<Index>
-					<span>{rowIndex + 1}</span>
-					<CustomLink href={`/oracles/${value}`}>{value}</CustomLink>
-				</Index>
-			)
-		}
-	},
-	{
-		header: 'Protocols Secured',
-		accessor: 'protocolsSecured'
-	},
-	{
-		header: 'TVS',
-		accessor: 'tvs',
-		helperText: 'Excludes CeFi',
-		Cell: ({ value }) => {
-			return <span>{'$' + toK(value)}</span>
-		}
-	}
-]
 
 const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
 	const tokenColors = useMemo(
@@ -112,7 +83,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
 				<RowLinksWithDropdown links={tokenLinks} activeLink="All" />
 			</RowLinksWrapper>
 
-			<Table columns={columns} data={tokensList} />
+			<OraclesTable data={tokensList} />
 		</>
 	)
 }

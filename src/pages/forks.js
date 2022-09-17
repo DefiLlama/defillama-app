@@ -3,13 +3,12 @@ import styled from 'styled-components'
 import { Box } from 'rebass'
 import { Header } from '~/Theme'
 import Layout from '~/layout'
-import Table, { Index } from '~/components/Table'
-import { CustomLink } from '~/components/Link'
+import { ForksTable } from '~/components/VirtualTable'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { ChainDominanceChart, ChainPieChart } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
-import { getRandomColor, toK } from '~/utils'
+import { getRandomColor } from '~/utils'
 import { revalidate } from '~/api'
 import { getForkPageData } from '~/api/categories/protocols'
 
@@ -34,36 +33,6 @@ const ChartsWrapper = styled(Box)`
 		grid-auto-rows: auto;
 	}
 `
-
-const columns = [
-	{
-		header: 'Name',
-		accessor: 'name',
-		disableSortBy: true,
-		Cell: ({ value, rowIndex }) => {
-			return (
-				<Index>
-					<span>{rowIndex + 1}</span>
-					<CustomLink href={`/forks/${value}`}>{value}</CustomLink>
-				</Index>
-			)
-		}
-	},
-	{
-		header: 'Forked Protocols',
-		accessor: 'forkedProtocols'
-	},
-	{
-		header: 'TVL',
-		accessor: 'tvl',
-		Cell: ({ value }) => <>{'$' + toK(value)}</>
-	},
-	{
-		header: 'Forks TVL / Original TVL',
-		accessor: 'ftot',
-		Cell: ({ value }) => <>{value && value.toFixed(2) + '%'}</>
-	}
-]
 
 const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens }) => {
 	const tokenColors = useMemo(
@@ -124,7 +93,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 				<RowLinksWithDropdown links={tokenLinks} activeLink="All" />
 			</RowLinksWrapper>
 
-			<Table columns={columns} data={tokensList} />
+			<ForksTable data={tokensList} />
 		</>
 	)
 }
