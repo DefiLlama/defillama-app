@@ -9,7 +9,6 @@ import { NFTsSearch } from '~/components/Search'
 import NFTCollectionList from '~/components/NFTCollectionList'
 import SEO from '~/components/SEO'
 import { ListHeader, ListOptions } from '~/components/ChainPage/shared'
-import { useMedia } from '~/hooks'
 import { formattedNum } from '~/utils'
 import { NFT_SETTINGS, useNftsManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds, chainMarketplaceMappings } from '~/constants/chainTokens'
@@ -29,7 +28,6 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 	const { totalVolume, totalVolumeUSD, dailyVolume, dailyVolumeUSD, dailyChange } = statistics
 	const [nftsSettings] = useNftsManager()
 	const { DISPLAY_USD, HIDE_LAST_DAY } = NFT_SETTINGS
-	const below800 = useMedia('(max-width: 800px)')
 
 	const isChain = chainData ? true : false
 	const selectedTab = displayName
@@ -136,9 +134,7 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 				<RowLinksWithDropdown links={tabOptions} activeLink={selectedTab} />
 			</ListOptions>
 
-			<Panel style={{ padding: below800 && '1rem 0 0 0 ' }}>
-				<NFTCollectionList collections={collections} displayUsd={displayUsd} />
-			</Panel>
+			<NFTCollectionList collections={collections} displayUsd={displayUsd} />
 		</Layout>
 	)
 }

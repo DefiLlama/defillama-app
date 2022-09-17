@@ -1,10 +1,15 @@
 import * as React from 'react'
-import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
+import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel, ColumnDef } from '@tanstack/react-table'
 import VirtualTable from '~/components/VirtualTable/Table'
-import { columns } from './Columns'
-import type { IYieldsProjectsTableRow } from '../types'
+import { INftsCollectionRow } from '../types'
 
-export default function YieldsProjectsTable({ data }: { data: Array<IYieldsProjectsTableRow> }) {
+export default function NftsChainsAndMarketplacesTable({
+	data,
+	columns
+}: {
+	data: Array<INftsCollectionRow>
+	columns: ColumnDef<INftsCollectionRow>[]
+}) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 
 	const instance = useReactTable({
