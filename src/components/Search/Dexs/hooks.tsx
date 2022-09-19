@@ -7,7 +7,7 @@ export function useGetDexesSearchList(onlyChains?: boolean): IGetSearchList {
 	const { data, loading } = useFetchDexsList()
 	const list = onlyChains === true ? data?.allChains?.map((chain) => ({ name: chain })) : data?.dexs
 	const urlPrefix = onlyChains === true ? '/dexs' : '/dex'
-	const iconUrl = onlyChains === true ? tokenIconUrl : chainIconUrl
+	const iconUrl = onlyChains === true ? chainIconUrl : tokenIconUrl
 	const searchData: IBaseSearchProps['data'] = React.useMemo(
 		() =>
 			list?.map((asset) => ({
