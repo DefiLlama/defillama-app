@@ -6,14 +6,16 @@ import styled from 'styled-components'
 import { useGetDexesSearchList } from '../Dexs/hooks'
 import { useGetLiquidationSearchList } from '../Liquidations/hooks'
 import { useGetNftsSearchList } from '../NFTs/hooks'
-import { useGetDefiSearchList } from '../ProtocolsChains/hooks'
+import { IDefiSearchListProps, useGetDefiSearchList } from '../ProtocolsChains/hooks'
 import { useGetStablecoinsSearchList } from '../Stablecoins/hooks'
 import { useGetYieldsSearchList } from '../Yields/hooks'
 import { Input } from './Input'
 import { Results } from './Results'
 
 export default function MobileSearch() {
-	const { data, loading, onSearchTermChange, onItemClick } = useMobileSearchResult()({})
+	const { data, loading, onSearchTermChange, onItemClick } = useMobileSearchResult()(
+		{} as boolean & IDefiSearchListProps
+	)
 
 	const combobox = useComboboxState({
 		gutter: 6,

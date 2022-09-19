@@ -1,4 +1,5 @@
-import { IDexResponse } from '~/api/types'
+import { IDexResponse } from '~/api/categories/dexs/types'
+import { formatChain } from '~/api/categories/dexs/utils'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { capitalizeFirstLetter } from '..'
 
@@ -81,7 +82,7 @@ export const formatVolumeHistoryToChartDataByProtocol = (
 		return acc
 	}, {} as { [protName: string]: IStackedBarChartProps['chartData'][0]['data'] })
 	return Object.entries(chartData).map(([name, data]) => ({
-		name: name === adapterName ? dexName : name.toUpperCase(),
+		name: name === adapterName ? dexName : formatChain(name),
 		data
 	})) as IStackedBarChartProps['chartData']
 }

@@ -15,9 +15,9 @@ import { DexsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
 import { formattedNum, getBlockExplorer } from '~/utils'
-import { IDexResponse } from '~/api/types'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
 import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
+import { IDexResponse } from '~/api/categories/dexs/types'
 
 defaultFallbackInView(true)
 

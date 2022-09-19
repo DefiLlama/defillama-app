@@ -20,7 +20,7 @@ const getNameWithSymbol = (token: IBaseSearchProps['data'][0]) => {
 	return token.name
 }
 
-interface IDefiSearchListProps {
+export interface IDefiSearchListProps {
 	includedSets?: SETS[]
 	customPath?: IBaseSearchProps['customPath']
 }

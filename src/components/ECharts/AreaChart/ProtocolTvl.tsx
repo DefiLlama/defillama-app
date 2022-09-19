@@ -219,7 +219,7 @@ export default function ProtocolTvlChart({
 	)
 }
 
-const Wrapper = styled.div`
+export const Wrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
@@ -228,7 +228,7 @@ const Wrapper = styled.div`
 	grid-column: span 1;
 `
 
-const FiltersWrapper = styled.div`
+export const FiltersWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	flex-wrap: wrap;
@@ -242,7 +242,7 @@ const FiltersWrapper = styled.div`
 	}
 `
 
-const Filters = styled.div`
+export const Filters = styled.div`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -273,7 +273,7 @@ interface IDenomination {
 	active?: boolean
 }
 
-const Denomination = styled.a<IDenomination>`
+export const Denomination = styled.a<IDenomination>`
 	display: inline-block;
 	font-weight: 500;
 	font-size: 0.875rem;

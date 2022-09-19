@@ -5,6 +5,7 @@ import TokenLogo from '~/components/TokenLogo'
 import AriaTooltip from '~/components/Tooltip'
 import { useResize } from '~/hooks'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
+import Link from 'next/link'
 
 const CHAIN_ICON_WIDTH = 24
 
@@ -70,18 +71,24 @@ export const ChainLogo = ({
 		)
 	} else {
 		return (
-			<Tooltip
-				content={chain}
-				href={
-					url.includes('/yields?chain')
-						? `${url}=${chain}`
-						: url.includes('/yields?project')
-						? `${url}=${chain.toLowerCase().split(' ').join('-')}`
-						: `${url}/${chain}`
-				}
-				shallow={shallowRoute}
-			>
-				<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
+			<Tooltip content={chain}>
+				<Link
+					key={chain}
+					href={
+						url.includes('/yields?chain')
+							? `${url}=${chain}`
+							: url.includes('/yields?project')
+							? `${url}=${chain.toLowerCase().split(' ').join('-')}`
+							: `${url}/${chain}`
+					}
+					shallow={shallowRoute}
+				>
+					<TokenLogo
+						onClick={(e) => e.stopPropagation()}
+						address={chain}
+						logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)}
+					/>
+				</Link>
 			</Tooltip>
 		)
 	}
