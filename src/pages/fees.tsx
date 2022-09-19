@@ -81,11 +81,54 @@ export default function Fees(props) {
 
 	if (router.asPath.includes('?chain=')) {
 		selectedChain = router.asPath.split("?chain=").slice(-1)[0]
+		selectedChain = selectedChain.toLowerCase() === 'avalanche' ? 'avax' : selectedChain
+
 		fees = fees
 			.filter(fee => Object.keys(fee.feesHistory.slice(-1)[0]['dailyFees']).includes(selectedChain.toLowerCase()))
 			.map(fee => { 
-				const total1dFees = Object.values(fee.feesHistory.slice(-1)[0]['dailyFees'][selectedChain.toLowerCase()]).reduce((acc: number, curr: number) => acc + curr, 0)
-				const total1dRevenue = Object.values(fee.revenueHistory.slice(-1)[0]['dailyRevenue'][selectedChain.toLowerCase()]).reduce((acc: number, curr: number) => acc + curr, 0)
+				const latestFee = fee.feesHistory.slice(-1)[0]['dailyFees'][selectedChain.toLowerCase()]
+				const latestRevenue = fee.revenueHistory.slice(-1)[0]['dailyRevenue'][selectedChain.toLowerCase()]
+
+				const total1dFees = Object.values(latestFee).reduce((acc: number, curr: number) => acc + curr, 0)
+				const total1dRevenue = Object.values(latestRevenue).reduce((acc: number, curr: number) => acc + curr, 0)
+
+				const isBreakdown = Object.keys(latestFee).find(key => ['v1','v2','v3'].includes(key.toString()))
+
+				if (isBreakdown) {
+					let feeBreakdown = { }
+					let revenueBreakdown = { }
+					for (const [version, value] of Object.entries(latestFee)) {
+						if (!feeBreakdown[version]) {
+							feeBreakdown[version] = value as number
+						} else {
+							feeBreakdown[version] += value as number
+						}
+					}
+					for (const [version, value] of Object.entries(latestRevenue)) {
+						if (!revenueBreakdown[version]) {
+							revenueBreakdown[version] = value as number
+						} else {
+							revenueBreakdown[version] += value as number
+						}
+					}
+				
+					const subRows = Object.keys(feeBreakdown).map(version => {
+						return {
+							...fee,
+							version: version.toUpperCase(),
+							total1dFees: feeBreakdown[version],
+							total1dRevenue: revenueBreakdown[version],
+						}
+					})
+
+					return {
+						...fee,
+						total1dFees,
+						total1dRevenue,
+						subRows: subRows
+					}
+				}
+
 				return {
 					...fee,
 					total1dFees,
