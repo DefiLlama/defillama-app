@@ -12,8 +12,7 @@ export function useGetLiquidationSearchList(): IGetSearchList {
 
 		fetchAssetsList().catch((err) => {
 			console.error(err)
-			setSearchList({ ...searchList, loading: false, error: err })
 		})
-	}, [searchList])
+	}, [])
 	return searchList
 }
