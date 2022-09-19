@@ -47,7 +47,7 @@ const theme = (darkMode, color) => ({
 	//specialty colors
 	modalBG: darkMode ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.6)',
 	advancedBG: darkMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.4)',
-	onlyLight: darkMode ? '#22242a' : 'transparent',
+	onlyLight: darkMode ? '#1f222a' : '#ffffff',
 	divider: darkMode ? 'rgba(43, 43, 43, 0.435)' : 'rgba(43, 43, 43, 0.035)',
 
 	//primary colors
@@ -162,18 +162,24 @@ export const ThemedBackground = styled.div`
 		} 0%, rgba(255, 255, 255, 0) 100%)`};
 	z-index: -100;
 	transform: translateY(-110vh);
+
+	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+		left: 220px;
+	}
 `
 
 export const GlobalStyle = createGlobalStyle`
+	body, #__next {
+		background-color: ${({ theme }) => theme.onlyLight};
+	}
+
   #__next {
     display: flex;
     flex-direction: column;
     width: 100%;
     min-height: 100%;
-    overflow-y: auto;
     position: relative;
     color: ${({ theme }) => theme.text1};
-    background-color: ${({ theme }) => theme.onlyLight};
     isolation: isolate;
 
     ${({ theme: { minLg } }) => minLg} {
@@ -198,31 +204,19 @@ export const GlobalStyle = createGlobalStyle`
     white-space: nowrap;
     border-width: 0;
   }
+
+	.tooltip-trigger {
+		color: ${({ theme }) => theme.text1};
+		display: flex;
+		align-items: center;
+		padding: 0;
+
+		:focus-visible {
+			outline-offset: 2px;
+		}
+	}
+
+	.tooltip-trigger a {
+		display: flex;
+	}
 `
-
-// Don't apply scrollbar styles for now
-// scrollbar
-// scrollbarTrackColor: 'rgba(0, 0, 0, 0)',
-// scrollbarThumbColor: darkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
-
-//   /* ===== Scrollbar CSS ===== */
-//   /* Firefox */
-//   * {
-//   scrollbar-width: auto;
-//   scrollbar-color: ${({ theme }) => theme.scrollbarThumbColor} ${({ theme }) => theme.scrollbarTrackColor};
-// }
-
-// /* Chrome, Edge, and Safari */
-// *::-webkit-scrollbar {
-//   width: 0.64em;
-// }
-
-// *::-webkit-scrollbar-track {
-//   background: ${({ theme }) => theme.scrollbarTrackColor};
-// }
-
-// *::-webkit-scrollbar-thumb {
-//   background-color: ${({ theme }) => theme.scrollbarThumbColor};
-//   border-radius: 0.71em;
-//   border: 0px;
-// }

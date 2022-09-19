@@ -1,10 +1,7 @@
-import styled from 'styled-components'
 import { Header } from '~/Theme'
 import Layout from '~/layout'
-import { CustomLink } from '~/components/Link'
-import Table, { Index } from '~/components/Table'
+import { ProtocolsCategoriesTable } from '~/components/VirtualTable'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { toK } from '~/utils'
 import { revalidate } from '~/api'
 import { getProtocolsRaw } from '~/api/categories/protocols'
 
@@ -62,49 +59,11 @@ const descriptions = {
 	'Algo-Stables': 'From algorithmic coins to stablecoins',
 	'NFT Marketplace': 'Protocols where users can buy/sell/rent NFTs',
 	'NFT Lending': 'Protocols that allow you too collateralize your NFT for a loan',
-	'RWA': 'Protocols that involve Real World Assets, such as house tokenization',
+	RWA: 'Protocols that involve Real World Assets, such as house tokenization',
 	Farm: 'Lock money in exchange for their token',
 	'Liquid Staking': 'Rewards/Liquidity for staked assets',
 	Oracle: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)'
 }
-
-const columns = [
-	{
-		header: 'Category',
-		accessor: 'name',
-		disableSortBy: true,
-		Cell: ({ value, rowIndex }) => {
-			return (
-				<Index>
-					<span>{rowIndex + 1}</span>
-					<CustomLink href={`/protocols/${value}`}>{value}</CustomLink>
-				</Index>
-			)
-		}
-	},
-	{
-		header: 'Protocols',
-		accessor: 'protocols'
-	},
-	{
-		header: 'Combined TVL',
-		accessor: 'tvl',
-		Cell: ({ value }) => {
-			return <span>{'$' + toK(value)}</span>
-		}
-	},
-	{
-		header: 'Description',
-		accessor: 'description',
-		disableSortBy: true
-	}
-]
-
-const TableWrapper = styled(Table)`
-	tr > *:last-child {
-		text-align: start;
-	}
-`
 
 export default function Protocols({ categories }) {
 	return (
@@ -113,7 +72,7 @@ export default function Protocols({ categories }) {
 
 			<Header>Protocol Categories</Header>
 
-			<TableWrapper data={categories} columns={columns} align="start" gap="40px" />
+			<ProtocolsCategoriesTable data={categories} />
 		</Layout>
 	)
 }

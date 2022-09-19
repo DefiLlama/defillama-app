@@ -5,7 +5,7 @@ import { Header, TYPE } from '~/Theme'
 import { Panel } from '~/components'
 import Row from '~/components/Row'
 import { Menu } from '~/components/DropdownMenu'
-import { columns, TableWrapper } from '~/components/YieldsPage/shared'
+import { YieldsPoolsTable } from '~/components/VirtualTable'
 import { YieldsSearch } from '~/components/Search'
 import { useIsClient } from '~/hooks'
 import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
@@ -78,7 +78,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 			</Row>
 
 			{filteredProtocols.length ? (
-				<TableWrapper data={filteredProtocols} columns={columns} />
+				<YieldsPoolsTable data={filteredProtocols} />
 			) : (
 				<Panel>
 					<p style={{ textAlign: 'center' }}>You have not saved any pools.</p>

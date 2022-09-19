@@ -19,7 +19,7 @@ export const useFormatYieldQueryParams = ({ projectList, chainList, categoryList
 			} else {
 				selectedProjects = [...project]
 			}
-		}
+		} else selectedProjects = projectList.map((p) => p.slug)
 
 		if (category) {
 			if (typeof category === 'string') {

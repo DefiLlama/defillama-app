@@ -3,12 +3,12 @@ import styled from 'styled-components'
 import { Box } from 'rebass/styled-components'
 import Layout from '~/layout'
 import { Header } from '~/Theme'
-import NFTList from '~/components/NFTList'
 import SEO from '~/components/SEO'
 import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
-import { tokenIconUrl, getRandomColor } from '~/utils'
+import { getRandomColor } from '~/utils'
 import { revalidate } from '~/api'
 import { getNFTMarketplacesData, getNFTMarketplaceChartData } from '~/api/categories/nfts'
+import { NftMarketplacesTable } from '~/components/VirtualTable'
 
 export async function getStaticProps() {
 	const marketplaceData = await getNFTMarketplacesData()
@@ -91,13 +91,8 @@ const MarketplacesView = ({ marketplaceData, currentData, marketplacesUnique, st
 					daySum={daySum}
 				/>
 			</ChartsWrapper>
-			<NFTList
-				data={marketplaceData}
-				iconUrl={tokenIconUrl}
-				generateLink={(name) => `/nfts/marketplace/${name}`}
-				columns={['marketplace', 'collections', 'dailyVolumeUSD', 'totalVolumeUSD']}
-				type="marketplaces"
-			/>
+
+			<NftMarketplacesTable data={marketplaceData} />
 		</>
 	)
 }

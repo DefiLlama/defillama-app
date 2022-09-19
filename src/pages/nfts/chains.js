@@ -5,10 +5,10 @@ import { Header } from '~/Theme'
 import Layout from '~/layout'
 import SEO from '~/components/SEO'
 import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
-import NFTList from '~/components/NFTList'
-import { chainIconUrl, getRandomColor } from '~/utils'
+import { getRandomColor } from '~/utils'
 import { revalidate } from '~/api'
 import { getNFTChainChartData, getNFTChainsData } from '~/api/categories/nfts'
+import { NftChainsTable } from '~/components/VirtualTable'
 
 export async function getStaticProps() {
 	const chainData = await getNFTChainsData()
@@ -91,12 +91,8 @@ const ChainsView = ({ chainData, currentData, chainsUnique, stackedDataset, dayS
 					daySum={daySum}
 				/>
 			</ChartsWrapper>
-			<NFTList
-				data={chainData}
-				iconUrl={chainIconUrl}
-				generateLink={(name) => `/nfts/chain/${name}`}
-				columns={['chain', 'collections', 'dailyVolumeUSD', 'totalVolumeUSD']}
-			/>
+
+			<NftChainsTable data={chainData} />
 		</>
 	)
 }
