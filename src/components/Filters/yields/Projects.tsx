@@ -106,7 +106,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 								<SelectItem
 									value={value}
 									key={value + i}
-									ref={i === 1 && selectedProjects.length === projectList.length ? focusItemRef : null}
+									ref={i === 0 && selectedProjects.length === projectList.length ? focusItemRef : null}
 									focusOnHover
 								>
 									<span>{projectList.find((p) => p.slug === value)?.name ?? value}</span>

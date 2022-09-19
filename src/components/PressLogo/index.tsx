@@ -44,7 +44,7 @@ export default function TokenLogo({
 				<Image
 					{...rest}
 					alt={''}
-					src={`/api/image?url=${encodeURIComponent(logo)}`}
+					src={logo}
 					height={size}
 					width={size}
 					layout="fixed"

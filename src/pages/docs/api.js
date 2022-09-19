@@ -39,6 +39,10 @@ function Swagger() {
 				syntaxHighlight: {
 					activated: false,
 					theme: 'agate'
+				},
+				requestInterceptor: (request) => {
+					request.url = request.url.replace(/%3A/g, ":").replace(/%2C/g, ",")
+					return request
 				}
 			})
 		}

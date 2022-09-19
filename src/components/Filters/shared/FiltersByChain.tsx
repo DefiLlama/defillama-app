@@ -121,7 +121,7 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 								<SelectItem
 									value={value}
 									key={value + i}
-									ref={i === 1 && selectedChains.length === chainList.length ? focusItemRef : null}
+									ref={i === 0 && selectedChains.length === chainList.length ? focusItemRef : null}
 									focusOnHover
 								>
 									<span>{value}</span>

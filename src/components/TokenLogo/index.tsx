@@ -43,7 +43,7 @@ export default function TokenLogo({
 		: external
 		? skipApiRoute
 			? logo
-			: `/api/image?url=${encodeURIComponent(logo)}`
+			: logo
 		: logo
 
 	return (
