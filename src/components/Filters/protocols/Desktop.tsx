@@ -28,7 +28,7 @@ const Wrapper = styled.section`
 	}
 `
 
-const ListWrapper = styled.ul`
+export const ListWrapper = styled.ul`
 	display: flex;
 	justify-content: flex-end;
 	align-items: center;
@@ -38,7 +38,7 @@ const ListWrapper = styled.ul`
 	font-size: 0.875rem;
 `
 
-const ListItem = styled.li`
+export const ListItem = styled.li`
 	&:not(:first-child) {
 		margin-left: 12px;
 	}

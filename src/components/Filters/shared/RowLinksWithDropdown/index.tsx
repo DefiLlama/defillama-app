@@ -12,6 +12,7 @@ interface ILink {
 interface IRowLinksProps {
 	links: ILink[]
 	activeLink?: string
+	alternativeOthersText?: string
 }
 
 const GAP = 6
@@ -48,7 +49,7 @@ export const RowLinksWrapper = styled.nav`
 `
 
 // Renders a row of links and overflow links / links that not fit in viewport are shown in a dropdown
-export const RowLinksWithDropdown = ({ links = [], activeLink, ...props }: IRowLinksProps) => {
+export const RowLinksWithDropdown = ({ links = [], activeLink, alternativeOthersText, ...props }: IRowLinksProps) => {
 	const [lastIndexToRender, setLastIndexToRender] = useState<number | null | 'renderMenu'>(null)
 
 	const calcFiltersToRender = useCallback(() => {
@@ -126,7 +127,9 @@ export const RowLinksWithDropdown = ({ links = [], activeLink, ...props }: IRowL
 			)}
 			{dropdownLinks && (
 				<OtherLinks
-					name={dropdownLinks.find((link) => link.label === activeLink) ? activeLink : 'Others'}
+					name={
+						dropdownLinks.find((link) => link.label === activeLink) ? activeLink : alternativeOthersText ?? 'Others'
+					}
 					options={dropdownLinks}
 				/>
 			)}

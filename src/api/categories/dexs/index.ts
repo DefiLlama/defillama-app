@@ -5,6 +5,7 @@ import {
 	PROTOCOLS_API,
 } from '~/constants'
 import { IDexResponse, IGetDexsResponseBody } from './types'
+import { formatChain } from './utils'
 
 export const getDex = async (dexName: string): Promise<IDexResponse> => await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
 
@@ -19,15 +20,18 @@ export async function getDexPageData(dex: string) {
 	}
 }
 
-// - used in /dexs
-export const getDexsPageData = async (aggregateChart: boolean = true) => {
+// - used in /dexs and /dexs/[chain]
+export const getChainPageData = async (chain?: string) => {
+	const API = chain ? `${DEXS_API}/${chain}` : DEXS_API
 	const {
 		dexs,
 		totalVolume,
 		changeVolume1d,
 		changeVolume30d,
-		totalDataChart
-	} = await fetch(DEXS_API).then((res) => res.json()) as IGetDexsResponseBody
+		totalDataChart,
+		totalDataChartBreakdown,
+		allChains
+	} = await fetch(API).then((res) => res.json()) as IGetDexsResponseBody
 
 	const getProtocolsRaw = (): Promise<{ protocols: LiteProtocol[] }> => fetch(PROTOCOLS_API).then((r) => r.json())
 	const protocolsData = await getProtocolsRaw()
@@ -38,16 +42,14 @@ export const getDexsPageData = async (aggregateChart: boolean = true) => {
 			totalVolume,
 			changeVolume1d,
 			changeVolume30d,
-			totalDataChart:
-				aggregateChart
-					? totalDataChart
-						.map(([timestamp, dexsData]) =>
-							[timestamp, Object.values(dexsData).reduce((acc, volume) => acc += volume, 0)])
-					: totalDataChart,
+			totalDataChart: totalDataChart,
+			chain: chain ? formatChain(chain) : "All",
 			tvlData: protocolsData.protocols.reduce((acc, pd) => {
 				acc[pd.name] = pd.tvlPrevDay
 				return acc
-			}, {})
+			}, {}),
+			totalDataChartBreakdown,
+			allChains
 		}
 	}
 }

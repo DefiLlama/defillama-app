@@ -59,7 +59,7 @@ export const allColumns: AllColumns = {
 		disableSortBy: true,
 		Cell: ({ value, rowValues, rowIndex = null, rowType }) => (
 			<NameFees
-				type={rowValues.logo ? "fees" : "chain"}
+				type={rowValues.logo ? 'fees' : 'chain'}
 				value={value}
 				symbol={rowType === 'child' ? '-' : rowValues.symbol}
 				index={rowIndex !== null && rowIndex + 1}
@@ -110,12 +110,12 @@ export const allColumns: AllColumns = {
 		accessor: 'change_1m',
 		Cell: ({ value }) => <>{formattedPercent(value)}</>
 	},
-	'fees': {
+	fees: {
 		header: 'Fees (24h)',
 		accessor: 'total1dFees',
 		Cell: ({ value }) => <>{'$' + formattedNum(value)}</>
 	},
-	'revenue': {
+	revenue: {
 		header: 'Revenue (24h)',
 		accessor: 'total1dRevenue',
 		Cell: ({ value }) => <>{'$' + formattedNum(value)}</>
@@ -201,11 +201,11 @@ export const allColumns: AllColumns = {
 		header: 'Chains',
 		accessor: 'chains',
 		disableSortBy: true,
-		Cell: ({ value }) => <IconsRow links={value} url="/chain" iconType="chain" disableLinks/>
+		Cell: ({ value }) => <IconsRow links={value} url="/dexs" iconType="chain" />
 	},
 	volumetvl: {
 		header: 'Volume/TVL',
 		accessor: 'volumetvl',
 		Cell: ({ value }) => <>{value && formattedNum(value)}</>
-	},
+	}
 }

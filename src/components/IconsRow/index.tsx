@@ -65,23 +65,30 @@ export const ChainLogo = ({
 	if (yieldRewardsSymbol || disableLinks) {
 		return (
 			<Tooltip content={disableLinks ? chain : yieldRewardsSymbol}>
-				<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
+				<TokenLogo
+					onClick={(e) => e.stopPropagation()}
+					address={chain}
+					logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)}
+				/>
 			</Tooltip>
 		)
 	} else {
 		return (
-			<Tooltip
-				content={chain}
-				href={
-					url.includes('/yields?chain')
-						? `${url}=${chain}`
-						: url.includes('/yields?project')
-						? `${url}=${chain.toLowerCase().split(' ').join('-')}`
-						: `${url}/${chain}`
-				}
-				shallow={shallowRoute}
-			>
-				<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
+			<Tooltip content={chain}>
+				<Link
+					onClick={(e) => e.stopPropagation()}
+					key={chain}
+					href={
+						url.includes('/yields?chain')
+							? `${url}=${chain}`
+							: url.includes('/yields?project')
+							? `${url}=${chain.toLowerCase().split(' ').join('-')}`
+							: `${url}/${chain}`
+					}
+					shallow={shallowRoute}
+				>
+					<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
+				</Link>
 			</Tooltip>
 		)
 	}

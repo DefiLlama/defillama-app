@@ -9,8 +9,10 @@ export interface IGetDexsResponseBody {
   changeVolume1d: number;
   changeVolume7d: number;
   changeVolume30d: number;
-  totalDataChart: Array<[string, { [dex: string]: number }]>,
+  totalDataChartBreakdown: Array<[string, { [dex: string]: number }]>,
+  totalDataChart: Array<[string, number]>,
   dexs: VolumeSummaryDex[]
+  allChains: string[]
 }
 
 //  Response /dex
