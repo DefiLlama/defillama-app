@@ -1,17 +1,18 @@
 import Link from 'next/link'
 import styled from 'styled-components'
-import { BarChart2, Percent, DollarSign, BarChart } from 'react-feather'
-import { useDexsApp, usePeggedApp, useYieldApp } from '~/hooks'
+import { BarChart2, Percent, DollarSign, BarChart, PieChart } from 'react-feather'
+import { useDexsApp, useFeesApp, usePeggedApp, useYieldApp } from '~/hooks'
 
 export default function AppSwitch() {
 	const isYieldApp = useYieldApp()
 	const isStableCoinsApp = usePeggedApp()
 	const isDexsApp = useDexsApp()
+	const isFeesApp = useFeesApp()
 
 	return (
 		<Wrapper>
 			<Link href="/" passHref>
-				<AppLink active={!isYieldApp && !isStableCoinsApp && !isDexsApp}>
+				<AppLink active={!isYieldApp && !isStableCoinsApp && !isDexsApp && !isFeesApp}>
 					<BarChart2 size={14} />
 					<span>DeFi</span>
 				</AppLink>
@@ -32,6 +33,12 @@ export default function AppSwitch() {
 				<AppLink active={isDexsApp}>
 					<BarChart size={14} />
 					<span>DEXs</span>
+				</AppLink>
+			</Link>
+			<Link href="/fees" passHref>
+				<AppLink active={isFeesApp}>
+					<PieChart size={14} />
+					<span>Fees</span>
 				</AppLink>
 			</Link>
 		</Wrapper>

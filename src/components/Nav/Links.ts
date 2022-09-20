@@ -59,6 +59,7 @@ export const navLinks: ILinks = {
 			{ name: 'Yields', path: '/yields', icon: Percent, subMenuHeader: true },
 			{ name: 'Stablecoins', path: '/stablecoins/chains', icon: DollarSign, subMenuHeader: true },
 			{ name: 'DEXs', path: '/dexs', icon: BarChart, subMenuHeader: true },
+			{ name: 'Fees', path: '/fees', icon: PieChart, subMenuHeader: true },
 			{ name: 'Overview', path: '/', icon: TrendingUp, hideOnMobile: true },
 			{ name: 'Chains', path: '/chains', icon: Link },
 			{ name: 'Directory', path: '/directory', icon: Compass, newTag: true },
@@ -114,6 +115,7 @@ export const navLinks: ILinks = {
 			{ name: 'DeFi', path: '/', icon: BarChart2, subMenuHeader: true, hideOnMobile: true },
 			{ name: 'Stablecoins', path: '/stablecoins/chains', icon: DollarSign, subMenuHeader: true, hideOnMobile: true },
 			{ name: 'DEXs', path: '/dexs', icon: BarChart, subMenuHeader: true, hideOnMobile: true },
+			{ name: 'Fees', path: '/fees', icon: PieChart, subMenuHeader: true, hideOnMobile: true },
 			{ name: 'Overview', path: '/yields/overview', icon: PieChart },
 			{ name: 'Pools', path: '/yields', icon: TrendingUp },
 			{ name: 'Stablecoin Pools', path: '/yields/stablecoins', icon: Pocket },
@@ -138,6 +140,7 @@ export const navLinks: ILinks = {
 			{ name: 'DeFi', path: '/', icon: BarChart2, subMenuHeader: true, hideOnMobile: true },
 			{ name: 'Yields', path: '/yields', icon: Percent, subMenuHeader: true, hideOnMobile: true },
 			{ name: 'DEXs', path: '/dexs', icon: BarChart, subMenuHeader: true, hideOnMobile: true },
+			{ name: 'Fees', path: '/fees', icon: PieChart, subMenuHeader: true, hideOnMobile: true },
 			{ name: 'Overview', path: '/stablecoins', icon: PieChart },
 			{ name: 'Chains', path: '/stablecoins/chains', icon: Link }
 		],

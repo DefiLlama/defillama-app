@@ -71,6 +71,11 @@ export function useDexsApp() {
 	return router.pathname.startsWith('/dex')
 }
 
+export function useFeesApp() {
+	const router = useRouter()
+	return router.pathname.startsWith('/fees')
+}
+
 export function usePeggedChainOverview() {
 	const router = useRouter()
 	return router.pathname.startsWith('/stablecoins/chains')
