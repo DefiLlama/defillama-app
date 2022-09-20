@@ -113,11 +113,13 @@ export const allColumns: AllColumns = {
 	fees: {
 		header: 'Fees (24h)',
 		accessor: 'total1dFees',
+		helperText: "Fees paid by protocol users (excluding gas fees)",
 		Cell: ({ value }) => <>{'$' + formattedNum(value)}</>
 	},
 	revenue: {
 		header: 'Revenue (24h)',
 		accessor: 'total1dRevenue',
+		helperText: 'Fees accrued to the protocol (going to either treasury or holders)',
 		Cell: ({ value }) => <>{'$' + formattedNum(value)}</>
 	},
 	tvl: {
