@@ -72,7 +72,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 				pathname,
 				query: {
 					...queries,
-					project: []
+					project: 'None'
 				}
 			},
 			undefined,

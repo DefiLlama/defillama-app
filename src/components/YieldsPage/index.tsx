@@ -27,6 +27,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 		return pools.reduce((acc, curr) => {
 			let toFilter = true
 
+			// used in pages like /yields/stablecoins to filter some pools by default
 			attributeOptions.forEach((option) => {
 				// check if this page has default attribute filter function
 				if (option.defaultFilterFnOnPage[pathname]) {
@@ -43,13 +44,9 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 				}
 			})
 
-			if (selectedProjects.length > 0) {
-				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
-			}
+			toFilter = toFilter && selectedProjects?.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
 
-			if (selectedCategories.length > 0) {
-				toFilter = toFilter && selectedCategories.map((p) => p.toLowerCase()).includes(curr.category.toLowerCase())
-			}
+			toFilter = toFilter && selectedCategories?.map((p) => p.toLowerCase()).includes(curr.category.toLowerCase())
 
 			const tokensInPool: string[] = curr.symbol.split('-').map((x) => x.toLowerCase())
 
