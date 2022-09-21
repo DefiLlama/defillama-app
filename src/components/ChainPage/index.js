@@ -245,14 +245,12 @@ function GlobalPage({
 
 			<>
 				<PanelThicc as="p">
-					We just launched our new
-					<Link href={`/dexs`} passHref>
+					Support defillama by
+					<Link href="https://gitcoin.co/grants/7087/defillama-apis" passHref>
 						<StyledAnchor>
-							<BarChart size={18} />
-							<b>DEX volume dashboard</b>
+							<b>donating to our gitcoin grant</b>
 						</StyledAnchor>
 					</Link>
-					! Check it out now!
 				</PanelThicc>
 				<PanelSmol as="p">
 					Check out our new
