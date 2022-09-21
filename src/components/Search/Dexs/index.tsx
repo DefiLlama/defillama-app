@@ -2,7 +2,6 @@ import { useState } from 'react'
 import styled from 'styled-components'
 import { ListWrapper } from '~/components/Filters/protocols/Desktop'
 import OptionToggle from '~/components/OptionToggle'
-import { Wrapper } from '~/layout/Chain'
 import { DesktopSearch } from '../Base'
 import type { ICommonSearchProps } from '../types'
 import { useGetDexesSearchList } from './hooks'
@@ -26,7 +25,7 @@ export default function DexsSearch(props: IDexsSearchProps) {
 					<ListWrapper>
 						<ListItem>
 							<OptionToggle
-								name="Broken down charts"
+								name="DEX breakdown"
 								toggle={() => {
 									setIsToggleEnabled((prev) => {
 										props.onToggleClick(!prev)

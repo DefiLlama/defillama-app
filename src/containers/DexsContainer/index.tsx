@@ -207,7 +207,8 @@ const columns = columnsToShow(
 	'7dChange',
 	'1mChange',
 	'totalVolume24h',
-	'volumetvl'
+	'volumetvl',
+	'dominance'
 )
 
 export interface IDexsContainer {
@@ -249,6 +250,7 @@ export default function DexsContainer({
 			return {
 				...dex,
 				volumetvl: dex.totalVolume24h / tvlData[dex.name],
+				dominance: 100 * dex.totalVolume24h / totalVolume,
 				chains: dex.chains.map(formatChain),
 				subRows: dex.protocolVersions
 					? Object.entries(dex.protocolVersions)

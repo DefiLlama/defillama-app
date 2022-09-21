@@ -48,6 +48,7 @@ export type TColumns =
 	| 'feesProtocol'
 	| 'chainsVolume'
 	| 'volumetvl'
+	| 'dominance'
 
 export interface INameProps {
 	type: 'chain' | 'protocol' | 'peggedAsset' | 'peggedAssetChain' | 'dex' | 'fees'

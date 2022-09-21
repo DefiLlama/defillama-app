@@ -209,5 +209,10 @@ export const allColumns: AllColumns = {
 		header: 'Volume/TVL',
 		accessor: 'volumetvl',
 		Cell: ({ value }) => <>{value && formattedNum(value)}</>
+	},
+	dominance: {
+		header: '% of total',
+		accessor: 'dominance',
+		Cell: ({ value }) => <>{formattedPercent(value, true)}</>
 	}
 }
