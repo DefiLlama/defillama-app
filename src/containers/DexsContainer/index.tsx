@@ -198,6 +198,13 @@ const StyledTable = styled(FullTable)`
 			display: revert;
 		}
 	}
+
+	@media screen and (min-width: 1460px) {
+		// % dominance
+		tr > *:nth-child(8) {
+			display: revert;
+		}
+	}
 `
 
 const columns = columnsToShow(
