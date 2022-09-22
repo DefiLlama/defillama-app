@@ -121,8 +121,7 @@ export default function YieldPlots(compressedProps) {
   const [methodologyActivated, setMethodologyActivated] = useState(false)
 	return (
 		<Layout title={`Halal - DefiLlama Yield`} defaultSEO>
-      <PanelThicc as="p" style={{whiteSpace: "pre-line"}}>
-        <div>
+      <PanelThicc as="p" style={{whiteSpace: "pre-line", display: "block"}}>
 					This list aims to a practical tracker for halal defi yields.<br />
           Shariah-compliant defi is pretty subjective so our approach is to be practical and list DEXs, yield farming and liquid staking, excluding dexs that LP for derivatives.<br />
           We're not islamic scholars, this is just meant as a useful tool.<br />
@@ -133,7 +132,6 @@ export default function YieldPlots(compressedProps) {
           </Link>
 
           {methodologyActivated && methodologyMessage}
-        </div>
 			</PanelThicc>
 			<YieldPage {...data.props} />
 		</Layout>
