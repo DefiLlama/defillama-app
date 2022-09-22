@@ -19,7 +19,7 @@ In case of uncertainty we erred on the side of caution and removed the following
 - instadapp which offers some leveraged vaults
 - tokemak that offers DAO2DAO lending
 
-This left us with:
+This leaves us with:
 - Simple swap DEXs
 - Yield farming
 - Liquid staking
