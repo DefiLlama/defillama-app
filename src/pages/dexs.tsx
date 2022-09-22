@@ -2,7 +2,7 @@ import * as React from 'react'
 import Layout from '~/layout'
 import DexsContainer, { IDexsContainer } from '~/containers/DexsContainer'
 import { revalidate } from '~/api'
-import { getChainPageData, getDexs } from '~/api/categories/dexs'
+import { getChainPageData } from '~/api/categories/dexs'
 
 export async function getStaticProps() {
 	const { props } = await getChainPageData()

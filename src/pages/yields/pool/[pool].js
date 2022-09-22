@@ -26,12 +26,12 @@ import { Stat } from '~/layout/Stats/Large'
 import { BreakpointPanel } from '~/components'
 import { useYieldChartData, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
 
-const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
+const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
 	loading: () => <></>
 })
 
-const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart/index'), {
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false,
 	loading: () => <></>
 })
@@ -125,18 +125,10 @@ const PageView = () => {
 		])
 
 		const dataBar = data?.filter((t) => t[3] !== null || t[4] !== null) ?? []
-		const barChartData = [
-			{
-				name: 'Base',
-				// remove entries with Base apy === null
-				data: dataBar.length ? dataBar.map((d) => [d[0] * 1000, d[3]]) : dataBar
-			},
-			{
-				name: 'Reward',
-				// remove entries with Reward apy === null
-				data: dataBar.length ? dataBar.map((d) => [d[0] * 1000, d[4]]) : dataBar
-			}
-		]
+
+		const barChartData = dataBar.length
+			? dataBar.map((item) => ({ date: item[0] * 1000, Base: item[3], Reward: item[4] }))
+			: []
 
 		const areaChartData = data?.length ? data.filter((t) => t[5] !== null).map((t) => [t[0], t[5]]) : []
 
@@ -211,10 +203,8 @@ const PageView = () => {
 								<StackedBarChart
 									title="Base and Reward APY"
 									chartData={barChartData}
-									color={backgroundColor}
+									stacks={{ Base: 'a', Reward: 'a' }}
 									stackColors={stackedBarChartColors}
-									showLegend={true}
-									yields={true}
 									valueSymbol={'%'}
 								/>
 							</LazyChart>

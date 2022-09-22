@@ -9,15 +9,11 @@ import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelH
 import dynamic from 'next/dynamic'
 import { formattedNum } from '~/utils'
 import { useInView } from 'react-intersection-observer'
-import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { VolumeSummaryDex } from '~/api/categories/dexs/types'
-import { Denomination, Filters, FiltersWrapper } from '~/components/ECharts/AreaChart/ProtocolTvl'
-import Link from 'next/link'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
-import { RowFixed } from '~/components/Row'
-import { OptionButton } from '~/components/ButtonStyled'
 import { formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
 import { formatChain } from '~/api/categories/dexs/utils'
+import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -250,14 +246,13 @@ export default function DexsContainer({
 	allChains
 }: IDexsContainer) {
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
-	const [selectedChain, setSelectedChain] = React.useState(chain ?? 'All chains')
-	React.useEffect(() => setSelectedChain(chain), [chain])
+
 	const dexWithSubrows = React.useMemo(() => {
 		return dexs.map((dex) => {
 			return {
 				...dex,
 				volumetvl: dex.totalVolume24h / tvlData[dex.name],
-				dominance: 100 * dex.totalVolume24h / totalVolume,
+				dominance: (100 * dex.totalVolume24h) / totalVolume,
 				chains: dex.chains.map(formatChain),
 				subRows: dex.protocolVersions
 					? Object.entries(dex.protocolVersions)
@@ -270,7 +265,8 @@ export default function DexsContainer({
 					: null
 			}
 		})
-	}, [dexs, tvlData])
+	}, [dexs, tvlData, totalVolume])
+
 	const chartData = React.useMemo(() => {
 		if (enableBreakdownChart) {
 			return formatVolumeHistoryToChartDataByProtocol(
@@ -285,7 +281,8 @@ export default function DexsContainer({
 				chain.toLocaleLowerCase()
 			)
 		} else return totalDataChart.map(([date, value]) => [new Date(+date * 1000), value])
-	}, [totalDataChart, totalDataChartBreakdown, enableBreakdownChart])
+	}, [totalDataChart, totalDataChartBreakdown, enableBreakdownChart, chain])
+
 	return (
 		<>
 			<DexsSearch
@@ -332,13 +329,14 @@ export default function DexsContainer({
 					</ChartsWrapper>
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
+
 			<RowLinksWrapper>
 				<RowLinksWithDropdown
 					links={['All', ...allChains].map((chain) => ({
 						label: formatChain(chain),
 						to: chain === 'All' ? '/dexs' : `/dexs/${chain.toLowerCase()}`
 					}))}
-					activeLink={selectedChain}
+					activeLink={chain}
 					alternativeOthersText="More chains"
 				/>
 			</RowLinksWrapper>

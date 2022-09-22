@@ -135,6 +135,7 @@ export default function Protocol({ name, logo, backgroundColor, data, uniqueChai
 						<span>{formattedNum(recentMetrics?.['Daily Transactions'])}</span>
 					</Stat>
 				</DetailsWrapper>
+
 				<ChartWrapper>
 					<BarChart chartData={allTxsChart} stacks={{ 'Unique Users': 'stackA' }} title="" color={backgroundColor} />
 				</ChartWrapper>
