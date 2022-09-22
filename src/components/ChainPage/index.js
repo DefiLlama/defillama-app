@@ -30,6 +30,7 @@ import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance 
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
+import lubb from '~/assets/lubb.png'
 import { ListHeader, ListOptions } from './shared'
 import Link from 'next/link'
 import { BarChart } from 'react-feather'
@@ -248,19 +249,19 @@ function GlobalPage({
 					Support defillama by
 					<Link href="https://gitcoin.co/grants/7087/defillama-apis" passHref>
 						<StyledAnchor>
-							<b>donating to our gitcoin grant</b>
+							<b>donating to our gitcoin grant!</b>
+							<Image src={lubb} width={18} height={18} alt="llama love" />
 						</StyledAnchor>
 					</Link>
 				</PanelThicc>
 				<PanelSmol as="p">
-					Check out our new
-					<Link href={`/dexs`} passHref>
+					Support us through
+					<Link href={`https://gitcoin.co/grants/7087/defillama-apis`} passHref>
 						<StyledAnchor>
-							<BarChart size={18} />
-							<b>DEX dashboard</b>
+							<b>our gitcoin grant!</b>
+							<Image src={lubb} width={18} height={18} alt="llama love" />
 						</StyledAnchor>
 					</Link>
-					!
 				</PanelSmol>
 			</>
 
