@@ -22,7 +22,8 @@ import {
 	TrendingUp,
 	Compass,
 	Droplet,
-	BarChart
+	BarChart,
+	Award
 } from 'react-feather'
 import { PaperIcon } from './shared'
 
@@ -121,7 +122,8 @@ export const navLinks: ILinks = {
 			{ name: 'Stablecoin Pools', path: '/yields/stablecoins', icon: Pocket },
 			{ name: 'Projects', path: '/yields/projects', icon: List },
 			{ name: 'Watchlist', path: '/yields/watchlist', icon: Bookmark },
-			{ name: 'List your protocol', path: 'https://github.com/DefiLlama/yield-server#readme', icon: PlusCircle }
+			{ name: 'List your protocol', path: 'https://github.com/DefiLlama/yield-server#readme', icon: PlusCircle },
+			{ name: 'Halal', path: '/yields/halal', icon: Award },
 		],
 		footer: [
 			{

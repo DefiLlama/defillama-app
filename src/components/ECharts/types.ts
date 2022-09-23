@@ -34,4 +34,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks'> {
 	barWidths?: {
 		[stack: string]: number
 	}
+	stackColors?: {
+		[stack: string]: string
+	}
 }

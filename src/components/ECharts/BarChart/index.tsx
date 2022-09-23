@@ -18,7 +18,8 @@ export default function BarChart({
 	customLegendOptions,
 	chartOptions,
 	height = '360px',
-	barWidths
+	barWidths,
+	stackColors
 }: IBarChartProps) {
 	const id = useMemo(() => uuid(), [])
 
@@ -73,16 +74,21 @@ export default function BarChart({
 				return {
 					name: stack,
 					type: 'bar',
-
 					stack: defaultStacks[stack],
 					...(barWidths?.[defaultStacks[stack]] && { barMaxWidth: barWidths[defaultStacks[stack]] }),
 					emphasis: {
 						focus: 'series',
 						shadowBlur: 10
 					},
-					itemStyle: {
-						color
-					},
+					itemStyle: stackColors
+						? {
+								color: stackColors[stack]
+						  }
+						: chartData.length <= 1
+						? {
+								color: chartColor
+						  }
+						: undefined,
 					...(seriesConfig?.[defaultStacks[stack]] && seriesConfig?.[defaultStacks[stack]]),
 					data: []
 				}
@@ -98,7 +104,17 @@ export default function BarChart({
 
 			return series
 		}
-	}, [barWidths, chartData, color, customLegendName, defaultStacks, legendOptions, stackKeys, seriesConfig])
+	}, [
+		barWidths,
+		chartData,
+		color,
+		customLegendName,
+		defaultStacks,
+		legendOptions,
+		stackKeys,
+		seriesConfig,
+		stackColors
+	])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

@@ -283,7 +283,11 @@ export function FullTable({ columns = [], data = [], align, gap, pinnedRow, ...p
 				<thead>
 					<RowWrapper>
 						{columns.map((col) => {
-							const text = col.helperText ? <HeadHelp title={col.header} text={col.helperText} /> : col.header
+							const text = col.helperText ? (
+								<HeadHelp title={col.header} text={col.helperText} headerIsSorted={columnToSort === col.accessor} />
+							) : (
+								col.header
+							)
 							const disableSortBy = col.disableSortBy || false
 							const sortingColumn = columnToSort === col.accessor && sortDirection !== 0
 							return (

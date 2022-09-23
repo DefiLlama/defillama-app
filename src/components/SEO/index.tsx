@@ -50,7 +50,7 @@ const SEO = ({
 		} else if (liqsPage) {
 			valueHeader = 'Total Liquidable Amount'
 		} else if (dexsPage) {
-			valueHeader = 'Total Volume'
+			valueHeader = '24h volume'
 		} else {
 			valueHeader = 'Total Value Locked'
 		}
