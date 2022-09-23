@@ -8,12 +8,13 @@ import { ButtonDark } from '~/components/ButtonStyled'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { GroupChains } from '~/components/MultiSelect'
-import { useCalcTvlPercentagesByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from '~/hooks/data'
 import { toNiceCsvDate, getRandomColor, download } from '~/utils'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
-
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/defi'
+import { useDefiManager } from '~/contexts/LocalStorage'
+import { useGroupChainsByParent } from '~/hooks/data'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -66,7 +67,6 @@ const ChainTvlsFilter = styled.form`
 	}
 `
 
-// TODO remvoe all memo hooks
 export default function ChainsContainer({
 	chainsUnique,
 	chainTvls,
@@ -76,6 +76,8 @@ export default function ChainsContainer({
 	chainsGroupbyParent,
 	tvlTypes
 }) {
+	const [extraTvlsEnabled] = useDefiManager()
+
 	const colorsByChain = React.useMemo(() => {
 		const colors = {}
 
@@ -86,30 +88,40 @@ export default function ChainsContainer({
 		return colors
 	}, [chainsUnique])
 
-	const chainTotals = useCalcStakePool2Tvl(chainTvls, undefined, undefined, true)
+	const { dataByChain, pieChartData, chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } =
+		React.useMemo(() => {
+			// add extra tvls like staking pool2 based on toggles selected
+			const dataByChain = formatDataWithExtraTvls({ data: chainTvls, applyLqAndDc: true, extraTvlsEnabled })
 
-	const chainsTvlValues = React.useMemo(() => {
-		const data = chainTotals.map((chain) => ({
-			name: chain.name,
-			value: chain.tvl
-		}))
+			// format chains data to use in pie chart
+			const onlyChainTvls = dataByChain.map((chain) => ({
+				name: chain.name,
+				value: chain.tvl
+			}))
 
-		const otherTvl = data.slice(10).reduce((total, entry) => {
-			return (total += entry.value)
-		}, 0)
+			const chainsWithLowTvls = onlyChainTvls.slice(10).reduce((total, entry) => {
+				return (total += entry.value)
+			}, 0)
 
-		return data
-			.slice(0, 10)
-			.sort((a, b) => b.value - a.value)
-			.concat({ name: 'Others', value: otherTvl })
-	}, [chainTotals])
+			// limit chains in pie chart to 10 and remaining chains in others
+			const pieChartData = onlyChainTvls
+				.slice(0, 10)
+				.sort((a, b) => b.value - a.value)
+				.concat({ name: 'Others', value: chainsWithLowTvls })
 
-	const stackedData = useCalcTvlPercentagesByDay(stackedDataset, tvlTypes)
+			const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = groupDataWithTvlsByDay({
+				chains: stackedDataset,
+				tvlTypes,
+				extraTvlsEnabled
+			})
+
+			return { dataByChain, pieChartData, chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay }
+		}, [chainTvls, extraTvlsEnabled, stackedDataset, tvlTypes])
 
 	const downloadCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique]]
 
-		stackedData
+		chainsWithExtraTvlsByDay
 			.sort((a, b) => a.date - b.date)
 			.forEach((day) => {
 				rows.push([day.date, toNiceCsvDate(day.date), ...chainsUnique.map((chain) => day[chain] ?? '')])
@@ -119,7 +131,7 @@ export default function ChainsContainer({
 
 	const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
 
-	const groupedChains = useGroupChainsByParent(chainTotals, showByGroup ? chainsGroupbyParent : {})
+	const groupedChains = useGroupChainsByParent(dataByChain, showByGroup ? chainsGroupbyParent : {})
 
 	return (
 		<>
@@ -136,9 +148,9 @@ export default function ChainsContainer({
 			</HeaderWrapper>
 
 			<ChartsWrapper>
-				<PieChart chartData={chainsTvlValues} stackColors={colorsByChain} />
+				<PieChart chartData={pieChartData} stackColors={colorsByChain} />
 				<AreaChart
-					chartData={stackedData}
+					chartData={chainsWithExtraTvlsAndDominanceByDay}
 					stacks={chainsUnique}
 					stackColors={colorsByChain}
 					customLegendName="Chain"
@@ -148,10 +160,12 @@ export default function ChainsContainer({
 					title=""
 				/>
 			</ChartsWrapper>
+
 			<ChainTvlsFilter>
 				<h2>Filters</h2>
 				<GroupChains label="Filters" />
 			</ChainTvlsFilter>
+
 			<RowLinksWrapper>
 				<RowLinksWithDropdown links={categories} activeLink={category} />
 			</RowLinksWrapper>

@@ -6,6 +6,7 @@ import { GridComponent, TitleComponent, TooltipComponent, GraphicComponent } fro
 import { v4 as uuid } from 'uuid'
 import type { IPieChartProps } from '../types'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { formattedNum } from '~/utils'
 
 echarts.use([CanvasRenderer, EPieChart, TooltipComponent, TitleComponent, GridComponent, GraphicComponent])
 
@@ -21,7 +22,8 @@ export default function PieChart({ height = '360px', stackColors, chartData, ...
 			right: 0,
 			label: {
 				fontFamily: 'inter, sans-serif',
-				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+				formatter: '{b}: ({d}%)'
 			},
 			emphasis: {
 				itemStyle: {
@@ -55,7 +57,8 @@ export default function PieChart({ height = '360px', stackColors, chartData, ...
 
 		chartInstance.setOption({
 			tooltip: {
-				trigger: 'item'
+				trigger: 'item',
+				valueFormatter: (value) => '$' + formattedNum(value)
 			},
 			grid: {
 				left: 0,

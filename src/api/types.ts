@@ -119,12 +119,18 @@ export type LiteProtocol = Pick<
 	ProtocolTvls
 
 export interface IChain {
+	tvl: number
+	tvlPrevDay: number
+	tvlPrevWeek: number
+	tvlPrevMonth: number
+	mcap: number
+	name: string
+	protocols: number
+	mcaptvl: number
 	gecko_id?: string | null
 	tokenSymbol?: string | null
 	cmcId?: string | null
 	chainId: number | null
-	tvl: number
-	name: string
 }
 
 export interface IOracleProtocols {
@@ -172,3 +178,5 @@ export interface ICategory {
 	label: string
 	to: string
 }
+
+export type TCompressedChain = [string, { [chain: string]: { [dataType: string]: number } }]
