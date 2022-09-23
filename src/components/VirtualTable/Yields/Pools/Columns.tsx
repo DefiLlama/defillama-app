@@ -47,14 +47,12 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<span>
-					<span
-						style={{
-							color: info.row.original.strikeTvl ? 'gray' : 'inherit'
-						}}
-					>
-						{'$' + formattedNum(info.getValue())}
-					</span>
+				<span
+					style={{
+						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
+					}}
+				>
+					{'$' + formattedNum(info.getValue())}
 				</span>
 			)
 		},
@@ -163,54 +161,10 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: [
-		'pool',
-		'apy',
-		'tvl',
-		'project',
-		'chains',
-		'apyBase',
-		'apyReward',
-		'outlook',
-		'confidence',
-		'change7d'
-	],
-	400: [
-		'pool',
-		'project',
-		'apy',
-		'tvl',
-		'chains',
-		'apyBase',
-		'apyReward',
-		'outlook',
-		'confidence',
-		'change7d'
-	],
-	640: [
-		'pool',
-		'project',
-		'tvl',
-		'apy',
-		'chains',
-		'apyBase',
-		'apyReward',
-		'outlook',
-		'confidence',
-		'change7d'
-	],
-	1280: [
-		'pool',
-		'project',
-		'chains',
-		'tvl',
-		'apy',
-		'apyBase',
-		'apyReward',
-		'outlook',
-		'confidence',
-		'change7d'
-	]
+	0: ['pool', 'apy', 'tvl', 'project', 'chains', 'apyBase', 'apyReward', 'outlook', 'confidence', 'change7d'],
+	400: ['pool', 'project', 'apy', 'tvl', 'chains', 'apyBase', 'apyReward', 'outlook', 'confidence', 'change7d'],
+	640: ['pool', 'project', 'tvl', 'apy', 'chains', 'apyBase', 'apyReward', 'outlook', 'confidence', 'change7d'],
+	1280: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward', 'outlook', 'confidence', 'change7d']
 }
 
 export const columnSizes = {

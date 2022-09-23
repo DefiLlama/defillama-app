@@ -237,6 +237,7 @@ export function useDarkModeManager() {
 	return [isDarkMode, toggleDarkMode]
 }
 
+// TODO fix unnecessary rerenders on all state managers
 function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
 	const [state, { updateKey }] = useLocalStorageContext()
 	const isClient = useIsClient()

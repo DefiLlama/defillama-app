@@ -12,9 +12,11 @@ const Wrapper = styled.div`
 	--gradient-end: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)')};
 `
 
+// TODO remove color prop and use stackColors by default
 export default function AreaChart({
 	chartData,
 	stacks,
+	stackColors,
 	valueSymbol = '',
 	title,
 	color,
@@ -103,6 +105,8 @@ export default function AreaChart({
 			return series
 		} else {
 			const series = chartsStack.map((token, index) => {
+				const stackColor = stackColors?.[token]
+
 				return {
 					name: token,
 					type: 'line',
@@ -112,14 +116,14 @@ export default function AreaChart({
 					},
 					symbol: 'none',
 					itemStyle: {
-						color: index === 0 ? chartColor : null
+						color: stackColor ? stackColor : index === 0 ? chartColor : null
 					},
 					areaStyle: {
 						color: !customLegendName
 							? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
 									{
 										offset: 0,
-										color: index === 0 ? chartColor : 'transparent'
+										color: stackColor ? stackColor : index === 0 ? chartColor : 'transparent'
 									},
 									{
 										offset: 1,
@@ -165,7 +169,7 @@ export default function AreaChart({
 
 			return series
 		}
-	}, [chartData, chartsStack, color, customLegendName, hallmarks, isDark, legendOptions])
+	}, [chartData, chartsStack, color, customLegendName, hallmarks, isDark, legendOptions, stackColors])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

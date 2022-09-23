@@ -1,16 +1,26 @@
-import { useMemo } from 'react'
+import * as React from 'react'
+import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import { Box } from 'rebass'
 import Layout from '~/layout'
 import { Header } from '~/Theme'
+import { Panel } from '~/components'
 import { OraclesTable } from '~/components/VirtualTable'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { ChainDominanceChart, ChainPieChart } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import { getRandomColor } from '~/utils'
 import { revalidate } from '~/api'
 import { getOraclePageData } from '~/api/categories/protocols'
+
+import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
+
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
 
 export async function getStaticProps() {
 	const data = await getOraclePageData()
@@ -21,31 +31,37 @@ export async function getStaticProps() {
 	}
 }
 
-const ChartsWrapper = styled(Box)`
-	display: flex;
-	flex-wrap: nowrap;
-	width: 100%;
-	padding: 0;
-	align-items: center;
-	z-index: 1;
-	@media (max-width: 800px) {
-		display: grid;
-		grid-auto-rows: auto;
+const ChartsWrapper = styled(Panel)`
+	min-height: 402px;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 16px;
+
+	& > * {
+		grid-cols: span 1;
+	}
+
+	@media screen and (min-width: 80rem) {
+		grid-template-columns: 1fr 1fr;
 	}
 `
-
 const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
-	const tokenColors = useMemo(
-		() => Object.fromEntries([...tokens, 'Others'].map((token) => [token, getRandomColor()])),
-		[tokens]
-	)
+	const colorsByOracle = React.useMemo(() => {
+		const colors = {}
 
-	const { data: stackedData, daySum } = useCalcGroupExtraTvlsByDay(chartData)
+		tokens.forEach((chain) => {
+			colors[chain] = getRandomColor()
+		})
 
-	const { tokenTvls, tokensList } = useMemo(() => {
-		const tvls = Object.entries(stackedData[stackedData.length - 1])
+		return colors
+	}, [tokens])
+
+	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
+
+	const { tokenTvls, tokensList } = React.useMemo(() => {
+		const tvls = Object.entries(chainsWithExtraTvlsByDay[chainsWithExtraTvlsByDay.length - 1])
 			.filter((item) => item[0] !== 'date')
-			.map((token) => ({ name: token[0], value: token[1] }))
+			.map((token) => ({ name: token[0], value: token[1] } as { name: string; value: number }))
 			.sort((a, b) => b.value - a.value)
 
 		const otherTvl = tvls.slice(5).reduce((total, entry) => {
@@ -59,7 +75,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
 		})
 
 		return { tokenTvls, tokensList }
-	}, [stackedData, tokensProtocols])
+	}, [chainsWithExtraTvlsByDay, tokensProtocols])
 
 	return (
 		<>
@@ -68,14 +84,16 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
 			<Header>Total Value Secured All Oracles</Header>
 
 			<ChartsWrapper>
-				<ChainPieChart data={tokenTvls} chainColor={tokenColors} />
-				<ChainDominanceChart
-					stackOffset="expand"
-					formatPercent={true}
-					stackedDataset={stackedData}
-					chainsUnique={tokens}
-					chainColor={tokenColors}
-					daySum={daySum}
+				<PieChart chartData={tokenTvls} stackColors={colorsByOracle} />
+				<AreaChart
+					chartData={chainsWithExtraTvlsAndDominanceByDay}
+					stacks={tokens}
+					stackColors={colorsByOracle}
+					customLegendName="Oracle"
+					customLegendOptions={tokens}
+					hidedefaultlegend
+					valueSymbol="%"
+					title=""
 				/>
 			</ChartsWrapper>
 

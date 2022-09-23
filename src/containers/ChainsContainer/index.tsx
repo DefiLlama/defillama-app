@@ -1,16 +1,28 @@
-import { useMemo } from 'react'
+import * as React from 'react'
+import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
+import { Panel } from '~/components'
+import { DefiChainsTable } from '~/components/VirtualTable/Defi'
 import { ButtonDark } from '~/components/ButtonStyled'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
-import { columnsToShow, FullTable } from '~/components/Table'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { GroupChains } from '~/components/MultiSelect'
-import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from '~/hooks/data'
 import { toNiceCsvDate, getRandomColor, download } from '~/utils'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
+import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/defi'
+import { useDefiManager } from '~/contexts/LocalStorage'
+import { useGroupChainsByParent } from '~/hooks/data'
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
+
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -20,22 +32,18 @@ export async function getStaticProps() {
 	}
 }
 
-const ChartsWrapper = styled.section`
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	width: 100%;
-	padding: 0;
-	align-items: center;
-	z-index: 1;
+const ChartsWrapper = styled(Panel)`
+	min-height: 402px;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 16px;
 
 	& > * {
-		width: 100%;
-		margin: 0 !important;
+		grid-cols: span 1;
 	}
 
 	@media screen and (min-width: 80rem) {
-		flex-direction: row;
+		grid-template-columns: 1fr 1fr;
 	}
 `
 
@@ -48,139 +56,9 @@ const HeaderWrapper = styled(Header)`
 	border: 1px solid transparent;
 `
 
-const StyledTable = styled(FullTable)`
-	tr > *:not(:first-child) {
-		& > * {
-			width: 100px;
-			font-weight: 400;
-		}
-	}
-
-	// CHAIN
-	tr > :nth-child(1) {
-		padding-left: 40px;
-
-		#table-p-logo {
-			display: none;
-		}
-
-		#table-p-name {
-			width: 60px;
-			display: block;
-		}
-	}
-
-	// PROTOCOLS
-	tr > :nth-child(2) {
-		width: 100px;
-		display: none;
-	}
-
-	// 1D CHANGE
-	tr > :nth-child(3) {
-		display: none;
-	}
-
-	// 7D CHANGE
-	tr > :nth-child(4) {
-		display: none;
-	}
-
-	// 1M CHANGE
-	tr > :nth-child(5) {
-		display: none;
-	}
-
-	// TVL
-	tr > :nth-child(6) {
-		& > * {
-			padding-right: 20px;
-		}
-	}
-
-	// MCAPTVL
-	tr > :nth-child(7) {
-		width: 100px;
-		display: none;
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		// CHAIN
-		tr > *:nth-child(1) {
-			#table-p-name {
-				width: 100px;
-			}
-		}
-
-		// 7D CHANGE
-		tr > *:nth-child(4) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 640px) {
-		// CHAIN
-		tr > *:nth-child(1) {
-			#table-p-logo {
-				display: flex;
-			}
-		}
-
-		// PROTOCOLS
-		tr > :nth-child(2) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-		// CHAIN
-		tr > *:nth-child(1) {
-			#table-p-name {
-				width: 140px;
-			}
-		}
-
-		// 1M CHANGE
-		tr > *:nth-child(5) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		// 1M CHANGE
-		tr > *:nth-child(5) {
-			display: none;
-		}
-	}
-
-	@media screen and (min-width: 1260px) {
-		tr > *:nth-child(1) {
-			#table-p-name {
-				width: 200px;
-			}
-		}
-
-		// 1M CHANGE
-		tr > *:nth-child(5) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 1360px) {
-		// 1D CHANGE
-		tr > *:nth-child(3) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 1400px) {
-		// MCAPTVL
-		tr > *:nth-child(7) {
-			display: revert;
-		}
-	}
-`
 const ChainTvlsFilter = styled.form`
+	z-index: 2;
+
 	& > h2 {
 		margin: 0 2px 8px;
 		font-weight: 600;
@@ -188,8 +66,6 @@ const ChainTvlsFilter = styled.form`
 		color: ${({ theme }) => theme.text1};
 	}
 `
-
-const columns = columnsToShow('chainName', 'protocols', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
 export default function ChainsContainer({
 	chainsUnique,
@@ -200,34 +76,52 @@ export default function ChainsContainer({
 	chainsGroupbyParent,
 	tvlTypes
 }) {
-	const chainColor = useMemo(
-		() => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
-		[chainsUnique]
-	)
+	const [extraTvlsEnabled] = useDefiManager()
 
-	const chainTotals = useCalcStakePool2Tvl(chainTvls, undefined, undefined, true)
+	const colorsByChain = React.useMemo(() => {
+		const colors = {}
 
-	const chainsTvlValues = useMemo(() => {
-		const data = chainTotals.map((chain) => ({
-			name: chain.name,
-			value: chain.tvl
-		}))
+		chainsUnique.forEach((chain) => {
+			colors[chain] = getRandomColor()
+		})
 
-		const otherTvl = data.slice(10).reduce((total, entry) => {
-			return (total += entry.value)
-		}, 0)
+		return colors
+	}, [chainsUnique])
 
-		return data
-			.slice(0, 10)
-			.sort((a, b) => b.value - a.value)
-			.concat({ name: 'Others', value: otherTvl })
-	}, [chainTotals])
+	const { dataByChain, pieChartData, chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } =
+		React.useMemo(() => {
+			// add extra tvls like staking pool2 based on toggles selected
+			const dataByChain = formatDataWithExtraTvls({ data: chainTvls, applyLqAndDc: true, extraTvlsEnabled })
 
-	const { data: stackedData, daySum } = useCalcGroupExtraTvlsByDay(stackedDataset, tvlTypes)
+			// format chains data to use in pie chart
+			const onlyChainTvls = dataByChain.map((chain) => ({
+				name: chain.name,
+				value: chain.tvl
+			}))
+
+			const chainsWithLowTvls = onlyChainTvls.slice(10).reduce((total, entry) => {
+				return (total += entry.value)
+			}, 0)
+
+			// limit chains in pie chart to 10 and remaining chains in others
+			const pieChartData = onlyChainTvls
+				.slice(0, 10)
+				.sort((a, b) => b.value - a.value)
+				.concat({ name: 'Others', value: chainsWithLowTvls })
+
+			const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = groupDataWithTvlsByDay({
+				chains: stackedDataset,
+				tvlTypes,
+				extraTvlsEnabled
+			})
+
+			return { dataByChain, pieChartData, chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay }
+		}, [chainTvls, extraTvlsEnabled, stackedDataset, tvlTypes])
 
 	const downloadCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique]]
-		stackedData
+
+		chainsWithExtraTvlsByDay
 			.sort((a, b) => a.date - b.date)
 			.forEach((day) => {
 				rows.push([day.date, toNiceCsvDate(day.date), ...chainsUnique.map((chain) => day[chain] ?? '')])
@@ -237,7 +131,7 @@ export default function ChainsContainer({
 
 	const showByGroup = ['All', 'Non-EVM'].includes(category) ? true : false
 
-	const groupedChains = useGroupChainsByParent(chainTotals, showByGroup ? chainsGroupbyParent : {})
+	const groupedChains = useGroupChainsByParent(dataByChain, showByGroup ? chainsGroupbyParent : {})
 
 	return (
 		<>
@@ -254,14 +148,16 @@ export default function ChainsContainer({
 			</HeaderWrapper>
 
 			<ChartsWrapper>
-				<ChainPieChart data={chainsTvlValues} chainColor={chainColor} />
-				<ChainDominanceChart
-					stackOffset="expand"
-					formatPercent={true}
-					stackedDataset={stackedData}
-					chainsUnique={chainsUnique}
-					chainColor={chainColor}
-					daySum={daySum}
+				<PieChart chartData={pieChartData} stackColors={colorsByChain} />
+				<AreaChart
+					chartData={chainsWithExtraTvlsAndDominanceByDay}
+					stacks={chainsUnique}
+					stackColors={colorsByChain}
+					customLegendName="Chain"
+					customLegendOptions={chainsUnique}
+					hidedefaultlegend
+					valueSymbol="%"
+					title=""
 				/>
 			</ChartsWrapper>
 
@@ -273,8 +169,7 @@ export default function ChainsContainer({
 			<RowLinksWrapper>
 				<RowLinksWithDropdown links={categories} activeLink={category} />
 			</RowLinksWrapper>
-
-			<StyledTable data={groupedChains} columns={columns} />
+			<DefiChainsTable data={groupedChains} />
 		</>
 	)
 }
