@@ -18,7 +18,7 @@ fees.reduce((all, curr)=>{
     return all
 }, new Set())
 */
-export const feesChainsSet = ['Ethereum','BSC','Arbitrum','Polygon','Avalanche','Optimism','Fantom']
+export const feesChainsSet = ['Ethereum','BSC','Arbitrum','Polygon','Avalanche','Optimism','Fantom','Solana','Cosmos']
 
 export async function feesStaticProps(selectedChain) {
 	const feeResults = await fetch("https://fees.llama.fi/fees").then(r=>r.json())
