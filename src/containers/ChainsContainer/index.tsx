@@ -4,13 +4,13 @@ import { Header } from '~/Theme'
 import { ButtonDark } from '~/components/ButtonStyled'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
-import { columnsToShow, FullTable } from '~/components/Table'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { GroupChains } from '~/components/MultiSelect'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from '~/hooks/data'
 import { toNiceCsvDate, getRandomColor, download } from '~/utils'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
+import { DefiChainsTable } from '~/components/VirtualTable/Defi'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -48,139 +48,9 @@ const HeaderWrapper = styled(Header)`
 	border: 1px solid transparent;
 `
 
-const StyledTable = styled(FullTable)`
-	tr > *:not(:first-child) {
-		& > * {
-			width: 100px;
-			font-weight: 400;
-		}
-	}
-
-	// CHAIN
-	tr > :nth-child(1) {
-		padding-left: 40px;
-
-		#table-p-logo {
-			display: none;
-		}
-
-		#table-p-name {
-			width: 60px;
-			display: block;
-		}
-	}
-
-	// PROTOCOLS
-	tr > :nth-child(2) {
-		width: 100px;
-		display: none;
-	}
-
-	// 1D CHANGE
-	tr > :nth-child(3) {
-		display: none;
-	}
-
-	// 7D CHANGE
-	tr > :nth-child(4) {
-		display: none;
-	}
-
-	// 1M CHANGE
-	tr > :nth-child(5) {
-		display: none;
-	}
-
-	// TVL
-	tr > :nth-child(6) {
-		& > * {
-			padding-right: 20px;
-		}
-	}
-
-	// MCAPTVL
-	tr > :nth-child(7) {
-		width: 100px;
-		display: none;
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		// CHAIN
-		tr > *:nth-child(1) {
-			#table-p-name {
-				width: 100px;
-			}
-		}
-
-		// 7D CHANGE
-		tr > *:nth-child(4) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 640px) {
-		// CHAIN
-		tr > *:nth-child(1) {
-			#table-p-logo {
-				display: flex;
-			}
-		}
-
-		// PROTOCOLS
-		tr > :nth-child(2) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-		// CHAIN
-		tr > *:nth-child(1) {
-			#table-p-name {
-				width: 140px;
-			}
-		}
-
-		// 1M CHANGE
-		tr > *:nth-child(5) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		// 1M CHANGE
-		tr > *:nth-child(5) {
-			display: none;
-		}
-	}
-
-	@media screen and (min-width: 1260px) {
-		tr > *:nth-child(1) {
-			#table-p-name {
-				width: 200px;
-			}
-		}
-
-		// 1M CHANGE
-		tr > *:nth-child(5) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 1360px) {
-		// 1D CHANGE
-		tr > *:nth-child(3) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 1400px) {
-		// MCAPTVL
-		tr > *:nth-child(7) {
-			display: revert;
-		}
-	}
-`
 const ChainTvlsFilter = styled.form`
+	z-index: 2;
+
 	& > h2 {
 		margin: 0 2px 8px;
 		font-weight: 600;
@@ -188,8 +58,6 @@ const ChainTvlsFilter = styled.form`
 		color: ${({ theme }) => theme.text1};
 	}
 `
-
-const columns = columnsToShow('chainName', 'protocols', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
 
 export default function ChainsContainer({
 	chainsUnique,
@@ -253,7 +121,7 @@ export default function ChainsContainer({
 				<ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
 			</HeaderWrapper>
 
-			<ChartsWrapper>
+			{/* <ChartsWrapper>
 				<ChainPieChart data={chainsTvlValues} chainColor={chainColor} />
 				<ChainDominanceChart
 					stackOffset="expand"
@@ -263,7 +131,7 @@ export default function ChainsContainer({
 					chainColor={chainColor}
 					daySum={daySum}
 				/>
-			</ChartsWrapper>
+			</ChartsWrapper> */}
 
 			<ChainTvlsFilter>
 				<h2>Filters</h2>
@@ -274,7 +142,7 @@ export default function ChainsContainer({
 				<RowLinksWithDropdown links={categories} activeLink={category} />
 			</RowLinksWrapper>
 
-			<StyledTable data={groupedChains} columns={columns} />
+			<DefiChainsTable data={groupedChains} />
 		</>
 	)
 }

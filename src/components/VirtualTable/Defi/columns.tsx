@@ -1,8 +1,12 @@
 import { ColumnDef } from '@tanstack/react-table'
+import { ChevronDown, ChevronRight } from 'react-feather'
+import styled from 'styled-components'
 import { CustomLink } from '~/components/Link'
 import { AutoRow } from '~/components/Row'
-import { formattedNum } from '~/utils'
-import type { ICategoryRow, IForksRow, IOraclesRow } from './types'
+import TokenLogo from '~/components/TokenLogo'
+import { chainIconUrl, formattedNum, formattedPercent } from '~/utils'
+import { formatColumnOrder } from '../utils'
+import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow } from './types'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -106,3 +110,113 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 		size: 900
 	}
 ]
+
+export const chainsColumn: ColumnDef<IChainsRow>[] = [
+	{
+		header: () => <Name>Name</Name>,
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row }) => {
+			return (
+				<Name depth={row.depth}>
+					{row.subRows?.length > 0 && (
+						<AccordionButton
+							{...{
+								onClick: row.getToggleExpandedHandler()
+							}}
+						>
+							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+						</AccordionButton>
+					)}
+					<span>{row.index + 1}</span>
+					<TokenLogo logo={chainIconUrl(getValue())} />
+					<CustomLink href={`/chain/${getValue()}`}>{getValue()}</CustomLink>
+				</Name>
+			)
+		},
+		size: 200
+	},
+	{
+		header: 'Protocols',
+		accessorKey: 'protocols',
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '1d Change',
+		accessorKey: 'change_1d',
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '7d Change',
+		accessorKey: 'change_7d',
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '1m Change',
+		accessorKey: 'change_1m',
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'TVL',
+		accessorKey: 'tvl',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Mcap/TVL',
+		accessorKey: 'mcaptvl',
+		cell: (info) => {
+			return <>{info.getValue() && formattedNum(info.getValue())}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	}
+]
+
+// key: min width of window/screen
+// values: table columns order
+export const chainsTableColumnOrders = formatColumnOrder({
+	0: ['name', 'tvl', 'change_7d', 'protocols', 'change_1d', 'change_1m', 'mcaptvl'],
+	400: ['name', 'change_7d', 'tvl', 'protocols', 'change_1d', 'change_1m', 'mcaptvl'],
+	600: ['name', 'protocols', 'change_7d', 'tvl', 'change_1d', 'change_1m', 'mcaptvl'],
+	900: ['name', 'protocols', 'change_1d', 'change_7d', 'change_1m', 'tvl', 'mcaptvl']
+})
+
+interface INameProps {
+	depth?: number
+}
+
+const Name = styled.span<INameProps>`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding-left: ${({ depth }) => (depth ? depth * 48 : 24)}px;
+	position: relative;
+`
+
+const AccordionButton = styled.button`
+	position: absolute;
+	left: -8px;
+`

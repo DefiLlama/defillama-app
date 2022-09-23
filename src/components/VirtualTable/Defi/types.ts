@@ -17,3 +17,17 @@ export interface ICategoryRow {
 	tvl: number
 	description: string
 }
+
+export interface IChain {
+	name: string
+	protocols: number
+	change1d: number
+	change7d: number
+	change1m: number
+	tvl: number
+	mcaptvl: number
+}
+
+export interface IChainsRow extends IChain {
+	subRows?: Array<IChain>
+}
