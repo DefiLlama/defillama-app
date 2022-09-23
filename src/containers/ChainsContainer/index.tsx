@@ -1,16 +1,27 @@
-import { useMemo } from 'react'
+import * as React from 'react'
+import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
+import { Panel } from '~/components'
+import { DefiChainsTable } from '~/components/VirtualTable/Defi'
 import { ButtonDark } from '~/components/ButtonStyled'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { GroupChains } from '~/components/MultiSelect'
-import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from '~/hooks/data'
+import { useCalcTvlPercentagesByDay, useCalcStakePool2Tvl, useGroupChainsByParent } from '~/hooks/data'
 import { toNiceCsvDate, getRandomColor, download } from '~/utils'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
-import { DefiChainsTable } from '~/components/VirtualTable/Defi'
+
+import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
+
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -20,22 +31,18 @@ export async function getStaticProps() {
 	}
 }
 
-const ChartsWrapper = styled.section`
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	width: 100%;
-	padding: 0;
-	align-items: center;
-	z-index: 1;
+const ChartsWrapper = styled(Panel)`
+	min-height: 402px;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 16px;
 
 	& > * {
-		width: 100%;
-		margin: 0 !important;
+		grid-cols: span 1;
 	}
 
 	@media screen and (min-width: 80rem) {
-		flex-direction: row;
+		grid-template-columns: 1fr 1fr;
 	}
 `
 
@@ -59,6 +66,7 @@ const ChainTvlsFilter = styled.form`
 	}
 `
 
+// TODO remvoe all memo hooks
 export default function ChainsContainer({
 	chainsUnique,
 	chainTvls,
@@ -68,14 +76,19 @@ export default function ChainsContainer({
 	chainsGroupbyParent,
 	tvlTypes
 }) {
-	const chainColor = useMemo(
-		() => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
-		[chainsUnique]
-	)
+	const colorsByChain = React.useMemo(() => {
+		const colors = {}
+
+		chainsUnique.forEach((chain) => {
+			colors[chain] = getRandomColor()
+		})
+
+		return colors
+	}, [chainsUnique])
 
 	const chainTotals = useCalcStakePool2Tvl(chainTvls, undefined, undefined, true)
 
-	const chainsTvlValues = useMemo(() => {
+	const chainsTvlValues = React.useMemo(() => {
 		const data = chainTotals.map((chain) => ({
 			name: chain.name,
 			value: chain.tvl
@@ -91,10 +104,11 @@ export default function ChainsContainer({
 			.concat({ name: 'Others', value: otherTvl })
 	}, [chainTotals])
 
-	const { data: stackedData, daySum } = useCalcGroupExtraTvlsByDay(stackedDataset, tvlTypes)
+	const stackedData = useCalcTvlPercentagesByDay(stackedDataset, tvlTypes)
 
 	const downloadCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique]]
+
 		stackedData
 			.sort((a, b) => a.date - b.date)
 			.forEach((day) => {
@@ -121,27 +135,26 @@ export default function ChainsContainer({
 				<ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
 			</HeaderWrapper>
 
-			{/* <ChartsWrapper>
-				<ChainPieChart data={chainsTvlValues} chainColor={chainColor} />
-				<ChainDominanceChart
-					stackOffset="expand"
-					formatPercent={true}
-					stackedDataset={stackedData}
-					chainsUnique={chainsUnique}
-					chainColor={chainColor}
-					daySum={daySum}
+			<ChartsWrapper>
+				<PieChart chartData={chainsTvlValues} stackColors={colorsByChain} />
+				<AreaChart
+					chartData={stackedData}
+					stacks={chainsUnique}
+					stackColors={colorsByChain}
+					customLegendName="Chain"
+					customLegendOptions={chainsUnique}
+					hidedefaultlegend
+					valueSymbol="%"
+					title=""
 				/>
-			</ChartsWrapper> */}
-
+			</ChartsWrapper>
 			<ChainTvlsFilter>
 				<h2>Filters</h2>
 				<GroupChains label="Filters" />
 			</ChainTvlsFilter>
-
 			<RowLinksWrapper>
 				<RowLinksWithDropdown links={categories} activeLink={category} />
 			</RowLinksWrapper>
-
 			<DefiChainsTable data={groupedChains} />
 		</>
 	)

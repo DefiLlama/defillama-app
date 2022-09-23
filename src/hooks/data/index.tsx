@@ -343,8 +343,8 @@ export const useGroupChainsByParent = (chains: Readonly<IChain[]>, groupData: IG
 	return data
 }
 
-// returns tvl by day for a group of tokens
-export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
+// returns tvl share by day for a group of tokens
+export const useCalcTvlPercentagesByDay = (chains, tvlTypes = null) => {
 	const [extraTvls] = useDefiManager()
 
 	let extraTvlsEnabled = extraTvls
@@ -357,10 +357,12 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 		)
 	}
 
-	const { data, daySum } = useMemo(() => {
+	return useMemo(() => {
 		const daySum = {}
+
 		const data = chains.map(([date, values]) => {
 			const tvls: IChainTvl = {}
+
 			let totalDaySum = 0
 
 			Object.entries(values).forEach(([name, chainTvls]: ChainTvlsByDay) => {
@@ -390,15 +392,25 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 						totalDaySum += chainTvls[c]
 					}
 				}
+
 				tvls[name] = sum
 			})
+
 			daySum[date] = totalDaySum
+
 			return { date, ...tvls }
 		})
-		return { data, daySum }
-	}, [chains, extraTvlsEnabled, tvlKey])
 
-	return { data, daySum }
+		return data.map(({ date, ...values }) => {
+			const shares = {}
+
+			for (const value in values) {
+				shares[value] = getPercent(values[value], daySum[date])
+			}
+
+			return { date, ...shares }
+		})
+	}, [chains, extraTvlsEnabled, tvlKey])
 }
 
 // returns tvl by day for a single token
@@ -432,4 +444,10 @@ export const useCalcExtraTvlsByDay = (data) => {
 			return [date, sum]
 		})
 	}, [data, extraTvlsEnabled])
+}
+
+const getPercent = (value: number, total: number) => {
+	const ratio = total > 0 ? value / total : 0
+
+	return Number((ratio * 100).toFixed(2))
 }

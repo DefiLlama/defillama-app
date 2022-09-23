@@ -1,6 +1,7 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import {
@@ -19,7 +20,6 @@ import {
 import { RowFixed } from '~/components/Row'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
-import { BasicLink } from '~/components/Link'
 import SEO from '~/components/SEO'
 import { OptionButton } from '~/components/ButtonStyled'
 import LocalLoader from '~/components/LocalLoader'
@@ -32,8 +32,6 @@ import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
 import lubb from '~/assets/lubb.png'
 import { ListHeader, ListOptions } from './shared'
-import Link from 'next/link'
-import { BarChart } from 'react-feather'
 
 const EasterLlama = styled.button`
 	padding: 0;
