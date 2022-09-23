@@ -191,6 +191,7 @@ export const allColumns: AllColumns = {
 				index={rowType === 'child' ? '-' : rowIndex !== null && rowIndex + 1}
 				rowType={rowType}
 				showRows={showRows}
+				displayName={rowValues['displayName']}
 			/>
 		)
 	},

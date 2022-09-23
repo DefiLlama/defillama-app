@@ -44,11 +44,12 @@ export function Name({
 	bookmark,
 	rowType = 'default',
 	showRows,
+	displayName,
 	...props
 }: INameProps) {
 	const name =
 		symbol === '-' ? (
-			value
+			displayName ?? value
 		) : (
 			<>
 				<span>{value}</span>

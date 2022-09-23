@@ -58,9 +58,10 @@ export interface INameProps {
 	bookmark?: boolean
 	rowType?: 'pinned' | 'accordion' | 'child' | 'default'
 	showRows?: boolean
+	displayName?: string
 }
 
-export interface INameFees extends INameProps{
+export interface INameFees extends INameProps {
 	version?: string
 }
 
