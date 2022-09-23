@@ -79,6 +79,7 @@ function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContain
 				token={dexData.name}
 				tvl={formattedNum(dexData.total1dVolume)?.toString()}
 				volumeChange={`${dexData.change1dVolume}`}
+				dexsPage
 			/>
 
 			<DexsSearch
