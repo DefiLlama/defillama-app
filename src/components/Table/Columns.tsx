@@ -113,7 +113,7 @@ export const allColumns: AllColumns = {
 	fees: {
 		header: 'Fees (24h)',
 		accessor: 'total1dFees',
-		helperText: "Fees paid by protocol users (excluding gas fees)",
+		helperText: 'Fees paid by protocol users (excluding gas fees)',
 		Cell: ({ value }) => <>{'$' + formattedNum(value)}</>
 	},
 	revenue: {
@@ -197,6 +197,7 @@ export const allColumns: AllColumns = {
 	totalVolume24h: {
 		header: '24h volume',
 		accessor: 'totalVolume24h',
+		helperText: "This colum shows yesterday's volume and it's updated daily at 00:00UTC",
 		Cell: ({ value }) => <>{value && formattedNum(value)}</>
 	},
 	chainsVolume: {
