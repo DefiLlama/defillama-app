@@ -11,6 +11,7 @@ interface IHeadHelpProps {
 	fontSize?: string
 	link?: boolean
 	style?: {}
+	headerIsSorted?: boolean
 }
 
 interface ITextProps {
@@ -24,7 +25,7 @@ const HeadHelp = ({ title, text, adjustSize = false, fontSize, link, ...props }:
 		<Tooltip content={text} {...props}>
 			<TextWrapper adjustSize={adjustSize} link={link} fontSize={fontSize}>
 				<span>{title}</span>
-				<HelpCircle size={15} style={{ marginLeft: '.3rem' }} />
+				<HelpCircle size={15} style={{ marginLeft: '.3rem', marginRight: props.headerIsSorted ? '1rem' : undefined }} />
 			</TextWrapper>
 		</Tooltip>
 	)
