@@ -127,7 +127,7 @@ const PageView = () => {
 		const dataBar = data?.filter((t) => t[3] !== null || t[4] !== null) ?? []
 
 		const barChartData = dataBar.length
-			? dataBar.map((item) => ({ date: item[0] * 1000, Base: item[3], Reward: item[4] }))
+			? dataBar.map((item) => ({ date: item[0], Base: item[3], Reward: item[4] }))
 			: []
 
 		const areaChartData = data?.length ? data.filter((t) => t[5] !== null).map((t) => [t[0], t[5]]) : []
