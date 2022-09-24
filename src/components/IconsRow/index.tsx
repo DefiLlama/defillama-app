@@ -30,7 +30,7 @@ const Row = styled.div`
 	justify-content: flex-end;
 	background: none;
 	overflow: hidden;
-	z-index: 1;
+	z-index: 0;
 `
 
 const Popover = styled(Hovercard)`
