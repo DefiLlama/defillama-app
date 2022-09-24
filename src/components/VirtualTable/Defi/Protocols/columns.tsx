@@ -9,7 +9,7 @@ import { AccordionButton, Name } from '../../shared'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow } from './types'
 
-export const protocolsColumn: ColumnDef<IProtocolRow>[] = [
+export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: () => <Name>Name</Name>,
 		accessorKey: 'name',
@@ -109,6 +109,34 @@ export const protocolsColumn: ColumnDef<IProtocolRow>[] = [
 		}
 	}
 ]
+
+export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
+	...protocolsColumns.slice(0, 2),
+	{
+		header: 'Listed At',
+		accessorKey: 'listedAt',
+		cell: ({ getValue }) => <span style={{ whiteSpace: 'nowrap' }}>{getValue()} days ago</span>,
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	...protocolsColumns.slice(3)
+]
+
+export const protocolAddlColumns = {
+	msizetvl: {
+		header: 'Msize/TVL',
+		accessorKey: 'msizetvl',
+		cell: (info) => {
+			return <>{info.getValue() && formattedNum(info.getValue())}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	}
+}
 
 // key: min width of window/screen
 // values: table columns order

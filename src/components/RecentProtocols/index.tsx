@@ -1,156 +1,14 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import Layout from '~/layout'
 import { Panel } from '~/components'
+import { RecentlyListedProtocolsTable } from '~/components/VirtualTable'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import Table, { columnsToShow, Dropdowns, TableFilters, TableHeader } from '~/components/Table'
+import { Dropdowns, TableFilters, TableHeader } from '~/components/Table'
 import { FiltersByChain, HideForkedProtocols } from '~/components/Filters'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { getPercentChange } from '~/utils'
-
-const TableWrapper = styled(Table)`
-	tr > *:not(:first-child) {
-		& > * {
-			width: 100px;
-			font-weight: 400;
-		}
-	}
-
-	// PROTOCOL NAME
-	tr > *:nth-child(1) {
-		& > * {
-			width: 160px;
-
-			#table-p-logo,
-			#table-p-symbol {
-				display: none;
-			}
-		}
-	}
-
-	// CATEGORY
-	tr > *:nth-child(2) {
-		display: none;
-	}
-
-	// CHAINS
-	tr > *:nth-child(3) {
-		display: none;
-	}
-
-	// LISTED AT
-	tr > *:nth-child(4) {
-		display: none;
-	}
-
-	// 1D CHANGE
-	tr > *:nth-child(5) {
-		display: none;
-	}
-
-	// 7D CHANGE
-	tr > *:nth-child(6) {
-		display: none;
-	}
-
-	// 1M CHANGE
-	tr > *:nth-child(7) {
-		display: none;
-	}
-
-	// TVL
-	tr > *:nth-child(8) {
-		padding-right: 20px;
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		// LISTED AT
-		tr > *:nth-child(4) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 640px) {
-		// 1D CHANGE
-		tr > *:nth-child(5) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-		// PROTOCOL NAME
-		tr > *:nth-child(1) {
-			& > * {
-				width: 200px;
-			}
-
-			#table-p-logo {
-				display: flex;
-			}
-		}
-	}
-
-	@media screen and (min-width: 900px) {
-		// PROTOCOL NAME
-		tr > *:nth-child(1) {
-			& > * {
-				width: 280px;
-			}
-
-			#table-p-symbol {
-				display: revert;
-			}
-		}
-
-		// 7D CHANGE
-		tr > *:nth-child(6) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		// 7D CHANGE
-		tr > *:nth-child(6) {
-			display: none;
-		}
-	}
-
-	@media screen and (min-width: 1200px) {
-		// CATEGORY
-		tr > *:nth-child(2) {
-			display: revert;
-		}
-
-		// 7D CHANGE
-		tr > *:nth-child(6) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 1536px) {
-		// CHAINS
-		tr > *:nth-child(3) {
-			display: revert;
-		}
-
-		// 1M CHANGE
-		tr > *:nth-child(7) {
-			display: revert !important;
-		}
-	}
-`
-
-const columns = columnsToShow(
-	'protocolName',
-	'category',
-	'chains',
-	'listedAt',
-	'1dChange',
-	'7dChange',
-	'1mChange',
-	'tvl'
-)
+import { IFormattedProtocol } from '~/api/types'
 
 function getSelectedChainFilters(chainQueryParam, allChains) {
 	if (chainQueryParam) {
@@ -263,7 +121,7 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 		return { data, selectedChains }
 	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols])
 
-	const protocolsData = useCalcStakePool2Tvl(data, 'listedAt', 'asc')
+	const protocolsData = useCalcStakePool2Tvl(data, 'listedAt', 'asc') as Array<IFormattedProtocol>
 
 	const { pathname } = useRouter()
 
@@ -281,7 +139,7 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 			</TableFilters>
 
 			{protocolsData.length > 0 ? (
-				<TableWrapper data={protocolsData} columns={columns} />
+				<RecentlyListedProtocolsTable data={protocolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
 					Couldn't find any protocols for these filters
