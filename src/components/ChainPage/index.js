@@ -253,10 +253,10 @@ function GlobalPage({
 					</Link>
 				</PanelThicc>
 				<PanelSmol as="p">
-					Support us through
-					<Link href={`https://gitcoin.co/grants/7087/defillama-apis`} passHref>
+					Check out our
+					<Link href={`/fees`} passHref>
 						<StyledAnchor>
-							<b>our gitcoin grant!</b>
+							<b>new fees & revenue dashboard!</b>
 							<Image src={lubb} width={18} height={18} alt="llama love" />
 						</StyledAnchor>
 					</Link>
