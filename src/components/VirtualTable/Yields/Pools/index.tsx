@@ -8,7 +8,7 @@ import {
 	ColumnSizingState
 } from '@tanstack/react-table'
 import VirtualTable from '~/components/VirtualTable/Table'
-import { yieldsColumnOrders, columns, columnSizes } from './columnss'
+import { yieldsColumnOrders, columns, columnSizes } from './columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import type { IYieldsTableProps } from '../types'
 
