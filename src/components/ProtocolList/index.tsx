@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Header } from '~/Theme'
+import { ProtocolsTable } from '~/components/VirtualTable'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import Table, { columnsToShow } from '~/components/Table'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcProtocolsTvls } from '~/hooks/data'
 import { IParentProtocol } from '~/api/types'
@@ -54,23 +54,6 @@ function ProtocolList({
 		}
 	}
 
-	const columns = useMemo(() => {
-		if (category === 'Lending') {
-			return columnsToShow(
-				'protocolName',
-				'category',
-				'chains',
-				'1dChange',
-				'7dChange',
-				'1mChange',
-				'tvl',
-				'mcaptvl',
-				'msizetvl'
-			)
-		} else
-			return columnsToShow('protocolName', 'category', 'chains', '1dChange', '7dChange', '1mChange', 'tvl', 'mcaptvl')
-	}, [category])
-
 	const routeName = category ? (chain === 'All' ? 'All Chains' : chain) : 'All Protocols'
 
 	return (
@@ -90,7 +73,7 @@ function ProtocolList({
 				</RowLinksWrapper>
 			)}
 
-			<Table data={protocolTotals} columns={columns} />
+			<ProtocolsTable data={protocolTotals} addlColumns={category === 'Lending' ? ['msizetvl'] : null} />
 		</>
 	)
 }

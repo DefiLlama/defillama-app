@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, ProtocolsTable } from '~/components'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
+import { ProtocolsTable } from '~/components/VirtualTable'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { columnsToShow } from '~/components/Table'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
@@ -36,17 +36,6 @@ export async function getStaticPaths() {
 
 	return { paths, fallback: 'blocking' }
 }
-
-const columns = columnsToShow(
-	'protocolName',
-	'category',
-	'chains',
-	'1dChange',
-	'7dChange',
-	'1mChange',
-	'tvl',
-	'mcaptvl'
-)
 
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {
 	const protocolsData = useCalcStakePool2Tvl(filteredProtocols)
@@ -108,7 +97,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentToken
 				<RowLinksWithDropdown links={tokenLinks} activeLink={token} />
 			</RowLinksWrapper>
 
-			<ProtocolsTable columns={columns} data={protocolsData} pinnedRow={parentForks[0]} />
+			<ProtocolsTable data={protocolsData} pinnedRow={parentForks[0]} />
 		</>
 	)
 }

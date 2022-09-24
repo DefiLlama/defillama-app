@@ -1,9 +1,9 @@
 import { ColumnDef } from '@tanstack/react-table'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
-import Row from '~/components/Row'
 import TokenLogo from '~/components/TokenLogo'
 import { capitalizeFirstLetter, chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
+import { Name } from '../../shared'
 import type { INftsCollectionRow } from '../types'
 
 export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
@@ -15,7 +15,7 @@ export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
 			const item = row.original
 
 			return (
-				<Row>
+				<Name>
 					<TokenLogo logo={chainIconUrl(item.chain)} />
 					<CustomLink
 						style={{
@@ -27,7 +27,7 @@ export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
 					>
 						{capitalizeFirstLetter(item.chain)}
 					</CustomLink>
-				</Row>
+				</Name>
 			)
 		},
 		size: 200
@@ -87,7 +87,7 @@ export const marketplacesColumns: ColumnDef<INftsCollectionRow>[] = [
 		cell: ({ row }) => {
 			const item = row.original
 			return (
-				<Row>
+				<Name>
 					<TokenLogo logo={tokenIconUrl(item.marketplace)} />
 					<CustomLink
 						style={{
@@ -99,7 +99,7 @@ export const marketplacesColumns: ColumnDef<INftsCollectionRow>[] = [
 					>
 						{capitalizeFirstLetter(item.marketplace)}
 					</CustomLink>
-				</Row>
+				</Name>
 			)
 		},
 		size: 200

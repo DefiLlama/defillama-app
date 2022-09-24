@@ -1,10 +1,10 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'react-feather'
-import styled from 'styled-components'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { IDexsRow } from './types'
 
@@ -31,12 +31,12 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 						</AccordionButton>
 					)}
 					<span>{index + 1}</span>
-					<TokenLogo logo={tokenIconUrl(name)} data-logo />
+					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
 					<CustomLink href={`/dex/${slug(name)}`}>{`${value}`}</CustomLink>
 				</Name>
 			)
 		},
-		size: 260
+		size: 240
 	},
 	{
 		header: 'Chains',
@@ -149,36 +149,3 @@ export const columnSizes = {
 		dominance: 140
 	}
 }
-
-interface INameProps {
-	depth?: number
-}
-
-const Name = styled.span<INameProps>`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding-left: ${({ depth }) => (depth ? depth * 48 : 24)}px;
-	position: relative;
-
-	a {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		whitespace: nowrap;
-	}
-
-	& > *[data-logo] {
-		display: none;
-	}
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		& > *[data-logo] {
-			display: flex;
-		}
-	}
-`
-
-const AccordionButton = styled.button`
-	position: absolute;
-	left: -8px;
-`

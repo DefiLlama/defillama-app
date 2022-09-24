@@ -1,9 +1,9 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'react-feather'
-import styled from 'styled-components'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
+import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { IFeesRow } from './types'
 
@@ -76,20 +76,3 @@ export const feesTableColumnOrders = formatColumnOrder({
 	0: ['name', 'total1dFees', 'category', 'total1dRevenue', 'change_1d', 'change_1m', 'mcaptvl'],
 	400: ['name', 'category', 'total1dFees', 'total1dRevenue', 'change_1d', 'change_1m', 'mcaptvl']
 })
-
-interface INameProps {
-	depth?: number
-}
-
-const Name = styled.span<INameProps>`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding-left: ${({ depth }) => (depth ? depth * 48 : 24)}px;
-	position: relative;
-`
-
-const AccordionButton = styled.button`
-	position: absolute;
-	left: -8px;
-`

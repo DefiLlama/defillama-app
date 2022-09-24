@@ -2,10 +2,10 @@ import { useMemo } from 'react'
 import { FolderPlus, Trash2 } from 'react-feather'
 import styled from 'styled-components'
 import { Header, TYPE } from '~/Theme'
-import { Panel, ProtocolsTable } from '~/components'
+import { Panel } from '~/components'
+import { ProtocolsTable } from '~/components/VirtualTable'
 import Row from '~/components/Row'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { columnsToShow } from '~/components/Table'
 import { Menu } from '~/components/DropdownMenu'
 import { useIsClient } from '~/hooks'
 import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
@@ -24,17 +24,6 @@ const Action = styled.button<IFolder>`
 		}
 	}
 `
-
-const columns = columnsToShow(
-	'protocolName',
-	'category',
-	'chains',
-	'1dChange',
-	'7dChange',
-	'1mChange',
-	'tvl',
-	'mcaptvl'
-)
 
 export function DefiWatchlistContainer({ protocolsDict }) {
 	const isClient = useIsClient()
@@ -70,7 +59,7 @@ export function DefiWatchlistContainer({ protocolsDict }) {
 			</Row>
 
 			{filteredProtocols.length ? (
-				<ProtocolsTable data={filteredProtocols} columns={columns} />
+				<ProtocolsTable data={filteredProtocols} />
 			) : (
 				<Panel>
 					<p style={{ textAlign: 'center' }}>You have not saved any protocols.</p>
