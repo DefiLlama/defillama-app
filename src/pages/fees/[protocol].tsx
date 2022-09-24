@@ -91,8 +91,8 @@ export default function FeeProtocol({ data, chartData }: InferGetStaticPropsType
 					</Stat>
 
 					<Stat>
-						<span>24h fees</span>
-						<span>{formattedNum(data.total1dFees || 0, true)}</span>
+						<span>24h revenue</span>
+						<span>{formattedNum(data.total1dRevenue || 0, true)}</span>
 					</Stat>
 				</DetailsWrapper>
 
@@ -106,7 +106,7 @@ export default function FeeProtocol({ data, chartData }: InferGetStaticPropsType
 				</ChartWrapper>
 			</StatsSection>
 
-			{/* 
+			{/*
 		<BreakpointPanel id="chartWrapper">
 					<RowFixed>
 						{DENOMINATIONS.map((option) => (
