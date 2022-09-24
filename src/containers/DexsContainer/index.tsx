@@ -2,7 +2,6 @@ import * as React from 'react'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
 import { DexsSearch } from '~/components/Search'
-import { columnsToShow, FullTable } from '~/components/Table'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
@@ -14,6 +13,7 @@ import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
 import { formatChain } from '~/api/categories/dexs/utils'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
+import { DexsTable } from '~/components/VirtualTable'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -69,150 +69,6 @@ const HeaderWrapper = styled(Header)`
 	gap: 12px;
 	border: 1px solid transparent;
 `
-
-const StyledTable = styled(FullTable)`
-	tr > *:not(:first-child) {
-		& > * {
-			width: 100px;
-			font-weight: 400;
-		}
-	}
-
-	// CHAIN
-	tr > :nth-child(1) {
-		padding-left: 40px;
-
-		#table-p-logo {
-			display: none;
-		}
-
-		#table-p-name {
-			width: 60px;
-			display: block;
-		}
-	}
-
-	// PROTOCOLS
-	tr > :nth-child(2) {
-		width: 100px;
-		display: none;
-	}
-
-	// 1D CHANGE
-	tr > :nth-child(3) {
-		display: none;
-	}
-
-	// 7D CHANGE
-	tr > :nth-child(4) {
-		display: none;
-	}
-
-	// 1M CHANGE
-	tr > :nth-child(5) {
-		display: none;
-	}
-
-	// MCAPTVL
-	tr > :nth-child(7) {
-		width: 100px;
-		display: none;
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		// CHAIN
-		tr > *:nth-child(1) {
-			#table-p-name {
-				width: 100px;
-			}
-		}
-
-		// 7D CHANGE
-		tr > *:nth-child(4) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 640px) {
-		// CHAIN
-		tr > *:nth-child(1) {
-			#table-p-logo {
-				display: flex;
-			}
-		}
-
-		// PROTOCOLS
-		tr > :nth-child(2) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-		// CHAIN
-		tr > *:nth-child(1) {
-			#table-p-name {
-				width: 140px;
-			}
-		}
-
-		// 1M CHANGE
-		tr > *:nth-child(5) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		// 1M CHANGE
-		tr > *:nth-child(5) {
-			display: none;
-		}
-	}
-
-	@media screen and (min-width: 1260px) {
-		tr > *:nth-child(1) {
-			#table-p-name {
-				width: 200px;
-			}
-		}
-
-		// 1M CHANGE
-		tr > *:nth-child(5) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 1360px) {
-		// 1D CHANGE
-		tr > *:nth-child(3) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 1400px) {
-		// MCAPTVL
-		tr > *:nth-child(7) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 1460px) {
-		// % dominance
-		tr > *:nth-child(8) {
-			display: revert;
-		}
-	}
-`
-
-const columns = columnsToShow(
-	'dexName',
-	'chainsVolume',
-	'1dChange',
-	'7dChange',
-	'1mChange',
-	'totalVolume24h',
-	'volumetvl',
-	'dominance'
-)
 
 export interface IDexsContainer {
 	chain: string
@@ -340,8 +196,9 @@ export default function DexsContainer({
 					alternativeOthersText="More chains"
 				/>
 			</RowLinksWrapper>
+
 			{dexs && dexs.length > 0 ? (
-				<StyledTable data={dexWithSubrows} columns={columns} columnToSort={'totalVolume24h'} sortDirection={1} />
+				<DexsTable data={dexWithSubrows} />
 			) : (
 				<Panel>
 					<p style={{ textAlign: 'center' }}>

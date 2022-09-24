@@ -8,3 +8,4 @@ export {
 } from './Nfts/ChainsAndMarketplaces'
 export { OraclesTable, ForksTable, ProtocolsCategoriesTable } from './Defi'
 export { FeesTable } from './Fees'
+export { DexsTable } from './Dexs'
