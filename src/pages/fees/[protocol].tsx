@@ -9,7 +9,7 @@ import TokenLogo from '~/components/TokenLogo'
 import FormattedName from '~/components/FormattedName'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { revalidate } from '~/api'
-import { capitalizeFirstLetter, formattedNum } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, formattedNum } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
@@ -81,7 +81,7 @@ export default function FeeProtocol({ data, chartData }: InferGetStaticPropsType
 			<StatsSection>
 				<DetailsWrapper>
 					<Name>
-						<TokenLogo logo={data.logo} size={24} />
+						<TokenLogo logo={data.logo ?? chainIconUrl(data.name)} size={24} />
 						<FormattedName text={data.name} maxCharacters={16} fontWeight={700} />
 					</Name>
 
