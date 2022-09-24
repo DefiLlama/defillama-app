@@ -149,8 +149,6 @@ function PeggedChainsOverview({
 		[groupedChains]
 	)
 
-	console.log({ groupedChains })
-
 	return (
 		<>
 			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains' }} />
