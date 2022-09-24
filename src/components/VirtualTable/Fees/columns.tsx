@@ -2,7 +2,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'react-feather'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, tokenIconUrl } from '~/utils'
+import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { IFeesRow } from './types'
@@ -33,7 +33,7 @@ export const feesColumn: ColumnDef<IFeesRow>[] = [
 					)}
 					<span>{index + 1}</span>
 					<TokenLogo logo={logo} />
-					<CustomLink href={`/fees/${mappedValue}`}>{`${name}${symbol}`}</CustomLink>
+					<CustomLink href={`/fees/${slug(mappedValue as string)}`}>{`${name}${symbol}`}</CustomLink>
 				</Name>
 			)
 		},
