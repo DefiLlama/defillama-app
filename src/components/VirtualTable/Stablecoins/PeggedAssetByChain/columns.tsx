@@ -109,20 +109,20 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 export const assetByChainColumnOrders = formatColumnOrder({
-	0: ['name', 'bridgedAmount', 'change_7d', 'change_1d', 'change_1m', 'bridgeInfo', 'circulating'],
-	480: ['name', 'change_7d', 'bridgedAmount', 'change_1d', 'change_1m', 'bridgeInfo', 'circulating'],
+	0: ['name', 'change_7d', 'circulating', 'change_1d', 'change_1m', 'bridgeInfo', 'bridgedAmount'],
+	480: ['name', 'change_7d', 'circulating', 'change_1d', 'change_1m', 'bridgeInfo', 'bridgedAmount'],
 	1024: ['name', 'bridgeInfo', 'bridgedAmount', 'change_1d', 'change_7d', 'change_1m', 'circulating']
 })
 
 export const columnSizes = {
 	0: {
-		name: 180,
+		name: 160,
 		bridgeInfo: 240,
 		bridgedAmount: 140,
-		change_1d: 140,
-		change_7d: 140,
-		change_1m: 140,
-		circulating: 140
+		change_1d: 100,
+		change_7d: 100,
+		change_1m: 100,
+		circulating: 100
 	},
 	900: {
 		name: 280,

@@ -137,7 +137,7 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 export const assetsColumnOrders = formatColumnOrder({
-	0: ['name', 'price', 'change_7d', 'pegDeviation', 'pegDeviation_1m', 'chains', 'change_1d', 'change_1m', 'mcap'],
+	0: ['name', 'mcap', 'change_1d', 'change_7d', 'change_1m', 'price', 'pegDeviation', 'pegDeviation_1m', 'chains'],
 	1024: ['name', 'chains', 'pegDeviation', 'pegDeviation_1m', 'price', 'change_1d', 'change_7d', 'change_1m', 'mcap']
 })
 
