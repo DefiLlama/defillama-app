@@ -13,10 +13,12 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			return (
 				<AutoRow as="span" gap="8px">
-					<span>{row.index + 1}</span> <CustomLink href={`/oracles/${getValue()}`}>{getValue()}</CustomLink>
+					<span>{index + 1}</span> <CustomLink href={`/oracles/${getValue()}`}>{getValue()}</CustomLink>
 				</AutoRow>
 			)
 		}
@@ -44,10 +46,12 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			return (
 				<AutoRow as="span" gap="8px">
-					<span>{row.index + 1}</span> <CustomLink href={`/forks/${getValue()}`}>{getValue()}</CustomLink>
+					<span>{index + 1}</span> <CustomLink href={`/forks/${getValue()}`}>{getValue()}</CustomLink>
 				</AutoRow>
 			)
 		}
@@ -85,10 +89,12 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 		header: 'Category',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			return (
 				<AutoRow as="span" gap="8px">
-					<span>{row.index + 1}</span> <CustomLink href={`/protocols/${getValue()}`}>{getValue()}</CustomLink>
+					<span>{index + 1}</span> <CustomLink href={`/protocols/${getValue()}`}>{getValue()}</CustomLink>
 				</AutoRow>
 			)
 		},
@@ -116,7 +122,9 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		header: () => <Name>Name</Name>,
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			return (
 				<Name depth={row.depth}>
 					{row.subRows?.length > 0 && (
@@ -128,7 +136,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
 						</AccordionButton>
 					)}
-					<span>{row.index + 1}</span>
+					<span>{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(getValue())} />
 					<CustomLink href={`/chain/${getValue()}`}>{getValue()}</CustomLink>
 				</Name>

@@ -13,11 +13,11 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 		header: () => <Name>Name</Name>,
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-
 			const splittedName = value.split(' - ')
 			const name = splittedName.length > 1 ? splittedName.slice(0, splittedName.length - 1).join('') : value
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<Name depth={row.depth}>
@@ -30,7 +30,7 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
 						</AccordionButton>
 					)}
-					<span>{row.index + 1}</span>
+					<span>{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(name)} data-logo />
 					<CustomLink href={`/dex/${slug(name)}`}>{`${value}`}</CustomLink>
 				</Name>

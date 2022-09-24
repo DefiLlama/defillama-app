@@ -12,14 +12,18 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		header: 'Pool',
 		accessorKey: 'pool',
 		enableSorting: false,
-		cell: ({ getValue, row }) => (
-			<NameYieldPool
-				value={getValue() as string}
-				configID={row.original.configID}
-				url={row.original.url}
-				index={row.index + 1}
-			/>
-		),
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<NameYieldPool
+					value={getValue() as string}
+					configID={row.original.configID}
+					url={row.original.url}
+					index={index + 1}
+				/>
+			)
+		},
 		size: 200
 	},
 	{

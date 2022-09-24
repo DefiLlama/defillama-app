@@ -13,6 +13,7 @@ export const chainsColumns: ColumnDef<INftsCollectionRow>[] = [
 		enableSorting: false,
 		cell: ({ row }) => {
 			const item = row.original
+
 			return (
 				<Row>
 					<TokenLogo logo={chainIconUrl(item.chain)} />

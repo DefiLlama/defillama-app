@@ -12,12 +12,13 @@ export const feesColumn: ColumnDef<IFeesRow>[] = [
 		header: () => <Name>Name</Name>,
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue, row, table }) => {
 			const itemType = row.original.logo ? 'fees' : 'chain'
 			const mappedValue = getValue() === 'AAVE V2' ? 'AAVE' : getValue()
 			const logo = itemType === 'fees' ? tokenIconUrl(mappedValue) : chainIconUrl(mappedValue)
 			const symbol = row.original.symbol !== '-' && !row.original.version ? ` (${row.original.symbol})` : ''
 			const name = row.original.version ? `${mappedValue} ${row.original.version}` : `${mappedValue}`
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<Name depth={row.depth}>
@@ -30,7 +31,7 @@ export const feesColumn: ColumnDef<IFeesRow>[] = [
 							{row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
 						</AccordionButton>
 					)}
-					<span>{row.index + 1}</span>
+					<span>{index + 1}</span>
 					<TokenLogo logo={logo} />
 					<CustomLink href={`/fees/${mappedValue}`}>{`${name}${symbol}`}</CustomLink>
 				</Name>
