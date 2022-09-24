@@ -683,6 +683,11 @@ export const chainCoingeckoIds = {
 		geckoId: "vision-metaverse",
 		symbol: "VS",
 		cmcId: "19083"
+	},
+	EthPoW: {
+		geckoId: "ethereum-pow-iou",
+		symbol: "ETHW",
+		cmcId: "21296"
 	}
 }
 

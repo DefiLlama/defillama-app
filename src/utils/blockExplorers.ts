@@ -52,7 +52,8 @@ const blockExplorers = {
 	juno: ['https://www.mintscan.io/juno/assets/', 'Mintscan Juno'],
 	tombchain: ['https://tombscout.com/address/', 'Tombchain Explorer'],
 	canto: ['https://evm.explorer.canto.io/tokens/', 'Canto Explorer'],
-	vision: ['https://www.visionscan.org/contract/', 'Visionscan']
+	vision: ['https://www.visionscan.org/contract/', 'Visionscan'],
+	ethpow: ['https://www.oklink.com/en/ethw/address/', 'ETHW Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
