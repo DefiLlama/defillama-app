@@ -97,7 +97,12 @@ export default function FeeProtocol({ data, chartData }: InferGetStaticPropsType
 				</DetailsWrapper>
 
 				<ChartWrapper>
-					<StackedChart chartData={chartData} title="Fees And Revenue" stacks={{ Fees: 'a', Revenue: 'a' }} />
+					<StackedChart
+						chartData={chartData}
+						title="Fees And Revenue"
+						stacks={{ Fees: 'a', Revenue: 'a' }}
+						stackColors={stackedBarChartColors}
+					/>
 				</ChartWrapper>
 			</StatsSection>
 
@@ -127,4 +132,9 @@ export default function FeeProtocol({ data, chartData }: InferGetStaticPropsType
 				</BreakpointPanel> */}
 		</Layout>
 	)
+}
+
+const stackedBarChartColors = {
+	Fees: '#4f8fea',
+	Revenue: '#E59421'
 }
