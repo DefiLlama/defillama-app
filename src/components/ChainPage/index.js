@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import {
-	ProtocolsTable,
 	Panel,
 	BreakpointPanels,
 	BreakpointPanel,
@@ -17,13 +16,13 @@ import {
 	PanelSmol,
 	StyledAnchor
 } from '~/components'
+import { ProtocolsTable } from '~/components/VirtualTable'
 import { RowFixed } from '~/components/Row'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
 import SEO from '~/components/SEO'
 import { OptionButton } from '~/components/ButtonStyled'
 import LocalLoader from '~/components/LocalLoader'
-import { columnsToShow } from '~/components/Table'
 import { useCalcProtocolsTvls } from '~/hooks/data'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
@@ -56,17 +55,6 @@ const Game = dynamic(() => import('~/game'))
 const BASIC_DENOMINATIONS = ['USD']
 
 const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
-
-const columns = columnsToShow(
-	'protocolName',
-	'category',
-	'chains',
-	'1dChange',
-	'7dChange',
-	'1mChange',
-	'tvl',
-	'mcaptvl'
-)
 
 function GlobalPage({
 	selectedChain = 'All',
@@ -326,7 +314,7 @@ function GlobalPage({
 			</ListOptions>
 
 			{finalProtocolTotals.length > 0 ? (
-				<ProtocolsTable data={finalProtocolTotals} columns={columns} />
+				<ProtocolsTable data={finalProtocolTotals} />
 			) : (
 				<Panel
 					as="p"

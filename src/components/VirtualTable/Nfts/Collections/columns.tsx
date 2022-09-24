@@ -2,9 +2,9 @@ import { ColumnDef } from '@tanstack/react-table'
 import FormattedName from '~/components/FormattedName'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
-import Row from '~/components/Row'
 import TokenLogo from '~/components/TokenLogo'
 import { capitalizeFirstLetter, formattedNum } from '~/utils'
+import { Name } from '../../shared'
 import type { INftsCollectionRow } from '../types'
 
 export const columns: ColumnDef<INftsCollectionRow>[] = [
@@ -15,7 +15,7 @@ export const columns: ColumnDef<INftsCollectionRow>[] = [
 		cell: ({ row }) => {
 			const item = row.original
 			return (
-				<Row>
+				<Name>
 					<TokenLogo address={item.address} logo={item.logo} external />
 					{/* <img
 						src={logo}
@@ -32,7 +32,7 @@ export const columns: ColumnDef<INftsCollectionRow>[] = [
 					>
 						<FormattedName text={`${item.name}`} maxCharacters={24} adjustSize={true} link={true} />
 					</CustomLink>
-				</Row>
+				</Name>
 			)
 		},
 		size: 200

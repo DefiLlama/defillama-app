@@ -1,8 +1,8 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'react-feather'
-import styled from 'styled-components'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
+import { AccordionButton, Name } from '../../shared'
 import { chainIconUrl, formattedNum, formattedPercent } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import type { IPeggedAssetByChainRow } from './types'
@@ -38,7 +38,7 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 					) : (
 						<>
 							<span>{index + 1}</span>
-							<TokenLogo logo={chainIconUrl(value)} data-logo />
+							<TokenLogo logo={chainIconUrl(value)} data-lgonly />
 							<CustomLink href={`/stablecoins/${value}`}>{value + symbol}</CustomLink>
 						</>
 					)}
@@ -134,36 +134,3 @@ export const columnSizes = {
 		circulating: 140
 	}
 }
-
-interface INameProps {
-	depth?: number
-}
-
-const Name = styled.span<INameProps>`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding-left: ${({ depth }) => (depth ? depth * 48 : 24)}px;
-	position: relative;
-
-	a {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		whitespace: nowrap;
-	}
-
-	& > *[data-logo] {
-		display: none;
-	}
-
-	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		& > *[data-logo] {
-			display: flex;
-		}
-	}
-`
-
-const AccordionButton = styled.button`
-	position: absolute;
-	left: -8px;
-`

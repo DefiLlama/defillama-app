@@ -26,19 +26,12 @@ export function NameYieldPool({ value, configID, url, index }: INameYieldPoolPro
 
 	return (
 		<Wrapper>
-			<Bookmark readableProtocolName={configID} className="lg-only" />
+			<Bookmark readableProtocolName={configID} data-lgonly />
 
 			<span>{index}</span>
 
 			{url ? (
-				<ButtonYields
-					as="a"
-					href={url}
-					target="_blank"
-					rel="noopener noreferrer"
-					className="lg-only"
-					useTextColor={true}
-				>
+				<ButtonYields as="a" href={url} target="_blank" rel="noopener noreferrer" data-lgonly useTextColor={true}>
 					<ArrowUpRight size={14} />
 				</ButtonYields>
 			) : (
@@ -74,7 +67,7 @@ const Wrapper = styled.span`
 	align-items: center;
 	gap: 8px;
 
-	.lg-only {
+	& > *[data-lgonly] {
 		display: none;
 	}
 
@@ -90,7 +83,7 @@ const Wrapper = styled.span`
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-		.lg-only {
+		& > *[data-lgonly] {
 			display: flex;
 		}
 	}

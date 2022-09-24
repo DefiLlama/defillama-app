@@ -1,10 +1,9 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'react-feather'
-import styled from 'styled-components'
 import { CustomLink } from '~/components/Link'
-import { AutoRow } from '~/components/Row'
 import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, formattedPercent } from '~/utils'
+import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow } from './types'
 
@@ -17,9 +16,9 @@ export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<AutoRow as="span" gap="8px">
+				<Name>
 					<span>{index + 1}</span> <CustomLink href={`/oracles/${getValue()}`}>{getValue()}</CustomLink>
-				</AutoRow>
+				</Name>
 			)
 		}
 	},
@@ -50,9 +49,9 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<AutoRow as="span" gap="8px">
+				<Name>
 					<span>{index + 1}</span> <CustomLink href={`/forks/${getValue()}`}>{getValue()}</CustomLink>
-				</AutoRow>
+				</Name>
 			)
 		}
 	},
@@ -93,9 +92,9 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
-				<AutoRow as="span" gap="8px">
+				<Name>
 					<span>{index + 1}</span> <CustomLink href={`/protocols/${getValue()}`}>{getValue()}</CustomLink>
-				</AutoRow>
+				</Name>
 			)
 		},
 		size: 180
@@ -211,20 +210,3 @@ export const chainsTableColumnOrders = formatColumnOrder({
 	600: ['name', 'protocols', 'change_7d', 'tvl', 'change_1d', 'change_1m', 'mcaptvl'],
 	900: ['name', 'protocols', 'change_1d', 'change_7d', 'change_1m', 'tvl', 'mcaptvl']
 })
-
-interface INameProps {
-	depth?: number
-}
-
-const Name = styled.span<INameProps>`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding-left: ${({ depth }) => (depth ? depth * 48 : 24)}px;
-	position: relative;
-`
-
-const AccordionButton = styled.button`
-	position: absolute;
-	left: -8px;
-`

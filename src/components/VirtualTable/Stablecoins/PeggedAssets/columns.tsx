@@ -23,7 +23,7 @@ export const peggedAssetsColumn: ColumnDef<IPeggedAssetsRow>[] = [
 			return (
 				<Name>
 					<span>{index + 1}</span>
-					<TokenLogo logo={peggedAssetIconUrl(value)} data-logo />
+					<TokenLogo logo={peggedAssetIconUrl(value)} data-lgonly />
 					<CustomLink href={`/stablecoin/${slug(value)}`}>{value + symbol}</CustomLink>
 				</Name>
 			)
