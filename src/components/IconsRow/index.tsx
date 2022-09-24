@@ -30,16 +30,22 @@ const Row = styled.div`
 	justify-content: flex-end;
 	background: none;
 	overflow: hidden;
+	z-index: 1;
 `
 
 const Popover = styled(Hovercard)`
-	z-index: 1;
+	max-width: 600px;
+	z-index: 10;
 	padding: 6px;
 	background: ${({ theme }) => theme.bg2};
 	border: 1px solid ${({ theme }) => theme.bg3};
 	color: ${({ theme }) => theme.text1};
 	border-radius: 8px;
 	box-shadow: ${({ theme }) => theme.shadowMd};
+
+	& > * {
+		justify-content: flex-start;
+	}
 `
 
 const Tooltip = styled(AriaTooltip)`
@@ -82,12 +88,15 @@ export const ChainLogo = ({
 							: `${url}/${chain}`
 					}
 					shallow={shallowRoute}
+					passHref
 				>
-					<TokenLogo
-						onClick={(e) => e.stopPropagation()}
-						address={chain}
-						logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)}
-					/>
+					<a>
+						<TokenLogo
+							onClick={(e) => e.stopPropagation()}
+							address={chain}
+							logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)}
+						/>
+					</a>
 				</Link>
 			</Tooltip>
 		)

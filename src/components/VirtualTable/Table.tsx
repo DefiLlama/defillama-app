@@ -142,7 +142,6 @@ const Wrapper = styled.div`
 	border: 1px solid ${({ theme }) => theme.bg3};
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 	border-radius: 12px;
-
 	overflow-x: auto;
 	z-index: 1;
 

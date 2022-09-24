@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { Text } from 'recharts'
 import styled from 'styled-components'
+import { Text } from 'rebass'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'

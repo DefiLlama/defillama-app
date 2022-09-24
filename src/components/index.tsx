@@ -60,7 +60,7 @@ export const StyledAnchor = styled.a`
 export const ChartAndValuesWrapper = styled.div`
 	flex: 1;
 	isolation: isolate;
-	z-index: 1;
+	z-index: 10;
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
