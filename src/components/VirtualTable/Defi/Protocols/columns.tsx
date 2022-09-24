@@ -3,7 +3,9 @@ import { ChevronDown, ChevronRight } from 'react-feather'
 import Bookmark from '~/components/Bookmark'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
+import QuestionHelper from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
+import { useDefiManager } from '~/contexts/LocalStorage'
 import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
 import { formatColumnOrder } from '../../utils'
@@ -89,9 +91,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'TVL',
 		accessorKey: 'tvl',
-		cell: ({ getValue }) => {
-			return <>{'$' + formattedNum(getValue())}</>
-		},
+		cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
 		meta: {
 			align: 'end'
 		},
@@ -241,4 +241,40 @@ export const columnSizes = {
 		tvl: 100,
 		mcaptvl: 100
 	}
+}
+
+const Tvl = ({ value, rowValues }) => {
+	const [extraTvlsEnabled] = useDefiManager()
+
+	let text = null
+
+	if (rowValues.strikeTvl) {
+		if (!extraTvlsEnabled['doublecounted']) {
+			text =
+				'This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off'
+		}
+
+		if (!extraTvlsEnabled['liquidstaking']) {
+			text =
+				'This protocol is under Liquid Staking category and is subtracted from total TVL because "Liquid Staking" toggle is off'
+		}
+
+		if (!extraTvlsEnabled['doublecounted'] && !extraTvlsEnabled['liquidstaking']) {
+			text =
+				'This protocol deposits into another protocol or is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggles are off'
+		}
+	}
+
+	return (
+		<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+			{text ? <QuestionHelper text={text} /> : null}
+			<span
+				style={{
+					color: rowValues.strikeTvl ? 'gray' : 'inherit'
+				}}
+			>
+				{'$' + formattedNum(value)}
+			</span>
+		</span>
+	)
 }
