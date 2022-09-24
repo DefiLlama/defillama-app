@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
 import VirtualTable from '~/components/VirtualTable/Table'
 import { columns } from './columns'
-import { INftsCollectionRow } from '../types'
+import type { INftsCollectionRow } from '../types'
 
 export default function NftsCollectionTable({ data }: { data: Array<INftsCollectionRow> }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
