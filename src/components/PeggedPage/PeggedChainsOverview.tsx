@@ -2,20 +2,19 @@ import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
-import { RowBetween, AutoRow } from '~/components/Row'
-import Table, { columnsToShow } from '~/components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
 import { AreaChart } from '~/components/Charts'
 import { GroupStablecoins } from '~/components/MultiSelect'
 import { PeggedSearch } from '~/components/Search'
 import { ChartSelector } from '~/components/PeggedPage/.'
+import { IChartProps } from '~/components/ECharts/types'
+import { PeggedChainsTable } from '~/components/VirtualTable'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {
 	getRandomColor,
 	formattedNum,
-	formattedPercent,
 	getPercentChange,
 	getPeggedDominance,
 	getPrevPeggedTotalFromChart,
@@ -23,7 +22,6 @@ import {
 	toNiceCsvDate,
 	download
 } from '~/utils'
-import { IChartProps } from '~/components/ECharts/types'
 
 const PeggedAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -40,158 +38,6 @@ const AssetFilters = styled.div`
 	}
 `
 
-const PeggedTable = styled(Table)`
-	tr > :first-child {
-		padding-left: 40px;
-	}
-
-	// PEGGED NAME
-	tr > *:nth-child(1) {
-		& > * {
-			width: 120px;
-			overflow: hidden;
-			white-space: nowrap;
-		}
-	}
-
-	// 7D CHANGE
-	tr > *:nth-child(2) {
-		display: none;
-	}
-
-	// MCAP
-	tr > *:nth-child(3) {
-		padding-right: 20px;
-	}
-
-	// DOMINANCE
-	tr > *:nth-child(4) {
-		display: none;
-	}
-
-	// MINTED
-	tr > *:nth-child(5) {
-		display: none;
-	}
-
-	// BRIDGEDTO
-	tr > *:nth-child(6) {
-		display: none;
-	}
-
-	// MCAPTVL
-	tr > *:nth-child(7) {
-		display: none;
-	}
-
-	@media screen and (min-width: 360px) {
-		// PEGGED NAME
-		tr > *:nth-child(1) {
-			& > * {
-				width: 160px;
-			}
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		// 7D CHANGE
-		tr > *:nth-child(2) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 640px) {
-		// PEGGED NAME
-		tr > *:nth-child(1) {
-			& > * {
-				width: 280px;
-			}
-		}
-	}
-
-	@media screen and (min-width: 720px) {
-		// MCAP
-		tr > *:nth-child(3) {
-			padding-right: 0px;
-		}
-
-		// DOMINANCE
-		tr > *:nth-child(4) {
-			display: revert;
-			padding-right: 20px;
-
-			& > * {
-				width: 140px;
-			}
-		}
-	}
-
-	@media screen and (min-width: 900px) {
-		// DOMINANCE
-		tr > *:nth-child(4) {
-			display: revert;
-		}
-
-		// BRIDGEDTO
-		tr > *:nth-child(6) {
-			padding-right: 0px;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		// MINTED
-		tr > *:nth-child(5) {
-			display: none !important;
-		}
-
-		// BRIDGEDTO
-		tr > *:nth-child(6) {
-			padding-right: 20px;
-		}
-
-		// MCAPTVL
-		tr > *:nth-child(7) {
-			display: none !important;
-		}
-	}
-
-	@media screen and (min-width: 1200px) {
-		// 7D CHANGE
-		tr > *:nth-child(2) {
-			display: revert !important;
-		}
-	}
-
-	@media screen and (min-width: 1300px) {
-		// DOMINANCE
-		tr > *:nth-child(4) {
-			padding-right: 0px;
-		}
-
-		// MINTED
-		tr > *:nth-child(5) {
-			display: revert !important;
-		}
-
-		// BRIDGEDTO
-		tr > *:nth-child(6) {
-			padding-right: 0px;
-		}
-
-		// MCAPTVL
-		tr > *:nth-child(7) {
-			display: revert !important;
-		}
-	}
-
-	@media screen and (min-width: 1536px) {
-		// BRIDGEDTO
-		tr > *:nth-child(6) {
-			display: revert;
-		}
-	}
-`
-
 // const ChartFilters = styled.div`
 // 	display: flex;
 // 	flex-wrap: wrap;
@@ -200,47 +46,6 @@ const PeggedTable = styled(Table)`
 // 	gap: 20px;
 // 	margin: 0 0 -18px;
 // `
-
-const columns = [
-	...columnsToShow('peggedAssetChain', '7dChange'),
-	{
-		header: 'Stables Mcap',
-		accessor: 'mcap',
-		Cell: ({ value }) => <>{value && formattedNum(value, true)}</>
-	},
-	{
-		header: 'Dominant Stablecoin',
-		accessor: 'dominance',
-		disableSortBy: true,
-		Cell: ({ value }) => {
-			return (
-				<>
-					{value && (
-						<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-							<span>{`${value.name}: `}</span>
-							<span>{formattedPercent(value.value, true)}</span>
-						</AutoRow>
-					)}
-				</>
-			)
-		}
-	},
-	{
-		header: 'Total Mcap Issued On',
-		accessor: 'minted',
-		Cell: ({ value }) => <>{value && formattedNum(value, true)}</>
-	},
-	{
-		header: 'Total Mcap Bridged To',
-		accessor: 'bridgedTo',
-		Cell: ({ value }) => <>{value && formattedNum(value, true)}</>
-	},
-	{
-		header: 'Stables Mcap/TVL',
-		accessor: 'mcaptvl',
-		Cell: ({ value }) => <>{value && formattedNum(value, false)}</>
-	}
-]
 
 function PeggedChainsOverview({
 	chainCirculatings,
@@ -344,6 +149,8 @@ function PeggedChainsOverview({
 		[groupedChains]
 	)
 
+	console.log({ groupedChains })
+
 	return (
 		<>
 			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains' }} />
@@ -413,7 +220,7 @@ function PeggedChainsOverview({
 				<GroupStablecoins label="Filters" />
 			</AssetFilters>
 
-			<PeggedTable data={groupedChains} columns={columns} />
+			<PeggedChainsTable data={groupedChains} />
 		</>
 	)
 }

@@ -3,16 +3,22 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
-import { AutoRow } from '~/components/Row'
-import Table, { columnsToShow } from '~/components/Table'
 import { PeggedChainResponsivePie, PeggedChainResponsiveDominance, AreaChart } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
-import IconsRow from '~/components/IconsRow'
 import { PeggedSearch } from '~/components/Search'
-import QuestionHelper from '~/components/QuestionHelper'
 import { ChartSelector } from '~/components/PeggedPage/.'
-import { Text } from 'rebass'
+import {
+	Attribute,
+	stablecoinAttributeOptions,
+	PegType,
+	stablecoinPegTypeOptions,
+	BackingType,
+	stablecoinBackingOptions,
+	McapRange,
+	ResetAllStablecoinFilters
+} from '~/components/Filters'
+import { PeggedAssetsTable } from '~/components/VirtualTable'
 import {
 	useCalcCirculating,
 	useCalcGroupExtraPeggedByDay,
@@ -24,23 +30,12 @@ import {
 	getRandomColor,
 	capitalizeFirstLetter,
 	formattedNum,
-	formattedPeggedPrice,
 	getPercentChange,
 	getPeggedDominance,
 	toNiceMonthlyDate,
 	toNiceCsvDate,
 	download
 } from '~/utils'
-import {
-	Attribute,
-	stablecoinAttributeOptions,
-	PegType,
-	stablecoinPegTypeOptions,
-	BackingType,
-	stablecoinBackingOptions,
-	McapRange,
-	ResetAllStablecoinFilters
-} from '~/components/Filters'
 
 const PeggedAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -49,274 +44,6 @@ const PeggedAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
-
-function formattedPeggedPercent(percent, noSign = false) {
-	if (percent === null) {
-		return null
-	}
-
-	let up = 'green'
-	let down = 'red'
-
-	if (noSign) {
-		up = down = ''
-	}
-
-	percent = parseFloat(percent)
-	if (!percent || percent === 0) {
-		return <Text fontWeight={500}>0%</Text>
-	}
-
-	if (percent < 0.0001 && percent > 0) {
-		return (
-			<Text fontWeight={500} color={up}>
-				{'< 0.0001%'}
-			</Text>
-		)
-	}
-
-	if (percent < 0 && percent > -0.0001) {
-		return (
-			<Text fontWeight={500} color={down}>
-				{'< 0.0001%'}
-			</Text>
-		)
-	}
-
-	let fixedPercent = percent.toFixed(2)
-	if (fixedPercent === '0.00') {
-		return '0%'
-	}
-	const prefix = noSign ? '' : '+'
-	if (fixedPercent > 0) {
-		if (fixedPercent > 100) {
-			return <Text fontWeight={500} color={up}>{`${prefix}${percent?.toFixed(0).toLocaleString()}%`}</Text>
-		} else {
-			if (fixedPercent > 2) {
-				return <Text fontWeight={700} color={up}>{`${prefix}${fixedPercent}%`}</Text>
-			} else {
-				return <Text fontWeight={500} color={up}>{`${prefix}${fixedPercent}%`}</Text>
-			}
-		}
-	} else {
-		if (fixedPercent < -2) {
-			return <Text fontWeight={700} color={down}>{`${fixedPercent}%`}</Text>
-		} else {
-			return <Text fontWeight={500} color={down}>{`${fixedPercent}%`}</Text>
-		}
-	}
-}
-
-const formatPriceSource = {
-	chainlink: 'Chainlink',
-	uniswap: 'a Uniswap v3 pool oracle',
-	dexscreener: 'DEX Screener',
-	curve: 'a Curve pool oracle',
-	coingecko: 'CoinGecko',
-	birdeye: 'Birdeye',
-	kucoin: 'KuCoin Exchange',
-	defillama: 'DefiLlama',
-	kaddex: 'Kaddex'
-}
-
-function pegDeviationText(pegDeviationInfo) {
-	const { timestamp, price, priceSource } = pegDeviationInfo
-	const date = new Date(timestamp * 1000).toISOString().slice(0, 10)
-	return `On ${date}, ${formatPriceSource[priceSource]} reported a price of $${formattedPeggedPrice(price)}.`
-}
-
-const PeggedTable = styled(Table)`
-	tr > *:not(:first-child) {
-		& > * {
-			width: 100px;
-			white-space: nowrap;
-			overflow: hidden;
-			font-weight: 400;
-			margin-left: auto;
-		}
-	}
-
-	// PEGGED NAME
-	tr > *:nth-child(1) {
-		& > * {
-			width: 200px;
-			overflow: hidden;
-			white-space: nowrap;
-
-			// HIDE LOGO
-			& > *:nth-child(2) {
-				display: none;
-			}
-
-			& > *:nth-child(3) {
-				overflow: hidden;
-				text-overflow: ellipsis;
-			}
-		}
-	}
-
-	// CHAINS
-	tr > *:nth-child(2) {
-		display: none;
-		& > * {
-			width: 200px;
-			overflow: hidden;
-			white-space: nowrap;
-		}
-	}
-
-	// % OFF PEG
-	tr > *:nth-child(3) {
-		display: none;
-		& > * {
-			width: 100px;
-			overflow: hidden;
-			white-space: nowrap;
-		}
-	}
-
-	// % OFF PEG (1M)
-	tr > *:nth-child(4) {
-		display: none;
-		& > * {
-			width: 120px;
-			overflow: hidden;
-			white-space: nowrap;
-		}
-	}
-
-	// PRICE
-	tr > *:nth-child(5) {
-		display: none;
-	}
-
-	// 1D CHANGE
-	tr > *:nth-child(6) {
-		display: none;
-	}
-
-	// 7D CHANGE
-	tr > *:nth-child(7) {
-		display: none;
-	}
-
-	// 1M CHANGE
-	tr > *:nth-child(8) {
-		display: none;
-	}
-
-	// MCAP
-	tr > *:nth-child(9) {
-		padding-right: 20px;
-		& > * {
-			text-align: right;
-			margin-left: auto;
-			white-space: nowrap;
-			overflow: hidden;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		// 7D CHANGE
-		tr > *:nth-child(7) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 640px) {
-		// PEGGED NAME
-		tr > *:nth-child(1) {
-			& > * {
-				// SHOW LOGO
-				& > *:nth-child(2) {
-					display: flex;
-				}
-			}
-		}
-	}
-
-	@media screen and (min-width: 720px) {
-		// 1M CHANGE
-		tr > *:nth-child(8) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-		// PEGGED NAME
-		tr > *:nth-child(1) {
-			& > * {
-				width: 220px;
-
-				& > *:nth-child(4) {
-					& > *:nth-child(2) {
-						display: revert;
-					}
-				}
-			}
-		}
-	}
-
-	@media screen and (min-width: 900px) {
-		// MCAP
-		tr > *:nth-child(9) {
-			padding-right: 0px;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		// 1D CHANGE
-		tr > *:nth-child(6) {
-			display: none !important;
-		}
-
-		// MCAP
-		tr > *:nth-child(9) {
-			padding-right: 20px;
-		}
-	}
-
-	@media screen and (min-width: 1200px) {
-		// 1M CHANGE
-		tr > *:nth-child(8) {
-			display: revert !important;
-		}
-	}
-
-	@media screen and (min-width: 1300px) {
-		// % OFF PEG
-		tr > *:nth-child(3) {
-			display: revert !important;
-		}
-
-		// PRICE
-		tr > *:nth-child(5) {
-			display: revert !important;
-		}
-
-		// 1D CHANGE
-		tr > *:nth-child(6) {
-			display: revert !important;
-		}
-
-		// MCAP
-		tr > *:nth-child(9) {
-			display: revert !important;
-		}
-	}
-
-	@media screen and (min-width: 1536px) {
-		// CHAINS
-		tr > *:nth-child(2) {
-			display: revert;
-		}
-
-		// % OFF PEG (1M)
-		tr > *:nth-child(4) {
-			display: revert;
-		}
-	}
-`
 
 const ChartFilters = styled.div`
 	display: flex;
@@ -337,60 +64,6 @@ const Dropdowns = styled.span`
 		font-weight: 400;
 	}
 `
-
-const columns = [
-	...columnsToShow('peggedAsset'),
-	{
-		header: 'Chains',
-		accessor: 'chains',
-		disableSortBy: true,
-		helperText: "Chains are ordered by pegged asset's issuance on each chain",
-		Cell: ({ value }) => <IconsRow links={value} url="/stablecoins" iconType="chain" />
-	},
-	{
-		header: '% Off Peg',
-		accessor: 'pegDeviation',
-		Cell: ({ value, rowValues }) => {
-			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{rowValues.depeggedTwoPercent ? <QuestionHelper text="Currently de-pegged by 2% or more." /> : null}
-					{value ? formattedPeggedPercent(value) : value === 0 ? formattedPeggedPercent(0) : '-'}
-				</AutoRow>
-			)
-		}
-	},
-	{
-		header: '1m % Off Peg',
-		accessor: 'pegDeviation_1m',
-		helperText: 'Shows greatest % price deviation from peg over the past month',
-		Cell: ({ value, rowValues }) => {
-			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{rowValues.pegDeviationInfo ? <QuestionHelper text={pegDeviationText(rowValues.pegDeviationInfo)} /> : null}
-					<span>{value ? formattedPeggedPercent(value) : '-'}</span>
-				</AutoRow>
-			)
-		}
-	},
-	{
-		header: 'Price',
-		accessor: 'price',
-		Cell: ({ value, rowValues }) => {
-			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{rowValues.floatingPeg ? <QuestionHelper text="Has a variable, floating, or crawling peg." /> : null}
-					<span>{value ? formattedPeggedPrice(value, true) : '-'}</span>
-				</AutoRow>
-			)
-		}
-	},
-	...columnsToShow('1dChange', '7dChange', '1mChange'),
-	{
-		header: 'Market Cap',
-		accessor: 'mcap',
-		Cell: ({ value }) => <>{value ? formattedNum(value, true) : '-'}</>
-	}
-]
 
 function PeggedAssetsOverview({
 	selectedChain = 'All',
@@ -661,7 +334,7 @@ function PeggedAssetsOverview({
 				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 			</RowLinksWrapper>
 
-			<PeggedTable data={peggedTotals} columns={columns} />
+			<PeggedAssetsTable data={peggedTotals} />
 		</>
 	)
 }

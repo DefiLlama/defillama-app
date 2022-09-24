@@ -18,7 +18,6 @@ import {
 } from '~/layout/ProtocolAndPool'
 import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { Checkbox2 } from '~/components'
-import { CustomLink } from '~/components/Link'
 import { PeggedSearch } from '~/components/Search'
 import { OptionButton } from '~/components/ButtonStyled'
 import { AutoRow, RowBetween } from '~/components/Row'
@@ -27,7 +26,6 @@ import { PeggedChainResponsivePie, PeggedChainResponsiveDominance, AreaChart } f
 import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
 import AuditInfo from '~/components/AuditInfo'
-import { columnsToShow, FullTable } from '~/components/Table'
 import SEO from '~/components/SEO'
 import QuestionHelper from '~/components/QuestionHelper'
 
@@ -48,6 +46,7 @@ import {
 	formattedPeggedPrice
 } from '~/utils'
 import type { IChartProps } from '~/components/ECharts/types'
+import { PeggedAssetByChainTable } from '~/components/VirtualTable'
 
 const TokenAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -70,183 +69,6 @@ const PeggedDetails = styled.div`
 	padding-bottom: calc(24px + 0.4375rem);
 	color: ${({ theme }) => theme.text1};
 	overflow: auto;
-`
-
-const Table = styled(FullTable)`
-	tr > :first-child {
-		padding-left: 40px;
-	}
-
-	tr > *:not(:first-child) {
-		& > * {
-			white-space: nowrap;
-			overflow: hidden;
-			font-weight: 400;
-			margin-left: auto;
-		}
-	}
-
-	// PEGGED NAME
-	tr > *:nth-child(1) {
-		& > * {
-			width: 140px;
-			overflow: hidden;
-			white-space: nowrap;
-
-			& > *:nth-child(3) {
-				overflow: hidden;
-				text-overflow: ellipsis;
-			}
-		}
-	}
-
-	// BRIDGE
-	tr > *:nth-child(2) {
-		display: none;
-		& > * {
-			width: 200px;
-			overflow: hidden;
-			white-space: nowrap;
-		}
-	}
-
-	// BRIDGED AMOUNT
-	tr > *:nth-child(3) {
-		display: none;
-	}
-
-	// 1D CHANGE
-	tr > *:nth-child(4) {
-		display: none;
-	}
-
-	// 7D CHANGE
-	tr > *:nth-child(5) {
-		display: none;
-	}
-
-	// 1M CHANGE
-	tr > *:nth-child(6) {
-		display: none;
-	}
-
-	// TOTAL CIRCULATING
-	tr > *:nth-child(7) {
-		width: 160px;
-		padding-right: 20px;
-		& > * {
-			text-align: right;
-			margin-left: auto;
-			white-space: nowrap;
-			overflow: hidden;
-		}
-	}
-
-	@media screen and (min-width: 360px) {
-		// PEGGED NAME
-		tr > *:nth-child(1) {
-			& > * {
-				width: 160px;
-			}
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		// 7D CHANGE
-		tr > *:nth-child(5) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: 640px) {
-		// PEGGED NAME
-		tr > *:nth-child(1) {
-			& > * {
-				width: 280px;
-				// SHOW LOGO
-				& > *:nth-child(2) {
-					display: flex;
-				}
-			}
-		}
-	}
-
-	@media screen and (min-width: 720px) {
-		// 1M CHANGE
-		tr > *:nth-child(6) {
-			display: revert;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
-		// PEGGED NAME
-		tr > *:nth-child(1) {
-			& > * {
-				& > *:nth-child(4) {
-					& > *:nth-child(2) {
-						display: revert;
-					}
-				}
-			}
-		}
-	}
-
-	@media screen and (min-width: 900px) {
-		// TOTAL CIRCULATING
-		tr > *:nth-child(7) {
-			padding-right: 0px;
-		}
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		// 1D CHANGE
-		tr > *:nth-child(4) {
-			display: none !important;
-		}
-
-		// TOTAL CIRCULATING
-		tr > *:nth-child(7) {
-			padding-right: 20px;
-		}
-	}
-
-	@media screen and (min-width: 1200px) {
-		// 1M CHANGE
-		tr > *:nth-child(6) {
-			display: revert !important;
-		}
-	}
-
-	@media screen and (min-width: 1300px) {
-		// BRIDGED AMOUNT
-		tr > *:nth-child(3) {
-			display: revert !important;
-		}
-
-		// 1D CHANGE
-		tr > *:nth-child(4) {
-			display: revert !important;
-		}
-
-		// TOTAL CIRCULATING
-		tr > *:nth-child(7) {
-			display: revert !important;
-		}
-	}
-
-	@media screen and (min-width: 1536px) {
-		// PEGGED NAME
-		tr > *:nth-child(1) {
-			& > * {
-				width: 300px;
-			}
-		}
-
-		// BRIDGE
-		tr > *:nth-child(2) {
-			display: revert;
-		}
-	}
 `
 
 const TabContainer = styled(TabList)`
@@ -338,30 +160,6 @@ const AlignSelfButton = styled(ButtonLight)`
 const Capitalize = (str) => {
 	return str.charAt(0).toUpperCase() + str.slice(1)
 }
-
-const columns = [
-	...columnsToShow('peggedAssetChain'),
-	{
-		header: 'Bridge',
-		accessor: 'bridgeInfo',
-		disableSortBy: true,
-		Cell: ({ value }) => {
-			return value.link ? <CustomLink href={value.link}>{value.name}</CustomLink> : <span>{value.name}</span>
-		}
-	},
-	{
-		header: 'Bridged Amount',
-		accessor: 'bridgedAmount',
-		disableSortBy: true,
-		Cell: ({ value }) => <>{typeof value === 'string' ? value : formattedNum(value)}</>
-	},
-	...columnsToShow('1dChange', '7dChange', '1mChange'),
-	{
-		header: 'Total Circulating',
-		accessor: 'circulating',
-		Cell: ({ value }) => <>{value && formattedNum(value)}</>
-	}
-]
 
 export default function PeggedContainer({
 	chainsUnique,
@@ -794,7 +592,7 @@ export default function PeggedContainer({
 				</div>
 			</StatsSection>
 
-			<Table data={groupedChains} columns={columns} />
+			<PeggedAssetByChainTable data={groupedChains} />
 		</Layout>
 	)
 }
