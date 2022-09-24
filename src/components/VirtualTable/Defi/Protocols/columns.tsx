@@ -37,7 +37,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 				</Name>
 			)
 		},
-		size: 260
+		size: 240
 	},
 	{
 		header: 'Category',
@@ -46,7 +46,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 100
+		size: 140
 	},
 	{
 		header: 'Chains',
@@ -103,7 +103,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		cell: (info) => {
 			return <>{info.getValue() && formattedNum(info.getValue())}</>
 		},
-		size: 120,
+		size: 100,
 		meta: {
 			align: 'end'
 		}
@@ -122,6 +122,70 @@ export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
 		}
 	},
 	...protocolsColumns.slice(3)
+]
+
+export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
+	{
+		header: () => <Name>Name</Name>,
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const value = getValue() as string
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name depth={row.depth}>
+					<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
+					<span>{index + 1}</span>
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
+				</Name>
+			)
+		},
+		size: 260
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		enableSorting: false,
+		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
+		meta: {
+			align: 'end',
+			headerHelperText: "Chains are ordered by protocol's highest TVL on each chain"
+		},
+		size: 200
+	},
+	{
+		header: '1d Change',
+		accessorKey: 'change_1d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'TVL',
+		accessorKey: 'tvl',
+		cell: ({ getValue }) => {
+			return <>{'$' + formattedNum(getValue())}</>
+		},
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'Mcap/TVL',
+		accessorKey: 'mcaptvl',
+		cell: (info) => {
+			return <>{info.getValue() && formattedNum(info.getValue())}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	}
 ]
 
 export const protocolAddlColumns = {

@@ -3,11 +3,12 @@ import orderBy from 'lodash.orderby'
 import styled from 'styled-components'
 import { TYPE } from '~/Theme'
 import Layout from '~/layout'
-import Table, { columnsToShow, splitArrayByFalsyValues } from '~/components/Table'
+import { splitArrayByFalsyValues } from '~/components/Table'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { revalidate } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
+import { TopGainersAndLosers } from '~/components/VirtualTable/Defi/Protocols'
 
 export async function getStaticProps() {
 	const { protocols } = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl'])
@@ -19,8 +20,6 @@ export async function getStaticProps() {
 		revalidate: revalidate()
 	}
 }
-
-const columns = columnsToShow('protocolName', 'chains', '1dChange', 'tvl', 'mcaptvl')
 
 export default function TopGainersLosers({ protocols }) {
 	const data = useCalcStakePool2Tvl(protocols)
@@ -36,10 +35,10 @@ export default function TopGainersLosers({ protocols }) {
 	return (
 		<Layout title={`Top Gainers and Losers - DefiLlama`} defaultSEO>
 			<Header>Top Gainers</Header>
-			<Table data={topGainers} columns={columns} />
+			<TopGainersAndLosers data={topGainers} />
 
 			<Header>Top Losers</Header>
-			<Table data={topLosers} columns={columns} />
+			<TopGainersAndLosers data={topLosers} />
 		</Layout>
 	)
 }

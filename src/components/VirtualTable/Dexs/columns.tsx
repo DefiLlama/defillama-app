@@ -36,7 +36,7 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 				</Name>
 			)
 		},
-		size: 260
+		size: 240
 	},
 	{
 		header: 'Chains',

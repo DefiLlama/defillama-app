@@ -15,7 +15,8 @@ import {
 	columnSizes,
 	protocolAddlColumns,
 	protocolsColumns,
-	recentlyListedProtocolsColumns
+	recentlyListedProtocolsColumns,
+	topGainersAndLosersColumns
 } from './columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
@@ -104,6 +105,23 @@ export function RecentlyListedProtocolsTable({ data }: { data: Array<IProtocolRo
 
 		instance.setColumnSizing(columnSizes[cSize])
 	}, [windowSize, instance])
+
+	return <VirtualTable instance={instance} />
+}
+
+export function TopGainersAndLosers({ data }: { data: Array<IProtocolRow> }) {
+	const [sorting, setSorting] = React.useState<SortingState>([])
+
+	const instance = useReactTable({
+		data,
+		columns: topGainersAndLosersColumns,
+		state: {
+			sorting
+		},
+		onSortingChange: setSorting,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel()
+	})
 
 	return <VirtualTable instance={instance} />
 }

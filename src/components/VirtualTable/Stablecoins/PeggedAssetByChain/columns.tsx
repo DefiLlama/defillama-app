@@ -45,7 +45,7 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 				</Name>
 			)
 		},
-		size: 260
+		size: 280
 	},
 	{
 		header: 'Bridge',
