@@ -47,9 +47,7 @@ const Details = styled.details`
 	cursor: pointer;
 
 	summary {
-		margin-left: -6px;
-		margin-top: -6px;
-
+		margin: -6px 0 -6px -6px;
 		padding: 6px;
 		border-radius: 6px;
 		white-space: nowrap;
