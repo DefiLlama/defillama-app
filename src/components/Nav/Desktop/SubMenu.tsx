@@ -89,10 +89,10 @@ const Details = styled.details`
 `
 
 const SubMenuWrapper = styled.span`
-	margin-top: 12px;
+	margin-top: 16px;
 	display: flex;
 	flex-direction: column;
-	gap: 20px;
+	gap: 16px;
 
 	a:hover {
 		opacity: 1;
