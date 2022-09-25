@@ -1,5 +1,7 @@
 /* eslint-disable no-unused-vars*/
-import React, { useContext, useMemo, useState } from 'react'
+import * as React from 'react'
+import styled from 'styled-components'
+import ReactSwitch from 'react-switch'
 import { ChartData, getReadableValue, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import { LiquidationsChart } from './LiquidationsChart'
@@ -7,8 +9,6 @@ import { TotalLiquidable } from './TotalLiquidable'
 import { LiquidableChanges24H } from './LiquidableChanges24H'
 import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
 import { useStackBy } from './utils'
-import styled from 'styled-components'
-import ReactSwitch from 'react-switch'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 
 export const LiquidationsContent = (props: { data: ChartData; prevData: ChartData }) => {
@@ -69,8 +69,8 @@ const CurrencyToggle = (props: { symbol: string }) => {
 
 const DangerousPositionsAmount = (props: { data: ChartData }) => {
 	const stackBy = useStackBy()
-	const { selectedSeries } = useContext(LiquidationsContext)
-	const dangerousPositionsAmount = useMemo(
+	const { selectedSeries } = React.useContext(LiquidationsContext)
+	const dangerousPositionsAmount = React.useMemo(
 		() => getDangerousPositionsAmount(props.data, stackBy, selectedSeries),
 		[props.data, stackBy, selectedSeries]
 	)

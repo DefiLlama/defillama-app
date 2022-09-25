@@ -1,13 +1,13 @@
-import React, { useContext, useMemo } from 'react'
+import * as React from 'react'
+import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
 import { ChartData, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { useStackBy } from './utils'
-import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
 
 export const LiquidableChanges24H = (props: { data: ChartData; prevData: ChartData }) => {
 	const stackBy = useStackBy()
-	const { selectedSeries } = useContext(LiquidationsContext)
+	const { selectedSeries } = React.useContext(LiquidationsContext)
 
-	const liquidableChanges = useMemo(
+	const liquidableChanges = React.useMemo(
 		() => getLiquidableChangesRatio(props.data, props.prevData, stackBy, selectedSeries),
 		[props.data, props.prevData, stackBy, selectedSeries]
 	)

@@ -1,8 +1,8 @@
-import React from 'react'
-import { getLiquidationsCsvData } from '~/utils/liquidations'
-import { DownloadIcon } from '~/components'
+import * as React from 'react'
 import styled from 'styled-components'
+import { DownloadIcon } from '~/components'
 import { download } from '~/utils'
+import { getLiquidationsCsvData } from '~/utils/liquidations'
 
 const DownloadButtonContainer = styled.button`
 	display: none;

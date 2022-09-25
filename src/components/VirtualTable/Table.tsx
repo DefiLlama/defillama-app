@@ -7,6 +7,7 @@ import QuestionHelper from '../QuestionHelper'
 
 interface ITableProps {
 	instance: Table<any>
+	skipVirtualization?: boolean
 }
 
 declare module '@tanstack/table-core' {
@@ -16,7 +17,7 @@ declare module '@tanstack/table-core' {
 	}
 }
 
-export default function VirtualTable({ instance }: ITableProps) {
+export default function VirtualTable({ instance, skipVirtualization, ...props }: ITableProps) {
 	const [tableTop, setTableTop] = React.useState(0)
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
 
@@ -64,7 +65,7 @@ export default function VirtualTable({ instance }: ITableProps) {
 		virtualItems.length > 0 ? rowVirtualizer.getTotalSize() - (virtualItems?.[virtualItems.length - 1]?.end || 0) : 0
 
 	return (
-		<Wrapper ref={tableContainerRef}>
+		<Wrapper ref={tableContainerRef} {...props}>
 			<table>
 				<thead>
 					{instance.getHeaderGroups().map((headerGroup) => (
@@ -96,13 +97,13 @@ export default function VirtualTable({ instance }: ITableProps) {
 					))}
 				</thead>
 				<tbody>
-					{paddingTop > 0 && (
+					{paddingTop > 0 && !skipVirtualization && (
 						<tr>
 							<td style={{ height: `${paddingTop}px` }} />
 						</tr>
 					)}
 
-					{virtualItems.map((virtualRow) => {
+					{(skipVirtualization ? rows : virtualItems).map((virtualRow) => {
 						const row = rows[virtualRow.index]
 
 						return (
@@ -121,7 +122,7 @@ export default function VirtualTable({ instance }: ITableProps) {
 						)
 					})}
 
-					{paddingBottom > 0 && (
+					{paddingBottom > 0 && skipVirtualization && (
 						<tr>
 							<td style={{ height: `${paddingBottom}px` }} />
 						</tr>

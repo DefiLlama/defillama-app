@@ -1,7 +1,25 @@
 /* eslint-disable no-unused-vars*/
 // eslint sucks at types
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
+import * as React from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import styled from 'styled-components'
+import { Clock } from 'react-feather'
+import Layout from '~/layout'
+import { Header } from '~/Theme'
+import { PanelSmol, PanelThicc, StyledAnchor } from '~/components'
+import { LiquidationsSearch } from '~/components/Search'
+import SEO from '~/components/SEO'
+import { LiquidationsHeader } from '~/components/LiquidationsPage/LiquidationsHeader'
+import { LiquidationsContent } from '~/components/LiquidationsPage/LiquidationsContent'
+import { ProtocolsTable } from '~/components/LiquidationsPage/ProtocolsTable'
+import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
+import { PositionsTable } from '~/components/LiquidationsPage/PositionsTable'
+import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
+import type { ISearchItem } from '~/components/Search/types'
 import { revalidate } from '~/api'
+import { assetIconUrl } from '~/utils'
 import {
 	ChartData,
 	getAvailableAssetsList,
@@ -9,25 +27,6 @@ import {
 	getPrevChartData,
 	getReadableValue
 } from '~/utils/liquidations'
-import Link from 'next/link'
-
-import Layout from '~/layout'
-import { LiquidationsSearch } from '~/components/Search'
-import { Header } from '~/Theme'
-import { LiquidationsHeader } from '../../components/LiquidationsPage/LiquidationsHeader'
-import { LiquidationsContent } from '../../components/LiquidationsPage/LiquidationsContent'
-import styled from 'styled-components'
-import React, { useEffect, useState } from 'react'
-import { Clock } from 'react-feather'
-import { ProtocolsTable } from '../../components/LiquidationsPage/ProtocolsTable'
-import SEO from '~/components/SEO'
-import { assetIconUrl } from '~/utils'
-import { PanelSmol, PanelThicc, StyledAnchor } from '~/components'
-import Image from 'next/image'
-import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
-import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
-import { PositionsTable } from '~/components/LiquidationsPage/PositionsTable'
-import { ISearchItem } from '~/components/Search/types'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = (params.symbol as string).toLowerCase()
@@ -62,7 +61,7 @@ export const LiquidationsContext = React.createContext<{
 }>(null)
 
 const LiquidationsProvider = ({ children }) => {
-	const [selectedSeries, setSelectedSeries] = useState<{ [key: string]: boolean }>({})
+	const [selectedSeries, setSelectedSeries] = React.useState<{ [key: string]: boolean }>({})
 
 	return (
 		<LiquidationsContext.Provider value={{ selectedSeries, setSelectedSeries }}>
@@ -84,8 +83,9 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
 	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
 
-	const [minutesAgo, setMinutesAgo] = useState(Math.round((Date.now() - data?.time * 1000) / 1000 / 60))
-	useEffect(() => {
+	const [minutesAgo, setMinutesAgo] = React.useState(Math.round((Date.now() - data?.time * 1000) / 1000 / 60))
+
+	React.useEffect(() => {
 		const interval = setInterval(() => {
 			setMinutesAgo((x) => x + 1)
 		}, 1000 * 60)

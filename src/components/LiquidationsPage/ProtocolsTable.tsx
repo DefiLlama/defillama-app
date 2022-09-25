@@ -1,15 +1,15 @@
 import { ChartData, getReadableValue } from '~/utils/liquidations'
-import React, { useMemo } from 'react'
-import styled from 'styled-components'
-import Table from '../Table'
-import { IColumnProps } from '../Table/types'
-import { useStackBy } from './utils'
+import * as React from 'react'
+import Link from 'next/link'
 import useSWR from 'swr'
+import styled from 'styled-components'
+import TokenLogo from '~/components/TokenLogo'
+import Table from '~/components/Table'
+import type { IColumnProps } from '~/components/Table/types'
+import { useStackBy } from './utils'
+import { chainIconUrl } from '~/utils'
 import { fetcher } from '~/utils/useSWR'
 import { CHAINS_API, CONFIG_API } from '~/constants'
-import { chainIconUrl } from '~/utils'
-import TokenLogo from '../TokenLogo'
-import Link from 'next/link'
 
 const ProtocolNameCell = ({ value }: CellProps) => {
 	let _value: string
@@ -206,7 +206,7 @@ const TableStyled = styled(Table)`
 export const ProtocolsTable = (props: { data: ChartData; prevData: ChartData }) => {
 	const stackBy = useStackBy()
 
-	const rowsSorted = useMemo(() => {
+	const rowsSorted = React.useMemo(() => {
 		const rows: RowValues[] = Object.keys(props.data.totalLiquidables[stackBy]).map((name) => {
 			const current = props.data.totalLiquidables[stackBy][name]
 			const prev = props.prevData.totalLiquidables[stackBy][name]

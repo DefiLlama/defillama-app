@@ -3,11 +3,14 @@ import styled from 'styled-components'
 import { TYPE } from '~/Theme'
 import Layout from '~/layout'
 import { CustomLink } from '~/components/Link'
-import { FullTable, Index } from '~/components/Table'
 import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, slug } from '~/utils'
 import { revalidate } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import VirtualTable from '~/components/VirtualTable/Table'
+import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table'
+import { IFormattedProtocol } from '~/api/types'
+import { Name } from '~/components/VirtualTable/shared'
 
 export async function getStaticProps() {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
@@ -44,8 +47,8 @@ export async function getStaticProps() {
 
 	const columns = Array.from(uniqueCategories).map((item) => ({
 		header: item,
-		accessor: item,
-		disableSortBy: true
+		accessorKey: item,
+		enableSorting: false
 	}))
 
 	return {
@@ -97,36 +100,58 @@ const TableWrapper = styled.div`
 `
 
 export default function Chains({ data, columns }) {
-	const allColumns = useMemo(
+	const allColumns: ColumnDef<IFormattedProtocol>[] = useMemo(
 		() => [
 			{
 				header: 'Chain',
-				accessor: 'chain',
-				disableSortBy: true,
-				Cell: ({ value, rowIndex }) => {
+				accessorKey: 'chain',
+				enableSorting: false,
+				cell: ({ getValue, row }) => {
 					return (
-						<Index>
-							<span>{rowIndex + 1}</span>
-							<TokenLogo logo={chainIconUrl(value)} />
-							<CustomLink href={`/chain/${value}`}>{value}</CustomLink>
-						</Index>
+						<Name>
+							<span>{row.index + 1}</span>
+							<TokenLogo logo={chainIconUrl(getValue())} />
+							<CustomLink href={`/chain/${getValue()}`}>{getValue()}</CustomLink>
+						</Name>
 					)
 				}
 			},
 			...columns.map((column) => ({
 				...column,
-				Cell: ({ value }) => <CustomLink href={`/protocol/${slug(value)}`}>{value}</CustomLink>
+				cell: ({ getValue }) => <CustomLink href={`/protocol/${slug(getValue())}`}>{getValue()}</CustomLink>
 			}))
 		],
 		[columns]
 	)
 
+	const instance = useReactTable({
+		data,
+		columns: allColumns,
+		getCoreRowModel: getCoreRowModel()
+	})
+
 	return (
 		<Layout title="TVL Rankings - DefiLlama" defaultSEO>
 			<TableWrapper>
 				<TYPE.largeHeader>Top Protocols</TYPE.largeHeader>
-				<FullTable data={data} columns={allColumns} align="start" gap="12px" style={{ height: '85vh' }} />
+				{/* <FullTable data={data} columns={allColumns} align="start" gap="12px" style={{ height: '85vh' }} /> */}
+				<Table instance={instance} skipVirtualization />
 			</TableWrapper>
 		</Layout>
 	)
 }
+
+const Table = styled(VirtualTable)`
+	height: 85vh;
+
+	thead {
+		z-index: 2;
+	}
+
+	thead > tr > th:first-child {
+		position: sticky;
+		left: 0;
+		top: 0;
+		z-index: 2;
+	}
+`
