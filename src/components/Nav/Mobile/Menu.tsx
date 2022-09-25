@@ -60,6 +60,7 @@ const Nav = styled.nav`
 
 	& > *[data-linksheader] {
 		font-size: 0.75rem;
+		opacity: 0.5;
 	}
 `
 // TODO: add active link styles

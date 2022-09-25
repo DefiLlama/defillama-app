@@ -115,7 +115,7 @@ const Nav = styled.nav`
 
 	p[data-linksheader] {
 		font-size: 0.75rem;
-		opacity: 0.6;
+		opacity: 0.5;
 	}
 
 	& > * {
