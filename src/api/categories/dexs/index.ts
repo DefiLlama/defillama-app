@@ -35,19 +35,37 @@ export const getChainPageData = async (chain?: string) => {
 
 	const getProtocolsRaw = (): Promise<{ protocols: LiteProtocol[] }> => fetch(PROTOCOLS_API).then((r) => r.json())
 	const protocolsData = await getProtocolsRaw()
+	const tvlData = protocolsData.protocols.reduce((acc, pd) => {
+		acc[pd.name] = pd.tvlPrevDay
+		return acc
+	}, {})
+
+	const dexsWithSubrows = dexs.map((dex) => ({
+		...dex,
+		volumetvl: dex.totalVolume24h / tvlData[dex.name],
+		dominance: (100 * dex.totalVolume24h) / totalVolume,
+		chains: dex.chains.map(formatChain),
+		subRows: dex.protocolVersions
+			? Object.entries(dex.protocolVersions)
+				.map(([versionName, summary]) => ({
+					...dex,
+					name: `${dex.name} - ${versionName.toUpperCase()}`,
+					displayName: `${dex.name} - ${versionName.toUpperCase()}`,
+					...summary
+				}))
+				.sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1))
+			: null
+	}))
 
 	return {
 		props: {
-			dexs,
+			dexs: dexsWithSubrows,
 			totalVolume,
 			changeVolume1d,
 			changeVolume30d,
 			totalDataChart: totalDataChart,
 			chain: chain ? formatChain(chain) : "All",
-			tvlData: protocolsData.protocols.reduce((acc, pd) => {
-				acc[pd.name] = pd.tvlPrevDay
-				return acc
-			}, {}),
+			tvlData,
 			totalDataChartBreakdown,
 			allChains
 		}
