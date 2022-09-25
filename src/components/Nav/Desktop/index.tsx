@@ -2,20 +2,20 @@ import * as React from 'react'
 import Link from 'next/link'
 import Image from 'next/future/image'
 import styled from 'styled-components'
-import { usePeggedApp, useYieldApp } from '~/hooks'
+import { useYieldApp } from '~/hooks'
 import { LogoWrapper, Header } from '../shared'
 import { navLinks } from '../Links'
 import ThemeSwitch from '../ThemeSwitch'
 import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama.png'
 import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark.png'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import SubMenu from './SubMenu'
 
 export default function DesktopNav() {
 	const isYieldApp = useYieldApp()
-	const isPeggedApp = usePeggedApp()
 	const [darkMode, toggleDarkMode] = useDarkModeManager()
 
-	const links = isYieldApp ? navLinks.yields : isPeggedApp ? navLinks.stablecoins : navLinks.defi
+	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
 	return (
 		<Wrapper as="aside">
@@ -27,11 +27,17 @@ export default function DesktopNav() {
 			</Link>
 
 			<Nav>
+				<p data-linksheader>Dashboards</p>
+
+				{Object.keys(navLinks).map((mainLink) => (
+					<SubMenu key={mainLink} name={mainLink} />
+				))}
+
 				<hr />
 
 				<p data-linksheader>Tools</p>
 
-				{links.tools.map((link) => {
+				{commonLinks.tools.map((link) => {
 					if ('onClick' in link) {
 						return (
 							<button key={link.name} onClick={link.onClick}>
@@ -44,7 +50,7 @@ export default function DesktopNav() {
 								<Link href={link.path} key={link.path} prefetch={false} passHref>
 									<a target="_blank" rel="noopener noreferrer">
 										{link.name}
-										{link.newTag === true && <span data-newTag>NEW</span>}
+										{link.newTag === true && <span data-newtag>NEW</span>}
 									</a>
 								</Link>
 							</React.Fragment>
@@ -54,7 +60,7 @@ export default function DesktopNav() {
 
 				<hr />
 
-				{links.footer.map((link) => {
+				{commonLinks.footer.map((link) => {
 					if ('onClick' in link) {
 						return (
 							<button key={link.name} onClick={link.onClick}>
@@ -67,6 +73,7 @@ export default function DesktopNav() {
 								<Link href={link.path} key={link.path} prefetch={false} passHref>
 									<a target="_blank" rel="noopener noreferrer">
 										{link.name}
+										{link.newTag === true && <span data-newtag>NEW</span>}
 									</a>
 								</Link>
 							</React.Fragment>
@@ -112,7 +119,7 @@ const Nav = styled.nav`
 	}
 
 	& > * {
-		& > *[data-newTag] {
+		& > *[data-newtag] {
 			background: #ebebeb;
 			font-size: 0.625rem;
 			border-radius: 4px;

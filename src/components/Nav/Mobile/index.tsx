@@ -19,7 +19,7 @@ export default function MobileNav() {
 
 			<MobileSearch />
 			<Settings />
-			<Menu />
+			{/* <Menu /> */}
 		</Wrapper>
 	)
 }
