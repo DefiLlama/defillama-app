@@ -2,12 +2,12 @@ import * as React from 'react'
 import Link from 'next/link'
 import Image from 'next/future/image'
 import styled from 'styled-components'
-import AppSwitch from '~/components/AppSwitch'
 import { usePeggedApp, useYieldApp } from '~/hooks'
-import { LogoWrapper, Entry, FooterWrapper, Header } from '../shared'
+import { LogoWrapper, Header } from '../shared'
 import { navLinks } from '../Links'
 import ThemeSwitch from '../ThemeSwitch'
-import Logo from '~/assets/logo_white_long.png'
+import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama.png'
+import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark.png'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 export default function DesktopNav() {
@@ -22,45 +22,60 @@ export default function DesktopNav() {
 			<Link href="/" passHref>
 				<LogoWrapper>
 					<span className="visually-hidden">Navigate to Home Page</span>
-					<Image src={Logo} alt="Navigate to Home Page" priority />
+					<Image src={darkMode ? logoLight : logoDark} alt="Navigate to Home Page" priority />
 				</LogoWrapper>
 			</Link>
 
-			<AppSwitch />
-
 			<Nav>
-				{links.main
-					.filter((l) => !l.subMenuHeader)
-					.map((link) => (
-						<React.Fragment key={link.path}>
-							<Entry name={link.name} url={link.path} Icon={link.icon} newTag={link.newTag} />
-						</React.Fragment>
-					))}
+				<hr />
 
-				<FooterWrapper>
-					{links.footer.map((link) => {
-						if ('onClick' in link) {
-							return (
-								<button key={link.name} onClick={link.onClick}>
-									{link.name}
-								</button>
-							)
-						} else {
-							return (
-								<React.Fragment key={link.name}>
-									<Link href={link.path} key={link.path} prefetch={false} passHref>
-										<a target="_blank" rel="noopener noreferrer">
-											{link.name}
-										</a>
-									</Link>
-								</React.Fragment>
-							)
-						}
-					})}
-				</FooterWrapper>
+				<p data-linksheader>Tools</p>
 
-				<ThemeSwitch isActive={darkMode} toggle={toggleDarkMode} />
+				{links.tools.map((link) => {
+					if ('onClick' in link) {
+						return (
+							<button key={link.name} onClick={link.onClick}>
+								{link.name}
+							</button>
+						)
+					} else {
+						return (
+							<React.Fragment key={link.name}>
+								<Link href={link.path} key={link.path} prefetch={false} passHref>
+									<a target="_blank" rel="noopener noreferrer">
+										{link.name}
+										{link.newTag === true && <span data-newTag>NEW</span>}
+									</a>
+								</Link>
+							</React.Fragment>
+						)
+					}
+				})}
+
+				<hr />
+
+				{links.footer.map((link) => {
+					if ('onClick' in link) {
+						return (
+							<button key={link.name} onClick={link.onClick}>
+								{link.name}
+							</button>
+						)
+					} else {
+						return (
+							<React.Fragment key={link.name}>
+								<Link href={link.path} key={link.path} prefetch={false} passHref>
+									<a target="_blank" rel="noopener noreferrer">
+										{link.name}
+									</a>
+								</Link>
+							</React.Fragment>
+						)
+					}
+				})}
 			</Nav>
+
+			<ThemeSwitch isActive={darkMode} toggle={toggleDarkMode} />
 		</Wrapper>
 	)
 }
@@ -78,5 +93,36 @@ const Nav = styled.nav`
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
-	gap: 20px;
+	gap: 16px;
+
+	button {
+		text-align: start;
+		padding: 0;
+	}
+
+	a,
+	button {
+		cursor: pointer;
+		opacity: 0.7;
+	}
+
+	p[data-linksheader] {
+		font-size: 0.75rem;
+		opacity: 0.6;
+	}
+
+	& > * {
+		& > *[data-newTag] {
+			background: #ebebeb;
+			font-size: 0.625rem;
+			border-radius: 4px;
+			padding: 3px;
+			color: black;
+			margin-left: 8px;
+		}
+	}
+
+	& > *:hover {
+		opacity: 1;
+	}
 `

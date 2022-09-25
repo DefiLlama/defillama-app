@@ -5,7 +5,6 @@ import { Icon } from 'react-feather'
 import { BasicLink } from '~/components/Link'
 
 export const Header = styled.header`
-	min-width: 220px;
 	gap: 10px;
 	padding: 12px 16px;
 	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
@@ -16,6 +15,11 @@ export const Header = styled.header`
 		display: none;
 	}
 
+	hr {
+		border-color: ${({ theme }) => theme.divider};
+		margin: 4px 0;
+	}
+
 	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		position: fixed;
 		top: 0;
@@ -24,9 +28,9 @@ export const Header = styled.header`
 		flex-direction: column;
 		gap: 20px;
 		padding: 24px;
-		width: revert;
 		height: 100vh;
 		overflow-y: auto;
+		background: ${({ theme }) => theme.background};
 	}
 `
 
@@ -75,45 +79,8 @@ export const NavLink = styled(BasicLink)`
 	}
 
 	:focus-visible {
-		outline: 1px solid white;
+		outline: 1px solid ${({ theme }) => theme.text1};
 		opacity: 1;
-	}
-
-	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
-		color: ${({ theme }) => theme.white};
-		opacity: 0.6;
-
-		&[data-active='true'] {
-			opacity: 1;
-		}
-	}
-`
-
-export const FooterWrapper = styled.section`
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-top: auto;
-
-	a,
-	button {
-		display: inline-block;
-		color: ${({ theme }) => theme.white};
-		opacity: 0.8;
-
-		:hover {
-			opacity: 1;
-		}
-
-		:focus-visible {
-			outline: 1px solid white;
-			opacity: 1;
-		}
-	}
-
-	button {
-		text-align: start;
-		padding: 0;
 	}
 `
 
@@ -152,36 +119,3 @@ export const Entry = ({ url, name, Icon, newTag, ...props }: IEntryProps) => {
 		</NavLink>
 	)
 }
-
-export const PaperIcon = () => (
-	<svg
-		stroke="currentColor"
-		fill="currentColor"
-		strokeWidth="0"
-		viewBox="0 0 512 512"
-		height="20px"
-		width="20px"
-		xmlns="http://www.w3.org/2000/svg"
-	>
-		<path
-			fill="none"
-			strokeLinejoin="round"
-			strokeWidth="32"
-			d="M368 415.86V72a24.07 24.07 0 00-24-24H72a24.07 24.07 0 00-24 24v352a40.12 40.12 0 0040 40h328"
-		></path>
-		<path
-			fill="none"
-			strokeLinejoin="round"
-			strokeWidth="32"
-			d="M416 464h0a48 48 0 01-48-48V128h72a24 24 0 0124 24v264a48 48 0 01-48 48z"
-		></path>
-		<path
-			fill="none"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-			strokeWidth="32"
-			d="M240 128h64m-64 64h64m-192 64h192m-192 64h192m-192 64h192"
-		></path>
-		<path d="M176 208h-64a16 16 0 01-16-16v-64a16 16 0 0116-16h64a16 16 0 0116 16v64a16 16 0 01-16 16z"></path>
-	</svg>
-)

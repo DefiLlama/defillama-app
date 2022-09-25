@@ -1,12 +1,10 @@
 import {
 	BarChart2,
-	Book,
 	Bookmark,
 	Clock,
 	CloudDrizzle,
 	Code,
 	DollarSign,
-	HelpCircle,
 	Icon,
 	Link,
 	List,
@@ -18,14 +16,11 @@ import {
 	RefreshCcw,
 	Share2,
 	Shield,
-	ShoppingCart,
 	TrendingUp,
-	Compass,
 	Droplet,
 	BarChart,
 	Award
 } from 'react-feather'
-import { PaperIcon } from './shared'
 
 export interface IMainLink {
 	name: string
@@ -40,6 +35,7 @@ interface IFooterLink {
 	name: string
 	path: string
 	external?: boolean
+	newTag?: boolean
 }
 
 interface IButtonLink {
@@ -50,6 +46,7 @@ interface IButtonLink {
 interface ILinks {
 	[key: string]: {
 		main: Array<IMainLink>
+		tools: Array<IFooterLink | IButtonLink>
 		footer: Array<IFooterLink | IButtonLink>
 	}
 }
@@ -63,10 +60,8 @@ export const navLinks: ILinks = {
 			{ name: 'Fees', path: '/fees', icon: PieChart, subMenuHeader: true },
 			{ name: 'Overview', path: '/', icon: TrendingUp, hideOnMobile: true },
 			{ name: 'Chains', path: '/chains', icon: Link },
-			{ name: 'Directory', path: '/directory', icon: Compass, newTag: true },
+
 			{ name: 'Liquidations', path: '/liquidations/eth', icon: Droplet, newTag: true },
-			{ name: 'Roundup', path: '/roundup', icon: PaperIcon },
-			{ name: 'Wiki', path: 'https://wiki.defillama.com/wiki/Main_Page', icon: Book },
 			{ name: 'Airdrops', path: '/airdrops', icon: CloudDrizzle },
 			{ name: 'Oracles', path: '/oracles', icon: Shield },
 			{ name: 'Forks', path: '/forks', icon: Share2 },
@@ -74,23 +69,18 @@ export const navLinks: ILinks = {
 			{ name: 'Top Protocols', path: '/top-protocols', icon: Map },
 			{ name: 'Categories', path: '/categories', icon: RefreshCcw },
 			{ name: 'Recent', path: '/recent', icon: Clock },
-			{ name: 'Languages', path: '/languages', icon: Code },
-			{ name: 'About', path: '/about', icon: HelpCircle },
+			{ name: 'Languages', path: '/languages', icon: Code }
 		],
-		footer: [
+		tools: [
+			{ name: 'Directory', path: '/directory', newTag: true },
 			{
-				name: 'Twitter',
-				path: 'https://twitter.com/DefiLlama',
-				external: true
+				name: 'Roundup',
+				path: '/roundup'
 			},
 			{
-				name: 'Discord',
-				path: 'https://discord.gg/buPFYXzDDd',
+				name: 'Wiki',
+				path: 'https://wiki.defillama.com/wiki/Main_Page',
 				external: true
-			},
-			{
-				name: 'Donate',
-				path: '/donations'
 			},
 			{
 				name: 'Press / Media',
@@ -109,6 +99,23 @@ export const navLinks: ILinks = {
 				name: 'Download Data',
 				onClick: downloadDefiDataset
 			}
+		],
+		footer: [
+			{ name: 'About DefiLlama', path: '/about' },
+			{
+				name: 'Twitter',
+				path: 'https://twitter.com/DefiLlama',
+				external: true
+			},
+			{
+				name: 'Discord',
+				path: 'https://discord.gg/buPFYXzDDd',
+				external: true
+			},
+			{
+				name: 'Donate',
+				path: '/donations'
+			}
 		]
 	},
 	yields: {
@@ -123,17 +130,51 @@ export const navLinks: ILinks = {
 			{ name: 'Projects', path: '/yields/projects', icon: List },
 			{ name: 'Watchlist', path: '/yields/watchlist', icon: Bookmark },
 			{ name: 'List your protocol', path: 'https://github.com/DefiLlama/yield-server#readme', icon: PlusCircle },
-			{ name: 'Halal', path: '/yields/halal', icon: Award },
+			{ name: 'Halal', path: '/yields/halal', icon: Award }
 		],
-		footer: [
+		tools: [
+			{
+				name: 'Roundup',
+				path: '/roundup'
+			},
+			{
+				name: 'Wiki',
+				path: 'https://wiki.defillama.com/wiki/Main_Page',
+				external: true
+			},
+			{
+				name: 'Press / Media',
+				path: '/press'
+			},
 			{
 				name: 'API Docs',
 				path: '/docs/api'
 			},
 			{
-				name: 'Download Data',
-				path: 'https://datasets.llama.fi/yields/yield_rankings.csv',
+				name: 'List Your Project',
+				path: 'https://docs.llama.fi/list-your-project/submit-a-project',
 				external: true
+			},
+			{
+				name: 'Download Data',
+				path: 'https://datasets.llama.fi/yields/yield_rankings.csv'
+			}
+		],
+		footer: [
+			{ name: 'About DefiLlama', path: '/about' },
+			{
+				name: 'Twitter',
+				path: 'https://twitter.com/DefiLlama',
+				external: true
+			},
+			{
+				name: 'Discord',
+				path: 'https://discord.gg/buPFYXzDDd',
+				external: true
+			},
+			{
+				name: 'Donate',
+				path: '/donations'
 			}
 		]
 	},
@@ -146,25 +187,49 @@ export const navLinks: ILinks = {
 			{ name: 'Overview', path: '/stablecoins', icon: PieChart },
 			{ name: 'Chains', path: '/stablecoins/chains', icon: Link }
 		],
-		footer: [
+		tools: [
+			{
+				name: 'Roundup',
+				path: '/roundup'
+			},
+			{
+				name: 'Wiki',
+				path: 'https://wiki.defillama.com/wiki/Main_Page',
+				external: true
+			},
+			{
+				name: 'Press / Media',
+				path: '/press'
+			},
 			{
 				name: 'API Docs',
 				path: '/docs/api'
+			},
+			{
+				name: 'List Your Project',
+				path: 'https://docs.llama.fi/list-your-project/submit-a-project',
+				external: true
+			},
+			{
+				name: 'Download Data',
+				onClick: downloadDefiDataset
 			}
-		]
-	},
-	nfts: {
-		main: [
-			{ name: 'DeFi', path: '/', icon: BarChart2, subMenuHeader: true, hideOnMobile: true },
-			{ name: 'Overview', path: '/nfts', icon: TrendingUp },
-			{ name: 'Chains', path: '/nfts/chains', icon: Link },
-			{ name: 'Marketplaces', path: '/nfts/marketplaces', icon: ShoppingCart },
-			{ name: 'About', path: '/nfts/about', icon: HelpCircle }
 		],
 		footer: [
+			{ name: 'About DefiLlama', path: '/about' },
 			{
-				name: 'API Docs',
-				path: '/docs/api'
+				name: 'Twitter',
+				path: 'https://twitter.com/DefiLlama',
+				external: true
+			},
+			{
+				name: 'Discord',
+				path: 'https://discord.gg/buPFYXzDDd',
+				external: true
+			},
+			{
+				name: 'Donate',
+				path: '/donations'
 			}
 		]
 	}
@@ -180,3 +245,58 @@ Do you still wish to download it?`)
 		window.open('https://datasets.llama.fi/all.csv', '_blank')
 	}
 }
+
+// nfts: {
+// 	main: [
+// 		{ name: 'DeFi', path: '/', icon: BarChart2, subMenuHeader: true, hideOnMobile: true },
+// 		{ name: 'Overview', path: '/nfts', icon: TrendingUp },
+// 		{ name: 'Chains', path: '/nfts/chains', icon: Link },
+// 		{ name: 'Marketplaces', path: '/nfts/marketplaces', icon: ShoppingCart },
+// 		{ name: 'About', path: '/nfts/about', icon: HelpCircle }
+// 	],
+// 	tools: [
+// 		{
+// 			name: 'Roundup',
+// 			path: '/roundup'
+// 		},
+// 		{
+// 			name: 'Wiki',
+// 			path: 'https://wiki.defillama.com/wiki/Main_Page',
+// 			external: true
+// 		},
+// 		{
+// 			name: 'Press / Media',
+// 			path: '/press'
+// 		},
+// 		{
+// 			name: 'API Docs',
+// 			path: '/docs/api'
+// 		},
+// 		{
+// 			name: 'List Your Project',
+// 			path: 'https://docs.llama.fi/list-your-project/submit-a-project',
+// 			external: true
+// 		},
+// 		{
+// 			name: 'Download Data',
+// 			onClick: downloadDefiDataset
+// 		}
+// 	],
+// 	footer: [
+// 		{ name: 'About DefiLlama', path: '/about' },
+// 		{
+// 			name: 'Twitter',
+// 			path: 'https://twitter.com/DefiLlama',
+// 			external: true
+// 		},
+// 		{
+// 			name: 'Discord',
+// 			path: 'https://discord.gg/buPFYXzDDd',
+// 			external: true
+// 		},
+// 		{
+// 			name: 'Donate',
+// 			path: '/donations'
+// 		}
+// 	]
+// }

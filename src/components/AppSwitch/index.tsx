@@ -11,6 +11,7 @@ export default function AppSwitch() {
 
 	return (
 		<Wrapper>
+			<p data-linksheader>Dashboards</p>
 			<Link href="/" passHref>
 				<AppLink active={!isYieldApp && !isStableCoinsApp && !isDexsApp && !isFeesApp}>
 					<BarChart2 size={14} />
@@ -26,7 +27,13 @@ export default function AppSwitch() {
 			<Link href="/stablecoins/chains" passHref>
 				<AppLink active={isStableCoinsApp && !isYieldApp}>
 					<DollarSign size={14} />
-					<span>Stablecoins</span>
+					<span>Stables</span>
+				</AppLink>
+			</Link>
+			<Link href="/liquidations" passHref>
+				<AppLink active={isDexsApp}>
+					<BarChart size={14} />
+					<span>Liquidations</span>
 				</AppLink>
 			</Link>
 			<Link href="/dexs" passHref>
