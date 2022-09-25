@@ -45,6 +45,11 @@ const Popover = styled(Hovercard)`
 
 	& > * {
 		justify-content: flex-start;
+		flex-wrap: wrap;
+
+		& > * {
+			flex-shrink: 0;
+		}
 	}
 `
 
