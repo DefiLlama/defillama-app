@@ -1,17 +1,20 @@
+import * as React from 'react'
 import { InferGetStaticPropsType } from 'next'
-import { revalidate } from '~/api'
-import Layout from '~/layout'
 import dynamic from 'next/dynamic'
-import { ProtocolDetails, ProtocolName, Stats, Tvl, TvlWrapper } from '~/containers/DexContainer'
+import Layout from '~/layout'
+import { DetailsWrapper, Name, ChartWrapper } from '~/layout/ProtocolAndPool'
+import { StatsSection } from '~/layout/Stats/Medium'
+import { Stat } from '~/layout/Stats/Large'
 import TokenLogo from '~/components/TokenLogo'
 import FormattedName from '~/components/FormattedName'
-import { formattedNum } from '~/utils'
-import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
-import { BreakpointPanel } from '~/components'
+import { ProtocolsChainsSearch } from '~/components/Search'
+import { revalidate } from '~/api'
+import { capitalizeFirstLetter, formattedNum } from '~/utils'
+import type { IBarChartProps } from '~/components/ECharts/types'
 
-const StackedChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
+const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
-}) as React.FC<IStackedBarChartProps>
+}) as React.FC<IBarChartProps>
 
 const mapProtocolName = (protocolName: string) => {
 	if (protocolName === 'trader-joe') {
@@ -22,71 +25,83 @@ const mapProtocolName = (protocolName: string) => {
 	return protocolName
 }
 
-export const getStaticProps = async ({
-	params: {
-		protocol
-	}
-}) => {
-	const data = await fetch(`https://fees.llama.fi/fees/${mapProtocolName(protocol)}`).then(r=>r.json())
-  	const feesData = data.feesHistory.map(t => [
-		new Date(t.timestamp * 1000).toISOString(), 
-		Object.values(t.dailyFees).reduce(
-			(sum:number, curr:number) => Object.values(curr).reduce((item1: number, item2: number) => item1 + item2, 0) + sum, 0)])
-  	const revenueData = data.revenueHistory.map(t => [
-		new Date(t.timestamp * 1000).toISOString(), 
-		Object.values(t.dailyRevenue).reduce(
-			(sum:number, curr:number) => Object.values(curr).reduce((item1: number, item2: number) => item1 + item2, 0) + sum, 0)])
+export const getStaticProps = async ({ params: { protocol } }) => {
+	const data = await fetch(`https://fees.llama.fi/fees/${mapProtocolName(protocol)}`).then((r) => r.json())
 
-	let chartData = [
-		{ name: "Fees", data: feesData },
-		{ name: "Revenue", data: revenueData },
-	]
+	const chartData = {}
+
+	data.feesHistory.forEach((item) => {
+		if (!chartData[item.timestamp]) {
+			chartData[item.timestamp] = {}
+		}
+
+		chartData[item.timestamp] = {
+			...chartData[item.timestamp],
+			Fees: Object.values(item.dailyFees).reduce(
+				(sum: number, curr: number) =>
+					Object.values(curr).reduce((item1: number, item2: number) => item1 + item2, 0) + sum,
+				0
+			)
+		}
+	})
+
+	data.revenueHistory.forEach((item) => {
+		if (!chartData[item.timestamp]) {
+			chartData[item.timestamp] = {}
+		}
+
+		chartData[item.timestamp] = {
+			...chartData[item.timestamp],
+			Revenue: Object.values(item.dailyRevenue).reduce(
+				(sum: number, curr: number) =>
+					Object.values(curr).reduce((item1: number, item2: number) => item1 + item2, 0) + sum,
+				0
+			)
+		}
+	})
 
 	return {
 		props: {
-			data: { ...data, name: mapProtocolName(protocol) },
-			chartData
+			data: { ...data, name: capitalizeFirstLetter(mapProtocolName(protocol)) },
+			chartData: Object.keys(chartData).map((date) => ({ date, ...chartData[date] }))
 		},
 		revalidate: revalidate()
 	}
 }
 
 export async function getStaticPaths() {
-	return { paths:[], fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function FeeProtocol({ data, chartData }: InferGetStaticPropsType<typeof getStaticProps>) {
-	return <Layout title={`${data.name} Fees - DefiLlama`} style={{ gap: '36px' }}>
-  		<Stats>
-			<ProtocolDetails style={{ borderTopLeftRadius: '12px' }}>
-				<ProtocolName>
-					<TokenLogo logo={data.logo} size={24} />
-					<FormattedName text={data.name} maxCharacters={16} fontWeight={700} />
-				</ProtocolName>
+	return (
+		<Layout title={`${data.name} Fees - DefiLlama`} style={{ gap: '36px' }}>
+			<ProtocolsChainsSearch step={{ category: 'Fees', name: data.name, hideOptions: true }} />
 
-				<TvlWrapper>
-					<Tvl>
+			<StatsSection>
+				<DetailsWrapper>
+					<Name>
+						<TokenLogo logo={data.logo} size={24} />
+						<FormattedName text={data.name} maxCharacters={16} fontWeight={700} />
+					</Name>
+
+					<Stat>
 						<span>24h fees</span>
 						<span>{formattedNum(data.total1dFees || 0, true)}</span>
-					</Tvl>
-				</TvlWrapper>
-				<TvlWrapper>
-					<Tvl>
-						<span>24h protocol revenue</span>
-						<span>{formattedNum(data.total1dRevenue || 0, true)}</span>
-					</Tvl>
-				</TvlWrapper>
-			</ProtocolDetails>
+					</Stat>
 
-			<BreakpointPanel id="chartWrapper">
-				<StackedChart
-					chartData={chartData}
-					title="Fees And Revenue"
-				/>
-			</BreakpointPanel>
-		</Stats>
+					<Stat>
+						<span>24h fees</span>
+						<span>{formattedNum(data.total1dFees || 0, true)}</span>
+					</Stat>
+				</DetailsWrapper>
 
-{/* 
+				<ChartWrapper>
+					<StackedChart chartData={chartData} title="Fees And Revenue" stacks={{ Fees: 'a', Revenue: 'a' }} />
+				</ChartWrapper>
+			</StatsSection>
+
+			{/* 
 		<BreakpointPanel id="chartWrapper">
 					<RowFixed>
 						{DENOMINATIONS.map((option) => (
@@ -110,5 +125,6 @@ export default function FeeProtocol({ data, chartData }: InferGetStaticPropsType
 						/>
 					)}
 				</BreakpointPanel> */}
-	</Layout>
+		</Layout>
+	)
 }

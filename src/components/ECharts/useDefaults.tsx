@@ -103,7 +103,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 					vals = params
 						.sort((a, b) => (tooltipSort ? a.value[1] - b.value[1] : 0))
 						.reduce((prev, curr) => {
-							if (curr.value[1] !== 0 && curr.value[1] !== '-') {
+							if (curr.value[1] !== 0 && curr.value[1] !== '-' && curr.value[1] !== null) {
 								return (prev +=
 									'<li style="list-style:none">' +
 									curr.marker +
