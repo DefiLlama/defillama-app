@@ -1,6 +1,3 @@
-import { allColumns } from './Columns'
-import { TColumns } from './types'
-
 export function splitArrayByFalsyValues(data, column) {
 	return data.reduce(
 		(acc, curr) => {
@@ -11,12 +8,4 @@ export function splitArrayByFalsyValues(data, column) {
 		},
 		[[], []]
 	)
-}
-
-export function columnsToShow(...names: TColumns[]) {
-	return names.map((item) => allColumns[item])
-}
-
-export function columnToShow(name: TColumns) {
-	return columnsToShow(name)[0]
 }
