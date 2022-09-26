@@ -118,7 +118,7 @@ const Nav = styled.nav`
 		align-items: center;
 		gap: 12px;
 		cursor: pointer;
-		opacity: 0.7;
+		opacity: 0.8;
 		text-align: start;
 		margin: -6px 0 -6px -6px;
 		padding: 6px;

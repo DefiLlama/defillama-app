@@ -51,7 +51,7 @@ const Details = styled.details`
 		list-style: none;
 		list-style-type: none;
 		opacity: 1;
-		font-weight: 500;
+		font-weight: 600;
 		cursor: pointer;
 	}
 
@@ -68,7 +68,8 @@ const SubMenuWrapper = styled.span`
 `
 
 const MainLink = styled.a`
-	font-weight: 500;
+	font-weight: 600;
+	opacity: 1 !important;
 `
 
 const isYields = (pathname: string) =>
