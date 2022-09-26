@@ -1,6 +1,6 @@
 import { forwardRef } from 'react'
 import Link from 'next/link'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import { linksWithNoSubMenu, navLinks } from '../Links'
 import { useRouter } from 'next/router'
 
@@ -15,7 +15,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 		return (
 			<Link href={noSubMenu.url} prefetch={false} passHref>
 				<MainLink data-linkactive={active}>
-					{navLinks[name].icon}
+					<span data-mainlinkicon>{navLinks[name].icon}</span>
 					<span>{name}</span>
 				</MainLink>
 			</Link>
@@ -25,7 +25,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	return (
 		<Details ref={ref} open={active ? true : false}>
 			<summary>
-				{navLinks[name].icon}
+				<span data-mainlinkicon>{navLinks[name].icon}</span>
 				<span>{name}</span>
 			</summary>
 
@@ -43,6 +43,20 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	)
 })
 
+const wiggle = keyframes`
+	0% {
+		transform: rotate(10deg);
+	}
+
+	50% {
+		transform: rotate(-10deg);
+	}
+
+	100% {
+		transform: rotate(0);
+	}
+`
+
 const Details = styled.details`
 	summary {
 		display: flex;
@@ -53,6 +67,12 @@ const Details = styled.details`
 		opacity: 1;
 		font-weight: 600;
 		cursor: pointer;
+
+		:hover {
+			& > *[data-mainlinkicon] {
+				animation: ${wiggle} 0.4s ease;
+			}
+		}
 	}
 
 	summary::-webkit-details-marker {
@@ -70,6 +90,12 @@ const SubMenuWrapper = styled.span`
 const MainLink = styled.a`
 	font-weight: 600;
 	opacity: 1 !important;
+
+	:hover {
+		& > *[data-mainlinkicon] {
+			animation: ${wiggle} 0.4s ease;
+		}
+	}
 `
 
 const isYields = (pathname: string) =>
