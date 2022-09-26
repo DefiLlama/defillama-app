@@ -3,7 +3,6 @@ import Link from 'next/link'
 import styled from 'styled-components'
 import { linksWithNoSubMenu, navLinks } from '../Links'
 import { useRouter } from 'next/router'
-import { darken } from 'polished'
 
 const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
 	const { pathname, asPath } = useRouter()
@@ -14,10 +13,10 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 
 	if (noSubMenu) {
 		return (
-			<Link href={noSubMenu.url} passHref>
-				<MainLink data-active={active} data-linkactive={active}>
+			<Link href={noSubMenu.url} prefetch={false} passHref>
+				<MainLink data-linkactive={active}>
 					{navLinks[name].icon}
-					<span data-togglemenuoff={false}>{name}</span>
+					<span>{name}</span>
 				</MainLink>
 			</Link>
 		)
@@ -25,15 +24,16 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 
 	return (
 		<Details ref={ref}>
-			<summary data-togglemenuoff={false} data-active={active}>
+			<p>
 				{navLinks[name].icon}
-				<span data-togglemenuoff={false}>{name}</span>
-			</summary>
+				<span>{name}</span>
+			</p>
+
 			<SubMenuWrapper>
 				{navLinks[name].main.map((subLink) => (
 					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
 						<a data-linkactive={subLink.path === asPath}>
-							<span style={{ width: '28px', display: 'inline-block' }}></span>
+							<span style={{ width: '16px', display: 'inline-block' }}></span>
 							<span>{subLink.name}</span>
 						</a>
 					</Link>
@@ -43,47 +43,18 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	)
 })
 
-const Details = styled.details`
-	cursor: pointer;
-
-	summary {
-		margin: -6px 0 -6px -6px;
-		padding: 6px;
-		border-radius: 6px;
-		white-space: nowrap;
-	}
-
-	summary {
+const Details = styled.span`
+	p {
 		display: flex;
 		align-items: center;
 		gap: 12px;
 		list-style: none;
 		list-style-type: none;
-		font-size: 1rem;
-		opacity: 0.8;
-	}
-
-	summary:hover {
-		opacity: 1;
-	}
-
-	summary[data-active='true'] {
-		background-color: #2172e5;
-		color: white;
-		opacity: 1;
-
-		:hover,
-		:focus-visible {
-			background-color: ${darken(0.1, '#2172e5')};
-		}
-	}
-
-	a[data-linkactive='true'] {
 		opacity: 1;
 		font-weight: 500;
 	}
 
-	summary::-webkit-details-marker {
+	p::-webkit-details-marker {
 		display: none;
 	}
 `
@@ -93,32 +64,10 @@ const SubMenuWrapper = styled.span`
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
-
-	a:hover {
-		opacity: 1;
-	}
 `
 
 const MainLink = styled.a`
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	opacity: 0.8;
-	font-size: 1rem;
-	margin: -6px 0 -6px -6px;
-	padding: 6px;
-	border-radius: 6px;
-	white-space: nowrap;
-
-	&[data-active='true'] {
-		background-color: #2172e5;
-		color: white;
-		opacity: 1;
-		:hover,
-		:focus-visible {
-			background-color: ${darken(0.1, '#2172e5')};
-		}
-	}
+	font-weight: 500;
 `
 
 const isYields = (pathname: string) =>

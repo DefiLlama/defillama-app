@@ -13,10 +13,10 @@ export default function Announcement({ children }: { children: React.ReactNode }
 }
 
 const Wrapper = styled.p`
-	padding: 16px;
+	padding: 12px;
 	font-size: 1rem;
-	color: white;
-	background-color: #2172e5;
+	color: ${({ theme }) => (theme.mode === 'dark' ? 'white' : 'black')};
+	background-color: hsl(215deg 79% 51% / 12%);
 	text-align: center;
 	box-shadow: ${({ theme }) => theme.shadowSm};
 	border-radius: 8px;

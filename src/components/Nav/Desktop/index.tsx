@@ -1,5 +1,6 @@
 import * as React from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import Image from 'next/future/image'
 import styled from 'styled-components'
 import { useYieldApp } from '~/hooks'
@@ -12,6 +13,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import SubMenu from './SubMenu'
 
 export default function DesktopNav() {
+	const { asPath } = useRouter()
 	const isYieldApp = useYieldApp()
 	const [darkMode, toggleDarkMode] = useDarkModeManager()
 
@@ -48,7 +50,11 @@ export default function DesktopNav() {
 						return (
 							<React.Fragment key={link.name}>
 								<Link href={link.path} key={link.path} prefetch={false} passHref>
-									<a target="_blank" rel="noopener noreferrer">
+									<a
+										target={link.external && '_blank'}
+										rel="noopener noreferrer"
+										data-linkactive={link.path === asPath}
+									>
 										{link.name}
 										{link.newTag === true && <span data-newtag>NEW</span>}
 									</a>
@@ -71,7 +77,11 @@ export default function DesktopNav() {
 						return (
 							<React.Fragment key={link.name}>
 								<Link href={link.path} key={link.path} prefetch={false} passHref>
-									<a target="_blank" rel="noopener noreferrer">
+									<a
+										target={link.external && '_blank'}
+										rel="noopener noreferrer"
+										data-linkactive={link.path === asPath}
+									>
 										{link.name}
 										{link.newTag === true && <span data-newtag>NEW</span>}
 									</a>
@@ -102,34 +112,45 @@ const Nav = styled.nav`
 	justify-content: flex-start;
 	gap: 16px;
 
-	button {
-		text-align: start;
-		padding: 0;
-	}
-
 	a,
 	button {
+		display: flex;
+		align-items: center;
+		gap: 12px;
 		cursor: pointer;
 		opacity: 0.7;
-	}
+		text-align: start;
+		margin: -6px 0 -6px -6px;
+		padding: 6px;
+		border-radius: 6px;
 
-	p[data-linksheader] {
-		font-size: 0.75rem;
-		opacity: 0.5;
-	}
-
-	& > * {
 		& > *[data-newtag] {
 			background: #ebebeb;
 			font-size: 0.625rem;
 			border-radius: 4px;
 			padding: 3px;
 			color: black;
-			margin-left: 8px;
+			position: relative;
+			left: -4px;
+			top: 2px;
+		}
+
+		:hover,
+		:focus-visible {
+			opacity: 1;
+			background-color: ${({ theme }) =>
+				theme.mode === 'dark' ? 'rgba(246, 246, 246, 0.1)' : 'rgba(246, 246, 246, 1)'};
+		}
+
+		&[data-linkactive='true'] {
+			background-color: #2172e5;
+			color: white;
+			opacity: 1;
 		}
 	}
 
-	& > *:hover {
-		opacity: 1;
+	p[data-linksheader] {
+		font-size: 0.75rem;
+		opacity: 0.5;
 	}
 `
