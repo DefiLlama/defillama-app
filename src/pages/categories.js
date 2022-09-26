@@ -42,7 +42,7 @@ const descriptions = {
 	'Yield Aggregator': 'Protocols that aggregated yield from diverse protocols',
 	Minting: 'Protocols NFT minting Related (in work)',
 	Assets: '(will be removed)',
-	Derivatives: 'Protocols that provides smart contracts that gets value, risk, and basic term structure from an underlying asset',
+	Derivatives: 'Protocols for betting with leverage',
 	Payments: 'Protocols that offer the ability to pay/send/receive cryptocurrency',
 	Privacy: 'Protocols that have the intention of hiding information about transactions',
 	Insurance: 'Protocols that are designed to provide monetary protections',
