@@ -82,7 +82,7 @@ export default function ChainsContainer({
 		const colors = {}
 
 		chainsUnique.forEach((chain, index) => {
-			colors[chain.name] = index < 10 ? getColorFromNumber(index, 10) : '#AAAAAA'
+			colors[chain] = index < 10 ? getColorFromNumber(index, 10) : '#AAAAAA'
 		})
 		colors['Others'] = '#AAAAAA'
 
