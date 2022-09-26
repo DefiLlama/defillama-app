@@ -11,10 +11,7 @@ import {
 	PanelHiddenMobile,
 	ChartAndValuesWrapper,
 	DownloadButton,
-	DownloadIcon,
-	PanelThicc,
-	PanelSmol,
-	StyledAnchor
+	DownloadIcon
 } from '~/components'
 import { ProtocolsTable } from '~/components/VirtualTable'
 import { RowFixed } from '~/components/Row'
@@ -29,8 +26,8 @@ import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance 
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
-import lubb from '~/assets/lubb.png'
 import { ListHeader, ListOptions } from './shared'
+import Announcement from '../Announcement'
 
 const EasterLlama = styled.button`
 	padding: 0;
@@ -223,33 +220,19 @@ function GlobalPage({
 		<>
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
+			<Announcement>
+				<span>Check out our</span>{' '}
+				<Link href={`/fees`}>
+					<a> new fees & revenue dashboard!</a>
+				</Link>
+			</Announcement>
+
 			<ProtocolsChainsSearch
 				step={{
 					category: 'Home',
 					name: selectedChain === 'All' ? 'All Protocols' : selectedChain
 				}}
 			/>
-
-			<>
-				<PanelThicc as="p">
-					Support defillama by
-					<Link href="https://gitcoin.co/grants/7087/defillama-apis" passHref>
-						<StyledAnchor>
-							<b>donating to our gitcoin grant!</b>
-							<Image src={lubb} width={18} height={18} alt="llama love" />
-						</StyledAnchor>
-					</Link>
-				</PanelThicc>
-				<PanelSmol as="p">
-					Check out our
-					<Link href={`/fees`} passHref>
-						<StyledAnchor>
-							<b>new fees & revenue dashboard!</b>
-							<Image src={lubb} width={18} height={18} alt="llama love" />
-						</StyledAnchor>
-					</Link>
-				</PanelSmol>
-			</>
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>

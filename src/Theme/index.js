@@ -16,16 +16,6 @@ const theme = (darkMode, color) => ({
 	textColor: darkMode ? color : 'black',
 	mode: darkMode ? 'dark' : 'light',
 
-	panelColor: darkMode ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0)',
-	backgroundColor: darkMode ? '#212429' : '#445ed0',
-
-	uniswapPink: darkMode ? '#445ed0' : 'black',
-
-	concreteGray: darkMode ? '#292C2F' : '#FAFAFA',
-	inputBackground: darkMode ? '#1F1F1F' : '#FAFAFA',
-	shadowColor: darkMode ? '#000' : '#2F80ED',
-	mercuryGray: darkMode ? '#333333' : '#E1E1E1',
-
 	text1: darkMode ? '#FAFAFA' : '#1F1F1F',
 	text2: darkMode ? '#C3C5CB' : '#565A69',
 	text3: darkMode ? '#6C7284' : '#888D9B',
@@ -45,9 +35,8 @@ const theme = (darkMode, color) => ({
 	bg7: darkMode ? 'rgba(7,14,15,0.7)' : 'rgba(252,252,251,1)',
 
 	//specialty colors
-	modalBG: darkMode ? 'rgba(0,0,0,0.85)' : 'rgba(0,0,0,0.6)',
+	background: darkMode ? '#22242A' : '#ffffff',
 	advancedBG: darkMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.4)',
-	onlyLight: darkMode ? '#1f222a' : '#ffffff',
 	divider: darkMode ? 'rgba(43, 43, 43, 0.435)' : 'rgba(43, 43, 43, 0.035)',
 
 	//primary colors
@@ -72,7 +61,6 @@ const theme = (darkMode, color) => ({
 	yellow2: '#F3841E',
 	link: '#2172E5',
 	blue: '#2f80ed',
-	background: darkMode ? 'black' : `radial-gradient(50% 50% at 50% 50%, #445ed0 0%, #fff 0%)`,
 
 	//shadow
 	shadow1: darkMode ? '#000' : '#2F80ED',
@@ -170,7 +158,7 @@ export const ThemedBackground = styled.div`
 
 export const GlobalStyle = createGlobalStyle`
 	body, #__next {
-		background-color: ${({ theme }) => theme.onlyLight};
+		background-color: ${({ theme }) => theme.background};
 	}
 
   #__next {

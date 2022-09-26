@@ -2,9 +2,8 @@ import { useEffect, useRef, useState, Fragment, forwardRef } from 'react'
 import Link from 'next/link'
 import { ChevronRight, Menu as MenuIcon, X } from 'react-feather'
 import styled, { keyframes } from 'styled-components'
-import { Entry } from '../shared'
-import { IMainLink, navLinks } from '../Links'
-import { usePeggedApp, useYieldApp } from '~/hooks'
+import { linksWithNoSubMenu, navLinks } from '../Links'
+import { useYieldApp } from '~/hooks'
 import { Button, Close } from './shared'
 
 const slideIn = keyframes`
@@ -58,17 +57,21 @@ const Nav = styled.nav`
 	button {
 		text-align: start;
 	}
-`
 
+	& > *[data-linksheader] {
+		font-size: 0.75rem;
+		opacity: 0.5;
+	}
+`
+// TODO: add active link styles
 export function Menu() {
 	const [show, setShow] = useState(false)
 	const buttonEl = useRef<HTMLButtonElement>(null)
 	const navEl = useRef<HTMLDivElement>(null)
 
 	const isYieldApp = useYieldApp()
-	const isPeggedApp = usePeggedApp()
 
-	const links = isYieldApp ? navLinks.yields : isPeggedApp ? navLinks.stablecoins : navLinks.defi
+	const commonLinks = isYieldApp ? navLinks['Yields'] : navLinks['DeFi']
 
 	useEffect(() => {
 		function handleClick(e) {
@@ -105,21 +108,27 @@ export function Menu() {
 						<X height={20} width={20} strokeWidth="4px" />
 					</Close>
 
-					{links.main.map((link) => (
-						<Fragment key={link.path}>
-							{link.subMenuHeader && navLinks[link.name.toLowerCase()] ? (
-								<SubMenu parentLink={link} />
-							) : (
-								<Entry name={link.name} url={link.path} Icon={link.icon} newTag={link.newTag} />
-							)}
-						</Fragment>
+					<p data-linksheader>
+						<span style={{ width: '30px', display: 'inline-block' }}></span>
+						Dashboards
+					</p>
+
+					{Object.keys(navLinks).map((mainLink) => (
+						<SubMenu key={mainLink} name={mainLink} />
 					))}
 
-					{links.footer.map((link) => {
+					<hr />
+
+					<p data-linksheader>
+						<span style={{ width: '30px', display: 'inline-block' }}></span>
+						Tools
+					</p>
+
+					{commonLinks.tools.map((link) => {
 						if ('onClick' in link) {
 							return (
 								<button key={link.name} onClick={link.onClick}>
-									<div style={{ width: '32px', display: 'inline-block' }}></div>
+									<span style={{ width: '32px', display: 'inline-block' }}></span>
 									{link.name}
 								</button>
 							)
@@ -128,7 +137,31 @@ export function Menu() {
 								<Fragment key={link.name}>
 									<Link href={link.path} key={link.path} prefetch={false} passHref>
 										<a target="_blank" rel="noopener noreferrer">
-											<div style={{ width: '32px', display: 'inline-block' }}></div>
+											<span style={{ width: '32px', display: 'inline-block' }}></span>
+											<span>{link.name}</span>
+										</a>
+									</Link>
+								</Fragment>
+							)
+						}
+					})}
+
+					<hr />
+
+					{commonLinks.footer.map((link) => {
+						if ('onClick' in link) {
+							return (
+								<button key={link.name} onClick={link.onClick}>
+									<span style={{ width: '32px', display: 'inline-block' }}></span>
+									{link.name}
+								</button>
+							)
+						} else {
+							return (
+								<Fragment key={link.name}>
+									<Link href={link.path} key={link.path} prefetch={false} passHref>
+										<a target="_blank" rel="noopener noreferrer">
+											<span style={{ width: '32px', display: 'inline-block' }}></span>
 											<span>{link.name}</span>
 										</a>
 									</Link>
@@ -142,24 +175,32 @@ export function Menu() {
 	)
 }
 
-const SubMenu = forwardRef<HTMLDetailsElement, { parentLink: IMainLink }>(function card({ parentLink }, ref) {
+const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function card({ name }, ref) {
+	const noSubMenu = linksWithNoSubMenu.find((x) => x.name === name)
+
+	if (noSubMenu) {
+		return (
+			<Link href={noSubMenu.url} passHref>
+				<MainLink>{name}</MainLink>
+			</Link>
+		)
+	}
+
 	return (
 		<Details ref={ref}>
 			<summary data-togglemenuoff={false}>
 				<ChevronRight size={18} id="chevron" data-togglemenuoff={false} />
-				<span data-togglemenuoff={false}>{parentLink.name}</span>
+				<span data-togglemenuoff={false}>{name}</span>
 			</summary>
 			<SubMenuWrapper>
-				{navLinks[parentLink.name.toLowerCase()].main
-					.filter((l) => !l.hideOnMobile)
-					.map((subLink) => (
-						<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
-							<a>
-								<div style={{ width: '44px', display: 'inline-block' }}></div>
-								<span>{subLink.name}</span>
-							</a>
-						</Link>
-					))}
+				{navLinks[name].main.map((subLink) => (
+					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
+						<a>
+							<span style={{ width: '32px', display: 'inline-block' }}></span>
+							<span>{subLink.name}</span>
+						</a>
+					</Link>
+				))}
 			</SubMenuWrapper>
 		</Details>
 	)
@@ -175,6 +216,7 @@ const Details = styled.details`
 		gap: 12px;
 		list-style: none;
 		list-style-type: none;
+		font-weight: 500;
 	}
 
 	& > summary::-webkit-details-marker {
@@ -183,8 +225,13 @@ const Details = styled.details`
 `
 
 const SubMenuWrapper = styled.div`
-	margin-top: 12px;
+	margin-top: 20px;
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
+`
+
+const MainLink = styled.a`
+	font-weight: 500;
+	margin-left: 32px;
 `

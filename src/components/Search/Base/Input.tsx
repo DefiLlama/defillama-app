@@ -19,6 +19,11 @@ const InputField = styled(Combobox)`
 	&[data-focus-visible] {
 		outline: ${({ theme }) => '1px solid ' + theme.text4};
 	}
+
+	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+		border: 1px solid ${({ theme }) => theme.divider};
+		border-bottom: 0;
+	}
 `
 
 interface IInputProps {

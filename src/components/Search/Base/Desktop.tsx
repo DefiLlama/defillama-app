@@ -1,6 +1,5 @@
 import * as React from 'react'
 import Link from 'next/link'
-import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { ArrowRight } from 'react-feather'
 import { useComboboxState } from 'ariakit/combobox'
@@ -18,6 +17,8 @@ const Wrapper = styled.div`
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
 		display: flex;
+		border-radius: 12px;
+		box-shadow: ${({ theme }) => theme.shadowSm};
 	}
 `
 
@@ -29,8 +30,7 @@ const OptionsWrapper = styled.div`
 	gap: 8px;
 	border-bottom-left-radius: 12px;
 	border-bottom-right-radius: 12px;
-	box-shadow: ${({ theme }) => theme.shadowSm};
-	background: ${({ theme }) => transparentize(0.4, theme.bg6)};
+	background-color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(246, 246, 246, 0.6)')};
 	--step-color: ${({ theme }) => (theme.mode === 'dark' ? '#7e96ff' : '#475590')};
 
 	& > p {
@@ -47,6 +47,11 @@ const OptionsWrapper = styled.div`
 		svg {
 			flex-shrink: 0;
 		}
+	}
+
+	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+		border: 1px solid ${({ theme }) => theme.divider};
+		border-top: 0;
 	}
 `
 

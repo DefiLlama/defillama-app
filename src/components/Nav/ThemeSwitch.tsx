@@ -13,7 +13,7 @@ const IconWrapper = styled.div<{ isActive?: boolean }>`
 const Wrapper = styled.button`
 	display: none;
 	width: fit-content;
-	color: white;
+	color: ${({ theme }) => theme.text1};
 	padding: 0;
 
 	@media (min-width: ${({ theme: { bpLg } }) => bpLg}) {

@@ -55,13 +55,7 @@ const nextConfig = {
 	compiler: {
 		styledComponents: true
 	},
-	experimental: {
-		legacyBrowsers: false,
-		browsersListForSwc: true,
-		images: {
-			allowFutureImage: true
-		}
-	}
+	experimental: {}
 }
 
 module.exports = withBundleAnalyzer(nextConfig)

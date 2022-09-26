@@ -135,12 +135,11 @@ export default function VirtualTable({ instance, skipVirtualization, ...props }:
 }
 
 const Wrapper = styled.div`
-	--table-bg: ${({ theme }) => (theme.mode === 'dark' ? '#1f222a' : '#fff')};
 	position: relative;
 	width: 100%;
 	max-width: calc(100vw - 32px);
 	color: ${({ theme }) => theme.text1};
-	background-color: var(--table-bg);
+	background-color: ${({ theme }) => theme.background};
 	border: 1px solid ${({ theme }) => theme.bg3};
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 	border-radius: 12px;
@@ -181,7 +180,7 @@ const Wrapper = styled.div`
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		background-color: var(--table-bg);
+		background-color: ${({ theme }) => theme.background};
 	}
 
 	tr > *:first-child {
