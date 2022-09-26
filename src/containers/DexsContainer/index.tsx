@@ -103,26 +103,6 @@ export default function DexsContainer({
 }: IDexsContainer) {
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 
-	const dexWithSubrows = React.useMemo(() => {
-		return dexs.map((dex) => {
-			return {
-				...dex,
-				volumetvl: dex.totalVolume24h / tvlData[dex.name],
-				dominance: (100 * dex.totalVolume24h) / totalVolume,
-				chains: dex.chains.map(formatChain),
-				subRows: dex.protocolVersions
-					? Object.entries(dex.protocolVersions)
-							.map(([versionName, summary]) => ({
-								...dex,
-								name: `${dex.name} - ${versionName.toUpperCase()}`,
-								...summary
-							}))
-							.sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1))
-					: null
-			}
-		})
-	}, [dexs, tvlData, totalVolume])
-
 	const chartData = React.useMemo(() => {
 		if (enableBreakdownChart) {
 			return formatVolumeHistoryToChartDataByProtocol(
@@ -198,7 +178,7 @@ export default function DexsContainer({
 			</RowLinksWrapper>
 
 			{dexs && dexs.length > 0 ? (
-				<DexsTable data={dexWithSubrows} />
+				<DexsTable data={dexs} />
 			) : (
 				<Panel>
 					<p style={{ textAlign: 'center' }}>

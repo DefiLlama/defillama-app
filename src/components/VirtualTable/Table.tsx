@@ -105,9 +105,10 @@ export default function VirtualTable({ instance, skipVirtualization, ...props }:
 
 					{(skipVirtualization ? rows : virtualItems).map((virtualRow) => {
 						const row = rows[virtualRow.index]
+						const trStyle: React.CSSProperties = row.original.disabled ? { opacity: 0.3 } : undefined
 
 						return (
-							<tr key={row.id}>
+							<tr key={row.id} style={trStyle}>
 								{row.getVisibleCells().map((cell) => {
 									// get header text alignment
 									const textAlign = cell.column.columnDef.meta?.align ?? 'start'

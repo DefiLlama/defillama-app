@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import orderBy from 'lodash.orderby'
 import styled from 'styled-components'
 import { TYPE } from '~/Theme'
 import Layout from '~/layout'
@@ -25,7 +24,8 @@ export default function TopGainersLosers({ protocols }) {
 	const data = useCalcStakePool2Tvl(protocols)
 	const { topGainers, topLosers } = useMemo(() => {
 		const values = splitArrayByFalsyValues(data, 'change_1d')
-		const sortedData = orderBy(values[0], ['change_1d'], ['desc'])
+		const sortedData = values[0].sort((a, b) => b['change_1d'] - a['change_1d'])
+
 		return {
 			topGainers: sortedData.slice(0, 5),
 			topLosers: sortedData.slice(-5).reverse()
