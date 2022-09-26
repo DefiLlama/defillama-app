@@ -53,7 +53,8 @@ const blockExplorers = {
 	tombchain: ['https://tombscout.com/address/', 'Tombchain Explorer'],
 	canto: ['https://evm.explorer.canto.io/tokens/', 'Canto Explorer'],
 	vision: ['https://www.visionscan.org/contract/', 'Visionscan'],
-	ethpow: ['https://www.oklink.com/en/ethw/address/', 'ETHW Explorer']
+	ethpow: ['https://www.oklink.com/en/ethw/address/', 'ETHW Explorer'],
+	cube: ['https://www.cubescan.network/en-us/token/', 'CUBE Scan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
