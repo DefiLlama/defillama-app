@@ -6,6 +6,9 @@ import { Text } from 'rebass'
 import Numeral from 'numeral'
 import { timeframeOptions } from '~/constants'
 export * from './blockExplorers'
+import { colord, extend } from 'colord'
+import lchPlugin from 'colord/plugins/lch'
+extend([lchPlugin])
 
 BigNumber.set({ EXPONENTIAL_AT: 50 })
 dayjs.extend(utc)
@@ -285,6 +288,15 @@ export function getRandomColor() {
 		color += letters[Math.floor(Math.random() * 16)]
 	}
 	return color
+}
+
+export const getColorFromNumber = (index, length) => {
+	//use defillama blue as starting
+	return colord({
+		l: 48.792 + (index / (length + 1)) * 30,
+		c: 67 + (index / (length + 1)) * 20,
+		h: 278.2 + (index / (length + 1)) * 360
+	}).toHex()
 }
 
 export const getTokenDominance = (topToken, totalVolume) => {
