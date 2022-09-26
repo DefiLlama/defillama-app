@@ -23,11 +23,11 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	}
 
 	return (
-		<Details ref={ref}>
-			<p>
+		<Details ref={ref} open={active ? true : false}>
+			<summary>
 				{navLinks[name].icon}
 				<span>{name}</span>
-			</p>
+			</summary>
 
 			<SubMenuWrapper>
 				{navLinks[name].main.map((subLink) => (
@@ -43,8 +43,8 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	)
 })
 
-const Details = styled.span`
-	p {
+const Details = styled.details`
+	summary {
 		display: flex;
 		align-items: center;
 		gap: 12px;
@@ -52,9 +52,10 @@ const Details = styled.span`
 		list-style-type: none;
 		opacity: 1;
 		font-weight: 500;
+		cursor: pointer;
 	}
 
-	p::-webkit-details-marker {
+	summary::-webkit-details-marker {
 		display: none;
 	}
 `
