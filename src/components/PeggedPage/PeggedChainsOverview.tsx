@@ -29,6 +29,7 @@ const PeggedAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), 
 
 const AssetFilters = styled.div`
 	margin: 12px 0 16px;
+	z-index: 100;
 
 	& > h2 {
 		margin: 0 2px 8px;
