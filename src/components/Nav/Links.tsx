@@ -117,8 +117,8 @@ export const navLinks: ILinks = {
 	},
 	Yields: {
 		main: [
-			{ name: 'Overview', path: '/yields/overview', icon: PieChart },
 			{ name: 'Pools', path: '/yields', icon: TrendingUp },
+			{ name: 'Overview', path: '/yields/overview', icon: PieChart },
 			{ name: 'Stablecoin Pools', path: '/yields/stablecoins', icon: Pocket },
 			{ name: 'Projects', path: '/yields/projects', icon: List },
 			{ name: 'Halal', path: '/yields/halal', icon: Award }
