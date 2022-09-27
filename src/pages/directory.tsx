@@ -2,11 +2,11 @@ import Layout from '~/layout'
 import { revalidate } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { tokenIconUrl } from '~/utils'
-import { Banner } from '~/components/PageBanner'
 import styled from 'styled-components'
 import { useComboboxState } from 'ariakit'
 import { Input } from '~/components/Search/Base/Input'
 import { Results } from '~/components/Search/Base/Results'
+import Announcement from '~/components/Announcement'
 
 export async function getStaticProps() {
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo', 'url'])
@@ -37,10 +37,10 @@ export default function Protocols({ protocols }) {
 
 	return (
 		<Layout title={`Protocols Directory - DefiLlama`} defaultSEO>
-			<Banner>
+			<Announcement notCancellable>
 				Search any protocol to go straight into their website, avoiding scam results from google. Bookmark this page for
 				better access and security
-			</Banner>
+			</Announcement>
 
 			<InputField state={combobox} placeholder="Search..." autoFocus />
 			<Popover state={combobox} data={protocols} loading={false} onItemClick={onItemClick} />

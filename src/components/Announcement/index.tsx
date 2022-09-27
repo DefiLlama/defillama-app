@@ -10,14 +10,20 @@ export const ANNOUNCEMENT_KEY = 'flag-announcement'
 // change this key to show new announcements
 export const ANNOUNCEMENT_VALUE = 'llama1'
 
-export default function Announcement({ children }: { children: React.ReactNode }) {
+export default function Announcement({
+	children,
+	notCancellable
+}: {
+	children: React.ReactNode
+	notCancellable?: boolean
+}) {
 	const router = useRouter()
 	const closeAnnouncement = () => {
 		Cookies.set(ANNOUNCEMENT_KEY, ANNOUNCEMENT_VALUE)
 		router.push('/', undefined, { shallow: true })
 	}
 
-	if (!router.query.announcement) {
+	if (notCancellable ? false : !router.query.announcement) {
 		return null
 	}
 
@@ -25,9 +31,11 @@ export default function Announcement({ children }: { children: React.ReactNode }
 		<Wrapper>
 			{children}
 			<Image src={lubb} width={18} height={18} alt="llama love" />
-			<Close onClick={closeAnnouncement}>
-				<X size={16} />
-			</Close>
+			{!notCancellable && (
+				<Close onClick={closeAnnouncement}>
+					<X size={16} />
+				</Close>
+			)}
 		</Wrapper>
 	)
 }

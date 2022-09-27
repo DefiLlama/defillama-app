@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import ReactMarkdown from 'react-markdown'
 import Layout from '~/layout'
 import { revalidate } from '~/api'
-import { Banner } from '~/components/PageBanner'
+import Announcement from '~/components/Announcement'
 
 const Header = styled.h1`
 	color: ${({ theme }) => theme.text1};
@@ -74,14 +74,14 @@ export default function Chains({ messages }: { messages?: string }) {
 
 	return (
 		<Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
-			<Banner>
+			<Announcement notCancellable>
 				Get the roundup delivered every day for free by subscribing on{' '}
 				<Link href="https://t.me/defillama_tg" passHref>
 					<a target="_blank" rel="noopener noreferrer">
 						Telegram
 					</a>
 				</Link>
-			</Banner>
+			</Announcement>
 
 			<Header>Daily news roundup with the 🦙</Header>
 
