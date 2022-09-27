@@ -5,7 +5,7 @@ import { linksWithNoSubMenu, navLinks } from '../Links'
 import { useRouter } from 'next/router'
 
 const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
-	const { pathname, asPath } = useRouter()
+	const { pathname, push } = useRouter()
 
 	const noSubMenu = linksWithNoSubMenu.find((x) => x.name === name)
 
@@ -22,17 +22,23 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 		)
 	}
 
+	const handleYieldsRouting = () => {
+		if (name === 'Yields') {
+			push('/yields')
+		}
+	}
+
 	return (
 		<Details ref={ref} open={active ? true : false}>
-			<summary>
+			<summary onClick={handleYieldsRouting}>
 				<span data-mainlinkicon>{navLinks[name].icon}</span>
 				<span>{name}</span>
 			</summary>
 
 			<SubMenuWrapper>
 				{navLinks[name].main.map((subLink) => (
-					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
-						<a data-linkactive={subLink.path === asPath}>
+					<Link href={subLink.path} key={subLink.path} prefetch={subLink.path === '/yields' ? true : false} passHref>
+						<a data-linkactive={subLink.path === pathname}>
 							<span style={{ width: '16px', display: 'inline-block' }}></span>
 							<span>{subLink.name}</span>
 						</a>
