@@ -196,7 +196,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	}
 
 	return (
-		<Details ref={ref}>
+		<Details ref={ref} open={name === 'Yields' && router.pathname.startsWith('/yields')}>
 			<summary data-togglemenuoff={false} onClick={handleRouting}>
 				<ChevronRight size={18} id="chevron" data-togglemenuoff={false} />
 				<span data-togglemenuoff={false}>{name}</span>
