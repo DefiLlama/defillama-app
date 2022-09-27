@@ -181,29 +181,23 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	const noSubMenu = linksWithNoSubMenu.find((x) => x.name === name)
 	const router = useRouter()
 
-	if (noSubMenu) {
+	if (noSubMenu || (router.pathname !== '/yields' && name === 'Yields')) {
 		return (
-			<Link href={noSubMenu.url} passHref>
+			<Link href={noSubMenu?.url ?? '/yields'} passHref>
 				<MainLink>{name}</MainLink>
 			</Link>
 		)
 	}
 
-	const handleRouting = () => {
-		if (name === 'Yields') {
-			router.push('/yields')
-		}
-	}
-
 	return (
-		<Details ref={ref} open={name === 'Yields' && router.pathname.startsWith('/yields')}>
-			<summary data-togglemenuoff={false} onClick={handleRouting}>
+		<Details ref={ref}>
+			<summary data-togglemenuoff={false}>
 				<ChevronRight size={18} id="chevron" data-togglemenuoff={false} />
 				<span data-togglemenuoff={false}>{name}</span>
 			</summary>
 			<SubMenuWrapper>
 				{navLinks[name].main.map((subLink) => (
-					<Link href={subLink.path} key={subLink.path} prefetch={subLink.path === '/yields' ? true : false} passHref>
+					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
 						<a>
 							<span style={{ width: '32px', display: 'inline-block' }}></span>
 							<span>{subLink.name}</span>

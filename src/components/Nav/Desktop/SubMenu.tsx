@@ -5,15 +5,15 @@ import { linksWithNoSubMenu, navLinks } from '../Links'
 import { useRouter } from 'next/router'
 
 const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
-	const { pathname, push } = useRouter()
+	const { pathname } = useRouter()
 
 	const noSubMenu = linksWithNoSubMenu.find((x) => x.name === name)
 
 	const active = isActive({ category: name, pathname })
 
-	if (noSubMenu) {
+	if (noSubMenu || (pathname !== '/yields' && name === 'Yields')) {
 		return (
-			<Link href={noSubMenu.url} prefetch={false} passHref>
+			<Link href={noSubMenu?.url ?? '/yields'} prefetch={false} passHref>
 				<MainLink data-linkactive={active}>
 					<span data-mainlinkicon>{navLinks[name].icon}</span>
 					<span>{name}</span>
@@ -22,22 +22,16 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 		)
 	}
 
-	const handleRouting = () => {
-		if (name === 'Yields') {
-			push('/yields')
-		}
-	}
-
 	return (
 		<Details ref={ref} open={active ? true : false}>
-			<summary onClick={handleRouting}>
+			<summary>
 				<span data-mainlinkicon>{navLinks[name].icon}</span>
 				<span>{name}</span>
 			</summary>
 
 			<SubMenuWrapper>
 				{navLinks[name].main.map((subLink) => (
-					<Link href={subLink.path} key={subLink.path} prefetch={subLink.path === '/yields' ? true : false} passHref>
+					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
 						<a data-linkactive={subLink.path === pathname}>
 							<span style={{ width: '16px', display: 'inline-block' }}></span>
 							<span>{subLink.name}</span>
