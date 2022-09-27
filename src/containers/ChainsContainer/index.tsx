@@ -8,7 +8,7 @@ import { ButtonDark } from '~/components/ButtonStyled'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { GroupChains } from '~/components/MultiSelect'
-import { toNiceCsvDate, download, getColorFromNumber } from '~/utils'
+import { toNiceCsvDate, download } from '~/utils'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -74,20 +74,10 @@ export default function ChainsContainer({
 	category,
 	categories,
 	chainsGroupbyParent,
-	tvlTypes
+	tvlTypes,
+	colorsByChain
 }) {
 	const [extraTvlsEnabled] = useDefiManager()
-
-	const colorsByChain = React.useMemo(() => {
-		const colors = {}
-
-		chainsUnique.forEach((chain, index) => {
-			colors[chain] = index < 10 ? getColorFromNumber(index, 10) : '#AAAAAA'
-		})
-		colors['Others'] = '#AAAAAA'
-
-		return colors
-	}, [chainsUnique])
 
 	const { dataByChain, pieChartData, chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } =
 		React.useMemo(() => {

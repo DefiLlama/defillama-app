@@ -1,4 +1,4 @@
-import { getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from '~/utils'
+import { getColorFromNumber, getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from '~/utils'
 import type {
 	IChainData,
 	IChainGeckoId,
@@ -218,6 +218,14 @@ export async function getOraclePageData(oracle = null) {
 			oraclesUnique.map((o: string) => ({ label: o, to: `/oracles/${o}` }))
 		)
 
+		const colors = {}
+
+		oraclesUnique.forEach((chain, index) => {
+			colors[chain] = getColorFromNumber(index, 6)
+		})
+
+		colors['Others'] = '#AAAAAA'
+
 		return {
 			props: {
 				tokens: oraclesUnique,
@@ -225,7 +233,8 @@ export async function getOraclePageData(oracle = null) {
 				token: oracle,
 				tokensProtocols: oraclesProtocols,
 				filteredProtocols,
-				chartData
+				chartData,
+				oraclesColors: colors
 			}
 		}
 	} catch (e) {
@@ -295,6 +304,14 @@ export async function getForkPageData(fork = null) {
 
 		const filteredProtocols = formatProtocolsData({ fork, protocols })
 
+		const colors = {}
+
+		forksUnique.forEach((chain, index) => {
+			colors[chain] = getColorFromNumber(index, 6)
+		})
+
+		colors['Others'] = '#AAAAAA'
+
 		return {
 			props: {
 				tokens: forksUnique,
@@ -303,7 +320,8 @@ export async function getForkPageData(fork = null) {
 				tokensProtocols: forksProtocols,
 				filteredProtocols,
 				chartData,
-				parentTokens
+				parentTokens,
+				forkColors: colors
 			}
 		}
 	} catch (e) {
@@ -327,8 +345,16 @@ export const getNewChainsPageData = async (category: string) => {
 		}))
 	)
 
+	const colors = {}
+
+	rest.chainsUnique.forEach((chain, index) => {
+		colors[chain] = getColorFromNumber(index, 10)
+	})
+
+	colors['Others'] = '#AAAAAA'
+
 	return {
-		props: { ...rest, category, categories: categoryLinks }
+		props: { ...rest, category, categories: categoryLinks, colorsByChain: colors }
 	}
 }
 

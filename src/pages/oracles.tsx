@@ -8,7 +8,6 @@ import { OraclesTable } from '~/components/VirtualTable'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
-import { getRandomColor } from '~/utils'
 import { revalidate } from '~/api'
 import { getOraclePageData } from '~/api/categories/protocols'
 
@@ -45,17 +44,7 @@ const ChartsWrapper = styled(Panel)`
 		grid-template-columns: 1fr 1fr;
 	}
 `
-const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
-	const colorsByOracle = React.useMemo(() => {
-		const colors = {}
-
-		tokens.forEach((chain) => {
-			colors[chain] = getRandomColor()
-		})
-
-		return colors
-	}, [tokens])
-
+const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, oraclesColors }) => {
 	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
 
 	const { tokenTvls, tokensList } = React.useMemo(() => {
@@ -84,11 +73,11 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks }) => {
 			<Header>Total Value Secured All Oracles</Header>
 
 			<ChartsWrapper>
-				<PieChart chartData={tokenTvls} stackColors={colorsByOracle} />
+				<PieChart chartData={tokenTvls} stackColors={oraclesColors} />
 				<AreaChart
 					chartData={chainsWithExtraTvlsAndDominanceByDay}
 					stacks={tokens}
-					stackColors={colorsByOracle}
+					stackColors={oraclesColors}
 					customLegendName="Oracle"
 					customLegendOptions={tokens}
 					hidedefaultlegend

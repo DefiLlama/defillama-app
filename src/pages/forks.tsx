@@ -8,7 +8,6 @@ import { ForksTable } from '~/components/VirtualTable'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
-import { getRandomColor } from '~/utils'
 import { revalidate } from '~/api'
 import { getForkPageData } from '~/api/categories/protocols'
 
@@ -45,17 +44,7 @@ const ChartsWrapper = styled(Panel)`
 		grid-template-columns: 1fr 1fr;
 	}
 `
-const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens }) => {
-	const colorsByFork = React.useMemo(() => {
-		const colors = {}
-
-		tokens.forEach((chain) => {
-			colors[chain] = getRandomColor()
-		})
-
-		return colors
-	}, [tokens])
-
+const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens, forkColors }) => {
 	const forkedTokensData = useCalcStakePool2Tvl(parentTokens)
 
 	const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = useCalcGroupExtraTvlsByDay(chartData)
@@ -94,11 +83,11 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 			<Header>Total Value Locked All Forks</Header>
 
 			<ChartsWrapper>
-				<PieChart chartData={tokenTvls} stackColors={colorsByFork} />
+				<PieChart chartData={tokenTvls} stackColors={forkColors} />
 				<AreaChart
 					chartData={chainsWithExtraTvlsAndDominanceByDay}
 					stacks={tokens}
-					stackColors={colorsByFork}
+					stackColors={forkColors}
 					customLegendName="Fork"
 					customLegendOptions={tokens}
 					hidedefaultlegend
