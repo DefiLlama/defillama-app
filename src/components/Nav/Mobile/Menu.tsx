@@ -5,6 +5,7 @@ import styled, { keyframes } from 'styled-components'
 import { linksWithNoSubMenu, navLinks } from '../Links'
 import { useYieldApp } from '~/hooks'
 import { Button, Close } from './shared'
+import { useRouter } from 'next/router'
 
 const slideIn = keyframes`
   0% {
@@ -101,6 +102,7 @@ export function Menu() {
 				<span className="visually-hidden">Open Navigation Menu</span>
 				<MenuIcon height={16} width={16} />
 			</Button>
+
 			<Backdrop data-acitve={show}>
 				<Nav ref={navEl}>
 					<Close onClick={() => setShow(!show)}>
@@ -175,8 +177,9 @@ export function Menu() {
 	)
 }
 
-const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function card({ name }, ref) {
+const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
 	const noSubMenu = linksWithNoSubMenu.find((x) => x.name === name)
+	const router = useRouter()
 
 	if (noSubMenu) {
 		return (
@@ -186,15 +189,21 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function card({
 		)
 	}
 
+	const handleRouting = () => {
+		if (name === 'Yields') {
+			router.push('/yields')
+		}
+	}
+
 	return (
 		<Details ref={ref}>
-			<summary data-togglemenuoff={false}>
+			<summary data-togglemenuoff={false} onClick={handleRouting}>
 				<ChevronRight size={18} id="chevron" data-togglemenuoff={false} />
 				<span data-togglemenuoff={false}>{name}</span>
 			</summary>
 			<SubMenuWrapper>
 				{navLinks[name].main.map((subLink) => (
-					<Link href={subLink.path} key={subLink.path} prefetch={false} passHref>
+					<Link href={subLink.path} key={subLink.path} prefetch={subLink.path === '/yields' ? true : false} passHref>
 						<a>
 							<span style={{ width: '32px', display: 'inline-block' }}></span>
 							<span>{subLink.name}</span>

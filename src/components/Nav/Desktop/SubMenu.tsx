@@ -22,7 +22,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 		)
 	}
 
-	const handleYieldsRouting = () => {
+	const handleRouting = () => {
 		if (name === 'Yields') {
 			push('/yields')
 		}
@@ -30,7 +30,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 
 	return (
 		<Details ref={ref} open={active ? true : false}>
-			<summary onClick={handleYieldsRouting}>
+			<summary onClick={handleRouting}>
 				<span data-mainlinkicon>{navLinks[name].icon}</span>
 				<span>{name}</span>
 			</summary>

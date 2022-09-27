@@ -30,12 +30,11 @@ const Row = styled.div`
 	justify-content: flex-end;
 	background: none;
 	overflow: hidden;
-	z-index: 0;
 `
 
 const Popover = styled(Hovercard)`
 	max-width: 600px;
-	z-index: 10;
+	z-index: 20;
 	padding: 6px;
 	background: ${({ theme }) => theme.bg2};
 	border: 1px solid ${({ theme }) => theme.bg3};
