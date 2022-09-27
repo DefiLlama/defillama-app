@@ -8,7 +8,7 @@ import { ButtonDark } from '~/components/ButtonStyled'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { GroupChains } from '~/components/MultiSelect'
-import { toNiceCsvDate, getRandomColor, download } from '~/utils'
+import { toNiceCsvDate, download, getColorFromNumber } from '~/utils'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/protocols'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -81,9 +81,10 @@ export default function ChainsContainer({
 	const colorsByChain = React.useMemo(() => {
 		const colors = {}
 
-		chainsUnique.forEach((chain) => {
-			colors[chain] = getRandomColor()
+		chainsUnique.forEach((chain, index) => {
+			colors[chain] = index < 10 ? getColorFromNumber(index, 10) : '#AAAAAA'
 		})
+		colors['Others'] = '#AAAAAA'
 
 		return colors
 	}, [chainsUnique])
