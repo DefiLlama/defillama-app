@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Head from 'next/head'
 import styled from 'styled-components'
-import ThemeProvider, { GlobalStyle, ThemedBackground } from '~/Theme'
+import ThemeProvider, { GlobalStyle } from '~/Theme'
 import SEO from '~/components/SEO'
 import Nav from '~/components/Nav'
 
@@ -37,13 +37,7 @@ interface ILayoutProps {
 	style?: React.CSSProperties
 }
 
-interface IBackground {
-	backgroundColor?: string
-}
-
-const Background = styled(ThemedBackground)<IBackground>``
-
-export default function Layout({ title, children, defaultSEO = false, backgroundColor, ...props }: ILayoutProps) {
+export default function Layout({ title, children, defaultSEO = false, ...props }: ILayoutProps) {
 	return (
 		<>
 			<Head>
@@ -56,7 +50,6 @@ export default function Layout({ title, children, defaultSEO = false, background
 				<GlobalStyle />
 				<Nav />
 				<PageWrapper>
-					{/* <Background backgroundColor={backgroundColor || transparentize(0.8, '#445ed0')} /> */}
 					<Center {...props}>{children}</Center>
 				</PageWrapper>
 			</ThemeProvider>

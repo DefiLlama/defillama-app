@@ -67,21 +67,7 @@ export default function ProtocolTvlChart({
 
 	// update tvl calc based on extra tvl options like staking, pool2 selected
 	const chartDataFiltered = React.useMemo(() => {
-		const sections = Object.keys(historicalChainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
-
-		const tvlDictionary = {}
-		if (sections.length > 0) {
-			for (const name of sections) {
-				tvlDictionary[name] = {}
-				historicalChainTvls[name].tvl.forEach((dataPoint) => {
-					tvlDictionary[name][dataPoint.date] = dataPoint.totalLiquidityUSD
-				})
-			}
-			return tvlChartData?.map((item) => {
-				const sum = sections.reduce((total, sect) => total + (tvlDictionary[sect]?.[item[0]] ?? 0), item[1])
-				return [item[0], sum]
-			})
-		} else return tvlChartData
+		return formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled, tvlChartData })
 	}, [historicalChainTvls, extraTvlEnabled, tvlChartData])
 
 	// calc y-axis based on denomination
@@ -290,3 +276,22 @@ export const Denomination = styled.a<IDenomination>`
 			? 'rgba(255, 255, 255, 0.6)'
 			: 'rgba(0, 0, 0, 0.6)'};
 `
+
+export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabled, tvlChartData }) => {
+	const sections = Object.keys(historicalChainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
+
+	const tvlDictionary = {}
+
+	if (sections.length > 0) {
+		for (const name of sections) {
+			tvlDictionary[name] = {}
+			historicalChainTvls[name].tvl.forEach((dataPoint) => {
+				tvlDictionary[name][dataPoint.date] = dataPoint.totalLiquidityUSD
+			})
+		}
+		return tvlChartData?.map((item) => {
+			const sum = sections.reduce((total, sect) => total + (tvlDictionary[sect]?.[item[0]] ?? 0), item[1])
+			return [item[0], sum]
+		})
+	} else return tvlChartData
+}

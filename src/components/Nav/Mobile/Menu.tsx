@@ -181,7 +181,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	const noSubMenu = linksWithNoSubMenu.find((x) => x.name === name)
 	const router = useRouter()
 
-	if (noSubMenu || (router.pathname !== '/yields' && name === 'Yields')) {
+	if (noSubMenu || (name === 'Yields' && !router.pathname.startsWith('/yields'))) {
 		return (
 			<Link href={noSubMenu?.url ?? '/yields'} passHref>
 				<MainLink>{name}</MainLink>

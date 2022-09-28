@@ -11,7 +11,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 
 	const active = isActive({ category: name, pathname })
 
-	if (noSubMenu || (pathname !== '/yields' && name === 'Yields')) {
+	if (noSubMenu || (name === 'Yields' && !isActive)) {
 		return (
 			<Link href={noSubMenu?.url ?? '/yields'} prefetch={false} passHref>
 				<MainLink data-linkactive={active}>
@@ -35,6 +35,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 						<a data-linkactive={subLink.path === pathname}>
 							<span style={{ width: '16px', display: 'inline-block' }}></span>
 							<span>{subLink.name}</span>
+							{subLink.newTag === true && <span data-newtag>NEW</span>}
 						</a>
 					</Link>
 				))}

@@ -1,30 +1,9 @@
 import { ReactNode } from 'react'
-import {
-	Clock,
-	CloudDrizzle,
-	Code,
-	Icon,
-	Link,
-	List,
-	Map,
-	PieChart,
-	Pocket,
-	RefreshCcw,
-	Share2,
-	Shield,
-	TrendingUp,
-	Droplet,
-	BarChart,
-	Award,
-	DollarSign,
-	Percent,
-	BarChart2
-} from 'react-feather'
+import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2 } from 'react-feather'
 
 export interface IMainLink {
 	name: string
 	path: string
-	icon: Icon
 	newTag?: boolean
 }
 
@@ -102,26 +81,27 @@ const defaultToolsAndFooterLinks = {
 export const navLinks: ILinks = {
 	DeFi: {
 		main: [
-			{ name: 'Overview', path: '/', icon: TrendingUp },
-			{ name: 'Chains', path: '/chains', icon: Link },
-			{ name: 'Airdrops', path: '/airdrops', icon: CloudDrizzle },
-			{ name: 'Oracles', path: '/oracles', icon: Shield },
-			{ name: 'Forks', path: '/forks', icon: Share2 },
-			{ name: 'Top Protocols', path: '/top-protocols', icon: Map },
-			{ name: 'Categories', path: '/categories', icon: RefreshCcw },
-			{ name: 'Recent', path: '/recent', icon: Clock },
-			{ name: 'Languages', path: '/languages', icon: Code }
+			{ name: 'Overview', path: '/' },
+			{ name: 'Chains', path: '/chains' },
+			{ name: 'Airdrops', path: '/airdrops' },
+			{ name: 'Oracles', path: '/oracles' },
+			{ name: 'Forks', path: '/forks' },
+			{ name: 'Top Protocols', path: '/top-protocols' },
+			{ name: 'Comparision', path: '/compare-protocols?protocol=MakerDAO&protocol=Curve', newTag: true },
+			{ name: 'Categories', path: '/categories' },
+			{ name: 'Recent', path: '/recent' },
+			{ name: 'Languages', path: '/languages' }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <BarChart2 size={16} />
 	},
 	Yields: {
 		main: [
-			{ name: 'Pools', path: '/yields', icon: TrendingUp },
-			{ name: 'Overview', path: '/yields/overview', icon: PieChart },
-			{ name: 'Stablecoin Pools', path: '/yields/stablecoins', icon: Pocket },
-			{ name: 'Projects', path: '/yields/projects', icon: List },
-			{ name: 'Halal', path: '/yields/halal', icon: Award }
+			{ name: 'Pools', path: '/yields' },
+			{ name: 'Overview', path: '/yields/overview' },
+			{ name: 'Stablecoin Pools', path: '/yields/stablecoins' },
+			{ name: 'Projects', path: '/yields/projects' },
+			{ name: 'Halal', path: '/yields/halal' }
 		],
 		tools: [
 			{ name: 'Watchlist', path: '/yields/watchlist' },
@@ -170,8 +150,8 @@ export const navLinks: ILinks = {
 	},
 	Stables: {
 		main: [
-			{ name: 'Overview', path: '/stablecoins', icon: PieChart },
-			{ name: 'Chains', path: '/stablecoins/chains', icon: Link }
+			{ name: 'Overview', path: '/stablecoins' },
+			{ name: 'Chains', path: '/stablecoins/chains' }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <DollarSign size={16} />
