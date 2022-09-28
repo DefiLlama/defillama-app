@@ -32,7 +32,7 @@ export async function getStaticProps() {
 	}
 }
 
-const descriptions = {
+export const descriptions = {
 	Dexes: 'Protocols where you can swap/trade cryptocurrency',
 	Yield: 'Protocols that pay you a reward for your staking/LP on their platform',
 	Lending: 'Protocols that allow users to borrow and lend assets',
@@ -50,7 +50,8 @@ const descriptions = {
 	Synthetics: 'Protocol that created a tokenized derivative that mimics the value of another asset.',
 	CDP: 'Protocols that mint its own stablecoin using collateralized lending',
 	Bridge: 'Protocols that bridge tokens from one network to another',
-	'Reserve Currency': 'OHM forks: Protocols that uses a reserve of valuable assets acquired through bonding and staking to issue and back its native token',
+	'Reserve Currency':
+		'OHM forks: Protocols that uses a reserve of valuable assets acquired through bonding and staking to issue and back its native token',
 	Options: 'Protocols that give you the right to buy an asset at a fixed price',
 	Launchpad: 'Protocols that launch new projects and coins',
 	Gaming: 'Protocols that have gaming components',
@@ -60,8 +61,9 @@ const descriptions = {
 	'NFT Lending': 'Protocols that allow you too collateralize your NFT for a loan',
 	RWA: 'Protocols that involve Real World Assets, such as house tokenization',
 	Farm: 'Protocols that allow users to lock money in exchange for a protocol token',
-	'Liquid Staking': 'Protocols that allow you to stake assets in exchange of a reward, plus the receipt for the staking position is tradeable and liquid',
-	Oracle: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)',
+	'Liquid Staking':
+		'Protocols that allow you to stake assets in exchange of a reward, plus the receipt for the staking position is tradeable and liquid',
+	Oracle: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)'
 }
 
 export default function Protocols({ categories }) {

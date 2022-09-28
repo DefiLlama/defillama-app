@@ -11,6 +11,7 @@ import VirtualTable from '~/components/VirtualTable/Table'
 import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { IFormattedProtocol } from '~/api/types'
 import { Name } from '~/components/VirtualTable/shared'
+import { descriptions } from './categories'
 
 export async function getStaticProps() {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
@@ -48,7 +49,10 @@ export async function getStaticProps() {
 	const columns = Array.from(uniqueCategories).map((item) => ({
 		header: item,
 		accessorKey: item,
-		enableSorting: false
+		enableSorting: false,
+		meta: {
+			headerHelperText: descriptions[item] ?? null
+		}
 	}))
 
 	return {
