@@ -87,7 +87,7 @@ export const navLinks: ILinks = {
 			{ name: 'Oracles', path: '/oracles' },
 			{ name: 'Forks', path: '/forks' },
 			{ name: 'Top Protocols', path: '/top-protocols' },
-			{ name: 'Comparision', path: '/compare-protocols?protocol=MakerDAO&protocol=Curve', newTag: true },
+			{ name: 'Comparision', path: '/comparision?protocol=MakerDAO&protocol=Curve', newTag: true },
 			{ name: 'Categories', path: '/categories' },
 			{ name: 'Recent', path: '/recent' },
 			{ name: 'Languages', path: '/languages' }

@@ -1,8 +1,12 @@
 import * as React from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
 import styled from 'styled-components'
-import { useSelectState, SelectArrow, SelectItemCheck, SelectPopover, SelectItem } from 'ariakit/select'
-import { Select } from '~/components/Filters'
+import { useSelectState, SelectArrow } from 'ariakit/select'
+import { Checkbox } from '~/components'
+import { ComboboxSelectPopover, FilterFnsGroup, Select, SelectItem } from '~/components/Filters'
+import { Input, List } from '~/components/Combobox'
+import { useSetPopoverStyles } from '../Popover/utils'
+import { useComboboxState } from 'ariakit'
+import { useRouter } from 'next/router'
 
 export const Item = styled(SelectItem)`
 	padding: 12px 4px;
@@ -47,50 +51,6 @@ const SelectedOptions = styled.span`
 	min-width: 22px;
 `
 
-const StyledPopover = styled(SelectPopover)`
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	margin: 0;
-	outline: ${({ theme }) => '1px solid ' + theme.text5};
-	min-width: 160px;
-	max-height: 300px;
-	color: ${({ theme }) => theme.text1};
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
-	filter: ${({ theme }) =>
-		theme.mode === 'dark'
-			? 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 40%))'
-			: 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%))'};
-	border-radius: 0;
-	overflow: auto;
-	overscroll-behavior: contain;
-	z-index: 50;
-
-	& > *:last-of-type {
-		border-radius: 0;
-	}
-`
-
-const Button = styled(Item)`
-	white-space: nowrap;
-	background: #2172e5;
-	color: #fff;
-	justify-content: center;
-
-	:hover,
-	&[data-focus-visible] {
-		cursor: pointer;
-		background: #4190ff;
-	}
-`
-
-const DropdownValue = styled.span`
-	max-width: 16ch;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-`
-
 function renderValue(value: Array<string>, title: string) {
 	return (
 		<span>
@@ -108,27 +68,32 @@ interface ISelectLegendMultipleProps {
 }
 
 export function SelectLegendMultiple({ allOptions, options, setOptions, title, ...props }: ISelectLegendMultipleProps) {
-	// The scrollable element for your list
-	const parentRef = React.useRef()
+	const router = useRouter()
 
-	const rowVirtualizer = useVirtualizer({
-		count: allOptions.length,
-		getScrollElement: () => parentRef.current,
-		estimateSize: () => 41
-	})
+	const [isLarge, renderCallback] = useSetPopoverStyles()
+
+	const combobox = useComboboxState({ list: allOptions })
+	const { value, setValue, ...selectProps } = combobox
 
 	const onChange = (values) => {
 		setOptions(values)
 	}
 
 	const select = useSelectState({
+		...selectProps,
 		value: options,
 		setValue: onChange,
-		defaultValue: allOptions,
-		gutter: 6
+		gutter: 6,
+		animated: true,
+		renderCallback
 	})
 
-	const selectButtonRef = React.useRef(null)
+	// Resets combobox value when popover is collapsed
+	if (!select.mounted && combobox.value) {
+		combobox.setValue('')
+	}
+
+	const focusItemRef = React.useRef(null)
 
 	return (
 		<>
@@ -136,56 +101,36 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
 				{renderValue(select.value, title)}
 				<SelectArrow />
 			</Menu>
-			{select.mounted && (
-				<StyledPopover state={select} initialFocusRef={selectButtonRef}>
-					{/* The scrollable element for your list */}
-					<div
-						ref={parentRef}
-						style={{
-							height: `400px`,
-							overflow: 'auto' // Make it scroll!
-						}}
-					>
-						{options.length > 0 ? (
-							<Button onClick={() => select.setValue([])} ref={selectButtonRef} id="filter-button">
-								Deselect All
-							</Button>
-						) : (
-							<Button onClick={() => select.setValue(allOptions)} ref={selectButtonRef} id="filter-button">
-								Select All
-							</Button>
-						)}
+			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false} initialFocusRef={focusItemRef}>
+				<Input state={combobox} placeholder="Search..." autoFocus />
 
-						{/* The large inner element to hold all of the items */}
-						<div
-							style={{
-								height: `${rowVirtualizer.getTotalSize()}px`,
-								width: '100%',
-								position: 'relative'
-							}}
-						>
-							{/* Only the visible items in the virtualizer, manually positioned to be in view */}
-							{rowVirtualizer.getVirtualItems().map((virtualItem) => (
-								<Item
-									key={virtualItem.key}
-									style={{
-										position: 'absolute',
-										top: 0,
-										left: 0,
-										width: '100%',
-										height: `${virtualItem.size}px`,
-										transform: `translateY(${virtualItem.start}px)`
-									}}
-									value={allOptions[virtualItem.index]}
+				{combobox.matches.length > 0 ? (
+					<>
+						<FilterFnsGroup>
+							<button onClick={() => select.setValue([])}>Clear</button>
+
+							{router.pathname !== '/comparision' && (
+								<button onClick={() => select.setValue(allOptions)}>Toggle all</button>
+							)}
+						</FilterFnsGroup>
+						<List state={combobox} className="filter-by-list">
+							{combobox.matches.map((value, i) => (
+								<SelectItem
+									value={value}
+									key={value + i}
+									ref={i === 0 && options.length === allOptions.length ? focusItemRef : null}
+									focusOnHover
 								>
-									<SelectItemCheck />
-									<DropdownValue>{allOptions[virtualItem.index]}</DropdownValue>
-								</Item>
+									<span>{value}</span>
+									<Checkbox checked={select.value.includes(value) ? true : false} />
+								</SelectItem>
 							))}
-						</div>
-					</div>
-				</StyledPopover>
-			)}
+						</List>
+					</>
+				) : (
+					<p id="no-results">No results</p>
+				)}
+			</ComboboxSelectPopover>
 		</>
 	)
 }
