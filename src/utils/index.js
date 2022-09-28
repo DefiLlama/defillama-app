@@ -8,10 +8,12 @@ import { timeframeOptions } from '~/constants'
 export * from './blockExplorers'
 import { colord, extend } from 'colord'
 import lchPlugin from 'colord/plugins/lch'
-extend([lchPlugin])
+import relativeTime from 'dayjs/plugin/relativeTime'
 
+extend([lchPlugin])
 BigNumber.set({ EXPONENTIAL_AT: 50 })
 dayjs.extend(utc)
+dayjs.extend(relativeTime)
 
 export function getTimeframe(timeWindow) {
 	const utcEndTime = dayjs.utc()
@@ -36,6 +38,9 @@ export function getTimeframe(timeWindow) {
 	}
 	return utcStartTime
 }
+
+/** gives output like `5 days ago` or `17 hours ago` from a timestamp, https://day.js.org/docs/en/plugin/relative-time */
+export const toNiceDaysAgo = (date) => dayjs().to(dayjs.utc(dayjs.unix(date)))
 
 export const toNiceDayAndHour = (date) => {
 	let x = dayjs.utc(dayjs.unix(date)).format('D MMM, HH:mm')

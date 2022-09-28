@@ -1,12 +1,14 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'react-feather'
+import styled from 'styled-components'
 import Bookmark from '~/components/Bookmark'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
+import Tooltip from '~/components/Tooltip'
 import { useDefiManager } from '~/contexts/LocalStorage'
-import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDayAndHour, toNiceDaysAgo } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow } from './types'
@@ -115,7 +117,11 @@ export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Listed At',
 		accessorKey: 'listedAt',
-		cell: ({ getValue }) => <span style={{ whiteSpace: 'nowrap' }}>{getValue()} days ago</span>,
+		cell: ({ getValue }) => (
+			<ListedAt>
+				<TooltipPopver content={`at ${toNiceDayAndHour(getValue())}`}>{toNiceDaysAgo(getValue())}</TooltipPopver>
+			</ListedAt>
+		),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -300,3 +306,16 @@ const Tvl = ({ value, rowValues }) => {
 		</span>
 	)
 }
+
+const ListedAt = styled.div`
+	width: 120px;
+
+	.tooltip-trigger {
+		margin-left: auto;
+		text-align: end;
+	}
+`
+
+const TooltipPopver = styled(Tooltip)`
+	padding: 6px;
+`

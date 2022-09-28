@@ -31,7 +31,7 @@ export async function getStaticProps() {
 	const protocols = protocolsRaw.protocols
 		.filter((token) => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name))
 		.map((p) => ({ listedAt: 1624728920, ...p }))
-		.sort((a, b) => b.listedAt - a.listedAt)
+		.sort((a, b) => a.listedAt - b.listedAt)
 
 	return {
 		props: {
