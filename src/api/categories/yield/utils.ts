@@ -15,7 +15,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		audits: _config[p.project]?.audits,
 		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-',
 		category: _config[p.project]?.category,
-		url: p.project === 'uniswap' ? formatUniUrl(p) : _urls[p.project] ?? '',
+		url: p.project === 'uniswap' ? formatUniUrl(p) : _urls[p.pool] ?? '',
 		apyReward: p.apyReward > 0 ? p.apyReward : null,
 		rewardTokens: p.apyReward > 0 ? p.rewardTokens : []
 	}))
