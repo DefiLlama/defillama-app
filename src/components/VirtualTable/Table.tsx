@@ -123,7 +123,7 @@ export default function VirtualTable({ instance, skipVirtualization, ...props }:
 						)
 					})}
 
-					{paddingBottom > 0 && skipVirtualization && (
+					{paddingBottom > 0 && !skipVirtualization && (
 						<tr>
 							<td style={{ height: `${paddingBottom}px` }} />
 						</tr>

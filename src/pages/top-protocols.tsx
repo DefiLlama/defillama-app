@@ -64,45 +64,6 @@ export async function getStaticProps() {
 	}
 }
 
-const TableWrapper = styled.div`
-	position: relative;
-
-	& > *:first-child {
-		margin-bottom: 16px;
-	}
-
-	& > * {
-		padding: 0 !important;
-	}
-
-	tr:first-child > th {
-		position: sticky;
-		top: 0;
-		background: ${({ theme }) => theme.bg1};
-		z-index: 1;
-	}
-
-	td,
-	th {
-		white-space: nowrap;
-		padding: 12px !important;
-		border-right: 1px solid;
-		border-color: ${({ theme }) => theme.divider};
-
-		&:last-child {
-			border-right: none !important;
-		}
-	}
-
-	th {
-		font-weight: 500 !important;
-	}
-
-	tr:hover {
-		background: ${({ theme }) => theme.bg1};
-	}
-`
-
 export default function Chains({ data, columns }) {
 	const allColumns: ColumnDef<IFormattedProtocol>[] = useMemo(
 		() => [
@@ -118,7 +79,8 @@ export default function Chains({ data, columns }) {
 							<CustomLink href={`/chain/${getValue()}`}>{getValue()}</CustomLink>
 						</Name>
 					)
-				}
+				},
+				size: 200
 			},
 			...columns.map((column) => ({
 				...column,
@@ -136,11 +98,8 @@ export default function Chains({ data, columns }) {
 
 	return (
 		<Layout title="TVL Rankings - DefiLlama" defaultSEO>
-			<TableWrapper>
-				<TYPE.largeHeader>Top Protocols</TYPE.largeHeader>
-				{/* <FullTable data={data} columns={allColumns} align="start" gap="12px" style={{ height: '85vh' }} /> */}
-				<Table instance={instance} skipVirtualization />
-			</TableWrapper>
+			<TYPE.largeHeader style={{ marginTop: '8px' }}>Top Protocols</TYPE.largeHeader>
+			<Table instance={instance} skipVirtualization />
 		</Layout>
 	)
 }
@@ -157,5 +116,14 @@ const Table = styled(VirtualTable)`
 		left: 0;
 		top: 0;
 		z-index: 2;
+	}
+
+	td,
+	th {
+		border-right: 1px solid ${({ theme }) => theme.divider};
+	}
+
+	tr:hover {
+		background: ${({ theme }) => theme.bg1};
 	}
 `
