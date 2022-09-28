@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import styled from 'styled-components'
 import { useSelectState, SelectArrow, SelectItemCheck, SelectPopover, SelectItem } from 'ariakit/select'
 import { Select } from '~/components/Filters'
@@ -90,7 +91,7 @@ const DropdownValue = styled.span`
 	text-overflow: ellipsis;
 `
 
-function renderValue(value: string[], title: string) {
+function renderValue(value: Array<string>, title: string) {
 	return (
 		<span>
 			<SelectedOptions>{value?.length ?? 0}</SelectedOptions>
@@ -100,13 +101,22 @@ function renderValue(value: string[], title: string) {
 }
 
 interface ISelectLegendMultipleProps {
-	allOptions: string[]
-	options: string[]
-	setOptions: React.Dispatch<React.SetStateAction<string[]>>
+	allOptions: Array<string>
+	options: Array<string>
+	setOptions: React.Dispatch<React.SetStateAction<Array<string>>>
 	title: string
 }
 
 export function SelectLegendMultiple({ allOptions, options, setOptions, title, ...props }: ISelectLegendMultipleProps) {
+	// The scrollable element for your list
+	const parentRef = React.useRef()
+
+	const rowVirtualizer = useVirtualizer({
+		count: allOptions.length,
+		getScrollElement: () => parentRef.current,
+		estimateSize: () => 41
+	})
+
 	const onChange = (values) => {
 		setOptions(values)
 	}
@@ -128,22 +138,52 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
 			</Menu>
 			{select.mounted && (
 				<StyledPopover state={select} initialFocusRef={selectButtonRef}>
-					{options.length > 0 ? (
-						<Button onClick={() => select.setValue([])} ref={selectButtonRef} id="filter-button">
-							Deselect All
-						</Button>
-					) : (
-						<Button onClick={() => select.setValue(allOptions)} ref={selectButtonRef} id="filter-button">
-							Select All
-						</Button>
-					)}
+					{/* The scrollable element for your list */}
+					<div
+						ref={parentRef}
+						style={{
+							height: `400px`,
+							overflow: 'auto' // Make it scroll!
+						}}
+					>
+						{options.length > 0 ? (
+							<Button onClick={() => select.setValue([])} ref={selectButtonRef} id="filter-button">
+								Deselect All
+							</Button>
+						) : (
+							<Button onClick={() => select.setValue(allOptions)} ref={selectButtonRef} id="filter-button">
+								Select All
+							</Button>
+						)}
 
-					{allOptions.map((value) => (
-						<Item key={title + value} value={value}>
-							<SelectItemCheck />
-							<DropdownValue>{value}</DropdownValue>
-						</Item>
-					))}
+						{/* The large inner element to hold all of the items */}
+						<div
+							style={{
+								height: `${rowVirtualizer.getTotalSize()}px`,
+								width: '100%',
+								position: 'relative'
+							}}
+						>
+							{/* Only the visible items in the virtualizer, manually positioned to be in view */}
+							{rowVirtualizer.getVirtualItems().map((virtualItem) => (
+								<Item
+									key={virtualItem.key}
+									style={{
+										position: 'absolute',
+										top: 0,
+										left: 0,
+										width: '100%',
+										height: `${virtualItem.size}px`,
+										transform: `translateY(${virtualItem.start}px)`
+									}}
+									value={allOptions[virtualItem.index]}
+								>
+									<SelectItemCheck />
+									<DropdownValue>{allOptions[virtualItem.index]}</DropdownValue>
+								</Item>
+							))}
+						</div>
+					</div>
 				</StyledPopover>
 			)}
 		</>

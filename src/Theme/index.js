@@ -1,7 +1,6 @@
 import * as React from 'react'
 import styled, { ThemeProvider as StyledComponentsThemeProvider, createGlobalStyle } from 'styled-components'
 import { Text } from 'rebass'
-import { transparentize } from 'polished'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { sm, med, lg, xl, twoXl } from '~/constants/breakpoints'
 
@@ -11,9 +10,7 @@ export default function ThemeProvider({ children }) {
 	return <StyledComponentsThemeProvider theme={theme(darkMode)}>{children}</StyledComponentsThemeProvider>
 }
 
-const theme = (darkMode, color) => ({
-	customColor: color,
-	textColor: darkMode ? color : 'black',
+const theme = (darkMode) => ({
 	mode: darkMode ? 'dark' : 'light',
 
 	text1: darkMode ? '#FAFAFA' : '#1F1F1F',
@@ -41,29 +38,14 @@ const theme = (darkMode, color) => ({
 
 	//primary colors
 	primary1: darkMode ? '#2172E5' : '#445ed0',
-	primary2: darkMode ? '#3680E7' : '#FF8CC3',
-	primary3: darkMode ? '#4D8FEA' : '#FF99C9',
-	primary4: darkMode ? '#376bad70' : '#F6DDE8',
-	primary5: darkMode ? '#153d6f70' : '#FDEAF1',
-
-	// color text
-	primaryText1: darkMode ? '#6da8ff' : '#445ed0',
-
-	// secondary colors
-	secondary1: darkMode ? '#2172E5' : '#445ed0',
-	secondary2: darkMode ? '#17000b26' : '#F6DDE8',
-	secondary3: darkMode ? '#17000b26' : '#FDEAF1',
 
 	// other
 	red1: '#FF6871',
 	green1: '#27AE60',
-	yellow1: '#FFE270',
-	yellow2: '#F3841E',
 	link: '#2172E5',
 	blue: '#2f80ed',
 
 	//shadow
-	shadow1: darkMode ? '#000' : '#2F80ED',
 	shadowSm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
 	shadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
 	shadowMd: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
@@ -107,54 +89,10 @@ export const TYPE = {
 		return <TextWrapper fontWeight={400} fontSize={14} color={'text1'} {...props} />
 	},
 
-	small(props) {
-		return <TextWrapper fontWeight={500} fontSize={11} color={'text1'} {...props} />
-	},
-
-	header(props) {
-		return <TextWrapper fontWeight={600} color={'text1'} {...props} />
-	},
-
 	largeHeader(props) {
 		return <TextWrapper fontWeight={500} color={'text1'} fontSize={24} {...props} />
-	},
-
-	light(props) {
-		return <TextWrapper fontWeight={400} color={'text3'} fontSize={14} {...props} />
-	},
-
-	pink(props) {
-		return <TextWrapper fontWeight={props.faded ? 400 : 600} color={props.faded ? 'text1' : 'text1'} {...props} />
 	}
 }
-
-export const Header = styled.h1`
-	color: ${({ theme }) => theme['text1']};
-	font-size: 24px;
-	font-weight: 500;
-	margin: 0 0 -20px;
-`
-
-export const ThemedBackground = styled.div`
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	pointer-events: none;
-	max-width: 100vw !important;
-	height: 200vh;
-	mix-blend-mode: color;
-	background: ${({ backgroundColor, theme }) =>
-		`radial-gradient(50% 50% at 50% 50%, ${
-			backgroundColor || transparentize(0.6, theme.primary1)
-		} 0%, rgba(255, 255, 255, 0) 100%)`};
-	z-index: -100;
-	transform: translateY(-110vh);
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		left: 220px;
-	}
-`
 
 export const GlobalStyle = createGlobalStyle`
 	body, #__next {
