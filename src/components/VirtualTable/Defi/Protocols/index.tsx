@@ -25,7 +25,9 @@ const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
 	.sort((a, b) => Number(b) - Number(a))
 
-export function ProtocolsTable({ data, addlColumns }: { data: Array<IProtocolRow>; addlColumns?: Array<string> }) {
+export function ProtocolsTable({ data, addlColumns, removeColumns }: 
+		{ data: Array<IProtocolRow>; addlColumns?: Array<string>, removeColumns?: Array<string> }) 
+{
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -33,8 +35,11 @@ export function ProtocolsTable({ data, addlColumns }: { data: Array<IProtocolRow
 	const windowSize = useWindowSize()
 
 	const columnsData = React.useMemo(
-		() => (addlColumns ? [...protocolsColumns, ...addlColumns.map((x) => protocolAddlColumns[x])] : protocolsColumns),
-		[addlColumns]
+		() => (addlColumns || removeColumns ? 
+			[...protocolsColumns.filter(c=>!(removeColumns ?? []).includes((c as any).accessorKey)),
+				...(addlColumns ?? []).map((x) => protocolAddlColumns[x])] 
+			: protocolsColumns),
+		[addlColumns, removeColumns]
 	)
 
 	const instance = useReactTable({

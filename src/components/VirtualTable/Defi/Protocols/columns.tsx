@@ -189,9 +189,31 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 ]
 
 export const protocolAddlColumns = {
-	msizetvl: {
-		header: 'Msize/TVL',
-		accessorKey: 'msizetvl',
+	borrowed: {
+		header: 'Borrowed',
+		accessorKey: 'borrowed',
+		cell: (info) => {
+			return <>{info.getValue() && formattedNum(info.getValue())}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	supplied: {
+		header: 'Supplied',
+		accessorKey: 'supplied',
+		cell: (info) => {
+			return <>{info.getValue() && formattedNum(info.getValue())}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	suppliedTvl: {
+		header: 'Supplied/TVL',
+		accessorKey: 'suppliedTvl',
 		cell: (info) => {
 			return <>{info.getValue() && formattedNum(info.getValue())}</>
 		},

@@ -38,9 +38,10 @@ function ProtocolList({
 	const protocols = useMemo(() => {
 		if (category === 'Lending') {
 			return filteredProtocols.map((p) => {
-				const bTvl = p.extraTvl?.borrowed?.tvl ?? null
-				const msizetvl = bTvl ? (bTvl + p.tvl) / p.tvl : null
-				return { ...p, msizetvl }
+				const borrowed = p.extraTvl?.borrowed?.tvl ?? null
+				const supplied = borrowed ? (borrowed + p.tvl) : null
+				const suppliedTvl = supplied ? supplied / p.tvl : null
+				return { ...p, borrowed, supplied, suppliedTvl }
 			})
 		} else return filteredProtocols
 	}, [filteredProtocols, category])
@@ -73,7 +74,7 @@ function ProtocolList({
 				</RowLinksWrapper>
 			)}
 
-			<ProtocolsTable data={protocolTotals} addlColumns={category === 'Lending' ? ['msizetvl'] : null} />
+			<ProtocolsTable data={protocolTotals} addlColumns={category === 'Lending' ? ['borrowed', 'supplied', 'suppliedTvl'] : null} removeColumns={category?["category"]:null} />
 		</>
 	)
 }

@@ -55,7 +55,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 					? includeTokens
 							.map((t) => t.toLowerCase())
 							.find((token) => {
-								if (tokensInPool.includes(token.toLowerCase())) {
+								if (tokensInPool.some(x=> x.includes(token.toLowerCase()))) {
 									return true
 								} else if (token === 'eth') {
 									return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
