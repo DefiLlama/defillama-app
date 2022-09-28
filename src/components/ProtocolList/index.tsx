@@ -36,7 +36,7 @@ function ProtocolList({
 	}))
 
 	const protocols = useMemo(() => {
-		if (category === 'Lending') {
+		if (category === 'Lending' || category === 'RWA') {
 			return filteredProtocols.map((p) => {
 				const borrowed = p.extraTvl?.borrowed?.tvl ?? null
 				const supplied = borrowed ? (borrowed + p.tvl) : null
@@ -74,7 +74,7 @@ function ProtocolList({
 				</RowLinksWrapper>
 			)}
 
-			<ProtocolsTable data={protocolTotals} addlColumns={category === 'Lending' ? ['borrowed', 'supplied', 'suppliedTvl'] : null} removeColumns={category?["category"]:null} />
+			<ProtocolsTable data={protocolTotals} addlColumns={(category === 'Lending' || category === 'RWA') ? ['borrowed', 'supplied', 'suppliedTvl'] : null} removeColumns={category?["category"]:null} />
 		</>
 	)
 }
