@@ -15,7 +15,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		audits: _config[p.project]?.audits,
 		airdrop: _config[p.project]?.symbol === null || _config[p.project]?.symbol === '-',
 		category: _config[p.project]?.category,
-		url: p.project === 'uniswap' ? formatUniUrl(p) : _urls[p.pool] ?? '',
+		url: _urls[p.pool] ?? '',
 		apyReward: p.apyReward > 0 ? p.apyReward : null,
 		rewardTokens: p.apyReward > 0 ? p.rewardTokens : []
 	}))
@@ -59,17 +59,5 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		projectList,
 		categoryList: Array.from(categoryList),
 		tokenNameMapping
-	}
-}
-
-const formatUniUrl = (p) => {
-	const token0 = p.underlyingTokens === undefined ? '' : p.underlyingTokens[0]
-	const token1 = p.underlyingTokens === undefined ? '' : p.underlyingTokens[1]
-	const chain = p.chain.toLowerCase() === 'ethereum' ? 'mainnet' : p.chain.toLowerCase()
-	if (p.poolMeta) {
-		const feeTier = Number(p.poolMeta.replace('%', '')) * 10000
-		return `https://app.uniswap.org/#/add/${token0}/${token1}/${feeTier}?chain=${chain}`
-	} else {
-		return `https://app.uniswap.org/#/add/v2/${token0}/${token1}?chain=${chain}`
 	}
 }
