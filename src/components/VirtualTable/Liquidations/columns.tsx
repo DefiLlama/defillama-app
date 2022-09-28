@@ -145,7 +145,7 @@ export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] 
 		accessorKey: 'amount',
 		cell: ({ getValue }) => {
 			const _value = (getValue() as number).toLocaleString()
-			return <span>${_value}</span>
+			return <span>{_value}</span>
 		}
 	},
 	{
