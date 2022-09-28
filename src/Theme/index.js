@@ -94,6 +94,13 @@ export const TYPE = {
 	}
 }
 
+export const Header = styled.h1`
+	color: ${({ theme }) => theme['text1']};
+	font-size: 24px;
+	font-weight: 500;
+	margin: 0 0 -20px;
+`
+
 export const GlobalStyle = createGlobalStyle`
 	body, #__next {
 		background-color: ${({ theme }) => theme.background};

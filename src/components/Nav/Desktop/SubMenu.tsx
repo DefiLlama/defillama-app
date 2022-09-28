@@ -35,6 +35,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 						<a data-linkactive={subLink.path === pathname}>
 							<span style={{ width: '16px', display: 'inline-block' }}></span>
 							<span>{subLink.name}</span>
+							{subLink.newTag === true && <span data-newtag>NEW</span>}
 						</a>
 					</Link>
 				))}

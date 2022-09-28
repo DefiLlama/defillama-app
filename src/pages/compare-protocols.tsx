@@ -79,22 +79,27 @@ export default function CompareProtocolsTvls({
 
 		formattedData.forEach(({ protocolChartData, protocolName }) => {
 			protocolChartData.forEach(([date, tvl]) => {
-				let timestamp = new Date(date).getTime()
+				if (chartData[date]) {
+					chartData[date] = { ...chartData[date], [protocolName]: tvl }
+				} else {
+					let closestTimestamp = 0
 
-				if (timestamp % 400 < 500) {
-					timestamp -= timestamp % 400
-				}
+					// +- 6hours
+					for (let i = date - 21600; i <= date + 21600; i++) {
+						if (chartData[i]) {
+							closestTimestamp = i
+						}
+					}
 
-				if (timestamp % 400 > 500) {
-					timestamp += timestamp % 400
-				}
+					if (!closestTimestamp) {
+						chartData[date] = {}
+						closestTimestamp = date
+					}
 
-				if (!chartData[timestamp]) {
-					chartData[timestamp] = {}
-				}
-
-				chartData[timestamp] = {
-					[protocolName]: tvl
+					chartData[closestTimestamp] = {
+						...chartData[closestTimestamp],
+						[protocolName]: tvl
+					}
 				}
 			})
 		})
@@ -117,6 +122,8 @@ export default function CompareProtocolsTvls({
 		)
 	}
 
+	const colors = Object.fromEntries(selectedProtocols?.map((p) => [p, stackColors[p]]) ?? [])
+
 	return (
 		<Layout title={`Compare Protocols TVLs - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Compare Protocols' }} />
@@ -133,8 +140,8 @@ export default function CompareProtocolsTvls({
 						chartData={chartData}
 						title="Protocols"
 						valueSymbol="$"
-						stacks={protocols}
-						stackColors={stackColors}
+						stacks={selectedProtocols}
+						stackColors={colors}
 						hidedefaultlegend
 					/>
 					{isLoading && <Loading>Loading...</Loading>}
@@ -179,7 +186,3 @@ const Legend = styled(SelectLegendMultiple)`
 	top: 0;
 	right: 0;
 `
-
-const mergeProtocolsChartData = () => {
-	return []
-}
