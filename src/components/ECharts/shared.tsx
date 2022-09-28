@@ -109,7 +109,7 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
 						<FilterFnsGroup>
 							<button onClick={() => select.setValue([])}>Clear</button>
 
-							{router.pathname !== '/comparision' && (
+							{router.pathname !== '/comparison' && (
 								<button onClick={() => select.setValue(allOptions)}>Toggle all</button>
 							)}
 						</FilterFnsGroup>
