@@ -38,7 +38,7 @@ export const YIELD_POOLS_LAMBDA_API = 'https://yields.llama.fi/poolsEnriched'
 export const YIELD_CHART_API = 'https://yields.llama.fi/chart'
 export const YIELD_CONFIG_API = 'https://api.llama.fi/config/yields?a=1'
 export const YIELD_MEDIAN_API = 'https://yields.llama.fi/median'
-export const YIELD_URL_API = 'https://yields.llama.fi/urlNew'
+export const YIELD_URL_API = 'https://yields.llama.fi/url'
 export const YIELD_CHAIN_API = 'https://api.llama.fi/chains'
 
 export const LIQUIDATIONS_HISTORICAL_S3_PATH = DATASETS_S3_PATH + '/liqs'
