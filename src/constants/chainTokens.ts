@@ -684,7 +684,7 @@ export const chainCoingeckoIds = {
 		symbol: "VS",
 		cmcId: "19083"
 	},
-	EthPoW: {
+	EthereumPoW: {
 		geckoId: "ethereum-pow-iou",
 		symbol: "ETHW",
 		cmcId: "21296"
