@@ -203,7 +203,7 @@ const PageView = () => {
 								<StackedBarChart
 									title="Base and Reward APY"
 									chartData={barChartData}
-									stacks={{ Base: 'a', Reward: 'a' }}
+									stacks={barChartStacks}
 									stackColors={stackedBarChartColors}
 									valueSymbol={'%'}
 								/>
@@ -268,6 +268,11 @@ const backgroundColor = '#4f8fea'
 const stackedBarChartColors = {
 	Base: backgroundColor,
 	Reward: '#E59421'
+}
+
+const barChartStacks = {
+	Base: 'a',
+	Reward: 'a'
 }
 
 export default function YieldPoolPage(props) {
