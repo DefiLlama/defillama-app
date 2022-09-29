@@ -42,7 +42,7 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields?chain" iconType="chain" />,
+		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/dexs" iconType="chain" />,
 		meta: {
 			align: 'end'
 		},
