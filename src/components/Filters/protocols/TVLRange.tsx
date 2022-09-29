@@ -25,5 +25,5 @@ export function TVLRange() {
 			}
 		)
 	}
-	return <FilterBetweenRange header="Filter by TVL" onSubmit={handleSubmit} />
+	return <FilterBetweenRange header="Filter by min/max TVL" onSubmit={handleSubmit} />
 }
