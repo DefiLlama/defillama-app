@@ -28,7 +28,8 @@ const Text = styled.div`
 	text-overflow: ellipsis;
 
 	a {
-		color: inherit;
+		color: ${({ theme }) => theme.link};
+		text-decoration: underline;
 	}
 
 	p {
