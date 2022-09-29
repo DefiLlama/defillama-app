@@ -113,7 +113,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 ]
 
 export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
-	...protocolsColumns.slice(0, 2),
+	...protocolsColumns.slice(0, 3),
 	{
 		header: 'Listed At',
 		accessorKey: 'listedAt',
