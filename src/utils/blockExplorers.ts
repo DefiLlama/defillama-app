@@ -54,7 +54,8 @@ const blockExplorers = {
 	canto: ['https://evm.explorer.canto.io/tokens/', 'Canto Explorer'],
 	vision: ['https://www.visionscan.org/contract/', 'Visionscan'],
 	ethpow: ['https://www.oklink.com/en/ethw/address/', 'ETHW Explorer'],
-	cube: ['https://www.cubescan.network/en-us/token/', 'CUBE Scan']
+	cube: ['https://www.cubescan.network/en-us/token/', 'CUBE Scan'],
+	functionx: ['https://starscan.io/evm/address/', 'StarScan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
