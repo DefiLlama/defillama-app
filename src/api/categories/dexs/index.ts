@@ -69,7 +69,7 @@ export const getVolumesByChain = async () => {
 
 	const volumesByChain = await Promise.all(allChains.map((chain) => getChainPageData(chain)))
 
-	const tableData = volumesByChain.map(({ props: { totalVolume, changeVolume1d, changeVolume30d, chain } }) => ({
+	let tableData = volumesByChain.map(({ props: { totalVolume, changeVolume1d, changeVolume30d, chain } }) => ({
 		name: chain,
 		logo: chainIconUrl(chain),
 		totalVolume,
@@ -124,10 +124,11 @@ export const getVolumesByChain = async () => {
 		Others: 'a'
 	}
 
+	tableData = tableData.map(row=>({
+		...row,
+		dominance: getPercent(row.totalVolume, totalVolume24hrs) }
+	))
 	allChains.forEach((chain, index) => {
-		const tIndex = tableData.findIndex((x) => x.name === chain)
-		// set 24hr dominance on each chain
-		tableData[tIndex] = { ...tableData[index], dominance: getPercent(tableData[index].totalVolume, totalVolume24hrs) }
 		// set unique color on each chain
 		chainColors[chain] = getColorFromNumber(index, 9)
 		chartStacks[chain] = 'a'
