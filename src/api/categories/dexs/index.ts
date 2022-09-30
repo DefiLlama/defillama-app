@@ -129,7 +129,7 @@ export const getVolumesByChain = async () => {
 		// set 24hr dominance on each chain
 		tableData[tIndex] = { ...tableData[index], dominance: getPercent(tableData[index].totalVolume, totalVolume24hrs) }
 		// set unique color on each chain
-		chainColors[chain] = getColorFromNumber(index, allChains.length)
+		chainColors[chain] = getColorFromNumber(index, 9)
 		chartStacks[chain] = 'a'
 	})
 
