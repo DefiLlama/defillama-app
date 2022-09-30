@@ -1,6 +1,6 @@
 import type { LiteProtocol } from '~/api/types'
 import { DEXS_API, DEX_BASE_API, PROTOCOLS_API } from '~/constants'
-import { chainIconUrl } from '~/utils'
+import { chainIconUrl, getColorFromNumber } from '~/utils'
 import { IDexResponse, IGetDexsResponseBody } from './types'
 import { formatChain } from './utils'
 
@@ -74,12 +74,91 @@ export const getVolumesByChain = async () => {
 		logo: chainIconUrl(chain),
 		totalVolume,
 		changeVolume1d,
-		changeVolume30d
+		changeVolume30d,
+		dominance: 0
 	}))
+
+	const chartData = {}
+
+	volumesByChain.forEach(({ props: { totalDataChart, chain } }) => {
+		totalDataChart.forEach(([dateString, volume]) => {
+			const date = Number(dateString)
+
+			if (chartData[date]) {
+				chartData[date] = { ...chartData[date], [chain]: volume }
+			} else {
+				let closestTimestamp = 0
+
+				// +- 6hours
+				for (let i = date - 21600; i <= date + 21600; i++) {
+					if (chartData[i]) {
+						closestTimestamp = i
+					}
+				}
+
+				if (!closestTimestamp) {
+					chartData[date] = {}
+					closestTimestamp = date
+				}
+
+				chartData[closestTimestamp] = {
+					...chartData[closestTimestamp],
+					[chain]: volume
+				}
+			}
+		})
+	})
+
+	const dateKeys = Object.keys(chartData).sort((a, b) => Number(a) - Number(b))
+
+	const volumes = chartData[dateKeys[dateKeys.length - 1]]
+
+	// get total 24hrs volumes
+	const totalVolume24hrs = Object.values(volumes).reduce((acc: number, curr: number) => (acc += curr), 0) as number
+
+	const chainColors = {
+		Others: '#AAAAAA'
+	}
+
+	const chartStacks = {
+		Others: 'a'
+	}
+
+	allChains.forEach((chain, index) => {
+		const tIndex = tableData.findIndex((x) => x.name === chain)
+		// set 24hr dominance on each chain
+		tableData[tIndex] = { ...tableData[index], dominance: getPercent(tableData[index].totalVolume, totalVolume24hrs) }
+		// set unique color on each chain
+		chainColors[chain] = getColorFromNumber(index, allChains.length)
+		chartStacks[chain] = 'a'
+	})
+
+	const formattedChartData = dateKeys.map((date) => {
+		const volumesAtDate = Object.entries(chartData[date])
+
+		if (volumesAtDate.length > 10) {
+			return {
+				date,
+				...Object.fromEntries(volumesAtDate.slice(0, 11)),
+				Others: volumesAtDate.slice(11).reduce((acc, curr: [string, number]) => (acc += curr[1]), 0)
+			}
+		}
+
+		return { date, ...chartData[date] }
+	})
 
 	return {
 		props: {
-			data: tableData
+			tableData: tableData,
+			chartData: formattedChartData,
+			chartStacks,
+			chainColors
 		}
 	}
+}
+
+const getPercent = (value: number, total: number) => {
+	const ratio = total > 0 ? value / total : 0
+
+	return Number((ratio * 100).toFixed(2))
 }
