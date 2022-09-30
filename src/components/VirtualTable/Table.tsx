@@ -144,7 +144,6 @@ const Wrapper = styled.div`
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 	border-radius: 12px;
 	overflow-x: auto;
-	z-index: 1;
 
 	table {
 		table-layout: fixed;

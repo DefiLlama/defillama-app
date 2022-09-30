@@ -57,8 +57,6 @@ const HeaderWrapper = styled(Header)`
 `
 
 const ChainTvlsFilter = styled.form`
-	z-index: 2;
-
 	& > h2 {
 		margin: 0 2px 8px;
 		font-weight: 600;

@@ -34,7 +34,6 @@ const ChartsWrapper = styled.section`
 	width: 100%;
 	padding: 0;
 	align-items: center;
-	z-index: 1;
 
 	& > * {
 		width: 100%;

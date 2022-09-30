@@ -52,7 +52,6 @@ const ChartFilters = styled.div`
 	justify-content: flex-end;
 	gap: 20px;
 	margin: 0 0 -18px;
-	z-index: 100;
 `
 
 const Dropdowns = styled.span`

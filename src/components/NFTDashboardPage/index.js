@@ -4,7 +4,6 @@ import { transparentize } from 'polished'
 import Layout from '~/layout'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel } from '~/components'
 import { RowLinksWithDropdown } from '~/components/Filters'
-import { NFTSwitches } from '~/components/SettingsModal'
 import { NFTsSearch } from '~/components/Search'
 import NFTCollectionList from '~/components/NFTCollectionList'
 import SEO from '~/components/SEO'
@@ -99,8 +98,6 @@ const NFTDashboard = ({ title, statistics, collections, chart, chainData, market
 			<Panel as="p" style={{ textAlign: 'center', margin: '0', display: 'block' }}>
 				Data is currently incorrect and we are fixing it, please don't use it
 			</Panel>
-
-			<NFTSwitches />
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>

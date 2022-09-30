@@ -128,6 +128,7 @@ export const SelectItem = styled(AriaSelectItem)`
 `
 
 export const ComboboxSelectPopover = styled(SelectPopover)`
+	z-index: 10;
 	height: 60vh;
 	#no-results {
 		margin: 24px 0;

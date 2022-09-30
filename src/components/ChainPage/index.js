@@ -277,7 +277,6 @@ function GlobalPage({
 						<LocalLoader style={{ margin: 'auto' }} />
 					) : (
 						<Chart
-							display="liquidity"
 							dailyData={finalChartData}
 							unit={denomination}
 							totalLiquidity={totalVolume}

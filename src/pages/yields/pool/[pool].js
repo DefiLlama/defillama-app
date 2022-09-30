@@ -183,7 +183,6 @@ const PageView = () => {
 
 				<BreakpointPanel id="chartWrapper" style={{ border: 'none', borderRadius: '0 12px 12px 0', boxShadow: 'none' }}>
 					<Chart
-						display="liquidity"
 						dailyData={finalChartData}
 						totalLiquidity={poolData.tvlUsd}
 						liquidityChange={poolData.apy}
