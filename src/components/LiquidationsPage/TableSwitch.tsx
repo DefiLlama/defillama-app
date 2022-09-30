@@ -30,11 +30,12 @@ const Wrapper = styled.span`
 	justify-content: center;
 	gap: 8px;
 	border-radius: 6px;
-	background: ${({ theme }) => theme.bg6};
+	background-color: ${({ theme }) => theme.bg6};
 	padding: 6px;
 	height: 40px;
 	width: 250px;
 	margin: 0 auto;
+	box-shadow: ${({ theme }) => theme.shadowSm};
 `
 
 interface ISwitch {

@@ -61,6 +61,7 @@ export const ChainDominanceChart = ({
 					borderColor: '#00000040',
 					color: 'black'
 				}}
+				wrapperStyle={{ zIndex: 10 }}
 			/>
 			{chainsUnique.map((chainName) => (
 				<Area

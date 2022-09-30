@@ -54,6 +54,7 @@ const Popover = styled(Hovercard)`
 
 const Tooltip = styled(AriaTooltip)`
 	padding: 6px;
+	flex-shrink: 0;
 `
 
 interface IChainLogo {

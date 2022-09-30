@@ -84,7 +84,6 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentToken
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
 					<Chart
-						display="liquidity"
 						dailyData={finalChartData}
 						totalLiquidity={totalVolume}
 						liquidityChange={volumeChangeUSD}

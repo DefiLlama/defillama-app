@@ -50,6 +50,7 @@ const Wrapper = styled.span`
 	gap: 8px;
 	border-radius: 6px;
 	background: ${({ theme }) => theme.bg6};
+	box-shadow: ${({ theme }) => theme.shadowSm};
 	padding: 6px;
 	height: 40px;
 	width: 220px;

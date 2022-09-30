@@ -10,10 +10,8 @@ import { formattedNum } from '~/utils'
 
 dayjs.extend(utc)
 
-export const CHART_TYPES = {
-	BAR: 'BAR',
-	AREA: 'AREA'
-}
+// adjust the scale based on the type of chart
+const topScale = 0.32
 
 const Wrapper = styled.div`
 	position: relative;
@@ -23,7 +21,6 @@ const Wrapper = styled.div`
 const HEIGHT = 300
 
 const TradingViewChart = ({
-	type = CHART_TYPES.BAR,
 	data = [],
 	base,
 	baseChange,
@@ -59,9 +56,6 @@ const TradingViewChart = ({
 			}
 		})
 	}, [data, field])
-
-	// adjust the scale based on the type of chart
-	const topScale = type === CHART_TYPES.AREA ? 0.32 : 0.2
 
 	const [darkMode] = useDarkModeManager()
 
@@ -136,26 +130,12 @@ const TradingViewChart = ({
 
 		const chart = createChart(ref.current, chartParams)
 
-		const series =
-			type === CHART_TYPES.BAR
-				? chart.addHistogramSeries({
-						color: '#394990',
-						priceFormat: {
-							type: 'volume'
-						},
-						scaleMargins: {
-							top: 0.32,
-							bottom: 0
-						},
-						lineColor: '#394990',
-						lineWidth: 3
-				  })
-				: chart.addAreaSeries({
-						topColor: '#394990',
-						bottomColor: 'rgba(112, 82, 64, 0)',
-						lineColor: '#394990',
-						lineWidth: 3
-				  })
+		const series = chart.addAreaSeries({
+			topColor: '#394990',
+			bottomColor: 'rgba(112, 82, 64, 0)',
+			lineColor: '#394990',
+			lineWidth: 3
+		})
 
 		series.setData(formattedData)
 
@@ -172,15 +152,15 @@ const TradingViewChart = ({
 			series2.setData(formattedData2)
 		}
 
-		const prevTooltip = document.getElementById('tooltip-id' + type)
-		const node = document.getElementById('test-id' + type)
+		const prevTooltip = document.getElementById('tooltip-id' + 'area')
+		const node = document.getElementById('test-id' + 'area')
 
 		if (prevTooltip && node) {
 			node.removeChild(prevTooltip)
 		}
 
 		const toolTip = document.createElement('div')
-		toolTip.setAttribute('id', 'tooltip-id' + type)
+		toolTip.setAttribute('id', 'tooltip-id' + 'area')
 		toolTip.className = darkMode ? 'three-line-legend-dark' : 'three-line-legend'
 
 		ref.current.appendChild(toolTip)
@@ -190,6 +170,7 @@ const TradingViewChart = ({
 		toolTip.style.left = dualAxis ? 55 + 'px' : -4 + 'px'
 		toolTip.style.top = '-' + 8 + 'px'
 		toolTip.style.backgroundColor = 'transparent'
+		toolTip.style.zIndex = 0
 
 		// format numbers
 		let percentChange = baseChange?.toFixed(2)
@@ -199,9 +180,7 @@ const TradingViewChart = ({
 		// get the title of the chart
 		function setLastBarText() {
 			toolTip.innerHTML =
-				`<div style="font-size: 16px; margin: 4px 0px; color: ${textColor};">${title} ${
-					type === CHART_TYPES.BAR && !useWeekly ? '(24hr)' : ''
-				}</div>` +
+				`<div style="font-size: 16px; margin: 4px 0px; color: ${textColor};">${title}</div>` +
 				`<div style="font-size: 22px; margin: 4px 0px; color:${textColor}" >` +
 				formattedNum(base ?? 0, units) +
 				(baseChange
@@ -214,9 +193,7 @@ const TradingViewChart = ({
 
 		function setLastBarTextYieldVersion() {
 			toolTip.innerHTML =
-				`<div style="font-size: 16px; margin: 4px 0px; color: ${textColor};">${title} ${
-					type === CHART_TYPES.BAR && !useWeekly ? '(24hr)' : ''
-				}</div>` +
+				`<div style="font-size: 16px; margin: 4px 0px; color: ${textColor};">${title}</div>` +
 				`<div style="font-size: 22px; margin: 4px 0px; color:${textColor}" >` +
 				formattedPercentChange +
 				(baseChange
@@ -291,24 +268,11 @@ const TradingViewChart = ({
 			setChartCreated(false)
 			chart.remove()
 		}
-	}, [
-		base,
-		baseChange,
-		title,
-		topScale,
-		type,
-		useWeekly,
-		width,
-		units,
-		formattedData,
-		formattedData2,
-		darkMode,
-		dualAxis
-	])
+	}, [base, baseChange, title, useWeekly, width, units, formattedData, formattedData2, darkMode, dualAxis])
 
 	return (
 		<Wrapper>
-			<div ref={ref} id={'test-id' + type} />
+			<div ref={ref} id={'test-id' + 'area'} />
 			<IconWrapper>
 				<Play
 					onClick={() => {

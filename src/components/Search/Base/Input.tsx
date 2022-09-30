@@ -37,6 +37,7 @@ const IconWrapper = styled.button`
 	position: absolute;
 	top: 22px;
 	right: 20px;
+	z-index: 1;
 
 	& > svg {
 		color: ${({ theme }) => theme.text3};

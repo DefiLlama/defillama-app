@@ -26,6 +26,7 @@ export default function MobileNav() {
 
 const Wrapper = styled(Header)`
 	display: flex;
+	z-index: 10;
 
 	button {
 		flex-shrink: 0;
