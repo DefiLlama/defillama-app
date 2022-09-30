@@ -31,7 +31,6 @@ const Menu = styled(Select)`
 	right: 0;
 	top: -3px;
 	padding: 4px;
-	z-index: 10;
 	width: min-content;
 	border: ${({ theme }) => '1px solid ' + theme.bg4};
 	border-radius: 8px;
