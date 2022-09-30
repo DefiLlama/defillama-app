@@ -1,5 +1,5 @@
 import { InferGetStaticPropsType, GetStaticProps } from 'next'
-import ProtocolContainer from '~/containers/ProtocolContainer'
+import ProtocolContainer from '~/containers/Defi/Protocol'
 import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { revalidate } from '~/api'
