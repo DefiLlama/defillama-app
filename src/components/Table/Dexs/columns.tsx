@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight } from 'react-feather'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
-import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { IDexsRow } from './types'
@@ -81,7 +81,7 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 		header: '24h volume',
 		accessorKey: 'totalVolume24h',
 		enableSorting: true,
-		cell: (info) => <>{formattedNum(info.getValue())}</>,
+		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end',
@@ -108,6 +108,77 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 			align: 'end'
 		}
 	}
+]
+
+export const volumesByChainsColumns: ColumnDef<IDexsRow>[] = [
+	{
+		header: () => <Name>Name</Name>,
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const value = getValue() as string
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<TokenLogo logo={chainIconUrl(value)} data-lgonly />
+					<CustomLink href={`/dexs/${slug(value)}`}>{`${value}`}</CustomLink>
+				</Name>
+			)
+		},
+		size: 240
+	},
+	{
+		header: '1d Change',
+		accessorKey: 'changeVolume1d',
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	// {
+	// 	header: '7d Change',
+	// 	accessorKey: 'change_7d',
+	// 	enableSorting: true,
+	// 	cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+	// 	size: 140,
+	// 	meta: {
+	// 		align: 'end'
+	// 	}
+	// },
+	{
+		header: '1m Change',
+		accessorKey: 'changeVolume30d',
+		enableSorting: true,
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '24h volume',
+		accessorKey: 'totalVolume',
+		enableSorting: true,
+		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: "This colum shows yesterday's volume and it's updated daily at 00:00UTC"
+		}
+	}
+	// {
+	// 	header: '% of total',
+	// 	accessorKey: 'dominance',
+	// 	enableSorting: true,
+	// 	cell: (info) => <>{formattedPercent(info.getValue(), true, 400)}</>,
+	// 	size: 140,
+	// 	meta: {
+	// 		align: 'end'
+	// 	}
+	// }
 ]
 
 // key: min width of window/screen

@@ -29,7 +29,7 @@ export async function getStaticPaths() {
 
 const Chains: React.FC<IDexsContainer> = (props) => {
 	return (
-		<Layout title={`${props.chain} volumes - DefiLlama`} defaultSEO>
+		<Layout title={`${props.chain} Volumes - DefiLlama`} defaultSEO>
 			<DexsContainer {...props} />
 		</Layout>
 	)

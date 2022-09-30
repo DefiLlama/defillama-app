@@ -13,3 +13,11 @@ interface IDexs {
 export interface IDexsRow extends IDexs {
 	subRows?: Array<IDexs>
 }
+
+export interface IVolumesByChain {
+	name: string
+	totalVolume: number
+	changeVolume1d: number
+	changeVolume30d: number
+	dominance: number
+}

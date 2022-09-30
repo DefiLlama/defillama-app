@@ -10,7 +10,7 @@ import {
 	ColumnSizingState
 } from '@tanstack/react-table'
 import VirtualTable from '../Table'
-import { columnSizes, dexsColumn, dexsTableColumnOrders } from './columns'
+import { columnSizes, dexsColumn, dexsTableColumnOrders, volumesByChainsColumns } from './columns'
 import type { IDexsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
 
@@ -59,6 +59,23 @@ export function DexsTable({ data }) {
 
 		instance.setColumnOrder(order)
 	}, [windowSize, instance])
+
+	return <VirtualTable instance={instance} />
+}
+
+export function VolumeByChainsTable({ data }) {
+	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'totalVolume' }])
+
+	const instance = useReactTable({
+		data,
+		columns: volumesByChainsColumns,
+		state: {
+			sorting
+		},
+		onSortingChange: setSorting,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel()
+	})
 
 	return <VirtualTable instance={instance} />
 }
