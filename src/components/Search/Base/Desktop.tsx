@@ -13,7 +13,6 @@ const Wrapper = styled.div`
 	display: none;
 	flex-direction: column;
 	position: relative;
-	z-index: 20;
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
 		display: flex;

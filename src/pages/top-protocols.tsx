@@ -115,7 +115,6 @@ const Table = styled(VirtualTable)`
 		position: sticky;
 		left: 0;
 		top: 0;
-		z-index: 2;
 	}
 
 	td,

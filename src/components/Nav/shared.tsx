@@ -8,7 +8,6 @@ export const Header = styled.header`
 	gap: 10px;
 	padding: 12px 16px;
 	background: linear-gradient(168deg, #344179 3.98%, #445ed0 100%);
-	z-index: 1;
 
 	scrollbar-width: none;
 	::-webkit-scrollbar {

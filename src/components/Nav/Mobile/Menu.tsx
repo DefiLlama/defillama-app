@@ -43,7 +43,6 @@ const Nav = styled.nav`
 	width: 100%;
 	max-width: 300px;
 	background: ${({ theme }) => theme.bg1};
-	z-index: 1;
 	flex-direction: column;
 	gap: 20px;
 	animation: 0.2s ${slideIn} ease;
