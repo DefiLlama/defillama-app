@@ -16,7 +16,7 @@ export async function getStaticProps() {
 
 const Chains: React.FC<IDexsContainer> = (props) => {
 	return (
-		<Layout title={`${props.chain} volumes - DefiLlama`} defaultSEO>
+		<Layout title={`${props.chain} Volumes - DefiLlama`} defaultSEO>
 			<SEO dexsPage />
 			<DexsContainer {...props} />
 		</Layout>
