@@ -71,6 +71,8 @@ export default function StackedBarChart({
 			return {
 				name: cd.name,
 				type: 'bar',
+				large: true,
+				largeThreshold: 0,
 				stack: 'value',
 				data: cd.data,
 				emphasis: {

@@ -27,6 +27,8 @@ export const getOption = (
 	}))
 	const series = chartDataBinsArray.map((obj) => ({
 		type: 'bar',
+		large: true,
+		largeThreshold: 0,
 		name: PROTOCOL_NAMES_MAP[obj.key],
 		data: obj.data.map((value) => (isLiqsUsingUsd ? value['usd'] : value['native'])),
 		emphasis: {
