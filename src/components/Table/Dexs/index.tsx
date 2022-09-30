@@ -9,17 +9,17 @@ import {
 	ColumnOrderState,
 	ColumnSizingState
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/VirtualTable/Table'
-import { columnSizes, peggedAssetByChainColumn, assetByChainColumnOrders } from './columns'
-import type { IPeggedAssetByChainRow } from './types'
+import VirtualTable from '../Table'
+import { columnSizes, dexsColumn, dexsTableColumnOrders } from './columns'
+import type { IDexsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
 	.sort((a, b) => Number(b) - Number(a))
 
-export function PeggedAssetByChainTable({ data }) {
-	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'circulating', desc: true }])
+export function DexsTable({ data }) {
+	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'totalVolume24h' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -27,7 +27,7 @@ export function PeggedAssetByChainTable({ data }) {
 
 	const instance = useReactTable({
 		data,
-		columns: peggedAssetByChainColumn,
+		columns: dexsColumn,
 		state: {
 			sorting,
 			expanded,
@@ -35,7 +35,7 @@ export function PeggedAssetByChainTable({ data }) {
 			columnSizing
 		},
 		onExpandedChange: setExpanded,
-		getSubRows: (row: IPeggedAssetByChainRow) => row.subRows,
+		getSubRows: (row: IDexsRow) => row.subRows,
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
@@ -48,7 +48,7 @@ export function PeggedAssetByChainTable({ data }) {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = windowSize.width
-			? assetByChainColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			? dexsTableColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
 			: defaultOrder
 
 		const cSize = windowSize.width

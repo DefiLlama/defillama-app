@@ -4,7 +4,7 @@ import { ListOptions } from '~/components/ChainPage/shared'
 import { RowLinksWithDropdown } from '~/components/Filters'
 import Layout from '~/layout'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { FeesTable } from '~/components/VirtualTable'
+import { FeesTable } from '~/components/Table'
 
 /* TODO: Pull from api
 fees.reduce((all, curr)=>{

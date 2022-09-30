@@ -4,7 +4,7 @@ import { YieldsSearch } from '~/components/Search'
 import { revalidate } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 import pako from 'pako'
-import { YieldsProjectsTable } from '~/components/VirtualTable'
+import { YieldsProjectsTable } from '~/components/Table'
 
 function median(numbers) {
 	const sorted: any = Array.from(numbers).sort((a: number, b: number) => a - b)

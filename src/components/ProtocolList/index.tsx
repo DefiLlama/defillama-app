@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Header } from '~/Theme'
-import { ProtocolsTable } from '~/components/VirtualTable'
+import { ProtocolsTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcProtocolsTvls } from '~/hooks/data'
@@ -39,7 +39,7 @@ function ProtocolList({
 		if (category === 'Lending' || category === 'RWA') {
 			return filteredProtocols.map((p) => {
 				const borrowed = p.extraTvl?.borrowed?.tvl ?? null
-				const supplied = borrowed ? (borrowed + p.tvl) : null
+				const supplied = borrowed ? borrowed + p.tvl : null
 				const suppliedTvl = supplied ? supplied / p.tvl : null
 				return { ...p, borrowed, supplied, suppliedTvl }
 			})
@@ -74,7 +74,11 @@ function ProtocolList({
 				</RowLinksWrapper>
 			)}
 
-			<ProtocolsTable data={protocolTotals} addlColumns={(category === 'Lending' || category === 'RWA') ? ['borrowed', 'supplied', 'suppliedTvl'] : null} removeColumns={category?["category"]:null} />
+			<ProtocolsTable
+				data={protocolTotals}
+				addlColumns={category === 'Lending' || category === 'RWA' ? ['borrowed', 'supplied', 'suppliedTvl'] : null}
+				removeColumns={category ? ['category'] : null}
+			/>
 		</>
 	)
 }

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { NftsCollectionTable } from '~/components/VirtualTable'
+import { NftsCollectionTable } from '~/components/Table'
 import { filterCollectionsByCurrency } from '~/utils'
 
 function NFTCollectionList({

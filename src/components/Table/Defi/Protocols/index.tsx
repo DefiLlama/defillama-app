@@ -9,7 +9,7 @@ import {
 	ColumnOrderState,
 	ColumnSizingState
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/VirtualTable/Table'
+import VirtualTable from '~/components/Table/Table'
 import {
 	columnOrders,
 	columnSizes,

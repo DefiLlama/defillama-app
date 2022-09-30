@@ -7,10 +7,10 @@ import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, slug } from '~/utils'
 import { revalidate } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
-import VirtualTable from '~/components/VirtualTable/Table'
+import VirtualTable from '~/components/Table/Table'
 import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { IFormattedProtocol } from '~/api/types'
-import { Name } from '~/components/VirtualTable/shared'
+import { Name } from '~/components/Table/shared'
 import { descriptions } from './categories'
 
 export async function getStaticProps() {

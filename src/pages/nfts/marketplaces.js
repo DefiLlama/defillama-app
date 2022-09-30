@@ -5,10 +5,10 @@ import Layout from '~/layout'
 import { Header } from '~/Theme'
 import SEO from '~/components/SEO'
 import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
+import { NftMarketplacesTable } from '~/components/Table'
 import { getRandomColor } from '~/utils'
 import { revalidate } from '~/api'
 import { getNFTMarketplacesData, getNFTMarketplaceChartData } from '~/api/categories/nfts'
-import { NftMarketplacesTable } from '~/components/VirtualTable'
 
 export async function getStaticProps() {
 	const marketplaceData = await getNFTMarketplacesData()

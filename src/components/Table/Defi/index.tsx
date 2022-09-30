@@ -8,7 +8,7 @@ import {
 	getExpandedRowModel,
 	ColumnOrderState
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/VirtualTable/Table'
+import VirtualTable from '~/components/Table/Table'
 import { categoriesColumn, chainsColumn, chainsTableColumnOrders, forksColumn, oraclesColumn } from './columns'
 import type { IOraclesRow, IForksRow, ICategoryRow, IChainsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'

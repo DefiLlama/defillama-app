@@ -8,7 +8,7 @@ import {
 	getExpandedRowModel,
 	ColumnOrderState
 } from '@tanstack/react-table'
-import VirtualTable from '~/components/VirtualTable/Table'
+import VirtualTable from '../Table'
 import { feesColumn, feesTableColumnOrders } from './columns'
 import type { IFeesRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel, ColumnDef } from '@tanstack/react-table'
-import VirtualTable from '~/components/VirtualTable/Table'
+import VirtualTable from '~/components/Table/Table'
 import { chainsColumns, marketplacesColumns } from './columns'
 import type { INftsCollectionRow } from '../types'
 

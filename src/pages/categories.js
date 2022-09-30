@@ -1,6 +1,6 @@
 import { Header } from '~/Theme'
 import Layout from '~/layout'
-import { ProtocolsCategoriesTable } from '~/components/VirtualTable'
+import { ProtocolsCategoriesTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { revalidate } from '~/api'
 import { getProtocolsRaw } from '~/api/categories/protocols'

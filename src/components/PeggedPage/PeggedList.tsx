@@ -18,7 +18,7 @@ import {
 	McapRange,
 	ResetAllStablecoinFilters
 } from '~/components/Filters'
-import { PeggedAssetsTable } from '~/components/VirtualTable'
+import { PeggedAssetsTable } from '~/components/Table'
 import {
 	useCalcCirculating,
 	useCalcGroupExtraPeggedByDay,
