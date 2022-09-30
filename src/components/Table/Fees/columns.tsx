@@ -42,7 +42,6 @@ export const feesColumn: ColumnDef<IFeesRow>[] = [
 	{
 		header: 'Category',
 		accessorKey: 'category',
-		enableSorting: false,
 		size: 140,
 		meta: {
 			align: 'end'

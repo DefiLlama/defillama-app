@@ -46,7 +46,6 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Category',
 		accessorKey: 'category',
-		enableSorting: false,
 		meta: {
 			align: 'end'
 		},
