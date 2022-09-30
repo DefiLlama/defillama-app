@@ -196,8 +196,8 @@ const PageView = () => {
 				{fetchingChartData ? (
 					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
 				) : (
-					chart?.data?.length && (
-						<>
+					<>
+						{barChartData?.length ? (
 							<LazyChart>
 								<StackedBarChart
 									title="Base and Reward APY"
@@ -207,7 +207,8 @@ const PageView = () => {
 									valueSymbol={'%'}
 								/>
 							</LazyChart>
-
+						) : null}
+						{areaChartData.length ? (
 							<LazyChart>
 								<AreaChart
 									title="7 day moving average of total APY"
@@ -216,8 +217,8 @@ const PageView = () => {
 									valueSymbol={'%'}
 								/>
 							</LazyChart>
-						</>
-					)
+						) : null}
+					</>
 				)}
 			</ChartsWrapper>
 
