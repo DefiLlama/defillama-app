@@ -182,11 +182,11 @@ export default function StackedBarChart({
 				}
 			},
 			grid: {
-				left: 20,
+				left: 8,
 				containLabel: true,
 				bottom: 60,
-				top: 48,
-				right: 20
+				top: 28,
+				right: 8
 			},
 			xAxis: {
 				type: 'time',

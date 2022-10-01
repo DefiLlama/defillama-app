@@ -97,22 +97,24 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 				</Name>
 			)
 		},
-		size: 180
+		size: 200
 	},
 	{
 		header: 'Protocols',
-		accessorKey: 'protocols'
+		accessorKey: 'protocols',
+		size: 140
 	},
 	{
 		header: 'Combined TVL',
 		accessorKey: 'tvl',
-		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		size: 140
 	},
 	{
 		header: 'Description',
 		accessorKey: 'description',
 		enableSorting: false,
-		size: 900
+		size: 902
 	}
 ]
 

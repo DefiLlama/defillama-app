@@ -17,6 +17,7 @@ export const HOURLY_PROTOCOL_API = 'https://api.llama.fi/hourly'
 export const LANGS_API = 'https://api.llama.fi/langs'
 export const ORACLE_API = 'https://api.llama.fi/oracles'
 export const FORK_API = 'https://api.llama.fi/forks'
+export const CATEGORY_API = 'https://api.llama.fi/categories'
 
 export const NFT_COLLECTION_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collection'
 export const NFT_COLLECTIONS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collections'

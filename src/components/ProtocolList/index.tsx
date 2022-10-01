@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import * as React from 'react'
 import { Header } from '~/Theme'
 import { ProtocolsTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
@@ -15,6 +15,8 @@ interface IAllTokensPageProps {
 	showChainList?: boolean
 	defaultSortingColumn?: string
 	parentProtocols?: IParentProtocol[]
+	chartData?: any
+	color?: string
 }
 
 function ProtocolList({
@@ -35,7 +37,7 @@ function ProtocolList({
 		to: handleRouting(label)
 	}))
 
-	const protocols = useMemo(() => {
+	const protocols = React.useMemo(() => {
 		if (category === 'Lending' || category === 'RWA') {
 			return filteredProtocols.map((p) => {
 				const borrowed = p.extraTvl?.borrowed?.tvl ?? null
@@ -66,6 +68,7 @@ function ProtocolList({
 					route: 'categories'
 				}}
 			/>
+
 			<Header>{title}</Header>
 
 			{showChainList && (
