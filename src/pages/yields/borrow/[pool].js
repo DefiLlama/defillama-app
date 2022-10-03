@@ -24,7 +24,6 @@ import {
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection } from '~/layout/Stats/Medium'
-import { Stat } from '~/layout/Stats/Large'
 import { useYieldChartLendBorrow, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
 import { getColorFromNumber } from '~/utils'
 import styled from 'styled-components'
@@ -83,14 +82,14 @@ const PageView = () => {
 
 	// pick this data from the history endpoint instead
 	const latestValues = chart?.data?.slice(-1)[0] ?? []
-	const apyBase = latestValues?.apyBase?.toFixed(2) ?? 0
-	const apyReward = latestValues?.apyReward?.toFixed(2) ?? 0
-	const apyBaseBorrow = -latestValues?.apyBaseBorrow?.toFixed(2) ?? 0
-	const apyRewardBorrow = latestValues?.apyRewardBorrow?.toFixed(2) ?? 0
-	const totalSupplyUsd = latestValues?.totalSupplyUsd?.toFixed(2) ?? 0
-	const totalBorrowUsd = latestValues?.totalBorrowUsd?.toFixed(2) ?? 0
+	const apyBase = latestValues?.apyBase ?? 0
+	const apyReward = latestValues?.apyReward ?? 0
+	const apyBaseBorrow = -latestValues?.apyBaseBorrow ?? 0
+	const apyRewardBorrow = latestValues?.apyRewardBorrow ?? 0
+	const totalSupplyUsd = latestValues?.totalSupplyUsd ?? 0
+	const totalBorrowUsd = latestValues?.totalBorrowUsd ?? 0
 	const totalAvailableUsd = totalSupplyUsd - totalBorrowUsd
-	const newBorrowApy = (Number(apyBaseBorrow) + Number(apyRewardBorrow)).toFixed(2) ?? 0
+	const newBorrowApy = Number(apyBaseBorrow) + Number(apyRewardBorrow)
 
 	const projectName = config?.name ?? ''
 	const audits = config?.audits ?? ''
@@ -167,28 +166,38 @@ const PageView = () => {
 						</Symbol>
 					</Name>
 
-					<DetailsTable>
+					<TableWrapper>
 						<tbody>
 							<tr>
 								<th>Supply Base APY:</th>
-								<td>{apyBase}%</td>
+								<td>{apyBase.toFixed(2)}%</td>
 							</tr>
 							<tr>
 								<th>Supply Reward APY:</th>
-								<td>{apyReward}%</td>
+								<td>{apyReward.toFixed(2)}%</td>
 							</tr>
+
+							<tr data-divider>
+								<th></th>
+							</tr>
+
 							<tr>
 								<th>Net Borrow APY:</th>
-								<td>{newBorrowApy}%</td>
+								<td>{newBorrowApy.toFixed(2)}%</td>
 							</tr>
 							<tr>
 								<th>Borrow Base APY:</th>
-								<td>{apyBaseBorrow}%</td>
+								<td>{apyBaseBorrow.toFixed(2)}%</td>
 							</tr>
 							<tr>
 								<th>Borrow Reward APY:</th>
-								<td>{apyRewardBorrow}%</td>
+								<td>{apyRewardBorrow.toFixed(2)}%</td>
 							</tr>
+
+							<tr data-divider>
+								<th></th>
+							</tr>
+
 							<tr>
 								<th>Supply:</th>
 								<td>${toK(totalSupplyUsd ?? 0)}</td>
@@ -202,7 +211,7 @@ const PageView = () => {
 								<td>${toK(totalAvailableUsd ?? 0)}</td>
 							</tr>
 						</tbody>
-					</DetailsTable>
+					</TableWrapper>
 				</PoolDetails>
 
 				<ChartWrapper style={{ position: 'relative' }}>
@@ -318,6 +327,21 @@ const DownloadToCSV = styled(DownloadButton)`
 	position: absolute;
 	top: 20px;
 	right: 24px;
+`
+
+const TableWrapper = styled(DetailsTable)`
+	tr[data-divider] {
+		position: relative;
+		th::before {
+			content: '';
+			position: absolute;
+			top: 5px;
+			left: 0;
+			right: 0;
+			height: 10px;
+			border-top: 1px solid ${({ theme }) => theme.divider};
+		}
+	}
 `
 
 export default function YieldPoolPage(props) {
