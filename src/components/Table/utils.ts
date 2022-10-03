@@ -19,3 +19,9 @@ export function splitArrayByFalsyValues(data, column) {
 		[[], []]
 	)
 }
+
+export function getColumnSizesKeys(columnSizes) {
+	return Object.keys(columnSizes)
+		.map((x) => Number(x))
+		.sort((a, b) => Number(b) - Number(a))
+}
