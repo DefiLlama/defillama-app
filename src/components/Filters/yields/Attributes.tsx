@@ -43,7 +43,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.tvlUsd >= 1e6
 		},
-		disabledOnPages: ['/yields/stablecoins']
+		disabledOnPages: ['/yields/stablecoins', '/yields/borrow']
 	},
 	{
 		name: 'Audited',
@@ -53,7 +53,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.audits !== '0'
 		},
-		disabledOnPages: ['/yields/stablecoins']
+		disabledOnPages: ['/yields/stablecoins', '/yields/borrow']
 	},
 	{
 		name: 'No Outliers',
@@ -63,7 +63,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.outlier === false
 		},
-		disabledOnPages: ['/yields/stablecoins']
+		disabledOnPages: ['/yields/stablecoins', '/yields/borrow']
 	},
 	{
 		name: 'APY > 0',
@@ -73,7 +73,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.apy > 0
 		},
-		disabledOnPages: ['/yields/stablecoins']
+		disabledOnPages: ['/yields/stablecoins', '/yields/borrow']
 	},
 	{
 		name: 'Stable Outlook',
@@ -81,7 +81,7 @@ export const attributeOptions = [
 		help: 'Select pools with "Stable/Up" Outlook only',
 		filterFn: (item) => item.predictions.predictedClass === 'Stable/Up',
 		defaultFilterFnOnPage: {},
-		disabledOnPages: []
+		disabledOnPages: ['/yields/borrow']
 	},
 	{
 		name: 'High Confidence',
@@ -89,7 +89,7 @@ export const attributeOptions = [
 		help: 'Select pools with "High" predicted outlook confidence',
 		filterFn: (item) => item.predictions.binnedConfidence === 3,
 		defaultFilterFnOnPage: {},
-		disabledOnPages: []
+		disabledOnPages: ['/yields/borrow']
 	}
 ]
 
@@ -181,12 +181,16 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 
 					<button onClick={toggleAll}>Toggle all</button>
 				</FilterFnsGroup>
-				{attributeOptions.map((option) => (
-					<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
-						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
-						<Checkbox checked={values.includes(option.key) || option.disabledOnPages.includes(router.pathname)} />
-					</SelectItem>
-				))}
+				{attributeOptions
+					.filter((option) =>
+						pathname === '/yields/borrow' ? !option.disabledOnPages.includes('/yields/borrow') : true
+					)
+					.map((option) => (
+						<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
+							{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
+							<Checkbox checked={values.includes(option.key) || option.disabledOnPages.includes(router.pathname)} />
+						</SelectItem>
+					))}
 			</SelectPopover>
 		</>
 	)
