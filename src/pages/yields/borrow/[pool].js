@@ -18,14 +18,16 @@ import {
 	Symbol,
 	ChartsWrapper,
 	LazyChart,
-	ChartsPlaceholder
+	ChartsPlaceholder,
+	ChartWrapper,
+	DetailsTable
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
-import { BreakpointPanel } from '~/components'
 import { useYieldChartLendBorrow, useYieldConfigData, useYieldPoolData } from '~/api/categories/yield/client'
 import { getColorFromNumber } from '~/utils'
+import styled from 'styled-components'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -165,51 +167,57 @@ const PageView = () => {
 						</Symbol>
 					</Name>
 
-					<Stat>
-						<span>Supply Base APY: {apyBase}%</span>
-					</Stat>
-
-					<Stat>
-						<span>Supply Reward APY: {apyReward}%</span>
-					</Stat>
-
-					<Stat>
-						<span>Net Borrow APY: {newBorrowApy}%</span>
-					</Stat>
-
-					<Stat>
-						<span>Borrow Base APY: {apyBaseBorrow}%</span>
-					</Stat>
-
-					<Stat>
-						<span>Borrow Reward APY: {apyRewardBorrow}%</span>
-					</Stat>
-
-					<Stat>
-						<span>Supply: ${toK(totalSupplyUsd ?? 0)}</span>
-					</Stat>
-					<Stat>
-						<span>Borrow: ${toK(totalBorrowUsd ?? 0)}</span>
-					</Stat>
-					<Stat>
-						<span>Available: ${toK(totalAvailableUsd ?? 0)}</span>
-					</Stat>
+					<DetailsTable>
+						<tbody>
+							<tr>
+								<th>Supply Base APY:</th>
+								<td>{apyBase}%</td>
+							</tr>
+							<tr>
+								<th>Supply Reward APY:</th>
+								<td>{apyReward}%</td>
+							</tr>
+							<tr>
+								<th>Net Borrow APY:</th>
+								<td>{newBorrowApy}%</td>
+							</tr>
+							<tr>
+								<th>Borrow Base APY:</th>
+								<td>{apyBaseBorrow}%</td>
+							</tr>
+							<tr>
+								<th>Borrow Reward APY:</th>
+								<td>{apyRewardBorrow}%</td>
+							</tr>
+							<tr>
+								<th>Supply:</th>
+								<td>${toK(totalSupplyUsd ?? 0)}</td>
+							</tr>
+							<tr>
+								<th>Borrow:</th>
+								<td>${toK(totalBorrowUsd ?? 0)}</td>
+							</tr>
+							<tr>
+								<th>Available:</th>
+								<td>${toK(totalAvailableUsd ?? 0)}</td>
+							</tr>
+						</tbody>
+					</DetailsTable>
 				</PoolDetails>
 
-				<BreakpointPanel id="chartWrapper" style={{ border: 'none', borderRadius: '0 12px 12px 0', boxShadow: 'none' }}>
-					<LazyChart>
-						<AreaChart
-							title="Net Borrow APY"
-							chartData={netBorrowChartData}
-							color={backgroundColor}
-							valueSymbol={'%'}
-						/>
-					</LazyChart>
-					<DownloadButton as="button" onClick={downloadCsv}>
+				<ChartWrapper style={{ position: 'relative' }}>
+					<AreaChart title="Net Borrow APY" chartData={netBorrowChartData} color={backgroundColor} valueSymbol={'%'} />
+
+					<DownloadToCSV as="button" onClick={downloadCsv}>
 						<DownloadCloud size={14} />
 						<span>&nbsp;&nbsp;.csv</span>
-					</DownloadButton>
-				</BreakpointPanel>
+					</DownloadToCSV>
+				</ChartWrapper>
+
+				<DownloadToCSV as="button" onClick={downloadCsv}>
+					<DownloadCloud size={14} />
+					<span>&nbsp;&nbsp;.csv</span>
+				</DownloadToCSV>
 			</StatsSection>
 
 			<ChartsWrapper>
@@ -305,6 +313,12 @@ const barChartStacks = {
 	Base: 'a',
 	Reward: 'a'
 }
+
+const DownloadToCSV = styled(DownloadButton)`
+	position: absolute;
+	top: 20px;
+	right: 24px;
+`
 
 export default function YieldPoolPage(props) {
 	return (
