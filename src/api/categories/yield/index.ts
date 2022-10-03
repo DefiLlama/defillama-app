@@ -1,4 +1,11 @@
-import { YIELD_CONFIG_API, YIELD_POOLS_API, YIELD_MEDIAN_API, YIELD_URL_API, YIELD_CHAIN_API } from '~/constants'
+import {
+	YIELD_CONFIG_API,
+	YIELD_POOLS_API,
+	YIELD_MEDIAN_API,
+	YIELD_URL_API,
+	YIELD_CHAIN_API,
+	YIELD_LEND_BORROW_API
+} from '~/constants'
 import { arrayFetcher } from '~/utils/useSWR'
 import { formatYieldsPageData } from './utils'
 
@@ -98,5 +105,49 @@ export async function getYieldMedianData() {
 
 	return {
 		props: data
+	}
+}
+
+export async function getLendBorrowData() {
+	const props = (await getYieldPageData()).props
+
+	// filter to lending category only
+	let pools = props.pools.filter((p) => p.category === 'Lending')
+
+	// get new borrow fields
+	let dataBorrow = (await arrayFetcher([YIELD_LEND_BORROW_API]))[0]
+
+	// add borrow fields to pools (which contains all other columns we need for filters)
+	pools = pools
+		.map((p) => {
+			const x = dataBorrow.find((i) => i.pool === p.pool)
+			// for some projects we haven't added the new fields yet, dataBorrow will thus be smoler;
+			// hence the check for undefined
+			if (x === undefined) return null
+			return {
+				...p,
+				apyBaseBorrow: -x.apyBaseBorrow,
+				apyRewardBorrow: x.apyRewardBorrow,
+				totalSupplyUsd: x.totalSupplyUsd,
+				totalBorrowUsd: x.totalBorrowUsd,
+				ltv: x.ltv,
+				totalAvailableUsd: x.totalSupplyUsd - x.totalBorrowUsd,
+				apyBorrow: -x.apyBaseBorrow + x.apyRewardBorrow,
+				// note(!) wip: could just overwrite rewardTokens here...maybe there is a cleaner way
+				rewardTokens: p.apyRewards > 0 || x.apyRewardBorrow > 0 ? x.rewardTokens : p.rewardTokens
+			}
+		})
+		.filter(Boolean)
+		.sort((a, b) => b.totalSupplyUsd - a.totalSupplyUsd)
+
+	// need to recompute the lists (now filtered on lending projects)
+	return {
+		props: {
+			pools,
+			chainList: [...new Set(pools.map((p) => p.chain))],
+			projectList: props.projectList.filter((p) => [...new Set(pools.map((p) => p.project))].includes(p.slug)),
+			categoryList: ['Lending'],
+			tokenNameMapping: props.tokenNameMapping
+		}
 	}
 }

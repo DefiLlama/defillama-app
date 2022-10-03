@@ -99,6 +99,7 @@ export const navLinks: ILinks = {
 		main: [
 			{ name: 'Pools', path: '/yields' },
 			{ name: 'Overview', path: '/yields/overview' },
+			{ name: 'Borrow', path: '/yields/borrow' },
 			{ name: 'Stablecoin Pools', path: '/yields/stablecoins' },
 			{ name: 'Projects', path: '/yields/projects' },
 			{ name: 'Halal', path: '/yields/halal' }
