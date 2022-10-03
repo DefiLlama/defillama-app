@@ -201,7 +201,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		}
 	},
 	{
-		header: 'Borrows',
+		header: 'Borrowed',
 		accessorKey: 'totalBorrowUsd',
 		enableSorting: true,
 		cell: (info) => {
