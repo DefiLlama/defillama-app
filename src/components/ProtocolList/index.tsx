@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import * as React from 'react'
 import { Header } from '~/Theme'
-import { ProtocolsTable } from '~/components/VirtualTable'
+import { ProtocolsTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcProtocolsTvls } from '~/hooks/data'
@@ -15,6 +15,8 @@ interface IAllTokensPageProps {
 	showChainList?: boolean
 	defaultSortingColumn?: string
 	parentProtocols?: IParentProtocol[]
+	chartData?: any
+	color?: string
 }
 
 function ProtocolList({
@@ -35,11 +37,11 @@ function ProtocolList({
 		to: handleRouting(label)
 	}))
 
-	const protocols = useMemo(() => {
+	const protocols = React.useMemo(() => {
 		if (category === 'Lending' || category === 'RWA') {
 			return filteredProtocols.map((p) => {
 				const borrowed = p.extraTvl?.borrowed?.tvl ?? null
-				const supplied = borrowed ? (borrowed + p.tvl) : null
+				const supplied = borrowed ? borrowed + p.tvl : null
 				const suppliedTvl = supplied ? supplied / p.tvl : null
 				return { ...p, borrowed, supplied, suppliedTvl }
 			})
@@ -66,6 +68,7 @@ function ProtocolList({
 					route: 'categories'
 				}}
 			/>
+
 			<Header>{title}</Header>
 
 			{showChainList && (
@@ -74,7 +77,11 @@ function ProtocolList({
 				</RowLinksWrapper>
 			)}
 
-			<ProtocolsTable data={protocolTotals} addlColumns={(category === 'Lending' || category === 'RWA') ? ['borrowed', 'supplied', 'suppliedTvl'] : null} removeColumns={category?["category"]:null} />
+			<ProtocolsTable
+				data={protocolTotals}
+				addlColumns={category === 'Lending' || category === 'RWA' ? ['borrowed', 'supplied', 'suppliedTvl'] : null}
+				removeColumns={category ? ['category'] : null}
+			/>
 		</>
 	)
 }

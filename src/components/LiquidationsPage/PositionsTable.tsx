@@ -2,7 +2,7 @@ import { ChartData } from '~/utils/liquidations'
 import * as React from 'react'
 import styled from 'styled-components'
 import { SmolHints } from '~/pages/liquidations/[symbol]'
-import { LiquidatablePositionsTable } from '~/components/VirtualTable'
+import { LiquidatablePositionsTable } from '~/components/Table'
 
 const TableNoticeWrapper = styled.div`
 	margin-bottom: -1rem;

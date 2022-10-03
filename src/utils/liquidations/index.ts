@@ -183,6 +183,8 @@ interface LiquidationsData {
 	time: number
 }
 
+const disabledProtocols = ['angle']
+
 export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, timePassed = 0) {
 	const now = Math.round(Date.now() / 1000) // in seconds
 	const LIQUIDATIONS_DATA_URL = getDataUrl(symbol, now - timePassed)
@@ -198,7 +200,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	}
 
 	const currentPrice = data.currentPrice
-	const positions = data.positions
+	const positions = data.positions.filter((p) => !disabledProtocols.includes(p.protocol))
 
 	const badDebtsPositions = positions.filter((p) => p.liqPrice > currentPrice)
 	const badDebts = badDebtsPositions.reduce((acc, p) => acc + p.collateralValue, 0)

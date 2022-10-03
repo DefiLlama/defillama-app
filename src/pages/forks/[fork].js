@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
-import { ProtocolsTable } from '~/components/VirtualTable'
+import { ProtocolsTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
@@ -84,7 +84,6 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentToken
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
 					<Chart
-						display="liquidity"
 						dailyData={finalChartData}
 						totalLiquidity={totalVolume}
 						liquidityChange={volumeChangeUSD}

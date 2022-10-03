@@ -27,11 +27,11 @@ export const Item = styled(SelectItem)`
 `
 
 const Menu = styled(Select)`
+	z-index: 1;
 	position: absolute;
 	right: 0;
 	top: -3px;
 	padding: 4px;
-	z-index: 1;
 	width: min-content;
 	border: ${({ theme }) => '1px solid ' + theme.bg4};
 	border-radius: 8px;

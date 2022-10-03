@@ -46,7 +46,7 @@ import {
 	formattedPeggedPrice
 } from '~/utils'
 import type { IChartProps } from '~/components/ECharts/types'
-import { PeggedAssetByChainTable } from '~/components/VirtualTable'
+import { PeggedAssetByChainTable } from '~/components/Table'
 
 const TokenAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false

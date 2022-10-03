@@ -6,9 +6,7 @@ export const Wrapper = styled.div`
 	grid-template-columns: 1fr;
 	gap: 32px;
 	border-radius: 12px;
-
 	isolation: isolate;
-	z-index: 1;
 
 	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
 		padding: 16px;

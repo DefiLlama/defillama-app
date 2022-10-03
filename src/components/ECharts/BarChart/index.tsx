@@ -74,6 +74,8 @@ export default function BarChart({
 				return {
 					name: stack,
 					type: 'bar',
+					large: true,
+					largeThreshold: 0,
 					stack: defaultStacks[stack],
 					...(barWidths?.[defaultStacks[stack]] && { barMaxWidth: barWidths[defaultStacks[stack]] }),
 					emphasis: {

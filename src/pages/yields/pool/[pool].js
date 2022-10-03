@@ -183,7 +183,6 @@ const PageView = () => {
 
 				<BreakpointPanel id="chartWrapper" style={{ border: 'none', borderRadius: '0 12px 12px 0', boxShadow: 'none' }}>
 					<Chart
-						display="liquidity"
 						dailyData={finalChartData}
 						totalLiquidity={poolData.tvlUsd}
 						liquidityChange={poolData.apy}
@@ -197,8 +196,8 @@ const PageView = () => {
 				{fetchingChartData ? (
 					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
 				) : (
-					chart?.data?.length && (
-						<>
+					<>
+						{barChartData?.length ? (
 							<LazyChart>
 								<StackedBarChart
 									title="Base and Reward APY"
@@ -208,7 +207,8 @@ const PageView = () => {
 									valueSymbol={'%'}
 								/>
 							</LazyChart>
-
+						) : null}
+						{areaChartData.length ? (
 							<LazyChart>
 								<AreaChart
 									title="7 day moving average of total APY"
@@ -217,8 +217,8 @@ const PageView = () => {
 									valueSymbol={'%'}
 								/>
 							</LazyChart>
-						</>
-					)
+						) : null}
+					</>
 				)}
 			</ChartsWrapper>
 

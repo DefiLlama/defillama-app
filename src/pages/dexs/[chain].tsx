@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import DexsContainer, { IDexsContainer } from '~/containers/DexsContainer'
+import DexsContainer, { IDexsContainer } from '~/containers/Dex/DexsByChain'
 import { revalidate } from '~/api'
 import { getChainPageData, getDexs } from '~/api/categories/dexs'
 
@@ -29,7 +29,7 @@ export async function getStaticPaths() {
 
 const Chains: React.FC<IDexsContainer> = (props) => {
 	return (
-		<Layout title={`${props.chain} volumes - DefiLlama`} defaultSEO>
+		<Layout title={`${props.chain} Volumes - DefiLlama`} defaultSEO>
 			<DexsContainer {...props} />
 		</Layout>
 	)

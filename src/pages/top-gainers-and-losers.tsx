@@ -2,12 +2,12 @@ import { useMemo } from 'react'
 import styled from 'styled-components'
 import { TYPE } from '~/Theme'
 import Layout from '~/layout'
-import { splitArrayByFalsyValues } from '~/components/Table'
+import { splitArrayByFalsyValues } from '~/components/Table/utils'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { revalidate } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
-import { TopGainersAndLosers } from '~/components/VirtualTable/Defi/Protocols'
+import { TopGainersAndLosers } from '~/components/Table/Defi/Protocols'
 
 export async function getStaticProps() {
 	const { protocols } = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl'])

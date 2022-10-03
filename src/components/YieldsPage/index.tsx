@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
-import { Dropdowns, TableFilters, TableHeader } from '~/components/Table'
-import { YieldsPoolsTable } from '~/components/VirtualTable'
+import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
+import { YieldsPoolsTable } from '~/components/Table'
 import {
 	YieldAttributes,
 	TVLRange,
@@ -55,7 +55,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 					? includeTokens
 							.map((t) => t.toLowerCase())
 							.find((token) => {
-								if (tokensInPool.some(x=> x.includes(token.toLowerCase()))) {
+								if (tokensInPool.some((x) => x.includes(token.toLowerCase()))) {
 									return true
 								} else if (token === 'eth') {
 									return tokensInPool.find((x) => x.includes('weth') && x.includes(token))

@@ -1,5 +1,5 @@
 import { InferGetStaticPropsType, GetStaticProps } from 'next'
-import DexContainer from '~/containers/DexContainer'
+import DexContainer from '~/containers/Dex/DexProtocol'
 import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { revalidate } from '~/api'

@@ -10,7 +10,6 @@ export const Input = styled(Combobox)`
 	border: ${({ theme }) => '1px solid ' + theme.text4};
 	border-radius: 8px;
 	margin: 12px 12px 0;
-	z-index: 2;
 
 	:focus-visible {
 		outline: ${({ theme }) => '1px solid ' + theme.text1};

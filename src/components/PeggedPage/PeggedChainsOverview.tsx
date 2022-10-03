@@ -7,11 +7,10 @@ import { AreaChart } from '~/components/Charts'
 import { GroupStablecoins } from '~/components/MultiSelect'
 import { PeggedSearch } from '~/components/Search'
 import { ChartSelector } from '~/components/PeggedPage/.'
-import { IChartProps } from '~/components/ECharts/types'
-import { PeggedChainsTable } from '~/components/VirtualTable'
+import { PeggedChainsTable } from '~/components/Table'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
-import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
+import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import {
 	getRandomColor,
 	formattedNum,
@@ -22,6 +21,7 @@ import {
 	toNiceCsvDate,
 	download
 } from '~/utils'
+import type { IChartProps } from '~/components/ECharts/types'
 
 const PeggedAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -29,7 +29,6 @@ const PeggedAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), 
 
 const AssetFilters = styled.div`
 	margin: 12px 0 16px;
-	z-index: 100;
 
 	& > h2 {
 		margin: 0 2px 8px;

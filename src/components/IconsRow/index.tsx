@@ -34,7 +34,7 @@ const Row = styled.div`
 
 const Popover = styled(Hovercard)`
 	max-width: 600px;
-	z-index: 20;
+	z-index: 10;
 	padding: 6px;
 	background: ${({ theme }) => theme.bg2};
 	border: 1px solid ${({ theme }) => theme.bg3};
@@ -54,6 +54,7 @@ const Popover = styled(Hovercard)`
 
 const Tooltip = styled(AriaTooltip)`
 	padding: 6px;
+	flex-shrink: 0;
 `
 
 interface IChainLogo {

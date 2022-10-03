@@ -7,10 +7,10 @@ import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, slug } from '~/utils'
 import { revalidate } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
-import VirtualTable from '~/components/VirtualTable/Table'
+import VirtualTable from '~/components/Table/Table'
 import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { IFormattedProtocol } from '~/api/types'
-import { Name } from '~/components/VirtualTable/shared'
+import { Name } from '~/components/Table/shared'
 import { descriptions } from './categories'
 
 export async function getStaticProps() {
@@ -51,7 +51,7 @@ export async function getStaticProps() {
 		accessorKey: item,
 		enableSorting: false,
 		meta: {
-			headerHelperText: descriptions[item] ?? null
+			headerHelperText: descriptions[item as string] ?? null
 		}
 	}))
 
@@ -115,7 +115,6 @@ const Table = styled(VirtualTable)`
 		position: sticky;
 		left: 0;
 		top: 0;
-		z-index: 2;
 	}
 
 	td,

@@ -57,9 +57,6 @@ export const StyledAnchor = styled.a`
 `
 
 export const ChartAndValuesWrapper = styled.div`
-	flex: 1;
-	isolation: isolate;
-	z-index: 10;
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
@@ -204,18 +201,6 @@ export const SubNavEl = styled.li<ISubNavEl>`
 	:hover {
 		cursor: pointer;
 		border-bottom: 1px solid ${({ theme }) => theme.bg3};
-	}
-`
-
-export const FixedMenu = styled.div`
-	z-index: 99;
-	width: 100%;
-	padding: 1rem;
-	margin-bottom: 2rem;
-	max-width: 100vw;
-
-	@media screen and (max-width: 800px) {
-		margin-bottom: 0;
 	}
 `
 

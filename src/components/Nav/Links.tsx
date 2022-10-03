@@ -163,7 +163,10 @@ export const navLinks: ILinks = {
 		icon: <Droplet size={16} />
 	},
 	DEXs: {
-		main: [],
+		main: [
+			{ name: 'Overview', path: '/dexs' },
+			{ name: 'Chains', path: '/dexs/chains' }
+		],
 		...defaultToolsAndFooterLinks,
 		icon: <BarChart size={16} />
 	},
@@ -176,7 +179,6 @@ export const navLinks: ILinks = {
 
 export const linksWithNoSubMenu = [
 	{ name: 'Liquidations', url: '/liquidations/eth' },
-	{ name: 'DEXs', url: '/dexs' },
 	{ name: 'Fees', url: '/fees' }
 ]
 

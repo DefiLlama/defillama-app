@@ -71,6 +71,7 @@ export const PeggedChainDominanceChart = ({
 					borderColor: '#00000040',
 					color: 'black'
 				}}
+				wrapperStyle={{ zIndex: 10 }}
 			/>
 			{chainsUnique.map((chainName) => (
 				<Area
@@ -121,6 +122,7 @@ export const PeggedChainResponsiveDominance = ({
 					borderColor: '#00000040',
 					color: 'black'
 				}}
+				wrapperStyle={{ zIndex: 10 }}
 			/>
 			{chainsUnique.map((chainName) => (
 				<Area

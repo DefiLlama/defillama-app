@@ -71,6 +71,8 @@ export default function StackedBarChart({
 			return {
 				name: cd.name,
 				type: 'bar',
+				large: true,
+				largeThreshold: 0,
 				stack: 'value',
 				data: cd.data,
 				emphasis: {
@@ -180,11 +182,11 @@ export default function StackedBarChart({
 				}
 			},
 			grid: {
-				left: 20,
+				left: 8,
 				containLabel: true,
 				bottom: 60,
-				top: 48,
-				right: 20
+				top: 28,
+				right: 8
 			},
 			xAxis: {
 				type: 'time',

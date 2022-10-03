@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
-import { Dropdowns, TableFilters, TableHeader } from '~/components/Table'
-import { YieldsBorrowTable } from '~/components/VirtualTable'
+import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
+import { YieldsBorrowTable } from '~/components/Table'
 import {
 	YieldAttributes,
 	FiltersByChain,

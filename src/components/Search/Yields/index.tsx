@@ -29,6 +29,7 @@ export default function YieldsSearch({ pathname, ...props }: IYieldSearchProps) 
 				)
 			}
 			onItemClick={onItemClick}
+			placeholder="Filter by token..."
 		/>
 	)
 }

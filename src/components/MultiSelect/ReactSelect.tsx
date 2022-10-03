@@ -1,9 +1,8 @@
-import { transparentize } from 'polished'
 import Select, { Props } from 'react-select'
 import styled from 'styled-components'
 
 const Wrapper = styled.span`
-	--background: ${({ theme }) => transparentize(0.4, theme.bg6)};
+	--background: ${({ theme }) => theme.bg6};
 	--menu-background: ${({ theme }) => theme.bg6};
 	--color: ${({ theme }) => theme.text1};
 	--placeholder: ${({ theme }) => theme.text3};
@@ -27,7 +26,8 @@ const customStyles = {
 		color: 'var(--color)',
 		boxShadow:
 			'0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04)',
-		margin: 0
+		margin: 0,
+		zIndex: 0
 	}),
 	input: (provided) => ({
 		...provided,
@@ -35,7 +35,8 @@ const customStyles = {
 	}),
 	menu: (provided) => ({
 		...provided,
-		background: 'var(--menu-background)'
+		background: 'var(--menu-background)',
+		zIndex: 10
 	}),
 	option: (provided, state) => ({
 		...provided,

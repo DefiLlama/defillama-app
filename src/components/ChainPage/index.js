@@ -13,7 +13,8 @@ import {
 	DownloadButton,
 	DownloadIcon
 } from '~/components'
-import { ProtocolsTable } from '~/components/VirtualTable'
+import Announcement from '~/components/Announcement'
+import { ProtocolsTable } from '~/components/Table'
 import { RowFixed } from '~/components/Row'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
@@ -27,7 +28,6 @@ import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
-import Announcement from '../Announcement'
 
 const EasterLlama = styled.button`
 	padding: 0;
@@ -277,7 +277,6 @@ function GlobalPage({
 						<LocalLoader style={{ margin: 'auto' }} />
 					) : (
 						<Chart
-							display="liquidity"
 							dailyData={finalChartData}
 							unit={denomination}
 							totalLiquidity={totalVolume}

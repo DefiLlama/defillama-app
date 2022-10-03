@@ -55,7 +55,7 @@ export function AreaChart({ aspect, finalChartData, tokensUnique, color, moneySy
 						borderColor: color,
 						color: 'black'
 					}}
-					wrapperStyle={{ top: -70, left: -10 }}
+					wrapperStyle={{ top: -70, left: -10, zIndex: 10 }}
 				/>
 				{hallmarks.map((hallmark, i) => (
 					<ReferenceLine
