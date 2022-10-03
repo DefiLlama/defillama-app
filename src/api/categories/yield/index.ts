@@ -131,16 +131,18 @@ export async function getLendBorrowData() {
 				totalSupplyUsd: x.totalSupplyUsd,
 				totalBorrowUsd: x.totalBorrowUsd,
 				ltv: x.ltv,
-				totalAvailableUsd: x.totalSupplyUsd - x.totalBorrowUsd,
+				// note re morpho: they build on top of compound. if the total supply is being used by borrowers
+				// then any excess borrows will be routed via compound pools. so the available liquidity is actually
+				// compounds liquidity. not 100% sure how to present this on the frontend, but for now going to supress
+				// liq values (cause some of them are negative)
+				totalAvailableUsd: p.project === 'morpho' ? null : x.totalSupplyUsd - x.totalBorrowUsd,
 				apyBorrow: -x.apyBaseBorrow + x.apyRewardBorrow,
-				// note(!) wip: could just overwrite rewardTokens here...maybe there is a cleaner way
 				rewardTokens: p.apyRewards > 0 || x.apyRewardBorrow > 0 ? x.rewardTokens : p.rewardTokens
 			}
 		})
 		.filter(Boolean)
 		.sort((a, b) => b.totalSupplyUsd - a.totalSupplyUsd)
 
-	// need to recompute the lists (now filtered on lending projects)
 	return {
 		props: {
 			pools,
