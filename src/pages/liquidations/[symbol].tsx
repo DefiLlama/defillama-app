@@ -105,7 +105,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 				step={{ category: 'Home', name: `${data.symbol.toUpperCase()} Liquidation Levels`, hideOptions: true }}
 			/>
 
-			{!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data.symbol.toUpperCase()) && (
+			{/* {!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data.symbol.toUpperCase()) && (
 				<>
 					<PanelThicc as="p">
 						We are now tracking
@@ -128,7 +128,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 						!
 					</PanelSmol>
 				</>
-			)}
+			)} */}
 
 			<ResponsiveHeader>Liquidation levels in DeFi 💦</ResponsiveHeader>
 			<LiquidationsHeader data={data} options={options} />
