@@ -1,6 +1,5 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { useInView } from 'react-intersection-observer'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
@@ -26,39 +25,6 @@ export async function getStaticProps() {
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false
 }) as React.FC<IStackedBarChartProps>
-
-const ChartsWrapper = styled.section`
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	width: 100%;
-	padding: 0;
-	align-items: center;
-
-	& > * {
-		width: 100%;
-		margin: 0 !important;
-	}
-
-	@media (min-width: 80rem) {
-		flex-direction: row;
-	}
-`
-
-const ChartWrapper = styled.section`
-	grid-column: span 2;
-	min-height: 360px;
-	display: flex;
-	flex-direction: column;
-
-	@media (min-width: 90rem) {
-		grid-column: span 1;
-
-		:last-child:nth-child(2n - 1) {
-			grid-column: span 2;
-		}
-	}
-`
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -90,7 +56,6 @@ export interface IDexsContainer {
 }
 
 export default function DexsContainer({
-	tvlData,
 	dexs,
 	totalVolume,
 	changeVolume1d,
@@ -127,9 +92,11 @@ export default function DexsContainer({
 				}}
 				onToggleClick={(enabled) => setEnableBreakdownChart(enabled)}
 			/>
+
 			<HeaderWrapper>
 				<span>Volume in {chain === 'All' ? 'all DEXs' : chain}</span>
 			</HeaderWrapper>
+
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
 					<BreakpointPanel>
@@ -146,22 +113,18 @@ export default function DexsContainer({
 					</PanelHiddenMobile>
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
-					<ChartsWrapper>
-						<Chart>
-							<StackedBarChart
-								chartData={
-									enableBreakdownChart
-										? (chartData as IStackedBarChartProps['chartData'])
-										: [
-												{
-													name: chain,
-													data: chartData as IStackedBarChartProps['chartData'][0]['data']
-												}
-										  ]
-								}
-							/>
-						</Chart>
-					</ChartsWrapper>
+					<StackedBarChart
+						chartData={
+							enableBreakdownChart
+								? (chartData as IStackedBarChartProps['chartData'])
+								: [
+										{
+											name: chain,
+											data: chartData as IStackedBarChartProps['chartData'][0]['data']
+										}
+								  ]
+						}
+					/>
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 
@@ -187,12 +150,4 @@ export default function DexsContainer({
 			)}
 		</>
 	)
-}
-
-export const Chart = ({ children }) => {
-	const { ref, inView } = useInView({
-		triggerOnce: true
-	})
-
-	return <ChartWrapper ref={ref}>{inView && children}</ChartWrapper>
 }

@@ -9,6 +9,7 @@ import type {
 	LiteProtocol
 } from '~/api/types'
 import {
+	CATEGORY_API,
 	CHART_API,
 	CONFIG_API,
 	FORK_API,
@@ -324,6 +325,51 @@ export async function getForkPageData(fork = null) {
 				forkColors: colors
 			}
 		}
+	} catch (e) {
+		console.log(e)
+		return {
+			notFound: true
+		}
+	}
+}
+
+// - used in /categories and /categories/[name]
+export async function getCategoriesPageData(category = null) {
+	try {
+		const [{ chart = {}, categories = {} }] = await Promise.all(
+			[CATEGORY_API, PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json()))
+		)
+
+		const categoryExists = !category || categories[category]
+
+		if (!categoryExists) {
+			return {
+				notFound: true
+			}
+		}
+
+		let chartData = Object.entries(chart)
+
+		if (category) {
+			let data = []
+
+			chartData.forEach(([date, tokens]) => {
+				const value = tokens[category]
+				if (value) {
+					data.push([date, value])
+				}
+			})
+			chartData = data
+		}
+
+		const uniqueCategories = Object.keys(categories)
+		const colors = {}
+
+		Object.keys(categories).map((c, index) => {
+			colors[c] = getColorFromNumber(index, 9)
+		})
+
+		return { chartData, categoryColors: colors, uniqueCategories }
 	} catch (e) {
 		console.log(e)
 		return {

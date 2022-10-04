@@ -28,6 +28,7 @@ export interface IDexResponse extends Protocol {
   }> | null
   total1dVolume: number | null
   change1dVolume: number | null
+  disabled: boolean | null
 }
 
 ///////////////////////////////////////////////////////////////////

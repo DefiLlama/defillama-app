@@ -7,12 +7,10 @@ import { getChainPageData, getDexs } from '~/api/categories/dexs'
 export async function getStaticProps({ params }) {
 	const chain = params.chain
 	const { props } = await getChainPageData(chain)
-	const { props: propsAll } = await getChainPageData()
 
 	return {
 		props: {
-			...props,
-			allChains: propsAll.allChains
+			...props
 		},
 		revalidate: revalidate()
 	}

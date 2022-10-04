@@ -13,16 +13,18 @@ interface INameYieldPoolProps {
 	configID: string
 	url: string
 	index: number
+	borrow?: boolean
 }
 
 interface INameYield {
 	project: string
 	projectslug: string
 	airdrop?: boolean
+	borrow?: boolean
 }
 
-export function NameYieldPool({ value, configID, url, index }: INameYieldPoolProps) {
-	const tokenUrl = `/yields/pool/${configID}`
+export function NameYieldPool({ value, configID, url, index, borrow }: INameYieldPoolProps) {
+	const tokenUrl = borrow ? `/yields/borrow/${configID}` : `/yields/pool/${configID}`
 
 	return (
 		<Wrapper>
@@ -45,9 +47,9 @@ export function NameYieldPool({ value, configID, url, index }: INameYieldPoolPro
 	)
 }
 
-export function NameYield({ project, projectslug, airdrop, ...props }: INameYield) {
+export function NameYield({ project, projectslug, airdrop, borrow, ...props }: INameYield) {
 	const iconUrl = tokenIconUrl(project)
-	const tokenUrl = `/yields?project=${projectslug}`
+	const tokenUrl = borrow ? `/yields/borrow?project=${projectslug}` : `/yields?project=${projectslug}`
 
 	return (
 		<AirdropWrapper {...props}>

@@ -1,12 +1,23 @@
+import * as React from 'react'
+import dynamic from 'next/dynamic'
+import styled from 'styled-components'
 import { Header } from '~/Theme'
 import Layout from '~/layout'
+import { Panel } from '~/components'
 import { ProtocolsCategoriesTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { revalidate } from '~/api'
-import { getProtocolsRaw } from '~/api/categories/protocols'
+import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
+import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
+import type { IChartProps } from '~/components/ECharts/types'
+
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
 
 export async function getStaticProps() {
 	const protocols = await getProtocolsRaw()
+	const chartAndColorsData = await getCategoriesPageData()
 
 	let categories = {}
 	protocols.protocols.forEach((p) => {
@@ -18,7 +29,7 @@ export async function getStaticProps() {
 		categories[cat].tvl += p.tvl
 	})
 
-	categories = Object.entries(categories).map(([name, details]) => ({
+	const formattedCategories = Object.entries(categories).map(([name, details]: [string, { tvl: number }]) => ({
 		name,
 		...details,
 		description: descriptions[name] || ''
@@ -26,7 +37,8 @@ export async function getStaticProps() {
 
 	return {
 		props: {
-			categories: categories.sort((a, b) => b.tvl - a.tvl)
+			categories: formattedCategories.sort((a, b) => b.tvl - a.tvl),
+			...chartAndColorsData
 		},
 		revalidate: revalidate()
 	}
@@ -66,14 +78,40 @@ export const descriptions = {
 	Oracle: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)'
 }
 
-export default function Protocols({ categories }) {
+export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
+	const { chainsWithExtraTvlsByDay: categoriesWithExtraTvlsByDay } = useCalcGroupExtraTvlsByDay(chartData)
+
 	return (
 		<Layout title={`Categories - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Categories' }} />
 
 			<Header>Protocol Categories</Header>
 
+			<ChartsWrapper>
+				<AreaChart
+					chartData={categoriesWithExtraTvlsByDay}
+					stacks={uniqueCategories}
+					stackColors={categoryColors}
+					customLegendName="Category"
+					customLegendOptions={uniqueCategories}
+					hidedefaultlegend
+					valueSymbol="$"
+					title=""
+				/>
+			</ChartsWrapper>
+
 			<ProtocolsCategoriesTable data={categories} />
 		</Layout>
 	)
 }
+
+const ChartsWrapper = styled(Panel)`
+	min-height: 402px;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 16px;
+
+	& > * {
+		grid-cols: span 1;
+	}
+`
