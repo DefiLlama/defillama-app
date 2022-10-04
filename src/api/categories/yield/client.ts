@@ -1,7 +1,14 @@
 import useSWR from 'swr'
 import { fetcher, arrayFetcher, retrySWR } from '~/utils/useSWR'
 import { getCGMarketsDataURLs } from '~/api'
-import { CONFIG_API, YIELD_CONFIG_API, YIELD_CHART_API, YIELD_POOLS_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
+import {
+	CONFIG_API,
+	YIELD_CONFIG_API,
+	YIELD_CHART_API,
+	YIELD_POOLS_API,
+	YIELD_POOLS_LAMBDA_API,
+	YIELD_CHART_LEND_BORROW_API
+} from '~/constants'
 import { formatYieldsPageData } from './utils'
 
 interface IResponseCGMarketsAPI {
@@ -46,6 +53,12 @@ export const useYieldChartData = (configID) => {
 	const { data, error } = useSWR(configID ? url : null, fetcher)
 	return { data, error, loading: !data && !error }
 }
+export const useYieldChartLendBorrow = (configID) => {
+	const url = `${YIELD_CHART_LEND_BORROW_API}/${configID}`
+	const { data, error } = useSWR(configID ? url : null, fetcher)
+	return { data, error, loading: !data && !error }
+}
+
 // single pool config data
 export const useYieldConfigData = (project) => {
 	const url = `${CONFIG_API}/smol/${project}`

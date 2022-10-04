@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { yieldsColumnOrders, columns, columnSizes } from './columns'
 import type { IYieldsTableProps } from '../types'
 import { YieldsTableWrapper } from '../shared'

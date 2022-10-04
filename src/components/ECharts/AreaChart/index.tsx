@@ -224,6 +224,8 @@ export default function AreaChart({
 		}
 	}, [createInstance, defaultChartSettings, series, chartOptions])
 
+	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
+
 	return (
 		<div style={{ position: 'relative' }} {...props}>
 			{customLegendName && customLegendOptions?.length > 1 && (
@@ -231,7 +233,7 @@ export default function AreaChart({
 					allOptions={customLegendOptions}
 					options={legendOptions}
 					setOptions={setLegendOptions}
-					title={legendOptions.length === 1 ? customLegendName : customLegendName + 's'}
+					title={legendOptions.length === 1 ? legendTitle : legendTitle + 's'}
 				/>
 			)}
 			<Wrapper id={id} style={{ height, margin: 'auto 0' }}></Wrapper>

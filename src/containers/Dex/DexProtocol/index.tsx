@@ -30,6 +30,7 @@ import { formattedNum, getBlockExplorer } from '~/utils'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
 import { IDexResponse } from '~/api/categories/dexs/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
+import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
 
 // TODO remove duplicate bar chart component and use '~/components/ECharts/BarChart'
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
@@ -134,6 +135,7 @@ function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContain
 				}}
 			/>
 			<DexCharts logo={logo} data={dexData} chartData={mainChartData} name={name} />
+
 
 			<SectionHeader>Information</SectionHeader>
 			<InfoWrapper>

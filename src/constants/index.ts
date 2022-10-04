@@ -17,6 +17,7 @@ export const HOURLY_PROTOCOL_API = 'https://api.llama.fi/hourly'
 export const LANGS_API = 'https://api.llama.fi/langs'
 export const ORACLE_API = 'https://api.llama.fi/oracles'
 export const FORK_API = 'https://api.llama.fi/forks'
+export const CATEGORY_API = 'https://api.llama.fi/categories'
 
 export const NFT_COLLECTION_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collection'
 export const NFT_COLLECTIONS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collections'
@@ -40,6 +41,8 @@ export const YIELD_CONFIG_API = 'https://api.llama.fi/config/yields?a=1'
 export const YIELD_MEDIAN_API = 'https://yields.llama.fi/median'
 export const YIELD_URL_API = 'https://yields.llama.fi/url'
 export const YIELD_CHAIN_API = 'https://api.llama.fi/chains'
+export const YIELD_LEND_BORROW_API = 'https://yields.llama.fi/lendBorrow'
+export const YIELD_CHART_LEND_BORROW_API = 'https://yields.llama.fi/chartLendBorrow'
 
 export const LIQUIDATIONS_HISTORICAL_S3_PATH = DATASETS_S3_PATH + '/liqs'
 

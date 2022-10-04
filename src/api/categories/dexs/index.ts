@@ -21,7 +21,7 @@ export async function getDexPageData(dex: string) {
 // - used in /dexs and /dexs/[chain]
 export const getChainPageData = async (chain?: string) => {
 	const API = chain ? `${DEXS_API}/${chain}` : DEXS_API
-	const { dexs, totalVolume, changeVolume1d, changeVolume30d, totalDataChart, totalDataChartBreakdown, allChains } =
+	const { dexs, totalVolume, changeVolume1d, changeVolume7d, changeVolume30d, totalDataChart, totalDataChartBreakdown, allChains } =
 		(await fetch(API).then((res) => res.json())) as IGetDexsResponseBody
 
 	const getProtocolsRaw = (): Promise<{ protocols: LiteProtocol[] }> => fetch(PROTOCOLS_API).then((r) => r.json())
@@ -38,13 +38,13 @@ export const getChainPageData = async (chain?: string) => {
 		chains: dex.chains.map(formatChain),
 		subRows: dex.protocolVersions
 			? Object.entries(dex.protocolVersions)
-					.map(([versionName, summary]) => ({
-						...dex,
-						name: `${dex.name} - ${versionName.toUpperCase()}`,
-						displayName: `${dex.name} - ${versionName.toUpperCase()}`,
-						...summary
-					}))
-					.sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1))
+				.map(([versionName, summary]) => ({
+					...dex,
+					name: `${dex.name} - ${versionName.toUpperCase()}`,
+					displayName: `${dex.name} - ${versionName.toUpperCase()}`,
+					...summary
+				}))
+				.sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1))
 			: null
 	}))
 
@@ -54,6 +54,7 @@ export const getChainPageData = async (chain?: string) => {
 			totalVolume,
 			changeVolume1d,
 			changeVolume30d,
+			changeVolume7d,
 			totalDataChart: totalDataChart,
 			chain: chain ? formatChain(chain) : 'All',
 			tvlData,
@@ -69,12 +70,13 @@ export const getVolumesByChain = async () => {
 
 	const volumesByChain = await Promise.all(allChains.map((chain) => getChainPageData(chain)))
 
-	const tableData = volumesByChain.map(({ props: { totalVolume, changeVolume1d, changeVolume30d, chain } }) => ({
+	let tableData = volumesByChain.map(({ props: { totalVolume, changeVolume1d, changeVolume30d, chain, changeVolume7d } }) => ({
 		name: chain,
 		logo: chainIconUrl(chain),
 		totalVolume,
 		changeVolume1d,
 		changeVolume30d,
+		changeVolume7d,
 		dominance: 0
 	}))
 
@@ -124,10 +126,12 @@ export const getVolumesByChain = async () => {
 		Others: 'a'
 	}
 
+	tableData = tableData.map(row => ({
+		...row,
+		dominance: getPercent(row.totalVolume, totalVolume24hrs)
+	}
+	))
 	allChains.forEach((chain, index) => {
-		const tIndex = tableData.findIndex((x) => x.name === chain)
-		// set 24hr dominance on each chain
-		tableData[tIndex] = { ...tableData[index], dominance: getPercent(tableData[index].totalVolume, totalVolume24hrs) }
 		// set unique color on each chain
 		chainColors[chain] = getColorFromNumber(index, 9)
 		chartStacks[chain] = 'a'

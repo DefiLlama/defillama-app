@@ -27,6 +27,7 @@ export const Item = styled(SelectItem)`
 `
 
 const Menu = styled(Select)`
+	z-index: 1;
 	position: absolute;
 	right: 0;
 	top: -3px;

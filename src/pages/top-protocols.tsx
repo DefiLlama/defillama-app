@@ -51,7 +51,7 @@ export async function getStaticProps() {
 		accessorKey: item,
 		enableSorting: false,
 		meta: {
-			headerHelperText: descriptions[item] ?? null
+			headerHelperText: descriptions[item as string] ?? null
 		}
 	}))
 

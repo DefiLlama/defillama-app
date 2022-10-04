@@ -2,21 +2,13 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
 import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
-import { YieldsPoolsTable } from '~/components/Table'
-import {
-	YieldAttributes,
-	TVLRange,
-	APYRange,
-	FiltersByChain,
-	YieldProjects,
-	FiltersByCategory,
-	ResetAllYieldFilters
-} from '~/components/Filters'
+import { YieldsBorrowTable } from '~/components/Table'
+import { YieldAttributes, FiltersByChain, YieldProjects, ResetAllYieldFilters } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
 
-const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
+const YieldPageBorrow = ({ pools, projectList, chainList, categoryList }) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
@@ -48,18 +40,18 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 					project: curr.projectName,
 					airdrop: curr.airdrop,
 					chains: [curr.chain],
-					tvl: curr.tvlUsd,
-					apy: curr.apy,
 					apyBase: curr.apyBase,
 					apyReward: curr.apyReward,
-					rewardTokensSymbols: curr.rewardTokensSymbols,
-					rewards: curr.rewardTokensNames,
-					change1d: curr.apyPct1D,
-					change7d: curr.apyPct7D,
-					outlook: curr.apy >= 0.005 ? curr.predictions.predictedClass : null,
-					confidence: curr.apy >= 0.005 ? curr.predictions.binnedConfidence : null,
+					apyBorrow: curr.apyBorrow,
+					apyBaseBorrow: curr.apyBaseBorrow,
+					apyRewardBorrow: curr.apyRewardBorrow,
+					totalSupplyUsd: curr.totalSupplyUsd,
+					totalBorrowUsd: curr.totalBorrowUsd,
+					totalAvailableUsd: curr.totalAvailableUsd,
 					url: curr.url,
-					category: curr.category
+					ltv: curr.ltv,
+					rewardTokensSymbols: curr.rewardTokensSymbols,
+					rewards: curr.rewardTokensNames
 				})
 			} else return acc
 		}, [])
@@ -88,16 +80,13 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 				<Dropdowns>
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
 					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
-					<FiltersByCategory categoryList={categoryList} selectedCategories={selectedCategories} pathname={pathname} />
 					<YieldAttributes pathname={pathname} />
-					<TVLRange />
-					<APYRange />
 					<ResetAllYieldFilters pathname={pathname} />
 				</Dropdowns>
 			</TableFilters>
 
 			{poolsData.length > 0 ? (
-				<YieldsPoolsTable data={poolsData} />
+				<YieldsBorrowTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
 					Couldn't find any pools for these filters
@@ -107,4 +96,4 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 	)
 }
 
-export default YieldPage
+export default YieldPageBorrow
