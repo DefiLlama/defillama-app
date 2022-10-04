@@ -111,21 +111,23 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	}
 ]
 
+export const listedAtColumn = {
+	header: 'Listed At',
+	accessorKey: 'listedAt',
+	cell: ({ getValue }) => (
+		<ListedAt>
+			<TooltipPopver content={`at ${toNiceDayAndHour(getValue())}`}>{toNiceDaysAgo(getValue())}</TooltipPopver>
+		</ListedAt>
+	),
+	size: 120,
+	meta: {
+		align: 'end' as const
+	}
+}
+
 export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
 	...protocolsColumns.slice(0, 3),
-	{
-		header: 'Listed At',
-		accessorKey: 'listedAt',
-		cell: ({ getValue }) => (
-			<ListedAt>
-				<TooltipPopver content={`at ${toNiceDayAndHour(getValue())}`}>{toNiceDaysAgo(getValue())}</TooltipPopver>
-			</ListedAt>
-		),
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
+	listedAtColumn,
 	...protocolsColumns.slice(3)
 ]
 
