@@ -11,15 +11,21 @@ import VirtualTable from '~/components/Table/Table'
 import { raisesColumns } from '~/components/Table/Defi/columns'
 
 export async function getStaticProps() {
-	const {records} = await fetch("https://api.airtable.com/v0/appGpVsrkpqsZ9qHH/Raises", {
-    headers:{
-      "Authorization": process.env.AIRTABLE_API_KEY 
-    }
-  }).then(r=>r.json())
+  let offset;
+  let allRecords = [];
+  do{
+    const data = await fetch(`https://api.airtable.com/v0/appGpVsrkpqsZ9qHH/Raises${offset ?`?offset=${offset}` : ''}`, {
+      headers:{
+        "Authorization": process.env.AIRTABLE_API_KEY
+      }
+    }).then(r=>r.json())
+    offset=data.offset;
+    allRecords = allRecords.concat(data.records)
+  }while(offset !== undefined)
 
 	return {
 		props:{
-      raises: records.filter(r=>
+      raises: allRecords.filter(r=>
         r.fields['Company name (pls match names in defillama)'] !== undefined &&
         r.fields["Source (twitter/news links better because blogposts go down quite often)"] !== undefined &&
         r.fields["Date (DD/MM/YYYY, the correct way)"] !== undefined
@@ -31,7 +37,7 @@ export async function getStaticProps() {
         chains: r.fields["Chain"] ?? [],
         sector:r.fields["Description (very smol)"] ?? null,
         source: r.fields["Source (twitter/news links better because blogposts go down quite often)"],
-        lead: r.fields["Lead Investor"]?.[0] ?? null,
+        lead: r.fields["Lead Investor"]?.[0] ?? "",
         otherInvestors: r.fields["Other investors"] ?? null,
         valuation: r.fields["Valuation (millions)"] ?? null,
       }))
@@ -57,7 +63,6 @@ function RaisesTable({ raises }) {
 }
 
 const Raises = ({raises}) => {
-  console.log(raises)
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
 			<RaisesTable raises={raises} />
