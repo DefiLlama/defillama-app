@@ -19,6 +19,7 @@ export interface IYieldTableRow {
 	category: string
 	strikeTvl?: boolean
 	configID: string
+	apyRewardBorrow?: number
 }
 
 export interface IYieldsProjectsTableRow {

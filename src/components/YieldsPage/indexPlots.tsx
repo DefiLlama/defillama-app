@@ -8,12 +8,12 @@ import {
 	FiltersByChain,
 	YieldProjects,
 	FiltersByCategory,
-	ResetAllYieldFilters,
-	attributeOptions
+	ResetAllYieldFilters
 } from '~/components/Filters'
 import { YieldsSearch } from '~/components/Search'
 import dynamic from 'next/dynamic'
 import { useFormatYieldQueryParams } from './hooks'
+import { toFilterPool } from './utils'
 
 interface IChartProps {
 	chartData: any
@@ -33,7 +33,7 @@ const BarChartYields = dynamic(() => import('~/components/ECharts/BarChart/Yield
 }) as React.FC<IChartProps>
 
 const PlotsPage = ({ pools, chainList, projectList, categoryList, median }) => {
-	const { query } = useRouter()
+	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
@@ -41,56 +41,20 @@ const PlotsPage = ({ pools, chainList, projectList, categoryList, median }) => {
 
 	const poolsData = React.useMemo(() => {
 		return pools.reduce((acc, curr) => {
-			let toFilter = true
-
-			selectedAttributes.forEach((attribute) => {
-				const attributeOption = attributeOptions.find((o) => o.key === attribute)
-
-				if (attributeOption) {
-					toFilter = toFilter && attributeOption.filterFn(curr)
-				}
+			const toFilter = toFilterPool({
+				curr,
+				pathname,
+				selectedProjects,
+				selectedChains,
+				selectedAttributes,
+				includeTokens,
+				excludeTokens,
+				selectedCategories,
+				minTvl,
+				maxTvl,
+				minApy,
+				maxApy
 			})
-
-			if (selectedProjects.length > 0) {
-				toFilter = toFilter && selectedProjects.map((p) => p.toLowerCase()).includes(curr.project.toLowerCase())
-			}
-
-			if (selectedCategories.length > 0) {
-				toFilter = toFilter && selectedCategories.map((p) => p.toLowerCase()).includes(curr.category.toLowerCase())
-			}
-
-			const tokensInPool = curr.symbol.split('-').map((x) => x.toLowerCase())
-
-			const includeToken =
-				includeTokens.length > 0
-					? includeTokens.map((t) => t.toLowerCase()).find((token) => tokensInPool.includes(token.toLowerCase()))
-					: true
-
-			const excludeToken = !excludeTokens
-				.map((t) => t.toLowerCase())
-				.find((token) => tokensInPool.includes(token.toLowerCase()))
-
-			toFilter =
-				toFilter &&
-				selectedChains.map((t) => t.toLowerCase()).includes(curr.chain.toLowerCase()) &&
-				includeToken &&
-				excludeToken
-
-			const isValidTvlRange =
-				(minTvl !== undefined && !Number.isNaN(Number(minTvl))) ||
-				(maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
-
-			const isValidApyRange =
-				(minApy !== undefined && !Number.isNaN(Number(minApy))) ||
-				(maxApy !== undefined && !Number.isNaN(Number(maxApy)))
-
-			if (isValidTvlRange) {
-				toFilter = toFilter && (minTvl ? curr.tvlUsd > minTvl : true) && (maxTvl ? curr.tvlUsd < maxTvl : true)
-			}
-
-			if (isValidApyRange) {
-				toFilter = toFilter && (minApy ? curr.apy > minApy : true) && (maxApy ? curr.apy < maxApy : true)
-			}
 
 			if (toFilter) {
 				return acc.concat(curr)
@@ -107,7 +71,8 @@ const PlotsPage = ({ pools, chainList, projectList, categoryList, median }) => {
 		selectedAttributes,
 		includeTokens,
 		excludeTokens,
-		selectedCategories
+		selectedCategories,
+		pathname
 	])
 
 	return (
