@@ -53,27 +53,29 @@ const PageView = () => {
 	const downloadCsv = () => {
 		const rows = [
 			[
-				'APY_SUPPLY_BASE',
-				'APY_SUPPLY_REWARD',
-				'APY_BORROW_BASE',
-				'APY_BORROW_REWARD',
-				'SUPPLY',
-				'BORROW',
-				'AVAILABLE',
-				'DATE'
+				'DATE',
+				'SUPPLY_BASE',
+				'SUPPLY_REWARD',
+				'BORROW_NET',
+				'BORROW_BASE',
+				'BORROW_REWARD',
+				'SUPPLIED',
+				'BORROWED',
+				'AVAILABLE'
 			]
 		]
 
 		chart.data?.forEach((item) => {
 			rows.push([
+				item.timestamp,
 				item.apyBase,
 				item.apyReward,
-				item.apyBaseBorrow,
+				-item.apyBaseBorrow + item.apyRewardBorrow,
+				-item.apyBaseBorrow,
 				item.apyRewardBorrow,
 				item.totalSupplyUsd,
 				item.totalBororwUsd,
-				item.totalSupplyUsd === null && item.totalBorrowUsd === null ? null : item.totalSupplyUsd - item.totalBorrowUsd,
-				item.timestamp
+				item.totalSupplyUsd === null && item.totalBorrowUsd === null ? null : item.totalSupplyUsd - item.totalBorrowUsd
 			])
 		})
 
@@ -101,7 +103,7 @@ const PageView = () => {
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData
 
 	const colors = {}
-	;['Supply', 'Borrows', 'Available'].forEach((l, index) => {
+	;['Supplied', 'Borrowed', 'Available'].forEach((l, index) => {
 		colors[l] = getColorFromNumber(index, 6)
 	})
 
@@ -141,7 +143,7 @@ const PageView = () => {
 
 		const dataArea = data?.filter((t) => t[1] !== null && t[2] !== null && t[3] !== null) ?? []
 		const areaChartData = dataArea.length
-			? dataArea.map((t) => ({ date: t[0], Supply: t[1], Borrows: t[2], Available: t[3] }))
+			? dataArea.map((t) => ({ date: t[0], Supplied: t[1], Borrowed: t[2], Available: t[3] }))
 			: []
 
 		const dataNetBorrowArea = data?.filter((t) => t[8] !== null) ?? []
@@ -199,11 +201,11 @@ const PageView = () => {
 							</tr>
 
 							<tr>
-								<th>Supply:</th>
+								<th>Supplied:</th>
 								<td>${toK(totalSupplyUsd ?? 0)}</td>
 							</tr>
 							<tr>
-								<th>Borrow:</th>
+								<th>Borrowed:</th>
 								<td>${toK(totalBorrowUsd ?? 0)}</td>
 							</tr>
 							<tr>
@@ -260,7 +262,7 @@ const PageView = () => {
 									chartData={areaChartData}
 									title="Pool Liquidity"
 									customLegendName="Filter"
-									customLegendOptions={['Supply', 'Borrows', 'Available']}
+									customLegendOptions={['Supplied', 'Borrowed', 'Available']}
 									valueSymbol="$"
 									stackColors={colors}
 								/>

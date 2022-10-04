@@ -73,7 +73,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Lending APY. This is the interest rate borrowers pay to lenders.'
+			headerHelperText: 'Base rate lenders earn which is generated from the borrow side.'
 		}
 	},
 	{
@@ -104,11 +104,11 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'APY for lending from incentive rewards.'
+			headerHelperText: 'Incentive reward APY for lending.'
 		}
 	},
 	{
-		header: 'Net Borrow APY',
+		header: 'Net Borrow',
 		accessorKey: 'apyBorrow',
 		enableSorting: true,
 		cell: (info) => {
@@ -125,7 +125,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Total net APY for borrowing.'
+			headerHelperText: 'Total net APY for borrowing (Base + Reward).'
 		}
 	},
 	{
@@ -146,7 +146,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'APY for borrowing paid as interest to lenders.'
+			headerHelperText: 'Interest borrowers pay to lenders.'
 		}
 	},
 	{
@@ -177,11 +177,11 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'APY for borrowing from incentive rewards.'
+			headerHelperText: 'Incentive reward APY for borrowing.'
 		}
 	},
 	{
-		header: 'Supply',
+		header: 'Supplied',
 		accessorKey: 'totalSupplyUsd',
 		enableSorting: true,
 		cell: (info) => {
