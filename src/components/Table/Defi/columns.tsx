@@ -121,7 +121,7 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 ]
 
 const formatRaise = (n)=>{
-	if(n>1e3){
+	if(n>=1e3){
 		return `${n/1e3}b`
 	}
 	return `${n}m`
