@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-table'
 import VirtualTable from '~/components/Table/Table'
 import { raisesColumns } from '~/components/Table/Defi/columns'
+import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 
 export async function getStaticProps() {
   let offset;
@@ -22,6 +23,11 @@ export async function getStaticProps() {
     offset=data.offset;
     allRecords = allRecords.concat(data.records)
   }while(offset !== undefined)
+  const  protocolList = await getSimpleProtocolsPageData(["name"])
+  const knownProtocols = protocolList.protocols.reduce((acc, c)=>({
+    ...acc,
+    [c.name]: true
+  }), {})
 
 	return {
 		props:{
@@ -40,6 +46,7 @@ export async function getStaticProps() {
         lead: r.fields["Lead Investor"]?.[0] ?? "",
         otherInvestors: r.fields["Other investors"] ?? null,
         valuation: r.fields["Valuation (millions)"] ?? null,
+        known: knownProtocols[r.fields["Company name (pls match names in defillama)"]] ?? false
       }))
     },
 		revalidate: revalidate()

@@ -3,7 +3,7 @@ import { ArrowUpRight, ChevronDown, ChevronRight } from 'react-feather'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import { ButtonYields } from '~/layout/Pool'
-import { capitalizeFirstLetter, chainIconUrl, formattedNum, formattedPercent } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import { listedAtColumn } from './Protocols/columns'
@@ -136,10 +136,13 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue }) => {
+		cell: ({ getValue, row }) => {
 			return (
 				<Name>
-					{getValue()}
+					{(row.original as any).known === true?
+						<CustomLink href={`/protocol/${slug(getValue() as string)}`}>{getValue()}</CustomLink>:
+						getValue()
+					}
 				</Name>
 			)
 		},
