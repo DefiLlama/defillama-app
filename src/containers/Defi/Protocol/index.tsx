@@ -45,12 +45,12 @@ import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 import { IFusedProtocolData } from '~/api/types'
-import { YieldsData } from '~/api/categories/yield'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
 import { FeesBody } from '~/pages/fees/[protocol]'
 import { DexCharts } from '~/containers/Dex/DexProtocol'
 import { useFetchProtocolDex } from '~/api/categories/dexs/client'
 import { useFetchProtocolFees } from '~/api/categories/fees/client'
+import { useYields } from '~/api/categories/yield/client'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -122,12 +122,11 @@ interface IProtocolContainerProps {
 	protocol: string
 	protocolData: IFusedProtocolData
 	backgroundColor: string
-	yields: YieldsData
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 
-function ProtocolContainer({ title, protocolData, protocol, backgroundColor, yields }: IProtocolContainerProps) {
+function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: IProtocolContainerProps) {
 	useScrollToTop()
 	const {
 		address = '',
@@ -166,6 +165,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor, yie
 
 	const { data: dex, loading: dexLoading } = useFetchProtocolDex(protocol)
 	const { data: fees } = useFetchProtocolFees(protocol)
+	const { data: yields } = useYields()
 
 	const {
 		tvls: tvlsByChain,
@@ -214,13 +214,14 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor, yie
 	)
 
 	const [yeildsNumber, averageApy] = React.useMemo(() => {
-		const projectYieldsExist = yields.props.projectList.find(({ slug }) => slug === protocol)
+		if (!yields) return [0, 0]
+		const projectYieldsExist = yields.find(({ project }) => project === protocol)
 		if (!projectYieldsExist) return [0, 0]
-		const projectYields = yields.props.pools.filter(({ project }) => project === protocol)
+		const projectYields = yields.filter(({ project }) => project === protocol)
 		const averageApy = projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
 
 		return [projectYields.length, averageApy]
-	}, [protocol, yields.props.projectList, yields.props.pools])
+	}, [protocol, yields])
 
 	const { mainChartData, allChainsChartData } = React.useMemo(() => {
 		if (!dex || dexLoading) return { mainChartData: [], allChainsChartData: [] }

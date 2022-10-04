@@ -98,3 +98,11 @@ export const useFetchProjectsList = () => {
 		loading: !data && !error
 	}
 }
+
+export const useYields = () => {
+	const { data = {} } = useSWR(YIELD_POOLS_API, fetcher)
+
+	const res = data?.data
+
+	return { data: res }
+}

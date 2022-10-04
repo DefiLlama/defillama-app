@@ -6,13 +6,11 @@ import { getColor } from '~/utils/getColor'
 import { revalidate } from '~/api'
 import { getProtocols, getProtocol, fuseProtocolData } from '~/api/categories/protocols'
 import { IFusedProtocolData, IProtocolResponse } from '~/api/types'
-import { getYieldPageData, YieldsData } from '~/api/categories/yield'
 
 type PageParams = {
 	protocol: string
 	protocolData: IFusedProtocolData
 	backgroundColor: string
-	yields: YieldsData
 }
 
 export const getStaticProps: GetStaticProps<PageParams> = async ({
@@ -21,7 +19,6 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 	}
 }) => {
 	const protocolRes: IProtocolResponse = await getProtocol(protocol)
-	const yields = await getYieldPageData()
 
 	delete protocolRes.tokensInUsd
 	delete protocolRes.tokens
@@ -41,8 +38,7 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 		props: {
 			protocol,
 			protocolData,
-			backgroundColor,
-			yields
+			backgroundColor
 		},
 		revalidate: revalidate()
 	}
