@@ -148,7 +148,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 	{
 		header: 'Amount raised',
 		accessorKey: 'amount',
-		cell: ({ getValue }) => <>{'$' + formatRaise(getValue())}</>,
+		cell: ({ getValue }) => <>{getValue()?'$' + formatRaise(getValue()):''}</>,
 		size: 140
 	},
 	...["round", "sector", "lead"].map(s=>(
