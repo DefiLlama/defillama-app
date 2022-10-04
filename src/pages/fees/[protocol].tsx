@@ -17,7 +17,7 @@ const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-const mapProtocolName = (protocolName: string) => {
+export const mapProtocolName = (protocolName: string) => {
 	if (protocolName === 'trader-joe') {
 		return 'traderjoe'
 	} else if (protocolName === 'aave') {

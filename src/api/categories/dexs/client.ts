@@ -1,6 +1,7 @@
 import useSWR from 'swr'
-import { HOURLY_PROTOCOL_API, DEXS_API, PROTOCOL_API } from '~/constants'
+import { HOURLY_PROTOCOL_API, DEXS_API, PROTOCOL_API, DEX_BASE_API } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
+import { IDexResponse } from './types'
 
 export const useFetchDexsList = () => {
 	const { data, error } = useSWR(DEXS_API, fetcher)
@@ -35,4 +36,10 @@ export const useDenominationPriceHistory = (geckoId?: string) => {
 	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Date.now()))
 
 	return { data, error, loading: geckoId && !data && !error }
+}
+
+export const useFetchProtocolDex = (protocolName) => {
+	const { data, error } = useSWR<IDexResponse>(protocolName ? `${DEX_BASE_API}/${protocolName}` : null, fetcher)
+	const loading = !data?.volumeHistory?.length
+	return { data, error, loading }
 }

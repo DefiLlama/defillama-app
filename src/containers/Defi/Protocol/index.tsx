@@ -46,10 +46,11 @@ import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 import { IFusedProtocolData } from '~/api/types'
 import { YieldsData } from '~/api/categories/yield'
-import { IDexResponse } from '~/api/categories/dexs/types'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { FeesBody, IFeesProps } from '~/pages/fees/[protocol]'
+import { FeesBody } from '~/pages/fees/[protocol]'
 import { DexCharts } from '~/containers/Dex/DexProtocol'
+import { useFetchProtocolDex } from '~/api/categories/dexs/client'
+import { useFetchProtocolFees } from '~/api/categories/fees/client'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -122,21 +123,11 @@ interface IProtocolContainerProps {
 	protocolData: IFusedProtocolData
 	backgroundColor: string
 	yields: YieldsData
-	dex: IDexResponse
-	fees: IFeesProps
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 
-function ProtocolContainer({
-	title,
-	protocolData,
-	protocol,
-	backgroundColor,
-	yields,
-	dex,
-	fees
-}: IProtocolContainerProps) {
+function ProtocolContainer({ title, protocolData, protocol, backgroundColor, yields }: IProtocolContainerProps) {
 	useScrollToTop()
 	const {
 		address = '',
@@ -172,6 +163,9 @@ function ProtocolContainer({
 	const [bobo, setBobo] = React.useState(false)
 
 	const [extraTvlsEnabled, updater] = useDefiManager()
+
+	const { data: dex, loading: dexLoading } = useFetchProtocolDex(protocol)
+	const { data: fees } = useFetchProtocolFees(protocol)
 
 	const {
 		tvls: tvlsByChain,
@@ -229,13 +223,14 @@ function ProtocolContainer({
 	}, [protocol, yields.props.projectList, yields.props.pools])
 
 	const { mainChartData, allChainsChartData } = React.useMemo(() => {
+		if (!dex || dexLoading) return { mainChartData: [], allChainsChartData: [] }
 		const volumeHistory = !!dex.volumeHistory ? dex.volumeHistory : []
 
 		return {
 			mainChartData: formatVolumeHistoryToChartDataByProtocol(volumeHistory, dex.name, dex.volumeAdapter),
 			allChainsChartData: formatVolumeHistoryToChartDataByChain(volumeHistory)
 		}
-	}, [dex])
+	}, [dex, dexLoading])
 
 	const chainsSplit = React.useMemo(() => {
 		return chainsStacked?.map((chain) => {
@@ -504,7 +499,7 @@ function ProtocolContainer({
 			{mainChartData?.length ? (
 				<DexCharts data={dex} chartData={mainChartData} name={name} isProtocolPage chainsChart={allChainsChartData} />
 			) : null}
-			{fees?.props?.chartData?.length ? <FeesBody {...fees.props} /> : null}
+			{fees?.chartData?.length ? <FeesBody {...fees} /> : null}
 
 			{showCharts && (
 				<>
