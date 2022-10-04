@@ -65,7 +65,6 @@ export function DexsTable({ data }) {
 
 export function VolumeByChainsTable({ data }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'totalVolume' }])
-
 	const instance = useReactTable({
 		data,
 		columns: volumesByChainsColumns,

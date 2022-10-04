@@ -138,16 +138,16 @@ export const volumesByChainsColumns: ColumnDef<IDexsRow>[] = [
 			align: 'end'
 		}
 	},
-	// {
-	// 	header: '7d Change',
-	// 	accessorKey: 'change_7d',
-	// 	enableSorting: true,
-	// 	cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-	// 	size: 140,
-	// 	meta: {
-	// 		align: 'end'
-	// 	}
-	// },
+	{
+		header: '7d Change',
+		accessorKey: 'changeVolume7d',
+		enableSorting: true,
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
 	{
 		header: '1m Change',
 		accessorKey: 'changeVolume30d',
