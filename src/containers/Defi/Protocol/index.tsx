@@ -45,6 +45,12 @@ import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 import { IFusedProtocolData } from '~/api/types'
+import { YieldsData } from '~/api/categories/yield'
+import { IDexResponse } from '~/api/categories/dexs/types'
+import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
+import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
+import { FeesBody, IFeesProps } from '~/pages/fees/[protocol]'
+import { DexCharts } from '~/containers/Dex/DexProtocol'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -116,13 +122,23 @@ interface IProtocolContainerProps {
 	protocol: string
 	protocolData: IFusedProtocolData
 	backgroundColor: string
+	yields: YieldsData
+	dex: IDexResponse
+	fees: IFeesProps
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 
-function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: IProtocolContainerProps) {
+function ProtocolContainer({
+	title,
+	protocolData,
+	protocol,
+	backgroundColor,
+	yields,
+	dex,
+	fees
+}: IProtocolContainerProps) {
 	useScrollToTop()
-
 	const {
 		address = '',
 		name,
@@ -203,6 +219,24 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 		() => buildProtocolData(addlProtocolData),
 		[addlProtocolData]
 	)
+
+	const [yeildsNumber, averageApy] = React.useMemo(() => {
+		const projectYieldsExist = yields.props.projectList.find(({ slug }) => slug === protocol)
+		if (!projectYieldsExist) return [0, 0]
+		const projectYields = yields.props.pools.filter(({ project }) => project === protocol)
+		const averageApy = projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
+
+		return [projectYields.length, averageApy]
+	}, [protocol, yields.props.projectList, yields.props.pools])
+
+	const { mainChartData, allChainsChartData } = React.useMemo(() => {
+		const volumeHistory = !!dex.volumeHistory ? dex.volumeHistory : []
+
+		return {
+			mainChartData: formatVolumeHistoryToChartDataByProtocol(volumeHistory, dex.name, dex.volumeAdapter),
+			allChainsChartData: formatVolumeHistoryToChartDataByChain(volumeHistory)
+		}
+	}, [dex])
 
 	const chainsSplit = React.useMemo(() => {
 		return chainsStacked?.map((chain) => {
@@ -441,10 +475,41 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					</LinksWrapper>
 				</Section>
 			</InfoWrapper>
+			{yeildsNumber > 0 && (
+				<InfoWrapper>
+					<Section>
+						<h3>Yields</h3>
+
+						<FlexRow>
+							<span>Number of pools tracked</span>
+							<span>:</span>
+							<span>{yeildsNumber}</span>
+						</FlexRow>
+						<FlexRow>
+							<span>Average APY</span>
+							<span>:</span>
+							<span>{averageApy.toFixed(2)}%</span>
+						</FlexRow>
+
+						<LinksWrapper>
+							<Link href={`/yields?project=${protocol}`} passHref>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+									<span>Open on Yields dashboard</span> <ArrowUpRight size={14} />
+								</Button>
+							</Link>
+						</LinksWrapper>
+					</Section>
+				</InfoWrapper>
+			)}
+
+			{mainChartData?.length ? (
+				<DexCharts data={dex} chartData={mainChartData} name={name} isProtocolPage chainsChart={allChainsChartData} />
+			) : null}
+			{fees?.props?.chartData?.length ? <FeesBody {...fees.props} /> : null}
 
 			{showCharts && (
 				<>
-					<SectionHeader>Charts</SectionHeader>
+					<SectionHeader>TVL Charts</SectionHeader>
 
 					<ChartsWrapper>
 						{loading ? (

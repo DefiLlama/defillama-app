@@ -11,6 +11,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { revalidate } from '~/api'
 import { capitalizeFirstLetter, chainIconUrl, formattedNum } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
+import { useRouter } from 'next/router'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -71,42 +72,58 @@ export const getStaticProps = async ({ params: { protocol } }) => {
 	}
 }
 
+export type IFeesProps = Awaited<ReturnType<typeof getStaticProps>>
+
 export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
+}
+
+export function FeesBody({ data, chartData }: InferGetStaticPropsType<typeof getStaticProps>) {
+	const { pathname } = useRouter()
+
+	const isProtocolPage = pathname.includes('protocol')
+	return (
+		<StatsSection>
+			<DetailsWrapper>
+				<Name>
+					{isProtocolPage ? (
+						'Fees and Revenue'
+					) : (
+						<>
+							<TokenLogo logo={data.logo ?? chainIconUrl(data.name)} size={24} />
+							<FormattedName text={data.name} maxCharacters={16} fontWeight={700} />
+						</>
+					)}
+				</Name>
+
+				<Stat>
+					<span>24h fees</span>
+					<span>{formattedNum(data.total1dFees || 0, true)}</span>
+				</Stat>
+
+				<Stat>
+					<span>24h revenue</span>
+					<span>{formattedNum(data.total1dRevenue || 0, true)}</span>
+				</Stat>
+			</DetailsWrapper>
+
+			<ChartWrapper>
+				<StackedChart
+					chartData={chartData}
+					title={isProtocolPage ? '' : 'Fees And Revenue'}
+					stacks={{ Fees: 'a', Revenue: 'a' }}
+					stackColors={stackedBarChartColors}
+				/>
+			</ChartWrapper>
+		</StatsSection>
+	)
 }
 
 export default function FeeProtocol({ data, chartData }: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout title={`${data.name} Fees - DefiLlama`} style={{ gap: '36px' }}>
 			<ProtocolsChainsSearch step={{ category: 'Fees', name: data.name, hideOptions: true }} />
-
-			<StatsSection>
-				<DetailsWrapper>
-					<Name>
-						<TokenLogo logo={data.logo ?? chainIconUrl(data.name)} size={24} />
-						<FormattedName text={data.name} maxCharacters={16} fontWeight={700} />
-					</Name>
-
-					<Stat>
-						<span>24h fees</span>
-						<span>{formattedNum(data.total1dFees || 0, true)}</span>
-					</Stat>
-
-					<Stat>
-						<span>24h revenue</span>
-						<span>{formattedNum(data.total1dRevenue || 0, true)}</span>
-					</Stat>
-				</DetailsWrapper>
-
-				<ChartWrapper>
-					<StackedChart
-						chartData={chartData}
-						title="Fees And Revenue"
-						stacks={{ Fees: 'a', Revenue: 'a' }}
-						stackColors={stackedBarChartColors}
-					/>
-				</ChartWrapper>
-			</StatsSection>
+			<FeesBody data={data} chartData={chartData} />
 
 			{/*
 		<BreakpointPanel id="chartWrapper">

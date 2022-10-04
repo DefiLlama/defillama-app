@@ -43,6 +43,51 @@ interface IProtocolContainerProps {
 	backgroundColor: string
 }
 
+interface IDexChartsProps {
+	data: IDexResponse
+	chartData: {
+		name: string
+		data: [Date, number][]
+	}[]
+	name: string
+	logo?: string
+	isProtocolPage?: boolean
+	chainsChart?: IDexChartsProps['chartData']
+}
+
+export const DexCharts = ({ logo, data, chartData, name, chainsChart, isProtocolPage = false }: IDexChartsProps) => {
+	return (
+		<StatsSection>
+			<DetailsWrapper>
+				{isProtocolPage ? (
+					<Name>Trading Volume</Name>
+				) : (
+					<Name>
+						<TokenLogo logo={logo} size={24} />
+						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
+					</Name>
+				)}
+
+				<Stat>
+					<span>24h volume</span>
+					<span>{formattedNum(data.total1dVolume || '0', true)}</span>
+				</Stat>
+
+				<Stat>
+					<span>24 change</span>
+					<span>{data.change1dVolume || 0}%</span>
+				</Stat>
+			</DetailsWrapper>
+
+			<ChartWrapper>
+				<StackedBarChart title="Total volume" chartData={chartData} />
+
+				{chainsChart && <StackedBarChart title="Volume by chain" chartData={chainsChart} />}
+			</ChartWrapper>
+		</StatsSection>
+	)
+}
+
 function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContainerProps) {
 	useScrollToTop()
 
@@ -88,29 +133,7 @@ function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContain
 					name: dexData.name
 				}}
 			/>
-
-			<StatsSection>
-				<DetailsWrapper>
-					<Name>
-						<TokenLogo logo={logo} size={24} />
-						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-					</Name>
-
-					<Stat>
-						<span>24h volume</span>
-						<span>{formattedNum(dexData.total1dVolume || '0', true)}</span>
-					</Stat>
-
-					<Stat>
-						<span>24 change</span>
-						<span>{dexData.change1dVolume || 0}%</span>
-					</Stat>
-				</DetailsWrapper>
-
-				<ChartWrapper>
-					<StackedBarChart chartData={mainChartData} />
-				</ChartWrapper>
-			</StatsSection>
+			<DexCharts logo={logo} data={dexData} chartData={mainChartData} name={name} />
 
 			<SectionHeader>Information</SectionHeader>
 			<InfoWrapper>

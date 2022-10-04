@@ -100,3 +100,5 @@ export async function getYieldMedianData() {
 		props: data
 	}
 }
+
+export type YieldsData = Awaited<ReturnType<typeof getYieldPageData>>
