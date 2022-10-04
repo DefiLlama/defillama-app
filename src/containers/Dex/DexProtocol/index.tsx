@@ -30,6 +30,7 @@ import { formattedNum, getBlockExplorer } from '~/utils'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
 import { IDexResponse } from '~/api/categories/dexs/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
+import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
 
 // TODO remove duplicate bar chart component and use '~/components/ECharts/BarChart'
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
@@ -97,12 +98,24 @@ function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContain
 					</Name>
 
 					<Stat>
-						<span>24h volume</span>
+						<span>
+							{dexData.disabled === true
+								? `Last day volume (${formatTimestampAsDate(
+										dexData.volumeHistory[dexData.volumeHistory.length - 1].timestamp
+								  )})`
+								: '24h volume'}
+						</span>
 						<span>{formattedNum(dexData.total1dVolume || '0', true)}</span>
 					</Stat>
 
 					<Stat>
-						<span>24 change</span>
+						<span>
+							{dexData.disabled === true
+								? `Last day change (${formatTimestampAsDate(
+										dexData.volumeHistory[dexData.volumeHistory.length - 1].timestamp
+								  )})`
+								: '24 change'}
+						</span>
 						<span>{dexData.change1dVolume || 0}%</span>
 					</Stat>
 				</DetailsWrapper>

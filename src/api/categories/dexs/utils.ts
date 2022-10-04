@@ -8,3 +8,14 @@ export const formatChain = (chain: string) => {
 	else
 		return c[0].toUpperCase() + c.slice(1)
 }
+
+function pad(s: number) {
+	return s < 10 ? "0" + s : s;
+}
+
+export function formatTimestampAsDate(timestamp: number) {
+	const date = new Date(timestamp * 1000);
+	return `${pad(date.getDate())}/${pad(
+		date.getMonth() + 1
+	)}/${date.getFullYear()}`;
+}
