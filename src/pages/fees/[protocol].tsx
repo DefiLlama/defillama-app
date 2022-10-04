@@ -32,36 +32,37 @@ export const getStaticProps = async ({ params: { protocol } }) => {
 	const data = await fetch(`https://fees.llama.fi/fees/${mapProtocolName(protocol)}`).then((r) => r.json())
 
 	const chartData = {}
+	if (data.feesHistory && data.revenueHistory) {
+		data.feesHistory.forEach((item) => {
+			if (!chartData[item.timestamp]) {
+				chartData[item.timestamp] = {}
+			}
 
-	data.feesHistory.forEach((item) => {
-		if (!chartData[item.timestamp]) {
-			chartData[item.timestamp] = {}
-		}
+			chartData[item.timestamp] = {
+				...chartData[item.timestamp],
+				Fees: Object.values(item.dailyFees).reduce(
+					(sum: number, curr: number) =>
+						Object.values(curr).reduce((item1: number, item2: number) => item1 + item2, 0) + sum,
+					0
+				)
+			}
+		})
 
-		chartData[item.timestamp] = {
-			...chartData[item.timestamp],
-			Fees: Object.values(item.dailyFees).reduce(
-				(sum: number, curr: number) =>
-					Object.values(curr).reduce((item1: number, item2: number) => item1 + item2, 0) + sum,
-				0
-			)
-		}
-	})
+		data.revenueHistory.forEach((item) => {
+			if (!chartData[item.timestamp]) {
+				chartData[item.timestamp] = {}
+			}
 
-	data.revenueHistory.forEach((item) => {
-		if (!chartData[item.timestamp]) {
-			chartData[item.timestamp] = {}
-		}
-
-		chartData[item.timestamp] = {
-			...chartData[item.timestamp],
-			Revenue: Object.values(item.dailyRevenue).reduce(
-				(sum: number, curr: number) =>
-					Object.values(curr).reduce((item1: number, item2: number) => item1 + item2, 0) + sum,
-				0
-			)
-		}
-	})
+			chartData[item.timestamp] = {
+				...chartData[item.timestamp],
+				Revenue: Object.values(item.dailyRevenue).reduce(
+					(sum: number, curr: number) =>
+						Object.values(curr).reduce((item1: number, item2: number) => item1 + item2, 0) + sum,
+					0
+				)
+			}
+		})
+	}
 
 	return {
 		props: {

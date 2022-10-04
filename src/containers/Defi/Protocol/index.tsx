@@ -48,7 +48,6 @@ import { IFusedProtocolData } from '~/api/types'
 import { YieldsData } from '~/api/categories/yield'
 import { IDexResponse } from '~/api/categories/dexs/types'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { FeesBody, IFeesProps } from '~/pages/fees/[protocol]'
 import { DexCharts } from '~/containers/Dex/DexProtocol'
 
