@@ -34,19 +34,30 @@ export async function getYieldPageData() {
 				? priceChainMapping[priceChainName]
 				: priceChainName
 
-			pricesList.push(p.rewardTokens.map((t) => `${priceChainName}:${t.toLowerCase()}`))
+			// using coingecko ids for projects on Neo, otherwise empty object
+			pricesList.push(
+				p.chain === 'Neo'
+					? [`coingecko:${p.project}`]
+					: p.rewardTokens.map((t) => `${priceChainName}:${t.toLowerCase()}`)
+			)
 		}
 	}
 	pricesList = [...new Set(pricesList.flat())]
 
-	const prices = (
-		await Promise.all([
-			fetch('https://coins.llama.fi/prices', {
-				method: 'POST',
-				body: JSON.stringify({ coins: pricesList })
-			}).then((res) => res.json())
-		])
-	)[0].coins
+	// price endpoint seems to break with too many tokens, splitting it to max 150 per request
+	const maxSize = 150
+	const pages = Math.ceil(pricesList.length / maxSize)
+	let pricesA = []
+	let x = ''
+	for (const p of [...Array(pages).keys()]) {
+		x = pricesList.slice(p * maxSize, maxSize * (p + 1)).join(',')
+		pricesA = [...pricesA, (await arrayFetcher([`https://coins.llama.fi/prices/current/${x}`]))[0].coins]
+	}
+	// flatten
+	let prices = {}
+	for (const p of pricesA.flat()) {
+		prices = { ...prices, ...p }
+	}
 
 	for (let p of data.pools) {
 		let priceChainName = p.chain.toLowerCase()
@@ -54,11 +65,14 @@ export async function getYieldPageData() {
 			? priceChainMapping[priceChainName]
 			: priceChainName
 
-		p['rewardTokensSymbols'] = [
-			...new Set(
-				p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
-			)
-		]
+		p['rewardTokensSymbols'] =
+			p.chain === 'Neo'
+				? [...new Set(p.rewardTokens.map((t) => prices[`coingecko:${p.project}`]?.symbol.toUpperCase() ?? null))]
+				: [
+						...new Set(
+							p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
+						)
+				  ]
 	}
 
 	for (let p of data.pools) {
