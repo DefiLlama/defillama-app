@@ -1,7 +1,9 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpRight, ChevronDown, ChevronRight } from 'react-feather'
+import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
+import Tooltip from '~/components/Tooltip'
 import { ButtonYields } from '~/layout/Pool'
 import { capitalizeFirstLetter, chainIconUrl, formattedNum, formattedPercent, slug, toNiceDayMonthAndYear } from '~/utils'
 import { AccordionButton, Name } from '../shared'
@@ -134,10 +136,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		cell: ({ getValue, row }) => {
 			return (
 				<Name>
-					{(row.original as any).known === true?
-						<CustomLink href={`/protocol/${slug(getValue() as string)}`}>{getValue()}</CustomLink>:
-						getValue()
-					}
+					{getValue()}
 				</Name>
 			)
 		},
@@ -157,16 +156,24 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		cell: ({ getValue }) => <>{getValue()?'$' + formatRaise(getValue()):''}</>,
 		size: 140
 	},
-	...["round", "sector", "lead"].map(s=>(
+	...["round", "sector"].map(s=>(
 		{
-			header: s==="lead"? "Lead Investor":capitalizeFirstLetter(s),
+			header: capitalizeFirstLetter(s),
 			accessorKey: s,
 			enableSorting: false,
 			size: 140
 		}
 	)),
 	{
-		header: 'Source',
+		header: 'Lead Investor',
+		accessorKey: 'lead',
+		size: 120,
+		enableSorting: false,
+		cell: ({ getValue }) => 
+			<Tooltip content={getValue() as string}>{getValue()}</Tooltip>,
+	},
+	{
+		header: 'Link',
 		accessorKey: 'source',
 		size: 45,
 		enableSorting: false,
@@ -179,7 +186,21 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		header: 'Valuation',
 		accessorKey: 'valuation',
 		cell: ({ getValue }) => <>{ getValue()?'$' + formatRaise(getValue()):''}</>,
-		size: 140
+		size: 100
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
+		size: 50
+	},
+	{
+		header: 'Other Investors',
+		accessorKey: 'otherInvestors',
+		size: 400,
+		enableSorting: false,
+		cell: ({ getValue }) => 
+			<Tooltip content={getValue() as string}>{getValue()}</Tooltip>,
 	},
 ]
 

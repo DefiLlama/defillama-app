@@ -19,7 +19,8 @@ export async function getStaticProps() {
 		props:{
       raises: data.raises.map(r=>({
         ...r,
-        lead: r.leadInvestors
+        lead: r.leadInvestors.join(", "),
+        otherInvestors: r.otherInvestors.join(", "),
       }))
     },
 		revalidate: revalidate()
