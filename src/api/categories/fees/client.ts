@@ -47,7 +47,5 @@ export const useFetchProtocolFees = (protocolName) => {
 
 	const loading = !res?.chartData?.length
 
-	console.log(data)
-
 	return { data: res, loading, error }
 }

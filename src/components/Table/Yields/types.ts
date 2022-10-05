@@ -20,6 +20,7 @@ export interface IYieldTableRow {
 	strikeTvl?: boolean
 	configID: string
 	apyRewardBorrow?: number
+	symbol: string
 }
 
 export interface IYieldsProjectsTableRow {
@@ -34,4 +35,10 @@ export interface IYieldsProjectsTableRow {
 
 export interface IYieldsTableProps {
 	data: Array<IYieldTableRow>
+}
+
+export interface IYieldsOptimizerTableRow extends IYieldTableRow {
+	borrow: IYieldsOptimizerTableRow
+	projectName: string
+	rewardTokensNames: string[]
 }

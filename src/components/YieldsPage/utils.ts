@@ -78,3 +78,44 @@ export function toFilterPool({
 
 	return toFilter
 }
+
+export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
+	const availableToLend = pools.filter(({ symbol, ltv }) => symbol.includes(tokenToLend) && ltv > 0)
+	const availableProjects = availableToLend.map(({ project }) => project)
+	const availableChains = availableToLend.map(({ chain }) => chain)
+
+	const lendBorrowPairs = pools.reduce((acc, pool) => {
+		if (
+			!availableProjects.includes(pool.project) ||
+			!availableChains.includes(pool.chain) ||
+			!pool.symbol.includes(tokenToBorrow)
+		)
+			return acc
+
+		const collatteralPools = availableToLend.filter(
+			(collateralPool) =>
+				collateralPool.chain === pool.chain &&
+				collateralPool.project === pool.project &&
+				!collateralPool.symbol.includes(tokenToBorrow) &&
+				collateralPool.pool !== pool.pool
+		)
+
+		const poolsPairs = collatteralPools.map((collatteralPool) => ({
+			...collatteralPool,
+			chains: [collatteralPool.chain],
+			borrow: pool
+		}))
+
+		return acc.concat(poolsPairs)
+	}, [])
+
+	return lendBorrowPairs
+}
+
+export const formatOptimizerPool = (pool) => {
+	const lendingReward = pool.apyBase || 0 + pool.apyReward || 0
+	const borrowReward = pool.borrow.apyBaseBorrow || 0 + pool.borrow.apyBaseBorrow || 0
+	const totalReward = lendingReward + borrowReward
+
+	return { ...pool, lendingReward, borrowReward, totalReward }
+}

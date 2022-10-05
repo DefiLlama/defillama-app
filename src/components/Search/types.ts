@@ -24,6 +24,7 @@ export interface IBaseSearchProps {
 	onItemClick?: (item: ISearchItem) => void
 	filters?: ReactNode
 	placeholder?: string
+	withValue?: boolean
 }
 
 export interface ICommonSearchProps {
