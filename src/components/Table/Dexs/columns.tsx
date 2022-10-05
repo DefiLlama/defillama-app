@@ -95,7 +95,8 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 		cell: (info) => <>{formattedNum(info.getValue())}</>,
 		size: 140,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Capital efficiency'
 		}
 	},
 	{
