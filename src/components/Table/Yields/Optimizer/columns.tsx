@@ -86,6 +86,27 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		}
 	},
 	{
+		header: 'Net APR',
+		accessorKey: 'totalReward',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<span
+					style={{
+						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
+					}}
+				>
+					{formattedPercent(info.getValue(), true, 700)}
+				</span>
+			)
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Lending Reward - Borrowing Cost'
+		}
+	},
+	{
 		header: 'Net Supply APR',
 		accessorKey: 'lendingReward',
 		enableSorting: true,
@@ -136,27 +157,6 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total net APY for borrowing (Base + Reward).'
-		}
-	},
-	{
-		header: 'Net APR',
-		accessorKey: 'totalReward',
-		enableSorting: true,
-		cell: (info) => {
-			return (
-				<span
-					style={{
-						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
-					}}
-				>
-					{formattedPercent(info.getValue(), true, 700)}
-				</span>
-			)
-		},
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Lending Reward - Borrowing Cost'
 		}
 	},
 	{
