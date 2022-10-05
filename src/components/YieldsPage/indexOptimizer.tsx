@@ -52,7 +52,7 @@ const YieldsOptimizerPage = ({ pools }) => {
 				<YieldsOptimizerTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					Couldn't find any pools for these filters. Please, select both tokens.
+					Please select both tokens.
 				</Panel>
 			)}
 		</>
