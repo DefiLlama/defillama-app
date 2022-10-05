@@ -23,6 +23,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			return (
 				<NameYieldPool
+					withoutLink
 					value={name}
 					configID={row.original.configID}
 					url={row.original.url}

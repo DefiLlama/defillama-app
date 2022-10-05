@@ -14,6 +14,7 @@ interface INameYieldPoolProps {
 	url: string
 	index: number
 	borrow?: boolean
+	withoutLink?: boolean
 }
 
 interface INameYield {
@@ -23,7 +24,7 @@ interface INameYield {
 	borrow?: boolean
 }
 
-export function NameYieldPool({ value, configID, url, index, borrow }: INameYieldPoolProps) {
+export function NameYieldPool({ value, configID, url, index, borrow, withoutLink }: INameYieldPoolProps) {
 	const tokenUrl = borrow ? `/yields/borrow/${configID}` : `/yields/pool/${configID}`
 
 	return (
@@ -40,9 +41,13 @@ export function NameYieldPool({ value, configID, url, index, borrow }: INameYiel
 				''
 			)}
 
-			<CustomLink href={tokenUrl} target="_blank">
+			{withoutLink ? (
 				<FormattedName text={value} maxCharacters={10} link fontWeight={500} />
-			</CustomLink>
+			) : (
+				<CustomLink href={tokenUrl} target="_blank">
+					<FormattedName text={value} maxCharacters={10} link fontWeight={500} />
+				</CustomLink>
+			)}
 		</Wrapper>
 	)
 }
