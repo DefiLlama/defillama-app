@@ -96,7 +96,7 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Capital efficiency'
+			headerHelperText: 'This ratio can be interpreted as capital efficiency'
 		}
 	},
 	{
