@@ -66,7 +66,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 	},
 
 	{
-		header: 'Supply Total',
+		header: 'Net Supply APR',
 		accessorKey: 'lendingReward',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
@@ -98,7 +98,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		}
 	},
 	{
-		header: 'Total Borrow',
+		header: 'Net Borrow APR',
 		accessorKey: 'borrowReward',
 		enableSorting: true,
 		cell: (info) => {
@@ -119,7 +119,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		}
 	},
 	{
-		header: 'Borrowing Cost',
+		header: 'Net APR',
 		accessorKey: 'totalReward',
 		enableSorting: true,
 		cell: (info) => {
@@ -209,14 +209,15 @@ const columnOrders = {
 		'apy',
 		'project',
 		'chains',
+		'totalAvailableUsd',
+		'lendingReward',
+		'borrowReward',
+		'totalReward',
 		'apyBase',
 		'apyReward',
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
-		'lendingReward',
-		'borrowReward',
-		'totalReward',
 		'totalReward',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
@@ -227,51 +228,51 @@ const columnOrders = {
 		'apy',
 		'project',
 		'chains',
+		'totalAvailableUsd',
+		'lendingReward',
+		'borrowReward',
+		'totalReward',
 		'apyBase',
 		'apyReward',
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
-		'lendingReward',
-		'borrowReward',
-		'totalReward',
 		'totalSupplyUsd',
-		'totalBorrowUsd',
-		'totalAvailableUsd'
+		'totalBorrowUsd'
 	],
 	640: [
 		'pool',
 		'apy',
 		'project',
 		'chains',
+		'totalAvailableUsd',
+		'lendingReward',
+		'borrowReward',
+		'totalReward',
 		'apyBase',
 		'apyReward',
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
-		'lendingReward',
-		'borrowReward',
-		'totalReward',
 		'totalSupplyUsd',
-		'totalBorrowUsd',
-		'totalAvailableUsd'
+		'totalBorrowUsd'
 	],
 	1280: [
 		'pool',
 		'apy',
 		'project',
 		'chains',
+		'totalAvailableUsd',
+		'lendingReward',
+		'borrowReward',
+		'totalReward',
 		'apyBase',
 		'apyReward',
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
-		'lendingReward',
-		'borrowReward',
-		'totalReward',
 		'totalSupplyUsd',
-		'totalBorrowUsd',
-		'totalAvailableUsd'
+		'totalBorrowUsd'
 	]
 }
 

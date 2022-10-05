@@ -76,7 +76,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	}, [combobox.value, onSearchTermChange])
 
 	// Resets combobox value when popover is collapsed
-	if (!combobox.mounted && combobox.value) {
+	if (!props.withValue && !combobox.mounted && combobox.value) {
 		combobox.setValue('')
 	}
 

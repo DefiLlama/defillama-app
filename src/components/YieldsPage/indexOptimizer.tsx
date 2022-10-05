@@ -23,7 +23,7 @@ const SearchWrapper = styled.div`
 const YieldsOptimizerPage = ({ pools }) => {
 	const { query, pathname } = useRouter()
 
-	const { lend = 'USDC', borrow = 'ETH' } = query
+	const { lend, borrow } = query
 
 	const poolsData = React.useMemo(() => {
 		return findOptimizerPools(pools, lend, borrow).map(formatOptimizerPool)
@@ -32,7 +32,12 @@ const YieldsOptimizerPage = ({ pools }) => {
 	return (
 		<>
 			<Header>
-				Yields Optimizer Calculator (Supply: {lend} ➞ Borrow: {borrow}){' '}
+				Yields Optimizer Calculator{' '}
+				{lend && borrow ? (
+					<>
+						(Supply: {lend || ''} ➞ Borrow: {borrow || ''})
+					</>
+				) : null}
 			</Header>
 			<SearchWrapper>
 				<YieldsSearch pathname={pathname} lend />
@@ -47,7 +52,7 @@ const YieldsOptimizerPage = ({ pools }) => {
 				<YieldsOptimizerTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					Couldn't find any pools for these filters
+					Couldn't find any pools for these filters. Please, select both tokens.
 				</Panel>
 			)}
 		</>

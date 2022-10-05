@@ -14,6 +14,7 @@ export default function YieldsSearch({ lend = false, ...props }: IYieldSearchPro
 	return (
 		<DesktopSearch
 			{...props}
+			withValue
 			data={data}
 			loading={loading}
 			onItemClick={onItemClick}

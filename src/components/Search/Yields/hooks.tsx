@@ -56,8 +56,8 @@ export function useGetTokensSearchList(lend = true, mobile = false): IGetSearchL
 			yields?.map((el) => ({
 				name: `${el.name} (${el.symbol.toUpperCase()})`,
 				symbol: el.symbol.toUpperCase(),
-				route: `/yields/optimizer?${targetParam}=${el.symbol.toUpperCase() || 'USDC'}&${restParam}=${
-					router.query[restParam] || 'ETH'
+				route: `/yields/optimizer?${targetParam}=${el.symbol.toUpperCase()}&${restParam}=${
+					router.query[restParam] || ''
 				}`,
 				logo: el.image
 			})) ?? []
