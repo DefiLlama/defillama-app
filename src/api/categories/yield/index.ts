@@ -108,6 +108,8 @@ export async function getYieldMedianData() {
 	}
 }
 
+export type YieldsData = Awaited<ReturnType<typeof getYieldPageData>>
+
 export async function getLendBorrowData() {
 	const props = (await getYieldPageData()).props
 

@@ -51,6 +51,8 @@ export const CHAINS_API = 'https://api.llama.fi/chains'
 export const DEXS_API = 'https://api.llama.fi/dexs'
 export const DEX_BASE_API = 'https://api.llama.fi/dex'
 
+export const FEES_BASE_API = 'https://fees.llama.fi/fees'
+
 export const USER_METRICS_PROTOCOL_API = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/stats'
 export const USER_METRICS_CHAIN_API = 'https://users.llama.fi/chain'
 export const USER_METRICS_CHAIN_API_BY_DATE = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/chain'

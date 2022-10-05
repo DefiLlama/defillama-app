@@ -45,6 +45,12 @@ import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 import { IFusedProtocolData } from '~/api/types'
+import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
+import { FeesBody } from '~/pages/fees/[protocol]'
+import { DexCharts } from '~/containers/Dex/DexProtocol'
+import { useFetchProtocolDex } from '~/api/categories/dexs/client'
+import { useFetchProtocolFees } from '~/api/categories/fees/client'
+import { useYields } from '~/api/categories/yield/client'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -122,7 +128,6 @@ const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 
 function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: IProtocolContainerProps) {
 	useScrollToTop()
-
 	const {
 		address = '',
 		name,
@@ -157,6 +162,10 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 	const [bobo, setBobo] = React.useState(false)
 
 	const [extraTvlsEnabled, updater] = useDefiManager()
+
+	const { data: dex, loading: dexLoading } = useFetchProtocolDex(protocol)
+	const { data: fees } = useFetchProtocolFees(protocol)
+	const { data: yields } = useYields()
 
 	const {
 		tvls: tvlsByChain,
@@ -203,6 +212,26 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 		() => buildProtocolData(addlProtocolData),
 		[addlProtocolData]
 	)
+
+	const [yeildsNumber, averageApy] = React.useMemo(() => {
+		if (!yields) return [0, 0]
+		const projectYieldsExist = yields.find(({ project }) => project === protocol)
+		if (!projectYieldsExist) return [0, 0]
+		const projectYields = yields.filter(({ project }) => project === protocol)
+		const averageApy = projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
+
+		return [projectYields.length, averageApy]
+	}, [protocol, yields])
+
+	const { mainChartData, allChainsChartData } = React.useMemo(() => {
+		if (!dex || dexLoading) return { mainChartData: [], allChainsChartData: [] }
+		const volumeHistory = !!dex.volumeHistory ? dex.volumeHistory : []
+
+		return {
+			mainChartData: formatVolumeHistoryToChartDataByProtocol(volumeHistory, dex.name, dex.volumeAdapter),
+			allChainsChartData: formatVolumeHistoryToChartDataByChain(volumeHistory)
+		}
+	}, [dex, dexLoading])
 
 	const chainsSplit = React.useMemo(() => {
 		return chainsStacked?.map((chain) => {
@@ -441,10 +470,41 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					</LinksWrapper>
 				</Section>
 			</InfoWrapper>
+			{yeildsNumber > 0 && (
+				<InfoWrapper>
+					<Section>
+						<h3>Yields</h3>
+
+						<FlexRow>
+							<span>Number of pools tracked</span>
+							<span>:</span>
+							<span>{yeildsNumber}</span>
+						</FlexRow>
+						<FlexRow>
+							<span>Average APY</span>
+							<span>:</span>
+							<span>{averageApy.toFixed(2)}%</span>
+						</FlexRow>
+
+						<LinksWrapper>
+							<Link href={`/yields?project=${protocol}`} passHref>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+									<span>Open on Yields dashboard</span> <ArrowUpRight size={14} />
+								</Button>
+							</Link>
+						</LinksWrapper>
+					</Section>
+				</InfoWrapper>
+			)}
+
+			{mainChartData?.length ? (
+				<DexCharts data={dex} chartData={mainChartData} name={name} isProtocolPage chainsChart={allChainsChartData} />
+			) : null}
+			{fees?.chartData?.length ? <FeesBody {...fees} /> : null}
 
 			{showCharts && (
 				<>
-					<SectionHeader>Charts</SectionHeader>
+					<SectionHeader>TVL Charts</SectionHeader>
 
 					<ChartsWrapper>
 						{loading ? (
