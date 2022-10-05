@@ -65,7 +65,26 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		},
 		size: 60
 	},
-
+	{
+		header: 'Available',
+		accessorKey: 'totalAvailableUsd',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<span
+					style={{
+						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
+					}}
+				>
+					{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}
+				</span>
+			)
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
 	{
 		header: 'Net Supply APR',
 		accessorKey: 'lendingReward',
@@ -179,26 +198,6 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Available',
-		accessorKey: 'totalAvailableUsd',
-		enableSorting: true,
-		cell: (info) => {
-			return (
-				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
-					}}
-				>
-					{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}
-				</span>
-			)
-		},
-		size: 120,
-		meta: {
-			align: 'end'
-		}
 	}
 ]
 
@@ -221,8 +220,7 @@ const columnOrders = {
 		'apyRewardBorrow',
 		'totalReward',
 		'totalSupplyUsd',
-		'totalBorrowUsd',
-		'totalAvailableUsd'
+		'totalBorrowUsd'
 	],
 	400: [
 		'pool',
