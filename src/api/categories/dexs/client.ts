@@ -8,6 +8,11 @@ export const useFetchDexsList = () => {
 	return { data, error, loading: !data && !error }
 }
 
+export const useFetchCharts = () => {
+	const { data, error } = useSWR(`${DEXS_API}?includeCharts=true`, fetcher)
+	return { data, error, loading: !data && !error }
+}
+
 export const useFetchProtocol = (protocolName) => {
 	const { data, error } = useSWR(protocolName ? `${PROTOCOL_API}/${protocolName}` : null, fetcher)
 

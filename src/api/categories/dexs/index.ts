@@ -19,8 +19,9 @@ export async function getDexPageData(dex: string) {
 }
 
 // - used in /dexs and /dexs/[chain]
-export const getChainPageData = async (chain?: string) => {
-	const API = chain ? `${DEXS_API}/${chain}` : DEXS_API
+export const getChainPageData = async (chain?: string, includeCharts?: boolean) => {
+	let API = chain ? `${DEXS_API}/${chain}` : DEXS_API
+	if (includeCharts === true) API = `${API}?includeCharts=true`
 	const { dexs, totalVolume, changeVolume1d, changeVolume7d, changeVolume30d, totalDataChart, totalDataChartBreakdown, allChains } =
 		(await fetch(API).then((res) => res.json())) as IGetDexsResponseBody
 
