@@ -22,6 +22,7 @@ interface INameYield {
 	projectslug: string
 	airdrop?: boolean
 	borrow?: boolean
+	withoutLink?: boolean
 }
 
 export function NameYieldPool({ value, configID, url, index, borrow, withoutLink }: INameYieldPoolProps) {
@@ -52,7 +53,7 @@ export function NameYieldPool({ value, configID, url, index, borrow, withoutLink
 	)
 }
 
-export function NameYield({ project, projectslug, airdrop, borrow, ...props }: INameYield) {
+export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, ...props }: INameYield) {
 	const iconUrl = tokenIconUrl(project)
 	const tokenUrl = borrow ? `/yields/borrow?project=${projectslug}` : `/yields?project=${projectslug}`
 
@@ -64,7 +65,11 @@ export function NameYield({ project, projectslug, airdrop, borrow, ...props }: I
 				</Tooltip>
 			)}
 			<TokenLogo logo={iconUrl} />
-			<CustomLink href={tokenUrl}>{project}</CustomLink>
+			{withoutLink ? (
+				<FormattedName text={project} maxCharacters={20} link fontWeight={500} margin />
+			) : (
+				<CustomLink href={tokenUrl}>{project}</CustomLink>
+			)}
 		</AirdropWrapper>
 	)
 }

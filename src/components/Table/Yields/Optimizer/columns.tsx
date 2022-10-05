@@ -40,6 +40,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		enableSorting: false,
 		cell: ({ row }) => (
 			<NameYield
+				withoutLink
 				project={row.original.projectName}
 				projectslug={row.original.projectslug}
 				airdrop={row.original.airdrop}
