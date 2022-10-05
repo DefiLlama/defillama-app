@@ -13,7 +13,7 @@ import { getChainsPageData } from '~/api/categories/protocols'
 import { formatChain } from '~/api/categories/dexs/utils'
 import type { VolumeSummaryDex } from '~/api/categories/dexs/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
-import { useFetchCharts } from '~/api/categories/dexs/client'
+// import { useFetchCharts } from '~/api/categories/dexs/client'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -67,24 +67,24 @@ export default function DexsContainer({
 	allChains
 }: IDexsContainer) {
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
-	const [charts, setCharts] = React.useState<Pick<IDexsContainer, 'totalDataChart' | 'totalDataChartBreakdown'>>({
+	/* const [charts, setCharts] = React.useState<Pick<IDexsContainer, 'totalDataChart' | 'totalDataChartBreakdown'>>({
 		totalDataChart,
 		totalDataChartBreakdown
-	})
-	const { data, error, loading } = useFetchCharts()
+	}) */
+	// const { data, error, loading } = useFetchCharts()
 
-	React.useEffect(() => {
+	/* 	React.useEffect(() => {
 		if (!error && !loading)
 			setCharts({
 				totalDataChart: data.totalDataChart,
 				totalDataChartBreakdown: data.totalDataChartBreakdown
 			})
-	}, [data])
+	}, [data]) */
 
 	const chartData = React.useMemo(() => {
 		if (enableBreakdownChart) {
 			return formatVolumeHistoryToChartDataByProtocol(
-				charts.totalDataChartBreakdown.map(([date, value]) => ({
+				totalDataChartBreakdown.map(([date, value]) => ({
 					dailyVolume: Object.entries(value).reduce((acc, [dex, volume]) => {
 						acc[dex] = { [dex]: volume }
 						return acc
@@ -94,8 +94,8 @@ export default function DexsContainer({
 				chain,
 				chain.toLocaleLowerCase()
 			)
-		} else return charts.totalDataChart.map(([date, value]) => [new Date(+date * 1000), value])
-	}, [charts, enableBreakdownChart, chain])
+		} else return totalDataChart.map(([date, value]) => [new Date(+date * 1000), value])
+	}, [enableBreakdownChart, chain, totalDataChartBreakdown, totalDataChart])
 
 	return (
 		<>
@@ -127,20 +127,18 @@ export default function DexsContainer({
 					</PanelHiddenMobile>
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
-					{chartData && chartData.length > 0 && (
-						<StackedBarChart
-							chartData={
-								enableBreakdownChart
-									? (chartData as IStackedBarChartProps['chartData'])
-									: [
-											{
-												name: chain,
-												data: chartData as IStackedBarChartProps['chartData'][0]['data']
-											}
-									  ]
-							}
-						/>
-					)}
+					<StackedBarChart
+						chartData={
+							enableBreakdownChart
+								? (chartData as IStackedBarChartProps['chartData'])
+								: [
+										{
+											name: chain,
+											data: chartData as IStackedBarChartProps['chartData'][0]['data']
+										}
+								  ]
+						}
+					/>
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 

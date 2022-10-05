@@ -21,7 +21,6 @@ export async function getDexPageData(dex: string) {
 // - used in /dexs and /dexs/[chain]
 export const getChainPageData = async (chain?: string, includeCharts?: boolean) => {
 	let API = chain ? `${DEXS_API}/${chain}` : DEXS_API
-	if (includeCharts === true) API = `${API}?includeCharts=true`
 	const { dexs, totalVolume, changeVolume1d, changeVolume7d, changeVolume30d, totalDataChart, totalDataChartBreakdown, allChains } =
 		(await fetch(API).then((res) => res.json())) as IGetDexsResponseBody
 
@@ -69,7 +68,7 @@ export const getChainPageData = async (chain?: string, includeCharts?: boolean) 
 export const getVolumesByChain = async () => {
 	const { allChains } = (await fetch(`${DEXS_API}?includeCharts=true`).then((res) => res.json())) as IGetDexsResponseBody
 
-	const volumesByChain = await Promise.all(allChains.map((chain) => getChainPageData(chain)))
+	const volumesByChain = await Promise.all(allChains.map((chain) => getChainPageData(chain, true)))
 
 	let tableData = volumesByChain.map(({ props: { totalVolume, changeVolume1d, changeVolume30d, chain, changeVolume7d } }) => ({
 		name: chain,
