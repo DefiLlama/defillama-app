@@ -6,7 +6,7 @@ import { getChainPageData } from '~/api/categories/dexs'
 import SEO from '~/components/SEO'
 
 export async function getStaticProps() {
-	const { props } = await getChainPageData()
+	const { props } = await getChainPageData(undefined, true)
 
 	return {
 		props,

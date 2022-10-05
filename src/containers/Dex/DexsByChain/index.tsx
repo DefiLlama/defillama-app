@@ -13,7 +13,6 @@ import { getChainsPageData } from '~/api/categories/protocols'
 import { formatChain } from '~/api/categories/dexs/utils'
 import type { VolumeSummaryDex } from '~/api/categories/dexs/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
-import useSWR from 'swr'
 import { useFetchCharts } from '~/api/categories/dexs/client'
 
 export async function getStaticProps() {
