@@ -38,7 +38,7 @@ function ProtocolList({
 	}))
 
 	const protocols = React.useMemo(() => {
-		if (category === 'Lending' || category === 'RWA') {
+		if (category === 'Lending' || category === 'Undercollateralized Lending') {
 			return filteredProtocols.map((p) => {
 				const borrowed = p.extraTvl?.borrowed?.tvl ?? null
 				const supplied = borrowed ? borrowed + p.tvl : null
@@ -79,7 +79,7 @@ function ProtocolList({
 
 			<ProtocolsTable
 				data={protocolTotals}
-				addlColumns={category === 'Lending' || category === 'RWA' ? ['borrowed', 'supplied', 'suppliedTvl'] : null}
+				addlColumns={category === 'Lending' || category === 'Undercollateralized Lending' ? ['borrowed', 'supplied', 'suppliedTvl'] : null}
 				removeColumns={category ? ['category'] : null}
 			/>
 		</>

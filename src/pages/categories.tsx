@@ -75,7 +75,8 @@ export const descriptions = {
 	Farm: 'Protocols that allow users to lock money in exchange for a protocol token',
 	'Liquid Staking':
 		'Protocols that allow you to stake assets in exchange of a reward, plus the receipt for the staking position is tradeable and liquid',
-	Oracle: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)'
+	Oracle: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)',
+	'Undercollateralized Lending': "Lending with no collateral backing loans",
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
