@@ -44,3 +44,61 @@ export function useGetYieldsSearchList(): IGetSearchList {
 
 	return { data: searchData || [], loading: fetchingProjects || fetchingYields, onItemClick }
 }
+
+export function useGetTokensSearchList(lend = true, mobile = false): IGetSearchList {
+	const router = useRouter()
+	const { data: yields, loading: fetchingYields } = useFetchYieldsList()
+
+	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
+
+	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
+		const yieldsList =
+			yields?.map((el) => ({
+				name: `${el.name} (${el.symbol.toUpperCase()})`,
+				symbol: el.symbol.toUpperCase(),
+				route: `/yields/optimizer?${targetParam}=${el.symbol.toUpperCase() || 'USDC'}&${restParam}=${
+					router.query[restParam] || 'ETH'
+				}`,
+				logo: el.image
+			})) ?? []
+
+		return yieldsList
+	}, [yields, restParam, router.query, targetParam])
+
+	const onItemClick = (item) => {
+		router.push(item.route, undefined, { shallow: true })
+	}
+
+	return { data: searchData || [], loading: fetchingYields, onItemClick }
+}
+
+export function useGetTokensSearchListMobile(): IGetSearchList {
+	const router = useRouter()
+	const { data: yields, loading: fetchingYields } = useFetchYieldsList()
+
+	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
+		const yieldsList =
+			yields?.map((el) => [
+				{
+					name: `${el.name} (${el.symbol.toUpperCase()})`,
+					symbol: el.symbol.toUpperCase(),
+					route: `/yields/optimizer?lend=${el.symbol.toUpperCase() || 'USDC'}&borrow=${router.query.borrow || 'ETH'}`,
+					logo: el.image
+				},
+				{
+					name: `Borrow: ${el.name} (${el.symbol.toUpperCase()})`,
+					symbol: el.symbol.toUpperCase(),
+					route: `/yields/optimizer?lend=${router.query.lend || 'USDC'}&borrow=${el.symbol.toUpperCase() || 'ETH'}`,
+					logo: el.image
+				}
+			]) ?? []
+
+		return yieldsList.flat()
+	}, [yields, router.query])
+
+	const onItemClick = (item) => {
+		router.push(item.route, undefined, { shallow: true })
+	}
+
+	return { data: searchData || [], loading: fetchingYields, onItemClick }
+}
