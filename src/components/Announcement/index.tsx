@@ -28,7 +28,7 @@ export default function Announcement({
 	}
 
 	return (
-		<Wrapper>
+		<AnnouncementWrapper>
 			{children}
 			<Image src={lubb} width={18} height={18} alt="llama love" />
 			{!notCancellable && (
@@ -36,11 +36,11 @@ export default function Announcement({
 					<X size={16} />
 				</Close>
 			)}
-		</Wrapper>
+		</AnnouncementWrapper>
 	)
 }
 
-const Wrapper = styled.p`
+export const AnnouncementWrapper = styled.p`
 	position: relative;
 	padding: 12px;
 	font-size: 1rem;

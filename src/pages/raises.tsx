@@ -9,44 +9,17 @@ import {
 } from '@tanstack/react-table'
 import VirtualTable from '~/components/Table/Table'
 import { raisesColumns } from '~/components/Table/Defi/columns'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { AnnouncementWrapper } from '~/components/Announcement'
+import Link from '~/components/Link'
 
 export async function getStaticProps() {
-  let offset;
-  let allRecords = [];
-  do{
-    const data = await fetch(`https://api.airtable.com/v0/appGpVsrkpqsZ9qHH/Raises${offset ?`?offset=${offset}` : ''}`, {
-      headers:{
-        "Authorization": process.env.AIRTABLE_API_KEY
-      }
-    }).then(r=>r.json())
-    offset=data.offset;
-    allRecords = allRecords.concat(data.records)
-  }while(offset !== undefined)
-  const  protocolList = await getSimpleProtocolsPageData(["name"])
-  const knownProtocols = protocolList.protocols.reduce((acc, c)=>({
-    ...acc,
-    [c.name]: true
-  }), {})
+    const data = await fetch(`https://api.llama.fi/raises`).then(r=>r.json())
 
 	return {
 		props:{
-      raises: allRecords.filter(r=>
-        r.fields['Company name (pls match names in defillama)'] !== undefined &&
-        r.fields["Source (twitter/news links better because blogposts go down quite often)"] !== undefined &&
-        r.fields["Date (DD/MM/YYYY, the correct way)"] !== undefined
-      ).map(r=>({
-        date: new Date(r.fields["Date (DD/MM/YYYY, the correct way)"]).getTime()/1000,
-        name: r.fields["Company name (pls match names in defillama)"],
-        round: r.fields["Round"] ?? null,
-        amount: r.fields["Amount raised (millions)"] ?? null,
-        chains: r.fields["Chain"] ?? [],
-        sector:r.fields["Description (very smol)"] ?? null,
-        source: r.fields["Source (twitter/news links better because blogposts go down quite often)"],
-        lead: r.fields["Lead Investor"]?.[0] ?? "",
-        otherInvestors: r.fields["Other investors"] ?? null,
-        valuation: r.fields["Valuation (millions)"] ?? null,
-        known: knownProtocols[r.fields["Company name (pls match names in defillama)"]] ?? false
+      raises: data.raises.map(r=>({
+        ...r,
+        lead: r.leadInvestors
       }))
     },
 		revalidate: revalidate()
@@ -72,6 +45,12 @@ function RaisesTable({ raises }) {
 const Raises = ({raises}) => {
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
+      <AnnouncementWrapper>
+				<span>Are we missing any funding round?</span>{' '}
+				<Link href="https://airtable.com/shrON6sFMgyFGulaq" external={true}>
+					<a> Add it here!</a>
+				</Link>
+			</AnnouncementWrapper>
 			<RaisesTable raises={raises} />
 		</Layout>
 	)

@@ -3,10 +3,9 @@ import { ArrowUpRight, ChevronDown, ChevronRight } from 'react-feather'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import { ButtonYields } from '~/layout/Pool'
-import { capitalizeFirstLetter, chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, formattedNum, formattedPercent, slug, toNiceDayMonthAndYear } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
-import { listedAtColumn } from './Protocols/columns'
 import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow } from './types'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
@@ -126,12 +125,8 @@ const formatRaise = (n)=>{
 	}
 	return `${n}m`
 }
+
 export const raisesColumns: ColumnDef<ICategoryRow>[] = [
-	{
-		...listedAtColumn,
-		header: 'Date',
-		accessorKey: 'date',
-	},
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -147,6 +142,14 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 			)
 		},
 		size: 200
+	},
+	{
+		cell: ({ getValue }) => (
+			<>{toNiceDayMonthAndYear(getValue())}</>
+		),
+		size: 120,
+		header: 'Date',
+		accessorKey: 'date',
 	},
 	{
 		header: 'Amount raised',

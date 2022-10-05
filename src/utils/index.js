@@ -50,6 +50,10 @@ export const toNiceHour = (date) => {
 	let x = dayjs.utc(dayjs.unix(date)).format('HH:mm')
 	return x
 }
+export const toNiceDayMonthAndYear= (date) => {
+	let x = dayjs.utc(dayjs.unix(date)).format('D MMM, YYYY')
+	return x
+}
 
 export const toNiceMonthlyDate = (date) => {
 	let x = dayjs.utc(dayjs.unix(date)).format('MMM YYYY')
