@@ -18,6 +18,7 @@ const PressPanel = ({ imageFilename }) => (
 )
 
 const pressList = [
+	['us-treasury.png', 'https://home.treasury.gov/system/files/261/FSOC-Digital-Assets-Report-2022.pdf'],
 	['ft.png', 'https://www.ft.com/content/b0c581c8-96b2-4c34-abcc-5189d7283891'],
 	[
 		'ecb.png',
