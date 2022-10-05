@@ -67,7 +67,7 @@ export const getChainPageData = async (chain?: string, includeCharts?: boolean) 
 
 // - used in /dexs/chains
 export const getVolumesByChain = async () => {
-	const { allChains } = (await fetch(DEXS_API).then((res) => res.json())) as IGetDexsResponseBody
+	const { allChains } = (await fetch(`${DEXS_API}?includeCharts=true`).then((res) => res.json())) as IGetDexsResponseBody
 
 	const volumesByChain = await Promise.all(allChains.map((chain) => getChainPageData(chain)))
 
