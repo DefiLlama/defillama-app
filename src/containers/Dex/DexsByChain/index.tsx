@@ -95,7 +95,7 @@ export default function DexsContainer({
 				chain.toLocaleLowerCase()
 			)
 		} else return charts.totalDataChart.map(([date, value]) => [new Date(+date * 1000), value])
-	}, [totalDataChart, totalDataChartBreakdown, enableBreakdownChart, chain])
+	}, [charts, enableBreakdownChart, chain])
 
 	return (
 		<>
@@ -127,18 +127,20 @@ export default function DexsContainer({
 					</PanelHiddenMobile>
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
-					<StackedBarChart
-						chartData={
-							enableBreakdownChart
-								? (chartData as IStackedBarChartProps['chartData'])
-								: [
-										{
-											name: chain,
-											data: chartData as IStackedBarChartProps['chartData'][0]['data']
-										}
-								  ]
-						}
-					/>
+					{chartData && chartData.length > 0 && (
+						<StackedBarChart
+							chartData={
+								enableBreakdownChart
+									? (chartData as IStackedBarChartProps['chartData'])
+									: [
+											{
+												name: chain,
+												data: chartData as IStackedBarChartProps['chartData'][0]['data']
+											}
+									  ]
+							}
+						/>
+					)}
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 
