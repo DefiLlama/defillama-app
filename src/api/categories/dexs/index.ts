@@ -1,13 +1,13 @@
 import type { LiteProtocol } from '~/api/types'
 import { DEXS_API, DEX_BASE_API, PROTOCOLS_API } from '~/constants'
 import { chainIconUrl, getColorFromNumber } from '~/utils'
-import { IDexResponse, IGetDexsResponseBody } from './types'
+import { IDexResponse, IGetDexsResponseBody, VolumeSummaryDex } from './types'
 import { formatChain } from './utils'
 
 export const getDex = async (dexName: string): Promise<IDexResponse> =>
 	await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
 
-export const getDexs = (): Promise<IGetDexsResponseBody> => fetch(DEXS_API).then((r) => r.json())
+export const getDexs = (): Promise<IGetDexsResponseBody> => fetch(`${DEXS_API}`).then((r) => r.json())
 
 // - used in /[dex]
 export async function getDexPageData(dex: string) {
@@ -20,7 +20,7 @@ export async function getDexPageData(dex: string) {
 
 // - used in /dexs and /dexs/[chain]
 export const getChainPageData = async (chain?: string, includeCharts?: boolean) => {
-	let API = chain ? `${DEXS_API}/${chain}` : DEXS_API
+	let API = chain ? `${DEXS_API}/${chain}` : `${DEXS_API}`
 	const { dexs, totalVolume, changeVolume1d, changeVolume7d, changeVolume30d, totalDataChart, totalDataChartBreakdown, allChains } =
 		(await fetch(API).then((res) => res.json())) as IGetDexsResponseBody
 
@@ -66,7 +66,7 @@ export const getChainPageData = async (chain?: string, includeCharts?: boolean) 
 
 // - used in /dexs/chains
 export const getVolumesByChain = async () => {
-	const { allChains } = (await fetch(`${DEXS_API}?includeCharts=true`).then((res) => res.json())) as IGetDexsResponseBody
+	const { allChains } = (await fetch(`${DEXS_API}`).then((res) => res.json())) as IGetDexsResponseBody
 
 	const volumesByChain = await Promise.all(allChains.map((chain) => getChainPageData(chain, true)))
 

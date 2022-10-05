@@ -127,18 +127,20 @@ export default function DexsContainer({
 					</PanelHiddenMobile>
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper">
-					<StackedBarChart
-						chartData={
-							enableBreakdownChart
-								? (chartData as IStackedBarChartProps['chartData'])
-								: [
-										{
-											name: chain,
-											data: chartData as IStackedBarChartProps['chartData'][0]['data']
-										}
-								  ]
-						}
-					/>
+					{chartData && chartData.length > 0 && (
+						<StackedBarChart
+							chartData={
+								enableBreakdownChart
+									? (chartData as IStackedBarChartProps['chartData'])
+									: [
+											{
+												name: chain,
+												data: chartData as IStackedBarChartProps['chartData'][0]['data']
+											}
+									  ]
+							}
+						/>
+					)}
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 

@@ -93,8 +93,7 @@ export const DexCharts = ({ logo, data, chartData, name, chainsChart, isProtocol
 			</DetailsWrapper>
 
 			<ChartWrapper>
-				<StackedBarChart title="Total volume" chartData={chartData} />
-
+				{chartData && chartData.length > 0 && <StackedBarChart title="Total volume" chartData={chartData} />}
 				{chainsChart && <StackedBarChart title="Volume by chain" chartData={chainsChart} />}
 			</ChartWrapper>
 		</StatsSection>
@@ -248,7 +247,9 @@ function ProtocolContainer({ title, dexData, backgroundColor }: IProtocolContain
 
 			<ChartsWrapper>
 				<LazyChart>
-					<StackedBarChart title="By chain all versions" chartData={allChainsChartData} />
+					{allChainsChartData && allChainsChartData.length && (
+						<StackedBarChart title="By chain all versions" chartData={allChainsChartData} />
+					)}
 				</LazyChart>
 			</ChartsWrapper>
 		</Layout>
