@@ -13,7 +13,7 @@ import { getChainsPageData } from '~/api/categories/protocols'
 import { formatChain } from '~/api/categories/dexs/utils'
 import type { VolumeSummaryDex } from '~/api/categories/dexs/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
-// import { useFetchCharts } from '~/api/categories/dexs/client'
+import { useFetchCharts } from '~/api/categories/dexs/client'
 
 export async function getStaticProps() {
 	const data = await getChainsPageData('All')
@@ -67,24 +67,22 @@ export default function DexsContainer({
 	allChains
 }: IDexsContainer) {
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
-	/* const [charts, setCharts] = React.useState<Pick<IDexsContainer, 'totalDataChart' | 'totalDataChartBreakdown'>>({
-		totalDataChart,
+	const [charts, setCharts] = React.useState<Pick<IDexsContainer, 'totalDataChartBreakdown'>>({
 		totalDataChartBreakdown
-	}) */
-	// const { data, error, loading } = useFetchCharts()
+	})
+	const { data, error, loading } = useFetchCharts()
 
-	/* 	React.useEffect(() => {
-		if (!error && !loading)
+	React.useEffect(() => {
+		if (data && !error && !loading)
 			setCharts({
-				totalDataChart: data.totalDataChart,
 				totalDataChartBreakdown: data.totalDataChartBreakdown
 			})
-	}, [data]) */
+	}, [data, loading, error])
 
 	const chartData = React.useMemo(() => {
 		if (enableBreakdownChart) {
 			return formatVolumeHistoryToChartDataByProtocol(
-				totalDataChartBreakdown.map(([date, value]) => ({
+				charts.totalDataChartBreakdown.map(([date, value]) => ({
 					dailyVolume: Object.entries(value).reduce((acc, [dex, volume]) => {
 						acc[dex] = { [dex]: volume }
 						return acc
@@ -95,7 +93,7 @@ export default function DexsContainer({
 				chain.toLocaleLowerCase()
 			)
 		} else return totalDataChart.map(([date, value]) => [new Date(+date * 1000), value])
-	}, [enableBreakdownChart, chain, totalDataChartBreakdown, totalDataChart])
+	}, [charts, enableBreakdownChart, chain, totalDataChart])
 
 	return (
 		<>
@@ -104,7 +102,11 @@ export default function DexsContainer({
 					category: 'DEXs',
 					name: chain
 				}}
-				onToggleClick={(enabled) => setEnableBreakdownChart(enabled)}
+				onToggleClick={
+					charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
+						? (enabled) => setEnableBreakdownChart(enabled)
+						: undefined
+				}
 			/>
 
 			<HeaderWrapper>

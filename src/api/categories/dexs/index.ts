@@ -7,7 +7,7 @@ import { formatChain } from './utils'
 export const getDex = async (dexName: string): Promise<IDexResponse> =>
 	await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
 
-export const getDexs = (): Promise<IGetDexsResponseBody> => fetch(`${DEXS_API}`).then((r) => r.json())
+export const getDexs = (): Promise<IGetDexsResponseBody> => fetch(`${DEXS_API}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`).then((r) => r.json())
 
 // - used in /[dex]
 export async function getDexPageData(dex: string) {
@@ -19,11 +19,20 @@ export async function getDexPageData(dex: string) {
 }
 
 // - used in /dexs and /dexs/[chain]
-export const getChainPageData = async (chain?: string, includeCharts?: boolean) => {
-	let API = chain ? `${DEXS_API}/${chain}` : `${DEXS_API}`
-	const { dexs, totalVolume, changeVolume1d, changeVolume7d, changeVolume30d, totalDataChart, totalDataChartBreakdown, allChains } =
-		(await fetch(API).then((res) => res.json())) as IGetDexsResponseBody
-
+export const getChainPageData = async (chain?: string) => {
+	let API = `${DEXS_API}`
+	if (chain !== undefined) API = `${API}/${chain}`
+	API = `${API}?excludeTotalDataChartBreakdown=true`
+	const {
+		dexs,
+		totalVolume,
+		changeVolume1d,
+		changeVolume7d,
+		changeVolume30d,
+		totalDataChart,
+		totalDataChartBreakdown,
+		allChains
+	} = (await fetch(API).then((res) => res.json())) as IGetDexsResponseBody
 	const getProtocolsRaw = (): Promise<{ protocols: LiteProtocol[] }> => fetch(PROTOCOLS_API).then((r) => r.json())
 	const protocolsData = await getProtocolsRaw()
 	const tvlData = protocolsData.protocols.reduce((acc, pd) => {
@@ -66,9 +75,9 @@ export const getChainPageData = async (chain?: string, includeCharts?: boolean) 
 
 // - used in /dexs/chains
 export const getVolumesByChain = async () => {
-	const { allChains } = (await fetch(`${DEXS_API}`).then((res) => res.json())) as IGetDexsResponseBody
+	const { allChains } = (await fetch(`${DEXS_API}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`).then((res) => res.json())) as IGetDexsResponseBody
 
-	const volumesByChain = await Promise.all(allChains.map((chain) => getChainPageData(chain, true)))
+	const volumesByChain = await Promise.all(allChains.map((chain) => getChainPageData(chain)))
 
 	let tableData = volumesByChain.map(({ props: { totalVolume, changeVolume1d, changeVolume30d, chain, changeVolume7d } }) => ({
 		name: chain,

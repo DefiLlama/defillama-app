@@ -21,8 +21,7 @@ export default function DexsSearch(props: IDexsSearchProps) {
 			data={data}
 			loading={loading}
 			filters={
-				props.onToggleClick &&
-				false && (
+				props.onToggleClick && (
 					<ListWrapper>
 						<ListItem>
 							<OptionToggle

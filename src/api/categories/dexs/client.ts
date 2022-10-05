@@ -4,12 +4,12 @@ import { fetcher } from '~/utils/useSWR'
 import { IDexResponse } from './types'
 
 export const useFetchDexsList = () => {
-	const { data, error } = useSWR(`${DEXS_API}`, fetcher)
+	const { data, error } = useSWR(`${DEXS_API}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`, fetcher)
 	return { data, error, loading: !data && !error }
 }
 
 export const useFetchCharts = () => {
-	const { data, error } = useSWR(`${DEXS_API}`, fetcher)
+	const { data, error } = useSWR(`${DEXS_API}?excludeTotalDataChart=true`, fetcher)
 	return { data, error, loading: !data && !error }
 }
 
