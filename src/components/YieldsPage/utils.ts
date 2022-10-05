@@ -80,7 +80,9 @@ export function toFilterPool({
 }
 
 export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
-	const availableToLend = pools.filter(({ symbol, ltv }) => symbol.includes(tokenToLend) && ltv > 0)
+	const availableToLend = pools.filter(
+		({ symbol, ltv }) => symbol.includes(tokenToLend) && ltv > 0 && !symbol.includes('Amm')
+	)
 	const availableProjects = availableToLend.map(({ project }) => project)
 	const availableChains = availableToLend.map(({ chain }) => chain)
 
@@ -88,7 +90,8 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 		if (
 			!availableProjects.includes(pool.project) ||
 			!availableChains.includes(pool.chain) ||
-			!pool.symbol.includes(tokenToBorrow)
+			!pool.symbol.includes(tokenToBorrow) ||
+			pool.symbol.includes('Amm')
 		)
 			return acc
 
