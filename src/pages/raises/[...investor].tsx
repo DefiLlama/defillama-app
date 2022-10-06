@@ -11,13 +11,28 @@ export async function getStaticProps({
 	const data = await fetch(`https://api.llama.fi/raises`).then((r) => r.json())
 
 	const raises = []
+	const investors = new Set<string>()
 
 	data.raises.forEach((r) => {
-		const lead = r.leadInvestors.find((l) => slug(l.toLowerCase()) === name)
+		let toFilter = false
 
-		const other = r.otherInvestors.find((o) => slug(o.toLowerCase()) === name)
+		r.leadInvestors.forEach((inv) => {
+			investors.add(inv)
 
-		if (lead || other) {
+			if (!toFilter) {
+				toFilter = slug(inv.toLowerCase()) === name
+			}
+		})
+
+		r.otherInvestors.forEach((inv) => {
+			investors.add(inv)
+
+			if (!toFilter) {
+				toFilter = slug(inv.toLowerCase()) === name
+			}
+		})
+
+		if (toFilter) {
 			raises.push(r)
 		}
 	})
@@ -34,7 +49,8 @@ export async function getStaticProps({
 				...r,
 				lead: r.leadInvestors.join(', '),
 				otherInvestors: r.otherInvestors.join(', ')
-			}))
+			})),
+			investors: Array.from(investors)
 		},
 		revalidate: revalidate()
 	}
