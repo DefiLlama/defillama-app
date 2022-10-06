@@ -71,13 +71,14 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		accessorKey: 'totalAvailableUsd',
 		enableSorting: true,
 		cell: (info) => {
+			const value = info.row.original.borrow.totalAvailableUsd
 			return (
 				<span
 					style={{
 						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
 					}}
 				>
-					{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}
+					{value === null ? null : '$' + formattedNum(value)}
 				</span>
 			)
 		},

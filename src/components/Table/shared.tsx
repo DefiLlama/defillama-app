@@ -48,6 +48,7 @@ export const TableFilters = styled.div`
 	align-items: center;
 	gap: 20px;
 	margin: 0 0 -20px;
+	padding-right: 16px;
 `
 
 export const Dropdowns = styled.span`
