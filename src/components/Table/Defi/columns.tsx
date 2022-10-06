@@ -3,9 +3,9 @@ import { ArrowUpRight, ChevronDown, ChevronRight } from 'react-feather'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
-import Tooltip from '~/components/Tooltip'
+import { Tooltip2 } from '~/components/Tooltip'
 import { ButtonYields } from '~/layout/Pool'
-import { capitalizeFirstLetter, chainIconUrl, formattedNum, formattedPercent, slug, toNiceDayMonthAndYear } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, formattedNum, formattedPercent, toNiceDayMonthAndYear } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow } from './types'
@@ -121,9 +121,9 @@ export const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 	}
 ]
 
-const formatRaise = (n)=>{
-	if(n>=1e3){
-		return `${n/1e3}b`
+const formatRaise = (n) => {
+	if (n >= 1e3) {
+		return `${n / 1e3}b`
 	}
 	return `${n}m`
 }
@@ -133,59 +133,62 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
-			return (
-				<Name>
-					{getValue()}
-				</Name>
-			)
+		cell: ({ getValue }) => {
+			return <Name>{getValue()}</Name>
 		},
 		size: 200
 	},
 	{
-		cell: ({ getValue }) => (
-			<>{toNiceDayMonthAndYear(getValue())}</>
-		),
+		cell: ({ getValue }) => <>{toNiceDayMonthAndYear(getValue())}</>,
 		size: 120,
 		header: 'Date',
-		accessorKey: 'date',
+		accessorKey: 'date'
 	},
 	{
 		header: 'Amount raised',
 		accessorKey: 'amount',
-		cell: ({ getValue }) => <>{getValue()?'$' + formatRaise(getValue()):''}</>,
+		cell: ({ getValue }) => <>{getValue() ? '$' + formatRaise(getValue()) : ''}</>,
 		size: 140
 	},
-	...["round", "sector"].map(s=>(
-		{
-			header: capitalizeFirstLetter(s),
-			accessorKey: s,
-			enableSorting: false,
-			size: 140
-		}
-	)),
+	...['round', 'sector'].map((s) => ({
+		header: capitalizeFirstLetter(s),
+		accessorKey: s,
+		enableSorting: false,
+		size: 140
+	})),
 	{
 		header: 'Lead Investor',
 		accessorKey: 'lead',
 		size: 120,
 		enableSorting: false,
-		cell: ({ getValue }) => 
-			<Tooltip content={getValue() as string}>{getValue()}</Tooltip>,
+		cell: ({ getValue }) => (
+			<Tooltip2 content={getValue() as string} style={{ padding: '12px' }}>
+				{getValue()}
+			</Tooltip2>
+		)
 	},
 	{
 		header: 'Link',
 		accessorKey: 'source',
-		size: 45,
+		size: 48,
 		enableSorting: false,
-		cell: ({ getValue }) => 
-			(<ButtonYields as="a" href={getValue() as string} target="_blank" rel="noopener noreferrer" data-lgonly useTextColor={true}>
+		cell: ({ getValue }) => (
+			<ButtonYields
+				as="a"
+				href={getValue() as string}
+				target="_blank"
+				rel="noopener noreferrer"
+				data-lgonly
+				useTextColor={true}
+			>
 				<ArrowUpRight size={14} />
-			</ButtonYields>),
+			</ButtonYields>
+		)
 	},
 	{
 		header: 'Valuation',
 		accessorKey: 'valuation',
-		cell: ({ getValue }) => <>{ getValue()?'$' + formatRaise(getValue()):''}</>,
+		cell: ({ getValue }) => <>{getValue() ? '$' + formatRaise(getValue()) : ''}</>,
 		size: 100
 	},
 	{
@@ -199,9 +202,8 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		accessorKey: 'otherInvestors',
 		size: 400,
 		enableSorting: false,
-		cell: ({ getValue }) => 
-			<Tooltip content={getValue() as string}>{getValue()}</Tooltip>,
-	},
+		cell: ({ getValue }) => <Tooltip2 content={getValue() as string}>{getValue()}</Tooltip2>
+	}
 ]
 
 export const chainsColumn: ColumnDef<IChainsRow>[] = [

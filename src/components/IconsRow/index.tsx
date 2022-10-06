@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Hovercard, HovercardAnchor, useHovercardState } from 'ariakit/hovercard'
 import styled from 'styled-components'
 import TokenLogo from '~/components/TokenLogo'
-import AriaTooltip from '~/components/Tooltip'
+import { Tooltip2 } from '~/components/Tooltip'
 import { useResize } from '~/hooks'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import Link from 'next/link'
@@ -52,11 +52,6 @@ const Popover = styled(Hovercard)`
 	}
 `
 
-const Tooltip = styled(AriaTooltip)`
-	padding: 6px;
-	flex-shrink: 0;
-`
-
 interface IChainLogo {
 	chain: string
 	url: string
@@ -76,13 +71,13 @@ export const ChainLogo = ({
 
 	if (yieldRewardsSymbol || disableLinks) {
 		return (
-			<Tooltip content={disableLinks ? chain : yieldRewardsSymbol}>
+			<Tooltip2 content={disableLinks ? chain : yieldRewardsSymbol}>
 				<TokenLogo address={chain} logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
-			</Tooltip>
+			</Tooltip2>
 		)
 	} else {
 		return (
-			<Tooltip content={chain}>
+			<Tooltip2 content={chain}>
 				<Link
 					key={chain}
 					href={
@@ -103,7 +98,7 @@ export const ChainLogo = ({
 						/>
 					</a>
 				</Link>
-			</Tooltip>
+			</Tooltip2>
 		)
 	}
 }

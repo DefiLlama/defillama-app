@@ -10,6 +10,7 @@ interface ITooltip {
 	onClick?: (e: any) => any
 	style?: {}
 	children: React.ReactNode
+	as?: any
 }
 
 const TooltipPopver = styled(AriaTooltip)`
@@ -24,7 +25,22 @@ const TooltipPopver = styled(AriaTooltip)`
 	max-width: 228px;
 `
 
-export default function Tooltip({ content, href, shallow, onClick, children, ...props }: ITooltip) {
+const TooltipAnchor2 = styled(TooltipAnchor)`
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	flex-shrink: 0;
+
+	a {
+		display: flex;
+	}
+`
+
+const Popover2 = styled(TooltipPopver)`
+	padding: 12px;
+`
+
+export default function Tooltip({ content, as, href, shallow, onClick, children, ...props }: ITooltip) {
 	const tooltip = useTooltipState()
 
 	if (!content || content === '') return <>{children}</>
@@ -35,7 +51,7 @@ export default function Tooltip({ content, href, shallow, onClick, children, ...
 
 	return (
 		<>
-			<TooltipAnchor state={tooltip} as={href ? 'div' : 'button'} className="tooltip-trigger" {...triggerProps}>
+			<TooltipAnchor state={tooltip} as={as || (href ? 'div' : 'button')} className="tooltip-trigger" {...triggerProps}>
 				{href ? (
 					<Link href={href} shallow={shallow} passHref>
 						<a>{children}</a>
@@ -47,6 +63,21 @@ export default function Tooltip({ content, href, shallow, onClick, children, ...
 			<TooltipPopver state={tooltip} {...props}>
 				{content}
 			</TooltipPopver>
+		</>
+	)
+}
+
+export function Tooltip2({ content, children, ...props }: ITooltip) {
+	const tooltip = useTooltipState()
+
+	if (!content || content === '') return <>{children}</>
+
+	return (
+		<>
+			<TooltipAnchor2 state={tooltip}>{children}</TooltipAnchor2>
+			<Popover2 state={tooltip} {...props}>
+				{content}
+			</Popover2>
 		</>
 	)
 }
