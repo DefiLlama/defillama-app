@@ -11,6 +11,7 @@ import { useGetStablecoinsSearchList } from '../Stablecoins/hooks'
 import { useGetTokensSearchListMobile, useGetYieldsSearchList } from '../Yields/hooks'
 import { Input } from './Input'
 import { Results } from './Results'
+import { useGetInvestorsList } from '../Raises/hooks'
 
 export default function MobileSearch() {
 	const { data, loading, onSearchTermChange, onItemClick } = useMobileSearchResult()(
@@ -74,6 +75,10 @@ const useMobileSearchResult = () => {
 
 	if (router.pathname.startsWith('/nfts')) {
 		return useGetNftsSearchList
+	}
+
+	if (router.pathname.startsWith('/raises')) {
+		return useGetInvestorsList
 	}
 
 	return useGetDefiSearchList

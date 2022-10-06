@@ -4,6 +4,7 @@ import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from 
 import VirtualTable from '~/components/Table/Table'
 import { raisesColumns } from '~/components/Table/Defi/columns'
 import { AnnouncementWrapper } from '~/components/Announcement'
+import { RaisesSearch } from '~/components/Search'
 
 function RaisesTable({ raises }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
@@ -21,9 +22,11 @@ function RaisesTable({ raises }) {
 	return <VirtualTable instance={instance} />
 }
 
-const RaisesContainer = ({ raises }) => {
+const RaisesContainer = ({ raises, investorName }) => {
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
+			<RaisesSearch step={{ category: investorName ? 'Raises' : 'Home', name: investorName || 'Raises' }} />
+
 			<AnnouncementWrapper>
 				<span>Are we missing any funding round?</span>{' '}
 				<a

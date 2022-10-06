@@ -27,7 +27,7 @@ interface IResultsProps {
 	state: ComboboxState
 	data: Array<ISearchItem>
 	loading: boolean
-	onItemClick?: (item: ISearchItem) => void
+	onItemClick?: (item: ISearchItem) => void | null
 }
 
 export function Results({ state, data, loading, onItemClick, ...props }: IResultsProps) {

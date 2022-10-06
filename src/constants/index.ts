@@ -58,5 +58,7 @@ export const USER_METRICS_CHAIN_API = 'https://users.llama.fi/chain'
 export const USER_METRICS_CHAIN_API_BY_DATE = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/chain'
 export const USER_METRICS_ALL_API = 'https://users.llama.fi/all'
 
+export const RAISES_API = `https://api.llama.fi/raises`
+
 export const CG_TOKEN_API =
 	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'

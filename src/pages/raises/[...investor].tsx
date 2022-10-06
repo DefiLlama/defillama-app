@@ -1,5 +1,7 @@
 import * as React from 'react'
 import { revalidate } from '~/api'
+import { getInvestorsList } from '~/api/categories/raises'
+import { RAISES_API } from '~/constants'
 import RaisesContainer from '~/containers/Raises'
 import { slug } from '~/utils'
 
@@ -8,31 +10,30 @@ export async function getStaticProps({
 		investor: [name]
 	}
 }) {
-	const data = await fetch(`https://api.llama.fi/raises`).then((r) => r.json())
+	const data = await fetch(RAISES_API).then((r) => r.json())
 
 	const raises = []
-	const investors = new Set<string>()
+
+	let investorName = null
 
 	data.raises.forEach((r) => {
-		let toFilter = false
+		let isInvestor = false
 
-		r.leadInvestors.forEach((inv) => {
-			investors.add(inv)
-
-			if (!toFilter) {
-				toFilter = slug(inv.toLowerCase()) === name
+		r.leadInvestors.forEach((l) => {
+			if (slug(l.toLowerCase()) === name) {
+				investorName = l
+				isInvestor = true
 			}
 		})
 
-		r.otherInvestors.forEach((inv) => {
-			investors.add(inv)
-
-			if (!toFilter) {
-				toFilter = slug(inv.toLowerCase()) === name
+		r.otherInvestors.forEach((l) => {
+			if (slug(l.toLowerCase()) === name) {
+				investorName = l
+				isInvestor = true
 			}
 		})
 
-		if (toFilter) {
+		if (isInvestor) {
 			raises.push(r)
 		}
 	})
@@ -50,32 +51,22 @@ export async function getStaticProps({
 				lead: r.leadInvestors.join(', '),
 				otherInvestors: r.otherInvestors.join(', ')
 			})),
-			investors: Array.from(investors)
+			investorName
 		},
 		revalidate: revalidate()
 	}
 }
 
 export async function getStaticPaths() {
-	const data = await fetch(`https://api.llama.fi/raises`).then((r) => r.json())
+	const data = await fetch(RAISES_API).then((r) => r.json())
 
-	const investors = new Set<string>()
+	const investors = getInvestorsList(data)
 
-	data.raises.forEach((r) => {
-		r.leadInvestors.forEach((x: string) => {
-			investors.add(x.toLowerCase())
-		})
-
-		r.otherInvestors.forEach((x: string) => {
-			investors.add(x.toLowerCase())
-		})
-	})
-
-	return { paths: Array.from(investors).map((i) => ({ params: { investor: [slug(i)] } })), fallback: 'blocking' }
+	return { paths: investors.map((i) => ({ params: { investor: [slug(i.toLowerCase())] } })), fallback: 'blocking' }
 }
 
-const Raises = ({ raises }) => {
-	return <RaisesContainer raises={raises} />
+const Raises = ({ raises, investorName }) => {
+	return <RaisesContainer raises={raises} investorName={investorName} />
 }
 
 export default Raises

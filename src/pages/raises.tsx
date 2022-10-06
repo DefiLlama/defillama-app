@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { revalidate } from '~/api'
+import { RAISES_API } from '~/constants'
 import RaisesContainer from '~/containers/Raises'
 
 export async function getStaticProps() {
-	const data = await fetch(`https://api.llama.fi/raises`).then((r) => r.json())
+	const data = await fetch(RAISES_API).then((r) => r.json())
 
 	const investors = new Set<string>()
 
@@ -31,7 +32,7 @@ export async function getStaticProps() {
 }
 
 const Raises = ({ raises }) => {
-	return <RaisesContainer raises={raises} />
+	return <RaisesContainer raises={raises} investorName={null} />
 }
 
 export default Raises
