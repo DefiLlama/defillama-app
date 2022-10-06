@@ -94,7 +94,7 @@ export const attributeOptions = [
 	{
 		// see: https://bad-debt.riskdao.org/
 		name: 'Exclude bad debt',
-		key: YIELDS_SETTINGS.BAD_DEBT.toLowerCase(),
+		key: YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase(),
 		help: 'Remove projects with a bad debt ratio of >= 5% (5% of the tvl is bad debt from insolvent accounts)',
 		filterFn: (item) => !['moonwell-apollo', 'inverse-finance', 'venus', 'iron-bank'].includes(item.project),
 		defaultFilterFnOnPage: {},
