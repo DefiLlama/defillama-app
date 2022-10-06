@@ -162,6 +162,27 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		}
 	},
 	{
+		header: 'LTV',
+		accessorKey: 'ltv',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<span
+					style={{
+						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
+					}}
+				>
+					{formattedNum(Number(info.getValue()) * 100) + '%'}
+				</span>
+			)
+		},
+		size: 120,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Max loan to value (collateral factor)'
+		}
+	},
+	{
 		header: 'Supplied',
 		accessorKey: 'totalSupplyUsd',
 		enableSorting: true,
@@ -221,6 +242,7 @@ const columnOrders = {
 		'apyBaseBorrow',
 		'apyRewardBorrow',
 		'totalReward',
+		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd'
 	],
@@ -238,6 +260,7 @@ const columnOrders = {
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
+		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd'
 	],
@@ -255,6 +278,7 @@ const columnOrders = {
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
+		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd'
 	],
@@ -272,6 +296,7 @@ const columnOrders = {
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
+		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd'
 	]
