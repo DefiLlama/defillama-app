@@ -45,11 +45,21 @@ export function useGetYieldsSearchList(): IGetSearchList {
 	return { data: searchData || [], loading: fetchingProjects || fetchingYields, onItemClick }
 }
 
-export function useGetTokensSearchList(lend = true, mobile = false): IGetSearchList {
+export function useGetTokensSearchList(lend = true): IGetSearchList {
 	const router = useRouter()
 	const { data: yields, loading: fetchingYields } = useFetchYieldsList()
 
 	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
+
+	const stablecoinsSearch = React.useMemo(
+		() => ({
+			name: `All USD Stablecoins`,
+			symbol: 'USD_Stables',
+			route: `/yields/optimizer?${targetParam}=USD_Stables&${restParam}=${router.query[restParam] || ''}`,
+			logo: '/icons/usd_native.png'
+		}),
+		[yields, restParam, router.query, targetParam]
+	)
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
 		const yieldsList =
@@ -62,8 +72,8 @@ export function useGetTokensSearchList(lend = true, mobile = false): IGetSearchL
 				logo: el.image
 			})) ?? []
 
-		return yieldsList
-	}, [yields, restParam, router.query, targetParam])
+		return [stablecoinsSearch].concat(yieldsList)
+	}, [yields, restParam, router.query, targetParam, stablecoinsSearch])
 
 	const onItemClick = (item) => {
 		router.push(item.route, undefined, { shallow: true })

@@ -81,8 +81,10 @@ export function toFilterPool({
 }
 
 export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
+	console.log({ tokenToLend, tokenToBorrow })
 	const availableToLend = pools.filter(
-		({ symbol, ltv }) => symbol.includes(tokenToLend) && ltv > 0 && !symbol.includes('Amm')
+		({ symbol, ltv }) =>
+			(tokenToLend === 'USD_Stables' ? true : symbol.includes(tokenToLend)) && ltv > 0 && !symbol.includes('Amm')
 	)
 	const availableProjects = availableToLend.map(({ project }) => project)
 	const availableChains = availableToLend.map(({ chain }) => chain)
@@ -91,10 +93,11 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 		if (
 			!availableProjects.includes(pool.project) ||
 			!availableChains.includes(pool.chain) ||
-			!pool.symbol.includes(tokenToBorrow) ||
+			(tokenToBorrow === 'USD_Stables' ? false : !pool.symbol.includes(tokenToBorrow)) ||
 			pool.symbol.includes('Amm')
 		)
 			return acc
+		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) return acc
 
 		const collatteralPools = availableToLend.filter(
 			(collateralPool) =>
@@ -102,7 +105,8 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 				collateralPool.project === pool.project &&
 				!collateralPool.symbol.includes(tokenToBorrow) &&
 				collateralPool.pool !== pool.pool &&
-				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true)
+				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true) &&
+				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true)
 		)
 
 		const poolsPairs = collatteralPools.map((collatteralPool) => ({

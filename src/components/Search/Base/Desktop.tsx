@@ -55,7 +55,16 @@ const OptionsWrapper = styled.div`
 `
 
 export const DesktopSearch = (props: IBaseSearchProps) => {
-	const { data, loading = false, step, onSearchTermChange, filters, placeholder = 'Search...', ...extra } = props
+	const {
+		data,
+		loading = false,
+		step,
+		onSearchTermChange,
+		filters,
+		withValue,
+		placeholder = 'Search...',
+		...extra
+	} = props
 
 	const combobox = useComboboxState({
 		gutter: 6,
@@ -76,13 +85,13 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 	}, [combobox.value, onSearchTermChange])
 
 	// Resets combobox value when popover is collapsed
-	if (!props.withValue && !combobox.mounted && combobox.value) {
+	if (!withValue && !combobox.mounted && combobox.value) {
 		combobox.setValue('')
 	}
 
 	return (
 		<Wrapper {...extra}>
-			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} />
+			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} withValue />
 
 			{step && <Options step={step} filters={filters} />}
 
