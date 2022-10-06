@@ -155,7 +155,7 @@ export async function getLendBorrowData() {
 				apyBaseBorrow: -x.apyBaseBorrow,
 				apyRewardBorrow: x.apyRewardBorrow,
 				totalSupplyUsd: x.totalSupplyUsd,
-				totalBorrowUsd: x.totalBorrowUsd,
+				totalBorrowUsd: x.totalBorrowUsd ?? 0,
 				ltv: x.ltv,
 				// note re morpho: they build on top of compound. if the total supply is being used by borrowers
 				// then any excess borrows will be routed via compound pools. so the available liquidity is actually
