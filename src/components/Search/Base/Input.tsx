@@ -1,6 +1,7 @@
 import { Combobox, ComboboxState } from 'ariakit'
 import styled from 'styled-components'
 import { Search as SearchIcon, X as XIcon } from 'react-feather'
+import React from 'react'
 
 const InputField = styled(Combobox)`
 	padding: 14px 16px;
@@ -31,6 +32,7 @@ interface IInputProps {
 	placeholder: string
 	breadCrumbs?: boolean
 	autoFocus?: boolean
+	withValue?: boolean
 }
 
 const IconWrapper = styled.button`
@@ -50,7 +52,11 @@ const IconWrapper = styled.button`
 		right: 16px;
 	}
 `
-export function Input({ state, placeholder, breadCrumbs, ...props }: IInputProps) {
+export function Input({ state, placeholder, breadCrumbs, withValue, ...props }: IInputProps) {
+	const onClick = React.useCallback(() => {
+		if (state.mounted && withValue) state.setValue('')
+		state.toggle()
+	}, [state.mounted, withValue, state])
 	return (
 		<>
 			<InputField
@@ -61,7 +67,7 @@ export function Input({ state, placeholder, breadCrumbs, ...props }: IInputProps
 				{...props}
 			/>
 
-			<IconWrapper onClick={() => state.toggle()}>
+			<IconWrapper onClick={onClick}>
 				{state.mounted ? (
 					<>
 						<span className="visually-hidden">Close Search</span>
