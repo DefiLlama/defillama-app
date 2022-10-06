@@ -67,7 +67,17 @@ export async function getYieldPageData() {
 
 		p['rewardTokensSymbols'] =
 			p.chain === 'Neo'
-				? [...new Set(p.rewardTokens.map((t) => prices[`coingecko:${p.project}`]?.symbol.toUpperCase() ?? null))]
+				? [
+						...new Set(
+							p.rewardTokens.map((t) =>
+								t === '0xf0151f528127558851b39c2cd8aa47da7418ab28'
+									? 'FLM'
+									: t === '0x340720c7107ef5721e44ed2ea8e314cce5c130fa'
+									? 'NUDES'
+									: null
+							)
+						)
+				  ]
 				: [
 						...new Set(
 							p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
