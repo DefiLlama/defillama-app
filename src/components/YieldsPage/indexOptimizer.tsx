@@ -8,7 +8,8 @@ import styled from 'styled-components'
 import YieldsOptimizerTable from '../Table/Yields/Optimizer'
 import { Header } from '~/Theme'
 import { useFormatYieldQueryParams } from './hooks'
-import { FiltersByChain } from '../Filters'
+import { YieldAttributes, FiltersByChain } from '../Filters'
+import { attributeOptions } from '~/components/Filters'
 
 const SearchWrapper = styled.div`
 	display: grid;
@@ -26,13 +27,19 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) =>
 	const { query, pathname } = useRouter()
 
 	const { lend, borrow } = query
-	const { selectedChains } = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	const { selectedChains, selectedAttributes } = useFormatYieldQueryParams({ projectList, chainList, categoryList })
 
 	const poolsData = React.useMemo(() => {
-		return findOptimizerPools(pools, lend, borrow)
+		let filteredPools = findOptimizerPools(pools, lend, borrow)
 			.filter((pool) => filterPool({ pool, selectedChains }))
 			.map(formatOptimizerPool)
-	}, [pools, borrow, lend, selectedChains])
+
+		if (selectedAttributes.length > 0) {
+			const attributeOption = attributeOptions.find((o) => o.key === selectedAttributes[0])
+			filteredPools = filteredPools.filter((p) => attributeOption.filterFn(p))
+		}
+		return filteredPools
+	}, [pools, borrow, lend, selectedChains, selectedAttributes])
 
 	return (
 		<>
@@ -52,6 +59,7 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) =>
 			<TableFilters>
 				<TableHeader>Lending Optimizer</TableHeader>
 				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+				<YieldAttributes pathname={pathname} />
 			</TableFilters>
 
 			{poolsData.length > 0 ? (
