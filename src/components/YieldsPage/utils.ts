@@ -1,3 +1,4 @@
+import { YieldsData } from '~/api/categories/yield'
 import { attributeOptions } from '~/components/Filters'
 
 export function toFilterPool({
@@ -100,7 +101,8 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 				collateralPool.chain === pool.chain &&
 				collateralPool.project === pool.project &&
 				!collateralPool.symbol.includes(tokenToBorrow) &&
-				collateralPool.pool !== pool.pool
+				collateralPool.pool !== pool.pool &&
+				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true)
 		)
 
 		const poolsPairs = collatteralPools.map((collatteralPool) => ({
@@ -121,4 +123,15 @@ export const formatOptimizerPool = (pool) => {
 	const totalReward = lendingReward + borrowReward
 
 	return { ...pool, lendingReward, borrowReward, totalReward }
+}
+
+interface FilterPools {
+	selectedChains: string[]
+	pool: YieldsData['props']['pools'][number]
+}
+
+export const filterPool = ({ pool, selectedChains }: FilterPools) => {
+	const isChainValid = selectedChains.map((chain) => chain.toLowerCase()).includes(pool.chain.toLowerCase())
+
+	return isChainValid
 }
