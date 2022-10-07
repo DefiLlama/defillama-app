@@ -44,7 +44,7 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) =>
 	return (
 		<>
 			<Header>
-				Yields Optimizer Calculator{' '}
+				Lending Optimizer Calculator{' '}
 				{lend && borrow ? (
 					<>
 						(Supply: {lend || ''} ➞ Borrow: {borrow || ''})
@@ -66,7 +66,13 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) =>
 				<YieldsOptimizerTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					Please select both tokens.
+					Given a token to use for collateral and a token to borrow, this calculator will look at all the lending protocols<br/>
+					and calculate how much would it cost to borrow on each one, taking into account incentives, supply APR and borrow APR,<br/>
+					providing a list of all possible lending routes, their cost and LTV.<br/>
+					<br/>
+					This is similar to skyscanner for flights or 1inch for swaps, but for lending. It calculates the optimal lending route.<br/>
+					<br/>
+					To start just select two tokens above.
 				</Panel>
 			)}
 		</>

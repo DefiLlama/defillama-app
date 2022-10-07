@@ -222,8 +222,8 @@ function GlobalPage({
 
 			<Announcement>
 				<span>Check out our</span>{' '}
-				<Link href={`/fees`}>
-					<a> new fees & revenue dashboard!</a>
+				<Link href={`/yields/optimizer`}>
+					<a> borrow optimizer!</a>
 				</Link>
 			</Announcement>
 
