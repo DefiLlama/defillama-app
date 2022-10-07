@@ -2,7 +2,7 @@ import * as React from 'react'
 import { revalidate } from '~/api'
 import { RAISES_API } from '~/constants'
 import RaisesContainer from '~/containers/Raises'
-import { toNiceMonthlyDate, toYearMonth } from '~/utils'
+import { toYearMonth } from '~/utils'
 
 export async function getStaticProps() {
 	const data = await fetch(RAISES_API).then((r) => r.json())

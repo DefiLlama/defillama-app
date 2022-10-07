@@ -29,7 +29,7 @@ function RaisesTable({ raises }) {
 	return <VirtualTable instance={instance} />
 }
 
-const RaisesContainer = ({ raises, investorName, monthlyInvestment }) => {
+const RaisesContainer = ({ raises, investorName, monthlyInvestment }: {raises:any[], investorName:any, monthlyInvestment?:any}) => {
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
 			<RaisesSearch step={{ category: investorName ? 'Raises' : 'Home', name: investorName || 'Raises' }} />
