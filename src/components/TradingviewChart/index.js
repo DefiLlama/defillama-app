@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
+import Image from 'next/future/image'
 import { createChart } from 'lightweight-charts'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -7,6 +8,8 @@ import { Play } from 'react-feather'
 import { IconWrapper } from '~/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
+import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
+import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
 
 dayjs.extend(utc)
 
@@ -31,6 +34,8 @@ const TradingViewChart = ({
 	useWeekly = false,
 	dualAxis = false
 }) => {
+	const [isDark] = useDarkModeManager()
+
 	// reference for DOM element to create with chart
 	const ref = useRef()
 
@@ -280,8 +285,24 @@ const TradingViewChart = ({
 					}}
 				/>
 			</IconWrapper>
+			<Watermark>
+				<Image src={isDark ? logoLight : logoDark} height={40} alt="" />
+			</Watermark>
 		</Wrapper>
 	)
 }
+
+const Watermark = styled.div`
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: -10;
+	opacity: 0.3;
+`
 
 export default TradingViewChart
