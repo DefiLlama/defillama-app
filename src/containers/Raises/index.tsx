@@ -45,7 +45,7 @@ const RaisesContainer = ({ raises, investorName, monthlyInvestment }: {raises:an
 					Add it here!
 				</a>
 			</AnnouncementWrapper>
-			<BarChart chartData={Object.entries(monthlyInvestment).map(t=>[new Date(t[0]).getTime()/1e3, t[1]])} title="Monthly sum"/>
+			{monthlyInvestment  && <BarChart chartData={Object.entries(monthlyInvestment).map(t=>[new Date(t[0]).getTime()/1e3, t[1]])} title="Monthly sum"/>}
 			<RaisesTable raises={raises} />
 		</Layout>
 	)
