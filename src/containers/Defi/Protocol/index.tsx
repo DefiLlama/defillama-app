@@ -150,7 +150,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 		forkedFrom,
 		otherProtocols,
 		hallmarks,
-		gecko_id
+		gecko_id,
+		isParentProtocol
 	} = protocolData
 
 	const router = useRouter()
@@ -296,7 +297,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
 
-						<Bookmark readableProtocolName={name} />
+						{!isParentProtocol && <Bookmark readableProtocolName={name} />}
 					</Name>
 
 					<StatWrapper>

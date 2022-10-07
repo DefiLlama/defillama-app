@@ -81,7 +81,6 @@ export function toFilterPool({
 }
 
 export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
-	console.log({ tokenToLend, tokenToBorrow })
 	const availableToLend = pools.filter(
 		({ symbol, ltv }) =>
 			(tokenToLend === 'USD_Stables' ? true : symbol.includes(tokenToLend)) && ltv > 0 && !symbol.includes('Amm')
