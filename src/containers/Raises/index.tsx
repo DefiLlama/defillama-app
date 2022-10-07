@@ -1,10 +1,17 @@
 import * as React from 'react'
+import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
 import VirtualTable from '~/components/Table/Table'
 import { raisesColumns } from '~/components/Table/Defi/columns'
 import { AnnouncementWrapper } from '~/components/Announcement'
 import { RaisesSearch } from '~/components/Search'
+import type { IBarChartProps } from '~/components/ECharts/types'
+
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+	ssr: false
+}) as React.FC<IBarChartProps>
+
 
 function RaisesTable({ raises }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
@@ -22,7 +29,7 @@ function RaisesTable({ raises }) {
 	return <VirtualTable instance={instance} />
 }
 
-const RaisesContainer = ({ raises, investorName }) => {
+const RaisesContainer = ({ raises, investorName, monthlyInvestment }) => {
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
 			<RaisesSearch step={{ category: investorName ? 'Raises' : 'Home', name: investorName || 'Raises' }} />
@@ -38,6 +45,7 @@ const RaisesContainer = ({ raises, investorName }) => {
 					Add it here!
 				</a>
 			</AnnouncementWrapper>
+			<BarChart chartData={Object.entries(monthlyInvestment).map(t=>[new Date(t[0]).getTime()/1e3, t[1]])} title="Monthly sum"/>
 			<RaisesTable raises={raises} />
 		</Layout>
 	)

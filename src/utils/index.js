@@ -60,6 +60,11 @@ export const toNiceMonthlyDate = (date) => {
 	return x
 }
 
+export const toYearMonth = (date) => {
+	let x = dayjs.utc(dayjs.unix(date)).format('YYYY-MM')
+	return x
+}
+
 export const toNiceDate = (date) => {
 	let x = dayjs.utc(dayjs.unix(date)).format('MMM DD')
 	return x
