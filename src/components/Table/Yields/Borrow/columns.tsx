@@ -8,7 +8,8 @@ import type { IYieldTableRow } from '../types'
 
 const apyColors = {
 	supply: '#4f8fea',
-	borrow: '#E59421'
+	borrow: '#E59421',
+	positive: '#30c338'
 }
 
 export const columns: ColumnDef<IYieldTableRow>[] = [
@@ -115,7 +116,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<span
 					style={{
-						color: apyColors['borrow']
+						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
 					}}
 				>
 					{formattedPercent(info.getValue(), true, 700)}
