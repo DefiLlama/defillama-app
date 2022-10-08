@@ -105,7 +105,8 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 				!collateralPool.symbol.includes(tokenToBorrow) &&
 				collateralPool.pool !== pool.pool &&
 				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true) &&
-				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true)
+				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true) &&
+				(pool.project === 'compound-v3' ? pool.symbol === 'USDC' : true)
 		)
 
 		const poolsPairs = collatteralPools.map((collatteralPool) => ({
