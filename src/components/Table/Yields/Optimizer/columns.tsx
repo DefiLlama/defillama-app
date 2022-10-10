@@ -148,7 +148,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 			return (
 				<span
 					style={{
-						color: apyColors['borrow']
+						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
 					}}
 				>
 					{formattedPercent(info.getValue(), true, 400)}
