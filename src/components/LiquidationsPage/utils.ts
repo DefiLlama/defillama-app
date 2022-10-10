@@ -28,8 +28,8 @@ export const getOption = (
 	}))
 	let series: {
 		type: string
-		large: boolean
-		largeThreshold: number
+		large?: boolean
+		largeThreshold?: number
 		name: string
 		data: number[]
 		emphasis: {
@@ -40,8 +40,8 @@ export const getOption = (
 	if (!isLiqsCumulative) {
 		series = chartDataBinsArray.map((obj) => ({
 			type: 'bar',
-			large: true,
-			largeThreshold: 0,
+			// large: true,
+			// largeThreshold: 0,
 			name: PROTOCOL_NAMES_MAP[obj.key],
 			data: obj.data.map((value) => (isLiqsUsingUsd ? value['usd'] : value['native'])),
 			emphasis: {
@@ -52,8 +52,8 @@ export const getOption = (
 	} else {
 		series = chartDataBinsArray.map((obj) => ({
 			type: 'bar',
-			large: true,
-			largeThreshold: 0,
+			// large: true,
+			// largeThreshold: 0,
 			name: PROTOCOL_NAMES_MAP[obj.key],
 			data: obj.data.map((_value, index, arr) => {
 				const sum = arr.slice(0, index + 1).reduce((a, b) => a + (isLiqsUsingUsd ? b['usd'] : b['native']), 0)
