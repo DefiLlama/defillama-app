@@ -17,7 +17,8 @@ export const getOption = (
 	stackBy: 'chains' | 'protocols',
 	isSmall: boolean,
 	isDark: boolean,
-	isLiqsUsingUsd: boolean
+	isLiqsUsingUsd: boolean,
+	isLiqsCumulative: boolean
 ) => {
 	const chartDataBins = chartData.chartDataBins[stackBy]
 	// convert chartDataBins to array
@@ -25,17 +26,45 @@ export const getOption = (
 		key: key,
 		data: convertChartDataBinsToArray(chartDataBins[key], 150)
 	}))
-	const series = chartDataBinsArray.map((obj) => ({
-		type: 'bar',
-		large: true,
-		largeThreshold: 0,
-		name: PROTOCOL_NAMES_MAP[obj.key],
-		data: obj.data.map((value) => (isLiqsUsingUsd ? value['usd'] : value['native'])),
+	let series: {
+		type: string
+		large: boolean
+		largeThreshold: number
+		name: string
+		data: number[]
 		emphasis: {
-			focus: 'series'
-		},
-		stack: 'x'
-	}))
+			focus: string
+		}
+		stack: string
+	}[]
+	if (!isLiqsCumulative) {
+		series = chartDataBinsArray.map((obj) => ({
+			type: 'bar',
+			large: true,
+			largeThreshold: 0,
+			name: PROTOCOL_NAMES_MAP[obj.key],
+			data: obj.data.map((value) => (isLiqsUsingUsd ? value['usd'] : value['native'])),
+			emphasis: {
+				focus: 'series'
+			},
+			stack: 'x'
+		}))
+	} else {
+		series = chartDataBinsArray.map((obj) => ({
+			type: 'bar',
+			large: true,
+			largeThreshold: 0,
+			name: PROTOCOL_NAMES_MAP[obj.key],
+			data: obj.data.map((_value, index, arr) => {
+				const sum = arr.slice(0, index + 1).reduce((a, b) => a + (isLiqsUsingUsd ? b['usd'] : b['native']), 0)
+				return sum
+			}),
+			emphasis: {
+				focus: 'series'
+			},
+			stack: 'x'
+		}))
+	}
 
 	const option: ECBasicOption = {
 		graphic: {
@@ -80,7 +109,9 @@ export const getOption = (
 			formatter: (params: any) => {
 				const { name } = params[0]
 				return (
-					`<div style="margin-bottom: 8px"><b>Liquidations at ~$${name}</b></div>` +
+					`<div style="margin-bottom: 8px"><b>${
+						isLiqsCumulative ? `Total liquidatable ≤ ` : `Liquidations at ~`
+					}$${name}</b></div>` +
 					// `<br/>` +
 					params
 						.map(
