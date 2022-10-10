@@ -40,8 +40,6 @@ export const getOption = (
 	if (!isLiqsCumulative) {
 		series = chartDataBinsArray.map((obj) => ({
 			type: 'bar',
-			// large: true,
-			// largeThreshold: 0,
 			name: PROTOCOL_NAMES_MAP[obj.key],
 			data: obj.data.map((value) => (isLiqsUsingUsd ? value['usd'] : value['native'])),
 			emphasis: {
@@ -52,13 +50,14 @@ export const getOption = (
 	} else {
 		series = chartDataBinsArray.map((obj) => ({
 			type: 'bar',
-			// large: true,
-			// largeThreshold: 0,
 			name: PROTOCOL_NAMES_MAP[obj.key],
-			data: obj.data.map((_value, index, arr) => {
-				const sum = arr.slice(0, index + 1).reduce((a, b) => a + (isLiqsUsingUsd ? b['usd'] : b['native']), 0)
-				return sum
-			}),
+			data: obj.data
+				.reverse()
+				.map((_value, index, arr) => {
+					const sum = arr.slice(0, index + 1).reduce((a, b) => a + (isLiqsUsingUsd ? b['usd'] : b['native']), 0)
+					return sum
+				})
+				.reverse(),
 			emphasis: {
 				focus: 'series'
 			},
@@ -81,7 +80,7 @@ export const getOption = (
 		legend: {
 			orient: 'vertical',
 			align: 'left',
-			left: 10,
+			...(isLiqsCumulative ? { right: 10 } : { left: 10 }),
 			textStyle: {
 				color: '#a1a1aa'
 			},
@@ -145,7 +144,7 @@ export const getOption = (
 		},
 		yAxis: {
 			type: 'value',
-			position: 'right',
+			position: isLiqsCumulative ? 'left' : 'right',
 			axisLabel: {
 				formatter: (value: string) =>
 					isLiqsUsingUsd ? `$${getReadableValue(Number(value))}` : `${getReadableValue(Number(value))}`
