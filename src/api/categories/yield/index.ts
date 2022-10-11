@@ -137,32 +137,57 @@ export type YieldsData = Awaited<ReturnType<typeof getYieldPageData>>
 export async function getLendBorrowData() {
 	const props = (await getYieldPageData()).props
 
-	// filter to lending category only
-	let pools = props.pools.filter((p) => p.category === 'Lending')
+	const lendingCategories = ['Lending', 'Undercollateralized Lending']
+	// filter to lending categories only
+	let pools = props.pools.filter((p) => lendingCategories.includes(p.category))
 
 	// get new borrow fields
 	let dataBorrow = (await arrayFetcher([YIELD_LEND_BORROW_API]))[0]
 
-	// add borrow fields to pools (which contains all other columns we need for filters)
+	// we use the compoundPool's available liq for morpho, if totalSupplyUsd < totalBorrowUsd on morpho
+	const configIdsCompound = pools.filter((p) => p.project === 'compound').map((p) => p.pool)
+	const compoundPools = dataBorrow.filter((p) => configIdsCompound.includes(p.pool))
 	pools = pools
 		.map((p) => {
 			const x = dataBorrow.find((i) => i.pool === p.pool)
 			// for some projects we haven't added the new fields yet, dataBorrow will thus be smoler;
 			// hence the check for undefined
 			if (x === undefined) return null
+
+			// we display apyBaseBorrow as a negative value
+			const apyBaseBorrow = x.apyBaseBorrow !== null ? -x.apyBaseBorrow : null
+			const apyRewardBorrow = x.apyRewardBorrow
+			const apyBorrow = apyBaseBorrow === null && apyRewardBorrow === null ? null : apyBaseBorrow + apyRewardBorrow
+
+			// morpho
+			// (using compound available liquidity if totalSupplyUsd < totalBorrowUsd on morhpo === p2p fully matched
+			// otherwise its negative.
+			// instead we display the compound available pool liq together with a tooltip to clarify this
+			let totalAvailableUsd
+			if (['morpho-compound', 'morpho-aave'].includes(p.project) && x.totalSupplyUsd < x.totalBorrowUsd) {
+				const compoundData = compoundPools.find(
+					(a) => a.underlyingTokens[0].toLowerCase() === x.underlyingTokens[0].toLowerCase()
+				)
+				totalAvailableUsd = compoundData?.totalSupplyUsd - compoundData?.totalBorrowUsd
+			} else if (x.totalSupplyUsd === null && x.totalBorrowUsd === null) {
+				totalAvailableUsd = null
+			} else {
+				totalAvailableUsd = x.totalSupplyUsd - x.totalBorrowUsd
+			}
+
 			return {
 				...p,
-				apyBaseBorrow: -x.apyBaseBorrow,
-				apyRewardBorrow: x.apyRewardBorrow,
+				apyBaseBorrow,
+				apyRewardBorrow,
 				totalSupplyUsd: x.totalSupplyUsd,
-				totalBorrowUsd: x.totalBorrowUsd ?? 0,
+				totalBorrowUsd: x.totalBorrowUsd,
 				ltv: x.ltv,
 				// note re morpho: they build on top of compound. if the total supply is being used by borrowers
 				// then any excess borrows will be routed via compound pools. so the available liquidity is actually
 				// compounds liquidity. not 100% sure how to present this on the frontend, but for now going to supress
 				// liq values (cause some of them are negative)
-				totalAvailableUsd: p.project === 'morpho' ? null : x.totalSupplyUsd - x.totalBorrowUsd,
-				apyBorrow: -x.apyBaseBorrow + x.apyRewardBorrow,
+				totalAvailableUsd,
+				apyBorrow,
 				rewardTokens: p.apyRewards > 0 || x.apyRewardBorrow > 0 ? x.rewardTokens : p.rewardTokens
 			}
 		})
@@ -174,7 +199,7 @@ export async function getLendBorrowData() {
 			pools,
 			chainList: [...new Set(pools.map((p) => p.chain))],
 			projectList: props.projectList.filter((p) => [...new Set(pools.map((p) => p.project))].includes(p.slug)),
-			categoryList: ['Lending'],
+			categoryList: lendingCategories,
 			tokenNameMapping: props.tokenNameMapping
 		}
 	}
