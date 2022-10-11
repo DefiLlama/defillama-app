@@ -109,7 +109,7 @@ export function FiltersByCategory({ categoryList = [], selectedCategories, pathn
 									ref={i === 0 && selectedCategories.length === categoryList.length ? focusItemRef : null}
 									focusOnHover
 								>
-									<span>{value}</span>
+									<span data-name>{value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
 								</SelectItem>
 							))}

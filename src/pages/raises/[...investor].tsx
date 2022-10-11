@@ -44,6 +44,8 @@ export async function getStaticProps({
 		}
 	}
 
+	const investors = getInvestorsList({ data: { raises } })
+
 	return {
 		props: {
 			raises: raises.map((r) => ({
@@ -51,6 +53,7 @@ export async function getStaticProps({
 				lead: r.leadInvestors.join(', '),
 				otherInvestors: r.otherInvestors.join(', ')
 			})),
+			investors,
 			investorName
 		},
 		revalidate: revalidate()
@@ -65,8 +68,8 @@ export async function getStaticPaths() {
 	return { paths: investors.map((i) => ({ params: { investor: [slug(i.toLowerCase())] } })), fallback: 'blocking' }
 }
 
-const Raises = ({ raises, investorName }) => {
-	return <RaisesContainer raises={raises} investorName={investorName} />
+const Raises = (props) => {
+	return <RaisesContainer {...props} />
 }
 
 export default Raises

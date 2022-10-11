@@ -1,29 +1,29 @@
+import { useRef } from 'react'
 import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
-import { ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup, SelectButton } from '../shared'
+import { SelectButton, ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup } from '../shared'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { useRef } from 'react'
 
-interface IYieldProjectsProps {
-	projectList: { name: string; slug: string }[]
-	selectedProjects: string[]
+interface IFiltersByInvestorProps {
+	investors: string[]
+	selectedInvestors: string[]
 	pathname: string
 }
 
-export function YieldProjects({ projectList = [], selectedProjects, pathname }: IYieldProjectsProps) {
+export function Investors({ investors = [], selectedInvestors, pathname }: IFiltersByInvestorProps) {
 	const router = useRouter()
 
-	const { project, ...queries } = router.query
+	const { investor, ...queries } = router.query
 
-	const addProject = (project) => {
+	const addInvestor = (newInvestor) => {
 		router.push(
 			{
 				pathname,
 				query: {
 					...queries,
-					project
+					investor: newInvestor
 				}
 			},
 			undefined,
@@ -31,7 +31,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 		)
 	}
 
-	const combobox = useComboboxState({ list: projectList.map((p) => p.slug) })
+	const combobox = useComboboxState({ list: investors })
 	// value and setValue shouldn't be passed to the select state because the
 	// select value and the combobox value are different things.
 	const { value, setValue, ...selectProps } = combobox
@@ -40,8 +40,8 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 
 	const select = useSelectState({
 		...selectProps,
-		value: selectedProjects,
-		setValue: addProject,
+		value: selectedInvestors,
+		setValue: addInvestor,
 		gutter: 8,
 		animated: true,
 		renderCallback
@@ -53,26 +53,41 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 	}
 
 	const toggleAll = () => {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					project: 'All'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+		if (!investor || investor === 'All') {
+			router.push(
+				{
+					pathname,
+					query: {
+						...queries,
+						investor: 'None'
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		} else {
+			router.push(
+				{
+					pathname,
+					query: {
+						...queries,
+						investor: 'All'
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		}
 	}
 
 	const clear = () => {
+		select.up(1)
 		router.push(
 			{
 				pathname,
 				query: {
 					...queries,
-					project: 'None'
+					investor: 'None'
 				}
 			},
 			undefined,
@@ -85,14 +100,14 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 	return (
 		<>
 			<SelectButton state={select}>
-				<span>Filter by Project</span>
+				<span>Filter by Investors</span>
 				<MenuButtonArrow />
-				{selectedProjects.length > 0 && selectedProjects.length !== projectList.length && (
-					<ItemsSelected>{selectedProjects.length}</ItemsSelected>
+				{selectedInvestors.length > 0 && selectedInvestors.length !== investors.length && (
+					<ItemsSelected>{selectedInvestors.length}</ItemsSelected>
 				)}
 			</SelectButton>
 			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false} initialFocusRef={focusItemRef}>
-				<Input state={combobox} placeholder="Search for projects..." autoFocus />
+				<Input state={combobox} placeholder="Search for investors..." autoFocus />
 
 				{combobox.matches.length > 0 ? (
 					<>
@@ -106,10 +121,10 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 								<SelectItem
 									value={value}
 									key={value + i}
-									ref={i === 0 && selectedProjects.length === projectList.length ? focusItemRef : null}
+									ref={i === 0 && selectedInvestors.length === investors.length ? focusItemRef : null}
 									focusOnHover
 								>
-									<span data-name>{projectList.find((p) => p.slug === value)?.name ?? value}</span>
+									<span data-name>{value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
 								</SelectItem>
 							))}

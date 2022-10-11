@@ -189,7 +189,7 @@ const Wrapper = styled.div`
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		max-width: calc(100vw - 236px - 28px - 28px);
+		max-width: calc(100vw - 236px - 28px);
 	}
 `
 
