@@ -213,7 +213,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
 					}}
 				>
-					{'$' + formattedNum(info.getValue())}
+					{info.getValue() === null ? '' : '$' + formattedNum(info.getValue())}
 				</span>
 			)
 		},
@@ -233,7 +233,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
 					}}
 				>
-					{'$' + formattedNum(info.getValue())}
+					{info.getValue() === null ? '' : '$' + formattedNum(info.getValue())}
 				</span>
 			)
 		},

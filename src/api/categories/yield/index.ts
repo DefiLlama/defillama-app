@@ -137,8 +137,9 @@ export type YieldsData = Awaited<ReturnType<typeof getYieldPageData>>
 export async function getLendBorrowData() {
 	const props = (await getYieldPageData()).props
 
-	// filter to lending category only
-	let pools = props.pools.filter((p) => p.category === 'Lending')
+	const lendingCategories = ['Lending', 'Undercollateralized Lending']
+	// filter to lending categories only
+	let pools = props.pools.filter((p) => lendingCategories.includes(p.category))
 
 	// get new borrow fields
 	let dataBorrow = (await arrayFetcher([YIELD_LEND_BORROW_API]))[0]
@@ -150,19 +151,27 @@ export async function getLendBorrowData() {
 			// for some projects we haven't added the new fields yet, dataBorrow will thus be smoler;
 			// hence the check for undefined
 			if (x === undefined) return null
+
+			// we display apyBaseBorrow as a negative value
+			const apyBaseBorrow = x.apyBaseBorrow !== null ? -x.apyBaseBorrow : null
+			const apyRewardBorrow = x.apyRewardBorrow
+			const apyBorrow = apyBaseBorrow === null && apyRewardBorrow === null ? null : apyBaseBorrow + apyRewardBorrow
 			return {
 				...p,
-				apyBaseBorrow: -x.apyBaseBorrow,
-				apyRewardBorrow: x.apyRewardBorrow,
+				apyBaseBorrow,
+				apyRewardBorrow,
 				totalSupplyUsd: x.totalSupplyUsd,
-				totalBorrowUsd: x.totalBorrowUsd ?? 0,
+				totalBorrowUsd: x.totalBorrowUsd,
 				ltv: x.ltv,
 				// note re morpho: they build on top of compound. if the total supply is being used by borrowers
 				// then any excess borrows will be routed via compound pools. so the available liquidity is actually
 				// compounds liquidity. not 100% sure how to present this on the frontend, but for now going to supress
 				// liq values (cause some of them are negative)
-				totalAvailableUsd: p.project === 'morpho' ? null : x.totalSupplyUsd - x.totalBorrowUsd,
-				apyBorrow: -x.apyBaseBorrow + x.apyRewardBorrow,
+				totalAvailableUsd:
+					p.project === 'morpho-compound' || (x.totalSupplyUsd === null && x.totalBorrowUsd === null)
+						? null
+						: x.totalSupplyUsd - x.totalBorrowUsd,
+				apyBorrow,
 				rewardTokens: p.apyRewards > 0 || x.apyRewardBorrow > 0 ? x.rewardTokens : p.rewardTokens
 			}
 		})
@@ -174,7 +183,7 @@ export async function getLendBorrowData() {
 			pools,
 			chainList: [...new Set(pools.map((p) => p.chain))],
 			projectList: props.projectList.filter((p) => [...new Set(pools.map((p) => p.project))].includes(p.slug)),
-			categoryList: ['Lending'],
+			categoryList: lendingCategories,
 			tokenNameMapping: props.tokenNameMapping
 		}
 	}
