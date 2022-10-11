@@ -155,7 +155,12 @@ export async function getLendBorrowData() {
 			// we display apyBaseBorrow as a negative value
 			const apyBaseBorrow = x.apyBaseBorrow !== null ? -x.apyBaseBorrow : null
 			const apyRewardBorrow = x.apyRewardBorrow
-			const apyBorrow = apyBaseBorrow === null && apyRewardBorrow === null ? null : apyBaseBorrow + apyRewardBorrow
+			const apyBorrow = apyBaseBorrow === null && apyRewardBorrow === null ? null : -apyBaseBorrow + apyRewardBorrow
+
+			const totalAvailableUsd =
+				p.project === 'morpho-compound' || (x.totalSupplyUsd === null && x.totalBorrowUsd === null)
+					? null
+					: x.totalSupplyUsd - x.totalBorrowUsd
 			return {
 				...p,
 				apyBaseBorrow,
@@ -167,10 +172,7 @@ export async function getLendBorrowData() {
 				// then any excess borrows will be routed via compound pools. so the available liquidity is actually
 				// compounds liquidity. not 100% sure how to present this on the frontend, but for now going to supress
 				// liq values (cause some of them are negative)
-				totalAvailableUsd:
-					p.project === 'morpho-compound' || (x.totalSupplyUsd === null && x.totalBorrowUsd === null)
-						? null
-						: x.totalSupplyUsd - x.totalBorrowUsd,
+				totalAvailableUsd,
 				apyBorrow,
 				rewardTokens: p.apyRewards > 0 || x.apyRewardBorrow > 0 ? x.rewardTokens : p.rewardTokens
 			}
