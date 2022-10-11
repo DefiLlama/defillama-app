@@ -260,7 +260,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 					{info.row.original.project.includes('Morpho') &&
 					info.row.original.totalSupplyUsd < info.row.original.totalBorrowUsd ? (
 						<QuestionHelper
-							text={`The peer-two-peer available liquidity on Morpho is fully matched. The displayed value is the Available Liquidity of the underlying lending pool on Compound`}
+							text={`The p2p available liquidity on Morpho is fully matched. The displayed value is the Available Liquidity of the underlying lending pool on Compound`}
 						/>
 					) : null}
 					{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}
