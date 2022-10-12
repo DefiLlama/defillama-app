@@ -260,7 +260,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				>
 					{info.row.original.project.includes('Morpho') ? (
 						<QuestionHelper
-							text={`Morpho-Compound liquidity comes from the underlying Compound pool itself. Available P2P Liquidity: ${
+							text={`Morpho liquidity comes from the underlying lending protocol pool itself. Available P2P Liquidity: ${
 								info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd > 0
 									? '$' + formattedNum(info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd)
 									: '$0'

@@ -144,9 +144,13 @@ export async function getLendBorrowData() {
 	// get new borrow fields
 	let dataBorrow = (await arrayFetcher([YIELD_LEND_BORROW_API]))[0]
 
-	// we use the compoundPool's available liq for morpho, if totalSupplyUsd < totalBorrowUsd on morpho
+	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
 	const configIdsCompound = pools.filter((p) => p.project === 'compound').map((p) => p.pool)
+	const configIdsAave = pools
+		.filter((p) => p.project === 'aave-v2' && p.chain === 'Ethereum' && !p.symbol.toLowerCase().includes('amm'))
+		.map((p) => p.pool)
 	const compoundPools = dataBorrow.filter((p) => configIdsCompound.includes(p.pool))
+	const aavev2Pools = dataBorrow.filter((p) => configIdsAave.includes(p.pool))
 	pools = pools
 		.map((p) => {
 			const x = dataBorrow.find((i) => i.pool === p.pool)
@@ -164,11 +168,16 @@ export async function getLendBorrowData() {
 			// otherwise its negative.
 			// instead we display the compound available pool liq together with a tooltip to clarify this
 			let totalAvailableUsd
-			if (['morpho-compound', 'morpho-aave'].includes(p.project)) {
+			if (p.project === 'morpho-compound') {
 				const compoundData = compoundPools.find(
 					(a) => a.underlyingTokens[0].toLowerCase() === x.underlyingTokens[0].toLowerCase()
 				)
 				totalAvailableUsd = compoundData?.totalSupplyUsd - compoundData?.totalBorrowUsd
+			} else if (p.project === 'morpho-aave') {
+				const aaveData = aavev2Pools.find(
+					(a) => a.underlyingTokens[0].toLowerCase() === x.underlyingTokens[0].toLowerCase()
+				)
+				totalAvailableUsd = aaveData?.totalSupplyUsd - aaveData?.totalBorrowUsd
 			} else if (x.totalSupplyUsd === null && x.totalBorrowUsd === null) {
 				totalAvailableUsd = null
 			} else {
