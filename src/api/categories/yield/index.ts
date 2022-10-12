@@ -146,7 +146,9 @@ export async function getLendBorrowData() {
 
 	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
 	const configIdsCompound = pools.filter((p) => p.project === 'compound').map((p) => p.pool)
-	const configIdsAave = pools.filter((p) => p.project === 'aave-v2').map((p) => p.pool)
+	const configIdsAave = pools
+		.filter((p) => p.project === 'aave-v2' && p.chain === 'Ethereum' && !p.symbol.toLowerCase().includes('amm'))
+		.map((p) => p.pool)
 	const compoundPools = dataBorrow.filter((p) => configIdsCompound.includes(p.pool))
 	const aavev2Pools = dataBorrow.filter((p) => configIdsAave.includes(p.pool))
 	pools = pools
