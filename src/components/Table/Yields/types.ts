@@ -21,6 +21,8 @@ export interface IYieldTableRow {
 	configID: string
 	apyRewardBorrow?: number
 	symbol: string
+	totalSupplyUsd: number
+	totalBorrowUsd: number
 }
 
 export interface IYieldsProjectsTableRow {

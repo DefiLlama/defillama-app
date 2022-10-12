@@ -5,6 +5,7 @@ import { AutoRow } from '~/components/Row'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
+import QuestionHelper from '~/components/QuestionHelper'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -213,7 +214,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
 					}}
 				>
-					{'$' + formattedNum(info.getValue())}
+					{info.getValue() === null ? '' : '$' + formattedNum(info.getValue())}
 				</span>
 			)
 		},
@@ -233,7 +234,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
 					}}
 				>
-					{'$' + formattedNum(info.getValue())}
+					{info.getValue() === null ? '' : '$' + formattedNum(info.getValue())}
 				</span>
 			)
 		},
@@ -242,6 +243,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end'
 		}
 	},
+	// Morpho-Compound liquidity comes from the Compound pool itself
 	{
 		header: 'Available',
 		accessorKey: 'totalAvailableUsd',
@@ -250,9 +252,21 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<span
 					style={{
+						display: 'flex',
+						gap: '4px',
+						justifyContent: 'flex-end',
 						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
 					}}
 				>
+					{info.row.original.project.includes('Morpho') ? (
+						<QuestionHelper
+							text={`Morpho liquidity comes from the underlying lending protocol pool itself. Available P2P Liquidity: ${
+								info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd > 0
+									? '$' + formattedNum(info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd)
+									: '$0'
+							}`}
+						/>
+					) : null}
 					{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}
 				</span>
 			)
