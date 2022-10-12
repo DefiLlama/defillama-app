@@ -7,7 +7,7 @@ import { slug } from '~/utils'
 
 export async function getStaticProps({
 	params: {
-		investor: [name]
+		investorName: [name]
 	}
 }) {
 	const data = await fetch(RAISES_API).then((r) => r.json())
@@ -44,7 +44,7 @@ export async function getStaticProps({
 		}
 	}
 
-	const investors = getInvestorsList({ data: { raises } })
+	const investors = getInvestorsList({ raises })
 
 	return {
 		props: {
@@ -61,7 +61,7 @@ export async function getStaticPaths() {
 
 	const investors = getInvestorsList(data)
 
-	return { paths: investors.map((i) => ({ params: { investor: [slug(i.toLowerCase())] } })), fallback: 'blocking' }
+	return { paths: investors.map((i) => ({ params: { investorName: [slug(i.toLowerCase())] } })), fallback: 'blocking' }
 }
 
 const Raises = (props) => {
