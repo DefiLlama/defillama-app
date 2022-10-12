@@ -164,7 +164,7 @@ export async function getLendBorrowData() {
 			// otherwise its negative.
 			// instead we display the compound available pool liq together with a tooltip to clarify this
 			let totalAvailableUsd
-			if (['morpho-compound', 'morpho-aave'].includes(p.project) && x.totalSupplyUsd < x.totalBorrowUsd) {
+			if (['morpho-compound', 'morpho-aave'].includes(p.project)) {
 				const compoundData = compoundPools.find(
 					(a) => a.underlyingTokens[0].toLowerCase() === x.underlyingTokens[0].toLowerCase()
 				)

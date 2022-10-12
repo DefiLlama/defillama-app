@@ -243,6 +243,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end'
 		}
 	},
+	// Morpho-Compound liquidity comes from the Compound pool itself
 	{
 		header: 'Available',
 		accessorKey: 'totalAvailableUsd',
@@ -257,10 +258,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
 					}}
 				>
-					{info.row.original.project.includes('Morpho') &&
-					info.row.original.totalSupplyUsd < info.row.original.totalBorrowUsd ? (
+					{info.row.original.project.includes('Morpho') ? (
 						<QuestionHelper
-							text={`The p2p available liquidity on Morpho is fully matched. The displayed value is the Available Liquidity of the underlying lending pool on Compound`}
+							text={`Morpho-Compound liquidity comes from the underlying Compound pool itself. Available P2P Liquidity: ${
+								info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd > 0
+									? '$' + formattedNum(info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd)
+									: '$0'
+							}`}
 						/>
 					) : null}
 					{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}
