@@ -13,6 +13,7 @@ export default function ApiDocs() {
 
 	return (
 		<Layout title={`API Docs - DefiLlama`}>
+			<H1><a>https://api.llama.fi</a> , <a>https://coins.llama.fi</a></H1>
 			<HideSections>
 				<Wrapper>
 					<Swagger />
