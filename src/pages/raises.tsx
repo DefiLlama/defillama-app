@@ -9,11 +9,7 @@ export async function getStaticProps() {
 
 	return {
 		props: {
-			raises: data.raises.map((r) => ({
-				...r,
-				lead: r.leadInvestors.join(', '),
-				otherInvestors: r.otherInvestors.join(', ')
-			})),
+			raises: data.raises,
 			investors: getInvestorsList(data)
 		},
 		revalidate: revalidate()

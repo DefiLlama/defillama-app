@@ -42,12 +42,18 @@ const RaisesContainer = ({ raises, investors, investorName }) => {
 		} else selectedInvestors = [...investors]
 
 		const filteredRaisesList = raises.filter((raise) => {
-			let toFilter = true
+			let toFilter = false
 
-			selectedInvestors.forEach((selectedInvestor) => {
-				toFilter = toFilter && raise.lead?.includes(selectedInvestor)
+			raise.leadInvestors.forEach((lead) => {
+				if (selectedInvestors.includes(lead) && !toFilter) {
+					toFilter = true
+				}
+			})
 
-				toFilter = toFilter && raise.otherInvestors?.includes(selectedInvestor)
+			raise.otherInvestors.forEach((otherInv) => {
+				if (selectedInvestors.includes(otherInv) && !toFilter) {
+					toFilter = true
+				}
 			})
 
 			return toFilter

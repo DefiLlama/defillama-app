@@ -158,14 +158,19 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 	})),
 	{
 		header: 'Lead Investor',
-		accessorKey: 'lead',
+		accessorKey: 'leadInvestors',
 		size: 120,
 		enableSorting: false,
-		cell: ({ getValue }) => (
-			<Tooltip2 content={getValue() as string} style={{ padding: '12px' }}>
-				{getValue()}
-			</Tooltip2>
-		)
+		cell: ({ getValue }) => {
+			const value = getValue() as Array<string>
+			const formattedValue = value.join(', ')
+
+			return (
+				<Tooltip2 content={formattedValue} style={{ padding: '12px' }}>
+					{formattedValue}
+				</Tooltip2>
+			)
+		}
 	},
 	{
 		header: 'Link',
@@ -194,15 +199,21 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 	{
 		header: 'Chains',
 		accessorKey: 'chains',
+		enableSorting: false,
 		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
-		size: 50
+		size: 60
 	},
 	{
 		header: 'Other Investors',
 		accessorKey: 'otherInvestors',
 		size: 400,
 		enableSorting: false,
-		cell: ({ getValue }) => <Tooltip2 content={getValue() as string}>{getValue()}</Tooltip2>
+		cell: ({ getValue }) => {
+			const value = getValue() as Array<string>
+			const formattedValue = value.join(', ')
+
+			return <Tooltip2 content={formattedValue}>{formattedValue}</Tooltip2>
+		}
 	}
 ]
 

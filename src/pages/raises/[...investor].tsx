@@ -19,14 +19,14 @@ export async function getStaticProps({
 	data.raises.forEach((r) => {
 		let isInvestor = false
 
-		r.leadInvestors.forEach((l) => {
+		r.leadInvestors?.forEach((l) => {
 			if (slug(l.toLowerCase()) === name) {
 				investorName = l
 				isInvestor = true
 			}
 		})
 
-		r.otherInvestors.forEach((l) => {
+		r.otherInvestors?.forEach((l) => {
 			if (slug(l.toLowerCase()) === name) {
 				investorName = l
 				isInvestor = true
@@ -48,11 +48,7 @@ export async function getStaticProps({
 
 	return {
 		props: {
-			raises: raises.map((r) => ({
-				...r,
-				lead: r.leadInvestors.join(', '),
-				otherInvestors: r.otherInvestors.join(', ')
-			})),
+			raises,
 			investors,
 			investorName
 		},
