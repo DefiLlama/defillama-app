@@ -121,7 +121,7 @@ export function SelectLegendMultiple({ allOptions, options, setOptions, title, .
 									ref={i === 0 && options.length === allOptions.length ? focusItemRef : null}
 									focusOnHover
 								>
-									<span>{value}</span>
+									<span data-name>{value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
 								</SelectItem>
 							))}

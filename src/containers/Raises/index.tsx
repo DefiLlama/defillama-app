@@ -5,6 +5,9 @@ import VirtualTable from '~/components/Table/Table'
 import { raisesColumns } from '~/components/Table/Defi/columns'
 import { AnnouncementWrapper } from '~/components/Announcement'
 import { RaisesSearch } from '~/components/Search'
+import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
+import { Investors } from '~/components/Filters'
+import { useRouter } from 'next/router'
 
 function RaisesTable({ raises }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
@@ -22,7 +25,43 @@ function RaisesTable({ raises }) {
 	return <VirtualTable instance={instance} />
 }
 
-const RaisesContainer = ({ raises, investorName }) => {
+const RaisesContainer = ({ raises, investors, investorName }) => {
+	const { pathname, query } = useRouter()
+
+	const { investor } = query
+
+	const { filteredRaisesList, selectedInvestors } = React.useMemo(() => {
+		let selectedInvestors = []
+
+		if (investor) {
+			if (typeof investor === 'string') {
+				selectedInvestors = investor === 'All' ? [...investors] : investor === 'None' ? [] : [investor]
+			} else {
+				selectedInvestors = [...investor]
+			}
+		} else selectedInvestors = [...investors]
+
+		const filteredRaisesList = raises.filter((raise) => {
+			let toFilter = false
+
+			raise.leadInvestors.forEach((lead) => {
+				if (selectedInvestors.includes(lead) && !toFilter) {
+					toFilter = true
+				}
+			})
+
+			raise.otherInvestors.forEach((otherInv) => {
+				if (selectedInvestors.includes(otherInv) && !toFilter) {
+					toFilter = true
+				}
+			})
+
+			return toFilter
+		})
+
+		return { selectedInvestors, filteredRaisesList }
+	}, [investor, investors, raises])
+
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
 			<RaisesSearch step={{ category: investorName ? 'Raises' : 'Home', name: investorName || 'Raises' }} />
@@ -38,7 +77,16 @@ const RaisesContainer = ({ raises, investorName }) => {
 					Add it here!
 				</a>
 			</AnnouncementWrapper>
-			<RaisesTable raises={raises} />
+
+			<TableFilters>
+				<TableHeader>Raises</TableHeader>
+
+				<Dropdowns>
+					<Investors investors={investors} selectedInvestors={selectedInvestors} pathname={pathname} />
+				</Dropdowns>
+			</TableFilters>
+
+			<RaisesTable raises={filteredRaisesList} />
 		</Layout>
 	)
 }

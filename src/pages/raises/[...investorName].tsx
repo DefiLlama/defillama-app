@@ -7,7 +7,7 @@ import { slug } from '~/utils'
 
 export async function getStaticProps({
 	params: {
-		investor: [name]
+		investorName: [name]
 	}
 }) {
 	const data = await fetch(RAISES_API).then((r) => r.json())
@@ -19,14 +19,14 @@ export async function getStaticProps({
 	data.raises.forEach((r) => {
 		let isInvestor = false
 
-		r.leadInvestors.forEach((l) => {
+		r.leadInvestors?.forEach((l) => {
 			if (slug(l.toLowerCase()) === name) {
 				investorName = l
 				isInvestor = true
 			}
 		})
 
-		r.otherInvestors.forEach((l) => {
+		r.otherInvestors?.forEach((l) => {
 			if (slug(l.toLowerCase()) === name) {
 				investorName = l
 				isInvestor = true
@@ -44,13 +44,12 @@ export async function getStaticProps({
 		}
 	}
 
+	const investors = getInvestorsList({ raises })
+
 	return {
 		props: {
-			raises: raises.map((r) => ({
-				...r,
-				lead: r.leadInvestors.join(', '),
-				otherInvestors: r.otherInvestors.join(', ')
-			})),
+			raises,
+			investors,
 			investorName
 		},
 		revalidate: revalidate()
@@ -62,11 +61,11 @@ export async function getStaticPaths() {
 
 	const investors = getInvestorsList(data)
 
-	return { paths: investors.map((i) => ({ params: { investor: [slug(i.toLowerCase())] } })), fallback: 'blocking' }
+	return { paths: investors.map((i) => ({ params: { investorName: [slug(i.toLowerCase())] } })), fallback: 'blocking' }
 }
 
-const Raises = ({ raises, investorName }) => {
-	return <RaisesContainer raises={raises} investorName={investorName} />
+const Raises = (props) => {
+	return <RaisesContainer {...props} />
 }
 
 export default Raises
