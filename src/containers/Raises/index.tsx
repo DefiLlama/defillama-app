@@ -100,18 +100,26 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				}
 
 				if (selectedChains.length !== chains.length) {
+					// filter raises with no chains
 					if (raise.chains.length === 0) {
 						toFilter = false
 					} else {
+						let raiseIncludesChain = false
+
 						raise.chains.forEach((chain) => {
-							if (!selectedChains.includes(chain)) {
-								toFilter = false
+							if (selectedChains.includes(chain)) {
+								raiseIncludesChain = true
 							}
 						})
+
+						if (!raiseIncludesChain) {
+							toFilter = false
+						}
 					}
 				}
 
 				if (selectedRounds.length !== rounds.length) {
+					// filter raises with no round
 					if (!raise.round || raise.round === '') {
 						toFilter = false
 					} else {
@@ -122,6 +130,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				}
 
 				if (selectedSectors.length !== sectors.length) {
+					// filter raises with no sector
 					if (!raise.sector || raise.sector === '') {
 						toFilter = false
 					} else {
