@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import IconsRow from '~/components/IconsRow'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum, formattedPercent, toK } from '~/utils'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
@@ -110,7 +110,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						color: apyColors['borrow']
 					}}
 				>
-					{formattedNum(info.getValue()).toFixed(2) + 'x'}
+					{toK(info.getValue()) + 'x'}
 				</span>
 			)
 		},
