@@ -14,7 +14,7 @@ import { SelectLegendMultiple } from '~/components/ECharts/shared'
 import { getColor } from '~/utils/getColor'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { useDefiManager } from '~/contexts/LocalStorage'
-import { formatProtocolsTvlChartData } from '~/components/ECharts/AreaChart/ProtocolTvl'
+import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import { fuseProtocolData } from '~/api/categories/protocols'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {

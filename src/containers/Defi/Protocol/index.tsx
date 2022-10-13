@@ -33,7 +33,7 @@ import TokenLogo from '~/components/TokenLogo'
 import SEO from '~/components/SEO'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
-import ProtocolTvlChart from '~/components/ECharts/AreaChart/ProtocolTvl'
+import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import QuestionHelper from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
@@ -234,6 +234,17 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 		}
 	}, [dex, dexLoading])
 
+	const volumeMap = dex?.volumeHistory?.reduce(
+		(acc, val) => ({
+			...acc,
+			[val.timestamp]: Object.values(val.dailyVolume).reduce(
+				(acc, val) => acc + +Object.values(val).reduce((acc, v) => Number(acc) + Number(v), 0),
+				0
+			)
+		}),
+		{} as Record<number, number>
+	)
+
 	const chainsSplit = React.useMemo(() => {
 		return chainsStacked?.map((chain) => {
 			if (chain.extraTvl) {
@@ -362,7 +373,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					)}
 				</DetailsWrapper>
 
-				<ProtocolTvlChart
+				<ProtocolChart
 					protocol={protocol}
 					tvlChartData={tvlChartData}
 					color={backgroundColor}
@@ -371,6 +382,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					hallmarks={hallmarks}
 					bobo={bobo}
 					geckoId={gecko_id}
+					volumeMap={volumeMap}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>

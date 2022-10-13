@@ -93,7 +93,9 @@ export const DexCharts = ({ logo, data, chartData, name, chainsChart, isProtocol
 			</DetailsWrapper>
 
 			<ChartWrapper>
-				{chartData && chartData.length > 0 && <StackedBarChart title="Total volume" chartData={chartData} />}
+				{chartData && chartData.length > 0 && !isProtocolPage && (
+					<StackedBarChart title="Total volume" chartData={chartData} />
+				)}
 				{chainsChart && <StackedBarChart title="Volume by chain" chartData={chainsChart} />}
 			</ChartWrapper>
 		</StatsSection>
