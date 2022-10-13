@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import IconsRow from '~/components/IconsRow'
-import { formattedNum, formattedPercent } from '~/utils'
-import { AutoRow } from '~/components/Row'
+import { formattedNum, formattedPercent, toK } from '~/utils'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
@@ -28,6 +27,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 					url={row.original.url}
 					index={index + 1}
 					borrow={true}
+					maxCharacters={30}
 				/>
 			)
 		},
@@ -36,7 +36,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
 		accessorKey: 'project',
-		enableSorting: false,
+		enableSorting: true,
 		cell: ({ row }) => (
 			<NameYield
 				project={row.original.project}
@@ -58,8 +58,29 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 60
 	},
 	{
-		header: 'Supply Base',
-		accessorKey: 'apyBase',
+		header: 'Loop APY',
+		accessorKey: 'loopApy',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<span
+					style={{
+						color: apyColors['positive']
+					}}
+				>
+					{formattedPercent(info.getValue(), true, 700)}
+				</span>
+			)
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Leveraged APY consisting of deposit -> borrow (same asset, max LTV) -> deposit (same asset)'
+		}
+	},
+	{
+		header: 'Supply APY',
+		accessorKey: 'netSupplyApy',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -75,64 +96,12 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Base rate lenders earn which is generated from the borrow side.'
+			headerHelperText: 'Total net APY for supplying (Base + Reward)'
 		}
 	},
 	{
-		header: 'Supply Reward',
-		accessorKey: 'apyReward',
-		enableSorting: true,
-		cell: ({ getValue, row }) => {
-			const rewards = row.original.rewards ?? []
-
-			return (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					<IconsRow
-						links={rewards}
-						url="/yields?project"
-						iconType="token"
-						yieldRewardsSymbols={row.original.rewardTokensSymbols}
-					/>
-					<span
-						style={{
-							color: apyColors['supply']
-						}}
-					>
-						{formattedPercent(getValue(), true, 400)}
-					</span>
-				</AutoRow>
-			)
-		},
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Incentive reward APY for lending.'
-		}
-	},
-	{
-		header: 'Net Borrow',
-		accessorKey: 'apyBorrow',
-		enableSorting: true,
-		cell: (info) => {
-			return (
-				<span
-					style={{
-						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
-					}}
-				>
-					{formattedPercent(info.getValue(), true, 700)}
-				</span>
-			)
-		},
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Total net APY for borrowing (Base + Reward).'
-		}
-	},
-	{
-		header: 'Borrow Base',
-		accessorKey: 'apyBaseBorrow',
+		header: 'Boost',
+		accessorKey: 'boost',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -141,45 +110,14 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						color: apyColors['borrow']
 					}}
 				>
-					{formattedPercent(info.getValue(), true, 400)}
+					{toK(info.getValue()) + 'x'}
 				</span>
 			)
 		},
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Interest borrowers pay to lenders.'
-		}
-	},
-	{
-		header: 'Borrow Reward',
-		accessorKey: 'apyRewardBorrow',
-		enableSorting: true,
-		cell: ({ getValue, row }) => {
-			const rewards = row.original.rewards ?? []
-
-			return row.original.apyRewardBorrow > 0 ? (
-				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					<IconsRow
-						links={rewards}
-						url="/yields?project"
-						iconType="token"
-						yieldRewardsSymbols={row.original.rewardTokensSymbols}
-					/>
-					<span
-						style={{
-							color: apyColors['borrow']
-						}}
-					>
-						{formattedPercent(getValue(), true, 400)}
-					</span>
-				</AutoRow>
-			) : null
-		},
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Incentive reward APY for borrowing.'
+			headerHelperText: 'Loop APY Multiple over Supply APY'
 		}
 	},
 	{
@@ -285,11 +223,9 @@ const columnOrders = {
 		'apy',
 		'project',
 		'chains',
-		'apyBase',
-		'apyReward',
-		'apyBorrow',
-		'apyBaseBorrow',
-		'apyRewardBorrow',
+		'loopApy',
+		'netSupplyApy',
+		'boost',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
@@ -300,11 +236,9 @@ const columnOrders = {
 		'apy',
 		'project',
 		'chains',
-		'apyBase',
-		'apyReward',
-		'apyBorrow',
-		'apyBaseBorrow',
-		'apyRewardBorrow',
+		'loopApy',
+		'netSupplyApy',
+		'boost',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
@@ -315,11 +249,9 @@ const columnOrders = {
 		'apy',
 		'project',
 		'chains',
-		'apyBase',
-		'apyReward',
-		'apyBorrow',
-		'apyBaseBorrow',
-		'apyRewardBorrow',
+		'loopApy',
+		'netSupplyApy',
+		'boost',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
@@ -330,11 +262,9 @@ const columnOrders = {
 		'apy',
 		'project',
 		'chains',
-		'apyBase',
-		'apyReward',
-		'apyBorrow',
-		'apyBaseBorrow',
-		'apyRewardBorrow',
+		'loopApy',
+		'netSupplyApy',
+		'boost',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
@@ -344,22 +274,28 @@ const columnOrders = {
 
 export const columnSizes = {
 	0: {
-		pool: 120,
-		project: 200,
+		pool: 160,
+		project: 180,
 		chain: 60,
-		apyBase: 140,
-		apyBaseBorrow: 140,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120
+		loopApy: 100,
+		netSupplyApy: 100,
+		boost: 80,
+		ltv: 60,
+		totalSupplyUsd: 80,
+		totalBorrowUsd: 80,
+		totalAvailableUsd: 80
 	},
 	812: {
 		pool: 200,
-		project: 200,
+		project: 160,
 		chain: 60,
-		apyBase: 140,
-		apyBaseBorrow: 140,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120
+		loopApy: 100,
+		netSupplyApy: 100,
+		boost: 80,
+		ltv: 60,
+		totalSupplyUsd: 80,
+		totalBorrowUsd: 80,
+		totalAvailableUsd: 80
 	}
 }
 

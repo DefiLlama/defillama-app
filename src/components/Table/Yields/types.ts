@@ -23,6 +23,8 @@ export interface IYieldTableRow {
 	symbol: string
 	totalSupplyUsd: number
 	totalBorrowUsd: number
+	loopApy: number
+	boost: number
 }
 
 export interface IYieldsProjectsTableRow {

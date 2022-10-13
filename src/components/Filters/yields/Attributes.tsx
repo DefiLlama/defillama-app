@@ -43,7 +43,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.tvlUsd >= 1e6
 		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/yields/optimizer']
+		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/yields/optimizer', '/yields/loop']
 	},
 	{
 		name: 'Audited',
@@ -63,7 +63,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.outlier === false
 		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/yields/optimizer']
+		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/yields/optimizer', '/yields/loop']
 	},
 	{
 		name: 'APY > 0',
@@ -73,7 +73,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.apy > 0
 		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/yields/optimizer']
+		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/yields/optimizer', '/yields/loop']
 	},
 	{
 		name: 'Stable Outlook',
@@ -81,7 +81,7 @@ export const attributeOptions = [
 		help: 'Select pools with "Stable/Up" Outlook only',
 		filterFn: (item) => item.predictions.predictedClass === 'Stable/Up',
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields/borrow', '/yields/optimizer']
+		disabledOnPages: ['/yields/borrow', '/yields/optimizer', '/yields/loop']
 	},
 	{
 		name: 'High Confidence',
@@ -89,7 +89,7 @@ export const attributeOptions = [
 		help: 'Select pools with "High" predicted outlook confidence',
 		filterFn: (item) => item.predictions.binnedConfidence === 3,
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields/borrow', '/yields/optimizer']
+		disabledOnPages: ['/yields/borrow', '/yields/optimizer', '/yields/loop']
 	},
 	{
 		// see: https://bad-debt.riskdao.org/
@@ -200,6 +200,8 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 							? !option.disabledOnPages.includes('/yields')
 							: pathname === '/yields/stablecoins'
 							? !option.disabledOnPages.includes('/yields/stablecoins')
+							: pathname === '/yields/loop'
+							? !option.disabledOnPages.includes('/yields/loop')
 							: true
 					)
 					.map((option) => (
