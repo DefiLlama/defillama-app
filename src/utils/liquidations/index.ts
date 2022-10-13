@@ -183,7 +183,7 @@ interface LiquidationsData {
 	time: number
 }
 
-const disabledProtocols = ['angle']
+const disabledProtocols = []
 
 export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, timePassed = 0) {
 	const now = Math.round(Date.now() / 1000) // in seconds
@@ -464,6 +464,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		symbol: 'MATIC'
 	},
 	{
+		name: 'Optimism',
+		symbol: 'OP'
+	},
+	{
 		name: 'SushiSwap',
 		symbol: 'SUSHI'
 	},
@@ -471,14 +475,14 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		name: 'Synthetix',
 		symbol: 'SNX'
 	},
-	{
-		name: 'Trader Joe',
-		symbol: 'JOE'
-	},
-	{
-		name: 'Magic Internet Money',
-		symbol: 'MIM'
-	},
+	// {
+	// 	name: 'Trader Joe',
+	// 	symbol: 'JOE'
+	// },
+	// {
+	// 	name: 'Magic Internet Money',
+	// 	symbol: 'MIM'
+	// },
 	{
 		name: '0x',
 		symbol: 'ZRX'
@@ -512,13 +516,13 @@ export const DEFAULT_ASSETS_LIST: ISearchItem[] = DEFAULT_ASSETS_LIST_RAW.map(({
 	logo: assetIconUrl(symbol.toLowerCase())
 }))
 
-export const PROTOCOL_NAMES_MAP: { [protocol: string]: string } = {
+export const PROTOCOL_NAMES_MAP = {
 	'aave-v2': 'Aave V2',
 	compound: 'Compound',
 	euler: 'Euler',
 	liquity: 'Liquity',
 	maker: 'MakerDAO',
-	traderjoe: 'Trader Joe',
+	'trader-joe-lend': 'Trader Joe',
 	polygon: 'Polygon',
 	ethereum: 'Ethereum',
 	avalanche: 'Avalanche',
@@ -526,8 +530,11 @@ export const PROTOCOL_NAMES_MAP: { [protocol: string]: string } = {
 	solana: 'Solana',
 	benqi: 'Benqi',
 	venus: 'Venus',
-	bsc: 'BSC'
-}
+	bsc: 'BSC',
+	angle: 'Angle',
+	optimism: 'Optimism',
+	arbitrum: 'Arbitrum'
+} as const
 
 export const PROTOCOL_NAMES_MAP_REVERSE: { [name: string]: string } = Object.entries(PROTOCOL_NAMES_MAP).reduce(
 	(acc, [key, value]) => ({ ...acc, [value]: key }),
