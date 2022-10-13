@@ -213,3 +213,27 @@ export async function getLendBorrowData() {
 		}
 	}
 }
+
+export function calculateLoopAPY(lendBorrowPools, levels = 1) {
+	let pools = lendBorrowPools.filter((p) => p.ltv > 0)
+
+	return pools
+		.map((p) => {
+			const deposit_apy = (p.apyBase + p.apyReward) / 100
+			// apyBaseBorrow already set to - in getLendBorrowData
+			const borrow_apy = (p.apyBaseBorrow + p.apyRewardBorrow) / 100
+
+			let total_borrowed = 0
+			for (const i of [...Array(levels).keys()]) {
+				total_borrowed += p.ltv ** (i + 1)
+			}
+
+			const loopApy = ((total_borrowed + 1) * deposit_apy + total_borrowed * borrow_apy) * 100
+			const boost = loopApy / (p.apyBase + p.apyReward)
+			if (boost > 1 && Number.isFinite(boost)) {
+				return { ...p, loopApy, boost }
+			} else return null
+		})
+		.filter(Boolean)
+		.sort((a, b) => b.loopApy - a.loopApy)
+}
