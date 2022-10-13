@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { revalidate } from '~/api'
-import { getInvestorsList } from '~/api/categories/raises'
+import { getRaisesFiltersList } from '~/api/categories/raises'
 import { RAISES_API } from '~/constants'
 import RaisesContainer from '~/containers/Raises'
 import { slug } from '~/utils'
@@ -44,12 +44,12 @@ export async function getStaticProps({
 		}
 	}
 
-	const investors = getInvestorsList({ raises })
+	const filters = getRaisesFiltersList({ raises })
 
 	return {
 		props: {
 			raises,
-			investors,
+			...filters,
 			investorName
 		},
 		revalidate: revalidate()
@@ -59,7 +59,7 @@ export async function getStaticProps({
 export async function getStaticPaths() {
 	const data = await fetch(RAISES_API).then((r) => r.json())
 
-	const investors = getInvestorsList(data)
+	const { investors } = getRaisesFiltersList(data)
 
 	return { paths: investors.map((i) => ({ params: { investorName: [slug(i.toLowerCase())] } })), fallback: 'blocking' }
 }
