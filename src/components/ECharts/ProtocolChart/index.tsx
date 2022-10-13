@@ -138,7 +138,7 @@ export default function AreaBarChart({
 			graphic: { ...graphic },
 			legend: {
 				...legend,
-				right: 350,
+				left: 65,
 				show: chartsStack.length > 1
 			},
 			tooltip: {

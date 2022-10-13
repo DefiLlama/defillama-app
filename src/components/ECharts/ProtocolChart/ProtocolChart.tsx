@@ -25,6 +25,12 @@ interface IProps {
 	geckoId?: string | null
 }
 
+const chartColors = {
+	Volume: '#4f8fea',
+	TVL: '#E59421',
+	Mcap: '#8eb027'
+}
+
 export default function ProtocolChart({
 	protocol,
 	tvlChartData,
@@ -229,6 +235,7 @@ export default function ProtocolChart({
 					hidedefaultlegend={true}
 					hallmarks={!hideHallmarks && hallmarks}
 					tooltipSort={false}
+					stackColors={chartColors}
 					style={{
 						...(bobo && {
 							backgroundImage: 'url("/bobo.png")',
