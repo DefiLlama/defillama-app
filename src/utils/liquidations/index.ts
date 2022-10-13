@@ -475,14 +475,14 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 		name: 'Synthetix',
 		symbol: 'SNX'
 	},
-	// {
-	// 	name: 'Trader Joe',
-	// 	symbol: 'JOE'
-	// },
-	// {
-	// 	name: 'Magic Internet Money',
-	// 	symbol: 'MIM'
-	// },
+	{
+		name: 'Trader Joe',
+		symbol: 'JOE'
+	},
+	{
+		name: 'Magic Internet Money',
+		symbol: 'MIM'
+	},
 	{
 		name: '0x',
 		symbol: 'ZRX'
