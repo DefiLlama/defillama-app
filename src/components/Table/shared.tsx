@@ -54,7 +54,7 @@ export const Dropdowns = styled.span`
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 20px;
+	gap: 12px;
 `
 
 export const TableHeader = styled.h1`

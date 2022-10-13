@@ -6,7 +6,7 @@ import { raisesColumns } from '~/components/Table/Defi/columns'
 import { AnnouncementWrapper } from '~/components/Announcement'
 import { RaisesSearch } from '~/components/Search'
 import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
-import { Chains, Investors, Rounds, Sectors } from '~/components/Filters'
+import { Chains, Investors, RaisedRange, Rounds, Sectors } from '~/components/Filters'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 
@@ -29,7 +29,7 @@ function RaisesTable({ raises }) {
 const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
 	const { pathname, query } = useRouter()
 
-	const { investor, round, sector, chain } = query
+	const { investor, round, sector, chain, minRaised, maxRaised } = query
 
 	const { filteredRaisesList, selectedInvestors, selectedRounds, selectedChains, selectedSectors } =
 		React.useMemo(() => {
@@ -69,6 +69,14 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					selectedChains = [...chain]
 				}
 			} else selectedChains = [...chains]
+
+			const minimumAmountRaised =
+				typeof minRaised === 'string' && !Number.isNaN(Number(minRaised)) ? Number(minRaised) : 0
+
+			const maximumAmountRaised =
+				typeof maxRaised === 'string' && !Number.isNaN(Number(maxRaised)) ? Number(maxRaised) : 0
+
+			const isValidTvlRange = !!minimumAmountRaised || !!maximumAmountRaised
 
 			const filteredRaisesList = raises.filter((raise) => {
 				let toFilter = true
@@ -140,11 +148,20 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					}
 				}
 
+				const raisedAmount = raise.amount ? Number(raise.amount) * 1_000_000 : 0
+
+				const isInRange =
+					(minimumAmountRaised ? raisedAmount >= minimumAmountRaised : true) &&
+					(maximumAmountRaised ? raisedAmount <= maximumAmountRaised : true)
+
+				if (isValidTvlRange && !isInRange) {
+					toFilter = false
+				}
 				return toFilter
 			})
 
 			return { selectedInvestors, selectedChains, selectedRounds, selectedSectors, filteredRaisesList }
-		}, [investor, investors, round, rounds, sector, sectors, chain, chains, raises])
+		}, [investor, investors, round, rounds, sector, sectors, chain, chains, raises, minRaised, maxRaised])
 
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
@@ -170,6 +187,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					<Sectors sectors={sectors} selectedSectors={selectedSectors} pathname={pathname} />
 					<Investors investors={investors} selectedInvestors={selectedInvestors} pathname={pathname} />
 					<Chains chains={chains} selectedChains={selectedChains} pathname={pathname} />
+					<RaisedRange />
 					<Link href="/raises" shallow>
 						<a style={{ textDecoration: 'underline' }}>Reset all filters</a>
 					</Link>
