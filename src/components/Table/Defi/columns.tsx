@@ -217,6 +217,46 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 	}
 ]
 
+export const hacksColumns: ColumnDef<ICategoryRow>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <Name>{getValue()}</Name>
+		},
+		size: 200
+	},
+	{
+		cell: ({ getValue }) => <>{toNiceDayMonthAndYear(getValue())}</>,
+		size: 120,
+		header: 'Date',
+		accessorKey: 'date'
+	},
+	{
+		header: 'Amount lost',
+		accessorKey: 'amount',
+		cell: ({ getValue }) => <>{getValue() ? '$' + formatRaise(getValue()) : ''}</>,
+		size: 140
+	},
+	{
+		header: 'Chains',
+		accessorKey: 'chains',
+		enableSorting: false,
+		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
+		size: 60
+	},
+	...['classification', 'technique'].map((s) => ({
+		header: capitalizeFirstLetter(s),
+		accessorKey: s,
+		enableSorting: false,
+		size: s==="classification"? 100 : 200,
+		...(s==="classification" && {meta: {
+			headerHelperText: "Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)"
+		}}),
+	})),
+]
+
 export const chainsColumn: ColumnDef<IChainsRow>[] = [
 	{
 		header: () => <Name>Name</Name>,
