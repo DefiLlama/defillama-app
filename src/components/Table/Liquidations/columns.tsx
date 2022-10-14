@@ -70,7 +70,7 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 		},
 		meta: {
 			align: 'end',
-			headerHelperText: 'Total amount of liquidatable assets.'
+			headerHelperText: 'The USD value of all the collateral that would be sold if all positions went into liquidation.'
 		}
 	},
 	{
