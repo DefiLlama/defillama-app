@@ -1,6 +1,7 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
+import styled from 'styled-components'
 import VirtualTable from '~/components/Table/Table'
 import { raisesColumns } from '~/components/Table/Defi/columns'
 import { AnnouncementWrapper } from '~/components/Announcement'
@@ -9,6 +10,8 @@ import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
 import { Chains, Investors, RaisedRange, Rounds, Sectors } from '~/components/Filters'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import { DownloadIcon } from '~/components'
+import { download } from '~/utils'
 
 function RaisesTable({ raises }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
@@ -25,6 +28,22 @@ function RaisesTable({ raises }) {
 
 	return <VirtualTable instance={instance} />
 }
+
+const DownloadButton = styled.button`
+	font-size: 0.875rem;
+	display: flex;
+	align-items: center;
+	background: ${({ theme }) => theme.bg3};
+	padding: 4px 6px;
+	border-radius: 6px;
+`
+
+const TableHeaderWrapper = styled(TableHeader)`
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 8px;
+`
 
 const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
 	const { pathname, query } = useRouter()
@@ -163,6 +182,41 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 			return { selectedInvestors, selectedChains, selectedRounds, selectedSectors, filteredRaisesList }
 		}, [investor, investors, round, rounds, sector, sectors, chain, chains, raises, minRaised, maxRaised])
 
+	// prepare csv data
+	const downloadCsv = () => {
+		const rows = [
+			[
+				'Name',
+				'Date',
+				'Amount Raised',
+				'Round',
+				'Sector',
+				'Lead Investor',
+				'Source',
+				'Valuation',
+				'Chains',
+				'Other Investors'
+			]
+		]
+
+		raises.forEach((item) => {
+			rows.push([
+				item.name,
+				item.date,
+				item.amount * 1_000_000,
+				item.round ?? '',
+				item.sector ?? '',
+				item.leadInvestors?.join(', ') ?? '',
+				item.source ?? '',
+				item.valuation ?? '',
+				item.chains?.join(', ') ?? '',
+				item.otherInvestors?.join(', ') ?? ''
+			])
+		})
+
+		download(`raises.csv`, rows.map((r) => r.join(',')).join('\n'))
+	}
+
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
 			<RaisesSearch step={{ category: investorName ? 'Raises' : 'Home', name: investorName || 'Raises' }} />
@@ -180,7 +234,13 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 			</AnnouncementWrapper>
 
 			<TableFilters>
-				<TableHeader>Raises</TableHeader>
+				<TableHeaderWrapper>
+					<span>Raises</span>
+					<DownloadButton onClick={downloadCsv}>
+						<DownloadIcon />
+						<span>&nbsp;&nbsp;.csv</span>
+					</DownloadButton>
+				</TableHeaderWrapper>
 
 				<Dropdowns>
 					<Rounds rounds={rounds} selectedRounds={selectedRounds} pathname={pathname} />

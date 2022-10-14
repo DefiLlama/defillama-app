@@ -145,17 +145,25 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		accessorKey: 'date'
 	},
 	{
-		header: 'Amount raised',
+		header: 'Amount Raised',
 		accessorKey: 'amount',
 		cell: ({ getValue }) => <>{getValue() ? '$' + formatRaise(getValue()) : ''}</>,
 		size: 140
 	},
-	...['round', 'sector'].map((s) => ({
-		header: capitalizeFirstLetter(s),
-		accessorKey: s,
+	{ header: 'Round', accessorKey: 'round', enableSorting: false, size: 140 },
+	{
+		header: 'Sector',
+		accessorKey: 'sector',
+		size: 140,
 		enableSorting: false,
-		size: 140
-	})),
+		cell: ({ getValue }) => {
+			return (
+				<Tooltip2 content={getValue() as string} style={{ padding: '12px' }}>
+					{getValue()}
+				</Tooltip2>
+			)
+		}
+	},
 	{
 		header: 'Lead Investor',
 		accessorKey: 'leadInvestors',
@@ -250,11 +258,14 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 		header: capitalizeFirstLetter(s),
 		accessorKey: s,
 		enableSorting: false,
-		size: s==="classification"? 100 : 200,
-		...(s==="classification" && {meta: {
-			headerHelperText: "Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)"
-		}}),
-	})),
+		size: s === 'classification' ? 100 : 200,
+		...(s === 'classification' && {
+			meta: {
+				headerHelperText:
+					'Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)'
+			}
+		})
+	}))
 ]
 
 export const chainsColumn: ColumnDef<IChainsRow>[] = [
