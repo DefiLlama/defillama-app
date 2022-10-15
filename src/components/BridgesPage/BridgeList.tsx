@@ -2,12 +2,7 @@ import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BRIDGES_SHOWING_TXS, useBridgesManager } from '~/contexts/LocalStorage'
-import {
-	BreakpointPanel,
-	BreakpointPanels,
-	ChartAndValuesWrapper,
-	PanelHiddenMobile
-} from '~/components'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import { Header } from '~/Theme'
 import { PeggedChainResponsivePie } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
@@ -19,12 +14,7 @@ import { LargeTxsTable } from './LargeTxsTable'
 import { TxsTableSwitch } from '../BridgesPage/TableSwitch'
 import { useBuildBridgeChartData } from '~/utils/bridges'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
-import {
-	getRandomColor,
-	formattedNum,
-	getPercentChange,
-	getPrevVolumeFromChart
-} from '~/utils'
+import { getRandomColor, formattedNum, getPercentChange, getPrevVolumeFromChart } from '~/utils'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false
@@ -192,16 +182,12 @@ function BridgesOverview({
 
 			<TxsTableSwitch />
 
-			{isBridgesShowingTxs && <LargeTxsTable data={largeTxsData} />}
-			{!isBridgesShowingTxs && (
-				<>
-					<RowLinksWrapper>
-						<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
-					</RowLinksWrapper>
+			<RowLinksWrapper>
+				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
+			</RowLinksWrapper>
 
-					<BridgesTable data={filteredBridges} />
-				</>
-			)}
+			{isBridgesShowingTxs && <LargeTxsTable data={largeTxsData} />}
+			{!isBridgesShowingTxs && <BridgesTable data={filteredBridges} />}
 		</>
 	)
 }
