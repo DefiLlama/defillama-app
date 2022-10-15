@@ -5,9 +5,17 @@ import { revalidate } from '~/api'
 import { getNewChainsPageData } from '~/api/categories/protocols'
 
 export async function getStaticProps() {
-	const data = await getNewChainsPageData('All')
+	const {props:data} = await getNewChainsPageData('All')
+	const sampledData= []
+	const dataLength = data.stackedDataset.length
+	for(let i=0; i< dataLength; i++){
+		if(i % 2 === 0 || i === (dataLength-1)){
+			sampledData.push(data.stackedDataset[i])
+		}
+	}
+	data.stackedDataset = sampledData;
 	return {
-		...data,
+		props: data,
 		revalidate: revalidate()
 	}
 }
