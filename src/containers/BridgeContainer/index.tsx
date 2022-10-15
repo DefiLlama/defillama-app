@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import Layout from '~/layout'
@@ -309,7 +309,7 @@ export default function BridgeContainer({
 
 			{!isBridgesShowingAddresses && <BridgeTokensTable data={tokensTableData} />}
 			{isBridgesShowingAddresses && <BridgeAddressesTable data={addressesTableData} />}
-			
+
 		</Layout>
 	)
 }

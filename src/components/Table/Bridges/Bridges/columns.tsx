@@ -149,18 +149,13 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as string
 			if (value) {
-				return (
-					<Name>
-						{/*<TokenLogo logo={assetIconUrl(value)} data-lgonly />*/}
-						{value}
-					</Name>
-				)
+				return <>{value}</>
 			} else return <>Not found</>
 		},
-		size: 100,
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 100,
 	},
 	{
 		header: 'Top Token To Vol',
@@ -177,18 +172,13 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as string
 			if (value) {
-				return (
-					<Name>
-						{/*<TokenLogo logo={assetIconUrl(value)} data-lgonly />*/}
-						{value}
-					</Name>
-				)
+				return <>{value}</>
 			} else return <>Not found</>
 		},
-		size: 100,
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 100,
 	},
 	{
 		header: 'Top Token From Vol',
@@ -230,12 +220,7 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as string
 			if (value) {
-				return (
-					<Name>
-						{/*<TokenLogo logo={assetIconUrl(value)} data-lgonly />*/}
-						{value}
-					</Name>
-				)
+				return <>{value}</>
 			} else return <>Not found</>
 		},
 		size: 100,
@@ -283,12 +268,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as string
 			if (value) {
-				return (
-					<Name>
-						{/*<TokenLogo logo={assetIconUrl(value)} data-lgonly />*/}
-						{value}
-					</Name>
-				)
+				return <>{value}</>
 			} else return <>Not found</>
 		},
 		size: 120

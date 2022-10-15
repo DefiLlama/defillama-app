@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import {
@@ -84,7 +84,7 @@ function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, f
 					<i>All stats in table are for the past 24h period.</i>
 				</SmolHints>
 			</TableNoticeWrapper>
-
+						
 			<BridgeChainsTable data={filteredChains} />
 		</>
 	)

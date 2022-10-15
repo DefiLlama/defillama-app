@@ -12,7 +12,7 @@ import { Header } from '~/Theme'
 import { PeggedChainResponsivePie } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
-import { BridgesSearch } from '~/components/Search'
+import { BridgesSearchWithBreakdown } from '../Search/Bridges'
 import { ChartSelector } from '~/components/PeggedPage/.'
 import { BridgesTable } from '~/components/Table'
 import { LargeTxsTable } from './LargeTxsTable'
@@ -136,7 +136,7 @@ function BridgesOverview({
 
 	return (
 		<>
-			<BridgesSearch
+			<BridgesSearchWithBreakdown
 				step={{
 					category: 'Bridges',
 					name: selectedChain
