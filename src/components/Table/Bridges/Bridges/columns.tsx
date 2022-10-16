@@ -313,12 +313,13 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 		accessorKey: 'address',
 		cell: ({ getValue }) => {
 			const value = getValue() as string
+			const formattedValue = value.split(':')[1]
 			const { blockExplorerLink } = getBlockExplorerForAddress(value)
 			if (value) {
 				return (
 					<a href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
 						<Name>
-							{value}
+							{formattedValue}
 							<ExternalLink size={10} />
 						</Name>
 					</a>
