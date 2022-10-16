@@ -113,7 +113,9 @@ export async function getBridgeOverviewPageData(chain) {
 
 	const chainVolumeData: IChainData[] = await getChainVolumeData(chain, chainCoingeckoIds)
 
-	const prevDayTimestamp = 1665022237 // for testing
+	const currentTimestamp = Math.floor(new Date().getTime() / 1000)
+	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
+	const prevDayTimestamp = currentTimestamp - 86400 - 3600
 	let bridgeStatsCurrentDay = {}
 	if (chain) {
 		bridgeStatsCurrentDay = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}`).then((resp) =>
@@ -121,7 +123,6 @@ export async function getBridgeOverviewPageData(chain) {
 		)
 	}
 
-	const currentTimestamp = 1665108637 // for testing
 	const secondsInDay = 3600 * 24
 	const largeTxsData = await getLargeTransactionsData(chain, currentTimestamp - secondsInDay, currentTimestamp)
 
@@ -177,7 +178,7 @@ export async function getBridgeChainsPageData() {
 	const chartDates = Object.keys(unformattedChartData)
 	const formattedChartEntries = Object.entries(unformattedChartData).reduce((acc, data) => {
 		const date = data[0]
-		const netFlows = data[1]
+		const netFlows = data[1] as { [chain: string]: number }
 		let sortednetFlows = Object.entries(netFlows).sort((a, b) => b[1] - a[1])
 
 		if (sortednetFlows.length > 11) {
@@ -211,7 +212,9 @@ export async function getBridgeChainsPageData() {
 		})
 		.map((chain) => chain.name)
 
-	const prevDayTimestamp = 1665022237 // for testing
+	const currentTimestamp = Math.floor(new Date().getTime() / 1000)
+	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
+	const prevDayTimestamp = currentTimestamp - 86400 - 3600
 	let prevDayDataByChain = []
 	prevDayDataByChain = await Promise.all(
 		chains.map(async (chain) => {
@@ -245,9 +248,11 @@ export async function getBridgeChainsPageData() {
 
 export async function getBridgePageData(bridge: string) {
 	const { bridges } = await getBridges()
-	const bridgeData = bridges.filter((obj) => standardizeProtocolName(obj.displayName) === standardizeProtocolName(bridge))[0]
+	const bridgeData = bridges.filter(
+		(obj) => standardizeProtocolName(obj.displayName) === standardizeProtocolName(bridge)
+	)[0]
 
-	const {id, chains, displayName} = bridgeData
+	const { id, chains, displayName } = bridgeData
 	const defaultChain = chains[0]
 
 	let bridgeChartDataByChain = []
@@ -265,7 +270,9 @@ export async function getBridgePageData(bridge: string) {
 		})
 	)
 
-	const prevDayTimestamp = 1665161316 // for testing
+	const currentTimestamp = Math.floor(new Date().getTime() / 1000)
+	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
+	const prevDayTimestamp = currentTimestamp - 86400 - 3600 
 	let prevDayDataByChain = []
 	prevDayDataByChain = await Promise.all(
 		chains.map(async (chain) => {
