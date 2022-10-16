@@ -13,9 +13,7 @@ export const chainToId = {
   aurora: 1313161554
 }
 
-export function isChainSupported(chain:string){
-  return chainToId[chain] !== undefined
-}
+export const name = "1inch"
 
 export function approvalAddress(){
   // https://api.1inch.io/v4.0/1/approve/spender
