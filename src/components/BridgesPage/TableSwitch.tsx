@@ -12,7 +12,7 @@ export const TxsTableSwitch = () => {
 		<Wrapper>
 			<Switch active={!isBridgesShowingTxs} onClick={toggleBridgesSettings(BRIDGES_SHOWING_TXS)}>
 				<BarChart2 size={14} />
-				<span>Volumes</span>
+				<span>Bridges</span>
 			</Switch>
 			<Switch active={isBridgesShowingTxs} onClick={toggleBridgesSettings(BRIDGES_SHOWING_TXS)}>
 				<Activity size={14} />

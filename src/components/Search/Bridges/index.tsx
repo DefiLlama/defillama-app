@@ -39,7 +39,7 @@ export function BridgesSearchWithBreakdown(props: IBridgesSearchProps) {
 									})
 									return {} //
 								}}
-								help="Break down charts by Bridge"
+								help="Break down 'All' volume chart by bridge"
 								enabled={isToggleEnabled}
 							/>
 						</ListItem>

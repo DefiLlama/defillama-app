@@ -187,10 +187,10 @@ function BridgesOverview({
 							}
 						/>
 					)}
-					{chartType === 'Tokens Bridged To' && (
+					{chartType === 'Tokens Deposited' && (
 						<PeggedChainResponsivePie data={tokenWithdrawals} chainColor={tokenColor} aspect={aspect} />
 					)}
-					{chartType === 'Tokens Bridged From' && (
+					{chartType === 'Tokens Withdrawn' && (
 						<PeggedChainResponsivePie data={tokenDeposits} chainColor={tokenColor} aspect={aspect} />
 					)}
 				</BreakpointPanel>
