@@ -83,7 +83,7 @@ export function toFilterPool({
 export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 	const availableToLend = pools.filter(
 		({ symbol, ltv }) =>
-			(tokenToLend === 'USD_Stables' ? true : symbol.includes(tokenToLend)) && ltv > 0 && !symbol.includes('Amm')
+			(tokenToLend === 'USD_Stables' ? true : symbol.includes(tokenToLend)) && ltv > 0 && !symbol.includes('AMM')
 	)
 	const availableProjects = availableToLend.map(({ project }) => project)
 	const availableChains = availableToLend.map(({ chain }) => chain)
@@ -93,7 +93,7 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 			!availableProjects.includes(pool.project) ||
 			!availableChains.includes(pool.chain) ||
 			(tokenToBorrow === 'USD_Stables' ? false : !pool.symbol.includes(tokenToBorrow)) ||
-			pool.symbol.includes('Amm')
+			pool.symbol.includes('AMM')
 		)
 			return acc
 		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) return acc
