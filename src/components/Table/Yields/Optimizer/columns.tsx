@@ -29,6 +29,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 					url={row.original.url}
 					index={index + 1}
 					borrow={true}
+					maxCharacters={15}
 				/>
 			)
 		},
@@ -88,7 +89,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		}
 	},
 	{
-		header: 'Net APR',
+		header: 'Net APY',
 		accessorKey: 'totalReward',
 		enableSorting: true,
 		cell: (info) => {
@@ -109,7 +110,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		}
 	},
 	{
-		header: 'Net Supply APR',
+		header: 'Net Supply APY',
 		accessorKey: 'lendingReward',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
@@ -141,7 +142,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		}
 	},
 	{
-		header: 'Net Borrow APR',
+		header: 'Net Borrow APY',
 		accessorKey: 'borrowReward',
 		enableSorting: true,
 		cell: (info) => {
@@ -229,73 +230,48 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 const columnOrders = {
 	0: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'borrowAvailableUsd',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
-		'apyBase',
-		'apyReward',
-		'apyBorrow',
-		'apyBaseBorrow',
-		'apyRewardBorrow',
-		'totalReward',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd'
 	],
 	400: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'borrowAvailableUsd',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
-		'apyBase',
-		'apyReward',
-		'apyBorrow',
-		'apyBaseBorrow',
-		'apyRewardBorrow',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd'
 	],
 	640: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'borrowAvailableUsd',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
-		'apyBase',
-		'apyReward',
-		'apyBorrow',
-		'apyBaseBorrow',
-		'apyRewardBorrow',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd'
 	],
 	1280: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'borrowAvailableUsd',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
-		'apyBase',
-		'apyReward',
-		'apyBorrow',
-		'apyBaseBorrow',
-		'apyRewardBorrow',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd'
@@ -304,22 +280,28 @@ const columnOrders = {
 
 export const columnSizes = {
 	0: {
-		pool: 120,
-		project: 200,
+		pool: 160,
+		project: 180,
 		chain: 60,
-		apyBase: 140,
-		apyBaseBorrow: 140,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120
+		borrowAvailableUsd: 100,
+		totalReward: 100,
+		lendingReward: 150,
+		borrowReward: 150,
+		ltv: 80,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 100
 	},
 	812: {
-		pool: 200,
-		project: 200,
+		pool: 210,
+		project: 180,
 		chain: 60,
-		apyBase: 140,
-		apyBaseBorrow: 140,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120
+		borrowAvailableUsd: 100,
+		totalReward: 100,
+		lendingReward: 150,
+		borrowReward: 150,
+		ltv: 80,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 100
 	}
 }
 

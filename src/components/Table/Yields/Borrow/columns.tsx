@@ -282,7 +282,6 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 const columnOrders = {
 	0: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'apyBase',
@@ -297,7 +296,6 @@ const columnOrders = {
 	],
 	400: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'apyBase',
@@ -312,7 +310,6 @@ const columnOrders = {
 	],
 	640: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'apyBase',
@@ -327,7 +324,6 @@ const columnOrders = {
 	],
 	1280: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'apyBase',
@@ -344,22 +340,32 @@ const columnOrders = {
 
 export const columnSizes = {
 	0: {
-		pool: 120,
+		pool: 200,
 		project: 200,
 		chain: 60,
 		apyBase: 140,
+		apyReward: 160,
+		apyBorrow: 130,
 		apyBaseBorrow: 140,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120
+		apyRewardBorrow: 160,
+		ltv: 90,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 100,
+		totalAvailableUsd: 120
 	},
 	812: {
 		pool: 200,
 		project: 200,
 		chain: 60,
 		apyBase: 140,
+		apyReward: 160,
+		apyBorrow: 130,
 		apyBaseBorrow: 140,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120
+		apyRewardBorrow: 160,
+		ltv: 90,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 100,
+		totalAvailableUsd: 120
 	}
 }
 
