@@ -84,11 +84,11 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 				})
 
 				let vals
-				const sortedParams = params.filter(
+				const filteredParams = params.filter(
 					(item) => item.value[1] !== 0 && item.value[1] !== '-' && item.value[1] !== null
 				)
-				const cuttedParams = sortedParams.slice(0, 10)
-				const otherParams = sortedParams.slice(10)
+				const cuttedParams = filteredParams.slice(0, 10)
+				const otherParams = filteredParams.slice(10)
 
 				if (valueSymbol !== '%') {
 					vals = cuttedParams.reduce((prev, curr) => {
