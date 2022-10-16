@@ -84,9 +84,17 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 				})
 
 				let vals
-				const filteredParams = params.filter(
+				let filteredParams = params.filter(
 					(item) => item.value[1] !== 0 && item.value[1] !== '-' && item.value[1] !== null
 				)
+
+				const otherIndex = filteredParams.findIndex((item) => item.seriesName === 'Others')
+				let others
+
+				if (otherIndex >= 0 && otherIndex < 10) {
+					others = filteredParams[otherIndex]
+					filteredParams = filteredParams.filter((item) => item.seriesName !== 'Others')
+				}
 				const cuttedParams = filteredParams.slice(0, 10)
 				const otherParams = filteredParams.slice(10)
 
@@ -104,11 +112,11 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 					if (otherParams.length !== 0) {
 						vals +=
 							'<li style="list-style:none">' +
-							otherParams[0].marker +
+							(others?.marker ?? otherParams[0].marker) +
 							'Others' +
 							'&nbsp;&nbsp;' +
 							valueSymbol +
-							toK(otherParams.reduce((prev, curr) => prev + curr.value[1], 0)) +
+							toK(otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0)) +
 							'</li>'
 					}
 				} else {
@@ -125,10 +133,10 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 					if (otherParams.length !== 0) {
 						vals +=
 							'<li style="list-style:none">' +
-							otherParams[0].marker +
+							(others?.marker ?? otherParams[0].marker) +
 							'Others' +
 							'&nbsp;&nbsp;' +
-							otherParams.reduce((prev, curr) => prev + curr.value[1], 0) +
+							(otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0)) +
 							valueSymbol +
 							'</li>'
 					}
