@@ -20,8 +20,8 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 					const formattedChart = chart.map((chart) => {
 						return {
 							date: chart.date,
-							volume: chart.withdrawUSD + chart.depositUSD,
-							txs: chart.depositTxs + chart.withdrawTxs
+							deposits: chart.depositUSD,
+							withdrawals: -chart.withdrawUSD
 						}
 					})
 					return formattedChart
@@ -112,8 +112,8 @@ export async function getBridgeOverviewPageData(chain) {
 		.map((chain) => chain.name)
 
 	const chainVolumeData: IChainData[] = await getChainVolumeData(chain, chainCoingeckoIds)
-	const prevDayTimestamp = 1665022237 // for testing
 
+	const prevDayTimestamp = 1665022237 // for testing
 	let bridgeStatsCurrentDay = {}
 	if (chain) {
 		bridgeStatsCurrentDay = await fetch(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}`).then((resp) =>
@@ -169,23 +169,23 @@ export async function getBridgeChainsPageData() {
 		const charts = chartDataByChain[i]
 		charts.map((chart) => {
 			const date = chart.date
-			const volume = chart.depositUSD + chart.withdrawUSD
+			const netFlow = chart.withdrawUSD - chart.depositUSD
 			unformattedChartData[date] = unformattedChartData[date] || {}
-			unformattedChartData[date][chain.name] = volume
+			unformattedChartData[date][chain.name] = netFlow
 		})
 	})
 	const chartDates = Object.keys(unformattedChartData)
 	const formattedChartEntries = Object.entries(unformattedChartData).reduce((acc, data) => {
 		const date = data[0]
-		const volumes = data[1]
-		let sortedVolumes = Object.entries(volumes).sort((a, b) => b[1] - a[1])
+		const netFlows = data[1]
+		let sortednetFlows = Object.entries(netFlows).sort((a, b) => b[1] - a[1])
 
-		if (sortedVolumes.length > 11) {
+		if (sortednetFlows.length > 11) {
 			useOthers = true
-			const othersVolume = sortedVolumes.slice(11).reduce((acc, curr: [string, number]) => (acc += curr[1]), 0)
-			sortedVolumes = [...sortedVolumes.slice(0, 11), ['Others', othersVolume]]
+			const othersnetFlow = sortednetFlows.slice(11).reduce((acc, curr: [string, number]) => (acc += curr[1]), 0)
+			sortednetFlows = [...sortednetFlows.slice(0, 11), ['Others', othersnetFlow]]
 		}
-		return { ...acc, ...{ [date]: Object.fromEntries(sortedVolumes) } }
+		return { ...acc, ...{ [date]: Object.fromEntries(sortednetFlows) } }
 	}, {})
 
 	const formattedVolumeChartData = [...chains, 'Others']

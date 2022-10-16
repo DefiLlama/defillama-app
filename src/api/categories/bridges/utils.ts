@@ -100,7 +100,16 @@ export const formatChainsData = ({
 		const prevDayUsdWithdrawals = prevDayChart?.withdrawUSD
 		const totalTokensDeposited = prevDayData?.totalTokensDeposited
 		const totalTokensWithdrawn = prevDayData?.totalTokensWithdrawn
-		const netFlow = prevDayUsdWithdrawals - prevDayUsdDeposits
+		const prevDayNetFlow = prevDayUsdWithdrawals - prevDayUsdDeposits
+
+		const prevWeekCharts = chartDataByChain[chartIndex].slice(-7)
+		let prevWeekUsdDeposits = 0
+		let prevWeekUsdWithdrawals = 0
+		for (const chart of prevWeekCharts) {
+			prevWeekUsdDeposits += chart.depositUSD
+			prevWeekUsdWithdrawals += chart.withdrawUSD
+		}
+		const prevWeekNetFlow = prevWeekUsdWithdrawals - prevWeekUsdDeposits
 
 		let topTokenDepositedSymbol = null,
 			topTokenWithdrawnSymbol = null,
@@ -122,20 +131,23 @@ export const formatChainsData = ({
 					return b[1].usdValue - a[1].usdValue
 				})
 				.slice(0, 1)[0]
-				const topWithdrawnTokenData = topTokenWithdrawn[1]
-				topTokenWithdrawnSymbol = topWithdrawnTokenData.symbol
-				topTokenWithdrawnUsd = topWithdrawnTokenData.usdValue
+			const topWithdrawnTokenData = topTokenWithdrawn[1]
+			topTokenWithdrawnSymbol = topWithdrawnTokenData.symbol
+			topTokenWithdrawnUsd = topWithdrawnTokenData.usdValue
 		}
 
 		return {
 			name: name,
 			prevDayUsdDeposits: prevDayUsdDeposits ?? 0,
 			prevDayUsdWithdrawals: prevDayUsdWithdrawals ?? 0,
+			prevWeekUsdDeposits: prevWeekUsdDeposits ?? 0,
+			prevWeekUsdWithdrawals: prevWeekUsdWithdrawals ?? 0,
 			topTokenDepositedSymbol: topTokenDepositedSymbol,
 			topTokenDepositedUsd: topTokenDepositedUsd,
 			topTokenWithdrawnSymbol: topTokenWithdrawnSymbol,
 			topTokenWithdrawnUsd: topTokenWithdrawnUsd,
-			netFlow: netFlow ?? 0
+			prevDayNetFlow: prevDayNetFlow ?? 0,
+			prevWeekNetFlow: prevWeekNetFlow ?? 0
 		}
 	})
 	return filteredChains

@@ -107,8 +107,8 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		size: 240
 	},
 	{
-		header: 'Net Flow',
-		accessorKey: 'netFlow',
+		header: '24h Net Flow',
+		accessorKey: 'prevDayNetFlow',
 		cell: (info) => {
 			const value = info.getValue()
 			if (value) {
@@ -126,7 +126,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		}
 	},
 	{
-		header: 'Bridged To Volume',
+		header: '24h Deposit Volume',
 		accessorKey: 'prevDayUsdWithdrawals',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
@@ -135,7 +135,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		}
 	},
 	{
-		header: 'Bridged From Volume',
+		header: '24h Withdrawal Volume',
 		accessorKey: 'prevDayUsdDeposits',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
@@ -144,7 +144,44 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		}
 	},
 	{
-		header: 'Top Token To',
+		header: '7d Net Flow',
+		accessorKey: 'prevWeekNetFlow',
+		cell: (info) => {
+			const value = info.getValue()
+			if (value) {
+				return (
+					<Text as="span" color={value > 0 ? 'green' : 'red'}>
+						${formattedNum(info.getValue())}
+					</Text>
+				)
+			}
+			return <Text as="span">$0</Text>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '7d Deposit Volume',
+		accessorKey: 'prevWeekUsdWithdrawals',
+		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '7d Withdrawal Volume',
+		accessorKey: 'prevWeekUsdDeposits',
+		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '24h Top Token To',
 		accessorKey: 'topTokenWithdrawnSymbol',
 		cell: ({ getValue }) => {
 			const value = getValue() as string
@@ -157,38 +194,6 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		},
 		size: 100,
 	},
-	{
-		header: 'Top Token To Vol',
-		accessorKey: 'topTokenWithdrawnUsd',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Top Token From',
-		accessorKey: 'topTokenDepositedSymbol',
-		cell: ({ getValue }) => {
-			const value = getValue() as string
-			if (value) {
-				return <>{value}</>
-			} else return <>Not found</>
-		},
-		meta: {
-			align: 'end'
-		},
-		size: 100,
-	},
-	{
-		header: 'Top Token From Vol',
-		accessorKey: 'topTokenDepositedUsd',
-		cell: (info) => <>${formattedNum(info.getValue())}</>,
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	}
 ]
 
 export const largeTxsColumn: ColumnDef<IBridge>[] = [
@@ -361,23 +366,23 @@ export const bridgesColumnOrders = formatColumnOrder({
 export const bridgeChainsColumnOrders = formatColumnOrder({
 	0: [
 		'name',
-		'netFlow',
+		'topTokenWithdrawnSymbol',
 		'prevDayUsdWithdrawals',
 		'prevDayUsdDeposits',
-		'topTokenWithdrawnSymbol',
-		'topTokenWithdrawnUsd',
-		'topTokenDepositedSymbol',
-		'topTokenDepositedUsd'
+		'prevDayNetFlow',
+		'prevWeekUsdWithdrawals',
+		'prevWeekUsdDeposits',
+		'prevWeekNetFlow',
 	],
 	1024: [
 		'name',
-		'netFlow',
+		'topTokenWithdrawnSymbol',
 		'prevDayUsdWithdrawals',
 		'prevDayUsdDeposits',
-		'topTokenWithdrawnSymbol',
-		'topTokenWithdrawnUsd',
-		'topTokenDepositedSymbol',
-		'topTokenDepositedUsd'
+		'prevDayNetFlow',
+		'prevWeekUsdWithdrawals',
+		'prevWeekUsdDeposits',
+		'prevWeekNetFlow',
 	]
 })
 
@@ -429,33 +434,33 @@ export const bridgesColumnSizes = {
 export const bridgeChainsColumnSizes = {
 	0: {
 		name: 140,
-		netFlow: 120,
+		prevDayNetFlow: 120,
 		prevDayUsdWithdrawals: 160,
 		prevDayUsdDeposits: 160,
-		topTokenWithdrawnSymbol: 140,
-		topTokenWithdrawnUsd: 150,
-		topTokenDepositedSymbol: 140,
-		topTokenDepositedUsd: 150
+		prevWeekNetFlow: 120,
+		prevWeekUsdWithdrawals: 160,
+		prevWeekUsdDeposits: 160,
+		topTokenWithdrawnSymbol: 120,
 	},
 	480: {
 		name: 180,
-		netFlow: 140,
+		prevDayNetFlow: 140,
 		prevDayUsdWithdrawals: 160,
 		prevDayUsdDeposits: 160,
-		topTokenWithdrawnSymbol: 140,
-		topTokenWithdrawnUsd: 150,
-		topTokenDepositedSymbol: 140,
-		topTokenDepositedUsd: 150
+		prevWeekNetFlow: 120,
+		prevWeekUsdWithdrawals: 160,
+		prevWeekUsdDeposits: 160,
+		topTokenWithdrawnSymbol: 120,
 	},
 	1024: {
 		name: 180,
-		netFlow: 150,
+		prevDayNetFlow: 150,
 		prevDayUsdWithdrawals: 160,
 		prevDayUsdDeposits: 160,
-		topTokenWithdrawnSymbol: 140,
-		topTokenWithdrawnUsd: 150,
-		topTokenDepositedSymbol: 140,
-		topTokenDepositedUsd: 150
+		prevWeekNetFlow: 120,
+		prevWeekUsdWithdrawals: 160,
+		prevWeekUsdDeposits: 160,
+		topTokenWithdrawnSymbol: 120,
 	}
 }
 

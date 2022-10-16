@@ -58,7 +58,7 @@ export default function BridgeContainer({
 	bridgeChartDataByChain,
 	prevDayDataByChain
 }) {
-	const [chartType, setChartType] = useState('Volume')
+	const [chartType, setChartType] = useState('Inflows')
 	const [currentChain, setChain] = useState(defaultChain)
 
 	const [bridgesSettings] = useBridgesManager()
@@ -178,7 +178,7 @@ export default function BridgeContainer({
 			return {
 				date: entry.date,
 				'Bridged To': entry.withdrawUSD,
-				'Bridged From': entry.depositUSD
+				'Bridged From': -entry.depositUSD
 			}
 		})
 
@@ -271,8 +271,8 @@ export default function BridgeContainer({
 				>
 					<RowBetween my={useMed ? 20 : 0} mx={useMed ? 10 : 0} align="flex-start">
 						<AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
-							<OptionButton active={chartType === 'Volume'} onClick={() => setChartType('Volume')}>
-								Volume
+							<OptionButton active={chartType === 'Inflows'} onClick={() => setChartType('Inflows')}>
+								Inflows
 							</OptionButton>
 							<OptionButton active={chartType === 'Tokens To'} onClick={() => setChartType('Tokens To')}>
 								Tokens To
@@ -282,14 +282,25 @@ export default function BridgeContainer({
 							</OptionButton>
 						</AutoRow>
 					</RowBetween>
-					{chartType === 'Volume' && volumeChartData && volumeChartData.length > 0 && (
+					{chartType === 'Inflows' && volumeChartData && volumeChartData.length > 0 && (
+						<BarChart
+							chartData={volumeChartData}
+							title=""
+							hidedefaultlegend={true}
+							customLegendName="Volume"
+							customLegendOptions={['Bridged To', 'Bridged From']}
+							key={['Bridged To', 'Bridged From'] as any} // escape hatch to rerender state in legend options
+							chartOptions={volumeChartOptions}
+						/>
+					)}
+					{/*chartType === 'Volume' && volumeChartData && volumeChartData.length > 0 && (
 						<BarChart
 							chartData={volumeChartData}
 							title={'Bridge Volume'}
 							stacks={{ 'Bridged To': 'a', 'Bridged From': 'a' }}
 							stackColors={barChartColors}
 						/>
-					)}
+					)*/}
 					{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 && (
 						<PeggedChainResponsivePie data={tokenWithdrawals} chainColor={tokenColor} aspect={aspect} />
 					)}
@@ -312,4 +323,10 @@ export default function BridgeContainer({
 
 		</Layout>
 	)
+}
+
+const volumeChartOptions = {
+	overrides: {
+		inflow: true
+	}
 }

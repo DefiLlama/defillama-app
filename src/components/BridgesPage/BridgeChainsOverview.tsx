@@ -69,7 +69,7 @@ function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, f
 			/>
 
 			<HeaderWrapper>
-				<span>Bridge Volume by Chain</span>
+				<span>Bridge Inflows by Chain</span>
 			</HeaderWrapper>
 
 			<ChartAndValuesWrapper>

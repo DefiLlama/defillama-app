@@ -6,8 +6,9 @@ import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMo
 import { Header } from '~/Theme'
 import { PeggedChainResponsivePie } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
+import type { IBarChartProps } from '~/components/ECharts/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
-import { BridgesSearchWithBreakdown } from '../Search/Bridges'
+import { BridgesSearch, BridgesSearchWithBreakdown } from '../Search/Bridges'
 import { ChartSelector } from '~/components/PeggedPage/.'
 import { BridgesTable } from '~/components/Table'
 import { LargeTxsTable } from './LargeTxsTable'
@@ -15,6 +16,10 @@ import { TxsTableSwitch } from '../BridgesPage/TableSwitch'
 import { useBuildBridgeChartData } from '~/utils/bridges'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import { getRandomColor, formattedNum, getPercentChange, getPrevVolumeFromChart } from '~/utils'
+
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+	ssr: false
+}) as React.FC<IBarChartProps>
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false
@@ -41,9 +46,9 @@ function BridgesOverview({
 	largeTxsData
 }) {
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
-	const [chartType, setChartType] = useState('Volumes')
+	const [chartType, setChartType] = useState(selectedChain === 'All' ? 'Volumes' : 'Inflows')
 
-	const chartTypeList = selectedChain !== 'All' ? ['Volumes', 'Tokens Bridged To', 'Tokens Bridged From'] : ['Volumes']
+	const chartTypeList = selectedChain === 'All' ? ['Volumes'] : ['Inflows', 'Tokens Bridged To', 'Tokens Bridged From']
 
 	const belowMed = useMed()
 	const belowXl = useXl()
@@ -116,9 +121,9 @@ function BridgesOverview({
 	*/
 
 	const { dayPercentChange, monthPercentChange, totalVolumeCurrent } = useMemo(() => {
-		let totalVolumeCurrent = getPrevVolumeFromChart(chainVolumeData, 0)
-		let totalVolumePrevDay = getPrevVolumeFromChart(chainVolumeData, 1)
-		let totalVolumePrevMonth = getPrevVolumeFromChart(chainVolumeData, 30)
+		let totalVolumeCurrent = getPrevVolumeFromChart(chainVolumeData, 0, false, (selectedChain !== 'All'))
+		let totalVolumePrevDay = getPrevVolumeFromChart(chainVolumeData, 1, false, (selectedChain !== 'All'))
+		let totalVolumePrevMonth = getPrevVolumeFromChart(chainVolumeData, 30, false, (selectedChain !== 'All'))
 		const dayPercentChange = getPercentChange(totalVolumeCurrent, totalVolumePrevDay)?.toFixed(2)
 		const monthPercentChange = getPercentChange(totalVolumeCurrent, totalVolumePrevMonth)?.toFixed(2)
 		return { dayPercentChange, monthPercentChange, totalVolumeCurrent }
@@ -135,7 +140,7 @@ function BridgesOverview({
 			/>
 
 			<HeaderWrapper>
-				<span>Volume in {selectedChain === 'All' ? 'all bridges' : selectedChain}</span>
+				<span>Bridge Volume in {selectedChain === 'All' ? 'all bridges' : selectedChain}</span>
 			</HeaderWrapper>
 
 			<ChartAndValuesWrapper>
@@ -157,6 +162,17 @@ function BridgesOverview({
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper" style={{ gap: '16px', minHeight: '450px', justifyContent: 'space-between' }}>
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+					{chartType === 'Inflows' && chainVolumeData && chainVolumeData.length > 0 && (
+						<BarChart
+							chartData={chainVolumeData}
+							title=""
+							hidedefaultlegend={true}
+							customLegendName="Volume"
+							customLegendOptions={['deposits', 'withdrawals']}
+							key={['deposits', 'withdrawals'] as any} // escape hatch to rerender state in legend options
+							chartOptions={volumeChartOptions}
+						/>
+					)}
 					{chartType === 'Volumes' && chartData && chartData.length > 0 && (
 						<StackedBarChart
 							chartData={
@@ -190,6 +206,12 @@ function BridgesOverview({
 			{!isBridgesShowingTxs && <BridgesTable data={filteredBridges} />}
 		</>
 	)
+}
+
+const volumeChartOptions = {
+	overrides: {
+		inflow: true
+	}
 }
 
 export default BridgesOverview
