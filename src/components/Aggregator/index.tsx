@@ -19,12 +19,22 @@ import { getAllChains, listRoutes } from './router'
 - wardenswap
 - https://twitter.com/odosprotocol
 - https://twitter.com/RangoExchange
-- autofarm.network/swap/
+- thorswap
+- airswap
+- https://defi.krystal.app/
+- https://app.unidex.exchange/trading
+- https://rubic.exchange/
+- https://bebop.xyz/
+- https://twitter.com/tfm_com
+- lifi
+- https://twitter.com/ChainHopDEX
 
 no api:
 - https://twitter.com/HeraAggregator (no api)
 - slingshot (no api)
-- 
+- orion protocol
+- autofarm.network/swap/
+- https://swapr.eth.limo/#/swap?chainId=1
 */
 
 export async function getTokenList() {
