@@ -18,10 +18,12 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 				try {
 					const chart = await fetch(`${BRIDGEVOLUME_API}/${chain}`).then((resp) => resp.json())
 					const formattedChart = chart.map((chart) => {
+						// This is confusing, stats from the endpoint use "deposit" to mean deposit in bridge contract,
+						// i.e., a withdrawal from the chain. Will eventually change that.
 						return {
 							date: chart.date,
-							Deposits: chart.depositUSD,
-							Withdrawals: -chart.withdrawUSD
+							Deposits: chart.withdrawUSD,
+							Withdrawals: -chart.depositUSD
 						}
 					})
 					return formattedChart
