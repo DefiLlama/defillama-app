@@ -11,7 +11,6 @@ export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 	params
 }: GetStaticPropsContext<{ type: string; chain: string }>) => {
 	const data = await getChainPageData(params.type, params.chain)
-	console.log("datatoooo''''''", data.protocols)
 	return {
 		props: {
 			...data,

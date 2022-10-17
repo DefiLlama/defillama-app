@@ -76,7 +76,7 @@ export const getChainPageData = async (type: string, chain?: string) => {
 
 	const protocolsWithSubrows = protocols.map((protocol) => ({
 		...protocol,
-		revenue24h: revenueProtocols[protocol.name]?.total24h ?? 0,
+		revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? 0,
 		volumetvl: protocol.total24h / tvlData[protocol.name],
 		dominance: (100 * protocol.total24h) / total24h,
 		chains: protocol.chains,
