@@ -20,8 +20,8 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 					const formattedChart = chart.map((chart) => {
 						return {
 							date: chart.date,
-							deposits: chart.depositUSD,
-							withdrawals: -chart.withdrawUSD
+							Deposits: chart.depositUSD,
+							Withdrawals: -chart.withdrawUSD
 						}
 					})
 					return formattedChart

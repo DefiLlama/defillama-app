@@ -349,7 +349,7 @@ export const getPrevVolumeFromChart = (chart, daysBefore, txs = false, inflows =
 	const prevChart = chart[chart.length - 1 - daysBefore]
 	if (!prevChart) return null
 	if (inflows) {
-		return prevChart.deposits - prevChart.withdrawals
+		return prevChart.Deposits - prevChart.Withdrawals
 	}
 	return txs ? prevChart.txs : prevChart.volume
 }

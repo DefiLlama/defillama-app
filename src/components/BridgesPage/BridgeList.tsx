@@ -46,9 +46,9 @@ function BridgesOverview({
 	largeTxsData
 }) {
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
-	const [chartType, setChartType] = useState(selectedChain === 'All' ? 'Volumes' : 'Inflows')
+	const [chartType, setChartType] = useState(selectedChain === 'All' ? 'Volumes' : 'Net Flow')
 
-	const chartTypeList = selectedChain === 'All' ? ['Volumes'] : ['Inflows', 'Tokens Bridged To', 'Tokens Bridged From']
+	const chartTypeList = selectedChain === 'All' ? ['Volumes'] : ['Net Flow', 'Inflows', 'Tokens Deposited', 'Tokens Withdrawn']
 
 	const belowMed = useMed()
 	const belowXl = useXl()
@@ -89,6 +89,13 @@ function BridgesOverview({
 	}, [bridgeNames, bridgeNameToChartDataIndex, chartDataByBridge, chainVolumeData, enableBreakdownChart])
 
 	const { tokenDeposits, tokenWithdrawals } = useBuildBridgeChartData(bridgeStatsCurrentDay)
+
+	const chainNetFlowData = React.useMemo(() => {
+		return chainVolumeData.map((entry) => {return {
+			date: entry.date,
+			'Net Flow': entry.Deposits + entry.Withdrawals
+		}})
+	}, [chainVolumeData])
 
 	const tokenColor = useMemo(
 		() =>
@@ -162,14 +169,23 @@ function BridgesOverview({
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper" style={{ gap: '16px', minHeight: '450px', justifyContent: 'space-between' }}>
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+					{chartType === 'Net Flow' && chainNetFlowData && chainNetFlowData.length > 0 && (
+						<BarChart
+							chartData={chainNetFlowData}
+							title=""
+							hidedefaultlegend={true}
+							customLegendName="Volume"
+							customLegendOptions={['Net Flow']}
+						/>
+					)}
 					{chartType === 'Inflows' && chainVolumeData && chainVolumeData.length > 0 && (
 						<BarChart
 							chartData={chainVolumeData}
 							title=""
 							hidedefaultlegend={true}
 							customLegendName="Volume"
-							customLegendOptions={['deposits', 'withdrawals']}
-							key={['deposits', 'withdrawals'] as any} // escape hatch to rerender state in legend options
+							customLegendOptions={['Deposits', 'Withdrawals']}
+							key={['Deposits', 'Withdrawals'] as any} // escape hatch to rerender state in legend options
 							chartOptions={volumeChartOptions}
 						/>
 					)}
