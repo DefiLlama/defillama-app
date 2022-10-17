@@ -136,7 +136,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 							(others?.marker ?? otherParams[0].marker) +
 							'Others' +
 							'&nbsp;&nbsp;' +
-							(otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0)) +
+							(otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0)).toFixed(2) +
 							valueSymbol +
 							'</li>'
 					}
