@@ -30,7 +30,7 @@ export async function getQuote(chain: string, from: string, to:string, amount:st
   const data = await fetch(
     `https://ethapi.openocean.finance/v2/${chainToId[chain]}/quote?inTokenAddress=${from}&outTokenAddress=${to}&amount=${amount}&gasPrice=${gasPrice.fast?.maxPriorityFeePerGas ?? gasPrice.fast}`).then(r=>r.json())
   return {
-    amountReturned: data.data.outAmount,
-    estimatedGas: data.data.estimatedGas,
+    amountReturned: data.outAmount,
+    estimatedGas: data.estimatedGas,
   }
 }
