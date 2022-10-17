@@ -1,4 +1,4 @@
-import { ExtraData } from "./types"
+import { ExtraData } from "../types"
 
 // https://docs.kyberswap.com/Aggregator/aggregator-api#tag/swap/operation/get-route-encode
 export const chainToId = {

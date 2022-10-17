@@ -1,4 +1,4 @@
-import { ExtraData } from "./types"
+import { ExtraData } from "../types"
 
 // IMPORTANT! their docs are wrong, need to reverse engineer their app and look at network requests
 

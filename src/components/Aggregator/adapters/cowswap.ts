@@ -1,6 +1,6 @@
 // Source: https://docs.cow.fi/off-chain-services/api
 
-import { ExtraData } from "./types"
+import { ExtraData } from "../types"
 
 export const chainToId = {
   ethereum: "https://api.cow.fi/mainnet",
