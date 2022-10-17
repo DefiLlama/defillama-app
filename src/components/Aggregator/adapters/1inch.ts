@@ -14,6 +14,7 @@ export const chainToId = {
 }
 
 export const name = "1inch"
+export const token = "1INCH"
 
 export function approvalAddress(){
   // https://api.1inch.io/v4.0/1/approve/spender

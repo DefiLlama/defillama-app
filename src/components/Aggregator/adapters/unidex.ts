@@ -7,6 +7,7 @@ export const chainToId = {
 }
 
 export const name = "UniDex"
+export const token = "UNIDX"
 
 export function approvalAddress(){
   return "0x216b4b4ba9f3e719726886d34a177484278bfcae"

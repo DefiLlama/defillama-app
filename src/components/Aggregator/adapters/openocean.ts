@@ -15,6 +15,7 @@ export const chainToId = {
 }
 
 export const name = "OpenOcean"
+export const token = "OOE"
 
 export function approvalAddress(){
   return "0x6352a56caadc4f1e25cd6c75970fa768a3304e64"

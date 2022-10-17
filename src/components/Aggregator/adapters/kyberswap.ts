@@ -17,6 +17,7 @@ export const chainToId = {
 }
 
 export const name = "KyberSwap"
+export const token = "KNC"
 
 export function approvalAddress(){
   return "0x00555513Acf282B42882420E5e5bA87b44D8fA6E"

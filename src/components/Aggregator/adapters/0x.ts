@@ -10,6 +10,7 @@ export const chainToId = {
 }
 
 export const name = "Matcha/0x"
+export const token = "ZRX"
 
 export function approvalAddress(){
   // https://docs.0x.org/0x-api-swap/guides/swap-tokens-with-0x-api

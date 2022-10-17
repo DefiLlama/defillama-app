@@ -8,6 +8,7 @@ export const chainToId = {
 }
 
 export const name = "CowSwap"
+export const token = "COW"
 
 export function approvalAddress(){
   return "0xC92E8bdf79f0507f65a392b0ab4667716BFE0110"

@@ -37,11 +37,16 @@ no api:
 non evm:
 - jupiter
 - openocean
+- https://twitter.com/prism_ag
 - coinhall
 
 cant integrate:
 - https://twitter.com/UniDexFinance - api broken (seems abandoned)
 - https://bebop.xyz/ - not live
+- VaporDex - not live
+- https://twitter.com/hippolabs__ - not live
+- dexguru no api
+- https://wowmax.exchange/alpha/ - still beta + no api
 */
 
 export async function getTokenList() {

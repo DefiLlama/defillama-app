@@ -12,6 +12,7 @@ export const chainToId = {
 }
 
 export const name = "ParaSwap"
+export const token = "PSP"
 
 export function approvalAddress(){
   return "0x216b4b4ba9f3e719726886d34a177484278bfcae"
