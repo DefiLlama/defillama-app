@@ -85,7 +85,7 @@ function BridgesOverview({
 					}
 				})
 				.filter((chart) => chart.data.length !== 0)
-		} else return chainVolumeData.map((chart) => [new Date(chart.date * 1000), chart.volume])
+		} else return chainVolumeData.map((chart) => [new Date(chart.date * 1000 + 3600 * 12 * 1000), chart.volume]) // added 12 hours so date will match charts that use unix timestamp
 	}, [bridgeNames, bridgeNameToChartDataIndex, chartDataByBridge, chainVolumeData, enableBreakdownChart])
 
 	const { tokenDeposits, tokenWithdrawals } = useBuildBridgeChartData(bridgeStatsCurrentDay)
