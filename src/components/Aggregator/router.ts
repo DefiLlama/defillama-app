@@ -5,6 +5,7 @@ import * as firebird from "./adapters/firebird"
 import * as kyberswap from "./adapters/kyberswap"
 import * as openocean from "./adapters/openocean"
 import * as paraswap from "./adapters/paraswap"
+// import * as unidex from "./adapters/unidex" - their api is broken
 
 const adapters = [matcha, inch, cowswap, firebird, kyberswap, openocean, paraswap]
 

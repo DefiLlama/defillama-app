@@ -15,7 +15,6 @@ import { getAllChains, listRoutes } from './router'
 - https://openocean.finance/
 
 - yieldyak
-- https://twitter.com/UniDexFinance
 - wardenswap
 - https://twitter.com/odosprotocol
 - https://twitter.com/RangoExchange
@@ -24,7 +23,6 @@ import { getAllChains, listRoutes } from './router'
 - https://defi.krystal.app/
 - https://app.unidex.exchange/trading
 - https://rubic.exchange/
-- https://bebop.xyz/
 - https://twitter.com/tfm_com
 - lifi
 - https://twitter.com/ChainHopDEX
@@ -35,6 +33,15 @@ no api:
 - orion protocol
 - autofarm.network/swap/
 - https://swapr.eth.limo/#/swap?chainId=1
+
+non evm:
+- jupiter
+- openocean
+- coinhall
+
+cant integrate:
+- https://twitter.com/UniDexFinance - api broken (seems abandoned)
+- https://bebop.xyz/ - not live
 */
 
 export async function getTokenList() {
@@ -54,18 +61,18 @@ function WalletSelector(){
 
 export function AggregatorContainer(props) {
 	const chains = getAllChains()
-	const [selectedChain, setSelectedChain] = useState("ethereum")
+	const [selectedChain, setSelectedChain] = useState({value: 'ethereum', label: 'Ethereum'})
 	const [fromToken, setFromToken] = useState(null)
 	const [toToken, setToToken] = useState(null)
 	const [amount, setAmount] = useState("100000000000000000000") // 100 tokens
 	const [routes, setRoutes] = useState(null)
 	useEffect(()=>{
 		if(fromToken && toToken && amount){
-			listRoutes(selectedChain, fromToken.value, toToken.value, amount).then(setRoutes)
+			listRoutes(selectedChain.value, fromToken.value, toToken.value, amount).then(setRoutes)
 		}
 	}, [fromToken, toToken, amount, selectedChain])
 
-	const geckoChainId = chainToCoingeckoId[selectedChain]
+	const geckoChainId = chainToCoingeckoId[selectedChain.value]
 	const tokensInChain = props.tokenlist.filter(token=>token.platforms[geckoChainId] !== undefined).map(t=>({
 		label: t.symbol.toUpperCase(),
 		value: t.platforms[geckoChainId]
