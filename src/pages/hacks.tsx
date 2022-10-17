@@ -4,13 +4,14 @@ import HacksContainer from '~/containers/Hacks'
 import { toYearMonth } from '~/utils'
 
 export async function getStaticProps() {
-	const data = (await fetch("https://defi-hacks-api.herokuapp.com/").then((r) => r.json())).map(h=>({
+	const data = (await fetch('https://defi-hacks-api.herokuapp.com/').then((r) => r.json())).map((h) => ({
 		chains: h.chain,
 		classification: h.classification,
-		date: h.date/1e3,
-		amount: h.funds_lost/1e6,
+		date: h.date / 1e3,
+		target: h.target_type,
+		amount: h.funds_lost / 1e6,
 		name: h.name,
-		technique: h.technique,
+		technique: h.technique
 	}))
 
 	const monthlyHacks = {}
