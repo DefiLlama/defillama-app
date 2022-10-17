@@ -10,6 +10,7 @@ export {
 export { OraclesTable, ForksTable, ProtocolsCategoriesTable } from './Defi'
 export { FeesTable } from './Fees'
 export { DexsTable, VolumeByChainsTable } from './Dexs'
+export { OverviewTable, OverviewTableByChainsTable } from './Adaptors'
 export { PeggedAssetByChainTable } from './Stablecoins/PeggedAssetByChain'
 export { PeggedAssetsTable } from './Stablecoins/PeggedAssets'
 export { PeggedChainsTable } from './Stablecoins/PeggedChain'
