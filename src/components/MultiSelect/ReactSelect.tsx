@@ -58,7 +58,7 @@ const customStyles = {
 	}),
 	singleValue: (provided, state) => ({
 		...provided,
-		background: state.isSelected ? 'red' : 'blue'
+		color: 'var(--color)'
 	})
 }
 
