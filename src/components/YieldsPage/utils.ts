@@ -124,7 +124,7 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 export const formatOptimizerPool = (pool) => {
 	const lendingReward = (pool.apyBase || 0) + (pool.apyReward || 0)
 	const borrowReward = (pool.borrow.apyBaseBorrow || 0) + (pool.borrow.apyRewardBorrow || 0)
-	const totalReward = lendingReward + borrowReward
+	const totalReward = lendingReward + borrowReward * pool.ltv
 	const borrowAvailableUsd = pool.borrow.totalAvailableUsd
 
 	return { ...pool, lendingReward, borrowReward, totalReward, borrowAvailableUsd }

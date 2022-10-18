@@ -106,7 +106,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Lending Reward - Borrowing Cost'
+			headerHelperText: 'Lending Reward - Borrowing Cost * LTV'
 		}
 	},
 	{
