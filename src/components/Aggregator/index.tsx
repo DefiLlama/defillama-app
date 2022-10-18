@@ -308,7 +308,7 @@ export function AggregatorContainer({ tokenlist }) {
 						Routes:
 						{[...routes]
 							.sort((a, b) => b.price.amountReturned - a.price.amountReturned)
-							.map((r) => (
+							.map((r, i) => (
 								<Route
 									{...r}
 									toToken={toToken}
@@ -316,6 +316,7 @@ export function AggregatorContainer({ tokenlist }) {
 									gasTokenPrice={gasTokenPrice}
 									toTokenPrice={toTokenPrice}
 									gasPrice={gasPriceData?.formatted?.gasPrice}
+									key={i}
 								/>
 							))}
 					</div>
