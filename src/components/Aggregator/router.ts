@@ -9,8 +9,9 @@ import * as paraswap from "./adapters/paraswap"
 import * as airswap from "./adapters/airswap"
 //import * as odos from "./adapters/odos" - disabled, cors errors
 import * as yieldyak from "./adapters/yieldyak"
+import * as krystal from "./adapters/krystal"
 
-const adapters = [matcha, inch, cowswap, firebird, kyberswap, openocean, paraswap, airswap, yieldyak]
+const adapters = [matcha, inch, cowswap, firebird, kyberswap, openocean, paraswap, airswap, yieldyak, krystal]
 
 export function getAllChains(){
   const chains = new Set<string>()
