@@ -1,10 +1,10 @@
 import { ColumnDef } from '@tanstack/react-table'
 import IconsRow from '~/components/IconsRow'
-import { toK, formattedNum, formattedPercent } from '~/utils'
-import { AutoRow } from '~/components/Row'
-import { NameYield, NameYieldPool } from '../Name'
+import { formattedNum, formattedPercent } from '~/utils'
+import { NameYield, NameYieldPool, PoolStrategyRoute } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsStrategyTableRow } from '../types'
+import { PoolStrategyWithProjects } from '../../shared'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -21,53 +21,64 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol} ➞ ${row.original.farmSymbol}`
 
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
 			return (
-				<NameYieldPool
-					withoutLink
-					value={name}
-					configID={row.original.configID}
-					url={row.original.url}
-					index={index + 1}
-					borrow={true}
-					maxCharacters={50}
-					bookmark={false}
-				/>
+				<PoolStrategyWithProjects>
+					<NameYieldPool
+						withoutLink
+						value={name}
+						configID={row.original.configID}
+						url={row.original.url}
+						index={index + 1}
+						borrow={true}
+						maxCharacters={50}
+						bookmark={false}
+					/>
+					<PoolStrategyRoute
+						project1={row.original.projectName}
+						airdropProject1={row.original.airdrop}
+						project2={row.original.farmProjectName}
+						airdropProject2={row.original.airdrop}
+						chain={row.original.chains[0]}
+						index={index + 1}
+					/>
+				</PoolStrategyWithProjects>
 			)
 		},
 		size: 400
 	},
-	{
-		header: () => <span style={{ paddingLeft: '32px' }}>Lending Project</span>,
-		accessorKey: 'projectLend',
-		enableSorting: false,
-		cell: ({ row }) => (
-			<NameYield
-				withoutLink
-				project={row.original.projectName}
-				projectslug={row.original.projectslug}
-				airdrop={row.original.airdrop}
-				borrow={true}
-			/>
-		),
-		size: 140
-	},
-	{
-		header: 'Chain',
-		accessorKey: 'chainsLend',
-		enableSorting: false,
-		cell: (info) => (
-			<IconsRow
-				disableLinks
-				links={info.row.original.chains as Array<string>}
-				url="/yields/borrow?chain"
-				iconType="chain"
-			/>
-		),
-		meta: {
-			align: 'end'
-		},
-		size: 60
-	},
+	// {
+	// 	header: () => <span style={{ paddingLeft: '32px' }}>Lending Project</span>,
+	// 	accessorKey: 'projectLend',
+	// 	enableSorting: false,
+	// 	cell: ({ row }) => (
+	// 		<NameYield
+	// 			withoutLink
+	// 			project={row.original.projectName}
+	// 			projectslug={row.original.projectslug}
+	// 			airdrop={row.original.airdrop}
+	// 			borrow={true}
+	// 		/>
+	// 	),
+	// 	size: 140
+	// },
+	// {
+	// 	header: 'Chain',
+	// 	accessorKey: 'chainsLend',
+	// 	enableSorting: false,
+	// 	cell: (info) => (
+	// 		<IconsRow
+	// 			disableLinks
+	// 			links={info.row.original.chains as Array<string>}
+	// 			url="/yields/borrow?chain"
+	// 			iconType="chain"
+	// 		/>
+	// 	),
+	// 	meta: {
+	// 		align: 'end'
+	// 	},
+	// 	size: 60
+	// },
 	// {
 	// 	header: 'Farming Chain',
 	// 	accessorKey: 'chainsFarm',
@@ -85,21 +96,21 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 	// 	},
 	// 	size: 60
 	// },
-	{
-		header: () => <span style={{ paddingLeft: '32px' }}>Farm Project</span>,
-		accessorKey: 'projectFarm',
-		enableSorting: false,
-		cell: ({ row }) => (
-			<NameYield
-				withoutLink
-				project={row.original.farmProjectName}
-				projectslug={row.original.projectslug}
-				airdrop={row.original.airdrop}
-				borrow={false}
-			/>
-		),
-		size: 140
-	},
+	// {
+	// 	header: () => <span style={{ paddingLeft: '32px' }}>Farm Project</span>,
+	// 	accessorKey: 'projectFarm',
+	// 	enableSorting: false,
+	// 	cell: ({ row }) => (
+	// 		<NameYield
+	// 			withoutLink
+	// 			project={row.original.farmProjectName}
+	// 			projectslug={row.original.projectslug}
+	// 			airdrop={row.original.airdrop}
+	// 			borrow={false}
+	// 		/>
+	// 	),
+	// 	size: 140
+	// },
 	{
 		header: 'Strategy APY',
 		accessorKey: 'totalApy',
@@ -236,9 +247,9 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 const columnOrders = {
 	0: [
 		'strategy',
-		'projectLend',
-		'projectFarm',
-		'chainsLend',
+		// 'projectLend',
+		// 'projectFarm',
+		// 'chainsLend',
 		// 'chainsFarm',
 		'totalApy',
 		'apy',
@@ -249,9 +260,9 @@ const columnOrders = {
 	],
 	400: [
 		'strategy',
-		'projectLend',
-		'projectFarm',
-		'chainsLend',
+		// 'projectLend',
+		// 'projectFarm',
+		// 'chainsLend',
 		// 'chainsFarm',
 		'totalApy',
 		'apy',
@@ -262,9 +273,9 @@ const columnOrders = {
 	],
 	640: [
 		'strategy',
-		'projectLend',
-		'projectFarm',
-		'chainsLend',
+		// 'projectLend',
+		// 'projectFarm',
+		// 'chainsLend',
 		// 'chainsFarm',
 		'totalApy',
 		'apy',
@@ -275,9 +286,9 @@ const columnOrders = {
 	],
 	1280: [
 		'strategy',
-		'projectLend',
-		'projectFarm',
-		'chainsLend',
+		// 'projectLend',
+		// 'projectFarm',
+		// 'chainsLend',
 		// 'chainsFarm',
 		'totalApy',
 		'apy',
@@ -290,10 +301,10 @@ const columnOrders = {
 
 export const columnSizes = {
 	0: {
-		strategy: 300,
-		projectLend: 200,
-		projectFarm: 200,
-		chainsLend: 60,
+		strategy: 200,
+		// projectLend: 200,
+		// projectFarm: 200,
+		// chainsLend: 60,
 		// chainsFarm: 60,
 		totalApy: 80,
 		apy: 80,
@@ -304,9 +315,9 @@ export const columnSizes = {
 	},
 	812: {
 		strategy: 300,
-		projectLend: 200,
-		projectFarm: 200,
-		chainsLend: 60,
+		// projectLend: 200,
+		// projectFarm: 200,
+		// chainsLend: 60,
 		// chainsFarm: 60,
 		totalApy: 80,
 		apy: 80,
