@@ -18,8 +18,8 @@ Integrated:
 - https://app.unidex.exchange/trading
 - https://twitter.com/odosprotocol
 - yieldyak
-
 - https://defi.krystal.app/
+
 - https://twitter.com/RangoExchange - api key requested
 - thorswap
 - https://rubic.exchange/
