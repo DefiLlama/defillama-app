@@ -201,17 +201,19 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					)}
 
 					<LinksWrapper>
-						<Link href={props.protocolSummary.url} passHref>
-							<Button
-								as="a"
-								target="_blank"
-								rel="noopener noreferrer"
-								useTextColor={true}
-								color={props.backgroundColor}
-							>
-								<span>Website</span> <ArrowUpRight size={14} />
-							</Button>
-						</Link>
+						{props.protocolSummary.url && (
+							<Link href={props.protocolSummary.url} passHref>
+								<Button
+									as="a"
+									target="_blank"
+									rel="noopener noreferrer"
+									useTextColor={true}
+									color={props.backgroundColor}
+								>
+									<span>Website</span> <ArrowUpRight size={14} />
+								</Button>
+							</Link>
+						)}
 
 						{props.protocolSummary.twitter && (
 							<Link href={`https://twitter.com/${props.protocolSummary.twitter}`} passHref>
