@@ -16,6 +16,7 @@ interface INameYieldPoolProps {
 	borrow?: boolean
 	withoutLink?: boolean
 	maxCharacters?: number
+	bookmark?: boolean
 }
 
 interface INameYield {
@@ -33,13 +34,14 @@ export function NameYieldPool({
 	index,
 	borrow,
 	withoutLink,
-	maxCharacters = 10
+	maxCharacters = 10,
+	bookmark = true
 }: INameYieldPoolProps) {
 	const tokenUrl = borrow ? `/yields/borrow/${configID}` : `/yields/pool/${configID}`
 
 	return (
 		<Wrapper>
-			<Bookmark readableProtocolName={configID} data-lgonly />
+			{bookmark ? <Bookmark readableProtocolName={configID} data-lgonly /> : null}
 
 			<span>{index}</span>
 

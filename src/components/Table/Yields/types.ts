@@ -47,3 +47,10 @@ export interface IYieldsOptimizerTableRow extends IYieldTableRow {
 	rewardTokensNames: string[]
 	totalAvailableUsd: number
 }
+
+export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
+	farmSymbol: string
+	farmTvlUsd: number
+	farmProjectName: string
+	farmChain: Array<string>
+}
