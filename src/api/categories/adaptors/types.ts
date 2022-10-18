@@ -33,6 +33,7 @@ export interface ProtocolAdaptorSummaryResponse extends ProtocolAdaptorSummary {
   totalDataChart: Array<[number, number]>,
   total24h: number | null
   change_1d: number | null
+  protocolType?: string
 }
 
 ///////////////////////////////////////////////////////////////////

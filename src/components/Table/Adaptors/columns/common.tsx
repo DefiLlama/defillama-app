@@ -37,16 +37,17 @@ export const NameColumn = (type: string) => ({
 	},
 	size: 240
 })
-export const ChainsColumn = {
+export const ChainsColumn = (type: string) => ({
 	header: 'Chains',
 	accessorKey: 'chains',
 	enableSorting: false,
-	cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/dexs" iconType="chain" />,
+	cell: (info) => <IconsRow links={info.getValue() as Array<string>} url={`${type}/chain`} iconType="chain" />,
 	meta: {
 		align: 'end' as 'end'
 	},
 	size: 140
-}
+})
+
 export const Change1dColumn = {
 	header: '1d Change',
 	accessorKey: 'change_1d',

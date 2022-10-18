@@ -31,7 +31,7 @@ export const getColumnsByType = (type: string) => {
 
 export const volumesColumns: ColumnDef<IDexsRow>[] = [
 	NameColumn('volumes'),
-	ChainsColumn,
+	ChainsColumn('volumes'),
 	Change1dColumn,
 	Change7dColumn,
 	Change1mColumn,
@@ -42,7 +42,7 @@ export const volumesColumns: ColumnDef<IDexsRow>[] = [
 
 export const feesColumns: ColumnDef<IDexsRow>[] = [
 	NameColumn('fees'),
-	ChainsColumn,
+	ChainsColumn('fees'),
 	CategoryColumn,
 	Total24hColumn('fees', undefined, 'Fees paid by protocol users excluding gas fees'),
 	Total24hColumn('revenue', 'revenue24h', 'Fees accrued to the protocol (going to either treasury or holders)')
