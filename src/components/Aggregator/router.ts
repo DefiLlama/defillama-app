@@ -5,9 +5,12 @@ import * as firebird from "./adapters/firebird"
 import * as kyberswap from "./adapters/kyberswap"
 import * as openocean from "./adapters/openocean"
 import * as paraswap from "./adapters/paraswap"
-// import * as unidex from "./adapters/unidex" - their api is broken
+// import * as unidex from "./adapters/unidex" - disabled, their api is broken
+import * as airswap from "./adapters/airswap"
+//import * as odos from "./adapters/odos" - disabled, cors errors
+import * as yieldyak from "./adapters/yieldyak"
 
-const adapters = [matcha, inch, cowswap, firebird, kyberswap, openocean, paraswap]
+const adapters = [matcha, inch, cowswap, firebird, kyberswap, openocean, paraswap, airswap, yieldyak]
 
 export function getAllChains(){
   const chains = new Set<string>()

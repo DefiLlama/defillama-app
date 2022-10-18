@@ -6,6 +6,7 @@ import { chainToCoingeckoId } from './chainToCoingeckoId'
 import { getAllChains, listRoutes } from './router'
 
 /*
+Integrated:
 - paraswap
 - 0x
 - 1inch
@@ -13,19 +14,18 @@ import { getAllChains, listRoutes } from './router'
 - kyberswap
 - firebird (https://docs.firebird.finance/developer/api-specification)
 - https://openocean.finance/
-
-- yieldyak
-- wardenswap
-- https://twitter.com/odosprotocol
-- https://twitter.com/RangoExchange
-- thorswap
 - airswap
-- https://defi.krystal.app/
 - https://app.unidex.exchange/trading
+- https://twitter.com/odosprotocol
+- yieldyak
+
+- https://defi.krystal.app/
+- https://twitter.com/RangoExchange - api key requested
+- thorswap
 - https://rubic.exchange/
-- https://twitter.com/tfm_com
 - lifi
-- https://twitter.com/ChainHopDEX
+- https://twitter.com/ChainHopDEX - only has 1inch
+- https://twitter.com/MayanFinance
 
 no api:
 - https://twitter.com/HeraAggregator (no api)
@@ -35,18 +35,23 @@ no api:
 - https://swapr.eth.limo/#/swap?chainId=1
 
 non evm:
-- jupiter
-- openocean
-- https://twitter.com/prism_ag
-- coinhall
+- jupiter (solana)
+- openocean (solana)
+- https://twitter.com/prism_ag (solana)
+- coinhall (terra)
+- https://twitter.com/tfm_com (terra)
 
 cant integrate:
 - https://twitter.com/UniDexFinance - api broken (seems abandoned)
 - https://bebop.xyz/ - not live
 - VaporDex - not live
 - https://twitter.com/hippolabs__ - not live
-- dexguru no api
+- dexguru - no api
 - https://wowmax.exchange/alpha/ - still beta + no api
+- https://twitter.com/RBXtoken - doesnt work
+- https://www.bungee.exchange/ - couldnt use it
+- wardenswap - no api + sdk is closed source
+- https://twitter.com/DexibleApp - not an aggregator, only supports exotic orders like TWAP, segmented order, stop loss...
 */
 
 export async function getTokenList() {
