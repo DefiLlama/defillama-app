@@ -126,7 +126,7 @@ export async function getBridgeOverviewPageData(chain) {
 	}
 
 	const secondsInDay = 3600 * 24
-	const largeTxsData = await getLargeTransactionsData(chain, currentTimestamp - secondsInDay, currentTimestamp)
+	const largeTxsData = await getLargeTransactionsData(chain, currentTimestamp - 7 * secondsInDay, currentTimestamp)
 
 	const filteredBridges = formatBridgesData({
 		bridges,

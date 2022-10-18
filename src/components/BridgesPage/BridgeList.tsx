@@ -127,13 +127,20 @@ function BridgesOverview({
 	}
 	*/
 
-	const { dayPercentChange, monthPercentChange, totalVolumeCurrent } = useMemo(() => {
-		let totalVolumeCurrent = getPrevVolumeFromChart(chainVolumeData, 0, false, (selectedChain !== 'All'))
-		let totalVolumePrevDay = getPrevVolumeFromChart(chainVolumeData, 1, false, (selectedChain !== 'All'))
-		let totalVolumePrevMonth = getPrevVolumeFromChart(chainVolumeData, 30, false, (selectedChain !== 'All'))
-		const dayPercentChange = getPercentChange(totalVolumeCurrent, totalVolumePrevDay)?.toFixed(2)
-		const monthPercentChange = getPercentChange(totalVolumeCurrent, totalVolumePrevMonth)?.toFixed(2)
-		return { dayPercentChange, monthPercentChange, totalVolumeCurrent }
+	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = useMemo(() => {
+		let dayTotalVolume, weekTotalVolume, monthTotalVolume
+		dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
+		for (let i = 0; i < 30; i++) {
+			const dailyVolume = getPrevVolumeFromChart(chainVolumeData, i, false, (selectedChain !== 'All'))
+			if (i < 1) {
+				dayTotalVolume+= dailyVolume
+			}
+			if (i < 7) {
+				weekTotalVolume+= dailyVolume
+			}
+			monthTotalVolume+= dailyVolume
+		}
+		return { dayTotalVolume, weekTotalVolume, monthTotalVolume }
 	}, [chainVolumeData])
 
 	return (
@@ -153,18 +160,22 @@ function BridgesOverview({
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>
 					<BreakpointPanel>
-						<h1>Total 24h volume (USD)</h1>
+						<h1>Total volume (24h)</h1>
 						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
-							{formattedNum(totalVolumeCurrent, true)}
+							{formattedNum(dayTotalVolume, true)}
 						</p>
 					</BreakpointPanel>
 					<PanelHiddenMobile>
-						<h2>Change (24h)</h2>
-						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {dayPercentChange || 0}%</p>
+					<h1>Total volume (7d)</h1>
+						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
+							{formattedNum(weekTotalVolume, true)}
+						</p>
 					</PanelHiddenMobile>
 					<PanelHiddenMobile>
-						<h2>Change (30d)</h2>
-						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {monthPercentChange || 0}%</p>
+					<h1>Total volume (1m)</h1>
+						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
+							{formattedNum(monthTotalVolume, true)}
+						</p>
 					</PanelHiddenMobile>
 				</BreakpointPanels>
 				<BreakpointPanel id="chartWrapper" style={{ gap: '16px', minHeight: '450px', justifyContent: 'space-between' }}>

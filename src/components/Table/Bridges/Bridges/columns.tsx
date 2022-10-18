@@ -126,7 +126,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		}
 	},
 	{
-		header: '24h Deposit Volume',
+		header: '24h Deposits',
 		accessorKey: 'prevDayUsdWithdrawals',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
@@ -135,7 +135,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		}
 	},
 	{
-		header: '24h Withdrawal Volume',
+		header: '24h Withdrawals',
 		accessorKey: 'prevDayUsdDeposits',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
@@ -163,7 +163,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		}
 	},
 	{
-		header: '7d Deposit Volume',
+		header: '7d Deposits',
 		accessorKey: 'prevWeekUsdWithdrawals',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
@@ -172,7 +172,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		}
 	},
 	{
-		header: '7d Withdrawal Volume',
+		header: '7d Withdrawals',
 		accessorKey: 'prevWeekUsdDeposits',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,

@@ -13,7 +13,7 @@ export const LargeTxsTable = (props:{ data: LargeTxsData[]}) => {
 			<TableNoticeWrapper>
 				<SmolHints>
 					<i>
-						Displaying {props.data.length} transactions from the the past 24h
+						Displaying {props.data.length} transactions from the the past 7d
 					</i>
 				</SmolHints>
 			</TableNoticeWrapper>
