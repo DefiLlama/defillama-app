@@ -27,7 +27,7 @@ export const NameColumn = (type: string) => ({
 				)}
 				<span>{index + 1}</span>
 				<TokenLogo logo={row.original.logo} data-lgonly />
-				<CustomLink href={`/overview/${type}/${slug(name)}`}>{`${value}`}</CustomLink>
+				<CustomLink href={`/${type}/${slug(name)}`}>{`${value}`}</CustomLink>
 			</Name>
 		)
 	},

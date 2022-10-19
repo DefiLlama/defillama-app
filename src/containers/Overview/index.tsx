@@ -71,8 +71,8 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			<AdaptorsSearch
 				type={props.type}
 				step={{
-					category: 'Home',
-					name: upperCaseFirst(props.type)
+					category: chain === 'All' ? 'Home' : upperCaseFirst(props.type),
+					name: chain === 'All' ? upperCaseFirst(props.type) : chain
 				}}
 				onToggleClick={
 					charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
@@ -93,7 +93,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				<RowLinksWithDropdown
 					links={['All', ...props.allChains].map((chain) => ({
 						label: formatChain(chain),
-						to: chain === 'All' ? `/overview/${props.type}` : `/overview/${props.type}/chain/${chain.toLowerCase()}`
+						to: chain === 'All' ? `/${props.type}` : `/${props.type}/chain/${chain.toLowerCase()}`
 					}))}
 					activeLink={chain}
 					alternativeOthersText="More chains"
