@@ -9,7 +9,7 @@ export const useFetchAdaptorsList = (type: string) => {
 }
 
 export const useFetchCharts = (type: string, chain?: string) => {
-	const fetch = type === 'fees' ? fetcher : () => undefined
+	const fetch = type === 'fees' ? () => undefined : fetcher
 	let API = `${ADAPTORS_BASE_API}/${type}`
 	if (chain) API = `${API}/${chain}`
 	const { data, error } = useSWR<IGetOverviewResponseBody>(`${API}?excludeTotalDataChart=true`, fetch)
