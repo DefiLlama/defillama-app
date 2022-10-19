@@ -67,9 +67,9 @@ const InputWrapper = styled.div`
 		font-size: 14px;
 		line-height: 30px;
 		height: 48px;
-		color: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#959595')};
+		color: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#727272')};
 		border: ${({ theme }) => (theme.mode === 'dark' ? '1px solid #232323;' : '1px solid #cdd9ed;')};
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#787878' : '#fff')};
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#787878' : '#d8d8d8')};
 		transition: background 0.3s ease, border 0.3s ease, color 0.3s ease;
 	}
 `

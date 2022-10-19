@@ -64,33 +64,21 @@ cant integrate:
 - https://twitter.com/DexibleApp - not an aggregator, only supports exotic orders like TWAP, segmented order, stop loss...
 */
 
-const Connect = styled.div`
-	display: flex;
-	width: 100%;
-	& div {
-		width: 100%;
-		justify-content: center;
-		display: table-cell;
-		vertical-align: middle;
-	}
-	& button {
-		text-align: center;
-		display: table-cell;
-		vertical-align: middle;
-	}
-`
-
 const Body = styled.div<{ showRoutes: boolean }>`
-	height: 400px;
+	height: 408px;
 	display: grid;
 	grid-row-gap: 16px;
 	margin: 0 auto;
 	transform: translateX(180px);
+	padding-bottom: 4px;
 
 	min-width: 30rem;
 	max-width: 46rem;
 
-	box-shadow: 10px 0px 50px 10px rgba(26, 26, 26, 0.9);
+	box-shadow: ${({ theme }) =>
+		theme.mode === 'dark'
+			? '10px 0px 50px 10px rgba(26, 26, 26, 0.9);'
+			: '10px 0px 50px 10px rgba(211, 211, 211, 0.9);;'};
 	padding: 16px;
 	border-radius: 16px;
 	text-align: left;
@@ -160,8 +148,8 @@ const RouteWrapper = styled.div`
 	display: grid;
 	grid-row-gap: 8px;
 	margin-top: 16px;
-	background-color: #2d3039;
-	border: 1px solid #373944;
+	background-color: ${({ theme }) => (theme.mode === 'dark' ? ' #2d3039;' : ' #dde3f3;')};
+	border: ${({ theme }) => (theme.mode === 'dark' ? '1px solid #373944;' : '1px solid #c6cae0;')};
 	padding: 8px;
 	border-radius: 8px;
 `
@@ -210,14 +198,17 @@ const MenuList = (props) => {
 }
 
 const Routes = styled.div<{ show: boolean; isFirstRender: boolean }>`
-	box-shadow: 10px 0px 50px 10px rgba(26, 26, 26, 0.9);
 	padding: 16px;
 	border-radius: 16px;
 	text-align: left;
-	height: 400px;
+	height: 408px;
 	overflow-y: scroll;
 	min-width: 360px;
 
+	box-shadow: ${({ theme }) =>
+		theme.mode === 'dark'
+			? '10px 0px 50px 10px rgba(26, 26, 26, 0.9);'
+			: '10px 0px 50px 10px rgba(211, 211, 211, 0.9);'};
 	animation: ${(props) =>
 		props.show === true
 			? 'tilt-in-fwd-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;'
@@ -356,7 +347,6 @@ export function AggregatorContainer({ tokenlist }) {
 	}
 
 	const onMaxClick = () => {
-		console.log(balance, fromToken)
 		if (balance?.data?.formatted) setAmount(balance?.data?.formatted)
 	}
 
@@ -413,7 +403,10 @@ export function AggregatorContainer({ tokenlist }) {
 							filterOption={createFilter({ ignoreAccents: false })}
 						/>
 					</div>
-					<Input setAmount={setAmount} amount={amount} onMaxClick={onMaxClick} />
+					<div>
+						<FormHeader>Amount In</FormHeader>
+						<Input setAmount={setAmount} amount={amount} onMaxClick={onMaxClick} />
+					</div>
 				</Body>
 				<Routes show={!!routes?.length || isLoading} isFirstRender={renderNumber === 1}>
 					<FormHeader>Routes</FormHeader>

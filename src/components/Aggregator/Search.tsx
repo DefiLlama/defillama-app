@@ -29,15 +29,12 @@ const MenuList = (props) => {
 }
 
 export default function Search({ tokens, setTokens }: Props) {
-	console.log(tokens)
-
 	const options = useMemo(
 		() => tokens.map((token) => ({ ...token, value: token.address, label: token.symbol })),
 		[tokens]
 	)
 
 	const [data, setData] = useState(options)
-	const [s, ss] = useState(null)
 
 	const onChange = (value) => {
 		if (value.token0 && value.token1) setTokens(value)
