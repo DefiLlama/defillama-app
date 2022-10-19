@@ -31,7 +31,7 @@ import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataBy
 import { IDexResponse } from '~/api/categories/dexs/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
-import { PageParams } from '~/pages/overview/[type]/[item]'
+import { PageParams } from '~/pages/[type]/[item]'
 import { upperCaseFirst } from './utils'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'

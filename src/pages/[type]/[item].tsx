@@ -25,6 +25,7 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 	params
 }: GetStaticPropsContext<{ type: string; item: string }>) => {
 	const data = await getOverviewItemPageData(params.type, params.item)
+
 	return {
 		props: {
 			protocolSummary: {
