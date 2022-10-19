@@ -46,10 +46,12 @@ const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPo
 
 		// add farm strategy
 		const farmPools = allPools.filter((x) =>
-			x.symbol
-				.replace(/ *\([^)]*\) */g, '') // remove poolMeta in () prior filtering against this
-				.toUpperCase()
-				.includes(borrow)
+			borrow === 'USD_Stables'
+				? x.stablecoin
+				: x.symbol
+						.replace(/ *\([^)]*\) */g, '') // remove poolMeta in () prior filtering against this
+						.toUpperCase()
+						.includes(borrow)
 		)
 		// cross product
 		let finalPools = []
