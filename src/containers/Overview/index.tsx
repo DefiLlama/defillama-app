@@ -71,8 +71,8 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			<AdaptorsSearch
 				type={props.type}
 				step={{
-					category: upperCaseFirst(props.type),
-					name: 'Overview'
+					category: 'Home',
+					name: upperCaseFirst(props.type)
 				}}
 				onToggleClick={
 					charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
