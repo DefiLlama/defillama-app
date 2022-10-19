@@ -26,9 +26,9 @@ Integrated:
 - yieldyak
 - https://defi.krystal.app/
 
-- https://twitter.com/RangoExchange - api key requested
-- thorswap
-- https://rubic.exchange/
+- https://rubic.exchange/ - aggregates aggregators
+- https://twitter.com/RangoExchange - api key requested, bridge aggregator, aggregates aggregators on same chain
+- thorswap - aggregates aggregators that we already have
 - lifi
 - https://twitter.com/ChainHopDEX - only has 1inch
 - https://twitter.com/MayanFinance
@@ -38,7 +38,7 @@ no api:
 - slingshot (no api)
 - orion protocol
 - autofarm.network/swap/
-- https://swapr.eth.limo/#/swap?chainId=1
+- https://swapr.eth.limo/#/swap?chainId=1 - aggregates aggregators + swapr
 
 non evm:
 - jupiter (solana)
