@@ -100,12 +100,11 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 			const filteredRaisesList = raises.filter((raise) => {
 				let toFilter = true
 
-				if (selectedInvestors.length > 0 && raise.leadInvestors.length === 0 && raise.otherInvestors.length === 0) {
-					toFilter = false
-				} else {
-				}
-
 				if (selectedInvestors.length !== investors.length) {
+					if(raise.leadInvestors.length === 0 && raise.otherInvestors.length === 0){
+						return false
+					}
+
 					let isAnInvestor = false
 
 					raise.leadInvestors.forEach((lead) => {
