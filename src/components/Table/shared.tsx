@@ -62,3 +62,15 @@ export const TableHeader = styled.h1`
 	font-weight: 500;
 	font-size: 1.125rem;
 `
+
+export const PoolStrategyWithProjects = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	font-size: 12px;
+
+	img {
+		height: 16px;
+		width: 16px;
+	}
+`

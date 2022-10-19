@@ -209,7 +209,8 @@ export async function getLendBorrowData() {
 			chainList: [...new Set(pools.map((p) => p.chain))],
 			projectList: props.projectList.filter((p) => [...new Set(pools.map((p) => p.project))].includes(p.slug)),
 			categoryList: lendingCategories,
-			tokenNameMapping: props.tokenNameMapping
+			tokenNameMapping: props.tokenNameMapping,
+			allPools: props.pools
 		}
 	}
 }
