@@ -1,6 +1,6 @@
 import useSWR from 'swr'
 import { FEES_BASE_API } from '~/constants'
-import { mapProtocolName } from '~/pages/fees/[protocol]'
+import { mapProtocolName } from '~/pages/fees.deprecated/[protocol]'
 import { capitalizeFirstLetter } from '~/utils'
 import { fetcher } from '~/utils/useSWR'
 
