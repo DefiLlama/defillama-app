@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
-import IconsRow from '~/components/IconsRow'
 import { formattedNum, formattedPercent } from '~/utils'
-import { NameYield, NameYieldPool, PoolStrategyRoute } from '../Name'
+import { NameYieldPool, PoolStrategyRoute } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsStrategyTableRow } from '../types'
 import { PoolStrategyWithProjects } from '../../shared'
@@ -47,70 +46,6 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		},
 		size: 400
 	},
-	// {
-	// 	header: () => <span style={{ paddingLeft: '32px' }}>Lending Project</span>,
-	// 	accessorKey: 'projectLend',
-	// 	enableSorting: false,
-	// 	cell: ({ row }) => (
-	// 		<NameYield
-	// 			withoutLink
-	// 			project={row.original.projectName}
-	// 			projectslug={row.original.projectslug}
-	// 			airdrop={row.original.airdrop}
-	// 			borrow={true}
-	// 		/>
-	// 	),
-	// 	size: 140
-	// },
-	// {
-	// 	header: 'Chain',
-	// 	accessorKey: 'chainsLend',
-	// 	enableSorting: false,
-	// 	cell: (info) => (
-	// 		<IconsRow
-	// 			disableLinks
-	// 			links={info.row.original.chains as Array<string>}
-	// 			url="/yields/borrow?chain"
-	// 			iconType="chain"
-	// 		/>
-	// 	),
-	// 	meta: {
-	// 		align: 'end'
-	// 	},
-	// 	size: 60
-	// },
-	// {
-	// 	header: 'Farming Chain',
-	// 	accessorKey: 'chainsFarm',
-	// 	enableSorting: false,
-	// 	cell: (info) => (
-	// 		<IconsRow
-	// 			disableLinks
-	// 			links={info.row.original.farmChain as Array<string>}
-	// 			url="/yields?chain"
-	// 			iconType="chain"
-	// 		/>
-	// 	),
-	// 	meta: {
-	// 		align: 'end'
-	// 	},
-	// 	size: 60
-	// },
-	// {
-	// 	header: () => <span style={{ paddingLeft: '32px' }}>Farm Project</span>,
-	// 	accessorKey: 'projectFarm',
-	// 	enableSorting: false,
-	// 	cell: ({ row }) => (
-	// 		<NameYield
-	// 			withoutLink
-	// 			project={row.original.farmProjectName}
-	// 			projectslug={row.original.projectslug}
-	// 			airdrop={row.original.airdrop}
-	// 			borrow={false}
-	// 		/>
-	// 	),
-	// 	size: 140
-	// },
 	{
 		header: 'Strategy APY',
 		accessorKey: 'totalApy',
@@ -245,67 +180,15 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: [
-		'strategy',
-		// 'projectLend',
-		// 'projectFarm',
-		// 'chainsLend',
-		// 'chainsFarm',
-		'totalApy',
-		'apy',
-		'delta',
-		'ltv',
-		'borrowAvailableUsd',
-		'farmTvlUsd'
-	],
-	400: [
-		'strategy',
-		// 'projectLend',
-		// 'projectFarm',
-		// 'chainsLend',
-		// 'chainsFarm',
-		'totalApy',
-		'apy',
-		'delta',
-		'ltv',
-		'borrowAvailableUsd',
-		'farmTvlUsd'
-	],
-	640: [
-		'strategy',
-		// 'projectLend',
-		// 'projectFarm',
-		// 'chainsLend',
-		// 'chainsFarm',
-		'totalApy',
-		'apy',
-		'delta',
-		'ltv',
-		'borrowAvailableUsd',
-		'farmTvlUsd'
-	],
-	1280: [
-		'strategy',
-		// 'projectLend',
-		// 'projectFarm',
-		// 'chainsLend',
-		// 'chainsFarm',
-		'totalApy',
-		'apy',
-		'delta',
-		'ltv',
-		'borrowAvailableUsd',
-		'farmTvlUsd'
-	]
+	0: ['strategy', 'totalApy', 'apy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
+	400: ['strategy', 'totalApy', 'apy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
+	640: ['strategy', 'totalApy', 'apy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
+	1280: ['strategy', 'totalApy', 'apy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd']
 }
 
 export const columnSizes = {
 	0: {
 		strategy: 200,
-		// projectLend: 200,
-		// projectFarm: 200,
-		// chainsLend: 60,
-		// chainsFarm: 60,
 		totalApy: 80,
 		apy: 80,
 		delta: 80,
@@ -315,10 +198,6 @@ export const columnSizes = {
 	},
 	812: {
 		strategy: 300,
-		// projectLend: 200,
-		// projectFarm: 200,
-		// chainsLend: 60,
-		// chainsFarm: 60,
 		totalApy: 80,
 		apy: 80,
 		delta: 80,

@@ -93,6 +93,8 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 	return (
 		<Wrapper>
 			<HideIndex>{index}</HideIndex>
+			<TokenLogo logo={chainIcon} />
+			<span>{'|'}</span>
 			<ProjectWrapper>
 				{airdropProject1 && (
 					<Tooltip content="This project has no token and might airdrop one to depositors in the future">
@@ -102,9 +104,7 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 				<TokenLogo logo={iconUrl1} />
 				<span>{project1}</span>
 			</ProjectWrapper>
-			<span>{'-------'}</span>
-			<TokenLogo logo={chainIcon} />
-			<span>{'------>'}</span>
+			<span>{'->'}</span>
 			<ProjectWrapper>
 				{airdropProject2 && (
 					<Tooltip content="This project has no token and might airdrop one to depositors in the future">
