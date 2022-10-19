@@ -169,7 +169,7 @@ const Route = ({ name, price, toToken, toTokenPrice, gasTokenPrice, gasPrice }: 
 			<RouteRow>
 				<img src={toToken.logoURI} style={{ width: 24, height: 24, marginRight: 8 }} />
 				<TYPE.heading>
-					{amount.toFixed(3)} (${amountUsd})
+					{amount.toFixed(3)} {amountUsd ? `($${amountUsd})` : null}
 				</TYPE.heading>
 				<div style={{ marginLeft: 'auto', display: 'flex' }}>
 					<GasIcon /> <div style={{ marginLeft: 8 }}>${gasUsd.toFixed(3)}</div>
