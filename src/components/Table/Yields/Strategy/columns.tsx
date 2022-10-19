@@ -4,7 +4,8 @@ import { NameYieldPool, PoolStrategyRoute } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsStrategyTableRow } from '../types'
 import { PoolStrategyWithProjects } from '../../shared'
-import Tooltip from '~/components/Tooltip'
+import { Tooltip2 } from '~/components/Tooltip'
+import styled from 'styled-components'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -52,14 +53,18 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		accessorKey: 'totalApy',
 		enableSorting: true,
 		cell: (info) => {
+			const TooltipContent = () => {
+				return (
+					<>
+						<span>{`Supply APY: ${info.row.original.apy.toFixed(2)}%`}</span>
+						<span>{`Borrow APY: ${info.row.original.borrow.apyBorrow.toFixed(2)}%`}</span>
+						<span>{`Farm APY: ${info.row.original.farmApy.toFixed(2)}%`}</span>
+					</>
+				)
+			}
+
 			return (
-				<Tooltip
-					content={`
-					Supply APY: ${info.row.original.apy.toFixed(2)}%\n
-					Borrow APY: ${info.row.original.borrow.apyBorrow.toFixed(2)}%\n
-					Farm APY: ${info.row.original.farmApy.toFixed(2)}%
-					`}
-				>
+				<Tooltip content={<TooltipContent />}>
 					<span
 						style={{
 							color: apyColors['positive']
@@ -191,5 +196,11 @@ export const columnSizes = {
 		farmTvlUsd: 100
 	}
 }
+
+const Tooltip = styled(Tooltip2)`
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+`
 
 export const yieldsColumnOrders = formatColumnOrder(columnOrders)
