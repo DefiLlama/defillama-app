@@ -5,6 +5,7 @@ import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 
 export async function getStaticProps() {
 	const { protocols } = await getSimpleProtocolsPageData()
+
 	return {
 		props: {
 			protocols
