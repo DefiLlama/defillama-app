@@ -25,6 +25,7 @@ export interface IYieldTableRow {
 	totalBorrowUsd: number
 	loopApy: number
 	boost: number
+	apyBorrow: number
 }
 
 export interface IYieldsProjectsTableRow {
@@ -53,4 +54,5 @@ export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
 	farmTvlUsd: number
 	farmProjectName: string
 	farmChain: Array<string>
+	farmApy: number
 }

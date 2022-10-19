@@ -4,6 +4,7 @@ import { NameYieldPool, PoolStrategyRoute } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsStrategyTableRow } from '../types'
 import { PoolStrategyWithProjects } from '../../shared'
+import Tooltip from '~/components/Tooltip'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -52,13 +53,21 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<span
-					style={{
-						color: apyColors['positive']
-					}}
+				<Tooltip
+					content={`
+					Supply: ${info.row.original.apy.toFixed(2)}%
+					Borrow: ${info.row.original.borrow.apyBorrow.toFixed(2)}%
+					Farm: ${info.row.original.farmApy.toFixed(2)}%
+					`}
 				>
-					{formattedPercent(info.getValue(), true, 700)}
-				</span>
+					<span
+						style={{
+							color: apyColors['positive']
+						}}
+					>
+						{formattedPercent(info.getValue(), true, 700)}
+					</span>
+				</Tooltip>
 			)
 		},
 		size: 140,
@@ -68,28 +77,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		}
 	},
 	{
-		header: 'Supply APY',
-		accessorKey: 'apy',
-		enableSorting: true,
-		cell: (info) => {
-			return (
-				<span
-					style={{
-						color: apyColors['supply']
-					}}
-				>
-					{formattedPercent(info.getValue(), true, 400)}
-				</span>
-			)
-		},
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Total net APY for supplying (Base + Reward)'
-		}
-	},
-	{
-		header: 'APY Delta',
+		header: 'Delta',
 		accessorKey: 'delta',
 		enableSorting: true,
 		cell: (info) => {
@@ -107,7 +95,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		meta: {
 			align: 'end',
 			headerHelperText:
-				'APY Increase by following this strategy (Strategy APY) compared to a simple deposit strategy (Supply APY)'
+				'APY Increase by following this strategy compared to just supplying the first token in the lending protocol'
 		}
 	},
 	{
@@ -180,26 +168,24 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: ['strategy', 'totalApy', 'apy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
-	400: ['strategy', 'totalApy', 'apy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
-	640: ['strategy', 'totalApy', 'apy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
-	1280: ['strategy', 'totalApy', 'apy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd']
+	0: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
+	400: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
+	640: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
+	1280: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd']
 }
 
 export const columnSizes = {
 	0: {
-		strategy: 200,
-		totalApy: 80,
-		apy: 80,
-		delta: 80,
-		ltv: 60,
-		borrowAvailableUsd: 80,
-		farmTvlUsd: 60
+		strategy: 250,
+		totalApy: 150,
+		delta: 100,
+		ltv: 90,
+		borrowAvailableUsd: 120,
+		farmTvlUsd: 100
 	},
 	812: {
 		strategy: 300,
 		totalApy: 80,
-		apy: 80,
 		delta: 80,
 		ltv: 60,
 		borrowAvailableUsd: 80,
