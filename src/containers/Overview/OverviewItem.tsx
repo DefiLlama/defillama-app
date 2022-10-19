@@ -298,6 +298,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						)}
 					</LinksWrapper>
 				</Section>
+				<Section></Section>
 			</InfoWrapper>
 			{/* 
 			<SectionHeader>Charts</SectionHeader>
