@@ -1,12 +1,9 @@
-import { ColumnDef } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'react-feather'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, formattedPercent, slug } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
-import { formatColumnOrder } from '../../utils'
-import type { IDexsRow } from '../types'
 
 export const NameColumn = (type: string) => ({
 	header: () => <Name>Name</Name>,
@@ -17,7 +14,6 @@ export const NameColumn = (type: string) => ({
 		const splittedName = value.split(' - ')
 		const name = splittedName.length > 1 ? splittedName.slice(0, splittedName.length - 1).join('') : value
 		const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
 		return (
 			<Name depth={row.depth}>
 				{row.subRows?.length > 0 && (
@@ -30,7 +26,7 @@ export const NameColumn = (type: string) => ({
 					</AccordionButton>
 				)}
 				<span>{index + 1}</span>
-				<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+				<TokenLogo logo={row.original.logo} data-lgonly />
 				<CustomLink href={`/overview/${type}/${slug(name)}`}>{`${value}`}</CustomLink>
 			</Name>
 		)

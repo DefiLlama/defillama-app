@@ -16,18 +16,7 @@ import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacke
 import { AsyncReturnType, upperCaseFirst } from './utils'
 import { ProtocolAdaptorSummary } from '~/api/categories/adaptors/types'
 import { useFetchCharts } from '~/api/categories/adaptors/client'
-
-/* export async function getStaticProps() {
-	const data = await getChainsPageData('All')
-	return {
-		...data,
-		revalidate: revalidate()
-	}
-} */
-
-const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
-	ssr: false
-}) as React.FC<IStackedBarChartProps>
+import { IMainBarChartProps, MainBarChart } from './common'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -92,34 +81,13 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				}
 			/>
 
-			<HeaderWrapper>
-				<span>
-					{props.type === 'volumes' ? 'Volume' : upperCaseFirst(props.type)} in{' '}
-					{chain === 'All' ? 'all protocols' : chain}
-				</span>
-			</HeaderWrapper>
-
-			<ChartAndValuesWrapper>
-				<BreakpointPanels>
-					<BreakpointPanel>
-						<h1>Total {props.type === 'volumes' ? 'volume' : props.type} (24h)</h1>
-						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
-							{formattedNum(props.total24h, true)}
-						</p>
-					</BreakpointPanel>
-					<PanelHiddenMobile>
-						<h2>Change (24h)</h2>
-						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {props.change_1d || 0}%</p>
-					</PanelHiddenMobile>
-					<PanelHiddenMobile>
-						<h2>Change (30d)</h2>
-						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.change_1m || 0}%</p>
-					</PanelHiddenMobile>
-				</BreakpointPanels>
-				<BreakpointPanel id="chartWrapper">
-					{chartData && chartData.length > 0 && <StackedBarChart chartData={chartData} />}
-				</BreakpointPanel>
-			</ChartAndValuesWrapper>
+			{getChartByType(props.type, {
+				type: props.type,
+				total24h: props.total24h,
+				change_1d: props.change_1d,
+				change_1m: props.change_1m,
+				chartData: chartData
+			})}
 
 			<RowLinksWrapper>
 				<RowLinksWithDropdown
@@ -142,5 +110,31 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				</Panel>
 			)}
 		</>
+	)
+}
+
+const getChartByType = (type: string, props?: IMainBarChartProps) => {
+	switch (type) {
+		case 'fees':
+			return <></>
+		default:
+			return MainBarChart(props)
+	}
+}
+
+interface ITitleProps {
+	type: string
+	chain: string
+}
+const getTitleByType: React.FC<ITitleProps> = (props) => {
+	let title = upperCaseFirst(props.type)
+	if (props.type === 'volumes') title = 'Volume'
+	if (props.type === 'fees') title = 'Fees and revenue'
+	return (
+		<HeaderWrapper>
+			<span>
+				{title} in {props.chain === 'All' ? 'all protocols' : props.chain}
+			</span>
+		</HeaderWrapper>
 	)
 }

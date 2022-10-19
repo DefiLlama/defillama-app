@@ -4,6 +4,7 @@ import { DEXS_API, DEX_BASE_API, PROTOCOLS_API, ADAPTORS_BASE_API, ADAPTORS_SUMM
 import { upperCaseFirst } from '~/containers/Overview/utils'
 import { ProtocolAdaptorSummaryProps } from '~/pages/overview/[type]/[item]'
 import { chainIconUrl, getColorFromNumber } from '~/utils'
+import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
 import { formatChain } from './utils'
 
@@ -46,10 +47,7 @@ export const getOverviewItemPageData = async (type: string, protocolName: string
 
 // - used in /overview/[type] and /overview/[type]/[chain]
 export const getChainPageData = async (type: string, chain?: string) => {
-	let API = `${ADAPTORS_BASE_API}/${type}`
-	if (chain) API = `${API}/${chain}`
-	API = `${API}?excludeTotalDataChartBreakdown=true`
-	const request = ((await fetch(API).then((res) => res.json())) as IGetOverviewResponseBody)
+	const request = ((await fetch(getAPIUrl(type, chain, type === 'fees', true)).then((res) => res.json())) as IGetOverviewResponseBody)
 	const {
 		protocols = [],
 		total24h,
@@ -71,7 +69,7 @@ export const getChainPageData = async (type: string, chain?: string) => {
 	if (totalDataChart) allCharts.push([upperCaseFirst(type), totalDataChart])
 
 	let revenue: IGetOverviewResponseBody
-	if (type === 'fees') revenue = ((await fetch(`${API}&excludeTotalDataChart=true&dataType=dailyRevenue`).then((res) => res.json())) as IGetOverviewResponseBody)
+	if (type === 'fees') revenue = ((await fetch(getAPIUrl(type, chain, true, true, 'dailyRevenue')).then((res) => res.json())) as IGetOverviewResponseBody)
 	const revenueProtocols = revenue?.protocols.reduce((acc, protocol) => ({ ...acc, [protocol.name]: protocol }), {} as IJSON<ProtocolAdaptorSummary>)
 
 	const protocolsWithSubrows = protocols.map((protocol) => ({
