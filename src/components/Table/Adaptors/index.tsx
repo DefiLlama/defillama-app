@@ -10,11 +10,11 @@ import {
 	ColumnSizingState
 } from '@tanstack/react-table'
 import VirtualTable from '../Table'
-import { columnSizes, dexsTableColumnOrders, getColumnsByType, volumesByChainsColumns } from './columns'
+import { volumesColumnSizes, getColumnsByType, getColumnsOrdernSizeByType } from './columns'
 import type { IDexsRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
 
-const columnSizesKeys = Object.keys(columnSizes)
+const columnSizesKeys = Object.keys(volumesColumnSizes)
 	.map((x) => Number(x))
 	.sort((a, b) => Number(b) - Number(a))
 
@@ -48,33 +48,17 @@ export function OverviewTable({ data, type }) {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = windowSize.width
-			? dexsTableColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			? getColumnsOrdernSizeByType(type)?.order?.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
 			: defaultOrder
 
 		const cSize = windowSize.width
 			? columnSizesKeys.find((size) => windowSize.width > Number(size))
 			: columnSizesKeys[0]
 
-		instance.setColumnSizing(columnSizes[cSize])
+		instance.setColumnSizing(getColumnsOrdernSizeByType(type).size[cSize])
 
 		instance.setColumnOrder(order)
 	}, [windowSize, instance])
-
-	return <VirtualTable instance={instance} />
-}
-
-export function OverviewTableByChainsTable({ data }) {
-	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'total24h' }])
-	const instance = useReactTable({
-		data,
-		columns: volumesByChainsColumns,
-		state: {
-			sorting
-		},
-		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
-	})
 
 	return <VirtualTable instance={instance} />
 }

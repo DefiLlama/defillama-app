@@ -29,6 +29,22 @@ export const getColumnsByType = (type: string) => {
 	}
 }
 
+export const getColumnsOrdernSizeByType = (type: string) => {
+	switch (type) {
+		case 'volumes':
+			return {
+				order: volumesTableColumnOrders,
+				size: volumesColumnSizes
+			}
+		case 'fees':
+			return {
+				order: feesTableColumnOrders,
+				size: volumesColumnSizes
+			}
+		default:
+	}
+}
+
 export const volumesColumns: ColumnDef<IDexsRow>[] = [
 	NameColumn('volumes'),
 	ChainsColumn('volumes'),
@@ -48,85 +64,14 @@ export const feesColumns: ColumnDef<IDexsRow>[] = [
 	Total24hColumn('revenue', 'revenue24h', 'Fees accrued to the protocol (going to either treasury or holders)')
 ]
 
-export const volumesByChainsColumns: ColumnDef<IDexsRow>[] = [
-	{
-		header: () => <Name>Name</Name>,
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<Name>
-					<span>{index + 1}</span>
-					<TokenLogo logo={chainIconUrl(value)} data-lgonly />
-					<CustomLink href={`/dexs/${slug(value)}`}>{`${value}`}</CustomLink>
-				</Name>
-			)
-		},
-		size: 240
-	},
-	{
-		header: '1d Change',
-		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '7d Change',
-		accessorKey: 'change_7d',
-		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '1m Change',
-		accessorKey: 'change_1m',
-		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '24h volume',
-		accessorKey: 'total24h',
-		enableSorting: true,
-		cell: (info) => (info.getValue() ? <>${formattedNum(info.getValue())}</> : <></>),
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: "This colum shows yesterday's volume and it's updated daily at 00:00UTC"
-		}
-	},
-	{
-		header: '24h dominance',
-		accessorKey: 'dominance',
-		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), true, 400)}</>,
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	}
-]
-
 // key: min width of window/screen
 // values: table columns order
-export const dexsTableColumnOrders = formatColumnOrder({
+export const volumesTableColumnOrders = formatColumnOrder({
 	0: ['name', 'total24h', 'change_7d', 'chains', 'change_1d', 'change_1m', 'volumetvl', 'dominance'],
 	900: ['name', 'chains', 'change_1d', 'change_7d', 'change_1m', 'total24h', 'volumetvl', 'dominance']
 })
 
-export const columnSizes = {
+export const volumesColumnSizes = {
 	0: {
 		name: 140,
 		chains: 140,
@@ -158,3 +103,10 @@ export const columnSizes = {
 		dominance: 140
 	}
 }
+
+// key: min width of window/screen
+// values: table columns order
+export const feesTableColumnOrders = formatColumnOrder({
+	0: ['name', 'chains', 'total1dFees', 'category', 'total1dRevenue', 'change_1d', 'change_1m', 'mcaptvl'],
+	400: ['name', 'chains', 'category', 'total1dFees', 'total1dRevenue', 'change_1d', 'change_1m', 'mcaptvl']
+})
