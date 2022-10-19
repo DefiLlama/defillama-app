@@ -55,9 +55,9 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			return (
 				<Tooltip
 					content={`
-					Supply: ${info.row.original.apy.toFixed(2)}%
-					Borrow: ${info.row.original.borrow.apyBorrow.toFixed(2)}%
-					Farm: ${info.row.original.farmApy.toFixed(2)}%
+					Supply APY: ${info.row.original.apy.toFixed(2)}%\n
+					Borrow APY: ${info.row.original.borrow.apyBorrow.toFixed(2)}%\n
+					Farm APY: ${info.row.original.farmApy.toFixed(2)}%
 					`}
 				>
 					<span
@@ -94,8 +94,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText:
-				'APY Increase by following this strategy compared to just supplying the first token in the lending protocol'
+			headerHelperText: 'APY Increase by following this strategy compared to just supplying the collateral token'
 		}
 	},
 	{
@@ -185,11 +184,11 @@ export const columnSizes = {
 	},
 	812: {
 		strategy: 300,
-		totalApy: 80,
-		delta: 80,
-		ltv: 60,
-		borrowAvailableUsd: 80,
-		farmTvlUsd: 60
+		totalApy: 150,
+		delta: 100,
+		ltv: 90,
+		borrowAvailableUsd: 120,
+		farmTvlUsd: 100
 	}
 }
 
