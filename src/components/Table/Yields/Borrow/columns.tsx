@@ -87,6 +87,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend'].includes(row.original.project) ? (
+						<QuestionHelper
+							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
+						/>
+					) : row.original.project === '0vix' ? (
+						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
+					) : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"
@@ -160,6 +167,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 
 			return row.original.apyRewardBorrow > 0 ? (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend'].includes(row.original.project) ? (
+						<QuestionHelper
+							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
+						/>
+					) : row.original.project === '0vix' ? (
+						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
+					) : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"
