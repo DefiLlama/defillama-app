@@ -24,9 +24,6 @@ const SearchWrapper = styled.div`
 `
 
 const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPools }) => {
-	// lend & borrow from query are uppercase only. symbols in pools are mixed case though -> without
-	// setting to uppercase, we only show subset of available pools when applying `findOptimzerPools`
-	pools = pools.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 	const { query, pathname } = useRouter()
 
 	const { lend, borrow } = query
@@ -38,6 +35,11 @@ const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPo
 
 	// for now, I'm keeping the search space smoller by only keeping single exposure token + noIL
 	allPools = allPools.filter((p) => p.ilRisk === 'no' && p.exposure === 'single')
+
+	// lend & borrow from query are uppercase only. symbols in pools are mixed case though -> without
+	// setting to uppercase, we only show subset of available pools when applying `findOptimzerPools`
+	pools = pools.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
+	pools = pools.filter((p) => p.apy !== 0 && p.apyBorrow !== 0)
 
 	const poolsData = React.useMemo(() => {
 		let filteredPools = findOptimizerPools(pools, lend, borrow)
@@ -92,7 +94,7 @@ const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPo
 		// - require at least 1% delta compared to baseline (we could even increase this, otherwise we show lots of
 		// strategies which are not really worth the effort)
 		finalPools = finalPools
-			.filter((p) => Number.isFinite(p.delta) && p.delta > 1 && p.apy > 0.01)
+			.filter((p) => Number.isFinite(p.delta) && p.delta > 1)
 			.sort((a, b) => b.totalApy - a.totalApy)
 
 		if (selectedAttributes.length > 0) {
