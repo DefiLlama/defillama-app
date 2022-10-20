@@ -67,11 +67,11 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend'].includes(row.original.project) ? (
+					{['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend'].includes(row.original.projectName) ? (
 						<QuestionHelper
 							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
 						/>
-					) : row.original.project === '0vix' ? (
+					) : row.original.projectName === '0vix' ? (
 						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
 					) : null}
 					<Tooltip content={<TooltipContent />}>
