@@ -6,6 +6,8 @@ import type { IYieldsStrategyTableRow } from '../types'
 import { PoolStrategyWithProjects } from '../../shared'
 import { Tooltip2 } from '~/components/Tooltip'
 import styled from 'styled-components'
+import QuestionHelper from '~/components/QuestionHelper'
+import { AutoRow } from '~/components/Row'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -52,27 +54,36 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		header: 'Strategy APY',
 		accessorKey: 'totalApy',
 		enableSorting: true,
-		cell: (info) => {
+		cell: ({ getValue, row }) => {
 			const TooltipContent = () => {
 				return (
 					<>
-						<span>{`Supply APY: ${info.row.original.apy.toFixed(2)}%`}</span>
-						<span>{`Borrow APY: ${info.row.original.borrow.apyBorrow.toFixed(2)}%`}</span>
-						<span>{`Farm APY: ${info.row.original.farmApy.toFixed(2)}%`}</span>
+						<span>{`Supply APY: ${row.original.apy.toFixed(2)}%`}</span>
+						<span>{`Borrow APY: ${row.original.borrow.apyBorrow.toFixed(2)}%`}</span>
+						<span>{`Farm APY: ${row.original.farmApy.toFixed(2)}%`}</span>
 					</>
 				)
 			}
 
 			return (
-				<Tooltip content={<TooltipContent />}>
-					<span
-						style={{
-							color: apyColors['positive']
-						}}
-					>
-						{formattedPercent(info.getValue(), true, 700)}
-					</span>
-				</Tooltip>
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend'].includes(row.original.projectName) ? (
+						<QuestionHelper
+							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
+						/>
+					) : row.original.projectName === '0vix' ? (
+						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
+					) : null}
+					<Tooltip content={<TooltipContent />}>
+						<span
+							style={{
+								color: apyColors['positive']
+							}}
+						>
+							{formattedPercent(getValue(), true, 700)}
+						</span>
+					</Tooltip>
+				</AutoRow>
 			)
 		},
 		size: 140,

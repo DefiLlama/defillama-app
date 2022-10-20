@@ -5,6 +5,7 @@ import { AutoRow } from '~/components/Row'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsOptimizerTableRow } from '../types'
+import QuestionHelper from '~/components/QuestionHelper'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -92,15 +93,24 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		header: 'Net APY',
 		accessorKey: 'totalReward',
 		enableSorting: true,
-		cell: (info) => {
+		cell: ({ getValue, row }) => {
 			return (
-				<span
-					style={{
-						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
-					}}
-				>
-					{formattedPercent(info.getValue(), true, 700)}
-				</span>
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend'].includes(row.original.projectName) ? (
+						<QuestionHelper
+							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
+						/>
+					) : row.original.project === '0vix' ? (
+						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
+					) : null}
+					<span
+						style={{
+							color: apyColors[getValue() > 0 ? 'positive' : 'borrow']
+						}}
+					>
+						{formattedPercent(getValue(), true, 700)}
+					</span>
+				</AutoRow>
 			)
 		},
 		size: 140,
