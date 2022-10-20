@@ -67,8 +67,8 @@ export const feesColumns: ColumnDef<IDexsRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 export const volumesTableColumnOrders = formatColumnOrder({
-	0: ['name', 'total24h', 'change_7d', 'chains', 'change_1d', 'change_1m', 'volumetvl', 'dominance'],
-	900: ['name', 'chains', 'change_1d', 'change_7d', 'change_1m', 'total24h', 'volumetvl', 'dominance']
+	0: ['displayName', 'name', 'total24h', 'change_7d', 'chains', 'change_1d', 'change_1m', 'volumetvl', 'dominance'],
+	900: ['displayName', 'name', 'chains', 'change_1d', 'change_7d', 'change_1m', 'total24h', 'volumetvl', 'dominance']
 })
 
 export const volumesColumnSizes = {
@@ -107,6 +107,26 @@ export const volumesColumnSizes = {
 // key: min width of window/screen
 // values: table columns order
 export const feesTableColumnOrders = formatColumnOrder({
-	0: ['name', 'chains', 'total1dFees', 'category', 'total1dRevenue', 'change_1d', 'change_1m', 'mcaptvl'],
-	400: ['name', 'chains', 'category', 'total1dFees', 'total1dRevenue', 'change_1d', 'change_1m', 'mcaptvl']
+	0: [
+		'displayName',
+		'name',
+		'chains',
+		'total1dFees',
+		'category',
+		'total1dRevenue',
+		'change_1d',
+		'change_1m',
+		'mcaptvl'
+	],
+	400: [
+		'displayName',
+		'name',
+		'chains',
+		'category',
+		'total1dFees',
+		'total1dRevenue',
+		'change_1d',
+		'change_1m',
+		'mcaptvl'
+	]
 })

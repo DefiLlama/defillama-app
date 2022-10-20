@@ -7,7 +7,7 @@ import { AccordionButton, Name } from '../../shared'
 
 export const NameColumn = (type: string) => ({
 	header: () => <Name>Name</Name>,
-	accessorKey: 'name',
+	accessorKey: 'displayName',
 	enableSorting: false,
 	cell: ({ getValue, row, table }) => {
 		const value = getValue() as string
