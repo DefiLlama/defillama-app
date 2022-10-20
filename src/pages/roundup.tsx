@@ -113,12 +113,22 @@ export async function getStaticProps() {
 
 	const raw = Number.isNaN(index) ? [] : data.slice(0, index + 1)
 
-	const messages = raw
-		.reverse()
-		.map((m) => m.content)
-		.join('')
+	const messages = raw.reverse().map((m) => m.content)
 
-	const splitLlama = messages.split('Daily news round-up with the 🦙')
+	let message = ''
+	for (const m of messages) {
+		let [first, ...rest] = m.split('\n')
+		// Remove segment indicators, e.g. 1/2 News📰 -> News📰.
+		first = first.replace(/(\d+\/\d+\s+)?(\w+\s*\p{Emoji})/u, '$2')
+		// If the message starts with a topic header, e.g. News📰, then we add a newline first,
+		// separating this message from the previous one.
+		if (first.match(/\w+\s*\p{Emoji}/u)) {
+			message += '\n'
+		}
+		message += [first, ...rest].join('\n')
+	}
+
+	const splitLlama = message.split('Daily news round-up with the 🦙')
 
 	return {
 		props: {
