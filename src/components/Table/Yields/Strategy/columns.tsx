@@ -58,9 +58,9 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			const TooltipContent = () => {
 				return (
 					<>
-						<span>{`Supply APY: ${row.original.apy.toFixed(2)}%`}</span>
-						<span>{`Borrow APY: ${row.original.borrow.apyBorrow.toFixed(2)}%`}</span>
-						<span>{`Farm APY: ${row.original.farmApy.toFixed(2)}%`}</span>
+						<span>{`Supply APY: ${row.original?.apy?.toFixed(2)}%`}</span>
+						<span>{`Borrow APY: ${row.original?.borrow?.apyBorrow?.toFixed(2)}%`}</span>
+						<span>{`Farm APY: ${row.original?.farmApy?.toFixed(2)}%`}</span>
 					</>
 				)
 			}
@@ -136,7 +136,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		}
 	},
 	{
-		header: 'TVL',
+		header: 'Farm TVL',
 		accessorKey: 'farmTvlUsd',
 		enableSorting: true,
 		cell: (info) => {
