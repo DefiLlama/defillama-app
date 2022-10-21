@@ -11,7 +11,8 @@ export async function getStaticProps() {
 		target: h.target_type,
 		amount: h.funds_lost / 1e6,
 		name: h.name,
-		technique: h.technique
+		technique: h.technique,
+		bridge: h.bridge_multichain_application,
 	}))
 
 	const monthlyHacks = {}
@@ -36,7 +37,7 @@ export async function getStaticProps() {
 
 	const totalRugs = formattedNum(
 		data
-			.filter((hack) => hack.classification == 'Rugpull')
+			.filter((hack) => hack.bridge === true)
 			.map((hack) => hack.amount)
 			.reduce((acc, amount) => acc + amount, 0) / 1000,
 		true
