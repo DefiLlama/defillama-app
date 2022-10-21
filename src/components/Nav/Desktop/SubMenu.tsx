@@ -108,7 +108,8 @@ const isDexs = (pathname: string) =>
 	pathname === '/dexs' || pathname.startsWith('/dexs/') || pathname.startsWith('/dex/')
 const isFees = (pathname: string) =>
 	pathname === '/fees' || pathname.startsWith('/fees/') || pathname.startsWith('/fee/')
-	const isRaises = (pathname: string) => pathname === '/raises'
+const isRaises = (pathname: string) => pathname === '/raises'
+const isHacks = (pathname: string) => pathname === '/hacks'
 
 const isActive = ({ pathname, category }: { pathname: string; category: string }) => {
 	switch (category) {
@@ -124,6 +125,8 @@ const isActive = ({ pathname, category }: { pathname: string; category: string }
 			return isFees(pathname)
 		case 'Raises':
 			return isRaises(pathname)
+		case 'Hacks':
+			return isHacks(pathname)
 		case 'DeFi':
 			return (
 				!isYields(pathname) &&
@@ -131,7 +134,8 @@ const isActive = ({ pathname, category }: { pathname: string; category: string }
 				!isLiquidations(pathname) &&
 				!isDexs(pathname) &&
 				!isFees(pathname) &&
-				!isRaises(pathname)
+				!isRaises(pathname) &&
+				!isHacks(pathname)
 			)
 		default:
 			return false
