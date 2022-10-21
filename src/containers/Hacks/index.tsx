@@ -43,7 +43,7 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 						<p style={{ '--tile-text-color': '#bd3399' } as React.CSSProperties}>{totalHackedDefi}b</p>
 					</BreakpointPanel>
 					<BreakpointPanel>
-						<h1>Total Value Lost in Rugs (USD)</h1>
+						<h1>Total Value Hacked in Bridges (USD)</h1>
 						<p style={{ '--tile-text-color': '#bd3399' } as React.CSSProperties}>{totalRugs}b</p>
 					</BreakpointPanel>
 				</BreakpointPanels>
