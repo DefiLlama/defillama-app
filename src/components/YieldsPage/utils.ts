@@ -123,7 +123,7 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 
 const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
 
-export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools) => {
+export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, loopStrategies) => {
 	const availableToLend = pools.filter(
 		({ symbol, ltv }) =>
 			(tokenToLend === 'USD_Stables' ? true : removeMetaTag(symbol).includes(tokenToLend)) &&
@@ -218,12 +218,33 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools) =
 			}
 		}
 	}
+
+	// filter loop strategies to `tokenToLend`
+	loopStrategies = loopStrategies
+		.filter((p) => removeMetaTag(p.symbol.toUpperCase()).includes(tokenToLend))
+		.map((p) => ({
+			...p,
+			borrow: p,
+			chains: [p.chain],
+			farmSymbol: p.symbol,
+			farmChain: [p.chain],
+			farmProjectName: p.projectName,
+			farmProject: p.project,
+			farmTvlUsd: p.tvlUsd,
+			farmApy: p.apy,
+			farmApyBase: p.apyBase,
+			farmApyReward: p.apyReward,
+			strategy: 'loop'
+		}))
+
+	finalPools = finalPools.concat(loopStrategies)
+
 	// calc the total strategy apy
 	finalPools = finalPools.map((p) => {
 		// apy = apyBase + apyReward on the collateral side
 		// apyBorrow = apyBaseBorrow + apyRewardBorrow on the borrow side
 		// farmApy = apyBase + apyReward on the farm side
-		const totalApy = p.apy + p.borrow.apyBorrow * p.ltv + p.farmApy * p.ltv
+		const totalApy = p.strategy === 'loop' ? p.loopApy : p.apy + p.borrow.apyBorrow * p.ltv + p.farmApy * p.ltv
 
 		return {
 			...p,
