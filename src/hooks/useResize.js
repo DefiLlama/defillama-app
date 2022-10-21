@@ -6,8 +6,8 @@ const useResize = (myRef, externalTrigger) => {
 
 	useEffect(() => {
 		const handleResize = () => {
-			setWidth(myRef.current.offsetWidth)
-			setHeight(myRef.current.offsetHeight)
+			setWidth(myRef.current?.offsetWidth)
+			setHeight(myRef.current?.offsetHeight)
 		}
 
 		if (myRef.current) {

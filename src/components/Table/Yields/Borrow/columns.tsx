@@ -5,10 +5,12 @@ import { AutoRow } from '~/components/Row'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
+import QuestionHelper from '~/components/QuestionHelper'
 
 const apyColors = {
 	supply: '#4f8fea',
-	borrow: '#E59421'
+	borrow: '#E59421',
+	positive: '#30c338'
 }
 
 export const columns: ColumnDef<IYieldTableRow>[] = [
@@ -85,6 +87,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend'].includes(row.original.project) ? (
+						<QuestionHelper
+							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
+						/>
+					) : row.original.project === '0vix' ? (
+						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
+					) : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"
@@ -115,7 +124,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<span
 					style={{
-						color: apyColors['borrow']
+						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
 					}}
 				>
 					{formattedPercent(info.getValue(), true, 700)}
@@ -158,6 +167,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 
 			return row.original.apyRewardBorrow > 0 ? (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend'].includes(row.original.project) ? (
+						<QuestionHelper
+							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
+						/>
+					) : row.original.project === '0vix' ? (
+						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
+					) : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"
@@ -181,6 +197,27 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		}
 	},
 	{
+		header: 'LTV',
+		accessorKey: 'ltv',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<span
+					style={{
+						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
+					}}
+				>
+					{formattedNum(Number(info.getValue()) * 100) + '%'}
+				</span>
+			)
+		},
+		size: 120,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Max loan to value (collateral factor)'
+		}
+	},
+	{
 		header: 'Supplied',
 		accessorKey: 'totalSupplyUsd',
 		enableSorting: true,
@@ -191,7 +228,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
 					}}
 				>
-					{'$' + formattedNum(info.getValue())}
+					{info.getValue() === null ? '' : '$' + formattedNum(info.getValue())}
 				</span>
 			)
 		},
@@ -211,7 +248,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
 					}}
 				>
-					{'$' + formattedNum(info.getValue())}
+					{info.getValue() === null ? '' : '$' + formattedNum(info.getValue())}
 				</span>
 			)
 		},
@@ -228,9 +265,21 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<span
 					style={{
+						display: 'flex',
+						gap: '4px',
+						justifyContent: 'flex-end',
 						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
 					}}
 				>
+					{info.row.original.project.includes('Morpho') ? (
+						<QuestionHelper
+							text={`Morpho liquidity comes from the underlying lending protocol pool itself. Available P2P Liquidity: ${
+								info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd > 0
+									? '$' + formattedNum(info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd)
+									: '$0'
+							}`}
+						/>
+					) : null}
 					{info.getValue() === null ? null : '$' + formattedNum(info.getValue())}
 				</span>
 			)
@@ -247,7 +296,6 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 const columnOrders = {
 	0: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'apyBase',
@@ -255,13 +303,13 @@ const columnOrders = {
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
+		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
 		'totalAvailableUsd'
 	],
 	400: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'apyBase',
@@ -269,13 +317,13 @@ const columnOrders = {
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
+		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
 		'totalAvailableUsd'
 	],
 	640: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'apyBase',
@@ -283,13 +331,13 @@ const columnOrders = {
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
+		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
 		'totalAvailableUsd'
 	],
 	1280: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'apyBase',
@@ -297,6 +345,7 @@ const columnOrders = {
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
+		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
 		'totalAvailableUsd'
@@ -305,22 +354,32 @@ const columnOrders = {
 
 export const columnSizes = {
 	0: {
-		pool: 120,
+		pool: 200,
 		project: 200,
 		chain: 60,
 		apyBase: 140,
+		apyReward: 160,
+		apyBorrow: 130,
 		apyBaseBorrow: 140,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120
+		apyRewardBorrow: 160,
+		ltv: 90,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 100,
+		totalAvailableUsd: 120
 	},
 	812: {
 		pool: 200,
 		project: 200,
 		chain: 60,
 		apyBase: 140,
+		apyReward: 160,
+		apyBorrow: 130,
 		apyBaseBorrow: 140,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120
+		apyRewardBorrow: 160,
+		ltv: 90,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 100,
+		totalAvailableUsd: 120
 	}
 }
 

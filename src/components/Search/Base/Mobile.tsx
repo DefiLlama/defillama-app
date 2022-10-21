@@ -53,7 +53,7 @@ export default function MobileSearch() {
 const useMobileSearchResult = () => {
 	const router = useRouter()
 
-	if (router.pathname.startsWith('/yields/optimizer')) {
+	if (router.pathname.startsWith('/yields/optimizer') || router.pathname.startsWith('/yields/strategy')) {
 		return useGetTokensSearchListMobile
 	}
 

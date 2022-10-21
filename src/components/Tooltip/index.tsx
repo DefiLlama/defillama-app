@@ -4,7 +4,7 @@ import { Tooltip as AriaTooltip, TooltipAnchor, useTooltipState } from 'ariakit/
 import Link from 'next/link'
 
 interface ITooltip {
-	content: string | null
+	content: string | null | React.ReactNode
 	href?: string
 	shallow?: boolean
 	onClick?: (e: any) => any

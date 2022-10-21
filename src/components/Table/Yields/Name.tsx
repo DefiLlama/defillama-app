@@ -4,7 +4,7 @@ import Bookmark from '~/components/Bookmark'
 import { CustomLink } from '~/components/Link'
 import styled from 'styled-components'
 import TokenLogo from '~/components/TokenLogo'
-import { tokenIconUrl } from '~/utils'
+import { chainIconUrl, tokenIconUrl } from '~/utils'
 import Tooltip from '~/components/Tooltip'
 import FormattedName from '~/components/FormattedName'
 
@@ -15,6 +15,8 @@ interface INameYieldPoolProps {
 	index: number
 	borrow?: boolean
 	withoutLink?: boolean
+	maxCharacters?: number
+	bookmark?: boolean
 }
 
 interface INameYield {
@@ -25,12 +27,21 @@ interface INameYield {
 	withoutLink?: boolean
 }
 
-export function NameYieldPool({ value, configID, url, index, borrow, withoutLink }: INameYieldPoolProps) {
+export function NameYieldPool({
+	value,
+	configID,
+	url,
+	index,
+	borrow,
+	withoutLink,
+	maxCharacters = 10,
+	bookmark = true
+}: INameYieldPoolProps) {
 	const tokenUrl = borrow ? `/yields/borrow/${configID}` : `/yields/pool/${configID}`
 
 	return (
 		<Wrapper>
-			<Bookmark readableProtocolName={configID} data-lgonly />
+			{bookmark ? <Bookmark readableProtocolName={configID} data-lgonly /> : null}
 
 			<span>{index}</span>
 
@@ -43,10 +54,10 @@ export function NameYieldPool({ value, configID, url, index, borrow, withoutLink
 			)}
 
 			{withoutLink ? (
-				<FormattedName text={value} maxCharacters={10} link fontWeight={500} />
+				<FormattedName text={value} maxCharacters={maxCharacters} link fontWeight={500} />
 			) : (
 				<CustomLink href={tokenUrl} target="_blank">
-					<FormattedName text={value} maxCharacters={10} link fontWeight={500} />
+					<FormattedName text={value} maxCharacters={maxCharacters} link fontWeight={500} />
 				</CustomLink>
 			)}
 		</Wrapper>
@@ -71,6 +82,40 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 				<CustomLink href={tokenUrl}>{project}</CustomLink>
 			)}
 		</AirdropWrapper>
+	)
+}
+
+export function PoolStrategyRoute({ project1, airdropProject1, project2, airdropProject2, chain, index }) {
+	const iconUrl1 = tokenIconUrl(project1)
+	const iconUrl2 = tokenIconUrl(project2)
+	const chainIcon = chainIconUrl(chain)
+
+	return (
+		<Wrapper>
+			<HideIndex>{index}</HideIndex>
+			<TokenLogo logo={chainIcon} />
+			<span>{'|'}</span>
+			<ProjectWrapper>
+				{airdropProject1 && (
+					<Tooltip content="This project has no token and might airdrop one to depositors in the future">
+						<span>🪂</span>
+					</Tooltip>
+				)}
+				<TokenLogo logo={iconUrl1} />
+				<span>{project1}</span>
+			</ProjectWrapper>
+			<span>{'->'}</span>
+			<ProjectWrapper>
+				{airdropProject2 && (
+					<Tooltip content="This project has no token and might airdrop one to depositors in the future">
+						<span>🪂</span>
+					</Tooltip>
+				)}
+
+				<TokenLogo logo={iconUrl2} />
+				<span>{project2}</span>
+			</ProjectWrapper>
+		</Wrapper>
 	)
 }
 
@@ -114,4 +159,22 @@ const AirdropWrapper = styled(Wrapper)`
 const Airdrop = styled.span`
 	width: 24px;
 	margin-left: -32px;
+`
+
+const ProjectWrapper = styled.span`
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 1;
+
+	& > * {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+`
+
+const HideIndex = styled.span`
+	visibility: hidden;
+	padding-right: 4px;
 `

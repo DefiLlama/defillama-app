@@ -33,20 +33,20 @@ import TokenLogo from '~/components/TokenLogo'
 import SEO from '~/components/SEO'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
-import ProtocolTvlChart from '~/components/ECharts/AreaChart/ProtocolTvl'
+import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import QuestionHelper from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
 import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName, toK } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, slug, standardizeProtocolName, toK } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 import { IFusedProtocolData } from '~/api/types'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { FeesBody } from '~/pages/fees/[protocol]'
+import { FeesBody } from '~/pages/fees.deprecated/[protocol]'
 import { DexCharts } from '~/containers/Dex/DexProtocol'
 import { useFetchProtocolDex } from '~/api/categories/dexs/client'
 import { useFetchProtocolFees } from '~/api/categories/fees/client'
@@ -122,11 +122,18 @@ interface IProtocolContainerProps {
 	protocol: string
 	protocolData: IFusedProtocolData
 	backgroundColor: string
+	similarProtocols: Array<{ name: string; tvl: number }>
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 
-function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: IProtocolContainerProps) {
+function ProtocolContainer({
+	title,
+	protocolData,
+	protocol,
+	backgroundColor,
+	similarProtocols
+}: IProtocolContainerProps) {
 	useScrollToTop()
 	const {
 		address = '',
@@ -150,7 +157,8 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 		forkedFrom,
 		otherProtocols,
 		hallmarks,
-		gecko_id
+		gecko_id,
+		isParentProtocol
 	} = protocolData
 
 	const router = useRouter()
@@ -233,6 +241,17 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 		}
 	}, [dex, dexLoading])
 
+	const volumeMap = dex?.volumeHistory?.reduce(
+		(acc, val) => ({
+			...acc,
+			[val.timestamp]: Object.values(val.dailyVolume).reduce(
+				(acc, val) => acc + +Object.values(val).reduce((acc, v) => Number(acc) + Number(v), 0),
+				0
+			)
+		}),
+		{} as Record<number, number>
+	)
+
 	const chainsSplit = React.useMemo(() => {
 		return chainsStacked?.map((chain) => {
 			if (chain.extraTvl) {
@@ -296,7 +315,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
 
-						<Bookmark readableProtocolName={name} />
+						{!isParentProtocol && <Bookmark readableProtocolName={name} />}
 					</Name>
 
 					<StatWrapper>
@@ -361,7 +380,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					)}
 				</DetailsWrapper>
 
-				<ProtocolTvlChart
+				<ProtocolChart
 					protocol={protocol}
 					tvlChartData={tvlChartData}
 					color={backgroundColor}
@@ -370,6 +389,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 					hallmarks={hallmarks}
 					bobo={bobo}
 					geckoId={gecko_id}
+					volumeMap={volumeMap}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
@@ -426,6 +446,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						)}
 					</LinksWrapper>
 				</Section>
+
 				<Section>
 					<h3>Token Information</h3>
 
@@ -455,6 +476,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						)}
 					</LinksWrapper>
 				</Section>
+
 				<Section>
 					<h3>Methodology</h3>
 					{methodology && <p>{methodology}</p>}
@@ -469,7 +491,22 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						)}
 					</LinksWrapper>
 				</Section>
+
+				{similarProtocols && similarProtocols.length > 0 && (
+					<Section>
+						<h3>Competitors</h3>
+
+						<LinksWrapper>
+							{similarProtocols.map((similarProtocol) => (
+								<Link href={`/protocol/${slug(similarProtocol.name)}`} passHref key={similarProtocol.name}>
+									<a target="_blank">{`${similarProtocol.name} ($${toK(similarProtocol.tvl)})`}</a>
+								</Link>
+							))}
+						</LinksWrapper>
+					</Section>
+				)}
 			</InfoWrapper>
+
 			{yeildsNumber > 0 && (
 				<InfoWrapper>
 					<Section>

@@ -81,6 +81,10 @@ const useAppSettings = () => {
 		return { options: [], useSettings: useDefiManager }
 	}
 
+	if (router.pathname.startsWith('/raises')) {
+		return { options: [], useSettings: useDefiManager }
+	}
+
 	if (router.pathname.startsWith('/nfts')) {
 		return { options: nftOptions, useSettings: useNftsManager }
 	}

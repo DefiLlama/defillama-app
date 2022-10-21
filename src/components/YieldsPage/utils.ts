@@ -81,10 +81,9 @@ export function toFilterPool({
 }
 
 export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
-	console.log({ tokenToLend, tokenToBorrow })
 	const availableToLend = pools.filter(
 		({ symbol, ltv }) =>
-			(tokenToLend === 'USD_Stables' ? true : symbol.includes(tokenToLend)) && ltv > 0 && !symbol.includes('Amm')
+			(tokenToLend === 'USD_Stables' ? true : symbol.includes(tokenToLend)) && ltv > 0 && !symbol.includes('AMM')
 	)
 	const availableProjects = availableToLend.map(({ project }) => project)
 	const availableChains = availableToLend.map(({ chain }) => chain)
@@ -94,7 +93,7 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 			!availableProjects.includes(pool.project) ||
 			!availableChains.includes(pool.chain) ||
 			(tokenToBorrow === 'USD_Stables' ? false : !pool.symbol.includes(tokenToBorrow)) ||
-			pool.symbol.includes('Amm')
+			pool.symbol.includes('AMM')
 		)
 			return acc
 		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) return acc
@@ -106,7 +105,8 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 				!collateralPool.symbol.includes(tokenToBorrow) &&
 				collateralPool.pool !== pool.pool &&
 				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true) &&
-				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true)
+				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true) &&
+				(pool.project === 'compound-v3' ? pool.symbol === 'USDC' : true)
 		)
 
 		const poolsPairs = collatteralPools.map((collatteralPool) => ({
@@ -122,11 +122,12 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 }
 
 export const formatOptimizerPool = (pool) => {
-	const lendingReward = pool.apyBase || 0 + pool.apyReward || 0
-	const borrowReward = pool.borrow.apyBaseBorrow || 0 + pool.borrow.apyBaseBorrow || 0
-	const totalReward = lendingReward + borrowReward
+	const lendingReward = (pool.apyBase || 0) + (pool.apyReward || 0)
+	const borrowReward = (pool.borrow.apyBaseBorrow || 0) + (pool.borrow.apyRewardBorrow || 0)
+	const totalReward = lendingReward + borrowReward * pool.ltv
+	const borrowAvailableUsd = pool.borrow.totalAvailableUsd
 
-	return { ...pool, lendingReward, borrowReward, totalReward }
+	return { ...pool, lendingReward, borrowReward, totalReward, borrowAvailableUsd }
 }
 
 interface FilterPools {

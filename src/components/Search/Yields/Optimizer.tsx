@@ -18,7 +18,7 @@ export default function YieldsSearch({ lend = false, ...props }: IYieldSearchPro
 			data={data}
 			loading={loading}
 			onItemClick={onItemClick}
-			placeholder={lend ? 'Token to Lend' : 'Token to Borrow'}
+			placeholder={lend ? 'Collateral Token' : 'Token to Borrow'}
 		/>
 	)
 }

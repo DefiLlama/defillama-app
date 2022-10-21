@@ -55,10 +55,10 @@ export function useGetTokensSearchList(lend = true): IGetSearchList {
 		() => ({
 			name: `All USD Stablecoins`,
 			symbol: 'USD_Stables',
-			route: `/yields/optimizer?${targetParam}=USD_Stables&${restParam}=${router.query[restParam] || ''}`,
+			route: `${router.pathname}?${targetParam}=USD_Stables&${restParam}=${router.query[restParam] || ''}`,
 			logo: '/icons/usd_native.png'
 		}),
-		[yields, restParam, router.query, targetParam]
+		[restParam, router.query, targetParam, router.pathname]
 	)
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
@@ -66,14 +66,14 @@ export function useGetTokensSearchList(lend = true): IGetSearchList {
 			yields?.map((el) => ({
 				name: `${el.name} (${el.symbol.toUpperCase()})`,
 				symbol: el.symbol.toUpperCase(),
-				route: `/yields/optimizer?${targetParam}=${el.symbol.toUpperCase()}&${restParam}=${
+				route: `${router.pathname}?${targetParam}=${el.symbol.toUpperCase()}&${restParam}=${
 					router.query[restParam] || ''
 				}`,
 				logo: el.image
 			})) ?? []
 
 		return [stablecoinsSearch].concat(yieldsList)
-	}, [yields, restParam, router.query, targetParam, stablecoinsSearch])
+	}, [yields, restParam, router.query, targetParam, stablecoinsSearch, router.pathname])
 
 	const onItemClick = (item) => {
 		router.push(item.route, undefined, { shallow: true })
@@ -92,19 +92,19 @@ export function useGetTokensSearchListMobile(): IGetSearchList {
 				{
 					name: `${el.name} (${el.symbol.toUpperCase()})`,
 					symbol: el.symbol.toUpperCase(),
-					route: `/yields/optimizer?lend=${el.symbol.toUpperCase() || 'USDC'}&borrow=${router.query.borrow || 'ETH'}`,
+					route: `${router.pathname}?lend=${el.symbol.toUpperCase() || 'USDC'}&borrow=${router.query.borrow || 'ETH'}`,
 					logo: el.image
 				},
 				{
 					name: `Borrow: ${el.name} (${el.symbol.toUpperCase()})`,
 					symbol: el.symbol.toUpperCase(),
-					route: `/yields/optimizer?lend=${router.query.lend || 'USDC'}&borrow=${el.symbol.toUpperCase() || 'ETH'}`,
+					route: `${router.pathname}?lend=${router.query.lend || 'USDC'}&borrow=${el.symbol.toUpperCase() || 'ETH'}`,
 					logo: el.image
 				}
 			]) ?? []
 
 		return yieldsList.flat()
-	}, [yields, router.query])
+	}, [yields, router.query, router.pathname])
 
 	const onItemClick = (item) => {
 		router.push(item.route, undefined, { shallow: true })

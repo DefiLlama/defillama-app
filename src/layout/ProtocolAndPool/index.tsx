@@ -45,7 +45,7 @@ export const InfoWrapper = styled.div`
 	border-radius: 12px;
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	grid-template-rows: repeat(3, auto);
+	grid-template-rows: repeat(4, auto);
 	box-shadow: ${({ theme }) => theme.shadowSm};
 
 	@media screen and (min-width: 80rem) {
@@ -101,12 +101,18 @@ export const Section = styled.div`
 		}
 
 		&:nth-child(3) {
-			grid-row: 1 / -1;
+			grid-row: 1 / 2;
 			grid-column: 2 / 3;
 			border-top: 0;
 			border-left: ${({ theme }) => '1px solid ' + theme.text5};
 			padding: 0 0 0 24px;
-			margin-left: 24px;
+		}
+
+		&:nth-child(4) {
+			grid-row: 2 / 3;
+			grid-column: 2 / 3;
+			border-left: ${({ theme }) => '1px solid ' + theme.text5};
+			padding: 24px 0 0 24px;
 		}
 	}
 `

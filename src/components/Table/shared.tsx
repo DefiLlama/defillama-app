@@ -48,18 +48,29 @@ export const TableFilters = styled.div`
 	align-items: center;
 	gap: 20px;
 	margin: 0 0 -20px;
-	padding-right: 16px;
 `
 
 export const Dropdowns = styled.span`
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 20px;
+	gap: 12px;
 `
 
 export const TableHeader = styled.h1`
 	margin: 0 auto 0 0;
 	font-weight: 500;
 	font-size: 1.125rem;
+`
+
+export const PoolStrategyWithProjects = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	font-size: 12px;
+
+	img {
+		height: 16px;
+		width: 16px;
+	}
 `

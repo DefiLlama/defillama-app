@@ -65,7 +65,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentToken
 
 	return (
 		<>
-			<ProtocolsChainsSearch step={{ category: 'Oracles', name: token, route: 'forks' }} />
+			<ProtocolsChainsSearch step={{ category: 'Forks', name: token, route: 'forks' }} />
 
 			<ChartAndValuesWrapper>
 				<BreakpointPanels>

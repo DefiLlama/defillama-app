@@ -25,5 +25,9 @@ export const protocolsAndChainsOptions = [
 		name: 'Liquid Staking',
 		key: DEFI_SETTINGS.LIQUID_STAKING,
 		help: 'Include Rewards/Liquidity for staked assets'
+	},
+	{
+		name: 'Vesting',
+		key: DEFI_SETTINGS.VESTING
 	}
 ]

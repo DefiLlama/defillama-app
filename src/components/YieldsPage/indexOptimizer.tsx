@@ -8,7 +8,8 @@ import styled from 'styled-components'
 import YieldsOptimizerTable from '../Table/Yields/Optimizer'
 import { Header } from '~/Theme'
 import { useFormatYieldQueryParams } from './hooks'
-import { FiltersByChain } from '../Filters'
+import { YieldAttributes, FiltersByChain } from '../Filters'
+import { attributeOptions } from '~/components/Filters'
 
 const SearchWrapper = styled.div`
 	display: grid;
@@ -23,21 +24,30 @@ const SearchWrapper = styled.div`
 `
 
 const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) => {
+	// lend & borrow from query are uppercase only. symbols in pools are mixed case though -> without
+	// setting to uppercase, we only show subset of available pools when applying `findOptimzerPools`
+	pools = pools.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 	const { query, pathname } = useRouter()
 
 	const { lend, borrow } = query
-	const { selectedChains } = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	const { selectedChains, selectedAttributes } = useFormatYieldQueryParams({ projectList, chainList, categoryList })
 
 	const poolsData = React.useMemo(() => {
-		return findOptimizerPools(pools, lend, borrow)
+		let filteredPools = findOptimizerPools(pools, lend, borrow)
 			.filter((pool) => filterPool({ pool, selectedChains }))
 			.map(formatOptimizerPool)
-	}, [pools, borrow, lend, selectedChains])
+
+		if (selectedAttributes.length > 0) {
+			const attributeOption = attributeOptions.find((o) => o.key === selectedAttributes[0])
+			filteredPools = filteredPools.filter((p) => attributeOption.filterFn(p))
+		}
+		return filteredPools
+	}, [pools, borrow, lend, selectedChains, selectedAttributes])
 
 	return (
 		<>
 			<Header>
-				Yields Optimizer Calculator{' '}
+				Lending Optimizer Calculator{' '}
 				{lend && borrow ? (
 					<>
 						(Supply: {lend || ''} ➞ Borrow: {borrow || ''})
@@ -52,13 +62,20 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) =>
 			<TableFilters>
 				<TableHeader>Lending Optimizer</TableHeader>
 				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+				<YieldAttributes pathname={pathname} />
 			</TableFilters>
 
 			{poolsData.length > 0 ? (
 				<YieldsOptimizerTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					Please select both tokens.
+					Given a token to use for collateral and a token to borrow, this calculator will look at all the lending protocols<br/>
+					and calculate how much would it cost to borrow on each one, taking into account incentives, supply APR and borrow APR,<br/>
+					providing a list of all possible lending routes, their cost and LTV.<br/>
+					<br/>
+					This is similar to skyscanner for flights or 1inch for swaps, but for lending. It calculates the optimal lending route.<br/>
+					<br/>
+					To start just select two tokens above.
 				</Panel>
 			)}
 		</>

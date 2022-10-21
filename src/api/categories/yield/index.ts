@@ -67,7 +67,17 @@ export async function getYieldPageData() {
 
 		p['rewardTokensSymbols'] =
 			p.chain === 'Neo'
-				? [...new Set(p.rewardTokens.map((t) => prices[`coingecko:${p.project}`]?.symbol.toUpperCase() ?? null))]
+				? [
+						...new Set(
+							p.rewardTokens.map((t) =>
+								t === '0xf0151f528127558851b39c2cd8aa47da7418ab28'
+									? 'FLM'
+									: t === '0x340720c7107ef5721e44ed2ea8e314cce5c130fa'
+									? 'NUDES'
+									: null
+							)
+						)
+				  ]
 				: [
 						...new Set(
 							p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
@@ -127,23 +137,57 @@ export type YieldsData = Awaited<ReturnType<typeof getYieldPageData>>
 export async function getLendBorrowData() {
 	const props = (await getYieldPageData()).props
 
-	// filter to lending category only
-	let pools = props.pools.filter((p) => p.category === 'Lending')
+	const lendingCategories = ['Lending', 'Undercollateralized Lending']
+	// filter to lending categories only
+	let pools = props.pools.filter((p) => lendingCategories.includes(p.category))
 
 	// get new borrow fields
 	let dataBorrow = (await arrayFetcher([YIELD_LEND_BORROW_API]))[0]
 
-	// add borrow fields to pools (which contains all other columns we need for filters)
+	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
+	const configIdsCompound = pools.filter((p) => p.project === 'compound').map((p) => p.pool)
+	const configIdsAave = pools
+		.filter((p) => p.project === 'aave-v2' && p.chain === 'Ethereum' && !p.symbol.toLowerCase().includes('amm'))
+		.map((p) => p.pool)
+	const compoundPools = dataBorrow.filter((p) => configIdsCompound.includes(p.pool))
+	const aavev2Pools = dataBorrow.filter((p) => configIdsAave.includes(p.pool))
 	pools = pools
 		.map((p) => {
 			const x = dataBorrow.find((i) => i.pool === p.pool)
 			// for some projects we haven't added the new fields yet, dataBorrow will thus be smoler;
 			// hence the check for undefined
 			if (x === undefined) return null
+
+			// we display apyBaseBorrow as a negative value
+			const apyBaseBorrow = x.apyBaseBorrow !== null ? -x.apyBaseBorrow : null
+			const apyRewardBorrow = x.apyRewardBorrow
+			const apyBorrow = apyBaseBorrow === null && apyRewardBorrow === null ? null : apyBaseBorrow + apyRewardBorrow
+
+			// morpho
+			// (using compound available liquidity if totalSupplyUsd < totalBorrowUsd on morhpo === p2p fully matched
+			// otherwise its negative.
+			// instead we display the compound available pool liq together with a tooltip to clarify this
+			let totalAvailableUsd
+			if (p.project === 'morpho-compound') {
+				const compoundData = compoundPools.find(
+					(a) => a.underlyingTokens[0].toLowerCase() === x.underlyingTokens[0].toLowerCase()
+				)
+				totalAvailableUsd = compoundData?.totalSupplyUsd - compoundData?.totalBorrowUsd
+			} else if (p.project === 'morpho-aave') {
+				const aaveData = aavev2Pools.find(
+					(a) => a.underlyingTokens[0].toLowerCase() === x.underlyingTokens[0].toLowerCase()
+				)
+				totalAvailableUsd = aaveData?.totalSupplyUsd - aaveData?.totalBorrowUsd
+			} else if (x.totalSupplyUsd === null && x.totalBorrowUsd === null) {
+				totalAvailableUsd = null
+			} else {
+				totalAvailableUsd = x.totalSupplyUsd - x.totalBorrowUsd
+			}
+
 			return {
 				...p,
-				apyBaseBorrow: -x.apyBaseBorrow,
-				apyRewardBorrow: x.apyRewardBorrow,
+				apyBaseBorrow,
+				apyRewardBorrow,
 				totalSupplyUsd: x.totalSupplyUsd,
 				totalBorrowUsd: x.totalBorrowUsd,
 				ltv: x.ltv,
@@ -151,8 +195,8 @@ export async function getLendBorrowData() {
 				// then any excess borrows will be routed via compound pools. so the available liquidity is actually
 				// compounds liquidity. not 100% sure how to present this on the frontend, but for now going to supress
 				// liq values (cause some of them are negative)
-				totalAvailableUsd: p.project === 'morpho' ? null : x.totalSupplyUsd - x.totalBorrowUsd,
-				apyBorrow: -x.apyBaseBorrow + x.apyRewardBorrow,
+				totalAvailableUsd,
+				apyBorrow,
 				rewardTokens: p.apyRewards > 0 || x.apyRewardBorrow > 0 ? x.rewardTokens : p.rewardTokens
 			}
 		})
@@ -164,8 +208,33 @@ export async function getLendBorrowData() {
 			pools,
 			chainList: [...new Set(pools.map((p) => p.chain))],
 			projectList: props.projectList.filter((p) => [...new Set(pools.map((p) => p.project))].includes(p.slug)),
-			categoryList: ['Lending'],
-			tokenNameMapping: props.tokenNameMapping
+			categoryList: lendingCategories,
+			tokenNameMapping: props.tokenNameMapping,
+			allPools: props.pools
 		}
 	}
+}
+
+export function calculateLoopAPY(lendBorrowPools, levels = 1) {
+	let pools = lendBorrowPools.filter((p) => p.ltv > 0)
+
+	return pools
+		.map((p) => {
+			const deposit_apy = (p.apyBase + p.apyReward) / 100
+			// apyBaseBorrow already set to - in getLendBorrowData
+			const borrow_apy = (p.apyBaseBorrow + p.apyRewardBorrow) / 100
+
+			let total_borrowed = 0
+			for (const i of [...Array(levels).keys()]) {
+				total_borrowed += p.ltv ** (i + 1)
+			}
+
+			const loopApy = ((total_borrowed + 1) * deposit_apy + total_borrowed * borrow_apy) * 100
+			const boost = loopApy / (p.apyBase + p.apyReward)
+			if (boost > 1 && Number.isFinite(boost)) {
+				return { ...p, loopApy, boost }
+			} else return null
+		})
+		.filter(Boolean)
+		.sort((a, b) => b.loopApy - a.loopApy)
 }

@@ -72,9 +72,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: (info) => {
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{info.row.original.project === 'Osmosis' ? (
-						<QuestionHelper text={`${info.row.original.id?.split('-').slice(-1)} lock`} />
-					) : info.row.original.project === 'cBridge' ? (
+					{info.row.original.project === 'cBridge' ? (
 						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY'} />
 					) : null}
 					{formattedPercent(info.getValue(), true, 700)}
@@ -109,6 +107,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend'].includes(row.original.project) ? (
+						<QuestionHelper
+							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
+						/>
+					) : row.original.project === '0vix' ? (
+						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
+					) : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"

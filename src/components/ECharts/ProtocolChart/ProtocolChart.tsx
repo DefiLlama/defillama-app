@@ -19,12 +19,19 @@ interface IProps {
 	color: string
 	historicalChainTvls: {}
 	chains: string[]
+	volumeMap: Record<number, number>
 	bobo?: boolean
 	hallmarks?: [number, string][]
 	geckoId?: string | null
 }
 
-export default function ProtocolTvlChart({
+const chartColors = {
+	Volume: '#4f8fea',
+	TVL: '#E59421',
+	Mcap: '#8eb027'
+}
+
+export default function ProtocolChart({
 	protocol,
 	tvlChartData,
 	color,
@@ -32,16 +39,18 @@ export default function ProtocolTvlChart({
 	chains = [],
 	bobo = false,
 	hallmarks,
-	geckoId
+	geckoId,
+	volumeMap
 }: IProps) {
 	const router = useRouter()
 
 	const [extraTvlEnabled] = useDefiManager()
 
-	const { denomination, showMcapChart, hideEvents } = router.query
+	const { denomination, showMcapChart, hideEvents, showVolume } = router.query
 
 	const showMcap = showMcapChart === 'true'
 	const hideHallmarks = hideEvents === 'true'
+	const showVol = showVolume === 'true'
 
 	const DENOMINATIONS = React.useMemo(() => {
 		let d = [{ symbol: 'USD', geckoId: null }]
@@ -128,30 +137,44 @@ export default function ProtocolTvlChart({
 					)
 				}
 
-				chartData.push({ date, TVL: tvl, Mcap: mcapAtDate ? mcapAtDate[1] : '-' })
+				chartData.push({
+					date,
+					TVL: tvl,
+					Mcap: mcapAtDate ? mcapAtDate[1] : '-',
+					Volume: volumeMap && volumeMap[date]
+				})
 			})
 		} else {
-			chartData = tvlData.map(([date, TVL]) => ({ date, TVL }))
+			chartData = tvlData.map(([date, TVL]) => ({
+				date,
+				TVL,
+				Volume: volumeMap && volumeMap[date]
+			}))
 		}
 
+		tokensUnique = tokensUnique.concat(showVol ? ['Volume'] : [])
+
 		return { finalData: chartData, tokensUnique }
-	}, [tvlData, protocolCGData, showMcap, protocolHasMcap])
+	}, [tvlData, protocolCGData, showMcap, protocolHasMcap, showVol])
 
-	const toggleFilter = (type: 'mcap' | 'events') => {
-		const param = type === 'mcap' ? { showMcapChart: !showMcap } : { hideEvents: !hideHallmarks }
+	const toggleFilter = React.useCallback(
+		(type: string) => {
+			const param = { [type]: !(router.query[type] === 'true') }
 
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					...param
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
+			router.push(
+				{
+					pathname: router.pathname,
+					query: {
+						...router.query,
+						...param
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		},
+		[router]
+	)
 
 	return (
 		<Wrapper>
@@ -165,17 +188,38 @@ export default function ProtocolTvlChart({
 						</Link>
 					))}
 				</Filters>
+				{Object.values(volumeMap || {}).length > 0 && (
+					<ToggleCharts>
+						<input
+							type="checkbox"
+							value="showVolume"
+							checked={router.query.showVolume === 'true'}
+							onChange={() => toggleFilter('showVolume')}
+						/>
+						<span>Show Volume</span>
+					</ToggleCharts>
+				)}
 
 				{hallmarks?.length > 0 && (
 					<ToggleCharts>
-						<input type="checkbox" value="hideEvents" checked={hideHallmarks} onChange={() => toggleFilter('events')} />
+						<input
+							type="checkbox"
+							value="hideEvents"
+							checked={hideHallmarks}
+							onChange={() => toggleFilter('hideEvents')}
+						/>
 						<span>Hide Events</span>
 					</ToggleCharts>
 				)}
 
 				{protocolHasMcap && (
 					<ToggleCharts>
-						<input type="checkbox" value="showMcapChart" checked={showMcap} onChange={() => toggleFilter('mcap')} />
+						<input
+							type="checkbox"
+							value="showMcapChart"
+							checked={showMcap}
+							onChange={() => toggleFilter('showMcapChart')}
+						/>
 						<span>Show MCap Chart</span>
 					</ToggleCharts>
 				)}
@@ -191,6 +235,7 @@ export default function ProtocolTvlChart({
 					hidedefaultlegend={true}
 					hallmarks={!hideHallmarks && hallmarks}
 					tooltipSort={false}
+					stackColors={chartColors}
 					style={{
 						...(bobo && {
 							backgroundImage: 'url("/bobo.png")',

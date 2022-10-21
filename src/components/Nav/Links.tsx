@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2 } from 'react-feather'
+import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book } from 'react-feather'
 
 export interface IMainLink {
 	name: string
@@ -98,8 +98,10 @@ export const navLinks: ILinks = {
 	Yields: {
 		main: [
 			{ name: 'Pools', path: '/yields' },
-			{ name: 'Borrow', path: '/yields/borrow', newTag: true },
+			{ name: 'Borrow', path: '/yields/borrow' },
 			{ name: 'Optimizer', path: '/yields/optimizer', newTag: true },
+			{ name: 'Strategies', path: '/yields/strategy', newTag: true },
+			{ name: 'Leveraged Lending', path: '/yields/loop', newTag: true },
 			{ name: 'Overview', path: '/yields/overview' },
 			{ name: 'Stablecoin Pools', path: '/yields/stablecoins' },
 			{ name: 'Projects', path: '/yields/projects' },
@@ -175,12 +177,18 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <PieChart size={16} />
+	},
+	Raises: {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Book size={16} />
 	}
 }
 
 export const linksWithNoSubMenu = [
 	{ name: 'Liquidations', url: '/liquidations/eth' },
-	{ name: 'Fees', url: '/fees' }
+	{ name: 'Fees', url: '/fees' },
+	{ name: 'Raises', url: '/raises' }
 ]
 
 function downloadDefiDataset() {

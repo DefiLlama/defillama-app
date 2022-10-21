@@ -80,7 +80,7 @@ function PeggedAssetsOverview({
 	const chartTypeList =
 		selectedChain !== 'All'
 			? ['USD Inflows', 'Total Market Cap', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
-			: ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance']
+			: ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance', 'USD Inflows', 'Token Inflows']
 
 	const belowMed = useMed()
 	const belowXl = useXl()
@@ -313,7 +313,7 @@ function PeggedAssetsOverview({
 					{chartType === 'Pie' && (
 						<PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />
 					)}
-					{chartType === 'Token Inflows' && selectedChain !== 'All' && tokenInflows && (
+					{chartType === 'Token Inflows' && tokenInflows && (
 						<BarChart
 							chartData={tokenInflows}
 							title=""
@@ -324,7 +324,7 @@ function PeggedAssetsOverview({
 							chartOptions={inflowsChartOptions}
 						/>
 					)}
-					{chartType === 'USD Inflows' && selectedChain !== 'All' && usdInflows && (
+					{chartType === 'USD Inflows' && usdInflows && (
 						<BarChart chartData={usdInflows} color={backgroundColor} title="" />
 					)}
 				</BreakpointPanel>

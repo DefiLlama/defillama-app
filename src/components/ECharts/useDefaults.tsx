@@ -84,43 +84,69 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 				})
 
 				let vals
+				let filteredParams = params.filter(
+					(item) => item.value[1] !== 0 && item.value[1] !== '-' && item.value[1] !== null
+				)
+
+				const otherIndex = filteredParams.findIndex((item) => item.seriesName === 'Others')
+				let others
+
+				if (otherIndex >= 0 && otherIndex < 10) {
+					others = filteredParams[otherIndex]
+					filteredParams = filteredParams.filter((item) => item.seriesName !== 'Others')
+				}
+				const cuttedParams = filteredParams.slice(0, 10)
+				const otherParams = filteredParams.slice(10)
+
 				if (valueSymbol !== '%') {
-					vals = params
-						.sort((a, b) => (tooltipSort ? a.value[1] - b.value[1] : 0))
-						.reduce((prev, curr) => {
-							if (curr.value[1] !== 0 && curr.value[1] !== '-') {
-								return (prev +=
-									'<li style="list-style:none">' +
-									curr.marker +
-									curr.seriesName +
-									'&nbsp;&nbsp;' +
-									valueSymbol +
-									toK(curr.value[1]) +
-									'</li>')
-							} else return prev
-						}, '')
+					vals = cuttedParams.reduce((prev, curr) => {
+						return (prev +=
+							'<li style="list-style:none">' +
+							curr.marker +
+							curr.seriesName +
+							'&nbsp;&nbsp;' +
+							valueSymbol +
+							toK(curr.value[1]) +
+							'</li>')
+					}, '')
+					if (otherParams.length !== 0) {
+						vals +=
+							'<li style="list-style:none">' +
+							(others?.marker ?? otherParams[0].marker) +
+							'Others' +
+							'&nbsp;&nbsp;' +
+							valueSymbol +
+							toK(otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0)) +
+							'</li>'
+					}
 				} else {
-					vals = params
-						.sort((a, b) => (tooltipSort ? a.value[1] - b.value[1] : 0))
-						.reduce((prev, curr) => {
-							if (curr.value[1] !== 0 && curr.value[1] !== '-' && curr.value[1] !== null) {
-								return (prev +=
-									'<li style="list-style:none">' +
-									curr.marker +
-									curr.seriesName +
-									'&nbsp;&nbsp;' +
-									curr.value[1] +
-									valueSymbol +
-									'</li>')
-							} else return prev
-						}, '')
+					vals = cuttedParams.reduce((prev, curr) => {
+						return (prev +=
+							'<li style="list-style:none">' +
+							curr.marker +
+							curr.seriesName +
+							'&nbsp;&nbsp;' +
+							curr.value[1] +
+							valueSymbol +
+							'</li>')
+					}, '')
+					if (otherParams.length !== 0) {
+						vals +=
+							'<li style="list-style:none">' +
+							(others?.marker ?? otherParams[0].marker) +
+							'Others' +
+							'&nbsp;&nbsp;' +
+							(otherParams.reduce((prev, curr) => prev + curr.value[1], 0) + (others?.value[1] ?? 0)).toFixed(2) +
+							valueSymbol +
+							'</li>'
+					}
 				}
 
 				const mcap = params.filter((param) => param.seriesName === 'Mcap')?.[0]?.value[1]
 				const tvl = params.filter((param) => param.seriesName === 'TVL')?.[0]?.value[1]
 
 				if (mcap && tvl) {
-					vals += '<li style="list-style:none">' + 'Mcap/TVL' + '&nbsp;&nbsp;' + Number(mcap / tvl).toFixed(3) + '</li>'
+					vals += '<li style="list-style:none">' + 'Mcap/TVL' + '&nbsp;&nbsp;' + Number(mcap / tvl).toFixed(2) + '</li>'
 				}
 
 				return chartdate + vals

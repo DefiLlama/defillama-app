@@ -25,7 +25,7 @@ export default function BarChart({
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions ? [...customLegendOptions] : [])
 
-	const { defaultStacks, stackKeys } = useMemo(() => {
+	const { defaultStacks, stackKeys, selectedStacks } = useMemo(() => {
 		const values = stacks || {}
 
 		if ((!values || Object.keys(values).length === 0) && customLegendOptions) {
@@ -34,8 +34,12 @@ export default function BarChart({
 			})
 		}
 
-		return { defaultStacks: values, stackKeys: Object.keys(values) }
-	}, [stacks, customLegendOptions])
+		const selectedStacks = Object.keys(values).filter((s) =>
+			legendOptions && customLegendName ? legendOptions.includes(s) : true
+		)
+
+		return { defaultStacks: values, stackKeys: Object.keys(values), selectedStacks }
+	}, [stacks, customLegendOptions, customLegendName, legendOptions])
 
 	const hideLegend = hidedefaultlegend || stackKeys.length < 2
 
@@ -70,7 +74,7 @@ export default function BarChart({
 
 			return series
 		} else {
-			const series = stackKeys.map((stack) => {
+			const series = selectedStacks.map((stack) => {
 				return {
 					name: stack,
 					type: 'bar',
@@ -97,26 +101,14 @@ export default function BarChart({
 			})
 
 			chartData.forEach(({ date, ...item }) => {
-				stackKeys.forEach((stack) => {
-					if (legendOptions && customLegendName ? legendOptions.includes(stack) : true) {
-						series.find((t) => t.name === stack)?.data.push([getUtcDateObject(date), item[stack] || 0])
-					}
+				selectedStacks.forEach((stack) => {
+					series.find((t) => t.name === stack)?.data.push([getUtcDateObject(date), item[stack] || 0])
 				})
 			})
 
 			return series
 		}
-	}, [
-		barWidths,
-		chartData,
-		color,
-		customLegendName,
-		defaultStacks,
-		legendOptions,
-		stackKeys,
-		seriesConfig,
-		stackColors
-	])
+	}, [barWidths, chartData, color, defaultStacks, seriesConfig, stackColors, stackKeys, selectedStacks])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

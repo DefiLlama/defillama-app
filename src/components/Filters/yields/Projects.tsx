@@ -109,7 +109,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 									ref={i === 0 && selectedProjects.length === projectList.length ? focusItemRef : null}
 									focusOnHover
 								>
-									<span>{projectList.find((p) => p.slug === value)?.name ?? value}</span>
+									<span data-name>{projectList.find((p) => p.slug === value)?.name ?? value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
 								</SelectItem>
 							))}

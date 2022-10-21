@@ -21,6 +21,11 @@ export interface IYieldTableRow {
 	configID: string
 	apyRewardBorrow?: number
 	symbol: string
+	totalSupplyUsd: number
+	totalBorrowUsd: number
+	loopApy: number
+	boost: number
+	apyBorrow: number
 }
 
 export interface IYieldsProjectsTableRow {
@@ -42,4 +47,12 @@ export interface IYieldsOptimizerTableRow extends IYieldTableRow {
 	projectName: string
 	rewardTokensNames: string[]
 	totalAvailableUsd: number
+}
+
+export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
+	farmSymbol: string
+	farmTvlUsd: number
+	farmProjectName: string
+	farmChain: Array<string>
+	farmApy: number
 }

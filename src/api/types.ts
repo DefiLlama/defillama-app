@@ -23,6 +23,7 @@ export interface Protocol {
 	openSource?: boolean
 	parentProtocol?: string
 	referralUrl?: string
+	isParentProtocol?: boolean
 }
 
 // TODO cleanup

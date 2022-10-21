@@ -80,7 +80,13 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} pathname={pathname} />
+			<YieldsSearch
+				step={{ category: 'Home', name: 'Yields' }}
+				pathname={pathname}
+				poolsNumber={pools.length}
+				projectsNumber={projectList.length}
+				chainsNumber={chainList.length}
+			/>
 
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>

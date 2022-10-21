@@ -90,6 +90,13 @@ export const SelectItem = styled(AriaSelectItem)`
 	text-align: start;
 	display: flex;
 	align-items: center;
+	gap: 16px;
+
+	& > *[data-name] {
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
 
 	&:first-of-type {
 		padding-top: 16px;
@@ -130,6 +137,7 @@ export const SelectItem = styled(AriaSelectItem)`
 export const ComboboxSelectPopover = styled(SelectPopover)`
 	z-index: 10;
 	height: 60vh;
+
 	#no-results {
 		margin: 24px 0;
 	}
@@ -140,6 +148,7 @@ export const ComboboxSelectPopover = styled(SelectPopover)`
 
 	@media screen and (min-width: 640px) {
 		height: unset;
+		max-width: 300px;
 	}
 `
 
