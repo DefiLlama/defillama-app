@@ -88,7 +88,7 @@ const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPo
 					It calculates the total Strategy APY taking into account the individual apy components at each step.
 					<br />
 					<br />
-					To narrow search results, you can select a token to borrow or use the filters.
+					To narrow search results, you can optionally select a token to borrow.
 					<br />
 					<br />
 					To start just select a collateral token above.
