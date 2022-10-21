@@ -158,7 +158,7 @@ export const attributeOptions = [
 		key: YIELDS_SETTINGS.NO_LOCKUP_COLLATERAL.toLowerCase(),
 		help: 'Remove projects which require locking of collateral tokens',
 		filterFn: (item) => {
-			const lockups = ['Ribbon', 'TrueFi', 'Maple', 'Clearpool', 'Centrifuge']
+			const lockups = ['Ribbon', 'TrueFi', 'Maple', 'Clearpool', 'Centrifuge', 'UniCrypt', 'Osmosis', 'HedgeFarm']
 			return !lockups.includes(item.projectName) && !lockups.includes(item.farmProjectName)
 		},
 		defaultFilterFnOnPage: {},
