@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book, Key } from 'react-feather'
+import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book, ShieldOff } from 'react-feather'
 
 export interface IMainLink {
 	name: string
@@ -186,7 +186,7 @@ export const navLinks: ILinks = {
 	Hacks: {
 		main: [],
 		...defaultToolsAndFooterLinks,
-		icon: <Key size={16} />
+		icon: <ShieldOff size={16} />
 	}
 }
 
