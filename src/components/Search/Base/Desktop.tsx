@@ -11,6 +11,11 @@ import { findActiveItem } from './utils'
 
 const Wrapper = styled.div`
 	display: none;
+
+	&[data-alwaysdisplay='true'] {
+		display: flex;
+	}
+
 	flex-direction: column;
 	position: relative;
 
@@ -63,12 +68,14 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 		filters,
 		withValue,
 		placeholder = 'Search...',
+		value,
 		...extra
 	} = props
 
 	const combobox = useComboboxState({
 		gutter: 6,
 		sameWidth: true,
+		...(value && { defaultValue: value }),
 		list: data.map((x) => x.name)
 	})
 

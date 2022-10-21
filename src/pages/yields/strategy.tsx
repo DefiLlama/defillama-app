@@ -5,9 +5,23 @@ import { getLendBorrowData } from '~/api/categories/yield'
 import pako from 'pako'
 
 export async function getStaticProps() {
-	const data = await getLendBorrowData()
+	const {
+		props: { pools, allPools, ...data }
+	} = await getLendBorrowData()
 
-	const strData = JSON.stringify(data)
+	// restrict bororw and farming part (min apy's, noIL, single exposure only)
+	// and uppercase symbols (lend and borrow strings from router are upper case only)
+	const filteredPools = pools
+		.filter((p) => p.apy > 0.01 && p.apyBorrow !== 0)
+		.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
+
+	// ~1500pools
+	// and uppercase symbols (lend and borrow strings from router are upper case only)
+	const filteredAllPools = allPools
+		.filter((p) => p.ilRisk === 'no' && p.exposure === 'single' && p.apy > 0)
+		.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
+
+	const strData = JSON.stringify({ props: { pools: filteredPools, allPools: filteredAllPools, ...data } })
 
 	const a = pako.deflate(strData)
 	const compressed = Buffer.from(a).toString('base64')

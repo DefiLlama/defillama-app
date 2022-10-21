@@ -1,15 +1,16 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
+import styled from 'styled-components'
 import { Panel } from '~/components'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
+import YieldsStrategyTable from '~/components/Table/Yields/Strategy'
+import { YieldAttributes, FiltersByChain, YieldProjects } from '~/components/Filters'
 import YieldsSearch from '~/components/Search/Yields/Optimizer'
 import { filterPool, findStrategyPools, formatOptimizerPool } from './utils'
-import styled from 'styled-components'
-import YieldsStrategyTable from '../Table/Yields/Strategy'
+
 import { Header } from '~/Theme'
 import { useFormatYieldQueryParams } from './hooks'
-import { YieldAttributes, FiltersByChain } from '../Filters'
-import { attributeOptions } from '~/components/Filters'
+
 import { calculateLoopAPY } from '~/api/categories/yield/index'
 
 const SearchWrapper = styled.div`
@@ -18,47 +19,49 @@ const SearchWrapper = styled.div`
 	grid-gap: 8px;
 	width: 100%;
 	margin-top: 8px;
-	& > div {
+
+	& > * {
 		width: 100%;
 		gap: 8px;
+		grid-column: span 2;
+	}
+
+	& > * {
+		& > *[data-searchicon='true'] {
+			top: 14px;
+			right: 16px;
+		}
+	}
+
+	@media (min-width: ${({ theme }) => theme.bpMed}) {
+		& > * {
+			grid-column: span 1;
+		}
 	}
 `
 
 const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPools }) => {
 	const { query, pathname } = useRouter()
 
-	const { lend, borrow } = query
-	const { selectedChains, selectedAttributes } = useFormatYieldQueryParams({
+	const lend = typeof query.lend === 'string' ? query.lend : null
+	const borrow = typeof query.borrow === 'string' ? query.borrow : null
+
+	const { selectedChains, selectedAttributes, selectedProjects } = useFormatYieldQueryParams({
 		projectList,
 		chainList,
 		categoryList
 	})
-
-	// restrict bororw and farming part (min apy's, noIL, single exposure only)
-	pools = pools.filter((p) => p.apy > 0.01 && p.apyBorrow !== 0)
-	// ~1500pools
-	allPools = allPools.filter((p) => p.ilRisk === 'no' && p.exposure === 'single' && p.apy > 0)
-
-	// uppercase symbols (lend and borrow strings from router are upper case only)
-	pools = pools.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
-	allPools = allPools.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 
 	// calc looped lending
 	const loopStrategies = calculateLoopAPY(pools)
 
 	const poolsData = React.useMemo(() => {
 		let filteredPools = findStrategyPools(pools, lend, borrow, allPools, loopStrategies)
-			.filter((pool) => filterPool({ pool, selectedChains }))
+			.filter((pool) => filterPool({ pool, selectedChains, selectedAttributes, selectedProjects }))
 			.map(formatOptimizerPool)
 
-		if (selectedAttributes.length > 0) {
-			for (const attribute of selectedAttributes) {
-				const attributeOption = attributeOptions.find((o) => o.key === attribute)
-				filteredPools = filteredPools.filter((p) => attributeOption.filterFn(p))
-			}
-		}
 		return filteredPools
-	}, [pools, borrow, lend, selectedChains, selectedAttributes, allPools, loopStrategies])
+	}, [pools, borrow, lend, selectedChains, selectedAttributes, selectedProjects, allPools, loopStrategies])
 
 	return (
 		<>
@@ -73,13 +76,14 @@ const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPo
 				) : null}
 			</Header>
 			<SearchWrapper>
-				<YieldsSearch pathname={pathname} lend />
-				<YieldsSearch pathname={pathname} />
+				<YieldsSearch pathname={pathname} value={lend} key={lend} lend data-alwaysdisplay />
+				{!lend ? <div></div> : <YieldsSearch pathname={pathname} value={borrow} key={borrow} data-alwaysdisplay />}
 			</SearchWrapper>
 
 			<TableFilters>
 				<TableHeader>Nb of Strategies: {poolsData.length > 0 ? <>{poolsData.length}</> : <>{null}</>}</TableHeader>
 				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+				<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
 				<YieldAttributes pathname={pathname} />
 			</TableFilters>
 
