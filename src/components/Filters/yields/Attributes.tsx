@@ -136,11 +136,29 @@ export const attributeOptions = [
 		]
 	},
 	{
-		name: 'No Lockup',
-		key: YIELDS_SETTINGS.NO_LOCKUP.toLowerCase(),
+		name: 'No Lockup on Rewards',
+		key: YIELDS_SETTINGS.NO_LOCKUP_REWARDS.toLowerCase(),
 		help: 'Remove projects which apply an early exit penalty on token rewards',
 		filterFn: (item) => {
 			const lockups = ['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend']
+			return !lockups.includes(item.projectName) && !lockups.includes(item.farmProjectName)
+		},
+		defaultFilterFnOnPage: {},
+		disabledOnPages: [
+			'/yields',
+			'/yields/overview',
+			'/yields/stablecoins',
+			'/yields/borrow',
+			'/yields/optimizer',
+			'/yields/loop'
+		]
+	},
+	{
+		name: 'No Lockup on Collateral',
+		key: YIELDS_SETTINGS.NO_LOCKUP_COLLATERAL.toLowerCase(),
+		help: 'Remove projects which require locking of collateral tokens',
+		filterFn: (item) => {
+			const lockups = ['Ribbon', 'TrueFi', 'Maple', 'Clearpool', 'Centrifuge']
 			return !lockups.includes(item.projectName) && !lockups.includes(item.farmProjectName)
 		},
 		defaultFilterFnOnPage: {},
