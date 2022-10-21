@@ -10,6 +10,7 @@ import { Header } from '~/Theme'
 import { useFormatYieldQueryParams } from './hooks'
 import { YieldAttributes, FiltersByChain } from '../Filters'
 import { attributeOptions } from '~/components/Filters'
+import { calculateLoopAPY } from '~/api/categories/yield/index'
 
 const SearchWrapper = styled.div`
 	display: grid;
@@ -42,8 +43,11 @@ const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPo
 	pools = pools.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 	allPools = allPools.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 
+	// calc looped lending
+	const loopStrategies = calculateLoopAPY(pools)
+
 	const poolsData = React.useMemo(() => {
-		let filteredPools = findStrategyPools(pools, lend, borrow, allPools)
+		let filteredPools = findStrategyPools(pools, lend, borrow, allPools, loopStrategies)
 			.filter((pool) => filterPool({ pool, selectedChains }))
 			.map(formatOptimizerPool)
 
@@ -54,7 +58,7 @@ const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPo
 			}
 		}
 		return filteredPools
-	}, [pools, borrow, lend, selectedChains, selectedAttributes, allPools])
+	}, [pools, borrow, lend, selectedChains, selectedAttributes, allPools, loopStrategies])
 
 	return (
 		<>
