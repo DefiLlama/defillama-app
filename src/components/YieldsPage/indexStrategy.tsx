@@ -19,16 +19,33 @@ const SearchWrapper = styled.div`
 	grid-gap: 8px;
 	width: 100%;
 	margin-top: 8px;
-	& > div {
+
+	& > * {
 		width: 100%;
 		gap: 8px;
+		grid-column: span 2;
+	}
+
+	& > * {
+		& > *[data-searchicon='true'] {
+			top: 14px;
+			right: 16px;
+		}
+	}
+
+	@media (min-width: ${({ theme }) => theme.bpMed}) {
+		& > * {
+			grid-column: span 1;
+		}
 	}
 `
 
 const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPools }) => {
 	const { query, pathname } = useRouter()
 
-	const { lend, borrow } = query
+	const lend = typeof query.lend === 'string' ? query.lend : null
+	const borrow = typeof query.borrow === 'string' ? query.borrow : null
+
 	const { selectedChains, selectedAttributes, selectedProjects } = useFormatYieldQueryParams({
 		projectList,
 		chainList,
@@ -59,8 +76,8 @@ const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPo
 				) : null}
 			</Header>
 			<SearchWrapper>
-				<YieldsSearch pathname={pathname} lend />
-				<YieldsSearch pathname={pathname} />
+				<YieldsSearch pathname={pathname} value={lend} key={lend} lend data-alwaysdisplay />
+				{!lend ? <div></div> : <YieldsSearch pathname={pathname} value={borrow} key={borrow} data-alwaysdisplay />}
 			</SearchWrapper>
 
 			<TableFilters>

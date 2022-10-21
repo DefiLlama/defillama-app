@@ -25,6 +25,7 @@ export interface IBaseSearchProps {
 	filters?: ReactNode
 	placeholder?: string
 	withValue?: boolean
+	value?: string | null
 }
 
 export interface ICommonSearchProps {

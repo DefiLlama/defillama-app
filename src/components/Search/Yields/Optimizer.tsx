@@ -6,6 +6,7 @@ import { useGetTokensSearchList } from './hooks'
 interface IYieldSearchProps extends ICommonSearchProps {
 	pathname?: string
 	lend?: boolean
+	value?: string | null
 }
 
 export default function YieldsSearch({ lend = false, ...props }: IYieldSearchProps) {
