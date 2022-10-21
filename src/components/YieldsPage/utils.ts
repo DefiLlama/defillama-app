@@ -121,6 +121,126 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 	return lendBorrowPairs
 }
 
+const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
+
+export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools) => {
+	const availableToLend = pools.filter(
+		({ symbol, ltv }) =>
+			(tokenToLend === 'USD_Stables' ? true : removeMetaTag(symbol).includes(tokenToLend)) &&
+			ltv > 0 &&
+			!removeMetaTag(symbol).includes('AMM')
+	)
+	const availableProjects = availableToLend.map(({ project }) => project)
+	const availableChains = availableToLend.map(({ chain }) => chain)
+
+	// lendBorrowPairs is the same as in the optimizer, only difference is the optional filter on tokenToBorrow
+	const lendBorrowPairs = pools.reduce((acc, pool) => {
+		if (
+			!availableProjects.includes(pool.project) ||
+			!availableChains.includes(pool.chain) ||
+			(tokenToBorrow === 'USD_Stables' ? false : !removeMetaTag(pool.symbol).includes(tokenToBorrow)) ||
+			removeMetaTag(pool.symbol).includes('AMM')
+		)
+			return acc
+		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) return acc
+
+		const collatteralPools = availableToLend.filter(
+			(collateralPool) =>
+				collateralPool.chain === pool.chain &&
+				collateralPool.project === pool.project &&
+				(tokenToBorrow ? !removeMetaTag(collateralPool.symbol).includes(tokenToBorrow) : true) &&
+				collateralPool.pool !== pool.pool &&
+				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true) &&
+				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true) &&
+				(pool.project === 'compound-v3' ? removeMetaTag(pool.symbol) === 'USDC' : true)
+		)
+
+		const poolsPairs = collatteralPools.map((collatteralPool) => ({
+			...collatteralPool,
+			chains: [collatteralPool.chain],
+			borrow: pool
+		}))
+
+		return acc.concat(poolsPairs)
+	}, [])
+
+	let finalPools = []
+	// if borrow token is specified
+	if (tokenToBorrow) {
+		// filter to suitable farm strategies
+		const farmPools = allPools.filter((i) =>
+			tokenToBorrow === 'USD_Stables' ? i.stablecoin : removeMetaTag(i.symbol).includes(tokenToBorrow)
+		)
+		for (const p of lendBorrowPairs) {
+			for (const i of farmPools) {
+				// only same chain strategies for now
+				if (
+					p.chain !== i.chain ||
+					!removeMetaTag(i.symbol).includes(removeMetaTag(p.borrow.symbol).toUpperCase()) ||
+					p.borrow.apyBorrow === null
+				)
+					continue
+
+				finalPools.push({
+					...p,
+					farmSymbol: i.symbol,
+					farmChain: [i.chain],
+					farmProjectName: i.projectName,
+					farmProject: i.project,
+					farmTvlUsd: i.tvlUsd,
+					farmApy: i.apy,
+					farmApyBase: i.apyBase,
+					farmApyReward: i.apyReward
+				})
+			}
+		}
+	} else {
+		for (const p of lendBorrowPairs) {
+			for (const i of allPools) {
+				if (
+					p.chain !== i.chain ||
+					!removeMetaTag(i.symbol).includes(removeMetaTag(p.borrow.symbol).toUpperCase()) ||
+					p.borrow.apyBorrow === null
+				)
+					continue
+
+				finalPools.push({
+					...p,
+					farmSymbol: i.symbol,
+					farmChain: [i.chain],
+					farmProjectName: i.projectName,
+					farmProject: i.project,
+					farmTvlUsd: i.tvlUsd,
+					farmApy: i.apy,
+					farmApyBase: i.apyBase,
+					farmApyReward: i.apyReward
+				})
+			}
+		}
+	}
+	// calc the total strategy apy
+	finalPools = finalPools.map((p) => {
+		// apy = apyBase + apyReward on the collateral side
+		// apyBorrow = apyBaseBorrow + apyRewardBorrow on the borrow side
+		// farmApy = apyBase + apyReward on the farm side
+		const totalApy = p.apy + p.borrow.apyBorrow * p.ltv + p.farmApy * p.ltv
+
+		return {
+			...p,
+			totalApy,
+			delta: totalApy - p.apy
+		}
+	})
+
+	// keep pools with :
+	// - profitable strategy only,
+	// - require at least 1% delta compared to baseline (we could even increase this, otherwise we show lots of
+	// strategies which are not really worth the effort)
+	finalPools = finalPools.filter((p) => Number.isFinite(p.delta) && p.delta > 1).sort((a, b) => b.totalApy - a.totalApy)
+
+	return finalPools
+}
+
 export const formatOptimizerPool = (pool) => {
 	const lendingReward = (pool.apyBase || 0) + (pool.apyReward || 0)
 	const borrowReward = (pool.borrow.apyBaseBorrow || 0) + (pool.borrow.apyRewardBorrow || 0)
