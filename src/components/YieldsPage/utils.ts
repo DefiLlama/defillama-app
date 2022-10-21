@@ -38,7 +38,7 @@ export function toFilterPool({
 
 	toFilter = toFilter && selectedCategories?.map((p) => p.toLowerCase()).includes(curr.category.toLowerCase())
 
-	const tokensInPool: string[] = curr.symbol.split('-').map((x) => x.toLowerCase())
+	const tokensInPool: Array<string> = curr.symbol.split('-').map((x) => x.toLowerCase())
 
 	const includeToken =
 		includeTokens.length > 0
@@ -272,12 +272,28 @@ export const formatOptimizerPool = (pool) => {
 }
 
 interface FilterPools {
-	selectedChains: string[]
+	selectedChains: Array<string>
+	selectedAttributes?: Array<string>
+	selectedProjects?: Array<string>
 	pool: YieldsData['props']['pools'][number]
 }
 
-export const filterPool = ({ pool, selectedChains }: FilterPools) => {
-	const isChainValid = selectedChains.map((chain) => chain.toLowerCase()).includes(pool.chain.toLowerCase())
+export const filterPool = ({ pool, selectedChains, selectedAttributes, selectedProjects }: FilterPools) => {
+	let toFilter = selectedChains.map((chain) => chain.toLowerCase()).includes(pool.chain.toLowerCase())
 
-	return isChainValid
+	if (selectedAttributes) {
+		selectedAttributes.forEach((attribute) => {
+			const attributeOption = attributeOptions.find((o) => o.key === attribute)
+
+			if (attributeOption) {
+				toFilter = toFilter && attributeOption.filterFn(pool)
+			}
+		})
+	}
+
+	if (selectedProjects) {
+		toFilter = toFilter && selectedProjects?.map((p) => p.toLowerCase()).includes(pool.project.toLowerCase())
+	}
+
+	return toFilter
 }
