@@ -41,6 +41,9 @@ const InputWrapper = styled.div`
 		&:last-child {
 			border-radius: 0 12px 12px 0;
 		}
+		&:only-child {
+			border-radius: 12px;
+		}
 		&:not(:first-child) {
 			margin-left: -2px;
 		}
@@ -74,7 +77,7 @@ const InputWrapper = styled.div`
 	}
 `
 
-const Input = ({ setAmount, amount, onMaxClick }) => {
+const TokenInput = ({ setAmount, amount, onMaxClick, ...props }) => {
 	return (
 		<InputWrapper>
 			<InputElem
@@ -83,10 +86,19 @@ const Input = ({ setAmount, amount, onMaxClick }) => {
 				pattern="\d+((\.|,)\d+)?"
 				onChange={(val) => setAmount(val.target.value)}
 				value={amount}
+				{...props}
 			/>
 			<span onClick={onMaxClick}>Max</span>
 		</InputWrapper>
 	)
 }
 
-export default Input
+export const Input = (props) => {
+	return (
+		<InputWrapper {...props}>
+			<InputElem {...props} />
+		</InputWrapper>
+	)
+}
+
+export default TokenInput

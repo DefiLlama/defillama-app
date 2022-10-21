@@ -1,14 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { useEffect, useState } from 'react'
 import { useAccount, useBalance, useFeeData } from 'wagmi'
 import { FixedSizeList as List } from 'react-window'
-import { ProtocolsChainsSearch } from '~/components/Search'
 import { capitalizeFirstLetter } from '~/utils'
 import ReactSelect from '../MultiSelect/ReactSelect'
-import { chainToCoingeckoId } from './chainToCoingeckoId'
 import { getAllChains, listRoutes } from './router'
 import styled from 'styled-components'
-import { createFilter, components } from 'react-select'
+import { createFilter } from 'react-select'
 import { TYPE } from '~/Theme'
 import Input from './TokenInput'
 import { CrossIcon, GasIcon } from './Icons'
@@ -65,7 +62,7 @@ cant integrate:
 */
 
 const Body = styled.div<{ showRoutes: boolean }>`
-	height: 408px;
+	height: 416px;
 	display: grid;
 	grid-row-gap: 16px;
 	margin: 0 auto;
@@ -121,7 +118,7 @@ const formatOptionLabel = ({ label, ...rest }) => {
 	return (
 		<div style={{ display: 'flex' }}>
 			<div style={{ marginLeft: '10px', color: '#ccc' }}>
-				<img src={rest.logoURI} style={{ width: 20, height: 20, marginRight: 8 }} />
+				<img src={rest.logoURI} style={{ width: 20, height: 20, marginRight: 8, borderRadius: '50%' }} />
 			</div>
 			<div>{label}</div>
 		</div>
@@ -152,6 +149,20 @@ const RouteWrapper = styled.div`
 	border: ${({ theme }) => (theme.mode === 'dark' ? '1px solid #373944;' : '1px solid #c6cae0;')};
 	padding: 8px;
 	border-radius: 8px;
+
+	animation: swing-in-left-fwd 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+	@keyframes swing-in-left-fwd {
+		0% {
+			transform: rotateX(100deg);
+			transform-origin: left;
+			opacity: 0;
+		}
+		100% {
+			transform: rotateX(0);
+			transform-origin: left;
+			opacity: 1;
+		}
+	}
 `
 
 const RouteRow = styled.div`
@@ -159,10 +170,11 @@ const RouteRow = styled.div`
 `
 
 const Route = ({ name, price, toToken, toTokenPrice, gasTokenPrice, gasPrice }: Route) => {
-	const amount = +price.amountReturned / 10 ** +toToken.decimals
-	const amountUsd = (amount * toTokenPrice).toFixed(2)
-	const gasUsd = (gasTokenPrice * +price.estimatedGas * +gasPrice) / 1e18
 	if (!price.amountReturned) return null
+
+	const amount = +price.amountReturned / 10 ** +toToken?.decimals
+	const amountUsd = (amount * toTokenPrice).toFixed(2)
+	const gasUsd = (gasTokenPrice * +price?.estimatedGas * +gasPrice) / 1e18
 
 	return (
 		<RouteWrapper>
@@ -201,7 +213,7 @@ const Routes = styled.div<{ show: boolean; isFirstRender: boolean }>`
 	padding: 16px;
 	border-radius: 16px;
 	text-align: left;
-	height: 408px;
+	height: 416px;
 	overflow-y: scroll;
 	min-width: 360px;
 
@@ -229,7 +241,7 @@ const Routes = styled.div<{ show: boolean; isFirstRender: boolean }>`
 
 	@keyframes tilt-in-fwd-out {
 		0% {
-			transform: rotateY(-20deg) rotateX(35deg) translate(-300px, -300px) skew(35deg, -10deg);
+			transform: rotateY(-20deg) rotateX(35deg) translate(-1000px, -1000px) skew(35deg, -10deg);
 			opacity: 0;
 		}
 		100% {
@@ -242,6 +254,14 @@ const BodyWrapper = styled.div`
 	display: flex;
 	gap: 16px;
 `
+
+export const CloseBtn = ({ onClick }) => {
+	return (
+		<Close onClick={onClick}>
+			<CrossIcon />
+		</Close>
+	)
+}
 
 export async function getTokenList() {
 	const uniList = await fetch('https://tokens.uniswap.org/').then((r) => r.json())
@@ -284,9 +304,8 @@ const FormHeader = styled.div`
 `
 
 const Close = styled.span`
-	position: fixed;
+	position: absolute;
 	right: 16px;
-	top: 12px;
 	cursor: pointer;
 `
 
@@ -359,7 +378,7 @@ export function AggregatorContainer({ tokenlist }) {
 	const normalizedRoutes = [...(routes || [])]
 		?.map((route) => {
 			const gasUsd = (gasTokenPrice * +route.price.estimatedGas * +gasPriceData?.formatted?.gasPrice) / 1e18
-			const amount = +route.price.amountReturned / 10 ** +toToken.decimals
+			const amount = +route.price.amountReturned / 10 ** +toToken?.decimals
 			const amountUsd = (amount * toTokenPrice).toFixed(2)
 			return { route, gasUsd, amountUsd, ...route }
 		})
@@ -371,7 +390,7 @@ export function AggregatorContainer({ tokenlist }) {
 
 			<BodyWrapper>
 				<Body showRoutes={!!routes?.length || isLoading}>
-					<Search tokens={tokensInChain} setTokens={setTokens} /> {/*Allow users to search stuff like "AVAX-DAI"*/}
+					<Search tokens={tokensInChain} setTokens={setTokens} onClick={() => setRoutes(null)} />
 					<div>
 						<FormHeader>Chain</FormHeader>
 						<ReactSelect
@@ -409,22 +428,24 @@ export function AggregatorContainer({ tokenlist }) {
 					</div>
 				</Body>
 				<Routes show={!!routes?.length || isLoading} isFirstRender={renderNumber === 1}>
-					<FormHeader>Routes</FormHeader>
-					<Close onClick={cleanState}>
-						<CrossIcon />
-					</Close>
+					<FormHeader>
+						Routes
+						<CloseBtn onClick={cleanState} />{' '}
+					</FormHeader>
 					{!routes?.length ? <Loader loaded={!isLoading} /> : null}
-					{normalizedRoutes.map((r, i) => (
-						<Route
-							{...r}
-							toToken={toToken}
-							selectedChain={selectedChain.label}
-							gasTokenPrice={gasTokenPrice}
-							toTokenPrice={toTokenPrice}
-							gasPrice={gasPriceData?.formatted?.gasPrice}
-							key={i}
-						/>
-					))}
+					{renderNumber !== 0
+						? normalizedRoutes.map((r, i) => (
+								<Route
+									{...r}
+									toToken={toToken}
+									selectedChain={selectedChain.label}
+									gasTokenPrice={gasTokenPrice}
+									toTokenPrice={toTokenPrice}
+									gasPrice={gasPriceData?.formatted?.gasPrice}
+									key={i}
+								/>
+						  ))
+						: null}
 				</Routes>
 			</BodyWrapper>
 		</Wrapper>
