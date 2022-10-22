@@ -38,7 +38,7 @@ const SearchWrapper = styled.div`
 `
 
 const YieldsStrategyPage = ({ pools, projectList, yieldsList, chainList, categoryList, allPools }) => {
-	const { query, pathname } = useRouter()
+	const { query, pathname, isReady } = useRouter()
 
 	const lend = typeof query.lend === 'string' ? query.lend : null
 	const borrow = typeof query.borrow === 'string' ? query.borrow : null
@@ -74,9 +74,22 @@ const YieldsStrategyPage = ({ pools, projectList, yieldsList, chainList, categor
 			</Header>
 
 			<SearchWrapper>
-				<YieldsSearch pathname={pathname} value={lend} key={lend} yieldsList={yieldsList} lend data-alwaysdisplay />
+				<YieldsSearch
+					pathname={pathname}
+					value={lend}
+					key={isReady + 'lend'}
+					yieldsList={yieldsList}
+					lend
+					data-alwaysdisplay
+				/>
 				{lend && (
-					<YieldsSearch pathname={pathname} value={borrow} key={borrow} yieldsList={yieldsList} data-alwaysdisplay />
+					<YieldsSearch
+						pathname={pathname}
+						value={borrow}
+						key={isReady + 'borrow'}
+						yieldsList={yieldsList}
+						data-alwaysdisplay
+					/>
 				)}
 			</SearchWrapper>
 
