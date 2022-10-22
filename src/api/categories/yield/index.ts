@@ -6,6 +6,7 @@ import {
 	YIELD_CHAIN_API,
 	YIELD_LEND_BORROW_API
 } from '~/constants'
+import { slug } from '~/utils'
 import { arrayFetcher } from '~/utils/useSWR'
 import { formatYieldsPageData } from './utils'
 
@@ -203,11 +204,21 @@ export async function getLendBorrowData() {
 		.filter(Boolean)
 		.sort((a, b) => b.totalSupplyUsd - a.totalSupplyUsd)
 
+	const projectsList = new Set()
+
+	props.pools.forEach((pool) => {
+		projectsList.add(pool.projectName)
+
+		pool.rewardTokensNames?.forEach((rewardName) => {
+			projectsList.add(rewardName)
+		})
+	})
+
 	return {
 		props: {
 			pools,
 			chainList: [...new Set(pools.map((p) => p.chain))],
-			projectList: props.projectList.filter((p) => [...new Set(pools.map((p) => p.project))].includes(p.slug)),
+			projectList: Array.from(projectsList).map((name: string) => ({ name, slug: slug(name) })),
 			categoryList: lendingCategories,
 			tokenNameMapping: props.tokenNameMapping,
 			allPools: props.pools
