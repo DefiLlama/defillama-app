@@ -143,7 +143,7 @@ export const assetsColumnOrders = formatColumnOrder({
 
 export const columnSizes = {
 	0: {
-		name: 140,
+		name: 180,
 		chains: 180,
 		pegDeviation: 120,
 		pegDeviation_1m: 150,
