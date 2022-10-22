@@ -45,23 +45,19 @@ export function useGetYieldsSearchList(): IGetSearchList {
 	return { data: searchData || [], loading: fetchingProjects || fetchingYields, onItemClick }
 }
 
-export function useGetTokensSearchList(lend = true): IGetSearchList {
+export function useGetTokensSearchList({ lend, yields }): IGetSearchList {
 	const router = useRouter()
-	const { data: yields, loading: fetchingYields } = useFetchYieldsList()
 
 	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
 
-	const stablecoinsSearch = React.useMemo(
-		() => ({
+	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
+		const stablecoinsSearch = {
 			name: `All USD Stablecoins`,
 			symbol: 'USD_Stables',
 			route: `${router.pathname}?${targetParam}=USD_Stables&${restParam}=${router.query[restParam] || ''}`,
 			logo: '/icons/usd_native.png'
-		}),
-		[restParam, router.query, targetParam, router.pathname]
-	)
+		}
 
-	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
 		const yieldsList =
 			yields?.map((el) => ({
 				name: `${el.name} (${el.symbol.toUpperCase()})`,
@@ -73,13 +69,13 @@ export function useGetTokensSearchList(lend = true): IGetSearchList {
 			})) ?? []
 
 		return [stablecoinsSearch].concat(yieldsList)
-	}, [yields, restParam, router.query, targetParam, stablecoinsSearch, router.pathname])
+	}, [yields, restParam, router.query, targetParam, router.pathname])
 
 	const onItemClick = (item) => {
 		router.push(item.route, undefined, { shallow: true })
 	}
 
-	return { data: searchData || [], loading: fetchingYields, onItemClick }
+	return { data: searchData || [], loading: false, onItemClick }
 }
 
 export function useGetTokensSearchListMobile(): IGetSearchList {

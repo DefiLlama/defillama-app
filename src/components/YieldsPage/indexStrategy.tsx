@@ -14,16 +14,15 @@ import { useFormatYieldQueryParams } from './hooks'
 import { calculateLoopAPY } from '~/api/categories/yield/index'
 
 const SearchWrapper = styled.div`
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	grid-gap: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 	width: 100%;
 	margin-top: 8px;
 
 	& > * {
-		width: 100%;
 		gap: 8px;
-		grid-column: span 2;
+		flex: 1;
 	}
 
 	& > * {
@@ -34,14 +33,12 @@ const SearchWrapper = styled.div`
 	}
 
 	@media (min-width: ${({ theme }) => theme.bpMed}) {
-		& > * {
-			grid-column: span 1;
-		}
+		flex-direction: row;
 	}
 `
 
-const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPools }) => {
-	const { query, pathname } = useRouter()
+const YieldsStrategyPage = ({ pools, projectList, yieldsList, chainList, categoryList, allPools }) => {
+	const { query, pathname, isReady } = useRouter()
 
 	const lend = typeof query.lend === 'string' ? query.lend : null
 	const borrow = typeof query.borrow === 'string' ? query.borrow : null
@@ -75,9 +72,25 @@ const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPo
 					</>
 				) : null}
 			</Header>
+
 			<SearchWrapper>
-				<YieldsSearch pathname={pathname} value={lend} key="lend" lend data-alwaysdisplay />
-				{lend === null ? null : <YieldsSearch pathname={pathname} value={borrow} key="borrow" data-alwaysdisplay />}
+				<YieldsSearch
+					pathname={pathname}
+					value={lend}
+					key={isReady + 'lend'}
+					yieldsList={yieldsList}
+					lend
+					data-alwaysdisplay
+				/>
+				{lend && (
+					<YieldsSearch
+						pathname={pathname}
+						value={borrow}
+						key={isReady + 'borrow'}
+						yieldsList={yieldsList}
+						data-alwaysdisplay
+					/>
+				)}
 			</SearchWrapper>
 
 			<TableFilters>
