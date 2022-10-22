@@ -1,13 +1,16 @@
 import Layout from '~/layout'
 import YieldsStrategyPage from '~/components/YieldsPage/indexStrategy'
-import { revalidate } from '~/api'
+import { getCGMarketsDataURLs, revalidate } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'
 import pako from 'pako'
+import { arrayFetcher } from '~/utils/useSWR'
 
 export async function getStaticProps() {
 	const {
 		props: { pools, allPools, ...data }
 	} = await getLendBorrowData()
+
+	const yieldsList = await arrayFetcher(getCGMarketsDataURLs())
 
 	// restrict bororw and farming part (min apy's, noIL, single exposure only)
 	// and uppercase symbols (lend and borrow strings from router are upper case only)
@@ -21,7 +24,9 @@ export async function getStaticProps() {
 		.filter((p) => p.ilRisk === 'no' && p.exposure === 'single' && p.apy > 0)
 		.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 
-	const strData = JSON.stringify({ props: { pools: filteredPools, allPools: filteredAllPools, ...data } })
+	const strData = JSON.stringify({
+		props: { pools: filteredPools, allPools: filteredAllPools, yieldsList: yieldsList?.flat(), ...data }
+	})
 
 	const a = pako.deflate(strData)
 	const compressed = Buffer.from(a).toString('base64')

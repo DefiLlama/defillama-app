@@ -45,10 +45,8 @@ export function useGetYieldsSearchList(): IGetSearchList {
 	return { data: searchData || [], loading: fetchingProjects || fetchingYields, onItemClick }
 }
 
-export function useGetTokensSearchList(lend = true): IGetSearchList {
+export function useGetTokensSearchList({ lend, yields }): IGetSearchList {
 	const router = useRouter()
-
-	const { data: yields, loading: fetchingYields } = useFetchYieldsList()
 
 	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
 
@@ -77,7 +75,7 @@ export function useGetTokensSearchList(lend = true): IGetSearchList {
 		router.push(item.route, undefined, { shallow: true })
 	}
 
-	return { data: searchData || [], loading: fetchingYields, onItemClick }
+	return { data: searchData || [], loading: false, onItemClick }
 }
 
 export function useGetTokensSearchListMobile(): IGetSearchList {
