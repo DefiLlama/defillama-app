@@ -30,14 +30,22 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 
 export async function getStaticPaths() {
 	const { protocols: arrFees } = await getOverview('fees')
-	/* const { protocols: arrVols } = await getOverview('volumes') */
+	const { protocols: arrAggreg } = await getOverview('aggregators')
+	const { protocols: arrVols } = await getOverview('volumes')
+	const { protocols: arrDeri } = await getOverview('derivatives')
 	const paths = [
 		...arrFees.map((protocol) => ({
 			params: { type: 'fees', item: standardizeProtocolName(protocol.name) }
-		})) /* ,
+		})),
+		...arrAggreg.map((protocol) => ({
+			params: { type: 'aggregators', item: standardizeProtocolName(protocol.name) }
+		})),
 		...arrVols.map((protocol) => ({
 			params: { type: 'volumes', item: standardizeProtocolName(protocol.name) }
-		})) */
+		})),
+		...arrDeri.map((protocol) => ({
+			params: { type: 'derivatives', item: standardizeProtocolName(protocol.name) }
+		}))
 	]
 
 	return { paths, fallback: 'blocking' }
