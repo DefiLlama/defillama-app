@@ -6,6 +6,7 @@ import { formattedNum, formattedPercent } from '~/utils'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
+import { lockupsRewards } from '~/components/YieldsPage/utils'
 
 export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
@@ -107,7 +108,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend'].includes(row.original.project) ? (
+					{lockupsRewards.includes(row.original.project) ? (
 						<QuestionHelper
 							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
 						/>

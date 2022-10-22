@@ -6,6 +6,7 @@ import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsOptimizerTableRow } from '../types'
 import QuestionHelper from '~/components/QuestionHelper'
+import { lockupsRewards } from '~/components/YieldsPage/utils'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -96,7 +97,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		cell: ({ getValue, row }) => {
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend'].includes(row.original.projectName) ? (
+					{lockupsRewards.includes(row.original.projectName) ? (
 						<QuestionHelper
 							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
 						/>
