@@ -14,16 +14,15 @@ import { useFormatYieldQueryParams } from './hooks'
 import { calculateLoopAPY } from '~/api/categories/yield/index'
 
 const SearchWrapper = styled.div`
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	grid-gap: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 	width: 100%;
 	margin-top: 8px;
 
 	& > * {
-		width: 100%;
 		gap: 8px;
-		grid-column: span 2;
+		flex: 1;
 	}
 
 	& > * {
@@ -34,9 +33,7 @@ const SearchWrapper = styled.div`
 	}
 
 	@media (min-width: ${({ theme }) => theme.bpMed}) {
-		& > * {
-			grid-column: span 1;
-		}
+		flex-direction: row;
 	}
 `
 
@@ -75,9 +72,10 @@ const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPo
 					</>
 				) : null}
 			</Header>
+
 			<SearchWrapper>
 				<YieldsSearch pathname={pathname} value={lend} key={lend} lend data-alwaysdisplay />
-				{!lend ? <div></div> : <YieldsSearch pathname={pathname} value={borrow} key={borrow} data-alwaysdisplay />}
+				{lend && <YieldsSearch pathname={pathname} value={borrow} key={borrow} data-alwaysdisplay />}
 			</SearchWrapper>
 
 			<TableFilters>
