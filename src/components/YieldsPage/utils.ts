@@ -139,7 +139,8 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 			!availableProjects.includes(pool.project) ||
 			!availableChains.includes(pool.chain) ||
 			(tokenToBorrow === 'USD_Stables' ? false : !removeMetaTag(pool.symbol).includes(tokenToBorrow)) ||
-			removeMetaTag(pool.symbol).includes('AMM')
+			removeMetaTag(pool.symbol).includes('AMM') ||
+			pool.apyBorrow === null
 		)
 			return acc
 		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) return acc
@@ -173,11 +174,15 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 		)
 		for (const p of lendBorrowPairs) {
 			for (const i of farmPools) {
-				// only same chain strategies for now
+				// we ignore strategies not on the same chain
+				if (p.chain !== i.chain) continue
+				// we ignore strategies where the farm symbol doesn't include tokenToBorrow
+				// (special case of USD_Stables selector for which we need to check if the pool is a stablecoin
+				// and also if the subset matches (eg if debt token = DAI -> should not be matched against a USDC farm)
 				if (
-					p.chain !== i.chain ||
-					!removeMetaTag(i.symbol).includes(removeMetaTag(p.borrow.symbol).toUpperCase()) ||
-					p.borrow.apyBorrow === null
+					tokenToBorrow === 'USD_Stables'
+						? !i.stablecoin || !removeMetaTag(i.symbol).includes(removeMetaTag(p.borrow.symbol).toUpperCase())
+						: !removeMetaTag(i.symbol).includes(tokenToBorrow)
 				)
 					continue
 
@@ -197,10 +202,14 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 	} else {
 		for (const p of lendBorrowPairs) {
 			for (const i of allPools) {
+				// we ignore strategies not on the same chain
+				if (p.chain !== i.chain) continue
+				// ignore pools where farm symbol doesn't include the borrow symbol and vice versa
+				// eg borrow symbol => WAVAX, farm symbol => AVAX (or borrow = AVAX and farm = WAVAX)
+				// (if we'd just look in one way we'd miss some strategies)
 				if (
-					p.chain !== i.chain ||
-					!removeMetaTag(i.symbol).includes(removeMetaTag(p.borrow.symbol).toUpperCase()) ||
-					p.borrow.apyBorrow === null
+					!removeMetaTag(i.symbol).includes(removeMetaTag(p.borrow.symbol).toUpperCase()) &&
+					!removeMetaTag(p.borrow.symbol).toUpperCase().includes(removeMetaTag(i.symbol))
 				)
 					continue
 
@@ -218,26 +227,28 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 			}
 		}
 	}
+	// keep looping strategies only if no tokenToBorrow is given or if they both match
+	const loopPools =
+		tokenToBorrow !== tokenToLend && tokenToBorrow.length > 0
+			? []
+			: loopStrategies
+					.filter((p) => removeMetaTag(p.symbol.toUpperCase()).includes(tokenToLend))
+					.map((p) => ({
+						...p,
+						borrow: p,
+						chains: [p.chain],
+						farmSymbol: p.symbol,
+						farmChain: [p.chain],
+						farmProjectName: p.projectName,
+						farmProject: p.project,
+						farmTvlUsd: p.tvlUsd,
+						farmApy: p.apy,
+						farmApyBase: p.apyBase,
+						farmApyReward: p.apyReward,
+						strategy: 'loop'
+					}))
 
-	// filter loop strategies to `tokenToLend`
-	loopStrategies = loopStrategies
-		.filter((p) => removeMetaTag(p.symbol.toUpperCase()).includes(tokenToLend))
-		.map((p) => ({
-			...p,
-			borrow: p,
-			chains: [p.chain],
-			farmSymbol: p.symbol,
-			farmChain: [p.chain],
-			farmProjectName: p.projectName,
-			farmProject: p.project,
-			farmTvlUsd: p.tvlUsd,
-			farmApy: p.apy,
-			farmApyBase: p.apyBase,
-			farmApyReward: p.apyReward,
-			strategy: 'loop'
-		}))
-
-	finalPools = finalPools.concat(loopStrategies)
+	finalPools = finalPools.concat(loopPools)
 
 	// calc the total strategy apy
 	finalPools = finalPools.map((p) => {
