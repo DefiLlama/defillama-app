@@ -48,7 +48,8 @@ function BridgesOverview({
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 	const [chartType, setChartType] = useState(selectedChain === 'All' ? 'Volumes' : 'Net Flow')
 
-	const chartTypeList = selectedChain === 'All' ? ['Volumes'] : ['Net Flow', 'Inflows', 'Tokens Deposited', 'Tokens Withdrawn']
+	const chartTypeList =
+		selectedChain === 'All' ? ['Volumes'] : ['Net Flow', 'Inflows', '24h Tokens Deposited', '24h Tokens Withdrawn']
 
 	const belowMed = useMed()
 	const belowXl = useXl()
@@ -91,10 +92,12 @@ function BridgesOverview({
 	const { tokenDeposits, tokenWithdrawals } = useBuildBridgeChartData(bridgeStatsCurrentDay)
 
 	const chainNetFlowData = React.useMemo(() => {
-		return chainVolumeData.map((entry) => {return {
-			date: entry.date,
-			'Net Flow': entry.Deposits + entry.Withdrawals
-		}})
+		return chainVolumeData.map((entry) => {
+			return {
+				date: entry.date,
+				'Net Flow': entry.Deposits + entry.Withdrawals
+			}
+		})
 	}, [chainVolumeData])
 
 	const tokenColor = useMemo(
@@ -131,14 +134,14 @@ function BridgesOverview({
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
 		dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
 		for (let i = 0; i < 30; i++) {
-			const dailyVolume = getPrevVolumeFromChart(chainVolumeData, i, false, (selectedChain !== 'All'))
+			const dailyVolume = getPrevVolumeFromChart(chainVolumeData, i, false, selectedChain !== 'All')
 			if (i < 1) {
-				dayTotalVolume+= dailyVolume
+				dayTotalVolume += dailyVolume
 			}
 			if (i < 7) {
-				weekTotalVolume+= dailyVolume
+				weekTotalVolume += dailyVolume
 			}
-			monthTotalVolume+= dailyVolume
+			monthTotalVolume += dailyVolume
 		}
 		return { dayTotalVolume, weekTotalVolume, monthTotalVolume }
 	}, [chainVolumeData])
@@ -166,13 +169,13 @@ function BridgesOverview({
 						</p>
 					</BreakpointPanel>
 					<PanelHiddenMobile>
-					<h1>Total volume (7d)</h1>
+						<h1>Total volume (7d)</h1>
 						<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
 							{formattedNum(weekTotalVolume, true)}
 						</p>
 					</PanelHiddenMobile>
 					<PanelHiddenMobile>
-					<h1>Total volume (1m)</h1>
+						<h1>Total volume (1m)</h1>
 						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
 							{formattedNum(monthTotalVolume, true)}
 						</p>
@@ -214,10 +217,10 @@ function BridgesOverview({
 							}
 						/>
 					)}
-					{chartType === 'Tokens Deposited' && (
+					{chartType === '24h Tokens Deposited' && (
 						<PeggedChainResponsivePie data={tokenWithdrawals} chainColor={tokenColor} aspect={aspect} />
 					)}
-					{chartType === 'Tokens Withdrawn' && (
+					{chartType === '24h Tokens Withdrawn' && (
 						<PeggedChainResponsivePie data={tokenDeposits} chainColor={tokenColor} aspect={aspect} />
 					)}
 				</BreakpointPanel>

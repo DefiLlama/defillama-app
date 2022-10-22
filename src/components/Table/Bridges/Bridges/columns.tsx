@@ -51,26 +51,26 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 		}
 	},
 	{
-		header: '7d Change',
-		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '1m Change',
-		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
 		header: '24h Volume',
 		accessorKey: 'volumePrevDay',
+		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '7d Volume',
+		accessorKey: 'volumePrevWeek',
+		cell: (info) => <>${formattedNum(info.getValue())}</>,
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '1m Volume',
+		accessorKey: 'volumePrevMonth',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
 		meta: {
@@ -181,7 +181,7 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		}
 	},
 	{
-		header: '24h Top Token To',
+		header: '24h Top Deposit',
 		accessorKey: 'topTokenWithdrawnSymbol',
 		cell: ({ getValue }) => {
 			const value = getValue() as string
@@ -192,8 +192,8 @@ export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 100,
-	},
+		size: 100
+	}
 ]
 
 export const largeTxsColumn: ColumnDef<IBridge>[] = [
@@ -202,6 +202,20 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 		accessorKey: 'date',
 		cell: (info) => <>{toNiceDayAndHour(info.getValue())}</>,
 		size: 120
+	},
+	{
+		header: 'Bridge',
+		accessorKey: 'bridge',
+		cell: ({ getValue, row, table }) => {
+			const value = getValue() as string
+			const linkValue = standardizeProtocolName(value)
+			return (
+				<Name>
+					<CustomLink href={`/bridge/${linkValue}`}>{value}</CustomLink>
+				</Name>
+			)
+		},
+		size: 180
 	},
 	{
 		header: 'Deposit/Withdrawal',
@@ -272,8 +286,18 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 		accessorKey: 'symbol',
 		cell: ({ getValue }) => {
 			const value = getValue() as string
+			const splitValue = value.split('#')
+			const [symbol, token] = splitValue
+			const { blockExplorerLink } = getBlockExplorer(token)
 			if (value) {
-				return <>{value}</>
+				return (
+					<a href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
+						<AutoRow as="span" gap="0px" justify="start">
+							{symbol}
+							<ExternalLink size={10} />
+						</AutoRow>
+					</a>
+				)
 			} else return <>Not found</>
 		},
 		size: 120
@@ -360,20 +384,20 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 // key: min width of window/screen
 // values: table columns order
 export const bridgesColumnOrders = formatColumnOrder({
-	0: ['displayName', 'volumePrevDay', 'change_1d', 'change_7d', 'change_1m', 'chains', 'txsPrevDay'],
-	1024: ['displayName', 'chains', 'change_1d', 'change_7d', 'change_1m', 'volumePrevDay', 'txsPrevDay']
+	0: ['displayName', 'volumePrevDay', 'change_1d', 'volumePrevWeek', 'volumePrevMonth', 'chains', 'txsPrevDay'],
+	1024: ['displayName', 'chains', 'change_1d', 'volumePrevDay', 'volumePrevWeek', 'volumePrevMonth', 'txsPrevDay']
 })
 
 export const bridgeChainsColumnOrders = formatColumnOrder({
 	0: [
 		'name',
-		'topTokenWithdrawnSymbol',
 		'prevDayUsdWithdrawals',
 		'prevDayUsdDeposits',
 		'prevDayNetFlow',
 		'prevWeekUsdWithdrawals',
 		'prevWeekUsdDeposits',
 		'prevWeekNetFlow',
+		'topTokenWithdrawnSymbol'
 	],
 	1024: [
 		'name',
@@ -383,13 +407,13 @@ export const bridgeChainsColumnOrders = formatColumnOrder({
 		'prevDayNetFlow',
 		'prevWeekUsdWithdrawals',
 		'prevWeekUsdDeposits',
-		'prevWeekNetFlow',
+		'prevWeekNetFlow'
 	]
 })
 
 export const largeTxsColumnOrders = formatColumnOrder({
-	0: ['date', 'symbol', 'isDeposit', 'usdValue', 'txHash'],
-	1024: ['date', 'isDeposit', 'symbol', 'usdValue', 'txHash']
+	0: ['date', 'symbol', 'isDeposit', 'usdValue', 'bridge', 'txHash'],
+	1024: ['date', 'bridge', 'isDeposit', 'symbol', 'usdValue', 'txHash']
 })
 
 export const bridgeTokensColumnOrders = formatColumnOrder({
@@ -407,67 +431,68 @@ export const bridgesColumnSizes = {
 		displayName: 140,
 		chains: 180,
 		change_1d: 100,
-		change_7d: 100,
-		change_1m: 100,
 		volumePrevDay: 120,
+		volumePrevWeek: 120,
+		volumePrevMonth: 120,
 		txsPrevDay: 120
 	},
 	480: {
 		displayName: 180,
 		chains: 180,
 		change_1d: 100,
-		change_7d: 100,
-		change_1m: 100,
 		volumePrevDay: 120,
+		volumePrevWeek: 120,
+		volumePrevMonth: 120,
 		txsPrevDay: 120
 	},
 	1024: {
 		displayName: 240,
 		chains: 200,
 		change_1d: 100,
-		change_7d: 100,
-		change_1m: 100,
 		volumePrevDay: 120,
+		volumePrevWeek: 120,
+		volumePrevMonth: 120,
 		txsPrevDay: 120
 	}
 }
 
 export const bridgeChainsColumnSizes = {
 	0: {
-		name: 140,
+		name: 160,
 		prevDayNetFlow: 120,
-		prevDayUsdWithdrawals: 160,
-		prevDayUsdDeposits: 160,
+		prevDayUsdWithdrawals: 130,
+		prevDayUsdDeposits: 130,
 		prevWeekNetFlow: 120,
-		prevWeekUsdWithdrawals: 160,
-		prevWeekUsdDeposits: 160,
-		topTokenWithdrawnSymbol: 120,
+		prevWeekUsdWithdrawals: 130,
+		prevWeekUsdDeposits: 130,
+		topTokenWithdrawnSymbol: 140
 	},
 	480: {
 		name: 180,
 		prevDayNetFlow: 140,
-		prevDayUsdWithdrawals: 160,
-		prevDayUsdDeposits: 160,
-		prevWeekNetFlow: 120,
-		prevWeekUsdWithdrawals: 160,
-		prevWeekUsdDeposits: 160,
-		topTokenWithdrawnSymbol: 120,
+		prevDayUsdWithdrawals: 150,
+		prevDayUsdDeposits: 150,
+		prevWeekNetFlow: 140,
+		prevWeekUsdWithdrawals: 150,
+		prevWeekUsdDeposits: 150,
+		topTokenWithdrawnSymbol: 140
 	},
 	1024: {
 		name: 180,
-		prevDayNetFlow: 150,
-		prevDayUsdWithdrawals: 160,
-		prevDayUsdDeposits: 160,
-		prevWeekNetFlow: 120,
-		prevWeekUsdWithdrawals: 160,
-		prevWeekUsdDeposits: 160,
-		topTokenWithdrawnSymbol: 120,
+		prevDayNetFlow: 140,
+		prevDayUsdWithdrawals: 150,
+		prevDayUsdDeposits: 150,
+		prevWeekNetFlow: 140,
+		prevWeekUsdWithdrawals: 150,
+		prevWeekUsdDeposits: 150,
+		topTokenWithdrawnSymbol: 140
 	}
 }
 
 export const largeTxsColumnSizes = {
 	0: {
 		date: 100,
+		bridge: 140,
 		usdValue: 120,
 		isDeposit: 140,
 		symbol: 100,
@@ -475,6 +500,7 @@ export const largeTxsColumnSizes = {
 	},
 	480: {
 		date: 100,
+		bridge: 140,
 		usdValue: 120,
 		isDeposit: 140,
 		symbol: 120,
@@ -482,6 +508,7 @@ export const largeTxsColumnSizes = {
 	},
 	1024: {
 		date: 140,
+		bridge: 160,
 		usdValue: 120,
 		isDeposit: 140,
 		symbol: 120,
@@ -497,16 +524,16 @@ export const bridgeTokensColumnSizes = {
 		volume: 140
 	},
 	480: {
-		symbol: 100,
+		symbol: 120,
 		withdrawn: 120,
 		deposited: 120,
-		volume: 140
+		volume: 120
 	},
 	1024: {
-		symbol: 100,
+		symbol: 120,
 		withdrawn: 120,
 		deposited: 120,
-		volume: 140
+		volume: 120
 	}
 }
 

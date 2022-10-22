@@ -65,13 +65,24 @@ export const formatBridgesData = ({
 		const chartIndex = bridgeNameToChartDataIndex[bridge.displayName]
 		const chart = chartDataByBridge[chartIndex] ?? null
 
-		bridge.volumePrevDay = getPrevVolumeFromChart(chart, 0) ?? null
+		let dayTotalVolume, weekTotalVolume, monthTotalVolume
+		dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
+		for (let i = 0; i < 30; i++) {
+			const dailyVolume = getPrevVolumeFromChart(chart, i)
+			if (i < 1) {
+				dayTotalVolume += dailyVolume
+			}
+			if (i < 7) {
+				weekTotalVolume += dailyVolume
+			}
+			monthTotalVolume += dailyVolume
+		}
+
+		bridge.volumePrevDay = dayTotalVolume ?? null
 		bridge.volumePrev2Day = getPrevVolumeFromChart(chart, 1) ?? null
-		bridge.volumePrevWeek = getPrevVolumeFromChart(chart, 7) ?? null
-		bridge.volumePrevMonth = getPrevVolumeFromChart(chart, 30) ?? null
+		bridge.volumePrevWeek = weekTotalVolume ?? null
+		bridge.volumePrevMonth = monthTotalVolume ?? null
 		bridge.change_1d = getPercentChange(bridge.volumePrevDay, bridge.volumePrev2Day)
-		bridge.change_7d = getPercentChange(bridge.volumePrevDay, bridge.volumePrevWeek)
-		bridge.change_1m = getPercentChange(bridge.volumePrevDay, bridge.volumePrevMonth)
 		bridge.txsPrevDay = getPrevVolumeFromChart(chart, 0, true) ?? null
 
 		return keepNeededProperties(bridge, bridgeProps)

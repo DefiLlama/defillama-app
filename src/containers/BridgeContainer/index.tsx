@@ -2,10 +2,7 @@ import React, { useState } from 'react'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import Layout from '~/layout'
-import {
-	DetailsWrapper,
-	Name,
-} from '~/layout/ProtocolAndPool'
+import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
 import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { BridgesSearch } from '~/components/Search'
 import { OptionButton } from '~/components/ButtonStyled'
@@ -16,11 +13,7 @@ import SEO from '~/components/SEO'
 
 import { useXl, useMed } from '~/hooks/useBreakpoints'
 import { BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
-import {
-	getRandomColor,
-	formattedNum,
-	getPercentChange
-} from '~/utils'
+import { getRandomColor, formattedNum, getPercentChange } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { BridgeTokensTable, BridgeAddressesTable } from '~/components/Table'
 import { AddressesTableSwitch } from '~/components/BridgesPage/TableSwitch'
@@ -81,19 +74,21 @@ export default function BridgeContainer({
 			const totalTokensDeposited = prevDayData.totalTokensDeposited
 			const totalTokensWithdrawn = prevDayData.totalTokensWithdrawn
 			let tokensTableUnformatted = {}
-			Object.values(totalTokensDeposited).map((tokenData) => {
+			Object.entries(totalTokensDeposited).map(([token, tokenData]) => {
 				const symbol = tokenData.symbol == null || tokenData.symbol === '' ? 'unknown' : tokenData.symbol
 				const usdValue = tokenData.usdValue
-				tokensTableUnformatted[symbol] = tokensTableUnformatted[symbol] || {}
-				tokensTableUnformatted[symbol].deposited = (tokensTableUnformatted[symbol].deposited ?? 0) + usdValue
-				tokensTableUnformatted[symbol].volume = (tokensTableUnformatted[symbol].volume ?? 0) + usdValue
+				const key = `${symbol}#${token}`
+				tokensTableUnformatted[key] = tokensTableUnformatted[key] || {}
+				tokensTableUnformatted[key].deposited = (tokensTableUnformatted[key].deposited ?? 0) + usdValue
+				tokensTableUnformatted[key].volume = (tokensTableUnformatted[key].volume ?? 0) + usdValue
 			})
-			Object.values(totalTokensWithdrawn).map((tokenData) => {
+			Object.entries(totalTokensWithdrawn).map(([token, tokenData]) => {
 				const symbol = tokenData.symbol == null || tokenData.symbol === '' ? 'unknown' : tokenData.symbol
 				const usdValue = tokenData.usdValue ?? 0
-				tokensTableUnformatted[symbol] = tokensTableUnformatted[symbol] || {}
-				tokensTableUnformatted[symbol].withdrawn = (tokensTableUnformatted[symbol].withdrawn ?? 0) + usdValue
-				tokensTableUnformatted[symbol].volume = (tokensTableUnformatted[symbol].volume ?? 0) + usdValue
+				const key = `${symbol}#${token}`
+				tokensTableUnformatted[key] = tokensTableUnformatted[key] || {}
+				tokensTableUnformatted[key].withdrawn = (tokensTableUnformatted[key].withdrawn ?? 0) + usdValue
+				tokensTableUnformatted[key].volume = (tokensTableUnformatted[key].volume ?? 0) + usdValue
 			})
 
 			tokensTableData = Object.entries(tokensTableUnformatted)
@@ -304,7 +299,7 @@ export default function BridgeContainer({
 					{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 && (
 						<PeggedChainResponsivePie data={tokenWithdrawals} chainColor={tokenColor} aspect={aspect} />
 					)}
-					{chartType === 'Tokens From'  && tokenDeposits && tokenDeposits.length > 0 && (
+					{chartType === 'Tokens From' && tokenDeposits && tokenDeposits.length > 0 && (
 						<PeggedChainResponsivePie data={tokenDeposits} chainColor={tokenColor} aspect={aspect} />
 					)}
 				</div>
@@ -320,7 +315,6 @@ export default function BridgeContainer({
 
 			{!isBridgesShowingAddresses && <BridgeTokensTable data={tokensTableData} />}
 			{isBridgesShowingAddresses && <BridgeAddressesTable data={addressesTableData} />}
-
 		</Layout>
 	)
 }
