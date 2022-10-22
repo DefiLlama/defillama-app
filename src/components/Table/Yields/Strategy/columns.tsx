@@ -42,7 +42,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						project1={row.original.projectName}
 						airdropProject1={row.original.airdrop}
 						project2={row.original.farmProjectName}
-						airdropProject2={row.original.airdrop}
+						airdropProject2={false}
 						chain={row.original.chains[0]}
 						index={index + 1}
 					/>
