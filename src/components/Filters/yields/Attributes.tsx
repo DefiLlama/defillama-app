@@ -5,6 +5,7 @@ import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup } from '../shared'
+import { lockupsRewards, lockupsCollateral } from '~/components/YieldsPage/utils'
 
 export const attributeOptions = [
 	{
@@ -140,8 +141,7 @@ export const attributeOptions = [
 		key: YIELDS_SETTINGS.NO_LOCKUP_REWARDS.toLowerCase(),
 		help: 'Remove projects which apply an early exit penalty on token rewards',
 		filterFn: (item) => {
-			const lockups = ['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend']
-			return !lockups.includes(item.projectName) && !lockups.includes(item.farmProjectName)
+			return !lockupsRewards.includes(item.projectName) && !lockupsRewards.includes(item.farmProjectName)
 		},
 		defaultFilterFnOnPage: {},
 		disabledOnPages: [
@@ -158,8 +158,7 @@ export const attributeOptions = [
 		key: YIELDS_SETTINGS.NO_LOCKUP_COLLATERAL.toLowerCase(),
 		help: 'Remove projects which require locking of collateral tokens',
 		filterFn: (item) => {
-			const lockups = ['Ribbon', 'TrueFi', 'Maple', 'Clearpool', 'Centrifuge', 'UniCrypt', 'Osmosis', 'HedgeFarm']
-			return !lockups.includes(item.projectName) && !lockups.includes(item.farmProjectName)
+			return !lockupsCollateral.includes(item.projectName) && !lockupsCollateral.includes(item.farmProjectName)
 		},
 		defaultFilterFnOnPage: {},
 		disabledOnPages: [

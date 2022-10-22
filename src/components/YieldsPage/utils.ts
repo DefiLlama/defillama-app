@@ -308,3 +308,15 @@ export const filterPool = ({ pool, selectedChains, selectedAttributes, selectedP
 
 	return toFilter
 }
+
+export const lockupsRewards = ['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend', '0vix']
+export const lockupsCollateral = [
+	'Ribbon',
+	'TrueFi',
+	'Maple',
+	'Clearpool',
+	'Centrifuge',
+	'UniCrypt',
+	'Osmosis',
+	'HedgeFarm'
+]

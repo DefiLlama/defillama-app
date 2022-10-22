@@ -6,6 +6,7 @@ import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import QuestionHelper from '~/components/QuestionHelper'
 import { AutoRow } from '~/components/Row'
+import { lockupsRewards } from '~/components/YieldsPage/utils'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -65,7 +66,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: ({ getValue, row }) => {
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend'].includes(row.original.project) ? (
+					{lockupsRewards.includes(row.original.project) ? (
 						<QuestionHelper
 							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
 						/>
