@@ -23,20 +23,6 @@ const HeaderWrapper = styled(Header)`
 	border: 1px solid transparent;
 `
 
-const TableNoticeWrapper = styled.div`
-	margin-bottom: -1rem;
-`
-
-const SmolHints = styled.div`
-	display: flex;
-	gap: 6px;
-	flex-direction: row;
-	justify-content: flex-end;
-	align-items: center;
-	margin-top: -1rem;
-	opacity: 0.6;
-`
-
 function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, formattedVolumeChartData }) {
 	
 	/*
@@ -79,11 +65,6 @@ function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, f
 					)}
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
-			<TableNoticeWrapper>
-				<SmolHints>
-					<i>All stats in table are for the past 24h period.</i>
-				</SmolHints>
-			</TableNoticeWrapper>
 						
 			<BridgeChainsTable data={filteredChains} />
 		</>

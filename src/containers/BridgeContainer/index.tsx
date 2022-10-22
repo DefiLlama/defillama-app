@@ -81,6 +81,8 @@ export default function BridgeContainer({
 				tokensTableUnformatted[key] = tokensTableUnformatted[key] || {}
 				tokensTableUnformatted[key].deposited = (tokensTableUnformatted[key].deposited ?? 0) + usdValue
 				tokensTableUnformatted[key].volume = (tokensTableUnformatted[key].volume ?? 0) + usdValue
+				// ensure there are no undefined values for deposited/withdrawn so table can be sorted
+				tokensTableUnformatted[key].withdrawn = 0
 			})
 			Object.entries(totalTokensWithdrawn).map(([token, tokenData]) => {
 				const symbol = tokenData.symbol == null || tokenData.symbol === '' ? 'unknown' : tokenData.symbol
@@ -89,6 +91,9 @@ export default function BridgeContainer({
 				tokensTableUnformatted[key] = tokensTableUnformatted[key] || {}
 				tokensTableUnformatted[key].withdrawn = (tokensTableUnformatted[key].withdrawn ?? 0) + usdValue
 				tokensTableUnformatted[key].volume = (tokensTableUnformatted[key].volume ?? 0) + usdValue
+				if (!tokensTableUnformatted[key].deposited) {
+					tokensTableUnformatted[key].deposited = 0
+				}
 			})
 
 			tokensTableData = Object.entries(tokensTableUnformatted)
@@ -309,7 +314,7 @@ export default function BridgeContainer({
 
 			<TableNoticeWrapper>
 				<SmolHints>
-					<i>All stats in table are for the past 24h period.</i>
+					<i>All stats in table are for the previous day.</i>
 				</SmolHints>
 			</TableNoticeWrapper>
 
