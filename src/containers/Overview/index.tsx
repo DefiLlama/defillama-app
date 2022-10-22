@@ -81,6 +81,8 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				}
 			/>
 
+			<TitleByType type={props.type} chain={chain} />
+
 			{getChartByType(props.type, {
 				type: props.type,
 				total24h: props.total24h,
@@ -126,15 +128,13 @@ interface ITitleProps {
 	type: string
 	chain: string
 }
-const getTitleByType: React.FC<ITitleProps> = (props) => {
+const TitleByType: React.FC<ITitleProps> = (props) => {
 	let title = upperCaseFirst(props.type)
-	if (props.type === 'volumes') title = 'Volume'
-	if (props.type === 'fees') title = 'Fees and revenue'
+	if (props.type === 'volumes') title = `Volume in ${props.chain === 'All' ? 'all protocols' : props.chain}`
+	if (props.type === 'fees') title = 'Ranking by fees and revenue'
 	return (
 		<HeaderWrapper>
-			<span>
-				{title} in {props.chain === 'All' ? 'all protocols' : props.chain}
-			</span>
+			<span>{title}</span>
 		</HeaderWrapper>
 	)
 }

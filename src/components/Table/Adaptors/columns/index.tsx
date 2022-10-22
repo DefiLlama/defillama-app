@@ -26,6 +26,7 @@ export const getColumnsByType = (type: string) => {
 		case 'fees':
 			return feesColumns
 		default:
+			return volumesColumns
 	}
 }
 
@@ -42,6 +43,10 @@ export const getColumnsOrdernSizeByType = (type: string) => {
 				size: volumesColumnSizes
 			}
 		default:
+			return {
+				order: volumesTableColumnOrders,
+				size: volumesColumnSizes
+			}
 	}
 }
 
