@@ -77,7 +77,7 @@ const YieldsStrategyPage = ({ pools, projectList, chainList, categoryList, allPo
 			</Header>
 			<SearchWrapper>
 				<YieldsSearch pathname={pathname} value={lend} key={lend} lend data-alwaysdisplay />
-				{!lend ? <div></div> : <YieldsSearch pathname={pathname} value={borrow} key={borrow} data-alwaysdisplay />}
+				{lend === null ? null : <YieldsSearch pathname={pathname} value={borrow} key={borrow} data-alwaysdisplay />}
 			</SearchWrapper>
 
 			<TableFilters>
