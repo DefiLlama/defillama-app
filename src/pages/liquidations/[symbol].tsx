@@ -42,7 +42,7 @@ export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartDa
 export const getStaticPaths: GetStaticPaths = async () => {
 	const { assets } = await getAvailableAssetsList()
 	const paths = assets
-		.map((x) => x.route.split('/').pop())
+		.map((x) => (x.route as string).split('/').pop())
 		.map((x) => ({
 			params: { symbol: x.toLowerCase() }
 		}))
