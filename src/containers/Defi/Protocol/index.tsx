@@ -332,7 +332,7 @@ function ProtocolContainer({
 						</Link>
 					</StatWrapper>
 
-					{tvls.length > 1 && (
+					{tvls.length > 0 && (
 						<DetailsTable>
 							<caption>Chain Breakdown</caption>
 							<tbody>
