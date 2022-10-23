@@ -2,7 +2,14 @@ import { Dispatch, ReactNode } from 'react'
 
 export interface ISearchItem {
 	name: string
-	route: string
+	route:
+		| string
+		| {
+				pathname: string
+				query: {
+					[key: string]: string | Array<string>
+				}
+		  }
 	logo?: string
 	symbol?: string
 }
