@@ -6,11 +6,21 @@ import pako from 'pako'
 import { arrayFetcher } from '~/utils/useSWR'
 
 export async function getStaticProps() {
-	const data = await getLendBorrowData()
+	const {
+		props: { pools, ...data }
+	} = await getLendBorrowData()
 
 	const yieldsList = await arrayFetcher(getCGMarketsDataURLs())
 
-	const strData = JSON.stringify({ yieldsList: yieldsList?.flat(), ...data })
+	const strData = JSON.stringify({
+		props: {
+			// lend & borrow from query are uppercase only. symbols in pools are mixed case though -> without
+			// setting to uppercase, we only show subset of available pools when applying `findOptimzerPools`
+			pools: pools.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() })),
+			yieldsList: yieldsList?.flat(),
+			...data
+		}
+	})
 
 	const a = pako.deflate(strData)
 	const compressed = Buffer.from(a).toString('base64')
