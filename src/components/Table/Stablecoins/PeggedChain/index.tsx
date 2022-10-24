@@ -12,7 +12,7 @@ import { peggedChainsColumn } from './columns'
 import type { IPeggedChain } from './types'
 
 export function PeggedChainsTable({ data }) {
-	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'minted', desc: true }])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'mcap', desc: true }])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 
 	const instance = useReactTable({
