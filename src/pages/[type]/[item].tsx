@@ -6,7 +6,13 @@ import OverviewItemContainer from '~/containers/Overview/OverviewItem'
 import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
 
-type PageParams = {
+export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {
+	type: string
+	totalDataChart: [IJoin2ReturnType, string[]]
+	revenue24h: number | null
+}
+
+export type PageParams = {
 	protocolSummary: ProtocolAdaptorSummaryProps
 	backgroundColor: string
 }

@@ -144,14 +144,14 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
 	const typeSimple = props.protocolSummary.type === 'volumes' ? 'volume' : props.protocolSummary.type
-	const isFeesType = props.protocolSummary.type === 'fees'
+	const useTotalDataChart = props.protocolSummary.type === 'fees' || props.protocolSummary.type === 'derivatives'
 	const mainChart = React.useMemo(() => {
 		let chartData: IJoin2ReturnType
 		let title: string
 		let legend: string[]
-		if (isFeesType) {
-			chartData = props.protocolSummary.totalDataChart
-			legend = Object.keys(props.protocolSummary.totalDataChart[0])
+		if (useTotalDataChart) {
+			chartData = props.protocolSummary.totalDataChart[0]
+			legend = props.protocolSummary.totalDataChart[1]
 		} else {
 			const [cd, lgnd] = chartBreakdownByChain(props.protocolSummary.totalDataChartBreakdown)
 			chartData = cd
