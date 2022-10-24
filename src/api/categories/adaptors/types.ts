@@ -29,11 +29,15 @@ export interface ProtocolAdaptorSummaryResponse extends ProtocolAdaptorSummary {
   forkedFrom?: Array<string>;
   gecko_id: string | null;
   module: string;
-  totalDataChartBreakdown: Array<[number, { [protocol: string]: number }]>,
+  totalDataChartBreakdown: Array<[number, IJSON<{ [protocol: string]: number | IJSON<number> }>]>,
   totalDataChart: Array<[number, number]>,
   total24h: number | null
   change_1d: number | null
   protocolType?: string
+  protocolsData: IJSON<{
+    chains: string[]
+    disabled: boolean
+  }> | null
 }
 
 ///////////////////////////////////////////////////////////////////
