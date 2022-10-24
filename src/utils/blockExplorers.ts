@@ -19,7 +19,7 @@ const blockExplorers = {
 	waves: ['https://wavesexplorer.com/assets/', 'Waves Explorer'],
 	eos: ['https://bloks.io/tokens/', 'bloks'],
 	energyweb: ['https://explorer.energyweb.org/address/', 'EnergyWeb'],
-	cronos: ['https://cronos.crypto.org/explorer/address/', 'Cronos Explorer'],
+	cronos: ['https://cronoscan.com/address/', 'Cronoscan'],
 	harmony: ['https://explorer.harmony.one/address/', 'Harmony Explorer'],
 	tron: ['https://tronscan.org/#/contract/', 'Tronscan'],
 	kucoin: ['https://explorer.kcc.io/en/address/', 'KCC Explorer'],
