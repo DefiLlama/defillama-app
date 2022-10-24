@@ -9,7 +9,7 @@ import { useState } from 'react'
 
 export async function getStaticProps() {
 	let data = await getLendBorrowData()
-	data.props.pools = calculateLoopAPY(data.props.pools)
+	data.props.pools = calculateLoopAPY(data.props.pools, 10)
 
 	const strData = JSON.stringify(data)
 
