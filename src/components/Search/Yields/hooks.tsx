@@ -69,7 +69,7 @@ export function useGetTokensSearchList({ lend, yields }): IGetSearchList {
 
 		const yieldsList =
 			yields?.map((el) => ({
-				name: `${el.name} (${el.symbol.toUpperCase()})`,
+				name: `${el.name} (${el.symbol?.toUpperCase()})`,
 				symbol: el.symbol.toUpperCase(),
 				route: {
 					pathname: router.pathname,

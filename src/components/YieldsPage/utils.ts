@@ -315,7 +315,8 @@ export const filterPool = ({ pool, selectedChains, selectedAttributes, selectedP
 	return toFilter
 }
 
-export const lockupsRewards = ['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend', '0vix']
+export const lockupsRewards = ['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend']
+export const preminedRewards = ['0vix']
 export const lockupsCollateral = [
 	'Ribbon',
 	'TrueFi',
@@ -328,3 +329,4 @@ export const lockupsCollateral = [
 	'BarnBridge',
 	'WOOFi'
 ]
+export const badDebt = ['moonwell-apollo', 'inverse-finance', 'venus', 'iron-bank']
