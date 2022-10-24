@@ -1,8 +1,7 @@
 import * as React from 'react'
-import Link from 'next/link'
 import { MenuButtonArrow, useComboboxState, useMenuState } from 'ariakit'
 import styled from 'styled-components'
-import { Name, Symbol } from '~/layout/ProtocolAndPool'
+import { Name } from '~/layout/ProtocolAndPool'
 import FormattedName from '~/components/FormattedName'
 import { Button, Popover } from '~/components/DropdownMenu'
 import { Input, Item, List } from '~/components/Combobox'
@@ -10,31 +9,6 @@ import { useSetPopoverStyles } from '~/components/Popover/utils'
 import type { ISearchItem } from '~/components/Search/types'
 import { Button as AriaButton } from 'ariakit'
 
-const LiquidationsHeaderWrapper = styled.div`
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	align-items: center;
-	gap: 10px;
-	position: relative;
-	margin-top: 1rem;
-
-	@media (min-width: 80rem) {
-		flex-direction: row;
-		align-items: flex-start;
-	}
-`
-const ButtonsGroup = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 10px;
-
-	@media (min-width: 80rem) {
-		align-items: flex-end;
-	}
-`
 interface IProps {
 	options: ISearchItem[]
 	currentChain: string
@@ -91,13 +65,11 @@ const getMatchingOption = (options: ISearchItem[], value: string): ISearchItem =
 const ChainButtonLink = (props: { options: ISearchItem[]; value: string; handleClick: React.Dispatch<any> }) => {
 	const { options, value, handleClick } = props
 	const matchingOption = getMatchingOption(options, value)
-	
+
 	return (
 		<AriaButton onClick={() => handleClick(matchingOption.name)}>
 			<Item value={value} focusOnHover setValueOnClick={false} role="link">
-				<MatchingOptionWrapper>
-					{matchingOption.name}
-				</MatchingOptionWrapper>
+				<MatchingOptionWrapper>{matchingOption.name}</MatchingOptionWrapper>
 			</Item>
 		</AriaButton>
 	)

@@ -206,7 +206,7 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 	{
 		header: 'Bridge',
 		accessorKey: 'bridge',
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue }) => {
 			const value = getValue() as string
 			const linkValue = standardizeProtocolName(value)
 			return (

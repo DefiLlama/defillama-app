@@ -58,7 +58,7 @@ export function ChartSelector({ options, selectedChart, onClick }: IProps) {
 
 const ChartButtonLink = ({ value, onItemClick }) => {
 	return (
-		<Button onClick={(e) => onItemClick(value)}>
+		<Button onClick={() => onItemClick(value)}>
 			<Item value={value} focusOnHover setValueOnClick={false} role="link">
 				<OptionWrapper>{value}</OptionWrapper>
 			</Item>

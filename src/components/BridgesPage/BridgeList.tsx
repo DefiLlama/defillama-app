@@ -9,13 +9,13 @@ import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { BridgesSearchWithBreakdown } from '../Search/Bridges'
-import { ChartSelector } from '~/components/PeggedPage/.'
+import { ChartSelector } from '~/components/BridgesPage/.'
 import { BridgesTable } from '~/components/Table'
 import { LargeTxsTable } from './LargeTxsTable'
 import { TxsTableSwitch } from '../BridgesPage/TableSwitch'
 import { useBuildBridgeChartData } from '~/utils/bridges'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
-import { getRandomColor, formattedNum, getPercentChange, getPrevVolumeFromChart } from '~/utils'
+import { getRandomColor, formattedNum, getPrevVolumeFromChart } from '~/utils'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -124,7 +124,7 @@ function BridgesOverview({
 			monthTotalVolume += dailyVolume
 		}
 		return { dayTotalVolume, weekTotalVolume, monthTotalVolume }
-	}, [chainVolumeData])
+	}, [chainVolumeData, selectedChain])
 
 	return (
 		<>

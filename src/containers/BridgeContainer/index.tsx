@@ -99,7 +99,7 @@ export default function BridgeContainer({
 					return { symbol: entry[0], ...entry[1] }
 				})
 
-			const fullTokenDeposits = Object.entries(totalTokensDeposited).map(([token, tokenData]) => {
+			const fullTokenDeposits = Object.values(totalTokensDeposited).map((tokenData) => {
 				return { name: tokenData.symbol, value: tokenData.usdValue }
 			})
 			const otherDeposits = fullTokenDeposits.slice(10).reduce((total, entry) => {
@@ -109,7 +109,7 @@ export default function BridgeContainer({
 				.slice(0, 10)
 				.sort((a, b) => b.value - a.value)
 				.concat({ name: 'Others', value: otherDeposits })
-			const fullTokenWithdrawals = Object.entries(totalTokensWithdrawn).map(([token, tokenData]) => {
+			const fullTokenWithdrawals = Object.values(totalTokensWithdrawn).map((tokenData) => {
 				return { name: tokenData.symbol, value: tokenData.usdValue }
 			})
 			const otherWithdrawals = fullTokenWithdrawals.slice(10).reduce((total, entry) => {
