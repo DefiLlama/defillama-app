@@ -32,6 +32,7 @@ export interface ProtocolAdaptorSummaryResponse extends ProtocolAdaptorSummary {
   totalDataChartBreakdown: Array<[number, IJSON<{ [protocol: string]: number | IJSON<number> }>]>,
   totalDataChart: Array<[number, number]>,
   total24h: number | null
+  totalAllTime: number | null
   change_1d: number | null
   protocolType?: string
   protocolsData: IJSON<{

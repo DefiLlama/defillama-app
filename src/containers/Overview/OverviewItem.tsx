@@ -62,10 +62,21 @@ interface IDexChartsProps {
 	type?: string
 	title?: string
 	fullChart?: boolean
+	totalAllTime?: number
 }
 
-export const ProtocolChart = ({ logo, data, chartData, name, type, title, fullChart = false }: IDexChartsProps) => {
+export const ProtocolChart = ({
+	logo,
+	data,
+	chartData,
+	name,
+	type,
+	title,
+	fullChart = false,
+	totalAllTime
+}: IDexChartsProps) => {
 	const typeString = type === 'volumes' ? 'Volumes' : upperCaseFirst(type)
+	const typeSimple = type === 'volumes' ? 'volume' : type
 	return (
 		<StatsSection>
 			{!fullChart && (
@@ -98,14 +109,26 @@ export const ProtocolChart = ({ logo, data, chartData, name, type, title, fullCh
 						</Stat>
 					)}
 
-					<Stat>
-						<span>
-							{data.disabled === true
-								? `Last day change (${formatTimestampAsDate(+data.totalDataChart[data.totalDataChart.length - 1][0])})`
-								: 'Change (24h)'}
-						</span>
-						<span>{data.change_1d || 0}%</span>
-					</Stat>
+					{typeString !== 'Fees' && (
+						<Stat>
+							<span>
+								{data.disabled === true
+									? `Last day change (${formatTimestampAsDate(
+											+data.totalDataChart[data.totalDataChart.length - 1][0]
+									  )})`
+									: 'Change (24h)'}
+							</span>
+							<span>{data.change_1d || 0}%</span>
+						</Stat>
+					)}
+					{totalAllTime ? (
+						<Stat>
+							<span>{`All time ${typeSimple}`}</span>
+							<span>{formattedNum(totalAllTime, true)}</span>
+						</Stat>
+					) : (
+						<></>
+					)}
 				</DetailsWrapper>
 			)}
 			<ChartWrapper>
@@ -118,8 +141,28 @@ export const ProtocolChart = ({ logo, data, chartData, name, type, title, fullCh
 function ProtocolContainer(props: IProtocolContainerProps) {
 	useScrollToTop()
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(props.protocolSummary.address)
-	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData).length > 1
+	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
+	const typeSimple = props.protocolSummary.type === 'volumes' ? 'volume' : props.protocolSummary.type
+	const isFeesType = props.protocolSummary.type === 'fees'
+	const mainChart = React.useMemo(() => {
+		let chartData: IJoin2ReturnType
+		let title: string
+		let legend: string[]
+		if (isFeesType) {
+			chartData = props.protocolSummary.totalDataChart
+			legend = Object.keys(props.protocolSummary.totalDataChart[0])
+		} else {
+			const [cd, lgnd] = chartBreakdownByChain(props.protocolSummary.totalDataChartBreakdown)
+			chartData = cd
+			legend = lgnd
+		}
+		title = Object.keys(legend).length <= 1 ? `${capitalizeFirstLetter(typeSimple)} by chain` : ''
+		return {
+			dataChart: [chartData, legend] as [IJoin2ReturnType, string[]],
+			title: title
+		}
+	}, [props.protocolSummary.totalDataChart, props.protocolSummary.totalDataChartBreakdown])
 	return (
 		<Layout title={props.title} backgroundColor={transparentize(0.6, props.backgroundColor)} style={{ gap: '36px' }}>
 			<AdaptorsSearch
@@ -137,10 +180,11 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 			<ProtocolChart
 				logo={props.protocolSummary.logo}
 				data={props.protocolSummary}
-				chartData={chartBreakdownByChain(props.protocolSummary.totalDataChartBreakdown)}
+				chartData={mainChart.dataChart}
 				name={props.protocolSummary.name}
 				type={props.protocolSummary.type}
-				title={`${capitalizeFirstLetter(props.protocolSummary.type)} by chain`}
+				title={mainChart.title}
+				totalAllTime={props.protocolSummary.totalAllTime}
 			/>
 
 			<SectionHeader>Information</SectionHeader>
