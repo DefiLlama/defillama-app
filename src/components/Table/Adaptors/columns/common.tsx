@@ -78,12 +78,27 @@ export const Total24hColumn = (type: string, alternativeAccessor?: string, helpe
 	accessorKey: alternativeAccessor ?? 'total24h',
 	enableSorting: true,
 	cell: (info) => {
+		if (Number.isNaN(formattedNum(info.getValue()))) return <></>
 		return <>${formattedNum(info.getValue())}</>
 	},
 	size: 140,
 	meta: {
 		align: 'end' as 'end',
 		headerHelperText: helperText
+	}
+})
+export const TotalAllTimeColumn = (type: string, alternativeAccessor?: string, helperText?: string) => ({
+	header: `Total ${type}`,
+	accessorKey: alternativeAccessor ?? 'totalAllTime',
+	enableSorting: true,
+	cell: (info) => {
+		if (Number.isNaN(formattedNum(info.getValue()))) return <></>
+		return <>${formattedNum(info.getValue())}</>
+	},
+	size: 140,
+	meta: {
+		align: 'end' as 'end',
+		headerHelperText: helperText ?? `Accomulative ${type}`
 	}
 })
 export const VolumeTVLColumn = {

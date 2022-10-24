@@ -16,6 +16,7 @@ import {
 	DominanceColumn,
 	NameColumn,
 	Total24hColumn,
+	TotalAllTimeColumn,
 	VolumeTVLColumn
 } from './common'
 
@@ -57,6 +58,7 @@ export const volumesColumns: ColumnDef<IDexsRow>[] = [
 	Change7dColumn,
 	Change1mColumn,
 	Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+	TotalAllTimeColumn('volume'),
 	VolumeTVLColumn,
 	DominanceColumn
 ]
@@ -66,14 +68,37 @@ export const feesColumns: ColumnDef<IDexsRow>[] = [
 	ChainsColumn('fees'),
 	CategoryColumn,
 	Total24hColumn('fees', undefined, 'Fees paid by protocol users excluding gas fees'),
-	Total24hColumn('revenue', 'revenue24h', 'Fees accrued to the protocol (going to either treasury or holders)')
+	Total24hColumn('revenue', 'revenue24h', 'Fees accrued to the protocol (going to either treasury or holders)'),
+	TotalAllTimeColumn('fees')
 ]
 
 // key: min width of window/screen
 // values: table columns order
 export const volumesTableColumnOrders = formatColumnOrder({
-	0: ['displayName', 'name', 'total24h', 'change_7d', 'chains', 'change_1d', 'change_1m', 'volumetvl', 'dominance'],
-	900: ['displayName', 'name', 'chains', 'change_1d', 'change_7d', 'change_1m', 'total24h', 'volumetvl', 'dominance']
+	0: [
+		'displayName',
+		'name',
+		'total24h',
+		'change_7d',
+		'chains',
+		'change_1d',
+		'change_1m',
+		'totalAllTime',
+		'volumetvl',
+		'dominance'
+	],
+	900: [
+		'displayName',
+		'name',
+		'chains',
+		'change_1d',
+		'change_7d',
+		'change_1m',
+		'total24h',
+		'totalAllTime',
+		'volumetvl',
+		'dominance'
+	]
 })
 
 export const volumesColumnSizes = {
@@ -121,6 +146,7 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'total1dRevenue',
 		'change_1d',
 		'change_1m',
+		'totalAllTime',
 		'mcaptvl'
 	],
 	400: [
@@ -132,6 +158,7 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'total1dRevenue',
 		'change_1d',
 		'change_1m',
+		'totalAllTime',
 		'mcaptvl'
 	]
 })
