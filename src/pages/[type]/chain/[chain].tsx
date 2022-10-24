@@ -13,4 +13,4 @@ export async function getStaticPaths() {
 	return { paths: rawPaths.flat(), fallback: 'blocking' }
 }
 
-export { default, getStaticProps } from './../../[type]'
+export { default, getStaticProps } from '..'
