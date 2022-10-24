@@ -345,6 +345,15 @@ export const getPrevPeggedTotalFromChart = (chart, daysBefore, issuanceType, peg
 	return prevChart?.[issuanceType]?.[pegType] ?? null
 }
 
+export const getPrevVolumeFromChart = (chart, daysBefore, txs = false, inflows = false) => {
+	const prevChart = chart[chart.length - 1 - daysBefore]
+	if (!prevChart) return null
+	if (inflows) {
+		return prevChart.Deposits - prevChart.Withdrawals
+	}
+	return txs ? prevChart.txs : prevChart.volume
+}
+
 export function download(filename, text) {
 	var element = document.createElement('a')
 	element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))
