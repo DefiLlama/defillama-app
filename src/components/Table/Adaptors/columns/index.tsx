@@ -26,6 +26,8 @@ export const getColumnsByType = (type: string) => {
 			return volumesColumns
 		case 'fees':
 			return feesColumns
+		case 'incentives':
+			return incentivesColumns
 		default:
 			return volumesColumns
 	}
@@ -61,6 +63,15 @@ export const volumesColumns: ColumnDef<IDexsRow>[] = [
 	TotalAllTimeColumn('volume'),
 	VolumeTVLColumn,
 	DominanceColumn
+]
+
+export const incentivesColumns: ColumnDef<IDexsRow>[] = [
+	NameColumn('incentives'),
+	ChainsColumn('incentives'),
+	Change1dColumn,
+	Change7dColumn,
+	Change1mColumn,
+	Total24hColumn('incentives', undefined, `Yesterday's volume, updated daily at 00:00UTC`)
 ]
 
 export const feesColumns: ColumnDef<IDexsRow>[] = [
