@@ -324,5 +324,7 @@ export const lockupsCollateral = [
 	'Centrifuge',
 	'UniCrypt',
 	'Osmosis',
-	'HedgeFarm'
+	'HedgeFarm',
+	'BarnBridge',
+	'WOOFi'
 ]
