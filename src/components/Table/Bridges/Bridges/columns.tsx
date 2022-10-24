@@ -238,8 +238,18 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 		accessorKey: 'symbol',
 		cell: ({ getValue }) => {
 			const value = getValue() as string
+			const splitValue = value.split('#')
+			const [symbol, token] = splitValue
+			const { blockExplorerLink } = getBlockExplorer(token)
 			if (value) {
-				return <>{value}</>
+				return (
+					<a href={blockExplorerLink} target="_blank" rel="noopener noreferrer">
+						<AutoRow as="span" gap="0px" justify="end">
+							{symbol}
+							<ExternalLink size={10} />
+						</AutoRow>
+					</a>
+				)
 			} else return <>Not found</>
 		},
 		size: 100,
@@ -412,7 +422,7 @@ export const bridgeChainsColumnOrders = formatColumnOrder({
 })
 
 export const largeTxsColumnOrders = formatColumnOrder({
-	0: ['date', 'symbol', 'isDeposit', 'usdValue', 'bridge', 'txHash'],
+	0: ['date', 'symbol', 'usdValue', 'isDeposit', 'bridge', 'txHash'],
 	1024: ['date', 'bridge', 'isDeposit', 'symbol', 'usdValue', 'txHash']
 })
 
@@ -491,7 +501,7 @@ export const bridgeChainsColumnSizes = {
 
 export const largeTxsColumnSizes = {
 	0: {
-		date: 100,
+		date: 120,
 		bridge: 140,
 		usdValue: 120,
 		isDeposit: 140,
@@ -499,7 +509,7 @@ export const largeTxsColumnSizes = {
 		txHash: 160
 	},
 	480: {
-		date: 100,
+		date: 120,
 		bridge: 140,
 		usdValue: 120,
 		isDeposit: 140,

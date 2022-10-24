@@ -126,7 +126,16 @@ export async function getBridgeOverviewPageData(chain) {
 	}
 
 	const secondsInDay = 3600 * 24
-	const largeTxsData = await getLargeTransactionsData(chain, currentTimestamp - 7 * secondsInDay, currentTimestamp)
+	const unformattedLargeTxsData = await getLargeTransactionsData(
+		chain,
+		currentTimestamp - 7 * secondsInDay,
+		currentTimestamp
+	)
+	const largeTxsData = unformattedLargeTxsData.map((transaction) => {
+		const { token, symbol } = transaction
+		const symbolAndTokenForExplorer = `${symbol}#${token}`
+		return { ...transaction, symbol: symbolAndTokenForExplorer }
+	})
 
 	const filteredBridges = formatBridgesData({
 		bridges,
@@ -274,7 +283,7 @@ export async function getBridgePageData(bridge: string) {
 
 	const currentTimestamp = Math.floor(new Date().getTime() / 1000)
 	// 25 hours behind current time, gives 1 hour for BRIDGEDAYSTATS to update, may change this
-	const prevDayTimestamp = currentTimestamp - 86400 - 3600 
+	const prevDayTimestamp = currentTimestamp - 86400 - 3600
 	let prevDayDataByChain = []
 	prevDayDataByChain = await Promise.all(
 		chains.map(async (chain) => {
