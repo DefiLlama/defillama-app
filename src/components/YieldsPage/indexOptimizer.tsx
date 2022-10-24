@@ -24,9 +24,6 @@ const SearchWrapper = styled.div`
 `
 
 const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, categoryList }) => {
-	// lend & borrow from query are uppercase only. symbols in pools are mixed case though -> without
-	// setting to uppercase, we only show subset of available pools when applying `findOptimzerPools`
-	pools = pools.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 	const { query, pathname } = useRouter()
 
 	const { lend, borrow } = query

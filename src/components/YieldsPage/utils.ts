@@ -303,8 +303,9 @@ export const filterPool = ({ pool, selectedChains, selectedAttributes, selectedP
 	}
 
 	if (
-		!selectedProjects?.includes(pool.project.toLowerCase()) ||
-		!selectedProjects?.includes(pool.farmProject.toLowerCase())
+		selectedProjects &&
+		(!selectedProjects?.includes(pool.project.toLowerCase()) ||
+			!selectedProjects?.includes(pool.farmProject.toLowerCase()))
 	) {
 		toFilter = false
 	} else {
