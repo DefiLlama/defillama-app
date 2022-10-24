@@ -25,14 +25,12 @@ export const getOverviewItem = (
 	dataType?: string
 ): Promise<ProtocolAdaptorSummaryResponse> =>
 	fetch(
-		`${ADAPTORS_SUMMARY_BASE_API}/${type}/${protocolName}/?excludeTotalDataChartBreakdown=true${
-			dataType ? `&dataType=${dataType}` : ''
+		`${ADAPTORS_SUMMARY_BASE_API}/${type}/${protocolName}/?excludeTotalDataChartBreakdown=true${dataType ? `&dataType=${dataType}` : ''
 		}`
 	).then((r) => r.json())
 export const getOverview = (type: string, chain?: string, dataType?: string): Promise<IGetOverviewResponseBody> =>
 	fetch(
-		`${ADAPTORS_BASE_API}/${type}/${chain ?? ''}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true${
-			dataType ? `&dataType=${dataType}` : ''
+		`${ADAPTORS_BASE_API}/${type}/${chain ?? ''}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true${dataType ? `&dataType=${dataType}` : ''
 		}`
 	).then((r) => r.json())
 
@@ -108,14 +106,14 @@ export const getChainPageData = async (type: string, chain?: string) => {
 		chains: protocol.chains,
 		subRows: protocol.protocolsStats
 			? Object.entries(protocol.protocolsStats)
-					.map(([versionName, summary]) => ({
-						...protocol,
-						name: `${protocol.name} - ${versionName.toUpperCase()}`,
-						displayName: `${protocol.name} - ${versionName.toUpperCase()}`,
-						...summary,
-						revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? 0
-					}))
-					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
+				.map(([versionName, summary]) => ({
+					...protocol,
+					name: `${protocol.name} - ${versionName.toUpperCase()}`,
+					displayName: `${protocol.name} - ${versionName.toUpperCase()}`,
+					...summary,
+					revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? 0
+				}))
+				.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
 			: null
 	}))
 
