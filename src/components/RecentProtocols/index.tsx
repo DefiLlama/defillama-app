@@ -49,12 +49,15 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 					toFilter = !forkedList[protocol.name]
 				}
 
+				let includesChain = false
 				protocol.chains.forEach((chain) => {
-					// filter if a protocol has atleast of one selected chain
-					if (toFilter) {
-						toFilter = _chainsToSelect.includes(chain.toLowerCase())
+					// filter if a protocol has at least of one selected chain
+					if (!includesChain) {
+						includesChain = _chainsToSelect.includes(chain.toLowerCase())
 					}
 				})
+
+				toFilter = toFilter && includesChain
 
 				return toFilter
 			})
