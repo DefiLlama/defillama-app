@@ -24,26 +24,6 @@ const HeaderWrapper = styled(Header)`
 `
 
 function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, formattedVolumeChartData }) {
-	
-	/*
-	const downloadCsv = () => {
-		const filteredPeggedNames = peggedAssetNames.filter((name, i) => filteredIndexes.includes(i))
-		const rows = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...filteredPeggedNames.map((peggedAsset) => day[peggedAsset] ?? ''),
-					filteredPeggedNames.reduce((acc, curr) => {
-						return (acc += day[curr] ?? 0)
-					}, 0)
-				])
-			})
-		download('stablecoins.csv', rows.map((r) => r.join(',')).join('\n'))
-	}
-	*/
 
 	return (
 		<>

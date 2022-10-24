@@ -38,11 +38,6 @@ const SmolHints = styled.div`
 	opacity: 0.6;
 `
 
-const barChartColors = {
-	'Bridged To': '#4f8fea',
-	'Bridged From': '#E59421'
-}
-
 export default function BridgeContainer({
 	displayName,
 	chains,
@@ -185,25 +180,6 @@ export default function BridgeContainer({
 		return { currentDepositsUSD, currentWithdrawalsUSD, volPercentChange, volumeChartData }
 	}, [chainToChartDataIndex, bridgeChartDataByChain, currentChain])
 
-	/*
-	const downloadCsv = () => {
-		const rows = [['Timestamp', 'Date', ...chainsUnique, 'Total']]
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...chainsUnique.map((chain) => day[chain] ?? ''),
-					chainsUnique.reduce((acc, curr) => {
-						return (acc += day[curr] ?? 0)
-					}, 0)
-				])
-			})
-		download('stablecoinsChains.csv', rows.map((r) => r.join(',')).join('\n'))
-	}
-	*/
-
 	const chainOptions = chains.map((chain) => {
 		return { name: chain, route: '' }
 	})
@@ -293,14 +269,6 @@ export default function BridgeContainer({
 							chartOptions={volumeChartOptions}
 						/>
 					)}
-					{/*chartType === 'Volume' && volumeChartData && volumeChartData.length > 0 && (
-						<BarChart
-							chartData={volumeChartData}
-							title={'Bridge Volume'}
-							stacks={{ 'Bridged To': 'a', 'Bridged From': 'a' }}
-							stackColors={barChartColors}
-						/>
-					)*/}
 					{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 && (
 						<PeggedChainResponsivePie data={tokenWithdrawals} chainColor={tokenColor} aspect={aspect} />
 					)}

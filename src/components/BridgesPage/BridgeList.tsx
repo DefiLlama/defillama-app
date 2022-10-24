@@ -8,7 +8,7 @@ import { PeggedChainResponsivePie } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
-import { BridgesSearch, BridgesSearchWithBreakdown } from '../Search/Bridges'
+import { BridgesSearchWithBreakdown } from '../Search/Bridges'
 import { ChartSelector } from '~/components/PeggedPage/.'
 import { BridgesTable } from '~/components/Table'
 import { LargeTxsTable } from './LargeTxsTable'
@@ -109,26 +109,6 @@ function BridgesOverview({
 			),
 		[tokenDeposits, tokenWithdrawals]
 	)
-
-	/*
-	const downloadCsv = () => {
-		const filteredPeggedNames = peggedAssetNames.filter((name, i) => filteredIndexes.includes(i))
-		const rows = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...filteredPeggedNames.map((peggedAsset) => day[peggedAsset] ?? ''),
-					filteredPeggedNames.reduce((acc, curr) => {
-						return (acc += day[curr] ?? 0)
-					}, 0)
-				])
-			})
-		download('stablecoins.csv', rows.map((r) => r.join(',')).join('\n'))
-	}
-	*/
 
 	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = useMemo(() => {
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
