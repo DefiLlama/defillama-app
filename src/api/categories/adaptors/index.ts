@@ -50,7 +50,6 @@ export const getOverviewItemPageData = async (
 	const label = type === 'volumes' ? upperCaseFirst('volume') : upperCaseFirst(type)
 	const allCharts: IChartsList = []
 	if (item.totalDataChart) allCharts.push([label, item.totalDataChart])
-
 	let revenue: ProtocolAdaptorSummaryResponse
 	if (type === 'fees') revenue = await getOverviewItem(type, protocolName, 'dailyRevenue')
 	if (revenue?.totalDataChart) allCharts.push(['Revenue', revenue.totalDataChart])
@@ -89,33 +88,30 @@ export const getChainPageData = async (type: string, chain?: string) => {
 	if (totalDataChart) allCharts.push([upperCaseFirst(type), totalDataChart])
 
 	let revenue: IGetOverviewResponseBody
-	if (type === 'fees')
-		revenue = (await fetch(getAPIUrl(type, chain, true, true, 'dailyRevenue')).then((res) =>
-			res.json()
-		)) as IGetOverviewResponseBody
-	const revenueProtocols = revenue?.protocols.reduce(
-		(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-		{} as IJSON<ProtocolAdaptorSummary>
-	)
-
-	const protocolsWithSubrows = protocols.map((protocol) => ({
-		...protocol,
-		revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? 0,
-		volumetvl: protocol.total24h / tvlData[protocol.name],
-		dominance: (100 * protocol.total24h) / total24h,
-		chains: protocol.chains,
-		subRows: protocol.protocolsStats
-			? Object.entries(protocol.protocolsStats)
-				.map(([versionName, summary]) => ({
-					...protocol,
-					name: `${protocol.name} - ${versionName.toUpperCase()}`,
-					displayName: `${protocol.name} - ${versionName.toUpperCase()}`,
-					...summary,
-					revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? 0
-				}))
-				.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
-			: null
-	}))
+	if (type === 'fees') revenue = ((await fetch(getAPIUrl(type, chain, true, true, 'dailyRevenue')).then((res) => res.json())) as IGetOverviewResponseBody)
+	const revenueProtocols = revenue?.protocols.reduce((acc, protocol) => ({ ...acc, [protocol.name]: protocol }), {} as IJSON<ProtocolAdaptorSummary>)
+	const protocolsWithSubrows = protocols.map((protocol) => {
+		const volumetvl = protocol.total24h / (tvlData[protocol.name] ?? (sumTVLProtocols(protocol.name, Object.keys(protocol.protocolsStats ?? {}), tvlData)))
+		return {
+			...protocol,
+			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? 0,
+			volumetvl,
+			dominance: (100 * protocol.total24h) / total24h,
+			chains: protocol.chains,
+			subRows: protocol.protocolsStats
+				? Object.entries(protocol.protocolsStats)
+					.map(([versionName, summary]) => ({
+						...protocol,
+						name: `${protocol.name} ${versionName.toUpperCase()}`,
+						displayName: `${protocol.name} ${versionName.toUpperCase()}`,
+						...summary,
+						totalAllTime: null,
+						revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? 0
+					}))
+					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
+				: null
+		}
+	})
 
 	/* 	if (revenue?.totalDataChart)
 			allCharts.push(["Revenue", revenue.totalDataChart]) */
@@ -132,6 +128,12 @@ export const getChainPageData = async (type: string, chain?: string) => {
 		totalDataChartBreakdown,
 		allChains
 	}
+}
+
+const sumTVLProtocols = (protocolName: string, versions: string[], tvlData: IJSON<number>) => {
+	return versions.reduce((acc, version) => {
+		return acc += tvlData[`${protocolName} ${version.toUpperCase()}`]
+	}, 0)
 }
 
 type IChartsList = Array<[string, IGetOverviewResponseBody['totalDataChart']]>
