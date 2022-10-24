@@ -226,7 +226,7 @@ export async function getLendBorrowData() {
 	}
 }
 
-export function calculateLoopAPY(lendBorrowPools, levels = 1) {
+export function calculateLoopAPY(lendBorrowPools, levels = 10) {
 	let pools = lendBorrowPools.filter((p) => p.ltv > 0)
 
 	return pools
