@@ -76,7 +76,7 @@ export const ProtocolChart = ({
 	totalAllTime
 }: IDexChartsProps) => {
 	const typeString = type === 'volumes' ? 'Volumes' : upperCaseFirst(type)
-	const typeSimple = type === 'volumes' ? 'volume' : type
+	const typeSimple = type === 'volumes' || type === 'derivatives' ? 'volume' : type
 	return (
 		<StatsSection>
 			{!fullChart && (
