@@ -28,27 +28,17 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 	}
 }
 
+export const types = ['fees', 'aggregators', 'volumes', 'derivatives', 'incentives']
 export async function getStaticPaths() {
-	const { protocols: arrFees } = await getOverview('fees')
-	const { protocols: arrAggreg } = await getOverview('aggregators')
-	const { protocols: arrVols } = await getOverview('volumes')
-	const { protocols: arrDeri } = await getOverview('derivatives')
-	const paths = [
-		...arrFees.map((protocol) => ({
-			params: { type: 'fees', item: standardizeProtocolName(protocol.name) }
-		})),
-		...arrAggreg.map((protocol) => ({
-			params: { type: 'aggregators', item: standardizeProtocolName(protocol.name) }
-		})),
-		...arrVols.map((protocol) => ({
-			params: { type: 'volumes', item: standardizeProtocolName(protocol.name) }
-		})),
-		...arrDeri.map((protocol) => ({
-			params: { type: 'derivatives', item: standardizeProtocolName(protocol.name) }
-		}))
-	]
-
-	return { paths, fallback: 'blocking' }
+	const rawPaths = await Promise.all(
+		types.map(async (type) => {
+			const { protocols } = await getOverview(type)
+			return protocols.map((protocol) => ({
+				params: { type, item: standardizeProtocolName(protocol.name) }
+			}))
+		})
+	)
+	return { paths: rawPaths.flat(), fallback: 'blocking' }
 }
 
 export default function ProtocolItem({ protocolSummary, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {
