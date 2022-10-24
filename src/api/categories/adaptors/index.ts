@@ -46,19 +46,34 @@ export const getOverviewItemPageData = async (
 	dataType?: string
 ): Promise<ProtocolAdaptorSummaryProps> => {
 	const item = await getOverviewItem(type, protocolName, dataType)
-
-	const label = type === 'volumes' ? upperCaseFirst('volume') : upperCaseFirst(type)
+	let label: string
+	if (type === 'volumes') {
+		label = "Volume"
+	} else if (type === 'derivatives') {
+		label = "Notionial volume"
+	} else {
+		label = upperCaseFirst(type)
+	}
 	const allCharts: IChartsList = []
 	if (item.totalDataChart) allCharts.push([label, item.totalDataChart])
-	let revenue: ProtocolAdaptorSummaryResponse
-	if (type === 'fees') revenue = await getOverviewItem(type, protocolName, 'dailyRevenue')
-	if (revenue?.totalDataChart) allCharts.push(['Revenue', revenue.totalDataChart])
+	let secondDimension: ProtocolAdaptorSummaryResponse
+	let secondLabel: string
+	if (type === 'fees') {
+		secondDimension = await getOverviewItem(type, protocolName, 'dailyRevenue')
+		secondLabel = "Revenue"
+	}
+	else if (type === 'derivatives') {
+		secondDimension = await getOverviewItem(type, protocolName, 'dailyPremiumVolume')
+		secondLabel = "Premium volume"
+	}
+	if (secondDimension?.totalDataChart)
+		allCharts.push([secondLabel, secondDimension.totalDataChart])
 
 	return {
 		...item,
-		revenue24h: revenue?.total24h ?? null,
+		revenue24h: secondDimension?.total24h ?? null,
 		type,
-		totalDataChart: joinCharts2(...allCharts)
+		totalDataChart: [joinCharts2(...allCharts), [label, secondLabel]],
 	}
 }
 
