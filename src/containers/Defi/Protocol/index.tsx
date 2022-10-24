@@ -40,13 +40,13 @@ import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
 import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName, toK } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, slug, standardizeProtocolName, toK } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 import { IFusedProtocolData } from '~/api/types'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { FeesBody } from '~/pages/fees/[protocol]'
+import { FeesBody } from '~/pages/fees.deprecated/[protocol]'
 import { DexCharts } from '~/containers/Dex/DexProtocol'
 import { useFetchProtocolDex } from '~/api/categories/dexs/client'
 import { useFetchProtocolFees } from '~/api/categories/fees/client'
@@ -122,11 +122,18 @@ interface IProtocolContainerProps {
 	protocol: string
 	protocolData: IFusedProtocolData
 	backgroundColor: string
+	similarProtocols: Array<{ name: string; tvl: number }>
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
 
-function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: IProtocolContainerProps) {
+function ProtocolContainer({
+	title,
+	protocolData,
+	protocol,
+	backgroundColor,
+	similarProtocols
+}: IProtocolContainerProps) {
 	useScrollToTop()
 	const {
 		address = '',
@@ -325,7 +332,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						</Link>
 					</StatWrapper>
 
-					{tvls.length > 1 && (
+					{tvls.length > 0 && (
 						<DetailsTable>
 							<caption>Chain Breakdown</caption>
 							<tbody>
@@ -439,6 +446,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						)}
 					</LinksWrapper>
 				</Section>
+
 				<Section>
 					<h3>Token Information</h3>
 
@@ -468,6 +476,7 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						)}
 					</LinksWrapper>
 				</Section>
+
 				<Section>
 					<h3>Methodology</h3>
 					{methodology && <p>{methodology}</p>}
@@ -482,7 +491,22 @@ function ProtocolContainer({ title, protocolData, protocol, backgroundColor }: I
 						)}
 					</LinksWrapper>
 				</Section>
+
+				{similarProtocols && similarProtocols.length > 0 && (
+					<Section>
+						<h3>Competitors</h3>
+
+						<LinksWrapper>
+							{similarProtocols.map((similarProtocol) => (
+								<Link href={`/protocol/${slug(similarProtocol.name)}`} passHref key={similarProtocol.name}>
+									<a target="_blank">{`${similarProtocol.name} ($${toK(similarProtocol.tvl)})`}</a>
+								</Link>
+							))}
+						</LinksWrapper>
+					</Section>
+				)}
 			</InfoWrapper>
+
 			{yeildsNumber > 0 && (
 				<InfoWrapper>
 					<Section>

@@ -1,13 +1,16 @@
 import Layout from '~/layout'
 import YieldPageOptimizer from '~/components/YieldsPage/indexOptimizer'
-import { revalidate } from '~/api'
+import { getCGMarketsDataURLs, revalidate } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'
 import pako from 'pako'
+import { arrayFetcher } from '~/utils/useSWR'
 
 export async function getStaticProps() {
 	const data = await getLendBorrowData()
 
-	const strData = JSON.stringify(data)
+	const yieldsList = await arrayFetcher(getCGMarketsDataURLs())
+
+	const strData = JSON.stringify({ yieldsList: yieldsList?.flat(), ...data })
 
 	const a = pako.deflate(strData)
 	const compressed = Buffer.from(a).toString('base64')

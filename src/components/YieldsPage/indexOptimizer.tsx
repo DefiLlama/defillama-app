@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { Panel } from '~/components'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import YieldsSearch from '~/components/Search/Yields/Optimizer'
-import { filterPool, findOptimizerPools, formatOptimizerPool, toFilterPool } from './utils'
+import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 import styled from 'styled-components'
 import YieldsOptimizerTable from '../Table/Yields/Optimizer'
 import { Header } from '~/Theme'
@@ -23,7 +23,10 @@ const SearchWrapper = styled.div`
 	}
 `
 
-const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) => {
+const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, categoryList }) => {
+	// lend & borrow from query are uppercase only. symbols in pools are mixed case though -> without
+	// setting to uppercase, we only show subset of available pools when applying `findOptimzerPools`
+	pools = pools.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 	const { query, pathname } = useRouter()
 
 	const { lend, borrow } = query
@@ -52,8 +55,8 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) =>
 				) : null}
 			</Header>
 			<SearchWrapper>
-				<YieldsSearch pathname={pathname} lend />
-				<YieldsSearch pathname={pathname} />
+				<YieldsSearch pathname={pathname} lend yieldsList={yieldsList} />
+				<YieldsSearch pathname={pathname} yieldsList={yieldsList} />
 			</SearchWrapper>
 
 			<TableFilters>
@@ -66,12 +69,19 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) =>
 				<YieldsOptimizerTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					Given a token to use for collateral and a token to borrow, this calculator will look at all the lending protocols<br/>
-					and calculate how much would it cost to borrow on each one, taking into account incentives, supply APR and borrow APR,<br/>
-					providing a list of all possible lending routes, their cost and LTV.<br/>
-					<br/>
-					This is similar to skyscanner for flights or 1inch for swaps, but for lending. It calculates the optimal lending route.<br/>
-					<br/>
+					Given a token to use for collateral and a token to borrow, this calculator will look at all the lending
+					protocols
+					<br />
+					and calculate how much would it cost to borrow on each one, taking into account incentives, supply APR and
+					borrow APR,
+					<br />
+					providing a list of all possible lending routes, their cost and LTV.
+					<br />
+					<br />
+					This is similar to skyscanner for flights or 1inch for swaps, but for lending. It calculates the optimal
+					lending route.
+					<br />
+					<br />
 					To start just select two tokens above.
 				</Panel>
 			)}

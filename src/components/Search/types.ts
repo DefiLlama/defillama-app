@@ -2,7 +2,14 @@ import { Dispatch, ReactNode } from 'react'
 
 export interface ISearchItem {
 	name: string
-	route: string
+	route:
+		| string
+		| {
+				pathname: string
+				query: {
+					[key: string]: string | Array<string>
+				}
+		  }
 	logo?: string
 	symbol?: string
 }
@@ -25,6 +32,7 @@ export interface IBaseSearchProps {
 	filters?: ReactNode
 	placeholder?: string
 	withValue?: boolean
+	value?: string | null
 }
 
 export interface ICommonSearchProps {

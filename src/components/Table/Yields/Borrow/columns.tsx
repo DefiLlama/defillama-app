@@ -6,6 +6,7 @@ import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import QuestionHelper from '~/components/QuestionHelper'
+import { lockupsRewards } from '~/components/YieldsPage/utils'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -87,6 +88,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{lockupsRewards.includes(row.original.project) ? (
+						<QuestionHelper
+							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
+						/>
+					) : row.original.project === '0vix' ? (
+						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
+					) : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"
@@ -160,6 +168,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 
 			return row.original.apyRewardBorrow > 0 ? (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{lockupsRewards.includes(row.original.project) ? (
+						<QuestionHelper
+							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
+						/>
+					) : row.original.project === '0vix' ? (
+						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
+					) : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"
@@ -282,7 +297,6 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 const columnOrders = {
 	0: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'apyBase',
@@ -297,7 +311,6 @@ const columnOrders = {
 	],
 	400: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'apyBase',
@@ -312,7 +325,6 @@ const columnOrders = {
 	],
 	640: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'apyBase',
@@ -327,7 +339,6 @@ const columnOrders = {
 	],
 	1280: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'apyBase',
@@ -344,22 +355,32 @@ const columnOrders = {
 
 export const columnSizes = {
 	0: {
-		pool: 120,
+		pool: 200,
 		project: 200,
 		chain: 60,
 		apyBase: 140,
+		apyReward: 160,
+		apyBorrow: 130,
 		apyBaseBorrow: 140,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120
+		apyRewardBorrow: 160,
+		ltv: 90,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 100,
+		totalAvailableUsd: 120
 	},
 	812: {
 		pool: 200,
 		project: 200,
 		chain: 60,
 		apyBase: 140,
+		apyReward: 160,
+		apyBorrow: 130,
 		apyBaseBorrow: 140,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120
+		apyRewardBorrow: 160,
+		ltv: 90,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 100,
+		totalAvailableUsd: 120
 	}
 }
 
