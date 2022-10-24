@@ -5,7 +5,7 @@ import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup } from '../shared'
-import { lockupsRewards, lockupsCollateral } from '~/components/YieldsPage/utils'
+import { lockupsRewards, lockupsCollateral, preminedRewards, badDebt } from '~/components/YieldsPage/utils'
 
 export const attributeOptions = [
 	{
@@ -97,7 +97,7 @@ export const attributeOptions = [
 		name: 'Exclude bad debt',
 		key: YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase(),
 		help: 'Remove projects with a bad debt ratio of >= 5% (5% of the tvl is bad debt from insolvent accounts)',
-		filterFn: (item) => !['moonwell-apollo', 'inverse-finance', 'venus', 'iron-bank'].includes(item.project),
+		filterFn: (item) => !badDebt.includes(item.project),
 		defaultFilterFnOnPage: {},
 		disabledOnPages: ['/yields', '/yields/stablecoins', '/yields/strategy']
 	},
@@ -123,7 +123,6 @@ export const attributeOptions = [
 		key: 'no_bad_debt_',
 		help: 'Remove projects with a bad debt ratio of >= 5% (5% of the tvl is bad debt from insolvent accounts)',
 		filterFn: (item) => {
-			const badDebt = ['moonwell-apollo', 'inverse-finance', 'venus', 'iron-bank']
 			return !badDebt.includes(item.project) && !badDebt.includes(item.farmProject)
 		},
 		defaultFilterFnOnPage: {},
@@ -137,7 +136,7 @@ export const attributeOptions = [
 		]
 	},
 	{
-		name: 'No Lockup on Rewards',
+		name: 'Exclude reward lockups',
 		key: YIELDS_SETTINGS.NO_LOCKUP_REWARDS.toLowerCase(),
 		help: 'Remove projects which apply an early exit penalty on token rewards',
 		filterFn: (item) => {
@@ -154,11 +153,28 @@ export const attributeOptions = [
 		]
 	},
 	{
-		name: 'No Lockup on Collateral',
+		name: 'Exclude deposit lockups',
 		key: YIELDS_SETTINGS.NO_LOCKUP_COLLATERAL.toLowerCase(),
-		help: 'Remove projects which require locking of collateral tokens',
+		help: 'Remove projects which require locking of deposit tokens',
 		filterFn: (item) => {
 			return !lockupsCollateral.includes(item.projectName) && !lockupsCollateral.includes(item.farmProjectName)
+		},
+		defaultFilterFnOnPage: {},
+		disabledOnPages: [
+			'/yields',
+			'/yields/overview',
+			'/yields/stablecoins',
+			'/yields/borrow',
+			'/yields/optimizer',
+			'/yields/loop'
+		]
+	},
+	{
+		name: 'Exclude premined rewards',
+		key: YIELDS_SETTINGS.NO_PREMINED_REWARDS.toLowerCase(),
+		help: 'Remove projects with premined token rewards',
+		filterFn: (item) => {
+			return !preminedRewards.includes(item.projectName) && !preminedRewards.includes(item.farmProjectName)
 		},
 		defaultFilterFnOnPage: {},
 		disabledOnPages: [
