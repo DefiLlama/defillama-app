@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { Panel } from '~/components'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import YieldsStrategyTable from '~/components/Table/Yields/Strategy'
-import { YieldAttributes, FiltersByChain, YieldProjects } from '~/components/Filters'
+import { YieldAttributes, FiltersByChain, YieldProjects, TVLRange, AvailableRange } from '~/components/Filters'
 import YieldsSearch from '~/components/Search/Yields/Optimizer'
 import { filterPool, findStrategyPools, formatOptimizerPool } from './utils'
 
@@ -42,6 +42,10 @@ const YieldsStrategyPage = ({ pools, projectList, yieldsList, chainList, categor
 
 	const lend = typeof query.lend === 'string' ? query.lend : null
 	const borrow = typeof query.borrow === 'string' ? query.borrow : null
+	const minTvl = typeof query.minTvl === 'string' ? query.minTvl : null
+	const maxTvl = typeof query.maxTvl === 'string' ? query.maxTvl : null
+	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
+	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
 
 	const { selectedChains, selectedAttributes, selectedProjects } = useFormatYieldQueryParams({
 		projectList,
@@ -54,11 +58,35 @@ const YieldsStrategyPage = ({ pools, projectList, yieldsList, chainList, categor
 
 	const poolsData = React.useMemo(() => {
 		let filteredPools = findStrategyPools(pools, lend, borrow, allPools, loopStrategies)
-			.filter((pool) => filterPool({ pool, selectedChains, selectedAttributes, selectedProjects }))
+			.filter((pool) =>
+				filterPool({
+					pool,
+					selectedChains,
+					selectedAttributes,
+					selectedProjects,
+					minTvl,
+					maxTvl,
+					minAvailable,
+					maxAvailable
+				})
+			)
 			.map(formatOptimizerPool)
 
 		return filteredPools
-	}, [pools, borrow, lend, selectedChains, selectedAttributes, selectedProjects, allPools, loopStrategies])
+	}, [
+		pools,
+		borrow,
+		lend,
+		selectedChains,
+		selectedAttributes,
+		selectedProjects,
+		allPools,
+		loopStrategies,
+		minTvl,
+		maxTvl,
+		minAvailable,
+		maxAvailable
+	])
 
 	return (
 		<>
@@ -98,6 +126,8 @@ const YieldsStrategyPage = ({ pools, projectList, yieldsList, chainList, categor
 				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
 				<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
 				<YieldAttributes pathname={pathname} />
+				<AvailableRange />
+				<TVLRange />
 			</TableFilters>
 
 			{poolsData.length > 0 ? (

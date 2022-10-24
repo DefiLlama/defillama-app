@@ -287,9 +287,22 @@ interface FilterPools {
 	selectedAttributes?: Array<string>
 	selectedProjects?: Array<string>
 	pool: YieldsData['props']['pools'][number]
+	minTvl?: string
+	maxTvl?: string
+	minAvailable?: string
+	maxAvailable?: string
 }
 
-export const filterPool = ({ pool, selectedChains, selectedAttributes, selectedProjects }: FilterPools) => {
+export const filterPool = ({
+	pool,
+	selectedChains,
+	selectedAttributes,
+	selectedProjects,
+	minTvl,
+	maxTvl,
+	minAvailable,
+	maxAvailable
+}: FilterPools) => {
 	let toFilter = selectedChains.map((chain) => chain.toLowerCase()).includes(pool.chain.toLowerCase())
 
 	if (selectedAttributes) {
@@ -310,6 +323,24 @@ export const filterPool = ({ pool, selectedChains, selectedAttributes, selectedP
 		toFilter = false
 	} else {
 		toFilter = toFilter && true
+	}
+
+	const isValidTvlRange =
+		(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
+
+	if (isValidTvlRange) {
+		toFilter = toFilter && (minTvl ? pool.farmTvlUsd > minTvl : true) && (maxTvl ? pool.tvlUsd < maxTvl : true)
+	}
+
+	const isValidAvailableRange =
+		(minAvailable !== undefined && !Number.isNaN(Number(minAvailable))) ||
+		(maxAvailable !== undefined && !Number.isNaN(Number(maxAvailable)))
+
+	if (isValidAvailableRange) {
+		toFilter =
+			toFilter &&
+			(minAvailable ? pool.borrow.totalAvailableUsd > minAvailable : true) &&
+			(maxAvailable ? pool.borrow.totalAvailableUsd < maxAvailable : true)
 	}
 
 	return toFilter
