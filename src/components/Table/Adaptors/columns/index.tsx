@@ -30,6 +30,8 @@ export const getColumnsByType = (type: string) => {
 			return incentivesColumns
 		case 'derivatives':
 			return derivativesColumns
+		case 'aggregators':
+			return aggregatorsColumns
 		default:
 			return volumesColumns
 	}
@@ -70,6 +72,18 @@ export const volumesColumns: ColumnDef<IDexsRow>[] = [
 export const derivativesColumns: ColumnDef<IDexsRow>[] = [
 	NameColumn('derivatives'),
 	ChainsColumn('derivatives'),
+	Change1dColumn,
+	Change7dColumn,
+	Change1mColumn,
+	Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+	TotalAllTimeColumn('volume'),
+	VolumeTVLColumn,
+	DominanceColumn
+]
+
+export const aggregatorsColumns: ColumnDef<IDexsRow>[] = [
+	NameColumn('aggregators'),
+	ChainsColumn('aggregators'),
 	Change1dColumn,
 	Change7dColumn,
 	Change1mColumn,
