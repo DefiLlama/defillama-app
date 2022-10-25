@@ -52,6 +52,8 @@ import { useFetchProtocolDex } from '~/api/categories/dexs/client'
 import { useFetchProtocolFees } from '~/api/categories/fees/client'
 import { useYields } from '~/api/categories/yield/client'
 
+const scams = ["Drachma Exchange", "StableDoin"]
+
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
@@ -308,7 +310,7 @@ function ProtocolContainer({
 				)}
 
 				<DetailsWrapper style={{ borderTopLeftRadius: otherProtocols?.length > 1 ? 0 : '12px' }}>
-					{name === 'Drachma Exchange' && <p>There's been multiple hack reports in this protocol</p>}
+					{scams.includes(name) && <p>There's been multiple hack reports in this protocol</p>}
 
 					<Name>
 						<TokenLogo logo={logo} size={24} />
