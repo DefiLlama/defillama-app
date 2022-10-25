@@ -105,7 +105,11 @@ export const VolumeTVLColumn = {
 	header: 'Volume/TVL',
 	accessorKey: 'volumetvl',
 	enableSorting: true,
-	cell: (info) => <>{formattedNum(info.getValue())}</>,
+	cell: (info) => {
+		const fNum = formattedNum(info.getValue())
+		if (Number.isNaN(fNum)) return <></>
+		return <>{fNum}</>
+	},
 	size: 140,
 	meta: {
 		align: 'end' as 'end',
