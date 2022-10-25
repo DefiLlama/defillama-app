@@ -25,16 +25,20 @@ interface IChainData {
 	[key: string]: string | number
 }
 
+// export async function getStaticPaths() {
+// 	// TODO replace chain and date
+// 	const res = await fetch(`${USER_METRICS_CHAIN_API_BY_DATE}/ethereum?day=2022-08-20`).then((res) => res.json())
+
+// 	const paths: string[] =
+// 		res.protocols?.slice(0, 30).map(({ adaptor }) => ({
+// 			params: { protocol: [standardizeProtocolName(adaptor)] }
+// 		})) ?? []
+
+// 	return { paths, fallback: 'blocking' }
+// }
+
 export async function getStaticPaths() {
-	// TODO replace chain and date
-	const res = await fetch(`${USER_METRICS_CHAIN_API_BY_DATE}/ethereum?day=2022-08-20`).then((res) => res.json())
-
-	const paths: string[] =
-		res.protocols?.slice(0, 30).map(({ adaptor }) => ({
-			params: { protocol: [standardizeProtocolName(adaptor)] }
-		})) ?? []
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export async function getStaticProps({

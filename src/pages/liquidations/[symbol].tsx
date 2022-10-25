@@ -39,14 +39,18 @@ export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartDa
 	}
 }
 
-export const getStaticPaths: GetStaticPaths = async () => {
-	const { assets } = await getAvailableAssetsList()
-	const paths = assets
-		.map((x) => (x.route as string).split('/').pop())
-		.map((x) => ({
-			params: { symbol: x.toLowerCase() }
-		}))
-	return { paths, fallback: 'blocking' }
+// export const getStaticPaths: GetStaticPaths = async () => {
+// 	const { assets } = await getAvailableAssetsList()
+// 	const paths = assets
+// 		.map((x) => (x.route as string).split('/').pop())
+// 		.map((x) => ({
+// 			params: { symbol: x.toLowerCase() }
+// 		}))
+// 	return { paths, fallback: 'blocking' }
+// }
+
+export async function getStaticPaths() {
+	return { paths: [], fallback: 'blocking' }
 }
 
 export const LiquidationsContext = React.createContext<{

@@ -23,18 +23,22 @@ export async function getStaticProps({ params: { fork } }) {
 	}
 }
 
+// export async function getStaticPaths() {
+// 	const { forks = {} } = await getForkPageData()
+
+// 	const forksList = Object.keys(forks)
+
+// 	const paths = forksList.slice(0, 10).map((fork) => {
+// 		return {
+// 			params: { fork }
+// 		}
+// 	})
+
+// 	return { paths, fallback: 'blocking' }
+// }
+
 export async function getStaticPaths() {
-	const { forks = {} } = await getForkPageData()
-
-	const forksList = Object.keys(forks)
-
-	const paths = forksList.slice(0, 10).map((fork) => {
-		return {
-			params: { fork }
-		}
-	})
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {

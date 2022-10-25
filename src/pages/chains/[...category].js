@@ -17,29 +17,33 @@ export async function getStaticProps({
 	}
 }
 
+// export async function getStaticPaths() {
+// 	const { chainCoingeckoIds = {} } = await fetch(CONFIG_API).then((res) => res.json())
+
+// 	const categories = ['All', 'Non-EVM']
+// 	for (const chain in chainCoingeckoIds) {
+// 		chainCoingeckoIds[chain].categories?.forEach((category) => {
+// 			if (!categories.includes(category)) {
+// 				categories.push(category)
+// 			}
+// 		})
+
+// 		const parentChain = chainCoingeckoIds[chain].parent?.chain
+
+// 		if (parentChain && !categories.includes(parentChain)) {
+// 			categories.push(parentChain)
+// 		}
+// 	}
+
+// 	const paths = categories.map((category) => ({
+// 		params: { category: [category] }
+// 	}))
+
+// 	return { paths, fallback: 'blocking' }
+// }
+
 export async function getStaticPaths() {
-	const { chainCoingeckoIds = {} } = await fetch(CONFIG_API).then((res) => res.json())
-
-	const categories = ['All', 'Non-EVM']
-	for (const chain in chainCoingeckoIds) {
-		chainCoingeckoIds[chain].categories?.forEach((category) => {
-			if (!categories.includes(category)) {
-				categories.push(category)
-			}
-		})
-
-		const parentChain = chainCoingeckoIds[chain].parent?.chain
-
-		if (parentChain && !categories.includes(parentChain)) {
-			categories.push(parentChain)
-		}
-	}
-
-	const paths = categories.map((category) => ({
-		params: { category: [category] }
-	}))
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Chains(props) {

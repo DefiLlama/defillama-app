@@ -16,13 +16,17 @@ export async function getStaticProps({ params }) {
 	}
 }
 
-export async function getStaticPaths() {
-	const res = await getDexs()
-	const paths = res.allChains.map((chain) => ({
-		params: { chain: chain.toLowerCase() }
-	}))
+// export async function getStaticPaths() {
+// 	const res = await getDexs()
+// 	const paths = res.allChains.map((chain) => ({
+// 		params: { chain: chain.toLowerCase() }
+// 	}))
 
-	return { paths, fallback: 'blocking' }
+// 	return { paths, fallback: 'blocking' }
+// }
+
+export async function getStaticPaths() {
+	return { paths: [], fallback: 'blocking' }
 }
 
 const Chains: React.FC<IDexsContainer> = (props) => {

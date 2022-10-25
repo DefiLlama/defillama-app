@@ -31,14 +31,18 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 	}
 }
 
+// export async function getStaticPaths() {
+// 	const res = await getDexs()
+
+// 	const paths = res.dexs.map((dex) => ({
+// 		params: { dex: [standardizeProtocolName(dex.name)] }
+// 	}))
+
+// 	return { paths, fallback: 'blocking' }
+// }
+
 export async function getStaticPaths() {
-	const res = await getDexs()
-
-	const paths = res.dexs.map((dex) => ({
-		params: { dex: [standardizeProtocolName(dex.name)] }
-	}))
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Dexs({ dexData, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {

@@ -23,18 +23,22 @@ export async function getStaticProps({ params: { oracle } }) {
 	}
 }
 
+// export async function getStaticPaths() {
+// 	const { oracles = {} } = await getOraclePageData()
+
+// 	const oraclesList = Object.keys(oracles)
+
+// 	const paths = oraclesList.slice(0, 10).map((oracle) => {
+// 		return {
+// 			params: { oracle }
+// 		}
+// 	})
+
+// 	return { paths, fallback: 'blocking' }
+// }
+
 export async function getStaticPaths() {
-	const { oracles = {} } = await getOraclePageData()
-
-	const oraclesList = Object.keys(oracles)
-
-	const paths = oraclesList.slice(0, 10).map((oracle) => {
-		return {
-			params: { oracle }
-		}
-	})
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {

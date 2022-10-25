@@ -1,6 +1,6 @@
 import Layout from '~/layout'
 import { revalidate } from '~/api'
-import BridgeList from "~/components/BridgesPage/BridgeList"
+import BridgeList from '~/components/BridgesPage/BridgeList'
 import { getBridgeOverviewPageData, getBridges } from '~/api/categories/bridges'
 
 export async function getStaticProps({
@@ -22,20 +22,24 @@ export async function getStaticProps({
 	*/
 	return {
 		props: {
-			...props,
+			...props
 		},
 		revalidate: revalidate()
 	}
 }
 
+// export async function getStaticPaths() {
+// 	const { chains } = await getBridges()
+
+// 	const paths = chains.slice(0, 20).map((chain) => ({
+// 		params: { chain: [chain.name] }
+// 	}))
+
+// 	return { paths, fallback: 'blocking' }
+// }
+
 export async function getStaticPaths() {
-	const { chains } = await getBridges()
-
-	const paths = chains.slice(0, 20).map((chain) => ({
-		params: { chain: [chain.name] }
-	}))
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Bridges({

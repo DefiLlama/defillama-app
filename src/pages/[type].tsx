@@ -20,12 +20,16 @@ export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 	}
 }
 
-export async function getStaticPaths() {
-	const paths = ['fees' /* , 'volumes' */].map((type) => ({
-		params: { type }
-	}))
+// export async function getStaticPaths() {
+// 	const paths = ['fees' /* , 'volumes' */].map((type) => ({
+// 		params: { type }
+// 	}))
 
-	return { paths, fallback: 'blocking' }
+// 	return { paths, fallback: 'blocking' }
+// }
+
+export async function getStaticPaths() {
+	return { paths: [], fallback: 'blocking' }
 }
 
 const AllChainsDexs = (props: IOverviewContainerProps) => {

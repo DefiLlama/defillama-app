@@ -81,14 +81,18 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 	}
 }
 
+// export async function getStaticPaths() {
+// 	const res = await getProtocols()
+
+// 	const paths: string[] = res.protocols.slice(0, 30).map(({ name }) => ({
+// 		params: { protocol: [standardizeProtocolName(name)] }
+// 	}))
+
+// 	return { paths, fallback: 'blocking' }
+// }
+
 export async function getStaticPaths() {
-	const res = await getProtocols()
-
-	const paths: string[] = res.protocols.slice(0, 30).map(({ name }) => ({
-		params: { protocol: [standardizeProtocolName(name)] }
-	}))
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Protocols({ protocolData, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {

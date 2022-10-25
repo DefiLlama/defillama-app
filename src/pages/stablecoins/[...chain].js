@@ -29,14 +29,18 @@ export async function getStaticProps({
 	}
 }
 
+// export async function getStaticPaths() {
+// 	const { chains } = await getPeggedAssets()
+
+// 	const paths = chains.slice(0, 20).map((chain) => ({
+// 		params: { chain: [chain.name] }
+// 	}))
+
+// 	return { paths, fallback: 'blocking' }
+// }
+
 export async function getStaticPaths() {
-	const { chains } = await getPeggedAssets()
-
-	const paths = chains.slice(0, 20).map((chain) => ({
-		params: { chain: [chain.name] }
-	}))
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function PeggedAssets({

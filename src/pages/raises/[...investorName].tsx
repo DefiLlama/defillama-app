@@ -56,12 +56,16 @@ export async function getStaticProps({
 	}
 }
 
+// export async function getStaticPaths() {
+// 	const data = await fetch(RAISES_API).then((r) => r.json())
+
+// 	const { investors } = getRaisesFiltersList(data)
+
+// 	return { paths: investors.map((i) => ({ params: { investorName: [slug(i.toLowerCase())] } })), fallback: 'blocking' }
+// }
+
 export async function getStaticPaths() {
-	const data = await fetch(RAISES_API).then((r) => r.json())
-
-	const { investors } = getRaisesFiltersList(data)
-
-	return { paths: investors.map((i) => ({ params: { investorName: [slug(i.toLowerCase())] } })), fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 const Raises = (props) => {

@@ -10,14 +10,7 @@ export async function getStaticProps({
 	}
 }) {
 	const data = await getBridgePageData(bridge)
-	const {
-		displayName,
-		chains,
-		defaultChain,
-		chainToChartDataIndex,
-		bridgeChartDataByChain,
-		prevDayDataByChain
-	} = data
+	const { displayName, chains, defaultChain, chainToChartDataIndex, bridgeChartDataByChain, prevDayDataByChain } = data
 	/*
 	const backgroundColor = await getPeggedColor({
 		peggedAsset: peggedAssetData.name
@@ -37,14 +30,18 @@ export async function getStaticProps({
 	}
 }
 
+// export async function getStaticPaths() {
+// 	const res = await getBridges()
+
+// 	const paths = res.bridges.map(({ displayName }) => ({
+// 		params: { bridge: [standardizeProtocolName(displayName)] }
+// 	}))
+
+// 	return { paths, fallback: 'blocking' }
+// }
+
 export async function getStaticPaths() {
-	const res = await getBridges()
-
-	const paths = res.bridges.map(({ displayName }) => ({
-		params: { bridge: [standardizeProtocolName(displayName)] }
-	}))
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Bridge(props) {
