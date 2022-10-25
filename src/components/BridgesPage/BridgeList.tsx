@@ -2,7 +2,14 @@ import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BRIDGES_SHOWING_TXS, useBridgesManager } from '~/contexts/LocalStorage'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
+import {
+	BreakpointPanel,
+	BreakpointPanels,
+	ChartAndValuesWrapper,
+	PanelHiddenMobile,
+	DownloadButton,
+	DownloadIcon
+} from '~/components'
 import { Header } from '~/Theme'
 import { PeggedChainResponsivePie } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
@@ -15,7 +22,7 @@ import { LargeTxsTable } from './LargeTxsTable'
 import { TxsTableSwitch } from '../BridgesPage/TableSwitch'
 import { useBuildBridgeChartData } from '~/utils/bridges'
 import { useXl, useMed } from '~/hooks/useBreakpoints'
-import { getRandomColor, formattedNum, getPrevVolumeFromChart } from '~/utils'
+import { getRandomColor, formattedNum, getPrevVolumeFromChart, download, toNiceCsvDate } from '~/utils'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -100,6 +107,36 @@ function BridgesOverview({
 		})
 	}, [chainVolumeData])
 
+	const downloadCsv = () => {
+		const rows = [['Timestamp', 'Date', ...bridgeNames, 'Total']]
+		let stackedDatasetObject = {} as any
+		bridgeNames.map((bridgeName) => {
+			const chartDataIndex = bridgeNameToChartDataIndex[bridgeName]
+			const charts = chartDataByBridge[chartDataIndex]
+			charts.map((chart) => {
+				const date = chart.date
+				stackedDatasetObject[date] = stackedDatasetObject[date] || {}
+				stackedDatasetObject[date][bridgeName] = chart.volume
+			})
+		})
+		const stackedData = Object.entries(stackedDatasetObject).map((data:[string, object]) => {
+			return { date: parseInt(data[0]), ...data[1] }
+		})
+		stackedData
+			.sort((a, b) => a.date - b.date)
+			.forEach((day) => {
+				rows.push([
+					day.date,
+					toNiceCsvDate(day.date),
+					...bridgeNames.map((chain) => day[chain] ?? ''),
+					bridgeNames.reduce((acc, curr) => {
+						return (acc += day[curr] ?? 0)
+					}, 0)
+				])
+			})
+		download('bridge-volumes.csv', rows.map((r) => r.join(',')).join('\n'))
+	}
+
 	const tokenColor = useMemo(
 		() =>
 			Object.fromEntries(
@@ -147,6 +184,10 @@ function BridgesOverview({
 						<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
 							{formattedNum(dayTotalVolume, true)}
 						</p>
+						<DownloadButton as="button" onClick={downloadCsv}>
+							<DownloadIcon />
+							<span>&nbsp;&nbsp;.csv</span>
+						</DownloadButton>
 					</BreakpointPanel>
 					<PanelHiddenMobile>
 						<h1>Total volume (7d)</h1>

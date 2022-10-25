@@ -172,8 +172,8 @@ export default function BridgeContainer({
 		const volumeChartData = chainChartData.map((entry) => {
 			return {
 				date: entry.date,
-				'Bridged To': entry.withdrawUSD,
-				'Bridged From': -entry.depositUSD
+				'Deposited': entry.withdrawUSD,
+				'Withdrawn': -entry.depositUSD
 			}
 		})
 
@@ -209,7 +209,7 @@ export default function BridgeContainer({
 
 					<StatWrapper>
 						<Stat>
-							<span>Bridged to {currentChain} (24h)</span>
+							<span>Deposited to {currentChain} (24h)</span>
 							<span>{formattedNum(currentWithdrawalsUSD || '0', true)}</span>
 						</Stat>
 						{/*
@@ -222,7 +222,7 @@ export default function BridgeContainer({
 
 					<StatWrapper>
 						<Stat>
-							<span>Bridged from {currentChain} (24h)</span>
+							<span>Withdrawn from {currentChain} (24h)</span>
 							<span>{formattedNum(currentDepositsUSD || '0', true)}</span>
 						</Stat>
 					</StatWrapper>
@@ -264,8 +264,8 @@ export default function BridgeContainer({
 							title=""
 							hidedefaultlegend={true}
 							customLegendName="Volume"
-							customLegendOptions={['Bridged To', 'Bridged From']}
-							key={['Bridged To', 'Bridged From'] as any} // escape hatch to rerender state in legend options
+							customLegendOptions={['Deposited', 'Withdrawn']}
+							key={['Deposited', 'Withdrawn'] as any} // escape hatch to rerender state in legend options
 							chartOptions={volumeChartOptions}
 						/>
 					)}
