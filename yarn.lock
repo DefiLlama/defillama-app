@@ -1967,7 +1967,7 @@ ariakit-utils@0.17.0-next.26:
 
 ariakit@^2.0.0-next.41:
   version "2.0.0-next.41"
-  resolved "https://registry.npmjs.org/ariakit/-/ariakit-2.0.0-next.41.tgz"
+  resolved "https://registry.yarnpkg.com/ariakit/-/ariakit-2.0.0-next.41.tgz#ea23521c18c30dd5daf3f48976f879710d968dca"
   integrity sha512-79ACgnIofsC7ULirjz/dqjNCwUW9TmX7ULdCqHHrpJP1H+lw9vtpWv4eeuRAII2lsyfNtXmLnY6qZ1ZV3ucxmA==
   dependencies:
     "@floating-ui/dom" "^1.0.0"
