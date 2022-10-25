@@ -56,22 +56,22 @@ export const getOverviewItemPageData = async (
 	}
 	const allCharts: IChartsList = []
 	if (item.totalDataChart) allCharts.push([label, item.totalDataChart])
-	let secondDimension: ProtocolAdaptorSummaryResponse
+	let secondType: ProtocolAdaptorSummaryResponse
 	let secondLabel: string
 	if (type === 'fees') {
-		secondDimension = await getOverviewItem(type, protocolName, 'dailyRevenue')
+		secondType = await getOverviewItem(type, protocolName, 'dailyRevenue')
 		secondLabel = "Revenue"
 	}
 	else if (type === 'derivatives') {
-		secondDimension = await getOverviewItem(type, protocolName, 'dailyPremiumVolume')
+		secondType = await getOverviewItem(type, protocolName, 'dailyPremiumVolume')
 		secondLabel = "Premium volume"
 	}
-	if (secondLabel && secondDimension?.totalDataChart)
-		allCharts.push([secondLabel, secondDimension.totalDataChart])
+	if (secondLabel && secondType?.totalDataChart)
+		allCharts.push([secondLabel, secondType.totalDataChart])
 
 	return {
 		...item,
-		revenue24h: secondDimension?.total24h ?? null,
+		revenue24h: secondType?.total24h ?? null,
 		type,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 	}
