@@ -66,14 +66,14 @@ export const getOverviewItemPageData = async (
 		secondDimension = await getOverviewItem(type, protocolName, 'dailyPremiumVolume')
 		secondLabel = "Premium volume"
 	}
-	if (secondDimension?.totalDataChart)
+	if (secondLabel && secondDimension?.totalDataChart)
 		allCharts.push([secondLabel, secondDimension.totalDataChart])
 
 	return {
 		...item,
 		revenue24h: secondDimension?.total24h ?? null,
 		type,
-		totalDataChart: [joinCharts2(...allCharts), [label, secondLabel]],
+		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 	}
 }
 
