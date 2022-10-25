@@ -2,6 +2,7 @@ import * as React from 'react'
 import styled from 'styled-components'
 import { BridgesLargeTxsTable } from '~/components/Table'
 import { LargeTxsData } from '../Table/Bridges/Bridges/types'
+import { LargeTxDownloadButton } from './DownloadButton'
 
 const TableNoticeWrapper = styled.div`
 	margin-bottom: -1rem;
@@ -15,6 +16,7 @@ export const LargeTxsTable = (props:{ data: LargeTxsData[]}) => {
 					<i>
 						Displaying {props.data.length} transactions from the the past 7d
 					</i>
+				<LargeTxDownloadButton data={props.data} />
 				</SmolHints>
 			</TableNoticeWrapper>
 
@@ -29,6 +31,4 @@ export const SmolHints = styled.div`
 	flex-direction: row;
 	justify-content: flex-end;
 	align-items: center;
-	margin-top: -1rem;
-	opacity: 0.6;
 `
