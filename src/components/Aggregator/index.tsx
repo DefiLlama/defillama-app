@@ -27,6 +27,7 @@ Integrated:
 - yieldyak
 - https://defi.krystal.app/
 
+- rook
 - https://rubic.exchange/ - aggregates aggregators
 - https://twitter.com/RangoExchange - api key requested, bridge aggregator, aggregates aggregators on same chain
 - thorswap - aggregates aggregators that we already have
