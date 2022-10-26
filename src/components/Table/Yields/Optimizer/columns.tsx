@@ -313,7 +313,7 @@ export const columnSizes = {
 		borrowReward: 150,
 		ltv: 80,
 		totalSupplyUsd: 100,
-		totalBorrowUsd: 100
+		totalBorrowUsd: 120
 	}
 }
 

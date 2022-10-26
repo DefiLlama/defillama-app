@@ -73,7 +73,7 @@ export function useGetTokensSearchList({ lend, yields }): IGetSearchList {
 				symbol: el.symbol?.toUpperCase(),
 				route: {
 					pathname: router.pathname,
-					query: { [targetParam]: el.symbol.toUpperCase(), [restParam]: router.query[restParam] || '', ...queryParams }
+					query: { [targetParam]: el.symbol?.toUpperCase(), [restParam]: router.query[restParam] || '', ...queryParams }
 				},
 				logo: el.image
 			})) ?? []

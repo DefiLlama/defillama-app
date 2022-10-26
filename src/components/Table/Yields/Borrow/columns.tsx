@@ -365,8 +365,8 @@ export const columnSizes = {
 		apyBaseBorrow: 140,
 		apyRewardBorrow: 160,
 		ltv: 90,
-		totalSupplyUsd: 100,
-		totalBorrowUsd: 100,
+		totalSupplyUsd: 120,
+		totalBorrowUsd: 120,
 		totalAvailableUsd: 120
 	},
 	812: {
@@ -379,8 +379,8 @@ export const columnSizes = {
 		apyBaseBorrow: 140,
 		apyRewardBorrow: 160,
 		ltv: 90,
-		totalSupplyUsd: 100,
-		totalBorrowUsd: 100,
+		totalSupplyUsd: 120,
+		totalBorrowUsd: 120,
 		totalAvailableUsd: 120
 	}
 }

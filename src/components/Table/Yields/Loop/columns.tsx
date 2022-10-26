@@ -294,7 +294,7 @@ export const columnSizes = {
 		boost: 80,
 		ltv: 60,
 		totalSupplyUsd: 80,
-		totalBorrowUsd: 80,
+		totalBorrowUsd: 100,
 		totalAvailableUsd: 80
 	},
 	812: {
@@ -306,7 +306,7 @@ export const columnSizes = {
 		boost: 80,
 		ltv: 60,
 		totalSupplyUsd: 80,
-		totalBorrowUsd: 80,
+		totalBorrowUsd: 100,
 		totalAvailableUsd: 80
 	}
 }

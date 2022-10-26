@@ -39,7 +39,7 @@ export async function getYieldPageData() {
 			pricesList.push(
 				p.chain === 'Neo'
 					? [`coingecko:${p.project}`]
-					: p.rewardTokens.map((t) => `${priceChainName}:${t.toLowerCase()}`)
+					: p.rewardTokens.map((t) => `${priceChainName}:${t?.toLowerCase()}`)
 			)
 		}
 	}
@@ -81,7 +81,7 @@ export async function getYieldPageData() {
 				  ]
 				: [
 						...new Set(
-							p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
+							p.rewardTokens.map((t) => prices[`${priceChainName}:${t?.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
 						)
 				  ]
 	}
