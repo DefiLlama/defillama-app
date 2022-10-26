@@ -173,6 +173,7 @@ function init() {
 		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: true }), {}),
 		...NFT_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...LIQS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+		...BRIDGES_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME

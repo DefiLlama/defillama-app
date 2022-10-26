@@ -25,6 +25,7 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 }) as React.FC<IBarChartProps>
 
 const TableNoticeWrapper = styled.div`
+	margin-top: -2rem;
 	margin-bottom: -2rem;
 `
 
@@ -34,7 +35,6 @@ const SmolHints = styled.div`
 	flex-direction: row;
 	justify-content: flex-end;
 	align-items: center;
-	margin-top: -1rem;
 	opacity: 0.6;
 `
 

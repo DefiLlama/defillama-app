@@ -72,7 +72,7 @@ export function BridgesTable({ data }) {
 }
 
 export function BridgeChainsTable({ data }) {
-	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'prevDayUsdWithdrawals', desc: true }])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'prevDayNetFlow', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const windowSize = useWindowSize()
