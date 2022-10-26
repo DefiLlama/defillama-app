@@ -210,7 +210,10 @@ export async function getLendBorrowData() {
 
 	props.pools.forEach((pool) => {
 		projectsList.add(pool.projectName)
-		lendingProtocols.add(pool.projectName)
+		if (pool.category === 'Lending') {
+			lendingProtocols.add(pool.projectName)
+		}
+		farmProtocols.add(pool.projectName)
 
 		pool.rewardTokensNames?.forEach((rewardName) => {
 			projectsList.add(rewardName)
