@@ -24,7 +24,30 @@ const exclude = [
 	'Tinlake',
 	'Kuu Finance',
 	'COTI Treasury',
-	'Terra Bridge'
+	'Terra Bridge',
+	'Parallel Liquid Crowdloan',
+	'Parallel Liquid Staking',
+	'Parallel Lending',
+	'Parallel AMM',
+	'Parallel DAOfi',
+	'Algofi Lend',
+	'Algofi Swap',
+	'BNBMiner Finance',
+	'Gnosis Protocol v1',
+	'Multi-Chain Miner',
+	'Swap Cat',
+	'FLRLoans',
+	'Pando Leaf',
+	'Pando Rings',
+	'4Swap',
+	'REX Staking',
+	'Sapphire Mine',
+	'MM Stableswap',
+	'MM Stableswap Polygon',
+	'Sushi Furo',
+	'Sushi Trident',
+	'LlamaPay',
+	'Kava Mint'
 ]
 
 export async function getStaticProps() {
