@@ -22,7 +22,9 @@ const exclude = [
 	'Tezos Liquidity Baking',
 	'Notional',
 	'Tinlake',
-	'Kuu Finance'
+	'Kuu Finance',
+	'COTI Treasury',
+	'Terra Bridge'
 ]
 
 export async function getStaticProps() {
