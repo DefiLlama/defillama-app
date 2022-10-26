@@ -255,7 +255,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Amount of borrowed collateral'
 		}
 	},
 	{
