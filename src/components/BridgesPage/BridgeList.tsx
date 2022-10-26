@@ -108,9 +108,14 @@ function BridgesOverview({
 	}, [chainVolumeData])
 
 	const downloadCsv = () => {
-		const rows = [['Timestamp', 'Date', ...bridgeNames, 'Total']]
+		const filteredBridgeNames = bridgeNames.filter((bridgeName) => {
+			const chartDataIndex = bridgeNameToChartDataIndex[bridgeName]
+			const charts = chartDataByBridge[chartDataIndex]
+			return charts.length
+		})
+		const rows = [['Timestamp', 'Date', ...filteredBridgeNames, 'Total']]
 		let stackedDatasetObject = {} as any
-		bridgeNames.map((bridgeName) => {
+		filteredBridgeNames.map((bridgeName) => {
 			const chartDataIndex = bridgeNameToChartDataIndex[bridgeName]
 			const charts = chartDataByBridge[chartDataIndex]
 			charts.map((chart) => {
@@ -119,7 +124,7 @@ function BridgesOverview({
 				stackedDatasetObject[date][bridgeName] = chart.volume
 			})
 		})
-		const stackedData = Object.entries(stackedDatasetObject).map((data:[string, object]) => {
+		const stackedData = Object.entries(stackedDatasetObject).map((data: [string, object]) => {
 			return { date: parseInt(data[0]), ...data[1] }
 		})
 		stackedData
@@ -128,8 +133,8 @@ function BridgesOverview({
 				rows.push([
 					day.date,
 					toNiceCsvDate(day.date),
-					...bridgeNames.map((chain) => day[chain] ?? ''),
-					bridgeNames.reduce((acc, curr) => {
+					...filteredBridgeNames.map((chain) => day[chain] ?? ''),
+					filteredBridgeNames.reduce((acc, curr) => {
 						return (acc += day[curr] ?? 0)
 					}, 0)
 				])
