@@ -126,7 +126,7 @@ export const formatChainsData = ({
 			topTokenWithdrawnSymbol = null,
 			topTokenDepositedUsd = 0,
 			topTokenWithdrawnUsd = 0
-		if (totalTokensDeposited) {
+		if (totalTokensDeposited && Object.keys(totalTokensDeposited).length) {
 			const topTokenDeposited = Object.entries(totalTokensDeposited)
 				.sort((a, b) => {
 					return b[1].usdValue - a[1].usdValue
@@ -136,7 +136,7 @@ export const formatChainsData = ({
 			topTokenDepositedSymbol = topDepositTokenData.symbol
 			topTokenDepositedUsd = topDepositTokenData.usdValue
 		}
-		if (totalTokensWithdrawn) {
+		if (totalTokensWithdrawn && Object.keys(totalTokensWithdrawn).length) {
 			const topTokenWithdrawn = Object.entries(totalTokensWithdrawn)
 				.sort((a, b) => {
 					return b[1].usdValue - a[1].usdValue
