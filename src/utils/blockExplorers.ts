@@ -55,7 +55,8 @@ const blockExplorers = {
 	vision: ['https://www.visionscan.org/contract/', 'Visionscan'],
 	ethpow: ['https://www.oklink.com/en/ethw/address/', 'ETHW Explorer'],
 	cube: ['https://www.cubescan.network/en-us/token/', 'CUBE Scan'],
-	functionx: ['https://starscan.io/evm/address/', 'StarScan']
+	functionx: ['https://starscan.io/evm/address/', 'StarScan'],
+	kekchain: ['https://mainnet-explorer.kekchain.com/address/', 'Kekchain Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
