@@ -61,6 +61,7 @@ function BridgesOverview({
 	const belowMed = useMed()
 	const belowXl = useXl()
 	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
+	
 	const [bridgesSettings] = useBridgesManager()
 	const isBridgesShowingTxs = bridgesSettings[BRIDGES_SHOWING_TXS]
 
