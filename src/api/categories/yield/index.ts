@@ -205,12 +205,16 @@ export async function getLendBorrowData() {
 		.sort((a, b) => b.totalSupplyUsd - a.totalSupplyUsd)
 
 	const projectsList = new Set()
+	const lendingProtocols = new Set()
+	const farmProtocols = new Set()
 
 	props.pools.forEach((pool) => {
 		projectsList.add(pool.projectName)
+		lendingProtocols.add(pool.projectName)
 
 		pool.rewardTokensNames?.forEach((rewardName) => {
 			projectsList.add(rewardName)
+			farmProtocols.add(rewardName)
 		})
 	})
 
@@ -219,6 +223,8 @@ export async function getLendBorrowData() {
 			pools,
 			chainList: [...new Set(pools.map((p) => p.chain))],
 			projectList: Array.from(projectsList).map((name: string) => ({ name, slug: slug(name) })),
+			lendingProtocols: Array.from(lendingProtocols).map((name: string) => ({ name, slug: slug(name) })),
+			farmProtocols: Array.from(farmProtocols).map((name: string) => ({ name, slug: slug(name) })),
 			categoryList: lendingCategories,
 			tokenNameMapping: props.tokenNameMapping,
 			allPools: props.pools
