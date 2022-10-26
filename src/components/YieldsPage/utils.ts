@@ -308,9 +308,13 @@ export const filterPool = ({
 	let toFilter = true
 
 	toFilter = toFilter && selectedChains.map((chain) => chain.toLowerCase()).includes(pool.chain.toLowerCase())
-	toFilter = toFilter && selectedLendingProtocols.map((project) => project.toLowerCase()).includes(pool.project)
-	toFilter = toFilter && selectedFarmProtocols.map((project) => project.toLowerCase()).includes(pool.farmProject)
-
+	// stratey page filters
+	if (selectedLendingProtocols) {
+		toFilter = toFilter && selectedLendingProtocols.map((project) => project.toLowerCase()).includes(pool.project)
+	}
+	if (selectedFarmProtocols) {
+		toFilter = toFilter && selectedFarmProtocols.map((project) => project.toLowerCase()).includes(pool.farmProject)
+	}
 	if (selectedAttributes) {
 		selectedAttributes.forEach((attribute) => {
 			const attributeOption = attributeOptions.find((o) => o.key === attribute)
