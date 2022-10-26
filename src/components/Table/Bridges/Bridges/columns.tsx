@@ -549,7 +549,7 @@ export const bridgeTokensColumnSizes = {
 
 export const bridgeAddressesColumnSizes = {
 	0: {
-		address: 240,
+		address: 100,
 		withdrawn: 120,
 		deposited: 120,
 		txs: 120
