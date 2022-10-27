@@ -1,5 +1,4 @@
-
-const methodologyMessage =`
+const methodologyMessage = `
 Opinions on shariah-compliant defi are extremely diverse, going from everything related to crypto is haram to the opposite.
 
 Right now the status quo seems to be that everyone must review all protocols and then decide for themselves, but that leads to lots of wasted effort.
@@ -42,49 +41,49 @@ Removed because of
 */
 
 const whitelist = [
-  "Curve",
-  "Lido",
-  "Convex Finance",
-  "Uniswap",
-  "Arrakis Finance",
-  "PancakeSwap",
-  "Osmosis",
-  "Balancer",
-  "VVS Finance",
-  "Stargate",
-  "SushiSwap",
-  "DefiChain DEX",
-  "Aura",
-  "Biswap",
-  "Quickswap",
-  "Maiar Exchange",
-  "Ankr",
-  "Raydium",
-  "Wombat Exchange",
-  "Trader Joe",
-  "Atrix",
-  "Platypus Finance",
-  "Vector Finance",
-  "LooksRare",
-  "MDEX",
-  "cBridge",
-  "Bancor V3",
-  "Ellipsis Finance",
-  "Concentrator",
-  "Velodrome",
-  "Beethoven X",
-  "Across",
-  "SpookySwap",
-  "Meshswap",
-  "Kokonut Swap",
-  "Flamingo Finance",
-  "Pangolin",
-  "Dot Dot Finance",
-  "Loopring",
-  "Trisolaris",
-  "ApeSwap AMM",
-  "MM Finance Polygon",
-  // stopped at protocols with <20M TVL
+	'Curve',
+	'Lido',
+	'Convex Finance',
+	'Uniswap',
+	'Arrakis Finance',
+	'PancakeSwap',
+	'Osmosis',
+	'Balancer',
+	'VVS Finance',
+	'Stargate',
+	'SushiSwap',
+	'DefiChain DEX',
+	'Aura',
+	'Biswap',
+	'Quickswap',
+	'Maiar Exchange',
+	'Ankr',
+	'Raydium',
+	'Wombat Exchange',
+	'Trader Joe',
+	'Atrix',
+	'Platypus Finance',
+	'Vector Finance',
+	'LooksRare',
+	'MDEX',
+	'cBridge',
+	'Bancor V3',
+	'Ellipsis Finance',
+	'Concentrator',
+	'Velodrome',
+	'Beethoven X',
+	'Across',
+	'SpookySwap',
+	'Meshswap',
+	'Kokonut Swap',
+	'Flamingo Finance',
+	'Pangolin',
+	'Dot Dot Finance',
+	'Loopring',
+	'Trisolaris',
+	'ApeSwap AMM',
+	'MM Finance Polygon'
+	// stopped at protocols with <20M TVL
 ]
 
 import Layout from '~/layout'
@@ -95,15 +94,19 @@ import pako from 'pako'
 import { PanelThicc, StyledAnchor } from '~/components'
 import Link from '~/components/Link'
 import { useState } from 'react'
+import Announcement from '~/components/Announcement'
+import { disclaimer } from '~/components/YieldsPage/utils'
 
 export async function getStaticProps() {
 	let data = await getYieldPageData()
-  data.props.pools = data.props.pools.filter(p=>whitelist.includes(p.projectName));
-  data.props.projectList = data.props.projectList.filter(p=>whitelist.includes(p.name));
-  data.props.categoryList = Array.from(data.props.pools.reduce((set, pool)=>{
-    set.add(pool.category);
-    return set;
-  }, new Set()));
+	data.props.pools = data.props.pools.filter((p) => whitelist.includes(p.projectName))
+	data.props.projectList = data.props.projectList.filter((p) => whitelist.includes(p.name))
+	data.props.categoryList = Array.from(
+		data.props.pools.reduce((set, pool) => {
+			set.add(pool.category)
+			return set
+		}, new Set())
+	)
 	const strData = JSON.stringify(data)
 
 	const a = pako.deflate(strData)
@@ -118,20 +121,24 @@ export async function getStaticProps() {
 export default function YieldPlots(compressedProps) {
 	const b = new Uint8Array(Buffer.from(compressedProps.compressed, 'base64'))
 	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
-  const [methodologyActivated, setMethodologyActivated] = useState(false)
+	const [methodologyActivated, setMethodologyActivated] = useState(false)
 	return (
 		<Layout title={`Halal - DefiLlama Yield`} defaultSEO>
-      <PanelThicc as="p" style={{whiteSpace: "pre-line", display: "block"}}>
-					This list aims to a practical tracker for halal defi yields.<br />
-          Shariah-compliant defi is pretty subjective so our approach is to be practical and list DEXs, yield farming and liquid staking, excluding dexs that LP for derivatives.<br />
-          We're not islamic scholars, this is just meant as a useful tool.<br />
-          <Link>
-						<StyledAnchor onClick={()=>setMethodologyActivated(true)} style={{display:"block"}}>
-							<b>Full explanation of methodology</b>
-						</StyledAnchor>
-          </Link>
-
-          {methodologyActivated && methodologyMessage}
+			<Announcement notCancellable>{disclaimer}</Announcement>
+			<PanelThicc as="p" style={{ whiteSpace: 'pre-line', display: 'block' }}>
+				This list aims to a practical tracker for halal defi yields.
+				<br />
+				Shariah-compliant defi is pretty subjective so our approach is to be practical and list DEXs, yield farming and
+				liquid staking, excluding dexs that LP for derivatives.
+				<br />
+				We're not islamic scholars, this is just meant as a useful tool.
+				<br />
+				<Link>
+					<StyledAnchor onClick={() => setMethodologyActivated(true)} style={{ display: 'block' }}>
+						<b>Full explanation of methodology</b>
+					</StyledAnchor>
+				</Link>
+				{methodologyActivated && methodologyMessage}
 			</PanelThicc>
 			<YieldPage {...data.props} />
 		</Layout>

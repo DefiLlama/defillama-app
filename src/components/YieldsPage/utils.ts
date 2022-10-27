@@ -369,3 +369,6 @@ export const lockupsCollateral = [
 	'WOOFi'
 ]
 export const badDebt = ['moonwell-apollo', 'inverse-finance', 'venus', 'iron-bank']
+
+export const disclaimer =
+	'DefiLlama doesnt audit nor endorse any of the protocols listed, we just focus on providing accurate data. Ape at your own risk'

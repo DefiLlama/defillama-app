@@ -3,6 +3,8 @@ import { revalidate } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 import { YieldsWatchlistContainer } from '~/containers/Watchlist'
 import pako from 'pako'
+import Announcement from '~/components/Announcement'
+import { disclaimer } from '~/components/YieldsPage/utils'
 
 export async function getStaticProps() {
 	const data = await getYieldPageData()
@@ -22,6 +24,7 @@ export default function Portfolio(compressedProps) {
 	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
 	return (
 		<Layout title={`Saved Pools - DefiLlama`} defaultSEO>
+			<Announcement notCancellable>{disclaimer}</Announcement>
 			<YieldsWatchlistContainer protocolsDict={data} />
 		</Layout>
 	)

@@ -3,6 +3,8 @@ import YieldPage from '~/components/YieldsPage'
 import { getYieldPageData } from '~/api/categories/yield'
 import pako from 'pako'
 import { revalidate } from '~/api'
+import Announcement from '~/components/Announcement'
+import { disclaimer } from '~/components/YieldsPage/utils'
 
 export async function getStaticProps() {
 	const data = await getYieldPageData()
@@ -23,6 +25,7 @@ export default function ApyHomePage(compressedProps) {
 
 	return (
 		<Layout title={`Yield Rankings - DefiLlama`} defaultSEO>
+			<Announcement notCancellable>{disclaimer}</Announcement>
 			<YieldPage {...data.props} />
 		</Layout>
 	)
