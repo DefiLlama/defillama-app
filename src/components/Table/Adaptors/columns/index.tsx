@@ -59,8 +59,8 @@ export const getColumnsOrdernSizeByType = (type: string) => {
 
 export const volumesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
-		NameColumn('volumes'),
-		ChainsColumn('volumes'),
+		NameColumn('volumes', allChains),
+		allChains ? undefined : ChainsColumn('volumes'),
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
@@ -72,8 +72,8 @@ export const volumesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 
 export const optionsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
-		NameColumn('options'),
-		ChainsColumn('options'),
+		NameColumn('options', allChains),
+		allChains ? undefined : ChainsColumn('options'),
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
@@ -85,8 +85,8 @@ export const optionsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 
 export const aggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
-		NameColumn('aggregators'),
-		ChainsColumn('aggregators'),
+		NameColumn('aggregators', allChains),
+		allChains ? undefined : ChainsColumn('aggregators'),
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
@@ -98,8 +98,8 @@ export const aggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =
 
 export const incentivesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
-		NameColumn('incentives'),
-		ChainsColumn('incentives'),
+		NameColumn('incentives', allChains),
+		allChains ? undefined : ChainsColumn('incentives'),
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
@@ -108,9 +108,9 @@ export const incentivesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 
 export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
-		NameColumn('fees'),
-		ChainsColumn('fees'),
-		CategoryColumn,
+		NameColumn('fees', allChains),
+		allChains ? undefined : ChainsColumn('fees'),
+		allChains ? undefined : CategoryColumn,
 		Total24hColumn('fees', undefined, 'Fees paid by protocol users excluding gas fees'),
 		Total24hColumn('revenue', 'revenue24h', 'Fees accrued to the protocol (going to either treasury or holders)'),
 		TotalAllTimeColumn('fees')
