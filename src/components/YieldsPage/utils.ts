@@ -94,10 +94,7 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 			!availableChains.includes(pool.chain) ||
 			(tokenToBorrow === 'USD_Stables' ? false : !pool.symbol.includes(tokenToBorrow)) ||
 			pool.symbol.includes('AMM') ||
-			// note(slasher): this is quick fix for aave-v2 which has adjusted risk parameters of certain pools
-			// which are not borrowable.
-			// eventually will move this to backend once db schema updated etc.
-			(pool.project === 'aave-v2' && ['BAL', 'BAT', 'CVX', 'DPI', 'REN', 'ZRX'].includes(pool.symbol))
+			pool.borrowable === false
 		)
 			return acc
 		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) return acc
@@ -145,10 +142,8 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 			(tokenToBorrow === 'USD_Stables' ? false : !removeMetaTag(pool.symbol).includes(tokenToBorrow)) ||
 			removeMetaTag(pool.symbol).includes('AMM') ||
 			pool.apyBorrow === null ||
-			// note(slasher): this is quick fix for aave-v2 which has adjusted risk parameters of certain pools
-			// which are not borrowable.
-			// eventually will move this to backend once db schema updated etc.
-			(pool.project === 'aave-v2' && ['BAL', 'BAT', 'CVX', 'DPI', 'REN', 'ZRX'].includes(pool.symbol))
+			// remove any pools where token is not borrowable
+			pool.borrowable === false
 		)
 			return acc
 		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) return acc

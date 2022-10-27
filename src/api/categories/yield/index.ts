@@ -197,6 +197,7 @@ export async function getLendBorrowData() {
 				totalSupplyUsd: x.totalSupplyUsd,
 				totalBorrowUsd: x.totalBorrowUsd,
 				ltv: x.ltv,
+				borrowable: x.borrowable,
 				// note re morpho: they build on top of compound. if the total supply is being used by borrowers
 				// then any excess borrows will be routed via compound pools. so the available liquidity is actually
 				// compounds liquidity. not 100% sure how to present this on the frontend, but for now going to supress
