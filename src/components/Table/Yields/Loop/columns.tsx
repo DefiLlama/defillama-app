@@ -189,7 +189,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Amount of borrowed collateral'
 		}
 	},
 	{
@@ -293,7 +294,7 @@ export const columnSizes = {
 		boost: 80,
 		ltv: 60,
 		totalSupplyUsd: 80,
-		totalBorrowUsd: 80,
+		totalBorrowUsd: 100,
 		totalAvailableUsd: 80
 	},
 	812: {
@@ -305,7 +306,7 @@ export const columnSizes = {
 		boost: 80,
 		ltv: 60,
 		totalSupplyUsd: 80,
-		totalBorrowUsd: 80,
+		totalBorrowUsd: 100,
 		totalAvailableUsd: 80
 	}
 }

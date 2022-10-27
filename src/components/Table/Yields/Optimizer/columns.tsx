@@ -231,7 +231,8 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Amount of borrowed collateral'
 		}
 	}
 ]
@@ -312,7 +313,7 @@ export const columnSizes = {
 		borrowReward: 150,
 		ltv: 80,
 		totalSupplyUsd: 100,
-		totalBorrowUsd: 100
+		totalBorrowUsd: 120
 	}
 }
 
