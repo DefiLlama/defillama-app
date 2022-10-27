@@ -25,13 +25,17 @@ export async function getStaticProps({
 	}
 }
 
-export async function getStaticPaths() {
-	const collections = await getNFTCollections()
-	const paths = collections.slice(0, 20).map(({ slug }) => ({
-		params: { collection: [slug] }
-	}))
+// export async function getStaticPaths() {
+// 	const collections = await getNFTCollections()
+// 	const paths = collections.slice(0, 20).map(({ slug }) => ({
+// 		params: { collection: [slug] }
+// 	}))
 
-	return { paths, fallback: 'blocking' }
+// 	return { paths, fallback: 'blocking' }
+// }
+
+export async function getStaticPaths() {
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Collection(props) {
