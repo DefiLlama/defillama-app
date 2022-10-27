@@ -16,7 +16,7 @@ export interface IMainBarChartProps {
 }
 export const MainBarChart: React.FC<IMainBarChartProps> = (props) => {
 	const dataType =
-		props.type === 'volumes' || props.type === 'derivatives' || props.type === 'aggregators' ? 'volume' : props.type
+		props.type === 'volumes' || props.type === 'options' || props.type === 'aggregators' ? 'volume' : props.type
 	return (
 		<ChartAndValuesWrapper>
 			<BreakpointPanels>

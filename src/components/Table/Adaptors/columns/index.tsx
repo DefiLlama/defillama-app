@@ -28,8 +28,8 @@ export const getColumnsByType = (type: string) => {
 			return feesColumns
 		case 'incentives':
 			return incentivesColumns
-		case 'derivatives':
-			return derivativesColumns
+		case 'options':
+			return optionsColumns
 		case 'aggregators':
 			return aggregatorsColumns
 		default:
@@ -69,9 +69,9 @@ export const volumesColumns: ColumnDef<IDexsRow>[] = [
 	DominanceColumn
 ]
 
-export const derivativesColumns: ColumnDef<IDexsRow>[] = [
-	NameColumn('derivatives'),
-	ChainsColumn('derivatives'),
+export const optionsColumns: ColumnDef<IDexsRow>[] = [
+	NameColumn('options'),
+	ChainsColumn('options'),
 	Change1dColumn,
 	Change7dColumn,
 	Change1mColumn,
