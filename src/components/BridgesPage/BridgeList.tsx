@@ -72,6 +72,7 @@ function BridgesOverview({
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
 
 	const chartData = React.useMemo(() => {
+		const secondsOffset = 3600 * 12 * 1000 // added 12 hours so date will match charts that use unix timestamp
 		if (enableBreakdownChart) {
 			let unformattedChartData = {}
 			bridgeNames.map((name) => {
@@ -89,11 +90,11 @@ function BridgesOverview({
 				.map((name) => {
 					return {
 						name: name,
-						data: chartDates.map((date) => [new Date(parseInt(date) * 1000), unformattedChartData[date][name] ?? 0])
+						data: chartDates.map((date) => [new Date(parseInt(date) * 1000 + secondsOffset), unformattedChartData[date][name] ?? 0])
 					}
 				})
 				.filter((chart) => chart.data.length !== 0)
-		} else return chainVolumeData.map((chart) => [new Date(chart.date * 1000 + 3600 * 12 * 1000), chart.volume]) // added 12 hours so date will match charts that use unix timestamp
+		} else return chainVolumeData.map((chart) => [new Date(chart.date * 1000 + secondsOffset), chart.volume])
 	}, [bridgeNames, bridgeNameToChartDataIndex, chartDataByBridge, chainVolumeData, enableBreakdownChart])
 
 	const { tokenDeposits, tokenWithdrawals } = useBuildBridgeChartData(bridgeStatsCurrentDay)
