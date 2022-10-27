@@ -149,6 +149,11 @@ export async function getLendBorrowData() {
 
 	// get new borrow fields
 	let dataBorrow = (await arrayFetcher([YIELD_LEND_BORROW_API]))[0]
+	// note(slasher): this endpoint returns everything with ltv >=0 from the db.
+	// remove cdp pools for now from dataBorrow. need to make below work for cdp's first
+	const cdpPools = [...new Set(props.pools.filter((p) => p.category === 'CDP').map((p) => p.pool))]
+	// remove any cdp pools from dataBorrow
+	dataBorrow = dataBorrow.filter((p) => !cdpPools.includes(p.pool))
 
 	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
 	const configIdsCompound = pools.filter((p) => p.project === 'compound').map((p) => p.pool)
