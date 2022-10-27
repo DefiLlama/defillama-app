@@ -32,14 +32,18 @@ export async function getStaticProps({
 	}
 }
 
+// export async function getStaticPaths() {
+// 	const chainData = await getNFTChainsData()
+
+// 	const paths = chainData.slice(0, 5).map(({ chain: chainName }) => ({
+// 		params: { chain: [chainName] }
+// 	}))
+
+// 	return { paths, fallback: 'blocking' }
+// }
+
 export async function getStaticPaths() {
-	const chainData = await getNFTChainsData()
-
-	const paths = chainData.slice(0, 5).map(({ chain: chainName }) => ({
-		params: { chain: [chainName] }
-	}))
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Chain({ displayName, ...props }) {

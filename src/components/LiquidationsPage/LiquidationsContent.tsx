@@ -7,7 +7,7 @@ import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMo
 import { LiquidationsChart } from './LiquidationsChart'
 import { TotalLiquidable } from './TotalLiquidable'
 import { LiquidableChanges24H } from './LiquidableChanges24H'
-import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
+import { LiquidationsContext } from '~/components/LiquidationsPage/context'
 import { useStackBy } from './utils'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 

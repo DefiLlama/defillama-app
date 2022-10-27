@@ -37,7 +37,16 @@ const SearchWrapper = styled.div`
 	}
 `
 
-const YieldsStrategyPage = ({ pools, projectList, yieldsList, chainList, categoryList, allPools }) => {
+const YieldsStrategyPage = ({
+	pools,
+	projectList,
+	yieldsList,
+	chainList,
+	categoryList,
+	allPools,
+	lendingProtocols,
+	farmProtocols
+}) => {
 	const { query, pathname, isReady } = useRouter()
 
 	const lend = typeof query.lend === 'string' ? query.lend : null
@@ -47,11 +56,14 @@ const YieldsStrategyPage = ({ pools, projectList, yieldsList, chainList, categor
 	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
 	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
 
-	const { selectedChains, selectedAttributes, selectedProjects } = useFormatYieldQueryParams({
-		projectList,
-		chainList,
-		categoryList
-	})
+	const { selectedChains, selectedAttributes, selectedLendingProtocols, selectedFarmProtocols } =
+		useFormatYieldQueryParams({
+			projectList,
+			chainList,
+			categoryList,
+			lendingProtocols,
+			farmProtocols
+		})
 
 	// calc looped lending
 	const loopStrategies = calculateLoopAPY(pools)
@@ -63,11 +75,12 @@ const YieldsStrategyPage = ({ pools, projectList, yieldsList, chainList, categor
 					pool,
 					selectedChains,
 					selectedAttributes,
-					selectedProjects,
 					minTvl,
 					maxTvl,
 					minAvailable,
-					maxAvailable
+					maxAvailable,
+					selectedLendingProtocols,
+					selectedFarmProtocols
 				})
 			)
 			.map(formatOptimizerPool)
@@ -79,7 +92,8 @@ const YieldsStrategyPage = ({ pools, projectList, yieldsList, chainList, categor
 		lend,
 		selectedChains,
 		selectedAttributes,
-		selectedProjects,
+		selectedLendingProtocols,
+		selectedFarmProtocols,
 		allPools,
 		loopStrategies,
 		minTvl,
@@ -124,7 +138,20 @@ const YieldsStrategyPage = ({ pools, projectList, yieldsList, chainList, categor
 			<TableFilters>
 				<TableHeader>Nb of Strategies: {poolsData.length > 0 ? <>{poolsData.length}</> : <>{null}</>}</TableHeader>
 				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
-				<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
+				<YieldProjects
+					projectList={lendingProtocols}
+					selectedProjects={selectedLendingProtocols}
+					pathname={pathname}
+					label="Lending Protocols"
+					query="lendingProtocol"
+				/>
+				<YieldProjects
+					projectList={farmProtocols}
+					selectedProjects={selectedFarmProtocols}
+					pathname={pathname}
+					label="Farm Protocols"
+					query="farmProtocol"
+				/>
 				<YieldAttributes pathname={pathname} />
 				<AvailableRange />
 				<TVLRange />

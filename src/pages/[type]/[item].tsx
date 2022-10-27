@@ -1,22 +1,12 @@
 import { GetStaticProps, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import * as React from 'react'
 import { revalidate } from '~/api'
-import { getChainPageData, getOverview, getOverviewItemPageData, IJoin2ReturnType } from '~/api/categories/adaptors'
-import { ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from '~/api/categories/adaptors/types'
-import SEO from '~/components/SEO'
+import { getOverview, getOverviewItemPageData, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 import OverviewItemContainer from '~/containers/Overview/OverviewItem'
-import { upperCaseFirst } from '~/containers/Overview/utils'
-import Layout from '~/layout'
 import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
 
-export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {
-	type: string
-	totalDataChart: IJoin2ReturnType
-	revenue24h: number | null
-}
-
-export type PageParams = {
+type PageParams = {
 	protocolSummary: ProtocolAdaptorSummaryProps
 	backgroundColor: string
 }

@@ -15,7 +15,7 @@ import { LiquidationsHeader } from '~/components/LiquidationsPage/LiquidationsHe
 import { LiquidationsContent } from '~/components/LiquidationsPage/LiquidationsContent'
 import { ProtocolsTable } from '~/components/LiquidationsPage/ProtocolsTable'
 import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
-import { PositionsTable } from '~/components/LiquidationsPage/PositionsTable'
+import { PositionsTable, SmolHints } from '~/components/LiquidationsPage/PositionsTable'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import type { ISearchItem } from '~/components/Search/types'
 import { revalidate } from '~/api'
@@ -27,6 +27,7 @@ import {
 	getPrevChartData,
 	getReadableValue
 } from '~/utils/liquidations'
+import { LiquidationsContext } from '~/components/LiquidationsPage/context'
 
 export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
 	const symbol = (params.symbol as string).toLowerCase()
@@ -48,17 +49,6 @@ export const getStaticPaths: GetStaticPaths = async () => {
 		}))
 	return { paths, fallback: 'blocking' }
 }
-
-export const LiquidationsContext = React.createContext<{
-	selectedSeries: {
-		[key: string]: boolean
-	}
-	setSelectedSeries: React.Dispatch<
-		React.SetStateAction<{
-			[key: string]: boolean
-		}>
-	>
-}>(null)
 
 const LiquidationsProvider = ({ children }) => {
 	const [selectedSeries, setSelectedSeries] = React.useState<{ [key: string]: boolean }>({})
@@ -145,15 +135,5 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 		</Layout>
 	)
 }
-
-export const SmolHints = styled.div`
-	display: flex;
-	gap: 6px;
-	flex-direction: row;
-	justify-content: flex-end;
-	align-items: center;
-	margin-top: -1rem;
-	opacity: 0.6;
-`
 
 export default LiquidationsHomePage

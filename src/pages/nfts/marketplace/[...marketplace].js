@@ -30,14 +30,18 @@ export async function getStaticProps({
 	}
 }
 
+// export async function getStaticPaths() {
+// 	const marketplaceData = await getNFTMarketplacesData()
+
+// 	const paths = marketplaceData.slice(0, 5).map(({ marketplace: marketplaceName }) => ({
+// 		params: { marketplace: [marketplaceName] }
+// 	}))
+
+// 	return { paths, fallback: 'blocking' }
+// }
+
 export async function getStaticPaths() {
-	const marketplaceData = await getNFTMarketplacesData()
-
-	const paths = marketplaceData.slice(0, 5).map(({ marketplace: marketplaceName }) => ({
-		params: { marketplace: [marketplaceName] }
-	}))
-
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Marketplace({ displayName, ...props }) {

@@ -285,7 +285,8 @@ export const formatOptimizerPool = (pool) => {
 interface FilterPools {
 	selectedChains: Array<string>
 	selectedAttributes?: Array<string>
-	selectedProjects?: Array<string>
+	selectedLendingProtocols?: Array<string>
+	selectedFarmProtocols?: Array<string>
 	pool: YieldsData['props']['pools'][number]
 	minTvl?: string
 	maxTvl?: string
@@ -297,14 +298,23 @@ export const filterPool = ({
 	pool,
 	selectedChains,
 	selectedAttributes,
-	selectedProjects,
+	selectedLendingProtocols,
+	selectedFarmProtocols,
 	minTvl,
 	maxTvl,
 	minAvailable,
 	maxAvailable
 }: FilterPools) => {
-	let toFilter = selectedChains.map((chain) => chain.toLowerCase()).includes(pool.chain.toLowerCase())
+	let toFilter = true
 
+	toFilter = toFilter && selectedChains.map((chain) => chain.toLowerCase()).includes(pool.chain.toLowerCase())
+	// stratey page filters
+	if (selectedLendingProtocols) {
+		toFilter = toFilter && selectedLendingProtocols.map((project) => project.toLowerCase()).includes(pool.project)
+	}
+	if (selectedFarmProtocols) {
+		toFilter = toFilter && selectedFarmProtocols.map((project) => project.toLowerCase()).includes(pool.farmProject)
+	}
 	if (selectedAttributes) {
 		selectedAttributes.forEach((attribute) => {
 			const attributeOption = attributeOptions.find((o) => o.key === attribute)
@@ -313,16 +323,6 @@ export const filterPool = ({
 				toFilter = toFilter && attributeOption.filterFn(pool)
 			}
 		})
-	}
-
-	if (
-		selectedProjects &&
-		(!selectedProjects?.includes(pool.project.toLowerCase()) ||
-			!selectedProjects?.includes(pool.farmProject.toLowerCase()))
-	) {
-		toFilter = false
-	} else {
-		toFilter = toFilter && true
 	}
 
 	const isValidTvlRange =

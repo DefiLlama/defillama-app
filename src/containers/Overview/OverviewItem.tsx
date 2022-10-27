@@ -13,8 +13,6 @@ import {
 	Name,
 	Section,
 	SectionHeader,
-	ChartsWrapper,
-	LazyChart,
 	ChartWrapper
 } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
@@ -22,19 +20,26 @@ import { Stat } from '~/layout/Stats/Large'
 import CopyHelper from '~/components/Copy'
 import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
-import SEO from '~/components/SEO'
-import { AdaptorsSearch, DexsSearch } from '~/components/Search'
+import { AdaptorsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
 import { formattedNum, getBlockExplorer } from '~/utils'
-import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { IDexResponse } from '~/api/categories/dexs/types'
-import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
-import { PageParams } from '~/pages/[type]/[item]'
 import { upperCaseFirst } from './utils'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
+import { ProtocolAdaptorSummaryResponse } from '~/api/categories/adaptors/types'
+
+interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {
+	type: string
+	totalDataChart: IJoin2ReturnType
+	revenue24h: number | null
+}
+
+interface PageParams {
+	protocolSummary: ProtocolAdaptorSummaryProps
+	backgroundColor: string
+}
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
