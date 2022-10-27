@@ -1,4 +1,4 @@
-import { standardizeProtocolName } from '~/utils'
+import { standardizeProtocolName, chainIconUrl, tokenIconUrl } from '~/utils'
 import { formatBridgesData, formatChainsData } from './utils'
 import type { IChainData } from '~/api/types'
 import { CONFIG_API, BRIDGEDAYSTATS_API, BRIDGES_API, BRIDGEVOLUME_API, BRIDGELARGETX_API } from '~/constants'
@@ -263,8 +263,10 @@ export async function getBridgePageData(bridge: string) {
 		(obj) => standardizeProtocolName(obj.displayName) === standardizeProtocolName(bridge)
 	)[0]
 
-	const { id, chains, displayName } = bridgeData
+	const { id, chains, icon, displayName } = bridgeData
 	const defaultChain = chains[0]
+	const [iconType, iconName] = icon.split(':')
+	const logo = iconType === 'chain' ? chainIconUrl(iconName) : tokenIconUrl(iconName)
 
 	let bridgeChartDataByChain = []
 	let chainToChartDataIndex: object = {}
@@ -302,6 +304,7 @@ export async function getBridgePageData(bridge: string) {
 
 	return {
 		displayName,
+		logo,
 		chains,
 		defaultChain,
 		chainToChartDataIndex,

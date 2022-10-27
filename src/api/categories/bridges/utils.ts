@@ -37,6 +37,7 @@ export const bridgePropertiesToKeep = [
 	'displayName',
 	'name',
 	'symbol',
+	'icon',
 	'chains',
 	'volumePrevDay',
 	'volumePrev2Day',

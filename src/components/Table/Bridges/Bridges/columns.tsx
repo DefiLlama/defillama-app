@@ -5,12 +5,11 @@ import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import { ExternalLink } from 'react-feather'
 import { AutoRow } from '~/components/Row'
-import { formattedNum, formattedPercent, chainIconUrl, toNiceDayAndHour, getBlockExplorer } from '~/utils'
+import { formattedNum, formattedPercent, chainIconUrl, toNiceDayAndHour, getBlockExplorer, standardizeProtocolName, tokenIconUrl } from '~/utils'
 import TokenLogo from '~/components/TokenLogo'
 import { formatColumnOrder } from '../../utils'
 import type { IBridge, IBridgeChain } from './types'
 import { getBlockExplorerForTx, getBlockExplorerForAddress } from '~/utils/bridges/blockExplorers'
-import { standardizeProtocolName } from '~/utils'
 
 export const bridgesColumn: ColumnDef<IBridge>[] = [
 	{
@@ -21,9 +20,14 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 			const value = getValue() as string
 			const linkValue = standardizeProtocolName(value)
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			const rowValues = row.original
+			const [iconType, iconName] = rowValues.icon.split(':')
+			const iconLink = iconType === 'chain' ? chainIconUrl(iconName) : tokenIconUrl(iconName)
+
 			return (
 				<Name>
 					<span>{index + 1}</span>
+					<TokenLogo logo={iconLink} data-lgonly />
 					<CustomLink href={`/bridge/${linkValue}`}>{value}</CustomLink>
 				</Name>
 			)

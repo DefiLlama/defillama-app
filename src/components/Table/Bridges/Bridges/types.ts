@@ -1,6 +1,7 @@
 export interface IBridge {
 	name: string
 	symbol: string
+	icon: string
 	chains: Array<string>
 	volumePrevDay: number
 	volumePrev2Day: number
