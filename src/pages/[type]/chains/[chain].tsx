@@ -4,7 +4,8 @@ import { types } from '../[item]'
 export async function getStaticPaths() {
 	const rawPaths = await Promise.all(
 		types.map(async (type) => {
-			const { allChains } = await getOverview(type)
+			const res = await getOverview(type)
+			const { allChains } = res
 			return allChains.map((chain) => ({
 				params: { type, chain: chain.toLowerCase() }
 			}))
