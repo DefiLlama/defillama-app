@@ -28,7 +28,7 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 	}
 }
 
-export const types = ['fees', 'aggregators', 'volumes', 'derivatives', 'incentives']
+export const types = ['fees', 'aggregators', 'volumes', 'options', 'incentives']
 export async function getStaticPaths() {
 	const rawPaths = await Promise.all(
 		types.map(async (type) => {

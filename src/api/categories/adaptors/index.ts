@@ -49,7 +49,7 @@ export const getOverviewItemPageData = async (
 	let label: string
 	if (type === 'volumes') {
 		label = "Volume"
-	} else if (type === 'derivatives') {
+	} else if (type === 'options') {
 		label = "Notionial volume"
 	} else {
 		label = upperCaseFirst(type)
@@ -62,7 +62,7 @@ export const getOverviewItemPageData = async (
 		secondType = await getOverviewItem(type, protocolName, 'dailyRevenue')
 		secondLabel = "Revenue"
 	}
-	else if (type === 'derivatives') {
+	else if (type === 'options') {
 		secondType = await getOverviewItem(type, protocolName, 'dailyPremiumVolume')
 		secondLabel = "Premium volume"
 	}

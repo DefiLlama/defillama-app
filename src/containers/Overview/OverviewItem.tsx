@@ -70,7 +70,7 @@ export const ProtocolChart = ({
 	totalAllTime
 }: IDexChartsProps) => {
 	const typeString = type === 'volumes' ? 'Volumes' : upperCaseFirst(type)
-	const typeSimple = type === 'volumes' || type === 'derivatives' ? 'volume' : type
+	const typeSimple = type === 'volumes' || type === 'options' ? 'volume' : type
 	return (
 		<StatsSection>
 			{!fullChart && (
@@ -138,7 +138,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
 	const typeSimple = props.protocolSummary.type === 'volumes' ? 'volume' : props.protocolSummary.type
-	const useTotalDataChart = props.protocolSummary.type === 'fees' || props.protocolSummary.type === 'derivatives'
+	const useTotalDataChart = props.protocolSummary.type === 'fees' || props.protocolSummary.type === 'options'
 	const mainChart = React.useMemo(() => {
 		let chartData: IJoin2ReturnType
 		let title: string
