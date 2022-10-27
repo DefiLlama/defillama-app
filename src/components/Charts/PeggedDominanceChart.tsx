@@ -60,7 +60,7 @@ export const PeggedChainDominanceChart = ({
 			<YAxis tickFormatter={(tick) => toPercent(tick)} />
 			<Tooltip
 				formatter={(val, chain, props) =>
-					formatPercent ? getPercent(val, daySum[props.payload.date]) : formattedNum(val)
+					formatPercent ? getPercent(Number(val), daySum[props.payload.date]) : formattedNum(val)
 				}
 				labelFormatter={(label) => toNiceDateYear(label)}
 				itemSorter={(p) => -p.value}
@@ -111,7 +111,7 @@ export const PeggedChainResponsiveDominance = ({
 			<YAxis tickFormatter={(tick) => toPercent(tick)} />
 			<Tooltip
 				formatter={(val, chain, props) =>
-					formatPercent ? getPercent(val, daySum[props.payload.date]) : formattedNum(val)
+					formatPercent ? getPercent(Number(val), daySum[props.payload.date]) : formattedNum(val)
 				}
 				labelFormatter={(label) => toNiceDateYear(label)}
 				itemSorter={(p) => -p.value}
