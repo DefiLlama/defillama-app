@@ -35,7 +35,7 @@ export function chartBreakdownByVersion(chart: ProtocolAdaptorSummaryResponse['t
 				} as IJoin2ReturnType[number]
 				else {
 					acc[`${timestamp}${protocolName}`] = {
-						[protocolName.toUpperCase()]: acc[`${timestamp}${protocolName}`][protocolName.toUpperCase()] += getOkValue(value),
+						[protocolName.toUpperCase()]: +acc[`${timestamp}${protocolName}`][protocolName.toUpperCase()] + getOkValue(value),
 						date: String(timestamp)
 					} as IJoin2ReturnType[number]
 				}
@@ -65,7 +65,7 @@ export function chartBreakdownByChain(chart: ProtocolAdaptorSummaryResponse['tot
 				} as IJoin2ReturnType[number]
 				else {
 					acc[`${timestamp}${chain}`] = {
-						[formatChain(chain)]: acc[`${timestamp}${chain}`][formatChain(chain)] += getOkValue(value),
+						[formatChain(chain)]: +acc[`${timestamp}${chain}`][formatChain(chain)] + getOkValue(value),
 						date: String(timestamp)
 					} as IJoin2ReturnType[number]
 				}
@@ -90,7 +90,7 @@ export function chartBreakdownByTokens(chart: ProtocolAdaptorSummaryResponse['to
 					} as IJoin2ReturnType[number]
 					else {
 						acc[`${timestamp}${token}`] = {
-							[token]: acc[`${timestamp}${token}`][token] += getOkValue(value),
+							[token]: +acc[`${timestamp}${token}`][token] + getOkValue(value),
 							date: String(timestamp)
 						} as IJoin2ReturnType[number]
 					}

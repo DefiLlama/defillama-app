@@ -46,8 +46,14 @@ interface IProtocolContainerProps extends PageParams {
 	title: string
 }
 
-interface IDexChartsProps {
-	data: IProtocolContainerProps['protocolSummary']
+export interface IDexChartsProps {
+	data: {
+		total24h: IProtocolContainerProps['protocolSummary']['total24h']
+		disabled: IProtocolContainerProps['protocolSummary']['disabled']
+		revenue24h?: IProtocolContainerProps['protocolSummary']['revenue24h']
+		change_1d: IProtocolContainerProps['protocolSummary']['change_1d']
+		change_1m?: IProtocolContainerProps['protocolSummary']['change_1m']
+	}
 	chartData: [IJoin2ReturnType, string[]]
 	name: string
 	logo?: string
@@ -75,27 +81,31 @@ export const ProtocolChart = ({
 		<StatsSection>
 			{!fullChart && (
 				<DetailsWrapper>
-					<Name>
-						<TokenLogo logo={logo} size={24} />
-						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-					</Name>
-					<Stat>
-						<span>
-							{data.disabled === true
-								? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
-										+data.totalDataChart[data.totalDataChart.length - 1][0]
-								  )})`
-								: `${typeString} (24h)`}
-						</span>
-						<span>{formattedNum(data.total24h || '0', true)}</span>
-					</Stat>
-
-					{typeString === 'Fees' && (
+					{name && (
+						<Name>
+							<TokenLogo logo={logo} size={24} />
+							<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
+						</Name>
+					)}
+					{data.total24h && (
 						<Stat>
 							<span>
 								{data.disabled === true
 									? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
-											+data.totalDataChart[data.totalDataChart.length - 1][0]
+											+chartData[0][chartData[0].length - 1][0]
+									  )})`
+									: `${typeString} (24h)`}
+							</span>
+							<span>{formattedNum(data.total24h || '0', true)}</span>
+						</Stat>
+					)}
+
+					{data.revenue24h && (
+						<Stat>
+							<span>
+								{data.disabled === true
+									? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
+											+chartData[0][chartData[0].length - 1][0]
 									  )})`
 									: `Revenue (24h)`}
 							</span>
@@ -103,13 +113,11 @@ export const ProtocolChart = ({
 						</Stat>
 					)}
 
-					{typeString !== 'Fees' && (
+					{typeString !== 'Fees' && data.change_1d && (
 						<Stat>
 							<span>
 								{data.disabled === true
-									? `Last day change (${formatTimestampAsDate(
-											+data.totalDataChart[data.totalDataChart.length - 1][0]
-									  )})`
+									? `Last day change (${formatTimestampAsDate(+chartData[0][chartData[0].length - 1][0])})`
 									: 'Change (24h)'}
 							</span>
 							<span>{data.change_1d || 0}%</span>
