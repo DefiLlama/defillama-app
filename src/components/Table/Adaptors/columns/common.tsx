@@ -37,7 +37,7 @@ export const ChainsColumn = (type: string) => ({
 	header: 'Chains',
 	accessorKey: 'chains',
 	enableSorting: false,
-	cell: (info) => <IconsRow links={info.getValue() as Array<string>} url={`${type}/chain`} iconType="chain" />,
+	cell: (info) => <IconsRow links={info.getValue() as Array<string>} url={`${type}/chains`} iconType="chain" />,
 	meta: {
 		align: 'end' as 'end'
 	},
