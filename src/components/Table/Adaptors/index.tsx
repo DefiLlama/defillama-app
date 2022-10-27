@@ -18,7 +18,7 @@ const columnSizesKeys = Object.keys(volumesColumnSizes)
 	.map((x) => Number(x))
 	.sort((a, b) => Number(b) - Number(a))
 
-export function OverviewTable({ data, type }) {
+export function OverviewTable({ data, type, allChains }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'total24h' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -27,7 +27,7 @@ export function OverviewTable({ data, type }) {
 
 	const instance = useReactTable({
 		data,
-		columns: getColumnsByType(type),
+		columns: getColumnsByType(type, allChains),
 		state: {
 			sorting,
 			expanded,
