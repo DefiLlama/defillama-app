@@ -28,8 +28,11 @@ export async function getYieldPageData() {
 
 	// get Price data
 	let pricesList = []
+
 	for (let p of data.pools) {
-		if (p.rewardTokens) {
+		const rewardTokens = p.rewardTokens?.filter((t) => !!t)
+
+		if (rewardTokens) {
 			let priceChainName = p.chain.toLowerCase()
 			priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
 				? priceChainMapping[priceChainName]
@@ -37,9 +40,7 @@ export async function getYieldPageData() {
 
 			// using coingecko ids for projects on Neo, otherwise empty object
 			pricesList.push(
-				p.chain === 'Neo'
-					? [`coingecko:${p.project}`]
-					: p.rewardTokens.map((t) => `${priceChainName}:${t?.toLowerCase()}`)
+				p.chain === 'Neo' ? [`coingecko:${p.project}`] : rewardTokens.map((t) => `${priceChainName}:${t.toLowerCase()}`)
 			)
 		}
 	}
@@ -62,6 +63,8 @@ export async function getYieldPageData() {
 
 	for (let p of data.pools) {
 		let priceChainName = p.chain.toLowerCase()
+		const rewardTokens = p.rewardTokens?.filter((t) => !!t)
+
 		priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
 			? priceChainMapping[priceChainName]
 			: priceChainName
@@ -70,7 +73,7 @@ export async function getYieldPageData() {
 			p.chain === 'Neo'
 				? [
 						...new Set(
-							p.rewardTokens.map((t) =>
+							rewardTokens.map((t) =>
 								t === '0xf0151f528127558851b39c2cd8aa47da7418ab28'
 									? 'FLM'
 									: t === '0x340720c7107ef5721e44ed2ea8e314cce5c130fa'
@@ -81,7 +84,7 @@ export async function getYieldPageData() {
 				  ]
 				: [
 						...new Set(
-							p.rewardTokens.map((t) => prices[`${priceChainName}:${t?.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
+							rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
 						)
 				  ]
 	}

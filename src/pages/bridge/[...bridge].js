@@ -12,6 +12,7 @@ export async function getStaticProps({
 	const data = await getBridgePageData(bridge)
 	const {
 		displayName,
+		logo,
 		chains,
 		defaultChain,
 		chainToChartDataIndex,
@@ -26,6 +27,7 @@ export async function getStaticProps({
 	return {
 		props: {
 			displayName,
+			logo,
 			chains,
 			defaultChain,
 			chainToChartDataIndex,

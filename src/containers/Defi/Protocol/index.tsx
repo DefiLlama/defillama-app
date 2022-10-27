@@ -40,19 +40,31 @@ import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
 import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, slug, standardizeProtocolName, toK } from '~/utils'
+import {
+	capitalizeFirstLetter,
+	chainIconUrl,
+	formattedNum,
+	getBlockExplorer,
+	slug,
+	standardizeProtocolName,
+	toK
+} from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
 import { IFusedProtocolData } from '~/api/types'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { FeesBody } from '~/pages/fees.deprecated/[protocol]'
 import { DexCharts } from '~/containers/Dex/DexProtocol'
 import { useFetchProtocolDex } from '~/api/categories/dexs/client'
 import { useFetchProtocolFees } from '~/api/categories/fees/client'
 import { useYields } from '~/api/categories/yield/client'
+import { ChartWrapper } from '~/layout/ProtocolAndPool'
 
-const scams = ["Drachma Exchange", "StableDoin"]
+const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+	ssr: false
+}) as React.FC<IBarChartProps>
+
+const scams = ['Drachma Exchange', 'StableDoin']
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -128,6 +140,47 @@ interface IProtocolContainerProps {
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
+
+export function FeesBody({ data, chartData }) {
+	const { pathname } = useRouter()
+
+	const isProtocolPage = pathname.includes('protocol')
+	return (
+		<StatsSection>
+			<DetailsWrapper>
+				<Name>
+					{isProtocolPage ? (
+						'Fees and Revenue'
+					) : (
+						<>
+							<TokenLogo logo={data.logo ?? chainIconUrl(data.name)} size={24} />
+							<FormattedName text={data.name} maxCharacters={16} fontWeight={700} />
+						</>
+					)}
+				</Name>
+
+				<Stat>
+					<span>24h fees</span>
+					<span>{formattedNum(data.total1dFees || 0, true)}</span>
+				</Stat>
+
+				<Stat>
+					<span>24h revenue</span>
+					<span>{formattedNum(data.total1dRevenue || 0, true)}</span>
+				</Stat>
+			</DetailsWrapper>
+
+			<ChartWrapper>
+				<StackedChart
+					chartData={chartData}
+					title={isProtocolPage ? '' : 'Fees And Revenue'}
+					stacks={{ Fees: 'a', Revenue: 'a' }}
+					stackColors={stackedBarChartColors}
+				/>
+			</ChartWrapper>
+		</StatsSection>
+	)
+}
 
 function ProtocolContainer({
 	title,
@@ -606,6 +659,11 @@ function ProtocolContainer({
 			)}
 		</Layout>
 	)
+}
+
+const stackedBarChartColors = {
+	Fees: '#4f8fea',
+	Revenue: '#E59421'
 }
 
 export default ProtocolContainer

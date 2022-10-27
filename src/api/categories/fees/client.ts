@@ -1,8 +1,18 @@
 import useSWR from 'swr'
 import { FEES_BASE_API } from '~/constants'
-import { mapProtocolName } from '~/pages/fees.deprecated/[protocol]'
 import { capitalizeFirstLetter } from '~/utils'
 import { fetcher } from '~/utils/useSWR'
+
+export const mapProtocolName = (protocolName: string) => {
+	if (protocolName === 'trader-joe') {
+		return 'traderjoe'
+	} else if (protocolName === 'aave') {
+		return 'AAVE'
+	} else if (protocolName === 'convex-finance') {
+		return 'convex'
+	}
+	return protocolName
+}
 
 export const useFetchProtocolFees = (protocolName) => {
 	const { data, error } = useSWR(`${FEES_BASE_API}/${mapProtocolName(protocolName)}`, fetcher)

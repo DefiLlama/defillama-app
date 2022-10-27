@@ -6,6 +6,7 @@ import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
 import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { BridgesSearch } from '~/components/Search'
 import { OptionButton } from '~/components/ButtonStyled'
+import TokenLogo from '~/components/TokenLogo'
 import { AutoRow, RowBetween } from '~/components/Row'
 import { PeggedChainResponsivePie } from '~/components/Charts'
 import FormattedName from '~/components/FormattedName'
@@ -40,6 +41,7 @@ const SmolHints = styled.div`
 
 export default function BridgeContainer({
 	displayName,
+	logo,
 	chains,
 	defaultChain,
 	chainToChartDataIndex,
@@ -202,6 +204,7 @@ export default function BridgeContainer({
 			<StatsSection>
 				<DetailsWrapper>
 					<Name>
+						<TokenLogo logo={logo} size={24} />
 						<FormattedName text={displayName ? displayName + ' ' : ''} maxCharacters={25} fontWeight={700} />
 					</Name>
 
