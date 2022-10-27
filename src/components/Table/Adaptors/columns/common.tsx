@@ -5,7 +5,7 @@ import TokenLogo from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, slug } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
 
-export const NameColumn = (type: string) => ({
+export const NameColumn = (type: string, allChains?: boolean) => ({
 	header: () => <Name>Name</Name>,
 	accessorKey: 'displayName',
 	enableSorting: false,
@@ -27,7 +27,7 @@ export const NameColumn = (type: string) => ({
 				)}
 				<span>{index + 1}</span>
 				<TokenLogo logo={row.original.logo} data-lgonly />
-				<CustomLink href={`/${type}/${slug(name)}`}>{`${value}`}</CustomLink>
+				<CustomLink href={`/${type}/${allChains ? 'chains/' : ''}${slug(name)}`}>{`${value}`}</CustomLink>
 			</Name>
 		)
 	},
