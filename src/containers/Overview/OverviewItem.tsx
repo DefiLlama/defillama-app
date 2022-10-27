@@ -29,14 +29,8 @@ import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
 import { upperCaseFirst } from './utils'
 import { IBarChartProps } from '~/components/ECharts/types'
-import { IJoin2ReturnType } from '~/api/categories/adaptors'
+import { IJoin2ReturnType, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 import { ProtocolAdaptorSummaryResponse } from '~/api/categories/adaptors/types'
-
-interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {
-	type: string
-	totalDataChart: IJoin2ReturnType
-	revenue24h: number | null
-}
 
 interface PageParams {
 	protocolSummary: ProtocolAdaptorSummaryProps

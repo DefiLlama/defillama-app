@@ -36,7 +36,7 @@ export const getOverview = (type: string, chain?: string, dataType?: string): Pr
 
 export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {
 	type: string
-	totalDataChart: IJoin2ReturnType
+	totalDataChart: [IJoin2ReturnType, string[]]
 	revenue24h: number | null
 }
 
