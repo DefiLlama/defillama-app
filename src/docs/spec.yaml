@@ -320,7 +320,7 @@ paths:
           description: unix timestamp of latest data point requested
           schema:
             type: number
-            example: 1666956537
+            example:
         - name: span
           in: query
           required: false

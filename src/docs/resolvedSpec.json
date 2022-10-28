@@ -170,6 +170,16 @@
               "type": "string",
               "example": "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1,coingecko:ethereum,bsc:0x762539b45a1dcce3d36d080f74d1aed37844b878,ethereum:0xdB25f211AB05b1c97D595516F45794528a807ad8"
             }
+          },
+          {
+            "name": "searchWidth",
+            "in": "query",
+            "required": false,
+            "description": "time range on either side to find price data, defaults to 6 hours",
+            "schema": {
+              "type": "string",
+              "example": "4h"
+            }
           }
         ],
         "responses": {
@@ -192,15 +202,19 @@
                             },
                             "price": {
                               "type": "number",
-                              "example": 0.022053735051098835
+                              "example": 0.884394
                             },
                             "symbol": {
                               "type": "string",
-                              "example": "cDAI"
+                              "example": "HUSD"
                             },
                             "timestamp": {
                               "type": "number",
-                              "example": 1663351225
+                              "example": 1666962780
+                            },
+                            "confidence": {
+                              "type": "number",
+                              "example": 0.99
                             }
                           }
                         }
@@ -249,6 +263,16 @@
               "type": "number",
               "example": 1648680149
             }
+          },
+          {
+            "name": "searchWidth",
+            "in": "query",
+            "required": false,
+            "description": "time range on either side to find price data, defaults to 6 hours",
+            "schema": {
+              "type": "string",
+              "example": "4h"
+            }
           }
         ],
         "responses": {
@@ -296,13 +320,377 @@
         }
       }
     },
+    "/batchHistorical": {
+      "get": {
+        "tags": [
+          "coins"
+        ],
+        "summary": "Get historical prices for multiple tokens at multiple different timestamps",
+        "description": "Strings accepted by period and searchWidth:\nCan use regular chart candle notion like ‘4h’ etc where:\nW = week, D = day, H = hour, M = minute (not case sensitive)\n",
+        "servers": [
+          {
+            "url": "https://coins.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "coins",
+            "in": "query",
+            "required": true,
+            "description": "object where keys are coins in the form {chain}:{address}, and values are arrays of requested timestamps",
+            "schema": {
+              "type": "string",
+              "example": "{\n\"avax:0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e\": [1666876743, 1666862343],\n\"coingecko:ethereum\": [1666869543, 1666862343]\n}\n"
+            }
+          },
+          {
+            "name": "searchWidth",
+            "in": "query",
+            "required": false,
+            "description": "time range on either side to find price data, defaults to 6 hours",
+            "schema": {
+              "type": "string",
+              "example": 600
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "coins": {
+                      "type": "object",
+                      "properties": {
+                        "avax:0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e": {
+                          "type": "object",
+                          "properties": {
+                            "symbol": {
+                              "type": "string",
+                              "example": "USDC"
+                            },
+                            "prices": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "timestamp": {
+                                    "type": "number",
+                                    "example": 1666876674
+                                  },
+                                  "price": {
+                                    "type": "number",
+                                    "example": 0.999436
+                                  },
+                                  "confidence": {
+                                    "type": "number",
+                                    "example": 0.99
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/chart/{coins}": {
+      "get": {
+        "tags": [
+          "coins"
+        ],
+        "summary": "Get token prices at regular time intervals",
+        "description": "Strings accepted by period and searchWidth:\nCan use regular chart candle notion like ‘4h’ etc where:\nW = week, D = day, H = hour, M = minute (not case sensitive)\n",
+        "servers": [
+          {
+            "url": "https://coins.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "coins",
+            "in": "path",
+            "required": true,
+            "description": "set of comma-separated tokens defined as {chain}:{address}",
+            "schema": {
+              "type": "string",
+              "example": "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1,coingecko:ethereum,bsc:0x762539b45a1dcce3d36d080f74d1aed37844b878,ethereum:0xdB25f211AB05b1c97D595516F45794528a807ad8"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "description": "unix timestamp of earliest data point requested",
+            "schema": {
+              "type": "number",
+              "example": 1664364537
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "description": "unix timestamp of latest data point requested",
+            "schema": {
+              "type": "number",
+              "example": null
+            }
+          },
+          {
+            "name": "span",
+            "in": "query",
+            "required": false,
+            "description": "number of data points returned, defaults to 0",
+            "schema": {
+              "type": "number",
+              "example": 10
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "description": "duration between data points, defaults to 24 hours",
+            "schema": {
+              "type": "string",
+              "example": "2d"
+            }
+          },
+          {
+            "name": "searchWidth",
+            "in": "query",
+            "required": false,
+            "description": "time range on either side to find price data, defaults to 10% of period",
+            "schema": {
+              "type": "string",
+              "example": 600
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "coins": {
+                      "type": "object",
+                      "properties": {
+                        "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1": {
+                          "type": "object",
+                          "properties": {
+                            "decimals": {
+                              "type": "number",
+                              "example": 8
+                            },
+                            "confidence": {
+                              "type": "number",
+                              "example": 0.99
+                            },
+                            "prices": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "timestamp": {
+                                    "type": "number",
+                                    "example": 1666790570
+                                  },
+                                  "price": {
+                                    "type": "number",
+                                    "example": 0.984519
+                                  }
+                                }
+                              }
+                            },
+                            "symbol": {
+                              "type": "string",
+                              "example": "HUSD"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/percentage/{coins}": {
+      "get": {
+        "tags": [
+          "coins"
+        ],
+        "summary": "Get percentage change in price over time",
+        "description": "Strings accepted by period:\nCan use regular chart candle notion like ‘4h’ etc where:\nW = week, D = day, H = hour, M = minute (not case sensitive)\n",
+        "servers": [
+          {
+            "url": "https://coins.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "coins",
+            "in": "path",
+            "required": true,
+            "description": "set of comma-separated tokens defined as {chain}:{address}",
+            "schema": {
+              "type": "string",
+              "example": "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1,coingecko:ethereum,bsc:0x762539b45a1dcce3d36d080f74d1aed37844b878,ethereum:0xdB25f211AB05b1c97D595516F45794528a807ad8"
+            }
+          },
+          {
+            "name": "timestamp",
+            "in": "query",
+            "required": false,
+            "description": "timestamp of data point requested, defaults to time now",
+            "schema": {
+              "type": "number",
+              "example": 1664364537
+            }
+          },
+          {
+            "name": "lookForward",
+            "in": "query",
+            "required": false,
+            "description": "whether you want the duration after your given timestamp or not, defaults to false (looking back)",
+            "schema": {
+              "type": "boolean",
+              "example": false
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "required": false,
+            "description": "duration between data points, defaults to 24 hours",
+            "schema": {
+              "type": "string",
+              "example": "3w"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "coins": {
+                      "type": "object",
+                      "properties": {
+                        "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1": {
+                          "type": "number",
+                          "example": -2.3009954568977147
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/prices/first/{coins}": {
+      "get": {
+        "tags": [
+          "coins"
+        ],
+        "summary": "Get earliest timestamp price record for coins",
+        "servers": [
+          {
+            "url": "https://coins.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "coins",
+            "in": "path",
+            "required": true,
+            "description": "set of comma-separated tokens defined as {chain}:{address}",
+            "schema": {
+              "type": "string",
+              "example": "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1,coingecko:ethereum,bsc:0x762539b45a1dcce3d36d080f74d1aed37844b878,ethereum:0xdB25f211AB05b1c97D595516F45794528a807ad8"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "coins": {
+                      "type": "object",
+                      "properties": {
+                        "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1": {
+                          "type": "object",
+                          "properties": {
+                            "price": {
+                              "type": "number",
+                              "example": 0.9992047673109988
+                            },
+                            "symbol": {
+                              "type": "string",
+                              "example": "HUSD"
+                            },
+                            "timestamp": {
+                              "type": "number",
+                              "example": 1568883821
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
     "/block/{chain}/{timestamp}": {
       "get": {
         "tags": [
           "coins"
         ],
         "summary": "Get the closest block to a timestamp",
-        "description": "Runs binary search over a blockchain's blocks to get the closest one to a timestamp.\n\nEvery time this is run we add new data to our database, so each query permanently speeds up future queries.\n",
+        "description": "Runs binary search over a blockchain's blocks to get the closest one to a timestamp.\nEvery time this is run we add new data to our database, so each query permanently speeds up future queries.\n",
         "servers": [
           {
             "url": "https://coins.llama.fi"
