@@ -69,8 +69,8 @@ export default function Chains({ messages }: { messages?: string }) {
 	const text =
 		messages
 			?.replace(/(.*)\n(http.*)/g, '[$1]($2)') // merge title + link into markdown links
-			?.replace(/(\w+)\s*(\p{Emoji})\n/gu, '## $1 $2\n') // Watch📺 -> ## Watch 📺
-			?.replace(/\*\*([\w\s'".&,?!;:]+)\*\*\s*(\p{Emoji})/gu, '### $1 $2') ?? // **Threads**🧵 -> ### Threads 🧵
+			?.replace(/(\w+)\s*(\p{Emoji}\uFE0F|\p{Emoji_Presentation}))\n/gu, '## $1 $2\n') // Watch📺 -> ## Watch 📺
+			?.replace(/\*\*([\w\s'".&,?!;:]+)\*\*\s*(\p{Emoji}\uFE0F|\p{Emoji_Presentation})/gu, '### $1 $2') ?? // **Threads**🧵 -> ### Threads 🧵
 		''
 
 	return (
@@ -119,10 +119,11 @@ export async function getStaticProps() {
 	for (const m of messages) {
 		let [first, ...rest] = m.split('\n')
 		// Remove segment indicators, e.g. 1/2 News📰 -> News📰.
-		first = first.replace(/(\d+\/\d+\s+)?(\w+\s*\p{Emoji})/u, '$2')
+		// Emoji regex ref: https://stackoverflow.com/questions/70401560/what-is-the-difference-between-emoji-presentation-and-extended-pictographic
+		first = first.replace(/(\d+\/\d+\s+)?(\w+\s*(\p{Emoji}\uFE0F|\p{Emoji_Presentation}))/u, '$2')
 		// If the message starts with a topic header, e.g. News📰, then we add a newline first,
 		// separating this message from the previous one.
-		if (first.match(/\w+\s*\p{Emoji}/u)) {
+		if (first.match(/\w+\s*(\p{Emoji}\uFE0F|\p{Emoji_Presentation})/u)) {
 			message += '\n'
 		}
 		message += [first, ...rest].join('\n')
