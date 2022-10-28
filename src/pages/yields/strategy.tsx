@@ -4,6 +4,8 @@ import { getCGMarketsDataURLs, revalidate } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'
 import pako from 'pako'
 import { arrayFetcher } from '~/utils/useSWR'
+import Announcement from '~/components/Announcement'
+import { disclaimer } from '~/components/YieldsPage/utils'
 
 export async function getStaticProps() {
 	const {
@@ -42,6 +44,7 @@ export default function YieldStrategies(compressedProps) {
 	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
 	return (
 		<Layout title={`Yield Strategies - DefiLlama Yield`} defaultSEO>
+			<Announcement>{disclaimer}</Announcement>
 			<YieldsStrategyPage {...data.props} />
 		</Layout>
 	)
