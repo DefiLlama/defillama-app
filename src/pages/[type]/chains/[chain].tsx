@@ -1,5 +1,5 @@
 import { getOverview } from '~/api/categories/adaptors'
-import { types } from '../[item]'
+import { types } from '..'
 
 export async function getStaticPaths() {
 	const rawPaths = await Promise.all(
