@@ -5,11 +5,13 @@ import { ANNOUNCEMENT } from './components/Announcement'
 export function middleware(request: NextRequest) {
 	const response = NextResponse.next()
 
-	const requestUrl = request.url.startsWith('http://localhost:3000/')
-		? request.url.split('http://localhost:3000/')[1]
-		: request.url.split('.com/')[1]
+	const requestUrl = request.url.startsWith('http://localhost:3000')
+		? request.url.split('http://localhost:3000')[1]
+		: request.url.includes('vercel.app')
+		? request.url.split('.app')[1]
+		: request.url.split('.com')[1]
 
-	const { key, value } = ANNOUNCEMENT[requestUrl?.startsWith('yields') ? 'yields' : 'defi']
+	const { key, value } = ANNOUNCEMENT[requestUrl?.startsWith('/yields') ? 'yields' : 'defi']
 
 	// Getting cookies from the request
 	const currentKey = request.cookies.get(key)
