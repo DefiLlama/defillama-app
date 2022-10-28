@@ -5,6 +5,7 @@ import { getOverview, getOverviewItemPageData, ProtocolAdaptorSummaryProps } fro
 import OverviewItemContainer from '~/containers/Overview/OverviewItem'
 import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
+import { types } from '.'
 
 export type PageParams = {
 	protocolSummary: ProtocolAdaptorSummaryProps
@@ -28,7 +29,6 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 	}
 }
 
-export const types = ['fees', 'aggregators', 'volumes', 'options', 'incentives']
 export async function getStaticPaths() {
 	const rawPaths = await Promise.all(
 		types.map(async (type) => {
