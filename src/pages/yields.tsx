@@ -25,7 +25,7 @@ export default function ApyHomePage(compressedProps) {
 
 	return (
 		<Layout title={`Yield Rankings - DefiLlama`} defaultSEO>
-			<Announcement notCancellable>{disclaimer}</Announcement>
+			<Announcement>{disclaimer}</Announcement>
 			<YieldPage {...data.props} />
 		</Layout>
 	)

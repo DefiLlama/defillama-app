@@ -66,7 +66,7 @@ export default function Protocols(compressedProps) {
 	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
 	return (
 		<Layout title={`Projects - DefiLlama Yield`} defaultSEO>
-			<Announcement notCancellable>{disclaimer}</Announcement>
+			<Announcement>{disclaimer}</Announcement>
 			<YieldsSearch step={{ category: 'Yields', name: 'All projects', hideOptions: true }} />
 			<PageHeader title="Projects" />
 			<YieldsProjectsTable data={data.props.projects} />

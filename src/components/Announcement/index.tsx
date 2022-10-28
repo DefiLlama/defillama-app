@@ -6,9 +6,17 @@ import lubb from '~/assets/lubb.png'
 import { X } from 'react-feather'
 import { useRouter } from 'next/router'
 
-export const ANNOUNCEMENT_KEY = 'flag-announcement'
-// change this key to show new announcements
-export const ANNOUNCEMENT_VALUE = 'llama1'
+// change 'value' for new announcements
+export const ANNOUNCEMENT = {
+	defi: {
+		key: 'defi-flag-announcement',
+		value: 'defi1'
+	},
+	yields: {
+		key: 'yield-flag-announcement',
+		value: 'yield1'
+	}
+}
 
 export default function Announcement({
 	children,
@@ -18,9 +26,15 @@ export default function Announcement({
 	notCancellable?: boolean
 }) {
 	const router = useRouter()
+
+	const { key, value } = ANNOUNCEMENT[router.pathname.startsWith('/yields') ? 'yields' : 'defi']
+
 	const closeAnnouncement = () => {
-		Cookies.set(ANNOUNCEMENT_KEY, ANNOUNCEMENT_VALUE)
-		router.push('/', undefined, { shallow: true })
+		Cookies.set(key, value)
+
+		const { announcement, ...queries } = router.query
+
+		router.push({ pathname: router.pathname, query: { ...queries } }, undefined, { shallow: true })
 	}
 
 	if (notCancellable ? false : !router.query.announcement) {

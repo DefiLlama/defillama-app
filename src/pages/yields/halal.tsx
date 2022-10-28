@@ -124,7 +124,7 @@ export default function YieldPlots(compressedProps) {
 	const [methodologyActivated, setMethodologyActivated] = useState(false)
 	return (
 		<Layout title={`Halal - DefiLlama Yield`} defaultSEO>
-			<Announcement notCancellable>{disclaimer}</Announcement>
+			<Announcement>{disclaimer}</Announcement>
 			<PanelThicc as="p" style={{ whiteSpace: 'pre-line', display: 'block' }}>
 				This list aims to a practical tracker for halal defi yields.
 				<br />

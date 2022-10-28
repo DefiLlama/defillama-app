@@ -24,7 +24,7 @@ export default function Portfolio(compressedProps) {
 	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
 	return (
 		<Layout title={`Saved Pools - DefiLlama`} defaultSEO>
-			<Announcement notCancellable>{disclaimer}</Announcement>
+			<Announcement>{disclaimer}</Announcement>
 			<YieldsWatchlistContainer protocolsDict={data} />
 		</Layout>
 	)

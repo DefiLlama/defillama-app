@@ -44,7 +44,7 @@ export default function YieldStrategies(compressedProps) {
 	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
 	return (
 		<Layout title={`Yield Strategies - DefiLlama Yield`} defaultSEO>
-			<Announcement notCancellable>{disclaimer}</Announcement>
+			<Announcement>{disclaimer}</Announcement>
 			<YieldsStrategyPage {...data.props} />
 		</Layout>
 	)

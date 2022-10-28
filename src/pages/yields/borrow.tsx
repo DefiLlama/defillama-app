@@ -25,7 +25,7 @@ export default function YieldBorrow(compressedProps) {
 	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
 	return (
 		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} defaultSEO>
-			<Announcement notCancellable>{disclaimer}</Announcement>
+			<Announcement>{disclaimer}</Announcement>
 			<YieldPageBorrow {...data.props} />
 		</Layout>
 	)

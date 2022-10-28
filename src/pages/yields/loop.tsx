@@ -48,7 +48,7 @@ export default function YieldBorrow(compressedProps) {
 	const [methodologyActivated, setMethodologyActivated] = useState(false)
 	return (
 		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} defaultSEO>
-			<Announcement notCancellable>{disclaimer}</Announcement>
+			<Announcement>{disclaimer}</Announcement>
 
 			<PanelThicc as="p" style={{ whiteSpace: 'pre-line', display: 'block' }}>
 				This page displays leveraged lending APY values. The way this works:
