@@ -132,7 +132,7 @@ paths:
         - name: searchWidth
           in: query
           required: false
-          description: time range on either side to find price data, defaults to a day
+          description: time range on either side to find price data, defaults to 6 hours
           schema:
             type: string
             example: 4h
@@ -193,7 +193,7 @@ paths:
         - name: searchWidth
           in: query
           required: false
-          description: time range on either side to find price data, defaults to a day
+          description: time range on either side to find price data, defaults to 6 hours
           schema:
             type: string
             example: 4h
@@ -242,7 +242,7 @@ paths:
           required: true
           description: object where keys are coins in the form {chain}:{address}, and values are arrays of requested timestamps
           schema:
-            type: object
+            type: string
             example: | 
               {
               "avax:0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e": [1666876743, 1666862343],
@@ -266,21 +266,26 @@ paths:
                   coins:
                     type: object
                     properties:
-                      "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1":
+                      "avax:0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e":
                         type: object
                         properties:
-                          decimals:
-                            type: number
-                            example: 8
-                          price: 
-                            type: number
-                            example: 0.022053735051098835
-                          "symbol": 
+                          symbol: 
                             type: string
-                            example: "cDAI"
-                          "timestamp": 
-                            type: number
-                            example: 1663351225
+                            example: "USDC"
+                          prices: 
+                            type: array
+                            items: 
+                              type: object
+                              properties: 
+                                timestamp: 
+                                  type: number
+                                  example: 1666876674
+                                price: 
+                                  type: number
+                                  example: 0.999436
+                                confidence: 
+                                  type: number
+                                  example: 0.99
         '502':
           description: Internal error
   /chart/{coins}:
