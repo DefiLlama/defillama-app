@@ -41,11 +41,17 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	const isChainsPage = chain === 'all'
 
 	React.useEffect(() => {
+		if (loading) {
+			setEnableBreakdownChart(false)
+			setCharts({
+				totalDataChartBreakdown: undefined
+			})
+		}
 		if (data && !error && !loading)
 			setCharts({
 				totalDataChartBreakdown: data.totalDataChartBreakdown
 			})
-	}, [data, loading, error])
+	}, [data, loading, error, props.chain])
 
 	const chartData = React.useMemo<[IJoin2ReturnType, string[]]>(() => {
 		if (enableBreakdownChart) {
@@ -95,6 +101,9 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
 						? (enabled) => setEnableBreakdownChart(enabled)
 						: undefined
+				}
+				toggleStatus={
+					enableBreakdownChart && charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
 				}
 			/>
 
