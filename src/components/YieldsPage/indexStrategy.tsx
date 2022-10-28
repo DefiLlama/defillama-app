@@ -4,7 +4,14 @@ import styled from 'styled-components'
 import { Panel } from '~/components'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import YieldsStrategyTable from '~/components/Table/Yields/Strategy'
-import { YieldAttributes, FiltersByChain, YieldProjects, TVLRange, AvailableRange } from '~/components/Filters'
+import {
+	YieldAttributes,
+	FiltersByChain,
+	YieldProjects,
+	TVLRange,
+	AvailableRange,
+	ResetAllYieldFilters
+} from '~/components/Filters'
 import YieldsSearch from '~/components/Search/Yields/Optimizer'
 import { filterPool, findStrategyPools, formatOptimizerPool } from './utils'
 
@@ -155,6 +162,7 @@ const YieldsStrategyPage = ({
 				<YieldAttributes pathname={pathname} />
 				<AvailableRange />
 				<TVLRange />
+				<ResetAllYieldFilters pathname={pathname} />
 			</TableFilters>
 
 			{poolsData.length > 0 ? (
