@@ -129,12 +129,12 @@ paths:
           schema:
             type: string
             example: ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1,coingecko:ethereum,bsc:0x762539b45a1dcce3d36d080f74d1aed37844b878,ethereum:0xdB25f211AB05b1c97D595516F45794528a807ad8
-        - name: search width
+        - name: searchWidth
           in: query
           required: false
           description: time range on either side to find price data, defaults to a day
           schema:
-            type: number or string
+            type: string
             example: 4h
       responses:
         '200':
@@ -155,13 +155,16 @@ paths:
                             example: 8
                           price: 
                             type: number
-                            example: 0.022053735051098835
-                          "symbol": 
+                            example: 0.884394
+                          symbol: 
                             type: string
-                            example: "cDAI"
-                          "timestamp": 
+                            example: "HUSD"
+                          timestamp: 
                             type: number
-                            example: 1663351225
+                            example: 1666962780
+                          confidence: 
+                            type: number
+                            example: 0.99
         '502':
           description: Internal error
   /prices/historical/{timestamp}/{coins}:
@@ -221,7 +224,7 @@ paths:
         - coins
       summary: Get historical prices for multiple tokens at multiple different timestamps 
       description: |
-        Strings accepted by period and search width:
+        Strings accepted by period and searchWidth:
         Can use regular chart candle notion like ‘4h’ etc where:
         W = week, D = day, H = hour, M = minute (not case sensitive)
       servers:
@@ -238,12 +241,12 @@ paths:
               "avax:0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e": [1666876743, 1666862343],
               "coingecko:ethereum": [1666869543, 1666862343]
               }
-        - name: search width
+        - name: searchWidth
           in: query
           required: false
           description: time range on either side to find price data, defaults to 6 hours 
           schema:
-            type: number or string
+            type: string
             example: 600
       responses:
         '200':
@@ -279,7 +282,7 @@ paths:
         - coins
       summary: Get token prices at regular time intervals
       description: |
-        Strings accepted by period and search width:
+        Strings accepted by period and searchWidth:
         Can use regular chart candle notion like ‘4h’ etc where:
         W = week, D = day, H = hour, M = minute (not case sensitive)
       servers:
@@ -318,14 +321,14 @@ paths:
           required: false
           description: duration between data points, defaults to 24 hours 
           schema:
-            type: number or string
+            type: string
             example: 2d
-        - name: search width
+        - name: searchWidth
           in: query
           required: false
           description: time range on either side to find price data, defaults to 10% of period
           schema:
-            type: number or string
+            type: string
             example: 600
       responses:
         '200':
@@ -344,15 +347,23 @@ paths:
                           decimals:
                             type: number
                             example: 8
-                          price: 
+                          confidence: 
                             type: number
-                            example: 0.022053735051098835
-                          "symbol": 
+                            example: 0.99
+                          prices: 
+                            type: array
+                            items: 
+                              type: object
+                              properties: 
+                                timestamp:
+                                  type: number
+                                  example: 1666790570
+                                price: 
+                                  type: number
+                                  example: 0.984519
+                          symbol: 
                             type: string
-                            example: "cDAI"
-                          "timestamp": 
-                            type: number
-                            example: 1663351225
+                            example: "HUSD"
         '502':
           description: Internal error
   /percentage/{coins}:
@@ -393,7 +404,7 @@ paths:
           required: false
           description: duration between data points, defaults to 24 hours 
           schema:
-            type: number or string
+            type: string
             example: 3w
       responses:
         '200':
@@ -407,20 +418,8 @@ paths:
                     type: object
                     properties:
                       "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1":
-                        type: object
-                        properties:
-                          decimals:
-                            type: number
-                            example: 8
-                          price: 
-                            type: number
-                            example: 0.022053735051098835
-                          "symbol": 
-                            type: string
-                            example: "cDAI"
-                          "timestamp": 
-                            type: number
-                            example: 1663351225
+                        type: number
+                        example: -2.3009954568977147
         '502':
           description: Internal error
   /prices/first/{coins}:
@@ -452,18 +451,15 @@ paths:
                       "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1":
                         type: object
                         properties:
-                          decimals:
-                            type: number
-                            example: 8
                           price: 
                             type: number
-                            example: 0.022053735051098835
-                          "symbol": 
+                            example: 0.9992047673109988
+                          symbol: 
                             type: string
-                            example: "cDAI"
+                            example: "HUSD"
                           "timestamp": 
                             type: number
-                            example: 1663351225
+                            example: 1568883821
         '502':
           description: Internal error
   /block/{chain}/{timestamp}:
