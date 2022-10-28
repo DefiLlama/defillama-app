@@ -199,11 +199,19 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 			Others: volumesAtDate.slice(11).reduce((acc, curr: [string, number]) => (acc += curr[1]), 0) */
 
 	const allCharts = dataByChain.map(chainData => [chainData.chain, chainData.totalDataChart]) as IChartsList
+	let aggregatedChart = joinCharts2(...allCharts)
+	const sum = (obj: IJSON<string | number>) => {
+		return Object.values(obj).reduce<number>((acc, curr) => typeof curr === 'number' ? acc += curr : acc, 0)
+	}
+	aggregatedChart = aggregatedChart.slice(
+		aggregatedChart.findIndex(it => sum(it) !== 0),
+		aggregatedChart.length - [...aggregatedChart].reverse().findIndex(it => sum(it) !== 0)
+	)
 	return {
 		type,
 		protocols,
 		chain: 'all',
-		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
+		totalDataChart: [aggregatedChart, allCharts.map(([label]) => label)],
 	}
 }
 //const sortedList = list.sort(([_a, a], [_b, b]) => b - a)
