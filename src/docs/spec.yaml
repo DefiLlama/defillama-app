@@ -190,6 +190,13 @@ paths:
           schema:
             type: number
             example: 1648680149
+        - name: searchWidth
+          in: query
+          required: false
+          description: time range on either side to find price data, defaults to a day
+          schema:
+            type: string
+            example: 4h
       responses:
         '200':
           description: successful operation
