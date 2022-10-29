@@ -1,3 +1,6 @@
+import { Protocol } from "~/api/types"
+import { IJoinReturnType } from ".";
+
 //TODO: import from generic types
 
 
@@ -26,21 +29,18 @@ export interface ProtocolAdaptorSummaryResponse extends ProtocolAdaptorSummary {
   forkedFrom?: Array<string>;
   gecko_id: string | null;
   module: string;
-  totalDataChartBreakdown: Array<[number, IJSON<{ [protocol: string]: number | IJSON<number> }>]>,
+  totalDataChartBreakdown: Array<[number, { [protocol: string]: number }]>,
   totalDataChart: Array<[number, number]>,
   total24h: number | null
-  totalAllTime: number | null
   change_1d: number | null
   protocolType?: string
-  protocolsData: IJSON<{
-    chains: string[]
-    disabled: boolean
-  }> | null
 }
 
 ///////////////////////////////////////////////////////////////////
 export type IJSON<T> = { [key: string]: T }
 export type ProtocolAdaptorSummary = {
+
+
   name: string
   disabled: boolean
   displayName: string
@@ -50,8 +50,6 @@ export type ProtocolAdaptorSummary = {
   total24h: number
   breakdown24h: IJSON<IJSON<number>>
   chains: Array<string>,
-  module: string
-  totalAllTime: number | null
   protocolsStats: IJSON<IJSON<{
     chains: string[],
     disabled: boolean,
