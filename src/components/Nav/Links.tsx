@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book } from 'react-feather'
+import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book, ShieldOff, Shuffle } from 'react-feather'
 
 export interface IMainLink {
 	name: string
@@ -182,13 +182,27 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Book size={16} />
-	}
+	},
+	Hacks: {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <ShieldOff size={16} />
+	},
+	Bridges: {
+		main: [
+			{ name: 'Overview', path: '/bridges' },
+			{ name: 'Chains', path: '/bridges/chains' }
+		],
+		...defaultToolsAndFooterLinks,
+		icon: <Shuffle size={16} />
+	},
 }
 
 export const linksWithNoSubMenu = [
 	{ name: 'Liquidations', url: '/liquidations/eth' },
 	{ name: 'Fees', url: '/fees' },
-	{ name: 'Raises', url: '/raises' }
+	{ name: 'Raises', url: '/raises' },
+	{ name: 'Hacks', url: '/hacks' },
 ]
 
 function downloadDefiDataset() {

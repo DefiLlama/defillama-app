@@ -6,6 +6,7 @@ import {
 	YIELD_CHAIN_API,
 	YIELD_LEND_BORROW_API
 } from '~/constants'
+import { slug } from '~/utils'
 import { arrayFetcher } from '~/utils/useSWR'
 import { formatYieldsPageData } from './utils'
 
@@ -27,8 +28,11 @@ export async function getYieldPageData() {
 
 	// get Price data
 	let pricesList = []
+
 	for (let p of data.pools) {
-		if (p.rewardTokens) {
+		const rewardTokens = p.rewardTokens?.filter((t) => !!t)
+
+		if (rewardTokens) {
 			let priceChainName = p.chain.toLowerCase()
 			priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
 				? priceChainMapping[priceChainName]
@@ -36,9 +40,7 @@ export async function getYieldPageData() {
 
 			// using coingecko ids for projects on Neo, otherwise empty object
 			pricesList.push(
-				p.chain === 'Neo'
-					? [`coingecko:${p.project}`]
-					: p.rewardTokens.map((t) => `${priceChainName}:${t.toLowerCase()}`)
+				p.chain === 'Neo' ? [`coingecko:${p.project}`] : rewardTokens.map((t) => `${priceChainName}:${t.toLowerCase()}`)
 			)
 		}
 	}
@@ -61,6 +63,8 @@ export async function getYieldPageData() {
 
 	for (let p of data.pools) {
 		let priceChainName = p.chain.toLowerCase()
+		const rewardTokens = p.rewardTokens?.filter((t) => !!t)
+
 		priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
 			? priceChainMapping[priceChainName]
 			: priceChainName
@@ -69,7 +73,7 @@ export async function getYieldPageData() {
 			p.chain === 'Neo'
 				? [
 						...new Set(
-							p.rewardTokens.map((t) =>
+							rewardTokens.map((t) =>
 								t === '0xf0151f528127558851b39c2cd8aa47da7418ab28'
 									? 'FLM'
 									: t === '0x340720c7107ef5721e44ed2ea8e314cce5c130fa'
@@ -80,7 +84,7 @@ export async function getYieldPageData() {
 				  ]
 				: [
 						...new Set(
-							p.rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
+							rewardTokens.map((t) => prices[`${priceChainName}:${t.toLowerCase()}`]?.symbol.toUpperCase() ?? null)
 						)
 				  ]
 	}
@@ -94,6 +98,8 @@ export async function getYieldPageData() {
 				? data.tokenNameMapping['AVAX']
 				: t === 'WFTM'
 				? data.tokenNameMapping['FTM']
+				: t === 'HOP' && p.project === 'hop-protocol'
+				? p.projectName
 				: data.tokenNameMapping[t]
 		})
 		p['rewardTokensNames'] = xy.filter((t) => t)
@@ -143,6 +149,11 @@ export async function getLendBorrowData() {
 
 	// get new borrow fields
 	let dataBorrow = (await arrayFetcher([YIELD_LEND_BORROW_API]))[0]
+	// note(slasher): this endpoint returns everything with ltv >=0 from the db.
+	// remove cdp pools for now from dataBorrow. need to make below work for cdp's first
+	const cdpPools = [...new Set(props.pools.filter((p) => p.category === 'CDP').map((p) => p.pool))]
+	// remove any cdp pools from dataBorrow
+	dataBorrow = dataBorrow.filter((p) => !cdpPools.includes(p.pool))
 
 	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
 	const configIdsCompound = pools.filter((p) => p.project === 'compound').map((p) => p.pool)
@@ -191,6 +202,7 @@ export async function getLendBorrowData() {
 				totalSupplyUsd: x.totalSupplyUsd,
 				totalBorrowUsd: x.totalBorrowUsd,
 				ltv: x.ltv,
+				borrowable: x.borrowable,
 				// note re morpho: they build on top of compound. if the total supply is being used by borrowers
 				// then any excess borrows will be routed via compound pools. so the available liquidity is actually
 				// compounds liquidity. not 100% sure how to present this on the frontend, but for now going to supress
@@ -203,11 +215,30 @@ export async function getLendBorrowData() {
 		.filter(Boolean)
 		.sort((a, b) => b.totalSupplyUsd - a.totalSupplyUsd)
 
+	const projectsList = new Set()
+	const lendingProtocols = new Set()
+	const farmProtocols = new Set()
+
+	props.pools.forEach((pool) => {
+		projectsList.add(pool.projectName)
+		if (pool.category === 'Lending') {
+			lendingProtocols.add(pool.projectName)
+		}
+		farmProtocols.add(pool.projectName)
+
+		pool.rewardTokensNames?.forEach((rewardName) => {
+			projectsList.add(rewardName)
+			farmProtocols.add(rewardName)
+		})
+	})
+
 	return {
 		props: {
 			pools,
 			chainList: [...new Set(pools.map((p) => p.chain))],
-			projectList: props.projectList.filter((p) => [...new Set(pools.map((p) => p.project))].includes(p.slug)),
+			projectList: Array.from(projectsList).map((name: string) => ({ name, slug: slug(name) })),
+			lendingProtocols: Array.from(lendingProtocols).map((name: string) => ({ name, slug: slug(name) })),
+			farmProtocols: Array.from(farmProtocols).map((name: string) => ({ name, slug: slug(name) })),
 			categoryList: lendingCategories,
 			tokenNameMapping: props.tokenNameMapping,
 			allPools: props.pools
@@ -215,7 +246,7 @@ export async function getLendBorrowData() {
 	}
 }
 
-export function calculateLoopAPY(lendBorrowPools, levels = 1) {
+export function calculateLoopAPY(lendBorrowPools, levels = 10) {
 	let pools = lendBorrowPools.filter((p) => p.ltv > 0)
 
 	return pools

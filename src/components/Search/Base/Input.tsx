@@ -54,9 +54,13 @@ const IconWrapper = styled.button`
 `
 export function Input({ state, placeholder, breadCrumbs, withValue, ...props }: IInputProps) {
 	const onClick = React.useCallback(() => {
-		if (state.mounted && withValue) state.setValue('')
+		if (state.mounted && withValue) {
+			state.setValue('')
+		}
+
 		state.toggle()
-	}, [state.mounted, withValue, state])
+	}, [withValue, state])
+
 	return (
 		<>
 			<InputField
@@ -67,7 +71,7 @@ export function Input({ state, placeholder, breadCrumbs, withValue, ...props }: 
 				{...props}
 			/>
 
-			<IconWrapper onClick={onClick}>
+			<IconWrapper onClick={onClick} data-searchicon>
 				{state.mounted ? (
 					<>
 						<span className="visually-hidden">Close Search</span>

@@ -6,6 +6,7 @@ import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import QuestionHelper from '~/components/QuestionHelper'
+import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -87,6 +88,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{lockupsRewards.includes(row.original.project) ? (
+						<QuestionHelper
+							text={`${row.original.project} Rewards are vested. You can immediately receive your rewards by taking an exit penalty!`}
+						/>
+					) : preminedRewards.includes(row.original.project) ? (
+						<QuestionHelper text={`${row.original.project} has Pre-mined rewards, no available token yet!`} />
+					) : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"
@@ -160,6 +168,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 
 			return row.original.apyRewardBorrow > 0 ? (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{lockupsRewards.includes(row.original.project) ? (
+						<QuestionHelper
+							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
+						/>
+					) : row.original.project === '0vix' ? (
+						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
+					) : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"
@@ -240,7 +255,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Amount of borrowed collateral'
 		}
 	},
 	{
@@ -349,8 +365,8 @@ export const columnSizes = {
 		apyBaseBorrow: 140,
 		apyRewardBorrow: 160,
 		ltv: 90,
-		totalSupplyUsd: 100,
-		totalBorrowUsd: 100,
+		totalSupplyUsd: 120,
+		totalBorrowUsd: 120,
 		totalAvailableUsd: 120
 	},
 	812: {
@@ -363,8 +379,8 @@ export const columnSizes = {
 		apyBaseBorrow: 140,
 		apyRewardBorrow: 160,
 		ltv: 90,
-		totalSupplyUsd: 100,
-		totalBorrowUsd: 100,
+		totalSupplyUsd: 120,
+		totalBorrowUsd: 120,
 		totalAvailableUsd: 120
 	}
 }

@@ -19,7 +19,7 @@ const blockExplorers = {
 	waves: ['https://wavesexplorer.com/assets/', 'Waves Explorer'],
 	eos: ['https://bloks.io/tokens/', 'bloks'],
 	energyweb: ['https://explorer.energyweb.org/address/', 'EnergyWeb'],
-	cronos: ['https://cronos.crypto.org/explorer/address/', 'Cronos Explorer'],
+	cronos: ['https://cronoscan.com/address/', 'Cronoscan'],
 	harmony: ['https://explorer.harmony.one/address/', 'Harmony Explorer'],
 	tron: ['https://tronscan.org/#/contract/', 'Tronscan'],
 	kucoin: ['https://explorer.kcc.io/en/address/', 'KCC Explorer'],
@@ -55,7 +55,10 @@ const blockExplorers = {
 	vision: ['https://www.visionscan.org/contract/', 'Visionscan'],
 	ethpow: ['https://www.oklink.com/en/ethw/address/', 'ETHW Explorer'],
 	cube: ['https://www.cubescan.network/en-us/token/', 'CUBE Scan'],
-	functionx: ['https://starscan.io/evm/address/', 'StarScan']
+	functionx: ['https://starscan.io/evm/address/', 'StarScan'],
+	kekchain: ['https://mainnet-explorer.kekchain.com/address/', 'Kekchain Explorer'],
+	godwoken: ['https://v0.gwscan.com/account/', 'GwScan'],
+	godwokenv1: ['https://v1.gwscan.com/account/', 'GwScan']
 }
 
 export const getBlockExplorer = (address: string = '') => {

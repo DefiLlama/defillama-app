@@ -85,6 +85,10 @@ const useAppSettings = () => {
 		return { options: [], useSettings: useDefiManager }
 	}
 
+	if (router.pathname.startsWith('/hacks')) {
+		return { options: [], useSettings: useDefiManager }
+	}
+
 	if (router.pathname.startsWith('/nfts')) {
 		return { options: nftOptions, useSettings: useNftsManager }
 	}

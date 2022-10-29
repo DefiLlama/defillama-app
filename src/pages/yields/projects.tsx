@@ -5,6 +5,8 @@ import { revalidate } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 import pako from 'pako'
 import { YieldsProjectsTable } from '~/components/Table'
+import Announcement from '~/components/Announcement'
+import { disclaimer } from '~/components/YieldsPage/utils'
 
 function median(numbers) {
 	const sorted: any = Array.from(numbers).sort((a: number, b: number) => a - b)
@@ -64,6 +66,7 @@ export default function Protocols(compressedProps) {
 	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
 	return (
 		<Layout title={`Projects - DefiLlama Yield`} defaultSEO>
+			<Announcement>{disclaimer}</Announcement>
 			<YieldsSearch step={{ category: 'Yields', name: 'All projects', hideOptions: true }} />
 			<PageHeader title="Projects" />
 			<YieldsProjectsTable data={data.props.projects} />

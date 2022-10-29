@@ -1,11 +1,20 @@
 import { ChartData } from '~/utils/liquidations'
 import * as React from 'react'
 import styled from 'styled-components'
-import { SmolHints } from '~/pages/liquidations/[symbol]'
 import { LiquidatablePositionsTable } from '~/components/Table'
 
 const TableNoticeWrapper = styled.div`
 	margin-bottom: -1rem;
+`
+
+export const SmolHints = styled.div`
+	display: flex;
+	gap: 6px;
+	flex-direction: row;
+	justify-content: flex-end;
+	align-items: center;
+	margin-top: -1rem;
+	opacity: 0.6;
 `
 
 export const PositionsTable = (props: { data: ChartData; prevData: ChartData }) => {

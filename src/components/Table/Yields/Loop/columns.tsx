@@ -5,6 +5,8 @@ import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import QuestionHelper from '~/components/QuestionHelper'
+import { AutoRow } from '~/components/Row'
+import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -61,15 +63,24 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		header: 'Loop APY',
 		accessorKey: 'loopApy',
 		enableSorting: true,
-		cell: (info) => {
+		cell: ({ getValue, row }) => {
 			return (
-				<span
-					style={{
-						color: apyColors['positive']
-					}}
-				>
-					{formattedPercent(info.getValue(), true, 700)}
-				</span>
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{lockupsRewards.includes(row.original.project) ? (
+						<QuestionHelper
+							text={`${row.original.project} Rewards are vested. You can immediately receive your rewards by taking an exit penalty!`}
+						/>
+					) : preminedRewards.includes(row.original.project) ? (
+						<QuestionHelper text={`${row.original.project} has Pre-mined rewards, no available token yet!`} />
+					) : null}
+					<span
+						style={{
+							color: apyColors['positive']
+						}}
+					>
+						{formattedPercent(getValue(), true, 700)}
+					</span>
+				</AutoRow>
 			)
 		},
 		size: 140,
@@ -178,7 +189,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Amount of borrowed collateral'
 		}
 	},
 	{
@@ -282,7 +294,7 @@ export const columnSizes = {
 		boost: 80,
 		ltv: 60,
 		totalSupplyUsd: 80,
-		totalBorrowUsd: 80,
+		totalBorrowUsd: 100,
 		totalAvailableUsd: 80
 	},
 	812: {
@@ -294,7 +306,7 @@ export const columnSizes = {
 		boost: 80,
 		ltv: 60,
 		totalSupplyUsd: 80,
-		totalBorrowUsd: 80,
+		totalBorrowUsd: 100,
 		totalAvailableUsd: 80
 	}
 }

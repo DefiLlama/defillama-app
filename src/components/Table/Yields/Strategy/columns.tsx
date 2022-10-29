@@ -6,6 +6,9 @@ import type { IYieldsStrategyTableRow } from '../types'
 import { PoolStrategyWithProjects } from '../../shared'
 import { Tooltip2 } from '~/components/Tooltip'
 import styled from 'styled-components'
+import QuestionHelper from '~/components/QuestionHelper'
+import { AutoRow } from '~/components/Row'
+import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -39,7 +42,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						project1={row.original.projectName}
 						airdropProject1={row.original.airdrop}
 						project2={row.original.farmProjectName}
-						airdropProject2={row.original.airdrop}
+						airdropProject2={false}
 						chain={row.original.chains[0]}
 						index={index + 1}
 					/>
@@ -52,27 +55,36 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		header: 'Strategy APY',
 		accessorKey: 'totalApy',
 		enableSorting: true,
-		cell: (info) => {
+		cell: ({ getValue, row }) => {
 			const TooltipContent = () => {
 				return (
 					<>
-						<span>{`Supply APY: ${info.row.original.apy.toFixed(2)}%`}</span>
-						<span>{`Borrow APY: ${info.row.original.borrow.apyBorrow.toFixed(2)}%`}</span>
-						<span>{`Farm APY: ${info.row.original.farmApy.toFixed(2)}%`}</span>
+						<span>{`Supply APY: ${row.original?.apy?.toFixed(2)}%`}</span>
+						<span>{`Borrow APY: ${row.original?.borrow?.apyBorrow?.toFixed(2)}%`}</span>
+						<span>{`Farm APY: ${row.original?.farmApy?.toFixed(2)}%`}</span>
 					</>
 				)
 			}
 
 			return (
-				<Tooltip content={<TooltipContent />}>
-					<span
-						style={{
-							color: apyColors['positive']
-						}}
-					>
-						{formattedPercent(info.getValue(), true, 700)}
-					</span>
-				</Tooltip>
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{lockupsRewards.includes(row.original.projectName) ? (
+						<QuestionHelper
+							text={`${row.original.projectName} Rewards are vested. You can immediately receive your rewards by taking an exit penalty!`}
+						/>
+					) : preminedRewards.includes(row.original.projectName) ? (
+						<QuestionHelper text={`${row.original.projectName} has Pre-mined rewards, no available token yet!`} />
+					) : null}
+					<Tooltip content={<TooltipContent />}>
+						<span
+							style={{
+								color: apyColors['positive']
+							}}
+						>
+							{formattedPercent(getValue(), true, 700)}
+						</span>
+					</Tooltip>
+				</AutoRow>
 			)
 		},
 		size: 140,
@@ -125,7 +137,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		}
 	},
 	{
-		header: 'TVL',
+		header: 'Farm TVL',
 		accessorKey: 'farmTvlUsd',
 		enableSorting: true,
 		cell: (info) => {

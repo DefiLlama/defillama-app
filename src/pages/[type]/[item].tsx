@@ -1,20 +1,11 @@
 import { GetStaticProps, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import * as React from 'react'
 import { revalidate } from '~/api'
-import { getChainPageData, getOverview, getOverviewItemPageData, IJoin2ReturnType } from '~/api/categories/adaptors'
-import { ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from '~/api/categories/adaptors/types'
-import SEO from '~/components/SEO'
+import { getOverview, getOverviewItemPageData, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 import OverviewItemContainer from '~/containers/Overview/OverviewItem'
-import { upperCaseFirst } from '~/containers/Overview/utils'
-import Layout from '~/layout'
 import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
-
-export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {
-	type: string
-	totalDataChart: IJoin2ReturnType
-	revenue24h: number | null
-}
+import { types } from '.'
 
 export type PageParams = {
 	protocolSummary: ProtocolAdaptorSummaryProps
@@ -39,18 +30,15 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 }
 
 export async function getStaticPaths() {
-	const { protocols: arrFees } = await getOverview('fees')
-	/* const { protocols: arrVols } = await getOverview('volumes') */
-	const paths = [
-		...arrFees.map((protocol) => ({
-			params: { type: 'fees', item: standardizeProtocolName(protocol.name) }
-		})) /* ,
-		...arrVols.map((protocol) => ({
-			params: { type: 'volumes', item: standardizeProtocolName(protocol.name) }
-		})) */
-	]
-
-	return { paths, fallback: 'blocking' }
+	const rawPaths = await Promise.all(
+		types.map(async (type) => {
+			const { protocols } = await getOverview(type)
+			return protocols.map((protocol) => ({
+				params: { type, item: standardizeProtocolName(protocol.name) }
+			}))
+		})
+	)
+	return { paths: rawPaths.flat(), fallback: 'blocking' }
 }
 
 export default function ProtocolItem({ protocolSummary, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {

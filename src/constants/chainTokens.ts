@@ -644,42 +644,42 @@ export const chainCoingeckoIds = {
     symbol: "SNT",
     cmcId: "15399"
   },
-	"Kintsugi": {
+	Kintsugi: {
     geckoId: "kintsugi",
     symbol: "KINT",
     cmcId: "13675"
   },
-	"Interlay": {
+	Interlay: {
     geckoId: "interlay",
     symbol: "INTR",
     cmcId: "20366"
   },
-	"Ultron": {
+	Ultron: {
     geckoId: "ultron",
     symbol: "ULX",
     cmcId: "21524"
   },
-	"Dogechain": {
+	Dogechain: {
     geckoId: "dogechain",
     symbol: "DC",
     cmcId: "21414"
   },
-	"Juno": {
+	Juno: {
     geckoId: "juno-network",
     symbol: "JUNO",
     cmcId: "14299"
   },
-  "Tombchain": {
+  Tombchain: {
     geckoId: "tomb",
     symbol: "TOMB",
     cmcId: "11495"
   },
-	"Crescent": {
+	Crescent: {
     geckoId: "crescent-network",
     symbol: "CRE",
     cmcId: null,
   },
-	"Vision": {
+	Vision: {
 		geckoId: "vision-metaverse",
 		symbol: "VS",
 		cmcId: "19083"
@@ -688,7 +688,12 @@ export const chainCoingeckoIds = {
 		geckoId: "ethereum-pow-iou",
 		symbol: "ETHW",
 		cmcId: "21296"
-	}
+	},
+	Aptos: {
+    geckoId: "aptos",
+    symbol: "APT",
+    cmcId: "21794",
+  },
 }
 
 export const chainMarketplaceMappings = {

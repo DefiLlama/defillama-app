@@ -45,41 +45,47 @@ export function useGetYieldsSearchList(): IGetSearchList {
 	return { data: searchData || [], loading: fetchingProjects || fetchingYields, onItemClick }
 }
 
-export function useGetTokensSearchList(lend = true): IGetSearchList {
+export function useGetTokensSearchList({ lend, yields }): IGetSearchList {
 	const router = useRouter()
-	const { data: yields, loading: fetchingYields } = useFetchYieldsList()
+
+	const { lend: lendQuery, borrow, ...queryParams } = router.query
 
 	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
 
-	const stablecoinsSearch = React.useMemo(
-		() => ({
+	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
+		const stablecoinsSearch = {
 			name: `All USD Stablecoins`,
 			symbol: 'USD_Stables',
-			route: `${router.pathname}?${targetParam}=USD_Stables&${restParam}=${router.query[restParam] || ''}`,
+			route: {
+				pathname: router.pathname,
+				query: {
+					[targetParam]: 'USD_Stables',
+					[restParam]: router.query[restParam] || '',
+					...queryParams
+				}
+			},
 			logo: '/icons/usd_native.png'
-		}),
-		[restParam, router.query, targetParam, router.pathname]
-	)
+		}
 
-	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
 		const yieldsList =
 			yields?.map((el) => ({
-				name: `${el.name} (${el.symbol.toUpperCase()})`,
-				symbol: el.symbol.toUpperCase(),
-				route: `${router.pathname}?${targetParam}=${el.symbol.toUpperCase()}&${restParam}=${
-					router.query[restParam] || ''
-				}`,
+				name: `${el.name} (${el.symbol?.toUpperCase()})`,
+				symbol: el.symbol?.toUpperCase(),
+				route: {
+					pathname: router.pathname,
+					query: { [targetParam]: el.symbol?.toUpperCase(), [restParam]: router.query[restParam] || '', ...queryParams }
+				},
 				logo: el.image
 			})) ?? []
 
 		return [stablecoinsSearch].concat(yieldsList)
-	}, [yields, restParam, router.query, targetParam, stablecoinsSearch, router.pathname])
+	}, [yields, restParam, router.query, targetParam, router.pathname, queryParams])
 
 	const onItemClick = (item) => {
-		router.push(item.route, undefined, { shallow: true })
+		router.push({ ...item.route }, undefined, { shallow: true })
 	}
 
-	return { data: searchData || [], loading: fetchingYields, onItemClick }
+	return { data: searchData || [], loading: false, onItemClick }
 }
 
 export function useGetTokensSearchListMobile(): IGetSearchList {

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
+import { LiquidationsContext } from '~/components/LiquidationsPage/context'
 import { ChartData, PROTOCOL_NAMES_MAP_REVERSE } from '~/utils/liquidations'
 import { useStackBy } from './utils'
 

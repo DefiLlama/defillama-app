@@ -9,17 +9,18 @@ export const useFetchAdaptorsList = (type: string) => {
 }
 
 export const useFetchCharts = (type: string, chain?: string) => {
-	const fetch = type === 'fees' ? () => undefined : fetcher
+	const fetch = type === 'fees' || chain === 'all' ? () => undefined : fetcher
 	let API = `${ADAPTORS_BASE_API}/${type}`
 	if (chain) API = `${API}/${chain}`
 	const { data, error } = useSWR<IGetOverviewResponseBody>(`${API}?excludeTotalDataChart=true`, fetch)
 	return { data, error, loading: !data && !error }
 }
 
-export const getAPIUrl = (type: string, chain?: string, excludeTotalDataChart?: boolean, excludeTotalDataChartBreakdown?: boolean, dataType?: string) => {
+export const getAPIUrl = (type: string, chain?: string, excludeTotalDataChart?: boolean, excludeTotalDataChartBreakdown?: boolean, dataType?: string, fullChart?: boolean) => {
 	let API = `${ADAPTORS_BASE_API}/${type}${chain ? `/${chain}?` : '?'}`
 	API = `${API}excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 	if (dataType) API = `${API}&dataType=${dataType}`
+	if (fullChart) API = `${API}&fullChart=${true}`
 	return API
 }
 

@@ -6,10 +6,12 @@ import pako from 'pako'
 import { PanelThicc, StyledAnchor } from '~/components'
 import Link from '~/components/Link'
 import { useState } from 'react'
+import Announcement from '~/components/Announcement'
+import { disclaimer } from '~/components/YieldsPage/utils'
 
 export async function getStaticProps() {
 	let data = await getLendBorrowData()
-	data.props.pools = calculateLoopAPY(data.props.pools)
+	data.props.pools = calculateLoopAPY(data.props.pools, 10)
 
 	const strData = JSON.stringify(data)
 
@@ -46,6 +48,8 @@ export default function YieldBorrow(compressedProps) {
 	const [methodologyActivated, setMethodologyActivated] = useState(false)
 	return (
 		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} defaultSEO>
+			<Announcement>{disclaimer}</Announcement>
+
 			<PanelThicc as="p" style={{ whiteSpace: 'pre-line', display: 'block' }}>
 				This page displays leveraged lending APY values. The way this works:
 				<br />

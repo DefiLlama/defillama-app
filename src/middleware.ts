@@ -1,21 +1,29 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { ANNOUNCEMENT_KEY, ANNOUNCEMENT_VALUE } from './components/Announcement'
+import { ANNOUNCEMENT } from './components/Announcement'
 
 export function middleware(request: NextRequest) {
 	const response = NextResponse.next()
 
-	// Getting cookies from the request
-	const currentKey = request.cookies.get(ANNOUNCEMENT_KEY)
+	const requestUrl = request.url.startsWith('http://localhost:3000')
+		? request.url.split('http://localhost:3000')[1]
+		: request.url.includes('vercel.app')
+		? request.url.split('.app')[1]
+		: request.url.split('.com')[1]
 
-	if (currentKey !== ANNOUNCEMENT_VALUE) {
-		return NextResponse.rewrite(new URL('/?announcement=true', request.url))
+	const { key, value } = ANNOUNCEMENT[requestUrl?.startsWith('/yields') ? 'yields' : 'defi']
+
+	// Getting cookies from the request
+	const currentKey = request.cookies.get(key)
+
+	if (currentKey !== value) {
 		// return response
+		return NextResponse.rewrite(new URL(`${request.url}?announcement=true`, request.url))
 	}
 
 	return response
 }
 
 export const config = {
-	matcher: '/'
+	matcher: ['/', '/yields/:path*']
 }

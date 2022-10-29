@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { ListWrapper } from '~/components/Filters/protocols/Desktop'
 import OptionToggle from '~/components/OptionToggle'
@@ -10,11 +10,16 @@ interface IAdaptorSearchProps extends ICommonSearchProps {
 	onlyChains?: boolean
 	type: string
 	onToggleClick?: (enabled: boolean) => void
+	toggleStatus?: boolean
 }
 
 export default function AdaptorsSearch(props: IAdaptorSearchProps) {
-	const [isToggleEnabled, setIsToggleEnabled] = useState(false)
+	const [isToggleEnabled, setIsToggleEnabled] = useState(!!props.toggleStatus)
 	const { data, loading } = useGetAdaptorsSearchList(props.type, props.onlyChains)
+
+	useEffect(() => {
+		setIsToggleEnabled(props.toggleStatus)
+	}, [props.toggleStatus])
 
 	return (
 		<DesktopSearch

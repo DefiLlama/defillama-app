@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { ResponsiveContainer } from 'recharts'
-import TradingViewChart, { CHART_TYPES } from '~/components/TradingviewChart'
+import TradingViewChart from '~/components/TradingviewChart'
 import { useIsClient } from '~/hooks'
 
 const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = '', symbol = '', displayUsd = false }) => {
@@ -38,7 +38,6 @@ const GlobalNFTChart = ({ chartData, dailyVolume, dailyVolumeChange, unit = '', 
 				title={`Daily Volume ${symbol}`}
 				field="1"
 				width={width}
-				type={CHART_TYPES.AREA}
 				units={unit}
 			/>
 		</ResponsiveContainer>
