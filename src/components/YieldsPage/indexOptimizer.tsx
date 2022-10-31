@@ -35,8 +35,7 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin } }))
 
 	const poolsData = React.useMemo(() => {
-		let filteredPools = findOptimizerPools(pools, lend, borrow)
-			.concat(cdpRoutes)
+		let filteredPools = findOptimizerPools(pools, lend, borrow, cdpRoutes)
 			.filter((pool) => filterPool({ pool, selectedChains }))
 			.map(formatOptimizerPool)
 
