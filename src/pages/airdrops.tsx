@@ -47,7 +47,12 @@ const exclude = [
 	'MM Stableswap Polygon',
 	'Sushi Furo',
 	'Sushi Trident',
-	'Poly Network'
+	'Poly Network',
+	'Frax Swap',
+	'Kava Mint',
+	'Quarry',
+	'Canto Dex',
+	'Katana DEX'
 ]
 
 export async function getStaticProps() {
