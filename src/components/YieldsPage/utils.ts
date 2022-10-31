@@ -124,7 +124,7 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 
 const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
 
-export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, loopStrategies) => {
+export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, loopStrategies, cdpRoutes) => {
 	const availableToLend = pools.filter(
 		({ symbol, ltv }) =>
 			(tokenToLend === 'USD_Stables' ? true : removeMetaTag(symbol).includes(tokenToLend)) &&
@@ -135,7 +135,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 	const availableChains = availableToLend.map(({ chain }) => chain)
 
 	// lendBorrowPairs is the same as in the optimizer, only difference is the optional filter on tokenToBorrow
-	const lendBorrowPairs = pools.reduce((acc, pool) => {
+	let lendBorrowPairs = pools.reduce((acc, pool) => {
 		if (
 			!availableProjects.includes(pool.project) ||
 			!availableChains.includes(pool.chain) ||
@@ -167,6 +167,9 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 
 		return acc.concat(poolsPairs)
 	}, [])
+
+	// add cdpRoutes
+	lendBorrowPairs = lendBorrowPairs.concat(cdpRoutes)
 
 	let finalPools = []
 	// if borrow token is specified
