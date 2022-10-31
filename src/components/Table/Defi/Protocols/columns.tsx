@@ -119,7 +119,7 @@ export const listedAtColumn = {
 			<TooltipPopver content={`at ${toNiceDayAndHour(getValue())}`}>{toNiceDaysAgo(getValue())}</TooltipPopver>
 		</ListedAt>
 	),
-	size: 120,
+	size: 140,
 	meta: {
 		align: 'end' as const
 	}
@@ -128,7 +128,7 @@ export const listedAtColumn = {
 export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
 	...protocolsColumns.slice(0, 3),
 	listedAtColumn,
-	...protocolsColumns.slice(3)
+	...protocolsColumns.slice(3, -1)
 ]
 
 export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [

@@ -41,7 +41,7 @@ export function toFilterPool({
 	const tokensInPool: Array<string> = curr.symbol.split('-').map((x) => x.toLowerCase())
 
 	const includeToken =
-		includeTokens.length > 0
+		includeTokens.length > 0 && includeTokens[0] !== 'All'
 			? includeTokens
 					.map((t) => t.toLowerCase())
 					.find((token) => {

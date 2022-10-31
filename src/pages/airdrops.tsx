@@ -2,6 +2,7 @@ import { RecentProtocols } from '~/components/RecentProtocols'
 import { revalidate } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
+import { FORK_API } from '~/constants'
 
 const exclude = [
 	'DeerFi',
@@ -46,21 +47,41 @@ const exclude = [
 	'MM Stableswap Polygon',
 	'Sushi Furo',
 	'Sushi Trident',
-	'Poly Network'
+	'Poly Network',
+	'Frax Swap',
+	'Kava Mint',
+	'Quarry',
+	'Canto Dex',
+	'Katana DEX',
+	'Canto Lending',
+	'OKCSwap',
+	'Fraxlend',
+	'Tesseract',
+	'Spartacus Exchange'
 ]
 
 export async function getStaticProps() {
 	const protocolsRaw = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls'])
+	const { forks } = await fetch(FORK_API).then((r) => r.json())
 
 	const protocols = protocolsRaw.protocols
 		.filter((token) => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name))
 		.map((p) => ({ listedAt: 1624728920, ...p }))
 		.sort((a, b) => a.listedAt - b.listedAt)
 
+	const forkedList: { [name: string]: boolean } = {}
+
+	Object.values(forks).map((list: string[]) => {
+		list.map((f) => {
+			forkedList[f] = true
+		})
+	})
+
 	return {
 		props: {
 			protocols,
-			chainList: protocolsRaw.chains
+			chainList: protocolsRaw.chains,
+			forkedList
 		},
 		revalidate: revalidate()
 	}

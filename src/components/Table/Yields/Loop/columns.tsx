@@ -128,7 +128,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Loop APY Multiple over Supply APY'
+			headerHelperText: 'Loop APY / Supply APY'
 		}
 	},
 	{
