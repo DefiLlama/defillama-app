@@ -52,7 +52,12 @@ const exclude = [
 	'Kava Mint',
 	'Quarry',
 	'Canto Dex',
-	'Katana DEX'
+	'Katana DEX',
+	'Canto Lending',
+	'OKCSwap',
+	'Fraxlend',
+	'Tesseract',
+	'Spartacus Exchange'
 ]
 
 export async function getStaticProps() {
