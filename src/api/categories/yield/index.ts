@@ -143,17 +143,12 @@ export type YieldsData = Awaited<ReturnType<typeof getYieldPageData>>
 export async function getLendBorrowData() {
 	const props = (await getYieldPageData()).props
 
-	const lendingCategories = ['Lending', 'Undercollateralized Lending']
-	// filter to lending categories only
-	let pools = props.pools.filter((p) => lendingCategories.includes(p.category))
+	// restrict pool data to lending and cdp
+	const categoriesToKeep = ['Lending', 'Undercollateralized Lending', 'CDP']
+	let pools = props.pools.filter((p) => categoriesToKeep.includes(p.category))
 
 	// get new borrow fields
 	let dataBorrow = (await arrayFetcher([YIELD_LEND_BORROW_API]))[0]
-	// note(slasher): this endpoint returns everything with ltv >=0 from the db.
-	// remove cdp pools for now from dataBorrow. need to make below work for cdp's first
-	const cdpPools = [...new Set(props.pools.filter((p) => p.category === 'CDP').map((p) => p.pool))]
-	// remove any cdp pools from dataBorrow
-	dataBorrow = dataBorrow.filter((p) => !cdpPools.includes(p.pool))
 
 	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
 	const configIdsCompound = pools.filter((p) => p.project === 'compound').map((p) => p.pool)
@@ -162,6 +157,8 @@ export async function getLendBorrowData() {
 		.map((p) => p.pool)
 	const compoundPools = dataBorrow.filter((p) => configIdsCompound.includes(p.pool))
 	const aavev2Pools = dataBorrow.filter((p) => configIdsAave.includes(p.pool))
+
+	const cdpPools = [...new Set(props.pools.filter((p) => p.category === 'CDP').map((p) => p.pool))]
 	pools = pools
 		.map((p) => {
 			const x = dataBorrow.find((i) => i.pool === p.pool)
@@ -191,6 +188,8 @@ export async function getLendBorrowData() {
 				totalAvailableUsd = aaveData?.totalSupplyUsd - aaveData?.totalBorrowUsd
 			} else if (x.totalSupplyUsd === null && x.totalBorrowUsd === null) {
 				totalAvailableUsd = null
+			} else if (cdpPools.includes(x.pool)) {
+				totalAvailableUsd = x.debtCeilingUsd ? x.debtCeilingUsd - x.totalBorrowUsd : null
 			} else {
 				totalAvailableUsd = x.totalSupplyUsd - x.totalBorrowUsd
 			}
@@ -203,6 +202,7 @@ export async function getLendBorrowData() {
 				totalBorrowUsd: x.totalBorrowUsd,
 				ltv: x.ltv,
 				borrowable: x.borrowable,
+				mintedCoin: x.mintedCoin,
 				// note re morpho: they build on top of compound. if the total supply is being used by borrowers
 				// then any excess borrows will be routed via compound pools. so the available liquidity is actually
 				// compounds liquidity. not 100% sure how to present this on the frontend, but for now going to supress
@@ -221,7 +221,8 @@ export async function getLendBorrowData() {
 
 	props.pools.forEach((pool) => {
 		projectsList.add(pool.projectName)
-		if (pool.category === 'Lending') {
+		// remove undercollateralised cause we cannot borrow on those
+		if (['Lending', 'CDP'].includes(pool.category)) {
 			lendingProtocols.add(pool.projectName)
 		}
 		farmProtocols.add(pool.projectName)
@@ -239,7 +240,7 @@ export async function getLendBorrowData() {
 			projectList: Array.from(projectsList).map((name: string) => ({ name, slug: slug(name) })),
 			lendingProtocols: Array.from(lendingProtocols).map((name: string) => ({ name, slug: slug(name) })),
 			farmProtocols: Array.from(farmProtocols).map((name: string) => ({ name, slug: slug(name) })),
-			categoryList: lendingCategories,
+			categoryList: categoriesToKeep,
 			tokenNameMapping: props.tokenNameMapping,
 			allPools: props.pools
 		}

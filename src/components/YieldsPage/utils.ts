@@ -80,7 +80,7 @@ export function toFilterPool({
 	return toFilter
 }
 
-export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
+export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes) => {
 	const availableToLend = pools.filter(
 		({ symbol, ltv }) =>
 			(tokenToLend === 'USD_Stables' ? true : symbol.includes(tokenToLend)) && ltv > 0 && !symbol.includes('AMM')
@@ -119,12 +119,20 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow) => {
 		return acc.concat(poolsPairs)
 	}, [])
 
-	return lendBorrowPairs
+	// add cdp pairs
+	const cdpPairs =
+		tokenToLend && tokenToBorrow
+			? cdpRoutes.filter(
+					(p) => removeMetaTag(p.symbol).includes(tokenToLend) && removeMetaTag(p.borrow.symbol).includes(tokenToBorrow)
+			  )
+			: []
+
+	return lendBorrowPairs.concat(cdpPairs)
 }
 
 const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
 
-export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, loopStrategies) => {
+export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, loopStrategies, cdpRoutes) => {
 	const availableToLend = pools.filter(
 		({ symbol, ltv }) =>
 			(tokenToLend === 'USD_Stables' ? true : removeMetaTag(symbol).includes(tokenToLend)) &&
@@ -135,7 +143,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 	const availableChains = availableToLend.map(({ chain }) => chain)
 
 	// lendBorrowPairs is the same as in the optimizer, only difference is the optional filter on tokenToBorrow
-	const lendBorrowPairs = pools.reduce((acc, pool) => {
+	let lendBorrowPairs = pools.reduce((acc, pool) => {
 		if (
 			!availableProjects.includes(pool.project) ||
 			!availableChains.includes(pool.chain) ||
@@ -167,6 +175,16 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 
 		return acc.concat(poolsPairs)
 	}, [])
+
+	// add cdp pairs
+	let cdpPairs = []
+	if (tokenToLend) {
+		cdpPairs = cdpRoutes.filter((p) => removeMetaTag(p.symbol).includes(tokenToLend))
+	}
+	if (tokenToBorrow) {
+		cdpPairs = cdpPairs.filter((p) => removeMetaTag(p.borrow.symbol).includes(tokenToBorrow))
+	}
+	lendBorrowPairs = lendBorrowPairs.concat(cdpPairs)
 
 	let finalPools = []
 	// if borrow token is specified

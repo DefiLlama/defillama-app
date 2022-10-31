@@ -29,8 +29,13 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 	const { lend, borrow } = query
 	const { selectedChains, selectedAttributes } = useFormatYieldQueryParams({ projectList, chainList, categoryList })
 
+	// get cdp collateral -> debt token route
+	const cdpRoutes = pools
+		.filter((p) => p.category === 'CDP')
+		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin } }))
+
 	const poolsData = React.useMemo(() => {
-		let filteredPools = findOptimizerPools(pools, lend, borrow)
+		let filteredPools = findOptimizerPools(pools, lend, borrow, cdpRoutes)
 			.filter((pool) => filterPool({ pool, selectedChains }))
 			.map(formatOptimizerPool)
 
@@ -39,7 +44,7 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 			filteredPools = filteredPools.filter((p) => attributeOption.filterFn(p))
 		}
 		return filteredPools
-	}, [pools, borrow, lend, selectedChains, selectedAttributes])
+	}, [pools, borrow, lend, selectedChains, selectedAttributes, cdpRoutes])
 
 	return (
 		<>
