@@ -66,12 +66,16 @@ const Content = ({ text }: { text: string }) => {
 }
 
 export default function Chains({ messages }: { messages?: string }) {
+	// Emoji regex ref: https://stackoverflow.com/questions/70401560/what-is-the-difference-between-emoji-presentation-and-extended-pictographic
 	const text =
 		messages
 			?.replace(/(.*)\n(http.*)/g, '[$1]($2)') // merge title + link into markdown links
-			?.replace(/(\w+)\s*(\p{Emoji}\uFE0F|\p{Emoji_Presentation})\n/gu, '## $1 $2\n') // Watch📺 -> ## Watch 📺
-			?.replace(/\*\*([\w\s'".&,?!;:]+)\*\*\s*(\p{Emoji}\uFE0F|\p{Emoji_Presentation})/gu, '### $1 $2') ?? // **Threads**🧵 -> ### Threads 🧵
-		''
+			?.replace(/(\w+)\s*(\p{Emoji}\uFE0F|\p{Extended_Pictographic})\n/gu, '## $1 $2\n') // Watch📺 -> ## Watch 📺
+			?.replace(
+				/(\d\/\d\s?)?\*\*(\d\/\d\s?)?([\w\s'".&,?!;:]+)\*\*\s*(\p{Emoji}\uFE0F|\p{Extended_Pictographic})/gu,
+				'### $3 $4'
+			) // {**Threads**🧵, 1/2 **Threads**🧵, **1/2 Threads**🧵} -> ### Threads 🧵
+			.trim() ?? ''
 
 	return (
 		<Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
@@ -117,13 +121,11 @@ export async function getStaticProps() {
 
 	let message = ''
 	for (const m of messages) {
-		let [first, ...rest] = m.split('\n')
-		// Remove segment indicators, e.g. 1/2 News📰 -> News📰.
-		// Emoji regex ref: https://stackoverflow.com/questions/70401560/what-is-the-difference-between-emoji-presentation-and-extended-pictographic
-		first = first.replace(/(\d+\/\d+\s+)?(\w+\s*(\p{Emoji}\uFE0F|\p{Emoji_Presentation}))/u, '$2')
 		// If the message starts with a topic header, e.g. News📰, then we add a newline first,
-		// separating this message from the previous one.
-		if (first.match(/\w+\s*(\p{Emoji}\uFE0F|\p{Emoji_Presentation})/u)) {
+		// separating this message from the previous one. (We detect this by checking if the first
+		// line ends with an emoji.)
+		const [first, ...rest] = m.split('\n')
+		if (first.match(/(\p{Emoji}\uFE0F|\p{Extended_Pictographic})(\*\*)?$/u)) {
 			message += '\n'
 		}
 		message += [first, ...rest].join('\n')
