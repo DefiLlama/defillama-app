@@ -21,13 +21,17 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 			const linkValue = standardizeProtocolName(value)
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const rowValues = row.original
+			const icon = rowValues.icon
+			let iconLink
+			if (icon) {
 			const [iconType, iconName] = rowValues.icon.split(':')
-			const iconLink = iconType === 'chain' ? chainIconUrl(iconName) : tokenIconUrl(iconName)
+			iconLink = iconType === 'chain' ? chainIconUrl(iconName) : tokenIconUrl(iconName)
+			}
 
 			return (
 				<Name>
 					<span>{index + 1}</span>
-					<TokenLogo logo={iconLink} data-lgonly />
+					{(icon && <TokenLogo logo={iconLink} data-lgonly />)}
 					<CustomLink href={`/bridge/${linkValue}`}>{value}</CustomLink>
 				</Name>
 			)
