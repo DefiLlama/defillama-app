@@ -32,7 +32,7 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 	// get cdp collateral -> debt token route
 	const cdpPools = pools
 		.filter((p) => p.category === 'CDP')
-		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin } }))
+		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } }))
 
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
