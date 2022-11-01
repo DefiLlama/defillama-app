@@ -8,8 +8,16 @@ export const useBuildBridgeChartData = (bridgeStatsCurrentDay: DailyBridgeStats)
 		let tokenDeposits = [],
 			tokenWithdrawals = []
 		if (tokensDeposited && tokensWithdrawn) {
-			const fullTokenDeposits = Object.entries(tokensDeposited).map(([token, tokenData]) => {
-				return { name: tokenData.symbol, value: tokenData.usdValue }
+			let uniqueTokenDeposits = {} as { [symbol: string]: number }
+			Object.entries(tokensDeposited).map(([token, tokenData]) => {
+				{
+					const symbol = tokenData.symbol
+					const usdValue = tokenData.usdValue
+					uniqueTokenDeposits[symbol] = (uniqueTokenDeposits[symbol] ?? 0) + usdValue
+				}
+			})
+			const fullTokenDeposits = Object.entries(uniqueTokenDeposits).map(([symbol, usdValue]) => {
+				return { name: symbol, value: usdValue }
 			})
 			const otherDeposits = fullTokenDeposits.slice(10).reduce((total, entry) => {
 				return (total += entry.value)
@@ -19,8 +27,17 @@ export const useBuildBridgeChartData = (bridgeStatsCurrentDay: DailyBridgeStats)
 				.sort((a, b) => b.value - a.value)
 				.concat({ name: 'Others', value: otherDeposits })
 
-			const fullTokenWithdrawals = Object.entries(tokensWithdrawn).map(([token, tokenData]) => {
-				return { name: tokenData.symbol, value: tokenData.usdValue }
+			let uniqueTokenWithdrawals = {} as { [symbol: string]: number }
+			Object.entries(tokensWithdrawn).map(([token, tokenData]) => {
+					{
+						const symbol = tokenData.symbol
+						const usdValue = tokenData.usdValue
+						uniqueTokenWithdrawals[symbol] = (uniqueTokenWithdrawals[symbol] ?? 0) + usdValue
+					}
+				})
+
+			const fullTokenWithdrawals = Object.entries(uniqueTokenWithdrawals).map(([symbol, usdValue]) => {
+				return { name: symbol, value: usdValue }
 			})
 			const otherWithdrawals = fullTokenWithdrawals.slice(10).reduce((total, entry) => {
 				return (total += entry.value)
