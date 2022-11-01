@@ -78,7 +78,7 @@ const YieldsStrategyPage = ({
 	// get cdp collateral -> debt token route
 	const cdpPools = pools
 		.filter((p) => p.category === 'CDP')
-		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin } }))
+		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } }))
 
 	// exclude cdp from lending
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
