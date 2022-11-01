@@ -76,12 +76,14 @@ const YieldsStrategyPage = ({
 	const loopStrategies = calculateLoopAPY(pools)
 
 	// get cdp collateral -> debt token route
-	const cdpRoutes = pools
+	const cdpPools = pools
 		.filter((p) => p.category === 'CDP')
 		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin } }))
 
+	// exclude cdp from lending
+	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
-		let filteredPools = findStrategyPools(pools, lend, borrow, allPools, loopStrategies, cdpRoutes)
+		let filteredPools = findStrategyPools(lendingPools, lend, borrow, allPools, loopStrategies, cdpPools)
 			.filter((pool) =>
 				filterPool({
 					pool,
@@ -99,7 +101,7 @@ const YieldsStrategyPage = ({
 
 		return filteredPools
 	}, [
-		pools,
+		lendingPools,
 		borrow,
 		lend,
 		selectedChains,
@@ -108,7 +110,7 @@ const YieldsStrategyPage = ({
 		selectedFarmProtocols,
 		allPools,
 		loopStrategies,
-		cdpRoutes,
+		cdpPools,
 		minTvl,
 		maxTvl,
 		minAvailable,
