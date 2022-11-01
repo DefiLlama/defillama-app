@@ -190,8 +190,8 @@ export const navLinks: ILinks = {
 	},
 	Bridges: {
 		main: [
-			{ name: 'Overview', path: '/bridges' },
-			{ name: 'Chains', path: '/bridges/chains' }
+			{ name: 'Overview', path: '/bridges', newTag: true },
+			{ name: 'Chains', path: '/bridges/chains', newTag: true }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <Shuffle size={16} />
