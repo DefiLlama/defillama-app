@@ -202,7 +202,7 @@ function BridgesOverview({
 						</p>
 					</PanelHiddenMobile>
 					<PanelHiddenMobile>
-						<h1>Total volume (1m)</h1>
+						<h1>Total volume (1mo)</h1>
 						<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
 							{formattedNum(monthTotalVolume, true)}
 						</p>
