@@ -191,7 +191,7 @@ export const DetailsTable = styled.table`
 	}
 
 	.question-helper {
-		padding: 0 16px;
+		padding: 0 16px 4px;
 	}
 `
 
