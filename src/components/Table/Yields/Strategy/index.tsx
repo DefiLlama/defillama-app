@@ -13,6 +13,7 @@ export default function YieldsStrategyTable({ data }) {
 			columnSizes={columnSizes}
 			columnSizesKeys={columnSizesKeys}
 			columnOrders={yieldsColumnOrders}
+			skipVirtualization={true}
 		/>
 	)
 }
