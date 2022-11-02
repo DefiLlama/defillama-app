@@ -15,8 +15,12 @@ import {
 import { YieldsSearch } from '~/components/Search'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
+import { useGetYieldsSearchList } from '../Search/Yields/hooks'
+import { FiltersByToken } from '../Filters/shared/FilterByToken'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
+	const { data: tokens } = useGetYieldsSearchList()
+
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
@@ -80,12 +84,25 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} pathname={pathname} />
+			<YieldsSearch
+				step={{ category: 'Home', name: 'Yields' }}
+				pathname={pathname}
+				poolsNumber={pools.length}
+				projectsNumber={projectList.length}
+				chainsNumber={chainList.length}
+			/>
 
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>
 
 				<Dropdowns>
+					{tokens?.length ? (
+						<FiltersByToken
+							tokensList={tokens.map(({ symbol }) => symbol || '')}
+							selectedTokens={includeTokens}
+							pathname={pathname}
+						/>
+					) : null}
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
 					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
 					<FiltersByCategory categoryList={categoryList} selectedCategories={selectedCategories} pathname={pathname} />

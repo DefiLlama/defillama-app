@@ -46,7 +46,12 @@ const nextConfig = {
 				source: '/liquidations',
 				destination: '/liquidations/eth',
 				permanent: false
-			}
+			},
+			{
+				source: '/yields/optimizer',
+				destination: '/borrow',
+				permanent: true
+			},
 		]
 	},
 	images: {

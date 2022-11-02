@@ -10,12 +10,16 @@ interface IYieldProjectsProps {
 	projectList: { name: string; slug: string }[]
 	selectedProjects: string[]
 	pathname: string
+	label?: string
+	query?: 'lendingProtocol' | 'farmProtocol'
 }
 
-export function YieldProjects({ projectList = [], selectedProjects, pathname }: IYieldProjectsProps) {
+export function YieldProjects({ projectList = [], selectedProjects, pathname, label, query }: IYieldProjectsProps) {
 	const router = useRouter()
 
-	const { project, ...queries } = router.query
+	const isFarmingProtocolFilter = query === 'farmProtocol'
+
+	const { project, lendingProtocol, farmProtocol, ...queries } = router.query
 
 	const addProject = (project) => {
 		router.push(
@@ -23,7 +27,8 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 				pathname,
 				query: {
 					...queries,
-					project
+					...(query && (isFarmingProtocolFilter ? { lendingProtocol } : { farmProtocol })),
+					[query || 'project']: project
 				}
 			},
 			undefined,
@@ -58,7 +63,8 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 				pathname,
 				query: {
 					...queries,
-					project: 'All'
+					...(query && (isFarmingProtocolFilter ? { lendingProtocol } : { farmProtocol })),
+					[query || 'project']: 'All'
 				}
 			},
 			undefined,
@@ -72,7 +78,8 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 				pathname,
 				query: {
 					...queries,
-					project: 'None'
+					...(query && (isFarmingProtocolFilter ? { lendingProtocol } : { farmProtocol })),
+					[query || 'project']: 'None'
 				}
 			},
 			undefined,
@@ -85,7 +92,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 	return (
 		<>
 			<SelectButton state={select}>
-				<span>Filter by Project</span>
+				<span>{label || 'Filter by Project'}</span>
 				<MenuButtonArrow />
 				{selectedProjects.length > 0 && selectedProjects.length !== projectList.length && (
 					<ItemsSelected>{selectedProjects.length}</ItemsSelected>
@@ -109,7 +116,7 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname }: 
 									ref={i === 0 && selectedProjects.length === projectList.length ? focusItemRef : null}
 									focusOnHover
 								>
-									<span>{projectList.find((p) => p.slug === value)?.name ?? value}</span>
+									<span data-name>{projectList.find((p) => p.slug === value)?.name ?? value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
 								</SelectItem>
 							))}

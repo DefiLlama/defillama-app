@@ -222,8 +222,8 @@ function GlobalPage({
 
 			<Announcement>
 				<span>Check out our</span>{' '}
-				<Link href={`/yields/optimizer`}>
-					<a> borrow optimizer!</a>
+				<Link href={`/borrow`}>
+					<a> borrow aggregator!</a>
 				</Link>
 			</Announcement>
 
@@ -251,7 +251,12 @@ function GlobalPage({
 					</BreakpointPanel>
 					<PanelHiddenMobile>
 						<h2>Change (24h)</h2>
-						<p style={{ '--tile-text-color': '#fd3c99' }}> {percentChange || 0}%</p>
+						{percentChange > 0 ? (
+							<p style={{ '--tile-text-color': '#3cfd99' }}> {percentChange || 0}%</p>
+						) : (
+							<p style={{ '--tile-text-color': '#fd3c99' }}> {percentChange || 0}%</p>
+						)
+						}
 					</PanelHiddenMobile>
 					<PanelHiddenMobile>
 						<h2>{topToken.name} Dominance</h2>

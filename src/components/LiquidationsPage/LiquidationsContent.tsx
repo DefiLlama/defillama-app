@@ -7,7 +7,7 @@ import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMo
 import { LiquidationsChart } from './LiquidationsChart'
 import { TotalLiquidable } from './TotalLiquidable'
 import { LiquidableChanges24H } from './LiquidableChanges24H'
-import { LiquidationsContext } from '~/pages/liquidations/[symbol]'
+import { LiquidationsContext } from '~/components/LiquidationsPage/context'
 import { useStackBy } from './utils'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 
@@ -27,14 +27,24 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 				</PanelHiddenMobile>
 			</BreakpointPanels>
 			<BreakpointPanel>
-				<CurrencyToggle symbol={data.symbol} />
+				<Row>
+					<CumulativeToggle />
+					<CurrencyToggle symbol={data.symbol} />
+				</Row>
 				<LiquidationsChart chartData={data} uid={data.symbol} />
 			</BreakpointPanel>
 		</Wrapper>
 	)
 }
 
-const CurrencyToggleWrapper = styled.div`
+const Row = styled.div`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 0.5rem;
+`
+
+const ToggleWrapper = styled.div`
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-end;
@@ -49,7 +59,7 @@ const CurrencyToggle = (props: { symbol: string }) => {
 	const isLiqsUsingUsd = liqsSettings[LIQS_USING_USD]
 
 	return (
-		<CurrencyToggleWrapper>
+		<ToggleWrapper>
 			{props.symbol.toUpperCase()}
 			{/* @ts-ignore:next-line */}
 			<ReactSwitch
@@ -63,7 +73,29 @@ const CurrencyToggle = (props: { symbol: string }) => {
 				checkedIcon={false}
 			/>
 			USD
-		</CurrencyToggleWrapper>
+		</ToggleWrapper>
+	)
+}
+
+const CumulativeToggle = () => {
+	const [liqsSettings, toggleLiqsSettings] = useLiqsManager()
+	const { LIQS_CUMULATIVE } = LIQS_SETTINGS
+	const isLiqsCumulative = liqsSettings[LIQS_CUMULATIVE]
+
+	return (
+		<ToggleWrapper>
+			{/* @ts-ignore:next-line */}
+			<ReactSwitch
+				onChange={toggleLiqsSettings(LIQS_CUMULATIVE)}
+				checked={isLiqsCumulative}
+				onColor="#0A71F1"
+				height={20}
+				width={40}
+				uncheckedIcon={false}
+				checkedIcon={false}
+			/>
+			Cumulative
+		</ToggleWrapper>
 	)
 }
 

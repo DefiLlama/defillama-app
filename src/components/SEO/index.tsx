@@ -48,7 +48,7 @@ const SEO = ({
 		if (nftPage) {
 			valueHeader = 'Total Volume'
 		} else if (liqsPage) {
-			valueHeader = 'Total Liquidable Amount'
+			valueHeader = 'Total Liquidatable Amount'
 		} else if (dexsPage) {
 			valueHeader = '24h volume'
 		} else {

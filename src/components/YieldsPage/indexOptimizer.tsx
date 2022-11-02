@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { Panel } from '~/components'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import YieldsSearch from '~/components/Search/Yields/Optimizer'
-import { filterPool, findOptimizerPools, formatOptimizerPool, toFilterPool } from './utils'
+import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 import styled from 'styled-components'
 import YieldsOptimizerTable from '../Table/Yields/Optimizer'
 import { Header } from '~/Theme'
@@ -23,14 +23,20 @@ const SearchWrapper = styled.div`
 	}
 `
 
-const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) => {
+const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, categoryList }) => {
 	const { query, pathname } = useRouter()
 
 	const { lend, borrow } = query
 	const { selectedChains, selectedAttributes } = useFormatYieldQueryParams({ projectList, chainList, categoryList })
 
+	// get cdp collateral -> debt token route
+	const cdpPools = pools
+		.filter((p) => p.category === 'CDP')
+		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } }))
+
+	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
-		let filteredPools = findOptimizerPools(pools, lend, borrow)
+		let filteredPools = findOptimizerPools(lendingPools, lend, borrow, cdpPools)
 			.filter((pool) => filterPool({ pool, selectedChains }))
 			.map(formatOptimizerPool)
 
@@ -39,7 +45,7 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) =>
 			filteredPools = filteredPools.filter((p) => attributeOption.filterFn(p))
 		}
 		return filteredPools
-	}, [pools, borrow, lend, selectedChains, selectedAttributes])
+	}, [lendingPools, borrow, lend, selectedChains, selectedAttributes, cdpPools])
 
 	return (
 		<>
@@ -52,8 +58,8 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) =>
 				) : null}
 			</Header>
 			<SearchWrapper>
-				<YieldsSearch pathname={pathname} lend />
-				<YieldsSearch pathname={pathname} />
+				<YieldsSearch pathname={pathname} lend yieldsList={yieldsList} />
+				<YieldsSearch pathname={pathname} yieldsList={yieldsList} />
 			</SearchWrapper>
 
 			<TableFilters>
@@ -66,12 +72,19 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList }) =>
 				<YieldsOptimizerTable data={poolsData} />
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
-					Given a token to use for collateral and a token to borrow, this calculator will look at all the lending protocols<br/>
-					and calculate how much would it cost to borrow on each one, taking into account incentives, supply APR and borrow APR,<br/>
-					providing a list of all possible lending routes, their cost and LTV.<br/>
-					<br/>
-					This is similar to skyscanner for flights or 1inch for swaps, but for lending. It calculates the optimal lending route.<br/>
-					<br/>
+					Given a token to use for collateral and a token to borrow, this calculator will look at all the lending
+					protocols
+					<br />
+					and calculate how much would it cost to borrow on each one, taking into account incentives, supply APR and
+					borrow APR,
+					<br />
+					providing a list of all possible lending routes, their cost and LTV.
+					<br />
+					<br />
+					This is similar to skyscanner for flights or 1inch for swaps, but for lending. It calculates the optimal
+					lending route.
+					<br />
+					<br />
 					To start just select two tokens above.
 				</Panel>
 			)}

@@ -50,7 +50,7 @@ export const toNiceHour = (date) => {
 	let x = dayjs.utc(dayjs.unix(date)).format('HH:mm')
 	return x
 }
-export const toNiceDayMonthAndYear= (date) => {
+export const toNiceDayMonthAndYear = (date) => {
 	let x = dayjs.utc(dayjs.unix(date)).format('D MMM, YYYY')
 	return x
 }
@@ -127,14 +127,14 @@ export const formattedNum = (number, symbol = false, acceptNegatives = false) =>
 
 	if (symbol) {
 		if (num < 0.1) {
-			return currencyMark + Number(parseFloat(num).toFixed(4))
+			return currencyMark + Number(parseFloat(num).toFixed(2))
 		} else {
 			let usdString = priceFormatter.format(num)
 			return currencyMark + usdString.slice(1, usdString.length)
 		}
 	}
 
-	return Number(parseFloat(num).toFixed(5))
+	return Number(parseFloat(num).toFixed(2))
 }
 
 export const formattedPeggedPrice = (number, symbol = false, acceptNegatives = false) => {
@@ -175,10 +175,10 @@ export const formattedPeggedPrice = (number, symbol = false, acceptNegatives = f
 	}
 
 	if (symbol) {
-		return currencyMark + parseFloat(num).toFixed(5) // this is all pegged is using, should merge with above
+		return currencyMark + parseFloat(num).toFixed(2) // this is all pegged is using, should merge with above
 	}
 
-	return Number(parseFloat(num).toFixed(5))
+	return Number(parseFloat(num).toFixed(2))
 }
 
 export const filterCollectionsByCurrency = (collections, displayUsd) =>
@@ -343,6 +343,15 @@ export const getPrevPeggedTotalFromChart = (chart, daysBefore, issuanceType, peg
 	if (!prevChart) return null
 	if (!pegType) return Object.values(prevChart?.[issuanceType]).reduce((a, b) => a + b)
 	return prevChart?.[issuanceType]?.[pegType] ?? null
+}
+
+export const getPrevVolumeFromChart = (chart, daysBefore, txs = false, inflows = false) => {
+	const prevChart = chart[chart.length - 1 - daysBefore]
+	if (!prevChart) return null
+	if (inflows) {
+		return prevChart.Deposits - prevChart.Withdrawals
+	}
+	return txs ? prevChart.txs : prevChart.volume
 }
 
 export function download(filename, text) {

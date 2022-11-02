@@ -3,6 +3,8 @@ import YieldPageBorrow from '~/components/YieldsPage/indexBorrow'
 import { revalidate } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'
 import pako from 'pako'
+import Announcement from '~/components/Announcement'
+import { disclaimer } from '~/components/YieldsPage/utils'
 
 export async function getStaticProps() {
 	const data = await getLendBorrowData()
@@ -23,6 +25,7 @@ export default function YieldBorrow(compressedProps) {
 	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
 	return (
 		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} defaultSEO>
+			<Announcement>{disclaimer}</Announcement>
 			<YieldPageBorrow {...data.props} />
 		</Layout>
 	)

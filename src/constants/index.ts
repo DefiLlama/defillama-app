@@ -34,6 +34,11 @@ export const PEGGEDDOMINANCE_API = 'https://stablecoins.llama.fi/stablecoindomin
 export const PEGGEDPRICES_API = 'https://stablecoins.llama.fi/stablecoinprices'
 export const PEGGEDRATES_API = 'https://stablecoins.llama.fi/rates'
 
+export const BRIDGEDAYSTATS_API = 'https://bridges.llama.fi/bridgedaystats'
+export const BRIDGES_API = 'https://bridges.llama.fi/bridges'
+export const BRIDGEVOLUME_API = 'https://bridges.llama.fi/bridgevolume'
+export const BRIDGELARGETX_API = 'https://bridges.llama.fi/largetransactions'
+
 export const YIELD_POOLS_API = 'https://yields.llama.fi/pools'
 export const YIELD_POOLS_LAMBDA_API = 'https://yields.llama.fi/poolsEnriched'
 export const YIELD_CHART_API = 'https://yields.llama.fi/chart'
@@ -50,6 +55,9 @@ export const CHAINS_API = 'https://api.llama.fi/chains'
 
 export const DEXS_API = 'https://api.llama.fi/dexs'
 export const DEX_BASE_API = 'https://api.llama.fi/dex'
+
+export const ADAPTORS_BASE_API = 'https://api.llama.fi/overview'
+export const ADAPTORS_SUMMARY_BASE_API = 'https://api.llama.fi/summary'
 
 export const FEES_BASE_API = 'https://fees.llama.fi/fees'
 

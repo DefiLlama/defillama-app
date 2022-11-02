@@ -5,6 +5,8 @@ import { AutoRow } from '~/components/Row'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsOptimizerTableRow } from '../types'
+import QuestionHelper from '~/components/QuestionHelper'
+import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -29,6 +31,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 					url={row.original.url}
 					index={index + 1}
 					borrow={true}
+					maxCharacters={15}
 				/>
 			)
 		},
@@ -68,7 +71,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 	},
 	{
 		header: 'Available',
-		accessorKey: 'totalAvailableUsd',
+		accessorKey: 'borrowAvailableUsd',
 		enableSorting: true,
 		cell: (info) => {
 			const value = info.row.original.borrow.totalAvailableUsd
@@ -88,28 +91,37 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		}
 	},
 	{
-		header: 'Net APR',
+		header: 'Net APY',
 		accessorKey: 'totalReward',
 		enableSorting: true,
-		cell: (info) => {
+		cell: ({ getValue, row }) => {
 			return (
-				<span
-					style={{
-						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
-					}}
-				>
-					{formattedPercent(info.getValue(), true, 700)}
-				</span>
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{lockupsRewards.includes(row.original.projectName) ? (
+						<QuestionHelper
+							text={`${row.original.projectName} Rewards are vested. You can immediately receive your rewards by taking an exit penalty!`}
+						/>
+					) : preminedRewards.includes(row.original.projectName) ? (
+						<QuestionHelper text={`${row.original.projectName} has Pre-mined rewards, no available token yet!`} />
+					) : null}
+					<span
+						style={{
+							color: apyColors[getValue() > 0 ? 'positive' : 'borrow']
+						}}
+					>
+						{formattedPercent(getValue(), true, 700)}
+					</span>
+				</AutoRow>
 			)
 		},
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Lending Reward - Borrowing Cost'
+			headerHelperText: 'Lending Reward - Borrowing Cost * LTV'
 		}
 	},
 	{
-		header: 'Net Supply APR',
+		header: 'Net Supply APY',
 		accessorKey: 'lendingReward',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
@@ -141,14 +153,14 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		}
 	},
 	{
-		header: 'Net Borrow APR',
+		header: 'Net Borrow APY',
 		accessorKey: 'borrowReward',
 		enableSorting: true,
 		cell: (info) => {
 			return (
 				<span
 					style={{
-						color: apyColors['borrow']
+						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
 					}}
 				>
 					{formattedPercent(info.getValue(), true, 400)}
@@ -219,7 +231,8 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Amount of borrowed collateral'
 		}
 	}
 ]
@@ -229,73 +242,48 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 const columnOrders = {
 	0: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
-		'totalAvailableUsd',
+		'borrowAvailableUsd',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
-		'apyBase',
-		'apyReward',
-		'apyBorrow',
-		'apyBaseBorrow',
-		'apyRewardBorrow',
-		'totalReward',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd'
 	],
 	400: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
-		'totalAvailableUsd',
+		'borrowAvailableUsd',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
-		'apyBase',
-		'apyReward',
-		'apyBorrow',
-		'apyBaseBorrow',
-		'apyRewardBorrow',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd'
 	],
 	640: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
-		'totalAvailableUsd',
+		'borrowAvailableUsd',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
-		'apyBase',
-		'apyReward',
-		'apyBorrow',
-		'apyBaseBorrow',
-		'apyRewardBorrow',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd'
 	],
 	1280: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
-		'totalAvailableUsd',
+		'borrowAvailableUsd',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
-		'apyBase',
-		'apyReward',
-		'apyBorrow',
-		'apyBaseBorrow',
-		'apyRewardBorrow',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd'
@@ -304,21 +292,27 @@ const columnOrders = {
 
 export const columnSizes = {
 	0: {
-		pool: 120,
-		project: 200,
+		pool: 160,
+		project: 180,
 		chain: 60,
-		apyBase: 140,
-		apyBaseBorrow: 140,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120
+		borrowAvailableUsd: 100,
+		totalReward: 100,
+		lendingReward: 150,
+		borrowReward: 150,
+		ltv: 80,
+		totalSupplyUsd: 100,
+		totalBorrowUsd: 100
 	},
 	812: {
-		pool: 200,
-		project: 200,
+		pool: 210,
+		project: 180,
 		chain: 60,
-		apyBase: 140,
-		apyBaseBorrow: 140,
-		totalSupplyUsd: 120,
+		borrowAvailableUsd: 100,
+		totalReward: 100,
+		lendingReward: 150,
+		borrowReward: 150,
+		ltv: 80,
+		totalSupplyUsd: 100,
 		totalBorrowUsd: 120
 	}
 }

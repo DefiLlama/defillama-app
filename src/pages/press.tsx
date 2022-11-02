@@ -87,7 +87,7 @@ function PressPage() {
 						maintained by a team of passionate individuals and contributors from hundreds of protocols.
 					</TYPE.main>
 					<TYPE.main>Our focus is on accurate data and transparent methodology.</TYPE.main>
-					<TYPE.main>We track over 800 DeFi protocols from over 80 different blockchains.</TYPE.main>
+					<TYPE.main>We track over 1750 DeFi protocols from over 145 different blockchains.</TYPE.main>
 				</DashGrid>
 			</Panel>
 			<Panel style={{ marginTop: '6px' }}>

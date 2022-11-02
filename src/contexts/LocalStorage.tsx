@@ -15,6 +15,7 @@ const STAKING = 'staking'
 const BORROWED = 'borrowed'
 const DOUBLE_COUNT = 'doublecounted'
 const LIQUID_STAKING = 'liquidstaking'
+const VESTING = 'vesting'
 
 // NFT
 const DISPLAY_USD = 'DISPLAY_USD'
@@ -31,6 +32,9 @@ const APY_GT0 = 'APY_GT0'
 const STABLE_OUTLOOK = 'STABLE_OUTLOOK'
 const HIGH_CONFIDENCE = 'HIGH_CONFIDENCE'
 const NO_BAD_DEBT = 'NO_BAD_DEBT'
+const NO_LOCKUP_REWARDS = 'NO_LOCKUP_REWARDS'
+const NO_LOCKUP_COLLATERAL = 'NO_LOCKUP_COLLATERAL'
+const NO_PREMINED_REWARDS = 'NO_PREMINED_REWARDS'
 
 // STABLECOINS
 export const UNRELEASED = 'unreleased'
@@ -51,8 +55,14 @@ export const DEFAULT_PORTFOLIO_NAME = 'main'
 // LIQUIDATIONS
 const LIQS_USING_USD = 'LIQS_USING_USD'
 const LIQS_SHOWING_INSPECTOR = 'LIQS_SHOWING_INSPECTOR'
+const LIQS_CUMULATIVE = 'LIQS_CUMULATIVE'
 
-export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING }
+// BRIDGES
+export const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS'
+export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES'
+
+export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING }
+
 export const YIELDS_SETTINGS = {
 	AUDITED,
 	MILLION_DOLLAR,
@@ -63,7 +73,10 @@ export const YIELDS_SETTINGS = {
 	APY_GT0,
 	STABLE_OUTLOOK,
 	HIGH_CONFIDENCE,
-	NO_BAD_DEBT
+	NO_BAD_DEBT,
+	NO_LOCKUP_REWARDS,
+	NO_LOCKUP_COLLATERAL,
+	NO_PREMINED_REWARDS
 }
 
 export const STABLECOINS_SETTINGS = {
@@ -102,13 +115,16 @@ export const DEFI_CHAINS_SETTINGS = [
 	}
 ]
 
-export const LIQS_SETTINGS = { LIQS_USING_USD, LIQS_SHOWING_INSPECTOR }
+export const LIQS_SETTINGS = { LIQS_USING_USD, LIQS_SHOWING_INSPECTOR, LIQS_CUMULATIVE }
+
+export const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES }
 
 const DEFI_CHAINS_KEYS = DEFI_CHAINS_SETTINGS.map((g) => g.key)
 export const DEFI_SETTINGS_KEYS = Object.values(DEFI_SETTINGS)
 export const STABLECOINS_SETTINGS_KEYS = Object.values(STABLECOINS_SETTINGS)
 export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
 export const LIQS_SETTINGS_KEYS = Object.values(LIQS_SETTINGS)
+export const BRIDGES_SETTINGS_KEYS = Object.values(BRIDGES_SETTINGS)
 
 const UPDATABLE_KEYS = [
 	DARK_MODE,
@@ -119,7 +135,8 @@ const UPDATABLE_KEYS = [
 	...DEFI_CHAINS_KEYS,
 	...STABLECOINS_SETTINGS_KEYS,
 	...NFT_SETTINGS_KEYS,
-	...LIQS_SETTINGS_KEYS
+	...LIQS_SETTINGS_KEYS,
+	...BRIDGES_SETTINGS_KEYS
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -156,6 +173,7 @@ function init() {
 		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: true }), {}),
 		...NFT_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...LIQS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
+		...BRIDGES_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		[DEFI_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[YIELDS_WATCHLIST]: { [DEFAULT_PORTFOLIO_NAME]: {} },
 		[SELECTED_PORTFOLIO]: DEFAULT_PORTFOLIO_NAME
@@ -291,6 +309,11 @@ export function useNftsManager() {
 // LIQUIDATIONS
 export function useLiqsManager() {
 	return useSettingsManager(LIQS_SETTINGS_KEYS)
+}
+
+// BRIDGES
+export function useBridgesManager() {
+	return useSettingsManager(BRIDGES_SETTINGS_KEYS)
 }
 
 // DEFI AND YIELDS WATCHLIST

@@ -3,6 +3,8 @@ import PlotsPage from '~/components/YieldsPage/indexPlots'
 import { revalidate } from '~/api'
 import { getYieldPageData, getYieldMedianData } from '~/api/categories/yield'
 import pako from 'pako'
+import Announcement from '~/components/Announcement'
+import { disclaimer } from '~/components/YieldsPage/utils'
 
 export async function getStaticProps() {
 	const data = await getYieldPageData()
@@ -24,6 +26,7 @@ export default function YieldPlots(compressedProps) {
 	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
 	return (
 		<Layout title={`Overview - DefiLlama Yield`} defaultSEO>
+			<Announcement>{disclaimer}</Announcement>
 			<PlotsPage {...data.props} />
 		</Layout>
 	)

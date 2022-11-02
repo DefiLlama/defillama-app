@@ -10,7 +10,25 @@ import {
 import VirtualTable from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
 
-export const YieldsTableWrapper = ({ data, columns, columnSizes, columnSizesKeys, columnOrders }) => {
+interface IYieldsTableWrapper {
+	data: any
+	columns: any
+	columnSizes: any
+	columnSizesKeys: any
+	columnOrders: any
+	skipVirtualization?: boolean
+	rowSize?: number
+}
+
+export const YieldsTableWrapper = ({
+	data,
+	columns,
+	columnSizes,
+	columnSizesKeys,
+	columnOrders,
+	skipVirtualization,
+	rowSize
+}: IYieldsTableWrapper) => {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -47,5 +65,5 @@ export const YieldsTableWrapper = ({ data, columns, columnSizes, columnSizesKeys
 		instance.setColumnOrder(order)
 	}, [windowSize, instance, columnSizes, columnSizesKeys, columnOrders])
 
-	return <VirtualTable instance={instance} />
+	return <VirtualTable instance={instance} skipVirtualization={skipVirtualization} rowSize={rowSize} />
 }

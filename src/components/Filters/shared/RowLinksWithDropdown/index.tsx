@@ -72,7 +72,7 @@ export const RowLinksWithDropdown = ({ links = [], activeLink, alternativeOthers
 				const link = document.querySelector(`#priority-nav-el-${index}`)
 				const linkSize = link.getBoundingClientRect()
 
-				if (linkSize.top - wrapper.top > wrapper.height || linkSize.left + GAP * 2 > wrapper.right - 150) {
+				if (linkSize.top - wrapper.top > wrapper.height || linkSize.left + GAP * 2 > wrapper.right - 180) {
 					indexToCutFrom = index
 				}
 			})

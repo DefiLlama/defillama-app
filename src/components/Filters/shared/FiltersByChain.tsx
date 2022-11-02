@@ -124,7 +124,7 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 									ref={i === 0 && selectedChains.length === chainList.length ? focusItemRef : null}
 									focusOnHover
 								>
-									<span>{value}</span>
+									<span data-name>{value}</span>
 									<Checkbox checked={select.value.includes(value) ? true : false} />
 								</SelectItem>
 							))}

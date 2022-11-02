@@ -81,7 +81,7 @@ function AboutPage({ chains, protocols }) {
 						hundreds of protocols.
 					</TYPE.main>
 					<TYPE.main>Our focus is on accurate data and transparent methodology.</TYPE.main>
-					<TYPE.main>We track over 1750 DeFi protocols from over 130 different blockchains.</TYPE.main>
+					<TYPE.main>We track over 1955 DeFi protocols from over 145 different blockchains.</TYPE.main>
 					<Divider />
 					<TYPE.main>
 						Contact us on <Link href="https://twitter.com/defillama">Twitter</Link> or{' '}

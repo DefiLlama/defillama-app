@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2 } from 'react-feather'
+import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book, ShieldOff, Shuffle, Search } from 'react-feather'
 
 export interface IMainLink {
 	name: string
@@ -98,8 +98,9 @@ export const navLinks: ILinks = {
 	Yields: {
 		main: [
 			{ name: 'Pools', path: '/yields' },
-			{ name: 'Borrow', path: '/yields/borrow', newTag: true },
-			{ name: 'Optimizer', path: '/yields/optimizer', newTag: true },
+			{ name: 'Borrow', path: '/yields/borrow' },
+			{ name: 'Strategies', path: '/yields/strategy', newTag: true },
+			{ name: 'Leveraged Lending', path: '/yields/loop', newTag: true },
 			{ name: 'Overview', path: '/yields/overview' },
 			{ name: 'Stablecoin Pools', path: '/yields/stablecoins' },
 			{ name: 'Projects', path: '/yields/projects' },
@@ -150,13 +151,18 @@ export const navLinks: ILinks = {
 		],
 		icon: <Percent size={16} />
 	},
-	Stables: {
+	"Borrow Aggregator": {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Search size={16} />
+	},
+	Bridges: {
 		main: [
-			{ name: 'Overview', path: '/stablecoins' },
-			{ name: 'Chains', path: '/stablecoins/chains' }
+			{ name: 'Overview', path: '/bridges', newTag: true },
+			{ name: 'Chains', path: '/bridges/chains', newTag: true }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <DollarSign size={16} />
+		icon: <Shuffle size={16} />
 	},
 	Liquidations: {
 		main: [],
@@ -175,12 +181,33 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <PieChart size={16} />
-	}
+	},
+	Raises: {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Book size={16} />
+	},
+	Stables: {
+		main: [
+			{ name: 'Overview', path: '/stablecoins' },
+			{ name: 'Chains', path: '/stablecoins/chains' }
+		],
+		...defaultToolsAndFooterLinks,
+		icon: <DollarSign size={16} />
+	},
+	Hacks: {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <ShieldOff size={16} />
+	},
 }
 
 export const linksWithNoSubMenu = [
 	{ name: 'Liquidations', url: '/liquidations/eth' },
-	{ name: 'Fees', url: '/fees' }
+	{ name: 'Fees', url: '/fees' },
+	{ name: 'Raises', url: '/raises' },
+	{ name: 'Hacks', url: '/hacks' },
+	{ name: 'Borrow Aggregator', url: '/borrow' },
 ]
 
 function downloadDefiDataset() {
