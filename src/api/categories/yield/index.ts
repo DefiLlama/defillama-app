@@ -142,6 +142,10 @@ export type YieldsData = Awaited<ReturnType<typeof getYieldPageData>>
 
 export async function getLendBorrowData() {
 	const props = (await getYieldPageData()).props
+	// treating fraxlend as cdp category otherwise the output
+	// from optimizer will be wrong (it would use the crossproduct
+	// btw collaterals eg eth -> crv, wbtc -> crv etc. instead of collateral -> frax only)
+	props.pools = props.pools.map((p) => ({ ...p, category: p.project === 'fraxlend' ? 'CDP' : p.category }))
 
 	// restrict pool data to lending and cdp
 	const categoriesToKeep = ['Lending', 'Undercollateralized Lending', 'CDP']
