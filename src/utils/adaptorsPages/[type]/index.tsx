@@ -7,7 +7,7 @@ import OverviewContainer, { IOverviewContainerProps } from '~/containers/Overvie
 import { upperCaseFirst } from '~/containers/Overview/utils'
 import Layout from '~/layout'
 
-const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
+export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 	params
 }: GetStaticPropsContext<{ type: string; chain: string }>) => {
 	const data = await getChainPageData(params.type, params.chain)
