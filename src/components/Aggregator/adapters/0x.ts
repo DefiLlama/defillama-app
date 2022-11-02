@@ -1,30 +1,34 @@
+import { Signer } from 'ethers'
+
 export const chainToId = {
-  ethereum: "https://api.0x.org/",
-  bsc: "https://bsc.api.0x.org/",
-  polygon: "https://polygon.api.0x.org/",
-  optimism: "https://optimism.api.0x.org/",
-  arbitrum: "https://avalanche.api.0x.org/",
-  avax: "https://avalanche.api.0x.org/",
-  fantom: "https://fantom.api.0x.org/",
-  celo: "https://celo.api.0x.org/",
+	ethereum: 'https://api.0x.org/',
+	bsc: 'https://bsc.api.0x.org/',
+	polygon: 'https://polygon.api.0x.org/',
+	optimism: 'https://optimism.api.0x.org/',
+	arbitrum: 'https://arbitrum.api.0x.org/',
+	avax: 'https://avalanche.api.0x.org/',
+	fantom: 'https://fantom.api.0x.org/',
+	celo: 'https://celo.api.0x.org/'
 }
 
-export const name = "Matcha/0x"
-export const token = "ZRX"
+export const name = 'Matcha/0x'
+export const token = 'ZRX'
 
-export function approvalAddress(){
-  // https://docs.0x.org/0x-api-swap/guides/swap-tokens-with-0x-api
-  return "0xdef1c0ded9bec7f1a1670819833240f027b25eff"
+export function approvalAddress() {
+	// https://docs.0x.org/0x-api-swap/guides/swap-tokens-with-0x-api
+	return '0xdef1c0ded9bec7f1a1670819833240f027b25eff'
 }
 
-export async function getQuote(chain: string, from: string, to:string, amount:string){
-  // amount should include decimals
-  const data = await fetch(`${chainToId[chain]}swap/v1/quote?buyToken=${to}&sellToken=${from}&sellAmount=${amount}`).then(r=>r.json())
-  return {
-    amountReturned: data.buyAmount,
-    estimatedGas: data.gas,
-    tokenApprovalAddress: data.to,
-  }
+export async function getQuote(chain: string, from: string, to: string, amount: string) {
+	// amount should include decimals
+	const data = await fetch(
+		`${chainToId[chain]}swap/v1/quote?buyToken=${to}&sellToken=${from}&sellAmount=${amount}`
+	).then((r) => r.json())
+	return {
+		amountReturned: data.buyAmount,
+		estimatedGas: data.gas,
+		tokenApprovalAddress: data.to
+	}
 }
 
 /*
@@ -41,3 +45,38 @@ export async function executeSwap(){
 }));
 }
 */
+
+export async function swap({
+	chain,
+	from,
+	to,
+	amount,
+	signer,
+	slippage = 1
+}: {
+	signer: Signer
+	chain: string
+	from: string
+	to: string
+	amount: string
+	slippage: number
+}) {
+	const fromAddress = await signer.getAddress()
+	console.log(signer)
+
+	const data = await fetch(
+		`${chainToId[chain]}swap/v1/quote?buyToken=${to}&sellToken=${from}&sellAmount=${amount}&takerAddress=${fromAddress}`
+	).then((r) => r.json())
+	console.log(data)
+
+	const tx = await signer.sendTransaction({
+		from: fromAddress,
+		to: data.to,
+		data: data.data,
+		value: data.value,
+		gasPrice: data.gasPrice
+		// 0x-API cannot estimate gas in forked mode.
+	})
+
+	return tx
+}

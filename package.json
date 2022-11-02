@@ -14,6 +14,7 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
+		"@gnosis.pm/gp-v2-contracts": "^1.1.2",
 		"@rainbow-me/rainbowkit": "^0.7.1",
 		"@tanstack/react-table": "^8.5.22",
 		"@tanstack/react-virtual": "^3.0.0-beta.18",

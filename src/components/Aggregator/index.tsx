@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useAccount, useBalance, useFeeData } from 'wagmi'
+import { useAccount, useBalance, useFeeData, useSigner } from 'wagmi'
 import { FixedSizeList as List } from 'react-window'
 import { capitalizeFirstLetter } from '~/utils'
 import ReactSelect from '../MultiSelect/ReactSelect'
-import { getAllChains, listRoutes } from './router'
+import { getAllChains, listRoutes, swap } from './router'
 import styled from 'styled-components'
 import { createFilter } from 'react-select'
 import { TYPE } from '~/Theme'
@@ -11,6 +11,9 @@ import Input from './TokenInput'
 import { CrossIcon, GasIcon } from './Icons'
 import Loader from './Loader'
 import Search from './Search'
+import { Button } from '~/layout/ProtocolAndPool'
+import { ButtonDark } from '../ButtonStyled'
+import { useTokenApprove } from './hooks'
 
 /*
 Integrated:
@@ -63,7 +66,6 @@ cant integrate:
 */
 
 const Body = styled.div<{ showRoutes: boolean }>`
-	height: 416px;
 	display: grid;
 	grid-row-gap: 16px;
 	margin: 0 auto;
@@ -140,6 +142,7 @@ interface Route {
 	gasTokenPrice: number
 	toTokenPrice: number
 	gasPrice: string
+	setRoute: () => void
 }
 
 const RouteWrapper = styled.div`
@@ -170,7 +173,7 @@ const RouteRow = styled.div`
 	display: flex;
 `
 
-const Route = ({ name, price, toToken, toTokenPrice, gasTokenPrice, gasPrice }: Route) => {
+const Route = ({ name, price, toToken, toTokenPrice, gasTokenPrice, gasPrice, setRoute }: Route) => {
 	if (!price.amountReturned) return null
 
 	const amount = +price.amountReturned / 10 ** +toToken?.decimals
@@ -178,9 +181,9 @@ const Route = ({ name, price, toToken, toTokenPrice, gasTokenPrice, gasPrice }: 
 	const gasUsd = (gasTokenPrice * +price?.estimatedGas * +gasPrice) / 1e18
 
 	return (
-		<RouteWrapper>
+		<RouteWrapper onClick={setRoute}>
 			<RouteRow>
-				<img src={toToken.logoURI} style={{ width: 24, height: 24, marginRight: 8 }} />
+				<img src={toToken.logoURI} style={{ width: 24, height: 24, marginRight: 8, borderRadius: '50%' }} />
 				<TYPE.heading>
 					{amount.toFixed(3)} {amountUsd ? `($${amountUsd})` : null}
 				</TYPE.heading>
@@ -214,9 +217,9 @@ const Routes = styled.div<{ show: boolean; isFirstRender: boolean }>`
 	padding: 16px;
 	border-radius: 16px;
 	text-align: left;
-	height: 416px;
 	overflow-y: scroll;
 	min-width: 360px;
+	max-height: 416px;
 
 	box-shadow: ${({ theme }) =>
 		theme.mode === 'dark'
@@ -310,8 +313,19 @@ const Close = styled.span`
 	cursor: pointer;
 `
 
+const SwapBtn = styled.button`
+	display: flex;
+	text-align: center;
+	border-radius: 16px;
+	color: white;
+	background-color: black;
+	height: 48px;
+	width: 100%;
+`
+
 export function AggregatorContainer({ tokenlist }) {
 	const chains = getAllChains()
+	const { data: signer } = useSigner()
 	const [selectedChain, setSelectedChain] = useState({ value: 'ethereum', label: 'Ethereum' })
 	const [fromToken, setFromToken] = useState(null)
 	const [toToken, setToToken] = useState(null)
@@ -335,7 +349,22 @@ export function AggregatorContainer({ tokenlist }) {
 		setToToken(tokens.token1)
 	}
 
+	const [route, setRoute] = useState(null)
 	const [routes, setRoutes] = useState(null)
+
+	const handleSwap = () => {
+		swap({
+			chain: selectedChain.value,
+			from: fromToken.value,
+			to: toToken.value,
+			amount: String(+amount * 10 ** fromToken.decimals),
+			signer,
+			slippage: 1,
+			adapter: route.name,
+			rawQuote: route?.price?.rawQuote
+		})
+	}
+
 	useEffect(() => {
 		if (fromToken && toToken && amount) {
 			setRoutes(null)
@@ -365,6 +394,7 @@ export function AggregatorContainer({ tokenlist }) {
 		setToToken(null)
 		setRoutes(null)
 	}
+	const { isApproved, approve } = useTokenApprove(fromToken?.address, route?.price?.tokenApprovalAddress)
 
 	const onMaxClick = () => {
 		if (balance?.data?.formatted) setAmount(balance?.data?.formatted)
@@ -427,6 +457,14 @@ export function AggregatorContainer({ tokenlist }) {
 						<FormHeader>Amount In</FormHeader>
 						<Input setAmount={setAmount} amount={amount} onMaxClick={onMaxClick} />
 					</div>
+					<ButtonDark
+						onClick={() => {
+							if (approve) approve()
+							if (isApproved) handleSwap()
+						}}
+					>
+						{isApproved ? 'Swap' : 'Approve'}
+					</ButtonDark>
 				</Body>
 				<Routes show={!!routes?.length || isLoading} isFirstRender={renderNumber === 1}>
 					<FormHeader>
@@ -438,6 +476,7 @@ export function AggregatorContainer({ tokenlist }) {
 						? normalizedRoutes.map((r, i) => (
 								<Route
 									{...r}
+									setRoute={() => setRoute(r.route)}
 									toToken={toToken}
 									selectedChain={selectedChain.label}
 									gasTokenPrice={gasTokenPrice}
