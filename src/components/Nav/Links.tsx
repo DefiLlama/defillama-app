@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book, ShieldOff, Shuffle } from 'react-feather'
+import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book, ShieldOff, Shuffle, Search } from 'react-feather'
 
 export interface IMainLink {
 	name: string
@@ -99,7 +99,6 @@ export const navLinks: ILinks = {
 		main: [
 			{ name: 'Pools', path: '/yields' },
 			{ name: 'Borrow', path: '/yields/borrow' },
-			{ name: 'Optimizer', path: '/yields/optimizer', newTag: true },
 			{ name: 'Strategies', path: '/yields/strategy', newTag: true },
 			{ name: 'Leveraged Lending', path: '/yields/loop', newTag: true },
 			{ name: 'Overview', path: '/yields/overview' },
@@ -152,13 +151,18 @@ export const navLinks: ILinks = {
 		],
 		icon: <Percent size={16} />
 	},
-	Stables: {
+	"Borrow Aggregator": {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Search size={16} />
+	},
+	Bridges: {
 		main: [
-			{ name: 'Overview', path: '/stablecoins' },
-			{ name: 'Chains', path: '/stablecoins/chains' }
+			{ name: 'Overview', path: '/bridges', newTag: true },
+			{ name: 'Chains', path: '/bridges/chains', newTag: true }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <DollarSign size={16} />
+		icon: <Shuffle size={16} />
 	},
 	Liquidations: {
 		main: [],
@@ -183,18 +187,18 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Book size={16} />
 	},
+	Stables: {
+		main: [
+			{ name: 'Overview', path: '/stablecoins' },
+			{ name: 'Chains', path: '/stablecoins/chains' }
+		],
+		...defaultToolsAndFooterLinks,
+		icon: <DollarSign size={16} />
+	},
 	Hacks: {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <ShieldOff size={16} />
-	},
-	Bridges: {
-		main: [
-			{ name: 'Overview', path: '/bridges', newTag: true },
-			{ name: 'Chains', path: '/bridges/chains', newTag: true }
-		],
-		...defaultToolsAndFooterLinks,
-		icon: <Shuffle size={16} />
 	},
 }
 
@@ -203,6 +207,7 @@ export const linksWithNoSubMenu = [
 	{ name: 'Fees', url: '/fees' },
 	{ name: 'Raises', url: '/raises' },
 	{ name: 'Hacks', url: '/hacks' },
+	{ name: 'Borrow Aggregator', url: '/borrow' },
 ]
 
 function downloadDefiDataset() {
