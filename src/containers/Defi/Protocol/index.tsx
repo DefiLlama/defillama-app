@@ -379,12 +379,14 @@ function ProtocolContainer({
 							<span>{formattedNum(totalVolume || '0', true)}</span>
 						</Stat>
 
-						<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-							<DownloadButton as="a" color={backgroundColor}>
-								<DownloadCloud size={14} />
-								<span>&nbsp;&nbsp;.csv</span>
-							</DownloadButton>
-						</Link>
+						{!isParentProtocol && (
+							<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+								<DownloadButton as="a" color={backgroundColor}>
+									<DownloadCloud size={14} />
+									<span>&nbsp;&nbsp;.csv</span>
+								</DownloadButton>
+							</Link>
+						)}
 					</StatWrapper>
 
 					{tvls.length > 0 && (
