@@ -265,7 +265,25 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 					'Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)'
 			}
 		})
-	}))
+	})),
+	{
+		header: 'Link',
+		accessorKey: 'link',
+		size: 33,
+		enableSorting: false,
+		cell: ({ getValue }) => (
+			<ButtonYields
+				as="a"
+				href={getValue() as string}
+				target="_blank"
+				rel="noopener noreferrer"
+				data-lgonly
+				useTextColor={true}
+			>
+				<ArrowUpRight size={14} />
+			</ButtonYields>
+		)
+	},
 ]
 
 export const chainsColumn: ColumnDef<IChainsRow>[] = [
