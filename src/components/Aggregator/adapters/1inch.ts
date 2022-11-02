@@ -36,21 +36,7 @@ export async function getQuote(chain: string, from: string, to: string, amount: 
 	}
 }
 
-export async function swap({
-	chain,
-	from,
-	to,
-	amount,
-	signer,
-	slippage = 1
-}: {
-	signer: Signer
-	chain: string
-	from: string
-	to: string
-	amount: string
-	slippage: number
-}) {
+export async function swap({ chain, from, to, amount, signer, slippage = 1, rawQuote }) {
 	const fromAddress = await signer.getAddress()
 	console.log(signer)
 
