@@ -7,7 +7,7 @@ import OverviewContainer, { IOverviewContainerProps } from '~/containers/Overvie
 import { upperCaseFirst } from '~/containers/Overview/utils'
 import Layout from '~/layout'
 
-export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
+const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 	params
 }: GetStaticPropsContext<{ type: string; chain: string }>) => {
 	const data = await getChainPageData(params.type, params.chain)
@@ -18,6 +18,18 @@ export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 		},
 		revalidate: revalidate()
 	}
+}
+
+export const getStaticPropsByType = (type: string, chain: string) => {
+	return (context) =>
+		getStaticProps({
+			...context,
+			params: {
+				...context.params,
+				type,
+				chain
+			}
+		})
 }
 
 export const types = ['fees', 'aggregators', 'volumes', 'options', 'incentives']
