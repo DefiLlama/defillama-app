@@ -16,16 +16,24 @@ import {
 	DominanceColumn,
 	NameColumn,
 	Total24hColumn,
+	TotalAllTimeColumn,
 	VolumeTVLColumn
 } from './common'
 
-export const getColumnsByType = (type: string) => {
+export const getColumnsByType = (type: string, allChains?: boolean) => {
 	switch (type) {
 		case 'volumes':
-			return volumesColumns
+			return volumesColumns(allChains)
 		case 'fees':
-			return feesColumns
+			return feesColumns(allChains)
+		case 'incentives':
+			return incentivesColumns(allChains)
+		case 'options':
+			return optionsColumns(allChains)
+		case 'aggregators':
+			return aggregatorsColumns(allChains)
 		default:
+			return volumesColumns(allChains)
 	}
 }
 
@@ -42,33 +50,99 @@ export const getColumnsOrdernSizeByType = (type: string) => {
 				size: volumesColumnSizes
 			}
 		default:
+			return {
+				order: volumesTableColumnOrders,
+				size: volumesColumnSizes
+			}
 	}
 }
 
-export const volumesColumns: ColumnDef<IDexsRow>[] = [
-	NameColumn('volumes'),
-	ChainsColumn('volumes'),
-	Change1dColumn,
-	Change7dColumn,
-	Change1mColumn,
-	Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
-	VolumeTVLColumn,
-	DominanceColumn
-]
+export const volumesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+	[
+		NameColumn('volumes', allChains),
+		allChains ? undefined : ChainsColumn('volumes'),
+		Change1dColumn,
+		Change7dColumn,
+		Change1mColumn,
+		Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		TotalAllTimeColumn('volume'),
+		allChains ? undefined : VolumeTVLColumn,
+		DominanceColumn
+	].filter((c) => c !== undefined)
 
-export const feesColumns: ColumnDef<IDexsRow>[] = [
-	NameColumn('fees'),
-	ChainsColumn('fees'),
-	CategoryColumn,
-	Total24hColumn('fees', undefined, 'Fees paid by protocol users excluding gas fees'),
-	Total24hColumn('revenue', 'revenue24h', 'Fees accrued to the protocol (going to either treasury or holders)')
-]
+export const optionsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+	[
+		NameColumn('options', allChains),
+		allChains ? undefined : ChainsColumn('options'),
+		Change1dColumn,
+		Change7dColumn,
+		Change1mColumn,
+		Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		TotalAllTimeColumn('volume'),
+		allChains ? undefined : VolumeTVLColumn,
+		DominanceColumn
+	].filter((c) => c !== undefined)
+
+export const aggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+	[
+		NameColumn('aggregators', allChains),
+		allChains ? undefined : ChainsColumn('aggregators'),
+		Change1dColumn,
+		Change7dColumn,
+		Change1mColumn,
+		Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		TotalAllTimeColumn('volume'),
+		allChains ? undefined : VolumeTVLColumn,
+		DominanceColumn
+	].filter((c) => c !== undefined)
+
+export const incentivesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+	[
+		NameColumn('incentives', allChains),
+		allChains ? undefined : ChainsColumn('incentives'),
+		Change1dColumn,
+		Change7dColumn,
+		Change1mColumn,
+		Total24hColumn('incentives', undefined, `Yesterday's volume, updated daily at 00:00UTC`)
+	].filter((c) => c !== undefined)
+
+export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+	[
+		NameColumn('fees', allChains),
+		allChains ? undefined : ChainsColumn('fees'),
+		allChains ? undefined : CategoryColumn,
+		Total24hColumn('fees', undefined, 'Fees paid by protocol users excluding gas fees'),
+		Total24hColumn('revenue', 'revenue24h', 'Fees accrued to the protocol (going to either treasury or holders)'),
+		TotalAllTimeColumn('fees')
+	].filter((c) => c !== undefined)
 
 // key: min width of window/screen
 // values: table columns order
 export const volumesTableColumnOrders = formatColumnOrder({
-	0: ['displayName', 'name', 'total24h', 'change_7d', 'chains', 'change_1d', 'change_1m', 'volumetvl', 'dominance'],
-	900: ['displayName', 'name', 'chains', 'change_1d', 'change_7d', 'change_1m', 'total24h', 'volumetvl', 'dominance']
+	0: [
+		'displayName',
+		'name',
+		'total24h',
+		'change_7d',
+		'chains',
+		'change_1d',
+		'change_1m',
+		'totalAllTime',
+		'volumetvl',
+		'dominance'
+	],
+	900: [
+		'displayName',
+		'name',
+		'chains',
+		'change_1d',
+		'change_7d',
+		'change_1m',
+		'total24h',
+		'totalAllTime',
+		'volumetvl',
+		'dominance'
+	]
 })
 
 export const volumesColumnSizes = {
@@ -116,6 +190,7 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'total1dRevenue',
 		'change_1d',
 		'change_1m',
+		'totalAllTime',
 		'mcaptvl'
 	],
 	400: [
@@ -127,6 +202,7 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'total1dRevenue',
 		'change_1d',
 		'change_1m',
+		'totalAllTime',
 		'mcaptvl'
 	]
 })

@@ -20,8 +20,21 @@ export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 	}
 }
 
+export const getStaticPropsByType = (type: string, chain: string) => {
+	return (context) =>
+		getStaticProps({
+			...context,
+			params: {
+				...context.params,
+				type,
+				chain
+			}
+		})
+}
+
+export const types = ['fees', 'aggregators', 'volumes', 'options', 'incentives']
 export async function getStaticPaths() {
-	const paths = ['fees' /* , 'volumes' */].map((type) => ({
+	const paths = types.map((type) => ({
 		params: { type }
 	}))
 
