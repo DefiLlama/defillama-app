@@ -20,14 +20,13 @@ export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 	}
 }
 
-export const getStaticPropsByType = (type: string, chain: string) => {
+export const getStaticPropsByType = (type: string) => {
 	return (context) =>
 		getStaticProps({
 			...context,
 			params: {
 				...context.params,
-				type,
-				chain
+				type
 			}
 		})
 }

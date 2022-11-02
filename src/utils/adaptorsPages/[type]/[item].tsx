@@ -5,14 +5,13 @@ import { getOverview, getOverviewItemPageData, ProtocolAdaptorSummaryProps } fro
 import OverviewItemContainer from '~/containers/Overview/OverviewItem'
 import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
-import { types } from '.'
 
 export type PageParams = {
 	protocolSummary: ProtocolAdaptorSummaryProps
 	backgroundColor: string
 }
 
-export const getStaticProps: GetStaticProps<PageParams> = async ({
+const getStaticProps: GetStaticProps<PageParams> = async ({
 	params
 }: GetStaticPropsContext<{ type: string; item: string }>) => {
 	const data = await getOverviewItemPageData(params.type, params.item)
@@ -29,16 +28,21 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 	}
 }
 
-export async function getStaticPaths() {
-	const rawPaths = await Promise.all(
-		types.map(async (type) => {
-			const { protocols } = await getOverview(type)
-			return protocols.map((protocol) => ({
-				params: { type, item: standardizeProtocolName(protocol.name) }
-			}))
-		})
-	)
-	return { paths: rawPaths.flat(), fallback: 'blocking' }
+export const getStaticPropsByType = (type: string) => (context) =>
+	getStaticProps({
+		...context,
+		params: {
+			...context.params,
+			type
+		}
+	})
+
+export const getStaticPathsByType = (type: string) => async () => {
+	const { protocols } = await getOverview(type)
+	const rawPaths = protocols.map((protocol) => ({
+		params: { type, item: standardizeProtocolName(protocol.name) }
+	}))
+	return { paths: rawPaths, fallback: 'blocking' }
 }
 
 export default function ProtocolItem({ protocolSummary, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {
