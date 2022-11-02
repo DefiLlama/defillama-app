@@ -165,6 +165,7 @@ export interface IFormattedProtocol extends LiteProtocol {
 	change_7d: number | null
 	change_1m: number | null
 	mcaptvl: number | null
+	strikeTvl?: boolean
 }
 
 export interface IFusedProtocolData extends Omit<IProtocolResponse, 'tvl'> {
