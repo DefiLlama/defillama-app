@@ -74,7 +74,7 @@ const PageView = () => {
 				-item.apyBaseBorrow,
 				item.apyRewardBorrow,
 				item.totalSupplyUsd,
-				item.totalBororwUsd,
+				item.totalBorrowUsd,
 				category === 'CDP' && item.debtCeilingUsd
 					? item.debtCeilingUsd - item.totalBorrowUsd
 					: category === 'CDP'
