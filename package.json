@@ -15,7 +15,7 @@
 	},
 	"dependencies": {
 		"@rainbow-me/rainbowkit": "^0.7.1",
-		"@tanstack/react-table": "^8.5.13",
+		"@tanstack/react-table": "^8.5.22",
 		"@tanstack/react-virtual": "^3.0.0-beta.18",
 		"ariakit": "^2.0.0-next.41",
 		"bignumber.js": "^9.0.2",

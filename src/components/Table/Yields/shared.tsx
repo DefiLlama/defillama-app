@@ -17,6 +17,7 @@ interface IYieldsTableWrapper {
 	columnSizesKeys: any
 	columnOrders: any
 	skipVirtualization?: boolean
+	rowSize?: number
 }
 
 export const YieldsTableWrapper = ({
@@ -25,7 +26,8 @@ export const YieldsTableWrapper = ({
 	columnSizes,
 	columnSizesKeys,
 	columnOrders,
-	skipVirtualization
+	skipVirtualization,
+	rowSize
 }: IYieldsTableWrapper) => {
 	const [sorting, setSorting] = React.useState<SortingState>([])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -63,5 +65,5 @@ export const YieldsTableWrapper = ({
 		instance.setColumnOrder(order)
 	}, [windowSize, instance, columnSizes, columnSizesKeys, columnOrders])
 
-	return <VirtualTable instance={instance} skipVirtualization={skipVirtualization} />
+	return <VirtualTable instance={instance} skipVirtualization={skipVirtualization} rowSize={rowSize} />
 }

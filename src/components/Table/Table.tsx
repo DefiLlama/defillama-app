@@ -8,6 +8,7 @@ import QuestionHelper from '../QuestionHelper'
 interface ITableProps {
 	instance: Table<any>
 	skipVirtualization?: boolean
+	rowSize?: number
 }
 
 declare module '@tanstack/table-core' {
@@ -17,7 +18,7 @@ declare module '@tanstack/table-core' {
 	}
 }
 
-export default function VirtualTable({ instance, skipVirtualization, ...props }: ITableProps) {
+export default function VirtualTable({ instance, skipVirtualization, rowSize, ...props }: ITableProps) {
 	const [tableTop, setTableTop] = React.useState(0)
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
 
@@ -31,7 +32,7 @@ export default function VirtualTable({ instance, skipVirtualization, ...props }:
 
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
-		estimateSize: () => 50,
+		estimateSize: () => rowSize || 50,
 		overscan: 20,
 		rangeExtractor: React.useCallback(
 			(range) => {
