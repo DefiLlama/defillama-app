@@ -1,5 +1,6 @@
 import { YieldsData } from '~/api/categories/yield'
 import { attributeOptions } from '~/components/Filters'
+import { calculateLoopAPY } from '~/api/categories/yield/index'
 
 export function toFilterPool({
 	curr,
@@ -132,7 +133,10 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 
 const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
 
-export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, loopStrategies, cdpRoutes) => {
+export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, cdpRoutes, customLTV) => {
+	// prepare leveraged lending (loop) pools
+	const loopPools = calculateLoopAPY(pools, 10, customLTV)
+
 	const availableToLend = pools.filter(
 		({ symbol, ltv }) =>
 			(tokenToLend === 'USD_Stables' ? true : removeMetaTag(symbol).includes(tokenToLend)) &&
@@ -249,10 +253,10 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 		}
 	}
 	// keep looping strategies only if no tokenToBorrow is given or if they both match
-	const loopPools =
+	const loopPoolsFiltered =
 		tokenToBorrow !== tokenToLend && tokenToBorrow.length > 0
 			? []
-			: loopStrategies
+			: loopPools
 					.filter((p) => removeMetaTag(p.symbol.toUpperCase()).includes(tokenToLend))
 					.map((p) => ({
 						...p,
@@ -269,14 +273,17 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 						strategy: 'loop'
 					}))
 
-	finalPools = finalPools.concat(loopPools)
+	finalPools = finalPools.concat(loopPoolsFiltered)
 
 	// calc the total strategy apy
 	finalPools = finalPools.map((p) => {
 		// apy = apyBase + apyReward on the collateral side
 		// apyBorrow = apyBaseBorrow + apyRewardBorrow on the borrow side
 		// farmApy = apyBase + apyReward on the farm side
-		const totalApy = p.strategy === 'loop' ? p.loopApy : p.apy + p.borrow.apyBorrow * p.ltv + p.farmApy * p.ltv
+
+		// either use default LTV or the one given via input field
+		const ltv = customLTV ? (customLTV / 100) * p.ltv : p.ltv
+		const totalApy = p.strategy === 'loop' ? p.loopApy : p.apy + p.borrow.apyBorrow * ltv + p.farmApy * ltv
 
 		return {
 			...p,
@@ -294,10 +301,12 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 	return finalPools
 }
 
-export const formatOptimizerPool = (pool) => {
+export const formatOptimizerPool = (pool, customLTV) => {
+	const ltv = customLTV ? (customLTV / 100) * pool.ltv : pool.ltv
+
 	const lendingReward = (pool.apyBase || 0) + (pool.apyReward || 0)
 	const borrowReward = (pool.borrow.apyBaseBorrow || 0) + (pool.borrow.apyRewardBorrow || 0)
-	const totalReward = lendingReward + borrowReward * pool.ltv
+	const totalReward = lendingReward + borrowReward * ltv
 	const borrowAvailableUsd = pool.borrow.totalAvailableUsd
 
 	return { ...pool, lendingReward, borrowReward, totalReward, borrowAvailableUsd }
@@ -313,6 +322,7 @@ interface FilterPools {
 	maxTvl?: string
 	minAvailable?: string
 	maxAvailable?: string
+	customLTV?: string
 }
 
 export const filterPool = ({
@@ -324,7 +334,8 @@ export const filterPool = ({
 	minTvl,
 	maxTvl,
 	minAvailable,
-	maxAvailable
+	maxAvailable,
+	customLTV
 }: FilterPools) => {
 	let toFilter = true
 
@@ -362,6 +373,14 @@ export const filterPool = ({
 			toFilter &&
 			(minAvailable ? pool.borrow.totalAvailableUsd > minAvailable : true) &&
 			(maxAvailable ? pool.borrow.totalAvailableUsd < maxAvailable : true)
+	}
+
+	// - if custom LTV is given, keep only pools where the actual ltv is greater or equal custom LTV
+	// (eg someone sets custom LTV to 80% -> remove any pools which have a max LTV < 80%)
+	const isValidLtvValue = customLTV !== undefined && !Number.isNaN(Number(customLTV))
+
+	if (isValidLtvValue) {
+		toFilter = toFilter && (customLTV ? Number(customLTV) > 0 && Number(customLTV) <= 100 : true)
 	}
 
 	return toFilter

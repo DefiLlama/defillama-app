@@ -8,7 +8,7 @@ import styled from 'styled-components'
 import YieldsOptimizerTable from '../Table/Yields/Optimizer'
 import { Header } from '~/Theme'
 import { useFormatYieldQueryParams } from './hooks'
-import { YieldAttributes, FiltersByChain } from '../Filters'
+import { YieldAttributes, FiltersByChain, LTV, ResetAllYieldFilters } from '../Filters'
 import { attributeOptions } from '~/components/Filters'
 
 const SearchWrapper = styled.div`
@@ -25,6 +25,7 @@ const SearchWrapper = styled.div`
 
 const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, categoryList }) => {
 	const { query, pathname } = useRouter()
+	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 
 	const { lend, borrow } = query
 	const { selectedChains, selectedAttributes } = useFormatYieldQueryParams({ projectList, chainList, categoryList })
@@ -37,15 +38,15 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
 		let filteredPools = findOptimizerPools(lendingPools, lend, borrow, cdpPools)
-			.filter((pool) => filterPool({ pool, selectedChains }))
-			.map(formatOptimizerPool)
+			.filter((pool) => filterPool({ pool, selectedChains, customLTV }))
+			.map((p) => formatOptimizerPool(p, customLTV))
 
 		if (selectedAttributes.length > 0) {
 			const attributeOption = attributeOptions.find((o) => o.key === selectedAttributes[0])
 			filteredPools = filteredPools.filter((p) => attributeOption.filterFn(p))
 		}
 		return filteredPools
-	}, [lendingPools, borrow, lend, selectedChains, selectedAttributes, cdpPools])
+	}, [lendingPools, borrow, lend, selectedChains, selectedAttributes, cdpPools, customLTV])
 
 	return (
 		<>
@@ -66,6 +67,8 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 				<TableHeader>Lending Optimizer</TableHeader>
 				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
 				<YieldAttributes pathname={pathname} />
+				<LTV />
+				<ResetAllYieldFilters pathname={pathname} />
 			</TableFilters>
 
 			{poolsData.length > 0 ? (
