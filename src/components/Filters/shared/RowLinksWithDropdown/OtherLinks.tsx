@@ -15,7 +15,7 @@ export function OtherLinks({ options, name }: IProps) {
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const combobox = useComboboxState({ defaultList, gutter: 8, animated: true })
+	const combobox = useComboboxState({ defaultList, gutter: 8, animated: true, renderCallback })
 
 	const menu = useMenuState(combobox)
 
@@ -31,7 +31,7 @@ export function OtherLinks({ options, name }: IProps) {
 				<MenuButtonArrow />
 			</Button>
 			<Popover state={menu} modal={!isLarge} composite={false}>
-				<Input state={combobox} placeholder="Search..." autoFocus />
+				<Input state={combobox} placeholder="Search..." />
 				{combobox.matches.length > 0 ? (
 					<List state={combobox}>
 						{combobox.matches.map((value, i) => (
