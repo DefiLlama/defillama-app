@@ -11,11 +11,11 @@ interface IProps {
 }
 
 export function OtherLinks({ options, name }: IProps) {
-	const defaultList = options.map((l) => l.to)
+	const defaultList = options.slice(0, 10).map((l) => l.to)
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const combobox = useComboboxState({ defaultList, gutter: 8, animated: true })
+	const combobox = useComboboxState({ defaultList, gutter: 8, animated: true, renderCallback })
 
 	const menu = useMenuState(combobox)
 
