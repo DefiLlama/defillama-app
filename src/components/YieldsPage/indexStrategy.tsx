@@ -91,7 +91,8 @@ const YieldsStrategyPage = ({
 				maxAvailable,
 				selectedLendingProtocols,
 				selectedFarmProtocols,
-				customLTV
+				customLTV,
+				strategyPage: true
 			})
 		)
 
