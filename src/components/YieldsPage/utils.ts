@@ -323,6 +323,7 @@ interface FilterPools {
 	minAvailable?: string
 	maxAvailable?: string
 	customLTV?: string
+	strategyPage?: boolean
 }
 
 export const filterPool = ({
@@ -335,7 +336,8 @@ export const filterPool = ({
 	maxTvl,
 	minAvailable,
 	maxAvailable,
-	customLTV
+	customLTV,
+	strategyPage
 }: FilterPools) => {
 	let toFilter = true
 
@@ -377,7 +379,12 @@ export const filterPool = ({
 
 	const isValidLtvValue = customLTV !== undefined && !Number.isNaN(Number(customLTV))
 
-	if (isValidLtvValue) {
+	if (isValidLtvValue && strategyPage) {
+		toFilter = toFilter && (customLTV ? Number(customLTV) > 0 && Number(customLTV) <= 100 : true)
+	}
+
+	// on optimizer the filter includes a check against customLTV
+	if (isValidLtvValue && !strategyPage) {
 		toFilter =
 			toFilter &&
 			(customLTV ? Number(customLTV) > 0 && Number(customLTV) < 100 && Number(customLTV) / 100 <= pool.ltv : true)
