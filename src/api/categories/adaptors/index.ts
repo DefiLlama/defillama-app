@@ -101,9 +101,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	if (totalDataChart) allCharts.push([upperCaseFirst(type), totalDataChart])
 
 	// Get second type for fees, if wanna add this, take a look at how its done in getOverviewItemPageData
-	/* let revenue: IGetOverviewResponseBody
+	let revenue: IGetOverviewResponseBody
 	if (type === 'fees') revenue = ((await fetch(getAPIUrl(type, chain, true, true, 'dailyRevenue')).then((res) => res.json())) as IGetOverviewResponseBody)
-	const revenueProtocols = revenue?.protocols.reduce((acc, protocol) => ({ ...acc, [protocol.name]: protocol }), {} as IJSON<ProtocolAdaptorSummary>) */
+	const revenueProtocols = revenue?.protocols.reduce((acc, protocol) => ({ ...acc, [protocol.name]: protocol }), {} as IJSON<ProtocolAdaptorSummary>)
 
 	// Get TVL data
 	const sumTVLProtocols = (protocolName: string, versions: string[], tvlData: IJSON<number>) => {
@@ -115,7 +115,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		const volumetvl = protocol.total24h / (tvlData[protocol.name] ?? (sumTVLProtocols(protocol.name, Object.keys(protocol.protocolsStats ?? {}), tvlData)))
 		return {
 			...protocol,
-			// revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? 0,
+			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? 0,
 			volumetvl,
 			dominance: (100 * protocol.total24h) / total24h,
 			chains: protocol.chains,
@@ -128,7 +128,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 						displayName: `${protocol.name} ${versionName.toUpperCase()}`,
 						...summary,
 						totalAllTime: null,
-						// revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? 0
+						revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? 0
 					}))
 					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
 				: null
