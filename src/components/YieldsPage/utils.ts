@@ -302,7 +302,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 }
 
 export const formatOptimizerPool = (pool, customLTV) => {
-	const ltv = customLTV ? (customLTV / 100) * pool.ltv : pool.ltv
+	const ltv = customLTV ? customLTV / 100 : pool.ltv
 
 	const lendingReward = (pool.apyBase || 0) + (pool.apyReward || 0)
 	const borrowReward = (pool.borrow.apyBaseBorrow || 0) + (pool.borrow.apyRewardBorrow || 0)
@@ -375,12 +375,12 @@ export const filterPool = ({
 			(maxAvailable ? pool.borrow.totalAvailableUsd < maxAvailable : true)
 	}
 
-	// - if custom LTV is given, keep only pools where the actual ltv is greater or equal custom LTV
-	// (eg someone sets custom LTV to 80% -> remove any pools which have a max LTV < 80%)
 	const isValidLtvValue = customLTV !== undefined && !Number.isNaN(Number(customLTV))
 
 	if (isValidLtvValue) {
-		toFilter = toFilter && (customLTV ? Number(customLTV) > 0 && Number(customLTV) <= 100 : true)
+		toFilter =
+			toFilter &&
+			(customLTV ? Number(customLTV) > 0 && Number(customLTV) < 100 && Number(customLTV) / 100 <= pool.ltv : true)
 	}
 
 	return toFilter
