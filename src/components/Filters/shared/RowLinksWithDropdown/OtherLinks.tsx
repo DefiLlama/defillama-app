@@ -15,7 +15,7 @@ export function OtherLinks({ options, name }: IProps) {
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const combobox = useComboboxState({ defaultList, gutter: 8, animated: true, renderCallback })
+	const combobox = useComboboxState({ defaultList, gutter: 8, animated: true })
 
 	const menu = useMenuState(combobox)
 
