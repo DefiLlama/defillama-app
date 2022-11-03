@@ -61,7 +61,7 @@ const YieldsStrategyPage = ({
 	const maxTvl = typeof query.maxTvl === 'string' ? query.maxTvl : null
 	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
 	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
-	const maxLTV = typeof query.maxLTV === 'string' ? query.maxLTV : null
+	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 
 	const { selectedChains, selectedAttributes, selectedLendingProtocols, selectedFarmProtocols } =
 		useFormatYieldQueryParams({
@@ -80,7 +80,7 @@ const YieldsStrategyPage = ({
 	// exclude cdp from lending
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
-		let filteredPools = findStrategyPools(lendingPools, lend, borrow, allPools, cdpPools, maxLTV).filter((pool) =>
+		let filteredPools = findStrategyPools(lendingPools, lend, borrow, allPools, cdpPools, customLTV).filter((pool) =>
 			filterPool({
 				pool,
 				selectedChains,
@@ -91,7 +91,7 @@ const YieldsStrategyPage = ({
 				maxAvailable,
 				selectedLendingProtocols,
 				selectedFarmProtocols,
-				maxLTV
+				customLTV
 			})
 		)
 
@@ -110,7 +110,7 @@ const YieldsStrategyPage = ({
 		maxTvl,
 		minAvailable,
 		maxAvailable,
-		maxLTV
+		customLTV
 	])
 
 	return (

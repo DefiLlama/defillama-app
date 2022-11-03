@@ -25,7 +25,7 @@ const SearchWrapper = styled.div`
 
 const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, categoryList }) => {
 	const { query, pathname } = useRouter()
-	const maxLTV = typeof query.maxLTV === 'string' ? query.maxLTV : null
+	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 
 	const { lend, borrow } = query
 	const { selectedChains, selectedAttributes } = useFormatYieldQueryParams({ projectList, chainList, categoryList })
@@ -38,15 +38,15 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
 		let filteredPools = findOptimizerPools(lendingPools, lend, borrow, cdpPools)
-			.filter((pool) => filterPool({ pool, selectedChains, maxLTV }))
-			.map((p) => formatOptimizerPool(p, maxLTV))
+			.filter((pool) => filterPool({ pool, selectedChains, customLTV }))
+			.map((p) => formatOptimizerPool(p, customLTV))
 
 		if (selectedAttributes.length > 0) {
 			const attributeOption = attributeOptions.find((o) => o.key === selectedAttributes[0])
 			filteredPools = filteredPools.filter((p) => attributeOption.filterFn(p))
 		}
 		return filteredPools
-	}, [lendingPools, borrow, lend, selectedChains, selectedAttributes, cdpPools, maxLTV])
+	}, [lendingPools, borrow, lend, selectedChains, selectedAttributes, cdpPools, customLTV])
 
 	return (
 		<>

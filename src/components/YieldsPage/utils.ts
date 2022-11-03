@@ -133,9 +133,9 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 
 const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
 
-export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, cdpRoutes, maxLTV) => {
+export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, cdpRoutes, customLTV) => {
 	// prepare leveraged lending (loop) pools
-	const loopPools = calculateLoopAPY(pools, 10, maxLTV)
+	const loopPools = calculateLoopAPY(pools, 10, customLTV)
 
 	const availableToLend = pools.filter(
 		({ symbol, ltv }) =>
@@ -282,7 +282,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 		// farmApy = apyBase + apyReward on the farm side
 
 		// either use default LTV or the one given via input field
-		const ltv = maxLTV ? maxLTV / 100 : p.ltv
+		const ltv = customLTV ? customLTV / 100 : p.ltv
 		const totalApy = p.strategy === 'loop' ? p.loopApy : p.apy + p.borrow.apyBorrow * ltv + p.farmApy * ltv
 
 		return {
@@ -301,8 +301,8 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 	return finalPools
 }
 
-export const formatOptimizerPool = (pool, maxLTV) => {
-	const ltv = maxLTV ? maxLTV / 100 : pool.ltv
+export const formatOptimizerPool = (pool, customLTV) => {
+	const ltv = customLTV ? customLTV / 100 : pool.ltv
 
 	const lendingReward = (pool.apyBase || 0) + (pool.apyReward || 0)
 	const borrowReward = (pool.borrow.apyBaseBorrow || 0) + (pool.borrow.apyRewardBorrow || 0)
@@ -322,7 +322,7 @@ interface FilterPools {
 	maxTvl?: string
 	minAvailable?: string
 	maxAvailable?: string
-	maxLTV?: string
+	customLTV?: string
 }
 
 export const filterPool = ({
@@ -335,7 +335,7 @@ export const filterPool = ({
 	maxTvl,
 	minAvailable,
 	maxAvailable,
-	maxLTV
+	customLTV
 }: FilterPools) => {
 	let toFilter = true
 
@@ -377,10 +377,10 @@ export const filterPool = ({
 
 	// - if custom LTV is given, keep only pools where the actual ltv is greater or equal custom LTV
 	// (eg someone sets custom LTV to 80% -> remove any pools which have a max LTV < 80%)
-	const isValidLtvValue = maxLTV !== undefined && !Number.isNaN(Number(maxLTV))
+	const isValidLtvValue = customLTV !== undefined && !Number.isNaN(Number(customLTV))
 
 	if (isValidLtvValue) {
-		toFilter = toFilter && (maxLTV ? pool.ltv >= Number(maxLTV) / 100 : true)
+		toFilter = toFilter && (customLTV ? Number(customLTV) > 0 && pool.ltv >= Number(customLTV) / 100 : true)
 	}
 
 	return toFilter

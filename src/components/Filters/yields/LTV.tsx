@@ -7,14 +7,14 @@ export function LTV() {
 	const handleSubmit = (e) => {
 		e.preventDefault()
 		const form = e.target
-		const maxLTV = form.max?.value
+		const customLTV = form.max?.value
 
 		router.push(
 			{
 				pathname: router.pathname,
 				query: {
 					...router.query,
-					maxLTV
+					customLTV
 				}
 			},
 			undefined,
