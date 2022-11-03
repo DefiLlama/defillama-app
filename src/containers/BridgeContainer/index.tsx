@@ -162,13 +162,15 @@ export default function BridgeContainer({
 		const currentWithdrawalsUSD = prevDayChart?.withdrawUSD ?? 0
 		const currentVolume = currentDepositsUSD + currentWithdrawalsUSD
 
-		let volPercentChange = '0%'
+		let volPercentChange = '0 '
 		if (chainChartData.length > 1) {
 			const prev2DayChart = chainChartData[chainChartData.length - 2]
 			const prevDepositsUSD = prev2DayChart.depositUSD ?? 0
 			const prevWithdrawalsUSD = prev2DayChart.withdrawUSD ?? 0
 			const prevVolume = prevDepositsUSD + prevWithdrawalsUSD
-			volPercentChange = getPercentChange(currentVolume, prevVolume)?.toFixed(2)
+			if (prevVolume > 0) {
+				volPercentChange = getPercentChange(currentVolume, prevVolume)?.toFixed(2)
+			}
 		}
 
 		const volumeChartData = chainChartData.map((entry) => {
