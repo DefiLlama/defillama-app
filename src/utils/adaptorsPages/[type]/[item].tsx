@@ -39,10 +39,10 @@ export const getStaticPropsByType = (type: string) => (context) =>
 
 export const getStaticPathsByType = (type: string) => async () => {
 	const { protocols } = await getOverview(type)
-	const rawPaths = protocols.map((protocol) => ({
+	const paths = protocols.map((protocol) => ({
 		params: { type, item: standardizeProtocolName(protocol.name) }
 	}))
-	return { paths: rawPaths, fallback: 'blocking' }
+	return { paths, fallback: 'blocking' }
 }
 
 export default function ProtocolItem({ protocolSummary, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {
