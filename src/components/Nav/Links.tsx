@@ -98,9 +98,9 @@ export const navLinks: ILinks = {
 	Yields: {
 		main: [
 			{ name: 'Pools', path: '/yields' },
-			{ name: 'Borrow', path: '/yields/borrow' },
 			{ name: 'Strategies', path: '/yields/strategy', newTag: true },
 			{ name: 'Leveraged Lending', path: '/yields/loop', newTag: true },
+			{ name: 'Borrow', path: '/yields/borrow' },
 			{ name: 'Overview', path: '/yields/overview' },
 			{ name: 'Stablecoin Pools', path: '/yields/stablecoins' },
 			{ name: 'Projects', path: '/yields/projects' },
