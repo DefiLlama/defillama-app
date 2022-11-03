@@ -261,7 +261,7 @@ export function calculateLoopAPY(lendBorrowPools, loops = 10, customLTV) {
 			const borrow_apy = (p.apyBaseBorrow + p.apyRewardBorrow) / 100
 
 			let total_borrowed = 0
-			const ltv = customLTV ? customLTV / 100 : p.ltv
+			const ltv = customLTV ? (customLTV / 100) * p.ltv : p.ltv
 			for (const i of [...Array(loops).keys()]) {
 				total_borrowed += ltv ** (i + 1)
 			}

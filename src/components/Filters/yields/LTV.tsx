@@ -23,5 +23,5 @@ export function LTV() {
 			}
 		)
 	}
-	return <FilterByValue header="Custom LTV" onSubmit={handleSubmit} />
+	return <FilterByValue header="% of max LTV" onSubmit={handleSubmit} />
 }

@@ -282,7 +282,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 		// farmApy = apyBase + apyReward on the farm side
 
 		// either use default LTV or the one given via input field
-		const ltv = customLTV ? customLTV / 100 : p.ltv
+		const ltv = customLTV ? (customLTV / 100) * p.ltv : p.ltv
 		const totalApy = p.strategy === 'loop' ? p.loopApy : p.apy + p.borrow.apyBorrow * ltv + p.farmApy * ltv
 
 		return {
@@ -302,7 +302,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 }
 
 export const formatOptimizerPool = (pool, customLTV) => {
-	const ltv = customLTV ? customLTV / 100 : pool.ltv
+	const ltv = customLTV ? (customLTV / 100) * pool.ltv : pool.ltv
 
 	const lendingReward = (pool.apyBase || 0) + (pool.apyReward || 0)
 	const borrowReward = (pool.borrow.apyBaseBorrow || 0) + (pool.borrow.apyRewardBorrow || 0)
@@ -380,7 +380,7 @@ export const filterPool = ({
 	const isValidLtvValue = customLTV !== undefined && !Number.isNaN(Number(customLTV))
 
 	if (isValidLtvValue) {
-		toFilter = toFilter && (customLTV ? Number(customLTV) > 0 && pool.ltv >= Number(customLTV) / 100 : true)
+		toFilter = toFilter && (customLTV ? Number(customLTV) > 0 && Number(customLTV) <= 100 : true)
 	}
 
 	return toFilter
