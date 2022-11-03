@@ -1,6 +1,7 @@
 import styled from 'styled-components'
 
 const InputElem = styled.input`
+	cursor: text;
 	display: block;
 	height: 48px;
 	width: 100%;

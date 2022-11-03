@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { FixedSizeList as List } from 'react-window'
 
 import { Input } from './TokenInput'
@@ -21,6 +21,7 @@ const ModalWrapper = styled.div`
 	height: 500px;
 	background: ${({ theme }) => theme.bg1};
 	left: -5%;
+	top: 0;
 
 	box-shadow: ${({ theme }) =>
 		theme.mode === 'dark'
@@ -100,7 +101,7 @@ const Modal = ({ close, onInputChange, data, onClick }) => {
 				<CloseBtn onClick={close} />
 			</Header>
 			<div>
-				<Input placeholder="Search... (BTC-ETH)" onChange={onInputChange} />
+				<Input placeholder="Search... (BTC-ETH)" onChange={onInputChange} autoFocus />
 			</div>
 			<List height={390} itemCount={data.length} itemSize={38} itemData={{ data, onClick }}>
 				{Row}

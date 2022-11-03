@@ -4,39 +4,19 @@ import { darkTheme, getDefaultWallets, RainbowKitProvider } from '@rainbow-me/ra
 import { configureChains, createClient, WagmiConfig, chain } from 'wagmi'
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
 import styled from 'styled-components'
-
-const avax = {
-	id: 43114,
-	name: 'AVAX',
-	network: 'avax',
-	iconUrl: '/bnb.png',
-	iconBackground: '#000',
-	nativeCurrency: {
-		decimals: 18,
-		name: 'Avalanche',
-		symbol: 'Avax'
-	},
-	rpcUrls: {
-		default: 'https://avalanche-evm.publicnode.com'
-	},
-	blockExplorers: {
-		default: { name: 'BscScan', url: 'https://bscscan.com' },
-		etherscan: { name: 'BscScan', url: 'https://bscscan.com' }
-	},
-	testnet: false
-}
+import { allChains } from './chains'
 
 const { provider, chains } = configureChains(
 	[
 		chain.arbitrum,
-		avax,
 		{
 			...chain.mainnet,
 			rpcUrls: {
 				default: 'https://mainnet.infura.io/v3/e694851905e84405aa8de9d5b4705035'
 			}
 		},
-		chain.optimism
+		chain.optimism,
+		...allChains
 	],
 	[jsonRpcProvider({ rpc: (chain) => ({ http: chain.rpcUrls.default }) })]
 )
