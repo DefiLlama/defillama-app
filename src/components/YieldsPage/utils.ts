@@ -124,7 +124,9 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 	const cdpPairs =
 		tokenToLend && tokenToBorrow
 			? cdpRoutes.filter(
-					(p) => removeMetaTag(p.symbol).includes(tokenToLend) && removeMetaTag(p.borrow.symbol).includes(tokenToBorrow)
+					(p) =>
+						(tokenToLend === 'USD_Stables' ? p.stablecoin : removeMetaTag(p.symbol).includes(tokenToLend)) &&
+						(tokenToBorrow === 'USD_Stables' ? p.stablecoin : removeMetaTag(p.borrow.symbol).includes(tokenToBorrow))
 			  )
 			: []
 
