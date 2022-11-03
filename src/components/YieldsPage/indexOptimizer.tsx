@@ -8,7 +8,7 @@ import styled from 'styled-components'
 import YieldsOptimizerTable from '../Table/Yields/Optimizer'
 import { Header } from '~/Theme'
 import { useFormatYieldQueryParams } from './hooks'
-import { YieldAttributes, FiltersByChain, LTV } from '../Filters'
+import { YieldAttributes, FiltersByChain, LTV, ResetAllYieldFilters } from '../Filters'
 import { attributeOptions } from '~/components/Filters'
 
 const SearchWrapper = styled.div`
@@ -38,7 +38,7 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
 		let filteredPools = findOptimizerPools(lendingPools, lend, borrow, cdpPools)
-			.filter((pool) => filterPool({ pool, selectedChains }))
+			.filter((pool) => filterPool({ pool, selectedChains, maxLTV }))
 			.map((p) => formatOptimizerPool(p, maxLTV))
 
 		if (selectedAttributes.length > 0) {
@@ -68,6 +68,7 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
 				<YieldAttributes pathname={pathname} />
 				<LTV />
+				<ResetAllYieldFilters pathname={pathname} />
 			</TableFilters>
 
 			{poolsData.length > 0 ? (

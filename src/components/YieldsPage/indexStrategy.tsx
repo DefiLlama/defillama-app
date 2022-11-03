@@ -90,7 +90,8 @@ const YieldsStrategyPage = ({
 				minAvailable,
 				maxAvailable,
 				selectedLendingProtocols,
-				selectedFarmProtocols
+				selectedFarmProtocols,
+				maxLTV
 			})
 		)
 

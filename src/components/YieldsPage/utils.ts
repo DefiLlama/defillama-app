@@ -322,6 +322,7 @@ interface FilterPools {
 	maxTvl?: string
 	minAvailable?: string
 	maxAvailable?: string
+	maxLTV?: string
 }
 
 export const filterPool = ({
@@ -333,7 +334,8 @@ export const filterPool = ({
 	minTvl,
 	maxTvl,
 	minAvailable,
-	maxAvailable
+	maxAvailable,
+	maxLTV
 }: FilterPools) => {
 	let toFilter = true
 
@@ -371,6 +373,14 @@ export const filterPool = ({
 			toFilter &&
 			(minAvailable ? pool.borrow.totalAvailableUsd > minAvailable : true) &&
 			(maxAvailable ? pool.borrow.totalAvailableUsd < maxAvailable : true)
+	}
+
+	// - if custom LTV is given, keep only pools where the actual ltv is greater or equal custom LTV
+	// (eg someone sets custom LTV to 80% -> remove any pools which have a max LTV < 80%)
+	const isValidLtvValue = maxLTV !== undefined && !Number.isNaN(Number(maxLTV))
+
+	if (isValidLtvValue) {
+		toFilter = toFilter && (maxLTV ? pool.ltv >= Number(maxLTV) / 100 : true)
 	}
 
 	return toFilter
