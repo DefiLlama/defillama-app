@@ -8,7 +8,7 @@ import styled from 'styled-components'
 import YieldsOptimizerTable from '../Table/Yields/Optimizer'
 import { Header } from '~/Theme'
 import { useFormatYieldQueryParams } from './hooks'
-import { YieldAttributes, FiltersByChain, LTV, ResetAllYieldFilters, AvailableRange } from '../Filters'
+import { YieldAttributes, FiltersByChain, YieldProjects, LTV, ResetAllYieldFilters, AvailableRange } from '../Filters'
 
 const SearchWrapper = styled.div`
 	display: grid;
@@ -22,14 +22,19 @@ const SearchWrapper = styled.div`
 	}
 `
 
-const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, categoryList }) => {
+const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, categoryList, lendingProtocols }) => {
 	const { query, pathname } = useRouter()
 	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
 	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
 
 	const { lend, borrow } = query
-	const { selectedChains, selectedAttributes } = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	const { selectedChains, selectedAttributes, selectedLendingProtocols } = useFormatYieldQueryParams({
+		projectList,
+		chainList,
+		lendingProtocols,
+		categoryList
+	})
 
 	// get cdp collateral -> debt token route
 	const cdpPools = pools
@@ -39,12 +44,33 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
 		let filteredPools = findOptimizerPools(lendingPools, lend, borrow, cdpPools)
-			.filter((pool) => filterPool({ pool, selectedChains, selectedAttributes, minAvailable, maxAvailable, customLTV }))
+			.filter((pool) =>
+				filterPool({
+					pool,
+					selectedChains,
+					selectedAttributes,
+					minAvailable,
+					maxAvailable,
+					selectedLendingProtocols,
+					customLTV
+				})
+			)
 			.map((p) => formatOptimizerPool(p, customLTV))
 			.sort((a, b) => b.totalReward - a.totalReward)
 
 		return filteredPools
-	}, [lendingPools, borrow, lend, selectedChains, selectedAttributes, minAvailable, maxAvailable, cdpPools, customLTV])
+	}, [
+		lendingPools,
+		lend,
+		borrow,
+		cdpPools,
+		selectedChains,
+		selectedAttributes,
+		minAvailable,
+		maxAvailable,
+		selectedLendingProtocols,
+		customLTV
+	])
 
 	return (
 		<>
@@ -65,6 +91,13 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 				<TableHeader>Lending Optimizer</TableHeader>
 				<LTV header={'Custom LTV'} />
 				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+				<YieldProjects
+					projectList={lendingProtocols}
+					selectedProjects={selectedLendingProtocols}
+					pathname={pathname}
+					label="Lending Protocols"
+					query="lendingProtocol"
+				/>
 				<YieldAttributes pathname={pathname} />
 				<AvailableRange />
 				<ResetAllYieldFilters pathname={pathname} />
