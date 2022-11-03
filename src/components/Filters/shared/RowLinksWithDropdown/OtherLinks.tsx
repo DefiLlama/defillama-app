@@ -35,11 +35,9 @@ export function OtherLinks({ options, name }: IProps) {
 				{combobox.matches.length > 0 ? (
 					<List state={combobox}>
 						{combobox.matches.map((value, i) => (
-							<Link href={value} key={value + i} passHref>
-								<Item value={value} focusOnHover setValueOnClick={false} role="link">
-									{options.find((l) => l.to === value)?.label ?? value}
-								</Item>
-							</Link>
+							<Item value={value} key={value}>
+								{value}
+							</Item>
 						))}
 					</List>
 				) : (
