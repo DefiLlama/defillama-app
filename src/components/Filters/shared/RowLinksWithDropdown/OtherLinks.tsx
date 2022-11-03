@@ -31,13 +31,15 @@ export function OtherLinks({ options, name }: IProps) {
 				<MenuButtonArrow />
 			</Button>
 			<Popover state={menu} modal={!isLarge} composite={false}>
-				<Input state={combobox} placeholder="Search..." />
+				<Input state={combobox} placeholder="Search..." autoFocus />
 				{combobox.matches.length > 0 ? (
 					<List state={combobox}>
 						{combobox.matches.map((value, i) => (
-							<Item value={value} key={value}>
-								{value}
-							</Item>
+							<Link href={value} key={value + i} passHref>
+								<Item value={value} focusOnHover setValueOnClick={false} role="link">
+									{options.find((l) => l.to === value)?.label ?? value}
+								</Item>
+							</Link>
 						))}
 					</List>
 				) : (
