@@ -251,7 +251,7 @@ export async function getLendBorrowData() {
 	}
 }
 
-export function calculateLoopAPY(lendBorrowPools, levels = 10) {
+export function calculateLoopAPY(lendBorrowPools, loops = 10, maxLTV) {
 	let pools = lendBorrowPools.filter((p) => p.ltv > 0)
 
 	return pools
@@ -261,8 +261,9 @@ export function calculateLoopAPY(lendBorrowPools, levels = 10) {
 			const borrow_apy = (p.apyBaseBorrow + p.apyRewardBorrow) / 100
 
 			let total_borrowed = 0
-			for (const i of [...Array(levels).keys()]) {
-				total_borrowed += p.ltv ** (i + 1)
+			const ltv = maxLTV ? maxLTV / 100 : p.ltv
+			for (const i of [...Array(loops).keys()]) {
+				total_borrowed += ltv ** (i + 1)
 			}
 
 			const loopApy = ((total_borrowed + 1) * deposit_apy + total_borrowed * borrow_apy) * 100
