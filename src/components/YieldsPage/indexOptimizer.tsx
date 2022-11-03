@@ -67,7 +67,7 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 				<TableHeader>Lending Optimizer</TableHeader>
 				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
 				<YieldAttributes pathname={pathname} />
-				<LTV />
+				<LTV header={'Custom LTV'} />
 				<ResetAllYieldFilters pathname={pathname} />
 			</TableFilters>
 

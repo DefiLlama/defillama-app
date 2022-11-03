@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { FilterByValue } from '../shared'
 
-export function LTV() {
+export function LTV({ header }) {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
@@ -23,5 +23,5 @@ export function LTV() {
 			}
 		)
 	}
-	return <FilterByValue header="% of max LTV" onSubmit={handleSubmit} />
+	return <FilterByValue header={header} onSubmit={handleSubmit} />
 }

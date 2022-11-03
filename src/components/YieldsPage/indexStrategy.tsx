@@ -166,7 +166,7 @@ const YieldsStrategyPage = ({
 				<YieldAttributes pathname={pathname} />
 				<AvailableRange />
 				<TVLRange />
-				<LTV />
+				<LTV header={'% of max LTV'} />
 				<ResetAllYieldFilters pathname={pathname} />
 			</TableFilters>
 
