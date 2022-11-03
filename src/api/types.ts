@@ -24,6 +24,12 @@ export interface Protocol {
 	parentProtocol?: string
 	referralUrl?: string
 	isParentProtocol?: boolean
+	raises?: Array<{
+		round: string
+		amount: number
+		valuation: string
+		source: string
+	}>
 }
 
 // TODO cleanup

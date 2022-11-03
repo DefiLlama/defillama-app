@@ -213,7 +213,8 @@ function ProtocolContainer({
 		otherProtocols,
 		hallmarks,
 		gecko_id,
-		isParentProtocol
+		isParentProtocol,
+		raises
 	} = protocolData
 
 	const router = useRouter()
@@ -562,6 +563,21 @@ function ProtocolContainer({
 						</LinksWrapper>
 					</Section>
 				)}
+
+				{raises && raises.length > 0 && (
+					<Section>
+						<h3>Raises</h3>
+						<LinksWrapper>
+							{raises.map((raise) => (
+								<a target="_blank" rel="noopener noreferrer" href={raise.source} key={raise.source}>{`${
+									raise.round
+								}: Raised $${formatRaise(Number(raise.amount))} at $${formatRaise(
+									Number(raise.valuation)
+								)} valuation.`}</a>
+							))}
+						</LinksWrapper>
+					</Section>
+				)}
 			</InfoWrapper>
 
 			{yeildsNumber > 0 && (
@@ -666,6 +682,13 @@ function ProtocolContainer({
 const stackedBarChartColors = {
 	Fees: '#4f8fea',
 	Revenue: '#E59421'
+}
+
+const formatRaise = (n: number) => {
+	if (n >= 1e3) {
+		return `${n / 1e3}b`
+	}
+	return `${n}m`
 }
 
 export default ProtocolContainer
