@@ -1,14 +1,21 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { Panel } from '~/components'
-import { TableFilters, TableHeader } from '~/components/Table/shared'
-import YieldsSearch from '~/components/Search/Yields/Optimizer'
-import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 import styled from 'styled-components'
-import YieldsOptimizerTable from '../Table/Yields/Optimizer'
 import { Header } from '~/Theme'
+import { Panel } from '~/components'
+import { TableFilters } from '~/components/Table/shared'
+import YieldsSearch from '~/components/Search/Yields/Optimizer'
+import YieldsOptimizerTable from '~/components/Table/Yields/Optimizer'
+import {
+	YieldAttributes,
+	FiltersByChain,
+	YieldProjects,
+	LTV,
+	ResetAllYieldFilters,
+	AvailableRange
+} from '~/components/Filters'
 import { useFormatYieldQueryParams } from './hooks'
-import { YieldAttributes, FiltersByChain, YieldProjects, LTV, ResetAllYieldFilters, AvailableRange } from '../Filters'
+import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 
 const SearchWrapper = styled.div`
 	display: flex;
@@ -98,11 +105,10 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 			<SearchWrapper>
 				<YieldsSearch pathname={pathname} lend yieldsList={yieldsList} data-alwaysdisplay />
 				<YieldsSearch pathname={pathname} yieldsList={yieldsList} data-alwaysdisplay />
+				<LTV placeholder="Custom LTV" />
 			</SearchWrapper>
 
 			<TableFilters>
-				<TableHeader>Lending Optimizer</TableHeader>
-				<LTV header={'Custom LTV'} />
 				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
 				<YieldProjects
 					projectList={lendingProtocols}

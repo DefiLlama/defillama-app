@@ -137,13 +137,16 @@ const YieldsStrategyPage = ({
 					data-alwaysdisplay
 				/>
 				{lend && (
-					<YieldsSearch
-						pathname={pathname}
-						value={borrow}
-						key={isReady + 'borrow'}
-						yieldsList={yieldsList}
-						data-alwaysdisplay
-					/>
+					<>
+						<YieldsSearch
+							pathname={pathname}
+							value={borrow}
+							key={isReady + 'borrow'}
+							yieldsList={yieldsList}
+							data-alwaysdisplay
+						/>
+						<LTV placeholder="% of max LTV" />
+					</>
 				)}
 			</SearchWrapper>
 
@@ -167,7 +170,7 @@ const YieldsStrategyPage = ({
 				<YieldAttributes pathname={pathname} />
 				<AvailableRange />
 				<TVLRange />
-				<LTV header={'% of max LTV'} />
+
 				<ResetAllYieldFilters pathname={pathname} />
 			</TableFilters>
 

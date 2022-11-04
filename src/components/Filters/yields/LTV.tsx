@@ -1,20 +1,40 @@
 import { useRouter } from 'next/router'
-import { FilterByValue } from '../shared'
+import styled from 'styled-components'
 
-export function LTV({ header }) {
+const Input = styled.input`
+	padding: 14px 16px;
+	background: ${({ theme }) => theme.bg6};
+	color: ${({ theme }) => theme.text1};
+	font-size: 1rem;
+	border: none;
+	border-radius: 12px;
+	outline: none;
+
+	::placeholder {
+		color: ${({ theme }) => theme.text3};
+		font-size: 1rem;
+	}
+
+	&[data-focus-visible] {
+		outline: ${({ theme }) => '1px solid ' + theme.text4};
+	}
+
+	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+		border: 1px solid ${({ theme }) => theme.divider};
+		border-bottom: 0;
+	}
+`
+
+export function LTV({ placeholder }: { placeholder: string }) {
 	const router = useRouter()
 
-	const handleSubmit = (e) => {
-		e.preventDefault()
-		const form = e.target
-		const customLTV = form.max?.value
-
+	const setLTV = (value) => {
 		router.push(
 			{
 				pathname: router.pathname,
 				query: {
 					...router.query,
-					customLTV
+					customLTV: value
 				}
 			},
 			undefined,
@@ -23,5 +43,20 @@ export function LTV({ header }) {
 			}
 		)
 	}
-	return <FilterByValue header={header} onSubmit={handleSubmit} />
+
+	const onChange = (e) => {
+		let timer
+
+		if (timer) {
+			clearTimeout(timer)
+		}
+
+		timer = setTimeout(() => setLTV(e.target.value), 1000)
+	}
+
+	return (
+		<>
+			<Input placeholder={placeholder} onChange={onChange} />
+		</>
+	)
 }
