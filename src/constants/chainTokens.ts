@@ -694,6 +694,11 @@ export const chainCoingeckoIds = {
     symbol: "APT",
     cmcId: "21794",
   },
+	Stride: {
+    geckoId: "stride",
+    symbol: "STRD",
+    cmcId: "21781",
+  },
 }
 
 export const chainMarketplaceMappings = {
