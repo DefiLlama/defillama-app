@@ -343,7 +343,7 @@ export async function getTokenList() {
 			fetch(`https://tokens.1inch.io/v1.1/${chainId}`).then((r) => r.json())
 		)
 	)
-	const hecoList = await fetch('https://ht.mdex.com/tokenlist.json').then((r) => r.json())
+	const hecoList = await fetch('https://token-list.sushi.com/').then((r) => r.json())
 	const lifiList = await fetch('https://li.quest/v1/tokens').then((r) => r.json())
 
 	const oneInchList = Object.values(oneInchChains)
@@ -388,7 +388,7 @@ export async function getTokenList() {
 
 	return {
 		props: {
-			tokenlist: tokensByMcap
+			tokenlist: tokensByMcap.map((token) => ({ ...token, value: token.address, label: token.symbol }))
 		},
 		revalidate: 5 * 60 // 5 minutes
 	}
@@ -418,7 +418,7 @@ const Close = styled.span`
 export function AggregatorContainer({ tokenlist }) {
 	const chains = getAllChains()
 	const { data: signer } = useSigner()
-	const { address, connector } = useAccount()
+	const { address } = useAccount()
 	const { chain } = useNetwork()
 	const [selectedChain, setSelectedChain] = useState({ value: 'ethereum', label: 'Ethereum' })
 	const [fromToken, setFromToken] = useState(null)
