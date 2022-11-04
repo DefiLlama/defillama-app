@@ -11,14 +11,26 @@ import { useFormatYieldQueryParams } from './hooks'
 import { YieldAttributes, FiltersByChain, YieldProjects, LTV, ResetAllYieldFilters, AvailableRange } from '../Filters'
 
 const SearchWrapper = styled.div`
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	grid-gap: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 	width: 100%;
 	margin-top: 8px;
-	& > div {
-		width: 100%;
+
+	& > * {
 		gap: 8px;
+		flex: 1;
+	}
+
+	& > * {
+		& > *[data-searchicon='true'] {
+			top: 14px;
+			right: 16px;
+		}
+	}
+
+	@media (min-width: ${({ theme }) => theme.bpMed}) {
+		flex-direction: row;
 	}
 `
 
@@ -82,9 +94,10 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 					</>
 				) : null}
 			</Header>
+
 			<SearchWrapper>
-				<YieldsSearch pathname={pathname} lend yieldsList={yieldsList} />
-				<YieldsSearch pathname={pathname} yieldsList={yieldsList} />
+				<YieldsSearch pathname={pathname} lend yieldsList={yieldsList} data-alwaysdisplay />
+				<YieldsSearch pathname={pathname} yieldsList={yieldsList} data-alwaysdisplay />
 			</SearchWrapper>
 
 			<TableFilters>
