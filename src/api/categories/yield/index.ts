@@ -153,6 +153,7 @@ export async function getLendBorrowData() {
 
 	// get new borrow fields
 	let dataBorrow = (await arrayFetcher([YIELD_LEND_BORROW_API]))[0]
+	dataBorrow = dataBorrow.filter((p) => p.ltv <= 1)
 
 	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
 	const configIdsCompound = pools.filter((p) => p.project === 'compound').map((p) => p.pool)
