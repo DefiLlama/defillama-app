@@ -92,7 +92,6 @@ export const aggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =
 		Change1mColumn,
 		Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
 		TotalAllTimeColumn('volume'),
-		allChains ? undefined : VolumeTVLColumn,
 		DominanceColumn
 	].filter((c) => c !== undefined)
 
