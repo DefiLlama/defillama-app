@@ -306,7 +306,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					<LinksWrapper>
 						{props.protocolSummary.module && (
 							<Link
-								href={`https://github.com/DefiLlama/adapters/tree/master/${props.protocolSummary.type}/${props.protocolSummary.module}`}
+								href={`https://github.com/DefiLlama/adapters/blob/master/${props.protocolSummary.type}/${props.protocolSummary.module}.ts`}
 								passHref
 							>
 								<Button
