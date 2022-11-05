@@ -22,7 +22,7 @@ import {
 
 export const getColumnsByType = (type: string, allChains?: boolean) => {
 	switch (type) {
-		case 'volumes':
+		case 'dexs':
 			return volumesColumns(allChains)
 		case 'fees':
 			return feesColumns(allChains)
@@ -59,8 +59,8 @@ export const getColumnsOrdernSizeByType = (type: string) => {
 
 export const volumesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
-		NameColumn('volumes', allChains),
-		allChains ? undefined : ChainsColumn('volumes'),
+		NameColumn('dexs', allChains),
+		allChains ? undefined : ChainsColumn('dexs'),
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
