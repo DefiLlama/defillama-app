@@ -372,7 +372,7 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	Total24hColumn('fees', 'totalFees24h', 'Fees paid by protocol users excluding gas fees'),
-	Total24hColumn('revenue', 'totalRevenue24h', 'Fees accrued to the protocol (going to either treasury or holders)'),
+	//Total24hColumn('revenue', 'totalRevenue24h', 'Fees accrued to the protocol (going to either treasury or holders)'),
 	{
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
