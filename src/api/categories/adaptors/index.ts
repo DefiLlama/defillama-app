@@ -128,7 +128,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 						displayName: `${protocol.name} ${versionName.toUpperCase()}`,
 						...summary,
 						totalAllTime: null,
-						revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? 0
+						revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? 0 as number
 					}))
 					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
 				: null
@@ -192,7 +192,8 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 		totalAllTime: protocols.reduce((acc, curr) => acc += curr.totalAllTime, 0),
 		protocolsStats: null,
 		breakdown24h: null,
-		module: chain
+		module: chain,
+		revenue24h: null,
 	}))
 
 	/* 	...Object.fromEntries(volumesAtDate.slice(0, 11)),
