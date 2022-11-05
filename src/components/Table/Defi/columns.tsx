@@ -368,10 +368,10 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: "This colum shows yesterday's volume and it's updated daily at 00:00UTC"
+			headerHelperText: "Sum of volume of all DEXs on the chain. Updated daily at 00:00UTC"
 		}
 	},
-	Total24hColumn('fees', 'totalFees24h', 'Fees paid by protocol users excluding gas fees'),
+	Total24hColumn('fees', 'totalFees24h', 'Gas fees paid by users. Updated daily at 00:00UTC'),
 	//Total24hColumn('revenue', 'totalRevenue24h', 'Fees accrued to the protocol (going to either treasury or holders)'),
 	{
 		header: 'Mcap/TVL',
