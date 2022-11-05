@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { revalidate } from '~/api'
 import { getChainsPageData } from '~/api/categories/adaptors'
 

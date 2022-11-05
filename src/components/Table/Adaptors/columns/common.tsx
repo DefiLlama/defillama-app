@@ -78,8 +78,10 @@ export const Total24hColumn = (type: string, alternativeAccessor?: string, helpe
 	accessorKey: alternativeAccessor ?? 'total24h',
 	enableSorting: true,
 	cell: (info) => {
-		if (Number.isNaN(formattedNum(info.getValue()))) return <></>
-		return <>${formattedNum(info.getValue())}</>
+		const value = info.getValue()
+
+		if (value === '' || Number.isNaN(formattedNum(value))) return <></>
+		return <>${formattedNum(value)}</>
 	},
 	size: 140,
 	meta: {

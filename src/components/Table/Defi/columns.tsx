@@ -6,6 +6,7 @@ import TokenLogo from '~/components/TokenLogo'
 import { Tooltip2 } from '~/components/Tooltip'
 import { ButtonYields } from '~/layout/Pool'
 import { capitalizeFirstLetter, chainIconUrl, formattedNum, formattedPercent, toNiceDayMonthAndYear } from '~/utils'
+import { Total24hColumn } from '../Adaptors/columns/common'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow } from './types'
@@ -283,7 +284,7 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 				<ArrowUpRight size={14} />
 			</ButtonYields>
 		)
-	},
+	}
 ]
 
 export const chainsColumn: ColumnDef<IChainsRow>[] = [
@@ -360,6 +361,19 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
+		header: '24h volume',
+		accessorKey: 'totalVolume24h',
+		enableSorting: true,
+		cell: (info) => <>{info.getValue() === '' || `$${formattedNum(info.getValue())}`}</>,
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: "This colum shows yesterday's volume and it's updated daily at 00:00UTC"
+		}
+	},
+	Total24hColumn('fees', 'totalFees24h', 'Fees paid by protocol users excluding gas fees'),
+	Total24hColumn('revenue', 'totalRevenue24h', 'Fees accrued to the protocol (going to either treasury or holders)'),
+	{
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
@@ -375,8 +389,52 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 export const chainsTableColumnOrders = formatColumnOrder({
-	0: ['name', 'tvl', 'change_7d', 'protocols', 'change_1d', 'change_1m', 'mcaptvl'],
-	400: ['name', 'change_7d', 'tvl', 'protocols', 'change_1d', 'change_1m', 'mcaptvl'],
-	600: ['name', 'protocols', 'change_7d', 'tvl', 'change_1d', 'change_1m', 'mcaptvl'],
-	900: ['name', 'protocols', 'change_1d', 'change_7d', 'change_1m', 'tvl', 'mcaptvl']
+	0: [
+		'name',
+		'tvl',
+		'change_7d',
+		'protocols',
+		'change_1d',
+		'change_1m',
+		'totalVolume24h',
+		'totalFees24h',
+		'totalRevenue24h',
+		'mcaptvl'
+	],
+	400: [
+		'name',
+		'change_7d',
+		'tvl',
+		'protocols',
+		'change_1d',
+		'change_1m',
+		'totalVolume24h',
+		'totalFees24h',
+		'totalRevenue24h',
+		'mcaptvl'
+	],
+	600: [
+		'name',
+		'protocols',
+		'change_7d',
+		'tvl',
+		'change_1d',
+		'change_1m',
+		'totalVolume24h',
+		'totalFees24h',
+		'totalRevenue24h',
+		'mcaptvl'
+	],
+	900: [
+		'name',
+		'protocols',
+		'change_1d',
+		'change_7d',
+		'change_1m',
+		'tvl',
+		'totalVolume24h',
+		'totalFees24h',
+		'totalRevenue24h',
+		'mcaptvl'
+	]
 })
