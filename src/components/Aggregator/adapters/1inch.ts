@@ -22,28 +22,33 @@ export function approvalAddress() {
 	// https://api.1inch.io/v4.0/1/approve/spender
 	return '0x1111111254fb6c44bac0bed2854e76f90643097d'
 }
+const nativeToken = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
 export async function getQuote(chain: string, from: string, to: string, amount: string) {
 	// ethereum = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE
 	// amount should include decimals
+
+	const tokenFrom = from === ethers.constants.AddressZero ? nativeToken : from
+	const tokenTo = to === ethers.constants.AddressZero ? nativeToken : to
 	const data = await fetch(
-		`https://api.1inch.io/v4.0/${chainToId[chain]}/quote?fromTokenAddress=${from}&toTokenAddress=${to}&amount=${amount}`
+		`https://api.1inch.io/v4.0/${chainToId[chain]}/quote?fromTokenAddress=${tokenFrom}&toTokenAddress=${tokenTo}&amount=${amount}`
 	).then((r) => r.json())
 	return {
 		amountReturned: data.toTokenAmount,
 		estimatedGas: data.estimatedGas,
-		tokenApprovalAddress: '0x1111111254fb6c44bac0bed2854e76f90643097d'
+		tokenApprovalAddress: '0x1111111254fb6c44bac0bed2854e76f90643097d',
+		logo: 'https://defillama.com/_next/image?url=https%3A%2F%2Ficons.llama.fi%2F1inch-network.jpg&w=48&q=75'
 	}
 }
 
 export async function swap({ chain, from, to, amount, signer, slippage = 1, rawQuote }) {
 	const fromAddress = await signer.getAddress()
-	console.log(signer)
+	const tokenFrom = from === ethers.constants.AddressZero ? nativeToken : from
+	const tokenTo = to === ethers.constants.AddressZero ? nativeToken : to
 
 	const data = await fetch(
-		`https://api.1inch.io/v4.0/${chainToId[chain]}/swap?fromTokenAddress=${from}&toTokenAddress=${to}&amount=${amount}&fromAddress=${fromAddress}&slippage=${slippage}`
+		`https://api.1inch.io/v4.0/${chainToId[chain]}/swap?fromTokenAddress=${tokenFrom}&toTokenAddress=${tokenTo}&amount=${amount}&fromAddress=${fromAddress}&slippage=${slippage}`
 	).then((r) => r.json())
-	console.log(data)
 
 	const tx = await signer.sendTransaction({
 		from: data.tx.from,

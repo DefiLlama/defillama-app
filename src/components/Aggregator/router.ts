@@ -9,10 +9,9 @@ import * as paraswap from './adapters/paraswap'
 // import * as airswap from './adapters/airswap' cors
 // import * as odos from './adapters/odos' cors
 import * as yieldyak from './adapters/yieldyak'
-import * as krystal from './adapters/krystal'
-import { ethers } from 'ethers'
+// import * as krystal from './adapters/krystal'
 
-const adapters = [matcha, inch, cowswap, firebird, kyberswap, openocean, paraswap, yieldyak, krystal]
+const adapters = [matcha, inch, cowswap, firebird, kyberswap, openocean, paraswap, yieldyak]
 const adaptersMap = adapters.reduce((acc, adapter) => ({ ...acc, [adapter.name]: adapter }), {}) as Record<
 	string,
 	typeof inch
@@ -26,7 +25,7 @@ export function getAllChains() {
 	return Array.from(chains)
 }
 
-export function listRoutes(chain: string, from: string, to: string, amount: string) {
+export function listRoutes(chain: string, from: string, to: string, amount: string, extra) {
 	return Promise.all(
 		adapters
 			.filter((adap) => adap.chainToId[chain] !== undefined)
@@ -34,7 +33,7 @@ export function listRoutes(chain: string, from: string, to: string, amount: stri
 				let price = 'failure' as any
 				try {
 					price = await adapter.getQuote(chain, from, to, amount, {
-						userAddress: ethers.constants.AddressZero // random address
+						...extra
 					})
 				} catch (e) {
 					console.error(e)

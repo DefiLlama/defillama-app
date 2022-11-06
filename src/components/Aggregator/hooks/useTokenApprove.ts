@@ -16,8 +16,11 @@ export const useTokenApprove = (token: string, spender: `0x${string}`) => {
 		address: token,
 		abi: erc20ABI,
 		functionName: 'allowance',
-		args: [address, spender]
+		args: [address, spender],
+		watch: true
 	})
+
+	if (token === ethers.constants.AddressZero) return { isApproved: true }
 
 	if (!address || !allowance) return { isApproved: false }
 	if (allowance.toString() === ethers.constants.MaxUint256.toString()) return { isApproved: true }

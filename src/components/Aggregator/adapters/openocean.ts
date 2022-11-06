@@ -42,7 +42,8 @@ export async function getQuote(chain: string, from: string, to: string, amount: 
 	return {
 		amountReturned: data.outAmount,
 		estimatedGas: data.estimatedGas,
-		tokenApprovalAddress: '0x6352a56caadc4f1e25cd6c75970fa768a3304e64'
+		tokenApprovalAddress: '0x6352a56caadc4f1e25cd6c75970fa768a3304e64',
+		logo: 'https://assets.coingecko.com/coins/images/17014/small/ooe_log.png?1626074195'
 	}
 }
 
@@ -73,7 +74,6 @@ export async function swap({
 			gasPrice.fast?.maxPriorityFeePerGas ?? gasPrice.fast
 		}&slippage=100&account=${fromAddress}`
 	).then((r) => r.json())
-	console.log(data)
 
 	const tx = await signer.sendTransaction({
 		from: data.from,

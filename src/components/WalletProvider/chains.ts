@@ -20,8 +20,28 @@ const okx = {
 	testnet: false
 }
 
+const binance = {
+	id: 56,
+	name: 'Binance SmartChain',
+	network: 'binance',
+	iconUrl: chainIconUrl('binance'),
+	iconBackground: '#000',
+	nativeCurrency: {
+		decimals: 18,
+		name: 'Binance',
+		symbol: 'BNB'
+	},
+	rpcUrls: {
+		default: 'https://rpc.ankr.com/bsc'
+	},
+	blockExplorers: {
+		default: { name: 'BSCScan', url: 'https://bscscan.com/' }
+	},
+	testnet: false
+}
+
 const boba = {
-	id: 1666600000,
+	id: 288,
 	name: 'Boba',
 	network: 'boba',
 	iconUrl: chainIconUrl('boba'),
@@ -337,7 +357,7 @@ const polygon = {
 
 export const allChains = [
 	polygon,
-	oasis,
+	binance,
 	oasis,
 	fantom,
 	velas,
@@ -348,10 +368,10 @@ export const allChains = [
 	aurora,
 	cronos,
 	celo,
-	dogechain,
 	moonriver,
-	bttc,
 	heco,
 	boba,
-	okx
+	okx,
+	bttc,
+	dogechain
 ]

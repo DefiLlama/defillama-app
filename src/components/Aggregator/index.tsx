@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useAccount, useBalance, useFeeData, useNetwork, useSigner } from 'wagmi'
-import chunk from 'lodash/chunk'
+import { useAccount, useBalance, useFeeData, useNetwork, useSigner, useSwitchNetwork } from 'wagmi'
 import { FixedSizeList as List } from 'react-window'
+import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { capitalizeFirstLetter } from '~/utils'
 import ReactSelect from '../MultiSelect/ReactSelect'
 import { getAllChains, listRoutes, swap } from './router'
@@ -15,6 +15,7 @@ import Search from './Search'
 import { ButtonDark } from '../ButtonStyled'
 import { useTokenApprove } from './hooks'
 import { ArrowRight } from 'react-feather'
+import { nativeTokens } from './nativeTokens'
 
 /*
 Integrated:
@@ -162,15 +163,16 @@ interface Route {
 		amountReturned: string
 		estimatedGas: string
 		tokenApprovalAddress: string
+		logo: string
 	}
 	toToken: { address: string; logoURI: string; symbol: string; decimals: string }
 	selectedChain: string
-	gasTokenPrice: number
-	toTokenPrice: number
-	gasPrice: string
+
 	setRoute: () => void
 	selected: boolean
 	index: number
+	gasUsd: number
+	amountUsd: number
 }
 
 const RouteWrapper = styled.div<{ selected: boolean; best: boolean }>`
@@ -207,7 +209,7 @@ const RouteWrapper = styled.div<{ selected: boolean; best: boolean }>`
 	}
 
 	&:hover {
-		background-color: #161616;
+		background-color: ${({ theme }) => (theme.mode === 'dark' ? '#161616;' : '#b7b7b7;;')};
 	}
 `
 
@@ -215,19 +217,24 @@ const RouteRow = styled.div`
 	display: flex;
 `
 
-const Route = ({ name, price, toToken, toTokenPrice, gasTokenPrice, gasPrice, setRoute, selected, index }: Route) => {
+const Balance = styled.div`
+	text-align: right;
+	padding-right: 4px;
+	text-decoration: underline;
+	margin-top: 4px;
+	cursor: pointer;
+`
+
+const Route = ({ name, price, toToken, setRoute, selected, index, gasUsd, amountUsd }: Route) => {
 	if (!price.amountReturned) return null
 
 	const amount = +price.amountReturned / 10 ** +toToken?.decimals
-	const amountUsd = (amount * toTokenPrice).toFixed(2)
-	const gasUsd = (gasTokenPrice * +price?.estimatedGas * +gasPrice) / 1e18
-
 	return (
 		<RouteWrapper onClick={setRoute} selected={selected} best={index === 0}>
 			<RouteRow>
-				<img src={toToken.logoURI} style={{ width: 24, height: 24, marginRight: 8, borderRadius: '50%' }} />
+				<img src={price?.logo} style={{ width: 24, height: 24, marginRight: 8, borderRadius: '50%' }} />
 				<TYPE.heading>
-					{amount.toFixed(3)} {amountUsd ? `($${amountUsd})` : null}
+					{amount.toFixed(3)} {Number.isFinite(+amountUsd) ? `($${amountUsd})` : null}
 				</TYPE.heading>
 				<div style={{ marginLeft: 'auto', display: 'flex' }}>
 					<GasIcon /> <div style={{ marginLeft: 8 }}>${gasUsd.toFixed(3)}</div>
@@ -346,6 +353,12 @@ export async function getTokenList() {
 	const hecoList = await fetch('https://token-list.sushi.com/').then((r) => r.json())
 	const lifiList = await fetch('https://li.quest/v1/tokens').then((r) => r.json())
 
+	const mcapList = await fetch(
+		'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false'
+	).then((r) => r.json())
+
+	const mcapSymbols = mcapList.map(({ symbol }) => symbol.toUpperCase())
+
 	const oneInchList = Object.values(oneInchChains)
 		.map((chainId, i) => Object.values(oneInch[i]).map((token: { address: string }) => ({ ...token, chainId })))
 		.flat()
@@ -361,34 +374,23 @@ export async function getTokenList() {
 
 	const fullMap: Record<string, Token> = { ...lifiMap, ...oneInchMap, ...sushiMap, ...uniMap, ...hecoMap }
 
-	const tokensList = Object.values(fullMap).reduce(
-		(acc, token) => [...acc, `${idToChain[token.chainId]}:${token.address}`],
-		[]
-	)
-	const mcaps = (
-		await Promise.all(
-			chunk(tokensList, 200).map(
-				async (coins) =>
-					await fetch('https://coins.llama.fi/mcaps', {
-						method: 'POST',
-						body: JSON.stringify({
-							coins
-						})
-					}).then((r) => r.json())
-			)
-		)
-	).reduce((acc, val) => ({ ...acc, ...val }), {})
-
 	const tokensByMcap = Object.values(fullMap)
-		.map((token) => ({
-			...token,
-			mcap: mcaps[`${idToChain[token.chainId]}:${token.address.toLowerCase()}`]?.mcap || 0
-		}))
+		.map((token) => {
+			const index = mcapSymbols.indexOf(token.symbol)
+			return {
+				...token,
+				mcap: 250 - (index === -1 ? 250 : index)
+			}
+		})
 		.sort((a, b) => b.mcap - a.mcap)
 
 	return {
 		props: {
-			tokenlist: tokensByMcap.map((token) => ({ ...token, value: token.address, label: token.symbol }))
+			tokenlist: [...nativeTokens, ...tokensByMcap].map((token) => ({
+				...token,
+				value: token.address,
+				label: token.symbol
+			}))
 		},
 		revalidate: 5 * 60 // 5 minutes
 	}
@@ -425,6 +427,12 @@ export function AggregatorContainer({ tokenlist }) {
 	const [toToken, setToToken] = useState(null)
 	const [gasTokenPrice, setGasTokenPrice] = useState(0)
 	const [toTokenPrice, setToTokenPrice] = useState(0)
+	const [fromTokenPrice, setFromTokenPrice] = useState(0)
+
+	const addRecentTransaction = useAddRecentTransaction()
+
+	const { switchNetwork } = useSwitchNetwork()
+
 	const [amount, setAmount] = useState('10') // 100 tokens
 
 	const balance = useBalance({
@@ -462,6 +470,11 @@ export function AggregatorContainer({ tokenlist }) {
 			slippage: 1,
 			adapter: route.name,
 			rawQuote: route?.price?.rawQuote
+		}).then((res) => {
+			addRecentTransaction({
+				hash: res.hash,
+				description: `Swap transaction using ${route.name} is sent.`
+			})
 		})
 	}
 
@@ -470,7 +483,10 @@ export function AggregatorContainer({ tokenlist }) {
 			setRoutes(null)
 			setLoading(true)
 			setRenderNumber((num) => num + 1)
-			listRoutes(selectedChain.value, fromToken.value, toToken.value, String(+amount * 10 ** fromToken.decimals))
+			listRoutes(selectedChain.value, fromToken.value, toToken.value, String(+amount * 10 ** fromToken.decimals), {
+				gasPriceData,
+				userAddress: address
+			})
 				.then(setRoutes)
 				.finally(() => setLoading(false))
 		}
@@ -479,12 +495,13 @@ export function AggregatorContainer({ tokenlist }) {
 	useEffect(() => {
 		if (toToken)
 			fetch(
-				`https://coins.llama.fi/prices/current/${selectedChain.value}:${toToken.address},${selectedChain.value}:${ZERO_ADDRESS}`
+				`https://coins.llama.fi/prices/current/${selectedChain.value}:${toToken.address},${selectedChain.value}:${ZERO_ADDRESS},${selectedChain.value}:${fromToken.address}`
 			)
 				.then((r) => r.json())
 				.then(({ coins }) => {
 					setGasTokenPrice(coins[`${selectedChain.value}:${ZERO_ADDRESS}`]?.price)
 					setToTokenPrice(coins[`${selectedChain.value}:${toToken.address}`]?.price)
+					setFromTokenPrice(coins[`${selectedChain.value}:${fromToken.address}`]?.price)
 				})
 	}, [toToken, selectedChain])
 
@@ -503,12 +520,15 @@ export function AggregatorContainer({ tokenlist }) {
 	const onChainChange = (newChain) => {
 		cleanState()
 		setSelectedChain(newChain)
+		switchNetwork(chainsMap[newChain.value])
 	}
 
 	const tokensInChain = tokenlist.filter(({ chainId }) => chainId === chainsMap[selectedChain.value])
 	const normalizedRoutes = [...(routes || [])]
 		?.map((route) => {
-			const gasUsd = (gasTokenPrice * +route.price.estimatedGas * +gasPriceData?.formatted?.gasPrice) / 1e18
+			const gasUsd = route.price.feeAmount
+				? (fromTokenPrice * +route.price.feeAmount) / 10 ** +fromToken?.decimals
+				: (gasTokenPrice * +route.price.estimatedGas * +gasPriceData?.formatted?.gasPrice) / 1e18
 			const amount = +route.price.amountReturned / 10 ** +toToken?.decimals
 			const amountUsd = (amount * toTokenPrice).toFixed(2)
 			return { route, gasUsd, amountUsd, ...route }
@@ -562,10 +582,12 @@ export function AggregatorContainer({ tokenlist }) {
 					<div>
 						<FormHeader>Amount In</FormHeader>
 						<Input setAmount={setAmount} amount={amount} onMaxClick={onMaxClick} />
+						{balance.isSuccess ? <Balance onClick={onMaxClick}>Balance: {balance.data.formatted}</Balance> : null}
 					</div>
 					{route && address ? (
 						<ButtonDark
 							onClick={() => {
+								if (+amount > +balance.data.formatted) return
 								if (approve) approve()
 								if (isApproved) handleSwap()
 							}}
