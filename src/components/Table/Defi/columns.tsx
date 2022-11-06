@@ -364,11 +364,11 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		header: '24h volume',
 		accessorKey: 'totalVolume24h',
 		enableSorting: true,
-		cell: (info) => <>{info.getValue() === '' || `$${formattedNum(info.getValue())}`}</>,
+		cell: (info) => <>{info.getValue() === 0 || `$${formattedNum(info.getValue())}`}</>,
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: "Sum of volume of all DEXs on the chain. Updated daily at 00:00UTC"
+			headerHelperText: 'Sum of volume of all DEXs on the chain. Updated daily at 00:00UTC'
 		}
 	},
 	Total24hColumn('fees', 'totalFees24h', 'Gas fees paid by users. Updated daily at 00:00UTC'),
