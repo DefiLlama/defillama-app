@@ -25,7 +25,7 @@ export async function getStaticProps() {
 	// ~1500pools
 	// and uppercase symbols (lend and borrow strings from router are upper case only)
 	const filteredAllPools = allPools
-		.filter((p) => p.ilRisk === 'no' && p.exposure === 'single' && p.apy > 0)
+		.filter((p) => p.ilRisk === 'no' && p.exposure === 'single' && p.apy > 0 && p.project !== 'babydogeswap')
 		.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 
 	const strData = JSON.stringify({
