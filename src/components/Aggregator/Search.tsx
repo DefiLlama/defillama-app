@@ -130,7 +130,10 @@ export default function Search({ tokens, setTokens, onClick }: Props) {
 			setData([])
 			return
 		}
-		const tokens0 = tokens.filter(({ symbol }) => symbol.toLowerCase().includes(symbol0))
+
+		const tokens00 = tokens.filter(({ symbol }) => symbol.toLowerCase() === symbol0.toLowerCase())
+		const tokens01 = tokens.filter(({ symbol }) => symbol.toLowerCase().includes(symbol0.toLowerCase()))
+		const tokens0 = tokens00.concat(tokens01)
 
 		const tokens1 = (() => {
 			if (tokens0.length > 100 || !symbol1) return tokens.slice(0, 100)

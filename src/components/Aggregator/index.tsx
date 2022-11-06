@@ -353,11 +353,16 @@ export async function getTokenList() {
 	const hecoList = await fetch('https://token-list.sushi.com/').then((r) => r.json())
 	const lifiList = await fetch('https://li.quest/v1/tokens').then((r) => r.json())
 
-	const mcapList = await fetch(
-		'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false'
-	).then((r) => r.json())
+	const mcapList = await Promise.all(
+		[1, 2].map(
+			async (i) =>
+				await fetch(
+					`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=${i}&sparkline=false`
+				).then((r) => r.json())
+		)
+	)
 
-	const mcapSymbols = mcapList.map(({ symbol }) => symbol.toUpperCase())
+	const mcapSymbols = mcapList.flat().map(({ symbol }) => symbol.toUpperCase())
 
 	const oneInchList = Object.values(oneInchChains)
 		.map((chainId, i) => Object.values(oneInch[i]).map((token: { address: string }) => ({ ...token, chainId })))
@@ -465,7 +470,7 @@ export function AggregatorContainer({ tokenlist }) {
 			chain: selectedChain.value,
 			from: fromToken.value,
 			to: toToken.value,
-			amount: String(+amount * 10 ** fromToken.decimals),
+			amount: String(+amount * 10 ** (fromToken.decimals || 18)),
 			signer,
 			slippage: 1,
 			adapter: route.name,
@@ -483,10 +488,16 @@ export function AggregatorContainer({ tokenlist }) {
 			setRoutes(null)
 			setLoading(true)
 			setRenderNumber((num) => num + 1)
-			listRoutes(selectedChain.value, fromToken.value, toToken.value, String(+amount * 10 ** fromToken.decimals), {
-				gasPriceData,
-				userAddress: address
-			})
+			listRoutes(
+				selectedChain.value,
+				fromToken.value,
+				toToken.value,
+				String(+amount * 10 ** (fromToken.decimals || 18)),
+				{
+					gasPriceData,
+					userAddress: address
+				}
+			)
 				.then(setRoutes)
 				.finally(() => setLoading(false))
 		}
@@ -534,8 +545,6 @@ export function AggregatorContainer({ tokenlist }) {
 			return { route, gasUsd, amountUsd, ...route }
 		})
 		.sort((a, b) => +b.amountUsd - b.gasUsd - (+a.amountUsd - a.gasUsd))
-
-	console.log(balance)
 
 	return (
 		<Wrapper>

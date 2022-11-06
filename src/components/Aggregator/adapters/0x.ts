@@ -1,4 +1,4 @@
-import { Signer } from 'ethers'
+import { ethers, Signer } from 'ethers'
 
 export const chainToId = {
 	ethereum: 'https://api.0x.org/',
@@ -19,10 +19,15 @@ export function approvalAddress() {
 	return '0xdef1c0ded9bec7f1a1670819833240f027b25eff'
 }
 
+const nativeToken = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+
 export async function getQuote(chain: string, from: string, to: string, amount: string) {
 	// amount should include decimals
+
+	const tokenFrom = from === ethers.constants.AddressZero ? nativeToken : from
+	const tokenTo = to === ethers.constants.AddressZero ? nativeToken : to
 	const data = await fetch(
-		`${chainToId[chain]}swap/v1/quote?buyToken=${to}&sellToken=${from}&sellAmount=${amount}`
+		`${chainToId[chain]}swap/v1/quote?buyToken=${tokenTo}&sellToken=${tokenFrom}&sellAmount=${amount}`
 	).then((r) => r.json())
 	return {
 		amountReturned: data.buyAmount,
@@ -61,6 +66,9 @@ export async function swap({
 	amount: string
 }) {
 	const fromAddress = await signer.getAddress()
+
+	const tokenFrom = from === ethers.constants.AddressZero ? nativeToken : from
+	const tokenTo = to === ethers.constants.AddressZero ? nativeToken : to
 
 	const data = await fetch(
 		`${chainToId[chain]}swap/v1/quote?buyToken=${to}&sellToken=${from}&sellAmount=${amount}&takerAddress=${fromAddress}`
