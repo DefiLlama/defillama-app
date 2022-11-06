@@ -557,7 +557,9 @@ function ProtocolContainer({
 						<LinksWrapper>
 							{similarProtocols.map((similarProtocol) => (
 								<Link href={`/protocol/${slug(similarProtocol.name)}`} passHref key={similarProtocol.name}>
-									<a target="_blank">{`${similarProtocol.name} ($${toK(similarProtocol.tvl)})`}</a>
+									<a target="_blank" style={{ textDecoration: 'underline' }}>{`${similarProtocol.name} ($${toK(
+										similarProtocol.tvl
+									)})`}</a>
 								</Link>
 							))}
 						</LinksWrapper>
