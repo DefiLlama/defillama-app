@@ -1,7 +1,7 @@
+import * as React from 'react'
 import { Combobox, ComboboxState } from 'ariakit'
 import styled from 'styled-components'
 import { Search as SearchIcon, X as XIcon } from 'react-feather'
-import React from 'react'
 
 const InputField = styled(Combobox)`
 	padding: 14px 16px;
@@ -25,6 +25,34 @@ const InputField = styled(Combobox)`
 		border: 1px solid ${({ theme }) => theme.divider};
 		border-bottom: 0;
 	}
+`
+
+const MobileInputField = styled.input`
+position: absolute;
+top: 8px;
+left: 8px;
+right: 8px;
+z-index: 1;
+padding: 14px 16px;
+background: ${({ theme }) => theme.bg6};
+color: ${({ theme }) => theme.text1};
+font-size: 1rem;
+border: none;
+border-radius: 4px 4px 0px 0px;
+outline: none;
+
+::placeholder {
+	color: ${({ theme }) => theme.text3};
+	font-size: 1rem;
+}
+
+&[data-focus-visible] {
+	outline: ${({ theme }) => '1px solid ' + theme.text4};
+}
+
+@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
+	border: 1px solid ${({ theme }) => theme.divider};
+	border-bottom: 0;
 `
 
 interface IInputProps {
@@ -52,7 +80,7 @@ const IconWrapper = styled.button`
 		right: 16px;
 	}
 `
-export function Input({ state, placeholder, breadCrumbs, withValue, ...props }: IInputProps) {
+export function Input({ state, placeholder, withValue, breadCrumbs, ...props }: IInputProps) {
 	const onClick = React.useCallback(() => {
 		if (state.mounted && withValue) {
 			state.setValue('')
@@ -83,6 +111,27 @@ export function Input({ state, placeholder, breadCrumbs, withValue, ...props }: 
 						<SearchIcon />
 					</>
 				)}
+			</IconWrapper>
+		</>
+	)
+}
+
+export function MobileInput({
+	value,
+	setValue,
+	hideInput
+}: {
+	value: string
+	setValue: React.Dispatch<React.SetStateAction<string>>
+	hideInput: React.Dispatch<React.SetStateAction<boolean>>
+}) {
+	return (
+		<>
+			<MobileInputField placeholder="Search..." value={value} onChange={(e) => setValue(e.target.value)} autoFocus />
+
+			<IconWrapper onClick={() => hideInput(false)} data-searchicon>
+				<span className="visually-hidden">Close Search</span>
+				<XIcon />
 			</IconWrapper>
 		</>
 	)

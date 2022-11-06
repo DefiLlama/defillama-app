@@ -9,7 +9,7 @@ const Wrapper = styled.div`
 const Connect = () => {
 	return (
 		<Wrapper>
-			<ConnectButton />
+			<ConnectButton chainStatus={'none'} />
 		</Wrapper>
 	)
 }

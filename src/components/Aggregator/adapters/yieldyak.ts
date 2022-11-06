@@ -14,17 +14,18 @@ export function approvalAddress(chain: string) {
 	return chainToId[chain]
 }
 
-export async function getQuote(chain: string, from: string, to: string, amount: string) {
+export async function getQuote(chain: string, from: string, to: string, amount: string, extra: any) {
 	const routerContract = new ethers.Contract(chainToId[chain], ABI.yieldYakRouter, providers[chain])
 
-	const gasPrice = 33 // needs fixing, cant hardcode it, its in gwei
+	const gasPrice = extra.gasPriceData.gasPrice.toNumber()
 	const data = await routerContract.findBestPathWithGas(amount, from, to, 3, gasPrice)
 
 	return {
 		amountReturned: data.amounts[data.amounts.length - 1],
 		estimatedGas: data.gasEstimate, // Gas estimates only include gas-cost of swapping and querying on adapter and not intermediate logic, nor tx-gas-cost.
 		rawQuote: data,
-		tokenApprovalAddress: '0xC4729E56b831d74bBc18797e0e17A295fA77488c'
+		tokenApprovalAddress: '0xC4729E56b831d74bBc18797e0e17A295fA77488c',
+		logo: 'https://assets.coingecko.com/coins/images/17654/small/yieldyak.png?1665824438'
 	}
 }
 

@@ -80,7 +80,7 @@ export const Total24hColumn = (type: string, alternativeAccessor?: string, helpe
 	cell: (info) => {
 		const value = info.getValue()
 
-		if (value === '' || Number.isNaN(formattedNum(value))) return <></>
+		if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
 		return <>${formattedNum(value)}</>
 	},
 	size: 140,

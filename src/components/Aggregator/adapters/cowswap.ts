@@ -44,9 +44,11 @@ export async function getQuote(chain: string, from: string, to: string, amount: 
 	return {
 		amountReturned: data.quote.buyAmount,
 		estimatedGas: 0,
+		feeAmount: data.quote.feeAmount,
 		validTo: data.quote.validTo,
 		rawQuote: data,
-		tokenApprovalAddress: '0xC92E8bdf79f0507f65a392b0ab4667716BFE0110'
+		tokenApprovalAddress: '0xC92E8bdf79f0507f65a392b0ab4667716BFE0110',
+		logo: 'https://assets.coingecko.com/coins/images/24384/small/cow.png?1660960589'
 	}
 }
 
@@ -71,11 +73,7 @@ export async function swap({ chain, from, to, amount, signer, rawQuote }) {
 	)
 
 	const signature = ethers.utils.joinSignature(rawSignature.data)
-	console.log({
-		...rawQuote.quote,
-		signature,
-		signingScheme: SigningScheme.ETHSIGN
-	})
+
 	const data = await fetch(`${chainToId[chain]}/api/v1/orders`, {
 		method: 'POST',
 		body: JSON.stringify({
@@ -87,6 +85,4 @@ export async function swap({ chain, from, to, amount, signer, rawQuote }) {
 			'Content-Type': 'application/json'
 		}
 	}).then((r) => r.json())
-
-	console.log(data)
 }

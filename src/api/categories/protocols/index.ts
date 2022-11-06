@@ -428,9 +428,9 @@ export const getNewChainsPageData = async (category: string) => {
 				return {
 					...chain,
 					totalVolume24h:
-						volumeTableData.find((x) => x.name.toLowerCase() === chain.name.toLowerCase())?.totalVolume ?? '',
-					totalFees24h: total24h || '',
-					totalRevenue24h: revenue24h || ''
+						volumeTableData.find((x) => x.name.toLowerCase() === chain.name.toLowerCase())?.totalVolume ?? 0,
+					totalFees24h: total24h || 0,
+					totalRevenue24h: revenue24h || 0
 				}
 			})
 		}

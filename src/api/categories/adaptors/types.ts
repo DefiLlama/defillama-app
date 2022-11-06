@@ -49,19 +49,17 @@ export type ProtocolAdaptorSummary = {
 	change_1m: number
 	total24h: number
 	revenue24h: number
-	breakdown24h: IJSON<IJSON<number>>
+	breakdown24h: IJSON<number>
 	chains: Array<string>
 	module: string
 	totalAllTime: number | null
-	protocolsStats: IJSON<
-		IJSON<{
+	protocolsStats: IJSON<{
 			chains: string[]
 			disabled: boolean
 			total24h: number | null
 			change_1d: number | null
 			change_7d: number | null
 			change_1m: number | null
-			breakdown24h: number | null
-		}>
-	>
+			breakdown24h: IJSON<number> | null
+	}>
 }

@@ -12,7 +12,7 @@ const { provider, chains } = configureChains(
 		{
 			...chain.mainnet,
 			rpcUrls: {
-				default: 'https://mainnet.infura.io/v3/e694851905e84405aa8de9d5b4705035'
+				default: 'https://rpc.ankr.com/eth'
 			}
 		},
 		chain.optimism,
@@ -34,7 +34,7 @@ const { connectors } = getDefaultWallets({
 })
 
 const wagmiClient = createClient({
-	autoConnect: false,
+	autoConnect: true,
 	connectors,
 	provider
 })
@@ -43,7 +43,7 @@ export const WalletWrapper = ({ children }: { children: React.ReactNode }) => {
 	return (
 		<WagmiConfig client={wagmiClient}>
 			<Provider>
-				<RainbowKitProvider chains={chains} theme={darkTheme()}>
+				<RainbowKitProvider chains={chains} showRecentTransactions={true} theme={darkTheme()}>
 					{children}
 				</RainbowKitProvider>
 			</Provider>

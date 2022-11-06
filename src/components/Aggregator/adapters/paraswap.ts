@@ -30,13 +30,13 @@ export async function getQuote(chain: string, from: string, to: string, amount: 
 		amountReturned: data.priceRoute.destAmount,
 		estimatedGas: data.priceRoute.gasCost,
 		tokenApprovalAddress: data.priceRoute.tokenTransferProxy,
-		rawQuote: data.priceRoute
+		rawQuote: data.priceRoute,
+		logo: 'https://assets.coingecko.com/coins/images/20403/small/ep7GqM19_400x400.jpg?1636979120'
 	}
 }
 
 export async function swap({ chain, from, to, amount, signer, rawQuote }) {
 	const fromAddress = await signer.getAddress()
-	console.log(signer)
 
 	const data = await fetch(`https://apiv5.paraswap.io/transactions/${chainToId[chain]}`, {
 		method: 'POST',
@@ -56,7 +56,6 @@ export async function swap({ chain, from, to, amount, signer, rawQuote }) {
 			'Content-Type': 'application/json'
 		}
 	}).then((r) => r.json())
-	console.log(data)
 
 	const tx = await signer.sendTransaction({
 		from: data.from,
