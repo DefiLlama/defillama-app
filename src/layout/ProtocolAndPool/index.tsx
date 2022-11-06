@@ -57,7 +57,6 @@ export const Section = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
-	border-bottom: ${({ theme }) => '1px solid ' + theme.text5};
 	padding: 24px 0;
 
 	&:first-child {
@@ -65,8 +64,11 @@ export const Section = styled.div`
 	}
 
 	&:last-child {
-		border-bottom: 1px solid transparent;
 		padding-bottom: 0;
+	}
+
+	:nth-child(n + 2) {
+		border-top: ${({ theme }) => '1px solid ' + theme.text5};
 	}
 
 	h3 {
@@ -82,6 +84,7 @@ export const Section = styled.div`
 		grid-column: span 1;
 
 		:nth-child(2) {
+			border-top: 1px solid transparent;
 			padding-top: 0;
 		}
 

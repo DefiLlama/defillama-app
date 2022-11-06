@@ -535,20 +535,25 @@ function ProtocolContainer({
 					</LinksWrapper>
 				</Section>
 
-				<Section>
-					<h3>Methodology</h3>
-					{methodology && <p>{methodology}</p>}
-					<LinksWrapper>
-						{codeModule && (
-							<Link href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-									<span>Check the code</span>
-									<ArrowUpRight size={14} />
-								</Button>
-							</Link>
-						)}
-					</LinksWrapper>
-				</Section>
+				{(methodology || codeModule) && (
+					<Section>
+						<h3>Methodology</h3>
+						{methodology && <p>{methodology}</p>}
+						<LinksWrapper>
+							{codeModule && (
+								<Link
+									href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
+									passHref
+								>
+									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+										<span>Check the code</span>
+										<ArrowUpRight size={14} />
+									</Button>
+								</Link>
+							)}
+						</LinksWrapper>
+					</Section>
+				)}
 
 				{similarProtocols && similarProtocols.length > 0 && (
 					<Section>
