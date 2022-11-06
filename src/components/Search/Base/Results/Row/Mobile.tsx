@@ -1,10 +1,10 @@
+import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { ComboboxItem } from 'ariakit/combobox'
 import TokenLogo from '~/components/TokenLogo'
-import type { ISearchItem } from '../types'
+import type { ISearchItem } from '../../../types'
 
-const Item = styled(ComboboxItem)`
+const Item = styled.div`
 	padding: 12px 14px;
 	display: flex;
 	align-items: center;
@@ -30,37 +30,36 @@ const isExternalImage = (imagePath: string) => {
 	return imagePath?.includes('http')
 }
 
-export const Row = ({ index, style, data }) => {
-	const { searchData, options, onItemClick } = data
-
-	const value = options[index]
-
-	const item: ISearchItem = searchData.find((x) => x.name === value)
-
+export const MobileRow = ({
+	data,
+	onItemClick,
+	...props
+}: {
+	data: ISearchItem
+	onItemClick?: (item) => void
+	style?: React.CSSProperties
+}) => {
 	const router = useRouter()
 
 	return (
 		<Item
-			key={value}
-			value={value}
 			onClick={() => {
 				if (onItemClick) {
-					onItemClick(item)
+					onItemClick(data)
 				} else {
-					router.push(item.route)
+					router.push(data.route)
 				}
 			}}
-			style={style}
-			focusOnHover
+			{...props}
 		>
-			{item?.logo && (
+			{data?.logo && (
 				<TokenLogo
-					logo={item?.logo}
-					external={isExternalImage(item.logo)}
+					logo={data?.logo}
+					external={isExternalImage(data.logo)}
 					skipApiRoute={router.pathname.includes('/yield')}
 				/>
 			)}
-			<span>{value}</span>
+			<span>{data.name}</span>
 		</Item>
 	)
 }
