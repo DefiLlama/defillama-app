@@ -535,6 +535,8 @@ export function AggregatorContainer({ tokenlist }) {
 		})
 		.sort((a, b) => +b.amountUsd - b.gasUsd - (+a.amountUsd - a.gasUsd))
 
+	console.log(balance)
+
 	return (
 		<Wrapper>
 			<TYPE.largeHeader>Meta-Aggregator</TYPE.largeHeader>
@@ -582,7 +584,9 @@ export function AggregatorContainer({ tokenlist }) {
 					<div>
 						<FormHeader>Amount In</FormHeader>
 						<Input setAmount={setAmount} amount={amount} onMaxClick={onMaxClick} />
-						{balance.isSuccess ? <Balance onClick={onMaxClick}>Balance: {balance.data.formatted}</Balance> : null}
+						{balance.isSuccess ? (
+							<Balance onClick={onMaxClick}>Balance: {(+balance.data.formatted).toFixed(3)}</Balance>
+						) : null}
 					</div>
 					{route && address ? (
 						<ButtonDark
