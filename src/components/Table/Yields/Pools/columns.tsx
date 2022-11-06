@@ -75,6 +75,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 					{info.row.original.project === 'cBridge' ? (
 						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY'} />
+					) : info.row.original.project === 'Uniswap V3' ? (
+						<QuestionHelper text={'We do not assume any specific range. APY is calculated as: 24h-fees * 365 / TVL'} />
 					) : null}
 					{formattedPercent(info.getValue(), true, 700)}
 				</span>
