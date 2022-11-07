@@ -55,7 +55,7 @@ const boba = {
 	mcap: Number.MAX_SAFE_INTEGER,
 	address: ethers.constants.AddressZero,
 	chainId: 288,
-	iconUrl: chainIconUrl('boba'),
+	logoURI: chainIconUrl('ethereum'),
 	name: 'Ethereum',
 	symbol: 'ETH',
 	decimals: 18
@@ -65,7 +65,7 @@ const harmony = {
 	mcap: Number.MAX_SAFE_INTEGER,
 	address: ethers.constants.AddressZero,
 	chainId: 1666600000,
-	iconUrl: chainIconUrl('harmony'),
+	logoURI: chainIconUrl('harmony'),
 	decimals: 18,
 	name: 'Harmony',
 	symbol: 'ONE'
@@ -75,7 +75,7 @@ const heco = {
 	mcap: Number.MAX_SAFE_INTEGER,
 	address: ethers.constants.AddressZero,
 	chainId: 128,
-	iconUrl: chainIconUrl('heco'),
+	logoURI: chainIconUrl('heco'),
 	name: 'Huobi Token',
 	symbol: 'HT'
 }
@@ -84,7 +84,7 @@ const velas = {
 	mcap: Number.MAX_SAFE_INTEGER,
 	address: ethers.constants.AddressZero,
 	chainId: 106,
-	iconUrl: chainIconUrl('velas'),
+	logoURI: chainIconUrl('velas'),
 	name: 'Velas',
 	symbol: 'VLX'
 }
@@ -95,6 +95,7 @@ const oasis = {
 	chainId: 24462,
 	name: 'Oasis',
 	symbol: 'ROSE',
+	logoURI: chainIconUrl('oasis'),
 	decimals: 18
 }
 
@@ -103,7 +104,7 @@ const bttc = {
 	address: ethers.constants.AddressZero,
 	chainId: 199,
 	name: 'BitTorrent',
-	iconUrl: chainIconUrl('bittorrent'),
+	logoURI: chainIconUrl('bittorrent'),
 	symbol: 'BTT',
 	decimals: 18
 }
@@ -113,7 +114,7 @@ const moonriver = {
 	address: ethers.constants.AddressZero,
 	chainId: 1285,
 	name: 'MoonRiver',
-	iconUrl: chainIconUrl('moonriver'),
+	logoURI: chainIconUrl('moonriver'),
 	symbol: 'MOVR',
 	decimals: 18
 }
@@ -124,7 +125,8 @@ const dogechain = {
 	chainId: 2000,
 	name: 'Doge',
 	symbol: 'DOGE',
-	decimals: 18
+	decimals: 18,
+	logoURI: chainIconUrl('dogechain')
 }
 
 const cronos = {
@@ -133,7 +135,7 @@ const cronos = {
 	chainId: 25,
 	name: 'Cronos',
 	symbol: 'CRO',
-	iconUrl: chainIconUrl('cronos'),
+	logoURI: chainIconUrl('cronos'),
 	decimals: 18
 }
 const celo = {
@@ -142,6 +144,7 @@ const celo = {
 	chainId: 42220,
 	name: 'Celo',
 	symbol: 'CELO',
+	logoURI: chainIconUrl('celo'),
 	decimals: 18
 }
 const aurora = {
@@ -150,13 +153,14 @@ const aurora = {
 	chainId: 1313161554,
 	name: 'Ethereum',
 	symbol: 'ETH',
+	logoURI: chainIconUrl('ethereum'),
 	decimals: 18
 }
 const avax = {
 	mcap: Number.MAX_SAFE_INTEGER,
 	address: ethers.constants.AddressZero,
 	chainId: 43114,
-	iconUrl: chainIconUrl('avalanche'),
+	logoURI: chainIconUrl('avalanche'),
 	name: 'Avalanche',
 	symbol: 'AVAX',
 	decimals: 18
@@ -168,13 +172,14 @@ const klaytn = {
 	chainId: 8217,
 	name: 'Klaytn',
 	symbol: 'KLAY',
+	logoURI: chainIconUrl('klaytn'),
 	decimals: 18
 }
 const fantom = {
 	mcap: Number.MAX_SAFE_INTEGER,
 	address: ethers.constants.AddressZero,
 	chainId: 250,
-	iconUrl: chainIconUrl('fantom'),
+	logoURI: chainIconUrl('fantom'),
 	name: 'Fantom',
 	symbol: 'FTM',
 	decimals: 18
@@ -186,6 +191,7 @@ const gnosis = {
 	chainId: 100,
 	name: 'xDai',
 	symbol: 'xDai',
+	logoURI: chainIconUrl('gnosis'),
 	decimals: 18
 }
 const polygon = {
@@ -194,6 +200,7 @@ const polygon = {
 	chainId: 137,
 	name: 'Matic',
 	symbol: 'MATIC',
+	logoURI: chainIconUrl('polygon'),
 	decimals: 18
 }
 

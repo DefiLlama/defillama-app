@@ -25,7 +25,7 @@ export function getAllChains() {
 	return Array.from(chains)
 }
 
-export function listRoutes(chain: string, from: string, to: string, amount: string, extra) {
+export function listRoutes(chain: string, from: string, to: string, amount: string, extra, setter) {
 	return Promise.all(
 		adapters
 			.filter((adap) => adap.chainToId[chain] !== undefined)
@@ -38,10 +38,14 @@ export function listRoutes(chain: string, from: string, to: string, amount: stri
 				} catch (e) {
 					console.error(e)
 				}
-				return {
+				const res = {
 					price,
-					name: adapter.name
+					name: adapter.name,
+					airdrop: !adapter.token
 				}
+
+				setter((state) => [...(state || []), res])
+				return res
 			})
 	)
 }

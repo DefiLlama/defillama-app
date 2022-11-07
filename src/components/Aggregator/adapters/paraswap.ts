@@ -1,6 +1,6 @@
 // Source: https://developers.paraswap.network/api/master
 
-import { Signer } from 'ethers'
+import { ethers, Signer } from 'ethers'
 
 // api docs have an outdated chain list, need to check https://app.paraswap.io/# to find supported networks
 export const chainToId = {
@@ -19,12 +19,15 @@ export const token = 'PSP'
 export function approvalAddress() {
 	return '0x216b4b4ba9f3e719726886d34a177484278bfcae'
 }
-
+const nativeToken = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 export async function getQuote(chain: string, from: string, to: string, amount: string) {
 	// ethereum = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE
 	// amount should include decimals
+
+	const tokenFrom = from === ethers.constants.AddressZero ? nativeToken : from
+	const tokenTo = to === ethers.constants.AddressZero ? nativeToken : to
 	const data = await fetch(
-		`https://apiv5.paraswap.io/prices/?srcToken=${from}&destToken=${to}&amount=${amount}&srcDecimals=18&destDecimals=18&side=SELL&network=${chainToId[chain]}`
+		`https://apiv5.paraswap.io/prices/?srcToken=${tokenFrom}&destToken=${tokenTo}&amount=${amount}&srcDecimals=18&destDecimals=18&side=SELL&network=${chainToId[chain]}`
 	).then((r) => r.json())
 	return {
 		amountReturned: data.priceRoute.destAmount,

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useAccount, useBalance, useFeeData, useNetwork, useSigner, useSwitchNetwork } from 'wagmi'
+import { groupBy, mapValues, merge, uniqBy } from 'lodash'
 import { FixedSizeList as List } from 'react-window'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { capitalizeFirstLetter } from '~/utils'
 import ReactSelect from '../MultiSelect/ReactSelect'
 import { getAllChains, listRoutes, swap } from './router'
-import styled, { css } from 'styled-components'
+import styled from 'styled-components'
 import { createFilter } from 'react-select'
 import { TYPE } from '~/Theme'
 import Input from './TokenInput'
@@ -15,7 +16,8 @@ import Search from './Search'
 import { ButtonDark } from '../ButtonStyled'
 import { useTokenApprove } from './hooks'
 import { ArrowRight } from 'react-feather'
-import { nativeTokens } from './nativeTokens'
+import BigNumber from 'bignumber.js'
+import Tooltip from '../Tooltip'
 
 /*
 Integrated:
@@ -166,6 +168,7 @@ interface Route {
 		logo: string
 	}
 	toToken: { address: string; logoURI: string; symbol: string; decimals: string }
+	fromToken: Route['toToken']
 	selectedChain: string
 
 	setRoute: () => void
@@ -173,6 +176,7 @@ interface Route {
 	index: number
 	gasUsd: number
 	amountUsd: number
+	airdrop: boolean
 }
 
 const RouteWrapper = styled.div<{ selected: boolean; best: boolean }>`
@@ -186,13 +190,6 @@ const RouteWrapper = styled.div<{ selected: boolean; best: boolean }>`
 	padding: 8px;
 	border-radius: 8px;
 	cursor: pointer;
-	${({ best }) =>
-		best &&
-		css`
-			background-color: ${({ theme }) =>
-				theme.mode === 'dark' ? (best ? ' #212954;' : '#2d3039;') : best ? ' #7393d1;' : ' #dde3f3;'};
-			border: '1px solid #5864a9;';
-		`}
 
 	animation: swing-in-left-fwd 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 	@keyframes swing-in-left-fwd {
@@ -225,14 +222,16 @@ const Balance = styled.div`
 	cursor: pointer;
 `
 
-const Route = ({ name, price, toToken, setRoute, selected, index, gasUsd, amountUsd }: Route) => {
+const Route = ({ name, price, toToken, setRoute, selected, index, gasUsd, amountUsd, airdrop, fromToken }: Route) => {
+	const { isApproved } = useTokenApprove(fromToken?.address, price?.tokenApprovalAddress as `0x${string}`)
+
 	if (!price.amountReturned) return null
 
 	const amount = +price.amountReturned / 10 ** +toToken?.decimals
 	return (
 		<RouteWrapper onClick={setRoute} selected={selected} best={index === 0}>
 			<RouteRow>
-				<img src={price?.logo} style={{ width: 24, height: 24, marginRight: 8, borderRadius: '50%' }} />
+				<img src={toToken?.logoURI} style={{ width: 24, height: 24, marginRight: 8, borderRadius: '50%' }} />
 				<TYPE.heading>
 					{amount.toFixed(3)} {Number.isFinite(+amountUsd) ? `($${amountUsd})` : null}
 				</TYPE.heading>
@@ -242,11 +241,21 @@ const Route = ({ name, price, toToken, setRoute, selected, index, gasUsd, amount
 			</RouteRow>
 
 			<RouteRow>
-				{toToken.symbol} • {name}
+				{toToken.symbol} via {name}
+				{airdrop ? (
+					<Tooltip content="This project has no token and might airdrop one to depositors in the future">
+						<span style={{ marginLeft: 4 }}>🪂</span>
+					</Tooltip>
+				) : null}
+				{isApproved ? (
+					<Tooltip content="Token is approved for this aggregator.">
+						<span style={{ marginLeft: 4 }}>🔓</span>
+					</Tooltip>
+				) : null}
 				{index === 0 ? (
 					<div style={{ marginLeft: 'auto', display: 'flex' }}>
 						{' '}
-						<TYPE.heading>Best Route </TYPE.heading>
+						<TYPE.heading style={{ color: '#3661c4' }}>Best Route </TYPE.heading>
 					</div>
 				) : null}
 			</RouteRow>
@@ -275,6 +284,7 @@ const Routes = styled.div<{ show: boolean; isFirstRender: boolean }>`
 	overflow-y: scroll;
 	min-width: 360px;
 	max-height: 416px;
+	min-width: 26rem;
 
 	box-shadow: ${({ theme }) =>
 		theme.mode === 'dark'
@@ -286,6 +296,13 @@ const Routes = styled.div<{ show: boolean; isFirstRender: boolean }>`
 			: props.isFirstRender
 			? 'tilt-in-fwd-out 0.001s cubic-bezier(0.25, 0.46, 0.45, 0.94) reverse both;'
 			: 'tilt-in-fwd-out 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) reverse both;'};
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
+
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
 
 	@keyframes tilt-in-fwd-in {
 		0% {
@@ -330,9 +347,6 @@ export const CloseBtn = ({ onClick }) => {
 	)
 }
 
-const tokensListToMap = (list: Array<{ address: string }>) =>
-	list.reduce((acc, token) => ({ ...acc, [token.address.toLowerCase()]: token }), {})
-
 interface Token {
 	address: string
 	logoURI: string
@@ -353,49 +367,21 @@ export async function getTokenList() {
 	const hecoList = await fetch('https://token-list.sushi.com/').then((r) => r.json())
 	const lifiList = await fetch('https://li.quest/v1/tokens').then((r) => r.json())
 
-	const mcapList = await Promise.all(
-		[1, 2].map(
-			async (i) =>
-				await fetch(
-					`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=${i}&sparkline=false`
-				).then((r) => r.json())
-		)
-	)
-
-	const mcapSymbols = mcapList.flat().map(({ symbol }) => symbol.toUpperCase())
-
 	const oneInchList = Object.values(oneInchChains)
 		.map((chainId, i) => Object.values(oneInch[i]).map((token: { address: string }) => ({ ...token, chainId })))
 		.flat()
 
-	const lifiMap = Object.entries(lifiList.tokens).reduce(
-		(acc, [_, tokens]: [string, Array<{ address: string }>]) => ({ ...acc, ...tokensListToMap(tokens) }),
-		{}
+	const tokensByChain = mapValues(
+		merge(
+			groupBy([...oneInchList, ...sushiList.tokens, ...uniList.tokens, ...hecoList.tokens], 'chainId'),
+			lifiList.tokens
+		),
+		(val) => uniqBy(val, (token: Token) => token.address.toLowerCase())
 	)
-	const oneInchMap = tokensListToMap(oneInchList)
-	const sushiMap = tokensListToMap(sushiList.tokens)
-	const uniMap = tokensListToMap(uniList.tokens)
-	const hecoMap = tokensListToMap(hecoList.tokens)
-
-	const fullMap: Record<string, Token> = { ...lifiMap, ...oneInchMap, ...sushiMap, ...uniMap, ...hecoMap }
-
-	const tokensByMcap = Object.values(fullMap)
-		.map((token) => {
-			const index = mcapSymbols.indexOf(token.symbol)
-			return {
-				...token,
-				mcap: 250 - (index === -1 ? 250 : index)
-			}
-		})
-		.sort((a, b) => b.mcap - a.mcap)
 
 	return {
 		props: {
-			tokenlist: [...nativeTokens, ...tokensByMcap].map((token) => ({
-				...token,
-				value: token.address,
-				label: token.symbol
-			}))
+			tokenlist: tokensByChain
 		},
 		revalidate: 5 * 60 // 5 minutes
 	}
@@ -438,7 +424,7 @@ export function AggregatorContainer({ tokenlist }) {
 
 	const { switchNetwork } = useSwitchNetwork()
 
-	const [amount, setAmount] = useState('10') // 100 tokens
+	const [amount, setAmount] = useState('10')
 
 	const balance = useBalance({
 		addressOrName: address,
@@ -470,7 +456,9 @@ export function AggregatorContainer({ tokenlist }) {
 			chain: selectedChain.value,
 			from: fromToken.value,
 			to: toToken.value,
-			amount: String(+amount * 10 ** (fromToken.decimals || 18)),
+			amount: BigNumber(amount)
+				.times(10 ** (fromToken.decimals || 18))
+				.toString(),
 			signer,
 			slippage: 1,
 			adapter: route.name,
@@ -487,19 +475,21 @@ export function AggregatorContainer({ tokenlist }) {
 		if (fromToken && toToken && amount) {
 			setRoutes(null)
 			setLoading(true)
+			setRoute(null)
 			setRenderNumber((num) => num + 1)
 			listRoutes(
 				selectedChain.value,
 				fromToken.value,
 				toToken.value,
-				String(+amount * 10 ** (fromToken.decimals || 18)),
+				BigNumber(amount)
+					.times(10 ** (fromToken.decimals || 18))
+					.toString(),
 				{
 					gasPriceData,
 					userAddress: address
-				}
-			)
-				.then(setRoutes)
-				.finally(() => setLoading(false))
+				},
+				setRoutes
+			).finally(() => setLoading(false))
 		}
 	}, [fromToken, toToken, amount, selectedChain])
 
@@ -521,6 +511,7 @@ export function AggregatorContainer({ tokenlist }) {
 		setFromToken(null)
 		setToToken(null)
 		setRoutes(null)
+		setRoute(null)
 	}
 	const { isApproved, approve } = useTokenApprove(fromToken?.address, route?.price?.tokenApprovalAddress)
 
@@ -534,7 +525,12 @@ export function AggregatorContainer({ tokenlist }) {
 		switchNetwork(chainsMap[newChain.value])
 	}
 
-	const tokensInChain = tokenlist.filter(({ chainId }) => chainId === chainsMap[selectedChain.value])
+	const tokensInChain = tokenlist[chainsMap[selectedChain.value]]?.map((token) => ({
+		...token,
+		value: token.address,
+		label: token.symbol
+	}))
+
 	const normalizedRoutes = [...(routes || [])]
 		?.map((route) => {
 			const gasUsd = route.price.feeAmount
@@ -542,9 +538,11 @@ export function AggregatorContainer({ tokenlist }) {
 				: (gasTokenPrice * +route.price.estimatedGas * +gasPriceData?.formatted?.gasPrice) / 1e18
 			const amount = +route.price.amountReturned / 10 ** +toToken?.decimals
 			const amountUsd = (amount * toTokenPrice).toFixed(2)
-			return { route, gasUsd, amountUsd, ...route }
+			const netOut = toTokenPrice ? +amountUsd - gasUsd : amount
+
+			return { route, gasUsd, amountUsd, netOut, ...route }
 		})
-		.sort((a, b) => +b.amountUsd - b.gasUsd - (+a.amountUsd - a.gasUsd))
+		.sort((a, b) => b.netOut - a.netOut)
 
 	return (
 		<Wrapper>
@@ -623,6 +621,7 @@ export function AggregatorContainer({ tokenlist }) {
 									selected={route?.name === r.name}
 									setRoute={() => setRoute(r.route)}
 									toToken={toToken}
+									fromToken={fromToken}
 									selectedChain={selectedChain.label}
 									gasTokenPrice={gasTokenPrice}
 									toTokenPrice={toTokenPrice}
