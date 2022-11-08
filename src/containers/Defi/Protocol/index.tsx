@@ -213,7 +213,8 @@ function ProtocolContainer({
 		otherProtocols,
 		hallmarks,
 		gecko_id,
-		isParentProtocol
+		isParentProtocol,
+		raises
 	} = protocolData
 
 	const router = useRouter()
@@ -379,12 +380,14 @@ function ProtocolContainer({
 							<span>{formattedNum(totalVolume || '0', true)}</span>
 						</Stat>
 
-						<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-							<DownloadButton as="a" color={backgroundColor}>
-								<DownloadCloud size={14} />
-								<span>&nbsp;&nbsp;.csv</span>
-							</DownloadButton>
-						</Link>
+						{!isParentProtocol && (
+							<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+								<DownloadButton as="a" color={backgroundColor}>
+									<DownloadCloud size={14} />
+									<span>&nbsp;&nbsp;.csv</span>
+								</DownloadButton>
+							</Link>
+						)}
 					</StatWrapper>
 
 					{tvls.length > 0 && (
@@ -532,20 +535,25 @@ function ProtocolContainer({
 					</LinksWrapper>
 				</Section>
 
-				<Section>
-					<h3>Methodology</h3>
-					{methodology && <p>{methodology}</p>}
-					<LinksWrapper>
-						{codeModule && (
-							<Link href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-									<span>Check the code</span>
-									<ArrowUpRight size={14} />
-								</Button>
-							</Link>
-						)}
-					</LinksWrapper>
-				</Section>
+				{(methodology || codeModule) && (
+					<Section>
+						<h3>Methodology</h3>
+						{methodology && <p>{methodology}</p>}
+						<LinksWrapper>
+							{codeModule && (
+								<Link
+									href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
+									passHref
+								>
+									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+										<span>Check the code</span>
+										<ArrowUpRight size={14} />
+									</Button>
+								</Link>
+							)}
+						</LinksWrapper>
+					</Section>
+				)}
 
 				{similarProtocols && similarProtocols.length > 0 && (
 					<Section>
@@ -554,8 +562,25 @@ function ProtocolContainer({
 						<LinksWrapper>
 							{similarProtocols.map((similarProtocol) => (
 								<Link href={`/protocol/${slug(similarProtocol.name)}`} passHref key={similarProtocol.name}>
-									<a target="_blank">{`${similarProtocol.name} ($${toK(similarProtocol.tvl)})`}</a>
+									<a target="_blank" style={{ textDecoration: 'underline' }}>{`${similarProtocol.name} ($${toK(
+										similarProtocol.tvl
+									)})`}</a>
 								</Link>
+							))}
+						</LinksWrapper>
+					</Section>
+				)}
+
+				{raises && raises.length > 0 && (
+					<Section>
+						<h3>Raises</h3>
+						<LinksWrapper>
+							{raises.map((raise) => (
+								<a target="_blank" rel="noopener noreferrer" href={raise.source} key={raise.source}>{`${
+									raise.round
+								}: Raised $${formatRaise(Number(raise.amount))} at $${formatRaise(
+									Number(raise.valuation)
+								)} valuation.`}</a>
 							))}
 						</LinksWrapper>
 					</Section>
@@ -664,6 +689,13 @@ function ProtocolContainer({
 const stackedBarChartColors = {
 	Fees: '#4f8fea',
 	Revenue: '#E59421'
+}
+
+const formatRaise = (n: number) => {
+	if (n >= 1e3) {
+		return `${n / 1e3}b`
+	}
+	return `${n}m`
 }
 
 export default ProtocolContainer

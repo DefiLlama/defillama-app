@@ -9,16 +9,15 @@ import {
 	FiltersByChain,
 	YieldProjects,
 	TVLRange,
+	LTV,
 	AvailableRange,
 	ResetAllYieldFilters
 } from '~/components/Filters'
 import YieldsSearch from '~/components/Search/Yields/Optimizer'
-import { filterPool, findStrategyPools, formatOptimizerPool } from './utils'
+import { filterPool, findStrategyPools } from './utils'
 
 import { Header } from '~/Theme'
 import { useFormatYieldQueryParams } from './hooks'
-
-import { calculateLoopAPY } from '~/api/categories/yield/index'
 
 const SearchWrapper = styled.div`
 	display: flex;
@@ -62,6 +61,7 @@ const YieldsStrategyPage = ({
 	const maxTvl = typeof query.maxTvl === 'string' ? query.maxTvl : null
 	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
 	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
+	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 
 	const { selectedChains, selectedAttributes, selectedLendingProtocols, selectedFarmProtocols } =
 		useFormatYieldQueryParams({
@@ -72,29 +72,33 @@ const YieldsStrategyPage = ({
 			farmProtocols
 		})
 
-	// calc looped lending
-	const loopStrategies = calculateLoopAPY(pools)
+	// prepare cdp pools
+	const cdpPools = pools
+		.filter((p) => p.category === 'CDP')
+		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } }))
 
+	// exclude cdp from lending
+	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
-		let filteredPools = findStrategyPools(pools, lend, borrow, allPools, loopStrategies)
-			.filter((pool) =>
-				filterPool({
-					pool,
-					selectedChains,
-					selectedAttributes,
-					minTvl,
-					maxTvl,
-					minAvailable,
-					maxAvailable,
-					selectedLendingProtocols,
-					selectedFarmProtocols
-				})
-			)
-			.map(formatOptimizerPool)
+		let filteredPools = findStrategyPools(lendingPools, lend, borrow, allPools, cdpPools, customLTV).filter((pool) =>
+			filterPool({
+				pool,
+				selectedChains,
+				selectedAttributes,
+				minTvl,
+				maxTvl,
+				minAvailable,
+				maxAvailable,
+				selectedLendingProtocols,
+				selectedFarmProtocols,
+				customLTV,
+				strategyPage: true
+			})
+		)
 
 		return filteredPools
 	}, [
-		pools,
+		lendingPools,
 		borrow,
 		lend,
 		selectedChains,
@@ -102,11 +106,12 @@ const YieldsStrategyPage = ({
 		selectedLendingProtocols,
 		selectedFarmProtocols,
 		allPools,
-		loopStrategies,
+		cdpPools,
 		minTvl,
 		maxTvl,
 		minAvailable,
-		maxAvailable
+		maxAvailable,
+		customLTV
 	])
 
 	return (
@@ -117,7 +122,7 @@ const YieldsStrategyPage = ({
 					<>(Supply: {lend || ''})</>
 				) : lend && borrow ? (
 					<>
-						(Supply: {lend || ''} ➞ Borrow: {borrow || ''})
+						(Supply: {lend || ''} ➞ Borrow: {borrow || ''} ➞ Farm: {borrow || ''})
 					</>
 				) : null}
 			</Header>
@@ -132,13 +137,16 @@ const YieldsStrategyPage = ({
 					data-alwaysdisplay
 				/>
 				{lend && (
-					<YieldsSearch
-						pathname={pathname}
-						value={borrow}
-						key={isReady + 'borrow'}
-						yieldsList={yieldsList}
-						data-alwaysdisplay
-					/>
+					<>
+						<YieldsSearch
+							pathname={pathname}
+							value={borrow}
+							key={isReady + 'borrow'}
+							yieldsList={yieldsList}
+							data-alwaysdisplay
+						/>
+						<LTV placeholder="% of max LTV" />
+					</>
 				)}
 			</SearchWrapper>
 
@@ -162,6 +170,7 @@ const YieldsStrategyPage = ({
 				<YieldAttributes pathname={pathname} />
 				<AvailableRange />
 				<TVLRange />
+
 				<ResetAllYieldFilters pathname={pathname} />
 			</TableFilters>
 

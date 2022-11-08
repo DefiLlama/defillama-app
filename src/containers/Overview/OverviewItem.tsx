@@ -13,7 +13,9 @@ import {
 	Name,
 	Section,
 	SectionHeader,
-	ChartWrapper
+	ChartWrapper,
+	ChartsWrapper,
+	LazyChart
 } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
@@ -23,23 +25,18 @@ import TokenLogo from '~/components/TokenLogo'
 import { AdaptorsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
-import { formattedNum, getBlockExplorer } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
 import { upperCaseFirst } from './utils'
 import { IBarChartProps } from '~/components/ECharts/types'
-import { IJoin2ReturnType } from '~/api/categories/adaptors'
+import { IJoin2ReturnType, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 import { ProtocolAdaptorSummaryResponse } from '~/api/categories/adaptors/types'
-
-interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {
-	type: string
-	totalDataChart: IJoin2ReturnType
-	revenue24h: number | null
-}
 
 interface PageParams {
 	protocolSummary: ProtocolAdaptorSummaryProps
 	backgroundColor: string
 }
+import { chartBreakdownByChain, chartBreakdownByTokens, chartBreakdownByVersion } from '~/api/categories/adaptors/utils'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -49,28 +46,23 @@ interface IProtocolContainerProps extends PageParams {
 	title: string
 }
 
-interface IDexChartsProps {
-	data: IProtocolContainerProps['protocolSummary']
-	chartData: IJoin2ReturnType
+export interface IDexChartsProps {
+	data: {
+		total24h: IProtocolContainerProps['protocolSummary']['total24h']
+		disabled: IProtocolContainerProps['protocolSummary']['disabled']
+		revenue24h?: IProtocolContainerProps['protocolSummary']['revenue24h']
+		change_1d: IProtocolContainerProps['protocolSummary']['change_1d']
+		change_1m?: IProtocolContainerProps['protocolSummary']['change_1m']
+	}
+	chartData: [IJoin2ReturnType, string[]]
 	name: string
 	logo?: string
 	isProtocolPage?: boolean
 	chainsChart?: IDexChartsProps['chartData']
 	type?: string
-}
-
-const stackedBarChartColors = {
-	fees: {
-		Fees: '#4f8fea',
-		Revenue: '#E59421'
-	},
-	volumes: {
-		Volume: '#4f8fea'
-	}
-}
-const stackColorsByType = {
-	fees: { Fees: 'a', Revenue: 'a' },
-	volumes: { Volume: 'a' }
+	title?: string
+	fullChart?: boolean
+	totalAllTime?: number
 }
 
 export const ProtocolChart = ({
@@ -78,67 +70,71 @@ export const ProtocolChart = ({
 	data,
 	chartData,
 	name,
-	chainsChart,
-	isProtocolPage = false,
-	type
+	type,
+	title,
+	fullChart = false,
+	totalAllTime
 }: IDexChartsProps) => {
 	const typeString = type === 'volumes' ? 'Volumes' : upperCaseFirst(type)
+	const typeSimple = type === 'volumes' || type === 'options' ? 'volume' : type
 	return (
 		<StatsSection>
-			<DetailsWrapper>
-				{isProtocolPage ? (
-					<Name>Trading Volume</Name>
-				) : (
-					<Name>
-						<TokenLogo logo={logo} size={24} />
-						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-					</Name>
-				)}
+			{!fullChart && (
+				<DetailsWrapper>
+					{name && (
+						<Name>
+							<TokenLogo logo={logo} size={24} />
+							<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
+						</Name>
+					)}
+					{data.total24h && (
+						<Stat>
+							<span>
+								{data.disabled === true
+									? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
+											+chartData[0][chartData[0].length - 1][0]
+									  )})`
+									: `${typeString} (24h)`}
+							</span>
+							<span>{formattedNum(data.total24h || '0', true)}</span>
+						</Stat>
+					)}
 
-				<Stat>
-					<span>
-						{data.disabled === true
-							? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
-									+data.totalDataChart[data.totalDataChart.length - 1][0]
-							  )})`
-							: `${typeString} (24h)`}
-					</span>
-					<span>{formattedNum(data.total24h || '0', true)}</span>
-				</Stat>
+					{data.revenue24h && (
+						<Stat>
+							<span>
+								{data.disabled === true
+									? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
+											+chartData[0][chartData[0].length - 1][0]
+									  )})`
+									: `Revenue (24h)`}
+							</span>
+							<span>{formattedNum(data.revenue24h || '0', true)}</span>
+						</Stat>
+					)}
 
-				{typeString === 'Fees' && (
-					<Stat>
-						<span>
-							{data.disabled === true
-								? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
-										+data.totalDataChart[data.totalDataChart.length - 1][0]
-								  )})`
-								: `Revenue (24h)`}
-						</span>
-						<span>{formattedNum(data.revenue24h || '0', true)}</span>
-					</Stat>
-				)}
-
-				<Stat>
-					<span>
-						{data.disabled === true
-							? `Last day change (${formatTimestampAsDate(+data.totalDataChart[data.totalDataChart.length - 1][0])})`
-							: 'Change (24h)'}
-					</span>
-					<span>{data.change_1d || 0}%</span>
-				</Stat>
-			</DetailsWrapper>
-
+					{typeString !== 'Fees' && data.change_1d && (
+						<Stat>
+							<span>
+								{data.disabled === true
+									? `Last day change (${formatTimestampAsDate(+chartData[0][chartData[0].length - 1][0])})`
+									: 'Change (24h)'}
+							</span>
+							<span>{data.change_1d || 0}%</span>
+						</Stat>
+					)}
+					{totalAllTime ? (
+						<Stat>
+							<span>{`All time ${typeSimple}`}</span>
+							<span>{formattedNum(totalAllTime, true)}</span>
+						</Stat>
+					) : (
+						<></>
+					)}
+				</DetailsWrapper>
+			)}
 			<ChartWrapper>
-				{chartData && chartData.length > 0 && !isProtocolPage && (
-					<StackedChart
-						title=""
-						chartData={chartData}
-						stackColors={stackedBarChartColors[type]}
-						stacks={stackColorsByType[type]}
-					/>
-				)}
-				{chainsChart && <StackedChart title="Volume by chain" chartData={chainsChart} />}
+				<StackedChart title={title ?? ''} chartData={chartData[0]} customLegendOptions={chartData[1]} />
 			</ChartWrapper>
 		</StatsSection>
 	)
@@ -147,6 +143,28 @@ export const ProtocolChart = ({
 function ProtocolContainer(props: IProtocolContainerProps) {
 	useScrollToTop()
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(props.protocolSummary.address)
+	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
+	const enableTokensChart = props.protocolSummary.type === 'incentives'
+	const typeSimple = props.protocolSummary.type === 'volumes' ? 'volume' : props.protocolSummary.type
+	const useTotalDataChart = props.protocolSummary.type === 'fees' || props.protocolSummary.type === 'options'
+	const mainChart = React.useMemo(() => {
+		let chartData: IJoin2ReturnType
+		let title: string
+		let legend: string[]
+		if (useTotalDataChart) {
+			chartData = props.protocolSummary.totalDataChart[0]
+			legend = props.protocolSummary.totalDataChart[1]
+		} else {
+			const [cd, lgnd] = chartBreakdownByChain(props.protocolSummary.totalDataChartBreakdown)
+			chartData = cd
+			legend = lgnd
+		}
+		title = Object.keys(legend).length <= 1 ? `${capitalizeFirstLetter(typeSimple)} by chain` : ''
+		return {
+			dataChart: [chartData, legend] as [IJoin2ReturnType, string[]],
+			title: title
+		}
+	}, [props.protocolSummary.totalDataChart, props.protocolSummary.totalDataChartBreakdown])
 	return (
 		<Layout title={props.title} backgroundColor={transparentize(0.6, props.backgroundColor)} style={{ gap: '36px' }}>
 			<AdaptorsSearch
@@ -164,9 +182,11 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 			<ProtocolChart
 				logo={props.protocolSummary.logo}
 				data={props.protocolSummary}
-				chartData={props.protocolSummary.totalDataChart}
+				chartData={mainChart.dataChart}
 				name={props.protocolSummary.name}
 				type={props.protocolSummary.type}
+				title={mainChart.title}
+				totalAllTime={props.protocolSummary.totalAllTime}
 			/>
 
 			<SectionHeader>Information</SectionHeader>
@@ -179,7 +199,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						<FlexRow>
 							<span>Category</span>
 							<span>:</span>
-							<Link href={`/dexs`}>{props.protocolSummary.category}</Link>
+							<Link href={`/overview/${props.protocolSummary.type}`}>{props.protocolSummary.category}</Link>
 						</FlexRow>
 					)}
 
@@ -286,7 +306,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					<LinksWrapper>
 						{props.protocolSummary.module && (
 							<Link
-								href={`https://github.com/DefiLlama/adapters/tree/master/${props.protocolSummary.type}/${props.protocolSummary.module}`}
+								href={`https://github.com/DefiLlama/adapters/blob/master/${props.protocolSummary.type}/${props.protocolSummary.module}.ts`}
 								passHref
 							>
 								<Button
@@ -305,17 +325,39 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				</Section>
 				<Section></Section>
 			</InfoWrapper>
-			{/* 
-			<SectionHeader>Charts</SectionHeader>
-
-						<ChartsWrapper>
-				<LazyChart>
-					{allChainsChartData && allChainsChartData.length && (
-						<StackedBarChart title="By chain all versions" chartData={allChainsChartData} />
-					)}
-				</LazyChart>
-			</ChartsWrapper> */}
-
+			{(enableVersionsChart || enableTokensChart) && (
+				<>
+					<SectionHeader>Charts</SectionHeader>
+					<ChartsWrapper>
+						{enableVersionsChart && (
+							<LazyChart>
+								<ProtocolChart
+									logo={props.protocolSummary.logo}
+									data={props.protocolSummary}
+									chartData={chartBreakdownByVersion(props.protocolSummary.totalDataChartBreakdown)}
+									name={props.protocolSummary.name}
+									type={props.protocolSummary.type}
+									title={`${capitalizeFirstLetter(props.protocolSummary.type)} by protocol version`}
+									fullChart
+								/>
+							</LazyChart>
+						)}
+						{enableTokensChart && (
+							<LazyChart>
+								<ProtocolChart
+									logo={props.protocolSummary.logo}
+									data={props.protocolSummary}
+									chartData={chartBreakdownByTokens(props.protocolSummary.totalDataChartBreakdown)}
+									name={props.protocolSummary.name}
+									type={props.protocolSummary.type}
+									title={`${capitalizeFirstLetter(props.protocolSummary.type)} by token`}
+									fullChart
+								/>
+							</LazyChart>
+						)}
+					</ChartsWrapper>
+				</>
+			)}
 			{/* 			<SEO
 				cardName={dexData.name}
 				token={dexData.name}

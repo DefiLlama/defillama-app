@@ -11,7 +11,11 @@ import { disclaimer } from '~/components/YieldsPage/utils'
 
 export async function getStaticProps() {
 	let data = await getLendBorrowData()
-	data.props.pools = calculateLoopAPY(data.props.pools, 10)
+	data.props.pools = calculateLoopAPY(
+		data.props.pools.filter((p) => p.category !== 'CDP'),
+		10,
+		null
+	)
 
 	const strData = JSON.stringify(data)
 

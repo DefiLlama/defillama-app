@@ -70,7 +70,7 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 
 	return (
 		<AirdropWrapper {...props}>
-			{airdrop && (
+			{airdrop && project !== 'Fraxlend' && (
 				<Tooltip content="This project has no token and might airdrop one to depositors in the future">
 					<Airdrop>🪂</Airdrop>
 				</Tooltip>

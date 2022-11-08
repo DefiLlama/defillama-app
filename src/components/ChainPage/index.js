@@ -221,10 +221,11 @@ function GlobalPage({
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
 			<Announcement>
-				<span>Check out our</span>{' '}
-				<Link href={`/yields/optimizer`}>
-					<a> borrow optimizer!</a>
+				<span>We just launched a</span>{' '}
+				<Link href={`/bridges`}>
+					<a> Bridge Dashboard</a>
 				</Link>
+                                {' '}<span>with chain inflows/outflows</span>
 			</Announcement>
 
 			<ProtocolsChainsSearch

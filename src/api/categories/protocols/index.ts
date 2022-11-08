@@ -19,6 +19,8 @@ import {
 	PROTOCOL_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
+import { getVolumesByChain } from '../dexs'
+import { getChainPageData as getFeesChainPageData } from '~/api/categories/adaptors'
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
@@ -381,7 +383,17 @@ export async function getCategoriesPageData(category = null) {
 }
 
 export const getNewChainsPageData = async (category: string) => {
-	const { categories, ...rest } = await fetch(`https://api.llama.fi/chains2/${category}`).then((res) => res.json())
+	const [
+		{ categories, chainTvls, ...rest },
+		{
+			props: { tableData: volumeTableData }
+		},
+		{ protocols: feesAndRevenueProtocols }
+	] = await Promise.all([
+		fetch(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
+		getVolumesByChain(),
+		getFeesChainPageData('fees')
+	])
 
 	const categoryLinks = [
 		{ label: 'All', to: '/chains' },
@@ -401,8 +413,27 @@ export const getNewChainsPageData = async (category: string) => {
 
 	colors['Others'] = '#AAAAAA'
 
+	const feesAndRevenueChains = feesAndRevenueProtocols.filter((p) => p.category === 'Chain')
+
 	return {
-		props: { ...rest, category, categories: categoryLinks, colorsByChain: colors }
+		props: {
+			...rest,
+			category,
+			categories: categoryLinks,
+			colorsByChain: colors,
+			chainTvls: chainTvls.map((chain) => {
+				const { total24h, revenue24h } =
+					feesAndRevenueChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
+
+				return {
+					...chain,
+					totalVolume24h:
+						volumeTableData.find((x) => x.name.toLowerCase() === chain.name.toLowerCase())?.totalVolume ?? 0,
+					totalFees24h: total24h || 0,
+					totalRevenue24h: revenue24h || 0
+				}
+			})
+		}
 	}
 }
 

@@ -5,7 +5,7 @@ import TokenLogo from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, slug } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
 
-export const NameColumn = (type: string) => ({
+export const NameColumn = (type: string, allChains?: boolean) => ({
 	header: () => <Name>Name</Name>,
 	accessorKey: 'displayName',
 	enableSorting: false,
@@ -27,7 +27,7 @@ export const NameColumn = (type: string) => ({
 				)}
 				<span>{index + 1}</span>
 				<TokenLogo logo={row.original.logo} data-lgonly />
-				<CustomLink href={`/${type}/${slug(name)}`}>{`${value}`}</CustomLink>
+				<CustomLink href={`/${type}/${allChains ? 'chains/' : ''}${slug(name)}`}>{`${value}`}</CustomLink>
 			</Name>
 		)
 	},
@@ -37,7 +37,7 @@ export const ChainsColumn = (type: string) => ({
 	header: 'Chains',
 	accessorKey: 'chains',
 	enableSorting: false,
-	cell: (info) => <IconsRow links={info.getValue() as Array<string>} url={`${type}/chain`} iconType="chain" />,
+	cell: (info) => <IconsRow links={info.getValue() as Array<string>} url={`${type}/chains`} iconType="chain" />,
 	meta: {
 		align: 'end' as 'end'
 	},
@@ -78,7 +78,10 @@ export const Total24hColumn = (type: string, alternativeAccessor?: string, helpe
 	accessorKey: alternativeAccessor ?? 'total24h',
 	enableSorting: true,
 	cell: (info) => {
-		return <>${formattedNum(info.getValue())}</>
+		const value = info.getValue()
+
+		if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
+		return <>${formattedNum(value)}</>
 	},
 	size: 140,
 	meta: {
@@ -86,11 +89,29 @@ export const Total24hColumn = (type: string, alternativeAccessor?: string, helpe
 		headerHelperText: helperText
 	}
 })
+export const TotalAllTimeColumn = (type: string, alternativeAccessor?: string, helperText?: string) => ({
+	header: `Total ${type}`,
+	accessorKey: alternativeAccessor ?? 'totalAllTime',
+	enableSorting: true,
+	cell: (info) => {
+		if (Number.isNaN(formattedNum(info.getValue()))) return <></>
+		return <>${formattedNum(info.getValue())}</>
+	},
+	size: 140,
+	meta: {
+		align: 'end' as 'end',
+		headerHelperText: helperText ?? `Accomulative ${type}`
+	}
+})
 export const VolumeTVLColumn = {
 	header: 'Volume/TVL',
 	accessorKey: 'volumetvl',
 	enableSorting: true,
-	cell: (info) => <>{formattedNum(info.getValue())}</>,
+	cell: (info) => {
+		const fNum = formattedNum(info.getValue())
+		if (Number.isNaN(fNum)) return <></>
+		return <>{fNum}</>
+	},
 	size: 140,
 	meta: {
 		align: 'end' as 'end',

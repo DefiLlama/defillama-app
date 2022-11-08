@@ -34,10 +34,10 @@ export const PEGGEDDOMINANCE_API = 'https://stablecoins.llama.fi/stablecoindomin
 export const PEGGEDPRICES_API = 'https://stablecoins.llama.fi/stablecoinprices'
 export const PEGGEDRATES_API = 'https://stablecoins.llama.fi/rates'
 
-export const BRIDGEDAYSTATS_API = 'https://shyia50fmi.execute-api.eu-central-1.amazonaws.com/prod/bridgedaystats'
-export const BRIDGES_API = 'https://shyia50fmi.execute-api.eu-central-1.amazonaws.com/prod/bridges'
-export const BRIDGEVOLUME_API = 'https://shyia50fmi.execute-api.eu-central-1.amazonaws.com/prod/bridgevolume'
-export const BRIDGELARGETX_API = 'https://shyia50fmi.execute-api.eu-central-1.amazonaws.com/prod/largetransactions'
+export const BRIDGEDAYSTATS_API = 'https://bridges.llama.fi/bridgedaystats'
+export const BRIDGES_API = 'https://bridges.llama.fi/bridges'
+export const BRIDGEVOLUME_API = 'https://bridges.llama.fi/bridgevolume'
+export const BRIDGELARGETX_API = 'https://bridges.llama.fi/largetransactions'
 
 export const YIELD_POOLS_API = 'https://yields.llama.fi/pools'
 export const YIELD_POOLS_LAMBDA_API = 'https://yields.llama.fi/poolsEnriched'

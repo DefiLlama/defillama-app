@@ -5,7 +5,7 @@ import { tokenIconUrl } from '~/utils'
 import styled from 'styled-components'
 import { useComboboxState } from 'ariakit'
 import { Input } from '~/components/Search/Base/Input'
-import { Results } from '~/components/Search/Base/Results'
+import { DesktopResults } from '~/components/Search/Base/Results/Desktop'
 import Announcement from '~/components/Announcement'
 
 export async function getStaticProps() {
@@ -64,6 +64,6 @@ const InputField = styled(Input)`
 	}
 `
 
-const Popover = styled(Results)`
+const Popover = styled(DesktopResults)`
 	top: 1px;
 `

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { FixedSizeList as List } from 'react-window'
 
 import { Input } from './TokenInput'
@@ -21,6 +21,7 @@ const ModalWrapper = styled.div`
 	height: 500px;
 	background: ${({ theme }) => theme.bg1};
 	left: -5%;
+	top: 0;
 
 	box-shadow: ${({ theme }) =>
 		theme.mode === 'dark'
@@ -100,7 +101,7 @@ const Modal = ({ close, onInputChange, data, onClick }) => {
 				<CloseBtn onClick={close} />
 			</Header>
 			<div>
-				<Input placeholder="Search... (BTC-ETH)" onChange={onInputChange} />
+				<Input placeholder="Search... (BTC-ETH)" onChange={onInputChange} autoFocus />
 			</div>
 			<List height={390} itemCount={data.length} itemSize={38} itemData={{ data, onClick }}>
 				{Row}
@@ -129,7 +130,10 @@ export default function Search({ tokens, setTokens, onClick }: Props) {
 			setData([])
 			return
 		}
-		const tokens0 = tokens.filter(({ symbol }) => symbol.toLowerCase().includes(symbol0))
+
+		const tokens00 = tokens.filter(({ symbol }) => symbol.toLowerCase() === symbol0.toLowerCase())
+		const tokens01 = tokens.filter(({ symbol }) => symbol.toLowerCase().includes(symbol0.toLowerCase()))
+		const tokens0 = tokens00.concat(tokens01)
 
 		const tokens1 = (() => {
 			if (tokens0.length > 100 || !symbol1) return tokens.slice(0, 100)

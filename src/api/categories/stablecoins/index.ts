@@ -192,7 +192,7 @@ export async function getPeggedChainsPageData() {
 		chainList.map(async (chain) => {
 			for (let i = 0; i < 5; i++) {
 				try {
-					return await fetch(`${PEGGEDCHART_API}/${chain}`).then((resp) => resp.json())
+					return await fetch(`${PEGGEDCHART_API}/${chain}?startts=1652241600`).then((resp) => resp.json())
 				} catch (e) {}
 			}
 			throw new Error(`${PEGGEDCHART_API}/${chain} is broken`)

@@ -4,9 +4,20 @@ import { darkTheme, getDefaultWallets, RainbowKitProvider } from '@rainbow-me/ra
 import { configureChains, createClient, WagmiConfig, chain } from 'wagmi'
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
 import styled from 'styled-components'
+import { allChains } from './chains'
 
 const { provider, chains } = configureChains(
-	[chain.arbitrum, chain.mainnet, chain.optimism],
+	[
+		chain.arbitrum,
+		{
+			...chain.mainnet,
+			rpcUrls: {
+				default: 'https://rpc.ankr.com/eth'
+			}
+		},
+		chain.optimism,
+		...allChains
+	],
 	[jsonRpcProvider({ rpc: (chain) => ({ http: chain.rpcUrls.default }) })]
 )
 
@@ -23,7 +34,7 @@ const { connectors } = getDefaultWallets({
 })
 
 const wagmiClient = createClient({
-	autoConnect: false,
+	autoConnect: true,
 	connectors,
 	provider
 })
@@ -32,7 +43,7 @@ export const WalletWrapper = ({ children }: { children: React.ReactNode }) => {
 	return (
 		<WagmiConfig client={wagmiClient}>
 			<Provider>
-				<RainbowKitProvider chains={chains} theme={darkTheme()}>
+				<RainbowKitProvider chains={chains} showRecentTransactions={true} theme={darkTheme()}>
 					{children}
 				</RainbowKitProvider>
 			</Provider>

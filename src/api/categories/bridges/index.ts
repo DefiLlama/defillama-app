@@ -132,9 +132,13 @@ export async function getBridgeOverviewPageData(chain) {
 		currentTimestamp
 	)
 	const largeTxsData = unformattedLargeTxsData.map((transaction) => {
-		const { token, symbol } = transaction
+		const { token, symbol, isDeposit, chain:txChain } = transaction
 		const symbolAndTokenForExplorer = `${symbol}#${token}`
-		return { ...transaction, symbol: symbolAndTokenForExplorer }
+		let correctedIsDeposit = isDeposit
+		if (chain) {
+			correctedIsDeposit = chain.toLowerCase() === txChain.toLowerCase() ? isDeposit : !isDeposit
+		}
+		return { ...transaction, isDeposit: correctedIsDeposit, symbol: symbolAndTokenForExplorer }
 	})
 
 	const filteredBridges = formatBridgesData({

@@ -1,8 +1,8 @@
-import { Row } from './Row'
 import { FixedSizeList } from 'react-window'
 import { ComboboxPopover, ComboboxState } from 'ariakit/combobox'
 import styled from 'styled-components'
-import type { ISearchItem } from '../types'
+import { DesktopRow } from './Row/Desktop'
+import type { ISearchItem } from '../../types'
 
 const Popover = styled(ComboboxPopover)`
 	height: 100%;
@@ -30,7 +30,7 @@ interface IResultsProps {
 	onItemClick?: (item: ISearchItem) => void | null
 }
 
-export function Results({ state, data, loading, onItemClick, ...props }: IResultsProps) {
+export function DesktopResults({ state, data, loading, onItemClick, ...props }: IResultsProps) {
 	return (
 		<Popover state={state} {...props}>
 			{loading || !state.mounted ? (
@@ -47,7 +47,7 @@ export function Results({ state, data, loading, onItemClick, ...props }: IResult
 						onItemClick: onItemClick
 					}}
 				>
-					{Row}
+					{DesktopRow}
 				</FixedSizeList>
 			) : (
 				<Empty>No results found</Empty>

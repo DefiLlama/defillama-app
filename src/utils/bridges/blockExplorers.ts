@@ -8,6 +8,8 @@ const blockExplorersTxs = {
 	polygon: ['https://polygonscan.com/tx/', 'PolygonScan'],
 	solana: ['https://solscan.io/tx/', 'Solscan'],
 	arbitrum: ['https://arbiscan.io/tx/', 'Arbiscan'],
+	optimism: ['https://optimistic.etherscan.io/tx/', 'Optimism Explorer'],
+	aurora: ['https://aurorascan.dev/tx/', 'AuroraScan'],
 }
 
 const blockExplorersAddresses = {
@@ -20,6 +22,8 @@ const blockExplorersAddresses = {
 	polygon: ['https://polygonscan.com/address/', 'PolygonScan'],
 	solana: ['https://solscan.io/address/', 'Solscan'],
 	arbitrum: ['https://arbiscan.io/address/', 'Arbiscan'],
+	optimism: ['https://optimistic.etherscan.io/address/', 'Optimism Explorer'],
+	aurora: ['https://aurorascan.dev/address/', 'AuroraScan'],
 }
 
 export const getBlockExplorerForTx = (txHash: string = '') => {

@@ -24,6 +24,12 @@ export interface Protocol {
 	parentProtocol?: string
 	referralUrl?: string
 	isParentProtocol?: boolean
+	raises?: Array<{
+		round: string
+		amount: number
+		valuation: string
+		source: string
+	}>
 }
 
 // TODO cleanup
@@ -165,6 +171,7 @@ export interface IFormattedProtocol extends LiteProtocol {
 	change_7d: number | null
 	change_1m: number | null
 	mcaptvl: number | null
+	strikeTvl?: boolean
 }
 
 export interface IFusedProtocolData extends Omit<IProtocolResponse, 'tvl'> {
