@@ -44,18 +44,28 @@ export const LiquidationsChart = ({ chartData, uid, bobo }: { chartData: ChartDa
 	}, [uid, chartData, createInstance, stackBy, isSmall, isDark, setSelectedSeries, isLiqsUsingUsd, isLiqsCumulative])
 
 	return (
-		<div
-			id={uid}
-			style={{
-				minHeight: '360px',
-				margin: 'auto 0',
-				...(bobo && {
-					backgroundImage: 'url("/bobo.png")',
-					backgroundSize: '100% 360px',
-					backgroundRepeat: 'no-repeat',
-					backgroundPosition: 'bottom'
-				})
-			}}
-		/>
+		<>
+			<div
+				style={{
+					position: 'absolute',
+					...(bobo && {
+						height: '80%',
+						width: '90%',
+						backgroundImage: 'url("/bobo.png")',
+						backgroundSize: '100% 360px',
+						backgroundRepeat: 'no-repeat',
+						backgroundPosition: 'bottom',
+						zIndex: 1
+					})
+				}}
+			/>
+			<div
+				id={uid}
+				style={{
+					minHeight: '360px',
+					margin: 'auto 0'
+				}}
+			/>
+		</>
 	)
 }
