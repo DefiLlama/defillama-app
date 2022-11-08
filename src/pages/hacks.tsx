@@ -13,6 +13,7 @@ export async function getStaticProps() {
 		name: h.name,
 		technique: h.technique,
 		bridge: h.bridge_multichain_application,
+		link:h.link,
 	}))
 
 	const monthlyHacks = {}

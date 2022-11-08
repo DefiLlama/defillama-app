@@ -302,7 +302,7 @@ const Tvl = ({ value, rowValues }) => {
 					color: rowValues.strikeTvl ? 'gray' : 'inherit'
 				}}
 			>
-				{'$' + formattedNum(value)}
+				{'$' + formattedNum(value || 0)}
 			</span>
 		</span>
 	)

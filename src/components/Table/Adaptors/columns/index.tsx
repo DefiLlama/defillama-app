@@ -1,10 +1,4 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { ChevronDown, ChevronRight } from 'react-feather'
-import IconsRow from '~/components/IconsRow'
-import { CustomLink } from '~/components/Link'
-import TokenLogo from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
-import { AccordionButton, Name } from '../../shared'
 import { formatColumnOrder } from '../../utils'
 import type { IDexsRow } from '../types'
 import {
