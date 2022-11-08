@@ -10,6 +10,8 @@ const blockExplorersTxs = {
 	arbitrum: ['https://arbiscan.io/tx/', 'Arbiscan'],
 	optimism: ['https://optimistic.etherscan.io/tx/', 'Optimism Explorer'],
 	aurora: ['https://aurorascan.dev/tx/', 'AuroraScan'],
+	celo: ['https://explorer.celo.org/mainnet/tx/', 'Celo Explorer'],
+	klaytn: ['https://scope.klaytn.com/tx/, Klaytn Scope']
 }
 
 const blockExplorersAddresses = {
@@ -24,6 +26,8 @@ const blockExplorersAddresses = {
 	arbitrum: ['https://arbiscan.io/address/', 'Arbiscan'],
 	optimism: ['https://optimistic.etherscan.io/address/', 'Optimism Explorer'],
 	aurora: ['https://aurorascan.dev/address/', 'AuroraScan'],
+	celo: ['https://explorer.celo.org/mainnet/address/', 'Celo Explorer'],
+	klaytn: ['https://scope.klaytn.com/account/, Klaytn Scope']
 }
 
 export const getBlockExplorerForTx = (txHash: string = '') => {
