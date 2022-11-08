@@ -31,14 +31,14 @@ export const getStaticPropsByType = (type: string) => {
 		})
 }
 
-export const types = ['fees', 'aggregators', 'volumes', 'options', 'incentives']
+/* export const types = ['fees', 'aggregators', 'volumes', 'options', 'incentives']
 export async function getStaticPaths() {
 	const paths = types.map((type) => ({
 		params: { type }
 	}))
 
 	return { paths, fallback: 'blocking' }
-}
+} */
 
 const AllChainsDexs = (props: IOverviewContainerProps) => {
 	return (

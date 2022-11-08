@@ -19,7 +19,7 @@ export interface IMainBarChartProps {
 }
 export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 	const dataType =
-		props.type === 'volumes' || props.type === 'options' || props.type === 'aggregators' ? 'volume' : props.type
+		props.type === 'dexs' || props.type === 'options' || props.type === 'aggregators' ? 'volume' : props.type
 
 	const chartData = useMemo(() => {
 		return props.chartData
