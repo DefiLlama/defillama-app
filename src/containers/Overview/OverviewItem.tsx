@@ -203,7 +203,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						</FlexRow>
 					)}
 
-					{props.protocolSummary.forkedFrom && (
+					{props.protocolSummary.forkedFrom && props.protocolSummary.forkedFrom.length > 0 && (
 						<FlexRow>
 							<span>Forked from</span>
 							<span>:</span>
