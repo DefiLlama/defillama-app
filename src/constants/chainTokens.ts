@@ -699,6 +699,11 @@ export const chainCoingeckoIds = {
     symbol: "STRD",
     cmcId: "21781",
   },
+	MUUCHAIN: {
+    geckoId: "muu-inu",
+    symbol: "MUU",
+    cmcId: "22020"
+  },
 }
 
 export const chainMarketplaceMappings = {
