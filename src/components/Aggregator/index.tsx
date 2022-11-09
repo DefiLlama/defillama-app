@@ -611,8 +611,9 @@ export function AggregatorContainer({ tokenlist }) {
 					{route && address ? (
 						<ButtonDark
 							onClick={() => {
-								if (+amount > +balance?.data?.formatted) return
 								if (approve) approve()
+
+								if (+amount > +balance?.data?.formatted) return
 								if (isApproved) handleSwap()
 							}}
 						>

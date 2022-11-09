@@ -79,8 +79,7 @@ export async function swap({
 		from: data.from,
 		to: data.to,
 		data: data.data,
-		value: data.value,
-		gasPrice: data.gasPrice
+		value: data.value
 	})
 	return tx
 }
