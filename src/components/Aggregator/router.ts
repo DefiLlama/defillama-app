@@ -5,13 +5,15 @@ import * as firebird from './adapters/firebird'
 import * as kyberswap from './adapters/kyberswap'
 import * as openocean from './adapters/openocean'
 import * as paraswap from './adapters/paraswap'
+import * as lifi from './adapters/lifi'
+
 // import * as unidex from "./adapters/unidex" - disabled, their api is broken
 // import * as airswap from './adapters/airswap' cors
 // import * as odos from './adapters/odos' cors
 import * as yieldyak from './adapters/yieldyak'
 // import * as krystal from './adapters/krystal'
 
-const adapters = [matcha, inch, cowswap, firebird, kyberswap, openocean, paraswap, yieldyak]
+const adapters = [matcha, inch, cowswap, firebird, kyberswap, openocean, paraswap, yieldyak, lifi]
 const adaptersMap = adapters.reduce((acc, adapter) => ({ ...acc, [adapter.name]: adapter }), {}) as Record<
 	string,
 	typeof inch
@@ -41,7 +43,8 @@ export function listRoutes(chain: string, from: string, to: string, amount: stri
 				const res = {
 					price,
 					name: adapter.name,
-					airdrop: !adapter.token
+					airdrop: !adapter.token,
+					fromAmount: amount
 				}
 
 				setter((state) => [...(state || []), res])
