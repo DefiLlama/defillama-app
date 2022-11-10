@@ -18,4 +18,4 @@ export const getStaticPropsByType = (type: string) => (context) =>
 		}
 	})
 
-export { default, getStaticPaths } from '..'
+export { default } from '..'

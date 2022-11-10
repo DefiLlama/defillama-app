@@ -71,16 +71,14 @@ export async function swap({
 	const tokenTo = to === ethers.constants.AddressZero ? nativeToken : to
 
 	const data = await fetch(
-		`${chainToId[chain]}swap/v1/quote?buyToken=${to}&sellToken=${from}&sellAmount=${amount}&takerAddress=${fromAddress}`
+		`${chainToId[chain]}swap/v1/quote?buyToken=${tokenTo}&sellToken=${tokenFrom}&sellAmount=${amount}&takerAddress=${fromAddress}`
 	).then((r) => r.json())
 
 	const tx = await signer.sendTransaction({
 		from: fromAddress,
 		to: data.to,
 		data: data.data,
-		value: data.value,
-		gasPrice: data.gasPrice
-		// 0x-API cannot estimate gas in forked mode.
+		value: data.value
 	})
 
 	return tx

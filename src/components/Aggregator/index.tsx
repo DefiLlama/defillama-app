@@ -18,6 +18,7 @@ import { useTokenApprove } from './hooks'
 import { ArrowRight } from 'react-feather'
 import BigNumber from 'bignumber.js'
 import Tooltip from '../Tooltip'
+import { ethers } from 'ethers'
 
 /*
 Integrated:
@@ -236,14 +237,22 @@ const Route = ({ name, price, toToken, setRoute, selected, index, gasUsd, amount
 					{amount.toFixed(3)} {Number.isFinite(+amountUsd) ? `($${amountUsd})` : null}
 				</TYPE.heading>
 				<div style={{ marginLeft: 'auto', display: 'flex' }}>
-					<GasIcon /> <div style={{ marginLeft: 8 }}>${gasUsd.toFixed(3)}</div>
+					{name === 'CowSwap' ? (
+						<Tooltip content="Gas is taken from output amount">
+							<GasIcon /> <div style={{ marginLeft: 8 }}>${gasUsd.toFixed(3)}</div>
+						</Tooltip>
+					) : (
+						<>
+							<GasIcon /> <div style={{ marginLeft: 8 }}>${gasUsd.toFixed(3)}</div>
+						</>
+					)}
 				</div>
 			</RouteRow>
 
 			<RouteRow>
 				{toToken.symbol} via {name}
 				{airdrop ? (
-					<Tooltip content="This project has no token and might airdrop one to depositors in the future">
+					<Tooltip content="This project has no token and might airdrop one in the future">
 						<span style={{ marginLeft: 4 }}>🪂</span>
 					</Tooltip>
 				) : null}
@@ -418,7 +427,6 @@ export function AggregatorContainer({ tokenlist }) {
 	const [toToken, setToToken] = useState(null)
 	const [gasTokenPrice, setGasTokenPrice] = useState(0)
 	const [toTokenPrice, setToTokenPrice] = useState(0)
-	const [fromTokenPrice, setFromTokenPrice] = useState(0)
 
 	const addRecentTransaction = useAddRecentTransaction()
 
@@ -428,7 +436,7 @@ export function AggregatorContainer({ tokenlist }) {
 
 	const balance = useBalance({
 		addressOrName: address,
-		token: fromToken?.address
+		token: fromToken?.address === ethers.constants.AddressZero ? undefined : fromToken?.address
 	})
 
 	useEffect(() => {
@@ -442,6 +450,12 @@ export function AggregatorContainer({ tokenlist }) {
 	const [renderNumber, setRenderNumber] = useState(1)
 
 	const { data: gasPriceData } = useFeeData({ chainId: chainsMap[selectedChain.value] })
+
+	const tokensInChain = tokenlist[chainsMap[selectedChain.value]]?.map((token) => ({
+		...token,
+		value: token.address,
+		label: token.symbol
+	}))
 
 	const setTokens = (tokens) => {
 		setFromToken(tokens.token0)
@@ -496,13 +510,12 @@ export function AggregatorContainer({ tokenlist }) {
 	useEffect(() => {
 		if (toToken)
 			fetch(
-				`https://coins.llama.fi/prices/current/${selectedChain.value}:${toToken.address},${selectedChain.value}:${ZERO_ADDRESS},${selectedChain.value}:${fromToken.address}`
+				`https://coins.llama.fi/prices/current/${selectedChain.value}:${toToken.address},${selectedChain.value}:${ZERO_ADDRESS}`
 			)
 				.then((r) => r.json())
 				.then(({ coins }) => {
 					setGasTokenPrice(coins[`${selectedChain.value}:${ZERO_ADDRESS}`]?.price)
 					setToTokenPrice(coins[`${selectedChain.value}:${toToken.address}`]?.price)
-					setFromTokenPrice(coins[`${selectedChain.value}:${fromToken.address}`]?.price)
 				})
 	}, [toToken, selectedChain])
 
@@ -520,29 +533,29 @@ export function AggregatorContainer({ tokenlist }) {
 	}
 
 	const onChainChange = (newChain) => {
+		const nativeToken = tokenlist[chainsMap[newChain.value]]
 		cleanState()
 		setSelectedChain(newChain)
+		setFromToken({ ...nativeToken, value: nativeToken.address, label: nativeToken.symbol })
 		switchNetwork(chainsMap[newChain.value])
 	}
 
-	const tokensInChain = tokenlist[chainsMap[selectedChain.value]]?.map((token) => ({
-		...token,
-		value: token.address,
-		label: token.symbol
-	}))
-
 	const normalizedRoutes = [...(routes || [])]
 		?.map((route) => {
-			const gasUsd = route.price.feeAmount
-				? (fromTokenPrice * +route.price.feeAmount) / 10 ** +fromToken?.decimals
-				: (gasTokenPrice * +route.price.estimatedGas * +gasPriceData?.formatted?.gasPrice) / 1e18
+			const gasUsd = (gasTokenPrice * +route.price.estimatedGas * +gasPriceData?.formatted?.gasPrice) / 1e18 || 0
 			const amount = +route.price.amountReturned / 10 ** +toToken?.decimals
 			const amountUsd = (amount * toTokenPrice).toFixed(2)
-			const netOut = toTokenPrice ? +amountUsd - gasUsd : amount
+			const netOut = +amountUsd - gasUsd
 
 			return { route, gasUsd, amountUsd, netOut, ...route }
 		})
 		.sort((a, b) => b.netOut - a.netOut)
+		.filter(
+			({ fromAmount }) =>
+				BigNumber(amount)
+					.times(10 ** (fromToken.decimals || 18))
+					.toString() === fromAmount
+		)
 
 	return (
 		<Wrapper>
@@ -592,14 +605,15 @@ export function AggregatorContainer({ tokenlist }) {
 						<FormHeader>Amount In</FormHeader>
 						<Input setAmount={setAmount} amount={amount} onMaxClick={onMaxClick} />
 						{balance.isSuccess ? (
-							<Balance onClick={onMaxClick}>Balance: {(+balance.data.formatted).toFixed(3)}</Balance>
+							<Balance onClick={onMaxClick}>Balance: {(+balance?.data?.formatted).toFixed(3)}</Balance>
 						) : null}
 					</div>
 					{route && address ? (
 						<ButtonDark
 							onClick={() => {
-								if (+amount > +balance.data.formatted) return
 								if (approve) approve()
+
+								if (+amount > +balance?.data?.formatted) return
 								if (isApproved) handleSwap()
 							}}
 						>

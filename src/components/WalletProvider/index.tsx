@@ -15,7 +15,12 @@ const { provider, chains } = configureChains(
 				default: 'https://rpc.ankr.com/eth'
 			}
 		},
-		chain.optimism,
+		{
+			...chain.optimism,
+			rpcUrls: {
+				default: 'https://optimism-mainnet.public.blastapi.io'
+			}
+		},
 		...allChains
 	],
 	[jsonRpcProvider({ rpc: (chain) => ({ http: chain.rpcUrls.default }) })]

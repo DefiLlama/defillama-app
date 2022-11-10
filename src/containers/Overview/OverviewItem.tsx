@@ -30,7 +30,6 @@ import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
 import { upperCaseFirst } from './utils'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
-import { ProtocolAdaptorSummaryResponse } from '~/api/categories/adaptors/types'
 
 interface PageParams {
 	protocolSummary: ProtocolAdaptorSummaryProps
@@ -134,7 +133,13 @@ export const ProtocolChart = ({
 				</DetailsWrapper>
 			)}
 			<ChartWrapper>
-				<StackedChart title={title ?? ''} chartData={chartData[0]} customLegendOptions={chartData[1]} />
+				<StackedChart
+					title={title ?? ''}
+					chartData={chartData[0]}
+					customLegendOptions={chartData[1]}
+					stacks={{ Fees: 'stackA', Revenue: 'stackB' }}
+					stackColors={stackedBarChartColors}
+				/>
 			</ChartWrapper>
 		</StatsSection>
 	)
@@ -164,7 +169,13 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 			dataChart: [chartData, legend] as [IJoin2ReturnType, string[]],
 			title: title
 		}
-	}, [props.protocolSummary.totalDataChart, props.protocolSummary.totalDataChartBreakdown])
+	}, [
+		props.protocolSummary.totalDataChart,
+		props.protocolSummary.totalDataChartBreakdown,
+		useTotalDataChart,
+		typeSimple
+	])
+
 	return (
 		<Layout title={props.title} backgroundColor={transparentize(0.6, props.backgroundColor)} style={{ gap: '36px' }}>
 			<AdaptorsSearch
@@ -203,7 +214,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						</FlexRow>
 					)}
 
-					{props.protocolSummary.forkedFrom && (
+					{props.protocolSummary.forkedFrom && props.protocolSummary.forkedFrom.length > 0 && (
 						<FlexRow>
 							<span>Forked from</span>
 							<span>:</span>
@@ -369,6 +380,11 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 			 */}
 		</Layout>
 	)
+}
+
+const stackedBarChartColors = {
+	Fees: '#4f8fea',
+	Revenue: '#E59421'
 }
 
 export default ProtocolContainer

@@ -174,7 +174,7 @@ export function FeesBody({ data, chartData }) {
 				<StackedChart
 					chartData={chartData}
 					title={isProtocolPage ? '' : 'Fees And Revenue'}
-					stacks={{ Fees: 'a', Revenue: 'a' }}
+					stacks={{ Fees: 'a', Revenue: 'b' }}
 					stackColors={stackedBarChartColors}
 				/>
 			</ChartWrapper>
