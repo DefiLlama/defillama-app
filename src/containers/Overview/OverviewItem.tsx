@@ -148,7 +148,9 @@ export const ProtocolChart = ({
 function ProtocolContainer(props: IProtocolContainerProps) {
 	useScrollToTop()
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(props.protocolSummary.address)
-	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
+	const enableVersionsChart =
+		Object.keys(props.protocolSummary.totalDataChartBreakdown ?? {}).length > 1 &&
+		Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
 	const typeSimple = props.protocolSummary.type === 'volumes' ? 'volume' : props.protocolSummary.type
 	const useTotalDataChart = props.protocolSummary.type === 'fees' || props.protocolSummary.type === 'options'
