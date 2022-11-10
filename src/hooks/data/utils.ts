@@ -5,12 +5,10 @@ import { getPercentChange } from '~/utils'
 export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol) => {
 	const { mcap, tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = protocols.reduce(
 		(acc, curr) => {
-			if (!curr.strikeTvl) {
-				curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
-				curr.tvlPrevDay && (acc.tvlPrevDay = (acc.tvlPrevDay || 0) + curr.tvlPrevDay)
-				curr.tvlPrevWeek && (acc.tvlPrevWeek = (acc.tvlPrevWeek || 0) + curr.tvlPrevWeek)
-				curr.tvlPrevMonth && (acc.tvlPrevMonth = (acc.tvlPrevMonth || 0) + curr.tvlPrevMonth)
-			}
+			curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
+			curr.tvlPrevDay && (acc.tvlPrevDay = (acc.tvlPrevDay || 0) + curr.tvlPrevDay)
+			curr.tvlPrevWeek && (acc.tvlPrevWeek = (acc.tvlPrevWeek || 0) + curr.tvlPrevWeek)
+			curr.tvlPrevMonth && (acc.tvlPrevMonth = (acc.tvlPrevMonth || 0) + curr.tvlPrevMonth)
 
 			if (curr.mcap) {
 				acc.mcap = (acc.mcap || 0) + curr.mcap
