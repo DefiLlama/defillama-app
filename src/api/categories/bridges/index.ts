@@ -124,11 +124,12 @@ export async function getBridgeOverviewPageData(chain) {
 			resp.json()
 		)
 	}
-
+	
+	const numberOfDaysForLargeTx = chain ? 7 : 1
 	const secondsInDay = 3600 * 24
 	const unformattedLargeTxsData = await getLargeTransactionsData(
 		chain,
-		currentTimestamp - 7 * secondsInDay,
+		currentTimestamp - numberOfDaysForLargeTx * secondsInDay,
 		currentTimestamp
 	)
 	const largeTxsData = unformattedLargeTxsData.map((transaction) => {
