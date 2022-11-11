@@ -6,24 +6,6 @@ import { CEXTable } from '~/components/Table/Defi'
 
 const cexData = [
 	{
-		name: "Coinbase",
-		lastAuditDate: 1640908800,
-		auditor: "Deloitte",
-		auditLink: "https://d18rn0p25nwr6d.cloudfront.net/CIK-0001679788/8e5e0508-da75-434d-9505-cba99fa00147.pdf",
-	},
-	{
-		name: "Kraken",
-		lastAuditDate: 1656547200,
-		auditor: "ArmaninoLLP",
-		auditLink: "https://proof-of-reserves.trustexplorer.io/clients/kraken/",
-	},
-	{
-		name: "Gate.io",
-		lastAuditDate: 1666137600,
-		auditor: "ArmaninoLLP",
-		auditLink: "https://proof-of-reserves.trustexplorer.io/clients/gate.io",
-	},
-	{
 		name: "Binance",
 		slug: "Binance-CEX",
 		publicWallets: true,
@@ -46,6 +28,25 @@ const cexData = [
 	{
 		name: "Kucoin",
 		slug: "kucoin",
+		publicWallets: true,
+	},
+	{
+		name: "Coinbase",
+		lastAuditDate: 1640908800,
+		auditor: "Deloitte",
+		auditLink: "https://d18rn0p25nwr6d.cloudfront.net/CIK-0001679788/8e5e0508-da75-434d-9505-cba99fa00147.pdf",
+	},
+	{
+		name: "Kraken",
+		lastAuditDate: 1656547200,
+		auditor: "ArmaninoLLP",
+		auditLink: "https://proof-of-reserves.trustexplorer.io/clients/kraken/",
+	},
+	{
+		name: "Gate.io",
+		lastAuditDate: 1666137600,
+		auditor: "ArmaninoLLP",
+		auditLink: "https://proof-of-reserves.trustexplorer.io/clients/gate.io",
 	},
 	{
 		name: "NEXO",
