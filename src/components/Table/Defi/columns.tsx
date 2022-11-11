@@ -2,10 +2,11 @@ import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpRight, ChevronDown, ChevronRight } from 'react-feather'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
+import QuestionHelper from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
 import { Tooltip2 } from '~/components/Tooltip'
 import { ButtonYields } from '~/layout/Pool'
-import { capitalizeFirstLetter, chainIconUrl, formattedNum, formattedPercent, toNiceDayMonthAndYear } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, formattedNum, formattedPercent, slug, toNiceDayMonthAndYear } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow } from './types'
@@ -352,6 +353,67 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 			align: 'end'
 		}
 	}
+]
+
+export const cexColumn: ColumnDef<any>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span> <CustomLink href={`/protocol/${slug(row.original.slug)}`}>{getValue()}</CustomLink>
+				</Name>
+			)
+		}
+	},
+	{
+		header: 'TVL',
+		accessorKey: 'tvl',
+		cell: (info) => {
+			return <>{info.getValue() === undefined?
+			<QuestionHelper text="This CEX has not published a list of all hot and cold wallets"/>:
+			'$' + formattedNum(info.getValue())}</>
+		},
+		size: 120,
+	},
+	{
+		header: 'Liabilities auditor',
+		accessorKey: 'auditor',
+		size: 120,
+		cell: ({ getValue }) => <>{getValue() === undefined?
+			<QuestionHelper text="This CEX has no third party liability audits"/>:
+			getValue()}</>,
+	},
+	{
+		cell: ({ getValue }) => <>{getValue() === undefined?null:toNiceDayMonthAndYear(getValue())}</>,
+		size: 120,
+		header: 'Last audit date',
+		accessorKey: 'lastAuditDate'
+	},
+	{
+		header: 'Audit link',
+		accessorKey: 'auditLink',
+		size: 48,
+		enableSorting: false,
+		cell: ({ getValue }) => (
+			getValue()===undefined?null:
+			<ButtonYields
+				as="a"
+				href={getValue() as string}
+				target="_blank"
+				rel="noopener noreferrer"
+				data-lgonly
+				useTextColor={true}
+				style={{width: "21px"}}
+			>
+				<ArrowUpRight size={14} />
+			</ButtonYields>
+		)
+	},
 ]
 
 // key: min width of window/screen
