@@ -66,8 +66,8 @@ export async function getStaticProps() {
 
 export default function Protocols({ cexs }) {
 	return (
-		<Layout title={`CEX Audits - DefiLlama`} defaultSEO>
-			<Header>CEX Audits</Header>
+		<Layout title={`CEX Transparency - DefiLlama`} defaultSEO>
+			<Header>CEX Transparency</Header>
 
 		<CEXTable
 			data={cexs}
