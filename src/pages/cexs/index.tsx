@@ -25,7 +25,7 @@ const cexData = [
 	},
 	{
 		name: "Binance",
-		slug: "Binance CEX"
+		slug: "Binance-CEX"
 	},
 	{
 		name: "Crypto.com",
@@ -46,19 +46,17 @@ const cexData = [
 ]
 
 export async function getStaticProps() {
-	const { protocols } = await getProtocolsRaw()
-	const cexTvl = protocols.filter(p=>p.category === "CEX")
-
+	const cexs = await Promise.all(cexData.map(async c=>{
+		if(c.slug === undefined){
+			return c
+		} else{
+			const {tvl} = await fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then(r=>r.json())
+			return {...c, tvl: tvl[tvl.length - 1].totalLiquidityUSD}
+		}
+	}))
 	return {
 		props: {
-			cexs: cexData.map(c=>{
-				const tvl = cexTvl.find(p=>p.name === c.slug)?.tvl
-				if(tvl !== undefined){
-					return {...c, tvl}
-				}
-
-				return c
-			})
+			cexs
 		},
 		revalidate: revalidate()
 	}
