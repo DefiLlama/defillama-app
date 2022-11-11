@@ -52,7 +52,11 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 					{props.data.change_1d && (
 						<PanelHiddenMobile>
 							<h2>Change (24h)</h2>
-							<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {props.data.change_1d || 0}%</p>
+							{props.data.change_1d > 0 ? (
+								<p style={{ '--tile-text-color': '#3cfd99' } as React.CSSProperties}> {props.data.change_1d || 0}%</p>
+							) : (
+								<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {props.data.change_1d || 0}%</p>
+							)}
 						</PanelHiddenMobile>
 					)}
 					{props.data.change_1m && (
