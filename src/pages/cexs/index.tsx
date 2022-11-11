@@ -34,6 +34,17 @@ const cexData = [
 		publicWallets: true,
 	},
 	{
+		name: "OKX",
+		slug: "OKX",
+		publicWallets: true,
+	},
+	{
+		name: "NEXO",
+		lastAuditDate: 1668173147,
+		auditor: "ArmaninoLLP",
+		auditLink: "https://real-time-attest.trustexplorer.io/nexo",
+	},
+	{
 		name: "Kucoin",
 	},
 	{
@@ -44,12 +55,6 @@ const cexData = [
 	},
 	{
 		name: "Bybit",
-	},
-	{
-		name: "NEXO",
-		lastAuditDate: 1668173147,
-		auditor: "ArmaninoLLP",
-		auditLink: "https://real-time-attest.trustexplorer.io/nexo",
 	},
 	{
 		name: "CoinEx",
