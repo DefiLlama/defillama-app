@@ -397,7 +397,10 @@ export const cexColumn: ColumnDef<any>[] = [
 
 			return (
 				<Name>
-					<span>{index + 1}</span> <CustomLink href={`/protocol/${slug(row.original.slug)}`}>{getValue()}</CustomLink>
+					<span>{index + 1}</span> 
+						{row.original.slug === undefined? getValue(): 
+							<CustomLink href={`/protocol/${slug(row.original.slug)}`}>{getValue()}</CustomLink>
+						}
 				</Name>
 			)
 		}
