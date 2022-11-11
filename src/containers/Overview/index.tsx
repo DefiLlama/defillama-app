@@ -165,7 +165,7 @@ interface ITitleProps {
 }
 const TitleByType: React.FC<ITitleProps> = (props) => {
 	let title = upperCaseFirst(props.type)
-	if (props.type === 'dexs') title = `Volume in ${props.chain === 'All' ? 'all DEXs' : props.chain}`
+	if (props.type === 'dexs') title = `Volume in ${props.chain === 'all' ? 'all DEXs' : props.chain}`
 	if (props.type === 'fees') title = 'Ranking by fees and revenue'
 	if (props.chain === 'all') {
 		const typeLabel = props.type === 'volumes' ? 'Volume' : title
