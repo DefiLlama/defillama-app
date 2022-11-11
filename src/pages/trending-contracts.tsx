@@ -26,7 +26,7 @@ async function getContracts(time: number) {
 }
 
 export default function TrendingContracts() {
-	const [sorting, setSorting] = useState<SortingState>()
+	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'gas_spend' }])
 
 	const [value, setValue] = useState<number>(60)
 
