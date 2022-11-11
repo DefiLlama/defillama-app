@@ -26,7 +26,7 @@ export const getOverviewItem = (
 	dataType?: string
 ): Promise<ProtocolAdaptorSummaryResponse> =>
 	fetch(
-		`${ADAPTORS_SUMMARY_BASE_API}/${type}/${protocolName}/?excludeTotalDataChartBreakdown=true${dataType ? `&dataType=${dataType}` : ''
+		`${ADAPTORS_SUMMARY_BASE_API}/${type}/${protocolName}${dataType ? `?dataType=${dataType}` : ''
 		}`
 	).then((r) => r.json())
 export const getOverview = (type: string, chain?: string, dataType?: string, includeTotalDataChart?: boolean, fullChart?: boolean): Promise<IGetOverviewResponseBody> =>
@@ -124,7 +124,6 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				? Object.entries(protocol.protocolsStats)
 					.map(([versionName, summary]) => ({
 						...protocol,
-						name: `${protocol.name} ${versionName.toUpperCase()}`,
 						displayName: `${protocol.name} ${versionName.toUpperCase()}`,
 						...summary,
 						totalAllTime: null,
