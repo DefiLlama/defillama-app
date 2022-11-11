@@ -51,9 +51,6 @@ const cexData = [
 		name: "Bitfinex",
 	},
 	{
-		name: "OKX",
-	},
-	{
 		name: "Bybit",
 	},
 	{
