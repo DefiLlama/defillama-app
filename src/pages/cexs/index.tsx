@@ -40,6 +40,8 @@ const cexData = [
 	},
 	{
 		name: "Bitfinex",
+		slug: "bitfinex",
+		coin: null,
 		walletsLink: "https://github.com/bitfinexcom/pub/blob/main/wallets.txt",
 	},
 	{
