@@ -8,27 +8,39 @@ const cexData = [
 	{
 		name: "Binance",
 		slug: "Binance-CEX",
-		publicWallets: true,
+		coin: "binancecoin",
+		coinSymbol: "BNB",
+		walletsLink: "https://www.binance.com/en/blog/community/our-commitment-to-transparency-2895840147147652626",
 	},
 	{
 		name: "Crypto.com",
 		slug: "Crypto-com",
-		publicWallets: true,
+		coin: "CRO",
+		coinSymbol: "CRO",
+		walletsLink: "https://twitter.com/kris/status/1591036632664518657",
 	},
 	{
 		name: "OKX",
 		slug: "okx",
-		publicWallets: true,
+		coin: null,
+		walletsLink: "https://twitter.com/okx/status/1590812545346330624",
 	},
 	{
 		name: "Deribit",
 		slug: "deribit",
-		publicWallets: true,
+		coin: null,
+		walletsLink: "https://insights.deribit.com/exchange-updates/deribit-wallet-holdings/",
 	},
 	{
 		name: "Kucoin",
 		slug: "kucoin",
-		publicWallets: true,
+		coin: "kucoin-shares",
+		coinSymbol: "KCS",
+		walletsLink: "https://www.kucoin.com/blog/transparency-and-trust-a-detailed-list-of-kucoin-s-wallets"
+	},
+	{
+		name: "Bitfinex",
+		walletsLink: "https://github.com/bitfinexcom/pub/blob/main/wallets.txt",
 	},
 	{
 		name: "Coinbase",
@@ -55,9 +67,6 @@ const cexData = [
 		auditLink: "https://real-time-attest.trustexplorer.io/nexo",
 	},
 	{
-		name: "Bitfinex",
-	},
-	{
 		name: "Bybit",
 	},
 	{
@@ -70,8 +79,14 @@ export async function getStaticProps() {
 		if(c.slug === undefined){
 			return c
 		} else{
-			const {tvl} = await fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then(r=>r.json())
-			return {...c, tvl: tvl[tvl.length - 1].totalLiquidityUSD}
+			const {tvl, tokensInUsd} = await fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then(r=>r.json())
+			const cexTvl = tvl[tvl.length - 1].totalLiquidityUSD
+			const ownToken = tokensInUsd[tokensInUsd.length - 1].tokens[c.coin] ?? 0
+			return {
+				...c,
+				tvl: cexTvl,
+				cleanTvl:  cexTvl - ownToken
+			}
 		}
 	}))
 	return {
