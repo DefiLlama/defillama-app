@@ -108,10 +108,15 @@ export const getOption = (
 			formatter: (params: any) => {
 				const { name } = params[0]
 				return (
-					`<div style="margin-bottom: 8px"><b>${
+					`<div style="margin-bottom: 4px"><b>${
 						isLiqsCumulative ? `Total liquidatable ≤ ` : `Liquidations at ~`
-					}$${name}</b></div>` +
-					// `<br/>` +
+					}$${name}</b><br/>` +
+					// sum of all the values
+					`<span><b>Total :</b> ${
+						isLiqsUsingUsd
+							? `$${getReadableValue(params.reduce((a: any, b: any) => a + Number(b.value), 0))}`
+							: `${getReadableValue(params.reduce((a: any, b: any) => a + Number(b.value), 0))}`
+					}</span></div>` +
 					params
 						.map(
 							(param: any) =>
