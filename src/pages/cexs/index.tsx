@@ -30,12 +30,12 @@ const cexData = [
 	},
 	{
 		name: "Crypto.com",
-		slug: "Crypto.com",
+		slug: "Crypto-com",
 		publicWallets: true,
 	},
 	{
 		name: "OKX",
-		slug: "OKX",
+		slug: "okx",
 		publicWallets: true,
 	},
 	{
