@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book, ShieldOff, Shuffle, Search } from 'react-feather'
+import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book, ShieldOff, Shuffle, Search, BookOpen } from 'react-feather'
 
 export interface IMainLink {
 	name: string
@@ -156,6 +156,11 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Search size={16} />
 	},
+	"CEX Transparency": {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <BookOpen size={16} />
+	},
 	Bridges: {
 		main: [
 			{ name: 'Overview', path: '/bridges', newTag: true },
@@ -208,6 +213,7 @@ export const linksWithNoSubMenu = [
 	{ name: 'Raises', url: '/raises' },
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Borrow Aggregator', url: '/borrow' },
+	{ name: 'CEX Transparency', url: '/cexs' },
 ]
 
 function downloadDefiDataset() {
