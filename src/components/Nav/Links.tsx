@@ -1,5 +1,16 @@
 import { ReactNode } from 'react'
-import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book, ShieldOff, Shuffle, Search } from 'react-feather'
+import {
+	PieChart,
+	Droplet,
+	BarChart,
+	DollarSign,
+	Percent,
+	BarChart2,
+	Book,
+	ShieldOff,
+	Shuffle,
+	Search
+} from 'react-feather'
 
 export interface IMainLink {
 	name: string
@@ -36,6 +47,7 @@ const defaultToolsAndFooterLinks = {
 			name: 'Roundup',
 			path: '/roundup'
 		},
+		{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
 		{
 			name: 'Wiki',
 			path: 'https://wiki.defillama.com/wiki/Main_Page',
@@ -151,7 +163,7 @@ export const navLinks: ILinks = {
 		],
 		icon: <Percent size={16} />
 	},
-	"Borrow Aggregator": {
+	'Borrow Aggregator': {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Search size={16} />
@@ -199,7 +211,7 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <ShieldOff size={16} />
-	},
+	}
 }
 
 export const linksWithNoSubMenu = [
@@ -207,7 +219,7 @@ export const linksWithNoSubMenu = [
 	{ name: 'Fees', url: '/fees' },
 	{ name: 'Raises', url: '/raises' },
 	{ name: 'Hacks', url: '/hacks' },
-	{ name: 'Borrow Aggregator', url: '/borrow' },
+	{ name: 'Borrow Aggregator', url: '/borrow' }
 ]
 
 function downloadDefiDataset() {
