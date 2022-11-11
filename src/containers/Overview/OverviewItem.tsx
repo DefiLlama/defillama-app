@@ -74,8 +74,11 @@ export const ProtocolChart = ({
 	fullChart = false,
 	totalAllTime
 }: IDexChartsProps) => {
-	const typeString = type === 'volumes' ? 'Volumes' : upperCaseFirst(type)
-	const typeSimple = type === 'volumes' || type === 'options' ? 'volume' : type
+	const typeString = type === 'dexs' ? 'Dexs' : upperCaseFirst(type)
+	const typeSimple = type === 'dexs' || type === 'options' ? 'volume' : type
+	const simpleStack = chartData[1].includes('Fees')
+		? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
+		: undefined
 	return (
 		<StatsSection>
 			{!fullChart && (
@@ -137,7 +140,7 @@ export const ProtocolChart = ({
 					title={title ?? ''}
 					chartData={chartData[0]}
 					customLegendOptions={chartData[1]}
-					stacks={{ Fees: 'stackA', Revenue: 'stackB' }}
+					stacks={simpleStack}
 					stackColors={stackedBarChartColors}
 				/>
 			</ChartWrapper>
