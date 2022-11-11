@@ -39,13 +39,19 @@ const cexData = [
 		publicWallets: true,
 	},
 	{
+		name: "Deribit",
+		slug: "deribit",
+		publicWallets: true,
+	},
+	{
+		name: "Kucoin",
+		slug: "kucoin",
+	},
+	{
 		name: "NEXO",
 		lastAuditDate: 1668173147,
 		auditor: "ArmaninoLLP",
 		auditLink: "https://real-time-attest.trustexplorer.io/nexo",
-	},
-	{
-		name: "Kucoin",
 	},
 	{
 		name: "Bitfinex",
