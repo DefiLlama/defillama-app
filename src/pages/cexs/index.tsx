@@ -43,6 +43,12 @@ const cexData = [
 	{
 		name: "Bybit",
 	},
+	{
+		name: "NEXO",
+		lastAuditDate: 1668173147,
+		auditor: "ArmaninoLLP",
+		auditLink: "https://real-time-attest.trustexplorer.io/nexo",
+	},
 ]
 
 export async function getStaticProps() {
