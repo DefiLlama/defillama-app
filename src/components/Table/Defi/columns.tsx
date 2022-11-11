@@ -449,6 +449,12 @@ export const cexColumn: ColumnDef<any>[] = [
 			</ButtonYields>
 		)
 	},
+	{
+		cell: ({ getValue }) => <>{getValue() === true?"Yes":"No"}</>,
+		size: 120,
+		header: 'Public Wallet Addresses',
+		accessorKey: 'publicWallets'
+	},
 ]
 
 // key: min width of window/screen

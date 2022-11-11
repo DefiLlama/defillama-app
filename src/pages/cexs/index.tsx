@@ -25,11 +25,13 @@ const cexData = [
 	},
 	{
 		name: "Binance",
-		slug: "Binance-CEX"
+		slug: "Binance-CEX",
+		publicWallets: true,
 	},
 	{
 		name: "Crypto.com",
 		slug: "Crypto.com",
+		publicWallets: true,
 	},
 	{
 		name: "Kucoin",
