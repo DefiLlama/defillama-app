@@ -53,12 +53,12 @@ export const getStaticPathsByType = (type: string) => async () => {
 		.sort((a, b) => {
 			return b.total24h - a.total24h
 		})
+		.slice(0, 5)
 		.map((protocol) => ({
 			params: { type, item: standardizeProtocolName(protocol.name) }
 		}))
 
-	// { fallback: false } means other routes should 404
-	return { paths, fallback: false }
+	return { paths, fallback: 'blocking' }
 }
 
 export default function ProtocolItem({ protocolSummary, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {
