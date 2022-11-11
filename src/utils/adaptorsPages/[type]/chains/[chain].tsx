@@ -18,7 +18,7 @@ export const getStaticPathsByType = (type: string) => async () => {
 	}))
 
 	// { fallback: false } means other routes should 404
-	return { paths, fallback: 'false' }
+	return { paths, fallback: false }
 }
 
 export { default, getStaticProps } from '../'
