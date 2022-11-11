@@ -51,6 +51,9 @@ const cexData = [
 		auditor: "ArmaninoLLP",
 		auditLink: "https://real-time-attest.trustexplorer.io/nexo",
 	},
+	{
+		name: "CoinEx",
+	},
 ]
 
 export async function getStaticProps() {
