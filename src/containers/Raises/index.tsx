@@ -242,6 +242,12 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 						<DownloadIcon />
 						<span>&nbsp;&nbsp;.csv</span>
 					</DownloadButton>
+					<Link href="https://api.llama.fi/raises" target="_blank">
+						<DownloadButton>
+							<DownloadIcon />
+							<span>&nbsp;&nbsp;.json</span>
+						</DownloadButton>
+					</Link>
 				</TableHeaderWrapper>
 
 				<Dropdowns>
