@@ -11,7 +11,7 @@ import { Chains, Investors, RaisedRange, Rounds, Sectors } from '~/components/Fi
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { DownloadIcon } from '~/components'
-import { download } from '~/utils'
+import { download, toNiceCsvDate } from '~/utils'
 
 function RaisesTable({ raises }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
@@ -186,10 +186,11 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 		const rows = [
 			[
 				'Name',
+				'Timestamp',
 				'Date',
 				'Amount Raised',
 				'Round',
-				'Sector',
+				'Description',
 				'Lead Investor',
 				'Source',
 				'Valuation',
@@ -198,19 +199,21 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 			]
 		]
 
-		raises.forEach((item) => {
+		const removeJumps = (text:string|number) => typeof text === "string"? '"'+text.replaceAll("\n", "")+'"':text
+		raises.sort((a,b)=>b.date-a.date).forEach((item) => {
 			rows.push([
 				item.name,
 				item.date,
-				item.amount * 1_000_000,
+				toNiceCsvDate(item.date),
+				item.amount === null? "" : item.amount * 1_000_000,
 				item.round ?? '',
 				item.sector ?? '',
-				item.leadInvestors?.join(', ') ?? '',
+				item.leadInvestors?.join(' + ') ?? '',
 				item.source ?? '',
 				item.valuation ?? '',
-				item.chains?.join(', ') ?? '',
-				item.otherInvestors?.join(', ') ?? ''
-			])
+				item.chains?.join(' + ') ?? '',
+				item.otherInvestors?.join(' + ') ?? ''
+			].map(removeJumps) as string[])
 		})
 
 		download(`raises.csv`, rows.map((r) => r.join(',')).join('\n'))

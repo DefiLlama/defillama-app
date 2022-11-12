@@ -154,7 +154,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 	},
 	{ header: 'Round', accessorKey: 'round', enableSorting: false, size: 140 },
 	{
-		header: 'Sector',
+		header: 'Description',
 		accessorKey: 'sector',
 		size: 140,
 		enableSorting: false,
