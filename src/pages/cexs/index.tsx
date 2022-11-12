@@ -74,6 +74,39 @@ const cexData = [
 	{
 		name: "CoinEx",
 	},
+	{
+		name: "Gemini",
+	},
+	{
+		name: "Huobi",
+	},
+	{
+		name: "Coincheck",
+	},
+	{
+		name: "Bitstamp",
+	},
+	{
+		name: "Bithumb",
+	},
+	{
+		name: "Bitget",
+	},
+	{
+		name: "Poloniex",
+	},
+	{
+		name: "Upbit",
+	},
+	{
+		name: "Bitmart",
+	},
+	{
+		name: "Bittrex",
+	},
+	{
+		name: "Coinone",
+	},
 ]
 
 export async function getStaticProps() {
