@@ -41,7 +41,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 		<ChartAndValuesWrapper>
 			{props.data.total24h || props.data.change_1d || props.data.change_1m ? (
 				<BreakpointPanels>
-					{props.data.total24h && (
+					{!Number.isNaN(props.data.total24h) && (
 						<BreakpointPanel>
 							<h1>Total {dataType} (24h)</h1>
 							<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
@@ -49,7 +49,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							</p>
 						</BreakpointPanel>
 					)}
-					{props.data.change_1d && (
+					{!Number.isNaN(props.data.change_1d) && (
 						<PanelHiddenMobile>
 							<h2>Change (24h)</h2>
 							{props.data.change_1d > 0 ? (
@@ -59,7 +59,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							)}
 						</PanelHiddenMobile>
 					)}
-					{props.data.change_1m && (
+					{!Number.isNaN(props.data.change_1m) && (
 						<PanelHiddenMobile>
 							<h2>Change (30d)</h2>
 							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.change_1m || 0}%</p>

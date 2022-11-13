@@ -31,8 +31,6 @@ export const getStaticPathsByType = (type: string) => async () => {
 			params: { type, chain: chain.name.toLowerCase() }
 		}))
 
-	console.log(paths)
-
 	// { fallback: false } means other routes should 404
 	return { paths, fallback: 'blocking' }
 }
