@@ -32,7 +32,11 @@ export async function getQuote(chain: string, from: string, to: string, amount: 
 	const tokenTo = to === ethers.constants.AddressZero ? nativeToken : to
 
 	const data = await fetch(
-		`https://aggregator-api.kyberswap.com/${chainToId[chain]}/route/encode?tokenIn=${tokenFrom}&tokenOut=${tokenTo}&amountIn=${amount}&to=${extra.userAddress}&saveGas=0&gasInclude=0&slippageTolerance=50`,
+		`https://aggregator-api.kyberswap.com/${
+			chainToId[chain]
+		}/route/encode?tokenIn=${tokenFrom}&tokenOut=${tokenTo}&amountIn=${amount}&to=${
+			extra.userAddress
+		}&saveGas=0&gasInclude=0&slippageTolerance=${+extra.slippage * 100 || 50}`,
 		{
 			headers: {
 				'Accept-Version': 'Latest'

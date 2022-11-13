@@ -21,13 +21,17 @@ export function approvalAddress() {
 
 const nativeToken = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
-export async function getQuote(chain: string, from: string, to: string, amount: string) {
+export async function getQuote(chain: string, from: string, to: string, amount: string, extra) {
 	// amount should include decimals
 
 	const tokenFrom = from === ethers.constants.AddressZero ? nativeToken : from
 	const tokenTo = to === ethers.constants.AddressZero ? nativeToken : to
 	const data = await fetch(
-		`${chainToId[chain]}swap/v1/quote?buyToken=${tokenTo}&sellToken=${tokenFrom}&sellAmount=${amount}`
+		`${
+			chainToId[chain]
+		}swap/v1/quote?buyToken=${tokenTo}&sellToken=${tokenFrom}&sellAmount=${amount}&slippagePercentage=${
+			extra.slippage / 100 || 1
+		}`
 	).then((r) => r.json())
 	return {
 		amountReturned: data.buyAmount,
@@ -57,13 +61,15 @@ export async function swap({
 	from,
 	to,
 	amount,
-	signer
+	signer,
+	slippage
 }: {
 	signer: Signer
 	chain: string
 	from: string
 	to: string
 	amount: string
+	slippage: string
 }) {
 	const fromAddress = await signer.getAddress()
 
@@ -71,7 +77,11 @@ export async function swap({
 	const tokenTo = to === ethers.constants.AddressZero ? nativeToken : to
 
 	const data = await fetch(
-		`${chainToId[chain]}swap/v1/quote?buyToken=${tokenTo}&sellToken=${tokenFrom}&sellAmount=${amount}&takerAddress=${fromAddress}`
+		`${
+			chainToId[chain]
+		}swap/v1/quote?buyToken=${tokenTo}&sellToken=${tokenFrom}&sellAmount=${amount}&takerAddress=${fromAddress}&slippagePercentage=${
+			+slippage / 100 || 1
+		}`
 	).then((r) => r.json())
 
 	const tx = await signer.sendTransaction({

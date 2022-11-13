@@ -1,3 +1,4 @@
 export interface ExtraData {
-  userAddress:string,
+	userAddress: string
+	slippage: string
 }
