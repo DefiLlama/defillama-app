@@ -79,6 +79,10 @@ const cexData = [
 	},
 	{
 		name: "Huobi",
+		slug: "Huobi",
+		coin: "HT",
+		coinSymbol: "HT",
+		walletsLink: "https://www.huobi.com/support/en-us/detail/24922606430831",
 	},
 	{
 		name: "Coincheck",
