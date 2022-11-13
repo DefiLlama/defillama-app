@@ -45,6 +45,13 @@ const cexData = [
 		walletsLink: "https://github.com/bitfinexcom/pub/blob/main/wallets.txt",
 	},
 	{
+		name: "Huobi",
+		slug: "Huobi",
+		coin: "HT",
+		coinSymbol: "HT",
+		walletsLink: "https://www.huobi.com/support/en-us/detail/24922606430831",
+	},
+	{
 		name: "Coinbase",
 		lastAuditDate: 1640908800,
 		auditor: "Deloitte",
@@ -76,13 +83,6 @@ const cexData = [
 	},
 	{
 		name: "Gemini",
-	},
-	{
-		name: "Huobi",
-		slug: "Huobi",
-		coin: "HT",
-		coinSymbol: "HT",
-		walletsLink: "https://www.huobi.com/support/en-us/detail/24922606430831",
 	},
 	{
 		name: "Coincheck",
