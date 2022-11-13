@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic'
-import { useEffect, useMemo } from 'react'
+import * as React from 'react'
 import { IJSON } from '~/api/categories/adaptors/types'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
@@ -21,7 +21,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 	const dataType =
 		props.type === 'dexs' || props.type === 'options' || props.type === 'aggregators' ? 'volume' : props.type
 
-	const chartData = useMemo(() => {
+	const chartData = React.useMemo(() => {
 		return props.chartData
 			? Object.entries(
 					props.chartData[0].reduce((acc, curr) => {
