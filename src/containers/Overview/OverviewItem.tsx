@@ -185,7 +185,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				type={props.protocolSummary.type}
 				step={{
 					category: upperCaseFirst(props.protocolSummary.type),
-					name: props.protocolSummary.name
+					name: props.protocolSummary.displayName
 				}}
 				/* onToggleClick={
 					charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
@@ -197,7 +197,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				logo={props.protocolSummary.logo}
 				data={props.protocolSummary}
 				chartData={mainChart.dataChart}
-				name={props.protocolSummary.name}
+				name={props.protocolSummary.displayName}
 				type={props.protocolSummary.type}
 				title={mainChart.title}
 				totalAllTime={props.protocolSummary.totalAllTime}
