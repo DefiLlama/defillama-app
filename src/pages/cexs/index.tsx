@@ -71,9 +71,6 @@ const cexData = [
 	},
 	{
 		name: "NEXO",
-		lastAuditDate: 1668173147,
-		auditor: "ArmaninoLLP",
-		auditLink: "https://real-time-attest.trustexplorer.io/nexo",
 	},
 	{
 		name: "Bybit",
