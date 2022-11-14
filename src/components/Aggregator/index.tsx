@@ -4,6 +4,8 @@ import { groupBy, mapValues, merge, uniqBy } from 'lodash'
 import { FixedSizeList as List } from 'react-window'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { capitalizeFirstLetter } from '~/utils'
+import { Panel } from '~/components'
+
 import ReactSelect from '../MultiSelect/ReactSelect'
 import { getAllChains, listRoutes, swap } from './router'
 import styled, { css } from 'styled-components'
@@ -305,7 +307,7 @@ const Routes = styled.div<{ show: boolean; isFirstRender: boolean }>`
 	text-align: left;
 	overflow-y: scroll;
 	min-width: 360px;
-	max-height: 416px;
+	max-height: 444px;
 	min-width: 26rem;
 
 	box-shadow: ${({ theme }) =>
@@ -736,6 +738,29 @@ export function AggregatorContainer({ tokenlist }) {
 						: null}
 				</Routes>
 			</BodyWrapper>
+			<Panel as="p" style={{ margin: '0 auto', textAlign: 'left', maxWidth: '600px', marginLeft: '120px' }}>
+				<div style={{ textAlign: 'center' }}>
+					<TYPE.largeHeader>FAQ</TYPE.largeHeader>
+				</div>{' '}
+				<br />
+				<b>Does DefiLlama take any fees? </b>
+				DefiLlama takes 0 fee on swaps.
+				<br /> You'll get the exact same price swapping through DefiLlama as what you'd get swapping through the chosen
+				aggregator directly. We add our referral code to swaps, so, for aggregators with revenue sharing, they will send
+				us part of the fee they earn. This is not an extra fee, you'd be charged the same fee anyway, but now a small
+				part of it is shared with DefiLlama. We also integrate aggregators with no fee sharing the best price, and in
+				those cases we don't make any money. <br />
+				<br />
+				<b>Is it safe?</b>Our aggregator uses the router contract of each aggregator, we don't use any contracts
+				developed by us. Thus you inherit the same security you'd get by swapping directly from their UI instead of
+				ours.
+				<br />
+				<br />
+				<b>Will I be eligible for airdrops if I swap through DefiLlama?</b> Yes, we execute swaps directly against the
+				router of each aggregator, so there's no difference between a swap executed directly from their UI and a swap
+				executed from DefiLlama, thus all swaps would be as eligible for airdrops as swaps made through their UI in case
+				there's a future airdrop.
+			</Panel>
 		</Wrapper>
 	)
 }
