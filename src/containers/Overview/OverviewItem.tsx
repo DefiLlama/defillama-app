@@ -76,9 +76,10 @@ export const ProtocolChart = ({
 }: IDexChartsProps) => {
 	const typeString = type === 'dexs' ? 'Volume' : upperCaseFirst(type)
 	const typeSimple = type === 'dexs' || type === 'options' ? 'volume' : type
-	const simpleStack = chartData[1].includes('Fees')
-		? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
-		: undefined
+	const simpleStack =
+		chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
+			? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
+			: undefined
 	return (
 		<StatsSection>
 			{!fullChart && (
