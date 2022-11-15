@@ -99,10 +99,26 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		return acc
 	}, {})
 
+	let label: string
+	if (type === 'options') {
+		label = "Notionial volume"
+	} else {
+		label = upperCaseFirst(type)
+	}
 	const allCharts: IChartsList = []
-	if (totalDataChart) allCharts.push([upperCaseFirst(type), totalDataChart])
+	if (totalDataChart) allCharts.push([label, totalDataChart])
 
-	// Get second type for fees, if wanna add this, take a look at how its done in getOverviewItemPageData
+	let secondType: IGetOverviewResponseBody
+	let secondLabel: string
+	if (type === 'options') {
+		secondType = (await fetch(getAPIUrl(type, chain, false, true, "dailyPremiumVolume")).then((res) =>
+			res.json()
+		)) as IGetOverviewResponseBody
+		secondLabel = "Premium volume"
+	}
+	if (secondLabel && secondType?.totalDataChart)
+		allCharts.push([secondLabel, secondType.totalDataChart])
+
 	let revenue: IGetOverviewResponseBody
 	if (type === 'fees')
 		revenue = (await fetch(getAPIUrl(type, chain, true, true, 'dailyRevenue')).then((res) =>
@@ -132,14 +148,14 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			module: protocol.module,
 			subRows: protocol.protocolsStats
 				? Object.entries(protocol.protocolsStats)
-						.map(([versionName, summary]) => ({
-							...protocol,
-							displayName: `${protocol.name} ${versionName.toUpperCase()}`,
-							...summary,
-							totalAllTime: null,
-							revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? (0 as number)
-						}))
-						.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
+					.map(([versionName, summary]) => ({
+						...protocol,
+						displayName: `${protocol.name} ${versionName.toUpperCase()}`,
+						...summary,
+						totalAllTime: null,
+						revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? (0 as number)
+					}))
+					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
 				: null
 		}
 	})
@@ -209,10 +225,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 		revenue24h: null
 	}))
 
-	/* 	...Object.fromEntries(volumesAtDate.slice(0, 11)),
-			Others: volumesAtDate.slice(11).reduce((acc, curr: [string, number]) => (acc += curr[1]), 0) */
-
-	const allCharts = dataByChain.map((chainData) => [chainData.chain, chainData.totalDataChart]) as IChartsList
+	const allCharts = dataByChain.map(chainData => [chainData.chain, chainData.totalDataChart]) as IChartsList
 	let aggregatedChart = joinCharts2(...allCharts)
 	const sum = (obj: IJSON<string | number>) => {
 		return Object.values(obj).reduce<number>((acc, curr) => (typeof curr === 'number' ? (acc += curr) : acc), 0)
@@ -228,7 +241,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 		totalDataChart: [aggregatedChart, allCharts.map(([label]) => label)]
 	}
 }
-//const sortedList = list.sort(([_a, a], [_b, b]) => b - a)
+
 type IChartsList = Array<[string, IGetOverviewResponseBody['totalDataChart']]>
 export type IJoin2ReturnType = Array<IJSON<number | string> & { date: string }>
 export const joinCharts2 = (...lists: Array<[string, Array<[number, number]>]>): IJoin2ReturnType =>

@@ -2,24 +2,28 @@ import dynamic from 'next/dynamic'
 import * as React from 'react'
 import { IJSON } from '~/api/categories/adaptors/types'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
-import { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
+import { IBarChartProps } from '~/components/ECharts/types'
 import { formattedNum } from '~/utils'
 import { IDexChartsProps } from './OverviewItem'
 
-const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
+const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
-}) as React.FC<IStackedBarChartProps>
+}) as React.FC<IBarChartProps>
 
 export interface IMainBarChartProps {
 	type: string
 	total24h: number | null
 	change_1d: number | null
 	change_1m: number | null
-	chartData: IStackedBarChartProps['chartData'] | null
+	chartData: IBarChartProps['chartData'] | null
 }
 export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 	const dataType =
 		props.type === 'dexs' || props.type === 'options' || props.type === 'aggregators' ? 'volume' : props.type
+	const simpleStack =
+		props.chartData[1].includes('Fees') || props.chartData[1].includes('Premium volume')
+			? props.chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
+			: undefined
 
 	const chartData = React.useMemo(() => {
 		return props.chartData
@@ -32,7 +36,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							else acc[key] = [[new Date(+curr.date * 1000), value]]
 						})
 						return acc
-					}, {} as IJSON<IStackedBarChartProps['chartData'][number]['data']>)
+					}, {} as IJSON<IBarChartProps['chartData'][number]['data']>)
 			  ).map(([name, data]) => ({ name, data }))
 			: []
 	}, [props.chartData])
@@ -70,7 +74,15 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 				<></>
 			)}
 			<BreakpointPanel id="chartWrapper">
-				{chartData && chartData.length > 0 && <StackedBarChart chartData={chartData} />}
+				{chartData && chartData.length > 0 && (
+					<StackedBarChart
+						title=""
+						chartData={props.chartData[0]}
+						customLegendOptions={props.chartData[1] as string[]}
+						stacks={simpleStack}
+						/* stackColors={stackedBarChartColors} */
+					/>
+				)}
 			</BreakpointPanel>
 		</ChartAndValuesWrapper>
 	)
