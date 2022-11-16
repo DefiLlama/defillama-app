@@ -52,6 +52,13 @@ const cexData = [
 		walletsLink: "https://www.huobi.com/support/en-us/detail/24922606430831",
 	},
 	{
+		name: "Bybit",
+		slug: "Bybit",
+		coin: "BIT",
+		coinSymbol: 'BIT',
+		walletsLink: 'https://twitter.com/benbybit/status/1592797790518018048'
+	},
+	{
 		name: "Coinbase",
 		lastAuditDate: 1640908800,
 		auditor: "Deloitte",
@@ -77,9 +84,6 @@ const cexData = [
 	},
 	{
 		name: "NEXO",
-	},
-	{
-		name: "Bybit",
 	},
 	{
 		name: "CoinEx",
