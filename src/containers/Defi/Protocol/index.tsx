@@ -106,6 +106,14 @@ const OtherProtocols = styled.nav`
 	}
 `
 
+const RaisesWrapper = styled.ul`
+	list-style: none;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+`
+
 interface IProtocolLink {
 	active: boolean
 	color: string | null
@@ -574,15 +582,20 @@ function ProtocolContainer({
 				{raises && raises.length > 0 && (
 					<Section>
 						<h3>Raises</h3>
-						<LinksWrapper>
-							{raises.map((raise) => (
-								<a target="_blank" rel="noopener noreferrer" href={raise.source} key={raise.source}>{`${
-									raise.round
-								}: Raised $${formatRaise(Number(raise.amount))} at $${formatRaise(
-									Number(raise.valuation)
-								)} valuation.`}</a>
-							))}
-						</LinksWrapper>
+						<RaisesWrapper>
+							{raises
+								.sort((a, b) => a.date - b.date)
+								.map((raise) => (
+									<li key={raise.date + raise.amount}>
+										<a target="_blank" rel="noopener noreferrer" href={raise.source}>{`${new Date(
+											raise.date * 1000
+										).toLocaleDateString()} : ${raise.round ? raise.round + ' - ' : ''}Raised $${
+											formatRaise(Number(raise.amount)) +
+											(Number(raise.valuation) ? ` at $${formatRaise(Number(raise.valuation))} valuation` : '')
+										}`}</a>
+									</li>
+								))}
+						</RaisesWrapper>
 					</Section>
 				)}
 			</InfoWrapper>

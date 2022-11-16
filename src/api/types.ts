@@ -29,6 +29,7 @@ export interface Protocol {
 		amount: number
 		valuation: string
 		source: string
+		date: number
 	}>
 }
 
