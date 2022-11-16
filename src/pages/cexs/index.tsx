@@ -34,7 +34,7 @@ const cexData = [
 	{
 		name: "Kucoin",
 		slug: "kucoin",
-		coin: "kucoin-shares",
+		coin: "KCS",
 		coinSymbol: "KCS",
 		walletsLink: "https://www.kucoin.com/blog/transparency-and-trust-a-detailed-list-of-kucoin-s-wallets"
 	},
