@@ -52,7 +52,7 @@ import {
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
-import { IFusedProtocolData } from '~/api/types'
+import { IFusedProtocolData, IRaise } from '~/api/types'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
 import { DexCharts } from '~/containers/Dex/DexProtocol'
 import { useFetchProtocolDex } from '~/api/categories/dexs/client'
@@ -587,12 +587,9 @@ function ProtocolContainer({
 								.sort((a, b) => a.date - b.date)
 								.map((raise) => (
 									<li key={raise.date + raise.amount}>
-										<a target="_blank" rel="noopener noreferrer" href={raise.source}>{`${new Date(
-											raise.date * 1000
-										).toLocaleDateString()} : ${raise.round ? raise.round + ' - ' : ''}Raised $${
-											formatRaise(Number(raise.amount)) +
-											(Number(raise.valuation) ? ` at $${formatRaise(Number(raise.valuation))} valuation` : '')
-										}`}</a>
+										<a target="_blank" rel="noopener noreferrer" href={raise.source}>
+											{formatRaise(raise)}
+										</a>
 									</li>
 								))}
 						</RaisesWrapper>
@@ -704,7 +701,29 @@ const stackedBarChartColors = {
 	Revenue: '#E59421'
 }
 
-const formatRaise = (n: number) => {
+const formatRaise = (raise: IRaise) => {
+	let text = new Date(raise.date * 1000).toLocaleDateString() + ' :'
+
+	if (raise.round) {
+		text += ` ${raise.round}`
+	}
+
+	if (raise.round && raise.amount) {
+		text += ' -'
+	}
+
+	if (raise.amount) {
+		text += ` Raised $${formatRaisedAmount(Number(raise.amount))}`
+	}
+
+	if (raise.valuation && Number(raise.valuation)) {
+		text += ` at $${formatRaisedAmount(Number(raise.valuation))} valuation`
+	}
+
+	return text
+}
+
+const formatRaisedAmount = (n: number) => {
 	if (n >= 1e3) {
 		return `${n / 1e3}b`
 	}
