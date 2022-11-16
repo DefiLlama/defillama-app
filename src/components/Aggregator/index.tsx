@@ -616,6 +616,7 @@ export function AggregatorContainer({ tokenlist }) {
 	return (
 		<Wrapper>
 			<TYPE.largeHeader>Meta-Aggregator</TYPE.largeHeader>
+			<TYPE.heading>This product is still WIP and not ready for public release yet. Please expect things to break and if you find anything broken please let us know in the <a style={{textDecoration:"underline"}} href="http://discord.gg/buPFYXzDDd">defillama discord</a></TYPE.heading>
 
 			<BodyWrapper>
 				<Body showRoutes={!!routes?.length || isLoading}>
