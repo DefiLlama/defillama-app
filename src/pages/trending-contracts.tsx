@@ -94,7 +94,7 @@ export const columns: ColumnDef<ITrendingContracts>[] = [
 			const value = info.getValue() as string
 			return (
 				<a
-					href="https://etherscan.io/address/0xc4448b71118c9071Bcb9734A0EAc55D18A153949"
+					href={`https://etherscan.io/address/${value}`}
 					target="_blank"
 					rel="noopener noreferrer"
 					style={{ textDecoration: 'underline' }}
