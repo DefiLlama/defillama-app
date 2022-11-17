@@ -59,6 +59,12 @@ const cexData = [
 		walletsLink: 'https://insights.deribit.com/exchange-updates/deribit-wallet-holdings/'
 	},
 	{
+		name: 'Cake Defi',
+		slug: 'cake-defi',
+		coin: null,
+		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves/'
+	},
+	{
 		name: 'Coinbase',
 		lastAuditDate: 1640908800,
 		auditor: 'Deloitte',
