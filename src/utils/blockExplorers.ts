@@ -59,7 +59,8 @@ const blockExplorers = {
 	kekchain: ['https://mainnet-explorer.kekchain.com/address/', 'Kekchain Explorer'],
 	godwoken: ['https://v0.gwscan.com/account/', 'GwScan'],
 	godwokenv1: ['https://v1.gwscan.com/account/', 'GwScan'],
-	muuchain: ['https://explorer.muuchain.com/address/', 'MUUSCAN']
+	muuchain: ['https://explorer.muuchain.com/address/', 'MUUSCAN'],
+	neo: ['https://explorer.onegate.space/NEP17tokeninfo/', 'ONEGATE']
 }
 
 export const getBlockExplorer = (address: string = '') => {
