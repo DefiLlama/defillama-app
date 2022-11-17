@@ -52,6 +52,11 @@ const nextConfig = {
 				destination: '/borrow',
 				permanent: true
 			},
+			{
+				source: '/aggregator',
+				destination: 'https://swap.defillama.com/',
+				permanent: true
+			}
 		]
 	},
 	images: {
