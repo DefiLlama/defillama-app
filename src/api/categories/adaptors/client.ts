@@ -8,11 +8,9 @@ export const useFetchAdaptorsList = (type: string) => {
 	return { data, error, loading: !data && !error }
 }
 
-export const useFetchCharts = (type: string, chain?: string) => {
-	const fetch = type === 'fees' || chain === 'all' ? () => undefined : fetcher
-	let API = `${ADAPTORS_BASE_API}/${type}`
-	if (chain) API = `${API}/${chain}`
-	const { data, error } = useSWR<IGetOverviewResponseBody>(`${API}?excludeTotalDataChart=true`, fetch)
+export const useFetchCharts = (type: string, chain?: string, dataType?: string, disable?: boolean) => {
+	const fetch = type === 'fees' || chain === 'all' || disable ? () => undefined : fetcher
+	const { data, error } = useSWR<IGetOverviewResponseBody>(getAPIUrl(type, chain, true, false, dataType), fetch)
 	return { data, error, loading: !data && !error }
 }
 

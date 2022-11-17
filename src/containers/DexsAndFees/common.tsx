@@ -1,5 +1,6 @@
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { IJSON } from '~/api/categories/adaptors/types'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
@@ -60,6 +61,15 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 				<></>
 			)}
 			<BreakpointPanel id="chartWrapper">
+				{props.brokenDown && props.chartTypes && (
+					<Filters color={'blue'}>
+						{props.chartTypes.map((dataType) => (
+							<Link href={`/options?dataType=${dataType}`} key={dataType} shallow passHref>
+								<Denomination active={dataType === props.selectedType}>{dataType}</Denomination>
+							</Link>
+						))}
+					</Filters>
+				)}
 				{props.chartData && props.chartData.length > 0 && (
 					<StackedBarChart
 						title=""
