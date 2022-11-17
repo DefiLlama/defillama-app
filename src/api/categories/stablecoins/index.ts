@@ -51,6 +51,7 @@ export async function getPeggedOverviewPageData(chain) {
 
 	const priceData = await getPeggedPrices()
 	const rateData = await getPeggedRates()
+	const allChartsStartTimestamp = 1617148800	// for /stablecoins page, charts begin on April 1, 2021, to reduce size of page
 
 	let chartDataByPeggedAsset = []
 	let peggedAssetNames: string[] = [] // fix name of this variable
@@ -67,7 +68,7 @@ export async function getPeggedOverviewPageData(chain) {
 				try {
 					let charts = []
 					if (!chain) {
-						charts = await fetch(`${PEGGEDCHART_API}/all?stablecoin=${elem.id}`).then((resp) => resp.json())
+						charts = await fetch(`${PEGGEDCHART_API}/all?stablecoin=${elem.id}&startts=${allChartsStartTimestamp}`).then((resp) => resp.json())
 					} else {
 						charts = await fetch(`${PEGGEDCHART_API}/${chain}?stablecoin=${elem.id}`).then((resp) => resp.json())
 					}
