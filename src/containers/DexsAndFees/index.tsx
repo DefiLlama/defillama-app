@@ -75,11 +75,11 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					...ordredItems
 						.slice(0, 11)
 						.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number]),
-					// ...ordredItems.slice(11).reduce((acc, [key]) => ({ ...acc, [key]: 0 }), {} as IJoin2ReturnType[number]),
+					...ordredItems.slice(11).reduce((acc, [key]) => ({ ...acc, [key]: 0 }), {} as IJoin2ReturnType[number]),
 					Others: ordredItems.slice(11).reduce((acc, curr) => (acc += curr[1]), 0)
 				}
 			})
-			return [arr, Object.keys(arr[arr.length - 1]).filter((p) => p !== 'date')]
+			return [arr, [...Object.values(displayNameMap), 'Others']]
 		}
 		return props.totalDataChart
 	}, [enableBreakdownChart, charts.totalDataChartBreakdown, props.totalDataChart, props.protocols])
@@ -114,7 +114,8 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				},
 				chartData: chartData,
 				name: props.chain,
-				fullChart: isChainsPage
+				fullChart: isChainsPage,
+				brokenDown: enableBreakdownChart
 			})}
 
 			{props.allChains ? (

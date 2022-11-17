@@ -62,6 +62,7 @@ export interface IDexChartsProps {
 	title?: string
 	fullChart?: boolean
 	totalAllTime?: number
+	brokenDown?: boolean
 }
 
 export const ProtocolChart = ({

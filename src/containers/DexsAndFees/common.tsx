@@ -1,7 +1,9 @@
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import * as React from 'react'
 import { IJSON } from '~/api/categories/adaptors/types'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
+import { Denomination, Filters, FiltersWrapper } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { formattedNum } from '~/utils'
 import { IDexChartsProps } from './OverviewItem'
@@ -24,22 +26,6 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 		props.chartData[1].includes('Fees') || props.chartData[1].includes('Premium volume')
 			? props.chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
 			: undefined
-
-	const chartData = React.useMemo(() => {
-		return props.chartData
-			? Object.entries(
-					props.chartData[0].reduce((acc, curr) => {
-						Object.keys(curr).forEach((key) => {
-							const value = curr[key]
-							if (key === 'date' || typeof value === 'string') return
-							if (acc[key]) acc[key].push([new Date(+curr.date * 1000), value])
-							else acc[key] = [[new Date(+curr.date * 1000), value]]
-						})
-						return acc
-					}, {} as IJSON<IBarChartProps['chartData'][number]['data']>)
-			  ).map(([name, data]) => ({ name, data }))
-			: []
-	}, [props.chartData])
 
 	return (
 		<ChartAndValuesWrapper>
@@ -74,12 +60,13 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 				<></>
 			)}
 			<BreakpointPanel id="chartWrapper">
-				{chartData && chartData.length > 0 && (
+				{props.chartData && props.chartData.length > 0 && (
 					<StackedBarChart
 						title=""
 						chartData={props.chartData[0]}
 						customLegendOptions={props.chartData[1] as string[]}
 						stacks={simpleStack}
+						hidedefaultlegend={props.brokenDown}
 						/* stackColors={stackedBarChartColors} */
 					/>
 				)}
