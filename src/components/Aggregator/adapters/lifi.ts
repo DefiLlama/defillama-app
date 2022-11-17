@@ -33,7 +33,11 @@ export async function getQuote(chain: string, from: string, to: string, amount: 
 	const tokenFrom = from === ethers.constants.AddressZero ? nativeToken : from
 	const tokenTo = to === ethers.constants.AddressZero ? nativeToken : to
 	const data = await fetch(
-		`https://li.quest/v1/quote?fromChain=${chainToId[chain]}&toChain=${chainToId[chain]}&fromToken=${from}&toToken=${to}&fromAmount=${amount}&fromAddress=${extra.userAddress}`
+		`https://li.quest/v1/quote?fromChain=${chainToId[chain]}&toChain=${
+			chainToId[chain]
+		}&fromToken=${from}&toToken=${to}&fromAmount=${amount}&fromAddress=${extra.userAddress}&slippage=${
+			+extra.slippage / 100 || '0.05'
+		}`
 	).then((r) => r.json())
 
 	const gas = data.estimate.gasCosts.reduce((acc, val) => +acc + val.estimate, 0)
@@ -46,11 +50,15 @@ export async function getQuote(chain: string, from: string, to: string, amount: 
 	}
 }
 
-export async function swap({ chain, from, to, amount, signer, slippage = 1, rawQuote }) {
+export async function swap({ chain, from, to, amount, signer, slippage, rawQuote }) {
 	const fromAddress = await signer.getAddress()
 
 	const data = await fetch(
-		`https://li.quest/v1/quote?fromChain=${chainToId[chain]}&toChain=${chainToId[chain]}&fromToken=${from}&toToken=${to}&fromAmount=${amount}&fromAddress=${fromAddress}`
+		`https://li.quest/v1/quote?fromChain=${chainToId[chain]}&toChain=${
+			chainToId[chain]
+		}&fromToken=${from}&toToken=${to}&fromAmount=${amount}&fromAddress=${fromAddress}&slippage=${
+			slippage / 100 || '0.05'
+		}`
 	).then((r) => r.json())
 
 	const tx = await signer.sendTransaction({

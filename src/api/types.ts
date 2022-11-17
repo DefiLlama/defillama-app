@@ -1,3 +1,11 @@
+export interface IRaise {
+	round: string
+	amount: number
+	valuation: string
+	source: string
+	date: number
+}
+
 export interface Protocol {
 	id: string
 	name: string
@@ -24,12 +32,7 @@ export interface Protocol {
 	parentProtocol?: string
 	referralUrl?: string
 	isParentProtocol?: boolean
-	raises?: Array<{
-		round: string
-		amount: number
-		valuation: string
-		source: string
-	}>
+	raises?: Array<IRaise>
 }
 
 // TODO cleanup

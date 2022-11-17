@@ -1,5 +1,17 @@
 import { ReactNode } from 'react'
-import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book, ShieldOff, Shuffle, Search } from 'react-feather'
+import {
+	PieChart,
+	Droplet,
+	BarChart,
+	DollarSign,
+	Percent,
+	BarChart2,
+	Book,
+	ShieldOff,
+	Shuffle,
+	Search,
+	BookOpen
+} from 'react-feather'
 
 export interface IMainLink {
 	name: string
@@ -36,6 +48,7 @@ const defaultToolsAndFooterLinks = {
 			name: 'Roundup',
 			path: '/roundup'
 		},
+		{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
 		{
 			name: 'Wiki',
 			path: 'https://wiki.defillama.com/wiki/Main_Page',
@@ -98,7 +111,7 @@ export const navLinks: ILinks = {
 	Yields: {
 		main: [
 			{ name: 'Pools', path: '/yields' },
-			{ name: 'Strategies', path: '/yields/strategy', newTag: true },
+			{ name: 'Delta Neutral Strategies', path: '/yields/strategy', newTag: true },
 			{ name: 'Leveraged Lending', path: '/yields/loop', newTag: true },
 			{ name: 'Borrow', path: '/yields/borrow' },
 			{ name: 'Overview', path: '/yields/overview' },
@@ -151,10 +164,15 @@ export const navLinks: ILinks = {
 		],
 		icon: <Percent size={16} />
 	},
-	"Borrow Aggregator": {
+	'Borrow Aggregator': {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Search size={16} />
+	},
+	"CEX Transparency": {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <BookOpen size={16} />
 	},
 	Bridges: {
 		main: [
@@ -199,7 +217,7 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <ShieldOff size={16} />
-	},
+	}
 }
 
 export const linksWithNoSubMenu = [
@@ -208,6 +226,7 @@ export const linksWithNoSubMenu = [
 	{ name: 'Raises', url: '/raises' },
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Borrow Aggregator', url: '/borrow' },
+	{ name: 'CEX Transparency', url: '/cexs' },
 ]
 
 function downloadDefiDataset() {

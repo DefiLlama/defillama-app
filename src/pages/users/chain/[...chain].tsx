@@ -6,13 +6,15 @@ import { arrayFetcher } from '~/utils/useSWR'
 import UsersByChain from '~/containers/UsersByChain'
 
 export async function getStaticPaths() {
+	/*
 	const res = await fetch(`${USER_METRICS_ALL_API}`).then((res) => res.json())
 
 	const paths: string[] = res.chains.slice(0, 30).map((chain) => ({
 		params: { chain: [chain] }
 	}))
+	*/
 
-	return { paths, fallback: 'blocking' }
+	return { paths:[], fallback: 'blocking' }
 }
 
 export async function getStaticProps({

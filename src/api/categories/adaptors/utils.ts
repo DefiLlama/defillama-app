@@ -29,13 +29,14 @@ export function chartBreakdownByVersion(chart: ProtocolAdaptorSummaryResponse['t
 		Object.entries(data).forEach(([_chain, chainData]) => {
 			Object.entries(chainData).forEach(([protocolName, value]) => {
 				if (!legend.includes(protocolName.toUpperCase())) legend.push(protocolName.toUpperCase())
-				if (!acc[`${timestamp}${protocolName}`]) acc[`${timestamp}${protocolName}`] = {
+				if (!acc[`${timestamp}`]) acc[`${timestamp}`] = {
 					[protocolName.toUpperCase()]: getOkValue(value),
 					date: String(timestamp)
 				} as IJoin2ReturnType[number]
 				else {
-					acc[`${timestamp}${protocolName}`] = {
-						[protocolName.toUpperCase()]: +acc[`${timestamp}${protocolName}`][protocolName.toUpperCase()] + getOkValue(value),
+					acc[`${timestamp}`] = {
+						...acc[`${timestamp}`],
+						[protocolName.toUpperCase()]: getOkValue(value),
 						date: String(timestamp)
 					} as IJoin2ReturnType[number]
 				}

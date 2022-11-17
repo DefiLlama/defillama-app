@@ -38,10 +38,26 @@ export const getStaticPropsByType = (type: string) => (context) =>
 	})
 
 export const getStaticPathsByType = (type: string) => async () => {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	const { protocols } = await getOverview(type)
-	const paths = protocols.map((protocol) => ({
-		params: { type, item: standardizeProtocolName(protocol.name) }
-	}))
+	const paths = protocols
+		.sort((a, b) => {
+			return b.total24h - a.total24h
+		})
+		.slice(0, 5)
+		.map((protocol) => ({
+			params: { type, item: standardizeProtocolName(protocol.name) }
+		}))
+
 	return { paths, fallback: 'blocking' }
 }
 

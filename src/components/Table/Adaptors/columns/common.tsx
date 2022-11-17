@@ -11,8 +11,6 @@ export const NameColumn = (type: string, allChains?: boolean) => ({
 	enableSorting: false,
 	cell: ({ getValue, row, table }) => {
 		const value = getValue() as string
-		const splittedName = value.split(' - ')
-		const name = splittedName.length > 1 ? splittedName.slice(0, splittedName.length - 1).join('') : value
 		const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 		return (
 			<Name depth={row.depth}>
@@ -27,7 +25,7 @@ export const NameColumn = (type: string, allChains?: boolean) => ({
 				)}
 				<span>{index + 1}</span>
 				<TokenLogo logo={row.original.logo} data-lgonly />
-				<CustomLink href={`/${type}/${allChains ? 'chains/' : ''}${slug(name)}`}>{`${value}`}</CustomLink>
+				<CustomLink href={`/${type}/${allChains ? 'chains/' : ''}${slug(row.original.name)}`}>{`${value}`}</CustomLink>
 			</Name>
 		)
 	},

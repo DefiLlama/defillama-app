@@ -1,11 +1,12 @@
 import * as matcha from './adapters/0x'
 import * as inch from './adapters/1inch'
 import * as cowswap from './adapters/cowswap'
-import * as firebird from './adapters/firebird'
+// import * as firebird from './adapters/firebird'
 import * as kyberswap from './adapters/kyberswap'
 import * as openocean from './adapters/openocean'
 import * as paraswap from './adapters/paraswap'
 import * as lifi from './adapters/lifi'
+import * as rango from './adapters/rango'
 
 // import * as unidex from "./adapters/unidex" - disabled, their api is broken
 // import * as airswap from './adapters/airswap' cors
@@ -13,7 +14,7 @@ import * as lifi from './adapters/lifi'
 import * as yieldyak from './adapters/yieldyak'
 // import * as krystal from './adapters/krystal'
 
-const adapters = [matcha, inch, cowswap, firebird, kyberswap, openocean, paraswap, yieldyak, lifi]
+const adapters = [matcha, inch, cowswap, kyberswap, openocean, paraswap, yieldyak, lifi, rango]
 const adaptersMap = adapters.reduce((acc, adapter) => ({ ...acc, [adapter.name]: adapter }), {}) as Record<
 	string,
 	typeof inch
@@ -47,13 +48,15 @@ export function listRoutes(chain: string, from: string, to: string, amount: stri
 					fromAmount: amount
 				}
 
-				setter((state) => [...(state || []), res])
+				if (price.price !== 'failure') {
+					setter((state) => [...(state || []), res])
+				}
 				return res
 			})
 	)
 }
 
-export async function swap({ chain, from, to, amount, signer, slippage = 1, adapter, rawQuote }) {
+export async function swap({ chain, from, to, amount, signer, slippage = '1', adapter, rawQuote }) {
 	const aggregator = adaptersMap[adapter]
 
 	const res = await aggregator.swap({ chain, from, to, amount, signer, slippage, rawQuote })

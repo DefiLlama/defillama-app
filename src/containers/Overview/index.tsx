@@ -1,24 +1,17 @@
 import * as React from 'react'
-import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
+import { Panel } from '~/components'
 import { OverviewTable } from '~/components/Table'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { AdaptorsSearch } from '~/components/Search'
-import { capitalizeFirstLetter, formattedNum } from '~/utils'
-import { formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { revalidate } from '~/api'
-import { getChainPageData, IJoin2ReturnType, IOverviewProps, joinCharts2 } from '~/api/categories/adaptors'
+import { IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
 import { formatChain } from '~/api/categories/dexs/utils'
-import type { VolumeSummaryDex } from '~/api/categories/dexs/types'
-import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
-import { AsyncReturnType, upperCaseFirst } from './utils'
-import { IJSON, ProtocolAdaptorSummary } from '~/api/categories/adaptors/types'
+import { upperCaseFirst } from './utils'
+import { IJSON } from '~/api/categories/adaptors/types'
 import { useFetchCharts } from '~/api/categories/adaptors/client'
-import { IMainBarChartProps, MainBarChart } from './common'
-import { IDexChartsProps, ProtocolChart } from './OverviewItem'
-import { chartBreakdownByChain, chartBreakdownByVersion } from '~/api/categories/adaptors/utils'
+import { MainBarChart } from './common'
+import { IDexChartsProps } from './OverviewItem'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -33,11 +26,15 @@ export type IOverviewContainerProps = IOverviewProps
 
 export default function OverviewContainer(props: IOverviewContainerProps) {
 	const chain = props.chain ?? 'All'
+
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
+
 	const [charts, setCharts] = React.useState<Pick<IOverviewContainerProps, 'totalDataChartBreakdown'>>({
 		totalDataChartBreakdown: props.totalDataChartBreakdown
 	})
+
 	const { data, error, loading } = useFetchCharts(props.type, chain === 'All' ? undefined : chain)
+
 	const isChainsPage = chain === 'all'
 
 	React.useEffect(() => {
@@ -78,16 +75,14 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					...ordredItems
 						.slice(0, 11)
 						.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number]),
-					...ordredItems
-						.slice(11)
-						.reduce((acc, [key, _value]) => ({ ...acc, [key]: 0 }), {} as IJoin2ReturnType[number]),
+					...ordredItems.slice(11).reduce((acc, [key]) => ({ ...acc, [key]: 0 }), {} as IJoin2ReturnType[number]),
 					Others: ordredItems.slice(11).reduce((acc, curr) => (acc += curr[1]), 0)
 				}
 			})
 			return [arr, [...Object.keys(displayNameMap), 'Others']]
 		}
 		return props.totalDataChart
-	}, [enableBreakdownChart, charts.totalDataChartBreakdown, props.totalDataChart])
+	}, [enableBreakdownChart, charts.totalDataChartBreakdown, props.totalDataChart, props.protocols])
 
 	return (
 		<>
@@ -155,7 +150,7 @@ const getChartByType = (type: string, props?: IDexChartsProps) => {
 		case 'fees':
 			return <></>
 		default:
-			return MainBarChart(props)
+			return <MainBarChart {...props} />
 	}
 }
 
@@ -168,7 +163,7 @@ const TitleByType: React.FC<ITitleProps> = (props) => {
 	if (props.type === 'dexs') title = `Volume in ${props.chain === 'All' ? 'all DEXs' : props.chain}`
 	if (props.type === 'fees') title = 'Ranking by fees and revenue'
 	if (props.chain === 'all') {
-		const typeLabel = props.type === 'volumes' ? 'Volume' : title
+		const typeLabel = props.type === 'dexs' ? 'Volume' : title
 		title = `${typeLabel} by chains`
 	}
 	return (

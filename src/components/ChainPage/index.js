@@ -28,6 +28,7 @@ import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
+import { ArrowUpRight } from 'react-feather'
 
 const EasterLlama = styled.button`
 	padding: 0;
@@ -222,10 +223,9 @@ function GlobalPage({
 
 			<Announcement>
 				<span>We just launched a</span>{' '}
-				<Link href={`/bridges`}>
-					<a> Bridge Dashboard</a>
+				<Link href={`/cexs`}>
+					<a> CEX transparency dashboard <ArrowUpRight size={14} style={{display: "inline"}}/> </a>
 				</Link>
-                                {' '}<span>with chain inflows/outflows</span>
 			</Announcement>
 
 			<ProtocolsChainsSearch

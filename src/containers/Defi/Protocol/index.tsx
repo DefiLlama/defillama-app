@@ -52,7 +52,7 @@ import {
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import boboLogo from '~/assets/boboSmug.png'
-import { IFusedProtocolData } from '~/api/types'
+import { IFusedProtocolData, IRaise } from '~/api/types'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
 import { DexCharts } from '~/containers/Dex/DexProtocol'
 import { useFetchProtocolDex } from '~/api/categories/dexs/client'
@@ -104,6 +104,14 @@ const OtherProtocols = styled.nav`
 	@media screen and (min-width: 80rem) {
 		grid-column: span 2;
 	}
+`
+
+const RaisesWrapper = styled.ul`
+	list-style: none;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 `
 
 interface IProtocolLink {
@@ -574,15 +582,17 @@ function ProtocolContainer({
 				{raises && raises.length > 0 && (
 					<Section>
 						<h3>Raises</h3>
-						<LinksWrapper>
-							{raises.map((raise) => (
-								<a target="_blank" rel="noopener noreferrer" href={raise.source} key={raise.source}>{`${
-									raise.round
-								}: Raised $${formatRaise(Number(raise.amount))} at $${formatRaise(
-									Number(raise.valuation)
-								)} valuation.`}</a>
-							))}
-						</LinksWrapper>
+						<RaisesWrapper>
+							{raises
+								.sort((a, b) => a.date - b.date)
+								.map((raise) => (
+									<li key={raise.date + raise.amount}>
+										<a target="_blank" rel="noopener noreferrer" href={raise.source}>
+											{formatRaise(raise)}
+										</a>
+									</li>
+								))}
+						</RaisesWrapper>
 					</Section>
 				)}
 			</InfoWrapper>
@@ -691,7 +701,29 @@ const stackedBarChartColors = {
 	Revenue: '#E59421'
 }
 
-const formatRaise = (n: number) => {
+const formatRaise = (raise: IRaise) => {
+	let text = new Date(raise.date * 1000).toLocaleDateString() + ' :'
+
+	if (raise.round) {
+		text += ` ${raise.round}`
+	}
+
+	if (raise.round && raise.amount) {
+		text += ' -'
+	}
+
+	if (raise.amount) {
+		text += ` Raised $${formatRaisedAmount(Number(raise.amount))}`
+	}
+
+	if (raise.valuation && Number(raise.valuation)) {
+		text += ` at $${formatRaisedAmount(Number(raise.valuation))} valuation`
+	}
+
+	return text
+}
+
+const formatRaisedAmount = (n: number) => {
 	if (n >= 1e3) {
 		return `${n / 1e3}b`
 	}

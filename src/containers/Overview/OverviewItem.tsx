@@ -74,8 +74,12 @@ export const ProtocolChart = ({
 	fullChart = false,
 	totalAllTime
 }: IDexChartsProps) => {
-	const typeString = type === 'volumes' ? 'Volumes' : upperCaseFirst(type)
-	const typeSimple = type === 'volumes' || type === 'options' ? 'volume' : type
+	const typeString = type === 'dexs' ? 'Volume' : upperCaseFirst(type)
+	const typeSimple = type === 'dexs' || type === 'options' ? 'volume' : type
+	const simpleStack =
+		chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
+			? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
+			: undefined
 	return (
 		<StatsSection>
 			{!fullChart && (
@@ -137,7 +141,7 @@ export const ProtocolChart = ({
 					title={title ?? ''}
 					chartData={chartData[0]}
 					customLegendOptions={chartData[1]}
-					stacks={{ Fees: 'stackA', Revenue: 'stackB' }}
+					stacks={simpleStack}
 					stackColors={stackedBarChartColors}
 				/>
 			</ChartWrapper>
@@ -182,7 +186,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				type={props.protocolSummary.type}
 				step={{
 					category: upperCaseFirst(props.protocolSummary.type),
-					name: props.protocolSummary.name
+					name: props.protocolSummary.displayName
 				}}
 				/* onToggleClick={
 					charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
@@ -194,7 +198,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				logo={props.protocolSummary.logo}
 				data={props.protocolSummary}
 				chartData={mainChart.dataChart}
-				name={props.protocolSummary.name}
+				name={props.protocolSummary.displayName}
 				type={props.protocolSummary.type}
 				title={mainChart.title}
 				totalAllTime={props.protocolSummary.totalAllTime}

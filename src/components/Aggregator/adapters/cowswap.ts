@@ -85,4 +85,6 @@ export async function swap({ chain, from, to, amount, signer, rawQuote }) {
 			'Content-Type': 'application/json'
 		}
 	}).then((r) => r.json())
+
+	return data
 }

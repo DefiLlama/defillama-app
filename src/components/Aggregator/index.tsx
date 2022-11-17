@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAccount, useBalance, useFeeData, useNetwork, useSigner, useSwitchNetwork } from 'wagmi'
 import { groupBy, mapValues, merge, uniqBy } from 'lodash'
 import { FixedSizeList as List } from 'react-window'
 import { useAddRecentTransaction } from '@rainbow-me/rainbowkit'
 import { capitalizeFirstLetter } from '~/utils'
+import { Panel } from '~/components'
+
 import ReactSelect from '../MultiSelect/ReactSelect'
 import { getAllChains, listRoutes, swap } from './router'
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 import { createFilter } from 'react-select'
 import { TYPE } from '~/Theme'
-import Input from './TokenInput'
+import { Input, TokenInput } from './TokenInput'
 import { CrossIcon, GasIcon } from './Icons'
 import Loader from './Loader'
 import Search from './Search'
@@ -178,6 +180,7 @@ interface Route {
 	gasUsd: number
 	amountUsd: number
 	airdrop: boolean
+	amountFrom: string
 }
 
 const RouteWrapper = styled.div<{ selected: boolean; best: boolean }>`
@@ -223,8 +226,20 @@ const Balance = styled.div`
 	cursor: pointer;
 `
 
-const Route = ({ name, price, toToken, setRoute, selected, index, gasUsd, amountUsd, airdrop, fromToken }: Route) => {
-	const { isApproved } = useTokenApprove(fromToken?.address, price?.tokenApprovalAddress as `0x${string}`)
+const Route = ({
+	name,
+	price,
+	toToken,
+	setRoute,
+	selected,
+	index,
+	gasUsd,
+	amountUsd,
+	airdrop,
+	fromToken,
+	amountFrom
+}: Route) => {
+	const { isApproved } = useTokenApprove(fromToken?.address, price?.tokenApprovalAddress as `0x${string}`, amountFrom)
 
 	if (!price.amountReturned) return null
 
@@ -292,13 +307,22 @@ const Routes = styled.div<{ show: boolean; isFirstRender: boolean }>`
 	text-align: left;
 	overflow-y: scroll;
 	min-width: 360px;
-	max-height: 416px;
+	max-height: 444px;
 	min-width: 26rem;
 
 	box-shadow: ${({ theme }) =>
 		theme.mode === 'dark'
 			? '10px 0px 50px 10px rgba(26, 26, 26, 0.9);'
 			: '10px 0px 50px 10px rgba(211, 211, 211, 0.9);'};
+
+	${(props) =>
+		!props.isFirstRender &&
+		css`
+			animation: ${props.show === true
+				? 'tilt-in-fwd-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;'
+				: 'tilt-in-fwd-out 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) reverse both;'};
+		`}
+
 	animation: ${(props) =>
 		props.show === true
 			? 'tilt-in-fwd-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;'
@@ -417,6 +441,21 @@ const Close = styled.span`
 	right: 16px;
 	cursor: pointer;
 `
+
+const SwapWrapper = styled.div`
+	width: 100%;
+	display: flex;
+	& > button {
+		width: 100%;
+		margin-right: 4px;
+	}
+`
+
+const InputFooter = styled.div`
+	display: flex;
+	justify-content: space-between;
+`
+
 export function AggregatorContainer({ tokenlist }) {
 	const chains = getAllChains()
 	const { data: signer } = useSigner()
@@ -427,6 +466,7 @@ export function AggregatorContainer({ tokenlist }) {
 	const [toToken, setToToken] = useState(null)
 	const [gasTokenPrice, setGasTokenPrice] = useState(0)
 	const [toTokenPrice, setToTokenPrice] = useState(0)
+	const [slippage, setSlippage] = useState('1')
 
 	const addRecentTransaction = useAddRecentTransaction()
 
@@ -444,6 +484,11 @@ export function AggregatorContainer({ tokenlist }) {
 		if (currentChain)
 			setSelectedChain({ value: idToChain[currentChain], label: capitalizeFirstLetter(idToChain[currentChain]) })
 	}, [chain])
+
+	useEffect(() => {
+		const nativeToken = tokenlist[chainsMap[selectedChain.value]][0]
+		setFromToken({ ...nativeToken, value: nativeToken.address, label: nativeToken.symbol })
+	}, [selectedChain])
 
 	const [isLoading, setLoading] = useState(false)
 
@@ -474,7 +519,7 @@ export function AggregatorContainer({ tokenlist }) {
 				.times(10 ** (fromToken.decimals || 18))
 				.toString(),
 			signer,
-			slippage: 1,
+			slippage,
 			adapter: route.name,
 			rawQuote: route?.price?.rawQuote
 		}).then((res) => {
@@ -498,9 +543,14 @@ export function AggregatorContainer({ tokenlist }) {
 				BigNumber(amount)
 					.times(10 ** (fromToken.decimals || 18))
 					.toString(),
+
 				{
 					gasPriceData,
-					userAddress: address
+					userAddress: address,
+					amount,
+					fromToken,
+					toToken,
+					slippage
 				},
 				setRoutes
 			).finally(() => setLoading(false))
@@ -526,17 +576,22 @@ export function AggregatorContainer({ tokenlist }) {
 		setRoutes(null)
 		setRoute(null)
 	}
-	const { isApproved, approve } = useTokenApprove(fromToken?.address, route?.price?.tokenApprovalAddress)
+	const { isApproved, approve, approveInfinite } = useTokenApprove(
+		fromToken?.address,
+		route?.price?.tokenApprovalAddress,
+		BigNumber(amount)
+			.times(10 ** (fromToken?.decimals || 18))
+			.toString()
+	)
 
 	const onMaxClick = () => {
 		if (balance?.data?.formatted) setAmount(balance?.data?.formatted)
 	}
 
 	const onChainChange = (newChain) => {
-		const nativeToken = tokenlist[chainsMap[newChain.value]]
 		cleanState()
 		setSelectedChain(newChain)
-		setFromToken({ ...nativeToken, value: nativeToken.address, label: nativeToken.symbol })
+
 		switchNetwork(chainsMap[newChain.value])
 	}
 
@@ -547,19 +602,21 @@ export function AggregatorContainer({ tokenlist }) {
 			const amountUsd = (amount * toTokenPrice).toFixed(2)
 			const netOut = +amountUsd - gasUsd
 
-			return { route, gasUsd, amountUsd, netOut, ...route }
+			return { route, gasUsd, amountUsd, amount, netOut, ...route }
 		})
-		.sort((a, b) => b.netOut - a.netOut)
 		.filter(
-			({ fromAmount }) =>
+			({ fromAmount, amount: toAmount }) =>
+				Number(toAmount) &&
 				BigNumber(amount)
 					.times(10 ** (fromToken.decimals || 18))
 					.toString() === fromAmount
 		)
+		.sort((a, b) => b.netOut - a.netOut)
 
 	return (
 		<Wrapper>
 			<TYPE.largeHeader>Meta-Aggregator</TYPE.largeHeader>
+			<TYPE.heading>This product is still WIP and not ready for public release yet. Please expect things to break and if you find anything broken please let us know in the <a style={{textDecoration:"underline"}} href="http://discord.gg/buPFYXzDDd">defillama discord</a></TYPE.heading>
 
 			<BodyWrapper>
 				<Body showRoutes={!!routes?.length || isLoading}>
@@ -584,7 +641,16 @@ export function AggregatorContainer({ tokenlist }) {
 								filterOption={createFilter({ ignoreAccents: false })}
 							/>
 							<div>
-								<ArrowRight width={24} height={24} display="block" style={{ marginTop: 8, marginLeft: 8 }} />
+								<ArrowRight
+									width={24}
+									height={24}
+									display="block"
+									style={{ marginTop: 8, marginLeft: 8, cursor: 'pointer' }}
+									onClick={() => {
+										setFromToken(toToken)
+										setToToken(fromToken)
+									}}
+								/>
 							</div>
 							<ReactSelect
 								options={tokensInChain}
@@ -603,23 +669,47 @@ export function AggregatorContainer({ tokenlist }) {
 
 					<div>
 						<FormHeader>Amount In</FormHeader>
-						<Input setAmount={setAmount} amount={amount} onMaxClick={onMaxClick} />
-						{balance.isSuccess ? (
-							<Balance onClick={onMaxClick}>Balance: {(+balance?.data?.formatted).toFixed(3)}</Balance>
-						) : null}
+						<TokenInput setAmount={setAmount} amount={amount} onMaxClick={onMaxClick} />
+						<InputFooter>
+							<div style={{ marginTop: 4, marginLeft: 4 }}>
+								Slippage{' '}
+								<Input
+									value={slippage}
+									type="number"
+									style={{ width: 50, height: 30, display: 'inline' }}
+									onChange={(val) => {
+										if (+val.target.value < 50) setSlippage(val.target.value)
+									}}
+								/>
+							</div>
+							{balance.isSuccess ? (
+								<Balance onClick={onMaxClick}>Balance: {(+balance?.data?.formatted).toFixed(3)}</Balance>
+							) : null}
+						</InputFooter>
 					</div>
-					{route && address ? (
-						<ButtonDark
-							onClick={() => {
-								if (approve) approve()
+					<SwapWrapper>
+						{route && address ? (
+							<ButtonDark
+								onClick={() => {
+									if (approve) approve()
 
-								if (+amount > +balance?.data?.formatted) return
-								if (isApproved) handleSwap()
-							}}
-						>
-							{isApproved ? 'Swap' : 'Approve'}
-						</ButtonDark>
-					) : null}
+									if (+amount > +balance?.data?.formatted) return
+									if (isApproved) handleSwap()
+								}}
+							>
+								{isApproved ? 'Swap' : 'Approve'}
+							</ButtonDark>
+						) : null}
+						{route && address && !isApproved && ['Matcha/0x', '1inch', 'CowSwap'].includes(route?.name) ? (
+							<ButtonDark
+								onClick={() => {
+									if (approveInfinite) approveInfinite()
+								}}
+							>
+								{'Approve Infinite'}
+							</ButtonDark>
+						) : null}
+					</SwapWrapper>
 				</Body>
 				<Routes show={!!routes?.length || isLoading} isFirstRender={renderNumber === 1}>
 					<FormHeader>
@@ -635,6 +725,9 @@ export function AggregatorContainer({ tokenlist }) {
 									selected={route?.name === r.name}
 									setRoute={() => setRoute(r.route)}
 									toToken={toToken}
+									amountFrom={BigNumber(amount)
+										.times(10 ** (fromToken?.decimals || 18))
+										.toString()}
 									fromToken={fromToken}
 									selectedChain={selectedChain.label}
 									gasTokenPrice={gasTokenPrice}
@@ -646,6 +739,29 @@ export function AggregatorContainer({ tokenlist }) {
 						: null}
 				</Routes>
 			</BodyWrapper>
+			<Panel as="p" style={{ margin: '0 auto', textAlign: 'left', maxWidth: '600px', marginLeft: '120px' }}>
+				<div style={{ textAlign: 'center' }}>
+					<TYPE.largeHeader>FAQ</TYPE.largeHeader>
+				</div>{' '}
+				<br />
+				<b>Does DefiLlama take any fees? </b>
+				DefiLlama takes 0 fee on swaps.
+				<br /> You'll get the exact same price swapping through DefiLlama as what you'd get swapping through the chosen
+				aggregator directly. We add our referral code to swaps, so, for aggregators with revenue sharing, they will send
+				us part of the fee they earn. This is not an extra fee, you'd be charged the same fee anyway, but now a small
+				part of it is shared with DefiLlama. We also integrate aggregators with no fee sharing the best price, and in
+				those cases we don't make any money. <br />
+				<br />
+				<b>Is it safe?</b>Our aggregator uses the router contract of each aggregator, we don't use any contracts
+				developed by us. Thus you inherit the same security you'd get by swapping directly from their UI instead of
+				ours.
+				<br />
+				<br />
+				<b>Will I be eligible for airdrops if I swap through DefiLlama?</b> Yes, we execute swaps directly against the
+				router of each aggregator, so there's no difference between a swap executed directly from their UI and a swap
+				executed from DefiLlama, thus all swaps would be as eligible for airdrops as swaps made through their UI in case
+				there's a future airdrop.
+			</Panel>
 		</Wrapper>
 	)
 }

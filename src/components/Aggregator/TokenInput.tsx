@@ -78,14 +78,16 @@ const InputWrapper = styled.div`
 	}
 `
 
-const TokenInput = ({ setAmount, amount, onMaxClick, ...props }) => {
+export const TokenInput = ({ setAmount, amount, onMaxClick, ...props }) => {
 	return (
 		<InputWrapper>
 			<InputElem
 				placeholder="Token amount"
 				type="number"
 				pattern="\d+((\.|,)\d+)?"
-				onChange={(val) => setAmount(val.target.value)}
+				onChange={(val) => {
+					setAmount(val.target.value)
+				}}
 				value={amount}
 				{...props}
 			/>
@@ -101,5 +103,3 @@ export const Input = (props) => {
 		</InputWrapper>
 	)
 }
-
-export default TokenInput
