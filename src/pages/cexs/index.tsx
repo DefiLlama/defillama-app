@@ -13,30 +13,10 @@ const cexData = [
 		walletsLink: 'https://www.binance.com/en/blog/community/our-commitment-to-transparency-2895840147147652626'
 	},
 	{
-		name: 'Crypto.com',
-		slug: 'Crypto-com',
-		coin: 'CRO',
-		coinSymbol: 'CRO',
-		walletsLink: 'https://twitter.com/kris/status/1591036632664518657'
-	},
-	{
 		name: 'OKX',
 		slug: 'okx',
 		coin: null,
 		walletsLink: 'https://twitter.com/okx/status/1590812545346330624'
-	},
-	{
-		name: 'Deribit',
-		slug: 'deribit',
-		coin: null,
-		walletsLink: 'https://insights.deribit.com/exchange-updates/deribit-wallet-holdings/'
-	},
-	{
-		name: 'Kucoin',
-		slug: 'kucoin',
-		coin: 'KCS',
-		coinSymbol: 'KCS',
-		walletsLink: 'https://www.kucoin.com/blog/transparency-and-trust-a-detailed-list-of-kucoin-s-wallets'
 	},
 	{
 		name: 'Bitfinex',
@@ -52,11 +32,31 @@ const cexData = [
 		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831'
 	},
 	{
+		name: 'Crypto.com',
+		slug: 'Crypto-com',
+		coin: 'CRO',
+		coinSymbol: 'CRO',
+		walletsLink: 'https://twitter.com/kris/status/1591036632664518657'
+	},
+	{
+		name: 'Kucoin',
+		slug: 'kucoin',
+		coin: 'KCS',
+		coinSymbol: 'KCS',
+		walletsLink: 'https://www.kucoin.com/blog/transparency-and-trust-a-detailed-list-of-kucoin-s-wallets'
+	},
+	{
 		name: 'Bybit',
 		slug: 'Bybit',
 		coin: 'BIT',
 		coinSymbol: 'BIT',
 		walletsLink: 'https://twitter.com/benbybit/status/1592797790518018048'
+	},
+	{
+		name: 'Deribit',
+		slug: 'deribit',
+		coin: null,
+		walletsLink: 'https://insights.deribit.com/exchange-updates/deribit-wallet-holdings/'
 	},
 	{
 		name: 'Coinbase',
