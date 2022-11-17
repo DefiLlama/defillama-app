@@ -59,6 +59,12 @@ const cexData = [
 		walletsLink: 'https://insights.deribit.com/exchange-updates/deribit-wallet-holdings/'
 	},
 	{
+		name: 'Bitmex',
+		slug: 'bitmex',
+		coin: null,
+		walletsLink: 'https://github.com/BitMEX/proof-of-reserves-liabilities'
+	},
+	{
 		name: 'Cake Defi',
 		slug: 'cake-defi',
 		coin: null,
