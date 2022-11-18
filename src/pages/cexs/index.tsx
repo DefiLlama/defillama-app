@@ -65,6 +65,13 @@ const cexData = [
 		walletsLink: 'https://github.com/BitMEX/proof-of-reserves-liabilities'
 	},
 	{
+		name: 'Swissborg',
+		slug: 'swissborg',
+		coin: "CHSB",
+        coinSymbol: 'CHSB',
+		walletsLink: 'https://twitter.com/swissborg/status/1593622452571193345'
+	},
+	{
 		name: 'Cake Defi',
 		slug: 'cake-defi',
 		coin: null,
