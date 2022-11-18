@@ -89,12 +89,6 @@ const cexData = [
 		auditLink: 'https://proof-of-reserves.trustexplorer.io/clients/gate.io'
 	},
 	{
-		name: 'Bitmex',
-		coin: 'LEO',
-		coinSymbol: 'LEO',
-		walletsLink: 'https://github.com/BitMEX/proof-of-reserves-liabilities'
-	},
-	{
 		name: 'NEXO'
 	},
 	{
