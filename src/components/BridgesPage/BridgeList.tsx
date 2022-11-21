@@ -259,7 +259,7 @@ function BridgesOverview({
 				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 			</RowLinksWrapper>
 
-			{isBridgesShowingTxs && <LargeTxsTable data={largeTxsData} />}
+			{isBridgesShowingTxs && <LargeTxsTable data={largeTxsData} chain={selectedChain}/>}
 			{!isBridgesShowingTxs && <BridgesTable data={filteredBridges} />}
 		</>
 	)
