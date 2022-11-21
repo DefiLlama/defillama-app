@@ -322,11 +322,12 @@ export const getTokenDominance = (topToken, totalVolume) => {
 }
 
 export const getPeggedDominance = (topToken, totalMcap) => {
-	const dominance = topToken.mcap && totalMcap && (topToken.mcap / totalMcap) * 100.0
-
-	if (dominance < 100) {
-		return dominance.toFixed(2)
-	} else return 100
+	if (topToken && totalMcap) {
+		const dominance = topToken.mcap && totalMcap && (topToken.mcap / totalMcap) * 100.0
+		if (dominance < 100) {
+			return dominance.toFixed(2)
+		} else return 100
+	} else return null
 }
 
 /**
