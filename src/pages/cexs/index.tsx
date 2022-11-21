@@ -102,6 +102,18 @@ const cexData = [
 		auditLink: 'https://proof-of-reserves.trustexplorer.io/clients/gate.io'
 	},
 	{
+		name: 'Coinone',
+		lastAuditDate: 1666369050,
+		auditor: null,
+		auditLink: 'https://coinone.co.kr/info/notice/1967'
+	},
+	{
+		name: 'Korbit',
+		lastAuditDate: 1668961050,
+		auditor: null,
+		walletsLink: 'https://korbit.co.kr/reserve'
+	},
+	{
 		name: 'NEXO'
 	},
 	{
