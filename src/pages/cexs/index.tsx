@@ -146,9 +146,6 @@ const cexData = [
 	{
 		name: 'Bittrex'
 	},
-	{
-		name: 'Coinone'
-	}
 ]
 
 export async function getStaticProps() {
