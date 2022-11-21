@@ -63,7 +63,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 					outlook: curr.apy >= 0.005 ? curr.predictions.predictedClass : null,
 					confidence: curr.apy >= 0.005 ? curr.predictions.binnedConfidence : null,
 					url: curr.url,
-					category: curr.category
+					category: curr.category,
+					il7d: curr.il7d
 				})
 			} else return acc
 		}, [])
