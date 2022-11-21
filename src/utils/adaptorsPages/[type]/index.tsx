@@ -3,8 +3,8 @@ import * as React from 'react'
 import { revalidate } from '~/api'
 import { getChainPageData } from '~/api/categories/adaptors'
 import SEO from '~/components/SEO'
-import OverviewContainer, { IOverviewContainerProps } from '~/containers/Overview'
-import { upperCaseFirst } from '~/containers/Overview/utils'
+import OverviewContainer, { IOverviewContainerProps } from '~/containers/DexsAndFees'
+import { upperCaseFirst } from '~/containers/DexsAndFees/utils'
 import Layout from '~/layout'
 
 export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({

@@ -1,8 +1,7 @@
 import type { LiteProtocol } from '~/api/types'
-import { DEXS_API, PROTOCOLS_API, ADAPTORS_BASE_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
-import { IOverviewContainerProps } from '~/containers/Overview'
-import { upperCaseFirst } from '~/containers/Overview/utils'
-import { chainIconUrl, getColorFromNumber } from '~/utils'
+import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
+import { upperCaseFirst } from '~/containers/DexsAndFees/utils'
+import { chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
 import { formatChain } from './utils'
@@ -25,11 +24,16 @@ export const getOverviewItem = (
 	protocolName: string,
 	dataType?: string
 ): Promise<ProtocolAdaptorSummaryResponse> =>
-	fetch(
-		`${ADAPTORS_SUMMARY_BASE_API}/${type}/${protocolName}${dataType ? `?dataType=${dataType}` : ''
-		}`
-	).then((r) => r.json())
-export const getOverview = (type: string, chain?: string, dataType?: string, includeTotalDataChart?: boolean, fullChart?: boolean): Promise<IGetOverviewResponseBody> =>
+	fetch(`${ADAPTORS_SUMMARY_BASE_API}/${type}/${protocolName}${dataType ? `?dataType=${dataType}` : ''}`).then((r) =>
+		r.json()
+	)
+export const getOverview = (
+	type: string,
+	chain?: string,
+	dataType?: string,
+	includeTotalDataChart?: boolean,
+	fullChart?: boolean
+): Promise<IGetOverviewResponseBody> =>
 	fetch(getAPIUrl(type, chain, !includeTotalDataChart, true, dataType, fullChart)).then((r) => r.json())
 
 export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {
@@ -46,9 +50,9 @@ export const getOverviewItemPageData = async (
 	const item = await getOverviewItem(type, protocolName, dataType)
 	let label: string
 	if (type === 'volumes') {
-		label = "Volume"
+		label = 'Volume'
 	} else if (type === 'options') {
-		label = "Notionial volume"
+		label = 'Notionial volume'
 	} else {
 		label = upperCaseFirst(type)
 	}
@@ -58,20 +62,18 @@ export const getOverviewItemPageData = async (
 	let secondLabel: string
 	if (type === 'fees') {
 		secondType = await getOverviewItem(type, protocolName, 'dailyRevenue')
-		secondLabel = "Revenue"
-	}
-	else if (type === 'options') {
+		secondLabel = 'Revenue'
+	} else if (type === 'options') {
 		secondType = await getOverviewItem(type, protocolName, 'dailyPremiumVolume')
-		secondLabel = "Premium volume"
+		secondLabel = 'Premium volume'
 	}
-	if (secondLabel && secondType?.totalDataChart)
-		allCharts.push([secondLabel, secondType.totalDataChart])
+	if (secondLabel && secondType?.totalDataChart) allCharts.push([secondLabel, secondType.totalDataChart])
 
 	return {
 		...item,
 		revenue24h: secondType?.total24h ?? null,
 		type,
-		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
+		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)]
 	}
 }
 
@@ -102,17 +104,25 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	// Get second type for fees, if wanna add this, take a look at how its done in getOverviewItemPageData
 	let revenue: IGetOverviewResponseBody
-	if (type === 'fees') revenue = ((await fetch(getAPIUrl(type, chain, true, true, 'dailyRevenue')).then((res) => res.json())) as IGetOverviewResponseBody)
-	const revenueProtocols = revenue?.protocols.reduce((acc, protocol) => ({ ...acc, [protocol.name]: protocol }), {} as IJSON<ProtocolAdaptorSummary>)
+	if (type === 'fees')
+		revenue = (await fetch(getAPIUrl(type, chain, true, true, 'dailyRevenue')).then((res) =>
+			res.json()
+		)) as IGetOverviewResponseBody
+	const revenueProtocols = revenue?.protocols.reduce(
+		(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+		{} as IJSON<ProtocolAdaptorSummary>
+	)
 
 	// Get TVL data
 	const sumTVLProtocols = (protocolName: string, versions: string[], tvlData: IJSON<number>) => {
 		return versions.reduce((acc, version) => {
-			return acc += tvlData[`${protocolName} ${version.toUpperCase()}`]
+			return (acc += tvlData[`${protocolName} ${version.toUpperCase()}`])
 		}, 0)
 	}
 	const protocolsWithSubrows = protocols.map((protocol) => {
-		const volumetvl = protocol.total24h / (tvlData[protocol.name] ?? (sumTVLProtocols(protocol.name, Object.keys(protocol.protocolsStats ?? {}), tvlData)))
+		const volumetvl =
+			protocol.total24h /
+			(tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, Object.keys(protocol.protocolsStats ?? {}), tvlData))
 		return {
 			...protocol,
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? 0,
@@ -122,14 +132,14 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			module: protocol.module,
 			subRows: protocol.protocolsStats
 				? Object.entries(protocol.protocolsStats)
-					.map(([versionName, summary]) => ({
-						...protocol,
-						displayName: `${protocol.name} ${versionName.toUpperCase()}`,
-						...summary,
-						totalAllTime: null,
-						revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? 0 as number
-					}))
-					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
+						.map(([versionName, summary]) => ({
+							...protocol,
+							displayName: `${protocol.name} ${versionName.toUpperCase()}`,
+							...summary,
+							totalAllTime: null,
+							revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? (0 as number)
+						}))
+						.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
 				: null
 		}
 	})
@@ -153,11 +163,13 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 }
 
 export interface IOverviewProps {
-	protocols: Array<IGetOverviewResponseBody['protocols'][number] & {
-		subRows?: IGetOverviewResponseBody['protocols'],
-		volumetvl?: number
-		dominance?: number
-	}>
+	protocols: Array<
+		IGetOverviewResponseBody['protocols'][number] & {
+			subRows?: IGetOverviewResponseBody['protocols']
+			volumetvl?: number
+			dominance?: number
+		}
+	>
 	total24h?: IGetOverviewResponseBody['total24h']
 	change_1d?: IGetOverviewResponseBody['change_1d']
 	change_7d?: IGetOverviewResponseBody['change_7d']
@@ -175,7 +187,9 @@ export interface IOverviewProps {
 export const getChainsPageData = async (type: string): Promise<IOverviewProps> => {
 	const { allChains, total24h: allChainsTotal24h } = await getOverview(type)
 
-	const dataByChain = await Promise.all(allChains.map((chain) => getOverview(type, chain, undefined, true, true).then(res => ({ ...res, chain }))))
+	const dataByChain = await Promise.all(
+		allChains.map((chain) => getOverview(type, chain, undefined, true, true).then((res) => ({ ...res, chain })))
+	)
 
 	let protocols = dataByChain.map(({ total24h, change_1d, change_7d, chain, change_1m, protocols }) => ({
 		name: chain,
@@ -188,30 +202,30 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 		change_1m,
 		dominance: (100 * total24h) / allChainsTotal24h,
 		chains: [chain],
-		totalAllTime: protocols.reduce((acc, curr) => acc += curr.totalAllTime, 0),
+		totalAllTime: protocols.reduce((acc, curr) => (acc += curr.totalAllTime), 0),
 		protocolsStats: null,
 		breakdown24h: null,
 		module: chain,
-		revenue24h: null,
+		revenue24h: null
 	}))
 
 	/* 	...Object.fromEntries(volumesAtDate.slice(0, 11)),
 			Others: volumesAtDate.slice(11).reduce((acc, curr: [string, number]) => (acc += curr[1]), 0) */
 
-	const allCharts = dataByChain.map(chainData => [chainData.chain, chainData.totalDataChart]) as IChartsList
+	const allCharts = dataByChain.map((chainData) => [chainData.chain, chainData.totalDataChart]) as IChartsList
 	let aggregatedChart = joinCharts2(...allCharts)
 	const sum = (obj: IJSON<string | number>) => {
-		return Object.values(obj).reduce<number>((acc, curr) => typeof curr === 'number' ? acc += curr : acc, 0)
+		return Object.values(obj).reduce<number>((acc, curr) => (typeof curr === 'number' ? (acc += curr) : acc), 0)
 	}
 	aggregatedChart = aggregatedChart.slice(
-		aggregatedChart.findIndex(it => sum(it) !== 0),
-		aggregatedChart.length - [...aggregatedChart].reverse().findIndex(it => sum(it) !== 0)
+		aggregatedChart.findIndex((it) => sum(it) !== 0),
+		aggregatedChart.length - [...aggregatedChart].reverse().findIndex((it) => sum(it) !== 0)
 	)
 	return {
 		type,
 		protocols,
 		chain: 'all',
-		totalDataChart: [aggregatedChart, allCharts.map(([label]) => label)],
+		totalDataChart: [aggregatedChart, allCharts.map(([label]) => label)]
 	}
 }
 //const sortedList = list.sort(([_a, a], [_b, b]) => b - a)
@@ -234,16 +248,17 @@ export const joinCharts2 = (...lists: Array<[string, Array<[number, number]>]>):
 			})
 			return acc
 		}, {} as IJSON<IJoin2ReturnType[number]>)
-	).map<IJoin2ReturnType[number]>(bar => {
+	).map<IJoin2ReturnType[number]>((bar) => {
 		const date = bar.date
 		delete bar.date
-		const ordredItems = Object.entries(bar as IJSON<number>)
-			.sort(([_a, a], [_b, b]) => b - a)
+		const ordredItems = Object.entries(bar as IJSON<number>).sort(([_a, a], [_b, b]) => b - a)
 		return {
 			date,
-			...ordredItems.slice(0, 11).reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number]),
+			...ordredItems
+				.slice(0, 11)
+				.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number]),
 			...ordredItems.slice(11).reduce((acc, [key, _value]) => ({ ...acc, [key]: 0 }), {} as IJoin2ReturnType[number]),
-			Others: ordredItems.slice(11).reduce((acc, curr) => acc += curr[1], 0)
+			Others: ordredItems.slice(11).reduce((acc, curr) => (acc += curr[1]), 0)
 		}
 	})
 
