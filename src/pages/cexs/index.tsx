@@ -72,6 +72,12 @@ const cexData = [
 		walletsLink: 'https://twitter.com/swissborg/status/1593622452571193345'
 	},
 	{
+		name: 'Coinsquare',
+		slug: 'coinsquare',
+		coin: null ,
+		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
+	},
+	{
 		name: 'Cake Defi',
 		slug: 'cake-defi',
 		coin: null,
