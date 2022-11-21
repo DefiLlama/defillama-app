@@ -362,6 +362,15 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
+		header: 'Stables',
+		accessorKey: 'stablesMcap',
+		cell: (info) => <>{info.getValue() === 0 || `$${formattedNum(info.getValue())}`}</>,
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: '24h volume',
 		accessorKey: 'totalVolume24h',
 		enableSorting: true,
@@ -505,6 +514,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'protocols',
 		'change_1d',
 		'change_1m',
+		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',
 		'totalRevenue24h',
@@ -517,6 +527,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'protocols',
 		'change_1d',
 		'change_1m',
+		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',
 		'totalRevenue24h',
@@ -529,6 +540,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'tvl',
 		'change_1d',
 		'change_1m',
+		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',
 		'totalRevenue24h',
@@ -541,6 +553,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'change_7d',
 		'change_1m',
 		'tvl',
+		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',
 		'totalRevenue24h',

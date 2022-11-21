@@ -21,6 +21,7 @@ import {
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import { getVolumesByChain } from '../dexs'
 import { getChainPageData as getFeesChainPageData } from '~/api/categories/adaptors'
+import { getPeggedAssets } from '../stablecoins'
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
@@ -388,11 +389,13 @@ export const getNewChainsPageData = async (category: string) => {
 		{
 			props: { tableData: volumeTableData }
 		},
-		{ protocols: feesAndRevenueProtocols }
+		{ protocols: feesAndRevenueProtocols },
+		{ chains: stablesChainData }
 	] = await Promise.all([
 		fetch(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
 		getVolumesByChain(),
-		getFeesChainPageData('fees')
+		getFeesChainPageData('fees'),
+		getPeggedAssets()
 	])
 
 	const categoryLinks = [
@@ -414,6 +417,10 @@ export const getNewChainsPageData = async (category: string) => {
 	colors['Others'] = '#AAAAAA'
 
 	const feesAndRevenueChains = feesAndRevenueProtocols.filter((p) => p.category === 'Chain')
+	const stablesChainMcaps = stablesChainData.map((chain) => {
+		return { name: chain.name,
+			mcap: Object.values(chain.totalCirculatingUSD).reduce((a: number, b: number) => a + b) }
+	})
 
 	return {
 		props: {
@@ -430,7 +437,8 @@ export const getNewChainsPageData = async (category: string) => {
 					totalVolume24h:
 						volumeTableData.find((x) => x.name.toLowerCase() === chain.name.toLowerCase())?.totalVolume ?? 0,
 					totalFees24h: total24h || 0,
-					totalRevenue24h: revenue24h || 0
+					totalRevenue24h: revenue24h || 0,
+					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === chain.name.toLowerCase())?.mcap ?? 0
 				}
 			})
 		}

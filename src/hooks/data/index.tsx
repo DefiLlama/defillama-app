@@ -141,6 +141,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 			let tvlPrevWeek: DataValue = null
 			let tvlPrevMonth: DataValue = null
 			let mcap: DataValue = null
+			let stablesMcap: DataValue = null
 			let protocols: DataValue = null
 
 			finalData[parentName] = {}
@@ -152,6 +153,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 				tvlPrevWeek = parentData.tvlPrevWeek || null
 				tvlPrevMonth = parentData.tvlPrevMonth || null
 				mcap = parentData.mcap || null
+				stablesMcap = parentData.stablesMcap || null
 				protocols = parentData.protocols || null
 				finalData[parentName] = {
 					...parentData,
@@ -180,6 +182,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 							tvlPrevWeek += childData.tvlPrevWeek
 							tvlPrevMonth += childData.tvlPrevMonth
 							mcap += childData.mcap
+							stablesMcap += childData.stablesMcap
 							protocols += childData.protocols
 							const subChains = finalData[parentName].subRows || []
 							let mcaptvl = mcap && tvl && mcap / tvl
@@ -191,6 +194,7 @@ export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {
 								tvlPrevWeek,
 								tvlPrevMonth,
 								mcap,
+								stablesMcap,
 								mcaptvl,
 								protocols,
 								name: parentName,
