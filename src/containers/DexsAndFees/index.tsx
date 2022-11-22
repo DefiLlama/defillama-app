@@ -146,7 +146,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				fullChart: isChainsPage,
 				disableDefaultLeged: isChainsPage ? true : enableBreakdownChart,
 				selectedType: (selectedDataType as string) ?? undefined,
-				chartTypes: props.type === 'options' ? ['Premium volume', 'Notional volume'] : undefined
+				chartTypes: props.type === 'options' && enableBreakdownChart ? ['Notional volume', 'Premium volume'] : undefined
 			})}
 
 			{props.allChains ? (
