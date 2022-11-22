@@ -12,6 +12,7 @@ import { IJSON } from '~/api/categories/adaptors/types'
 import { useFetchCharts } from '~/api/categories/adaptors/client'
 import { MainBarChart } from './common'
 import { IDexChartsProps } from './OverviewItem'
+import { useRouter } from 'next/router'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -26,29 +27,55 @@ export type IOverviewContainerProps = IOverviewProps
 
 export default function OverviewContainer(props: IOverviewContainerProps) {
 	const chain = props.chain ?? 'All'
-
+	const router = useRouter()
+	const { dataType: selectedDataType = 'Notional volume' } = router.query
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 
-	const [charts, setCharts] = React.useState<Pick<IOverviewContainerProps, 'totalDataChartBreakdown'>>({
-		totalDataChartBreakdown: props.totalDataChartBreakdown
+	const [charts, setCharts] = React.useState<IJSON<IOverviewContainerProps['totalDataChartBreakdown']>>({
+		totalDataChartBreakdown: props.totalDataChartBreakdown,
+		totalDataChartBreakdown2: undefined
 	})
 
+	// Needs to be improved! Too dirty
 	const { data, error, loading } = useFetchCharts(props.type, chain === 'All' ? undefined : chain)
+	const {
+		data: secondTypeData,
+		error: secondTypeError,
+		loading: secondTypeLoading
+	} = useFetchCharts(props.type, chain === 'All' ? undefined : chain, 'dailyPremiumVolume', props.type !== 'options')
 
 	const isChainsPage = chain === 'all'
 
 	React.useEffect(() => {
 		if (loading) {
 			setEnableBreakdownChart(false)
-			setCharts({
+			setCharts((val) => ({
+				...val,
 				totalDataChartBreakdown: undefined
-			})
+			}))
 		}
 		if (data && !error && !loading)
-			setCharts({
-				totalDataChartBreakdown: data.totalDataChartBreakdown
-			})
+			setCharts((val) => ({
+				...val,
+				totalDataChartBreakdown: data?.totalDataChartBreakdown
+			}))
 	}, [data, loading, error, props.chain])
+
+	// Needs to be improved! Too dirty
+	React.useEffect(() => {
+		if (secondTypeLoading) {
+			setEnableBreakdownChart(false)
+			setCharts((val) => ({
+				...val,
+				['totalDataChartBreakdownPremium volume']: undefined
+			}))
+		}
+		if (secondTypeData && !secondTypeError && !secondTypeLoading)
+			setCharts((val) => ({
+				...val,
+				['totalDataChartBreakdownPremium volume']: secondTypeData?.totalDataChartBreakdown
+			}))
+	}, [secondTypeData, secondTypeLoading, secondTypeError, props.chain])
 
 	const chartData = React.useMemo<[IJoin2ReturnType, string[]]>(() => {
 		if (enableBreakdownChart) {
@@ -57,7 +84,11 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				return acc
 			}, {} as IJSON<string>)
 			const arr = Object.values(
-				charts.totalDataChartBreakdown.map<IJSON<number | string>>((cd) => {
+				charts[
+					`totalDataChartBreakdown${
+						!selectedDataType || selectedDataType === 'Notional volume' ? '' : selectedDataType
+					}`
+				]?.map<IJSON<number | string>>((cd) => {
 					return {
 						date: cd[0],
 						...Object.keys(displayNameMap).reduce((acc, module) => {
@@ -79,10 +110,10 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					Others: ordredItems.slice(11).reduce((acc, curr) => (acc += curr[1]), 0)
 				}
 			})
-			return [arr, [...Object.keys(displayNameMap), 'Others']]
+			return [arr, [...Object.values(displayNameMap), 'Others']]
 		}
 		return props.totalDataChart
-	}, [enableBreakdownChart, charts.totalDataChartBreakdown, props.totalDataChart, props.protocols])
+	}, [enableBreakdownChart, charts.totalDataChartBreakdown, props.totalDataChart, props.protocols, selectedDataType])
 
 	return (
 		<>
@@ -114,7 +145,10 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				},
 				chartData: chartData,
 				name: props.chain,
-				fullChart: isChainsPage
+				fullChart: isChainsPage,
+				brokenDown: enableBreakdownChart,
+				selectedType: (selectedDataType as string) ?? undefined,
+				chartTypes: props.type === 'options' ? ['Premium volume', 'Notional volume'] : undefined
 			})}
 
 			{props.allChains ? (
