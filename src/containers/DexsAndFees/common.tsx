@@ -102,7 +102,11 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 					<>
 						<Filters color={'#4f8fea'}>
 							{GROUP_INTERVALS_LIST.map((dataInterval) => (
-								<FlatDenomination onClick={() => setBarInterval(dataInterval)} active={dataInterval === barInterval}>
+								<FlatDenomination
+									key={dataInterval}
+									onClick={() => setBarInterval(dataInterval)}
+									active={dataInterval === barInterval}
+								>
 									{dataInterval}
 								</FlatDenomination>
 							))}
