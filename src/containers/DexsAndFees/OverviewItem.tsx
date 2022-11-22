@@ -27,7 +27,7 @@ import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
-import { upperCaseFirst } from './utils'
+import { getCleanMonthTimestamp, getCleanWeekTimestamp, upperCaseFirst } from './utils'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 
@@ -36,6 +36,7 @@ interface PageParams {
 	backgroundColor: string
 }
 import { chartBreakdownByChain, chartBreakdownByTokens, chartBreakdownByVersion } from '~/api/categories/adaptors/utils'
+import { DataIntervalType, FiltersAligned, FiltersWrapperRow, FlatDenomination, GROUP_INTERVALS_LIST } from './common'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -62,7 +63,7 @@ export interface IDexChartsProps {
 	title?: string
 	fullChart?: boolean
 	totalAllTime?: number
-	brokenDown?: boolean
+	disableDefaultLeged?: boolean
 	chartTypes?: string[]
 	selectedType?: string
 }
@@ -75,14 +76,34 @@ export const ProtocolChart = ({
 	type,
 	title,
 	fullChart = false,
-	totalAllTime
+	totalAllTime,
+	disableDefaultLeged = false
 }: IDexChartsProps) => {
+	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 	const typeString = type === 'dexs' ? 'Volume' : upperCaseFirst(type)
 	const typeSimple = type === 'dexs' || type === 'options' ? 'volume' : type
 	const simpleStack =
 		chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
 			? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
 			: undefined
+
+	const barsData = React.useMemo(() => {
+		let cleanTimestampFormatter: typeof getCleanMonthTimestamp
+		if (barInterval === 'Monthly') cleanTimestampFormatter = getCleanMonthTimestamp
+		else if (barInterval === 'Weekly') cleanTimestampFormatter = getCleanWeekTimestamp
+		else cleanTimestampFormatter = (timestampInSeconds: number) => timestampInSeconds
+
+		const monthBarsDataMap = chartData[0].reduce((acc, current) => {
+			const cleanDate = cleanTimestampFormatter(+current.date)
+			acc[cleanDate] = {
+				...acc[cleanDate],
+				...current
+			}
+			return acc
+		}, {} as typeof chartData[0])
+		return Object.entries(monthBarsDataMap).map(([date, bar]) => ({ ...bar, date }))
+	}, [chartData, barInterval])
+
 	return (
 		<StatsSection>
 			{!fullChart && (
@@ -140,13 +161,31 @@ export const ProtocolChart = ({
 				</DetailsWrapper>
 			)}
 			<ChartWrapper>
-				<StackedChart
-					title={title ?? ''}
-					chartData={chartData[0]}
-					customLegendOptions={chartData[1]}
-					stacks={simpleStack}
-					stackColors={stackedBarChartColors}
-				/>
+				{barsData && barsData.length > 0 && (
+					<>
+						<FiltersWrapperRow>
+							<>{title ?? ''}</>
+							<FiltersAligned color={'#4f8fea'}>
+								{GROUP_INTERVALS_LIST.map((dataInterval) => (
+									<FlatDenomination
+										key={dataInterval}
+										onClick={() => setBarInterval(dataInterval)}
+										active={dataInterval === barInterval}
+									>
+										{dataInterval}
+									</FlatDenomination>
+								))}
+							</FiltersAligned>
+						</FiltersWrapperRow>
+						<StackedChart
+							title={''}
+							chartData={barsData}
+							customLegendOptions={chartData[1]}
+							stacks={simpleStack}
+							stackColors={stackedBarChartColors}
+						/>
+					</>
+				)}
 			</ChartWrapper>
 		</StatsSection>
 	)
@@ -157,7 +196,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(props.protocolSummary.address)
 	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
-	const typeSimple = props.protocolSummary.type === 'volumes' ? 'volume' : props.protocolSummary.type
+	const typeSimple = props.protocolSummary.type === 'dexs' ? 'volume' : props.protocolSummary.type
 	const useTotalDataChart = props.protocolSummary.type === 'fees' || props.protocolSummary.type === 'options'
 	const mainChart = React.useMemo(() => {
 		let chartData: IJoin2ReturnType

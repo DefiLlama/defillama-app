@@ -264,14 +264,11 @@ export const joinCharts2 = (...lists: Array<[string, Array<[number, number]>]>):
 	).map<IJoin2ReturnType[number]>((bar) => {
 		const date = bar.date
 		delete bar.date
-		const ordredItems = Object.entries(bar as IJSON<number>).sort(([_a, a], [_b, b]) => b - a)
+		const ordredItems = Object.entries(bar)
 		return {
 			date,
 			...ordredItems
-				.slice(0, 11)
-				.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number]),
-			...ordredItems.slice(11).reduce((acc, [key, _value]) => ({ ...acc, [key]: 0 }), {} as IJoin2ReturnType[number]),
-			Others: ordredItems.slice(11).reduce((acc, curr) => (acc += curr[1]), 0)
+				.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number])
 		}
 	})
 

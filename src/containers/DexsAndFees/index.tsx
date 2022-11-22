@@ -100,17 +100,15 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			).map<IJoin2ReturnType[number]>((bar) => {
 				const date = bar.date
 				delete bar.date
-				const ordredItems = Object.entries(bar as IJSON<number>).sort(([_a, a], [_b, b]) => b - a)
+				const items = Object.entries(bar as IJSON<number>)
 				return {
 					date,
-					...ordredItems
-						.slice(0, 11)
-						.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number]),
-					...ordredItems.slice(11).reduce((acc, [key]) => ({ ...acc, [key]: 0 }), {} as IJoin2ReturnType[number]),
-					Others: ordredItems.slice(11).reduce((acc, curr) => (acc += curr[1]), 0)
+					...items.reduce((acc, [key, value]) => {
+						return { ...acc, [key]: value }
+					}, {} as IJoin2ReturnType[number])
 				}
 			})
-			return [arr, [...Object.values(displayNameMap), 'Others']]
+			return [arr, Object.values(displayNameMap)]
 		}
 		return props.totalDataChart
 	}, [enableBreakdownChart, charts.totalDataChartBreakdown, props.totalDataChart, props.protocols, selectedDataType])
@@ -146,9 +144,9 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				chartData: chartData,
 				name: props.chain,
 				fullChart: isChainsPage,
-				brokenDown: enableBreakdownChart,
+				disableDefaultLeged: isChainsPage ? true : enableBreakdownChart,
 				selectedType: (selectedDataType as string) ?? undefined,
-				chartTypes: props.type === 'options' ? ['Premium volume', 'Notional volume'] : undefined
+				chartTypes: props.type === 'options' && enableBreakdownChart ? ['Notional volume', 'Premium volume'] : undefined
 			})}
 
 			{props.allChains ? (
