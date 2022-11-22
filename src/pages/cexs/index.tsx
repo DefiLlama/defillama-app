@@ -72,6 +72,12 @@ const cexData = [
 		walletsLink: 'https://twitter.com/swissborg/status/1593622452571193345'
 	},
 	{
+		name: 'Korbit',
+		slug: 'korbit',
+		coin: null,
+		walletsLink: 'https://korbit.co.kr/reserve'
+	},
+	{
 		name: 'Coinsquare',
 		slug: 'coinsquare',
 		coin: null ,
@@ -106,12 +112,6 @@ const cexData = [
 		lastAuditDate: 1666369050,
 		auditor: null,
 		auditLink: 'https://coinone.co.kr/info/notice/1967'
-	},
-	{
-		name: 'Korbit',
-		lastAuditDate: 1668961050,
-		auditor: null,
-		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
 		name: 'NEXO'
