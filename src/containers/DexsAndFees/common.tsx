@@ -102,7 +102,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			<BreakpointPanel id="chartWrapper">
 				<>
 					<FiltersWrapperRow>
-						{props.brokenDown && props.chartTypes && (
+						{props.chartTypes && (
 							<Filters color={'#4f8fea'}>
 								{props.chartTypes.map((dataType) => (
 									<Link href={`/options?dataType=${dataType}`} key={dataType} shallow passHref>
@@ -131,7 +131,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							chartData={barsData}
 							customLegendOptions={props.chartData[1] as string[]}
 							stacks={simpleStack}
-							hidedefaultlegend={props.brokenDown}
+							hidedefaultlegend={props.disableDefaultLeged}
 							/* stackColors={stackedBarChartColors} */
 						/>
 					</>

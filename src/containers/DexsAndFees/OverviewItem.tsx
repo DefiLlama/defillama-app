@@ -36,7 +36,7 @@ interface PageParams {
 	backgroundColor: string
 }
 import { chartBreakdownByChain, chartBreakdownByTokens, chartBreakdownByVersion } from '~/api/categories/adaptors/utils'
-import { DataIntervalType, FiltersAligned, FiltersWrapperRow, FlatDenomination, GROUP_INTERVALS_LIST } from './common'
+import { DataIntervalType, Filters, FiltersWrapperRow, FlatDenomination, GROUP_INTERVALS_LIST } from './common'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -63,10 +63,9 @@ export interface IDexChartsProps {
 	title?: string
 	fullChart?: boolean
 	totalAllTime?: number
-	brokenDown?: boolean
+	disableDefaultLeged?: boolean
 	chartTypes?: string[]
 	selectedType?: string
-	color?: string
 }
 
 export const ProtocolChart = ({
@@ -77,7 +76,8 @@ export const ProtocolChart = ({
 	type,
 	title,
 	fullChart = false,
-	totalAllTime
+	totalAllTime,
+	disableDefaultLeged = false
 }: IDexChartsProps) => {
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 	const typeString = type === 'dexs' ? 'Volume' : upperCaseFirst(type)
@@ -164,7 +164,7 @@ export const ProtocolChart = ({
 					<>
 						<FiltersWrapperRow>
 							<>{title ?? ''}</>
-							<FiltersAligned color={'#4f8fea'}>
+							<Filters color={'#4f8fea'}>
 								{GROUP_INTERVALS_LIST.map((dataInterval) => (
 									<FlatDenomination
 										key={dataInterval}
@@ -174,7 +174,7 @@ export const ProtocolChart = ({
 										{dataInterval}
 									</FlatDenomination>
 								))}
-							</FiltersAligned>
+							</Filters>
 						</FiltersWrapperRow>
 						<StackedChart
 							title={''}
