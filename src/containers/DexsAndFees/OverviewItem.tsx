@@ -96,6 +96,7 @@ export const ProtocolChart = ({
 		const monthBarsDataMap = chartData[0].reduce((acc, current) => {
 			const cleanDate = cleanTimestampFormatter(+current.date)
 			acc[cleanDate] = {
+				...acc[cleanDate],
 				...current
 			}
 			return acc

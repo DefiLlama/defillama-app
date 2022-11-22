@@ -60,6 +60,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 		const monthBarsDataMap = props.chartData[0].reduce((acc, current) => {
 			const cleanDate = cleanTimestampFormatter(+current.date)
 			acc[cleanDate] = {
+				...acc[cleanDate],
 				...current
 			}
 			return acc
