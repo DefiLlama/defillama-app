@@ -2,6 +2,7 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import * as React from 'react'
+import styled from 'styled-components'
 import { IJSON } from '~/api/categories/adaptors/types'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import { Denomination, Filters, FiltersWrapper } from '~/components/ECharts/ProtocolChart/ProtocolChart'
@@ -12,6 +13,11 @@ import { IDexChartsProps } from './OverviewItem'
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
+
+const FlatDenomination = styled(Denomination)`
+	white-space: nowrap;
+	overflow: hidden;
+`
 
 export interface IMainBarChartProps {
 	type: string
@@ -62,10 +68,10 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			)}
 			<BreakpointPanel id="chartWrapper">
 				{props.brokenDown && props.chartTypes && (
-					<Filters color={'blue'}>
+					<Filters color={'#4f8fea'}>
 						{props.chartTypes.map((dataType) => (
 							<Link href={`/options?dataType=${dataType}`} key={dataType} shallow passHref>
-								<Denomination active={dataType === props.selectedType}>{dataType}</Denomination>
+								<FlatDenomination active={dataType === props.selectedType}>{dataType}</FlatDenomination>
 							</Link>
 						))}
 					</Filters>
