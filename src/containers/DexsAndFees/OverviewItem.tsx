@@ -36,7 +36,7 @@ interface PageParams {
 	backgroundColor: string
 }
 import { chartBreakdownByChain, chartBreakdownByTokens, chartBreakdownByVersion } from '~/api/categories/adaptors/utils'
-import { DataIntervalType, Filters, FiltersWrapperRow, FlatDenomination, GROUP_INTERVALS_LIST } from './common'
+import { DataIntervalType, FiltersAligned, FiltersWrapperRow, FlatDenomination, GROUP_INTERVALS_LIST } from './common'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -164,7 +164,7 @@ export const ProtocolChart = ({
 					<>
 						<FiltersWrapperRow>
 							<>{title ?? ''}</>
-							<Filters color={'#4f8fea'}>
+							<FiltersAligned color={'#4f8fea'}>
 								{GROUP_INTERVALS_LIST.map((dataInterval) => (
 									<FlatDenomination
 										key={dataInterval}
@@ -174,7 +174,7 @@ export const ProtocolChart = ({
 										{dataInterval}
 									</FlatDenomination>
 								))}
-							</Filters>
+							</FiltersAligned>
 						</FiltersWrapperRow>
 						<StackedChart
 							title={''}
