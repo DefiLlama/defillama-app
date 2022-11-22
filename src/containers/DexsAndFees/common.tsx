@@ -15,9 +15,20 @@ const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-const FlatDenomination = styled(Denomination)`
+export const FlatDenomination = styled(Denomination)`
 	white-space: nowrap;
 	overflow: hidden;
+`
+export const FiltersAligned = styled(Filters)``
+
+export const FiltersWrapperRow = styled(FiltersWrapper)`
+	justify-content: space-between;
+	flex-direction: row;
+	margin: 0 0 1rem 0;
+	align-items: center;
+	font-weight: 600;
+	color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)')};
+	font-size: 1.3em;
 `
 
 export interface IMainBarChartProps {
@@ -28,8 +39,8 @@ export interface IMainBarChartProps {
 	chartData: IBarChartProps['chartData'] | null
 }
 
-type DataIntervalType = 'Daily' | 'Weekly' | 'Monthly'
-const GROUP_INTERVALS_LIST: DataIntervalType[] = ['Daily', 'Weekly', 'Monthly']
+export type DataIntervalType = 'Daily' | 'Weekly' | 'Monthly'
+export const GROUP_INTERVALS_LIST: DataIntervalType[] = ['Daily', 'Weekly', 'Monthly']
 
 export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
@@ -89,18 +100,18 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 				<></>
 			)}
 			<BreakpointPanel id="chartWrapper">
-				{props.brokenDown && props.chartTypes && (
-					<Filters color={'#4f8fea'}>
-						{props.chartTypes.map((dataType) => (
-							<Link href={`/options?dataType=${dataType}`} key={dataType} shallow passHref>
-								<FlatDenomination active={dataType === props.selectedType}>{dataType}</FlatDenomination>
-							</Link>
-						))}
-					</Filters>
-				)}
-				{barsData && barsData.length > 0 && (
-					<>
-						<Filters color={'#4f8fea'}>
+				<>
+					<FiltersWrapperRow>
+						{props.brokenDown && props.chartTypes && (
+							<Filters color={'#4f8fea'}>
+								{props.chartTypes.map((dataType) => (
+									<Link href={`/options?dataType=${dataType}`} key={dataType} shallow passHref>
+										<FlatDenomination active={dataType === props.selectedType}>{dataType}</FlatDenomination>
+									</Link>
+								))}
+							</Filters>
+						)}
+						<FiltersAligned color={'#4f8fea'}>
 							{GROUP_INTERVALS_LIST.map((dataInterval) => (
 								<FlatDenomination
 									key={dataInterval}
@@ -110,7 +121,11 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 									{dataInterval}
 								</FlatDenomination>
 							))}
-						</Filters>
+						</FiltersAligned>
+					</FiltersWrapperRow>
+				</>
+				{barsData && barsData.length > 0 && (
+					<>
 						<StackedBarChart
 							title=""
 							chartData={barsData}
