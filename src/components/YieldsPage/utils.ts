@@ -95,7 +95,8 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 			!availableChains.includes(pool.chain) ||
 			(tokenToBorrow === 'USD_Stables' ? false : !pool.symbol.includes(tokenToBorrow)) ||
 			pool.symbol.includes('AMM') ||
-			pool.borrowable === false
+			pool.borrowable === false ||
+			(pool.project === 'liqee' && (tokenToLend === 'RETH' || tokenToBorrow === 'RETH'))
 		)
 			return acc
 		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) return acc
