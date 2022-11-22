@@ -9,6 +9,7 @@ import { Denomination, Filters, FiltersWrapper } from '~/components/ECharts/Prot
 import { IBarChartProps } from '~/components/ECharts/types'
 import { formattedNum } from '~/utils'
 import { IDexChartsProps } from './OverviewItem'
+import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -26,13 +27,34 @@ export interface IMainBarChartProps {
 	change_1m: number | null
 	chartData: IBarChartProps['chartData'] | null
 }
+
+type DataIntervalType = 'Daily' | 'Weekly' | 'Monthly'
+const GROUP_INTERVALS_LIST: DataIntervalType[] = ['Daily', 'Weekly', 'Monthly']
+
 export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
+	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 	const dataType =
 		props.type === 'dexs' || props.type === 'options' || props.type === 'aggregators' ? 'volume' : props.type
 	const simpleStack =
 		props.chartData[1].includes('Fees') || props.chartData[1].includes('Premium volume')
 			? props.chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
 			: undefined
+
+	const barsData = React.useMemo(() => {
+		let cleanTimestampFormatter: typeof getCleanMonthTimestamp
+		if (barInterval === 'Monthly') cleanTimestampFormatter = getCleanMonthTimestamp
+		else if (barInterval === 'Weekly') cleanTimestampFormatter = getCleanWeekTimestamp
+		else cleanTimestampFormatter = (timestampInSeconds: number) => timestampInSeconds
+
+		const monthBarsDataMap = props.chartData[0].reduce((acc, current) => {
+			const cleanDate = cleanTimestampFormatter(+current.date)
+			acc[cleanDate] = {
+				...current
+			}
+			return acc
+		}, {} as typeof props.chartData[0])
+		return Object.entries(monthBarsDataMap).map(([date, bar]) => ({ ...bar, date }))
+	}, [props.chartData, barInterval])
 
 	return (
 		<ChartAndValuesWrapper>
@@ -76,15 +98,24 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 						))}
 					</Filters>
 				)}
-				{props.chartData && props.chartData.length > 0 && (
-					<StackedBarChart
-						title=""
-						chartData={props.chartData[0]}
-						customLegendOptions={props.chartData[1] as string[]}
-						stacks={simpleStack}
-						hidedefaultlegend={props.brokenDown}
-						/* stackColors={stackedBarChartColors} */
-					/>
+				{barsData && barsData.length > 0 && (
+					<>
+						<Filters color={'#4f8fea'}>
+							{GROUP_INTERVALS_LIST.map((dataInterval) => (
+								<FlatDenomination onClick={() => setBarInterval(dataInterval)} active={dataInterval === barInterval}>
+									{dataInterval}
+								</FlatDenomination>
+							))}
+						</Filters>
+						<StackedBarChart
+							title=""
+							chartData={barsData}
+							customLegendOptions={props.chartData[1] as string[]}
+							stacks={simpleStack}
+							hidedefaultlegend={props.brokenDown}
+							/* stackColors={stackedBarChartColors} */
+						/>
+					</>
 				)}
 			</BreakpointPanel>
 		</ChartAndValuesWrapper>
