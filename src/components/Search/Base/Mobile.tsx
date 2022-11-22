@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Search } from 'react-feather'
 import styled from 'styled-components'
-import { useGetDexesSearchList } from '../Dexs/hooks'
+import { MobileInput } from './Input'
+import { useDebounce } from '~/hooks'
 import { useGetLiquidationSearchList } from '../Liquidations/hooks'
 import { useGetNftsSearchList } from '../NFTs/hooks'
 import { IDefiSearchListProps, useGetDefiSearchList } from '../ProtocolsChains/hooks'
 import { useGetStablecoinsSearchList } from '../Stablecoins/hooks'
 import { useGetTokensSearchListMobile, useGetYieldsSearchList } from '../Yields/hooks'
-import { MobileInput } from './Input'
 import { useGetInvestorsList } from '../Raises/hooks'
-import { useDebounce } from '~/hooks'
 import { MobileResults } from './Results/Mobile'
+import { useGetAdaptorsSearchList } from '../Adaptors/hooks'
 
 export default function MobileSearch() {
 	const { data, loading, onSearchTermChange, onItemClick } = useMobileSearchResult()(
@@ -74,7 +74,19 @@ const useMobileSearchResult = () => {
 		return useGetInvestorsList
 	}
 
+	if (router.pathname.startsWith('/fee')) {
+		return useGetFeesSearchList
+	}
+
 	return useGetDefiSearchList
+}
+
+function useGetFeesSearchList() {
+	return useGetAdaptorsSearchList('fees')
+}
+
+function useGetDexesSearchList() {
+	return useGetAdaptorsSearchList('dexs')
 }
 
 const Button = styled.button`
