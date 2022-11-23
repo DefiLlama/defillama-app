@@ -42,6 +42,28 @@ export interface IMainBarChartProps {
 export type DataIntervalType = 'Daily' | 'Weekly' | 'Monthly'
 export const GROUP_INTERVALS_LIST: DataIntervalType[] = ['Daily', 'Weekly', 'Monthly']
 
+export const aggregateDataByInterval =
+	(barInterval: DataIntervalType, chartData: IDexChartsProps['chartData']) => () => {
+		let cleanTimestampFormatter: typeof getCleanMonthTimestamp
+		if (barInterval === 'Monthly') cleanTimestampFormatter = getCleanMonthTimestamp
+		else if (barInterval === 'Weekly') cleanTimestampFormatter = getCleanWeekTimestamp
+		else cleanTimestampFormatter = (timestampInSeconds: number) => timestampInSeconds
+
+		const monthBarsDataMap = chartData[0].reduce((acc, current) => {
+			const cleanDate = cleanTimestampFormatter(+current.date)
+			console.log('.-.-.-')
+			acc[cleanDate] = Object.entries(current).reduce((intervalAcc, [label, value]) => {
+				console.log(label, intervalAcc[label])
+				if (typeof value === 'string') return intervalAcc
+				intervalAcc[label] = ((intervalAcc[label] as number) ?? 0) + value
+				console.log(label, intervalAcc[label])
+				return intervalAcc
+			}, acc[cleanDate] ?? ({} as typeof acc[number]))
+			return acc
+		}, {} as typeof chartData[0])
+		return Object.entries(monthBarsDataMap).map(([date, bar]) => ({ ...bar, date }))
+	}
+
 export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 	const dataType =
@@ -51,22 +73,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			? props.chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
 			: undefined
 
-	const barsData = React.useMemo(() => {
-		let cleanTimestampFormatter: typeof getCleanMonthTimestamp
-		if (barInterval === 'Monthly') cleanTimestampFormatter = getCleanMonthTimestamp
-		else if (barInterval === 'Weekly') cleanTimestampFormatter = getCleanWeekTimestamp
-		else cleanTimestampFormatter = (timestampInSeconds: number) => timestampInSeconds
-
-		const monthBarsDataMap = props.chartData[0].reduce((acc, current) => {
-			const cleanDate = cleanTimestampFormatter(+current.date)
-			acc[cleanDate] = {
-				...acc[cleanDate],
-				...current
-			}
-			return acc
-		}, {} as typeof props.chartData[0])
-		return Object.entries(monthBarsDataMap).map(([date, bar]) => ({ ...bar, date }))
-	}, [props.chartData, barInterval])
+	const barsData = React.useMemo(aggregateDataByInterval(barInterval, props.chartData), [props.chartData, barInterval])
 
 	return (
 		<ChartAndValuesWrapper>

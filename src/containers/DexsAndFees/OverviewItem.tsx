@@ -36,7 +36,14 @@ interface PageParams {
 	backgroundColor: string
 }
 import { chartBreakdownByChain, chartBreakdownByTokens, chartBreakdownByVersion } from '~/api/categories/adaptors/utils'
-import { DataIntervalType, FiltersAligned, FiltersWrapperRow, FlatDenomination, GROUP_INTERVALS_LIST } from './common'
+import {
+	aggregateDataByInterval,
+	DataIntervalType,
+	FiltersAligned,
+	FiltersWrapperRow,
+	FlatDenomination,
+	GROUP_INTERVALS_LIST
+} from './common'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -87,22 +94,7 @@ export const ProtocolChart = ({
 			? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
 			: undefined
 
-	const barsData = React.useMemo(() => {
-		let cleanTimestampFormatter: typeof getCleanMonthTimestamp
-		if (barInterval === 'Monthly') cleanTimestampFormatter = getCleanMonthTimestamp
-		else if (barInterval === 'Weekly') cleanTimestampFormatter = getCleanWeekTimestamp
-		else cleanTimestampFormatter = (timestampInSeconds: number) => timestampInSeconds
-
-		const monthBarsDataMap = chartData[0].reduce((acc, current) => {
-			const cleanDate = cleanTimestampFormatter(+current.date)
-			acc[cleanDate] = {
-				...acc[cleanDate],
-				...current
-			}
-			return acc
-		}, {} as typeof chartData[0])
-		return Object.entries(monthBarsDataMap).map(([date, bar]) => ({ ...bar, date }))
-	}, [chartData, barInterval])
+	const barsData = React.useMemo(aggregateDataByInterval(barInterval, chartData), [chartData, barInterval])
 
 	return (
 		<StatsSection>
