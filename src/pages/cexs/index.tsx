@@ -69,7 +69,7 @@ const cexData = [
 		slug: 'swissborg',
 		coin: "CHSB",
         coinSymbol: 'CHSB',
-		walletsLink: 'https://twitter.com/swissborg/status/1593622452571193345'
+		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
 		name: 'Korbit',
