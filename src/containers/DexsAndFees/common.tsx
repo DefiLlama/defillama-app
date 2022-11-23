@@ -51,12 +51,9 @@ export const aggregateDataByInterval =
 
 		const monthBarsDataMap = chartData[0].reduce((acc, current) => {
 			const cleanDate = cleanTimestampFormatter(+current.date)
-			console.log('.-.-.-')
 			acc[cleanDate] = Object.entries(current).reduce((intervalAcc, [label, value]) => {
-				console.log(label, intervalAcc[label])
 				if (typeof value === 'string') return intervalAcc
 				intervalAcc[label] = ((intervalAcc[label] as number) ?? 0) + value
-				console.log(label, intervalAcc[label])
 				return intervalAcc
 			}, acc[cleanDate] ?? ({} as typeof acc[number]))
 			return acc
