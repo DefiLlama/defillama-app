@@ -105,7 +105,7 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 			(collateralPool) =>
 				collateralPool.chain === pool.chain &&
 				collateralPool.project === pool.project &&
-				!collateralPool.symbol.includes(tokenToBorrow) &&
+				((tokenToLend === 'STETH' && tokenToBorrow === 'ETH') || !collateralPool.symbol.includes(tokenToBorrow)) &&
 				collateralPool.pool !== pool.pool &&
 				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true) &&
 				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true) &&
