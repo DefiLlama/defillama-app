@@ -95,7 +95,8 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 			!availableChains.includes(pool.chain) ||
 			(tokenToBorrow === 'USD_Stables' ? false : !pool.symbol.includes(tokenToBorrow)) ||
 			pool.symbol.includes('AMM') ||
-			pool.borrowable === false
+			pool.borrowable === false ||
+			(pool.project === 'liqee' && (tokenToLend === 'RETH' || tokenToBorrow === 'RETH'))
 		)
 			return acc
 		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) return acc
@@ -104,7 +105,7 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 			(collateralPool) =>
 				collateralPool.chain === pool.chain &&
 				collateralPool.project === pool.project &&
-				!collateralPool.symbol.includes(tokenToBorrow) &&
+				((tokenToLend === 'STETH' && tokenToBorrow === 'ETH') || !collateralPool.symbol.includes(tokenToBorrow)) &&
 				collateralPool.pool !== pool.pool &&
 				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true) &&
 				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true) &&

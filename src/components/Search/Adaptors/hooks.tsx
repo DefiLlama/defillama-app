@@ -16,7 +16,7 @@ export function useGetAdaptorsSearchList(type: string, onlyChains?: boolean): IG
 			route: `${urlPrefix}/${standardizeProtocolName(asset.name)}`,
 			name: asset.name
 		}))
-	}, [data, onlyChains])
+	}, [data, onlyChains, type])
 
 	return { data: searchData, loading, error: !data && !loading }
 }

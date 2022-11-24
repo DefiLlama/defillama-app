@@ -25,6 +25,8 @@ import {
 	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
 import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
+import { ChartWrapper } from '~/layout/ProtocolAndPool'
+import { DexCharts } from '~/containers/DexsAndFees/DexsCharts'
 import { Checkbox2 } from '~/components'
 import Bookmark from '~/components/Bookmark'
 import CopyHelper from '~/components/Copy'
@@ -51,14 +53,12 @@ import {
 } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
-import boboLogo from '~/assets/boboSmug.png'
-import { IFusedProtocolData, IRaise } from '~/api/types'
+import type { IFusedProtocolData, IRaise } from '~/api/types'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { DexCharts } from '~/containers/Dex/DexProtocol'
 import { useFetchProtocolDex } from '~/api/categories/dexs/client'
 import { useFetchProtocolFees } from '~/api/categories/fees/client'
 import { useYields } from '~/api/categories/yield/client'
-import { ChartWrapper } from '~/layout/ProtocolAndPool'
+import boboLogo from '~/assets/boboSmug.png'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false

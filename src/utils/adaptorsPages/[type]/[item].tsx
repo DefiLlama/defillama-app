@@ -2,7 +2,7 @@ import { GetStaticProps, GetStaticPropsContext, InferGetStaticPropsType } from '
 import * as React from 'react'
 import { revalidate } from '~/api'
 import { getOverview, getOverviewItemPageData, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
-import OverviewItemContainer from '~/containers/Overview/OverviewItem'
+import OverviewItemContainer from '~/containers/DexsAndFees/OverviewItem'
 import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
 

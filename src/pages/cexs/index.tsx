@@ -69,13 +69,25 @@ const cexData = [
 		slug: 'swissborg',
 		coin: "CHSB",
         coinSymbol: 'CHSB',
-		walletsLink: 'https://twitter.com/swissborg/status/1593622452571193345'
+		walletsLink: 'https://github.com/swissborg/pub'
+	},
+	{
+		name: 'Korbit',
+		slug: 'korbit',
+		coin: null,
+		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
 		name: 'Coinsquare',
 		slug: 'coinsquare',
 		coin: null ,
 		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
+	},
+	{
+		name: 'MaskEX',
+		slug: 'maskex',
+		coin: null ,
+		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'Cake Defi',
@@ -106,12 +118,6 @@ const cexData = [
 		lastAuditDate: 1666369050,
 		auditor: null,
 		auditLink: 'https://coinone.co.kr/info/notice/1967'
-	},
-	{
-		name: 'Korbit',
-		lastAuditDate: 1668961050,
-		auditor: null,
-		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
 		name: 'NEXO'
@@ -146,9 +152,6 @@ const cexData = [
 	{
 		name: 'Bittrex'
 	},
-	{
-		name: 'Coinone'
-	}
 ]
 
 export async function getStaticProps() {

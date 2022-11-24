@@ -158,7 +158,7 @@ export default function ChainsContainer({
 			</ChartsWrapper>
 
 			<ChainTvlsFilter>
-				<h2>Filters</h2>
+				<h2>Chain Groups</h2>
 				<GroupChains label="Filters" />
 			</ChainTvlsFilter>
 
