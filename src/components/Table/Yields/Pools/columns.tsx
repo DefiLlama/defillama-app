@@ -146,7 +146,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end',
 			headerHelperText:
-				'7day Impermanent Loss: the percentage loss between LPing for the last 7days vs hodling the underlying assets instead.'
+				'7day Impermanent Loss: the percentage loss between LPing for the last 7days vs hodling the underlying assets instead. For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
 		}
 	},
 	{
