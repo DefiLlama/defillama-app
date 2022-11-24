@@ -157,10 +157,10 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 
 				if (selectedSectors.length !== sectors.length) {
 					// filter raises with no sector
-					if (!raise.sector || raise.sector === '') {
+					if (!raise.category || raise.category === '') {
 						toFilter = false
 					} else {
-						if (!selectedSectors.includes(raise.sector)) {
+						if (!selectedSectors.includes(raise.category)) {
 							toFilter = false
 						}
 					}

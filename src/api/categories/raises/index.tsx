@@ -36,8 +36,8 @@ export function getRaisesFiltersList(data): IRaisesFilters {
 			rounds.add(r.round.trim())
 		}
 
-		if (r.sector) {
-			sectors.add(r.sector.trim())
+		if (r.category) {
+			sectors.add(r.category.trim())
 		}
 
 		if (r.chains) {
