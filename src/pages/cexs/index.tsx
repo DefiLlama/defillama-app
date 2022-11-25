@@ -90,6 +90,12 @@ const cexData = [
 		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
+		name: 'CoinDCX',
+		slug: 'coindcx',
+		coin: null,
+		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
+	},
+	{
 		name: 'Cake Defi',
 		slug: 'cake-defi',
 		coin: null,
