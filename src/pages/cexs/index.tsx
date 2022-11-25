@@ -96,6 +96,12 @@ const cexData = [
 		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves/'
 	},
 	{
+		name: 'NBX',
+		slug: 'nbx',
+		coin: null,
+		walletsLink: 'https://nbx.com/en/proof-of-reserves'
+	},
+	{
 		name: 'Coinbase',
 		lastAuditDate: 1640908800,
 		auditor: 'Deloitte',
