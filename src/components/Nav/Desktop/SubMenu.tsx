@@ -121,9 +121,9 @@ const isActive = ({ pathname, category }: { pathname: string; category: string }
 			return isStables(pathname)
 		case 'Liquidations':
 			return isLiquidations(pathname)
-		case 'DEXs':
+		case 'Volumes':
 			return isDexs(pathname)
-		case 'Fees':
+		case 'Fees/Revenue':
 			return isFees(pathname)
 		case 'Raises':
 			return isRaises(pathname)
