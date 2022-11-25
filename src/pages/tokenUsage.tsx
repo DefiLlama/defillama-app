@@ -50,7 +50,7 @@ export default function Tokens({ compressed }) {
 						? includeCentraliseExchanges
 						: true
 				)
-				?.map((p) => ({ ...p, amountUsd: p.amountUsd[tokenSybmol.toUpperCase()] || 0 })) ?? []
+				?.map((p) => ({ ...p, amountUsd: Object.values(p.amountUsd).reduce((s:number, a:number)=> s+a, 0) })) ?? []
 		)
 	}, [protocols, includeCentraliseExchanges, tokenSybmol])
 
