@@ -1,4 +1,7 @@
+import useSWR from 'swr'
 import { CG_TOKEN_API } from '~/constants/index'
+import { arrayFetcher, retrySWR } from '~/utils/useSWR'
+import type { IResponseCGMarketsAPI } from './types'
 
 export function getCGMarketsDataURLs() {
 	const urls: string[] = []
@@ -7,6 +10,22 @@ export function getCGMarketsDataURLs() {
 		urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', `${page}`)}`)
 	}
 	return urls
+}
+
+export const useFetchCoingeckoTokensList = () => {
+	const { data, error } = useSWR<Array<IResponseCGMarketsAPI>>(
+		'coingeckotokenslist',
+		() => arrayFetcher(getCGMarketsDataURLs()),
+		{
+			onErrorRetry: retrySWR
+		}
+	)
+
+	return {
+		data: data?.flat(),
+		error,
+		loading: !data && !error
+	}
 }
 
 export async function retryCoingeckoRequest(func, retries) {

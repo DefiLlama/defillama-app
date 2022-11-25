@@ -101,6 +101,7 @@ export const navLinks: ILinks = {
 			{ name: 'Forks', path: '/forks' },
 			{ name: 'Top Protocols', path: '/top-protocols' },
 			{ name: 'Comparison', path: '/comparison?protocol=MakerDAO&protocol=Curve', newTag: true },
+			{ name: 'Token Usage', path: '/tokenUsage?token=ETH', newTag: true },
 			{ name: 'Categories', path: '/categories' },
 			{ name: 'Recent', path: '/recent' },
 			{ name: 'Languages', path: '/languages' }
@@ -169,7 +170,7 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Search size={16} />
 	},
-	"CEX Transparency": {
+	'CEX Transparency': {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <BookOpen size={16} />
@@ -226,7 +227,7 @@ export const linksWithNoSubMenu = [
 	{ name: 'Raises', url: '/raises' },
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Borrow Aggregator', url: '/borrow' },
-	{ name: 'CEX Transparency', url: '/cexs' },
+	{ name: 'CEX Transparency', url: '/cexs' }
 ]
 
 function downloadDefiDataset() {

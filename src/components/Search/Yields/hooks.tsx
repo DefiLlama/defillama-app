@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { useFetchProjectsList, useFetchYieldsList } from '~/api/categories/yield/client'
+import { useFetchCoingeckoTokensList } from '~/api'
+import { useFetchProjectsList } from '~/api/categories/yield/client'
 import { tokenIconUrl } from '~/utils'
 import { IBaseSearchProps, IGetSearchList } from '../types'
 
 export function useGetYieldsSearchList(): IGetSearchList {
 	const router = useRouter()
-	const { data: yields, loading: fetchingYields } = useFetchYieldsList()
+	const { data: yields, loading: fetchingYields } = useFetchCoingeckoTokensList()
 	const { data: projects, loading: fetchingProjects } = useFetchProjectsList()
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
@@ -90,7 +91,7 @@ export function useGetTokensSearchList({ lend, yields }): IGetSearchList {
 
 export function useGetTokensSearchListMobile(): IGetSearchList {
 	const router = useRouter()
-	const { data: yields, loading: fetchingYields } = useFetchYieldsList()
+	const { data: yields, loading: fetchingYields } = useFetchCoingeckoTokensList()
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
 		const yieldsList =

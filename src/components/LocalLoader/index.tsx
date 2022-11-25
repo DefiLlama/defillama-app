@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Image from 'next/image'
+import Image from 'next/future/image'
 import styled, { css, keyframes } from 'styled-components'
 import { useNFTApp } from '~/hooks'
 import DefiLogo from '~/assets/logo_white.png'
@@ -19,14 +19,11 @@ const Loader = styled.div<ILocalLoaderProps>`
 	justify-content: center;
 
 	animation: ${rotate} 800ms linear infinite;
-	& > * {
-		width: 72px;
-	}
 
 	${(props) =>
 		props.fill
 			? css`
-					height: 100vh;
+					height: 100%;
 			  `
 			: css`
 					height: 180px;
@@ -43,7 +40,7 @@ const LocalLoader = ({ fill, ...props }: ILocalLoaderProps) => {
 
 	return (
 		<Loader fill={fill} {...props}>
-			<Image src={isNFTApp ? NFTLogo : DefiLogo} alt="loading-icon" />
+			<Image src={isNFTApp ? NFTLogo : DefiLogo} width={72} alt="loading-icon" />
 		</Loader>
 	)
 }

@@ -119,17 +119,24 @@ export function Input({ state, placeholder, withValue, breadCrumbs, ...props }: 
 export function MobileInput({
 	value,
 	setValue,
-	hideInput
+	hideInput,
+	...props
 }: {
 	value: string
 	setValue: React.Dispatch<React.SetStateAction<string>>
-	hideInput: React.Dispatch<React.SetStateAction<boolean>>
+	hideInput?: React.Dispatch<React.SetStateAction<boolean>>
 }) {
 	return (
 		<>
-			<MobileInputField placeholder="Search..." value={value} onChange={(e) => setValue(e.target.value)} autoFocus />
+			<MobileInputField
+				placeholder="Search..."
+				value={value}
+				onChange={(e) => setValue(e.target.value)}
+				autoFocus
+				{...props}
+			/>
 
-			<IconWrapper onClick={() => hideInput(false)} data-searchicon>
+			<IconWrapper onClick={() => hideInput && hideInput(false)} data-searchicon>
 				<span className="visually-hidden">Close Search</span>
 				<XIcon />
 			</IconWrapper>
