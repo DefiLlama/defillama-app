@@ -17,12 +17,27 @@ interface ITrendingContracts {
 	gas_spend_percentage_growth: number
 	txns: number
 	txns_percentage_growth: number
+	name?: string
 }
 
 async function getContracts(time: number) {
 	return await fetch(`https://trending-contracts-api.herokuapp.com/ethereum/${time > 119 ? 119 : time}`).then((res) =>
 		res.json()
-	)
+	).then(async r=>{
+		return {
+			results: await Promise.all(r.results.map(async contract=>{
+				try{
+					const name = await fetch(`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`).then(r=>r.json())
+					return {
+						...contract,
+						name: name.name
+					}
+				} catch(e){
+					return contract
+				}
+			}))
+		}
+	})
 }
 
 export default function TrendingContracts() {
@@ -92,6 +107,7 @@ export const columns: ColumnDef<ITrendingContracts>[] = [
 		accessorKey: 'contract',
 		cell: (info) => {
 			const value = info.getValue() as string
+			const name = info.row.original.name
 			return (
 				<a
 					href={`https://etherscan.io/address/${value}`}
@@ -99,7 +115,7 @@ export const columns: ColumnDef<ITrendingContracts>[] = [
 					rel="noopener noreferrer"
 					style={{ textDecoration: 'underline' }}
 				>
-					{value.slice(0, 4) + '...' + value.slice(-4)}
+					{name ?? value.slice(0, 4) + '...' + value.slice(-4)}
 				</a>
 			)
 		},
