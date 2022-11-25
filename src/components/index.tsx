@@ -300,4 +300,20 @@ export const FallbackMessage = styled.p`
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 `
 
+export const ToggleWrapper = styled.label`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+
+	:hover {
+		cursor: pointer;
+	}
+
+	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+		:first-of-type {
+			margin-left: auto;
+		}
+	}
+`
+
 export { Hint, Divider, EmptyCard }
