@@ -327,6 +327,14 @@ export const protocolsByTokenColumns: ColumnDef<{ name: string; amountUsd: numbe
 		}
 	},
 	{
+		header: () => <Name>Category</Name>,
+		accessorKey: 'category',
+		enableSorting: false,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: () => <Name>Amount</Name>,
 		accessorKey: 'amountUsd',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,

@@ -50,9 +50,9 @@ export default function Tokens({ compressed }) {
 						? includeCentraliseExchanges
 						: true
 				)
-				?.map((p) => ({ ...p, amountUsd: Object.values(p.amountUsd).reduce((s:number, a:number)=> s+a, 0) })) ?? []
+				?.map((p) => ({ ...p, amountUsd: Object.values(p.amountUsd).reduce((s: number, a: number) => s + a, 0) })) ?? []
 		)
-	}, [protocols, includeCentraliseExchanges, tokenSybmol])
+	}, [protocols, includeCentraliseExchanges])
 
 	return (
 		<Layout title="Token Usage - DefiLlama" defaultSEO style={layoutStyles}>
