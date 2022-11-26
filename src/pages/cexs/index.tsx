@@ -90,6 +90,12 @@ const cexData = [
 		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
+		name: 'Firi',
+		slug: 'firi',
+		coin: null ,
+		walletsLink: null
+	},
+	{
 		name: 'CoinDCX',
 		slug: 'coindcx',
 		coin: null,
