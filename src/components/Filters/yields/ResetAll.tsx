@@ -30,6 +30,7 @@ const Wrapper = styled.button`
 		border-radius: 12px;
 		border: none;
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		text-decoration: none;
 
 		:hover,
 		:focus-visible {
