@@ -43,6 +43,12 @@ export async function retryCoingeckoRequest(func, retries) {
 	return {}
 }
 
+export async function getAllCGTokensList() {
+	const data = await arrayFetcher(getCGMarketsDataURLs())
+
+	return data
+}
+
 //:00 -> adapters start running, they take up to 15mins
 //:20 -> storeProtocols starts running, sets cache expiry to :21 of next hour
 //:22 -> we rebuild all pages

@@ -1,22 +1,19 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import useSWR from 'swr'
-import pako from 'pako'
 import Layout from '~/layout'
-import { ToggleWrapper } from '~/components'
 import { ProtocolsByToken } from '~/components/Table'
 import { DesktopSearch } from '~/components/Search/Base'
-import type { IBaseSearchProps } from '~/components/Search/types'
 import LocalLoader from '~/components/LocalLoader'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
-import { getCGMarketsDataURLs, revalidate } from '~/api'
-import { arrayFetcher, fetcher } from '~/utils/useSWR'
+import { getAllCGTokensList, revalidate } from '~/api'
+import { fetcher } from '~/utils/useSWR'
 import Announcement from '~/components/Announcement'
+import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export default function Tokens({ compressed }) {
-	const b = new Uint8Array(Buffer.from(compressed, 'base64'))
-	const { searchData } = JSON.parse(pako.inflate(b, { to: 'string' }))
+	const { searchData } = decompressPageProps(compressed)
 
 	const router = useRouter()
 
@@ -92,31 +89,18 @@ export default function Tokens({ compressed }) {
 }
 
 export async function getStaticProps() {
-	const tokensList = await arrayFetcher(getCGMarketsDataURLs())
+	const tokensList = await getAllCGTokensList()
 
-	const searchData: IBaseSearchProps['data'] = []
+	const searchData = tokensList?.flat() ?? []
 
-	if (tokensList) {
-		tokensList.forEach((tokens) => {
-			if (tokens) {
-				tokens.forEach((token) => {
-					searchData.push({
-						name: `${token.name}`,
-						route: `/tokenUsage?token=${token.symbol}`,
-						symbol: token.symbol,
-						logo: token.image
-					})
-				})
-			}
-		})
-	}
-
-	const strData = JSON.stringify({
-		searchData
+	const compressed = compressPageProps({
+		searchData: searchData.map((token) => ({
+			name: `${token.name}`,
+			route: `/tokenUsage?token=${token.symbol}`,
+			symbol: token.symbol,
+			logo: token.image
+		}))
 	})
-
-	const a = pako.deflate(strData)
-	const compressed = Buffer.from(a).toString('base64')
 
 	return {
 		props: { compressed },

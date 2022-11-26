@@ -2,25 +2,26 @@ import Layout from '~/layout'
 import YieldPageLoop from '~/components/YieldsPage/indexLoop'
 import { revalidate } from '~/api'
 import { getLendBorrowData, calculateLoopAPY } from '~/api/categories/yield'
-import pako from 'pako'
 import { PanelThicc, StyledAnchor } from '~/components'
 import Link from '~/components/Link'
 import { useState } from 'react'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
+import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
-	let data = await getLendBorrowData()
-	data.props.pools = calculateLoopAPY(
-		data.props.pools.filter((p) => p.category !== 'CDP'),
-		10,
-		null
-	)
+	let {
+		props: { ...data }
+	} = await getLendBorrowData()
 
-	const strData = JSON.stringify(data)
-
-	const a = pako.deflate(strData)
-	const compressed = Buffer.from(a).toString('base64')
+	const compressed = compressPageProps({
+		...data,
+		pools: calculateLoopAPY(
+			data.pools.filter((p) => p.category !== 'CDP'),
+			10,
+			null
+		)
+	})
 
 	return {
 		props: { compressed },
@@ -46,10 +47,11 @@ Loop APY: 9% * 1.75 + 3% = 18.75% -> >2x increase compared to the Supply APY
 You could keep adding leverage by repeating these steps n-times.
 `
 
-export default function YieldBorrow(compressedProps) {
-	const b = new Uint8Array(Buffer.from(compressedProps.compressed, 'base64'))
-	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
+export default function YieldBorrow({ compressed }) {
+	const data = decompressPageProps(compressed)
+
 	const [methodologyActivated, setMethodologyActivated] = useState(false)
+
 	return (
 		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
@@ -69,7 +71,7 @@ export default function YieldBorrow(compressedProps) {
 				</Link>
 				{methodologyActivated && methodologyMessage}
 			</PanelThicc>
-			<YieldPageLoop {...data.props} />
+			<YieldPageLoop {...data} />
 		</Layout>
 	)
 }

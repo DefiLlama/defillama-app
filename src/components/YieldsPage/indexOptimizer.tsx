@@ -41,7 +41,7 @@ const SearchWrapper = styled.div`
 	}
 `
 
-const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, categoryList, lendingProtocols }) => {
+const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lendingProtocols, searchData }) => {
 	const { query, pathname } = useRouter()
 	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
@@ -103,8 +103,8 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 			</Header>
 
 			<SearchWrapper>
-				<YieldsSearch pathname={pathname} lend yieldsList={yieldsList} data-alwaysdisplay />
-				<YieldsSearch pathname={pathname} yieldsList={yieldsList} data-alwaysdisplay />
+				<YieldsSearch pathname={pathname} lend searchData={searchData} data-alwaysdisplay />
+				<YieldsSearch pathname={pathname} searchData={searchData} data-alwaysdisplay />
 				<LTV placeholder="Custom LTV" />
 			</SearchWrapper>
 
