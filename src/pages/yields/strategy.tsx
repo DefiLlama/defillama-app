@@ -30,7 +30,7 @@ export async function getStaticProps() {
 	const compressed = compressPageProps({
 		pools: filteredPools,
 		allPools: filteredAllPools,
-		yieldsList: yieldsList?.flat(),
+		yieldsList,
 		...data
 	})
 

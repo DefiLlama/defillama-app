@@ -6,10 +6,11 @@ import Popover from '~/components/Popover'
 
 interface IFilterByValue {
 	header: string
+	variant?: 'primary' | 'secondary'
 	onSubmit: FormEventHandler<HTMLFormElement>
 }
 
-export function FilterByValue({ header, onSubmit }: IFilterByValue) {
+export function FilterByValue({ header, onSubmit, variant = 'primary' }: IFilterByValue) {
 	return (
 		<Popover
 			trigger={

@@ -1,20 +1,21 @@
-import { FormEventHandler } from 'react'
+import { FormEventHandler, ReactNode } from 'react'
 import styled from 'styled-components'
 import { MenuButtonArrow } from 'ariakit'
 import { ApplyFilters } from '~/components'
 import Popover from '~/components/Popover'
 
 interface IFilterBetweenRange {
-	header: string
+	header: ReactNode
+	variant?: 'primary' | 'secondary'
 	onSubmit: FormEventHandler<HTMLFormElement>
 }
 
-export function FilterBetweenRange({ header, onSubmit }: IFilterBetweenRange) {
+export function FilterBetweenRange({ header, onSubmit, variant = 'primary' }: IFilterBetweenRange) {
 	return (
 		<Popover
 			trigger={
 				<>
-					<span>{header}</span>
+					{variant === 'secondary' ? <>{header}</> : <span>{header}</span>}
 					<MenuButtonArrow />
 				</>
 			}

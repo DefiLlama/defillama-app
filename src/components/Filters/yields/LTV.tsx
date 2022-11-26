@@ -25,7 +25,7 @@ const Input = styled.input`
 	}
 `
 
-export function LTV({ placeholder }: { placeholder: string }) {
+export function LTV({ placeholder, variant = 'primary' }: { placeholder: string; variant?: 'primary' | 'secondary' }) {
 	const router = useRouter()
 
 	const setLTV = (value) => {

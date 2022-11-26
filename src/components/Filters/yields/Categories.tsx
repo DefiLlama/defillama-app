@@ -3,16 +3,29 @@ import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
-import { ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup, SelectButton } from '../shared'
+import {
+	ComboboxSelectPopover,
+	SelectItem,
+	ItemsSelected,
+	FilterFnsGroup,
+	SelectButton,
+	SecondaryLabel
+} from '../shared'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 interface IFiltersByCategoryProps {
 	categoryList: string[]
 	selectedCategories: string[]
 	pathname: string
+	variant?: 'primary' | 'secondary'
 }
 
-export function FiltersByCategory({ categoryList = [], selectedCategories, pathname }: IFiltersByCategoryProps) {
+export function FiltersByCategory({
+	categoryList = [],
+	selectedCategories,
+	pathname,
+	variant = 'primary'
+}: IFiltersByCategoryProps) {
 	const router = useRouter()
 
 	const { category, ...queries } = router.query
@@ -82,15 +95,36 @@ export function FiltersByCategory({ categoryList = [], selectedCategories, pathn
 
 	const focusItemRef = useRef(null)
 
+	const isSelected = selectedCategories.length > 0 && selectedCategories.length !== categoryList.length
+
 	return (
 		<>
 			<SelectButton state={select}>
-				<span>Filter by Category</span>
-				<MenuButtonArrow />
-				{selectedCategories.length > 0 && selectedCategories.length !== categoryList.length && (
-					<ItemsSelected>{selectedCategories.length}</ItemsSelected>
+				{variant === 'secondary' ? (
+					<SecondaryLabel>
+						{isSelected ? (
+							<>
+								<span>Category: </span>
+								<span data-selecteditems>
+									{selectedCategories.length > 2
+										? `${selectedCategories[0]} + ${selectedCategories.length - 1} others`
+										: selectedCategories.join(', ')}
+								</span>
+							</>
+						) : (
+							'Category'
+						)}
+					</SecondaryLabel>
+				) : (
+					<>
+						<span>Filter by Category</span>
+						{isSelected && <ItemsSelected>{selectedCategories.length}</ItemsSelected>}
+					</>
 				)}
+
+				<MenuButtonArrow />
 			</SelectButton>
+
 			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false} initialFocusRef={focusItemRef}>
 				<Input state={combobox} placeholder="Search for category..." autoFocus />
 

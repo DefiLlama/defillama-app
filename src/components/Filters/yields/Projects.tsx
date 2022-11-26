@@ -1,10 +1,17 @@
+import { useRef } from 'react'
 import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
-import { ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup, SelectButton } from '../shared'
+import {
+	ComboboxSelectPopover,
+	SelectItem,
+	ItemsSelected,
+	FilterFnsGroup,
+	SelectButton,
+	SecondaryLabel
+} from '../shared'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { useRef } from 'react'
 
 interface IYieldProjectsProps {
 	projectList: { name: string; slug: string }[]
@@ -12,9 +19,17 @@ interface IYieldProjectsProps {
 	pathname: string
 	label?: string
 	query?: 'lendingProtocol' | 'farmProtocol'
+	variant?: 'primary' | 'secondary'
 }
 
-export function YieldProjects({ projectList = [], selectedProjects, pathname, label, query }: IYieldProjectsProps) {
+export function YieldProjects({
+	projectList = [],
+	selectedProjects,
+	pathname,
+	label,
+	query,
+	variant = 'primary'
+}: IYieldProjectsProps) {
 	const router = useRouter()
 
 	const isFarmingProtocolFilter = query === 'farmProtocol'
@@ -89,15 +104,40 @@ export function YieldProjects({ projectList = [], selectedProjects, pathname, la
 
 	const focusItemRef = useRef(null)
 
+	const isSelected = selectedProjects.length > 0 && selectedProjects.length !== projectList.length
+
+	const selectedProjectNames = isSelected
+		? selectedProjects.map((project) => projectList.find((p) => p.slug === project)?.name ?? project)
+		: []
+
 	return (
 		<>
 			<SelectButton state={select}>
-				<span>{label || 'Filter by Project'}</span>
-				<MenuButtonArrow />
-				{selectedProjects.length > 0 && selectedProjects.length !== projectList.length && (
-					<ItemsSelected>{selectedProjects.length}</ItemsSelected>
+				{variant === 'secondary' ? (
+					<SecondaryLabel>
+						{isSelected ? (
+							<>
+								<span>Project: </span>
+								<span data-selecteditems>
+									{selectedProjectNames.length > 2
+										? `${selectedProjectNames[0]} + ${selectedProjectNames.length - 1} others`
+										: selectedProjectNames.join(', ')}
+								</span>
+							</>
+						) : (
+							'Project'
+						)}
+					</SecondaryLabel>
+				) : (
+					<>
+						<span>{label || 'Filter by Project'}</span>
+						{isSelected && <ItemsSelected>{selectedProjects.length}</ItemsSelected>}
+					</>
 				)}
+
+				<MenuButtonArrow />
 			</SelectButton>
+
 			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false} initialFocusRef={focusItemRef}>
 				<Input state={combobox} placeholder="Search for projects..." autoFocus />
 

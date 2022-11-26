@@ -9,5 +9,7 @@ export {
 	SelectButton,
 	ComboboxSelectPopover,
 	FilterFnsGroup,
-	ItemsSelected
+	ItemsSelected,
+	SecondaryLabel
 } from './Base'
+export { FiltersByToken } from './FilterByToken'

@@ -223,3 +223,13 @@ export const ItemsSelected = styled.span`
 	background: ${({ theme }) => theme.bg4};
 	border-radius: 9999px;
 `
+
+export const SecondaryLabel = styled.span`
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+
+	& > *[data-selecteditems='true'] {
+		color: ${({ theme }) => theme.link};
+	}
+`

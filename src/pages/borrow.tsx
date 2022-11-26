@@ -18,7 +18,7 @@ export async function getStaticProps() {
 		// setting to uppercase, we only show subset of available pools when applying `findOptimzerPools`
 		pools: pools.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() })),
 		yieldsList: [],
-		searchData: searchData?.flat() ?? [],
+		searchData,
 		...data
 	})
 

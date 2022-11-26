@@ -3,16 +3,22 @@ import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
-import { SelectButton, ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup } from './Base'
+import { SelectButton, ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup, SecondaryLabel } from './Base'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 interface IFiltersByChainProps {
 	chainList: string[]
 	selectedChains: string[]
 	pathname: string
+	variant?: 'primary' | 'secondary'
 }
 
-export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFiltersByChainProps) {
+export function FiltersByChain({
+	chainList = [],
+	selectedChains,
+	pathname,
+	variant = 'primary'
+}: IFiltersByChainProps) {
 	const router = useRouter()
 
 	const { chain, ...queries } = router.query
@@ -97,15 +103,36 @@ export function FiltersByChain({ chainList = [], selectedChains, pathname }: IFi
 
 	const focusItemRef = useRef(null)
 
+	const isSelected = selectedChains.length > 0 && selectedChains.length !== chainList.length
+
 	return (
 		<>
 			<SelectButton state={select}>
-				<span>Filter by Chain</span>
-				<MenuButtonArrow />
-				{selectedChains.length > 0 && selectedChains.length !== chainList.length && (
-					<ItemsSelected>{selectedChains.length}</ItemsSelected>
+				{variant === 'secondary' ? (
+					<SecondaryLabel>
+						{isSelected ? (
+							<>
+								<span>Chain: </span>
+								<span data-selecteditems>
+									{selectedChains.length > 2
+										? `${selectedChains[0]} + ${selectedChains.length - 1} others`
+										: selectedChains.join(', ')}
+								</span>
+							</>
+						) : (
+							'Chain'
+						)}
+					</SecondaryLabel>
+				) : (
+					<>
+						<span>Filter by Chain</span>
+						{isSelected && <ItemsSelected>{selectedChains.length}</ItemsSelected>}
+					</>
 				)}
+
+				<MenuButtonArrow />
 			</SelectButton>
+
 			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false} initialFocusRef={focusItemRef}>
 				<Input state={combobox} placeholder="Search for chains..." autoFocus />
 

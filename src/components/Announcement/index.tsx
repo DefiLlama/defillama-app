@@ -44,7 +44,7 @@ export default function Announcement({
 	return (
 		<AnnouncementWrapper>
 			{children}
-			{/*<Image src={lubb} width={18} height={18} alt="llama love" />*/}
+			<Image src={lubb} width={18} height={18} alt="llama love" />
 			{!notCancellable && (
 				<Close onClick={closeAnnouncement}>
 					<X size={16} />

@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
-import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
 import { YieldsPoolsTable } from '~/components/Table'
 import {
 	YieldAttributes,
@@ -10,17 +9,13 @@ import {
 	FiltersByChain,
 	YieldProjects,
 	FiltersByCategory,
-	ResetAllYieldFilters
+	FiltersByToken,
+	YieldFiltersV2
 } from '~/components/Filters'
-import { YieldsSearch } from '~/components/Search'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
-import { useGetYieldsSearchList } from '../Search/Yields/hooks'
-import { FiltersByToken } from '../Filters/shared/FilterByToken'
 
-const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
-	const { data: tokens } = useGetYieldsSearchList()
-
+const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
@@ -85,34 +80,35 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 
 	return (
 		<>
-			<YieldsSearch
-				step={{ category: 'Home', name: 'Yields' }}
-				pathname={pathname}
+			<YieldFiltersV2
 				poolsNumber={pools.length}
 				projectsNumber={projectList.length}
 				chainsNumber={chainList.length}
-			/>
-
-			<TableFilters>
-				<TableHeader>Yield Rankings</TableHeader>
-
-				<Dropdowns>
-					{tokens?.length ? (
-						<FiltersByToken
-							tokensList={tokens.map(({ symbol }) => symbol || '')}
-							selectedTokens={includeTokens}
-							pathname={pathname}
-						/>
-					) : null}
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
-					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
-					<FiltersByCategory categoryList={categoryList} selectedCategories={selectedCategories} pathname={pathname} />
-					<YieldAttributes pathname={pathname} />
-					<TVLRange />
-					<APYRange />
-					<ResetAllYieldFilters pathname={pathname} />
-				</Dropdowns>
-			</TableFilters>
+				tokens={tokens}
+			>
+				<FiltersByToken
+					tokensList={tokenSymbolsList}
+					selectedTokens={includeTokens}
+					pathname={pathname}
+					variant="secondary"
+				/>
+				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} variant="secondary" />
+				<YieldProjects
+					projectList={projectList}
+					selectedProjects={selectedProjects}
+					pathname={pathname}
+					variant="secondary"
+				/>
+				<FiltersByCategory
+					categoryList={categoryList}
+					selectedCategories={selectedCategories}
+					pathname={pathname}
+					variant="secondary"
+				/>
+				<YieldAttributes pathname={pathname} variant="secondary" />
+				<TVLRange variant="secondary" />
+				<APYRange variant="secondary" />
+			</YieldFiltersV2>
 
 			{poolsData.length > 0 ? (
 				<YieldsPoolsTable data={poolsData} />

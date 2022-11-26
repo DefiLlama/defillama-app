@@ -4,7 +4,7 @@ import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
-import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup } from '../shared'
+import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup, SecondaryLabel } from '../shared'
 import { lockupsRewards, lockupsCollateral, preminedRewards, badDebt } from '~/components/YieldsPage/utils'
 
 export const attributeOptions = [
@@ -153,7 +153,13 @@ export const attributeOptions = [
 	}
 ]
 
-export function YieldAttributes({ pathname }: { pathname: string }) {
+export function YieldAttributes({
+	pathname,
+	variant = 'primary'
+}: {
+	pathname: string
+	variant?: 'primary' | 'secondary'
+}) {
 	const router = useRouter()
 
 	const { attribute = [], ...queries } = router.query
@@ -238,19 +244,45 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		)
 	}
 
-	const defaultValues = attributeOptions.filter((option) => option.defaultFilterFnOnPage[router.pathname]).length
+	const selectedAttributes = attributeOptions
+		.filter((option) => option.defaultFilterFnOnPage[router.pathname])
+		.map((x) => x.name)
+		.concat(values)
 
-	const totalSelected = defaultValues ? defaultValues + values.length : values.length
+	const isSelected = selectedAttributes.length > 0 && selectedAttributes.length !== attributeOptions.length
+
+	const selectedAttributeNames = isSelected
+		? selectedAttributes.map((attribute) => attributeOptions.find((p) => p.key === attribute)?.name ?? attribute)
+		: []
 
 	return (
 		<>
 			<SelectButton state={select}>
-				<span>Filter by Attribute</span>
-				<MenuButtonArrow />
-				{totalSelected > 0 && totalSelected !== attributeOptions.length && (
-					<ItemsSelected>{totalSelected}</ItemsSelected>
+				{variant === 'secondary' ? (
+					<SecondaryLabel>
+						{isSelected ? (
+							<>
+								<span>Attribute: </span>
+								<span data-selecteditems>
+									{selectedAttributeNames.length > 2
+										? `${selectedAttributeNames[0]} + ${selectedAttributeNames.length - 1} others`
+										: selectedAttributeNames.join(', ')}
+								</span>
+							</>
+						) : (
+							'Attribute'
+						)}
+					</SecondaryLabel>
+				) : (
+					<>
+						<span>Filter by Attribute</span>
+						{isSelected && <ItemsSelected>{selectedAttributes.length}</ItemsSelected>}
+					</>
 				)}
+
+				<MenuButtonArrow />
 			</SelectButton>
+
 			<SelectPopover state={select} modal={!isLarge}>
 				<FilterFnsGroup>
 					<button onClick={clear}>Clear</button>

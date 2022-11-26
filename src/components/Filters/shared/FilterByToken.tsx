@@ -3,16 +3,22 @@ import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
 import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
-import { SelectButton, ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup } from './Base'
+import { SelectButton, ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup, SecondaryLabel } from './Base'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 interface IFiltersByChainProps {
 	tokensList: string[]
 	selectedTokens: string[]
 	pathname: string
+	variant?: 'primary' | 'secondary'
 }
 
-export function FiltersByToken({ tokensList = [], selectedTokens, pathname }: IFiltersByChainProps) {
+export function FiltersByToken({
+	tokensList = [],
+	selectedTokens,
+	pathname,
+	variant = 'primary'
+}: IFiltersByChainProps) {
 	const router = useRouter()
 
 	const { token, ...queries } = router.query
@@ -98,14 +104,33 @@ export function FiltersByToken({ tokensList = [], selectedTokens, pathname }: IF
 
 	const focusItemRef = useRef(null)
 
+	const isSelected = selectedTokens.length > 0 && selectedTokens.length !== tokensList.length
+
 	return (
 		<>
 			<SelectButton state={select}>
-				<span>Filter by Tokens</span>
-				<MenuButtonArrow />
-				{selectedTokens.length > 0 && selectedTokens.length !== tokensList.length && (
-					<ItemsSelected>{selectedTokens.length}</ItemsSelected>
+				{variant === 'secondary' ? (
+					<SecondaryLabel>
+						{isSelected ? (
+							<>
+								<span>Token: </span>
+								<span data-selecteditems>
+									{selectedTokens.length > 2
+										? `${selectedTokens[0]} + ${selectedTokens.length - 1} others`
+										: selectedTokens.join(', ')}
+								</span>
+							</>
+						) : (
+							'Token'
+						)}
+					</SecondaryLabel>
+				) : (
+					<>
+						<span>Filter by Tokens</span>
+						{isSelected && <ItemsSelected>{selectedTokens.length}</ItemsSelected>}
+					</>
 				)}
+				<MenuButtonArrow />
 			</SelectButton>
 			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false} initialFocusRef={focusItemRef}>
 				<Input state={combobox} placeholder="Search for tokens..." autoFocus />

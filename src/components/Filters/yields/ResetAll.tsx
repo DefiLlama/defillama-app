@@ -1,6 +1,12 @@
 import { useRouter } from 'next/router'
 
-export function ResetAllYieldFilters({ pathname }: { pathname: string }) {
+export function ResetAllYieldFilters({
+	pathname,
+	variant = 'primary'
+}: {
+	pathname: string
+	variant?: 'primary' | 'secondary'
+}) {
 	const router = useRouter()
 
 	return (
