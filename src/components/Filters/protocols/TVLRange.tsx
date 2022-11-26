@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { FilterBetweenRange, SecondaryLabel } from '../shared'
 
-export function TVLRange({ variant = 'primary' }: { variant: 'primary' | 'secondary' }) {
+export function TVLRange({ variant = 'primary' }: { variant?: 'primary' | 'secondary' }) {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
