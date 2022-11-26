@@ -26,15 +26,26 @@ async function getContracts(time: number) {
 	).then(async r=>{
 		return {
 			results: await Promise.all(r.results.map(async contract=>{
-				try{
-					const name = await fetch(`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`).then(r=>r.json())
+					let name = undefined;
+					try{
+						name = await fetch(`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`).then(r=>r.json())
+						if(name.name === undefined){
+							throw new Error("RolodETH: No name")
+						}
+					} catch(e){
+						try{
+							name = await fetch(`https://api.llama.fi/contractName/${contract.contract.toLowerCase()}`).then(r=>r.json())
+							if(name.name === ""){
+								throw new Error("Etherescan: Contract not verified")
+							}
+						} catch(e){
+							name = undefined
+						}
+					}
 					return {
 						...contract,
-						name: name.name
+						name: name?.name
 					}
-				} catch(e){
-					return contract
-				}
 			}))
 		}
 	})
