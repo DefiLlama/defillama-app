@@ -46,7 +46,7 @@ const SearchWrapper = styled.div`
 const YieldsStrategyPage = ({
 	pools,
 	projectList,
-	yieldsList,
+	searchData,
 	chainList,
 	categoryList,
 	allPools,
@@ -132,7 +132,7 @@ const YieldsStrategyPage = ({
 					pathname={pathname}
 					value={lend}
 					key={isReady + 'lend'}
-					yieldsList={yieldsList}
+					searchData={searchData}
 					lend
 					data-alwaysdisplay
 				/>
@@ -142,7 +142,7 @@ const YieldsStrategyPage = ({
 							pathname={pathname}
 							value={borrow}
 							key={isReady + 'borrow'}
-							yieldsList={yieldsList}
+							searchData={searchData}
 							data-alwaysdisplay
 						/>
 						<LTV placeholder="% of max LTV" />
