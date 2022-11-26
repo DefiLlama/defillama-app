@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import styled from 'styled-components'
 
 export function ResetAllYieldFilters({
 	pathname,
@@ -10,13 +11,29 @@ export function ResetAllYieldFilters({
 	const router = useRouter()
 
 	return (
-		<button
+		<Wrapper
 			onClick={() => {
 				router.push(pathname, undefined, { shallow: true })
 			}}
-			style={{ textDecoration: 'underline' }}
+			data-variant={variant}
 		>
 			Reset all filters
-		</button>
+		</Wrapper>
 	)
 }
+
+const Wrapper = styled.button`
+	text-decoration: underline;
+
+	&[data-variant='secondary'] {
+		padding: 12px;
+		border-radius: 12px;
+		border: none;
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+
+		:hover,
+		:focus-visible {
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		}
+	}
+`

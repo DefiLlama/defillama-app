@@ -32,11 +32,11 @@ export function TVLRange({ variant = 'primary' }: { variant?: 'primary' | 'secon
 	const label =
 		min || max ? (
 			<>
-				<span>Min/Max TVL: </span>
+				<span>TVL: </span>
 				<span data-selecteditems>{`${min || 'min'} - ${max || 'max'}`}</span>
 			</>
 		) : (
-			'min/max TVL'
+			'TVL'
 		)
 
 	const Header = () => {

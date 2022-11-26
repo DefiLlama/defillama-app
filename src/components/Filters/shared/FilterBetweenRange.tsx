@@ -34,6 +34,7 @@ export function FilterBetweenRange({ header, onSubmit, variant = 'primary' }: IF
 					</Form>
 				</Content>
 			}
+			variant={variant}
 		/>
 	)
 }

@@ -257,7 +257,7 @@ export function YieldAttributes({
 
 	return (
 		<>
-			<SelectButton state={select}>
+			<SelectButton state={select} data-variant={variant}>
 				{variant === 'secondary' ? (
 					<SecondaryLabel>
 						{isSelected ? (
@@ -283,8 +283,8 @@ export function YieldAttributes({
 				<MenuButtonArrow />
 			</SelectButton>
 
-			<SelectPopover state={select} modal={!isLarge}>
-				<FilterFnsGroup>
+			<SelectPopover state={select} modal={!isLarge} data-variant={variant}>
+				<FilterFnsGroup data-variant={variant}>
 					<button onClick={clear}>Clear</button>
 
 					<button onClick={toggleAll}>Toggle all</button>

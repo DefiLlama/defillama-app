@@ -10,7 +10,8 @@ import {
 	YieldProjects,
 	FiltersByCategory,
 	FiltersByToken,
-	YieldFiltersV2
+	YieldFiltersV2,
+	ResetAllYieldFilters
 } from '~/components/Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
@@ -108,6 +109,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				<YieldAttributes pathname={pathname} variant="secondary" />
 				<TVLRange variant="secondary" />
 				<APYRange variant="secondary" />
+				<ResetAllYieldFilters pathname={pathname} variant="secondary" />
 			</YieldFiltersV2>
 
 			{poolsData.length > 0 ? (

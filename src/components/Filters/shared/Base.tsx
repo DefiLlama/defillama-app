@@ -25,6 +25,16 @@ export const Select = styled(AriaSelect)`
 	&[data-focus-visible] {
 		outline: ${({ theme }) => '1px solid ' + theme.text1};
 	}
+
+	&[data-variant='secondary'] {
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+
+		:hover,
+		:focus-visible,
+		&[data-focus-visible] {
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		}
+	}
 `
 
 export const SelectPopover = styled(AriaSelectPopover)`
@@ -66,6 +76,10 @@ export const SelectPopover = styled(AriaSelectPopover)`
 		text-align: center;
 	}
 
+	&[data-variant='secondary'] {
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
+	}
+
 	@media screen and (min-width: 640px) {
 		max-height: 400px;
 		font-size: 0.825rem;
@@ -74,6 +88,10 @@ export const SelectPopover = styled(AriaSelectPopover)`
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
 		border-radius: 8px;
 		transform: translateY(0%);
+
+		&[data-variant='secondary'] {
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
+		}
 	}
 `
 
@@ -189,6 +207,16 @@ export const SelectButton = styled(AriaSelect)`
 		position: relative;
 		top: 1px;
 	}
+
+	&[data-variant='secondary'] {
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+
+		:hover,
+		:focus-visible,
+		&[data-focus-visible] {
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		}
+	}
 `
 
 export const FilterFnsGroup = styled.span`
@@ -208,8 +236,16 @@ export const FilterFnsGroup = styled.span`
 		color: ${({ theme }) => theme.primary1};
 	}
 
+	&[data-variant='secondary'] {
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
+	}
+
 	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
+
+		&[data-variant='secondary'] {
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
+		}
 	}
 `
 

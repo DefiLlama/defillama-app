@@ -108,7 +108,7 @@ export function FiltersByToken({
 
 	return (
 		<>
-			<SelectButton state={select}>
+			<SelectButton state={select} data-variant={variant}>
 				{variant === 'secondary' ? (
 					<SecondaryLabel>
 						{isSelected ? (
@@ -132,12 +132,18 @@ export function FiltersByToken({
 				)}
 				<MenuButtonArrow />
 			</SelectButton>
-			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false} initialFocusRef={focusItemRef}>
+			<ComboboxSelectPopover
+				state={select}
+				modal={!isLarge}
+				composite={false}
+				initialFocusRef={focusItemRef}
+				data-variant={variant}
+			>
 				<Input state={combobox} placeholder="Search for tokens..." autoFocus />
 
 				{combobox.matches.length > 0 ? (
 					<>
-						<FilterFnsGroup>
+						<FilterFnsGroup data-variant={variant}>
 							<button onClick={clear}>Clear</button>
 
 							<button onClick={toggleAll}>Toggle all</button>
