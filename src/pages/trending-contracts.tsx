@@ -8,6 +8,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import VirtualTable from '~/components/Table/Table'
 import { useDebounce } from '~/hooks'
+import { formattedPercent } from '~/utils'
 
 interface ITrendingContracts {
 	accounts_percentage_growth: number
@@ -141,9 +142,25 @@ export const columns: ColumnDef<ITrendingContracts>[] = [
 		}
 	},
 	{
+		header: 'Tx Growth',
+		accessorKey: 'txns_percentage_growth',
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: 'Active Accounts',
 		accessorKey: 'active_accounts',
 		cell: (info) => <>{info.getValue()}</>,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Account Growth',
+		accessorKey: 'accounts_percentage_growth',
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
 		meta: {
 			align: 'end'
 		}
@@ -155,7 +172,15 @@ export const columns: ColumnDef<ITrendingContracts>[] = [
 		meta: {
 			align: 'end'
 		}
-	}
+	},
+	{
+		header: 'Gas Growth',
+		accessorKey: 'gas_spend_percentage_growth',
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		meta: {
+			align: 'end'
+		}
+	},
 ]
 
 const Input = styled.input`
