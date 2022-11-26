@@ -27,6 +27,7 @@ const Trigger = styled(PopoverDisclosure)`
 
 	&[data-variant='secondary'] {
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		font-size: 0.75rem;
 
 		:hover,
 		:focus-visible {

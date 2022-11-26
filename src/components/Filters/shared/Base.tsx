@@ -28,6 +28,7 @@ export const Select = styled(AriaSelect)`
 
 	&[data-variant='secondary'] {
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		font-size: 0.75rem;
 
 		:hover,
 		:focus-visible,
@@ -210,6 +211,7 @@ export const SelectButton = styled(AriaSelect)`
 
 	&[data-variant='secondary'] {
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		font-size: 0.75rem;
 
 		:hover,
 		:focus-visible,
@@ -264,6 +266,7 @@ export const SecondaryLabel = styled.span`
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
+	font-size: 0.75rem;
 
 	& > *[data-selecteditems='true'] {
 		color: ${({ theme }) => theme.link};
