@@ -1,6 +1,7 @@
-import { ReactNode } from 'react'
-import { Search } from 'react-feather'
+import { ReactNode, ChangeEvent, useState, useRef } from 'react'
+import { Search as SearchIcon } from 'react-feather'
 import styled from 'styled-components'
+import { useDebounce, useKeyPress, useOnClickOutside } from '~/hooks'
 
 interface IYieldFiltersProps {
 	poolsNumber: number
@@ -10,7 +11,24 @@ interface IYieldFiltersProps {
 	children?: ReactNode
 }
 
-export function YieldFiltersV2({ poolsNumber, projectsNumber, chainsNumber, children }: IYieldFiltersProps) {
+export function YieldFiltersV2({ poolsNumber, projectsNumber, chainsNumber, tokens, children }: IYieldFiltersProps) {
+	const [inputValue, setInputValue] = useState('')
+	const [displayResults, setDisplayResults] = useState(false)
+	const searchWrapperRef = useRef()
+
+	useOnClickOutside(searchWrapperRef, () => displayResults && setDisplayResults(false))
+	useKeyPress('Escape', () => displayResults && setDisplayResults(false))
+
+	const searchValue = useDebounce(inputValue, 300)
+
+	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+		setInputValue(e.target.value)
+
+		if (e.target.value.length > 0 && !displayResults) {
+			setDisplayResults(true)
+		}
+	}
+
 	return (
 		<div>
 			<Header>
@@ -19,10 +37,26 @@ export function YieldFiltersV2({ poolsNumber, projectsNumber, chainsNumber, chil
 				<button>Save This Search</button>
 			</Header>
 			<Wrapper>
-				<SearchWrapper>
-					<Search size={16} />
-					<Input placeholder="Search for a token to filter by" />
+				<SearchWrapper ref={searchWrapperRef}>
+					<SearchIcon size={16} />
+					<Input
+						placeholder="Search for a token to filter by"
+						role="combobox"
+						aria-haspopup="grid"
+						aria-expanded="false"
+						onFocus={() => setDisplayResults(true)}
+						value={inputValue}
+						onChange={handleChange}
+					/>
+					<ResultsWrapper>
+						{displayResults && (
+							<Results role="grid">
+								<li role="row"></li>
+							</Results>
+						)}
+					</ResultsWrapper>
 				</SearchWrapper>
+
 				<FiltersWrapper>{children}</FiltersWrapper>
 			</Wrapper>
 		</div>
@@ -30,6 +64,7 @@ export function YieldFiltersV2({ poolsNumber, projectsNumber, chainsNumber, chil
 }
 
 const Header = styled.div`
+	position: relative;
 	display: flex;
 	gap: 8px;
 	flex-wrap: wrap;
@@ -67,24 +102,60 @@ const Wrapper = styled.div`
 
 const SearchWrapper = styled.div`
 	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	position: relative;
+	background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
+	border-radius: 8px;
+
+	:focus-within {
+		outline: 1px solid ${({ theme }) => theme.text1};
+	}
 
 	svg {
 		color: #646466;
-		position: absolute;
-		top: 8px;
-		left: 8px;
+		margin-left: 8px;
 	}
 `
 
 const Input = styled.input`
-	width: 100%;
+	flex: 1;
+	display: block;
+	min-width: 280px;
 	padding: 8px;
-	padding-left: 32px;
 	font-size: 0.875rem;
 	border: none;
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
-	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
+	background: none;
 	border-radius: 8px;
+
+	:focus-visible {
+		outline: none;
+	}
+`
+
+const ResultsWrapper = styled.div`
+	width: 100%;
+	position: relative;
+`
+
+const Results = styled.ul`
+	position: absolute;
+	top: 4px;
+	left: 0;
+	right: 0;
+	padding: 24px;
+	background: ${({ theme }) => theme.bg6};
+	box-shadow: ${({ theme }) => theme.shadowLg};
+	border-radius: 8px;
+	z-index: 50;
+	height: 100%;
+	min-height: 120px;
+	max-height: 360px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	list-style: none;
 `
 
 const FiltersWrapper = styled.div`
