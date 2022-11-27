@@ -60,31 +60,17 @@ export function FiltersByToken({
 	}
 
 	const toggleAll = () => {
-		if (!token || token === 'All') {
-			router.push(
-				{
-					pathname,
-					query: {
-						...queries,
-						token: undefined
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-		} else {
-			router.push(
-				{
-					pathname,
-					query: {
-						...queries,
-						token: 'All'
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-		}
+		router.push(
+			{
+				pathname,
+				query: {
+					...queries,
+					token: 'All'
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
 	}
 
 	const clear = () => {
@@ -93,8 +79,7 @@ export function FiltersByToken({
 			{
 				pathname,
 				query: {
-					...queries,
-					token: undefined
+					...queries
 				}
 			},
 			undefined,

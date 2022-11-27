@@ -59,31 +59,17 @@ export function FiltersByChain({
 	}
 
 	const toggleAll = () => {
-		if (!chain || chain === 'All') {
-			router.push(
-				{
-					pathname,
-					query: {
-						...queries,
-						chain: 'None'
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-		} else {
-			router.push(
-				{
-					pathname,
-					query: {
-						...queries,
-						chain: 'All'
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-		}
+		router.push(
+			{
+				pathname,
+				query: {
+					...queries,
+					chain: 'All'
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
 	}
 
 	const clear = () => {
