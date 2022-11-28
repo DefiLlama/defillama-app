@@ -35,6 +35,7 @@ export interface ProtocolAdaptorSummaryResponse extends ProtocolAdaptorSummary {
 		chains: string[]
 		disabled: boolean
 	}> | null
+	methodologyURL: string
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -54,12 +55,12 @@ export type ProtocolAdaptorSummary = {
 	module: string
 	totalAllTime: number | null
 	protocolsStats: IJSON<{
-			chains: string[]
-			disabled: boolean
-			total24h: number | null
-			change_1d: number | null
-			change_7d: number | null
-			change_1m: number | null
-			breakdown24h: IJSON<number> | null
+		chains: string[]
+		disabled: boolean
+		total24h: number | null
+		change_1d: number | null
+		change_7d: number | null
+		change_1m: number | null
+		breakdown24h: IJSON<number> | null
 	}>
 }

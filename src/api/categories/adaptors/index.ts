@@ -150,7 +150,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				? Object.entries(protocol.protocolsStats)
 					.map(([versionName, summary]) => ({
 						...protocol,
-						displayName: `${protocol.name} ${versionName.toUpperCase()}`,
+						displayName: `${versionName.toUpperCase()} - ${protocol.name}`,
 						...summary,
 						totalAllTime: null,
 						revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? (0 as number)
