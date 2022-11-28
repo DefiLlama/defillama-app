@@ -55,7 +55,8 @@ const cexData = [
 	{
 		name: 'Gate.io',
 		slug: 'Gate-io',
-		coin: null,
+		coin: "GT",
+		coinSymbol: 'GT',
 		walletsLink: 'https://github.com/gateio/proof-of-reserves'
 	},
 	{
