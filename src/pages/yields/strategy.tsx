@@ -11,7 +11,7 @@ export async function getStaticProps() {
 		props: { pools, allPools, ...data }
 	} = await getLendBorrowData()
 
-	const yieldsList = await getAllCGTokensList()
+	const searchData = await getAllCGTokensList()
 
 	// restrict bororw and farming part (min apy's, noIL, single exposure only)
 	// and uppercase symbols (lend and borrow strings from router are upper case only)
@@ -30,7 +30,7 @@ export async function getStaticProps() {
 	const compressed = compressPageProps({
 		pools: filteredPools,
 		allPools: filteredAllPools,
-		yieldsList: yieldsList?.flat(),
+		searchData: searchData?.flat() ?? [],
 		...data
 	})
 
