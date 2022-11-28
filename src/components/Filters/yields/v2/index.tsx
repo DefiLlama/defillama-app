@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { ReactNode, ChangeEvent, useState, useRef, useMemo } from 'react'
-import { Search as SearchIcon } from 'react-feather'
+import { Search as SearchIcon, X as XIcon } from 'react-feather'
 import styled from 'styled-components'
 import TokenLogo, { isExternalImage } from '~/components/TokenLogo'
 import { useDebounce, useKeyPress, useOnClickOutside } from '~/hooks'
@@ -74,21 +74,23 @@ export function YieldFiltersV2({ poolsNumber, projectsNumber, chainsNumber, toke
 		})
 	}, [searchValue, tokens, currentIncludedTokens, currentExcludedTokens])
 
-	const handleTokenInclude = (token: string) => {
-		router.push(
-			{ pathname: router.pathname, query: { ...router.query, token: [...currentIncludedTokens, token] } },
-			undefined,
-			{
-				shallow: true
-			}
-		)
+	const handleTokenInclude = (token: string, action?: 'delete') => {
+		const tokens =
+			action === 'delete' ? currentIncludedTokens.filter((x) => x != token) : [...currentIncludedTokens, token]
+
+		router.push({ pathname: router.pathname, query: { ...router.query, token: tokens } }, undefined, {
+			shallow: true
+		})
 	}
 
-	const handleTokenExclude = (token: string) => {
+	const handleTokenExclude = (token: string, action?: 'delete') => {
+		const tokens =
+			action === 'delete' ? currentExcludedTokens.filter((x) => x != token) : [...currentExcludedTokens, token]
+
 		router.push(
 			{
 				pathname: router.pathname,
-				query: { ...router.query, excludeToken: [...currentExcludedTokens, token] }
+				query: { ...router.query, excludeToken: tokens }
 			},
 			undefined,
 			{
@@ -107,6 +109,26 @@ export function YieldFiltersV2({ poolsNumber, projectsNumber, chainsNumber, toke
 			<Wrapper>
 				<SearchWrapper ref={searchWrapperRef}>
 					<SearchIcon size={16} />
+					{currentIncludedTokens.map((token) => (
+						<Action
+							key={'includedtokeninsearch' + token}
+							data-actionoutsidepopover
+							onClick={() => handleTokenInclude(token, 'delete')}
+						>
+							<span>{`Include: ${token}`}</span>
+							<XIcon size={12} />
+						</Action>
+					))}
+					{currentExcludedTokens.map((token) => (
+						<Action
+							key={'excludedtokeninsearch' + token}
+							data-actionoutsidepopover
+							onClick={() => handleTokenExclude(token, 'delete')}
+						>
+							<span>{`Exclude: ${token}`}</span>
+							<XIcon size={12} />
+						</Action>
+					))}
 					<Input
 						placeholder="Search for a token to filter by"
 						role="combobox"
@@ -119,19 +141,25 @@ export function YieldFiltersV2({ poolsNumber, projectsNumber, chainsNumber, toke
 					<ResultsWrapper>
 						{displayResults && (
 							<Results role="grid">
-								{filteredList.slice(0, resultsLength + 1).map((token) => (
-									<ResultRow role="row" key={'yieldscgtokenssearch' + token.name + token.symbol}>
-										{token?.logo && <TokenLogo logo={token?.logo} external={isExternalImage(token.logo)} />}
-										<span>{`${token.name} (${token.symbol})`}</span>
-										<Action data-includetoken onClick={() => handleTokenInclude(token.symbol)}>
-											Include
-										</Action>
-										<Action onClick={() => handleTokenExclude(token.symbol)}>Exclude</Action>
-									</ResultRow>
-								))}
+								{filteredList.length === 0 ? (
+									<p data-placeholder>No results found</p>
+								) : (
+									<>
+										{filteredList.slice(0, resultsLength + 1).map((token) => (
+											<ResultRow role="row" key={'yieldscgtokenssearch' + token.name + token.symbol}>
+												{token?.logo && <TokenLogo logo={token?.logo} external={isExternalImage(token.logo)} />}
+												<span>{`${token.name} (${token.symbol})`}</span>
+												<Action data-includetoken onClick={() => handleTokenInclude(token.symbol)}>
+													Include
+												</Action>
+												<Action onClick={() => handleTokenExclude(token.symbol)}>Exclude</Action>
+											</ResultRow>
+										))}
 
-								{resultsLength < filteredList.length && (
-									<MoreResults onClick={showMoreResults}>See more...</MoreResults>
+										{resultsLength < filteredList.length && (
+											<MoreResults onClick={showMoreResults}>See more...</MoreResults>
+										)}
+									</>
 								)}
 							</Results>
 						)}
@@ -238,8 +266,17 @@ const Results = styled.ul`
 	padding: 0 16px;
 	list-style: none;
 
+	& > *[data-placeholder='true'] {
+		text-align: center;
+		margin-top: 80px;
+	}
+
 	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
 		min-height: 200px;
+
+		& > *[data-placeholder='true'] {
+			margin-top: 100px;
+		}
 	}
 `
 
@@ -274,6 +311,17 @@ const Action = styled.button`
 
 	&[data-includetoken='true'] {
 		margin-left: auto;
+	}
+
+	&[data-actionoutsidepopover='true'] {
+		display: flex;
+		align-items: center;
+		flex-wrap: nowrap;
+
+		& + &,
+		:first-of-type {
+			margin-left: 8px;
+		}
 	}
 `
 
