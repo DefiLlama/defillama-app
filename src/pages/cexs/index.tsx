@@ -53,6 +53,12 @@ const cexData = [
 		walletsLink: 'https://twitter.com/benbybit/status/1592797790518018048'
 	},
 	{
+		name: 'Gate.io',
+		slug: 'Gate-io',
+		coin: null,
+		walletsLink: 'https://github.com/gateio/proof-of-reserves'
+	},
+	{
 		name: 'Deribit',
 		slug: 'deribit',
 		coin: null,
@@ -124,12 +130,6 @@ const cexData = [
 		lastAuditDate: 1656547200,
 		auditor: 'ArmaninoLLP',
 		auditLink: 'https://proof-of-reserves.trustexplorer.io/clients/kraken/'
-	},
-	{
-		name: 'Gate.io',
-		lastAuditDate: 1666137600,
-		auditor: 'ArmaninoLLP',
-		auditLink: 'https://proof-of-reserves.trustexplorer.io/clients/gate.io'
 	},
 	{
 		name: 'Coinone',
