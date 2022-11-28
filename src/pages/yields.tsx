@@ -16,7 +16,7 @@ export async function getStaticProps() {
 
 	cgTokens.forEach((token) => {
 		if (token.symbol) {
-			tokens.push({ name: token.name, symbol: token.symbol, logo: token.image })
+			tokens.push({ name: token.name, symbol: token.symbol.toUpperCase(), logo: token.image })
 			tokenSymbolsList.push(token.symbol.toUpperCase())
 		}
 	})

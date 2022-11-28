@@ -1,6 +1,8 @@
-import { ReactNode, ChangeEvent, useState, useRef } from 'react'
+import { useRouter } from 'next/router'
+import { ReactNode, ChangeEvent, useState, useRef, useMemo } from 'react'
 import { Search as SearchIcon } from 'react-feather'
 import styled from 'styled-components'
+import TokenLogo, { isExternalImage } from '~/components/TokenLogo'
 import { useDebounce, useKeyPress, useOnClickOutside } from '~/hooks'
 
 interface IYieldFiltersProps {
@@ -12,9 +14,21 @@ interface IYieldFiltersProps {
 }
 
 export function YieldFiltersV2({ poolsNumber, projectsNumber, chainsNumber, tokens, children }: IYieldFiltersProps) {
+	const [resultsLength, setResultsLength] = useState(3)
 	const [inputValue, setInputValue] = useState('')
 	const [displayResults, setDisplayResults] = useState(false)
 	const searchWrapperRef = useRef()
+
+	const router = useRouter()
+
+	const { token, excludeToken } = router.query
+
+	const { currentIncludedTokens, currentExcludedTokens } = useMemo(() => {
+		return {
+			currentIncludedTokens: token ? (typeof token === 'string' ? [token] : token) : [],
+			currentExcludedTokens: excludeToken ? (typeof excludeToken === 'string' ? [excludeToken] : excludeToken) : []
+		}
+	}, [token, excludeToken])
 
 	useOnClickOutside(searchWrapperRef, () => displayResults && setDisplayResults(false))
 	useKeyPress('Escape', () => displayResults && setDisplayResults(false))
@@ -27,6 +41,60 @@ export function YieldFiltersV2({ poolsNumber, projectsNumber, chainsNumber, toke
 		if (e.target.value.length > 0 && !displayResults) {
 			setDisplayResults(true)
 		}
+	}
+
+	const showMoreResults = () => {
+		setResultsLength((prev) => prev + 5)
+	}
+
+	const filteredList = useMemo(() => {
+		return tokens.filter((token) => {
+			let toFilter = true
+
+			if (currentIncludedTokens.some((x) => x == token.symbol)) {
+				toFilter = false
+			}
+
+			if (currentExcludedTokens.some((x) => x == token.symbol)) {
+				toFilter = false
+			}
+
+			if (
+				searchValue &&
+				searchValue.length > 0 &&
+				!(
+					token.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+					token.symbol.toLowerCase().includes(searchValue.toLowerCase())
+				)
+			) {
+				toFilter = false
+			}
+
+			return toFilter
+		})
+	}, [searchValue, tokens, currentIncludedTokens, currentExcludedTokens])
+
+	const handleTokenInclude = (token: string) => {
+		router.push(
+			{ pathname: router.pathname, query: { ...router.query, token: [...currentIncludedTokens, token] } },
+			undefined,
+			{
+				shallow: true
+			}
+		)
+	}
+
+	const handleTokenExclude = (token: string) => {
+		router.push(
+			{
+				pathname: router.pathname,
+				query: { ...router.query, excludeToken: [...currentExcludedTokens, token] }
+			},
+			undefined,
+			{
+				shallow: true
+			}
+		)
 	}
 
 	return (
@@ -51,7 +119,20 @@ export function YieldFiltersV2({ poolsNumber, projectsNumber, chainsNumber, toke
 					<ResultsWrapper>
 						{displayResults && (
 							<Results role="grid">
-								<li role="row"></li>
+								{filteredList.slice(0, resultsLength + 1).map((token) => (
+									<ResultRow role="row" key={'yieldscgtokenssearch' + token.name + token.symbol}>
+										{token?.logo && <TokenLogo logo={token?.logo} external={isExternalImage(token.logo)} />}
+										<span>{`${token.name} (${token.symbol})`}</span>
+										<Action data-includetoken onClick={() => handleTokenInclude(token.symbol)}>
+											Include
+										</Action>
+										<Action onClick={() => handleTokenExclude(token.symbol)}>Exclude</Action>
+									</ResultRow>
+								))}
+
+								{resultsLength < filteredList.length && (
+									<MoreResults onClick={showMoreResults}>See more...</MoreResults>
+								)}
 							</Results>
 						)}
 					</ResultsWrapper>
@@ -145,17 +226,64 @@ const Results = styled.ul`
 	top: 4px;
 	left: 0;
 	right: 0;
-	padding: 24px;
 	background: ${({ theme }) => theme.bg6};
 	box-shadow: ${({ theme }) => theme.shadowLg};
 	border-radius: 8px;
 	z-index: 50;
 	height: 100%;
-	min-height: 120px;
+	min-height: 160px;
 	max-height: 360px;
 	overflow-y: auto;
 	overscroll-behavior: contain;
+	padding: 0 16px;
 	list-style: none;
+
+	@media screen and (min-width: ${({ theme }) => theme.bpMed}) {
+		min-height: 200px;
+	}
+`
+
+const ResultRow = styled.li`
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 12px 16px;
+	margin: 0 -16px;
+	font-size: 0.85rem;
+	color: ${({ theme }) => theme.text1};
+
+	& > * {
+		margin-right: 6px;
+	}
+
+	:hover,
+	:focus-visible {
+		background-color: ${({ theme }) => theme.bg2};
+	}
+
+	& + & {
+		border-top: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+	}
+`
+
+const Action = styled.button`
+	border-radius: 8px;
+	padding: 4px 8px;
+	background: ${({ theme }) => (theme.mode === 'dark' ? '#40444F' : '#dcdcdc')};
+
+	&[data-includetoken='true'] {
+		margin-left: auto;
+	}
+`
+
+const MoreResults = styled.button`
+	text-align: left;
+	width: 100%;
+	padding: 12px 16px;
+	margin: 0 -16px;
+	color: ${({ theme }) => theme.link};
+	background: ${({ theme }) => theme.bg6};
 `
 
 const FiltersWrapper = styled.div`

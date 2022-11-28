@@ -53,13 +53,7 @@ export const DesktopRow = ({ index, style, data }) => {
 			style={style}
 			focusOnHover
 		>
-			{item?.logo && (
-				<TokenLogo
-					logo={item?.logo}
-					external={isExternalImage(item.logo)}
-					skipApiRoute={router.pathname.includes('/yield')}
-				/>
-			)}
+			{item?.logo && <TokenLogo logo={item?.logo} external={isExternalImage(item.logo)} />}
 			<span>{value}</span>
 		</Item>
 	)
