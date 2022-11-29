@@ -20,6 +20,7 @@ interface IYieldsTableWrapper {
 	rowSize?: number
 	columnVisibility?: Record<string, boolean>
 	setColumnVisibility?: React.Dispatch<React.SetStateAction<{}>>
+	sortingState?: SortingState
 }
 
 export const YieldsTableWrapper = ({
@@ -31,9 +32,10 @@ export const YieldsTableWrapper = ({
 	skipVirtualization,
 	rowSize,
 	columnVisibility,
-	setColumnVisibility
+	setColumnVisibility,
+	sortingState = []
 }: IYieldsTableWrapper) => {
-	const [sorting, setSorting] = React.useState<SortingState>([])
+	const [sorting, setSorting] = React.useState<SortingState>([...sortingState])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 

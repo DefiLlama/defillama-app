@@ -16,6 +16,7 @@ import {
 } from '~/components/Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
+import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 
 const SearchWrapper = styled.div`
 	display: flex;
@@ -41,8 +42,18 @@ const SearchWrapper = styled.div`
 	}
 `
 
+export const ToggleWrapper = styled.label`
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: 8px;
+	cursor: pointer;
+`
+
+const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
+
 const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lendingProtocols, searchData }) => {
-	const { query, pathname } = useRouter()
+	const { query, pathname, push } = useRouter()
 	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
 	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
@@ -63,8 +74,16 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
 		let filteredPools = findOptimizerPools(lendingPools, lend, borrow, cdpPools)
-			.filter((pool) =>
-				filterPool({
+			.filter((pool) => {
+				if (typeof lend === 'string' && lend.toLowerCase() == 'eth' && pool.symbol?.toLowerCase() == 'steth') {
+					return false
+				}
+
+				if (typeof borrow === 'string' && borrow == 'eth' && pool.borrow?.symbol?.toLowerCase() == 'steth') {
+					return false
+				}
+
+				return filterPool({
 					pool,
 					selectedChains,
 					selectedAttributes,
@@ -73,7 +92,7 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 					selectedLendingProtocols,
 					customLTV
 				})
-			)
+			})
 			.map((p) => formatOptimizerPool(p, customLTV))
 			.sort((a, b) => b.totalReward - a.totalReward)
 
@@ -90,6 +109,8 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 		selectedLendingProtocols,
 		customLTV
 	])
+
+	const isBadDebtToggled = selectedAttributes.includes(BAD_DEBT_KEY)
 
 	return (
 		<>
@@ -119,6 +140,30 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 				/>
 				<YieldAttributes pathname={pathname} />
 				<AvailableRange />
+				<ToggleWrapper>
+					<input
+						type="checkbox"
+						value="hideEvents"
+						checked={isBadDebtToggled}
+						onChange={() => {
+							push(
+								{
+									pathname,
+									query: {
+										...query,
+										attribute: isBadDebtToggled
+											? selectedAttributes.filter((a) => a !== BAD_DEBT_KEY)
+											: [...selectedAttributes, BAD_DEBT_KEY]
+									}
+								},
+								undefined,
+								{ shallow: true }
+							)
+						}}
+					/>
+					<span>Exclude bad debt</span>
+				</ToggleWrapper>
+
 				<ResetAllYieldFilters pathname={pathname} />
 			</TableFilters>
 

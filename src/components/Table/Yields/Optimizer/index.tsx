@@ -5,6 +5,8 @@ import { getColumnSizesKeys } from '../../utils'
 
 const columnSizesKeys = getColumnSizesKeys(columnSizes)
 
+const defaultSortingState = [{ id: 'borrowAvailableUsd', desc: true }]
+
 export default function YieldsOptimizerTable({ data }) {
 	return (
 		<YieldsTableWrapper
@@ -13,6 +15,7 @@ export default function YieldsOptimizerTable({ data }) {
 			columnSizes={columnSizes}
 			columnSizesKeys={columnSizesKeys}
 			columnOrders={yieldsColumnOrders}
+			sortingState={defaultSortingState}
 		/>
 	)
 }
