@@ -266,6 +266,7 @@ export const Checkbox2 = styled.input`
 	transform: translateY(-0.075em);
 	display: grid;
 	place-content: center;
+	cursor: pointer;
 
 	::before {
 		content: '';
@@ -285,10 +286,6 @@ export const Checkbox2 = styled.input`
 	:focus-visible {
 		outline-offset: max(2px, 0.15em);
 	}
-
-	:hover {
-		cursor: pointer;
-	}
 `
 
 export const FallbackMessage = styled.p`
@@ -304,10 +301,7 @@ export const ToggleWrapper = styled.label`
 	display: flex;
 	align-items: center;
 	gap: 8px;
-
-	:hover {
-		cursor: pointer;
-	}
+	cursor: pointer;
 
 	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
 		:first-of-type {
