@@ -137,19 +137,6 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		}
 	},
 	{
-		header: '7d APY',
-		accessorKey: 'apyNet7d',
-		enableSorting: true,
-		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true, 700)}</>
-		},
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: '7d APY = 7d Base APY + 7d IL * 52 weeks'
-		}
-	},
-	{
 		header: '7d Base APY',
 		accessorKey: 'apyBase7d',
 		enableSorting: true,
@@ -174,107 +161,16 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: `7d Impermanent Loss: the percentage loss between LPing for the last 7days vs hodling the underlying assets instead. ${uniswapV3}`
 		}
-	},
-	{
-		header: 'Outlook',
-		accessorKey: 'outlook',
-		enableSorting: true,
-		size: 120,
-		meta: {
-			align: 'end',
-			headerHelperText:
-				'The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY.'
-		}
-	},
-	{
-		header: 'Confidence',
-		accessorKey: 'confidence',
-		enableSorting: true,
-		cell: (info) => (
-			<>{info.getValue() === null ? null : info.getValue() === 1 ? 'Low' : info.getValue() === 2 ? 'Medium' : 'High'}</>
-		),
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Predicted outlook confidence.'
-		}
-	},
-	{
-		header: '7d Change',
-		accessorKey: 'change7d',
-		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Absolute change in APY.'
-		}
 	}
 ]
 
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: [
-		'pool',
-		'apy',
-		'tvl',
-		'project',
-		'chains',
-		'apyBase',
-		'apyReward',
-		'apyNet7d',
-		'apyBase7d',
-		'il7d',
-		'outlook',
-		'confidence',
-		'change7d'
-	],
-	400: [
-		'pool',
-		'project',
-		'apy',
-		'tvl',
-		'chains',
-		'apyBase',
-		'apyReward',
-		'apyNet7d',
-		'apyBase7d',
-		'il7d',
-		'outlook',
-		'confidence',
-		'change7d'
-	],
-	640: [
-		'pool',
-		'project',
-		'tvl',
-		'apy',
-		'chains',
-		'apyBase',
-		'apyReward',
-		'apyNet7d',
-		'apyBase7d',
-		'il7d',
-		'outlook',
-		'confidence',
-		'change7d'
-	],
-	1280: [
-		'pool',
-		'project',
-		'chains',
-		'tvl',
-		'apy',
-		'apyBase',
-		'apyReward',
-		'apyNet7d',
-		'apyBase7d',
-		'il7d',
-		'outlook',
-		'confidence',
-		'change7d'
-	]
+	0: ['pool', 'apy', 'tvl', 'project', 'chains', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d'],
+	400: ['pool', 'project', 'apy', 'tvl', 'chains', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d'],
+	640: ['pool', 'project', 'tvl', 'apy', 'chains', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d'],
+	1280: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d']
 }
 
 export const columnSizes = {
@@ -288,10 +184,7 @@ export const columnSizes = {
 		apyReward: 140,
 		apyNet7d: 120,
 		apyBase7d: 130,
-		il7d: 90,
-		change7d: 140,
-		outlook: 120,
-		confidence: 140
+		il7d: 90
 	},
 	812: {
 		pool: 250,
@@ -303,10 +196,7 @@ export const columnSizes = {
 		apyReward: 140,
 		apyNet7d: 120,
 		apyBase7d: 140,
-		il7d: 90,
-		change7d: 140,
-		outlook: 120,
-		confidence: 140
+		il7d: 90
 	}
 }
 
