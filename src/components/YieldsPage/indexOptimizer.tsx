@@ -75,11 +75,15 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 	const poolsData = React.useMemo(() => {
 		let filteredPools = findOptimizerPools(lendingPools, lend, borrow, cdpPools)
 			.filter((pool) => {
-				if (typeof lend === 'string' && lend.toLowerCase() == 'eth' && pool.symbol?.toLowerCase() == 'steth') {
+				if (typeof lend === 'string' && lend.toLowerCase() === 'eth' && pool.symbol?.toLowerCase().includes('steth')) {
 					return false
 				}
 
-				if (typeof borrow === 'string' && borrow == 'eth' && pool.borrow?.symbol?.toLowerCase() == 'steth') {
+				if (
+					typeof borrow === 'string' &&
+					borrow.toLowerCase() === 'eth' &&
+					pool.borrow?.symbol?.toLowerCase().includes('steth')
+				) {
 					return false
 				}
 
