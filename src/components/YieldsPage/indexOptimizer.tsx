@@ -58,7 +58,7 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
 	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
 
-	const { lend, borrow } = query
+	const { lend, borrow, excludeRewardApy } = query
 	const { selectedChains, selectedAttributes, selectedLendingProtocols } = useFormatYieldQueryParams({
 		projectList,
 		chainList,
@@ -111,6 +111,7 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 	])
 
 	const isBadDebtToggled = selectedAttributes.includes(BAD_DEBT_KEY)
+	const shouldExlcudeRewardApy = excludeRewardApy === 'true' ? true : false
 
 	return (
 		<>
@@ -162,6 +163,27 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 						}}
 					/>
 					<span>Exclude bad debt</span>
+				</ToggleWrapper>
+				<ToggleWrapper>
+					<input
+						type="checkbox"
+						value="hideEvents"
+						checked={shouldExlcudeRewardApy}
+						onChange={() => {
+							push(
+								{
+									pathname,
+									query: {
+										...query,
+										excludeRewardApy: !shouldExlcudeRewardApy
+									}
+								},
+								undefined,
+								{ shallow: true }
+							)
+						}}
+					/>
+					<span>Exclude reward APY</span>
 				</ToggleWrapper>
 
 				<ResetAllYieldFilters pathname={pathname} />
