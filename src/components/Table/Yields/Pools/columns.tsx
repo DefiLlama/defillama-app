@@ -137,41 +137,6 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		}
 	},
 	{
-		header: 'Outlook',
-		accessorKey: 'outlook',
-		enableSorting: true,
-		size: 120,
-		meta: {
-			align: 'end',
-			headerHelperText:
-				'The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY.'
-		}
-	},
-	{
-		header: 'Confidence',
-		accessorKey: 'confidence',
-		enableSorting: true,
-		cell: (info) => (
-			<>{info.getValue() === null ? null : info.getValue() === 1 ? 'Low' : info.getValue() === 2 ? 'Medium' : 'High'}</>
-		),
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Predicted outlook confidence.'
-		}
-	},
-	{
-		header: '7d Change',
-		accessorKey: 'change7d',
-		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-		size: 140,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Absolute change in APY.'
-		}
-	},
-	{
 		header: '7d APY',
 		accessorKey: 'apyNet7d',
 		enableSorting: true,
@@ -208,6 +173,41 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end',
 			headerHelperText: `7d Impermanent Loss: the percentage loss between LPing for the last 7days vs hodling the underlying assets instead. ${uniswapV3}`
+		}
+	},
+	{
+		header: 'Outlook',
+		accessorKey: 'outlook',
+		enableSorting: true,
+		size: 120,
+		meta: {
+			align: 'end',
+			headerHelperText:
+				'The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY.'
+		}
+	},
+	{
+		header: 'Confidence',
+		accessorKey: 'confidence',
+		enableSorting: true,
+		cell: (info) => (
+			<>{info.getValue() === null ? null : info.getValue() === 1 ? 'Low' : info.getValue() === 2 ? 'Medium' : 'High'}</>
+		),
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Predicted outlook confidence.'
+		}
+	},
+	{
+		header: '7d Change',
+		accessorKey: 'change7d',
+		enableSorting: true,
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Absolute change in APY.'
 		}
 	}
 ]
