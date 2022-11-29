@@ -64,7 +64,9 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 					confidence: curr.apy >= 0.005 ? curr.predictions.binnedConfidence : null,
 					url: curr.url,
 					category: curr.category,
-					il7d: curr.il7d
+					il7d: curr.il7d,
+					apyBase7d: curr.apyBase7d,
+					apyNet7d: curr.apyNet7d
 				})
 			} else return acc
 		}, [])

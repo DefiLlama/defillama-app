@@ -8,6 +8,8 @@ import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
 
+const uniswapV3 = 'For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
+
 export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
 		header: 'Pool',
@@ -22,6 +24,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 					configID={row.original.configID}
 					url={row.original.url}
 					index={index + 1}
+					maxCharacters={20}
 				/>
 			)
 		},
@@ -75,8 +78,6 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 					{info.row.original.project === 'cBridge' ? (
 						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY!'} />
-					) : info.row.original.project === 'Uniswap V3' ? (
-						<QuestionHelper text={'We do not assume any specific range. APY is calculated as: 24h-fees * 365 / TVL'} />
 					) : null}
 					{formattedPercent(info.getValue(), true, 700)}
 				</span>
@@ -86,7 +87,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end',
 			headerHelperText:
-				'Total annualised percentage yield calculated as the sum of Base APY + Reward APY. For non-autocompounding pools we do not account for reinvesting, in which case APY = APR.'
+				'APY = Base APY + Reward APY. For non-autocompounding pools we do not account for reinvesting, in which case APY = APR.'
 		}
 	},
 	{
@@ -136,20 +137,6 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		}
 	},
 	{
-		header: '7d IL',
-		accessorKey: 'il7d',
-		enableSorting: true,
-		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true, 400)}</>
-		},
-		size: 100,
-		meta: {
-			align: 'end',
-			headerHelperText:
-				'7day Impermanent Loss: the percentage loss between LPing for the last 7days vs hodling the underlying assets instead.'
-		}
-	},
-	{
 		header: 'Outlook',
 		accessorKey: 'outlook',
 		enableSorting: true,
@@ -183,16 +170,111 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Absolute change in APY.'
 		}
+	},
+	{
+		header: '7d APY',
+		accessorKey: 'apyNet7d',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true, 700)}</>
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: '7d APY = 7d Base APY + 7d IL * 52 weeks'
+		}
+	},
+	{
+		header: '7d Base APY',
+		accessorKey: 'apyBase7d',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true, 400)}</>
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: `Annualised percentage yield based on the trading fees from the last 7 days. ${uniswapV3}`
+		}
+	},
+	{
+		header: '7d IL',
+		accessorKey: 'il7d',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true, 400)}</>
+		},
+		size: 100,
+		meta: {
+			align: 'end',
+			headerHelperText: `7d Impermanent Loss: the percentage loss between LPing for the last 7days vs hodling the underlying assets instead. ${uniswapV3}`
+		}
 	}
 ]
 
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: ['pool', 'apy', 'tvl', 'project', 'chains', 'apyBase', 'apyReward', 'il7d', 'outlook', 'confidence', 'change7d'],
-	400: ['pool', 'project', 'apy', 'tvl', 'chains', 'apyBase', 'apyReward', 'il7d', 'outlook', 'confidence', 'change7d'],
-	640: ['pool', 'project', 'tvl', 'apy', 'chains', 'apyBase', 'apyReward', 'il7d', 'outlook', 'confidence', 'change7d'],
-	1280: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward', 'il7d', 'outlook', 'confidence', 'change7d']
+	0: [
+		'pool',
+		'apy',
+		'tvl',
+		'project',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'outlook',
+		'confidence',
+		'change7d'
+	],
+	400: [
+		'pool',
+		'project',
+		'apy',
+		'tvl',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'outlook',
+		'confidence',
+		'change7d'
+	],
+	640: [
+		'pool',
+		'project',
+		'tvl',
+		'apy',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'outlook',
+		'confidence',
+		'change7d'
+	],
+	1280: [
+		'pool',
+		'project',
+		'chains',
+		'tvl',
+		'apy',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'outlook',
+		'confidence',
+		'change7d'
+	]
 }
 
 export const columnSizes = {
@@ -204,20 +286,24 @@ export const columnSizes = {
 		apy: 100,
 		apyBase: 140,
 		apyReward: 140,
-		il7d: 100,
+		apyNet7d: 120,
+		apyBase7d: 130,
+		il7d: 90,
 		change7d: 140,
 		outlook: 120,
 		confidence: 140
 	},
 	812: {
-		pool: 200,
+		pool: 250,
 		project: 200,
 		chain: 60,
 		tvl: 120,
 		apy: 100,
 		apyBase: 140,
 		apyReward: 140,
-		il7d: 100,
+		apyNet7d: 120,
+		apyBase7d: 140,
+		il7d: 90,
 		change7d: 140,
 		outlook: 120,
 		confidence: 140
