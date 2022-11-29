@@ -17,12 +17,13 @@ import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
 import { useGetYieldsSearchList } from '../Search/Yields/hooks'
 import { FiltersByToken } from '../Filters/shared/FilterByToken'
+import OptionToggle from '../OptionToggle'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 	const { data: tokens } = useGetYieldsSearchList()
 
-	const { query, pathname } = useRouter()
-	const { minTvl, maxTvl, minApy, maxApy } = query
+	const { query, pathname, push } = useRouter()
+	const { minTvl, maxTvl, minApy, maxApy, show7dBaseApy, show7dIL } = query
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
 		useFormatYieldQueryParams({ projectList, chainList, categoryList })
@@ -112,6 +113,25 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 					<YieldAttributes pathname={pathname} />
 					<TVLRange />
 					<APYRange />
+
+					<OptionToggle
+						name="Show 7d Base Apy"
+						toggle={() => {
+							const enabled = show7dBaseApy === 'true'
+							push({ pathname, query: { ...query, show7dBaseApy: !enabled } }, undefined, { shallow: true })
+						}}
+						enabled={query.show7dBaseApy === 'true'}
+					/>
+
+					<OptionToggle
+						name="Show 7d IL"
+						toggle={() => {
+							const enabled = show7dIL === 'true'
+							push({ pathname, query: { ...query, show7dIL: !enabled } }, undefined, { shallow: true })
+						}}
+						enabled={query.show7dIL === 'true'}
+					/>
+
 					<ResetAllYieldFilters pathname={pathname} />
 				</Dropdowns>
 			</TableFilters>
