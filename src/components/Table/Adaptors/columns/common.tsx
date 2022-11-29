@@ -85,9 +85,19 @@ export const Total24hColumn = (
 	enableSorting: true,
 	cell: (info) => {
 		const value = info.getValue()
-
 		if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
-		return <>${formattedNum(value)}</>
+		console.log('arrives ? ', info.row.original.methodology)
+		const methodology = alternativeAccessor
+			? (Object.entries(info.row.original.methodology ?? {}).find(([name]) =>
+					alternativeAccessor.includes(name)
+			  )?.[1] as string)
+			: undefined
+		return (
+			<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+				{methodology ? <QuestionHelper text={methodology} /> : null}
+				<span>${formattedNum(value)}</span>
+			</span>
+		)
 	},
 	size: 140,
 	meta: {

@@ -107,8 +107,14 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Total24hColumn('fees', undefined, 'Fees paid by protocol users excluding gas fees'),
 		allChains
 			? undefined
-			: Total24hColumn('revenue', 'revenue24h', 'Fees accrued to the protocol (going to either treasury or holders)')
+			: Total24hColumn('revenue', 'revenue24h', 'Fees accrued to the protocol (going to either treasury or holders)'),
 		// TotalAllTimeColumn('fees') tmp
+		TotalAllTimeColumn('fees'),
+		Total24hColumn('user fees', 'dailyUserFees'),
+		Total24hColumn('holders revenue', 'dailyHoldersRevenue'),
+		Total24hColumn('creator revenue', 'dailyCreatorRevenue'),
+		Total24hColumn('supply side revenue', 'dailySupplySideRevenue'),
+		Total24hColumn('protocol revenue', 'dailyProtocolRevenue')
 	].filter((c) => c !== undefined)
 
 // key: min width of window/screen

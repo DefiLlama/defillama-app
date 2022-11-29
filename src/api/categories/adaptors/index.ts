@@ -78,7 +78,7 @@ export const getOverviewItemPageData = async (
 	}
 }
 
-// - used in /overview/[type] and /overview/[type]/chains/[chain]
+// - used in /[type] and /[type]/chains/[chain]
 export const getChainPageData = async (type: string, chain?: string): Promise<IOverviewProps> => {
 	const feesOrRevenueApi =
 		type === 'options'
@@ -127,9 +127,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-					{} as IJSON<ProtocolAdaptorSummary>
-			  ) ?? {}
+				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+				{} as IJSON<ProtocolAdaptorSummary>
+			) ?? {}
 			: {}
 
 	// Get TVL data
@@ -152,15 +152,21 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			module: protocol.module,
 			subRows: protocol.protocolsStats
 				? Object.entries(protocol.protocolsStats)
-						.map(([versionName, summary]) => ({
+					.map(([versionName, summary]) => {
+						console.log("uh", versionName, protocol?.methodology, protocol?.methodology?.[versionName])
+						return {
 							...protocol,
 							displayName: `${versionName.toUpperCase()} - ${protocol.name}`,
 							...summary,
 							totalAllTime: null,
+							methodology: protocol?.methodology?.[versionName] ?? null,
 							revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? (0 as number)
-						}))
-						.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
-				: null
+						}
+					})
+					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
+				: null,
+			dailyUserFees: protocol.dailyUserFees,
+			methodology: protocol?.methodology?.[protocol.module] ?? null
 		}
 	})
 

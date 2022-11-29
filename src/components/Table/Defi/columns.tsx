@@ -14,6 +14,7 @@ import {
 	slug,
 	toNiceDayMonthAndYear
 } from '~/utils'
+import { Total24hColumn } from '../Adaptors/columns/common'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow } from './types'
@@ -74,7 +75,7 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 		}
 	},
 	{
-		header: 'TVL',
+		header: 'TVfffsL',
 		accessorKey: 'tvl',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
 		meta: {
@@ -541,7 +542,7 @@ export const cexColumn: ColumnDef<any>[] = [
 					<ArrowUpRight size={14} />
 				</ButtonYields>
 			)
-	},
+	}
 ]
 
 // key: min width of window/screen
