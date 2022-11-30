@@ -67,7 +67,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 					category: curr.category,
 					il7d: curr.il7d,
 					apyBase7d: curr.apyBase7d,
-					apyNet7d: curr.apyNet7d
+					apyNet7d: curr.apyNet7d,
+					apyMean30d: curr.apyMean30d
 				})
 			} else return acc
 		}, [])
