@@ -161,16 +161,64 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: `7d Impermanent Loss: the percentage loss between LPing for the last 7days vs hodling the underlying assets instead. ${uniswapV3}`
 		}
+	},
+	{
+		header: '30d Avg APY',
+		accessorKey: 'apyMean30d',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true, 400)}</>
+		},
+		size: 100,
+		meta: {
+			align: 'end'
+		}
 	}
 ]
 
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: ['pool', 'apy', 'tvl', 'project', 'chains', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d'],
-	400: ['pool', 'project', 'apy', 'tvl', 'chains', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d'],
-	640: ['pool', 'project', 'tvl', 'apy', 'chains', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d'],
-	1280: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d']
+	0: ['pool', 'apy', 'tvl', 'project', 'chains', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d', 'apyMean30d'],
+	400: [
+		'pool',
+		'project',
+		'apy',
+		'tvl',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'apyMean30d'
+	],
+	640: [
+		'pool',
+		'project',
+		'tvl',
+		'apy',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'apyMean30d'
+	],
+	1280: [
+		'pool',
+		'project',
+		'chains',
+		'tvl',
+		'apy',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'apyMean30d'
+	]
 }
 
 export const columnSizes = {
@@ -184,7 +232,8 @@ export const columnSizes = {
 		apyReward: 140,
 		apyNet7d: 120,
 		apyBase7d: 130,
-		il7d: 90
+		il7d: 90,
+		apyMean30d: 100
 	},
 	812: {
 		pool: 250,
@@ -196,7 +245,8 @@ export const columnSizes = {
 		apyReward: 140,
 		apyNet7d: 120,
 		apyBase7d: 140,
-		il7d: 90
+		il7d: 90,
+		apyMean30d: 100
 	}
 }
 
