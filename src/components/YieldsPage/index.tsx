@@ -18,6 +18,7 @@ import { toFilterPool } from './utils'
 import { useGetYieldsSearchList } from '../Search/Yields/hooks'
 import { FiltersByToken } from '../Filters/shared/FilterByToken'
 import OptionToggle from '../OptionToggle'
+import { AnnouncementWrapper } from '../Announcement'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 	const { data: tokens } = useGetYieldsSearchList()
@@ -96,6 +97,24 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 				projectsNumber={projectList.length}
 				chainsNumber={chainList.length}
 			/>
+
+			{(includeTokens.length>0 && (!selectedAttributes.includes('no_il') || !selectedAttributes.includes('single_exposure'))) && 
+				<AnnouncementWrapper>
+					Do you want to see only pools that have a single token? Click <a style={{textDecoration: "underline"}} onClick={()=>{
+						push(
+							{
+								pathname,
+								query: {
+									...query,
+									attribute: ["no_il", "single_exposure"]
+								}
+							},
+							undefined,
+							{ shallow: true }
+						)
+					}}>here</a>
+				</AnnouncementWrapper>
+			}
 
 			<TableFilters>
 				<TableHeader>Yield Rankings</TableHeader>
