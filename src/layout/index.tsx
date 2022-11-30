@@ -13,7 +13,7 @@ const PageWrapper = styled.div`
 	isolation: isolate;
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		margin: 28px 28px 28px 248px;
+		margin: 28px 28px 28px 283px;
 	}
 `
 
