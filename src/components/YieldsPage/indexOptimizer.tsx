@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { Header } from '~/Theme'
-import { Panel } from '~/components'
+import { Panel, ToggleWrapper } from '~/components'
 import { TableFilters } from '~/components/Table/shared'
 import YieldsSearch from '~/components/Search/Yields/Optimizer'
 import YieldsOptimizerTable from '~/components/Table/Yields/Optimizer'
@@ -40,14 +40,6 @@ const SearchWrapper = styled.div`
 	@media (min-width: ${({ theme }) => theme.bpMed}) {
 		flex-direction: row;
 	}
-`
-
-export const ToggleWrapper = styled.label`
-	display: flex;
-	align-items: center;
-	flex-wrap: nowrap;
-	gap: 8px;
-	cursor: pointer;
 `
 
 const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()

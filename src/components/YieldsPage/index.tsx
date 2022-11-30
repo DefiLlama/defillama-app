@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { Panel } from '~/components'
+import { Panel, ToggleWrapper } from '~/components'
 import { YieldsPoolsTable } from '~/components/Table'
 import {
 	YieldAttributes,
@@ -15,7 +15,6 @@ import {
 } from '~/components/Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
-import OptionToggle from '../OptionToggle'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
 	const { query, pathname, push } = useRouter()
@@ -114,23 +113,33 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				<TVLRange variant="secondary" />
 				<APYRange variant="secondary" />
 
-				<OptionToggle
-					name="Show 7d Base Apy"
-					toggle={() => {
-						const enabled = show7dBaseApy === 'true'
-						push({ pathname, query: { ...query, show7dBaseApy: !enabled } }, undefined, { shallow: true })
-					}}
-					enabled={query.show7dBaseApy === 'true'}
-				/>
+				<ToggleWrapper>
+					<input
+						type="checkbox"
+						value="show7dBaseApy"
+						checked={query.show7dBaseApy === 'true'}
+						onChange={() => {
+							push({ pathname, query: { ...query, show7dBaseApy: !(show7dBaseApy === 'true') } }, undefined, {
+								shallow: true
+							})
+						}}
+					/>
+					<span>Show 7d Base APY</span>
+				</ToggleWrapper>
 
-				<OptionToggle
-					name="Show 7d IL"
-					toggle={() => {
-						const enabled = show7dIL === 'true'
-						push({ pathname, query: { ...query, show7dIL: !enabled } }, undefined, { shallow: true })
-					}}
-					enabled={query.show7dIL === 'true'}
-				/>
+				<ToggleWrapper>
+					<input
+						type="checkbox"
+						value="show7dIL"
+						checked={query.show7dIL === 'true'}
+						onChange={() => {
+							push({ pathname, query: { ...query, show7dIL: !(show7dIL === 'true') } }, undefined, {
+								shallow: true
+							})
+						}}
+					/>
+					<span>Show 7d IL</span>
+				</ToggleWrapper>
 
 				<ResetAllYieldFilters pathname={pathname} variant="secondary" />
 			</YieldFiltersV2>

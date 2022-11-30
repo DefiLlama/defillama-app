@@ -4,7 +4,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
-import { ToggleWrapper } from '~/components'
+import { ToggleWrapper2 } from '~/components'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
@@ -190,7 +190,7 @@ export default function ProtocolChart({
 					))}
 				</Filters>
 				{Object.values(volumeMap || {}).length > 0 && (
-					<ToggleWrapper>
+					<ToggleWrapper2>
 						<input
 							type="checkbox"
 							value="showVolume"
@@ -198,11 +198,11 @@ export default function ProtocolChart({
 							onChange={() => toggleFilter('showVolume')}
 						/>
 						<span>Show Volume</span>
-					</ToggleWrapper>
+					</ToggleWrapper2>
 				)}
 
 				{hallmarks?.length > 0 && (
-					<ToggleWrapper>
+					<ToggleWrapper2>
 						<input
 							type="checkbox"
 							value="hideEvents"
@@ -210,11 +210,11 @@ export default function ProtocolChart({
 							onChange={() => toggleFilter('hideEvents')}
 						/>
 						<span>Hide Events</span>
-					</ToggleWrapper>
+					</ToggleWrapper2>
 				)}
 
 				{protocolHasMcap && (
-					<ToggleWrapper>
+					<ToggleWrapper2>
 						<input
 							type="checkbox"
 							value="showMcapChart"
@@ -222,7 +222,7 @@ export default function ProtocolChart({
 							onChange={() => toggleFilter('showMcapChart')}
 						/>
 						<span>Show MCap Chart</span>
-					</ToggleWrapper>
+					</ToggleWrapper2>
 				)}
 			</FiltersWrapper>
 

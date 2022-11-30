@@ -164,7 +164,7 @@ export function YieldAttributes({
 
 	const { attribute = [], ...queries } = router.query
 
-	const values = attributeOptions
+	let values = attributeOptions
 		.filter((o) => {
 			if (attribute) {
 				if (typeof attribute === 'string') {
@@ -175,6 +175,10 @@ export function YieldAttributes({
 			}
 		})
 		.map((o) => o.key)
+
+	if (values.includes(YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()) && router.pathname === '/borrow') {
+		values = values.filter((value) => value.toLowerCase() !== YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase())
+	}
 
 	const updateAttributes = (newFilters) => {
 		router.push(
@@ -254,9 +258,6 @@ export function YieldAttributes({
 	let selectedAttributeNames = isSelected
 		? selectedAttributes.map((attribute) => attributeOptions.find((p) => p.key === attribute)?.name ?? attribute)
 		: []
-
-	if (values.includes(YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()) && router.pathname === '/borrow') {
-	}
 
 	return (
 		<>
