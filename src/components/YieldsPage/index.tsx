@@ -13,6 +13,7 @@ import {
 	YieldFiltersV2,
 	ResetAllYieldFilters
 } from '~/components/Filters'
+import { AnnouncementWrapper } from '~/components/Announcement'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
 
@@ -84,6 +85,31 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 
 	return (
 		<>
+			{includeTokens.length > 0 &&
+				(!selectedAttributes.includes('no_il') || !selectedAttributes.includes('single_exposure')) && (
+					<AnnouncementWrapper>
+						Do you want to see only pools that have a single token? Click{' '}
+						<a
+							style={{ textDecoration: 'underline' }}
+							onClick={() => {
+								push(
+									{
+										pathname,
+										query: {
+											...query,
+											attribute: ['no_il', 'single_exposure']
+										}
+									},
+									undefined,
+									{ shallow: true }
+								)
+							}}
+						>
+							here
+						</a>
+					</AnnouncementWrapper>
+				)}
+
 			<YieldFiltersV2
 				header="Yield Rankings"
 				poolsNumber={poolsData.length}
