@@ -8,6 +8,7 @@ import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
 import Image from 'next/image'
+import { CustomLink } from '~/components/Link'
 
 const uniswapV3 = 'For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
 
@@ -180,7 +181,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'configID',
 		enableSorting: false,
 		cell: (info) => {
-			return <Image src={`https://born-to-llama.herokuapp.com/yield-chart/${info.getValue()}`} width={60} height={30} />
+			return <CustomLink href={`/yields/pool/${info.getValue()}`} target="_blank"><Image src={`https://born-to-llama.herokuapp.com/yield-chart/${info.getValue()}`} width={60} height={30} /></CustomLink>
 		},
 		size: 100,
 		meta: {
