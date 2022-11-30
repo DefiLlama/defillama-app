@@ -4,7 +4,7 @@ import { createChart } from 'lightweight-charts'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import styled from 'styled-components'
-import { Play } from 'react-feather'
+import { RefreshCw } from 'react-feather'
 import { IconWrapper } from '~/components'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
@@ -279,7 +279,7 @@ const TradingViewChart = ({
 		<Wrapper>
 			<div ref={ref} id={'test-id' + 'area'} />
 			<IconWrapper>
-				<Play
+				<RefreshCw
 					onClick={() => {
 						chartCreated && chartCreated.timeScale().fitContent()
 					}}
