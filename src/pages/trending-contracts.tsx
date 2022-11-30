@@ -26,7 +26,7 @@ async function getContracts(time: number) {
 		res.json()
 	).then(async r=>{
 		return {
-			results: await Promise.all(r.results.map(async contract=>{
+			results: await Promise.all(r.map(async contract=>{
 					let name = undefined;
 					try{
 						name = await fetch(`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`).then(r=>r.json())

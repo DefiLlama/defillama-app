@@ -19,7 +19,7 @@ import {
 	PROTOCOL_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
-import { getChainPageData as getChainPageDataByType } from '~/api/categories/adaptors'
+import { getChainPageData as getChainPageDataByType, getChainsPageData as getChainsPageDataByType } from '~/api/categories/adaptors'
 import { getPeggedAssets } from '../stablecoins'
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
@@ -390,7 +390,7 @@ export const getNewChainsPageData = async (category: string) => {
 		{ chains: stablesChainData }
 	] = await Promise.all([
 		fetch(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
-		getChainPageDataByType('dexs'),
+		getChainsPageDataByType('dexs'),
 		getChainPageDataByType('fees'),
 		getPeggedAssets()
 	])
@@ -414,7 +414,7 @@ export const getNewChainsPageData = async (category: string) => {
 	colors['Others'] = '#AAAAAA'
 
 	const feesAndRevenueChains = feesAndRevenueProtocols.filter((p) => p.category === 'Chain')
-	const dexsChains = dexsProtocols.filter((p) => p.category === 'Chain')
+	const dexsChains = dexsProtocols
 	const stablesChainMcaps = stablesChainData.map((chain) => {
 		return {
 			name: chain.name,
@@ -433,7 +433,7 @@ export const getNewChainsPageData = async (category: string) => {
 					feesAndRevenueChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
 
 				const { total24h: dexsTotal24h } =
-					feesAndRevenueChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
+					dexsChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
 
 				return {
 					...chain,

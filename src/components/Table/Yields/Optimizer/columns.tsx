@@ -91,6 +91,66 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		}
 	},
 	{
+		header: 'Base APY',
+		accessorKey: 'totalBase',
+		enableSorting: true,
+		cell: ({ getValue }) => {
+			return (
+				<span
+					style={{
+						color: apyColors[getValue() > 0 ? 'positive' : 'borrow']
+					}}
+				>
+					{formattedPercent(getValue(), true, 700)}
+				</span>
+			)
+		},
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Base Supply APY',
+		accessorKey: 'lendingBase',
+		enableSorting: true,
+		cell: ({ getValue }) => {
+			return (
+				<span
+					style={{
+						color: apyColors['supply']
+					}}
+				>
+					{formattedPercent(getValue(), true, 400)}
+				</span>
+			)
+		},
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Base Borrow APY',
+		accessorKey: 'borrowBase',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<span
+					style={{
+						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
+					}}
+				>
+					{formattedPercent(info.getValue(), true, 400)}
+				</span>
+			)
+		},
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: 'Net APY',
 		accessorKey: 'totalReward',
 		enableSorting: true,
@@ -245,6 +305,9 @@ const columnOrders = {
 		'project',
 		'chains',
 		'borrowAvailableUsd',
+		'totalBase',
+		'lendingBase',
+		'borrowBase',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
@@ -257,6 +320,9 @@ const columnOrders = {
 		'project',
 		'chains',
 		'borrowAvailableUsd',
+		'totalBase',
+		'lendingBase',
+		'borrowBase',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
@@ -269,6 +335,9 @@ const columnOrders = {
 		'project',
 		'chains',
 		'borrowAvailableUsd',
+		'totalBase',
+		'lendingBase',
+		'borrowBase',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
@@ -281,6 +350,9 @@ const columnOrders = {
 		'project',
 		'chains',
 		'borrowAvailableUsd',
+		'totalBase',
+		'lendingBase',
+		'borrowBase',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
@@ -296,6 +368,9 @@ export const columnSizes = {
 		project: 180,
 		chain: 60,
 		borrowAvailableUsd: 100,
+		totalBase: 100,
+		lendingBase: 150,
+		borrowBase: 150,
 		totalReward: 100,
 		lendingReward: 150,
 		borrowReward: 150,
@@ -308,6 +383,9 @@ export const columnSizes = {
 		project: 180,
 		chain: 60,
 		borrowAvailableUsd: 100,
+		totalBase: 100,
+		lendingBase: 150,
+		borrowBase: 150,
 		totalReward: 100,
 		lendingReward: 150,
 		borrowReward: 150,
