@@ -27,7 +27,7 @@ import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
-import { getCleanMonthTimestamp, getCleanWeekTimestamp, upperCaseFirst } from './utils'
+import { upperCaseFirst } from './utils'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 

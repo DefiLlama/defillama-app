@@ -1,13 +1,22 @@
+import * as React from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import Image from 'next/future/image'
+import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { Header, LogoWrapper } from '../shared'
 import Logo from '~/assets/logo_white_long.png'
-import MobileSearch from '~/components/Search/Base/Mobile'
 import { Menu } from './Menu'
 import { Settings } from './Settings'
 
+const MobileSearch = dynamic(() => import('~/components/Search/Base/Mobile'), {
+	ssr: false,
+	loading: () => <></>
+}) as React.FC
+
 export default function MobileNav() {
+	const router = useRouter()
+
 	return (
 		<Wrapper>
 			<Link href="/" passHref>
@@ -17,7 +26,8 @@ export default function MobileNav() {
 				</LogoWrapper>
 			</Link>
 
-			<MobileSearch />
+			{!router.pathname.startsWith('/yield') && <MobileSearch />}
+
 			<Settings />
 			<Menu />
 		</Wrapper>
