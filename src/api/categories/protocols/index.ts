@@ -433,7 +433,7 @@ export const getNewChainsPageData = async (category: string) => {
 					feesAndRevenueChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
 
 				const { total24h: dexsTotal24h } =
-					feesAndRevenueChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
+					dexsChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
 
 				return {
 					...chain,
