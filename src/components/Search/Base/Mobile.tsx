@@ -8,7 +8,6 @@ import { useGetLiquidationSearchList } from '../Liquidations/hooks'
 import { useGetNftsSearchList } from '../NFTs/hooks'
 import { IDefiSearchListProps, useGetDefiSearchList } from '../ProtocolsChains/hooks'
 import { useGetStablecoinsSearchList } from '../Stablecoins/hooks'
-import { useGetTokensSearchListMobile, useGetYieldsSearchList } from '../Yields/hooks'
 import { useGetInvestorsList } from '../Raises/hooks'
 import { MobileResults } from './Results/Mobile'
 import { useGetAdaptorsSearchList } from '../Adaptors/hooks'
@@ -45,14 +44,6 @@ export default function MobileSearch() {
 
 const useMobileSearchResult = () => {
 	const router = useRouter()
-
-	if (router.pathname.startsWith('/yields/optimizer') || router.pathname.startsWith('/yields/strategy')) {
-		return useGetTokensSearchListMobile
-	}
-
-	if (router.pathname.startsWith('/yields')) {
-		return useGetYieldsSearchList
-	}
 
 	if (router.pathname.startsWith('/stablecoin')) {
 		return useGetStablecoinsSearchList
