@@ -181,7 +181,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'configID',
 		enableSorting: false,
 		cell: (info) => {
-			return <CustomLink href={`/yields/pool/${info.getValue()}`} target="_blank"><Image src={`https://born-to-llama.herokuapp.com/yield-chart/${info.getValue()}`} width={60} height={30} /></CustomLink>
+			return <CustomLink href={`/yields/pool/${info.getValue()}`} target="_blank"><Image src={`https://born-to-llama.herokuapp.com/yield-chart/${info.getValue()}`} width={90} height={30} /></CustomLink>
 		},
 		size: 100,
 		meta: {
