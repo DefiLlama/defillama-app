@@ -99,7 +99,7 @@ export const attributeOptions = [
 		help: 'Remove projects with a bad debt ratio of >= 5% (5% of the tvl is bad debt from insolvent accounts)',
 		filterFn: (item) => !badDebt.includes(item.project),
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields', '/yields/stablecoins', '/yields/strategy']
+		disabledOnPages: ['/yields', '/yields/stablecoins', '/yields/strategy', '/borrow']
 	},
 	// strategy specific ones (these are applied on both lendind protocol + farming protocol)
 	{
@@ -240,7 +240,11 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 
 	const defaultValues = attributeOptions.filter((option) => option.defaultFilterFnOnPage[router.pathname]).length
 
-	const totalSelected = defaultValues ? defaultValues + values.length : values.length
+	let totalSelected = defaultValues ? defaultValues + values.length : values.length
+
+	if (values.includes(YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()) && router.pathname === '/borrow') {
+		totalSelected -= 1
+	}
 
 	return (
 		<>
