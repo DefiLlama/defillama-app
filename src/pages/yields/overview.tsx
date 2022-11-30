@@ -2,7 +2,7 @@ import Layout from '~/layout'
 import PlotsPage from '~/components/YieldsPage/indexPlots'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
-import { revalidate } from '~/api'
+import { getAllCGTokensList, revalidate } from '~/api'
 import { getYieldPageData, getYieldMedianData } from '~/api/categories/yield'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
@@ -12,7 +12,19 @@ export async function getStaticProps() {
 	} = await getYieldPageData()
 	const median = await getYieldMedianData()
 
-	const compressed = compressPageProps({ ...data, median: median.props })
+	const cgTokens = await getAllCGTokensList()
+
+	const tokens = []
+	const tokenSymbolsList = []
+
+	cgTokens.forEach((token) => {
+		if (token.symbol) {
+			tokens.push({ name: token.name, symbol: token.symbol.toUpperCase(), logo: token.image })
+			tokenSymbolsList.push(token.symbol.toUpperCase())
+		}
+	})
+
+	const compressed = compressPageProps({ ...data, median: median.props, tokens, tokenSymbolsList })
 
 	return {
 		props: { compressed },

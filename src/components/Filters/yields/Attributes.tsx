@@ -164,7 +164,23 @@ export function YieldAttributes({
 
 	const { attribute = [], ...queries } = router.query
 
-	let values = attributeOptions
+	const attributeOptionsFiltered = attributeOptions.filter((option) =>
+		pathname === '/yields/borrow'
+			? !option.disabledOnPages.includes('/yields/borrow')
+			: pathname === '/borrow'
+			? !option.disabledOnPages.includes('/borrow')
+			: pathname === '/yields/strategy'
+			? !option.disabledOnPages.includes('/yields/strategy')
+			: pathname === '/yields'
+			? !option.disabledOnPages.includes('/yields')
+			: pathname === '/yields/stablecoins'
+			? !option.disabledOnPages.includes('/yields/stablecoins')
+			: pathname === '/yields/loop'
+			? !option.disabledOnPages.includes('/yields/loop')
+			: true
+	)
+
+	const values = attributeOptionsFiltered
 		.filter((o) => {
 			if (attribute) {
 				if (typeof attribute === 'string') {
@@ -175,10 +191,6 @@ export function YieldAttributes({
 			}
 		})
 		.map((o) => o.key)
-
-	if (values.includes(YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()) && router.pathname === '/borrow') {
-		values = values.filter((value) => value.toLowerCase() !== YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase())
-	}
 
 	const updateAttributes = (newFilters) => {
 		router.push(
@@ -203,22 +215,6 @@ export function YieldAttributes({
 		renderCallback,
 		animated: true
 	})
-
-	const attributeOptionsFiltered = attributeOptions.filter((option) =>
-		pathname === '/yields/borrow'
-			? !option.disabledOnPages.includes('/yields/borrow')
-			: pathname === '/borrow'
-			? !option.disabledOnPages.includes('/borrow')
-			: pathname === '/yields/strategy'
-			? !option.disabledOnPages.includes('/yields/strategy')
-			: pathname === '/yields'
-			? !option.disabledOnPages.includes('/yields')
-			: pathname === '/yields/stablecoins'
-			? !option.disabledOnPages.includes('/yields/stablecoins')
-			: pathname === '/yields/loop'
-			? !option.disabledOnPages.includes('/yields/loop')
-			: true
-	)
 
 	const toggleAll = () => {
 		router.push(
@@ -248,15 +244,17 @@ export function YieldAttributes({
 		)
 	}
 
-	const selectedAttributes = attributeOptions
+	const selectedAttributes = attributeOptionsFiltered
 		.filter((option) => option.defaultFilterFnOnPage[router.pathname])
 		.map((x) => x.name)
 		.concat(values)
 
-	const isSelected = selectedAttributes.length > 0 && selectedAttributes.length !== attributeOptions.length
+	const isSelected = selectedAttributes.length > 0
 
 	let selectedAttributeNames = isSelected
-		? selectedAttributes.map((attribute) => attributeOptions.find((p) => p.key === attribute)?.name ?? attribute)
+		? selectedAttributes.map(
+				(attribute) => attributeOptionsFiltered.find((p) => p.key === attribute)?.name ?? attribute
+		  )
 		: []
 
 	return (

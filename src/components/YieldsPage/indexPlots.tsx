@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import {
 	YieldAttributes,
 	TVLRange,
@@ -8,9 +7,10 @@ import {
 	FiltersByChain,
 	YieldProjects,
 	FiltersByCategory,
-	ResetAllYieldFilters
+	ResetAllYieldFilters,
+	YieldFiltersV2,
+	FiltersByToken
 } from '~/components/Filters'
-import { YieldsSearch } from '~/components/Search'
 import dynamic from 'next/dynamic'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
@@ -32,7 +32,7 @@ const BarChartYields = dynamic(() => import('~/components/ECharts/BarChart/Yield
 	ssr: false
 }) as React.FC<IChartProps>
 
-const PlotsPage = ({ pools, chainList, projectList, categoryList, median }) => {
+const PlotsPage = ({ pools, chainList, projectList, categoryList, median, tokens, tokenSymbolsList }) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
@@ -77,24 +77,31 @@ const PlotsPage = ({ pools, chainList, projectList, categoryList, median }) => {
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Yields', name: 'All chains' }} pathname="/yields/overview" />
-
-			<ChartFilters>
-				<TableHeader>Yields Overview</TableHeader>
-				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname="/yields/overview" />
-					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname="/yields/overview" />
-					<FiltersByCategory
-						categoryList={categoryList}
-						selectedCategories={selectedCategories}
-						pathname="/yields/overview"
-					/>
-					<YieldAttributes pathname="/yields/overview" />
-					<TVLRange />
-					<APYRange />
-					<ResetAllYieldFilters pathname="/yields/overview" />
-				</Dropdowns>
-			</ChartFilters>
+			<YieldFiltersV2 header="Yields Overview" tokens={tokens}>
+				<FiltersByToken
+					tokensList={tokenSymbolsList}
+					selectedTokens={includeTokens}
+					pathname={pathname}
+					variant="secondary"
+				/>
+				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} variant="secondary" />
+				<YieldProjects
+					projectList={projectList}
+					selectedProjects={selectedProjects}
+					pathname={pathname}
+					variant="secondary"
+				/>
+				<FiltersByCategory
+					categoryList={categoryList}
+					selectedCategories={selectedCategories}
+					pathname={pathname}
+					variant="secondary"
+				/>
+				<YieldAttributes pathname={pathname} variant="secondary" />
+				<TVLRange variant="secondary" />
+				<APYRange variant="secondary" />
+				<ResetAllYieldFilters pathname={pathname} variant="secondary" />
+			</YieldFiltersV2>
 
 			<BarChartYields chartData={median} />
 			<TreemapChart chartData={poolsData} />
@@ -103,30 +110,5 @@ const PlotsPage = ({ pools, chainList, projectList, categoryList, median }) => {
 		</>
 	)
 }
-
-const ChartFilters = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 20px;
-	margin: 0 0 -18px;
-`
-
-const Dropdowns = styled.span`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 20px;
-
-	button {
-		font-weight: 400;
-	}
-`
-
-const TableHeader = styled.h1`
-	margin: 0 auto 0 0;
-	font-weight: 500;
-	font-size: 1.125rem;
-`
 
 export default PlotsPage
