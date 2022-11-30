@@ -6,14 +6,22 @@ import TokenLogo, { isExternalImage } from '~/components/TokenLogo'
 import { useDebounce, useKeyPress, useOnClickOutside } from '~/hooks'
 
 interface IYieldFiltersProps {
-	poolsNumber: number
-	projectsNumber: number
-	chainsNumber: number
+	header: string
+	poolsNumber?: number
+	projectsNumber?: number
+	chainsNumber?: number
 	tokens: Array<{ name: string; symbol: string; logo: string }>
 	children?: ReactNode
 }
 
-export function YieldFiltersV2({ poolsNumber, projectsNumber, chainsNumber, tokens, children }: IYieldFiltersProps) {
+export function YieldFiltersV2({
+	header,
+	poolsNumber,
+	projectsNumber,
+	chainsNumber,
+	tokens,
+	children
+}: IYieldFiltersProps) {
 	const [resultsLength, setResultsLength] = useState(3)
 	const [inputValue, setInputValue] = useState('')
 	const [displayResults, setDisplayResults] = useState(false)
@@ -99,11 +107,18 @@ export function YieldFiltersV2({ poolsNumber, projectsNumber, chainsNumber, toke
 		)
 	}
 
+	const trackingStats =
+		poolsNumber && projectsNumber && chainsNumber
+			? `Tracking ${poolsNumber + (poolsNumber > 1 ? ' pools' : ' pool')} over ${
+					projectsNumber + (projectsNumber > 1 ? ' protocols' : ' protocol')
+			  } on ${chainsNumber + (chainsNumber > 1 ? ' chains' : ' chain')}.`
+			: null
+
 	return (
 		<div>
 			<Header>
-				<h1>Yield Rankings</h1>
-				<p>{`Tracking ${poolsNumber} pools over ${projectsNumber} protocols on ${chainsNumber} chains.`}</p>
+				<h1>{header}</h1>
+				{trackingStats && <p>{trackingStats}</p>}
 				<button>Save This Search</button>
 			</Header>
 			<Wrapper>

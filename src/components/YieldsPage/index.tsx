@@ -85,9 +85,10 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 	return (
 		<>
 			<YieldFiltersV2
-				poolsNumber={pools.length}
-				projectsNumber={projectList.length}
-				chainsNumber={chainList.length}
+				header="Yield Rankings"
+				poolsNumber={poolsData.length}
+				projectsNumber={selectedProjects.length}
+				chainsNumber={selectedChains.length}
 				tokens={tokens}
 			>
 				<FiltersByToken

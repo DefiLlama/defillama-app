@@ -1,12 +1,12 @@
+import { useState } from 'react'
 import Layout from '~/layout'
-import YieldPageLoop from '~/components/YieldsPage/indexLoop'
-import { revalidate } from '~/api'
-import { getLendBorrowData, calculateLoopAPY } from '~/api/categories/yield'
 import { PanelThicc, StyledAnchor } from '~/components'
 import Link from '~/components/Link'
-import { useState } from 'react'
+import YieldPageLoop from '~/components/YieldsPage/indexLoop'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
+import { getAllCGTokensList, revalidate } from '~/api'
+import { getLendBorrowData, calculateLoopAPY } from '~/api/categories/yield'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
@@ -14,13 +14,24 @@ export async function getStaticProps() {
 		props: { ...data }
 	} = await getLendBorrowData()
 
+	const cgTokens = await getAllCGTokensList()
+
+	const tokens = []
+
+	cgTokens.forEach((token) => {
+		if (token.symbol) {
+			tokens.push({ name: token.name, symbol: token.symbol.toUpperCase(), logo: token.image })
+		}
+	})
+
 	const compressed = compressPageProps({
 		...data,
 		pools: calculateLoopAPY(
 			data.pools.filter((p) => p.category !== 'CDP'),
 			10,
 			null
-		)
+		),
+		tokens
 	})
 
 	return {
