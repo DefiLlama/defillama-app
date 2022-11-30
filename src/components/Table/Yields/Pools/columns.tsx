@@ -7,6 +7,7 @@ import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
+import Image from 'next/image'
 
 const uniswapV3 = 'For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
 
@@ -168,6 +169,18 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return <>{formattedPercent(info.getValue(), true, 400)}</>
+		},
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '30d APY Chart',
+		accessorKey: 'configID',
+		enableSorting: false,
+		cell: (info) => {
+			return <Image src={`https://born-to-llama.herokuapp.com/yield-chart/${info.getValue()}`} width={60} height={30} />
 		},
 		size: 100,
 		meta: {
