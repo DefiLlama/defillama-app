@@ -308,6 +308,42 @@ const Tvl = ({ value, rowValues }) => {
 	)
 }
 
+export const protocolsByTokenColumns: ColumnDef<{ name: string; amountUsd: number }>[] = [
+	{
+		header: () => <Name>Name</Name>,
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const value = getValue() as string
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
+				</Name>
+			)
+		}
+	},
+	{
+		header: () => <Name>Category</Name>,
+		accessorKey: 'category',
+		enableSorting: false,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: () => <Name>Amount</Name>,
+		accessorKey: 'amountUsd',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		}
+	}
+]
+
 const ListedAt = styled.div`
 	width: 120px;
 

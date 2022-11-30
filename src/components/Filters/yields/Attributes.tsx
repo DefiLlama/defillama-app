@@ -194,13 +194,29 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		animated: true
 	})
 
+	const attributeOptionsFiltered = attributeOptions.filter((option) =>
+		pathname === '/yields/borrow'
+			? !option.disabledOnPages.includes('/yields/borrow')
+			: pathname === '/borrow'
+			? !option.disabledOnPages.includes('/borrow')
+			: pathname === '/yields/strategy'
+			? !option.disabledOnPages.includes('/yields/strategy')
+			: pathname === '/yields'
+			? !option.disabledOnPages.includes('/yields')
+			: pathname === '/yields/stablecoins'
+			? !option.disabledOnPages.includes('/yields/stablecoins')
+			: pathname === '/yields/loop'
+			? !option.disabledOnPages.includes('/yields/loop')
+			: true
+	)
+
 	const toggleAll = () => {
 		router.push(
 			{
 				pathname,
 				query: {
 					...queries,
-					attribute: attributeOptions.map((o) => o.key)
+					attribute: attributeOptionsFiltered.map((o) => o.key)
 				}
 			},
 			undefined,
@@ -241,28 +257,12 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 
 					<button onClick={toggleAll}>Toggle all</button>
 				</FilterFnsGroup>
-				{attributeOptions
-					.filter((option) =>
-						pathname === '/yields/borrow'
-							? !option.disabledOnPages.includes('/yields/borrow')
-							: pathname === '/borrow'
-							? !option.disabledOnPages.includes('/borrow')
-							: pathname === '/yields/strategy'
-							? !option.disabledOnPages.includes('/yields/strategy')
-							: pathname === '/yields'
-							? !option.disabledOnPages.includes('/yields')
-							: pathname === '/yields/stablecoins'
-							? !option.disabledOnPages.includes('/yields/stablecoins')
-							: pathname === '/yields/loop'
-							? !option.disabledOnPages.includes('/yields/loop')
-							: true
-					)
-					.map((option) => (
-						<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
-							{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
-							<Checkbox checked={values.includes(option.key) || option.disabledOnPages.includes(router.pathname)} />
-						</SelectItem>
-					))}
+				{attributeOptionsFiltered.map((option) => (
+					<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
+						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
+						<Checkbox checked={values.includes(option.key) || option.disabledOnPages.includes(router.pathname)} />
+					</SelectItem>
+				))}
 			</SelectPopover>
 		</>
 	)

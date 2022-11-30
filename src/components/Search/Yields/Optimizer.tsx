@@ -7,11 +7,11 @@ interface IYieldSearchProps extends ICommonSearchProps {
 	pathname?: string
 	lend?: boolean
 	value?: string | null
-	yieldsList?: any
+	searchData: Array<{ name: string; symbol: string; image: string }>
 }
 
-export default function YieldsSearch({ lend = false, yieldsList, ...props }: IYieldSearchProps) {
-	const { data, loading, onItemClick } = useGetTokensSearchList({ lend, yields: yieldsList })
+export default function YieldsSearch({ lend = false, searchData, ...props }: IYieldSearchProps) {
+	const { data, loading, onItemClick } = useGetTokensSearchList({ lend, searchData })
 
 	return (
 		<DesktopSearch

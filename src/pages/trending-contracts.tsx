@@ -8,6 +8,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import VirtualTable from '~/components/Table/Table'
 import { useDebounce } from '~/hooks'
+import { formattedPercent } from '~/utils'
 
 interface ITrendingContracts {
 	accounts_percentage_growth: number
@@ -17,12 +18,38 @@ interface ITrendingContracts {
 	gas_spend_percentage_growth: number
 	txns: number
 	txns_percentage_growth: number
+	name?: string
 }
 
 async function getContracts(time: number) {
 	return await fetch(`https://trending-contracts-api.herokuapp.com/ethereum/${time > 119 ? 119 : time}`).then((res) =>
 		res.json()
-	)
+	).then(async r=>{
+		return {
+			results: await Promise.all(r.map(async contract=>{
+					let name = undefined;
+					try{
+						name = await fetch(`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`).then(r=>r.json())
+						if(name.name === undefined){
+							throw new Error("RolodETH: No name")
+						}
+					} catch(e){
+						try{
+							name = await fetch(`https://api.llama.fi/contractName/${contract.contract.toLowerCase()}`).then(r=>r.json())
+							if(name.name === ""){
+								throw new Error("Etherescan: Contract not verified")
+							}
+						} catch(e){
+							name = undefined
+						}
+					}
+					return {
+						...contract,
+						name: name?.name
+					}
+			}))
+		}
+	})
 }
 
 export default function TrendingContracts() {
@@ -92,6 +119,7 @@ export const columns: ColumnDef<ITrendingContracts>[] = [
 		accessorKey: 'contract',
 		cell: (info) => {
 			const value = info.getValue() as string
+			const name = info.row.original.name
 			return (
 				<a
 					href={`https://etherscan.io/address/${value}`}
@@ -99,7 +127,7 @@ export const columns: ColumnDef<ITrendingContracts>[] = [
 					rel="noopener noreferrer"
 					style={{ textDecoration: 'underline' }}
 				>
-					{value.slice(0, 4) + '...' + value.slice(-4)}
+					{name ?? value.slice(0, 4) + '...' + value.slice(-4)}
 				</a>
 			)
 		},
@@ -114,9 +142,25 @@ export const columns: ColumnDef<ITrendingContracts>[] = [
 		}
 	},
 	{
+		header: 'Tx Growth',
+		accessorKey: 'txns_percentage_growth',
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: 'Active Accounts',
 		accessorKey: 'active_accounts',
 		cell: (info) => <>{info.getValue()}</>,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Account Growth',
+		accessorKey: 'accounts_percentage_growth',
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
 		meta: {
 			align: 'end'
 		}
@@ -128,7 +172,15 @@ export const columns: ColumnDef<ITrendingContracts>[] = [
 		meta: {
 			align: 'end'
 		}
-	}
+	},
+	{
+		header: 'Gas Growth',
+		accessorKey: 'gas_spend_percentage_growth',
+		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		meta: {
+			align: 'end'
+		}
+	},
 ]
 
 const Input = styled.input`

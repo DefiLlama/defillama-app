@@ -320,7 +320,16 @@ export const formatOptimizerPool = (pool, customLTV) => {
 	const totalReward = lendingReward + borrowReward * ltv
 	const borrowAvailableUsd = pool.borrow.totalAvailableUsd
 
-	return { ...pool, lendingReward, borrowReward, totalReward, borrowAvailableUsd }
+	return {
+		...pool,
+		lendingReward,
+		borrowReward,
+		totalReward,
+		borrowAvailableUsd,
+		totalBase: (pool.apyBase || 0) + (pool.borrow.apyBaseBorrow || 0) * ltv,
+		lendingBase: pool.apyBase || 0,
+		borrowBase: pool.borrow.apyBaseBorrow || 0
+	}
 }
 
 interface FilterPools {

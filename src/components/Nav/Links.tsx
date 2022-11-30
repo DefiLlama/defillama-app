@@ -43,7 +43,7 @@ interface ILinks {
 const defaultToolsAndFooterLinks = {
 	tools: [
 		{ name: 'Watchlist', path: '/watchlist' },
-		{ name: 'Directory', path: '/directory', newTag: true },
+		{ name: 'Directory', path: '/directory' },
 		{
 			name: 'Roundup',
 			path: '/roundup'
@@ -100,7 +100,8 @@ export const navLinks: ILinks = {
 			{ name: 'Oracles', path: '/oracles' },
 			{ name: 'Forks', path: '/forks' },
 			{ name: 'Top Protocols', path: '/top-protocols' },
-			{ name: 'Comparison', path: '/comparison?protocol=MakerDAO&protocol=Curve', newTag: true },
+			{ name: 'Comparison', path: '/comparison?protocol=MakerDAO&protocol=Curve' },
+			{ name: 'Token Usage', path: '/tokenUsage?token=ETH', newTag: true },
 			{ name: 'Categories', path: '/categories' },
 			{ name: 'Recent', path: '/recent' },
 			{ name: 'Languages', path: '/languages' }
@@ -121,7 +122,7 @@ export const navLinks: ILinks = {
 		],
 		tools: [
 			{ name: 'Watchlist', path: '/yields/watchlist' },
-			{ name: 'Directory', path: '/directory', newTag: true },
+			{ name: 'Directory', path: '/directory' },
 			{
 				name: 'Roundup',
 				path: '/roundup'
@@ -169,7 +170,7 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Search size={16} />
 	},
-	"CEX Transparency": {
+	'CEX Transparency': {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <BookOpen size={16} />
@@ -187,7 +188,7 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Droplet size={16} />
 	},
-	DEXs: {
+	Volumes: {
 		main: [
 			{ name: 'Overview', path: '/dexs' },
 			{ name: 'Chains', path: '/dexs/chains' }
@@ -195,7 +196,7 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <BarChart size={16} />
 	},
-	Fees: {
+	"Fees/Revenue": {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <PieChart size={16} />
@@ -222,11 +223,11 @@ export const navLinks: ILinks = {
 
 export const linksWithNoSubMenu = [
 	{ name: 'Liquidations', url: '/liquidations/eth' },
-	{ name: 'Fees', url: '/fees' },
+	{ name: 'Fees/Revenue', url: '/fees' },
 	{ name: 'Raises', url: '/raises' },
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Borrow Aggregator', url: '/borrow' },
-	{ name: 'CEX Transparency', url: '/cexs' },
+	{ name: 'CEX Transparency', url: '/cexs' }
 ]
 
 function downloadDefiDataset() {

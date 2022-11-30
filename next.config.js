@@ -56,6 +56,11 @@ const nextConfig = {
 				source: '/aggregator',
 				destination: 'https://swap.defillama.com/',
 				permanent: true
+			},
+			{
+				source: '/protocols/cex',
+				destination: '/cexs',
+				permanent: true
 			}
 		]
 	},

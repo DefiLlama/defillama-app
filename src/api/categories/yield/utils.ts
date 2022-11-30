@@ -17,7 +17,8 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		category: _config[p.project]?.category,
 		url: _urls[p.pool] ?? '',
 		apyReward: p.apyReward > 0 ? p.apyReward : null,
-		rewardTokens: p.apyReward > 0 ? p.rewardTokens : []
+		rewardTokens: p.apyReward > 0 ? p.rewardTokens : [],
+		apyNet7d: p.apyBase7d > 0 ? Math.max(p.apyBase7d + p.il7d * 52, -100) : null // scale il7d (negative value) to year
 	}))
 
 	const poolsList = []

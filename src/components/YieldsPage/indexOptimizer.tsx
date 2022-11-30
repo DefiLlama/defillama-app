@@ -16,6 +16,7 @@ import {
 } from '~/components/Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
+import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 
 const SearchWrapper = styled.div`
 	display: flex;
@@ -41,13 +42,23 @@ const SearchWrapper = styled.div`
 	}
 `
 
-const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, categoryList, lendingProtocols }) => {
-	const { query, pathname } = useRouter()
+export const ToggleWrapper = styled.label`
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: 8px;
+	cursor: pointer;
+`
+
+const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
+
+const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lendingProtocols, searchData }) => {
+	const { query, pathname, push } = useRouter()
 	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
 	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
 
-	const { lend, borrow } = query
+	const { lend, borrow, excludeRewardApy } = query
 	const { selectedChains, selectedAttributes, selectedLendingProtocols } = useFormatYieldQueryParams({
 		projectList,
 		chainList,
@@ -63,8 +74,20 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
 		let filteredPools = findOptimizerPools(lendingPools, lend, borrow, cdpPools)
-			.filter((pool) =>
-				filterPool({
+			.filter((pool) => {
+				if (typeof lend === 'string' && lend.toLowerCase() === 'eth' && pool.symbol?.toLowerCase().includes('steth')) {
+					return false
+				}
+
+				if (
+					typeof borrow === 'string' &&
+					borrow.toLowerCase() === 'eth' &&
+					pool.borrow?.symbol?.toLowerCase().includes('steth')
+				) {
+					return false
+				}
+
+				return filterPool({
 					pool,
 					selectedChains,
 					selectedAttributes,
@@ -73,7 +96,7 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 					selectedLendingProtocols,
 					customLTV
 				})
-			)
+			})
 			.map((p) => formatOptimizerPool(p, customLTV))
 			.sort((a, b) => b.totalReward - a.totalReward)
 
@@ -91,6 +114,9 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 		customLTV
 	])
 
+	const isBadDebtToggled = selectedAttributes.includes(BAD_DEBT_KEY)
+	const shouldExlcudeRewardApy = excludeRewardApy === 'true' ? true : false
+
 	return (
 		<>
 			<Header>
@@ -103,8 +129,8 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 			</Header>
 
 			<SearchWrapper>
-				<YieldsSearch pathname={pathname} lend yieldsList={yieldsList} data-alwaysdisplay />
-				<YieldsSearch pathname={pathname} yieldsList={yieldsList} data-alwaysdisplay />
+				<YieldsSearch pathname={pathname} lend searchData={searchData} data-alwaysdisplay />
+				<YieldsSearch pathname={pathname} searchData={searchData} data-alwaysdisplay />
 				<LTV placeholder="Custom LTV" />
 			</SearchWrapper>
 
@@ -119,6 +145,51 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 				/>
 				<YieldAttributes pathname={pathname} />
 				<AvailableRange />
+				<ToggleWrapper>
+					<input
+						type="checkbox"
+						value="hideEvents"
+						checked={isBadDebtToggled}
+						onChange={() => {
+							push(
+								{
+									pathname,
+									query: {
+										...query,
+										attribute: isBadDebtToggled
+											? selectedAttributes.filter((a) => a !== BAD_DEBT_KEY)
+											: [...selectedAttributes, BAD_DEBT_KEY]
+									}
+								},
+								undefined,
+								{ shallow: true }
+							)
+						}}
+					/>
+					<span>Exclude bad debt</span>
+				</ToggleWrapper>
+				<ToggleWrapper>
+					<input
+						type="checkbox"
+						value="hideEvents"
+						checked={shouldExlcudeRewardApy}
+						onChange={() => {
+							push(
+								{
+									pathname,
+									query: {
+										...query,
+										excludeRewardApy: !shouldExlcudeRewardApy
+									}
+								},
+								undefined,
+								{ shallow: true }
+							)
+						}}
+					/>
+					<span>Exclude reward APY</span>
+				</ToggleWrapper>
+
 				<ResetAllYieldFilters pathname={pathname} />
 			</TableFilters>
 

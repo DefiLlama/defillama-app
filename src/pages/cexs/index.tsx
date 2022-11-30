@@ -53,6 +53,13 @@ const cexData = [
 		walletsLink: 'https://twitter.com/benbybit/status/1592797790518018048'
 	},
 	{
+		name: 'Gate.io',
+		slug: 'Gate-io',
+		coin: "GT",
+		coinSymbol: 'GT',
+		walletsLink: 'https://github.com/gateio/proof-of-reserves'
+	},
+	{
 		name: 'Deribit',
 		slug: 'deribit',
 		coin: null,
@@ -90,10 +97,28 @@ const cexData = [
 		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
+		name: 'Firi',
+		slug: 'firi',
+		coin: null ,
+		walletsLink: null
+	},
+	{
+		name: 'CoinDCX',
+		slug: 'coindcx',
+		coin: null,
+		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
+	},
+	{
 		name: 'Cake Defi',
 		slug: 'cake-defi',
 		coin: null,
 		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves/'
+	},
+	{
+		name: 'NBX',
+		slug: 'nbx',
+		coin: null,
+		walletsLink: 'https://nbx.com/en/proof-of-reserves'
 	},
 	{
 		name: 'Coinbase',
@@ -106,12 +131,6 @@ const cexData = [
 		lastAuditDate: 1656547200,
 		auditor: 'ArmaninoLLP',
 		auditLink: 'https://proof-of-reserves.trustexplorer.io/clients/kraken/'
-	},
-	{
-		name: 'Gate.io',
-		lastAuditDate: 1666137600,
-		auditor: 'ArmaninoLLP',
-		auditLink: 'https://proof-of-reserves.trustexplorer.io/clients/gate.io'
 	},
 	{
 		name: 'Coinone',
