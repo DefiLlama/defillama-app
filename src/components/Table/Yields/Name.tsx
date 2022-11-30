@@ -85,6 +85,18 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 	)
 }
 
+export function YieldsProject({ project, projectslug }: INameYield) {
+	const iconUrl = tokenIconUrl(project)
+	const tokenUrl = `/yields?project=${projectslug}`
+
+	return (
+		<Wrapper>
+			<TokenLogo logo={iconUrl} />
+			<CustomLink href={tokenUrl}>{project}</CustomLink>
+		</Wrapper>
+	)
+}
+
 export function PoolStrategyRoute({ project1, airdropProject1, project2, airdropProject2, chain, index }) {
 	const iconUrl1 = tokenIconUrl(project1)
 	const iconUrl2 = tokenIconUrl(project2)
