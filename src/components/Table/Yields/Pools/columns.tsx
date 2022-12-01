@@ -184,7 +184,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			const configID = row.original.configID
 			return (
 				<CustomLink href={`/yields/pool/${configID}`} target="_blank">
-					<Image src={`https://born-to-llama.herokuapp.com/yield-chart/${configID}`} width={90} height={30} />
+					<Image src={`https://yield-charts.onrender.com/yield-chart/${configID}`} width={90} height={30} />
 				</CustomLink>
 			)
 		},
