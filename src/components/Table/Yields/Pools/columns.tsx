@@ -178,12 +178,17 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 	},
 	{
 		header: '30d APY Chart',
-		accessorKey: 'configID',
+		accessorKey: 'apyChart30d',
 		enableSorting: false,
-		cell: (info) => {
-			return <CustomLink href={`/yields/pool/${info.getValue()}`} target="_blank"><Image src={`https://born-to-llama.herokuapp.com/yield-chart/${info.getValue()}`} width={60} height={30} /></CustomLink>
+		cell: ({ row }) => {
+			const configID = row.original.configID
+			return (
+				<CustomLink href={`/yields/pool/${configID}`} target="_blank">
+					<Image src={`https://yield-charts.onrender.com/yield-chart/${configID}`} width={90} height={30} />
+				</CustomLink>
+			)
 		},
-		size: 100,
+		size: 110,
 		meta: {
 			align: 'end'
 		}
@@ -193,7 +198,20 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: ['pool', 'apy', 'tvl', 'project', 'chains', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d', 'apyMean30d'],
+	0: [
+		'pool',
+		'apy',
+		'tvl',
+		'project',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'apyMean30d',
+		'apyChart30d'
+	],
 	400: [
 		'pool',
 		'project',
@@ -205,7 +223,8 @@ const columnOrders = {
 		'apyNet7d',
 		'apyBase7d',
 		'il7d',
-		'apyMean30d'
+		'apyMean30d',
+		'apyChart30d'
 	],
 	640: [
 		'pool',
@@ -218,7 +237,8 @@ const columnOrders = {
 		'apyNet7d',
 		'apyBase7d',
 		'il7d',
-		'apyMean30d'
+		'apyMean30d',
+		'apyChart30d'
 	],
 	1280: [
 		'pool',
@@ -231,7 +251,8 @@ const columnOrders = {
 		'apyNet7d',
 		'apyBase7d',
 		'il7d',
-		'apyMean30d'
+		'apyMean30d',
+		'apyChart30d'
 	]
 }
 
@@ -247,7 +268,8 @@ export const columnSizes = {
 		apyNet7d: 120,
 		apyBase7d: 130,
 		il7d: 90,
-		apyMean30d: 100
+		apyMean30d: 120,
+		apyChart30d: 110
 	},
 	812: {
 		pool: 250,
@@ -260,7 +282,8 @@ export const columnSizes = {
 		apyNet7d: 120,
 		apyBase7d: 140,
 		il7d: 90,
-		apyMean30d: 100
+		apyMean30d: 120,
+		apyChart30d: 110
 	}
 }
 

@@ -25,18 +25,18 @@ const cexData = [
 		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt'
 	},
 	{
-		name: 'Huobi',
-		slug: 'Huobi',
-		coin: 'HT',
-		coinSymbol: 'HT',
-		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831'
-	},
-	{
 		name: 'Crypto.com',
 		slug: 'Crypto-com',
 		coin: 'CRO',
 		coinSymbol: 'CRO',
 		walletsLink: 'https://twitter.com/kris/status/1591036632664518657'
+	},
+	{
+		name: 'Huobi',
+		slug: 'Huobi',
+		coin: 'HT',
+		coinSymbol: 'HT',
+		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831'
 	},
 	{
 		name: 'Kucoin',
@@ -109,7 +109,7 @@ const cexData = [
 		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
 	},
 	{
-		name: 'Cake Defi',
+		name: 'Cake DeFi',
 		slug: 'cake-defi',
 		coin: null,
 		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves/'
