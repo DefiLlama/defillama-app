@@ -75,41 +75,32 @@ export const Change1mColumn: ColumnDef<IDexsRow> = {
 		align: 'end'
 	}
 }
-export const Total24hColumn = (
-	type: string,
-	alternativeAccessor?: string,
-	helperText?: string
-): ColumnDef<IDexsRow> => ({
-	header: `24h ${type}`,
-	accessorKey: alternativeAccessor ?? 'total24h',
-	enableSorting: true,
-	cell: (info) => {
-		const value = info.getValue()
-		if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
-
-		const methodology = alternativeAccessor
-			? (Object.entries(info.row.original.methodology ?? {}).find(([name]) =>
-					alternativeAccessor.includes(name)
-			  )?.[1] as string)
-			: undefined
-		return (
-			<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-				{methodology ? <QuestionHelper text={methodology} /> : null}
-				<span>${formattedNum(value)}</span>
-			</span>
-		)
-	},
-	size: 140,
-	meta: {
-		align: 'end',
-		headerHelperText: helperText
+export const Total24hColumn = (type: string, alternativeAccessor?: string, helperText?: string) => {
+	const accessor = alternativeAccessor ?? 'total24h'
+	return {
+		header: `24h ${type}`,
+		accessorKey: accessor,
+		enableSorting: true,
+		cell: (info) => {
+			const value = info.getValue()
+			if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
+			const rawMethodology = typeof info.row.original.methodology === 'object' ? info.row.original.methodology : {}
+			const methodology = Object.entries(rawMethodology).find(([name]) => accessor.includes(name))?.[1]
+			return (
+				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+					{methodology ? <QuestionHelper text={methodology as string} /> : null}
+					<span>${formattedNum(value)}</span>
+				</span>
+			)
+		},
+		size: 140,
+		meta: {
+			align: 'end' as 'end',
+			headerHelperText: helperText
+		}
 	}
-})
-export const TotalAllTimeColumn = (
-	type: string,
-	alternativeAccessor?: string,
-	helperText?: string
-): ColumnDef<IDexsRow> => ({
+}
+export const TotalAllTimeColumn = (type: string, alternativeAccessor?: string, helperText?: string) => ({
 	header: `Total ${type}`,
 	accessorKey: alternativeAccessor ?? 'totalAllTime',
 	enableSorting: true,
