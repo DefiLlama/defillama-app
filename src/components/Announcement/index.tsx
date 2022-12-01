@@ -57,7 +57,7 @@ export default function Announcement({
 export const AnnouncementWrapper = styled.p`
 	position: relative;
 	padding: 12px;
-	font-size: 1rem;
+	font-size: 0.875rem;
 	color: ${({ theme }) => (theme.mode === 'dark' ? 'white' : 'black')};
 	background-color: hsl(215deg 79% 51% / 12%);
 	text-align: center;

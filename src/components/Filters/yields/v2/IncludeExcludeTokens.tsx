@@ -1,7 +1,7 @@
 import { ChangeEvent, useState, useRef, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { Search as SearchIcon, X as XIcon } from 'react-feather'
+import { Search, X as XIcon } from 'react-feather'
 import TokenLogo, { isExternalImage } from '~/components/TokenLogo'
 import { useDebounce, useKeyPress, useOnClickOutside } from '~/hooks'
 
@@ -164,6 +164,12 @@ const SearchWrapper = styled.div`
 
 	svg {
 		color: #646466;
+	}
+`
+
+const SearchIcon = styled(Search)`
+	@media screen and (max-width: ${({ theme }) => theme.bpSm}) {
+		display: none;
 	}
 `
 

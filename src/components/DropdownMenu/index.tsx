@@ -10,16 +10,17 @@ interface IMenuProps {
 	color?: string
 	isExternal?: boolean
 	onItemClick?: (value: any) => void
+	variant?: 'primary' | 'secondary'
 }
 
-export function Menu({ options, name, color, isExternal, onItemClick }: IMenuProps) {
+export function Menu({ options, name, color, isExternal, onItemClick, variant = 'primary', ...props }: IMenuProps) {
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
 	const menu = useMenuState({ gutter: 8, animated: true, renderCallback })
 
 	return (
 		<>
-			<Button state={menu} color={color}>
+			<Button state={menu} color={color} data-variant={variant} {...props}>
 				{name}
 				<MenuButtonArrow />
 			</Button>
@@ -79,6 +80,17 @@ export const Button = styled(MenuButton)<IButtonProps>`
 	svg {
 		position: relative;
 		top: 1px;
+	}
+
+	&[data-variant='secondary'] {
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		font-size: 0.75rem;
+
+		:hover,
+		:focus-visible,
+		&[data-focus-visible] {
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		}
 	}
 `
 // TODO remove repeated styles

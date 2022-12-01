@@ -1,6 +1,8 @@
 import styled from 'styled-components'
+import { useMedia } from '~/hooks'
 import { IncludeExcludeTokens } from './IncludeExcludeTokens'
 import { DesktopYieldMenus } from './Menus/Desktop'
+import { MobileYieldMenus } from './Menus/Mobile'
 import type { IYieldFiltersProps } from './types'
 
 export function YieldFiltersV2({
@@ -18,6 +20,8 @@ export function YieldFiltersV2({
 			  } on ${chainsNumber + (chainsNumber > 1 ? ' chains' : ' chain')}.`
 			: null
 
+	const isSmall = useMedia(`(max-width: 30rem)`)
+
 	return (
 		<div>
 			<Header>
@@ -28,7 +32,7 @@ export function YieldFiltersV2({
 			<Wrapper>
 				{tokens && <IncludeExcludeTokens tokens={tokens} />}
 
-				<DesktopYieldMenus {...props} />
+				{isSmall ? <MobileYieldMenus {...props} /> : <DesktopYieldMenus {...props} />}
 			</Wrapper>
 		</div>
 	)
