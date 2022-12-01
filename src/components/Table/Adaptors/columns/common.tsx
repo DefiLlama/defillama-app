@@ -86,7 +86,7 @@ export const Total24hColumn = (
 	cell: (info) => {
 		const value = info.getValue()
 		if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
-		console.log('arrives ? ', info.row.original.methodology)
+
 		const methodology = alternativeAccessor
 			? (Object.entries(info.row.original.methodology ?? {}).find(([name]) =>
 					alternativeAccessor.includes(name)
