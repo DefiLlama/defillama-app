@@ -95,24 +95,16 @@ export function IncludeExcludeTokens({ tokens }: { tokens: Array<{ name: string;
 		<SearchWrapper ref={searchWrapperRef}>
 			<SearchIcon size={16} />
 			{currentIncludedTokens.map((token) => (
-				<Action
-					key={'includedtokeninsearch' + token}
-					data-actionoutsidepopover
-					onClick={() => handleTokenInclude(token, 'delete')}
-				>
+				<IncludeOrExclude key={'includedtokeninsearch' + token} onClick={() => handleTokenInclude(token, 'delete')}>
 					<span>{`Include: ${token}`}</span>
-					<XIcon size={12} />
-				</Action>
+					<XIcon size={14} />
+				</IncludeOrExclude>
 			))}
 			{currentExcludedTokens.map((token) => (
-				<Action
-					key={'excludedtokeninsearch' + token}
-					data-actionoutsidepopover
-					onClick={() => handleTokenExclude(token, 'delete')}
-				>
+				<IncludeOrExclude key={'excludedtokeninsearch' + token} onClick={() => handleTokenExclude(token, 'delete')}>
 					<span>{`Exclude: ${token}`}</span>
-					<XIcon size={12} />
-				</Action>
+					<XIcon size={14} />
+				</IncludeOrExclude>
 			))}
 			<Input
 				placeholder="Search for a token to filter by"
@@ -134,10 +126,10 @@ export function IncludeExcludeTokens({ tokens }: { tokens: Array<{ name: string;
 									<ResultRow role="row" key={'yieldscgtokenssearch' + token.name + token.symbol}>
 										{token?.logo && <TokenLogo logo={token?.logo} external={isExternalImage(token.logo)} />}
 										<span>{`${token.name} (${token.symbol})`}</span>
-										<Action data-includetoken onClick={() => handleTokenInclude(token.symbol)}>
-											Include
-										</Action>
-										<Action onClick={() => handleTokenExclude(token.symbol)}>Exclude</Action>
+										<ActionsWrapper>
+											<Action onClick={() => handleTokenInclude(token.symbol)}>Include</Action>
+											<Action onClick={() => handleTokenExclude(token.symbol)}>Exclude</Action>
+										</ActionsWrapper>
 									</ResultRow>
 								))}
 
@@ -158,10 +150,13 @@ const SearchWrapper = styled.div`
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
+	gap: 8px;
 	position: relative;
 	background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 	border-radius: 8px;
+	padding: 8px;
+	padding-bottom: 0;
 
 	:focus-within {
 		outline: 1px solid ${({ theme }) => theme.text1};
@@ -169,7 +164,6 @@ const SearchWrapper = styled.div`
 
 	svg {
 		color: #646466;
-		margin-left: 8px;
 	}
 `
 
@@ -177,7 +171,6 @@ const Input = styled.input`
 	flex: 1;
 	display: block;
 	min-width: 280px;
-	padding: 8px;
 	font-size: 0.875rem;
 	border: none;
 	background: none;
@@ -196,8 +189,8 @@ const ResultsWrapper = styled.div`
 const Results = styled.ul`
 	position: absolute;
 	top: 4px;
-	left: 0;
-	right: 0;
+	left: -8px;
+	right: -8px;
 	background: ${({ theme }) => theme.bg6};
 	box-shadow: ${({ theme }) => theme.shadowLg};
 	border-radius: 8px;
@@ -234,10 +227,6 @@ const ResultRow = styled.li`
 	font-size: 0.85rem;
 	color: ${({ theme }) => theme.text1};
 
-	& > * {
-		margin-right: 6px;
-	}
-
 	:hover,
 	:focus-visible {
 		background-color: ${({ theme }) => theme.bg2};
@@ -248,25 +237,40 @@ const ResultRow = styled.li`
 	}
 `
 
-const Action = styled.button`
-	border-radius: 8px;
-	padding: 4px 8px;
-	background: ${({ theme }) => (theme.mode === 'dark' ? '#40444F' : '#dcdcdc')};
+const ActionsWrapper = styled.div`
+	width: 100%;
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: 4px;
+	margin-top: 4px;
 
-	&[data-includetoken='true'] {
+	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+		width: min-content;
+		margin-top: 0px;
 		margin-left: auto;
 	}
+`
 
-	&[data-actionoutsidepopover='true'] {
-		display: flex;
-		align-items: center;
-		flex-wrap: nowrap;
+const Action = styled.button`
+	flex: 1;
+	border-radius: 8px;
+	padding: 8px;
+	background: ${({ theme }) => (theme.mode === 'dark' ? '#40444F' : '#dcdcdc')};
 
-		& + &,
-		:first-of-type {
-			margin-left: 8px;
-		}
+	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+		padding: 4px 8px;
 	}
+`
+
+const IncludeOrExclude = styled(Action)`
+	flex-grow: 0;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-wrap: nowrap;
+	padding: 4px 8px;
+	white-space: nowrap;
 `
 
 const MoreResults = styled.button`
