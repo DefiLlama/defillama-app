@@ -109,7 +109,7 @@ const cexData = [
 		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
 	},
 	{
-		name: 'Cake Defi',
+		name: 'Cake DeFi',
 		slug: 'cake-defi',
 		coin: null,
 		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves/'
