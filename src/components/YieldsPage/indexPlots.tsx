@@ -1,16 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import {
-	YieldAttributes,
-	TVLRange,
-	APYRange,
-	FiltersByChain,
-	YieldProjects,
-	FiltersByCategory,
-	ResetAllYieldFilters,
-	YieldFiltersV2,
-	FiltersByToken
-} from '~/components/Filters'
+import { YieldFiltersV2 } from '~/components/Filters'
 import dynamic from 'next/dynamic'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
@@ -77,31 +67,22 @@ const PlotsPage = ({ pools, chainList, projectList, categoryList, median, tokens
 
 	return (
 		<>
-			<YieldFiltersV2 header="Yields Overview" tokens={tokens}>
-				<FiltersByToken
-					tokensList={tokenSymbolsList}
-					selectedTokens={includeTokens}
-					pathname={pathname}
-					variant="secondary"
-				/>
-				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} variant="secondary" />
-				<YieldProjects
-					projectList={projectList}
-					selectedProjects={selectedProjects}
-					pathname={pathname}
-					variant="secondary"
-				/>
-				<FiltersByCategory
-					categoryList={categoryList}
-					selectedCategories={selectedCategories}
-					pathname={pathname}
-					variant="secondary"
-				/>
-				<YieldAttributes pathname={pathname} variant="secondary" />
-				<TVLRange variant="secondary" />
-				<APYRange variant="secondary" />
-				<ResetAllYieldFilters pathname={pathname} variant="secondary" />
-			</YieldFiltersV2>
+			<YieldFiltersV2
+				header="Yields Overview"
+				tokens={tokens}
+				tokensList={tokenSymbolsList}
+				selectedTokens={includeTokens}
+				chainList={chainList}
+				selectedChains={selectedChains}
+				projectList={projectList}
+				selectedProjects={selectedProjects}
+				categoryList={categoryList}
+				selectedCategories={selectedCategories}
+				attributes={true}
+				tvlRange={true}
+				apyRange={true}
+				resetFilters={true}
+			/>
 
 			<BarChartYields chartData={median} />
 			<TreemapChart chartData={poolsData} />

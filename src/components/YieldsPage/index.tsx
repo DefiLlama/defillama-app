@@ -1,25 +1,15 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { Panel, ToggleWrapper } from '~/components'
+import { Panel } from '~/components'
 import { YieldsPoolsTable } from '~/components/Table'
-import {
-	YieldAttributes,
-	TVLRange,
-	APYRange,
-	FiltersByChain,
-	YieldProjects,
-	FiltersByCategory,
-	FiltersByToken,
-	YieldFiltersV2,
-	ResetAllYieldFilters
-} from '~/components/Filters'
+import { YieldFiltersV2 } from '~/components/Filters'
 import { AnnouncementWrapper } from '~/components/Announcement'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
 	const { query, pathname, push } = useRouter()
-	const { minTvl, maxTvl, minApy, maxApy, show7dBaseApy, show7dIL } = query
+	const { minTvl, maxTvl, minApy, maxApy } = query
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
 		useFormatYieldQueryParams({ projectList, chainList, categoryList })
@@ -116,60 +106,21 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				projectsNumber={selectedProjects.length}
 				chainsNumber={selectedChains.length}
 				tokens={tokens}
-			>
-				<FiltersByToken
-					tokensList={tokenSymbolsList}
-					selectedTokens={includeTokens}
-					pathname={pathname}
-					variant="secondary"
-				/>
-				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} variant="secondary" />
-				<YieldProjects
-					projectList={projectList}
-					selectedProjects={selectedProjects}
-					pathname={pathname}
-					variant="secondary"
-				/>
-				<FiltersByCategory
-					categoryList={categoryList}
-					selectedCategories={selectedCategories}
-					pathname={pathname}
-					variant="secondary"
-				/>
-				<YieldAttributes pathname={pathname} variant="secondary" />
-				<TVLRange variant="secondary" />
-				<APYRange variant="secondary" />
-
-				<ToggleWrapper>
-					<input
-						type="checkbox"
-						value="show7dBaseApy"
-						checked={query.show7dBaseApy === 'true'}
-						onChange={() => {
-							push({ pathname, query: { ...query, show7dBaseApy: !(show7dBaseApy === 'true') } }, undefined, {
-								shallow: true
-							})
-						}}
-					/>
-					<span>Show 7d Base APY</span>
-				</ToggleWrapper>
-
-				<ToggleWrapper>
-					<input
-						type="checkbox"
-						value="show7dIL"
-						checked={query.show7dIL === 'true'}
-						onChange={() => {
-							push({ pathname, query: { ...query, show7dIL: !(show7dIL === 'true') } }, undefined, {
-								shallow: true
-							})
-						}}
-					/>
-					<span>Show 7d IL</span>
-				</ToggleWrapper>
-
-				<ResetAllYieldFilters pathname={pathname} variant="secondary" />
-			</YieldFiltersV2>
+				tokensList={tokenSymbolsList}
+				selectedTokens={includeTokens}
+				chainList={chainList}
+				selectedChains={selectedChains}
+				projectList={projectList}
+				selectedProjects={selectedProjects}
+				categoryList={categoryList}
+				selectedCategories={selectedCategories}
+				attributes={true}
+				tvlRange={true}
+				apyRange={true}
+				show7dBaseApy={true}
+				show7dIL={true}
+				resetFilters={true}
+			/>
 
 			{poolsData.length > 0 ? (
 				<YieldsPoolsTable data={poolsData} />

@@ -14,8 +14,8 @@ import {
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 
 interface IYieldProjectsProps {
-	projectList: { name: string; slug: string }[]
-	selectedProjects: string[]
+	projectList: Array<{ name: string; slug: string }>
+	selectedProjects: Array<string>
 	pathname: string
 	label?: string
 	query?: 'lendingProtocol' | 'farmProtocol'
