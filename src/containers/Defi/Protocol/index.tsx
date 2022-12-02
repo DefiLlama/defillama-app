@@ -583,6 +583,7 @@ function ProtocolContainer({
 					<Section>
 						<h3>Raises</h3>
 						<RaisesWrapper>
+							<li>{`Total raised: ${formatRaisedAmount(raises.reduce((sum, r)=>sum+Number(r.amount), 0))}`}</li>
 							{raises
 								.sort((a, b) => a.date - b.date)
 								.map((raise) => (
