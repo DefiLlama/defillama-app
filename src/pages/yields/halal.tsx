@@ -102,7 +102,7 @@ export async function getStaticProps() {
 		props: { ...data }
 	} = await getYieldPageData()
 
-	const pools = data.pools.filter((p) => whitelist.includes(p.projectName))
+	const pools = data.pools.filter((p) => whitelist.includes(p.projectName) && p.apy > 0)
 
 	const compressed = compressPageProps({
 		...data,

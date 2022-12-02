@@ -39,7 +39,7 @@ export function toFilterPool({
 
 	toFilter = toFilter && selectedCategories?.map((p) => p.toLowerCase()).includes(curr.category.toLowerCase())
 
-	const tokensInPool: Array<string> = curr.symbol.split('-').map((x) => x.toLowerCase())
+	const tokensInPool: Array<string> = curr.symbol.split('(')[0].split('-').map((x) => x.toLowerCase())
 
 	const includeToken =
 		includeTokens.length > 0 && includeTokens[0] !== 'All'
