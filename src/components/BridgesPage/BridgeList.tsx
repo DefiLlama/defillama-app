@@ -156,12 +156,13 @@ function BridgesOverview({
 	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = useMemo(() => {
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
 		dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
-		for (let i = 0; i < 30; i++) {
+		// start from i = 1 to exclude current day
+		for (let i = 1; i < 31; i++) {
 			const dailyVolume = getPrevVolumeFromChart(chainVolumeData, i, false, selectedChain !== 'All')
-			if (i < 1) {
+			if (i < 2) {
 				dayTotalVolume += dailyVolume
 			}
-			if (i < 7) {
+			if (i < 8) {
 				weekTotalVolume += dailyVolume
 			}
 			monthTotalVolume += dailyVolume
@@ -259,7 +260,7 @@ function BridgesOverview({
 				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 			</RowLinksWrapper>
 
-			{isBridgesShowingTxs && <LargeTxsTable data={largeTxsData} />}
+			{isBridgesShowingTxs && <LargeTxsTable data={largeTxsData} chain={selectedChain}/>}
 			{!isBridgesShowingTxs && <BridgesTable data={filteredBridges} />}
 		</>
 	)

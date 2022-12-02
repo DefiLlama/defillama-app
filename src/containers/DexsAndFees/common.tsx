@@ -72,7 +72,9 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 
 	return (
 		<ChartAndValuesWrapper>
-			{props.data.total24h !== null || props.data.change_1d !== null || props.data.change_1m !== null ? (
+			{typeof props.data.total24h === 'number' ||
+			typeof props.data.change_1d === 'number' ||
+			typeof props.data.change_1m === 'number' ? (
 				<BreakpointPanels>
 					{!Number.isNaN(props.data.total24h) && (
 						<BreakpointPanel>

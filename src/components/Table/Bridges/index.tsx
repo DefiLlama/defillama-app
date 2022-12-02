@@ -32,7 +32,7 @@ const columnSizesKeys = Object.keys(bridgesColumnSizes)
 	.sort((a, b) => Number(b) - Number(a))
 
 export function BridgesTable({ data }) {
-	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'volumePrevDay', desc: true }])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'lastDailyVolume', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const windowSize = useWindowSize()

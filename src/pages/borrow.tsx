@@ -11,7 +11,10 @@ export async function getStaticProps() {
 		props: { pools, ...data }
 	} = await getLendBorrowData()
 
-	const searchData = await getAllCGTokensList()
+	let searchData = await getAllCGTokensList()
+	// filter searchData array to include only tokens for which we have lending data
+	const uniqueSymbols = [...new Set(pools.map((p) => p.symbol.split(' ')[0]?.toLowerCase()))]
+	searchData = searchData?.flat().filter((s) => uniqueSymbols.includes(s.symbol?.toLowerCase())) ?? []
 
 	const compressed = compressPageProps({
 		// lend & borrow from query are uppercase only. symbols in pools are mixed case though -> without
