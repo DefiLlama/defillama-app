@@ -7,6 +7,8 @@ import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
+import Image from 'next/image'
+import { CustomLink } from '~/components/Link'
 
 const uniswapV3 = 'For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
 
@@ -161,16 +163,97 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: `7d Impermanent Loss: the percentage loss between LPing for the last 7days vs hodling the underlying assets instead. ${uniswapV3}`
 		}
+	},
+	{
+		header: '30d Avg APY',
+		accessorKey: 'apyMean30d',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true, 400)}</>
+		},
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '30d APY Chart',
+		accessorKey: 'apyChart30d',
+		enableSorting: false,
+		cell: ({ row }) => {
+			const configID = row.original.configID
+			return (
+				<CustomLink href={`/yields/pool/${configID}`} target="_blank">
+					<Image src={`https://yield-charts.onrender.com/yield-chart/${configID}`} width={90} height={30} />
+				</CustomLink>
+			)
+		},
+		size: 110,
+		meta: {
+			align: 'end'
+		}
 	}
 ]
 
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: ['pool', 'apy', 'tvl', 'project', 'chains', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d'],
-	400: ['pool', 'project', 'apy', 'tvl', 'chains', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d'],
-	640: ['pool', 'project', 'tvl', 'apy', 'chains', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d'],
-	1280: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward', 'apyNet7d', 'apyBase7d', 'il7d']
+	0: [
+		'pool',
+		'apy',
+		'tvl',
+		'project',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'apyMean30d',
+		'apyChart30d'
+	],
+	400: [
+		'pool',
+		'project',
+		'apy',
+		'tvl',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'apyMean30d',
+		'apyChart30d'
+	],
+	640: [
+		'pool',
+		'project',
+		'tvl',
+		'apy',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'apyMean30d',
+		'apyChart30d'
+	],
+	1280: [
+		'pool',
+		'project',
+		'chains',
+		'tvl',
+		'apy',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'apyMean30d',
+		'apyChart30d'
+	]
 }
 
 export const columnSizes = {
@@ -184,7 +267,9 @@ export const columnSizes = {
 		apyReward: 140,
 		apyNet7d: 120,
 		apyBase7d: 130,
-		il7d: 90
+		il7d: 90,
+		apyMean30d: 120,
+		apyChart30d: 110
 	},
 	812: {
 		pool: 250,
@@ -196,7 +281,9 @@ export const columnSizes = {
 		apyReward: 140,
 		apyNet7d: 120,
 		apyBase7d: 140,
-		il7d: 90
+		il7d: 90,
+		apyMean30d: 120,
+		apyChart30d: 110
 	}
 }
 

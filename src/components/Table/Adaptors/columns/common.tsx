@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronRight } from 'react-feather'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
+import QuestionHelper from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
 import { formattedNum, formattedPercent, slug } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
@@ -26,6 +27,7 @@ export const NameColumn = (type: string, allChains?: boolean) => ({
 				<span>{index + 1}</span>
 				<TokenLogo logo={row.original.logo} data-lgonly />
 				<CustomLink href={`/${type}/${allChains ? 'chains/' : ''}${slug(row.original.name)}`}>{`${value}`}</CustomLink>
+				{row.original.disabled && <QuestionHelper text={`This protocol has been disabled`} />}
 			</Name>
 		)
 	},
