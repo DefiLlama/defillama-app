@@ -1,3 +1,4 @@
+import { CSSProperties } from 'react'
 import ReactSwitch from 'react-switch'
 import styled from 'styled-components'
 import HeadHelp from '~/components/HeadHelp'
@@ -7,6 +8,7 @@ interface IProps {
 	enabled: boolean
 	help?: string
 	name: string
+	style?: CSSProperties
 }
 
 const Wrapper = styled.div`
@@ -17,9 +19,9 @@ const Wrapper = styled.div`
 
 const Switch = ReactSwitch as any
 
-const OptionToggle = ({ toggle, enabled = false, help, name }: IProps) => {
+const OptionToggle = ({ toggle, enabled = false, help, name, ...props }: IProps) => {
 	return (
-		<Wrapper>
+		<Wrapper {...props}>
 			<Switch
 				onChange={toggle}
 				checked={enabled}
