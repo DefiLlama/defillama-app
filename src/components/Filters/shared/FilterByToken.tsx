@@ -5,19 +5,22 @@ import { Checkbox } from '~/components'
 import { Input, List } from '~/components/Combobox'
 import { SelectButton, ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup, SecondaryLabel } from './Base'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
+import { SlidingMenu, SlidingMenuItem } from '~/components/SlidingMenu'
 
 interface IFiltersByChainProps {
 	tokensList: string[]
 	selectedTokens: string[]
 	pathname: string
 	variant?: 'primary' | 'secondary'
+	subMenu?: boolean
 }
 
 export function FiltersByToken({
 	tokensList = [],
 	selectedTokens,
 	pathname,
-	variant = 'primary'
+	variant = 'primary',
+	subMenu
 }: IFiltersByChainProps) {
 	const router = useRouter()
 
@@ -90,6 +93,10 @@ export function FiltersByToken({
 	const focusItemRef = useRef(null)
 
 	const isSelected = selectedTokens.length > 0 && selectedTokens.length !== tokensList.length
+
+	if (subMenu) {
+		return <SlidingMenu label="Tokens" selectState={select}></SlidingMenu>
+	}
 
 	return (
 		<>

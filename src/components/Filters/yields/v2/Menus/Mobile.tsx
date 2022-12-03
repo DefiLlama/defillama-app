@@ -8,8 +8,8 @@ import { YieldProjects } from '../../Projects'
 import { APYRange } from '../../APYRange'
 import { TVLRange } from '../../../protocols'
 import { ResetAllYieldFilters } from '../../ResetAll'
+import { SlidingMenu } from '~/components/SlidingMenu'
 import type { IDropdownMenusProps } from '../types'
-import { Menu } from '~/components/DropdownMenu'
 
 export function MobileYieldMenus({
 	pathname,
@@ -30,7 +30,17 @@ export function MobileYieldMenus({
 }: IDropdownMenusProps) {
 	const router = useRouter()
 
-	return <Menu name="Filters" options={[]} variant="secondary" />
+	return (
+		<SlidingMenu label="Filters" variant="secondary">
+			<FiltersByToken
+				tokensList={['BTC', 'ETH']}
+				selectedTokens={[]}
+				pathname={pathname || router.pathname}
+				variant="secondary"
+				subMenu
+			/>
+		</SlidingMenu>
+	)
 
 	return (
 		<Wrapper>
