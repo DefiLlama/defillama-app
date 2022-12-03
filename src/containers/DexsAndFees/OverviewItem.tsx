@@ -27,7 +27,7 @@ import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
-import { getCleanMonthTimestamp, getCleanWeekTimestamp, upperCaseFirst } from './utils'
+import { upperCaseFirst } from './utils'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 
@@ -189,7 +189,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 		props.protocolSummary.allAddresses ?? (props.protocolSummary.address ? [props.protocolSummary.address] : [])
 	).map((address) => {
 		const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
-		console.log(address, props.protocolSummary.allAddresses ?? [props.protocolSummary.address])
+
 		const splittedAddress = address.split(':')
 		return {
 			blockExplorerLink,
@@ -198,7 +198,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 			address: splittedAddress.length > 1 ? splittedAddress[1] : splittedAddress[0]
 		}
 	})
-	console.log(blockExplorers)
+
 	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
 	const typeSimple = props.protocolSummary.type === 'dexs' ? 'volume' : props.protocolSummary.type
@@ -324,7 +324,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					{blockExplorers && (
 						<>
 							{blockExplorers.map((blockExplorer) => (
-								<FlexRow>
+								<FlexRow key={blockExplorer.address}>
 									<span>{`${capitalizeFirstLetter(
 										blockExplorer.chain ? `${blockExplorer.chain} address:` : 'address:'
 									)}`}</span>
