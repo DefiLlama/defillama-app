@@ -81,7 +81,7 @@ const defaultToolsAndFooterLinks = {
 		},
 		{
 			name: 'Discord',
-			path: 'https://discord.gg/buPFYXzDDd',
+			path: 'https://discord.defillama.com',
 			external: true
 		},
 		{
@@ -155,7 +155,7 @@ export const navLinks: ILinks = {
 			},
 			{
 				name: 'Discord',
-				path: 'https://discord.gg/buPFYXzDDd',
+				path: 'https://discord.defillama.com',
 				external: true
 			},
 			{

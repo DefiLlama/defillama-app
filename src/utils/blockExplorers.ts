@@ -60,7 +60,8 @@ const blockExplorers = {
 	godwoken: ['https://v0.gwscan.com/account/', 'GwScan'],
 	godwokenv1: ['https://v1.gwscan.com/account/', 'GwScan'],
 	muuchain: ['https://explorer.muuchain.com/address/', 'MUUSCAN'],
-	neo: ['https://explorer.onegate.space/NEP17tokeninfo/', 'ONEGATE']
+	neo: ['https://explorer.onegate.space/NEP17tokeninfo/', 'ONEGATE'],
+	bittorrent: ['https://bttcscan.com/address/', 'BTTCSCAN']
 }
 
 export const getBlockExplorer = (address: string = '') => {
@@ -80,7 +81,7 @@ export const getBlockExplorer = (address: string = '') => {
 	}
 
 	return {
-		blockExplorerLink,
-		blockExplorerName
+		blockExplorerLink: blockExplorerLink ?? '',
+		blockExplorerName: blockExplorerName ?? 'unknown'
 	}
 }

@@ -27,7 +27,7 @@ import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
-import { getCleanMonthTimestamp, getCleanWeekTimestamp, upperCaseFirst } from './utils'
+import { upperCaseFirst } from './utils'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 
@@ -185,7 +185,20 @@ export const ProtocolChart = ({
 
 function ProtocolContainer(props: IProtocolContainerProps) {
 	useScrollToTop()
-	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(props.protocolSummary.address)
+	const blockExplorers = (
+		props.protocolSummary.allAddresses ?? (props.protocolSummary.address ? [props.protocolSummary.address] : [])
+	).map((address) => {
+		const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
+
+		const splittedAddress = address.split(':')
+		return {
+			blockExplorerLink,
+			blockExplorerName,
+			chain: splittedAddress.length > 1 ? splittedAddress[0] : undefined,
+			address: splittedAddress.length > 1 ? splittedAddress[1] : splittedAddress[0]
+		}
+	})
+
 	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
 	const typeSimple = props.protocolSummary.type === 'dexs' ? 'volume' : props.protocolSummary.type
@@ -308,15 +321,29 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				<Section>
 					<h3>Token Information</h3>
 
-					{props.protocolSummary.address && (
-						<FlexRow>
-							<span>Address</span>
-							<span>:</span>
-							<span>
-								{props.protocolSummary.address.slice(0, 8) + '...' + props.protocolSummary.address?.slice(36, 42)}
-							</span>
-							<CopyHelper toCopy={props.protocolSummary.address} disabled={!props.protocolSummary.address} />
-						</FlexRow>
+					{blockExplorers && (
+						<>
+							{blockExplorers.map((blockExplorer) => (
+								<FlexRow key={blockExplorer.address}>
+									<span>{`${capitalizeFirstLetter(
+										blockExplorer.chain ? `${blockExplorer.chain} address:` : 'address:'
+									)}`}</span>
+									<span>{blockExplorer.address.slice(0, 8) + '...' + blockExplorer.address?.slice(36, 42)}</span>
+									<CopyHelper toCopy={blockExplorer.address} disabled={!blockExplorer.address} />
+									<Link href={blockExplorer.blockExplorerLink} passHref>
+										<Button
+											as="a"
+											target="_blank"
+											rel="noopener noreferrer"
+											useTextColor={true}
+											color={props.backgroundColor}
+										>
+											<span>View on {blockExplorer.blockExplorerName}</span> <ArrowUpRight size={14} />
+										</Button>
+									</Link>
+								</FlexRow>
+							))}
+						</>
 					)}
 
 					<LinksWrapper>
@@ -330,20 +357,6 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 									color={props.backgroundColor}
 								>
 									<span>View on CoinGecko</span> <ArrowUpRight size={14} />
-								</Button>
-							</Link>
-						)}
-
-						{blockExplorerLink && (
-							<Link href={blockExplorerLink} passHref>
-								<Button
-									as="a"
-									target="_blank"
-									rel="noopener noreferrer"
-									useTextColor={true}
-									color={props.backgroundColor}
-								>
-									<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
 								</Button>
 							</Link>
 						)}

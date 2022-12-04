@@ -9,6 +9,8 @@ import { YieldsPoolsTable } from '~/components/Table'
 import { YieldsSearch } from '~/components/Search'
 import { useIsClient } from '~/hooks'
 import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
+import OptionToggle from '~/components/OptionToggle'
+import { useRouter } from 'next/router'
 
 interface IFolder {
 	isSaved?: boolean
@@ -26,6 +28,9 @@ const Action = styled.button<IFolder>`
 `
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
+	const { query, pathname, push } = useRouter()
+	const { show7dBaseApy, show7dIL } = query
+
 	const isClient = useIsClient()
 
 	const { addPortfolio, removePortfolio, savedProtocols, portfolios, selectedPortfolio, setSelectedPortfolio } =
@@ -75,6 +80,25 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 						<Trash2 />
 					</Action>
 				)}
+
+				<OptionToggle
+					name="Show 7d Base Apy"
+					toggle={() => {
+						const enabled = show7dBaseApy === 'true'
+						push({ pathname, query: { ...query, show7dBaseApy: !enabled } }, undefined, { shallow: true })
+					}}
+					enabled={query.show7dBaseApy === 'true'}
+					style={{ marginLeft: 'auto' }}
+				/>
+
+				<OptionToggle
+					name="Show 7d IL"
+					toggle={() => {
+						const enabled = show7dIL === 'true'
+						push({ pathname, query: { ...query, show7dIL: !enabled } }, undefined, { shallow: true })
+					}}
+					enabled={query.show7dIL === 'true'}
+				/>
 			</Row>
 
 			{filteredProtocols.length ? (
