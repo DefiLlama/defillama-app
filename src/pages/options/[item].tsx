@@ -1,5 +1,12 @@
 import { type } from '.'
-import { getStaticPropsByType, getStaticPathsByType } from '../../utils/adaptorsPages/[type]/[item]'
+import { getStaticPropsByType } from '../../utils/adaptorsPages/[type]/[item]'
 export const getStaticProps = getStaticPropsByType(type)
-export const getStaticPaths = getStaticPathsByType(type)
+
+export async function getStaticPaths() {
+	return {
+		paths: [],
+		fallback: 'blocking'
+	}
+}
+
 export { default } from '../../utils/adaptorsPages/[type]/[item]'
