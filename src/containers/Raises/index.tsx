@@ -14,6 +14,7 @@ import Link from 'next/link'
 import { DownloadIcon } from '~/components'
 import { download, toNiceCsvDate } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
+import { ChartWrapper } from '~/layout/ProtocolAndPool'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -246,12 +247,9 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</a>
 			</AnnouncementWrapper>
 
-			{monthlyInvestment && (
-				<BarChart
-					chartData={Object.entries(monthlyInvestment).map((t) => [new Date(t[0]).getTime() / 1e3, t[1]])}
-					title="Monthly sum"
-				/>
-			)}
+			<ChartWrapper>
+				<BarChart chartData={monthlyInvestment} title="Monthly sum" />
+			</ChartWrapper>
 
 			<TableFilters>
 				<TableHeaderWrapper>
