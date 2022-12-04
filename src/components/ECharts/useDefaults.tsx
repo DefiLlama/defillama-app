@@ -84,9 +84,9 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 				})
 
 				let vals
-				let filteredParams = params.filter(
-					(item) => item.value[1] !== 0 && item.value[1] !== '-' && item.value[1] !== null
-				)
+				let filteredParams = params
+					.filter((item) => item.value[1] !== 0 && item.value[1] !== '-' && item.value[1] !== null)
+					.sort((a, b) => (tooltipSort ? b.value[1] - a.value[1] : 0))
 
 				const otherIndex = filteredParams.findIndex((item) => item.seriesName === 'Others')
 				let others
@@ -149,6 +149,12 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 					vals += '<li style="list-style:none">' + 'Mcap/TVL' + '&nbsp;&nbsp;' + Number(mcap / tvl).toFixed(2) + '</li>'
 				}
 
+				if (title.toLowerCase() === 'tokens (usd)' || title.toLowerCase() === 'chains') {
+					const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
+
+					vals += '<li style="list-style:none;font-weight:600">' + 'Total' + '&nbsp;&nbsp;' + '$' + toK(total) + '</li>'
+				}
+
 				return chartdate + vals
 			}
 		}
@@ -178,6 +184,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 					}, '')
 
 				const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
+
 				vals += '<li style="list-style:none;font-weight:600">' + 'Total Inflows' + '&nbsp;&nbsp;' + toK(total) + '</li>'
 
 				return chartdate + vals

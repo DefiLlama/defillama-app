@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars*/
-import { useCallback, useContext, useEffect } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
 import * as echarts from 'echarts'
 import { LiquidationsContext } from '~/components/LiquidationsPage/context'
 import { useMedia } from '~/hooks'
@@ -7,7 +7,7 @@ import { useDarkModeManager, useLiqsManager } from '~/contexts/LocalStorage'
 import { ChartData } from '~/utils/liquidations'
 import { getOption, useStackBy } from './utils'
 
-export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; uid: string }) => {
+export const LiquidationsChart = ({ chartData, uid, bobo }: { chartData: ChartData; uid: string; bobo: boolean }) => {
 	const { setSelectedSeries } = useContext(LiquidationsContext)
 	const [liqsSettings] = useLiqsManager()
 	const isLiqsUsingUsd = liqsSettings['LIQS_USING_USD']
@@ -44,12 +44,28 @@ export const LiquidationsChart = ({ chartData, uid }: { chartData: ChartData; ui
 	}, [uid, chartData, createInstance, stackBy, isSmall, isDark, setSelectedSeries, isLiqsUsingUsd, isLiqsCumulative])
 
 	return (
-		<div
-			id={uid}
-			style={{
-				minHeight: '360px',
-				margin: 'auto 0'
-			}}
-		/>
+		<>
+			<div
+				style={{
+					position: 'absolute',
+					...(bobo && {
+						height: '80%',
+						width: '90%',
+						backgroundImage: 'url("/bobo.png")',
+						backgroundSize: '100% 360px',
+						backgroundRepeat: 'no-repeat',
+						backgroundPosition: 'bottom',
+						zIndex: 1
+					})
+				}}
+			/>
+			<div
+				id={uid}
+				style={{
+					minHeight: '360px',
+					margin: 'auto 0'
+				}}
+			/>
+		</>
 	)
 }

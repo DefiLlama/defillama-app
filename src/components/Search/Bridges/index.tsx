@@ -37,7 +37,6 @@ export function BridgesSearchWithBreakdown(props: IBridgesSearchProps) {
 										props.onToggleClick(!prev)
 										return !prev
 									})
-									return {} //
 								}}
 								help="Break down 'All' volume chart by bridge"
 								enabled={isToggleEnabled}
@@ -56,4 +55,3 @@ export const ListItem = styled.li`
 		margin-left: 20px;
 	}
 `
-

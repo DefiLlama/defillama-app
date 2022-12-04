@@ -19,6 +19,8 @@ import {
 	PROTOCOL_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
+import { getChainPageData as getChainPageDataByType, getChainsPageData as getChainsPageDataByType } from '~/api/categories/adaptors'
+import { getPeggedAssets } from '../stablecoins'
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
@@ -381,7 +383,17 @@ export async function getCategoriesPageData(category = null) {
 }
 
 export const getNewChainsPageData = async (category: string) => {
-	const { categories, ...rest } = await fetch(`https://api.llama.fi/chains2/${category}`).then((res) => res.json())
+	const [
+		{ categories, chainTvls, ...rest },
+		{ protocols: dexsProtocols },
+		{ protocols: feesAndRevenueProtocols },
+		{ chains: stablesChainData }
+	] = await Promise.all([
+		fetch(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
+		getChainsPageDataByType('dexs'),
+		getChainPageDataByType('fees'),
+		getPeggedAssets()
+	])
 
 	const categoryLinks = [
 		{ label: 'All', to: '/chains' },
@@ -401,8 +413,37 @@ export const getNewChainsPageData = async (category: string) => {
 
 	colors['Others'] = '#AAAAAA'
 
+	const feesAndRevenueChains = feesAndRevenueProtocols.filter((p) => p.category === 'Chain')
+	const dexsChains = dexsProtocols
+	const stablesChainMcaps = stablesChainData.map((chain) => {
+		return {
+			name: chain.name,
+			mcap: Object.values(chain.totalCirculatingUSD).reduce((a: number, b: number) => a + b)
+		}
+	})
+
 	return {
-		props: { ...rest, category, categories: categoryLinks, colorsByChain: colors }
+		props: {
+			...rest,
+			category,
+			categories: categoryLinks,
+			colorsByChain: colors,
+			chainTvls: chainTvls.map((chain) => {
+				const { total24h, revenue24h } =
+					feesAndRevenueChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
+
+				const { total24h: dexsTotal24h } =
+					dexsChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
+
+				return {
+					...chain,
+					totalVolume24h: dexsTotal24h || 0,
+					totalFees24h: total24h || 0,
+					totalRevenue24h: revenue24h || 0,
+					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === chain.name.toLowerCase())?.mcap ?? 0
+				}
+			})
+		}
 	}
 }
 
@@ -497,7 +538,7 @@ export const getChainsPageData = async (category: string) => {
 			for (let i = 0; i < 5; i++) {
 				try {
 					return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-				} catch (e) {}
+				} catch (e) { }
 			}
 			throw new Error(`${CHART_API}/${elem} is broken`)
 		})

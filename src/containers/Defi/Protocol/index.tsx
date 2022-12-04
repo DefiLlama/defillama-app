@@ -25,6 +25,8 @@ import {
 	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
 import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
+import { ChartWrapper } from '~/layout/ProtocolAndPool'
+import { DexCharts } from '~/containers/DexsAndFees/DexsCharts'
 import { Checkbox2 } from '~/components'
 import Bookmark from '~/components/Bookmark'
 import CopyHelper from '~/components/Copy'
@@ -51,20 +53,18 @@ import {
 } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
-import boboLogo from '~/assets/boboSmug.png'
-import { IFusedProtocolData } from '~/api/types'
+import type { IFusedProtocolData, IRaise } from '~/api/types'
 import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { DexCharts } from '~/containers/Dex/DexProtocol'
 import { useFetchProtocolDex } from '~/api/categories/dexs/client'
 import { useFetchProtocolFees } from '~/api/categories/fees/client'
 import { useYields } from '~/api/categories/yield/client'
-import { ChartWrapper } from '~/layout/ProtocolAndPool'
+import boboLogo from '~/assets/boboSmug.png'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-const scams = ['Drachma Exchange', 'StableDoin']
+const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance']
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -104,6 +104,14 @@ const OtherProtocols = styled.nav`
 	@media screen and (min-width: 80rem) {
 		grid-column: span 2;
 	}
+`
+
+const RaisesWrapper = styled.ul`
+	list-style: none;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 `
 
 interface IProtocolLink {
@@ -174,7 +182,7 @@ export function FeesBody({ data, chartData }) {
 				<StackedChart
 					chartData={chartData}
 					title={isProtocolPage ? '' : 'Fees And Revenue'}
-					stacks={{ Fees: 'a', Revenue: 'a' }}
+					stacks={{ Fees: 'a', Revenue: 'b' }}
 					stackColors={stackedBarChartColors}
 				/>
 			</ChartWrapper>
@@ -213,7 +221,8 @@ function ProtocolContainer({
 		otherProtocols,
 		hallmarks,
 		gecko_id,
-		isParentProtocol
+		isParentProtocol,
+		raises
 	} = protocolData
 
 	const router = useRouter()
@@ -534,20 +543,25 @@ function ProtocolContainer({
 					</LinksWrapper>
 				</Section>
 
-				<Section>
-					<h3>Methodology</h3>
-					{methodology && <p>{methodology}</p>}
-					<LinksWrapper>
-						{codeModule && (
-							<Link href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-									<span>Check the code</span>
-									<ArrowUpRight size={14} />
-								</Button>
-							</Link>
-						)}
-					</LinksWrapper>
-				</Section>
+				{(methodology || codeModule) && (
+					<Section>
+						<h3>Methodology</h3>
+						{methodology && <p>{methodology}</p>}
+						<LinksWrapper>
+							{codeModule && (
+								<Link
+									href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
+									passHref
+								>
+									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+										<span>Check the code</span>
+										<ArrowUpRight size={14} />
+									</Button>
+								</Link>
+							)}
+						</LinksWrapper>
+					</Section>
+				)}
 
 				{similarProtocols && similarProtocols.length > 0 && (
 					<Section>
@@ -556,10 +570,30 @@ function ProtocolContainer({
 						<LinksWrapper>
 							{similarProtocols.map((similarProtocol) => (
 								<Link href={`/protocol/${slug(similarProtocol.name)}`} passHref key={similarProtocol.name}>
-									<a target="_blank">{`${similarProtocol.name} ($${toK(similarProtocol.tvl)})`}</a>
+									<a target="_blank" style={{ textDecoration: 'underline' }}>{`${similarProtocol.name} ($${toK(
+										similarProtocol.tvl
+									)})`}</a>
 								</Link>
 							))}
 						</LinksWrapper>
+					</Section>
+				)}
+
+				{raises && raises.length > 0 && (
+					<Section>
+						<h3>Raises</h3>
+						<RaisesWrapper>
+							<li>{`Total raised: ${formatRaisedAmount(raises.reduce((sum, r)=>sum+Number(r.amount), 0))}`}</li>
+							{raises
+								.sort((a, b) => a.date - b.date)
+								.map((raise) => (
+									<li key={raise.date + raise.amount}>
+										<a target="_blank" rel="noopener noreferrer" href={raise.source}>
+											{formatRaise(raise)}
+										</a>
+									</li>
+								))}
+						</RaisesWrapper>
 					</Section>
 				)}
 			</InfoWrapper>
@@ -666,6 +700,35 @@ function ProtocolContainer({
 const stackedBarChartColors = {
 	Fees: '#4f8fea',
 	Revenue: '#E59421'
+}
+
+const formatRaise = (raise: IRaise) => {
+	let text = new Date(raise.date * 1000).toLocaleDateString() + ' :'
+
+	if (raise.round) {
+		text += ` ${raise.round}`
+	}
+
+	if (raise.round && raise.amount) {
+		text += ' -'
+	}
+
+	if (raise.amount) {
+		text += ` Raised $${formatRaisedAmount(Number(raise.amount))}`
+	}
+
+	if (raise.valuation && Number(raise.valuation)) {
+		text += ` at $${formatRaisedAmount(Number(raise.valuation))} valuation`
+	}
+
+	return text
+}
+
+const formatRaisedAmount = (n: number) => {
+	if (n >= 1e3) {
+		return `${n / 1e3}b`
+	}
+	return `${n}m`
 }
 
 export default ProtocolContainer

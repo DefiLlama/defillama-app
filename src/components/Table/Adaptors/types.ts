@@ -8,6 +8,8 @@ interface IDexs {
 	totalVolume24h: number
 	volumetvl: number
 	dominance: number
+	disabled: boolean
+	logo?: string
 }
 
 export interface IDexsRow extends IDexs {

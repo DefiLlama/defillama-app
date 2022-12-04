@@ -153,6 +153,7 @@ export async function getLendBorrowData() {
 
 	// get new borrow fields
 	let dataBorrow = (await arrayFetcher([YIELD_LEND_BORROW_API]))[0]
+	dataBorrow = dataBorrow.filter((p) => p.ltv <= 1)
 
 	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
 	const configIdsCompound = pools.filter((p) => p.project === 'compound').map((p) => p.pool)
@@ -251,7 +252,7 @@ export async function getLendBorrowData() {
 	}
 }
 
-export function calculateLoopAPY(lendBorrowPools, levels = 10) {
+export function calculateLoopAPY(lendBorrowPools, loops = 10, customLTV) {
 	let pools = lendBorrowPools.filter((p) => p.ltv > 0)
 
 	return pools
@@ -261,8 +262,9 @@ export function calculateLoopAPY(lendBorrowPools, levels = 10) {
 			const borrow_apy = (p.apyBaseBorrow + p.apyRewardBorrow) / 100
 
 			let total_borrowed = 0
-			for (const i of [...Array(levels).keys()]) {
-				total_borrowed += p.ltv ** (i + 1)
+			const ltv = customLTV ? (customLTV / 100) * p.ltv : p.ltv
+			for (const i of [...Array(loops).keys()]) {
+				total_borrowed += ltv ** (i + 1)
 			}
 
 			const loopApy = ((total_borrowed + 1) * deposit_apy + total_borrowed * borrow_apy) * 100

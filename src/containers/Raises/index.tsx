@@ -12,7 +12,7 @@ import { Chains, Investors, RaisedRange, Rounds, Sectors } from '~/components/Fi
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { DownloadIcon } from '~/components'
-import { download } from '~/utils'
+import { download, toNiceCsvDate } from '~/utils'
 import type { IBarChartProps } from '~/components/ECharts/types'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
@@ -107,7 +107,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				let toFilter = true
 
 				if (selectedInvestors.length !== investors.length) {
-					if(raise.leadInvestors.length === 0 && raise.otherInvestors.length === 0){
+					if (raise.leadInvestors.length === 0 && raise.otherInvestors.length === 0) {
 						return false
 					}
 
@@ -163,10 +163,10 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 
 				if (selectedSectors.length !== sectors.length) {
 					// filter raises with no sector
-					if (!raise.sector || raise.sector === '') {
+					if (!raise.category || raise.category === '') {
 						toFilter = false
 					} else {
-						if (!selectedSectors.includes(raise.sector)) {
+						if (!selectedSectors.includes(raise.category)) {
 							toFilter = false
 						}
 					}
@@ -192,10 +192,11 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 		const rows = [
 			[
 				'Name',
+				'Timestamp',
 				'Date',
 				'Amount Raised',
 				'Round',
-				'Sector',
+				'Description',
 				'Lead Investor',
 				'Source',
 				'Valuation',
@@ -204,20 +205,27 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 			]
 		]
 
-		raises.forEach((item) => {
-			rows.push([
-				item.name,
-				item.date,
-				item.amount * 1_000_000,
-				item.round ?? '',
-				item.sector ?? '',
-				item.leadInvestors?.join(', ') ?? '',
-				item.source ?? '',
-				item.valuation ?? '',
-				item.chains?.join(', ') ?? '',
-				item.otherInvestors?.join(', ') ?? ''
-			])
-		})
+		const removeJumps = (text: string | number) =>
+			typeof text === 'string' ? '"' + text.replaceAll('\n', '') + '"' : text
+		raises
+			.sort((a, b) => b.date - a.date)
+			.forEach((item) => {
+				rows.push(
+					[
+						item.name,
+						item.date,
+						toNiceCsvDate(item.date),
+						item.amount === null ? '' : item.amount * 1_000_000,
+						item.round ?? '',
+						item.sector ?? '',
+						item.leadInvestors?.join(' + ') ?? '',
+						item.source ?? '',
+						item.valuation ?? '',
+						item.chains?.join(' + ') ?? '',
+						item.otherInvestors?.join(' + ') ?? ''
+					].map(removeJumps) as string[]
+				)
+			})
 
 		download(`raises.csv`, rows.map((r) => r.join(',')).join('\n'))
 	}
@@ -238,7 +246,12 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</a>
 			</AnnouncementWrapper>
 
-			{monthlyInvestment  && <BarChart chartData={Object.entries(monthlyInvestment).map(t=>[new Date(t[0]).getTime()/1e3, t[1]])} title="Monthly sum"/>}
+			{monthlyInvestment && (
+				<BarChart
+					chartData={Object.entries(monthlyInvestment).map((t) => [new Date(t[0]).getTime() / 1e3, t[1]])}
+					title="Monthly sum"
+				/>
+			)}
 
 			<TableFilters>
 				<TableHeaderWrapper>
@@ -247,6 +260,12 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 						<DownloadIcon />
 						<span>&nbsp;&nbsp;.csv</span>
 					</DownloadButton>
+					<Link href="https://api.llama.fi/raises" target="_blank">
+						<DownloadButton>
+							<DownloadIcon />
+							<span>&nbsp;&nbsp;.json</span>
+						</DownloadButton>
+					</Link>
 				</TableHeaderWrapper>
 
 				<Dropdowns>

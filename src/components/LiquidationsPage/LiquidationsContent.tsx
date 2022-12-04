@@ -10,9 +10,31 @@ import { LiquidableChanges24H } from './LiquidableChanges24H'
 import { LiquidationsContext } from '~/components/LiquidationsPage/context'
 import { useStackBy } from './utils'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
+import Image from 'next/image'
+import boboLogo from '~/assets/boboSmug.png'
+
+const Bobo = styled.button`
+	position: absolute;
+	bottom: -36px;
+	left: 0;
+
+	img {
+		width: 34px !important;
+		height: 34px !important;
+	}
+
+	@media screen and (min-width: 80rem) {
+		top: 0;
+		right: 0;
+		bottom: initial;
+		left: initial;
+		z-index: 1;
+	}
+`
 
 export const LiquidationsContent = (props: { data: ChartData; prevData: ChartData }) => {
 	const { data, prevData } = props
+	const [bobo, setBobo] = React.useState(false)
 	return (
 		<Wrapper>
 			<BreakpointPanels>
@@ -31,7 +53,11 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 					<CumulativeToggle />
 					<CurrencyToggle symbol={data.symbol} />
 				</Row>
-				<LiquidationsChart chartData={data} uid={data.symbol} />
+				<Bobo onClick={() => setBobo(!bobo)}>
+					<span className="visually-hidden">Enable Goblin Mode</span>
+					<Image src={boboLogo} width="34px" height="34px" alt="bobo cheers" />
+				</Bobo>
+				<LiquidationsChart chartData={data} uid={data.symbol} bobo={bobo} />
 			</BreakpointPanel>
 		</Wrapper>
 	)
@@ -42,6 +68,7 @@ const Row = styled.div`
 	align-items: center;
 	justify-content: space-between;
 	padding: 0 0.5rem;
+	margin-right: 1rem;
 `
 
 const ToggleWrapper = styled.div`

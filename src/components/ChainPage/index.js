@@ -28,6 +28,7 @@ import { chainCoingeckoIds } from '~/constants/chainTokens'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
+import { ArrowUpRight } from 'react-feather'
 
 const EasterLlama = styled.button`
 	padding: 0;
@@ -221,9 +222,9 @@ function GlobalPage({
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
 			<Announcement>
-				<span>Check out our</span>{' '}
-				<Link href={`/borrow`}>
-					<a> borrow aggregator!</a>
+				<span>We just launched a</span>{' '}
+				<Link href={`/cexs`}>
+					<a> CEX transparency dashboard <ArrowUpRight size={14} style={{display: "inline"}}/> </a>
 				</Link>
 			</Announcement>
 

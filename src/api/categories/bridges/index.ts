@@ -124,17 +124,22 @@ export async function getBridgeOverviewPageData(chain) {
 			resp.json()
 		)
 	}
-
+	
+	const numberOfDaysForLargeTx = chain ? 7 : 1
 	const secondsInDay = 3600 * 24
 	const unformattedLargeTxsData = await getLargeTransactionsData(
 		chain,
-		currentTimestamp - 7 * secondsInDay,
+		currentTimestamp - numberOfDaysForLargeTx * secondsInDay,
 		currentTimestamp
 	)
 	const largeTxsData = unformattedLargeTxsData.map((transaction) => {
-		const { token, symbol } = transaction
+		const { token, symbol, isDeposit, chain:txChain } = transaction
 		const symbolAndTokenForExplorer = `${symbol}#${token}`
-		return { ...transaction, symbol: symbolAndTokenForExplorer }
+		let correctedIsDeposit = isDeposit
+		if (chain) {
+			correctedIsDeposit = chain.toLowerCase() === txChain.toLowerCase() ? isDeposit : !isDeposit
+		}
+		return { ...transaction, isDeposit: correctedIsDeposit, symbol: symbolAndTokenForExplorer }
 	})
 
 	const filteredBridges = formatBridgesData({

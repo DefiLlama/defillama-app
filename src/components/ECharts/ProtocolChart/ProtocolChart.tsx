@@ -4,6 +4,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
+import { ToggleWrapper } from '~/components'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
@@ -155,7 +156,7 @@ export default function ProtocolChart({
 		tokensUnique = tokensUnique.concat(showVol ? ['Volume'] : [])
 
 		return { finalData: chartData, tokensUnique }
-	}, [tvlData, protocolCGData, showMcap, protocolHasMcap, showVol])
+	}, [tvlData, protocolCGData, showMcap, protocolHasMcap, showVol, volumeMap])
 
 	const toggleFilter = React.useCallback(
 		(type: string) => {
@@ -189,7 +190,7 @@ export default function ProtocolChart({
 					))}
 				</Filters>
 				{Object.values(volumeMap || {}).length > 0 && (
-					<ToggleCharts>
+					<ToggleWrapper>
 						<input
 							type="checkbox"
 							value="showVolume"
@@ -197,11 +198,11 @@ export default function ProtocolChart({
 							onChange={() => toggleFilter('showVolume')}
 						/>
 						<span>Show Volume</span>
-					</ToggleCharts>
+					</ToggleWrapper>
 				)}
 
 				{hallmarks?.length > 0 && (
-					<ToggleCharts>
+					<ToggleWrapper>
 						<input
 							type="checkbox"
 							value="hideEvents"
@@ -209,11 +210,11 @@ export default function ProtocolChart({
 							onChange={() => toggleFilter('hideEvents')}
 						/>
 						<span>Hide Events</span>
-					</ToggleCharts>
+					</ToggleWrapper>
 				)}
 
 				{protocolHasMcap && (
-					<ToggleCharts>
+					<ToggleWrapper>
 						<input
 							type="checkbox"
 							value="showMcapChart"
@@ -221,7 +222,7 @@ export default function ProtocolChart({
 							onChange={() => toggleFilter('showMcapChart')}
 						/>
 						<span>Show MCap Chart</span>
-					</ToggleCharts>
+					</ToggleWrapper>
 				)}
 			</FiltersWrapper>
 
@@ -282,22 +283,6 @@ export const Filters = styled.div`
 	background-color: ${({ color }) => transparentize(0.8, color)};
 	border-radius: 12px;
 	width: min-content;
-`
-
-export const ToggleCharts = styled.label`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-
-	:hover {
-		cursor: pointer;
-	}
-
-	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
-		:first-of-type {
-			margin-left: auto;
-		}
-	}
 `
 
 interface IDenomination {

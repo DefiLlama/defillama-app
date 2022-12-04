@@ -42,6 +42,7 @@ interface IPegged {
 		price: number
 		priceSource: string
 	}
+	delisted?: boolean
 }
 
 interface GroupChainPegged extends IPegged {
@@ -101,7 +102,7 @@ export const useCalcCirculating = (filteredPeggedAssets: IPegged[]) => {
 			}
 		)
 
-		return updatedPeggedAssets.sort((a, b) => b.mcap - a.mcap)
+		return updatedPeggedAssets.sort((a, b) => b.mcap - a.mcap).filter((pegged) => !pegged.delisted)
 	}, [filteredPeggedAssets, extraPeggedEnabled])
 
 	return peggedAssetTotals
@@ -489,14 +490,18 @@ export const useBuildPeggedChartData = (
 	return { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows }
 }
 
-export const useFormatStablecoinQueryParams = ({ stablecoinAttributeOptions, stablecoinPegTypeOptions, stablecoinBackingOptions }) => {
+export const useFormatStablecoinQueryParams = ({
+	stablecoinAttributeOptions,
+	stablecoinPegTypeOptions,
+	stablecoinBackingOptions
+}) => {
 	const router = useRouter()
 	const { attribute, pegtype, backing } = router.query
 
 	return React.useMemo(() => {
 		let selectedAttributes = [],
 			selectedPegTypes = [],
-            selectedBackings = []
+			selectedBackings = []
 
 		if (attribute) {
 			if (typeof attribute === 'string') {
@@ -516,7 +521,7 @@ export const useFormatStablecoinQueryParams = ({ stablecoinAttributeOptions, sta
 			}
 		} else selectedPegTypes = [...stablecoinPegTypeOptions.map((option) => option.key)]
 
-        if (backing) {
+		if (backing) {
 			if (typeof backing === 'string') {
 				selectedBackings = backing === 'None' ? [] : [backing]
 			} else {
@@ -527,7 +532,7 @@ export const useFormatStablecoinQueryParams = ({ stablecoinAttributeOptions, sta
 		return {
 			selectedAttributes,
 			selectedPegTypes,
-            selectedBackings
+			selectedBackings
 		}
 	}, [attribute, pegtype, backing, stablecoinAttributeOptions, stablecoinPegTypeOptions, stablecoinBackingOptions])
 }

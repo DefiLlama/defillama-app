@@ -3,11 +3,10 @@ import Link from 'next/link'
 import styled from 'styled-components'
 import { ArrowRight } from 'react-feather'
 import { useComboboxState } from 'ariakit/combobox'
-import type { IBaseSearchProps } from '../types'
-
-import { Results } from './Results'
+import { DesktopResults } from './Results/Desktop'
 import { Input } from './Input'
 import { findActiveItem } from './utils'
+import type { IBaseSearchProps } from '../types'
 
 const Wrapper = styled.div`
 	display: none;
@@ -102,7 +101,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 
 			{step && <Options step={step} filters={filters} />}
 
-			<Results state={combobox} data={data} loading={loading} onItemClick={props.onItemClick} />
+			<DesktopResults state={combobox} data={data} loading={loading} onItemClick={props.onItemClick} />
 		</Wrapper>
 	)
 }

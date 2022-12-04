@@ -6,7 +6,14 @@ import QuestionHelper from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
 import { Tooltip2 } from '~/components/Tooltip'
 import { ButtonYields } from '~/layout/Pool'
-import { capitalizeFirstLetter, chainIconUrl, formattedNum, formattedPercent, slug, toNiceDayMonthAndYear } from '~/utils'
+import {
+	capitalizeFirstLetter,
+	chainIconUrl,
+	formattedNum,
+	formattedPercent,
+	slug,
+	toNiceDayMonthAndYear
+} from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow } from './types'
@@ -153,7 +160,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 	},
 	{ header: 'Round', accessorKey: 'round', enableSorting: false, size: 140 },
 	{
-		header: 'Sector',
+		header: 'Description',
 		accessorKey: 'sector',
 		size: 140,
 		enableSorting: false,
@@ -266,7 +273,25 @@ export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 					'Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)'
 			}
 		})
-	}))
+	})),
+	{
+		header: 'Link',
+		accessorKey: 'link',
+		size: 33,
+		enableSorting: false,
+		cell: ({ getValue }) => (
+			<ButtonYields
+				as="a"
+				href={getValue() as string}
+				target="_blank"
+				rel="noopener noreferrer"
+				data-lgonly
+				useTextColor={true}
+			>
+				<ArrowUpRight size={14} />
+			</ButtonYields>
+		)
+	}
 ]
 
 export const chainsColumn: ColumnDef<IChainsRow>[] = [
@@ -343,6 +368,41 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
+		header: 'Stables',
+		accessorKey: 'stablesMcap',
+		cell: (info) => <>{info.getValue() === 0 || `$${formattedNum(info.getValue())}`}</>,
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '24h volume',
+		accessorKey: 'totalVolume24h',
+		enableSorting: true,
+		cell: (info) => <>{info.getValue() === 0 || `$${formattedNum(info.getValue())}`}</>,
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Sum of volume of all DEXs on the chain. Updated daily at 00:00UTC'
+		}
+	},
+	{
+		header: `24h fees`,
+		accessorKey: 'totalFees24h',
+		enableSorting: true,
+		cell: (info) => {
+			const value = info.getValue()
+
+			if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
+			return <>${formattedNum(value)}</>
+		},
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
@@ -365,7 +425,12 @@ export const cexColumn: ColumnDef<any>[] = [
 
 			return (
 				<Name>
-					<span>{index + 1}</span> <CustomLink href={`/protocol/${slug(row.original.slug)}`}>{getValue()}</CustomLink>
+					<span>{index + 1}</span>
+					{row.original.slug === undefined ? (
+						getValue()
+					) : (
+						<CustomLink href={`/protocol/${slug(row.original.slug)}`}>{getValue()}</CustomLink>
+					)}
 				</Name>
 			)
 		}
@@ -374,22 +439,30 @@ export const cexColumn: ColumnDef<any>[] = [
 		header: 'TVL',
 		accessorKey: 'tvl',
 		cell: (info) => {
-			return <>{info.getValue() === undefined?
-			<QuestionHelper text="This CEX has not published a list of all hot and cold wallets"/>:
-			'$' + formattedNum(info.getValue())}</>
+			return (
+				<>
+					{info.getValue() === undefined ? (
+						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" />
+					) : (
+						'$' + formattedNum(info.getValue())
+					)}
+				</>
+			)
 		},
-		size: 120,
+		size: 120
 	},
 	{
 		header: 'Liabilities auditor',
 		accessorKey: 'auditor',
 		size: 120,
-		cell: ({ getValue }) => <>{getValue() === undefined?
-			<QuestionHelper text="This CEX has no third party liability audits"/>:
-			getValue()}</>,
+		cell: ({ getValue }) => (
+			<>
+				{getValue() === undefined ? <QuestionHelper text="This CEX has no third party liability audits" /> : getValue()}
+			</>
+		)
 	},
 	{
-		cell: ({ getValue }) => <>{getValue() === undefined?null:toNiceDayMonthAndYear(getValue())}</>,
+		cell: ({ getValue }) => <>{getValue() === undefined ? null : toNiceDayMonthAndYear(getValue())}</>,
 		size: 120,
 		header: 'Last audit date',
 		accessorKey: 'lastAuditDate'
@@ -399,28 +472,76 @@ export const cexColumn: ColumnDef<any>[] = [
 		accessorKey: 'auditLink',
 		size: 48,
 		enableSorting: false,
-		cell: ({ getValue }) => (
-			getValue()===undefined?null:
-			<ButtonYields
-				as="a"
-				href={getValue() as string}
-				target="_blank"
-				rel="noopener noreferrer"
-				data-lgonly
-				useTextColor={true}
-				style={{width: "21px"}}
-			>
-				<ArrowUpRight size={14} />
-			</ButtonYields>
-		)
-	},
+		cell: ({ getValue }) =>
+			getValue() === undefined ? null : (
+				<ButtonYields
+					as="a"
+					href={getValue() as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-lgonly
+					useTextColor={true}
+					style={{ width: '21px' }}
+				>
+					<ArrowUpRight size={14} />
+				</ButtonYields>
+			)
+	}
 ]
 
 // key: min width of window/screen
 // values: table columns order
 export const chainsTableColumnOrders = formatColumnOrder({
-	0: ['name', 'tvl', 'change_7d', 'protocols', 'change_1d', 'change_1m', 'mcaptvl'],
-	400: ['name', 'change_7d', 'tvl', 'protocols', 'change_1d', 'change_1m', 'mcaptvl'],
-	600: ['name', 'protocols', 'change_7d', 'tvl', 'change_1d', 'change_1m', 'mcaptvl'],
-	900: ['name', 'protocols', 'change_1d', 'change_7d', 'change_1m', 'tvl', 'mcaptvl']
+	0: [
+		'name',
+		'tvl',
+		'change_7d',
+		'protocols',
+		'change_1d',
+		'change_1m',
+		'stablesMcap',
+		'totalVolume24h',
+		'totalFees24h',
+		'totalRevenue24h',
+		'mcaptvl'
+	],
+	400: [
+		'name',
+		'change_7d',
+		'tvl',
+		'protocols',
+		'change_1d',
+		'change_1m',
+		'stablesMcap',
+		'totalVolume24h',
+		'totalFees24h',
+		'totalRevenue24h',
+		'mcaptvl'
+	],
+	600: [
+		'name',
+		'protocols',
+		'change_7d',
+		'tvl',
+		'change_1d',
+		'change_1m',
+		'stablesMcap',
+		'totalVolume24h',
+		'totalFees24h',
+		'totalRevenue24h',
+		'mcaptvl'
+	],
+	900: [
+		'name',
+		'protocols',
+		'change_1d',
+		'change_7d',
+		'change_1m',
+		'tvl',
+		'stablesMcap',
+		'totalVolume24h',
+		'totalFees24h',
+		'totalRevenue24h',
+		'mcaptvl'
+	]
 })

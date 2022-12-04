@@ -139,8 +139,8 @@ export const useBuildPeggedChartData = (
 						zeroTokenInflows++
 					}
 
-					// the dates on the inflows are all off by 1 (because timestamps are at 00:00?), so they are moved forward 1 day
-					const adjustedDate = (parseInt(date) + secondsInDay).toString()
+					// the dates on the inflows are all off by 1 (because timestamps are at 00:00), so they are moved back 1 day
+					const adjustedDate = (parseInt(date) - secondsInDay).toString()
 
 					tokenInflows.push({
 						...tokenDayDifference,

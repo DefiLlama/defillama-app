@@ -1,5 +1,6 @@
 import { YieldsData } from '~/api/categories/yield'
 import { attributeOptions } from '~/components/Filters'
+import { calculateLoopAPY } from '~/api/categories/yield/index'
 
 export function toFilterPool({
 	curr,
@@ -38,7 +39,7 @@ export function toFilterPool({
 
 	toFilter = toFilter && selectedCategories?.map((p) => p.toLowerCase()).includes(curr.category.toLowerCase())
 
-	const tokensInPool: Array<string> = curr.symbol.split('-').map((x) => x.toLowerCase())
+	const tokensInPool: Array<string> = curr.symbol.split('(')[0].split('-').map((x) => x.toLowerCase())
 
 	const includeToken =
 		includeTokens.length > 0 && includeTokens[0] !== 'All'
@@ -94,7 +95,8 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 			!availableChains.includes(pool.chain) ||
 			(tokenToBorrow === 'USD_Stables' ? false : !pool.symbol.includes(tokenToBorrow)) ||
 			pool.symbol.includes('AMM') ||
-			pool.borrowable === false
+			pool.borrowable === false ||
+			(pool.project === 'liqee' && (tokenToLend === 'RETH' || tokenToBorrow === 'RETH'))
 		)
 			return acc
 		if (tokenToBorrow === 'USD_Stables' && !pool.stablecoin) return acc
@@ -103,7 +105,7 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 			(collateralPool) =>
 				collateralPool.chain === pool.chain &&
 				collateralPool.project === pool.project &&
-				!collateralPool.symbol.includes(tokenToBorrow) &&
+				((tokenToLend === 'STETH' && tokenToBorrow === 'ETH') || !collateralPool.symbol.includes(tokenToBorrow)) &&
 				collateralPool.pool !== pool.pool &&
 				(pool.project === 'solend' ? collateralPool.poolMeta === pool.poolMeta : true) &&
 				(tokenToLend === 'USD_Stables' ? collateralPool.stablecoin : true) &&
@@ -123,7 +125,10 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 	const cdpPairs =
 		tokenToLend && tokenToBorrow
 			? cdpRoutes.filter(
-					(p) => removeMetaTag(p.symbol).includes(tokenToLend) && removeMetaTag(p.borrow.symbol).includes(tokenToBorrow)
+					(p) =>
+						(tokenToLend === 'USD_Stables' ? p.stablecoin : removeMetaTag(p.symbol).includes(tokenToLend)) &&
+						// tokenToBorrow in the context of cdps -> minted stablecoin -> always true
+						(tokenToBorrow === 'USD_Stables' ? true : removeMetaTag(p.borrow.symbol).includes(tokenToBorrow))
 			  )
 			: []
 
@@ -132,7 +137,10 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 
 const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
 
-export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, loopStrategies, cdpRoutes) => {
+export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, cdpRoutes, customLTV) => {
+	// prepare leveraged lending (loop) pools
+	const loopPools = calculateLoopAPY(pools, 10, customLTV)
+
 	const availableToLend = pools.filter(
 		({ symbol, ltv }) =>
 			(tokenToLend === 'USD_Stables' ? true : removeMetaTag(symbol).includes(tokenToLend)) &&
@@ -249,10 +257,10 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 		}
 	}
 	// keep looping strategies only if no tokenToBorrow is given or if they both match
-	const loopPools =
+	const loopPoolsFiltered =
 		tokenToBorrow !== tokenToLend && tokenToBorrow.length > 0
 			? []
-			: loopStrategies
+			: loopPools
 					.filter((p) => removeMetaTag(p.symbol.toUpperCase()).includes(tokenToLend))
 					.map((p) => ({
 						...p,
@@ -269,14 +277,17 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 						strategy: 'loop'
 					}))
 
-	finalPools = finalPools.concat(loopPools)
+	finalPools = finalPools.concat(loopPoolsFiltered)
 
 	// calc the total strategy apy
 	finalPools = finalPools.map((p) => {
 		// apy = apyBase + apyReward on the collateral side
 		// apyBorrow = apyBaseBorrow + apyRewardBorrow on the borrow side
 		// farmApy = apyBase + apyReward on the farm side
-		const totalApy = p.strategy === 'loop' ? p.loopApy : p.apy + p.borrow.apyBorrow * p.ltv + p.farmApy * p.ltv
+
+		// either use default LTV or the one given via input field
+		const ltv = customLTV ? (customLTV / 100) * p.ltv : p.ltv
+		const totalApy = p.strategy === 'loop' ? p.loopApy : p.apy + p.borrow.apyBorrow * ltv + p.farmApy * ltv
 
 		return {
 			...p,
@@ -286,21 +297,39 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, l
 	})
 
 	// keep pools with :
-	// - profitable strategy only,
+	// - profitable strategy only (delta > 0)
 	// - require at least 1% delta compared to baseline (we could even increase this, otherwise we show lots of
-	// strategies which are not really worth the effort)
-	finalPools = finalPools.filter((p) => Number.isFinite(p.delta) && p.delta > 1).sort((a, b) => b.totalApy - a.totalApy)
+	// strategies which have higher yield compared to just depositing on lending protocol but by
+	// a smol amount only, so not really worth the effort)
+	// - if deposit token and borrow token are the same, then the farm can't have higher apy then just depositing on the lending protocol
+	// (cause in this case the strategy makes no sense, would be better to just got to the farm directly)
+	finalPools = finalPools
+		.filter(
+			(p) => Number.isFinite(p.delta) && p.delta > 1 && !(p.farmSymbol.includes(tokenToLend) && p.totalApy < p.farmApy)
+		)
+		.sort((a, b) => b.totalApy - a.totalApy)
 
 	return finalPools
 }
 
-export const formatOptimizerPool = (pool) => {
+export const formatOptimizerPool = (pool, customLTV) => {
+	const ltv = customLTV ? customLTV / 100 : pool.ltv
+
 	const lendingReward = (pool.apyBase || 0) + (pool.apyReward || 0)
 	const borrowReward = (pool.borrow.apyBaseBorrow || 0) + (pool.borrow.apyRewardBorrow || 0)
-	const totalReward = lendingReward + borrowReward * pool.ltv
+	const totalReward = lendingReward + borrowReward * ltv
 	const borrowAvailableUsd = pool.borrow.totalAvailableUsd
 
-	return { ...pool, lendingReward, borrowReward, totalReward, borrowAvailableUsd }
+	return {
+		...pool,
+		lendingReward,
+		borrowReward,
+		totalReward,
+		borrowAvailableUsd,
+		totalBase: (pool.apyBase || 0) + (pool.borrow.apyBaseBorrow || 0) * ltv,
+		lendingBase: pool.apyBase || 0,
+		borrowBase: pool.borrow.apyBaseBorrow || 0
+	}
 }
 
 interface FilterPools {
@@ -313,6 +342,8 @@ interface FilterPools {
 	maxTvl?: string
 	minAvailable?: string
 	maxAvailable?: string
+	customLTV?: string
+	strategyPage?: boolean
 }
 
 export const filterPool = ({
@@ -324,7 +355,9 @@ export const filterPool = ({
 	minTvl,
 	maxTvl,
 	minAvailable,
-	maxAvailable
+	maxAvailable,
+	customLTV,
+	strategyPage
 }: FilterPools) => {
 	let toFilter = true
 
@@ -364,11 +397,24 @@ export const filterPool = ({
 			(maxAvailable ? pool.borrow.totalAvailableUsd < maxAvailable : true)
 	}
 
+	const isValidLtvValue = customLTV !== undefined && !Number.isNaN(Number(customLTV))
+
+	if (isValidLtvValue && strategyPage) {
+		toFilter = toFilter && (customLTV ? Number(customLTV) > 0 && Number(customLTV) <= 100 : true)
+	}
+
+	// on optimizer the filter includes a check against customLTV
+	if (isValidLtvValue && !strategyPage) {
+		toFilter =
+			toFilter &&
+			(customLTV ? Number(customLTV) > 0 && Number(customLTV) < 100 && Number(customLTV) / 100 <= pool.ltv : true)
+	}
+
 	return toFilter
 }
 
 export const lockupsRewards = ['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend']
-export const preminedRewards = ['0vix']
+export const preminedRewards = ['0vix', 'Gearbox']
 export const lockupsCollateral = [
 	'Ribbon',
 	'TrueFi',

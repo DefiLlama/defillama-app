@@ -1,5 +1,17 @@
 import { ReactNode } from 'react'
-import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book, ShieldOff, Shuffle, Search, BookOpen } from 'react-feather'
+import {
+	PieChart,
+	Droplet,
+	BarChart,
+	DollarSign,
+	Percent,
+	BarChart2,
+	Book,
+	ShieldOff,
+	Shuffle,
+	Search,
+	BookOpen
+} from 'react-feather'
 
 export interface IMainLink {
 	name: string
@@ -31,11 +43,12 @@ interface ILinks {
 const defaultToolsAndFooterLinks = {
 	tools: [
 		{ name: 'Watchlist', path: '/watchlist' },
-		{ name: 'Directory', path: '/directory', newTag: true },
+		{ name: 'Directory', path: '/directory' },
 		{
 			name: 'Roundup',
 			path: '/roundup'
 		},
+		{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
 		{
 			name: 'Wiki',
 			path: 'https://wiki.defillama.com/wiki/Main_Page',
@@ -68,7 +81,7 @@ const defaultToolsAndFooterLinks = {
 		},
 		{
 			name: 'Discord',
-			path: 'https://discord.gg/buPFYXzDDd',
+			path: 'https://discord.defillama.com',
 			external: true
 		},
 		{
@@ -87,7 +100,8 @@ export const navLinks: ILinks = {
 			{ name: 'Oracles', path: '/oracles' },
 			{ name: 'Forks', path: '/forks' },
 			{ name: 'Top Protocols', path: '/top-protocols' },
-			{ name: 'Comparison', path: '/comparison?protocol=MakerDAO&protocol=Curve', newTag: true },
+			{ name: 'Comparison', path: '/comparison?protocol=MakerDAO&protocol=Curve' },
+			{ name: 'Token Usage', path: '/tokenUsage?token=ETH', newTag: true },
 			{ name: 'Categories', path: '/categories' },
 			{ name: 'Recent', path: '/recent' },
 			{ name: 'Languages', path: '/languages' }
@@ -98,9 +112,9 @@ export const navLinks: ILinks = {
 	Yields: {
 		main: [
 			{ name: 'Pools', path: '/yields' },
-			{ name: 'Borrow', path: '/yields/borrow' },
-			{ name: 'Strategies', path: '/yields/strategy', newTag: true },
+			{ name: 'Delta Neutral Strategies', path: '/yields/strategy', newTag: true },
 			{ name: 'Leveraged Lending', path: '/yields/loop', newTag: true },
+			{ name: 'Borrow', path: '/yields/borrow' },
 			{ name: 'Overview', path: '/yields/overview' },
 			{ name: 'Stablecoin Pools', path: '/yields/stablecoins' },
 			{ name: 'Projects', path: '/yields/projects' },
@@ -108,7 +122,7 @@ export const navLinks: ILinks = {
 		],
 		tools: [
 			{ name: 'Watchlist', path: '/yields/watchlist' },
-			{ name: 'Directory', path: '/directory', newTag: true },
+			{ name: 'Directory', path: '/directory' },
 			{
 				name: 'Roundup',
 				path: '/roundup'
@@ -141,7 +155,7 @@ export const navLinks: ILinks = {
 			},
 			{
 				name: 'Discord',
-				path: 'https://discord.gg/buPFYXzDDd',
+				path: 'https://discord.defillama.com',
 				external: true
 			},
 			{
@@ -151,12 +165,12 @@ export const navLinks: ILinks = {
 		],
 		icon: <Percent size={16} />
 	},
-	"Borrow Aggregator": {
+	'Borrow Aggregator': {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Search size={16} />
 	},
-	"CEX Transparency": {
+	'CEX Transparency': {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <BookOpen size={16} />
@@ -174,7 +188,7 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Droplet size={16} />
 	},
-	DEXs: {
+	Volumes: {
 		main: [
 			{ name: 'Overview', path: '/dexs' },
 			{ name: 'Chains', path: '/dexs/chains' }
@@ -182,7 +196,7 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <BarChart size={16} />
 	},
-	Fees: {
+	'Fees/Revenue': {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <PieChart size={16} />
@@ -204,16 +218,16 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <ShieldOff size={16} />
-	},
+	}
 }
 
 export const linksWithNoSubMenu = [
 	{ name: 'Liquidations', url: '/liquidations/eth' },
-	{ name: 'Fees', url: '/fees' },
+	{ name: 'Fees/Revenue', url: '/fees' },
 	{ name: 'Raises', url: '/raises' },
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Borrow Aggregator', url: '/borrow' },
-	{ name: 'CEX Transparency', url: '/cexs' },
+	{ name: 'CEX Transparency', url: '/cexs' }
 ]
 
 function downloadDefiDataset() {

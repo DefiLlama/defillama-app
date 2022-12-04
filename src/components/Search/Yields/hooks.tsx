@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { useFetchProjectsList, useFetchYieldsList } from '~/api/categories/yield/client'
+import { useFetchCoingeckoTokensList } from '~/api'
+import { useFetchProjectsList } from '~/api/categories/yield/client'
 import { tokenIconUrl } from '~/utils'
 import { IBaseSearchProps, IGetSearchList } from '../types'
 
 export function useGetYieldsSearchList(): IGetSearchList {
 	const router = useRouter()
-	const { data: yields, loading: fetchingYields } = useFetchYieldsList()
+	const { data: yields, loading: fetchingYields } = useFetchCoingeckoTokensList()
 	const { data: projects, loading: fetchingProjects } = useFetchProjectsList()
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
@@ -45,14 +46,14 @@ export function useGetYieldsSearchList(): IGetSearchList {
 	return { data: searchData || [], loading: fetchingProjects || fetchingYields, onItemClick }
 }
 
-export function useGetTokensSearchList({ lend, yields }): IGetSearchList {
+export function useGetTokensSearchList({ lend, searchData }): IGetSearchList {
 	const router = useRouter()
 
 	const { lend: lendQuery, borrow, ...queryParams } = router.query
 
 	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
 
-	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
+	const data: IBaseSearchProps['data'] = React.useMemo(() => {
 		const stablecoinsSearch = {
 			name: `All USD Stablecoins`,
 			symbol: 'USD_Stables',
@@ -68,7 +69,7 @@ export function useGetTokensSearchList({ lend, yields }): IGetSearchList {
 		}
 
 		const yieldsList =
-			yields?.map((el) => ({
+			searchData?.map((el) => ({
 				name: `${el.name} (${el.symbol?.toUpperCase()})`,
 				symbol: el.symbol?.toUpperCase(),
 				route: {
@@ -79,18 +80,18 @@ export function useGetTokensSearchList({ lend, yields }): IGetSearchList {
 			})) ?? []
 
 		return [stablecoinsSearch].concat(yieldsList)
-	}, [yields, restParam, router.query, targetParam, router.pathname, queryParams])
+	}, [searchData, restParam, router.query, targetParam, router.pathname, queryParams])
 
 	const onItemClick = (item) => {
 		router.push({ ...item.route }, undefined, { shallow: true })
 	}
 
-	return { data: searchData || [], loading: false, onItemClick }
+	return { data, loading: false, onItemClick }
 }
 
 export function useGetTokensSearchListMobile(): IGetSearchList {
 	const router = useRouter()
-	const { data: yields, loading: fetchingYields } = useFetchYieldsList()
+	const { data: yields, loading: fetchingYields } = useFetchCoingeckoTokensList()
 
 	const searchData: IBaseSearchProps['data'] = React.useMemo(() => {
 		const yieldsList =

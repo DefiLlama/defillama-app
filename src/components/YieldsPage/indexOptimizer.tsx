@@ -1,33 +1,70 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { Panel } from '~/components'
-import { TableFilters, TableHeader } from '~/components/Table/shared'
-import YieldsSearch from '~/components/Search/Yields/Optimizer'
-import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 import styled from 'styled-components'
-import YieldsOptimizerTable from '../Table/Yields/Optimizer'
 import { Header } from '~/Theme'
+import { Panel } from '~/components'
+import { TableFilters } from '~/components/Table/shared'
+import YieldsSearch from '~/components/Search/Yields/Optimizer'
+import YieldsOptimizerTable from '~/components/Table/Yields/Optimizer'
+import {
+	YieldAttributes,
+	FiltersByChain,
+	YieldProjects,
+	LTV,
+	ResetAllYieldFilters,
+	AvailableRange
+} from '~/components/Filters'
 import { useFormatYieldQueryParams } from './hooks'
-import { YieldAttributes, FiltersByChain } from '../Filters'
-import { attributeOptions } from '~/components/Filters'
+import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
+import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 
 const SearchWrapper = styled.div`
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	grid-gap: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 	width: 100%;
 	margin-top: 8px;
-	& > div {
-		width: 100%;
+
+	& > * {
 		gap: 8px;
+		flex: 1;
+	}
+
+	& > * {
+		& > *[data-searchicon='true'] {
+			top: 14px;
+			right: 16px;
+		}
+	}
+
+	@media (min-width: ${({ theme }) => theme.bpMed}) {
+		flex-direction: row;
 	}
 `
 
-const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, categoryList }) => {
-	const { query, pathname } = useRouter()
+export const ToggleWrapper = styled.label`
+	display: flex;
+	align-items: center;
+	flex-wrap: nowrap;
+	gap: 8px;
+	cursor: pointer;
+`
 
-	const { lend, borrow } = query
-	const { selectedChains, selectedAttributes } = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
+
+const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lendingProtocols, searchData }) => {
+	const { query, pathname, push } = useRouter()
+	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
+	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
+	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
+
+	const { lend, borrow, excludeRewardApy } = query
+	const { selectedChains, selectedAttributes, selectedLendingProtocols } = useFormatYieldQueryParams({
+		projectList,
+		chainList,
+		lendingProtocols,
+		categoryList
+	})
 
 	// get cdp collateral -> debt token route
 	const cdpPools = pools
@@ -37,15 +74,48 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
 		let filteredPools = findOptimizerPools(lendingPools, lend, borrow, cdpPools)
-			.filter((pool) => filterPool({ pool, selectedChains }))
-			.map(formatOptimizerPool)
+			.filter((pool) => {
+				if (typeof lend === 'string' && lend.toLowerCase() === 'eth' && pool.symbol?.toLowerCase().includes('steth')) {
+					return false
+				}
 
-		if (selectedAttributes.length > 0) {
-			const attributeOption = attributeOptions.find((o) => o.key === selectedAttributes[0])
-			filteredPools = filteredPools.filter((p) => attributeOption.filterFn(p))
-		}
+				if (
+					typeof borrow === 'string' &&
+					borrow.toLowerCase() === 'eth' &&
+					pool.borrow?.symbol?.toLowerCase().includes('steth')
+				) {
+					return false
+				}
+
+				return filterPool({
+					pool,
+					selectedChains,
+					selectedAttributes,
+					minAvailable,
+					maxAvailable,
+					selectedLendingProtocols,
+					customLTV
+				})
+			})
+			.map((p) => formatOptimizerPool(p, customLTV))
+			.sort((a, b) => b.totalReward - a.totalReward)
+
 		return filteredPools
-	}, [lendingPools, borrow, lend, selectedChains, selectedAttributes, cdpPools])
+	}, [
+		lendingPools,
+		lend,
+		borrow,
+		cdpPools,
+		selectedChains,
+		selectedAttributes,
+		minAvailable,
+		maxAvailable,
+		selectedLendingProtocols,
+		customLTV
+	])
+
+	const isBadDebtToggled = selectedAttributes.includes(BAD_DEBT_KEY)
+	const shouldExlcudeRewardApy = excludeRewardApy === 'true' ? true : false
 
 	return (
 		<>
@@ -57,15 +127,70 @@ const YieldsOptimizerPage = ({ pools, projectList, yieldsList, chainList, catego
 					</>
 				) : null}
 			</Header>
+
 			<SearchWrapper>
-				<YieldsSearch pathname={pathname} lend yieldsList={yieldsList} />
-				<YieldsSearch pathname={pathname} yieldsList={yieldsList} />
+				<YieldsSearch pathname={pathname} lend searchData={searchData} data-alwaysdisplay />
+				<YieldsSearch pathname={pathname} searchData={searchData} data-alwaysdisplay />
+				<LTV placeholder="Custom LTV" />
 			</SearchWrapper>
 
 			<TableFilters>
-				<TableHeader>Lending Optimizer</TableHeader>
 				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+				<YieldProjects
+					projectList={lendingProtocols}
+					selectedProjects={selectedLendingProtocols}
+					pathname={pathname}
+					label="Lending Protocols"
+					query="lendingProtocol"
+				/>
 				<YieldAttributes pathname={pathname} />
+				<AvailableRange />
+				<ToggleWrapper>
+					<input
+						type="checkbox"
+						value="hideEvents"
+						checked={isBadDebtToggled}
+						onChange={() => {
+							push(
+								{
+									pathname,
+									query: {
+										...query,
+										attribute: isBadDebtToggled
+											? selectedAttributes.filter((a) => a !== BAD_DEBT_KEY)
+											: [...selectedAttributes, BAD_DEBT_KEY]
+									}
+								},
+								undefined,
+								{ shallow: true }
+							)
+						}}
+					/>
+					<span>Exclude bad debt</span>
+				</ToggleWrapper>
+				<ToggleWrapper>
+					<input
+						type="checkbox"
+						value="hideEvents"
+						checked={shouldExlcudeRewardApy}
+						onChange={() => {
+							push(
+								{
+									pathname,
+									query: {
+										...query,
+										excludeRewardApy: !shouldExlcudeRewardApy
+									}
+								},
+								undefined,
+								{ shallow: true }
+							)
+						}}
+					/>
+					<span>Exclude reward APY</span>
+				</ToggleWrapper>
+
+				<ResetAllYieldFilters pathname={pathname} />
 			</TableFilters>
 
 			{poolsData.length > 0 ? (

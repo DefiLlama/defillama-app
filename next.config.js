@@ -52,10 +52,20 @@ const nextConfig = {
 				destination: '/borrow',
 				permanent: true
 			},
+			{
+				source: '/aggregator',
+				destination: 'https://swap.defillama.com/',
+				permanent: true
+			},
+			{
+				source: '/protocols/cex',
+				destination: '/cexs',
+				permanent: true
+			}
 		]
 	},
 	images: {
-		domains: ['icons.llama.fi', 'assets.coingecko.com']
+		domains: ['icons.llama.fi', 'assets.coingecko.com', 'yield-charts.onrender.com']
 	},
 	compiler: {
 		styledComponents: true

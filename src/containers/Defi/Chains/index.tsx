@@ -10,7 +10,7 @@ import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { GroupChains } from '~/components/MultiSelect'
 import { toNiceCsvDate, download } from '~/utils'
 import { revalidate } from '~/api'
-import { getChainsPageData } from '~/api/categories/protocols'
+import { getChainsPageData, getNewChainsPageData } from '~/api/categories/protocols'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
@@ -107,8 +107,15 @@ export default function ChainsContainer({
 			return { dataByChain, pieChartData, chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay }
 		}, [chainTvls, extraTvlsEnabled, stackedDataset, tvlTypes])
 
-	const downloadCsv = () => {
+	const downloadCsv = async () => {
+		window.alert("Data download might take up to 1 minute, click OK to proceed")
 		const rows = [['Timestamp', 'Date', ...chainsUnique]]
+		const {props} = await getNewChainsPageData("All")
+		const { chainsWithExtraTvlsByDay } = groupDataWithTvlsByDay({
+			chains: props.stackedDataset,
+			tvlTypes,
+			extraTvlsEnabled
+		})
 
 		chainsWithExtraTvlsByDay
 			.sort((a, b) => a.date - b.date)
@@ -151,7 +158,7 @@ export default function ChainsContainer({
 			</ChartsWrapper>
 
 			<ChainTvlsFilter>
-				<h2>Filters</h2>
+				<h2>Chain Groups</h2>
 				<GroupChains label="Filters" />
 			</ChainTvlsFilter>
 

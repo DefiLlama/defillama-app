@@ -1,25 +1,27 @@
+import { CSSProperties } from 'react'
 import ReactSwitch from 'react-switch'
-import { TYPE } from '~/Theme'
+import styled from 'styled-components'
 import HeadHelp from '~/components/HeadHelp'
 
 interface IProps {
-	toggle: () => {}
+	toggle: () => void
 	enabled: boolean
-	help: string
+	help?: string
 	name: string
+	style?: CSSProperties
 }
+
+const Wrapper = styled.div`
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+`
 
 const Switch = ReactSwitch as any
 
-const OptionToggle = ({ toggle, enabled = false, help, name }: IProps) => {
+const OptionToggle = ({ toggle, enabled = false, help, name, ...props }: IProps) => {
 	return (
-		<TYPE.body
-			style={{
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'flex-start'
-			}}
-		>
+		<Wrapper {...props}>
 			<Switch
 				onChange={toggle}
 				checked={enabled}
@@ -31,7 +33,7 @@ const OptionToggle = ({ toggle, enabled = false, help, name }: IProps) => {
 			/>
 			&nbsp;
 			{help ? <HeadHelp title={name} text={help} /> : name}
-		</TYPE.body>
+		</Wrapper>
 	)
 }
 

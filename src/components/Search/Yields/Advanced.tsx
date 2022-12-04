@@ -3,7 +3,7 @@ import { transparentize } from 'polished'
 import styled from 'styled-components'
 import { ToggleSearch } from './shared'
 import ReactSelect from '~/components/MultiSelect/ReactSelect'
-import { useFetchYieldsList } from '~/api/categories/yield/client'
+import { useFetchCoingeckoTokensList } from '~/api'
 import { useRouter } from 'next/router'
 
 interface IAdvancedYieldSearchProps {
@@ -17,7 +17,7 @@ export function AdvancedYieldsSearch({ setAdvancedSearch, pathname }: IAdvancedY
 	const [includeTokens, setIncludeTokens] = React.useState([])
 	const [excludeTokens, setExcludeTokens] = React.useState([])
 
-	const { data, loading } = useFetchYieldsList()
+	const { data, loading } = useFetchCoingeckoTokensList()
 
 	const handleSubmit = (e) => {
 		e.preventDefault()
