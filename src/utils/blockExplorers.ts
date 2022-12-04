@@ -81,7 +81,7 @@ export const getBlockExplorer = (address: string = '') => {
 	}
 
 	return {
-		blockExplorerLink,
-		blockExplorerName
+		blockExplorerLink: blockExplorerLink ?? '',
+		blockExplorerName: blockExplorerName ?? 'unknown'
 	}
 }
