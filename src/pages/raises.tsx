@@ -12,8 +12,17 @@ export async function getStaticProps() {
 	const monthlyInvestment = {}
 
 	data.raises.forEach((r) => {
-		const monthlyDate = toYearMonth(r.date)
-		monthlyInvestment[monthlyDate] = (monthlyInvestment[monthlyDate] ?? 0) + r.amount
+		// split EOS raised amount between two months
+		if (r.name === 'EOS') {
+			const prevMonth = toYearMonth(r.date - 1000)
+			const nextMonth = toYearMonth(r.date + 1000)
+			monthlyInvestment[prevMonth] = (monthlyInvestment[prevMonth] ?? 0) + (r.amount ?? 0) / 2
+			monthlyInvestment[nextMonth] = (monthlyInvestment[nextMonth] ?? 0) + (r.amount ?? 0) / 2
+		} else {
+			const monthlyDate = toYearMonth(r.date)
+
+			monthlyInvestment[monthlyDate] = (monthlyInvestment[monthlyDate] ?? 0) + (r.amount ?? 0)
+		}
 	})
 
 	const filters = getRaisesFiltersList(data)

@@ -247,8 +247,8 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</a>
 			</AnnouncementWrapper>
 
-			<ChartWrapper>
-				<BarChart chartData={monthlyInvestment} title="Monthly sum" />
+			<ChartWrapper style={{ padding: '0' }}>
+				<BarChart chartData={monthlyInvestment} title="Monthly sum" valueSymbol="$" />
 			</ChartWrapper>
 
 			<TableFilters>
