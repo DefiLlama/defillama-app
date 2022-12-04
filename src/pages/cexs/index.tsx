@@ -1,6 +1,5 @@
 import Layout from '~/layout'
 import { revalidate } from '~/api'
-import { getProtocolsRaw } from '~/api/categories/protocols'
 import { Header } from '~/Theme'
 import { CEXTable } from '~/components/Table/Defi'
 
@@ -55,7 +54,7 @@ const cexData = [
 	{
 		name: 'Gate.io',
 		slug: 'Gate-io',
-		coin: "GT",
+		coin: 'GT',
 		coinSymbol: 'GT',
 		walletsLink: 'https://github.com/gateio/proof-of-reserves'
 	},
@@ -74,8 +73,8 @@ const cexData = [
 	{
 		name: 'Swissborg',
 		slug: 'swissborg',
-		coin: "CHSB",
-        coinSymbol: 'CHSB',
+		coin: 'CHSB',
+		coinSymbol: 'CHSB',
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
@@ -87,19 +86,19 @@ const cexData = [
 	{
 		name: 'Coinsquare',
 		slug: 'coinsquare',
-		coin: null ,
+		coin: null,
 		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
 	},
 	{
 		name: 'MaskEX',
 		slug: 'maskex',
-		coin: null ,
+		coin: null,
 		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'Firi',
 		slug: 'firi',
-		coin: null ,
+		coin: null,
 		walletsLink: null
 	},
 	{
@@ -170,7 +169,7 @@ const cexData = [
 	},
 	{
 		name: 'Bittrex'
-	},
+	}
 ]
 
 export async function getStaticProps() {

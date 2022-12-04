@@ -196,7 +196,7 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <BarChart size={16} />
 	},
-	"Fees/Revenue": {
+	'Fees/Revenue': {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <PieChart size={16} />
