@@ -30,9 +30,14 @@ export function YieldFiltersV2({
 				<button>Save This Search</button>
 			</Header>
 			<Wrapper>
-				{tokens && <IncludeExcludeTokens tokens={tokens} />}
-
-				{isSmall ? <MobileYieldMenus {...props} /> : <DesktopYieldMenus {...props} />}
+				{isSmall ? (
+					<MobileYieldMenus {...props} />
+				) : (
+					<>
+						{tokens && <IncludeExcludeTokens tokens={tokens} />}
+						<DesktopYieldMenus {...props} />
+					</>
+				)}
 			</Wrapper>
 		</div>
 	)

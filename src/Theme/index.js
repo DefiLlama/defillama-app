@@ -209,8 +209,7 @@ export const GlobalStyle = createGlobalStyle`
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
-		height: min(320px, var(--popover-available-height));
-		max-height: calc(100vh - 200px);
+		height: 70vh;
 		min-width: 180px;
 		font-size: 0.875rem;
 		font-weight: 500;
@@ -237,7 +236,6 @@ export const GlobalStyle = createGlobalStyle`
 		}
 
 		&[data-menuwrapper='true'] {
-			overflow-y: hidden;
 			overflow-x: scroll;
 			overscroll-behavior: contain;
 			scroll-behavior: smooth;
@@ -254,6 +252,11 @@ export const GlobalStyle = createGlobalStyle`
 
 		&[data-leave] {
 			z-index: 0;
+		}
+
+		#no-results {
+			opacity: 0.7;
+			margin: auto;
 		}
 
 		@media screen and (min-width: 640px) {
@@ -314,4 +317,23 @@ export const GlobalStyle = createGlobalStyle`
 			}
 		}
 	}
+
+	.combobox-input {
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
+		color: ${({ theme }) => theme.text1};
+		font: inherit;
+		padding: 8px 12px;
+		border: ${({ theme }) => '1px solid ' + theme.text4};
+		border-radius: 8px;
+		margin: 12px 12px 0;
+	
+		:focus-visible {
+			outline: ${({ theme }) => '1px solid ' + theme.text1};
+		}
+	}
+
+	.select-options-wrapper {
+		overflow-y: auto;
+	}
+
 `

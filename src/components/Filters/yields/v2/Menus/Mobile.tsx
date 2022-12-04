@@ -33,8 +33,8 @@ export function MobileYieldMenus({
 	return (
 		<SlidingMenu label="Filters" variant="secondary">
 			<FiltersByToken
-				tokensList={['BTC', 'ETH']}
-				selectedTokens={[]}
+				tokensList={tokensList}
+				selectedTokens={selectedTokens || []}
 				pathname={pathname || router.pathname}
 				variant="secondary"
 				subMenu

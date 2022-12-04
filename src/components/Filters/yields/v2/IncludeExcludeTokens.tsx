@@ -147,7 +147,7 @@ export function IncludeExcludeTokens({ tokens }: { tokens: Array<{ name: string;
 
 const SearchWrapper = styled.div`
 	position: relative;
-	display: flex;
+	display: none;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
@@ -164,6 +164,10 @@ const SearchWrapper = styled.div`
 
 	svg {
 		color: #646466;
+	}
+
+	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+		display: flex;
 	}
 `
 

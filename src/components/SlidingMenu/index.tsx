@@ -1,25 +1,6 @@
-import {
-	HTMLAttributes,
-	ReactNode,
-	RefAttributes,
-	createContext,
-	forwardRef,
-	useContext,
-	useEffect,
-	useMemo
-} from 'react'
-import { flushSync } from 'react-dom'
-import useIsomorphicLayoutEffect from 'use-isomorphic-layout-effect'
-import {
-	Menu,
-	MenuItem,
-	MenuSeparator as BaseMenuSeparator,
-	MenuButton,
-	MenuButtonArrow,
-	MenuHeading,
-	useMenuState
-} from 'ariakit/menu'
-import { SelectState } from 'ariakit/select'
+import { HTMLAttributes, ReactNode, createContext, forwardRef, useContext, useMemo } from 'react'
+import { Menu, MenuItem, MenuButton, MenuButtonArrow, useMenuState } from 'ariakit/menu'
+import { Select, SelectPopover, SelectState } from 'ariakit/select'
 import styled from 'styled-components'
 import { useSetPopoverStyles } from '../Popover/utils'
 
@@ -37,8 +18,6 @@ export type MenuProps = HTMLAttributes<HTMLDivElement> & {
 	variant?: 'primary' | 'secondary'
 	selectState?: SelectState<any>
 }
-
-type TMenuButtonProps = HTMLAttributes<HTMLDivElement> & RefAttributes<HTMLDivElement>
 
 export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 	{ label, children, variant = 'primary', selectState, ...props },
@@ -63,8 +42,9 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 
 	// By default, submenus don't automatically receive focus when they open.
 	// But here we want them to always receive focus.
-	if (!menu.autoFocusOnShow) {
+	if (!parent && menu.open && !menu.autoFocusOnShow) {
 		menu.setAutoFocusOnShow(true)
+		menu.setInitialFocus('first')
 	}
 
 	const contextValue = useMemo<MenuContextProps>(
@@ -76,57 +56,6 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 		[menu.popoverRef, menu.baseRef, parent]
 	)
 
-	// Hide the submenu when it's not visible on scroll.
-	useEffect(() => {
-		if (!parent) return
-		const parentWrapper = parent.getWrapper()
-		if (!parentWrapper) return
-		let timeout = 0
-		const onScroll = () => {
-			clearTimeout(timeout)
-			timeout = window.setTimeout(() => {
-				// In right-to-left layouts, scrollLeft is negative.
-				const scrollLeft = Math.abs(parentWrapper.scrollLeft)
-				const wrapperOffset = scrollLeft + parentWrapper.clientWidth
-				if (wrapperOffset <= parent.getOffsetRight()) {
-					// Since the submenu is not visible anymore at this point, we want
-					// to hide it completely right away. That's why we syncrhonously
-					// hide it and immediately stops the animation so it's completely
-					// unmounted.
-					flushSync(menu.hide)
-					menu.stopAnimation()
-				}
-			}, 100)
-		}
-		parentWrapper.addEventListener('scroll', onScroll)
-		return () => parentWrapper.removeEventListener('scroll', onScroll)
-	}, [parent, menu])
-
-	// We only want to delay hiding the menu, so we immediately stop the
-	// animation when it's opening.
-	useIsomorphicLayoutEffect(() => {
-		if (!menu.open) return
-		menu.stopAnimation()
-	}, [menu.open, menu.stopAnimation])
-
-	const renderMenuButton = (menuButtonProps: TMenuButtonProps) => (
-		<MenuButton
-			className="sliding-menu-button"
-			state={menu}
-			showOnHover={false}
-			data-variant={variant}
-			{...menuButtonProps}
-		>
-			<span>{label}</span>
-			<MenuButtonArrow />
-		</MenuButton>
-	)
-
-	const wrapperProps = {
-		// This is necessary so Chrome scrolls the submenu into view.
-		style: { left: 'auto' }
-	}
-
 	const autoFocus = (element: HTMLElement) => {
 		if (!isSubmenu) return true
 		element.focus({ preventScroll: true })
@@ -137,53 +66,113 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 	return (
 		<>
 			{isSubmenu ? (
-				// If it's a submenu, we have to combine the MenuButton and the
-				// MenuItem components into a single component, so it works as a
-				// submenu button.
-				<MenuItem className="sliding-menu-item" data-variant={variant} ref={ref} focusOnHover={false} {...props}>
-					{renderMenuButton}
-				</MenuItem>
+				selectState ? (
+					<Select
+						as="div"
+						className="sliding-menu-button"
+						state={selectState}
+						data-variant={variant}
+						ref={ref}
+						{...props}
+					>
+						<span>{label}</span>
+						<MenuButtonArrow placement="right" />
+					</Select>
+				) : (
+					// If it's a submenu, we have to combine the MenuButton and the
+					// MenuItem components into a single component, so it works as a
+					// submenu button.
+					<MenuItem className="sliding-menu-item" data-variant={variant} ref={ref} focusOnHover={false} {...props}>
+						<MenuButton className="sliding-menu-button" state={menu} showOnHover={false} data-variant={variant}>
+							<span>{label}</span>
+							<MenuButtonArrow />
+						</MenuButton>
+					</MenuItem>
+				)
 			) : (
 				// Otherwise, we just render the menu button.
-				renderMenuButton({ ref, ...props })
-			)}
-			{menu.mounted && (selectState ? selectState.mounted : true) && (
-				<Menu
+				<MenuButton
+					className="sliding-menu-button"
 					state={menu}
-					portal={isSubmenu}
-					portalElement={parent?.getWrapper}
-					wrapperProps={wrapperProps}
-					autoFocusOnShow={autoFocus}
-					autoFocusOnHide={autoFocus}
-					modal={!isLarge}
-					composite={false}
+					showOnHover={false}
 					data-variant={variant}
-					data-menuwrapper={!isSubmenu ? 'true' : 'false'}
-					className="sliding-menu"
+					ref={ref}
+					{...props}
 				>
-					<MenuContext.Provider value={contextValue}>
-						{isSubmenu && (
-							<>
+					<span>{label}</span>
+					<MenuButtonArrow />
+				</MenuButton>
+			)}
+
+			{menu.mounted &&
+				(selectState && selectState.mounted && selectState.open ? (
+					<SelectPopover
+						state={selectState}
+						portal={isSubmenu}
+						portalElement={parent?.getWrapper}
+						style={{ left: 'auto' }}
+						autoFocusOnShow={autoFocus}
+						autoFocusOnHide={autoFocus}
+						composite={true}
+						data-variant={variant}
+						data-menuwrapper={false}
+						className="sliding-menu"
+					>
+						<MenuContext.Provider value={contextValue}>
+							{isSubmenu && (
 								<Header>
-									<MenuItem
+									<button
 										className="sliding-menu-item"
 										data-variant={variant}
-										hideOnClick={false}
-										focusOnHover={false}
-										onClick={menu.hide}
+										onClick={() => {
+											selectState.hide()
+											menu.hide()
+										}}
 										aria-label="Back to parent menu"
 									>
 										<MenuButtonArrow placement="left" />
-									</MenuItem>
-									<MenuHeading className="heading">{label}</MenuHeading>
+									</button>
+									<h2>{label}</h2>
 								</Header>
-								<SlidingMenuSeparator />
-							</>
-						)}
-						{children}
-					</MenuContext.Provider>
-				</Menu>
-			)}
+							)}
+							{children}
+						</MenuContext.Provider>
+					</SelectPopover>
+				) : (
+					<Menu
+						state={menu}
+						portal={isSubmenu}
+						portalElement={parent?.getWrapper}
+						style={{ left: 'auto' }}
+						autoFocusOnShow={autoFocus}
+						autoFocusOnHide={autoFocus}
+						modal={!isLarge}
+						data-variant={variant}
+						data-menuwrapper={!isSubmenu ? 'true' : 'false'}
+						className="sliding-menu"
+					>
+						<MenuContext.Provider value={contextValue}>
+							{isSubmenu && (
+								<>
+									<Header>
+										<MenuItem
+											className="sliding-menu-item"
+											data-variant={variant}
+											hideOnClick={false}
+											focusOnHover={false}
+											onClick={menu.hide}
+											aria-label="Back to parent menu"
+										>
+											<MenuButtonArrow placement="left" />
+										</MenuItem>
+										<h2>{label}</h2>
+									</Header>
+								</>
+							)}
+							{children}
+						</MenuContext.Provider>
+					</Menu>
+				))}
 		</>
 	)
 })
@@ -212,12 +201,6 @@ export const SlidingMenuItem = forwardRef<HTMLButtonElement, MenuItemProps>(func
 	)
 })
 
-export type MenuSeparatorProps = HTMLAttributes<HTMLHRElement>
-
-export const SlidingMenuSeparator = forwardRef<HTMLHRElement, MenuSeparatorProps>(function SSeperator(props, ref) {
-	return <MenuSeparator ref={ref} {...props} />
-})
-
 const Header = styled.div`
 	display: grid;
 	align-items: center;
@@ -227,8 +210,4 @@ const Header = styled.div`
 		font-size: 1rem;
 		font-weight: 500;
 	}
-`
-
-const MenuSeparator = styled(BaseMenuSeparator)`
-	border-color: ${({ theme }) => theme.divider};
 `

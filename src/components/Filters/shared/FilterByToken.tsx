@@ -1,11 +1,11 @@
-import { useRef } from 'react'
+import { MutableRefObject, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
-import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
+import { SelectArrow, SelectState, useSelectState } from 'ariakit/select'
 import { Checkbox } from '~/components'
-import { Input, List } from '~/components/Combobox'
 import { SelectButton, ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup, SecondaryLabel } from './Base'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { SlidingMenu, SlidingMenuItem } from '~/components/SlidingMenu'
+import { SlidingMenu } from '~/components/SlidingMenu'
+import { useDebounce } from '~/hooks'
 
 interface IFiltersByChainProps {
 	tokensList: string[]
@@ -13,6 +13,13 @@ interface IFiltersByChainProps {
 	pathname: string
 	variant?: 'primary' | 'secondary'
 	subMenu?: boolean
+}
+
+interface IPopovercontent extends IFiltersByChainProps {
+	autoFocus?: boolean
+	selectState: SelectState<any>
+	selectedTokens: Array<string>
+	focusItemRef: MutableRefObject<any>
 }
 
 export function FiltersByToken({
@@ -40,67 +47,38 @@ export function FiltersByToken({
 		)
 	}
 
-	const combobox = useComboboxState({ list: tokensList })
-
-	// value and setValue shouldn't be passed to the select state because the
-	// select value and the combobox value are different things.
-	const { value, setValue, ...selectProps } = combobox
-
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const select = useSelectState({
-		...selectProps,
+	const selectState = useSelectState({
 		value: selectedTokens,
 		setValue: addToken,
 		gutter: 8,
-		animated: true,
-		renderCallback
+		renderCallback,
+		...(!subMenu && { animated: true })
 	})
-
-	// Resets combobox value when popover is collapsed
-	if (!select.mounted && combobox.value) {
-		combobox.setValue('')
-	}
-
-	const toggleAll = () => {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					token: 'All'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
-
-	const clear = () => {
-		select.up(1)
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
 
 	const focusItemRef = useRef(null)
 
 	const isSelected = selectedTokens.length > 0 && selectedTokens.length !== tokensList.length
 
 	if (subMenu) {
-		return <SlidingMenu label="Tokens" selectState={select}></SlidingMenu>
+		return (
+			<SlidingMenu label="Tokens" selectState={selectState}>
+				<Popovercontent
+					tokensList={tokensList}
+					selectedTokens={selectedTokens}
+					focusItemRef={focusItemRef}
+					selectState={selectState}
+					variant={variant}
+					pathname={pathname}
+				/>
+			</SlidingMenu>
+		)
 	}
 
 	return (
 		<>
-			<SelectButton state={select} data-variant={variant}>
+			<SelectButton state={selectState} data-variant={variant}>
 				{variant === 'secondary' ? (
 					<SecondaryLabel>
 						{isSelected ? (
@@ -122,42 +100,119 @@ export function FiltersByToken({
 						{isSelected && <ItemsSelected>{selectedTokens.length}</ItemsSelected>}
 					</>
 				)}
-				<MenuButtonArrow />
+				<SelectArrow placement="bottom" />
 			</SelectButton>
 			<ComboboxSelectPopover
-				state={select}
+				state={selectState}
 				modal={!isLarge}
 				composite={false}
 				initialFocusRef={focusItemRef}
 				data-variant={variant}
 			>
-				<Input state={combobox} placeholder="Search for tokens..." autoFocus />
-
-				{combobox.matches.length > 0 ? (
-					<>
-						<FilterFnsGroup data-variant={variant}>
-							<button onClick={clear}>Clear</button>
-
-							<button onClick={toggleAll}>Toggle all</button>
-						</FilterFnsGroup>
-						<List state={combobox} className="filter-by-list">
-							{combobox.matches.slice(0, 100).map((value, i) => (
-								<SelectItem
-									value={value}
-									key={value + i}
-									ref={i === 0 && selectedTokens.length === tokensList.length ? focusItemRef : null}
-									focusOnHover
-								>
-									<span data-name>{value}</span>
-									<Checkbox checked={select.value.includes(value) || (token || []).includes('All')} />
-								</SelectItem>
-							))}
-						</List>
-					</>
-				) : (
-					<p id="no-results">No results</p>
-				)}
+				<Popovercontent
+					tokensList={tokensList}
+					selectedTokens={selectedTokens}
+					focusItemRef={focusItemRef}
+					selectState={selectState}
+					variant={variant}
+					pathname={pathname}
+					autoFocus
+				/>
 			</ComboboxSelectPopover>
+		</>
+	)
+}
+
+const Popovercontent = ({
+	autoFocus,
+	tokensList,
+	pathname,
+	selectState,
+	selectedTokens,
+	variant,
+	focusItemRef
+}: IPopovercontent) => {
+	const [inputValue, setInputValue] = useState('')
+
+	const router = useRouter()
+
+	const { token, ...queries } = router.query
+
+	const toggleAll = () => {
+		router.push(
+			{
+				pathname,
+				query: {
+					...queries,
+					token: 'All'
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const clear = () => {
+		selectState.up(1)
+		router.push(
+			{
+				pathname,
+				query: {
+					...queries
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const debouncedInputValue = useDebounce(inputValue, 300)
+
+	const options = useMemo(() => {
+		if (debouncedInputValue.length > 0) {
+			const searchValue = debouncedInputValue.toLowerCase()
+			return tokensList.filter((token) => token.toLowerCase().includes(searchValue))
+		}
+		return tokensList
+	}, [tokensList, debouncedInputValue])
+
+	return (
+		<>
+			<input
+				className="combobox-input"
+				onChange={(e) => setInputValue(e.target.value)}
+				placeholder="Search..."
+				role="combobox"
+				autoFocus={autoFocus}
+				aria-expanded={true}
+				aria-haspopup="listbox"
+				aria-controls={selectState.contentElement?.id}
+			/>
+
+			{options.length > 0 ? (
+				<>
+					<FilterFnsGroup data-variant={variant}>
+						<button onClick={clear}>Clear</button>
+
+						<button onClick={toggleAll}>Toggle all</button>
+					</FilterFnsGroup>
+					<div className="select-options-wrapper">
+						{options.slice(0, 100).map((value, i) => (
+							<SelectItem
+								value={value}
+								key={value + i}
+								ref={i === 0 && selectedTokens.length === tokensList.length ? focusItemRef : null}
+								focusOnHover
+							>
+								<span data-name>{value}</span>
+								<Checkbox checked={selectState.value.includes(value) || (token || []).includes('All')} />
+							</SelectItem>
+						))}
+					</div>
+				</>
+			) : (
+				<p id="no-results">No results</p>
+			)}
 		</>
 	)
 }
