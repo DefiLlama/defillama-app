@@ -4,6 +4,7 @@ import { getRaisesFiltersList } from '~/api/categories/raises'
 import { RAISES_API } from '~/constants'
 import RaisesContainer from '~/containers/Raises'
 import { toYearMonth } from '~/utils'
+import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
 	const data = await fetch(RAISES_API).then((r) => r.json())
@@ -16,17 +17,21 @@ export async function getStaticProps() {
 
 	const filters = getRaisesFiltersList(data)
 
+	const compressed = compressPageProps({
+		raises: data.raises,
+		monthlyInvestment,
+		...filters
+	})
+
 	return {
-		props: {
-			raises: data.raises,
-      monthlyInvestment,
-			...filters
-		},
+		props: { compressed },
 		revalidate: revalidate()
 	}
 }
 
-const Raises = (props) => {
+const Raises = ({ compressed }) => {
+	const props = decompressPageProps(compressed)
+
 	return <RaisesContainer {...props} investorName={null} />
 }
 
