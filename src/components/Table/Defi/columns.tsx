@@ -519,7 +519,29 @@ export const cexColumn: ColumnDef<any>[] = [
 					<ArrowUpRight size={14} />
 				</ButtonYields>
 			)
-	}
+	},
+	{
+		header: 'Link to Wallets',
+		accessorKey: 'walletsLink',
+		size: 90,
+		enableSorting: false,
+		cell: ({ getValue }) =>
+			getValue() === undefined ? (
+				<QuestionHelper text="This CEX has no published their wallet addresses" />
+			) : (
+				<ButtonYields
+					as="a"
+					href={getValue() as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-lgonly
+					useTextColor={true}
+					style={{ width: '21px' }}
+				>
+					<ArrowUpRight size={14} />
+				</ButtonYields>
+			)
+	},
 ]
 
 // key: min width of window/screen
