@@ -8,7 +8,7 @@ import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
 	const data = await getYieldPageData()
-	data.props.pools = data.props.pools.filter(p=>p.apy>0);
+	data.props.pools = data.props.pools.filter((p) => p.apy > 0)
 
 	const cgTokens = await getAllCGTokensList()
 

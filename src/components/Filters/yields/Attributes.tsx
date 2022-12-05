@@ -67,16 +67,6 @@ export const attributeOptions = [
 		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy']
 	},
 	{
-		name: 'APY > 0',
-		key: YIELDS_SETTINGS.APY_GT0.toLowerCase(),
-		help: 'Remove pools with apy values of 0',
-		filterFn: (item) => item.apy > 0,
-		defaultFilterFnOnPage: {
-			'/yields/stablecoins': (item) => item.apy > 0
-		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy']
-	},
-	{
 		name: 'Stable Outlook',
 		key: YIELDS_SETTINGS.STABLE_OUTLOOK.toLowerCase(),
 		help: 'Select pools with "Stable/Up" Outlook only',

@@ -16,7 +16,7 @@
     },
     {
       "name": "stablecoins",
-      "description": "Stablecoins data"
+      "description": "Data from our stablecoins dashboard"
     },
     {
       "name": "yields",
@@ -25,6 +25,10 @@
     {
       "name": "abi-decoder",
       "description": "Function and event signatures decoded"
+    },
+    {
+      "name": "bridges",
+      "description": "Data from our bridges dashboard"
     }
   ],
   "servers": [
@@ -672,6 +676,236 @@
             "schema": {
               "type": "string",
               "example": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/bridges": {
+      "get": {
+        "tags": [
+          "bridges"
+        ],
+        "summary": "List all bridges along with summaries of recent bridge volumes.",
+        "servers": [
+          {
+            "url": "https://bridges.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "includeChains",
+            "in": "query",
+            "required": false,
+            "description": "set whether to include current previous day volume breakdown by chain",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/bridge/{id}": {
+      "get": {
+        "tags": [
+          "bridges"
+        ],
+        "summary": "Get summary of bridge volume and volume breakdown by chain",
+        "servers": [
+          {
+            "url": "https://bridges.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "bridge ID, you can get these from /bridges",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/bridgevolume/{chain}": {
+      "get": {
+        "tags": [
+          "bridges"
+        ],
+        "summary": "Get historical volumes for a bridge, chain, or bridge on a particular chain",
+        "servers": [
+          {
+            "url": "https://bridges.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chain",
+            "in": "path",
+            "required": true,
+            "description": "chain slug, you can get these from /chains. Call also use 'all' for volume on all chains.",
+            "schema": {
+              "type": "string",
+              "example": "Ethereum"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "description": "bridge ID, you can get these from /bridges",
+            "schema": {
+              "type": "integer",
+              "example": 5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/bridgedaystats/{timestamp}/{chain}": {
+      "get": {
+        "tags": [
+          "bridges"
+        ],
+        "summary": "Get a 24hr token and address volume breakdown for a bridge",
+        "servers": [
+          {
+            "url": "https://bridges.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "timestamp",
+            "in": "path",
+            "required": true,
+            "description": "Unix timestamp. Data returned will be for the 24hr period starting at 00:00 UTC that the timestamp lands in.",
+            "schema": {
+              "type": "integer",
+              "example": 1667304000
+            }
+          },
+          {
+            "name": "chain",
+            "in": "path",
+            "required": true,
+            "description": "chain slug, you can get these from /chains.",
+            "schema": {
+              "type": "string",
+              "example": "Ethereum"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "description": "bridge ID, you can get these from /bridges",
+            "schema": {
+              "type": "integer",
+              "example": 5
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/transactions/{id}": {
+      "get": {
+        "tags": [
+          "bridges"
+        ],
+        "summary": "Get all transactions for a bridge within a date range",
+        "servers": [
+          {
+            "url": "https://bridges.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "bridge ID, you can get these from /bridges",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          },
+          {
+            "name": "starttimestamp",
+            "in": "query",
+            "required": false,
+            "description": "start timestamp (Unix Timestamp) for date range",
+            "schema": {
+              "type": "integer",
+              "example": 1667260800
+            }
+          },
+          {
+            "name": "endtimestamp",
+            "in": "query",
+            "required": false,
+            "description": "end timestamp (Unix timestamp) for date range",
+            "schema": {
+              "type": "integer",
+              "example": 1667347200
+            }
+          },
+          {
+            "name": "sourcechain",
+            "in": "query",
+            "required": false,
+            "description": "Returns only transactions that are bridging from the specified source chain.",
+            "schema": {
+              "type": "string",
+              "example": "Polygon"
+            }
+          },
+          {
+            "name": "address",
+            "in": "query",
+            "required": false,
+            "description": "Returns only transactions with specified address as \"from\" or \"to\". Addresses are quried in the form {chain}:{address}, where chain is an identifier such as ethereum, bsc, polygon, avax... .",
+            "schema": {
+              "type": "string",
+              "example": "ethereum:0x69b4B4390Bd1f0aE84E090Fe8af7AbAd2d95Cc8E"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "limit to number of transactions returned, maximum is 6000",
+            "schema": {
+              "type": "integer",
+              "example": 200
             }
           }
         ],

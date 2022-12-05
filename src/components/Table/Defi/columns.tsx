@@ -436,7 +436,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		}
 	},
 	{
-		header: 'TVL',
+		header: 'Assets',
 		accessorKey: 'tvl',
 		cell: (info) => {
 			return (
@@ -449,7 +449,40 @@ export const cexColumn: ColumnDef<any>[] = [
 				</>
 			)
 		},
-		size: 120
+		size: 120,
+		meta: {
+			headerHelperText:
+				'This excludes IOU assets issued by the CEX that are already counted on another chain, such as Binance-pegged BTC in BSC, which is already counted in Bitcoin chain'
+		}
+	},
+	{
+		header: 'Clean Assets',
+		accessorKey: 'cleanTvl',
+		cell: (info) => {
+			const coinSymbol = info.row.original.coinSymbol
+			return (
+				<>
+					{info.getValue() === undefined ? (
+						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" />
+					) : (
+						<span style={{ display: 'flex', gap: '4px' }}>
+							{coinSymbol === undefined ? (
+								<QuestionHelper text={`Original TVL doesn't contain any coin issued by this CEX`} />
+							) : (
+								<QuestionHelper
+									text={`This excludes all TVL from ${info.row.original.coinSymbol}, which is a token issued by this CEX`}
+								/>
+							)}
+							<span>{'$' + formattedNum(info.getValue())}</span>
+						</span>
+					)}
+				</>
+			)
+		},
+		size: 120,
+		meta: {
+			headerHelperText: 'TVL of the CEX excluding all assets issued by itself, such as their own token'
+		}
 	},
 	{
 		header: 'Liabilities auditor',
@@ -486,7 +519,29 @@ export const cexColumn: ColumnDef<any>[] = [
 					<ArrowUpRight size={14} />
 				</ButtonYields>
 			)
-	}
+	},
+	{
+		header: 'Link to Wallets',
+		accessorKey: 'walletsLink',
+		size: 90,
+		enableSorting: false,
+		cell: ({ getValue }) =>
+			getValue() === undefined ? (
+				<QuestionHelper text="This CEX has no published their wallet addresses" />
+			) : (
+				<ButtonYields
+					as="a"
+					href={getValue() as string}
+					target="_blank"
+					rel="noopener noreferrer"
+					data-lgonly
+					useTextColor={true}
+					style={{ width: '21px' }}
+				>
+					<ArrowUpRight size={14} />
+				</ButtonYields>
+			)
+	},
 ]
 
 // key: min width of window/screen
