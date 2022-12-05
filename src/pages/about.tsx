@@ -85,7 +85,7 @@ function AboutPage({ chains, protocols }) {
 					<Divider />
 					<TYPE.main>
 						Contact us on <Link href="https://twitter.com/defillama">Twitter</Link> or{' '}
-						<Link href="https://discord.gg/buPFYXzDDd">Discord</Link>
+						<Link href="https://discord.defillama.com">Discord</Link>
 					</TYPE.main>
 				</DashGrid>
 			</Panel>

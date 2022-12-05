@@ -39,6 +39,7 @@ export const BRIDGEDAYSTATS_API = 'https://bridges.llama.fi/bridgedaystats'
 export const BRIDGES_API = 'https://bridges.llama.fi/bridges'
 export const BRIDGEVOLUME_API = 'https://bridges.llama.fi/bridgevolume'
 export const BRIDGELARGETX_API = 'https://bridges.llama.fi/largetransactions'
+export const BRIDGETX_API = 'https://bridges.llama.fi/transactions'
 
 export const YIELD_POOLS_API = 'https://yields.llama.fi/pools'
 export const YIELD_POOLS_LAMBDA_API = 'https://yields.llama.fi/poolsEnriched'

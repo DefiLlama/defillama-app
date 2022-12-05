@@ -1,4 +1,5 @@
 import * as React from 'react'
+import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
 import styled from 'styled-components'
@@ -12,6 +13,12 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { DownloadIcon } from '~/components'
 import { download, toNiceCsvDate } from '~/utils'
+import type { IBarChartProps } from '~/components/ECharts/types'
+import { ChartWrapper } from '~/layout/ProtocolAndPool'
+
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+	ssr: false
+}) as React.FC<IBarChartProps>
 
 function RaisesTable({ raises }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
@@ -45,7 +52,7 @@ const TableHeaderWrapper = styled(TableHeader)`
 	gap: 8px;
 `
 
-const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
+const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName, monthlyInvestment }) => {
 	const { pathname, query } = useRouter()
 
 	const { investor, round, sector, chain, minRaised, maxRaised } = query
@@ -101,7 +108,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				let toFilter = true
 
 				if (selectedInvestors.length !== investors.length) {
-					if(raise.leadInvestors.length === 0 && raise.otherInvestors.length === 0){
+					if (raise.leadInvestors.length === 0 && raise.otherInvestors.length === 0) {
 						return false
 					}
 
@@ -199,22 +206,27 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 			]
 		]
 
-		const removeJumps = (text:string|number) => typeof text === "string"? '"'+text.replaceAll("\n", "")+'"':text
-		raises.sort((a,b)=>b.date-a.date).forEach((item) => {
-			rows.push([
-				item.name,
-				item.date,
-				toNiceCsvDate(item.date),
-				item.amount === null? "" : item.amount * 1_000_000,
-				item.round ?? '',
-				item.sector ?? '',
-				item.leadInvestors?.join(' + ') ?? '',
-				item.source ?? '',
-				item.valuation ?? '',
-				item.chains?.join(' + ') ?? '',
-				item.otherInvestors?.join(' + ') ?? ''
-			].map(removeJumps) as string[])
-		})
+		const removeJumps = (text: string | number) =>
+			typeof text === 'string' ? '"' + text.replaceAll('\n', '') + '"' : text
+		raises
+			.sort((a, b) => b.date - a.date)
+			.forEach((item) => {
+				rows.push(
+					[
+						item.name,
+						item.date,
+						toNiceCsvDate(item.date),
+						item.amount === null ? '' : item.amount * 1_000_000,
+						item.round ?? '',
+						item.sector ?? '',
+						item.leadInvestors?.join(' + ') ?? '',
+						item.source ?? '',
+						item.valuation ?? '',
+						item.chains?.join(' + ') ?? '',
+						item.otherInvestors?.join(' + ') ?? ''
+					].map(removeJumps) as string[]
+				)
+			})
 
 		download(`raises.csv`, rows.map((r) => r.join(',')).join('\n'))
 	}
@@ -234,6 +246,10 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					Add it here!
 				</a>
 			</AnnouncementWrapper>
+
+			<ChartWrapper style={{ padding: '0' }}>
+				<BarChart chartData={monthlyInvestment} title="Monthly sum" valueSymbol="$" />
+			</ChartWrapper>
 
 			<TableFilters>
 				<TableHeaderWrapper>
