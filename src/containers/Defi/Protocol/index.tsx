@@ -64,7 +64,7 @@ const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-const scams = ['Drachma Exchange', 'StableDoin']
+const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance']
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -583,6 +583,7 @@ function ProtocolContainer({
 					<Section>
 						<h3>Raises</h3>
 						<RaisesWrapper>
+							<li>{`Total raised: ${formatRaisedAmount(raises.reduce((sum, r)=>sum+Number(r.amount), 0))}`}</li>
 							{raises
 								.sort((a, b) => a.date - b.date)
 								.map((raise) => (

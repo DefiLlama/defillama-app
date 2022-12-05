@@ -36,6 +36,7 @@ export interface ProtocolAdaptorSummaryResponse extends ProtocolAdaptorSummary {
 		disabled: boolean
 	}> | null
 	methodologyURL: string
+	allAddresses?: string[]
 }
 
 ///////////////////////////////////////////////////////////////////

@@ -149,6 +149,12 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 					vals += '<li style="list-style:none">' + 'Mcap/TVL' + '&nbsp;&nbsp;' + Number(mcap / tvl).toFixed(2) + '</li>'
 				}
 
+				if (title.toLowerCase() === 'tokens (usd)' || title.toLowerCase() === 'chains') {
+					const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
+
+					vals += '<li style="list-style:none;font-weight:600">' + 'Total' + '&nbsp;&nbsp;' + '$' + toK(total) + '</li>'
+				}
+
 				return chartdate + vals
 			}
 		}
@@ -178,6 +184,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 					}, '')
 
 				const total = params.reduce((acc, curr) => (acc += curr.value[1]), 0)
+
 				vals += '<li style="list-style:none;font-weight:600">' + 'Total Inflows' + '&nbsp;&nbsp;' + toK(total) + '</li>'
 
 				return chartdate + vals
