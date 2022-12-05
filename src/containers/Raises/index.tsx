@@ -3,6 +3,10 @@ import dynamic from 'next/dynamic'
 import Layout from '~/layout'
 import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
 import styled from 'styled-components'
+import type { IBarChartProps } from '~/components/ECharts/types'
+import { ChartWrapper, DetailsWrapper } from '~/layout/ProtocolAndPool'
+import { StatsSection } from '~/layout/Stats/Medium'
+import { Stat } from '~/layout/Stats/Large'
 import VirtualTable from '~/components/Table/Table'
 import { raisesColumns } from '~/components/Table/Defi/columns'
 import { AnnouncementWrapper } from '~/components/Announcement'
@@ -12,9 +16,7 @@ import { Chains, Investors, RaisedRange, Rounds, Sectors } from '~/components/Fi
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { DownloadIcon } from '~/components'
-import { download, toNiceCsvDate } from '~/utils'
-import type { IBarChartProps } from '~/components/ECharts/types'
-import { ChartWrapper } from '~/layout/ProtocolAndPool'
+import { download, formattedNum, toNiceCsvDate } from '~/utils'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -231,6 +233,8 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 		download(`raises.csv`, rows.map((r) => r.join(',')).join('\n'))
 	}
 
+	const totalAmountRaised = monthlyInvestment.reduce((acc, curr) => (acc += curr[1]), 0)
+
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
 			<RaisesSearch step={{ category: investorName ? 'Raises' : 'Home', name: investorName || 'Raises' }} />
@@ -247,9 +251,22 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</a>
 			</AnnouncementWrapper>
 
-			<ChartWrapper style={{ padding: '0' }}>
-				<BarChart chartData={monthlyInvestment} title="Monthly sum" valueSymbol="$" />
-			</ChartWrapper>
+			<StatsSection>
+				<DetailsWrapper>
+					<Stat>
+						<span>Total Funding Rounds</span>
+						<span>{filteredRaisesList.length}</span>
+					</Stat>
+					<Stat>
+						<span>Total Funding Amount</span>
+						<span>${formattedNum(totalAmountRaised)}</span>
+					</Stat>
+				</DetailsWrapper>
+
+				<ChartWrapper>
+					<BarChart chartData={monthlyInvestment} title="Monthly sum" valueSymbol="$" />
+				</ChartWrapper>
+			</StatsSection>
 
 			<TableFilters>
 				<TableHeaderWrapper>
