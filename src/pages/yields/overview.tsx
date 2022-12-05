@@ -10,6 +10,7 @@ export async function getStaticProps() {
 	const {
 		props: { ...data }
 	} = await getYieldPageData()
+	data.pools = data.pools.filter((p) => p.apy > 0)
 	const median = await getYieldMedianData()
 
 	const compressed = compressPageProps({ ...data, median: median.props })
