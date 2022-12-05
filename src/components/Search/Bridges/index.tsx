@@ -16,6 +16,8 @@ interface IBridgesSearchSelectProps extends ICommonSearchProps {
 	onlyChains?: boolean
 	formValueToEdit?: any
 	formProperty: string
+	placeholder: string
+	click?: (item: string) => void
 }
 
 export function BridgesSearch(props: IBridgesSearchProps) {
@@ -59,13 +61,13 @@ export function BridgesSearchWithBreakdown(props: IBridgesSearchProps) {
 
 export function BridgesSearchSelect(props: IBridgesSearchSelectProps) {
 	const { data, loading } = useGetBridgesSearchList()
-	const [placeholder, setPlaceholder] = useState("Search...")
+
 	const itemClick = (item) => {
 		props.formValueToEdit[props.formProperty] = item.name
-		setPlaceholder(item.name)
+		props.click(item.name)
 	}
 	
-	return <DesktopSearch {...props} data={data} loading={loading} data-alwaysdisplay={true} placeholder={placeholder} onItemClick={itemClick}/>
+	return <DesktopSearch {...props} data={data} loading={loading} data-alwaysdisplay={true} placeholder={props.placeholder} onItemClick={itemClick}/>
 }
 
 export const ListItem = styled.li`
