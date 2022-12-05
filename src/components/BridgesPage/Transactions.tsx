@@ -111,6 +111,7 @@ const BridgeTransactionsPage = ({ bridges }) => {
 	const form = useFormState({
 		defaultValues: { startDate: '', endDate: '', selectedBridge: '' }
 	})
+	const [placeholder, setPlaceholder] = React.useState("Search...")
 
 	const downloadCsv = (transactions: BridgeTransaction[]) => {
 		{
@@ -171,14 +172,14 @@ const BridgeTransactionsPage = ({ bridges }) => {
 			const transactions = await fetch(
 				`${BRIDGETX_API}/${bridgeId}?starttimestamp=${startTimestamp}&endtimestamp=${endTimestampParam}`
 			).then((resp) => resp.json())
-			numberTxsReturned = transactions.length
-			const earliestTx = transactions?.[0]
-			if (earliestTx) {
+			numberTxsReturned = transactions?.length
+			if (numberTxsReturned) {
+				const earliestTx = transactions[transactions.length - 1]
 				earliestTsReturned = Math.floor(new Date(earliestTx.ts).getTime() / 1000)
 				endTimestampParam = earliestTsReturned
-			}
-			iterations += 1
-			accTransactions = [...transactions, ...accTransactions]
+				iterations += 1
+				accTransactions = [...transactions, ...accTransactions]
+			} else break
 		} while (numberTxsReturned === 6000 && iterations < 50)
 
 		downloadCsv(accTransactions)
@@ -204,8 +205,8 @@ const BridgeTransactionsPage = ({ bridges }) => {
 							<FormError name={form.names.endDate} className="error" />
 						</DateInputField>
 					</Wrapper>
-					<BridgesSearchSelect formValueToEdit={form.values} formProperty={'selectedBridge'} />
-					<StyledFormSubmit>Generate CSV</StyledFormSubmit>
+					<BridgesSearchSelect formValueToEdit={form.values} formProperty={'selectedBridge'} placeholder={placeholder} click={(item) => setPlaceholder(item)}/>
+					<StyledFormSubmit onClick={() => setPlaceholder("Search...")}>Generate CSV</StyledFormSubmit>
 				</SearchWrapper>
 			</Form>
 
