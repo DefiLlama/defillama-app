@@ -44,6 +44,7 @@ import {
 	FlatDenomination,
 	GROUP_INTERVALS_LIST
 } from './common'
+import Announcement from '~/components/Announcement'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -241,6 +242,12 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					: undefined
 				} */
 			/>
+			{props.protocolSummary.latestFetchIsOk && (
+				<Announcement notCancellable>
+					Looks like {props.protocolSummary.displayName} latest {props.protocolSummary.type} data might not be accurate
+					or up-to-date, 🦙🦙🦙 are working on it.
+				</Announcement>
+			)}
 			<ProtocolChart
 				logo={props.protocolSummary.logo}
 				data={props.protocolSummary}
