@@ -81,6 +81,22 @@ const IconWrapper = styled.button`
 	}
 `
 export function Input({ state, placeholder, withValue, breadCrumbs, ...props }: IInputProps) {
+	const inputField = React.useRef<HTMLInputElement>()
+
+	React.useEffect(() => {
+		function focusSearchBar(e: KeyboardEvent) {
+			if ((e.ctrlKey || e.metaKey) && (e.code === 'KeyK' || e.code === 'KeyF')) {
+				e.preventDefault()
+				inputField.current && inputField.current?.focus()
+				state.toggle()
+			}
+		}
+
+		window.addEventListener('keydown', focusSearchBar)
+
+		return () => window.removeEventListener('keydown', focusSearchBar)
+	}, [state])
+
 	const onClick = React.useCallback(() => {
 		if (state.mounted && withValue) {
 			state.setValue('')
@@ -96,6 +112,7 @@ export function Input({ state, placeholder, withValue, breadCrumbs, ...props }: 
 				placeholder={placeholder}
 				style={breadCrumbs ? { borderBottomLeftRadius: '0', borderBottomRightRadius: 0 } : {}}
 				autoSelect
+				ref={inputField}
 				{...props}
 			/>
 
