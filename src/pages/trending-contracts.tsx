@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
 import styled from 'styled-components'
 import useSWR from 'swr'
@@ -7,6 +9,7 @@ import { Panel } from '~/components'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import VirtualTable from '~/components/Table/Table'
+import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
 import { useDebounce } from '~/hooks'
 import { formattedPercent } from '~/utils'
 
@@ -21,45 +24,57 @@ interface ITrendingContracts {
 	name?: string
 }
 
-async function getContracts(time: number) {
-	return await fetch(`https://trending-contracts-api.onrender.com/ethereum/${time > 119 ? 119 : time}`).then((res) =>
-		res.json()
-	).then(async r=>{
-		return {
-			results: await Promise.all(r.map(async contract=>{
-					let name = undefined;
-					try{
-						name = await fetch(`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`).then(r=>r.json())
-						if(name.name === undefined){
-							throw new Error("RolodETH: No name")
-						}
-					} catch(e){
-						try{
-							name = await fetch(`https://api.llama.fi/contractName/${contract.contract.toLowerCase()}`).then(r=>r.json())
-							if(name.name === ""){
-								throw new Error("Etherescan: Contract not verified")
+async function getContracts(chain: string, time: number) {
+	return await fetch(`https://trending-contracts-api.onrender.com/${chain}/${time > 119 ? 119 : time}`)
+		.then((res) => res.json())
+		.then(async (r) => {
+			return {
+				results: await Promise.all(
+					r.map(async (contract) => {
+						let name = undefined
+						try {
+							name = await fetch(
+								`https://raw.githubusercontent.com/verynifty/RolodETH/main/data/${contract.contract.toLowerCase()}`
+							).then((r) => r.json())
+							if (name.name === undefined) {
+								throw new Error('RolodETH: No name')
 							}
-						} catch(e){
-							name = undefined
+						} catch (e) {
+							try {
+								name = await fetch(
+									`https://api.llama.fi/contractName/${chain}/${contract.contract.toLowerCase()}`
+								).then((r) => r.json())
+								if (name.name === '') {
+									throw new Error('Etherescan: Contract not verified')
+								}
+							} catch (e) {
+								name = undefined
+							}
 						}
-					}
-					return {
-						...contract,
-						name: name?.name
-					}
-			}))
-		}
-	})
+						return {
+							...contract,
+							name: name?.name
+						}
+					})
+				)
+			}
+		})
 }
 
 export default function TrendingContracts() {
+	const router = useRouter()
+
+	const { chain } = router.query
+
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'gas_spend' }])
 
 	const [value, setValue] = useState<number>(60)
 
 	const time = useDebounce(value, 500)
 
-	const { data, error } = useSWR(`trendingcontracts${time}`, () => getContracts(time))
+	const activeChain = typeof chain === 'string' ? chain.toLowerCase() : 'ethereum'
+
+	const { data, error } = useSWR(`trendingcontracts${time}${activeChain}`, () => getContracts(activeChain, time))
 
 	const results = data?.results ?? []
 
@@ -79,7 +94,7 @@ export default function TrendingContracts() {
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Trending Contracts', hideOptions: true }} />
 
 			<TableFilters>
-				<TableHeader>
+				<TableHeader style={{ margin: 0 }}>
 					<span>Trending Contracts last </span>{' '}
 					<Input
 						type="number"
@@ -96,6 +111,22 @@ export default function TrendingContracts() {
 					/>{' '}
 					<span>minutes</span>
 				</TableHeader>
+
+				<Link href="/trending-contracts?chain=ethereum" shallow>
+					{activeChain === 'ethereum' ? (
+						<ButtonDark as="a">Ethereum</ButtonDark>
+					) : (
+						<ButtonLight as="a">Ethereum</ButtonLight>
+					)}
+				</Link>
+
+				<Link href="/trending-contracts?chain=polygon" shallow>
+					{activeChain === 'polygon' ? (
+						<ButtonDark as="a">Polygon</ButtonDark>
+					) : (
+						<ButtonLight as="a">Polygon</ButtonLight>
+					)}
+				</Link>
 			</TableFilters>
 
 			{!data && !error ? (
@@ -180,7 +211,7 @@ export const columns: ColumnDef<ITrendingContracts>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
+	}
 ]
 
 const Input = styled.input`
