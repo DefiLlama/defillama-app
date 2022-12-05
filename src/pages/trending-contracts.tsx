@@ -22,7 +22,7 @@ interface ITrendingContracts {
 }
 
 async function getContracts(time: number) {
-	return await fetch(`https://trending-contracts-api.herokuapp.com/ethereum/${time > 119 ? 119 : time}`).then((res) =>
+	return await fetch(`https://trending-contracts-api.onrender.com/ethereum/${time > 119 ? 119 : time}`).then((res) =>
 		res.json()
 	).then(async r=>{
 		return {
