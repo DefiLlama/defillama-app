@@ -37,6 +37,7 @@ export interface ProtocolAdaptorSummaryResponse extends ProtocolAdaptorSummary {
 	}> | null
 	methodologyURL: string
 	allAddresses?: string[]
+	latestFetchIsOk: boolean
 }
 
 ///////////////////////////////////////////////////////////////////
