@@ -62,7 +62,7 @@ const exclude = [
 
 export async function getStaticProps() {
 	const [protocolsRaw, { forks }, { raises }] = await Promise.all([
-		getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls']),
+		getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls', 'defillamaId']),
 		fetch(FORK_API).then((r) => r.json()),
 		fetch(RAISES_API).then((r) => r.json())
 	])

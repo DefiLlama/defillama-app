@@ -136,7 +136,7 @@ export const airdropsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Total Money Raised',
 		accessorKey: 'totalRaised',
-		cell: ({ getValue }) => <>{getValue() && `$${toK(getValue())}`}</>,
+		cell: ({ getValue }) => <>{getValue() ? `$${toK(getValue())}` : ''}</>,
 		size: 180,
 		meta: {
 			align: 'end' as const
