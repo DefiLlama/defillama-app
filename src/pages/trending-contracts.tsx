@@ -42,7 +42,7 @@ async function getContracts(chain: string, time: number) {
 						} catch (e) {
 							try {
 								name = await fetch(
-									`https://api.llama.fi/contractName/${chain}/${contract.contract.toLowerCase()}`
+									`https://api.llama.fi/contractName2/${chain}/${contract.contract.toLowerCase()}`
 								).then((r) => r.json())
 								if (name.name === '') {
 									throw new Error('Etherescan: Contract not verified')

@@ -8,7 +8,7 @@ import QuestionHelper from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
 import Tooltip from '~/components/Tooltip'
 import { useDefiManager } from '~/contexts/LocalStorage'
-import { formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDayAndHour, toNiceDaysAgo } from '~/utils'
+import { formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDayAndHour, toNiceDaysAgo } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow } from './types'
@@ -131,6 +131,21 @@ export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
 	...protocolsColumns.slice(3, -1)
 ]
 
+export const airdropsColumns: ColumnDef<IProtocolRow>[] = [
+	...protocolsColumns.slice(0, 3),
+	{
+		header: 'Total Money Raised',
+		accessorKey: 'totalRaised',
+		cell: ({ getValue }) => <>{getValue() && `$${toK(getValue())}`}</>,
+		size: 180,
+		meta: {
+			align: 'end' as const
+		}
+	},
+	listedAtColumn,
+	...protocolsColumns.slice(3, -1)
+]
+
 export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: () => <Name>Name</Name>,
@@ -248,7 +263,8 @@ export const columnSizes = {
 		change_7d: 100,
 		change_1m: 100,
 		tvl: 100,
-		mcaptvl: 100
+		mcaptvl: 100,
+		totalRaised: 180
 	},
 	1024: {
 		name: 240,
@@ -258,7 +274,8 @@ export const columnSizes = {
 		change_7d: 100,
 		change_1m: 100,
 		tvl: 100,
-		mcaptvl: 100
+		mcaptvl: 100,
+		totalRaised: 180
 	},
 	1280: {
 		name: 240,
@@ -268,7 +285,8 @@ export const columnSizes = {
 		change_7d: 100,
 		change_1m: 100,
 		tvl: 100,
-		mcaptvl: 100
+		mcaptvl: 100,
+		totalRaised: 180
 	}
 }
 

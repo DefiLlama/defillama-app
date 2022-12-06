@@ -2,7 +2,7 @@ import { RecentProtocols } from '~/components/RecentProtocols'
 import { revalidate } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
-import { FORK_API } from '~/constants'
+import { FORK_API, RAISES_API } from '~/constants'
 
 const exclude = [
 	'DeerFi',
@@ -61,12 +61,28 @@ const exclude = [
 ]
 
 export async function getStaticProps() {
-	const protocolsRaw = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls'])
-	const { forks } = await fetch(FORK_API).then((r) => r.json())
+	const [protocolsRaw, { forks }, { raises }] = await Promise.all([
+		getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls']),
+		fetch(FORK_API).then((r) => r.json()),
+		fetch(RAISES_API).then((r) => r.json())
+	])
 
 	const protocols = protocolsRaw.protocols
 		.filter((token) => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name))
-		.map((p) => ({ listedAt: 1624728920, ...p }))
+		.map((p) => ({
+			listedAt: 1624728920,
+			totalRaised: raises
+				.filter((r) => (r.defillamaId && p.defillamaId ? r.defillamaId.toString() === p.defillamaId.toString() : false))
+				.reduce((acc, curr) => {
+					const amount = curr.amount || 0
+
+					if (!Number.isNaN(amount)) {
+						acc += amount * 1e6
+					}
+					return acc
+				}, 0),
+			...p
+		}))
 		.sort((a, b) => a.listedAt - b.listedAt)
 
 	const forkedList: { [name: string]: boolean } = {}

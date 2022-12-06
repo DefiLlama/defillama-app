@@ -17,10 +17,12 @@ import {
 	protocolsColumns,
 	recentlyListedProtocolsColumns,
 	topGainersAndLosersColumns,
-	protocolsByTokenColumns
+	protocolsByTokenColumns,
+	airdropsColumns
 } from './columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
+import { useRouter } from 'next/router'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
@@ -96,9 +98,11 @@ export function RecentlyListedProtocolsTable({ data }: { data: Array<IProtocolRo
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const windowSize = useWindowSize()
 
+	const router = useRouter()
+
 	const instance = useReactTable({
 		data,
-		columns: recentlyListedProtocolsColumns,
+		columns: router.pathname === '/airdrops' ? airdropsColumns : recentlyListedProtocolsColumns,
 		state: {
 			sorting,
 			expanded,
