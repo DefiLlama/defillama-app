@@ -6,7 +6,7 @@ import { formattedNum, formattedPercent } from '~/utils'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
-import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
+import { lockupsRewards, preminedRewards, earlyExit } from '~/components/YieldsPage/utils'
 import Image from 'next/image'
 import { CustomLink } from '~/components/Link'
 
@@ -116,9 +116,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
 					{lockupsRewards.includes(row.original.project) ? (
-						<QuestionHelper
-							text={`${row.original.project} Rewards are vested. You can immediately receive your rewards by taking an exit penalty!`}
-						/>
+						<QuestionHelper text={earlyExit} />
 					) : preminedRewards.includes(row.original.project) ? (
 						<QuestionHelper text={`${row.original.project} has Pre-mined rewards, no available token yet!`} />
 					) : null}
