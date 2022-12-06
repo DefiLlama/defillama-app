@@ -242,7 +242,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					: undefined
 				} */
 			/>
-			{!props.protocolSummary.latestFetchIsOk && (
+			{props.protocolSummary.latestFetchIsOk && (
 				<Announcement notCancellable>
 					Looks like {props.protocolSummary.displayName} latest {props.protocolSummary.type} data might not be accurate
 					or up-to-date, 🦙🦙🦙 are working on it.
