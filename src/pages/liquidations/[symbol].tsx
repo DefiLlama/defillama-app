@@ -44,7 +44,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
 		.map((x) => ({
 			params: { symbol: x.toLowerCase() }
 		}))
-	return { paths, fallback: 'blocking' }
+
+	return { paths: paths.slice(0, 5), fallback: 'blocking' }
 }
 
 const LiquidationsProvider = ({ children }) => {
