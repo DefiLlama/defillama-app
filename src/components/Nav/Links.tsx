@@ -127,6 +127,7 @@ export const navLinks: ILinks = {
 				name: 'Roundup',
 				path: '/roundup'
 			},
+			{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
 			{
 				name: 'Wiki',
 				path: 'https://wiki.defillama.com/wiki/Main_Page',
