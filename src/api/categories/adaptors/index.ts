@@ -80,9 +80,21 @@ export const getOverviewItemPageData = async (
 
 // - used in /overview/[type] and /overview/[type]/chains/[chain]
 export const getChainPageData = async (type: string, chain?: string): Promise<IOverviewProps> => {
-	const request = (await fetch(getAPIUrl(type, chain, type === 'fees', true)).then((res) =>
-		res.json()
-	)) as IGetOverviewResponseBody
+	const feesOrRevenueApi =
+		type === 'options'
+			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
+			: getAPIUrl(type, chain, true, true, 'dailyRevenue')
+
+	const [request, protocolsData, feesOrRevenue]: [
+		IGetOverviewResponseBody,
+		{ protocols: LiteProtocol[] },
+		IGetOverviewResponseBody
+	] = await Promise.all([
+		fetch(getAPIUrl(type, chain, type === 'fees', true)).then((res) => res.json()),
+		fetch(PROTOCOLS_API).then((r) => r.json()),
+		fetch(feesOrRevenueApi).then((res) => res.json())
+	])
+
 	const {
 		protocols = [],
 		total24h,
@@ -93,41 +105,34 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		totalDataChartBreakdown,
 		allChains
 	} = request
-	const getProtocolsRaw = (): Promise<{ protocols: LiteProtocol[] }> => fetch(PROTOCOLS_API).then((r) => r.json())
-	const protocolsData = await getProtocolsRaw()
+
 	const tvlData = protocolsData.protocols.reduce((acc, pd) => {
 		acc[pd.name] = pd.tvlPrevDay
 		return acc
 	}, {})
 
 	let label: string
+
 	if (type === 'options') {
 		label = 'Notionial volume'
 	} else {
 		label = upperCaseFirst(type)
 	}
 	const allCharts: IChartsList = []
+
 	if (totalDataChart) allCharts.push([label, totalDataChart])
 
-	let secondType: IGetOverviewResponseBody
-	let secondLabel: string
-	if (type === 'options') {
-		secondType = (await fetch(getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')).then((res) =>
-			res.json()
-		)) as IGetOverviewResponseBody
-		secondLabel = 'Premium volume'
+	if (type === 'options' && feesOrRevenue?.totalDataChart) {
+		allCharts.push(['Premium volume', feesOrRevenue.totalDataChart])
 	}
-	if (secondLabel && secondType?.totalDataChart) allCharts.push([secondLabel, secondType.totalDataChart])
 
-	let revenue: IGetOverviewResponseBody
-	if (type === 'fees')
-		revenue = (await fetch(getAPIUrl(type, chain, true, true, 'dailyRevenue')).then((res) =>
-			res.json()
-		)) as IGetOverviewResponseBody
-	const revenueProtocols = revenue?.protocols.reduce(
-		(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-		{} as IJSON<ProtocolAdaptorSummary>
-	)
+	const revenueProtocols =
+		type === 'fees'
+			? feesOrRevenue?.protocols?.reduce(
+					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+					{} as IJSON<ProtocolAdaptorSummary>
+			  ) ?? []
+			: []
 
 	// Get TVL data
 	const sumTVLProtocols = (protocolName: string, versions: string[], tvlData: IJSON<number>) => {
@@ -135,6 +140,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			return (acc += tvlData[`${protocolName} ${version.toUpperCase()}`])
 		}, 0)
 	}
+
 	const protocolsWithSubrows = protocols.map((protocol) => {
 		const volumetvl =
 			protocol.total24h /
