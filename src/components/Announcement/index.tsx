@@ -22,7 +22,7 @@ export default function Announcement({
 	children: React.ReactNode
 	notCancellable?: boolean
 }) {
-	const [_, rerender] = React.useState(null)
+	const [_, rerender] = React.useState(1)
 	const router = useRouter()
 
 	const { key, value } = ANNOUNCEMENT[router.pathname.startsWith('/yields') ? 'yields' : 'defi']
@@ -32,7 +32,7 @@ export default function Announcement({
 
 	const closeAnnouncement = () => {
 		localStorage.setItem(routeAnnouncementKey, JSON.stringify({ value: routeAnnouncementValue }))
-		rerender()
+		rerender(1)
 	}
 
 	const store = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem(routeAnnouncementKey) || '{}') : {}
