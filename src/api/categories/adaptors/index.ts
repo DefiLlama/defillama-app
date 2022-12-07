@@ -95,7 +95,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	} = request
 	const getProtocolsRaw = (): Promise<{ protocols: LiteProtocol[] }> => fetch(PROTOCOLS_API).then((r) => r.json())
 	const protocolsData = await getProtocolsRaw()
-	const tvlData = protocolsData.protocols?.reduce((acc, pd) => {
+	const tvlData = protocolsData.protocols.reduce((acc, pd) => {
 		acc[pd.name] = pd.tvlPrevDay
 		return acc
 	}, {})
