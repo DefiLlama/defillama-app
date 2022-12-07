@@ -8,7 +8,7 @@ import { Tooltip2 } from '~/components/Tooltip'
 import styled from 'styled-components'
 import QuestionHelper from '~/components/QuestionHelper'
 import { AutoRow } from '~/components/Row'
-import { lockupsRewards, preminedRewards, earlyExit } from '~/components/YieldsPage/utils'
+import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -68,11 +68,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.projectName) ? (
-						<QuestionHelper text={earlyExit} />
-					) : preminedRewards.includes(row.original.projectName) ? (
-						<QuestionHelper text={`${row.original.projectName} has Pre-mined rewards, no available token yet!`} />
-					) : null}
+					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
 					<Tooltip content={<TooltipContent />}>
 						<span
 							style={{
