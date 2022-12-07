@@ -106,21 +106,19 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		allChains
 	} = request
 
-	const tvlData = protocolsData.protocols.reduce((acc, pd) => {
-		acc[pd.name] = pd.tvlPrevDay
-		return acc
-	}, {})
+	const tvlData =
+		protocolsData?.protocols?.reduce((acc, pd) => {
+			acc[pd.name] = pd.tvlPrevDay
+			return acc
+		}, {}) ?? {}
 
-	let label: string
+	const label: string = type === 'options' ? 'Notionial volume' : upperCaseFirst(type)
 
-	if (type === 'options') {
-		label = 'Notionial volume'
-	} else {
-		label = upperCaseFirst(type)
-	}
 	const allCharts: IChartsList = []
 
-	if (totalDataChart) allCharts.push([label, totalDataChart])
+	if (totalDataChart) {
+		allCharts.push([label, totalDataChart])
+	}
 
 	if (type === 'options' && feesOrRevenue?.totalDataChart) {
 		allCharts.push(['Premium volume', feesOrRevenue.totalDataChart])
@@ -131,8 +129,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			? feesOrRevenue?.protocols?.reduce(
 					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
 					{} as IJSON<ProtocolAdaptorSummary>
-			  ) ?? []
-			: []
+			  ) ?? {}
+			: {}
 
 	// Get TVL data
 	const sumTVLProtocols = (protocolName: string, versions: string[], tvlData: IJSON<number>) => {
