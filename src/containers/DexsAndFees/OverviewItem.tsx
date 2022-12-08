@@ -119,7 +119,6 @@ export const ProtocolChart = ({
 							<span>{formattedNum(data.total24h || '0', true)}</span>
 						</Stat>
 					)}
-
 					{data.revenue24h && (
 						<Stat>
 							<span>
@@ -133,7 +132,7 @@ export const ProtocolChart = ({
 						</Stat>
 					)}
 
-					{typeString !== 'Fees' && data.change_1d && (
+					{typeString !== 'Fees' && data.change_1d ? (
 						<Stat>
 							<span>
 								{data.disabled === true
@@ -142,6 +141,8 @@ export const ProtocolChart = ({
 							</span>
 							<span>{data.change_1d || 0}%</span>
 						</Stat>
+					) : (
+						<></>
 					)}
 					{totalAllTime ? (
 						<Stat>
