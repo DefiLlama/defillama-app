@@ -1,8 +1,5 @@
 import * as React from 'react'
-import Image from 'next/future/image'
-import Cookies from 'js-cookie'
 import styled from 'styled-components'
-import lubb from '~/assets/lubb.png'
 import { X } from 'react-feather'
 import { useRouter } from 'next/router'
 
@@ -10,11 +7,11 @@ import { useRouter } from 'next/router'
 export const ANNOUNCEMENT = {
 	defi: {
 		key: 'defi-flag-announcement',
-		value: 'defi1'
+		value: 'defi3'
 	},
 	yields: {
 		key: 'yield-flag-announcement',
-		value: 'yield1'
+		value: 'yield3'
 	}
 }
 
@@ -25,26 +22,28 @@ export default function Announcement({
 	children: React.ReactNode
 	notCancellable?: boolean
 }) {
+	const [_, rerender] = React.useState(1)
 	const router = useRouter()
 
 	const { key, value } = ANNOUNCEMENT[router.pathname.startsWith('/yields') ? 'yields' : 'defi']
 
+	const routeAnnouncementKey = router.pathname + key
+	const routeAnnouncementValue = router.pathname + value
+
 	const closeAnnouncement = () => {
-		Cookies.set(key, value)
-
-		const { announcement, ...queries } = router.query
-
-		router.push({ pathname: router.pathname, query: { ...queries } }, undefined, { shallow: true })
+		localStorage.setItem(routeAnnouncementKey, JSON.stringify({ value: routeAnnouncementValue }))
+		rerender(1)
 	}
 
-	if (notCancellable ? false : !router.query.announcement) {
+	const store = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem(routeAnnouncementKey) || '{}') : {}
+
+	if (notCancellable ? false : store.value === routeAnnouncementValue) {
 		return null
 	}
 
 	return (
 		<AnnouncementWrapper>
 			{children}
-			<Image src={lubb} width={18} height={18} alt="llama love" />
 			{!notCancellable && (
 				<Close onClick={closeAnnouncement}>
 					<X size={16} />

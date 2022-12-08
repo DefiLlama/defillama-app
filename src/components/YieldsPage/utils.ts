@@ -39,7 +39,10 @@ export function toFilterPool({
 
 	toFilter = toFilter && selectedCategories?.map((p) => p.toLowerCase()).includes(curr.category.toLowerCase())
 
-	const tokensInPool: Array<string> = curr.symbol.split('(')[0].split('-').map((x) => x.toLowerCase())
+	const tokensInPool: Array<string> = curr.symbol
+		.split('(')[0]
+		.split('-')
+		.map((x) => x.toLowerCase())
 
 	const includeToken =
 		includeTokens.length > 0 && includeTokens[0] !== 'All'
@@ -432,3 +435,6 @@ export const badDebt = ['moonwell-apollo', 'inverse-finance', 'venus', 'iron-ban
 
 export const disclaimer =
 	'DefiLlama doesnt audit nor endorse any of the protocols listed, we just focus on providing accurate data. Ape at your own risk'
+
+export const earlyExit =
+	'Rewards are calculated assuming an early exit penalty applies. So this is the minimum APY you can expect when claiming your rewards early.'

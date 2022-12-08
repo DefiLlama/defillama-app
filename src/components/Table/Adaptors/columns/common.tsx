@@ -110,7 +110,7 @@ export const TotalAllTimeColumn = (
 	size: 140,
 	meta: {
 		align: 'end',
-		headerHelperText: helperText ?? `Accomulative ${type}`
+		headerHelperText: helperText ?? `Cumulative ${type}`
 	}
 })
 export const VolumeTVLColumn: ColumnDef<IDexsRow> = {

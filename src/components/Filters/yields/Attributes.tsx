@@ -5,7 +5,7 @@ import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup, SecondaryLabel } from '../shared'
-import { lockupsRewards, lockupsCollateral, preminedRewards, badDebt } from '~/components/YieldsPage/utils'
+import { lockupsCollateral, preminedRewards, badDebt } from '~/components/YieldsPage/utils'
 
 export const attributeOptions = [
 	{
@@ -110,16 +110,6 @@ export const attributeOptions = [
 		},
 		defaultFilterFnOnPage: {},
 		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/loop']
-	},
-	{
-		name: 'Exclude reward lockups',
-		key: YIELDS_SETTINGS.NO_LOCKUP_REWARDS.toLowerCase(),
-		help: 'Remove projects which apply an early exit penalty on token rewards',
-		filterFn: (item) => {
-			return !lockupsRewards.includes(item.projectName) && !lockupsRewards.includes(item.farmProjectName)
-		},
-		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/yields/borrow', '/yields/loop']
 	},
 	{
 		name: 'Exclude deposit lockups',

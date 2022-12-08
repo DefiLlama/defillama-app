@@ -33,6 +33,7 @@ export interface Protocol {
 	referralUrl?: string
 	isParentProtocol?: boolean
 	raises?: Array<IRaise>
+	defillamaId?: number
 }
 
 // TODO cleanup
@@ -125,6 +126,7 @@ export type LiteProtocol = Pick<
 	| 'parentProtocol'
 	| 'chainTvls'
 	| 'referralUrl'
+	| 'defillamaId'
 > &
 	ProtocolTvls
 
