@@ -111,7 +111,7 @@ const cexData = [
 		name: 'Cake DeFi',
 		slug: 'cake-defi',
 		coin: null,
-		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves/'
+		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
 	},
 	{
 		name: 'NBX',
