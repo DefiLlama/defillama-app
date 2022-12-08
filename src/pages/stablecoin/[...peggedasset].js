@@ -11,15 +11,8 @@ export async function getStaticProps({
 	}
 }) {
 	const data = await getPeggedAssetPageData(peggedasset)
-	const {
-		chainsUnique,
-		chainCirculatings,
-		peggedAssetData,
-		totalCirculating,
-		unreleased,
-		mcap,
-		bridgeInfo,
-	} = data.props
+	const { chainsUnique, chainCirculatings, peggedAssetData, totalCirculating, unreleased, mcap, bridgeInfo } =
+		data.props
 	const backgroundColor = await getPeggedColor({
 		peggedAsset: peggedAssetData.name
 	})
@@ -45,7 +38,7 @@ export async function getStaticPaths() {
 		params: { peggedasset: [standardizeProtocolName(name)] }
 	}))
 
-	return { paths, fallback: 'blocking' }
+	return { paths: paths.slice(0, 11), fallback: 'blocking' }
 }
 
 export default function PeggedAsset(props) {

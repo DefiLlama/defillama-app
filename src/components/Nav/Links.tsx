@@ -112,8 +112,8 @@ export const navLinks: ILinks = {
 	Yields: {
 		main: [
 			{ name: 'Pools', path: '/yields' },
-			{ name: 'Delta Neutral Strategies', path: '/yields/strategy', newTag: true },
-			{ name: 'Leveraged Lending', path: '/yields/loop', newTag: true },
+			{ name: 'Delta Neutral', path: '/yields/strategy', newTag: true },
+			{ name: 'Leveraged Lending', path: '/yields/loop' },
 			{ name: 'Borrow', path: '/yields/borrow' },
 			{ name: 'Overview', path: '/yields/overview' },
 			{ name: 'Stablecoin Pools', path: '/yields/stablecoins' },
@@ -127,6 +127,7 @@ export const navLinks: ILinks = {
 				name: 'Roundup',
 				path: '/roundup'
 			},
+			{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
 			{
 				name: 'Wiki',
 				path: 'https://wiki.defillama.com/wiki/Main_Page',
