@@ -6,7 +6,7 @@ import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsOptimizerTableRow } from '../types'
 import QuestionHelper from '~/components/QuestionHelper'
-import { lockupsRewards, preminedRewards, earlyExit } from '~/components/YieldsPage/utils'
+import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
 
 const apyColors = {
 	supply: '#4f8fea',
@@ -157,11 +157,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		cell: ({ getValue, row }) => {
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.projectName) ? (
-						<QuestionHelper text={earlyExit} />
-					) : preminedRewards.includes(row.original.projectName) ? (
-						<QuestionHelper text={`${row.original.projectName} has Pre-mined rewards, no available token yet!`} />
-					) : null}
+					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
 					<span
 						style={{
 							color: apyColors[getValue() > 0 ? 'positive' : 'borrow']
