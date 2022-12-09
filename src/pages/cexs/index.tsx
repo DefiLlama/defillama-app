@@ -102,6 +102,13 @@ const cexData = [
 		walletsLink: null
 	},
 	{
+		name: 'WOO Cex',
+		slug: 'woo-cex',
+		coin: 'WOO',
+		coinSymbol: 'WOO',
+		walletsLink: 'https://woo.org/proof-of-reserves'
+	},
+	{
 		name: 'CoinDCX',
 		slug: 'coindcx',
 		coin: null,
