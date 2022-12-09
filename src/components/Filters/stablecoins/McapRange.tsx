@@ -25,5 +25,5 @@ export function McapRange() {
 			}
 		)
 	}
-	return <FilterBetweenRange header="Filter by Mcap" onSubmit={handleSubmit} />
+	return <FilterBetweenRange name="Mcap" header="Filter by Mcap" onSubmit={handleSubmit} />
 }

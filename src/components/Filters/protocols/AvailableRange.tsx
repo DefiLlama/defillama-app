@@ -25,5 +25,5 @@ export function AvailableRange() {
 			}
 		)
 	}
-	return <FilterBetweenRange header="Filter by min/max Available" onSubmit={handleSubmit} />
+	return <FilterBetweenRange name="Available" header="Filter by min/max Available" onSubmit={handleSubmit} />
 }

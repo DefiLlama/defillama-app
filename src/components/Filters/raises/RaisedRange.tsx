@@ -25,5 +25,5 @@ export function RaisedRange() {
 			}
 		)
 	}
-	return <FilterBetweenRange header="Filter by Amount Raised" onSubmit={handleSubmit} />
+	return <FilterBetweenRange name="Amount Raised" header="Filter by Amount Raised" onSubmit={handleSubmit} />
 }
