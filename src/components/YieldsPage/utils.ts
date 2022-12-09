@@ -417,7 +417,6 @@ export const filterPool = ({
 }
 
 export const lockupsRewards = ['Geist Finance', 'Radiant', 'Valas Finance', 'UwU Lend']
-export const preminedRewards = ['0vix', 'Gearbox']
 export const lockupsCollateral = [
 	'Ribbon',
 	'TrueFi',

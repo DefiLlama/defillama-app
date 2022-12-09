@@ -5,7 +5,7 @@ import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup, SecondaryLabel } from '../shared'
-import { lockupsCollateral, preminedRewards, badDebt } from '~/components/YieldsPage/utils'
+import { lockupsCollateral, badDebt } from '~/components/YieldsPage/utils'
 
 export const attributeOptions = [
 	{
@@ -117,16 +117,6 @@ export const attributeOptions = [
 		help: 'Remove projects which require locking of deposit tokens',
 		filterFn: (item) => {
 			return !lockupsCollateral.includes(item.projectName) && !lockupsCollateral.includes(item.farmProjectName)
-		},
-		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/yields/borrow', '/yields/loop']
-	},
-	{
-		name: 'Exclude premined rewards',
-		key: YIELDS_SETTINGS.NO_PREMINED_REWARDS.toLowerCase(),
-		help: 'Remove projects with premined token rewards',
-		filterFn: (item) => {
-			return !preminedRewards.includes(item.projectName) && !preminedRewards.includes(item.farmProjectName)
 		},
 		defaultFilterFnOnPage: {},
 		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/yields/borrow', '/yields/loop']
