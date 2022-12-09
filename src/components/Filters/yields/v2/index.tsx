@@ -1,9 +1,12 @@
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { useMedia } from '~/hooks'
+import YieldsSearch from '~/components/Search/Yields/Optimizer'
 import { IncludeExcludeTokens } from './IncludeExcludeTokens'
 import { DesktopYieldMenus } from './Menus/Desktop'
 import { MobileYieldMenus } from './Menus/Mobile'
+import { useMedia } from '~/hooks'
 import type { IYieldFiltersProps } from './types'
+import { LTV } from '../LTV'
 
 export function YieldFiltersV2({
 	header,
@@ -11,6 +14,8 @@ export function YieldFiltersV2({
 	projectsNumber,
 	chainsNumber,
 	tokens,
+	noOfStrategies,
+	strategyInputsData,
 	...props
 }: IYieldFiltersProps) {
 	const trackingStats =
@@ -18,9 +23,16 @@ export function YieldFiltersV2({
 			? `Tracking ${poolsNumber + (poolsNumber > 1 ? ' pools' : ' pool')} over ${
 					projectsNumber + (projectsNumber > 1 ? ' protocols' : ' protocol')
 			  } on ${chainsNumber + (chainsNumber > 1 ? ' chains' : ' chain')}.`
+			: noOfStrategies
+			? `${noOfStrategies} Strategies`
 			: null
 
 	const isSmall = useMedia(`(max-width: 30rem)`)
+
+	const { query, pathname } = useRouter()
+
+	const lend = typeof query.lend === 'string' ? query.lend : null
+	const borrow = typeof query.borrow === 'string' ? query.borrow : null
 
 	return (
 		<div>
@@ -30,6 +42,19 @@ export function YieldFiltersV2({
 				{/* <button>Save This Search</button> */}
 			</Header>
 			<Wrapper>
+				{strategyInputsData && (
+					<SearchWrapper>
+						<YieldsSearch pathname={pathname} value={lend} searchData={strategyInputsData} lend />
+						{lend && (
+							<>
+								<YieldsSearch pathname={pathname} value={borrow} searchData={strategyInputsData} />
+
+								<LTV placeholder="% of max LTV" />
+							</>
+						)}
+					</SearchWrapper>
+				)}
+
 				{isSmall ? (
 					<MobileYieldMenus {...props} />
 				) : (
@@ -78,4 +103,27 @@ const Wrapper = styled.div`
 	border-radius: 0 0 12px 12px;
 	border: 1px solid ${({ theme }) => theme.divider};
 	border-top: 0;
+`
+
+const SearchWrapper = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 100%;
+
+	& > * {
+		gap: 8px;
+		flex: 1;
+	}
+
+	& > * {
+		& > *[data-searchicon='true'] {
+			top: 14px;
+			right: 16px;
+		}
+	}
+
+	@media (min-width: ${({ theme }) => theme.bpMed}) {
+		flex-direction: row;
+	}
 `

@@ -6,11 +6,16 @@ export interface IDropdownMenusProps {
 	selectedChains?: Array<string>
 	projectList?: Array<{ name: string; slug: string }>
 	selectedProjects?: Array<string>
+	lendingProtocols?: Array<{ name: string; slug: string }>
+	selectedLendingProtocols?: Array<string>
+	farmProtocols?: Array<{ name: string; slug: string }>
+	selectedFarmProtocols?: Array<string>
 	categoryList?: Array<string>
 	selectedCategories?: Array<string>
 	attributes?: boolean
 	tvlRange?: boolean
 	apyRange?: boolean
+	availableRange?: boolean
 	show7dBaseApy?: boolean
 	show7dIL?: boolean
 	resetFilters?: boolean
@@ -22,4 +27,6 @@ export interface IYieldFiltersProps extends IDropdownMenusProps {
 	projectsNumber?: number
 	chainsNumber?: number
 	tokens?: Array<{ name: string; symbol: string; logo: string }>
+	strategyInputsData?: Array<{ name: string; symbol: string; image: string }>
+	noOfStrategies?: number
 }

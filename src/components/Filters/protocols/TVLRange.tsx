@@ -25,6 +25,7 @@ export function TVLRange({ variant = 'primary', subMenu }: { variant?: 'primary'
 			}
 		)
 	}
+
 	const { minTvl, maxTvl } = router.query
 	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl).toLocaleString() : null
 	const max = typeof maxTvl === 'string' && maxTvl !== '' ? Number(maxTvl).toLocaleString() : null

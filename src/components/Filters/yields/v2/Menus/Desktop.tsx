@@ -6,7 +6,7 @@ import { YieldAttributes } from '../../Attributes'
 import { FiltersByCategory } from '../../Categories'
 import { YieldProjects } from '../../Projects'
 import { APYRange } from '../../APYRange'
-import { TVLRange } from '../../../protocols'
+import { AvailableRange, TVLRange } from '../../../protocols'
 import { ResetAllYieldFilters } from '../../ResetAll'
 import type { IDropdownMenusProps } from '../types'
 
@@ -18,6 +18,10 @@ export function DesktopYieldMenus({
 	selectedChains,
 	projectList,
 	selectedProjects,
+	lendingProtocols,
+	selectedLendingProtocols,
+	farmProtocols,
+	selectedFarmProtocols,
 	categoryList,
 	selectedCategories,
 	attributes,
@@ -25,7 +29,8 @@ export function DesktopYieldMenus({
 	apyRange,
 	show7dBaseApy,
 	show7dIL,
-	resetFilters
+	resetFilters,
+	availableRange
 }: IDropdownMenusProps) {
 	const router = useRouter()
 
@@ -59,6 +64,28 @@ export function DesktopYieldMenus({
 					/>
 				)}
 
+				{lendingProtocols && lendingProtocols.length > 0 && (
+					<YieldProjects
+						projectList={lendingProtocols}
+						selectedProjects={selectedLendingProtocols || []}
+						pathname={pathname || router.pathname}
+						label="Lending Protocols"
+						query="lendingProtocol"
+						variant="secondary"
+					/>
+				)}
+
+				{farmProtocols && farmProtocols.length > 0 && (
+					<YieldProjects
+						projectList={farmProtocols}
+						selectedProjects={selectedFarmProtocols || []}
+						pathname={pathname || router.pathname}
+						label="Farm Protocols"
+						query="farmProtocol"
+						variant="secondary"
+					/>
+				)}
+
 				{categoryList && categoryList.length > 0 && (
 					<FiltersByCategory
 						categoryList={categoryList}
@@ -73,6 +100,8 @@ export function DesktopYieldMenus({
 				{tvlRange && <TVLRange variant="secondary" />}
 
 				{apyRange && <APYRange variant="secondary" />}
+
+				{availableRange && <AvailableRange variant="secondary" />}
 
 				{show7dBaseApy && (
 					<ToggleWrapper>

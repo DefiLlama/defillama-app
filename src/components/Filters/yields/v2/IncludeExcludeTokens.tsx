@@ -145,7 +145,7 @@ export function IncludeExcludeTokens({ tokens }: { tokens: Array<{ name: string;
 	)
 }
 
-const SearchWrapper = styled.div`
+export const SearchWrapper = styled.div`
 	position: relative;
 	display: none;
 	flex-wrap: wrap;
@@ -171,13 +171,13 @@ const SearchWrapper = styled.div`
 	}
 `
 
-const SearchIcon = styled(Search)`
+export const SearchIcon = styled(Search)`
 	@media screen and (max-width: ${({ theme }) => theme.bpSm}) {
 		display: none;
 	}
 `
 
-const Input = styled.input`
+export const Input = styled.input`
 	flex: 1;
 	display: block;
 	min-width: 280px;
@@ -191,12 +191,12 @@ const Input = styled.input`
 	}
 `
 
-const ResultsWrapper = styled.div`
+export const ResultsWrapper = styled.div`
 	width: 100%;
 	position: relative;
 `
 
-const Results = styled.ul`
+export const Results = styled.ul`
 	position: absolute;
 	top: 4px;
 	left: -8px;
@@ -227,7 +227,7 @@ const Results = styled.ul`
 	}
 `
 
-const ResultRow = styled.li`
+export const ResultRow = styled.li`
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
@@ -283,7 +283,7 @@ const IncludeOrExclude = styled(Action)`
 	white-space: nowrap;
 `
 
-const MoreResults = styled.button`
+export const MoreResults = styled.button`
 	text-align: left;
 	width: 100%;
 	padding: 12px 16px;

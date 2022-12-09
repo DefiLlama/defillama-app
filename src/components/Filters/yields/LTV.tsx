@@ -1,31 +1,7 @@
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
+import { Input, SearchIcon, SearchWrapper } from './v2/IncludeExcludeTokens'
 
-const Input = styled.input`
-	padding: 14px 16px;
-	background: ${({ theme }) => theme.bg6};
-	color: ${({ theme }) => theme.text1};
-	font-size: 1rem;
-	border: none;
-	border-radius: 12px;
-	outline: none;
-
-	::placeholder {
-		color: ${({ theme }) => theme.text3};
-		font-size: 1rem;
-	}
-
-	&[data-focus-visible] {
-		outline: ${({ theme }) => '1px solid ' + theme.text4};
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		border: 1px solid ${({ theme }) => theme.divider};
-		border-bottom: 0;
-	}
-`
-
-export function LTV({ placeholder, variant = 'primary' }: { placeholder: string; variant?: 'primary' | 'secondary' }) {
+export function LTV({ placeholder }: { placeholder: string }) {
 	const router = useRouter()
 
 	const setLTV = (value) => {
@@ -55,8 +31,9 @@ export function LTV({ placeholder, variant = 'primary' }: { placeholder: string;
 	}
 
 	return (
-		<>
+		<SearchWrapper style={{ padding: '8px' }}>
+			<SearchIcon size={16} />
 			<Input placeholder={placeholder} onChange={onChange} />
-		</>
+		</SearchWrapper>
 	)
 }
