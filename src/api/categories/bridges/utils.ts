@@ -81,7 +81,7 @@ export const formatBridgesData = ({
 				monthTotalVolume += dailyVolume
 			}
 			bridge.lastDailyVolume = dayTotalVolume ?? null
-			bridge.dayBeforeLastVolume = getPrevVolumeFromChart(chart, 1) ?? null
+			bridge.dayBeforeLastVolume = getPrevVolumeFromChart(chart, 2) ?? null
 			bridge.weeklyVolume = weekTotalVolume ?? null
 			bridge.monthlyVolume = monthTotalVolume ?? null
 		}
