@@ -83,7 +83,7 @@ export default function TrendingContracts() {
 		state: {
 			sorting
 		},
-		columns,
+		columns: columns(activeChain),
 		getCoreRowModel: getCoreRowModel(),
 		onSortingChange: setSorting,
 		getSortedRowModel: getSortedRowModel()
@@ -144,7 +144,7 @@ export default function TrendingContracts() {
 	)
 }
 
-export const columns: ColumnDef<ITrendingContracts>[] = [
+const columns = (chain:string)=> [
 	{
 		header: 'Contract',
 		accessorKey: 'contract',
@@ -153,7 +153,7 @@ export const columns: ColumnDef<ITrendingContracts>[] = [
 			const name = info.row.original.name
 			return (
 				<a
-					href={`https://etherscan.io/address/${value}`}
+					href={`https://${chain==="ethereum"?"etherscan.io":"polygonscan.com"}/address/${value}`}
 					target="_blank"
 					rel="noopener noreferrer"
 					style={{ textDecoration: 'underline' }}
@@ -212,7 +212,7 @@ export const columns: ColumnDef<ITrendingContracts>[] = [
 			align: 'end'
 		}
 	}
-]
+] as ColumnDef<ITrendingContracts>[]
 
 const Input = styled.input`
 	padding: 4px 6px;
