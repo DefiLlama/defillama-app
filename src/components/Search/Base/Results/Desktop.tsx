@@ -1,4 +1,4 @@
-import { FixedSizeList } from 'react-window'
+import { useState } from 'react'
 import { ComboboxPopover, ComboboxState } from 'ariakit/combobox'
 import styled from 'styled-components'
 import { DesktopRow } from './Row/Desktop'
@@ -31,24 +31,28 @@ interface IResultsProps {
 }
 
 export function DesktopResults({ state, data, loading, onItemClick, ...props }: IResultsProps) {
+	const [resultsLength, setResultsLength] = useState(10)
+
+	const showMoreResults = () => {
+		setResultsLength((prev) => prev + 10)
+	}
+
+	const sortedList = state.value.length > 2 ? sortResults(state.matches) : state.matches
+
+	const options = sortedList.map((o) => data.find((x) => x.name === o) ?? o)
+
 	return (
 		<Popover state={state} {...props}>
 			{loading || !state.mounted ? (
 				<Empty>Loading...</Empty>
 			) : state.matches.length ? (
-				<FixedSizeList
-					height={state.matches.length * 50 > 240 ? 240 : state.matches.length * 50}
-					width="100%"
-					itemCount={state.matches.length}
-					itemSize={50}
-					itemData={{
-						searchData: data,
-						options: state.value.length > 2 ? sortResults(state.matches) : state.matches,
-						onItemClick: onItemClick
-					}}
-				>
-					{DesktopRow}
-				</FixedSizeList>
+				<>
+					{options.slice(0, resultsLength + 1).map((token) => (
+						<DesktopRow key={token.name} onItemClick={onItemClick} data={token} />
+					))}
+
+					{resultsLength < sortedList.length && <MoreResults onClick={showMoreResults}>See more...</MoreResults>}
+				</>
 			) : (
 				<Empty>No results found</Empty>
 			)}
@@ -69,3 +73,11 @@ const sortResults = (results: string[]) => {
 
 	return [...pools, ...tokens]
 }
+
+export const MoreResults = styled.button`
+	text-align: left;
+	width: 100%;
+	padding: 12px 16px 28px;
+	color: ${({ theme }) => theme.link};
+	background: ${({ theme }) => theme.bg6};
+`
