@@ -1,5 +1,5 @@
 import { HTMLAttributes, ReactNode, createContext, forwardRef, useContext, useMemo } from 'react'
-import { Menu, MenuItem, MenuButton, MenuButtonArrow, useMenuState } from 'ariakit/menu'
+import { Menu, MenuItem as BaseMenuItem, MenuButton, MenuButtonArrow, useMenuState } from 'ariakit/menu'
 import { Select, SelectPopover, SelectState } from 'ariakit/select'
 import styled from 'styled-components'
 import { useSetPopoverStyles } from '../Popover/utils'
@@ -79,19 +79,15 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 						<MenuButtonArrow placement="right" />
 					</Select>
 				) : (
-					// If it's a submenu, we have to combine the MenuButton and the
-					// MenuItem components into a single component, so it works as a
-					// submenu button.
-					<MenuItem className="sliding-menu-item" data-variant={variant} ref={ref} focusOnHover={false} {...props}>
-						<MenuButton className="sliding-menu-button" state={menu} showOnHover={false} data-variant={variant}>
-							<span>{label}</span>
-							<MenuButtonArrow />
-						</MenuButton>
-					</MenuItem>
+					<MenuButton className="sliding-menu-button" state={menu} showOnHover={false} data-variant={variant}>
+						<span>{label}</span>
+						<MenuButtonArrow />
+					</MenuButton>
 				)
 			) : (
 				// Otherwise, we just render the menu button.
 				<MenuButton
+					as="div"
 					className="sliding-menu-button"
 					state={menu}
 					showOnHover={false}
@@ -100,7 +96,7 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 					{...props}
 				>
 					<span>{label}</span>
-					<MenuButtonArrow />
+					<MenuButtonArrow placement="right" />
 				</MenuButton>
 			)}
 
@@ -153,21 +149,17 @@ export const SlidingMenu = forwardRef<HTMLDivElement, MenuProps>(function SMenu(
 					>
 						<MenuContext.Provider value={contextValue}>
 							{isSubmenu && (
-								<>
-									<Header>
-										<MenuItem
-											className="sliding-menu-item"
-											data-variant={variant}
-											hideOnClick={false}
-											focusOnHover={false}
-											onClick={menu.hide}
-											aria-label="Back to parent menu"
-										>
-											<MenuButtonArrow placement="left" />
-										</MenuItem>
-										<h2>{label}</h2>
-									</Header>
-								</>
+								<Header>
+									<button
+										className="sliding-menu-item"
+										data-variant={variant}
+										onClick={menu.hide}
+										aria-label="Back to parent menu"
+									>
+										<MenuButtonArrow placement="left" />
+									</button>
+									<h2>{label}</h2>
+								</Header>
 							)}
 							{children}
 						</MenuContext.Provider>
@@ -183,13 +175,13 @@ export type MenuItemProps = HTMLAttributes<HTMLButtonElement> & {
 	variant?: 'primary' | 'secondary'
 }
 
-export const SlidingMenuItem = forwardRef<HTMLButtonElement, MenuItemProps>(function SMenuItem(
+export const MenuItem = forwardRef<HTMLButtonElement, MenuItemProps>(function SMenuItem(
 	{ label, variant = 'primary', ...props },
 	ref
 ) {
 	return (
-		<MenuItem
-			className="sliding-menu-item"
+		<BaseMenuItem
+			className="sliding-menu-button"
 			as="button"
 			data-variant={variant}
 			focusOnHover={false}
@@ -197,7 +189,7 @@ export const SlidingMenuItem = forwardRef<HTMLButtonElement, MenuItemProps>(func
 			{...props}
 		>
 			{label}
-		</MenuItem>
+		</BaseMenuItem>
 	)
 })
 

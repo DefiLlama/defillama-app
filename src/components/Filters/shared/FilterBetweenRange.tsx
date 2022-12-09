@@ -3,14 +3,35 @@ import styled from 'styled-components'
 import { MenuButtonArrow } from 'ariakit'
 import { ApplyFilters } from '~/components'
 import Popover from '~/components/Popover'
+import { SlidingMenu } from '~/components/SlidingMenu'
 
 interface IFilterBetweenRange {
+	name: string
 	header: ReactNode
 	variant?: 'primary' | 'secondary'
 	onSubmit: FormEventHandler<HTMLFormElement>
+	subMenu?: boolean
 }
 
-export function FilterBetweenRange({ header, onSubmit, variant = 'primary' }: IFilterBetweenRange) {
+export function FilterBetweenRange({ name, header, onSubmit, variant = 'primary', subMenu }: IFilterBetweenRange) {
+	if (subMenu) {
+		return (
+			<SlidingMenu label={name} variant={variant}>
+				<Form onSubmit={onSubmit} data-variant={variant}>
+					<label>
+						<span>Min</span>
+						<input type="number" name="min" />
+					</label>
+					<label>
+						<span>Max</span>
+						<input type="number" name="max" />
+					</label>
+					<ApplyFilters>Apply Filter</ApplyFilters>
+				</Form>
+			</SlidingMenu>
+		)
+	}
+
 	return (
 		<Popover
 			trigger={
@@ -61,9 +82,17 @@ export const Form = styled.form`
 		font: inherit;
 	}
 
+	&[data-variant='secondary'] {
+		padding: 12px;
+	}
+
 	@media screen and (min-width: 640px) {
 		label {
 			margin: 12px 12px 0;
+		}
+
+		&[data-variant='secondary'] {
+			padding: 0;
 		}
 	}
 `

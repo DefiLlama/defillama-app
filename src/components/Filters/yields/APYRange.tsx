@@ -3,9 +3,10 @@ import { FilterBetweenRange, SecondaryLabel } from '../shared'
 
 interface IAPYRange {
 	variant?: 'primary' | 'secondary'
+	subMenu?: boolean
 }
 
-export function APYRange({ variant = 'primary' }: IAPYRange) {
+export function APYRange({ variant = 'primary', subMenu }: IAPYRange) {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
@@ -50,9 +51,11 @@ export function APYRange({ variant = 'primary' }: IAPYRange) {
 
 	return (
 		<FilterBetweenRange
+			name="APY Range"
 			header={variant === 'secondary' ? <Header /> : 'Filter by APY'}
 			onSubmit={handleSubmit}
 			variant={variant}
+			subMenu={subMenu}
 		/>
 	)
 }

@@ -1,14 +1,28 @@
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
+import { MenuItem } from '~/components/SlidingMenu'
 
 export function ResetAllYieldFilters({
 	pathname,
-	variant = 'primary'
+	variant = 'primary',
+	subMenu
 }: {
 	pathname: string
 	variant?: 'primary' | 'secondary'
+	subMenu?: boolean
 }) {
 	const router = useRouter()
+
+	if (subMenu) {
+		return (
+			<MenuItem
+				label="Reset all filters"
+				onClick={() => {
+					router.push(pathname, undefined, { shallow: true })
+				}}
+			/>
+		)
+	}
 
 	return (
 		<Wrapper

@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { FilterBetweenRange, SecondaryLabel } from '../shared'
 
-export function TVLRange({ variant = 'primary' }: { variant?: 'primary' | 'secondary' }) {
+export function TVLRange({ variant = 'primary', subMenu }: { variant?: 'primary' | 'secondary'; subMenu?: boolean }) {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
@@ -45,9 +45,11 @@ export function TVLRange({ variant = 'primary' }: { variant?: 'primary' | 'secon
 
 	return (
 		<FilterBetweenRange
+			name="TVL Range"
 			header={variant === 'secondary' ? <Header /> : 'Filter by min/max TVL'}
 			onSubmit={handleSubmit}
 			variant={variant}
+			subMenu={subMenu}
 		/>
 	)
 }

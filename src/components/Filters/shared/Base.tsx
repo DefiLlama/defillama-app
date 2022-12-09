@@ -239,6 +239,7 @@ export const FilterFnsGroup = styled.span`
 	}
 
 	&[data-variant='secondary'] {
+		top: -8px;
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
 	}
 
@@ -246,6 +247,7 @@ export const FilterFnsGroup = styled.span`
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
 
 		&[data-variant='secondary'] {
+			top: 0px;
 			background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
 		}
 	}

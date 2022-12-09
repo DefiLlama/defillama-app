@@ -6,6 +6,7 @@ import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup, SecondaryLabel } from '../shared'
 import { lockupsCollateral, badDebt } from '~/components/YieldsPage/utils'
+import { SlidingMenu } from '~/components/SlidingMenu'
 
 export const attributeOptions = [
 	{
@@ -125,10 +126,12 @@ export const attributeOptions = [
 
 export function YieldAttributes({
 	pathname,
-	variant = 'primary'
+	variant = 'primary',
+	subMenu
 }: {
 	pathname: string
 	variant?: 'primary' | 'secondary'
+	subMenu?: boolean
 }) {
 	const router = useRouter()
 
@@ -178,7 +181,7 @@ export function YieldAttributes({
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const select = useSelectState({
+	const selectState = useSelectState({
 		value: values,
 		setValue: updateAttributes,
 		gutter: 8,
@@ -186,7 +189,7 @@ export function YieldAttributes({
 		animated: true
 	})
 
-	const toggleAll = () => {
+	const toggleAllOptions = () => {
 		router.push(
 			{
 				pathname,
@@ -200,7 +203,7 @@ export function YieldAttributes({
 		)
 	}
 
-	const clear = () => {
+	const clearAllOptions = () => {
 		router.push(
 			{
 				pathname,
@@ -227,9 +230,24 @@ export function YieldAttributes({
 		  )
 		: []
 
+	if (subMenu) {
+		return (
+			<SlidingMenu label="Attributes" selectState={selectState}>
+				<SelectContent
+					options={attributeOptionsFiltered}
+					selectedOptions={values}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					pathname={router.pathname}
+					variant={variant}
+				/>
+			</SlidingMenu>
+		)
+	}
+
 	return (
 		<>
-			<SelectButton state={select} data-variant={variant}>
+			<SelectButton state={selectState} data-variant={variant}>
 				{variant === 'secondary' ? (
 					<SecondaryLabel>
 						{isSelected ? (
@@ -255,19 +273,34 @@ export function YieldAttributes({
 				<MenuButtonArrow />
 			</SelectButton>
 
-			<SelectPopover state={select} modal={!isLarge} data-variant={variant}>
-				<FilterFnsGroup data-variant={variant}>
-					<button onClick={clear}>Clear</button>
-
-					<button onClick={toggleAll}>Toggle all</button>
-				</FilterFnsGroup>
-				{attributeOptionsFiltered.map((option) => (
-					<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
-						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
-						<Checkbox checked={values.includes(option.key) || option.disabledOnPages.includes(router.pathname)} />
-					</SelectItem>
-				))}
+			<SelectPopover state={selectState} modal={!isLarge} data-variant={variant}>
+				<SelectContent
+					options={attributeOptionsFiltered}
+					selectedOptions={values}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					pathname={router.pathname}
+					variant={variant}
+				/>
 			</SelectPopover>
+		</>
+	)
+}
+
+const SelectContent = ({ clearAllOptions, toggleAllOptions, variant, pathname, options, selectedOptions }) => {
+	return (
+		<>
+			<FilterFnsGroup data-variant={variant}>
+				<button onClick={clearAllOptions}>Clear</button>
+
+				<button onClick={toggleAllOptions}>Toggle all</button>
+			</FilterFnsGroup>
+			{options.map((option) => (
+				<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(pathname)}>
+					{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
+					<Checkbox checked={selectedOptions.includes(option.key) || option.disabledOnPages.includes(pathname)} />
+				</SelectItem>
+			))}
 		</>
 	)
 }

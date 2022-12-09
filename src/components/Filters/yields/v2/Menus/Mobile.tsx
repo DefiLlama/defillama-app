@@ -1,6 +1,4 @@
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
-import { ToggleWrapper } from '~/components'
 import { FiltersByChain, FiltersByToken } from '../../../shared'
 import { YieldAttributes } from '../../Attributes'
 import { FiltersByCategory } from '../../Categories'
@@ -32,24 +30,13 @@ export function MobileYieldMenus({
 
 	return (
 		<SlidingMenu label="Filters" variant="secondary">
-			<FiltersByToken
-				tokensList={tokensList}
-				selectedTokens={selectedTokens || []}
-				pathname={pathname || router.pathname}
-				variant="secondary"
-				subMenu
-			/>
-		</SlidingMenu>
-	)
-
-	return (
-		<Wrapper>
 			{tokensList && tokensList.length > 0 && (
 				<FiltersByToken
 					tokensList={tokensList}
 					selectedTokens={selectedTokens || []}
 					pathname={pathname || router.pathname}
 					variant="secondary"
+					subMenu
 				/>
 			)}
 
@@ -59,6 +46,7 @@ export function MobileYieldMenus({
 					selectedChains={selectedChains || []}
 					pathname={pathname || router.pathname}
 					variant="secondary"
+					subMenu
 				/>
 			)}
 
@@ -68,6 +56,7 @@ export function MobileYieldMenus({
 					selectedProjects={selectedProjects || []}
 					pathname={pathname || router.pathname}
 					variant="secondary"
+					subMenu
 				/>
 			)}
 
@@ -77,17 +66,19 @@ export function MobileYieldMenus({
 					selectedCategories={selectedCategories || []}
 					pathname={pathname || router.pathname}
 					variant="secondary"
+					subMenu
 				/>
 			)}
 
-			{attributes && <YieldAttributes pathname={pathname || router.pathname} variant="secondary" />}
+			{attributes && <YieldAttributes pathname={pathname || router.pathname} variant="secondary" subMenu />}
 
-			{tvlRange && <TVLRange variant="secondary" />}
+			{tvlRange && <TVLRange variant="secondary" subMenu />}
 
-			{apyRange && <APYRange variant="secondary" />}
+			{apyRange && <APYRange variant="secondary" subMenu />}
 
 			{show7dBaseApy && (
-				<ToggleWrapper>
+				<label className="sliding-menu-button">
+					<span>Show 7d Base APY</span>
 					<input
 						type="checkbox"
 						value="show7dBaseApy"
@@ -105,12 +96,12 @@ export function MobileYieldMenus({
 							)
 						}}
 					/>
-					<span>Show 7d Base APY</span>
-				</ToggleWrapper>
+				</label>
 			)}
 
 			{show7dIL && (
-				<ToggleWrapper>
+				<label className="sliding-menu-button">
+					<span>Show 7d IL</span>
 					<input
 						type="checkbox"
 						value="show7dIL"
@@ -128,21 +119,10 @@ export function MobileYieldMenus({
 							)
 						}}
 					/>
-					<span>Show 7d IL</span>
-				</ToggleWrapper>
+				</label>
 			)}
 
-			{resetFilters && <ResetAllYieldFilters pathname={pathname || router.pathname} variant="secondary" />}
-		</Wrapper>
+			{resetFilters && <ResetAllYieldFilters pathname={pathname || router.pathname} variant="secondary" subMenu />}
+		</SlidingMenu>
 	)
 }
-
-const Wrapper = styled.div`
-	display: flex;
-	gap: 12px;
-	flex-wrap: wrap;
-
-	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
-		display: none;
-	}
-`
