@@ -2,11 +2,12 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import YieldsSearch from '~/components/Search/Yields/Optimizer'
 import { IncludeExcludeTokens } from './IncludeExcludeTokens'
-import { DesktopYieldMenus } from './Menus/Desktop'
-import { MobileYieldMenus } from './Menus/Mobile'
 import { useMedia } from '~/hooks'
 import type { IYieldFiltersProps } from './types'
 import { LTV } from '../LTV'
+import { SlidingMenu } from '~/components/SlidingMenu'
+import { YieldFilterDropdowns } from './Dropdowns'
+import * as React from 'react'
 
 export function YieldFiltersV2({
 	header,
@@ -24,12 +25,12 @@ export function YieldFiltersV2({
 					projectsNumber + (projectsNumber > 1 ? ' protocols' : ' protocol')
 			  } on ${chainsNumber + (chainsNumber > 1 ? ' chains' : ' chain')}.`
 			: noOfStrategies
-			? `${noOfStrategies} Strategies`
+			? `: ${noOfStrategies} Strategies`
 			: null
 
 	const isSmall = useMedia(`(max-width: 30rem)`)
 
-	const { query, pathname } = useRouter()
+	const { query } = useRouter()
 
 	const lend = typeof query.lend === 'string' ? query.lend : null
 	const borrow = typeof query.borrow === 'string' ? query.borrow : null
@@ -44,10 +45,10 @@ export function YieldFiltersV2({
 			<Wrapper>
 				{strategyInputsData && (
 					<SearchWrapper>
-						<YieldsSearch pathname={pathname} value={lend} searchData={strategyInputsData} lend />
+						<YieldsSearch value={lend} searchData={strategyInputsData} lend />
 						{lend && (
 							<>
-								<YieldsSearch pathname={pathname} value={borrow} searchData={strategyInputsData} />
+								<YieldsSearch value={borrow} searchData={strategyInputsData} />
 
 								<LTV placeholder="% of max LTV" />
 							</>
@@ -55,14 +56,17 @@ export function YieldFiltersV2({
 					</SearchWrapper>
 				)}
 
-				{isSmall ? (
-					<MobileYieldMenus {...props} />
-				) : (
-					<>
-						{tokens && <IncludeExcludeTokens tokens={tokens} />}
-						<DesktopYieldMenus {...props} />
-					</>
-				)}
+				{tokens && !isSmall && <IncludeExcludeTokens tokens={tokens} />}
+
+				<DropdownsWrapper>
+					{isSmall ? (
+						<SlidingMenu label="Filters" variant="secondary">
+							<YieldFilterDropdowns {...props} isMobile />
+						</SlidingMenu>
+					) : (
+						<YieldFilterDropdowns {...props} />
+					)}{' '}
+				</DropdownsWrapper>
 			</Wrapper>
 		</div>
 	)
@@ -125,5 +129,17 @@ const SearchWrapper = styled.div`
 
 	@media (min-width: ${({ theme }) => theme.bpMed}) {
 		flex-direction: row;
+	}
+`
+
+const DropdownsWrapper = styled.div`
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+
+	@media screen and (max-width: 30rem) {
+		& > *:first-child {
+			width: 100%;
+		}
 	}
 `

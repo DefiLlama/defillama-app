@@ -318,6 +318,14 @@ export const GlobalStyle = createGlobalStyle`
 		}
 	}
 
+	.sliding-menu-button.no-bg {
+		background: none;
+	}
+
+	.sliding-menu-button.align-reverse {
+		flex-direction: row-reverse;
+	}
+
 	.combobox-input {
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
 		color: ${({ theme }) => theme.text1};
@@ -334,6 +342,13 @@ export const GlobalStyle = createGlobalStyle`
 
 	.select-options-wrapper {
 		overflow-y: auto;
+	}
+
+	.checkbox-filter {
+		display: flex;
+		gap: 6px;
+		align-items: center;
+		flex-wrap: nowrap;
 	}
 
 `

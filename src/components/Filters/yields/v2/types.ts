@@ -19,6 +19,10 @@ export interface IDropdownMenusProps {
 	show7dBaseApy?: boolean
 	show7dIL?: boolean
 	resetFilters?: boolean
+	excludeBadDebt?: boolean
+	selectedAttributes?: Array<string>
+	excludeRewardApy?: boolean
+	isMobile?: boolean
 }
 
 export interface IYieldFiltersProps extends IDropdownMenusProps {

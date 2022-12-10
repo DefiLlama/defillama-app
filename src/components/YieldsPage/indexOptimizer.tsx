@@ -1,56 +1,18 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
-import { Header } from '~/Theme'
-import { Panel, ToggleWrapper } from '~/components'
-import { TableFilters } from '~/components/Table/shared'
-import YieldsSearch from '~/components/Search/Yields/Optimizer'
+import { Panel } from '~/components'
 import YieldsOptimizerTable from '~/components/Table/Yields/Optimizer'
-import {
-	YieldAttributes,
-	FiltersByChain,
-	YieldProjects,
-	LTV,
-	ResetAllYieldFilters,
-	AvailableRange
-} from '~/components/Filters'
+import { YieldFiltersV2 } from '~/components/Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
-import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
-
-const SearchWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	width: 100%;
-	margin-top: 8px;
-
-	& > * {
-		gap: 8px;
-		flex: 1;
-	}
-
-	& > * {
-		& > *[data-searchicon='true'] {
-			top: 14px;
-			right: 16px;
-		}
-	}
-
-	@media (min-width: ${({ theme }) => theme.bpMed}) {
-		flex-direction: row;
-	}
-`
-
-const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
 
 const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lendingProtocols, searchData }) => {
-	const { query, pathname, push } = useRouter()
+	const { query } = useRouter()
 	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
 	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
 
-	const { lend, borrow, excludeRewardApy } = query
+	const { lend, borrow } = query
 	const { selectedChains, selectedAttributes, selectedLendingProtocols } = useFormatYieldQueryParams({
 		projectList,
 		chainList,
@@ -106,84 +68,26 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 		customLTV
 	])
 
-	const isBadDebtToggled = selectedAttributes.includes(BAD_DEBT_KEY)
-	const shouldExlcudeRewardApy = excludeRewardApy === 'true' ? true : false
+	const header = `Lending Optimizer Calculator ${
+		lend && borrow ? `(Supply: ${lend || ''} ➞ Borrow: ${borrow || ''})` : ''
+	}`
 
 	return (
 		<>
-			<Header>
-				Lending Optimizer Calculator{' '}
-				{lend && borrow ? (
-					<>
-						(Supply: {lend || ''} ➞ Borrow: {borrow || ''})
-					</>
-				) : null}
-			</Header>
-
-			<SearchWrapper>
-				<YieldsSearch pathname={pathname} lend searchData={searchData} data-alwaysdisplay />
-				<YieldsSearch pathname={pathname} searchData={searchData} data-alwaysdisplay />
-				<LTV placeholder="Custom LTV" />
-			</SearchWrapper>
-
-			<TableFilters>
-				<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
-				<YieldProjects
-					projectList={lendingProtocols}
-					selectedProjects={selectedLendingProtocols}
-					pathname={pathname}
-					label="Lending Protocols"
-					query="lendingProtocol"
-				/>
-				<YieldAttributes pathname={pathname} />
-				<AvailableRange />
-				<ToggleWrapper>
-					<input
-						type="checkbox"
-						value="hideEvents"
-						checked={isBadDebtToggled}
-						onChange={() => {
-							push(
-								{
-									pathname,
-									query: {
-										...query,
-										attribute: isBadDebtToggled
-											? selectedAttributes.filter((a) => a !== BAD_DEBT_KEY)
-											: [...selectedAttributes, BAD_DEBT_KEY]
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
-						}}
-					/>
-					<span>Exclude bad debt</span>
-				</ToggleWrapper>
-				<ToggleWrapper>
-					<input
-						type="checkbox"
-						value="hideEvents"
-						checked={shouldExlcudeRewardApy}
-						onChange={() => {
-							push(
-								{
-									pathname,
-									query: {
-										...query,
-										excludeRewardApy: !shouldExlcudeRewardApy
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
-						}}
-					/>
-					<span>Exclude reward APY</span>
-				</ToggleWrapper>
-
-				<ResetAllYieldFilters pathname={pathname} />
-			</TableFilters>
+			<YieldFiltersV2
+				header={header}
+				chainList={chainList}
+				selectedChains={selectedChains}
+				lendingProtocols={lendingProtocols}
+				selectedLendingProtocols={selectedLendingProtocols}
+				attributes={true}
+				availableRange={true}
+				resetFilters={true}
+				excludeBadDebt={true}
+				selectedAttributes={selectedAttributes}
+				excludeRewardApy={true}
+				strategyInputsData={searchData}
+			/>
 
 			{poolsData.length > 0 ? (
 				<YieldsOptimizerTable data={poolsData} />

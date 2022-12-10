@@ -16,7 +16,7 @@ interface IFilterBetweenRange {
 export function FilterBetweenRange({ name, header, onSubmit, variant = 'primary', subMenu }: IFilterBetweenRange) {
 	if (subMenu) {
 		return (
-			<SlidingMenu label={name} variant={variant}>
+			<SlidingMenu label={name}>
 				<Form onSubmit={onSubmit} data-variant={variant}>
 					<label>
 						<span>Min</span>

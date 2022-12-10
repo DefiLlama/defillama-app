@@ -9,6 +9,7 @@ import { findActiveItem } from './utils'
 import type { IBaseSearchProps } from '../types'
 
 const Wrapper = styled.div`
+	position: relative;
 	display: none;
 
 	&[data-alwaysdisplay='true'] {
@@ -16,7 +17,6 @@ const Wrapper = styled.div`
 	}
 
 	flex-direction: column;
-	position: relative;
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
 		display: flex;

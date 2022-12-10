@@ -1,9 +1,12 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
-import { Input, SearchIcon, SearchWrapper } from '~/components/Filters/yields/v2/IncludeExcludeTokens'
+import styled from 'styled-components'
+import { DesktopResults } from '../Base/Results/Desktop'
+import { Input } from '../Base/Input'
+import { useComboboxState } from 'ariakit'
+import { findActiveItem } from '../Base/utils'
 
 interface IYieldSearchProps {
-	pathname?: string
 	lend?: boolean
 	value?: string | null
 	searchData: Array<{ name: string; symbol: string; image: string }>
@@ -45,18 +48,49 @@ export function useFormatTokensSearchList({ lend, searchData }) {
 		return [stablecoinsSearch].concat(yieldsList)
 	}, [searchData, restParam, router.query, targetParam, router.pathname, queryParams])
 
-	return data
+	const onItemClick = (item) => {
+		router.push(item.route, undefined, { shallow: true })
+	}
+
+	return { data, onItemClick }
 }
 
-export default function YieldsSearch({ lend = false, searchData, pathname, value }: IYieldSearchProps) {
-	const data = useFormatTokensSearchList({ lend, searchData })
+export default function YieldsSearch({ lend = false, searchData, value }: IYieldSearchProps) {
+	const { data, onItemClick } = useFormatTokensSearchList({ lend, searchData })
+
+	const combobox = useComboboxState({
+		gutter: 6,
+		sameWidth: true,
+		...(value && { defaultValue: value }),
+		list: data.map((x) => x.name)
+	})
+
+	// select first item on open
+	const item = findActiveItem(combobox)
+	const firstId = combobox.first()
+
+	if (combobox.open && !item && firstId) {
+		combobox.setActiveId(firstId)
+	}
 
 	return (
-		<>
-			<SearchWrapper style={{ padding: '8px' }}>
-				<SearchIcon size={16} />
-				<Input placeholder={lend ? 'Collateral Token' : 'Token to Borrow'} />
-			</SearchWrapper>
-		</>
+		<Wrapper>
+			<Input
+				state={combobox}
+				placeholder={lend ? 'Collateral Token' : 'Token to Borrow'}
+				withValue
+				variant="secondary"
+			/>
+
+			<DesktopResults state={combobox} data={data} loading={false} onItemClick={onItemClick} />
+		</Wrapper>
 	)
 }
+
+const Wrapper = styled.div`
+	position: relative;
+
+	input {
+		width: 100%;
+	}
+`

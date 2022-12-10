@@ -153,13 +153,16 @@ export const SearchWrapper = styled.div`
 	gap: 8px;
 	position: relative;
 	background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
-	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 	border-radius: 8px;
 	padding: 8px;
 	padding-bottom: 0;
 
 	:focus-within {
 		outline: 1px solid ${({ theme }) => theme.text1};
+	}
+
+	&[data-alwaysdisplay='true'] {
+		display: flex;
 	}
 
 	svg {
@@ -174,6 +177,10 @@ export const SearchWrapper = styled.div`
 export const SearchIcon = styled(Search)`
 	@media screen and (max-width: ${({ theme }) => theme.bpSm}) {
 		display: none;
+
+		&[data-alwaysdisplay='true'] {
+			display: block;
+		}
 	}
 `
 
