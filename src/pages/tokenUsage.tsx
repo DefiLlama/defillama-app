@@ -89,9 +89,7 @@ export default function Tokens({ compressed }) {
 }
 
 export async function getStaticProps() {
-	const tokensList = await getAllCGTokensList()
-
-	const searchData = tokensList?.flat() ?? []
+	const searchData = await getAllCGTokensList()
 
 	const compressed = compressPageProps({
 		searchData: searchData.map((token) => ({

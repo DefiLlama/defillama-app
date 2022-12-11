@@ -6,7 +6,6 @@ import { Panel } from '~/components'
 import Row from '~/components/Row'
 import { Menu } from '~/components/DropdownMenu'
 import { YieldsPoolsTable } from '~/components/Table'
-import { YieldsSearch } from '~/components/Search'
 import { useIsClient } from '~/hooks'
 import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
 import OptionToggle from '~/components/OptionToggle'
@@ -67,8 +66,6 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Yields', name: 'Watchlist', hideOptions: true }} />
-
 			<Header>Saved Pools</Header>
 
 			<Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>

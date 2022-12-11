@@ -93,7 +93,7 @@ import YieldPage from '~/components/YieldsPage'
 import Link from '~/components/Link'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
-import { revalidate } from '~/api'
+import { getAllCGTokensList, revalidate } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
@@ -102,7 +102,19 @@ export async function getStaticProps() {
 		props: { ...data }
 	} = await getYieldPageData()
 
-	const pools = data.pools.filter((p) => whitelist.includes(p.projectName) && p.apy > 0)
+	const cgTokens = await getAllCGTokensList()
+
+	const tokens = []
+	const tokenSymbolsList = []
+
+	cgTokens.forEach((token) => {
+		if (token.symbol) {
+			tokens.push({ name: token.name, symbol: token.symbol.toUpperCase(), logo: token.image })
+			tokenSymbolsList.push(token.symbol.toUpperCase())
+		}
+	})
+
+	const pools = data.pools.filter((p) => whitelist.includes(p.projectName))
 
 	const compressed = compressPageProps({
 		...data,
@@ -113,7 +125,9 @@ export async function getStaticProps() {
 				set.add(pool.category)
 				return set
 			}, new Set())
-		)
+		),
+		tokens,
+		tokenSymbolsList
 	})
 
 	return {

@@ -10,7 +10,6 @@ interface TokenLogoProps {
 	size?: number
 	style?: React.CSSProperties
 	address?: string
-	skipApiRoute?: boolean
 	id?: string
 	onClick?: React.MouseEventHandler
 }
@@ -25,26 +24,16 @@ const Image = styled(NextImage)`
 	border-radius: 50%;
 	flex-shrink: 0;
 `
-// next/image won't work, idk why
-export default function TokenLogo({
-	logo = null, //PlaceHolder.src default
-	external = false /* TODO: temporary fix */,
-	size = 24,
-	style,
-	skipApiRoute = false,
-	id,
-	...rest
-}: TokenLogoProps) {
+
+export const isExternalImage = (imagePath: string) => {
+	return imagePath?.includes('http')
+}
+
+export default function TokenLogo({ logo = null, external = false, size = 24, style, id, ...rest }: TokenLogoProps) {
 	const [error, setError] = React.useState(false)
 
 	const isError = error || !logo || BAD_IMAGES[logo]
-	const imgSrc = isError
-		? PlaceHolder
-		: external
-		? skipApiRoute
-			? logo
-			: logo
-		: logo
+	const imgSrc = isError ? PlaceHolder : external ? logo : logo
 
 	return (
 		<Image

@@ -1,8 +1,8 @@
+import styled from 'styled-components'
 import { ArrowUpRight } from 'react-feather'
 import { ButtonYields } from '~/layout/Pool'
 import Bookmark from '~/components/Bookmark'
 import { CustomLink } from '~/components/Link'
-import styled from 'styled-components'
 import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import Tooltip from '~/components/Tooltip'
@@ -82,6 +82,18 @@ export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, 
 				<CustomLink href={tokenUrl}>{project}</CustomLink>
 			)}
 		</AirdropWrapper>
+	)
+}
+
+export function YieldsProject({ project, projectslug }: INameYield) {
+	const iconUrl = tokenIconUrl(project)
+	const tokenUrl = `/yields?project=${projectslug}`
+
+	return (
+		<Wrapper>
+			<TokenLogo logo={iconUrl} />
+			<CustomLink href={tokenUrl}>{project}</CustomLink>
+		</Wrapper>
 	)
 }
 

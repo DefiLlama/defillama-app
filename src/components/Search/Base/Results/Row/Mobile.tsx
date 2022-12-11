@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import TokenLogo from '~/components/TokenLogo'
+import TokenLogo, { isExternalImage } from '~/components/TokenLogo'
 import type { ISearchItem } from '../../../types'
 
 const Item = styled.div`
@@ -26,10 +26,6 @@ const Item = styled.div`
 	}
 `
 
-const isExternalImage = (imagePath: string) => {
-	return imagePath?.includes('http')
-}
-
 export const MobileRow = ({
 	data,
 	onItemClick,
@@ -52,13 +48,7 @@ export const MobileRow = ({
 			}}
 			{...props}
 		>
-			{data?.logo && (
-				<TokenLogo
-					logo={data?.logo}
-					external={isExternalImage(data.logo)}
-					skipApiRoute={router.pathname.includes('/yield')}
-				/>
-			)}
+			{data?.logo && <TokenLogo logo={data?.logo} external={isExternalImage(data.logo)} />}
 			<span>{data.name}</span>
 		</Item>
 	)

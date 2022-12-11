@@ -1,7 +1,13 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange } from '../shared'
+import { FilterBetweenRange, SecondaryLabel } from '../shared'
 
-export function AvailableRange() {
+export function AvailableRange({
+	variant = 'primary',
+	subMenu
+}: {
+	variant?: 'primary' | 'secondary'
+	subMenu?: boolean
+}) {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
@@ -25,5 +31,32 @@ export function AvailableRange() {
 			}
 		)
 	}
-	return <FilterBetweenRange header="Filter by min/max Available" onSubmit={handleSubmit} />
+
+	const { minAvailable, maxAvailable } = router.query
+	const min = typeof minAvailable === 'string' && minAvailable !== '' ? Number(minAvailable).toLocaleString() : null
+	const max = typeof maxAvailable === 'string' && maxAvailable !== '' ? Number(maxAvailable).toLocaleString() : null
+
+	const label =
+		min || max ? (
+			<>
+				<span>Available: </span>
+				<span data-selecteditems>{`${min || 'min'} - ${max || 'max'}`}</span>
+			</>
+		) : (
+			'Available'
+		)
+
+	const Header = () => {
+		return <SecondaryLabel>{label}</SecondaryLabel>
+	}
+
+	return (
+		<FilterBetweenRange
+			name="Available"
+			header={variant === 'secondary' ? <Header /> : 'Filter by min/max Available'}
+			onSubmit={handleSubmit}
+			variant={variant}
+			subMenu={subMenu}
+		/>
+	)
 }

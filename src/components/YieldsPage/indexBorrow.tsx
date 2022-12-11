@@ -1,20 +1,14 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
-import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
 import { YieldsBorrowTable } from '~/components/Table'
-import { YieldAttributes, FiltersByChain, YieldProjects, ResetAllYieldFilters } from '~/components/Filters'
-import { YieldsSearch } from '~/components/Search'
+import { YieldFiltersV2 } from '~/components/Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
-import { FiltersByToken } from '../Filters/shared/FilterByToken'
-import { useGetYieldsSearchList } from '../Search/Yields/hooks'
 
-const YieldPageBorrow = ({ pools, projectList, chainList, categoryList }) => {
+const YieldPageBorrow = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
-
-	const { data: tokens } = useGetYieldsSearchList()
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
 		useFormatYieldQueryParams({ projectList, chainList, categoryList })
@@ -76,25 +70,21 @@ const YieldPageBorrow = ({ pools, projectList, chainList, categoryList }) => {
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} pathname={pathname} />
-
-			<TableFilters>
-				<TableHeader>Yield Rankings</TableHeader>
-
-				<Dropdowns>
-					{tokens?.length ? (
-						<FiltersByToken
-							tokensList={tokens.map(({ symbol }) => symbol || '')}
-							selectedTokens={includeTokens}
-							pathname={pathname}
-						/>
-					) : null}
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
-					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
-					<YieldAttributes pathname={pathname} />
-					<ResetAllYieldFilters pathname={pathname} />
-				</Dropdowns>
-			</TableFilters>
+			<YieldFiltersV2
+				header="Yield Rankings"
+				poolsNumber={poolsData.length}
+				projectsNumber={selectedProjects.length}
+				chainsNumber={selectedChains.length}
+				tokens={tokens}
+				tokensList={tokenSymbolsList}
+				selectedTokens={includeTokens}
+				chainList={chainList}
+				selectedChains={selectedChains}
+				projectList={projectList}
+				selectedProjects={selectedProjects}
+				attributes={true}
+				resetFilters={true}
+			/>
 
 			{poolsData.length > 0 ? (
 				<YieldsBorrowTable data={poolsData} />

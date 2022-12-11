@@ -4,8 +4,9 @@ import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
-import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup } from '../shared'
+import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup, SecondaryLabel } from '../shared'
 import { lockupsCollateral, badDebt } from '~/components/YieldsPage/utils'
+import { SlidingMenu } from '~/components/SlidingMenu'
 
 export const attributeOptions = [
 	{
@@ -123,12 +124,36 @@ export const attributeOptions = [
 	}
 ]
 
-export function YieldAttributes({ pathname }: { pathname: string }) {
+export function YieldAttributes({
+	pathname,
+	variant = 'primary',
+	subMenu
+}: {
+	pathname: string
+	variant?: 'primary' | 'secondary'
+	subMenu?: boolean
+}) {
 	const router = useRouter()
 
 	const { attribute = [], ...queries } = router.query
 
-	const values = attributeOptions
+	const attributeOptionsFiltered = attributeOptions.filter((option) =>
+		pathname === '/yields/borrow'
+			? !option.disabledOnPages.includes('/yields/borrow')
+			: pathname === '/borrow'
+			? !option.disabledOnPages.includes('/borrow')
+			: pathname === '/yields/strategy'
+			? !option.disabledOnPages.includes('/yields/strategy')
+			: pathname === '/yields'
+			? !option.disabledOnPages.includes('/yields')
+			: pathname === '/yields/stablecoins'
+			? !option.disabledOnPages.includes('/yields/stablecoins')
+			: pathname === '/yields/loop'
+			? !option.disabledOnPages.includes('/yields/loop')
+			: true
+	)
+
+	const values = attributeOptionsFiltered
 		.filter((o) => {
 			if (attribute) {
 				if (typeof attribute === 'string') {
@@ -156,7 +181,7 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const select = useSelectState({
+	const selectState = useSelectState({
 		value: values,
 		setValue: updateAttributes,
 		gutter: 8,
@@ -164,23 +189,7 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		animated: true
 	})
 
-	const attributeOptionsFiltered = attributeOptions.filter((option) =>
-		pathname === '/yields/borrow'
-			? !option.disabledOnPages.includes('/yields/borrow')
-			: pathname === '/borrow'
-			? !option.disabledOnPages.includes('/borrow')
-			: pathname === '/yields/strategy'
-			? !option.disabledOnPages.includes('/yields/strategy')
-			: pathname === '/yields'
-			? !option.disabledOnPages.includes('/yields')
-			: pathname === '/yields/stablecoins'
-			? !option.disabledOnPages.includes('/yields/stablecoins')
-			: pathname === '/yields/loop'
-			? !option.disabledOnPages.includes('/yields/loop')
-			: true
-	)
-
-	const toggleAll = () => {
+	const toggleAllOptions = () => {
 		router.push(
 			{
 				pathname,
@@ -194,7 +203,7 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		)
 	}
 
-	const clear = () => {
+	const clearAllOptions = () => {
 		router.push(
 			{
 				pathname,
@@ -208,36 +217,90 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		)
 	}
 
-	const defaultValues = attributeOptions.filter((option) => option.defaultFilterFnOnPage[router.pathname]).length
+	const selectedAttributes = attributeOptionsFiltered
+		.filter((option) => option.defaultFilterFnOnPage[router.pathname])
+		.map((x) => x.name)
+		.concat(values)
 
-	let totalSelected = defaultValues ? defaultValues + values.length : values.length
+	const isSelected = selectedAttributes.length > 0
 
-	if (values.includes(YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()) && router.pathname === '/borrow') {
-		totalSelected -= 1
+	let selectedAttributeNames = isSelected
+		? selectedAttributes.map(
+				(attribute) => attributeOptionsFiltered.find((p) => p.key === attribute)?.name ?? attribute
+		  )
+		: []
+
+	if (subMenu) {
+		return (
+			<SlidingMenu label="Attributes" selectState={selectState}>
+				<SelectContent
+					options={attributeOptionsFiltered}
+					selectedOptions={values}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					pathname={router.pathname}
+					variant={variant}
+				/>
+			</SlidingMenu>
+		)
 	}
 
 	return (
 		<>
-			<SelectButton state={select}>
-				<span>Filter by Attribute</span>
-				<MenuButtonArrow />
-				{totalSelected > 0 && totalSelected !== attributeOptions.length && (
-					<ItemsSelected>{totalSelected}</ItemsSelected>
+			<SelectButton state={selectState} data-variant={variant}>
+				{variant === 'secondary' ? (
+					<SecondaryLabel>
+						{isSelected ? (
+							<>
+								<span>Attribute: </span>
+								<span data-selecteditems>
+									{selectedAttributeNames.length > 2
+										? `${selectedAttributeNames[0]} + ${selectedAttributeNames.length - 1} others`
+										: selectedAttributeNames.join(', ')}
+								</span>
+							</>
+						) : (
+							'Attribute'
+						)}
+					</SecondaryLabel>
+				) : (
+					<>
+						<span>Filter by Attribute</span>
+						{isSelected && <ItemsSelected>{selectedAttributes.length}</ItemsSelected>}
+					</>
 				)}
-			</SelectButton>
-			<SelectPopover state={select} modal={!isLarge}>
-				<FilterFnsGroup>
-					<button onClick={clear}>Clear</button>
 
-					<button onClick={toggleAll}>Toggle all</button>
-				</FilterFnsGroup>
-				{attributeOptionsFiltered.map((option) => (
-					<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
-						{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
-						<Checkbox checked={values.includes(option.key) || option.disabledOnPages.includes(router.pathname)} />
-					</SelectItem>
-				))}
+				<MenuButtonArrow />
+			</SelectButton>
+
+			<SelectPopover state={selectState} modal={!isLarge} data-variant={variant}>
+				<SelectContent
+					options={attributeOptionsFiltered}
+					selectedOptions={values}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					pathname={router.pathname}
+					variant={variant}
+				/>
 			</SelectPopover>
+		</>
+	)
+}
+
+const SelectContent = ({ clearAllOptions, toggleAllOptions, variant, pathname, options, selectedOptions }) => {
+	return (
+		<>
+			<FilterFnsGroup data-variant={variant}>
+				<button onClick={clearAllOptions}>Clear</button>
+
+				<button onClick={toggleAllOptions}>Toggle all</button>
+			</FilterFnsGroup>
+			{options.map((option) => (
+				<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(pathname)}>
+					{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
+					<Checkbox checked={selectedOptions.includes(option.key) || option.disabledOnPages.includes(pathname)} />
+				</SelectItem>
+			))}
 		</>
 	)
 }

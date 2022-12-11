@@ -1,5 +1,5 @@
 import * as React from 'react'
-import styled, { ThemeProvider as StyledComponentsThemeProvider, createGlobalStyle } from 'styled-components'
+import styled, { ThemeProvider as StyledComponentsThemeProvider, createGlobalStyle, keyframes } from 'styled-components'
 import { Text } from 'rebass'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { sm, med, lg, xl, twoXl } from '~/constants/breakpoints'
@@ -101,6 +101,18 @@ export const Header = styled.h1`
 	margin: 0 0 -20px;
 `
 
+const slideUp = keyframes`
+	0% {
+		opacity: 0;
+	transform: translateY(100%);
+	}
+
+	100% {
+		transform: translateY(0%);
+		opacity: 1;
+	}
+`
+
 export const GlobalStyle = createGlobalStyle`
 	body, #__next {
 		background-color: ${({ theme }) => theme.background};
@@ -152,4 +164,191 @@ export const GlobalStyle = createGlobalStyle`
 	.tooltip-trigger a {
 		display: flex;
 	}
+
+
+	.sliding-menu-item {
+		flex-shrink: 0;
+		padding: 8px;
+		color: ${({ theme }) => theme.text1};
+		cursor: pointer;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		background: none;
+		border: none;
+		text-align: start;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+
+		& > *[data-name] {
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+
+		opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
+
+		@media screen and (min-width: 640px) {
+			
+
+			:hover,
+			:focus-visible,
+			&[data-active-item] {
+				outline: none;
+
+				&[data-variant='secondary'] {
+					background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
+				}
+			}
+		}
+	}
+
+	.sliding-menu {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		height: 70vh;
+		min-width: 180px;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: ${({ theme }) => theme.text1};
+		background: ${({ theme }) => theme.bg1};
+		border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#40444f' : '#cbcbcb')};
+		border-radius: 8px 8px 0 0;
+		filter: ${({ theme }) =>
+			theme.mode === 'dark'
+				? 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 40%))'
+				: 'drop-shadow(0px 6px 10px rgba(0, 0, 0, 15%))'};
+		overflow-y: auto;
+		outline: none !important;
+		z-index: 10;
+		padding: 8px;
+
+		#no-results {
+			padding: 0 12px 8px;
+			text-align: center;
+		}
+
+		&[data-variant='secondary'] {
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
+		}
+
+		&[data-menuwrapper='true'] {
+			overflow-x: scroll;
+			overscroll-behavior: contain;
+			scroll-behavior: smooth;
+			scroll-snap-type: x mandatory;
+			scroll-snap-stop: always;
+			scrollbar-width: none;
+			animation: ${slideUp} 0.2s ease;
+			z-index: 10;
+
+			::-webkit-scrollbar {
+				display: none;
+			}
+		}
+
+		&[data-leave] {
+			z-index: 0;
+		}
+
+		#no-results {
+			opacity: 0.7;
+			margin: auto;
+		}
+
+		@media screen and (min-width: 640px) {
+			max-height: 400px;
+			font-size: 0.825rem;
+			font-weight: 400;
+			gap: 0px;
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
+			border-radius: 8px;
+			transform: translateY(0%);
+
+			&[data-variant='secondary'] {
+				background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
+			}
+		}
+	}
+
+	.sliding-menu-button {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		padding: 8px 12px;
+		font-size: 0.825rem;
+		border-radius: 8px;
+		cursor: pointer;
+		outline: none;
+		border: 1px solid transparent;
+		color: ${({ theme }) => theme.text1};
+
+		white-space: nowrap;
+
+		:focus-visible {
+			outline: ${({ theme }) => '1px solid ' + theme.text1};
+			outline-offset: 1px;
+		}
+
+		span:first-of-type {
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+
+		svg {
+			position: relative;
+			top: 1px;
+		}
+
+		&[data-variant='secondary'] {
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+			font-size: 0.75rem;
+
+			:hover,
+			:focus-visible,
+			&[data-focus-visible] {
+				background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+			}
+		}
+	}
+
+	.sliding-menu-button.no-bg {
+		background: none;
+	}
+
+	.sliding-menu-button.align-reverse {
+		flex-direction: row-reverse;
+	}
+
+	.combobox-input {
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
+		color: ${({ theme }) => theme.text1};
+		font: inherit;
+		padding: 8px 12px;
+		border: ${({ theme }) => '1px solid ' + theme.text4};
+		border-radius: 8px;
+		margin: 12px 12px 0;
+	
+		:focus-visible {
+			outline: ${({ theme }) => '1px solid ' + theme.text1};
+		}
+	}
+
+	.select-options-wrapper {
+		overflow-y: auto;
+	}
+
+	.checkbox-filter {
+		display: flex;
+		gap: 6px;
+		align-items: center;
+		flex-wrap: nowrap;
+	}
+
 `

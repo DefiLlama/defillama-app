@@ -1,29 +1,6 @@
 import { useRouter } from 'next/router'
+import { Search } from 'react-feather'
 import styled from 'styled-components'
-
-const Input = styled.input`
-	padding: 14px 16px;
-	background: ${({ theme }) => theme.bg6};
-	color: ${({ theme }) => theme.text1};
-	font-size: 1rem;
-	border: none;
-	border-radius: 12px;
-	outline: none;
-
-	::placeholder {
-		color: ${({ theme }) => theme.text3};
-		font-size: 1rem;
-	}
-
-	&[data-focus-visible] {
-		outline: ${({ theme }) => '1px solid ' + theme.text4};
-	}
-
-	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		border: 1px solid ${({ theme }) => theme.divider};
-		border-bottom: 0;
-	}
-`
 
 export function LTV({ placeholder }: { placeholder: string }) {
 	const router = useRouter()
@@ -55,8 +32,34 @@ export function LTV({ placeholder }: { placeholder: string }) {
 	}
 
 	return (
-		<>
-			<Input placeholder={placeholder} onChange={onChange} />
-		</>
+		<Wrapper data-alwaysdisplay>
+			<Search size={16} />
+			<input placeholder={placeholder} onChange={onChange} type="number" />
+		</Wrapper>
 	)
 }
+
+const Wrapper = styled.div`
+	position: relative;
+	display: flex;
+	flex: nowrap;
+	background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+	border-radius: 8px;
+
+	svg {
+		position: absolute;
+		top: 8px;
+		left: 8px;
+		color: #646466;
+	}
+
+	input {
+		border-radius: 8px;
+		border: none;
+		padding: 8px;
+		padding-left: 32px;
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		font-size: 0.875rem;
+		width: 100%;
+	}
+`

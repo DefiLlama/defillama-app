@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange } from '../shared'
+import { FilterBetweenRange, SecondaryLabel } from '../shared'
 
-export function TVLRange() {
+export function TVLRange({ variant = 'primary', subMenu }: { variant?: 'primary' | 'secondary'; subMenu?: boolean }) {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
@@ -25,5 +25,32 @@ export function TVLRange() {
 			}
 		)
 	}
-	return <FilterBetweenRange header="Filter by min/max TVL" onSubmit={handleSubmit} />
+
+	const { minTvl, maxTvl } = router.query
+	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl).toLocaleString() : null
+	const max = typeof maxTvl === 'string' && maxTvl !== '' ? Number(maxTvl).toLocaleString() : null
+
+	const label =
+		min || max ? (
+			<>
+				<span>TVL: </span>
+				<span data-selecteditems>{`${min || 'min'} - ${max || 'max'}`}</span>
+			</>
+		) : (
+			'TVL'
+		)
+
+	const Header = () => {
+		return <SecondaryLabel>{label}</SecondaryLabel>
+	}
+
+	return (
+		<FilterBetweenRange
+			name="TVL Range"
+			header={variant === 'secondary' ? <Header /> : 'Filter by min/max TVL'}
+			onSubmit={handleSubmit}
+			variant={variant}
+			subMenu={subMenu}
+		/>
+	)
 }

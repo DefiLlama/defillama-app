@@ -25,6 +25,17 @@ export const Select = styled(AriaSelect)`
 	&[data-focus-visible] {
 		outline: ${({ theme }) => '1px solid ' + theme.text1};
 	}
+
+	&[data-variant='secondary'] {
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		font-size: 0.75rem;
+
+		:hover,
+		:focus-visible,
+		&[data-focus-visible] {
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		}
+	}
 `
 
 export const SelectPopover = styled(AriaSelectPopover)`
@@ -66,6 +77,10 @@ export const SelectPopover = styled(AriaSelectPopover)`
 		text-align: center;
 	}
 
+	&[data-variant='secondary'] {
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
+	}
+
 	@media screen and (min-width: 640px) {
 		max-height: 400px;
 		font-size: 0.825rem;
@@ -74,6 +89,10 @@ export const SelectPopover = styled(AriaSelectPopover)`
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
 		border-radius: 8px;
 		transform: translateY(0%);
+
+		&[data-variant='secondary'] {
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
+		}
 	}
 `
 
@@ -189,6 +208,17 @@ export const SelectButton = styled(AriaSelect)`
 		position: relative;
 		top: 1px;
 	}
+
+	&[data-variant='secondary'] {
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		font-size: 0.75rem;
+
+		:hover,
+		:focus-visible,
+		&[data-focus-visible] {
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+		}
+	}
 `
 
 export const FilterFnsGroup = styled.span`
@@ -208,8 +238,18 @@ export const FilterFnsGroup = styled.span`
 		color: ${({ theme }) => theme.primary1};
 	}
 
+	&[data-variant='secondary'] {
+		top: -8px;
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
+	}
+
 	@media screen and (min-width: ${({ theme: { bpLg } }) => bpLg}) {
 		background: ${({ theme }) => (theme.mode === 'dark' ? '#1c1f2d' : '#f4f6ff')};
+
+		&[data-variant='secondary'] {
+			top: 0px;
+			background: ${({ theme }) => (theme.mode === 'dark' ? '#222429' : '#f6f6f6')};
+		}
 	}
 `
 
@@ -222,4 +262,15 @@ export const ItemsSelected = styled.span`
 	min-width: 16px;
 	background: ${({ theme }) => theme.bg4};
 	border-radius: 9999px;
+`
+
+export const SecondaryLabel = styled.span`
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	font-size: 0.75rem;
+
+	& > *[data-selecteditems='true'] {
+		color: ${({ theme }) => theme.link};
+	}
 `
