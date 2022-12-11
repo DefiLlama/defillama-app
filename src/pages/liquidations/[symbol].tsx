@@ -15,7 +15,7 @@ import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
 import { PositionsTable, SmolHints } from '~/components/LiquidationsPage/PositionsTable'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import type { ISearchItem } from '~/components/Search/types'
-import { maxAgeForNext, revalidate } from '~/api'
+import { addMaxAgeHeaderForNext, maxAgeForNext, revalidate } from '~/api'
 import { assetIconUrl } from '~/utils'
 import {
 	ChartData,
@@ -26,41 +26,12 @@ import {
 } from '~/utils/liquidations'
 import { LiquidationsContext } from '~/components/LiquidationsPage/context'
 
-// export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartData }> = async ({ params }) => {
-// 	const symbol = (params.symbol as string).toLowerCase()
-// 	const { assets: options } = await getAvailableAssetsList()
-// 	const data = await getLatestChartData(symbol, 100)
-// 	const prevData = (await getPrevChartData(symbol, 100, 3600 * 24)) ?? data
-// 	return {
-// 		props: { data, prevData, options },
-// 		revalidate: revalidate(5)
-// 	}
-// }
-
-// export const getStaticPaths: GetStaticPaths = async () => {
-// 	const { assets } = await getAvailableAssetsList()
-// 	const paths = assets
-// 		.map((x) => (x.route as string).split('/').pop())
-// 		.map((x) => ({
-// 			params: { symbol: x.toLowerCase() }
-// 		}))
-
-// 	return { paths: paths.slice(0, 5), fallback: 'blocking' }
-// }
-
 export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
 	const symbol = (params.symbol as string).toLowerCase()
 	const { assets: options } = await getAvailableAssetsList()
 	const data = await getLatestChartData(symbol, 100)
 	const prevData = (await getPrevChartData(symbol, 100, 3600 * 24)) ?? data
-	res.setHeader(
-		'CDN-Cache-Control',
-		`max-age=${maxAgeForNext([0, 10, 20, 30, 40, 50, 60])}, stale-while-revalidate=1200`
-	)
-	res.setHeader(
-		'Cache-Control',
-		`public, s-maxage=${maxAgeForNext([0, 10, 20, 30, 40, 50, 60])}, stale-while-revalidate=1200`
-	)
+	addMaxAgeHeaderForNext(res, [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55], 1200)
 	return {
 		props: { data, prevData, options }
 	}

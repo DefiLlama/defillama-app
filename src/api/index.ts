@@ -1,3 +1,4 @@
+import { ServerResponse } from 'http'
 import useSWR from 'swr'
 import { CG_TOKEN_API } from '~/constants/index'
 import { arrayFetcher, retrySWR } from '~/utils/useSWR'
@@ -74,4 +75,9 @@ export function maxAgeForNext(minutesForRollover: number[]) {
 	const nextMinute = minutesForRollover.find((m) => m > currentMinute) ?? Math.min(...minutesForRollover) + 60
 	const maxAge = nextMinute * 60 - currentMinute * 60 - currentSecond
 	return maxAge
+}
+
+export function addMaxAgeHeaderForNext(res: ServerResponse, minutesForRollover: number[], swr = 1200) {
+	res.setHeader('CDN-Cache-Control', `max-age=${maxAgeForNext(minutesForRollover)}, stale-while-revalidate=${swr}`)
+	res.setHeader('Cache-Control', `public, s-maxage=${maxAgeForNext(minutesForRollover)}, stale-while-revalidate=${swr}`)
 }
