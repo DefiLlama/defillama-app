@@ -1,9 +1,10 @@
 import Layout from '~/layout'
-import { revalidate } from '~/api'
-import BridgeList from "~/components/BridgesPage/BridgeList"
+import { addMaxAgeHeaderForNext } from '~/api'
+import BridgeList from '~/components/BridgesPage/BridgeList'
 import { getBridgeOverviewPageData } from '~/api/categories/bridges'
 
-export async function getStaticProps({}) {
+export const getServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const props = await getBridgeOverviewPageData(null)
 
 	/*
@@ -13,10 +14,9 @@ export async function getStaticProps({}) {
 	*/
 	return {
 		props: {
-			...props,
+			...props
 			// backgroundColor
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 

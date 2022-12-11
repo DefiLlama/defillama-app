@@ -1,13 +1,13 @@
 import Layout from '~/layout'
 import ChainPage from '~/components/ChainPage'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext, revalidate } from '~/api'
 import { getChainPageData } from '~/api/categories/protocols'
 
-export async function getStaticProps() {
+export const getServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const data = await getChainPageData()
 	return {
-		...data,
-		revalidate: revalidate()
+		...data
 	}
 }
 

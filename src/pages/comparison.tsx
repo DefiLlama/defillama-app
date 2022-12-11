@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import useSWR from 'swr'
 import styled from 'styled-components'
 import Layout from '~/layout'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { IChartProps } from '~/components/ECharts/types'
 import { arrayFetcher } from '~/utils/useSWR'
@@ -16,12 +16,14 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { formatProtocolsTvlChartData } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import { fuseProtocolData } from '~/api/categories/protocols'
+import { GetServerSideProps } from 'next'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo'])
 
 	const stackColors = await Promise.allSettled(
@@ -40,8 +42,7 @@ export async function getStaticProps() {
 		props: {
 			protocols: protocols.map((p) => p.name),
 			stackColors: colors
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 

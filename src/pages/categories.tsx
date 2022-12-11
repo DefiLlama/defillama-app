@@ -6,16 +6,18 @@ import Layout from '~/layout'
 import { Panel } from '~/components'
 import { ProtocolsCategoriesTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import type { IChartProps } from '~/components/ECharts/types'
+import { GetServerSideProps } from 'next'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const protocols = await getProtocolsRaw()
 	const chartAndColorsData = await getCategoriesPageData()
 
@@ -39,8 +41,7 @@ export async function getStaticProps() {
 		props: {
 			categories: formattedCategories.sort((a, b) => b.tvl - a.tvl),
 			...chartAndColorsData
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 
@@ -76,7 +77,7 @@ export const descriptions = {
 	'Liquid Staking':
 		'Protocols that allow you to stake assets in exchange of a reward, plus the receipt for the staking position is tradeable and liquid',
 	Oracle: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)',
-	'Undercollateralized Lending': "Lending with no collateral backing loans",
+	'Undercollateralized Lending': 'Lending with no collateral backing loans'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {

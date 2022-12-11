@@ -1,9 +1,11 @@
+import { GetServerSideProps } from 'next'
 import * as React from 'react'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import HacksContainer from '~/containers/Hacks'
 import { formattedNum, toYearMonth } from '~/utils'
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const data = (await fetch('https://defi-hacks-api.herokuapp.com/').then((r) => r.json())).map((h) => ({
 		chains: h.chain,
 		classification: h.classification,
@@ -13,7 +15,7 @@ export async function getStaticProps() {
 		name: h.name,
 		technique: h.technique,
 		bridge: h.bridge_multichain_application,
-		link:h.link,
+		link: h.link
 	}))
 
 	const monthlyHacks = {}
@@ -22,7 +24,7 @@ export async function getStaticProps() {
 		const monthlyDate = toYearMonth(r.date)
 		monthlyHacks[monthlyDate] = (monthlyHacks[monthlyDate] ?? 0) + r.amount
 	})
-	
+
 	const totalHacked = formattedNum(
 		data.map((hack) => hack.amount).reduce((acc, amount) => acc + amount, 0) / 1000,
 		true
@@ -51,13 +53,12 @@ export async function getStaticProps() {
 			totalHacked,
 			totalHackedDefi,
 			totalRugs
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 
 const Raises = ({ data, monthlyHacks, ...props }) => {
-	return <HacksContainer data={data} monthlyHacks={monthlyHacks} {...props as any} />
+	return <HacksContainer data={data} monthlyHacks={monthlyHacks} {...(props as any)} />
 }
 
 export default Raises

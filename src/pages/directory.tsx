@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { tokenIconUrl } from '~/utils'
 import styled from 'styled-components'
@@ -7,8 +7,10 @@ import { useComboboxState } from 'ariakit'
 import { Input } from '~/components/Search/Base/Input'
 import { DesktopResults } from '~/components/Search/Base/Results/Desktop'
 import Announcement from '~/components/Announcement'
+import { GetServerSideProps } from 'next'
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo', 'url'])
 	return {
 		props: {
@@ -17,8 +19,7 @@ export async function getStaticProps() {
 				logo: tokenIconUrl(protocol.name),
 				route: protocol.url
 			}))
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 
