@@ -102,7 +102,7 @@ const cexData = [
 		walletsLink: null
 	},
 	{
-		name: 'WOO Cex',
+		name: 'WOO X',
 		slug: 'woo-cex',
 		coin: 'WOO',
 		coinSymbol: 'WOO',
