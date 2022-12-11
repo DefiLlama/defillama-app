@@ -31,7 +31,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, res }) =>
 	const { assets: options } = await getAvailableAssetsList()
 	const data = await getLatestChartData(symbol, 100)
 	const prevData = (await getPrevChartData(symbol, 100, 3600 * 24)) ?? data
-	addMaxAgeHeaderForNext(res, [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55], 1200)
+	addMaxAgeHeaderForNext(res, [5, 25, 45], 1200)
 	return {
 		props: { data, prevData, options }
 	}
