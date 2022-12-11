@@ -2,11 +2,13 @@ import Layout from '~/layout'
 import PlotsPage from '~/components/YieldsPage/indexPlots'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
-import { getAllCGTokensList, revalidate } from '~/api'
+import { addMaxAgeHeaderForNext, getAllCGTokensList } from '~/api'
 import { getYieldPageData, getYieldMedianData } from '~/api/categories/yield'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
+import { GetServerSideProps } from 'next'
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [23], 3600)
 	const {
 		props: { ...data }
 	} = await getYieldPageData()
@@ -28,8 +30,7 @@ export async function getStaticProps() {
 	const compressed = compressPageProps({ ...data, median: median.props, tokens, tokenSymbolsList })
 
 	return {
-		props: { compressed },
-		revalidate: revalidate(23)
+		props: { compressed }
 	}
 }
 

@@ -3,10 +3,11 @@ import { YieldsProjectsTable } from '~/components/Table'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 
 import PageHeader from '~/components/PageHeader'
+import { GetServerSideProps } from 'next'
 
 function median(numbers) {
 	const sorted: any = Array.from(numbers).sort((a: number, b: number) => a - b)
@@ -19,7 +20,8 @@ function median(numbers) {
 	return sorted[middle]
 }
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [23], 3600)
 	const data = await getYieldPageData()
 
 	const projects = {}
@@ -51,8 +53,7 @@ export async function getStaticProps() {
 	})
 
 	return {
-		props: { compressed },
-		revalidate: revalidate(23)
+		props: { compressed }
 	}
 }
 

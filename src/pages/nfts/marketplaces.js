@@ -7,10 +7,11 @@ import SEO from '~/components/SEO'
 import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
 import { NftMarketplacesTable } from '~/components/Table'
 import { getRandomColor } from '~/utils'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getNFTMarketplacesData, getNFTMarketplaceChartData } from '~/api/categories/nfts'
 
-export async function getStaticProps() {
+export const getServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const marketplaceData = await getNFTMarketplacesData()
 
 	const currentData = marketplaceData.reduce((acc, curr) => {
@@ -53,8 +54,7 @@ export async function getStaticProps() {
 			marketplacesUnique: marketplacesUnique || null,
 			stackedDataset: stackedDataset || null,
 			daySum: daySum || null
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 

@@ -2,11 +2,13 @@ import Layout from '~/layout'
 import YieldsStrategyPage from '~/components/YieldsPage/indexStrategy'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
-import { getAllCGTokensList, revalidate } from '~/api'
+import { addMaxAgeHeaderForNext, getAllCGTokensList } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
+import { GetServerSideProps } from 'next'
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [23], 3600)
 	const {
 		props: { pools, allPools, ...data }
 	} = await getLendBorrowData()
@@ -35,8 +37,7 @@ export async function getStaticProps() {
 	})
 
 	return {
-		props: { compressed },
-		revalidate: revalidate(23)
+		props: { compressed }
 	}
 }
 

@@ -1,7 +1,8 @@
 import Layout from '~/layout'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext, revalidate } from '~/api'
 import { Header } from '~/Theme'
 import { CEXTable } from '~/components/Table/Defi'
+import { GetServerSideProps } from 'next'
 
 const cexData = [
 	{
@@ -23,7 +24,7 @@ const cexData = [
 		coin: null,
 		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt'
 	},
-		{
+	{
 		name: 'Huobi',
 		slug: 'Huobi',
 		coin: 'HT',
@@ -179,7 +180,8 @@ const cexData = [
 	}
 ]
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const cexs = await Promise.all(
 		cexData.map(async (c) => {
 			if (c.slug === undefined) {
@@ -199,8 +201,7 @@ export async function getStaticProps() {
 	return {
 		props: {
 			cexs
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 

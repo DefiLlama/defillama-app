@@ -93,11 +93,13 @@ import YieldPage from '~/components/YieldsPage'
 import Link from '~/components/Link'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
-import { getAllCGTokensList, revalidate } from '~/api'
+import { addMaxAgeHeaderForNext, getAllCGTokensList, revalidate } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
+import { GetServerSideProps } from 'next'
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [23], 3600)
 	let {
 		props: { ...data }
 	} = await getYieldPageData()
@@ -131,8 +133,7 @@ export async function getStaticProps() {
 	})
 
 	return {
-		props: { compressed },
-		revalidate: revalidate(23)
+		props: { compressed }
 	}
 }
 

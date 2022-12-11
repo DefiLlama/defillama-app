@@ -7,10 +7,11 @@ import SEO from '~/components/SEO'
 import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
 import { NftChainsTable } from '~/components/Table'
 import { getRandomColor } from '~/utils'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getNFTChainChartData, getNFTChainsData } from '~/api/categories/nfts'
 
-export async function getStaticProps() {
+export const getServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const chainData = await getNFTChainsData()
 
 	const currentData = chainData.reduce((acc, curr) => {
@@ -53,8 +54,7 @@ export async function getStaticProps() {
 			chainsUnique: chainsUnique || null,
 			stackedDataset: stackedDataset || null,
 			daySum: daySum || null
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 
