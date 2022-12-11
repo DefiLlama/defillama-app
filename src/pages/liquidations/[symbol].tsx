@@ -53,10 +53,13 @@ export const getServerSideProps: GetServerSideProps = async ({ params, res }) =>
 	const { assets: options } = await getAvailableAssetsList()
 	const data = await getLatestChartData(symbol, 100)
 	const prevData = (await getPrevChartData(symbol, 100, 3600 * 24)) ?? data
-	res.setHeader('CDN-Cache-Control', `max-age=${maxAgeForNext([0, 10, 20, 30, 40, 50, 60])}`)
+	res.setHeader(
+		'CDN-Cache-Control',
+		`max-age=${maxAgeForNext([0, 10, 20, 30, 40, 50, 60])}, stale-while-revalidate=1200`
+	)
 	res.setHeader(
 		'Cache-Control',
-		`public, s-maxage=${maxAgeForNext([0, 10, 20, 30, 40, 50, 60])}, stale-while-revalidate=10`
+		`public, s-maxage=${maxAgeForNext([0, 10, 20, 30, 40, 50, 60])}, stale-while-revalidate=1200`
 	)
 	return {
 		props: { data, prevData, options }
