@@ -5,8 +5,9 @@ import Layout from '~/layout'
 import { Divider, Panel } from '~/components'
 import { RowBetween } from '~/components/Row'
 import Link from '~/components/Link'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/protocols'
+import { GetServerSideProps } from 'next'
 
 const DashGrid = styled.div`
 	display: grid;
@@ -106,7 +107,8 @@ function AboutPage({ chains, protocols }) {
 	)
 }
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const data = await getChainPageData()
 
 	const chains = data?.props?.chainsSet?.length ?? null
@@ -116,8 +118,7 @@ export async function getStaticProps() {
 		props: {
 			chains,
 			protocols
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 

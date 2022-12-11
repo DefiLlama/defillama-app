@@ -9,12 +9,13 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { GroupChains } from '~/components/MultiSelect'
 import { toNiceCsvDate, download } from '~/utils'
-import { revalidate } from '~/api'
 import { getChainsPageData, getNewChainsPageData } from '~/api/categories/protocols'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { useGroupChainsByParent } from '~/hooks/data'
+import { addMaxAgeHeaderForNext } from '~/api'
+import { GetServerSideProps } from 'next'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
 	ssr: false
@@ -24,11 +25,11 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ res }) => {
 	const data = await getChainsPageData('All')
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	return {
-		...data,
-		revalidate: revalidate()
+		props: data.props
 	}
 }
 
@@ -108,9 +109,9 @@ export default function ChainsContainer({
 		}, [chainTvls, extraTvlsEnabled, stackedDataset, tvlTypes])
 
 	const downloadCsv = async () => {
-		window.alert("Data download might take up to 1 minute, click OK to proceed")
+		window.alert('Data download might take up to 1 minute, click OK to proceed')
 		const rows = [['Timestamp', 'Date', ...chainsUnique]]
-		const {props} = await getNewChainsPageData("All")
+		const { props } = await getNewChainsPageData('All')
 		const { chainsWithExtraTvlsByDay } = groupDataWithTvlsByDay({
 			chains: props.stackedDataset,
 			tvlTypes,
