@@ -1,15 +1,16 @@
 import * as React from 'react'
 import PeggedContainer from '~/containers/PeggedContainer'
-import { standardizeProtocolName } from '~/utils'
 import { getPeggedColor } from '~/utils/getColor'
-import { revalidate } from '~/api'
-import { getPeggedAssetPageData, getPeggedAssets } from '~/api/categories/stablecoins'
+import { addMaxAgeHeaderForNext } from '~/api'
+import { getPeggedAssetPageData } from '~/api/categories/stablecoins'
 
-export async function getStaticProps({
+export const getServerSideProps = async ({
 	params: {
 		peggedasset: [peggedasset]
-	}
-}) {
+	},
+	res
+}) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const data = await getPeggedAssetPageData(peggedasset)
 	const { chainsUnique, chainCirculatings, peggedAssetData, totalCirculating, unreleased, mcap, bridgeInfo } =
 		data.props
@@ -26,19 +27,8 @@ export async function getStaticProps({
 			mcap,
 			bridgeInfo,
 			backgroundColor
-		},
-		revalidate: revalidate()
+		}
 	}
-}
-
-export async function getStaticPaths() {
-	const res = await getPeggedAssets()
-
-	const paths = res.peggedAssets.map(({ name }) => ({
-		params: { peggedasset: [standardizeProtocolName(name)] }
-	}))
-
-	return { paths: paths.slice(0, 11), fallback: 'blocking' }
 }
 
 export default function PeggedAsset(props) {

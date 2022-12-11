@@ -1,26 +1,13 @@
 import ChainPage from '~/components/ChainPage'
-import { PROTOCOLS_API } from '~/constants/index'
 import Layout from '~/layout'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/protocols'
 
-export async function getStaticProps({ params }) {
+export const getServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const chain = params.chain
 	const data = await getChainPageData(chain)
-	return {
-		...data,
-		revalidate: revalidate()
-	}
-}
-
-export async function getStaticPaths() {
-	const res = await fetch(PROTOCOLS_API)
-
-	const paths = (await res.json()).chains.slice(0, 20).map((chain) => ({
-		params: { chain }
-	}))
-
-	return { paths, fallback: 'blocking' }
+	return { ...data }
 }
 
 export default function Chain({ chain, ...props }) {

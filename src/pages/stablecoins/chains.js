@@ -1,18 +1,17 @@
 import Layout from '~/layout'
 import PeggedChainsOverview from '~/components/PeggedPage/PeggedChainsOverview'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getPeggedChainsPageData } from '~/api/categories/stablecoins'
 
-export async function getStaticProps() {
+export const getServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const props = await getPeggedChainsPageData()
 
-	if (!props.chainCirculatings || props.chainCirculatings?.length === 0) { // TODO: Remove
-		throw new Error("getPeggedChainsPageData() broken")
+	if (!props.chainCirculatings || props.chainCirculatings?.length === 0) {
+		// TODO: Remove
+		throw new Error('getPeggedChainsPageData() broken')
 	}
-	return {
-		props,
-		revalidate: revalidate()
-	}
+	return { props }
 }
 
 export default function PeggedAssets({

@@ -1,5 +1,5 @@
 import NFTDashboardPage from '~/components/NFTDashboardPage'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import {
 	getNFTMarketplaceChartData,
 	getNFTMarketplacesData,
@@ -7,11 +7,13 @@ import {
 	getNFTStatistics
 } from '~/api/categories/nfts'
 
-export async function getStaticProps({
+export async function getServerSideProps({
 	params: {
 		marketplace: [marketplaceName]
-	}
+	},
+	res
 }) {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const collections = await getNFTCollectionsByMarketplace(marketplaceName)
 	const chartData = await getNFTMarketplaceChartData(marketplaceName)
 	const marketplaceData = await getNFTMarketplacesData()
@@ -25,23 +27,8 @@ export async function getStaticProps({
 			statistics,
 			marketplaceData,
 			displayName
-		},
-		revalidate: revalidate()
+		}
 	}
-}
-
-// export async function getStaticPaths() {
-// 	const marketplaceData = await getNFTMarketplacesData()
-
-// 	const paths = marketplaceData.slice(0, 5).map(({ marketplace: marketplaceName }) => ({
-// 		params: { marketplace: [marketplaceName] }
-// 	}))
-
-// 	return { paths, fallback: 'blocking' }
-// }
-
-export async function getStaticPaths() {
-	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Marketplace({ displayName, ...props }) {

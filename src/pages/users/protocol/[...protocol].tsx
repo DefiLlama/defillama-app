@@ -11,11 +11,12 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { SelectLegendMultiple } from '~/components/ECharts/shared'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getProtocol } from '~/api/categories/protocols'
 import { capitalizeFirstLetter, formattedNum, standardizeProtocolName, tokenIconUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { USER_METRICS_CHAIN_API_BY_DATE, USER_METRICS_PROTOCOL_API } from '~/constants'
+import { GetServerSideProps } from 'next'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -25,23 +26,13 @@ interface IChainData {
 	[key: string]: string | number
 }
 
-export async function getStaticPaths() {
-	// TODO replace chain and date
-	const res = await fetch(`${USER_METRICS_CHAIN_API_BY_DATE}/ethereum?day=2022-08-20`).then((res) => res.json())
-
-	const paths: string[] =
-		res.protocols?.slice(0, 30).map(({ adaptor }) => ({
-			params: { protocol: [standardizeProtocolName(adaptor)] }
-		})) ?? []
-
-	return { paths, fallback: 'blocking' }
-}
-
-export async function getStaticProps({
+export const getServerSideProps: GetServerSideProps = async ({
 	params: {
 		protocol: [protocol]
-	}
-}) {
+	},
+	res
+}) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	try {
 		const [userMetrics, protocolData] = await Promise.all([
 			fetch(`${USER_METRICS_PROTOCOL_API}/${protocol}`).then((res) => res.json()),
@@ -69,8 +60,7 @@ export async function getStaticProps({
 				logo: logoUrl,
 				uniqueChains: Array.from(uniqueChains),
 				uniqueColumns: Array.from(uniqueColumns),
-				backgroundColor,
-				revalidate: revalidate()
+				backgroundColor
 			}
 		}
 	} catch (error) {

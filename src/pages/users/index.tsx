@@ -1,10 +1,12 @@
 import * as React from 'react'
 import { capitalizeFirstLetter } from '~/utils'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { USER_METRICS_ALL_API } from '~/constants'
 import UsersByChain from '~/containers/UsersByChain'
+import { GetServerSideProps } from 'next'
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	try {
 		const userMetrics = await fetch(`${USER_METRICS_ALL_API}`).then((res) => res.json())
 
@@ -17,8 +19,7 @@ export async function getStaticProps() {
 					to: chain === 'All' ? '/users' : `/users/chain/${chain}`
 				})),
 				protocols: userMetrics.protocols || [],
-				chain: 'All',
-				revalidate: revalidate()
+				chain: 'All'
 			}
 		}
 	} catch (error) {

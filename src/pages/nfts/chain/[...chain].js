@@ -1,5 +1,5 @@
 import NFTDashboardPage from '~/components/NFTDashboardPage'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import {
 	getNFTChainChartData,
 	getNFTChainsData,
@@ -7,11 +7,13 @@ import {
 	getNFTStatistics
 } from '~/api/categories/nfts'
 
-export async function getStaticProps({
+export const getServerSideProps = async ({
 	params: {
 		chain: [chainName]
-	}
-}) {
+	},
+	res
+}) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const collections = await getNFTCollectionsByChain(chainName)
 	const chartData = await getNFTChainChartData(chainName)
 	const chainData = await getNFTChainsData()
@@ -27,23 +29,8 @@ export async function getStaticProps({
 			statistics,
 			chainData,
 			displayName
-		},
-		revalidate: revalidate()
+		}
 	}
-}
-
-// export async function getStaticPaths() {
-// 	const chainData = await getNFTChainsData()
-
-// 	const paths = chainData.slice(0, 5).map(({ chain: chainName }) => ({
-// 		params: { chain: [chainName] }
-// 	}))
-
-// 	return { paths, fallback: 'blocking' }
-// }
-
-export async function getStaticPaths() {
-	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Chain({ displayName, ...props }) {

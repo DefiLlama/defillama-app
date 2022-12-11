@@ -1,16 +1,19 @@
+import { GetServerSideProps } from 'next'
 import * as React from 'react'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext, revalidate } from '~/api'
 import { getRaisesFiltersList } from '~/api/categories/raises'
 import { RAISES_API } from '~/constants'
 import RaisesContainer from '~/containers/Raises'
 import { slug, toYearMonth } from '~/utils'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
-export async function getStaticProps({
+export const getServerSideProps: GetServerSideProps = async ({
 	params: {
 		investorName: [name]
-	}
-}) {
+	},
+	res
+}) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const data = await fetch(RAISES_API).then((r) => r.json())
 
 	const raises = []
@@ -78,13 +81,6 @@ export async function getStaticProps({
 			compressed
 		},
 		revalidate: revalidate()
-	}
-}
-
-export async function getStaticPaths() {
-	return {
-		paths: [],
-		fallback: 'blocking'
 	}
 }
 

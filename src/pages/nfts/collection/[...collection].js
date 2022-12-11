@@ -1,13 +1,15 @@
 import NFTCollectionPage from '~/components/NFTCollectionPage'
 import { getColor } from '~/utils/getColor'
-import { revalidate } from '~/api'
-import { getNFTCollection, getNFTCollections, getNFTCollectionChartData, getNFTStatistics } from '~/api/categories/nfts'
+import { addMaxAgeHeaderForNext } from '~/api'
+import { getNFTCollection, getNFTCollectionChartData, getNFTStatistics } from '~/api/categories/nfts'
 
-export async function getStaticProps({
+export const getServerSideProps = async ({
 	params: {
 		collection: [slug]
-	}
-}) {
+	},
+	res
+}) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const collection = await getNFTCollection(slug)
 	const chart = await getNFTCollectionChartData(slug)
 	const statistics = await getNFTStatistics(chart)
@@ -20,22 +22,8 @@ export async function getStaticProps({
 			statistics,
 			title: collection ? `${collection.name} - DefiLlama` : `DefiLlama - NFT Dashboard`,
 			backgroundColor
-		},
-		revalidate: revalidate()
+		}
 	}
-}
-
-// export async function getStaticPaths() {
-// 	const collections = await getNFTCollections()
-// 	const paths = collections.slice(0, 20).map(({ slug }) => ({
-// 		params: { collection: [slug] }
-// 	}))
-
-// 	return { paths, fallback: 'blocking' }
-// }
-
-export async function getStaticPaths() {
-	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Collection(props) {

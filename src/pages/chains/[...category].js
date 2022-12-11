@@ -1,45 +1,18 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import ChainsContainer from '~/containers/Defi/Chains'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getNewChainsPageData } from '~/api/categories/protocols'
-import { CONFIG_API } from '~/constants/index'
 
-export async function getStaticProps({
+export const getServerSideProps = async ({
 	params: {
 		category: [category]
-	}
-}) {
+	},
+	res
+}) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const data = await getNewChainsPageData(category)
-	return {
-		...data,
-		revalidate: revalidate()
-	}
-}
-
-export async function getStaticPaths() {
-	const { chainCoingeckoIds = {} } = await fetch(CONFIG_API).then((res) => res.json())
-
-	const categories = ['All', 'Non-EVM']
-	for (const chain in chainCoingeckoIds) {
-		chainCoingeckoIds[chain].categories?.forEach((category) => {
-			if (!categories.includes(category)) {
-				categories.push(category)
-			}
-		})
-
-		const parentChain = chainCoingeckoIds[chain].parent?.chain
-
-		if (parentChain && !categories.includes(parentChain)) {
-			categories.push(parentChain)
-		}
-	}
-
-	const paths = categories.map((category) => ({
-		params: { category: [category] }
-	}))
-
-	return { paths, fallback: 'blocking' }
+	return { ...data }
 }
 
 export default function Chains(props) {

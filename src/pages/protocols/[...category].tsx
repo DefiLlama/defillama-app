@@ -1,15 +1,17 @@
 import Layout from '~/layout'
 import ProtocolList from '~/components/ProtocolList'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getProtocolsPageData } from '~/api/categories/protocols'
-import { PROTOCOLS_API } from '~/constants/index'
 import { capitalizeFirstLetter } from '~/utils'
+import { GetServerSideProps } from 'next'
 
-export async function getStaticProps({
+export const getServerSideProps: GetServerSideProps = async ({
 	params: {
 		category: [category, chain]
-	}
-}) {
+	},
+	res
+}) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const props = await getProtocolsPageData(category, chain)
 
 	if (props.filteredProtocols.length === 0) {
@@ -17,20 +19,7 @@ export async function getStaticProps({
 			notFound: true
 		}
 	}
-	return {
-		props,
-		revalidate: revalidate()
-	}
-}
-
-export async function getStaticPaths() {
-	const res = await fetch(PROTOCOLS_API)
-
-	const paths = (await res.json()).protocolCategories.slice(0, 10).map((category) => ({
-		params: { category: [category.toLowerCase()] }
-	}))
-
-	return { paths, fallback: 'blocking' }
+	return { props }
 }
 
 export default function Protocols({ category, ...props }) {

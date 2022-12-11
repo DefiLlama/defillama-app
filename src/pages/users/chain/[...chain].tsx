@@ -1,27 +1,18 @@
 import * as React from 'react'
 import { capitalizeFirstLetter } from '~/utils'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { USER_METRICS_ALL_API, USER_METRICS_CHAIN_API } from '~/constants'
 import { arrayFetcher } from '~/utils/useSWR'
 import UsersByChain from '~/containers/UsersByChain'
+import { GetServerSideProps } from 'next'
 
-export async function getStaticPaths() {
-	/*
-	const res = await fetch(`${USER_METRICS_ALL_API}`).then((res) => res.json())
-
-	const paths: string[] = res.chains.slice(0, 30).map((chain) => ({
-		params: { chain: [chain] }
-	}))
-	*/
-
-	return { paths:[], fallback: 'blocking' }
-}
-
-export async function getStaticProps({
+export const getServerSideProps: GetServerSideProps = async ({
 	params: {
 		chain: [chain]
-	}
-}) {
+	},
+	res
+}) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	try {
 		const [userMetrics, { chains }] = await arrayFetcher([
 			`${USER_METRICS_CHAIN_API}/${chain}`,
@@ -39,8 +30,7 @@ export async function getStaticProps({
 					to: chain === 'All' ? '/users' : `/users/chain/${chain}`
 				})),
 				protocols: userMetrics.protocols || [],
-				chain: chainName,
-				revalidate: revalidate()
+				chain: chainName
 			}
 		}
 	} catch (error) {

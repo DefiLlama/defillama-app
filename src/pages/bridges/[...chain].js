@@ -1,13 +1,15 @@
 import Layout from '~/layout'
-import { revalidate } from '~/api'
-import BridgeList from "~/components/BridgesPage/BridgeList"
-import { getBridgeOverviewPageData, getBridges } from '~/api/categories/bridges'
+import { addMaxAgeHeaderForNext } from '~/api'
+import BridgeList from '~/components/BridgesPage/BridgeList'
+import { getBridgeOverviewPageData } from '~/api/categories/bridges'
 
-export async function getStaticProps({
+export const getServerSideProps = async ({
 	params: {
 		chain: [chain]
-	}
-}) {
+	},
+	res
+}) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const props = await getBridgeOverviewPageData(chain)
 
 	if (!props.filteredBridges || props.filteredBridges?.length === 0) {
@@ -22,20 +24,9 @@ export async function getStaticProps({
 	*/
 	return {
 		props: {
-			...props,
-		},
-		revalidate: revalidate()
+			...props
+		}
 	}
-}
-
-export async function getStaticPaths() {
-	const { chains } = await getBridges()
-
-	const paths = chains.slice(0, 20).map((chain) => ({
-		params: { chain: [chain.name] }
-	}))
-
-	return { paths, fallback: 'blocking' }
 }
 
 export default function Bridges({

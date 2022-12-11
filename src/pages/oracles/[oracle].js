@@ -7,34 +7,20 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getOraclePageData } from '~/api/categories/protocols'
 
 const Chart = dynamic(() => import('~/components/GlobalChart'), {
 	ssr: false
 })
 
-export async function getStaticProps({ params: { oracle } }) {
+export const getServerSideProps = async ({ params: { oracle }, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const data = await getOraclePageData(oracle)
 
 	return {
-		...data,
-		revalidate: revalidate()
+		...data
 	}
-}
-
-export async function getStaticPaths() {
-	const { oracles = {} } = await getOraclePageData()
-
-	const oraclesList = Object.keys(oracles)
-
-	const paths = oraclesList.slice(0, 10).map((oracle) => {
-		return {
-			params: { oracle }
-		}
-	})
-
-	return { paths, fallback: 'blocking' }
 }
 
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols }) => {

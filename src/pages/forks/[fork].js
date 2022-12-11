@@ -7,34 +7,18 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getForkPageData } from '~/api/categories/protocols'
 
 const Chart = dynamic(() => import('~/components/GlobalChart'), {
 	ssr: false
 })
 
-export async function getStaticProps({ params: { fork } }) {
+export const getServerSideProps = async ({ params: { fork }, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const data = await getForkPageData(fork)
 
-	return {
-		...data,
-		revalidate: revalidate()
-	}
-}
-
-export async function getStaticPaths() {
-	const { forks = {} } = await getForkPageData()
-
-	const forksList = Object.keys(forks)
-
-	const paths = forksList.slice(0, 10).map((fork) => {
-		return {
-			params: { fork }
-		}
-	})
-
-	return { paths, fallback: 'blocking' }
+	return { ...data }
 }
 
 const PageView = ({ chartData, tokenLinks, token, filteredProtocols, parentTokens }) => {
