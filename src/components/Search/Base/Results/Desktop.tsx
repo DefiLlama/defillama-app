@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { DesktopRow } from './Row/Desktop'
 import type { ISearchItem } from '../../types'
 
-const Popover = styled(ComboboxPopover)`
+export const Popover = styled(ComboboxPopover)`
 	height: 100%;
 	max-height: 320px;
 	overflow-y: auto;
@@ -17,7 +17,7 @@ const Popover = styled(ComboboxPopover)`
 	z-index: 10;
 `
 
-const Empty = styled.div`
+export const Empty = styled.div`
 	padding: 24px 12px;
 	color: ${({ theme }) => theme.text1};
 	text-align: center;

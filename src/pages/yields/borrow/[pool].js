@@ -5,7 +5,6 @@ import { useRouter } from 'next/router'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
 import AuditInfo from '~/components/AuditInfo'
-import { YieldsSearch } from '~/components/Search'
 import { download, toK } from '~/utils'
 import {
 	Button,
@@ -171,8 +170,6 @@ const PageView = () => {
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Yields', name: poolData.symbol, hideOptions: true }} />
-
 			<StatsSection>
 				<PoolDetails>
 					<Name style={{ flexWrap: 'wrap' }}>

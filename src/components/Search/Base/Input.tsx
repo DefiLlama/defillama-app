@@ -70,6 +70,7 @@ interface IInputProps {
 	autoFocus?: boolean
 	withValue?: boolean
 	variant?: 'primary' | 'secondary'
+	hideIcon?: boolean
 }
 
 const IconWrapper = styled.button`
@@ -103,7 +104,15 @@ const IconWrapper = styled.button`
 		}
 	}
 `
-export function Input({ state, placeholder, withValue, breadCrumbs, variant = 'primary', ...props }: IInputProps) {
+export function Input({
+	state,
+	placeholder,
+	withValue,
+	breadCrumbs,
+	variant = 'primary',
+	hideIcon,
+	...props
+}: IInputProps) {
 	const inputField = React.useRef<HTMLInputElement>()
 
 	React.useEffect(() => {
@@ -130,19 +139,21 @@ export function Input({ state, placeholder, withValue, breadCrumbs, variant = 'p
 
 	return (
 		<>
-			<IconWrapper data-variant={variant} onClick={onClick}>
-				{state.mounted ? (
-					<>
-						<span className="visually-hidden">Close Search</span>
-						<XIcon size={variant === 'secondary' ? '16px' : '20px'} />
-					</>
-				) : (
-					<>
-						<span className="visually-hidden">Open Search</span>
-						<SearchIcon size={variant === 'secondary' ? '16px' : '20px'} />
-					</>
-				)}
-			</IconWrapper>
+			{!hideIcon && (
+				<IconWrapper data-variant={variant} onClick={onClick}>
+					{state.mounted ? (
+						<>
+							<span className="visually-hidden">Close Search</span>
+							<XIcon size={variant === 'secondary' ? '16px' : '20px'} />
+						</>
+					) : (
+						<>
+							<span className="visually-hidden">Open Search</span>
+							<SearchIcon size={variant === 'secondary' ? '16px' : '20px'} />
+						</>
+					)}
+				</IconWrapper>
+			)}
 
 			<InputField
 				state={state}

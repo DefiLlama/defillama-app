@@ -97,7 +97,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 
 	return (
 		<Wrapper {...extra}>
-			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} withValue />
+			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} withValue={withValue} />
 
 			{step && <Options step={step} filters={filters} />}
 
