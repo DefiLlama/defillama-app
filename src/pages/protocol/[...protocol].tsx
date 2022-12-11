@@ -1,10 +1,9 @@
-import { InferGetStaticPropsType, GetStaticProps } from 'next'
+import { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
-import { revalidate } from '~/api'
-import { getProtocols, getProtocol, fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
+import { addMaxAgeHeaderForNext } from '~/api'
+import { getProtocol, fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
 import { IFusedProtocolData, IProtocolResponse } from '~/api/types'
 
 type PageParams = {
@@ -14,11 +13,13 @@ type PageParams = {
 	similarProtocols: Array<{ name: string; tvl: number }>
 }
 
-export const getStaticProps: GetStaticProps<PageParams> = async ({
+export const getServerSideProps: GetServerSideProps<PageParams> = async ({
 	params: {
 		protocol: [protocol]
-	}
+	},
+	res
 }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const protocolRes: IProtocolResponse = await getProtocol(protocol)
 
 	delete protocolRes.tokensInUsd
@@ -76,12 +77,11 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 			similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
 				similarProtocols.find((p) => p.name === protocolName)
 			)
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 
-export default function Protocols({ protocolData, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function Protocols({ protocolData, ...props }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	return (
 		<ProtocolContainer
 			title={`${protocolData.name}: TVL and Stats - DefiLlama`}
