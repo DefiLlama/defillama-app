@@ -1,8 +1,9 @@
 import NFTDashboardPage from '~/components/NFTDashboardPage'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getNFTChainsData, getNFTData } from '~/api/categories/nfts'
 
-export async function getStaticProps() {
+export const getServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const data = await getNFTData()
 	const chainData = await getNFTChainsData()
 
@@ -10,8 +11,7 @@ export async function getStaticProps() {
 		props: {
 			...data,
 			chainData
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 

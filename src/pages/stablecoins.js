@@ -1,10 +1,11 @@
 import Layout from '~/layout'
 import PeggedList from '~/components/PeggedPage/PeggedList'
 import { getPeggedColor } from '~/utils/getColor'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 
-export async function getStaticProps({}) {
+export const getServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const props = await getPeggedOverviewPageData(null)
 
 	const backgroundColor = await getPeggedColor({
@@ -14,8 +15,7 @@ export async function getStaticProps({}) {
 		props: {
 			...props,
 			backgroundColor
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 

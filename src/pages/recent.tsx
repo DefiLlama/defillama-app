@@ -1,10 +1,12 @@
 import { RecentProtocols } from '~/components/RecentProtocols'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API } from '~/constants'
+import { GetServerSideProps } from 'next'
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const protocolsRaw = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls'])
 	const { forks } = await fetch(FORK_API).then((r) => r.json())
 
@@ -22,8 +24,7 @@ export async function getStaticProps() {
 			protocols,
 			chainList: protocolsRaw.chains,
 			forkedList
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 

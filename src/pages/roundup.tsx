@@ -2,8 +2,9 @@ import Link from 'next/link'
 import styled from 'styled-components'
 import ReactMarkdown from 'react-markdown'
 import Layout from '~/layout'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import Announcement from '~/components/Announcement'
+import { GetServerSideProps } from 'next'
 
 const Header = styled.h1`
 	color: ${({ theme }) => theme.text1};
@@ -97,7 +98,8 @@ export default function Chains({ messages }: { messages?: string }) {
 	)
 }
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const headers = new Headers()
 	headers.append('Authorization', `Bot ${process.env.ROUND_UP_BOT_TOKEN}`)
 
@@ -136,7 +138,6 @@ export async function getStaticProps() {
 	return {
 		props: {
 			messages: splitLlama[1] || null
-		},
-		revalidate: revalidate()
+		}
 	}
 }

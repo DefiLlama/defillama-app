@@ -28,9 +28,7 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
 	const data = await getChainsPageData('All')
 	addMaxAgeHeaderForNext(res, [22], 3600)
-	return {
-		props: data.props
-	}
+	return data.notFound ? { notFound: data.notFound } : { props: data.props }
 }
 
 const ChartsWrapper = styled(Panel)`

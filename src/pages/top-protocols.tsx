@@ -5,15 +5,17 @@ import Layout from '~/layout'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import { chainIconUrl, slug } from '~/utils'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import VirtualTable from '~/components/Table/Table'
 import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { IFormattedProtocol } from '~/api/types'
 import { Name } from '~/components/Table/shared'
 import { descriptions } from './categories'
+import { GetServerSideProps } from 'next'
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
 	const topProtocolPerChainAndCategory = Object.fromEntries(chains.map((c) => [c, {}]))
 
@@ -59,8 +61,7 @@ export async function getStaticProps() {
 		props: {
 			data,
 			columns
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 

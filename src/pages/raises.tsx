@@ -1,12 +1,14 @@
+import { GetServerSideProps } from 'next'
 import * as React from 'react'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getRaisesFiltersList } from '~/api/categories/raises'
 import { RAISES_API } from '~/constants'
 import RaisesContainer from '~/containers/Raises'
 import { toYearMonth } from '~/utils'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const data = await fetch(RAISES_API).then((r) => r.json())
 
 	const monthlyInvestment = {}
@@ -37,8 +39,7 @@ export async function getStaticProps() {
 	})
 
 	return {
-		props: { compressed },
-		revalidate: revalidate()
+		props: { compressed }
 	}
 }
 

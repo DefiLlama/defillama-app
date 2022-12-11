@@ -5,8 +5,9 @@ import { AreaChart } from '~/components/Charts'
 import { ChainDominanceChart } from '~/components/Charts'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { toNiceMonthlyDate, getRandomColor } from '~/utils'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { LANGS_API } from '~/constants'
+import { GetServerSideProps } from 'next'
 
 function formatDataForChart(langs) {
 	const langsUnique = new Set()
@@ -28,7 +29,8 @@ function formatDataForChart(langs) {
 	}
 }
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const data = await fetch(LANGS_API).then((r) => r.json())
 	const { unique: langsUnique, formatted: formattedLangs, daySum: langsDaySum } = formatDataForChart(data.chart)
 	const {
@@ -45,8 +47,7 @@ export async function getStaticProps() {
 			osUnique,
 			osLangs,
 			osDaySum
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 

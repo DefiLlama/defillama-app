@@ -1,15 +1,16 @@
 import { DefiWatchlistContainer } from '~/containers/Watchlist'
 import Layout from '~/layout'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
+import { GetServerSideProps } from 'next'
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const { protocols } = await getSimpleProtocolsPageData(basicPropertiesToKeep)
 
 	return {
-		props: { protocols },
-		revalidate: revalidate()
+		props: { protocols }
 	}
 }
 

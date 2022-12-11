@@ -7,10 +7,11 @@ import { DesktopSearch } from '~/components/Search/Base'
 import LocalLoader from '~/components/LocalLoader'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
-import { getAllCGTokensList, revalidate } from '~/api'
+import { addMaxAgeHeaderForNext, getAllCGTokensList, revalidate } from '~/api'
 import { fetcher } from '~/utils/useSWR'
 import Announcement from '~/components/Announcement'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
+import { GetServerSideProps } from 'next'
 
 export default function Tokens({ compressed }) {
 	const { searchData } = decompressPageProps(compressed)
@@ -88,7 +89,8 @@ export default function Tokens({ compressed }) {
 	)
 }
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [23], 3600)
 	const searchData = await getAllCGTokensList()
 
 	const compressed = compressPageProps({
@@ -101,7 +103,6 @@ export async function getStaticProps() {
 	})
 
 	return {
-		props: { compressed },
-		revalidate: revalidate(23)
+		props: { compressed }
 	}
 }

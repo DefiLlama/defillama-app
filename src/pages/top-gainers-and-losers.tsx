@@ -4,19 +4,20 @@ import { TYPE } from '~/Theme'
 import Layout from '~/layout'
 import { splitArrayByFalsyValues } from '~/components/Table/utils'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { TopGainersAndLosers } from '~/components/Table/Defi/Protocols'
+import { GetServerSideProps } from 'next'
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const { protocols } = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl'])
 
 	return {
 		props: {
 			protocols
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 

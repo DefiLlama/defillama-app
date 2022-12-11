@@ -1,16 +1,17 @@
 import Layout from '~/layout'
 import ProtocolList from '~/components/ProtocolList'
-import { revalidate } from '~/api'
+import { addMaxAgeHeaderForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { GetServerSideProps } from 'next'
 
-export async function getStaticProps() {
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
+	addMaxAgeHeaderForNext(res, [22], 3600)
 	const { protocols } = await getSimpleProtocolsPageData()
 
 	return {
 		props: {
 			protocols
-		},
-		revalidate: revalidate()
+		}
 	}
 }
 

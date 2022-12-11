@@ -26,9 +26,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, res }) =>
 	addMaxAgeHeaderForNext(res, [22], 3600)
 	const data = await getForkPageData()
 
-	return {
-		props: data.props
-	}
+	return data.notFound ? { notFound: data.notFound } : { props: data.props }
 }
 
 const ChartsWrapper = styled(Panel)`
