@@ -58,7 +58,7 @@ export const volumesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
-		Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
 		TotalAllTimeColumn('volume'),
 		allChains ? undefined : VolumeTVLColumn,
 		DominanceColumn
@@ -71,7 +71,7 @@ export const optionsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
-		Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
 		TotalAllTimeColumn('volume'),
 		allChains ? undefined : VolumeTVLColumn,
 		DominanceColumn
@@ -84,7 +84,7 @@ export const aggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
-		Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
 		TotalAllTimeColumn('volume'),
 		DominanceColumn
 	].filter((c) => c !== undefined)
@@ -96,7 +96,7 @@ export const incentivesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
-		Total24hColumn('incentives', undefined, `Yesterday's volume, updated daily at 00:00UTC`)
+		Total24hColumn('Incentives', undefined, `Yesterday's volume, updated daily at 00:00UTC`)
 	].filter((c) => c !== undefined)
 
 export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
@@ -153,7 +153,7 @@ export const volumesColumnSizes = {
 		change_1d: 140,
 		change_7d: 140,
 		change_1m: 140,
-		total24h: 140,
+		total24h: 160,
 		volumetvl: 140,
 		dominance: 140
 	},
@@ -163,7 +163,7 @@ export const volumesColumnSizes = {
 		change_1d: 140,
 		change_7d: 140,
 		change_1m: 140,
-		total24h: 140,
+		total24h: 160,
 		volumetvl: 140,
 		dominance: 140
 	},
@@ -173,7 +173,7 @@ export const volumesColumnSizes = {
 		change_1d: 140,
 		change_7d: 140,
 		change_1m: 140,
-		total24h: 140,
+		total24h: 160,
 		volumetvl: 140,
 		dominance: 140
 	}

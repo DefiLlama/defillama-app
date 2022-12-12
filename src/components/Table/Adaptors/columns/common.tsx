@@ -117,7 +117,7 @@ export const TotalAllTimeColumn = (
 		if (Number.isNaN(formattedNum(info.getValue()))) return <></>
 		return <>${formattedNum(info.getValue())}</>
 	},
-	size: 140,
+	size: 150,
 	meta: {
 		align: 'end',
 		headerHelperText: helperText ?? `Cumulative ${type}`
