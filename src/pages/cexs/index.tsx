@@ -65,6 +65,13 @@ const cexData = [
 		walletsLink: 'https://insights.deribit.com/exchange-updates/deribit-wallet-holdings/'
 	},
 	{
+		name: 'Bitget',
+		slug: 'bitget',
+		coin: 'BGB',
+		coinSymbol: 'BGB',
+		walletsLink: 'https://twitter.com/bitgetglobal/status/1602256957376794624'
+	},
+	{
 		name: 'Bitmex',
 		slug: 'bitmex',
 		coin: null,
@@ -161,9 +168,6 @@ const cexData = [
 	},
 	{
 		name: 'Bithumb'
-	},
-	{
-		name: 'Bitget'
 	},
 	{
 		name: 'Poloniex'
