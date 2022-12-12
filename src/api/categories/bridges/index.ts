@@ -208,9 +208,11 @@ export async function getBridgeChainsPageData() {
 	const formattedVolumeChartData = [...chains, 'Others']
 		.map((chain) => {
 			if (chain === 'Others' && !useOthers) return { data: [] }
-			const chainName = chain.name
-			const chartIndex = chainToChartDataIndex[chainName]
-			if (chartDataByChain[chartIndex].length === 0) return { data: [] }
+			const chainName = chain === 'Others' ? 'Others' : chain.name
+			if ((chainName !== 'Others')) {
+				const chartIndex = chainToChartDataIndex[chainName]
+				if (chartDataByChain[chartIndex].length === 0) return { data: [] }
+			}
 			return {
 				name: chainName,
 				data: chartDates.map((date) => [
