@@ -110,14 +110,14 @@ export const formatChainsData = ({
 		const chartIndex = chainToChartDataIndex[name]
 		const charts = chartDataByChain[chartIndex] ?? null
 		const prevDayData = prevDayDataByChain[chartIndex] ?? null
-		const prevDayChart = charts?.[charts.length - 1]
+		const prevDayChart = charts?.[charts.length - 2]
 		const prevDayUsdDeposits = prevDayChart?.depositUSD
 		const prevDayUsdWithdrawals = prevDayChart?.withdrawUSD
 		const totalTokensDeposited = prevDayData?.totalTokensDeposited
 		const totalTokensWithdrawn = prevDayData?.totalTokensWithdrawn
 		const prevDayNetFlow = prevDayUsdWithdrawals - prevDayUsdDeposits
 
-		const prevWeekCharts = chartDataByChain[chartIndex].slice(-7)
+		const prevWeekCharts = chartDataByChain[chartIndex].slice(-8, -1)
 		let prevWeekUsdDeposits = 0
 		let prevWeekUsdWithdrawals = 0
 		for (const chart of prevWeekCharts) {
