@@ -124,7 +124,7 @@ export async function getBridgeOverviewPageData(chain) {
 			resp.json()
 		)
 	}
-	
+
 	const numberOfDaysForLargeTx = chain ? 7 : 1
 	const secondsInDay = 3600 * 24
 	const unformattedLargeTxsData = await getLargeTransactionsData(
@@ -133,7 +133,7 @@ export async function getBridgeOverviewPageData(chain) {
 		currentTimestamp
 	)
 	const largeTxsData = unformattedLargeTxsData.map((transaction) => {
-		const { token, symbol, isDeposit, chain:txChain } = transaction
+		const { token, symbol, isDeposit, chain: txChain } = transaction
 		const symbolAndTokenForExplorer = `${symbol}#${token}`
 		let correctedIsDeposit = isDeposit
 		if (chain) {
@@ -209,14 +209,14 @@ export async function getBridgeChainsPageData() {
 		.map((chain) => {
 			if (chain === 'Others' && !useOthers) return { data: [] }
 			const chainName = chain === 'Others' ? 'Others' : chain.name
-			if ((chainName !== 'Others')) {
+			if (chainName !== 'Others') {
 				const chartIndex = chainToChartDataIndex[chainName]
 				if (chartDataByChain[chartIndex].length === 0) return { data: [] }
 			}
 			return {
 				name: chainName,
 				data: chartDates.map((date) => [
-					JSON.parse(JSON.stringify(new Date(parseInt(date) * 1000))),
+					JSON.parse(JSON.stringify(new Date((parseInt(date) + 43200) * 1000))), // shifted forward by 12 hours, so the date is at 12:00 UTC instead of 00:00 UTC
 					formattedChartEntries[date][chainName] ?? 0
 				])
 			}
