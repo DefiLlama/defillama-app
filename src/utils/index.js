@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { Text } from 'rebass'
 import Numeral from 'numeral'
-import { timeframeOptions } from '~/constants'
+import { ICONS_CDN, timeframeOptions } from '~/constants'
 export * from './blockExplorers'
 import { colord, extend } from 'colord'
 import lchPlugin from 'colord/plugins/lch'
@@ -206,11 +206,11 @@ export function tokenIconUrl(name) {
  * @param {boolean} hd Return HD icon if true
  * @returns {string} URL to the asset icon
  */
-export function assetIconUrl(symbol, hd = false) {
+export function liquidationsIconUrl(symbol, hd = false) {
 	if (hd) {
-		return `/asset-icons/hd/${symbol.toLowerCase()}.png`
+		return `${ICONS_CDN}/liquidations/${symbol.toLowerCase()}?w=64&h=64`
 	} else {
-		return `/asset-icons/${symbol.toLowerCase()}.png`
+		return `${ICONS_CDN}/liquidations/${symbol.toLowerCase()}?w=24&h=24`
 	}
 }
 

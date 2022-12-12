@@ -16,7 +16,7 @@ import { PositionsTable, SmolHints } from '~/components/LiquidationsPage/Positio
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import type { ISearchItem } from '~/components/Search/types'
 import { revalidate } from '~/api'
-import { assetIconUrl } from '~/utils'
+import { liquidationsIconUrl } from '~/utils'
 import {
 	ChartData,
 	getAvailableAssetsList,
@@ -85,7 +85,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 			<SEO
 				liqsPage
 				cardName={`${data.name} (${data.symbol.toUpperCase()})`}
-				logo={'https://defillama.com' + assetIconUrl(data.symbol.toLowerCase(), true)}
+				logo={'https://defillama.com' + liquidationsIconUrl(data.symbol.toLowerCase(), true)}
 				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>
 
