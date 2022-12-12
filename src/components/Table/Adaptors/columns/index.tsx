@@ -41,7 +41,7 @@ export const getColumnsOrdernSizeByType = (type: string) => {
 		case 'fees':
 			return {
 				order: feesTableColumnOrders,
-				size: volumesColumnSizes
+				size: feesColumnSizes
 			}
 		default:
 			return {
@@ -104,17 +104,24 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		NameColumn('fees', allChains),
 		allChains ? undefined : ChainsColumn('fees'),
 		allChains ? undefined : CategoryColumn,
-		Total24hColumn('fees', undefined, 'Fees paid by protocol users excluding gas fees'),
+		Total24hColumn('User fees', undefined, 'Fees paid by protocol users excluding gas fees', 250),
 		allChains
 			? undefined
-			: Total24hColumn('revenue', 'revenue24h', 'Fees accrued to the protocol (going to either treasury or holders)'),
+			: Total24hColumn(
+					'Protocol revenue',
+					'revenue24h',
+					'Fees accrued to the protocol (going to either treasury or holders)',
+					220
+			  ),
 		// TotalAllTimeColumn('fees') tmp
 		TotalAllTimeColumn('fees'),
-		Total24hColumn('user fees', 'dailyUserFees'),
-		Total24hColumn('holders revenue', 'dailyHoldersRevenue'),
-		// Total24hColumn('creator revenue', 'dailyCreatorRevenue'),
-		Total24hColumn('supply side revenue', 'dailySupplySideRevenue'),
-		Total24hColumn('protocol revenue', 'dailyProtocolRevenue')
+		Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
+		Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
+		// Total24hColumn('Creator revenue', 'dailyCreatorRevenue', undefined, 190),
+		Total24hColumn('Supply side revenue', 'dailySupplySideRevenue', undefined, 220),
+		Total24hColumn('Protocol revenue', 'dailyProtocolRevenue', undefined, 190)
+		// Total24hColumn('Total fees', 'dailyTotalFees', undefined, 220),
+		// Total24hColumn('Total revenue', 'dailyTotalRevenue', undefined, 220)
 	].filter((c) => c !== undefined)
 
 // key: min width of window/screen
@@ -207,3 +214,36 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'mcaptvl'
 	]
 })
+
+export const feesColumnSizes = {
+	0: {
+		name: 140,
+		chains: 140,
+		change_1d: 140,
+		change_7d: 140,
+		change_1m: 140,
+		total24h: 180,
+		volumetvl: 140,
+		dominance: 140
+	},
+	600: {
+		name: 200,
+		chains: 120,
+		change_1d: 140,
+		change_7d: 140,
+		change_1m: 140,
+		total24h: 180,
+		volumetvl: 140,
+		dominance: 140
+	},
+	900: {
+		name: 240,
+		chains: 140,
+		change_1d: 140,
+		change_7d: 140,
+		change_1m: 140,
+		total24h: 180,
+		volumetvl: 140,
+		dominance: 140
+	}
+}

@@ -78,11 +78,12 @@ export const Change1mColumn: ColumnDef<IDexsRow> = {
 export const Total24hColumn = (
 	type: string,
 	alternativeAccessor?: string,
-	helperText?: string
+	helperText?: string,
+	extraWidth?: number
 ): ColumnDef<IDexsRow> => {
 	const accessor = alternativeAccessor ?? 'total24h'
 	return {
-		header: `24h ${type}`,
+		header: `${type} (24h)`,
 		accessorKey: accessor,
 		enableSorting: true,
 		cell: (info) => {
@@ -97,7 +98,7 @@ export const Total24hColumn = (
 				</span>
 			)
 		},
-		size: 140,
+		size: extraWidth ?? 140,
 		meta: {
 			align: 'end',
 			headerHelperText: helperText
