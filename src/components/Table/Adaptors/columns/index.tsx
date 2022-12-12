@@ -41,7 +41,7 @@ export const getColumnsOrdernSizeByType = (type: string) => {
 		case 'fees':
 			return {
 				order: feesTableColumnOrders,
-				size: volumesColumnSizes
+				size: feesColumnSizes
 			}
 		default:
 			return {
@@ -58,7 +58,7 @@ export const volumesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
-		Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
 		TotalAllTimeColumn('volume'),
 		allChains ? undefined : VolumeTVLColumn,
 		DominanceColumn
@@ -71,7 +71,7 @@ export const optionsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
-		Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
 		TotalAllTimeColumn('volume'),
 		allChains ? undefined : VolumeTVLColumn,
 		DominanceColumn
@@ -84,7 +84,7 @@ export const aggregatorsColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
-		Total24hColumn('volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
 		TotalAllTimeColumn('volume'),
 		DominanceColumn
 	].filter((c) => c !== undefined)
@@ -96,7 +96,7 @@ export const incentivesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Change1dColumn,
 		Change7dColumn,
 		Change1mColumn,
-		Total24hColumn('incentives', undefined, `Yesterday's volume, updated daily at 00:00UTC`)
+		Total24hColumn('Incentives', undefined, `Yesterday's volume, updated daily at 00:00UTC`)
 	].filter((c) => c !== undefined)
 
 export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
@@ -104,11 +104,17 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		NameColumn('fees', allChains),
 		allChains ? undefined : ChainsColumn('fees'),
 		allChains ? undefined : CategoryColumn,
-		Total24hColumn('fees', undefined, 'Fees paid by protocol users excluding gas fees'),
-		allChains
-			? undefined
-			: Total24hColumn('revenue', 'revenue24h', 'Fees accrued to the protocol (going to either treasury or holders)')
+		Total24hColumn('User fees', undefined, 'Fees paid by protocol users excluding gas fees', 250),
+		allChains ? undefined : Total24hColumn('Protocol revenue', 'revenue24h', 'Fees accrued to the protocol', 220),
 		// TotalAllTimeColumn('fees') tmp
+		TotalAllTimeColumn('fees')
+		// Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
+		// Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
+		// Total24hColumn('Creator revenue', 'dailyCreatorRevenue', undefined, 190),
+		// Total24hColumn('Supply side revenue', 'dailySupplySideRevenue', undefined, 220),
+		// Total24hColumn('Protocol revenue', 'dailyProtocolRevenue', undefined, 190)
+		// Total24hColumn('Total fees', 'dailyTotalFees', undefined, 220),
+		// Total24hColumn('Total revenue', 'dailyTotalRevenue', undefined, 220)
 	].filter((c) => c !== undefined)
 
 // key: min width of window/screen
@@ -147,7 +153,7 @@ export const volumesColumnSizes = {
 		change_1d: 140,
 		change_7d: 140,
 		change_1m: 140,
-		total24h: 140,
+		total24h: 160,
 		volumetvl: 140,
 		dominance: 140
 	},
@@ -157,7 +163,7 @@ export const volumesColumnSizes = {
 		change_1d: 140,
 		change_7d: 140,
 		change_1m: 140,
-		total24h: 140,
+		total24h: 160,
 		volumetvl: 140,
 		dominance: 140
 	},
@@ -167,7 +173,7 @@ export const volumesColumnSizes = {
 		change_1d: 140,
 		change_7d: 140,
 		change_1m: 140,
-		total24h: 140,
+		total24h: 160,
 		volumetvl: 140,
 		dominance: 140
 	}
@@ -201,3 +207,36 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'mcaptvl'
 	]
 })
+
+export const feesColumnSizes = {
+	0: {
+		name: 140,
+		chains: 140,
+		change_1d: 140,
+		change_7d: 140,
+		change_1m: 140,
+		total24h: 180,
+		volumetvl: 140,
+		dominance: 140
+	},
+	600: {
+		name: 200,
+		chains: 120,
+		change_1d: 140,
+		change_7d: 140,
+		change_1m: 140,
+		total24h: 180,
+		volumetvl: 140,
+		dominance: 140
+	},
+	900: {
+		name: 240,
+		chains: 140,
+		change_1d: 140,
+		change_7d: 140,
+		change_1m: 140,
+		total24h: 180,
+		volumetvl: 140,
+		dominance: 140
+	}
+}

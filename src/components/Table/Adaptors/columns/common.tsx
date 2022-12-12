@@ -78,23 +78,33 @@ export const Change1mColumn: ColumnDef<IDexsRow> = {
 export const Total24hColumn = (
 	type: string,
 	alternativeAccessor?: string,
-	helperText?: string
-): ColumnDef<IDexsRow> => ({
-	header: `24h ${type}`,
-	accessorKey: alternativeAccessor ?? 'total24h',
-	enableSorting: true,
-	cell: (info) => {
-		const value = info.getValue()
-
-		if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
-		return <>${formattedNum(value)}</>
-	},
-	size: 140,
-	meta: {
-		align: 'end',
-		headerHelperText: helperText
+	helperText?: string,
+	extraWidth?: number
+): ColumnDef<IDexsRow> => {
+	const accessor = alternativeAccessor ?? 'total24h'
+	return {
+		header: `${type} (24h)`,
+		accessorKey: accessor,
+		enableSorting: true,
+		cell: (info) => {
+			const value = info.getValue()
+			if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
+			const rawMethodology = typeof info.row.original.methodology === 'object' ? info.row.original.methodology : {}
+			const methodology = Object.entries(rawMethodology).find(([name]) => accessor.includes(name))?.[1]
+			return (
+				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+					{methodology ? <QuestionHelper text={methodology} /> : null}
+					<span>${formattedNum(value)}</span>
+				</span>
+			)
+		},
+		size: extraWidth ?? 140,
+		meta: {
+			align: 'end',
+			headerHelperText: helperText
+		}
 	}
-})
+}
 export const TotalAllTimeColumn = (
 	type: string,
 	alternativeAccessor?: string,
@@ -107,7 +117,7 @@ export const TotalAllTimeColumn = (
 		if (Number.isNaN(formattedNum(info.getValue()))) return <></>
 		return <>${formattedNum(info.getValue())}</>
 	},
-	size: 140,
+	size: 150,
 	meta: {
 		align: 'end',
 		headerHelperText: helperText ?? `Cumulative ${type}`
