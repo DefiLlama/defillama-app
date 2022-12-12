@@ -75,7 +75,7 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 		}
 	},
 	{
-		header: 'TVfffsL',
+		header: 'TVL',
 		accessorKey: 'tvl',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
 		meta: {
