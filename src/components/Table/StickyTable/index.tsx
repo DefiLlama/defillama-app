@@ -63,8 +63,18 @@ export default function VirtualTable({ instance, skipVirtualization, rowSize, ..
 	const [tableWidth, setTableWidth] = React.useState(0)
 
 	React.useEffect(() => {
-		setTableWidth(headerTableRef.current.offsetWidth)
-	}, [headerTableRef])
+		// only execute all the code below in client side
+		// Handler to call on window resize
+		function handleResize() {
+			if (headerTableRef.current) setTableWidth(headerTableRef.current.offsetWidth)
+		}
+		// Add event listener
+		window.addEventListener('resize', handleResize)
+		// Call handler right away so state gets updated with initial window size
+		handleResize()
+		// Remove event listener on cleanup
+		return () => window.removeEventListener('resize', handleResize)
+	}, []) // Empty array ensures that effect is only run on mount
 
 	const ref1 = useSyncScroller('mySyncDivs')
 	const ref2 = useSyncScroller('mySyncDivs')
