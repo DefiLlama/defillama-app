@@ -107,7 +107,6 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Total24hColumn('User fees', undefined, 'Fees paid by protocol users excluding gas fees', 250),
 		allChains ? undefined : Total24hColumn('Protocol revenue', 'revenue24h', 'Fees accrued to the protocol', 220),
 		// TotalAllTimeColumn('fees') tmp
-		TotalAllTimeColumn('fees')
 		// Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
 		// Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
 		// Total24hColumn('Creator revenue', 'dailyCreatorRevenue', undefined, 190),
@@ -115,6 +114,7 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		// Total24hColumn('Protocol revenue', 'dailyProtocolRevenue', undefined, 190)
 		// Total24hColumn('Total fees', 'dailyTotalFees', undefined, 220),
 		// Total24hColumn('Total revenue', 'dailyTotalRevenue', undefined, 220)
+		TotalAllTimeColumn('fees')
 	].filter((c) => c !== undefined)
 
 // key: min width of window/screen
@@ -191,6 +191,8 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'total1dRevenue',
 		'change_1d',
 		'change_1m',
+		'total24h',
+		'revenue24h',
 		'totalAllTime',
 		'mcaptvl'
 	],
@@ -203,6 +205,8 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'total1dRevenue',
 		'change_1d',
 		'change_1m',
+		'total24h',
+		'revenue24h',
 		'totalAllTime',
 		'mcaptvl'
 	]
