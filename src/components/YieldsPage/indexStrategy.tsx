@@ -37,7 +37,7 @@ const YieldsStrategyPage = ({
 
 	// prepare cdp pools
 	const cdpPools = pools
-		.filter((p) => p.category === 'CDP')
+		.filter((p) => p.category === 'CDP' && p.mintedCoin)
 		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } }))
 
 	// exclude cdp from lending

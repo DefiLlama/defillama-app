@@ -22,7 +22,7 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 
 	// get cdp collateral -> debt token route
 	const cdpPools = pools
-		.filter((p) => p.category === 'CDP')
+		.filter((p) => p.category === 'CDP' && p.mintedCoin)
 		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } }))
 
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
