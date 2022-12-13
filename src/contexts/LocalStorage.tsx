@@ -164,7 +164,7 @@ function init() {
 	const defaultLocalStorage = {
 		[DARK_MODE]: true,
 		...DEFI_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: true }), {}),
+		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: prop === UNRELEASED ? false : true }), {}),
 		...NFT_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...LIQS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...BRIDGES_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
