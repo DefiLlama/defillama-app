@@ -235,8 +235,9 @@ function ProtocolContainer({
 
 	const [extraTvlsEnabled, updater] = useDefiManager()
 
-	const { data: dex, loading: dexLoading } = useFetchProtocolDex(protocol)
-	const { data: fees } = useFetchProtocolFees(protocol)
+	// const { data: dex, loading: dexLoading } = useFetchProtocolDex(protocol)
+	// const { data: fees } = useFetchProtocolFees(protocol)
+
 	const { data: yields } = useYields()
 
 	const {
@@ -295,26 +296,26 @@ function ProtocolContainer({
 		return [projectYields.length, averageApy]
 	}, [protocol, yields])
 
-	const { mainChartData, allChainsChartData } = React.useMemo(() => {
-		if (!dex || dexLoading) return { mainChartData: [], allChainsChartData: [] }
-		const volumeHistory = !!dex.volumeHistory ? dex.volumeHistory : []
+	// const { mainChartData, allChainsChartData } = React.useMemo(() => {
+	// 	if (!dex || dexLoading) return { mainChartData: [], allChainsChartData: [] }
+	// 	const volumeHistory = !!dex.volumeHistory ? dex.volumeHistory : []
 
-		return {
-			mainChartData: formatVolumeHistoryToChartDataByProtocol(volumeHistory, dex.name, dex.volumeAdapter),
-			allChainsChartData: formatVolumeHistoryToChartDataByChain(volumeHistory)
-		}
-	}, [dex, dexLoading])
+	// 	return {
+	// 		mainChartData: formatVolumeHistoryToChartDataByProtocol(volumeHistory, dex.name, dex.volumeAdapter),
+	// 		allChainsChartData: formatVolumeHistoryToChartDataByChain(volumeHistory)
+	// 	}
+	// }, [dex, dexLoading])
 
-	const volumeMap = dex?.volumeHistory?.reduce(
-		(acc, val) => ({
-			...acc,
-			[val.timestamp]: Object.values(val.dailyVolume).reduce(
-				(acc, val) => acc + +Object.values(val).reduce((acc, v) => Number(acc) + Number(v), 0),
-				0
-			)
-		}),
-		{} as Record<number, number>
-	)
+	// const volumeMap = dex?.volumeHistory?.reduce(
+	// 	(acc, val) => ({
+	// 		...acc,
+	// 		[val.timestamp]: Object.values(val.dailyVolume).reduce(
+	// 			(acc, val) => acc + +Object.values(val).reduce((acc, v) => Number(acc) + Number(v), 0),
+	// 			0
+	// 		)
+	// 	}),
+	// 	{} as Record<number, number>
+	// )
 
 	const chainsSplit = React.useMemo(() => {
 		return chainsStacked?.map((chain) => {
@@ -455,7 +456,7 @@ function ProtocolContainer({
 					hallmarks={hallmarks}
 					bobo={bobo}
 					geckoId={gecko_id}
-					volumeMap={volumeMap}
+					volumeMap={{}}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
@@ -583,7 +584,7 @@ function ProtocolContainer({
 					<Section>
 						<h3>Raises</h3>
 						<RaisesWrapper>
-							<li>{`Total raised: ${formatRaisedAmount(raises.reduce((sum, r)=>sum+Number(r.amount), 0))}`}</li>
+							<li>{`Total raised: ${formatRaisedAmount(raises.reduce((sum, r) => sum + Number(r.amount), 0))}`}</li>
 							{raises
 								.sort((a, b) => a.date - b.date)
 								.map((raise) => (
@@ -624,11 +625,11 @@ function ProtocolContainer({
 					</Section>
 				</InfoWrapper>
 			)}
-
+			{/* 
 			{mainChartData?.length ? (
 				<DexCharts data={dex} chartData={mainChartData} name={name} isProtocolPage chainsChart={allChainsChartData} />
 			) : null}
-			{fees?.chartData?.length ? <FeesBody {...fees} /> : null}
+			{fees?.chartData?.length ? <FeesBody {...fees} /> : null} */}
 
 			{showCharts && (
 				<>
