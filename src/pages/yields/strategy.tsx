@@ -24,7 +24,14 @@ export async function getStaticProps() {
 	// ~1500pools
 	// and uppercase symbols (lend and borrow strings from router are upper case only)
 	const filteredAllPools = allPools
-		.filter((p) => p.ilRisk === 'no' && p.exposure === 'single' && p.apy > 0 && p.project !== 'babydogeswap')
+		.filter(
+			(p) =>
+				p.ilRisk === 'no' &&
+				p.exposure === 'single' &&
+				p.apy > 0 &&
+				p.project !== 'babydogeswap' &&
+				p.project !== 'cbridge'
+		)
 		.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 
 	const compressed = compressPageProps({
