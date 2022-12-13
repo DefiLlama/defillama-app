@@ -26,7 +26,6 @@ import {
 } from '~/layout/ProtocolAndPool'
 import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { ChartWrapper } from '~/layout/ProtocolAndPool'
-import { DexCharts } from '~/containers/DexsAndFees/DexsCharts'
 import { Checkbox2 } from '~/components'
 import Bookmark from '~/components/Bookmark'
 import CopyHelper from '~/components/Copy'
@@ -54,9 +53,6 @@ import {
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { buildProtocolData } from '~/utils/protocolData'
 import type { IFusedProtocolData, IRaise } from '~/api/types'
-import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { useFetchProtocolDex } from '~/api/categories/dexs/client'
-import { useFetchProtocolFees } from '~/api/categories/fees/client'
 import { useYields } from '~/api/categories/yield/client'
 import boboLogo from '~/assets/boboSmug.png'
 
@@ -211,7 +207,6 @@ function ProtocolContainer({
 		twitter,
 		tvlBreakdowns = {},
 		tvlByChain = [],
-		tvlChartData,
 		audit_links,
 		methodology,
 		module: codeModule,
@@ -449,7 +444,6 @@ function ProtocolContainer({
 
 				<ProtocolChart
 					protocol={protocol}
-					tvlChartData={tvlChartData}
 					color={backgroundColor}
 					historicalChainTvls={historicalChainTvls}
 					chains={chains}

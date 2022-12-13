@@ -181,7 +181,6 @@ export interface IFormattedProtocol extends LiteProtocol {
 
 export interface IFusedProtocolData extends Omit<IProtocolResponse, 'tvl'> {
 	tvl: number
-	tvlChartData: number[][]
 	tvlBreakdowns: ICurrentChainTvls
 	tvlByChain: [string, number][]
 	historicalChainTvls: IChainTvl

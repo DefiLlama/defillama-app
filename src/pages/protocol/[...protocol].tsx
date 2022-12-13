@@ -1,20 +1,12 @@
-import { InferGetStaticPropsType, GetStaticProps } from 'next'
-
 import ProtocolContainer from '~/containers/Defi/Protocol'
 import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { revalidate } from '~/api'
 import { getProtocols, getProtocol, fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
-import { IFusedProtocolData, IProtocolResponse } from '~/api/types'
+import { IProtocolResponse } from '~/api/types'
+import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
-type PageParams = {
-	protocol: string
-	protocolData: IFusedProtocolData
-	backgroundColor: string
-	similarProtocols: Array<{ name: string; tvl: number }>
-}
-
-export const getStaticProps: GetStaticProps<PageParams> = async ({
+export const getStaticProps = async ({
 	params: {
 		protocol: [protocol]
 	}
@@ -68,15 +60,17 @@ export const getStaticProps: GetStaticProps<PageParams> = async ({
 		}
 	})
 
+	const compressed = compressPageProps({
+		protocol,
+		protocolData,
+		backgroundColor,
+		similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
+			similarProtocols.find((p) => p.name === protocolName)
+		)
+	})
+
 	return {
-		props: {
-			protocol,
-			protocolData,
-			backgroundColor,
-			similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
-				similarProtocols.find((p) => p.name === protocolName)
-			)
-		},
+		props: { compressed },
 		revalidate: revalidate()
 	}
 }
@@ -91,7 +85,9 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
-export default function Protocols({ protocolData, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function Protocols({ compressed }) {
+	const { protocolData, ...props } = decompressPageProps(compressed)
+
 	return (
 		<ProtocolContainer
 			title={`${protocolData.name}: TVL and Stats - DefiLlama`}

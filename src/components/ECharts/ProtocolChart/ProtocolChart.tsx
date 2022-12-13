@@ -10,13 +10,12 @@ import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import type { IChartProps } from '../types'
 
-const AreaChart = dynamic(() => import('./index'), {
+const AreaChart = dynamic(() => import('.'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
 interface IProps {
 	protocol: string
-	tvlChartData: any
 	color: string
 	historicalChainTvls: {}
 	chains: string[]
@@ -34,7 +33,6 @@ const chartColors = {
 
 export default function ProtocolChart({
 	protocol,
-	tvlChartData,
 	color,
 	historicalChainTvls,
 	chains = [],
@@ -77,8 +75,8 @@ export default function ProtocolChart({
 
 	// update tvl calc based on extra tvl options like staking, pool2 selected
 	const chartDataFiltered = React.useMemo(() => {
-		return formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled, tvlChartData })
-	}, [historicalChainTvls, extraTvlEnabled, tvlChartData])
+		return formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled })
+	}, [historicalChainTvls, extraTvlEnabled])
 
 	// calc y-axis based on denomination
 	const { tvlData, valueSymbol } = React.useMemo(() => {
@@ -89,11 +87,11 @@ export default function ProtocolChart({
 			const newChartData = []
 
 			chartDataFiltered.forEach(([date, tvl]) => {
-				let priceAtDate = denominationHistory.prices.find((x) => x[0] === date * 1000)
+				let priceAtDate = denominationHistory.prices.find((x) => x[0] === Number(date) * 1000)
 
 				if (!priceAtDate) {
 					priceAtDate = denominationHistory.prices.find(
-						(x) => -432000000 < x[0] - date * 1000 && x[0] - date * 1000 < 432000000
+						(x) => -432000000 < x[0] - Number(date) * 1000 && x[0] - Number(date) * 1000 < 432000000
 					)
 				}
 
@@ -122,7 +120,7 @@ export default function ProtocolChart({
 		(!denomination || denomination === 'USD')
 
 	// append mcap data when api return it
-	const { finalData, tokensUnique } = React.useMemo(() => {
+	const { finalData, tokensUnique, stackColors } = React.useMemo(() => {
 		let chartData = []
 		let tokensUnique = ['TVL']
 
@@ -155,8 +153,10 @@ export default function ProtocolChart({
 
 		tokensUnique = tokensUnique.concat(showVol ? ['Volume'] : [])
 
-		return { finalData: chartData, tokensUnique }
-	}, [tvlData, protocolCGData, showMcap, protocolHasMcap, showVol, volumeMap])
+		const stackColors = color ? { ...chartColors, TVL: color } : chartColors
+
+		return { finalData: chartData, tokensUnique, stackColors }
+	}, [tvlData, protocolCGData, showMcap, protocolHasMcap, showVol, volumeMap, color])
 
 	const toggleFilter = React.useCallback(
 		(type: string) => {
@@ -236,7 +236,7 @@ export default function ProtocolChart({
 					hidedefaultlegend={true}
 					hallmarks={!hideHallmarks && hallmarks}
 					tooltipSort={false}
-					stackColors={chartColors}
+					stackColors={stackColors}
 					style={{
 						...(bobo && {
 							backgroundImage: 'url("/bobo.png")',
@@ -307,21 +307,29 @@ export const Denomination = styled.a<IDenomination>`
 			: 'rgba(0, 0, 0, 0.6)'};
 `
 
-export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabled, tvlChartData }) => {
-	const sections = Object.keys(historicalChainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
+export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabled }) => {
+	const tvlDictionary: { [key: number]: number } = {}
 
-	const tvlDictionary = {}
+	for (const section in historicalChainTvls) {
+		const name = section.toLowerCase()
 
-	if (sections.length > 0) {
-		for (const name of sections) {
-			tvlDictionary[name] = {}
-			historicalChainTvls[name].tvl.forEach((dataPoint) => {
-				tvlDictionary[name][dataPoint.date] = dataPoint.totalLiquidityUSD
-			})
+		// sum keys like ethereum-staking, arbitrum-vesting only if chain is present
+		if (name.includes('-')) {
+		} else {
+			// sum key with staking, ethereum, arbitrum etc but ethereum-staking, arbitrum-vesting
+			if (Object.keys(extraTvlEnabled).includes(name) ? extraTvlEnabled[name] : true) {
+				historicalChainTvls[section].tvl?.forEach(
+					({ date, totalLiquidityUSD }: { date: number; totalLiquidityUSD: number }) => {
+						if (!tvlDictionary[date]) {
+							tvlDictionary[date] = 0
+						}
+
+						tvlDictionary[date] += totalLiquidityUSD
+					}
+				)
+			}
 		}
-		return tvlChartData?.map((item) => {
-			const sum = sections.reduce((total, sect) => total + (tvlDictionary[sect]?.[item[0]] ?? 0), item[1])
-			return [item[0], sum]
-		})
-	} else return tvlChartData
+	}
+
+	return Object.entries(tvlDictionary)
 }

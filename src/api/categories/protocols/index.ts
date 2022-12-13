@@ -19,7 +19,10 @@ import {
 	PROTOCOL_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
-import { getChainPageData as getChainPageDataByType, getChainsPageData as getChainsPageDataByType } from '~/api/categories/adaptors'
+import {
+	getChainPageData as getChainPageDataByType,
+	getChainsPageData as getChainsPageDataByType
+} from '~/api/categories/adaptors'
 import { getPeggedAssets } from '../stablecoins'
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
@@ -55,8 +58,6 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 
 	const tvl = protocolData?.tvl ?? []
 
-	const tvlChartData = tvl.filter((item) => item.date).map(({ date, totalLiquidityUSD }) => [date, totalLiquidityUSD])
-
 	const historicalChainTvls = protocolData?.chainTvls ?? {}
 
 	const tvlByChain =
@@ -77,7 +78,6 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 	return {
 		...protocolData,
 		tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
-		tvlChartData,
 		tvlBreakdowns,
 		tvlByChain,
 		chains,
@@ -538,7 +538,7 @@ export const getChainsPageData = async (category: string) => {
 			for (let i = 0; i < 5; i++) {
 				try {
 					return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-				} catch (e) { }
+				} catch (e) {}
 			}
 			throw new Error(`${CHART_API}/${elem} is broken`)
 		})
