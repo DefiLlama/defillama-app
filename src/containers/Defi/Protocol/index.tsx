@@ -51,11 +51,10 @@ import {
 	toK
 } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
-import { buildProtocolData } from '~/utils/protocolData'
 import type { IFusedProtocolData, IRaise } from '~/api/types'
 import { useYields } from '~/api/categories/yield/client'
 import boboLogo from '~/assets/boboSmug.png'
-import { formatTvlsByChain } from './utils'
+import { formatTvlsByChain, buildProtocolAddlChartsData } from './utils'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -278,8 +277,8 @@ function ProtocolContainer({
 	const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
 	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD } = React.useMemo(
-		() => buildProtocolData(addlProtocolData),
-		[addlProtocolData]
+		() => buildProtocolAddlChartsData({ protocolData: addlProtocolData, extraTvlsEnabled }),
+		[addlProtocolData, extraTvlsEnabled]
 	)
 
 	const [yeildsNumber, averageApy] = React.useMemo(() => {

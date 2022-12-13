@@ -313,10 +313,9 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 	for (const section in historicalChainTvls) {
 		const name = section.toLowerCase()
 
-		// sum keys like ethereum-staking, arbitrum-vesting only if chain is present
-		if (name.includes('-')) {
-		} else {
-			// sum key with staking, ethereum, arbitrum etc but ethereum-staking, arbitrum-vesting
+		// skip sum of keys like ethereum-staking, arbitrum-vesting
+		if (!name.includes('-')) {
+			// sum key with staking, ethereum, arbitrum etc
 			if (Object.keys(extraTvlEnabled).includes(name) ? extraTvlEnabled[name] : true) {
 				historicalChainTvls[section].tvl?.forEach(
 					({ date, totalLiquidityUSD }: { date: number; totalLiquidityUSD: number }) => {
