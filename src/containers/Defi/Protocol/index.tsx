@@ -55,6 +55,7 @@ import { buildProtocolData } from '~/utils/protocolData'
 import type { IFusedProtocolData, IRaise } from '~/api/types'
 import { useYields } from '~/api/categories/yield/client'
 import boboLogo from '~/assets/boboSmug.png'
+import { formatTvlsByChain } from './utils'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -276,7 +277,7 @@ function ProtocolContainer({
 
 	const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD, chainsStacked } = React.useMemo(
+	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD } = React.useMemo(
 		() => buildProtocolData(addlProtocolData),
 		[addlProtocolData]
 	)
@@ -313,23 +314,8 @@ function ProtocolContainer({
 	// )
 
 	const chainsSplit = React.useMemo(() => {
-		return chainsStacked?.map((chain) => {
-			if (chain.extraTvl) {
-				const data = { ...chain }
-
-				for (const c in chain.extraTvl) {
-					for (const extra in chain.extraTvl[c]) {
-						if (extraTvlsEnabled[extra?.toLowerCase()]) {
-							data[c] += chain.extraTvl[c][extra]
-						}
-					}
-				}
-
-				return data
-			}
-			return chain
-		})
-	}, [chainsStacked, extraTvlsEnabled])
+		return formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
+	}, [historicalChainTvls, extraTvlsEnabled])
 
 	const chainsUnique = tvls.map((t) => t[0])
 

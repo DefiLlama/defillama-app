@@ -1,51 +1,3 @@
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-
-function buildChainBreakdown(chainTvls) {
-	if (!chainTvls) {
-		return []
-	}
-
-	const timeToTvl = {}
-
-	Object.entries(chainTvls).forEach(([chainToAdd, data]) => {
-		if (DEFI_SETTINGS_KEYS.includes(chainToAdd?.toLowerCase())) return
-
-		if (chainToAdd.includes('-') && DEFI_SETTINGS_KEYS.includes(chainToAdd.split('-')[1])) {
-			;(data as any).tvl.forEach((dayTvl) => {
-				timeToTvl[dayTvl.date] = {
-					...timeToTvl[dayTvl.date],
-					extraTvl: {
-						...(timeToTvl[dayTvl.date]?.extraTvl ?? {}),
-						[chainToAdd.split('-')[0]]: {
-							...(timeToTvl[dayTvl.date]?.extraTvl
-								? timeToTvl[dayTvl.date]?.extraTvl[chainToAdd.split('-')[0]] ?? {}
-								: {}),
-							[chainToAdd.split('-')[1]]: dayTvl.totalLiquidityUSD
-						}
-					}
-				}
-			})
-		} else {
-			;(data as any).tvl.forEach((dayTvl) => {
-				timeToTvl[dayTvl.date] = {
-					...timeToTvl[dayTvl.date],
-					[chainToAdd]: dayTvl.totalLiquidityUSD
-				}
-			})
-		}
-	})
-
-	const chainsStacked = Object.keys(timeToTvl)
-		.sort((a, b) => Number(a) - Number(b))
-		.map((dayDate) => ({
-			...timeToTvl[dayDate],
-			// kinda scuffed but gotta fix the datakey for chart again
-			date: Number(dayDate)
-		}))
-
-	return chainsStacked
-}
-
 // build unique tokens based on top 10 tokens in usd value on each day
 function getUniqueTokens(tokensInUsd) {
 	const tokenSet: Set<string> = new Set()
@@ -152,8 +104,6 @@ function buildInflows({ tokensInUsd, tokens, tokensUnique }) {
 
 export const buildProtocolData = (protocolData) => {
 	if (protocolData) {
-		const chainsStacked = buildChainBreakdown(protocolData.chainTvls)
-
 		if (!protocolData.misrepresentedTokens && protocolData.tokensInUsd && protocolData.tokens) {
 			const tokensUnique = getUniqueTokens(protocolData.tokensInUsd)
 			const tokenBreakdownUSD = buildTokensBreakdown(protocolData.tokensInUsd, tokensUnique)
@@ -165,7 +115,6 @@ export const buildProtocolData = (protocolData) => {
 			})
 
 			return {
-				chainsStacked,
 				tokensUnique,
 				tokenBreakdownUSD,
 				tokenBreakdown,
@@ -174,7 +123,7 @@ export const buildProtocolData = (protocolData) => {
 			}
 		}
 
-		return { chainsStacked }
+		return {}
 	}
 
 	return {}
