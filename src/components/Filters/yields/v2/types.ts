@@ -4,11 +4,11 @@ export interface IDropdownMenusProps {
 	selectedTokens?: Array<string>
 	chainList?: Array<string>
 	selectedChains?: Array<string>
-	projectList?: Array<{ name: string; slug: string }>
+	projectList?: Array<string>
 	selectedProjects?: Array<string>
-	lendingProtocols?: Array<{ name: string; slug: string }>
+	lendingProtocols?: Array<string>
 	selectedLendingProtocols?: Array<string>
-	farmProtocols?: Array<{ name: string; slug: string }>
+	farmProtocols?: Array<string>
 	selectedFarmProtocols?: Array<string>
 	categoryList?: Array<string>
 	selectedCategories?: Array<string>

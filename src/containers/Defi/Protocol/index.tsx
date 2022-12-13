@@ -456,7 +456,6 @@ function ProtocolContainer({
 					hallmarks={hallmarks}
 					bobo={bobo}
 					geckoId={gecko_id}
-					volumeMap={{}}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>

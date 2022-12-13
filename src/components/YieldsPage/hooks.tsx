@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
+import { slug } from '~/utils'
 
 interface IFormatYieldQueryParams {
-	projectList?: Array<{ name: string; slug: string }>
-	lendingProtocols?: Array<{ name: string; slug: string }>
-	farmProtocols?: Array<{ name: string; slug: string }>
-	chainList?: Array<{ name: string; slug: string }>
-	categoryList?: Array<{ name: string; slug: string }>
+	projectList?: Array<string>
+	lendingProtocols?: Array<string>
+	farmProtocols?: Array<string>
+	chainList?: Array<string>
+	categoryList?: Array<string>
 }
 
 export const useFormatYieldQueryParams = ({
@@ -32,11 +33,11 @@ export const useFormatYieldQueryParams = ({
 		if (projectList) {
 			if (project) {
 				if (typeof project === 'string') {
-					selectedProjects = project === 'All' ? projectList.map((p) => p.slug) : project === 'None' ? [] : [project]
+					selectedProjects = project === 'All' ? projectList.map((p) => slug(p)) : project === 'None' ? [] : [project]
 				} else {
 					selectedProjects = [...project]
 				}
-			} else selectedProjects = projectList.map((p) => p.slug)
+			} else selectedProjects = projectList.map((p) => slug(p))
 		}
 
 		if (lendingProtocols) {
@@ -44,25 +45,25 @@ export const useFormatYieldQueryParams = ({
 				if (typeof lendingProtocol === 'string') {
 					selectedLendingProtocols =
 						lendingProtocol === 'All'
-							? lendingProtocols.map((p) => p.slug)
+							? lendingProtocols.map((p) => slug(p))
 							: lendingProtocol === 'None'
 							? []
 							: [lendingProtocol]
 				} else {
 					selectedLendingProtocols = [...lendingProtocol]
 				}
-			} else selectedLendingProtocols = lendingProtocols.map((p) => p.slug)
+			} else selectedLendingProtocols = lendingProtocols.map((p) => slug(p))
 		}
 
 		if (farmProtocols) {
 			if (farmProtocol) {
 				if (typeof farmProtocol === 'string') {
 					selectedFarmProtocols =
-						farmProtocol === 'All' ? farmProtocols.map((p) => p.slug) : farmProtocol === 'None' ? [] : [farmProtocol]
+						farmProtocol === 'All' ? farmProtocols.map((p) => slug(p)) : farmProtocol === 'None' ? [] : [farmProtocol]
 				} else {
 					selectedFarmProtocols = [...farmProtocol]
 				}
-			} else selectedFarmProtocols = farmProtocols.map((p) => p.slug)
+			} else selectedFarmProtocols = farmProtocols.map((p) => slug(p))
 		}
 
 		if (categoryList) {

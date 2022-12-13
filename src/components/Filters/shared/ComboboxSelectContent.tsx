@@ -2,6 +2,7 @@ import { MutableRefObject, useMemo, useState } from 'react'
 import { useDebounce } from '~/hooks'
 import { FilterFnsGroup, SelectItem } from './Base'
 import { Checkbox } from '~/components'
+import { slug } from '~/utils'
 
 interface ISelectContent {
 	options: Array<string>
@@ -12,6 +13,7 @@ interface ISelectContent {
 	isOptionToggled: (option: any) => boolean
 	clearAllOptions: () => void
 	toggleAllOptions: () => void
+	isSlugValue?: boolean
 }
 
 interface IComboboxSelectContent extends ISelectContent {
@@ -26,7 +28,8 @@ const SelectContent = ({
 	focusItemRef,
 	clearAllOptions,
 	toggleAllOptions,
-	isOptionToggled
+	isOptionToggled,
+	isSlugValue
 }: ISelectContent) => {
 	return (
 		<>
@@ -37,17 +40,21 @@ const SelectContent = ({
 			</FilterFnsGroup>
 
 			<div className="select-filteredOptions-wrapper">
-				{options.map((value, i) => (
-					<SelectItem
-						value={value}
-						key={value + i}
-						ref={i === 0 && selectedOptions.length === options.length ? focusItemRef : null}
-						focusOnHover
-					>
-						<span data-name>{value}</span>
-						<Checkbox checked={isOptionToggled(value)} />
-					</SelectItem>
-				))}
+				{options.map((value, i) => {
+					const formattedValue = isSlugValue ? slug(value) : value
+
+					return (
+						<SelectItem
+							value={formattedValue}
+							key={formattedValue + i}
+							ref={i === 0 && selectedOptions.length === options.length ? focusItemRef : null}
+							focusOnHover
+						>
+							<span data-name>{value}</span>
+							<Checkbox checked={isOptionToggled(formattedValue)} />
+						</SelectItem>
+					)
+				})}
 			</div>
 		</>
 	)

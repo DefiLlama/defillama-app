@@ -20,7 +20,7 @@ interface IProps {
 	color: string
 	historicalChainTvls: {}
 	chains: string[]
-	volumeMap: Record<number, number>
+	volumeMap?: Record<number, number>
 	bobo?: boolean
 	hallmarks?: [number, string][]
 	geckoId?: string | null

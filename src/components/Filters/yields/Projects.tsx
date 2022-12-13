@@ -8,7 +8,7 @@ import { slug } from '~/utils'
 import { SlidingMenu } from '~/components/SlidingMenu'
 
 interface IYieldProjectsProps {
-	projectList: Array<{ name: string; slug: string }>
+	projectList: Array<string>
 	selectedProjects: Array<string>
 	pathname: string
 	label?: string
@@ -32,18 +32,7 @@ export function YieldProjects({
 
 	const { project, lendingProtocol, farmProtocol, ...queries } = router.query
 
-	const { options, slugs } = useMemo(() => {
-		const options = []
-
-		const slugs = []
-
-		projectList?.forEach((p) => {
-			options.push(p.name)
-			slugs.push(p.slug)
-		})
-
-		return { options, slugs }
-	}, [projectList])
+	const slugs = useMemo(() => projectList.map((p) => slug(p)), [projectList])
 
 	const addProject = (project) => {
 		router.push(
@@ -52,7 +41,7 @@ export function YieldProjects({
 				query: {
 					...queries,
 					...(query && (isFarmingProtocolFilter ? { lendingProtocol } : { farmProtocol })),
-					[query || 'project']: project.map((p) => slug(p))
+					[query || 'project']: project
 				}
 			},
 			undefined,
@@ -116,7 +105,7 @@ export function YieldProjects({
 	const isSelected = selectedProjects.length > 0 && selectedProjects.length !== projectList.length
 
 	const selectedProjectNames = isSelected
-		? selectedProjects.map((project) => projectList.find((p) => p.slug === project)?.name ?? project)
+		? selectedProjects.map((project) => projectList.find((p) => slug(p) === project) ?? project)
 		: []
 
 	const isOptionToggled = (option) =>
@@ -124,9 +113,9 @@ export function YieldProjects({
 
 	if (subMenu) {
 		return (
-			<SlidingMenu label="Projects" selectState={selectState}>
+			<SlidingMenu label={label + 's' || 'Projects'} selectState={selectState}>
 				<ComboboxSelectContent
-					options={options}
+					options={projectList}
 					selectedOptions={selectedProjects}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
@@ -147,7 +136,7 @@ export function YieldProjects({
 					<SecondaryLabel>
 						{isSelected ? (
 							<>
-								<span>Project: </span>
+								<span>{`${label || 'Project'}: `}</span>
 								<span data-selecteditems>
 									{selectedProjectNames.length > 2
 										? `${selectedProjectNames[0]} + ${selectedProjectNames.length - 1} others`
@@ -155,12 +144,12 @@ export function YieldProjects({
 								</span>
 							</>
 						) : (
-							'Project'
+							`${label || 'Project'}`
 						)}
 					</SecondaryLabel>
 				) : (
 					<>
-						<span>{label || 'Filter by Project'}</span>
+						<span>{label || `Filter by ${label || 'Project'}`}</span>
 						{isSelected && <ItemsSelected>{selectedProjects.length}</ItemsSelected>}
 					</>
 				)}
@@ -176,7 +165,7 @@ export function YieldProjects({
 				data-variant={variant}
 			>
 				<ComboboxSelectContent
-					options={options}
+					options={projectList}
 					selectedOptions={selectedProjects}
 					clearAllOptions={clearAllOptions}
 					toggleAllOptions={toggleAllOptions}
@@ -186,6 +175,7 @@ export function YieldProjects({
 					autoFocus
 					isOptionToggled={isOptionToggled}
 					contentElementId={selectState.contentElement?.id}
+					isSlugValue
 				/>
 			</ComboboxSelectPopover>
 		</>

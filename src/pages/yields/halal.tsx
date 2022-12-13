@@ -119,7 +119,7 @@ export async function getStaticProps() {
 	const compressed = compressPageProps({
 		...data,
 		pools,
-		projectList: data.projectList.filter((p) => whitelist.includes(p.name)),
+		projectList: data.projectList.filter((p) => whitelist.includes(p)),
 		categoryList: Array.from(
 			pools.reduce((set, pool) => {
 				set.add(pool.category)

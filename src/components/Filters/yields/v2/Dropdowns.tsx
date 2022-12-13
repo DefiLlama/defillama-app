@@ -81,7 +81,7 @@ export function YieldFilterDropdowns({
 					projectList={lendingProtocols}
 					selectedProjects={selectedLendingProtocols || []}
 					pathname={pathname || router.pathname}
-					label="Lending Protocols"
+					label="Lending Protocol"
 					query="lendingProtocol"
 					variant="secondary"
 					subMenu={isMobile}
@@ -93,7 +93,7 @@ export function YieldFilterDropdowns({
 					projectList={farmProtocols}
 					selectedProjects={selectedFarmProtocols || []}
 					pathname={pathname || router.pathname}
-					label="Farm Protocols"
+					label="Farm Protocol"
 					query="farmProtocol"
 					variant="secondary"
 					subMenu={isMobile}

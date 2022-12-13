@@ -25,7 +25,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 
 	const chainList: Set<string> = new Set()
 
-	const projectList: { name: string; slug: string }[] = []
+	const projectList: Set<string> = new Set()
 
 	const categoryList: Set<string> = new Set()
 
@@ -35,10 +35,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 			poolsList.push(pool)
 			chainList.add(pool.chain)
 			categoryList.add(pool.category)
-
-			if (!projectList.find((p) => p.name === pool.projectName)) {
-				projectList.push({ name: pool.projectName, slug: pool.project })
-			}
+			projectList.add(pool.projectName)
 		}
 	})
 
@@ -57,7 +54,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	return {
 		pools: poolsList,
 		chainList: Array.from(chainList),
-		projectList,
+		projectList: Array.from(projectList),
 		categoryList: Array.from(categoryList),
 		tokenNameMapping
 	}

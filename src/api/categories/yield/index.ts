@@ -6,7 +6,6 @@ import {
 	YIELD_CHAIN_API,
 	YIELD_LEND_BORROW_API
 } from '~/constants'
-import { slug } from '~/utils'
 import { arrayFetcher } from '~/utils/useSWR'
 import { formatYieldsPageData } from './utils'
 
@@ -242,9 +241,9 @@ export async function getLendBorrowData() {
 		props: {
 			pools,
 			chainList: [...new Set(pools.map((p) => p.chain))],
-			projectList: Array.from(projectsList).map((name: string) => ({ name, slug: slug(name) })),
-			lendingProtocols: Array.from(lendingProtocols).map((name: string) => ({ name, slug: slug(name) })),
-			farmProtocols: Array.from(farmProtocols).map((name: string) => ({ name, slug: slug(name) })),
+			projectList: Array.from(projectsList),
+			lendingProtocols: Array.from(lendingProtocols),
+			farmProtocols: Array.from(farmProtocols),
 			categoryList: categoriesToKeep,
 			tokenNameMapping: props.tokenNameMapping,
 			allPools: props.pools
