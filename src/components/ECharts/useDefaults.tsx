@@ -85,7 +85,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 
 				let vals
 				let filteredParams = params
-					.filter((item) => item.value[1] !== '-' && item.value[1] !== null)
+					.filter((item) => item.value[1] !== 0 && item.value[1] !== '-' && item.value[1] !== null)
 					.sort((a, b) =>
 						tooltipSort
 							? (b.value[1] < 0 ? b.value[1] * -1 : b.value[1]) - (a.value[1] < 0 ? a.value[1] * -1 : a.value[1])
