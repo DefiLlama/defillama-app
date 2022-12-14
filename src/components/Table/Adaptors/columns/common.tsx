@@ -114,7 +114,7 @@ export const TotalAllTimeColumn = (
 	accessorKey: alternativeAccessor ?? 'totalAllTime',
 	enableSorting: true,
 	cell: (info) => {
-		if (Number.isNaN(formattedNum(info.getValue()))) return <></>
+		if (Number.isNaN(formattedNum(info.getValue())) || formattedNum(info.getValue()) === 0) return <></>
 		return <>${formattedNum(info.getValue())}</>
 	},
 	size: 150,
