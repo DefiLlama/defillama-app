@@ -492,7 +492,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '24h Inflows',
 		accessorKey: '24hInflows',
-		size: 80,
+		size: 120,
 		cell: (info) => (
 			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
 				{info.getValue() && formatCexInflows(info.getValue())}
@@ -505,7 +505,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '7d Inflows',
 		accessorKey: '7dInflows',
-		size: 80,
+		size: 120,
 		cell: (info) => (
 			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
 				{info.getValue() && formatCexInflows(info.getValue())}
@@ -518,7 +518,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '1m Inflows',
 		accessorKey: '1mInflows',
-		size: 80,
+		size: 120,
 		cell: (info) => (
 			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
 				{info.getValue() && formatCexInflows(info.getValue())}
@@ -536,7 +536,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				{getValue() === undefined ? <QuestionHelper text="This CEX has no third party liability audits" /> : getValue()}
 			</AutoRow>
 		),
-		size: 120,
+		size: 140,
 		meta: {
 			align: 'end'
 		}
@@ -549,12 +549,12 @@ export const cexColumn: ColumnDef<any>[] = [
 				{getValue() === undefined ? null : toNiceDayMonthAndYear(getValue())}
 			</AutoRow>
 		),
-		size: 120
+		size: 124
 	},
 	{
 		header: 'Audit link',
 		accessorKey: 'auditLink',
-		size: 68,
+		size: 80,
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<AutoRow align="center" justify="flex-end">
@@ -580,7 +580,7 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: 'Link to Wallets',
 		accessorKey: 'walletsLink',
-		size: 96,
+		size: 120,
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<AutoRow align="center" justify="flex-end">
