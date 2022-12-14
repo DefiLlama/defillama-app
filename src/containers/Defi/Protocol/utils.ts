@@ -45,6 +45,7 @@ export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => 
 // build unique tokens based on top 10 tokens in usd value on each day
 function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
 	const tokenSet: Set<string> = new Set()
+
 	let othersCategoryExist = false
 
 	for (const section in chainTvls) {
@@ -98,6 +99,7 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 				for (let i = 1; i < tokensInUsd.length; i++) {
 					let dayDifference = 0
 					let tokenDayDifference = {}
+
 					for (const token in tokensInUsd[i]?.tokens) {
 						const price = tokensInUsd[i].tokens[token] / tokens[i]?.tokens[token]
 						const diff = (tokens[i]?.tokens[token] ?? 0) - (tokens[i - 1]?.tokens[token] ?? 0)
@@ -106,7 +108,7 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 						if (!Number.isNaN(diffUsd) && isFinite(price)) {
 							// Show only top 10 inflow tokens of the day, add remaining inlfows under "Others" category
 							if (tokensUnique.includes(token)) {
-								tokenDayDifference[token] = diffUsd
+								tokenDayDifference[token] = (tokenDayDifference[token] || 0) + diffUsd
 							} else {
 								tokenDayDifference['Others'] = (tokenDayDifference['Others'] || 0) + diffUsd
 							}
