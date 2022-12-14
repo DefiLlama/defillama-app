@@ -53,7 +53,7 @@ Step 3: deposit $750
 Total Deposits: $1750 -> 1.75x the original $1k
 Total Borrowed: $750
 
-Loop APY: 9% * 1.75 + 3% = 18.75% -> >2x increase compared to the Supply APY
+Loop APY: 9% * 1.75 + 3% * 0.75 = 18% -> 2x increase compared to the Supply APY
 
 You could keep adding leverage by repeating these steps n-times.
 `
