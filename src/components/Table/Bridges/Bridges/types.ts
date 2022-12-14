@@ -3,10 +3,10 @@ export interface IBridge {
 	symbol: string
 	icon: string
 	chains: Array<string>
-	volumePrevDay: number
-	volumePrev2Day: number
-	volumePrevWeek: number
-	volumePrevMonth: number
+	lastDailyVolume: number
+	dayBeforeLastVolume: number
+	weeklyVolume: number
+	monthlyVolume: number
 	change_1d: number
 	change_7d: number
 	change_1m: number
