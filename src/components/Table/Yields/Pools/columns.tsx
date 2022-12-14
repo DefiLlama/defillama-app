@@ -80,6 +80,12 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 					{info.row.original.project === 'cBridge' ? (
 						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY!'} />
+					) : info.row.original.project === 'Uniswap V3' ? (
+						<QuestionHelper
+							text={
+								'Calculated as: 24h fees * 365 / TVL. Enable "7d Base APY" for a more detailed APY calculation which uses 7 day trading fees and a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
+							}
+						/>
 					) : null}
 					{formattedPercent(info.getValue(), true, 700)}
 				</span>
