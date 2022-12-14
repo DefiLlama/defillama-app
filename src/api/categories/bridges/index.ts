@@ -195,7 +195,7 @@ export async function getBridgeChainsPageData() {
 	const formattedChartEntries = Object.entries(unformattedChartData).reduce((acc, data) => {
 		const date = data[0]
 		const netFlows = data[1] as { [chain: string]: number }
-		let sortednetFlows = Object.entries(netFlows).sort((a, b) => b[1] - a[1])
+		let sortednetFlows = Object.entries(netFlows).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
 
 		if (sortednetFlows.length > 11) {
 			useOthers = true
