@@ -1,5 +1,3 @@
-export const upperCaseFirst = (s: string) => `${s[0].toUpperCase()}${s.slice(1).toLowerCase()}`
-
 export type AsyncReturnType<T extends (...args: any) => Promise<any>> =
   T extends (...args: any) => Promise<infer R> ? R : any
 

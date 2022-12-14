@@ -1,7 +1,6 @@
 import type { LiteProtocol } from '~/api/types'
 import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
-import { upperCaseFirst } from '~/containers/DexsAndFees/utils'
-import { chainIconUrl } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
 import { formatChain } from './utils'
@@ -43,19 +42,18 @@ export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummary
 	allAddresses?: Array<string>
 }
 
-export const getOverviewItemPageData = async (
+export const generateGetOverviewItemPageDate = async (
+	item: ProtocolAdaptorSummaryResponse,
 	type: string,
 	protocolName: string,
-	dataType?: string
 ): Promise<ProtocolAdaptorSummaryProps> => {
-	const item = await getOverviewItem(type, protocolName, dataType)
 	let label: string
 	if (type === 'volumes') {
 		label = 'Volume'
 	} else if (type === 'options') {
 		label = 'Notionial volume'
 	} else {
-		label = upperCaseFirst(type)
+		label = capitalizeFirstLetter(type)
 	}
 	const allCharts: IChartsList = []
 	if (item.totalDataChart) allCharts.push([label, item.totalDataChart])
@@ -76,6 +74,15 @@ export const getOverviewItemPageData = async (
 		type,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)]
 	}
+}
+
+export const getOverviewItemPageData = async (
+	type: string,
+	protocolName: string,
+	dataType?: string
+): Promise<ProtocolAdaptorSummaryProps> => {
+	const item = await getOverviewItem(type, protocolName, dataType)
+	return generateGetOverviewItemPageDate(item, type, protocolName)
 }
 
 // - used in /[type] and /[type]/chains/[chain]
@@ -112,7 +119,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			return acc
 		}, {}) ?? {}
 
-	const label: string = type === 'options' ? 'Notionial volume' : upperCaseFirst(type)
+	const label: string = type === 'options' ? 'Notionial volume' : capitalizeFirstLetter(type)
 
 	const allCharts: IChartsList = []
 

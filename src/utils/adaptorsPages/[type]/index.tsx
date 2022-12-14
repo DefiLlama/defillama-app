@@ -4,8 +4,8 @@ import { revalidate } from '~/api'
 import { getChainPageData } from '~/api/categories/adaptors'
 import SEO from '~/components/SEO'
 import OverviewContainer, { IOverviewContainerProps } from '~/containers/DexsAndFees'
-import { upperCaseFirst } from '~/containers/DexsAndFees/utils'
 import Layout from '~/layout'
+import { capitalizeFirstLetter } from '~/utils'
 
 export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 	params
@@ -33,7 +33,7 @@ export const getStaticPropsByType = (type: string) => {
 
 const AllChainsDexs = (props: IOverviewContainerProps) => {
 	return (
-		<Layout title={`${upperCaseFirst(props.type)} - DefiLlama`}>
+		<Layout title={`${capitalizeFirstLetter(props.type)} - DefiLlama`}>
 			<SEO dexsPage />
 			<OverviewContainer {...props} />
 		</Layout>

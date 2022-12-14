@@ -55,6 +55,7 @@ const getOkValue = (value: number | IJSON<number>) => {
 }
 
 export function chartBreakdownByChain(chart: ProtocolAdaptorSummaryResponse['totalDataChartBreakdown']): [IJoin2ReturnType, string[]] {
+	if (!chart) return [[], []]
 	const legend = []
 	const rawProcessed = chart.reduce((acc, [timestamp, data]) => {
 		Object.entries(data).forEach(([chain, chainData]) => {
