@@ -453,7 +453,9 @@ function ProtocolContainer({
 						<FlexRow>
 							<span>Category</span>
 							<span>: </span>
-							<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+							<Link href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category.toLowerCase()}`}>
+								{category}
+							</Link>
 						</FlexRow>
 					)}
 
