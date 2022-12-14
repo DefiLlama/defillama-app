@@ -263,7 +263,7 @@ function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
 				if (isClient) {
 					toggled = state[setting]
 					// prevent flash of these toggles when page loads intially
-				} else if (setting === 'emulator' || setting === 'unreleased') {
+				} else if (setting === 'emulator') {
 					toggled = true
 				} else toggled = false
 
