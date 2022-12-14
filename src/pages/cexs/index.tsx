@@ -23,7 +23,7 @@ const cexData = [
 		coin: null,
 		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt'
 	},
-		{
+	{
 		name: 'Huobi',
 		slug: 'Huobi',
 		coin: 'HT',
@@ -183,23 +183,42 @@ const cexData = [
 	}
 ]
 
+const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
+const hour7dms = ((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
+const hour1mms = ((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
+
 export async function getStaticProps() {
 	const cexs = await Promise.all(
 		cexData.map(async (c) => {
+			if (c.slug === 'Binance-CEX') {
+				console.log(`https://api.llama.fi/inflows/${c.slug}/${hour7dms}`)
+			}
 			if (c.slug === undefined) {
 				return c
 			} else {
-				const { tvl, tokensInUsd } = await fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then((r) => r.json())
+				const [{ tvl, tokensInUsd }, inflows24h, inflows7d, inflows1m] = await Promise.all([
+					fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then((r) => r.json()),
+					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}`).then((r) => r.json()),
+					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour7dms}`).then((r) => r.json()),
+					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour1mms}`).then((r) => r.json())
+				])
+
 				const cexTvl = tvl ? tvl[tvl.length - 1].totalLiquidityUSD : 0
+
 				const ownToken = tokensInUsd ? tokensInUsd[tokensInUsd.length - 1].tokens[c.coin] ?? 0 : 0
+
 				return {
 					...c,
 					tvl: cexTvl,
-					cleanTvl: cexTvl - ownToken
+					cleanTvl: cexTvl - ownToken,
+					'24hInflows': inflows24h?.outflows ?? null,
+					'7dInflows': inflows7d?.outflows ?? null,
+					'1mInflows': inflows1m?.outflows ?? null
 				}
 			}
 		})
 	)
+
 	return {
 		props: {
 			cexs

@@ -1,8 +1,10 @@
 import { ColumnDef } from '@tanstack/react-table'
+import styled from 'styled-components'
 import { ArrowUpRight, ChevronDown, ChevronRight } from 'react-feather'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
+import { AutoRow } from '~/components/Row'
 import TokenLogo from '~/components/TokenLogo'
 import { Tooltip2 } from '~/components/Tooltip'
 import { ButtonYields } from '~/layout/Pool'
@@ -12,9 +14,9 @@ import {
 	formattedNum,
 	formattedPercent,
 	slug,
+	toK,
 	toNiceDayMonthAndYear
 } from '~/utils'
-import { Total24hColumn } from '../Adaptors/columns/common'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
 import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow } from './types'
@@ -452,6 +454,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		},
 		size: 120,
 		meta: {
+			align: 'end',
 			headerHelperText:
 				'This excludes IOU assets issued by the CEX that are already counted on another chain, such as Binance-pegged BTC in BSC, which is already counted in Bitcoin chain'
 		}
@@ -462,11 +465,11 @@ export const cexColumn: ColumnDef<any>[] = [
 		cell: (info) => {
 			const coinSymbol = info.row.original.coinSymbol
 			return (
-				<>
+				<AutoRow align="center" justify="flex-end">
 					{info.getValue() === undefined ? (
 						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" />
 					) : (
-						<span style={{ display: 'flex', gap: '4px' }}>
+						<>
 							{coinSymbol === undefined ? (
 								<QuestionHelper text={`Original TVL doesn't contain any coin issued by this CEX`} />
 							) : (
@@ -475,75 +478,158 @@ export const cexColumn: ColumnDef<any>[] = [
 								/>
 							)}
 							<span>{'$' + formattedNum(info.getValue())}</span>
-						</span>
+						</>
 					)}
-				</>
+				</AutoRow>
 			)
 		},
 		size: 120,
 		meta: {
+			align: 'end',
 			headerHelperText: 'TVL of the CEX excluding all assets issued by itself, such as their own token'
+		}
+	},
+	{
+		header: '24h Inflows',
+		accessorKey: '24hInflows',
+		size: 80,
+		cell: (info) => (
+			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
+				{info.getValue() && formatCexInflows(info.getValue())}
+			</InflowOutflow>
+		),
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '7d Inflows',
+		accessorKey: '7dInflows',
+		size: 80,
+		cell: (info) => (
+			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
+				{info.getValue() && formatCexInflows(info.getValue())}
+			</InflowOutflow>
+		),
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '1m Inflows',
+		accessorKey: '1mInflows',
+		size: 80,
+		cell: (info) => (
+			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
+				{info.getValue() && formatCexInflows(info.getValue())}
+			</InflowOutflow>
+		),
+		meta: {
+			align: 'end'
 		}
 	},
 	{
 		header: 'Liabilities auditor',
 		accessorKey: 'auditor',
-		size: 120,
 		cell: ({ getValue }) => (
-			<>
+			<AutoRow align="center" justify="flex-end">
 				{getValue() === undefined ? <QuestionHelper text="This CEX has no third party liability audits" /> : getValue()}
-			</>
-		)
+			</AutoRow>
+		),
+		size: 120,
+		meta: {
+			align: 'end'
+		}
 	},
 	{
-		cell: ({ getValue }) => <>{getValue() === undefined ? null : toNiceDayMonthAndYear(getValue())}</>,
-		size: 120,
 		header: 'Last audit date',
-		accessorKey: 'lastAuditDate'
+		accessorKey: 'lastAuditDate',
+		cell: ({ getValue }) => (
+			<AutoRow align="center" justify="flex-end">
+				{getValue() === undefined ? null : toNiceDayMonthAndYear(getValue())}
+			</AutoRow>
+		),
+		size: 120
 	},
 	{
 		header: 'Audit link',
 		accessorKey: 'auditLink',
-		size: 48,
+		size: 68,
 		enableSorting: false,
-		cell: ({ getValue }) =>
-			getValue() === undefined ? null : (
-				<ButtonYields
-					as="a"
-					href={getValue() as string}
-					target="_blank"
-					rel="noopener noreferrer"
-					data-lgonly
-					useTextColor={true}
-					style={{ width: '21px' }}
-				>
-					<ArrowUpRight size={14} />
-				</ButtonYields>
-			)
+		cell: ({ getValue }) => (
+			<AutoRow align="center" justify="flex-end">
+				{getValue() === undefined ? null : (
+					<ButtonYields
+						as="a"
+						href={getValue() as string}
+						target="_blank"
+						rel="noopener noreferrer"
+						data-lgonly
+						useTextColor={true}
+						style={{ width: '21px' }}
+					>
+						<ArrowUpRight size={14} />
+					</ButtonYields>
+				)}
+			</AutoRow>
+		),
+		meta: {
+			align: 'end'
+		}
 	},
 	{
 		header: 'Link to Wallets',
 		accessorKey: 'walletsLink',
-		size: 90,
+		size: 96,
 		enableSorting: false,
-		cell: ({ getValue }) =>
-			getValue() === undefined ? (
-				<QuestionHelper text="This CEX has no published their wallet addresses" />
-			) : (
-				<ButtonYields
-					as="a"
-					href={getValue() as string}
-					target="_blank"
-					rel="noopener noreferrer"
-					data-lgonly
-					useTextColor={true}
-					style={{ width: '21px' }}
-				>
-					<ArrowUpRight size={14} />
-				</ButtonYields>
-			)
+		cell: ({ getValue }) => (
+			<AutoRow align="center" justify="flex-end">
+				{getValue() === undefined ? (
+					<QuestionHelper text="This CEX has no published their wallet addresses" />
+				) : (
+					<ButtonYields
+						as="a"
+						href={getValue() as string}
+						target="_blank"
+						rel="noopener noreferrer"
+						data-lgonly
+						useTextColor={true}
+						style={{ width: '21px' }}
+					>
+						<ArrowUpRight size={14} />
+					</ButtonYields>
+				)}
+			</AutoRow>
+		),
+		meta: {
+			align: 'end'
+		}
 	}
 ]
+
+function formatCexInflows(value) {
+	let x = value
+	let isNegative = false
+
+	if (value.toString().startsWith('-')) {
+		isNegative = true
+		x = value.toString().split('-').slice(1).join('-')
+	}
+
+	return `${isNegative ? '-' : '+'} $${toK(x)}`
+}
+
+export const InflowOutflow = styled.span`
+	color: ${({ theme }) => theme.text1};
+
+	&[data-variant='green'] {
+		color: green;
+	}
+
+	&[data-variant='red'] {
+		color: red;
+	}
+`
 
 // key: min width of window/screen
 // values: table columns order
