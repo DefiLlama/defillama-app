@@ -55,6 +55,7 @@ import type { IFusedProtocolData, IRaise } from '~/api/types'
 import { useYields } from '~/api/categories/yield/client'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData } from './utils'
+import ChartByType from './../../DexsAndFees/charts'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -230,9 +231,6 @@ function ProtocolContainer({
 
 	const [extraTvlsEnabled, updater] = useDefiManager()
 
-	// const { data: dex, loading: dexLoading } = useFetchProtocolDex(protocol)
-	// const { data: fees } = useFetchProtocolFees(protocol)
-
 	const { data: yields } = useYields()
 
 	const {
@@ -290,27 +288,6 @@ function ProtocolContainer({
 
 		return [projectYields.length, averageApy]
 	}, [protocol, yields])
-
-	// const { mainChartData, allChainsChartData } = React.useMemo(() => {
-	// 	if (!dex || dexLoading) return { mainChartData: [], allChainsChartData: [] }
-	// 	const volumeHistory = !!dex.volumeHistory ? dex.volumeHistory : []
-
-	// 	return {
-	// 		mainChartData: formatVolumeHistoryToChartDataByProtocol(volumeHistory, dex.name, dex.volumeAdapter),
-	// 		allChainsChartData: formatVolumeHistoryToChartDataByChain(volumeHistory)
-	// 	}
-	// }, [dex, dexLoading])
-
-	// const volumeMap = dex?.volumeHistory?.reduce(
-	// 	(acc, val) => ({
-	// 		...acc,
-	// 		[val.timestamp]: Object.values(val.dailyVolume).reduce(
-	// 			(acc, val) => acc + +Object.values(val).reduce((acc, v) => Number(acc) + Number(v), 0),
-	// 			0
-	// 		)
-	// 	}),
-	// 	{} as Record<number, number>
-	// )
 
 	const chainsSplit = React.useMemo(() => {
 		return formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
@@ -605,11 +582,6 @@ function ProtocolContainer({
 					</Section>
 				</InfoWrapper>
 			)}
-			{/* 
-			{mainChartData?.length ? (
-				<DexCharts data={dex} chartData={mainChartData} name={name} isProtocolPage chainsChart={allChainsChartData} />
-			) : null}
-			{fees?.chartData?.length ? <FeesBody {...fees} /> : null} */}
 
 			{showCharts && (
 				<>
@@ -674,6 +646,19 @@ function ProtocolContainer({
 					</ChartsWrapper>
 				</>
 			)}
+
+			<ChartsWrapper>
+				{loading ? (
+					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+				) : (
+					<>
+						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="dexs" />
+						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="fees" breakdownChart={false} />
+						<ChartByType chartType="version" protocolName={slug(protocolData.name)} type="dexs" />
+						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="fees" />
+					</>
+				)}
+			</ChartsWrapper>
 		</Layout>
 	)
 }

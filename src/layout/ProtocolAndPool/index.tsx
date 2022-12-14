@@ -225,14 +225,16 @@ export const ChartWrapper = styled.div`
 
 defaultFallbackInView(true)
 
-export const LazyChart = ({ children, ...props }) => {
+export const LazyChart = ({ children, enable = true, ...props }) => {
 	const { ref, inView } = useInView({
 		triggerOnce: true
 	})
 
-	return (
+	return enable ? (
 		<ChartWrapper ref={ref} {...props}>
 			{inView && children}
 		</ChartWrapper>
+	) : (
+		children
 	)
 }

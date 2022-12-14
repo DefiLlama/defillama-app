@@ -7,12 +7,12 @@ import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { AdaptorsSearch } from '~/components/Search'
 import { IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
 import { formatChain } from '~/api/categories/dexs/utils'
-import { upperCaseFirst } from './utils'
 import { IJSON } from '~/api/categories/adaptors/types'
 import { useFetchCharts } from '~/api/categories/adaptors/client'
 import { MainBarChart } from './common'
 import { IDexChartsProps } from './OverviewItem'
 import { useRouter } from 'next/router'
+import { capitalizeFirstLetter } from '~/utils'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -118,8 +118,8 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			<AdaptorsSearch
 				type={props.type}
 				step={{
-					category: chain === 'All' ? 'Home' : upperCaseFirst(props.type),
-					name: chain === 'All' ? upperCaseFirst(props.type) : chain === 'all' ? 'Chains' : chain
+					category: chain === 'All' ? 'Home' : capitalizeFirstLetter(props.type),
+					name: chain === 'All' ? capitalizeFirstLetter(props.type) : chain === 'all' ? 'Chains' : chain
 				}}
 				onToggleClick={
 					charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
@@ -191,7 +191,7 @@ interface ITitleProps {
 	chain: string
 }
 const TitleByType: React.FC<ITitleProps> = (props) => {
-	let title = upperCaseFirst(props.type)
+	let title = capitalizeFirstLetter(props.type)
 	if (props.type === 'dexs') title = `Volume in ${props.chain === 'All' ? 'all DEXs' : props.chain}`
 	if (props.type === 'fees') title = 'Ranking by fees and revenue'
 	if (props.chain === 'all') {

@@ -14,8 +14,7 @@ import {
 	Section,
 	SectionHeader,
 	ChartWrapper,
-	ChartsWrapper,
-	LazyChart
+	ChartsWrapper
 } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
@@ -27,15 +26,15 @@ import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
-import { upperCaseFirst } from './utils'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
+import ChartByType from './charts'
 
 interface PageParams {
 	protocolSummary: ProtocolAdaptorSummaryProps
 	backgroundColor: string
 }
-import { chartBreakdownByChain, chartBreakdownByTokens, chartBreakdownByVersion } from '~/api/categories/adaptors/utils'
+import { chartBreakdownByChain } from '~/api/categories/adaptors/utils'
 import {
 	aggregateDataByInterval,
 	DataIntervalType,
@@ -50,7 +49,7 @@ const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-interface IProtocolContainerProps extends PageParams {
+export interface IProtocolContainerProps extends PageParams {
 	title: string
 }
 
@@ -88,7 +87,7 @@ export const ProtocolChart = ({
 	disableDefaultLeged = false
 }: IDexChartsProps) => {
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
-	const typeString = type === 'dexs' ? 'Volume' : upperCaseFirst(type)
+	const typeString = type === 'dexs' ? 'Volume' : capitalizeFirstLetter(type)
 	const typeSimple = type === 'dexs' || type === 'options' ? 'volume' : type
 	const simpleStack =
 		chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
@@ -234,7 +233,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 			<AdaptorsSearch
 				type={props.protocolSummary.type}
 				step={{
-					category: upperCaseFirst(props.protocolSummary.type),
+					category: capitalizeFirstLetter(props.protocolSummary.type),
 					name: props.protocolSummary.displayName
 				}}
 				/* onToggleClick={
@@ -258,7 +257,14 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				title={mainChart.title}
 				totalAllTime={props.protocolSummary.totalAllTime}
 			/>
-
+			{/* Above component should be replaced by the one below but for some reason it makes the chartByVersion not to load to test use dexs/uniswap*/}
+			{/* 			<ChartByType
+				fullChart={false}
+				type={props.protocolSummary.type}
+				protocolName={props.protocolSummary.module}
+				chartType="chain"
+				protocolSummary={props.protocolSummary}
+			/> */}
 			<SectionHeader>Information</SectionHeader>
 			<InfoWrapper>
 				<Section>
@@ -397,30 +403,18 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					<SectionHeader>Charts</SectionHeader>
 					<ChartsWrapper>
 						{enableVersionsChart && (
-							<LazyChart>
-								<ProtocolChart
-									logo={props.protocolSummary.logo}
-									data={props.protocolSummary}
-									chartData={chartBreakdownByVersion(props.protocolSummary.totalDataChartBreakdown)}
-									name={props.protocolSummary.name}
-									type={props.protocolSummary.type}
-									title={`${capitalizeFirstLetter(props.protocolSummary.type)} by protocol version`}
-									fullChart
-								/>
-							</LazyChart>
+							<ChartByType
+								type={props.protocolSummary.type}
+								protocolName={props.protocolSummary.module}
+								chartType="version"
+							/>
 						)}
 						{enableTokensChart && (
-							<LazyChart>
-								<ProtocolChart
-									logo={props.protocolSummary.logo}
-									data={props.protocolSummary}
-									chartData={chartBreakdownByTokens(props.protocolSummary.totalDataChartBreakdown)}
-									name={props.protocolSummary.name}
-									type={props.protocolSummary.type}
-									title={`${capitalizeFirstLetter(props.protocolSummary.type)} by token`}
-									fullChart
-								/>
-							</LazyChart>
+							<ChartByType
+								type={props.protocolSummary.type}
+								protocolName={props.protocolSummary.module}
+								chartType="tokens"
+							/>
 						)}
 					</ChartsWrapper>
 				</>
