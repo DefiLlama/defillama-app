@@ -44,6 +44,7 @@ import {
 	GROUP_INTERVALS_LIST
 } from './common'
 import Announcement from '~/components/Announcement'
+import { volumeTypes } from '~/utils/adaptorsPages/[type]/[item]'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -87,8 +88,8 @@ export const ProtocolChart = ({
 	disableDefaultLeged = false
 }: IDexChartsProps) => {
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
-	const typeString = type === 'dexs' ? 'Volume' : capitalizeFirstLetter(type)
-	const typeSimple = type === 'dexs' || type === 'options' ? 'volume' : type
+	const typeString = volumeTypes.includes(type) ? 'Volume' : capitalizeFirstLetter(type)
+	const typeSimple = volumeTypes.includes(type) ? 'volume' : type
 	const simpleStack =
 		chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
 			? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
@@ -202,7 +203,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 
 	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
-	const typeSimple = props.protocolSummary.type === 'dexs' ? 'volume' : props.protocolSummary.type
+	const typeSimple = volumeTypes.includes(props.protocolSummary.type) ? 'volume' : props.protocolSummary.type
 	const useTotalDataChart = props.protocolSummary.type === 'fees' || props.protocolSummary.type === 'options'
 	const mainChart = React.useMemo(() => {
 		let chartData: IJoin2ReturnType

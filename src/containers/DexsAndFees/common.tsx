@@ -8,6 +8,7 @@ import { IBarChartProps } from '~/components/ECharts/types'
 import { formattedNum } from '~/utils'
 import { IDexChartsProps } from './OverviewItem'
 import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
+import { volumeTypes } from '~/utils/adaptorsPages/[type]/[item]'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -61,8 +62,7 @@ export const aggregateDataByInterval =
 
 export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
-	const dataType =
-		props.type === 'dexs' || props.type === 'options' || props.type === 'aggregators' ? 'volume' : props.type
+	const dataType = volumeTypes.includes(props.type) ? 'volume' : props.type
 	const simpleStack =
 		props.chartData[1].includes('Fees') || props.chartData[1].includes('Premium volume')
 			? props.chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})

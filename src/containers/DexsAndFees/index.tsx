@@ -13,6 +13,7 @@ import { MainBarChart } from './common'
 import { IDexChartsProps } from './OverviewItem'
 import { useRouter } from 'next/router'
 import { capitalizeFirstLetter } from '~/utils'
+import { volumeTypes } from '~/utils/adaptorsPages/[type]/[item]'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -192,11 +193,12 @@ interface ITitleProps {
 }
 const TitleByType: React.FC<ITitleProps> = (props) => {
 	let title = capitalizeFirstLetter(props.type)
-	if (props.type === 'dexs') title = `Volume in ${props.chain === 'All' ? 'all DEXs' : props.chain}`
-	if (props.type === 'fees') title = 'Ranking by fees and revenue'
+	if (volumeTypes.includes(props.type)) title = `${title} volume`
+	else if (props.type === 'fees') title = 'Ranking by fees and revenue'
 	if (props.chain === 'all') {
-		const typeLabel = props.type === 'dexs' ? 'Volume' : title
-		title = `${typeLabel} by chains`
+		title = `${title} by chain`
+	} else if (props.chain && props.chain !== 'All') {
+		title = `${title} in ${props.chain}`
 	}
 	return (
 		<HeaderWrapper>
