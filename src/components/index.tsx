@@ -300,9 +300,12 @@ export const FallbackMessage = styled.p`
 export const ToggleWrapper = styled.label`
 	display: flex;
 	align-items: center;
+	flex-wrap: nowrap;
 	gap: 8px;
 	cursor: pointer;
+`
 
+export const ToggleWrapper2 = styled(ToggleWrapper)`
 	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
 		:first-of-type {
 			margin-left: auto;

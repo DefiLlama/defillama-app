@@ -1,7 +1,6 @@
 import type { LiteProtocol } from '~/api/types'
 import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
-import { upperCaseFirst } from '~/containers/DexsAndFees/utils'
-import { chainIconUrl } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
 import { formatChain } from './utils'
@@ -43,19 +42,18 @@ export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummary
 	allAddresses?: Array<string>
 }
 
-export const getOverviewItemPageData = async (
+export const generateGetOverviewItemPageDate = async (
+	item: ProtocolAdaptorSummaryResponse,
 	type: string,
 	protocolName: string,
-	dataType?: string
 ): Promise<ProtocolAdaptorSummaryProps> => {
-	const item = await getOverviewItem(type, protocolName, dataType)
 	let label: string
 	if (type === 'volumes') {
 		label = 'Volume'
 	} else if (type === 'options') {
 		label = 'Notionial volume'
 	} else {
-		label = upperCaseFirst(type)
+		label = capitalizeFirstLetter(type)
 	}
 	const allCharts: IChartsList = []
 	if (item.totalDataChart) allCharts.push([label, item.totalDataChart])
@@ -78,7 +76,16 @@ export const getOverviewItemPageData = async (
 	}
 }
 
-// - used in /overview/[type] and /overview/[type]/chains/[chain]
+export const getOverviewItemPageData = async (
+	type: string,
+	protocolName: string,
+	dataType?: string
+): Promise<ProtocolAdaptorSummaryProps> => {
+	const item = await getOverviewItem(type, protocolName, dataType)
+	return generateGetOverviewItemPageDate(item, type, protocolName)
+}
+
+// - used in /[type] and /[type]/chains/[chain]
 export const getChainPageData = async (type: string, chain?: string): Promise<IOverviewProps> => {
 	const feesOrRevenueApi =
 		type === 'options'
@@ -112,7 +119,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			return acc
 		}, {}) ?? {}
 
-	const label: string = type === 'options' ? 'Notionial volume' : upperCaseFirst(type)
+	const label: string = type === 'options' ? 'Notionial volume' : capitalizeFirstLetter(type)
 
 	const allCharts: IChartsList = []
 
@@ -127,9 +134,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-					{} as IJSON<ProtocolAdaptorSummary>
-			  ) ?? {}
+				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+				{} as IJSON<ProtocolAdaptorSummary>
+			) ?? {}
 			: {}
 
 	// Get TVL data
@@ -152,15 +159,18 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			module: protocol.module,
 			subRows: protocol.protocolsStats
 				? Object.entries(protocol.protocolsStats)
-						.map(([versionName, summary]) => ({
+					.map(([versionName, summary]) => {
+						return {
 							...protocol,
 							displayName: `${versionName.toUpperCase()} - ${protocol.name}`,
 							...summary,
 							totalAllTime: null,
 							revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? (0 as number)
-						}))
-						.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
-				: null
+						}
+					})
+					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
+				: null,
+			dailyUserFees: protocol.dailyUserFees ?? null
 		}
 	})
 

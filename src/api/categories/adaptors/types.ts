@@ -65,4 +65,14 @@ export type ProtocolAdaptorSummary = {
 		change_1m: number | null
 		breakdown24h: IJSON<number> | null
 	}>
+	methodology?: string | IJSON<string>
+} & ExtraTypes
+
+type ExtraTypes = {
+	dailyUserFees?: number | null
+	dailyHoldersRevenue?: number | null
+	dailyCreatorRevenue?: number | null
+	dailySupplySideRevenue?: number | null
+	dailyProtocolRevenue?: number | null
+	dailyPremiumVolume?: number | null
 }

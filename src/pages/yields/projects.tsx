@@ -1,12 +1,12 @@
 import Layout from '~/layout'
-import PageHeader from '~/components/PageHeader'
-import { YieldsSearch } from '~/components/Search'
 import { YieldsProjectsTable } from '~/components/Table'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
+import { compressPageProps, decompressPageProps } from '~/utils/compress'
 import { revalidate } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
-import { compressPageProps, decompressPageProps } from '~/utils/compress'
+
+import PageHeader from '~/components/PageHeader'
 
 function median(numbers) {
 	const sorted: any = Array.from(numbers).sort((a: number, b: number) => a - b)
@@ -58,10 +58,11 @@ export async function getStaticProps() {
 
 export default function Protocols({ compressed }) {
 	const data = decompressPageProps(compressed)
+
 	return (
 		<Layout title={`Projects - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
-			<YieldsSearch step={{ category: 'Yields', name: 'All projects', hideOptions: true }} />
+
 			<PageHeader title="Projects" />
 
 			<YieldsProjectsTable data={data.projects} />

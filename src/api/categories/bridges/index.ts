@@ -109,7 +109,7 @@ export async function getBridgeOverviewPageData(chain) {
 	// order of chains will update every 24 hrs, can consider changing metric sorted by here
 	const chainList = await chains
 		.sort((a, b) => {
-			return b.volumePrevDay - a.volumePrevDay
+			return b.lastDailyVolume - a.lastDailyVolume
 		})
 		.map((chain) => chain.name)
 
@@ -124,7 +124,7 @@ export async function getBridgeOverviewPageData(chain) {
 			resp.json()
 		)
 	}
-	
+
 	const numberOfDaysForLargeTx = chain ? 7 : 1
 	const secondsInDay = 3600 * 24
 	const unformattedLargeTxsData = await getLargeTransactionsData(
@@ -133,7 +133,7 @@ export async function getBridgeOverviewPageData(chain) {
 		currentTimestamp
 	)
 	const largeTxsData = unformattedLargeTxsData.map((transaction) => {
-		const { token, symbol, isDeposit, chain:txChain } = transaction
+		const { token, symbol, isDeposit, chain: txChain } = transaction
 		const symbolAndTokenForExplorer = `${symbol}#${token}`
 		let correctedIsDeposit = isDeposit
 		if (chain) {
@@ -195,7 +195,7 @@ export async function getBridgeChainsPageData() {
 	const formattedChartEntries = Object.entries(unformattedChartData).reduce((acc, data) => {
 		const date = data[0]
 		const netFlows = data[1] as { [chain: string]: number }
-		let sortednetFlows = Object.entries(netFlows).sort((a, b) => b[1] - a[1])
+		let sortednetFlows = Object.entries(netFlows).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
 
 		if (sortednetFlows.length > 11) {
 			useOthers = true
@@ -208,13 +208,15 @@ export async function getBridgeChainsPageData() {
 	const formattedVolumeChartData = [...chains, 'Others']
 		.map((chain) => {
 			if (chain === 'Others' && !useOthers) return { data: [] }
-			const chainName = chain.name
-			const chartIndex = chainToChartDataIndex[chainName]
-			if (chartDataByChain[chartIndex].length === 0) return { data: [] }
+			const chainName = chain === 'Others' ? 'Others' : chain.name
+			if (chainName !== 'Others') {
+				const chartIndex = chainToChartDataIndex[chainName]
+				if (chartDataByChain[chartIndex].length === 0) return { data: [] }
+			}
 			return {
 				name: chainName,
 				data: chartDates.map((date) => [
-					JSON.parse(JSON.stringify(new Date(parseInt(date) * 1000))),
+					JSON.parse(JSON.stringify(new Date((parseInt(date) + 43200) * 1000))), // shifted forward by 12 hours, so the date is at 12:00 UTC instead of 00:00 UTC
 					formattedChartEntries[date][chainName] ?? 0
 				])
 			}

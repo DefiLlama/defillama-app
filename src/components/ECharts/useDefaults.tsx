@@ -86,7 +86,11 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 				let vals
 				let filteredParams = params
 					.filter((item) => item.value[1] !== 0 && item.value[1] !== '-' && item.value[1] !== null)
-					.sort((a, b) => (tooltipSort ? b.value[1] - a.value[1] : 0))
+					.sort((a, b) =>
+						tooltipSort
+							? (b.value[1] < 0 ? b.value[1] * -1 : b.value[1]) - (a.value[1] < 0 ? a.value[1] * -1 : a.value[1])
+							: 0
+					)
 
 				const otherIndex = filteredParams.findIndex((item) => item.seriesName === 'Others')
 				let others
@@ -95,11 +99,11 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 					others = filteredParams[otherIndex]
 					filteredParams = filteredParams.filter((item) => item.seriesName !== 'Others')
 				}
-				const cuttedParams = filteredParams.slice(0, 10)
+				const topParams = filteredParams.slice(0, 10)
 				const otherParams = filteredParams.slice(10)
 
 				if (valueSymbol !== '%') {
-					vals = cuttedParams.reduce((prev, curr) => {
+					vals = topParams.reduce((prev, curr) => {
 						return (prev +=
 							'<li style="list-style:none">' +
 							curr.marker +
@@ -120,7 +124,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 							'</li>'
 					}
 				} else {
-					vals = cuttedParams.reduce((prev, curr) => {
+					vals = topParams.reduce((prev, curr) => {
 						return (prev +=
 							'<li style="list-style:none">' +
 							curr.marker +

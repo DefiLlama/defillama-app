@@ -1,18 +1,26 @@
 import { useRef } from 'react'
 import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { Checkbox } from '~/components'
-import { Input, List } from '~/components/Combobox'
-import { ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup, SelectButton } from '../shared'
+import { ComboboxSelectPopover, ItemsSelected, SelectButton, SecondaryLabel } from '../shared'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
+import { ComboboxSelectContent } from '../shared/ComboboxSelectContent'
+import { SlidingMenu } from '~/components/SlidingMenu'
 
 interface IFiltersByCategoryProps {
-	categoryList: string[]
-	selectedCategories: string[]
+	categoryList: Array<string>
+	selectedCategories: Array<string>
 	pathname: string
+	variant?: 'primary' | 'secondary'
+	subMenu?: boolean
 }
 
-export function FiltersByCategory({ categoryList = [], selectedCategories, pathname }: IFiltersByCategoryProps) {
+export function FiltersByCategory({
+	categoryList = [],
+	selectedCategories,
+	pathname,
+	variant = 'primary',
+	subMenu
+}: IFiltersByCategoryProps) {
 	const router = useRouter()
 
 	const { category, ...queries } = router.query
@@ -38,21 +46,21 @@ export function FiltersByCategory({ categoryList = [], selectedCategories, pathn
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const select = useSelectState({
+	const selectState = useSelectState({
 		...selectProps,
 		value: selectedCategories,
 		setValue: addCategory,
 		gutter: 8,
-		animated: true,
-		renderCallback
+		renderCallback,
+		...(!subMenu && { animated: true })
 	})
 
 	// Resets combobox value when popover is collapsed
-	if (!select.mounted && combobox.value) {
+	if (!selectState.mounted && combobox.value) {
 		combobox.setValue('')
 	}
 
-	const toggleAll = () => {
+	const toggleAllOptions = () => {
 		router.push(
 			{
 				pathname,
@@ -66,7 +74,7 @@ export function FiltersByCategory({ categoryList = [], selectedCategories, pathn
 		)
 	}
 
-	const clear = () => {
+	const clearAllOptions = () => {
 		router.push(
 			{
 				pathname,
@@ -82,42 +90,76 @@ export function FiltersByCategory({ categoryList = [], selectedCategories, pathn
 
 	const focusItemRef = useRef(null)
 
+	const isSelected = selectedCategories.length > 0 && selectedCategories.length !== categoryList.length
+
+	const isOptionToggled = (option) =>
+		(selectState.value.includes(option) ? true : false) || (category || []).includes('All')
+
+	if (subMenu) {
+		return (
+			<SlidingMenu label="Categories" selectState={selectState}>
+				<ComboboxSelectContent
+					options={categoryList}
+					selectedOptions={selectedCategories}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					focusItemRef={focusItemRef}
+					variant={variant}
+					pathname={pathname}
+					isOptionToggled={isOptionToggled}
+					contentElementId={selectState.contentElement?.id}
+				/>
+			</SlidingMenu>
+		)
+	}
+
 	return (
 		<>
-			<SelectButton state={select}>
-				<span>Filter by Category</span>
-				<MenuButtonArrow />
-				{selectedCategories.length > 0 && selectedCategories.length !== categoryList.length && (
-					<ItemsSelected>{selectedCategories.length}</ItemsSelected>
-				)}
-			</SelectButton>
-			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false} initialFocusRef={focusItemRef}>
-				<Input state={combobox} placeholder="Search for category..." autoFocus />
-
-				{combobox.matches.length > 0 ? (
-					<>
-						<FilterFnsGroup>
-							<button onClick={clear}>Clear</button>
-
-							<button onClick={toggleAll}>Toggle all</button>
-						</FilterFnsGroup>
-						<List state={combobox} className="filter-by-list">
-							{combobox.matches.map((value, i) => (
-								<SelectItem
-									value={value}
-									key={value + i}
-									ref={i === 0 && selectedCategories.length === categoryList.length ? focusItemRef : null}
-									focusOnHover
-								>
-									<span data-name>{value}</span>
-									<Checkbox checked={select.value.includes(value) ? true : false} />
-								</SelectItem>
-							))}
-						</List>
-					</>
+			<SelectButton state={selectState} data-variant={variant}>
+				{variant === 'secondary' ? (
+					<SecondaryLabel>
+						{isSelected ? (
+							<>
+								<span>Category: </span>
+								<span data-selecteditems>
+									{selectedCategories.length > 2
+										? `${selectedCategories[0]} + ${selectedCategories.length - 1} others`
+										: selectedCategories.join(', ')}
+								</span>
+							</>
+						) : (
+							'Category'
+						)}
+					</SecondaryLabel>
 				) : (
-					<p id="no-results">No results</p>
+					<>
+						<span>Filter by Category</span>
+						{isSelected && <ItemsSelected>{selectedCategories.length}</ItemsSelected>}
+					</>
 				)}
+
+				<MenuButtonArrow />
+			</SelectButton>
+
+			<ComboboxSelectPopover
+				state={selectState}
+				modal={!isLarge}
+				composite={false}
+				initialFocusRef={focusItemRef}
+				data-variant={variant}
+			>
+				<ComboboxSelectContent
+					options={categoryList}
+					selectedOptions={selectedCategories}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					focusItemRef={focusItemRef}
+					variant={variant}
+					pathname={pathname}
+					autoFocus
+					isOptionToggled={isOptionToggled}
+					contentElementId={selectState.contentElement?.id}
+				/>
 			</ComboboxSelectPopover>
 		</>
 	)

@@ -7,12 +7,7 @@ import { formatColumnOrder } from '../../utils'
 import type { IYieldsOptimizerTableRow } from '../types'
 import QuestionHelper from '~/components/QuestionHelper'
 import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
-
-const apyColors = {
-	supply: '#4f8fea',
-	borrow: '#E59421',
-	positive: '#30c338'
-}
+import { ColoredAPY } from '../ColoredAPY'
 
 export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 	{
@@ -96,13 +91,9 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		enableSorting: true,
 		cell: ({ getValue }) => {
 			return (
-				<span
-					style={{
-						color: apyColors[getValue() > 0 ? 'positive' : 'borrow']
-					}}
-				>
+				<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'}>
 					{formattedPercent(getValue(), true, 700)}
-				</span>
+				</ColoredAPY>
 			)
 		},
 		size: 140,
@@ -115,15 +106,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		accessorKey: 'lendingBase',
 		enableSorting: true,
 		cell: ({ getValue }) => {
-			return (
-				<span
-					style={{
-						color: apyColors['supply']
-					}}
-				>
-					{formattedPercent(getValue(), true, 400)}
-				</span>
-			)
+			return <ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
@@ -136,13 +119,9 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<span
-					style={{
-						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
-					}}
-				>
+				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
 					{formattedPercent(info.getValue(), true, 400)}
-				</span>
+				</ColoredAPY>
 			)
 		},
 		size: 140,
@@ -158,13 +137,9 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
 					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
-					<span
-						style={{
-							color: apyColors[getValue() > 0 ? 'positive' : 'borrow']
-						}}
-					>
+					<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'}>
 						{formattedPercent(getValue(), true, 700)}
-					</span>
+					</ColoredAPY>
 				</AutoRow>
 			)
 		},
@@ -190,13 +165,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 						iconType="token"
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
-					<span
-						style={{
-							color: apyColors['supply']
-						}}
-					>
-						{formattedPercent(getValue(), true, 400)}
-					</span>
+					<ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400)}</ColoredAPY>
 				</AutoRow>
 			)
 		},
@@ -212,13 +181,9 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<span
-					style={{
-						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
-					}}
-				>
+				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
 					{formattedPercent(info.getValue(), true, 400)}
-				</span>
+				</ColoredAPY>
 			)
 		},
 		size: 140,

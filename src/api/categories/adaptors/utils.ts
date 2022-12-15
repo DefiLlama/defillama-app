@@ -34,9 +34,10 @@ export function chartBreakdownByVersion(chart: ProtocolAdaptorSummaryResponse['t
 					date: String(timestamp)
 				} as IJoin2ReturnType[number]
 				else {
+					const dayAcc = acc[`${timestamp}`][protocolName.toUpperCase()]
 					acc[`${timestamp}`] = {
 						...acc[`${timestamp}`],
-						[protocolName.toUpperCase()]: getOkValue(value),
+						[protocolName.toUpperCase()]: getOkValue(value) + (typeof dayAcc === 'number' ? dayAcc : 0),
 						date: String(timestamp)
 					} as IJoin2ReturnType[number]
 				}
@@ -55,6 +56,7 @@ const getOkValue = (value: number | IJSON<number>) => {
 }
 
 export function chartBreakdownByChain(chart: ProtocolAdaptorSummaryResponse['totalDataChartBreakdown']): [IJoin2ReturnType, string[]] {
+	if (!chart) return [[], []]
 	const legend = []
 	const rawProcessed = chart.reduce((acc, [timestamp, data]) => {
 		Object.entries(data).forEach(([chain, chainData]) => {

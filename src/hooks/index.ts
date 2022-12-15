@@ -6,6 +6,8 @@ export { default as useResize } from './useResize'
 export { default as useAnalytics } from './useAnalytics'
 export { default as useMedia } from './useMedia'
 export { default as useDebounce } from './useDebounce'
+export { default as useOnClickOutside } from './useOnClickOutside'
+export { default as useKeyPress } from './useKeyPress'
 export * from './useBreakpoints'
 
 export const useOutsideClick = (ref, ref2, callback) => {

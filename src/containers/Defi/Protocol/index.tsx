@@ -26,7 +26,6 @@ import {
 } from '~/layout/ProtocolAndPool'
 import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { ChartWrapper } from '~/layout/ProtocolAndPool'
-import { DexCharts } from '~/containers/DexsAndFees/DexsCharts'
 import { Checkbox2 } from '~/components'
 import Bookmark from '~/components/Bookmark'
 import CopyHelper from '~/components/Copy'
@@ -52,13 +51,11 @@ import {
 	toK
 } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
-import { buildProtocolData } from '~/utils/protocolData'
 import type { IFusedProtocolData, IRaise } from '~/api/types'
-import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { useFetchProtocolDex } from '~/api/categories/dexs/client'
-import { useFetchProtocolFees } from '~/api/categories/fees/client'
 import { useYields } from '~/api/categories/yield/client'
 import boboLogo from '~/assets/boboSmug.png'
+import { formatTvlsByChain, buildProtocolAddlChartsData } from './utils'
+import ChartByType from './../../DexsAndFees/charts'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -211,7 +208,6 @@ function ProtocolContainer({
 		twitter,
 		tvlBreakdowns = {},
 		tvlByChain = [],
-		tvlChartData,
 		audit_links,
 		methodology,
 		module: codeModule,
@@ -235,8 +231,6 @@ function ProtocolContainer({
 
 	const [extraTvlsEnabled, updater] = useDefiManager()
 
-	const { data: dex, loading: dexLoading } = useFetchProtocolDex(protocol)
-	const { data: fees } = useFetchProtocolFees(protocol)
 	const { data: yields } = useYields()
 
 	const {
@@ -280,9 +274,9 @@ function ProtocolContainer({
 
 	const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD, chainsStacked } = React.useMemo(
-		() => buildProtocolData(addlProtocolData),
-		[addlProtocolData]
+	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD } = React.useMemo(
+		() => buildProtocolAddlChartsData({ protocolData: addlProtocolData, extraTvlsEnabled }),
+		[addlProtocolData, extraTvlsEnabled]
 	)
 
 	const [yeildsNumber, averageApy] = React.useMemo(() => {
@@ -295,45 +289,9 @@ function ProtocolContainer({
 		return [projectYields.length, averageApy]
 	}, [protocol, yields])
 
-	const { mainChartData, allChainsChartData } = React.useMemo(() => {
-		if (!dex || dexLoading) return { mainChartData: [], allChainsChartData: [] }
-		const volumeHistory = !!dex.volumeHistory ? dex.volumeHistory : []
-
-		return {
-			mainChartData: formatVolumeHistoryToChartDataByProtocol(volumeHistory, dex.name, dex.volumeAdapter),
-			allChainsChartData: formatVolumeHistoryToChartDataByChain(volumeHistory)
-		}
-	}, [dex, dexLoading])
-
-	const volumeMap = dex?.volumeHistory?.reduce(
-		(acc, val) => ({
-			...acc,
-			[val.timestamp]: Object.values(val.dailyVolume).reduce(
-				(acc, val) => acc + +Object.values(val).reduce((acc, v) => Number(acc) + Number(v), 0),
-				0
-			)
-		}),
-		{} as Record<number, number>
-	)
-
 	const chainsSplit = React.useMemo(() => {
-		return chainsStacked?.map((chain) => {
-			if (chain.extraTvl) {
-				const data = { ...chain }
-
-				for (const c in chain.extraTvl) {
-					for (const extra in chain.extraTvl[c]) {
-						if (extraTvlsEnabled[extra?.toLowerCase()]) {
-							data[c] += chain.extraTvl[c][extra]
-						}
-					}
-				}
-
-				return data
-			}
-			return chain
-		})
-	}, [chainsStacked, extraTvlsEnabled])
+		return formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
+	}, [historicalChainTvls, extraTvlsEnabled])
 
 	const chainsUnique = tvls.map((t) => t[0])
 
@@ -448,14 +406,12 @@ function ProtocolContainer({
 
 				<ProtocolChart
 					protocol={protocol}
-					tvlChartData={tvlChartData}
 					color={backgroundColor}
 					historicalChainTvls={historicalChainTvls}
 					chains={chains}
 					hallmarks={hallmarks}
 					bobo={bobo}
 					geckoId={gecko_id}
-					volumeMap={volumeMap}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
@@ -474,7 +430,9 @@ function ProtocolContainer({
 						<FlexRow>
 							<span>Category</span>
 							<span>: </span>
-							<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+							<Link href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category.toLowerCase()}`}>
+								{category}
+							</Link>
 						</FlexRow>
 					)}
 
@@ -583,7 +541,7 @@ function ProtocolContainer({
 					<Section>
 						<h3>Raises</h3>
 						<RaisesWrapper>
-							<li>{`Total raised: ${formatRaisedAmount(raises.reduce((sum, r)=>sum+Number(r.amount), 0))}`}</li>
+							<li>{`Total raised: ${formatRaisedAmount(raises.reduce((sum, r) => sum + Number(r.amount), 0))}`}</li>
 							{raises
 								.sort((a, b) => a.date - b.date)
 								.map((raise) => (
@@ -624,11 +582,6 @@ function ProtocolContainer({
 					</Section>
 				</InfoWrapper>
 			)}
-
-			{mainChartData?.length ? (
-				<DexCharts data={dex} chartData={mainChartData} name={name} isProtocolPage chainsChart={allChainsChartData} />
-			) : null}
-			{fees?.chartData?.length ? <FeesBody {...fees} /> : null}
 
 			{showCharts && (
 				<>
@@ -693,6 +646,19 @@ function ProtocolContainer({
 					</ChartsWrapper>
 				</>
 			)}
+
+			<ChartsWrapper>
+				{loading ? (
+					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+				) : (
+					<>
+						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="dexs" />
+						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="fees" breakdownChart={false} />
+						<ChartByType chartType="version" protocolName={slug(protocolData.name)} type="dexs" />
+						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="fees" />
+					</>
+				)}
+			</ChartsWrapper>
 		</Layout>
 	)
 }

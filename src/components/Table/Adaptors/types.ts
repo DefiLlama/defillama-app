@@ -1,3 +1,5 @@
+import { IJSON } from "~/api/categories/adaptors/types"
+
 interface IDexs {
 	name: string
 	displayName?: string
@@ -10,6 +12,7 @@ interface IDexs {
 	dominance: number
 	disabled: boolean
 	logo?: string
+	methodology: string | IJSON<string>
 }
 
 export interface IDexsRow extends IDexs {

@@ -1,7 +1,12 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange } from '../shared'
+import { FilterBetweenRange, SecondaryLabel } from '../shared'
 
-export function APYRange() {
+interface IAPYRange {
+	variant?: 'primary' | 'secondary'
+	subMenu?: boolean
+}
+
+export function APYRange({ variant = 'primary', subMenu }: IAPYRange) {
 	const router = useRouter()
 
 	const handleSubmit = (e) => {
@@ -25,5 +30,32 @@ export function APYRange() {
 			}
 		)
 	}
-	return <FilterBetweenRange header="Filter by APY" onSubmit={handleSubmit} />
+
+	const { minApy, maxApy } = router.query
+	const min = typeof minApy === 'string' && minApy !== '' ? Number(minApy).toLocaleString() : null
+	const max = typeof maxApy === 'string' && maxApy !== '' ? Number(maxApy).toLocaleString() : null
+
+	const label =
+		min || max ? (
+			<>
+				<span>APY: </span>
+				<span data-selecteditems>{`${min || 'min'} - ${max || 'max'}`}</span>
+			</>
+		) : (
+			'APY'
+		)
+
+	const Header = () => {
+		return <SecondaryLabel>{label}</SecondaryLabel>
+	}
+
+	return (
+		<FilterBetweenRange
+			name="APY Range"
+			header={variant === 'secondary' ? <Header /> : 'Filter by APY'}
+			onSubmit={handleSubmit}
+			variant={variant}
+			subMenu={subMenu}
+		/>
+	)
 }

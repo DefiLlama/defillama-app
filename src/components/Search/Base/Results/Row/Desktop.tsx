@@ -2,7 +2,6 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { ComboboxItem } from 'ariakit/combobox'
 import TokenLogo from '~/components/TokenLogo'
-import type { ISearchItem } from '../../../types'
 
 const Item = styled(ComboboxItem)`
 	padding: 12px 14px;
@@ -30,37 +29,23 @@ const isExternalImage = (imagePath: string) => {
 	return imagePath?.includes('http')
 }
 
-export const DesktopRow = ({ index, style, data }) => {
-	const { searchData, options, onItemClick } = data
-
-	const value = options[index]
-
-	const item: ISearchItem = searchData.find((x) => x.name === value)
-
+export const DesktopRow = ({ data, onItemClick }) => {
 	const router = useRouter()
 
 	return (
 		<Item
-			key={value}
-			value={value}
+			value={data.name}
 			onClick={() => {
 				if (onItemClick) {
-					onItemClick(item)
+					onItemClick(data)
 				} else {
-					router.push(item.route)
+					router.push(data.route)
 				}
 			}}
-			style={style}
 			focusOnHover
 		>
-			{item?.logo && (
-				<TokenLogo
-					logo={item?.logo}
-					external={isExternalImage(item.logo)}
-					skipApiRoute={router.pathname.includes('/yield')}
-				/>
-			)}
-			<span>{value}</span>
+			{data?.logo && <TokenLogo logo={data?.logo} external={isExternalImage(data.logo)} />}
+			<span>{data.name}</span>
 		</Item>
 	)
 }

@@ -9,6 +9,7 @@ import { findActiveItem } from './utils'
 import type { IBaseSearchProps } from '../types'
 
 const Wrapper = styled.div`
+	position: relative;
 	display: none;
 
 	&[data-alwaysdisplay='true'] {
@@ -16,7 +17,6 @@ const Wrapper = styled.div`
 	}
 
 	flex-direction: column;
-	position: relative;
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
 		display: flex;
@@ -97,7 +97,7 @@ export const DesktopSearch = (props: IBaseSearchProps) => {
 
 	return (
 		<Wrapper {...extra}>
-			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} withValue />
+			<Input state={combobox} placeholder={placeholder} breadCrumbs={step ? true : false} withValue={withValue} />
 
 			{step && <Options step={step} filters={filters} />}
 

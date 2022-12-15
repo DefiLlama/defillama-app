@@ -67,10 +67,10 @@ export default function CompareProtocolsTvls({
 	const chartData = React.useMemo(() => {
 		const formattedData =
 			data?.map((x) => {
-				const { historicalChainTvls, tvlChartData } = fuseProtocolData(x)
+				const { historicalChainTvls } = fuseProtocolData(x)
 
 				return {
-					protocolChartData: formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled, tvlChartData }),
+					protocolChartData: formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled }),
 					protocolName: x.name
 				}
 			}) ?? []
@@ -85,7 +85,7 @@ export default function CompareProtocolsTvls({
 					let closestTimestamp = 0
 
 					// +- 6hours
-					for (let i = date - 21600; i <= date + 21600; i++) {
+					for (let i = Number(date) - 21600; i <= Number(date) + 21600; i++) {
 						if (chartData[i]) {
 							closestTimestamp = i
 						}
@@ -93,7 +93,7 @@ export default function CompareProtocolsTvls({
 
 					if (!closestTimestamp) {
 						chartData[date] = {}
-						closestTimestamp = date
+						closestTimestamp = Number(date)
 					}
 
 					chartData[closestTimestamp] = {

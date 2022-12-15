@@ -164,7 +164,7 @@ function init() {
 	const defaultLocalStorage = {
 		[DARK_MODE]: true,
 		...DEFI_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: true }), {}),
+		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: prop === UNRELEASED ? false : true }), {}),
 		...NFT_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...LIQS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...BRIDGES_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
@@ -263,7 +263,7 @@ function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
 				if (isClient) {
 					toggled = state[setting]
 					// prevent flash of these toggles when page loads intially
-				} else if (setting === 'emulator' || setting === 'unreleased') {
+				} else if (setting === 'emulator') {
 					toggled = true
 				} else toggled = false
 
