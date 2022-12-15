@@ -515,6 +515,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			align: 'end'
 		}
 	},
+/*
 	{
 		header: '1m Inflows',
 		accessorKey: '1mInflows',
@@ -528,6 +529,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			align: 'end'
 		}
 	},
+*/
 	{
 		header: 'Liabilities auditor',
 		accessorKey: 'auditor',
