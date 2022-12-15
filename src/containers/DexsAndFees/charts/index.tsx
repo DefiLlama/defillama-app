@@ -5,6 +5,7 @@ import { ProtocolAdaptorSummaryResponse } from '~/api/categories/adaptors/types'
 import { chartBreakdownByChain, chartBreakdownByTokens, chartBreakdownByVersion } from '~/api/categories/adaptors/utils'
 import { LazyChart } from '~/layout/ProtocolAndPool'
 import { capitalizeFirstLetter } from '~/utils'
+import { volumeTypes } from '~/utils/adaptorsPages/[type]/[item]'
 import { IProtocolContainerProps, ProtocolChart } from '../OverviewItem'
 
 interface IChartByType {
@@ -63,7 +64,7 @@ const ChartByType: React.FC<IChartByType> = (props) => {
 
 	const enableBreakdownChart = props.breakdownChart ?? true
 	const fullChart = props.fullChart ?? true
-	const typeSimple = props.type === 'dexs' || props.type === 'options' ? 'volume' : props.type
+	const typeSimple = volumeTypes.includes(props.type) ? 'volume' : props.type
 	const mainChart = React.useMemo(() => {
 		if (!protocolSummary)
 			return {
