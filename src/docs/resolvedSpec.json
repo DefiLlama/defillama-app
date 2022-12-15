@@ -29,6 +29,14 @@
     {
       "name": "bridges",
       "description": "Data from our bridges dashboard"
+    },
+    {
+      "name": "volumes",
+      "description": "Data from our volumes dashboards"
+    },
+    {
+      "name": "fees and revenue",
+      "description": "Data from our fees and revenue dashboard"
     }
   ],
   "servers": [
@@ -906,6 +914,524 @@
             "schema": {
               "type": "integer",
               "example": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/overview/dexs": {
+      "get": {
+        "tags": [
+          "volumes"
+        ],
+        "summary": "List all dexs along with summaries of their volumes and dataType history data",
+        "servers": [
+          {
+            "url": "https://api.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "excludeTotalDataChart",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude aggregated chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "excludeTotalDataChartBreakdown",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude broken down chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "dataType",
+            "in": "query",
+            "required": false,
+            "description": "Desired data type, dailyVolume by default.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "dailyVolume",
+                "totalVolume"
+              ],
+              "example": "dailyVolume"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/overview/dexs/{chain}": {
+      "get": {
+        "tags": [
+          "volumes"
+        ],
+        "summary": "List all dexs along with summaries of their volumes and dataType history data filtering by chain",
+        "servers": [
+          {
+            "url": "https://api.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chain",
+            "in": "path",
+            "required": true,
+            "description": "chain name, list of all supported chains can be found under allChains attribute in /overview/dexs response",
+            "schema": {
+              "type": "string",
+              "example": "ethereum"
+            }
+          },
+          {
+            "name": "excludeTotalDataChart",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude aggregated chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "excludeTotalDataChartBreakdown",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude broken down chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "dataType",
+            "in": "query",
+            "required": false,
+            "description": "Desired data type, dailyVolume by default.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "dailyVolume",
+                "totalVolume"
+              ],
+              "example": "dailyVolume"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/summary/dexs/{protocol}": {
+      "get": {
+        "tags": [
+          "volumes"
+        ],
+        "summary": "Get summary of dex volume with historical data",
+        "servers": [
+          {
+            "url": "https://api.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "protocol",
+            "in": "path",
+            "required": true,
+            "description": "protocol slug",
+            "schema": {
+              "type": "string",
+              "example": "aave"
+            }
+          },
+          {
+            "name": "excludeTotalDataChart",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude aggregated chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "excludeTotalDataChartBreakdown",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude broken down chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "dataType",
+            "in": "query",
+            "required": false,
+            "description": "Desired data type, dailyVolume by default.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "dailyVolume",
+                "totalVolume"
+              ],
+              "example": "dailyVolume"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/overview/options": {
+      "get": {
+        "tags": [
+          "volumes"
+        ],
+        "summary": "List all options dexs along with summaries of their volumes and dataType history data",
+        "servers": [
+          {
+            "url": "https://api.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "excludeTotalDataChart",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude aggregated chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "excludeTotalDataChartBreakdown",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude broken down chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "dataType",
+            "in": "query",
+            "required": false,
+            "description": "Desired data type, dailyNotionalVolume by default.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "dailyPremiumVolume",
+                "dailyNotionalVolume",
+                "totalPremiumVolume",
+                "totalNotionalVolume"
+              ],
+              "example": "dailyPremiumVolume"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/overview/options/{chain}": {
+      "get": {
+        "tags": [
+          "volumes"
+        ],
+        "summary": "List all options dexs along with summaries of their volumes and dataType history data filtering by chain",
+        "servers": [
+          {
+            "url": "https://api.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chain",
+            "in": "path",
+            "required": true,
+            "description": "chain name, list of all supported chains can be found under allChains attribute in /overview/options response",
+            "schema": {
+              "type": "string",
+              "example": "ethereum"
+            }
+          },
+          {
+            "name": "excludeTotalDataChart",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude aggregated chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "excludeTotalDataChartBreakdown",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude broken down chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "dataType",
+            "in": "query",
+            "required": false,
+            "description": "Desired data type, dailyNotionalVolume by default.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "dailyPremiumVolume",
+                "dailyNotionalVolume",
+                "totalPremiumVolume",
+                "totalNotionalVolume"
+              ],
+              "example": "dailyPremiumVolume"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/summary/options/{protocol}": {
+      "get": {
+        "tags": [
+          "volumes"
+        ],
+        "summary": "Get summary of options dex volume with historical data",
+        "servers": [
+          {
+            "url": "https://api.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "protocol",
+            "in": "path",
+            "required": true,
+            "description": "protocol slug",
+            "schema": {
+              "type": "string",
+              "example": "lyra"
+            }
+          },
+          {
+            "name": "dataType",
+            "in": "query",
+            "required": false,
+            "description": "Desired data type, dailyNotionalVolume by default.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "dailyPremiumVolume",
+                "dailyNotionalVolume",
+                "totalPremiumVolume",
+                "totalNotionalVolume"
+              ],
+              "example": "dailyPremiumVolume"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/overview/fees": {
+      "get": {
+        "tags": [
+          "fees and revenue"
+        ],
+        "summary": "List all protocols along with summaries of their fees and revenue and dataType history data",
+        "servers": [
+          {
+            "url": "https://api.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "excludeTotalDataChart",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude aggregated chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "excludeTotalDataChartBreakdown",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude broken down chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "dataType",
+            "in": "query",
+            "required": false,
+            "description": "Desired data type, dailyFees by default.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "totalFees",
+                "dailyFees",
+                "totalRevenue",
+                "dailyRevenue"
+              ],
+              "example": "dailyFees"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/overview/fees/{chain}": {
+      "get": {
+        "tags": [
+          "fees and revenue"
+        ],
+        "summary": "List all protocols along with summaries of their fees and revenue and dataType history data by chain",
+        "servers": [
+          {
+            "url": "https://api.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chain",
+            "in": "path",
+            "required": true,
+            "description": "chain name, list of all supported chains can be found under allChains attribute in /overview/fees response",
+            "schema": {
+              "type": "string",
+              "example": "ethereum"
+            }
+          },
+          {
+            "name": "excludeTotalDataChart",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude aggregated chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "excludeTotalDataChartBreakdown",
+            "in": "query",
+            "required": false,
+            "description": "true to exclude broken down chart from response",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "dataType",
+            "in": "query",
+            "required": false,
+            "description": "Desired data type, dailyFees by default.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "totalFees",
+                "dailyFees",
+                "totalRevenue",
+                "dailyRevenue"
+              ],
+              "example": "dailyFees"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          }
+        }
+      }
+    },
+    "/summary/fees/{protocol}": {
+      "get": {
+        "tags": [
+          "fees and revenue"
+        ],
+        "summary": "Get summary of protocol fees and revenue with historical data",
+        "servers": [
+          {
+            "url": "https://api.llama.fi"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "protocol",
+            "in": "path",
+            "required": true,
+            "description": "protocol slug",
+            "schema": {
+              "type": "string",
+              "example": "lyra"
+            }
+          },
+          {
+            "name": "dataType",
+            "in": "query",
+            "required": false,
+            "description": "Desired data type, dailyFees by default.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "totalFees",
+                "dailyFees",
+                "totalRevenue",
+                "dailyRevenue"
+              ],
+              "example": "dailyFees"
             }
           }
         ],

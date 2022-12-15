@@ -17,6 +17,10 @@ tags:
     description: Function and event signatures decoded
   - name: bridges
     description: Data from our bridges dashboard
+  - name: volumes
+    description: Data from our volumes dashboards
+  - name: fees and revenue
+    description: Data from our fees and revenue dashboard
 servers:
   - url: https://api.llama.fi
 paths:
@@ -100,7 +104,7 @@ paths:
       summary: Get current prices of tokens by contract address
       description: |
         The goal of this API is to price as many tokens as possible, including exotic ones that never get traded, which makes them impossible to price by looking at markets.
-        
+
         The base of our data are prices pulled from coingecko, which is then extended through multiple means:
         - We price all bridged tokens by using the price of the token in it's original chain, so we fetch all bridged versions of USDC on arbitrum, fantom, avax... and price all them using the price for the token on Ethereum, which we know. Right now we support 10 different bridging protocols.
         - We have multiple adapters to price specialized sets of tokens by running custom code:
@@ -142,19 +146,19 @@ paths:
                   coins:
                     type: object
                     properties:
-                      "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1":
+                      'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1':
                         type: object
                         properties:
                           decimals:
                             type: number
                             example: 8
-                          price: 
+                          price:
                             type: number
                             example: 0.022053735051098835
-                          "symbol": 
+                          'symbol':
                             type: string
-                            example: "cDAI"
-                          "timestamp": 
+                            example: 'cDAI'
+                          'timestamp':
                             type: number
                             example: 1663351225
         '502':
@@ -193,19 +197,19 @@ paths:
                   coins:
                     type: object
                     properties:
-                      "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1":
+                      'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1':
                         type: object
                         properties:
                           decimals:
                             type: number
                             example: 8
-                          price: 
+                          price:
                             type: number
                             example: 0.022053735051098835
-                          "symbol": 
+                          'symbol':
                             type: string
-                            example: "cDAI"
-                          "timestamp": 
+                            example: 'cDAI'
+                          'timestamp':
                             type: number
                             example: 1648680149
         '502':
@@ -387,20 +391,20 @@ paths:
       servers:
         - url: https://abi-decoder.llama.fi
       parameters:
-      - name: functions
-        in: query
-        required: false
-        description: function 4 byte signatures, you can add many signatures by joining them with ','
-        schema:
-          type: string
-          example: "0x23b872dd,0x18fccc76,0xb6b55f25,0xf5d07b60"
-      - name: events
-        in: query
-        required: false
-        description: event signatures, you can add many signatures by joining them with ','
-        schema:
-          type: string
-          example: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67,0x4cc7e95e48af62690313a0733e93308ac9a73326bc3c29f1788b1191c376d5b6"
+        - name: functions
+          in: query
+          required: false
+          description: function 4 byte signatures, you can add many signatures by joining them with ','
+          schema:
+            type: string
+            example: '0x23b872dd,0x18fccc76,0xb6b55f25,0xf5d07b60'
+        - name: events
+          in: query
+          required: false
+          description: event signatures, you can add many signatures by joining them with ','
+          schema:
+            type: string
+            example: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67,0x4cc7e95e48af62690313a0733e93308ac9a73326bc3c29f1788b1191c376d5b6'
       responses:
         '200':
           description: successful operation
@@ -412,44 +416,44 @@ paths:
       servers:
         - url: https://abi-decoder.llama.fi
       parameters:
-      - name: chain
-        in: path
-        required: true
-        description: Chain the smart contract is located in
-        schema:
-          type: string
-          enum:
-            - arbitrum
-            - avalanche
-            - bsc
-            - celo
-            - ethereum
-            - fantom
-            - optimism
-            - polygon
-            - tron
-          example: ethereum
-      - name: address
-        in: path
-        required: true
-        description: Address of the smart contract
-        schema:
-          type: string
-          example: "0x02f7bd798e765369a9d204e9095b2a526ef01667"
-      - name: functions
-        in: query
-        required: false
-        description: function 4 byte signatures, you can add many signatures by joining them with ','
-        schema:
-          type: string
-          example: "0xf43f523a,0x95d89b41,0x95d89b41,0x70a08231,0x70a08231"
-      - name: events
-        in: query
-        required: false
-        description: event signatures, you can add many signatures by joining them with ','
-        schema:
-          type: string
-          example: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925"
+        - name: chain
+          in: path
+          required: true
+          description: Chain the smart contract is located in
+          schema:
+            type: string
+            enum:
+              - arbitrum
+              - avalanche
+              - bsc
+              - celo
+              - ethereum
+              - fantom
+              - optimism
+              - polygon
+              - tron
+            example: ethereum
+        - name: address
+          in: path
+          required: true
+          description: Address of the smart contract
+          schema:
+            type: string
+            example: '0x02f7bd798e765369a9d204e9095b2a526ef01667'
+        - name: functions
+          in: query
+          required: false
+          description: function 4 byte signatures, you can add many signatures by joining them with ','
+          schema:
+            type: string
+            example: '0xf43f523a,0x95d89b41,0x95d89b41,0x70a08231,0x70a08231'
+        - name: events
+          in: query
+          required: false
+          description: event signatures, you can add many signatures by joining them with ','
+          schema:
+            type: string
+            example: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef,0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925'
       responses:
         '200':
           description: successful operation
@@ -518,7 +522,7 @@ paths:
     get:
       tags:
         - bridges
-      summary: Get a 24hr token and address volume breakdown for a bridge 
+      summary: Get a 24hr token and address volume breakdown for a bridge
       servers:
         - url: https://bridges.llama.fi
       parameters:
@@ -581,14 +585,14 @@ paths:
           description: Returns only transactions that are bridging from the specified source chain.
           schema:
             type: string
-            example: "Polygon"
+            example: 'Polygon'
         - name: address
           in: query
           required: false
           description: Returns only transactions with specified address as "from" or "to". Addresses are quried in the form {chain}:{address}, where chain is an identifier such as ethereum, bsc, polygon, avax... .
           schema:
             type: string
-            example: "ethereum:0x69b4B4390Bd1f0aE84E090Fe8af7AbAd2d95Cc8E"
+            example: 'ethereum:0x69b4B4390Bd1f0aE84E090Fe8af7AbAd2d95Cc8E'
         - name: limit
           in: query
           required: false
@@ -599,4 +603,314 @@ paths:
       responses:
         '200':
           description: successful operation
-          
+  /overview/dexs:
+    get:
+      tags:
+        - volumes
+      summary: List all dexs along with summaries of their volumes and dataType history data
+      servers:
+        - url: https://api.llama.fi
+      parameters:
+        - name: excludeTotalDataChart
+          in: query
+          required: false
+          description: true to exclude aggregated chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: excludeTotalDataChartBreakdown
+          in: query
+          required: false
+          description: true to exclude broken down chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: dataType
+          in: query
+          required: false
+          description: Desired data type, dailyVolume by default.
+          schema:
+            type: string
+            enum: [dailyVolume, totalVolume]
+            example: dailyVolume
+      responses:
+        '200':
+          description: successful operation
+  /overview/dexs/{chain}:
+    get:
+      tags:
+        - volumes
+      summary: List all dexs along with summaries of their volumes and dataType history data filtering by chain
+      servers:
+        - url: https://api.llama.fi
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          description: chain name, list of all supported chains can be found under allChains attribute in /overview/dexs response
+          schema:
+            type: string
+            example: ethereum
+        - name: excludeTotalDataChart
+          in: query
+          required: false
+          description: true to exclude aggregated chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: excludeTotalDataChartBreakdown
+          in: query
+          required: false
+          description: true to exclude broken down chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: dataType
+          in: query
+          required: false
+          description: Desired data type, dailyVolume by default.
+          schema:
+            type: string
+            enum: [dailyVolume, totalVolume]
+            example: dailyVolume
+      responses:
+        '200':
+          description: successful operation
+  /summary/dexs/{protocol}:
+    get:
+      tags:
+        - volumes
+      summary: Get summary of dex volume with historical data
+      servers:
+        - url: https://api.llama.fi
+      parameters:
+        - name: protocol
+          in: path
+          required: true
+          description: protocol slug
+          schema:
+            type: string
+            example: aave
+        - name: excludeTotalDataChart
+          in: query
+          required: false
+          description: true to exclude aggregated chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: excludeTotalDataChartBreakdown
+          in: query
+          required: false
+          description: true to exclude broken down chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: dataType
+          in: query
+          required: false
+          description: Desired data type, dailyVolume by default.
+          schema:
+            type: string
+            enum: [dailyVolume, totalVolume]
+            example: dailyVolume
+      responses:
+        '200':
+          description: successful operation
+  /overview/options:
+    get:
+      tags:
+        - volumes
+      summary: List all options dexs along with summaries of their volumes and dataType history data
+      servers:
+        - url: https://api.llama.fi
+      parameters:
+        - name: excludeTotalDataChart
+          in: query
+          required: false
+          description: true to exclude aggregated chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: excludeTotalDataChartBreakdown
+          in: query
+          required: false
+          description: true to exclude broken down chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: dataType
+          in: query
+          required: false
+          description: Desired data type, dailyNotionalVolume by default.
+          schema:
+            type: string
+            enum: [dailyPremiumVolume, dailyNotionalVolume, totalPremiumVolume, totalNotionalVolume]
+            example: dailyPremiumVolume
+      responses:
+        '200':
+          description: successful operation
+  /overview/options/{chain}:
+    get:
+      tags:
+        - volumes
+      summary: List all options dexs along with summaries of their volumes and dataType history data filtering by chain
+      servers:
+        - url: https://api.llama.fi
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          description: chain name, list of all supported chains can be found under allChains attribute in /overview/options response
+          schema:
+            type: string
+            example: ethereum
+        - name: excludeTotalDataChart
+          in: query
+          required: false
+          description: true to exclude aggregated chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: excludeTotalDataChartBreakdown
+          in: query
+          required: false
+          description: true to exclude broken down chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: dataType
+          in: query
+          required: false
+          description: Desired data type, dailyNotionalVolume by default.
+          schema:
+            type: string
+            enum: [dailyPremiumVolume, dailyNotionalVolume, totalPremiumVolume, totalNotionalVolume]
+            example: dailyPremiumVolume
+      responses:
+        '200':
+          description: successful operation
+  /summary/options/{protocol}:
+    get:
+      tags:
+        - volumes
+      summary: Get summary of options dex volume with historical data
+      servers:
+        - url: https://api.llama.fi
+      parameters:
+        - name: protocol
+          in: path
+          required: true
+          description: protocol slug
+          schema:
+            type: string
+            example: lyra
+        - name: dataType
+          in: query
+          required: false
+          description: Desired data type, dailyNotionalVolume by default.
+          schema:
+            type: string
+            enum: [dailyPremiumVolume, dailyNotionalVolume, totalPremiumVolume, totalNotionalVolume]
+            example: dailyPremiumVolume
+      responses:
+        '200':
+          description: successful operation
+  /overview/fees:
+    get:
+      tags:
+        - fees and revenue
+      summary: List all protocols along with summaries of their fees and revenue and dataType history data
+      servers:
+        - url: https://api.llama.fi
+      parameters:
+        - name: excludeTotalDataChart
+          in: query
+          required: false
+          description: true to exclude aggregated chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: excludeTotalDataChartBreakdown
+          in: query
+          required: false
+          description: true to exclude broken down chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: dataType
+          in: query
+          required: false
+          description: Desired data type, dailyFees by default.
+          schema:
+            type: string
+            enum: [totalFees, dailyFees, totalRevenue, dailyRevenue]
+            example: dailyFees
+      responses:
+        '200':
+          description: successful operation
+  /overview/fees/{chain}:
+    get:
+      tags:
+        - fees and revenue
+      summary: List all protocols along with summaries of their fees and revenue and dataType history data by chain
+      servers:
+        - url: https://api.llama.fi
+      parameters:
+        - name: chain
+          in: path
+          required: true
+          description: chain name, list of all supported chains can be found under allChains attribute in /overview/fees response
+          schema:
+            type: string
+            example: ethereum
+        - name: excludeTotalDataChart
+          in: query
+          required: false
+          description: true to exclude aggregated chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: excludeTotalDataChartBreakdown
+          in: query
+          required: false
+          description: true to exclude broken down chart from response
+          schema:
+            type: boolean
+            example: true
+        - name: dataType
+          in: query
+          required: false
+          description: Desired data type, dailyFees by default.
+          schema:
+            type: string
+            enum: [totalFees, dailyFees, totalRevenue, dailyRevenue]
+            example: dailyFees
+      responses:
+        '200':
+          description: successful operation
+  /summary/fees/{protocol}:
+    get:
+      tags:
+        - fees and revenue
+      summary: Get summary of protocol fees and revenue with historical data
+      servers:
+        - url: https://api.llama.fi
+      parameters:
+        - name: protocol
+          in: path
+          required: true
+          description: protocol slug
+          schema:
+            type: string
+            example: lyra
+        - name: dataType
+          in: query
+          required: false
+          description: Desired data type, dailyFees by default.
+          schema:
+            type: string
+            enum: [totalFees, dailyFees, totalRevenue, dailyRevenue]
+            example: dailyFees
+      responses:
+        '200':
+          description: successful operation
