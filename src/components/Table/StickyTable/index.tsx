@@ -80,6 +80,27 @@ export default function VirtualTable({ instance, skipVirtualization, rowSize, ..
 	const ref2 = useSyncScroller('mySyncDivs')
 	const ref3 = useSyncScroller('mySyncDivs')
 
+	const observer = React.useRef(null)
+	React.useEffect(() => {
+		observer.current = new IntersectionObserver(
+			([e]) => {
+				const el = e.target as HTMLDivElement
+				if (e.intersectionRatio < 1) {
+					el.style.borderRadius = '0px'
+				} else {
+					el.style.borderRadius = '12px'
+				}
+			},
+			{ threshold: [1] }
+		)
+		if (ref1.current) {
+			observer.current.observe(ref1.current)
+		}
+		return () => {
+			if (observer.current) observer.current.disconnect()
+		}
+	}, [observer.current, ref1])
+
 	const virtualItems = rowVirtualizer.getVirtualItems()
 
 	const paddingTop = virtualItems.length > 0 ? virtualItems?.[0]?.start || 0 : 0
@@ -94,7 +115,7 @@ export default function VirtualTable({ instance, skipVirtualization, rowSize, ..
 					ref={ref1}
 					style={{
 						position: 'sticky',
-						top: 0,
+						top: '-0.1px',
 						zIndex: 4,
 						overflowX: 'hidden',
 						borderRadius: '12px'
@@ -132,12 +153,7 @@ export default function VirtualTable({ instance, skipVirtualization, rowSize, ..
 						</thead>
 					</table>
 				</div>
-				<div
-					style={{
-						overflowX: 'hidden'
-					}}
-					ref={ref3}
-				>
+				<HideScrollWrapper ref={ref3}>
 					<table>
 						<thead>
 							{instance.getHeaderGroups().map((headerGroup) => (
@@ -188,7 +204,7 @@ export default function VirtualTable({ instance, skipVirtualization, rowSize, ..
 							)}
 						</tbody>
 					</table>
-				</div>
+				</HideScrollWrapper>
 				<HorizontalStickyScroll ref={ref2}>
 					<div
 						style={{
@@ -224,6 +240,28 @@ const HorizontalStickyScroll = styled.div`
 	&::-webkit-scrollbar-thumb {
 		background-color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)')};
 		border-radius: 0.71em;
+		border: 0px;
+	}
+`
+
+const HideScrollWrapper = styled.div`
+	overflow-x: auto;
+	/* ===== Scrollbar CSS ===== */
+	/* Firefox */
+	& {
+		scrollbar-width: 0;
+		scrollbar-color: ${({ theme }) => theme.scrollbarThumbColor} 'rgba(0, 0, 0, 0)';
+	}
+	/* Chrome, Edge, and Safari */
+	&::-webkit-scrollbar {
+		height: 0em;
+	}
+	&::-webkit-scrollbar-track {
+		background: 'rgba(0, 0, 0, 0)';
+	}
+	&::-webkit-scrollbar-thumb {
+		background-color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255, 255, 255, 0)' : 'rgba(0, 0, 0, 0)')};
+		border-radius: 0em;
 		border: 0px;
 	}
 `
