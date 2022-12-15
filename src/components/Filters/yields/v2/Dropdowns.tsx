@@ -9,6 +9,8 @@ import { ResetAllYieldFilters } from '../ResetAll'
 import type { IDropdownMenusProps } from './types'
 
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
+import { useContext } from 'react'
+import { TokensContext } from './context'
 
 const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
 
@@ -43,6 +45,13 @@ export function YieldFilterDropdowns({
 	const isBadDebtToggled = selectedAttributes ? selectedAttributes.includes(BAD_DEBT_KEY) : false
 
 	const shouldExlcudeRewardApy = router.query.excludeRewardApy === 'true' ? true : false
+
+	const { setTokensToInclude, setTokensToExclude } = useContext(TokensContext)
+
+	const resetContext = () => {
+		setTokensToInclude?.([])
+		setTokensToExclude?.([])
+	}
 
 	return (
 		<>
@@ -215,7 +224,12 @@ export function YieldFilterDropdowns({
 			)}
 
 			{resetFilters && (
-				<ResetAllYieldFilters pathname={pathname || router.pathname} variant="secondary" subMenu={isMobile} />
+				<ResetAllYieldFilters
+					pathname={pathname || router.pathname}
+					variant="secondary"
+					subMenu={isMobile}
+					resetContext={resetContext}
+				/>
 			)}
 		</>
 	)

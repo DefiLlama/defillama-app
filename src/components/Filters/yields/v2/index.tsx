@@ -8,6 +8,7 @@ import { LTV } from '../LTV'
 import { SlidingMenu } from '~/components/SlidingMenu'
 import { YieldFilterDropdowns } from './Dropdowns'
 import * as React from 'react'
+import { TokensContext } from './context'
 
 export function YieldFiltersV2({
 	header,
@@ -35,40 +36,45 @@ export function YieldFiltersV2({
 	const lend = typeof query.lend === 'string' ? query.lend : null
 	const borrow = typeof query.borrow === 'string' ? query.borrow : null
 
+	const [tokensToInclude, setTokensToInclude] = React.useState([])
+	const [tokensToExclude, setTokensToExclude] = React.useState([])
+
 	return (
-		<div>
-			<Header>
-				<h1>{header}</h1>
-				{trackingStats && <p>{trackingStats}</p>}
-				{/* <button>Save This Search</button> */}
-			</Header>
-			<Wrapper>
-				{strategyInputsData && (
-					<SearchWrapper>
-						<YieldsSearch value={lend} searchData={strategyInputsData} lend />
-						{lend && (
-							<>
-								<YieldsSearch value={borrow} searchData={strategyInputsData} />
+		<TokensContext.Provider value={{ tokensToInclude, tokensToExclude, setTokensToInclude, setTokensToExclude }}>
+			<div>
+				<Header>
+					<h1>{header}</h1>
+					{trackingStats && <p>{trackingStats}</p>}
+					{/* <button>Save This Search</button> */}
+				</Header>
+				<Wrapper>
+					{strategyInputsData && (
+						<SearchWrapper>
+							<YieldsSearch value={lend} searchData={strategyInputsData} lend />
+							{lend && (
+								<>
+									<YieldsSearch value={borrow} searchData={strategyInputsData} />
 
-								<LTV placeholder="% of max LTV" />
-							</>
-						)}
-					</SearchWrapper>
-				)}
+									<LTV placeholder="% of max LTV" />
+								</>
+							)}
+						</SearchWrapper>
+					)}
 
-				{tokens && !isSmall && <IncludeExcludeTokens tokens={tokens} />}
+					{tokens && !isSmall && <IncludeExcludeTokens tokens={tokens} />}
 
-				<DropdownsWrapper>
-					{isSmall ? (
-						<SlidingMenu label="Filters" variant="secondary">
-							<YieldFilterDropdowns {...props} isMobile />
-						</SlidingMenu>
-					) : (
-						<YieldFilterDropdowns {...props} />
-					)}{' '}
-				</DropdownsWrapper>
-			</Wrapper>
-		</div>
+					<DropdownsWrapper>
+						{isSmall ? (
+							<SlidingMenu label="Filters" variant="secondary">
+								<YieldFilterDropdowns {...props} isMobile />
+							</SlidingMenu>
+						) : (
+							<YieldFilterDropdowns {...props} />
+						)}{' '}
+					</DropdownsWrapper>
+				</Wrapper>
+			</div>
+		</TokensContext.Provider>
 	)
 }
 

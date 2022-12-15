@@ -1,23 +1,22 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useContext } from 'react'
 import { useRouter } from 'next/router'
+import { useComboboxState } from 'ariakit'
 import styled from 'styled-components'
 import { Search, X as XIcon } from 'react-feather'
 import TokenLogo, { isExternalImage } from '~/components/TokenLogo'
 import { Input } from '~/components/Search/Base/Input'
 import { Empty, Popover } from '~/components/Search/Base/Results/Desktop'
-import { useComboboxState } from 'ariakit'
 import { findActiveItem } from '~/components/Search/Base/utils'
+import { TokensContext } from './context'
 
 export function IncludeExcludeTokens({ tokens }: { tokens: Array<{ name: string; symbol: string; logo: string }> }) {
 	const [resultsLength, setResultsLength] = useState(3)
-	const [tokensToInclude, setTokensToInclude] = useState([])
-	const [tokensToExclude, setTokensToExclude] = useState([])
+
+	const { tokensToInclude, setTokensToInclude, tokensToExclude, setTokensToExclude } = useContext(TokensContext)
 
 	const searchWrapperRef = useRef()
 
 	const router = useRouter()
-
-	const { token, excludeToken } = router.query
 
 	const showMoreResults = () => {
 		setResultsLength((prev) => prev + 5)
