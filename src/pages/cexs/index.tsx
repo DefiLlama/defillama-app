@@ -128,6 +128,12 @@ const cexData = [
 		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
 	},
 	{
+		name: 'Hotbit',
+		slug: 'hotbit',
+		coin: 'HTB',
+		coinSymbol: 'HTB',
+	},
+	{
 		name: 'NBX',
 		slug: 'nbx',
 		coin: null,
