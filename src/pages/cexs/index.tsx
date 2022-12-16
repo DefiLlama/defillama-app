@@ -2,6 +2,7 @@ import Layout from '~/layout'
 import { revalidate } from '~/api'
 import { Header } from '~/Theme'
 import { CEXTable } from '~/components/Table/Defi'
+import { getPercentChange } from '~/utils'
 
 const cexData = [
 	{
@@ -11,7 +12,7 @@ const cexData = [
 		coinSymbol: 'BNB',
 		walletsLink: 'https://www.binance.com/en/blog/community/our-commitment-to-transparency-2895840147147652626',
 		cgId: 'binance',
-		cgDeriv: 'binance_futures',
+		cgDeriv: 'binance_futures'
 	},
 	{
 		name: 'OKX',
@@ -19,7 +20,7 @@ const cexData = [
 		coin: null,
 		walletsLink: 'https://twitter.com/okx/status/1590812545346330624',
 		cgId: 'okex',
-		cgDeriv: 'okex_swap',
+		cgDeriv: 'okex_swap'
 	},
 	{
 		name: 'Bitfinex',
@@ -27,7 +28,7 @@ const cexData = [
 		coin: null,
 		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt',
 		cgId: 'bitfinex',
-		cgDeriv: 'bitfinex_futures',
+		cgDeriv: 'bitfinex_futures'
 	},
 	{
 		name: 'Huobi',
@@ -36,7 +37,7 @@ const cexData = [
 		coinSymbol: 'HT',
 		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831',
 		cgId: 'huobi',
-		cgDeriv: 'huobi_dm',
+		cgDeriv: 'huobi_dm'
 	},
 	{
 		name: 'Crypto.com',
@@ -45,7 +46,7 @@ const cexData = [
 		coinSymbol: 'CRO',
 		walletsLink: 'https://crypto.com/document/proof-of-reserves',
 		cgId: 'crypto_com',
-		cgDeriv: 'crypto_com_futures',
+		cgDeriv: 'crypto_com_futures'
 	},
 	{
 		name: 'Kucoin',
@@ -54,7 +55,7 @@ const cexData = [
 		coinSymbol: 'KCS',
 		walletsLink: 'https://www.kucoin.com/blog/transparency-and-trust-a-detailed-list-of-kucoin-s-wallets',
 		cgId: 'kucoin',
-		cgDeriv: 'kumex',
+		cgDeriv: 'kumex'
 	},
 	{
 		name: 'Bybit',
@@ -63,7 +64,7 @@ const cexData = [
 		coinSymbol: 'BIT',
 		walletsLink: 'https://twitter.com/benbybit/status/1592797790518018048',
 		cgId: 'bybit_spot',
-		cgDeriv: 'bybit',
+		cgDeriv: 'bybit'
 	},
 	{
 		name: 'Gate.io',
@@ -72,14 +73,14 @@ const cexData = [
 		coinSymbol: 'GT',
 		walletsLink: 'https://github.com/gateio/proof-of-reserves',
 		cgId: 'gate',
-		cgDeriv: 'gate_futures',
+		cgDeriv: 'gate_futures'
 	},
 	{
 		name: 'Deribit',
 		slug: 'deribit',
 		coin: null,
 		walletsLink: 'https://insights.deribit.com/exchange-updates/deribit-wallet-holdings/',
-		cgDeriv: 'deribit',
+		cgDeriv: 'deribit'
 	},
 	{
 		name: 'Bitget',
@@ -88,7 +89,7 @@ const cexData = [
 		coinSymbol: 'BGB',
 		walletsLink: 'https://twitter.com/bitgetglobal/status/1602256957376794624',
 		cgId: 'bitget',
-		cgDeriv: 'bitget_futures',
+		cgDeriv: 'bitget_futures'
 	},
 	{
 		name: 'Bitmex',
@@ -96,14 +97,14 @@ const cexData = [
 		coin: null,
 		walletsLink: 'https://github.com/BitMEX/proof-of-reserves-liabilities',
 		cgId: 'bitmex_spot',
-		cgDeriv: 'bitmex',
+		cgDeriv: 'bitmex'
 	},
 	{
 		name: 'Swissborg',
 		slug: 'swissborg',
 		coin: 'CHSB',
 		coinSymbol: 'CHSB',
-		walletsLink: 'https://github.com/swissborg/pub',
+		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
 		name: 'Korbit',
@@ -152,7 +153,7 @@ const cexData = [
 		name: 'Hotbit',
 		slug: 'hotbit',
 		coin: 'HTB',
-		coinSymbol: 'HTB',
+		coinSymbol: 'HTB'
 	},
 	{
 		name: 'NBX',
@@ -165,7 +166,7 @@ const cexData = [
 		lastAuditDate: 1640908800,
 		auditor: 'Deloitte',
 		auditLink: 'https://d18rn0p25nwr6d.cloudfront.net/CIK-0001679788/8e5e0508-da75-434d-9505-cba99fa00147.pdf',
-		cgId: 'gdax',
+		cgId: 'gdax'
 	},
 	{
 		name: 'Kraken',
@@ -173,7 +174,7 @@ const cexData = [
 		auditor: 'ArmaninoLLP',
 		auditLink: 'https://proof-of-reserves.trustexplorer.io/clients/kraken/',
 		cgId: 'kraken',
-		cgDeriv: 'kraken_futures',
+		cgDeriv: 'kraken_futures'
 	},
 	{
 		name: 'Coinone',
@@ -189,7 +190,7 @@ const cexData = [
 	},
 	{
 		name: 'Gemini',
-		cgId: 'gemini',
+		cgId: 'gemini'
 	},
 	{
 		name: 'Coincheck'
@@ -216,14 +217,22 @@ const cexData = [
 ]
 
 const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
+
 const hour7dms = ((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
+
 const hour1mms = ((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
 
 export async function getStaticProps() {
-	const [spot, derivs, {bitcoin: {usd: btcPrice}}] = await Promise.all([
+	const [
+		spot,
+		derivs,
+		{
+			bitcoin: { usd: btcPrice }
+		}
+	] = await Promise.all([
 		fetch(`https://api.coingecko.com/api/v3/exchanges?per_page=250`).then((r) => r.json()),
 		fetch(`https://api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`).then((r) => r.json()),
-		fetch(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd`).then((r) => r.json()),
+		fetch(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd`).then((r) => r.json())
 	])
 	const cexs = await Promise.all(
 		cexData.map(async (c) => {
@@ -243,12 +252,12 @@ export async function getStaticProps() {
 				const cleanTvl = cexTvl - ownToken
 
 				const extra = {} as any
-				if(c.cgId){
-					extra.spotVolume = spot.find(ex=>ex.id === c.cgId).trade_volume_24h_btc_normalized * btcPrice
+				if (c.cgId) {
+					extra.spotVolume = spot.find((ex) => ex.id === c.cgId).trade_volume_24h_btc_normalized * btcPrice
 				}
-				if(c.cgDeriv){
-					extra.oi = derivs.find(ex=>ex.id === c.cgDeriv).open_interest_btc * btcPrice
-					extra.leverage = extra.oi/cleanTvl
+				if (c.cgDeriv) {
+					extra.oi = derivs.find((ex) => ex.id === c.cgDeriv).open_interest_btc * btcPrice
+					extra.leverage = extra.oi / cleanTvl
 				}
 
 				return {
@@ -258,7 +267,7 @@ export async function getStaticProps() {
 					'24hInflows': inflows24h?.outflows ?? null,
 					'7dInflows': inflows7d?.outflows ?? null,
 					'1mInflows': inflows1m?.outflows ?? null,
-					...extra,
+					...extra
 				}
 			}
 		})

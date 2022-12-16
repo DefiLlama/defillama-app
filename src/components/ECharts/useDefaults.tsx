@@ -86,11 +86,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 				let vals
 				let filteredParams = params
 					.filter((item) => item.value[1] !== 0 && item.value[1] !== '-' && item.value[1] !== null)
-					.sort((a, b) =>
-						tooltipSort
-							? (b.value[1] < 0 ? b.value[1] * -1 : b.value[1]) - (a.value[1] < 0 ? a.value[1] * -1 : a.value[1])
-							: 0
-					)
+					.sort((a, b) => (tooltipSort ? Math.abs(b.value[1]) - Math.abs(a.value[1]) : 0))
 
 				const otherIndex = filteredParams.findIndex((item) => item.seriesName === 'Others')
 				let others

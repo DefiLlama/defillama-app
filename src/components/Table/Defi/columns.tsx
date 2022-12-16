@@ -443,13 +443,13 @@ export const cexColumn: ColumnDef<any>[] = [
 		accessorKey: 'tvl',
 		cell: (info) => {
 			return (
-				<>
+				<AutoRow align="center" justify="flex-end">
 					{info.getValue() === undefined ? (
 						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" />
 					) : (
 						'$' + formattedNum(info.getValue())
 					)}
-				</>
+				</AutoRow>
 			)
 		},
 		size: 120,
@@ -492,10 +492,10 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '24h Inflows',
 		accessorKey: '24hInflows',
-		size: 120,
+		size: 104,
 		cell: (info) => (
 			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
-				{info.getValue() && formatCexInflows(info.getValue())}
+				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
 			</InflowOutflow>
 		),
 		meta: {
@@ -505,10 +505,10 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '7d Inflows',
 		accessorKey: '7dInflows',
-		size: 120,
+		size: 104,
 		cell: (info) => (
 			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
-				{info.getValue() && formatCexInflows(info.getValue())}
+				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
 			</InflowOutflow>
 		),
 		meta: {
@@ -518,10 +518,10 @@ export const cexColumn: ColumnDef<any>[] = [
 	{
 		header: '1m Inflows',
 		accessorKey: '1mInflows',
-		size: 120,
+		size: 104,
 		cell: (info) => (
 			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
-				{info.getValue() && formatCexInflows(info.getValue())}
+				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
 			</InflowOutflow>
 		),
 		meta: {
@@ -549,26 +549,38 @@ export const cexColumn: ColumnDef<any>[] = [
 				{getValue() === undefined ? null : toNiceDayMonthAndYear(getValue())}
 			</AutoRow>
 		),
-		size: 124
+		size: 128,
+		meta: {
+			align: 'end'
+		}
 	},
 	{
-		size: 120,
 		header: 'Spot Volume',
 		accessorKey: 'spotVolume',
-		cell: (info) => info.getValue()? '$' + formattedNum(info.getValue()):null,
+		cell: (info) => (info.getValue() ? '$' + formattedNum(info.getValue()) : null),
+		size: 120,
+		meta: {
+			align: 'end'
+		}
 	},
 	{
-		size: 120,
 		header: '24h Open Interest',
 		accessorKey: 'oi',
-		cell: (info) => info.getValue()? '$' + formattedNum(info.getValue()):null,
+		cell: (info) => (info.getValue() ? '$' + formattedNum(info.getValue()) : null),
+		size: 160,
+		meta: {
+			align: 'end'
+		}
 	},
 	{
-		size: 120,
 		header: 'Avg Leverage',
 		accessorKey: 'leverage',
-		cell: (info) => info.getValue()? Number(Number(info.getValue()).toFixed(2))+"x":null,
-	},
+		cell: (info) => (info.getValue() ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	}
 	/*
 	{
 		header: 'Audit link',
