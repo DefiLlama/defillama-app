@@ -2,13 +2,12 @@ import Layout from '~/layout'
 import { revalidate } from '~/api'
 import { Header } from '~/Theme'
 import { CEXTable } from '~/components/Table/Defi'
-import { getPercentChange } from '~/utils'
 
 const cexData = [
 	{
 		name: 'Binance',
 		slug: 'Binance-CEX',
-		coin: 'binancecoin',
+		coin: 'BNB',
 		coinSymbol: 'BNB',
 		walletsLink: 'https://www.binance.com/en/blog/community/our-commitment-to-transparency-2895840147147652626',
 		cgId: 'binance',
