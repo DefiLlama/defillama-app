@@ -102,6 +102,7 @@ const YieldsStrategyPage = ({
 				resetFilters={true}
 				noOfStrategies={poolsData?.length ?? null}
 				strategyInputsData={searchData}
+				ltvPlaceholder={'% of max LTV'}
 			/>
 
 			{poolsData.length > 0 ? (

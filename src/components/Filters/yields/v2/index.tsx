@@ -18,6 +18,7 @@ export function YieldFiltersV2({
 	tokens,
 	noOfStrategies,
 	strategyInputsData,
+	ltvPlaceholder,
 	...props
 }: IYieldFiltersProps) {
 	const trackingStats =
@@ -55,7 +56,7 @@ export function YieldFiltersV2({
 								<>
 									<YieldsSearch value={borrow} searchData={strategyInputsData} />
 
-									<LTV placeholder="% of max LTV" />
+									<LTV placeholder={ltvPlaceholder} />
 								</>
 							)}
 						</SearchWrapper>

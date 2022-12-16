@@ -87,6 +87,7 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 				selectedAttributes={selectedAttributes}
 				excludeRewardApy={true}
 				strategyInputsData={searchData}
+				ltvPlaceholder={'Custom LTV'}
 			/>
 
 			{poolsData.length > 0 ? (
