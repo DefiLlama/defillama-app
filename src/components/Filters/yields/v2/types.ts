@@ -23,6 +23,7 @@ export interface IDropdownMenusProps {
 	selectedAttributes?: Array<string>
 	excludeRewardApy?: boolean
 	isMobile?: boolean
+	ltvPlaceholder?: string
 }
 
 export interface IYieldFiltersProps extends IDropdownMenusProps {
