@@ -1,7 +1,5 @@
 import * as React from 'react'
 import styled from 'styled-components'
-import NextImage from 'next/future/image'
-import PlaceHolder from '~/assets/placeholder.png'
 
 interface TokenLogoProps {
 	logo?: string | null
@@ -14,9 +12,7 @@ interface TokenLogoProps {
 	onClick?: React.MouseEventHandler
 }
 
-const BAD_IMAGES = {}
-
-const Image = styled(NextImage)`
+const Image = styled.img`
 	display: inline-block;
 	object-fit: cover;
 	aspect-ratio: 1;
@@ -29,26 +25,6 @@ export const isExternalImage = (imagePath: string) => {
 	return imagePath?.includes('http')
 }
 
-export default function TokenLogo({ logo = null, external = false, size = 24, style, id, ...rest }: TokenLogoProps) {
-	const [error, setError] = React.useState(false)
-
-	const isError = error || !logo || BAD_IMAGES[logo]
-	const imgSrc = isError ? PlaceHolder : external ? logo : logo
-
-	return (
-		<Image
-			{...rest}
-			alt={''}
-			src={imgSrc}
-			onError={(e) => {
-				e.preventDefault()
-				BAD_IMAGES[logo] = true
-				setError(true)
-			}}
-			height={size}
-			width={size}
-			id={id}
-			style={style}
-		/>
-	)
+export default function TokenLogo({ logo = null, size = 24, style, id, ...rest }: TokenLogoProps) {
+	return <Image {...rest} alt={''} src={logo} height={size} width={size} id={id} style={style} loading="lazy" />
 }

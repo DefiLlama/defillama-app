@@ -1,6 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
+import Image from 'next/future/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
@@ -224,7 +224,10 @@ function GlobalPage({
 			<Announcement>
 				<span>We just launched a</span>{' '}
 				<Link href={`/cexs`}>
-					<a> CEX transparency dashboard <ArrowUpRight size={14} style={{display: "inline"}}/> </a>
+					<a>
+						{' '}
+						CEX transparency dashboard <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
+					</a>
 				</Link>
 			</Announcement>
 
@@ -256,8 +259,7 @@ function GlobalPage({
 							<p style={{ '--tile-text-color': '#3cfd99' }}> {percentChange || 0}%</p>
 						) : (
 							<p style={{ '--tile-text-color': '#fd3c99' }}> {percentChange || 0}%</p>
-						)
-						}
+						)}
 					</PanelHiddenMobile>
 					<PanelHiddenMobile>
 						<h2>{topToken.name} Dominance</h2>

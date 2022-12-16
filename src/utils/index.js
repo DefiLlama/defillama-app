@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { Text } from 'rebass'
 import Numeral from 'numeral'
-import { timeframeOptions } from '~/constants'
+import { ICONS_CDN, timeframeOptions } from '~/constants'
 export * from './blockExplorers'
 import { colord, extend } from 'colord'
 import lchPlugin from 'colord/plugins/lch'
@@ -193,12 +193,12 @@ export const filterCollectionsByCurrency = (collections, displayUsd) =>
 	[]
 
 export function chainIconUrl(chain) {
-	return `/chain-icons/rsz_${chain.toLowerCase()}.jpg`
+	return `${ICONS_CDN}/chains/rsz_${chain.toLowerCase()}?w=24&h=24`
 }
 
 export function tokenIconUrl(name) {
 	const x = name ?? ''
-	return `/icons/${x.toLowerCase().split(' ').join('-')}.jpg`
+	return `${ICONS_CDN}/protocols/${x.toLowerCase().split(' ').join('-')}?w=24&h=24`
 }
 
 /**
@@ -206,16 +206,16 @@ export function tokenIconUrl(name) {
  * @param {boolean} hd Return HD icon if true
  * @returns {string} URL to the asset icon
  */
-export function assetIconUrl(symbol, hd = false) {
+export function liquidationsIconUrl(symbol, hd = false) {
 	if (hd) {
-		return `/asset-icons/hd/${symbol.toLowerCase()}.png`
+		return `${ICONS_CDN}/liquidations/${symbol.toLowerCase()}?w=64&h=64`
 	} else {
-		return `/asset-icons/${symbol.toLowerCase()}.png`
+		return `${ICONS_CDN}/liquidations/${symbol.toLowerCase()}?w=24&h=24`
 	}
 }
 
 export function peggedAssetIconUrl(name) {
-	return `/pegged-icons/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}.jpg`
+	return `${ICONS_CDN}/pegged/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}?w=24&h=24`
 }
 
 export function formattedPercent(percent, noSign = false, fontWeight = 500) {

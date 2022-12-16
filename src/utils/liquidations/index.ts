@@ -2,7 +2,7 @@
 import BigNumber from 'bignumber.js'
 import type { ISearchItem } from '~/components/Search/types'
 import { LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
-import { assetIconUrl } from '..'
+import { liquidationsIconUrl } from '..'
 
 /**
  * Format the URL to the liquidations data payload
@@ -513,7 +513,7 @@ export const DEFAULT_ASSETS_LIST: ISearchItem[] = DEFAULT_ASSETS_LIST_RAW.map(({
 	name,
 	symbol,
 	route: `/liquidations/${symbol.toLowerCase()}`,
-	logo: assetIconUrl(symbol.toLowerCase())
+	logo: liquidationsIconUrl(symbol.toLowerCase())
 }))
 
 export const PROTOCOL_NAMES_MAP = {
