@@ -533,7 +533,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		accessorKey: 'auditor',
 		cell: ({ getValue }) => (
 			<AutoRow align="center" justify="flex-end">
-				{getValue() === undefined ? <QuestionHelper text="This CEX has no third party liability audits" /> : getValue()}
+				{getValue() === undefined ? null : getValue()}
 			</AutoRow>
 		),
 		size: 100,
