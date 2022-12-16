@@ -243,7 +243,7 @@ function ProtocolContainer({
 			if (name === 'masterchef') return acc
 
 			// check if tvl name is addl tvl type and is toggled
-			if (isLowerCase(name[0]) && DEFI_SETTINGS_KEYS.includes(name) && tvl !== 0) {
+			if (isLowerCase(name[0]) && DEFI_SETTINGS_KEYS.includes(name)) {
 				acc.extraTvls.push([name, tvl])
 				acc.tvlOptions.push(protocolsAndChainsOptions.find((e) => e.key === name))
 			} else {
