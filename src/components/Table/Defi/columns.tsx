@@ -515,7 +515,6 @@ export const cexColumn: ColumnDef<any>[] = [
 			align: 'end'
 		}
 	},
-/*
 	{
 		header: '1m Inflows',
 		accessorKey: '1mInflows',
@@ -529,16 +528,15 @@ export const cexColumn: ColumnDef<any>[] = [
 			align: 'end'
 		}
 	},
-*/
 	{
-		header: 'Liabilities auditor',
+		header: 'Auditor',
 		accessorKey: 'auditor',
 		cell: ({ getValue }) => (
 			<AutoRow align="center" justify="flex-end">
 				{getValue() === undefined ? <QuestionHelper text="This CEX has no third party liability audits" /> : getValue()}
 			</AutoRow>
 		),
-		size: 140,
+		size: 100,
 		meta: {
 			align: 'end'
 		}
@@ -553,6 +551,25 @@ export const cexColumn: ColumnDef<any>[] = [
 		),
 		size: 124
 	},
+	{
+		size: 120,
+		header: 'Spot Volume',
+		accessorKey: 'spotVolume',
+		cell: (info) => info.getValue()? '$' + formattedNum(info.getValue()):null,
+	},
+	{
+		size: 120,
+		header: '24h Open Interest',
+		accessorKey: 'oi',
+		cell: (info) => info.getValue()? '$' + formattedNum(info.getValue()):null,
+	},
+	{
+		size: 120,
+		header: 'Avg Leverage',
+		accessorKey: 'leverage',
+		cell: (info) => info.getValue()? Number(info.getValue().toFixed(2))+"x":null,
+	},
+	/*
 	{
 		header: 'Audit link',
 		accessorKey: 'auditLink',
@@ -607,6 +624,7 @@ export const cexColumn: ColumnDef<any>[] = [
 			align: 'end'
 		}
 	}
+	*/
 ]
 
 function formatCexInflows(value) {
