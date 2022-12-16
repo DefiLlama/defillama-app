@@ -147,7 +147,7 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 		cell: ({ getValue }) => {
 			return <Name>{getValue()}</Name>
 		},
-		size: 200
+		size: 180
 	},
 	{
 		cell: ({ getValue }) => <>{toNiceDayMonthAndYear(getValue())}</>,
@@ -717,5 +717,21 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'totalFees24h',
 		'totalRevenue24h',
 		'mcaptvl'
+	]
+})
+
+export const raisesColumnOrders = formatColumnOrder({
+	0: ['name', 'amount', 'date', 'round', 'sector', 'leadInvestors', 'source', 'valuation', 'chains', 'otherInvestors'],
+	1024: [
+		'name',
+		'date',
+		'amount',
+		'round',
+		'sector',
+		'leadInvestors',
+		'source',
+		'valuation',
+		'chains',
+		'otherInvestors'
 	]
 })

@@ -1,14 +1,20 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
+import {
+	useReactTable,
+	SortingState,
+	getCoreRowModel,
+	getSortedRowModel,
+	ColumnOrderState
+} from '@tanstack/react-table'
 import styled from 'styled-components'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { ChartWrapper, DetailsWrapper } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
 import VirtualTable from '~/components/Table/Table'
-import { raisesColumns } from '~/components/Table/Defi/columns'
+import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
 import { AnnouncementWrapper } from '~/components/Announcement'
 import { RaisesSearch } from '~/components/Search'
 import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
@@ -17,6 +23,7 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { DownloadIcon } from '~/components'
 import { download, formattedNum, toNiceCsvDate } from '~/utils'
+import useWindowSize from '~/hooks/useWindowSize'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -24,16 +31,31 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 
 function RaisesTable({ raises }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
+	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
+	const windowSize = useWindowSize()
+
 	const instance = useReactTable({
 		data: raises,
 		columns: raisesColumns,
 		state: {
+			columnOrder,
 			sorting
 		},
 		onSortingChange: setSorting,
+		onColumnOrderChange: setColumnOrder,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
+
+	React.useEffect(() => {
+		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
+
+		const order = windowSize.width
+			? raisesColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			: defaultOrder
+
+		instance.setColumnOrder(order)
+	}, [windowSize, instance])
 
 	return <VirtualTable instance={instance} />
 }
