@@ -10,7 +10,7 @@ import { LiquidableChanges24H } from './LiquidableChanges24H'
 import { LiquidationsContext } from '~/components/LiquidationsPage/context'
 import { useStackBy } from './utils'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
-import Image from 'next/image'
+import Image from 'next/future/image'
 import boboLogo from '~/assets/boboSmug.png'
 
 const Bobo = styled.button`

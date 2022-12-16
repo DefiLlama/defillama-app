@@ -6,7 +6,7 @@ import Layout from '~/layout'
 import { Divider, Panel } from '~/components'
 import { RowBetween } from '~/components/Row'
 import Link from '~/components/Link'
-import PressLogo from '~/components/PressLogo'
+import PressLogo from '~/components/TokenLogo'
 import { AutoColumn } from '~/components/Column'
 
 const PressPanel = ({ imageFilename }) => (
