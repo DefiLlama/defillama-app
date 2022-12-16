@@ -567,7 +567,7 @@ export const cexColumn: ColumnDef<any>[] = [
 		size: 120,
 		header: 'Avg Leverage',
 		accessorKey: 'leverage',
-		cell: (info) => info.getValue()? Number(info.getValue().toFixed(2))+"x":null,
+		cell: (info) => info.getValue()? Number(Number(info.getValue()).toFixed(2))+"x":null,
 	},
 	/*
 	{
