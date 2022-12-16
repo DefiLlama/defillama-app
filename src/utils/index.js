@@ -198,7 +198,7 @@ export function chainIconUrl(chain) {
 
 export function tokenIconUrl(name) {
 	const x = name ?? ''
-	return `${ICONS_CDN}/protocols/${x.toLowerCase().split(' ').join('-')}?w=24&h=24`
+	return `${ICONS_CDN}/protocols/${x.toLowerCase().split(' ').join('-').split("'").join('')}?w=24&h=24`
 }
 
 /**

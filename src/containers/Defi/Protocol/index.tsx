@@ -48,7 +48,8 @@ import {
 	getBlockExplorer,
 	slug,
 	standardizeProtocolName,
-	toK
+	toK,
+	tokenIconUrl
 } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IFusedProtocolData, IRaise } from '~/api/types'
@@ -202,7 +203,6 @@ function ProtocolContainer({
 		url,
 		description,
 		tvl,
-		logo,
 		audits,
 		category,
 		twitter,
@@ -309,7 +309,7 @@ function ProtocolContainer({
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
-			<SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
+			<SEO cardName={name} token={name} logo={tokenIconUrl(name)} tvl={formattedNum(totalVolume, true)?.toString()} />
 
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
 
@@ -333,7 +333,7 @@ function ProtocolContainer({
 					{scams.includes(name) && <p>There's been multiple hack reports in this protocol</p>}
 
 					<Name>
-						<TokenLogo logo={logo} size={24} />
+						<TokenLogo logo={tokenIconUrl(name)} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
 
