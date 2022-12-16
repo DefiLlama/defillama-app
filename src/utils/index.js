@@ -193,12 +193,12 @@ export const filterCollectionsByCurrency = (collections, displayUsd) =>
 	[]
 
 export function chainIconUrl(chain) {
-	return `/chain-icons/rsz_${chain.toLowerCase()}.jpg`
+	return `${ICONS_CDN}/chains/rsz_${chain.toLowerCase()}?w=24&h=24`
 }
 
 export function tokenIconUrl(name) {
 	const x = name ?? ''
-	return `/icons/${x.toLowerCase().split(' ').join('-')}.jpg`
+	return `${ICONS_CDN}/protocols/${x.toLowerCase().split(' ').join('-')}?w=24&h=24`
 }
 
 /**
@@ -215,7 +215,7 @@ export function liquidationsIconUrl(symbol, hd = false) {
 }
 
 export function peggedAssetIconUrl(name) {
-	return `/pegged-icons/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}.jpg`
+	return `${ICONS_CDN}/pegged/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}?w=24&h=24`
 }
 
 export function formattedPercent(percent, noSign = false, fontWeight = 500) {
