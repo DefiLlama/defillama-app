@@ -26,5 +26,5 @@ export const isExternalImage = (imagePath: string) => {
 }
 
 export default function TokenLogo({ logo = null, size = 24, style, id, ...rest }: TokenLogoProps) {
-	return <Image {...rest} alt={''} src={logo} height={size} width={size} id={id} style={style} />
+	return <Image {...rest} alt={''} src={logo} height={size} width={size} id={id} style={style} loading="lazy" />
 }
