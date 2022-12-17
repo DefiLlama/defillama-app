@@ -1,18 +1,26 @@
 import { useRef } from 'react'
 import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { Checkbox } from '~/components'
-import { Input, List } from '~/components/Combobox'
-import { SelectButton, ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup } from '../shared'
+import { SelectButton, ComboboxSelectPopover, ItemsSelected, SecondaryLabel } from '../shared'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
+import { SlidingMenu } from '~/components/SlidingMenu'
+import { ComboboxSelectContent } from '../shared/ComboboxSelectContent'
 
 interface IFiltersBySectorsProps {
 	sectors: string[]
 	selectedSectors: string[]
 	pathname: string
+	variant?: 'primary' | 'secondary'
+	subMenu?: boolean
 }
 
-export function Sectors({ sectors = [], selectedSectors, pathname }: IFiltersBySectorsProps) {
+export function Sectors({
+	sectors = [],
+	selectedSectors,
+	pathname,
+	variant = 'primary',
+	subMenu
+}: IFiltersBySectorsProps) {
 	const router = useRouter()
 
 	const { sector, ...queries } = router.query
@@ -38,7 +46,7 @@ export function Sectors({ sectors = [], selectedSectors, pathname }: IFiltersByS
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const select = useSelectState({
+	const selectState = useSelectState({
 		...selectProps,
 		value: selectedSectors,
 		setValue: addSector,
@@ -47,12 +55,7 @@ export function Sectors({ sectors = [], selectedSectors, pathname }: IFiltersByS
 		renderCallback
 	})
 
-	// Resets combobox value when popover is collapsed
-	if (!select.mounted && combobox.value) {
-		combobox.setValue('')
-	}
-
-	const toggleAll = () => {
+	const toggleAllOptions = () => {
 		if (!sector || sector === 'All') {
 			router.push(
 				{
@@ -80,8 +83,8 @@ export function Sectors({ sectors = [], selectedSectors, pathname }: IFiltersByS
 		}
 	}
 
-	const clear = () => {
-		select.up(1)
+	const clearAllOptions = () => {
+		selectState.up(1)
 		router.push(
 			{
 				pathname,
@@ -95,44 +98,83 @@ export function Sectors({ sectors = [], selectedSectors, pathname }: IFiltersByS
 		)
 	}
 
+	// Resets combobox value when popover is collapsed
+	if (!selectState.mounted && combobox.value) {
+		combobox.setValue('')
+	}
+
 	const focusItemRef = useRef(null)
+
+	const isSelected = selectedSectors.length > 0 && selectedSectors.length !== sectors.length
+
+	const isOptionToggled = (option) =>
+		(selectState.value.includes(option) ? true : false) || (sector || []).includes('All')
+
+	if (subMenu) {
+		return (
+			<SlidingMenu label="Sectors" selectState={selectState}>
+				<ComboboxSelectContent
+					options={sectors}
+					selectedOptions={selectedSectors}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					focusItemRef={focusItemRef}
+					variant={variant}
+					pathname={pathname}
+					isOptionToggled={isOptionToggled}
+					contentElementId={selectState.contentElement?.id}
+				/>
+			</SlidingMenu>
+		)
+	}
 
 	return (
 		<>
-			<SelectButton state={select}>
-				<span>Filter by Sectors</span>
-				<MenuButtonArrow />
-				{selectedSectors.length > 0 && selectedSectors.length !== sectors.length && (
-					<ItemsSelected>{selectedSectors.length}</ItemsSelected>
-				)}
-			</SelectButton>
-			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false} initialFocusRef={focusItemRef}>
-				<Input state={combobox} placeholder="Search for sectors..." autoFocus />
-
-				{combobox.matches.length > 0 ? (
-					<>
-						<FilterFnsGroup>
-							<button onClick={clear}>Clear</button>
-
-							<button onClick={toggleAll}>Toggle all</button>
-						</FilterFnsGroup>
-						<List state={combobox} className="filter-by-list">
-							{combobox.matches.map((value, i) => (
-								<SelectItem
-									value={value}
-									key={value + i}
-									ref={i === 0 && selectedSectors.length === sectors.length ? focusItemRef : null}
-									focusOnHover
-								>
-									<span data-name>{value}</span>
-									<Checkbox checked={select.value.includes(value) ? true : false} />
-								</SelectItem>
-							))}
-						</List>
-					</>
+			<SelectButton state={selectState} data-variant={variant}>
+				{variant === 'secondary' ? (
+					<SecondaryLabel>
+						{isSelected ? (
+							<>
+								<span>Sector: </span>
+								<span data-selecteditems>
+									{selectedSectors.length > 2
+										? `${selectedSectors[0]} + ${selectedSectors.length - 1} others`
+										: selectedSectors.join(', ')}
+								</span>
+							</>
+						) : (
+							'Sector'
+						)}
+					</SecondaryLabel>
 				) : (
-					<p id="no-results">No results</p>
+					<>
+						<span>Filter by Sector</span>
+						{isSelected && <ItemsSelected>{selectedSectors.length}</ItemsSelected>}
+					</>
 				)}
+
+				<MenuButtonArrow />
+			</SelectButton>
+
+			<ComboboxSelectPopover
+				state={selectState}
+				modal={!isLarge}
+				composite={false}
+				initialFocusRef={focusItemRef}
+				data-variant={variant}
+			>
+				<ComboboxSelectContent
+					options={sectors}
+					selectedOptions={selectedSectors}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					focusItemRef={focusItemRef}
+					variant={variant}
+					pathname={pathname}
+					autoFocus
+					isOptionToggled={isOptionToggled}
+					contentElementId={selectState.contentElement?.id}
+				/>
 			</ComboboxSelectPopover>
 		</>
 	)
