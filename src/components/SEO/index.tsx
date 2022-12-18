@@ -2,6 +2,11 @@ import { useMemo } from 'react'
 import Head from 'next/head'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import { useIsClient } from '~/hooks'
+import { type as dexsType } from '~/pages/dexs'
+import { type as feesType } from '~/pages/fees'
+import { type as aggregatorsType } from '~/pages/aggregators'
+import { type as derivativesType } from '~/pages/derivatives'
+import { type as optionsType } from '~/pages/options'
 
 interface SEOProps {
 	cardName?: string
@@ -12,7 +17,7 @@ interface SEOProps {
 	logo?: string
 	nftPage?: boolean
 	liqsPage?: boolean
-	dexsPage?: boolean
+	pageType?: string
 }
 
 const SEO = ({
@@ -24,7 +29,7 @@ const SEO = ({
 	logo,
 	nftPage = false,
 	liqsPage = false,
-	dexsPage = false
+	pageType
 }: SEOProps) => {
 	const isClient = useIsClient()
 
@@ -49,7 +54,14 @@ const SEO = ({
 			valueHeader = 'Total Volume'
 		} else if (liqsPage) {
 			valueHeader = 'Total Liquidatable Amount'
-		} else if (dexsPage) {
+		} else if (pageType === feesType) {
+			valueHeader = '24h fees'
+		} else if (
+			pageType === dexsType ||
+			pageType === aggregatorsType ||
+			pageType === derivativesType ||
+			pageType === optionsType
+		) {
 			valueHeader = '24h volume'
 		} else {
 			valueHeader = 'Total Value Locked'
@@ -95,7 +107,7 @@ const SEO = ({
 		windowURL,
 		isTvlValid,
 		isVolumeChangeValid,
-		dexsPage,
+		pageType,
 		liqsPage
 	])
 

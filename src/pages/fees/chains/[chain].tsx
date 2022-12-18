@@ -1,3 +1,4 @@
 import { getStaticPathsByType } from '~/utils/adaptorsPages/[type]/chains/[chain]'
-export const getStaticPaths = getStaticPathsByType('fees')
+import { type } from '../'
+export const getStaticPaths = getStaticPathsByType(type)
 export { default, getStaticProps } from '../'
