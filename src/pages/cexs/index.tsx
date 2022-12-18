@@ -16,7 +16,8 @@ const cexData = [
 	{
 		name: 'OKX',
 		slug: 'okx',
-		coin: null,
+		coin: 'OKB',
+		coinSymbol: 'OKB',
 		walletsLink: 'https://twitter.com/okx/status/1590812545346330624',
 		cgId: 'okex',
 		cgDeriv: 'okex_swap'
