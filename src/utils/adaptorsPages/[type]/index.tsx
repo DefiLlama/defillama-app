@@ -34,7 +34,7 @@ export const getStaticPropsByType = (type: string) => {
 const AllChainsDexs = (props: IOverviewContainerProps) => {
 	return (
 		<Layout title={`${capitalizeFirstLetter(props.type)} - DefiLlama`}>
-			<SEO pageType={props.type} />
+			<SEO dexsPage />
 			<OverviewContainer {...props} />
 		</Layout>
 	)

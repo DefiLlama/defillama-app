@@ -45,7 +45,6 @@ import {
 } from './common'
 import Announcement from '~/components/Announcement'
 import { volumeTypes } from '~/utils/adaptorsPages/[type]/[item]'
-import SEO from '~/components/SEO'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -232,13 +231,6 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 
 	return (
 		<Layout title={props.title} backgroundColor={transparentize(0.6, props.backgroundColor)} style={{ gap: '36px' }}>
-			<SEO
-				cardName={props.protocolSummary.displayName}
-				tvl={formattedNum(props.protocolSummary.total24h)?.toString()}
-				volumeChange={props.protocolSummary.change_1d?.toString()}
-				pageType={props.protocolSummary.type}
-			/>
-
 			<AdaptorsSearch
 				type={props.protocolSummary.type}
 				step={{
@@ -428,6 +420,15 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					</ChartsWrapper>
 				</>
 			)}
+			{/* 			<SEO
+				cardName={dexData.name}
+				token={dexData.name}
+				tvl={formattedNum(dexData.total1dVolume)?.toString()}
+				volumeChange={`${dexData.change1dVolume}`}
+				dexsPage
+			/>
+
+			 */}
 		</Layout>
 	)
 }
