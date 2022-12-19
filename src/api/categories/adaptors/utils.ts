@@ -115,6 +115,6 @@ export async function getCexVolume() {
 		fetch(`https://api.coingecko.com/api/v3/exchanges?per_page=250`).then((r) => r.json()),
 		fetch(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd`).then((r) => r.json())
 	])
-	const volume = cexs.filter(c => c.trust_score >= 8).reduce((sum, c) => sum + c.trade_volume_24h_btc_normalized, 0) * btcPrice
+	const volume = cexs.filter(c => c.trust_score >= 9).reduce((sum, c) => sum + c.trade_volume_24h_btc, 0) * btcPrice
 	return volume
 }
