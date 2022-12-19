@@ -14,15 +14,6 @@ const cexData = [
 		cgDeriv: 'binance_futures'
 	},
 	{
-		name: 'OKX',
-		slug: 'okx',
-		coin: 'OKB',
-		coinSymbol: 'OKB',
-		walletsLink: 'https://twitter.com/okx/status/1590812545346330624',
-		cgId: 'okex',
-		cgDeriv: 'okex_swap'
-	},
-	{
 		name: 'Bitfinex',
 		slug: 'bitfinex',
 		coin: 'LEO',
@@ -30,6 +21,15 @@ const cexData = [
 		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt',
 		cgId: 'bitfinex',
 		cgDeriv: 'bitfinex_futures'
+	},
+	{
+		name: 'OKX',
+		slug: 'okx',
+		coin: 'OKB',
+		coinSymbol: 'OKB',
+		walletsLink: 'https://twitter.com/okx/status/1590812545346330624',
+		cgId: 'okex',
+		cgDeriv: 'okex_swap'
 	},
 	{
 		name: 'Huobi',
