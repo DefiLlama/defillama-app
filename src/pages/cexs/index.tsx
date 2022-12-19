@@ -25,7 +25,8 @@ const cexData = [
 	{
 		name: 'Bitfinex',
 		slug: 'bitfinex',
-		coin: null,
+		coin: 'LEO',
+		coinSymbol: 'LEO',
 		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt',
 		cgId: 'bitfinex',
 		cgDeriv: 'bitfinex_futures'
