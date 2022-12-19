@@ -192,7 +192,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		tvlData,
 		totalDataChartBreakdown,
 		allChains,
-		dexsDominance: total24h / (cexVolume + total24h),
+		dexsDominance: +((total24h / (cexVolume + total24h)) * 100).toFixed(2),
 		type
 	}
 }

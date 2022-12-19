@@ -140,7 +140,8 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					change_1d: props.change_1d,
 					change_1m: props.change_1m,
 					disabled: false,
-					total24h: props.total24h
+					total24h: props.total24h,
+					dexsDominance: props.dexsDominance
 				},
 				chartData: chartData,
 				name: props.chain,

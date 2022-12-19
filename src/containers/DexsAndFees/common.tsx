@@ -77,15 +77,15 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			typeof props.data.change_1d === 'number' ||
 			typeof props.data.change_1m === 'number' ? (
 				<BreakpointPanels>
-					{!Number.isNaN(props.data.total24h) && (
+					{!Number.isNaN(props.data.total24h) ? (
 						<BreakpointPanel>
 							<h1>Total {dataType} (24h)</h1>
 							<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
 								{formattedNum(props.data.total24h, true)}
 							</p>
 						</BreakpointPanel>
-					)}
-					{!Number.isNaN(props.data.change_1d) && (
+					) : null}
+					{!Number.isNaN(props.data.change_1d) ? (
 						<PanelHiddenMobile>
 							<h2>Change (24h)</h2>
 							{props.data.change_1d > 0 ? (
@@ -94,23 +94,21 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 								<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}> {props.data.change_1d || 0}%</p>
 							)}
 						</PanelHiddenMobile>
-					)}
+					) : null}
 					{!Number.isNaN(props.data.dexsDominance) ? (
 						<PanelHiddenMobileHelper>
 							<div>
 								<h2>Dexs dominance</h2>
 								<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume`} />
 							</div>
-							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.change_1m || 0}%</p>
+							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.dexsDominance || 0}%</p>
 						</PanelHiddenMobileHelper>
-					) : (
-						!Number.isNaN(props.data.change_1m) && (
-							<PanelHiddenMobile>
-								<h2>Change (30d)</h2>
-								<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.change_1m || 0}%</p>
-							</PanelHiddenMobile>
-						)
-					)}
+					) : !Number.isNaN(props.data.change_1m) ? (
+						<PanelHiddenMobile>
+							<h2>Change (30d)</h2>
+							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.change_1m || 0}%</p>
+						</PanelHiddenMobile>
+					) : null}
 				</BreakpointPanels>
 			) : (
 				<></>
