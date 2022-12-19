@@ -101,7 +101,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		fetch(getAPIUrl(type, chain, type === 'fees', true)).then((res) => res.json()),
 		fetch(PROTOCOLS_API).then((r) => r.json()),
 		fetch(feesOrRevenueApi).then((res) => res.json()),
-		getCexVolume()
+		type === 'dexs' ? getCexVolume() : Promise.resolve(0)
 	])
 
 	const {
