@@ -231,6 +231,10 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'revenue24h',
 		'revenue7d',
 		'revenue30d',
+		'dailyUserFees',
+		'dailyProtocolRevenue',
+		'dailyHoldersRevenue',
+		'dailySupplySideRevenue',
 		'totalAllTime',
 		'mcaptvl'
 	],
@@ -251,6 +255,10 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'revenue24h',
 		'revenue7d',
 		'revenue30d',
+		'dailyUserFees',
+		'dailyProtocolRevenue',
+		'dailyHoldersRevenue',
+		'dailySupplySideRevenue',
 		'totalAllTime',
 		'mcaptvl'
 	]
