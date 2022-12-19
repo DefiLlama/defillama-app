@@ -250,9 +250,9 @@ export async function getStaticProps() {
 			} else {
 				const [{ tvl, tokensInUsd }, inflows24h, inflows7d, inflows1m] = await Promise.all([
 					fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then((r) => r.json()),
-					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}`).then((r) => r.json()),
-					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour7dms}`).then((r) => r.json()),
-					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour1mms}`).then((r) => r.json())
+					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ""}`).then((r) => r.json()),
+					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ""}`).then((r) => r.json()),
+					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ""}`).then((r) => r.json())
 				])
 
 				const cexTvl = tvl ? tvl[tvl.length - 1].totalLiquidityUSD : 0
