@@ -98,7 +98,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 					{!Number.isNaN(props.data.dexsDominance) ? (
 						<PanelHiddenMobileHelper>
 							<div>
-								<h2>Dexs dominance</h2>
+								<h2>DEX vs CEX dominance</h2>
 								<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume`} />
 							</div>
 							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.dexsDominance || 0}%</p>
