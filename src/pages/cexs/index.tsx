@@ -119,6 +119,14 @@ const cexData = [
 		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
 	},
 	{
+		name: 'Phemex',
+		slug: 'phemex',
+		coin: null,
+		walletsLink: 'https://phemex.com/proof-of-reserves',
+        cgId: 'phemex',
+		cgDeriv: 'phemex_futures'
+	},
+	{
 		name: 'MaskEX',
 		slug: 'maskex',
 		coin: null,
