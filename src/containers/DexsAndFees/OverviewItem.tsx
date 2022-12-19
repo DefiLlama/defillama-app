@@ -27,7 +27,7 @@ import { useScrollToTop } from '~/hooks'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
 import { IBarChartProps } from '~/components/ECharts/types'
-import { IJoin2ReturnType, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
+import { IJoin2ReturnType, IOverviewProps, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 import ChartByType from './charts'
 
 interface PageParams {
@@ -62,6 +62,7 @@ export interface IDexChartsProps {
 		revenue24h?: IProtocolContainerProps['protocolSummary']['revenue24h']
 		change_1d: IProtocolContainerProps['protocolSummary']['change_1d']
 		change_1m?: IProtocolContainerProps['protocolSummary']['change_1m']
+		dexsDominance?: IOverviewProps['dexsDominance']
 	}
 	chartData: [IJoin2ReturnType, string[]]
 	name: string
