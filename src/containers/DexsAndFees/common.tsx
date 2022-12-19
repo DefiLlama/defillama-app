@@ -9,6 +9,7 @@ import { formattedNum } from '~/utils'
 import { IDexChartsProps } from './OverviewItem'
 import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
 import { volumeTypes } from '~/utils/adaptorsPages/[type]/[item]'
+import QuestionHelper from '~/components/QuestionHelper'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -94,11 +95,21 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							)}
 						</PanelHiddenMobile>
 					)}
-					{!Number.isNaN(props.data.change_1m) && (
-						<PanelHiddenMobile>
-							<h2>Change (30d)</h2>
+					{!Number.isNaN(props.data.dexsDominance) ? (
+						<PanelHiddenMobileHelper>
+							<div>
+								<h2>Dexs dominance</h2>
+								<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume`} />
+							</div>
 							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.change_1m || 0}%</p>
-						</PanelHiddenMobile>
+						</PanelHiddenMobileHelper>
+					) : (
+						!Number.isNaN(props.data.change_1m) && (
+							<PanelHiddenMobile>
+								<h2>Change (30d)</h2>
+								<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.change_1m || 0}%</p>
+							</PanelHiddenMobile>
+						)
 					)}
 				</BreakpointPanels>
 			) : (
@@ -145,3 +156,15 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 		</ChartAndValuesWrapper>
 	)
 }
+
+const PanelHiddenMobileHelper = styled(PanelHiddenMobile)`
+	& > div {
+		display: inline-flex;
+		gap: 0.5em;
+	}
+	& > div > h2 {
+		min-width: 0;
+		font-weight: 500;
+		font-size: 1rem;
+	}
+`

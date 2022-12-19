@@ -3,7 +3,7 @@ import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
 import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
-import { formatChain } from './utils'
+import { formatChain, getCexVolume } from './utils'
 
 /* export const getDex = async (dexName: string): Promise<IDexResponse> =>
 	await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
@@ -92,14 +92,16 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
 			: getAPIUrl(type, chain, true, true, 'dailyRevenue')
 
-	const [request, protocolsData, feesOrRevenue]: [
+	const [request, protocolsData, feesOrRevenue, cexVolume]: [
 		IGetOverviewResponseBody,
 		{ protocols: LiteProtocol[] },
-		IGetOverviewResponseBody
+		IGetOverviewResponseBody,
+		number
 	] = await Promise.all([
 		fetch(getAPIUrl(type, chain, type === 'fees', true)).then((res) => res.json()),
 		fetch(PROTOCOLS_API).then((r) => r.json()),
-		fetch(feesOrRevenueApi).then((res) => res.json())
+		fetch(feesOrRevenueApi).then((res) => res.json()),
+		getCexVolume()
 	])
 
 	const {
@@ -164,6 +166,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 							...protocol,
 							displayName: `${versionName.toUpperCase()} - ${protocol.name}`,
 							...summary,
+							volumetvl: summary.total24h / total24h,
+							dominance: (100 * summary.total24h) / total24h,
 							totalAllTime: null,
 							revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? (0 as number)
 						}
@@ -188,6 +192,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		tvlData,
 		totalDataChartBreakdown,
 		allChains,
+		dexsDominance: total24h / (cexVolume + total24h),
 		type
 	}
 }
@@ -211,6 +216,7 @@ export interface IOverviewProps {
 	allChains?: IGetOverviewResponseBody['allChains']
 	totalAllTime?: ProtocolAdaptorSummaryResponse['totalAllTime']
 	type: string
+	dexsDominance?: number
 }
 
 // - used in /[type]/chains
