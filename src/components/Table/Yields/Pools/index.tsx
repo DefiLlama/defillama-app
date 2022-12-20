@@ -8,9 +8,14 @@ const columnSizesKeys = getColumnSizesKeys(columnSizes)
 
 export default function YieldsPoolsTable({ data }: IYieldsTableProps) {
 	const router = useRouter()
-	const { show7dBaseApy, show7dIL } = router.query
+	const { show7dBaseApy, show7dIL, show1dVolume, show7dVolume } = router.query
 
-	const columnVisibility = { apyBase7d: show7dBaseApy === 'true', il7d: show7dIL === 'true' }
+	const columnVisibility = {
+		apyBase7d: show7dBaseApy === 'true',
+		il7d: show7dIL === 'true',
+		volumeUsd1d: show1dVolume === 'true',
+		volumeUsd7d: show7dVolume === 'true'
+	}
 
 	return (
 		<YieldsTableWrapper

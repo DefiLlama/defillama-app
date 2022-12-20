@@ -28,7 +28,7 @@ const Action = styled.button<IFolder>`
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { query, pathname, push } = useRouter()
-	const { show7dBaseApy, show7dIL } = query
+	const { show7dBaseApy, show7dIL, show1dVolume, show7dVolume } = query
 
 	const isClient = useIsClient()
 
@@ -59,7 +59,9 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				outlook: t.apy >= 0.005 ? t.predictions.predictedClass : null,
 				confidence: t.apy >= 0.005 ? t.predictions.binnedConfidence : null,
 				url: t.url,
-				category: t.category
+				category: t.category,
+				volumeUsd1d: t.volumeUsd1d,
+				volumeUsd7d: t.volumeUsd7d
 			}))
 		} else return []
 	}, [isClient, savedProtocolsInWatchlist, protocolsDict])
@@ -99,6 +101,26 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 					enabled={query.show7dIL === 'true'}
 				/>
 			</Row>
+
+			<OptionToggle
+				name="Show 1d Volume"
+				toggle={() => {
+					const enabled = show1dVolume === 'true'
+					push({ pathname, query: { ...query, show1dVolume: !enabled } }, undefined, { shallow: true })
+				}}
+				enabled={query.show1dVolume === 'true'}
+				style={{ marginLeft: 'auto' }}
+			/>
+
+			<OptionToggle
+				name="Show 7d Volume"
+				toggle={() => {
+					const enabled = show7dVolume === 'true'
+					push({ pathname, query: { ...query, show7dVolume: !enabled } }, undefined, { shallow: true })
+				}}
+				enabled={query.show7dVolume === 'true'}
+				style={{ marginLeft: 'auto' }}
+			/>
 
 			{filteredProtocols.length ? (
 				<YieldsPoolsTable data={filteredProtocols} />

@@ -54,7 +54,9 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 					il7d: curr.il7d,
 					apyBase7d: curr.apyBase7d,
 					apyNet7d: curr.apyNet7d,
-					apyMean30d: curr.apyMean30d
+					apyMean30d: curr.apyMean30d,
+					volumeUsd1d: curr.volumeUsd1d,
+					volumeUsd7d: curr.volumeUsd7d
 				})
 			} else return acc
 		}, [])
@@ -120,6 +122,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				show7dBaseApy={true}
 				show7dIL={true}
 				resetFilters={true}
+				show1dVolume={true}
+				show7dVolume={true}
 			/>
 
 			{poolsData.length > 0 ? (

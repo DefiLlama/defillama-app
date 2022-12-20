@@ -192,6 +192,32 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
+	},
+	{
+		header: '1d Volume',
+		accessorKey: 'volumeUsd1d',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{info.getValue() !== null ? '$' + formattedNum(info.getValue()) : null}</>
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: '$ Volume in the last 24 hours.'
+		}
+	},
+	{
+		header: '7d Volume',
+		accessorKey: 'volumeUsd7d',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{info.getValue() !== null ? '$' + formattedNum(info.getValue()) : null}</>
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: '$ Volume in the last 7 days'
+		}
 	}
 ]
 
@@ -210,7 +236,9 @@ const columnOrders = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'apyChart30d'
+		'apyChart30d',
+		'volumeUsd1d',
+		'volumeUsd7d'
 	],
 	400: [
 		'pool',
@@ -224,7 +252,9 @@ const columnOrders = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'apyChart30d'
+		'apyChart30d',
+		'volumeUsd1d',
+		'volumeUsd7d'
 	],
 	640: [
 		'pool',
@@ -238,7 +268,9 @@ const columnOrders = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'apyChart30d'
+		'apyChart30d',
+		'volumeUsd1d',
+		'volumeUsd7d'
 	],
 	1280: [
 		'pool',
@@ -252,7 +284,9 @@ const columnOrders = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'apyChart30d'
+		'apyChart30d',
+		'volumeUsd1d',
+		'volumeUsd7d'
 	]
 }
 
@@ -269,7 +303,9 @@ export const columnSizes = {
 		apyBase7d: 130,
 		il7d: 90,
 		apyMean30d: 120,
-		apyChart30d: 110
+		apyChart30d: 110,
+		volumeUsd1d: 140,
+		volumeUsd7d: 140
 	},
 	812: {
 		pool: 250,
@@ -283,7 +319,9 @@ export const columnSizes = {
 		apyBase7d: 140,
 		il7d: 90,
 		apyMean30d: 120,
-		apyChart30d: 110
+		apyChart30d: 110,
+		volumeUsd1d: 140,
+		volumeUsd7d: 140
 	}
 }
 
