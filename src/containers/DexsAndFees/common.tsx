@@ -99,7 +99,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 						<PanelHiddenMobileHelper>
 							<div>
 								<h2>DEX vs CEX dominance</h2>
-								<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume`} />
+								<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume`} textAlign="center" />
 							</div>
 							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.dexsDominance || 0}%</p>
 						</PanelHiddenMobileHelper>
