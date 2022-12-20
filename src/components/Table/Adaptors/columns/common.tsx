@@ -110,7 +110,7 @@ export const TotalAllTimeColumn = (
 	alternativeAccessor?: string,
 	helperText?: string
 ): ColumnDef<IDexsRow> => ({
-	header: `Total ${type}`,
+	header: `Comulative ${type}`,
 	accessorKey: alternativeAccessor ?? 'totalAllTime',
 	enableSorting: true,
 	cell: (info) => {
@@ -120,7 +120,7 @@ export const TotalAllTimeColumn = (
 	size: 150,
 	meta: {
 		align: 'end',
-		headerHelperText: helperText ?? `Cumulative ${type}`
+		headerHelperText: helperText
 	}
 })
 export const VolumeTVLColumn: ColumnDef<IDexsRow> = {
