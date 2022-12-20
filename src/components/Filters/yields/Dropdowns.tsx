@@ -37,7 +37,9 @@ export function YieldFilterDropdowns({
 	excludeBadDebt,
 	selectedAttributes,
 	excludeRewardApy,
-	isMobile
+	isMobile,
+	show1dVolume,
+	show7dVolume
 }: IDropdownMenusProps) {
 	const router = useRouter()
 
@@ -219,6 +221,52 @@ export function YieldFilterDropdowns({
 						}}
 					/>
 					<span>Exclude reward APY</span>
+				</label>
+			)}
+
+			{show1dVolume && (
+				<label className={isMobile ? 'sliding-menu-button align-reverse' : 'checkbox-filter'}>
+					<input
+						type="checkbox"
+						value="show1dVolume"
+						checked={router.query.show1dVolume === 'true'}
+						onChange={() => {
+							router.push(
+								{
+									pathname: pathname || router.pathname,
+									query: { ...router.query, show1dVolume: !(router.query.show1dVolume === 'true') }
+								},
+								undefined,
+								{
+									shallow: true
+								}
+							)
+						}}
+					/>
+					<span>Show 1d Volume</span>
+				</label>
+			)}
+
+			{show7dVolume && (
+				<label className={isMobile ? 'sliding-menu-button align-reverse' : 'checkbox-filter'}>
+					<input
+						type="checkbox"
+						value="show7dVolume"
+						checked={router.query.show7dVolume === 'true'}
+						onChange={() => {
+							router.push(
+								{
+									pathname: pathname || router.pathname,
+									query: { ...router.query, show7dVolume: !(router.query.show7dVolume === 'true') }
+								},
+								undefined,
+								{
+									shallow: true
+								}
+							)
+						}}
+					/>
+					<span>Show 7d Volume</span>
 				</label>
 			)}
 
