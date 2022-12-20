@@ -189,7 +189,6 @@ const Wrapper = styled.div`
 
 		th {
 			z-index: 1;
-			position: relative;
 
 			:first-of-type {
 				border-radius: 12px 0 0 0;
@@ -236,6 +235,7 @@ const TableHeader = styled.span<ITableHeader>`
 	flex-wrap: nowrap;
 	gap: 4px;
 	font-weight: 500;
+	position: relative;
 
 	& > * {
 		white-space: nowrap;

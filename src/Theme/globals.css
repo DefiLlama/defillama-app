@@ -142,9 +142,9 @@ h6 {
 
 .resizer {
 	position: absolute;
-	right: 0;
-	top: 0;
-	height: 100%;
+	right: -12px;
+	top: -12px;
+	height: 2.75rem;
 	width: 5px;
 	background: rgba(0, 0, 0, 0.5);
 	cursor: col-resize;
