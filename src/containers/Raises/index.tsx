@@ -30,6 +30,8 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
+const columnResizeMode = 'onChange'
+
 function RaisesTable({ raises, downloadCsv }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
@@ -39,6 +41,7 @@ function RaisesTable({ raises, downloadCsv }) {
 	const instance = useReactTable({
 		data: raises,
 		columns: raisesColumns,
+		columnResizeMode,
 		state: {
 			columnFilters,
 			columnOrder,
@@ -99,7 +102,7 @@ function RaisesTable({ raises, downloadCsv }) {
 				</Link>
 			</TableFilters>
 
-			<VirtualTable instance={instance} />
+			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</>
 	)
 }

@@ -9,6 +9,7 @@ interface ITableProps {
 	instance: Table<any>
 	skipVirtualization?: boolean
 	rowSize?: number
+	columnResizeMode?: 'onChange' | 'onEnd'
 }
 
 declare module '@tanstack/table-core' {
@@ -18,7 +19,13 @@ declare module '@tanstack/table-core' {
 	}
 }
 
-export default function VirtualTable({ instance, skipVirtualization, rowSize, ...props }: ITableProps) {
+export default function VirtualTable({
+	instance,
+	skipVirtualization,
+	columnResizeMode,
+	rowSize,
+	...props
+}: ITableProps) {
 	const [tableTop, setTableTop] = React.useState(0)
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
 
@@ -66,7 +73,7 @@ export default function VirtualTable({ instance, skipVirtualization, rowSize, ..
 		virtualItems.length > 0 ? rowVirtualizer.getTotalSize() - (virtualItems?.[virtualItems.length - 1]?.end || 0) : 0
 
 	return (
-		<Wrapper ref={tableContainerRef} {...props}>
+		<Wrapper ref={tableContainerRef} data-resizable={columnResizeMode ? true : false} {...props}>
 			<table>
 				<thead>
 					{instance.getHeaderGroups().map((headerGroup) => (
@@ -90,6 +97,22 @@ export default function VirtualTable({ instance, skipVirtualization, rowSize, ..
 											)}
 											{meta?.headerHelperText && <Helper text={meta?.headerHelperText} />}
 											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
+
+											{columnResizeMode && (
+												<div
+													{...{
+														onMouseDown: header.getResizeHandler(),
+														onTouchStart: header.getResizeHandler(),
+														className: `resizer ${header.column.getIsResizing() ? 'isResizing' : ''}`,
+														style: {
+															transform:
+																columnResizeMode === 'onEnd' && header.column.getIsResizing()
+																	? `translateX(${instance.getState().columnSizingInfo.deltaOffset}px)`
+																	: ''
+														}
+													}}
+												/>
+											)}
 										</TableHeader>
 									</th>
 								)
@@ -146,6 +169,13 @@ const Wrapper = styled.div`
 	border-radius: 12px;
 	overflow-x: auto;
 
+	&[data-resizable='true'] {
+		th,
+		td {
+			border-right: 1px solid ${({ theme }) => theme.divider};
+		}
+	}
+
 	table {
 		table-layout: fixed;
 		width: 100%;
@@ -159,6 +189,7 @@ const Wrapper = styled.div`
 
 		th {
 			z-index: 1;
+			position: relative;
 
 			:first-of-type {
 				border-radius: 12px 0 0 0;
