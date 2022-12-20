@@ -174,7 +174,7 @@ export const volumesColumnSizes = {
 		change_1m: 140,
 		total24h: 160,
 		volumetvl: 140,
-		dominance: 140
+		dominance: 100
 	},
 	600: {
 		name: 200,
@@ -184,7 +184,7 @@ export const volumesColumnSizes = {
 		change_1m: 140,
 		total24h: 160,
 		volumetvl: 140,
-		dominance: 140
+		dominance: 100
 	},
 	900: {
 		name: 240,
@@ -194,7 +194,7 @@ export const volumesColumnSizes = {
 		change_1m: 140,
 		total24h: 160,
 		volumetvl: 140,
-		dominance: 140
+		dominance: 100
 	}
 }
 

@@ -117,7 +117,7 @@ export const TotalAllTimeColumn = (
 		if (Number.isNaN(formattedNum(info.getValue())) || formattedNum(info.getValue()) === 0) return <></>
 		return <>${formattedNum(info.getValue())}</>
 	},
-	size: 150,
+	size: 160,
 	meta: {
 		align: 'end',
 		headerHelperText: helperText
