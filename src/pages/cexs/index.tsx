@@ -114,6 +114,13 @@ const cexData = [
 		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
+		name: 'Binance US',
+		slug: 'binance-us',
+		coin: 'BNB',
+		coinSymbol: 'BNB',
+		cgId: 'binance_us',
+	},
+	{
 		name: 'Coinsquare',
 		slug: 'coinsquare',
 		coin: null,
