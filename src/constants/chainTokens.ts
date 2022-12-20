@@ -704,6 +704,11 @@ export const chainCoingeckoIds = {
     symbol: "MUU",
     cmcId: "22020"
   },
+	"MultiversX": {
+    geckoId: "elrond-erd-2",
+    symbol: "EGLD",
+    cmcId: "6892",
+  },
 }
 
 export const chainMarketplaceMappings = {
