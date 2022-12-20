@@ -11,6 +11,7 @@ import {
 	NameColumn,
 	Total24hColumn,
 	TotalAllTimeColumn,
+	TVLColumn,
 	VolumeTVLColumn
 } from './common'
 
@@ -61,6 +62,7 @@ export const volumesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Change7dColumn,
 		Change1mColumn,
 		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		TVLColumn,
 		TotalAllTimeColumn('volume'),
 		allChains ? undefined : VolumeTVLColumn,
 		DominanceColumn
@@ -143,9 +145,10 @@ export const volumesTableColumnOrders = formatColumnOrder({
 		'chains',
 		'change_1d',
 		'change_1m',
-		'totalAllTime',
+		'tvl',
 		'volumetvl',
-		'dominance'
+		'dominance',
+		'totalAllTime'
 	],
 	900: [
 		'displayName',
@@ -155,9 +158,10 @@ export const volumesTableColumnOrders = formatColumnOrder({
 		'change_7d',
 		'change_1m',
 		'total24h',
-		'totalAllTime',
+		'tvl',
 		'volumetvl',
-		'dominance'
+		'dominance',
+		'totalAllTime'
 	]
 })
 

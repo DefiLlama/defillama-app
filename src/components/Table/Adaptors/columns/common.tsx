@@ -157,3 +157,17 @@ export const CategoryColumn: ColumnDef<IDexsRow> = {
 		align: 'end'
 	}
 }
+export const TVLColumn: ColumnDef<IDexsRow> = {
+	header: 'TVL',
+	accessorKey: 'tvl',
+	enableSorting: true,
+	cell: (info) => {
+		const fNum = formattedNum(info.getValue())
+		if (Number.isNaN(fNum)) return <></>
+		return <>{fNum}</>
+	},
+	size: 100,
+	meta: {
+		align: 'end'
+	}
+}
