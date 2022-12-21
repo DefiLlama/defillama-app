@@ -107,9 +107,12 @@ export const Total24hColumn = (
 			const value = info.getValue()
 			if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
 			const rawMethodology = typeof info.row.original.methodology === 'object' ? info.row.original.methodology : {}
-			const methodologyKey = accessor === 'total24h' ? type : accessor
+			const methodologyKey = (() => {
+				if (accessor.includes('24h')) return type
+				else return accessor.slice(5) // ('daily' | 'total').length
+			})()
 			const methodology = Object.entries(rawMethodology).find(([name]) =>
-				methodologyKey.toLowerCase().includes(name.toLowerCase())
+				name.toLowerCase().includes(methodologyKey.toLowerCase())
 			)?.[1]
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
