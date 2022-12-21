@@ -75,15 +75,32 @@ export const Change1mColumn: ColumnDef<IDexsRow> = {
 		align: 'end'
 	}
 }
+export const ChangeColumn = (
+	header: string,
+	accesor: string,
+	size?: number,
+	headerHelperText?: string
+): ColumnDef<IDexsRow> => ({
+	header: header,
+	accessorKey: accesor,
+	enableSorting: true,
+	cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+	size: size ?? 140,
+	meta: {
+		align: 'end',
+		headerHelperText
+	}
+})
 export const Total24hColumn = (
 	type: string,
 	alternativeAccessor?: string,
 	helperText?: string,
-	extraWidth?: number
+	extraWidth?: number,
+	header?: string
 ): ColumnDef<IDexsRow> => {
 	const accessor = alternativeAccessor ?? 'total24h'
 	return {
-		header: `${type} (24h)`,
+		header: header ?? `${type} (24h)`,
 		accessorKey: accessor,
 		enableSorting: true,
 		cell: (info) => {

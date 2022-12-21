@@ -36,6 +36,7 @@ export interface IMainBarChartProps {
 	total24h: number | null
 	change_1d: number | null
 	change_1m: number | null
+	change_7dover7d: number | null
 	chartData: IBarChartProps['chartData'] | null
 }
 
@@ -75,7 +76,10 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 		<ChartAndValuesWrapper>
 			{typeof props.data.total24h === 'number' ||
 			typeof props.data.change_1d === 'number' ||
-			typeof props.data.change_1m === 'number' ? (
+			typeof props.data.change_1m === 'number' ||
+			(typeof props.data.dexsDominance === 'number' && props.type === 'dexs') ||
+			(typeof props.data.change_7dover7d === 'number' && props.type === 'dexs') ||
+			(typeof props.data.total7d === 'number' && props.type === 'dexs') ? (
 				<BreakpointPanels>
 					{!Number.isNaN(props.data.total24h) ? (
 						<BreakpointPanel>
@@ -85,7 +89,38 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							</p>
 						</BreakpointPanel>
 					) : null}
-					{!Number.isNaN(props.data.change_1d) ? (
+					{props.type === 'dexs' && !Number.isNaN(props.data.total7d) ? (
+						<BreakpointPanel>
+							<h1>Total {dataType} (7d)</h1>
+							<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
+								{console.log('formattedNum', formattedNum(props.data.total7d, true))}
+								{formattedNum(props.data.total7d, true)}
+							</p>
+						</BreakpointPanel>
+					) : null}
+					{props.type === 'dexs' && !Number.isNaN(props.data.change_7dover7d) ? (
+						<PanelHiddenMobileHelper>
+							<div>
+								<h2>Change (7d-7d)</h2>
+								<QuestionHelper
+									text={`Change of last 7d volume over the previous 7d volume of all dexs`}
+									textAlign="center"
+								/>
+							</div>
+							{props.data.change_7dover7d > 0 ? (
+								<p style={{ '--tile-text-color': '#3cfd99' } as React.CSSProperties}>
+									{' '}
+									{props.data.change_7dover7d || 0}%
+								</p>
+							) : (
+								<p style={{ '--tile-text-color': '#fd3c99' } as React.CSSProperties}>
+									{' '}
+									{props.data.change_7dover7d || 0}%
+								</p>
+							)}
+						</PanelHiddenMobileHelper>
+					) : null}
+					{props.type !== 'dexs' && !Number.isNaN(props.data.change_1d) ? (
 						<PanelHiddenMobile>
 							<h2>Change (24h)</h2>
 							{props.data.change_1d > 0 ? (
@@ -95,7 +130,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							)}
 						</PanelHiddenMobile>
 					) : null}
-					{!Number.isNaN(props.data.dexsDominance) ? (
+					{props.type === 'dexs' && !Number.isNaN(props.data.dexsDominance) ? (
 						<PanelHiddenMobileHelper>
 							<div>
 								<h2>DEX vs CEX dominance</h2>
