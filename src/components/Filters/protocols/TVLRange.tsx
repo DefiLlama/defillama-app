@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange, SecondaryLabel } from '../shared'
+import { FilterBetweenRange, SecondaryLabel } from '../common'
 
 export function TVLRange({ variant = 'primary', subMenu }: { variant?: 'primary' | 'secondary'; subMenu?: boolean }) {
 	const router = useRouter()

@@ -4,7 +4,7 @@ import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
-import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover, ItemsSelected } from '../shared'
+import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover, ItemsSelected } from '../common'
 
 const { DEPEGGED } = STABLECOINS_SETTINGS
 

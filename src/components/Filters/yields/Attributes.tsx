@@ -1,12 +1,11 @@
 import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { useRouter } from 'next/router'
-import { Checkbox } from '~/components'
-import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
-import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup, SecondaryLabel } from '../shared'
+import { SelectButton, SelectPopover, ItemsSelected, SecondaryLabel } from '../common'
 import { lockupsCollateral, badDebt } from '~/components/YieldsPage/utils'
 import { SlidingMenu } from '~/components/SlidingMenu'
+import { SelectContent } from '../common/Base'
 
 export const attributeOptions = [
 	{
@@ -283,24 +282,6 @@ export function YieldAttributes({
 					variant={variant}
 				/>
 			</SelectPopover>
-		</>
-	)
-}
-
-const SelectContent = ({ clearAllOptions, toggleAllOptions, variant, pathname, options, selectedOptions }) => {
-	return (
-		<>
-			<FilterFnsGroup data-variant={variant}>
-				<button onClick={clearAllOptions}>Clear</button>
-
-				<button onClick={toggleAllOptions}>Toggle all</button>
-			</FilterFnsGroup>
-			{options.map((option) => (
-				<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(pathname)}>
-					{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
-					<Checkbox checked={selectedOptions.includes(option.key) || option.disabledOnPages.includes(pathname)} />
-				</SelectItem>
-			))}
 		</>
 	)
 }

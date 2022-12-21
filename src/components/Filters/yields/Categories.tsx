@@ -1,9 +1,9 @@
 import { useRef } from 'react'
 import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { ComboboxSelectPopover, ItemsSelected, SelectButton, SecondaryLabel } from '../shared'
+import { ComboboxSelectPopover, ItemsSelected, SelectButton, SecondaryLabel } from '../common'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
-import { ComboboxSelectContent } from '../shared/ComboboxSelectContent'
+import { ComboboxSelectContent } from '../common/ComboboxSelectContent'
 import { SlidingMenu } from '~/components/SlidingMenu'
 
 interface IFiltersByCategoryProps {

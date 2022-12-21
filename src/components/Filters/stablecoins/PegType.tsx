@@ -4,7 +4,7 @@ import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
-import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover, ItemsSelected } from '../shared'
+import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover, ItemsSelected } from '../common'
 
 export const stablecoinPegTypeOptions = [
 	{
@@ -33,46 +33,46 @@ export function PegType({ pathname }: { pathname: string }) {
 	const { pegtype = [], chain, ...queries } = router.query
 
 	const values = stablecoinPegTypeOptions
-	.filter((o) => {
-		if (pegtype) {
-			if (pegtype.length === 0) {
-				return true
-			} else if (typeof pegtype === 'string') {
-				return o.key === pegtype
-			} else {
-				return pegtype.includes(o.key)
+		.filter((o) => {
+			if (pegtype) {
+				if (pegtype.length === 0) {
+					return true
+				} else if (typeof pegtype === 'string') {
+					return o.key === pegtype
+				} else {
+					return pegtype.includes(o.key)
+				}
 			}
-		}
-	})
-	.map((o) => o.key)
+		})
+		.map((o) => o.key)
 
-const updatePegTypes = (newFilters) => {
-	if (values.length === 1 && newFilters.length === 0) {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					pegtype: 'None'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	} else {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					pegtype: newFilters
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+	const updatePegTypes = (newFilters) => {
+		if (values.length === 1 && newFilters.length === 0) {
+			router.push(
+				{
+					pathname,
+					query: {
+						...queries,
+						pegtype: 'None'
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		} else {
+			router.push(
+				{
+					pathname,
+					query: {
+						...queries,
+						pegtype: newFilters
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		}
 	}
-}
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
