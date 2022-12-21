@@ -113,7 +113,7 @@ export const Total24hColumn = (
 			)?.[1]
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{methodology ? <QuestionHelper text={methodology} /> : null}
+					{methodology ? <QuestionHelper text={methodology} textAlign="center" /> : null}
 					<span>${formattedNum(value)}</span>
 				</span>
 			)
@@ -141,7 +141,7 @@ export const TotalAllTimeColumn = (
 			const methodology = Object.entries(rawMethodology).find(([name]) => accessor.includes(name))?.[1]
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{methodology ? <QuestionHelper text={methodology} /> : null}
+					{methodology ? <QuestionHelper text={methodology} textAlign="center" /> : null}
 					<span>${formattedNum(info.getValue())}</span>
 				</span>
 			)
