@@ -84,7 +84,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 					{!Number.isNaN(props.data.total24h) ? (
 						<BreakpointPanel>
 							<h1>Total {dataType} (24h)</h1>
-							<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
+							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
 								{formattedNum(props.data.total24h, true)}
 							</p>
 						</BreakpointPanel>
