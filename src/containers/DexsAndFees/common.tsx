@@ -101,7 +101,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 					{props.type === 'dexs' && !Number.isNaN(props.data.change_7dover7d) ? (
 						<PanelHiddenMobileHelper>
 							<div>
-								<h2>Change (7d-7d)</h2>
+								<h2>Weekly change</h2>
 								<QuestionHelper
 									text={`Change of last 7d volume over the previous 7d volume of all dexs`}
 									textAlign="center"
@@ -134,7 +134,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 						<PanelHiddenMobileHelper>
 							<div>
 								<h2>DEX vs CEX dominance</h2>
-								<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume`} textAlign="center" />
+								<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume (24h)`} textAlign="center" />
 							</div>
 							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.dexsDominance || 0}%</p>
 						</PanelHiddenMobileHelper>
