@@ -1,4 +1,3 @@
-import { useContext } from 'react'
 import { useRouter } from 'next/router'
 import { FiltersByChain, FiltersByToken } from '../common'
 import { AvailableRange, TVLRange } from '../protocols'
@@ -9,7 +8,6 @@ import { APYRange } from './APYRange'
 import { ResetAllYieldFilters } from './ResetAll'
 import type { IDropdownMenusProps } from './types'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
-import { TokensContext } from './context'
 import { ColumnFilters } from '../common/ColumnFilters'
 
 const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
@@ -47,13 +45,6 @@ export function YieldFilterDropdowns({
 	const isBadDebtToggled = selectedAttributes ? selectedAttributes.includes(BAD_DEBT_KEY) : false
 
 	const shouldExlcudeRewardApy = router.query.excludeRewardApy === 'true' ? true : false
-
-	const { setTokensToInclude, setTokensToExclude } = useContext(TokensContext)
-
-	const resetContext = () => {
-		setTokensToInclude?.([])
-		setTokensToExclude?.([])
-	}
 
 	return (
 		<>
@@ -191,12 +182,7 @@ export function YieldFilterDropdowns({
 			)}
 
 			{resetFilters && (
-				<ResetAllYieldFilters
-					pathname={pathname || router.pathname}
-					variant="secondary"
-					subMenu={isMobile}
-					resetContext={resetContext}
-				/>
+				<ResetAllYieldFilters pathname={pathname || router.pathname} variant="secondary" subMenu={isMobile} />
 			)}
 		</>
 	)
