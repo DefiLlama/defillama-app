@@ -58,10 +58,12 @@ export interface IProtocolContainerProps extends PageParams {
 export interface IDexChartsProps {
 	data: {
 		total24h: IProtocolContainerProps['protocolSummary']['total24h']
+		total7d: IProtocolContainerProps['protocolSummary']['total7d']
 		disabled: IProtocolContainerProps['protocolSummary']['disabled']
 		revenue24h?: IProtocolContainerProps['protocolSummary']['revenue24h']
 		change_1d: IProtocolContainerProps['protocolSummary']['change_1d']
 		change_1m?: IProtocolContainerProps['protocolSummary']['change_1m']
+		change_7dover7d?: IOverviewProps['dexsDominance']
 		dexsDominance?: IOverviewProps['dexsDominance']
 	}
 	chartData: [IJoin2ReturnType, string[]]

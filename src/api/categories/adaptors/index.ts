@@ -107,9 +107,11 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const {
 		protocols = [],
 		total24h,
+		total7d,
 		change_1d,
 		change_7d,
 		change_1m,
+		change_7dover7d,
 		totalDataChart,
 		totalDataChartBreakdown,
 		allChains
@@ -186,9 +188,11 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	return {
 		protocols: protocolsWithSubrows,
 		total24h,
+		total7d,
 		change_1d,
 		change_7d,
 		change_1m,
+		change_7dover7d,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 		chain: chain ? formatChain(chain) : null,
 		tvlData,
@@ -209,9 +213,11 @@ export interface IOverviewProps {
 		}
 	>
 	total24h?: IGetOverviewResponseBody['total24h']
+	total7d?: IGetOverviewResponseBody['total7d']
 	change_1d?: IGetOverviewResponseBody['change_1d']
 	change_7d?: IGetOverviewResponseBody['change_7d']
 	change_1m?: IGetOverviewResponseBody['change_1m']
+	change_7dover7d?: IGetOverviewResponseBody['change_7dover7d']
 	totalDataChart: [IJoin2ReturnType, string[]]
 	chain: string
 	tvlData?: IJSON<number>

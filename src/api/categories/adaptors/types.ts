@@ -3,9 +3,11 @@
 //  Response /overview/type
 export interface IGetOverviewResponseBody {
 	total24h: number
+	total7d: number
 	change_1d: number
 	change_7d: number
 	change_1m: number
+	change_7dover7d: number
 	totalDataChartBreakdown: Array<[string, { [protocol: string]: number }]>
 	totalDataChart: Array<[number, number]>
 	protocols: ProtocolAdaptorSummary[]
@@ -28,6 +30,7 @@ export interface ProtocolAdaptorSummaryResponse extends ProtocolAdaptorSummary {
 	totalDataChartBreakdown: Array<[number, IJSON<{ [protocol: string]: number | IJSON<number> }>]>
 	totalDataChart: Array<[number, number]>
 	total24h: number | null
+	total7d: number | null
 	totalAllTime: number | null
 	change_1d: number | null
 	protocolType?: string
