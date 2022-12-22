@@ -216,7 +216,16 @@ function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 		}
 	}
 
-	return { tokenBreakdownUSD: Object.values(tokensInUsd), tokenBreakdown: Object.values(rawTokens) }
+	const tokenBreakdownUSD = Object.values(tokensInUsd)
+
+	const tokenBreakdownPieChart =
+		tokenBreakdownUSD.length > 0
+			? Object.entries(tokenBreakdownUSD[tokenBreakdownUSD.length - 1])
+					.filter((values) => values[0] !== 'date')
+					.map(([name, value]) => ({ name, value }))
+			: []
+
+	return { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown: Object.values(rawTokens) }
 }
 
 export const buildProtocolAddlChartsData = ({ protocolData, extraTvlsEnabled }) => {
@@ -224,7 +233,7 @@ export const buildProtocolAddlChartsData = ({ protocolData, extraTvlsEnabled }) 
 		if (!protocolData.misrepresentedTokens && protocolData.tokensInUsd && protocolData.tokens) {
 			const tokensUnique = getUniqueTokens({ chainTvls: protocolData.chainTvls, extraTvlsEnabled })
 
-			const { tokenBreakdownUSD, tokenBreakdown } = buildTokensBreakdown({
+			const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({
 				chainTvls: protocolData.chainTvls,
 				extraTvlsEnabled,
 				tokensUnique
@@ -239,6 +248,7 @@ export const buildProtocolAddlChartsData = ({ protocolData, extraTvlsEnabled }) 
 			return {
 				tokensUnique,
 				tokenBreakdownUSD,
+				tokenBreakdownPieChart,
 				tokenBreakdown,
 				usdInflows,
 				tokenInflows

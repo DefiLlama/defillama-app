@@ -108,9 +108,9 @@ export default function ChainsContainer({
 		}, [chainTvls, extraTvlsEnabled, stackedDataset, tvlTypes])
 
 	const downloadCsv = async () => {
-		window.alert("Data download might take up to 1 minute, click OK to proceed")
+		window.alert('Data download might take up to 1 minute, click OK to proceed')
 		const rows = [['Timestamp', 'Date', ...chainsUnique]]
-		const {props} = await getNewChainsPageData("All")
+		const { props } = await getNewChainsPageData('All')
 		const { chainsWithExtraTvlsByDay } = groupDataWithTvlsByDay({
 			chains: props.stackedDataset,
 			tvlTypes,

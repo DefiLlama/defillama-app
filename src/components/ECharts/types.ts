@@ -40,6 +40,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks'> {
 }
 
 export interface IPieChartProps {
+	title?: string
 	chartData: Array<{ name: string; value: number }>
 	height?: string
 	stackColors?: {

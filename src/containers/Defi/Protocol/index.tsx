@@ -36,7 +36,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
 import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import QuestionHelper from '~/components/QuestionHelper'
-import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
@@ -71,6 +71,10 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
 
 const Bobo = styled.button`
 	position: absolute;
@@ -274,10 +278,11 @@ function ProtocolContainer({
 
 	const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD } = React.useMemo(
-		() => buildProtocolAddlChartsData({ protocolData: addlProtocolData, extraTvlsEnabled }),
-		[addlProtocolData, extraTvlsEnabled]
-	)
+	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD, tokenBreakdownPieChart } =
+		React.useMemo(
+			() => buildProtocolAddlChartsData({ protocolData: addlProtocolData, extraTvlsEnabled }),
+			[addlProtocolData, extraTvlsEnabled]
+		)
 
 	const [yeildsNumber, averageApy] = React.useMemo(() => {
 		if (!yields) return [0, 0]
@@ -614,15 +619,21 @@ function ProtocolContainer({
 									</LazyChart>
 								)}
 								{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
-									<LazyChart>
-										<AreaChart
-											chartData={tokenBreakdownUSD}
-											title="Tokens (USD)"
-											customLegendName="Token"
-											customLegendOptions={tokensUnique}
-											valueSymbol="$"
-										/>
-									</LazyChart>
+									<>
+										<LazyChart>
+											<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
+										</LazyChart>
+
+										<LazyChart>
+											<AreaChart
+												chartData={tokenBreakdownUSD}
+												title="Tokens (USD)"
+												customLegendName="Token"
+												customLegendOptions={tokensUnique}
+												valueSymbol="$"
+											/>
+										</LazyChart>
+									</>
 								)}
 								{usdInflows && (
 									<LazyChart>
