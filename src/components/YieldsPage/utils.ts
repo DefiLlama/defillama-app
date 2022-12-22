@@ -430,7 +430,8 @@ export const lockupsCollateral = [
 	'WOOFi',
 	'Kokoa Finance',
 	'Lyra',
-	'Arbor Finance'
+	'Arbor Finance',
+	'Sommelier'
 ]
 export const badDebt = ['moonwell-apollo', 'inverse-finance', 'venus', 'iron-bank']
 
