@@ -111,8 +111,8 @@ export const Total24hColumn = (
 				if (accessor.includes('24h')) return type
 				else return accessor.slice(5) // ('daily' | 'total').length
 			})()
-			const methodology = Object.entries(rawMethodology).find(([name]) =>
-				name.toLowerCase().includes(methodologyKey.toLowerCase())
+			const methodology = Object.entries(rawMethodology).find(
+				([name]) => name.toLowerCase() === methodologyKey.toLowerCase()
 			)?.[1]
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
