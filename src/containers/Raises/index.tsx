@@ -1,32 +1,110 @@
 import * as React from 'react'
+import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { useReactTable, SortingState, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
+import {
+	useReactTable,
+	SortingState,
+	getCoreRowModel,
+	getSortedRowModel,
+	getFilteredRowModel,
+	ColumnOrderState,
+	ColumnFiltersState
+} from '@tanstack/react-table'
 import styled from 'styled-components'
+import { Search } from 'react-feather'
+import type { IBarChartProps } from '~/components/ECharts/types'
+import { ChartWrapper, DetailsWrapper } from '~/layout/ProtocolAndPool'
+import { StatsSection } from '~/layout/Stats/Medium'
+import { Stat } from '~/layout/Stats/Large'
 import VirtualTable from '~/components/Table/Table'
-import { raisesColumns } from '~/components/Table/Defi/columns'
+import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
 import { AnnouncementWrapper } from '~/components/Announcement'
-import { RaisesSearch } from '~/components/Search'
-import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
-import { Chains, Investors, RaisedRange, Rounds, Sectors } from '~/components/Filters'
+import { RaisesFilters } from '~/components/Filters'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { DownloadIcon } from '~/components'
-import { download } from '~/utils'
+import { download, formattedNum, toNiceCsvDate } from '~/utils'
+import useWindowSize from '~/hooks/useWindowSize'
 
-function RaisesTable({ raises }) {
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+	ssr: false
+}) as React.FC<IBarChartProps>
+
+const columnResizeMode = 'onChange'
+
+function RaisesTable({ raises, downloadCsv }) {
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
+	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
+	const windowSize = useWindowSize()
+
 	const instance = useReactTable({
 		data: raises,
 		columns: raisesColumns,
+		columnResizeMode,
 		state: {
+			columnFilters,
+			columnOrder,
 			sorting
 		},
 		onSortingChange: setSorting,
+		onColumnOrderChange: setColumnOrder,
+		onColumnFiltersChange: setColumnFilters,
+		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
 
-	return <VirtualTable instance={instance} />
+	React.useEffect(() => {
+		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
+
+		const order = windowSize.width
+			? raisesColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder
+			: defaultOrder
+
+		instance.setColumnOrder(order)
+	}, [windowSize, instance])
+
+	const [projectName, setProjectName] = React.useState('')
+
+	React.useEffect(() => {
+		const projectsColumns = instance.getColumn('name')
+
+		const id = setTimeout(() => {
+			projectsColumns.setFilterValue(projectName)
+		}, 200)
+
+		return () => clearTimeout(id)
+	}, [projectName, instance])
+
+	return (
+		<>
+			<TableFilters>
+				<SearchIcon size={16} />
+
+				<input
+					value={projectName}
+					onChange={(e) => {
+						setProjectName(e.target.value)
+					}}
+					placeholder="Search projects..."
+				/>
+
+				<DownloadButton onClick={downloadCsv}>
+					<DownloadIcon />
+					<span>&nbsp;&nbsp;.csv</span>
+				</DownloadButton>
+				<Link href="https://api.llama.fi/raises" target="_blank">
+					<DownloadButton>
+						<DownloadIcon />
+						<span>&nbsp;&nbsp;.json</span>
+					</DownloadButton>
+				</Link>
+			</TableFilters>
+
+			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
+		</>
+	)
 }
 
 const DownloadButton = styled.button`
@@ -38,14 +116,7 @@ const DownloadButton = styled.button`
 	border-radius: 6px;
 `
 
-const TableHeaderWrapper = styled(TableHeader)`
-	display: flex;
-	flex-wrap: nowrap;
-	align-items: center;
-	gap: 8px;
-`
-
-const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
+const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName, monthlyInvestment }) => {
 	const { pathname, query } = useRouter()
 
 	const { investor, round, sector, chain, minRaised, maxRaised } = query
@@ -101,7 +172,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				let toFilter = true
 
 				if (selectedInvestors.length !== investors.length) {
-					if(raise.leadInvestors.length === 0 && raise.otherInvestors.length === 0){
+					if (raise.leadInvestors.length === 0 && raise.otherInvestors.length === 0) {
 						return false
 					}
 
@@ -157,10 +228,10 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 
 				if (selectedSectors.length !== sectors.length) {
 					// filter raises with no sector
-					if (!raise.sector || raise.sector === '') {
+					if (!raise.category || raise.category === '') {
 						toFilter = false
 					} else {
-						if (!selectedSectors.includes(raise.sector)) {
+						if (!selectedSectors.includes(raise.category)) {
 							toFilter = false
 						}
 					}
@@ -186,11 +257,13 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 		const rows = [
 			[
 				'Name',
+				'Timestamp',
 				'Date',
 				'Amount Raised',
 				'Round',
-				'Sector',
+				'Description',
 				'Lead Investor',
+				'Category',
 				'Source',
 				'Valuation',
 				'Chains',
@@ -198,28 +271,36 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 			]
 		]
 
-		raises.forEach((item) => {
-			rows.push([
-				item.name,
-				item.date,
-				item.amount * 1_000_000,
-				item.round ?? '',
-				item.sector ?? '',
-				item.leadInvestors?.join(', ') ?? '',
-				item.source ?? '',
-				item.valuation ?? '',
-				item.chains?.join(', ') ?? '',
-				item.otherInvestors?.join(', ') ?? ''
-			])
-		})
+		const removeJumps = (text: string | number) =>
+			typeof text === 'string' ? '"' + text.replaceAll('\n', '') + '"' : text
+		raises
+			.sort((a, b) => b.date - a.date)
+			.forEach((item) => {
+				rows.push(
+					[
+						item.name,
+						item.date,
+						toNiceCsvDate(item.date),
+						item.amount === null ? '' : item.amount * 1_000_000,
+						item.round ?? '',
+						item.sector ?? '',
+						item.leadInvestors?.join(' + ') ?? '',
+						item.category ?? '',
+						item.source ?? '',
+						item.valuation ?? '',
+						item.chains?.join(' + ') ?? '',
+						item.otherInvestors?.join(' + ') ?? ''
+					].map(removeJumps) as string[]
+				)
+			})
 
 		download(`raises.csv`, rows.map((r) => r.join(',')).join('\n'))
 	}
 
+	const totalAmountRaised = monthlyInvestment.reduce((acc, curr) => (acc += curr[1]), 0)
+
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
-			<RaisesSearch step={{ category: investorName ? 'Raises' : 'Home', name: investorName || 'Raises' }} />
-
 			<AnnouncementWrapper>
 				<span>Are we missing any funding round?</span>{' '}
 				<a
@@ -232,30 +313,73 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</a>
 			</AnnouncementWrapper>
 
-			<TableFilters>
-				<TableHeaderWrapper>
-					<span>Raises</span>
-					<DownloadButton onClick={downloadCsv}>
-						<DownloadIcon />
-						<span>&nbsp;&nbsp;.csv</span>
-					</DownloadButton>
-				</TableHeaderWrapper>
+			<RaisesFilters
+				header={investorName ? `${investorName} raises` : 'Raises'}
+				rounds={rounds}
+				selectedRounds={selectedRounds}
+				sectors={sectors}
+				selectedSectors={selectedSectors}
+				investors={investors}
+				selectedInvestors={selectedInvestors}
+				chains={chains}
+				selectedChains={selectedChains}
+				pathname={pathname}
+			/>
 
-				<Dropdowns>
-					<Rounds rounds={rounds} selectedRounds={selectedRounds} pathname={pathname} />
-					<Sectors sectors={sectors} selectedSectors={selectedSectors} pathname={pathname} />
-					<Investors investors={investors} selectedInvestors={selectedInvestors} pathname={pathname} />
-					<Chains chains={chains} selectedChains={selectedChains} pathname={pathname} />
-					<RaisedRange />
-					<Link href="/raises" shallow>
-						<a style={{ textDecoration: 'underline' }}>Reset all filters</a>
-					</Link>
-				</Dropdowns>
-			</TableFilters>
+			<StatsSection>
+				<DetailsWrapper>
+					<Stat>
+						<span>Total Funding Rounds</span>
+						<span>{filteredRaisesList.length}</span>
+					</Stat>
+					<Stat>
+						<span>Total Funding Amount</span>
+						<span>${formattedNum(totalAmountRaised)}</span>
+					</Stat>
+				</DetailsWrapper>
 
-			<RaisesTable raises={filteredRaisesList} />
+				<ChartWrapper>
+					<BarChart chartData={monthlyInvestment} title="Monthly sum" valueSymbol="$" />
+				</ChartWrapper>
+			</StatsSection>
+
+			<RaisesTable raises={filteredRaisesList} downloadCsv={downloadCsv} />
 		</Layout>
 	)
 }
+
+const TableFilters = styled.div`
+	display: flex;
+	aling-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 0 0 -20px;
+	position: relative;
+
+	input {
+		width: 100%;
+		margin-right: auto;
+		border-radius: 8px;
+		padding: 8px;
+		padding-left: 32px;
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
+
+		font-size: 0.875rem;
+		border: none;
+	}
+
+	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+		input {
+			max-width: 400px;
+		}
+	}
+`
+
+const SearchIcon = styled(Search)`
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	color: ${({ theme }) => theme.text3};
+`
 
 export default RaisesContainer

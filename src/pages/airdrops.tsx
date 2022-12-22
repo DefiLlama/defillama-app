@@ -2,6 +2,7 @@ import { RecentProtocols } from '~/components/RecentProtocols'
 import { revalidate } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
+import { FORK_API, RAISES_API } from '~/constants'
 
 const exclude = [
 	'DeerFi',
@@ -46,21 +47,57 @@ const exclude = [
 	'MM Stableswap Polygon',
 	'Sushi Furo',
 	'Sushi Trident',
-	'Poly Network'
+	'Poly Network',
+	'Frax Swap',
+	'Kava Mint',
+	'Quarry',
+	'Canto Dex',
+	'Katana DEX',
+	'Canto Lending',
+	'OKCSwap',
+	'Fraxlend',
+	'Tesseract',
+	'Spartacus Exchange'
 ]
 
 export async function getStaticProps() {
-	const protocolsRaw = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls'])
+	const [protocolsRaw, { forks }, { raises }] = await Promise.all([
+		getSimpleProtocolsPageData([...basicPropertiesToKeep, 'extraTvl', 'listedAt', 'chainTvls', 'defillamaId']),
+		fetch(FORK_API).then((r) => r.json()),
+		fetch(RAISES_API).then((r) => r.json())
+	])
 
 	const protocols = protocolsRaw.protocols
 		.filter((token) => (token.symbol === null || token.symbol === '-') && !exclude.includes(token.name))
-		.map((p) => ({ listedAt: 1624728920, ...p }))
+		.map((p) => ({
+			listedAt: 1624728920,
+			totalRaised: raises
+				.filter((r) => (r.defillamaId && p.defillamaId ? r.defillamaId.toString() === p.defillamaId.toString() : false))
+				.reduce((acc, curr) => {
+					const amount = curr.amount || 0
+
+					if (!Number.isNaN(amount)) {
+						acc += amount * 1e6
+					}
+					return acc
+				}, 0),
+			...p
+		}))
 		.sort((a, b) => a.listedAt - b.listedAt)
+
+	const forkedList: { [name: string]: boolean } = {}
+
+	Object.values(forks).map((list: string[]) => {
+		list.map((f) => {
+			forkedList[f] = true
+		})
+	})
 
 	return {
 		props: {
 			protocols,
-			chainList: protocolsRaw.chains
+			chainList: protocolsRaw.chains,
+			forkedList
 		},
 		revalidate: revalidate()
 	}

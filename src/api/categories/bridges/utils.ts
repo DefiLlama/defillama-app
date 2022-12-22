@@ -39,10 +39,10 @@ export const bridgePropertiesToKeep = [
 	'symbol',
 	'icon',
 	'chains',
-	'volumePrevDay',
-	'volumePrev2Day',
-	'volumePrevWeek',
-	'volumePrevMonth',
+	'lastDailyVolume',
+	'dayBeforeLastVolume',
+	'weeklyVolume',
+	'monthlyVolume',
 	'txsPrevDay',
 	'change_1d',
 	'change_7d',
@@ -65,31 +65,34 @@ export const formatBridgesData = ({
 	filteredBridges = filteredBridges.map((bridge) => {
 		const chartIndex = bridgeNameToChartDataIndex[bridge.displayName]
 		const chart = chartDataByBridge[chartIndex] ?? null
-
-		let dayTotalVolume, weekTotalVolume, monthTotalVolume
-		dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
-		for (let i = 0; i < 30; i++) {
-			const dailyVolume = getPrevVolumeFromChart(chart, i)
-			if (i < 1) {
-				dayTotalVolume += dailyVolume
+		
+		if (chain) {
+			let dayTotalVolume, weekTotalVolume, monthTotalVolume
+			dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
+			// start from i = 1 to exclude current day
+			for (let i = 1; i < 31; i++) {
+				const dailyVolume = getPrevVolumeFromChart(chart, i)
+				if (i < 2) {
+					dayTotalVolume += dailyVolume
+				}
+				if (i < 8) {
+					weekTotalVolume += dailyVolume
+				}
+				monthTotalVolume += dailyVolume
 			}
-			if (i < 7) {
-				weekTotalVolume += dailyVolume
-			}
-			monthTotalVolume += dailyVolume
+			bridge.lastDailyVolume = dayTotalVolume ?? null
+			bridge.dayBeforeLastVolume = getPrevVolumeFromChart(chart, 2) ?? null
+			bridge.weeklyVolume = weekTotalVolume ?? null
+			bridge.monthlyVolume = monthTotalVolume ?? null
 		}
-
-		bridge.volumePrevDay = dayTotalVolume ?? null
-		bridge.volumePrev2Day = getPrevVolumeFromChart(chart, 1) ?? null
-		bridge.volumePrevWeek = weekTotalVolume ?? null
-		bridge.volumePrevMonth = monthTotalVolume ?? null
-		bridge.change_1d = getPercentChange(bridge.volumePrevDay, bridge.volumePrev2Day)
-		bridge.txsPrevDay = getPrevVolumeFromChart(chart, 0, true) ?? null
+		
+		bridge.change_1d = getPercentChange(bridge.lastDailyVolume, bridge.dayBeforeLastVolume)
+		bridge.txsPrevDay = getPrevVolumeFromChart(chart, 1, true) ?? null
 
 		return keepNeededProperties(bridge, bridgeProps)
 	})
 
-	filteredBridges = filteredBridges.sort((a, b) => b.volumePrevDay - a.volumePrevDay)
+	filteredBridges = filteredBridges.sort((a, b) => b.lastDailyVolume - a.lastDailyVolume)
 
 	return filteredBridges
 }
@@ -107,14 +110,14 @@ export const formatChainsData = ({
 		const chartIndex = chainToChartDataIndex[name]
 		const charts = chartDataByChain[chartIndex] ?? null
 		const prevDayData = prevDayDataByChain[chartIndex] ?? null
-		const prevDayChart = charts?.[charts.length - 1]
+		const prevDayChart = charts?.[charts.length - 2]
 		const prevDayUsdDeposits = prevDayChart?.depositUSD
 		const prevDayUsdWithdrawals = prevDayChart?.withdrawUSD
 		const totalTokensDeposited = prevDayData?.totalTokensDeposited
 		const totalTokensWithdrawn = prevDayData?.totalTokensWithdrawn
 		const prevDayNetFlow = prevDayUsdWithdrawals - prevDayUsdDeposits
 
-		const prevWeekCharts = chartDataByChain[chartIndex].slice(-7)
+		const prevWeekCharts = chartDataByChain[chartIndex].slice(-8, -1)
 		let prevWeekUsdDeposits = 0
 		let prevWeekUsdWithdrawals = 0
 		for (const chart of prevWeekCharts) {

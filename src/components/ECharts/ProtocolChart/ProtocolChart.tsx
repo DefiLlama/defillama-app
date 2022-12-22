@@ -4,22 +4,22 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import { transparentize } from 'polished'
+import { ToggleWrapper2 } from '~/components'
 import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
 import type { IChartProps } from '../types'
 
-const AreaChart = dynamic(() => import('./index'), {
+const AreaChart = dynamic(() => import('.'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
 interface IProps {
 	protocol: string
-	tvlChartData: any
 	color: string
 	historicalChainTvls: {}
 	chains: string[]
-	volumeMap: Record<number, number>
+	volumeMap?: Record<number, number>
 	bobo?: boolean
 	hallmarks?: [number, string][]
 	geckoId?: string | null
@@ -33,7 +33,6 @@ const chartColors = {
 
 export default function ProtocolChart({
 	protocol,
-	tvlChartData,
 	color,
 	historicalChainTvls,
 	chains = [],
@@ -76,8 +75,8 @@ export default function ProtocolChart({
 
 	// update tvl calc based on extra tvl options like staking, pool2 selected
 	const chartDataFiltered = React.useMemo(() => {
-		return formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled, tvlChartData })
-	}, [historicalChainTvls, extraTvlEnabled, tvlChartData])
+		return formatProtocolsTvlChartData({ historicalChainTvls, extraTvlEnabled })
+	}, [historicalChainTvls, extraTvlEnabled])
 
 	// calc y-axis based on denomination
 	const { tvlData, valueSymbol } = React.useMemo(() => {
@@ -88,11 +87,11 @@ export default function ProtocolChart({
 			const newChartData = []
 
 			chartDataFiltered.forEach(([date, tvl]) => {
-				let priceAtDate = denominationHistory.prices.find((x) => x[0] === date * 1000)
+				let priceAtDate = denominationHistory.prices.find((x) => x[0] === Number(date) * 1000)
 
 				if (!priceAtDate) {
 					priceAtDate = denominationHistory.prices.find(
-						(x) => -432000000 < x[0] - date * 1000 && x[0] - date * 1000 < 432000000
+						(x) => -432000000 < x[0] - Number(date) * 1000 && x[0] - Number(date) * 1000 < 432000000
 					)
 				}
 
@@ -121,7 +120,7 @@ export default function ProtocolChart({
 		(!denomination || denomination === 'USD')
 
 	// append mcap data when api return it
-	const { finalData, tokensUnique } = React.useMemo(() => {
+	const { finalData, tokensUnique, stackColors } = React.useMemo(() => {
 		let chartData = []
 		let tokensUnique = ['TVL']
 
@@ -154,8 +153,10 @@ export default function ProtocolChart({
 
 		tokensUnique = tokensUnique.concat(showVol ? ['Volume'] : [])
 
-		return { finalData: chartData, tokensUnique }
-	}, [tvlData, protocolCGData, showMcap, protocolHasMcap, showVol])
+		const stackColors = color ? { ...chartColors, TVL: color } : chartColors
+
+		return { finalData: chartData, tokensUnique, stackColors }
+	}, [tvlData, protocolCGData, showMcap, protocolHasMcap, showVol, volumeMap, color])
 
 	const toggleFilter = React.useCallback(
 		(type: string) => {
@@ -189,7 +190,7 @@ export default function ProtocolChart({
 					))}
 				</Filters>
 				{Object.values(volumeMap || {}).length > 0 && (
-					<ToggleCharts>
+					<ToggleWrapper2>
 						<input
 							type="checkbox"
 							value="showVolume"
@@ -197,11 +198,11 @@ export default function ProtocolChart({
 							onChange={() => toggleFilter('showVolume')}
 						/>
 						<span>Show Volume</span>
-					</ToggleCharts>
+					</ToggleWrapper2>
 				)}
 
 				{hallmarks?.length > 0 && (
-					<ToggleCharts>
+					<ToggleWrapper2>
 						<input
 							type="checkbox"
 							value="hideEvents"
@@ -209,11 +210,11 @@ export default function ProtocolChart({
 							onChange={() => toggleFilter('hideEvents')}
 						/>
 						<span>Hide Events</span>
-					</ToggleCharts>
+					</ToggleWrapper2>
 				)}
 
 				{protocolHasMcap && (
-					<ToggleCharts>
+					<ToggleWrapper2>
 						<input
 							type="checkbox"
 							value="showMcapChart"
@@ -221,7 +222,7 @@ export default function ProtocolChart({
 							onChange={() => toggleFilter('showMcapChart')}
 						/>
 						<span>Show MCap Chart</span>
-					</ToggleCharts>
+					</ToggleWrapper2>
 				)}
 			</FiltersWrapper>
 
@@ -235,7 +236,7 @@ export default function ProtocolChart({
 					hidedefaultlegend={true}
 					hallmarks={!hideHallmarks && hallmarks}
 					tooltipSort={false}
-					stackColors={chartColors}
+					stackColors={stackColors}
 					style={{
 						...(bobo && {
 							backgroundImage: 'url("/bobo.png")',
@@ -284,22 +285,6 @@ export const Filters = styled.div`
 	width: min-content;
 `
 
-export const ToggleCharts = styled.label`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-
-	:hover {
-		cursor: pointer;
-	}
-
-	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
-		:first-of-type {
-			margin-left: auto;
-		}
-	}
-`
-
 interface IDenomination {
 	active?: boolean
 }
@@ -322,21 +307,28 @@ export const Denomination = styled.a<IDenomination>`
 			: 'rgba(0, 0, 0, 0.6)'};
 `
 
-export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabled, tvlChartData }) => {
-	const sections = Object.keys(historicalChainTvls).filter((sect) => extraTvlEnabled[sect.toLowerCase()])
+export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabled }) => {
+	const tvlDictionary: { [key: number]: number } = {}
 
-	const tvlDictionary = {}
+	for (const section in historicalChainTvls) {
+		const name = section.toLowerCase()
 
-	if (sections.length > 0) {
-		for (const name of sections) {
-			tvlDictionary[name] = {}
-			historicalChainTvls[name].tvl.forEach((dataPoint) => {
-				tvlDictionary[name][dataPoint.date] = dataPoint.totalLiquidityUSD
-			})
+		// skip sum of keys like ethereum-staking, arbitrum-vesting
+		if (!name.includes('-')) {
+			// sum key with staking, ethereum, arbitrum etc
+			if (Object.keys(extraTvlEnabled).includes(name) ? extraTvlEnabled[name] : true) {
+				historicalChainTvls[section].tvl?.forEach(
+					({ date, totalLiquidityUSD }: { date: number; totalLiquidityUSD: number }) => {
+						if (!tvlDictionary[date]) {
+							tvlDictionary[date] = 0
+						}
+
+						tvlDictionary[date] += totalLiquidityUSD
+					}
+				)
+			}
 		}
-		return tvlChartData?.map((item) => {
-			const sum = sections.reduce((total, sect) => total + (tvlDictionary[sect]?.[item[0]] ?? 0), item[1])
-			return [item[0], sum]
-		})
-	} else return tvlChartData
+	}
+
+	return Object.entries(tvlDictionary)
 }

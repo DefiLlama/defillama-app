@@ -18,6 +18,7 @@ export const LANGS_API = 'https://api.llama.fi/langs'
 export const ORACLE_API = 'https://api.llama.fi/oracles'
 export const FORK_API = 'https://api.llama.fi/forks'
 export const CATEGORY_API = 'https://api.llama.fi/categories'
+export const PROTOCOLS_BY_TOKEN_API = 'https://api.llama.fi/tokenProtocols'
 
 export const NFT_COLLECTION_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collection'
 export const NFT_COLLECTIONS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collections'
@@ -34,10 +35,11 @@ export const PEGGEDDOMINANCE_API = 'https://stablecoins.llama.fi/stablecoindomin
 export const PEGGEDPRICES_API = 'https://stablecoins.llama.fi/stablecoinprices'
 export const PEGGEDRATES_API = 'https://stablecoins.llama.fi/rates'
 
-export const BRIDGEDAYSTATS_API = 'https://shyia50fmi.execute-api.eu-central-1.amazonaws.com/prod/bridgedaystats'
-export const BRIDGES_API = 'https://shyia50fmi.execute-api.eu-central-1.amazonaws.com/prod/bridges'
-export const BRIDGEVOLUME_API = 'https://shyia50fmi.execute-api.eu-central-1.amazonaws.com/prod/bridgevolume'
-export const BRIDGELARGETX_API = 'https://shyia50fmi.execute-api.eu-central-1.amazonaws.com/prod/largetransactions'
+export const BRIDGEDAYSTATS_API = 'https://bridges.llama.fi/bridgedaystats'
+export const BRIDGES_API = 'https://bridges.llama.fi/bridges'
+export const BRIDGEVOLUME_API = 'https://bridges.llama.fi/bridgevolume'
+export const BRIDGELARGETX_API = 'https://bridges.llama.fi/largetransactions'
+export const BRIDGETX_API = 'https://bridges.llama.fi/transactions'
 
 export const YIELD_POOLS_API = 'https://yields.llama.fi/pools'
 export const YIELD_POOLS_LAMBDA_API = 'https://yields.llama.fi/poolsEnriched'
@@ -70,3 +72,5 @@ export const RAISES_API = `https://api.llama.fi/raises`
 
 export const CG_TOKEN_API =
 	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'
+
+export const ICONS_CDN = 'https://icons.llamao.fi/icons'

@@ -1,22 +1,38 @@
+import { useState } from 'react'
 import Layout from '~/layout'
-import YieldPageLoop from '~/components/YieldsPage/indexLoop'
-import { revalidate } from '~/api'
-import { getLendBorrowData, calculateLoopAPY } from '~/api/categories/yield'
-import pako from 'pako'
 import { PanelThicc, StyledAnchor } from '~/components'
 import Link from '~/components/Link'
-import { useState } from 'react'
+import YieldPageLoop from '~/components/YieldsPage/indexLoop'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
+import { getAllCGTokensList, revalidate } from '~/api'
+import { getLendBorrowData, calculateLoopAPY } from '~/api/categories/yield'
+import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
-	let data = await getLendBorrowData()
-	data.props.pools = calculateLoopAPY(data.props.pools, 10)
+	let {
+		props: { ...data }
+	} = await getLendBorrowData()
 
-	const strData = JSON.stringify(data)
+	const cgTokens = await getAllCGTokensList()
 
-	const a = pako.deflate(strData)
-	const compressed = Buffer.from(a).toString('base64')
+	const tokens = []
+
+	cgTokens.forEach((token) => {
+		if (token.symbol) {
+			tokens.push({ name: token.name, symbol: token.symbol.toUpperCase(), logo: token.image })
+		}
+	})
+
+	const compressed = compressPageProps({
+		...data,
+		pools: calculateLoopAPY(
+			data.pools.filter((p) => p.category !== 'CDP'),
+			10,
+			null
+		),
+		tokens
+	})
 
 	return {
 		props: { compressed },
@@ -37,15 +53,16 @@ Step 3: deposit $750
 Total Deposits: $1750 -> 1.75x the original $1k
 Total Borrowed: $750
 
-Loop APY: 9% * 1.75 + 3% = 18.75% -> >2x increase compared to the Supply APY
+Loop APY: 9% * 1.75 + 3% * 0.75 = 18% -> 2x increase compared to the Supply APY
 
 You could keep adding leverage by repeating these steps n-times.
 `
 
-export default function YieldBorrow(compressedProps) {
-	const b = new Uint8Array(Buffer.from(compressedProps.compressed, 'base64'))
-	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
+export default function YieldBorrow({ compressed }) {
+	const data = decompressPageProps(compressed)
+
 	const [methodologyActivated, setMethodologyActivated] = useState(false)
+
 	return (
 		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
@@ -65,7 +82,7 @@ export default function YieldBorrow(compressedProps) {
 				</Link>
 				{methodologyActivated && methodologyMessage}
 			</PanelThicc>
-			<YieldPageLoop {...data.props} />
+			<YieldPageLoop {...data} />
 		</Layout>
 	)
 }

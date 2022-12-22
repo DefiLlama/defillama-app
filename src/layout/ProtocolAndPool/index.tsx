@@ -39,13 +39,12 @@ export const SectionHeader = styled.h2`
 `
 
 export const InfoWrapper = styled.div`
-	padding: 24px;
 	background: ${({ theme }) => theme.bg7};
 	border: ${({ theme }) => '1px solid ' + theme.divider};
 	border-radius: 12px;
 	display: grid;
+	padding: 24px;
 	grid-template-columns: 1fr 1fr;
-	grid-template-rows: repeat(4, auto);
 	box-shadow: ${({ theme }) => theme.shadowSm};
 
 	@media screen and (min-width: 80rem) {
@@ -59,24 +58,22 @@ export const Section = styled.div`
 	flex-direction: column;
 	gap: 16px;
 	padding: 24px 0;
-	border-bottom: 1px solid transparent;
+
+	&:first-child {
+		padding-top: 0;
+	}
+
+	&:last-child {
+		padding-bottom: 0;
+	}
+
+	:nth-child(n + 2) {
+		border-top: ${({ theme }) => '1px solid ' + theme.text5};
+	}
 
 	h3 {
 		font-weight: 600;
 		font-size: 1.125rem;
-	}
-
-	&:not(:first-of-type) {
-		border-top: ${({ theme }) => '1px solid ' + theme.text5};
-	}
-
-	&:first-of-type {
-		padding-top: 0;
-	}
-
-	&:last-of-type {
-		padding-bottom: 0;
-		border-bottom: none;
 	}
 
 	p {
@@ -84,35 +81,23 @@ export const Section = styled.div`
 	}
 
 	@media screen and (min-width: 80rem) {
-		h3:not(:first-of-type) {
-			margin-top: 24px;
+		grid-column: span 1;
+
+		:nth-child(2) {
+			border-top: 1px solid transparent;
+			padding-top: 0;
 		}
 
-		&:nth-child(1) {
-			grid-column: 1 / 2;
+		:nth-child(odd) {
+			border-right: ${({ theme }) => '1px solid ' + theme.text5};
+		}
+
+		:nth-child(even) {
+			padding-left: 24px;
+		}
+
+		&:only-child {
 			border-right: 1px solid transparent;
-		}
-
-		&:nth-child(2) {
-			grid-column: 1 / 2;
-			padding-bottom: 0;
-			border-right: 1px solid transparent;
-			border-bottom: none;
-		}
-
-		&:nth-child(3) {
-			grid-row: 1 / 2;
-			grid-column: 2 / 3;
-			border-top: 0;
-			border-left: ${({ theme }) => '1px solid ' + theme.text5};
-			padding: 0 0 0 24px;
-		}
-
-		&:nth-child(4) {
-			grid-row: 2 / 3;
-			grid-column: 2 / 3;
-			border-left: ${({ theme }) => '1px solid ' + theme.text5};
-			padding: 24px 0 0 24px;
 		}
 	}
 `
@@ -191,7 +176,7 @@ export const DetailsTable = styled.table`
 	}
 
 	.question-helper {
-		padding: 0 16px;
+		padding: 0 16px 4px;
 	}
 `
 
@@ -240,14 +225,16 @@ export const ChartWrapper = styled.div`
 
 defaultFallbackInView(true)
 
-export const LazyChart = ({ children, ...props }) => {
+export const LazyChart = ({ children, enable = true, ...props }) => {
 	const { ref, inView } = useInView({
 		triggerOnce: true
 	})
 
-	return (
+	return enable ? (
 		<ChartWrapper ref={ref} {...props}>
 			{inView && children}
 		</ChartWrapper>
+	) : (
+		children
 	)
 }

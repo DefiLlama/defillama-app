@@ -66,12 +66,16 @@ const Content = ({ text }: { text: string }) => {
 }
 
 export default function Chains({ messages }: { messages?: string }) {
+	// Emoji regex ref: https://stackoverflow.com/questions/70401560/what-is-the-difference-between-emoji-presentation-and-extended-pictographic
 	const text =
 		messages
 			?.replace(/(.*)\n(http.*)/g, '[$1]($2)') // merge title + link into markdown links
-			?.replace(/(\w+)\s*(\p{Emoji})\n/gu, '## $1 $2\n') // Watch📺 -> ## Watch 📺
-			?.replace(/\*\*([\w\s'".&,?!;:]+)\*\*\s*(\p{Emoji})/gu, '### $1 $2') ?? // **Threads**🧵 -> ### Threads 🧵
-		''
+			?.replace(/(\d\/\d\s?)?(\w+)\s*(\p{Emoji}\uFE0F|\p{Extended_Pictographic})\n/gu, '## $2 $3\n') // {Watch📺, 1/2 Watch📺} -> ## Watch 📺
+			?.replace(
+				/(\d\/\d\s?)?\*\*(\d\/\d\s?)?([\w\s'".&,?!;:]+)\*\*\s*(\p{Emoji}\uFE0F|\p{Extended_Pictographic})/gu,
+				'### $3 $4'
+			) // {**Threads**🧵, 1/2 **Threads**🧵, **1/2 Threads**🧵} -> ### Threads 🧵
+			.trim() ?? ''
 
 	return (
 		<Layout title={`Daily Roundup - DefiLlama`} defaultSEO>
@@ -113,12 +117,21 @@ export async function getStaticProps() {
 
 	const raw = Number.isNaN(index) ? [] : data.slice(0, index + 1)
 
-	const messages = raw
-		.reverse()
-		.map((m) => m.content)
-		.join('')
+	const messages = raw.reverse().map((m) => m.content)
 
-	const splitLlama = messages.split('Daily news round-up with the 🦙')
+	let message = ''
+	for (const m of messages) {
+		// If the message starts with a topic header, e.g. News📰, then we add a newline first,
+		// separating this message from the previous one. (We detect this by checking if the first
+		// line ends with an emoji.)
+		const [first, ...rest] = m.split('\n')
+		if (first.match(/(\p{Emoji}\uFE0F|\p{Extended_Pictographic})(\*\*)?$/u)) {
+			message += '\n'
+		}
+		message += [first, ...rest].join('\n')
+	}
+
+	const splitLlama = message.split('Daily news round-up with the 🦙')
 
 	return {
 		props: {

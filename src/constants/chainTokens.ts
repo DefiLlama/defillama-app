@@ -694,6 +694,21 @@ export const chainCoingeckoIds = {
     symbol: "APT",
     cmcId: "21794",
   },
+	Stride: {
+    geckoId: "stride",
+    symbol: "STRD",
+    cmcId: "21781",
+  },
+	MUUCHAIN: {
+    geckoId: "muu-inu",
+    symbol: "MUU",
+    cmcId: "22020"
+  },
+	"MultiversX": {
+    geckoId: "elrond-erd-2",
+    symbol: "EGLD",
+    cmcId: "6892",
+  },
 }
 
 export const chainMarketplaceMappings = {

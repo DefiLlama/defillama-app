@@ -1,17 +1,28 @@
 import Layout from '~/layout'
 import YieldPage from '~/components/YieldsPage'
 import { getYieldPageData } from '~/api/categories/yield'
-import pako from 'pako'
-import { revalidate } from '~/api'
+import { getAllCGTokensList, revalidate } from '~/api'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
+import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
 	const data = await getYieldPageData()
-	const strData = JSON.stringify(data)
+	data.props.pools = data.props.pools.filter((p) => p.apy > 0)
 
-	const a = pako.deflate(strData)
-	const compressed = Buffer.from(a).toString('base64')
+	const cgTokens = await getAllCGTokensList()
+
+	const tokens = []
+	const tokenSymbolsList = []
+
+	cgTokens.forEach((token) => {
+		if (token.symbol) {
+			tokens.push({ name: token.name, symbol: token.symbol.toUpperCase(), logo: token.image })
+			tokenSymbolsList.push(token.symbol.toUpperCase())
+		}
+	})
+
+	const compressed = compressPageProps({ ...data.props, tokens, tokenSymbolsList })
 
 	return {
 		props: { compressed },
@@ -19,14 +30,13 @@ export async function getStaticProps() {
 	}
 }
 
-export default function ApyHomePage(compressedProps) {
-	const b = new Uint8Array(Buffer.from(compressedProps.compressed, 'base64'))
-	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
+export default function ApyHomePage({ compressed }) {
+	const data = decompressPageProps(compressed)
 
 	return (
 		<Layout title={`Yield Rankings - DefiLlama`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
-			<YieldPage {...data.props} />
+			<YieldPage {...data} />
 		</Layout>
 	)
 }

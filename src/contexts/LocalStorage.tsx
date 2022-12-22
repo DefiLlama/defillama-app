@@ -28,13 +28,10 @@ const NO_IL = 'NO_IL'
 const MILLION_DOLLAR = 'MILLION_DOLLAR'
 const AUDITED = 'AUDITED'
 const NO_OUTLIER = 'NO_OUTLIER'
-const APY_GT0 = 'APY_GT0'
 const STABLE_OUTLOOK = 'STABLE_OUTLOOK'
 const HIGH_CONFIDENCE = 'HIGH_CONFIDENCE'
 const NO_BAD_DEBT = 'NO_BAD_DEBT'
-const NO_LOCKUP_REWARDS = 'NO_LOCKUP_REWARDS'
 const NO_LOCKUP_COLLATERAL = 'NO_LOCKUP_COLLATERAL'
-const NO_PREMINED_REWARDS = 'NO_PREMINED_REWARDS'
 
 // STABLECOINS
 export const UNRELEASED = 'unreleased'
@@ -70,13 +67,10 @@ export const YIELDS_SETTINGS = {
 	SINGLE_EXPOSURE,
 	STABLECOINS,
 	NO_OUTLIER,
-	APY_GT0,
 	STABLE_OUTLOOK,
 	HIGH_CONFIDENCE,
 	NO_BAD_DEBT,
-	NO_LOCKUP_REWARDS,
-	NO_LOCKUP_COLLATERAL,
-	NO_PREMINED_REWARDS
+	NO_LOCKUP_COLLATERAL
 }
 
 export const STABLECOINS_SETTINGS = {
@@ -170,7 +164,7 @@ function init() {
 	const defaultLocalStorage = {
 		[DARK_MODE]: true,
 		...DEFI_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
-		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: true }), {}),
+		...STABLECOINS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: prop === UNRELEASED ? false : true }), {}),
 		...NFT_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...LIQS_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
 		...BRIDGES_SETTINGS_KEYS.reduce((o, prop) => ({ ...o, [prop]: false }), {}),
@@ -269,7 +263,7 @@ function useSettingsManager(settings: Array<string>): [ISettings, TUpdater] {
 				if (isClient) {
 					toggled = state[setting]
 					// prevent flash of these toggles when page loads intially
-				} else if (setting === 'emulator' || setting === 'unreleased') {
+				} else if (setting === 'emulator') {
 					toggled = true
 				} else toggled = false
 

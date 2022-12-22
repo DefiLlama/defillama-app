@@ -21,13 +21,17 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 			const linkValue = standardizeProtocolName(value)
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const rowValues = row.original
+			const icon = rowValues.icon
+			let iconLink
+			if (icon) {
 			const [iconType, iconName] = rowValues.icon.split(':')
-			const iconLink = iconType === 'chain' ? chainIconUrl(iconName) : tokenIconUrl(iconName)
+			iconLink = iconType === 'chain' ? chainIconUrl(iconName) : tokenIconUrl(iconName)
+			}
 
 			return (
 				<Name>
 					<span>{index + 1}</span>
-					<TokenLogo logo={iconLink} data-lgonly />
+					{(icon && <TokenLogo logo={iconLink} data-lgonly />)}
 					<CustomLink href={`/bridge/${linkValue}`}>{value}</CustomLink>
 				</Name>
 			)
@@ -56,7 +60,7 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 	},
 	{
 		header: '24h Volume',
-		accessorKey: 'volumePrevDay',
+		accessorKey: 'lastDailyVolume',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
 		meta: {
@@ -65,7 +69,7 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 	},
 	{
 		header: '7d Volume',
-		accessorKey: 'volumePrevWeek',
+		accessorKey: 'weeklyVolume',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
 		meta: {
@@ -74,7 +78,7 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 	},
 	{
 		header: '1m Volume',
-		accessorKey: 'volumePrevMonth',
+		accessorKey: 'monthlyVolume',
 		cell: (info) => <>${formattedNum(info.getValue())}</>,
 		size: 120,
 		meta: {
@@ -398,8 +402,8 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 // key: min width of window/screen
 // values: table columns order
 export const bridgesColumnOrders = formatColumnOrder({
-	0: ['displayName', 'volumePrevDay', 'change_1d', 'volumePrevWeek', 'volumePrevMonth', 'chains', 'txsPrevDay'],
-	1024: ['displayName', 'chains', 'change_1d', 'volumePrevDay', 'volumePrevWeek', 'volumePrevMonth', 'txsPrevDay']
+	0: ['displayName', 'lastDailyVolume', 'change_1d', 'weeklyVolume', 'monthlyVolume', 'chains', 'txsPrevDay'],
+	1024: ['displayName', 'chains', 'change_1d', 'lastDailyVolume', 'weeklyVolume', 'monthlyVolume', 'txsPrevDay']
 })
 
 export const bridgeChainsColumnOrders = formatColumnOrder({
@@ -445,27 +449,27 @@ export const bridgesColumnSizes = {
 		displayName: 140,
 		chains: 180,
 		change_1d: 100,
-		volumePrevDay: 120,
-		volumePrevWeek: 120,
-		volumePrevMonth: 120,
+		lastDailyVolume: 120,
+		weeklyVolume: 120,
+		monthlyVolume: 120,
 		txsPrevDay: 120
 	},
 	480: {
 		displayName: 180,
 		chains: 180,
 		change_1d: 100,
-		volumePrevDay: 120,
-		volumePrevWeek: 120,
-		volumePrevMonth: 120,
+		lastDailyVolume: 120,
+		weeklyVolume: 120,
+		monthlyVolume: 120,
 		txsPrevDay: 120
 	},
 	1024: {
 		displayName: 240,
 		chains: 200,
 		change_1d: 100,
-		volumePrevDay: 120,
-		volumePrevWeek: 120,
-		volumePrevMonth: 120,
+		lastDailyVolume: 120,
+		weeklyVolume: 120,
+		monthlyVolume: 120,
 		txsPrevDay: 120
 	}
 }

@@ -8,6 +8,8 @@ import QuestionHelper from '../QuestionHelper'
 interface ITableProps {
 	instance: Table<any>
 	skipVirtualization?: boolean
+	rowSize?: number
+	columnResizeMode?: 'onChange' | 'onEnd'
 }
 
 declare module '@tanstack/table-core' {
@@ -17,7 +19,13 @@ declare module '@tanstack/table-core' {
 	}
 }
 
-export default function VirtualTable({ instance, skipVirtualization, ...props }: ITableProps) {
+export default function VirtualTable({
+	instance,
+	skipVirtualization,
+	columnResizeMode,
+	rowSize,
+	...props
+}: ITableProps) {
 	const [tableTop, setTableTop] = React.useState(0)
 	const tableContainerRef = React.useRef<HTMLTableSectionElement>(null)
 
@@ -31,7 +39,7 @@ export default function VirtualTable({ instance, skipVirtualization, ...props }:
 
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
-		estimateSize: () => 50,
+		estimateSize: () => rowSize || 50,
 		overscan: 20,
 		rangeExtractor: React.useCallback(
 			(range) => {
@@ -65,7 +73,7 @@ export default function VirtualTable({ instance, skipVirtualization, ...props }:
 		virtualItems.length > 0 ? rowVirtualizer.getTotalSize() - (virtualItems?.[virtualItems.length - 1]?.end || 0) : 0
 
 	return (
-		<Wrapper ref={tableContainerRef} {...props}>
+		<Wrapper ref={tableContainerRef} data-resizable={columnResizeMode ? true : false} {...props}>
 			<table>
 				<thead>
 					{instance.getHeaderGroups().map((headerGroup) => (
@@ -89,6 +97,22 @@ export default function VirtualTable({ instance, skipVirtualization, ...props }:
 											)}
 											{meta?.headerHelperText && <Helper text={meta?.headerHelperText} />}
 											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
+
+											{columnResizeMode && (
+												<div
+													{...{
+														onMouseDown: header.getResizeHandler(),
+														onTouchStart: header.getResizeHandler(),
+														className: `resizer ${header.column.getIsResizing() ? 'isResizing' : ''}`,
+														style: {
+															transform:
+																columnResizeMode === 'onEnd' && header.column.getIsResizing()
+																	? `translateX(${instance.getState().columnSizingInfo.deltaOffset}px)`
+																	: ''
+														}
+													}}
+												/>
+											)}
 										</TableHeader>
 									</th>
 								)
@@ -144,6 +168,13 @@ const Wrapper = styled.div`
 	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
 	border-radius: 12px;
 	overflow-x: auto;
+
+	&[data-resizable='true'] {
+		th,
+		td {
+			border-right: 1px solid ${({ theme }) => theme.divider};
+		}
+	}
 
 	table {
 		table-layout: fixed;
@@ -204,6 +235,7 @@ const TableHeader = styled.span<ITableHeader>`
 	flex-wrap: nowrap;
 	gap: 4px;
 	font-weight: 500;
+	position: relative;
 
 	& > * {
 		white-space: nowrap;

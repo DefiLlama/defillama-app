@@ -89,6 +89,7 @@ export const ChainLogo = ({
 					}
 					shallow={shallowRoute}
 					passHref
+					prefetch={false}
 				>
 					<a>
 						<TokenLogo

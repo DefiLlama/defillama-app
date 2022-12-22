@@ -2,13 +2,10 @@
 // eslint sucks at types
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next'
 import * as React from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
 import styled from 'styled-components'
 import { Clock } from 'react-feather'
 import Layout from '~/layout'
 import { Header } from '~/Theme'
-import { PanelSmol, PanelThicc, StyledAnchor } from '~/components'
 import { LiquidationsSearch } from '~/components/Search'
 import SEO from '~/components/SEO'
 import { LiquidationsHeader } from '~/components/LiquidationsPage/LiquidationsHeader'
@@ -19,7 +16,7 @@ import { PositionsTable, SmolHints } from '~/components/LiquidationsPage/Positio
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import type { ISearchItem } from '~/components/Search/types'
 import { revalidate } from '~/api'
-import { assetIconUrl } from '~/utils'
+import { liquidationsIconUrl } from '~/utils'
 import {
 	ChartData,
 	getAvailableAssetsList,
@@ -47,7 +44,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
 		.map((x) => ({
 			params: { symbol: x.toLowerCase() }
 		}))
-	return { paths, fallback: 'blocking' }
+
+	return { paths: paths.slice(0, 5), fallback: 'blocking' }
 }
 
 const LiquidationsProvider = ({ children }) => {
@@ -87,7 +85,7 @@ const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; opt
 			<SEO
 				liqsPage
 				cardName={`${data.name} (${data.symbol.toUpperCase()})`}
-				logo={'https://defillama.com' + assetIconUrl(data.symbol.toLowerCase(), true)}
+				logo={'https://defillama.com' + liquidationsIconUrl(data.symbol.toLowerCase(), true)}
 				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>
 

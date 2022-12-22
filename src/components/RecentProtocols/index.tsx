@@ -5,7 +5,7 @@ import { Panel } from '~/components'
 import { RecentlyListedProtocolsTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
-import { FiltersByChain, HideForkedProtocols } from '~/components/Filters'
+import { FiltersByChain, HideForkedProtocols, TVLRange } from '~/components/Filters'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
 import { getPercentChange } from '~/utils'
 import { IFormattedProtocol } from '~/api/types'
@@ -31,7 +31,7 @@ interface IRecentProtocolProps {
 
 export function RecentProtocols({ title, name, header, protocols, chainList, forkedList }: IRecentProtocolProps) {
 	const { query } = useRouter()
-	const { chain, hideForks } = query
+	const { chain, hideForks, minTvl, maxTvl } = query
 
 	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? true : false
 
@@ -39,6 +39,9 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 		const selectedChains = getSelectedChainFilters(chain, chainList)
 
 		const _chainsToSelect = selectedChains.map((t) => t.toLowerCase())
+
+		const isValidTvlRange =
+			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
 
 		const data = protocols
 			.filter((protocol) => {
@@ -118,8 +121,16 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 				}
 			})
 
+		if (isValidTvlRange) {
+			const filteredProtocols = data.filter(
+				(protocol) => (minTvl ? protocol.tvl > minTvl : true) && (maxTvl ? protocol.tvl < maxTvl : true)
+			)
+
+			return { data: filteredProtocols, selectedChains }
+		}
+
 		return { data, selectedChains }
-	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols])
+	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
 
 	const protocolsData = useCalcStakePool2Tvl(data) as Array<IFormattedProtocol>
 
@@ -134,6 +145,7 @@ export function RecentProtocols({ title, name, header, protocols, chainList, for
 
 				<Dropdowns>
 					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
+					<TVLRange />
 				</Dropdowns>
 				{forkedList && <HideForkedProtocols />}
 			</TableFilters>

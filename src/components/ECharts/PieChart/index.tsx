@@ -10,7 +10,7 @@ import { formattedNum } from '~/utils'
 
 echarts.use([CanvasRenderer, EPieChart, TooltipComponent, TitleComponent, GridComponent, GraphicComponent])
 
-export default function PieChart({ height = '360px', stackColors, chartData, ...props }: IPieChartProps) {
+export default function PieChart({ height = '360px', stackColors, chartData, title, ...props }: IPieChartProps) {
 	const id = useMemo(() => uuid(), [])
 	const [isDark] = useDarkModeManager()
 
@@ -56,6 +56,16 @@ export default function PieChart({ height = '360px', stackColors, chartData, ...
 		const chartInstance = createInstance()
 
 		chartInstance.setOption({
+			...(title && {
+				title: {
+					text: title,
+					textStyle: {
+						fontFamily: 'inter, sans-serif',
+						fontWeight: 600,
+						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+					}
+				}
+			}),
 			tooltip: {
 				trigger: 'item',
 				valueFormatter: (value) => '$' + formattedNum(value)
@@ -64,7 +74,7 @@ export default function PieChart({ height = '360px', stackColors, chartData, ...
 				left: 0,
 				containLabel: true,
 				bottom: 0,
-				top: 0,
+				top: 100,
 				right: 0
 			},
 			series
@@ -80,7 +90,7 @@ export default function PieChart({ height = '360px', stackColors, chartData, ...
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, series])
+	}, [createInstance, series, isDark, title])
 
 	return (
 		<div style={{ position: 'relative' }} {...props}>

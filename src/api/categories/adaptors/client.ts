@@ -1,18 +1,17 @@
 import useSWR from 'swr'
-import { HOURLY_PROTOCOL_API, DEXS_API, PROTOCOL_API, DEX_BASE_API, ADAPTORS_BASE_API } from '~/constants'
+import { HOURLY_PROTOCOL_API, DEXS_API, PROTOCOL_API, DEX_BASE_API, ADAPTORS_BASE_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
-import { IGetOverviewResponseBody } from './types'
+import { generateGetOverviewItemPageDate, getOverviewItemPageData, ProtocolAdaptorSummaryProps } from '.'
+import { IGetOverviewResponseBody, ProtocolAdaptorSummaryResponse } from './types'
 
 export const useFetchAdaptorsList = (type: string) => {
 	const { data, error } = useSWR<IGetOverviewResponseBody>(`${ADAPTORS_BASE_API}/${type}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`, fetcher)
 	return { data, error, loading: !data && !error }
 }
 
-export const useFetchCharts = (type: string, chain?: string) => {
-	const fetch = type === 'fees' || chain === 'all' ? () => undefined : fetcher
-	let API = `${ADAPTORS_BASE_API}/${type}`
-	if (chain) API = `${API}/${chain}`
-	const { data, error } = useSWR<IGetOverviewResponseBody>(`${API}?excludeTotalDataChart=true`, fetch)
+export const useFetchCharts = (type: string, chain?: string, dataType?: string, disable?: boolean) => {
+	const fetch = type === 'fees' || chain === 'all' || disable ? () => undefined : fetcher
+	const { data, error } = useSWR<IGetOverviewResponseBody>(getAPIUrl(type, chain, true, false, dataType), fetch)
 	return { data, error, loading: !data && !error }
 }
 
@@ -21,6 +20,22 @@ export const getAPIUrl = (type: string, chain?: string, excludeTotalDataChart?: 
 	API = `${API}excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 	if (dataType) API = `${API}&dataType=${dataType}`
 	if (fullChart) API = `${API}&fullChart=${true}`
+	return API
+}
+
+export const useFetchChartsSummary = (type: string, protocolName: string, dataType?: string, disable?: boolean) => {
+	const fetch = disable ? () => undefined : async (input: RequestInfo, init?: RequestInit) => fetcher(input, init).then((item) => {
+
+		return generateGetOverviewItemPageDate(item, type, protocolName)
+	})
+	const { data, error } = useSWR<ProtocolAdaptorSummaryProps>(getAPIUrlSummary(type, protocolName, dataType), fetch)
+	return { data, error }
+}
+
+export const getAPIUrlSummary = (type: string, protocolName: string, dataType?: string, fullChart?: boolean) => {
+	let API = `${ADAPTORS_SUMMARY_BASE_API}/${type}/${protocolName}?`
+	if (dataType) API = `${API}dataType=${dataType}&`
+	if (fullChart) API = `${API}fullChart=${true}`
 	return API
 }
 

@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
-import { formattedNum, formattedPercent } from '~/utils'
-import { NameYield } from '../Name'
+import { formattedNum, formattedPercent, slug } from '~/utils'
+import { YieldsProject } from '../Name'
 import type { IYieldsProjectsTableRow } from '../types'
 
 export const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
@@ -8,8 +8,8 @@ export const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 		header: 'Project',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
-			return <NameYield project={getValue() as string} projectslug={row.original.slug} />
+		cell: ({ getValue }) => {
+			return <YieldsProject project={getValue() as string} projectslug={slug(getValue() as string)} />
 		}
 	},
 	{

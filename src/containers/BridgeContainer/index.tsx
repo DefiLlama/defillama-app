@@ -157,18 +157,20 @@ export default function BridgeContainer({
 	const { currentDepositsUSD, currentWithdrawalsUSD, volPercentChange, volumeChartData } = React.useMemo(() => {
 		const chartIndex = chainToChartDataIndex[currentChain]
 		const chainChartData = bridgeChartDataByChain[chartIndex]
-		const prevDayChart = chainChartData[chainChartData.length - 1]
+		const prevDayChart = chainChartData[chainChartData.length - 2]
 		const currentDepositsUSD = prevDayChart?.depositUSD ?? 0
 		const currentWithdrawalsUSD = prevDayChart?.withdrawUSD ?? 0
 		const currentVolume = currentDepositsUSD + currentWithdrawalsUSD
 
-		let volPercentChange = '0%'
-		if (chainChartData.length > 1) {
-			const prev2DayChart = chainChartData[chainChartData.length - 2]
+		let volPercentChange = '0 '
+		if (chainChartData.length > 2) {
+			const prev2DayChart = chainChartData[chainChartData.length - 3]
 			const prevDepositsUSD = prev2DayChart.depositUSD ?? 0
 			const prevWithdrawalsUSD = prev2DayChart.withdrawUSD ?? 0
 			const prevVolume = prevDepositsUSD + prevWithdrawalsUSD
-			volPercentChange = getPercentChange(currentVolume, prevVolume)?.toFixed(2)
+			if (prevVolume > 0) {
+				volPercentChange = getPercentChange(currentVolume, prevVolume)?.toFixed(2)
+			}
 		}
 
 		const volumeChartData = chainChartData.map((entry) => {

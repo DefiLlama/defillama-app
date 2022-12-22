@@ -1,23 +1,14 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
-import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
 import { YieldsPoolsTable } from '~/components/Table'
-import {
-	YieldAttributes,
-	TVLRange,
-	APYRange,
-	FiltersByChain,
-	YieldProjects,
-	FiltersByCategory,
-	ResetAllYieldFilters
-} from '~/components/Filters'
-import { YieldsSearch } from '~/components/Search'
+import { YieldFiltersV2 } from '~/components/Filters'
+import { AnnouncementWrapper } from '~/components/Announcement'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
 
-const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
-	const { query, pathname } = useRouter()
+const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
+	const { query, pathname, push } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
 	const { selectedProjects, selectedChains, selectedAttributes, includeTokens, excludeTokens, selectedCategories } =
@@ -59,7 +50,13 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 					outlook: curr.apy >= 0.005 ? curr.predictions.predictedClass : null,
 					confidence: curr.apy >= 0.005 ? curr.predictions.binnedConfidence : null,
 					url: curr.url,
-					category: curr.category
+					category: curr.category,
+					il7d: curr.il7d,
+					apyBase7d: curr.apyBase7d,
+					apyNet7d: curr.apyNet7d,
+					apyMean30d: curr.apyMean30d,
+					volumeUsd1d: curr.volumeUsd1d,
+					volumeUsd7d: curr.volumeUsd7d
 				})
 			} else return acc
 		}, [])
@@ -80,27 +77,54 @@ const YieldPage = ({ pools, projectList, chainList, categoryList }) => {
 
 	return (
 		<>
-			<YieldsSearch
-				step={{ category: 'Home', name: 'Yields' }}
-				pathname={pathname}
-				poolsNumber={pools.length}
-				projectsNumber={projectList.length}
-				chainsNumber={chainList.length}
+			{includeTokens.length > 0 &&
+				(!selectedAttributes.includes('no_il') || !selectedAttributes.includes('single_exposure')) && (
+					<AnnouncementWrapper>
+						Do you want to see only pools that have a single token? Click{' '}
+						<a
+							style={{ textDecoration: 'underline' }}
+							onClick={() => {
+								push(
+									{
+										pathname,
+										query: {
+											...query,
+											attribute: ['no_il', 'single_exposure']
+										}
+									},
+									undefined,
+									{ shallow: true }
+								)
+							}}
+						>
+							here
+						</a>
+					</AnnouncementWrapper>
+				)}
+
+			<YieldFiltersV2
+				header="Yield Rankings"
+				poolsNumber={poolsData.length}
+				projectsNumber={selectedProjects.length}
+				chainsNumber={selectedChains.length}
+				tokens={tokens}
+				tokensList={tokenSymbolsList}
+				selectedTokens={includeTokens}
+				chainList={chainList}
+				selectedChains={selectedChains}
+				projectList={projectList}
+				selectedProjects={selectedProjects}
+				categoryList={categoryList}
+				selectedCategories={selectedCategories}
+				attributes={true}
+				tvlRange={true}
+				apyRange={true}
+				show7dBaseApy={true}
+				show7dIL={true}
+				resetFilters={true}
+				show1dVolume={true}
+				show7dVolume={true}
 			/>
-
-			<TableFilters>
-				<TableHeader>Yield Rankings</TableHeader>
-
-				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
-					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
-					<FiltersByCategory categoryList={categoryList} selectedCategories={selectedCategories} pathname={pathname} />
-					<YieldAttributes pathname={pathname} />
-					<TVLRange />
-					<APYRange />
-					<ResetAllYieldFilters pathname={pathname} />
-				</Dropdowns>
-			</TableFilters>
 
 			{poolsData.length > 0 ? (
 				<YieldsPoolsTable data={poolsData} />

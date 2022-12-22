@@ -1,10 +1,7 @@
-import React from 'react'
+import * as React from 'react'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
-import {
-	BreakpointPanel,
-	ChartAndValuesWrapper,
-} from '~/components'
+import { BreakpointPanel, ChartAndValuesWrapper } from '~/components'
 import { Header } from '~/Theme'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { BridgesSearch } from '~/components/Search'
@@ -26,7 +23,6 @@ const HeaderWrapper = styled(Header)`
 `
 
 function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, formattedVolumeChartData }) {
-
 	const downloadCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chains]]
 		let stackedDatasetObject = {} as any
@@ -39,17 +35,13 @@ function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, f
 				stackedDatasetObject[date][chain] = chart[1]
 			})
 		})
-		const stackedData = Object.entries(stackedDatasetObject).map((data:[string, object]) => {
+		const stackedData = Object.entries(stackedDatasetObject).map((data: [string, object]) => {
 			return { date: parseInt(data[0]), ...data[1] }
 		})
 		stackedData
 			.sort((a, b) => a.date - b.date)
 			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...chains.map((chain) => day[chain] ?? '')
-				])
+				rows.push([day.date, toNiceCsvDate(day.date), ...chains.map((chain) => day[chain] ?? '')])
 			})
 		download('bridge-chains.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
@@ -75,7 +67,7 @@ function BridgeChainsOverview({ chains, filteredChains, chainToChartDataIndex, f
 					)}
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
-						
+
 			<BridgeChainsTable data={filteredChains} />
 		</>
 	)

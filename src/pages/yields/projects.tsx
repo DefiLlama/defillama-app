@@ -1,12 +1,12 @@
 import Layout from '~/layout'
-import PageHeader from '~/components/PageHeader'
-import { YieldsSearch } from '~/components/Search'
-import { revalidate } from '~/api'
-import { getYieldPageData } from '~/api/categories/yield'
-import pako from 'pako'
 import { YieldsProjectsTable } from '~/components/Table'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
+import { compressPageProps, decompressPageProps } from '~/utils/compress'
+import { revalidate } from '~/api'
+import { getYieldPageData } from '~/api/categories/yield'
+
+import PageHeader from '~/components/PageHeader'
 
 function median(numbers) {
 	const sorted: any = Array.from(numbers).sort((a: number, b: number) => a - b)
@@ -46,14 +46,9 @@ export async function getStaticProps() {
 		...details
 	}))
 
-	// compress
-	const strData = JSON.stringify({
-		props: {
-			projects: projArray.sort((a, b) => b.tvl - a.tvl)
-		}
+	const compressed = compressPageProps({
+		projects: projArray.sort((a, b) => b.tvl - a.tvl)
 	})
-	const a = pako.deflate(strData)
-	const compressed = Buffer.from(a).toString('base64')
 
 	return {
 		props: { compressed },
@@ -61,15 +56,16 @@ export async function getStaticProps() {
 	}
 }
 
-export default function Protocols(compressedProps) {
-	const b = new Uint8Array(Buffer.from(compressedProps.compressed, 'base64'))
-	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
+export default function Protocols({ compressed }) {
+	const data = decompressPageProps(compressed)
+
 	return (
 		<Layout title={`Projects - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
-			<YieldsSearch step={{ category: 'Yields', name: 'All projects', hideOptions: true }} />
+
 			<PageHeader title="Projects" />
-			<YieldsProjectsTable data={data.props.projects} />
+
+			<YieldsProjectsTable data={data.projects} />
 		</Layout>
 	)
 }

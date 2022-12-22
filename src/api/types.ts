@@ -1,3 +1,11 @@
+export interface IRaise {
+	round: string
+	amount: number
+	valuation: string
+	source: string
+	date: number
+}
+
 export interface Protocol {
 	id: string
 	name: string
@@ -24,6 +32,8 @@ export interface Protocol {
 	parentProtocol?: string
 	referralUrl?: string
 	isParentProtocol?: boolean
+	raises?: Array<IRaise>
+	defillamaId?: number
 }
 
 // TODO cleanup
@@ -116,6 +126,7 @@ export type LiteProtocol = Pick<
 	| 'parentProtocol'
 	| 'chainTvls'
 	| 'referralUrl'
+	| 'defillamaId'
 > &
 	ProtocolTvls
 
@@ -165,11 +176,11 @@ export interface IFormattedProtocol extends LiteProtocol {
 	change_7d: number | null
 	change_1m: number | null
 	mcaptvl: number | null
+	strikeTvl?: boolean
 }
 
 export interface IFusedProtocolData extends Omit<IProtocolResponse, 'tvl'> {
 	tvl: number
-	tvlChartData: number[][]
 	tvlBreakdowns: ICurrentChainTvls
 	tvlByChain: [string, number][]
 	historicalChainTvls: IChainTvl
@@ -181,3 +192,32 @@ export interface ICategory {
 }
 
 export type TCompressedChain = [string, { [chain: string]: { [dataType: string]: number } }]
+
+export interface IResponseCGMarketsAPI {
+	ath: number
+	ath_change_percentage: number
+	ath_date: string
+	atl: number
+	atl_change_percentage: number
+	atl_date: string
+	circulating_supply: number
+	current_price: number
+	fully_diluted_valuation: number
+	high_24h: number
+	id: string
+	image: string
+	last_updated: string
+	low_24h: number
+	market_cap: number
+	market_cap_change_24h: number
+	market_cap_change_percentage_24h: number
+	market_cap_rank: number
+	max_supply: number
+	name: string
+	price_change_24h: number
+	price_change_percentage_24h: number
+	roi: null
+	symbol: string
+	total_supply: number
+	total_volume: number
+}

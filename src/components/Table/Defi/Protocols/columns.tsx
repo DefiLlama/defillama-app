@@ -8,7 +8,7 @@ import QuestionHelper from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
 import Tooltip from '~/components/Tooltip'
 import { useDefiManager } from '~/contexts/LocalStorage'
-import { formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDayAndHour, toNiceDaysAgo } from '~/utils'
+import { formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDayAndHour, toNiceDaysAgo } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow } from './types'
@@ -119,7 +119,7 @@ export const listedAtColumn = {
 			<TooltipPopver content={`at ${toNiceDayAndHour(getValue())}`}>{toNiceDaysAgo(getValue())}</TooltipPopver>
 		</ListedAt>
 	),
-	size: 120,
+	size: 140,
 	meta: {
 		align: 'end' as const
 	}
@@ -128,7 +128,22 @@ export const listedAtColumn = {
 export const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [
 	...protocolsColumns.slice(0, 3),
 	listedAtColumn,
-	...protocolsColumns.slice(3)
+	...protocolsColumns.slice(3, -1)
+]
+
+export const airdropsColumns: ColumnDef<IProtocolRow>[] = [
+	...protocolsColumns.slice(0, 3),
+	{
+		header: 'Total Money Raised',
+		accessorKey: 'totalRaised',
+		cell: ({ getValue }) => <>{getValue() ? `$${toK(getValue())}` : ''}</>,
+		size: 180,
+		meta: {
+			align: 'end' as const
+		}
+	},
+	listedAtColumn,
+	...protocolsColumns.slice(3, -1)
 ]
 
 export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
@@ -248,7 +263,8 @@ export const columnSizes = {
 		change_7d: 100,
 		change_1m: 100,
 		tvl: 100,
-		mcaptvl: 100
+		mcaptvl: 100,
+		totalRaised: 180
 	},
 	1024: {
 		name: 240,
@@ -258,7 +274,8 @@ export const columnSizes = {
 		change_7d: 100,
 		change_1m: 100,
 		tvl: 100,
-		mcaptvl: 100
+		mcaptvl: 100,
+		totalRaised: 180
 	},
 	1280: {
 		name: 240,
@@ -268,7 +285,8 @@ export const columnSizes = {
 		change_7d: 100,
 		change_1m: 100,
 		tvl: 100,
-		mcaptvl: 100
+		mcaptvl: 100,
+		totalRaised: 180
 	}
 }
 
@@ -302,11 +320,47 @@ const Tvl = ({ value, rowValues }) => {
 					color: rowValues.strikeTvl ? 'gray' : 'inherit'
 				}}
 			>
-				{'$' + formattedNum(value)}
+				{'$' + formattedNum(value || 0)}
 			</span>
 		</span>
 	)
 }
+
+export const protocolsByTokenColumns: ColumnDef<{ name: string; amountUsd: number }>[] = [
+	{
+		header: () => <Name>Name</Name>,
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const value = getValue() as string
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
+				</Name>
+			)
+		}
+	},
+	{
+		header: () => <Name>Category</Name>,
+		accessorKey: 'category',
+		enableSorting: false,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: () => <Name>Amount</Name>,
+		accessorKey: 'amountUsd',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		}
+	}
+]
 
 const ListedAt = styled.div`
 	width: 120px;

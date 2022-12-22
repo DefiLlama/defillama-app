@@ -5,7 +5,6 @@ import { useRouter } from 'next/router'
 import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
 import AuditInfo from '~/components/AuditInfo'
-import { YieldsSearch } from '~/components/Search'
 import { download, toK } from '~/utils'
 import {
 	Button,
@@ -74,24 +73,19 @@ const PageView = () => {
 				-item.apyBaseBorrow,
 				item.apyRewardBorrow,
 				item.totalSupplyUsd,
-				item.totalBororwUsd,
-				item.totalSupplyUsd === null && item.totalBorrowUsd === null ? null : item.totalSupplyUsd - item.totalBorrowUsd
+				item.totalBorrowUsd,
+				category === 'CDP' && item.debtCeilingUsd
+					? item.debtCeilingUsd - item.totalBorrowUsd
+					: category === 'CDP'
+					? null
+					: item.totalSupplyUsd === null && item.totalBorrowUsd === null
+					? null
+					: item.totalSupplyUsd - item.totalBorrowUsd
 			])
 		})
 
 		download(`${query.pool}.csv`, rows.map((r) => r.join(',')).join('\n'))
 	}
-
-	// pick this data from the history endpoint instead
-	const latestValues = chart?.data?.slice(-1)[0] ?? []
-	const apyBase = latestValues?.apyBase ?? 0
-	const apyReward = latestValues?.apyReward ?? 0
-	const apyBaseBorrow = -latestValues?.apyBaseBorrow ?? 0
-	const apyRewardBorrow = latestValues?.apyRewardBorrow ?? 0
-	const totalSupplyUsd = latestValues?.totalSupplyUsd ?? 0
-	const totalBorrowUsd = latestValues?.totalBorrowUsd ?? 0
-	const totalAvailableUsd = totalSupplyUsd - totalBorrowUsd
-	const newBorrowApy = Number(apyBaseBorrow) + Number(apyRewardBorrow)
 
 	const projectName = config?.name ?? ''
 	const audits = config?.audits ?? ''
@@ -99,6 +93,22 @@ const PageView = () => {
 	const url = config?.url ?? ''
 	const twitter = config?.twitter ?? ''
 	const category = config?.category ?? ''
+
+	const latestValues = chart?.data?.slice(-1)[0] ?? []
+	const apyBase = latestValues?.apyBase ?? 0
+	const apyReward = latestValues?.apyReward ?? 0
+	const apyBaseBorrow = -latestValues?.apyBaseBorrow ?? 0
+	const apyRewardBorrow = latestValues?.apyRewardBorrow ?? 0
+	const totalSupplyUsd = latestValues?.totalSupplyUsd ?? 0
+	const totalBorrowUsd = latestValues?.totalBorrowUsd ?? 0
+	const debtCeilingUsd = latestValues?.debtCeilingUsd ?? 0
+	const totalAvailableUsd =
+		category === 'CDP' && debtCeilingUsd
+			? debtCeilingUsd - totalBorrowUsd
+			: category === 'CDP'
+			? null
+			: totalSupplyUsd - totalBorrowUsd
+	const newBorrowApy = Number(apyBaseBorrow) + Number(apyRewardBorrow)
 
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData
 
@@ -121,7 +131,13 @@ const PageView = () => {
 			Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
 			el.totalSupplyUsd,
 			el.totalBorrowUsd,
-			el.totalSupplyUsd === null && el.totalBorrowUsd === null ? null : el.totalSupplyUsd - el.totalBorrowUsd,
+			category === 'CDP' && el.debtCeilingUsd
+				? el.debtCeilingUsd - el.totalBorrowUsd
+				: category === 'CDP'
+				? null
+				: el.totalSupplyUsd === null && el.totalBorrowUsd === null
+				? null
+				: el.totalSupplyUsd - el.totalBorrowUsd,
 			el.apyBase?.toFixed(2) ?? null,
 			el.apyReward?.toFixed(2) ?? null,
 			-el.apyBaseBorrow?.toFixed(2) ?? null,
@@ -150,12 +166,10 @@ const PageView = () => {
 		const netBorrowChartData = dataNetBorrowArea.length ? dataNetBorrowArea.map((t) => [t[0], t[8]]) : []
 
 		return { barChartDataSupply, barChartDataBorrow, areaChartData, netBorrowChartData }
-	}, [chart])
+	}, [chart, category])
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Yields', name: poolData.symbol, hideOptions: true }} />
-
 			<StatsSection>
 				<PoolDetails>
 					<Name style={{ flexWrap: 'wrap' }}>
@@ -237,15 +251,17 @@ const PageView = () => {
 				) : (
 					chart?.data?.length && (
 						<>
-							<LazyChart>
-								<StackedBarChart
-									title="Supply APY"
-									chartData={barChartDataSupply}
-									stacks={barChartStacks}
-									stackColors={stackedBarChartColors}
-									valueSymbol={'%'}
-								/>
-							</LazyChart>
+							{barChartDataSupply?.length ? (
+								<LazyChart>
+									<StackedBarChart
+										title="Supply APY"
+										chartData={barChartDataSupply}
+										stacks={barChartStacks}
+										stackColors={stackedBarChartColors}
+										valueSymbol={'%'}
+									/>
+								</LazyChart>
+							) : null}
 
 							<LazyChart>
 								<StackedBarChart
@@ -257,16 +273,18 @@ const PageView = () => {
 								/>
 							</LazyChart>
 
-							<LazyChart>
-								<AreaChart
-									chartData={areaChartData}
-									title="Pool Liquidity"
-									customLegendName="Filter"
-									customLegendOptions={['Supplied', 'Borrowed', 'Available']}
-									valueSymbol="$"
-									stackColors={colors}
-								/>
-							</LazyChart>
+							{areaChartData?.length ? (
+								<LazyChart>
+									<AreaChart
+										chartData={areaChartData}
+										title="Pool Liquidity"
+										customLegendName="Filter"
+										customLegendOptions={['Supplied', 'Borrowed', 'Available']}
+										valueSymbol="$"
+										stackColors={colors}
+									/>
+								</LazyChart>
+							) : null}
 						</>
 					)
 				)}

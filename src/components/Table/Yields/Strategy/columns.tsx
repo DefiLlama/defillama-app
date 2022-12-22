@@ -8,13 +8,8 @@ import { Tooltip2 } from '~/components/Tooltip'
 import styled from 'styled-components'
 import QuestionHelper from '~/components/QuestionHelper'
 import { AutoRow } from '~/components/Row'
-import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
-
-const apyColors = {
-	supply: '#4f8fea',
-	borrow: '#E59421',
-	positive: '#30c338'
-}
+import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
+import { ColoredAPY } from '../ColoredAPY'
 
 export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 	{
@@ -68,21 +63,9 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.projectName) ? (
-						<QuestionHelper
-							text={`${row.original.projectName} Rewards are vested. You can immediately receive your rewards by taking an exit penalty!`}
-						/>
-					) : preminedRewards.includes(row.original.projectName) ? (
-						<QuestionHelper text={`${row.original.projectName} has Pre-mined rewards, no available token yet!`} />
-					) : null}
+					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
 					<Tooltip content={<TooltipContent />}>
-						<span
-							style={{
-								color: apyColors['positive']
-							}}
-						>
-							{formattedPercent(getValue(), true, 700)}
-						</span>
+						<ColoredAPY data-variant="positive">{formattedPercent(getValue(), true, 700)}</ColoredAPY>
 					</Tooltip>
 				</AutoRow>
 			)
@@ -98,15 +81,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		accessorKey: 'delta',
 		enableSorting: true,
 		cell: (info) => {
-			return (
-				<span
-					style={{
-						color: apyColors['borrow']
-					}}
-				>
-					{formattedPercent(info.getValue(), true, 400)}
-				</span>
-			)
+			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true, 400)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {

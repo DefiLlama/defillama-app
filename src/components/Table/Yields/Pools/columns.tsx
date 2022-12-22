@@ -6,7 +6,11 @@ import { formattedNum, formattedPercent } from '~/utils'
 import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
-import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
+import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
+import Image from 'next/future/image'
+import { CustomLink } from '~/components/Link'
+
+const uniswapV3 = 'For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
 
 export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
@@ -22,6 +26,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 					configID={row.original.configID}
 					url={row.original.url}
 					index={index + 1}
+					maxCharacters={20}
 				/>
 			)
 		},
@@ -74,7 +79,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 					{info.row.original.project === 'cBridge' ? (
-						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY'} />
+						<QuestionHelper text={'Your deposit can be moved to another chain with a different APY!'} />
+					) : info.row.original.project === 'Uniswap V3' ? (
+						<QuestionHelper
+							text={
+								'Calculated as: 24h fees * 365 / TVL. Enable "7d Base APY" for a more detailed APY calculation which uses 7 day trading fees and a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
+							}
+						/>
 					) : null}
 					{formattedPercent(info.getValue(), true, 700)}
 				</span>
@@ -83,7 +94,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 100,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Total annualised percentage yield'
+			headerHelperText:
+				'APY = Base APY + Reward APY. For non-autocompounding pools we do not account for reinvesting, in which case APY = APR.'
 		}
 	},
 	{
@@ -96,7 +108,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Annualised percentage yield from trading fees/supplying'
+			headerHelperText:
+				'Annualised percentage yield from trading fees/supplying. For dexes we use the 24h fees and scale those to a year.'
 		}
 	},
 	{
@@ -108,13 +121,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.project) ? (
-						<QuestionHelper
-							text={`${row.original.project} Rewards are vested. You can immediately receive your rewards by taking an exit penalty!`}
-						/>
-					) : preminedRewards.includes(row.original.project) ? (
-						<QuestionHelper text={`${row.original.project} has Pre-mined rewards, no available token yet!`} />
-					) : null}
+					{lockupsRewards.includes(row.original.project) ? <QuestionHelper text={earlyExit} /> : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"
@@ -128,42 +135,88 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Annualised percentage yield from incentives'
+			headerHelperText: 'Annualised percentage yield from incentives.'
 		}
 	},
 	{
-		header: 'Outlook',
-		accessorKey: 'outlook',
+		header: '7d Base APY',
+		accessorKey: 'apyBase7d',
 		enableSorting: true,
-		size: 120,
-		meta: {
-			align: 'end',
-			headerHelperText:
-				'The predicted outlook indicates if the current APY can be maintained (stable or up) or not (down) within the next 4weeks. The algorithm consideres APYs as stable with a fluctuation of up to -20% from the current APY.'
-		}
-	},
-	{
-		header: 'Confidence',
-		accessorKey: 'confidence',
-		enableSorting: true,
-		cell: (info) => (
-			<>{info.getValue() === null ? null : info.getValue() === 1 ? 'Low' : info.getValue() === 2 ? 'Medium' : 'High'}</>
-		),
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true, 400)}</>
+		},
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Predicted outlook confidence'
+			headerHelperText: `Annualised percentage yield based on the trading fees from the last 7 days. ${uniswapV3}`
 		}
 	},
 	{
-		header: '7d Change',
-		accessorKey: 'change7d',
+		header: '7d IL',
+		accessorKey: 'il7d',
 		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true, 400)}</>
+		},
+		size: 100,
+		meta: {
+			align: 'end',
+			headerHelperText: `7d Impermanent Loss: the percentage loss between LPing for the last 7days vs hodling the underlying assets instead. ${uniswapV3}`
+		}
+	},
+	{
+		header: '30d Avg APY',
+		accessorKey: 'apyMean30d',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true, 400)}</>
+		},
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '30d APY Chart',
+		accessorKey: 'apyChart30d',
+		enableSorting: false,
+		cell: ({ row }) => {
+			const configID = row.original.configID
+			return (
+				<CustomLink href={`/yields/pool/${configID}`} target="_blank">
+					<Image src={`https://yield-charts.onrender.com/yield-chart/${configID}`} alt="" width={90} height={30} />
+				</CustomLink>
+			)
+		},
+		size: 110,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '1d Volume',
+		accessorKey: 'volumeUsd1d',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{info.getValue() !== null ? '$' + formattedNum(info.getValue()) : null}</>
+		},
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Absolute change in APY'
+			headerHelperText: '$ Volume in the last 24 hours.'
+		}
+	},
+	{
+		header: '7d Volume',
+		accessorKey: 'volumeUsd7d',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{info.getValue() !== null ? '$' + formattedNum(info.getValue()) : null}</>
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: '$ Volume in the last 7 days'
 		}
 	}
 ]
@@ -171,10 +224,70 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: ['pool', 'apy', 'tvl', 'project', 'chains', 'apyBase', 'apyReward', 'outlook', 'confidence', 'change7d'],
-	400: ['pool', 'project', 'apy', 'tvl', 'chains', 'apyBase', 'apyReward', 'outlook', 'confidence', 'change7d'],
-	640: ['pool', 'project', 'tvl', 'apy', 'chains', 'apyBase', 'apyReward', 'outlook', 'confidence', 'change7d'],
-	1280: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward', 'outlook', 'confidence', 'change7d']
+	0: [
+		'pool',
+		'apy',
+		'tvl',
+		'project',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'apyMean30d',
+		'apyChart30d',
+		'volumeUsd1d',
+		'volumeUsd7d'
+	],
+	400: [
+		'pool',
+		'project',
+		'apy',
+		'tvl',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'apyMean30d',
+		'apyChart30d',
+		'volumeUsd1d',
+		'volumeUsd7d'
+	],
+	640: [
+		'pool',
+		'project',
+		'tvl',
+		'apy',
+		'chains',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'apyMean30d',
+		'apyChart30d',
+		'volumeUsd1d',
+		'volumeUsd7d'
+	],
+	1280: [
+		'pool',
+		'project',
+		'chains',
+		'tvl',
+		'apy',
+		'apyBase',
+		'apyReward',
+		'apyNet7d',
+		'apyBase7d',
+		'il7d',
+		'apyMean30d',
+		'apyChart30d',
+		'volumeUsd1d',
+		'volumeUsd7d'
+	]
 }
 
 export const columnSizes = {
@@ -186,21 +299,29 @@ export const columnSizes = {
 		apy: 100,
 		apyBase: 140,
 		apyReward: 140,
-		change7d: 140,
-		outlook: 120,
-		confidence: 140
+		apyNet7d: 120,
+		apyBase7d: 130,
+		il7d: 90,
+		apyMean30d: 120,
+		apyChart30d: 110,
+		volumeUsd1d: 140,
+		volumeUsd7d: 140
 	},
 	812: {
-		pool: 200,
+		pool: 250,
 		project: 200,
 		chain: 60,
 		tvl: 120,
 		apy: 100,
 		apyBase: 140,
 		apyReward: 140,
-		change7d: 140,
-		outlook: 120,
-		confidence: 140
+		apyNet7d: 120,
+		apyBase7d: 140,
+		il7d: 90,
+		apyMean30d: 120,
+		apyChart30d: 110,
+		volumeUsd1d: 140,
+		volumeUsd7d: 140
 	}
 }
 

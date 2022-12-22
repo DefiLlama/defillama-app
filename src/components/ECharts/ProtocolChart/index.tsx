@@ -168,7 +168,7 @@ export default function AreaBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions])
+	}, [createInstance, defaultChartSettings, series, chartOptions, chartsStack.length])
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
 

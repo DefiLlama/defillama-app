@@ -8,13 +8,13 @@ const TableNoticeWrapper = styled.div`
 	margin-bottom: -1rem;
 `
 
-export const LargeTxsTable = (props:{ data: LargeTxsData[]}) => {
+export const LargeTxsTable = (props:{ data: LargeTxsData[], chain: string}) => {
 	return (
 		<>
 			<TableNoticeWrapper>
 				<SmolHints>
 					<i>
-						Displaying {props.data.length} transactions from the the past 7d
+						Displaying {props.data.length} transactions from the the past {props.chain === 'All' ? "1d" : "7d"}
 					</i>
 				<LargeTxDownloadButton data={props.data} />
 				</SmolHints>

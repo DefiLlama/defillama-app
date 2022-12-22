@@ -1,11 +1,11 @@
 import { MenuButtonArrow, useSelectState } from 'ariakit'
 import { useRouter } from 'next/router'
-import { Checkbox } from '~/components'
-import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
-import { SelectItem, SelectButton, SelectPopover, ItemsSelected, FilterFnsGroup } from '../shared'
-import { lockupsRewards, lockupsCollateral, preminedRewards, badDebt } from '~/components/YieldsPage/utils'
+import { SelectButton, SelectPopover, ItemsSelected, SecondaryLabel } from '../common'
+import { lockupsCollateral, badDebt } from '~/components/YieldsPage/utils'
+import { SlidingMenu } from '~/components/SlidingMenu'
+import { SelectContent } from '../common/Base'
 
 export const attributeOptions = [
 	{
@@ -16,7 +16,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.stablecoin === true
 		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/optimizer', '/yields/strategy']
+		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy']
 	},
 	{
 		name: 'Single Exposure',
@@ -24,7 +24,7 @@ export const attributeOptions = [
 		help: 'Select pools with single token exposure only',
 		filterFn: (item) => item.exposure === 'single',
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields/optimizer', '/yields/strategy']
+		disabledOnPages: ['/borrow', '/yields/strategy']
 	},
 	{
 		name: 'No IL',
@@ -34,7 +34,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.ilRisk === 'no'
 		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/optimizer', '/yields/strategy']
+		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy']
 	},
 	{
 		name: 'Million Dollar',
@@ -44,7 +44,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.tvlUsd >= 1e6
 		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/yields/optimizer', '/yields/loop', '/yields/strategy']
+		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy']
 	},
 	{
 		name: 'Audited',
@@ -54,7 +54,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.audits !== '0'
 		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/yields/optimizer', '/yields/strategy']
+		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/strategy']
 	},
 	{
 		name: 'No Outliers',
@@ -64,17 +64,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.outlier === false
 		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/yields/optimizer', '/yields/loop', '/yields/strategy']
-	},
-	{
-		name: 'APY > 0',
-		key: YIELDS_SETTINGS.APY_GT0.toLowerCase(),
-		help: 'Remove pools with apy values of 0',
-		filterFn: (item) => item.apy > 0,
-		defaultFilterFnOnPage: {
-			'/yields/stablecoins': (item) => item.apy > 0
-		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/yields/optimizer', '/yields/loop', '/yields/strategy']
+		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy']
 	},
 	{
 		name: 'Stable Outlook',
@@ -82,7 +72,7 @@ export const attributeOptions = [
 		help: 'Select pools with "Stable/Up" Outlook only',
 		filterFn: (item) => item.predictions.predictedClass === 'Stable/Up',
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields/borrow', '/yields/optimizer', '/yields/loop', '/yields/strategy']
+		disabledOnPages: ['/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy']
 	},
 	{
 		name: 'High Confidence',
@@ -90,7 +80,7 @@ export const attributeOptions = [
 		help: 'Select pools with "High" predicted outlook confidence',
 		filterFn: (item) => item.predictions.binnedConfidence === 3,
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields/borrow', '/yields/optimizer', '/yields/loop', '/yields/strategy']
+		disabledOnPages: ['/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy']
 	},
 	{
 		// see: https://bad-debt.riskdao.org/
@@ -99,7 +89,7 @@ export const attributeOptions = [
 		help: 'Remove projects with a bad debt ratio of >= 5% (5% of the tvl is bad debt from insolvent accounts)',
 		filterFn: (item) => !badDebt.includes(item.project),
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields', '/yields/stablecoins', '/yields/strategy']
+		disabledOnPages: ['/yields', '/yields/stablecoins', '/yields/strategy', '/borrow']
 	},
 	// strategy specific ones (these are applied on both lendind protocol + farming protocol)
 	{
@@ -108,14 +98,7 @@ export const attributeOptions = [
 		help: 'Select pools with at least one million dollar in TVL',
 		filterFn: (item) => item.farmTvlUsd >= 1e6,
 		defaultFilterFnOnPage: {},
-		disabledOnPages: [
-			'/yields',
-			'/yields/overview',
-			'/yields/stablecoins',
-			'/yields/borrow',
-			'/yields/optimizer',
-			'/yields/loop'
-		]
+		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/loop']
 	},
 	{
 		// see: https://bad-debt.riskdao.org/
@@ -126,31 +109,7 @@ export const attributeOptions = [
 			return !badDebt.includes(item.project) && !badDebt.includes(item.farmProject)
 		},
 		defaultFilterFnOnPage: {},
-		disabledOnPages: [
-			'/yields',
-			'/yields/overview',
-			'/yields/stablecoins',
-			'/yields/borrow',
-			'/yields/optimizer',
-			'/yields/loop'
-		]
-	},
-	{
-		name: 'Exclude reward lockups',
-		key: YIELDS_SETTINGS.NO_LOCKUP_REWARDS.toLowerCase(),
-		help: 'Remove projects which apply an early exit penalty on token rewards',
-		filterFn: (item) => {
-			return !lockupsRewards.includes(item.projectName) && !lockupsRewards.includes(item.farmProjectName)
-		},
-		defaultFilterFnOnPage: {},
-		disabledOnPages: [
-			'/yields',
-			'/yields/overview',
-			'/yields/stablecoins',
-			'/yields/borrow',
-			'/yields/optimizer',
-			'/yields/loop'
-		]
+		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/loop']
 	},
 	{
 		name: 'Exclude deposit lockups',
@@ -160,40 +119,40 @@ export const attributeOptions = [
 			return !lockupsCollateral.includes(item.projectName) && !lockupsCollateral.includes(item.farmProjectName)
 		},
 		defaultFilterFnOnPage: {},
-		disabledOnPages: [
-			'/yields',
-			'/yields/overview',
-			'/yields/stablecoins',
-			'/yields/borrow',
-			'/yields/optimizer',
-			'/yields/loop'
-		]
-	},
-	{
-		name: 'Exclude premined rewards',
-		key: YIELDS_SETTINGS.NO_PREMINED_REWARDS.toLowerCase(),
-		help: 'Remove projects with premined token rewards',
-		filterFn: (item) => {
-			return !preminedRewards.includes(item.projectName) && !preminedRewards.includes(item.farmProjectName)
-		},
-		defaultFilterFnOnPage: {},
-		disabledOnPages: [
-			'/yields',
-			'/yields/overview',
-			'/yields/stablecoins',
-			'/yields/borrow',
-			'/yields/optimizer',
-			'/yields/loop'
-		]
+		disabledOnPages: ['/yields', '/yields/overview', '/yields/stablecoins', '/yields/borrow', '/yields/loop']
 	}
 ]
 
-export function YieldAttributes({ pathname }: { pathname: string }) {
+export function YieldAttributes({
+	pathname,
+	variant = 'primary',
+	subMenu
+}: {
+	pathname: string
+	variant?: 'primary' | 'secondary'
+	subMenu?: boolean
+}) {
 	const router = useRouter()
 
 	const { attribute = [], ...queries } = router.query
 
-	const values = attributeOptions
+	const attributeOptionsFiltered = attributeOptions.filter((option) =>
+		pathname === '/yields/borrow'
+			? !option.disabledOnPages.includes('/yields/borrow')
+			: pathname === '/borrow'
+			? !option.disabledOnPages.includes('/borrow')
+			: pathname === '/yields/strategy'
+			? !option.disabledOnPages.includes('/yields/strategy')
+			: pathname === '/yields'
+			? !option.disabledOnPages.includes('/yields')
+			: pathname === '/yields/stablecoins'
+			? !option.disabledOnPages.includes('/yields/stablecoins')
+			: pathname === '/yields/loop'
+			? !option.disabledOnPages.includes('/yields/loop')
+			: true
+	)
+
+	const values = attributeOptionsFiltered
 		.filter((o) => {
 			if (attribute) {
 				if (typeof attribute === 'string') {
@@ -221,7 +180,7 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const select = useSelectState({
+	const selectState = useSelectState({
 		value: values,
 		setValue: updateAttributes,
 		gutter: 8,
@@ -229,13 +188,13 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		animated: true
 	})
 
-	const toggleAll = () => {
+	const toggleAllOptions = () => {
 		router.push(
 			{
 				pathname,
 				query: {
 					...queries,
-					attribute: attributeOptions.map((o) => o.key)
+					attribute: attributeOptionsFiltered.map((o) => o.key)
 				}
 			},
 			undefined,
@@ -243,7 +202,7 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		)
 	}
 
-	const clear = () => {
+	const clearAllOptions = () => {
 		router.push(
 			{
 				pathname,
@@ -257,47 +216,71 @@ export function YieldAttributes({ pathname }: { pathname: string }) {
 		)
 	}
 
-	const defaultValues = attributeOptions.filter((option) => option.defaultFilterFnOnPage[router.pathname]).length
+	const selectedAttributes = attributeOptionsFiltered
+		.filter((option) => option.defaultFilterFnOnPage[router.pathname])
+		.map((x) => x.name)
+		.concat(values)
 
-	const totalSelected = defaultValues ? defaultValues + values.length : values.length
+	const isSelected = selectedAttributes.length > 0
+
+	let selectedAttributeNames = isSelected
+		? selectedAttributes.map(
+				(attribute) => attributeOptionsFiltered.find((p) => p.key === attribute)?.name ?? attribute
+		  )
+		: []
+
+	if (subMenu) {
+		return (
+			<SlidingMenu label="Attributes" selectState={selectState}>
+				<SelectContent
+					options={attributeOptionsFiltered}
+					selectedOptions={values}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					pathname={router.pathname}
+					variant={variant}
+				/>
+			</SlidingMenu>
+		)
+	}
 
 	return (
 		<>
-			<SelectButton state={select}>
-				<span>Filter by Attribute</span>
-				<MenuButtonArrow />
-				{totalSelected > 0 && totalSelected !== attributeOptions.length && (
-					<ItemsSelected>{totalSelected}</ItemsSelected>
+			<SelectButton state={selectState} data-variant={variant}>
+				{variant === 'secondary' ? (
+					<SecondaryLabel>
+						{isSelected ? (
+							<>
+								<span>Attribute: </span>
+								<span data-selecteditems>
+									{selectedAttributeNames.length > 2
+										? `${selectedAttributeNames[0]} + ${selectedAttributeNames.length - 1} others`
+										: selectedAttributeNames.join(', ')}
+								</span>
+							</>
+						) : (
+							'Attribute'
+						)}
+					</SecondaryLabel>
+				) : (
+					<>
+						<span>Filter by Attribute</span>
+						{isSelected && <ItemsSelected>{selectedAttributes.length}</ItemsSelected>}
+					</>
 				)}
-			</SelectButton>
-			<SelectPopover state={select} modal={!isLarge}>
-				<FilterFnsGroup>
-					<button onClick={clear}>Clear</button>
 
-					<button onClick={toggleAll}>Toggle all</button>
-				</FilterFnsGroup>
-				{attributeOptions
-					.filter((option) =>
-						pathname === '/yields/borrow'
-							? !option.disabledOnPages.includes('/yields/borrow')
-							: pathname === '/yields/optimizer'
-							? !option.disabledOnPages.includes('/yields/optimizer')
-							: pathname === '/yields/strategy'
-							? !option.disabledOnPages.includes('/yields/strategy')
-							: pathname === '/yields'
-							? !option.disabledOnPages.includes('/yields')
-							: pathname === '/yields/stablecoins'
-							? !option.disabledOnPages.includes('/yields/stablecoins')
-							: pathname === '/yields/loop'
-							? !option.disabledOnPages.includes('/yields/loop')
-							: true
-					)
-					.map((option) => (
-						<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages.includes(router.pathname)}>
-							{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
-							<Checkbox checked={values.includes(option.key) || option.disabledOnPages.includes(router.pathname)} />
-						</SelectItem>
-					))}
+				<MenuButtonArrow />
+			</SelectButton>
+
+			<SelectPopover state={selectState} modal={!isLarge} data-variant={variant}>
+				<SelectContent
+					options={attributeOptionsFiltered}
+					selectedOptions={values}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					pathname={router.pathname}
+					variant={variant}
+				/>
 			</SelectPopover>
 		</>
 	)

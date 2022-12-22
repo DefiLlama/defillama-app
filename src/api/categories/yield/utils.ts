@@ -17,14 +17,15 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 		category: _config[p.project]?.category,
 		url: _urls[p.pool] ?? '',
 		apyReward: p.apyReward > 0 ? p.apyReward : null,
-		rewardTokens: p.apyReward > 0 ? p.rewardTokens : []
+		rewardTokens: p.apyReward > 0 ? p.rewardTokens : [],
+		apyNet7d: p.apyBase7d > 0 ? Math.max(p.apyBase7d + p.il7d * 52, -100) : null // scale il7d (negative value) to year
 	}))
 
 	const poolsList = []
 
 	const chainList: Set<string> = new Set()
 
-	const projectList: { name: string; slug: string }[] = []
+	const projectList: Set<string> = new Set()
 
 	const categoryList: Set<string> = new Set()
 
@@ -34,10 +35,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 			poolsList.push(pool)
 			chainList.add(pool.chain)
 			categoryList.add(pool.category)
-
-			if (!projectList.find((p) => p.name === pool.projectName)) {
-				projectList.push({ name: pool.projectName, slug: pool.project })
-			}
+			projectList.add(pool.projectName)
 		}
 	})
 
@@ -56,7 +54,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	return {
 		pools: poolsList,
 		chainList: Array.from(chainList),
-		projectList,
+		projectList: Array.from(projectList),
 		categoryList: Array.from(categoryList),
 		tokenNameMapping
 	}

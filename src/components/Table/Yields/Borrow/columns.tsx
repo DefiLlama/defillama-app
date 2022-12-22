@@ -6,13 +6,8 @@ import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import QuestionHelper from '~/components/QuestionHelper'
-import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
-
-const apyColors = {
-	supply: '#4f8fea',
-	borrow: '#E59421',
-	positive: '#30c338'
-}
+import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
+import { ColoredAPY } from '../ColoredAPY'
 
 export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
@@ -63,15 +58,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBase',
 		enableSorting: true,
 		cell: (info) => {
-			return (
-				<span
-					style={{
-						color: apyColors['supply']
-					}}
-				>
-					{formattedPercent(info.getValue(), true, 400)}
-				</span>
-			)
+			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true, 400)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
@@ -88,26 +75,14 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.project) ? (
-						<QuestionHelper
-							text={`${row.original.project} Rewards are vested. You can immediately receive your rewards by taking an exit penalty!`}
-						/>
-					) : preminedRewards.includes(row.original.project) ? (
-						<QuestionHelper text={`${row.original.project} has Pre-mined rewards, no available token yet!`} />
-					) : null}
+					{lockupsRewards.includes(row.original.project) ? <QuestionHelper text={earlyExit} /> : null}
 					<IconsRow
 						links={rewards}
 						url="/yields?project"
 						iconType="token"
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
-					<span
-						style={{
-							color: apyColors['supply']
-						}}
-					>
-						{formattedPercent(getValue(), true, 400)}
-					</span>
+					<ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400)}</ColoredAPY>
 				</AutoRow>
 			)
 		},
@@ -123,13 +98,9 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<span
-					style={{
-						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
-					}}
-				>
+				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
 					{formattedPercent(info.getValue(), true, 700)}
-				</span>
+				</ColoredAPY>
 			)
 		},
 		size: 140,
@@ -143,15 +114,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBaseBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return (
-				<span
-					style={{
-						color: apyColors['borrow']
-					}}
-				>
-					{formattedPercent(info.getValue(), true, 400)}
-				</span>
-			)
+			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true, 400)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
@@ -169,9 +132,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return row.original.apyRewardBorrow > 0 ? (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
 					{lockupsRewards.includes(row.original.project) ? (
-						<QuestionHelper
-							text={'Rewards are vested. You can immediately receive your rewards by taking an exit penalty!'}
-						/>
+						<QuestionHelper text={earlyExit} />
 					) : row.original.project === '0vix' ? (
 						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
 					) : null}
@@ -181,13 +142,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						iconType="token"
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
-					<span
-						style={{
-							color: apyColors['borrow']
-						}}
-					>
-						{formattedPercent(getValue(), true, 400)}
-					</span>
+					<ColoredAPY data-variant="borrow">{formattedPercent(getValue(), true, 400)}</ColoredAPY>
 				</AutoRow>
 			) : null
 		},

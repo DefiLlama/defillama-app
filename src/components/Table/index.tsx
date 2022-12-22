@@ -14,6 +14,12 @@ export { OverviewTable } from './Adaptors'
 export { PeggedAssetByChainTable } from './Stablecoins/PeggedAssetByChain'
 export { PeggedAssetsTable } from './Stablecoins/PeggedAssets'
 export { PeggedChainsTable } from './Stablecoins/PeggedChain'
-export { ProtocolsTable, RecentlyListedProtocolsTable } from './Defi/Protocols'
+export { ProtocolsTable, RecentlyListedProtocolsTable, ProtocolsByToken } from './Defi/Protocols'
 export { LiquidatableProtocolsTable, LiquidatablePositionsTable } from './Liquidations'
-export { BridgesTable, BridgeChainsTable, BridgesLargeTxsTable, BridgeTokensTable, BridgeAddressesTable } from './Bridges'
+export {
+	BridgesTable,
+	BridgeChainsTable,
+	BridgesLargeTxsTable,
+	BridgeTokensTable,
+	BridgeAddressesTable
+} from './Bridges'

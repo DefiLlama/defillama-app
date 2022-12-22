@@ -18,9 +18,19 @@ const QuestionWrapper = styled.span`
 	}
 `
 
-export default function QuestionHelper({ text, disabled, ...props }: { text: string; disabled?: boolean; style?: {} }) {
+export default function QuestionHelper({
+	text,
+	disabled,
+	textAlign,
+	...props
+}: {
+	text: string
+	disabled?: boolean
+	style?: {}
+	textAlign?: 'left' | 'center' | 'right'
+}) {
 	return (
-		<Tooltip content={disabled ? null : text}>
+		<Tooltip content={disabled ? null : text} style={{ textAlign }}>
 			<QuestionWrapper {...props}>
 				<Question size={16} />
 			</QuestionWrapper>

@@ -51,9 +51,10 @@ function PressPage({protocols}) {
 					DefiLlama has the following grants:
 					<ul>
 					{[
-						["LlamaPay (preferred)", "https://gitcoin.co/grants/7077/llamapay"],
+						["LlamaPay", "https://gitcoin.co/grants/7077/llamapay"],
 						["DefiLlama", "https://gitcoin.co/grants/3591/defillama"],
 						["DefiLlama APIs", "https://gitcoin.co/grants/7087/defillama-apis"],
+						["Chainlist", "https://gitcoin.co/grants/7791/chainlist"],
 					].map(el=><li key={el[0]}><Link href={el[1]} external>{el[0]}</Link></li>)}
 					</ul>
 					</Section>

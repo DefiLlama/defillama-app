@@ -36,7 +36,7 @@ export async function getStaticPaths() {
 		params: { chain: [chain.name] }
 	}))
 
-	return { paths, fallback: 'blocking' }
+	return { paths: paths.slice(0, 11), fallback: 'blocking' }
 }
 
 export default function PeggedAssets({

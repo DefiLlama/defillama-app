@@ -16,10 +16,13 @@ import {
 	protocolAddlColumns,
 	protocolsColumns,
 	recentlyListedProtocolsColumns,
-	topGainersAndLosersColumns
+	topGainersAndLosersColumns,
+	protocolsByTokenColumns,
+	airdropsColumns
 } from './columns'
 import useWindowSize from '~/hooks/useWindowSize'
 import { IProtocolRow } from './types'
+import { useRouter } from 'next/router'
 
 const columnSizesKeys = Object.keys(columnSizes)
 	.map((x) => Number(x))
@@ -95,9 +98,11 @@ export function RecentlyListedProtocolsTable({ data }: { data: Array<IProtocolRo
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const windowSize = useWindowSize()
 
+	const router = useRouter()
+
 	const instance = useReactTable({
 		data,
-		columns: recentlyListedProtocolsColumns,
+		columns: router.pathname === '/airdrops' ? airdropsColumns : recentlyListedProtocolsColumns,
 		state: {
 			sorting,
 			expanded,
@@ -129,6 +134,23 @@ export function TopGainersAndLosers({ data }: { data: Array<IProtocolRow> }) {
 	const instance = useReactTable({
 		data,
 		columns: topGainersAndLosersColumns,
+		state: {
+			sorting
+		},
+		onSortingChange: setSorting,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel()
+	})
+
+	return <VirtualTable instance={instance} />
+}
+
+export function ProtocolsByToken({ data }: { data: Array<{ name: string; amountUsd: number }> }) {
+	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'amountUsd' }])
+
+	const instance = useReactTable({
+		data,
+		columns: protocolsByTokenColumns,
 		state: {
 			sorting
 		},

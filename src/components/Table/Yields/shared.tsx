@@ -10,10 +10,35 @@ import {
 import VirtualTable from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
 
-export const YieldsTableWrapper = ({ data, columns, columnSizes, columnSizesKeys, columnOrders }) => {
-	const [sorting, setSorting] = React.useState<SortingState>([])
+interface IYieldsTableWrapper {
+	data: any
+	columns: any
+	columnSizes: any
+	columnSizesKeys: any
+	columnOrders: any
+	skipVirtualization?: boolean
+	rowSize?: number
+	columnVisibility?: Record<string, boolean>
+	setColumnVisibility?: React.Dispatch<React.SetStateAction<{}>>
+	sortingState?: SortingState
+}
+
+export const YieldsTableWrapper = ({
+	data,
+	columns,
+	columnSizes,
+	columnSizesKeys,
+	columnOrders,
+	skipVirtualization,
+	rowSize,
+	columnVisibility,
+	setColumnVisibility,
+	sortingState = []
+}: IYieldsTableWrapper) => {
+	const [sorting, setSorting] = React.useState<SortingState>([...sortingState])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
+
 	const windowSize = useWindowSize()
 
 	const instance = useReactTable({
@@ -22,11 +47,13 @@ export const YieldsTableWrapper = ({ data, columns, columnSizes, columnSizesKeys
 		state: {
 			sorting,
 			columnOrder,
-			columnSizing
+			columnSizing,
+			columnVisibility
 		},
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
+		onColumnVisibilityChange: setColumnVisibility,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
@@ -47,5 +74,5 @@ export const YieldsTableWrapper = ({ data, columns, columnSizes, columnSizesKeys
 		instance.setColumnOrder(order)
 	}, [windowSize, instance, columnSizes, columnSizesKeys, columnOrders])
 
-	return <VirtualTable instance={instance} />
+	return <VirtualTable instance={instance} skipVirtualization={skipVirtualization} rowSize={rowSize} />
 }

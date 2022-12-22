@@ -6,9 +6,10 @@ import { Panel } from '~/components'
 import Row from '~/components/Row'
 import { Menu } from '~/components/DropdownMenu'
 import { YieldsPoolsTable } from '~/components/Table'
-import { YieldsSearch } from '~/components/Search'
 import { useIsClient } from '~/hooks'
 import { DEFAULT_PORTFOLIO_NAME, useWatchlist } from '~/contexts/LocalStorage'
+import OptionToggle from '~/components/OptionToggle'
+import { useRouter } from 'next/router'
 
 interface IFolder {
 	isSaved?: boolean
@@ -26,6 +27,9 @@ const Action = styled.button<IFolder>`
 `
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
+	const { query, pathname, push } = useRouter()
+	const { show7dBaseApy, show7dIL, show1dVolume, show7dVolume } = query
+
 	const isClient = useIsClient()
 
 	const { addPortfolio, removePortfolio, savedProtocols, portfolios, selectedPortfolio, setSelectedPortfolio } =
@@ -45,7 +49,9 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				tvl: t.tvlUsd,
 				apy: t.apy,
 				apyBase: t.apyBase,
+				apyBase7d: t.apyBase7d,
 				apyReward: t.apyReward,
+				il7d: t.il7d,
 				rewardTokensSymbols: t.rewardTokensSymbols,
 				rewards: t.rewardTokensNames,
 				change1d: t.apyPct1D,
@@ -53,15 +59,15 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				outlook: t.apy >= 0.005 ? t.predictions.predictedClass : null,
 				confidence: t.apy >= 0.005 ? t.predictions.binnedConfidence : null,
 				url: t.url,
-				category: t.category
+				category: t.category,
+				volumeUsd1d: t.volumeUsd1d,
+				volumeUsd7d: t.volumeUsd7d
 			}))
 		} else return []
 	}, [isClient, savedProtocolsInWatchlist, protocolsDict])
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Yields', name: 'Watchlist', hideOptions: true }} />
-
 			<Header>Saved Pools</Header>
 
 			<Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
@@ -75,7 +81,46 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 						<Trash2 />
 					</Action>
 				)}
+
+				<OptionToggle
+					name="Show 7d Base Apy"
+					toggle={() => {
+						const enabled = show7dBaseApy === 'true'
+						push({ pathname, query: { ...query, show7dBaseApy: !enabled } }, undefined, { shallow: true })
+					}}
+					enabled={query.show7dBaseApy === 'true'}
+					style={{ marginLeft: 'auto' }}
+				/>
+
+				<OptionToggle
+					name="Show 7d IL"
+					toggle={() => {
+						const enabled = show7dIL === 'true'
+						push({ pathname, query: { ...query, show7dIL: !enabled } }, undefined, { shallow: true })
+					}}
+					enabled={query.show7dIL === 'true'}
+				/>
 			</Row>
+
+			<OptionToggle
+				name="Show 1d Volume"
+				toggle={() => {
+					const enabled = show1dVolume === 'true'
+					push({ pathname, query: { ...query, show1dVolume: !enabled } }, undefined, { shallow: true })
+				}}
+				enabled={query.show1dVolume === 'true'}
+				style={{ marginLeft: 'auto' }}
+			/>
+
+			<OptionToggle
+				name="Show 7d Volume"
+				toggle={() => {
+					const enabled = show7dVolume === 'true'
+					push({ pathname, query: { ...query, show7dVolume: !enabled } }, undefined, { shallow: true })
+				}}
+				enabled={query.show7dVolume === 'true'}
+				style={{ marginLeft: 'auto' }}
+			/>
 
 			{filteredProtocols.length ? (
 				<YieldsPoolsTable data={filteredProtocols} />

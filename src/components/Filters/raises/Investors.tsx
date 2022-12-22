@@ -1,18 +1,26 @@
 import { useRef } from 'react'
 import { useRouter } from 'next/router'
 import { MenuButtonArrow, useComboboxState, useSelectState } from 'ariakit'
-import { Checkbox } from '~/components'
-import { Input, List } from '~/components/Combobox'
-import { SelectButton, ComboboxSelectPopover, SelectItem, ItemsSelected, FilterFnsGroup } from '../shared'
+import { SelectButton, ComboboxSelectPopover, ItemsSelected, SecondaryLabel } from '../common'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
+import { SlidingMenu } from '~/components/SlidingMenu'
+import { ComboboxSelectContent } from '../common/ComboboxSelectContent'
 
 interface IFiltersByInvestorProps {
 	investors: string[]
 	selectedInvestors: string[]
 	pathname: string
+	variant?: 'primary' | 'secondary'
+	subMenu?: boolean
 }
 
-export function Investors({ investors = [], selectedInvestors, pathname }: IFiltersByInvestorProps) {
+export function Investors({
+	investors = [],
+	selectedInvestors,
+	pathname,
+	variant = 'primary',
+	subMenu
+}: IFiltersByInvestorProps) {
 	const router = useRouter()
 
 	const { investor, ...queries } = router.query
@@ -38,7 +46,7 @@ export function Investors({ investors = [], selectedInvestors, pathname }: IFilt
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 
-	const select = useSelectState({
+	const selectState = useSelectState({
 		...selectProps,
 		value: selectedInvestors,
 		setValue: addInvestor,
@@ -47,12 +55,7 @@ export function Investors({ investors = [], selectedInvestors, pathname }: IFilt
 		renderCallback
 	})
 
-	// Resets combobox value when popover is collapsed
-	if (!select.mounted && combobox.value) {
-		combobox.setValue('')
-	}
-
-	const toggleAll = () => {
+	const toggleAllOptions = () => {
 		if (!investor || investor === 'All') {
 			router.push(
 				{
@@ -80,8 +83,8 @@ export function Investors({ investors = [], selectedInvestors, pathname }: IFilt
 		}
 	}
 
-	const clear = () => {
-		select.up(1)
+	const clearAllOptions = () => {
+		selectState.up(1)
 		router.push(
 			{
 				pathname,
@@ -95,44 +98,83 @@ export function Investors({ investors = [], selectedInvestors, pathname }: IFilt
 		)
 	}
 
+	// Resets combobox value when popover is collapsed
+	if (!selectState.mounted && combobox.value) {
+		combobox.setValue('')
+	}
+
 	const focusItemRef = useRef(null)
+
+	const isSelected = selectedInvestors.length > 0 && selectedInvestors.length !== investors.length
+
+	const isOptionToggled = (option) =>
+		(selectState.value.includes(option) ? true : false) || (investor || []).includes('All')
+
+	if (subMenu) {
+		return (
+			<SlidingMenu label="Investors" selectState={selectState}>
+				<ComboboxSelectContent
+					options={investors}
+					selectedOptions={selectedInvestors}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					focusItemRef={focusItemRef}
+					variant={variant}
+					pathname={pathname}
+					isOptionToggled={isOptionToggled}
+					contentElementId={selectState.contentElement?.id}
+				/>
+			</SlidingMenu>
+		)
+	}
 
 	return (
 		<>
-			<SelectButton state={select}>
-				<span>Filter by Investors</span>
-				<MenuButtonArrow />
-				{selectedInvestors.length > 0 && selectedInvestors.length !== investors.length && (
-					<ItemsSelected>{selectedInvestors.length}</ItemsSelected>
-				)}
-			</SelectButton>
-			<ComboboxSelectPopover state={select} modal={!isLarge} composite={false} initialFocusRef={focusItemRef}>
-				<Input state={combobox} placeholder="Search for investors..." autoFocus />
-
-				{combobox.matches.length > 0 ? (
-					<>
-						<FilterFnsGroup>
-							<button onClick={clear}>Clear</button>
-
-							<button onClick={toggleAll}>Toggle all</button>
-						</FilterFnsGroup>
-						<List state={combobox} className="filter-by-list">
-							{combobox.matches.map((value, i) => (
-								<SelectItem
-									value={value}
-									key={value + i}
-									ref={i === 0 && selectedInvestors.length === investors.length ? focusItemRef : null}
-									focusOnHover
-								>
-									<span data-name>{value}</span>
-									<Checkbox checked={select.value.includes(value) ? true : false} />
-								</SelectItem>
-							))}
-						</List>
-					</>
+			<SelectButton state={selectState} data-variant={variant}>
+				{variant === 'secondary' ? (
+					<SecondaryLabel>
+						{isSelected ? (
+							<>
+								<span>Investor: </span>
+								<span data-selecteditems>
+									{selectedInvestors.length > 2
+										? `${selectedInvestors[0]} + ${selectedInvestors.length - 1} others`
+										: selectedInvestors.join(', ')}
+								</span>
+							</>
+						) : (
+							'Investor'
+						)}
+					</SecondaryLabel>
 				) : (
-					<p id="no-results">No results</p>
+					<>
+						<span>Filter by Investors</span>
+						{isSelected && <ItemsSelected>{selectedInvestors.length}</ItemsSelected>}
+					</>
 				)}
+
+				<MenuButtonArrow />
+			</SelectButton>
+
+			<ComboboxSelectPopover
+				state={selectState}
+				modal={!isLarge}
+				composite={false}
+				initialFocusRef={focusItemRef}
+				data-variant={variant}
+			>
+				<ComboboxSelectContent
+					options={investors}
+					selectedOptions={selectedInvestors}
+					clearAllOptions={clearAllOptions}
+					toggleAllOptions={toggleAllOptions}
+					focusItemRef={focusItemRef}
+					variant={variant}
+					pathname={pathname}
+					autoFocus
+					isOptionToggled={isOptionToggled}
+					contentElementId={selectState.contentElement?.id}
+				/>
 			</ComboboxSelectPopover>
 		</>
 	)

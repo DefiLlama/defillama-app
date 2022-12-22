@@ -3,7 +3,7 @@ import { SelectLabel, SelectArrow } from 'ariakit/select'
 import HeadHelp from '~/components/HeadHelp'
 import { Checkbox } from '~/components'
 import { protocolsAndChainsOptions } from './options'
-import { SelectItem, SelectPopover, Select } from '../shared'
+import { SelectItem, SelectPopover, Select } from '../common'
 import { useProtocolsFilterState } from './useProtocolFilterState'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 

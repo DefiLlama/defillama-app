@@ -46,11 +46,26 @@ const nextConfig = {
 				source: '/liquidations',
 				destination: '/liquidations/eth',
 				permanent: false
+			},
+			{
+				source: '/yields/optimizer',
+				destination: '/borrow',
+				permanent: true
+			},
+			{
+				source: '/aggregator',
+				destination: 'https://swap.defillama.com/',
+				permanent: true
+			},
+			{
+				source: '/protocols/cex',
+				destination: '/cexs',
+				permanent: true
 			}
 		]
 	},
 	images: {
-		domains: ['icons.llama.fi', 'assets.coingecko.com']
+		domains: ['icons.llama.fi', 'assets.coingecko.com', 'yield-charts.onrender.com', 'icons.llamao.fi']
 	},
 	compiler: {
 		styledComponents: true

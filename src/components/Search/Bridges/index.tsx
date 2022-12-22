@@ -11,6 +11,15 @@ interface IBridgesSearchProps extends ICommonSearchProps {
 	onToggleClick?: (enabled: boolean) => void
 }
 
+
+interface IBridgesSearchSelectProps extends ICommonSearchProps {
+	onlyChains?: boolean
+	formValueToEdit?: any
+	formProperty: string
+	placeholder: string
+	click?: (item: string) => void
+}
+
 export function BridgesSearch(props: IBridgesSearchProps) {
 	const { data, loading } = useGetBridgesSearchList()
 
@@ -37,7 +46,6 @@ export function BridgesSearchWithBreakdown(props: IBridgesSearchProps) {
 										props.onToggleClick(!prev)
 										return !prev
 									})
-									return {} //
 								}}
 								help="Break down 'All' volume chart by bridge"
 								enabled={isToggleEnabled}
@@ -51,9 +59,19 @@ export function BridgesSearchWithBreakdown(props: IBridgesSearchProps) {
 	)
 }
 
+export function BridgesSearchSelect(props: IBridgesSearchSelectProps) {
+	const { data, loading } = useGetBridgesSearchList()
+
+	const itemClick = (item) => {
+		props.formValueToEdit[props.formProperty] = item.name
+		props.click(item.name)
+	}
+	
+	return <DesktopSearch {...props} data={data} loading={loading} data-alwaysdisplay={true} placeholder={props.placeholder} onItemClick={itemClick}/>
+}
+
 export const ListItem = styled.li`
 	&:not(:first-child) {
 		margin-left: 20px;
 	}
 `
-

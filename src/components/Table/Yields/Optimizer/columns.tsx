@@ -6,13 +6,8 @@ import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldsOptimizerTableRow } from '../types'
 import QuestionHelper from '~/components/QuestionHelper'
-import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
-
-const apyColors = {
-	supply: '#4f8fea',
-	borrow: '#E59421',
-	positive: '#30c338'
-}
+import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
+import { ColoredAPY } from '../ColoredAPY'
 
 export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 	{
@@ -91,26 +86,60 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		}
 	},
 	{
+		header: 'Base APY',
+		accessorKey: 'totalBase',
+		enableSorting: true,
+		cell: ({ getValue }) => {
+			return (
+				<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'}>
+					{formattedPercent(getValue(), true, 700)}
+				</ColoredAPY>
+			)
+		},
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Base Supply APY',
+		accessorKey: 'lendingBase',
+		enableSorting: true,
+		cell: ({ getValue }) => {
+			return <ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400)}</ColoredAPY>
+		},
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Base Borrow APY',
+		accessorKey: 'borrowBase',
+		enableSorting: true,
+		cell: (info) => {
+			return (
+				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
+					{formattedPercent(info.getValue(), true, 400)}
+				</ColoredAPY>
+			)
+		},
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: 'Net APY',
 		accessorKey: 'totalReward',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.projectName) ? (
-						<QuestionHelper
-							text={`${row.original.projectName} Rewards are vested. You can immediately receive your rewards by taking an exit penalty!`}
-						/>
-					) : preminedRewards.includes(row.original.projectName) ? (
-						<QuestionHelper text={`${row.original.projectName} has Pre-mined rewards, no available token yet!`} />
-					) : null}
-					<span
-						style={{
-							color: apyColors[getValue() > 0 ? 'positive' : 'borrow']
-						}}
-					>
+					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
+					<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'}>
 						{formattedPercent(getValue(), true, 700)}
-					</span>
+					</ColoredAPY>
 				</AutoRow>
 			)
 		},
@@ -136,13 +165,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 						iconType="token"
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
-					<span
-						style={{
-							color: apyColors['supply']
-						}}
-					>
-						{formattedPercent(getValue(), true, 400)}
-					</span>
+					<ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400)}</ColoredAPY>
 				</AutoRow>
 			)
 		},
@@ -158,13 +181,9 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<span
-					style={{
-						color: apyColors[info.getValue() > 0 ? 'positive' : 'borrow']
-					}}
-				>
+				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
 					{formattedPercent(info.getValue(), true, 400)}
-				</span>
+				</ColoredAPY>
 			)
 		},
 		size: 140,
@@ -245,6 +264,9 @@ const columnOrders = {
 		'project',
 		'chains',
 		'borrowAvailableUsd',
+		'totalBase',
+		'lendingBase',
+		'borrowBase',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
@@ -257,6 +279,9 @@ const columnOrders = {
 		'project',
 		'chains',
 		'borrowAvailableUsd',
+		'totalBase',
+		'lendingBase',
+		'borrowBase',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
@@ -269,6 +294,9 @@ const columnOrders = {
 		'project',
 		'chains',
 		'borrowAvailableUsd',
+		'totalBase',
+		'lendingBase',
+		'borrowBase',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
@@ -281,6 +309,9 @@ const columnOrders = {
 		'project',
 		'chains',
 		'borrowAvailableUsd',
+		'totalBase',
+		'lendingBase',
+		'borrowBase',
 		'totalReward',
 		'lendingReward',
 		'borrowReward',
@@ -296,6 +327,9 @@ export const columnSizes = {
 		project: 180,
 		chain: 60,
 		borrowAvailableUsd: 100,
+		totalBase: 100,
+		lendingBase: 150,
+		borrowBase: 150,
 		totalReward: 100,
 		lendingReward: 150,
 		borrowReward: 150,
@@ -308,6 +342,9 @@ export const columnSizes = {
 		project: 180,
 		chain: 60,
 		borrowAvailableUsd: 100,
+		totalBase: 100,
+		lendingBase: 150,
+		borrowBase: 150,
 		totalReward: 100,
 		lendingReward: 150,
 		borrowReward: 150,

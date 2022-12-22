@@ -1,6 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
+import Image from 'next/future/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
@@ -25,6 +25,7 @@ import {
 	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
 import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
+import { ChartWrapper } from '~/layout/ProtocolAndPool'
 import { Checkbox2 } from '~/components'
 import Bookmark from '~/components/Bookmark'
 import CopyHelper from '~/components/Copy'
@@ -35,7 +36,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
 import ProtocolChart from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import QuestionHelper from '~/components/QuestionHelper'
-import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
 import { useCalcSingleExtraTvl } from '~/hooks/data'
@@ -47,24 +48,21 @@ import {
 	getBlockExplorer,
 	slug,
 	standardizeProtocolName,
-	toK
+	toK,
+	tokenIconUrl
 } from '~/utils'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
-import { buildProtocolData } from '~/utils/protocolData'
-import boboLogo from '~/assets/boboSmug.png'
-import { IFusedProtocolData } from '~/api/types'
-import { formatVolumeHistoryToChartDataByChain, formatVolumeHistoryToChartDataByProtocol } from '~/utils/dexs'
-import { DexCharts } from '~/containers/Dex/DexProtocol'
-import { useFetchProtocolDex } from '~/api/categories/dexs/client'
-import { useFetchProtocolFees } from '~/api/categories/fees/client'
+import type { IFusedProtocolData, IRaise } from '~/api/types'
 import { useYields } from '~/api/categories/yield/client'
-import { ChartWrapper } from '~/layout/ProtocolAndPool'
+import boboLogo from '~/assets/boboSmug.png'
+import { formatTvlsByChain, buildProtocolAddlChartsData } from './utils'
+import ChartByType from './../../DexsAndFees/charts'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-const scams = ['Drachma Exchange', 'StableDoin']
+const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance']
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -73,6 +71,10 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
 
 const Bobo = styled.button`
 	position: absolute;
@@ -104,6 +106,14 @@ const OtherProtocols = styled.nav`
 	@media screen and (min-width: 80rem) {
 		grid-column: span 2;
 	}
+`
+
+const RaisesWrapper = styled.ul`
+	list-style: none;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 `
 
 interface IProtocolLink {
@@ -174,7 +184,7 @@ export function FeesBody({ data, chartData }) {
 				<StackedChart
 					chartData={chartData}
 					title={isProtocolPage ? '' : 'Fees And Revenue'}
-					stacks={{ Fees: 'a', Revenue: 'a' }}
+					stacks={{ Fees: 'a', Revenue: 'b' }}
 					stackColors={stackedBarChartColors}
 				/>
 			</ChartWrapper>
@@ -197,13 +207,11 @@ function ProtocolContainer({
 		url,
 		description,
 		tvl,
-		logo,
 		audits,
 		category,
 		twitter,
 		tvlBreakdowns = {},
 		tvlByChain = [],
-		tvlChartData,
 		audit_links,
 		methodology,
 		module: codeModule,
@@ -213,7 +221,8 @@ function ProtocolContainer({
 		otherProtocols,
 		hallmarks,
 		gecko_id,
-		isParentProtocol
+		isParentProtocol,
+		raises
 	} = protocolData
 
 	const router = useRouter()
@@ -226,8 +235,6 @@ function ProtocolContainer({
 
 	const [extraTvlsEnabled, updater] = useDefiManager()
 
-	const { data: dex, loading: dexLoading } = useFetchProtocolDex(protocol)
-	const { data: fees } = useFetchProtocolFees(protocol)
 	const { data: yields } = useYields()
 
 	const {
@@ -240,7 +247,7 @@ function ProtocolContainer({
 			if (name === 'masterchef') return acc
 
 			// check if tvl name is addl tvl type and is toggled
-			if (isLowerCase(name[0]) && DEFI_SETTINGS_KEYS.includes(name) && tvl !== 0) {
+			if (isLowerCase(name[0]) && DEFI_SETTINGS_KEYS.includes(name)) {
 				acc.extraTvls.push([name, tvl])
 				acc.tvlOptions.push(protocolsAndChainsOptions.find((e) => e.key === name))
 			} else {
@@ -271,10 +278,11 @@ function ProtocolContainer({
 
 	const { data: addlProtocolData, loading } = useFetchProtocol(protocol)
 
-	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD, chainsStacked } = React.useMemo(
-		() => buildProtocolData(addlProtocolData),
-		[addlProtocolData]
-	)
+	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD, tokenBreakdownPieChart } =
+		React.useMemo(
+			() => buildProtocolAddlChartsData({ protocolData: addlProtocolData, extraTvlsEnabled }),
+			[addlProtocolData, extraTvlsEnabled]
+		)
 
 	const [yeildsNumber, averageApy] = React.useMemo(() => {
 		if (!yields) return [0, 0]
@@ -286,45 +294,9 @@ function ProtocolContainer({
 		return [projectYields.length, averageApy]
 	}, [protocol, yields])
 
-	const { mainChartData, allChainsChartData } = React.useMemo(() => {
-		if (!dex || dexLoading) return { mainChartData: [], allChainsChartData: [] }
-		const volumeHistory = !!dex.volumeHistory ? dex.volumeHistory : []
-
-		return {
-			mainChartData: formatVolumeHistoryToChartDataByProtocol(volumeHistory, dex.name, dex.volumeAdapter),
-			allChainsChartData: formatVolumeHistoryToChartDataByChain(volumeHistory)
-		}
-	}, [dex, dexLoading])
-
-	const volumeMap = dex?.volumeHistory?.reduce(
-		(acc, val) => ({
-			...acc,
-			[val.timestamp]: Object.values(val.dailyVolume).reduce(
-				(acc, val) => acc + +Object.values(val).reduce((acc, v) => Number(acc) + Number(v), 0),
-				0
-			)
-		}),
-		{} as Record<number, number>
-	)
-
 	const chainsSplit = React.useMemo(() => {
-		return chainsStacked?.map((chain) => {
-			if (chain.extraTvl) {
-				const data = { ...chain }
-
-				for (const c in chain.extraTvl) {
-					for (const extra in chain.extraTvl[c]) {
-						if (extraTvlsEnabled[extra?.toLowerCase()]) {
-							data[c] += chain.extraTvl[c][extra]
-						}
-					}
-				}
-
-				return data
-			}
-			return chain
-		})
-	}, [chainsStacked, extraTvlsEnabled])
+		return formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
+	}, [historicalChainTvls, extraTvlsEnabled])
 
 	const chainsUnique = tvls.map((t) => t[0])
 
@@ -342,7 +314,7 @@ function ProtocolContainer({
 
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
-			<SEO cardName={name} token={name} logo={logo} tvl={formattedNum(totalVolume, true)?.toString()} />
+			<SEO cardName={name} token={name} logo={tokenIconUrl(name)} tvl={formattedNum(totalVolume, true)?.toString()} />
 
 			<ProtocolsChainsSearch step={{ category: 'Protocols', name }} options={tvlOptions} />
 
@@ -366,7 +338,7 @@ function ProtocolContainer({
 					{scams.includes(name) && <p>There's been multiple hack reports in this protocol</p>}
 
 					<Name>
-						<TokenLogo logo={logo} size={24} />
+						<TokenLogo logo={tokenIconUrl(name)} size={24} />
 						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 						<Symbol>{symbol && symbol !== '-' ? `(${symbol})` : ''}</Symbol>
 
@@ -379,12 +351,14 @@ function ProtocolContainer({
 							<span>{formattedNum(totalVolume || '0', true)}</span>
 						</Stat>
 
-						<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
-							<DownloadButton as="a" color={backgroundColor}>
-								<DownloadCloud size={14} />
-								<span>&nbsp;&nbsp;.csv</span>
-							</DownloadButton>
-						</Link>
+						{!isParentProtocol && (
+							<Link href={`https://api.llama.fi/dataset/${protocol}.csv`} passHref>
+								<DownloadButton as="a" color={backgroundColor}>
+									<DownloadCloud size={14} />
+									<span>&nbsp;&nbsp;.csv</span>
+								</DownloadButton>
+							</Link>
+						)}
 					</StatWrapper>
 
 					{tvls.length > 0 && (
@@ -437,14 +411,12 @@ function ProtocolContainer({
 
 				<ProtocolChart
 					protocol={protocol}
-					tvlChartData={tvlChartData}
 					color={backgroundColor}
 					historicalChainTvls={historicalChainTvls}
 					chains={chains}
 					hallmarks={hallmarks}
 					bobo={bobo}
 					geckoId={gecko_id}
-					volumeMap={volumeMap}
 				/>
 
 				<Bobo onClick={() => setBobo(!bobo)}>
@@ -463,7 +435,9 @@ function ProtocolContainer({
 						<FlexRow>
 							<span>Category</span>
 							<span>: </span>
-							<Link href={`/protocols/${category.toLowerCase()}`}>{category}</Link>
+							<Link href={category.toLowerCase() === 'cex' ? '/cexs' : `/protocols/${category.toLowerCase()}`}>
+								{category}
+							</Link>
 						</FlexRow>
 					)}
 
@@ -532,20 +506,25 @@ function ProtocolContainer({
 					</LinksWrapper>
 				</Section>
 
-				<Section>
-					<h3>Methodology</h3>
-					{methodology && <p>{methodology}</p>}
-					<LinksWrapper>
-						{codeModule && (
-							<Link href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-									<span>Check the code</span>
-									<ArrowUpRight size={14} />
-								</Button>
-							</Link>
-						)}
-					</LinksWrapper>
-				</Section>
+				{(methodology || codeModule) && (
+					<Section>
+						<h3>Methodology</h3>
+						{methodology && <p>{methodology}</p>}
+						<LinksWrapper>
+							{codeModule && (
+								<Link
+									href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${codeModule}`}
+									passHref
+								>
+									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+										<span>Check the code</span>
+										<ArrowUpRight size={14} />
+									</Button>
+								</Link>
+							)}
+						</LinksWrapper>
+					</Section>
+				)}
 
 				{similarProtocols && similarProtocols.length > 0 && (
 					<Section>
@@ -554,10 +533,30 @@ function ProtocolContainer({
 						<LinksWrapper>
 							{similarProtocols.map((similarProtocol) => (
 								<Link href={`/protocol/${slug(similarProtocol.name)}`} passHref key={similarProtocol.name}>
-									<a target="_blank">{`${similarProtocol.name} ($${toK(similarProtocol.tvl)})`}</a>
+									<a target="_blank" style={{ textDecoration: 'underline' }}>{`${similarProtocol.name} ($${toK(
+										similarProtocol.tvl
+									)})`}</a>
 								</Link>
 							))}
 						</LinksWrapper>
+					</Section>
+				)}
+
+				{raises && raises.length > 0 && (
+					<Section>
+						<h3>Raises</h3>
+						<RaisesWrapper>
+							<li>{`Total raised: ${formatRaisedAmount(raises.reduce((sum, r) => sum + Number(r.amount), 0))}`}</li>
+							{raises
+								.sort((a, b) => a.date - b.date)
+								.map((raise) => (
+									<li key={raise.date + raise.amount}>
+										<a target="_blank" rel="noopener noreferrer" href={raise.source}>
+											{formatRaise(raise)}
+										</a>
+									</li>
+								))}
+						</RaisesWrapper>
 					</Section>
 				)}
 			</InfoWrapper>
@@ -588,11 +587,6 @@ function ProtocolContainer({
 					</Section>
 				</InfoWrapper>
 			)}
-
-			{mainChartData?.length ? (
-				<DexCharts data={dex} chartData={mainChartData} name={name} isProtocolPage chainsChart={allChainsChartData} />
-			) : null}
-			{fees?.chartData?.length ? <FeesBody {...fees} /> : null}
 
 			{showCharts && (
 				<>
@@ -625,15 +619,21 @@ function ProtocolContainer({
 									</LazyChart>
 								)}
 								{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
-									<LazyChart>
-										<AreaChart
-											chartData={tokenBreakdownUSD}
-											title="Tokens (USD)"
-											customLegendName="Token"
-											customLegendOptions={tokensUnique}
-											valueSymbol="$"
-										/>
-									</LazyChart>
+									<>
+										<LazyChart>
+											<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
+										</LazyChart>
+
+										<LazyChart>
+											<AreaChart
+												chartData={tokenBreakdownUSD}
+												title="Tokens (USD)"
+												customLegendName="Token"
+												customLegendOptions={tokensUnique}
+												valueSymbol="$"
+											/>
+										</LazyChart>
+									</>
 								)}
 								{usdInflows && (
 									<LazyChart>
@@ -657,6 +657,19 @@ function ProtocolContainer({
 					</ChartsWrapper>
 				</>
 			)}
+
+			<ChartsWrapper>
+				{loading ? (
+					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+				) : (
+					<>
+						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="dexs" />
+						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="fees" breakdownChart={false} />
+						<ChartByType chartType="version" protocolName={slug(protocolData.name)} type="dexs" />
+						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="fees" />
+					</>
+				)}
+			</ChartsWrapper>
 		</Layout>
 	)
 }
@@ -664,6 +677,35 @@ function ProtocolContainer({
 const stackedBarChartColors = {
 	Fees: '#4f8fea',
 	Revenue: '#E59421'
+}
+
+const formatRaise = (raise: IRaise) => {
+	let text = new Date(raise.date * 1000).toLocaleDateString() + ' :'
+
+	if (raise.round) {
+		text += ` ${raise.round}`
+	}
+
+	if (raise.round && raise.amount) {
+		text += ' -'
+	}
+
+	if (raise.amount) {
+		text += ` Raised $${formatRaisedAmount(Number(raise.amount))}`
+	}
+
+	if (raise.valuation && Number(raise.valuation)) {
+		text += ` at $${formatRaisedAmount(Number(raise.valuation))} valuation`
+	}
+
+	return text
+}
+
+const formatRaisedAmount = (n: number) => {
+	if (n >= 1e3) {
+		return `${n / 1e3}b`
+	}
+	return `${n}m`
 }
 
 export default ProtocolContainer

@@ -86,31 +86,49 @@ const whitelist = [
 	// stopped at protocols with <20M TVL
 ]
 
-import Layout from '~/layout'
-import YieldPage from '~/components/YieldsPage'
-import { revalidate } from '~/api'
-import { getYieldPageData } from '~/api/categories/yield'
-import pako from 'pako'
-import { PanelThicc, StyledAnchor } from '~/components'
-import Link from '~/components/Link'
 import { useState } from 'react'
+import Layout from '~/layout'
+import { PanelThicc, StyledAnchor } from '~/components'
+import YieldPage from '~/components/YieldsPage'
+import Link from '~/components/Link'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
+import { getAllCGTokensList, revalidate } from '~/api'
+import { getYieldPageData } from '~/api/categories/yield'
+import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
-	let data = await getYieldPageData()
-	data.props.pools = data.props.pools.filter((p) => whitelist.includes(p.projectName))
-	data.props.projectList = data.props.projectList.filter((p) => whitelist.includes(p.name))
-	data.props.categoryList = Array.from(
-		data.props.pools.reduce((set, pool) => {
-			set.add(pool.category)
-			return set
-		}, new Set())
-	)
-	const strData = JSON.stringify(data)
+	let {
+		props: { ...data }
+	} = await getYieldPageData()
 
-	const a = pako.deflate(strData)
-	const compressed = Buffer.from(a).toString('base64')
+	const cgTokens = await getAllCGTokensList()
+
+	const tokens = []
+	const tokenSymbolsList = []
+
+	cgTokens.forEach((token) => {
+		if (token.symbol) {
+			tokens.push({ name: token.name, symbol: token.symbol.toUpperCase(), logo: token.image })
+			tokenSymbolsList.push(token.symbol.toUpperCase())
+		}
+	})
+
+	const pools = data.pools.filter((p) => whitelist.includes(p.projectName))
+
+	const compressed = compressPageProps({
+		...data,
+		pools,
+		projectList: data.projectList.filter((p) => whitelist.includes(p)),
+		categoryList: Array.from(
+			pools.reduce((set, pool) => {
+				set.add(pool.category)
+				return set
+			}, new Set())
+		),
+		tokens,
+		tokenSymbolsList
+	})
 
 	return {
 		props: { compressed },
@@ -118,10 +136,10 @@ export async function getStaticProps() {
 	}
 }
 
-export default function YieldPlots(compressedProps) {
-	const b = new Uint8Array(Buffer.from(compressedProps.compressed, 'base64'))
-	const data = JSON.parse(pako.inflate(b, { to: 'string' }))
+export default function YieldPlots({ compressed }) {
+	const data = decompressPageProps(compressed)
 	const [methodologyActivated, setMethodologyActivated] = useState(false)
+
 	return (
 		<Layout title={`Halal - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
@@ -140,7 +158,7 @@ export default function YieldPlots(compressedProps) {
 				</Link>
 				{methodologyActivated && methodologyMessage}
 			</PanelThicc>
-			<YieldPage {...data.props} />
+			<YieldPage {...data} />
 		</Layout>
 	)
 }

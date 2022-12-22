@@ -1,14 +1,12 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Panel } from '~/components'
-import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
 import YieldsLoopTable from '../Table/Yields/Loop'
-import { YieldAttributes, FiltersByChain, YieldProjects, ResetAllYieldFilters } from '~/components/Filters'
-import { YieldsSearch } from '~/components/Search'
+import { YieldFiltersV2 } from '~/components/Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { toFilterPool } from './utils'
 
-const YieldPageLoop = ({ pools, projectList, chainList, categoryList }) => {
+const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens }) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
@@ -75,18 +73,19 @@ const YieldPageLoop = ({ pools, projectList, chainList, categoryList }) => {
 
 	return (
 		<>
-			<YieldsSearch step={{ category: 'Home', name: 'Yields' }} pathname={pathname} />
-
-			<TableFilters>
-				<TableHeader>Leveraged Lending</TableHeader>
-
-				<Dropdowns>
-					<FiltersByChain chainList={chainList} selectedChains={selectedChains} pathname={pathname} />
-					<YieldProjects projectList={projectList} selectedProjects={selectedProjects} pathname={pathname} />
-					<YieldAttributes pathname={pathname} />
-					<ResetAllYieldFilters pathname={pathname} />
-				</Dropdowns>
-			</TableFilters>
+			<YieldFiltersV2
+				header="Leveraged Lending"
+				poolsNumber={poolsData.length}
+				projectsNumber={selectedProjects.length}
+				chainsNumber={selectedChains.length}
+				tokens={tokens}
+				chainList={chainList}
+				selectedChains={selectedChains}
+				projectList={projectList}
+				selectedProjects={selectedProjects}
+				attributes={true}
+				resetFilters={true}
+			/>
 
 			{poolsData.length > 0 ? (
 				<YieldsLoopTable data={poolsData} />

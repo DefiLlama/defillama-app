@@ -1,6 +1,5 @@
 import useSWR from 'swr'
-import { fetcher, arrayFetcher, retrySWR } from '~/utils/useSWR'
-import { getCGMarketsDataURLs } from '~/api'
+import { fetcher, arrayFetcher } from '~/utils/useSWR'
 import {
 	CONFIG_API,
 	YIELD_CONFIG_API,
@@ -10,35 +9,6 @@ import {
 	YIELD_CHART_LEND_BORROW_API
 } from '~/constants'
 import { formatYieldsPageData } from './utils'
-
-interface IResponseCGMarketsAPI {
-	ath: number
-	ath_change_percentage: number
-	ath_date: string
-	atl: number
-	atl_change_percentage: number
-	atl_date: string
-	circulating_supply: number
-	current_price: number
-	fully_diluted_valuation: number
-	high_24h: number
-	id: string
-	image: string
-	last_updated: string
-	low_24h: number
-	market_cap: number
-	market_cap_change_24h: number
-	market_cap_change_percentage_24h: number
-	market_cap_rank: number
-	max_supply: number
-	name: string
-	price_change_24h: number
-	price_change_percentage_24h: number
-	roi: null
-	symbol: string
-	total_supply: number
-	total_volume: number
-}
 
 // single pool
 export const useYieldPoolData = (configID) => {
@@ -64,17 +34,6 @@ export const useYieldConfigData = (project) => {
 	const url = `${CONFIG_API}/smol/${project}`
 	const { data, error } = useSWR(project ? url : null, fetcher)
 	return { data, error, loading: !data && !error }
-}
-export const useFetchYieldsList = () => {
-	const { data, error } = useSWR<IResponseCGMarketsAPI[]>('yield-api', () => arrayFetcher(getCGMarketsDataURLs()), {
-		onErrorRetry: retrySWR
-	})
-
-	return {
-		data: data?.flat(),
-		error,
-		loading: !data && !error
-	}
 }
 
 export const useYieldPageData = () => {

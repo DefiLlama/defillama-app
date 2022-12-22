@@ -1,5 +1,17 @@
 import { ReactNode } from 'react'
-import { PieChart, Droplet, BarChart, DollarSign, Percent, BarChart2, Book, ShieldOff, Shuffle } from 'react-feather'
+import {
+	PieChart,
+	Droplet,
+	BarChart,
+	DollarSign,
+	Percent,
+	BarChart2,
+	Book,
+	ShieldOff,
+	Shuffle,
+	Search,
+	BookOpen
+} from 'react-feather'
 
 export interface IMainLink {
 	name: string
@@ -31,10 +43,17 @@ interface ILinks {
 const defaultToolsAndFooterLinks = {
 	tools: [
 		{ name: 'Watchlist', path: '/watchlist' },
-		{ name: 'Directory', path: '/directory', newTag: true },
+		{ name: 'Directory', path: '/directory' },
 		{
 			name: 'Roundup',
 			path: '/roundup'
+		},
+		{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
+		{
+			name: 'Token Liquidity',
+			path: 'https://llamaswap.vercel.app/token-liquidity?chain=ethereum&token=UNI',
+			newTag: true,
+			external: true
 		},
 		{
 			name: 'Wiki',
@@ -68,7 +87,7 @@ const defaultToolsAndFooterLinks = {
 		},
 		{
 			name: 'Discord',
-			path: 'https://discord.gg/buPFYXzDDd',
+			path: 'https://discord.defillama.com',
 			external: true
 		},
 		{
@@ -87,7 +106,8 @@ export const navLinks: ILinks = {
 			{ name: 'Oracles', path: '/oracles' },
 			{ name: 'Forks', path: '/forks' },
 			{ name: 'Top Protocols', path: '/top-protocols' },
-			{ name: 'Comparison', path: '/comparison?protocol=MakerDAO&protocol=Curve', newTag: true },
+			{ name: 'Comparison', path: '/comparison?protocol=MakerDAO&protocol=Curve' },
+			{ name: 'Token Usage', path: '/tokenUsage?token=ETH', newTag: true },
 			{ name: 'Categories', path: '/categories' },
 			{ name: 'Recent', path: '/recent' },
 			{ name: 'Languages', path: '/languages' }
@@ -98,10 +118,9 @@ export const navLinks: ILinks = {
 	Yields: {
 		main: [
 			{ name: 'Pools', path: '/yields' },
+			{ name: 'Delta Neutral', path: '/yields/strategy', newTag: true },
+			{ name: 'Leveraged Lending', path: '/yields/loop' },
 			{ name: 'Borrow', path: '/yields/borrow' },
-			{ name: 'Optimizer', path: '/yields/optimizer', newTag: true },
-			{ name: 'Strategies', path: '/yields/strategy', newTag: true },
-			{ name: 'Leveraged Lending', path: '/yields/loop', newTag: true },
 			{ name: 'Overview', path: '/yields/overview' },
 			{ name: 'Stablecoin Pools', path: '/yields/stablecoins' },
 			{ name: 'Projects', path: '/yields/projects' },
@@ -109,10 +128,17 @@ export const navLinks: ILinks = {
 		],
 		tools: [
 			{ name: 'Watchlist', path: '/yields/watchlist' },
-			{ name: 'Directory', path: '/directory', newTag: true },
+			{ name: 'Directory', path: '/directory' },
 			{
 				name: 'Roundup',
 				path: '/roundup'
+			},
+			{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
+			{
+				name: 'Token Liquidity',
+				path: 'https://llamaswap.vercel.app/token-liquidity?chain=ethereum&token=UNI',
+				newTag: true,
+				external: true
 			},
 			{
 				name: 'Wiki',
@@ -142,7 +168,7 @@ export const navLinks: ILinks = {
 			},
 			{
 				name: 'Discord',
-				path: 'https://discord.gg/buPFYXzDDd',
+				path: 'https://discord.defillama.com',
 				external: true
 			},
 			{
@@ -152,20 +178,31 @@ export const navLinks: ILinks = {
 		],
 		icon: <Percent size={16} />
 	},
-	Stables: {
+	'Borrow Aggregator': {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Search size={16} />
+	},
+	'CEX Transparency': {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <BookOpen size={16} />
+	},
+	Bridges: {
 		main: [
-			{ name: 'Overview', path: '/stablecoins' },
-			{ name: 'Chains', path: '/stablecoins/chains' }
+			{ name: 'Overview', path: '/bridges' },
+			{ name: 'Chains', path: '/bridges/chains' },
+			{ name: 'Transactions', path: '/bridge-transactions', newTag: true }
 		],
 		...defaultToolsAndFooterLinks,
-		icon: <DollarSign size={16} />
+		icon: <Shuffle size={16} />
 	},
 	Liquidations: {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Droplet size={16} />
 	},
-	DEXs: {
+	Volumes: {
 		main: [
 			{ name: 'Overview', path: '/dexs' },
 			{ name: 'Chains', path: '/dexs/chains' }
@@ -173,7 +210,7 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <BarChart size={16} />
 	},
-	Fees: {
+	'Fees/Revenue': {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <PieChart size={16} />
@@ -183,26 +220,28 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <Book size={16} />
 	},
+	Stables: {
+		main: [
+			{ name: 'Overview', path: '/stablecoins' },
+			{ name: 'Chains', path: '/stablecoins/chains' }
+		],
+		...defaultToolsAndFooterLinks,
+		icon: <DollarSign size={16} />
+	},
 	Hacks: {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <ShieldOff size={16} />
-	},
-	Bridges: {
-		main: [
-			{ name: 'Overview', path: '/bridges' },
-			{ name: 'Chains', path: '/bridges/chains' }
-		],
-		...defaultToolsAndFooterLinks,
-		icon: <Shuffle size={16} />
-	},
+	}
 }
 
 export const linksWithNoSubMenu = [
 	{ name: 'Liquidations', url: '/liquidations/eth' },
-	{ name: 'Fees', url: '/fees' },
+	{ name: 'Fees/Revenue', url: '/fees' },
 	{ name: 'Raises', url: '/raises' },
 	{ name: 'Hacks', url: '/hacks' },
+	{ name: 'Borrow Aggregator', url: '/borrow' },
+	{ name: 'CEX Transparency', url: '/cexs' }
 ]
 
 function downloadDefiDataset() {

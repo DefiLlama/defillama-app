@@ -6,13 +6,8 @@ import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import QuestionHelper from '~/components/QuestionHelper'
 import { AutoRow } from '~/components/Row'
-import { lockupsRewards, preminedRewards } from '~/components/YieldsPage/utils'
-
-const apyColors = {
-	supply: '#4f8fea',
-	borrow: '#E59421',
-	positive: '#30c338'
-}
+import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
+import { ColoredAPY } from '../ColoredAPY'
 
 export const columns: ColumnDef<IYieldTableRow>[] = [
 	{
@@ -66,20 +61,8 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: ({ getValue, row }) => {
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.project) ? (
-						<QuestionHelper
-							text={`${row.original.project} Rewards are vested. You can immediately receive your rewards by taking an exit penalty!`}
-						/>
-					) : preminedRewards.includes(row.original.project) ? (
-						<QuestionHelper text={`${row.original.project} has Pre-mined rewards, no available token yet!`} />
-					) : null}
-					<span
-						style={{
-							color: apyColors['positive']
-						}}
-					>
-						{formattedPercent(getValue(), true, 700)}
-					</span>
+					{lockupsRewards.includes(row.original.project) ? <QuestionHelper text={earlyExit} /> : null}
+					<ColoredAPY data-variant="positive">{formattedPercent(getValue(), true, 700)}</ColoredAPY>
 				</AutoRow>
 			)
 		},
@@ -94,15 +77,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'netSupplyApy',
 		enableSorting: true,
 		cell: (info) => {
-			return (
-				<span
-					style={{
-						color: apyColors['supply']
-					}}
-				>
-					{formattedPercent(info.getValue(), true, 400)}
-				</span>
-			)
+			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true, 400)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
@@ -115,20 +90,12 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'boost',
 		enableSorting: true,
 		cell: (info) => {
-			return (
-				<span
-					style={{
-						color: apyColors['borrow']
-					}}
-				>
-					{toK(info.getValue()) + 'x'}
-				</span>
-			)
+			return <ColoredAPY data-variant="borrow">{toK(info.getValue()) + 'x'}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Loop APY Multiple over Supply APY'
+			headerHelperText: 'Loop APY / Supply APY'
 		}
 	},
 	{
