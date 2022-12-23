@@ -117,8 +117,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		allChains
 	} = request
 
+	const protocolsRaw = chain ? protocolsData?.protocols.map(p => ({ ...p, tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null })) : protocolsData?.protocols
 	const tvlData =
-		protocolsData?.protocols?.reduce((acc, pd) => {
+		protocolsRaw?.reduce((acc, pd) => {
 			acc[pd.name] = pd.tvlPrevDay
 			return acc
 		}, {}) ?? {}
