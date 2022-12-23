@@ -17,6 +17,7 @@ interface INameYieldPoolProps {
 	withoutLink?: boolean
 	maxCharacters?: number
 	bookmark?: boolean
+	strategy?: boolean
 }
 
 interface INameYield {
@@ -33,11 +34,16 @@ export function NameYieldPool({
 	url,
 	index,
 	borrow,
+	strategy,
 	withoutLink,
 	maxCharacters = 10,
 	bookmark = true
 }: INameYieldPoolProps) {
-	const tokenUrl = borrow ? `/yields/borrow/${configID}` : `/yields/pool/${configID}`
+	const tokenUrl = borrow
+		? `/yields/borrow/${configID}`
+		: strategy
+		? `/yields/strategy/${configID}`
+		: `/yields/pool/${configID}`
 
 	return (
 		<Wrapper>
