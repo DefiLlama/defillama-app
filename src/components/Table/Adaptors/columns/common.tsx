@@ -105,6 +105,7 @@ export const Total24hColumn = (
 		enableSorting: true,
 		cell: (info) => {
 			const value = info.getValue()
+			if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
 			const rawMethodology = typeof info.row.original.methodology === 'object' ? info.row.original.methodology : {}
 			const methodologyKey = (() => {
 				if (accessor.includes('24h')) return type
@@ -113,7 +114,6 @@ export const Total24hColumn = (
 			const methodology = Object.entries(rawMethodology).find(
 				([name]) => name.toLowerCase() === methodologyKey.toLowerCase()
 			)?.[1]
-			if (value === '' || (value === 0 && !methodology) || Number.isNaN(formattedNum(value))) return <></>
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
 					{methodology ? <QuestionHelper text={methodology} textAlign="center" /> : null}
