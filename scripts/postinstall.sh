@@ -10,3 +10,4 @@ if [ -z "$NOT_VERCEL" ]; then
 fi
 
 patch ./node_modules/next/dist/server/send-payload/revalidate-headers.js <scripts/revalidate-headers.patch
+patch ./node_modules/next/dist/server/render.js <scripts/render.patch
