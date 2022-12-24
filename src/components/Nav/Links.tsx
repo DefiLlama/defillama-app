@@ -50,6 +50,12 @@ const defaultToolsAndFooterLinks = {
 		},
 		{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
 		{
+			name: 'Token Liquidity',
+			path: 'https://llamaswap.vercel.app/token-liquidity?chain=ethereum&token=UNI',
+			newTag: true,
+			external: true
+		},
+		{
 			name: 'Wiki',
 			path: 'https://wiki.defillama.com/wiki/Main_Page',
 			external: true
@@ -128,6 +134,12 @@ export const navLinks: ILinks = {
 				path: '/roundup'
 			},
 			{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
+			{
+				name: 'Token Liquidity',
+				path: 'https://llamaswap.vercel.app/token-liquidity?chain=ethereum&token=UNI',
+				newTag: true,
+				external: true
+			},
 			{
 				name: 'Wiki',
 				path: 'https://wiki.defillama.com/wiki/Main_Page',

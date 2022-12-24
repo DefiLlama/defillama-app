@@ -27,7 +27,7 @@ import { useScrollToTop } from '~/hooks'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
 import { IBarChartProps } from '~/components/ECharts/types'
-import { IJoin2ReturnType, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
+import { IJoin2ReturnType, IOverviewProps, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 import ChartByType from './charts'
 
 interface PageParams {
@@ -45,6 +45,7 @@ import {
 } from './common'
 import Announcement from '~/components/Announcement'
 import { volumeTypes } from '~/utils/adaptorsPages/[type]/[item]'
+import SEO from '~/components/SEO'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -57,10 +58,13 @@ export interface IProtocolContainerProps extends PageParams {
 export interface IDexChartsProps {
 	data: {
 		total24h: IProtocolContainerProps['protocolSummary']['total24h']
+		total7d: IProtocolContainerProps['protocolSummary']['total7d']
 		disabled: IProtocolContainerProps['protocolSummary']['disabled']
 		revenue24h?: IProtocolContainerProps['protocolSummary']['revenue24h']
 		change_1d: IProtocolContainerProps['protocolSummary']['change_1d']
 		change_1m?: IProtocolContainerProps['protocolSummary']['change_1m']
+		change_7dover7d?: IOverviewProps['dexsDominance']
+		dexsDominance?: IOverviewProps['dexsDominance']
 	}
 	chartData: [IJoin2ReturnType, string[]]
 	name: string
@@ -231,6 +235,13 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 
 	return (
 		<Layout title={props.title} backgroundColor={transparentize(0.6, props.backgroundColor)} style={{ gap: '36px' }}>
+			<SEO
+				cardName={props.protocolSummary.displayName}
+				tvl={formattedNum(props.protocolSummary.total24h)?.toString()}
+				volumeChange={props.protocolSummary.change_1d?.toString()}
+				pageType={props.protocolSummary.type}
+			/>
+
 			<AdaptorsSearch
 				type={props.protocolSummary.type}
 				step={{
@@ -420,15 +431,6 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					</ChartsWrapper>
 				</>
 			)}
-			{/* 			<SEO
-				cardName={dexData.name}
-				token={dexData.name}
-				tvl={formattedNum(dexData.total1dVolume)?.toString()}
-				volumeChange={`${dexData.change1dVolume}`}
-				dexsPage
-			/>
-
-			 */}
 		</Layout>
 	)
 }

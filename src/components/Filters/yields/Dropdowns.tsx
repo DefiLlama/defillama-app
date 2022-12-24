@@ -1,16 +1,14 @@
 import { useRouter } from 'next/router'
-import { FiltersByChain, FiltersByToken } from '../../shared'
-import { YieldAttributes } from '../Attributes'
-import { FiltersByCategory } from '../Categories'
-import { YieldProjects } from '../Projects'
-import { APYRange } from '../APYRange'
-import { AvailableRange, TVLRange } from '../../protocols'
-import { ResetAllYieldFilters } from '../ResetAll'
+import { FiltersByChain, FiltersByToken } from '../common'
+import { AvailableRange, TVLRange } from '../protocols'
+import { YieldAttributes } from './Attributes'
+import { FiltersByCategory } from './Categories'
+import { YieldProjects } from './Projects'
+import { APYRange } from './APYRange'
+import { ResetAllYieldFilters } from './ResetAll'
 import type { IDropdownMenusProps } from './types'
-
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
-import { useContext } from 'react'
-import { TokensContext } from './context'
+import { ColumnFilters } from '../common/ColumnFilters'
 
 const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
 
@@ -38,20 +36,15 @@ export function YieldFilterDropdowns({
 	excludeBadDebt,
 	selectedAttributes,
 	excludeRewardApy,
-	isMobile
+	isMobile,
+	show1dVolume,
+	show7dVolume
 }: IDropdownMenusProps) {
 	const router = useRouter()
 
 	const isBadDebtToggled = selectedAttributes ? selectedAttributes.includes(BAD_DEBT_KEY) : false
 
 	const shouldExlcudeRewardApy = router.query.excludeRewardApy === 'true' ? true : false
-
-	const { setTokensToInclude, setTokensToExclude } = useContext(TokensContext)
-
-	const resetContext = () => {
-		setTokensToInclude?.([])
-		setTokensToExclude?.([])
-	}
 
 	return (
 		<>
@@ -127,50 +120,15 @@ export function YieldFilterDropdowns({
 
 			{availableRange && <AvailableRange variant="secondary" subMenu={isMobile} />}
 
-			{show7dBaseApy && (
-				<label className={isMobile ? 'sliding-menu-button align-reverse' : 'checkbox-filter'}>
-					<input
-						type="checkbox"
-						value="show7dBaseApy"
-						checked={router.query.show7dBaseApy === 'true'}
-						onChange={() => {
-							router.push(
-								{
-									pathname: pathname || router.pathname,
-									query: { ...router.query, show7dBaseApy: !(router.query.show7dBaseApy === 'true') }
-								},
-								undefined,
-								{
-									shallow: true
-								}
-							)
-						}}
-					/>
-					<span>Show 7d Base APY</span>
-				</label>
-			)}
-
-			{show7dIL && (
-				<label className={isMobile ? 'sliding-menu-button align-reverse' : 'checkbox-filter'}>
-					<input
-						type="checkbox"
-						value="show7dIL"
-						checked={router.query.show7dIL === 'true'}
-						onChange={() => {
-							router.push(
-								{
-									pathname: pathname || router.pathname,
-									query: { ...router.query, show7dIL: !(router.query.show7dIL === 'true') }
-								},
-								undefined,
-								{
-									shallow: true
-								}
-							)
-						}}
-					/>
-					<span>Show 7d IL</span>
-				</label>
+			{(show7dBaseApy || show7dIL || show1dVolume || show7dVolume) && (
+				<ColumnFilters
+					show7dBaseApy={show7dBaseApy}
+					show7dIL={show7dIL}
+					show1dVolume={show1dVolume}
+					show7dVolume={show7dVolume}
+					variant="secondary"
+					subMenu={isMobile}
+				/>
 			)}
 
 			{excludeBadDebt && selectedAttributes && (
@@ -224,12 +182,7 @@ export function YieldFilterDropdowns({
 			)}
 
 			{resetFilters && (
-				<ResetAllYieldFilters
-					pathname={pathname || router.pathname}
-					variant="secondary"
-					subMenu={isMobile}
-					resetContext={resetContext}
-				/>
+				<ResetAllYieldFilters pathname={pathname || router.pathname} variant="secondary" subMenu={isMobile} />
 			)}
 		</>
 	)

@@ -26,7 +26,7 @@ export default function MobileNav() {
 				</LogoWrapper>
 			</Link>
 
-			{!router.pathname.startsWith('/yield') && <MobileSearch />}
+			{!router.pathname.startsWith('/yield') && !router.pathname.startsWith('/raises') && <MobileSearch />}
 
 			<Settings />
 			<Menu />

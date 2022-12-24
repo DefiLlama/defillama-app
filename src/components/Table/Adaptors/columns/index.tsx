@@ -7,10 +7,12 @@ import {
 	Change1dColumn,
 	Change1mColumn,
 	Change7dColumn,
+	ChangeColumn,
 	DominanceColumn,
 	NameColumn,
 	Total24hColumn,
 	TotalAllTimeColumn,
+	TVLColumn,
 	VolumeTVLColumn
 } from './common'
 
@@ -57,10 +59,13 @@ export const volumesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
 		NameColumn('dexs', allChains),
 		allChains ? undefined : ChainsColumn('dexs'),
-		Change1dColumn,
-		Change7dColumn,
-		Change1mColumn,
+		// Change1dColumn,
+		// Change7dColumn,
+		// Change1mColumn,
+		ChangeColumn('Weekly change', 'change_7dover7d', 160, 'Change of last 7d volume over the previous 7d volume'),
 		Total24hColumn('Volume', undefined, `Yesterday's volume, updated daily at 00:00UTC`),
+		Total24hColumn('Volume', 'total7d', `Cumulative last 7d volume`, undefined, 'Volume (7d)'),
+		TVLColumn,
 		TotalAllTimeColumn('volume'),
 		allChains ? undefined : VolumeTVLColumn,
 		DominanceColumn
@@ -120,7 +125,7 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		allChains ? undefined : ChainsColumn('fees'),
 		allChains ? undefined : CategoryColumn,
 		Total24hColumn('Fees', undefined, 'Fees paid by protocol users excluding gas fees', 140),
-		allChains ? undefined : Total24hColumn('Earnings', 'revenue24h', 'Fees accrued to the protocol', 140),
+		allChains ? undefined : Total24hColumn('Revenue', 'revenue24h', 'Fees accrued to the protocol', 160),
 		// TotalAllTimeColumn('fees') tmp
 		// Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
 		// Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
@@ -138,26 +143,32 @@ export const volumesTableColumnOrders = formatColumnOrder({
 	0: [
 		'displayName',
 		'name',
-		'total24h',
-		'change_7d',
 		'chains',
+		'change_7dover7d',
+		'total24h',
+		'total7d',
+		'change_7d',
 		'change_1d',
 		'change_1m',
-		'totalAllTime',
+		'tvl',
 		'volumetvl',
-		'dominance'
+		'dominance',
+		'totalAllTime'
 	],
 	900: [
 		'displayName',
 		'name',
 		'chains',
+		'change_7dover7d',
 		'change_1d',
 		'change_7d',
 		'change_1m',
 		'total24h',
-		'totalAllTime',
+		'total7d',
+		'tvl',
 		'volumetvl',
-		'dominance'
+		'dominance',
+		'totalAllTime'
 	]
 })
 
@@ -170,7 +181,7 @@ export const volumesColumnSizes = {
 		change_1m: 140,
 		total24h: 160,
 		volumetvl: 140,
-		dominance: 140
+		dominance: 100
 	},
 	600: {
 		name: 200,
@@ -180,7 +191,7 @@ export const volumesColumnSizes = {
 		change_1m: 140,
 		total24h: 160,
 		volumetvl: 140,
-		dominance: 140
+		dominance: 100
 	},
 	900: {
 		name: 240,
@@ -190,7 +201,7 @@ export const volumesColumnSizes = {
 		change_1m: 140,
 		total24h: 160,
 		volumetvl: 140,
-		dominance: 140
+		dominance: 100
 	}
 }
 

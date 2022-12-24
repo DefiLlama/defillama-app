@@ -1,6 +1,8 @@
 import { Select as AriaSelect, SelectItem as AriaSelectItem, SelectPopover as AriaSelectPopover } from 'ariakit/select'
 import { transparentize } from 'polished'
 import styled from 'styled-components'
+import { Checkbox } from '~/components'
+import HeadHelp from '~/components/HeadHelp'
 
 export const Select = styled(AriaSelect)`
 	display: flex;
@@ -274,3 +276,23 @@ export const SecondaryLabel = styled.span`
 		color: ${({ theme }) => theme.link};
 	}
 `
+
+export const SelectContent = ({ clearAllOptions, toggleAllOptions, variant, pathname, options, selectedOptions }) => {
+	return (
+		<>
+			<FilterFnsGroup data-variant={variant}>
+				<button onClick={clearAllOptions}>Clear</button>
+
+				<button onClick={toggleAllOptions}>Toggle all</button>
+			</FilterFnsGroup>
+			{options.map((option) => (
+				<SelectItem key={option.key} value={option.key} disabled={option.disabledOnPages?.includes(pathname) ?? false}>
+					{option.help ? <HeadHelp title={option.name} text={option.help} /> : option.name}
+					<Checkbox
+						checked={selectedOptions.includes(option.key) || (option.disabledOnPages?.includes(pathname) ?? false)}
+					/>
+				</SelectItem>
+			))}
+		</>
+	)
+}

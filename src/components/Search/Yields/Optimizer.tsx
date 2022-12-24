@@ -31,7 +31,7 @@ export function useFormatTokensSearchList({ lend, searchData }) {
 					...queryParams
 				}
 			},
-			logo: '/icons/usd_native.png'
+			logo: 'https://icons.llamao.fi/icons/pegged/usd_native?h=24&w=24'
 		}
 
 		const yieldsList =

@@ -8,7 +8,6 @@ import { useGetLiquidationSearchList } from '../Liquidations/hooks'
 import { useGetNftsSearchList } from '../NFTs/hooks'
 import { IDefiSearchListProps, useGetDefiSearchList } from '../ProtocolsChains/hooks'
 import { useGetStablecoinsSearchList } from '../Stablecoins/hooks'
-import { useGetInvestorsList } from '../Raises/hooks'
 import { MobileResults } from './Results/Mobile'
 import { useGetAdaptorsSearchList } from '../Adaptors/hooks'
 
@@ -59,10 +58,6 @@ const useMobileSearchResult = () => {
 
 	if (router.pathname.startsWith('/nfts')) {
 		return useGetNftsSearchList
-	}
-
-	if (router.pathname.startsWith('/raises')) {
-		return useGetInvestorsList
 	}
 
 	if (router.pathname.startsWith('/fee')) {

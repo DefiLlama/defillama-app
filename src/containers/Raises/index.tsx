@@ -6,9 +6,12 @@ import {
 	SortingState,
 	getCoreRowModel,
 	getSortedRowModel,
-	ColumnOrderState
+	getFilteredRowModel,
+	ColumnOrderState,
+	ColumnFiltersState
 } from '@tanstack/react-table'
 import styled from 'styled-components'
+import { Search } from 'react-feather'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { ChartWrapper, DetailsWrapper } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
@@ -16,9 +19,7 @@ import { Stat } from '~/layout/Stats/Large'
 import VirtualTable from '~/components/Table/Table'
 import { raisesColumns, raisesColumnOrders } from '~/components/Table/Defi/columns'
 import { AnnouncementWrapper } from '~/components/Announcement'
-import { RaisesSearch } from '~/components/Search'
-import { Dropdowns, TableFilters, TableHeader } from '~/components/Table/shared'
-import { Chains, Investors, RaisedRange, Rounds, Sectors } from '~/components/Filters'
+import { RaisesFilters } from '~/components/Filters'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { DownloadIcon } from '~/components'
@@ -29,7 +30,10 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-function RaisesTable({ raises }) {
+const columnResizeMode = 'onChange'
+
+function RaisesTable({ raises, downloadCsv }) {
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const windowSize = useWindowSize()
@@ -37,12 +41,16 @@ function RaisesTable({ raises }) {
 	const instance = useReactTable({
 		data: raises,
 		columns: raisesColumns,
+		columnResizeMode,
 		state: {
+			columnFilters,
 			columnOrder,
 			sorting
 		},
 		onSortingChange: setSorting,
 		onColumnOrderChange: setColumnOrder,
+		onColumnFiltersChange: setColumnFilters,
+		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
@@ -57,7 +65,46 @@ function RaisesTable({ raises }) {
 		instance.setColumnOrder(order)
 	}, [windowSize, instance])
 
-	return <VirtualTable instance={instance} />
+	const [projectName, setProjectName] = React.useState('')
+
+	React.useEffect(() => {
+		const projectsColumns = instance.getColumn('name')
+
+		const id = setTimeout(() => {
+			projectsColumns.setFilterValue(projectName)
+		}, 200)
+
+		return () => clearTimeout(id)
+	}, [projectName, instance])
+
+	return (
+		<>
+			<TableFilters>
+				<SearchIcon size={16} />
+
+				<input
+					value={projectName}
+					onChange={(e) => {
+						setProjectName(e.target.value)
+					}}
+					placeholder="Search projects..."
+				/>
+
+				<DownloadButton onClick={downloadCsv}>
+					<DownloadIcon />
+					<span>&nbsp;&nbsp;.csv</span>
+				</DownloadButton>
+				<Link href="https://api.llama.fi/raises" target="_blank">
+					<DownloadButton>
+						<DownloadIcon />
+						<span>&nbsp;&nbsp;.json</span>
+					</DownloadButton>
+				</Link>
+			</TableFilters>
+
+			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
+		</>
+	)
 }
 
 const DownloadButton = styled.button`
@@ -67,13 +114,6 @@ const DownloadButton = styled.button`
 	background: ${({ theme }) => theme.bg3};
 	padding: 4px 6px;
 	border-radius: 6px;
-`
-
-const TableHeaderWrapper = styled(TableHeader)`
-	display: flex;
-	flex-wrap: nowrap;
-	align-items: center;
-	gap: 8px;
 `
 
 const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName, monthlyInvestment }) => {
@@ -261,8 +301,6 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 
 	return (
 		<Layout title={`Raises - DefiLlama`} defaultSEO>
-			<RaisesSearch step={{ category: investorName ? 'Raises' : 'Home', name: investorName || 'Raises' }} />
-
 			<AnnouncementWrapper>
 				<span>Are we missing any funding round?</span>{' '}
 				<a
@@ -274,6 +312,19 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					Add it here!
 				</a>
 			</AnnouncementWrapper>
+
+			<RaisesFilters
+				header={investorName ? `${investorName} raises` : 'Raises'}
+				rounds={rounds}
+				selectedRounds={selectedRounds}
+				sectors={sectors}
+				selectedSectors={selectedSectors}
+				investors={investors}
+				selectedInvestors={selectedInvestors}
+				chains={chains}
+				selectedChains={selectedChains}
+				pathname={pathname}
+			/>
 
 			<StatsSection>
 				<DetailsWrapper>
@@ -292,36 +343,43 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</ChartWrapper>
 			</StatsSection>
 
-			<TableFilters>
-				<TableHeaderWrapper>
-					<span>Raises</span>
-					<DownloadButton onClick={downloadCsv}>
-						<DownloadIcon />
-						<span>&nbsp;&nbsp;.csv</span>
-					</DownloadButton>
-					<Link href="https://api.llama.fi/raises" target="_blank">
-						<DownloadButton>
-							<DownloadIcon />
-							<span>&nbsp;&nbsp;.json</span>
-						</DownloadButton>
-					</Link>
-				</TableHeaderWrapper>
-
-				<Dropdowns>
-					<Rounds rounds={rounds} selectedRounds={selectedRounds} pathname={pathname} />
-					<Sectors sectors={sectors} selectedSectors={selectedSectors} pathname={pathname} />
-					<Investors investors={investors} selectedInvestors={selectedInvestors} pathname={pathname} />
-					<Chains chains={chains} selectedChains={selectedChains} pathname={pathname} />
-					<RaisedRange />
-					<Link href="/raises" shallow>
-						<a style={{ textDecoration: 'underline' }}>Reset all filters</a>
-					</Link>
-				</Dropdowns>
-			</TableFilters>
-
-			<RaisesTable raises={filteredRaisesList} />
+			<RaisesTable raises={filteredRaisesList} downloadCsv={downloadCsv} />
 		</Layout>
 	)
 }
+
+const TableFilters = styled.div`
+	display: flex;
+	aling-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 0 0 -20px;
+	position: relative;
+
+	input {
+		width: 100%;
+		margin-right: auto;
+		border-radius: 8px;
+		padding: 8px;
+		padding-left: 32px;
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
+
+		font-size: 0.875rem;
+		border: none;
+	}
+
+	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+		input {
+			max-width: 400px;
+		}
+	}
+`
+
+const SearchIcon = styled(Search)`
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	color: ${({ theme }) => theme.text3};
+`
 
 export default RaisesContainer

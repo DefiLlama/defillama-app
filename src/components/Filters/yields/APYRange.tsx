@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { FilterBetweenRange, SecondaryLabel } from '../shared'
+import { FilterBetweenRange, SecondaryLabel } from '../common'
 
 interface IAPYRange {
 	variant?: 'primary' | 'secondary'

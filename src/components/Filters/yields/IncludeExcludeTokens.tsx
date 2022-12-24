@@ -1,4 +1,4 @@
-import { useState, useRef, useContext } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { useComboboxState } from 'ariakit'
 import styled from 'styled-components'
@@ -7,16 +7,18 @@ import TokenLogo, { isExternalImage } from '~/components/TokenLogo'
 import { Input } from '~/components/Search/Base/Input'
 import { Empty, Popover } from '~/components/Search/Base/Results/Desktop'
 import { findActiveItem } from '~/components/Search/Base/utils'
-import { TokensContext } from './context'
 
 export function IncludeExcludeTokens({ tokens }: { tokens: Array<{ name: string; symbol: string; logo: string }> }) {
 	const [resultsLength, setResultsLength] = useState(3)
 
-	const { tokensToInclude, setTokensToInclude, tokensToExclude, setTokensToExclude } = useContext(TokensContext)
-
 	const searchWrapperRef = useRef()
 
 	const router = useRouter()
+
+	const { token, excludeToken } = router.query
+
+	const tokensToInclude = token ? (typeof token === 'string' ? [token] : [...token]) : []
+	const tokensToExclude = excludeToken ? (typeof excludeToken === 'string' ? [excludeToken] : [...excludeToken]) : []
 
 	const showMoreResults = () => {
 		setResultsLength((prev) => prev + 5)
@@ -37,59 +39,26 @@ export function IncludeExcludeTokens({ tokens }: { tokens: Array<{ name: string;
 	}
 
 	const handleTokenInclude = (token: string, action?: 'delete') => {
-		setTokensToInclude((tokens) => {
-			if (action === 'delete') {
-				const filteredTokens = tokens.filter((x) => x != token)
+		const tokenQueryParams =
+			action === 'delete' ? tokensToInclude.filter((x) => x !== token) : [...tokensToInclude, token]
 
-				if (filteredTokens.length === 0 && tokensToExclude.length === 0) {
-					router.push(
-						{ pathname: router.pathname, query: { ...router.query, token: [], excludeToken: [] } },
-						undefined,
-						{ shallow: true }
-					)
-				}
-
-				return filteredTokens
-			} else {
-				return [...tokens, token]
-			}
+		router.push({ pathname: router.pathname, query: { ...router.query, token: tokenQueryParams } }, undefined, {
+			shallow: true
 		})
 	}
 
 	const handleTokenExclude = (token: string, action?: 'delete') => {
-		setTokensToExclude((tokens) => {
-			if (action === 'delete') {
-				const filteredTokens = tokens.filter((x) => x != token)
+		const tokenQueryParams =
+			action === 'delete' ? tokensToExclude.filter((x) => x !== token) : [...tokensToExclude, token]
 
-				if (filteredTokens.length === 0 && tokensToInclude.length === 0) {
-					router.push(
-						{ pathname: router.pathname, query: { ...router.query, token: [], excludeToken: [] } },
-						undefined,
-						{ shallow: true }
-					)
-				}
-
-				return filteredTokens
-			} else {
-				return [...tokens, token]
-			}
+		router.push({ pathname: router.pathname, query: { ...router.query, excludeToken: tokenQueryParams } }, undefined, {
+			shallow: true
 		})
 	}
 
 	const options = combobox.matches
 		.filter((t) => !tokensToInclude.includes(t) && !tokensToExclude.includes(t))
 		.map((o) => tokens.find((x) => x.symbol === o))
-
-	const confirmSearch = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: { ...router.query, token: [...tokensToInclude], excludeToken: [...tokensToExclude] }
-			},
-			undefined,
-			{ shallow: true }
-		)
-	}
 
 	return (
 		<SearchWrapper ref={searchWrapperRef}>
@@ -108,8 +77,6 @@ export function IncludeExcludeTokens({ tokens }: { tokens: Array<{ name: string;
 							<XIcon size={14} />
 						</IncludeOrExclude>
 					))}
-
-					<ConfirmButton onClick={confirmSearch}>Confirm Search</ConfirmButton>
 				</OptionsWrapper>
 			)}
 

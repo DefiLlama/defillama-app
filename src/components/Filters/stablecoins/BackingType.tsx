@@ -4,7 +4,7 @@ import { Checkbox } from '~/components'
 import HeadHelp from '~/components/HeadHelp'
 import { useSetPopoverStyles } from '~/components/Popover/utils'
 import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
-import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover, ItemsSelected } from '../shared'
+import { SelectItem, FilterFnsGroup, SelectButton, SelectPopover, ItemsSelected } from '../common'
 
 export const stablecoinBackingOptions = [
 	{
@@ -33,46 +33,46 @@ export function BackingType({ pathname }: { pathname: string }) {
 	const { backing = [], chain, ...queries } = router.query
 
 	const values = stablecoinBackingOptions
-	.filter((o) => {
-		if (backing) {
-			if (backing.length === 0) {
-				return true
-			} else if (typeof backing === 'string') {
-				return o.key === backing
-			} else {
-				return backing.includes(o.key)
+		.filter((o) => {
+			if (backing) {
+				if (backing.length === 0) {
+					return true
+				} else if (typeof backing === 'string') {
+					return o.key === backing
+				} else {
+					return backing.includes(o.key)
+				}
 			}
-		}
-	})
-	.map((o) => o.key)
+		})
+		.map((o) => o.key)
 
-const updateBackings = (newFilters) => {
-	if (values.length === 1 && newFilters.length === 0) {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					backing: 'None'
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
-	} else {
-		router.push(
-			{
-				pathname,
-				query: {
-					...queries,
-					backing: newFilters
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+	const updateBackings = (newFilters) => {
+		if (values.length === 1 && newFilters.length === 0) {
+			router.push(
+				{
+					pathname,
+					query: {
+						...queries,
+						backing: 'None'
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		} else {
+			router.push(
+				{
+					pathname,
+					query: {
+						...queries,
+						backing: newFilters
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		}
 	}
-}
 
 	const [isLarge, renderCallback] = useSetPopoverStyles()
 

@@ -14,20 +14,22 @@ const cexData = [
 		cgDeriv: 'binance_futures'
 	},
 	{
-		name: 'OKX',
-		slug: 'okx',
-		coin: null,
-		walletsLink: 'https://twitter.com/okx/status/1590812545346330624',
-		cgId: 'okex',
-		cgDeriv: 'okex_swap'
-	},
-	{
 		name: 'Bitfinex',
 		slug: 'bitfinex',
-		coin: null,
+		coin: 'LEO',
+		coinSymbol: 'LEO',
 		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt',
 		cgId: 'bitfinex',
 		cgDeriv: 'bitfinex_futures'
+	},
+	{
+		name: 'OKX',
+		slug: 'okx',
+		coin: 'OKB',
+		coinSymbol: 'OKB',
+		walletsLink: 'https://twitter.com/okx/status/1590812545346330624',
+		cgId: 'okex',
+		cgDeriv: 'okex_swap'
 	},
 	{
 		name: 'Huobi',
@@ -112,10 +114,25 @@ const cexData = [
 		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
+		name: 'Binance US',
+		slug: 'binance-us',
+		coin: 'BNB',
+		coinSymbol: 'BNB',
+		cgId: 'binance_us',
+	},
+	{
 		name: 'Coinsquare',
 		slug: 'coinsquare',
 		coin: null,
 		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
+	},
+	{
+		name: 'Phemex',
+		slug: 'phemex',
+		coin: null,
+		walletsLink: 'https://phemex.com/proof-of-reserves',
+        cgId: 'phemex',
+		cgDeriv: 'phemex_futures'
 	},
 	{
 		name: 'MaskEX',
@@ -240,9 +257,9 @@ export async function getStaticProps() {
 			} else {
 				const [{ tvl, tokensInUsd }, inflows24h, inflows7d, inflows1m] = await Promise.all([
 					fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then((r) => r.json()),
-					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}`).then((r) => r.json()),
-					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour7dms}`).then((r) => r.json()),
-					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour1mms}`).then((r) => r.json())
+					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ""}`).then((r) => r.json()),
+					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ""}`).then((r) => r.json()),
+					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ""}`).then((r) => r.json())
 				])
 
 				const cexTvl = tvl ? tvl[tvl.length - 1].totalLiquidityUSD : 0

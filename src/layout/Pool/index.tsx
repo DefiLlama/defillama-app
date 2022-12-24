@@ -11,6 +11,7 @@ export const ButtonYields = styled(ButtonLight)`
 	font-weight: 400;
 	white-space: nowrap;
 	font-family: var(--font-inter);
+	width: 24px;
 `
 
 export const PoolDetails = styled(DetailsWrapper)`

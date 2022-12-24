@@ -3,7 +3,7 @@ import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
 import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
-import { formatChain } from './utils'
+import { formatChain, getCexVolume } from './utils'
 
 /* export const getDex = async (dexName: string): Promise<IDexResponse> =>
 	await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
@@ -92,29 +92,34 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			? getAPIUrl(type, chain, false, true, 'dailyPremiumVolume')
 			: getAPIUrl(type, chain, true, true, 'dailyRevenue')
 
-	const [request, protocolsData, feesOrRevenue]: [
+	const [request, protocolsData, feesOrRevenue, cexVolume]: [
 		IGetOverviewResponseBody,
 		{ protocols: LiteProtocol[] },
-		IGetOverviewResponseBody
+		IGetOverviewResponseBody,
+		number
 	] = await Promise.all([
 		fetch(getAPIUrl(type, chain, type === 'fees', true)).then((res) => res.json()),
 		fetch(PROTOCOLS_API).then((r) => r.json()),
-		fetch(feesOrRevenueApi).then((res) => res.json())
+		fetch(feesOrRevenueApi).then((res) => res.json()),
+		type === 'dexs' ? getCexVolume() : Promise.resolve(0)
 	])
 
 	const {
 		protocols = [],
 		total24h,
+		total7d,
 		change_1d,
 		change_7d,
 		change_1m,
+		change_7dover7d,
 		totalDataChart,
 		totalDataChartBreakdown,
 		allChains
 	} = request
 
+	const protocolsRaw = chain ? protocolsData?.protocols.map(p => ({ ...p, tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null })) : protocolsData?.protocols
 	const tvlData =
-		protocolsData?.protocols?.reduce((acc, pd) => {
+		protocolsRaw?.reduce((acc, pd) => {
 			acc[pd.name] = pd.tvlPrevDay
 			return acc
 		}, {}) ?? {}
@@ -147,25 +152,29 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	}
 
 	const protocolsWithSubrows = protocols.map((protocol) => {
-		const volumetvl =
-			protocol.total24h /
-			(tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, Object.keys(protocol.protocolsStats ?? {}), tvlData))
+		const protocolTVL = (tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, Object.keys(protocol.protocolsStats ?? {}), tvlData))
+		const volumetvl = protocol.total24h / protocolTVL
 		return {
 			...protocol,
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? 0,
-			volumetvl,
+			volumetvl: volumetvl ?? null,
+			tvl: protocolTVL ?? null,
 			dominance: (100 * protocol.total24h) / total24h,
 			chains: protocol.chains,
 			module: protocol.module,
 			subRows: protocol.protocolsStats
 				? Object.entries(protocol.protocolsStats)
 					.map(([versionName, summary]) => {
+						const protocolTVL = (tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, [versionName], tvlData))
 						return {
 							...protocol,
 							displayName: `${versionName.toUpperCase()} - ${protocol.name}`,
 							...summary,
+							tvl: protocolTVL ?? null,
+							volumetvl: protocolTVL ? summary.total24h / protocolTVL : null,
+							dominance: (100 * summary.total24h) / total24h,
 							totalAllTime: null,
-							revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? (0 as number)
+							revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? (null)
 						}
 					})
 					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
@@ -180,14 +189,17 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	return {
 		protocols: protocolsWithSubrows,
 		total24h,
+		total7d,
 		change_1d,
 		change_7d,
 		change_1m,
+		change_7dover7d,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
 		chain: chain ? formatChain(chain) : null,
 		tvlData,
 		totalDataChartBreakdown,
 		allChains,
+		dexsDominance: cexVolume ? +((total24h / (cexVolume + total24h)) * 100).toFixed(2) : null,
 		type
 	}
 }
@@ -197,13 +209,16 @@ export interface IOverviewProps {
 		IGetOverviewResponseBody['protocols'][number] & {
 			subRows?: IGetOverviewResponseBody['protocols']
 			volumetvl?: number
+			tvl?: number
 			dominance?: number
 		}
 	>
 	total24h?: IGetOverviewResponseBody['total24h']
+	total7d?: IGetOverviewResponseBody['total7d']
 	change_1d?: IGetOverviewResponseBody['change_1d']
 	change_7d?: IGetOverviewResponseBody['change_7d']
 	change_1m?: IGetOverviewResponseBody['change_1m']
+	change_7dover7d?: IGetOverviewResponseBody['change_7dover7d']
 	totalDataChart: [IJoin2ReturnType, string[]]
 	chain: string
 	tvlData?: IJSON<number>
@@ -211,6 +226,7 @@ export interface IOverviewProps {
 	allChains?: IGetOverviewResponseBody['allChains']
 	totalAllTime?: ProtocolAdaptorSummaryResponse['totalAllTime']
 	type: string
+	dexsDominance?: number
 }
 
 // - used in /[type]/chains
