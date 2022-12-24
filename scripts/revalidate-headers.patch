@@ -5,7 +5,7 @@
              throw new Error(`invariant: invalid Cache-Control duration provided: ${options.revalidate} < 1`);
          }
 -        res.setHeader("Cache-Control", `s-maxage=${options.revalidate}, stale-while-revalidate`);
-+        res.setHeader("Expires", new Date(Date.now() + options.revalidate * 1000).toUTCString());
++        res.setHeader("Expires", options.expires && new Date(Date.now() + options.revalidate * 1000).toUTCString());
      } else if (options.revalidate === false) {
 -        res.setHeader("Cache-Control", `s-maxage=31536000, stale-while-revalidate`);
 +        res.setHeader("Cache-Control", `s-maxage=31536000`);
