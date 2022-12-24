@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { capitalizeFirstLetter } from '~/utils'
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { USER_METRICS_ALL_API, USER_METRICS_CHAIN_API } from '~/constants'
 import { arrayFetcher } from '~/utils/useSWR'
 import UsersByChain from '~/containers/UsersByChain'
@@ -14,7 +14,7 @@ export async function getStaticPaths() {
 	}))
 	*/
 
-	return { paths:[], fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export async function getStaticProps({
@@ -40,7 +40,8 @@ export async function getStaticProps({
 				})),
 				protocols: userMetrics.protocols || [],
 				chain: chainName,
-				revalidate: revalidate()
+				revalidate: maxAgeForNext([22]),
+				expires: expiresForNext([22])
 			}
 		}
 	} catch (error) {

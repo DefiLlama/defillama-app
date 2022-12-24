@@ -1,7 +1,7 @@
 import * as React from 'react'
 import BridgeContainer from '~/containers/BridgeContainer'
 import { standardizeProtocolName } from '~/utils'
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { getBridgePageData, getBridges } from '~/api/categories/bridges'
 
 export async function getStaticProps({
@@ -10,15 +10,8 @@ export async function getStaticProps({
 	}
 }) {
 	const data = await getBridgePageData(bridge)
-	const {
-		displayName,
-		logo,
-		chains,
-		defaultChain,
-		chainToChartDataIndex,
-		bridgeChartDataByChain,
-		prevDayDataByChain
-	} = data
+	const { displayName, logo, chains, defaultChain, chainToChartDataIndex, bridgeChartDataByChain, prevDayDataByChain } =
+		data
 	/*
 	const backgroundColor = await getPeggedColor({
 		peggedAsset: peggedAssetData.name
@@ -35,7 +28,8 @@ export async function getStaticProps({
 			prevDayDataByChain
 			// backgroundColor
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22]),
+		expires: expiresForNext([22])
 	}
 }
 

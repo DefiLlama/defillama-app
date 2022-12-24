@@ -1,7 +1,7 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
 import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { getProtocols, getProtocol, fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
@@ -71,7 +71,8 @@ export const getStaticProps = async ({
 
 	return {
 		props: { compressed },
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22]),
+		expires: expiresForNext([22])
 	}
 }
 

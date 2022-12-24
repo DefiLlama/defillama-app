@@ -9,7 +9,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { GroupChains } from '~/components/MultiSelect'
 import { toNiceCsvDate, download } from '~/utils'
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { getChainsPageData, getNewChainsPageData } from '~/api/categories/protocols'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/defi'
@@ -28,7 +28,8 @@ export async function getStaticProps() {
 	const data = await getChainsPageData('All')
 	return {
 		...data,
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22]),
+		expires: expiresForNext([22])
 	}
 }
 

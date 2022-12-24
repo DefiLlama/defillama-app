@@ -1,11 +1,12 @@
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { getChainsPageData } from '~/api/categories/adaptors'
 
 async function getStaticProps({ params }) {
 	const data = await getChainsPageData(params.type)
 	return {
 		props: data,
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22]),
+		expires: expiresForNext([22])
 	}
 }
 

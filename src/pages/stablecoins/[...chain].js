@@ -1,7 +1,7 @@
 import Layout from '~/layout'
 import PeggedList from '~/components/PeggedPage/PeggedList'
 import { getPeggedColor } from '~/utils/getColor'
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { getPeggedAssets, getPeggedOverviewPageData } from '~/api/categories/stablecoins'
 
 export async function getStaticProps({
@@ -25,7 +25,8 @@ export async function getStaticProps({
 			...props,
 			backgroundColor
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22]),
+		expires: expiresForNext([22])
 	}
 }
 

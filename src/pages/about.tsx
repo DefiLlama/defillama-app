@@ -5,7 +5,7 @@ import Layout from '~/layout'
 import { Divider, Panel } from '~/components'
 import { RowBetween } from '~/components/Row'
 import Link from '~/components/Link'
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/protocols'
 
 const DashGrid = styled.div`
@@ -117,7 +117,8 @@ export async function getStaticProps() {
 			chains,
 			protocols
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22]),
+		expires: expiresForNext([22])
 	}
 }
 

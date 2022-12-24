@@ -7,7 +7,7 @@ import { DesktopSearch } from '~/components/Search/Base'
 import LocalLoader from '~/components/LocalLoader'
 import { TableFilters, TableHeader } from '~/components/Table/shared'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
-import { getAllCGTokensList, revalidate } from '~/api'
+import { expiresForNext, getAllCGTokensList, maxAgeForNext } from '~/api'
 import { fetcher } from '~/utils/useSWR'
 import Announcement from '~/components/Announcement'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
@@ -102,6 +102,7 @@ export async function getStaticProps() {
 
 	return {
 		props: { compressed },
-		revalidate: revalidate(23)
+		revalidate: maxAgeForNext([23]),
+		expires: expiresForNext([23])
 	}
 }

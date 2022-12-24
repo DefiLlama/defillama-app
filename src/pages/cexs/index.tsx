@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { Header } from '~/Theme'
 import { CEXTable } from '~/components/Table/Defi'
 
@@ -118,7 +118,7 @@ const cexData = [
 		slug: 'binance-us',
 		coin: 'BNB',
 		coinSymbol: 'BNB',
-		cgId: 'binance_us',
+		cgId: 'binance_us'
 	},
 	{
 		name: 'Coinsquare',
@@ -131,7 +131,7 @@ const cexData = [
 		slug: 'phemex',
 		coin: null,
 		walletsLink: 'https://phemex.com/proof-of-reserves',
-        cgId: 'phemex',
+		cgId: 'phemex',
 		cgDeriv: 'phemex_futures'
 	},
 	{
@@ -257,9 +257,15 @@ export async function getStaticProps() {
 			} else {
 				const [{ tvl, tokensInUsd }, inflows24h, inflows7d, inflows1m] = await Promise.all([
 					fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then((r) => r.json()),
-					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ""}`).then((r) => r.json()),
-					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ""}`).then((r) => r.json()),
-					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ""}`).then((r) => r.json())
+					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
+						r.json()
+					),
+					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
+						r.json()
+					),
+					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
+						r.json()
+					)
 				])
 
 				const cexTvl = tvl ? tvl[tvl.length - 1].totalLiquidityUSD : 0
@@ -293,7 +299,8 @@ export async function getStaticProps() {
 		props: {
 			cexs
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22]),
+		expires: expiresForNext([22])
 	}
 }
 

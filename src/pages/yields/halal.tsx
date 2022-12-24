@@ -93,7 +93,7 @@ import YieldPage from '~/components/YieldsPage'
 import Link from '~/components/Link'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
-import { getAllCGTokensList, revalidate } from '~/api'
+import { expiresForNext, getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
@@ -132,7 +132,8 @@ export async function getStaticProps() {
 
 	return {
 		props: { compressed },
-		revalidate: revalidate(23)
+		revalidate: maxAgeForNext([23]),
+		expires: expiresForNext([23])
 	}
 }
 

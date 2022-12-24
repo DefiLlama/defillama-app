@@ -4,7 +4,7 @@ import { TYPE } from '~/Theme'
 import Layout from '~/layout'
 import { splitArrayByFalsyValues } from '~/components/Table/utils'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { TopGainersAndLosers } from '~/components/Table/Defi/Protocols'
@@ -16,7 +16,8 @@ export async function getStaticProps() {
 		props: {
 			protocols
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22]),
+		expires: expiresForNext([22])
 	}
 }
 

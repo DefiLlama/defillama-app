@@ -5,7 +5,7 @@ import { AreaChart } from '~/components/Charts'
 import { ChainDominanceChart } from '~/components/Charts'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { toNiceMonthlyDate, getRandomColor } from '~/utils'
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { LANGS_API } from '~/constants'
 
 function formatDataForChart(langs) {
@@ -46,7 +46,8 @@ export async function getStaticProps() {
 			osLangs,
 			osDaySum
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22]),
+		expires: expiresForNext([22])
 	}
 }
 

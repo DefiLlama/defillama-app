@@ -8,7 +8,7 @@ import { ForksTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { getForkPageData } from '~/api/categories/protocols'
 
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -26,7 +26,8 @@ export async function getStaticProps() {
 
 	return {
 		...data,
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22]),
+		expires: expiresForNext([22])
 	}
 }
 

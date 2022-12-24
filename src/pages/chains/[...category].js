@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Layout from '~/layout'
 import ChainsContainer from '~/containers/Defi/Chains'
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { getNewChainsPageData } from '~/api/categories/protocols'
 import { CONFIG_API } from '~/constants/index'
 
@@ -13,7 +13,8 @@ export async function getStaticProps({
 	const data = await getNewChainsPageData(category)
 	return {
 		...data,
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22]),
+		expires: expiresForNext([22])
 	}
 }
 

@@ -11,7 +11,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import TokenLogo from '~/components/TokenLogo'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { SelectLegendMultiple } from '~/components/ECharts/shared'
-import { revalidate } from '~/api'
+import { expiresForNext, maxAgeForNext } from '~/api'
 import { getProtocol } from '~/api/categories/protocols'
 import { capitalizeFirstLetter, formattedNum, standardizeProtocolName, tokenIconUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
@@ -70,7 +70,8 @@ export async function getStaticProps({
 				uniqueChains: Array.from(uniqueChains),
 				uniqueColumns: Array.from(uniqueColumns),
 				backgroundColor,
-				revalidate: revalidate()
+				revalidate: maxAgeForNext([22]),
+				expires: expiresForNext([22])
 			}
 		}
 	} catch (error) {
