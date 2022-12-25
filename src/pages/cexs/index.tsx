@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { Header } from '~/Theme'
 import { CEXTable } from '~/components/Table/Defi'
 
@@ -299,8 +299,7 @@ export async function getStaticProps() {
 		props: {
 			cexs
 		},
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

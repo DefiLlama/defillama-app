@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import BridgeList from '~/components/BridgesPage/BridgeList'
 import { getBridgeOverviewPageData, getBridges } from '~/api/categories/bridges'
 
@@ -24,8 +24,7 @@ export async function getStaticProps({
 		props: {
 			...props
 		},
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

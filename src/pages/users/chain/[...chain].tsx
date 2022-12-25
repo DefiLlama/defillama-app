@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { capitalizeFirstLetter } from '~/utils'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { USER_METRICS_ALL_API, USER_METRICS_CHAIN_API } from '~/constants'
 import { arrayFetcher } from '~/utils/useSWR'
 import UsersByChain from '~/containers/UsersByChain'
@@ -40,8 +40,7 @@ export async function getStaticProps({
 				})),
 				protocols: userMetrics.protocols || [],
 				chain: chainName,
-				revalidate: maxAgeForNext([22]),
-				expires: expiresForNext([22])
+				revalidate: maxAgeForNext([22])
 			}
 		}
 	} catch (error) {

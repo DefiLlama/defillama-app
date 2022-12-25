@@ -1,6 +1,6 @@
 import Layout from '~/layout'
 import BridgeChainsOverview from '~/components/BridgesPage/BridgeChainsOverview'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getBridgeChainsPageData } from '~/api/categories/bridges'
 
 export async function getStaticProps() {
@@ -12,8 +12,7 @@ export async function getStaticProps() {
 	}
 	return {
 		props,
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

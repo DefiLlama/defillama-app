@@ -1,7 +1,7 @@
 import * as React from 'react'
 import BridgeContainer from '~/containers/BridgeContainer'
 import { standardizeProtocolName } from '~/utils'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getBridgePageData, getBridges } from '~/api/categories/bridges'
 
 export async function getStaticProps({
@@ -28,8 +28,7 @@ export async function getStaticProps({
 			prevDayDataByChain
 			// backgroundColor
 		},
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

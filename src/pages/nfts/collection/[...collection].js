@@ -1,6 +1,6 @@
 import NFTCollectionPage from '~/components/NFTCollectionPage'
 import { getColor } from '~/utils/getColor'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getNFTCollection, getNFTCollections, getNFTCollectionChartData, getNFTStatistics } from '~/api/categories/nfts'
 
 export async function getStaticProps({
@@ -21,8 +21,7 @@ export async function getStaticProps({
 			title: collection ? `${collection.name} - DefiLlama` : `DefiLlama - NFT Dashboard`,
 			backgroundColor
 		},
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

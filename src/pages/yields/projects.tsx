@@ -3,7 +3,7 @@ import { YieldsProjectsTable } from '~/components/Table'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 
 import PageHeader from '~/components/PageHeader'
@@ -52,8 +52,7 @@ export async function getStaticProps() {
 
 	return {
 		props: { compressed },
-		revalidate: maxAgeForNext([23]),
-		expires: expiresForNext([23])
+		revalidate: maxAgeForNext([23])
 	}
 }
 

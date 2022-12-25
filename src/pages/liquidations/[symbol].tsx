@@ -15,7 +15,7 @@ import { TableSwitch } from '~/components/LiquidationsPage/TableSwitch'
 import { PositionsTable, SmolHints } from '~/components/LiquidationsPage/PositionsTable'
 import { LIQS_SETTINGS, useLiqsManager } from '~/contexts/LocalStorage'
 import type { ISearchItem } from '~/components/Search/types'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { liquidationsIconUrl } from '~/utils'
 import {
 	ChartData,
@@ -33,8 +33,7 @@ export const getStaticProps: GetStaticProps<{ data: ChartData; prevData: ChartDa
 	const prevData = (await getPrevChartData(symbol, 100, 3600 * 24)) ?? data
 	return {
 		props: { data, prevData, options },
-		revalidate: maxAgeForNext([5, 25, 45]),
-		expires: expiresForNext([5, 25, 45])
+		revalidate: maxAgeForNext([5, 25, 45])
 	}
 }
 

@@ -26,8 +26,7 @@ export async function getStaticProps({
 			marketplaceData,
 			displayName
 		},
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

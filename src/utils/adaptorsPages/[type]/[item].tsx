@@ -1,6 +1,6 @@
 import { GetStaticProps, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import * as React from 'react'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getOverview, getOverviewItemPageData, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 import OverviewItemContainer from '~/containers/DexsAndFees/OverviewItem'
 import { standardizeProtocolName } from '~/utils'
@@ -24,8 +24,7 @@ const getStaticProps: GetStaticProps<PageParams> = async ({
 			},
 			backgroundColor: await getColor(data.name, data.logo)
 		},
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

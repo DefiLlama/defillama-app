@@ -1,5 +1,5 @@
 import { RecentProtocols } from '~/components/RecentProtocols'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API, RAISES_API } from '~/constants'
@@ -99,8 +99,7 @@ export async function getStaticProps() {
 			chainList: protocolsRaw.chains,
 			forkedList
 		},
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

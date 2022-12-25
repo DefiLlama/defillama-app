@@ -1,6 +1,6 @@
 import Layout from '~/layout'
 import PeggedChainsOverview from '~/components/PeggedPage/PeggedChainsOverview'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getPeggedChainsPageData } from '~/api/categories/stablecoins'
 
 export async function getStaticProps() {
@@ -12,8 +12,7 @@ export async function getStaticProps() {
 	}
 	return {
 		props,
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

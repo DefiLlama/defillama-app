@@ -1,6 +1,6 @@
 import Layout from '~/layout'
 import ProtocolList from '~/components/ProtocolList'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 
 export async function getStaticProps() {
@@ -10,8 +10,7 @@ export async function getStaticProps() {
 		props: {
 			protocols
 		},
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

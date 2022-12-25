@@ -6,7 +6,7 @@ import Layout from '~/layout'
 import { Panel } from '~/components'
 import { ProtocolsCategoriesTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getCategoriesPageData, getProtocolsRaw } from '~/api/categories/protocols'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import type { IChartProps } from '~/components/ECharts/types'
@@ -40,8 +40,7 @@ export async function getStaticProps() {
 			categories: formattedCategories.sort((a, b) => b.tvl - a.tvl),
 			...chartAndColorsData
 		},
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

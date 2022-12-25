@@ -1,6 +1,6 @@
 import Layout from '~/layout'
 import BridgeTransactionsPage from '~/components/BridgesPage/Transactions'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getBridges } from '~/api/categories/bridges'
 
 export async function getStaticProps() {
@@ -8,8 +8,7 @@ export async function getStaticProps() {
 
 	return {
 		props: { bridges },
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

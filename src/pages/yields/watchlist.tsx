@@ -2,7 +2,7 @@ import Layout from '~/layout'
 import { YieldsWatchlistContainer } from '~/containers/Watchlist'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
@@ -13,8 +13,7 @@ export async function getStaticProps() {
 
 	return {
 		props: { compressed },
-		revalidate: maxAgeForNext([23]),
-		expires: expiresForNext([23])
+		revalidate: maxAgeForNext([23])
 	}
 }
 

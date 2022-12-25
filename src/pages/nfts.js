@@ -1,5 +1,5 @@
 import NFTDashboardPage from '~/components/NFTDashboardPage'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getNFTChainsData, getNFTData } from '~/api/categories/nfts'
 
 export async function getStaticProps() {
@@ -11,8 +11,7 @@ export async function getStaticProps() {
 			...data,
 			chainData
 		},
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

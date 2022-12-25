@@ -25,8 +25,7 @@ export async function getStaticProps() {
 
 	return {
 		props: { compressed },
-		revalidate: maxAgeForNext([23]),
-		expires: expiresForNext([23])
+		revalidate: maxAgeForNext([23])
 	}
 }
 

@@ -77,6 +77,10 @@ export function maxAgeForNext(minutesForRollover: number[]) {
 }
 
 export function expiresForNext(minutesForRollover: number[]) {
+	if (!process.env.NOT_VERCEL) {
+		return
+	}
+
 	// same as maxAgeForNext but for the expires header, which is a UTC date
 	const currentMinute = new Date().getMinutes()
 	const nextMinute = minutesForRollover.find((m) => m > currentMinute) ?? Math.min(...minutesForRollover) + 60

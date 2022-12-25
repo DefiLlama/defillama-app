@@ -7,7 +7,7 @@ import SEO from '~/components/SEO'
 import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
 import { NftChainsTable } from '~/components/Table'
 import { getRandomColor } from '~/utils'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getNFTChainChartData, getNFTChainsData } from '~/api/categories/nfts'
 
 export async function getStaticProps() {
@@ -54,8 +54,7 @@ export async function getStaticProps() {
 			stackedDataset: stackedDataset || null,
 			daySum: daySum || null
 		},
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

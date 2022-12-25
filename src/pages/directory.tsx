@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { tokenIconUrl } from '~/utils'
 import styled from 'styled-components'
@@ -18,8 +18,7 @@ export async function getStaticProps() {
 				route: protocol.url
 			}))
 		},
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 

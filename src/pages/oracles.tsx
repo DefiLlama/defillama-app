@@ -8,7 +8,7 @@ import { OraclesTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
-import { expiresForNext, maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getOraclePageData } from '~/api/categories/protocols'
 
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -26,8 +26,7 @@ export async function getStaticProps() {
 
 	return {
 		...data,
-		revalidate: maxAgeForNext([22]),
-		expires: expiresForNext([22])
+		revalidate: maxAgeForNext([22])
 	}
 }
 
