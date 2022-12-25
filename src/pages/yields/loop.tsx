@@ -5,7 +5,7 @@ import Link from '~/components/Link'
 import YieldPageLoop from '~/components/YieldsPage/indexLoop'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
-import { expiresForNext, getAllCGTokensList, maxAgeForNext } from '~/api'
+import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getLendBorrowData, calculateLoopAPY } from '~/api/categories/yield'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
 

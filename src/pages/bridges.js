@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import { expiresForNext, maxAgeForNext, revalidate } from '~/api'
+import { maxAgeForNext, revalidate } from '~/api'
 import BridgeList from '~/components/BridgesPage/BridgeList'
 import { getBridgeOverviewPageData } from '~/api/categories/bridges'
 

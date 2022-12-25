@@ -1,7 +1,7 @@
 import Layout from '~/layout'
 import YieldPage from '~/components/YieldsPage'
 import { getYieldPageData } from '~/api/categories/yield'
-import { expiresForNext, getAllCGTokensList, maxAgeForNext } from '~/api'
+import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'

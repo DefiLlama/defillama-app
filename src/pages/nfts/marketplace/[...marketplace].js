@@ -1,5 +1,5 @@
 import NFTDashboardPage from '~/components/NFTDashboardPage'
-import { expiresForNext, maxAgeForNext, revalidate } from '~/api'
+import { maxAgeForNext, revalidate } from '~/api'
 import {
 	getNFTMarketplaceChartData,
 	getNFTMarketplacesData,

@@ -93,7 +93,7 @@ import YieldPage from '~/components/YieldsPage'
 import Link from '~/components/Link'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
-import { expiresForNext, getAllCGTokensList, maxAgeForNext } from '~/api'
+import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
