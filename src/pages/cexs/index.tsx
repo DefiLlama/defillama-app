@@ -108,17 +108,23 @@ const cexData = [
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
+		name: 'Binance US',
+		slug: 'binance-us',
+		coin: 'BNB',
+		coinSymbol: 'BNB',
+		cgId: 'binance_us',
+	},
+	{
 		name: 'Korbit',
 		slug: 'korbit',
 		coin: null,
 		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
-		name: 'Binance US',
-		slug: 'binance-us',
-		coin: 'BNB',
-		coinSymbol: 'BNB',
-		cgId: 'binance_us',
+		name: 'MaskEX',
+		slug: 'maskex',
+		coin: null,
+		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'Coinsquare',
@@ -133,12 +139,6 @@ const cexData = [
 		walletsLink: 'https://phemex.com/proof-of-reserves',
         cgId: 'phemex',
 		cgDeriv: 'phemex_futures'
-	},
-	{
-		name: 'MaskEX',
-		slug: 'maskex',
-		coin: null,
-		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'Firi',
