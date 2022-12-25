@@ -1,0 +1,10 @@
+--- ./node_modules/next/dist/server/response-cache/index.js
++++ ./node_modules/next/dist/server/response-cache/index.js
+@@ -65,6 +65,7 @@
+                     resolve1({
+                         isStale: cachedResponse.isStale,
+                         revalidate: cachedResponse.curRevalidate,
++                        revalidateAfter: cachedResponse.revalidateAfter,
+                         value: ((ref = cachedResponse.value) == null ? void 0 : ref.kind) === "PAGE" ? {
+                             kind: "PAGE",
+                             html: _renderResult.default.fromStatic(cachedResponse.value.html),
