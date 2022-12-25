@@ -51,7 +51,7 @@ const defaultToolsAndFooterLinks = {
 		{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
 		{
 			name: 'Token Liquidity',
-			path: 'https://llamaswap.vercel.app/token-liquidity?chain=ethereum&token=UNI',
+			path: '/liquidity',
 			newTag: true,
 			external: true
 		},
@@ -136,7 +136,7 @@ export const navLinks: ILinks = {
 			{ name: 'Trending Contracts', path: '/trending-contracts', newTag: true },
 			{
 				name: 'Token Liquidity',
-				path: 'https://llamaswap.vercel.app/token-liquidity?chain=ethereum&token=UNI',
+				path: '/liquidity',
 				newTag: true,
 				external: true
 			},
