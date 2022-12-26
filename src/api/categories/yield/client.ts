@@ -6,7 +6,8 @@ import {
 	YIELD_CHART_API,
 	YIELD_POOLS_API,
 	YIELD_POOLS_LAMBDA_API,
-	YIELD_CHART_LEND_BORROW_API
+	YIELD_CHART_LEND_BORROW_API,
+	YIELD_CONFIG_POOL_API
 } from '~/constants'
 import { formatYieldsPageData } from './utils'
 
@@ -26,6 +27,11 @@ export const useYieldChartData = (configID) => {
 export const useYieldChartLendBorrow = (configID) => {
 	const url = `${YIELD_CHART_LEND_BORROW_API}/${configID}`
 	const { data, error } = useSWR(configID ? url : null, fetcher)
+	return { data, error, loading: !data && !error }
+}
+export const useConfigPool = (configIDs) => {
+	const url = `${YIELD_CONFIG_POOL_API}/${configIDs}`
+	const { data, error } = useSWR(configIDs ? url : null, fetcher)
 	return { data, error, loading: !data && !error }
 }
 

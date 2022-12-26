@@ -50,6 +50,7 @@ export interface IYieldsOptimizerTableRow extends IYieldTableRow {
 }
 
 export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
+	farmPool: string
 	farmSymbol: string
 	farmTvlUsd: number
 	farmProjectName: string

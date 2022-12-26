@@ -24,12 +24,11 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			return (
 				<PoolStrategyWithProjects>
 					<NameYieldPool
-						withoutLink
 						value={name}
-						configID={row.original.configID}
+						configID={`${row.original.pool}_${row.original.borrow.pool}_${row.original.farmPool}`}
 						url={row.original.url}
 						index={index + 1}
-						borrow={true}
+						strategy={true}
 						maxCharacters={50}
 						bookmark={false}
 					/>

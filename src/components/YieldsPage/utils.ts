@@ -220,6 +220,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 
 				finalPools.push({
 					...p,
+					farmPool: i.pool,
 					farmSymbol: i.symbol,
 					farmChain: [i.chain],
 					farmProjectName: i.projectName,
@@ -247,6 +248,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 
 				finalPools.push({
 					...p,
+					farmPool: i.pool,
 					farmSymbol: i.symbol,
 					farmChain: [i.chain],
 					farmProjectName: i.projectName,
@@ -267,6 +269,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 					.filter((p) => removeMetaTag(p.symbol.toUpperCase()).includes(tokenToLend))
 					.map((p) => ({
 						...p,
+						farmPool: p.pool,
 						borrow: p,
 						chains: [p.chain],
 						farmSymbol: p.symbol,
