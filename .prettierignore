@@ -3,6 +3,7 @@
 /.pnp
 .pnp.js
 .next
+out
 
 # testing
 /coverage
