@@ -70,7 +70,9 @@ const nextConfig = {
 	compiler: {
 		styledComponents: true
 	},
-	experimental: {}
+	experimental: {
+		largePageDataBytes: 1_500_000
+	}
 }
 
 module.exports = withBundleAnalyzer(nextConfig)
