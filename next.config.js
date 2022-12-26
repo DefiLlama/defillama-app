@@ -71,7 +71,7 @@ const nextConfig = {
 		styledComponents: true
 	},
 	experimental: {
-		largePageDataBytes: 1_500_000
+		largePageDataBytes: 2_000_000
 	}
 }
 
