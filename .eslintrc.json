@@ -2,7 +2,8 @@
 	"extends": ["next", "prettier"],
 	"rules": {
 		"no-undef": "warn",
-		"no-unused-vars": "warn",
+		"no-unused-vars": "off",
+		"@next/next/no-img-element": "off",
 		"react/no-unescaped-entities": "off"
 	},
 	"env": {
