@@ -1,9 +1,9 @@
 import useSWR from 'swr'
 import { CG_TOKEN_API } from '~/constants/index'
-import { arrayFetcher, retrySWR } from '~/utils/useSWR'
+import { arrayFetcher, fetcher, retrySWR } from '~/utils/useSWR'
 import type { IResponseCGMarketsAPI } from './types'
 
-export function getCGMarketsDataURLs() {
+function getCGMarketsDataURLs() {
 	const urls: string[] = []
 	const maxPage = 10
 	for (let page = 1; page <= maxPage; page++) {
@@ -44,9 +44,9 @@ export async function retryCoingeckoRequest(func, retries) {
 }
 
 export async function getAllCGTokensList(): Promise<Array<{ name: string; symbol: string; image: string }>> {
-	const data = await arrayFetcher(getCGMarketsDataURLs())
+	const data = await fetcher("https://api.llama.fi/sortedTokenlist?a")
 
-	return data?.flat()?.map((t) => ({ ...t, symbol: t.symbol === 'mimatic' ? 'mai' : t.symbol })) ?? []
+	return data
 }
 
 //:00 -> adapters start running, they take up to 15mins
