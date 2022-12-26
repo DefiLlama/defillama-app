@@ -21,7 +21,6 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
-			console.log(row.original)
 			return (
 				<PoolStrategyWithProjects>
 					<NameYieldPool
