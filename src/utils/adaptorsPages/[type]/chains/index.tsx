@@ -1,11 +1,11 @@
-import { revalidate } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getChainsPageData } from '~/api/categories/adaptors'
 
 async function getStaticProps({ params }) {
 	const data = await getChainsPageData(params.type)
 	return {
 		props: data,
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22])
 	}
 }
 

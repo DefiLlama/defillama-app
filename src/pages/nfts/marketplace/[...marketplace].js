@@ -1,5 +1,5 @@
 import NFTDashboardPage from '~/components/NFTDashboardPage'
-import { revalidate } from '~/api'
+import { maxAgeForNext, revalidate } from '~/api'
 import {
 	getNFTMarketplaceChartData,
 	getNFTMarketplacesData,
@@ -26,7 +26,7 @@ export async function getStaticProps({
 			marketplaceData,
 			displayName
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22])
 	}
 }
 

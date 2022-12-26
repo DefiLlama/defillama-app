@@ -2,7 +2,7 @@ import * as React from 'react'
 import PeggedContainer from '~/containers/PeggedContainer'
 import { standardizeProtocolName } from '~/utils'
 import { getPeggedColor } from '~/utils/getColor'
-import { revalidate } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getPeggedAssetPageData, getPeggedAssets } from '~/api/categories/stablecoins'
 
 export async function getStaticProps({
@@ -27,7 +27,7 @@ export async function getStaticProps({
 			bridgeInfo,
 			backgroundColor
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22])
 	}
 }
 

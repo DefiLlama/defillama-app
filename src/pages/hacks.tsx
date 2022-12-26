@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { revalidate } from '~/api'
+import { maxAgeForNext } from '~/api'
 import HacksContainer from '~/containers/Hacks'
 import { formattedNum, toYearMonth } from '~/utils'
 
@@ -13,7 +13,7 @@ export async function getStaticProps() {
 		name: h.name,
 		technique: h.technique,
 		bridge: h.bridge_multichain_application,
-		link:h.link,
+		link: h.link
 	}))
 
 	const monthlyHacks = {}
@@ -22,7 +22,7 @@ export async function getStaticProps() {
 		const monthlyDate = toYearMonth(r.date)
 		monthlyHacks[monthlyDate] = (monthlyHacks[monthlyDate] ?? 0) + r.amount
 	})
-	
+
 	const totalHacked = formattedNum(
 		data.map((hack) => hack.amount).reduce((acc, amount) => acc + amount, 0) / 1000,
 		true
@@ -52,12 +52,12 @@ export async function getStaticProps() {
 			totalHackedDefi,
 			totalRugs
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22])
 	}
 }
 
 const Raises = ({ data, monthlyHacks, ...props }) => {
-	return <HacksContainer data={data} monthlyHacks={monthlyHacks} {...props as any} />
+	return <HacksContainer data={data} monthlyHacks={monthlyHacks} {...(props as any)} />
 }
 
 export default Raises

@@ -1,6 +1,6 @@
 import { GetStaticProps, GetStaticPropsContext } from 'next'
 import * as React from 'react'
-import { revalidate } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/adaptors'
 import SEO from '~/components/SEO'
 import OverviewContainer, { IOverviewContainerProps } from '~/containers/DexsAndFees'
@@ -16,7 +16,7 @@ export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 			...data,
 			type: params.type
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22])
 	}
 }
 

@@ -1,7 +1,7 @@
 import ChainPage from '~/components/ChainPage'
 import { PROTOCOLS_API } from '~/constants/index'
 import Layout from '~/layout'
-import { revalidate } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getChainPageData } from '~/api/categories/protocols'
 
 export async function getStaticProps({ params }) {
@@ -9,7 +9,7 @@ export async function getStaticProps({ params }) {
 	const data = await getChainPageData(chain)
 	return {
 		...data,
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22])
 	}
 }
 

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import styled from 'styled-components'
 import ReactMarkdown from 'react-markdown'
 import Layout from '~/layout'
-import { revalidate } from '~/api'
+import { maxAgeForNext } from '~/api'
 import Announcement from '~/components/Announcement'
 
 const Header = styled.h1`
@@ -137,6 +137,6 @@ export async function getStaticProps() {
 		props: {
 			messages: splitLlama[1] || null
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22])
 	}
 }

@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import useSWR from 'swr'
 import styled from 'styled-components'
 import Layout from '~/layout'
-import { revalidate } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { IChartProps } from '~/components/ECharts/types'
 import { arrayFetcher } from '~/utils/useSWR'
@@ -41,7 +41,7 @@ export async function getStaticProps() {
 			protocols: protocols.map((p) => p.name),
 			stackColors: colors
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22])
 	}
 }
 

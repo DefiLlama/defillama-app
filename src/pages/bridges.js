@@ -1,6 +1,6 @@
 import Layout from '~/layout'
-import { revalidate } from '~/api'
-import BridgeList from "~/components/BridgesPage/BridgeList"
+import { maxAgeForNext, revalidate } from '~/api'
+import BridgeList from '~/components/BridgesPage/BridgeList'
 import { getBridgeOverviewPageData } from '~/api/categories/bridges'
 
 export async function getStaticProps({}) {
@@ -13,10 +13,10 @@ export async function getStaticProps({}) {
 	*/
 	return {
 		props: {
-			...props,
+			...props
 			// backgroundColor
 		},
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22])
 	}
 }
 

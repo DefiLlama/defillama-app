@@ -52,17 +52,11 @@ export async function getAllCGTokensList(): Promise<Array<{ name: string; symbol
 //:00 -> adapters start running, they take up to 15mins
 //:20 -> storeProtocols starts running, sets cache expiry to :21 of next hour
 //:22 -> we rebuild all pages
-function next22Minutedate(minutesForRollover: number) {
-	const dt = new Date()
-	dt.setMinutes(minutesForRollover)
-	if (dt < new Date()) {
-		dt.setHours(dt.getHours() + 1)
-	}
-	return dt
-}
-
-export function revalidate(minutesForRollover: number = 22) {
-	const current = Date.now()
-	const secondsTillRevalidation = Math.ceil((next22Minutedate(minutesForRollover).getTime() - current) / 1000)
-	return secondsTillRevalidation > 0 ? secondsTillRevalidation : 3600
+export function maxAgeForNext(minutesForRollover: number[] = [22]) {
+	// minutesForRollover is an array of minutes in the hour that we want to revalidate
+	const currentMinute = new Date().getMinutes()
+	const currentSecond = new Date().getSeconds()
+	const nextMinute = minutesForRollover.find((m) => m > currentMinute) ?? Math.min(...minutesForRollover) + 60
+	const maxAge = nextMinute * 60 - currentMinute * 60 - currentSecond
+	return maxAge
 }

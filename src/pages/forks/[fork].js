@@ -7,7 +7,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { useCalcExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
-import { revalidate } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getForkPageData } from '~/api/categories/protocols'
 
 const Chart = dynamic(() => import('~/components/GlobalChart'), {
@@ -19,7 +19,7 @@ export async function getStaticProps({ params: { fork } }) {
 
 	return {
 		...data,
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22])
 	}
 }
 

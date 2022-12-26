@@ -1,6 +1,6 @@
 import { DefiWatchlistContainer } from '~/containers/Watchlist'
 import Layout from '~/layout'
-import { revalidate } from '~/api'
+import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 
@@ -9,7 +9,7 @@ export async function getStaticProps() {
 
 	return {
 		props: { protocols },
-		revalidate: revalidate()
+		revalidate: maxAgeForNext([22])
 	}
 }
 

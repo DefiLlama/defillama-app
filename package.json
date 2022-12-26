@@ -7,6 +7,7 @@
 	"license": "GPL-3.0-or-later",
 	"scripts": {
 		"analyze": "ANALYZE=true yarn build",
+		"postinstall": "./scripts/postinstall.sh",
 		"dev": "next dev",
 		"format": "prettier --write .",
 		"build": "next build",
