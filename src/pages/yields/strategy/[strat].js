@@ -18,6 +18,7 @@ import { StatsSection } from '~/layout/Stats/Medium'
 import { useYieldChartData, useYieldChartLendBorrow, useConfigPool } from '~/api/categories/yield/client'
 import styled from 'styled-components'
 import { calculateLoopAPY } from '~/api/categories/yield/index'
+import { toK } from '~/utils'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -57,7 +58,9 @@ const PageView = () => {
 		borrowApy,
 		farmApy,
 		finalAPY,
-		ltv
+		ltv,
+		farmTVL,
+		borrowAvailable
 	} = useMemo(() => {
 		if (!lendHistory || !borrowHistory || !farmHistory || !configData) return {}
 
@@ -113,6 +116,8 @@ const PageView = () => {
 
 		// make sure this is the most recent value
 		const latestValues = merged?.slice(-1)[0] ?? []
+		const farmTVL = latestValues?.farmData?.tvlUsd ?? 0
+		const borrowAvailable = latestValues?.borrowData?.totalSupplyUsd - latestValues?.borrowData?.totalBorrowUsd ?? 0
 
 		const lendApy = latestValues?.lendData?.apy ?? 0
 
@@ -147,7 +152,7 @@ const PageView = () => {
 		const barChartDataFarm = merged?.length
 			? merged.map((item) => ({
 					date: item.farmData.timestamp,
-					Base: item.farmData?.apyBase?.toFixed(2) ?? item.apy?.toFixed(2),
+					Base: item.farmData?.apyBase?.toFixed(2) ?? item.farmData.apy?.toFixed(2),
 					Reward: item.farmData?.apyReward?.toFixed(2)
 			  }))
 			: []
@@ -161,7 +166,9 @@ const PageView = () => {
 			ltv,
 			barChartDataSupply,
 			barChartDataBorrow,
-			barChartDataFarm
+			barChartDataFarm,
+			farmTVL,
+			borrowAvailable
 		}
 	}, [lendHistory, borrowHistory, farmHistory, configData, lendToken, borrowToken])
 
@@ -199,6 +206,16 @@ const PageView = () => {
 							<tr>
 								<th>Max LTV:</th>
 								<td>{ltv?.toFixed(2) * 100}%</td>
+							</tr>
+
+							<tr>
+								<th>Available Borrow Liquidity:</th>
+								<td>${toK(borrowAvailable)}</td>
+							</tr>
+
+							<tr>
+								<th>Farm TVL:</th>
+								<td>${toK(farmTVL)}</td>
 							</tr>
 						</tbody>
 					</TableWrapper>
