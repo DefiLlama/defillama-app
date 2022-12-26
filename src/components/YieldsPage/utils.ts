@@ -269,6 +269,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 					.filter((p) => removeMetaTag(p.symbol.toUpperCase()).includes(tokenToLend))
 					.map((p) => ({
 						...p,
+						farmPool: p.pool,
 						borrow: p,
 						chains: [p.chain],
 						farmSymbol: p.symbol,

@@ -1,20 +1,12 @@
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { ArrowUpRight, DownloadCloud } from 'react-feather'
 import Layout from '~/layout'
-import AuditInfo from '~/components/AuditInfo'
-import { download, toK } from '~/utils'
 import {
-	Button,
-	DownloadButton,
 	FlexRow,
 	InfoWrapper,
-	LinksWrapper,
 	Name,
 	Section,
-	Symbol,
 	ChartsWrapper,
 	LazyChart,
 	ChartsPlaceholder,
@@ -23,15 +15,9 @@ import {
 } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection } from '~/layout/Stats/Medium'
-import {
-	useYieldChartData,
-	useYieldChartLendBorrow,
-	useYieldConfigData,
-	useYieldPoolData,
-	useConfigPool
-} from '~/api/categories/yield/client'
-import { getColorFromNumber } from '~/utils'
+import { useYieldChartData, useYieldChartLendBorrow, useConfigPool } from '~/api/categories/yield/client'
 import styled from 'styled-components'
+import { calculateLoopAPY } from '~/api/categories/yield/index'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -53,8 +39,8 @@ const PageView = () => {
 	const farmToken = tokens?.length ? tokens[2] : ''
 
 	const { data: lendHistory, loading: fetchingLendData } = useYieldChartData(lendToken)
-	const { data: borrowHistory, loading: fetchingBorrowData } = useYieldChartLendBorrow(borrowToken)
-	const { data: farmHistory, loading: fetchingFarmData } = useYieldChartData(farmToken)
+	const { data: borrowHistory } = useYieldChartLendBorrow(borrowToken)
+	const { data: farmHistory } = useYieldChartData(farmToken)
 
 	const { data: configData } = useConfigPool(tokens?.length ? tokens.join(',') : '')
 
@@ -63,14 +49,14 @@ const PageView = () => {
 	}
 
 	const {
-		strategyData = [],
+		finalChart = [],
 		barChartDataSupply = [],
 		barChartDataBorrow = [],
 		barChartDataFarm = [],
 		lendApy,
 		borrowApy,
 		farmApy,
-		strategyAPY,
+		finalAPY,
 		ltv
 	} = useMemo(() => {
 		if (!lendHistory || !borrowHistory || !farmHistory || !configData) return {}
@@ -107,6 +93,8 @@ const PageView = () => {
 			})
 		})
 		merged = merged.filter((t) => !Object.values(t).includes(undefined))
+		// filter merged to length where all 3 components (lend/borrow/farm values) are not null
+		merged = merged.filter((t) => t.lendData.apy && t.borrowData.apyBaseBorrow && t.farmData.apy)
 
 		const configs = configData?.data || []
 
@@ -115,10 +103,13 @@ const PageView = () => {
 		merged = merged.map((t) => ({
 			...t,
 			strategyAPY:
-				t.lendData.apy + (-t.borrowData.apyBaseBorrow + t.borrowData.apyRewardBorrow) * ltv + t.farmData.apy * ltv
+				t.lendData.apy + (-t.borrowData.apyBaseBorrow + t.borrowData.apyRewardBorrow) * ltv + t.farmData.apy * ltv,
+			loopAPY: calculateLoopAPY([{ ...t?.borrowData, apyBaseBorrow: -t?.borrowData?.apyBaseBorrow, ltv }], 10)[0]
+				?.loopApy
 		}))
 
-		const strategyData = merged.map((t) => [t.timestamp, t.strategyAPY.toFixed(2)])
+		const strategyData = merged.map((t) => [t.timestamp, t?.strategyAPY?.toFixed(2)]).filter((t) => t[1])
+		const loopData = merged.map((t) => [t.timestamp, t?.loopAPY?.toFixed(2)]).filter((t) => t[1])
 
 		// make sure this is the most recent value
 		const latestValues = merged?.slice(-1)[0] ?? []
@@ -132,6 +123,10 @@ const PageView = () => {
 		const farmApy = latestValues?.farmData?.apy ?? 0
 
 		const strategyAPY = latestValues?.strategyAPY ?? 0
+		const loopAPY = latestValues?.loopAPY ?? 0
+
+		const finalAPY = lendToken === borrowToken ? loopAPY : strategyAPY
+		const finalChart = lendToken === borrowToken ? loopData : strategyData
 
 		const barChartDataSupply = merged?.length
 			? merged.map((item) => ({
@@ -158,17 +153,17 @@ const PageView = () => {
 			: []
 
 		return {
-			strategyData,
+			finalChart,
 			lendApy,
 			borrowApy,
 			farmApy,
-			strategyAPY,
+			finalAPY,
 			ltv,
 			barChartDataSupply,
 			barChartDataBorrow,
 			barChartDataFarm
 		}
-	}, [lendHistory, borrowHistory, farmHistory, configData, lendToken])
+	}, [lendHistory, borrowHistory, farmHistory, configData, lendToken, borrowToken])
 
 	return (
 		<>
@@ -178,12 +173,17 @@ const PageView = () => {
 					<TableWrapper>
 						<tbody>
 							<tr>
-								<th>Supply APY:</th>
-								<td>{lendApy?.toFixed(2)}%</td>
+								<th>Strategy APY:</th>
+								<td>{finalAPY?.toFixed(2)}%</td>
 							</tr>
 
 							<tr data-divider>
 								<th></th>
+							</tr>
+
+							<tr>
+								<th>Supply APY:</th>
+								<td>{lendApy?.toFixed(2)}%</td>
 							</tr>
 
 							<tr>
@@ -191,38 +191,21 @@ const PageView = () => {
 								<td>{borrowApy?.toFixed(2)}%</td>
 							</tr>
 
-							<tr data-divider>
-								<th></th>
-							</tr>
-
 							<tr>
 								<th>Farm APY:</th>
 								<td>{farmApy?.toFixed(2)}%</td>
 							</tr>
 
-							<tr data-divider>
-								<th></th>
-							</tr>
-
-							<tr>
-								<th>Strategy APY:</th>
-								<td>{strategyAPY?.toFixed(2)}%</td>
-							</tr>
-
-							<tr data-divider>
-								<th></th>
-							</tr>
-
 							<tr>
 								<th>Max LTV:</th>
-								<td>{ltv?.toFixed(2)}%</td>
+								<td>{ltv?.toFixed(2) * 100}%</td>
 							</tr>
 						</tbody>
 					</TableWrapper>
 				</PoolDetails>
 
 				<ChartWrapper style={{ position: 'relative' }}>
-					<AreaChart title="Strategy APY" chartData={strategyData} color={backgroundColor} valueSymbol={'%'} />
+					<AreaChart title="Strategy APY" chartData={finalChart} color={backgroundColor} valueSymbol={'%'} />
 				</ChartWrapper>
 			</StatsSection>
 
@@ -230,39 +213,55 @@ const PageView = () => {
 				<Section>
 					<h3>Steps</h3>
 					<FlexRow>
-						<span>-</span>
+						<span>1.</span>
 						Lend {configData?.data.find((c) => c.config_id === lendToken)?.symbol} as collateral on{' '}
 						{configData?.data.find((c) => c.config_id === lendToken)?.project} which earns a Supply APY of{' '}
 						{lendApy?.toFixed(2)}%.
 					</FlexRow>
 					<FlexRow>
-						<span>-</span>
+						<span>2.</span>
 						Borrow {configData?.data.find((c) => c.config_id === borrowToken)?.symbol} against your{' '}
-						{configData?.data.find((c) => c.config_id === lendToken)?.symbol} collateral with a max LTV of {ltv}% and a
-						borrow APY of {borrowApy?.toFixed(2)}% (
+						{configData?.data.find((c) => c.config_id === lendToken)?.symbol} collateral with a max LTV of {ltv * 100}%
+						and a borrow APY of {borrowApy?.toFixed(2)}% (
 						{borrowApy > 0 ? 'You get paid by borrowing' : 'The interest you need to pay'}).
 					</FlexRow>
 
 					{configData?.data.find((c) => c.config_id === borrowToken)?.symbol !==
 					configData?.data.find((c) => c.config_id === farmToken)?.symbol ? (
 						<FlexRow>
-							<span>-</span>
+							<span>3.</span>
 							Swap borrowed {configData?.data.find((c) => c.config_id === borrowToken)?.symbol} for{' '}
 							{configData?.data.find((c) => c.config_id === farmToken)?.symbol}
 						</FlexRow>
 					) : null}
 
 					<FlexRow>
-						<span>-</span>
+						{configData?.data.find((c) => c.config_id === borrowToken)?.symbol !==
+						configData?.data.find((c) => c.config_id === farmToken)?.symbol ? (
+							<span>4.</span>
+						) : (
+							<span>3.</span>
+						)}
 						Farm with {configData?.data.find((c) => c.config_id === farmToken)?.symbol} on{' '}
 						{configData?.data.find((c) => c.config_id === farmToken)?.project} which earns {farmApy?.toFixed(2)}%.
 					</FlexRow>
 
-					<FlexRow>
-						The Strategy APY is: {lendApy?.toFixed(2)}%{' '}
-						{borrowApy > 0 ? `+ ${borrowApy?.toFixed(2)}` : borrowApy?.toFixed(2)}% * {ltv?.toFixed(2)}% +{' '}
-						{farmApy?.toFixed(2)}% * {ltv?.toFixed(2)}% = {strategyAPY?.toFixed(2)}%
-					</FlexRow>
+					{configData?.data.find((c) => c.config_id === lendToken)?.symbol ===
+					configData?.data.find((c) => c.config_id === borrowToken)?.symbol ? (
+						// loop strategies
+						<FlexRow>
+							Strategy APY = Recursively lend and borrow{' '}
+							{configData?.data.find((c) => c.config_id === lendToken)?.symbol} up to n-times (Strategy APY is
+							calculated assuming 10 loops)
+						</FlexRow>
+					) : (
+						// non loop strategies
+						<FlexRow>
+							Strategy APY = {lendApy?.toFixed(2)}%{' '}
+							{borrowApy > 0 ? `+ ${borrowApy?.toFixed(2)}` : borrowApy?.toFixed(2)}% * {ltv?.toFixed(2)} +{' '}
+							{farmApy?.toFixed(2)}% * {ltv?.toFixed(2)} = {finalAPY?.toFixed(2)}%
+						</FlexRow>
+					)}
 				</Section>
 			</InfoWrapper>
 
