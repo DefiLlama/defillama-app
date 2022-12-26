@@ -6,15 +6,13 @@ import { primaryColor } from '~/constants/colors'
 
 export const getColor = async (protocol?: string, logo?: string | null) => {
 	let color = primaryColor
+	let path = tokenIconUrl(protocol)
+	if (!logo?.match(/\.svg$/)) {
+		path = logo
+	}
 
 	try {
 		if (protocol) {
-			let path = `https://defillama.com${tokenIconUrl(protocol)}`
-
-			if (!logo?.match(/\.svg$/)) {
-				path = logo
-			}
-
 			if (path.match(/\.(jpg|jpeg|png)$/)) {
 				await Vibrant.from(path).getPalette((_err, palette) => {
 					if (palette?.Vibrant) {
@@ -32,7 +30,7 @@ export const getColor = async (protocol?: string, logo?: string | null) => {
 			}
 		}
 	} catch (error) {
-		console.log(error)
+		console.log(`Couldn't get color from ${path}`)
 	} finally {
 		return color
 	}
@@ -40,11 +38,10 @@ export const getColor = async (protocol?: string, logo?: string | null) => {
 
 export async function getPeggedColor({ peggedAsset }) {
 	let color = primaryColor
+	let path = peggedAssetIconUrl(peggedAsset)
 
 	try {
 		if (peggedAsset) {
-			let path = `https://defillama.com${peggedAssetIconUrl(peggedAsset)}`
-
 			if (path.match(/\.(jpg|jpeg|png)$/)) {
 				await Vibrant.from(path).getPalette((_err, palette) => {
 					if (palette?.Vibrant) {
@@ -62,7 +59,7 @@ export async function getPeggedColor({ peggedAsset }) {
 			}
 		}
 	} catch (error) {
-		console.log(error)
+		console.log(`Couldn't get color from ${path}`)
 	} finally {
 		return color
 	}
