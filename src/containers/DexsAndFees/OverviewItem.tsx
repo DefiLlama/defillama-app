@@ -78,6 +78,7 @@ export interface IDexChartsProps {
 	disableDefaultLeged?: boolean
 	chartTypes?: string[]
 	selectedType?: string
+	selectedChartType?: string
 }
 
 export const ProtocolChart = ({

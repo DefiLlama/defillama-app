@@ -4,8 +4,8 @@ import Link from 'next/link'
 import styled from 'styled-components'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import { Denomination, Filters, FiltersWrapper } from '~/components/ECharts/ProtocolChart/ProtocolChart'
-import { IBarChartProps } from '~/components/ECharts/types'
-import { formattedNum } from '~/utils'
+import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import { formattedNum, getRandomColor } from '~/utils'
 import { IDexChartsProps } from './OverviewItem'
 import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
 import { volumeTypes } from '~/utils/adaptorsPages/[type]/[item]'
@@ -14,6 +14,10 @@ import QuestionHelper from '~/components/QuestionHelper'
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
+
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
 
 export const FlatDenomination = styled(Denomination)`
 	white-space: nowrap;
@@ -42,6 +46,8 @@ export interface IMainBarChartProps {
 
 export type DataIntervalType = 'Daily' | 'Weekly' | 'Monthly'
 export const GROUP_INTERVALS_LIST: DataIntervalType[] = ['Daily', 'Weekly', 'Monthly']
+export type ChartType = 'Volume' | 'Dominance'
+export const GROUP_CHART_LIST: ChartType[] = ['Volume', 'Dominance']
 
 export const aggregateDataByInterval =
 	(barInterval: DataIntervalType, chartData: IDexChartsProps['chartData']) => () => {
@@ -54,7 +60,8 @@ export const aggregateDataByInterval =
 			const cleanDate = cleanTimestampFormatter(+current.date)
 			acc[cleanDate] = Object.entries(current).reduce((intervalAcc, [label, value]) => {
 				if (typeof value === 'string') return intervalAcc
-				intervalAcc[label] = ((intervalAcc[label] as number) ?? 0) + value
+				const v = ((intervalAcc[label] as number) ?? 0) + value
+				if (v !== 0) intervalAcc[label] = v
 				return intervalAcc
 			}, acc[cleanDate] ?? ({} as typeof acc[number]))
 			return acc
@@ -63,7 +70,8 @@ export const aggregateDataByInterval =
 	}
 
 export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
-	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
+	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Weekly')
+	const [chartType, setChartType] = React.useState<ChartType>('Volume')
 	const dataType = volumeTypes.includes(props.type) ? 'volume' : props.type
 	const simpleStack =
 		props.chartData[1].includes('Fees') || props.chartData[1].includes('Premium volume')
@@ -171,18 +179,37 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 								))}
 							</Filters>
 						)}
+						{props.chartData?.[1]?.length > 1 ? (
+							<Filters color={'#4f8fea'}>
+								{GROUP_CHART_LIST.map((dataType) => (
+									<FlatDenomination
+										active={dataType === chartType}
+										key={dataType}
+										onClick={() => setChartType(dataType)}
+									>
+										{dataType}
+									</FlatDenomination>
+								))}
+							</Filters>
+						) : (
+							<></>
+						)}
 					</FiltersWrapperRow>
 				</>
 				{barsData && barsData.length > 0 && (
 					<>
-						<StackedBarChart
-							title=""
-							chartData={barsData}
-							customLegendOptions={props.chartData[1] as string[]}
-							stacks={simpleStack}
-							hidedefaultlegend={props.disableDefaultLeged}
-							/* stackColors={stackedBarChartColors} */
-						/>
+						{chartType === 'Dominance' ? (
+							<AreaChart title="" chartData={barsData} stacks={props.chartData[1]} expandTo100Percent valueSymbol="%" />
+						) : (
+							<StackedBarChart
+								title=""
+								chartData={barsData}
+								customLegendOptions={props.chartData[1]}
+								stacks={simpleStack}
+								hidedefaultlegend={props.disableDefaultLeged}
+								/* stackColors={stackedBarChartColors} */
+							/>
+						)}
 					</>
 				)}
 			</BreakpointPanel>

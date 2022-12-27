@@ -26,6 +26,7 @@ export default function AreaChart({
 	tooltipSort = true,
 	chartOptions,
 	height = '360px',
+	expandTo100Percent = false,
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
@@ -118,6 +119,8 @@ export default function AreaChart({
 					itemStyle: {
 						color: stackColor ? stackColor : index === 0 ? chartColor : null
 					},
+					stack: undefined,
+					lineStyle: undefined,
 					areaStyle: {
 						color: !customLegendName
 							? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -131,7 +134,7 @@ export default function AreaChart({
 									}
 							  ])
 							: null
-					},
+					} as { color?: echarts.graphic.LinearGradient },
 					data: [],
 					...(hallmarks && {
 						markLine: {
@@ -160,9 +163,23 @@ export default function AreaChart({
 			})
 
 			chartData.forEach(({ date, ...item }) => {
+				const sumOfTheDay = Object.values(item).reduce((acc, curr) => (acc += curr), 0)
 				chartsStack.forEach((stack) => {
 					if (legendOptions && customLegendName ? legendOptions.includes(stack) : true) {
-						series.find((t) => t.name === stack)?.data.push([getUtcDateObject(date), item[stack] || 0])
+						const serie = series.find((t) => t.name === stack)
+						if (serie) {
+							const rawValue = item[stack] || 0
+							const value = expandTo100Percent ? (rawValue / sumOfTheDay) * 100 : rawValue
+							if (expandTo100Percent) {
+								serie.stack = 'A'
+								serie.areaStyle = {}
+								serie.lineStyle = {
+									...serie.lineStyle,
+									width: 0
+								}
+							}
+							serie.data.push([getUtcDateObject(date), value])
+						}
 					}
 				})
 			})
@@ -206,7 +223,12 @@ export default function AreaChart({
 				...xAxis
 			},
 			yAxis: {
-				...yAxis
+				...yAxis,
+				...(expandTo100Percent
+					? {
+							max: 100
+					  }
+					: {})
 			},
 			dataZoom: [...dataZoom],
 			series

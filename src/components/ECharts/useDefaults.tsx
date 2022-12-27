@@ -126,7 +126,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 							curr.marker +
 							curr.seriesName +
 							'&nbsp;&nbsp;' +
-							curr.value[1] +
+							Math.round(curr.value[1] * 100) / 100 +
 							valueSymbol +
 							'</li>')
 					}, '')
