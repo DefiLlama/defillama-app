@@ -272,7 +272,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 		]
 
 		const removeJumps = (text: string | number) =>
-			typeof text === 'string' ? '"' + text.replaceAll('\n', '') + '"' : text
+			typeof text === 'string' ? '"' + text.replaceAll('\n', '').replaceAll('"', "'") + '"' : text
 		raises
 			.sort((a, b) => b.date - a.date)
 			.forEach((item) => {
