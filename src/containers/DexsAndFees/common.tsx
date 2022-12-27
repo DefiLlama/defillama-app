@@ -68,7 +68,7 @@ export const aggregateDataByInterval =
 	}
 
 export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
-	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Weekly')
+	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Monthly')
 	const [chartType, setChartType] = React.useState<ChartType>('Bars')
 	const dataType = volumeTypes.includes(props.type) ? 'volume' : props.type
 	const simpleStack =
@@ -78,13 +78,13 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 
 	const barsData = React.useMemo(aggregateDataByInterval(barInterval, props.chartData), [props.chartData, barInterval])
 	const barsDataSum = React.useMemo(() => {
-		return props.chartData[0].reduce((acc, curr) => {
+		return barsData.reduce((acc, curr) => {
 			acc[curr.date] = Object.entries(curr)
 				.filter(([key]) => key !== 'date')
 				.reduce((acc, [_key, v]) => (acc += +v), 0)
 			return acc
 		}, {})
-	}, [props.chartData, barInterval])
+	}, [barsData])
 
 	const belowMed = useMed()
 	const belowXl = useXl()
@@ -199,13 +199,21 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 								))}
 							</Filters>
 						)}
-						<Filters color={'#4f8fea'}>
-							{GROUP_CHART_LIST.map((dataType) => (
-								<FlatDenomination active={dataType === chartType} key={dataType} onClick={() => setChartType(dataType)}>
-									{dataType}
-								</FlatDenomination>
-							))}
-						</Filters>
+						{props.chartData?.[1]?.length > 1 ? (
+							<Filters color={'#4f8fea'}>
+								{GROUP_CHART_LIST.map((dataType) => (
+									<FlatDenomination
+										active={dataType === chartType}
+										key={dataType}
+										onClick={() => setChartType(dataType)}
+									>
+										{dataType}
+									</FlatDenomination>
+								))}
+							</Filters>
+						) : (
+							<></>
+						)}
 					</FiltersWrapperRow>
 				</>
 				{barsData && barsData.length > 0 && (
