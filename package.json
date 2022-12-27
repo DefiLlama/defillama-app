@@ -10,7 +10,7 @@
 		"postinstall": "./scripts/postinstall.sh",
 		"dev": "next dev",
 		"format": "prettier --write .",
-		"build": "next build",
+		"build": "./scripts/build.sh",
 		"prestart": "./scripts/prestart.sh",
 		"start": "next start",
 		"lint": "next lint"
