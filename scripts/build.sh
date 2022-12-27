@@ -12,11 +12,13 @@ COMMIT_COMMENT=$(git log -1 --pretty=%B)
 START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 START_TIME_TS=$(date -u +"%s")
 
+echo "Using shell $SHELL"
 echo ""
 echo "======================="
 echo "🔨 New build started"
 echo "💬 $COMMIT_COMMENT"
-echo "🦙 $COMMIT_AUTHOR - 📸 ${COMMIT_HASH:0:7}"
+echo "🦙 $COMMIT_AUTHOR"
+echo "📸 $COMMIT_HASH"
 echo "======================="
 echo ""
 
@@ -49,7 +51,8 @@ echo $BUILD_SUMMARY
 echo "======================="
 COMMIT_SUMMARY=""
 COMMIT_SUMMARY+="💬 [$COMMIT_COMMENT]"
-COMMIT_SUMMARY+="\n🦙 $COMMIT_AUTHOR - 📸 ${COMMIT_HASH:0:7}"
+COMMIT_SUMMARY+="\n🦙 $COMMIT_AUTHOR"
+COMMIT_SUMMARY+="\n📸 $COMMIT_HASH"
 echo $COMMIT_SUMMARY
 echo "======================="
 echo ""
