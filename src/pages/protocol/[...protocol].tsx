@@ -4,7 +4,6 @@ import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { getProtocols, getProtocol, fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
-import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export const getStaticProps = async ({
 	params: {
@@ -60,17 +59,15 @@ export const getStaticProps = async ({
 		}
 	})
 
-	const compressed = compressPageProps({
-		protocol,
-		protocolData,
-		backgroundColor,
-		similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
-			similarProtocols.find((p) => p.name === protocolName)
-		)
-	})
-
 	return {
-		props: { compressed },
+		props: {
+			protocol,
+			protocolData,
+			backgroundColor,
+			similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
+				similarProtocols.find((p) => p.name === protocolName)
+			)
+		},
 		revalidate: maxAgeForNext([22])
 	}
 }
@@ -85,14 +82,12 @@ export async function getStaticPaths() {
 	return { paths, fallback: 'blocking' }
 }
 
-export default function Protocols({ compressed }) {
-	const { protocolData, ...props } = decompressPageProps(compressed)
-
+export default function Protocols({ protocolData, ...props }) {
 	return (
 		<ProtocolContainer
 			title={`${protocolData.name}: TVL and Stats - DefiLlama`}
 			protocolData={protocolData}
-			{...props}
+			{...props as any}
 		/>
 	)
 }

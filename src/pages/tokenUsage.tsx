@@ -10,11 +10,8 @@ import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { fetcher } from '~/utils/useSWR'
 import Announcement from '~/components/Announcement'
-import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
-export default function Tokens({ compressed }) {
-	const { searchData } = decompressPageProps(compressed)
-
+export default function Tokens({ searchData }) {
 	const router = useRouter()
 
 	const { token, includecex } = router.query
@@ -91,17 +88,15 @@ export default function Tokens({ compressed }) {
 export async function getStaticProps() {
 	const searchData = await getAllCGTokensList()
 
-	const compressed = compressPageProps({
-		searchData: searchData.map((token) => ({
-			name: `${token.name}`,
-			route: `/tokenUsage?token=${token.symbol}`,
-			symbol: token.symbol,
-			logo: token.image
-		}))
-	})
-
 	return {
-		props: { compressed },
+		props: {
+			searchData: searchData.map((token) => ({
+				name: `${token.name}`,
+				route: `/tokenUsage?token=${token.symbol}`,
+				symbol: token.symbol,
+				logo: token.image
+			}))
+		},
 		revalidate: maxAgeForNext([23])
 	}
 }

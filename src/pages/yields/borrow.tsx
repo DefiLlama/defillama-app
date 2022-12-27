@@ -4,7 +4,6 @@ import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'
-import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
 	const data = await getLendBorrowData()
@@ -21,16 +20,13 @@ export async function getStaticProps() {
 		}
 	})
 
-	const compressed = compressPageProps({ ...data.props, tokens, tokenSymbolsList })
-
 	return {
-		props: { compressed },
+		props: { ...data.props, tokens, tokenSymbolsList },
 		revalidate: maxAgeForNext([23])
 	}
 }
 
-export default function YieldBorrow({ compressed }) {
-	const data = decompressPageProps(compressed)
+export default function YieldBorrow(data) {
 	return (
 		<Layout title={`Lend/Borrow rates - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>

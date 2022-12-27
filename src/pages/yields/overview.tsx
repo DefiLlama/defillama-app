@@ -4,7 +4,6 @@ import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getYieldPageData, getYieldMedianData } from '~/api/categories/yield'
-import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
 	const {
@@ -25,16 +24,13 @@ export async function getStaticProps() {
 		}
 	})
 
-	const compressed = compressPageProps({ ...data, median: median.props, tokens, tokenSymbolsList })
-
 	return {
-		props: { compressed },
+		props: { ...data, median: median.props, tokens, tokenSymbolsList },
 		revalidate: maxAgeForNext([23])
 	}
 }
 
-export default function YieldPlots({ compressed }) {
-	const data = decompressPageProps(compressed)
+export default function YieldPlots(data) {
 	return (
 		<Layout title={`Overview - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>

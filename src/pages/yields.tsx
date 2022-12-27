@@ -4,7 +4,6 @@ import { getYieldPageData } from '~/api/categories/yield'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
-import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
 	const data = await getYieldPageData()
@@ -22,17 +21,13 @@ export async function getStaticProps() {
 		}
 	})
 
-	const compressed = compressPageProps({ ...data.props, tokens, tokenSymbolsList })
-
 	return {
-		props: { compressed },
+		props: { ...data.props, tokens, tokenSymbolsList },
 		revalidate: maxAgeForNext([23])
 	}
 }
 
-export default function ApyHomePage({ compressed }) {
-	const data = decompressPageProps(compressed)
-
+export default function ApyHomePage(data) {
 	return (
 		<Layout title={`Yield Rankings - DefiLlama`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>

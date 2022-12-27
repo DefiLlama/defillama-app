@@ -4,7 +4,6 @@ import { getRaisesFiltersList } from '~/api/categories/raises'
 import { RAISES_API } from '~/constants'
 import RaisesContainer from '~/containers/Raises'
 import { slug, toYearMonth } from '~/utils'
-import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps({
 	params: {
@@ -63,19 +62,15 @@ export async function getStaticProps({
 
 	const filters = getRaisesFiltersList({ raises })
 
-	const compressed = compressPageProps({
-		raises,
-		monthlyInvestment: Object.entries(monthlyInvestment).map((t) => [
-			new Date(t[0]).getTime() / 1e3,
-			Number.isNaN(Number(t[1])) ? 0 : Number(t[1]) * 1e6
-		]),
-		...filters,
-		investorName
-	})
-
 	return {
 		props: {
-			compressed
+			raises,
+			monthlyInvestment: Object.entries(monthlyInvestment).map((t) => [
+				new Date(t[0]).getTime() / 1e3,
+				Number.isNaN(Number(t[1])) ? 0 : Number(t[1]) * 1e6
+			]),
+			...filters,
+			investorName
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -88,9 +83,7 @@ export async function getStaticPaths() {
 	}
 }
 
-const Raises = ({ compressed }) => {
-	const props = decompressPageProps(compressed)
-
+const Raises = (props) => {
 	return <RaisesContainer {...props} />
 }
 
