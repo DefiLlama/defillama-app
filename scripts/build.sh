@@ -40,23 +40,19 @@ BUILD_ID=$(find .next -name _buildManifest.js | sed 's/\/_buildManifest.js//g' |
 
 echo ""
 echo "======================="
-BUILD_SUMMARY=""
 if [ $BUILD_STATUS -eq 0 ]; then
-  BUILD_SUMMARY+="🎉 Build succeeded in $BUILD_TIME_STR"
+  echo "🎉 Build succeeded in $BUILD_TIME_STR"
 else
-  BUILD_SUMMARY+="🚨 Build failed in $BUILD_TIME_STR"
+  echo "🚨 Build failed in $BUILD_TIME_STR"
 fi
-BUILD_SUMMARY+="\n📅 Build started at: $START_TIME"
+echo "📅 Build started at: $START_TIME"
 if [ -n "$BUILD_ID" ]; then
-  BUILD_SUMMARY+="\n📦 Build ID: $BUILD_ID"
+  echo "📦 Build ID: $BUILD_ID"
 fi
-echo $BUILD_SUMMARY
 echo "======================="
-COMMIT_SUMMARY=""
-COMMIT_SUMMARY+="💬 [$COMMIT_COMMENT]"
-COMMIT_SUMMARY+="\n🦙 $COMMIT_AUTHOR"
-COMMIT_SUMMARY+="\n📸 $COMMIT_HASH"
-echo $COMMIT_SUMMARY
+echo "💬 [$COMMIT_COMMENT]"
+echo "🦙 $COMMIT_AUTHOR"
+echo "📸 $COMMIT_HASH"
 echo "======================="
 echo ""
 
@@ -65,24 +61,7 @@ if [ -z "$NOT_VERCEL" ]; then
   exit $BUILD_STATUS
 fi
 
-# send a message to Discord using the Discord webhook URL, if BUILD_STATUS_WEBHOOK is set
-MESSAGE=$BUILD_SUMMARY
-MESSAGE+="\n$COMMIT_SUMMARY"
-if [ -n "$BUILD_STATUS_WEBHOOK" ]; then
-  curl -X POST -H "Content-Type: application/json" -d "{\"content\": \"\`\`\`\n$MESSAGE\n\`\`\`\"}" $BUILD_STATUS_WEBHOOK
-fi
-
-if [ $BUILD_STATUS -ne 0 ] && [ -n "$BUILD_STATUS_WEBHOOK" ]; then
-  if [ -n "$BUILD_STATUS_LLAMAS" ]; then
-    LLAMA_MENTIONS=""
-    for LLAMA in $(echo $BUILD_STATUS_LLAMAS | sed "s/,/ /g"); do
-      LLAMA_MENTIONS+="<@!$LLAMA> "
-    done
-    curl -X POST -H "Content-Type: application/json" -d "{\"content\": \"<:tiresome:1023676964319535286> $LLAMA_MENTIONS\n<:binoculars:1012832136459456582> $BUILD_STATUS_DASHBOARD\"}" $BUILD_STATUS_WEBHOOK
-  fi
-else
-  curl -X POST -H "Content-Type: application/json" -d "{\"content\": \"<:llamacheer:1012832279195832331>\"}" $BUILD_STATUS_WEBHOOK
-fi
+node ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH"
 
 # exit with the build status
 exit $BUILD_STATUS
