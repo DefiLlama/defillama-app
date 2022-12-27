@@ -12,7 +12,6 @@ COMMIT_COMMENT=$(git log -1 --pretty=%B)
 START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 START_TIME_TS=$(date -u +"%s")
 
-echo "Using shell $SHELL"
 echo ""
 echo "======================="
 echo "🔨 New build started"
