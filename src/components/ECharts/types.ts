@@ -23,9 +23,10 @@ export interface IChartProps {
 	stackColors?: {
 		[stack: string]: string
 	}
+	expandTo100Percent?: boolean
 }
 
-export interface IBarChartProps extends Omit<IChartProps, 'stacks'> {
+export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {
 	stacks?: {
 		[stack: string]: string
 	}
