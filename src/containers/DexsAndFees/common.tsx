@@ -10,8 +10,6 @@ import { IDexChartsProps } from './OverviewItem'
 import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
 import { volumeTypes } from '~/utils/adaptorsPages/[type]/[item]'
 import QuestionHelper from '~/components/QuestionHelper'
-import { ChainResponsiveDominance } from '~/components/Charts'
-import { useMed, useXl } from '~/hooks'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
