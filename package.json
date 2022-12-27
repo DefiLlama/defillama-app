@@ -19,6 +19,7 @@
 		"@tanstack/react-table": "^8.5.22",
 		"@tanstack/react-virtual": "^3.0.0-beta.18",
 		"ariakit": "^2.0.0-next.41",
+		"axios": "^1.2.1",
 		"bignumber.js": "^9.0.2",
 		"colord": "^2.9.3",
 		"dayjs": "^1.11.3",
