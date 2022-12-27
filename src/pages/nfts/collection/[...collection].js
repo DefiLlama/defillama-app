@@ -35,7 +35,7 @@ export async function getStaticProps({
 // }
 
 export async function getStaticPaths() {
-	return { paths: [], fallback: 'blocking' }
+	return { paths: [] }
 }
 
 export default function Collection(props) {

@@ -10,6 +10,12 @@ import { getRandomColor } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getNFTChainChartData, getNFTChainsData } from '~/api/categories/nfts'
 
+export async function getStaticPaths() {
+	return {
+		paths: []
+	}
+}
+
 export async function getStaticProps() {
 	const chainData = await getNFTChainsData()
 
