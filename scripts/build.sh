@@ -36,7 +36,10 @@ if [ $BUILD_STATUS -eq 0 ]; then
 else
   echo "🚨 Build failed in $BUILD_TIME_STR"
 fi
-[ -n "$BUILD_ID" ] && echo "📦 Build ID: $BUILD_ID"
+if [ -n "$BUILD_ID" ]; then
+  echo "📦 Build ID: $BUILD_ID"
+  echo "📅 Build time: $START_TIME"
+fi
 echo "======================="
 echo "💬 $COMMIT_COMMENT"
 echo "🦙 $COMMIT_AUTHOR - 📸 ${COMMIT_HASH:0:7}"
