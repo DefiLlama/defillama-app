@@ -101,7 +101,6 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 						<BreakpointPanel>
 							<h1>Total {dataType} (7d)</h1>
 							<p style={{ '--tile-text-color': '#4f8fea' } as React.CSSProperties}>
-								{console.log('formattedNum', formattedNum(props.data.total7d, true))}
 								{formattedNum(props.data.total7d, true)}
 							</p>
 						</BreakpointPanel>
