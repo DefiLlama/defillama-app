@@ -294,6 +294,38 @@ export async function getStaticProps() {
 			}
 		})
 	)
+	
+	async function fetchTVL() {
+		const tvls = [];
+	  
+		for (const platform of cexData) {
+		  const response = await fetch(`https://api.llama.fi/tvl/${platform.slug}`);
+		  const tvl = await response.json();
+		  tvls.push({
+			name: platform.name,
+			tvl: tvl.cleanAssets
+		  });
+		}
+	  
+		return tvls;
+	  }
+	  
+	  async function sortByHighestCleanAssets() {
+		const tvls = await fetchTVL();
+	  
+		tvls.sort((a, b) => {
+		  if (a.tvl > b.tvl) return -1;
+		  if (a.tvl < b.tvl) return 1;
+		  return 0;
+		});
+	  
+		return tvls;
+	  }
+	  
+	  (async () => {
+		const sortedTVLs = await sortByHighestCleanAssets();
+		console.log(sortedTVLs);
+	  })();
 
 	return {
 		props: {
