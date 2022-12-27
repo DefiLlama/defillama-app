@@ -54,6 +54,11 @@ echo $COMMIT_SUMMARY
 echo "======================="
 echo ""
 
+if [ -z "$NOT_VERCEL" ]; then
+  echo "NOT_VERCEL is not set, skipping discord notification"
+  exit $BUILD_STATUS
+fi
+
 # send a message to Discord using the Discord webhook URL, if BUILD_STATUS_WEBHOOK is set
 MESSAGE=$BUILD_SUMMARY
 MESSAGE+="\n$COMMIT_SUMMARY"
