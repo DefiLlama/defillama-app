@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# source .env if it exists
+set -a
+[ -f .env ] && . .env
+
 # find the last commit hash and commit comment and author
 COMMIT_AUTHOR=$(git log -1 --pretty=%an)
 COMMIT_HASH=$(git rev-parse HEAD)
@@ -31,17 +35,43 @@ BUILD_ID=$(find .next -name _buildManifest.js | sed 's/\/_buildManifest.js//g' |
 
 echo ""
 echo "======================="
+BUILD_SUMMARY=""
 if [ $BUILD_STATUS -eq 0 ]; then
-  echo "🎉 Build succeeded in $BUILD_TIME_STR"
+  BUILD_SUMMARY+="🎉 Build succeeded in $BUILD_TIME_STR"
 else
-  echo "🚨 Build failed in $BUILD_TIME_STR"
+  BUILD_SUMMARY+="🚨 Build failed in $BUILD_TIME_STR"
 fi
 if [ -n "$BUILD_ID" ]; then
-  echo "📦 Build ID: $BUILD_ID"
-  echo "📅 Build time: $START_TIME"
+  BUILD_SUMMARY+="\n📦 Build ID: $BUILD_ID"
+  BUILD_SUMMARY+="\n📅 Build time: $START_TIME"
 fi
+echo $BUILD_SUMMARY
 echo "======================="
-echo "💬 $COMMIT_COMMENT"
-echo "🦙 $COMMIT_AUTHOR - 📸 ${COMMIT_HASH:0:7}"
+COMMIT_SUMMARY=""
+COMMIT_SUMMARY+="💬 [$COMMIT_COMMENT]"
+COMMIT_SUMMARY+="\n🦙 $COMMIT_AUTHOR - 📸 ${COMMIT_HASH:0:7}"
+echo $COMMIT_SUMMARY
 echo "======================="
 echo ""
+
+# send a message to Discord using the Discord webhook URL, if BUILD_STATUS_WEBHOOK is set
+MESSAGE=$BUILD_SUMMARY
+MESSAGE+="\n$COMMIT_SUMMARY"
+if [ -n "$BUILD_STATUS_WEBHOOK" ]; then
+  curl -X POST -H "Content-Type: application/json" -d "{\"content\": \"\`\`\`\n$MESSAGE\n\`\`\`\"}" $BUILD_STATUS_WEBHOOK
+fi
+
+if [ $BUILD_STATUS -ne 0 ] && [ -n "$BUILD_STATUS_WEBHOOK" ]; then
+  if [ -n "$BUILD_STATUS_LLAMAS" ]; then
+    LLAMA_MENTIONS=""
+    for LLAMA in $(echo $BUILD_STATUS_LLAMAS | sed "s/,/ /g"); do
+      LLAMA_MENTIONS+="<@!$LLAMA> "
+    done
+    curl -X POST -H "Content-Type: application/json" -d "{\"content\": \"<:tiresome:1023676964319535286> $LLAMA_MENTIONS\n<:binoculars:1012832136459456582> $BUILD_STATUS_DASHBOARD\"}" $BUILD_STATUS_WEBHOOK
+  fi
+else
+  curl -X POST -H "Content-Type: application/json" -d "{\"content\": \"<:llamacheer:1012832279195832331>\"}" $BUILD_STATUS_WEBHOOK
+fi
+
+# exit with the build status
+exit $BUILD_STATUS
