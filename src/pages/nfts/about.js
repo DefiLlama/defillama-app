@@ -5,9 +5,7 @@ function AboutPage() {
 }
 
 export async function getStaticPaths() {
-	return {
-		paths: []
-	}
+	return { paths: [], fallback: false }
 }
 
 export default AboutPage

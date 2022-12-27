@@ -11,9 +11,7 @@ import { maxAgeForNext } from '~/api'
 import { getNFTChainChartData, getNFTChainsData } from '~/api/categories/nfts'
 
 export async function getStaticPaths() {
-	return {
-		paths: []
-	}
+	return { paths: [], fallback: false }
 }
 
 export async function getStaticProps() {

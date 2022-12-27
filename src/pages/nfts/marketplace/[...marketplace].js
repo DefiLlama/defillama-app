@@ -41,7 +41,7 @@ export async function getStaticProps({
 // }
 
 export async function getStaticPaths() {
-	return { paths: [] }
+	return { paths: [], fallback: false }
 }
 
 export default function Marketplace({ displayName, ...props }) {
