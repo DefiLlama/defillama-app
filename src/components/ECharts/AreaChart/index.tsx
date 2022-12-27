@@ -226,7 +226,8 @@ export default function AreaChart({
 				...yAxis,
 				...(expandTo100Percent
 					? {
-							max: 100
+							max: 100,
+							min: 0
 					  }
 					: {})
 			},
