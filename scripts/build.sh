@@ -41,9 +41,9 @@ if [ $BUILD_STATUS -eq 0 ]; then
 else
   BUILD_SUMMARY+="🚨 Build failed in $BUILD_TIME_STR"
 fi
+BUILD_SUMMARY+="\n📅 Build started at: $START_TIME"
 if [ -n "$BUILD_ID" ]; then
   BUILD_SUMMARY+="\n📦 Build ID: $BUILD_ID"
-  BUILD_SUMMARY+="\n📅 Build time: $START_TIME"
 fi
 echo $BUILD_SUMMARY
 echo "======================="
