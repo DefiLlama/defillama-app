@@ -10,53 +10,53 @@ import { getRandomColor } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getNFTChainChartData, getNFTChainsData } from '~/api/categories/nfts'
 
-export async function getStaticProps() {
-	const chainData = await getNFTChainsData()
+// export async function getStaticProps() {
+// 	const chainData = await getNFTChainsData()
 
-	const currentData = chainData.reduce((acc, curr) => {
-		const { chain: name, totalVolumeUSD: value } = curr
-		if (name && value) {
-			return (acc = [...acc, { name, value }])
-		} else return acc
-	}, [])
+// 	const currentData = chainData.reduce((acc, curr) => {
+// 		const { chain: name, totalVolumeUSD: value } = curr
+// 		if (name && value) {
+// 			return (acc = [...acc, { name, value }])
+// 		} else return acc
+// 	}, [])
 
-	const chainsUnique = chainData.reduce((acc, curr) => {
-		const chain = curr.chain || null
-		if (chain) {
-			return (acc = [...acc, curr.chain])
-		}
-		return acc
-	}, [])
+// 	const chainsUnique = chainData.reduce((acc, curr) => {
+// 		const chain = curr.chain || null
+// 		if (chain) {
+// 			return (acc = [...acc, curr.chain])
+// 		}
+// 		return acc
+// 	}, [])
 
-	const chartData = await Promise.all(chainsUnique.map((chain) => getNFTChainChartData(chain)))
+// 	const chartData = await Promise.all(chainsUnique.map((chain) => getNFTChainChartData(chain)))
 
-	const daySum = {}
-	const stackedDataset = Object.values(
-		chartData.reduce((total, chain, i) => {
-			const chainName = chainsUnique[i]
-			chain.forEach((dayTvl) => {
-				if (dayTvl.timestamp < 1596248105) return
-				if (total[dayTvl.timestamp] === undefined) {
-					total[dayTvl.timestamp] = { date: dayTvl.timestamp }
-				}
-				total[dayTvl.timestamp][chainName] = dayTvl.volumeUSD
-				daySum[dayTvl.timestamp] = (daySum[dayTvl.timestamp] || 0) + dayTvl.volumeUSD
-			})
-			return total
-		}, {})
-	)
+// 	const daySum = {}
+// 	const stackedDataset = Object.values(
+// 		chartData.reduce((total, chain, i) => {
+// 			const chainName = chainsUnique[i]
+// 			chain.forEach((dayTvl) => {
+// 				if (dayTvl.timestamp < 1596248105) return
+// 				if (total[dayTvl.timestamp] === undefined) {
+// 					total[dayTvl.timestamp] = { date: dayTvl.timestamp }
+// 				}
+// 				total[dayTvl.timestamp][chainName] = dayTvl.volumeUSD
+// 				daySum[dayTvl.timestamp] = (daySum[dayTvl.timestamp] || 0) + dayTvl.volumeUSD
+// 			})
+// 			return total
+// 		}, {})
+// 	)
 
-	return {
-		props: {
-			chainData: chainData || null,
-			currentData: currentData || null,
-			chainsUnique: chainsUnique || null,
-			stackedDataset: stackedDataset || null,
-			daySum: daySum || null
-		},
-		revalidate: maxAgeForNext([22])
-	}
-}
+// 	return {
+// 		props: {
+// 			chainData: chainData || null,
+// 			currentData: currentData || null,
+// 			chainsUnique: chainsUnique || null,
+// 			stackedDataset: stackedDataset || null,
+// 			daySum: daySum || null
+// 		},
+// 		revalidate: maxAgeForNext([22])
+// 	}
+// }
 
 const ChartsWrapper = styled(Box)`
 	display: flex;
@@ -71,6 +71,8 @@ const ChartsWrapper = styled(Box)`
 `
 
 const ChainsView = ({ chainData, currentData, chainsUnique, stackedDataset, daySum }) => {
+	return <div />
+
 	const chainColor = useMemo(
 		() => Object.fromEntries([...chainsUnique, 'Other'].map((chain) => [chain, getRandomColor()])),
 		[chainsUnique]

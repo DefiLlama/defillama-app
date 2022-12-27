@@ -10,53 +10,53 @@ import { getRandomColor } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getNFTMarketplacesData, getNFTMarketplaceChartData } from '~/api/categories/nfts'
 
-export async function getStaticProps() {
-	const marketplaceData = await getNFTMarketplacesData()
+// export async function getStaticProps() {
+// 	const marketplaceData = await getNFTMarketplacesData()
 
-	const currentData = marketplaceData.reduce((acc, curr) => {
-		const { marketplace: name, totalVolumeUSD: value } = curr
-		if (name && value) {
-			return (acc = [...acc, { name, value }])
-		} else return acc
-	}, [])
+// 	const currentData = marketplaceData.reduce((acc, curr) => {
+// 		const { marketplace: name, totalVolumeUSD: value } = curr
+// 		if (name && value) {
+// 			return (acc = [...acc, { name, value }])
+// 		} else return acc
+// 	}, [])
 
-	const marketplacesUnique = currentData.reduce((acc, curr) => {
-		const marketplace = curr.name || null
-		if (marketplace) {
-			return (acc = [...acc, curr.name])
-		}
-		return acc
-	}, [])
+// 	const marketplacesUnique = currentData.reduce((acc, curr) => {
+// 		const marketplace = curr.name || null
+// 		if (marketplace) {
+// 			return (acc = [...acc, curr.name])
+// 		}
+// 		return acc
+// 	}, [])
 
-	const chartData = await Promise.all(marketplacesUnique.map((marketplace) => getNFTMarketplaceChartData(marketplace)))
+// 	const chartData = await Promise.all(marketplacesUnique.map((marketplace) => getNFTMarketplaceChartData(marketplace)))
 
-	const daySum = {}
-	const stackedDataset = Object.values(
-		chartData.reduce((total, marketplace, i) => {
-			const marketplaceName = marketplacesUnique[i]
-			marketplace.forEach((data) => {
-				if (data.timestamp < 1596248105) return
-				if (total[data.timestamp] === undefined) {
-					total[data.timestamp] = { date: data.timestamp }
-				}
-				total[data.timestamp][marketplaceName] = data.volumeUSD
-				daySum[data.timestamp] = (daySum[data.timestamp] || 0) + data.volumeUSD
-			})
-			return total
-		}, {})
-	)
+// 	const daySum = {}
+// 	const stackedDataset = Object.values(
+// 		chartData.reduce((total, marketplace, i) => {
+// 			const marketplaceName = marketplacesUnique[i]
+// 			marketplace.forEach((data) => {
+// 				if (data.timestamp < 1596248105) return
+// 				if (total[data.timestamp] === undefined) {
+// 					total[data.timestamp] = { date: data.timestamp }
+// 				}
+// 				total[data.timestamp][marketplaceName] = data.volumeUSD
+// 				daySum[data.timestamp] = (daySum[data.timestamp] || 0) + data.volumeUSD
+// 			})
+// 			return total
+// 		}, {})
+// 	)
 
-	return {
-		props: {
-			marketplaceData: marketplaceData || null,
-			currentData: currentData || null,
-			marketplacesUnique: marketplacesUnique || null,
-			stackedDataset: stackedDataset || null,
-			daySum: daySum || null
-		},
-		revalidate: maxAgeForNext([22])
-	}
-}
+// 	return {
+// 		props: {
+// 			marketplaceData: marketplaceData || null,
+// 			currentData: currentData || null,
+// 			marketplacesUnique: marketplacesUnique || null,
+// 			stackedDataset: stackedDataset || null,
+// 			daySum: daySum || null
+// 		},
+// 		revalidate: maxAgeForNext([22])
+// 	}
+// }
 
 const ChartsWrapper = styled(Box)`
 	display: flex;
@@ -71,6 +71,8 @@ const ChartsWrapper = styled(Box)`
 `
 
 const MarketplacesView = ({ marketplaceData, currentData, marketplacesUnique, stackedDataset, daySum }) => {
+	return <div />
+
 	const marketplaceColor = useMemo(
 		() => Object.fromEntries([...marketplacesUnique, 'Other'].map((marketplace) => [marketplace, getRandomColor()])),
 		[marketplacesUnique]
