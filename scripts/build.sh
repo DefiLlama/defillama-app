@@ -23,7 +23,10 @@ echo "======================="
 echo ""
 
 BUILD_STATUS=1
-next build || BUILD_STATUS=$?
+next build
+if [ $? -eq 0 ]; then
+  BUILD_STATUS=0
+fi
 
 BUILD_TIME_SEC=$(($(date -u +"%s") - $START_TIME_TS))
 BUILD_TIME_MIN=$(($BUILD_TIME_SEC / 60))
