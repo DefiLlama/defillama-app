@@ -10,10 +10,6 @@ import { getRandomColor } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { getNFTMarketplacesData, getNFTMarketplaceChartData } from '~/api/categories/nfts'
 
-export async function getStaticPaths() {
-	return { paths: [], fallback: false }
-}
-
 export async function getStaticProps() {
 	const marketplaceData = await getNFTMarketplacesData()
 
