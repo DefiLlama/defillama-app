@@ -7,7 +7,6 @@ import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getLendBorrowData, calculateLoopAPY } from '~/api/categories/yield'
-import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
 	let {
@@ -24,18 +23,16 @@ export async function getStaticProps() {
 		}
 	})
 
-	const compressed = compressPageProps({
-		...data,
-		pools: calculateLoopAPY(
-			data.pools.filter((p) => p.category !== 'CDP'),
-			10,
-			null
-		),
-		tokens
-	})
-
 	return {
-		props: { compressed },
+		props: {
+			...data,
+			pools: calculateLoopAPY(
+				data.pools.filter((p) => p.category !== 'CDP'),
+				10,
+				null
+			),
+			tokens
+		},
 		revalidate: maxAgeForNext([23])
 	}
 }
@@ -58,9 +55,7 @@ Loop APY: 9% * 1.75 + 3% * 0.75 = 18% -> 2x increase compared to the Supply APY
 You could keep adding leverage by repeating these steps n-times.
 `
 
-export default function YieldBorrow({ compressed }) {
-	const data = decompressPageProps(compressed)
-
+export default function YieldBorrow(data) {
 	const [methodologyActivated, setMethodologyActivated] = useState(false)
 
 	return (

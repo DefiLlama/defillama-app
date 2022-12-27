@@ -85,6 +85,21 @@ export const getOverviewItemPageData = async (
 	return generateGetOverviewItemPageDate(item, type, protocolName)
 }
 
+function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
+	const protocolsRaw = chain ? protocolsData?.protocols.map(p => ({ ...p, tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null })) : protocolsData?.protocols
+	return protocolsRaw?.reduce((acc, pd) => {
+		acc[pd.name] = pd.tvlPrevDay
+		return acc
+	}, {}) ?? {}
+}
+
+// Get TVL data
+const sumTVLProtocols = (protocolName: string, versions: string[], tvlData: IJSON<number>) => {
+	return versions.reduce((acc, version) => {
+		return (acc += tvlData[`${protocolName} ${version.toUpperCase()}`])
+	}, 0)
+}
+
 // - used in /[type] and /[type]/chains/[chain]
 export const getChainPageData = async (type: string, chain?: string): Promise<IOverviewProps> => {
 	const feesOrRevenueApi =
@@ -117,12 +132,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		allChains
 	} = request
 
-	const protocolsRaw = chain ? protocolsData?.protocols.map(p => ({ ...p, tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null })) : protocolsData?.protocols
-	const tvlData =
-		protocolsRaw?.reduce((acc, pd) => {
-			acc[pd.name] = pd.tvlPrevDay
-			return acc
-		}, {}) ?? {}
+	const tvlData = getTVLData(protocolsData, chain)
 
 	const label: string = type === 'options' ? 'Notionial volume' : capitalizeFirstLetter(type)
 
@@ -143,13 +153,6 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				{} as IJSON<ProtocolAdaptorSummary>
 			) ?? {}
 			: {}
-
-	// Get TVL data
-	const sumTVLProtocols = (protocolName: string, versions: string[], tvlData: IJSON<number>) => {
-		return versions.reduce((acc, version) => {
-			return (acc += tvlData[`${protocolName} ${version.toUpperCase()}`])
-		}, 0)
-	}
 
 	const protocolsWithSubrows = protocols.map((protocol) => {
 		const protocolTVL = (tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, Object.keys(protocol.protocolsStats ?? {}), tvlData))
@@ -233,27 +236,37 @@ export interface IOverviewProps {
 export const getChainsPageData = async (type: string): Promise<IOverviewProps> => {
 	const { allChains, total24h: allChainsTotal24h } = await getOverview(type)
 
-	const dataByChain = await Promise.all(
-		allChains.map((chain) => getOverview(type, chain, undefined, true, true).then((res) => ({ ...res, chain })))
-	)
+	const [protocolsData, ...dataByChain] = await Promise.all([
+		fetch(PROTOCOLS_API).then((r) => r.json()),
+		...allChains.map((chain) => getOverview(type, chain, undefined, true, true).then((res) => ({ ...res, chain })))
+	])
 
-	let protocols = dataByChain.map(({ total24h, change_1d, change_7d, chain, change_1m, protocols }) => ({
-		name: chain,
-		displayName: chain,
-		disabled: null,
-		logo: chainIconUrl(chain),
-		total24h,
-		change_1d,
-		change_7d,
-		change_1m,
-		dominance: (100 * total24h) / allChainsTotal24h,
-		chains: [chain],
-		totalAllTime: protocols.reduce((acc, curr) => (acc += curr.totalAllTime), 0),
-		protocolsStats: null,
-		breakdown24h: null,
-		module: chain,
-		revenue24h: null
-	}))
+	let protocols = dataByChain.map(({ total24h, change_1d, change_7d, chain, change_1m, protocols, change_7dover7d, total7d }) => {
+		const tvlData = getTVLData(protocolsData, chain)
+		return {
+			name: chain,
+			displayName: chain,
+			disabled: null,
+			logo: chainIconUrl(chain),
+			total24h,
+			tvl: protocols.reduce((acc, curr) => {
+				acc += tvlData[curr.name] ?? sumTVLProtocols(curr.name, Object.keys(curr.protocolsStats ?? {}), tvlData)
+				return acc
+			}, 0),
+			change_7dover7d,
+			total7d,
+			change_1d,
+			change_7d,
+			change_1m,
+			dominance: (100 * total24h) / allChainsTotal24h,
+			chains: [chain],
+			totalAllTime: protocols.reduce((acc, curr) => (acc += curr.totalAllTime), 0),
+			protocolsStats: null,
+			breakdown24h: null,
+			module: chain,
+			revenue24h: null
+		}
+	})
 
 	const allCharts = dataByChain.map((chainData) => [chainData.chain, chainData.totalDataChart]) as IChartsList
 	let aggregatedChart = joinCharts2(...allCharts)

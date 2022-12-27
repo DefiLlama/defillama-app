@@ -483,7 +483,7 @@ export const cexColumn: ColumnDef<any>[] = [
 				</AutoRow>
 			)
 		},
-		size: 125,
+		size: 145,
 		meta: {
 			align: 'end',
 			headerHelperText: 'TVL of the CEX excluding all assets issued by itself, such as their own token'

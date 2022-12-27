@@ -4,7 +4,6 @@ import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getLendBorrowData } from '~/api/categories/yield'
-import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
 	const {
@@ -34,22 +33,18 @@ export async function getStaticProps() {
 		)
 		.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 
-	const compressed = compressPageProps({
-		pools: filteredPools,
-		allPools: filteredAllPools,
-		searchData: searchData?.flat() ?? [],
-		...data
-	})
-
 	return {
-		props: { compressed },
+		props: {
+			pools: filteredPools,
+			allPools: filteredAllPools,
+			searchData: searchData?.flat() ?? [],
+			...data
+		},
 		revalidate: maxAgeForNext([23])
 	}
 }
 
-export default function YieldStrategies({ compressed }) {
-	const data = decompressPageProps(compressed)
-
+export default function YieldStrategies(data) {
 	return (
 		<Layout title={`Yield Strategies - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>

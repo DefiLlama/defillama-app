@@ -95,7 +95,6 @@ import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
-import { compressPageProps, decompressPageProps } from '~/utils/compress'
 
 export async function getStaticProps() {
 	let {
@@ -116,28 +115,25 @@ export async function getStaticProps() {
 
 	const pools = data.pools.filter((p) => whitelist.includes(p.projectName))
 
-	const compressed = compressPageProps({
-		...data,
-		pools,
-		projectList: data.projectList.filter((p) => whitelist.includes(p)),
-		categoryList: Array.from(
-			pools.reduce((set, pool) => {
-				set.add(pool.category)
-				return set
-			}, new Set())
-		),
-		tokens,
-		tokenSymbolsList
-	})
-
 	return {
-		props: { compressed },
+		props: {
+			...data,
+			pools,
+			projectList: data.projectList.filter((p) => whitelist.includes(p)),
+			categoryList: Array.from(
+				pools.reduce((set, pool) => {
+					set.add(pool.category)
+					return set
+				}, new Set())
+			),
+			tokens,
+			tokenSymbolsList
+		},
 		revalidate: maxAgeForNext([23])
 	}
 }
 
-export default function YieldPlots({ compressed }) {
-	const data = decompressPageProps(compressed)
+export default function YieldPlots(data) {
 	const [methodologyActivated, setMethodologyActivated] = useState(false)
 
 	return (

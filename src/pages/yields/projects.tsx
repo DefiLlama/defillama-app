@@ -2,7 +2,6 @@ import Layout from '~/layout'
 import { YieldsProjectsTable } from '~/components/Table'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
-import { compressPageProps, decompressPageProps } from '~/utils/compress'
 import { maxAgeForNext } from '~/api'
 import { getYieldPageData } from '~/api/categories/yield'
 
@@ -46,26 +45,20 @@ export async function getStaticProps() {
 		...details
 	}))
 
-	const compressed = compressPageProps({
-		projects: projArray.sort((a, b) => b.tvl - a.tvl)
-	})
-
 	return {
-		props: { compressed },
+		props: { projects: projArray.sort((a, b) => b.tvl - a.tvl) },
 		revalidate: maxAgeForNext([23])
 	}
 }
 
-export default function Protocols({ compressed }) {
-	const data = decompressPageProps(compressed)
-
+export default function Protocols({ projects }) {
 	return (
 		<Layout title={`Projects - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
 
 			<PageHeader title="Projects" />
 
-			<YieldsProjectsTable data={data.projects} />
+			<YieldsProjectsTable data={projects} />
 		</Layout>
 	)
 }
