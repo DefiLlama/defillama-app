@@ -38,7 +38,7 @@ commitSummary += '\n' + `🦙 ${COMMIT_AUTHOR}`
 commitSummary += '\n' + `📸 ${COMMIT_HASH}`
 
 const sendMessages = async () => {
-	const message = `\`\`\`\n${buildSummary}\n${commitSummary}\n\`\`\``
+	const message = `\`\`\`\n===== COMMIT SUMMARY =====\n${commitSummary}\n\n===== BUILD SUMMARY =====\n${buildSummary}\n\`\`\``
 	const body = { content: message }
 	await axios.post(BUILD_STATUS_WEBHOOK, body)
 
