@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # source .env if it exists
 set -a
