@@ -3,6 +3,7 @@ import Link from 'next/link'
 import styled, { keyframes } from 'styled-components'
 import { linksWithNoSubMenu, navLinks } from '../Links'
 import { useRouter } from 'next/router'
+import { ChevronDown } from 'react-feather'
 
 const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
 	const { pathname } = useRouter()
@@ -27,6 +28,9 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 			<summary>
 				<span data-mainlinkicon>{navLinks[name].icon}</span>
 				<span>{name}</span>
+				<span data-arrowicon>
+					<ChevronDown size={16} />
+				</span>
 			</summary>
 
 			<SubMenuWrapper>
@@ -59,6 +63,15 @@ const wiggle = keyframes`
 `
 
 const Details = styled.details`
+	&[open] {
+		summary {
+			& > *[data-arrowicon] {
+				transform: rotate(180deg);
+				transition: 0.1s ease;
+			}
+		}
+	}
+
 	summary {
 		display: flex;
 		align-items: center;
@@ -68,11 +81,17 @@ const Details = styled.details`
 		opacity: 1;
 		font-weight: 600;
 		cursor: pointer;
+		margin: -6px 0 -6px -6px;
+		padding: 6px;
+		border-radius: 6px;
+
+		& > *[data-arrowicon] {
+			margin-left: auto;
+		}
 
 		:hover {
-			& > *[data-mainlinkicon] {
-				animation: ${wiggle} 0.4s ease;
-			}
+			background-color: ${({ theme }) =>
+				theme.mode === 'dark' ? 'rgba(246, 246, 246, 0.1)' : 'rgba(246, 246, 246, 1)'};
 		}
 	}
 
