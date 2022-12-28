@@ -241,7 +241,23 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 		...allChains.map((chain) => getOverview(type, chain, undefined, true, true).then((res) => ({ ...res, chain })))
 	])
 
-	let protocols = dataByChain.map(({ total24h, change_1d, change_7d, chain, change_1m, protocols, change_7dover7d, total7d }) => {
+	let protocols = dataByChain.map(({
+		total24h,
+		change_1d,
+		change_7d,
+		chain,
+		change_1m,
+		protocols,
+		change_7dover7d,
+		total7d,
+		dailyRevenue,
+		dailyUserFees,
+		dailyHoldersRevenue,
+		dailyCreatorRevenue,
+		dailySupplySideRevenue,
+		dailyProtocolRevenue,
+		dailyPremiumVolume
+	}) => {
 		const tvlData = getTVLData(protocolsData, chain)
 		return {
 			name: chain,
@@ -264,7 +280,13 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 			protocolsStats: null,
 			breakdown24h: null,
 			module: chain,
-			revenue24h: null
+			dailyRevenue: dailyRevenue ?? null,
+			dailyUserFees: dailyUserFees ?? null,
+			dailyHoldersRevenue: dailyHoldersRevenue ?? null,
+			dailyCreatorRevenue: dailyCreatorRevenue ?? null,
+			dailySupplySideRevenue: dailySupplySideRevenue ?? null,
+			dailyProtocolRevenue: dailyProtocolRevenue ?? null,
+			dailyPremiumVolume: dailyPremiumVolume ?? null,
 		}
 	})
 
