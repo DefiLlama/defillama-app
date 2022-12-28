@@ -8,6 +8,13 @@ export interface IGetOverviewResponseBody {
 	change_7d: number
 	change_1m: number
 	change_7dover7d: number
+	dailyRevenue?: number
+	dailyUserFees?: number
+	dailyHoldersRevenue?: number
+	dailyCreatorRevenue?: number
+	dailySupplySideRevenue?: number
+	dailyProtocolRevenue?: number
+	dailyPremiumVolume?: number
 	totalDataChartBreakdown: Array<[string, { [protocol: string]: number }]>
 	totalDataChart: Array<[number, number]>
 	protocols: ProtocolAdaptorSummary[]
@@ -54,7 +61,6 @@ export type ProtocolAdaptorSummary = {
 	change_7d: number
 	change_1m: number
 	total24h: number
-	revenue24h: number
 	breakdown24h: IJSON<number>
 	chains: Array<string>
 	module: string
