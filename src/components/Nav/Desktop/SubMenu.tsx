@@ -3,7 +3,7 @@ import Link from 'next/link'
 import styled, { keyframes } from 'styled-components'
 import { linksWithNoSubMenu, navLinks } from '../Links'
 import { useRouter } from 'next/router'
-import { ChevronDown } from 'react-feather'
+import { ChevronRight } from 'react-feather'
 
 const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({ name }, ref) {
 	const { pathname } = useRouter()
@@ -29,7 +29,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 				<span data-mainlinkicon>{navLinks[name].icon}</span>
 				<span>{name}</span>
 				<span data-arrowicon>
-					<ChevronDown size={16} />
+					<ChevronRight size={16} />
 				</span>
 			</summary>
 
@@ -66,7 +66,7 @@ const Details = styled.details`
 	&[open] {
 		summary {
 			& > *[data-arrowicon] {
-				transform: rotate(180deg);
+				transform: rotate(90deg);
 				transition: 0.1s ease;
 			}
 		}

@@ -111,6 +111,7 @@ const Nav = styled.nav`
 	flex-direction: column;
 	justify-content: flex-start;
 	gap: 16px;
+	user-select: none;
 
 	a,
 	button {
