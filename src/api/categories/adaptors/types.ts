@@ -9,6 +9,13 @@ export interface IGetOverviewResponseBody {
 	change_7d: number
 	change_1m: number
 	change_7dover7d: number
+	dailyRevenue?: number
+	dailyUserFees?: number
+	dailyHoldersRevenue?: number
+	dailyCreatorRevenue?: number
+	dailySupplySideRevenue?: number
+	dailyProtocolRevenue?: number
+	dailyPremiumVolume?: number
 	totalDataChartBreakdown: Array<[string, { [protocol: string]: number }]>
 	totalDataChart: Array<[number, number]>
 	protocols: ProtocolAdaptorSummary[]
