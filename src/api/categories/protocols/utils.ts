@@ -32,10 +32,10 @@ export const basicPropertiesToKeep: BasicPropsToKeep = [
 ]
 
 export const formatProtocolsData = ({
-	chain = '',
+	chain,
 	oracle,
 	fork,
-	category = '',
+	category,
 	protocols = [],
 	protocolProps = [...basicPropertiesToKeep, 'extraTvl'],
 	removeBridges = false

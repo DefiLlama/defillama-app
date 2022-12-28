@@ -24,6 +24,7 @@ import {
 	getChainsPageData as getChainsPageDataByType
 } from '~/api/categories/adaptors'
 import { getPeggedAssets } from '../stablecoins'
+import { formatProtocolsList } from '~/hooks/data/defi'
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
@@ -124,7 +125,7 @@ export async function getSimpleProtocolsPageData(propsToKeep?: BasicPropsToKeep)
 	return { protocols: filteredProtocols, chains }
 }
 
-export const getVolumeCharts = (data) => {
+const getExtraTvlCharts = (data) => {
 	const {
 		tvl = [],
 		staking = [],
@@ -138,7 +139,7 @@ export const getVolumeCharts = (data) => {
 
 	const chart = tvl.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)])
 
-	const extraVolumesCharts = {
+	const extraTvlCharts = {
 		staking: staking.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
 		borrowed: borrowed.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
 		pool2: pool2.map(([date, totalLiquidityUSD]) => [date, Math.trunc(totalLiquidityUSD)]),
@@ -150,7 +151,7 @@ export const getVolumeCharts = (data) => {
 
 	return {
 		chart,
-		extraVolumesCharts
+		extraTvlCharts
 	}
 }
 
@@ -166,14 +167,41 @@ export async function getChainPageData(chain?: string) {
 		removeBridges: true
 	})
 
-	const charts = getVolumeCharts(chartData)
+	const charts = getExtraTvlCharts(chartData)
+
+	const protocolsList = formatProtocolsList({
+		protocols: filteredProtocols,
+		parentProtocols,
+		extraTvlsEnabled: {}
+	})
+		.slice(0, 30)
+		.map((protocol) => {
+			for (const prop in protocol) {
+				if (protocol[prop] === undefined) {
+					protocol[prop] = null
+				}
+
+				if (prop === 'subRows') {
+					protocol[prop]?.map((subRow) => {
+						for (const subProp in subRow) {
+							if (subRow[subProp] === undefined) {
+								subRow[subProp] = null
+							}
+						}
+
+						return subRow
+					})
+				}
+			}
+
+			return protocol
+		})
 
 	return {
 		props: {
 			...(chain && { chain }),
 			chainsSet: chains,
-			filteredProtocols,
-			parentProtocols,
+			protocolsList,
 			...charts
 		}
 	}
