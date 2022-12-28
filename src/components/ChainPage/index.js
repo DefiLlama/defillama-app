@@ -21,14 +21,14 @@ import { RowLinksWithDropdown, TVLRange } from '~/components/Filters'
 import SEO from '~/components/SEO'
 import { OptionButton } from '~/components/ButtonStyled'
 import LocalLoader from '~/components/LocalLoader'
-import { useCalcProtocolsTvls } from '~/hooks/data'
 import { useDarkModeManager, useDefiManager } from '~/contexts/LocalStorage'
 import { formattedNum, getPercentChange, getPrevTvlFromChart, getTokenDominance } from '~/utils'
 import { chainCoingeckoIds } from '~/constants/chainTokens'
-import { useDenominationPriceHistory } from '~/api/categories/protocols/client'
+import { useDenominationPriceHistory, useGetProtocolsList } from '~/api/categories/protocols/client'
 import llamaLogo from '~/assets/peeking-llama.png'
 import { ListHeader, ListOptions } from './shared'
 import { ArrowUpRight } from 'react-feather'
+import { formatProtocolsList } from '~/hooks/data/defi'
 
 const EasterLlama = styled.button`
 	padding: 0;
@@ -54,14 +54,12 @@ const BASIC_DENOMINATIONS = ['USD']
 
 const setSelectedChain = (newSelectedChain) => (newSelectedChain === 'All' ? '/' : `/chain/${newSelectedChain}`)
 
-function GlobalPage({
-	selectedChain = 'All',
-	chainsSet,
-	filteredProtocols,
-	chart,
-	extraVolumesCharts = {},
-	parentProtocols
-}) {
+function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, extraTvlCharts = {} }) {
+	const {
+		fullProtocolsList,
+		parentProtocols,
+		isLoading: fetchingProtocolsList
+	} = useGetProtocolsList({ chain: selectedChain })
 	const [extraTvlsEnabled] = useDefiManager()
 
 	const router = useRouter()
@@ -87,9 +85,9 @@ function GlobalPage({
 	}
 
 	// const initialTvl = chart[chart.length - 1][1]
-	// const doublecounted = extraVolumesCharts['doublecounted'][extraVolumesCharts['doublecounted'].length - 1][1]
-	// const liquidstaking = extraVolumesCharts['liquidstaking'][extraVolumesCharts['liquidstaking'].length - 1][1]
-	// const overlap = extraVolumesCharts['dcAndLsOverlap'][extraVolumesCharts['dcAndLsOverlap'].length - 1][1]
+	// const doublecounted = extraTvlCharts['doublecounted'][extraTvlCharts['doublecounted'].length - 1][1]
+	// const liquidstaking = extraTvlCharts['liquidstaking'][extraTvlCharts['liquidstaking'].length - 1][1]
+	// const overlap = extraTvlCharts['dcAndLsOverlap'][extraTvlCharts['dcAndLsOverlap'].length - 1][1]
 	// console.log(['doublecounted', 'liquidstaking', 'total'])
 	// console.log(['on', 'on', initialTvl])
 	// console.log(['on', 'off', initialTvl - liquidstaking + overlap])
@@ -99,7 +97,7 @@ function GlobalPage({
 	const { totalVolumeUSD, volumeChangeUSD, globalChart } = React.useMemo(() => {
 		const globalChart = chart.map((data) => {
 			let sum = data[1]
-			Object.entries(extraVolumesCharts).forEach(([prop, propCharts]) => {
+			Object.entries(extraTvlCharts).forEach(([prop, propCharts]) => {
 				const stakedData = propCharts.find((x) => x[0] === data[0])
 
 				// find current date and only add values on that date in "data" above
@@ -131,11 +129,19 @@ function GlobalPage({
 		const volumeChangeUSD = getPercentChange(tvl, tvlPrevDay)
 
 		return { totalVolumeUSD: tvl, volumeChangeUSD, globalChart }
-	}, [chart, extraTvlsEnabled, extraVolumesCharts])
+	}, [chart, extraTvlsEnabled, extraTvlCharts])
 
 	let chainOptions = ['All'].concat(chainsSet).map((label) => ({ label, to: setSelectedChain(label) }))
 
-	const protocolTotals = useCalcProtocolsTvls({ protocols: filteredProtocols, parentProtocols })
+	const protocolTotals = React.useMemo(() => {
+		if (!fetchingProtocolsList && fullProtocolsList) {
+			const list = formatProtocolsList({ extraTvlsEnabled, protocols: fullProtocolsList, parentProtocols })
+
+			return list
+		}
+
+		return protocolsList
+	}, [extraTvlsEnabled, fetchingProtocolsList, fullProtocolsList, parentProtocols, protocolsList])
 
 	const topToken = { name: 'Uniswap', tvl: 0 }
 	if (protocolTotals.length > 0) {

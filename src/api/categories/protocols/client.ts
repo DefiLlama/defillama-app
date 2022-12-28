@@ -1,6 +1,8 @@
+import { useMemo } from 'react'
 import useSWR from 'swr'
 import { HOURLY_PROTOCOL_API, PROTOCOLS_API, PROTOCOL_API } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
+import { formatProtocolsData } from './utils'
 
 export const useFetchProtocolsList = () => {
 	const { data, error } = useSWR(PROTOCOLS_API, fetcher)
@@ -35,4 +37,27 @@ export const useDenominationPriceHistory = (geckoId?: string) => {
 	const { data, error } = useSWR(geckoId ? url : null, (url) => fetcher(url + Date.now()))
 
 	return { data, error, loading: geckoId && !data && !error }
+}
+
+export const useGetProtocolsList = ({ chain }) => {
+	const { data, error } = useSWR(PROTOCOLS_API)
+
+	const { fullProtocolsList, parentProtocols } = useMemo(() => {
+		if (data) {
+			const { protocols, parentProtocols } = data
+
+			return {
+				fullProtocolsList: formatProtocolsData({
+					chain: chain === 'All' ? null : chain,
+					protocols,
+					removeBridges: true
+				}),
+				parentProtocols
+			}
+		}
+
+		return { fullProtocolsList: [], parentProtocols: [] }
+	}, [chain, data])
+
+	return { fullProtocolsList, parentProtocols, isLoading: !data && !error }
 }

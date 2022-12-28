@@ -110,7 +110,7 @@ export async function getStaticProps() {
 	const data = await getChainPageData()
 
 	const chains = data?.props?.chainsSet?.length ?? null
-	const protocols = data?.props?.filteredProtocols?.length ?? null
+	const protocols = data?.props?.protocolsList?.length ?? null
 
 	return {
 		props: {

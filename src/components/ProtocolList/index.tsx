@@ -3,8 +3,9 @@ import { Header } from '~/Theme'
 import { ProtocolsTable } from '~/components/Table'
 import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
-import { useCalcProtocolsTvls } from '~/hooks/data'
 import { IParentProtocol } from '~/api/types'
+import { formatProtocolsList } from '~/hooks/data/defi'
+import { useDefiManager } from '~/contexts/LocalStorage'
 
 interface IAllTokensPageProps {
 	title?: string
@@ -48,7 +49,13 @@ function ProtocolList({
 		} else return filteredProtocols
 	}, [filteredProtocols, category])
 
-	const protocolTotals = useCalcProtocolsTvls({ protocols, parentProtocols })
+	const [extraTvlsEnabled] = useDefiManager()
+
+	const protocolTotals = React.useMemo(() => {
+		const data = formatProtocolsList({ extraTvlsEnabled, protocols, parentProtocols })
+
+		return data
+	}, [extraTvlsEnabled, protocols, parentProtocols])
 
 	if (!title) {
 		title = `TVL Rankings`
@@ -79,7 +86,11 @@ function ProtocolList({
 
 			<ProtocolsTable
 				data={protocolTotals}
-				addlColumns={category === 'Lending' || category === 'Undercollateralized Lending' ? ['borrowed', 'supplied', 'suppliedTvl'] : null}
+				addlColumns={
+					category === 'Lending' || category === 'Undercollateralized Lending'
+						? ['borrowed', 'supplied', 'suppliedTvl']
+						: null
+				}
 				removeColumns={category ? ['category'] : null}
 			/>
 		</>

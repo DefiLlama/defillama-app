@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { IChain, IFormattedProtocol, IParentProtocol } from '~/api/types'
 import { useDefiChainsManager, useDefiManager } from '~/contexts/LocalStorage'
 import { getPercentChange } from '~/utils'
-import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from './defi'
+import { formatDataWithExtraTvls, formatProtocolsList, groupDataWithTvlsByDay } from './defi'
 import { groupProtocols } from './utils'
 
 type DataValue = number | null
@@ -29,84 +29,6 @@ export const useCalcStakePool2Tvl = (
 			extraTvlsEnabled
 		})
 	}, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn, dir, applyLqAndDc])
-
-	return protocolTotals
-}
-
-// used in tables of protocols by chain and categories pages
-export const useCalcProtocolsTvls = ({
-	protocols,
-	parentProtocols
-}: {
-	protocols: IFormattedProtocol[]
-	parentProtocols: IParentProtocol[]
-}) => {
-	const [extraTvlsEnabled] = useDefiManager()
-
-	const protocolTotals = useMemo(() => {
-		const checkExtras = {
-			...extraTvlsEnabled,
-			doublecounted: !extraTvlsEnabled.doublecounted
-		}
-
-		const updatedProtocols = Object.values(checkExtras).every((t) => !t)
-			? protocols
-			: protocols.map(({ tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, ...props }) => {
-					let finalTvl: number | null = tvl
-					let finalTvlPrevDay: number | null = tvlPrevDay
-					let finalTvlPrevWeek: number | null = tvlPrevWeek
-					let finalTvlPrevMonth: number | null = tvlPrevMonth
-					let strikeTvl = false
-
-					// keep liquid staking in same positon in table but strike its tvl
-					if (props.category === 'Liquid Staking' && !extraTvlsEnabled['liquidstaking']) {
-						strikeTvl = true
-					}
-
-					Object.entries(extraTvl).forEach(([prop, propValues]) => {
-						const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
-
-						if (prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
-							strikeTvl = true
-						} else {
-							// convert to lowercase as server response is not consistent in extra-tvl names
-							if (
-								extraTvlsEnabled[prop.toLowerCase()] &&
-								prop.toLowerCase() !== 'doublecounted' &&
-								prop.toLowerCase() !== 'liquidstaking'
-							) {
-								// check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
-								tvl && (finalTvl = (finalTvl || 0) + tvl)
-								tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
-								tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
-								tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
-							}
-						}
-					})
-
-					let change1d: number | null = getPercentChange(finalTvl, finalTvlPrevDay)
-					let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
-					let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
-
-					const mcaptvl = mcap && finalTvl ? mcap / finalTvl : null
-
-					return {
-						...props,
-						tvl: finalTvl,
-						tvlPrevDay: finalTvlPrevDay,
-						tvlPrevWeek: finalTvlPrevWeek,
-						tvlPrevMonth: finalTvlPrevMonth,
-						change_1d: change1d,
-						change_7d: change7d,
-						change_1m: change1m,
-						mcap,
-						mcaptvl,
-						strikeTvl
-					}
-			  })
-
-		return parentProtocols ? groupProtocols(updatedProtocols, parentProtocols) : updatedProtocols
-	}, [protocols, extraTvlsEnabled, parentProtocols])
 
 	return protocolTotals
 }
