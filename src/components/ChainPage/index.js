@@ -230,7 +230,14 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 			<Announcement>
 				<Link href={`https://drive.google.com/file/d/1zfJgQEOA4QVKMUyVifBhybhxgkbFRWpG/view`}>
 					<a>
-						{' '}
+						<Image
+							src="https://icons.llamao.fi/icons/memes/gib?w=36&h=36"
+							alt="Gib"
+							width={18}
+							height={18}
+							unoptimized
+							style={{ marginRight: '0.25rem', display: 'inline' }}
+						/>{' '}
 						DefiLlama's 2022 EOY Report <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
 					</a>
 				</Link>
