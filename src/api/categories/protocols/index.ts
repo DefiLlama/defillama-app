@@ -464,7 +464,7 @@ export const getNewChainsPageData = async (category: string) => {
 			categories: categoryLinks,
 			colorsByChain: colors,
 			chainTvls: chainTvls.map((chain) => {
-				const { total24h, revenue24h } =
+				const { total24h, dailyRevenue } =
 					feesAndRevenueChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
 
 				const { total24h: dexsTotal24h } =
@@ -474,7 +474,7 @@ export const getNewChainsPageData = async (category: string) => {
 					...chain,
 					totalVolume24h: dexsTotal24h || 0,
 					totalFees24h: total24h || 0,
-					totalRevenue24h: revenue24h || 0,
+					totalRevenue24h: dailyRevenue || 0,
 					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === chain.name.toLowerCase())?.mcap ?? 0
 				}
 			})
@@ -573,7 +573,7 @@ export const getChainsPageData = async (category: string) => {
 			for (let i = 0; i < 5; i++) {
 				try {
 					return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-				} catch (e) {}
+				} catch (e) { }
 			}
 			throw new Error(`${CHART_API}/${elem} is broken`)
 		})

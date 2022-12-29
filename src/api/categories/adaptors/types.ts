@@ -84,6 +84,7 @@ export type ProtocolAdaptorSummary = {
 } & ExtraTypes
 
 type ExtraTypes = {
+	dailyRevenue?: number | null
 	dailyUserFees?: number | null
 	dailyHoldersRevenue?: number | null
 	dailyCreatorRevenue?: number | null
