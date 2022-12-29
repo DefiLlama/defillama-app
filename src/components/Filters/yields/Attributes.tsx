@@ -16,7 +16,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.stablecoin === true
 		},
-		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy']
+		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		name: 'Single Exposure',
@@ -24,7 +24,7 @@ export const attributeOptions = [
 		help: 'Select pools with single token exposure only',
 		filterFn: (item) => item.exposure === 'single',
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/borrow', '/yields/strategy']
+		disabledOnPages: ['/borrow', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		name: 'No IL',
@@ -34,7 +34,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.ilRisk === 'no'
 		},
-		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy']
+		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		name: 'Million Dollar',
@@ -44,7 +44,14 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.tvlUsd >= 1e6
 		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy']
+		disabledOnPages: [
+			'/yields/stablecoins',
+			'/yields/borrow',
+			'/borrow',
+			'/yields/loop',
+			'/yields/strategy',
+			'/yields/strategyFR'
+		]
 	},
 	{
 		name: 'Audited',
@@ -54,7 +61,7 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.audits !== '0'
 		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/strategy']
+		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		name: 'No Outliers',
@@ -64,7 +71,14 @@ export const attributeOptions = [
 		defaultFilterFnOnPage: {
 			'/yields/stablecoins': (item) => item.outlier === false
 		},
-		disabledOnPages: ['/yields/stablecoins', '/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy']
+		disabledOnPages: [
+			'/yields/stablecoins',
+			'/yields/borrow',
+			'/borrow',
+			'/yields/loop',
+			'/yields/strategy',
+			'/yields/strategyFR'
+		]
 	},
 	{
 		name: 'Stable Outlook',
@@ -72,7 +86,7 @@ export const attributeOptions = [
 		help: 'Select pools with "Stable/Up" Outlook only',
 		filterFn: (item) => item.predictions.predictedClass === 'Stable/Up',
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy']
+		disabledOnPages: ['/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		name: 'High Confidence',
@@ -80,7 +94,7 @@ export const attributeOptions = [
 		help: 'Select pools with "High" predicted outlook confidence',
 		filterFn: (item) => item.predictions.binnedConfidence === 3,
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy']
+		disabledOnPages: ['/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		// see: https://bad-debt.riskdao.org/
@@ -89,7 +103,7 @@ export const attributeOptions = [
 		help: 'Remove projects with a bad debt ratio of >= 5% (5% of the tvl is bad debt from insolvent accounts)',
 		filterFn: (item) => !badDebt.includes(item.project),
 		defaultFilterFnOnPage: {},
-		disabledOnPages: ['/yields', '/yields/stablecoins', '/yields/strategy', '/borrow']
+		disabledOnPages: ['/yields', '/yields/stablecoins', '/yields/strategy', '/borrow', '/yields/strategyFR']
 	},
 	// strategy specific ones (these are applied on both lendind protocol + farming protocol)
 	{
@@ -143,6 +157,8 @@ export function YieldAttributes({
 			? !option.disabledOnPages.includes('/borrow')
 			: pathname === '/yields/strategy'
 			? !option.disabledOnPages.includes('/yields/strategy')
+			: pathname === '/yields/strategyFR'
+			? !option.disabledOnPages.includes('/yields/strategyFR')
 			: pathname === '/yields'
 			? !option.disabledOnPages.includes('/yields')
 			: pathname === '/yields/stablecoins'

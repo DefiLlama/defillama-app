@@ -4,7 +4,9 @@ import {
 	YIELD_MEDIAN_API,
 	YIELD_URL_API,
 	YIELD_CHAIN_API,
-	YIELD_LEND_BORROW_API
+	YIELD_LEND_BORROW_API,
+	YIELD_FR_API,
+	YIELD_OI_API
 } from '~/constants'
 import { arrayFetcher } from '~/utils/useSWR'
 import { formatYieldsPageData } from './utils'
@@ -274,4 +276,15 @@ export function calculateLoopAPY(lendBorrowPools, loops = 10, customLTV) {
 		})
 		.filter(Boolean)
 		.sort((a, b) => b.loopApy - a.loopApy)
+}
+
+export async function getBinanceData() {
+	let fr = (await arrayFetcher([YIELD_FR_API]))[0]
+	// remove futures
+	fr = fr.filter((m) => !m.symbol.includes('_'))
+
+	const oiUrls = fr.map((p) => `${YIELD_OI_API}?symbol=${p.symbol}`)
+	const oi = (await arrayFetcher(oiUrls)).flat()
+	fr = fr.map((p) => ({ ...p, openInterest: oi.find((i) => i.symbol === p.symbol)?.openInterest ?? null }))
+	return fr
 }

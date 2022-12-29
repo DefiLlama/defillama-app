@@ -56,4 +56,7 @@ export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
 	farmProjectName: string
 	farmChain: Array<string>
 	farmApy: number
+	symbolPerp: string
+	openInterest: number
+	tvlUsd: number
 }

@@ -338,6 +338,42 @@ export const formatOptimizerPool = (pool, customLTV) => {
 	}
 }
 
+export const findStrategyPoolsFR = (token, filteredPools, fr) => {
+	token = typeof token === 'string' ? [token] : token
+
+	// filter pools to selected token
+	const pools = filteredPools.filter((p) => token?.some((t) => p.symbol.includes(t)) && p.apy > 0)
+	// filter FR data to positive funding rates only (longs pay shorts -> open short position and earn FR)
+	const perps = fr.filter((p) => token?.some((t) => p.symbol.replace(/USDT|BUSD/g, '') === t) && p.lastFundingRate > 0)
+
+	const finalPools = []
+	for (const pool of pools) {
+		for (const perp of perps) {
+			const fr8h = Number(perp.lastFundingRate) * 100
+
+			finalPools.push({
+				...pool,
+				symbolPerp: perp.symbol,
+				fr8h,
+				frDay: fr8h * 3,
+				frWeek: fr8h * 3 * 7,
+				frMonth: fr8h * 3 * 30,
+				frYear: fr8h * 3 * 365,
+				poolReturn8h: pool.apy / 365 / 3,
+				poolReturnDay: pool.apy / 365,
+				poolReturnWeek: pool.apy / 52,
+				poolReturnMonth: pool.apy / 12,
+				strategyReturn: pool.apy / 365 + fr8h * 3,
+				openInterest: Number(perp.openInterest) * Number(perp.indexPrice),
+				chains: [pool.chain],
+				farmTvlUsd: pool.tvlUsd
+			})
+		}
+	}
+
+	return finalPools
+}
+
 interface FilterPools {
 	selectedChains: Array<string>
 	selectedAttributes?: Array<string>

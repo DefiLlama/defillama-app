@@ -51,6 +51,8 @@ export const YIELD_CHAIN_API = 'https://api.llama.fi/chains'
 export const YIELD_LEND_BORROW_API = 'https://yields.llama.fi/lendBorrow'
 export const YIELD_CHART_LEND_BORROW_API = 'https://yields.llama.fi/chartLendBorrow'
 export const YIELD_CONFIG_POOL_API = 'https://yields.llama.fi/configPool'
+export const YIELD_FR_API = 'https://fapi.binance.com/fapi/v1/premiumIndex'
+export const YIELD_OI_API = 'https://fapi.binance.com/fapi/v1/openInterest'
 
 export const LIQUIDATIONS_HISTORICAL_S3_PATH = DATASETS_S3_PATH + '/liqs'
 
