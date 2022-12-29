@@ -79,6 +79,12 @@ const defaultToolsAndFooterLinks = {
 		}
 	],
 	footer: [
+		{
+			name: 'EOY Report',
+			path: 'https://drive.google.com/file/d/1x9QnyU4W-_zL7Euvar-oGbGBgOKh9IcX/view',
+			external: true,
+			newTag: true
+		},
 		{ name: 'About DefiLlama', path: '/about' },
 		{
 			name: 'Twitter',
