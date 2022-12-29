@@ -80,7 +80,7 @@ const defaultToolsAndFooterLinks = {
 	],
 	footer: [
 		{
-			name: 'EOY Report',
+			name: 'Reports',
 			path: '/reports',
 			newTag: true
 		},
