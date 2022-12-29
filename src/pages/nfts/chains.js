@@ -71,7 +71,7 @@ const ChartsWrapper = styled(Box)`
 `
 
 const ChainsView = ({ chainData, currentData, chainsUnique, stackedDataset, daySum }) => {
-	// return <div />
+	return <div />
 
 	const chainColor = useMemo(
 		() => Object.fromEntries([...chainsUnique, 'Other'].map((chain) => [chain, getRandomColor()])),
