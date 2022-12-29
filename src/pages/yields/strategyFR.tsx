@@ -8,6 +8,8 @@ import { getYieldPageData, getBinanceData } from '~/api/categories/yield'
 export async function getStaticProps() {
 	const data = await getYieldPageData()
 
+	// todo(slasher): need to add binance symbol
+
 	// for funding rate strategies keep only single sided no IL pools
 	const filteredPools = data.props.pools
 		.filter(
