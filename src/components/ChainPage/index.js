@@ -228,7 +228,6 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
 			<Announcement>
-				<span>
 				<Link href={`https://drive.google.com/file/d/1zfJgQEOA4QVKMUyVifBhybhxgkbFRWpG/view`}>
 					<a>
 						{' '}
