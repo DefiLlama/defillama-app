@@ -81,8 +81,7 @@ const defaultToolsAndFooterLinks = {
 	footer: [
 		{
 			name: 'EOY Report',
-			path: 'https://drive.google.com/file/d/1zfJgQEOA4QVKMUyVifBhybhxgkbFRWpG/view?usp=sharing',
-			external: true,
+			path: '/reports',
 			newTag: true
 		},
 		{ name: 'About DefiLlama', path: '/about' },
