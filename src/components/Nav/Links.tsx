@@ -81,7 +81,7 @@ const defaultToolsAndFooterLinks = {
 	footer: [
 		{
 			name: 'EOY Report',
-			path: 'https://drive.google.com/file/d/1x9QnyU4W-_zL7Euvar-oGbGBgOKh9IcX/view',
+			path: 'https://drive.google.com/file/d/1zfJgQEOA4QVKMUyVifBhybhxgkbFRWpG/view?usp=sharing',
 			external: true,
 			newTag: true
 		},
