@@ -5,7 +5,7 @@ import { ProtocolAdaptorSummaryResponse } from '~/api/categories/adaptors/types'
 import { chartBreakdownByChain, chartBreakdownByTokens, chartBreakdownByVersion } from '~/api/categories/adaptors/utils'
 import { LazyChart } from '~/layout/ProtocolAndPool'
 import { capitalizeFirstLetter } from '~/utils'
-import { volumeTypes } from '~/utils/adaptorsPages/[type]/[item]'
+import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { IProtocolContainerProps, ProtocolChart } from '../OverviewItem'
 
 interface IChartByType {

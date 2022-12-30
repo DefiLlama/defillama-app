@@ -8,7 +8,7 @@ import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { formattedNum, getRandomColor } from '~/utils'
 import { IDexChartsProps } from './OverviewItem'
 import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
-import { volumeTypes } from '~/utils/adaptorsPages/[type]/[item]'
+import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import QuestionHelper from '~/components/QuestionHelper'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
