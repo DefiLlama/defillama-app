@@ -32,15 +32,6 @@ const cexData = [
 		cgDeriv: 'okex_swap'
 	},
 	{
-		name: 'Huobi',
-		slug: 'Huobi',
-		coin: 'HT',
-		coinSymbol: 'HT',
-		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831',
-		cgId: 'huobi',
-		cgDeriv: 'huobi_dm'
-	},
-	{
 		name: 'Crypto.com',
 		slug: 'Crypto-com',
 		coin: 'CRO',
@@ -48,6 +39,15 @@ const cexData = [
 		walletsLink: 'https://crypto.com/document/proof-of-reserves',
 		cgId: 'crypto_com',
 		cgDeriv: 'crypto_com_futures'
+	},
+	{
+		name: 'Huobi',
+		slug: 'Huobi',
+		coin: 'HT',
+		coinSymbol: 'HT',
+		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831',
+		cgId: 'huobi',
+		cgDeriv: 'huobi_dm'
 	},
 	{
 		name: 'Kucoin',
@@ -108,17 +108,17 @@ const cexData = [
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
-		name: 'Korbit',
-		slug: 'korbit',
-		coin: null,
-		walletsLink: 'https://korbit.co.kr/reserve'
-	},
-	{
 		name: 'Binance US',
 		slug: 'binance-us',
 		coin: 'BNB',
 		coinSymbol: 'BNB',
 		cgId: 'binance_us',
+	},
+	{
+		name: 'Korbit',
+		slug: 'korbit',
+		coin: null,
+		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
 		name: 'MaskEX',
