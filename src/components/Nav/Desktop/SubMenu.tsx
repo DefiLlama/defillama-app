@@ -129,7 +129,6 @@ const isFees = (pathname: string) =>
 	pathname === '/fees' || pathname.startsWith('/fees/') || pathname.startsWith('/fee/')
 const isRaises = (pathname: string) => pathname === '/raises'
 const isHacks = (pathname: string) => pathname === '/hacks'
-const isBridges = (pathname: string) => pathname.startsWith('bridge')
 const isBorrow = (pathname: string) => pathname === '/borrow'
 
 const isActive = ({ pathname, category }: { pathname: string; category: string }) => {
@@ -148,8 +147,6 @@ const isActive = ({ pathname, category }: { pathname: string; category: string }
 			return isRaises(pathname)
 		case 'Hacks':
 			return isHacks(pathname)
-		case 'Bridges':
-			return isBridges(pathname)
 		case 'Borrow Aggregator':
 			return isBorrow(pathname)
 		case 'DeFi':
