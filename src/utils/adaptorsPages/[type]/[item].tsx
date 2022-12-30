@@ -5,6 +5,7 @@ import { getOverview, getOverviewItemPageData, ProtocolAdaptorSummaryProps } fro
 import OverviewItemContainer from '~/containers/DexsAndFees/OverviewItem'
 import { standardizeProtocolName } from '~/utils'
 import { getColor } from '~/utils/getColor'
+import { volumeTypes } from '../utils'
 
 export type PageParams = {
 	protocolSummary: ProtocolAdaptorSummaryProps
@@ -61,7 +62,6 @@ export const getStaticPathsByType = (type: string) => async () => {
 	return { paths, fallback: 'blocking' }
 }
 
-export const volumeTypes = ['dexs', 'derivatives', 'options', 'aggregators']
 export default function ProtocolItem({ protocolSummary, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {
 	const type = volumeTypes.includes(protocolSummary.type) ? 'volume' : protocolSummary.type
 	return (
