@@ -658,7 +658,7 @@ function ProtocolContainer({
 				</>
 			)}
 
-			<ChartsWrapper>
+			{/* <ChartsWrapper>
 				{loading ? (
 					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
 				) : (
@@ -669,7 +669,7 @@ function ProtocolContainer({
 						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="fees" />
 					</>
 				)}
-			</ChartsWrapper>
+			</ChartsWrapper> */}
 		</Layout>
 	)
 }
