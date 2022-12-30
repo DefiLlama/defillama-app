@@ -1,6 +1,6 @@
 import useSWR from 'swr'
 import { HOURLY_PROTOCOL_API, DEXS_API, PROTOCOL_API, DEX_BASE_API, ADAPTORS_BASE_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
-import { fetcher } from '~/utils/useSWR'
+import { fetcher, fetcherWErrorHandling } from '~/utils/useSWR'
 import { generateGetOverviewItemPageDate, getOverviewItemPageData, ProtocolAdaptorSummaryProps } from '.'
 import { IGetOverviewResponseBody, ProtocolAdaptorSummaryResponse } from './types'
 
@@ -24,11 +24,15 @@ export const getAPIUrl = (type: string, chain?: string, excludeTotalDataChart?: 
 }
 
 export const useFetchChartsSummary = (type: string, protocolName: string, dataType?: string, disable?: boolean) => {
-	const fetch = disable ? () => undefined : async (input: RequestInfo, init?: RequestInit) => fetcher(input, init).then((item) => {
-
+	const fetch = disable ? () => undefined : async (input: RequestInfo, init?: RequestInit) => fetcherWErrorHandling(input, init).then((item) => {
 		return generateGetOverviewItemPageDate(item, type, protocolName)
 	})
-	const { data, error } = useSWR<ProtocolAdaptorSummaryProps>(getAPIUrlSummary(type, protocolName, dataType), fetch)
+	const { data, error } = useSWR<ProtocolAdaptorSummaryProps>(getAPIUrlSummary(type, protocolName, dataType), fetch, {
+		onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
+			if ([502, 404].includes(error.status)) return
+			setTimeout(() => revalidate({ retryCount }), retryCount * 5000)
+		}
+	})
 	return { data, error }
 }
 
