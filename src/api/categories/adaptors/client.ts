@@ -24,7 +24,7 @@ export const getAPIUrl = (type: string, chain?: string, excludeTotalDataChart?: 
 }
 
 export const useFetchChartsSummary = (type: string, protocolName: string, dataType?: string, disable?: boolean) => {
-	const fetch = disable ? () => undefined : async (input: RequestInfo, init?: RequestInit) => fetcherWErrorHandling(input, init).then((item) => {
+	const fetch = true ? () => undefined : async (input: RequestInfo, init?: RequestInit) => fetcherWErrorHandling(input, init).then((item) => {
 		return generateGetOverviewItemPageDate(item, type, protocolName)
 	})
 	const { data, error } = useSWR<ProtocolAdaptorSummaryProps>(getAPIUrlSummary(type, protocolName, dataType), fetch, {
