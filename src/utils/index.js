@@ -313,6 +313,12 @@ export const getColorFromNumber = (index, length) => {
 	}).toHex()
 }
 
+export const getDominancePercent = (value, total) => {
+	const ratio = total > 0 ? value / total : 0
+
+	return Number((ratio * 100).toFixed(2))
+}
+
 export const getTokenDominance = (topToken, totalVolume) => {
 	const dominance = topToken.tvl && totalVolume && (topToken.tvl / totalVolume) * 100.0
 

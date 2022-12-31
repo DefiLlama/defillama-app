@@ -1,13 +1,14 @@
 import type { LiteProtocol } from '~/api/types'
 import { DEXS_API, DEX_BASE_API, PROTOCOLS_API } from '~/constants'
-import { chainIconUrl, getColorFromNumber } from '~/utils'
+import { chainIconUrl, getColorFromNumber, getDominancePercent } from '~/utils'
 import { IDexResponse, IGetDexsResponseBody, VolumeSummaryDex } from './types'
 import { formatChain } from './utils'
 
 export const getDex = async (dexName: string): Promise<IDexResponse> =>
 	await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
 
-export const getDexs = (): Promise<IGetDexsResponseBody> => fetch(`${DEXS_API}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`).then((r) => r.json())
+export const getDexs = (): Promise<IGetDexsResponseBody> =>
+	fetch(`${DEXS_API}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`).then((r) => r.json())
 
 // - used in /[dex]
 export async function getDexPageData(dex: string) {
@@ -47,13 +48,13 @@ export const getChainPageData = async (chain?: string) => {
 		chains: dex.chains.map(formatChain),
 		subRows: dex.protocolVersions
 			? Object.entries(dex.protocolVersions)
-				.map(([versionName, summary]) => ({
-					...dex,
-					name: `${dex.name} - ${versionName.toUpperCase()}`,
-					displayName: `${dex.name} - ${versionName.toUpperCase()}`,
-					...summary
-				}))
-				.sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1))
+					.map(([versionName, summary]) => ({
+						...dex,
+						name: `${dex.name} - ${versionName.toUpperCase()}`,
+						displayName: `${dex.name} - ${versionName.toUpperCase()}`,
+						...summary
+					}))
+					.sort((first, second) => 0 - (first.totalVolume24h > second.totalVolume24h ? 1 : -1))
 			: null
 	}))
 
@@ -75,19 +76,23 @@ export const getChainPageData = async (chain?: string) => {
 
 // - used in /dexs/chains
 export const getVolumesByChain = async () => {
-	const { allChains } = (await fetch(`${DEXS_API}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`).then((res) => res.json())) as IGetDexsResponseBody
+	const { allChains } = (await fetch(`${DEXS_API}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`).then(
+		(res) => res.json()
+	)) as IGetDexsResponseBody
 
 	const volumesByChain = await Promise.all(allChains.map((chain) => getChainPageData(chain)))
 
-	let tableData = volumesByChain.map(({ props: { totalVolume, changeVolume1d, changeVolume30d, chain, changeVolume7d } }) => ({
-		name: chain,
-		logo: chainIconUrl(chain),
-		totalVolume,
-		changeVolume1d,
-		changeVolume30d,
-		changeVolume7d,
-		dominance: 0
-	}))
+	let tableData = volumesByChain.map(
+		({ props: { totalVolume, changeVolume1d, changeVolume30d, chain, changeVolume7d } }) => ({
+			name: chain,
+			logo: chainIconUrl(chain),
+			totalVolume,
+			changeVolume1d,
+			changeVolume30d,
+			changeVolume7d,
+			dominance: 0
+		})
+	)
 
 	const chartData = {}
 
@@ -135,11 +140,10 @@ export const getVolumesByChain = async () => {
 		Others: 'a'
 	}
 
-	tableData = tableData.map(row => ({
+	tableData = tableData.map((row) => ({
 		...row,
-		dominance: getPercent(row.totalVolume, totalVolume24hrs)
-	}
-	))
+		dominance: getDominancePercent(row.totalVolume, totalVolume24hrs)
+	}))
 	allChains.forEach((chain, index) => {
 		// set unique color on each chain
 		chainColors[chain] = getColorFromNumber(index, 9)
@@ -168,10 +172,4 @@ export const getVolumesByChain = async () => {
 			chainColors
 		}
 	}
-}
-
-const getPercent = (value: number, total: number) => {
-	const ratio = total > 0 ? value / total : 0
-
-	return Number((ratio * 100).toFixed(2))
 }

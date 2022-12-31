@@ -1,6 +1,6 @@
 import { IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/types'
 import { ISettings } from '~/contexts/types'
-import { getPercentChange } from '~/utils'
+import { getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
 
 interface IData {
@@ -182,19 +182,13 @@ export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: I
 		const shares = {}
 
 		for (const value in values) {
-			shares[value] = getPercent(values[value], daySum[date])
+			shares[value] = getDominancePercent(values[value], daySum[date])
 		}
 
 		return { date, ...shares }
 	})
 
 	return { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay }
-}
-
-const getPercent = (value: number, total: number) => {
-	const ratio = total > 0 ? value / total : 0
-
-	return Number((ratio * 100).toFixed(2))
 }
 
 export const formatProtocolsList = ({
