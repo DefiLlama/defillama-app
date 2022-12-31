@@ -210,6 +210,15 @@ export const navLinks: ILinks = {
 		...defaultToolsAndFooterLinks,
 		icon: <BookOpen size={16} />
 	},
+	Bridges: {
+		main: [
+			{ name: 'Overview', path: '/bridges' },
+			{ name: 'Chains', path: '/bridges/chains' },
+			{ name: 'Transactions', path: '/bridge-transactions', newTag: true }
+		],
+		...defaultToolsAndFooterLinks,
+		icon: <Shuffle size={16} />
+	},
 	Liquidations: {
 		main: [],
 		...defaultToolsAndFooterLinks,
