@@ -228,7 +228,8 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
 			<Announcement>
-				<Link href={`https://drive.google.com/file/d/1zfJgQEOA4QVKMUyVifBhybhxgkbFRWpG/view`}>
+				<span>Check out our new</span>{" "}
+				<Link href={`https://swap.defillama.com/`}>
 					<a>
 						<Image
 							src="https://icons.llamao.fi/icons/memes/gib?w=36&h=36"
@@ -238,7 +239,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 							unoptimized
 							style={{ marginRight: '0.25rem', display: 'inline' }}
 						/>{' '}
-						DefiLlama's 2022 EOY Report <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
+						meta DEX aggregator <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
 					</a>
 				</Link>
 			</Announcement>
