@@ -10,7 +10,8 @@ import {
 	ShieldOff,
 	Shuffle,
 	Search,
-	BookOpen
+	BookOpen,
+	Repeat
 } from 'react-feather'
 
 export interface IMainLink {
@@ -183,6 +184,11 @@ export const navLinks: ILinks = {
 		],
 		icon: <Percent size={16} />
 	},
+	'DEX Meta-Aggregator': {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Repeat size={16} />
+	},
 	'Borrow Aggregator': {
 		main: [],
 		...defaultToolsAndFooterLinks,
@@ -237,7 +243,8 @@ export const linksWithNoSubMenu = [
 	{ name: 'Raises', url: '/raises' },
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Borrow Aggregator', url: '/borrow' },
-	{ name: 'CEX Transparency', url: '/cexs' }
+	{ name: 'CEX Transparency', url: '/cexs' },
+	{ name: 'DEX Meta-Aggregator', url: 'https://swap.defillama.com/' },
 ]
 
 function downloadDefiDataset() {
