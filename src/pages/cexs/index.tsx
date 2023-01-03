@@ -231,28 +231,46 @@ const cexData = [
 		name: 'Bittrex'
 	},
 	{
-		name: 'AscendEX'
+		name: 'AscendEX',
+		cgId: 'bitmax',
+		cgDeriv: 'bitmax_futures'
 	},
 	{
-		name: 'bitFlyer'
+		name: 'bitFlyer',
+		cgId: 'bitflyer',
+		cgDeriv: 'bitflyer_futures',
 	},
 	{
-		name: 'LBank'
+		name: 'LBank',
+		cgId: 'lbank',
 	},
 	{
-		name: 'MEXC'
+		name: 'MEXC',
+		cgId: 'mxc',
+		cgDeriv: 'mxc_futures',
 	},
 	{
-		name: 'BKEX'
+		name: 'BKEX',
+		cgId: 'bkex',
 	},
 	{
-		name: 'ProBit'
+		name: 'ProBit',
+		cgId: 'probit',
 	},
 	{
-		name: 'BTCEX'
+		name: 'BTCEX',
+		cgId: 'btcex',
+		cgDeriv: 'btcex_futures'
 	},
 	{
-		name: 'Bitrue'
+		name: 'Bitrue',
+		cgId: 'bitrue',
+		cgDeriv: 'bitrue_futures',
+	},
+	{
+		name: 'BTCC',
+        cgID: 'btcc',
+        cgDeriv: 'btcc_futures',
 	},
 ]
 
