@@ -118,7 +118,8 @@ const cexData = [
 		name: 'Korbit',
 		slug: 'korbit',
 		coin: null,
-		walletsLink: 'https://korbit.co.kr/reserve'
+		walletsLink: 'https://korbit.co.kr/reserve',
+		cgId: 'korbit',
 	},
 	{
 		name: 'MaskEX',
@@ -151,13 +152,16 @@ const cexData = [
 		slug: 'woo-x',
 		coin: 'WOO',
 		coinSymbol: 'WOO',
-		walletsLink: 'https://woo.org/proof-of-reserves'
+		walletsLink: 'https://woo.org/proof-of-reserves',
+		cgId: 'woofi',
+		cgDeriv: 'woo_network_futures',
 	},
 	{
 		name: 'CoinDCX',
 		slug: 'coindcx',
 		coin: null,
-		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
+		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497',
+		cgId: 'coindcx',
 	},
 	{
 		name: 'Cake DeFi',
@@ -169,7 +173,8 @@ const cexData = [
 		name: 'Hotbit',
 		slug: 'hotbit',
 		coin: 'HTB',
-		coinSymbol: 'HTB'
+		coinSymbol: 'HTB',
+		cgId: 'hotbit'
 	},
 	{
 		name: 'NBX',
