@@ -229,7 +229,31 @@ const cexData = [
 	},
 	{
 		name: 'Bittrex'
-	}
+	},
+	{
+		name: 'AscendEX'
+	},
+	{
+		name: 'bitFlyer'
+	},
+	{
+		name: 'LBank'
+	},
+	{
+		name: 'MEXC'
+	},
+	{
+		name: 'BKEX'
+	},
+	{
+		name: 'ProBit'
+	},
+	{
+		name: 'BTCEX'
+	},
+	{
+		name: 'Bitrue'
+	},
 ]
 
 const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
