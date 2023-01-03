@@ -239,7 +239,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 							unoptimized
 							style={{ marginRight: '0.25rem', display: 'inline' }}
 						/>{' '}
-						meta DEX aggregator <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
+						DEX meta-aggregator <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
 					</a>
 				</Link>
 			</Announcement>
