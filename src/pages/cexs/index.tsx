@@ -196,39 +196,50 @@ const cexData = [
 		name: 'Coinone',
 		lastAuditDate: 1666369050,
 		auditor: null,
-		auditLink: 'https://coinone.co.kr/info/notice/1967'
+		auditLink: 'https://coinone.co.kr/info/notice/1967',
+		cgId: 'coinone',
 	},
 	{
 		name: 'NEXO'
 	},
 	{
-		name: 'CoinEx'
+		name: 'CoinEx',
+		cdId: 'coinex',
+		cgDeriv: 'coinex_futures',
 	},
 	{
 		name: 'Gemini',
 		cgId: 'gemini'
 	},
 	{
-		name: 'Coincheck'
+		name: 'Coincheck',
+		cgId: 'coincheck',
 	},
 	{
-		name: 'Bitstamp'
+		name: 'Bitstamp',
+		cgId: 'bitstamp',
 	},
 	{
-		name: 'Bithumb'
+		name: 'Bithumb',
+		cgId: 'bithumb',
+
 	},
 	{
 		name: 'Poloniex',
 		cgId: 'poloniex'
 	},
 	{
-		name: 'Upbit'
+		name: 'Upbit',
+		cgId: 'upbit',
 	},
 	{
-		name: 'Bitmart'
+		name: 'Bitmart',
+		cgId: 'bitmart',
+		cgDeriv: 'bitmart_futures',
 	},
 	{
-		name: 'Bittrex'
+		name: 'Bittrex',
+		cgId: 'bittrex',
 	},
 	{
 		name: 'AscendEX',
