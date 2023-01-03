@@ -60,6 +60,11 @@ if [ -z "$NOT_VERCEL" ]; then
   exit $BUILD_STATUS
 fi
 
+if [ -n "$IS_BACKUP" ]; then
+  echo "IS_BACKUP is set, skipping discord notification"
+  exit $BUILD_STATUS
+fi
+
 node ./scripts/build-msg.js $BUILD_STATUS "$BUILD_TIME_STR" "$START_TIME" "$BUILD_ID" "$COMMIT_COMMENT" "$COMMIT_AUTHOR" "$COMMIT_HASH"
 
 # exit with the build status
