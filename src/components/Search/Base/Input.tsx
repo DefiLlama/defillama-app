@@ -117,7 +117,7 @@ export function Input({
 
 	React.useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
-			if ((e.ctrlKey || e.metaKey) && (e.code === 'KeyK' || e.code === 'KeyF')) {
+			if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
 				e.preventDefault()
 				inputField.current && inputField.current?.focus()
 				state.toggle()
