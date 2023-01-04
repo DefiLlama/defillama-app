@@ -15,7 +15,7 @@ const WrapperWithLabel = styled.div`
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) and (max-width: ${({ theme }) => theme.bp2Xl}) {
 		display: flex;
-		padding: 0 4px;
+		padding: 0 16px;
 	}
 `
 
