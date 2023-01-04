@@ -30,10 +30,6 @@ import { IBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType, IOverviewProps, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
 import ChartByType from './charts'
 
-interface PageParams {
-	protocolSummary: ProtocolAdaptorSummaryProps
-	backgroundColor: string
-}
 import { chartBreakdownByChain } from '~/api/categories/adaptors/utils'
 import {
 	aggregateDataByInterval,
@@ -46,6 +42,7 @@ import {
 import Announcement from '~/components/Announcement'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import SEO from '~/components/SEO'
+import { PageParams } from '~/utils/adaptorsPages/[type]/[item]'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -239,7 +236,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 	])
 
 	return (
-		<Layout title={props.title} backgroundColor={transparentize(0.6, props.backgroundColor)} style={{ gap: '36px' }}>
+		<Layout title={props.title} style={{ gap: '36px' }}>
 			<SEO
 				cardName={props.protocolSummary.displayName}
 				tvl={formattedNum(props.protocolSummary.total24h)?.toString()}
@@ -311,23 +308,13 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					)}
 
 					{props.protocolSummary.audits && props.protocolSummary.audit_links && (
-						<AuditInfo
-							audits={props.protocolSummary.audits}
-							auditLinks={props.protocolSummary.audit_links}
-							color={props.backgroundColor}
-						/>
+						<AuditInfo audits={props.protocolSummary.audits} auditLinks={props.protocolSummary.audit_links} />
 					)}
 
 					<LinksWrapper>
 						{props.protocolSummary.url && (
 							<Link href={props.protocolSummary.url} passHref>
-								<Button
-									as="a"
-									target="_blank"
-									rel="noopener noreferrer"
-									useTextColor={true}
-									color={props.backgroundColor}
-								>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Website</span> <ArrowUpRight size={14} />
 								</Button>
 							</Link>
@@ -335,13 +322,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 
 						{props.protocolSummary.twitter && (
 							<Link href={`https://twitter.com/${props.protocolSummary.twitter}`} passHref>
-								<Button
-									as="a"
-									target="_blank"
-									rel="noopener noreferrer"
-									useTextColor={true}
-									color={props.backgroundColor}
-								>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Twitter</span> <ArrowUpRight size={14} />
 								</Button>
 							</Link>
@@ -362,13 +343,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 									<span>{blockExplorer.address.slice(0, 8) + '...' + blockExplorer.address?.slice(36, 42)}</span>
 									<CopyHelper toCopy={blockExplorer.address} disabled={!blockExplorer.address} />
 									<Link href={blockExplorer.blockExplorerLink} passHref>
-										<Button
-											as="a"
-											target="_blank"
-											rel="noopener noreferrer"
-											useTextColor={true}
-											color={props.backgroundColor}
-										>
+										<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 											<span>View on {blockExplorer.blockExplorerName}</span> <ArrowUpRight size={14} />
 										</Button>
 									</Link>
@@ -380,13 +355,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					<LinksWrapper>
 						{props.protocolSummary.gecko_id && (
 							<Link href={`https://www.coingecko.com/en/coins/${props.protocolSummary.gecko_id}`} passHref>
-								<Button
-									as="a"
-									target="_blank"
-									rel="noopener noreferrer"
-									useTextColor={true}
-									color={props.backgroundColor}
-								>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>View on CoinGecko</span> <ArrowUpRight size={14} />
 								</Button>
 							</Link>
@@ -399,13 +368,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					<LinksWrapper>
 						{props.protocolSummary.methodologyURL && (
 							<Link href={props.protocolSummary.methodologyURL} passHref>
-								<Button
-									as="a"
-									target="_blank"
-									rel="noopener noreferrer"
-									useTextColor={true}
-									color={props.backgroundColor}
-								>
+								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
 									<span>Check the code</span>
 									<ArrowUpRight size={14} />
 								</Button>
