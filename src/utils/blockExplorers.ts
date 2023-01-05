@@ -62,7 +62,8 @@ const blockExplorers = {
 	muuchain: ['https://explorer.muuchain.com/address/', 'MUUSCAN'],
 	neo: ['https://explorer.onegate.space/NEP17tokeninfo/', 'ONEGATE'],
 	bittorrent: ['https://bttcscan.com/address/', 'BTTCSCAN'],
-	empire: ['https://explorer.empirenetwork.io/address/', 'Empire Explorer']
+	empire: ['https://explorer.empirenetwork.io/address/', 'Empire Explorer'],
+	tlchain: ['https://explorer.tlchain.live/token/', 'TLChain Explorer'],
 }
 
 export const getBlockExplorer = (address: string = '') => {
