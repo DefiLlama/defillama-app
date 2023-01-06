@@ -2,9 +2,9 @@ import { GetStaticProps, GetStaticPropsContext, InferGetStaticPropsType } from '
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getOverview, getOverviewItemPageData, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
+import { primaryColor } from '~/constants/colors'
 import OverviewItemContainer from '~/containers/DexsAndFees/OverviewItem'
 import { standardizeProtocolName } from '~/utils'
-import { getColor } from '~/utils/getColor'
 import { volumeTypes } from '../utils'
 
 export type PageParams = {
@@ -23,7 +23,7 @@ const getStaticProps: GetStaticProps<PageParams> = async ({
 				...data,
 				type: params.type
 			},
-			backgroundColor: await getColor(data.name, data.logo)
+			backgroundColor: primaryColor
 		},
 		revalidate: maxAgeForNext([22])
 	}

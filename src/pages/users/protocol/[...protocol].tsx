@@ -13,7 +13,13 @@ import type { IBarChartProps } from '~/components/ECharts/types'
 import { SelectLegendMultiple } from '~/components/ECharts/shared'
 import { maxAgeForNext } from '~/api'
 import { getProtocol } from '~/api/categories/protocols'
-import { capitalizeFirstLetter, formattedNum, standardizeProtocolName, tokenIconUrl } from '~/utils'
+import {
+	capitalizeFirstLetter,
+	formattedNum,
+	standardizeProtocolName,
+	tokenIconPaletteUrl,
+	tokenIconUrl
+} from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { USER_METRICS_CHAIN_API_BY_DATE, USER_METRICS_PROTOCOL_API } from '~/constants'
 
@@ -50,7 +56,7 @@ export async function getStaticProps({
 
 		const logoUrl = protocolData.logo || tokenIconUrl(protocol)
 
-		const backgroundColor = await getColor(protocol, logoUrl)
+		const backgroundColor = await getColor(tokenIconPaletteUrl(protocol))
 
 		const { uniqueChains, uniqueColumns } = userMetrics?.reduce(
 			(acc, curr) => {

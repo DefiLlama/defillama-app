@@ -9,7 +9,7 @@ import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { IChartProps } from '~/components/ECharts/types'
 import { arrayFetcher } from '~/utils/useSWR'
 import { PROTOCOL_API } from '~/constants'
-import { slug } from '~/utils'
+import { slug, tokenIconPaletteUrl } from '~/utils'
 import { SelectLegendMultiple } from '~/components/ECharts/shared'
 import { getColor } from '~/utils/getColor'
 import { ProtocolsChainsSearch } from '~/components/Search'
@@ -21,12 +21,14 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
+const protocolColor = async (name: string) => {
+	const color = await getColor(tokenIconPaletteUrl(name))
+	return { [name]: color }
+}
 export async function getStaticProps() {
 	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo'])
 
-	const stackColors = await Promise.allSettled(
-		protocols.map(async (p) => ({ [p.name]: await getColor(slug(p.name), p.logo) }))
-	)
+	const stackColors = await Promise.allSettled(protocols.map((p) => protocolColor(p.name)))
 
 	let colors = {}
 

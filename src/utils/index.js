@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { Text } from 'rebass'
 import Numeral from 'numeral'
-import { ICONS_CDN, timeframeOptions } from '~/constants'
+import { ICONS_CDN, ICONS_PALETTE_CDN, timeframeOptions } from '~/constants'
 export * from './blockExplorers'
 import { colord, extend } from 'colord'
 import lchPlugin from 'colord/plugins/lch'
@@ -196,9 +196,18 @@ export function chainIconUrl(chain) {
 	return `${ICONS_CDN}/chains/rsz_${chain.toLowerCase()}?w=24&h=24`
 }
 
+export function chainIconPaletteUrl(chain) {
+	return `${ICONS_PALETTE_CDN}/chains/rsz_${chain.toLowerCase()}`
+}
+
 export function tokenIconUrl(name) {
 	const x = name ?? ''
 	return `${ICONS_CDN}/protocols/${x.toLowerCase().split(' ').join('-').split("'").join('')}?w=24&h=24`
+}
+
+export function tokenIconPaletteUrl(name) {
+	const x = name ?? ''
+	return `${ICONS_PALETTE_CDN}/protocols/${x.toLowerCase().split(' ').join('-').split("'").join('')}`
 }
 
 /**
@@ -214,8 +223,16 @@ export function liquidationsIconUrl(symbol, hd = false) {
 	}
 }
 
+export function liquidationsIconPaletteUrl(symbol) {
+	return `${ICONS_PALETTE_CDN}/protocols/${symbol.toLowerCase()}`
+}
+
 export function peggedAssetIconUrl(name) {
 	return `${ICONS_CDN}/pegged/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}?w=24&h=24`
+}
+
+export function peggedAssetIconPalleteUrl(name) {
+	return `${ICONS_PALETTE_CDN}/pegged/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}`
 }
 
 export function formattedPercent(percent, noSign = false, fontWeight = 500) {

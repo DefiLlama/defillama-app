@@ -1,5 +1,5 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { standardizeProtocolName } from '~/utils'
+import { standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { getProtocols, getProtocol, fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
@@ -24,7 +24,7 @@ export const getStaticProps = async ({
 
 	const protocolData = fuseProtocolData(protocolRes)
 
-	const backgroundColor = await getColor(protocol, protocolData.logo)
+	const backgroundColor = await getColor(tokenIconPaletteUrl(protocolData.name))
 
 	const similarProtocols = (await getProtocolsRaw())?.protocols
 		.filter(
@@ -87,7 +87,7 @@ export default function Protocols({ protocolData, ...props }) {
 		<ProtocolContainer
 			title={`${protocolData.name}: TVL and Stats - DefiLlama`}
 			protocolData={protocolData}
-			{...props as any}
+			{...(props as any)}
 		/>
 	)
 }
