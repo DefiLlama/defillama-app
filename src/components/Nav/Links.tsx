@@ -97,7 +97,7 @@ const defaultToolsAndFooterLinks = {
 			path: '/reports',
 			newTag: true
 		},
-		{ name: 'About DefiLlama', path: '/about' },
+		{ name: 'About / Contact', path: '/about' },
 		{
 			name: 'Twitter',
 			path: 'https://twitter.com/DefiLlama',
