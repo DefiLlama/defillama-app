@@ -43,6 +43,18 @@ interface ILinks {
 
 const defaultToolsAndFooterLinks = {
 	tools: [
+		{
+				name: 'LlamaNodes',
+				path: 'https://llamanodes.com/',
+				newTag: true,
+				external: true
+		},
+		{
+				name: 'DLNews',
+				path: 'https://dlnews.com/',
+				newTag: true,
+				external: true
+		},
 		{ name: 'Watchlist', path: '/watchlist' },
 		{ name: 'Directory', path: '/directory' },
 		{
