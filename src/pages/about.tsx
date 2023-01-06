@@ -5,8 +5,6 @@ import Layout from '~/layout'
 import { Divider, Panel } from '~/components'
 import { RowBetween } from '~/components/Row'
 import Link from '~/components/Link'
-import { maxAgeForNext } from '~/api'
-import { getChainPageData } from '~/api/categories/protocols'
 
 const DashGrid = styled.div`
 	display: grid;
