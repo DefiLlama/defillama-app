@@ -18,7 +18,7 @@ const DashGrid = styled.div`
 	}
 `
 
-function AboutPage({ chains, protocols }) {
+function AboutPage() {
 	return (
 		<Layout title="DefiLlama - DeFi Dashboard" defaultSEO>
 			<RowBetween>
