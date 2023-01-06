@@ -1,4 +1,30 @@
 const axios = require('axios')
+const fs = require('fs')
+
+// read the build.log file into base64 string
+const buildLog = fs.readFileSync('./build.log', 'utf8')
+const buildLogBase64 = Buffer.from(buildLog).toString('base64')
+const BUILD_LOG_CONTENT_TYPE = 'text/plain;charset=UTF-8'
+const LOGGER_API_KEY = process.env.LOGGER_API_KEY
+const LOGGER_API_URL = process.env.LOGGER_API_URL
+
+// upload the build.log file to the logger service
+const uploadBuildLog = async () => {
+	const response = await axios.post(
+		LOGGER_API_URL,
+		{
+			data: buildLogBase64,
+			contentType: BUILD_LOG_CONTENT_TYPE
+		},
+		{
+			headers: {
+				apikey: LOGGER_API_KEY
+			}
+		}
+	)
+	// the logger service returns the id of the uploaded file as a string
+	return response.data
+}
 
 // convert the bash script above to JS
 const LLAMAS_LIST = process.env.LLAMAS_LIST || ''
@@ -75,6 +101,13 @@ const sendMessages = async () => {
 		const llamaBody = { content: llamaMessage }
 		await axios.post(BUILD_STATUS_WEBHOOK, llamaBody)
 	}
+
+	const buildLogId = await uploadBuildLog()
+	const buildLogUrl = `${LOGGER_API_URL}/get/${buildLogId}`
+	const buildLogMessage = `📄 Build log: ${buildLogUrl}`
+	console.log(buildLogMessage)
+	const buildLogBody = { content: buildLogMessage }
+	await axios.post(BUILD_STATUS_WEBHOOK, buildLogBody)
 }
 
 sendMessages()
