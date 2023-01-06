@@ -39,6 +39,7 @@ const EMOJI_BONG = '<:bong:970440561087631360>'
 const EMOJI_BEEGLUBB = '<:beeglubb:1027125046281502740>'
 const EMOJI_UPLLAMA = '<:upllama:996096214841950269>'
 const EMOJI_EVIL = '<:evilllama:1011045461030879353>'
+const EMOJI_PEPENOTES = '<a:pepenotes:1061068916140544052>'
 
 const buildLlamas = BUILD_LLAMAS.split(',')
 const llamas = LLAMAS_LIST.split(',').map((llama) => {
@@ -85,6 +86,13 @@ const sendMessages = async () => {
 	const body = { content: message }
 	await axios.post(BUILD_STATUS_WEBHOOK, body)
 
+	const buildLogId = await uploadBuildLog()
+	const buildLogUrl = `${LOGGER_API_URL}/get/${buildLogId}`
+	const buildLogMessage = `${EMOJI_PEPENOTES} ${buildLogUrl}`
+	console.log(buildLogMessage)
+	const buildLogBody = { content: buildLogMessage }
+	await axios.post(BUILD_STATUS_WEBHOOK, buildLogBody)
+
 	const authorMention = formatMention(COMMIT_AUTHOR)
 	const buildLlamasMentions = buildLlamas.map((llama) => formatMention(llama)).join(' ')
 
@@ -101,13 +109,6 @@ const sendMessages = async () => {
 		const llamaBody = { content: llamaMessage }
 		await axios.post(BUILD_STATUS_WEBHOOK, llamaBody)
 	}
-
-	const buildLogId = await uploadBuildLog()
-	const buildLogUrl = `${LOGGER_API_URL}/get/${buildLogId}`
-	const buildLogMessage = `📄 Build log: ${buildLogUrl}`
-	console.log(buildLogMessage)
-	const buildLogBody = { content: buildLogMessage }
-	await axios.post(BUILD_STATUS_WEBHOOK, buildLogBody)
 }
 
 sendMessages()
