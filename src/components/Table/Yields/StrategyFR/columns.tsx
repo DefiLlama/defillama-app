@@ -36,7 +36,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 					<FRStrategyRoute
 						project1={row.original.projectName}
 						airdropProject1={row.original.airdrop}
-						project2={row.original.farmProjectName}
+						project2={row.original.marketPlace}
 						airdropProject2={false}
 						chain={row.original.chains[0]}
 						index={index + 1}
@@ -47,6 +47,35 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		size: 400
 	},
 	{
+		header: 'Strategy APY',
+		accessorKey: 'strategyAPY',
+		enableSorting: true,
+		cell: ({ getValue, row }) => {
+			const TooltipContent = () => {
+				return (
+					<>
+						<span>{`Farm APY: ${row.original?.apy?.toFixed(2)}%`}</span>
+						<span>{`Funding APY: ${row.original?.afr?.toFixed(2)}%`}</span>
+					</>
+				)
+			}
+
+			return (
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
+					<Tooltip content={<TooltipContent />}>
+						<ColoredAPY data-variant="positive">{formattedPercent(getValue(), true, 700)}</ColoredAPY>
+					</Tooltip>
+				</AutoRow>
+			)
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Farm APY + Funding APY'
+		}
+	},
+	{
 		header: 'Strategy Return (1d)',
 		accessorKey: 'strategyReturn',
 		enableSorting: true,
@@ -55,7 +84,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
 					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
 
-					<ColoredAPY data-variant="positive">{formattedPercent(getValue(), true, 700)}</ColoredAPY>
+					{formattedPercent(getValue(), true, 700)}
 				</AutoRow>
 			)
 		},
@@ -84,7 +113,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		size: 120,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Last funding rate (paid every 8h) * 3 = 24h projection.'
+			headerHelperText: '8h funding rate * 3'
 		}
 	},
 	{
@@ -136,13 +165,14 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			const value = info.row.original.openInterest
+			const indexPrice = info.row.original.indexPrice
 			return (
 				<span
 					style={{
 						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
 					}}
 				>
-					{value === null ? null : '$' + formattedNum(value)}
+					{value === null ? null : '$' + formattedNum(value * indexPrice)}
 				</span>
 			)
 		},
@@ -156,26 +186,28 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: ['strategy', 'strategyReturn', 'frDay', 'poolReturnDay', 'tvlUsd', 'openInterest'],
-	400: ['strategy', 'strategyReturn', 'frDay', 'poolReturnDay', 'tvlUsd', 'openInterest'],
-	640: ['strategy', 'strategyReturn', 'frDay', 'poolReturnDay', 'tvlUsd', 'openInterest'],
-	1280: ['strategy', 'strategyReturn', 'frDay', 'poolReturnDay', 'tvlUsd', 'openInterest']
+	0: ['strategy', 'strategyAPY', 'strategyReturn', 'frDay', 'poolReturnDay', 'tvlUsd', 'openInterest'],
+	400: ['strategy', 'strategyAPY', 'strategyReturn', 'frDay', 'poolReturnDay', 'tvlUsd', 'openInterest'],
+	640: ['strategy', 'strategyAPY', 'strategyReturn', 'frDay', 'poolReturnDay', 'tvlUsd', 'openInterest'],
+	1280: ['strategy', 'strategyAPY', 'strategyReturn', 'frDay', 'poolReturnDay', 'tvlUsd', 'openInterest']
 }
 
 export const columnSizes = {
 	0: {
 		strategy: 250,
-		strategyReturn: 150,
-		frDay: 100,
-		poolReturnDay: 100,
+		strategyAPY: 190,
+		strategyReturn: 190,
+		frDay: 180,
+		poolReturnDay: 170,
 		tvlUsd: 100,
-		openInterest: 100
+		openInterest: 120
 	},
 	812: {
 		strategy: 250,
+		strategyAPY: 150,
 		strategyReturn: 150,
-		frDay: 100,
-		poolReturnDay: 100,
+		frDay: 150,
+		poolReturnDay: 130,
 		tvlUsd: 100,
 		openInterest: 100
 	}

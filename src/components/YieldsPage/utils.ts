@@ -338,22 +338,23 @@ export const formatOptimizerPool = (pool, customLTV) => {
 	}
 }
 
-export const findStrategyPoolsFR = (token, filteredPools, fr) => {
+export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 	token = typeof token === 'string' ? [token] : token
 
 	// filter pools to selected token
 	const pools = filteredPools.filter((p) => token?.some((t) => p.symbol.includes(t)) && p.apy > 0)
 	// filter FR data to positive funding rates only (longs pay shorts -> open short position and earn FR)
-	const perps = fr.filter((p) => token?.some((t) => p.symbol.replace(/USDT|BUSD/g, '') === t) && p.lastFundingRate > 0)
+	const perpsData = perps.filter((p) => token?.some((t) => p.symbol === t) && p.fundingRate > 0)
 
 	const finalPools = []
 	for (const pool of pools) {
-		for (const perp of perps) {
-			const fr8h = Number(perp.lastFundingRate) * 100
+		for (const perp of perpsData) {
+			const fr8h = Number(perp.fundingRate) * 100
+			const afr = fr8h * 3 * 365
 
 			finalPools.push({
 				...pool,
-				symbolPerp: perp.symbol,
+				symbolPerp: perp.market,
 				fr8h,
 				frDay: fr8h * 3,
 				frWeek: fr8h * 3 * 7,
@@ -364,9 +365,13 @@ export const findStrategyPoolsFR = (token, filteredPools, fr) => {
 				poolReturnWeek: pool.apy / 52,
 				poolReturnMonth: pool.apy / 12,
 				strategyReturn: pool.apy / 365 + fr8h * 3,
-				openInterest: Number(perp.openInterest) * Number(perp.indexPrice),
+				afr,
+				strategyAPY: pool.apy + afr,
+				openInterest: Number(perp.openInterest),
+				indexPrice: perp.indexPrice,
 				chains: [pool.chain],
-				farmTvlUsd: pool.tvlUsd
+				farmTvlUsd: pool.tvlUsd,
+				marketPlace: perp.marketPlace
 			})
 		}
 	}

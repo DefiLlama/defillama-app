@@ -6,7 +6,7 @@ import { YieldFiltersV2 } from '~/components/Filters'
 import { filterPool, findStrategyPoolsFR } from './utils'
 import { useFormatYieldQueryParams } from './hooks'
 
-const YieldsStrategyPageFR = ({ filteredPools, fr, tokens, projectList, chainList, categoryList }) => {
+const YieldsStrategyPageFR = ({ filteredPools, perps, tokens, projectList, chainList, categoryList }) => {
 	const { query } = useRouter()
 
 	const token = typeof query.token === 'string' || typeof query.token === 'object' ? query.token : null
@@ -20,7 +20,7 @@ const YieldsStrategyPageFR = ({ filteredPools, fr, tokens, projectList, chainLis
 	})
 
 	const poolsData = React.useMemo(() => {
-		const pools = findStrategyPoolsFR(token, filteredPools, fr)
+		const pools = findStrategyPoolsFR(token, filteredPools, perps)
 			.filter((pool) =>
 				filterPool({
 					pool,
@@ -33,7 +33,7 @@ const YieldsStrategyPageFR = ({ filteredPools, fr, tokens, projectList, chainLis
 			.sort((a, b) => b.strategyReturn - a.strategyReturn)
 
 		return pools
-	}, [token, filteredPools, fr, selectedAttributes, selectedChains, minTvl, maxTvl])
+	}, [token, filteredPools, perps, selectedAttributes, selectedChains, minTvl, maxTvl])
 
 	const header = `Funding Rate Strategy Finder ${token ? `(Supply: ${token || ''} )` : ''}`
 

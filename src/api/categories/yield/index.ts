@@ -5,8 +5,7 @@ import {
 	YIELD_URL_API,
 	YIELD_CHAIN_API,
 	YIELD_LEND_BORROW_API,
-	YIELD_FR_API,
-	YIELD_OI_API
+	YIELD_PERPS_API
 } from '~/constants'
 import { arrayFetcher } from '~/utils/useSWR'
 import { formatYieldsPageData } from './utils'
@@ -278,13 +277,7 @@ export function calculateLoopAPY(lendBorrowPools, loops = 10, customLTV) {
 		.sort((a, b) => b.loopApy - a.loopApy)
 }
 
-export async function getBinanceData() {
-	let fr = (await arrayFetcher([YIELD_FR_API]))[0]
-	console.log(fr)
-	// remove futures
-	fr = fr?.filter((m) => !m.symbol.includes('_'))
-
-	const oiUrls = fr?.map((p) => `${YIELD_OI_API}?symbol=${p.symbol}`)
-	const oi = (await arrayFetcher(oiUrls)).flat()
-	return fr?.map((p) => ({ ...p, openInterest: oi.find((i) => i.symbol === p.symbol)?.openInterest ?? null }))
+export async function getPerpData() {
+	const perps = (await arrayFetcher([YIELD_PERPS_API]))[0]
+	return perps.data.map((m) => ({ ...m, symbol: m.baseAsset }))
 }

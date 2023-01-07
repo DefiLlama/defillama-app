@@ -3,12 +3,10 @@ import YieldsStrategyPageFR from '~/components/YieldsPage/indexStrategyFR'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
-import { getYieldPageData, getBinanceData } from '~/api/categories/yield'
+import { getYieldPageData, getPerpData } from '~/api/categories/yield'
 
 export async function getStaticProps() {
 	const data = await getYieldPageData()
-
-	// todo(slasher): need to add binance symbol
 
 	// for funding rate strategies keep only single sided no IL pools
 	const filteredPools = data.props.pools
@@ -22,8 +20,8 @@ export async function getStaticProps() {
 		)
 		.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 
-	const fr = await getBinanceData()
-	const perpMarkets = [...new Set(fr.map((p) => p.symbol.replace(/USDT|BUSD/g, '')))]
+	const perps = (await getPerpData()).filter((p) => p.openInterest > 0)
+	const perpMarkets = [...new Set(perps.map((p) => p.symbol))]
 	const cgTokens = (await getAllCGTokensList()).filter((p) => perpMarkets.includes(p.symbol?.toUpperCase()))
 
 	const tokens = []
@@ -39,7 +37,7 @@ export async function getStaticProps() {
 	return {
 		props: {
 			filteredPools,
-			fr,
+			perps,
 			tokens,
 			...data.props
 		},

@@ -59,4 +59,7 @@ export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
 	symbolPerp: string
 	openInterest: number
 	tvlUsd: number
+	marketPlace: string
+	afr: number
+	indexPrice: number
 }
