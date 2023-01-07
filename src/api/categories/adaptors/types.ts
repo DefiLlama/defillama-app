@@ -4,6 +4,7 @@
 export interface IGetOverviewResponseBody {
 	total24h: number
 	total7d: number
+	total30d: number
 	change_1d: number
 	change_7d: number
 	change_1m: number
@@ -54,6 +55,8 @@ export type ProtocolAdaptorSummary = {
 	change_7d: number
 	change_1m: number
 	total24h: number
+	total7d: number
+	total30d: number
 	revenue24h: number
 	breakdown24h: IJSON<number>
 	chains: Array<string>
@@ -63,6 +66,8 @@ export type ProtocolAdaptorSummary = {
 		chains: string[]
 		disabled: boolean
 		total24h: number | null
+		total7d: number | null
+		total30d: number | null
 		change_1d: number | null
 		change_7d: number | null
 		change_1m: number | null

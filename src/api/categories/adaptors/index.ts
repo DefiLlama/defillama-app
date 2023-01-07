@@ -88,9 +88,9 @@ export const getOverviewItemPageData = async (
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-				...p,
-				tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null
-		  }))
+			...p,
+			tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null
+		}))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -156,9 +156,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-					{} as IJSON<ProtocolAdaptorSummary>
-			  ) ?? {}
+				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+				{} as IJSON<ProtocolAdaptorSummary>
+			) ?? {}
 			: {}
 
 	const protocolsWithSubrows = protocols.map((protocol) => {
@@ -168,6 +168,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		return {
 			...protocol,
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? 0,
+			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? 0,
+			revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? 0,
 			volumetvl: volumetvl ?? null,
 			tvl: protocolTVL ?? null,
 			dominance: (100 * protocol.total24h) / total24h,
@@ -175,20 +177,22 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			module: protocol.module,
 			subRows: protocol.protocolsStats
 				? Object.entries(protocol.protocolsStats)
-						.map(([versionName, summary]) => {
-							const protocolTVL = tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, [versionName], tvlData)
-							return {
-								...protocol,
-								displayName: `${versionName.toUpperCase()} - ${protocol.name}`,
-								...summary,
-								tvl: protocolTVL ?? null,
-								volumetvl: protocolTVL ? summary.total24h / protocolTVL : null,
-								dominance: (100 * summary.total24h) / total24h,
-								totalAllTime: null,
-								revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? null
-							}
-						})
-						.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
+					.map(([versionName, summary]) => {
+						const protocolTVL = tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, [versionName], tvlData)
+						return {
+							...protocol,
+							displayName: `${versionName.toUpperCase()} - ${protocol.name}`,
+							...summary,
+							tvl: protocolTVL ?? null,
+							volumetvl: protocolTVL ? summary.total24h / protocolTVL : null,
+							dominance: (100 * summary.total24h) / total24h,
+							totalAllTime: null,
+							revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? null,
+							revenue7d: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total7d ?? null,
+							revenue30d: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total30d ?? null,
+						}
+					})
+					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
 				: null,
 			dailyUserFees: protocol.dailyUserFees ?? null
 		}
@@ -250,7 +254,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 	])
 
 	let protocols = dataByChain.map(
-		({ total24h, change_1d, change_7d, chain, change_1m, protocols, change_7dover7d, total7d }) => {
+		({ total24h, change_1d, change_7d, chain, change_1m, protocols, change_7dover7d, total7d, total30d }) => {
 			const tvlData = getTVLData(protocolsData, chain)
 			return {
 				name: chain,
@@ -264,6 +268,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 				}, 0),
 				change_7dover7d,
 				total7d,
+				total30d,
 				change_1d,
 				change_7d,
 				change_1m,

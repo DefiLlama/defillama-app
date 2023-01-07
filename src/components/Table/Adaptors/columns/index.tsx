@@ -128,6 +128,12 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, undefined, 'Fees (7d)'),
 		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, undefined, 'Fees (30d)'),
 		allChains ? undefined : Total24hColumn('Revenue', 'revenue24h', 'Fees accrued to the protocol', 160),
+		allChains
+			? undefined
+			: Total24hColumn('Revenue', 'revenue7d', `Cumulative last 7d revenue`, undefined, 'Revenue (7d)'),
+		allChains
+			? undefined
+			: Total24hColumn('Fees', 'revenue30d', `Cumulative last 30d revenue`, undefined, 'Revenue (30d)'),
 		// TotalAllTimeColumn('fees') tmp
 		// Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
 		// Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
@@ -227,6 +233,8 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'total30d',
 		'change_30dover30d',
 		'revenue24h',
+		'revenue7d',
+		'revenue30d',
 		'totalAllTime',
 		'mcaptvl'
 	],
@@ -245,6 +253,8 @@ export const feesTableColumnOrders = formatColumnOrder({
 		'total30d',
 		'change_30dover30d',
 		'revenue24h',
+		'revenue7d',
+		'revenue30d',
 		'totalAllTime',
 		'mcaptvl'
 	]
