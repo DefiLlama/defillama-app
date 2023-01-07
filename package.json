@@ -23,7 +23,7 @@
 		"bignumber.js": "^9.0.2",
 		"colord": "^2.9.3",
 		"dayjs": "^1.11.3",
-		"echarts": "^5.4.0",
+		"echarts": "^5.4.1",
 		"echarts-simple-transform": "^1.0.0",
 		"fathom-client": "^3.4.1",
 		"lightweight-charts": "^3.8.0",
