@@ -12,9 +12,6 @@ export const getStaticProps = async ({
 }) => {
 	const protocolRes: IProtocolResponse = await getProtocol(protocol)
 
-	delete protocolRes.tokensInUsd
-	delete protocolRes.tokens
-
 	if (protocolRes.chainTvls) {
 		Object.keys(protocolRes.chainTvls).forEach((chain) => {
 			delete protocolRes.chainTvls[chain].tokensInUsd

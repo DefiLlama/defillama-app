@@ -22,14 +22,6 @@ export const useFetchProtocol = (protocolName) => {
 	return { data, error, loading }
 }
 
-export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
-	const { data, error } = useSWR(
-		gecko_id ? `https://api.coingecko.com/api/v3/simple/price?ids=${gecko_id}&vs_currencies=${defaultCurrency}` : null,
-		fetcher
-	)
-	return { data, error, loading: gecko_id && !data && !error }
-}
-
 export const useDenominationPriceHistory = (geckoId?: string) => {
 	let url = `https://api.coingecko.com/api/v3/coins/${geckoId}/market_chart/range?vs_currency=usd&from=0&to=`
 

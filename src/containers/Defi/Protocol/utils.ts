@@ -1,3 +1,6 @@
+import type { IChainTvl } from '~/api/types'
+import type { ISettings } from '~/contexts/types'
+
 export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
 	const tvlDictionary: { [data: number]: { [chain: string]: number } } = {}
 
@@ -228,9 +231,28 @@ function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 	return { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown: Object.values(rawTokens) }
 }
 
-export const buildProtocolAddlChartsData = ({ protocolData, extraTvlsEnabled }) => {
+export const buildProtocolAddlChartsData = ({
+	protocolData,
+	extraTvlsEnabled
+}: {
+	protocolData: { chainTvls: IChainTvl; misrepresentedTokens?: boolean }
+	extraTvlsEnabled: ISettings
+}) => {
 	if (protocolData) {
-		if (!protocolData.misrepresentedTokens && protocolData.tokensInUsd && protocolData.tokens) {
+		let tokensInUsdExsists = false
+		let tokensExists = false
+
+		Object.values(protocolData.chainTvls).forEach((chain) => {
+			if (!tokensInUsdExsists && chain.tokensInUsd) {
+				tokensInUsdExsists = true
+			}
+
+			if (!tokensExists && chain.tokens) {
+				tokensExists = true
+			}
+		})
+
+		if (!protocolData.misrepresentedTokens && tokensInUsdExsists && tokensExists) {
 			const tokensUnique = getUniqueTokens({ chainTvls: protocolData.chainTvls, extraTvlsEnabled })
 
 			const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({

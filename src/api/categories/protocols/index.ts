@@ -57,8 +57,6 @@ export const getProtocol = async (protocolName: string) => {
 export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtocolData => {
 	const tvlBreakdowns = protocolData?.currentChainTvls ?? {}
 
-	const tvl = protocolData?.tvl ?? []
-
 	const historicalChainTvls = protocolData?.chainTvls ?? {}
 
 	const tvlByChain =
@@ -78,7 +76,6 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 
 	return {
 		...protocolData,
-		tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
 		tvlBreakdowns,
 		tvlByChain,
 		chains,

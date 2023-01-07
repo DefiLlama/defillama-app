@@ -2,6 +2,7 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { Header } from '~/Theme'
 import { CEXTable } from '~/components/Table/Defi'
+import type { IChainTvl } from '~/api/types'
 
 const cexData = [
 	{
@@ -105,7 +106,7 @@ const cexData = [
 		slug: 'binance-us',
 		coin: 'BNB',
 		coinSymbol: 'BNB',
-		cgId: 'binance_us',
+		cgId: 'binance_us'
 	},
 	{
 		name: 'Swissborg',
@@ -118,8 +119,7 @@ const cexData = [
 		name: 'Korbit',
 		slug: 'korbit',
 		coin: null,
-		walletsLink: 'https://korbit.co.kr/reserve',
-		
+		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
 		name: 'MaskEX',
@@ -152,14 +152,13 @@ const cexData = [
 		slug: 'woo-x',
 		coin: 'WOO',
 		coinSymbol: 'WOO',
-		walletsLink: 'https://woo.org/proof-of-reserves',
+		walletsLink: 'https://woo.org/proof-of-reserves'
 	},
 	{
 		name: 'CoinDCX',
 		slug: 'coindcx',
 		coin: null,
-		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497',
-
+		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
 	},
 	{
 		name: 'Cake DeFi',
@@ -171,7 +170,7 @@ const cexData = [
 		name: 'Hotbit',
 		slug: 'hotbit',
 		coin: 'HTB',
-		coinSymbol: 'HTB',
+		coinSymbol: 'HTB'
 	},
 	{
 		name: 'NBX',
@@ -199,7 +198,7 @@ const cexData = [
 		lastAuditDate: 1666369050,
 		auditor: null,
 		auditLink: 'https://coinone.co.kr/info/notice/1967',
-		cgId: 'coinone',
+		cgId: 'coinone'
 	},
 	{
 		name: 'NEXO'
@@ -207,7 +206,7 @@ const cexData = [
 	{
 		name: 'CoinEx',
 		cdId: 'coinex',
-		cgDeriv: 'coinex_futures',
+		cgDeriv: 'coinex_futures'
 	},
 	{
 		name: 'Gemini',
@@ -215,16 +214,15 @@ const cexData = [
 	},
 	{
 		name: 'Coincheck',
-		cgId: 'coincheck',
+		cgId: 'coincheck'
 	},
 	{
 		name: 'Bitstamp',
-		cgId: 'bitstamp',
+		cgId: 'bitstamp'
 	},
 	{
 		name: 'Bithumb',
-		cgId: 'bithumb',
-
+		cgId: 'bithumb'
 	},
 	{
 		name: 'Poloniex',
@@ -232,16 +230,16 @@ const cexData = [
 	},
 	{
 		name: 'Upbit',
-		cgId: 'upbit',
+		cgId: 'upbit'
 	},
 	{
 		name: 'Bitmart',
 		cgId: 'bitmart',
-		cgDeriv: 'bitmart_futures',
+		cgDeriv: 'bitmart_futures'
 	},
 	{
 		name: 'Bittrex',
-		cgId: 'bittrex',
+		cgId: 'bittrex'
 	},
 	{
 		name: 'AscendEX',
@@ -251,24 +249,24 @@ const cexData = [
 	{
 		name: 'bitFlyer',
 		cgId: 'bitflyer',
-		cgDeriv: 'bitflyer_futures',
+		cgDeriv: 'bitflyer_futures'
 	},
 	{
 		name: 'LBank',
-		cgId: 'lbank',
+		cgId: 'lbank'
 	},
 	{
 		name: 'MEXC',
 		cgId: 'mxc',
-		cgDeriv: 'mxc_futures',
+		cgDeriv: 'mxc_futures'
 	},
 	{
 		name: 'BKEX',
-		cgId: 'bkex',
+		cgId: 'bkex'
 	},
 	{
 		name: 'ProBit',
-		cgId: 'probit',
+		cgId: 'probit'
 	},
 	{
 		name: 'BTCEX',
@@ -278,13 +276,13 @@ const cexData = [
 	{
 		name: 'Bitrue',
 		cgId: 'bitrue',
-		cgDeriv: 'bitrue_futures',
+		cgDeriv: 'bitrue_futures'
 	},
 	{
 		name: 'BTCC',
-        cgID: 'btcc',
-        cgDeriv: 'btcc_futures',
-	},
+		cgID: 'btcc',
+		cgDeriv: 'btcc_futures'
+	}
 ]
 
 const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
@@ -310,7 +308,7 @@ export async function getStaticProps() {
 			if (c.slug === undefined) {
 				return c
 			} else {
-				const [{ tvl, tokensInUsd }, inflows24h, inflows7d, inflows1m] = await Promise.all([
+				const [{ chainTvls = {} }, inflows24h, inflows7d, inflows1m] = await Promise.all([
 					fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then((r) => r.json()),
 					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
 						r.json()
@@ -323,9 +321,20 @@ export async function getStaticProps() {
 					)
 				])
 
-				const cexTvl = tvl ? tvl[tvl.length - 1].totalLiquidityUSD : 0
+				let cexTvl = 0
 
-				const ownToken = tokensInUsd ? tokensInUsd[tokensInUsd.length - 1].tokens[c.coin] ?? 0 : 0
+				let ownToken = 0
+
+				Object.values(chainTvls as IChainTvl).map((item) => {
+					if (item.tvl) {
+						cexTvl += item.tvl[item.tvl.length - 1]?.totalLiquidityUSD ?? 0
+					}
+
+					if (item.tokensInUsd) {
+						ownToken += item.tokensInUsd[item.tokensInUsd.length - 1]?.tokens[c.coin] ?? 0 ?? 0
+					}
+				})
+
 				const cleanTvl = cexTvl - ownToken
 
 				const extra = {} as any

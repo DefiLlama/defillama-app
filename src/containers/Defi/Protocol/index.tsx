@@ -39,7 +39,6 @@ import QuestionHelper from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
-import { useCalcSingleExtraTvl } from '~/hooks/data'
 import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
@@ -206,7 +205,6 @@ function ProtocolContainer({
 		symbol,
 		url,
 		description,
-		tvl,
 		audits,
 		category,
 		twitter,
@@ -229,11 +227,30 @@ function ProtocolContainer({
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
-	const totalVolume = useCalcSingleExtraTvl(tvlBreakdowns, tvl)
-
 	const [bobo, setBobo] = React.useState(false)
 
 	const [extraTvlsEnabled, updater] = useDefiManager()
+
+	const totalVolume = React.useMemo(() => {
+		let tvl = 0
+
+		Object.entries(tvlBreakdowns).forEach(([section, sectionTvl]: any) => {
+			if (section.includes('-')) return
+
+			if (section === 'doublecounted') {
+				tvl -= sectionTvl
+			}
+
+			if (Object.keys(extraTvlsEnabled).includes(section.toLowerCase())) {
+				// convert to lowercase as server response is not consistent in extra-tvl names
+				if (extraTvlsEnabled[section.toLowerCase()]) tvl += sectionTvl
+			} else {
+				tvl += sectionTvl
+			}
+		})
+
+		return tvl
+	}, [extraTvlsEnabled, tvlBreakdowns])
 
 	const { data: yields } = useYields()
 
