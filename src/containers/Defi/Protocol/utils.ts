@@ -226,9 +226,26 @@ function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 			? Object.entries(tokenBreakdownUSD[tokenBreakdownUSD.length - 1])
 					.filter((values) => values[0] !== 'date')
 					.map(([name, value]) => ({ name, value }))
+					.sort((a, b) => b.value - a.value)
 			: []
 
-	return { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown: Object.values(rawTokens) }
+	const pieChartData = []
+
+	let othersDataInPieChart = 0
+
+	tokenBreakdownPieChart.forEach((token, index) => {
+		if (index < 15 && token.name !== 'Others') {
+			pieChartData.push(token)
+		} else {
+			othersDataInPieChart += token.value
+		}
+	})
+
+	if (othersDataInPieChart) {
+		pieChartData.push({ name: 'Others', value: othersDataInPieChart })
+	}
+
+	return { tokenBreakdownUSD, tokenBreakdownPieChart: pieChartData, tokenBreakdown: Object.values(rawTokens) }
 }
 
 export const buildProtocolAddlChartsData = ({

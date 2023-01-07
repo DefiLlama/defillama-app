@@ -45,7 +45,20 @@ export const getProtocol = async (protocolName: string) => {
 	try {
 		const data: IProtocolResponse = await fetch(`${PROTOCOL_API}/${protocolName}`).then((r) => r.json())
 
-		return data
+		let isNewlyListedProtocol = false
+
+		Object.values(data.chainTvls).forEach((chain) => {
+			if (chain.tvl?.length < 7) {
+				isNewlyListedProtocol = true
+			} else {
+				isNewlyListedProtocol = false
+			}
+		})
+
+		if (isNewlyListedProtocol) {
+			const hourlyData = await fetch(`${HOURLY_PROTOCOL_API}/${protocolName}`).then((r) => r.json())
+			return { ...hourlyData, isHourlyChart: true }
+		} else return data
 	} catch (e) {
 		console.log(e)
 	}
