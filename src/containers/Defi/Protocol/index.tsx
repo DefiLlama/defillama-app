@@ -250,8 +250,20 @@ function ProtocolContainer({
 		})
 
 		if (tvl === 0 && Object.keys(tvlBreakdowns).length === 0) {
-			Object.entries(historicalChainTvls).forEach((chain) => {
-				tvl += chain[1].tvl[chain[1].tvl.length - 1].totalLiquidityUSD
+			Object.entries(historicalChainTvls).forEach(([section, sectionData]) => {
+				if (section.includes('-')) return
+
+				if (section === 'doublecounted') {
+					tvl -= sectionData.tvl[sectionData.tvl.length - 1].totalLiquidityUSD
+				}
+
+				if (Object.keys(extraTvlsEnabled).includes(section.toLowerCase())) {
+					// convert to lowercase as server response is not consistent in extra-tvl names
+					if (extraTvlsEnabled[section.toLowerCase()])
+						tvl += sectionData.tvl[sectionData.tvl.length - 1].totalLiquidityUSD
+				} else {
+					tvl += sectionData.tvl[sectionData.tvl.length - 1].totalLiquidityUSD
+				}
 			})
 		}
 
