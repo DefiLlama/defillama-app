@@ -20,7 +20,7 @@ export async function getStaticProps() {
 		)
 		.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
 
-	const perps = (await getPerpData()).filter((p) => p.openInterest > 0)
+	const perps = (await getPerpData()).filter((m) => m.fundingRate !== 0)
 	const perpMarkets = [...new Set(perps.map((p) => p.symbol))]
 	const cgTokens = (await getAllCGTokensList()).filter((p) => perpMarkets.includes(p.symbol?.toUpperCase()))
 
