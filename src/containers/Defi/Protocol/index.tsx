@@ -249,8 +249,14 @@ function ProtocolContainer({
 			}
 		})
 
+		if (tvl === 0 && Object.keys(tvlBreakdowns).length === 0) {
+			Object.entries(historicalChainTvls).forEach((chain) => {
+				tvl += chain[1].tvl[chain[1].tvl.length - 1].totalLiquidityUSD
+			})
+		}
+
 		return tvl
-	}, [extraTvlsEnabled, tvlBreakdowns])
+	}, [extraTvlsEnabled, tvlBreakdowns, historicalChainTvls])
 
 	const { data: yields } = useYields()
 
