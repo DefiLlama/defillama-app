@@ -342,7 +342,9 @@ export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 	token = typeof token === 'string' ? [token] : token
 
 	// filter pools to selected token
-	const pools = filteredPools.filter((p) => token?.some((t) => p.symbol.includes(t)) && p.apy > 0)
+	const pools = filteredPools.filter(
+		(p) => token?.some((t) => p.symbol.replace(/ *\([^)]*\) */g, '').includes(t)) && p.apy > 0
+	)
 	// filter FR data to positive funding rates only (longs pay shorts -> open short position and earn FR)
 	const perpsData = perps.filter((p) => token?.some((t) => p.symbol === t) && p.fundingRate > 0)
 
@@ -371,7 +373,7 @@ export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 				indexPrice: perp.indexPrice,
 				chains: [pool.chain],
 				farmTvlUsd: pool.tvlUsd,
-				marketPlace: perp.marketPlace
+				marketplace: perp.marketplace
 			})
 		}
 	}

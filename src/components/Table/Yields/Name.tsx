@@ -158,12 +158,6 @@ export function FRStrategyRoute({ project1, airdropProject1, project2, airdropPr
 			</ProjectWrapper>
 			<span>{'|'}</span>
 			<ProjectWrapper>
-				{airdropProject2 && (
-					<Tooltip content="This project has no token and might airdrop one to depositors in the future">
-						<span>🪂</span>
-					</Tooltip>
-				)}
-
 				<TokenLogo logo={iconUrl2} />
 				<span>{project2}</span>
 			</ProjectWrapper>

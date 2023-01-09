@@ -30,12 +30,12 @@ const YieldsStrategyPageFR = ({ filteredPools, perps, tokens, projectList, chain
 					maxTvl
 				})
 			)
-			.sort((a, b) => b.strategyReturn - a.strategyReturn)
+			.sort((a, b) => b.openInterest - a.openInterest)
 
 		return pools
 	}, [token, filteredPools, perps, selectedAttributes, selectedChains, minTvl, maxTvl])
 
-	const header = `Funding Rate Strategy Finder ${token ? `(Supply: ${token || ''} )` : ''}`
+	const header = `Funding Rate Strategy Finder${token ? `: ${token || ''}` : ''}`
 
 	return (
 		<>
