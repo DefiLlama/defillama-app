@@ -1,5 +1,5 @@
 import Layout from '~/layout'
-import YieldsStrategyPageFR from '~/components/YieldsPage/indexStrategyFR'
+import YieldsStrategyPageLongShort from '~/components/YieldsPage/indexStrategyLongShort'
 import Announcement from '~/components/Announcement'
 import { disclaimer } from '~/components/YieldsPage/utils'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
@@ -59,7 +59,7 @@ export default function YieldStrategiesFR(data) {
 	return (
 		<Layout title={`Yield Strategies - DefiLlama Yield`} defaultSEO>
 			<Announcement>{disclaimer}</Announcement>
-			<YieldsStrategyPageFR {...data} />
+			<YieldsStrategyPageLongShort {...data} />
 		</Layout>
 	)
 }

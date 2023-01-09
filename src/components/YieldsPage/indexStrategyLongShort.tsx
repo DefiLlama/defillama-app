@@ -6,7 +6,7 @@ import { YieldFiltersV2 } from '~/components/Filters'
 import { filterPool, findStrategyPoolsFR } from './utils'
 import { useFormatYieldQueryParams } from './hooks'
 
-const YieldsStrategyPageFR = ({ filteredPools, perps, tokens, projectList, chainList, categoryList }) => {
+const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList, chainList, categoryList }) => {
 	const { query } = useRouter()
 
 	const token = typeof query.token === 'string' || typeof query.token === 'object' ? query.token : null
@@ -35,7 +35,7 @@ const YieldsStrategyPageFR = ({ filteredPools, perps, tokens, projectList, chain
 		return pools
 	}, [token, filteredPools, perps, selectedAttributes, selectedChains, minTvl, maxTvl])
 
-	const header = `Funding Rate Strategy Finder${token ? `: ${token || ''}` : ''}`
+	const header = `Strategy Finder${token ? `: ${token || ''}` : ''}`
 
 	return (
 		<>
@@ -56,9 +56,9 @@ const YieldsStrategyPageFR = ({ filteredPools, perps, tokens, projectList, chain
 			) : (
 				<Panel as="p" style={{ margin: 0, textAlign: 'center' }}>
 					Given a token this finder will display delta neutral "long-short" strategies across all our tracked pools and
-					CEX perp markets.
+					CEX perpetual swap markets.
 					<br />
-					It calculates the daily Strategy Return taking into account the cex funding rate and defi yield.
+					It calculates daily and annualised Strategy Returns taking into account the CEX funding rate and DeFi yield.
 					<br />
 					<br />
 					To start just select a token above.
@@ -68,4 +68,4 @@ const YieldsStrategyPageFR = ({ filteredPools, perps, tokens, projectList, chain
 	)
 }
 
-export default YieldsStrategyPageFR
+export default YieldsStrategyPageLongShort
