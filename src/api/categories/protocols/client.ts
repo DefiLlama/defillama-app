@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 import useSWR from 'swr'
-import { HOURLY_PROTOCOL_API, PROTOCOLS_API, PROTOCOL_API } from '~/constants'
+import { PROTOCOLS_API } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
+import { getProtocol } from '.'
 import { formatProtocolsData } from './utils'
 
 export const useFetchProtocolsList = () => {
@@ -10,24 +11,11 @@ export const useFetchProtocolsList = () => {
 }
 
 export const useFetchProtocol = (protocolName) => {
-	const { data, error } = useSWR(protocolName ? `${PROTOCOL_API}/${protocolName}` : null, fetcher)
+	const { data, error } = useSWR(`updatedProtocolsData/${protocolName}`, () => getProtocol(protocolName))
 
-	const { data: hourlyData, error: hourlyDataError } = useSWR(
-		protocolName && data?.length < 7 ? `${HOURLY_PROTOCOL_API}/${protocolName}` : null,
-		fetcher
-	)
-
-	const loading = protocolName && ((!data && !error) || (data?.length < 7 && (!hourlyData || !hourlyDataError)))
+	const loading = protocolName && !data && !error
 
 	return { data, error, loading }
-}
-
-export const useGeckoProtocol = (gecko_id, defaultCurrency = 'usd') => {
-	const { data, error } = useSWR(
-		gecko_id ? `https://api.coingecko.com/api/v3/simple/price?ids=${gecko_id}&vs_currencies=${defaultCurrency}` : null,
-		fetcher
-	)
-	return { data, error, loading: gecko_id && !data && !error }
 }
 
 export const useDenominationPriceHistory = (geckoId?: string) => {

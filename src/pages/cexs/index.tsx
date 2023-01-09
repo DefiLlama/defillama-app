@@ -2,6 +2,7 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { Header } from '~/Theme'
 import { CEXTable } from '~/components/Table/Defi'
+import type { IChainTvl } from '~/api/types'
 
 const cexData = [
 	{
@@ -32,15 +33,6 @@ const cexData = [
 		cgDeriv: 'okex_swap'
 	},
 	{
-		name: 'Huobi',
-		slug: 'Huobi',
-		coin: 'HT',
-		coinSymbol: 'HT',
-		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831',
-		cgId: 'huobi',
-		cgDeriv: 'huobi_dm'
-	},
-	{
 		name: 'Crypto.com',
 		slug: 'Crypto-com',
 		coin: 'CRO',
@@ -48,6 +40,15 @@ const cexData = [
 		walletsLink: 'https://crypto.com/document/proof-of-reserves',
 		cgId: 'crypto_com',
 		cgDeriv: 'crypto_com_futures'
+	},
+	{
+		name: 'Huobi',
+		slug: 'Huobi',
+		coin: 'HT',
+		coinSymbol: 'HT',
+		walletsLink: 'https://www.huobi.com/support/en-us/detail/24922606430831',
+		cgId: 'huobi',
+		cgDeriv: 'huobi_dm'
 	},
 	{
 		name: 'Kucoin',
@@ -101,6 +102,13 @@ const cexData = [
 		cgDeriv: 'bitmex'
 	},
 	{
+		name: 'Binance US',
+		slug: 'binance-us',
+		coin: 'BNB',
+		coinSymbol: 'BNB',
+		cgId: 'binance_us'
+	},
+	{
 		name: 'Swissborg',
 		slug: 'swissborg',
 		coin: 'CHSB',
@@ -112,13 +120,6 @@ const cexData = [
 		slug: 'korbit',
 		coin: null,
 		walletsLink: 'https://korbit.co.kr/reserve'
-	},
-	{
-		name: 'Binance US',
-		slug: 'binance-us',
-		coin: 'BNB',
-		coinSymbol: 'BNB',
-		cgId: 'binance_us',
 	},
 	{
 		name: 'MaskEX',
@@ -196,39 +197,91 @@ const cexData = [
 		name: 'Coinone',
 		lastAuditDate: 1666369050,
 		auditor: null,
-		auditLink: 'https://coinone.co.kr/info/notice/1967'
+		auditLink: 'https://coinone.co.kr/info/notice/1967',
+		cgId: 'coinone'
 	},
 	{
 		name: 'NEXO'
 	},
 	{
-		name: 'CoinEx'
+		name: 'CoinEx',
+		cdId: 'coinex',
+		cgDeriv: 'coinex_futures'
 	},
 	{
 		name: 'Gemini',
 		cgId: 'gemini'
 	},
 	{
-		name: 'Coincheck'
+		name: 'Coincheck',
+		cgId: 'coincheck'
 	},
 	{
-		name: 'Bitstamp'
+		name: 'Bitstamp',
+		cgId: 'bitstamp'
 	},
 	{
-		name: 'Bithumb'
+		name: 'Bithumb',
+		cgId: 'bithumb'
 	},
 	{
 		name: 'Poloniex',
 		cgId: 'poloniex'
 	},
 	{
-		name: 'Upbit'
+		name: 'Upbit',
+		cgId: 'upbit'
 	},
 	{
-		name: 'Bitmart'
+		name: 'Bitmart',
+		cgId: 'bitmart',
+		cgDeriv: 'bitmart_futures'
 	},
 	{
-		name: 'Bittrex'
+		name: 'Bittrex',
+		cgId: 'bittrex'
+	},
+	{
+		name: 'AscendEX',
+		cgId: 'bitmax',
+		cgDeriv: 'bitmax_futures'
+	},
+	{
+		name: 'bitFlyer',
+		cgId: 'bitflyer',
+		cgDeriv: 'bitflyer_futures'
+	},
+	{
+		name: 'LBank',
+		cgId: 'lbank'
+	},
+	{
+		name: 'MEXC',
+		cgId: 'mxc',
+		cgDeriv: 'mxc_futures'
+	},
+	{
+		name: 'BKEX',
+		cgId: 'bkex'
+	},
+	{
+		name: 'ProBit',
+		cgId: 'probit'
+	},
+	{
+		name: 'BTCEX',
+		cgId: 'btcex',
+		cgDeriv: 'btcex_futures'
+	},
+	{
+		name: 'Bitrue',
+		cgId: 'bitrue',
+		cgDeriv: 'bitrue_futures'
+	},
+	{
+		name: 'BTCC',
+		cgID: 'btcc',
+		cgDeriv: 'btcc_futures'
 	}
 ]
 
@@ -255,7 +308,7 @@ export async function getStaticProps() {
 			if (c.slug === undefined) {
 				return c
 			} else {
-				const [{ tvl, tokensInUsd }, inflows24h, inflows7d, inflows1m] = await Promise.all([
+				const [{ chainTvls = {} }, inflows24h, inflows7d, inflows1m] = await Promise.all([
 					fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then((r) => r.json()),
 					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
 						r.json()
@@ -268,9 +321,20 @@ export async function getStaticProps() {
 					)
 				])
 
-				const cexTvl = tvl ? tvl[tvl.length - 1].totalLiquidityUSD : 0
+				let cexTvl = 0
 
-				const ownToken = tokensInUsd ? tokensInUsd[tokensInUsd.length - 1].tokens[c.coin] ?? 0 : 0
+				let ownToken = 0
+
+				Object.values(chainTvls as IChainTvl).map((item) => {
+					if (item.tvl) {
+						cexTvl += item.tvl[item.tvl.length - 1]?.totalLiquidityUSD ?? 0
+					}
+
+					if (item.tokensInUsd) {
+						ownToken += item.tokensInUsd[item.tokensInUsd.length - 1]?.tokens[c.coin] ?? 0 ?? 0
+					}
+				})
+
 				const cleanTvl = cexTvl - ownToken
 
 				const extra = {} as any

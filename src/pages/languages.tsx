@@ -1,108 +1,131 @@
-import { Header } from '~/Theme'
+import * as React from 'react'
+import dynamic from 'next/dynamic'
 import Layout from '~/layout'
-import { Panel } from '~/components'
-import { AreaChart } from '~/components/Charts'
-import { ChainDominanceChart } from '~/components/Charts'
 import { ProtocolsChainsSearch } from '~/components/Search'
-import { toNiceMonthlyDate, getRandomColor } from '~/utils'
+import { getColorFromNumber, getDominancePercent } from '~/utils'
 import { maxAgeForNext } from '~/api'
 import { LANGS_API } from '~/constants'
+import { ChartsWrapper, LazyChart, SectionHeader } from '~/layout/ProtocolAndPool'
+import type { IChartProps } from '~/components/ECharts/types'
+
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
 
 function formatDataForChart(langs) {
-	const langsUnique = new Set()
-	const daySum = {}
+	const langsUnique = new Set<string>()
+
+	const dominance = []
+
 	const formattedLangs = Object.entries(langs)
-		.map((lang: [any, string[]]) => {
-			Object.keys(lang[1]).map((l) => langsUnique.add(l))
-			daySum[lang[0]] = Object.values(lang[1]).reduce((t, a) => t + a)
+		.sort((a, b) => Number(a[0]) - Number(b[0]))
+		.map(([date, tvlByLang]: [string, { [lang: string]: number }]) => {
+			Object.keys(tvlByLang).map((l) => langsUnique.add(l))
+
+			const daySum = Object.values(tvlByLang).reduce((t, a) => t + a, 0)
+
+			const shares = {}
+
+			for (const lang in tvlByLang) {
+				shares[lang] = getDominancePercent(tvlByLang[lang], daySum)
+			}
+
+			dominance.push({ date, ...shares })
+
 			return {
-				...lang[1],
-				date: lang[0]
+				...tvlByLang,
+				date
 			}
 		})
-		.sort((a, b) => a.date - b.date)
+
 	return {
 		formatted: formattedLangs,
 		unique: Array.from(langsUnique),
-		daySum
+		dominance
 	}
 }
 
 export async function getStaticProps() {
 	const data = await fetch(LANGS_API).then((r) => r.json())
-	const { unique: langsUnique, formatted: formattedLangs, daySum: langsDaySum } = formatDataForChart(data.chart)
+
+	const { unique: langsUnique, formatted: formattedLangs, dominance: langsDominance } = formatDataForChart(data.chart)
+
 	const {
 		unique: osUnique,
 		formatted: osLangs,
-		daySum: osDaySum
+		dominance: osDominance
 	} = formatDataForChart(data.sumDailySolanaOpenSourceTvls)
+
+	const colors = {}
+
+	langsUnique.forEach((l, index) => {
+		colors[l] = getColorFromNumber(index, 6)
+	})
 
 	return {
 		props: {
 			langs: formattedLangs,
 			langsUnique,
-			langsDaySum,
+			langsDominance,
 			osUnique,
 			osLangs,
-			osDaySum
+			osDominance,
+			colors
 		},
 		revalidate: maxAgeForNext([22])
 	}
 }
 
-function Chart({ langs, langsUnique }) {
-	return (
-		<Panel style={{ marginTop: '6px' }}>
-			<AreaChart
-				aspect={60 / 22}
-				finalChartData={langs}
-				tokensUnique={langsUnique}
-				color={'blue'}
-				moneySymbol="$"
-				formatDate={toNiceMonthlyDate}
-				hallmarks={[]}
-			/>
-		</Panel>
-	)
-}
-
-export default function Protocols({ langs, langsUnique, langsDaySum, osUnique, osLangs, osDaySum }) {
-	const colors = {}
-	langsUnique.forEach((l) => {
-		colors[l] = getRandomColor()
-	})
+export default function Protocols({ langs, langsUnique, langsDominance, osUnique, osLangs, osDominance, colors }) {
 	return (
 		<Layout title={`Languages - DefiLlama`} defaultSEO>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'Languages', hideOptions: true }} />
 
-			<Header>TVL breakdown by Smart Contract Language</Header>
+			<SectionHeader>Breakdown by Smart Contract Languages</SectionHeader>
 
-			<Chart {...{ langs, langsUnique }} />
+			<ChartsWrapper>
+				<LazyChart>
+					<AreaChart
+						chartData={langs}
+						title="TVL"
+						customLegendName="Language"
+						customLegendOptions={langsUnique}
+						valueSymbol="$"
+						stacks={langsUnique}
+						stackColors={colors}
+					/>
+				</LazyChart>
+				<LazyChart>
+					<AreaChart
+						chartData={langsDominance}
+						title="TVL Dominance"
+						customLegendName="Language"
+						customLegendOptions={langsUnique}
+						valueSymbol="%"
+						stacks={langsUnique}
+						stackColors={colors}
+					/>
+				</LazyChart>
+			</ChartsWrapper>
 
-			<ChainDominanceChart
-				stackOffset="expand"
-				formatPercent={true}
-				stackedDataset={langs}
-				chainsUnique={langsUnique}
-				chainColor={colors}
-				daySum={langsDaySum}
-			/>
-
-			<br />
-
-			<Header>Open/Closed Source breakdown of solana protocols</Header>
-
-			<ChainDominanceChart
-				stackOffset="expand"
-				formatPercent={true}
-				stackedDataset={osLangs}
-				chainsUnique={osUnique}
-				chainColor={{
-					opensource: 'green',
-					closedsource: 'red'
-				}}
-				daySum={osDaySum}
-			/>
+			<SectionHeader>Open/Closed Source breakdown of solana protocols</SectionHeader>
+			<ChartsWrapper>
+				<LazyChart>
+					<AreaChart
+						chartData={osDominance}
+						title=""
+						valueSymbol="%"
+						stacks={osUnique}
+						stackColors={sourceTypeColor}
+						hidedefaultlegend
+					/>
+				</LazyChart>
+			</ChartsWrapper>
 		</Layout>
 	)
+}
+
+const sourceTypeColor = {
+	opensource: 'red',
+	closedsource: 'green'
 }

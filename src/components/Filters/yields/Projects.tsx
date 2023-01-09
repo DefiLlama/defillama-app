@@ -113,7 +113,7 @@ export function YieldProjects({
 
 	if (subMenu) {
 		return (
-			<SlidingMenu label={label + 's' || 'Projects'} selectState={selectState}>
+			<SlidingMenu label={label ? label + 's' : 'Projects'} selectState={selectState}>
 				<ComboboxSelectContent
 					options={projectList}
 					selectedOptions={selectedProjects}

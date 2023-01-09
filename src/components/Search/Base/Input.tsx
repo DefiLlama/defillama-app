@@ -16,6 +16,10 @@ const InputField = styled(Combobox)`
 		outline: ${({ theme }) => '1px solid ' + theme.text4};
 	}
 
+	::placeholder {
+		color: ${({ theme }) => theme.text3};
+	}
+
 	&[data-variant='secondary'] {
 		border-radius: 8px;
 		padding: 8px;
@@ -95,8 +99,8 @@ const IconWrapper = styled.button`
 	}
 
 	@media screen and (min-width: ${({ theme }) => theme.bpLg}) {
-		top: 14px;
-		left: 12px;
+		top: 16px;
+		left: 16px;
 
 		&[data-variant='secondary'] {
 			top: 8px;
@@ -104,6 +108,29 @@ const IconWrapper = styled.button`
 		}
 	}
 `
+
+const Shortcut = styled.span`
+	position: absolute;
+	font-weight: 600;
+
+	top: 10px;
+	right: 18px;
+	color: ${({ theme }) => theme.link};
+	background-color: ${({ theme }) => (theme.mode === 'dark' ? '#151515' : '#f5f5f5')};
+
+	padding: 6px;
+	border-radius: 6px;
+
+	&[data-variant='secondary'] {
+		font-size: 0.875rem;
+		top: 4px;
+		right: 4px;
+		padding: 4px;
+		border-radius: 6px;
+		font-weight: 500;
+	}
+`
+
 export function Input({
 	state,
 	placeholder,
@@ -117,7 +144,7 @@ export function Input({
 
 	React.useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
-			if ((e.ctrlKey || e.metaKey) && (e.code === 'KeyK' || e.code === 'KeyF')) {
+			if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
 				e.preventDefault()
 				inputField.current && inputField.current?.focus()
 				state.toggle()
@@ -144,12 +171,12 @@ export function Input({
 					{state.mounted ? (
 						<>
 							<span className="visually-hidden">Close Search</span>
-							<XIcon size={variant === 'secondary' ? '16px' : '20px'} />
+							<XIcon size={variant === 'secondary' ? '16px' : '18px'} />
 						</>
 					) : (
 						<>
 							<span className="visually-hidden">Open Search</span>
-							<SearchIcon size={variant === 'secondary' ? '16px' : '20px'} />
+							<SearchIcon size={variant === 'secondary' ? '16px' : '18px'} />
 						</>
 					)}
 				</IconWrapper>
@@ -164,6 +191,8 @@ export function Input({
 				data-variant={variant}
 				{...props}
 			/>
+
+			{!hideIcon && <Shortcut data-variant={variant}>⌘K</Shortcut>}
 		</>
 	)
 }

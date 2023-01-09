@@ -1,9 +1,10 @@
 import * as React from 'react'
 import PeggedContainer from '~/containers/PeggedContainer'
-import { standardizeProtocolName } from '~/utils'
-import { getPeggedColor } from '~/utils/getColor'
+import { peggedAssetIconPalleteUrl, standardizeProtocolName } from '~/utils'
+import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { getPeggedAssetPageData, getPeggedAssets } from '~/api/categories/stablecoins'
+import { primaryColor } from '~/constants/colors'
 
 export async function getStaticProps({
 	params: {
@@ -13,9 +14,11 @@ export async function getStaticProps({
 	const data = await getPeggedAssetPageData(peggedasset)
 	const { chainsUnique, chainCirculatings, peggedAssetData, totalCirculating, unreleased, mcap, bridgeInfo } =
 		data.props
-	const backgroundColor = await getPeggedColor({
-		peggedAsset: peggedAssetData.name
-	})
+
+	const name = peggedAssetData.name
+
+	const backgroundColor = name ? await getColor(peggedAssetIconPalleteUrl(name)) : primaryColor
+
 	return {
 		props: {
 			chainsUnique,

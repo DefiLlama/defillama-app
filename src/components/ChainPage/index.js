@@ -228,11 +228,18 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
 			<Announcement>
-				<span>We just launched a</span>{' '}
-				<Link href={`/cexs`}>
+				<span>Check out our new</span>{" "}
+				<Link href={`https://swap.defillama.com/`}>
 					<a>
-						{' '}
-						CEX transparency dashboard <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
+						<Image
+							src="https://icons.llamao.fi/icons/memes/gib?w=36&h=36"
+							alt="Gib"
+							width={18}
+							height={18}
+							unoptimized
+							style={{ marginRight: '0.25rem', display: 'inline' }}
+						/>{' '}
+						DEX meta-aggregator <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
 					</a>
 				</Link>
 			</Announcement>

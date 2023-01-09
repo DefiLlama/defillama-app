@@ -56,7 +56,7 @@ interface ICurrentChainTvls {
 	[chain: string]: number
 }
 
-interface IChainTvl {
+export interface IChainTvl {
 	[type: string]: {
 		tvl: { date: number; totalLiquidityUSD: number }[]
 		tokensInUsd?: Array<{ date: number; tokens: { [token: string]: number } }>
@@ -93,8 +93,6 @@ export interface IProtocolResponse extends Protocol {
 	chainTvls: IChainTvl
 	currentChainTvls: ICurrentChainTvls
 	tvl: { date: number; totalLiquidityUSD: number }[]
-	tokensInUsd?: Array<{ date: number; tokens: { string: number } }>
-	tokens?: Array<{ date: number; tokens: { string: number } }>
 }
 
 export interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChainTvls' | 'chainTvls'> {
@@ -180,7 +178,6 @@ export interface IFormattedProtocol extends LiteProtocol {
 }
 
 export interface IFusedProtocolData extends Omit<IProtocolResponse, 'tvl'> {
-	tvl: number
 	tvlBreakdowns: ICurrentChainTvls
 	tvlByChain: [string, number][]
 	historicalChainTvls: IChainTvl

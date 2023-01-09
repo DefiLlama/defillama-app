@@ -5,8 +5,6 @@ import Layout from '~/layout'
 import { Divider, Panel } from '~/components'
 import { RowBetween } from '~/components/Row'
 import Link from '~/components/Link'
-import { maxAgeForNext } from '~/api'
-import { getChainPageData } from '~/api/categories/protocols'
 
 const DashGrid = styled.div`
 	display: grid;
@@ -20,59 +18,16 @@ const DashGrid = styled.div`
 	}
 `
 
-const Metrics = styled.table`
-	color: ${({ theme }) => theme.text1};
-	border: 1px solid ${({ theme }) => theme.bg3};
-	box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.05);
-	background-color: ${({ theme }) => theme.advancedBG};
-	border-radius: 8px;
-	border-spacing: 0;
-
-	th,
-	td {
-		font-weight: 500;
-		font-size: 0.875rem;
-		padding: 16px;
-		border-bottom: 1px solid ${({ theme }) => theme.divider};
-	}
-
-	td {
-		font-weight: 400;
-		text-align: center;
-		border-bottom: 0;
-	}
-
-	td:first-child,
-	th:first-child {
-		border-right: 1px solid ${({ theme }) => theme.divider};
-	}
-`
-
-function AboutPage({ chains, protocols }) {
+function AboutPage() {
 	return (
 		<Layout title="DefiLlama - DeFi Dashboard" defaultSEO>
 			<RowBetween>
 				<TYPE.largeHeader>About</TYPE.largeHeader>
 			</RowBetween>
-			<Metrics>
-				<thead>
-					<tr>
-						<th>Total Chains Listed</th>
-						<th>Total Protocols Listed</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>{chains}</td>
-						<td>{protocols}</td>
-					</tr>
-				</tbody>
-			</Metrics>
 			<Panel style={{ marginTop: '6px' }}>
 				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
-					<TYPE.main area="account">Mission</TYPE.main>
+					<TYPE.heading>About DeFiLlama</TYPE.heading>
 					<Divider />
-
 					<TYPE.main>
 						DefiLlama is the largest TVL aggregator for DeFi (Decentralized Finance). Our data is fully{' '}
 						<Link href="https://github.com/DefiLlama/DefiLlama-Adapters">open-source</Link> and maintained by a team of
@@ -81,11 +36,20 @@ function AboutPage({ chains, protocols }) {
 						hundreds of protocols.
 					</TYPE.main>
 					<TYPE.main>Our focus is on accurate data and transparent methodology.</TYPE.main>
-					<TYPE.main>We track over 1955 DeFi protocols from over 145 different blockchains.</TYPE.main>
+				</DashGrid>
+			</Panel>
+			<Panel style={{ marginTop: '6px' }}>
+				<DashGrid style={{ height: 'fit-content', padding: '0 0 1rem 0' }}>
+					<TYPE.main area="account">Contact</TYPE.main>
 					<Divider />
 					<TYPE.main>
 						Contact us on <Link href="https://twitter.com/defillama">Twitter</Link> or{' '}
-						<Link href="https://discord.defillama.com">Discord</Link>
+						<Link href="https://discord.defillama.com">Discord</Link> or {' '} by email <Link href="mailto:contact@llama-corp.com">contact@llama-corp.com</Link>
+					</TYPE.main>
+					<TYPE.main>DeFiLlama is a part of <Link href="https://twitter.com/llamacorporg">Llama Corp</Link>.
+					</TYPE.main>
+					<TYPE.main>
+					Llama Corp is a collective building out the decentralized future with data analytics, infrastructure, payments, cross-chain and media solutions used by more than 10M monthly users.
 					</TYPE.main>
 				</DashGrid>
 			</Panel>
@@ -94,7 +58,7 @@ function AboutPage({ chains, protocols }) {
 					<TYPE.main area="account">Acknowledgements</TYPE.main>
 					<Divider />
 					<TYPE.main>
-						Thanks to <Link href="https://www.coingecko.com/">CoinGecko</Link>
+						Thanks to <Link href="https://www.coingecko.com/">CoinGecko</Link> for the continued support.
 					</TYPE.main>
 					<Divider />
 					<TYPE.main>
@@ -106,19 +70,6 @@ function AboutPage({ chains, protocols }) {
 	)
 }
 
-export async function getStaticProps() {
-	const data = await getChainPageData()
 
-	const chains = data?.props?.chainsSet?.length ?? null
-	const protocols = data?.props?.protocolsList?.length ?? null
-
-	return {
-		props: {
-			chains,
-			protocols
-		},
-		revalidate: maxAgeForNext([22])
-	}
-}
 
 export default AboutPage

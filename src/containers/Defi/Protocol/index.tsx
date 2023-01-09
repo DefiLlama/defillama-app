@@ -39,7 +39,6 @@ import QuestionHelper from '~/components/QuestionHelper'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { protocolsAndChainsOptions } from '~/components/Filters/protocols'
 import { useScrollToTop } from '~/hooks'
-import { useCalcSingleExtraTvl } from '~/hooks/data'
 import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
@@ -62,7 +61,7 @@ const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance']
+const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap']
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -206,7 +205,6 @@ function ProtocolContainer({
 		symbol,
 		url,
 		description,
-		tvl,
 		audits,
 		category,
 		twitter,
@@ -229,11 +227,48 @@ function ProtocolContainer({
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
 
-	const totalVolume = useCalcSingleExtraTvl(tvlBreakdowns, tvl)
-
 	const [bobo, setBobo] = React.useState(false)
 
 	const [extraTvlsEnabled, updater] = useDefiManager()
+
+	const totalVolume = React.useMemo(() => {
+		let tvl = 0
+
+		Object.entries(tvlBreakdowns).forEach(([section, sectionTvl]: any) => {
+			if (section.includes('-')) return
+
+			if (section === 'doublecounted') {
+				tvl -= sectionTvl
+			}
+
+			if (Object.keys(extraTvlsEnabled).includes(section.toLowerCase())) {
+				// convert to lowercase as server response is not consistent in extra-tvl names
+				if (extraTvlsEnabled[section.toLowerCase()]) tvl += sectionTvl
+			} else {
+				tvl += sectionTvl
+			}
+		})
+
+		if (tvl === 0 && Object.keys(tvlBreakdowns).length === 0) {
+			Object.entries(historicalChainTvls).forEach(([section, sectionData]) => {
+				if (section.includes('-')) return
+
+				if (section === 'doublecounted') {
+					tvl -= sectionData.tvl[sectionData.tvl.length - 1].totalLiquidityUSD
+				}
+
+				if (Object.keys(extraTvlsEnabled).includes(section.toLowerCase())) {
+					// convert to lowercase as server response is not consistent in extra-tvl names
+					if (extraTvlsEnabled[section.toLowerCase()])
+						tvl += sectionData.tvl[sectionData.tvl.length - 1].totalLiquidityUSD
+				} else {
+					tvl += sectionData.tvl[sectionData.tvl.length - 1].totalLiquidityUSD
+				}
+			})
+		}
+
+		return tvl
+	}, [extraTvlsEnabled, tvlBreakdowns, historicalChainTvls])
 
 	const { data: yields } = useYields()
 

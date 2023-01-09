@@ -44,7 +44,7 @@ import {
 	GROUP_INTERVALS_LIST
 } from './common'
 import Announcement from '~/components/Announcement'
-import { volumeTypes } from '~/utils/adaptorsPages/[type]/[item]'
+import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import SEO from '~/components/SEO'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {

@@ -1,3 +1,6 @@
+import type { IChainTvl } from '~/api/types'
+import type { ISettings } from '~/contexts/types'
+
 export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
 	const tvlDictionary: { [data: number]: { [chain: string]: number } } = {}
 
@@ -223,14 +226,50 @@ function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 			? Object.entries(tokenBreakdownUSD[tokenBreakdownUSD.length - 1])
 					.filter((values) => values[0] !== 'date')
 					.map(([name, value]) => ({ name, value }))
+					.sort((a, b) => b.value - a.value)
 			: []
 
-	return { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown: Object.values(rawTokens) }
+	const pieChartData = []
+
+	let othersDataInPieChart = 0
+
+	tokenBreakdownPieChart.forEach((token, index) => {
+		if (index < 15 && token.name !== 'Others') {
+			pieChartData.push(token)
+		} else {
+			othersDataInPieChart += token.value
+		}
+	})
+
+	if (othersDataInPieChart) {
+		pieChartData.push({ name: 'Others', value: othersDataInPieChart })
+	}
+
+	return { tokenBreakdownUSD, tokenBreakdownPieChart: pieChartData, tokenBreakdown: Object.values(rawTokens) }
 }
 
-export const buildProtocolAddlChartsData = ({ protocolData, extraTvlsEnabled }) => {
+export const buildProtocolAddlChartsData = ({
+	protocolData,
+	extraTvlsEnabled
+}: {
+	protocolData: { chainTvls: IChainTvl; misrepresentedTokens?: boolean }
+	extraTvlsEnabled: ISettings
+}) => {
 	if (protocolData) {
-		if (!protocolData.misrepresentedTokens && protocolData.tokensInUsd && protocolData.tokens) {
+		let tokensInUsdExsists = false
+		let tokensExists = false
+
+		Object.values(protocolData.chainTvls).forEach((chain) => {
+			if (!tokensInUsdExsists && chain.tokensInUsd) {
+				tokensInUsdExsists = true
+			}
+
+			if (!tokensExists && chain.tokens) {
+				tokensExists = true
+			}
+		})
+
+		if (!protocolData.misrepresentedTokens && tokensInUsdExsists && tokensExists) {
 			const tokensUnique = getUniqueTokens({ chainTvls: protocolData.chainTvls, extraTvlsEnabled })
 
 			const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({

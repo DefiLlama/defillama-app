@@ -1,6 +1,6 @@
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { ChartWrapper } from './shared'
-import { toNiceDateYear, formattedNum, toNiceMonthlyDate } from '~/utils'
+import { toNiceDateYear, formattedNum, toNiceMonthlyDate, getDominancePercent } from '~/utils'
 
 interface IChainColor {
 	[key: string]: string
@@ -31,12 +31,6 @@ interface IResponsiveProps {
 
 const toPercent = (decimal: number, fixed = 0) => `${(decimal * 100).toFixed(fixed)}%`
 
-const getPercent = (value: number, total: number) => {
-	const ratio = total > 0 ? value / total : 0
-
-	return toPercent(ratio, 2)
-}
-
 export const PeggedChainDominanceChart = ({
 	stackOffset,
 	formatPercent,
@@ -60,7 +54,7 @@ export const PeggedChainDominanceChart = ({
 			<YAxis tickFormatter={(tick) => toPercent(tick)} />
 			<Tooltip
 				formatter={(val, chain, props) =>
-					formatPercent ? getPercent(Number(val), daySum[props.payload.date]) : formattedNum(val)
+					formatPercent ? getDominancePercent(Number(val), daySum[props.payload.date]) : formattedNum(val)
 				}
 				labelFormatter={(label) => toNiceDateYear(label)}
 				itemSorter={(p) => -p.value}
@@ -111,7 +105,7 @@ export const PeggedChainResponsiveDominance = ({
 			<YAxis tickFormatter={(tick) => toPercent(tick)} />
 			<Tooltip
 				formatter={(val, chain, props) =>
-					formatPercent ? getPercent(Number(val), daySum[props.payload.date]) : formattedNum(val)
+					formatPercent ? getDominancePercent(Number(val), daySum[props.payload.date]) : formattedNum(val)
 				}
 				labelFormatter={(label) => toNiceDateYear(label)}
 				itemSorter={(p) => -p.value}

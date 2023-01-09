@@ -89,10 +89,6 @@ const useAppSettings = () => {
 		return { options: [], useSettings: useDefiManager }
 	}
 
-	if (router.pathname.startsWith('/bridge')) {
-		return { options: [], useSettings: useDefiManager }
-	}
-
 	if (router.pathname.startsWith('/borrow')) {
 		return { options: [], useSettings: useDefiManager }
 	}

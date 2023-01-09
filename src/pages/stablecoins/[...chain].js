@@ -1,8 +1,10 @@
 import Layout from '~/layout'
 import PeggedList from '~/components/PeggedPage/PeggedList'
-import { getPeggedColor } from '~/utils/getColor'
+import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { getPeggedAssets, getPeggedOverviewPageData } from '~/api/categories/stablecoins'
+import { primaryColor } from '~/constants/colors'
+import { peggedAssetIconPalleteUrl } from '~/utils'
 
 export async function getStaticProps({
 	params: {
@@ -17,9 +19,10 @@ export async function getStaticProps({
 		}
 	}
 
-	const backgroundColor = await getPeggedColor({
-		peggedAsset: props.filteredPeggedAssets[0]?.name
-	})
+	const name = props.filteredPeggedAssets[0]?.name
+
+	const backgroundColor = name ? await getColor(peggedAssetIconPalleteUrl(name)) : primaryColor
+
 	return {
 		props: {
 			...props,

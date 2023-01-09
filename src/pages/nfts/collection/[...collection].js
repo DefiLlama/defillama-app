@@ -2,6 +2,7 @@ import NFTCollectionPage from '~/components/NFTCollectionPage'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { getNFTCollection, getNFTCollections, getNFTCollectionChartData, getNFTStatistics } from '~/api/categories/nfts'
+import { primaryColor } from '~/constants/colors'
 
 export async function getStaticProps({
 	params: {
@@ -11,7 +12,6 @@ export async function getStaticProps({
 	const collection = await getNFTCollection(slug)
 	const chart = await getNFTCollectionChartData(slug)
 	const statistics = await getNFTStatistics(chart)
-	const backgroundColor = await getColor(collection.slug, collection.logo)
 
 	return {
 		props: {
@@ -19,7 +19,7 @@ export async function getStaticProps({
 			chart,
 			statistics,
 			title: collection ? `${collection.name} - DefiLlama` : `DefiLlama - NFT Dashboard`,
-			backgroundColor
+			backgroundColor: primaryColor
 		},
 		revalidate: maxAgeForNext([22])
 	}

@@ -10,7 +10,8 @@ import {
 	ShieldOff,
 	Shuffle,
 	Search,
-	BookOpen
+	BookOpen,
+	Repeat
 } from 'react-feather'
 
 export interface IMainLink {
@@ -42,6 +43,18 @@ interface ILinks {
 
 const defaultToolsAndFooterLinks = {
 	tools: [
+		{
+				name: 'LlamaNodes',
+				path: 'https://llamanodes.com/',
+				newTag: true,
+				external: true
+		},
+		{
+				name: 'DLNews',
+				path: 'https://dlnews.com/',
+				newTag: true,
+				external: true
+		},
 		{ name: 'Watchlist', path: '/watchlist' },
 		{ name: 'Directory', path: '/directory' },
 		{
@@ -80,12 +93,11 @@ const defaultToolsAndFooterLinks = {
 	],
 	footer: [
 		{
-			name: 'EOY Report',
-			path: 'https://drive.google.com/file/d/1zfJgQEOA4QVKMUyVifBhybhxgkbFRWpG/view?usp=sharing',
-			external: true,
+			name: 'Reports',
+			path: '/reports',
 			newTag: true
 		},
-		{ name: 'About DefiLlama', path: '/about' },
+		{ name: 'About / Contact', path: '/about' },
 		{
 			name: 'Twitter',
 			path: 'https://twitter.com/DefiLlama',
@@ -184,6 +196,11 @@ export const navLinks: ILinks = {
 		],
 		icon: <Percent size={16} />
 	},
+	'DEX Meta-Aggregator': {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Repeat size={16} />
+	},
 	'Borrow Aggregator': {
 		main: [],
 		...defaultToolsAndFooterLinks,
@@ -193,15 +210,6 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <BookOpen size={16} />
-	},
-	Bridges: {
-		main: [
-			{ name: 'Overview', path: '/bridges' },
-			{ name: 'Chains', path: '/bridges/chains' },
-			{ name: 'Transactions', path: '/bridge-transactions', newTag: true }
-		],
-		...defaultToolsAndFooterLinks,
-		icon: <Shuffle size={16} />
 	},
 	Liquidations: {
 		main: [],
@@ -247,7 +255,8 @@ export const linksWithNoSubMenu = [
 	{ name: 'Raises', url: '/raises' },
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Borrow Aggregator', url: '/borrow' },
-	{ name: 'CEX Transparency', url: '/cexs' }
+	{ name: 'CEX Transparency', url: '/cexs' },
+	{ name: 'DEX Meta-Aggregator', url: 'https://swap.defillama.com/' },
 ]
 
 function downloadDefiDataset() {

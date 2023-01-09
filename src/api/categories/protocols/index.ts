@@ -44,8 +44,18 @@ export const getProtocols = () =>
 export const getProtocol = async (protocolName: string) => {
 	try {
 		const data: IProtocolResponse = await fetch(`${PROTOCOL_API}/${protocolName}`).then((r) => r.json())
-		const tvl = data?.tvl ?? []
-		if (tvl.length < 7) {
+
+		let isNewlyListedProtocol = false
+
+		Object.values(data.chainTvls).forEach((chain) => {
+			if (chain.tvl?.length < 7) {
+				isNewlyListedProtocol = true
+			} else {
+				isNewlyListedProtocol = false
+			}
+		})
+
+		if (isNewlyListedProtocol) {
 			const hourlyData = await fetch(`${HOURLY_PROTOCOL_API}/${protocolName}`).then((r) => r.json())
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
@@ -56,8 +66,6 @@ export const getProtocol = async (protocolName: string) => {
 
 export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtocolData => {
 	const tvlBreakdowns = protocolData?.currentChainTvls ?? {}
-
-	const tvl = protocolData?.tvl ?? []
 
 	const historicalChainTvls = protocolData?.chainTvls ?? {}
 
@@ -74,11 +82,10 @@ export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtoco
 		} else return true
 	})
 
-	const chains = onlyChains.length === 0 ? protocolData.chains || [] : [onlyChains[0][0]]
+	const chains = onlyChains.length === 0 ? protocolData?.chains ?? [] : [onlyChains[0][0]]
 
 	return {
 		...protocolData,
-		tvl: tvl.length > 0 ? tvl[tvl.length - 1]?.totalLiquidityUSD : 0,
 		tvlBreakdowns,
 		tvlByChain,
 		chains,

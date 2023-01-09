@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # source .env if it exists
 set -a
@@ -21,11 +21,8 @@ echo "📸 $COMMIT_HASH"
 echo "======================="
 echo ""
 
-BUILD_STATUS=1
-next build
-if [ $? -eq 0 ]; then
-  BUILD_STATUS=0
-fi
+next build 2>&1 | tee build.log
+BUILD_STATUS=${PIPESTATUS[0]}
 
 BUILD_TIME_SEC=$(($(date -u +"%s") - $START_TIME_TS))
 BUILD_TIME_MIN=$(($BUILD_TIME_SEC / 60))
@@ -57,6 +54,11 @@ echo ""
 
 if [ -z "$NOT_VERCEL" ]; then
   echo "NOT_VERCEL is not set, skipping discord notification"
+  exit $BUILD_STATUS
+fi
+
+if [ -n "$IS_BACKUP" ]; then
+  echo "IS_BACKUP is set, skipping discord notification"
   exit $BUILD_STATUS
 fi
 

@@ -1,9 +1,7 @@
 import { useMemo } from 'react'
-import { IChain, IFormattedProtocol, IParentProtocol } from '~/api/types'
+import { IChain, IFormattedProtocol } from '~/api/types'
 import { useDefiChainsManager, useDefiManager } from '~/contexts/LocalStorage'
-import { getPercentChange } from '~/utils'
-import { formatDataWithExtraTvls, formatProtocolsList, groupDataWithTvlsByDay } from './defi'
-import { groupProtocols } from './utils'
+import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from './defi'
 
 type DataValue = number | null
 
@@ -31,24 +29,6 @@ export const useCalcStakePool2Tvl = (
 	}, [filteredProtocols, extraTvlsEnabled, defaultSortingColumn, dir, applyLqAndDc])
 
 	return protocolTotals
-}
-
-export const useCalcSingleExtraTvl = (chainTvls, simpleTvl): number => {
-	const [extraTvlsEnabled] = useDefiManager()
-
-	const protocolTvl = useMemo(() => {
-		let tvl = simpleTvl
-		Object.entries(chainTvls).forEach(([section, sectionTvl]: any) => {
-			if (section === 'doublecounted') {
-				tvl -= sectionTvl
-			}
-			// convert to lowercase as server response is not consistent in extra-tvl names
-			if (extraTvlsEnabled[section.toLowerCase()]) tvl += sectionTvl
-		})
-		return tvl
-	}, [extraTvlsEnabled, simpleTvl, chainTvls])
-
-	return protocolTvl
 }
 
 export const useGroupChainsByParent = (chains, groupData): GroupChain[] => {

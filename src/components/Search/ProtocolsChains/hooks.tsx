@@ -17,6 +17,7 @@ const groupedChains = [
 
 const getNameWithSymbol = (token: IBaseSearchProps['data'][0]) => {
 	if (token.symbol !== '-' && !!token.symbol) return `${token.name} (${token.symbol})`
+
 	return token.name
 }
 
@@ -42,7 +43,8 @@ export function useGetDefiSearchList({
 			? data?.chains?.map((name) => ({
 					logo: chainIconUrl(name),
 					route: getCustomPathChains(name),
-					name
+					name,
+					symbol: null
 			  })) ?? []
 			: []
 
@@ -60,7 +62,19 @@ export function useGetDefiSearchList({
 			  })) ?? []
 			: []
 
-		const sets = pathname.startsWith('/protocol') ? [...protocolData, ...chainData] : [...chainData, ...protocolData]
+		const parentProtocols = includeProtocols
+			? data?.parentProtocols?.map((token) => ({
+					...token,
+					name: getNameWithSymbol(token),
+					symbol: token.symbol,
+					logo: tokenIconUrl(token.name),
+					route: getCustomPathProtocols(token.name)
+			  })) ?? []
+			: []
+
+		const sets = pathname.startsWith('/protocol')
+			? [...parentProtocols, ...protocolData, ...chainData]
+			: [...chainData, ...parentProtocols, ...protocolData]
 
 		if (includedSets?.includes(SETS.GROUPED_CHAINS)) {
 			let _groupedChains = groupedChains
