@@ -693,7 +693,6 @@ export async function getLSDPageData() {
 
 		return {
 			props: {
-				tokens: lsdProtocols,
 				chartData: history,
 				lsdColors: colors
 			}

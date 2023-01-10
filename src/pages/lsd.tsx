@@ -42,7 +42,7 @@ const ChartsWrapper = styled(Panel)`
 		grid-template-columns: 1fr 1fr;
 	}
 `
-const PageView = ({ tokens, chartData, lsdColors }) => {
+const PageView = ({ chartData, lsdColors }) => {
 	const historicData = chartData
 		.map((protocol) => {
 			const tokensArray = protocol.chainTvls['Ethereum'].tokens
@@ -59,10 +59,14 @@ const PageView = ({ tokens, chartData, lsdColors }) => {
 
 	const uniqueDates = [...new Set(historicData.map((p) => p.date))]
 
-	const areaChartData = uniqueDates
+	let areaChartData = uniqueDates
 		.map((d) => {
-			const dayData = historicData.filter((z) => z.date === d)
+			let dayData = historicData.filter((z) => z.date === d)
 
+			// on the 27th of august, lido is duplicated, removing dupes
+			if (d === 1630022400) {
+				dayData = dayData.filter((v, i, a) => a.findIndex((v2) => v2.name === v.name) === i)
+			}
 			// there are few days for which we don't have lido data, removing those
 			if (d > 1608321600 && dayData.find((x) => x.name === 'Lido')?.name === undefined) return {}
 
@@ -76,7 +80,20 @@ const PageView = ({ tokens, chartData, lsdColors }) => {
 		})
 		.sort((a, b) => a.date - b.date)
 
-	const { pieChartData, tokensList } = React.useMemo(() => {
+	// ffill data from 12of may to 13th and 14th
+	const may12th = areaChartData.find((t) => t.date === 1620777600)
+	// 13th is missing
+	areaChartData = [...areaChartData, { ...may12th, date: 1620864000 }]
+	// fill 14th
+	for (const d of areaChartData) {
+		if (d.date === 1620950400) {
+			for (const k of Object.keys(may12th)) {
+				if (k === 'date') continue
+				d[k] = may12th[k]
+			}
+		}
+	}
+	const { pieChartData, tokensList, tokens } = React.useMemo(() => {
 		let tokenTvls = chartData
 			.map((protocol) => {
 				const p = protocol.chainTvls['Ethereum']
@@ -97,7 +114,9 @@ const PageView = ({ tokens, chartData, lsdColors }) => {
 
 		const pieChartData = tokenTvls.map((p) => ({ name: p.name, value: p.stakedEth }))
 
-		return { pieChartData, tokensList }
+		const tokens = tokensList.map((p) => p.name)
+
+		return { pieChartData, tokensList, tokens }
 	}, [chartData])
 
 	return (
