@@ -646,7 +646,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			const nameSlug = row.original.name.toLowerCase().replaceAll(' ', '-')
+			const nameSlug = row.original.name.replace(/\s+/g, '-').toLowerCase()
 
 			return (
 				<Name>
