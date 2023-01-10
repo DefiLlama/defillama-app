@@ -140,7 +140,7 @@ export const LinksWithDropdown = ({ links = [], activeLink, alternativeOthersTex
 const LinkItem = ({ option, activeLink, ...props }) => {
 	return (
 		<li {...props}>
-			<Link href={option.to} prefetch={false} passHref>
+			<Link scroll={false} href={option.to} prefetch={false} passHref>
 				{option.label === activeLink ? (
 					<ButtonDark as="a">{option.label}</ButtonDark>
 				) : (
