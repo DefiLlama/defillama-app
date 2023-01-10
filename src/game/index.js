@@ -165,8 +165,16 @@ const Game = () => {
 					></div>
 				</div>
 				<div id="offline-resources">
-					<img id="offline-resources-1x" src="/game/default_100_percent/100-offline-sprite.png" />
-					<img id="offline-resources-2x" src="/game/default_200_percent/200-offline-sprite.png" />
+					<img
+						id="offline-resources-1x"
+						src="/game/default_100_percent/100-offline-sprite.png"
+						alt="offline sprite 100"
+					/>
+					<img
+						id="offline-resources-2x"
+						src="/game/default_200_percent/200-offline-sprite.png"
+						alt="offline sprite 200"
+					/>
 					<template id="audio-resources">
 						<audio
 							id="offline-sound-press"
