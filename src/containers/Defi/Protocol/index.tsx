@@ -655,9 +655,11 @@ function ProtocolContainer({
 								)}
 								{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 1 && (
 									<>
-										<LazyChart>
-											<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
-										</LazyChart>
+										{tokenBreakdownPieChart.length > 0 && (
+											<LazyChart>
+												<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
+											</LazyChart>
+										)}
 
 										<LazyChart>
 											<AreaChart
