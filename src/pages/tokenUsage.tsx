@@ -90,12 +90,14 @@ export async function getStaticProps() {
 
 	return {
 		props: {
-			searchData: searchData.map((token) => ({
-				name: `${token.name}`,
-				route: `/tokenUsage?token=${token.symbol}`,
-				symbol: token.symbol ?? null,
-				logo: token.image
-			}))
+			searchData: searchData
+				.filter((token) => token.name && token.symbol && token.image)
+				.map((token) => ({
+					name: `${token.name}`,
+					route: `/tokenUsage?token=${token.symbol}`,
+					symbol: token.symbol,
+					logo: token.image
+				}))
 		},
 		revalidate: maxAgeForNext([23])
 	}
