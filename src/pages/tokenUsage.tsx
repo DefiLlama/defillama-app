@@ -93,7 +93,7 @@ export async function getStaticProps() {
 			searchData: searchData.map((token) => ({
 				name: `${token.name}`,
 				route: `/tokenUsage?token=${token.symbol}`,
-				symbol: token.symbol,
+				symbol: token.symbol ?? null,
 				logo: token.image
 			}))
 		},
