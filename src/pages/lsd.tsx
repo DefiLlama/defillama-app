@@ -46,10 +46,14 @@ const PageView = ({ chartData, lsdColors }) => {
 	const historicData = chartData
 		.map((protocol) => {
 			const tokensArray = protocol.chainTvls['Ethereum'].tokens
-			return tokensArray.map((t) => {
+			return tokensArray.map((t, i, arr) => {
+				const date = d => Math.floor(d.date / 24 / 60 / 60) * 60 * 60 * 24
+				if(i>0 && date(arr[i-1]) == date(t)){
+					return {value:0}
+				}
 				return {
 					name: protocol.name,
-					date: Math.floor(t.date / 24 / 60 / 60) * 60 * 60 * 24,
+					date: date(t),
 					value: t.tokens[Object.keys(t.tokens).filter((k) => k.includes('ETH'))[0]]
 				}
 			})
