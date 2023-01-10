@@ -669,3 +669,39 @@ export const getChainsPageData = async (category: string) => {
 		}
 	}
 }
+
+// - used in /lsd
+export async function getLSDPageData() {
+	try {
+		const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json())))
+
+		// filter for LSDs
+		const lsdProtocols = protocols
+			.filter((p) => p.category === 'Liquid Staking' && p.chains.includes('Ethereum'))
+			.map((p) => p.name)
+
+		// get historical data
+		const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
+		const history = await Promise.all(lsdProtocolsSlug.map((p) => fetch(`${PROTOCOL_API}/${p}`).then((r) => r.json())))
+
+		const colors = {}
+		lsdProtocols.forEach((protocol, index) => {
+			colors[protocol] = getColorFromNumber(index, 10)
+		})
+
+		colors['Others'] = '#AAAAAA'
+
+		return {
+			props: {
+				tokens: lsdProtocols,
+				chartData: history,
+				lsdColors: colors
+			}
+		}
+	} catch (e) {
+		console.log(e)
+		return {
+			notFound: true
+		}
+	}
+}

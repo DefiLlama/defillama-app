@@ -9,8 +9,16 @@ import {
 	ColumnOrderState
 } from '@tanstack/react-table'
 import VirtualTable from '~/components/Table/Table'
-import { categoriesColumn, cexColumn, chainsColumn, chainsTableColumnOrders, forksColumn, oraclesColumn } from './columns'
-import type { IOraclesRow, IForksRow, ICategoryRow, IChainsRow } from './types'
+import {
+	categoriesColumn,
+	cexColumn,
+	chainsColumn,
+	chainsTableColumnOrders,
+	forksColumn,
+	oraclesColumn,
+	LSDColumn
+} from './columns'
+import type { IOraclesRow, IForksRow, ICategoryRow, IChainsRow, ILSDRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
 
 export default function DefiProtocolsTable({ data, columns }) {
@@ -34,9 +42,7 @@ export const OraclesTable = ({ data }: { data: Array<IOraclesRow> }) => (
 	<DefiProtocolsTable data={data} columns={oraclesColumn} />
 )
 
-export const CEXTable = ({ data }: { data: Array<any> }) => (
-	<DefiProtocolsTable data={data} columns={cexColumn} />
-)
+export const CEXTable = ({ data }: { data: Array<any> }) => <DefiProtocolsTable data={data} columns={cexColumn} />
 
 export const ForksTable = ({ data }: { data: Array<IForksRow> }) => (
 	<DefiProtocolsTable data={data} columns={forksColumn} />
@@ -45,6 +51,8 @@ export const ForksTable = ({ data }: { data: Array<IForksRow> }) => (
 export const ProtocolsCategoriesTable = ({ data }: { data: Array<ICategoryRow> }) => (
 	<DefiProtocolsTable data={data} columns={categoriesColumn} />
 )
+
+export const LSDTable = ({ data }: { data: Array<ILSDRow> }) => <DefiProtocolsTable data={data} columns={LSDColumn} />
 
 export function DefiChainsTable({ data }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
