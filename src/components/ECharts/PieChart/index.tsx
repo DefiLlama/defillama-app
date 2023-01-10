@@ -10,7 +10,14 @@ import { formattedNum } from '~/utils'
 
 echarts.use([CanvasRenderer, EPieChart, TooltipComponent, TitleComponent, GridComponent, GraphicComponent])
 
-export default function PieChart({ height = '360px', stackColors, chartData, title, ...props }: IPieChartProps) {
+export default function PieChart({
+	height = '360px',
+	stackColors,
+	chartData,
+	title,
+	usdFormat = true,
+	...props
+}: IPieChartProps) {
 	const id = useMemo(() => uuid(), [])
 	const [isDark] = useDarkModeManager()
 
@@ -68,7 +75,7 @@ export default function PieChart({ height = '360px', stackColors, chartData, tit
 			}),
 			tooltip: {
 				trigger: 'item',
-				valueFormatter: (value) => '$' + formattedNum(value)
+				valueFormatter: (value) => (usdFormat ? '$' + formattedNum(value) : formattedNum(value))
 			},
 			grid: {
 				left: 0,
@@ -90,7 +97,7 @@ export default function PieChart({ height = '360px', stackColors, chartData, tit
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, series, isDark, title])
+	}, [createInstance, series, isDark, title, usdFormat])
 
 	return (
 		<div style={{ position: 'relative' }} {...props}>

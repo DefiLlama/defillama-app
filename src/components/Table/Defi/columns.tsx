@@ -19,7 +19,7 @@ import {
 } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
-import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow } from './types'
+import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow, ILSDRow } from './types'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -637,6 +637,51 @@ export const cexColumn: ColumnDef<any>[] = [
 		}
 	}
 	*/
+]
+
+export const LSDColumn: ColumnDef<ILSDRow>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			const nameSlug = row.original.name.toLowerCase().replaceAll(' ', '-')
+
+			return (
+				<Name>
+					<span>{index + 1}</span> <CustomLink href={`/protocol/${nameSlug}`}>{getValue()}</CustomLink>
+				</Name>
+			)
+		}
+	},
+	{
+		header: 'Staked ETH',
+		accessorKey: 'stakedEth',
+		cell: ({ getValue }) => <>{formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'TVL',
+		accessorKey: 'stakedEthInUsd',
+		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Market Share',
+		accessorKey: 'marketShare',
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <>{value && value.toFixed(2) + '%'}</>
+		},
+		meta: {
+			align: 'end'
+		}
+	}
 ]
 
 function formatCexInflows(value) {
