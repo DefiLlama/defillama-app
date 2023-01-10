@@ -681,7 +681,7 @@ export async function getLSDPageData() {
 			.map((p) => p.name)
 
 		// get historical data
-		const lsdProtocolsSlug = lsdProtocols.map((p) => p.toLowerCase().replaceAll(' ', '-'))
+		const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
 		const history = await Promise.all(lsdProtocolsSlug.map((p) => fetch(`${PROTOCOL_API}/${p}`).then((r) => r.json())))
 
 		const colors = {}
