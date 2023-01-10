@@ -58,7 +58,7 @@ export function OverviewTable({ data, type, allChains }) {
 		instance.setColumnSizing(getColumnsOrdernSizeByType(type).size[cSize])
 
 		instance.setColumnOrder(order)
-	}, [windowSize, instance])
+	}, [windowSize, instance, type])
 
 	return <VirtualTable instance={instance} />
 }
