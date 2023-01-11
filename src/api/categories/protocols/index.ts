@@ -574,7 +574,7 @@ export const getChainsPageData = async (category: string) => {
 			for (let i = 0; i < 5; i++) {
 				try {
 					return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-				} catch (e) { }
+				} catch (e) {}
 			}
 			throw new Error(`${CHART_API}/${elem} is broken`)
 		})
@@ -685,6 +685,9 @@ export async function getLSDPageData() {
 			Stafi: '0x9559Aaa82d9649C7A7b220E7c461d2E74c9a3593',
 			StakeHound: '0xDFe66B14D37C77F4E9b180cEb433d1b164f0281D'
 		}
+		for (const key of Object.keys(lsdTokens)) {
+			lsdTokens[key] = lsdTokens[key].toLowerCase()
+		}
 
 		const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json())))
 
@@ -703,6 +706,10 @@ export async function getLSDPageData() {
 		const ethPrice = (await fetch(`${COINS_API}/current/ethereum:${weth}`).then((r) => r.json())).coins[
 			`ethereum:${weth}`
 		].price
+
+		const lsdRates = await fetch('https://1rwmj4tky9.execute-api.eu-central-1.amazonaws.com/lsdRates').then((r) =>
+			r.json()
+		)
 
 		// filter for LSDs
 		const lsdProtocols = protocols
@@ -726,7 +733,8 @@ export async function getLSDPageData() {
 				lsdColors: colors,
 				lsdTokens,
 				coins,
-				ethPrice
+				ethPrice,
+				lsdRates
 			}
 		}
 	} catch (e) {

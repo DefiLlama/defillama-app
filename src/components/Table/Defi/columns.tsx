@@ -701,16 +701,16 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			align: 'end'
 		},
 		size: 100
+	},
+	{
+		header: 'ETH Peg',
+		accessorKey: 'ethPeg',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
 	}
-	// {
-	// 	header: 'ETH Peg',
-	// 	accessorKey: 'lsdDelta',
-	// 	cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-	// 	meta: {
-	// 		align: 'end'
-	// 	},
-	// 	size: 100
-	// }
 ]
 
 function formatCexInflows(value) {
