@@ -54,18 +54,15 @@ const chartTitleBy = (chartType: CHART_TYPES, breakdown: boolean) => {
 }
 
 const ChartByType: React.FC<IChartByType> = (props) => {
-	const [protocolSummary, setProtocolSummary] = React.useState(props.protocolSummary)
 	const { data, error } = useFetchChartsSummary(props.type, props.protocolName, undefined, !!props.protocolSummary)
-	React.useEffect(() => {
-		if (data && !error) {
-			setProtocolSummary(data)
-		}
-	}, [data, error])
 
 	const enableBreakdownChart = props.breakdownChart ?? true
 	const fullChart = props.fullChart ?? true
 	const typeSimple = volumeTypes.includes(props.type) ? 'volume' : props.type
-	const mainChart = React.useMemo(() => {
+
+	const { protocolSummary, dataChart, title } = React.useMemo(() => {
+		let protocolSummary = data || props.protocolSummary
+
 		if (!protocolSummary)
 			return {
 				dataChart: [[], []] as [IJoin2ReturnType, string[]],
@@ -82,23 +79,28 @@ const ChartByType: React.FC<IChartByType> = (props) => {
 			chartData = cd
 			legend = lgnd
 		}
-		title = Object.keys(legend).length <= 1 ? `${capitalizeFirstLetter(typeSimple)} by chain` : ''
-		return {
-			dataChart: [chartData, legend] as [IJoin2ReturnType, string[]],
-			title: title
-		}
-	}, [protocolSummary?.totalDataChart, protocolSummary?.totalDataChartBreakdown, enableBreakdownChart, typeSimple])
 
-	return !error &&
-		(mainChart.dataChart?.[0]?.length > 0 || protocolSummary?.totalDataChartBreakdown?.[0]?.length > 0) ? (
+		title = Object.keys(legend).length <= 1 ? `${capitalizeFirstLetter(typeSimple)} by chain` : ''
+
+		return {
+			dataChart: chartFormatterBy(props.chartType)(
+				[chartData, legend] as [IJoin2ReturnType, string[]],
+				protocolSummary?.totalDataChartBreakdown
+			),
+			title: title,
+			protocolSummary
+		}
+	}, [data, enableBreakdownChart, typeSimple, props.protocolSummary, props.chartType])
+
+	return !error && (dataChart?.[0]?.length > 0 || protocolSummary?.totalDataChartBreakdown?.[0]?.length > 0) ? (
 		<LazyChart enable={fullChart}>
 			<ProtocolChart
 				logo={protocolSummary?.logo}
 				data={protocolSummary}
-				chartData={chartFormatterBy(props.chartType)(mainChart.dataChart, protocolSummary?.totalDataChartBreakdown)}
+				chartData={dataChart}
 				name={protocolSummary?.displayName}
 				type={protocolSummary?.type ?? props.type}
-				title={fullChart ? chartTitleBy(props.chartType, enableBreakdownChart)(mainChart.title, typeSimple) : undefined}
+				title={fullChart ? chartTitleBy(props.chartType, enableBreakdownChart)(title, typeSimple) : undefined}
 				totalAllTime={protocolSummary?.totalAllTime}
 				fullChart={fullChart}
 			/>

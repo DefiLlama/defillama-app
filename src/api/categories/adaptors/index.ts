@@ -88,9 +88,9 @@ export const getOverviewItemPageData = async (
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-			...p,
-			tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null
-		}))
+				...p,
+				tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null
+		  }))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -156,9 +156,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-				{} as IJSON<ProtocolAdaptorSummary>
-			) ?? {}
+					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+					{} as IJSON<ProtocolAdaptorSummary>
+			  ) ?? {}
 			: {}
 
 	const protocolsWithSubrows = protocols.map((protocol) => {
@@ -177,22 +177,22 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			module: protocol.module,
 			subRows: protocol.protocolsStats
 				? Object.entries(protocol.protocolsStats)
-					.map(([versionName, summary]) => {
-						const protocolTVL = tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, [versionName], tvlData)
-						return {
-							...protocol,
-							displayName: `${versionName.toUpperCase()} - ${protocol.name}`,
-							...summary,
-							tvl: protocolTVL ?? null,
-							volumetvl: protocolTVL ? summary.total24h / protocolTVL : null,
-							dominance: (100 * summary.total24h) / total24h,
-							totalAllTime: null,
-							revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? null,
-							revenue7d: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total7d ?? null,
-							revenue30d: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total30d ?? null,
-						}
-					})
-					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
+						.map(([versionName, summary]) => {
+							const protocolTVL = tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, [versionName], tvlData)
+							return {
+								...protocol,
+								displayName: `${versionName.toUpperCase()} - ${protocol.name}`,
+								...summary,
+								tvl: protocolTVL ?? null,
+								volumetvl: protocolTVL ? summary.total24h / protocolTVL : null,
+								dominance: (100 * summary.total24h) / total24h,
+								totalAllTime: null,
+								revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? null,
+								revenue7d: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total7d ?? null,
+								revenue30d: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total30d ?? null
+							}
+						})
+						.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
 				: null,
 			dailyUserFees: protocol.dailyUserFees ?? null
 		}
@@ -305,24 +305,41 @@ export type IJoin2ReturnType = Array<IJSON<number | string> & { date: string }>
 export const joinCharts2 = (...lists: Array<[string, Array<[number, number]>]>): IJoin2ReturnType =>
 	Object.values(
 		lists.reduce((acc, [name, list]) => {
-			list.forEach(([timestamp, value]) => {
-				if (acc[timestamp])
-					acc[String(timestamp)] = {
-						...acc[String(timestamp)],
-						[name]: value
+			list.forEach(([timestamp, value], index) => {
+				let finalValue = value
+
+				// extrapolate missing values
+				if (value === 0) {
+					const prev = list[index - 1]?.[1] ?? list[index - 2]?.[1]
+
+					const next = list[index + 1]?.[1] ?? 0
+
+					if (prev) {
+						list[index][1] = prev
+						finalValue = (prev + next) / (next ? 2 : 1)
 					}
-				else
-					acc[String(timestamp)] = {
-						[name]: value,
+				}
+
+				if (acc[timestamp]) {
+					acc[timestamp] = {
+						...acc[String(timestamp)],
+						[name]: finalValue
+					}
+				} else {
+					acc[timestamp] = {
+						[name]: finalValue,
 						date: String(timestamp)
 					}
+				}
 			})
+
 			return acc
 		}, {} as IJSON<IJoin2ReturnType[number]>)
 	).map<IJoin2ReturnType[number]>((bar) => {
 		const date = bar.date
 		delete bar.date
 		const ordredItems = Object.entries(bar)
+
 		return {
 			date,
 			...ordredItems.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number])

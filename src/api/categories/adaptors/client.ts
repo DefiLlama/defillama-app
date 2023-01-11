@@ -40,12 +40,14 @@ export const useFetchChartsSummary = (type: string, protocolName: string, dataTy
 				fetcherWErrorHandling(input, init).then((item) => {
 					return generateGetOverviewItemPageDate(item, type, protocolName)
 				})
+
 	const { data, error } = useSWR<ProtocolAdaptorSummaryProps>(getAPIUrlSummary(type, protocolName, dataType), fetch, {
 		onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
 			if ([502, 404].includes(error.status)) return
 			setTimeout(() => revalidate({ retryCount }), retryCount * 5000)
 		}
 	})
+
 	return { data, error }
 }
 
