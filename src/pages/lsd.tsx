@@ -138,9 +138,12 @@ const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice }) => {
 	return (
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'ETH Liquid Staking Derivates' }} />
-			<Header>Total Value Locked ETH LSDs</Header>
-			<h4>USD: {'$' + toK(stakedEthInUsdSum)}</h4>
-			<h4>ETH: {formattedNum(stakedEthSum)}</h4>
+
+			<TotalLocked>
+				<span>Total Value Locked ETH LSDs</span>
+
+				<span> {`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
+			</TotalLocked>
 
 			<ChartsWrapper>
 				<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
@@ -159,6 +162,18 @@ const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice }) => {
 		</>
 	)
 }
+
+const TotalLocked = styled(Header)`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+
+	& > *:last-child {
+		font-family: var(--font-jetbrains);
+	}
+`
 
 export default function LSDs(props) {
 	return (
