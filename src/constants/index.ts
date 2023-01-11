@@ -76,3 +76,5 @@ export const CG_TOKEN_API =
 
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 export const ICONS_PALETTE_CDN = 'https://icons.llamao.fi/palette'
+
+export const COINS_API = 'https://coins.llama.fi/prices'

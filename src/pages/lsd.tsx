@@ -9,6 +9,8 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
 
+import { formattedNum, toK } from '~/utils'
+
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
@@ -42,14 +44,14 @@ const ChartsWrapper = styled(Panel)`
 		grid-template-columns: 1fr 1fr;
 	}
 `
-const PageView = ({ chartData, lsdColors }) => {
+const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice }) => {
 	const historicData = chartData
 		.map((protocol) => {
 			const tokensArray = protocol.chainTvls['Ethereum'].tokens
 			return tokensArray.map((t, i, arr) => {
-				const date = d => Math.floor(d.date / 24 / 60 / 60) * 60 * 60 * 24
-				if(i>0 && date(arr[i-1]) == date(t)){
-					return {value:0}
+				const date = (d) => Math.floor(d.date / 24 / 60 / 60) * 60 * 60 * 24
+				if (i > 0 && date(arr[i - 1]) == date(t)) {
+					return { value: 0 }
 				}
 				return {
 					name: protocol.name,
@@ -97,7 +99,7 @@ const PageView = ({ chartData, lsdColors }) => {
 			}
 		}
 	}
-	const { pieChartData, tokensList, tokens } = React.useMemo(() => {
+	const { pieChartData, tokensList, tokens, stakedEthSum, stakedEthInUsdSum } = React.useMemo(() => {
 		let tokenTvls = chartData
 			.map((protocol) => {
 				const p = protocol.chainTvls['Ethereum']
@@ -114,20 +116,34 @@ const PageView = ({ chartData, lsdColors }) => {
 			.sort((a, b) => b.stakedEth - a.stakedEth)
 
 		const stakedEthSum = tokenTvls.reduce((sum, a) => sum + a.stakedEth, 0)
-		const tokensList = tokenTvls.map((p) => ({ ...p, marketShare: (p.stakedEth / stakedEthSum) * 100 }))
+		const stakedEthInUsdSum = tokenTvls.reduce((sum, a) => sum + a.stakedEthInUsd, 0)
+		const tokensList = tokenTvls.map((p) => {
+			const lsd = coins[`ethereum:${lsdTokens[p.name]}`]
+			return {
+				...p,
+				marketShare: (p.stakedEth / stakedEthSum) * 100,
+				lsdPrice: lsd?.price ?? null,
+				lsdSymbol: lsd?.symbol,
+				lsdDelta: lsd?.price ? ((lsd?.price - ethPrice) / ethPrice) * 100 : null
+			}
+		})
 
 		const pieChartData = tokenTvls.map((p) => ({ name: p.name, value: p.stakedEth }))
 
 		const tokens = tokensList.map((p) => p.name)
 
-		return { pieChartData, tokensList, tokens }
-	}, [chartData])
+		return { pieChartData, tokensList, tokens, stakedEthSum, stakedEthInUsdSum }
+	}, [chartData, lsdTokens, coins, ethPrice])
 
 	return (
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'ETH Liquid Staking Derivates' }} />
 
-			<Header>Total Value Locked ETH LSDs</Header>
+			<TotalLocked>
+				<span>Total Value Locked ETH LSDs</span>
+
+				<span> {`${formattedNum(stakedEthSum)} ETH ($${toK(stakedEthInUsdSum)})`}</span>
+			</TotalLocked>
 
 			<ChartsWrapper>
 				<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
@@ -142,11 +158,22 @@ const PageView = ({ chartData, lsdColors }) => {
 					title=""
 				/>
 			</ChartsWrapper>
-
 			<LSDTable data={tokensList} />
 		</>
 	)
 }
+
+const TotalLocked = styled(Header)`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+
+	& > *:last-child {
+		font-family: var(--font-jetbrains);
+	}
+`
 
 export default function LSDs(props) {
 	return (

@@ -653,7 +653,8 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 					<span>{index + 1}</span> <CustomLink href={`/protocol/${nameSlug}`}>{getValue()}</CustomLink>
 				</Name>
 			)
-		}
+		},
+		size: 280
 	},
 	{
 		header: 'Staked ETH',
@@ -680,7 +681,35 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		},
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 120
+	},
+	{
+		header: 'LSD',
+		accessorKey: 'lsdSymbol',
+		cell: ({ getValue }) => <>{getValue()}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'Price',
+		accessorKey: 'lsdPrice',
+		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
+	},
+	{
+		header: 'ETH Peg',
+		accessorKey: 'lsdDelta',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 100
 	}
 ]
 
