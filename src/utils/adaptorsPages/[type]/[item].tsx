@@ -9,7 +9,6 @@ import { volumeTypes } from '../utils'
 
 export type PageParams = {
 	protocolSummary: ProtocolAdaptorSummaryProps
-	backgroundColor: string
 }
 
 const getStaticProps: GetStaticProps<PageParams> = async ({
@@ -22,8 +21,7 @@ const getStaticProps: GetStaticProps<PageParams> = async ({
 			protocolSummary: {
 				...data,
 				type: params.type
-			},
-			backgroundColor: primaryColor
+			}
 		},
 		revalidate: maxAgeForNext([22])
 	}
