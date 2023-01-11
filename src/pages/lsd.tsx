@@ -42,14 +42,14 @@ const ChartsWrapper = styled(Panel)`
 		grid-template-columns: 1fr 1fr;
 	}
 `
-const PageView = ({ chartData, lsdColors }) => {
+const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice }) => {
 	const historicData = chartData
 		.map((protocol) => {
 			const tokensArray = protocol.chainTvls['Ethereum'].tokens
 			return tokensArray.map((t, i, arr) => {
-				const date = d => Math.floor(d.date / 24 / 60 / 60) * 60 * 60 * 24
-				if(i>0 && date(arr[i-1]) == date(t)){
-					return {value:0}
+				const date = (d) => Math.floor(d.date / 24 / 60 / 60) * 60 * 60 * 24
+				if (i > 0 && date(arr[i - 1]) == date(t)) {
+					return { value: 0 }
 				}
 				return {
 					name: protocol.name,
@@ -114,14 +114,23 @@ const PageView = ({ chartData, lsdColors }) => {
 			.sort((a, b) => b.stakedEth - a.stakedEth)
 
 		const stakedEthSum = tokenTvls.reduce((sum, a) => sum + a.stakedEth, 0)
-		const tokensList = tokenTvls.map((p) => ({ ...p, marketShare: (p.stakedEth / stakedEthSum) * 100 }))
+		const tokensList = tokenTvls.map((p) => {
+			const lsd = coins[`ethereum:${lsdTokens[p.name]}`]
+			return {
+				...p,
+				marketShare: (p.stakedEth / stakedEthSum) * 100,
+				lsdPrice: lsd?.price ?? null,
+				lsdSymbol: lsd?.symbol,
+				lsdDelta: lsd?.price ? ((lsd?.price - ethPrice) / ethPrice) * 100 : null
+			}
+		})
 
 		const pieChartData = tokenTvls.map((p) => ({ name: p.name, value: p.stakedEth }))
 
 		const tokens = tokensList.map((p) => p.name)
 
 		return { pieChartData, tokensList, tokens }
-	}, [chartData])
+	}, [chartData, lsdTokens, coins, ethPrice])
 
 	return (
 		<>
