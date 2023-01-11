@@ -9,6 +9,8 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { maxAgeForNext } from '~/api'
 import { getLSDPageData } from '~/api/categories/protocols'
 
+import { formattedNum, toK } from '~/utils'
+
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 
 const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
@@ -97,7 +99,7 @@ const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice }) => {
 			}
 		}
 	}
-	const { pieChartData, tokensList, tokens } = React.useMemo(() => {
+	const { pieChartData, tokensList, tokens, stakedEthSum, stakedEthInUsdSum } = React.useMemo(() => {
 		let tokenTvls = chartData
 			.map((protocol) => {
 				const p = protocol.chainTvls['Ethereum']
@@ -114,6 +116,7 @@ const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice }) => {
 			.sort((a, b) => b.stakedEth - a.stakedEth)
 
 		const stakedEthSum = tokenTvls.reduce((sum, a) => sum + a.stakedEth, 0)
+		const stakedEthInUsdSum = tokenTvls.reduce((sum, a) => sum + a.stakedEthInUsd, 0)
 		const tokensList = tokenTvls.map((p) => {
 			const lsd = coins[`ethereum:${lsdTokens[p.name]}`]
 			return {
@@ -129,14 +132,15 @@ const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice }) => {
 
 		const tokens = tokensList.map((p) => p.name)
 
-		return { pieChartData, tokensList, tokens }
+		return { pieChartData, tokensList, tokens, stakedEthSum, stakedEthInUsdSum }
 	}, [chartData, lsdTokens, coins, ethPrice])
 
 	return (
 		<>
 			<ProtocolsChainsSearch step={{ category: 'Home', name: 'ETH Liquid Staking Derivates' }} />
-
 			<Header>Total Value Locked ETH LSDs</Header>
+			<h4>USD: {'$' + toK(stakedEthInUsdSum)}</h4>
+			<h4>ETH: {formattedNum(stakedEthSum)}</h4>
 
 			<ChartsWrapper>
 				<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
@@ -151,7 +155,6 @@ const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice }) => {
 					title=""
 				/>
 			</ChartsWrapper>
-
 			<LSDTable data={tokensList} />
 		</>
 	)
