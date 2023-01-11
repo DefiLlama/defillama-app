@@ -695,18 +695,34 @@ function ProtocolContainer({
 				</>
 			)}
 
-			<ChartsWrapper>
-				{loading ? (
-					<ChartsPlaceholder>Loading...</ChartsPlaceholder>
-				) : (
-					<>
-						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="dexs" />
-						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="fees" breakdownChart={false} />
-						<ChartByType chartType="version" protocolName={slug(protocolData.name)} type="dexs" />
-						<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="fees" />
-					</>
-				)}
-			</ChartsWrapper>
+			{loading ? (
+				<ChartsPlaceholder>Loading...</ChartsPlaceholder>
+			) : Object.keys(protocolData.metrics ?? {}).length > 0 ? (
+				<ChartsWrapper>
+					{Object.entries(protocolData.metrics).map(([key, enabled]) => {
+						if (key === 'dexs' && enabled)
+							return (
+								<>
+									<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="dexs" />
+									<ChartByType chartType="version" protocolName={slug(protocolData.name)} type="dexs" />
+								</>
+							)
+						else if (key === 'fees' && enabled)
+							return (
+								<>
+									<ChartByType
+										chartType="chain"
+										protocolName={slug(protocolData.name)}
+										type="fees"
+										breakdownChart={false}
+									/>
+									<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="fees" />
+								</>
+							)
+						else return null
+					})}
+				</ChartsWrapper>
+			) : null}
 		</Layout>
 	)
 }
