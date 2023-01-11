@@ -681,7 +681,9 @@ export async function getLSDPageData() {
 			StakeWise: '0xfe2e637202056d30016725477c5da089ab0a043a',
 			Ankr: '0xe95a203b1a91a908f9b9ce46459d101078c2c3cb',
 			'Frax Ether': '0x5e8422345238f34275888049021821e8e08caa1f',
-			SharedStake: '0x898BAD2774EB97cF6b94605677F43b41871410B1'
+			SharedStake: '0x898BAD2774EB97cF6b94605677F43b41871410B1',
+			Stafi: '0x9559Aaa82d9649C7A7b220E7c461d2E74c9a3593',
+			StakeHound: '0xDFe66B14D37C77F4E9b180cEb433d1b164f0281D'
 		}
 
 		const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json())))
