@@ -38,7 +38,6 @@ export const getOverview = (
 export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {
 	type: string
 	totalDataChart: [IJoin2ReturnType, string[]]
-	revenue24h: number | null
 	allAddresses?: Array<string>
 }
 
@@ -70,7 +69,7 @@ export const generateGetOverviewItemPageDate = async (
 
 	return {
 		...item,
-		revenue24h: secondType?.total24h ?? null,
+		dailyRevenue: secondType?.total24h ?? null,
 		type,
 		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)]
 	}

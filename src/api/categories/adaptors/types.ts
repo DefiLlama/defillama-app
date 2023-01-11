@@ -64,7 +64,7 @@ export type ProtocolAdaptorSummary = {
 	total24h: number
 	total7d: number
 	total30d: number
-	revenue24h: number
+	revenue24h?: number
 	breakdown24h: IJSON<number>
 	chains: Array<string>
 	module: string

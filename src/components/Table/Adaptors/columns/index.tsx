@@ -131,12 +131,11 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		allChains ? undefined : Total24hColumn('Revenue', 'revenue7d', `Cumulative last 7d revenue`, 150, 'Revenue (7d)'),
 		allChains ? undefined : Total24hColumn('Fees', 'revenue30d', `Cumulative last 30d revenue`, 160, 'Revenue (30d)'),
 		// TotalAllTimeColumn('fees') tmp
-		Total24hColumn('Revenue', 'dailyRevenue', undefined, 160),
-		Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
-		Total24hColumn('Protocol revenue', 'dailyProtocolRevenue', undefined, 190),
-		Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
+		allChains ? undefined : Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
+		allChains ? undefined : Total24hColumn('Protocol revenue', 'dailyProtocolRevenue', undefined, 190),
+		allChains ? undefined : Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
 		// Total24hColumn('Creator revenue', 'dailyCreatorRevenue', undefined, 190),
-		Total24hColumn('Supply side revenue', 'dailySupplySideRevenue', undefined, 220),
+		allChains ? undefined : Total24hColumn('Supply side revenue', 'dailySupplySideRevenue', undefined, 220),
 		// Total24hColumn('Total fees', 'dailyTotalFees', undefined, 220),
 		// Total24hColumn('Total revenue', 'dailyTotalRevenue', undefined, 220)
 		// ChangeColumn('Weekly change', 'change_7dover7d', 160, 'Change of last 7d fees over the previous 7d fees'),

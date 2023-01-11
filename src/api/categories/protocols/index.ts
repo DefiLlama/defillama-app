@@ -464,7 +464,7 @@ export const getNewChainsPageData = async (category: string) => {
 			categories: categoryLinks,
 			colorsByChain: colors,
 			chainTvls: chainTvls.map((chain) => {
-				const { total24h, dailyRevenue } =
+				const { total24h, revenue24h } =
 					feesAndRevenueChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
 
 				const { total24h: dexsTotal24h } =
@@ -474,7 +474,7 @@ export const getNewChainsPageData = async (category: string) => {
 					...chain,
 					totalVolume24h: dexsTotal24h || 0,
 					totalFees24h: total24h || 0,
-					totalRevenue24h: dailyRevenue || 0,
+					totalRevenue24h: revenue24h || 0,
 					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === chain.name.toLowerCase())?.mcap ?? 0
 				}
 			})
