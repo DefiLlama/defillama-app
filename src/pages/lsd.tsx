@@ -44,7 +44,7 @@ const ChartsWrapper = styled(Panel)`
 		grid-template-columns: 1fr 1fr;
 	}
 `
-const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice, lsdRates }) => {
+const PageView = ({ chartData, lsdColors, lsdRates }) => {
 	const historicData = chartData
 		.map((protocol) => {
 			const tokensArray = protocol.chainTvls['Ethereum'].tokens
@@ -118,23 +118,20 @@ const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice, lsdRates }
 		const stakedEthSum = tokenTvls.reduce((sum, a) => sum + a.stakedEth, 0)
 		const stakedEthInUsdSum = tokenTvls.reduce((sum, a) => sum + a.stakedEthInUsd, 0)
 		const tokensList = tokenTvls.map((p) => {
-			const lsd = coins[`ethereum:${lsdTokens[p.name]}`]
-			const lsdPrice = lsd?.price
+			const priceInfo = lsdRates.marketRates?.find(
+				(i) => i.fromToken?.address.toLowerCase() === lsdRates.expectedRates.find((r) => r.name === p.name).address
+			)
 
-			const ethPeg = ['Coinbase Wrapped Staked ETH', 'Rocket Pool', 'Ankr'].includes(p.name)
-				? (lsdPrice /
-						ethPrice /
-						lsdRates.find((r) => r.address.toLowerCase() === lsdTokens[p.name].toLowerCase())?.rate -
-						1) *
-				  100
-				: ((lsdPrice - ethPrice) / ethPrice) * 100
+			const marketRate = priceInfo?.toTokenAmount / 10 ** priceInfo?.fromToken?.decimals
+			const expectedRate = lsdRates.expectedRates.find((r) => r.name === p.name)?.expectedRate
+
+			const ethPeg = (marketRate / expectedRate - 1) * 100
 
 			return {
 				...p,
 				marketShare: (p.stakedEth / stakedEthSum) * 100,
-				lsdPrice: lsdPrice ?? null,
-				lsdSymbol: lsd?.symbol,
-				ethPeg: lsdPrice && ethPeg ? ethPeg : null
+				lsdSymbol: priceInfo?.fromToken?.symbol ?? null,
+				ethPeg: p.name === 'SharedStake' ? null : ethPeg ?? null
 			}
 		})
 
@@ -143,7 +140,7 @@ const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice, lsdRates }
 		const tokens = tokensList.map((p) => p.name)
 
 		return { pieChartData, tokensList, tokens, stakedEthSum, stakedEthInUsdSum }
-	}, [chartData, lsdTokens, coins, ethPrice, lsdRates])
+	}, [chartData, lsdRates])
 
 	return (
 		<>

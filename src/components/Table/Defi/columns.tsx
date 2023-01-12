@@ -694,18 +694,9 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		size: 100
 	},
 	{
-		header: 'Price',
-		accessorKey: 'lsdPrice',
-		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 100
-	},
-	{
 		header: 'ETH Peg',
 		accessorKey: 'ethPeg',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		cell: ({ getValue }) => <>{getValue() ? formattedPercent(getValue()) : null}</>,
 		meta: {
 			align: 'end'
 		},
