@@ -36,7 +36,7 @@ const SelectContent = ({
 			<FilterFnsGroup data-variant={variant}>
 				<button onClick={clearAllOptions}>Clear</button>
 
-				<button onClick={toggleAllOptions}>Toggle all</button>
+				<button onClick={toggleAllOptions}>Select all</button>
 			</FilterFnsGroup>
 
 			<div className="select-filteredOptions-wrapper">

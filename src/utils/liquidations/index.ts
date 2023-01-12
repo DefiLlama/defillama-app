@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars*/
 import BigNumber from 'bignumber.js'
 import type { ISearchItem } from '~/components/Search/types'
-import { LIQUIDATIONS_HISTORICAL_S3_PATH } from '~/constants'
+import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
 import { liquidationsIconUrl } from '..'
 
 /**
@@ -13,11 +13,11 @@ import { liquidationsIconUrl } from '..'
  */
 const getDataUrl = (symbol: string, timestamp: number) => {
 	const hourId = Math.floor(timestamp / 3600 / 6) * 6
-	return `${LIQUIDATIONS_HISTORICAL_S3_PATH}/${symbol.toLowerCase()}/${hourId}.json`
+	return `${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/${hourId}.json`
 }
 
 const getAvailability = async () => {
-	const res = await fetch(`${LIQUIDATIONS_HISTORICAL_S3_PATH}/availability.json`)
+	const res = await fetch(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/availability.json`)
 	const data = await res.json()
 	return data as { availability: { [symbol: string]: number }; time: number }
 }
@@ -195,7 +195,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		data = await res.json()
 	} catch (e) {
 		// fallback to current
-		const res = await fetch(`${LIQUIDATIONS_HISTORICAL_S3_PATH}/${symbol.toLowerCase()}/latest.json`)
+		const res = await fetch(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/latest.json`)
 		data = await res.json()
 	}
 

@@ -99,7 +99,7 @@ export default function VirtualTable({ instance, skipVirtualization, rowSize, ..
 		return () => {
 			if (observer.current) observer.current.disconnect()
 		}
-	}, [observer.current, ref1])
+	}, [ref1])
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
 

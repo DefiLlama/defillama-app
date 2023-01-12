@@ -186,7 +186,17 @@ export default function AreaChart({
 
 			return series
 		}
-	}, [chartData, chartsStack, color, customLegendName, hallmarks, isDark, legendOptions, stackColors])
+	}, [
+		chartData,
+		chartsStack,
+		color,
+		customLegendName,
+		hallmarks,
+		isDark,
+		legendOptions,
+		stackColors,
+		expandTo100Percent
+	])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -245,7 +255,7 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions])
+	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent])
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
 

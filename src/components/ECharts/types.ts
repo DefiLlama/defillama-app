@@ -47,4 +47,5 @@ export interface IPieChartProps {
 	stackColors?: {
 		[stack: string]: string
 	}
+	usdFormat?: boolean
 }

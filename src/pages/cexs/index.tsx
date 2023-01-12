@@ -102,18 +102,18 @@ const cexData = [
 		cgDeriv: 'bitmex'
 	},
 	{
-		name: 'Binance US',
-		slug: 'binance-us',
-		coin: 'BNB',
-		coinSymbol: 'BNB',
-		cgId: 'binance_us'
-	},
-	{
 		name: 'Swissborg',
 		slug: 'swissborg',
 		coin: 'CHSB',
 		coinSymbol: 'CHSB',
 		walletsLink: 'https://github.com/swissborg/pub'
+	},
+	{
+		name: 'Binance US',
+		slug: 'binance-us',
+		coin: 'BNB',
+		coinSymbol: 'BNB',
+		cgId: 'binance_us'
 	},
 	{
 		name: 'Korbit',

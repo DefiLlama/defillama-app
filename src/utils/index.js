@@ -71,7 +71,7 @@ export const toNiceDate = (date) => {
 }
 
 export const toNiceCsvDate = (date) => {
-	let x = dayjs.utc(dayjs.unix(date)).format('DD/MM/YYYY')
+	let x = dayjs.utc(dayjs.unix(date)).format('YYYY-MM-DD')
 	return x
 }
 

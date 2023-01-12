@@ -11,7 +11,8 @@ import {
 	Shuffle,
 	Search,
 	BookOpen,
-	Repeat
+	Repeat,
+	Layers
 } from 'react-feather'
 
 export interface IMainLink {
@@ -247,6 +248,11 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <ShieldOff size={16} />
+	},
+	'ETH Liquid Staking': {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <Layers size={16} />
 	}
 }
 
@@ -257,7 +263,8 @@ export const linksWithNoSubMenu = [
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Borrow Aggregator', url: '/borrow' },
 	{ name: 'CEX Transparency', url: '/cexs' },
-	{ name: 'DEX Meta-Aggregator', url: 'https://swap.defillama.com/' }
+	{ name: 'DEX Meta-Aggregator', url: 'https://swap.defillama.com/' },
+	{ name: 'ETH Liquid Staking', url: '/lsd' }
 ]
 
 function downloadDefiDataset() {

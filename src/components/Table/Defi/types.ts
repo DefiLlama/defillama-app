@@ -31,3 +31,10 @@ export interface IChain {
 export interface IChainsRow extends IChain {
 	subRows?: Array<IChain>
 }
+
+export interface ILSDRow {
+	name: string
+	stakedEth: number
+	tvl: number
+	marketShare: number
+}

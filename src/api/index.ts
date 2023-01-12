@@ -43,8 +43,8 @@ export async function retryCoingeckoRequest(func, retries) {
 	return {}
 }
 
-export async function getAllCGTokensList(): Promise<Array<{ name: string; symbol: string; image: string }>> {
-	const data = await fetcher("https://api.llama.fi/sortedTokenlist?a")
+export async function getAllCGTokensList(): Promise<Array<{ name: string; symbol?: string; image: string }>> {
+	const data = await fetcher('https://api.llama.fi/sortedTokenlist?a')
 
 	return data
 }

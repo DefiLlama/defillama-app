@@ -8,6 +8,7 @@ export const timeframeOptions = {
 
 // API endpoints
 export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com'
+export const DATASETS_R2_PATH = 'https://defillama-datasets.llama.fi'
 
 export const CHART_API = 'https://api.llama.fi/lite/charts'
 export const PROTOCOLS_API = 'https://api.llama.fi/lite/protocols2'
@@ -53,7 +54,7 @@ export const YIELD_CHART_LEND_BORROW_API = 'https://yields.llama.fi/chartLendBor
 export const YIELD_CONFIG_POOL_API = 'https://yields.llama.fi/configPool'
 export const YIELD_PERPS_API = 'https://yields.llama.fi/perps'
 
-export const LIQUIDATIONS_HISTORICAL_S3_PATH = DATASETS_S3_PATH + '/liqs'
+export const LIQUIDATIONS_HISTORICAL_R2_PATH = DATASETS_R2_PATH + '/liqs'
 
 export const CHAINS_API = 'https://api.llama.fi/chains'
 
@@ -77,3 +78,5 @@ export const CG_TOKEN_API =
 
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 export const ICONS_PALETTE_CDN = 'https://icons.llamao.fi/palette'
+
+export const COINS_API = 'https://coins.llama.fi/prices'

@@ -1,3 +1,5 @@
+import { IJSON } from "./categories/adaptors/types"
+
 export interface IRaise {
 	round: string
 	amount: number
@@ -93,6 +95,7 @@ export interface IProtocolResponse extends Protocol {
 	chainTvls: IChainTvl
 	currentChainTvls: ICurrentChainTvls
 	tvl: { date: number; totalLiquidityUSD: number }[]
+	metrics?: IJSON<boolean>
 }
 
 export interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChainTvls' | 'chainTvls'> {

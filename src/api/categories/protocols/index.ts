@@ -16,7 +16,8 @@ import {
 	HOURLY_PROTOCOL_API,
 	ORACLE_API,
 	PROTOCOLS_API,
-	PROTOCOL_API
+	PROTOCOL_API,
+	COINS_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -573,7 +574,7 @@ export const getChainsPageData = async (category: string) => {
 			for (let i = 0; i < 5; i++) {
 				try {
 					return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
-				} catch (e) {}
+				} catch (e) { }
 			}
 			throw new Error(`${CHART_API}/${elem} is broken`)
 		})
@@ -666,6 +667,72 @@ export const getChainsPageData = async (category: string) => {
 			category,
 			categories: categoryLinks,
 			chainsGroupbyParent
+		}
+	}
+}
+
+// - used in /lsd
+export async function getLSDPageData() {
+	try {
+		const lsdTokens = {
+			Lido: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+			'Coinbase Wrapped Staked ETH': '0xbe9895146f7af43049ca1c1ae358b0541ea49704',
+			'Rocket Pool': '0xae78736cd615f374d3085123a210448e74fc6393',
+			StakeWise: '0xfe2e637202056d30016725477c5da089ab0a043a',
+			Ankr: '0xe95a203b1a91a908f9b9ce46459d101078c2c3cb',
+			'Frax Ether': '0x5e8422345238f34275888049021821e8e08caa1f',
+			SharedStake: '0x898BAD2774EB97cF6b94605677F43b41871410B1',
+			Stafi: '0x9559Aaa82d9649C7A7b220E7c461d2E74c9a3593',
+			StakeHound: '0xDFe66B14D37C77F4E9b180cEb433d1b164f0281D'
+		}
+
+		const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json())))
+
+		const prices = (
+			await Promise.all(
+				Object.values(lsdTokens).map((t) => fetch(`${COINS_API}/current/ethereum:${t}`).then((r) => r.json()))
+			)
+		).map((i) => i.coins)
+		const coins: { [key: string]: any } = {}
+		for (const i of prices) {
+			const key = Object.keys(i)[0]
+			if (key === undefined) continue
+			coins[key] = i[key]
+		}
+		const weth = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
+		const ethPrice = (await fetch(`${COINS_API}/current/ethereum:${weth}`).then((r) => r.json())).coins[
+			`ethereum:${weth}`
+		].price
+
+		// filter for LSDs
+		const lsdProtocols = protocols
+			.filter((p) => (p.category === 'Liquid Staking' || ['Stafi'].includes(p.name)) && p.chains.includes('Ethereum'))
+			.map((p) => p.name)
+
+		// get historical data
+		const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
+		const history = await Promise.all(lsdProtocolsSlug.map((p) => fetch(`${PROTOCOL_API}/${p}`).then((r) => r.json())))
+
+		const colors = {}
+		lsdProtocols.forEach((protocol, index) => {
+			colors[protocol] = getColorFromNumber(index, 10)
+		})
+
+		colors['Others'] = '#AAAAAA'
+
+		return {
+			props: {
+				chartData: history,
+				lsdColors: colors,
+				lsdTokens,
+				coins,
+				ethPrice
+			}
+		}
+	} catch (e) {
+		console.log(e)
+		return {
+			notFound: true
 		}
 	}
 }

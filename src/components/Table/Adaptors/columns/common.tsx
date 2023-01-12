@@ -105,12 +105,18 @@ export const Total24hColumn = (
 		enableSorting: true,
 		cell: (info) => {
 			const value = info.getValue()
-			if (value === '' || value === 0 || Number.isNaN(formattedNum(value))) return <></>
+			if (value === '' || Number.isNaN(formattedNum(value))) return <></>
 			const rawMethodology = typeof info.row.original.methodology === 'object' ? info.row.original.methodology : {}
-			const methodology = Object.entries(rawMethodology).find(([name]) => accessor.includes(name))?.[1]
+			const methodologyKey = (() => {
+				if (accessor.includes('24h')) return type
+				else return accessor.slice(5) // ('daily' | 'total').length
+			})()
+			const methodology = Object.entries(rawMethodology).find(
+				([name]) => name.toLowerCase() === methodologyKey.toLowerCase()
+			)?.[1]
 			return (
 				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
-					{methodology ? <QuestionHelper text={methodology} /> : null}
+					{methodology ? <QuestionHelper text={methodology} textAlign="center" /> : null}
 					<span>${formattedNum(value)}</span>
 				</span>
 			)
@@ -126,20 +132,30 @@ export const TotalAllTimeColumn = (
 	type: string,
 	alternativeAccessor?: string,
 	helperText?: string
-): ColumnDef<IDexsRow> => ({
-	header: `Cumulative ${type}`,
-	accessorKey: alternativeAccessor ?? 'totalAllTime',
-	enableSorting: true,
-	cell: (info) => {
-		if (Number.isNaN(formattedNum(info.getValue())) || formattedNum(info.getValue()) === 0) return <></>
-		return <>${formattedNum(info.getValue())}</>
-	},
-	size: 160,
-	meta: {
-		align: 'end',
-		headerHelperText: helperText
+): ColumnDef<IDexsRow> => {
+	const accessor = alternativeAccessor ?? 'totalAllTime'
+	return {
+		header: `Commulative ${type}`,
+		accessorKey: accessor,
+		enableSorting: true,
+		cell: (info) => {
+			if (Number.isNaN(formattedNum(info.getValue())) || formattedNum(info.getValue()) === 0) return <></>
+			const rawMethodology = typeof info.row.original.methodology === 'object' ? info.row.original.methodology : {}
+			const methodology = Object.entries(rawMethodology).find(([name]) => accessor.includes(name))?.[1]
+			return (
+				<span style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+					{methodology ? <QuestionHelper text={methodology} textAlign="center" /> : null}
+					<span>${formattedNum(info.getValue())}</span>
+				</span>
+			)
+		},
+		size: 160,
+		meta: {
+			align: 'end',
+			headerHelperText: helperText
+		}
 	}
-})
+}
 export const VolumeTVLColumn: ColumnDef<IDexsRow> = {
 	header: 'Volume/TVL',
 	accessorKey: 'volumetvl',
