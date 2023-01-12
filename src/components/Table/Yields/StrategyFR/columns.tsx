@@ -50,22 +50,10 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		header: 'Strategy APY',
 		accessorKey: 'strategyAPY',
 		enableSorting: true,
-		cell: ({ getValue, row }) => {
-			const TooltipContent = () => {
-				return (
-					<>
-						<span>{`Farm APY: ${row.original?.apy?.toFixed(2)}%`}</span>
-						<span>{`Funding APY: ${row.original?.afr?.toFixed(2)}%`}</span>
-					</>
-				)
-			}
-
+		cell: ({ getValue }) => {
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
-					<Tooltip content={<TooltipContent />}>
-						<ColoredAPY data-variant="positive">{formattedPercent(getValue(), true, 700)}</ColoredAPY>
-					</Tooltip>
+					<ColoredAPY data-variant="positive">{formattedPercent(getValue(), true, 700)}</ColoredAPY>
 				</AutoRow>
 			)
 		},
@@ -76,66 +64,64 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		}
 	},
 	{
-		header: 'Strategy Return (1d)',
-		accessorKey: 'strategyReturn',
+		header: 'Farm APY',
+		accessorKey: 'apy',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
 					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
-
-					{formattedPercent(getValue(), true, 700)}
+					{formattedPercent(Number(getValue()), true, 400)}
+				</AutoRow>
+			)
+		},
+		size: 120,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Annualised Farm Yield'
+		}
+	},
+	{
+		header: 'Funding APY',
+		accessorKey: 'afr',
+		enableSorting: true,
+		cell: ({ getValue }) => {
+			return (
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{formattedPercent(getValue(), true, 400)}
 				</AutoRow>
 			)
 		},
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Funding Rate (1d) + Farm Return (1d)'
+			headerHelperText: 'Annualised Funding Yield'
 		}
 	},
 	{
-		header: 'Funding Rate (1d)',
-		accessorKey: 'frDay',
+		header: 'Funding Rate',
+		accessorKey: 'fr8h',
 		enableSorting: true,
-
-		cell: (info) => {
-			return (
-				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
-					}}
-				>
-					{formattedNum(Number(info.getValue())) + '%'}
-				</span>
-			)
+		cell: ({ getValue }) => {
+			return <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>{getValue() + '%'}</AutoRow>
 		},
-		size: 120,
+		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: '8h funding rate * 3'
+			headerHelperText: 'Current Funding Rate'
 		}
 	},
 	{
-		header: 'Farm Return (1d)',
-		accessorKey: 'poolReturnDay',
+		header: 'Avg Funding Rate',
+		accessorKey: 'fundingRate7dAverage',
 		enableSorting: true,
-
-		cell: (info) => {
-			return (
-				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
-					}}
-				>
-					{formattedNum(Number(info.getValue())) + '%'}
-				</span>
-			)
+		cell: ({ getValue }) => {
+			return <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>{getValue() + '%'}</AutoRow>
 		},
-		size: 120,
+		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Total Farm APY / 365'
+			headerHelperText: 'Average of funding rates from the last 7 days.'
 		}
 	},
 	{
@@ -186,28 +172,30 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: ['strategy', 'strategyAPY', 'strategyReturn', 'frDay', 'poolReturnDay', 'tvlUsd', 'openInterest'],
-	400: ['strategy', 'strategyAPY', 'strategyReturn', 'frDay', 'poolReturnDay', 'tvlUsd', 'openInterest'],
-	640: ['strategy', 'strategyAPY', 'strategyReturn', 'frDay', 'poolReturnDay', 'tvlUsd', 'openInterest'],
-	1280: ['strategy', 'strategyAPY', 'strategyReturn', 'frDay', 'poolReturnDay', 'tvlUsd', 'openInterest']
+	0: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8h', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
+	400: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8h', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
+	640: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8h', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
+	1280: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8h', 'fundingRate7dAverage', 'tvlUsd', 'openInterest']
 }
 
 export const columnSizes = {
 	0: {
 		strategy: 250,
 		strategyAPY: 190,
-		strategyReturn: 190,
-		frDay: 180,
-		poolReturnDay: 170,
+		apy: 180,
+		afr: 190,
+		fr8h: 190,
+		fundingRate7dAverage: 190,
 		tvlUsd: 100,
 		openInterest: 120
 	},
 	812: {
-		strategy: 250,
-		strategyAPY: 150,
-		strategyReturn: 150,
-		frDay: 150,
-		poolReturnDay: 130,
+		strategy: 300,
+		strategyAPY: 130,
+		apy: 130,
+		afr: 130,
+		fr8h: 130,
+		fundingRate7dAverage: 150,
 		tvlUsd: 100,
 		openInterest: 100
 	}

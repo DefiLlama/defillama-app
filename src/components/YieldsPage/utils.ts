@@ -357,7 +357,7 @@ export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 			finalPools.push({
 				...pool,
 				symbolPerp: perp.market,
-				fr8h,
+				fr8h: fr8h.toFixed(3),
 				frDay: fr8h * 3,
 				frWeek: fr8h * 3 * 7,
 				frMonth: fr8h * 3 * 30,
@@ -373,7 +373,8 @@ export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 				indexPrice: perp.indexPrice,
 				chains: [pool.chain],
 				farmTvlUsd: pool.tvlUsd,
-				marketplace: perp.marketplace
+				marketplace: perp.marketplace,
+				fundingRate7dAverage: (perp.fundingRate7dAverage * 100).toFixed(3)
 			})
 		}
 	}
