@@ -58,7 +58,7 @@ const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList
 					Given a token this finder will display delta neutral "long-short" strategies across all our tracked pools and
 					CEX perpetual swap markets.
 					<br />
-					It calculates daily and annualised Strategy Returns taking into account the CEX funding rate and DeFi yield.
+					It calculates annualised Strategy Returns taking into account the CEX funding rate and DeFi yield.
 					<br />
 					<br />
 					To start just select a token above.
