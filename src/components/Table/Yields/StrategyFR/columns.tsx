@@ -95,12 +95,12 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Annualised Funding Yield'
+			headerHelperText: 'Annualised Funding Yield based on previous Funding Rate'
 		}
 	},
 	{
 		header: 'Funding Rate',
-		accessorKey: 'fr8h',
+		accessorKey: 'fr8hCurrent',
 		enableSorting: true,
 		cell: ({ getValue }) => {
 			return <AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>{getValue() + '%'}</AutoRow>
@@ -121,7 +121,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Average of funding rates from the last 7 days.'
+			headerHelperText: 'Average of previous funding rates from the last 7 days'
 		}
 	},
 	{
@@ -172,10 +172,10 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8h', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
-	400: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8h', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
-	640: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8h', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
-	1280: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8h', 'fundingRate7dAverage', 'tvlUsd', 'openInterest']
+	0: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
+	400: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
+	640: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
+	1280: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest']
 }
 
 export const columnSizes = {
@@ -184,7 +184,7 @@ export const columnSizes = {
 		strategyAPY: 190,
 		apy: 180,
 		afr: 190,
-		fr8h: 190,
+		fr8hCurrent: 190,
 		fundingRate7dAverage: 190,
 		tvlUsd: 100,
 		openInterest: 120
@@ -194,7 +194,7 @@ export const columnSizes = {
 		strategyAPY: 130,
 		apy: 130,
 		afr: 130,
-		fr8h: 130,
+		fr8hCurrent: 130,
 		fundingRate7dAverage: 150,
 		tvlUsd: 100,
 		openInterest: 100

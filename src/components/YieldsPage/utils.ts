@@ -351,22 +351,24 @@ export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 	const finalPools = []
 	for (const pool of pools) {
 		for (const perp of perpsData) {
-			const fr8h = Number(perp.fundingRate) * 100
-			const afr = fr8h * 3 * 365
+			const fr8hPrevious = Number(perp.fundingRatePrevious) * 100
+			const frCurrent = Number(perp.fundingRate) * 100
+			const afr = fr8hPrevious * 3 * 365
 
 			finalPools.push({
 				...pool,
 				symbolPerp: perp.market,
-				fr8h: fr8h.toFixed(3),
-				frDay: fr8h * 3,
-				frWeek: fr8h * 3 * 7,
-				frMonth: fr8h * 3 * 30,
-				frYear: fr8h * 3 * 365,
+				fr8hCurrent: frCurrent.toFixed(3),
+				fr8hPrevious: fr8hPrevious.toFixed(3),
+				frDay: frCurrent * 3,
+				frWeek: frCurrent * 3 * 7,
+				frMonth: frCurrent * 3 * 30,
+				frYear: frCurrent * 3 * 365,
 				poolReturn8h: pool.apy / 365 / 3,
 				poolReturnDay: pool.apy / 365,
 				poolReturnWeek: pool.apy / 52,
 				poolReturnMonth: pool.apy / 12,
-				strategyReturn: pool.apy / 365 + fr8h * 3,
+				strategyReturn: pool.apy / 365 + frCurrent * 3,
 				afr,
 				strategyAPY: pool.apy + afr,
 				openInterest: Number(perp.openInterest),
