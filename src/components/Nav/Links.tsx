@@ -262,7 +262,7 @@ export const linksWithNoSubMenu = [
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Borrow Aggregator', url: '/borrow' },
 	{ name: 'CEX Transparency', url: '/cexs' },
-	{ name: 'DEX Meta-Aggregator', url: 'https://swap.defillama.com/' },
+	{ name: 'DEX Meta-Aggregator', url: 'https://swap.defillama.com/', external: true },
 	{ name: 'ETH Liquid Staking', url: '/lsd' }
 ]
 

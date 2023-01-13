@@ -183,7 +183,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	if (noSubMenu || (name === 'Yields' && !router.pathname.startsWith('/yields'))) {
 		return (
 			<Link href={noSubMenu?.url ?? '/yields'} passHref>
-				<MainLink>{name}</MainLink>
+				<MainLink target={noSubMenu?.external && '_blank'}>{name}</MainLink>
 			</Link>
 		)
 	}

@@ -15,7 +15,7 @@ const SubMenu = forwardRef<HTMLDetailsElement, { name: string }>(function Menu({
 	if (noSubMenu || (name === 'Yields' && !active)) {
 		return (
 			<Link href={noSubMenu?.url ?? '/yields'} prefetch={false} passHref>
-				<MainLink data-linkactive={active}>
+				<MainLink data-linkactive={active} target={noSubMenu?.external && '_blank'}>
 					<span data-mainlinkicon>{navLinks[name].icon}</span>
 					<span>{name}</span>
 				</MainLink>
