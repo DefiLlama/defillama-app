@@ -355,6 +355,9 @@ export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 			const frCurrent = Number(perp.fundingRate) * 100
 			const afr = fr8hPrevious * 3 * 365
 
+			const afr7d = Number(perp.fundingRate7dSum) * 100 * 52
+			const afr30d = Number(perp.fundingRate30dSum) * 100 * 12
+
 			finalPools.push({
 				...pool,
 				symbolPerp: perp.market,
@@ -370,13 +373,18 @@ export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 				poolReturnMonth: pool.apy / 12,
 				strategyReturn: pool.apy / 365 + frCurrent * 3,
 				afr,
+				afr7d,
+				afr30d,
 				strategyAPY: pool.apy + afr,
 				openInterest: Number(perp.openInterest),
 				indexPrice: perp.indexPrice,
 				chains: [pool.chain],
 				farmTvlUsd: pool.tvlUsd,
 				marketplace: perp.marketplace,
-				fundingRate7dAverage: (perp.fundingRate7dAverage * 100).toFixed(3)
+				fundingRate7dAverage: (perp.fundingRate7dAverage * 100).toFixed(3),
+				fundingRate7dSum: (perp.fundingRate7dSum * 100).toFixed(3),
+				fundingRate30dAverage: (perp.fundingRate30dAverage * 100).toFixed(3),
+				fundingRate30dSum: (perp.fundingRate30dSum * 100).toFixed(3)
 			})
 		}
 	}

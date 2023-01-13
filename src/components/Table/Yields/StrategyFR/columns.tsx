@@ -85,10 +85,21 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		header: 'Funding APY',
 		accessorKey: 'afr',
 		enableSorting: true,
-		cell: ({ getValue }) => {
+		cell: ({ getValue, row }) => {
+			const TooltipContent = () => {
+				return (
+					<>
+						<span>{`8h: ${row.original?.afr?.toFixed(2)}%`}</span>
+						<span>{`7d: ${row.original?.afr7d?.toFixed(2)}%`}</span>
+						<span>{`30d: ${row.original?.afr30d?.toFixed(2)}%`}</span>
+					</>
+				)
+			}
+
 			return (
 				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
-					{formattedPercent(getValue(), true, 400)}
+					{lockupsRewards.includes(row.original.projectName) ? <QuestionHelper text={earlyExit} /> : null}
+					<Tooltip content={<TooltipContent />}>{formattedPercent(getValue(), true, 700)}</Tooltip>
 				</AutoRow>
 			)
 		},

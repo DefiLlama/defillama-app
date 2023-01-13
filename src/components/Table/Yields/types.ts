@@ -61,5 +61,7 @@ export interface IYieldsStrategyTableRow extends IYieldsOptimizerTableRow {
 	tvlUsd: number
 	marketplace: string
 	afr: number
+	afr7d: number
+	afr30d: number
 	indexPrice: number
 }
