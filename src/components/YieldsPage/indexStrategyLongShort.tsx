@@ -9,7 +9,7 @@ import { useFormatYieldQueryParams } from './hooks'
 const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList, chainList, categoryList }) => {
 	const { query } = useRouter()
 
-	const token = typeof query.token === 'string' || typeof query.token === 'object' ? query.token : null
+	const token = typeof query.token === 'string' || typeof query.token === 'object' ? query : null
 	const minTvl = typeof query.minTvl === 'string' ? query.minTvl : null
 	const maxTvl = typeof query.maxTvl === 'string' ? query.maxTvl : null
 

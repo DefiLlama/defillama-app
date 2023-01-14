@@ -339,14 +339,23 @@ export const formatOptimizerPool = (pool, customLTV) => {
 }
 
 export const findStrategyPoolsFR = (token, filteredPools, perps) => {
-	token = typeof token === 'string' ? [token] : token
+	let tokensToInclude = token?.token
+	tokensToInclude = typeof tokensToInclude === 'string' ? [tokensToInclude] : tokensToInclude
+	let tokensToExclude = token?.excludeToken
+	tokensToExclude = typeof tokensToExclude === 'string' ? [tokensToExclude] : tokensToExclude
 
 	// filter pools to selected token
-	const pools = filteredPools.filter(
-		(p) => token?.some((t) => p.symbol.replace(/ *\([^)]*\) */g, '').includes(t)) && p.apy > 0
-	)
+	const pools = filteredPools.filter((p) => {
+		// remove poolMeta from symbol string
+		const farmSymbol = p.symbol.replace(/ *\([^)]*\) */g, '')
+		return (
+			tokensToInclude?.some((t) => farmSymbol.includes(t)) &&
+			!tokensToExclude?.some((t) => farmSymbol.includes(t)) &&
+			p.apy > 0
+		)
+	})
 	// filter FR data to positive funding rates only (longs pay shorts -> open short position and earn FR)
-	const perpsData = perps.filter((p) => token?.some((t) => p.symbol === t) && p.fundingRate > 0)
+	const perpsData = perps.filter((p) => tokensToInclude?.some((t) => t.includes(p.symbol)) && p.fundingRate > 0)
 
 	const finalPools = []
 	for (const pool of pools) {

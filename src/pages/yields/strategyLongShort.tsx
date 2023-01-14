@@ -28,12 +28,8 @@ export async function getStaticProps() {
 	const poolsUniqueSymbols = [...new Set(filteredPools.map((p) => p.symbol))]
 
 	const perps = (await getPerpData()).filter((m) => m.fundingRate > 0)
-	const perpMarkets = [...new Set(perps.map((p) => p.symbol))]
-	// filter search token to only include what we have in perps and pool arrays
-	const cgTokens = (await getAllCGTokensList()).filter(
-		(t) => perpMarkets.includes(t.symbol?.toUpperCase()) && poolsUniqueSymbols.includes(t.symbol.toUpperCase())
-	)
-
+	// filter search token to only include what we have in pool arrays
+	const cgTokens = (await getAllCGTokensList()).filter((t) => poolsUniqueSymbols.includes(t.symbol.toUpperCase()))
 	const tokens = []
 	const tokenSymbolsList = []
 
