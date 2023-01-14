@@ -106,7 +106,8 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Annualised Funding Yield based on previous Funding Rate'
+			headerHelperText:
+				'Annualised Funding Yield based on previous settled Funding Rate. Hover for detailed breakdown of different APY windows using 7day or 30day paid Funding Rate sums'
 		}
 	},
 	{
@@ -119,7 +120,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Current Funding Rate'
+			headerHelperText: 'Current (predicted) Funding Rate'
 		}
 	},
 	{
@@ -132,7 +133,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Average of previous funding rates from the last 7 days'
+			headerHelperText: 'Average of previously settled funding rates from the last 7 days'
 		}
 	},
 	{
