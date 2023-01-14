@@ -18,6 +18,7 @@ export function YieldFiltersV2({
 	noOfStrategies,
 	strategyInputsData,
 	ltvPlaceholder,
+	showSearchOnMobile,
 	...props
 }: IYieldFiltersProps) {
 	const trackingStats =
@@ -41,7 +42,6 @@ export function YieldFiltersV2({
 			<Header>
 				<h1>{header}</h1>
 				{trackingStats && <p>{trackingStats}</p>}
-				{/* <button>Save This Search</button> */}
 			</Header>
 			<Wrapper>
 				{strategyInputsData && (
@@ -57,7 +57,9 @@ export function YieldFiltersV2({
 					</SearchWrapper>
 				)}
 
-				{tokens && !isSmall && <IncludeExcludeTokens tokens={tokens} />}
+				{tokens && (showSearchOnMobile || !isSmall) && (
+					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile ? true : false} />
+				)}
 
 				<DropdownsWrapper>
 					{isSmall ? (
@@ -66,7 +68,7 @@ export function YieldFiltersV2({
 						</SlidingMenu>
 					) : (
 						<YieldFilterDropdowns {...props} />
-					)}{' '}
+					)}
 				</DropdownsWrapper>
 			</Wrapper>
 		</div>

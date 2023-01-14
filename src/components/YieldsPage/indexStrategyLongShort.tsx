@@ -49,6 +49,7 @@ const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList
 				selectedChains={selectedChains}
 				attributes={true}
 				tvlRange={true}
+				showSearchOnMobile
 			/>
 
 			{poolsData.length > 0 ? (

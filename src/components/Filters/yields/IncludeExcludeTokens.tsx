@@ -8,7 +8,12 @@ import { Input } from '~/components/Search/Base/Input'
 import { Empty, Popover } from '~/components/Search/Base/Results/Desktop'
 import { findActiveItem } from '~/components/Search/Base/utils'
 
-export function IncludeExcludeTokens({ tokens }: { tokens: Array<{ name: string; symbol: string; logo: string }> }) {
+export function IncludeExcludeTokens({
+	tokens,
+	...props
+}: {
+	tokens: Array<{ name: string; symbol: string; logo: string }>
+}) {
 	const [resultsLength, setResultsLength] = useState(3)
 
 	const searchWrapperRef = useRef()
@@ -61,7 +66,7 @@ export function IncludeExcludeTokens({ tokens }: { tokens: Array<{ name: string;
 		.map((o) => tokens.find((x) => x.symbol === o))
 
 	return (
-		<SearchWrapper ref={searchWrapperRef}>
+		<SearchWrapper ref={searchWrapperRef} {...props}>
 			{(tokensToInclude.length > 0 || tokensToExclude.length > 0) && (
 				<OptionsWrapper>
 					{tokensToInclude.map((token) => (
@@ -143,7 +148,7 @@ const SearchWrapper = styled.div`
 	gap: 8px;
 	background: ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
 	border-radius: 8px;
-	padding: 8px;
+	padding: 8px 0;
 
 	:focus-within {
 		outline: 1px solid ${({ theme }) => theme.text1};
@@ -151,6 +156,10 @@ const SearchWrapper = styled.div`
 
 	&[data-alwaysdisplay='true'] {
 		display: flex;
+
+		svg {
+			display: block;
+		}
 	}
 
 	svg {
@@ -165,13 +174,13 @@ const SearchWrapper = styled.div`
 const StyledPopover = styled(Popover)`
 	left: 0;
 	right: 0;
-	transform: none !important;
 	top: 12px;
 	border-radius: 8px;
 `
 
 const SearchIcon = styled(Search)`
 	position: absolute;
+	left: 8px;
 
 	@media screen and (max-width: ${({ theme }) => theme.bpSm}) {
 		display: none;
@@ -189,7 +198,7 @@ const InputWrapper = styled.div`
 		border: none;
 		background: none;
 		border-radius: 8px;
-		padding: 0 0 0 24px;
+		padding: 0 32px;
 
 		:focus-visible {
 			outline: none;
@@ -202,7 +211,7 @@ const ResultRow = styled.div`
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 4px;
-	padding: 12px 16px;
+	padding: 8px;
 	font-size: 0.85rem;
 	color: ${({ theme }) => theme.text1};
 	overflow: hidden;
@@ -214,6 +223,10 @@ const ResultRow = styled.div`
 
 	& + & {
 		border-top: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
+	}
+
+	@media screen and (min-width: ${({ theme }) => theme.bpSm}) {
+		padding: 12px 16px;
 	}
 `
 
@@ -266,19 +279,4 @@ export const MoreResults = styled.button`
 	color: ${({ theme }) => theme.link};
 	background: ${({ theme }) => theme.bg6};
 	border-top: 1px solid ${({ theme }) => (theme.mode === 'dark' ? '#22242a' : '#eaeaea')};
-`
-
-const ConfirmButton = styled.button`
-	padding: 4px 8px;
-	background: #2172e5;
-	color: #fff;
-	border-radius: 8px;
-	width: min-content;
-	margin-left: auto;
-	white-space: nowrap;
-
-	:hover,
-	:focus-visible {
-		background: #4190ff;
-	}
 `

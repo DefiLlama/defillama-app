@@ -9,11 +9,9 @@ export const Popover = styled(ComboboxPopover)`
 	max-height: 320px;
 	overflow-y: auto;
 	background: ${({ theme }) => theme.bg6};
-	border-bottom-left-radius: 12px;
-	border-bottom-right-radius: 12px;
+	border-radius: 12px;
 	outline: ${({ theme }) => '1px solid ' + theme.text5};
 	box-shadow: ${({ theme }) => theme.shadowLg};
-	transform: translate(0px, -5px);
 	z-index: 10;
 `
 

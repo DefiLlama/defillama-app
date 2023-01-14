@@ -36,4 +36,5 @@ export interface IYieldFiltersProps extends IDropdownMenusProps {
 	tokens?: Array<{ name: string; symbol: string; logo: string }>
 	strategyInputsData?: Array<{ name: string; symbol: string; image: string }>
 	noOfStrategies?: number
+	showSearchOnMobile?: boolean
 }
