@@ -29,7 +29,6 @@ export async function getStaticProps() {
 
 	const perps = (await getPerpData()).filter((m) => m.fundingRate > 0)
 	// filter search token to only include what we have in pool arrays
-	//
 	const cgTokens = (await getAllCGTokensList()).filter((t) => poolsUniqueSymbols.includes(t.symbol?.toUpperCase()))
 	const tokens = []
 	const tokenSymbolsList = []
