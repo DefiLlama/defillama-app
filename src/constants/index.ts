@@ -52,6 +52,7 @@ export const YIELD_CHAIN_API = 'https://api.llama.fi/chains'
 export const YIELD_LEND_BORROW_API = 'https://yields.llama.fi/lendBorrow'
 export const YIELD_CHART_LEND_BORROW_API = 'https://yields.llama.fi/chartLendBorrow'
 export const YIELD_CONFIG_POOL_API = 'https://yields.llama.fi/configPool'
+export const YIELD_PERPS_API = 'https://yields.llama.fi/perps'
 
 export const LIQUIDATIONS_HISTORICAL_R2_PATH = DATASETS_R2_PATH + '/liqs'
 

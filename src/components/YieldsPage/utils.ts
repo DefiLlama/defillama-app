@@ -338,6 +338,60 @@ export const formatOptimizerPool = (pool, customLTV) => {
 	}
 }
 
+export const findStrategyPoolsFR = (token, filteredPools, perps) => {
+	token = typeof token === 'string' ? [token] : token
+
+	// filter pools to selected token
+	const pools = filteredPools.filter(
+		(p) => token?.some((t) => p.symbol.replace(/ *\([^)]*\) */g, '').includes(t)) && p.apy > 0
+	)
+	// filter FR data to positive funding rates only (longs pay shorts -> open short position and earn FR)
+	const perpsData = perps.filter((p) => token?.some((t) => p.symbol === t) && p.fundingRate > 0)
+
+	const finalPools = []
+	for (const pool of pools) {
+		for (const perp of perpsData) {
+			const fr8hPrevious = Number(perp.fundingRatePrevious) * 100
+			const frCurrent = Number(perp.fundingRate) * 100
+			const afr = fr8hPrevious * 3 * 365
+
+			const afr7d = Number(perp.fundingRate7dSum) * 100 * 52
+			const afr30d = Number(perp.fundingRate30dSum) * 100 * 12
+
+			finalPools.push({
+				...pool,
+				symbolPerp: perp.market,
+				fr8hCurrent: frCurrent.toFixed(3),
+				fr8hPrevious: fr8hPrevious.toFixed(3),
+				frDay: frCurrent * 3,
+				frWeek: frCurrent * 3 * 7,
+				frMonth: frCurrent * 3 * 30,
+				frYear: frCurrent * 3 * 365,
+				poolReturn8h: pool.apy / 365 / 3,
+				poolReturnDay: pool.apy / 365,
+				poolReturnWeek: pool.apy / 52,
+				poolReturnMonth: pool.apy / 12,
+				strategyReturn: pool.apy / 365 + frCurrent * 3,
+				afr,
+				afr7d,
+				afr30d,
+				strategyAPY: pool.apy + afr,
+				openInterest: Number(perp.openInterest),
+				indexPrice: perp.indexPrice,
+				chains: [pool.chain],
+				farmTvlUsd: pool.tvlUsd,
+				marketplace: perp.marketplace,
+				fundingRate7dAverage: (perp.fundingRate7dAverage * 100).toFixed(3),
+				fundingRate7dSum: (perp.fundingRate7dSum * 100).toFixed(3),
+				fundingRate30dAverage: (perp.fundingRate30dAverage * 100).toFixed(3),
+				fundingRate30dSum: (perp.fundingRate30dSum * 100).toFixed(3)
+			})
+		}
+	}
+
+	return finalPools
+}
+
 interface FilterPools {
 	selectedChains: Array<string>
 	selectedAttributes?: Array<string>

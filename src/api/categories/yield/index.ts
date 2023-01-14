@@ -4,7 +4,8 @@ import {
 	YIELD_MEDIAN_API,
 	YIELD_URL_API,
 	YIELD_CHAIN_API,
-	YIELD_LEND_BORROW_API
+	YIELD_LEND_BORROW_API,
+	YIELD_PERPS_API
 } from '~/constants'
 import { arrayFetcher } from '~/utils/useSWR'
 import { formatYieldsPageData } from './utils'
@@ -274,4 +275,9 @@ export function calculateLoopAPY(lendBorrowPools, loops = 10, customLTV) {
 		})
 		.filter(Boolean)
 		.sort((a, b) => b.loopApy - a.loopApy)
+}
+
+export async function getPerpData() {
+	const perps = (await arrayFetcher([YIELD_PERPS_API]))[0]
+	return perps.data.map((m) => ({ ...m, symbol: m.baseAsset }))
 }
