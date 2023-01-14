@@ -687,7 +687,14 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 	{
 		header: 'LSD',
 		accessorKey: 'lsdSymbol',
-		cell: ({ getValue }) => <>{getValue()}</>,
+		cell: ({ getValue, row }) => {
+			return (
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					{row.original.pegInfo ? <QuestionHelper text={row.original.pegInfo} /> : null}
+					{getValue()}
+				</AutoRow>
+			)
+		},
 		meta: {
 			align: 'end'
 		},
@@ -696,10 +703,25 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 	{
 		header: 'ETH Peg',
 		accessorKey: 'ethPeg',
-		cell: ({ getValue }) => <>{getValue() ? formattedPercent(getValue()) : null}</>,
+		cell: ({ getValue, row }) => {
+			const TooltipContent = () => {
+				return (
+					<>
+						<span>{`Market Rate: ${row.original?.marketRate?.toFixed(4)}`}</span>
+						<span>{`Expected Rate: ${row.original?.expectedRate?.toFixed(4)}`}</span>
+					</>
+				)
+			}
+			return (
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					<Tooltip content={<TooltipContent />}>{getValue() ? formattedPercent(getValue()) : null}</Tooltip>
+				</AutoRow>
+			)
+		},
 		meta: {
 			align: 'end',
-			headerHelperText: 'Market Rate (pulled from 1inch) divided by Expected Rate'
+			headerHelperText:
+				'Market Rate (pulled from 1inch) divided by Expected Rate. Hover for Market Rate and Expected Rate Info.'
 		},
 		size: 100
 	}
@@ -801,3 +823,9 @@ export const raisesColumnOrders = formatColumnOrder({
 		'otherInvestors'
 	]
 })
+
+const Tooltip = styled(Tooltip2)`
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+`

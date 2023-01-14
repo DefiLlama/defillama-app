@@ -121,11 +121,13 @@ const PageView = ({ chartData, lsdColors, lsdRates }) => {
 			const priceInfo = lsdRates.marketRates?.find(
 				(i) => i.fromToken?.address.toLowerCase() === lsdRates.expectedRates.find((r) => r.name === p.name).address
 			)
+			const expectedInfo = lsdRates.expectedRates.find((r) => r.name === p.name)
 
 			const marketRate = priceInfo?.toTokenAmount / 10 ** priceInfo?.fromToken?.decimals
-			const expectedRate = lsdRates.expectedRates.find((r) => r.name === p.name)?.expectedRate
+			const expectedRate = expectedInfo?.expectedRate
 
 			const ethPeg = (marketRate / expectedRate - 1) * 100
+			const pegInfo = expectedInfo.peg
 
 			const lsdSymbol =
 				priceInfo?.fromToken?.symbol ?? (p.name === 'StakeWise' ? 'sETH2' : p.name === 'StakeHound' ? 'stETH' : null)
@@ -134,7 +136,10 @@ const PageView = ({ chartData, lsdColors, lsdRates }) => {
 				...p,
 				marketShare: (p.stakedEth / stakedEthSum) * 100,
 				lsdSymbol,
-				ethPeg: p.name === 'SharedStake' ? null : ethPeg ?? null
+				ethPeg: p.name === 'SharedStake' ? null : ethPeg ?? null,
+				pegInfo,
+				marketRate,
+				expectedRate
 			}
 		})
 
