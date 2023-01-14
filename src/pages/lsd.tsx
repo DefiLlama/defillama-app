@@ -127,10 +127,13 @@ const PageView = ({ chartData, lsdColors, lsdRates }) => {
 
 			const ethPeg = (marketRate / expectedRate - 1) * 100
 
+			const lsdSymbol =
+				priceInfo?.fromToken?.symbol ?? (p.name === 'StakeWise' ? 'sETH2' : p.name === 'StakeHound' ? 'stETH' : null)
+
 			return {
 				...p,
 				marketShare: (p.stakedEth / stakedEthSum) * 100,
-				lsdSymbol: priceInfo?.fromToken?.symbol ?? null,
+				lsdSymbol,
 				ethPeg: p.name === 'SharedStake' ? null : ethPeg ?? null
 			}
 		})
