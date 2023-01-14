@@ -23,21 +23,21 @@ export async function getStaticProps() {
 				!p.symbol.includes('EUROPOOL') &&
 				!p.symbol.includes('UMAMI')
 		)
-		.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() }))
+		.map((p) => ({ ...p, symbol: p.symbol?.toUpperCase() }))
 
 	const poolsUniqueSymbols = [...new Set(filteredPools.map((p) => p.symbol))]
 
 	const perps = (await getPerpData()).filter((m) => m.fundingRate > 0)
 	// filter search token to only include what we have in pool arrays
 	//
-	const cgTokens = (await getAllCGTokensList()).filter((t) => poolsUniqueSymbols.includes(t.symbol.toUpperCase()))
+	const cgTokens = (await getAllCGTokensList()).filter((t) => poolsUniqueSymbols.includes(t.symbol?.toUpperCase()))
 	const tokens = []
 	const tokenSymbolsList = []
 
 	cgTokens.forEach((token) => {
 		if (token.symbol) {
-			tokens.push({ name: token.name, symbol: token.symbol.toUpperCase(), logo: token.image })
-			tokenSymbolsList.push(token.symbol.toUpperCase())
+			tokens.push({ name: token.name, symbol: token.symbol?.toUpperCase(), logo: token.image })
+			tokenSymbolsList.push(token.symbol?.toUpperCase())
 		}
 	})
 
