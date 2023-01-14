@@ -44,7 +44,7 @@ const ChartsWrapper = styled(Panel)`
 		grid-template-columns: 1fr 1fr;
 	}
 `
-const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice }) => {
+const PageView = ({ chartData, lsdColors, lsdRates }) => {
 	const historicData = chartData
 		.map((protocol) => {
 			const tokensArray = protocol.chainTvls['Ethereum'].tokens
@@ -118,13 +118,20 @@ const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice }) => {
 		const stakedEthSum = tokenTvls.reduce((sum, a) => sum + a.stakedEth, 0)
 		const stakedEthInUsdSum = tokenTvls.reduce((sum, a) => sum + a.stakedEthInUsd, 0)
 		const tokensList = tokenTvls.map((p) => {
-			const lsd = coins[`ethereum:${lsdTokens[p.name]}`]
+			const priceInfo = lsdRates.marketRates?.find(
+				(i) => i.fromToken?.address.toLowerCase() === lsdRates.expectedRates.find((r) => r.name === p.name).address
+			)
+
+			const marketRate = priceInfo?.toTokenAmount / 10 ** priceInfo?.fromToken?.decimals
+			const expectedRate = lsdRates.expectedRates.find((r) => r.name === p.name)?.expectedRate
+
+			const ethPeg = (marketRate / expectedRate - 1) * 100
+
 			return {
 				...p,
 				marketShare: (p.stakedEth / stakedEthSum) * 100,
-				lsdPrice: lsd?.price ?? null,
-				lsdSymbol: lsd?.symbol,
-				lsdDelta: lsd?.price ? ((lsd?.price - ethPrice) / ethPrice) * 100 : null
+				lsdSymbol: priceInfo?.fromToken?.symbol ?? null,
+				ethPeg: p.name === 'SharedStake' ? null : ethPeg ?? null
 			}
 		})
 
@@ -133,7 +140,7 @@ const PageView = ({ chartData, lsdColors, lsdTokens, coins, ethPrice }) => {
 		const tokens = tokensList.map((p) => p.name)
 
 		return { pieChartData, tokensList, tokens, stakedEthSum, stakedEthInUsdSum }
-	}, [chartData, lsdTokens, coins, ethPrice])
+	}, [chartData, lsdRates])
 
 	return (
 		<>

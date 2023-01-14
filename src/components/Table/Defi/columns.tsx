@@ -694,23 +694,15 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		size: 100
 	},
 	{
-		header: 'Price',
-		accessorKey: 'lsdPrice',
-		cell: ({ getValue }) => <>{getValue() ? '$' + formattedNum(getValue()) : null}</>,
+		header: 'ETH Peg',
+		accessorKey: 'ethPeg',
+		cell: ({ getValue }) => <>{getValue() ? formattedPercent(getValue()) : null}</>,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Market Rate (pulled from 1inch) divided by Expected Rate'
 		},
 		size: 100
 	}
-	// {
-	// 	header: 'ETH Peg',
-	// 	accessorKey: 'lsdDelta',
-	// 	cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-	// 	meta: {
-	// 		align: 'end'
-	// 	},
-	// 	size: 100
-	// }
 ]
 
 function formatCexInflows(value) {
