@@ -698,7 +698,8 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'ethPeg',
 		cell: ({ getValue }) => <>{getValue() ? formattedPercent(getValue()) : null}</>,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Market Rate (pulled from 1inch) divided by Expected Rate'
 		},
 		size: 100
 	}
