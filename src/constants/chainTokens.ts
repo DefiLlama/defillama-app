@@ -639,76 +639,81 @@ export const chainCoingeckoIds = {
 		symbol: 'ICP',
 		cmcId: '8916'
 	},
-	"Nova Network": {
-    geckoId: "supernova",
-    symbol: "SNT",
-    cmcId: "15399"
-  },
+	'Nova Network': {
+		geckoId: 'supernova',
+		symbol: 'SNT',
+		cmcId: '15399'
+	},
 	Kintsugi: {
-    geckoId: "kintsugi",
-    symbol: "KINT",
-    cmcId: "13675"
-  },
+		geckoId: 'kintsugi',
+		symbol: 'KINT',
+		cmcId: '13675'
+	},
 	Interlay: {
-    geckoId: "interlay",
-    symbol: "INTR",
-    cmcId: "20366"
-  },
+		geckoId: 'interlay',
+		symbol: 'INTR',
+		cmcId: '20366'
+	},
 	Ultron: {
-    geckoId: "ultron",
-    symbol: "ULX",
-    cmcId: "21524"
-  },
+		geckoId: 'ultron',
+		symbol: 'ULX',
+		cmcId: '21524'
+	},
 	Dogechain: {
-    geckoId: "dogechain",
-    symbol: "DC",
-    cmcId: "21414"
-  },
+		geckoId: 'dogechain',
+		symbol: 'DC',
+		cmcId: '21414'
+	},
 	Juno: {
-    geckoId: "juno-network",
-    symbol: "JUNO",
-    cmcId: "14299"
-  },
-  Tombchain: {
-    geckoId: "tomb",
-    symbol: "TOMB",
-    cmcId: "11495"
-  },
+		geckoId: 'juno-network',
+		symbol: 'JUNO',
+		cmcId: '14299'
+	},
+	Tombchain: {
+		geckoId: 'tomb',
+		symbol: 'TOMB',
+		cmcId: '11495'
+	},
 	Crescent: {
-    geckoId: "crescent-network",
-    symbol: "CRE",
-    cmcId: null,
-  },
+		geckoId: 'crescent-network',
+		symbol: 'CRE',
+		cmcId: null
+	},
 	Vision: {
-		geckoId: "vision-metaverse",
-		symbol: "VS",
-		cmcId: "19083"
+		geckoId: 'vision-metaverse',
+		symbol: 'VS',
+		cmcId: '19083'
 	},
 	EthereumPoW: {
-		geckoId: "ethereum-pow-iou",
-		symbol: "ETHW",
-		cmcId: "21296"
+		geckoId: 'ethereum-pow-iou',
+		symbol: 'ETHW',
+		cmcId: '21296'
 	},
 	Aptos: {
-    geckoId: "aptos",
-    symbol: "APT",
-    cmcId: "21794",
-  },
+		geckoId: 'aptos',
+		symbol: 'APT',
+		cmcId: '21794'
+	},
 	Stride: {
-    geckoId: "stride",
-    symbol: "STRD",
-    cmcId: "21781",
-  },
+		geckoId: 'stride',
+		symbol: 'STRD',
+		cmcId: '21781'
+	},
 	MUUCHAIN: {
-    geckoId: "muu-inu",
-    symbol: "MUU",
-    cmcId: "22020"
-  },
-	"MultiversX": {
-    geckoId: "elrond-erd-2",
-    symbol: "EGLD",
-    cmcId: "6892",
-  },
+		geckoId: 'muu-inu',
+		symbol: 'MUU',
+		cmcId: '22020'
+	},
+	MultiversX: {
+		geckoId: 'elrond-erd-2',
+		symbol: 'EGLD',
+		cmcId: '6892'
+	},
+	TON: {
+		geckoId: 'the-open-network',
+		symbol: 'TON',
+		cmcId: '11419'
+	}
 }
 
 export const chainMarketplaceMappings = {
