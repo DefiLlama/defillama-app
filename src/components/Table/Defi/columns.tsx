@@ -650,7 +650,8 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 
 			return (
 				<Name>
-					<span>{index + 1}</span> <CustomLink href={`/protocol/${nameSlug}`}>{getValue()}</CustomLink>
+					<span>{index + 1}</span> <TokenLogo logo={row.original.logo} data-lgonly />
+					<CustomLink href={`/protocol/${nameSlug}`}>{getValue()}</CustomLink>
 				</Name>
 			)
 		},
@@ -668,6 +669,22 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		header: 'TVL',
 		accessorKey: 'stakedEthInUsd',
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '7d Change',
+		accessorKey: 'stakedEthPctChange7d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '30d Change',
+		accessorKey: 'stakedEthPctChange30d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
 		}

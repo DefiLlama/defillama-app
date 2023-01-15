@@ -41,4 +41,5 @@ export interface ILSDRow {
 	pegInfo: string
 	marketRate: number
 	expectedRate: number
+	logo: string
 }
