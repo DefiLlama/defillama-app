@@ -139,6 +139,7 @@ const OptionsWrapper = styled.div`
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 4px;
+	padding: 0 8px;
 `
 
 const SearchWrapper = styled.div`

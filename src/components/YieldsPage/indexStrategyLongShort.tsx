@@ -9,7 +9,7 @@ import { useFormatYieldQueryParams } from './hooks'
 const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList, chainList, categoryList }) => {
 	const { query } = useRouter()
 
-	const token = typeof query.token === 'string' || typeof query.token === 'object' ? query : null
+	const token = typeof query.token === 'string' || typeof query.token === 'object' ? query.token : null
 	const minTvl = typeof query.minTvl === 'string' ? query.minTvl : null
 	const maxTvl = typeof query.maxTvl === 'string' ? query.maxTvl : null
 
@@ -35,7 +35,7 @@ const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList
 		return pools
 	}, [token, filteredPools, perps, selectedAttributes, selectedChains, minTvl, maxTvl])
 
-	const header = `Strategy Finder${token ? `: ${token || ''}` : ''}`
+	const header = 'Strategy Finder' + (token ? `: ${typeof token === 'string' ? token : token?.join(', ') ?? ''}` : '')
 
 	return (
 		<>
