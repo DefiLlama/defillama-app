@@ -100,16 +100,39 @@ const PageView = ({ chartData, lsdColors, lsdRates }) => {
 		}
 	}
 	const { pieChartData, tokensList, tokens, stakedEthSum, stakedEthInUsdSum } = React.useMemo(() => {
-		let tokenTvls = chartData
+		const roundDate = (date) => Math.floor(date / 24 / 60 / 60) * 60 * 60 * 24
+		const secDay = 86400
+		const tokenTvls = chartData
 			.map((protocol) => {
 				const p = protocol.chainTvls['Ethereum']
+				const lastDate = p.tokens.slice(-1)[0].date
+
+				const offset7d = roundDate(lastDate - 7 * secDay)
+				const offset30d = roundDate(lastDate - 30 * secDay)
+
 				const lastTokens = p.tokens.slice(-1)[0].tokens
 				const lastTokensInUsd = p.tokensInUsd.slice(-1)[0].tokens
 
+				const lastTokens7d = p.tokens.find((x) => x.date === offset7d)?.tokens
+				const lastTokens30d = p.tokens.find((x) => x.date === offset30d)?.tokens
+
+				const eth = lastTokens[Object.keys(lastTokens).filter((k) => k.includes('ETH'))[0]]
+				const eth7d =
+					lastTokens7d !== undefined
+						? lastTokens7d[Object.keys(lastTokens7d)?.filter((k) => k.includes('ETH'))[0]]
+						: null
+				const eth30d =
+					lastTokens30d !== undefined
+						? lastTokens30d[Object.keys(lastTokens30d)?.filter((k) => k.includes('ETH'))[0]]
+						: null
+
 				return {
 					name: protocol.name,
-					stakedEth: lastTokens[Object.keys(lastTokens).filter((k) => k.includes('ETH'))[0]],
-					stakedEthInUsd: lastTokensInUsd[Object.keys(lastTokensInUsd).filter((k) => k.includes('ETH'))[0]]
+					logo: protocol.logo,
+					stakedEth: eth,
+					stakedEthInUsd: lastTokensInUsd[Object.keys(lastTokensInUsd).filter((k) => k.includes('ETH'))[0]],
+					stakedEthPctChange7d: ((eth - eth7d) / eth7d) * 100,
+					stakedEthPctChange30d: ((eth - eth30d) / eth30d) * 100
 				}
 			})
 			.filter((p) => p.stakedEth !== undefined)
