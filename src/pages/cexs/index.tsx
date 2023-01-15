@@ -296,12 +296,14 @@ export async function getStaticProps() {
 		spot,
 		derivs,
 		{
-			bitcoin: { usd: btcPrice }
+			coins: {
+				'coingecko:bitcoin': { price: btcPrice }
+			}
 		}
 	] = await Promise.all([
 		fetch(`https://api.coingecko.com/api/v3/exchanges?per_page=250`).then((r) => r.json()),
 		fetch(`https://api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`).then((r) => r.json()),
-		fetch(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd`).then((r) => r.json())
+		fetch(`https://coins.llama.fi/prices/current/coingecko:bitcoin`).then((r) => r.json())
 	])
 	const cexs = await Promise.all(
 		cexData.map(async (c) => {
