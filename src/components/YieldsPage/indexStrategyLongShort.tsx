@@ -20,7 +20,7 @@ const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList
 	})
 
 	const poolsData = React.useMemo(() => {
-		const pools = findStrategyPoolsFR(token, filteredPools, perps)
+		const pools = findStrategyPoolsFR(token ? query : null, filteredPools, perps)
 			.filter((pool) =>
 				filterPool({
 					pool,
@@ -33,7 +33,7 @@ const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList
 			.sort((a, b) => b.openInterest - a.openInterest)
 
 		return pools
-	}, [token, filteredPools, perps, selectedAttributes, selectedChains, minTvl, maxTvl])
+	}, [token, query, filteredPools, perps, selectedAttributes, selectedChains, minTvl, maxTvl])
 
 	const header = 'Strategy Finder' + (token ? `: ${typeof token === 'string' ? token : token?.join(', ') ?? ''}` : '')
 
