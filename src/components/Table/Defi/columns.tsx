@@ -663,7 +663,8 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		cell: ({ getValue }) => <>{formattedNum(getValue())}</>,
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 110
 	},
 	{
 		header: 'TVL',
@@ -671,7 +672,8 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		cell: ({ getValue }) => <>{'$' + formattedNum(getValue())}</>,
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 110
 	},
 	{
 		header: '7d Change',
@@ -679,7 +681,8 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 110
 	},
 	{
 		header: '30d Change',
@@ -687,7 +690,8 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 110
 	},
 	{
 		header: 'Market Share',
@@ -762,7 +766,19 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 120
+		size: 100
+	},
+	{
+		header: 'LSD APR',
+		accessorKey: 'apy',
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <>{value && value.toFixed(2) + '%'}</>
+		},
+		meta: {
+			align: 'end'
+		},
+		size: 90
 	}
 ]
 
