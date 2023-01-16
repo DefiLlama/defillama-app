@@ -694,7 +694,7 @@ export async function getLSDPageData() {
 				...p,
 				name: p.project
 					.split('-')
-					.map((i) => i.charAt(0).toUpperCase() + i.slice(1))
+					.map((i) => (i === 'eth' ? i.toUpperCase() : i.charAt(0).toUpperCase() + i.slice(1)))
 					.join(' ')
 			}))
 
