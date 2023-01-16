@@ -740,7 +740,29 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			headerHelperText:
 				'Market Rate (pulled from 1inch) divided by Expected Rate. Hover for Market Rate and Expected Rate Info.'
 		},
-		size: 100
+		size: 115
+	},
+	{
+		header: 'Mcap/TVL',
+		accessorKey: 'mcapOverTvl',
+		cell: ({ getValue, row }) => {
+			const TooltipContent = () => {
+				return (
+					<>
+						<span>{`Market Cap: $${toK(row.original?.mcap)}`}</span>
+					</>
+				)
+			}
+			return (
+				<AutoRow sx={{ width: '100%', justifyContent: 'flex-end', gap: '4px' }}>
+					<Tooltip content={<TooltipContent />}>{getValue() ? getValue() : null}</Tooltip>
+				</AutoRow>
+			)
+		},
+		meta: {
+			align: 'end'
+		},
+		size: 120
 	}
 ]
 

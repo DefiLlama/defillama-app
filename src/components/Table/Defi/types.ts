@@ -42,4 +42,5 @@ export interface ILSDRow {
 	marketRate: number
 	expectedRate: number
 	logo: string
+	mcap: number
 }
