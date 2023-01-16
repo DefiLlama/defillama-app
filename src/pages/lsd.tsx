@@ -44,7 +44,7 @@ const ChartsWrapper = styled(Panel)`
 		grid-template-columns: 1fr 1fr;
 	}
 `
-const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping }) => {
+const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping, lsdApy }) => {
 	const historicData = chartData
 		.map((protocol) => {
 			const tokensArray = protocol.chainTvls['Ethereum'].tokens
@@ -167,7 +167,8 @@ const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping
 				marketRate,
 				expectedRate,
 				mcap,
-				mcapOverTvl: mcaptvl ? mcaptvl.toFixed(2) : null
+				mcapOverTvl: mcaptvl ? mcaptvl.toFixed(2) : null,
+				apy: lsdApy.find((m) => m.name === p.name)?.apy
 			}
 		})
 
@@ -176,7 +177,7 @@ const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping
 		const tokens = tokensList.map((p) => p.name)
 
 		return { pieChartData, tokensList, tokens, stakedEthSum, stakedEthInUsdSum }
-	}, [chartData, lsdRates, chainMcaps, nameGeckoMapping])
+	}, [chartData, lsdRates, chainMcaps, nameGeckoMapping, lsdApy])
 
 	return (
 		<>

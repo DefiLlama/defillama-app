@@ -17,7 +17,7 @@ import {
 	ORACLE_API,
 	PROTOCOLS_API,
 	PROTOCOL_API,
-	COINS_API
+	YIELD_POOLS_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 import {
@@ -675,6 +675,7 @@ export const getChainsPageData = async (category: string) => {
 export async function getLSDPageData() {
 	try {
 		const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json())))
+		const pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
 
 		const lsdRates = await fetch('https://yields.llama.fi/lsdRates').then((r) => r.json())
 
@@ -686,6 +687,16 @@ export async function getLSDPageData() {
 		// get historical data
 		const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
 		const history = await Promise.all(lsdProtocolsSlug.map((p) => fetch(`${PROTOCOL_API}/${p}`).then((r) => r.json())))
+
+		const lsdApy = pools
+			.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
+			.map((p) => ({
+				...p,
+				name: p.project
+					.split('-')
+					.map((i) => i.charAt(0).toUpperCase() + i.slice(1))
+					.join(' ')
+			}))
 
 		// get protocols mcaps
 		const marketCaps = `https://api.coingecko.com/api/v3/simple/price?ids=${history
@@ -711,7 +722,8 @@ export async function getLSDPageData() {
 				lsdColors: colors,
 				lsdRates,
 				chainMcaps,
-				nameGeckoMapping
+				nameGeckoMapping,
+				lsdApy
 			}
 		}
 	} catch (e) {
