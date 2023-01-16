@@ -687,6 +687,17 @@ export async function getLSDPageData() {
 		const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
 		const history = await Promise.all(lsdProtocolsSlug.map((p) => fetch(`${PROTOCOL_API}/${p}`).then((r) => r.json())))
 
+		// get protocols mcaps
+		const marketCaps = `https://api.coingecko.com/api/v3/simple/price?ids=${history
+			.map((p) => p.gecko_id)
+			.join(',')},frax-share&vs_currencies=usd&include_market_cap=true`
+		const chainMcaps = await fetch(marketCaps).then((res) => res.json())
+
+		const nameGeckoMapping = {}
+		for (const p of history) {
+			nameGeckoMapping[p.name] = p.name === 'Frax Ether' ? 'frax-share' : p.gecko_id
+		}
+
 		const colors = {}
 		lsdProtocols.forEach((protocol, index) => {
 			colors[protocol] = getColorFromNumber(index, 10)
@@ -698,7 +709,9 @@ export async function getLSDPageData() {
 			props: {
 				chartData: history,
 				lsdColors: colors,
-				lsdRates
+				lsdRates,
+				chainMcaps,
+				nameGeckoMapping
 			}
 		}
 	} catch (e) {
