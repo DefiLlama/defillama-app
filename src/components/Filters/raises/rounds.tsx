@@ -129,7 +129,7 @@ export function Rounds({ rounds = [], selectedRounds, pathname, variant = 'prima
 					<SecondaryLabel>
 						{isSelected ? (
 							<>
-								<span>Chain: </span>
+								<span>Round: </span>
 								<span data-selecteditems>
 									{selectedRounds.length > 2
 										? `${selectedRounds[0]} + ${selectedRounds.length - 1} others`
@@ -137,12 +137,12 @@ export function Rounds({ rounds = [], selectedRounds, pathname, variant = 'prima
 								</span>
 							</>
 						) : (
-							'Chain'
+							'Round'
 						)}
 					</SecondaryLabel>
 				) : (
 					<>
-						<span>Filter by Chain</span>
+						<span>Filter by Round</span>
 						{isSelected && <ItemsSelected>{selectedRounds.length}</ItemsSelected>}
 					</>
 				)}
