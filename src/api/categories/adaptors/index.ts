@@ -3,7 +3,7 @@ import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
 import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
-import { formatChain, getCexVolume } from './utils'
+import { formatChain, getCexVolume, handleFetchResponse } from './utils'
 
 /* export const getDex = async (dexName: string): Promise<IDexResponse> =>
 	await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
@@ -23,9 +23,7 @@ export const getOverviewItem = (
 	protocolName: string,
 	dataType?: string
 ): Promise<ProtocolAdaptorSummaryResponse> =>
-	fetch(`${ADAPTORS_SUMMARY_BASE_API}/${type}/${protocolName}${dataType ? `?dataType=${dataType}` : ''}`).then((r) =>
-		r.json()
-	)
+	fetch(`${ADAPTORS_SUMMARY_BASE_API}/${type}/${protocolName}${dataType ? `?dataType=${dataType}` : ''}`).then(handleFetchResponse)
 export const getOverview = (
 	type: string,
 	chain?: string,
@@ -33,7 +31,7 @@ export const getOverview = (
 	includeTotalDataChart?: boolean,
 	fullChart?: boolean
 ): Promise<IGetOverviewResponseBody> =>
-	fetch(getAPIUrl(type, chain, !includeTotalDataChart, true, dataType, fullChart)).then((r) => r.json())
+	fetch(getAPIUrl(type, chain, !includeTotalDataChart, true, dataType, fullChart)).then(handleFetchResponse)
 
 export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {
 	type: string
@@ -119,9 +117,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		IGetOverviewResponseBody,
 		number
 	] = await Promise.all([
-		fetch(getAPIUrl(type, chain, type === 'fees', true)).then((res) => res.json()),
-		fetch(PROTOCOLS_API).then((r) => r.json()),
-		fetch(feesOrRevenueApi).then((res) => res.json()),
+		fetch(getAPIUrl(type, chain, type === 'fees', true)).then(handleFetchResponse),
+		fetch(PROTOCOLS_API).then(handleFetchResponse),
+		fetch(feesOrRevenueApi).then(handleFetchResponse),
 		type === 'dexs' ? getCexVolume() : Promise.resolve(0)
 	])
 
@@ -248,7 +246,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 	const { allChains, total24h: allChainsTotal24h } = await getOverview(type)
 
 	const [protocolsData, ...dataByChain] = await Promise.all([
-		fetch(PROTOCOLS_API).then((r) => r.json()),
+		fetch(PROTOCOLS_API).then(handleFetchResponse),
 		...allChains.map((chain) => getOverview(type, chain, undefined, true, true).then((res) => ({ ...res, chain })))
 	])
 
