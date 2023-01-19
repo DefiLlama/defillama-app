@@ -118,3 +118,12 @@ export async function getCexVolume() {
 	const volume = cexs.filter(c => c.trust_score >= 9).reduce((sum, c) => sum + c.trade_volume_24h_btc, 0) * btcPrice
 	return volume
 }
+
+export async function handleFetchResponse(res: Response) {
+	try {
+		return await res.json()
+	} catch (e) {
+		console.error(e)
+		return {}
+	}
+}
