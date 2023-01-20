@@ -122,12 +122,6 @@ const cexData = [
 		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
-		name: 'MaskEX',
-		slug: 'maskex',
-		coin: null,
-		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
-	},
-	{
 		name: 'Coinsquare',
 		slug: 'coinsquare',
 		coin: null,
@@ -159,6 +153,12 @@ const cexData = [
 		slug: 'coindcx',
 		coin: null,
 		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
+	},
+	{
+		name: 'MaskEX',
+		slug: 'maskex',
+		coin: null,
+		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'Cake DeFi',
