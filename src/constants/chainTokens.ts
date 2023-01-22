@@ -713,6 +713,16 @@ export const chainCoingeckoIds = {
 		geckoId: 'the-open-network',
 		symbol: 'TON',
 		cmcId: '11419'
+	},
+	Zeniq: {
+		geckoId: null,
+		symbol: 'ZENIQ',
+		cmcId: null
+	},
+	Omax: {
+		geckoId: 'omax-token',
+		symbol: 'OMAX',
+		cmcId: '13916'
 	}
 }
 
