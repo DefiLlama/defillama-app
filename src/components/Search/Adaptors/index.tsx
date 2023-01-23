@@ -11,6 +11,7 @@ interface IAdaptorSearchProps extends ICommonSearchProps {
 	type: string
 	onToggleClick?: (enabled: boolean) => void
 	toggleStatus?: boolean
+	enableToggle?: boolean
 }
 
 export default function AdaptorsSearch(props: IAdaptorSearchProps) {
@@ -27,10 +28,11 @@ export default function AdaptorsSearch(props: IAdaptorSearchProps) {
 			data={data}
 			loading={loading}
 			filters={
-				props.onToggleClick && (
+				props.enableToggle && (
 					<ListWrapper>
 						<ListItem>
 							<OptionToggle
+								isLoading={!props.onToggleClick}
 								name="Protocol breakdown"
 								toggle={() => {
 									setIsToggleEnabled((prev) => {
