@@ -123,7 +123,7 @@ export async function handleFetchResponse(res: Response) {
 	try {
 		return await res.json()
 	} catch (e) {
-		console.error(e)
+		console.error(`Failed to parse response from ${res.url}, with status ${res.status} and error message ${e.message}`)
 		return {}
 	}
 }
