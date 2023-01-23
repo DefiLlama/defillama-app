@@ -109,17 +109,17 @@ const cexData = [
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
+		name: 'Korbit',
+		slug: 'korbit',
+		coin: null,
+		walletsLink: 'https://korbit.co.kr/reserve'
+	},
+	{
 		name: 'Binance US',
 		slug: 'binance-us',
 		coin: 'BNB',
 		coinSymbol: 'BNB',
 		cgId: 'binance_us'
-	},
-	{
-		name: 'Korbit',
-		slug: 'korbit',
-		coin: null,
-		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
 		name: 'Coinsquare',
@@ -128,18 +128,18 @@ const cexData = [
 		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
 	},
 	{
+		name: 'Firi',
+		slug: 'firi',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'Phemex',
 		slug: 'phemex',
 		coin: null,
 		walletsLink: 'https://phemex.com/proof-of-reserves',
 		cgId: 'phemex',
 		cgDeriv: 'phemex_futures'
-	},
-	{
-		name: 'Firi',
-		slug: 'firi',
-		coin: null,
-		walletsLink: null
 	},
 	{
 		name: 'WOO X',
