@@ -122,7 +122,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					category: chain === 'All' ? 'Home' : capitalizeFirstLetter(props.type),
 					name: chain === 'All' ? capitalizeFirstLetter(props.type) : chain === 'all' ? 'Chains' : chain
 				}}
-				enableToggle={true}
+				enableToggle={props.type !== 'fees'}
 				onToggleClick={
 					charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
 						? (enabled) => setEnableBreakdownChart(enabled)
