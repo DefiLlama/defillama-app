@@ -318,12 +318,32 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 			// sum key with staking, ethereum, arbitrum etc
 			if (Object.keys(extraTvlEnabled).includes(name) ? extraTvlEnabled[name] : true) {
 				historicalChainTvls[section].tvl?.forEach(
-					({ date, totalLiquidityUSD }: { date: number; totalLiquidityUSD: number }) => {
-						if (!tvlDictionary[date]) {
-							tvlDictionary[date] = 0
+					({ date, totalLiquidityUSD }: { date: number; totalLiquidityUSD: number }, index) => {
+						let nearestDate = date
+
+						// roundup timestamps on last tvl values in chart
+						if (index > historicalChainTvls[section].tvl!.length - 2 && !tvlDictionary[date]) {
+							const prevDate = historicalChainTvls[section].tvl[index - 1]?.date
+							// only change timestamp if prev timestamp is at UTC 00:00
+							if (prevDate && new Date(prevDate * 1000).getUTCHours() === 0) {
+								// find date in tvlDictionary
+								for (
+									let i = prevDate + 1;
+									i <= Number((new Date().getTime() / 1000).toFixed(0)) && nearestDate === date;
+									i++
+								) {
+									if (tvlDictionary[i]) {
+										nearestDate = i
+									}
+								}
+							}
 						}
 
-						tvlDictionary[date] += totalLiquidityUSD
+						if (!tvlDictionary[nearestDate]) {
+							tvlDictionary[nearestDate] = 0
+						}
+
+						tvlDictionary[nearestDate] += totalLiquidityUSD
 					}
 				)
 			}
