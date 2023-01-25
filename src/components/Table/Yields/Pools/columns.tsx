@@ -218,6 +218,19 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: '$ Volume in the last 7 days'
 		}
+	},
+	{
+		header: 'Inception APY',
+		accessorKey: 'apyBaseInception',
+		enableSorting: true,
+		cell: (info) => {
+			return <>{formattedPercent(info.getValue(), true, 400)}</>
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Annualised percentage yield since inception'
+		}
 	}
 ]
 
@@ -238,7 +251,8 @@ const columnOrders = {
 		'apyMean30d',
 		'apyChart30d',
 		'volumeUsd1d',
-		'volumeUsd7d'
+		'volumeUsd7d',
+		'apyBaseInception'
 	],
 	400: [
 		'pool',
@@ -254,7 +268,8 @@ const columnOrders = {
 		'apyMean30d',
 		'apyChart30d',
 		'volumeUsd1d',
-		'volumeUsd7d'
+		'volumeUsd7d',
+		'apyBaseInception'
 	],
 	640: [
 		'pool',
@@ -268,9 +283,10 @@ const columnOrders = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'apyChart30d',
 		'volumeUsd1d',
-		'volumeUsd7d'
+		'volumeUsd7d',
+		'apyBaseInception',
+		'apyChart30d'
 	],
 	1280: [
 		'pool',
@@ -284,9 +300,10 @@ const columnOrders = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'apyChart30d',
 		'volumeUsd1d',
-		'volumeUsd7d'
+		'volumeUsd7d',
+		'apyBaseInception',
+		'apyChart30d'
 	]
 }
 
@@ -303,9 +320,10 @@ export const columnSizes = {
 		apyBase7d: 130,
 		il7d: 90,
 		apyMean30d: 120,
-		apyChart30d: 110,
 		volumeUsd1d: 140,
-		volumeUsd7d: 140
+		volumeUsd7d: 140,
+		apyBaseInception: 150,
+		apyChart30d: 110
 	},
 	812: {
 		pool: 250,
@@ -319,9 +337,10 @@ export const columnSizes = {
 		apyBase7d: 140,
 		il7d: 90,
 		apyMean30d: 120,
-		apyChart30d: 110,
 		volumeUsd1d: 140,
-		volumeUsd7d: 140
+		volumeUsd7d: 140,
+		apyBaseInception: 150,
+		apyChart30d: 110
 	}
 }
 
