@@ -28,7 +28,7 @@ const Action = styled.button<IFolder>`
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { query, pathname, push } = useRouter()
-	const { show7dBaseApy, show7dIL, show1dVolume, show7dVolume } = query
+	const { show7dBaseApy, show7dIL, show1dVolume, show7dVolume, showInceptionApy } = query
 
 	const isClient = useIsClient()
 
@@ -61,7 +61,8 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				url: t.url,
 				category: t.category,
 				volumeUsd1d: t.volumeUsd1d,
-				volumeUsd7d: t.volumeUsd7d
+				volumeUsd7d: t.volumeUsd7d,
+				apyBaseInception: t.apyBaseInception
 			}))
 		} else return []
 	}, [isClient, savedProtocolsInWatchlist, protocolsDict])
@@ -119,6 +120,16 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 					push({ pathname, query: { ...query, show7dVolume: !enabled } }, undefined, { shallow: true })
 				}}
 				enabled={query.show7dVolume === 'true'}
+				style={{ marginLeft: 'auto' }}
+			/>
+
+			<OptionToggle
+				name="Show Inception APY"
+				toggle={() => {
+					const enabled = showInceptionApy === 'true'
+					push({ pathname, query: { ...query, showInceptionApy: !enabled } }, undefined, { shallow: true })
+				}}
+				enabled={query.showInceptionApy === 'true'}
 				style={{ marginLeft: 'auto' }}
 			/>
 

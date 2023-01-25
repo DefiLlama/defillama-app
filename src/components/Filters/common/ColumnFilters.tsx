@@ -11,19 +11,21 @@ interface IColumnFiltersProps {
 	show7dIL?: boolean
 	show1dVolume?: boolean
 	show7dVolume?: boolean
+	showInceptionApy?: boolean
 }
 
 const optionalFilters = [
 	{ name: '7d Base APY', key: 'show7dBaseApy' },
 	{ name: '7d IL', key: 'show7dIL' },
 	{ name: '1d Volume', key: 'show1dVolume' },
-	{ name: '7d Volume', key: 'show7dVolume' }
+	{ name: '7d Volume', key: 'show7dVolume' },
+	{ name: 'Inception APY', key: 'showInceptionApy' }
 ]
 
 export function ColumnFilters({ variant = 'primary', subMenu, ...props }: IColumnFiltersProps) {
 	const router = useRouter()
 
-	const { show7dBaseApy, show7dIL, show1dVolume, show7dVolume, ...queries } = router.query
+	const { show7dBaseApy, show7dIL, show1dVolume, show7dVolume, showInceptionApy, ...queries } = router.query
 
 	const options = optionalFilters.filter((op) => props[op.key])
 

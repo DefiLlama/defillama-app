@@ -26,6 +26,7 @@ export interface IDropdownMenusProps {
 	ltvPlaceholder?: string
 	show1dVolume?: boolean
 	show7dVolume?: boolean
+	showInceptionApy?: boolean
 }
 
 export interface IYieldFiltersProps extends IDropdownMenusProps {

@@ -38,7 +38,8 @@ export function YieldFilterDropdowns({
 	excludeRewardApy,
 	isMobile,
 	show1dVolume,
-	show7dVolume
+	show7dVolume,
+	showInceptionApy
 }: IDropdownMenusProps) {
 	const router = useRouter()
 
@@ -120,12 +121,13 @@ export function YieldFilterDropdowns({
 
 			{availableRange && <AvailableRange variant="secondary" subMenu={isMobile} />}
 
-			{(show7dBaseApy || show7dIL || show1dVolume || show7dVolume) && (
+			{(show7dBaseApy || show7dIL || show1dVolume || show7dVolume || showInceptionApy) && (
 				<ColumnFilters
 					show7dBaseApy={show7dBaseApy}
 					show7dIL={show7dIL}
 					show1dVolume={show1dVolume}
 					show7dVolume={show7dVolume}
+					showInceptionApy={showInceptionApy}
 					variant="secondary"
 					subMenu={isMobile}
 				/>
