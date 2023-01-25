@@ -114,7 +114,8 @@ export async function getCexVolume() {
 		fetch(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd`).then((r) => r.json())
 	])
 	const btcPrice = btcPriceRes?.bitcoin?.usd
-	if (!btcPrice || !cexs) return undefined
+	if (!btcPrice || !cexs || typeof cexs.filter !== 'function') return undefined
+	// cexs might not be a list TypeError: cexs.filter is not a function
 	const volume = cexs.filter(c => c.trust_score >= 9).reduce((sum, c) => sum + c.trade_volume_24h_btc, 0) * btcPrice
 	return volume
 }
