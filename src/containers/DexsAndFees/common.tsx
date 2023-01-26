@@ -5,11 +5,12 @@ import styled from 'styled-components'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
 import { Denomination, Filters, FiltersWrapper } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
-import { formattedNum, getRandomColor } from '~/utils'
+import { formattedNum } from '~/utils'
 import { IDexChartsProps } from './OverviewItem'
 import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import QuestionHelper from '~/components/QuestionHelper'
+import { useChartInterval, useLocalStorageContext } from '~/contexts/LocalStorage'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -44,7 +45,7 @@ export interface IMainBarChartProps {
 	chartData: IBarChartProps['chartData'] | null
 }
 
-export type DataIntervalType = 'Daily' | 'Weekly' | 'Monthly'
+export type DataIntervalType = 'Daily' | 'Weekly' | 'Monthly' | string
 export const GROUP_INTERVALS_LIST: DataIntervalType[] = ['Daily', 'Weekly', 'Monthly']
 export type ChartType = 'Volume' | 'Dominance'
 export const GROUP_CHART_LIST: ChartType[] = ['Volume', 'Dominance']
@@ -70,15 +71,18 @@ export const aggregateDataByInterval =
 	}
 
 export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
-	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Weekly')
 	const [chartType, setChartType] = React.useState<ChartType>('Volume')
+	const [chartInterval, changeChartInterval] = useChartInterval()
 	const dataType = volumeTypes.includes(props.type) ? 'volume' : props.type
 	const simpleStack =
 		props.chartData[1].includes('Fees') || props.chartData[1].includes('Premium volume')
 			? props.chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
 			: undefined
 
-	const barsData = React.useMemo(aggregateDataByInterval(barInterval, props.chartData), [props.chartData, barInterval])
+	const barsData = React.useMemo(aggregateDataByInterval(chartInterval, props.chartData), [
+		props.chartData,
+		chartInterval
+	])
 
 	return (
 		<ChartAndValuesWrapper>
@@ -162,8 +166,8 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 							{GROUP_INTERVALS_LIST.map((dataInterval) => (
 								<FlatDenomination
 									key={dataInterval}
-									onClick={() => setBarInterval(dataInterval)}
-									active={dataInterval === barInterval}
+									onClick={() => changeChartInterval(dataInterval)}
+									active={dataInterval === chartInterval}
 								>
 									{dataInterval}
 								</FlatDenomination>
