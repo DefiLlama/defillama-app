@@ -444,6 +444,10 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 	// 	symbol: 'FEI'
 	// },
 	{
+		name: 'Tezos',
+		symbol: 'XTZ'
+	},
+	{
 		name: 'TrueUSD',
 		symbol: 'TUSD'
 	},
