@@ -135,7 +135,7 @@ export const TotalAllTimeColumn = (
 ): ColumnDef<IDexsRow> => {
 	const accessor = alternativeAccessor ?? 'totalAllTime'
 	return {
-		header: `Commulative ${type}`,
+		header: `Cumulative ${type}`,
 		accessorKey: accessor,
 		enableSorting: true,
 		cell: (info) => {
