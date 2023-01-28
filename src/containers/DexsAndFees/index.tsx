@@ -79,6 +79,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	}, [secondTypeData, secondTypeLoading, secondTypeError, props.chain])
 
 	const chartData = React.useMemo<[IJoin2ReturnType, string[]]>(() => {
+		// TODO: process this in the backend
 		if (enableBreakdownChart) {
 			const displayNameMap = props.protocols.reduce((acc, curr) => {
 				acc[curr.module] = curr.displayName

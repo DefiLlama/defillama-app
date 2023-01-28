@@ -10,14 +10,17 @@ import { IDexChartsProps } from './OverviewItem'
 import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import QuestionHelper from '~/components/QuestionHelper'
-import { useChartInterval, useLocalStorageContext } from '~/contexts/LocalStorage'
+import { useChartInterval } from '~/contexts/LocalStorage'
+import LocalLoader from '~/components/LocalLoader'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
+	ssr: false,
+	loading: () => <LocalLoader style={{ margin: 'auto' }} />
 }) as React.FC<IBarChartProps>
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
-	ssr: false
+	ssr: false,
+	loading: () => <LocalLoader style={{ margin: 'auto' }} />
 }) as React.FC<IChartProps>
 
 export const FlatDenomination = styled(Denomination)`
