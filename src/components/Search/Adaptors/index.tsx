@@ -41,7 +41,7 @@ export default function AdaptorsSearch(props: IAdaptorSearchProps) {
 									})
 									return {} //
 								}}
-								help="Break down charts by protocol"
+								help="Breakdown charts by protocol"
 								enabled={isToggleEnabled}
 							/>
 						</ListItem>

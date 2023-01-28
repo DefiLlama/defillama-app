@@ -43,9 +43,11 @@ import Announcement from '~/components/Announcement'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import SEO from '~/components/SEO'
 import { PageParams } from '~/utils/adaptorsPages/[type]/[item]'
+import LocalLoader from '~/components/LocalLoader'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
+	ssr: false,
+	loading: () => <LocalLoader style={{ margin: 'auto' }} />
 }) as React.FC<IBarChartProps>
 
 export interface IProtocolContainerProps extends PageParams {

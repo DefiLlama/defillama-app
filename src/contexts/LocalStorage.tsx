@@ -58,6 +58,9 @@ const LIQS_CUMULATIVE = 'LIQS_CUMULATIVE'
 export const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS'
 export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES'
 
+// DIMENSIONS (DEXS AND FEES)
+const DIMENSIONS_CHART_INTERVAL_KEY = 'DIMENSIONS:CHART_INTERVAL'
+
 export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING }
 
 export const YIELDS_SETTINGS = {
@@ -130,7 +133,8 @@ const UPDATABLE_KEYS = [
 	...STABLECOINS_SETTINGS_KEYS,
 	...NFT_SETTINGS_KEYS,
 	...LIQS_SETTINGS_KEYS,
-	...BRIDGES_SETTINGS_KEYS
+	...BRIDGES_SETTINGS_KEYS,
+	DIMENSIONS_CHART_INTERVAL_KEY
 ]
 
 const UPDATE_KEY = 'UPDATE_KEY'
@@ -376,4 +380,18 @@ export function useWatchlist() {
 		selectedPortfolio,
 		setSelectedPortfolio
 	}
+}
+
+export function useChartInterval(): [string, (interval: string) => void] {
+	const [state, { updateKey }] = useLocalStorageContext()
+	const isClient = useIsClient()
+	const chartInterval = isClient ? state[DIMENSIONS_CHART_INTERVAL_KEY] ?? 'Daily' : 'Daily'
+
+	const changeChartInterval = useCallback(
+		(value) => {
+			updateKey(DIMENSIONS_CHART_INTERVAL_KEY, value)
+		},
+		[updateKey, chartInterval]
+	)
+	return [chartInterval, changeChartInterval]
 }

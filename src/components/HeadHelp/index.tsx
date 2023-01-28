@@ -24,7 +24,7 @@ const HeadHelp = ({ title, text, adjustSize = false, fontSize, link, ...props }:
 	return (
 		<Tooltip content={text} {...props}>
 			<TextWrapper adjustSize={adjustSize} link={link} fontSize={fontSize}>
-				<span>{title}</span>
+				<span style={{ textAlign: 'center' }}>{title}</span>
 				<HelpCircle size={15} style={{ marginLeft: '.3rem', marginRight: props.headerIsSorted ? '1rem' : undefined }} />
 			</TextWrapper>
 		</Tooltip>
