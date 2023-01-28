@@ -177,8 +177,12 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 					.map(([versionName, summary]) => {
 						const protocolTVL = tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, [versionName], tvlData)
 						return {
-							...protocol,
+							name: protocol.name,
+							category: protocol.category,
+							module: protocol.module,
+							logo: protocol.logo,
 							displayName: `${versionName.toUpperCase()} - ${protocol.name}`,
+							protocolsStats: null,
 							...summary,
 							tvl: protocolTVL ?? null,
 							volumetvl: protocolTVL ? summary.total24h / protocolTVL : null,
@@ -215,7 +219,6 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		type
 	}
 }
-
 export interface IOverviewProps {
 	protocols: Array<
 		IGetOverviewResponseBody['protocols'][number] & {
