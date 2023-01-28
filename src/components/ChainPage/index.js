@@ -228,10 +228,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 			<SEO cardName={selectedChain} chain={selectedChain} tvl={tvl} volumeChange={volumeChange} />
 
 			<Announcement>
-				<span>Check out our new</span>{" "}
-				<Link href={`https://swap.defillama.com/`}>
-					<a>
-						<Image
+				<Image
 							src="https://icons.llamao.fi/icons/memes/gib?w=36&h=36"
 							alt="Gib"
 							width={18}
@@ -239,9 +236,16 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 							unoptimized
 							style={{ marginRight: '0.25rem', display: 'inline' }}
 						/>{' '}
-						DEX meta-aggregator <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
+				<span>Consider donating to our </span>{" "}
+				<Link href={`https://grant-explorer.gitcoin.co/#/round/1/0xd95a1969c41112cee9a2c931e849bcef36a16f4c/0x46ddc886ac23d5bc2cbc96cd2aa990627bcd98c881a953070f94c15e03267707-0xd95a1969c41112cee9a2c931e849bcef36a16f4c`}>
+					<a>
+						Defillama<ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
 					</a>
-				</Link>
+				</Link> and <Link href={`https://grant-explorer.gitcoin.co/#/round/1/0xe575282b376e3c9886779a841a2510f1dd8c2ce4/0x46de99c3a4e0542fde6d77bfa1ff6d19e107f253ea5254f7fdb59869b30e2b7a-0xe575282b376e3c9886779a841a2510f1dd8c2ce4`}>
+					<a>
+						Chainlist<ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
+					</a>
+				</Link> grants on Gitcoin, round ends in 4 days!
 			</Announcement>
 
 			<ProtocolsChainsSearch
