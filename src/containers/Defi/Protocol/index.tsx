@@ -482,7 +482,7 @@ function ProtocolContainer({
 							<span>:</span>
 							<>
 								{forkedFrom.map((p, index) => (
-									<Link href={`/protocol/${p}`} key={p}>
+									<Link href={`/protocol/${slug(p)}`} key={p}>
 										{forkedFrom[index + 1] ? p + ', ' : p}
 									</Link>
 								))}
