@@ -56,6 +56,7 @@ export type IJSON<T> = { [key: string]: T }
 export type ProtocolAdaptorSummary = {
 	name: string
 	category?: string
+	logo: string
 	disabled: boolean
 	displayName: string
 	change_1d: number
