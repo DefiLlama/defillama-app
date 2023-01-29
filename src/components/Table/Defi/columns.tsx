@@ -863,6 +863,10 @@ export const chainsTableColumnOrders = formatColumnOrder({
 	]
 })
 
+export const hacksColumnOrders = formatColumnOrder({
+	0: ['name', 'date', 'amountLost', 'chains', 'classification', 'technique', 'link']
+})
+
 export const raisesColumnOrders = formatColumnOrder({
 	0: ['name', 'amount', 'date', 'round', 'sector', 'leadInvestors', 'source', 'valuation', 'chains', 'otherInvestors'],
 	1024: [
