@@ -15,10 +15,13 @@ const uploadBuildLog = async () => {
 			'Content-Type': BUILD_LOG_CONTENT_TYPE,
 			apikey: LOGGER_API_KEY
 		},
-		body: buildLogBase64
+		body: JSON.stringify({
+			data: buildLogBase64,
+			contentType: BUILD_LOG_CONTENT_TYPE
+		})
 	})
-	const data = await response.text()
-	return data
+	const res = await response.text()
+	return res
 }
 
 // convert the bash script above to JS
