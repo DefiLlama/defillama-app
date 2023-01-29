@@ -96,19 +96,29 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 		if (!name.includes('-')) {
 			// sum key with staking, ethereum, arbitrum etc
 			if (Object.keys(extraTvlsEnabled).includes(name) ? extraTvlsEnabled[name] : true) {
-				const tokensInUsd = chainTvls[section].tokensInUsd || []
-				const tokens = chainTvls[section].tokens || []
+				const tokensInUsd = Object.fromEntries(
+					chainTvls[section]?.tokensInUsd?.map(({ date, tokens }) => [date, tokens]) ?? []
+				)
+				const tokens = Object.fromEntries(chainTvls[section]?.tokens?.map(({ date, tokens }) => [date, tokens]) ?? [])
 
-				for (let i = 1; i < tokensInUsd.length; i++) {
+				let prevDate = null
+
+				for (const date in tokensInUsd) {
 					let dayDifference = 0
 					let tokenDayDifference = {}
 
-					for (const token in tokensInUsd[i]?.tokens) {
-						const price = tokensInUsd[i].tokens[token] / tokens[i]?.tokens[token]
-						const diff = (tokens[i]?.tokens[token] ?? 0) - (tokens[i - 1]?.tokens[token] ?? 0)
-						const diffUsd = price * diff
+					for (const token in tokensInUsd[date]) {
+						const price = tokens[date][token]
+							? Number((tokensInUsd[date][token] / tokens[date][token]).toFixed(4))
+							: null
+						const diff =
+							tokens[date][token] && prevDate && tokens[prevDate][token]
+								? tokens[date][token] - tokens[prevDate][token]
+								: null
 
-						if (!Number.isNaN(diffUsd) && isFinite(price)) {
+						const diffUsd = price && diff ? price * diff : null
+
+						if (diffUsd && !Number.isNaN(diffUsd) && isFinite(price)) {
 							// Show only top 10 inflow tokens of the day, add remaining inlfows under "Others" category
 							if (tokensUnique.includes(token)) {
 								tokenDayDifference[token] = (tokenDayDifference[token] || 0) + diffUsd
@@ -128,8 +138,6 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 						zeroTokenInfows++
 					}
 
-					const date = tokensInUsd[i].date
-
 					usdInflows[date] = (usdInflows[date] || 0) + dayDifference
 
 					if (!tokenInflows[date]) {
@@ -143,6 +151,8 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 					}
 
 					tokenInflows[date] = { ...tokenInflows[date], ...tokenDayDifference }
+
+					prevDate = date
 				}
 			}
 		}
