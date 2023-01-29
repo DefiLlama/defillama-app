@@ -113,7 +113,7 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 							: null
 						const diff =
 							tokens[date][token] && prevDate && tokens[prevDate][token]
-								? (tokens[date][token] ?? 0) - (tokens[prevDate][token] ?? 0)
+								? tokens[date][token] - tokens[prevDate][token]
 								: null
 
 						const diffUsd = price && diff ? price * diff : null
