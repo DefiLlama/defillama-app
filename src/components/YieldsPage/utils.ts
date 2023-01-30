@@ -118,7 +118,8 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 		const poolsPairs = collatteralPools.map((collatteralPool) => ({
 			...collatteralPool,
 			chains: [collatteralPool.chain],
-			borrow: pool
+			borrow: pool,
+			ltv: collatteralPool.project === 'euler' ? collatteralPool.ltv * pool.borrowFactor : collatteralPool.ltv
 		}))
 
 		return acc.concat(poolsPairs)
@@ -181,7 +182,8 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 		const poolsPairs = collatteralPools.map((collatteralPool) => ({
 			...collatteralPool,
 			chains: [collatteralPool.chain],
-			borrow: pool
+			borrow: pool,
+			ltv: collatteralPool.project === 'euler' ? collatteralPool.ltv * pool.borrowFactor : collatteralPool.ltv
 		}))
 
 		return acc.concat(poolsPairs)
