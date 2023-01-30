@@ -185,10 +185,11 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<CustomLink href={`/yields/pool/${configID}`} target="_blank">
 					<ImageWithFallback
-						src={`https://yield-charts.onrender.com/yield-chart/${configID}`}
+						src={`https://yield-charts.llamao.fi/yield-chart/${configID}`}
 						alt=""
 						width={90}
 						height={30}
+						unoptimized
 					/>
 				</CustomLink>
 			)
