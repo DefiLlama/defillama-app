@@ -65,7 +65,7 @@ const nextConfig = {
 		]
 	},
 	images: {
-		domains: ['icons.llama.fi', 'assets.coingecko.com', 'yield-charts.llamao.fi', 'icons.llamao.fi']
+		domains: ['icons.llama.fi', 'assets.coingecko.com', 'yield-charts.llama.fi', 'icons.llamao.fi']
 	},
 	compiler: {
 		styledComponents: true
