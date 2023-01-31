@@ -476,7 +476,7 @@ function ProtocolContainer({
 						</FlexRow>
 					)}
 
-					{forkedFrom && (
+					{forkedFrom && forkedFrom.length > 0 && (
 						<FlexRow>
 							<span>Forked from</span>
 							<span>:</span>
