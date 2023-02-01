@@ -47,7 +47,13 @@ export function DefiWatchlistContainer({ protocolsDict }) {
 
 			<Row sx={{ gap: '1rem', margin: '12px 0 -20px' }}>
 				<TYPE.main>Current portfolio:</TYPE.main>
-				<Menu name={selectedPortfolio} options={portfolios} onItemClick={(value) => setSelectedPortfolio(value)} />
+				<Menu
+					name={selectedPortfolio.length > 100 ? selectedPortfolio.substring(0, 100) + '...' : selectedPortfolio}
+					options={portfolios.map(function (portfolio) {
+						return portfolio.length > 100 ? portfolio.substring(0, 100) + '...' : portfolio
+					})}
+					onItemClick={(value) => setSelectedPortfolio(value)}
+				/>
 				<Action onClick={addPortfolio}>
 					<FolderPlus />
 				</Action>
