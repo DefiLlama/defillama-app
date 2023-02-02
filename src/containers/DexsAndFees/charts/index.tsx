@@ -87,7 +87,7 @@ const ChartByType: React.FC<IChartByType> = (props) => {
 			dataChart: [chartData, legend] as [IJoin2ReturnType, string[]],
 			title: title
 		}
-	}, [protocolSummary?.totalDataChart, protocolSummary?.totalDataChartBreakdown, enableBreakdownChart, typeSimple])
+	}, [protocolSummary, enableBreakdownChart, typeSimple])
 
 	return !error &&
 		(mainChart.dataChart?.[0]?.length > 0 || protocolSummary?.totalDataChartBreakdown?.[0]?.length > 0) ? (

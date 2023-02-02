@@ -10,7 +10,10 @@ import { capitalizeFirstLetter } from '~/utils'
 export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 	params
 }: GetStaticPropsContext<{ type: string; chain: string }>) => {
-	const data = await getChainPageData(params.type, params.chain)
+	const data = await getChainPageData(params.type, params.chain).catch((e) =>
+		console.info(`Chain page data not found ${params.type} ${params.chain}`, e)
+	)
+	if (!data || !data.protocols || data.protocols.length <= 0) return { notFound: true }
 	return {
 		props: {
 			...data,

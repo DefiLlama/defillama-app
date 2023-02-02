@@ -391,7 +391,7 @@ export function useChartInterval(): [string, (interval: string) => void] {
 		(value) => {
 			updateKey(DIMENSIONS_CHART_INTERVAL_KEY, value)
 		},
-		[updateKey, chartInterval]
+		[updateKey]
 	)
 	return [chartInterval, changeChartInterval]
 }
