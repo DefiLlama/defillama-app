@@ -489,45 +489,45 @@ export const cexColumn: ColumnDef<any>[] = [
 			headerHelperText: 'TVL of the CEX excluding all assets issued by itself, such as their own token'
 		}
 	},
-	{
-		header: '24h Inflows',
-		accessorKey: '24hInflows',
-		size: 104,
-		cell: (info) => (
-			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
-				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
-			</InflowOutflow>
-		),
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '7d Inflows',
-		accessorKey: '7dInflows',
-		size: 104,
-		cell: (info) => (
-			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
-				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
-			</InflowOutflow>
-		),
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '1m Inflows',
-		accessorKey: '1mInflows',
-		size: 104,
-		cell: (info) => (
-			<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
-				{info.getValue() ? formatCexInflows(info.getValue()) : ''}
-			</InflowOutflow>
-		),
-		meta: {
-			align: 'end'
-		}
-	},
+	// {
+	// 	header: '24h Inflows',
+	// 	accessorKey: '24hInflows',
+	// 	size: 104,
+	// 	cell: (info) => (
+	// 		<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
+	// 			{info.getValue() ? formatCexInflows(info.getValue()) : ''}
+	// 		</InflowOutflow>
+	// 	),
+	// 	meta: {
+	// 		align: 'end'
+	// 	}
+	// },
+	// {
+	// 	header: '7d Inflows',
+	// 	accessorKey: '7dInflows',
+	// 	size: 104,
+	// 	cell: (info) => (
+	// 		<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
+	// 			{info.getValue() ? formatCexInflows(info.getValue()) : ''}
+	// 		</InflowOutflow>
+	// 	),
+	// 	meta: {
+	// 		align: 'end'
+	// 	}
+	// },
+	// {
+	// 	header: '1m Inflows',
+	// 	accessorKey: '1mInflows',
+	// 	size: 104,
+	// 	cell: (info) => (
+	// 		<InflowOutflow data-variant={info.getValue() < 0 ? 'red' : info.getValue() > 0 ? 'green' : 'white'}>
+	// 			{info.getValue() ? formatCexInflows(info.getValue()) : ''}
+	// 		</InflowOutflow>
+	// 	),
+	// 	meta: {
+	// 		align: 'end'
+	// 	}
+	// },
 	{
 		header: 'Auditor',
 		accessorKey: 'auditor',
