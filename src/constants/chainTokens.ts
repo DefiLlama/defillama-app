@@ -738,6 +738,26 @@ export const chainCoingeckoIds = {
 		geckoId: 'stargaze',
 		symbol: 'STARS',
 		cmcId: '16842'
+	},
+	Comdex: {
+		geckoId: 'comdex',
+		symbol: 'CMDX',
+		cmcId: '14713'
+	},
+	Libre: {
+		geckoId: 'libre',
+		symbol: 'LIBRE',
+		cmcId: null
+	},
+	Flare: {
+		geckoId: 'flare-networks',
+		symbol: 'FLR',
+		cmcId: '4172'
+	},
+	Tlchain: {
+		geckoId: 'tlchain',
+		symbol: 'TLC',
+		cmcId: null
 	}
 }
 
