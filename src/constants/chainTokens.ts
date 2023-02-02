@@ -723,6 +723,21 @@ export const chainCoingeckoIds = {
 		geckoId: 'omax-token',
 		symbol: 'OMAX',
 		cmcId: '13916'
+	},
+	Bitindi: {
+		geckoId: 'bitindi-chain',
+		symbol: 'BNI',
+		cmcId: '22026'
+	},
+	Map: {
+		geckoId: 'marcopolo',
+		symbol: 'MAP',
+		cmcId: '4956'
+	},
+	Stargaze: {
+		geckoId: 'stargaze',
+		symbol: 'STARS',
+		cmcId: '16842'
 	}
 }
 
