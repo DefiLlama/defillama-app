@@ -13,7 +13,7 @@ export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 	const data = await getChainPageData(params.type, params.chain).catch((e) =>
 		console.info(`Chain page data not found ${params.type} ${params.chain}`, e)
 	)
-	if (!data) return { notFound: true }
+	if (!data || !data.protocols || data.protocols.length <= 0) return { notFound: true }
 	return {
 		props: {
 			...data,

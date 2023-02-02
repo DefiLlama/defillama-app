@@ -17,7 +17,7 @@ const getStaticProps: GetStaticProps<PageParams> = async ({
 	const data = await getOverviewItemPageData(params.type, params.item).catch((e) =>
 		console.info(`Item page data not found ${params.type} ${params.item}`, e)
 	)
-	if (!data) return { notFound: true }
+	if (!data || !data.name) return { notFound: true }
 	return {
 		props: {
 			protocolSummary: {
