@@ -42,7 +42,7 @@ export default function Protocols({ protocols }) {
 				better access and security
 			</Announcement>
 
-			<InputField state={combobox} placeholder="Search..." autoFocus />
+			<InputField state={combobox} hideIcon={true} placeholder="Search..." autoFocus />
 			<Popover state={combobox} data={protocols} loading={false} onItemClick={onItemClick} />
 		</Layout>
 	)
