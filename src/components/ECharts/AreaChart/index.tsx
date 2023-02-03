@@ -244,7 +244,14 @@ export default function AreaChart({
 			dataZoom: [...dataZoom],
 			series
 		})
-
+		chartInstance.on('dataZoom', function () {
+			const option = chartInstance.getOption()
+			const dataZoom = option.dataZoom[0]
+			const start = Math.floor(dataZoom.startValue)
+			const end = Math.floor(dataZoom.endValue)
+			console.log(start, end)
+			return { startValue: start, endValue: end }
+		})
 		function resize() {
 			chartInstance.resize()
 		}

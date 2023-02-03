@@ -832,3 +832,28 @@ export async function getROIData() {
 		}
 	}
 }
+
+export async function getReturnData() {
+	const coinsApi = 'https://coins.llama.fi'
+
+	// note: going to hardcode this to 5 token only for testing with a max lookback
+	// of 3months (having issues with the api...)
+
+	// - get start timestamp
+	// const id = 'coingecko:avalanche-2'
+	// const start = (await fetch(`${coinsApi}/prices/first/${id}`).then((r) => r.json())).coins[id].timestamp
+	const start = 1667291547
+	const span = Math.floor((Date.now() - start * 1000) / (86400 * 1000))
+	const period = '1d'
+	const searchWidth = 600
+
+	const coins = ['bitcoin', 'ethereum', 'avalanche-2', 'matic-network', 'dydx'].map((t) => `coingecko:${t}`).join(',')
+	const historyUrl = `${coinsApi}/chart/${coins}?start=${start}&span=${span}&period=${period}&searchWidth=${searchWidth}`
+	const history = await fetch(historyUrl).then((r) => r.json())
+
+	return {
+		props: {
+			priceData: history
+		}
+	}
+}
