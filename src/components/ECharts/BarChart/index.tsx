@@ -65,12 +65,12 @@ export default function BarChart({
 				itemStyle: {
 					color: chartColor
 				},
-				data: []
+				data: chartData.map((i) => i[1])
 			}
 
-			chartData.forEach(([date, value]) => {
-				series.data.push([getUtcDateObject(date), value])
-			})
+			// chartData.forEach(([date, value]) => {
+			// 	series.data.push([getUtcDateObject(date), value])
+			// })
 
 			return series
 		} else {
@@ -100,11 +100,12 @@ export default function BarChart({
 				}
 			})
 
-			chartData.forEach(({ date, ...item }) => {
-				selectedStacks.forEach((stack) => {
-					series.find((t) => t.name === stack)?.data.push([getUtcDateObject(date), item[stack] || 0])
-				})
-			})
+			// chartData.forEach(({ date, ...item }) => {
+			// 	selectedStacks.forEach((stack) => {
+			// 		series.find((t) => t.name === stack)?.data.push([getUtcDateObject(date), item[stack] || 0])
+			// 		// series.find((t) => t.name === stack)?.data.push([item[stack] || 0])
+			// 	})
+			// })
 
 			return series
 		}

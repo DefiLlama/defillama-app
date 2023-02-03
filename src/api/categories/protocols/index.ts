@@ -26,6 +26,7 @@ import {
 } from '~/api/categories/adaptors'
 import { getPeggedAssets } from '../stablecoins'
 import { formatProtocolsList } from '~/hooks/data/defi'
+import { stringify } from 'querystring'
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
@@ -732,6 +733,102 @@ export async function getLSDPageData() {
 		console.log(e)
 		return {
 			notFound: true
+		}
+	}
+}
+
+export async function getROIData() {
+	const dateNow = Math.floor(Date.now() / 1000)
+	const secPerDay = 60 * 60 * 24
+	const date1d = dateNow - secPerDay
+	const date7d = dateNow - secPerDay * 7
+	const date30d = dateNow - secPerDay * 30
+
+	const dates = [dateNow, date1d, date7d, date30d]
+
+	const url = 'https://coins.llama.fi/batchHistorical'
+
+	// top 1k cg tokens
+	const tokenList = (await fetch('https://api.llama.fi/sortedTokenlist?a').then((r) => r.json())).map(
+		(t) => `coingecko:${t.id}`
+	)
+
+	// pull prices
+	const size = 80
+	const pages = Math.ceil(tokenList.length / size)
+
+	const prices = await Promise.all(
+		[...Array(pages)].map(async (p, i) => {
+			const tokens = tokenList.slice(i * size, size * (i + 1))
+
+			const query = tokens.reduce((acc, t) => {
+				acc[t] = dates
+				return acc
+			}, {})
+
+			const queryString = stringify({
+				coins: JSON.stringify(query),
+				searchWidth: 600
+			})
+
+			return (await fetch(`${url}?${queryString}`).then((r) => r.json())).coins
+		})
+	)
+	// pull btc and eth separately
+	const queryStringBtcEth = stringify({
+		coins: JSON.stringify({ 'coingecko:bitcoin': dates, 'coingecko:ethereum': dates }),
+		searchWidth: 600
+	})
+	const pricesBtcEth = (await fetch(`${url}?${queryStringBtcEth}`).then((r) => r.json())).coins
+
+	// flatten
+	const data = { ...pricesBtcEth, ...Object.assign({}, ...prices.flat()) }
+
+	const [btc, eth] = [data['coingecko:bitcoin']?.prices, data['coingecko:ethereum']?.prices].map((p) =>
+		p?.sort((a, b) => b.timestamp - a.timestamp)
+	)
+	const [btcNow, ethNow] = [btc[0]?.price, eth[0]?.price]
+
+	const res = Object.values(data).map(({ prices, symbol }) => {
+		const sortedPrices = prices.sort((a, b) => b.timestamp - a.timestamp)
+		const priceNow = sortedPrices[0]?.price
+
+		const [usdDeltas, btcDeltas, ethDeltas] = [[], [], []]
+
+		for (let i = 0; i < sortedPrices.length - 1; i++) {
+			const priceOld = sortedPrices[i + 1]?.price
+			const usdDelta = ((priceNow - priceOld) / priceOld) * 100
+
+			const btcRatioOld = priceOld / btc[i + 1]?.price
+			const btcRatioNow = priceNow / btcNow
+			const btcDelta = ((btcRatioNow - btcRatioOld) / btcRatioOld) * 100
+
+			const ethRatioOld = priceOld / eth[i + 1]?.price
+			const ethRatioNow = priceNow / ethNow
+			const ethDelta = ((ethRatioNow - ethRatioOld) / ethRatioOld) * 100
+
+			usdDeltas.push(usdDelta)
+			btcDeltas.push(btcDelta)
+			ethDeltas.push(ethDelta)
+		}
+
+		return {
+			symbol,
+			usd1d: usdDeltas[0] ?? null,
+			usd7d: usdDeltas[1] ?? null,
+			usd30d: usdDeltas[2] ?? null,
+			btc1d: btcDeltas[0] ?? null,
+			btc7d: btcDeltas[1] ?? null,
+			btc30d: btcDeltas[2] ?? null,
+			eth1d: ethDeltas[0] ?? null,
+			eth7d: ethDeltas[1] ?? null,
+			eth30d: ethDeltas[2] ?? null
+		}
+	})
+
+	return {
+		props: {
+			priceData: res
 		}
 	}
 }

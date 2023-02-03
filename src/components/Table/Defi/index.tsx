@@ -16,9 +16,10 @@ import {
 	chainsTableColumnOrders,
 	forksColumn,
 	oraclesColumn,
-	LSDColumn
+	LSDColumn,
+	ROIColumn
 } from './columns'
-import type { IOraclesRow, IForksRow, ICategoryRow, IChainsRow, ILSDRow } from './types'
+import type { IOraclesRow, IForksRow, ICategoryRow, IChainsRow, ILSDRow, IROIRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
 
 export default function DefiProtocolsTable({ data, columns }) {
@@ -53,6 +54,7 @@ export const ProtocolsCategoriesTable = ({ data }: { data: Array<ICategoryRow> }
 )
 
 export const LSDTable = ({ data }: { data: Array<ILSDRow> }) => <DefiProtocolsTable data={data} columns={LSDColumn} />
+export const ROITable = ({ data }: { data: Array<IROIRow> }) => <DefiProtocolsTable data={data} columns={ROIColumn} />
 
 export function DefiChainsTable({ data }) {
 	const [sorting, setSorting] = React.useState<SortingState>([])
