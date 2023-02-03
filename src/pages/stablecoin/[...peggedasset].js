@@ -5,13 +5,14 @@ import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { getPeggedAssetPageData, getPeggedAssets } from '~/api/categories/stablecoins'
 import { primaryColor } from '~/constants/colors'
+import { withErrorLogging } from '~/utils/async'
 
 export async function getStaticProps({
 	params: {
 		peggedasset: [peggedasset]
 	}
 }) {
-	const data = await getPeggedAssetPageData(peggedasset)
+	const data = await withErrorLogging(getPeggedAssetPageData)(peggedasset)
 	const { chainsUnique, chainCirculatings, peggedAssetData, totalCirculating, unreleased, mcap, bridgeInfo } =
 		data.props
 
