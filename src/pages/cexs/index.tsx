@@ -282,7 +282,14 @@ const cexData = [
 		name: 'BTCC',
 		cgID: 'btcc',
 		cgDeriv: 'btcc_futures'
-	}
+	},
+	{
+		name: 'BitVenus'
+	},
+	{
+		name: 'Deepcoin',
+		cgId: 'deepcoin'
+	},
 ]
 
 const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
