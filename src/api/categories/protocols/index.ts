@@ -26,7 +26,7 @@ import {
 } from '~/api/categories/adaptors'
 import { getPeggedAssets } from '../stablecoins'
 import { formatProtocolsList } from '~/hooks/data/defi'
-import { withErrorLogging } from '~/utils/async'
+import { fetchWithThrows, withErrorLogging } from '~/utils/async'
 
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
@@ -168,7 +168,7 @@ const getExtraTvlCharts = (data) => {
 export async function getChainPageData(chain?: string) {
 	const [chartData, { protocols, chains, parentProtocols }] = await Promise.all(
 		[CHART_API + (chain ? '/' + chain : ''), PROTOCOLS_API].map((url) =>
-			withErrorLogging(fetch, 'getChainPageData')(url).then((r) => r.json())
+			withErrorLogging(fetchWithThrows, 'getChainPageData')(url).then((r) => r.json())
 		)
 	)
 
