@@ -19,7 +19,7 @@ import {
 } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
-import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow, ILSDRow } from './types'
+import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow, ILSDRow, IROIRow } from './types'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -779,6 +779,106 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 			align: 'end'
 		},
 		size: 90
+	}
+]
+
+export const ROIColumn: ColumnDef<IROIRow>[] = [
+	{
+		header: 'Coin',
+		accessorKey: 'symbol',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					{getValue()}
+				</Name>
+			)
+		},
+		size: 280
+	},
+	{
+		header: '1d USD',
+		accessorKey: 'usd1d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '7d USD',
+		accessorKey: 'usd7d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '30d USD',
+		accessorKey: 'usd30d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '1d ETH',
+		accessorKey: 'eth1d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '7d ETH',
+		accessorKey: 'eth7d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '30d ETH',
+		accessorKey: 'eth30d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '1d BTC',
+		accessorKey: 'btc1d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '7d BTC',
+		accessorKey: 'btc7d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '30d BTC',
+		accessorKey: 'btc30d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
 	}
 ]
 

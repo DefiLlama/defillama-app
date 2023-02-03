@@ -44,3 +44,11 @@ export interface ILSDRow {
 	logo: string
 	mcap: number
 }
+
+export interface IROIRow {
+	symbol: string
+	usd7d: number
+	btc7d: number
+	eth7d: number
+	logo: string
+}
