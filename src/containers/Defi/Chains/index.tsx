@@ -77,35 +77,34 @@ export default function ChainsContainer({
 }) {
 	const [extraTvlsEnabled] = useDefiManager()
 
-	const { dataByChain, pieChartData, chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } =
-		React.useMemo(() => {
-			// add extra tvls like staking pool2 based on toggles selected
-			const dataByChain = formatDataWithExtraTvls({ data: chainTvls, applyLqAndDc: true, extraTvlsEnabled })
+	const { dataByChain, pieChartData, chainsWithExtraTvlsAndDominanceByDay } = React.useMemo(() => {
+		// add extra tvls like staking pool2 based on toggles selected
+		const dataByChain = formatDataWithExtraTvls({ data: chainTvls, applyLqAndDc: true, extraTvlsEnabled })
 
-			// format chains data to use in pie chart
-			const onlyChainTvls = dataByChain.map((chain) => ({
-				name: chain.name,
-				value: chain.tvl
-			}))
+		// format chains data to use in pie chart
+		const onlyChainTvls = dataByChain.map((chain) => ({
+			name: chain.name,
+			value: chain.tvl
+		}))
 
-			const chainsWithLowTvls = onlyChainTvls.slice(10).reduce((total, entry) => {
-				return (total += entry.value)
-			}, 0)
+		const chainsWithLowTvls = onlyChainTvls.slice(10).reduce((total, entry) => {
+			return (total += entry.value)
+		}, 0)
 
-			// limit chains in pie chart to 10 and remaining chains in others
-			const pieChartData = onlyChainTvls
-				.slice(0, 10)
-				.sort((a, b) => b.value - a.value)
-				.concat({ name: 'Others', value: chainsWithLowTvls })
+		// limit chains in pie chart to 10 and remaining chains in others
+		const pieChartData = onlyChainTvls
+			.slice(0, 10)
+			.sort((a, b) => b.value - a.value)
+			.concat({ name: 'Others', value: chainsWithLowTvls })
 
-			const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = groupDataWithTvlsByDay({
-				chains: stackedDataset,
-				tvlTypes,
-				extraTvlsEnabled
-			})
+		const { chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay } = groupDataWithTvlsByDay({
+			chains: stackedDataset,
+			tvlTypes,
+			extraTvlsEnabled
+		})
 
-			return { dataByChain, pieChartData, chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay }
-		}, [chainTvls, extraTvlsEnabled, stackedDataset, tvlTypes])
+		return { dataByChain, pieChartData, chainsWithExtraTvlsByDay, chainsWithExtraTvlsAndDominanceByDay }
+	}, [chainTvls, extraTvlsEnabled, stackedDataset, tvlTypes])
 
 	const downloadCsv = async () => {
 		window.alert('Data download might take up to 1 minute, click OK to proceed')

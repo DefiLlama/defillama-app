@@ -4,7 +4,6 @@ import { Box } from 'rebass/styled-components'
 import Layout from '~/layout'
 import { Header } from '~/Theme'
 import SEO from '~/components/SEO'
-import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
 import { NftMarketplacesTable } from '~/components/Table'
 import { getRandomColor } from '~/utils'
 import { maxAgeForNext } from '~/api'
@@ -83,7 +82,7 @@ const MarketplacesView = ({ marketplaceData, currentData, marketplacesUnique, st
 			<Header>Total Volume All Marketplaces</Header>
 
 			<ChartsWrapper>
-				<ChainPieChart data={currentData} chainColor={marketplaceColor} />
+				{/* <ChainPieChart data={currentData} chainColor={marketplaceColor} />
 				<ChainDominanceChart
 					stackOffset="expand"
 					formatPercent={true}
@@ -91,7 +90,7 @@ const MarketplacesView = ({ marketplaceData, currentData, marketplacesUnique, st
 					chainsUnique={marketplacesUnique}
 					chainColor={marketplaceColor}
 					daySum={daySum}
-				/>
+				/> */}
 			</ChartsWrapper>
 
 			<NftMarketplacesTable data={marketplaceData} />

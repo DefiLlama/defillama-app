@@ -8,14 +8,11 @@ import { BridgesSearch } from '~/components/Search'
 import { OptionButton } from '~/components/ButtonStyled'
 import TokenLogo from '~/components/TokenLogo'
 import { AutoRow, RowBetween } from '~/components/Row'
-import { PeggedChainResponsivePie } from '~/components/Charts'
 import FormattedName from '~/components/FormattedName'
 import SEO from '~/components/SEO'
-
-import { useXl, useMed } from '~/hooks/useBreakpoints'
 import { BRIDGES_SHOWING_ADDRESSES, useBridgesManager } from '~/contexts/LocalStorage'
 import { getRandomColor, formattedNum, getPercentChange } from '~/utils'
-import type { IBarChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { BridgeTokensTable, BridgeAddressesTable } from '~/components/Table'
 import { AddressesTableSwitch } from '~/components/BridgesPage/TableSwitch'
 import { DailyBridgeStats } from '~/api/categories/bridges/utils'
@@ -24,6 +21,10 @@ import { BridgeChainSelector } from '~/components/BridgesPage/BridgeChainSelecto
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
 
 const TableNoticeWrapper = styled.div`
 	margin-top: -2rem;
@@ -54,12 +55,8 @@ export default function BridgeContainer({
 	const [bridgesSettings] = useBridgesManager()
 	const isBridgesShowingAddresses = bridgesSettings[BRIDGES_SHOWING_ADDRESSES]
 
-	const belowMed = useMed()
-	const belowXl = useXl()
-	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
-
 	// can refactor, make some functions here
-	const { tokensTableData, addressesTableData, tokenDeposits, tokenWithdrawals, tokenColor } = React.useMemo(() => {
+	const { tokensTableData, addressesTableData, tokenDeposits, tokenWithdrawals } = React.useMemo(() => {
 		const chartIndex = chainToChartDataIndex[currentChain]
 		const prevDayData: DailyBridgeStats = prevDayDataByChain[chartIndex]
 		let tokensTableData = [],
@@ -176,8 +173,8 @@ export default function BridgeContainer({
 		const volumeChartData = chainChartData.map((entry) => {
 			return {
 				date: entry.date,
-				'Deposited': entry.withdrawUSD,
-				'Withdrawn': -entry.depositUSD
+				Deposited: entry.withdrawUSD,
+				Withdrawn: -entry.depositUSD
 			}
 		})
 
@@ -250,7 +247,7 @@ export default function BridgeContainer({
 						minHeight: '460px'
 					}}
 				>
-					<RowBetween my={useMed ? 20 : 0} mx={useMed ? 10 : 0} align="flex-start">
+					<RowBetween m="8px">
 						<AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
 							<OptionButton active={chartType === 'Inflows'} onClick={() => setChartType('Inflows')}>
 								Inflows
@@ -275,10 +272,10 @@ export default function BridgeContainer({
 						/>
 					)}
 					{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 && (
-						<PeggedChainResponsivePie data={tokenWithdrawals} chainColor={tokenColor} aspect={aspect} />
+						<PieChart chartData={tokenWithdrawals} />
 					)}
 					{chartType === 'Tokens From' && tokenDeposits && tokenDeposits.length > 0 && (
-						<PeggedChainResponsivePie data={tokenDeposits} chainColor={tokenColor} aspect={aspect} />
+						<PieChart chartData={tokenDeposits} />
 					)}
 				</div>
 			</StatsSection>

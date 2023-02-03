@@ -1,7 +1,0 @@
-export { ChainPieChart } from './PieChart'
-export { ChainDominanceChart } from './DominanceChart'
-export { PeggedChainPieChart } from './PeggedPieChart'
-export { PeggedChainResponsivePie } from './PeggedPieChart'
-export { PeggedChainDominanceChart } from './PeggedDominanceChart'
-export { PeggedChainResponsiveDominance } from './PeggedDominanceChart'
-export { AreaChart } from './AreaChart'

@@ -157,6 +157,7 @@ export async function getPeggedChainsPageData() {
 						return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
 					} catch (e) {}
 				}
+
 				throw new Error(`${CHART_API}/${elem} is broken`)
 			} else return null
 		})
