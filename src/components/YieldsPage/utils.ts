@@ -357,7 +357,9 @@ export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 		)
 	})
 	// filter FR data to positive funding rates only (longs pay shorts -> open short position and earn FR)
-	const perpsData = perps.filter((p) => tokensToInclude?.some((t) => t.includes(p.symbol)) && p.fundingRate > 0)
+	const perpsData = perps.filter(
+		(p) => tokensToInclude?.some((t) => t.includes(p.symbol)) && p.fundingRate > 0 && p.baseAsset !== 'T'
+	)
 
 	const finalPools = []
 	for (const pool of pools) {
