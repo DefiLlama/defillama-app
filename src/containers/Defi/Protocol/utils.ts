@@ -108,11 +108,12 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 					let tokenDayDifference = {}
 
 					for (const token in tokensInUsd[date]) {
-						const price = tokens[date][token]
+						const price = tokens[date]?.[token]
 							? Number((tokensInUsd[date][token] / tokens[date][token]).toFixed(4))
 							: null
+
 						const diff =
-							tokens[date][token] && prevDate && tokens[prevDate][token]
+							tokens[date]?.[token] && prevDate && tokens[prevDate]?.[token]
 								? tokens[date][token] - tokens[prevDate][token]
 								: null
 
