@@ -235,8 +235,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 							height={18}
 							unoptimized
 							style={{ marginRight: '0.25rem', display: 'inline' }}
-						/>{' '}
-				<span>
+						/>{'  '}
 				<Link href={`https://dlnews.com/`}>
 					<a>
 						DLNews<ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
