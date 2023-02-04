@@ -27,6 +27,7 @@ export default function AreaChart({
 	chartOptions,
 	height = '360px',
 	expandTo100Percent = false,
+	onChartDataZoom,
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
@@ -241,17 +242,19 @@ export default function AreaChart({
 					  }
 					: {})
 			},
-			dataZoom: [...dataZoom],
-			series
+			dataZoom: [...dataZoom]
 		})
-		chartInstance.on('dataZoom', function () {
-			const option = chartInstance.getOption()
-			const dataZoom = option.dataZoom[0]
-			const start = Math.floor(dataZoom.startValue)
-			const end = Math.floor(dataZoom.endValue)
-			console.log(start, end)
-			return { startValue: start, endValue: end }
-		})
+		if (onChartDataZoom) {
+			chartInstance.on('dataZoom', function () {
+				const option = chartInstance.getOption()
+				const dataZoom = option.dataZoom[0]
+				const start = Math.floor(dataZoom.startValue / 1000)
+				const end = Math.floor(dataZoom.endValue / 1000)
+
+				onChartDataZoom(start, end)
+			})
+		}
+
 		function resize() {
 			chartInstance.resize()
 		}
@@ -262,7 +265,13 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent])
+	}, [createInstance, defaultChartSettings, chartOptions, expandTo100Percent])
+
+	useEffect(() => {
+		// create instance
+		const chartInstance = createInstance()
+		chartInstance.setOption({ series })
+	}, [createInstance, series])
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categorie' : customLegendName
 

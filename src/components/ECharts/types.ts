@@ -24,6 +24,7 @@ export interface IChartProps {
 		[stack: string]: string
 	}
 	expandTo100Percent?: boolean
+	onChartDataZoom?: (start: number, end: number) => void
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {

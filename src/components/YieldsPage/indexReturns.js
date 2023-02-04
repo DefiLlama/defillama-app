@@ -1,37 +1,48 @@
 import * as React from 'react'
 import { Panel } from '~/components'
-
 import dynamic from 'next/dynamic'
-
 import { Name, Symbol, DetailsTable, ChartWrapper } from '~/layout/ProtocolAndPool'
 import { PoolDetails } from '~/layout/Pool'
 import { StatsSection } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
 import styled from 'styled-components'
-import { useRouter } from 'next/router'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false,
 	loading: () => <></>
 })
 
-const ReturnsPage = ({ priceData }) => {
-	const { query } = useRouter()
-	const prices = query.coin ? priceData.coins[`coingecko:${query.coin}`]?.prices : []
+const ReturnsPage = ({ prices }) => {
+	const [pricesStartAndEnd, setPricesStartAndEnd] = React.useState([prices[0]?.price, prices.slice(-1)[0]?.price])
 
-	const priceStart = prices[0]?.price
-	const priceNow = prices.slice(-1)[0]?.price
+	const [priceStart, priceNow] = pricesStartAndEnd
+
 	const price1d = prices.slice(-2, -1)[0]?.price
 	const price7d = prices.slice(-7, -6)[0]?.price
 	const price30d = prices.slice(-30, -29)[0]?.price
 
-	const return1d = ((priceNow - price1d) / price1d) * 100
-	const return7d = ((priceNow - price7d) / price7d) * 100
-	const return30d = ((priceNow - price30d) / price30d) * 100
+	const return1d = price1d && priceNow ? ((priceNow - price1d) / price1d) * 100 : null
+	const return7d = priceNow && price7d ? ((priceNow - price7d) / price7d) * 100 : null
+	const return30d = priceNow && price30d ? ((priceNow - price30d) / price30d) * 100 : null
 
 	const returnInception = ((priceNow - priceStart) / priceStart) * 100
 
 	const finalChart = prices.map((i) => [i.timestamp, i.price])
+
+	const id = React.useRef()
+
+	const onChartDataZoom = (start, end) => {
+		if (id.current) {
+			clearTimeout(id.current)
+		}
+
+		id.current = setTimeout(() => {
+			const pStart = finalChart.find((x) => x[0] >= start)?.[1]
+			const pEnd = finalChart.findLast((x) => x[0] <= end)?.[1]
+
+			setPricesStartAndEnd([pStart, pEnd])
+		}, 300)
+	}
 
 	return (
 		<>
@@ -48,14 +59,18 @@ const ReturnsPage = ({ priceData }) => {
 
 					<Stat>
 						<span>Return</span>
-						<span style={{ color: returnInception > 0 ? 'green' : 'red' }}>{returnInception?.toFixed(2)}%</span>
+						{returnInception ? (
+							<span style={{ color: returnInception > 0 ? 'green' : 'red' }}>{returnInception?.toFixed(2)}%</span>
+						) : (
+							<span style={{ height: '3rem' }}></span>
+						)}
 					</Stat>
 
 					<TableWrapper>
 						<tbody>
 							<tr>
 								<th>1d:</th>
-								<td style={{ color: return1d > 0 ? 'green' : 'red' }}>{return1d?.toFixed(2)}%</td>
+								{return1d && <td style={{ color: return1d > 0 ? 'green' : 'red' }}>{return1d?.toFixed(2)}%</td>}
 							</tr>
 
 							<tr data-divider>
@@ -64,7 +79,7 @@ const ReturnsPage = ({ priceData }) => {
 
 							<tr>
 								<th>7d:</th>
-								<td style={{ color: return7d > 0 ? 'green' : 'red' }}>{return7d?.toFixed(2)}%</td>
+								{return7d && <td style={{ color: return7d > 0 ? 'green' : 'red' }}>{return7d?.toFixed(2)}%</td>}
 							</tr>
 
 							<tr data-divider>
@@ -73,14 +88,20 @@ const ReturnsPage = ({ priceData }) => {
 
 							<tr>
 								<th>30d:</th>
-								<td style={{ color: return30d > 0 ? 'green' : 'red' }}>{return30d?.toFixed(2)}%</td>
+								{return30d && <td style={{ color: return30d > 0 ? 'green' : 'red' }}>{return30d?.toFixed(2)}%</td>}
 							</tr>
 						</tbody>
 					</TableWrapper>
 				</PoolDetails>
 
 				<ChartWrapper style={{ position: 'relative' }}>
-					<AreaChart title="Price" chartData={finalChart} color={'gray'} valueSymbol={'$'} />
+					<AreaChart
+						title="Price"
+						chartData={finalChart}
+						color={'gray'}
+						valueSymbol={'$'}
+						onChartDataZoom={onChartDataZoom}
+					/>
 				</ChartWrapper>
 			</StatsSection>
 		</>
