@@ -11,9 +11,8 @@ import {
 	DownloadIcon
 } from '~/components'
 import { Header } from '~/Theme'
-import { PeggedChainResponsivePie } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
-import type { IBarChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import type { IStackedBarChartProps } from '~/components/ECharts/BarChart/Stacked'
 import { BridgesSearchWithBreakdown } from '../Search/Bridges'
 import { ChartSelector } from '~/components/BridgesPage/.'
@@ -21,8 +20,7 @@ import { BridgesTable } from '~/components/Table'
 import { LargeTxsTable } from './LargeTxsTable'
 import { TxsTableSwitch } from '../BridgesPage/TableSwitch'
 import { useBuildBridgeChartData } from '~/utils/bridges'
-import { useXl, useMed } from '~/hooks/useBreakpoints'
-import { getRandomColor, formattedNum, getPrevVolumeFromChart, download, toNiceCsvDate } from '~/utils'
+import { formattedNum, getPrevVolumeFromChart, download, toNiceCsvDate } from '~/utils'
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -31,6 +29,10 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false
 }) as React.FC<IStackedBarChartProps>
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -58,10 +60,6 @@ function BridgesOverview({
 	const chartTypeList =
 		selectedChain === 'All' ? ['Volumes'] : ['Net Flow', 'Inflows', '24h Tokens Deposited', '24h Tokens Withdrawn']
 
-	const belowMed = useMed()
-	const belowXl = useXl()
-	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
-	
 	const [bridgesSettings] = useBridgesManager()
 	const isBridgesShowingTxs = bridgesSettings[BRIDGES_SHOWING_TXS]
 
@@ -90,7 +88,10 @@ function BridgesOverview({
 				.map((name) => {
 					return {
 						name: name,
-						data: chartDates.map((date) => [new Date(parseInt(date) * 1000 + secondsOffset), unformattedChartData[date][name] ?? 0])
+						data: chartDates.map((date) => [
+							new Date(parseInt(date) * 1000 + secondsOffset),
+							unformattedChartData[date][name] ?? 0
+						])
 					}
 				})
 				.filter((chart) => chart.data.length !== 0)
@@ -142,16 +143,6 @@ function BridgesOverview({
 			})
 		download('bridge-volumes.csv', rows.map((r) => r.join(',')).join('\n'))
 	}
-
-	const tokenColor = useMemo(
-		() =>
-			Object.fromEntries(
-				[...tokenDeposits, ...tokenWithdrawals, 'Others'].map((token) => {
-					return typeof token === 'string' ? ['-', getRandomColor()] : [token.name, getRandomColor()]
-				})
-			),
-		[tokenDeposits, tokenWithdrawals]
-	)
 
 	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = useMemo(() => {
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
@@ -245,12 +236,8 @@ function BridgesOverview({
 							}
 						/>
 					)}
-					{chartType === '24h Tokens Deposited' && (
-						<PeggedChainResponsivePie data={tokenWithdrawals} chainColor={tokenColor} aspect={aspect} />
-					)}
-					{chartType === '24h Tokens Withdrawn' && (
-						<PeggedChainResponsivePie data={tokenDeposits} chainColor={tokenColor} aspect={aspect} />
-					)}
+					{chartType === '24h Tokens Deposited' && <PieChart chartData={tokenWithdrawals} />}
+					{chartType === '24h Tokens Withdrawn' && <PieChart chartData={tokenDeposits} />}
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 
@@ -260,7 +247,7 @@ function BridgesOverview({
 				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 			</RowLinksWrapper>
 
-			{isBridgesShowingTxs && <LargeTxsTable data={largeTxsData} chain={selectedChain}/>}
+			{isBridgesShowingTxs && <LargeTxsTable data={largeTxsData} chain={selectedChain} />}
 			{!isBridgesShowingTxs && <BridgesTable data={filteredBridges} />}
 		</>
 	)

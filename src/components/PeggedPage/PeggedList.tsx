@@ -3,9 +3,8 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
-import { PeggedChainResponsivePie, PeggedChainResponsiveDominance, AreaChart } from '~/components/Charts'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
-import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedSearch } from '~/components/Search'
 import { ChartSelector } from '~/components/PeggedPage/.'
 import {
@@ -25,25 +24,26 @@ import {
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
-import { useXl, useMed } from '~/hooks/useBreakpoints'
 import {
-	getRandomColor,
 	capitalizeFirstLetter,
 	formattedNum,
 	getPercentChange,
 	getPeggedDominance,
-	toNiceMonthlyDate,
 	toNiceCsvDate,
 	download
 } from '~/utils'
 
-const PeggedAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
 
 const ChartFilters = styled.div`
 	display: flex;
@@ -64,7 +64,7 @@ const Dropdowns = styled.span`
 		font-weight: 400;
 	}
 `
-
+// TODO: chart colors by stablecoins logo
 function PeggedAssetsOverview({
 	selectedChain = 'All',
 	chains = [],
@@ -81,10 +81,6 @@ function PeggedAssetsOverview({
 		selectedChain !== 'All'
 			? ['USD Inflows', 'Total Market Cap', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
 			: ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance', 'USD Inflows', 'Token Inflows']
-
-	const belowMed = useMed()
-	const belowXl = useXl()
-	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
 	const [filteredIndexes, setFilteredIndexes] = useState([])
 
@@ -185,17 +181,7 @@ function PeggedAssetsOverview({
 			.concat({ name: 'Others', value: otherCirculating })
 	}, [peggedTotals])
 
-	const chainColor = useMemo(
-		() =>
-			Object.fromEntries(
-				[...peggedTotals, 'Others'].map((peggedAsset) => {
-					return typeof peggedAsset === 'string' ? ['-', getRandomColor()] : [peggedAsset.symbol, getRandomColor()]
-				})
-			),
-		[peggedTotals]
-	)
-
-	const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
+	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
 	const downloadCsv = () => {
 		const filteredPeggedNames = peggedAssetNames.filter((name, i) => filteredIndexes.includes(i))
@@ -278,7 +264,7 @@ function PeggedAssetsOverview({
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 
 					{chartType === 'Total Market Cap' && (
-						<PeggedAreaChart
+						<AreaChart
 							title=""
 							chartData={peggedAreaTotalData}
 							stacks={totalMcapLabel}
@@ -290,29 +276,23 @@ function PeggedAssetsOverview({
 					)}
 					{chartType === 'Token Market Caps' && (
 						<AreaChart
-							aspect={aspect}
-							finalChartData={peggedAreaChartData}
-							tokensUnique={peggedAssetNames}
-							color={backgroundColor}
-							moneySymbol="$"
-							formatDate={toNiceMonthlyDate}
-							hallmarks={[]}
+							title=""
+							chartData={peggedAreaChartData}
+							stacks={peggedAssetNames}
+							valueSymbol="$"
+							hidedefaultlegend={true}
 						/>
 					)}
 					{chartType === 'Dominance' && (
-						<PeggedChainResponsiveDominance
-							stackOffset="expand"
-							formatPercent={true}
-							stackedDataset={stackedData}
-							chainsUnique={peggedAssetNames}
-							chainColor={chainColor}
-							daySum={daySum}
-							aspect={aspect}
+						<AreaChart
+							title=""
+							valueSymbol="%"
+							chartData={dataWithExtraPeggedAndDominanceByDay}
+							stacks={peggedAssetNames}
+							hidedefaultlegend={true}
 						/>
 					)}
-					{chartType === 'Pie' && (
-						<PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />
-					)}
+					{chartType === 'Pie' && <PieChart chartData={chainsCirculatingValues} />}
 					{chartType === 'Token Inflows' && tokenInflows && (
 						<BarChart
 							chartData={tokenInflows}

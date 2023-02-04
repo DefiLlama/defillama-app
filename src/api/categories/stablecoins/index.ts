@@ -12,6 +12,7 @@ import {
 	PEGGED_API
 } from '~/constants'
 import { formatPeggedAssetsData, formatPeggedChainsData } from './utils'
+import { fetchWithThrows } from '~/utils/async'
 
 export const getPeggedAssets = () =>
 	fetch(PEGGEDS_API + '?includeChains=true' + '&includePrices=true')
@@ -157,6 +158,7 @@ export async function getPeggedChainsPageData() {
 						return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
 					} catch (e) {}
 				}
+
 				throw new Error(`${CHART_API}/${elem} is broken`)
 			} else return null
 		})
@@ -256,13 +258,13 @@ export async function getPeggedChainsPageData() {
 }
 
 export const getPeggedAssetPageData = async (peggedasset: string) => {
-	const peggedNameToPeggedIDMapping = await fetch(PEGGEDCONFIG_API).then((resp) => resp.json())
+	const peggedNameToPeggedIDMapping = await fetchWithThrows(PEGGEDCONFIG_API).then((resp) => resp.json())
 	const peggedID = peggedNameToPeggedIDMapping[peggedasset]
 	const [res, { chainCoingeckoIds }] = await Promise.all(
-		[`${PEGGED_API}/${peggedID}`, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
+		[`${PEGGED_API}/${peggedID}`, CONFIG_API].map((apiEndpoint) => fetchWithThrows(apiEndpoint).then((r) => r.json()))
 	)
 
-	const peggedChart = await fetch(`${PEGGEDCHART_API}/all?stablecoin=${peggedID}`).then((resp) => resp.json())
+	const peggedChart = await fetchWithThrows(`${PEGGEDCHART_API}/all?stablecoin=${peggedID}`).then((resp) => resp.json())
 	const bridgeInfo = await getPeggedBridgeInfo()
 	const pegType = res.pegType
 

@@ -4,7 +4,6 @@ import { Box } from 'rebass/styled-components'
 import { Header } from '~/Theme'
 import Layout from '~/layout'
 import SEO from '~/components/SEO'
-import { ChainPieChart, ChainDominanceChart } from '~/components/Charts'
 import { NftChainsTable } from '~/components/Table'
 import { getRandomColor } from '~/utils'
 import { maxAgeForNext } from '~/api'
@@ -83,7 +82,7 @@ const ChainsView = ({ chainData, currentData, chainsUnique, stackedDataset, dayS
 			<Header>Total Volume All Chains</Header>
 
 			<ChartsWrapper>
-				<ChainPieChart data={currentData} chainColor={chainColor} />
+				{/* <ChainPieChart data={currentData} chainColor={chainColor} />
 				<ChainDominanceChart
 					stackOffset="expand"
 					formatPercent={true}
@@ -91,7 +90,7 @@ const ChainsView = ({ chainData, currentData, chainsUnique, stackedDataset, dayS
 					chainsUnique={chainsUnique}
 					chainColor={chainColor}
 					daySum={daySum}
-				/>
+				/> */}
 			</ChartsWrapper>
 
 			<NftChainsTable data={chainData} />

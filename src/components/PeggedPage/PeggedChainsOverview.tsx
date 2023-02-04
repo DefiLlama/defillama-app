@@ -2,30 +2,29 @@ import React, { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, DownloadButton, DownloadIcon } from '~/components'
-import { PeggedChainResponsivePie, PeggedChainResponsiveDominance } from '~/components/Charts'
-import { AreaChart } from '~/components/Charts'
 import { GroupStablecoins } from '~/components/MultiSelect'
 import { PeggedSearch } from '~/components/Search'
 import { ChartSelector } from '~/components/PeggedPage/.'
 import { PeggedChainsTable } from '~/components/Table'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
-import { useXl, useMed } from '~/hooks/useBreakpoints'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
 import {
-	getRandomColor,
 	formattedNum,
 	getPercentChange,
 	getPeggedDominance,
 	getPrevPeggedTotalFromChart,
-	toNiceMonthlyDate,
 	toNiceCsvDate,
 	download
 } from '~/utils'
-import type { IChartProps } from '~/components/ECharts/types'
+import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 
-const PeggedAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
 
 const AssetFilters = styled.div`
 	margin: 12px 0 16px;
@@ -38,15 +37,6 @@ const AssetFilters = styled.div`
 	}
 `
 
-// const ChartFilters = styled.div`
-// 	display: flex;
-// 	flex-wrap: wrap;
-// 	align-items: center;
-// 	justify-content: start;
-// 	gap: 20px;
-// 	margin: 0 0 -18px;
-// `
-
 function PeggedChainsOverview({
 	chainCirculatings,
 	chartData,
@@ -57,10 +47,6 @@ function PeggedChainsOverview({
 }) {
 	const [chartType, setChartType] = useState('Pie')
 	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
-
-	const belowMed = useMed()
-	const belowXl = useXl()
-	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
 
 	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = useBuildPeggedChartData(
 		peggedChartDataByChain,
@@ -73,7 +59,7 @@ function PeggedChainsOverview({
 	const filteredPeggedAssets = chainCirculatings
 	const chainTotals = useCalcCirculating(filteredPeggedAssets)
 
-	const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
+	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
 	const downloadCsv = () => {
 		const rows = [['Timestamp', 'Date', ...chainList, 'Total']]
@@ -129,26 +115,6 @@ function PeggedChainsOverview({
 			.concat({ name: 'Others', value: otherCirculating })
 	}, [groupedChains])
 
-	const chainColor = useMemo(
-		() =>
-			Object.fromEntries(
-				[...chainTotals, 'Others'].map((chain) => {
-					return typeof chain === 'string' ? ['-', getRandomColor()] : [chain.name, getRandomColor()]
-				})
-			),
-		[chainTotals]
-	)
-
-	const groupedChainColor = useMemo(
-		() =>
-			Object.fromEntries(
-				[...groupedChains, 'Others'].map((chain) => {
-					return typeof chain === 'string' ? ['-', getRandomColor()] : [chain.name, getRandomColor()]
-				})
-			),
-		[groupedChains]
-	)
-
 	return (
 		<>
 			<PeggedSearch step={{ category: 'Stablecoins', name: 'Chains' }} />
@@ -176,7 +142,7 @@ function PeggedChainsOverview({
 					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 
 					{chartType === 'Total Market Cap' && (
-						<PeggedAreaChart
+						<AreaChart
 							title=""
 							chartData={peggedAreaTotalData}
 							stacks={totalMcapLabel}
@@ -187,29 +153,23 @@ function PeggedChainsOverview({
 					)}
 					{chartType === 'Chain Market Caps' && (
 						<AreaChart
-							aspect={aspect}
-							finalChartData={peggedAreaChartData}
-							tokensUnique={chainList}
-							color={'blue'}
-							moneySymbol="$"
-							formatDate={toNiceMonthlyDate}
-							hallmarks={[]}
+							title=""
+							chartData={peggedAreaChartData}
+							stacks={chainList}
+							valueSymbol="$"
+							hidedefaultlegend={true}
 						/>
 					)}
 					{chartType === 'Dominance' && (
-						<PeggedChainResponsiveDominance
-							stackOffset="expand"
-							formatPercent={true}
-							stackedDataset={stackedData}
-							chainsUnique={chainList}
-							chainColor={chainColor}
-							daySum={daySum}
-							aspect={aspect}
+						<AreaChart
+							title=""
+							valueSymbol="%"
+							chartData={dataWithExtraPeggedAndDominanceByDay}
+							stacks={chainList}
+							hidedefaultlegend={true}
 						/>
 					)}
-					{chartType === 'Pie' && (
-						<PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={groupedChainColor} aspect={aspect} />
-					)}
+					{chartType === 'Pie' && <PieChart chartData={chainsCirculatingValues} />}
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>
 
