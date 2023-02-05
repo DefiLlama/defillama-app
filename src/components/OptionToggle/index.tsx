@@ -15,7 +15,7 @@ interface IProps {
 	isLoading?: boolean
 }
 
-const Wrapper = styled.div`
+const Wrapper = styled.label`
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
@@ -29,7 +29,7 @@ const baseHeight = 20
 const OptionToggle = ({ toggle, enabled = false, help, name, isLoading = false, ...props }: IProps) => {
 	return (
 		<>
-			<Wrapper {...props}>
+			<Wrapper {...props} htmlFor={name}>
 				{isLoading ? (
 					<Image
 						style={{ margin: `0 ${(baseWidth - baseHeight) / 2}px` }}
@@ -39,6 +39,7 @@ const OptionToggle = ({ toggle, enabled = false, help, name, isLoading = false, 
 					/>
 				) : (
 					<Switch
+						id={name}
 						onChange={toggle}
 						checked={enabled}
 						onColor="#0A71F1"
