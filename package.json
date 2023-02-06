@@ -11,8 +11,7 @@
 		"dev": "next dev",
 		"format": "prettier --write .",
 		"build": "./scripts/build.sh",
-		"prestart": "./scripts/prestart.sh",
-		"start": "next start",
+		"start": "./scripts/prestart.sh & next start",
 		"lint": "next lint"
 	},
 	"dependencies": {
