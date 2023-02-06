@@ -315,7 +315,6 @@ export async function getStaticProps() {
 		fetch(`https://api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`).then((r) => r.json()),
 		fetch(`https://coins.llama.fi/prices/current/coingecko:bitcoin`).then((r) => r.json())
 	])
-	console.log(spot, derivs)
 	const cexs = await Promise.all(
 		cexData.map(async (c) => {
 			if (c.slug === undefined) {
