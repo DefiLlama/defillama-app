@@ -3,6 +3,9 @@ import { maxAgeForNext } from '~/api'
 import { Header } from '~/Theme'
 import { CEXTable } from '~/components/Table/Defi'
 import type { IChainTvl } from '~/api/types'
+import { fetchWithThrows, withErrorLogging } from '~/utils/async'
+
+const fetch = withErrorLogging(fetchWithThrows)
 
 const cexData = [
 	{
@@ -289,7 +292,7 @@ const cexData = [
 	{
 		name: 'Deepcoin',
 		cgId: 'deepcoin'
-	},
+	}
 ]
 
 const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
