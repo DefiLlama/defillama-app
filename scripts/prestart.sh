@@ -4,6 +4,9 @@
 set -a
 [ -f .env ] && . .env
 
+# sleep for 2 seconds to wait for the server to start
+sleep 2
+
 # if CF_ZONE or CF_PURGE_CACHE_AUTH is not set, skip purge cache
 if [ -z "$CF_ZONE" ] || [ -z "$CF_PURGE_CACHE_AUTH" ]; then
   echo "CF_ZONE or CF_PURGE_CACHE_AUTH is not set, skipping purge cache"
