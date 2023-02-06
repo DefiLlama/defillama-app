@@ -315,6 +315,7 @@ export async function getStaticProps() {
 		fetch(`https://api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`).then((r) => r.json()),
 		fetch(`https://coins.llama.fi/prices/current/coingecko:bitcoin`).then((r) => r.json())
 	])
+	console.log(spot, derivs)
 	const cexs = await Promise.all(
 		cexData.map(async (c) => {
 			if (c.slug === undefined) {
@@ -351,7 +352,12 @@ export async function getStaticProps() {
 
 				const extra = {} as any
 				if (c.cgId) {
-					extra.spotVolume = spot.find((ex) => ex.id === c.cgId).trade_volume_24h_btc_normalized * btcPrice
+					const btcVol = spot.find((ex) => ex.id === c.cgId).trade_volume_24h_btc_normalized
+					if (!btcVol) {
+						console.error(c.name + ' has no BTC trade volume')
+					} else {
+						extra.spotVolume = btcVol * btcPrice
+					}
 				}
 				if (c.cgDeriv) {
 					extra.oi = derivs.find((ex) => ex.id === c.cgDeriv).open_interest_btc * btcPrice
