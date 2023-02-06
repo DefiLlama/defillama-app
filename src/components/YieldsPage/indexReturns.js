@@ -12,7 +12,7 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	loading: () => <></>
 })
 
-const ReturnsPage = ({ prices }) => {
+const ReturnsPage = ({ prices, symbol }) => {
 	const [pricesStartAndEnd, setPricesStartAndEnd] = React.useState([prices[0]?.price, prices.slice(-1)[0]?.price])
 
 	const [priceStart, priceNow] = pricesStartAndEnd
@@ -21,11 +21,13 @@ const ReturnsPage = ({ prices }) => {
 	const price7d = prices.slice(-7, -6)[0]?.price
 	const price30d = prices.slice(-30, -29)[0]?.price
 
-	const return1d = price1d && priceNow ? ((priceNow - price1d) / price1d) * 100 : null
-	const return7d = priceNow && price7d ? ((priceNow - price7d) / price7d) * 100 : null
-	const return30d = priceNow && price30d ? ((priceNow - price30d) / price30d) * 100 : null
+	const priceNowFixed = prices[0]?.price
 
-	const returnInception = ((priceNow - priceStart) / priceStart) * 100
+	const return1d = price1d && priceNowFixed ? ((priceNowFixed - price1d) / price1d) * 100 : null
+	const return7d = priceNowFixed && price7d ? ((priceNowFixed - price7d) / price7d) * 100 : null
+	const return30d = priceNowFixed && price30d ? ((priceNowFixed - price30d) / price30d) * 100 : null
+
+	const returnSelected = ((priceNow - priceStart) / priceStart) * 100
 
 	const finalChart = prices.map((i) => [i.timestamp, i.price])
 
@@ -53,14 +55,13 @@ const ReturnsPage = ({ prices }) => {
 			<StatsSection>
 				<PoolDetails>
 					<Name style={{ flexWrap: 'wrap' }}>
-						Avalanche
-						<Symbol>AVAX</Symbol>
+						<Symbol>{symbol}</Symbol>
 					</Name>
 
 					<Stat>
-						<span>Return</span>
-						{returnInception ? (
-							<span style={{ color: returnInception > 0 ? 'green' : 'red' }}>{returnInception?.toFixed(2)}%</span>
+						<span>Return over selected Date range</span>
+						{returnSelected ? (
+							<span style={{ color: returnSelected > 0 ? 'green' : 'red' }}>{returnSelected?.toFixed(2)}%</span>
 						) : (
 							<span style={{ height: '3rem' }}></span>
 						)}

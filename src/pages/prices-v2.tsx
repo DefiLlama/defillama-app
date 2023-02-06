@@ -15,11 +15,14 @@ export async function getStaticProps() {
 
 export default function PriceReturn(data) {
 	const { query } = useRouter()
-	const prices = query.coin ? data.priceData.coins[`coingecko:${query.coin}`]?.prices ?? [] : []
+
+	const priceData = query.coin ? data.priceData.coins[`coingecko:${query.coin}`] : {}
+	const prices = priceData.prices ? priceData.prices : []
+	const symbol = priceData.symbol ? priceData.symbol : ''
 
 	return (
 		<Layout title={`Return Calculator  - DefiLlama Yield`} defaultSEO>
-			<ReturnsPage prices={prices} key={`${prices[0]?.price} ${prices.slice(-1)[0]?.price}`} />
+			<ReturnsPage symbol={symbol} prices={prices} key={`${prices[0]?.price} ${prices.slice(-1)[0]?.price}`} />
 		</Layout>
 	)
 }
