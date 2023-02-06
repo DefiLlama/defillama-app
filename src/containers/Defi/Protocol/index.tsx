@@ -56,6 +56,7 @@ import { useYields } from '~/api/categories/yield/client'
 import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData } from './utils'
 import ChartByType from './../../DexsAndFees/charts'
+import { Treasury } from './Treasury'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -220,7 +221,8 @@ function ProtocolContainer({
 		hallmarks,
 		gecko_id,
 		isParentProtocol,
-		raises
+		raises,
+		treasury
 	} = protocolData
 
 	const router = useRouter()
@@ -594,6 +596,8 @@ function ProtocolContainer({
 						</RaisesWrapper>
 					</Section>
 				)}
+
+				{treasury && <Treasury protocolName={protocol} />}
 			</InfoWrapper>
 
 			{yeildsNumber > 0 && (
