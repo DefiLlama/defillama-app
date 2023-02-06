@@ -16,7 +16,8 @@ import {
 	chainsTableColumnOrders,
 	forksColumn,
 	oraclesColumn,
-	LSDColumn
+	LSDColumn,
+	treasuriesColumns
 } from './columns'
 import type { IOraclesRow, IForksRow, ICategoryRow, IChainsRow, ILSDRow } from './types'
 import useWindowSize from '~/hooks/useWindowSize'
@@ -43,6 +44,10 @@ export const OraclesTable = ({ data }: { data: Array<IOraclesRow> }) => (
 )
 
 export const CEXTable = ({ data }: { data: Array<any> }) => <DefiProtocolsTable data={data} columns={cexColumn} />
+
+export const TreasuriesTable = ({ data }: { data: Array<any> }) => (
+	<DefiProtocolsTable data={data} columns={treasuriesColumns} />
+)
 
 export const ForksTable = ({ data }: { data: Array<IForksRow> }) => (
 	<DefiProtocolsTable data={data} columns={forksColumn} />

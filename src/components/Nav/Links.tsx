@@ -118,6 +118,7 @@ export const navLinks: ILinks = {
 			{ name: 'Overview', path: '/' },
 			{ name: 'Chains', path: '/chains' },
 			{ name: 'Airdrops', path: '/airdrops' },
+			{ name: 'Treasuries', path: '/treasuries', newTag: true },
 			{ name: 'Oracles', path: '/oracles' },
 			{ name: 'Forks', path: '/forks' },
 			{ name: 'Top Protocols', path: '/top-protocols' },

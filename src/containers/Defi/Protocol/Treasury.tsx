@@ -25,7 +25,7 @@ export function Treasury({ protocolName }) {
 		}, [])
 
 	return (
-		<Section>
+		<Section id="treasury">
 			<h3>Treasury</h3>
 
 			<span style={{ minHeight: '320px' }}>{data && <PieChart chartData={tokens} />}</span>
