@@ -351,11 +351,11 @@ export async function getStaticProps() {
 
 				const extra = {} as any
 				if (c.cgId) {
-					const btcVol = spot.find((ex) => ex.id === c.cgId).trade_volume_24h_btc_normalized
-					if (!btcVol) {
-						console.error(c.name + ' has no BTC trade volume')
+					const spotEx = spot.find((ex) => ex.id === c.cgId)
+					if (!spotEx) {
+						console.error(c.name + ' is not in spot list')
 					} else {
-						extra.spotVolume = btcVol * btcPrice
+						extra.spotVolume = spotEx.trade_volume_24h_btc_normalized * btcPrice
 					}
 				}
 				if (c.cgDeriv) {
