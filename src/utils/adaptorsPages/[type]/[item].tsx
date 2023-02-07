@@ -14,8 +14,10 @@ export type PageParams = {
 const getStaticProps: GetStaticProps<PageParams> = async ({
 	params
 }: GetStaticPropsContext<{ type: string; item: string }>) => {
-	const data = await getOverviewItemPageData(params.type, params.item)
-
+	const data = await getOverviewItemPageData(params.type, params.item).catch((e) =>
+		console.info(`Item page data not found ${params.type} ${params.item}`, e)
+	)
+	if (!data || !data.name) return { notFound: true }
 	return {
 		props: {
 			protocolSummary: {
@@ -52,7 +54,7 @@ export const getStaticPathsByType = (type: string) => async () => {
 		.sort((a, b) => {
 			return b.total24h - a.total24h
 		})
-		.slice(0, 5)
+		// .slice(0, 5)
 		.map((protocol) => ({
 			params: { type, item: standardizeProtocolName(protocol.name) }
 		}))

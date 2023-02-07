@@ -27,3 +27,9 @@ yarn-error.log*
 
 /.vscode
 *.log
+
+# Sentry
+.sentryclirc
+
+# Sentry
+next.config.original.js

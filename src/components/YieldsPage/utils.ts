@@ -118,7 +118,8 @@ export const findOptimizerPools = (pools, tokenToLend, tokenToBorrow, cdpRoutes)
 		const poolsPairs = collatteralPools.map((collatteralPool) => ({
 			...collatteralPool,
 			chains: [collatteralPool.chain],
-			borrow: pool
+			borrow: pool,
+			ltv: collatteralPool.project === 'euler' ? collatteralPool.ltv * pool.borrowFactor : collatteralPool.ltv
 		}))
 
 		return acc.concat(poolsPairs)
@@ -181,7 +182,8 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 		const poolsPairs = collatteralPools.map((collatteralPool) => ({
 			...collatteralPool,
 			chains: [collatteralPool.chain],
-			borrow: pool
+			borrow: pool,
+			ltv: collatteralPool.project === 'euler' ? collatteralPool.ltv * pool.borrowFactor : collatteralPool.ltv
 		}))
 
 		return acc.concat(poolsPairs)
@@ -355,7 +357,9 @@ export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 		)
 	})
 	// filter FR data to positive funding rates only (longs pay shorts -> open short position and earn FR)
-	const perpsData = perps.filter((p) => tokensToInclude?.some((t) => t.includes(p.symbol)) && p.fundingRate > 0)
+	const perpsData = perps.filter(
+		(p) => tokensToInclude?.some((t) => t.includes(p.symbol)) && p.fundingRate > 0 && p.baseAsset !== 'T'
+	)
 
 	const finalPools = []
 	for (const pool of pools) {

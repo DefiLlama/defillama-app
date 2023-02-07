@@ -86,10 +86,6 @@ const defaultToolsAndFooterLinks = {
 			name: 'List Your Project',
 			path: 'https://docs.llama.fi/list-your-project/submit-a-project',
 			external: true
-		},
-		{
-			name: 'Download Data',
-			onClick: downloadDefiDataset
 		}
 	],
 	footer: [
@@ -122,6 +118,7 @@ export const navLinks: ILinks = {
 			{ name: 'Overview', path: '/' },
 			{ name: 'Chains', path: '/chains' },
 			{ name: 'Airdrops', path: '/airdrops' },
+			{ name: 'Treasuries', path: '/treasuries', newTag: true },
 			{ name: 'Oracles', path: '/oracles' },
 			{ name: 'Forks', path: '/forks' },
 			{ name: 'Top Protocols', path: '/top-protocols' },
@@ -266,14 +263,3 @@ export const linksWithNoSubMenu = [
 	{ name: 'DEX Meta-Aggregator', url: 'https://swap.defillama.com/', external: true },
 	{ name: 'ETH Liquid Staking', url: '/lsd' }
 ]
-
-function downloadDefiDataset() {
-	if (
-		confirm(`This data export contains a lot of data and is not well suited for most types of analysis.
-We heavily recommend to use the csv exports available on other pages through the ".csv" buttons, since this export is hard to analyze unless you make heavy use of code.
-
-Do you still wish to download it?`)
-	) {
-		window.open('https://datasets.llama.fi/all.csv', '_blank')
-	}
-}

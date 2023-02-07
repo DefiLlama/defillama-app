@@ -208,6 +208,7 @@ export async function getLendBorrowData() {
 				ltv: x.ltv,
 				borrowable: x.borrowable,
 				mintedCoin: x.mintedCoin,
+				borrowFactor: x.borrowFactor,
 				// note re morpho: they build on top of compound. if the total supply is being used by borrowers
 				// then any excess borrows will be routed via compound pools. so the available liquidity is actually
 				// compounds liquidity. not 100% sure how to present this on the frontend, but for now going to supress
@@ -254,6 +255,7 @@ export async function getLendBorrowData() {
 
 export function calculateLoopAPY(lendBorrowPools, loops = 10, customLTV) {
 	let pools = lendBorrowPools.filter((p) => p.ltv > 0)
+	pools = pools.map((p) => ({ ...p, ltv: p.project === 'euler' ? p.ltv * p.borrowFactor : p.ltv }))
 
 	return pools
 		.map((p) => {

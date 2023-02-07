@@ -181,7 +181,7 @@ const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping
 
 	return (
 		<>
-			<ProtocolsChainsSearch step={{ category: 'Home', name: 'ETH Liquid Staking Derivates' }} />
+			<ProtocolsChainsSearch step={{ category: 'Home', name: 'ETH Liquid Staking Derivatives' }} />
 
 			<TotalLocked>
 				<span>Total Value Locked ETH LSDs</span>
@@ -221,7 +221,7 @@ const TotalLocked = styled(Header)`
 
 export default function LSDs(props) {
 	return (
-		<Layout title={`Liquid Staking Derivates - DefiLlama`} defaultSEO>
+		<Layout title={`Liquid Staking Derivatives - DefiLlama`} defaultSEO>
 			<PageView {...props} />
 		</Layout>
 	)

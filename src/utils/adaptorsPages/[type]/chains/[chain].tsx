@@ -26,7 +26,7 @@ export const getStaticPathsByType = (type: string) => async () => {
 		.sort((a, b) => {
 			return b.total24h - a.total24h
 		})
-		.slice(0, 5)
+		//.slice(0, 5)
 		.map((chain) => ({
 			params: { type, chain: chain.name.toLowerCase() }
 		}))

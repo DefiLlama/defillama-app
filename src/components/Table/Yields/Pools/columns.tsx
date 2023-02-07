@@ -7,8 +7,8 @@ import { NameYield, NameYieldPool } from '../Name'
 import { formatColumnOrder } from '../../utils'
 import type { IYieldTableRow } from '../types'
 import { lockupsRewards, earlyExit } from '~/components/YieldsPage/utils'
-import Image from 'next/future/image'
 import { CustomLink } from '~/components/Link'
+import { ImageWithFallback } from '~/components/ImageWithFallback'
 
 const uniswapV3 = 'For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
 
@@ -184,7 +184,13 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			const configID = row.original.configID
 			return (
 				<CustomLink href={`/yields/pool/${configID}`} target="_blank">
-					<Image src={`https://yield-charts.onrender.com/yield-chart/${configID}`} alt="" width={90} height={30} />
+					<ImageWithFallback
+						src={`https://yield-charts.llama.fi/yield-chart/${configID}`}
+						alt=""
+						width={90}
+						height={30}
+						unoptimized
+					/>
 				</CustomLink>
 			)
 		},

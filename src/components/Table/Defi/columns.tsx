@@ -15,6 +15,7 @@ import {
 	formattedPercent,
 	slug,
 	toK,
+	tokenIconUrl,
 	toNiceDayMonthAndYear
 } from '~/utils'
 import { AccordionButton, Name } from '../shared'
@@ -637,6 +638,72 @@ export const cexColumn: ColumnDef<any>[] = [
 		}
 	}
 	*/
+]
+
+export const treasuriesColumns: ColumnDef<any>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			const name = (getValue() as string).split(' (treasury)')[0]
+			const slug = (row.original.slug as string).split('-(treasury)')[0]
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+					<CustomLink href={`/protocol/${slug}#treasury`}>{name}</CustomLink>
+				</Name>
+			)
+		}
+	},
+	{
+		header: 'Stablecoins + Majors',
+		accessorKey: 'tvl',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Own Tokens',
+		accessorKey: 'chainTvls',
+		cell: (info) => {
+			const chainTvls = info.getValue()
+
+			if (!chainTvls) return <></>
+
+			const ownTokens = chainTvls['OwnTokens']
+
+			return <>{'$' + formattedNum(ownTokens)}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Total Treasury',
+		accessorKey: 'tvl',
+		id: 'total-treasury',
+		cell: (info) => {
+			const ownTokens = info.row.original.chainTvls?.['OwnTokens'] ?? 0
+
+			const total = ownTokens + info.getValue()
+
+			return <>{'$' + formattedNum(total)}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	}
 ]
 
 export const LSDColumn: ColumnDef<ILSDRow>[] = [

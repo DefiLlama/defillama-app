@@ -12,6 +12,7 @@ import {
 	PEGGED_API
 } from '~/constants'
 import { formatPeggedAssetsData, formatPeggedChainsData } from './utils'
+import { fetchWithThrows } from '~/utils/async'
 
 export const getPeggedAssets = () =>
 	fetch(PEGGEDS_API + '?includeChains=true' + '&includePrices=true')
@@ -51,7 +52,7 @@ export async function getPeggedOverviewPageData(chain) {
 
 	const priceData = await getPeggedPrices()
 	const rateData = await getPeggedRates()
-	const allChartsStartTimestamp = 1617148800	// for /stablecoins page, charts begin on April 1, 2021, to reduce size of page
+	const allChartsStartTimestamp = 1617148800 // for /stablecoins page, charts begin on April 1, 2021, to reduce size of page
 
 	let chartDataByPeggedAsset = []
 	let peggedAssetNames: string[] = [] // fix name of this variable
@@ -68,7 +69,9 @@ export async function getPeggedOverviewPageData(chain) {
 				try {
 					let charts = []
 					if (!chain) {
-						charts = await fetch(`${PEGGEDCHART_API}/all?stablecoin=${elem.id}&startts=${allChartsStartTimestamp}`).then((resp) => resp.json())
+						charts = await fetch(
+							`${PEGGEDCHART_API}/all?stablecoin=${elem.id}&startts=${allChartsStartTimestamp}`
+						).then((resp) => resp.json())
 					} else {
 						charts = await fetch(`${PEGGEDCHART_API}/${chain}?stablecoin=${elem.id}`).then((resp) => resp.json())
 					}
@@ -147,7 +150,7 @@ export async function getPeggedChainsPageData() {
 		.map((chain) => chain.name)
 	const chainsSet = new Set()
 
-	const chainsTVLData: IChainData[] = await Promise.all(
+	const tvlsDataByChain = await Promise.allSettled(
 		chainList.map(async (elem: string) => {
 			if (chainCoingeckoIds[elem]) {
 				for (let i = 0; i < 5; i++) {
@@ -155,10 +158,13 @@ export async function getPeggedChainsPageData() {
 						return await fetch(`${CHART_API}/${elem}`).then((resp) => resp.json())
 					} catch (e) {}
 				}
+
 				throw new Error(`${CHART_API}/${elem} is broken`)
 			} else return null
 		})
 	)
+
+	const chainsTVLData = tvlsDataByChain.map((t) => (t.status === 'fulfilled' ? t.value : {}))
 
 	let chainsGroupbyParent = {}
 	chainList.forEach((chain) => {
@@ -252,13 +258,13 @@ export async function getPeggedChainsPageData() {
 }
 
 export const getPeggedAssetPageData = async (peggedasset: string) => {
-	const peggedNameToPeggedIDMapping = await fetch(PEGGEDCONFIG_API).then((resp) => resp.json())
+	const peggedNameToPeggedIDMapping = await fetchWithThrows(PEGGEDCONFIG_API).then((resp) => resp.json())
 	const peggedID = peggedNameToPeggedIDMapping[peggedasset]
 	const [res, { chainCoingeckoIds }] = await Promise.all(
-		[`${PEGGED_API}/${peggedID}`, CONFIG_API].map((apiEndpoint) => fetch(apiEndpoint).then((r) => r.json()))
+		[`${PEGGED_API}/${peggedID}`, CONFIG_API].map((apiEndpoint) => fetchWithThrows(apiEndpoint).then((r) => r.json()))
 	)
 
-	const peggedChart = await fetch(`${PEGGEDCHART_API}/all?stablecoin=${peggedID}`).then((resp) => resp.json())
+	const peggedChart = await fetchWithThrows(`${PEGGEDCHART_API}/all?stablecoin=${peggedID}`).then((resp) => resp.json())
 	const bridgeInfo = await getPeggedBridgeInfo()
 	const pegType = res.pegType
 
@@ -312,7 +318,7 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 			totalCirculating,
 			unreleased,
 			mcap,
-			bridgeInfo,
+			bridgeInfo
 		}
 	}
 }

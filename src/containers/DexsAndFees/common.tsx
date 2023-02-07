@@ -145,13 +145,23 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 						</PanelHiddenMobile>
 					) : null}
 					{props.type === 'dexs' && !Number.isNaN(props.data.dexsDominance) ? (
-						<PanelHiddenMobileHelper>
-							<div>
-								<h2>DEX vs CEX dominance</h2>
-								<QuestionHelper text={`Dexs dominance over aggregated dexs and cexs volume (24h)`} textAlign="center" />
-							</div>
-							<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}> {props.data.dexsDominance || 0}%</p>
-						</PanelHiddenMobileHelper>
+						<>
+							{!props.name && (
+								<PanelHiddenMobileHelper>
+									<div>
+										<h2>DEX vs CEX dominance</h2>
+										<QuestionHelper
+											text={`Dexs dominance over aggregated dexs and cexs volume (24h)`}
+											textAlign="center"
+										/>
+									</div>
+									<p style={{ '--tile-text-color': '#46acb7' } as React.CSSProperties}>
+										{' '}
+										{props.data.dexsDominance || 0}%
+									</p>
+								</PanelHiddenMobileHelper>
+							)}
+						</>
 					) : !Number.isNaN(props.data.change_1m) ? (
 						<PanelHiddenMobile>
 							<h2>Change (30d)</h2>

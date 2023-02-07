@@ -11,11 +11,11 @@
 		"dev": "next dev",
 		"format": "prettier --write .",
 		"build": "./scripts/build.sh",
-		"prestart": "./scripts/prestart.sh",
-		"start": "next start",
+		"start": "./scripts/prestart.sh & next start",
 		"lint": "next lint"
 	},
 	"dependencies": {
+		"@sentry/nextjs": "^7.34.0",
 		"@tanstack/react-table": "^8.5.22",
 		"@tanstack/react-virtual": "^3.0.0-beta.18",
 		"ariakit": "^2.0.0-next.41",
@@ -39,6 +39,7 @@
 		"react-switch": "^6.0.0",
 		"rebass": "^4.0.7",
 		"recharts": "^2.1.10",
+		"sharp": "^0.31.3",
 		"styled-components": "^5.3.5",
 		"swagger-ui": "^4.12.0",
 		"swr": "^1.3.0",

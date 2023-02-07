@@ -22,7 +22,6 @@ import { PeggedSearch } from '~/components/Search'
 import { OptionButton } from '~/components/ButtonStyled'
 import { AutoRow, RowBetween } from '~/components/Row'
 import { ButtonLight } from '~/components/ButtonStyled'
-import { PeggedChainResponsivePie, PeggedChainResponsiveDominance, AreaChart } from '~/components/Charts'
 import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
 import AuditInfo from '~/components/AuditInfo'
@@ -31,13 +30,10 @@ import QuestionHelper from '~/components/QuestionHelper'
 
 import { useCalcGroupExtraPeggedByDay, useCalcCirculating, useGroupBridgeData } from '~/hooks/data/stablecoins'
 import { useBuildPeggedChartData } from '~/utils/stablecoins'
-import { useXl, useMed } from '~/hooks/useBreakpoints'
 import { UNRELEASED, useStablecoinsManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
 	toNiceCsvDate,
-	toNiceMonthlyDate,
-	getRandomColor,
 	formattedNum,
 	download,
 	getBlockExplorer,
@@ -45,12 +41,16 @@ import {
 	peggedAssetIconUrl,
 	formattedPeggedPrice
 } from '~/utils'
-import type { IChartProps } from '~/components/ECharts/types'
+import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { PeggedAssetByChainTable } from '~/components/Table'
 
-const TokenAreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
 
 const risksHelperTexts = {
 	algorithmic:
@@ -194,10 +194,6 @@ export default function PeggedContainer({
 	const defaultSelectedId = 'default-selected-tab'
 	const tab = useTabState({ defaultSelectedId })
 
-	const belowMed = useMed()
-	const belowXl = useXl()
-	const aspect = belowXl ? (belowMed ? 1 : 60 / 42) : 60 / 22
-
 	const chainsData: any[] = chainsUnique.map((elem: string) => {
 		return peggedAssetData.chainBalances[elem].tokens
 	})
@@ -217,11 +213,6 @@ export default function PeggedContainer({
 	const extraPeggeds = [UNRELEASED]
 	const [extraPeggedsEnabled, updater] = useStablecoinsManager()
 
-	const chainColor = useMemo(
-		() => Object.fromEntries([...chainsUnique, 'Others'].map((chain) => [chain, getRandomColor()])),
-		[chainsUnique]
-	)
-
 	const chainTotals = useCalcCirculating(chainCirculatings)
 
 	const chainsCirculatingValues = useMemo(() => {
@@ -239,7 +230,7 @@ export default function PeggedContainer({
 			.concat({ name: 'Others', value: otherCirculating })
 	}, [chainTotals])
 
-	const { data: stackedData, daySum } = useCalcGroupExtraPeggedByDay(stackedDataset)
+	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
 
@@ -539,7 +530,7 @@ export default function PeggedContainer({
 						minHeight: '460px'
 					}}
 				>
-					<RowBetween my={useMed ? 20 : 0} mx={useMed ? 10 : 0} align="flex-start">
+					<RowBetween m="8px">
 						<AutoRow style={{ width: 'fit-content' }} justify="flex-end" gap="6px" align="flex-start">
 							<OptionButton active={chartType === 'Mcap'} onClick={() => setChartType('Mcap')}>
 								Total Circ
@@ -556,7 +547,7 @@ export default function PeggedContainer({
 						</AutoRow>
 					</RowBetween>
 					{chartType === 'Mcap' && (
-						<TokenAreaChart
+						<AreaChart
 							title={`Total ${symbol} Circulating`}
 							chartData={peggedAreaTotalData}
 							stacks={totalChartTooltipLabel}
@@ -566,29 +557,23 @@ export default function PeggedContainer({
 					)}
 					{chartType === 'Chain Mcaps' && (
 						<AreaChart
-							aspect={aspect}
-							finalChartData={peggedAreaChartData}
-							tokensUnique={chainsUnique}
-							color={'blue'}
-							moneySymbol=""
-							formatDate={toNiceMonthlyDate}
-							hallmarks={[]}
+							title=""
+							chartData={peggedAreaChartData}
+							stacks={chainsUnique}
+							valueSymbol="$"
+							hidedefaultlegend={true}
 						/>
 					)}
 					{chartType === 'Dominance' && (
-						<PeggedChainResponsiveDominance
-							stackOffset="expand"
-							formatPercent={true}
-							stackedDataset={stackedData}
-							chainsUnique={chainsUnique}
-							chainColor={chainColor}
-							daySum={daySum}
-							aspect={aspect}
+						<AreaChart
+							title=""
+							valueSymbol="%"
+							chartData={dataWithExtraPeggedAndDominanceByDay}
+							stacks={chainsUnique}
+							hidedefaultlegend={true}
 						/>
 					)}
-					{chartType === 'Pie' && (
-						<PeggedChainResponsivePie data={chainsCirculatingValues} chainColor={chainColor} aspect={aspect} />
-					)}
+					{chartType === 'Pie' && <PieChart chartData={chainsCirculatingValues} />}
 				</div>
 			</StatsSection>
 

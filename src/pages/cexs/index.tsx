@@ -3,6 +3,9 @@ import { maxAgeForNext } from '~/api'
 import { Header } from '~/Theme'
 import { CEXTable } from '~/components/Table/Defi'
 import type { IChainTvl } from '~/api/types'
+import { fetchWithErrorLogging } from '~/utils/async'
+
+const fetch = fetchWithErrorLogging
 
 const cexData = [
 	{
@@ -15,15 +18,6 @@ const cexData = [
 		cgDeriv: 'binance_futures'
 	},
 	{
-		name: 'Bitfinex',
-		slug: 'bitfinex',
-		coin: 'LEO',
-		coinSymbol: 'LEO',
-		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt',
-		cgId: 'bitfinex',
-		cgDeriv: 'bitfinex_futures'
-	},
-	{
 		name: 'OKX',
 		slug: 'okx',
 		coin: 'OKB',
@@ -31,6 +25,15 @@ const cexData = [
 		walletsLink: 'https://twitter.com/okx/status/1590812545346330624',
 		cgId: 'okex',
 		cgDeriv: 'okex_swap'
+	},
+	{
+		name: 'Bitfinex',
+		slug: 'bitfinex',
+		coin: 'LEO',
+		coinSymbol: 'LEO',
+		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt',
+		cgId: 'bitfinex',
+		cgDeriv: 'bitfinex_futures'
 	},
 	{
 		name: 'Crypto.com',
@@ -109,17 +112,23 @@ const cexData = [
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
+		name: 'Binance US',
+		slug: 'binance-us',
+		coin: 'BNB',
+		coinSymbol: 'BNB',
+		cgId: 'binance_us'
+	},
+	{
 		name: 'Korbit',
 		slug: 'korbit',
 		coin: null,
 		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
-		name: 'Binance US',
-		slug: 'binance-us',
-		coin: 'BNB',
-		coinSymbol: 'BNB',
-		cgId: 'binance_us'
+		name: 'MaskEX',
+		slug: 'maskex',
+		coin: null,
+		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'Coinsquare',
@@ -134,6 +143,13 @@ const cexData = [
 		walletsLink: null
 	},
 	{
+		name: 'WOO X',
+		slug: 'woo-x',
+		coin: 'WOO',
+		coinSymbol: 'WOO',
+		walletsLink: 'https://woo.org/proof-of-reserves'
+	},
+	{
 		name: 'Phemex',
 		slug: 'phemex',
 		coin: null,
@@ -142,23 +158,10 @@ const cexData = [
 		cgDeriv: 'phemex_futures'
 	},
 	{
-		name: 'WOO X',
-		slug: 'woo-x',
-		coin: 'WOO',
-		coinSymbol: 'WOO',
-		walletsLink: 'https://woo.org/proof-of-reserves'
-	},
-	{
 		name: 'CoinDCX',
 		slug: 'coindcx',
 		coin: null,
 		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
-	},
-	{
-		name: 'MaskEX',
-		slug: 'maskex',
-		coin: null,
-		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'Cake DeFi',
@@ -177,6 +180,12 @@ const cexData = [
 		slug: 'nbx',
 		coin: null,
 		walletsLink: 'https://nbx.com/en/proof-of-reserves'
+	},
+	{
+		name: 'BitVenus',
+		slug: 'bitvenus',
+		coin: null,
+		walletsLink: null
 	},
 	{
 		name: 'Coinbase',
@@ -282,6 +291,13 @@ const cexData = [
 		name: 'BTCC',
 		cgID: 'btcc',
 		cgDeriv: 'btcc_futures'
+	},
+	{
+		name: 'BitVenus'
+	},
+	{
+		name: 'Deepcoin',
+		cgId: 'deepcoin'
 	}
 ]
 
@@ -341,7 +357,12 @@ export async function getStaticProps() {
 
 				const extra = {} as any
 				if (c.cgId) {
-					extra.spotVolume = spot.find((ex) => ex.id === c.cgId).trade_volume_24h_btc_normalized * btcPrice
+					const spotEx = spot.find((ex) => ex.id === c.cgId)
+					if (!spotEx) {
+						console.error(c.name + ' is not in spot list')
+					} else {
+						extra.spotVolume = spotEx.trade_volume_24h_btc_normalized * btcPrice
+					}
 				}
 				if (c.cgDeriv) {
 					extra.oi = derivs.find((ex) => ex.id === c.cgDeriv).open_interest_btc * btcPrice

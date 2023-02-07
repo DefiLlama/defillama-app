@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
-import { getPrevPeggedTotalFromChart } from '~/utils'
+import { getDominancePercent, getPrevPeggedTotalFromChart } from '~/utils'
 import { useDefiChainsManager, useStablecoinsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter } from '~/utils'
 
@@ -134,7 +134,17 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 		return { data, daySum }
 	}, [chains, extraPeggedEnabled])
 
-	return { data, daySum }
+	const dataWithExtraPeggedAndDominanceByDay = data.map(({ date, ...values }) => {
+		const shares = {}
+
+		for (const value in values) {
+			shares[value] = getDominancePercent(values[value], daySum[date])
+		}
+
+		return { date, ...shares }
+	})
+
+	return { data, daySum, dataWithExtraPeggedAndDominanceByDay }
 }
 
 export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainPegged[] => {

@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import useSWR from 'swr'
-import { PROTOCOLS_API } from '~/constants'
+import { PROTOCOLS_API, PROTOCOL_TREASURY_API } from '~/constants'
 import { fetcher } from '~/utils/useSWR'
 import { getProtocol } from '.'
 import { formatProtocolsData } from './utils'
@@ -12,6 +12,16 @@ export const useFetchProtocolsList = () => {
 
 export const useFetchProtocol = (protocolName) => {
 	const { data, error } = useSWR(`updatedProtocolsData/${protocolName}`, () => getProtocol(protocolName))
+
+	const loading = protocolName && !data && !error
+
+	return { data, error, loading }
+}
+
+export const useFetchProtocolTreasury = (protocolName) => {
+	const { data, error } = useSWR(`treasury/${protocolName}`, () =>
+		fetch(`${PROTOCOL_TREASURY_API}/${protocolName}`).then((res) => res.json())
+	)
 
 	const loading = protocolName && !data && !error
 

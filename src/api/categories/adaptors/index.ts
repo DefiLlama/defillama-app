@@ -271,6 +271,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 		dailyProtocolRevenue,
 		dailyPremiumVolume
 	}) => {
+		if (!protocols) return undefined
 		const tvlData = getTVLData(protocolsData, chain)
 		return {
 			name: chain,
@@ -279,7 +280,9 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 			logo: chainIconUrl(chain),
 			total24h,
 			tvl: protocols.reduce((acc, curr) => {
-				acc += tvlData[curr.name] ?? sumTVLProtocols(curr.name, Object.keys(curr.protocolsStats ?? {}), tvlData)
+				// TODO: This should be mapped using defillamaId to get accurate tvl!
+				const tvl = tvlData[curr.name] ?? sumTVLProtocols(curr.name, Object.keys(curr.protocolsStats ?? {}), tvlData)
+				acc += !Number.isNaN(tvl) ? tvl : 0
 				return acc
 			}, 0),
 			change_7dover7d,
@@ -302,7 +305,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 			dailyProtocolRevenue: dailyProtocolRevenue ?? null,
 			dailyPremiumVolume: dailyPremiumVolume ?? null,
 		}
-	})
+	}).filter(notUndefined)
 
 	const allCharts = dataByChain.map((chainData) => [chainData.chain, chainData.totalDataChart]) as IChartsList
 	let aggregatedChart = joinCharts2(...allCharts)
@@ -349,3 +352,7 @@ export const joinCharts2 = (...lists: Array<[string, Array<[number, number]>]>):
 			...ordredItems.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number])
 		}
 	})
+
+export function notUndefined<T>(x: T | undefined): x is T {
+	return x !== undefined;
+}

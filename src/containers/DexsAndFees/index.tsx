@@ -113,7 +113,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 			return [arr, Object.values(displayNameMap)]
 		}
 		return props.totalDataChart
-	}, [enableBreakdownChart, charts.totalDataChartBreakdown, props.totalDataChart, props.protocols, selectedDataType])
+	}, [enableBreakdownChart, charts, props.totalDataChart, props.protocols, selectedDataType])
 
 	return (
 		<>

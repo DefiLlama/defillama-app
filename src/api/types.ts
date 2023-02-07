@@ -1,4 +1,4 @@
-import { IJSON } from "./categories/adaptors/types"
+import { IJSON } from './categories/adaptors/types'
 
 export interface IRaise {
 	round: string
@@ -36,6 +36,7 @@ export interface Protocol {
 	isParentProtocol?: boolean
 	raises?: Array<IRaise>
 	defillamaId?: number
+	treasury?: string
 }
 
 // TODO cleanup
