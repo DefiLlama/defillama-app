@@ -18,15 +18,6 @@ const cexData = [
 		cgDeriv: 'binance_futures'
 	},
 	{
-		name: 'Bitfinex',
-		slug: 'bitfinex',
-		coin: 'LEO',
-		coinSymbol: 'LEO',
-		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt',
-		cgId: 'bitfinex',
-		cgDeriv: 'bitfinex_futures'
-	},
-	{
 		name: 'OKX',
 		slug: 'okx',
 		coin: 'OKB',
@@ -34,6 +25,15 @@ const cexData = [
 		walletsLink: 'https://twitter.com/okx/status/1590812545346330624',
 		cgId: 'okex',
 		cgDeriv: 'okex_swap'
+	},
+	{
+		name: 'Bitfinex',
+		slug: 'bitfinex',
+		coin: 'LEO',
+		coinSymbol: 'LEO',
+		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt',
+		cgId: 'bitfinex',
+		cgDeriv: 'bitfinex_futures'
 	},
 	{
 		name: 'Crypto.com',
@@ -112,17 +112,17 @@ const cexData = [
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
-		name: 'Korbit',
-		slug: 'korbit',
-		coin: null,
-		walletsLink: 'https://korbit.co.kr/reserve'
-	},
-	{
 		name: 'Binance US',
 		slug: 'binance-us',
 		coin: 'BNB',
 		coinSymbol: 'BNB',
 		cgId: 'binance_us'
+	},
+	{
+		name: 'Korbit',
+		slug: 'korbit',
+		coin: null,
+		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
 		name: 'MaskEX',
@@ -143,19 +143,19 @@ const cexData = [
 		walletsLink: null
 	},
 	{
+		name: 'WOO X',
+		slug: 'woo-x',
+		coin: 'WOO',
+		coinSymbol: 'WOO',
+		walletsLink: 'https://woo.org/proof-of-reserves'
+	},
+	{
 		name: 'Phemex',
 		slug: 'phemex',
 		coin: null,
 		walletsLink: 'https://phemex.com/proof-of-reserves',
 		cgId: 'phemex',
 		cgDeriv: 'phemex_futures'
-	},
-	{
-		name: 'WOO X',
-		slug: 'woo-x',
-		coin: 'WOO',
-		coinSymbol: 'WOO',
-		walletsLink: 'https://woo.org/proof-of-reserves'
 	},
 	{
 		name: 'CoinDCX',
@@ -180,6 +180,12 @@ const cexData = [
 		slug: 'nbx',
 		coin: null,
 		walletsLink: 'https://nbx.com/en/proof-of-reserves'
+	},
+	{
+		name: 'BitVenus',
+		slug: 'bitvenus',
+		coin: null,
+		walletsLink: null
 	},
 	{
 		name: 'Coinbase',
