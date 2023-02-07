@@ -3,9 +3,9 @@ import { maxAgeForNext } from '~/api'
 import { Header } from '~/Theme'
 import { CEXTable } from '~/components/Table/Defi'
 import type { IChainTvl } from '~/api/types'
-import { fetchWithThrows, withErrorLogging } from '~/utils/async'
+import { fetchWithErrorLogging } from '~/utils/async'
 
-const fetch = withErrorLogging(fetchWithThrows)
+const fetch = fetchWithErrorLogging
 
 const cexData = [
 	{
