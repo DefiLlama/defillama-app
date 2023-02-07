@@ -14,9 +14,14 @@ import {
 } from '@tanstack/react-table'
 import VirtualTable from '~/components/Table/Table'
 import { hacksColumns, hacksColumnOrders } from '~/components/Table/Defi/columns'
-import type { IBarChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper } from '~/components'
 import useWindowSize from '~/hooks/useWindowSize'
+import { ChartSelector } from '~/components/PeggedPage'
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
 
 const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -86,7 +91,9 @@ function HacksTable({ data }) {
 	)
 }
 
-const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, totalRugs }) => {
+const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, totalRugs, pieChartData }) => {
+	const [chartType, setChartType] = React.useState('Total Value Hacked')
+	const chartTypeList = ['Total Value Hacked', 'Pie']
 	return (
 		<Layout title={`Hacks - DefiLlama`} defaultSEO>
 			<ChartAndValuesWrapper>
@@ -104,12 +111,16 @@ const HacksContainer = ({ data, monthlyHacks, totalHacked, totalHackedDefi, tota
 						<p style={{ '--tile-text-color': '#bd3399' } as React.CSSProperties}>{totalRugs}b</p>
 					</BreakpointPanel>
 				</BreakpointPanels>
-				<BreakpointPanel id="chartWrapper">
-					{monthlyHacks && (
+				<BreakpointPanel id="chartWrapper" style={{ gap: '16px', minHeight: '450px', justifyContent: 'space-between' }}>
+					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+
+					{chartType === 'Total Value Hacked' && monthlyHacks ? (
 						<BarChart
 							chartData={Object.entries(monthlyHacks).map((t) => [new Date(t[0]).getTime() / 1e3, Number(t[1]) * 1e6])}
 							title="Monthly sum"
 						/>
+					) : (
+						<PieChart chartData={pieChartData} />
 					)}
 				</BreakpointPanel>
 			</ChartAndValuesWrapper>

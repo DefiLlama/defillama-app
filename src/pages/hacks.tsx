@@ -44,13 +44,37 @@ export async function getStaticProps() {
 		true
 	)
 
+	const onlyHacksTechnique = data.map((hack) => ({
+		name: hack.technique,
+		value: hack.amount
+	}))
+
+	const sumDuplicates = (acc, obj) => {
+		const found = acc.find((o) => o.name === obj.name)
+		if (found) {
+			found.value += obj.value
+		} else {
+			acc.push(obj)
+		}
+		return acc
+	}
+
+	const reducedData = onlyHacksTechnique.reduce(sumDuplicates, [])
+	const othersValue = reducedData.slice(15).reduce((total, entry) => total + entry.value, 0)
+
+	const pieChartData = [
+		...reducedData.sort((a, b) => b.value - a.value).slice(0, 15),
+		{ name: 'Others', value: othersValue }
+	]
+
 	return {
 		props: {
 			data,
 			monthlyHacks,
 			totalHacked,
 			totalHackedDefi,
-			totalRugs
+			totalRugs,
+			pieChartData
 		},
 		revalidate: maxAgeForNext([22])
 	}
