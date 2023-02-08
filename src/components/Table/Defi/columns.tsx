@@ -13,6 +13,7 @@ import {
 	chainIconUrl,
 	formattedNum,
 	formattedPercent,
+	getDominancePercent,
 	slug,
 	toK,
 	tokenIconUrl,
@@ -661,12 +662,78 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		}
 	},
 	{
-		header: 'Stablecoins + Majors',
-		accessorKey: 'tvl',
+		header: 'Breakdown',
+		accessorKey: 'tokenBreakdowns',
+		id: 'tokenBreakdowns0',
 		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
+			const breakdown = info.getValue() as { [type: string]: number }
+			let totalBreakdown = 0
+
+			for (const type in breakdown) {
+				totalBreakdown += breakdown[type]
+			}
+
+			const breakdownDominance = {}
+
+			for (const value in breakdown) {
+				breakdownDominance[value] = getDominancePercent(breakdown[value], totalBreakdown)
+			}
+
+			const dominance = Object.entries(breakdownDominance).sort(
+				(a: [string, number], b: [string, number]) => b[1] - a[1]
+			)
+
+			if (totalBreakdown === 0) {
+				return <></>
+			}
+
+			return (
+				<AutoRow
+					sx={{
+						width: '100px !important',
+						flexWrap: 'nowrap',
+						gap: '0px',
+						background: 'white',
+						height: '20px',
+						marginLeft: 'auto'
+					}}
+				>
+					{dominance.map((dom) => (
+						<Tooltip
+							key={dom[0] + dom[1] + info.row.original.name}
+							content={`${formatBreakdownType(dom[0])} (${dom[1]}%)`}
+						>
+							<div style={{ width: `${dom[1]}px`, height: '20px', background: breakdownColor(dom[0]) }}></div>
+						</Tooltip>
+					))}
+				</AutoRow>
+			)
 		},
 		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Stablecoins',
+		accessorKey: 'tokenBreakdowns',
+		id: 'tokenBreakdowns1',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue()['stablecoins'])}</>
+		},
+		size: 108,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Majors (BTC, ETH)',
+		accessorKey: 'tokenBreakdowns',
+		id: 'tokenBreakdowns2',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue()['majors'])}</>
+		},
+		size: 152,
 		meta: {
 			align: 'end'
 		}
@@ -683,7 +750,19 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 
 			return <>{'$' + formattedNum(ownTokens)}</>
 		},
-		size: 120,
+		size: 112,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Others',
+		accessorKey: 'tokenBreakdowns',
+		id: 'tokenBreakdowns4',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue()['others'])}</>
+		},
+		size: 100,
 		meta: {
 			align: 'end'
 		}
@@ -699,7 +778,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 
 			return <>{'$' + formattedNum(total)}</>
 		},
-		size: 120,
+		size: 128,
 		meta: {
 			align: 'end'
 		}
@@ -955,3 +1034,43 @@ const Tooltip = styled(Tooltip2)`
 	flex-direction: column;
 	gap: 4px;
 `
+
+const breakdownColor = (type) => {
+	if (type === 'stablecoins') {
+		return '#16a34a'
+	}
+
+	if (type === 'majors') {
+		return '#2563eb'
+	}
+
+	if (type === 'ownTokens') {
+		return '#f97316'
+	}
+
+	if (type === 'others') {
+		return '#6d28d9'
+	}
+
+	return 'red'
+}
+
+const formatBreakdownType = (type) => {
+	if (type === 'stablecoins') {
+		return 'Stablecoins'
+	}
+
+	if (type === 'majors') {
+		return 'Majors'
+	}
+
+	if (type === 'ownTokens') {
+		return 'Own Tokens'
+	}
+
+	if (type === 'others') {
+		return 'Others'
+	}
+
+	return type
+}
