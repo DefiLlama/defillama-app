@@ -11,8 +11,9 @@ import SEO from '~/components/SEO'
 import { tokenIconUrl } from '~/utils'
 import { ArrowUpRight } from 'react-feather'
 import styled from 'styled-components'
+import { Treasury } from './Treasury'
 
-export function DummyProtocol({ data, title, backgroundColor }) {
+export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 	return (
 		<Layout title={title} backgroundColor={transparentize(0.6, backgroundColor)} style={{ gap: '36px' }}>
 			<SEO cardName={data.name} token={data.name} logo={tokenIconUrl(data.name)} />
@@ -36,6 +37,8 @@ export function DummyProtocol({ data, title, backgroundColor }) {
 						</Link>
 					)}
 				</LinksWrapper>
+
+				{data.treasury && <Treasury protocolName={protocol} />}
 			</Wrapper>
 		</Layout>
 	)

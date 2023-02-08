@@ -87,6 +87,7 @@ export default function Protocols({ protocolData, ...props }) {
 				data={protocolData}
 				title={`${protocolData.name} - DefiLlama`}
 				backgroundColor={props.backgroundColor}
+				protocol={props.protocol}
 			/>
 		)
 	}
