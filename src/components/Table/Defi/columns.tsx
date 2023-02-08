@@ -683,7 +683,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 				(a: [string, number], b: [string, number]) => b[1] - a[1]
 			)
 
-			if (totalBreakdown === 0) {
+			if (totalBreakdown < 1) {
 				return <></>
 			}
 
