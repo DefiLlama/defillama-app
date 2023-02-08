@@ -688,25 +688,30 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 			}
 
 			return (
-				<AutoRow
-					sx={{
-						width: '100px !important',
-						flexWrap: 'nowrap',
-						gap: '0px',
-						background: 'white',
-						height: '20px',
-						marginLeft: 'auto'
-					}}
-				>
-					{dominance.map((dom) => (
-						<Tooltip
-							key={dom[0] + dom[1] + info.row.original.name}
-							content={`${formatBreakdownType(dom[0])} (${dom[1]}%)`}
-						>
-							<div style={{ width: `${dom[1]}px`, height: '20px', background: breakdownColor(dom[0]) }}></div>
-						</Tooltip>
-					))}
-				</AutoRow>
+				<Tooltip content={<TooltipContent dominance={dominance} protocolName={info.row.original.name} />}>
+					<AutoRow
+						sx={{
+							width: '100px !important',
+							flexWrap: 'nowrap',
+							gap: '0px',
+							background: 'white',
+							height: '20px',
+							marginLeft: 'auto'
+						}}
+					>
+						{dominance.map((dom) => {
+							const color = breakdownColor(dom[0])
+							const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
+
+							return (
+								<div
+									key={dom[0] + dom[1] + info.row.original.name}
+									style={{ width: `${dom[1]}px`, height: '20px', background: color }}
+								></div>
+							)
+						})}
+					</AutoRow>
+				</Tooltip>
 			)
 		},
 		size: 120,
@@ -1073,4 +1078,26 @@ const formatBreakdownType = (type) => {
 	}
 
 	return type
+}
+
+const Breakdown = ({ data }) => {
+	const color = breakdownColor(data[0])
+	const name = `${formatBreakdownType(data[0])} (${data[1]}%)`
+
+	return (
+		<AutoRow sx={{ flexWrap: 'nowrap', alignItems: 'center', gap: '4px' }}>
+			<span style={{ height: '14px', width: '14px', background: color, borderRadius: '2px' }}></span>
+			<span>{name}</span>
+		</AutoRow>
+	)
+}
+
+const TooltipContent = ({ dominance, protocolName }) => {
+	return (
+		<AutoRow sx={{ flexDirection: 'column', gap: '4px' }}>
+			{dominance.map((dom) => (
+				<Breakdown data={dom} key={dom[0] + dom[1] + protocolName + 'tooltip-content'} />
+			))}
+		</AutoRow>
+	)
 }
