@@ -665,6 +665,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		header: 'Breakdown',
 		accessorKey: 'tokenBreakdowns',
 		id: 'tokenBreakdowns0',
+		enableSorting: false,
 		cell: (info) => {
 			const breakdown = info.getValue() as { [type: string]: number }
 			let totalBreakdown = 0
@@ -721,10 +722,10 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 	},
 	{
 		header: 'Stablecoins',
-		accessorKey: 'tokenBreakdowns',
-		id: 'tokenBreakdowns1',
+		accessorKey: 'stablecoins',
+		id: 'stablecoins',
 		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue()['stablecoins'])}</>
+			return <>{'$' + formattedNum(info.getValue())}</>
 		},
 		size: 108,
 		meta: {
@@ -733,10 +734,10 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 	},
 	{
 		header: 'Majors (BTC, ETH)',
-		accessorKey: 'tokenBreakdowns',
-		id: 'tokenBreakdowns2',
+		accessorKey: 'majors',
+		id: 'majors',
 		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue()['majors'])}</>
+			return <>{'$' + formattedNum(info.getValue())}</>
 		},
 		size: 152,
 		meta: {
@@ -745,15 +746,9 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 	},
 	{
 		header: 'Own Tokens',
-		accessorKey: 'chainTvls',
+		accessorKey: 'ownTokens',
 		cell: (info) => {
-			const chainTvls = info.getValue()
-
-			if (!chainTvls) return <></>
-
-			const ownTokens = chainTvls['OwnTokens']
-
-			return <>{'$' + formattedNum(ownTokens)}</>
+			return <>{'$' + formattedNum(info.getValue())}</>
 		},
 		size: 112,
 		meta: {
@@ -762,10 +757,10 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 	},
 	{
 		header: 'Others',
-		accessorKey: 'tokenBreakdowns',
-		id: 'tokenBreakdowns4',
+		accessorKey: 'others',
+		id: 'others',
 		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue()['others'])}</>
+			return <>{'$' + formattedNum(info.getValue())}</>
 		},
 		size: 100,
 		meta: {
@@ -777,11 +772,7 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		accessorKey: 'tvl',
 		id: 'total-treasury',
 		cell: (info) => {
-			const ownTokens = info.row.original.chainTvls?.['OwnTokens'] ?? 0
-
-			const total = ownTokens + info.getValue()
-
-			return <>{'$' + formattedNum(total)}</>
+			return <>{'$' + formattedNum(info.getValue())}</>
 		},
 		size: 128,
 		meta: {
