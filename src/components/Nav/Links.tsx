@@ -229,7 +229,10 @@ export const navLinks: ILinks = {
 		icon: <PieChart size={16} />
 	},
 	Raises: {
-		main: [],
+		main: [
+			{ name: 'Overview', path: '/raises' },
+			{ name: 'Active Investors', path: '/raises/active-investors' }
+		],
 		...defaultToolsAndFooterLinks,
 		icon: <Book size={16} />
 	},
@@ -256,7 +259,6 @@ export const navLinks: ILinks = {
 export const linksWithNoSubMenu = [
 	{ name: 'Liquidations', url: '/liquidations/eth' },
 	{ name: 'Fees/Revenue', url: '/fees' },
-	{ name: 'Raises', url: '/raises' },
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Borrow Aggregator', url: '/borrow' },
 	{ name: 'CEX Transparency', url: '/cexs' },

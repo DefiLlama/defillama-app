@@ -238,6 +238,38 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 	}
 ]
 
+export const activeInvestorsColumns: ColumnDef<{ name: string; deals: number; projects: string }>[] = [
+	{
+		header: 'Investor',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <>{getValue()}</>
+		},
+		size: 120
+	},
+	{
+		header: 'Deals (Last 30d)',
+		accessorKey: 'deals',
+		cell: ({ getValue }) => {
+			return <>{getValue()}</>
+		},
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Projects',
+		accessorKey: 'projects',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <Tooltip2 content={getValue()}>{getValue()}</Tooltip2>
+		},
+		size: 280
+	}
+]
+
 export const hacksColumns: ColumnDef<ICategoryRow>[] = [
 	{
 		header: 'Name',
