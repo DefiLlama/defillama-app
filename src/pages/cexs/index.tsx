@@ -326,7 +326,7 @@ export async function getStaticProps() {
 			if (c.slug === undefined) {
 				return c
 			} else {
-				const [{ chainTvls = {} }, inflows24h, inflows7d, inflows1m] = await Promise.all([
+				const res = await Promise.allSettled([
 					fetch(`https://api.llama.fi/updatedProtocol/${c.slug}`).then((r) => r.json()),
 					fetch(`https://api.llama.fi/inflows/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`).then((r) =>
 						r.json()
@@ -338,6 +338,10 @@ export async function getStaticProps() {
 						r.json()
 					)
 				])
+
+				const [{ chainTvls = {} }, inflows24h, inflows7d, inflows1m] = res.map((r) =>
+					r.status === 'fulfilled' ? r.value : {}
+				)
 
 				let cexTvl = 0
 
