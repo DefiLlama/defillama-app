@@ -13,6 +13,7 @@ import {
 	chainIconUrl,
 	formattedNum,
 	formattedPercent,
+	getDominancePercent,
 	slug,
 	toK,
 	tokenIconUrl,
@@ -234,6 +235,38 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 
 			return <Tooltip2 content={formattedValue}>{formattedValue}</Tooltip2>
 		}
+	}
+]
+
+export const activeInvestorsColumns: ColumnDef<{ name: string; deals: number; projects: string }>[] = [
+	{
+		header: 'Investor',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <>{getValue()}</>
+		},
+		size: 120
+	},
+	{
+		header: 'Deals (Last 30d)',
+		accessorKey: 'deals',
+		cell: ({ getValue }) => {
+			return <>{getValue()}</>
+		},
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Projects',
+		accessorKey: 'projects',
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			return <Tooltip2 content={getValue()}>{getValue()}</Tooltip2>
+		},
+		size: 280
 	}
 ]
 
@@ -661,10 +694,58 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		}
 	},
 	{
-		header: 'Stablecoins + Majors',
-		accessorKey: 'tvl',
+		header: 'Breakdown',
+		accessorKey: 'tokenBreakdowns',
+		id: 'tokenBreakdowns0',
+		enableSorting: false,
 		cell: (info) => {
-			return <>{'$' + formattedNum(info.getValue())}</>
+			const breakdown = info.getValue() as { [type: string]: number }
+			let totalBreakdown = 0
+
+			for (const type in breakdown) {
+				totalBreakdown += breakdown[type]
+			}
+
+			const breakdownDominance = {}
+
+			for (const value in breakdown) {
+				breakdownDominance[value] = getDominancePercent(breakdown[value], totalBreakdown)
+			}
+
+			const dominance = Object.entries(breakdownDominance).sort(
+				(a: [string, number], b: [string, number]) => b[1] - a[1]
+			)
+
+			if (totalBreakdown < 1) {
+				return <></>
+			}
+
+			return (
+				<Tooltip content={<TooltipContent dominance={dominance} protocolName={info.row.original.name} />}>
+					<AutoRow
+						sx={{
+							width: '100px !important',
+							flexWrap: 'nowrap',
+							gap: '0px',
+							background: 'white',
+							height: '20px',
+							marginLeft: 'auto'
+						}}
+					>
+						{dominance.map((dom) => {
+							const color = breakdownColor(dom[0])
+							const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
+
+							return (
+								<div
+									key={dom[0] + dom[1] + info.row.original.name}
+									style={{ width: `${dom[1]}px`, height: '20px', background: color }}
+								></div>
+							)
+						})}
+					</AutoRow>
+				</Tooltip>
+			)
 		},
 		size: 120,
 		meta: {
@@ -672,18 +753,48 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		}
 	},
 	{
-		header: 'Own Tokens',
-		accessorKey: 'chainTvls',
+		header: 'Stablecoins',
+		accessorKey: 'stablecoins',
+		id: 'stablecoins',
 		cell: (info) => {
-			const chainTvls = info.getValue()
-
-			if (!chainTvls) return <></>
-
-			const ownTokens = chainTvls['OwnTokens']
-
-			return <>{'$' + formattedNum(ownTokens)}</>
+			return <>{'$' + formattedNum(info.getValue())}</>
 		},
-		size: 120,
+		size: 108,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Majors (BTC, ETH)',
+		accessorKey: 'majors',
+		id: 'majors',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 152,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Own Tokens',
+		accessorKey: 'ownTokens',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 112,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Others',
+		accessorKey: 'others',
+		id: 'others',
+		cell: (info) => {
+			return <>{'$' + formattedNum(info.getValue())}</>
+		},
+		size: 100,
 		meta: {
 			align: 'end'
 		}
@@ -693,13 +804,9 @@ export const treasuriesColumns: ColumnDef<any>[] = [
 		accessorKey: 'tvl',
 		id: 'total-treasury',
 		cell: (info) => {
-			const ownTokens = info.row.original.chainTvls?.['OwnTokens'] ?? 0
-
-			const total = ownTokens + info.getValue()
-
-			return <>{'$' + formattedNum(total)}</>
+			return <>{'$' + formattedNum(info.getValue())}</>
 		},
-		size: 120,
+		size: 128,
 		meta: {
 			align: 'end'
 		}
@@ -955,3 +1062,65 @@ const Tooltip = styled(Tooltip2)`
 	flex-direction: column;
 	gap: 4px;
 `
+
+const breakdownColor = (type) => {
+	if (type === 'stablecoins') {
+		return '#16a34a'
+	}
+
+	if (type === 'majors') {
+		return '#2563eb'
+	}
+
+	if (type === 'ownTokens') {
+		return '#f97316'
+	}
+
+	if (type === 'others') {
+		return '#6d28d9'
+	}
+
+	return 'red'
+}
+
+const formatBreakdownType = (type) => {
+	if (type === 'stablecoins') {
+		return 'Stablecoins'
+	}
+
+	if (type === 'majors') {
+		return 'Majors'
+	}
+
+	if (type === 'ownTokens') {
+		return 'Own Tokens'
+	}
+
+	if (type === 'others') {
+		return 'Others'
+	}
+
+	return type
+}
+
+const Breakdown = ({ data }) => {
+	const color = breakdownColor(data[0])
+	const name = `${formatBreakdownType(data[0])} (${data[1]}%)`
+
+	return (
+		<AutoRow sx={{ flexWrap: 'nowrap', alignItems: 'center', gap: '4px' }}>
+			<span style={{ height: '14px', width: '14px', background: color, borderRadius: '2px' }}></span>
+			<span>{name}</span>
+		</AutoRow>
+	)
+}
+
+const TooltipContent = ({ dominance, protocolName }) => {
+	return (
+		<AutoRow sx={{ flexDirection: 'column', gap: '4px' }}>
+			{dominance.map((dom) => (
+				<Breakdown data={dom} key={dom[0] + dom[1] + protocolName + 'tooltip-content'} />
+			))}
+		</AutoRow>
+	)
+}

@@ -4,6 +4,7 @@ import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import { getProtocols, getProtocol, fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
+import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
 
 export const getStaticProps = async ({
 	params: {
@@ -80,6 +81,16 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols({ protocolData, ...props }) {
+	if (protocolData.module === 'dummy.js') {
+		return (
+			<DummyProtocol
+				data={protocolData}
+				title={`${protocolData.name} - DefiLlama`}
+				backgroundColor={props.backgroundColor}
+				protocol={props.protocol}
+			/>
+		)
+	}
 	return (
 		<ProtocolContainer
 			title={`${protocolData.name}: TVL and Stats - DefiLlama`}
