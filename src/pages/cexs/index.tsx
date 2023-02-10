@@ -143,19 +143,19 @@ const cexData = [
 		walletsLink: null
 	},
 	{
-		name: 'WOO X',
-		slug: 'woo-x',
-		coin: 'WOO',
-		coinSymbol: 'WOO',
-		walletsLink: 'https://woo.org/proof-of-reserves'
-	},
-	{
 		name: 'Phemex',
 		slug: 'phemex',
 		coin: null,
 		walletsLink: 'https://phemex.com/proof-of-reserves',
 		cgId: 'phemex',
 		cgDeriv: 'phemex_futures'
+	},
+	{
+		name: 'WOO X',
+		slug: 'woo-x',
+		coin: 'WOO',
+		coinSymbol: 'WOO',
+		walletsLink: 'https://woo.org/proof-of-reserves'
 	},
 	{
 		name: 'CoinDCX',
