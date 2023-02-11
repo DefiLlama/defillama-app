@@ -117,7 +117,7 @@ const isChain = (chain) => {
 }
 
 // todo update links prop to {name: string, iconType: string}
-const IconsRow = ({ links, url, iconType, yieldRewardsSymbols = [], disableLinks = false }: IIconsRowProps) => {
+const IconsRow = ({ links = [], url, iconType, yieldRewardsSymbols = [], disableLinks = false }: IIconsRowProps) => {
 	const [visibleChainIndex, setVisibileChainIndex] = useState(0)
 	const mainWrapEl = useRef(null)
 	const { width: mainWrapWidth } = useResize(mainWrapEl)
