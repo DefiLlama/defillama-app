@@ -36,6 +36,26 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 							</Button>
 						</Link>
 					)}
+
+					{data.twitter && (
+						<Link href={`https://twitter.com/${data.twitter}`} passHref>
+							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+								<span>Twitter</span> <ArrowUpRight size={14} />
+							</Button>
+						</Link>
+					)}
+
+					{data.treasury && (
+						<Link
+							href={`https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/treasury/${data.treasury}`}
+							passHref
+						>
+							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+								<span>Methodology</span>
+								<ArrowUpRight size={14} />
+							</Button>
+						</Link>
+					)}
 				</LinksWrapper>
 
 				{data.treasury && <Treasury protocolName={protocol} />}
