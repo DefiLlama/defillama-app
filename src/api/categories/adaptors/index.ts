@@ -208,7 +208,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 						.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
 				: null,
 			dailyUserFees: protocol.dailyUserFees ?? null,
-			mcap: mcap ?? null
+			mcap: mcap || null
 		}
 	})
 
