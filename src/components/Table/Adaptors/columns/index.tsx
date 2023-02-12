@@ -136,6 +136,7 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 		allChains ? undefined : Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
 		// Total24hColumn('Creator revenue', 'dailyCreatorRevenue', undefined, 190),
 		allChains ? undefined : Total24hColumn('Supply side revenue', 'dailySupplySideRevenue', undefined, 220),
+		allChains ? undefined : Total24hColumn('Market Cap', 'mcap', undefined, undefined, 'Market Cap'),
 		// Total24hColumn('Total fees', 'dailyTotalFees', undefined, 220),
 		// Total24hColumn('Total revenue', 'dailyTotalRevenue', undefined, 220)
 		// ChangeColumn('Weekly change', 'change_7dover7d', 160, 'Change of last 7d fees over the previous 7d fees'),

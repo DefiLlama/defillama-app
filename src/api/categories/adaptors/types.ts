@@ -20,6 +20,7 @@ export interface IGetOverviewResponseBody {
 	totalDataChart: Array<[number, number]>
 	protocols: ProtocolAdaptorSummary[]
 	allChains: string[]
+	mcap?: number
 }
 
 //  Response /summary
