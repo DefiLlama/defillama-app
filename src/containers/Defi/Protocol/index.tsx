@@ -57,6 +57,8 @@ import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData } from './utils'
 import ChartByType from './../../DexsAndFees/charts'
 import { Treasury } from './Treasury'
+import { IArticle } from '~/api/categories/news'
+import { NewsCard } from '~/components/News/Card'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -142,6 +144,7 @@ const ProtocolLink = styled.a<IProtocolLink>`
 `
 
 interface IProtocolContainerProps {
+	articles: IArticle[]
 	title: string
 	protocol: string
 	protocolData: IFusedProtocolData
@@ -193,6 +196,7 @@ export function FeesBody({ data, chartData }) {
 }
 
 function ProtocolContainer({
+	articles,
 	title,
 	protocolData,
 	protocol,
@@ -512,6 +516,16 @@ function ProtocolContainer({
 						)}
 					</LinksWrapper>
 				</Section>
+
+				{articles.length > 0 && (
+					<Section>
+						<h3>News</h3>
+
+						{articles.map((article, idx) => (
+							<NewsCard key={`news_card_${idx}`} {...article} />
+						))}
+					</Section>
+				)}
 
 				<Section>
 					<h3>Token Information</h3>
