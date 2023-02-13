@@ -83,6 +83,7 @@ export type ProtocolAdaptorSummary = {
 		breakdown24h: IJSON<number> | null
 	}>
 	methodology?: string | IJSON<string>
+	protocolType?: string
 } & ExtraTypes
 
 type ExtraTypes = {

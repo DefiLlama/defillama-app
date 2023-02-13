@@ -108,6 +108,16 @@ function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string
 		}, {}) ?? {}
 	)
 }
+const getMapingCoinGeckoId = (name: string): string => {
+	const _name = {
+		Cronos: 'crypto-com-chain',
+		Doge: 'dogecoin',
+		Polygon: 'matic-network',
+		Avalanche: 'avalanche-2',
+		BSC: 'binancecoin'
+	}[name]
+	return _name ?? name
+}
 
 // Get TVL data
 const sumTVLProtocols = (protocolName: string, versions: string[], tvlData: IJSON<number>) => {
@@ -147,8 +157,21 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		totalDataChartBreakdown,
 		allChains
 	} = request
+	const chains = protocols.filter((e) => e.protocolType === 'chain').map((e) => e.name)
+	const chainMcaps = await fetch(
+		`https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(chains)
+			.map((c: string) => getMapingCoinGeckoId(c))
+			.map((v: string) => v.toLocaleUpperCase())
+			.join(',')}&vs_currencies=usd&include_market_cap=true`
+	).then((res) => res.json())
+	const chainMcap =
+		chains?.reduce((acc, pd) => {
+			acc[pd] = chainMcaps[getMapingCoinGeckoId(pd).toLowerCase()]?.usd_market_cap || null
+			return acc
+		}, {}) ?? {}
+
 	const tvlData = getTVLData(protocolsData, chain)
-	const mcapData = getMCap(protocolsData)
+	const mcapData = { ...getMCap(protocolsData), ...chainMcap }
 	const label: string = type === 'options' ? 'Notionial volume' : capitalizeFirstLetter(type)
 
 	const allCharts: IChartsList = []
