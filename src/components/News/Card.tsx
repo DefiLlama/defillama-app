@@ -1,29 +1,51 @@
 import styled from 'styled-components'
-import Link from 'next/link'
 import { IArticle } from '~/api/categories/news'
+import { transparentize } from 'polished'
 
 const NewsCardContainer = styled.a`
+	background-color: ${({ color }) => transparentize(0.9, color)};
+	padding: 8px;
+	border-radius: 12px;
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
+	gap: 12px;
+
+	:hover {
+		text-decoration: underline;
+		background-color: ${({ color }) => transparentize(0.8, color)};
+	}
+
+	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+		flex-direction: row;
+	}
 `
 
 const NewsCardImg = styled.img`
 	object-fit: cover;
-	max-width: 40%;
+	border-radius: 4px;
+	width: 100%;
+	height: 100px;
+
+	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+		width: 200px;
+		height: 100px;
+	}
 `
 
 const NewsCardHeadline = styled.div`
-	padding-left: 12px;
 	font-size: 0.875rem;
+	font-weight: 500;
 `
 
-export const NewsCard = ({ imgSrc, href, headline }: IArticle) => {
+interface INewsCardProps extends IArticle {
+	color: string
+}
+
+export const NewsCard = ({ imgSrc, href, headline, color }: INewsCardProps) => {
 	return (
-		<Link href={href} passHref>
-			<NewsCardContainer target="_blank" rel="noopener noreferrer">
-				{imgSrc && <NewsCardImg src={imgSrc} alt={headline} width={200} height={115} />}
-				<NewsCardHeadline>{headline}</NewsCardHeadline>
-			</NewsCardContainer>
-		</Link>
+		<NewsCardContainer target="_blank" rel="noopener noreferrer" color={color} href={href}>
+			{imgSrc && <NewsCardImg src={imgSrc} alt={headline} />}
+			<NewsCardHeadline>{headline}</NewsCardHeadline>
+		</NewsCardContainer>
 	)
 }

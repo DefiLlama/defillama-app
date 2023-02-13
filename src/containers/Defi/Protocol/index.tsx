@@ -522,7 +522,7 @@ function ProtocolContainer({
 						<h3>News</h3>
 
 						{articles.map((article, idx) => (
-							<NewsCard key={`news_card_${idx}`} {...article} />
+							<NewsCard key={`news_card_${idx}`} {...article} color={backgroundColor} />
 						))}
 					</Section>
 				)}
