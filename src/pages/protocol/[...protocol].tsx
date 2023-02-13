@@ -5,13 +5,17 @@ import { maxAgeForNext } from '~/api'
 import { getProtocols, getProtocol, fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
+import { fetchArticles, IArticle, IArticlesResponse } from '~/api/categories/news'
 
 export const getStaticProps = async ({
 	params: {
 		protocol: [protocol]
 	}
 }) => {
-	const protocolRes: IProtocolResponse = await getProtocol(protocol)
+	const [protocolRes, articles]: [IProtocolResponse, IArticle[]] = await Promise.all([
+		getProtocol(protocol),
+		fetchArticles({ tags: protocol })
+	])
 
 	if (protocolRes?.chainTvls) {
 		Object.keys(protocolRes.chainTvls).forEach((chain) => {
@@ -59,6 +63,7 @@ export const getStaticProps = async ({
 
 	return {
 		props: {
+			articles,
 			protocol,
 			protocolData,
 			backgroundColor,
