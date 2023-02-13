@@ -69,15 +69,17 @@ export const fetchArticles = async ({ tags = '', offset = 0, size = 2, sort = 'd
 
 	const urlSearch = new URLSearchParams(params)
 
-	const res = await fetch(`${process.env.DL_NEWS_API}/content/v4/search/published?${urlSearch.toString()}`, {
+	const articlesRes = await fetch(`${process.env.DL_NEWS_API}/content/v4/search/published?${urlSearch.toString()}`, {
 		headers: {
 			'content-type': 'application/json',
 			Authorization: `Bearer ${process.env.DL_NEWS_ACCESS_TOKEN}`
 		},
 		method: 'GET'
 	})
-
-	const articlesRes: IArticlesResponse = await res.json()
+		.then((res) => res.json())
+		.catch(() => {
+			return []
+		})
 
 	const articles: IArticle[] = articlesRes.content_elements.map((element) => ({
 		headline: element.headlines.basic,

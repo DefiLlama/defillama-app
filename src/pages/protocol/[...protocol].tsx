@@ -12,11 +12,10 @@ export const getStaticProps = async ({
 		protocol: [protocol]
 	}
 }) => {
-	const res = await Promise.allSettled([getProtocol(protocol), fetchArticles({ tags: protocol })])
-
-	const [protocolRes, articles] = res.map((r, index) =>
-		r.status === 'fulfilled' ? r.value : index === 0 ? {} : []
-	) as [IProtocolResponse, IArticle[]]
+	const [protocolRes, articles]: [IProtocolResponse, IArticle[]] = await Promise.all([
+		getProtocol(protocol),
+		fetchArticles({ tags: protocol })
+	])
 
 	if (protocolRes?.chainTvls) {
 		Object.keys(protocolRes.chainTvls).forEach((chain) => {
