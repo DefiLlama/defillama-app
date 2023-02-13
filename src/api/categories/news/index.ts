@@ -81,11 +81,12 @@ export const fetchArticles = async ({ tags = '', offset = 0, size = 2, sort = 'd
 			return {}
 		})
 
-	const articles: IArticle[] = articlesRes?.content_elements?.map((element) => ({
-		headline: element.headlines.basic,
-		href: `https://dlnews.com${element.canonical_url}`,
-		imgSrc: element.promo_items?.basic?.url ?? null
-	}))
+	const articles: IArticle[] =
+		articlesRes?.content_elements?.map((element) => ({
+			headline: element.headlines.basic,
+			href: `https://dlnews.com${element.canonical_url}`,
+			imgSrc: element.promo_items?.basic?.url ?? null
+		})) ?? []
 
 	return articles
 }
