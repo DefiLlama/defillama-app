@@ -5,7 +5,7 @@ import type { IResponseCGMarketsAPI } from './types'
 
 function getCGMarketsDataURLs() {
 	const urls: string[] = []
-	const maxPage = 10
+	const maxPage = 20
 	for (let page = 1; page <= maxPage; page++) {
 		urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', `${page}`)}`)
 	}
@@ -43,7 +43,9 @@ export async function retryCoingeckoRequest(func, retries) {
 	return {}
 }
 
-export async function getAllCGTokensList(): Promise<Array<{ name: string; symbol?: string; image: string }>> {
+export async function getAllCGTokensList(): Promise<
+	Array<{ name: string; symbol?: string; image: string; image2: string }>
+> {
 	const data = await fetcher('https://api.llama.fi/sortedTokenlist?a')
 
 	return data

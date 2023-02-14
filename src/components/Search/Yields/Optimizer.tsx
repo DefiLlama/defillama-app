@@ -9,7 +9,7 @@ import { findActiveItem } from '../Base/utils'
 interface IYieldSearchProps {
 	lend?: boolean
 	value?: string | null
-	searchData: Array<{ name: string; symbol: string; image: string }>
+	searchData: Array<{ name: string; symbol: string; image?: string | null; image2?: string | null }>
 }
 
 export function useFormatTokensSearchList({ lend, searchData }) {
@@ -42,7 +42,8 @@ export function useFormatTokensSearchList({ lend, searchData }) {
 					pathname: router.pathname,
 					query: { [targetParam]: el.symbol?.toUpperCase(), [restParam]: router.query[restParam] || '', ...queryParams }
 				},
-				logo: el.image
+				logo: el.image2 || null,
+				fallbackLogo: el.image || null
 			})) ?? []
 
 		return [stablecoinsSearch].concat(yieldsList)

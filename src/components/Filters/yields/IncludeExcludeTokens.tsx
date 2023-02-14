@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { useComboboxState } from 'ariakit'
 import styled from 'styled-components'
 import { Search, X as XIcon } from 'react-feather'
-import TokenLogo, { isExternalImage } from '~/components/TokenLogo'
+import TokenLogo from '~/components/TokenLogo'
 import { Input } from '~/components/Search/Base/Input'
 import { Empty, Popover } from '~/components/Search/Base/Results/Desktop'
 import { findActiveItem } from '~/components/Search/Base/utils'
@@ -12,7 +12,7 @@ export function IncludeExcludeTokens({
 	tokens,
 	...props
 }: {
-	tokens: Array<{ name: string; symbol: string; logo: string }>
+	tokens: Array<{ name: string; symbol: string; logo?: string | null; fallbackLogo?: string | null }>
 }) {
 	const [resultsLength, setResultsLength] = useState(3)
 
@@ -97,7 +97,9 @@ export function IncludeExcludeTokens({
 					<>
 						{options.slice(0, resultsLength + 1).map((token) => (
 							<ResultRow key={token.name} onClick={() => handleTokenInclude(token.symbol)}>
-								{token?.logo && <TokenLogo logo={token?.logo} external={isExternalImage(token.logo)} />}
+								{(token?.logo || token?.fallbackLogo) && (
+									<TokenLogo logo={token?.logo} fallbackLogo={token?.fallbackLogo} />
+								)}
 								<span>{`${token.name} (${token.symbol})`}</span>
 								<ActionsWrapper>
 									<Action

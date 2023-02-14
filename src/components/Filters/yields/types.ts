@@ -34,8 +34,8 @@ export interface IYieldFiltersProps extends IDropdownMenusProps {
 	poolsNumber?: number
 	projectsNumber?: number
 	chainsNumber?: number
-	tokens?: Array<{ name: string; symbol: string; logo: string }>
-	strategyInputsData?: Array<{ name: string; symbol: string; image: string }>
+	tokens?: Array<{ name: string; symbol: string; logo?: string | null; fallbackLogo?: string | null }>
+	strategyInputsData?: Array<{ name: string; symbol: string; image?: string | null; image2?: string | null }>
 	noOfStrategies?: number
 	showSearchOnMobile?: boolean
 }

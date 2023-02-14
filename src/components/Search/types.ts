@@ -10,7 +10,8 @@ export interface ISearchItem {
 					[key: string]: string | Array<string>
 				}
 		  }
-	logo?: string
+	logo?: string | null
+	fallbackLogo?: string | null
 	symbol?: string
 }
 

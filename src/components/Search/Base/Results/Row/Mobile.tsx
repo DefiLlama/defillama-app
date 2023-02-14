@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import TokenLogo, { isExternalImage } from '~/components/TokenLogo'
+import TokenLogo from '~/components/TokenLogo'
 import type { ISearchItem } from '../../../types'
 
 const Item = styled.div`
@@ -48,7 +48,7 @@ export const MobileRow = ({
 			}}
 			{...props}
 		>
-			{data?.logo && <TokenLogo logo={data?.logo} external={isExternalImage(data.logo)} />}
+			{(data?.logo || data?.fallbackLogo) && <TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} />}
 			<span>{data.name}</span>
 		</Item>
 	)

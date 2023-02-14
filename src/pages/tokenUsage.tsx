@@ -96,7 +96,8 @@ export async function getStaticProps() {
 					name: `${token.name}`,
 					route: `/tokenUsage?token=${token.symbol}`,
 					symbol: token.symbol,
-					logo: token.image
+					logo: token.image2 || null,
+					fallbackLogo: token.image || null
 				}))
 		},
 		revalidate: maxAgeForNext([23])

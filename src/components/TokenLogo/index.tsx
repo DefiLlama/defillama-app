@@ -3,6 +3,7 @@ import styled from 'styled-components'
 
 interface TokenLogoProps {
 	logo?: string | null
+	fallbackLogo?: string | null
 	header?: boolean
 	external?: boolean
 	size?: number
@@ -21,10 +22,20 @@ const Image = styled.img`
 	flex-shrink: 0;
 `
 
-export const isExternalImage = (imagePath: string) => {
-	return imagePath?.includes('http')
-}
-
-export default function TokenLogo({ logo = null, size = 24, style, id, ...rest }: TokenLogoProps) {
-	return <Image {...rest} alt={''} src={logo} height={size} width={size} id={id} style={style} loading="lazy" />
+export default function TokenLogo({ logo = null, size = 24, style, id, fallbackLogo, ...rest }: TokenLogoProps) {
+	return (
+		<Image
+			{...rest}
+			alt={''}
+			src={logo || fallbackLogo}
+			height={size}
+			width={size}
+			id={id}
+			style={style}
+			loading="lazy"
+			onError={(e) => {
+				e.currentTarget.src = fallbackLogo || '/placeholder.png'
+			}}
+		/>
+	)
 }

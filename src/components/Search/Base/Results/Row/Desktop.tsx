@@ -25,10 +25,6 @@ const Item = styled(ComboboxItem)`
 	}
 `
 
-const isExternalImage = (imagePath: string) => {
-	return imagePath?.includes('http')
-}
-
 export const DesktopRow = ({ data, onItemClick }) => {
 	const router = useRouter()
 
@@ -44,7 +40,7 @@ export const DesktopRow = ({ data, onItemClick }) => {
 			}}
 			focusOnHover
 		>
-			{data?.logo && <TokenLogo logo={data?.logo} external={isExternalImage(data.logo)} />}
+			{(data?.logo || data?.fallbackLogo) && <TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} />}
 			<span>{data.name}</span>
 		</Item>
 	)
