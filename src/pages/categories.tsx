@@ -70,7 +70,7 @@ export const descriptions = {
 	'Prediction Market': 'Protocols that allow you to wager/bet/buy in future results',
 	'Algo-Stables': 'Protocols that provide algorithmic coins to stablecoins',
 	'NFT Marketplace': 'Protocols where users can buy/sell/rent NFTs',
-	'NFT Lending': 'Protocols that allow you too collateralize your NFT for a loan',
+	'NFT Lending': 'Protocols that allow you to collateralize your NFT for a loan',
 	RWA: 'Protocols that involve Real World Assets, such as house tokenization',
 	Farm: 'Protocols that allow users to lock money in exchange for a protocol token',
 	'Liquid Staking':
