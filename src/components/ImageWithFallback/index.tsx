@@ -18,5 +18,5 @@ export const ImageWithFallback = ({
 		setError(null)
 	}, [src])
 
-	return <Image alt={alt} onError={setError} src={error ? fallbackImage : src} {...props} />
+	return <Image alt={alt} onError={setError} src={error ? fallbackImage : src} unoptimized {...props} />
 }
