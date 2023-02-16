@@ -527,6 +527,7 @@ export const PROTOCOL_NAMES_MAP = {
 	liquity: 'Liquity',
 	maker: 'MakerDAO',
 	'trader-joe-lend': 'Trader Joe',
+	'mimo-protocol': 'Mimo',
 	polygon: 'Polygon',
 	ethereum: 'Ethereum',
 	avalanche: 'Avalanche',
