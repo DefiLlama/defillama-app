@@ -68,17 +68,8 @@ export const attributeOptions = [
 		key: YIELDS_SETTINGS.NO_OUTLIER.toLowerCase(),
 		help: 'Remove pools which are considered outliers based on their geometric mean of apy values',
 		filterFn: (item) => item.outlier === false,
-		defaultFilterFnOnPage: {
-			'/yields/stablecoins': (item) => item.outlier === false
-		},
-		disabledOnPages: [
-			'/yields/stablecoins',
-			'/yields/borrow',
-			'/borrow',
-			'/yields/loop',
-			'/yields/strategy',
-			'/yields/strategyFR'
-		]
+		defaultFilterFnOnPage: {},
+		disabledOnPages: ['/yields/borrow', '/borrow', '/yields/loop', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		name: 'Stable Outlook',
