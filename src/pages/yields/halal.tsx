@@ -44,7 +44,8 @@ const whitelist = [
 	'Curve',
 	'Lido',
 	'Convex Finance',
-	'Uniswap',
+	'Uniswap V2',
+	'Uniswap V3',
 	'Arrakis Finance',
 	'PancakeSwap',
 	'Osmosis',
@@ -82,7 +83,8 @@ const whitelist = [
 	'Loopring',
 	'Trisolaris',
 	'ApeSwap AMM',
-	'MM Finance Polygon'
+	'MM Finance Polygon',
+	'Solidly V2'
 	// stopped at protocols with <20M TVL
 ]
 
