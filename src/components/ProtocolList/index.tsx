@@ -6,6 +6,8 @@ import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { IParentProtocol } from '~/api/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
+import { DownloadIcon } from '..'
+import { DownloadButton } from '~/containers/Raises'
 
 interface IAllTokensPageProps {
 	title?: string
@@ -18,6 +20,7 @@ interface IAllTokensPageProps {
 	parentProtocols?: IParentProtocol[]
 	chartData?: any
 	color?: string
+	csvDownload?: boolean
 }
 
 function ProtocolList({
@@ -27,7 +30,8 @@ function ProtocolList({
 	chains = [],
 	filteredProtocols,
 	showChainList = true,
-	parentProtocols
+	parentProtocols,
+	csvDownload = false
 }: IAllTokensPageProps) {
 	const handleRouting = (chain) => {
 		if (chain === 'All') return `/protocols/${category?.toLowerCase()}`
@@ -76,7 +80,19 @@ function ProtocolList({
 				}}
 			/>
 
+			<div style={{display:"flex", gap:"8px"}}>
 			<Header>{title}</Header>
+
+			{csvDownload === true && 
+				<a href={`https://api.llama.fi/simpleChainDataset/All?category=${category}&${Object.entries(extraTvlsEnabled)
+				.filter((t) => t[1] === true)
+				.map((t) => `${t[0]}=true`)
+				.join('&')}`}>
+				<DownloadButton>
+					<DownloadIcon />
+					<span>&nbsp;&nbsp;.csv</span>
+				</DownloadButton></a>}
+			</div>
 
 			{showChainList && (
 				<RowLinksWrapper>

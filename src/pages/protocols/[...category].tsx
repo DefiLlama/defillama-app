@@ -36,7 +36,7 @@ export async function getStaticPaths() {
 export default function Protocols({ category, ...props }) {
 	return (
 		<Layout title={`${capitalizeFirstLetter(category)} TVL Rankings - DefiLlama`} defaultSEO>
-			<ProtocolList category={capitalizeFirstLetter(category)} {...props} />
+			<ProtocolList category={capitalizeFirstLetter(category)} {...props} csvDownload={true} />
 		</Layout>
 	)
 }
