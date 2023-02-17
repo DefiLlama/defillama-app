@@ -1,4 +1,6 @@
 import { useRouter } from 'next/router'
+import styled, { keyframes } from 'styled-components'
+import { Bell } from 'react-feather'
 import { FiltersByChain, FiltersByToken } from '../common'
 import { AvailableRange, TVLRange } from '../protocols'
 import { YieldAttributes } from './Attributes'
@@ -10,6 +12,7 @@ import type { IDropdownMenusProps } from './types'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { ColumnFilters } from '../common/ColumnFilters'
 import { ResetAllButton } from '../v2Base'
+import Tooltip from '~/components/Tooltip'
 
 const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
 
@@ -189,10 +192,43 @@ export function YieldFilterDropdowns({
 			)}
 
 			{!isMobile && (
-				<a href={`https://app.hal.xyz/recipes/defi-llama/track-pools-list?${router.asPath.split("?")[1]??''}`} rel='noopener noreferrer' target='_blank'>
-					<ResetAllButton data-variant="secondary">Subscribe</ResetAllButton>
-				</a>
+				<div style={{ marginInlineStart: 'auto' }}>
+					<Tooltip content="Be notified on your yields using the Hal app.">
+						<NotifyButton
+							data-variant="secondary"
+							as="a"
+							href={`https://app.hal.xyz/recipes/defi-llama/track-pools-list?${router.asPath.split('?')[1] ?? ''}`}
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							<Bell size={16} />
+							Notify
+						</NotifyButton>
+					</Tooltip>
+				</div>
 			)}
 		</>
 	)
 }
+
+const wiggle = keyframes`
+	0% {
+		transform: rotate(10deg);
+	}
+
+	50% {
+		transform: rotate(-10deg);
+	}
+
+	100% {
+		transform: rotate(0);
+	}
+`
+
+const NotifyButton = styled(ResetAllButton)`
+	display: flex;
+	gap: 4px;
+	:hover > svg {
+		animation ${wiggle} 0.4s ease;
+	}
+`
