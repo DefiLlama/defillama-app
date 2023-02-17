@@ -9,6 +9,7 @@ import { ResetAllYieldFilters } from './ResetAll'
 import type { IDropdownMenusProps } from './types'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { ColumnFilters } from '../common/ColumnFilters'
+import { ResetAllButton } from '../v2Base'
 
 const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
 
@@ -185,6 +186,12 @@ export function YieldFilterDropdowns({
 
 			{resetFilters && (
 				<ResetAllYieldFilters pathname={pathname || router.pathname} variant="secondary" subMenu={isMobile} />
+			)}
+
+			{!isMobile && (
+				<a href={`https://app.hal.xyz/recipes/defi-llama/track-pools-list?${router.asPath.split("?")[1]??''}`} rel='noopener noreferrer' target='_blank'>
+					<ResetAllButton data-variant="secondary">Subscribe</ResetAllButton>
+				</a>
 			)}
 		</>
 	)
