@@ -145,7 +145,7 @@ export const chainCoingeckoIds = {
 		symbol: 'ONE',
 		cmcId: '3945'
 	},
-	RSK: {
+	ROOTSTOCK: {
 		geckoId: 'rootstock',
 		symbol: 'RBTC',
 		cmcId: '3626'
