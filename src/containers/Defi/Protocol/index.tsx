@@ -534,8 +534,8 @@ function ProtocolContainer({
 						<FlexRow>
 							<span>Address</span>
 							<span>:</span>
-							<span>{address.slice(0, 8) + '...' + address?.slice(36, 42)}</span>
-							<CopyHelper toCopy={address} disabled={!address} />
+							<span>{address.split(':').pop().slice(0, 8) + '...' + address?.slice(36, 42)}</span>
+							<CopyHelper toCopy={address.split(':').pop()} disabled={!address} />
 						</FlexRow>
 					)}
 
