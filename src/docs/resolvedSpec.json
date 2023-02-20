@@ -79,7 +79,7 @@
 				}
 			}
 		},
-		"/defaultChart": {
+		"//v2/historicalChainTvl": {
 			"get": {
 				"tags": ["TVL"],
 				"summary": "Get historical TVL (excludes liquid staking and double counted tvl) of DeFi on all chains",
