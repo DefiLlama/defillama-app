@@ -79,10 +79,33 @@
 				}
 			}
 		},
-		"//v2/historicalChainTvl": {
+		"/v2/historicalChainTvl": {
 			"get": {
 				"tags": ["TVL"],
 				"summary": "Get historical TVL (excludes liquid staking and double counted tvl) of DeFi on all chains",
+				"responses": {
+					"200": {
+						"description": "successful operation"
+					}
+				}
+			}
+		},
+		"/v2/historicalChainTvl/{chain}": {
+			"get": {
+				"tags": ["TVL"],
+				"summary": "Get historical TVL (excludes liquid staking and double counted tvl) of a chain",
+				"parameters": [
+					{
+						"name": "chain",
+						"in": "path",
+						"required": true,
+						"description": "chain slug, you can get these from /chains or the chains property on /protocols",
+						"schema": {
+							"type": "string",
+							"example": "Ethereum"
+						}
+					}
+				],
 				"responses": {
 					"200": {
 						"description": "successful operation"
