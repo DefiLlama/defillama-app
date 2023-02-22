@@ -5,6 +5,11 @@ import styled, { keyframes } from 'styled-components'
 import Tooltip from '~/components/Tooltip'
 import { ResetAllButton } from '../v2Base'
 
+/**
+ * Notify Button Powered by HAL.
+ * Any Questions, Comments, Maintenance feel free to reach out
+ * to the Hal Team: tech@hal.xyz.
+ */
 export function NotifyButton() {
 	const router = useRouter()
 
