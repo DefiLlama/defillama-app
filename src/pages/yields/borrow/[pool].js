@@ -307,7 +307,7 @@ const PageView = () => {
 								<Button
 									as="a"
 									target="_blank"
-									rel="noopener"
+									rel="noopener noreferrer"
 									useTextColor={true}
 									color={backgroundColor}
 									disabled={isLoading}
