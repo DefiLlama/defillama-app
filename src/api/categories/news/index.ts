@@ -1,3 +1,5 @@
+import { fetchWithErrorLogging } from '~/utils/async'
+
 export interface IArticle {
 	headline: string
 	href: string
@@ -69,15 +71,19 @@ export const fetchArticles = async ({ tags = '', offset = 0, size = 2, sort = 'd
 
 	const urlSearch = new URLSearchParams(params)
 
-	const articlesRes = await fetch(`${process.env.DL_NEWS_API}/content/v4/search/published?${urlSearch.toString()}`, {
-		headers: {
-			'content-type': 'application/json',
-			Authorization: `Bearer ${process.env.DL_NEWS_ACCESS_TOKEN}`
-		},
-		method: 'GET'
-	})
+	const articlesRes = await fetchWithErrorLogging(
+		`${process.env.DL_NEWS_API}/content/v4/search/published?${urlSearch.toString()}`,
+		{
+			headers: {
+				'content-type': 'application/json',
+				Authorization: `Bearer ${process.env.DL_NEWS_ACCESS_TOKEN}`
+			},
+			method: 'GET'
+		}
+	)
 		.then((res) => res.json())
-		.catch(() => {
+		.catch((err) => {
+			console.log(err)
 			return {}
 		})
 
