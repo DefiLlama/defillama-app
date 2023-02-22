@@ -278,6 +278,7 @@ export interface IOverviewProps {
 	totalAllTime?: ProtocolAdaptorSummaryResponse['totalAllTime']
 	type: string
 	dexsDominance?: number
+	categories?: Array<string>
 }
 
 // - used in /[type]/chains

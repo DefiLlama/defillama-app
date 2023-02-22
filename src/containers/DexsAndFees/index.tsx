@@ -14,6 +14,7 @@ import { IDexChartsProps } from './OverviewItem'
 import { useRouter } from 'next/router'
 import { capitalizeFirstLetter } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
+import { FiltersByCategory } from '~/components/Filters/yields/Categories'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -31,6 +32,23 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 	const router = useRouter()
 	const { dataType: selectedDataType = 'Notional volume' } = router.query
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
+
+	const { selectedCategories, protocolsList } = React.useMemo(() => {
+		const selectedCategories = router.query.category
+			? typeof router.query.category === 'string'
+				? [router.query.category]
+				: router.query.category
+			: []
+
+		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
+
+		const protocolsList =
+			categoriesToFilter.length > 0
+				? props.protocols.filter((p) => (p.category ? selectedCategories.includes(p.category) : false))
+				: props.protocols
+
+		return { selectedCategories, protocolsList }
+	}, [router.query.category, props.protocols])
 
 	const [charts, setCharts] = React.useState<IJSON<IOverviewContainerProps['totalDataChartBreakdown']>>({
 		totalDataChartBreakdown: props.totalDataChartBreakdown,
@@ -165,13 +183,21 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 						activeLink={chain}
 						alternativeOthersText="More chains"
 					/>
+					{props.categories?.length > 0 && (
+						<FiltersByCategory
+							categoryList={props.categories}
+							selectedCategories={selectedCategories}
+							pathname="/fees"
+							hideSelectedCount
+						/>
+					)}
 				</RowLinksWrapper>
 			) : (
 				<></>
 			)}
 
-			{props.protocols && props.protocols.length > 0 ? (
-				<OverviewTable data={props.protocols} type={props.type} allChains={isChainsPage} />
+			{protocolsList && protocolsList.length > 0 ? (
+				<OverviewTable data={protocolsList} type={props.type} allChains={isChainsPage} />
 			) : (
 				<Panel>
 					<p style={{ textAlign: 'center' }}>

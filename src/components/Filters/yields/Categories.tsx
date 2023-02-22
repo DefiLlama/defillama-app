@@ -12,6 +12,7 @@ interface IFiltersByCategoryProps {
 	pathname: string
 	variant?: 'primary' | 'secondary'
 	subMenu?: boolean
+	hideSelectedCount?: boolean
 }
 
 export function FiltersByCategory({
@@ -19,7 +20,8 @@ export function FiltersByCategory({
 	selectedCategories,
 	pathname,
 	variant = 'primary',
-	subMenu
+	subMenu,
+	hideSelectedCount = false
 }: IFiltersByCategoryProps) {
 	const router = useRouter()
 
@@ -134,7 +136,7 @@ export function FiltersByCategory({
 				) : (
 					<>
 						<span>Filter by Category</span>
-						{isSelected && <ItemsSelected>{selectedCategories.length}</ItemsSelected>}
+						{isSelected && !hideSelectedCount && <ItemsSelected>{selectedCategories.length}</ItemsSelected>}
 					</>
 				)}
 

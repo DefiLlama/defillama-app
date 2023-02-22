@@ -14,10 +14,19 @@ export const getStaticProps: GetStaticProps<IOverviewContainerProps> = async ({
 		console.info(`Chain page data not found ${params.type} ${params.chain}`, e)
 	)
 	if (!data || !data.protocols || data.protocols.length <= 0) return { notFound: true }
+
+	const categories = new Set<string>()
+
+	data.protocols.forEach((p) => {
+		if (p.category) {
+			categories.add(p.category)
+		}
+	})
 	return {
 		props: {
 			...data,
-			type: params.type
+			type: params.type,
+			categories: Array.from(categories)
 		},
 		revalidate: maxAgeForNext([22])
 	}
