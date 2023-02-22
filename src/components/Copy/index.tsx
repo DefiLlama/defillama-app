@@ -24,6 +24,7 @@ export default function CopyHelper({ toCopy, ...props }) {
 	const copy = () => {
 		navigator.clipboard.writeText(toCopy)
 		setCopied(true)
+		setTimeout(() => setCopied(false), 2000)
 	}
 	return (
 		<CopyIcon onClick={copy} aria-label="Copy" {...props}>

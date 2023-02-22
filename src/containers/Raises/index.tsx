@@ -107,7 +107,7 @@ function RaisesTable({ raises, downloadCsv }) {
 	)
 }
 
-const DownloadButton = styled.button`
+export const DownloadButton = styled.button`
 	font-size: 0.875rem;
 	display: flex;
 	align-items: center;

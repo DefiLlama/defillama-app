@@ -137,6 +137,13 @@ const cexData = [
 		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
 	},
 	{
+		name: 'WOO X',
+		slug: 'woo-x',
+		coin: 'WOO',
+		coinSymbol: 'WOO',
+		walletsLink: 'https://woo.org/proof-of-reserves'
+	},
+	{
 		name: 'Firi',
 		slug: 'firi',
 		coin: null,
@@ -149,13 +156,6 @@ const cexData = [
 		walletsLink: 'https://phemex.com/proof-of-reserves',
 		cgId: 'phemex',
 		cgDeriv: 'phemex_futures'
-	},
-	{
-		name: 'WOO X',
-		slug: 'woo-x',
-		coin: 'WOO',
-		coinSymbol: 'WOO',
-		walletsLink: 'https://woo.org/proof-of-reserves'
 	},
 	{
 		name: 'CoinDCX',

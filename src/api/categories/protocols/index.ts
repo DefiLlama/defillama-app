@@ -57,7 +57,7 @@ export const getProtocol = async (protocolName: string) => {
 			}
 		})
 
-		if (isNewlyListedProtocol && protocolName !== 'steakhut-finance') {
+		if (isNewlyListedProtocol && !data.isParentProtocol) {
 			const hourlyData = await fetch(`${HOURLY_PROTOCOL_API}/${protocolName}`).then((r) => r.json())
 			return { ...hourlyData, isHourlyChart: true }
 		} else return data
