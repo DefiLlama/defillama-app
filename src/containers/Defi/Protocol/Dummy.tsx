@@ -31,7 +31,7 @@ export function DummyProtocol({ data, title, backgroundColor, protocol }) {
 				<LinksWrapper>
 					{data.url && (
 						<Link href={data.url} passHref>
-							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+							<Button as="a" target="_blank" useTextColor={true} color={backgroundColor}>
 								<span>Website</span> <ArrowUpRight size={14} />
 							</Button>
 						</Link>

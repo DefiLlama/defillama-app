@@ -316,7 +316,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 					<LinksWrapper>
 						{props.protocolSummary.url && (
 							<Link href={props.protocolSummary.url} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
+								<Button as="a" target="_blank" useTextColor={true}>
 									<span>Website</span> <ArrowUpRight size={14} />
 								</Button>
 							</Link>
