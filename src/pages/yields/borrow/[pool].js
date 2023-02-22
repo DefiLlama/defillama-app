@@ -304,7 +304,14 @@ const PageView = () => {
 					<LinksWrapper>
 						{(url || isLoading) && (
 							<Link href={url} passHref>
-								<Button as="a" target="_blank" useTextColor={true} color={backgroundColor} disabled={isLoading}>
+								<Button
+									as="a"
+									target="_blank"
+									rel="noopener"
+									useTextColor={true}
+									color={backgroundColor}
+									disabled={isLoading}
+								>
 									<span>Website</span> <ArrowUpRight size={14} />
 								</Button>
 							</Link>
