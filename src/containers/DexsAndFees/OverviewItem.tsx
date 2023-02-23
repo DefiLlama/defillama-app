@@ -111,7 +111,7 @@ export const ProtocolChart = ({
 							<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
 						</Name>
 					)}
-					{data.total24h ? (
+					{data.total24h || data.total24h === 0 ? (
 						<Stat>
 							<span>
 								{data.disabled === true
@@ -125,7 +125,7 @@ export const ProtocolChart = ({
 					) : (
 						<></>
 					)}
-					{data.dailyRevenue ? (
+					{data.dailyRevenue || data.dailyRevenue === 0 ? (
 						<Stat>
 							<span>
 								{data.disabled === true
