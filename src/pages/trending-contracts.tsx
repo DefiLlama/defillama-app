@@ -127,6 +127,14 @@ export default function TrendingContracts() {
 						<ButtonLight as="a">Polygon</ButtonLight>
 					)}
 				</Link>
+
+				<Link href="/trending-contracts?chain=arbitrum" shallow>
+					{activeChain === 'arbitrum' ? (
+						<ButtonDark as="a">Arbitrum</ButtonDark>
+					) : (
+						<ButtonLight as="a">Arbitrum</ButtonLight>
+					)}
+				</Link>
 			</TableFilters>
 
 			{!data && !error ? (
@@ -144,75 +152,76 @@ export default function TrendingContracts() {
 	)
 }
 
-const columns = (chain:string)=> [
-	{
-		header: 'Contract',
-		accessorKey: 'contract',
-		cell: (info) => {
-			const value = info.getValue() as string
-			const name = info.row.original.name
-			return (
-				<a
-					href={`https://${chain==="ethereum"?"etherscan.io":"polygonscan.com"}/address/${value}`}
-					target="_blank"
-					rel="noopener noreferrer"
-					style={{ textDecoration: 'underline' }}
-				>
-					{name ?? value.slice(0, 4) + '...' + value.slice(-4)}
-				</a>
-			)
+const columns = (chain: string) =>
+	[
+		{
+			header: 'Contract',
+			accessorKey: 'contract',
+			cell: (info) => {
+				const value = info.getValue() as string
+				const name = info.row.original.name
+				return (
+					<a
+						href={`https://${chain === 'ethereum' ? 'etherscan.io' : 'polygonscan.com'}/address/${value}`}
+						target="_blank"
+						rel="noopener noreferrer"
+						style={{ textDecoration: 'underline' }}
+					>
+						{name ?? value.slice(0, 4) + '...' + value.slice(-4)}
+					</a>
+				)
+			},
+			enableSorting: false
 		},
-		enableSorting: false
-	},
-	{
-		header: 'Transactions',
-		accessorKey: 'txns',
-		cell: (info) => <>{info.getValue()}</>,
-		meta: {
-			align: 'end'
+		{
+			header: 'Transactions',
+			accessorKey: 'txns',
+			cell: (info) => <>{info.getValue()}</>,
+			meta: {
+				align: 'end'
+			}
+		},
+		{
+			header: 'Tx Growth',
+			accessorKey: 'txns_percentage_growth',
+			cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+			meta: {
+				align: 'end'
+			}
+		},
+		{
+			header: 'Active Accounts',
+			accessorKey: 'active_accounts',
+			cell: (info) => <>{info.getValue()}</>,
+			meta: {
+				align: 'end'
+			}
+		},
+		{
+			header: 'Account Growth',
+			accessorKey: 'accounts_percentage_growth',
+			cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+			meta: {
+				align: 'end'
+			}
+		},
+		{
+			header: 'Gas Spent',
+			accessorKey: 'gas_spend',
+			cell: (info) => <>{(info.getValue() as number)?.toFixed(2)} ETH</>,
+			meta: {
+				align: 'end'
+			}
+		},
+		{
+			header: 'Gas Growth',
+			accessorKey: 'gas_spend_percentage_growth',
+			cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+			meta: {
+				align: 'end'
+			}
 		}
-	},
-	{
-		header: 'Tx Growth',
-		accessorKey: 'txns_percentage_growth',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Active Accounts',
-		accessorKey: 'active_accounts',
-		cell: (info) => <>{info.getValue()}</>,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Account Growth',
-		accessorKey: 'accounts_percentage_growth',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Gas Spent',
-		accessorKey: 'gas_spend',
-		cell: (info) => <>{(info.getValue() as number)?.toFixed(2)} ETH</>,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Gas Growth',
-		accessorKey: 'gas_spend_percentage_growth',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
-		meta: {
-			align: 'end'
-		}
-	}
-] as ColumnDef<ITrendingContracts>[]
+	] as ColumnDef<ITrendingContracts>[]
 
 const Input = styled.input`
 	padding: 4px 6px;
