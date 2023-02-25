@@ -162,7 +162,7 @@ const columns = (chain: string) =>
 				const name = info.row.original.name
 				return (
 					<a
-						href={`https://${chain === 'ethereum' ? 'etherscan.io' : 'polygonscan.com'}/address/${value}`}
+						href={`https://${chain === 'ethereum' ? 'etherscan.io' : chain==="arbitrum"?'arbiscan.io': 'polygonscan.com'}/address/${value}`}
 						target="_blank"
 						rel="noopener noreferrer"
 						style={{ textDecoration: 'underline' }}
