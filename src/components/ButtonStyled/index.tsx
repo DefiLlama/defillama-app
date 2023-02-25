@@ -52,16 +52,16 @@ const ContentWrapper = styled.div`
 `
 
 export const ButtonLight = styled(Base)<IButtonLightProps>`
-	background-color: ${({ color, theme }) => (color ? transparentize(0.9, color) : transparentize(0.9, theme.primary1))};
+	background-color: ${({ color, theme }) => (color ? transparentize(0.9, color) : transparentize(0.9, theme.link))};
 	color: ${({ color, theme, useTextColor }) =>
-		useTextColor ? theme.text1 : color ? darken(0.1, color) : theme.primary1};
+		useTextColor ? theme.text1 : color ? darken(0.1, color) : theme.link};
 
 	min-width: fit-content;
 	border-radius: 12px;
 	white-space: nowrap;
 
 	a {
-		color: ${({ color, theme }) => (color ? darken(0.1, color) : theme.primary1)};
+		color: ${({ color, theme }) => (color ? darken(0.1, color) : theme.link)};
 	}
 
 	:hover,

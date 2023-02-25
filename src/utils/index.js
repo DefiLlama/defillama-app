@@ -240,8 +240,8 @@ export function formattedPercent(percent, noSign = false, fontWeight = 500) {
 		return null
 	}
 
-	let up = 'green'
-	let down = 'red'
+	let up = '#3fb950'
+	let down = '#f85149'
 
 	if (noSign) {
 		up = down = ''

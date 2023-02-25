@@ -42,7 +42,7 @@ const theme = (darkMode) => ({
 	// other
 	red1: '#FF6871',
 	green1: '#27AE60',
-	link: '#2172E5',
+	link: '#629ff4',
 	blue: '#2f80ed',
 
 	//shadow
