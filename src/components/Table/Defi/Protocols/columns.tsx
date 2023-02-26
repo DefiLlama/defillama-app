@@ -37,31 +37,43 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 					)}
 					<span>{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
-					<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
+					<div>
+						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
+						<div style={{ fontSize: '0.7rem', color: '#999', display: "flex", gap: "4px" }}
+						>
+							{row.original.category ? <span>{row.original.category ? row.original.category : ''}</span> : ''}
+							<span>@</span>
+							<Tooltip
+								as={'span'}
+								style={{ cursor: 'pointer' }}
+								content={
+									<>
+										{row.original.chains.map((chain) => (
+											<div key={chain}>{chain}</div>
+										))}
+									</>
+								}
+							>
+								<span style={{color:"#999", display: "inline"}}>{row.original.chains.length} chain{row.original.chains.length > 1 ? 's' : ''}</span>
+							</Tooltip>
+						</div>
+					</div>
 				</Name>
 			)
 		},
 		size: 240
 	},
 	{
-		header: 'Category',
-		accessorKey: 'category',
+		header: 'TVL',
+		accessorKey: 'tvl',
+		cell: ({ getValue, row }) => <span style={{fontWeight:"500", fontSize:"1.05rem"}}>
+			<Tvl value={getValue()} rowValues={row.original} /></span>,
 		meta: {
 			align: 'end'
 		},
-		size: 140
+		size: 100
 	},
-	{
-		header: 'Chains',
-		accessorKey: 'chains',
-		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
-		meta: {
-			align: 'end',
-			headerHelperText: "Chains are ordered by protocol's highest TVL on each chain"
-		},
-		size: 200
-	},
+	
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
@@ -90,15 +102,6 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		size: 100
 	},
 	{
-		header: 'TVL',
-		accessorKey: 'tvl',
-		cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
-		meta: {
-			align: 'end'
-		},
-		size: 100
-	},
-	{
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
@@ -108,7 +111,20 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	}
+	},
+	
+	
+	// {
+	// 	header: 'Chains',
+	// 	accessorKey: 'chains',
+	// 	enableSorting: false,
+	// 	cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
+	// 	meta: {
+	// 		align: 'end',
+	// 		headerHelperText: "Chains are ordered by protocol's highest TVL on each chain"
+	// 	},
+	// 	size: 200
+	// },
 ]
 
 export const listedAtColumn = {
@@ -178,20 +194,20 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		size: 200
 	},
 	{
-		header: '1d Change',
-		accessorKey: 'change_1d',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		header: 'TVL',
+		accessorKey: 'tvl',
+		cell: ({ getValue }) => {
+			return <>{'$' + formattedNum(getValue())}</>
+		},
 		meta: {
 			align: 'end'
 		},
 		size: 100
 	},
 	{
-		header: 'TVL',
-		accessorKey: 'tvl',
-		cell: ({ getValue }) => {
-			return <>{'$' + formattedNum(getValue())}</>
-		},
+		header: '1d Change',
+		accessorKey: 'change_1d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
 		},
@@ -207,7 +223,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	}
+	},
 ]
 
 export const protocolAddlColumns = {
@@ -249,9 +265,9 @@ export const protocolAddlColumns = {
 // key: min width of window/screen
 // values: table columns order
 export const columnOrders = formatColumnOrder({
-	0: ['name', 'tvl', 'change_7d', 'category', 'chains', 'change_1m', 'change_1d', 'mcaptvl'],
-	480: ['name', 'change_7d', 'tvl', 'category', 'chains', 'change_1m', 'change_1d', 'mcaptvl'],
-	1024: ['name', 'category', 'chains', 'change_1d', 'change_7d', 'change_1m', 'tvl', 'mcaptvl']
+	0: ['name', 'tvl', 'change_1d', 'change_7d', 'change_1m', 'mcaptvl'],
+	// 480: ['name', 'change_7d', 'tvl', 'category', 'chains', 'change_1m', 'change_1d', 'mcaptvl'],
+	// 1024: ['name', 'category', 'chains', 'change_1d', 'change_7d', 'change_1m', 'tvl', 'mcaptvl']
 })
 
 export const columnSizes = {
@@ -278,7 +294,7 @@ export const columnSizes = {
 		totalRaised: 180
 	},
 	1280: {
-		name: 240,
+		name: 200,
 		category: 140,
 		chains: 200,
 		change_1d: 100,
