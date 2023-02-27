@@ -5,7 +5,7 @@ import { maxAgeForNext } from '~/api'
 import { getProtocols, getProtocol, fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
-import { fetchArticles, IArticle, IArticlesResponse } from '~/api/categories/news'
+import { fetchArticles, IArticle } from '~/api/categories/news'
 
 export const getStaticProps = async ({
 	params: {
