@@ -15,23 +15,28 @@ export function NotifyButton() {
 
 	// Ensured that link uses up-to-date query params from client-side
 	// Related: https://nextjs.org/docs/advanced-features/automatic-static-optimization#caveats
-	const queryParams = useMemo(() => {
-		if (!router.isReady) return ''
-		return router.asPath.split('?')[1] ?? ''
-	}, [router.asPath, router.isReady])
+
+	const queryParams = !router.isReady ? '' : router.asPath.split('?')[1] ?? ''
 
 	return (
 		<Tooltip content="Be notified on your yields using the Hal app.">
-			<NotifyIconButton
-				data-variant="secondary"
-				as="a"
-				href={`https://app.hal.xyz/recipes/defi-llama/track-pools-list?${queryParams}`}
-				rel="noopener noreferrer"
-				target="_blank"
-			>
-				<Bell size={16} />
-				Notify
-			</NotifyIconButton>
+			{router.isReady ? (
+				<NotifyIconButton
+					data-variant="secondary"
+					as="a"
+					href={`https://app.hal.xyz/recipes/defi-llama/track-pools-list?${queryParams}`}
+					rel="noopener noreferrer"
+					target="_blank"
+				>
+					<Bell size={16} />
+					Notify
+				</NotifyIconButton>
+			) : (
+				<NotifyIconButton data-variant="secondary" disabled>
+					<Bell size={16} />
+					Notify
+				</NotifyIconButton>
+			)}
 		</Tooltip>
 	)
 }
