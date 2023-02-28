@@ -89,7 +89,11 @@ const exclude = [
 	'RealT Tokens',
 	'TTswap',
 	'Ethereum Foundation',
-	'THORWallet DEX'
+	'THORWallet DEX',
+	'Nouns',
+	'Libre Swap',
+	'Omax Swap',
+	'Zeniq Swap'
 ]
 
 export async function getStaticProps() {
