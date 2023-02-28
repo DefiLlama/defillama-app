@@ -310,6 +310,10 @@ const Tvl = ({ value, rowValues }) => {
 			text =
 				'This protocol deposits into another protocol or is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggles are off'
 		}
+
+		if (text && rowValues.isParentProtocol) {
+			text = 'Some subprotocols are excluded from chain tvl'
+		}
 	}
 
 	return (
