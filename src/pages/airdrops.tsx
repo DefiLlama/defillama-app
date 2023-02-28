@@ -93,7 +93,9 @@ const exclude = [
 	'Nouns',
 	'Libre Swap',
 	'Omax Swap',
-	'Zeniq Swap'
+	'Zeniq Swap',
+	'LaDAO Xocolatl',
+	'Meter Passport'
 ]
 
 export async function getStaticProps() {
