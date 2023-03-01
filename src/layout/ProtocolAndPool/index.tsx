@@ -96,8 +96,10 @@ export const Section = styled.div`
 			padding-left: 24px;
 		}
 
-		&:only-child {
+		&:only-child,
+		:nth-child(odd):last-child {
 			border-right: 1px solid transparent;
+			grid-column: span 2;
 		}
 	}
 `
