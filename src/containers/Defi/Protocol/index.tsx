@@ -533,52 +533,38 @@ function ProtocolContainer({
 					</Section>
 				)}
 
-				{address ||
-					protocolData.gecko_id ||
-					(blockExplorerLink && (
-						<Section>
-							<h3>Token Information</h3>
+				{(address || protocolData.gecko_id || blockExplorerLink) && (
+					<Section>
+						<h3>Token Information</h3>
 
-							{address && (
-								<FlexRow>
-									<span>Address</span>
-									<span>:</span>
-									<span>{address.split(':').pop().slice(0, 8) + '...' + address?.slice(36, 42)}</span>
-									<CopyHelper toCopy={address.split(':').pop()} disabled={!address} />
-								</FlexRow>
+						{address && (
+							<FlexRow>
+								<span>Address</span>
+								<span>:</span>
+								<span>{address.split(':').pop().slice(0, 8) + '...' + address?.slice(36, 42)}</span>
+								<CopyHelper toCopy={address.split(':').pop()} disabled={!address} />
+							</FlexRow>
+						)}
+
+						<LinksWrapper>
+							{protocolData.gecko_id && (
+								<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
+									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+										<span>View on CoinGecko</span> <ArrowUpRight size={14} />
+									</Button>
+								</Link>
 							)}
 
-							<LinksWrapper>
-								{protocolData.gecko_id && (
-									<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
-										<Button
-											as="a"
-											target="_blank"
-											rel="noopener noreferrer"
-											useTextColor={true}
-											color={backgroundColor}
-										>
-											<span>View on CoinGecko</span> <ArrowUpRight size={14} />
-										</Button>
-									</Link>
-								)}
-
-								{blockExplorerLink && (
-									<Link href={blockExplorerLink} passHref>
-										<Button
-											as="a"
-											target="_blank"
-											rel="noopener noreferrer"
-											useTextColor={true}
-											color={backgroundColor}
-										>
-											<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
-										</Button>
-									</Link>
-								)}
-							</LinksWrapper>
-						</Section>
-					))}
+							{blockExplorerLink && (
+								<Link href={blockExplorerLink} passHref>
+									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+										<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
+									</Button>
+								</Link>
+							)}
+						</LinksWrapper>
+					</Section>
+				)}
 
 				{(methodology || codeModule) && (
 					<Section>
@@ -600,7 +586,7 @@ function ProtocolContainer({
 					</Section>
 				)}
 
-				{similarProtocols && similarProtocols.length > 0 && (
+				{similarProtocols && similarProtocols.length > 0 ? (
 					<Section>
 						<h3>Competitors</h3>
 
@@ -614,7 +600,7 @@ function ProtocolContainer({
 							))}
 						</LinksWrapper>
 					</Section>
-				)}
+				) : null}
 
 				{raises && raises.length > 0 && (
 					<Section>
