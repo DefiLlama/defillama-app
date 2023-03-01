@@ -57,8 +57,10 @@ import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData } from './utils'
 import ChartByType from './../../DexsAndFees/charts'
 import { Treasury } from './Treasury'
-import { IArticle } from '~/api/categories/news'
+import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
+import type { IEmission } from './Emissions'
+import { Emissions } from './Emissions'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -150,6 +152,7 @@ interface IProtocolContainerProps {
 	protocolData: IFusedProtocolData
 	backgroundColor: string
 	similarProtocols: Array<{ name: string; tvl: number }>
+	emissions: { categories: Array<string>; data: Array<IEmission> }
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
@@ -201,7 +204,8 @@ function ProtocolContainer({
 	protocolData,
 	protocol,
 	backgroundColor,
-	similarProtocols
+	similarProtocols,
+	emissions
 }: IProtocolContainerProps) {
 	useScrollToTop()
 	const {
@@ -612,6 +616,10 @@ function ProtocolContainer({
 				)}
 
 				{treasury && <Treasury protocolName={protocol} />}
+
+				{emissions && emissions.data.length > 0 && (
+					<Emissions data={emissions.data} categories={emissions.categories} />
+				)}
 			</InfoWrapper>
 
 			{yeildsNumber > 0 && (

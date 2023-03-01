@@ -22,6 +22,7 @@ export const CATEGORY_API = 'https://api.llama.fi/categories'
 export const PROTOCOLS_BY_TOKEN_API = 'https://api.llama.fi/tokenProtocols'
 export const PROTOCOL_TREASURY_API = 'https://api.llama.fi/treasury'
 export const PROTOCOLS_TREASURY = 'https://api.llama.fi/treasuries'
+export const PROTOCOL_EMISSIONS_API = 'https://api.llama.fi/emissions'
 
 export const NFT_COLLECTION_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collection'
 export const NFT_COLLECTIONS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collections'
