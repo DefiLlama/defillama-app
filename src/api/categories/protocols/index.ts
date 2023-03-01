@@ -112,7 +112,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		return {
 			data,
 			categories: emissionCategories,
-			hallmarks: data.length > 0 ? [[Date.now() / 1000, 'We are here']] : []
+			hallmarks: data.length > 0 ? [[Date.now() / 1000, 'Today']] : []
 		}
 	} catch (e) {
 		console.log(e)
