@@ -75,7 +75,7 @@ export const getProtocol = async (protocolName: string) => {
 
 export const getProtocolEmissons = async (protocolName: string) => {
 	try {
-		const data = await fetch(`${PROTOCOL_EMISSIONS_API}/${protocolName}`)
+		const res = await fetch(`${PROTOCOL_EMISSIONS_API}/${protocolName}`)
 			.then((r) => r.json())
 			.then((r) => JSON.parse(r.body))
 			.then((r) => r.data)
@@ -83,7 +83,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		const protocolEmissions = {}
 		const emissionCategories = []
 
-		data.forEach((emission) => {
+		res.forEach((emission) => {
 			const label = emission.label
 				.split(' ')
 				.map((l) => capitalizeFirstLetter(l))
@@ -104,12 +104,15 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			})
 		})
 
+		const data = Object.entries(protocolEmissions).map(([date, values]: [string, { [key: string]: number }]) => ({
+			date,
+			...values
+		}))
+
 		return {
-			data: Object.entries(protocolEmissions).map(([date, values]: [string, { [key: string]: number }]) => ({
-				date,
-				...values
-			})),
-			categories: emissionCategories
+			data,
+			categories: emissionCategories,
+			hallmarks: data.length > 0 ? [[Date.now() / 1000, 'We are here']] : []
 		}
 	} catch (e) {
 		console.log(e)

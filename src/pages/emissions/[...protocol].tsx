@@ -37,7 +37,12 @@ export default function Protocols({ emissions, name }) {
 			<Wrapper>
 				<Name>{name + ' ' + 'Emissions'}</Name>
 
-				<Emissions data={emissions.data} categories={emissions.categories} isEmissionsPage />
+				<Emissions
+					data={emissions.data}
+					categories={emissions.categories}
+					hallmarks={emissions.hallmarks}
+					isEmissionsPage
+				/>
 			</Wrapper>
 		</Layout>
 	)

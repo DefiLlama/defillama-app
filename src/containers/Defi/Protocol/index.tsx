@@ -152,7 +152,7 @@ interface IProtocolContainerProps {
 	protocolData: IFusedProtocolData
 	backgroundColor: string
 	similarProtocols: Array<{ name: string; tvl: number }>
-	emissions: { categories: Array<string>; data: Array<IEmission> }
+	emissions: { categories: Array<string>; data: Array<IEmission>; hallmarks: Array<[number, string]> }
 	isCEX?: boolean
 }
 
@@ -623,7 +623,7 @@ function ProtocolContainer({
 				{treasury && <Treasury protocolName={protocol} />}
 
 				{emissions && emissions.data.length > 0 && (
-					<Emissions data={emissions.data} categories={emissions.categories} />
+					<Emissions data={emissions.data} categories={emissions.categories} hallmarks={emissions.hallmarks} />
 				)}
 			</InfoWrapper>
 

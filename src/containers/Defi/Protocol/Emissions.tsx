@@ -5,6 +5,7 @@ import { Section } from '~/layout/ProtocolAndPool'
 export interface IEmission {
 	label: string
 	data: Array<{ timestamp: number; unlocked: number }>
+	hallmarks: Array<[number, string]>
 }
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
@@ -14,17 +15,19 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 export function Emissions({
 	data,
 	categories,
-	isEmissionsPage
+	isEmissionsPage,
+	hallmarks
 }: {
 	data: Array<IEmission>
 	categories: Array<string>
 	isEmissionsPage?: boolean
+	hallmarks: Array<[number, string]>
 }) {
 	return (
 		<Section id="emissions">
 			{!isEmissionsPage && <h3>Emissions</h3>}
 			<span style={{ minHeight: '360px' }}>
-				<AreaChart title="" stacks={categories} chartData={data} hidedefaultlegend />
+				<AreaChart title="" stacks={categories} chartData={data} hidedefaultlegend hallmarks={hallmarks} />
 			</span>
 		</Section>
 	)
