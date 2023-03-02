@@ -787,9 +787,9 @@ const formatRaise = (raise: IRaise) => {
 
 const formatRaisedAmount = (n: number) => {
 	if (n >= 1e3) {
-		return `${n / 1e3}b`
+		return `${(n / 1e3).toLocaleString(undefined, { maximumFractionDigits: 2 })}b`
 	}
-	return `${n}m`
+	return `${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}m`
 }
 
 export default ProtocolContainer
