@@ -1,4 +1,4 @@
-import type { LiteProtocol } from '~/api/types'
+import type { LiteProtocol, IParentProtocol } from '~/api/types'
 import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
 import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
@@ -135,7 +135,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	const [request, protocolsData, feesOrRevenue, cexVolume]: [
 		IGetOverviewResponseBody,
-		{ protocols: LiteProtocol[] },
+		{ protocols: LiteProtocol[], parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
 		number
 	] = await Promise.all([
@@ -170,7 +170,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			return acc
 		}, {}) ?? {}
 
-	const tvlData = getTVLData(protocolsData, chain)
+	const tvlData: IJSON<number> = getTVLData(protocolsData, chain)
 	const mcapData = { ...getMCap(protocolsData), ...chainMcap }
 	const label: string = type === 'options' ? 'Notionial volume' : capitalizeFirstLetter(type)
 
@@ -192,54 +192,73 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			) ?? {}
 			: {}
 
-	const protocolsWithSubrows = protocols.map((protocol) => {
+	const { parentProtocols } = protocolsData
+	const parentProtocolsMap = parentProtocols.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }))
+
+	const protocolsWithSubrows = protocols.reduce((acc, protocol) => {
+		// Assign mainrow and sub-row if has any
+		let mainRow: undefined | IOverviewProps['protocols'][number] = undefined
+		let subRow: undefined | IOverviewProps['protocols'][number]['subRows'][number] = null
+		if (parentProtocolsMap[protocol.parentProtocol]) {
+			mainRow = parentProtocolsMap[protocol.parentProtocol]
+			subRow = {
+				...protocol,
+				tvl: tvlData[protocol.displayName] ?? null,
+				volumetvl: tvlData[protocol.displayName] ? protocol.total24h / tvlData[protocol.displayName] : null,
+				dominance: (100 * protocol.total24h) / total24h,
+				revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
+				revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
+				revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
+				mcap: mcapData[protocol.name] || null
+			}
+			// If already included parent protocol we add the new child
+			if (acc[protocol.parentProtocol])
+				acc[protocol.parentProtocol].subRows.push(subRow)
+			// If first time processed parent protocol we create the subrows list
+			else
+				acc[protocol.parentProtocol] = { ...acc[protocol.parentProtocol], subRows: [subRow] }
+		}
+		else mainRow = protocol
+
+		// Main row, either parent or single protocol
 		const protocolTVL =
 			tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, Object.keys(protocol.protocolsStats ?? {}), tvlData)
-		const volumetvl = protocol.total24h / protocolTVL
-		const mcap = mcapData[protocol.name]
-		return {
-			...protocol,
-			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? 0,
-			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? 0,
-			revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? 0,
-			volumetvl: volumetvl ?? null,
+		mainRow = {
+			...mainRow,
+			...acc[protocol.parentProtocol],
+			displayName: mainRow.displayName ?? mainRow.name,
+			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
+			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
+			revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
 			tvl: protocolTVL ?? null,
 			dominance: (100 * protocol.total24h) / total24h,
 			chains: protocol.chains,
 			module: protocol.module,
-			subRows: protocol.protocolsStats
-				? Object.entries(protocol.protocolsStats)
-					.map(([versionName, summary]) => {
-						const protocolTVL = tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, [versionName], tvlData)
-						return {
-							name: protocol.name,
-							category: protocol.category,
-							module: protocol.module,
-							logo: protocol.logo,
-							displayName: `${versionName.toUpperCase()} - ${protocol.name}`,
-							protocolsStats: null,
-							...summary,
-							tvl: protocolTVL ?? null,
-							volumetvl: protocolTVL ? summary.total24h / protocolTVL : null,
-							dominance: (100 * summary.total24h) / total24h,
-							totalAllTime: null,
-							revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? null,
-							revenue7d: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total7d ?? null,
-							revenue30d: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total30d ?? null
-						}
-					})
-					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
-				: null,
 			dailyUserFees: protocol.dailyUserFees ?? null,
-			mcap: mcap || null
+			mcap: mcapData[protocol.name] || null
 		}
-	})
+		// Stats for parent protocol
+		if (acc[protocol.parentProtocol]) {
+			mainRow.total24h = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.total24h, 0)
+			mainRow.total7d = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.total7d, 0)
+			mainRow.total30d = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.total30d, 0)
+			mainRow.totalAllTime = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.totalAllTime, 0)
+			mainRow.tvl = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.tvl, 0)
+			mainRow.volumetvl = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.tvl, 0)
+		}
+		// Computed stats
+		mainRow.volumetvl = mainRow.total24h / mainRow.tvl
+
+		// Return acc
+		acc[protocol.parentProtocol ?? protocol.module] = mainRow
+		return acc
+	}, {} as IJSON<IOverviewProps['protocols'][number]>)
 
 	/* 	if (revenue?.totalDataChart)
 			allCharts.push(["Revenue", revenue.totalDataChart]) */
 
 	return {
-		protocols: protocolsWithSubrows,
+		protocols: Object.values(protocolsWithSubrows),
 		total24h,
 		total7d,
 		change_1d,
@@ -343,7 +362,8 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 					dailyCreatorRevenue: dailyCreatorRevenue ?? null,
 					dailySupplySideRevenue: dailySupplySideRevenue ?? null,
 					dailyProtocolRevenue: dailyProtocolRevenue ?? null,
-					dailyPremiumVolume: dailyPremiumVolume ?? null
+					dailyPremiumVolume: dailyPremiumVolume ?? null,
+					mcap: null
 				}
 			}
 		)

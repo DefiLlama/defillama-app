@@ -67,10 +67,17 @@ export type ProtocolAdaptorSummary = {
 	total7d: number
 	total30d: number
 	revenue24h?: number
+	revenue7d?: number
+	revenue30d?: number
+	mcap: number | null
 	breakdown24h: IJSON<number>
 	chains: Array<string>
 	module: string
 	totalAllTime: number | null
+	parentProtocol?: string
+	tvl?: number
+	volumetvl?: number
+	dominance?: number
 	protocolsStats: IJSON<{
 		chains: string[]
 		disabled: boolean
