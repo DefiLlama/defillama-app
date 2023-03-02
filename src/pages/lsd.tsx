@@ -105,6 +105,14 @@ const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping
 		const tokenTvls = chartData
 			.map((protocol) => {
 				const p = protocol.chainTvls['Ethereum']
+
+				if (p.tokens.length < 1) {
+					return {
+						name: protocol.name,
+						logo: protocol.logo
+					}
+				}
+
 				const lastDate = p.tokens.slice(-1)[0].date
 
 				const offset7d = roundDate(lastDate - 7 * secDay)
