@@ -33,63 +33,9 @@ export interface IArticlesResponse {
 	content_elements: IContentElement[]
 }
 
-function getDSLQuery() {
-	const conditions = [
-		{
-			term: {
-				'revision.published': 1
-			}
-		},
-		{
-			term: {
-				type: 'story'
-			}
-		},
-		{
-			match_phrase: {
-				subtype: `"article"`
-			}
-		},
-		{
-			range: {
-				display_date: {
-					gte: 'now-6M/d', // last 6 months
-					lte: 'now'
-				}
-			}
-		}
-	]
-
-	return {
-		query: {
-			bool: {
-				must: conditions
-			}
-		}
-	}
-}
-
-export const fetchArticles = async ({ tags = '', size = 2, sort = 'display_date:desc' }) => {
-	const params = {
-		body: JSON.stringify(getDSLQuery()),
-		from: '0',
-		size: '100',
-		sort,
-		website: 'dlnews',
-		_sourceInclude: 'credits,display_date,headlines,promo_items,publish_date,subheadlines,taxonomy,canonical_url'
-	}
-
-	const urlSearch = new URLSearchParams(params)
-
+export const fetchArticles = async ({ tags = '', size = 2 }) => {
 	const articlesRes: IArticlesResponse = await fetchWithErrorLogging(
-		`${process.env.DL_NEWS_API}/content/v4/search/published?${urlSearch.toString()}`,
-		{
-			headers: {
-				'content-type': 'application/json',
-				Authorization: `Bearer ${process.env.DL_NEWS_ACCESS_TOKEN}`
-			},
-			method: 'GET'
-		}
+		`https://api.llama.fi/news/articles`
 	)
 		.then((res) => res.json())
 		.catch((err) => {
