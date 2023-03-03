@@ -219,6 +219,10 @@ export const formatProtocolsList = ({
 					strikeTvl = true
 				}
 
+				if (props.category === 'RWA') {
+					strikeTvl = true
+				}
+
 				Object.entries(extraTvl).forEach(([prop, propValues]) => {
 					const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
 
