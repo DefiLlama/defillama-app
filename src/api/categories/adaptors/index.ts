@@ -1,5 +1,6 @@
 import type { LiteProtocol, IParentProtocol } from '~/api/types'
 import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
+import { getUniqueArray } from '~/containers/DexsAndFees/utils'
 import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
@@ -233,7 +234,6 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
 			tvl: protocolTVL ?? null,
 			dominance: (100 * protocol.total24h) / total24h,
-			chains: protocol.chains,
 			module: protocol.module,
 			dailyUserFees: protocol.dailyUserFees ?? null,
 			mcap: mcapData[protocol.name] || null
@@ -246,6 +246,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			mainRow.totalAllTime = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.totalAllTime, 0)
 			mainRow.tvl = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.tvl, 0)
 			mainRow.volumetvl = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.tvl, 0)
+			mainRow.chains = getUniqueArray(acc[protocol.parentProtocol].subRows.map(d => d.chains).flat())
 		}
 		// Computed stats
 		mainRow.volumetvl = mainRow.total24h / mainRow.tvl
