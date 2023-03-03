@@ -736,7 +736,7 @@ export async function getLSDPageData() {
 		const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json())))
 		const pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
 
-		const lsdRates = await fetch('https://yields.llama.fi/lsd').then((r) => r.json())
+		const lsdRates = await fetch('https://yields.llama.fi/lsdRates').then((r) => r.json())
 
 		// filter for LSDs
 		const lsdProtocols = protocols
