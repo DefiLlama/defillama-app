@@ -149,19 +149,20 @@ const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping
 		const stakedEthSum = tokenTvls.reduce((sum, a) => sum + a.stakedEth, 0)
 		const stakedEthInUsdSum = tokenTvls.reduce((sum, a) => sum + a.stakedEthInUsd, 0)
 		const tokensList = tokenTvls.map((p) => {
-			const priceInfo = lsdRates.marketRates?.find(
-				(i) => i.fromToken?.address?.toLowerCase() === lsdRates.expectedRates.find((r) => r.name === p.name)?.address
-			)
+			const address = lsdRates.expectedRates.find((r) => r.name === p.name)?.address
+			const priceInfo = lsdRates.marketRates[`ethereum:${address}`]
 			const expectedInfo = lsdRates.expectedRates.find((r) => r.name === p.name)
 
-			const marketRate = priceInfo?.toTokenAmount / 10 ** priceInfo?.fromToken?.decimals
+			const marketRate = priceInfo?.marketRate
 			const expectedRate = expectedInfo?.expectedRate
 
 			const ethPeg = (marketRate / expectedRate - 1) * 100
 			const pegInfo = expectedInfo?.peg
 
 			const lsdSymbol =
-				priceInfo?.fromToken?.symbol ?? (p.name === 'StakeWise' ? 'sETH2' : p.name === 'StakeHound' ? 'stETH' : null)
+				p.name === 'Ankr'
+					? 'ANKRETH'
+					: priceInfo?.symbol ?? (p.name === 'StakeHound' ? 'stETH' : p.name === 'Hord' ? 'hETH' : null)
 
 			const mcap = chainMcaps[nameGeckoMapping[p.name]]?.usd_market_cap
 			const mcaptvl = mcap / p.stakedEthInUsd
