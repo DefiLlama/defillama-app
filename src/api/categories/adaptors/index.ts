@@ -193,7 +193,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			: {}
 
 	const { parentProtocols } = protocolsData
-	const parentProtocolsMap = parentProtocols.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }))
+	const parentProtocolsMap = parentProtocols.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }), {})
 
 	const protocolsWithSubrows = protocols.reduce((acc, protocol) => {
 		// Assign mainrow and sub-row if has any
