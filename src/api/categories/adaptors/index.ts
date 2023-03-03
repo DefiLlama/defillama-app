@@ -203,6 +203,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			mainRow = parentProtocolsMap[protocol.parentProtocol]
 			subRow = {
 				...protocol,
+				displayName: protocol.displayName ?? protocol.name,
 				tvl: tvlData[protocol.displayName] ?? null,
 				volumetvl: tvlData[protocol.displayName] ? protocol.total24h / tvlData[protocol.displayName] : null,
 				dominance: (100 * protocol.total24h) / total24h,
