@@ -218,7 +218,8 @@ export const navLinks: ILinks = {
 	Volumes: {
 		main: [
 			{ name: 'Overview', path: '/dexs' },
-			{ name: 'Chains', path: '/dexs/chains' }
+			{ name: 'Chains', path: '/dexs/chains' },
+			{ name: 'Options', path: '/options' },
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <BarChart size={16} />
