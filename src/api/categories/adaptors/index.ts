@@ -228,6 +228,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		mainRow = {
 			...mainRow,
 			...acc[protocol.parentProtocol],
+			category: protocol.category,
 			displayName: mainRow.displayName ?? mainRow.name,
 			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
@@ -240,13 +241,14 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		}
 		// Stats for parent protocol
 		if (acc[protocol.parentProtocol]) {
-			mainRow.total24h = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.total24h, 0)
-			mainRow.total7d = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.total7d, 0)
-			mainRow.total30d = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.total30d, 0)
-			mainRow.totalAllTime = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.totalAllTime, 0)
-			mainRow.tvl = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.tvl, 0)
-			mainRow.volumetvl = acc[protocol.parentProtocol].subRows.reduce((acc, curr) => acc += curr.tvl, 0)
+			// stats
+			mainRow.total24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total24h'), undefined)
+			mainRow.total7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total7d'), undefined)
+			mainRow.total30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total30d'), undefined)
+			mainRow.totalAllTime = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('totalAllTime'), undefined)
+			mainRow.tvl = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('tvl'), undefined)
 			mainRow.chains = getUniqueArray(acc[protocol.parentProtocol].subRows.map(d => d.chains).flat())
+			mainRow.methodology = getParentProtocolMethodology(mainRow.displayName, acc[protocol.parentProtocol].subRows.map(r => r.displayName))
 		}
 		// Computed stats
 		mainRow.volumetvl = mainRow.total24h / mainRow.tvl
@@ -276,6 +278,35 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		type
 	}
 }
+
+const reduceSumByAttribute = (attribute: string) => (acc, curr) => {
+	if (acc === undefined) return curr[attribute]
+	return acc += curr[attribute]
+}
+
+const getParentProtocolMethodology = (name: string, versionNames: string[]) => {
+	const text = (() => {
+		if (versionNames.length === 1)
+			return {
+				isSumString: `All`,
+				versions: `${versionNames[0].toUpperCase()}`
+			}
+		else
+			return {
+				isSumString: `Sum of all`,
+				versions: `${versionNames.slice(0, -1).join(', ')} and ${versionNames[versionNames.length - 1].toUpperCase()}`
+			}
+	})()
+	return {
+		UserFees: `${text.isSumString} user fees from ${text.versions}`,
+		Fees: `${text.isSumString} fees from ${text.versions}`,
+		Revenue: `${text.isSumString} revenue from ${text.versions}`,
+		ProtocolRevenue: `${text.isSumString} protocol revenue from ${text.versions}`,
+		HoldersRevenue: `${text.isSumString} holders revenue from ${text.versions}`,
+		SupplySideRevenue: `${text.isSumString} supply side revenue from ${text.versions}`
+	}
+}
+
 export interface IOverviewProps {
 	protocols: Array<
 		IGetOverviewResponseBody['protocols'][number] & {
