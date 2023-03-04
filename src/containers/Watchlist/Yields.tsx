@@ -51,6 +51,8 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				apyBase: t.apyBase,
 				apyBase7d: t.apyBase7d,
 				apyReward: t.apyReward,
+				apyNet7d: t.apyNet7d,
+				apyMean30d: t.apyMean30d,
 				il7d: t.il7d,
 				rewardTokensSymbols: t.rewardTokensSymbols,
 				rewards: t.rewardTokensNames,
