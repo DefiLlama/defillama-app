@@ -54,7 +54,6 @@ import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IFusedProtocolData, IRaise } from '~/api/types'
 import { useYields } from '~/api/categories/yield/client'
 import boboLogo from '~/assets/boboSmug.png'
-import DLNewsLogo from '~/assets/dlnews.svg'
 import { formatTvlsByChain, buildProtocolAddlChartsData } from './utils'
 import ChartByType from './../../DexsAndFees/charts'
 import { Treasury } from './Treasury'
@@ -63,6 +62,7 @@ import { NewsCard } from '~/components/News/Card'
 import type { IEmission } from './Emissions'
 import { Emissions } from './Emissions'
 import { RowBetween } from '~/components/Row'
+import { DLNewsLogo } from '~/components/News/Logo'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -531,7 +531,7 @@ function ProtocolContainer({
 							<h3>Latest from DL News</h3>
 							<Link href="https://www.dlnews.com" passHref>
 								<a>
-									<Image src={DLNewsLogo} width={102} height={22} alt="DL News" />
+									<DLNewsLogo width={102} height={22} />
 								</a>
 							</Link>
 						</RowBetween>
