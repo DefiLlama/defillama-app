@@ -525,7 +525,7 @@ function ProtocolContainer({
 
 				{articles.length > 0 && (
 					<Section>
-						<h3>News</h3>
+						<h3>Latest from DLNews</h3>
 
 						{articles.map((article, idx) => (
 							<NewsCard key={`news_card_${idx}`} {...article} color={backgroundColor} />
