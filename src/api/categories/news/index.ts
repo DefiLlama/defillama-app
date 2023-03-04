@@ -2,6 +2,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 
 export interface IArticle {
 	headline: string
+	date: string
 	href: string
 	imgSrc: string | null
 }
@@ -34,9 +35,7 @@ export interface IArticlesResponse {
 }
 
 export const fetchArticles = async ({ tags = '', size = 2 }) => {
-	const articlesRes: IArticlesResponse = await fetchWithErrorLogging(
-		`https://api.llama.fi/news/articles`
-	)
+	const articlesRes: IArticlesResponse = await fetchWithErrorLogging(`https://api.llama.fi/news/articles`)
 		.then((res) => res.json())
 		.catch((err) => {
 			console.log(err)
@@ -50,6 +49,7 @@ export const fetchArticles = async ({ tags = '', size = 2 }) => {
 			?.filter((element) => element.taxonomy?.tags?.some((tag) => tag.text.toLowerCase() === target))
 			.map((element) => ({
 				headline: element.headlines.basic,
+				date: element.display_date,
 				href: `https://dlnews.com${element.canonical_url}`,
 				imgSrc: element.promo_items?.basic?.url ?? null
 			})) ?? []
