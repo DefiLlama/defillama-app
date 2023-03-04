@@ -242,11 +242,21 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		// Stats for parent protocol
 		if (acc[protocol.parentProtocol]) {
 			// stats
-			mainRow.total24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total24h'), undefined)
-			mainRow.total7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total7d'), undefined)
-			mainRow.total30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total30d'), undefined)
-			mainRow.totalAllTime = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('totalAllTime'), undefined)
-			mainRow.tvl = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('tvl'), undefined)
+			mainRow.total24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total24h'), null)
+			mainRow.total7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total7d'), null)
+			mainRow.total30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total30d'), null)
+			mainRow.totalAllTime = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('totalAllTime'), null)
+			mainRow.tvl = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('tvl'), null)
+			mainRow.revenue24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue24h'), null)
+			mainRow.revenue7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue7d'), null)
+			mainRow.revenue30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue30d'), null)
+			mainRow.dailyRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyRevenue'), null)
+			mainRow.dailyUserFees = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyUserFees'), null)
+			mainRow.dailyCreatorRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyCreatorRevenue'), null)
+			mainRow.dailyHoldersRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyHoldersRevenue'), null)
+			mainRow.dailyPremiumVolume = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyPremiumVolume'), null)
+			mainRow.dailyProtocolRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyProtocolRevenue'), null)
+			mainRow.dailySupplySideRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailySupplySideRevenue'), null)
 			mainRow.chains = getUniqueArray(acc[protocol.parentProtocol].subRows.map(d => d.chains).flat())
 			mainRow.methodology = getParentProtocolMethodology(mainRow.displayName, acc[protocol.parentProtocol].subRows.map(r => r.displayName))
 		}
