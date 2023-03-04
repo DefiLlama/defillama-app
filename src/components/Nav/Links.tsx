@@ -195,7 +195,7 @@ export const navLinks: ILinks = {
 		],
 		icon: <Percent size={16} />
 	},
-	'DEX Meta-Aggregator': {
+	'DefiLlama Swap': {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Repeat size={16} />
@@ -263,6 +263,6 @@ export const linksWithNoSubMenu = [
 	{ name: 'Hacks', url: '/hacks' },
 	{ name: 'Borrow Aggregator', url: '/borrow' },
 	{ name: 'CEX Transparency', url: '/cexs' },
-	{ name: 'DEX Meta-Aggregator', url: 'https://swap.defillama.com/', external: true },
+	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
 	{ name: 'ETH Liquid Staking', url: '/lsd' }
 ]
