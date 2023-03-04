@@ -51,7 +51,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 					<AutoColumn as="span">
 						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
 
-						<Tooltip2 content={<Chains />} color="var(--text-disabled)">
+						<Tooltip2 content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip2>
 					</AutoColumn>
