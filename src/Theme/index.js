@@ -114,6 +114,10 @@ const slideUp = keyframes`
 `
 
 export const GlobalStyle = createGlobalStyle`
+	:root {
+		--text-disabled: ${({ theme }) => (theme.mode === 'dark' ? '#999' : '#757575')}
+	}
+
 	body, #__next {
 		background-color: ${({ theme }) => theme.background};
 	}
