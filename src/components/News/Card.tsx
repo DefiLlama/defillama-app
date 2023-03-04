@@ -1,8 +1,12 @@
-import styled from 'styled-components'
-import { IArticle } from '~/api/categories/news'
+import dayjs from 'dayjs'
+import Link from 'next/link'
 import { transparentize } from 'polished'
+import { ArrowUpRight } from 'react-feather'
+import styled from 'styled-components'
+import { Button } from '~/layout/ProtocolAndPool'
+import { IArticle } from '~/api/categories/news'
 
-const NewsCardContainer = styled.a`
+const Container = styled.a`
 	background-color: ${({ color }) => transparentize(0.9, color)};
 	padding: 8px;
 	border-radius: 12px;
@@ -11,7 +15,6 @@ const NewsCardContainer = styled.a`
 	gap: 12px;
 
 	:hover {
-		text-decoration: underline;
 		background-color: ${({ color }) => transparentize(0.8, color)};
 	}
 
@@ -20,7 +23,7 @@ const NewsCardContainer = styled.a`
 	}
 `
 
-const NewsCardImg = styled.img`
+const Img = styled.img`
 	object-fit: cover;
 	border-radius: 4px;
 	width: 100%;
@@ -28,24 +31,65 @@ const NewsCardImg = styled.img`
 
 	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
 		width: 200px;
+		min-width: 200px;
 		height: 100px;
 	}
 `
 
-const NewsCardHeadline = styled.div`
+const Headline = styled.div`
 	font-size: 0.875rem;
 	font-weight: 500;
+`
+
+const Content = styled.div`
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	justify-content: space-between;
+`
+
+const Metadata = styled.div`
+	color: ${({ theme }) => theme.text1};
+	font-weight: 400;
+	font-size: 0.75rem;
+	opacity: 0.8;
+	white-space: wrap;
+`
+
+const Footer = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+
+	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+		flex-direction: row;
+		align-items: flex-end;
+		justify-content: space-between;
+	}
 `
 
 interface INewsCardProps extends IArticle {
 	color: string
 }
 
-export const NewsCard = ({ imgSrc, href, headline, color }: INewsCardProps) => {
+export const NewsCard = ({ imgSrc, href, headline, date, color }: INewsCardProps) => {
 	return (
-		<NewsCardContainer target="_blank" rel="noopener noreferrer" color={color} href={href}>
-			{imgSrc && <NewsCardImg src={imgSrc} alt={headline} />}
-			<NewsCardHeadline>{headline}</NewsCardHeadline>
-		</NewsCardContainer>
+		<Link href={href} passHref>
+			<Container color={color} target="_blank" rel="noopener noreferrer">
+				{imgSrc && <Img src={imgSrc} alt={headline} />}
+				<Content>
+					<Headline>{headline}</Headline>
+
+					<Footer>
+						<Metadata>{dayjs(date).format('MMMM D, YYYY')}</Metadata>
+
+						<Button useTextColor={true} color={color} style={{ justifyContent: 'space-between' }}>
+							<span>Read on DL News</span> <ArrowUpRight size={14} />
+						</Button>
+					</Footer>
+				</Content>
+			</Container>
+		</Link>
 	)
 }

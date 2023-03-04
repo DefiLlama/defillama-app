@@ -61,6 +61,8 @@ import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
 import type { IEmission } from './Emissions'
 import { Emissions } from './Emissions'
+import { RowBetween } from '~/components/Row'
+import { DLNewsLogo } from '~/components/News/Logo'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -525,7 +527,14 @@ function ProtocolContainer({
 
 				{articles.length > 0 && (
 					<Section>
-						<h3>Latest from DLNews</h3>
+						<RowBetween>
+							<h3>Latest from DL News</h3>
+							<Link href="https://www.dlnews.com" passHref>
+								<a>
+									<DLNewsLogo width={102} height={22} />
+								</a>
+							</Link>
+						</RowBetween>
 
 						{articles.map((article, idx) => (
 							<NewsCard key={`news_card_${idx}`} {...article} color={backgroundColor} />
