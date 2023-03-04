@@ -13,7 +13,6 @@ export const Name = styled.span<INameProps>`
 
 	& > *[data-bookmark] {
 		position: absolute;
-		top: 4px;
 		left: -2px;
 	}
 

@@ -160,7 +160,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<span
 					style={{
-						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
+						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
 					{formattedNum(Number(info.getValue()) * 100) + '%'}
@@ -181,7 +181,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<span
 					style={{
-						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
+						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
 					{info.getValue() === null ? '' : '$' + formattedNum(info.getValue())}
@@ -201,7 +201,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<span
 					style={{
-						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
+						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
 					{info.getValue() === null ? '' : '$' + formattedNum(info.getValue())}
@@ -225,7 +225,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 						display: 'flex',
 						gap: '4px',
 						justifyContent: 'flex-end',
-						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
+						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
 					{info.row.original.project.includes('Morpho') ? (

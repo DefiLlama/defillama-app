@@ -11,6 +11,7 @@ interface ITooltip {
 	style?: {}
 	children: React.ReactNode
 	as?: any
+	color?: string
 }
 
 const TooltipPopver = styled(AriaTooltip)`
@@ -30,6 +31,7 @@ const TooltipAnchor2 = styled(TooltipAnchor)`
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	flex-shrink: 0;
+	color: ${({ color }) => color || 'inherit'};
 
 	a {
 		display: flex;
@@ -67,14 +69,16 @@ export default function Tooltip({ content, as, href, shallow, onClick, children,
 	)
 }
 
-export function Tooltip2({ content, children, ...props }: ITooltip) {
+export function Tooltip2({ content, children, color, ...props }: ITooltip) {
 	const tooltip = useTooltipState()
 
 	if (!content || content === '') return <>{children}</>
 
 	return (
 		<>
-			<TooltipAnchor2 state={tooltip}>{children}</TooltipAnchor2>
+			<TooltipAnchor2 state={tooltip} color={color}>
+				{children}
+			</TooltipAnchor2>
 			<Popover2 state={tooltip} {...props}>
 				{content}
 			</Popover2>
