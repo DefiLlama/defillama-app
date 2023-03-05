@@ -58,7 +58,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBase',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true, 400)}</ColoredAPY>
+			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
@@ -114,7 +114,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBaseBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true, 400)}</ColoredAPY>
+			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {

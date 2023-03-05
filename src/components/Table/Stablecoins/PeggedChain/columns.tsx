@@ -49,7 +49,7 @@ export const peggedChainsColumn: ColumnDef<IPeggedChain>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 100,
 		meta: {
 			align: 'end'

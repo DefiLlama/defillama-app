@@ -162,7 +162,9 @@ const columns = (chain: string) =>
 				const name = info.row.original.name
 				return (
 					<a
-						href={`https://${chain === 'ethereum' ? 'etherscan.io' : chain==="arbitrum"?'arbiscan.io': 'polygonscan.com'}/address/${value}`}
+						href={`https://${
+							chain === 'ethereum' ? 'etherscan.io' : chain === 'arbitrum' ? 'arbiscan.io' : 'polygonscan.com'
+						}/address/${value}`}
 						target="_blank"
 						rel="noopener noreferrer"
 						style={{ textDecoration: 'underline' }}
@@ -184,7 +186,7 @@ const columns = (chain: string) =>
 		{
 			header: 'Tx Growth',
 			accessorKey: 'txns_percentage_growth',
-			cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+			cell: (info) => <>{formattedPercent(info.getValue())}</>,
 			meta: {
 				align: 'end'
 			}
@@ -200,7 +202,7 @@ const columns = (chain: string) =>
 		{
 			header: 'Account Growth',
 			accessorKey: 'accounts_percentage_growth',
-			cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+			cell: (info) => <>{formattedPercent(info.getValue())}</>,
 			meta: {
 				align: 'end'
 			}
@@ -216,7 +218,7 @@ const columns = (chain: string) =>
 		{
 			header: 'Gas Growth',
 			accessorKey: 'gas_spend_percentage_growth',
-			cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+			cell: (info) => <>{formattedPercent(info.getValue())}</>,
 			meta: {
 				align: 'end'
 			}

@@ -77,7 +77,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'netSupplyApy',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true, 400)}</ColoredAPY>
+			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {

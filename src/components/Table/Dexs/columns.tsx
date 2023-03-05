@@ -51,7 +51,7 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -61,7 +61,7 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 		header: '7d Change',
 		accessorKey: 'change_7d',
 		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -71,7 +71,7 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 		header: '1m Change',
 		accessorKey: 'change_1m',
 		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -103,7 +103,7 @@ export const dexsColumn: ColumnDef<IDexsRow>[] = [
 		header: '% of total',
 		accessorKey: 'dominance',
 		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), true, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue(), true)}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -133,7 +133,7 @@ export const volumesByChainsColumns: ColumnDef<IDexsRow>[] = [
 	{
 		header: '1d Change',
 		accessorKey: 'changeVolume1d',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -143,7 +143,7 @@ export const volumesByChainsColumns: ColumnDef<IDexsRow>[] = [
 		header: '7d Change',
 		accessorKey: 'changeVolume7d',
 		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -153,7 +153,7 @@ export const volumesByChainsColumns: ColumnDef<IDexsRow>[] = [
 		header: '1m Change',
 		accessorKey: 'changeVolume30d',
 		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -174,7 +174,7 @@ export const volumesByChainsColumns: ColumnDef<IDexsRow>[] = [
 		header: '24h dominance',
 		accessorKey: 'dominance',
 		enableSorting: true,
-		cell: (info) => <>{formattedPercent(info.getValue(), true, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue(), true)}</>,
 		size: 140,
 		meta: {
 			align: 'end'

@@ -199,7 +199,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 100
+		size: 120
 	},
 	{
 		header: 'Mcap/TVL',

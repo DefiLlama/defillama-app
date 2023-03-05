@@ -108,7 +108,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBase',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true, 400)}</>
+			return <>{formattedPercent(info.getValue(), true)}</>
 		},
 		size: 140,
 		meta: {
@@ -148,7 +148,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBase7d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true, 400)}</>
+			return <>{formattedPercent(info.getValue(), true)}</>
 		},
 		size: 140,
 		meta: {
@@ -161,7 +161,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'il7d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true, 400)}</>
+			return <>{formattedPercent(info.getValue(), true)}</>
 		},
 		size: 100,
 		meta: {
@@ -174,7 +174,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyMean30d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true, 400)}</>
+			return <>{formattedPercent(info.getValue(), true)}</>
 		},
 		size: 100,
 		meta: {
@@ -236,7 +236,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBaseInception',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{formattedPercent(info.getValue(), true, 400)}</>
+			return <>{formattedPercent(info.getValue(), true)}</>
 		},
 		size: 140,
 		meta: {
