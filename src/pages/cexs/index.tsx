@@ -7,7 +7,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 
 const fetch = fetchWithErrorLogging
 
-const cexData = [
+export const cexData = [
 	{
 		name: 'Binance',
 		slug: 'Binance-CEX',

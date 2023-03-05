@@ -3,13 +3,12 @@ import { getPercentChange } from '~/utils'
 
 // group protocols so we can show child protocols inside an accordion in a table
 export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol) => {
-	let strikeTvl = false;
+	let strikeTvl = false
 	const { mcap, tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = protocols.reduce(
 		(acc, curr) => {
-			if(curr.strikeTvl){
+			if (curr.strikeTvl) {
 				strikeTvl = true
 			}
-			if (curr.name !== "Algo Liquid Governance" || !curr.strikeTvl) {
 				curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
 				curr.tvlPrevDay && (acc.tvlPrevDay = (acc.tvlPrevDay || 0) + curr.tvlPrevDay)
 				curr.tvlPrevWeek && (acc.tvlPrevWeek = (acc.tvlPrevWeek || 0) + curr.tvlPrevWeek)
@@ -18,7 +17,6 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 				if (curr.mcap) {
 					acc.mcap = (acc.mcap || 0) + curr.mcap
 				} else acc.mcap = null
-			}
 
 			return acc
 		},
@@ -27,7 +25,7 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 			tvl: null,
 			tvlPrevDay: null,
 			tvlPrevWeek: null,
-			tvlPrevMonth: null,
+			tvlPrevMonth: null
 		}
 	)
 
@@ -56,7 +54,8 @@ export const groupData = (protocols: IFormattedProtocol[], parent: IParentProtoc
 		category: undefined,
 		subRows: [...protocols],
 		chainTvls: {}, // TODO cleanup
-		strikeTvl: parent.name !== "Folks Finance" && strikeTvl,
+		strikeTvl,
+		isParentProtocol: true
 	}
 }
 

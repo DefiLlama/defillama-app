@@ -1,4 +1,10 @@
-import { getColorFromNumber, getPercentChange, getPrevTvlFromChart, standardizeProtocolName } from '~/utils'
+import {
+	capitalizeFirstLetter,
+	getColorFromNumber,
+	getPercentChange,
+	getPrevTvlFromChart,
+	standardizeProtocolName
+} from '~/utils'
 import type {
 	IChainData,
 	IChainGeckoId,
@@ -17,6 +23,7 @@ import {
 	ORACLE_API,
 	PROTOCOLS_API,
 	PROTOCOL_API,
+	PROTOCOL_EMISSIONS_API,
 	YIELD_POOLS_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
@@ -63,6 +70,55 @@ export const getProtocol = async (protocolName: string) => {
 		} else return data
 	} catch (e) {
 		console.log(e)
+	}
+}
+
+export const getProtocolEmissons = async (protocolName: string) => {
+	return { data: [], categories: [] }
+	try {
+		const res = await fetch(`${PROTOCOL_EMISSIONS_API}/${protocolName}`)
+			.then((r) => r.json())
+			.then((r) => JSON.parse(r.body))
+			.then((r) => r.data)
+
+		const protocolEmissions = {}
+		const emissionCategories = []
+
+		res.forEach((emission) => {
+			const label = emission.label
+				.split(' ')
+				.map((l) => capitalizeFirstLetter(l))
+				.join(' ')
+
+			if (emissionCategories.includes(label)) {
+				return
+			}
+
+			emissionCategories.push(label)
+
+			emission.data.forEach((value) => {
+				if (!protocolEmissions[value.timestamp]) {
+					protocolEmissions[value.timestamp] = {}
+				}
+
+				protocolEmissions[value.timestamp] = { ...protocolEmissions[value.timestamp], [label]: value.unlocked }
+			})
+		})
+
+		const data = Object.entries(protocolEmissions).map(([date, values]: [string, { [key: string]: number }]) => ({
+			date,
+			...values
+		}))
+
+		return {
+			data,
+			categories: emissionCategories,
+			hallmarks: data.length > 0 ? [[Date.now() / 1000, 'Today']] : []
+		}
+	} catch (e) {
+		console.log(e)
+
+		return { data: [], categories: [] }
 	}
 }
 

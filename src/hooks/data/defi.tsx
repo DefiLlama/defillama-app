@@ -219,10 +219,18 @@ export const formatProtocolsList = ({
 					strikeTvl = true
 				}
 
+				if (props.category === 'RWA') {
+					strikeTvl = true
+				}
+
 				Object.entries(extraTvl).forEach(([prop, propValues]) => {
 					const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
 
-					if (prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
+					if (
+						prop === 'doublecounted' &&
+						!extraTvlsEnabled['doublecounted'] &&
+						(props.category === 'Liquid Staking' ? !extraTvlsEnabled['liquidstaking'] : true)
+					) {
 						strikeTvl = true
 					} else {
 						// convert to lowercase as server response is not consistent in extra-tvl names

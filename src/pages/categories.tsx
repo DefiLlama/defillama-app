@@ -74,9 +74,12 @@ export const descriptions = {
 	RWA: 'Protocols that involve Real World Assets, such as house tokenization',
 	Farm: 'Protocols that allow users to lock money in exchange for a protocol token',
 	'Liquid Staking':
-		'Protocols that allow you to stake assets in exchange of a reward, plus the receipt for the staking position is tradeable and liquid',
+		'Protocols that enable you to earn staking rewards on your tokens while also providing a tradeable and liquid receipt for your staked position',
 	Oracle: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)',
-	'Undercollateralized Lending': 'Lending with no collateral backing loans'
+	'Leveraged Farming': 'Protocols that allow you to leverage yield farm with borrowed money',
+    'Options Vault': 'Protocols that allow you to deposit collateral into an options strategy',
+    'Uncollateralized Lending': 'Protocol that allows you to lend against known parties that can borrow without collaterall',
+    'Exotic Options': 'Protocols that provide option vaults while also adding borrowing on top',
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {

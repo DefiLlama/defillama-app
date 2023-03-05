@@ -57,8 +57,12 @@ import boboLogo from '~/assets/boboSmug.png'
 import { formatTvlsByChain, buildProtocolAddlChartsData } from './utils'
 import ChartByType from './../../DexsAndFees/charts'
 import { Treasury } from './Treasury'
-import { IArticle } from '~/api/categories/news'
+import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
+import type { IEmission } from './Emissions'
+import { Emissions } from './Emissions'
+import { RowBetween } from '~/components/Row'
+import { DLNewsLogo } from '~/components/News/Logo'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
@@ -150,6 +154,8 @@ interface IProtocolContainerProps {
 	protocolData: IFusedProtocolData
 	backgroundColor: string
 	similarProtocols: Array<{ name: string; tvl: number }>
+	emissions: { categories: Array<string>; data: Array<IEmission>; hallmarks: Array<[number, string]> }
+	isCEX?: boolean
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
@@ -201,7 +207,9 @@ function ProtocolContainer({
 	protocolData,
 	protocol,
 	backgroundColor,
-	similarProtocols
+	similarProtocols,
+	emissions,
+	isCEX
 }: IProtocolContainerProps) {
 	useScrollToTop()
 	const {
@@ -388,7 +396,7 @@ function ProtocolContainer({
 
 					<StatWrapper>
 						<Stat>
-							<span>Total Value Locked</span>
+							<span>{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
 							<span>{formattedNum(totalVolume || '0', true)}</span>
 						</Stat>
 
@@ -404,7 +412,7 @@ function ProtocolContainer({
 
 					{tvls.length > 0 && (
 						<DetailsTable>
-							<caption>Chain Breakdown</caption>
+							<caption>{isCEX ? 'Assets by chain' : 'Chain Breakdown'}</caption>
 							<tbody>
 								{tvls.map((chainTvl) => (
 									<tr key={chainTvl[0]}>
@@ -469,7 +477,7 @@ function ProtocolContainer({
 			<SectionHeader>Information</SectionHeader>
 			<InfoWrapper>
 				<Section>
-					<h3>Protocol Information</h3>
+					<h3>{isCEX ? 'Exchange Information' : 'Protocol Information'}</h3>
 					{description && <p>{description}</p>}
 
 					{category && (
@@ -519,7 +527,14 @@ function ProtocolContainer({
 
 				{articles.length > 0 && (
 					<Section>
-						<h3>News</h3>
+						<RowBetween>
+							<h3>Latest from DL News</h3>
+							<Link href="https://www.dlnews.com" passHref>
+								<a>
+									<DLNewsLogo width={102} height={22} />
+								</a>
+							</Link>
+						</RowBetween>
 
 						{articles.map((article, idx) => (
 							<NewsCard key={`news_card_${idx}`} {...article} color={backgroundColor} />
@@ -527,35 +542,38 @@ function ProtocolContainer({
 					</Section>
 				)}
 
-				<Section>
-					<h3>Token Information</h3>
+				{(address || protocolData.gecko_id || blockExplorerLink) && (
+					<Section>
+						<h3>Token Information</h3>
 
-					{address && (
-						<FlexRow>
-							<span>Address</span>
-							<span>:</span>
-							<span>{address.split(':').pop().slice(0, 8) + '...' + address?.slice(36, 42)}</span>
-							<CopyHelper toCopy={address.split(':').pop()} disabled={!address} />
-						</FlexRow>
-					)}
+						{address && (
+							<FlexRow>
+								<span>Address</span>
+								<span>:</span>
+								<span>{address.split(':').pop().slice(0, 8) + '...' + address?.slice(36, 42)}</span>
+								<CopyHelper toCopy={address.split(':').pop()} disabled={!address} />
+							</FlexRow>
+						)}
 
-					<LinksWrapper>
-						{protocolData.gecko_id && (
-							<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-									<span>View on CoinGecko</span> <ArrowUpRight size={14} />
-								</Button>
-							</Link>
-						)}
-						{blockExplorerLink && (
-							<Link href={blockExplorerLink} passHref>
-								<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
-									<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
-								</Button>
-							</Link>
-						)}
-					</LinksWrapper>
-				</Section>
+						<LinksWrapper>
+							{protocolData.gecko_id && (
+								<Link href={`https://www.coingecko.com/en/coins/${protocolData.gecko_id}`} passHref>
+									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+										<span>View on CoinGecko</span> <ArrowUpRight size={14} />
+									</Button>
+								</Link>
+							)}
+
+							{blockExplorerLink && (
+								<Link href={blockExplorerLink} passHref>
+									<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true} color={backgroundColor}>
+										<span>View on {blockExplorerName}</span> <ArrowUpRight size={14} />
+									</Button>
+								</Link>
+							)}
+						</LinksWrapper>
+					</Section>
+				)}
 
 				{(methodology || codeModule) && (
 					<Section>
@@ -577,7 +595,7 @@ function ProtocolContainer({
 					</Section>
 				)}
 
-				{similarProtocols && similarProtocols.length > 0 && (
+				{similarProtocols && similarProtocols.length > 0 ? (
 					<Section>
 						<h3>Competitors</h3>
 
@@ -591,7 +609,7 @@ function ProtocolContainer({
 							))}
 						</LinksWrapper>
 					</Section>
-				)}
+				) : null}
 
 				{raises && raises.length > 0 && (
 					<Section>
@@ -612,6 +630,10 @@ function ProtocolContainer({
 				)}
 
 				{treasury && <Treasury protocolName={protocol} />}
+
+				{emissions && emissions.data.length > 0 && (
+					<Emissions data={emissions.data} categories={emissions.categories} hallmarks={emissions.hallmarks} />
+				)}
 			</InfoWrapper>
 
 			{yeildsNumber > 0 && (
@@ -643,7 +665,7 @@ function ProtocolContainer({
 
 			{showCharts && (
 				<>
-					<SectionHeader>TVL Charts</SectionHeader>
+					<SectionHeader>{isCEX ? 'Total Assets Charts' : 'TVL Charts'}</SectionHeader>
 
 					<ChartsWrapper>
 						{loading ? (
@@ -774,9 +796,9 @@ const formatRaise = (raise: IRaise) => {
 
 const formatRaisedAmount = (n: number) => {
 	if (n >= 1e3) {
-		return `${n / 1e3}b`
+		return `${(n / 1e3).toLocaleString(undefined, { maximumFractionDigits: 2 })}b`
 	}
-	return `${n}m`
+	return `${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}m`
 }
 
 export default ProtocolContainer

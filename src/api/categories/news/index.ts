@@ -2,6 +2,7 @@ import { fetchWithErrorLogging } from '~/utils/async'
 
 export interface IArticle {
 	headline: string
+	date: string
 	href: string
 	imgSrc: string | null
 }
@@ -18,6 +19,13 @@ export interface IContentElement {
 	display_date: string
 	credits: ICredit[]
 	headlines: { basic: string }
+	taxonomy?: {
+		tags?: {
+			description: string
+			text: string
+			slug: string
+		}[]
+	}
 }
 
 export interface IArticlesResponse {
@@ -26,73 +34,25 @@ export interface IArticlesResponse {
 	content_elements: IContentElement[]
 }
 
-function getDSLQuery({ tags = '' }) {
-	const conditions = [
-		{
-			term: {
-				'revision.published': 1
-			}
-		},
-		{
-			term: {
-				type: 'story'
-			}
-		},
-		{
-			match_phrase: {
-				subtype: `"article"`
-			}
-		},
-		{
-			term: {
-				'taxonomy.tags.text': tags.toLowerCase()
-			}
-		}
-	]
-
-	return {
-		query: {
-			bool: {
-				must: conditions
-			}
-		}
-	}
-}
-
-export const fetchArticles = async ({ tags = '', offset = 0, size = 2, sort = 'display_date:desc' }) => {
-	const params = {
-		body: JSON.stringify(getDSLQuery({ tags })),
-		from: offset.toString(),
-		size: size.toString(),
-		sort,
-		website: 'dlnews',
-		_sourceInclude: 'credits,display_date,headlines,promo_items,publish_date,subheadlines,taxonomy,canonical_url'
-	}
-
-	const urlSearch = new URLSearchParams(params)
-
-	const articlesRes = await fetchWithErrorLogging(
-		`${process.env.DL_NEWS_API}/content/v4/search/published?${urlSearch.toString()}`,
-		{
-			headers: {
-				'content-type': 'application/json',
-				Authorization: `Bearer ${process.env.DL_NEWS_ACCESS_TOKEN}`
-			},
-			method: 'GET'
-		}
-	)
+export const fetchArticles = async ({ tags = '', size = 2 }) => {
+	const articlesRes: IArticlesResponse = await fetchWithErrorLogging(`https://api.llama.fi/news/articles`)
 		.then((res) => res.json())
 		.catch((err) => {
 			console.log(err)
 			return {}
 		})
 
-	const articles: IArticle[] =
-		articlesRes?.content_elements?.map((element) => ({
-			headline: element.headlines.basic,
-			href: `https://dlnews.com${element.canonical_url}`,
-			imgSrc: element.promo_items?.basic?.url ?? null
-		})) ?? []
+	const target = tags.toLowerCase()
 
-	return articles
+	const articles: IArticle[] =
+		articlesRes?.content_elements
+			?.filter((element) => element.taxonomy?.tags?.some((tag) => tag.text.toLowerCase() === target))
+			.map((element) => ({
+				headline: element.headlines.basic,
+				date: element.display_date,
+				href: `https://dlnews.com${element.canonical_url}`,
+				imgSrc: element.promo_items?.basic?.url ?? null
+			})) ?? []
+
+	return articles.slice(0, size)
 }

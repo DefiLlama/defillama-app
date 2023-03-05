@@ -64,7 +64,7 @@ export const columns: ColumnDef<IYieldTableRow>[] = [
 			return (
 				<span
 					style={{
-						color: info.row.original.strikeTvl ? 'gray' : 'inherit'
+						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
 					{'$' + formattedNum(info.getValue())}

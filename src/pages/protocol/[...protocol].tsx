@@ -1,20 +1,27 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
+import { capitalizeFirstLetter, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
-import { getProtocols, getProtocol, fuseProtocolData, getProtocolsRaw } from '~/api/categories/protocols'
+import {
+	getProtocols,
+	getProtocol,
+	fuseProtocolData,
+	getProtocolsRaw,
+	getProtocolEmissons
+} from '~/api/categories/protocols'
 import { IProtocolResponse } from '~/api/types'
 import { DummyProtocol } from '~/containers/Defi/Protocol/Dummy'
-import { fetchArticles, IArticle, IArticlesResponse } from '~/api/categories/news'
+import { fetchArticles, IArticle } from '~/api/categories/news'
 
 export const getStaticProps = async ({
 	params: {
 		protocol: [protocol]
 	}
 }) => {
-	const [protocolRes, articles]: [IProtocolResponse, IArticle[]] = await Promise.all([
+	const [protocolRes, articles, emissions]: [IProtocolResponse, IArticle[], any] = await Promise.all([
 		getProtocol(protocol),
-		fetchArticles({ tags: protocol })
+		fetchArticles({ tags: protocol }),
+		getProtocolEmissons(protocol)
 	])
 
 	if (protocolRes?.chainTvls) {
@@ -69,7 +76,8 @@ export const getStaticProps = async ({
 			backgroundColor,
 			similarProtocols: Array.from(similarProtocolsSet).map((protocolName) =>
 				similarProtocols.find((p) => p.name === protocolName)
-			)
+			),
+			emissions
 		},
 		revalidate: maxAgeForNext([22])
 	}

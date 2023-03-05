@@ -2,11 +2,12 @@ import { ColumnDef } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'react-feather'
 import styled from 'styled-components'
 import Bookmark from '~/components/Bookmark'
+import { AutoColumn } from '~/components/Column'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
 import TokenLogo from '~/components/TokenLogo'
-import Tooltip from '~/components/Tooltip'
+import { Tooltip2 } from '~/components/Tooltip'
 import { useDefiManager } from '~/contexts/LocalStorage'
 import { formattedNum, formattedPercent, slug, toK, tokenIconUrl, toNiceDayAndHour, toNiceDaysAgo } from '~/utils'
 import { AccordionButton, Name } from '../../shared'
@@ -21,6 +22,13 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			const Chains = () => (
+				<AutoColumn>
+					{row.original.chains.map((chain) => (
+						<span key={`/protocol/${slug(value)}` + chain}>{chain}</span>
+					))}
+				</AutoColumn>
+			)
 
 			return (
 				<Name depth={row.depth}>
@@ -35,9 +43,18 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 					) : (
 						<Bookmark readableProtocolName={value} data-lgonly data-bookmark />
 					)}
+
 					<span>{index + 1}</span>
+
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
-					<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
+
+					<AutoColumn as="span">
+						<CustomLink href={`/protocol/${slug(value)}`}>{`${value}`}</CustomLink>
+
+						<Tooltip2 content={<Chains />} color="var(--text-disabled)" fontSize="0.7rem">
+							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
+						</Tooltip2>
+					</AutoColumn>
 				</Name>
 			)
 		},
@@ -46,22 +63,18 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Category',
 		accessorKey: 'category',
-		meta: {
-			align: 'end'
-		},
 		size: 140
 	},
 	{
-		header: 'Chains',
-		accessorKey: 'chains',
-		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
+		header: 'TVL',
+		accessorKey: 'tvl',
+		cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
 		meta: {
-			align: 'end',
-			headerHelperText: "Chains are ordered by protocol's highest TVL on each chain"
+			align: 'end'
 		},
-		size: 200
+		size: 120
 	},
+
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
@@ -90,15 +103,6 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		size: 100
 	},
 	{
-		header: 'TVL',
-		accessorKey: 'tvl',
-		cell: ({ getValue, row }) => <Tvl value={getValue()} rowValues={row.original} />,
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	},
-	{
 		header: 'Mcap/TVL',
 		accessorKey: 'mcaptvl',
 		cell: (info) => {
@@ -116,7 +120,7 @@ export const listedAtColumn = {
 	accessorKey: 'listedAt',
 	cell: ({ getValue }) => (
 		<ListedAt>
-			<TooltipPopver content={`at ${toNiceDayAndHour(getValue())}`}>{toNiceDaysAgo(getValue())}</TooltipPopver>
+			<Tooltip2 content={`at ${toNiceDayAndHour(getValue())}`}>{toNiceDaysAgo(getValue())}</Tooltip2>
 		</ListedAt>
 	),
 	size: 140,
@@ -178,20 +182,20 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		size: 200
 	},
 	{
-		header: '1d Change',
-		accessorKey: 'change_1d',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		header: 'TVL',
+		accessorKey: 'tvl',
+		cell: ({ getValue }) => {
+			return <>{'$' + formattedNum(getValue())}</>
+		},
 		meta: {
 			align: 'end'
 		},
 		size: 100
 	},
 	{
-		header: 'TVL',
-		accessorKey: 'tvl',
-		cell: ({ getValue }) => {
-			return <>{'$' + formattedNum(getValue())}</>
-		},
+		header: '1d Change',
+		accessorKey: 'change_1d',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
 		meta: {
 			align: 'end'
 		},
@@ -249,16 +253,15 @@ export const protocolAddlColumns = {
 // key: min width of window/screen
 // values: table columns order
 export const columnOrders = formatColumnOrder({
-	0: ['name', 'tvl', 'change_7d', 'category', 'chains', 'change_1m', 'change_1d', 'mcaptvl'],
-	480: ['name', 'change_7d', 'tvl', 'category', 'chains', 'change_1m', 'change_1d', 'mcaptvl'],
-	1024: ['name', 'category', 'chains', 'change_1d', 'change_7d', 'change_1m', 'tvl', 'mcaptvl']
+	0: ['name', 'tvl', 'change_7d', 'category', 'change_1m', 'change_1d', 'mcaptvl'],
+	480: ['name', 'change_7d', 'tvl', 'category', 'change_1m', 'change_1d', 'mcaptvl'],
+	1024: ['name', 'category', 'change_1d', 'change_7d', 'change_1m', 'tvl', 'mcaptvl']
 })
 
 export const columnSizes = {
 	0: {
 		name: 180,
 		category: 140,
-		chains: 140,
 		change_1d: 100,
 		change_7d: 100,
 		change_1m: 100,
@@ -269,7 +272,6 @@ export const columnSizes = {
 	1024: {
 		name: 240,
 		category: 140,
-		chains: 140,
 		change_1d: 100,
 		change_7d: 100,
 		change_1m: 100,
@@ -278,9 +280,8 @@ export const columnSizes = {
 		totalRaised: 180
 	},
 	1280: {
-		name: 240,
+		name: 200,
 		category: 140,
-		chains: 200,
 		change_1d: 100,
 		change_7d: 100,
 		change_1m: 100,
@@ -310,6 +311,14 @@ const Tvl = ({ value, rowValues }) => {
 			text =
 				'This protocol deposits into another protocol or is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggles are off'
 		}
+
+		if (rowValues.category === 'RWA') {
+			text = 'RWA protocols are not counted into Chain TVL'
+		}
+
+		if (text && rowValues.isParentProtocol) {
+			text = 'Some subprotocols are excluded from chain tvl'
+		}
 	}
 
 	return (
@@ -317,7 +326,7 @@ const Tvl = ({ value, rowValues }) => {
 			{text ? <QuestionHelper text={text} /> : null}
 			<span
 				style={{
-					color: rowValues.strikeTvl ? 'gray' : 'inherit'
+					color: rowValues.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 				}}
 			>
 				{'$' + formattedNum(value || 0)}
@@ -369,8 +378,4 @@ const ListedAt = styled.div`
 		margin-left: auto;
 		text-align: end;
 	}
-`
-
-const TooltipPopver = styled(Tooltip)`
-	padding: 6px;
 `

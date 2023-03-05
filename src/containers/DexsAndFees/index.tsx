@@ -15,6 +15,7 @@ import { useRouter } from 'next/router'
 import { capitalizeFirstLetter } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
+import { AnnouncementWrapper } from '~/components/Announcement'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -135,6 +136,19 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 
 	return (
 		<>
+			{props.type === 'fees' && (
+				<AnnouncementWrapper>
+					<span>Are we missing any protocol?</span>{' '}
+					<a
+						href="https://airtable.com/shrtBA9lvj6E036Qx"
+						style={{ color: '#2f80ed' }}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Request it here!
+					</a>
+				</AnnouncementWrapper>
+			)}
 			<AdaptorsSearch
 				type={props.type}
 				step={{
