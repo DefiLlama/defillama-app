@@ -5,7 +5,15 @@ import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import { ExternalLink } from 'react-feather'
 import { AutoRow } from '~/components/Row'
-import { formattedNum, formattedPercent, chainIconUrl, toNiceDayAndHour, getBlockExplorer, standardizeProtocolName, tokenIconUrl } from '~/utils'
+import {
+	formattedNum,
+	formattedPercent,
+	chainIconUrl,
+	toNiceDayAndHour,
+	getBlockExplorer,
+	standardizeProtocolName,
+	tokenIconUrl
+} from '~/utils'
 import TokenLogo from '~/components/TokenLogo'
 import { formatColumnOrder } from '../../utils'
 import type { IBridge, IBridgeChain } from './types'
@@ -24,14 +32,14 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 			const icon = rowValues.icon
 			let iconLink
 			if (icon) {
-			const [iconType, iconName] = rowValues.icon.split(':')
-			iconLink = iconType === 'chain' ? chainIconUrl(iconName) : tokenIconUrl(iconName)
+				const [iconType, iconName] = rowValues.icon.split(':')
+				iconLink = iconType === 'chain' ? chainIconUrl(iconName) : tokenIconUrl(iconName)
 			}
 
 			return (
 				<Name>
 					<span>{index + 1}</span>
-					{(icon && <TokenLogo logo={iconLink} data-lgonly />)}
+					{icon && <TokenLogo logo={iconLink} data-lgonly />}
 					<CustomLink href={`/bridge/${linkValue}`}>{value}</CustomLink>
 				</Name>
 			)
@@ -52,7 +60,7 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 100,
 		meta: {
 			align: 'end'

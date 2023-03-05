@@ -71,7 +71,7 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -80,7 +80,7 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'
@@ -89,7 +89,7 @@ export const peggedAssetByChainColumn: ColumnDef<IPeggedAssetByChainRow>[] = [
 	{
 		header: '1m Change',
 		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue(), false, 400)}</>,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 		size: 140,
 		meta: {
 			align: 'end'

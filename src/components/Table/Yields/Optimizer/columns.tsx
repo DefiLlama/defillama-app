@@ -120,7 +120,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		cell: (info) => {
 			return (
 				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{formattedPercent(info.getValue(), true, 400)}
+					{formattedPercent(info.getValue(), true)}
 				</ColoredAPY>
 			)
 		},
@@ -182,7 +182,7 @@ export const columns: ColumnDef<IYieldsOptimizerTableRow>[] = [
 		cell: (info) => {
 			return (
 				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{formattedPercent(info.getValue(), true, 400)}
+					{formattedPercent(info.getValue(), true)}
 				</ColoredAPY>
 			)
 		},

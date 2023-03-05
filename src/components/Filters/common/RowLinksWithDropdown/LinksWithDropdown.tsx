@@ -3,6 +3,7 @@ import Link from 'next/link'
 import styled from 'styled-components'
 import { ButtonDark, ButtonLight } from '~/components/ButtonStyled'
 import { OtherLinks } from './OtherLinks'
+import { transparentize } from 'polished'
 
 interface ILink {
 	label: string
@@ -144,9 +145,15 @@ const LinkItem = ({ option, activeLink, ...props }) => {
 				{option.label === activeLink ? (
 					<ButtonDark as="a">{option.label}</ButtonDark>
 				) : (
-					<ButtonLight as="a">{option.label}</ButtonLight>
+					<InactiveLink as="a">{option.label}</InactiveLink>
 				)}
 			</Link>
 		</li>
 	)
 }
+
+const InactiveLink = styled(ButtonLight)`
+	color: ${({ theme }) => (theme.mode === 'dark' ? '#629ff4' : '#2172E5')};
+	background-color: ${({ theme }) =>
+		theme.mode === 'dark' ? transparentize(0.9, '#629ff4') : transparentize(0.9, '#2172E5')};
+`

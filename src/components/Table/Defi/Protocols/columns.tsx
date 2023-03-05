@@ -96,7 +96,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 100
+		size: 120
 	},
 	{
 		header: 'Mcap/TVL',
@@ -195,7 +195,7 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		size: 100
+		size: 120
 	},
 	{
 		header: 'Mcap/TVL',
@@ -262,7 +262,7 @@ export const columnSizes = {
 		change_1d: 100,
 		change_7d: 100,
 		change_1m: 100,
-		tvl: 100,
+		tvl: 120,
 		mcaptvl: 100,
 		totalRaised: 180
 	},
@@ -273,7 +273,7 @@ export const columnSizes = {
 		change_1d: 100,
 		change_7d: 100,
 		change_1m: 100,
-		tvl: 100,
+		tvl: 120,
 		mcaptvl: 100,
 		totalRaised: 180
 	},
@@ -284,7 +284,7 @@ export const columnSizes = {
 		change_1d: 100,
 		change_7d: 100,
 		change_1m: 100,
-		tvl: 100,
+		tvl: 120,
 		mcaptvl: 100,
 		totalRaised: 180
 	}

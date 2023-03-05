@@ -235,7 +235,7 @@ export function peggedAssetIconPalleteUrl(name) {
 	return `${ICONS_PALETTE_CDN}/pegged/${encodeURIComponent(name.toLowerCase().split(' ').join('-'))}`
 }
 
-export function formattedPercent(percent, noSign = false, fontWeight = 500) {
+export function formattedPercent(percent, noSign = false, fontWeight = 400) {
 	if (percent === null) {
 		return null
 	}

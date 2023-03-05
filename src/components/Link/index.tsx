@@ -10,7 +10,7 @@ interface BasicLinkProps {
 	style?: React.CSSProperties
 	children: React.ReactNode
 	shallow?: boolean
-	onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+	onClick?: React.MouseEventHandler<HTMLAnchorElement>
 }
 
 interface CustomLinkProps extends BasicLinkProps {
@@ -43,22 +43,16 @@ export default Link
 export const CustomLinkStyle = styled.a`
 	font-size: 14px;
 	font-weight: 500;
-	color: ${({ color, theme }) => (color ? color : theme.link)};
-
-	&:visited {
-		color: ${({ color, theme }) => (color ? lighten(0.1, color) : lighten(0.1, theme.link))};
-	}
-
-	&:hover {
-		color: ${({ color, theme }) => (color ? darken(0.1, color) : darken(0.1, theme.link))};
-	}
+	color: ${({ theme }) => (theme.mode === 'dark' ? '#629ff4' : '#2172E5')};
 `
 
 export const CustomLink = ({ href, children, target, ...props }: CustomLinkProps) => {
 	// Must add passHref to Link
 	return (
 		<RouterLink href={href} passHref prefetch={false}>
-			<CustomLinkStyle target={target} {...props}>{children}</CustomLinkStyle>
+			<CustomLinkStyle target={target} {...props}>
+				{children}
+			</CustomLinkStyle>
 		</RouterLink>
 	)
 }

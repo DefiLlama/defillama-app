@@ -80,7 +80,7 @@ export const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		accessorKey: 'delta',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true, 400)}</ColoredAPY>
+			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
