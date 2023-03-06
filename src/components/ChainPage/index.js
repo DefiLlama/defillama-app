@@ -311,7 +311,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 
 			<ListOptions>
 				<ListHeader>TVL Rankings</ListHeader>
-				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
+				<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} alternativeOthersText="Chains" />
 				<TVLRange />
 			</ListOptions>
 

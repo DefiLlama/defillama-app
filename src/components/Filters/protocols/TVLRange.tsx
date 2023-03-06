@@ -47,7 +47,7 @@ export function TVLRange({ variant = 'primary', subMenu }: { variant?: 'primary'
 	return (
 		<FilterBetweenRange
 			name="TVL Range"
-			header={variant === 'secondary' ? <Header /> : 'Filter by min/max TVL'}
+			header={variant === 'secondary' ? <Header /> : 'TVL Range'}
 			onSubmit={handleSubmit}
 			variant={variant}
 			subMenu={subMenu}
