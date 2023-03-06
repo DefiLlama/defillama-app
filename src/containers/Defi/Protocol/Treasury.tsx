@@ -23,8 +23,15 @@ export function Treasury({ protocolName }) {
 
 			return acc
 		}, [])
+		.sort((a, b) => b.value - a.value)
 
-	if (!loading && data && tokens.length === 0) {
+	const top10Tokens = tokens.slice(0, 11)
+
+	if (tokens.length > 10) {
+		top10Tokens.push({ name: 'Others', value: tokens.slice(11).reduce((acc, curr) => (acc += curr.value), 0) })
+	}
+
+	if (!loading && data && top10Tokens.length === 0) {
 		return <></>
 	}
 
@@ -32,7 +39,9 @@ export function Treasury({ protocolName }) {
 		<Section id="treasury">
 			<h3>Treasury</h3>
 
-			<span style={{ minHeight: '320px' }}>{data && tokens.length > 0 && <PieChart chartData={tokens} />}</span>
+			<span style={{ minHeight: '320px' }}>
+				{data && top10Tokens.length > 0 && <PieChart chartData={top10Tokens} />}
+			</span>
 		</Section>
 	)
 }
