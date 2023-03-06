@@ -259,6 +259,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			mainRow.dailySupplySideRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailySupplySideRevenue'), null)
 			mainRow.chains = getUniqueArray(acc[protocol.parentProtocol].subRows.map(d => d.chains).flat())
 			mainRow.methodology = getParentProtocolMethodology(mainRow.displayName, acc[protocol.parentProtocol].subRows.map(r => r.displayName))
+			const total14dto7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total14dto7d'), null)
+			mainRow.change_7dover7d = ((mainRow.total7d - total14dto7d) / total14dto7d) * 100
 		}
 		// Computed stats
 		mainRow.volumetvl = mainRow.total24h / mainRow.tvl
@@ -324,6 +326,7 @@ export interface IOverviewProps {
 			volumetvl?: number
 			tvl?: number
 			dominance?: number
+			change_7dover7d?: IGetOverviewResponseBody['change_7dover7d']
 		}
 	>
 	total24h?: IGetOverviewResponseBody['total24h']
