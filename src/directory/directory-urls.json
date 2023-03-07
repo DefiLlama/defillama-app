@@ -15,6 +15,11 @@
         "logo":"llamanodes.jpg"
     },
 	  {
+        "name": "Zapper",
+        "url": "https://zapper.xyz/",
+        "logo":"zapper.jpg"
+    },
+	  {
         "name": "Binance Exchange",
         "url": "https://www.binance.com/en",
         "logo":"binance-exchange.jpg"
