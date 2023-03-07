@@ -1,5 +1,20 @@
 [
     {
+        "name": "DefiLlama",
+        "url": "https://defillama.com/",
+        "logo":"defillama.jpg"
+    },
+	  {
+        "name": "DLNews",
+        "url": "https://www.dlnews.com/",
+        "logo":"dlnews.jpg"
+    },
+	  {
+        "name": "LlamaNodes",
+        "url": "https://llamanodes.com/",
+        "logo":"llamanodes.jpg"
+    },
+	  {
         "name": "Binance Exchange",
         "url": "https://www.binance.com/en",
         "logo":"binance-exchange.jpg"
