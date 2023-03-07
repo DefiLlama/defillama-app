@@ -63,6 +63,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		header: 'Category',
 		accessorKey: 'category',
+		cell: ({ getValue }) => (getValue() ? <CustomLink href={`/protocols/${getValue()}`}>{getValue()}</CustomLink> : ''),
 		size: 140
 	},
 	{
