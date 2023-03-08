@@ -274,9 +274,9 @@ function ProtocolContainer({
 				if (Object.keys(extraTvlsEnabled).includes(section.toLowerCase())) {
 					// convert to lowercase as server response is not consistent in extra-tvl names
 					if (extraTvlsEnabled[section.toLowerCase()])
-						tvl += sectionData.tvl[sectionData.tvl.length - 1].totalLiquidityUSD
+						tvl += sectionData.tvl[sectionData.tvl.length - 1]?.totalLiquidityUSD ?? 0
 				} else {
-					tvl += sectionData.tvl[sectionData.tvl.length - 1].totalLiquidityUSD
+					tvl += sectionData.tvl[sectionData.tvl.length - 1]?.totalLiquidityUSD ?? 0
 				}
 			})
 		}
