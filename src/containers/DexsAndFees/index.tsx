@@ -201,7 +201,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 						<FiltersByCategory
 							categoryList={props.categories}
 							selectedCategories={selectedCategories}
-							pathname="/fees"
+							pathname={`/${props.type}`}
 							hideSelectedCount
 						/>
 					)}
