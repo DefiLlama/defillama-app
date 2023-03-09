@@ -2,7 +2,6 @@ import { GetStaticProps, GetStaticPropsContext, InferGetStaticPropsType } from '
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getOverview, getOverviewItemPageData, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
-import { primaryColor } from '~/constants/colors'
 import OverviewItemContainer from '~/containers/DexsAndFees/OverviewItem'
 import { standardizeProtocolName } from '~/utils'
 import { volumeTypes } from '../utils'
@@ -64,6 +63,7 @@ export const getStaticPathsByType = (type: string) => async () => {
 
 export default function ProtocolItem({ protocolSummary, ...props }: InferGetStaticPropsType<typeof getStaticProps>) {
 	const type = volumeTypes.includes(protocolSummary.type) ? 'volume' : protocolSummary.type
+
 	return (
 		<OverviewItemContainer
 			title={`${protocolSummary.name} ${type} - DefiLlama`}

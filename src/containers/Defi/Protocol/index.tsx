@@ -25,7 +25,6 @@ import {
 	ChartsPlaceholder
 } from '~/layout/ProtocolAndPool'
 import { Stat, StatsSection, StatWrapper } from '~/layout/Stats/Medium'
-import { ChartWrapper } from '~/layout/ProtocolAndPool'
 import { Checkbox2 } from '~/components'
 import Bookmark from '~/components/Bookmark'
 import CopyHelper from '~/components/Copy'
@@ -42,7 +41,6 @@ import { useScrollToTop } from '~/hooks'
 import { DEFI_SETTINGS_KEYS, useDefiManager } from '~/contexts/LocalStorage'
 import {
 	capitalizeFirstLetter,
-	chainIconUrl,
 	formattedNum,
 	getBlockExplorer,
 	slug,
@@ -54,8 +52,7 @@ import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IFusedProtocolData, IRaise } from '~/api/types'
 import { useYields } from '~/api/categories/yield/client'
 import boboLogo from '~/assets/boboSmug.png'
-import { formatTvlsByChain, buildProtocolAddlChartsData } from './utils'
-import ChartByType from './../../DexsAndFees/charts'
+import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, formatRaise } from './utils'
 import { Treasury } from './Treasury'
 import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
@@ -63,10 +60,7 @@ import type { IEmission } from './Emissions'
 import { Emissions } from './Emissions'
 import { RowBetween } from '~/components/Row'
 import { DLNewsLogo } from '~/components/News/Logo'
-
-const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
-	ssr: false
-}) as React.FC<IBarChartProps>
+import { ProtocolFeesAndRevenueCharts } from './Fees'
 
 const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap']
 
@@ -159,47 +153,6 @@ interface IProtocolContainerProps {
 }
 
 const isLowerCase = (letter: string) => letter === letter.toLowerCase()
-
-export function FeesBody({ data, chartData }) {
-	const { pathname } = useRouter()
-
-	const isProtocolPage = pathname.includes('protocol')
-	return (
-		<StatsSection>
-			<DetailsWrapper>
-				<Name>
-					{isProtocolPage ? (
-						'Fees and Revenue'
-					) : (
-						<>
-							<TokenLogo logo={data.logo ?? chainIconUrl(data.name)} size={24} />
-							<FormattedName text={data.name} maxCharacters={16} fontWeight={700} />
-						</>
-					)}
-				</Name>
-
-				<Stat>
-					<span>24h fees</span>
-					<span>{formattedNum(data.total1dFees || 0, true)}</span>
-				</Stat>
-
-				<Stat>
-					<span>24h revenue</span>
-					<span>{formattedNum(data.total1dRevenue || 0, true)}</span>
-				</Stat>
-			</DetailsWrapper>
-
-			<ChartWrapper>
-				<StackedChart
-					chartData={chartData}
-					title={isProtocolPage ? '' : 'Fees And Revenue'}
-					stacks={{ Fees: 'a', Revenue: 'b' }}
-					stackColors={stackedBarChartColors}
-				/>
-			</ChartWrapper>
-		</StatsSection>
-	)
-}
 
 function ProtocolContainer({
 	articles,
@@ -735,70 +688,9 @@ function ProtocolContainer({
 				</>
 			)}
 
-			{loading ? (
-				<ChartsPlaceholder>Loading...</ChartsPlaceholder>
-			) : Object.keys(protocolData.metrics ?? {}).length > 0 ? (
-				<ChartsWrapper>
-					{Object.entries(protocolData.metrics).map(([key, enabled]) => {
-						if (key === 'dexs' && enabled)
-							return (
-								<>
-									<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="dexs" />
-									<ChartByType chartType="version" protocolName={slug(protocolData.name)} type="dexs" />
-								</>
-							)
-						else if (key === 'fees' && enabled)
-							return (
-								<>
-									<ChartByType
-										chartType="chain"
-										protocolName={slug(protocolData.name)}
-										type="fees"
-										breakdownChart={false}
-									/>
-									<ChartByType chartType="chain" protocolName={slug(protocolData.name)} type="fees" />
-								</>
-							)
-						else return null
-					})}
-				</ChartsWrapper>
-			) : null}
+			<ProtocolFeesAndRevenueCharts data={protocolData} />
 		</Layout>
 	)
-}
-
-const stackedBarChartColors = {
-	Fees: '#4f8fea',
-	Revenue: '#E59421'
-}
-
-const formatRaise = (raise: IRaise) => {
-	let text = new Date(raise.date * 1000).toLocaleDateString() + ' :'
-
-	if (raise.round) {
-		text += ` ${raise.round}`
-	}
-
-	if (raise.round && raise.amount) {
-		text += ' -'
-	}
-
-	if (raise.amount) {
-		text += ` Raised $${formatRaisedAmount(Number(raise.amount))}`
-	}
-
-	if (raise.valuation && Number(raise.valuation)) {
-		text += ` at $${formatRaisedAmount(Number(raise.valuation))} valuation`
-	}
-
-	return text
-}
-
-const formatRaisedAmount = (n: number) => {
-	if (n >= 1e3) {
-		return `${(n / 1e3).toLocaleString(undefined, { maximumFractionDigits: 2 })}b`
-	}
-	return `${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}m`
 }
 
 export default ProtocolContainer

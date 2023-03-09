@@ -6,7 +6,7 @@ import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMo
 import { Denomination, Filters, FiltersWrapper } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { formattedNum } from '~/utils'
-import { IDexChartsProps } from './OverviewItem'
+import type { IDexChartsProps } from './types'
 import { getCleanMonthTimestamp, getCleanWeekTimestamp } from './utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import QuestionHelper from '~/components/QuestionHelper'

@@ -6,7 +6,8 @@ import { chartBreakdownByChain, chartBreakdownByTokens, chartBreakdownByVersion 
 import { LazyChart } from '~/layout/ProtocolAndPool'
 import { capitalizeFirstLetter } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
-import { IProtocolContainerProps, ProtocolChart } from '../OverviewItem'
+import type { IProtocolContainerProps } from '../types'
+import { ProtocolChart } from './ProtocolChart'
 
 interface IChartByType {
 	type: string
@@ -53,7 +54,7 @@ const chartTitleBy = (chartType: CHART_TYPES, breakdown: boolean) => {
 	}
 }
 
-const ChartByType: React.FC<IChartByType> = (props) => {
+export const ChartByType: React.FC<IChartByType> = (props) => {
 	const [protocolSummary, setProtocolSummary] = React.useState(props.protocolSummary)
 	const { data, error } = useFetchChartsSummary(props.type, props.protocolName, undefined, !!props.protocolSummary)
 	React.useEffect(() => {
@@ -107,5 +108,3 @@ const ChartByType: React.FC<IChartByType> = (props) => {
 		<></>
 	)
 }
-
-export default ChartByType

@@ -1,4 +1,4 @@
-import type { IChainTvl } from '~/api/types'
+import type { IChainTvl, IRaise } from '~/api/types'
 import type { ISettings } from '~/contexts/types'
 
 export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
@@ -309,4 +309,33 @@ export const buildProtocolAddlChartsData = ({
 	}
 
 	return {}
+}
+
+export const formatRaise = (raise: IRaise) => {
+	let text = new Date(raise.date * 1000).toLocaleDateString() + ' :'
+
+	if (raise.round) {
+		text += ` ${raise.round}`
+	}
+
+	if (raise.round && raise.amount) {
+		text += ' -'
+	}
+
+	if (raise.amount) {
+		text += ` Raised $${formatRaisedAmount(Number(raise.amount))}`
+	}
+
+	if (raise.valuation && Number(raise.valuation)) {
+		text += ` at $${formatRaisedAmount(Number(raise.valuation))} valuation`
+	}
+
+	return text
+}
+
+export const formatRaisedAmount = (n: number) => {
+	if (n >= 1e3) {
+		return `${(n / 1e3).toLocaleString(undefined, { maximumFractionDigits: 2 })}b`
+	}
+	return `${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}m`
 }
