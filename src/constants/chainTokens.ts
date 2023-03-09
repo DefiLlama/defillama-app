@@ -758,6 +758,21 @@ export const chainCoingeckoIds = {
 		geckoId: 'tlchain',
 		symbol: 'TLC',
 		cmcId: null
+	},
+	CORE: {
+		geckoId: 'coredaoorg',
+		symbol: 'CORE',
+		cmcId: '23254'
+	},
+	Oraichain: {
+		geckoId: 'oraichain-token',
+		symbol: 'ORAI',
+		cmcId: '7533'
+	},
+	Persistence: {
+		geckoId: 'persistence',
+		symbol: 'XPRT',
+		cmcId: '7281'
 	}
 }
 
