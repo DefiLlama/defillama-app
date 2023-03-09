@@ -44,6 +44,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 
 	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
+	const enableChainsChart = props.protocolSummary.type !== 'dexs'
 	const typeSimple = volumeTypes.includes(props.protocolSummary.type) ? 'volume' : props.protocolSummary.type
 	const useTotalDataChart = props.protocolSummary.type === 'fees' || props.protocolSummary.type === 'options'
 	const mainChart = React.useMemo(() => {
@@ -231,6 +232,13 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 								type={props.protocolSummary.type}
 								protocolName={props.protocolSummary.module}
 								chartType="tokens"
+							/>
+						)}
+						{enableChainsChart && (
+							<ChartByType
+								type={props.protocolSummary.type}
+								protocolName={props.protocolSummary.module}
+								chartType="chain"
 							/>
 						)}
 					</ChartsWrapper>
