@@ -64,6 +64,7 @@ const blockExplorers = {
 	bittorrent: ['https://bttcscan.com/address/', 'BTTCSCAN'],
 	empire: ['https://explorer.empirenetwork.io/address/', 'Empire Explorer'],
 	tlchain: ['https://explorer.tlchain.live/token/', 'TLChain Explorer'],
+	core: ['https://scan.coredao.org/token/', 'Scan Coredao']
 }
 
 export const getBlockExplorer = (address: string = '') => {
