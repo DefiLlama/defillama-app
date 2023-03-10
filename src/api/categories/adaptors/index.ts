@@ -122,7 +122,7 @@ const getMapingCoinGeckoId = (name: string): string => {
 // Get TVL data
 const sumTVLProtocols = (protocolName: string, versions: string[], tvlData: IJSON<number>) => {
 	return versions.reduce((acc, version) => {
-		return (acc += tvlData[`${protocolName} ${version.toUpperCase()}`])
+		return (acc += (tvlData[`${protocolName} ${capitalizeFirstLetter(version)}`] ?? tvlData[`${protocolName} ${version.toUpperCase()}`]))
 	}, 0)
 }
 
