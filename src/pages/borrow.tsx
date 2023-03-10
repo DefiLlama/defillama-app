@@ -10,10 +10,19 @@ export async function getStaticProps() {
 		props: { pools, ...data }
 	} = await getLendBorrowData()
 
-	let searchData = await getAllCGTokensList()
-	// filter searchData array to include only tokens for which we have lending data
-	const uniqueSymbols = [...new Set(pools.map((p) => p.symbol.split(' ')[0]?.toLowerCase()))]
-	searchData = searchData?.flat().filter((s) => uniqueSymbols.includes(s.symbol?.toLowerCase())) ?? []
+	let cgList = await getAllCGTokensList()
+	const cgPositions = cgList.reduce((acc, e, i) => ({ ...acc, [e.symbol]: i }), {} as any)
+	const searchData = data.symbols
+		.sort((a, b) => cgPositions[a] - cgPositions[b])
+		.map((sRaw) => {
+			const s = sRaw.replaceAll(/\(.*\)/g, '').trim()
+			return {
+				name: s,
+				symbol: s,
+				image: '',
+				image2: ''
+			}
+		})
 
 	return {
 		props: {
