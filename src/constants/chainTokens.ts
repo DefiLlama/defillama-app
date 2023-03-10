@@ -773,6 +773,11 @@ export const chainCoingeckoIds = {
 		geckoId: 'persistence',
 		symbol: 'XPRT',
 		cmcId: '7281'
+	},
+	Rangers: {
+		geckoId: 'rangers-protocol-gas',
+		symbol: 'RPG',
+		cmcId: '12221'
 	}
 }
 
