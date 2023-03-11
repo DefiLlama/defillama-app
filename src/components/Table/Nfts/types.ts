@@ -1,15 +1,17 @@
 export interface INftsCollectionRow {
 	name: string
-	chains: Array<string>
-	marketplaces: Array<string>
-	dailyVolumeUSD: number
-	totalVolumeUSD: number
-	floorUSD: number
-	owners: number
-	address: string
-	logo: string
+	collectionId: string
+	floorPrice: number
+	floorPrice1Day: number
+	floorPrice30Day: number
+	floorPrice7Day: number
+	floorPricePctChange1Day: number
+	floorPricePctChange30Day: number
+	floorPricePctChange7Day: number
+	image: string
+	onSaleCount: number
 	slug: string
-	collections: number
-	chain: string
-	marketplace: string
+	timestamp: string
+	tokenStandard: string
+	totalSupply: number
 }

@@ -3,7 +3,7 @@ import FormattedName from '~/components/FormattedName'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
-import { capitalizeFirstLetter, formattedNum } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, formattedPercent } from '~/utils'
 import { Name } from '../../shared'
 import type { INftsCollectionRow } from '../types'
 
@@ -16,100 +16,150 @@ export const columns: ColumnDef<INftsCollectionRow>[] = [
 			const item = row.original
 			return (
 				<Name>
-					<TokenLogo address={item.address} logo={item.logo} external />
-					{/* <img
-						src={logo}
-						alt=""
-						style={{ height: size, width: size, aspectRatio: '1', borderRadius: '50%', flexShrink: 0 }}
-					/> */}
-					<CustomLink
-						style={{
-							marginLeft: '16px',
-							whiteSpace: 'nowrap',
-							minWidth: '200px'
-						}}
-						href={'/nfts/collection/' + item.slug}
-					>
-						<FormattedName text={`${item.name}`} maxCharacters={24} adjustSize={true} link={true} />
-					</CustomLink>
+					<TokenLogo logo={item.image} external />
+
+					<FormattedName text={`${item.name}`} maxCharacters={24} />
 				</Name>
 			)
 		},
 		size: 200
 	},
 	{
-		header: 'Chains',
-		accessorKey: 'chains',
-		enableSorting: false,
-		cell: (info) => {
-			const values = info.getValue() as Array<string>
-			return <IconsRow links={values.map((x) => capitalizeFirstLetter(x))} url="/nfts/chain" iconType="chain" />
-		},
+		header: 'Total Supply',
+		accessorKey: 'totalSupply',
+		size: 120,
 		meta: {
 			align: 'end'
-		},
-		size: 120
+		}
 	},
 	{
-		header: 'MarketPlaces',
-		accessorKey: 'marketplaces',
-		enableSorting: false,
-		cell: (info) => {
-			const values = info.getValue() as Array<string>
+		header: 'On Sale',
+		accessorKey: 'onSaleCount',
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'On Sale',
+		accessorKey: 'onSaleCount',
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Floor Price',
+		accessorKey: 'floorPrice',
+		size: 120,
+		cell: (info) => info.getValue() + ' ETH',
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '1d Change',
+		accessorKey: 'floorPricePctChange1Day',
+		size: 120,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
 
-			return <IconsRow links={values.map((x) => capitalizeFirstLetter(x))} url="/nfts/marketplace" iconType="token" />
-		},
 		meta: {
 			align: 'end'
-		},
-		size: 120
+		}
 	},
 	{
-		header: 'Daily Volume',
-		accessorKey: 'dailyVolumeUSD',
-		enableSorting: true,
-		cell: ({ getValue }) => {
-			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
-		},
+		header: '7d Change',
+		accessorKey: 'floorPricePctChange7Day',
+		size: 120,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+
 		meta: {
 			align: 'end'
-		},
-		size: 120
+		}
 	},
 	{
-		header: 'Total Volume',
-		accessorKey: 'totalVolumeUSD',
-		enableSorting: true,
-		cell: ({ getValue }) => {
-			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
-		},
+		header: '1m Change',
+		accessorKey: 'floorPricePctChange30Day',
+		size: 120,
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+
 		meta: {
 			align: 'end'
-		},
-		size: 120
-	},
-	{
-		header: 'Floor',
-		accessorKey: 'floor',
-		enableSorting: true,
-		cell: ({ getValue }) => {
-			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
-		},
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	},
-	{
-		header: 'Owners',
-		accessorKey: 'owners',
-		enableSorting: true,
-		cell: ({ getValue }) => {
-			return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), false)}</>
-		},
-		meta: {
-			align: 'end'
-		},
-		size: 120
+		}
 	}
+	// {
+	// 	header: 'Chains',
+	// 	accessorKey: 'chains',
+	// 	enableSorting: false,
+	// 	cell: (info) => {
+	// 		const values = info.getValue() as Array<string>
+	// 		return <IconsRow links={values.map((x) => capitalizeFirstLetter(x))} url="/nfts/chain" iconType="chain" />
+	// 	},
+	// 	meta: {
+	// 		align: 'end'
+	// 	},
+	// 	size: 120
+	// },
+	// {
+	// 	header: 'MarketPlaces',
+	// 	accessorKey: 'marketplaces',
+	// 	enableSorting: false,
+	// 	cell: (info) => {
+	// 		const values = info.getValue() as Array<string>
+
+	// 		return <IconsRow links={values.map((x) => capitalizeFirstLetter(x))} url="/nfts/marketplace" iconType="token" />
+	// 	},
+	// 	meta: {
+	// 		align: 'end'
+	// 	},
+	// 	size: 120
+	// },
+	// {
+	// 	header: 'Daily Volume',
+	// 	accessorKey: 'dailyVolumeUSD',
+	// 	enableSorting: true,
+	// 	cell: ({ getValue }) => {
+	// 		return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
+	// 	},
+	// 	meta: {
+	// 		align: 'end'
+	// 	},
+	// 	size: 120
+	// },
+	// {
+	// 	header: 'Total Volume',
+	// 	accessorKey: 'totalVolumeUSD',
+	// 	enableSorting: true,
+	// 	cell: ({ getValue }) => {
+	// 		return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
+	// 	},
+	// 	meta: {
+	// 		align: 'end'
+	// 	},
+	// 	size: 120
+	// },
+	// {
+	// 	header: 'Floor',
+	// 	accessorKey: 'floor',
+	// 	enableSorting: true,
+	// 	cell: ({ getValue }) => {
+	// 		return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), true)}</>
+	// 	},
+	// 	meta: {
+	// 		align: 'end'
+	// 	},
+	// 	size: 120
+	// },
+	// {
+	// 	header: 'Owners',
+	// 	accessorKey: 'owners',
+	// 	enableSorting: true,
+	// 	cell: ({ getValue }) => {
+	// 		return <>{getValue() <= 0 ? '--' : formattedNum(getValue(), false)}</>
+	// 	},
+	// 	meta: {
+	// 		align: 'end'
+	// 	},
+	// 	size: 120
+	// }
 ]

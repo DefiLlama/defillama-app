@@ -75,14 +75,14 @@ export const getNFTStatistics = (chart) => {
 
 export const getNFTData = async () => {
 	try {
-		const chart = await fetch(NFT_CHART_API).then((r) => r.json())
-		const { data: collections } = await fetch(NFT_COLLECTIONS_API).then((r) => r.json())
-		const statistics = getNFTStatistics(chart)
+		// const chart = await fetch(NFT_CHART_API).then((r) => r.json())
+		const collections = await fetch(NFT_COLLECTIONS_API).then((r) => r.json())
+		// const statistics = getNFTStatistics(chart)
 
 		return {
-			chart,
+			chart: [],
 			collections,
-			statistics
+			statistics: []
 		}
 	} catch (e) {
 		console.log(e)

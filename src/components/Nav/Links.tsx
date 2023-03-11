@@ -8,11 +8,11 @@ import {
 	BarChart2,
 	Book,
 	ShieldOff,
-	Shuffle,
 	Search,
 	BookOpen,
 	Repeat,
-	Layers
+	Layers,
+	Image as FeatherImage
 } from 'react-feather'
 
 export interface IMainLink {
@@ -219,7 +219,7 @@ export const navLinks: ILinks = {
 		main: [
 			{ name: 'Overview', path: '/dexs' },
 			{ name: 'Chains', path: '/dexs/chains' },
-			{ name: 'Options', path: '/options' },
+			{ name: 'Options', path: '/options' }
 		],
 		...defaultToolsAndFooterLinks,
 		icon: <BarChart size={16} />
@@ -254,6 +254,11 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Layers size={16} />
+	},
+	NFTs: {
+		main: [],
+		...defaultToolsAndFooterLinks,
+		icon: <FeatherImage size={16} />
 	}
 }
 
@@ -264,5 +269,6 @@ export const linksWithNoSubMenu = [
 	{ name: 'Borrow Aggregator', url: '/borrow' },
 	{ name: 'CEX Transparency', url: '/cexs' },
 	{ name: 'DefiLlama Swap', url: 'https://swap.defillama.com/', external: true },
-	{ name: 'ETH Liquid Staking', url: '/lsd' }
+	{ name: 'ETH Liquid Staking', url: '/lsd' },
+	{ name: 'NFTs', url: '/nfts' }
 ]

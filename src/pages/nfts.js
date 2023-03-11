@@ -1,21 +1,29 @@
-import NFTDashboardPage from '~/components/NFTDashboardPage'
 import { maxAgeForNext } from '~/api'
-import { getNFTChainsData, getNFTData } from '~/api/categories/nfts'
+import { getNFTData } from '~/api/categories/nfts'
+import Layout from '~/layout'
+import { NftsCollectionTable } from '~/components/Table'
+import { Header } from '~/Theme'
 
-// export async function getStaticProps() {
-// 	const data = await getNFTData()
-// 	const chainData = await getNFTChainsData()
+export async function getStaticProps() {
+	const data = await getNFTData()
+	// const chainData = await getNFTChainsData()
 
-// 	return {
-// 		props: {
-// 			...data,
-// 			chainData
-// 		},
-// 		revalidate: maxAgeForNext([22])
-// 	}
-// }
+	return {
+		props: {
+			...data
+			// chainData
+		},
+		revalidate: maxAgeForNext([22])
+	}
+}
 
 export default function NFTHomePage(props) {
-	return <div />
-	return <NFTDashboardPage title="DefiLlama - NFT Dashboard" {...props} />
+	console.log(props.collections)
+	return (
+		<Layout title="NFTs - DefiLlama" defaultSEO>
+			<Header>NFT Collections</Header>
+
+			<NftsCollectionTable data={props.collections || []} />
+		</Layout>
+	)
 }
