@@ -3,7 +3,7 @@ import FormattedName from '~/components/FormattedName'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
-import { capitalizeFirstLetter, formattedNum, formattedPercent } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, formattedPercent, nftCollectionIconUrl } from '~/utils'
 import { Name } from '../../shared'
 import type { INftCollection } from '../types'
 
@@ -16,7 +16,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 			const item = row.original
 			return (
 				<Name>
-					<TokenLogo logo={item.image} external />
+					<TokenLogo logo={nftCollectionIconUrl(item.collectionId)} external />
 
 					<FormattedName text={`${item.name}`} maxCharacters={24} />
 				</Name>

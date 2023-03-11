@@ -5,7 +5,7 @@ import { columns } from './columns'
 import type { INftCollection } from '../types'
 
 export default function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
-	const [sorting, setSorting] = React.useState<SortingState>([])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'floorPrice', desc: true }])
 
 	const instance = useReactTable({
 		data,

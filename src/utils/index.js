@@ -205,6 +205,10 @@ export function tokenIconUrl(name) {
 	return `${ICONS_CDN}/protocols/${x.toLowerCase().split(' ').join('-').split("'").join('')}?w=24&h=24`
 }
 
+export function nftCollectionIconUrl(address) {
+	return `${ICONS_CDN}/nfts/${address}?w=24&h=24`
+}
+
 export function tokenIconPaletteUrl(name) {
 	const x = name ?? ''
 	return `${ICONS_PALETTE_CDN}/protocols/${x.toLowerCase().split(' ').join('-').split("'").join('')}`

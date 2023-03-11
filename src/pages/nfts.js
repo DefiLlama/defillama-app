@@ -18,7 +18,6 @@ export async function getStaticProps() {
 }
 
 export default function NFTHomePage(props) {
-	console.log(props.collections)
 	return (
 		<Layout title="NFTs - DefiLlama" defaultSEO>
 			<Header>NFT Collections</Header>
