@@ -74,7 +74,6 @@ export const getProtocol = async (protocolName: string) => {
 }
 
 export const getProtocolEmissons = async (protocolName: string) => {
-	return { data: [], categories: [] }
 	try {
 		const res = await fetch(`${PROTOCOL_EMISSIONS_API}/${protocolName}`)
 			.then((r) => r.json())

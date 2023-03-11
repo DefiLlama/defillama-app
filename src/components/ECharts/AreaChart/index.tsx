@@ -27,6 +27,7 @@ export default function AreaChart({
 	chartOptions,
 	height = '360px',
 	expandTo100Percent = false,
+	isStackedChart,
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
@@ -119,22 +120,24 @@ export default function AreaChart({
 					itemStyle: {
 						color: stackColor ? stackColor : index === 0 ? chartColor : null
 					},
-					stack: undefined,
+					stack: isStackedChart ? 'Total' : undefined,
 					lineStyle: undefined,
-					areaStyle: {
-						color: !customLegendName
-							? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-									{
-										offset: 0,
-										color: stackColor ? stackColor : index === 0 ? chartColor : 'transparent'
-									},
-									{
-										offset: 1,
-										color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-									}
-							  ])
-							: null
-					} as { color?: echarts.graphic.LinearGradient },
+					areaStyle: isStackedChart
+						? {}
+						: ({
+								color: !customLegendName
+									? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+											{
+												offset: 0,
+												color: stackColor ? stackColor : index === 0 ? chartColor : 'transparent'
+											},
+											{
+												offset: 1,
+												color: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+											}
+									  ])
+									: null
+						  } as { color?: echarts.graphic.LinearGradient }),
 					data: [],
 					...(hallmarks && {
 						markLine: {
@@ -195,7 +198,8 @@ export default function AreaChart({
 		isDark,
 		legendOptions,
 		stackColors,
-		expandTo100Percent
+		expandTo100Percent,
+		isStackedChart
 	])
 
 	const createInstance = useCallback(() => {
