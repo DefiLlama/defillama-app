@@ -5,9 +5,9 @@ import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
 import { capitalizeFirstLetter, formattedNum, formattedPercent } from '~/utils'
 import { Name } from '../../shared'
-import type { INftsCollectionRow } from '../types'
+import type { INftCollection } from '../types'
 
-export const columns: ColumnDef<INftsCollectionRow>[] = [
+export const columns: ColumnDef<INftCollection>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
