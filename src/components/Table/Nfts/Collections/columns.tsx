@@ -41,14 +41,6 @@ export const columns: ColumnDef<INftCollection>[] = [
 		}
 	},
 	{
-		header: 'On Sale',
-		accessorKey: 'onSaleCount',
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
 		header: 'Floor Price',
 		accessorKey: 'floorPrice',
 		size: 120,
