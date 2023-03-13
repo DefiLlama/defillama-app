@@ -61,7 +61,8 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 				fontFamily: 'inter, sans-serif',
 				fontWeight: 600,
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			}
+			},
+			left: 15
 		}
 
 		const gridTop = hideLegend ? 0 : isSmall ? 60 : 10
@@ -247,7 +248,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			},
 			top: !hideLegend && isSmall ? 30 : 0,
-			right: !hideLegend && isSmall ? null : 0
+			right: !hideLegend && isSmall ? null : 20
 		}
 
 		const dataZoom = [
