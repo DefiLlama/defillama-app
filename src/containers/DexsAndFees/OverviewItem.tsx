@@ -16,15 +16,15 @@ import {
 	ChartWrapper,
 	ChartsWrapper
 } from '~/layout/ProtocolAndPool'
-import { StatsSection } from '~/layout/Stats/Medium'
-import { Stat } from '~/layout/Stats/Large'
+import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
+import { Stat, StatsWrapper } from '~/layout/Stats/Large'
 import CopyHelper from '~/components/Copy'
 import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
 import { AdaptorsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType, IOverviewProps, ProtocolAdaptorSummaryProps } from '~/api/categories/adaptors'
@@ -44,6 +44,9 @@ import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import SEO from '~/components/SEO'
 import { PageParams } from '~/utils/adaptorsPages/[type]/[item]'
 import LocalLoader from '~/components/LocalLoader'
+import { OtherProtocols, ProtocolLink } from '../Defi/Protocol'
+import { useRouter } from 'next/router'
+import { FiltersWrapper, Wrapper } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -78,6 +81,7 @@ export interface IDexChartsProps {
 	chartTypes?: string[]
 	selectedType?: string
 	selectedChartType?: string
+	childProtocols?: string[]
 }
 
 export const ProtocolChart = ({
@@ -89,8 +93,10 @@ export const ProtocolChart = ({
 	title,
 	fullChart = false,
 	totalAllTime,
+	childProtocols,
 	disableDefaultLeged = false
 }: IDexChartsProps) => {
+	const router = useRouter()
 	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 	const typeString = volumeTypes.includes(type) ? 'Volume' : capitalizeFirstLetter(type)
 	const typeSimple = volumeTypes.includes(type) ? 'volume' : type
@@ -100,95 +106,110 @@ export const ProtocolChart = ({
 			: undefined
 
 	const barsData = React.useMemo(aggregateDataByInterval(barInterval, chartData), [chartData, barInterval])
+	const tabs = [name]
+	if (childProtocols) tabs.push(...childProtocols)
 
 	return (
 		<StatsSection>
-			{!fullChart && (
-				<DetailsWrapper>
-					{name && (
-						<Name>
-							<TokenLogo logo={logo} size={24} />
-							<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-						</Name>
-					)}
-					{data.total24h || data.total24h === 0 ? (
-						<Stat>
-							<span>
-								{data.disabled === true
-									? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
-											+chartData[0][chartData[0].length - 1][0]
-									  )})`
-									: `${typeString} (24h)`}
-							</span>
-							<span>{formattedNum(data.total24h || '0', true)}</span>
-						</Stat>
-					) : (
-						<></>
-					)}
-					{data.dailyRevenue || data.dailyRevenue === 0 ? (
-						<Stat>
-							<span>
-								{data.disabled === true
-									? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
-											+chartData[0][chartData[0].length - 1][0]
-									  )})`
-									: `Revenue (24h)`}
-							</span>
-							<span>{formattedNum(data.dailyRevenue || '0', true)}</span>
-						</Stat>
-					) : (
-						<></>
-					)}
-
-					{typeString !== 'Fees' && data.change_1d ? (
-						<Stat>
-							<span>
-								{data.disabled === true
-									? `Last day change (${formatTimestampAsDate(+chartData[0][chartData[0].length - 1][0])})`
-									: 'Change (24h)'}
-							</span>
-							<span>{data.change_1d || 0}%</span>
-						</Stat>
-					) : (
-						<></>
-					)}
-					{totalAllTime ? (
-						<Stat>
-							<span>{`All time ${typeSimple}`}</span>
-							<span>{formattedNum(totalAllTime, true)}</span>
-						</Stat>
-					) : (
-						<></>
-					)}
-				</DetailsWrapper>
+			{childProtocols && childProtocols.length > 0 && (
+				<OtherProtocols>
+					{tabs.map((p) => (
+						<Link href={`/${type}/${standardizeProtocolName(p)}`} key={p} passHref>
+							<ProtocolLink active={router.asPath === `/${type}/${standardizeProtocolName(p)}`} color={'#fff'}>
+								{p}
+							</ProtocolLink>
+						</Link>
+					))}
+				</OtherProtocols>
 			)}
-			<ChartWrapper>
-				{barsData && barsData.length > 0 && (
+			{!fullChart ? (
+				<DetailsWrapper style={{ borderTopLeftRadius: ['23', '2']?.length > 1 ? 0 : '12px' }}>
 					<>
-						<FiltersWrapperRow>
-							<>{title ?? ''}</>
-							<FiltersAligned color={'#4f8fea'}>
-								{GROUP_INTERVALS_LIST.map((dataInterval) => (
-									<FlatDenomination
-										key={dataInterval}
-										onClick={() => setBarInterval(dataInterval)}
-										active={dataInterval === barInterval}
-									>
-										{dataInterval}
-									</FlatDenomination>
-								))}
-							</FiltersAligned>
-						</FiltersWrapperRow>
-						<StackedChart
-							title={''}
-							chartData={barsData}
-							customLegendOptions={chartData[1]}
-							stacks={simpleStack}
-							stackColors={stackedBarChartColors}
-						/>
+						{name && (
+							<Name>
+								<TokenLogo logo={logo} size={24} />
+								<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
+							</Name>
+						)}
+						{data.total24h || data.total24h === 0 ? (
+							<StatWrapper>
+								<Stat>
+									<span>
+										{data.disabled === true
+											? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
+													+chartData[0][chartData[0].length - 1][0]
+											  )})`
+											: `${typeString} (24h)`}
+									</span>
+									<span>{formattedNum(data.total24h || '0', true)}</span>
+								</Stat>
+							</StatWrapper>
+						) : null}
+						{data.dailyRevenue || data.dailyRevenue === 0 ? (
+							<StatWrapper>
+								<Stat>
+									<span>
+										{data.disabled === true
+											? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
+													+chartData[0][chartData[0].length - 1][0]
+											  )})`
+											: `Revenue (24h)`}
+									</span>
+									<span>{formattedNum(data.dailyRevenue || '0', true)}</span>
+								</Stat>
+							</StatWrapper>
+						) : null}
+						{typeString !== 'Fees' && data.change_1d ? (
+							<StatWrapper>
+								<Stat>
+									<span>
+										{data.disabled === true
+											? `Last day change (${formatTimestampAsDate(+chartData[0][chartData[0].length - 1][0])})`
+											: 'Change (24h)'}
+									</span>
+									<span>{data.change_1d || 0}%</span>
+								</Stat>
+							</StatWrapper>
+						) : null}
+						{totalAllTime ? (
+							<StatWrapper>
+								<Stat>
+									<span>{`All time ${typeSimple}`}</span>
+									<span>{formattedNum(totalAllTime, true)}</span>
+								</Stat>
+							</StatWrapper>
+						) : null}
 					</>
+				</DetailsWrapper>
+			) : (
+				// TODO: Temporal work around to unlock feature
+				<>‎</>
+			)}
+			<Wrapper>
+				{barsData && barsData.length > 0 && (
+					<FiltersWrapperRow>
+						<>{title ?? ''}</>
+						<FiltersAligned color={'#4f8fea'}>
+							{GROUP_INTERVALS_LIST.map((dataInterval) => (
+								<FlatDenomination
+									key={dataInterval}
+									onClick={() => setBarInterval(dataInterval)}
+									active={dataInterval === barInterval}
+								>
+									{dataInterval}
+								</FlatDenomination>
+							))}
+						</FiltersAligned>
+					</FiltersWrapperRow>
 				)}
-			</ChartWrapper>
+				<StackedChart
+					title={''}
+					chartData={barsData}
+					customLegendOptions={chartData[1]}
+					stacks={simpleStack}
+					stackColors={stackedBarChartColors}
+				/>
+			</Wrapper>
 		</StatsSection>
 	)
 }
@@ -209,7 +230,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 		}
 	})
 
-	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
+	const enableVersionsChart = props.protocolSummary.childProtocols?.length > 0
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
 	const typeSimple = volumeTypes.includes(props.protocolSummary.type) ? 'volume' : props.protocolSummary.type
 	const useTotalDataChart = props.protocolSummary.type === 'fees' || props.protocolSummary.type === 'options'
@@ -272,6 +293,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				type={props.protocolSummary.type}
 				title={mainChart.title}
 				totalAllTime={props.protocolSummary.totalAllTime}
+				childProtocols={props.protocolSummary.childProtocols}
 			/>
 			{/* Above component should be replaced by the one below but for some reason it makes the chartByVersion not to load to test use dexs/uniswap*/}
 			{/* 			<ChartByType
@@ -387,14 +409,14 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 						{enableVersionsChart && (
 							<ChartByType
 								type={props.protocolSummary.type}
-								protocolName={props.protocolSummary.module}
+								protocolName={props.protocolSummary.name}
 								chartType="version"
 							/>
 						)}
 						{enableTokensChart && (
 							<ChartByType
 								type={props.protocolSummary.type}
-								protocolName={props.protocolSummary.module}
+								protocolName={props.protocolSummary.name}
 								chartType="tokens"
 							/>
 						)}

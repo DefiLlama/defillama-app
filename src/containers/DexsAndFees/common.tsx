@@ -32,7 +32,7 @@ export const FiltersAligned = styled(Filters)``
 export const FiltersWrapperRow = styled(FiltersWrapper)`
 	justify-content: space-between;
 	flex-direction: row;
-	margin: 0 0 1rem 0;
+	margin: 1rem 1rem 0 1rem;
 	align-items: center;
 	font-weight: 600;
 	color: ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)')};
