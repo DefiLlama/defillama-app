@@ -23,3 +23,4 @@ yarn dev
 4. Copy the generated json file along with the changed yml spec into this repo
 
 At the end you should have modified `/docs/spec.yaml` and `/docs/resolvedSpec.json`
+ 
