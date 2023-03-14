@@ -7,7 +7,7 @@ import { useRouter } from 'next/router'
 export const ANNOUNCEMENT = {
 	defi: {
 		key: 'defi-flag-announcement',
-		value: 'defi3'
+		value: 'defi4'
 	},
 	yields: {
 		key: 'yield-flag-announcement',
