@@ -101,7 +101,8 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 		// TODO: process this in the backend
 		if (enableBreakdownChart) {
 			const displayNameMap = props.protocols.reduce((acc, curr) => {
-				acc[curr.module] = curr.displayName
+				if (curr.subRows) curr.subRows.forEach((row) => (acc[row.displayName] = row.displayName))
+				else acc[curr.displayName] = curr.displayName
 				return acc
 			}, {} as IJSON<string>)
 			const arr = Object.values(
@@ -112,8 +113,8 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				]?.map<IJSON<number | string>>((cd) => {
 					return {
 						date: cd[0],
-						...Object.keys(displayNameMap).reduce((acc, module) => {
-							acc[displayNameMap[module]] = cd[1][module] ?? 0
+						...Object.keys(displayNameMap).reduce((acc, key) => {
+							acc[key] = cd[1][key] ?? 0
 							return acc
 						}, {} as IJSON<number>)
 					}
