@@ -229,18 +229,20 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 
 			<Announcement>
 				<Image
-							src="https://icons.llamao.fi/icons/memes/gib?w=36&h=36"
-							alt="Gib"
-							width={18}
-							height={18}
-							unoptimized
-							style={{ marginRight: '0.25rem', display: 'inline' }}
-						/>{'  '}
-				<Link href={`https://dlnews.com/`}>
+					src="https://icons.llamao.fi/icons/memes/gib?w=36&h=36"
+					alt="Gib"
+					width={18}
+					height={18}
+					unoptimized
+					style={{ marginRight: '0.25rem', display: 'inline' }}
+				/>
+				{'  '}Check out our new{' '}
+				<Link href={`https://chrome.google.com/webstore/detail/defillama/phgiabfbjodhgckcffppiboooeiecgeg`}>
 					<a>
-						DLNews<ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
+						Chrome Extension <ArrowUpRight size={14} style={{ display: 'inline' }} />{' '}
 					</a>
-				</Link> just launched!
+				</Link>
+				{' !'}
 			</Announcement>
 
 			<ProtocolsChainsSearch
