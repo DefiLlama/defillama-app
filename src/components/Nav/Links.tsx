@@ -254,12 +254,12 @@ export const navLinks: ILinks = {
 		main: [],
 		...defaultToolsAndFooterLinks,
 		icon: <Layers size={16} />
-	},
-	NFTs: {
-		main: [],
-		...defaultToolsAndFooterLinks,
-		icon: <FeatherImage size={16} />
 	}
+	// NFTs: {
+	// 	main: [],
+	// 	...defaultToolsAndFooterLinks,
+	// 	icon: <FeatherImage size={16} />
+	// }
 }
 
 export const linksWithNoSubMenu = [
