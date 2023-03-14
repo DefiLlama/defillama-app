@@ -45,6 +45,12 @@ interface ILinks {
 const defaultToolsAndFooterLinks = {
 	tools: [
 		{
+			name: 'DefiLlama Extension',
+			path: 'https://chrome.google.com/webstore/detail/defillama/phgiabfbjodhgckcffppiboooeiecgeg',
+			newTag: true,
+			external: true
+		},
+		{
 			name: 'LlamaNodes',
 			path: 'https://llamanodes.com/',
 			newTag: true,
