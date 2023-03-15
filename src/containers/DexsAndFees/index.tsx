@@ -15,7 +15,7 @@ import { useRouter } from 'next/router'
 import { capitalizeFirstLetter } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
-import { AnnouncementWrapper } from '~/components/Announcement'
+import Announcement, { AnnouncementWrapper } from '~/components/Announcement'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -186,6 +186,11 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				selectedType: (selectedDataType as string) ?? undefined,
 				chartTypes: props.type === 'options' && enableBreakdownChart ? ['Notional volume', 'Premium volume'] : undefined
 			})}
+
+			<Announcement>
+				For the {props.type.toUpperCase()} dashboard, we track and collect data daily and update the charts and stats
+				everyday at 00:00UTC.
+			</Announcement>
 
 			{props.allChains ? (
 				<RowLinksWrapper>
