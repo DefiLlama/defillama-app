@@ -95,7 +95,14 @@ const exclude = [
 	'Omax Swap',
 	'Zeniq Swap',
 	'LaDAO Xocolatl',
-	'Meter Passport'
+	'Meter Passport',
+	'Metavault Binary Options',
+	'Wan Bridge',
+	'DarkAuto',
+	'Crescent Dex',
+	'Lago Bridge',
+	'Ostable',
+	'Oswap AMM'
 ]
 
 export async function getStaticProps() {
