@@ -584,7 +584,7 @@ function ProtocolContainer({
 
 				{treasury && <Treasury protocolName={protocol} />}
 
-				{emissions && emissions.chartData.length > 0 && <Emissions data={emissions} />}
+				{emissions?.chartData?.length > 0 ? <Emissions data={emissions} /> : null}
 			</InfoWrapper>
 
 			{yeildsNumber > 0 && (
