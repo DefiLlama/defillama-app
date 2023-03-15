@@ -15,7 +15,7 @@ import { useRouter } from 'next/router'
 import { capitalizeFirstLetter } from '~/utils'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import { FiltersByCategory } from '~/components/Filters/yields/Categories'
-import Announcement, { AnnouncementWrapper } from '~/components/Announcement'
+import { AnnouncementWrapper } from '~/components/Announcement'
 
 const HeaderWrapper = styled(Header)`
 	display: flex;
@@ -165,9 +165,10 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					enableBreakdownChart && charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
 				}
 			/>
-
-			<TitleByType type={props.type} chain={chain} />
-
+			<StyledHeaderWrapper>
+				<TitleByType type={props.type} chain={chain} />
+				<p style={{ fontSize: '.60em', textAlign: 'end' }}>Updated daily at 00:00UTC</p>
+			</StyledHeaderWrapper>
 			{getChartByType(props.type, {
 				type: props.type,
 				data: {
@@ -186,12 +187,6 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				selectedType: (selectedDataType as string) ?? undefined,
 				chartTypes: props.type === 'options' && enableBreakdownChart ? ['Notional volume', 'Premium volume'] : undefined
 			})}
-
-			<Announcement>
-				For the {props.type.toUpperCase()} dashboard, we track and collect data daily and update the charts and stats
-				everyday at 00:00UTC.
-			</Announcement>
-
 			{props.allChains ? (
 				<RowLinksWrapper>
 					<RowLinksWithDropdown
@@ -253,9 +248,11 @@ const TitleByType: React.FC<ITitleProps> = (props) => {
 	} else if (props.chain && props.chain !== 'All') {
 		title = `${title} in ${props.chain}`
 	}
-	return (
-		<HeaderWrapper>
-			<span>{title}</span>
-		</HeaderWrapper>
-	)
+	return <span>{title}</span>
 }
+
+const StyledHeaderWrapper = styled(HeaderWrapper)`
+	* {
+		flex-grow: 1;
+	}
+`
