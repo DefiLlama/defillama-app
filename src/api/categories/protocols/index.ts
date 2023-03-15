@@ -78,12 +78,13 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		const res = await fetch(`${PROTOCOL_EMISSIONS_API}/${protocolName}`)
 			.then((r) => r.json())
 			.then((r) => JSON.parse(r.body))
-			.then((r) => r.data)
+
+		const { data, metadata } = res
 
 		const protocolEmissions = {}
 		const emissionCategories = []
 
-		res.forEach((emission) => {
+		data.forEach((emission) => {
 			const label = emission.label
 				.split(' ')
 				.map((l) => capitalizeFirstLetter(l))
@@ -104,13 +105,15 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			})
 		})
 
-		const data = Object.entries(protocolEmissions).map(([date, values]: [string, { [key: string]: number }]) => ({
+		const chartData = Object.entries(protocolEmissions).map(([date, values]: [string, { [key: string]: number }]) => ({
 			date,
 			...values
 		}))
 
 		return {
-			data,
+			chartData,
+			sources: metadata?.sources ?? [],
+			notes: metadata?.notes ?? [],
 			categories: emissionCategories,
 			hallmarks: data.length > 0 ? [[Date.now() / 1000, 'Today']] : []
 		}

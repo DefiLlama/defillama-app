@@ -56,11 +56,11 @@ import { formatTvlsByChain, buildProtocolAddlChartsData, formatRaisedAmount, for
 import { Treasury } from './Treasury'
 import type { IArticle } from '~/api/categories/news'
 import { NewsCard } from '~/components/News/Card'
-import type { IEmission } from './Emissions'
 import { Emissions } from './Emissions'
 import { RowBetween } from '~/components/Row'
 import { DLNewsLogo } from '~/components/News/Logo'
 import { ProtocolFeesAndRevenueCharts } from './Fees'
+import type { IEmission } from './Emissions'
 
 const scams = ['Drachma Exchange', 'StableDoin', 'CroLend Finance', 'Agora', 'MinerSwap', 'Mosquitos Finance']
 
@@ -148,7 +148,7 @@ interface IProtocolContainerProps {
 	protocolData: IFusedProtocolData
 	backgroundColor: string
 	similarProtocols: Array<{ name: string; tvl: number }>
-	emissions: { categories: Array<string>; data: Array<IEmission>; hallmarks: Array<[number, string]> }
+	emissions: IEmission
 	isCEX?: boolean
 }
 
@@ -584,9 +584,7 @@ function ProtocolContainer({
 
 				{treasury && <Treasury protocolName={protocol} />}
 
-				{emissions && emissions.data.length > 0 && (
-					<Emissions data={emissions.data} categories={emissions.categories} hallmarks={emissions.hallmarks} />
-				)}
+				{emissions && emissions.chartData.length > 0 && <Emissions data={emissions} />}
 			</InfoWrapper>
 
 			{yeildsNumber > 0 && (

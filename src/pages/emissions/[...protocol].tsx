@@ -36,13 +36,7 @@ export default function Protocols({ emissions, name }) {
 		<Layout title={`${name} Emissions - DefiLlama`} style={{ gap: '36px' }} defaultSEO>
 			<Wrapper>
 				<Name>{name + ' ' + 'Emissions'}</Name>
-
-				<Emissions
-					data={emissions.data}
-					categories={emissions.categories}
-					hallmarks={emissions.hallmarks}
-					isEmissionsPage
-				/>
+				<Emissions data={emissions} isEmissionsPage />
 			</Wrapper>
 		</Layout>
 	)
