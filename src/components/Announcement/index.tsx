@@ -2,6 +2,7 @@ import * as React from 'react'
 import styled from 'styled-components'
 import { X } from 'react-feather'
 import { useRouter } from 'next/router'
+import type { NextRouter } from 'next/router'
 
 // change 'value' for new announcements
 export const ANNOUNCEMENT = {
@@ -12,7 +13,27 @@ export const ANNOUNCEMENT = {
 	yields: {
 		key: 'yield-flag-announcement',
 		value: 'yield3'
+	},
+	dexs: {
+		key: 'dexs-daily--data-explanation',
+		value: 'dexsDailyData'
+	},
+	fees: {
+		key: 'fees-daily--data-explanation',
+		value: 'feesDailyData'
+	},
+	options: {
+		key: 'options-daily--data-explanation',
+		value: 'optionsDailyData'
 	}
+}
+
+const getAnnouncementKey = (router: NextRouter) => {
+	if (router.pathname.startsWith('/yields')) return 'yields'
+	else if (router.pathname.startsWith('/dexs')) return 'dexs'
+	else if (router.pathname.startsWith('/fees')) return 'fees'
+	else if (router.pathname.startsWith('/options')) return 'options'
+	else return 'defi'
 }
 
 export default function Announcement({
@@ -22,17 +43,17 @@ export default function Announcement({
 	children: React.ReactNode
 	notCancellable?: boolean
 }) {
-	const [_, rerender] = React.useState(1)
+	const [rerenderKey, rerender] = React.useState(1)
 	const router = useRouter()
 
-	const { key, value } = ANNOUNCEMENT[router.pathname.startsWith('/yields') ? 'yields' : 'defi']
+	const { key, value } = ANNOUNCEMENT[getAnnouncementKey(router)]
 
 	const routeAnnouncementKey = router.pathname + key
 	const routeAnnouncementValue = router.pathname + value
 
 	const closeAnnouncement = () => {
 		localStorage.setItem(routeAnnouncementKey, JSON.stringify({ value: routeAnnouncementValue }))
-		rerender(1)
+		rerender(rerenderKey + 1)
 	}
 
 	const store = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem(routeAnnouncementKey) || '{}') : {}

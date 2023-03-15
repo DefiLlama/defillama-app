@@ -165,9 +165,10 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 					enableBreakdownChart && charts.totalDataChartBreakdown && charts.totalDataChartBreakdown.length > 0
 				}
 			/>
-
-			<TitleByType type={props.type} chain={chain} />
-
+			<StyledHeaderWrapper>
+				<TitleByType type={props.type} chain={chain} />
+				<p style={{ fontSize: '.60em', textAlign: 'end' }}>Updated daily at 00:00UTC</p>
+			</StyledHeaderWrapper>
 			{getChartByType(props.type, {
 				type: props.type,
 				data: {
@@ -186,7 +187,6 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 				selectedType: (selectedDataType as string) ?? undefined,
 				chartTypes: props.type === 'options' && enableBreakdownChart ? ['Notional volume', 'Premium volume'] : undefined
 			})}
-
 			{props.allChains ? (
 				<RowLinksWrapper>
 					<RowLinksWithDropdown
@@ -248,9 +248,11 @@ const TitleByType: React.FC<ITitleProps> = (props) => {
 	} else if (props.chain && props.chain !== 'All') {
 		title = `${title} in ${props.chain}`
 	}
-	return (
-		<HeaderWrapper>
-			<span>{title}</span>
-		</HeaderWrapper>
-	)
+	return <span>{title}</span>
 }
+
+const StyledHeaderWrapper = styled(HeaderWrapper)`
+	* {
+		flex-grow: 1;
+	}
+`
