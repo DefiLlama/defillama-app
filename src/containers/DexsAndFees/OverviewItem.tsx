@@ -217,7 +217,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				</Section>
 				<Section></Section>
 			</InfoWrapper>
-			{(enableVersionsChart || enableTokensChart) && (
+			{(enableVersionsChart || enableTokensChart || enableChainsChart) && (
 				<>
 					<SectionHeader>Charts</SectionHeader>
 					<ChartsWrapper>
