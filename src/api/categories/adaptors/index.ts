@@ -120,13 +120,6 @@ const getMapingCoinGeckoId = (name: string): string => {
 	return _name ?? name
 }
 
-// Get TVL data
-const sumTVLProtocols = (protocolName: string, versions: string[], tvlData: IJSON<number>) => {
-	return versions.reduce((acc, version) => {
-		return (acc += (tvlData[`${protocolName} ${capitalizeFirstLetter(version)}`] ?? tvlData[`${protocolName} ${version.toUpperCase()}`]))
-	}, 0)
-}
-
 // - used in /[type] and /[type]/chains/[chain]
 export const getChainPageData = async (type: string, chain?: string): Promise<IOverviewProps> => {
 	const feesOrRevenueApi =
@@ -205,8 +198,8 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			subRow = {
 				...protocol,
 				displayName: protocol.displayName ?? protocol.name,
-				tvl: tvlData[protocol.displayName] ?? null,
-				volumetvl: tvlData[protocol.displayName] ? protocol.total24h / tvlData[protocol.displayName] : null,
+				tvl: tvlData[protocol.name] ?? null,
+				volumetvl: tvlData[protocol.name] ? protocol.total24h / tvlData[protocol.name] : null,
 				dominance: (100 * protocol.total24h) / total24h,
 				revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
 				revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
@@ -223,8 +216,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		else mainRow = protocol
 
 		// Main row, either parent or single protocol
-		const protocolTVL =
-			tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, Object.keys(protocol.protocolsStats ?? {}), tvlData)
+		const protocolTVL = tvlData[protocol.name]
 		mainRow = {
 			...mainRow,
 			...acc[protocol.parentProtocol],
@@ -385,8 +377,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 					total24h,
 					tvl: protocols.reduce((acc, curr) => {
 						// TODO: This should be mapped using defillamaId to get accurate tvl!
-						const tvl =
-							tvlData[curr.name] ?? sumTVLProtocols(curr.name, Object.keys(curr.protocolsStats ?? {}), tvlData)
+						const tvl = tvlData[curr.name]
 						acc += !Number.isNaN(tvl) ? tvl : 0
 						return acc
 					}, 0),
