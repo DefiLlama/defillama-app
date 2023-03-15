@@ -54,15 +54,6 @@ export const cexData = [
 		cgDeriv: 'huobi_dm'
 	},
 	{
-		name: 'Kucoin',
-		slug: 'kucoin',
-		coin: 'KCS',
-		coinSymbol: 'KCS',
-		walletsLink: 'https://www.kucoin.com/blog/transparency-and-trust-a-detailed-list-of-kucoin-s-wallets',
-		cgId: 'kucoin',
-		cgDeriv: 'kumex'
-	},
-	{
 		name: 'Bybit',
 		slug: 'Bybit',
 		coin: 'BIT',
@@ -70,6 +61,15 @@ export const cexData = [
 		walletsLink: 'https://twitter.com/benbybit/status/1592797790518018048',
 		cgId: 'bybit_spot',
 		cgDeriv: 'bybit'
+	},
+	{
+		name: 'Kucoin',
+		slug: 'kucoin',
+		coin: 'KCS',
+		coinSymbol: 'KCS',
+		walletsLink: 'https://www.kucoin.com/blog/transparency-and-trust-a-detailed-list-of-kucoin-s-wallets',
+		cgId: 'kucoin',
+		cgDeriv: 'kumex'
 	},
 	{
 		name: 'Gate.io',
@@ -112,17 +112,17 @@ export const cexData = [
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
+		name: 'Korbit',
+		slug: 'korbit',
+		coin: null,
+		walletsLink: 'https://korbit.co.kr/reserve'
+	},
+	{
 		name: 'Binance US',
 		slug: 'binance-us',
 		coin: 'BNB',
 		coinSymbol: 'BNB',
 		cgId: 'binance_us'
-	},
-	{
-		name: 'Korbit',
-		slug: 'korbit',
-		coin: null,
-		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
 		name: 'MaskEX',
@@ -137,18 +137,18 @@ export const cexData = [
 		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
 	},
 	{
+		name: 'Firi',
+		slug: 'firi',
+		coin: null,
+		walletsLink: null
+	},
+	{
 		name: 'Phemex',
 		slug: 'phemex',
 		coin: null,
 		walletsLink: 'https://phemex.com/proof-of-reserves',
 		cgId: 'phemex',
 		cgDeriv: 'phemex_futures'
-	},
-	{
-		name: 'Firi',
-		slug: 'firi',
-		coin: null,
-		walletsLink: null
 	},
 	{
 		name: 'WOO X',
@@ -164,16 +164,16 @@ export const cexData = [
 		walletsLink: 'https://twitter.com/smtgpt/status/1595745395787071497'
 	},
 	{
-		name: 'Cake DeFi',
-		slug: 'cake-defi',
-		coin: null,
-		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
-	},
-	{
 		name: 'Hotbit',
 		slug: 'hotbit',
 		coin: 'HTB',
 		coinSymbol: 'HTB'
+	},
+	{
+		name: 'Cake DeFi',
+		slug: 'cake-defi',
+		coin: null,
+		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
 	},
 	{
 		name: 'NBX',
