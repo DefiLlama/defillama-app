@@ -15,14 +15,14 @@ import CopyHelper from '~/components/Copy'
 import { AdaptorsSearch } from '~/components/Search'
 import AuditInfo from '~/components/AuditInfo'
 import { useScrollToTop } from '~/hooks'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, standardizeProtocolName } from '~/utils'
 import { IJoin2ReturnType } from '~/api/categories/adaptors'
 import { ChartByType } from './charts'
+
 import { chartBreakdownByChain } from '~/api/categories/adaptors/utils'
 import Announcement from '~/components/Announcement'
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import SEO from '~/components/SEO'
-
 import type { IProtocolContainerProps } from './types'
 import { ProtocolChart } from './charts/ProtocolChart'
 
@@ -42,7 +42,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 		}
 	})
 
-	const enableVersionsChart = Object.keys(props.protocolSummary.protocolsData ?? {}).length > 1
+	const enableVersionsChart = props.protocolSummary.childProtocols?.length > 0
 	const enableTokensChart = props.protocolSummary.type === 'incentives'
 	const enableChainsChart = props.protocolSummary.type !== 'dexs'
 	const typeSimple = volumeTypes.includes(props.protocolSummary.type) ? 'volume' : props.protocolSummary.type
@@ -107,6 +107,7 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				type={props.protocolSummary.type}
 				title={mainChart.title}
 				totalAllTime={props.protocolSummary.totalAllTime}
+				childProtocols={props.protocolSummary.childProtocols}
 			/>
 
 			{/* Above component should be replaced by the one below but for some reason it makes the chartByVersion not to load to test use dexs/uniswap*/}
@@ -216,21 +217,21 @@ function ProtocolContainer(props: IProtocolContainerProps) {
 				</Section>
 				<Section></Section>
 			</InfoWrapper>
-			{(enableVersionsChart || enableTokensChart) && (
+			{(enableVersionsChart || enableTokensChart || enableChainsChart) && (
 				<>
 					<SectionHeader>Charts</SectionHeader>
 					<ChartsWrapper>
 						{enableVersionsChart && (
 							<ChartByType
 								type={props.protocolSummary.type}
-								protocolName={props.protocolSummary.module}
+								protocolName={props.protocolSummary.name}
 								chartType="version"
 							/>
 						)}
 						{enableTokensChart && (
 							<ChartByType
 								type={props.protocolSummary.type}
-								protocolName={props.protocolSummary.module}
+								protocolName={props.protocolSummary.name}
 								chartType="tokens"
 							/>
 						)}

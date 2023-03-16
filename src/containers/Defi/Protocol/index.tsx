@@ -95,7 +95,7 @@ const Bobo = styled.button`
 	}
 `
 
-const OtherProtocols = styled.nav`
+export const OtherProtocols = styled.nav`
 	grid-column: span 1;
 	display: flex;
 	overflow-x: auto;
@@ -121,7 +121,7 @@ interface IProtocolLink {
 	color: string | null
 }
 
-const ProtocolLink = styled.a<IProtocolLink>`
+export const ProtocolLink = styled.a<IProtocolLink>`
 	padding: 8px 24px;
 	white-space: nowrap;
 

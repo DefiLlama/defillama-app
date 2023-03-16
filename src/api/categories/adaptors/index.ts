@@ -1,5 +1,6 @@
-import type { LiteProtocol } from '~/api/types'
+import type { LiteProtocol, IParentProtocol } from '~/api/types'
 import { PROTOCOLS_API, ADAPTORS_SUMMARY_BASE_API } from '~/constants'
+import { getUniqueArray } from '~/containers/DexsAndFees/utils'
 import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
@@ -119,13 +120,6 @@ const getMapingCoinGeckoId = (name: string): string => {
 	return _name ?? name
 }
 
-// Get TVL data
-const sumTVLProtocols = (protocolName: string, versions: string[], tvlData: IJSON<number>) => {
-	return versions.reduce((acc, version) => {
-		return (acc += (tvlData[`${protocolName} ${capitalizeFirstLetter(version)}`] ?? tvlData[`${protocolName} ${version.toUpperCase()}`]))
-	}, 0)
-}
-
 // - used in /[type] and /[type]/chains/[chain]
 export const getChainPageData = async (type: string, chain?: string): Promise<IOverviewProps> => {
 	const feesOrRevenueApi =
@@ -135,7 +129,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	const [request, protocolsData, feesOrRevenue, cexVolume]: [
 		IGetOverviewResponseBody,
-		{ protocols: LiteProtocol[] },
+		{ protocols: LiteProtocol[], parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
 		number
 	] = await Promise.all([
@@ -170,7 +164,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			return acc
 		}, {}) ?? {}
 
-	const tvlData = getTVLData(protocolsData, chain)
+	const tvlData: IJSON<number> = getTVLData(protocolsData, chain)
 	const mcapData = { ...getMCap(protocolsData), ...chainMcap }
 	const label: string = type === 'options' ? 'Notionial volume' : capitalizeFirstLetter(type)
 
@@ -192,54 +186,87 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			) ?? {}
 			: {}
 
-	const protocolsWithSubrows = protocols.map((protocol) => {
-		const protocolTVL =
-			tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, Object.keys(protocol.protocolsStats ?? {}), tvlData)
-		const volumetvl = protocol.total24h / protocolTVL
-		const mcap = mcapData[protocol.name]
-		return {
-			...protocol,
-			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? 0,
-			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? 0,
-			revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? 0,
-			volumetvl: volumetvl ?? null,
+	const { parentProtocols } = protocolsData
+	const parentProtocolsMap = parentProtocols.reduce((acc, curr) => ({ ...acc, [curr.id]: curr }), {})
+
+	const protocolsWithSubrows = protocols.reduce((acc, protocol) => {
+		// Assign mainrow and sub-row if has any
+		let mainRow: undefined | IOverviewProps['protocols'][number] = undefined
+		let subRow: undefined | IOverviewProps['protocols'][number]['subRows'][number] = null
+		if (parentProtocolsMap[protocol.parentProtocol]) {
+			mainRow = parentProtocolsMap[protocol.parentProtocol]
+			subRow = {
+				...protocol,
+				displayName: protocol.displayName ?? protocol.name,
+				tvl: tvlData[protocol.name] ?? null,
+				volumetvl: tvlData[protocol.name] ? protocol.total24h / tvlData[protocol.name] : null,
+				dominance: (100 * protocol.total24h) / total24h,
+				revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
+				revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
+				revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
+				mcap: mcapData[protocol.name] || null
+			}
+			// If already included parent protocol we add the new child
+			if (acc[protocol.parentProtocol])
+				acc[protocol.parentProtocol].subRows.push(subRow)
+			// If first time processed parent protocol we create the subrows list
+			else
+				acc[protocol.parentProtocol] = { ...acc[protocol.parentProtocol], subRows: [subRow] }
+		}
+		else mainRow = protocol
+
+		// Main row, either parent or single protocol
+		const protocolTVL = tvlData[protocol.name]
+		mainRow = {
+			...mainRow,
+			...acc[protocol.parentProtocol],
+			category: protocol.category,
+			displayName: mainRow.displayName ?? mainRow.name,
+			revenue24h: revenueProtocols?.[protocol.name]?.total24h ?? null,
+			revenue7d: revenueProtocols?.[protocol.name]?.total7d ?? null,
+			revenue30d: revenueProtocols?.[protocol.name]?.total30d ?? null,
 			tvl: protocolTVL ?? null,
 			dominance: (100 * protocol.total24h) / total24h,
-			chains: protocol.chains,
 			module: protocol.module,
-			subRows: protocol.protocolsStats
-				? Object.entries(protocol.protocolsStats)
-					.map(([versionName, summary]) => {
-						const protocolTVL = tvlData[protocol.name] ?? sumTVLProtocols(protocol.name, [versionName], tvlData)
-						return {
-							name: protocol.name,
-							category: protocol.category,
-							module: protocol.module,
-							logo: protocol.logo,
-							displayName: `${versionName.toUpperCase()} - ${protocol.name}`,
-							protocolsStats: null,
-							...summary,
-							tvl: protocolTVL ?? null,
-							volumetvl: protocolTVL ? summary.total24h / protocolTVL : null,
-							dominance: (100 * summary.total24h) / total24h,
-							totalAllTime: null,
-							revenue24h: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total24h ?? null,
-							revenue7d: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total7d ?? null,
-							revenue30d: revenueProtocols?.[protocol.name]?.protocolsStats[versionName]?.total30d ?? null
-						}
-					})
-					.sort((first, second) => 0 - (first.total24h > second.total24h ? 1 : -1))
-				: null,
 			dailyUserFees: protocol.dailyUserFees ?? null,
-			mcap: mcap || null
+			mcap: mcapData[protocol.name] || null
 		}
-	})
+		// Stats for parent protocol
+		if (acc[protocol.parentProtocol]) {
+			// stats
+			mainRow.total24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total24h'), null)
+			mainRow.total7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total7d'), null)
+			mainRow.total30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total30d'), null)
+			mainRow.totalAllTime = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('totalAllTime'), null)
+			mainRow.tvl = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('tvl'), null)
+			mainRow.revenue24h = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue24h'), null)
+			mainRow.revenue7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue7d'), null)
+			mainRow.revenue30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue30d'), null)
+			mainRow.dailyRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyRevenue'), null)
+			mainRow.dailyUserFees = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyUserFees'), null)
+			mainRow.dailyCreatorRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyCreatorRevenue'), null)
+			mainRow.dailyHoldersRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyHoldersRevenue'), null)
+			mainRow.dailyPremiumVolume = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyPremiumVolume'), null)
+			mainRow.dailyProtocolRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyProtocolRevenue'), null)
+			mainRow.dailySupplySideRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailySupplySideRevenue'), null)
+			mainRow.chains = getUniqueArray(acc[protocol.parentProtocol].subRows.map(d => d.chains).flat())
+			mainRow.methodology = getParentProtocolMethodology(mainRow.displayName, acc[protocol.parentProtocol].subRows.map(r => r.displayName))
+			const total14dto7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total14dto7d'), null)
+			mainRow.change_7dover7d = ((mainRow.total7d - total14dto7d) / total14dto7d) * 100
+		}
+		// Computed stats
+		mainRow.volumetvl = mainRow.total24h / mainRow.tvl
+
+		// Return acc
+		acc[protocol.parentProtocol ?? protocol.module] = mainRow
+		return acc
+	}, {} as IJSON<IOverviewProps['protocols'][number]>)
 
 	/* 	if (revenue?.totalDataChart)
 			allCharts.push(["Revenue", revenue.totalDataChart]) */
 
 	return {
-		protocols: protocolsWithSubrows,
+		protocols: Object.values(protocolsWithSubrows),
 		total24h,
 		total7d,
 		change_1d,
@@ -255,6 +282,35 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		type
 	}
 }
+
+const reduceSumByAttribute = (attribute: string) => (acc, curr) => {
+	if (acc === undefined) return curr[attribute]
+	return acc += curr[attribute]
+}
+
+const getParentProtocolMethodology = (name: string, versionNames: string[]) => {
+	const text = (() => {
+		if (versionNames.length === 1)
+			return {
+				isSumString: `All`,
+				versions: `${versionNames[0].toUpperCase()}`
+			}
+		else
+			return {
+				isSumString: `Sum of all`,
+				versions: `${versionNames.slice(0, -1).join(', ')} and ${versionNames[versionNames.length - 1].toUpperCase()}`
+			}
+	})()
+	return {
+		UserFees: `${text.isSumString} user fees from ${text.versions}`,
+		Fees: `${text.isSumString} fees from ${text.versions}`,
+		Revenue: `${text.isSumString} revenue from ${text.versions}`,
+		ProtocolRevenue: `${text.isSumString} protocol revenue from ${text.versions}`,
+		HoldersRevenue: `${text.isSumString} holders revenue from ${text.versions}`,
+		SupplySideRevenue: `${text.isSumString} supply side revenue from ${text.versions}`
+	}
+}
+
 export interface IOverviewProps {
 	protocols: Array<
 		IGetOverviewResponseBody['protocols'][number] & {
@@ -262,6 +318,7 @@ export interface IOverviewProps {
 			volumetvl?: number
 			tvl?: number
 			dominance?: number
+			change_7dover7d?: IGetOverviewResponseBody['change_7dover7d']
 		}
 	>
 	total24h?: IGetOverviewResponseBody['total24h']
@@ -320,8 +377,7 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 					total24h,
 					tvl: protocols.reduce((acc, curr) => {
 						// TODO: This should be mapped using defillamaId to get accurate tvl!
-						const tvl =
-							tvlData[curr.name] ?? sumTVLProtocols(curr.name, Object.keys(curr.protocolsStats ?? {}), tvlData)
+						const tvl = tvlData[curr.name]
 						acc += !Number.isNaN(tvl) ? tvl : 0
 						return acc
 					}, 0),
@@ -343,7 +399,8 @@ export const getChainsPageData = async (type: string): Promise<IOverviewProps> =
 					dailyCreatorRevenue: dailyCreatorRevenue ?? null,
 					dailySupplySideRevenue: dailySupplySideRevenue ?? null,
 					dailyProtocolRevenue: dailyProtocolRevenue ?? null,
-					dailyPremiumVolume: dailyPremiumVolume ?? null
+					dailyPremiumVolume: dailyPremiumVolume ?? null,
+					mcap: null
 				}
 			}
 		)

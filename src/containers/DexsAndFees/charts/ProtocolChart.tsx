@@ -1,11 +1,11 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { DetailsWrapper, Name, ChartWrapper } from '~/layout/ProtocolAndPool'
-import { StatsSection } from '~/layout/Stats/Medium'
+import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
 import FormattedName from '~/components/FormattedName'
 import TokenLogo from '~/components/TokenLogo'
-import { capitalizeFirstLetter, formattedNum } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, standardizeProtocolName } from '~/utils'
 import { formatTimestampAsDate } from '~/api/categories/dexs/utils'
 import { IBarChartProps } from '~/components/ECharts/types'
 import { IJoin2ReturnType, IOverviewProps } from '~/api/categories/adaptors'
@@ -20,6 +20,10 @@ import {
 import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import type { IProtocolContainerProps } from '../types'
 import LocalLoader from '~/components/LocalLoader'
+import { useRouter } from 'next/router'
+import { OtherProtocols, ProtocolLink } from '~/containers/Defi/Protocol'
+import Link from 'next/link'
+import { Wrapper } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 
 const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -50,6 +54,7 @@ export interface IDexChartsProps {
 	chartTypes?: string[]
 	selectedType?: string
 	selectedChartType?: string
+	childProtocols?: string[]
 }
 
 export const ProtocolChart = ({
@@ -61,95 +66,100 @@ export const ProtocolChart = ({
 	title,
 	fullChart = false,
 	totalAllTime,
+	childProtocols,
 	disableDefaultLeged = false
 }: IDexChartsProps) => {
+	const router = useRouter()
+	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 	const typeString = volumeTypes.includes(type) ? 'Volume' : capitalizeFirstLetter(type)
 	const typeSimple = volumeTypes.includes(type) ? 'volume' : type
-
-	if (fullChart) {
-		return <OnlyChart title={title} chartData={chartData} />
-	}
-
-	return (
-		<StatsSection>
-			<DetailsWrapper>
-				{name && (
-					<Name>
-						<TokenLogo logo={logo} size={24} />
-						<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
-					</Name>
-				)}
-				{data.total24h || data.total24h === 0 ? (
-					<Stat>
-						<span>
-							{data.disabled === true
-								? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
-										+chartData[0][chartData[0].length - 1][0]
-								  )})`
-								: `${typeString} (24h)`}
-						</span>
-						<span>{formattedNum(data.total24h || '0', true)}</span>
-					</Stat>
-				) : (
-					<></>
-				)}
-				{data.dailyRevenue || data.dailyRevenue === 0 ? (
-					<Stat>
-						<span>
-							{data.disabled === true
-								? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
-										+chartData[0][chartData[0].length - 1][0]
-								  )})`
-								: `Revenue (24h)`}
-						</span>
-						<span>{formattedNum(data.dailyRevenue || '0', true)}</span>
-					</Stat>
-				) : (
-					<></>
-				)}
-
-				{typeString !== 'Fees' && data.change_1d ? (
-					<Stat>
-						<span>
-							{data.disabled === true
-								? `Last day change (${formatTimestampAsDate(+chartData[0][chartData[0].length - 1][0])})`
-								: 'Change (24h)'}
-						</span>
-						<span>{data.change_1d || 0}%</span>
-					</Stat>
-				) : (
-					<></>
-				)}
-				{totalAllTime ? (
-					<Stat>
-						<span>{`All time ${typeSimple}`}</span>
-						<span>{formattedNum(totalAllTime, true)}</span>
-					</Stat>
-				) : (
-					<></>
-				)}
-			</DetailsWrapper>
-
-			<ChartWrapper>
-				<OnlyChart title={title} chartData={chartData} />
-			</ChartWrapper>
-		</StatsSection>
-	)
-}
-
-const OnlyChart = ({ title, chartData }: { title: string; chartData: [IJoin2ReturnType, string[]] }) => {
-	const [barInterval, setBarInterval] = React.useState<DataIntervalType>('Daily')
 	const simpleStack =
 		chartData[1].includes('Fees') || chartData[1].includes('Premium volume')
 			? chartData[1].reduce((acc, curr) => ({ ...acc, [curr]: curr }), {})
 			: undefined
 
 	const barsData = React.useMemo(aggregateDataByInterval(barInterval, chartData), [chartData, barInterval])
+	const tabs = [name]
+	if (childProtocols) tabs.push(...childProtocols)
 
 	return (
-		<>
-			{barsData && barsData.length > 0 && (
-				<>
+		<StatsSection>
+			{childProtocols && childProtocols.length > 0 && (
+				<OtherProtocols>
+					{tabs.map((p) => (
+						<Link href={`/${type}/${standardizeProtocolName(p)}`} key={p} passHref>
+							<ProtocolLink active={router.asPath === `/${type}/${standardizeProtocolName(p)}`} color={'#fff'}>
+								{p}
+							</ProtocolLink>
+						</Link>
+					))}
+				</OtherProtocols>
+			)}
+			{!fullChart ? (
+				<DetailsWrapper style={{ borderTopLeftRadius: ['23', '2']?.length > 1 ? 0 : '12px' }}>
+					<>
+						{name && (
+							<Name>
+								<TokenLogo logo={logo} size={24} />
+								<FormattedName text={name ? name + ' ' : ''} maxCharacters={16} fontWeight={700} />
+							</Name>
+						)}
+						{data.total24h || data.total24h === 0 ? (
+							<StatWrapper>
+								<Stat>
+									<span>
+										{data.disabled === true
+											? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
+													+chartData[0][chartData[0].length - 1][0]
+											  )})`
+											: `${typeString} (24h)`}
+									</span>
+									<span>{formattedNum(data.total24h || '0', true)}</span>
+								</Stat>
+							</StatWrapper>
+						) : null}
+						{data.dailyRevenue || data.dailyRevenue === 0 ? (
+							<StatWrapper>
+								<Stat>
+									<span>
+										{data.disabled === true
+											? `Last day ${typeString.toLowerCase()} (${formatTimestampAsDate(
+													+chartData[0][chartData[0].length - 1][0]
+											  )})`
+											: `Revenue (24h)`}
+									</span>
+									<span>{formattedNum(data.dailyRevenue || '0', true)}</span>
+								</Stat>
+							</StatWrapper>
+						) : null}
+						{typeString !== 'Fees' && data.change_1d ? (
+							<StatWrapper>
+								<Stat>
+									<span>
+										{data.disabled === true
+											? `Last day change (${formatTimestampAsDate(+chartData[0][chartData[0].length - 1][0])})`
+											: 'Change (24h)'}
+									</span>
+									<span>{data.change_1d || 0}%</span>
+								</Stat>
+							</StatWrapper>
+						) : null}
+						{totalAllTime ? (
+							<StatWrapper>
+								<Stat>
+									<span>{`All time ${typeSimple}`}</span>
+									<span>{formattedNum(totalAllTime, true)}</span>
+								</Stat>
+							</StatWrapper>
+						) : null}
+					</>
+				</DetailsWrapper>
+			) : (
+				// TODO: Temporal work around to unlock feature
+				<>‎</>
+			)}
+			<Wrapper>
+				{barsData && barsData.length > 0 && (
 					<FiltersWrapperRow>
 						<>{title ?? ''}</>
 						<FiltersAligned color={'#4f8fea'}>
@@ -164,20 +174,20 @@ const OnlyChart = ({ title, chartData }: { title: string; chartData: [IJoin2Retu
 							))}
 						</FiltersAligned>
 					</FiltersWrapperRow>
-					<StackedChart
-						title={''}
-						chartData={barsData}
-						customLegendOptions={chartData[1]}
-						stacks={simpleStack}
-						stackColors={stackedBarChartColors}
-					/>
-				</>
-			)}
-		</>
+				)}
+				<StackedChart
+					title={''}
+					chartData={barsData}
+					customLegendOptions={chartData[1]}
+					stacks={simpleStack}
+					stackColors={stackedBarChartColors}
+				/>
+			</Wrapper>
+		</StatsSection>
 	)
 }
 
-const stackedBarChartColors = {
+export const stackedBarChartColors = {
 	Fees: '#4f8fea',
 	Revenue: '#E59421'
 }
