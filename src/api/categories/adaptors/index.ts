@@ -249,6 +249,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			mainRow.dailyPremiumVolume = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyPremiumVolume'), null)
 			mainRow.dailyProtocolRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyProtocolRevenue'), null)
 			mainRow.dailySupplySideRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailySupplySideRevenue'), null)
+			mainRow.mcap = acc[protocol.parentProtocol].subRows.reduce(reduceHigherByAttribute('mcap'), null)
 			mainRow.chains = getUniqueArray(acc[protocol.parentProtocol].subRows.map(d => d.chains).flat())
 			mainRow.methodology = getParentProtocolMethodology(mainRow.displayName, acc[protocol.parentProtocol].subRows.map(r => r.displayName))
 			const total14dto7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total14dto7d'), null)
@@ -284,8 +285,18 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 }
 
 const reduceSumByAttribute = (attribute: string) => (acc, curr) => {
-	if (acc === undefined) return curr[attribute]
-	return acc += curr[attribute]
+	if (curr[attribute] !== null) {
+		if (acc === undefined) return curr[attribute]
+		return acc += curr[attribute]
+	}
+	return acc
+}
+
+const reduceHigherByAttribute = (attribute: string) => (acc, curr) => {
+	if (curr[attribute] !== null) {
+		if (acc === undefined || curr[attribute] > acc) return curr[attribute]
+	}
+	return acc
 }
 
 const getParentProtocolMethodology = (name: string, versionNames: string[]) => {
