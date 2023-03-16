@@ -64,9 +64,9 @@ export const CHAINS_API = 'https://api.llama.fi/chains'
 export const DEXS_API = 'https://api.llama.fi/dexs'
 export const DEX_BASE_API = 'https://api.llama.fi/dex'
 
-export const ADAPTORS_BASE_API = 'https://api.llama.fi/overviewImprov'
+export const ADAPTORS_BASE_API = 'https://api.llama.fi/overview'
 export const BASE_API = 'https://api.llama.fi/'
-export const ADAPTORS_SUMMARY_BASE_API = 'https://api.llama.fi/summaryImprov'
+export const ADAPTORS_SUMMARY_BASE_API = 'https://api.llama.fi/summary'
 
 export const FEES_BASE_API = 'https://fees.llama.fi/fees'
 
