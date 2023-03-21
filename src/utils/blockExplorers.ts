@@ -65,7 +65,8 @@ const blockExplorers = {
 	empire: ['https://explorer.empirenetwork.io/address/', 'Empire Explorer'],
 	tlchain: ['https://explorer.tlchain.live/token/', 'TLChain Explorer'],
 	core: ['https://scan.coredao.org/token/', 'Scan Coredao'],
-	rpg: ['https://scan.rangersprotocol.com/address/', 'Rangerscan']
+	rpg: ['https://scan.rangersprotocol.com/address/', 'Rangerscan'],
+	loop: ['https://explorer.mainnetloop.com/token/', 'LoopExplorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
