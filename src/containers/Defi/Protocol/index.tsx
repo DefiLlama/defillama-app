@@ -246,7 +246,7 @@ function ProtocolContainer({
 	} = tvlByChain.reduce(
 		(acc, [name, tvl]: [string, number]) => {
 			// skip masterchef tvl type
-			if (name === 'masterchef') return acc
+			if (name === 'masterchef' || name === 'offers') return acc
 
 			// check if tvl name is addl tvl type and is toggled
 			if (isLowerCase(name[0]) && DEFI_SETTINGS_KEYS.includes(name)) {
@@ -262,7 +262,7 @@ function ProtocolContainer({
 					const prop = name.split('-')[1]
 
 					// check if prop is toggled
-					if (extraTvlsEnabled[prop.toLowerCase()]) {
+					if (extraTvlsEnabled[prop.toLowerCase()] || prop === 'offers') {
 						acc.tvls[chainName] = (acc.tvls[chainName] || 0) + tvl
 					}
 				}
