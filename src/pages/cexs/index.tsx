@@ -18,15 +18,6 @@ export const cexData = [
 		cgDeriv: 'binance_futures'
 	},
 	{
-		name: 'OKX',
-		slug: 'okx',
-		coin: 'OKB',
-		coinSymbol: 'OKB',
-		walletsLink: 'https://twitter.com/okx/status/1590812545346330624',
-		cgId: 'okex',
-		cgDeriv: 'okex_swap'
-	},
-	{
 		name: 'Bitfinex',
 		slug: 'bitfinex',
 		coin: 'LEO',
@@ -34,6 +25,15 @@ export const cexData = [
 		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt',
 		cgId: 'bitfinex',
 		cgDeriv: 'bitfinex_futures'
+	},
+	{
+		name: 'OKX',
+		slug: 'okx',
+		coin: 'OKB',
+		coinSymbol: 'OKB',
+		walletsLink: 'https://twitter.com/okx/status/1590812545346330624',
+		cgId: 'okex',
+		cgDeriv: 'okex_swap'
 	},
 	{
 		name: 'Crypto.com',
@@ -112,12 +112,6 @@ export const cexData = [
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
-		name: 'Korbit',
-		slug: 'korbit',
-		coin: null,
-		walletsLink: 'https://korbit.co.kr/reserve'
-	},
-	{
 		name: 'Binance US',
 		slug: 'binance-us',
 		coin: 'BNB',
@@ -125,16 +119,22 @@ export const cexData = [
 		cgId: 'binance_us'
 	},
 	{
-		name: 'MaskEX',
-		slug: 'maskex',
+		name: 'Korbit',
+		slug: 'korbit',
 		coin: null,
-		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
+		walletsLink: 'https://korbit.co.kr/reserve'
 	},
 	{
 		name: 'Coinsquare',
 		slug: 'coinsquare',
 		coin: null,
 		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
+	},
+	{
+		name: 'MaskEX',
+		slug: 'maskex',
+		coin: null,
+		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'Firi',
@@ -170,12 +170,6 @@ export const cexData = [
 		coinSymbol: 'HTB'
 	},
 	{
-		name: 'Cake DeFi',
-		slug: 'cake-defi',
-		coin: null,
-		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
-	},
-	{
 		name: 'NBX',
 		slug: 'nbx',
 		coin: null,
@@ -186,6 +180,12 @@ export const cexData = [
 		slug: 'bitvenus',
 		coin: null,
 		walletsLink: null
+	},
+	{
+		name: 'Cake DeFi',
+		slug: 'cake-defi',
+		coin: null,
+		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
 	},
 	{
 		name: 'Coinbase',
