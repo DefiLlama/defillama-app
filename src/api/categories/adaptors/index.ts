@@ -289,7 +289,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		mainRow.volumetvl = mainRow.total24h / mainRow.tvl
 
 		// Return acc
-		acc[protocol.parentProtocol ?? protocol.module] = mainRow
+		acc[protocol.parentProtocol ?? `${protocol.displayName}#${protocol.module}`] = mainRow
 		return acc
 	}, {} as IJSON<IOverviewProps['protocols'][number]>)
 

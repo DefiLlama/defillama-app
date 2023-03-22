@@ -3,5 +3,6 @@ export enum ADAPTOR_TYPES {
   FEES = "fees",
   AGGREGATORS = "aggregators",
   DERIVATIVES = "derivatives",
-  OPTIONS = "options"
+  OPTIONS = "options",
+  ROYALTIES = "royalties",
 }

@@ -30,6 +30,8 @@ export const getColumnsByType = (type: string, allChains?: boolean) => {
 			return aggregatorsColumns(allChains)
 		case 'derivatives':
 			return derivativesColumns(allChains)
+		case 'royalties':
+			return royaltiesColumns(allChains)
 		default:
 			return volumesColumns(allChains)
 	}
@@ -123,6 +125,31 @@ export const feesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
 	[
 		NameColumn('fees', allChains),
 		allChains ? undefined : ChainsColumn('fees'),
+		allChains ? undefined : CategoryColumn,
+		Total24hColumn('Fees', undefined, undefined, 140),
+		allChains ? undefined : Total24hColumn('Revenue', 'revenue24h', undefined, 160),
+		allChains ? undefined : Total24hColumn('Holders revenue', 'dailyHoldersRevenue', undefined, 190),
+		allChains ? undefined : Total24hColumn('Market Cap', 'mcap', undefined, undefined, 'Market Cap'),
+		Total24hColumn('Fees', 'total7d', `Cumulative last 7d fees`, undefined, 'Fees (7d)'),
+		Total24hColumn('Fees', 'total30d', `Cumulative last 30d fees`, undefined, 'Fees (30d)'),
+		allChains ? undefined : Total24hColumn('Revenue', 'revenue7d', `Cumulative last 7d revenue`, 150, 'Revenue (7d)'),
+		allChains ? undefined : Total24hColumn('Fees', 'revenue30d', `Cumulative last 30d revenue`, 160, 'Revenue (30d)'),
+		// TotalAllTimeColumn('fees') tmp
+		allChains ? undefined : Total24hColumn('User fees', 'dailyUserFees', undefined, 150),
+		allChains ? undefined : Total24hColumn('Treasury revenue', 'dailyProtocolRevenue', undefined, 190),
+		// Total24hColumn('Creator revenue', 'dailyCreatorRevenue', undefined, 190),
+		allChains ? undefined : Total24hColumn('Supply side revenue', 'dailySupplySideRevenue', undefined, 220),
+		// Total24hColumn('Total fees', 'dailyTotalFees', undefined, 220),
+		// Total24hColumn('Total revenue', 'dailyTotalRevenue', undefined, 220)
+		// ChangeColumn('Weekly change', 'change_7dover7d', 160, 'Change of last 7d fees over the previous 7d fees'),
+		// ChangeColumn('Monthly change', 'change_30dover30d', 160, 'Change of last 30d fees over the previous 30d fees'),
+		TotalAllTimeColumn('fees')
+	].filter((c) => c !== undefined)
+
+export const royaltiesColumns = (allChains?: boolean): ColumnDef<IDexsRow>[] =>
+	[
+		NameColumn('royalties', allChains),
+		allChains ? undefined : ChainsColumn('royalties'),
 		allChains ? undefined : CategoryColumn,
 		Total24hColumn('Fees', undefined, undefined, 140),
 		allChains ? undefined : Total24hColumn('Revenue', 'revenue24h', undefined, 160),
