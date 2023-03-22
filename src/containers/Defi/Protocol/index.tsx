@@ -202,7 +202,7 @@ function ProtocolContainer({
 		let tvl = 0
 
 		Object.entries(tvlBreakdowns).forEach(([section, sectionTvl]: any) => {
-			if (section.includes('-')) return
+			if (section.includes('-') || section === 'offers') return
 
 			if (section === 'doublecounted') {
 				tvl -= sectionTvl
@@ -262,7 +262,7 @@ function ProtocolContainer({
 					const prop = name.split('-')[1]
 
 					// check if prop is toggled
-					if (extraTvlsEnabled[prop.toLowerCase()] || prop === 'offers') {
+					if (extraTvlsEnabled[prop.toLowerCase()]) {
 						acc.tvls[chainName] = (acc.tvls[chainName] || 0) + tvl
 					}
 				}

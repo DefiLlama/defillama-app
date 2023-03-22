@@ -116,10 +116,7 @@ function GlobalPage({ selectedChain = 'All', chainsSet, protocolsList, chart, ex
 						}
 					}
 
-					if (
-						(extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') ||
-						prop === 'offers'
-					) {
+					if (extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') {
 						sum += stakedData[1]
 					}
 				}

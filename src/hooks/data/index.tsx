@@ -158,10 +158,7 @@ export const useCalcExtraTvlsByDay = (data) => {
 					}
 				}
 
-				if (
-					(extraTvlsEnabled[value.toLowerCase()] && value !== 'doublecounted' && value !== 'liquidstaking') ||
-					value === 'offers'
-				) {
+				if (extraTvlsEnabled[value.toLowerCase()] && value !== 'doublecounted' && value !== 'liquidstaking') {
 					sum += values[value]
 				}
 			}

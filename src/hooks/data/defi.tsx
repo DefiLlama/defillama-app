@@ -164,11 +164,7 @@ export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: I
 					}
 				}
 
-				if (
-					(extraTvls[c.toLowerCase()] && c !== 'doublecounted' && c !== 'liquidstaking') ||
-					c === 'offers' ||
-					c === 'o'
-				) {
+				if (extraTvls[c.toLowerCase()] && c !== 'doublecounted' && c !== 'liquidstaking') {
 					sum += chainTvls[c]
 					totalDaySum += chainTvls[c]
 				}

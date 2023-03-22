@@ -314,7 +314,7 @@ export const formatProtocolsTvlChartData = ({ historicalChainTvls, extraTvlEnabl
 		const name = section.toLowerCase()
 
 		// skip sum of keys like ethereum-staking, arbitrum-vesting
-		if (!name.includes('-')) {
+		if (!name.includes('-') && name !== 'offers') {
 			// sum key with staking, ethereum, arbitrum etc
 			if (Object.keys(extraTvlEnabled).includes(name) ? extraTvlEnabled[name] : true) {
 				historicalChainTvls[section].tvl?.forEach(
