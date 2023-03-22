@@ -29,9 +29,5 @@ export const protocolsAndChainsOptions = [
 	{
 		name: 'Vesting',
 		key: DEFI_SETTINGS.VESTING
-	},
-	{
-		name: 'Offers',
-		key: DEFI_SETTINGS.OFFERS
 	}
 ]
