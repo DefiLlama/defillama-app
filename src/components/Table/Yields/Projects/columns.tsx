@@ -1,7 +1,14 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { formattedNum, formattedPercent, slug } from '~/utils'
 import { YieldsProject } from '../Name'
+import Tooltip from '~/components/Tooltip'
 import type { IYieldsProjectsTableRow } from '../types'
+import styled from 'styled-components'
+
+const Airdrop = styled.span`
+	width: 24px;
+	margin-left: auto;
+`
 
 export const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 	{
@@ -10,6 +17,23 @@ export const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			return <YieldsProject project={getValue() as string} projectslug={slug(getValue() as string)} />
+		}
+	},
+	{
+		header: 'Airdrop',
+		accessorKey: 'airdrop',
+		cell: ({ getValue }) => {
+			if (!getValue()) {
+				return null
+			}
+			return (
+				<Tooltip content="This project has no token and might airdrop one to depositors in the future">
+					<Airdrop>🪂</Airdrop>
+				</Tooltip>
+			)
+		},
+		meta: {
+			align: 'end'
 		}
 	},
 	{

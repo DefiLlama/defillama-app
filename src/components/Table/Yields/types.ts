@@ -36,6 +36,7 @@ export interface IYieldsProjectsTableRow {
 	protocols: number
 	slug: string
 	tvl: number
+	airdrop?: boolean
 }
 
 export interface IYieldsTableProps {
