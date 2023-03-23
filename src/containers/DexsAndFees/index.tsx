@@ -137,7 +137,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 
 	return (
 		<>
-			{props.type === 'fees' && (
+			{(props.type === 'fees' || props.type === 'royalties') && (
 				<AnnouncementWrapper>
 					<span>Are we missing any protocol?</span>{' '}
 					<a
@@ -227,6 +227,7 @@ export default function OverviewContainer(props: IOverviewContainerProps) {
 const getChartByType = (type: string, props?: IDexChartsProps) => {
 	switch (type) {
 		case 'fees':
+		case 'royalties':
 			return <></>
 		default:
 			return <MainBarChart {...props} />
