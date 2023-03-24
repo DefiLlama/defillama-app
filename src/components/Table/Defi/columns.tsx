@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import styled from 'styled-components'
-import { ArrowUpRight, ChevronDown, ChevronRight } from 'react-feather'
+import { ArrowUpRight, ChevronDown, ChevronRight, Tool } from 'react-feather'
 import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import QuestionHelper from '~/components/QuestionHelper'
@@ -15,13 +15,16 @@ import {
 	formattedPercent,
 	getDominancePercent,
 	slug,
+	standardizeProtocolName,
 	toK,
 	tokenIconUrl,
-	toNiceDayMonthAndYear
+	toNiceDayMonthAndYear,
+	toNiceDayMonthAndYearAndTime
 } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
-import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow, ILSDRow } from './types'
+import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow, ILSDRow, IEmission } from './types'
+import { AutoColumn } from '~/components/Column'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
 	{
@@ -234,6 +237,75 @@ export const raisesColumns: ColumnDef<ICategoryRow>[] = [
 			const formattedValue = value.join(', ')
 
 			return <Tooltip2 content={formattedValue}>{formattedValue}</Tooltip2>
+		}
+	}
+]
+
+export const emissionsColumns: ColumnDef<IEmission>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+					<CustomLink href={`/emissions/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
+				</Name>
+			)
+		}
+	},
+	{
+		header: 'Max Supply',
+		accessorKey: 'maxSupply',
+		cell: ({ getValue, row }) => (
+			<Tooltip content={row.original.maxSupply.toFixed(2)}>{formattedNum(getValue())}</Tooltip>
+		),
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Circulating Supply',
+		accessorKey: 'circSupply',
+		cell: ({ getValue, row }) => (
+			<Tooltip content={row.original.circSupply.toFixed(2)}>{formattedNum(getValue())}</Tooltip>
+		),
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Total Locked %',
+		accessorKey: 'totalLocked',
+		accessorFn: (row) => (row.totalLocked / row.maxSupply) * 100,
+		cell: ({ getValue, row }) => (
+			<Tooltip content={row.original.totalLocked.toFixed(2)}>{(getValue() as number).toFixed(2) + '%'}</Tooltip>
+		),
+		size: 100,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Next Event',
+		accessorKey: 'nextEvent',
+		cell: ({ getValue }) => {
+			const value = getValue() as { date: string; toUnlock: number }
+			return (
+				<AutoColumn gap="4px">
+					<span>{toNiceDayMonthAndYearAndTime(value.date)}</span>
+					<Tooltip content={value.toUnlock.toFixed(2)}>
+						<span style={{ opacity: 0.6 }}>{formattedNum(value.toUnlock)}</span>
+					</Tooltip>
+				</AutoColumn>
+			)
+		},
+		meta: {
+			align: 'end'
 		}
 	}
 ]

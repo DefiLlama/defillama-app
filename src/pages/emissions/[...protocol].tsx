@@ -6,7 +6,8 @@ import { Name } from '~/layout/ProtocolAndPool'
 import Layout from '~/layout'
 import styled from 'styled-components'
 import { StatsSection } from '~/layout/Stats/Medium'
-import { capitalizeFirstLetter } from '~/utils'
+import TokenLogo from '~/components/TokenLogo'
+import { tokenIconUrl } from '~/utils'
 
 export const getStaticProps = async ({
 	params: {
@@ -17,11 +18,7 @@ export const getStaticProps = async ({
 
 	return {
 		props: {
-			emissions,
-			name: protocol
-				.split(' ')
-				.map((x) => capitalizeFirstLetter(x))
-				.join(' ')
+			emissions
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -31,11 +28,14 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols({ emissions, name }) {
+export default function Protocol({ emissions }) {
 	return (
-		<Layout title={`${name} Emissions - DefiLlama`} style={{ gap: '36px' }} defaultSEO>
+		<Layout title={`${emissions.name} Emissions - DefiLlama`} style={{ gap: '36px' }} defaultSEO>
 			<Wrapper>
-				<Name>{name + ' ' + 'Emissions'}</Name>
+				<Name>
+					<TokenLogo logo={tokenIconUrl(emissions.name)} />
+					<span>{emissions.name}</span>
+				</Name>
 				<Emissions data={emissions} isEmissionsPage />
 			</Wrapper>
 		</Layout>

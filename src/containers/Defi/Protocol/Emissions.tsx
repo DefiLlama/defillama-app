@@ -30,7 +30,7 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 				/>
 			</span>
 
-			{data.sources.length > 0 && (
+			{data.sources?.length > 0 && (
 				<>
 					<h4>Sources</h4>
 					<List>
@@ -45,7 +45,7 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 				</>
 			)}
 
-			{data.notes.length > 0 && (
+			{data.notes?.length > 0 && (
 				<>
 					<h4>Notes</h4>
 					<List>

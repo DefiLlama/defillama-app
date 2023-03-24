@@ -1,5 +1,5 @@
 import ProtocolContainer from '~/containers/Defi/Protocol'
-import { capitalizeFirstLetter, standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
+import { standardizeProtocolName, tokenIconPaletteUrl } from '~/utils'
 import { getColor } from '~/utils/getColor'
 import { maxAgeForNext } from '~/api'
 import {

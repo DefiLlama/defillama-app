@@ -44,3 +44,12 @@ export interface ILSDRow {
 	logo: string
 	mcap: number
 }
+
+export interface IEmission {
+	name: string
+	maxSupply: number
+	circSupply: number
+	totalLocked: number
+	nextEvent: { data: string; toUnlock: number }
+	token: string
+}

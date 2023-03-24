@@ -23,6 +23,7 @@ import {
 	ORACLE_API,
 	PROTOCOLS_API,
 	PROTOCOL_API,
+	PROTOCOL_EMISSIONS_API,
 	PROTOCOL_EMISSION_API,
 	YIELD_POOLS_API
 } from '~/constants'
@@ -73,13 +74,23 @@ export const getProtocol = async (protocolName: string) => {
 	}
 }
 
+export const getAllProtocolEmissions = async () => {
+	try {
+		const res = await fetch(`${PROTOCOL_EMISSIONS_API}`).then((res) => res.json())
+		return res
+	} catch (e) {
+		console.log(e)
+		return []
+	}
+}
+
 export const getProtocolEmissons = async (protocolName: string) => {
 	try {
 		const res = await fetch(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())
 			.then((r) => JSON.parse(r.body))
 
-		const { data, metadata } = res
+		const { data, metadata, name } = res
 
 		const protocolEmissions = {}
 		const emissionCategories = []
@@ -115,7 +126,8 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			categories: emissionCategories,
-			hallmarks: data.length > 0 ? [[Date.now() / 1000, 'Today']] : []
+			hallmarks: data.length > 0 ? [[Date.now() / 1000, 'Today']] : [],
+			name
 		}
 	} catch (e) {
 		console.log(e)
