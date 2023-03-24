@@ -112,6 +112,12 @@ export const cexData = [
 		walletsLink: 'https://github.com/swissborg/pub'
 	},
 	{
+		name: 'Korbit',
+		slug: 'korbit',
+		coin: null,
+		walletsLink: 'https://korbit.co.kr/reserve'
+	},
+	{
 		name: 'Binance US',
 		slug: 'binance-us',
 		coin: 'BNB',
@@ -119,22 +125,16 @@ export const cexData = [
 		cgId: 'binance_us'
 	},
 	{
-		name: 'Korbit',
-		slug: 'korbit',
+		name: 'MaskEX',
+		slug: 'maskex',
 		coin: null,
-		walletsLink: 'https://korbit.co.kr/reserve'
+		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'Coinsquare',
 		slug: 'coinsquare',
 		coin: null,
 		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
-	},
-	{
-		name: 'MaskEX',
-		slug: 'maskex',
-		coin: null,
-		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
 	},
 	{
 		name: 'Firi',
