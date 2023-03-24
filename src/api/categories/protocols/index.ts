@@ -23,7 +23,7 @@ import {
 	ORACLE_API,
 	PROTOCOLS_API,
 	PROTOCOL_API,
-	PROTOCOL_EMISSIONS_API,
+	PROTOCOL_EMISSION_API,
 	YIELD_POOLS_API
 } from '~/constants'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
@@ -75,7 +75,7 @@ export const getProtocol = async (protocolName: string) => {
 
 export const getProtocolEmissons = async (protocolName: string) => {
 	try {
-		const res = await fetch(`${PROTOCOL_EMISSIONS_API}/${protocolName}`)
+		const res = await fetch(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())
 			.then((r) => JSON.parse(r.body))
 
