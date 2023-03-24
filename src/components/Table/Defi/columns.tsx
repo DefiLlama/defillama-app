@@ -259,11 +259,27 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		}
 	},
 	{
+		header: 'Token Price',
+		accessorKey: 'tokenPrice',
+		cell: ({ getValue, row }) => {
+			const price = (getValue() as IEmission['tokenPrice'])?.coins?.[row.original.token]?.price ?? null
+			return <>{price ? '$' + price : ''}</>
+		},
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: 'Max Supply',
 		accessorKey: 'maxSupply',
-		cell: ({ getValue, row }) => (
-			<Tooltip content={row.original.maxSupply.toFixed(2)}>{formattedNum(getValue())}</Tooltip>
-		),
+		cell: ({ getValue, row }) => {
+			const symbol = row.original.tokenPrice?.coins?.[row.original.token]?.symbol ?? null
+			return (
+				<Tooltip content={row.original.maxSupply.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
+					{formattedNum(getValue())}
+				</Tooltip>
+			)
+		},
 		meta: {
 			align: 'end'
 		}
@@ -271,9 +287,14 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Circulating Supply',
 		accessorKey: 'circSupply',
-		cell: ({ getValue, row }) => (
-			<Tooltip content={row.original.circSupply.toFixed(2)}>{formattedNum(getValue())}</Tooltip>
-		),
+		cell: ({ getValue, row }) => {
+			const symbol = row.original.tokenPrice?.coins?.[row.original.token]?.symbol ?? null
+			return (
+				<Tooltip content={row.original.circSupply.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
+					{formattedNum(getValue())}
+				</Tooltip>
+			)
+		},
 		meta: {
 			align: 'end'
 		}
@@ -282,9 +303,14 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'Total Locked %',
 		accessorKey: 'totalLocked',
 		accessorFn: (row) => (row.totalLocked / row.maxSupply) * 100,
-		cell: ({ getValue, row }) => (
-			<Tooltip content={row.original.totalLocked.toFixed(2)}>{(getValue() as number).toFixed(2) + '%'}</Tooltip>
-		),
+		cell: ({ getValue, row }) => {
+			const symbol = row.original.tokenPrice?.coins?.[row.original.token]?.symbol ?? null
+			return (
+				<Tooltip content={row.original.totalLocked.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
+					{(getValue() as number).toFixed(2) + '%'}
+				</Tooltip>
+			)
+		},
 		size: 100,
 		meta: {
 			align: 'end'
@@ -293,13 +319,14 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Next Event',
 		accessorKey: 'nextEvent',
-		cell: ({ getValue }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as { date: string; toUnlock: number }
+			const symbol = row.original.tokenPrice?.coins?.[row.original.token]?.symbol ?? null
 			return (
 				<AutoColumn gap="4px">
 					<span>{toNiceDayMonthAndYearAndTime(value.date)}</span>
 					<Tooltip content={value.toUnlock.toFixed(2)}>
-						<span style={{ opacity: 0.6 }}>{formattedNum(value.toUnlock)}</span>
+						<span style={{ opacity: 0.6 }}>{formattedNum(value.toUnlock) + (symbol ? ` ${symbol}` : '')}</span>
 					</Tooltip>
 				</AutoColumn>
 			)

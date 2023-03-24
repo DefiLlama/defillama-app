@@ -52,4 +52,5 @@ export interface IEmission {
 	totalLocked: number
 	nextEvent: { data: string; toUnlock: number }
 	token: string
+	tokenPrice: { coins: { [key: string]: { price: number; symbol: string } } }
 }
