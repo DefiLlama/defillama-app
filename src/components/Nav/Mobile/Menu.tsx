@@ -137,7 +137,7 @@ export function Menu() {
 							return (
 								<Fragment key={link.name}>
 									<Link href={link.path} key={link.path} prefetch={false} passHref>
-										<a target="_blank" rel="noopener noreferrer">
+										<a target="_blank" rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}>
 											<span style={{ width: '32px', display: 'inline-block' }}></span>
 											<span>{link.name}</span>
 										</a>
@@ -161,7 +161,7 @@ export function Menu() {
 							return (
 								<Fragment key={link.name}>
 									<Link href={link.path} key={link.path} prefetch={false} passHref>
-										<a target="_blank" rel="noopener noreferrer">
+										<a target="_blank" rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}>
 											<span style={{ width: '32px', display: 'inline-block' }}></span>
 											<span>{link.name}</span>
 										</a>
