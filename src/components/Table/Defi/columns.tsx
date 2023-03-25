@@ -468,10 +468,11 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 	{
 		header: 'Active Users',
 		accessorKey: 'users',
-		cell: (info) => <>{info.getValue() || ''}</>,
+		cell: (info) => <>{info.getValue() === 0 || formattedNum(info.getValue())}</>,
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Active addresses in the last 24h'
 		}
 	},
 	{
