@@ -498,12 +498,14 @@ export const getNewChainsPageData = async (category: string) => {
 		{ categories, chainTvls, ...rest },
 		{ protocols: dexsProtocols },
 		{ protocols: feesAndRevenueProtocols },
-		{ chains: stablesChainData }
+		{ chains: stablesChainData },
+		activeUsers
 	] = await Promise.all([
 		fetch(`https://api.llama.fi/chains2/${category}`).then((res) => res.json()),
 		getChainsPageDataByType('dexs'),
 		getChainPageDataByType('fees'),
-		getPeggedAssets()
+		getPeggedAssets(),
+		fetch(`https://api.llama.fi/activeUsers`).then((res) => res.json())
 	])
 
 	const categoryLinks = [
@@ -546,12 +548,15 @@ export const getNewChainsPageData = async (category: string) => {
 				const { total24h: dexsTotal24h } =
 					dexsChains.find((x) => x.name.toLowerCase() === chain.name.toLowerCase()) || {}
 
+				const users = activeUsers.find((c) => c.name.toLowerCase() === chain.name.toLowerCase())
+
 				return {
 					...chain,
 					totalVolume24h: dexsTotal24h || 0,
 					totalFees24h: total24h || 0,
 					totalRevenue24h: revenue24h || 0,
-					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === chain.name.toLowerCase())?.mcap ?? 0
+					stablesMcap: stablesChainMcaps.find((x) => x.name.toLowerCase() === chain.name.toLowerCase())?.mcap ?? 0,
+					users: users?.users ?? 0
 				}
 			})
 		}

@@ -466,6 +466,15 @@ export const chainsColumn: ColumnDef<IChainsRow>[] = [
 		}
 	},
 	{
+		header: 'Active Users',
+		accessorKey: 'users',
+		cell: (info) => <>{info.getValue() || ''}</>,
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
@@ -1087,6 +1096,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'tvl',
 		'change_7d',
 		'protocols',
+		'users',
 		'change_1d',
 		'change_1m',
 		'stablesMcap',
@@ -1100,6 +1110,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 		'change_7d',
 		'tvl',
 		'protocols',
+		'users',
 		'change_1d',
 		'change_1m',
 		'stablesMcap',
@@ -1111,6 +1122,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 	600: [
 		'name',
 		'protocols',
+		'users',
 		'change_7d',
 		'tvl',
 		'change_1d',
@@ -1124,6 +1136,7 @@ export const chainsTableColumnOrders = formatColumnOrder({
 	900: [
 		'name',
 		'protocols',
+		'users',
 		'change_1d',
 		'change_7d',
 		'change_1m',
