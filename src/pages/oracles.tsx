@@ -83,6 +83,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, oraclesColor
 					hidedefaultlegend
 					valueSymbol="%"
 					title=""
+					isStackedChart={true}
 				/>
 			</ChartsWrapper>
 

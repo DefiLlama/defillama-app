@@ -153,6 +153,7 @@ export default function ChainsContainer({
 					hidedefaultlegend
 					valueSymbol="%"
 					title=""
+					isStackedChart={true}
 				/>
 			</ChartsWrapper>
 

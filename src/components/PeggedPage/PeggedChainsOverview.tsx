@@ -149,6 +149,7 @@ function PeggedChainsOverview({
 							color={'lightcoral'}
 							hidedefaultlegend={true}
 							valueSymbol="$"
+							hideGradient={true}
 						/>
 					)}
 					{chartType === 'Chain Market Caps' && (
@@ -158,6 +159,7 @@ function PeggedChainsOverview({
 							stacks={chainList}
 							valueSymbol="$"
 							hidedefaultlegend={true}
+							hideGradient={true}
 						/>
 					)}
 					{chartType === 'Dominance' && (
@@ -167,6 +169,8 @@ function PeggedChainsOverview({
 							chartData={dataWithExtraPeggedAndDominanceByDay}
 							stacks={chainList}
 							hidedefaultlegend={true}
+							hideGradient={true}
+							isStackedChart={true}
 						/>
 					)}
 					{chartType === 'Pie' && <PieChart chartData={chainsCirculatingValues} />}

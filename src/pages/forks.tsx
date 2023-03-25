@@ -93,6 +93,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 					hidedefaultlegend
 					valueSymbol="%"
 					title=""
+					isStackedChart={true}
 				/>
 			</ChartsWrapper>
 

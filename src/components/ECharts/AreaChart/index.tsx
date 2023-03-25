@@ -28,6 +28,7 @@ export default function AreaChart({
 	height = '360px',
 	expandTo100Percent = false,
 	isStackedChart,
+	hideGradient = false,
 	...props
 }: IChartProps) {
 	const id = useMemo(() => uuid(), [])
@@ -124,6 +125,8 @@ export default function AreaChart({
 					lineStyle: undefined,
 					areaStyle: isStackedChart
 						? {}
+						: hideGradient
+						? { color: 'none' }
 						: ({
 								color: !customLegendName
 									? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -199,7 +202,8 @@ export default function AreaChart({
 		legendOptions,
 		stackColors,
 		expandTo100Percent,
-		isStackedChart
+		isStackedChart,
+		hideGradient
 	])
 
 	const createInstance = useCallback(() => {

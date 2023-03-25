@@ -272,6 +272,7 @@ function PeggedAssetsOverview({
 							valueSymbol="$"
 							hidedefaultlegend={true}
 							hallmarks={[]}
+							hideGradient={true}
 						/>
 					)}
 					{chartType === 'Token Market Caps' && (
@@ -281,6 +282,7 @@ function PeggedAssetsOverview({
 							stacks={peggedAssetNames}
 							valueSymbol="$"
 							hidedefaultlegend={true}
+							hideGradient={true}
 						/>
 					)}
 					{chartType === 'Dominance' && (
@@ -290,6 +292,8 @@ function PeggedAssetsOverview({
 							chartData={dataWithExtraPeggedAndDominanceByDay}
 							stacks={peggedAssetNames}
 							hidedefaultlegend={true}
+							hideGradient={true}
+							isStackedChart={true}
 						/>
 					)}
 					{chartType === 'Pie' && <PieChart chartData={chainsCirculatingValues} />}
