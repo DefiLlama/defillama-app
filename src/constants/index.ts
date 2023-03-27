@@ -27,6 +27,7 @@ export const PROTOCOL_EMISSION_API = 'https://api.llama.fi/emission'
 
 export const NFT_COLLECTION_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/collection'
 export const NFT_COLLECTIONS_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/collections'
+export const NFT_VOLUME_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/volume'
 export const NFT_CHART_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/chart'
 export const NFT_CHAINS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/chains'
 export const NFT_MARKETPLACES_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/marketplaces'

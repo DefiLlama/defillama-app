@@ -5,6 +5,7 @@ import {
 	NFT_CHAINS_API,
 	NFT_CHART_API,
 	NFT_COLLECTIONS_API,
+	NFT_VOLUME_API,
 	NFT_COLLECTION_API,
 	NFT_MARKETPLACES_API,
 	NFT_SEARCH_API
@@ -76,12 +77,26 @@ export const getNFTStatistics = (chart) => {
 export const getNFTData = async () => {
 	try {
 		// const chart = await fetch(NFT_CHART_API).then((r) => r.json())
-		const collections = await fetch(NFT_COLLECTIONS_API).then((r) => r.json())
+		const [collections, volumes] = await Promise.all([
+			fetch(NFT_COLLECTIONS_API).then((r) => r.json()),
+			fetch(NFT_VOLUME_API).then((r) => r.json())
+		])
 		// const statistics = getNFTStatistics(chart)
+
+		const data = collections.map((colleciton) => {
+			const volume = volumes.find((cx) => cx.collection === colleciton.collectionId)
+
+			return {
+				...colleciton,
+				volume1d: Number((volume?.['1DayVolume'] ?? 0).toFixed(2)),
+				volume7d: Number((volume?.['7DayVolume'] ?? 0).toFixed(2)),
+				volume30d: Number((volume?.['30DayVolume'] ?? 0).toFixed(2))
+			}
+		})
 
 		return {
 			chart: [],
-			collections,
+			collections: data,
 			statistics: []
 		}
 	} catch (e) {

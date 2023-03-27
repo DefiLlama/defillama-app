@@ -50,30 +50,30 @@ export const columns: ColumnDef<INftCollection>[] = [
 		}
 	},
 	{
-		header: '1d Change',
-		accessorKey: 'floorPricePctChange1Day',
+		header: 'Volume 1d',
+		accessorKey: 'volume1d',
 		size: 120,
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{info.getValue() ? info.getValue() + ' ETH' : ''}</>,
 
 		meta: {
 			align: 'end'
 		}
 	},
 	{
-		header: '7d Change',
-		accessorKey: 'floorPricePctChange7Day',
+		header: 'Volume 7d',
+		accessorKey: 'volume7d',
 		size: 120,
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{info.getValue() ? info.getValue() + ' ETH' : ''}</>,
 
 		meta: {
 			align: 'end'
 		}
 	},
 	{
-		header: '1m Change',
-		accessorKey: 'floorPricePctChange30Day',
+		header: 'Volume 30d',
+		accessorKey: 'volume30d',
 		size: 120,
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => <>{info.getValue() ? info.getValue() + ' ETH' : ''}</>,
 
 		meta: {
 			align: 'end'

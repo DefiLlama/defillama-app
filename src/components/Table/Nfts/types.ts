@@ -30,4 +30,7 @@ export interface INftCollection {
 	timestamp: string
 	tokenStandard: string
 	totalSupply: number
+	volume1d: number
+	volume7d: number
+	volume30d: number
 }
