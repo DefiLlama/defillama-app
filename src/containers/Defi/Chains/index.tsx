@@ -150,7 +150,7 @@ export default function ChainsContainer({
 					stackColors={colorsByChain}
 					customLegendName="Chain"
 					customLegendOptions={chainsUnique}
-					hidedefaultlegend
+					hideDefaultLegend
 					valueSymbol="%"
 					title=""
 					isStackedChart={true}

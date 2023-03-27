@@ -58,7 +58,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 		const titleDefaults = {
 			text: title,
 			textStyle: {
-				fontFamily: 'inter, sans-serif',
+				fontFamily: 'sans-serif',
 				fontWeight: 600,
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			},
@@ -196,7 +196,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 			type: 'time',
 			boundaryGap: false,
 			nameTextStyle: {
-				fontFamily: 'inter, sans-serif',
+				fontFamily: 'sans-serif',
 				fontSize: 14,
 				fontWeight: 400
 			},
@@ -227,7 +227,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 			},
 			boundaryGap: false,
 			nameTextStyle: {
-				fontFamily: 'inter, sans-serif',
+				fontFamily: 'sans-serif',
 				fontSize: 14,
 				fontWeight: 400,
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
@@ -242,7 +242,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 
 		const legend = {
 			textStyle: {
-				fontFamily: 'inter, sans-serif',
+				fontFamily: 'sans-serif',
 				fontSize: 12,
 				fontWeight: 400,
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'

@@ -80,7 +80,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, oraclesColor
 					stackColors={oraclesColors}
 					customLegendName="Oracle"
 					customLegendOptions={tokens}
-					hidedefaultlegend
+					hideDefaultLegend
 					valueSymbol="%"
 					title=""
 					isStackedChart={true}

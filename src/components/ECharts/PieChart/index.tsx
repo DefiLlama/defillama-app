@@ -28,7 +28,7 @@ export default function PieChart({
 			left: 0,
 			right: 0,
 			label: {
-				fontFamily: 'inter, sans-serif',
+				fontFamily: 'sans-serif',
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 				formatter: '{b}: ({d}%)'
 			},
@@ -67,7 +67,7 @@ export default function PieChart({
 				title: {
 					text: title,
 					textStyle: {
-						fontFamily: 'inter, sans-serif',
+						fontFamily: 'sans-serif',
 						fontWeight: 600,
 						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 					}

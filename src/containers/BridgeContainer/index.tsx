@@ -264,7 +264,7 @@ export default function BridgeContainer({
 						<BarChart
 							chartData={volumeChartData}
 							title=""
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 							customLegendName="Volume"
 							customLegendOptions={['Deposited', 'Withdrawn']}
 							key={['Deposited', 'Withdrawn'] as any} // escape hatch to rerender state in legend options

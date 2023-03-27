@@ -75,7 +75,7 @@ export default function ScatterChart({ chartData }: IChartProps) {
 			title: {
 				text: 'APY Average vs Volatility',
 				textStyle: {
-					fontFamily: 'inter, sans-serif',
+					fontFamily: 'sans-serif',
 					fontWeight: 600,
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				}
@@ -148,7 +148,7 @@ export default function ScatterChart({ chartData }: IChartProps) {
 					nameLocation: 'middle',
 					nameGap: 30,
 					nameTextStyle: {
-						fontFamily: 'inter, sans-serif',
+						fontFamily: 'sans-serif',
 						fontSize: 14,
 						fontWeight: 500,
 						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
@@ -172,7 +172,7 @@ export default function ScatterChart({ chartData }: IChartProps) {
 					nameLocation: 'middle',
 					nameGap: 40,
 					nameTextStyle: {
-						fontFamily: 'inter, sans-serif',
+						fontFamily: 'sans-serif',
 						fontSize: 14,
 						fontWeight: 500,
 						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'

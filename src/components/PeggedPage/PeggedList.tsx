@@ -270,7 +270,7 @@ function PeggedAssetsOverview({
 							stacks={totalMcapLabel}
 							color={'lightcoral'}
 							valueSymbol="$"
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 							hallmarks={[]}
 							hideGradient={true}
 						/>
@@ -281,7 +281,7 @@ function PeggedAssetsOverview({
 							chartData={peggedAreaChartData}
 							stacks={peggedAssetNames}
 							valueSymbol="$"
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 							hideGradient={true}
 						/>
 					)}
@@ -291,7 +291,7 @@ function PeggedAssetsOverview({
 							valueSymbol="%"
 							chartData={dataWithExtraPeggedAndDominanceByDay}
 							stacks={peggedAssetNames}
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 							hideGradient={true}
 							isStackedChart={true}
 						/>
@@ -301,7 +301,7 @@ function PeggedAssetsOverview({
 						<BarChart
 							chartData={tokenInflows}
 							title=""
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 							customLegendName="Token"
 							customLegendOptions={tokenInflowNames}
 							key={tokenInflowNames} // escape hatch to rerender state in legend options

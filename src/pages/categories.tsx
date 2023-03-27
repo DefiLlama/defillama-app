@@ -77,9 +77,10 @@ export const descriptions = {
 		'Protocols that enable you to earn staking rewards on your tokens while also providing a tradeable and liquid receipt for your staked position',
 	Oracle: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)',
 	'Leveraged Farming': 'Protocols that allow you to leverage yield farm with borrowed money',
-    'Options Vault': 'Protocols that allow you to deposit collateral into an options strategy',
-    'Uncollateralized Lending': 'Protocol that allows you to lend against known parties that can borrow without collaterall',
-    'Exotic Options': 'Protocols that provide option vaults while also adding borrowing on top',
+	'Options Vault': 'Protocols that allow you to deposit collateral into an options strategy',
+	'Uncollateralized Lending':
+		'Protocol that allows you to lend against known parties that can borrow without collaterall',
+	'Exotic Options': 'Protocols that provide option vaults while also adding borrowing on top'
 }
 
 export default function Protocols({ categories, chartData, categoryColors, uniqueCategories }) {
@@ -98,7 +99,7 @@ export default function Protocols({ categories, chartData, categoryColors, uniqu
 					stackColors={categoryColors}
 					customLegendName="Category"
 					customLegendOptions={uniqueCategories}
-					hidedefaultlegend
+					hideDefaultLegend
 					valueSymbol="$"
 					title=""
 				/>

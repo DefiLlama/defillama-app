@@ -233,7 +233,6 @@ export default function ProtocolChart({
 					title=""
 					valueSymbol={valueSymbol}
 					stacks={tokensUnique}
-					hidedefaultlegend={true}
 					hallmarks={!hideHallmarks && hallmarks}
 					tooltipSort={false}
 					stackColors={stackColors}

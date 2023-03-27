@@ -86,7 +86,7 @@ export default function AreaBarChart({
 								yAxis: 0,
 								label: {
 									color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-									fontFamily: 'inter, sans-serif',
+									fontFamily: 'sans-serif',
 									fontSize: 14,
 									fontWeight: 500
 								}

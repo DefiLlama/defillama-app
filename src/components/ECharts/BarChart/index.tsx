@@ -13,7 +13,7 @@ export default function BarChart({
 	valueSymbol = '',
 	title,
 	color,
-	hidedefaultlegend = false,
+	hideDefaultLegend = false,
 	customLegendName,
 	customLegendOptions,
 	chartOptions,
@@ -41,7 +41,7 @@ export default function BarChart({
 		return { defaultStacks: values, stackKeys: Object.keys(values), selectedStacks }
 	}, [stacks, customLegendOptions, customLegendName, legendOptions])
 
-	const hideLegend = hidedefaultlegend || stackKeys.length < 2
+	const hideLegend = hideDefaultLegend || stackKeys.length < 2
 
 	const defaultChartSettings = useDefaults({
 		color,

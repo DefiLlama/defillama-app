@@ -206,7 +206,7 @@ const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping
 					stackColors={lsdColors}
 					customLegendName="LSD"
 					customLegendOptions={tokens}
-					hidedefaultlegend
+					hideDefaultLegend
 					valueSymbol="%"
 					title=""
 				/>

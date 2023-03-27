@@ -675,7 +675,7 @@ function ProtocolContainer({
 											title="Token Inflows"
 											customLegendName="Token"
 											customLegendOptions={tokensUnique}
-											hidedefaultlegend={true}
+											hideDefaultLegend={true}
 											valueSymbol="$"
 										/>
 									</LazyChart>

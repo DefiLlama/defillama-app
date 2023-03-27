@@ -546,7 +546,7 @@ export default function PeggedContainer({
 							chartData={peggedAreaTotalData}
 							stacks={totalChartTooltipLabel}
 							color={backgroundColor}
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 						/>
 					)}
 					{chartType === 'Chain Mcaps' && (
@@ -555,7 +555,7 @@ export default function PeggedContainer({
 							chartData={peggedAreaChartData}
 							stacks={chainsUnique}
 							valueSymbol="$"
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 						/>
 					)}
 					{chartType === 'Dominance' && (
@@ -564,7 +564,7 @@ export default function PeggedContainer({
 							valueSymbol="%"
 							chartData={dataWithExtraPeggedAndDominanceByDay}
 							stacks={chainsUnique}
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 						/>
 					)}
 					{chartType === 'Pie' && <PieChart chartData={chainsCirculatingValues} />}

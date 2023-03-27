@@ -117,7 +117,7 @@ export default function Protocols({ langs, langsUnique, langsDominance, osUnique
 						valueSymbol="%"
 						stacks={osUnique}
 						stackColors={sourceTypeColor}
-						hidedefaultlegend
+						hideDefaultLegend
 					/>
 				</LazyChart>
 			</ChartsWrapper>

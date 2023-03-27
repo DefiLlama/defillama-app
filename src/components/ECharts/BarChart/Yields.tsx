@@ -57,7 +57,7 @@ export default function BarChartYields({ chartData }: IChartProps) {
 				text: 'Median APY Trend',
 				subtext: 'Calculated over all tracked pools on a given day',
 				textStyle: {
-					fontFamily: 'inter, sans-serif',
+					fontFamily: 'sans-serif',
 					fontWeight: 600,
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				}
@@ -84,7 +84,7 @@ export default function BarChartYields({ chartData }: IChartProps) {
 			legend: {
 				data: ['Median APY', '7-day Average'],
 				textStyle: {
-					fontFamily: 'inter, sans-serif',
+					fontFamily: 'sans-serif',
 					fontWeight: 600,
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				}
@@ -97,7 +97,7 @@ export default function BarChartYields({ chartData }: IChartProps) {
 					nameLocation: 'middle',
 					nameGap: 30,
 					nameTextStyle: {
-						fontFamily: 'inter, sans-serif',
+						fontFamily: 'sans-serif',
 						fontSize: 14,
 						fontWeight: 500,
 						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
@@ -125,7 +125,7 @@ export default function BarChartYields({ chartData }: IChartProps) {
 					position: 'middle',
 					nameGap: 40,
 					nameTextStyle: {
-						fontFamily: 'inter, sans-serif',
+						fontFamily: 'sans-serif',
 						fontSize: 14,
 						fontWeight: 500,
 						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'

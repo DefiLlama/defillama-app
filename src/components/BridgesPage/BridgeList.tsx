@@ -206,7 +206,7 @@ function BridgesOverview({
 						<BarChart
 							chartData={chainNetFlowData}
 							title=""
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 							customLegendName="Volume"
 							customLegendOptions={['Net Flow']}
 						/>
@@ -215,7 +215,7 @@ function BridgesOverview({
 						<BarChart
 							chartData={chainVolumeData}
 							title=""
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 							customLegendName="Volume"
 							customLegendOptions={['Deposits', 'Withdrawals']}
 							key={['Deposits', 'Withdrawals'] as any} // escape hatch to rerender state in legend options

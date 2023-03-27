@@ -122,7 +122,7 @@ export default function StackedBarChart({
 				? {
 						right: '2%',
 						textStyle: {
-							fontFamily: 'inter, sans-serif',
+							fontFamily: 'sans-serif',
 							fontWeight: 600,
 							color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 						}
@@ -176,7 +176,7 @@ export default function StackedBarChart({
 			title: {
 				text: title,
 				textStyle: {
-					fontFamily: 'inter, sans-serif',
+					fontFamily: 'sans-serif',
 					fontWeight: 600,
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				}
@@ -192,7 +192,7 @@ export default function StackedBarChart({
 				type: 'time',
 				boundaryGap: false,
 				nameTextStyle: {
-					fontFamily: 'inter, sans-serif',
+					fontFamily: 'sans-serif',
 					fontSize: 14,
 					fontWeight: 400
 				},
@@ -216,7 +216,7 @@ export default function StackedBarChart({
 				},
 				boundaryGap: false,
 				nameTextStyle: {
-					fontFamily: 'inter, sans-serif',
+					fontFamily: 'sans-serif',
 					fontSize: 14,
 					fontWeight: 400,
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'

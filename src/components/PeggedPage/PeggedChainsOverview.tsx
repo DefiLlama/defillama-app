@@ -147,7 +147,7 @@ function PeggedChainsOverview({
 							chartData={peggedAreaTotalData}
 							stacks={totalMcapLabel}
 							color={'lightcoral'}
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 							valueSymbol="$"
 							hideGradient={true}
 						/>
@@ -158,7 +158,7 @@ function PeggedChainsOverview({
 							chartData={peggedAreaChartData}
 							stacks={chainList}
 							valueSymbol="$"
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 							hideGradient={true}
 						/>
 					)}
@@ -168,7 +168,7 @@ function PeggedChainsOverview({
 							valueSymbol="%"
 							chartData={dataWithExtraPeggedAndDominanceByDay}
 							stacks={chainList}
-							hidedefaultlegend={true}
+							hideDefaultLegend={true}
 							hideGradient={true}
 							isStackedChart={true}
 						/>

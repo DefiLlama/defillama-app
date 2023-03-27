@@ -24,7 +24,7 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 					title=""
 					stacks={data.categories}
 					chartData={data.chartData}
-					hidedefaultlegend
+					hideDefaultLegend
 					hallmarks={data.hallmarks}
 					isStackedChart
 				/>

@@ -90,7 +90,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 					stackColors={forkColors}
 					customLegendName="Fork"
 					customLegendOptions={tokens}
-					hidedefaultlegend
+					hideDefaultLegend
 					valueSymbol="%"
 					title=""
 					isStackedChart={true}

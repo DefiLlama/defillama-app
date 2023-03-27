@@ -144,7 +144,7 @@ export default function CompareProtocolsTvls({
 						valueSymbol="$"
 						stacks={selectedProtocols}
 						stackColors={colors}
-						hidedefaultlegend
+						hideDefaultLegend
 					/>
 					{isLoading && <Loading>Loading...</Loading>}
 				</ChartWrapper>

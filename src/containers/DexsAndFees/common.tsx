@@ -222,7 +222,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 								chartData={barsData}
 								customLegendOptions={props.chartData[1]}
 								stacks={simpleStack}
-								hidedefaultlegend={props.disableDefaultLeged}
+								hideDefaultLegend={props.disableDefaultLeged}
 								/* stackColors={stackedBarChartColors} */
 							/>
 						)}
