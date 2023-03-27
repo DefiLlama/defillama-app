@@ -114,19 +114,12 @@ export default function ProtocolChart({
 		} else return { tvlData: chartDataFiltered, valueSymbol: '$' }
 	}, [denomination, denominationHistory, chartDataFiltered, DENOMINATIONS])
 
-	const protocolHasMcap =
-		protocolCGData &&
-		!loading &&
-		protocolCGData['market_caps'] &&
-		protocolCGData['market_caps'].filter((x) => x[1] !== 0)?.length > 0 &&
-		(!denomination || denomination === 'USD')
-
 	// append mcap data when api return it
 	const { finalData, tokensUnique, stackColors } = React.useMemo(() => {
 		let chartData = []
 		let tokensUnique = ['TVL']
 
-		if (protocolHasMcap && showMcap) {
+		if (geckoId && showMcap) {
 			tokensUnique = ['TVL', 'Mcap']
 
 			tvlData.forEach(([date, tvl]) => {
@@ -158,7 +151,7 @@ export default function ProtocolChart({
 		const stackColors = color ? { ...chartColors, TVL: color } : chartColors
 
 		return { finalData: chartData, tokensUnique, stackColors }
-	}, [tvlData, protocolCGData, showMcap, protocolHasMcap, showVol, volumeMap, color])
+	}, [tvlData, protocolCGData, showMcap, geckoId, showVol, volumeMap, color])
 
 	const toggleFilter = React.useCallback(
 		(type: string) => {
@@ -215,7 +208,7 @@ export default function ProtocolChart({
 					</ToggleWrapper2>
 				)}
 
-				{protocolHasMcap && (
+				{geckoId && (
 					<ToggleWrapper2>
 						<input
 							type="checkbox"
