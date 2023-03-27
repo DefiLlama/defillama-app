@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars*/
-import BigNumber from 'bignumber.js'
 import type { ISearchItem } from '~/components/Search/types'
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
 import { liquidationsIconUrl } from '..'

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { BigNumber } from 'bignumber.js'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { Text } from 'rebass'
@@ -11,7 +10,6 @@ import lchPlugin from 'colord/plugins/lch'
 import relativeTime from 'dayjs/plugin/relativeTime'
 
 extend([lchPlugin])
-BigNumber.set({ EXPONENTIAL_AT: 50 })
 dayjs.extend(utc)
 dayjs.extend(relativeTime)
 
