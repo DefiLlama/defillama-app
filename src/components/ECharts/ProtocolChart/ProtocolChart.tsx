@@ -67,11 +67,13 @@ export default function ProtocolChart({
 
 	// fetch denomination on protocol chains
 	const { data: denominationHistory, loading: denominationLoading } = useDenominationPriceHistory(
-		DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId
+		router.isReady && denomination ? DENOMINATIONS.find((d) => d.symbol === denomination)?.geckoId : null
 	)
 
 	// fetch protocol mcap data
-	const { data: protocolCGData, loading } = useDenominationPriceHistory(geckoId)
+	const { data: protocolCGData, loading } = useDenominationPriceHistory(
+		router.isReady && showMcapChart ? geckoId : null
+	)
 
 	// update tvl calc based on extra tvl options like staking, pool2 selected
 	const chartDataFiltered = React.useMemo(() => {
