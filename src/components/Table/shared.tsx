@@ -1,3 +1,4 @@
+import { Search } from 'react-feather'
 import styled from 'styled-components'
 
 interface INameProps {
@@ -72,4 +73,45 @@ export const PoolStrategyWithProjects = styled.div`
 		height: 16px;
 		width: 16px;
 	}
+`
+
+export const TableHeaderAndSearch = styled.div`
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 20px;
+`
+export const SearchWrapper = styled.div`
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	position: relative;
+	bottom: -6px;
+	margin-left: auto;
+
+	input {
+		width: 100%;
+		margin-right: auto;
+		border-radius: 8px;
+		padding: 8px;
+		padding-left: 32px;
+		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
+
+		font-size: 0.875rem;
+		border: none;
+	}
+
+	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
+		input {
+			max-width: 400px;
+		}
+	}
+`
+
+export const SearchIcon = styled(Search)`
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	color: ${({ theme }) => theme.text3};
 `

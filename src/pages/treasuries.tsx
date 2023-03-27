@@ -2,7 +2,7 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/api'
 import { PROTOCOLS_TREASURY } from '~/constants'
 import { Header } from '~/Theme'
-import { SearchWrapper, SearchIcon, Filters } from './emissions'
+import { SearchWrapper, SearchIcon, TableHeaderAndSearch } from '~/components/Table/shared'
 import * as React from 'react'
 import {
 	useReactTable,
@@ -67,7 +67,7 @@ export default function Treasuries({ treasuries }) {
 
 	return (
 		<Layout title={`Treasuries - DefiLlama`} defaultSEO>
-			<Filters>
+			<TableHeaderAndSearch>
 				<Header>Protocol Treasuries</Header>
 
 				<SearchWrapper>
@@ -81,7 +81,7 @@ export default function Treasuries({ treasuries }) {
 						placeholder="Search projects..."
 					/>
 				</SearchWrapper>
-			</Filters>
+			</TableHeaderAndSearch>
 
 			<VirtualTable instance={instance} />
 		</Layout>

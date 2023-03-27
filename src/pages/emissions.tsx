@@ -16,6 +16,7 @@ import VirtualTable from '~/components/Table/Table'
 import { Search } from 'react-feather'
 import { emissionsColumns } from '~/components/Table/Defi/columns'
 import { Header } from '~/Theme'
+import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
 
 export const getStaticProps = async () => {
 	const data = await getAllProtocolEmissions()
@@ -58,7 +59,7 @@ export default function Protocols({ data }) {
 
 	return (
 		<Layout title={`Emissions - DefiLlama`} defaultSEO>
-			<Filters>
+			<TableHeaderAndSearch>
 				<Header>Token Unlocks</Header>
 
 				<SearchWrapper>
@@ -72,52 +73,12 @@ export default function Protocols({ data }) {
 						placeholder="Search projects..."
 					/>
 				</SearchWrapper>
-			</Filters>
+			</TableHeaderAndSearch>
 
 			<VirtualTable instance={instance} />
 		</Layout>
 	)
 }
-export const Filters = styled.div`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 20px;
-`
-export const SearchWrapper = styled.div`
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-	position: relative;
-	bottom: -6px;
-	margin-left: auto;
-
-	input {
-		width: 100%;
-		margin-right: auto;
-		border-radius: 8px;
-		padding: 8px;
-		padding-left: 32px;
-		background: ${({ theme }) => (theme.mode === 'dark' ? '#000' : '#fff')};
-
-		font-size: 0.875rem;
-		border: none;
-	}
-
-	@media screen and (min-width: ${({ theme: { bpSm } }) => bpSm}) {
-		input {
-			max-width: 400px;
-		}
-	}
-`
-
-export const SearchIcon = styled(Search)`
-	position: absolute;
-	top: 8px;
-	left: 8px;
-	color: ${({ theme }) => theme.text3};
-`
 
 export const Wrapper = styled(StatsSection)`
 	display: flex;
