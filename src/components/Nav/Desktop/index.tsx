@@ -52,7 +52,7 @@ export default function DesktopNav() {
 								<Link href={link.path} key={link.path} prefetch={false} passHref>
 									<a
 										target={link.external && '_blank'}
-										rel="noopener noreferrer"
+										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
 										data-linkactive={link.path === asPath}
 									>
 										{link.name}
@@ -79,7 +79,7 @@ export default function DesktopNav() {
 								<Link href={link.path} key={link.path} prefetch={false} passHref>
 									<a
 										target={link.external && '_blank'}
-										rel="noopener noreferrer"
+										rel={`noopener${!link.referrer ? ' noreferrer' : ''}`}
 										data-linkactive={link.path === asPath}
 									>
 										{link.name}

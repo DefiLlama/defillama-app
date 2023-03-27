@@ -26,6 +26,7 @@ interface IFooterLink {
 	path: string
 	external?: boolean
 	newTag?: boolean
+	referrer?: boolean
 }
 
 interface IButtonLink {
@@ -54,13 +55,15 @@ const defaultToolsAndFooterLinks = {
 			name: 'LlamaNodes',
 			path: 'https://llamanodes.com/',
 			newTag: true,
-			external: true
+			external: true,
+			referrer: true
 		},
 		{
 			name: 'DLNews',
 			path: 'https://dlnews.com/',
 			newTag: true,
-			external: true
+			external: true,
+			referrer: true
 		},
 		{ name: 'Watchlist', path: '/watchlist' },
 		{ name: 'Directory', path: '/directory' },
