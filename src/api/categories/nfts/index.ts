@@ -8,7 +8,10 @@ import {
 	NFT_VOLUME_API,
 	NFT_COLLECTION_API,
 	NFT_MARKETPLACES_API,
-	NFT_SEARCH_API
+	NFT_SEARCH_API,
+	NFT_COLLECTION_SALES_API,
+	NFT_COLLECTION_STATS_API,
+	NFT_COLLECTION_FLOOR_HISTORY_API
 } from '~/constants'
 
 interface IResponseNFTSearchAPI {
@@ -136,10 +139,23 @@ export const getNFTCollectionsByMarketplace = async (marketplace: string) => {
 	}
 }
 
-export const getNFTCollection = async (slug) => {
+export const getNFTCollection = async (slug: string) => {
 	try {
-		const data = await fetch(`${NFT_COLLECTION_API}/${slug}`).then((r) => r.json())
-		return data.find((data) => data.SK === 'overview')
+		const [data, sales, stats, floorHistory] = await Promise.all([
+			fetch(`${NFT_COLLECTION_API}/${slug}`).then((r) => r.json()),
+			fetch(`${NFT_COLLECTION_SALES_API}/${slug}`).then((r) => r.json()),
+			fetch(`${NFT_COLLECTION_STATS_API}/${slug}`).then((r) => r.json()),
+			fetch(`${NFT_COLLECTION_FLOOR_HISTORY_API}/${slug}`).then((r) => r.json())
+		])
+
+		return {
+			data,
+			sales,
+			stats,
+			name: data?.[0]?.name ?? null,
+			address: slug,
+			floorHistory: floorHistory.map((item) => [Math.floor(new Date(item.timestamp).getTime() / 1000), item.floorPrice])
+		}
 	} catch (e) {
 		console.log(e)
 	}

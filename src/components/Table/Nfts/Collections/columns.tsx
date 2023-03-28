@@ -1,9 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
-import FormattedName from '~/components/FormattedName'
-import IconsRow from '~/components/IconsRow'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
-import { capitalizeFirstLetter, formattedNum, formattedPercent, nftCollectionIconUrl } from '~/utils'
+import { nftCollectionIconUrl, slug } from '~/utils'
 import { Name } from '../../shared'
 import type { INftCollection } from '../types'
 
@@ -17,8 +15,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 			return (
 				<Name>
 					<TokenLogo logo={nftCollectionIconUrl(item.collectionId)} external />
-
-					<FormattedName text={`${item.name}`} maxCharacters={24} />
+					<CustomLink href={`/nfts/collection/${slug(item.collectionId)}`}>{`${item.name}`}</CustomLink>
 				</Name>
 			)
 		},

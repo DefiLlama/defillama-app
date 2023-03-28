@@ -99,7 +99,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 				const topParams = filteredParams.slice(0, 10)
 				const otherParams = filteredParams.slice(10)
 
-				if (valueSymbol !== '%') {
+				if (valueSymbol !== '%' && valueSymbol !== 'ETH') {
 					vals = topParams.reduce((prev, curr) => {
 						return (prev +=
 							'<li style="list-style:none">' +
@@ -217,7 +217,8 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 		const yAxis = {
 			type: 'value',
 			axisLabel: {
-				formatter: (value) => (valueSymbol === '%' ? value + valueSymbol : valueSymbol + toK(value))
+				formatter: (value) =>
+					valueSymbol === '%' || valueSymbol === 'ETH' ? value + valueSymbol : valueSymbol + toK(value)
 			},
 			axisLine: {
 				lineStyle: {

@@ -1,0 +1,19 @@
+export interface ISale {
+	aggregatorAddress?: string | null
+	aggregatorName?: string | null
+	blockNumber: number
+	blockTime: string
+	buyer: string
+	ethSalePrice: number
+	exchangeName: string
+	salePrice: number
+	seller: string
+	tokenId: string
+	transactionHash: string
+	usdSalePrice: number
+}
+
+export interface ICollectionScatterChartProps {
+	sales: Array<ISale>
+	height?: string
+}
