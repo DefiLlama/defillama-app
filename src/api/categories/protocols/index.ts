@@ -753,66 +753,65 @@ export const getChainsPageData = async (category: string) => {
 
 // - used in /lsd
 export async function getLSDPageData() {
-	try {
-		const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json())))
-		const pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
+	const [{ protocols }] = await Promise.all([PROTOCOLS_API].map((url) => fetch(url).then((r) => r.json())))
+	const pools = (await fetch(YIELD_POOLS_API).then((r) => r.json())).data
 
-		const lsdRates = await fetch('https://yields.llama.fi/lsdRates').then((r) => r.json())
+	const lsdRates = await fetch('https://yields.llama.fi/lsdRates').then((r) => r.json())
 
-		// filter for LSDs
-		const lsdProtocols = protocols
-			.filter((p) => (p.category === 'Liquid Staking' || ['Stafi'].includes(p.name)) && p.chains.includes('Ethereum'))
-			.map((p) => p.name)
-			.filter((p) => p !== 'Genius')
+	// filter for LSDs
+	const lsdProtocols = protocols
+		.filter((p) => (p.category === 'Liquid Staking' || ['Stafi'].includes(p.name)) && p.chains.includes('Ethereum'))
+		.map((p) => p.name)
+		.filter((p) => p !== 'Genius')
 
-		// get historical data
-		const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
-		const history = await Promise.all(lsdProtocolsSlug.map((p) => fetch(`${PROTOCOL_API}/${p}`).then((r) => r.json())))
+	// get historical data
+	const lsdProtocolsSlug = lsdProtocols.map((p) => p.replace(/\s+/g, '-').toLowerCase())
+	const history = await Promise.all(lsdProtocolsSlug.map((p) => fetch(`${PROTOCOL_API}/${p}`).then((r) => r.json())))
 
-		const lsdApy = pools
-			.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
-			.map((p) => ({
-				...p,
-				name: p.project
-					.split('-')
-					.map((i) =>
-						i === 'stakewise' ? 'StakeWise' : i === 'eth' ? i.toUpperCase() : i.charAt(0).toUpperCase() + i.slice(1)
-					)
-					.join(' ')
-			}))
+	const lsdApy = pools
+		.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
+		.map((p) => ({
+			...p,
+			name: p.project
+				.split('-')
+				.map((i) =>
+					i === 'stakewise' ? 'StakeWise' : i === 'eth' ? i.toUpperCase() : i.charAt(0).toUpperCase() + i.slice(1)
+				)
+				.join(' ')
+		}))
 
-		// get protocols mcaps
-		const marketCaps = `https://api.coingecko.com/api/v3/simple/price?ids=${history
-			.map((p) => p.gecko_id)
-			.join(',')},frax-share&vs_currencies=usd&include_market_cap=true`
-		const chainMcaps = await fetch(marketCaps).then((res) => res.json())
+	// get protocols mcaps
+	const marketCaps = `https://api.coingecko.com/api/v3/simple/price?ids=${history
+		.map((p) => p.gecko_id)
+		.join(',')},frax-share&vs_currencies=usd&include_market_cap=true`
 
-		const nameGeckoMapping = {}
-		for (const p of history) {
-			nameGeckoMapping[p.name] = p.name === 'Frax Ether' ? 'frax-share' : p.gecko_id
-		}
-
-		const colors = {}
-		lsdProtocols.forEach((protocol, index) => {
-			colors[protocol] = getColorFromNumber(index, 10)
+	const chainMcaps = await fetch(marketCaps)
+		.then((res) => res.json())
+		.catch((err) => {
+			console.log(err)
+			return {}
 		})
 
-		colors['Others'] = '#AAAAAA'
+	const nameGeckoMapping = {}
+	for (const p of history) {
+		nameGeckoMapping[p.name] = p.name === 'Frax Ether' ? 'frax-share' : p.gecko_id
+	}
 
-		return {
-			props: {
-				chartData: history,
-				lsdColors: colors,
-				lsdRates,
-				chainMcaps,
-				nameGeckoMapping,
-				lsdApy
-			}
-		}
-	} catch (e) {
-		console.log(e)
-		return {
-			notFound: true
+	const colors = {}
+	lsdProtocols.forEach((protocol, index) => {
+		colors[protocol] = getColorFromNumber(index, 10)
+	})
+
+	colors['Others'] = '#AAAAAA'
+
+	return {
+		props: {
+			chartData: history,
+			lsdColors: colors,
+			lsdRates,
+			chainMcaps,
+			nameGeckoMapping,
+			lsdApy
 		}
 	}
 }
