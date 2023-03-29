@@ -5,6 +5,7 @@ import { capitalizeFirstLetter, chainIconUrl } from '~/utils'
 import { getAPIUrl } from './client'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummary, ProtocolAdaptorSummaryResponse } from './types'
 import { formatChain, getCexVolume, handleFetchResponse } from './utils'
+import { chainCoingeckoIds } from '~/constants/chainTokens'
 
 /* export const getDex = async (dexName: string): Promise<IDexResponse> =>
 	await fetch(`${DEX_BASE_API}/${dexName}`).then((r) => r.json())
@@ -152,20 +153,28 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 		allChains
 	} = request
 	const chains = protocols.filter((e) => e.protocolType === 'chain').map((e) => e.name)
-	const chainMcaps = await fetch(
-		`https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(chains)
-			.map((c: string) => getMapingCoinGeckoId(c))
-			.map((v: string) => v.toLocaleUpperCase())
-			.join(',')}&vs_currencies=usd&include_market_cap=true`
-	)
-		.then((res) => res.json())
+
+	const chainMcaps = await fetch('https://coins.llama.fi/mcaps', {
+		method: 'POST',
+		body: JSON.stringify({
+			coins: Object.values(chains)
+				.filter((c) => chainCoingeckoIds[c]?.geckoId)
+				.map((c: string) => `coingecko:${chainCoingeckoIds[c].geckoId}`)
+		})
+	})
+		.then((r) => r.json())
 		.catch((err) => {
-			console.log('Failed to fetch adaptors chain chainMcaps on page ', type, chain)
+			console.log(err)
 			return {}
 		})
+
 	const chainMcap =
-		chains?.reduce((acc, pd) => {
-			acc[pd] = chainMcaps[getMapingCoinGeckoId(pd).toLowerCase()]?.usd_market_cap || null
+		chains?.reduce((acc, curr) => {
+			const geckoId = chainCoingeckoIds[curr]?.geckoId
+
+			if (geckoId) {
+				acc[curr] = chainMcaps[`coingecko:${geckoId}`]?.mcap ?? null
+			}
 			return acc
 		}, {}) ?? {}
 

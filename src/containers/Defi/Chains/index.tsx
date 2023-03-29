@@ -24,14 +24,6 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
-export async function getStaticProps() {
-	const data = await getChainsPageData('All')
-	return {
-		...data,
-		revalidate: maxAgeForNext([22])
-	}
-}
-
 const ChartsWrapper = styled(Panel)`
 	min-height: 402px;
 	display: grid;

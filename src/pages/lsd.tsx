@@ -44,7 +44,7 @@ const ChartsWrapper = styled(Panel)`
 		grid-template-columns: 1fr 1fr;
 	}
 `
-const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping, lsdApy }) => {
+const PageView = ({ chartData, lsdColors, lsdRates, nameGeckoMapping, lsdApy }) => {
 	const historicData = chartData
 		.map((protocol) => {
 			const tokensArray = protocol.chainTvls['Ethereum'].tokens
@@ -109,7 +109,8 @@ const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping
 				if (p.tokens.length < 1) {
 					return {
 						name: protocol.name,
-						logo: protocol.logo
+						logo: protocol.logo,
+						mcap: protocol.mcap
 					}
 				}
 
@@ -137,6 +138,7 @@ const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping
 				return {
 					name: protocol.name,
 					logo: protocol.logo,
+					mcap: protocol.mcap,
 					stakedEth: eth,
 					stakedEthInUsd: lastTokensInUsd[Object.keys(lastTokensInUsd).filter((k) => k.includes('ETH'))[0]],
 					stakedEthPctChange7d: eth7d !== null ? ((eth - eth7d) / eth7d) * 100 : null,
@@ -164,8 +166,7 @@ const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping
 					? 'ANKRETH'
 					: priceInfo?.symbol ?? (p.name === 'StakeHound' ? 'stETH' : p.name === 'Hord' ? 'hETH' : null)
 
-			const mcap = chainMcaps[nameGeckoMapping[p.name]]?.usd_market_cap
-			const mcaptvl = mcap / p.stakedEthInUsd
+			const mcaptvl = p.mcap / p.stakedEthInUsd
 
 			return {
 				...p,
@@ -175,7 +176,6 @@ const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping
 				pegInfo,
 				marketRate,
 				expectedRate,
-				mcap,
 				mcapOverTvl: mcaptvl ? mcaptvl.toFixed(2) : null,
 				apy: lsdApy.find((m) => m.name === p.name)?.apy
 			}
@@ -186,7 +186,7 @@ const PageView = ({ chartData, lsdColors, lsdRates, chainMcaps, nameGeckoMapping
 		const tokens = tokensList.map((p) => p.name)
 
 		return { pieChartData, tokensList, tokens, stakedEthSum, stakedEthInUsdSum }
-	}, [chartData, lsdRates, chainMcaps, nameGeckoMapping, lsdApy])
+	}, [chartData, lsdRates, nameGeckoMapping, lsdApy])
 
 	return (
 		<>
