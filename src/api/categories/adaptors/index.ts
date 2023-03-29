@@ -98,9 +98,9 @@ function getMCap(protocolsData: { protocols: LiteProtocol[] }) {
 function getTVLData(protocolsData: { protocols: LiteProtocol[] }, chain?: string) {
 	const protocolsRaw = chain
 		? protocolsData?.protocols.map((p) => ({
-			...p,
-			tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null
-		}))
+				...p,
+				tvlPrevDay: p?.chainTvls?.[formatChain(chain)]?.tvlPrevDay ?? null
+		  }))
 		: protocolsData?.protocols
 	return (
 		protocolsRaw?.reduce((acc, pd) => {
@@ -129,7 +129,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 
 	const [request, protocolsData, feesOrRevenue, cexVolume]: [
 		IGetOverviewResponseBody,
-		{ protocols: LiteProtocol[], parentProtocols: IParentProtocol[] },
+		{ protocols: LiteProtocol[]; parentProtocols: IParentProtocol[] },
 		IGetOverviewResponseBody,
 		number
 	] = await Promise.all([
@@ -157,7 +157,13 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			.map((c: string) => getMapingCoinGeckoId(c))
 			.map((v: string) => v.toLocaleUpperCase())
 			.join(',')}&vs_currencies=usd&include_market_cap=true`
-	).then((res) => res.json())
+	)
+		.then((res) => res.json())
+		.catch((err) => {
+			console.log("Couldn't fetch adaptors chain chainMcaps", type, chain)
+			console.log(err)
+			return {}
+		})
 	const chainMcap =
 		chains?.reduce((acc, pd) => {
 			acc[pd] = chainMcaps[getMapingCoinGeckoId(pd).toLowerCase()]?.usd_market_cap || null
@@ -181,9 +187,9 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	const revenueProtocols =
 		type === 'fees'
 			? feesOrRevenue?.protocols?.reduce(
-				(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
-				{} as IJSON<ProtocolAdaptorSummary>
-			) ?? {}
+					(acc, protocol) => ({ ...acc, [protocol.name]: protocol }),
+					{} as IJSON<ProtocolAdaptorSummary>
+			  ) ?? {}
 			: {}
 
 	const { parentProtocols } = protocolsData
@@ -207,13 +213,10 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 				mcap: mcapData[protocol.name] || null
 			}
 			// If already included parent protocol we add the new child
-			if (acc[protocol.parentProtocol])
-				acc[protocol.parentProtocol].subRows.push(subRow)
+			if (acc[protocol.parentProtocol]) acc[protocol.parentProtocol].subRows.push(subRow)
 			// If first time processed parent protocol we create the subrows list
-			else
-				acc[protocol.parentProtocol] = { ...acc[protocol.parentProtocol], subRows: [subRow] }
-		}
-		else mainRow = protocol
+			else acc[protocol.parentProtocol] = { ...acc[protocol.parentProtocol], subRows: [subRow] }
+		} else mainRow = protocol
 
 		// Main row, either parent or single protocol
 		const protocolTVL = tvlData[protocol.name]
@@ -244,15 +247,33 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 			mainRow.revenue30d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('revenue30d'), null)
 			mainRow.dailyRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyRevenue'), null)
 			mainRow.dailyUserFees = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyUserFees'), null)
-			mainRow.dailyCreatorRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyCreatorRevenue'), null)
-			mainRow.dailyHoldersRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyHoldersRevenue'), null)
-			mainRow.dailyPremiumVolume = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyPremiumVolume'), null)
-			mainRow.dailyProtocolRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailyProtocolRevenue'), null)
-			mainRow.dailySupplySideRevenue = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('dailySupplySideRevenue'), null)
+			mainRow.dailyCreatorRevenue = acc[protocol.parentProtocol].subRows.reduce(
+				reduceSumByAttribute('dailyCreatorRevenue'),
+				null
+			)
+			mainRow.dailyHoldersRevenue = acc[protocol.parentProtocol].subRows.reduce(
+				reduceSumByAttribute('dailyHoldersRevenue'),
+				null
+			)
+			mainRow.dailyPremiumVolume = acc[protocol.parentProtocol].subRows.reduce(
+				reduceSumByAttribute('dailyPremiumVolume'),
+				null
+			)
+			mainRow.dailyProtocolRevenue = acc[protocol.parentProtocol].subRows.reduce(
+				reduceSumByAttribute('dailyProtocolRevenue'),
+				null
+			)
+			mainRow.dailySupplySideRevenue = acc[protocol.parentProtocol].subRows.reduce(
+				reduceSumByAttribute('dailySupplySideRevenue'),
+				null
+			)
 			mainRow.mcap = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('mcap'), null)
 			// mainRow.mcap = acc[protocol.parentProtocol].subRows.reduce(reduceHigherByAttribute('mcap'), null)
-			mainRow.chains = getUniqueArray(acc[protocol.parentProtocol].subRows.map(d => d.chains).flat())
-			mainRow.methodology = getParentProtocolMethodology(mainRow.displayName, acc[protocol.parentProtocol].subRows.map(r => r.displayName))
+			mainRow.chains = getUniqueArray(acc[protocol.parentProtocol].subRows.map((d) => d.chains).flat())
+			mainRow.methodology = getParentProtocolMethodology(
+				mainRow.displayName,
+				acc[protocol.parentProtocol].subRows.map((r) => r.displayName)
+			)
 			const total14dto7d = acc[protocol.parentProtocol].subRows.reduce(reduceSumByAttribute('total14dto7d'), null)
 			mainRow.change_7dover7d = ((mainRow.total7d - total14dto7d) / total14dto7d) * 100
 		}
@@ -288,7 +309,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 const reduceSumByAttribute = (attribute: string) => (acc, curr) => {
 	if (curr[attribute] !== null) {
 		if (acc === undefined) return curr[attribute]
-		return acc += curr[attribute]
+		return (acc += curr[attribute])
 	}
 	return acc
 }
