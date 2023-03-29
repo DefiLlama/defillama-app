@@ -160,8 +160,7 @@ export const getChainPageData = async (type: string, chain?: string): Promise<IO
 	)
 		.then((res) => res.json())
 		.catch((err) => {
-			console.log("Couldn't fetch adaptors chain chainMcaps", type, chain)
-			console.log(err)
+			console.log('Failed to fetch adaptors chain chainMcaps on page ', type, chain)
 			return {}
 		})
 	const chainMcap =
