@@ -119,7 +119,7 @@ export default function ProtocolChart({
 		let chartData = []
 		let tokensUnique = ['TVL']
 
-		if (geckoId && showMcap) {
+		if (geckoId && showMcap && protocolCGData) {
 			tokensUnique = ['TVL', 'Mcap']
 
 			tvlData.forEach(([date, tvl]) => {
