@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Layout from '~/layout'
-import { DetailsWrapper, Name, ChartWrapper, ChartsWrapper, LazyChart } from '~/layout/ProtocolAndPool'
+import { DetailsWrapper, Name, ChartWrapper, ChartsWrapper, LazyChart, Button } from '~/layout/ProtocolAndPool'
 import { StatsSection } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
 import TokenLogo from '~/components/TokenLogo'
@@ -9,6 +9,8 @@ import { nftCollectionIconUrl } from '~/utils'
 import dynamic from 'next/dynamic'
 import type { ICollectionScatterChartProps } from './types'
 import { IChartProps } from '~/components/ECharts/types'
+import { ArrowUpRight } from 'react-feather'
+import Link from 'next/link'
 
 const CollectionScatterChart = dynamic(() => import('./CollectionScatterChart'), {
 	ssr: false
@@ -19,12 +21,15 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 }) as React.FC<IChartProps>
 
 export function NFTCollectionContainer({ name, data, stats, sales, address, floorHistory }) {
+	const floorPrice = floorHistory[floorHistory.length - 1]?.[1]
+	const volume24h = stats[floorHistory.length - 1]?.sum
+
 	return (
 		<Layout title={(name || 'NFTs') + ' - DefiLlama'}>
 			<StatsSection>
 				<DetailsWrapper>
 					<Name>
-						<TokenLogo logo={nftCollectionIconUrl(address)} size={24} />
+						<TokenLogo logo={nftCollectionIconUrl(address)} fallbackLogo={data?.[0]?.image} size={24} />
 						<FormattedName text={name} fontWeight={700} />
 					</Name>
 
@@ -32,6 +37,28 @@ export function NFTCollectionContainer({ name, data, stats, sales, address, floo
 						<span>Total Supply</span>
 						<span>{data?.[0]?.totalSupply}</span>
 					</Stat>
+
+					<Stat>
+						<span>Floor Price</span>
+						<span>{floorPrice ? floorPrice.toFixed(2) + ' ETH' : ''}</span>
+					</Stat>
+
+					<Stat>
+						<span>24h Volume</span>
+						<span>{volume24h ? volume24h.toFixed(2) + ' ETH' : ''}</span>
+					</Stat>
+
+					<Link href={`https://etherscan.io/token/${address}`} passHref>
+						<Button
+							as="a"
+							target="_blank"
+							rel="noopener noreferrer"
+							useTextColor={true}
+							style={{ width: 'fit-content' }}
+						>
+							<span>View on Etherscan</span> <ArrowUpRight size={14} />
+						</Button>
+					</Link>
 				</DetailsWrapper>
 
 				<ChartWrapper>
