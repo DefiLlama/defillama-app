@@ -2,6 +2,7 @@ import dynamic from 'next/dynamic'
 import styled from 'styled-components'
 import type { IChartProps } from '~/components/ECharts/types'
 import { Section } from '~/layout/ProtocolAndPool'
+import { formatUnlocksEvent } from '~/utils'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
@@ -12,7 +13,7 @@ export interface IEmission {
 	chartData: Array<{ [label: string]: number }>
 	sources: Array<string>
 	notes: Array<string>
-	events: Array<{ description: string; timestamp: string }>
+	events: Array<{ description: string; timestamp: string; noOfTokens: number[] }>
 	hallmarks: Array<[number, string]>
 }
 
@@ -62,7 +63,9 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 					<h4>Events</h4>
 					<List>
 						{data.events.map((event) => (
-							<li key={event.description}>{event.description}</li>
+							<li key={event.description}>
+								{formatUnlocksEvent(event.description, event.noOfTokens ?? [], event.timestamp, 0) /*fix price*/}
+							</li>
 						))}
 					</List>
 				</>

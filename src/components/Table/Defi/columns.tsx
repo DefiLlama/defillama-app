@@ -13,13 +13,13 @@ import {
 	chainIconUrl,
 	formattedNum,
 	formattedPercent,
+	formatUnlocksEvent,
 	getDominancePercent,
 	slug,
 	standardizeProtocolName,
 	toK,
 	tokenIconUrl,
-	toNiceDayMonthAndYear,
-	toNiceDayMonthAndYearAndTime
+	toNiceDayMonthAndYear
 } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
@@ -372,13 +372,12 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		accessorKey: 'upcomingEvent',
 		cell: ({ getValue, row }) => {
 			const price = row.original.tPrice
-			let { description, noOfTokens } = getValue() as { description: string; noOfTokens: number[] }
-			;(noOfTokens ?? []).forEach((tokens, i) => {
-				description = description.replace(
-					`{tokens[${i}]}`,
-					`${formattedNum(tokens)} ($${formattedNum(tokens * price)})`
-				)
-			})
+			let { description, noOfTokens, timestamp } = getValue() as {
+				description: string
+				noOfTokens: number[]
+				timestamp: number
+			}
+			description = formatUnlocksEvent(description, noOfTokens ?? [], timestamp, price)
 			return <span style={{ width: '100%', overflow: 'scroll' }}>{description}</span>
 		},
 		size: 800
