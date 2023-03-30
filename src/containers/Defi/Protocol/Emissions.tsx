@@ -12,6 +12,7 @@ export interface IEmission {
 	chartData: Array<{ [label: string]: number }>
 	sources: Array<string>
 	notes: Array<string>
+	events: Array<{ description: string; timestamp: string }>
 	hallmarks: Array<[number, string]>
 }
 
@@ -51,6 +52,17 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 					<List>
 						{data.notes.map((note) => (
 							<li key={note}>{note}</li>
+						))}
+					</List>
+				</>
+			)}
+
+			{data.events?.length > 0 && (
+				<>
+					<h4>Events</h4>
+					<List>
+						{data.events.map((event) => (
+							<li key={event.description}>{event.description}</li>
 						))}
 					</List>
 				</>

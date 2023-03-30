@@ -125,6 +125,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			chartData,
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
+			events: metadata?.events ?? [],
 			categories: emissionCategories,
 			hallmarks: data.length > 0 ? [[Date.now() / 1000, 'Today']] : [],
 			name: name || null
