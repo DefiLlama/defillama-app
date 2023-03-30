@@ -256,7 +256,8 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 					<CustomLink href={`/emissions/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
 				</Name>
 			)
-		}
+		},
+		size: 220
 	},
 	{
 		header: 'Token Price',
@@ -311,29 +312,36 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 				</Tooltip>
 			)
 		},
-		size: 100,
+		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Unlocks per day',
+		accessorKey: 'nextEvent',
+		cell: ({ getValue, row }) => {
+			const value = getValue() as { date: string; toUnlock: number }
+			const symbol = row.original.tokenPrice?.coins?.[row.original.token]?.symbol ?? null
+			return (
+				<Tooltip content={value.toUnlock.toFixed(2)}>
+					{formattedNum(value.toUnlock) + (symbol ? ` ${symbol}` : '')}
+				</Tooltip>
+			)
+		},
 		meta: {
 			align: 'end'
 		}
 	},
 	{
 		header: 'Next Event',
-		accessorKey: 'nextEvent',
-		cell: ({ getValue, row }) => {
-			const value = getValue() as { date: string; toUnlock: number }
-			const symbol = row.original.tokenPrice?.coins?.[row.original.token]?.symbol ?? null
-			return (
-				<AutoColumn gap="4px">
-					<span>{toNiceDayMonthAndYearAndTime(value.date)}</span>
-					<Tooltip content={value.toUnlock.toFixed(2)}>
-						<span style={{ opacity: 0.6 }}>{formattedNum(value.toUnlock) + (symbol ? ` ${symbol}` : '')}</span>
-					</Tooltip>
-				</AutoColumn>
-			)
-		},
-		meta: {
-			align: 'end'
-		}
+		accessorKey: 'upcomingEvent',
+		cell: ({ getValue, row }) => (
+			<span style={{ width: '100%', overflow: 'scroll' }}>
+				{(getValue() as { description: string })?.description ?? ''}
+			</span>
+		),
+		size: 800
 	}
 ]
 
