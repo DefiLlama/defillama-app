@@ -36,9 +36,17 @@ interface IUseDefaultsProps {
 	tooltipSort?: boolean
 	valueSymbol?: string
 	hideLegend?: boolean
+	isStackedChart?: boolean
 }
 
-export function useDefaults({ color, title, tooltipSort = true, valueSymbol = '', hideLegend }: IUseDefaultsProps) {
+export function useDefaults({
+	color,
+	title,
+	tooltipSort = true,
+	valueSymbol = '',
+	hideLegend,
+	isStackedChart
+}: IUseDefaultsProps) {
 	const [isDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -87,7 +95,7 @@ export function useDefaults({ color, title, tooltipSort = true, valueSymbol = ''
 				let vals
 				let filteredParams = params
 					.filter((item) => item.value[1] !== '-' && item.value[1] !== null)
-					.sort((a, b) => (tooltipSort ? Math.abs(b.value[1]) - Math.abs(a.value[1]) : 0))
+					.sort((a, b) => (isStackedChart ? 1 : tooltipSort ? Math.abs(b.value[1]) - Math.abs(a.value[1]) : 0))
 
 				const otherIndex = filteredParams.findIndex((item) => item.seriesName === 'Others')
 				let others

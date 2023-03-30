@@ -44,7 +44,8 @@ export default function AreaChart({
 		title,
 		valueSymbol,
 		tooltipSort,
-		hideLegend: true
+		hideLegend: true,
+		isStackedChart
 	})
 
 	const series = useMemo(() => {
