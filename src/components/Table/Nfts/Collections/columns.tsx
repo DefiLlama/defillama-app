@@ -1,7 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { CustomLink } from '~/components/Link'
 import TokenLogo from '~/components/TokenLogo'
-import { nftCollectionIconUrl, slug } from '~/utils'
+import { nftCollectionIconUrl, slug, formattedPercent } from '~/utils'
 import { Name } from '../../shared'
 import type { INftCollection } from '../types'
 
@@ -22,26 +22,28 @@ export const columns: ColumnDef<INftCollection>[] = [
 		size: 200
 	},
 	{
-		header: 'Total Supply',
-		accessorKey: 'totalSupply',
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'On Sale',
-		accessorKey: 'onSaleCount',
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
 		header: 'Floor Price',
 		accessorKey: 'floorPrice',
 		size: 120,
 		cell: (info) => info.getValue() + ' ETH',
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '1d Change',
+		accessorKey: 'floorPricePctChange1Day',
+		size: 120,
+		cell: (info) => formattedPercent(info.getValue()),
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: '7d Change',
+		accessorKey: 'floorPricePctChange7Day',
+		size: 120,
+		cell: (info) => formattedPercent(info.getValue()),
 		meta: {
 			align: 'end'
 		}
@@ -67,11 +69,17 @@ export const columns: ColumnDef<INftCollection>[] = [
 		}
 	},
 	{
-		header: 'Volume 30d',
-		accessorKey: 'volume30d',
+		header: 'Total Supply',
+		accessorKey: 'totalSupply',
 		size: 120,
-		cell: (info) => <>{info.getValue() ? info.getValue() + ' ETH' : ''}</>,
-
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'On Sale',
+		accessorKey: 'onSaleCount',
+		size: 120,
 		meta: {
 			align: 'end'
 		}
