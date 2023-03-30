@@ -111,6 +111,7 @@ export default function CollectionScatterChart({ height = '360px', sales }: ICol
 			},
 			yAxis: {
 				type: 'value',
+				min: 'dataMin',
 				axisLabel: {
 					formatter: (value) => value + ' ETH'
 				},
