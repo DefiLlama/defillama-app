@@ -48,7 +48,7 @@ export function NFTCollectionContainer({ name, data, stats, sales, address, floo
 						<span>{volume24h ? volume24h.toFixed(2) + ' ETH' : ''}</span>
 					</Stat>
 
-					<Link href={`https://etherscan.io/token/${address}`} passHref>
+					<Link href={`https://etherscan.io/token/${address.split(':')[0]}`} passHref>
 						<Button
 							as="a"
 							target="_blank"
