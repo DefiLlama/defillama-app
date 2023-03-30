@@ -370,11 +370,14 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Next Event',
 		accessorKey: 'upcomingEvent',
-		cell: ({ getValue, row }) => (
-			<span style={{ width: '100%', overflow: 'scroll' }}>
-				{(getValue() as { description: string })?.description ?? ''}
-			</span>
-		),
+		cell: ({ getValue, row }) => {
+			const price = row.original.tPrice
+			let { description, noOfTokens } = getValue() as { description: string; noOfTokens: number[] }
+			;(noOfTokens ?? []).forEach((tokens, i) => {
+				description.replace(`{tokens[${i}]}`, `${formattedNum(tokens)} (${formattedNum(tokens * price)}$)`)
+			})
+			return <span style={{ width: '100%', overflow: 'scroll' }}>{description}</span>
+		},
 		size: 800
 	}
 ]
