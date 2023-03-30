@@ -253,7 +253,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 				<Name>
 					<span>{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
-					<CustomLink href={`/emissions/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
+					<CustomLink href={`/unlocks/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
 				</Name>
 			)
 		},
