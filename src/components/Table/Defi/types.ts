@@ -53,4 +53,7 @@ export interface IEmission {
 	nextEvent: { data: string; toUnlock: number }
 	token: string
 	tokenPrice: { coins: { [key: string]: { price: number; symbol: string } } }
+	tPrice?: number | null
+	tSymbol?: string | null
+	mcap: number | null
 }

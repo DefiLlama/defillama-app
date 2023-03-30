@@ -261,10 +261,19 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	},
 	{
 		header: 'Token Price',
-		accessorKey: 'tokenPrice',
+		accessorKey: 'tPrice',
 		cell: ({ getValue, row }) => {
-			const price = (getValue() as IEmission['tokenPrice'])?.coins?.[row.original.token]?.price ?? null
-			return <>{price ? '$' + price : ''}</>
+			return <>{getValue() ? '$' + getValue() : ''}</>
+		},
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Mcap',
+		accessorKey: 'mcap',
+		cell: ({ getValue }) => {
+			return <>{getValue() ? '$' + formattedNum(getValue()) : ''}</>
 		},
 		meta: {
 			align: 'end'
@@ -274,11 +283,16 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'Max Supply',
 		accessorKey: 'maxSupply',
 		cell: ({ getValue, row }) => {
-			const symbol = row.original.tokenPrice?.coins?.[row.original.token]?.symbol ?? null
+			const symbol = row.original.tSymbol
+			const value = getValue() as number
+			const usdValue = row.original.tPrice && value ? formattedNum((+row.original.tPrice * value).toFixed(2)) : ''
 			return (
-				<Tooltip content={row.original.maxSupply.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
-					{formattedNum(getValue())}
-				</Tooltip>
+				<AutoColumn gap="4px">
+					<Tooltip content={value.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
+						{formattedNum(value) + (symbol ? ` ${symbol}` : '')}
+					</Tooltip>
+					<LightText>{usdValue ? '$' + usdValue : ''}</LightText>
+				</AutoColumn>
 			)
 		},
 		meta: {
@@ -289,11 +303,17 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'Circulating Supply',
 		accessorKey: 'circSupply',
 		cell: ({ getValue, row }) => {
-			const symbol = row.original.tokenPrice?.coins?.[row.original.token]?.symbol ?? null
+			const symbol = row.original.tSymbol
+			const value = getValue() as number
+			const usdValue = row.original.tPrice && value ? formattedNum((+row.original.tPrice * value).toFixed(2)) : ''
+
 			return (
-				<Tooltip content={row.original.circSupply.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
-					{formattedNum(getValue())}
-				</Tooltip>
+				<AutoColumn gap="4px">
+					<Tooltip content={value.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
+						{formattedNum(value) + (symbol ? ` ${symbol}` : '')}
+					</Tooltip>
+					<LightText>{usdValue ? '$' + usdValue : ''}</LightText>
+				</AutoColumn>
 			)
 		},
 		meta: {
@@ -305,11 +325,19 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		accessorKey: 'totalLocked',
 		accessorFn: (row) => (row.totalLocked / row.maxSupply) * 100,
 		cell: ({ getValue, row }) => {
-			const symbol = row.original.tokenPrice?.coins?.[row.original.token]?.symbol ?? null
+			const symbol = row.original.tSymbol
+			const usdValue =
+				row.original.tPrice && row.original.totalLocked
+					? formattedNum((+row.original.tPrice * row.original.totalLocked).toFixed(2))
+					: ''
+
 			return (
-				<Tooltip content={row.original.totalLocked.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
-					{(getValue() as number).toFixed(2) + '%'}
-				</Tooltip>
+				<AutoColumn gap="4px">
+					<Tooltip content={row.original.totalLocked.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
+						{(getValue() as number).toFixed(2) + '%'}
+					</Tooltip>
+					<LightText>{usdValue ? '$' + usdValue : ''}</LightText>
+				</AutoColumn>
 			)
 		},
 		size: 140,
@@ -322,11 +350,17 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		accessorKey: 'nextEvent',
 		cell: ({ getValue, row }) => {
 			const value = getValue() as { date: string; toUnlock: number }
-			const symbol = row.original.tokenPrice?.coins?.[row.original.token]?.symbol ?? null
+			const symbol = row.original.tSymbol
+			const usdValue =
+				row.original.tPrice && value.toUnlock ? formattedNum((+row.original.tPrice * value.toUnlock).toFixed(2)) : ''
+
 			return (
-				<Tooltip content={value.toUnlock.toFixed(2)}>
-					{formattedNum(value.toUnlock) + (symbol ? ` ${symbol}` : '')}
-				</Tooltip>
+				<AutoColumn gap="4px">
+					<Tooltip content={value.toUnlock.toFixed(2)}>
+						{formattedNum(value.toUnlock) + (symbol ? ` ${symbol}` : '')}
+					</Tooltip>
+					<LightText>{usdValue ? '$' + usdValue : ''}</LightText>
+				</AutoColumn>
 			)
 		},
 		meta: {
@@ -1245,3 +1279,7 @@ const TooltipContent = ({ dominance, protocolName }) => {
 		</AutoRow>
 	)
 }
+
+const LightText = styled.span`
+	opacity: 0.6;
+`

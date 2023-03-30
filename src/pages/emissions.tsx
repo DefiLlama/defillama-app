@@ -31,7 +31,7 @@ export const getStaticProps = async () => {
 
 export default function Protocols({ data }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>([])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'mcap', desc: true }])
 
 	const instance = useReactTable({
 		data,
