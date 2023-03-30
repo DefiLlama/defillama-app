@@ -87,6 +87,7 @@ export const CG_TOKEN_API =
 	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'
 
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
-export const ICONS_PALETTE_CDN = 'https://icons.llamao.fi/palette'
+// export const ICONS_PALETTE_CDN = 'https://icons.llamao.fi/palette'
+export const ICONS_PALETTE_CDN = 'https://palette.llamao.fi/palette'
 
 export const COINS_API = 'https://coins.llama.fi/prices'
