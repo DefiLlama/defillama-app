@@ -374,7 +374,10 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			const price = row.original.tPrice
 			let { description, noOfTokens } = getValue() as { description: string; noOfTokens: number[] }
 			;(noOfTokens ?? []).forEach((tokens, i) => {
-				description.replace(`{tokens[${i}]}`, `${formattedNum(tokens)} (${formattedNum(tokens * price)}$)`)
+				description = description.replace(
+					`{tokens[${i}]}`,
+					`${formattedNum(tokens)} ($${formattedNum(tokens * price)})`
+				)
 			})
 			return <span style={{ width: '100%', overflow: 'scroll' }}>{description}</span>
 		},
