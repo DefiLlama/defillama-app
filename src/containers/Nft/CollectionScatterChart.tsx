@@ -52,7 +52,7 @@ export default function CollectionScatterChart({ height = '360px', sales }: ICol
 				emphasis: {
 					focus: 'series'
 				},
-				data: sales.map((p) => [new Date(p.blockTime), p.ethSalePrice, p.tokenId, p.exchangeName])
+				data: sales.map((p) => [new Date(p[0]), p[1]])
 			}
 		]
 
@@ -83,23 +83,7 @@ export default function CollectionScatterChart({ height = '360px', sales }: ICol
 						day: 'numeric'
 					})
 
-					let vals =
-						'<li style="list-style:none">' +
-						'Sale Price:' +
-						'&nbsp;&nbsp;' +
-						params.value[1] +
-						' ETH' +
-						'</li>' +
-						'<li style="list-style:none">' +
-						'Token Id:' +
-						'&nbsp;&nbsp;' +
-						params.value[2] +
-						'</li>' +
-						'<li style="list-style:none">' +
-						'Marketplace:' +
-						'&nbsp;&nbsp;' +
-						params.value[3] +
-						'</li>'
+					let vals = '<li style="list-style:none">' + 'Sale Price:' + '&nbsp;&nbsp;' + params.value[1]
 
 					return chartdate + vals
 				}
