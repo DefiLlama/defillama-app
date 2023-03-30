@@ -2,6 +2,7 @@ export { default as YieldsPoolsTable } from './Yields/Pools'
 export { default as YieldsProjectsTable } from './Yields/Projects'
 export { default as YieldsBorrowTable } from './Yields/Borrow'
 export { default as NftsCollectionTable } from './Nfts/Collections'
+export { default as NftsmarketplaceTable } from './Nfts/Marketplaces'
 export {
 	default as NftsChainsAndMarketplacesTable,
 	NftChainsTable,

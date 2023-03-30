@@ -34,3 +34,13 @@ export interface INftCollection {
 	volume7d: number
 	volume30d: number
 }
+
+export interface INftMarketplace {
+	exchangeName: string
+	'1DayVolume': string
+	'7DayVolume': string
+	'30DayVolume': string
+	'1DayNbTrades': string
+	'7DayNbTrades': string
+	'30DayNbTrades': string
+}

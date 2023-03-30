@@ -31,10 +31,10 @@ export const NFT_COLLECTION_API = 'https://ezy8r863f5.execute-api.eu-central-1.a
 export const NFT_COLLECTION_STATS_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/stats'
 export const NFT_COLLECTION_SALES_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/salesLite'
 export const NFT_COLLECTION_FLOOR_HISTORY_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/floorHistory'
+export const NFT_MARKETPLACES_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/exchangeStats'
 
 export const NFT_CHART_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/chart'
 export const NFT_CHAINS_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/chains'
-export const NFT_MARKETPLACES_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/marketplaces'
 export const NFT_SEARCH_API = 'https://ybrjmu6r60.execute-api.eu-west-2.amazonaws.com/prod/search'
 
 export const PEGGEDS_API = 'https://stablecoins.llama.fi/stablecoins'

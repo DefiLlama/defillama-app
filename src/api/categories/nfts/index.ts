@@ -112,6 +112,11 @@ export const getNFTData = async () => {
 	}
 }
 
+export const getNFTMarketplacesData = async () => {
+	const data = await fetch(NFT_MARKETPLACES_API).then((res) => res.json())
+	return data
+}
+
 export const getNFTCollections = async () => {
 	try {
 		const { data: collections } = await fetch(NFT_COLLECTIONS_API).then((r) => r.json())
@@ -188,14 +193,6 @@ export const getNFTCollectionChartData = async (slug) => {
 export const getNFTChainsData = async () => {
 	try {
 		return fetch(NFT_CHAINS_API).then((r) => r.json())
-	} catch (e) {
-		console.log(e)
-	}
-}
-
-export const getNFTMarketplacesData = async () => {
-	try {
-		return fetch(NFT_MARKETPLACES_API).then((r) => r.json())
 	} catch (e) {
 		console.log(e)
 	}
