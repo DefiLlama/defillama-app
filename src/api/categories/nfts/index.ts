@@ -151,7 +151,7 @@ export const getNFTCollection = async (slug: string) => {
 		return {
 			data,
 			sales,
-			stats,
+			stats: stats.map((item) => [Math.floor(new Date(item.day).getTime() / 1000), item.sum, item.count]),
 			name: data?.[0]?.name ?? null,
 			address: slug,
 			floorHistory: floorHistory.map((item) => [Math.floor(new Date(item.timestamp).getTime() / 1000), item.floorPrice])

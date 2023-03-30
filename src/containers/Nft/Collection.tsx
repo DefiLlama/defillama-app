@@ -8,7 +8,7 @@ import FormattedName from '~/components/FormattedName'
 import { nftCollectionIconUrl } from '~/utils'
 import dynamic from 'next/dynamic'
 import type { ICollectionScatterChartProps } from './types'
-import { IChartProps } from '~/components/ECharts/types'
+import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { ArrowUpRight } from 'react-feather'
 import Link from 'next/link'
 
@@ -20,9 +20,13 @@ const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
 
+const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+	ssr: false
+}) as React.FC<IBarChartProps>
+
 export function NFTCollectionContainer({ name, data, stats, sales, address, floorHistory }) {
 	const floorPrice = floorHistory[floorHistory.length - 1]?.[1]
-	const volume24h = stats[floorHistory.length - 1]?.sum
+	const volume24h = stats[stats.length - 1]?.[1]
 
 	return (
 		<Layout title={(name || 'NFTs') + ' - DefiLlama'}>
@@ -69,6 +73,9 @@ export function NFTCollectionContainer({ name, data, stats, sales, address, floo
 			<ChartsWrapper>
 				<LazyChart>
 					<AreaChart chartData={floorHistory} hideDefaultLegend valueSymbol="ETH" title="Floor Price" />
+				</LazyChart>
+				<LazyChart>
+					<BarChart chartData={stats} hideDefaultLegend valueSymbol="ETH" title="Volume" />
 				</LazyChart>
 			</ChartsWrapper>
 		</Layout>
