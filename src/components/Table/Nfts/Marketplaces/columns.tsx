@@ -45,7 +45,8 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		size: 120,
 		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + '%' : null}</>,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'based on Volume 1d'
 		}
 	},
 	{
