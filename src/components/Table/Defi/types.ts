@@ -56,4 +56,9 @@ export interface IEmission {
 	tPrice?: number | null
 	tSymbol?: string | null
 	mcap: number | null
+	upcomingEvent: {
+		description: string
+		noOfTokens: number[]
+		timestamp: number
+	}
 }

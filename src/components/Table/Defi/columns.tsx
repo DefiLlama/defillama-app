@@ -281,17 +281,18 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	},
 	{
 		header: 'Max Supply',
-		accessorKey: 'maxSupply',
+		id: 'maxSupply',
+		accessorFn: (row) => (row.tPrice && row.maxSupply ? +row.tPrice * row.maxSupply : 0),
 		cell: ({ getValue, row }) => {
 			const symbol = row.original.tSymbol
-			const value = getValue() as number
-			const usdValue = row.original.tPrice && value ? formattedNum((+row.original.tPrice * value).toFixed(2)) : ''
+			const value = row.original.maxSupply
+
 			return (
 				<AutoColumn gap="4px">
 					<Tooltip content={value.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
 						{formattedNum(value) + (symbol ? ` ${symbol}` : '')}
 					</Tooltip>
-					<LightText>{usdValue ? '$' + usdValue : ''}</LightText>
+					<LightText>{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}</LightText>
 				</AutoColumn>
 			)
 		},
@@ -322,21 +323,18 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	// },
 	{
 		header: 'Total Locked %',
-		accessorKey: 'totalLocked',
-		accessorFn: (row) => (row.totalLocked / row.maxSupply) * 100,
+		id: 'totalLocked',
+		accessorFn: (row) => (row.tPrice && row.totalLocked ? +row.tPrice * row.totalLocked : 0),
 		cell: ({ getValue, row }) => {
 			const symbol = row.original.tSymbol
-			const usdValue =
-				row.original.tPrice && row.original.totalLocked
-					? formattedNum((+row.original.tPrice * row.original.totalLocked).toFixed(2))
-					: ''
+			const percetage = (row.original.totalLocked / row.original.maxSupply) * 100
 
 			return (
 				<AutoColumn gap="4px">
 					<Tooltip content={row.original.totalLocked.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
-						{(getValue() as number).toFixed(2) + '%'}
+						{percetage.toFixed(2) + '%'}
 					</Tooltip>
-					<LightText>{usdValue ? '$' + usdValue : ''}</LightText>
+					<LightText>{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}</LightText>
 				</AutoColumn>
 			)
 		},
@@ -347,19 +345,16 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	},
 	{
 		header: 'Unlocks per day',
-		accessorKey: 'nextEvent',
+		id: 'nextEvent',
+		accessorFn: (row) => (row.tPrice && row.nextEvent.toUnlock ? +row.tPrice * row.nextEvent.toUnlock : 0),
 		cell: ({ getValue, row }) => {
-			const value = getValue() as { date: string; toUnlock: number }
 			const symbol = row.original.tSymbol
-			const usdValue =
-				row.original.tPrice && value.toUnlock ? formattedNum((+row.original.tPrice * value.toUnlock).toFixed(2)) : ''
-
 			return (
 				<AutoColumn gap="4px">
-					<Tooltip content={value.toUnlock.toFixed(2)}>
-						{formattedNum(value.toUnlock) + (symbol ? ` ${symbol}` : '')}
+					<Tooltip content={row.original.nextEvent.toUnlock.toFixed(2)}>
+						{formattedNum(row.original.nextEvent.toUnlock) + (symbol ? ` ${symbol}` : '')}
 					</Tooltip>
-					<LightText>{usdValue ? '$' + usdValue : ''}</LightText>
+					<LightText>{getValue() ? '$' + formattedNum((getValue() as number).toFixed(2)) : ''}</LightText>
 				</AutoColumn>
 			)
 		},
@@ -369,13 +364,14 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	},
 	{
 		header: 'Next Event',
-		accessorKey: 'upcomingEvent',
-		cell: ({ getValue, row }) => {
-			let { description, noOfTokens, timestamp } = getValue() as {
-				description: string
-				noOfTokens: number[]
-				timestamp: number
-			}
+		id: 'upcomingEvent',
+		accessorFn: (row) =>
+			row.upcomingEvent?.noOfTokens?.length > 0 && row.tPrice
+				? +row.upcomingEvent.noOfTokens[row.upcomingEvent.noOfTokens.length - 1] * row.tPrice
+				: 0,
+		cell: ({ row }) => {
+			let { description, noOfTokens, timestamp } = row.original.upcomingEvent
+
 			description = formatUnlocksEvent({
 				description,
 				noOfTokens: noOfTokens ?? [],
