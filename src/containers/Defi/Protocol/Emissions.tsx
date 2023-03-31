@@ -28,7 +28,7 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 		.map(([name, value]) => ({ name, value }))
 
 	return (
-		<Section id="emissions" style={{ paddingLeft: 0 }}>
+		<Section id="emissions" style={{ paddingLeft: 0, gridColumn: '1 / -1' }}>
 			{!isEmissionsPage && <h3>Emissions</h3>}
 
 			<ChartsWrapper>
