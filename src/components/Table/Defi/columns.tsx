@@ -270,13 +270,14 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		}
 	},
 	{
-		header: 'Mcap',
+		header: 'Float',
 		accessorKey: 'mcap',
 		cell: ({ getValue }) => {
 			return <>{getValue() ? '$' + formattedNum(getValue()) : ''}</>
 		},
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: "Circulating tokens excluding all those that can't be traded, such as tokens in treasury"
 		}
 	},
 	{
