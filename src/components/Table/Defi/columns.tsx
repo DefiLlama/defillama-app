@@ -270,14 +270,13 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		}
 	},
 	{
-		header: 'Float',
+		header: 'Mcap',
 		accessorKey: 'mcap',
 		cell: ({ getValue }) => {
 			return <>{getValue() ? '$' + formattedNum(getValue()) : ''}</>
 		},
 		meta: {
-			align: 'end',
-			headerHelperText: "Circulating tokens excluding all those that can't be traded, such as tokens in treasury"
+			align: 'end'
 		}
 	},
 	{
@@ -300,27 +299,27 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			align: 'end'
 		}
 	},
-	{
-		header: 'Circulating Supply',
-		accessorKey: 'circSupply',
-		cell: ({ getValue, row }) => {
-			const symbol = row.original.tSymbol
-			const value = getValue() as number
-			const usdValue = row.original.tPrice && value ? formattedNum((+row.original.tPrice * value).toFixed(2)) : ''
+	// {
+	// 	header: 'Circulating Supply',
+	// 	accessorKey: 'circSupply',
+	// 	cell: ({ getValue, row }) => {
+	// 		const symbol = row.original.tSymbol
+	// 		const value = getValue() as number
+	// 		const usdValue = row.original.tPrice && value ? formattedNum((+row.original.tPrice * value).toFixed(2)) : ''
 
-			return (
-				<AutoColumn gap="4px">
-					<Tooltip content={value.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
-						{formattedNum(value) + (symbol ? ` ${symbol}` : '')}
-					</Tooltip>
-					<LightText>{usdValue ? '$' + usdValue : ''}</LightText>
-				</AutoColumn>
-			)
-		},
-		meta: {
-			align: 'end'
-		}
-	},
+	// 		return (
+	// 			<AutoColumn gap="4px">
+	// 				<Tooltip content={value.toFixed(2) + (symbol ? ` ${symbol}` : '')}>
+	// 					{formattedNum(value) + (symbol ? ` ${symbol}` : '')}
+	// 				</Tooltip>
+	// 				<LightText>{usdValue ? '$' + usdValue : ''}</LightText>
+	// 			</AutoColumn>
+	// 		)
+	// 	},
+	// 	meta: {
+	// 		align: 'end'
+	// 	}
+	// },
 	{
 		header: 'Total Locked %',
 		accessorKey: 'totalLocked',
