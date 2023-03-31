@@ -9,8 +9,7 @@ import { ProtocolsChainsSearch } from '~/components/Search'
 import { RowLinksWithDropdown, RowLinksWrapper } from '~/components/Filters'
 import { GroupChains } from '~/components/MultiSelect'
 import { toNiceCsvDate, download } from '~/utils'
-import { maxAgeForNext } from '~/api'
-import { getChainsPageData, getNewChainsPageData } from '~/api/categories/protocols'
+import { getNewChainsPageData } from '~/api/categories/protocols'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { formatDataWithExtraTvls, groupDataWithTvlsByDay } from '~/hooks/data/defi'
 import { useDefiManager } from '~/contexts/LocalStorage'
@@ -39,13 +38,18 @@ const ChartsWrapper = styled(Panel)`
 	}
 `
 
-const HeaderWrapper = styled(Header)`
+const HeaderWrapper = styled.div`
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	flex-wrap: wrap;
 	gap: 12px;
 	border: 1px solid transparent;
+
+	button {
+		position: relative;
+		bottom: -14px;
+	}
 `
 
 const ChainTvlsFilter = styled.form`
@@ -130,7 +134,7 @@ export default function ChainsContainer({
 			/>
 
 			<HeaderWrapper>
-				<span>Total Value Locked All Chains</span>
+				<Header>Total Value Locked All Chains</Header>
 				<ButtonDark onClick={downloadCsv}>Download all data in .csv</ButtonDark>
 			</HeaderWrapper>
 
