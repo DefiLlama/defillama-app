@@ -28,23 +28,25 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 		.map(([name, value]) => ({ name, value }))
 
 	return (
-		<Section id="emissions">
+		<Section id="emissions" style={{ paddingLeft: 0 }}>
 			{!isEmissionsPage && <h3>Emissions</h3>}
 
-			<LazyChart>
-				<AreaChart
-					title="Vesting Schedule"
-					stacks={data.categories}
-					chartData={data.chartData}
-					hideDefaultLegend
-					hallmarks={data.hallmarks}
-					isStackedChart
-				/>
-			</LazyChart>
+			<ChartsWrapper>
+				<LazyChart>
+					<PieChart title="Allocation" chartData={pieChartData} />
+				</LazyChart>
 
-			<LazyChart>
-				<PieChart title="Allocation" chartData={pieChartData} />
-			</LazyChart>
+				<LazyChart>
+					<AreaChart
+						title="Vesting Schedule"
+						stacks={data.categories}
+						chartData={data.chartData}
+						hideDefaultLegend
+						hallmarks={data.hallmarks}
+						isStackedChart
+					/>
+				</LazyChart>
+			</ChartsWrapper>
 
 			{data.sources?.length > 0 && (
 				<>
