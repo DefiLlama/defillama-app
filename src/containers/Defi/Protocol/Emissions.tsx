@@ -1,12 +1,16 @@
 import dynamic from 'next/dynamic'
 import styled from 'styled-components'
-import type { IChartProps } from '~/components/ECharts/types'
-import { Section } from '~/layout/ProtocolAndPool'
+import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { ChartsWrapper, LazyChart, Section } from '~/layout/ProtocolAndPool'
 import { formatUnlocksEvent } from '~/utils'
 
 const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
 	ssr: false
 }) as React.FC<IChartProps>
+
+const PieChart = dynamic(() => import('~/components/ECharts/PieChart'), {
+	ssr: false
+}) as React.FC<IPieChartProps>
 
 export interface IEmission {
 	categories: Array<string>
@@ -19,19 +23,28 @@ export interface IEmission {
 }
 
 export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
+	const pieChartData = Object.entries(data.chartData[data.chartData.length - 1] || {})
+		.filter(([key]) => key !== 'date')
+		.map(([name, value]) => ({ name, value }))
+
 	return (
 		<Section id="emissions">
 			{!isEmissionsPage && <h3>Emissions</h3>}
-			<span style={{ minHeight: '360px' }}>
+
+			<LazyChart>
 				<AreaChart
-					title=""
+					title="Vesting Schedule"
 					stacks={data.categories}
 					chartData={data.chartData}
 					hideDefaultLegend
 					hallmarks={data.hallmarks}
 					isStackedChart
 				/>
-			</span>
+			</LazyChart>
+
+			<LazyChart>
+				<PieChart title="Allocation" chartData={pieChartData} />
+			</LazyChart>
 
 			{data.sources?.length > 0 && (
 				<>
