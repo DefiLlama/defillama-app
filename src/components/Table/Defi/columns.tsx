@@ -262,8 +262,8 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Token Price',
 		accessorKey: 'tPrice',
-		cell: ({ getValue, row }) => {
-			return <>{getValue() ? '$' + getValue() : ''}</>
+		cell: ({ getValue }) => {
+			return <>{getValue() ? '$' + (+getValue()).toFixed(2) : ''}</>
 		},
 		meta: {
 			align: 'end'
@@ -1292,4 +1292,5 @@ const TooltipContent = ({ dominance, protocolName }) => {
 
 const LightText = styled.span`
 	opacity: 0.6;
+	min-width: 120px;
 `
