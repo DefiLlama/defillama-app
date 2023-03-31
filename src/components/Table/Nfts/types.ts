@@ -43,4 +43,6 @@ export interface INftMarketplace {
 	'1DayNbTrades': string
 	'7DayNbTrades': string
 	'30DayNbTrades': string
+	pctOfTotal: string
+	weeklyChange: string
 }
