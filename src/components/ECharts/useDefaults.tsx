@@ -93,9 +93,13 @@ export function useDefaults({
 				})
 
 				let vals
-				let filteredParams = params
-					.filter((item) => item.value[1] !== '-' && item.value[1] !== null)
-					.sort((a, b) => (isStackedChart ? 1 : tooltipSort ? Math.abs(b.value[1]) - Math.abs(a.value[1]) : 0))
+				let filteredParams = params.filter((item) => item.value[1] !== '-' && item.value[1] !== null)
+
+				if (isStackedChart) {
+					filteredParams.reverse()
+				} else {
+					filteredParams.sort((a, b) => (tooltipSort ? Math.abs(b.value[1]) - Math.abs(a.value[1]) : 0))
+				}
 
 				const otherIndex = filteredParams.findIndex((item) => item.seriesName === 'Others')
 				let others
