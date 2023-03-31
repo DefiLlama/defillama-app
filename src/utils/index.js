@@ -84,7 +84,9 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 	noOfTokens.forEach((tokens, i) => {
 		description = description.replace(
 			`{tokens[${i}]}`,
-			`${formattedNum(tokens) + (symbol ? ` ${symbol}` : '')}${price ? ` ($${formattedNum(tokens * price)})` : ''}`
+			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${
+				price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
+			}`
 		)
 	})
 	description = description?.replace('{timestamp}', `${toNiceDateYear(timestamp)} (${timeFromNow(timestamp)})`)

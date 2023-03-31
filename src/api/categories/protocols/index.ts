@@ -152,6 +152,10 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			stackColors[name] = getColorFromNumber(index, 6)
 		})
 
+		if (protocolName == 'looksrare') {
+			tokenPrice.symbol = 'LOOKS'
+		}
+
 		return {
 			chartData,
 			pieChartData,
