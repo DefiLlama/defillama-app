@@ -80,11 +80,14 @@ export const getAllProtocolEmissions = async () => {
 		return res.map((protocol) => {
 			const upcomingEvent = protocol.events.find((e) => e.timestamp >= Date.now() / 1000)
 
+			const tSymbol =
+				protocol.name === 'LooksRare' ? 'LOOKS' : protocol.tokenPrice?.coins?.[protocol.token]?.symbol ?? null
+
 			return {
 				...protocol,
 				upcomingEvent: upcomingEvent || {},
 				tPrice: protocol.tokenPrice?.coins?.[protocol.token]?.price ?? null,
-				tSymbol: protocol.tokenPrice?.coins?.[protocol.token]?.symbol ?? null
+				tSymbol
 			}
 		})
 	} catch (e) {
