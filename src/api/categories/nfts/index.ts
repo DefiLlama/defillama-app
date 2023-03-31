@@ -7,11 +7,12 @@ import {
 	NFT_COLLECTIONS_API,
 	NFT_VOLUME_API,
 	NFT_COLLECTION_API,
-	NFT_MARKETPLACES_API,
+	NFT_MARKETPLACES_STATS_API,
 	NFT_SEARCH_API,
 	NFT_COLLECTION_SALES_API,
 	NFT_COLLECTION_STATS_API,
-	NFT_COLLECTION_FLOOR_HISTORY_API
+	NFT_COLLECTION_FLOOR_HISTORY_API,
+	NFT_MARKETPLACES_VOLUME_API
 } from '~/constants'
 
 interface IResponseNFTSearchAPI {
@@ -113,8 +114,28 @@ export const getNFTData = async () => {
 }
 
 export const getNFTMarketplacesData = async () => {
-	const data = await fetch(NFT_MARKETPLACES_API).then((res) => res.json())
-	return data
+	const [data, volume] = await Promise.all([
+		fetch(NFT_MARKETPLACES_STATS_API).then((res) => res.json()),
+		fetch(NFT_MARKETPLACES_VOLUME_API).then((res) => res.json())
+	])
+
+	const volumeData = volume
+		.map((v) => ({ ...v, date: Math.floor(new Date(v.day).getTime() / 1000) }))
+		.sort((a, b) => a.date - b.date)
+		.reduce(
+			(acc, curr) => {
+				if (!acc[curr.exchangeName]) {
+					acc[curr.exchangeName] = []
+				}
+				acc[curr.exchangeName].push([curr.date, curr.sum])
+				return acc
+			},
+			{} as {
+				[exchangeName: string]: Array<[string, number]>
+			}
+		)
+
+	return { data, volume: Object.entries(volumeData).map(([name, data]) => ({ name, data })) }
 }
 
 export const getNFTCollections = async () => {

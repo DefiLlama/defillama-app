@@ -2,7 +2,7 @@ import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import styled from 'styled-components'
-import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, PanelHiddenMobile } from '~/components'
+import { BreakpointPanel, BreakpointPanels, ChartAndValuesWrapper, Panel, PanelHiddenMobile } from '~/components'
 import { Denomination, Filters, FiltersWrapper } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { formattedNum } from '~/utils'
@@ -12,6 +12,7 @@ import { volumeTypes } from '~/utils/adaptorsPages/utils'
 import QuestionHelper from '~/components/QuestionHelper'
 import { useChartInterval } from '~/contexts/LocalStorage'
 import LocalLoader from '~/components/LocalLoader'
+import { ChartWrapper } from '~/layout/ProtocolAndPool'
 
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false,
@@ -172,7 +173,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 			) : (
 				<></>
 			)}
-			<BreakpointPanel id="chartWrapper">
+			<Panel style={{ padding: 0, width: '100%' }}>
 				<>
 					<FiltersWrapperRow>
 						<FiltersAligned color={'#4f8fea'}>
@@ -213,7 +214,7 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 					</FiltersWrapperRow>
 				</>
 				{barsData && barsData.length > 0 && (
-					<>
+					<ChartWrapper>
 						{chartType === 'Dominance' ? (
 							<AreaChart title="" chartData={barsData} stacks={props.chartData[1]} expandTo100Percent valueSymbol="%" />
 						) : (
@@ -226,9 +227,9 @@ export const MainBarChart: React.FC<IDexChartsProps> = (props) => {
 								/* stackColors={stackedBarChartColors} */
 							/>
 						)}
-					</>
+					</ChartWrapper>
 				)}
-			</BreakpointPanel>
+			</Panel>
 		</ChartAndValuesWrapper>
 	)
 }

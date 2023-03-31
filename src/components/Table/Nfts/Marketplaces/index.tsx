@@ -44,7 +44,7 @@ export default function NftsMarketplaceTable({ data }: { data: Array<INftMarketp
 	return (
 		<>
 			<TableHeaderAndSearch>
-				<Header>NFT Marketplaces</Header>
+				{/* <Header>NFT Marketplaces</Header> */}
 
 				<SearchWrapper>
 					<SearchIcon size={16} />
