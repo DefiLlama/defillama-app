@@ -20,20 +20,21 @@ export interface IEmission {
 	events: Array<{ description: string; timestamp: string; noOfTokens: number[] }>
 	hallmarks: Array<[number, string]>
 	tokenPrice: { price?: number | null; symbol?: number | null }
+	pieChartData: Array<{
+		name: string
+		value: number
+	}>
+	stackColors: { [stack: string]: string }
 }
 
 export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
-	const pieChartData = Object.entries(data.chartData[data.chartData.length - 1] || {})
-		.filter(([key]) => key !== 'date')
-		.map(([name, value]) => ({ name, value }))
-
 	return (
 		<Section id="emissions" style={{ paddingLeft: 0, gridColumn: '1 / -1' }}>
 			{!isEmissionsPage && <h3>Emissions</h3>}
 
 			<ChartsWrapper>
 				<LazyChart>
-					<PieChart title="Allocation" chartData={pieChartData} />
+					<PieChart title="Allocation" chartData={data.pieChartData} stackColors={data.stackColors} />
 				</LazyChart>
 
 				<LazyChart>
@@ -43,6 +44,7 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 						chartData={data.chartData}
 						hideDefaultLegend
 						hallmarks={data.hallmarks}
+						stackColors={data.stackColors}
 						isStackedChart
 					/>
 				</LazyChart>

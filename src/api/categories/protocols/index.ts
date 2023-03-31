@@ -139,8 +139,20 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			...values
 		}))
 
+		const pieChartData = Object.entries(chartData[chartData.length - 1] || {})
+			.filter(([key]) => key !== 'date')
+			.map(([name, value]) => ({ name, value }))
+
+		const stackColors = {}
+
+		pieChartData.forEach(({ name }, index) => {
+			stackColors[name] = getColorFromNumber(index, 6)
+		})
+
 		return {
 			chartData,
+			pieChartData,
+			stackColors,
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			events: metadata?.events ?? [],
