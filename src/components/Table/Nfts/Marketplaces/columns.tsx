@@ -1,5 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import type { INftMarketplace } from '../types'
+import { formattedPercent } from '~/utils'
 
 export const columns: ColumnDef<INftMarketplace>[] = [
 	{
@@ -9,13 +10,23 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		size: 200
 	},
 	{
+		header: 'Weekly change',
+		accessorKey: 'weeklyChange',
+		size: 120,
+		cell: (info) => <>{info.getValue() ? formattedPercent(info.getValue()) : null}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Change of last 7d volume over the previous 7d volume'
+		}
+	},
+	{
 		header: 'Volume 1d',
 		accessorKey: '1DayVolume',
 		size: 120,
 		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + ' ETH' : ''}</>,
-
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: '24h rolling volume'
 		}
 	},
 	{
@@ -23,40 +34,24 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		accessorKey: '7DayVolume',
 		size: 120,
 		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + ' ETH' : ''}</>,
-
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: '7day rolling volume'
 		}
 	},
 	{
-		header: 'Volume 30d',
-		accessorKey: '30DayVolume',
+		header: '% of total',
+		accessorKey: 'pctOfTotal',
 		size: 120,
-		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + ' ETH' : ''}</>,
-
+		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + '%' : null}</>,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'based on Volume 1d'
 		}
 	},
 	{
-		header: '1d Trades',
+		header: 'Trades 1d',
 		accessorKey: '1DayNbTrades',
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '7d Trades',
-		accessorKey: '7DayNbTrades',
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '30d Trades',
-		accessorKey: '30DayNbTrades',
 		size: 120,
 		meta: {
 			align: 'end'
