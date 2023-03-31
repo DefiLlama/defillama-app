@@ -58,7 +58,7 @@ export default function Protocols({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<Layout title={`Emissions - DefiLlama`} defaultSEO>
+		<Layout title={`Unlocks - DefiLlama`} defaultSEO>
 			<TableHeaderAndSearch>
 				<Header>Token Unlocks</Header>
 

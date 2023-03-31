@@ -80,11 +80,14 @@ export const toNiceCsvDate = (date) => {
 export const toNiceDateYear = (date) => dayjs.utc(dayjs.unix(date)).format('MMMM DD, YYYY')
 
 const timeFromNow = (date) => dayjs.utc(dayjs.unix(date)).fromNow()
-export function formatUnlocksEvent(description, noOfTokens, timestamp, price) {
+export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, symbol }) {
 	noOfTokens.forEach((tokens, i) => {
-		description = description.replace(`{tokens[${i}]}`, `${formattedNum(tokens)} ($${formattedNum(tokens * price)})`)
+		description = description.replace(
+			`{tokens[${i}]}`,
+			`${formattedNum(tokens) + (symbol ? ` ${symbol}` : '')}${price ? ` ($${formattedNum(tokens * price)})` : ''}`
+		)
 	})
-	description = description?.replace('{timestamp}', `${toNiceDateYear(timestamp)} (in ${timeFromNow(timestamp)})`)
+	description = description?.replace('{timestamp}', `${toNiceDateYear(timestamp)} (${timeFromNow(timestamp)})`)
 	return description
 }
 

@@ -307,7 +307,7 @@ export function useDefaults({
 		]
 
 		return { graphic, grid, titleDefaults, tooltip, xAxis, yAxis, legend, dataZoom, inflowsTooltip }
-	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol, hideLegend])
+	}, [color, isDark, isSmall, title, tooltipSort, valueSymbol, hideLegend, isStackedChart])
 
 	return defaults
 }

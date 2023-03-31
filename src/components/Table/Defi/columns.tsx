@@ -371,13 +371,18 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'Next Event',
 		accessorKey: 'upcomingEvent',
 		cell: ({ getValue, row }) => {
-			const price = row.original.tPrice
 			let { description, noOfTokens, timestamp } = getValue() as {
 				description: string
 				noOfTokens: number[]
 				timestamp: number
 			}
-			description = formatUnlocksEvent(description, noOfTokens ?? [], timestamp, price)
+			description = formatUnlocksEvent({
+				description,
+				noOfTokens: noOfTokens ?? [],
+				timestamp,
+				price: row.original.tPrice,
+				symbol: row.original.tSymbol
+			})
 			return <span style={{ width: '100%', overflow: 'scroll' }}>{description}</span>
 		},
 		size: 800

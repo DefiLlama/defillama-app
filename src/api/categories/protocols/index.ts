@@ -104,6 +104,15 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		const protocolEmissions = {}
 		const emissionCategories = []
 
+		const prices = await fetch(`https://coins.llama.fi/prices/current/${metadata.token}?searchWidth=4h`)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(err)
+				return {}
+			})
+
+		const tokenPrice = prices?.coins?.[metadata.token] ?? {}
+
 		data.forEach((emission) => {
 			const label = emission.label
 				.split(' ')
@@ -137,7 +146,8 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			events: metadata?.events ?? [],
 			categories: emissionCategories,
 			hallmarks: data.length > 0 ? [[Date.now() / 1000, 'Today']] : [],
-			name: name || null
+			name: name || null,
+			tokenPrice
 		}
 	} catch (e) {
 		console.log(e)

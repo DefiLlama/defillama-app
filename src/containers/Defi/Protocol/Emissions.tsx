@@ -15,6 +15,7 @@ export interface IEmission {
 	notes: Array<string>
 	events: Array<{ description: string; timestamp: string; noOfTokens: number[] }>
 	hallmarks: Array<[number, string]>
+	tokenPrice: { price?: number | null; symbol?: number | null }
 }
 
 export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
@@ -64,7 +65,13 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 					<List>
 						{data.events.map((event) => (
 							<li key={event.description}>
-								{formatUnlocksEvent(event.description, event.noOfTokens ?? [], event.timestamp, 0) /*fix price*/}
+								{formatUnlocksEvent({
+									description: event.description,
+									noOfTokens: event.noOfTokens ?? [],
+									timestamp: event.timestamp,
+									price: data.tokenPrice.price,
+									symbol: data.tokenPrice.symbol
+								})}
 							</li>
 						))}
 					</List>
