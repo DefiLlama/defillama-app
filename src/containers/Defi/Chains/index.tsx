@@ -124,8 +124,6 @@ export default function ChainsContainer({
 
 	const groupedChains = useGroupChainsByParent(dataByChain, showByGroup ? chainsGroupbyParent : {})
 
-	console.log({ chainsWithExtraTvlsAndDominanceByDay })
-
 	return (
 		<>
 			<ProtocolsChainsSearch
