@@ -93,7 +93,7 @@ const PageView = ({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens
 					hideDefaultLegend
 					valueSymbol="%"
 					title=""
-					isStackedChart={true}
+					expandTo100Percent={true}
 				/>
 			</ChartsWrapper>
 

@@ -73,7 +73,7 @@ export function useDefaults({
 			left: 15
 		}
 
-		const gridTop = hideLegend ? 0 : isSmall ? 60 : 10
+		const gridTop = valueSymbol === '%' ? 20 : hideLegend ? 0 : isSmall ? 60 : 10
 
 		const grid = {
 			left: 20,
@@ -273,6 +273,7 @@ export function useDefaults({
 			{
 				start: 0,
 				end: 100,
+				right: 6,
 				textStyle: {
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				},

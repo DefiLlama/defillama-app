@@ -170,7 +170,7 @@ function PeggedChainsOverview({
 							stacks={chainList}
 							hideDefaultLegend={true}
 							hideGradient={true}
-							isStackedChart={true}
+							expandTo100Percent={true}
 						/>
 					)}
 					{chartType === 'Pie' && <PieChart chartData={chainsCirculatingValues} />}

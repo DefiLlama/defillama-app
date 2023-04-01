@@ -14,6 +14,7 @@ import {
 	NFT_COLLECTION_FLOOR_HISTORY_API,
 	NFT_MARKETPLACES_VOLUME_API
 } from '~/constants'
+import { getDominancePercent } from '~/utils'
 
 interface IResponseNFTSearchAPI {
 	hits: Array<{
@@ -119,23 +120,50 @@ export const getNFTMarketplacesData = async () => {
 		fetch(NFT_MARKETPLACES_VOLUME_API).then((res) => res.json())
 	])
 
-	const volumeData = volume
-		.map((v) => ({ ...v, date: Math.floor(new Date(v.day).getTime() / 1000) }))
-		.sort((a, b) => a.date - b.date)
-		.reduce(
-			(acc, curr) => {
-				if (!acc[curr.exchangeName]) {
-					acc[curr.exchangeName] = []
-				}
-				acc[curr.exchangeName].push([curr.date, curr.sum])
-				return acc
-			},
-			{} as {
-				[exchangeName: string]: Array<[string, number]>
-			}
-		)
+	const volumeByDay = {}
 
-	return { data, volume: Object.entries(volumeData).map(([name, data]) => ({ name, data })) }
+	const volumeData = Object.entries(
+		volume
+			.map((v) => ({ ...v, date: Math.floor(new Date(v.day).getTime() / 1000) }))
+			.sort((a, b) => a.date - b.date)
+			.reduce(
+				(acc, curr) => {
+					if (!acc[curr.exchangeName]) {
+						acc[curr.exchangeName] = []
+					}
+
+					if (!volumeByDay[curr.date]) {
+						volumeByDay[curr.date] = {}
+					}
+
+					volumeByDay[curr.date]['total_sum'] = (volumeByDay[curr.date]['total_sum'] || 0) + curr.sum
+
+					volumeByDay[curr.date][curr.exchangeName] = curr.sum
+
+					acc[curr.exchangeName].push([curr.date, curr.sum])
+
+					return acc
+				},
+				{} as {
+					[exchangeName: string]: Array<[string, number]>
+				}
+			)
+	).map(([name, data]) => ({ name, data }))
+
+	const dominance = []
+
+	for (const date in volumeByDay) {
+		const value = { date: Number(date) }
+		for (const exchangeName in volumeByDay[date]) {
+			if (exchangeName !== 'total_sum') {
+				value[exchangeName] = getDominancePercent(volumeByDay[date][exchangeName], volumeByDay[date]['total_sum'])
+			}
+		}
+
+		dominance.push(value)
+	}
+
+	return { data, volume: volumeData, dominance, marketplaces: volumeData.map(({ name }) => name) }
 }
 
 export const getNFTCollections = async () => {

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
-import { DetailsWrapper, Name, ChartWrapper } from '~/layout/ProtocolAndPool'
+import { DetailsWrapper, Name } from '~/layout/ProtocolAndPool'
 import { StatsSection, StatWrapper } from '~/layout/Stats/Medium'
 import { Stat } from '~/layout/Stats/Large'
 import FormattedName from '~/components/FormattedName'

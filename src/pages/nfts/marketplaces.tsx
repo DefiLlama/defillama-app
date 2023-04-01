@@ -10,6 +10,7 @@ import { Header } from '~/Theme'
 import { Panel } from '~/components'
 import { Denomination, Filters } from '~/components/ECharts/ProtocolChart/ProtocolChart'
 import styled from 'styled-components'
+import type { IChartProps } from '~/components/ECharts/types'
 
 const FlatDenomination = styled(Denomination)`
 	white-space: nowrap;
@@ -19,6 +20,10 @@ const FlatDenomination = styled(Denomination)`
 const StackedBarChart = dynamic(() => import('~/components/ECharts/BarChart/Stacked'), {
 	ssr: false
 }) as React.FC<IStackedBarChartProps>
+
+const AreaChart = dynamic(() => import('~/components/ECharts/AreaChart'), {
+	ssr: false
+}) as React.FC<IChartProps>
 
 export async function getStaticProps() {
 	const data = await getNFTMarketplacesData()
@@ -31,23 +36,34 @@ export async function getStaticProps() {
 	}
 }
 
-function Marketplaces({ data, volume }) {
-	const [dominance, setDominance] = React.useState(false)
+function Marketplaces({ data, volume, dominance, marketplaces }) {
+	const [dominanceChart, setDominanceChart] = React.useState(false)
 
 	return (
 		<Layout title="NFT Marketplaces - DefiLlama" defaultSEO>
 			<Header>NFT Marketplaces</Header>
 			<Panel style={{ padding: '1rem 1rem 0', width: '100%' }}>
-				{/* <Filters color={'#4f8fea'} style={{ marginLeft: 'auto' }}>
-					<FlatDenomination active={!dominance} onClick={() => setDominance(false)}>
+				<Filters color={'#4f8fea'} style={{ marginLeft: 'auto' }}>
+					<FlatDenomination active={!dominanceChart} onClick={() => setDominanceChart(false)}>
 						Volume
 					</FlatDenomination>
-					<FlatDenomination active={dominance} onClick={() => setDominance(true)}>
+					<FlatDenomination active={dominanceChart} onClick={() => setDominanceChart(true)}>
 						Dominance
 					</FlatDenomination>
-				</Filters> */}
+				</Filters>
 				<ChartWrapper>
-					<StackedBarChart chartData={volume} />
+					{dominanceChart ? (
+						<AreaChart
+							chartData={dominance}
+							stacks={marketplaces}
+							hideDefaultLegend
+							valueSymbol="%"
+							title=""
+							expandTo100Percent={true}
+						/>
+					) : (
+						<StackedBarChart chartData={volume} />
+					)}
 				</ChartWrapper>
 			</Panel>
 			<NftsmarketplaceTable data={data} />

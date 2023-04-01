@@ -351,6 +351,10 @@ export const getColorFromNumber = (index, length) => {
 }
 
 export const getDominancePercent = (value, total) => {
+	if (!value || !total) {
+		return 0
+	}
+
 	const ratio = total > 0 ? value / total : 0
 
 	return Number((ratio * 100).toFixed(2))

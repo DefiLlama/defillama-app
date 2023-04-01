@@ -124,6 +124,8 @@ export default function ChainsContainer({
 
 	const groupedChains = useGroupChainsByParent(dataByChain, showByGroup ? chainsGroupbyParent : {})
 
+	console.log({ chainsWithExtraTvlsAndDominanceByDay })
+
 	return (
 		<>
 			<ProtocolsChainsSearch
@@ -149,7 +151,7 @@ export default function ChainsContainer({
 					hideDefaultLegend
 					valueSymbol="%"
 					title=""
-					isStackedChart={true}
+					expandTo100Percent={true}
 				/>
 			</ChartsWrapper>
 
