@@ -18,15 +18,6 @@ export const cexData = [
 		cgDeriv: 'binance_futures'
 	},
 	{
-		name: 'Bitfinex',
-		slug: 'bitfinex',
-		coin: 'LEO',
-		coinSymbol: 'LEO',
-		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt',
-		cgId: 'bitfinex',
-		cgDeriv: 'bitfinex_futures'
-	},
-	{
 		name: 'OKX',
 		slug: 'okx',
 		coin: 'OKB',
@@ -34,6 +25,15 @@ export const cexData = [
 		walletsLink: 'https://twitter.com/okx/status/1590812545346330624',
 		cgId: 'okex',
 		cgDeriv: 'okex_swap'
+	},
+	{
+		name: 'Bitfinex',
+		slug: 'bitfinex',
+		coin: 'LEO',
+		coinSymbol: 'LEO',
+		walletsLink: 'https://github.com/bitfinexcom/pub/blob/main/wallets.txt',
+		cgId: 'bitfinex',
+		cgDeriv: 'bitfinex_futures'
 	},
 	{
 		name: 'Crypto.com',
@@ -125,18 +125,6 @@ export const cexData = [
 		cgId: 'binance_us'
 	},
 	{
-		name: 'MaskEX',
-		slug: 'maskex',
-		coin: null,
-		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
-	},
-	{
-		name: 'Coinsquare',
-		slug: 'coinsquare',
-		coin: null,
-		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
-	},
-	{
 		name: 'Firi',
 		slug: 'firi',
 		coin: null,
@@ -151,11 +139,23 @@ export const cexData = [
 		cgDeriv: 'phemex_futures'
 	},
 	{
+		name: 'MaskEX',
+		slug: 'maskex',
+		coin: null,
+		walletsLink: 'https://news.bitcoin.com/a-message-from-maskex/'
+	},
+	{
 		name: 'WOO X',
 		slug: 'woo-x',
 		coin: 'WOO',
 		coinSymbol: 'WOO',
 		walletsLink: 'https://woo.org/proof-of-reserves'
+	},
+	{
+		name: 'Coinsquare',
+		slug: 'coinsquare',
+		coin: null,
+		walletsLink: 'https://twitter.com/Coinsquare/status/1594176519986810881'
 	},
 	{
 		name: 'CoinDCX',
