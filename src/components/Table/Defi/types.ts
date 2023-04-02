@@ -69,11 +69,11 @@ export interface IGovernance {
 	followersCount: string
 	strategyCount: string
 	states: {
-		open?: number
+		active?: number
 		closed?: number
 	}
 	months: {
-		[month: string]: { proposals: Array<string>; states: { open?: number; closed?: number } }
+		[month: string]: { proposals: Array<string>; states: { active?: number; closed?: number } }
 	}
 	propsalsInLast30Days: number
 }

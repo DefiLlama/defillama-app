@@ -416,17 +416,17 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 		meta: { align: 'end' }
 	},
 	{
-		accessorFn: (row) => row.states.open || 0,
-		id: 'openState',
-		header: 'Open Proposals',
-		size: 80,
+		accessorFn: (row) => row.states.active || 0,
+		id: 'activeProposals',
+		header: 'Active Proposals',
+		size: 100,
 		meta: { align: 'end' }
 	},
 	{
 		accessorFn: (row) => row.states.closed || 0,
-		id: 'closeState',
+		id: 'closedProposals',
 		header: 'Closed Proposals',
-		size: 80,
+		size: 100,
 		meta: { align: 'end' }
 	},
 	{
