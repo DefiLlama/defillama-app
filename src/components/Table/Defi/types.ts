@@ -62,3 +62,18 @@ export interface IEmission {
 		timestamp: number
 	}
 }
+
+export interface IGovernance {
+	name: string
+	proposalsCount: string
+	followersCount: string
+	strategyCount: string
+	states: {
+		open?: number
+		closed?: number
+	}
+	months: {
+		[month: string]: { proposals: Array<string>; states: { open?: number; closed?: number } }
+	}
+	propsalsInLast30Days: number
+}

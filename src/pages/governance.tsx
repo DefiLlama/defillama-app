@@ -1,5 +1,4 @@
 import { maxAgeForNext } from '~/api'
-import { getAllProtocolEmissions } from '~/api/categories/protocols'
 import * as React from 'react'
 import Layout from '~/layout'
 import {
@@ -13,16 +12,17 @@ import {
 import styled from 'styled-components'
 import { StatsSection } from '~/layout/Stats/Medium'
 import VirtualTable from '~/components/Table/Table'
-import { emissionsColumns } from '~/components/Table/Defi/columns'
+import { governanceColumns } from '~/components/Table/Defi/columns'
 import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
+import { GOVERNANCE_API } from '~/constants'
 
 export const getStaticProps = async () => {
-	const data = await getAllProtocolEmissions()
+	const data = await fetch(GOVERNANCE_API).then((res) => res.json())
 
 	return {
 		props: {
-			data
+			data: Object.values(data)
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -33,8 +33,8 @@ export default function Protocols({ data }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'mcap', desc: true }])
 
 	const instance = useReactTable({
-		data,
-		columns: emissionsColumns,
+		data: data,
+		columns: governanceColumns,
 		state: {
 			columnFilters,
 			sorting
@@ -57,9 +57,9 @@ export default function Protocols({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<Layout title={`Unlocks - DefiLlama`} defaultSEO>
+		<Layout title={`Governance - DefiLlama`} defaultSEO>
 			<TableHeaderAndSearch>
-				<Header>Token Unlocks</Header>
+				<Header>Governance</Header>
 
 				<SearchWrapper>
 					<SearchIcon size={16} />

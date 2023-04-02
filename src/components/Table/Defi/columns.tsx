@@ -23,7 +23,7 @@ import {
 } from '~/utils'
 import { AccordionButton, Name } from '../shared'
 import { formatColumnOrder } from '../utils'
-import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow, ILSDRow, IEmission } from './types'
+import type { ICategoryRow, IChainsRow, IForksRow, IOraclesRow, ILSDRow, IEmission, IGovernance } from './types'
 import { AutoColumn } from '~/components/Column'
 
 export const oraclesColumn: ColumnDef<IOraclesRow>[] = [
@@ -382,6 +382,63 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			return <span style={{ width: '100%', overflow: 'scroll' }}>{description}</span>
 		},
 		size: 800
+	}
+]
+
+export const governanceColumns: ColumnDef<IGovernance>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<Name>
+					<span>{index + 1}</span>
+					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+					<CustomLink href={`/governance/${standardizeProtocolName(getValue() as string)}`}>{getValue()}</CustomLink>
+				</Name>
+			)
+		},
+		size: 220
+	},
+	{
+		header: 'Proposals',
+		accessorKey: 'proposalsCount',
+		size: 80,
+		meta: { align: 'end' }
+	},
+	{
+		header: 'Followers',
+		accessorKey: 'followersCount',
+		size: 80,
+		meta: { align: 'end' }
+	},
+	{
+		header: 'Strategy',
+		accessorKey: 'strategyCount',
+		size: 80,
+		meta: { align: 'end' }
+	},
+	{
+		accessorFn: (row) => row.states.open || 0,
+		id: 'openState',
+		header: 'Open Proposals',
+		size: 80,
+		meta: { align: 'end' }
+	},
+	{
+		accessorFn: (row) => row.states.closed || 0,
+		id: 'closeState',
+		header: 'Closed Proposals',
+		size: 80,
+		meta: { align: 'end' }
+	},
+	{
+		header: 'Proposals in last 30 days',
+		accessorKey: 'propsalsInLast30Days',
+		meta: { align: 'end' }
 	}
 ]
 
