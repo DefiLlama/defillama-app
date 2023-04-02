@@ -218,7 +218,19 @@ export function chainIconPaletteUrl(chain) {
 
 export function tokenIconUrl(name) {
 	const x = name ?? ''
-	return `${ICONS_CDN}/protocols/${x.toLowerCase().split(' ').join('-').split("'").join('')}?w=24&h=24`
+	return `${ICONS_CDN}/protocols/${x
+		.trim()
+		.toLowerCase()
+		.split(' ')
+		.join('-')
+		.split('(')
+		.join('')
+		.split(')')
+		.join('')
+		.split("'")
+		.join('')
+		.split('’')
+		.join('')}?w=24&h=24`
 }
 
 export function nftCollectionIconUrl(address) {
@@ -227,7 +239,19 @@ export function nftCollectionIconUrl(address) {
 
 export function tokenIconPaletteUrl(name) {
 	const x = name ?? ''
-	return `${ICONS_PALETTE_CDN}/protocols/${x.toLowerCase().split(' ').join('-').split("'").join('')}`
+	return `${ICONS_PALETTE_CDN}/protocols/${x
+		.trim()
+		.toLowerCase()
+		.split(' ')
+		.join('-')
+		.split('(')
+		.join('')
+		.split(')')
+		.join('')
+		.split("'")
+		.join('')
+		.split('’')
+		.join('')}`
 }
 
 /**
