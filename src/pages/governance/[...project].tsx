@@ -202,11 +202,16 @@ const proposalsColumns: ColumnDef<IProposal>[] = [
 		header: 'Title',
 		accessorKey: 'title',
 		enableSorting: false,
-		cell: (info) => (
-			<a href={info.row.original.link} target="_blank" rel="noopener noreferrer">
-				{info.getValue() as string}
-			</a>
-		)
+		cell: (info) => {
+			if (!info.row.original.link) {
+				return info.getValue()
+			}
+			return (
+				<a href={info.row.original.link} target="_blank" rel="noopener noreferrer">
+					{info.getValue() as string}
+				</a>
+			)
+		}
 	},
 	{
 		header: 'Start',
@@ -229,7 +234,9 @@ const proposalsColumns: ColumnDef<IProposal>[] = [
 		header: 'State',
 		id: 'state',
 		accessorFn: (row) => (row.state === 'closed' ? 0 : 1),
-		cell: (info) => (info.getValue() === 0 ? 'Closed' : 'Open'),
+		cell: (info) => (
+			<State data-isactive={info.getValue() === 0 ? false : true}>{info.getValue() === 0 ? 'Closed' : 'Active'}</State>
+		),
 		meta: { align: 'end' }
 	},
 	{
@@ -248,12 +255,19 @@ const proposalsColumns: ColumnDef<IProposal>[] = [
 		header: 'Discussion',
 		accessorKey: 'discussion',
 		enableSorting: false,
-		cell: (info) => (
-			<a href={info.getValue() as string} target="_blank" rel="noopener noreferrer">
-				View
-			</a>
-		),
-
+		cell: (info) =>
+			info.getValue() && (
+				<a href={info.getValue() as string} target="_blank" rel="noopener noreferrer">
+					View
+				</a>
+			),
 		meta: { align: 'end' }
 	}
 ]
+
+const State = styled.span`
+	&[data-isactive='false'] {
+		color: #f85149;
+	}
+	color: #3fb950;
+`
