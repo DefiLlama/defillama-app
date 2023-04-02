@@ -27,6 +27,8 @@ export const PROTOCOL_EMISSION_API = 'https://api.llama.fi/emission'
 
 export const GOVERNANCE_API =
 	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/overview/snapshot.json'
+export const PROTOCOL_GOVERNANCE_API =
+	'https://tvl-adapter-cache.s3.eu-central-1.amazonaws.com/governance-cache/snapshot'
 
 export const NFT_COLLECTIONS_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/collections'
 export const NFT_VOLUME_API = 'https://ezy8r863f5.execute-api.eu-central-1.amazonaws.com/volume'

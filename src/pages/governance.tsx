@@ -74,7 +74,7 @@ export default function Protocols({ data }) {
 				</SearchWrapper>
 			</TableHeaderAndSearch>
 
-			<TableWrapper instance={instance} />
+			<VirtualTable instance={instance} />
 		</Layout>
 	)
 }
@@ -86,10 +86,4 @@ export const Wrapper = styled(StatsSection)`
 	padding: 24px;
 	color: ${({ theme }) => theme.text1};
 	background: ${({ theme }) => theme.bg7};
-`
-
-const TableWrapper = styled(VirtualTable)`
-	table {
-		table-layout: auto;
-	}
 `

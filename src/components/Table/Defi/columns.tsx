@@ -416,12 +416,6 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 		meta: { align: 'end' }
 	},
 	{
-		header: 'Strategy',
-		accessorKey: 'strategyCount',
-		size: 80,
-		meta: { align: 'end' }
-	},
-	{
 		accessorFn: (row) => row.states.open || 0,
 		id: 'openState',
 		header: 'Open Proposals',

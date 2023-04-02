@@ -30,7 +30,7 @@ export async function getStaticPaths() {
 
 export default function Protocol({ emissions }) {
 	return (
-		<Layout title={`${emissions.name} Unlocks - DefiLlama`} style={{ gap: '36px' }} defaultSEO>
+		<Layout title={`${emissions.name} Unlocks - DefiLlama`} defaultSEO>
 			<Wrapper>
 				<Name>
 					<TokenLogo logo={tokenIconUrl(emissions.name)} />
