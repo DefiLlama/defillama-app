@@ -324,7 +324,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Total Locked %',
 		id: 'totalLocked',
-		accessorFn: (row) => (row.tPrice && row.totalLocked ? +row.tPrice * row.totalLocked : 0),
+		accessorFn: (row) => (row.maxSupply && row.totalLocked ? row.totalLocked / row.maxSupply : 0),
 		cell: ({ getValue, row }) => {
 			const symbol = row.original.tSymbol
 			const percetage = (row.original.totalLocked / row.original.maxSupply) * 100
