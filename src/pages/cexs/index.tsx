@@ -139,6 +139,12 @@ export const cexData = [
 		cgDeriv: 'phemex_futures'
 	},
 	{
+		name: 'Cake DeFi',
+		slug: 'cake-defi',
+		coin: null,
+		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
+	},
+	{
 		name: 'MaskEX',
 		slug: 'maskex',
 		coin: null,
@@ -180,12 +186,6 @@ export const cexData = [
 		slug: 'bitvenus',
 		coin: null,
 		walletsLink: null
-	},
-	{
-		name: 'Cake DeFi',
-		slug: 'cake-defi',
-		coin: null,
-		walletsLink: 'https://blog.cakedefi.com/proof-of-reserves'
 	},
 	{
 		name: 'Coinbase',
