@@ -266,9 +266,9 @@ const proposalsColumns: ColumnDef<IProposal>[] = [
 				return info.getValue()
 			}
 			return (
-				<Title href={info.row.original.link} target="_blank" rel="noopener noreferrer">
-					{info.getValue() as string}
-				</Title>
+				<a href={info.row.original.link} target="_blank" rel="noopener noreferrer">
+					{formatText(info.getValue() as string, 40)}
+				</a>
 			)
 		}
 	},
@@ -307,7 +307,7 @@ const proposalsColumns: ColumnDef<IProposal>[] = [
 	{
 		header: 'Winning Choice',
 		accessorKey: 'winningChoice',
-		cell: (info) => info.getValue() + ' ' + info.row.original.winningPerc,
+		cell: (info) => formatText(info.getValue() as string, 20) + ' ' + info.row.original.winningPerc,
 		enableSorting: false,
 		meta: { align: 'end' }
 	},
@@ -349,10 +349,4 @@ const simpleStack = {
 	Successful: 'stackB'
 }
 
-const Title = styled.a`
-	display: inline-block;
-	max-width: 30ch;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-`
+const formatText = (text: string, length) => (text.length > length ? text.slice(0, length + 1) + '...' : text)
