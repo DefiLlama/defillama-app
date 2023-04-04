@@ -66,7 +66,8 @@ const blockExplorers = {
 	tlchain: ['https://explorer.tlchain.live/token/', 'TLChain Explorer'],
 	core: ['https://scan.coredao.org/token/', 'Scan Coredao'],
 	rpg: ['https://scan.rangersprotocol.com/address/', 'Rangerscan'],
-	loop: ['https://explorer.mainnetloop.com/token/', 'LoopExplorer']
+	loop: ['https://explorer.mainnetloop.com/token/', 'LoopExplorer'],
+	zksyncera: ['https://explorer.zksync.io/address/', 'zkSync Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
