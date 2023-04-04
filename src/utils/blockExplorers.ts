@@ -67,7 +67,8 @@ const blockExplorers = {
 	core: ['https://scan.coredao.org/token/', 'Scan Coredao'],
 	rpg: ['https://scan.rangersprotocol.com/address/', 'Rangerscan'],
 	loop: ['https://explorer.mainnetloop.com/token/', 'LoopExplorer'],
-	zksyncera: ['https://explorer.zksync.io/address/', 'zkSync Explorer']
+	era: ['https://explorer.zksync.io/address/', 'zkSync Explorer'],
+	map: ['https://maposcan.io/address/', 'Maposcan']
 }
 
 export const getBlockExplorer = (address: string = '') => {
