@@ -124,7 +124,7 @@ export const getNFTMarketplacesData = async () => {
 
 	const volumeData = Object.entries(
 		volume
-			.map((v) => ({ ...v, date: Math.floor(new Date(v.day).getTime() / 1000) }))
+			.map((v) => ({ ...v, date: Math.floor(new Date(v.day).getTime()) }))
 			.sort((a, b) => a.date - b.date)
 			.reduce(
 				(acc, curr) => {

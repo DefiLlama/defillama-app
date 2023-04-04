@@ -62,7 +62,7 @@ function Marketplaces({ data, volume, dominance, marketplaces }) {
 							expandTo100Percent={true}
 						/>
 					) : (
-						<StackedBarChart chartData={volume} />
+						<StackedBarChart chartData={volume} valueSymbol="ETH " />
 					)}
 				</ChartWrapper>
 			</Panel>
