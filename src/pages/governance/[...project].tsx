@@ -297,7 +297,7 @@ const proposalsColumns: ColumnDef<IProposal>[] = [
 	{
 		header: 'Votes',
 		accessorKey: 'scores_total',
-		accessorFn: (row) => formattedNum(row.scores_total),
+		cell: (info) => formattedNum(info.getValue()),
 		meta: { align: 'end' }
 	},
 	// {
