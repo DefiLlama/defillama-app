@@ -226,11 +226,6 @@ const proposalsColumns: ColumnDef<IProposal>[] = [
 		meta: { align: 'end' }
 	},
 	{
-		header: 'Snapshot',
-		accessorKey: 'snapshot',
-		meta: { align: 'end' }
-	},
-	{
 		header: 'State',
 		id: 'state',
 		accessorFn: (row) => (row.state === 'closed' ? 0 : 1),
