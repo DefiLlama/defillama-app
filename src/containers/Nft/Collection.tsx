@@ -24,9 +24,21 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
+const flagOutliers = (sales) => {
+	const values = sales.map((s) => s[1])
+	const mean = values.reduce((acc, val) => acc + val, 0) / values.length
+	const std = Math.sqrt(values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (values.length - 1))
+	// zscores
+	const scores = values.map((s) => Math.abs((s - mean) / std))
+	// 3sigma threshold
+	return sales.map((s, i) => [...s, scores[i] > 3])
+}
+
 export function NFTCollectionContainer({ name, data, stats, sales, address, floorHistory }) {
 	const floorPrice = floorHistory[floorHistory.length - 1]?.[1]
 	const volume24h = stats[stats.length - 1]?.[1]
+
+	const salesExOutliers = flagOutliers(sales).filter((i) => i[2] === false)
 
 	return (
 		<Layout title={(name || 'NFTs') + ' - DefiLlama'}>
@@ -66,7 +78,7 @@ export function NFTCollectionContainer({ name, data, stats, sales, address, floo
 				</DetailsWrapper>
 
 				<ChartWrapper>
-					<CollectionScatterChart sales={sales} />
+					<CollectionScatterChart sales={salesExOutliers} />
 				</ChartWrapper>
 			</StatsSection>
 
