@@ -38,13 +38,25 @@ export const getStaticProps = async ({
 		return { notFound: true }
 	}
 
-	const data: { proposals: { [id: string]: { title: string } } } = await fetch(
-		PROTOCOL_GOVERNANCE_API + '/' + projectId + '.json'
-	).then((res) => res.json())
+	const data: { proposals: { [id: string]: { title: string; choices: Array<string>; scores: Array<number> } } } =
+		await fetch(PROTOCOL_GOVERNANCE_API + '/' + projectId + '.json').then((res) => res.json())
 
 	return {
 		props: {
-			data: { ...data, proposals: Object.values(data.proposals) }
+			data: {
+				...data,
+				proposals: Object.values(data.proposals).map((proposal) => {
+					const winningScore = proposal.scores.sort((a, b) => b - a)[0]
+					const totalVotes = proposal.scores.reduce((acc, curr) => (acc += curr), 0)
+
+					return {
+						...proposal,
+						winningChoice: winningScore ? proposal.choices[proposal.scores.findIndex((x) => x === winningScore)] : '',
+						winningPerc:
+							totalVotes && winningScore ? `(${Number(((winningScore / totalVotes) * 100).toFixed(2))}% of votes)` : ''
+					}
+				})
+			}
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -93,13 +105,26 @@ export default function Protocol({ data }) {
 				<LinksWrapper>
 					<Stat>
 						<span>Total Proposals</span>
-						<span>{data.metadata.proposalsCount}</span>
+						<span>{data.stats.proposalsCount}</span>
 					</Stat>
+
+					<Stat>
+						<span>Successful Proposals</span>
+						<span>{data.stats.successfulProposals}</span>
+					</Stat>
+
+					<Stat>
+						<span>Successful Proposals in last 30 days</span>
+						<span>{data.stats.propsalsInLast30Days}</span>
+					</Stat>
+
 					<Stat>
 						<span>Followers</span>
 						<span>{data.metadata.followersCount}</span>
 					</Stat>
+				</LinksWrapper>
 
+				<LinksWrapper>
 					{data.metadata.domain && (
 						<Link href={`https://${data.metadata.domain}`} passHref>
 							<Button as="a" target="_blank" rel="noopener noreferrer" useTextColor={true}>
@@ -195,6 +220,8 @@ interface IProposal {
 	state: 'open' | 'closed'
 	link: string
 	discussion: string
+	winningPerc: string
+	winningChoice: string
 }
 
 const proposalsColumns: ColumnDef<IProposal>[] = [
@@ -235,8 +262,21 @@ const proposalsColumns: ColumnDef<IProposal>[] = [
 		meta: { align: 'end' }
 	},
 	{
-		header: 'Participation Rate',
+		header: 'Votes',
 		accessorKey: 'votes',
+		meta: { align: 'end' }
+	},
+	// {
+	// 	header: 'Quorum',
+	// 	accessorKey: 'quorum',
+	// 	cell: (info) => info.getValue() || '',
+	// 	meta: { align: 'end' }
+	// },
+	{
+		header: 'Winning Choice',
+		accessorKey: 'winningChoice',
+		cell: (info) => info.getValue() + ' ' + info.row.original.winningPerc,
+		enableSorting: false,
 		meta: { align: 'end' }
 	},
 	{

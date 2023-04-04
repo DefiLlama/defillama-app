@@ -406,32 +406,45 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 	{
 		header: 'Proposals',
 		accessorKey: 'proposalsCount',
-		size: 80,
+		size: 100,
 		meta: { align: 'end' }
 	},
 	{
 		header: 'Followers',
 		accessorKey: 'followersCount',
-		size: 80,
+		size: 100,
 		meta: { align: 'end' }
 	},
 	{
 		accessorFn: (row) => row.states.active || 0,
 		id: 'activeProposals',
 		header: 'Active Proposals',
-		size: 100,
+		size: 140,
 		meta: { align: 'end' }
 	},
 	{
 		accessorFn: (row) => row.states.closed || 0,
 		id: 'closedProposals',
 		header: 'Closed Proposals',
-		size: 100,
+		size: 144,
+		meta: { align: 'end' }
+	},
+	{
+		accessorKey: 'successfulProposals',
+		header: 'Successful Proposals',
+		size: 180,
 		meta: { align: 'end' }
 	},
 	{
 		header: 'Proposals in last 30 days',
 		accessorKey: 'propsalsInLast30Days',
+		size: 200,
+		meta: { align: 'end' }
+	},
+	{
+		header: 'Successful Proposals in last 30 days',
+		accessorKey: 'successfulPropsalsInLast30Days',
+		size: 280,
 		meta: { align: 'end' }
 	}
 ]
