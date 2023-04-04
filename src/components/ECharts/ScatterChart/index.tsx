@@ -192,7 +192,8 @@ export default function ScatterChart({ chartData }: IChartProps) {
 				{
 					type: 'inside',
 					start: 0,
-					end: 100
+					end: 100,
+					filterMode: 'none'
 				}
 			],
 			series: series

@@ -139,7 +139,8 @@ export default function CollectionScatterChart({ height = '360px', sales }: ICol
 				{
 					type: 'inside',
 					start: 0,
-					end: 100
+					end: 100,
+					filterMode: 'none'
 				}
 			],
 			series: series

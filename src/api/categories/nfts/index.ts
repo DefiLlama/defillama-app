@@ -124,7 +124,7 @@ export const getNFTMarketplacesData = async () => {
 
 	const volumeData = Object.entries(
 		volume
-			.map((v) => ({ ...v, date: Math.floor(new Date(v.day).getTime()) }))
+			.map((v) => ({ ...v, date: new Date(v.day).getTime() }))
 			.sort((a, b) => a.date - b.date)
 			.reduce(
 				(acc, curr) => {
@@ -140,7 +140,7 @@ export const getNFTMarketplacesData = async () => {
 
 					volumeByDay[curr.date][curr.exchangeName] = curr.sum
 
-					acc[curr.exchangeName].push([curr.date, curr.sum])
+					acc[curr.exchangeName].push([curr.date, Number(curr.sum.toFixed(3))])
 
 					return acc
 				},
@@ -153,7 +153,7 @@ export const getNFTMarketplacesData = async () => {
 	const dominance = []
 
 	for (const date in volumeByDay) {
-		const value = { date: Number(date) }
+		const value = { date: Math.floor(Number(date) / 1000) }
 		for (const exchangeName in volumeByDay[date]) {
 			if (exchangeName !== 'total_sum') {
 				value[exchangeName] = getDominancePercent(volumeByDay[date][exchangeName], volumeByDay[date]['total_sum'])

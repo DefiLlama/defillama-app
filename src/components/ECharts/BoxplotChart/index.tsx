@@ -159,12 +159,14 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 				{
 					type: 'inside',
 					start: 0,
-					end: 100
+					end: 100,
+					filterMode: 'none'
 				},
 				{
 					type: 'slider',
 					start: 0,
 					end: 100,
+					filterMode: 'none',
 					textStyle: {
 						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 					},

@@ -138,7 +138,7 @@ export default function StackedBarChart({
 					})
 
 					let vals
-					if (valueSymbol !== '%') {
+					if (valueSymbol !== '%' && valueSymbol !== 'ETH') {
 						vals = params
 							.sort((a, b) => a.value[1] - b.value[1])
 							.reduce((prev, curr) => {
@@ -164,6 +164,7 @@ export default function StackedBarChart({
 										curr.seriesName +
 										'&nbsp;&nbsp;' +
 										curr.value[1] +
+										'&nbsp;' +
 										valueSymbol +
 										'</li>')
 								} else return prev
@@ -206,7 +207,8 @@ export default function StackedBarChart({
 			yAxis: {
 				type: 'value',
 				axisLabel: {
-					formatter: (value) => (valueSymbol === '%' ? value + valueSymbol : valueSymbol + toK(value))
+					formatter: (value) =>
+						valueSymbol === '%' || valueSymbol === 'ETH' ? value + ' ' + valueSymbol : valueSymbol + toK(value)
 				},
 				axisLine: {
 					lineStyle: {
@@ -233,11 +235,13 @@ export default function StackedBarChart({
 				{
 					type: 'inside',
 					start: 0,
-					end: 100
+					end: 100,
+					filterMode: 'none'
 				},
 				{
 					start: 0,
 					end: 100,
+					filterMode: 'none',
 					textStyle: {
 						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 					},
