@@ -1,5 +1,5 @@
 import { maxAgeForNext } from '~/api'
-import { Button, Name } from '~/layout/ProtocolAndPool'
+import { Button, LazyChart, Name } from '~/layout/ProtocolAndPool'
 import * as React from 'react'
 import Layout from '~/layout'
 import styled from 'styled-components'
@@ -22,6 +22,12 @@ import {
 import VirtualTable from '~/components/Table/Table'
 import { Header } from '~/Theme'
 import { SearchIcon, SearchWrapper, TableHeaderAndSearch } from '~/components/Table/shared'
+import dynamic from 'next/dynamic'
+import { IBarChartProps } from '~/components/ECharts/types'
+
+const StackedChart = dynamic(() => import('~/components/ECharts/BarChart'), {
+	ssr: false
+}) as React.FC<IBarChartProps>
 
 export const getStaticProps = async ({
 	params: {
@@ -38,8 +44,20 @@ export const getStaticProps = async ({
 		return { notFound: true }
 	}
 
-	const data: { proposals: { [id: string]: { title: string; choices: Array<string>; scores: Array<number> } } } =
-		await fetch(PROTOCOL_GOVERNANCE_API + '/' + projectId + '.json').then((res) => res.json())
+	const data: {
+		proposals: {
+			[id: string]: {
+				title: string
+				choices: Array<string>
+				scores: Array<number>
+			}
+		}
+		stats: {
+			months: {
+				[month: string]: { total: number; successful: number }
+			}
+		}
+	} = await fetch(PROTOCOL_GOVERNANCE_API + '/' + projectId + '.json').then((res) => res.json())
 
 	return {
 		props: {
@@ -55,7 +73,12 @@ export const getStaticProps = async ({
 						winningPerc:
 							totalVotes && winningScore ? `(${Number(((winningScore / totalVotes) * 100).toFixed(2))}% of votes)` : ''
 					}
-				})
+				}),
+				activity: Object.entries(data.stats.months || {}).map(([date, values]) => ({
+					date: Math.floor(new Date(date).getTime() / 1000),
+					Total: values.total || 0,
+					Successful: values.successful || 0
+				}))
 			}
 		},
 		revalidate: maxAgeForNext([22])
@@ -123,6 +146,15 @@ export default function Protocol({ data }) {
 						<span>{data.metadata.followersCount}</span>
 					</Stat>
 				</LinksWrapper>
+
+				<LazyChart>
+					<StackedChart
+						title={'Activity'}
+						chartData={data.activity}
+						stacks={simpleStack}
+						stackColors={stackedBarChartColors}
+					/>
+				</LazyChart>
 
 				<LinksWrapper>
 					{data.metadata.domain && (
@@ -234,9 +266,9 @@ const proposalsColumns: ColumnDef<IProposal>[] = [
 				return info.getValue()
 			}
 			return (
-				<a href={info.row.original.link} target="_blank" rel="noopener noreferrer">
+				<Title href={info.row.original.link} target="_blank" rel="noopener noreferrer">
 					{info.getValue() as string}
-				</a>
+				</Title>
 			)
 		}
 	},
@@ -305,4 +337,22 @@ const State = styled.span`
 		color: #f85149;
 	}
 	color: #3fb950;
+`
+
+const stackedBarChartColors = {
+	Total: '#4f8fea',
+	Successful: '#E59421'
+}
+
+const simpleStack = {
+	Total: 'stackA',
+	Successful: 'stackB'
+}
+
+const Title = styled.a`
+	display: inline-block;
+	max-width: 30ch;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 `

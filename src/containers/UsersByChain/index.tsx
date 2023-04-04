@@ -96,23 +96,10 @@ export default function UsersByChain({ chart, backgroundColor, name, chains, cha
 				<ChartContainer>
 					<BarChart
 						chartData={allTxsChart}
-						stacks={{ 'Unique Users': 'stackA', 'New Users': 'stackB' }}
-						seriesConfig={{
-							stackA: {
-								color: '#2172E5'
-							},
-							stackB: {
-								type: 'line',
-								symbol: 'none',
-								color: '#E59421'
-							}
-						}}
+						stacks={stacks}
+						seriesConfig={seriesConfig}
 						title=""
-						chartOptions={{
-							legend: {
-								right: null // set legend to center, default is right on larger screens
-							}
-						}}
+						chartOptions={chartOptions}
 					/>
 				</ChartContainer>
 
@@ -121,6 +108,25 @@ export default function UsersByChain({ chart, backgroundColor, name, chains, cha
 			</Wrapper>
 		</Layout>
 	)
+}
+
+const stacks = { 'Unique Users': 'stackA', 'New Users': 'stackB' }
+
+const seriesConfig = {
+	stackA: {
+		color: '#2172E5'
+	},
+	stackB: {
+		type: 'line',
+		symbol: 'none',
+		color: '#E59421'
+	}
+}
+
+const chartOptions = {
+	legend: {
+		right: null // set legend to center, default is right on larger screens
+	}
 }
 
 const ChartContainer = styled(ChartWrapper)`

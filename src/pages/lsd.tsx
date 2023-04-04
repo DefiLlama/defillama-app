@@ -66,7 +66,7 @@ const PageView = ({ chartData, lsdColors, lsdRates, nameGeckoMapping, lsdApy }) 
 	const uniqueDates = [...new Set(historicData.map((p) => p.date))]
 
 	let areaChartData = uniqueDates
-		.map((d) => {
+		.map((d: number) => {
 			let dayData = historicData.filter((z) => z.date === d)
 
 			// on the 27th of august, lido is duplicated, removing dupes
@@ -186,7 +186,7 @@ const PageView = ({ chartData, lsdColors, lsdRates, nameGeckoMapping, lsdApy }) 
 		const tokens = tokensList.map((p) => p.name)
 
 		return { pieChartData, tokensList, tokens, stakedEthSum, stakedEthInUsdSum }
-	}, [chartData, lsdRates, nameGeckoMapping, lsdApy])
+	}, [chartData, lsdRates, lsdApy])
 
 	return (
 		<>
