@@ -10,7 +10,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		size: 200
 	},
 	{
-		header: 'Weekly change',
+		header: 'Volume change',
 		accessorKey: 'weeklyChange',
 		size: 120,
 		cell: (info) => <>{info.getValue() ? formattedPercent(info.getValue()) : null}</>,
@@ -40,7 +40,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		}
 	},
 	{
-		header: '% of total',
+		header: 'Market Share',
 		accessorKey: 'pctOfTotal',
 		size: 120,
 		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + '%' : null}</>,
@@ -54,7 +54,28 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		accessorKey: '1DayNbTrades',
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: '24h rolling trades'
+		}
+	},
+	{
+		header: 'Trades 7d',
+		accessorKey: '7DayNbTrades',
+		size: 120,
+		meta: {
+			align: 'end',
+			headerHelperText: '7day rolling trades'
+		}
+	},
+	{
+		header: '% Wash Volume 7d',
+		accessorKey: 'washVolume7DPct',
+		size: 140,
+		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + '%' : null}</>,
+		meta: {
+			align: 'end',
+			headerHelperText:
+				'% of inorganic trades relative to organic ones over last 7days rolling. All our values are exclusive of wash trades'
 		}
 	}
 ]
