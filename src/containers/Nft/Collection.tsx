@@ -50,11 +50,6 @@ export function NFTCollectionContainer({ name, data, stats, sales, address, floo
 					</Name>
 
 					<Stat>
-						<span>Total Supply</span>
-						<span>{data?.[0]?.totalSupply}</span>
-					</Stat>
-
-					<Stat>
 						<span>Floor Price</span>
 						<span>{floorPrice ? floorPrice.toFixed(2) + ' ETH' : ''}</span>
 					</Stat>
@@ -62,6 +57,11 @@ export function NFTCollectionContainer({ name, data, stats, sales, address, floo
 					<Stat>
 						<span>24h Volume</span>
 						<span>{volume24h ? volume24h.toFixed(2) + ' ETH' : ''}</span>
+					</Stat>
+
+					<Stat>
+						<span>Total Supply</span>
+						<span>{data?.[0]?.totalSupply}</span>
 					</Stat>
 
 					<Link href={`https://etherscan.io/token/${address.split(':')[0]}`} passHref>
