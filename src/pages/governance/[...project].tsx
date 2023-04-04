@@ -5,7 +5,7 @@ import Layout from '~/layout'
 import styled from 'styled-components'
 import { StatsSection } from '~/layout/Stats/Medium'
 import TokenLogo from '~/components/TokenLogo'
-import { standardizeProtocolName, toNiceDayMonthAndYear, tokenIconUrl } from '~/utils'
+import { standardizeProtocolName, toNiceDayMonthAndYear, tokenIconUrl, formattedNum } from '~/utils'
 import { GOVERNANCE_API, PROTOCOL_GOVERNANCE_API } from '~/constants'
 import Link from 'next/link'
 import { ArrowUpRight } from 'react-feather'
@@ -254,6 +254,7 @@ interface IProposal {
 	discussion: string
 	winningPerc: string
 	winningChoice: string
+	scores_total: number
 }
 
 const proposalsColumns: ColumnDef<IProposal>[] = [
@@ -295,7 +296,8 @@ const proposalsColumns: ColumnDef<IProposal>[] = [
 	},
 	{
 		header: 'Votes',
-		accessorKey: 'votes',
+		accessorKey: 'scores_total',
+		accessorFn: (row) => formattedNum(row.scores_total),
 		meta: { align: 'end' }
 	},
 	// {
