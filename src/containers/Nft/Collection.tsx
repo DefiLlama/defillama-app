@@ -11,6 +11,8 @@ import type { ICollectionScatterChartProps } from './types'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { ArrowUpRight } from 'react-feather'
 import Link from 'next/link'
+import { ToggleWrapper2 } from '~/components'
+import { useRouter } from 'next/router'
 
 const CollectionScatterChart = dynamic(() => import('./CollectionScatterChart'), {
 	ssr: false
@@ -24,21 +26,12 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-const flagOutliers = (sales) => {
-	const values = sales.map((s) => s[1])
-	const mean = values.reduce((acc, val) => acc + val, 0) / values.length
-	const std = Math.sqrt(values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (values.length - 1))
-	// zscores
-	const scores = values.map((s) => Math.abs((s - mean) / std))
-	// sigma threshold
-	return sales.map((s, i) => [...s, scores[i] >= 2])
-}
-
-export function NFTCollectionContainer({ name, data, stats, sales, address, floorHistory }) {
+export function NFTCollectionContainer({ name, data, stats, sales, salesExOutliers, address, floorHistory }) {
 	const floorPrice = floorHistory[floorHistory.length - 1]?.[1]
 	const volume24h = stats[stats.length - 1]?.[1]
+	const router = useRouter()
 
-	const salesExOutliers = flagOutliers(sales).filter((i) => i[2] === false)
+	const includeOutliers = router.isReady && router.query.includeOutliers === 'true' ? true : false
 
 	return (
 		<Layout title={(name || 'NFTs') + ' - DefiLlama'}>
@@ -78,7 +71,24 @@ export function NFTCollectionContainer({ name, data, stats, sales, address, floo
 				</DetailsWrapper>
 
 				<ChartWrapper>
-					<CollectionScatterChart sales={salesExOutliers} />
+					<ToggleWrapper2>
+						<input
+							type="checkbox"
+							value="showMcapChart"
+							checked={includeOutliers}
+							onChange={() =>
+								router.push(
+									{ pathname: router.pathname, query: { ...router.query, includeOutliers: !includeOutliers } },
+									undefined,
+									{
+										shallow: true
+									}
+								)
+							}
+						/>
+						<span>Include Outliers</span>
+					</ToggleWrapper2>
+					<CollectionScatterChart sales={includeOutliers ? sales : salesExOutliers} />
 				</ChartWrapper>
 			</StatsSection>
 

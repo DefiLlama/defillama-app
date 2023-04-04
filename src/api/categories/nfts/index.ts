@@ -193,6 +193,16 @@ export const getNFTCollectionsByMarketplace = async (marketplace: string) => {
 	}
 }
 
+const flagOutliers = (sales) => {
+	const values = sales.map((s) => s[1])
+	const mean = values.reduce((acc, val) => acc + val, 0) / values.length
+	const std = Math.sqrt(values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (values.length - 1))
+	// zscores
+	const scores = values.map((s) => Math.abs((s - mean) / std))
+	// sigma threshold
+	return sales.map((s, i) => [...s, scores[i] >= 2])
+}
+
 export const getNFTCollection = async (slug: string) => {
 	try {
 		const [data, sales, stats, floorHistory] = await Promise.all([
@@ -205,6 +215,7 @@ export const getNFTCollection = async (slug: string) => {
 		return {
 			data,
 			sales,
+			salesExOutliers: flagOutliers(sales).filter((i) => i[2] === false),
 			stats: stats.map((item) => [Math.floor(new Date(item.day).getTime() / 1000), item.sum, item.count]),
 			name: data?.[0]?.name ?? null,
 			address: slug,
