@@ -53,7 +53,17 @@ export const formatProtocolsData = ({
 			}
 
 			if (oracle) {
-				toFilter = toFilter && protocol.oracles?.includes(oracle)
+				if ((protocol as any).oraclesByChain) {
+					protocol.tvl = 0;
+					Object.entries((protocol as any).oraclesByChain).forEach(([chain, oracles]: [any, any]) => {
+						if (oracles.includes(oracle)) {
+							protocol.tvl += protocol.chainTvls[chain].tvl
+						}
+					})
+					toFilter = toFilter && protocol.tvl !== 0;
+				} else {
+					toFilter = toFilter && protocol.oracles?.includes(oracle)
+				}
 			}
 
 			if (fork) {
