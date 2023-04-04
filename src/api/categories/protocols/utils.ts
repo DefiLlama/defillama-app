@@ -1,6 +1,6 @@
 import type { IFormattedProtocol, LiteProtocol } from '~/api/types'
 import { keepNeededProperties } from '~/api/shared'
-import { getPercentChange } from '~/utils'
+import { capitalizeFirstLetter, getPercentChange } from '~/utils'
 
 export type BasicPropsToKeep = (keyof IFormattedProtocol)[]
 
@@ -57,7 +57,7 @@ export const formatProtocolsData = ({
 					protocol.tvl = 0;
 					Object.entries((protocol as any).oraclesByChain).forEach(([chain, oracles]: [any, any]) => {
 						if (oracles.includes(oracle)) {
-							protocol.tvl += protocol.chainTvls[chain].tvl
+							protocol.tvl += protocol.chainTvls[capitalizeFirstLetter(chain)].tvl
 						}
 					})
 					toFilter = toFilter && protocol.tvl !== 0;
