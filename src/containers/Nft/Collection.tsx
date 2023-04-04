@@ -30,8 +30,8 @@ const flagOutliers = (sales) => {
 	const std = Math.sqrt(values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (values.length - 1))
 	// zscores
 	const scores = values.map((s) => Math.abs((s - mean) / std))
-	// 3sigma threshold
-	return sales.map((s, i) => [...s, scores[i] > 3])
+	// sigma threshold
+	return sales.map((s, i) => [...s, scores[i] >= 2])
 }
 
 export function NFTCollectionContainer({ name, data, stats, sales, address, floorHistory }) {
