@@ -26,7 +26,16 @@ const BarChart = dynamic(() => import('~/components/ECharts/BarChart'), {
 	ssr: false
 }) as React.FC<IBarChartProps>
 
-export function NFTCollectionContainer({ name, data, stats, sales, salesExOutliers, address, floorHistory }) {
+export function NFTCollectionContainer({
+	name,
+	data,
+	stats,
+	sales,
+	salesExOutliers,
+	salesMedian1d,
+	address,
+	floorHistory
+}) {
 	const floorPrice = floorHistory[floorHistory.length - 1]?.[1]
 	const volume24h = stats[stats.length - 1]?.[1]
 	const router = useRouter()
@@ -88,7 +97,7 @@ export function NFTCollectionContainer({ name, data, stats, sales, salesExOutlie
 						/>
 						<span>Include Outliers</span>
 					</ToggleWrapper2>
-					<CollectionScatterChart sales={includeOutliers ? sales : salesExOutliers} />
+					<CollectionScatterChart sales={includeOutliers ? sales : salesExOutliers} salesMedian1d={salesMedian1d} />
 				</ChartWrapper>
 			</StatsSection>
 

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { ScatterChart as EChartScatter } from 'echarts/charts'
+import { ScatterChart as EChartScatter, LineChart as EChartLine } from 'echarts/charts'
 import {
 	TooltipComponent,
 	TitleComponent,
@@ -21,6 +21,7 @@ import { useMedia } from '~/hooks'
 echarts.use([
 	CanvasRenderer,
 	EChartScatter,
+	EChartLine,
 	TooltipComponent,
 	TitleComponent,
 	GridComponent,
@@ -29,7 +30,11 @@ echarts.use([
 	DataZoomComponent
 ])
 
-export default function CollectionScatterChart({ height = '360px', sales }: ICollectionScatterChartProps) {
+export default function CollectionScatterChart({
+	height = '360px',
+	sales,
+	salesMedian1d
+}: ICollectionScatterChartProps) {
 	const id = React.useMemo(() => uuid(), [])
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -53,6 +58,14 @@ export default function CollectionScatterChart({ height = '360px', sales }: ICol
 					focus: 'series'
 				},
 				data: sales.map((p) => [new Date(p[0]), p[1]])
+			},
+			{
+				name: 'RollingMedian1d',
+				type: 'line',
+				itemStyle: {
+					color: '#ffc300'
+				},
+				data: salesMedian1d.map((p) => [new Date(p[0]), p[1]])
 			}
 		]
 

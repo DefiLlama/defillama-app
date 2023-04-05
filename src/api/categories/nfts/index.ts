@@ -203,6 +203,15 @@ const flagOutliers = (sales) => {
 	return sales.map((s, i) => [...s, scores[i] >= 1])
 }
 
+const median = (sales) => {
+	const middle = Math.floor(sales.length / 2)
+
+	if (sales.length % 2 === 0) {
+		return (sales[middle - 1] + sales[middle]) / 2
+	}
+	return sales[middle]
+}
+
 export const getNFTCollection = async (slug: string) => {
 	try {
 		const [data, sales, stats, floorHistory] = await Promise.all([
@@ -212,10 +221,30 @@ export const getNFTCollection = async (slug: string) => {
 			fetch(`${NFT_COLLECTION_FLOOR_HISTORY_API}/${slug}`).then((r) => r.json())
 		])
 
+		const salesExOutliers = flagOutliers(sales).filter((i) => i[2] === false)
+
+		// sort on timestamp
+		const X = salesExOutliers.map((p) => [new Date(p[0]).getTime(), p[1]]).sort((a, b) => a[0] - b[0])
+		const salesMedian1d = []
+		for (const i of X) {
+			let stop = i[0]
+			// 1d rolling median
+			let start = stop - 3600 * 24 * 1000
+			salesMedian1d.push([
+				stop,
+				median(
+					X.filter((s) => s[0] >= start && s[0] <= stop)
+						.map((s) => s[1])
+						.sort((a, b) => a - b) // sort values, required for median
+				)
+			])
+		}
+
 		return {
 			data,
 			sales,
-			salesExOutliers: flagOutliers(sales).filter((i) => i[2] === false),
+			salesExOutliers,
+			salesMedian1d,
 			stats: stats.map((item) => [Math.floor(new Date(item.day).getTime() / 1000), item.sum, item.count]),
 			name: data?.[0]?.name ?? null,
 			address: slug,
