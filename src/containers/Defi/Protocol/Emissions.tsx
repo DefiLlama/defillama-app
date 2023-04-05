@@ -27,7 +27,10 @@ export interface IEmission {
 	stackColors: { [stack: string]: string }
 }
 
+const MAX_LENGTH_EVENTS_LIST = 5
+
 export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
+	const cutEventsList = !isEmissionsPage && data.events?.length > MAX_LENGTH_EVENTS_LIST
 	return (
 		<Section id="emissions" style={{ paddingLeft: 0, gridColumn: '1 / -1' }}>
 			{!isEmissionsPage && <h3>Emissions</h3>}
@@ -80,7 +83,7 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 				<>
 					<h4>Events</h4>
 					<List>
-						{data.events.map((event) => (
+						{(cutEventsList ? data.events.slice(0, MAX_LENGTH_EVENTS_LIST) : data.events).map((event) => (
 							<li key={event.description}>
 								{formatUnlocksEvent({
 									description: event.description,
@@ -91,6 +94,7 @@ export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissi
 								})}
 							</li>
 						))}
+						{cutEventsList && <li key="more">...</li>}
 					</List>
 				</>
 			)}
