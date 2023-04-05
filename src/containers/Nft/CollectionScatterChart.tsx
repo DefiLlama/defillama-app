@@ -53,6 +53,8 @@ export default function CollectionScatterChart({
 			{
 				name: '',
 				type: 'scatter',
+				large: true,
+				largeThreshold: 0,
 				symbols: 5,
 				emphasis: {
 					focus: 'series'
