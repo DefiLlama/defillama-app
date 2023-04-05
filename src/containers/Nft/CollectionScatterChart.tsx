@@ -173,7 +173,7 @@ export default function CollectionScatterChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, sales, createInstance, isDark, isSmall])
+	}, [id, sales, createInstance, isDark, isSmall, salesMedian1d])
 
 	return (
 		<div style={{ position: 'relative' }}>
