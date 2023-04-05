@@ -314,7 +314,7 @@ const proposalsColumns: ColumnDef<IProposal>[] = [
 		meta: { align: 'end' }
 	},
 	{
-		header: 'Controversiality',
+		header: 'Controversy',
 		accessorKey: 'score_curve',
 		cell: (info) => (info.getValue() ? (info.getValue() as number).toFixed(2) : ''),
 
