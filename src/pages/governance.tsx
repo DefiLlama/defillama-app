@@ -30,7 +30,7 @@ export const getStaticProps = async () => {
 
 export default function Governance({ data }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'activeProposals', desc: true }])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'followersCount', desc: true }])
 
 	const instance = useReactTable({
 		data: data,
