@@ -59,7 +59,7 @@ export default function CollectionScatterChart({
 				emphasis: {
 					focus: 'series'
 				},
-				symbolSize: 5,
+				symbolSize: 3,
 				data: sales.map((p) => [new Date(p[0]), p[1]])
 			},
 			{
