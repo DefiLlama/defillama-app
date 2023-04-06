@@ -214,17 +214,19 @@ const median = (sales) => {
 
 export const getNFTCollection = async (slug: string) => {
 	try {
-		const [data, sales, stats, floorHistory] = await Promise.all([
+		let [data, sales, stats, floorHistory] = await Promise.all([
 			fetch(`${NFT_COLLECTION_API}/${slug}`).then((r) => r.json()),
 			fetch(`${NFT_COLLECTION_SALES_API}/${slug}`).then((r) => r.json()),
 			fetch(`${NFT_COLLECTION_STATS_API}/${slug}`).then((r) => r.json()),
 			fetch(`${NFT_COLLECTION_FLOOR_HISTORY_API}/${slug}`).then((r) => r.json())
 		])
 
+		sales = sales.map((i) => [i[0] * 1000, i[1]])
+
 		const salesExOutliers = flagOutliers(sales).filter((i) => i[2] === false)
 
 		// sort on timestamp
-		const X = salesExOutliers.map((p) => [new Date(p[0]).getTime(), p[1]]).sort((a, b) => a[0] - b[0])
+		const X = salesExOutliers.sort((a, b) => a[0] - b[0])
 		const salesMedian1d = []
 		for (const i of X) {
 			let stop = i[0]
