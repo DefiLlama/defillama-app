@@ -36,6 +36,8 @@ import { getPeggedAssets } from '../stablecoins'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { fetchWithErrorLogging } from '~/utils/async'
 
+const fetch = fetchWithErrorLogging
+
 export const getProtocolsRaw = () => fetch(PROTOCOLS_API).then((r) => r.json())
 
 export const getProtocols = () =>
