@@ -226,21 +226,33 @@ export const getNFTCollection = async (slug: string) => {
 		const salesExOutliers = flagOutliers(sales).filter((i) => i[2] === false)
 
 		// sort on timestamp
-		// const X = salesExOutliers.sort((a, b) => a[0] - b[0])
-		const salesMedian1d = []
-		// for (const i of X) {
-		// 	let stop = i[0]
-		// 	// 1d rolling median
-		// 	let start = stop - 3600 * 24 * 1000
-		// 	salesMedian1d.push([
-		// 		stop,
-		// 		median(
-		// 			X.filter((s) => s[0] >= start && s[0] <= stop)
-		// 				.map((s) => s[1])
-		// 				.sort((a, b) => a - b) // sort values, required for median
-		// 		)
-		// 	])
-		// }
+		const X = salesExOutliers.sort((a, b) => a[0] - b[0])
+
+		// calc 1d-rolling median at at the end of every x-hours
+		const x = 6
+		const u = 3600 * x * 1000
+		// round up
+		const start = Math.ceil(X[0][0] / u) * u
+		const stop = Math.ceil(X[X.length - 1][0] / u) * u
+		// create hourly timestamps
+		const hourlyT = []
+		for (let timestamp = start; timestamp <= stop; timestamp += u) {
+			hourlyT.push(timestamp)
+		}
+
+		// calc median
+		const salesMedian1d = hourlyT.map((hour) => {
+			// daily offset
+			const offset = hour - 3600 * 24 * 1000
+			const valuesInRange = X.reduce((acc, [timestamp, value]) => {
+				if (timestamp >= offset && timestamp <= hour) {
+					acc.push(value)
+				}
+				return acc
+			}, []).sort((a, b) => a - b) // sort values, required for median
+			const medianValue = median(valuesInRange)
+			return [hour, medianValue]
+		})
 
 		return {
 			data,

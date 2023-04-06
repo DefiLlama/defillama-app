@@ -61,15 +61,17 @@ export default function CollectionScatterChart({
 				},
 				symbolSize: 5,
 				data: sales.map((p) => [new Date(p[0]), p[1]])
+			},
+			{
+				name: 'RollingMedian1d',
+				type: 'line',
+				itemStyle: {
+					color: '#ffc300'
+				},
+				data: salesMedian1d.map((p) => [new Date(p[0]), p[1]]),
+				showSymbol: false,
+				connectNulls: true
 			}
-			// {
-			// 	name: 'RollingMedian1d',
-			// 	type: 'line',
-			// 	itemStyle: {
-			// 		color: '#ffc300'
-			// 	},
-			// 	data: salesMedian1d.map((p) => [new Date(p[0]), p[1]])
-			// }
 		]
 
 		const option = {
