@@ -226,21 +226,21 @@ export const getNFTCollection = async (slug: string) => {
 		const salesExOutliers = flagOutliers(sales).filter((i) => i[2] === false)
 
 		// sort on timestamp
-		const X = salesExOutliers.sort((a, b) => a[0] - b[0])
+		// const X = salesExOutliers.sort((a, b) => a[0] - b[0])
 		const salesMedian1d = []
-		for (const i of X) {
-			let stop = i[0]
-			// 1d rolling median
-			let start = stop - 3600 * 24 * 1000
-			salesMedian1d.push([
-				stop,
-				median(
-					X.filter((s) => s[0] >= start && s[0] <= stop)
-						.map((s) => s[1])
-						.sort((a, b) => a - b) // sort values, required for median
-				)
-			])
-		}
+		// for (const i of X) {
+		// 	let stop = i[0]
+		// 	// 1d rolling median
+		// 	let start = stop - 3600 * 24 * 1000
+		// 	salesMedian1d.push([
+		// 		stop,
+		// 		median(
+		// 			X.filter((s) => s[0] >= start && s[0] <= stop)
+		// 				.map((s) => s[1])
+		// 				.sort((a, b) => a - b) // sort values, required for median
+		// 		)
+		// 	])
+		// }
 
 		return {
 			data,
