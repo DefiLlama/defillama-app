@@ -2,6 +2,9 @@
 import type { ISearchItem } from '~/components/Search/types'
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
 import { liquidationsIconUrl } from '..'
+import { fetchWithErrorLogging } from '../async'
+
+const fetch = fetchWithErrorLogging
 
 /**
  * Format the URL to the liquidations data payload
