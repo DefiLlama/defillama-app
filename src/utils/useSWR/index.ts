@@ -1,14 +1,18 @@
+import { fetchWithErrorLogging } from '../async'
+
+const fetch = fetchWithErrorLogging
+
 export const fetcher = (input: RequestInfo, init?: RequestInit) => fetch(input, init).then((res) => res.json())
 
 export class NetworkError extends Error {
-	status;
+	status
 
 	constructor(status: number, message: string) {
-		super(message);
+		super(message)
 
-		this.status = status;
+		this.status = status
 
-		Object.setPrototypeOf(this, NetworkError.prototype);
+		Object.setPrototypeOf(this, NetworkError.prototype)
 	}
 }
 
@@ -23,7 +27,6 @@ export const fetcherWErrorHandling = async (input: RequestInfo, init?: RequestIn
 
 	return res.json()
 }
-
 
 export const arrayFetcher = (urlArr: string[]) => Promise.all(urlArr.map((url) => fetcher(url)))
 
