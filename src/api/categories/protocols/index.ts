@@ -24,6 +24,7 @@ import {
 	PROTOCOLS_API,
 	PROTOCOL_API,
 	PROTOCOL_EMISSIONS_API,
+	PROTOCOL_EMISSIONS_LIST_API,
 	PROTOCOL_EMISSION_API,
 	YIELD_POOLS_API
 } from '~/constants'
@@ -100,6 +101,9 @@ export const getAllProtocolEmissions = async () => {
 
 export const getProtocolEmissons = async (protocolName: string) => {
 	try {
+		const list = await fetch(PROTOCOL_EMISSIONS_LIST_API).then((r) => r.json());
+    if (!list.includes(protocolName)) return { data: [], categories: [] };
+
 		const res = await fetch(`${PROTOCOL_EMISSION_API}/${protocolName}`)
 			.then((r) => r.json())
 			.then((r) => JSON.parse(r.body))
